@@ -1,0 +1,12 @@
+# go test -tags test_dep -p 2 ./tests -run 'TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_ReportFlags$' -count=5 -v -timeout 9m (darwin/arm64, suite_rc=0; result lines only)
+--- PASS: TestVersioningFunctionalSuite (0.00s)
+    --- PASS: TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_ReportFlags (0.11s)
+--- PASS: TestVersioningFunctionalSuite (0.00s)
+    --- PASS: TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_ReportFlags (0.04s)
+--- PASS: TestVersioningFunctionalSuite (0.00s)
+    --- PASS: TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_ReportFlags (0.55s)
+--- PASS: TestVersioningFunctionalSuite (0.00s)
+    --- PASS: TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_ReportFlags (0.54s)
+--- PASS: TestVersioningFunctionalSuite (0.00s)
+    --- PASS: TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_ReportFlags (0.01s)
+ok  	go.temporal.io/server/tests	2.973s

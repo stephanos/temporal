@@ -1,0 +1,46 @@
+{
+  "schema": "gomad3.qualification-set/v3",
+  "name": "temporal-tests",
+  "description": "Every top-level test of the Temporal ./tests package, generated from its test list",
+  "module": "go.temporal.io/server",
+  "seeds": [
+    11
+  ],
+  "repeat": 2,
+  "run_timeout": "2m",
+  "overall_timeout": "5m",
+  "terminate_grace": "2s",
+  "output_bytes": 8388608,
+  "world_transition_bytes": 67108864,
+  "suites": [
+    {
+      "id": "tests-user-timers-test-suite",
+      "name": "TestUserTimersTestSuite",
+      "tier": 3,
+      "invariant": "TestUserTimersTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestUserTimersTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
+      "overall_timeout": "20m",
+      "test_parallel": 8,
+      "expectation": {
+        "classification": "qualified"
+      }
+    }
+  ]
+}

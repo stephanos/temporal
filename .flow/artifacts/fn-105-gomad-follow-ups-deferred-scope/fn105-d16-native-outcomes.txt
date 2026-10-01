@@ -1,0 +1,15 @@
+# go test -p 2 -tags test_dep,disable_grpc_modules -count=3 -v -run '^TestStandaloneActivityTestSuite$/^TestStartDelay$/^UpdateWhilePaused_AfterWindow_ExtendsDispatch$' ./tests
+--- PASS: TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch (5.06s)
+--- PASS: TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch (5.05s)
+--- PASS: TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch (5.01s)
+ok  	go.temporal.io/server/tests	17.106s
+wf-poll-context-timeout": 2.999850709
+wf-poll-context-timeout": 2.999895917
+wf-poll-context-timeout": 2.999858583
+# go test -p 2 -tags test_dep,disable_grpc_modules -count=1 -v -run '^TestStandaloneActivityTestSuite$' ./tests
+--- PASS: TestStandaloneActivityTestSuite (0.00s)
+--- PASS: TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch (5.01s)
+ok  	go.temporal.io/server/tests	53.970s
+FAIL lines: 0
+wf-poll-context-timeout": 2.999924125
+wf-poll-context-timeout": 2.999937125

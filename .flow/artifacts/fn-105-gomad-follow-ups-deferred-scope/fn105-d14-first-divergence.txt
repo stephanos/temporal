@@ -1,0 +1,90 @@
+# Unfixed instrumented toolchain (key c0661e38 + scratch instrumentation), TestSignalWorkflowTestSuiteChasm seed 11, darwin/arm64.
+# Event fields: k kind (L runtime-lock sleep in lock2, C type-assertion/interface-switch cache growth, A heap span allocation),
+#   f flags (1 M holds the P, 2 on g0), m M id, g current goroutine, d choice decisions so far, r seeded cheaprand draws so far,
+#   n lock id (1 sched.lock) / old cache mask / span class, a caller pc or span base.
+
+## Runtime-lock sleeps in the divergent replay (replay 84 of 200; diverged at choice ordinal 35573, alternatives)
+GEV k=L f=3 m=7 g=0 d=7629 r=34248 n=1 a=0x100058834 runtime.findRunnable
+GEV k=L f=2 m=9 g=0 d=7629 r=34248 n=1 a=0x10005738c runtime.stopm
+
+## Runtime-lock sleeps in a matching replay (replay 83)
+(none)
+
+## Cache-growth events, matching (<) versus divergent (>): g, d, r, old mask, call site
+29,30c29,31
+< g=17 d=7630 r=34346 n=0 database/sql.(*driverConn).validateConnection
+< g=17 d=7630 r=35461 n=0 go.temporal.io/server/chasm.(*Registry).Register
+---
+> g=17 d=7630 r=34346 n=0 database/sql.(*DB).execDC
+> g=17 d=7630 r=35461 n=0 go.uber.org/fx/internal/fxreflect.Stack.Format
+> g=17 d=7630 r=36482 n=0 go.uber.org/fx.(*module).provide
+32,35c33,36
+< g=2878 d=9419 r=39716 n=0 google.golang.org/grpc.SetTrailer
+< g=2970 d=9981 r=40961 n=65536 go.temporal.io/server/common/rpc/interceptor.GetNamespaceName
+< g=2845 d=10097 r=41230 n=1 google.golang.org/grpc/internal/transport.(*controlBuffer).getOnceLocked
+< g=12 d=11483 r=45984 n=0 go.uber.org/fx.(*module).provide
+---
+> g=2206 d=9478 r=39716 n=65536 fmt.(*pp).handleMethods
+> g=2998 d=10119 r=41230 n=0 google.golang.org/grpc/internal/transport.NewServerTransport
+> g=2396 d=11359 r=45286 n=0 database/sql.(*DB).queryDC
+> g=12 d=11483 r=45984 n=1 go.uber.org/fx.(*module).provide
+37,87c38,68
+< g=3992 d=13266 r=50330 n=0 database/sql.(*Rows).nextLocked
+< g=4014 d=13368 r=50564 n=0 google.golang.org/grpc.getCodec
+< g=4131 d=14032 r=52090 n=65537 database/sql/driver.defaultConverter.ConvertValue
+< g=4204 d=14226 r=52571 n=1 fmt.(*pp).handleMethods
+< g=4227 d=14343 r=52862 n=0 google.golang.org/grpc.(*Server).getCodec
+< g=4229 d=14677 r=53837 n=0 go.temporal.io/server/common/rpc/faultinjection.ScopeFromRequest
+
+## First differing events ignoring M id and draw counter, matching (<) versus divergent (>)
+5074c5074
+< k=C g=17 d=7630 n=0 a=0x100d41cd4 database/sql.(*driverConn).validateConnection
+---
+> k=C g=17 d=7630 n=0 a=0x100d46b14 database/sql.(*DB).execDC
+5207a5208
+> k=C g=17 d=7630 n=0 a=0x100ac92c8 go.uber.org/fx/internal/fxreflect.Stack.Format
+5210d5210
+< k=C g=17 d=7630 n=0 a=0x100e0e330 go.temporal.io/server/chasm.(*Registry).Register
+5457a5458
+> k=C g=17 d=7630 n=0 a=0x100ad7144 go.uber.org/fx.(*module).provide
+6363d6363
+< k=C g=2878 d=9419 n=0 a=0x1006ddd08 google.golang.org/grpc.SetTrailer
+6378a6379
+> k=C g=2206 d=9478 n=65536 a=0x100149b58 fmt.(*pp).handleMethods
+6470d6470
+< k=C g=2970 d=9981 n=65536 a=0x1010aeb58 go.temporal.io/server/common/rpc/interceptor.GetNamespaceName
+
+## Events around the contended acquisition in the divergent replay
+GEV k=A f=3 m=9 g=2179 d=7627 r=34247 n=65536 a=0x4923bac80000
+GEV k=A f=3 m=9 g=2180 d=7628 r=34247 n=65536 a=0x4923bad30000
+GEV k=A f=3 m=0 g=17 d=7629 r=34247 n=1 a=0x4923bbec8000
+GEV k=A f=3 m=0 g=17 d=7629 r=34247 n=65536 a=0x4923bad38000
+GEV k=L f=3 m=7 g=0 d=7629 r=34248 n=1 a=0x100058834 runtime.findRunnable
+GEV k=L f=2 m=9 g=0 d=7629 r=34248 n=1 a=0x10005738c runtime.stopm
+GEV k=A f=3 m=7 g=17 d=7629 r=34248 n=89 a=0x4923bad14000
+GEV k=A f=3 m=9 g=17 d=7629 r=34251 n=113 a=0x4923bad68000
+GEV k=A f=3 m=9 g=17 d=7629 r=34251 n=113 a=0x4923bad6e000
+GEV k=A f=3 m=9 g=17 d=7629 r=34256 n=39 a=0x4923bad16000
+GEV k=A f=3 m=9 g=17 d=7629 r=34256 n=47 a=0x4923bad74000
+GEV k=A f=3 m=9 g=17 d=7629 r=34256 n=43 a=0x4923bad76000
+GEV k=A f=3 m=9 g=17 d=7629 r=34257 n=89 a=0x4923bad78000
+
+## First differing heap-span allocations, matching (<) versus divergent (>): g, d, span class, span base
+7269,7270c7269,7270
+< g=12 d=11483 n=8 a=0x4923be226000
+< g=12 d=11483 n=11 a=0x4923be228000
+---
+> g=12 d=11483 n=11 a=0x4923be226000
+> g=12 d=11483 n=8 a=0x4923be228000
+7452,7453c7452,7453
+< g=12 d=11483 n=10 a=0x4923be408000
+< g=12 d=11483 n=11 a=0x4923be40a000
+---
+> g=12 d=11483 n=11 a=0x4923be408000
+> g=12 d=11483 n=10 a=0x4923be40a000
+
+## Cache growth by the goroutine that refills those spans (g=12, d=11483), matching then divergent
+GEV k=C f=1 m=8 g=12 d=11483 r=45984 n=0 a=0x100ad7144 go.uber.org/fx.(*module).provide
+GEV k=C f=1 m=8 g=12 d=11483 r=46128 n=1 a=0x100ad9ff4 go.uber.org/fx.runProvide
+GEV k=C f=1 m=0 g=12 d=11483 r=45984 n=1 a=0x100ad7144 go.uber.org/fx.(*module).provide
+GEV k=C f=1 m=0 g=12 d=11483 r=46128 n=1 a=0x100ad9ff4 go.uber.org/fx.runProvide

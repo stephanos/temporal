@@ -1,0 +1,5 @@
+ok  	go.temporal.io/server/service/matching	42.235s
+ok  	go.temporal.io/server/service/matching/configs	1.332s
+ok  	go.temporal.io/server/service/matching/counter	0.275s
+?   	go.temporal.io/server/service/matching/hooks	[no test files]
+ok  	go.temporal.io/server/service/matching/workers	0.716s

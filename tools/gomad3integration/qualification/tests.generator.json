@@ -36,10 +36,10 @@
         "target": "/go.temporal.io/server/schema"
       }
     ],
-    "choice_bytes": 67108864,
-    "replay_successes": true,
-    "success_artifact_limit": 1,
-    "success_bytes_limit": 1073741824,
+    "choice_bytes": 0,
+    "replay_successes": false,
+    "success_artifact_limit": 0,
+    "success_bytes_limit": 0,
     "overall_timeout": "20m",
     "expectation": {
       "classification": "qualified"
@@ -114,34 +114,6 @@
         }
       }
     },
-    "TestNexusApiTestSuiteWithLegacyErrorPaths": {
-      "skip_subtests": {
-        "TestNexusStartOperation_Outcomes": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Its ByNamespaceAndTaskQueue and ByEndpoint subtests run in parallel on one shared cluster and register the same endpoint name (tc.endpointName, nexus_api_test.go:275); stock go test passes only while the matching engine's in-memory endpoint registry has not yet observed the first registration, and under virtual time it has, so CreateNexusEndpoint returns AlreadyExists."
-        },
-        "TestNexusCancelOperation_Outcomes": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Its ByNamespaceAndTaskQueue and ByEndpoint subtests run in parallel on one shared cluster and register the same endpoint name (tc.endpointName, nexus_api_test.go:275); stock go test passes only while the matching engine's in-memory endpoint registry has not yet observed the first registration, and under virtual time it has, so CreateNexusEndpoint returns AlreadyExists."
-        }
-      }
-    },
-    "TestNexusApiTestSuiteWithTemporalFailures": {
-      "skip_subtests": {
-        "TestNexusStartOperation_Outcomes": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Its ByNamespaceAndTaskQueue and ByEndpoint subtests run in parallel on one shared cluster and register the same endpoint name (tc.endpointName, nexus_api_test.go:275); stock go test passes only while the matching engine's in-memory endpoint registry has not yet observed the first registration, and under virtual time it has, so CreateNexusEndpoint returns AlreadyExists."
-        },
-        "TestNexusCancelOperation_Outcomes": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Its ByNamespaceAndTaskQueue and ByEndpoint subtests run in parallel on one shared cluster and register the same endpoint name (tc.endpointName, nexus_api_test.go:275); stock go test passes only while the matching engine's in-memory endpoint registry has not yet observed the first registration, and under virtual time it has, so CreateNexusEndpoint returns AlreadyExists."
-        }
-      }
-    },
     "TestNexusOTELSuite": {
       "clock_tick": "forward",
       "skip_subtests": {
@@ -155,30 +127,12 @@
     "TestNexusStandaloneTestSuite": {
       "clock_tick": "forward"
     },
-    "TestNexusWorkflowTestSuiteHSM": {
-      "skip_subtests": {
-        "TestNexusOperationSurvivesResetCrossTree": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Asserts the reset run's exact history with the done signal after the post-reset workflow task completes; the test sends the signal without waiting for that task, and under virtual time it lands first and is buffered into it (16 events instead of 19, nexus_workflow_test.go:3693)."
-        }
-      }
-    },
     "TestQueryWorkflowSuite": {
       "required_probes": [
         "stdlib.net.interfaces",
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ]
-    },
-    "TestScheduleMigrationTestSuite": {
-      "skip_subtests": {
-        "TestScheduleMigrationV2ToV1Idempotent": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Expects a second MigrateSchedule to succeed, but Scheduler.MigrateToWorkflow is idempotent only while the migration is pending and returns ErrClosed once its side-effect task closed the CHASM schedule; stock go test passes only while that task has not run yet (chasm/lib/scheduler/scheduler.go:817)."
-        }
-      }
     },
     "TestScheduleV1": {
       "choice_bytes": 0,
@@ -206,19 +160,9 @@
     "TestVersioningFunctionalSuite": {
       "choice_bytes": 0,
       "replay_successes": false,
-      "reason": "Its choice tape overflows the 64 MiB bound (choice_trace_overflow, darwin/arm64 2026-09-29); seed repeatability is proven without a retained success replay. Its WAL-mode SQLite database grows past 16 MiB, which the in-memory filesystem refused until 2026-09-29; with the raised bound a repetition runs the whole suite in about 20 minutes of wall time on darwin/arm64, so it needs the longer budgets. TestDescribeTaskQueueEnhanced_ReportFlags fails deterministically on both seeds under Gomad and is not yet shown to be a test bug; open finding recorded in F7's status (2026-09-29).",
+      "reason": "Its choice tape overflows the 64 MiB bound (choice_trace_overflow, darwin/arm64 2026-09-29); seed repeatability is proven without a retained success replay. Its WAL-mode SQLite database grows past 16 MiB, which the in-memory filesystem refused until 2026-09-29; with the raised bound a repetition runs the whole suite in about 20 minutes of wall time on darwin/arm64, so it needs the longer budgets. With the D25 corrections (enhanced DescribeTaskQueue cache keyed by report flags; TestDescribeTaskQueueEnhanced_ReportFlags waits for the poller under both task-queue types) it qualifies on seeds 11 and 17 (darwin/arm64 2026-09-30); linux/amd64 was not run.",
       "execution_timeout": "30m",
-      "overall_timeout": "90m",
-      "platform_expectations": {
-        "darwin/arm64": {
-          "classification": "target_failure",
-          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
-        },
-        "linux/amd64": {
-          "classification": "target_failure",
-          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
-        }
-      }
+      "overall_timeout": "90m"
     },
     "TestWorkerCommandsTaskSuite": {
       "skip_subtests": {
@@ -261,16 +205,16 @@
     },
     "TestSignalWorkflowTestSuiteChasm": {
       "platform_expectations": {
-        "darwin/arm64": {
-          "classification": "intermittent",
-          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
-        },
         "linux/amd64": {
           "classification": "intermittent",
           "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
         }
       },
-      "reason": "Residual replay divergence: about 1 in 28 seed-11 replays differ in stderr (two heap-span refills swap order before any collection; allocating goroutine not yet identified). Open Gomad finding recorded in F7's status (2026-09-29)."
+      "choice_bytes": 67108864,
+      "replay_successes": true,
+      "success_artifact_limit": 1,
+      "success_bytes_limit": 1073741824,
+      "reason": "Carried the darwin replay divergence fixed under F10 D14 (2026-09-30): a contended scheduler lock drew from the seeded runtime stream, a type-assertion cache grew on a different call, and two heap-span refills swapped order. It keeps the 64 MiB choice trace and success replay that routine workloads no longer record, because an untraced run cannot observe a replay divergence; darwin/arm64 is expected to qualify with exact replay, and linux/amd64 stays intermittent until F10 D12 is verified there."
     },
     "TestTaskQueueStats_Pri_Suite": {
       "io_transcript_bytes": 536870912,

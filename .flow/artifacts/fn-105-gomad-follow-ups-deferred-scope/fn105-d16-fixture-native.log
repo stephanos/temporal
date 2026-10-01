@@ -1,0 +1,24 @@
+### native go run . 0
+burn=0 offset=-46.792µs
+client: deadline in 3s, fires after 2.99999325s on the timer clock
+hop 1: grpc-timeout=2.999973042s, server deadline fires after 2.999970542s (client+42ns)
+hop 2: grpc-timeout=2.999965917s, server deadline fires after 2.999965458s (client+125ns)
+child: fires after 1.9999595s on the timer clock, margin before the client 999.999792ms
+result: empty response first, timer clock advanced 2.001502083s, offset=-83ns
+rc=0
+### native go run . 600000
+burn=600000 offset=-3.125µs
+client: deadline in 3s, fires after 2.999986541s on the timer clock
+hop 1: grpc-timeout=2.999971041s, server deadline fires after 2.999969791s (client+83ns)
+hop 2: grpc-timeout=2.999964291s, server deadline fires after 2.999963874s (client+166ns)
+child: fires after 1.999956833s on the timer clock, margin before the client 999.99975ms
+result: empty response first, timer clock advanced 2.001151208s, offset=0s
+rc=0
+### native go run . 700000
+burn=700000 offset=-7.583µs
+client: deadline in 3s, fires after 2.999989s on the timer clock
+hop 1: grpc-timeout=2.999974333s, server deadline fires after 2.999966833s (client+125ns)
+hop 2: grpc-timeout=2.999960833s, server deadline fires after 2.999960166s (client+208ns)
+child: fires after 1.999951707s on the timer clock, margin before the client 999.999709ms
+result: empty response first, timer clock advanced 2.001152459s, offset=-41ns
+rc=0

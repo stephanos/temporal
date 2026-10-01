@@ -1,0 +1,10 @@
+gomad: qualification iteration=1/4
+gomad: qualification iteration=2/4
+gomad: qualification iteration=3/4
+gomad: qualification iteration=4/4
+gomad: qualification qualified=true deterministic=true target-success=true seed=11 repeat=4 report=/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/d14/fixed-q11/qualifications/v1/qualification-4037621539.json
+gomad: choices profile=gomad3-choice-trace/v2 records=86243 decisions=57801 branching=57801 runnable=30936 select-poll=26865 select-result=28442 sha256=sha256:97bea35218f5708fafba91b93fda83152fb07619002a762391b2982f8a6dad2e tape-sha256=sha256:5db9d59d64a11ec890e186826838631f05bd7baa1444e60ddd2ca169b7aa7830 terminal=complete
+gomad: replay artifact=/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/d14/fixed-q11/v1/campaign-20261001T040949.349155000Z-5fa6cdc9073a4ac0d9411118564d618a/successes/sha256-3ef5170dfc6ed14c7ab44e2e7f6f2f9d attempted=true match=true diagnostic=false choice-replay=exact divergence=
+gomad: replay artifact=/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/d14/fixed-q11/v1/campaign-20261001T041208.873497000Z-79cdf3d6adafa2cf8009c1d86b11da8f/successes/sha256-3ef5170dfc6ed14c7ab44e2e7f6f2f9d attempted=true match=true diagnostic=false choice-replay=exact divergence=
+gomad: replay artifact=/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/d14/fixed-q11/v1/campaign-20261001T041238.539402000Z-f556a925c65c19eb989f605f5341ca7a/successes/sha256-3ef5170dfc6ed14c7ab44e2e7f6f2f9d attempted=true match=true diagnostic=false choice-replay=exact divergence=
+gomad: replay artifact=/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/d14/fixed-q11/v1/campaign-20261001T041305.886251000Z-f1f0f40f7d2774f5a53342784695f681/successes/sha256-3ef5170dfc6ed14c7ab44e2e7f6f2f9d attempted=true match=true diagnostic=false choice-replay=exact divergence=

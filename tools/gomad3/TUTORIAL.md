@@ -259,8 +259,12 @@ instant throughout a busy stretch. If a test needs successive reads to differ,
 `--clock-tick=forward` on `explore` or `qualify` adds a seeded 1 to 1024
 nanoseconds per read. The offset leaves the native timer clock, scheduler, and
 simulation time unchanged, but application durations or deadlines derived from
-`time.Now` can observe it. The policy is part of the recorded execution identity,
-and replay restores it.
+`time.Now` can observe it: `time.Since` on a reading that still carries its
+monotonic value can come out short or negative, and a deadline computed from
+such a reading can expire later than a
+timer set for the same duration. Readings differ only at nanosecond
+resolution, so coarser timestamps can still tie. The policy is part of the
+recorded execution identity, and replay restores it.
 
 Virtual time does not bulldoze runnable work. A busy loop or a goroutine
 repeatedly polling a `select` remains runnable, so the clock cannot advance.

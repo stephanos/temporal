@@ -1,0 +1,100 @@
+{
+  "schema": "fn105-d22-gomad-blocked-evidence/v1",
+  "status": "inconclusive: Gomad verification of the outcome tests could not run; this is not a pass",
+  "platform": {
+    "goarch": "arm64",
+    "goos": "darwin"
+  },
+  "source": "HEAD d4d800fb473f008fa4a51a4d8575249f11c9cf3f plus the working-tree fix in tests/nexus_api_test.go",
+  "runner_build_command": "env -u GOROOT PATH=$HOME/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH make gomad3",
+  "toolchain": {
+    "boundary_manifest_sha256": "sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0",
+    "boundary_manifest_version": "go1.27.1-v1",
+    "build_key": "c0661e38b4e001c8d86912d4ce9e265eb0f33e5f3298015da27a4c97ac4019b9",
+    "go_version": "go1.27.1",
+    "target_goarch": "arm64",
+    "target_goos": "darwin"
+  },
+  "io_profile": {
+    "implementation_sha256": "sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0",
+    "inventory_sha256": "sha256:0d34edfc0ab13c693b78d514ca1a72a9adc196fe61e2142dba108c0ff47358f7",
+    "name": "gomad3-deterministic/v1"
+  },
+  "seeds": [
+    "11",
+    "17"
+  ],
+  "manifest": "the two TestNexusApiTestSuiteWith* suites of tools/gomad3integration/qualification/tests.json with their skip lists removed",
+  "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad qualify-set --manifest=<scratch>/before.json --working-dir=<repo> --artifacts=<scratch>/before-artifacts --output=<scratch>/before-report.json --prune-qualified-artifacts",
+  "exit_status": 1,
+  "result": {
+    "selected": 2,
+    "supported": 0,
+    "unsupported": 2,
+    "failed": 0,
+    "infrastructure_errors": 0,
+    "replayed": 0,
+    "expectations_met": false
+  },
+  "workloads": [
+    {
+      "name": "TestNexusApiTestSuiteWithLegacyErrorPaths",
+      "classification": "unsupported_target",
+      "blockers": [
+        "forbidden_import import:golang.org/x/sys/unix github.com/mattn/go-isatty@v0.0.21",
+        "forbidden_import import:golang.org/x/sys/unix modernc.org/libc@v1.72.3",
+        "forbidden_import import:golang.org/x/sys/unix modernc.org/memory@v1.11.0",
+        "forbidden_import import:golang.org/x/sys/unix modernc.org/sqlite@v1.51.0",
+        "forbidden_import import:syscall modernc.org/libc@v1.72.3",
+        "unapproved_linkname linkname:arith_decl.go github.com/remyoudompheng/bigfft@v0.0.0-20230129092748-24d4a6f8daec",
+        "unapproved_linkname linkname:gomad_darwin.go modernc.org/libc@v1.72.3",
+        "unapproved_linkname linkname:mmap_unix.go modernc.org/memory@v1.11.0"
+      ]
+    },
+    {
+      "name": "TestNexusApiTestSuiteWithTemporalFailures",
+      "classification": "unsupported_target",
+      "blockers": [
+        "forbidden_import import:golang.org/x/sys/unix github.com/mattn/go-isatty@v0.0.21",
+        "forbidden_import import:golang.org/x/sys/unix modernc.org/libc@v1.72.3",
+        "forbidden_import import:golang.org/x/sys/unix modernc.org/memory@v1.11.0",
+        "forbidden_import import:golang.org/x/sys/unix modernc.org/sqlite@v1.51.0",
+        "forbidden_import import:syscall modernc.org/libc@v1.72.3",
+        "unapproved_linkname linkname:arith_decl.go github.com/remyoudompheng/bigfft@v0.0.0-20230129092748-24d4a6f8daec",
+        "unapproved_linkname linkname:gomad_darwin.go modernc.org/libc@v1.72.3",
+        "unapproved_linkname linkname:mmap_unix.go modernc.org/memory@v1.11.0"
+      ]
+    }
+  ],
+  "control": {
+    "command": "tools/gomad3/.bin/gomad analyze --format=json --build-tag=disable_grpc_modules --build-tag=gomad --build-tag=test_dep go-test ./tests -- '-test.run=^TestUserTimersTestSuite$'",
+    "exit_status": 1,
+    "classification": "unsupported",
+    "blockers": [
+      "forbidden_import import:golang.org/x/sys/unix github.com/mattn/go-isatty@v0.0.21",
+      "forbidden_import import:golang.org/x/sys/unix modernc.org/libc@v1.72.3",
+      "forbidden_import import:golang.org/x/sys/unix modernc.org/memory@v1.11.0",
+      "forbidden_import import:golang.org/x/sys/unix modernc.org/sqlite@v1.51.0",
+      "forbidden_import import:syscall modernc.org/libc@v1.72.3",
+      "unapproved_linkname linkname:arith_decl.go github.com/remyoudompheng/bigfft@v0.0.0-20230129092748-24d4a6f8daec",
+      "unapproved_linkname linkname:gomad_darwin.go modernc.org/libc@v1.72.3",
+      "unapproved_linkname linkname:mmap_unix.go modernc.org/memory@v1.11.0"
+    ],
+    "meaning": "a smoke-gate suite that needs no D22 change is unsupported the same way, so the cause is not this task's test or manifest"
+  },
+  "cause": {
+    "summary": "HEAD changed the darwin/arm64 deterministic-I/O profile implementation digest, and the modernc libc compatibility packs still bind the previous digest; pack selection requires equality, so no pack admits the SQLite closure and every ./tests target is unsupported before execution",
+    "profile_implementation_sha256_at_head": "sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0",
+    "profile_golden": "tools/gomad3/deterministicio/profile_test.go (darwin/arm64 implementationSHA256)",
+    "pack_bound_profile_implementation_sha256": [
+      "sha256:80351583382e4c83bd375e48246813a2b15e45b7e013a33c6d2177ff53ee419b"
+    ],
+    "stale_packs": [
+      "modernc-libc-xsys-v041",
+      "modernc-libc-xsys-v047",
+      "modernc-libc-xsys-v047-isatty-v021"
+    ],
+    "selection_rule": "tools/gomad3/internal/compatibilitypack/v2_selection.go:222",
+    "not_detected_by": "make -C tools/gomad3 validate-compatibility reports 'compatibility packs are current'"
+  }
+}

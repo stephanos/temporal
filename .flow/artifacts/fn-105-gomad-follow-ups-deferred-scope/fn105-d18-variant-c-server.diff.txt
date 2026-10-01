@@ -1,0 +1,11 @@
+--- /Users/stephan/Workspace/temporal/gomad/service/history/workflow/timer_sequence.go	2026-09-28 18:51:13
++++ service/history/workflow/timer_sequence.go	2026-09-30 23:24:59
+@@ -127,7 +127,7 @@
+ 	// activity timer after workflow timeout, skip
+ 	execInfo := t.mutableState.GetExecutionInfo()
+ 	workflowRunExpirationTime := timestamp.TimeValue(execInfo.WorkflowRunExpirationTime)
+-	if !workflowRunExpirationTime.IsZero() && firstTimerTask.Timestamp.After(workflowRunExpirationTime) {
++	if !workflowRunExpirationTime.IsZero() && !firstTimerTask.Timestamp.Before(workflowRunExpirationTime) {
+ 		return false, nil
+ 	}
+ 

@@ -142,7 +142,7 @@ tools/gomad3/.bin/gomad explore \
 
 Choice recording defaults to 8 MiB and accepts at most `--choice-bytes=64MiB`; overflow fails visibly. Output retention defaults to 8 MiB per stream, adjustable with `--output-limit`. Deterministic I/O transcript capacity defaults to 64 MiB and accepts `--io-transcript-bytes` from 64 MiB through 1 GiB in whole MiB increments. A larger transcript does not increase choice capacity.
 
-With the default `--clock-tick=strict` policy, virtual time stands still while work is runnable, so repeated `time.Now` reads can tie. A test that orders records by timestamp may fail on those ties. Add `--clock-tick=forward` to `explore` or `qualify` to add a cumulative seeded offset of 1 to 1024 nanoseconds per `time.Now` read. The native timer clock still advances when work cannot proceed. The policy is part of the Campaign and Artifact identity, and replay restores it.
+With the default `--clock-tick=strict` policy, virtual time stands still while work is runnable, so repeated `time.Now` reads can tie. A test that orders records by timestamp may fail on those ties. Add `--clock-tick=forward` to `explore` or `qualify` to add a cumulative seeded offset of 1 to 1024 nanoseconds per `time.Now` read. The native timer clock still advances only when work cannot proceed, and `time.Since` and `time.Until` read that clock for a reading that still carries its monotonic value: an elapsed time measured from such a reading can be short or negative, a deadline computed from it can expire later than a timer set for the same duration, and timestamps truncated above nanosecond resolution can still tie. A reading stripped of its monotonic value, as by serialization or parsing, is compared against a fresh ticked `time.Now` instead. The policy is part of the Campaign and Artifact identity, and replay restores it.
 
 To run a module that lives elsewhere, such as one that depends on the server through a local `replace`, pass `--working-dir=/absolute/module/root` instead of changing directories.
 
@@ -277,6 +277,8 @@ tools/gomad3/.bin/gomad qualify \
 Qualification prepares and executes independently for each repetition, compares canonical evidence, and retains its own report. Optional successful replay proves that a passing observation is reproducible, not merely equal by summary.
 
 The default is seed 1 with two repetitions; `--repeat` accepts 2 through 32. Qualification collects semantic coverage, and `--choices` adds choice coverage and runtime replay evidence. `--replay-successes` requires explicit count and byte bounds per repetition.
+
+The two flags are independent and opt-in, and the claim follows the flags. With neither, `qualified` means same-seed repeatability: fresh repetitions produced equal evidence, and nothing was replayed. With `--choices` the compared evidence includes the Choice Trace's tape digest, but a success keeps its Decision Tape only when it is retained. With `--replay-successes` alone each retained success is replayed from its seed and the result reports `choice-replay=none`. With both flags each retained success is replayed from its tape, and the result's `choice-replay=exact` is the verified choice-tape replay claim. A qualification-set workload states the same choice with `choice_bytes`, `replay_successes`, and its success limits, and there success replay requires a Choice Trace; an untraced workload's seeds report `replayed: false` and no `choice_replay_exact`.
 
 A product claim usually contains more than one workload. First validate the qualification manifest without running targets:
 
@@ -444,7 +446,7 @@ go -C tools/gomad3 run ./cmd/gomadtool qualification-manifest-generate --check -
 - `version-generate` derives consumers of the release descriptor.
 - `protocol-generate` derives both endpoints and tests for the declared cross-process protocols.
 - `boundary-generate` derives the reviewed host-capability inventory and compiler interception evidence.
-- `qualification-manifest-generate` derives a qualification-set manifest with one workload per top-level test of a package, the tests `go test -list` reports under the spec's build tags, from a spec of defaults, per-test overrides, and exclusions. `--check` fails when the manifest is stale relative to the package or the spec.
+- `qualification-manifest-generate` derives a qualification-set manifest with one workload per top-level test of a package, the tests `go test -list` reports under the spec's build tags, from a spec of defaults, per-test overrides, and exclusions. `--check` fails when the manifest is stale relative to the package or the spec. The checked-in `./tests` spec defaults to no Choice Trace and no success replay; a test opts in by overriding `choice_bytes`, `replay_successes`, `success_artifact_limit`, and `success_bytes_limit` with a `reason`.
 
 Without `--check`, these commands update generated outputs. `boundary-generate` also supports focused maintenance modes: `--discover` lists candidate host-capability entry points, `--qualify` verifies declared signatures and candidate coverage, `--refresh` updates reviewed source fingerprints, and `--check-compiler-tests` validates compiler conformance declarations.
 

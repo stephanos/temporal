@@ -1,0 +1,161 @@
+# toolchain build key c0661e38b4e001c8d86912d4ce9e265eb0f33e5f3298015da27a4c97ac4019b9 (unfixed), fixture lookups=3000, 12 concurrent executions per invocation
+--- FAIL: TestProfileSchedulerLockContentionLeavesSeededStreamInPlace (3.40s)
+    io_handoff_toolchain_test.go:72: execution 2 placed the seeded stream differently:
+        type-assertion cache grew at 1053 4632
+        type-assertion cache grew at 1055 4634
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	3.866s
+FAIL
+run 1 rc=1
+--- FAIL: TestProfileSchedulerLockContentionLeavesSeededStreamInPlace (2.33s)
+    io_handoff_toolchain_test.go:72: execution 1 placed the seeded stream differently:
+        type-assertion cache grew at 1054 4633
+        type-assertion cache grew at 1051 4630
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	2.580s
+FAIL
+run 2 rc=1
+--- FAIL: TestProfileSchedulerLockContentionLeavesSeededStreamInPlace (2.29s)
+    io_handoff_toolchain_test.go:72: execution 1 placed the seeded stream differently:
+        type-assertion cache grew at 1055 4634
+        type-assertion cache grew at 1054 4633
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	2.535s
+FAIL
+run 3 rc=1
+--- FAIL: TestProfileSchedulerLockContentionLeavesSeededStreamInPlace (2.30s)
+    io_handoff_toolchain_test.go:72: execution 1 placed the seeded stream differently:
+        type-assertion cache grew at 1054 4633
+        type-assertion cache grew at 1055 4634
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	2.535s
+FAIL
+run 4 rc=1
+--- FAIL: TestProfileSchedulerLockContentionLeavesSeededStreamInPlace (2.13s)
+    io_handoff_toolchain_test.go:72: execution 4 placed the seeded stream differently:
+        type-assertion cache grew at 1055 4634
+        type-assertion cache grew at 1051 4630
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	2.368s
+FAIL
+run 5 rc=1
+--- FAIL: TestProfileSchedulerLockContentionLeavesSeededStreamInPlace (2.34s)
+    io_handoff_toolchain_test.go:72: execution 1 placed the seeded stream differently:
+        type-assertion cache grew at 1054 4633
+        type-assertion cache grew at 1053 4632
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	2.583s
+FAIL
+run 6 rc=1
+--- FAIL: TestProfileSchedulerLockContentionLeavesSeededStreamInPlace (2.38s)
+    io_handoff_toolchain_test.go:72: execution 2 placed the seeded stream differently:
+        type-assertion cache grew at 1055 4634
+        type-assertion cache grew at 1054 4633
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	2.663s
+FAIL
+run 7 rc=1
+--- FAIL: TestProfileSchedulerLockContentionLeavesSeededStreamInPlace (2.38s)
+    io_handoff_toolchain_test.go:72: execution 1 placed the seeded stream differently:
+        type-assertion cache grew at 1055 4634
+        type-assertion cache grew at 1054 4633
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	2.625s
+FAIL
+run 8 rc=1
+--- FAIL: TestProfileSchedulerLockContentionLeavesSeededStreamInPlace (2.40s)
+    io_handoff_toolchain_test.go:72: execution 4 placed the seeded stream differently:
+        type-assertion cache grew at 1055 4634
+        type-assertion cache grew at 1053 4632
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	2.689s
+FAIL
+run 9 rc=1
+--- FAIL: TestProfileSchedulerLockContentionLeavesSeededStreamInPlace (2.34s)
+    io_handoff_toolchain_test.go:72: execution 1 placed the seeded stream differently:
+        type-assertion cache grew at 1055 4634
+        type-assertion cache grew at 1054 4633
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	2.582s
+FAIL
+run 10 rc=1
+--- FAIL: TestProfileSchedulerLockContentionLeavesSeededStreamInPlace (2.37s)
+    io_handoff_toolchain_test.go:72: execution 1 placed the seeded stream differently:
+        type-assertion cache grew at 1055 4634
+        type-assertion cache grew at 1054 4633
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	2.691s
+FAIL
+run 11 rc=1
+--- FAIL: TestProfileSchedulerLockContentionLeavesSeededStreamInPlace (2.37s)
+    io_handoff_toolchain_test.go:72: execution 1 placed the seeded stream differently:
+        type-assertion cache grew at 1054 4633
+        type-assertion cache grew at 1055 4634
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	2.617s
+FAIL
+run 12 rc=1
+--- FAIL: TestProfileSchedulerLockContentionLeavesSeededStreamInPlace (2.38s)
+    io_handoff_toolchain_test.go:72: execution 1 placed the seeded stream differently:
+        type-assertion cache grew at 1055 4634
+        type-assertion cache grew at 1054 4633
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	2.694s
+FAIL
+run 13 rc=1
+--- FAIL: TestProfileSchedulerLockContentionLeavesSeededStreamInPlace (2.36s)
+    io_handoff_toolchain_test.go:72: execution 1 placed the seeded stream differently:
+        type-assertion cache grew at 1055 4634
+        type-assertion cache grew at 1053 4632
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	2.609s
+FAIL
+run 14 rc=1
+--- FAIL: TestProfileSchedulerLockContentionLeavesSeededStreamInPlace (2.43s)
+    io_handoff_toolchain_test.go:72: execution 3 placed the seeded stream differently:
+        type-assertion cache grew at 1055 4634
+        type-assertion cache grew at 1053 4632
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	2.760s
+FAIL
+run 15 rc=1
+--- FAIL: TestProfileSchedulerLockContentionLeavesSeededStreamInPlace (2.32s)
+    io_handoff_toolchain_test.go:72: execution 3 placed the seeded stream differently:
+        type-assertion cache grew at 1055 4634
+        type-assertion cache grew at 1053 4632
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	2.556s
+FAIL
+run 16 rc=1
+--- FAIL: TestProfileSchedulerLockContentionLeavesSeededStreamInPlace (2.23s)
+    io_handoff_toolchain_test.go:72: execution 1 placed the seeded stream differently:
+        type-assertion cache grew at 1055 4634
+        type-assertion cache grew at 1054 4633
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	2.540s
+FAIL
+run 17 rc=1
+--- FAIL: TestProfileSchedulerLockContentionLeavesSeededStreamInPlace (2.21s)
+    io_handoff_toolchain_test.go:72: execution 2 placed the seeded stream differently:
+        type-assertion cache grew at 1055 4634
+        type-assertion cache grew at 1054 4633
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	2.433s
+FAIL
+run 18 rc=1
+--- FAIL: TestProfileSchedulerLockContentionLeavesSeededStreamInPlace (2.19s)
+    io_handoff_toolchain_test.go:72: execution 1 placed the seeded stream differently:
+        type-assertion cache grew at 1053 4632
+        type-assertion cache grew at 1051 4630
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	2.448s
+FAIL
+run 19 rc=1
+--- FAIL: TestProfileSchedulerLockContentionLeavesSeededStreamInPlace (2.15s)
+    io_handoff_toolchain_test.go:72: execution 1 placed the seeded stream differently:
+        type-assertion cache grew at 1054 4633
+        type-assertion cache grew at 1055 4634
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	2.373s
+FAIL
+run 20 rc=1

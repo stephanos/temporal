@@ -1,0 +1,47 @@
+// clock-probe observes the strict and forward virtual-clock tick policies on
+// the pinned toolchain. verify-guides.py copies it to a temporary module as
+// main.go, builds it with tools/gomad3/.toolchain/bin/go, and runs it with
+// GOMADSEED=1 under each policy. It is kept as .txt so repository Go tooling
+// does not treat the evidence directory as a package.
+package main
+
+import (
+	"context"
+	"fmt"
+	"time"
+)
+
+func main() {
+	first := time.Now()
+	second := time.Now()
+	fmt.Println("consecutive_now_differ", second.Sub(first) > 0)
+	fmt.Println("since_negative_in_busy_stretch", time.Since(first) < 0)
+	fmt.Println("until_positive_in_busy_stretch", time.Until(first) > 0)
+	fmt.Println("millisecond_readings_tie", time.Now().UnixMilli() == time.Now().UnixMilli())
+
+	// Accumulate an offset far above two milliseconds under the forward policy
+	// (100000 reads of 1 to 1024 ns each) before deriving a deadline.
+	for range 100000 {
+		time.Now()
+	}
+	deadline, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Second))
+	defer cancel()
+	later := time.NewTimer(time.Second + 2*time.Millisecond)
+	select {
+	case <-deadline.Done():
+		fmt.Println("now_derived_deadline_after_longer_timer", false)
+	case <-later.C:
+		fmt.Println("now_derived_deadline_after_longer_timer", true)
+	}
+
+	start := time.Now()
+	time.Sleep(time.Second)
+	fmt.Println("since_short_after_one_second_sleep", time.Since(start) < time.Second)
+	fmt.Println("now_sub_long_after_one_second_sleep", time.Now().Sub(start) > time.Second)
+
+	// Round(0) strips the monotonic reading, as serializing or parsing does.
+	// time.Since and time.Until then compare against a fresh ticked time.Now.
+	wallOnly := time.Now().Round(0)
+	fmt.Println("since_wall_only_reading_positive", time.Since(wallOnly) > 0)
+	fmt.Println("until_wall_only_reading_negative", time.Until(wallOnly) < 0)
+}

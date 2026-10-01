@@ -275,6 +275,52 @@ func TestProjectSeedReportDoesNotClaimExactReplayWithoutOneChoiceTape(t *testing
 	}
 }
 
+// An untraced workload is qualified by same-seed repeatability alone, so its
+// seed must record the matching evidence without any replay or choice-tape
+// claim, and a mismatch between its repetitions must stay nondeterministic.
+func TestProjectSeedReportClaimsNoReplayForAnUntracedWorkload(t *testing.T) {
+	untraced := Workload{ID: "fixture-case", CapabilityMode: target.CapabilityModeClosure, Package: "./pkg", Test: "TestScenario"}
+	command := workloadCommand(Spec{GomadPath: "gomad", ArtifactRoot: "artifacts"}, Manifest{Repeat: 2, RunTimeout: "30s", OverallTimeout: "2m", TerminateGrace: "2s"}, untraced, 7)
+	if slices.ContainsFunc(command.Args, func(argument string) bool {
+		return strings.HasPrefix(argument, "--choice") || strings.HasPrefix(argument, "--replay-successes") || strings.HasPrefix(argument, "--success-")
+	}) {
+		t.Fatalf("untraced workload command = %q, want no choice trace or success replay", command.Args)
+	}
+	digest := record.HashBytes([]byte("evidence"))
+	report := qualification.QualificationReport{Seed: 7, EvidenceDigest: digest, Executions: []qualification.QualificationExecutionReport{
+		{CampaignPath: "run-1", EvidenceDigest: digest}, {CampaignPath: "run-2", EvidenceDigest: digest},
+	}}
+	var totals Report
+	for _, classification := range []string{"qualified", "nondeterministic"} {
+		seed, err := projectSeedReport(report, classification, 7, untraced, capabilityanalysis.Report{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		addSeedTotals(&totals, seed)
+		if seed.Classification != classification || seed.EvidenceSHA256 != digest || seed.Replayed || seed.ReplayMatch || seed.ChoiceReplayExact || seed.Choice.Available || seed.Choice.ExactReplayAvailable || seed.Choice.TapeSHA256 != "" || seed.TraceBytes != 0 || seed.ArtifactBytes != 0 {
+			t.Fatalf("%s seed evidence = %#v", classification, seed)
+		}
+		encoded, err := canonicaljson.CanonicalJSON(seed)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var public map[string]any
+		if err := json.Unmarshal(encoded, &public); err != nil {
+			t.Fatal(err)
+		}
+		if _, claimed := public["choice_replay_exact"]; claimed || public["replayed"] != false || public["replay_match"] != false || public["choice"].(map[string]any)["available"] != false {
+			t.Fatalf("%s public seed evidence = %s", classification, encoded)
+		}
+		workload := WorkloadReport{Classification: classification, Seeds: []SeedReport{seed}}
+		if got := matchesSupportedExpectation(WorkloadExpectation{Classification: "qualified"}, workload); got != (classification == "qualified") {
+			t.Fatalf("qualified expectation met = %t for a %s untraced seed", got, classification)
+		}
+	}
+	if totals.Replayed != 0 || totals.ReplayDiverged != 0 || totals.TraceBytes != 0 {
+		t.Fatalf("untraced seed totals = %#v", totals)
+	}
+}
+
 func TestRunMeetsUnrepeatableExpectationForEitherOutcome(t *testing.T) {
 	for _, classification := range []string{"nondeterministic", "replay_divergence"} {
 		t.Run(classification, func(t *testing.T) {

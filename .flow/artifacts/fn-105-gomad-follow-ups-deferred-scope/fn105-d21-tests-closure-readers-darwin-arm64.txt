@@ -1,0 +1,16 @@
+# Non-standard Go files selected by build constraints for ./tests (tags disable_grpc_modules,gomad,test_dep; GOOS=darwin GOARCH=arm64 CGO_ENABLED=0), before Gomad adapters rewrite module sources.
+# Pattern: host-stamped field reads, GC stats readers, tracer and profile-rate starters, expvar, raw clock calls, Go collector.
+common/deadlock/deadlock.go:131:	profile := pprof.Lookup("goroutine")
+github.com/prometheus/client_golang@v1.21.0/prometheus/expvar_collector.go:18:	"expvar"
+github.com/prometheus/client_golang@v1.21.0/prometheus/go_collector.go:252:	debug.ReadGCStats(&stats)
+github.com/prometheus/client_golang@v1.21.0/prometheus/go_collector.go:260:	ch <- MustNewConstMetric(c.gcLastTimeDesc, GaugeValue, float64(stats.LastGC.UnixNano())/1e9)
+github.com/prometheus/client_golang@v1.21.0/prometheus/go_collector_latest.go:167:func NewGoCollector(opts ...func(o *internal.GoCollectorOptions)) Collector {
+github.com/prometheus/client_golang@v1.21.0/prometheus/registry.go:62:	MustRegister(NewGoCollector())
+go.temporal.io/sdk@v1.48.0/internal/checksum.go:6:	"crypto/fips140"
+go.temporal.io/sdk@v1.48.0/internal/checksum.go:35:	if fips140.Enabled() {
+golang.org/x/sys@v0.47.0/unix/syscall_darwin.go:623://sys	ClockGettime(clockid int32, time *Timespec) (err error)
+golang.org/x/sys@v0.47.0/unix/syscall_darwin.go:656://sysnb	Gettimeofday(tp *Timeval) (err error)
+golang.org/x/sys@v0.47.0/unix/zsyscall_darwin_arm64.go:1065:func ClockGettime(clockid int32, time *Timespec) (err error) {
+golang.org/x/sys@v0.47.0/unix/zsyscall_darwin_arm64.go:1572:func Gettimeofday(tp *Timeval) (err error) {
+modernc.org/libc@v1.72.3/libc_darwin.go:723:	err := unix.Gettimeofday(&tvs)
+modernc.org/libc@v1.72.3/libc_unix3.go:23:	if err := unix.ClockGettime(clk_id, &ts); err != nil {

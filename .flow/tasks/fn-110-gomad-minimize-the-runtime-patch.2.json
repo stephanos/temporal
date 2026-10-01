@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-01T01:03:53.768396Z",
+  "depends_on": [
+    "fn-110-gomad-minimize-the-runtime-patch.1"
+  ],
+  "id": "fn-110-gomad-minimize-the-runtime-patch.2",
+  "priority": null,
+  "spec": "fn-110-gomad-minimize-the-runtime-patch",
+  "spec_path": ".flow/tasks/fn-110-gomad-minimize-the-runtime-patch.2.md",
+  "status": "todo",
+  "title": "Move the three scheduler implementations into the runtime overlay",
+  "updated_at": "2026-10-01T01:03:53.768396Z"
+}

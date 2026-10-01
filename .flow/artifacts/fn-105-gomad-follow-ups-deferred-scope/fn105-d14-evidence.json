@@ -1,0 +1,280 @@
+{
+  "schema": "fn105-d14-evidence/v1",
+  "task": "fn-105-gomad-follow-ups-deferred-scope.14",
+  "status": "fixed and verified on darwin/arm64; linux/amd64 not run",
+  "base_commit": "d4d800fb473f008fa4a51a4d8575249f11c9cf3f",
+  "head_during_close": "7ef3800a2c7d989f7e77ee54f4f6f4cbcaf82c1b (a milestone-only commit made by the repository owner at 22:11 PDT while this task ran; not this task's)",
+  "commits": [],
+  "baseline": "none (the spec defines no Quick commands)",
+  "changed_source": [
+    {
+      "path": "tools/gomad3/toolchain/runtime/go1.27.1.patch",
+      "sha256": "950063a87d63cb01dada2e6ef232fdeb4acc52f71a008e2158885666669f80bc",
+      "state": "uncommitted working tree",
+      "note": "one added hunk in src/runtime/lock_spinbit.go (already on the patch allowlist); regenerated with gomadtool patch-regenerate"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go",
+      "sha256": "307f40ea7c550d016527fc118bd09b1b35808feae12586c33afde5b56792ddd1",
+      "state": "uncommitted working tree",
+      "note": "adds gomadLockProfileStart"
+    },
+    {
+      "path": "tools/gomad3/choice/internal/wire/wire_generated.go",
+      "sha256": "cdc37cc9a011c99546d840641c4d4fc42c6c526dd4a3c2df314cf6334c18ed15",
+      "state": "uncommitted working tree",
+      "note": "generated consumer of the overlay digest (make generate)"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go",
+      "sha256": "c7f86a43cecd1dc6f5214761efcf144599cbf074a448ad580bf9c23a2ad06b67",
+      "state": "uncommitted working tree",
+      "note": "generated consumer of the overlay digest (make generate)"
+    },
+    {
+      "path": "tools/gomad3/target/internal/livecap/protocol_generated.go",
+      "sha256": "0d1843b5ac1418f63369971e72335086d0a9808724742663acf568a1f3a9a8f8",
+      "state": "uncommitted working tree",
+      "note": "generated consumer of the overlay digest (make generate)"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go",
+      "sha256": "703942a5637cfe4c145b58c9c44ec49ae5a62ff86c8099e916f9499ab289580a",
+      "state": "uncommitted working tree",
+      "note": "generated consumer of the overlay digest (make generate)"
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/io_handoff_contention/main.go",
+      "sha256": "d6f63272c6f51bd50e954e0915248f009298311612f43d9cb9acb01b6845a2de",
+      "state": "uncommitted working tree",
+      "note": "new reproducer fixture"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/io_handoff_toolchain_test.go",
+      "sha256": "8b417addecc8890cd771562848bfffe0686227a8639574ddd5c52279d0f35a49",
+      "state": "uncommitted working tree",
+      "note": "new reproducer test (test-host tier)"
+    },
+    {
+      "path": "tools/gomad3/README.md",
+      "sha256": "bcef6e9e78cbc550ec1dfbf773dd8a1e0239db1e96f3aefc774b53f480aa5fd9",
+      "state": "uncommitted working tree",
+      "note": "Contract paragraph on host-side random draws; other hunks in this file belong to other tasks"
+    },
+    {
+      "path": ".plans/GOMAD_MILESTONES.md",
+      "sha256": "0fead191ae8b0d0011f88a8730a1f2279769ea224a84db45925c03d749e09328",
+      "state": "uncommitted working tree",
+      "note": "the D14 row and the two D14 sentences; other hunks belong to other tasks"
+    },
+    {
+      "path": "tools/gomad3integration/qualification/tests.generator.json",
+      "sha256": "e7c74ae3b3c537bb1663ec639ac1606236e9be5ecbcb0091b2acab27f82ec4b9",
+      "state": "uncommitted working tree",
+      "note": "darwin/arm64 expectation of TestSignalWorkflowTestSuiteChasm restored to the default qualified; other hunks belong to other tasks"
+    },
+    {
+      "path": "tools/gomad3integration/qualification/tests.json",
+      "sha256": "8b4237b23859c00257be4f6e7522c7fac594a99b09146b27bf8ddfd8f5357146",
+      "state": "uncommitted working tree",
+      "note": "regenerated; other hunks belong to other tasks"
+    }
+  ],
+  "platform": {
+    "goos": "darwin",
+    "goarch": "arm64",
+    "os": "macOS 26.6.2 (25G83), Darwin 25.6.0",
+    "cpu": "Apple M2, 8 cores, 16 GiB",
+    "go_version": "go1.27.1",
+    "unfixed_toolchain_build_key": "c0661e38b4e001c8d86912d4ce9e265eb0f33e5f3298015da27a4c97ac4019b9",
+    "fixed_toolchain_build_key": "8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc",
+    "runner_build_unfixed": "sha256:3062e6f84a854ce0652612a38beae2085428c1d470fc9b69747fc413f380f0d1",
+    "runner_build_fixed_verification": "sha256:2bc530203307c9af054b3770e3c47b8c320da4088a79b57288883124f75f32a5 (vcs d4d800fb, modified)",
+    "runner_build_fixed_smoke": "sha256:4dce3aed3599865194224c2b4219d0f13458585c8d849da10ffbc21a79db5222 (rebuilt after the owner's commit: vcs 7ef3800a, modified; same sources and toolchain key)",
+    "fixed_target_sha256": "sha256:00afe9f408a65624163ee4026455419677bfc23bba72efbbe6dfe3cc4553149b (./tests go-test binary, tags disable_grpc_modules gomad test_dep)",
+    "linux_amd64": "not run"
+  },
+  "cause": {
+    "summary": "lock2 calls mLockProfile.start just before an M sleeps on a contended runtime lock; start draws cheaprandn(gTrackingPeriod). Under Gomad cheaprand reads the process-wide seeded stream whenever the M holds the P. Whether a runtime lock outlasts the waiter's spin is host timing, so the seeded stream advanced by one at a host-timed moment.",
+    "waiting_m": "the M holding the P, on g0 in runtime.findRunnable, taking sched.lock (decision 7629 in the dumped divergent replay); wakep and mcommoninit are the other callers seen holding the P",
+    "holding_m": "an M without a P parking in runtime.stopm; exitsyscallNoP is the other P-less holder seen",
+    "consequence": "every later seeded draw moved by one. Type-assertion and interface-switch caches grow when a draw hits, so they grew at other call sites: at the same stream position 34346 the cluster-start goroutine (g 17) grew database/sql.(*driverConn).validateConnection's cache in a matching replay and database/sql.(*DB).execDC's in the divergent one, and fx.(*module).provide grew early. Goroutine 12 then grew fx.(*module).provide's cache from mask 1 instead of mask 0 at decision 11483, an allocation of another size, and two heap-span refills (span classes 8 and 11, then 10 and 11) swapped order. The replay diverged at choice ordinal 35573 (alternatives).",
+    "allocating_goroutine": "goroutine 12 at decision 11483, allocating a type-assertion cache in go.uber.org/fx.(*module).provide (runtime.typeAssert -> buildTypeAssertCache); the earlier misplaced cache growth is on goroutine 17 at decision 7630",
+    "not_every_draw_diverges": "a contended draw during startup (mcommoninit while the reserved Ms park) and a forced extra draw at the same point left the evidence unchanged: growth happens at the same stream positions one call earlier at a hot site",
+    "evidence": [
+      "fn105-d14-first-divergence.txt",
+      "fn105-d14-debug-instrumentation.diff.txt",
+      "fn105-d14-replays-unfixed-dbg.txt",
+      "fn105-d14-replays-unfixed-dbg3.txt"
+    ]
+  },
+  "fix": {
+    "patch": "src/runtime/lock_spinbit.go: startTime = gomadLockProfileStart(&gp.m.mLockProfile) in lock2's sleep path",
+    "overlay": "runtime.gomadLockProfileStart: calls the upstream mLockProfile.start when Gomad is disabled; when enabled draws gomadHostCheapRandN(gTrackingPeriod) from the M's own stream and returns nanotime() on a hit, as upstream does",
+    "policy": "no mgc*, mstats*, mprof.go, or platform file is patched; the patch allowlist and the version descriptor are unchanged; no boundary or policy change; tracing stays on; no expectation was weakened",
+    "disabled_mode": "unchanged: the wrapper delegates to mLockProfile.start. Neither start nor the wrapper is inlinable (go build -gcflags=-m runtime), so lock2 makes an ordinary call in both versions"
+  },
+  "random_call_site_audit": {
+    "process_wide_seeded_stream_when_the_m_holds_the_p": [
+      {
+        "site": "iface.go typeAssert / interfaceSwitch (cache growth)",
+        "moment": "program-timed"
+      },
+      {
+        "site": "sema.go semaRoot.queue ticket",
+        "moment": "program-timed"
+      },
+      {
+        "site": "proc.go newproc1 trackingSeq",
+        "moment": "program-timed"
+      },
+      {
+        "site": "malloc.go fastexprand (heap profile sampling)",
+        "moment": "allocation-timed; MemProfileRate is 0 from gomadStartUserCode"
+      },
+      {
+        "site": "mprof.go mLockProfile.start",
+        "moment": "HOST-TIMED (lock contention); fixed by this task"
+      },
+      {
+        "site": "mgcpacer.go enlistWorker",
+        "moment": "unreachable with one P"
+      },
+      {
+        "site": "mbitmap.go doubleCheckHeapSetType",
+        "moment": "debug build constant, off"
+      },
+      {
+        "site": "mgcmark_greenteagc.go",
+        "moment": "Green Tea is off"
+      },
+      {
+        "site": "os_linux.go setThreadCPUProfiler",
+        "moment": "CPU profiling only"
+      }
+    ],
+    "already_on_the_m_local_stream": [
+      "lock_spinbit.go unlock2Wake anti-starvation",
+      "proc.go stealWork order",
+      "symtab.go pcvalue cache eviction"
+    ],
+    "own_seeded_streams": [
+      "run-queue choice",
+      "runnext and shuffle",
+      "select poll order",
+      "timer tie-break",
+      "clock tick"
+    ],
+    "per_m_64_bit_stream_never_process_wide": [
+      "lock_spinbit.go mutexSampleContention (mutexprofilerate > 0)",
+      "mprof.go blocksampled (blockprofilerate > 0)",
+      "mprof.go recordUnlock",
+      "mprof.go mutexevent (mutexprofilerate > 0)"
+    ],
+    "residual": "a target that enables block or mutex profiling samples from per-M streams on whichever M runs it; that changes profile contents only and was not exercised"
+  },
+  "runs": [
+    {
+      "phase": "red, reproducer on the unfixed toolchain",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep -count=1 -run TestProfileSchedulerLockContentionLeavesSeededStreamInPlace ./runner/internal/execution (20 invocations, build key c0661e38)",
+      "outcome": "20 of 20 failed: an execution placed the seeded stream one to four draws apart",
+      "log": "fn105-d14-reproducer-unfixed.log"
+    },
+    {
+      "phase": "green, reproducer on the fixed toolchain",
+      "command": "same, build key 8d28bd44 (20 invocations, 240 executions)",
+      "outcome": "20 of 20 passed",
+      "log": "fn105-d14-reproducer-fixed.log"
+    },
+    {
+      "phase": "unfixed, instrumented, seed 11",
+      "command": "gomad replay --toolchain-root=<scratch debug toolchain> <retained success>, 150 and 200 sequential replays of two instrumented artifacts under host load (8 busy-loop processes for the first batch and the first half of the second, alongside the fixed-toolchain qualifications and replay loops, then the runtime tier)",
+      "outcome": "5 of 350 diverged, all at choice ordinal 35573 (alternatives); the 345 matching replays logged no runtime-lock sleep on an M holding the P; the one divergent replay with a dump logged exactly one, at decision 7629, before its first differing event",
+      "logs": [
+        "fn105-d14-replays-unfixed-dbg.txt",
+        "fn105-d14-replays-unfixed-dbg3.txt",
+        "fn105-d14-first-divergence.txt"
+      ]
+    },
+    {
+      "phase": "fixed, traced qualification",
+      "command": "gomad qualify --seed=11|17 --repeat=4 --choices --choice-bytes=64MiB --replay-successes --success-limit=1 --success-bytes=1GiB --build-tag=disable_grpc_modules --build-tag=gomad --build-tag=test_dep --io-ro-mount=<root>/schema=/go.temporal.io/server/schema --require-probe=stdlib.net.interfaces --require-probe=stdlib.os.newfile --require-probe=stdlib.os.openfile go-test ./tests -- '-test.run=^TestSignalWorkflowTestSuiteChasm$'",
+      "host_load": "8 busy-loop processes and a concurrent replay loop",
+      "outcome": "both seeds qualified and deterministic; 4 fresh repetitions and 4 exact replays per seed",
+      "logs": [
+        "fn105-d14-qualify-seed11.log",
+        "fn105-d14-qualify-seed17.log",
+        "fn105-d14-qualification-seed11.json",
+        "fn105-d14-qualification-seed17.json"
+      ]
+    },
+    {
+      "phase": "fixed, repeated exact replay",
+      "command": "gomad replay <retained success>, sequential loops per seed: 100 under 8 busy-loop processes with the two seeds and an unfixed loop in parallel, then 3 x 100 per seed in six parallel loops alongside the manifest rounds and the test tiers",
+      "outcome": "seed 11: 400 of 400 exact, 0 diverged; seed 17: 400 of 400 exact, 0 diverged",
+      "logs": [
+        "fn105-d14-replays-fixed-11.txt",
+        "fn105-d14-replays-fixed-11-b.txt",
+        "fn105-d14-replays-fixed-11-c.txt",
+        "fn105-d14-replays-fixed-11-d.txt",
+        "fn105-d14-replays-fixed-17.txt",
+        "fn105-d14-replays-fixed-17-b.txt",
+        "fn105-d14-replays-fixed-17-c.txt",
+        "fn105-d14-replays-fixed-17-d.txt"
+      ]
+    },
+    {
+      "phase": "fixed, generated workload with the restored expectation",
+      "command": "gomad qualify-set --manifest=<tests.json reduced to TestSignalWorkflowTestSuiteChasm> --working-dir=<root> --prune-qualified-artifacts (4 rounds; seeds 11 and 17, repeat 2, -test.parallel=8, 64 MiB trace, success replay)",
+      "host_load": "six parallel replay loops",
+      "outcome": "4 of 4 rounds expectations-met; each seed qualified with choice_replay_exact in every round (8 fresh repetitions and 4 exact replays per seed)",
+      "logs": [
+        "fn105-d14-generated-manifest-rounds.json",
+        "fn105-d14-generated-manifest-chasm.json"
+      ]
+    },
+    {
+      "phase": "runtime tier",
+      "command": "make -C tools/gomad3 test-runtime",
+      "outcome": "gomad3 runtime tier passed (build key 8d28bd44)",
+      "log": "fn105-d14-test-runtime.log"
+    },
+    {
+      "phase": "all tiers, under load",
+      "command": "make -C tools/gomad3 test while six replay loops ran",
+      "outcome": "INCONCLUSIVE: test-host failed with watchdog timeouts (10 s execution budgets, WatchdogTimeout true) in runner and runner/internal/execution; not evidence for or against the change",
+      "log": "fn105-d14-make-test-under-load-inconclusive.log"
+    },
+    {
+      "phase": "all tiers, quiet machine",
+      "command": "make -C tools/gomad3 test",
+      "outcome": "gomad3 all black-box tiers passed, exit 0, 12 min",
+      "log": "fn105-d14-make-test.log"
+    },
+    {
+      "phase": "smoke gate",
+      "command": "make gomad3-smoke-qualification",
+      "outcome": "expectations-met=true supported=4 unsupported=0 failed=0 infrastructure-errors=0",
+      "log": "fn105-d14-smoke-qualification.log"
+    },
+    {
+      "phase": "generation and validation",
+      "command": "make -C tools/gomad3 generate validate; make -C tools/gomad3 validate after the expectation change",
+      "outcome": "exit 0",
+      "log": "fn105-d14-validate.log"
+    },
+    {
+      "phase": "lint",
+      "command": "make lint-code-fast",
+      "outcome": "exit 2 on inherited findings: three staticcheck SA1019 reports in tests/timeskipping_propagation_test.go and tests/versioning_3_query_test.go, which this task does not touch, and the root configuration cannot type-check the nested tools/gomad3 module. gofmt -l and go vet are clean for this task's Go files",
+      "log": "fn105-d14-lint.log"
+    }
+  ],
+  "confidence": "0 divergences in 400 replays per seed. At the historical rate of 1 in 28 the chance of that is below 1e-6 per seed; at the 1 in 70 measured on the instrumented unfixed build it is 0.3 percent per seed. The reproducer and the instrumented trace show the mechanism directly.",
+  "d12": "The patched code is shared with linux/amd64 and the same draw may be the D12 channel. Unverified hypothesis: linux/amd64 was not run and D12 stays open.",
+  "not_done": [
+    "linux/amd64 was not run",
+    "the full representative set (make gomad3-qualification) and the full ./tests set were not rerun on the fixed toolchain",
+    "an artifact recorded with toolchain key c0661e38 cannot be replayed with 8d28bd44 (tapes are bound to the build key)"
+  ]
+}

@@ -1,0 +1,104 @@
+### 1. tests/versioning_test.go (complete diff vs HEAD)
+diff --git a/tests/versioning_test.go b/tests/versioning_test.go
+index 3f5cf42938..b0836bd6e3 100644
+--- a/tests/versioning_test.go
++++ b/tests/versioning_test.go
+@@ -4183,6 +4183,18 @@ func (s *VersioningIntegSuite) TestDescribeTaskQueueEnhanced_ReportFlags() {
+ 			}
+ 		}
+ 		s.True(foundPoller)
++		// The last request below expects the worker's poller under each task queue type, and
++		// the worker's two pollers do not arrive together: wait until both are reported.
++		for _, tqType := range []enumspb.TaskQueueType{enumspb.TASK_QUEUE_TYPE_WORKFLOW, enumspb.TASK_QUEUE_TYPE_ACTIVITY} {
++			foundPoller = false
++			for _, pi := range versionInfo.GetTypesInfo()[int32(tqType)].GetPollers() {
++				if pi.GetIdentity() == wId {
++					foundPoller = true
++					break
++				}
++			}
++			s.True(foundPoller, "poller info should be reported for %s task queue", tqType)
++		}
+ 	}, 3*time.Second, 500*time.Millisecond)
+ 
+ 	// ask for reachability only
+
+### 2. tools/gomad3integration/qualification/tests.json (generated; diff before/after regeneration)
+--- /private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/d25-gomad/tests.before.json	2026-09-30 19:50:43
++++ tools/gomad3integration/qualification/tests.json	2026-09-30 19:50:43
+@@ -3560,16 +3560,6 @@
+       "test_parallel": 8,
+       "expectation": {
+         "classification": "qualified"
+-      },
+-      "platform_expectations": {
+-        "darwin/arm64": {
+-          "classification": "target_failure",
+-          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+-        },
+-        "linux/amd64": {
+-          "classification": "target_failure",
+-          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+-        }
+       }
+     },
+     {
+
+### 3. tests.generator.json TestVersioningFunctionalSuite entry at HEAD
+    "TestVersioningFunctionalSuite": {
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "reason": "Its choice tape overflows the 64 MiB bound (choice_trace_overflow, darwin/arm64 2026-09-29); seed repeatability is proven without a retained success replay. Its WAL-mode SQLite database grows past 16 MiB, which the in-memory filesystem refused until 2026-09-29; with the raised bound a repetition runs the whole suite in about 20 minutes of wall time on darwin/arm64, so it needs the longer budgets. TestDescribeTaskQueueEnhanced_ReportFlags fails deterministically on both seeds under Gomad and is not yet shown to be a test bug; open finding recorded in F7's status (2026-09-29).",
+      "execution_timeout": "30m",
+      "overall_timeout": "90m",
+      "platform_expectations": {
+        "darwin/arm64": {
+          "classification": "target_failure",
+          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+        },
+        "linux/amd64": {
+          "classification": "target_failure",
+          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+        }
+      }
+    },
+
+### 3b. same entry now
+    "TestVersioningFunctionalSuite": {
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "reason": "Its choice tape overflows the 64 MiB bound (choice_trace_overflow, darwin/arm64 2026-09-29); seed repeatability is proven without a retained success replay. Its WAL-mode SQLite database grows past 16 MiB, which the in-memory filesystem refused until 2026-09-29; with the raised bound a repetition runs the whole suite in about 20 minutes of wall time on darwin/arm64, so it needs the longer budgets. With the D25 corrections (enhanced DescribeTaskQueue cache keyed by report flags; TestDescribeTaskQueueEnhanced_ReportFlags waits for the poller under both task-queue types) it qualifies on seeds 11 and 17 (darwin/arm64 2026-09-30); linux/amd64 was not run.",
+      "execution_timeout": "30m",
+      "overall_timeout": "90m"
+    },
+
+### 4. .plans/GOMAD_MILESTONES.md 'Open findings' D25 bullet at HEAD
+- **`TestDescribeTaskQueueEnhanced_ReportFlags`** (versioning suite) fails deterministically ("poller
+  info should not be reported") because of a server bug: the enhanced-mode `DescribeTaskQueue`
+  response cache in `service/matching/matching_engine.go` is keyed by build ID and task-queue type
+  only (`dtq_enhanced:<buildId>.<type>`), so a reachability-only request inside the cache TTL is
+  served the previous response's pollers. Virtual time puts the second call in the same instant
+  as the first, so the hit is certain. The user approved a required production
+  correction in [D25](../.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.25.md)
+  on 2026-09-30, with regression evidence and a dedicated production review.
+  The suite's `target_failure` expectation cites this finding until verification
+  supports updating the disposition.
+
+### 4b. same bullet now
+- **`TestDescribeTaskQueueEnhanced_ReportFlags`** (versioning suite) is resolved in the working
+  tree under [D25](../.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.25.md), by two
+  corrections. The server bug: the enhanced-mode `DescribeTaskQueue` cache in
+  `service/matching/matching_engine.go` was keyed by build ID and task-queue type only, so a
+  reachability-only request inside the cache TTL was served the previous response's pollers
+  ("poller info should not be reported"); the key now carries the poller and stats flags, with
+  unit regressions and a dedicated production review. The test's readiness wait: it accepted
+  the worker's poller under either task-queue type while the last request asserts one poller
+  under each, so with the server fix the test failed there instead ("only one poller info
+  should be reported") on both seeds. Every call runs in one virtual instant, the 1ns cache TTL
+  the suite configures never elapses, and the incomplete first response was served again;
+  natively the same race is only hidden by wall time passing. The wait now requires the poller
+  under both types, with no assertion changed. `TestVersioningFunctionalSuite` then qualifies
+  on seeds 11 and 17 with two repetitions each on darwin/arm64 (2026-09-30, no choice trace or
+  success replay, as its manifest entry specifies), and its `target_failure` expectation is
+  removed. linux/amd64 was not run.
+

@@ -1,0 +1,231 @@
+{
+  "schema": "fn105-d18-investigation-evidence/v1",
+  "task": "fn-105-gomad-follow-ups-deferred-scope.18",
+  "subject": "TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout",
+  "assessment_date": "2026-09-30",
+  "status": "investigation only; no fix applied; the skip in tools/gomad3integration/qualification/tests.generator.json is unchanged",
+  "platform": {
+    "goos": "darwin",
+    "goarch": "arm64",
+    "host": "macOS 26.6.2 (25G83)"
+  },
+  "linux_amd64": "not run; unavailable on this host",
+  "source": "HEAD 7ef3800a2c7d989f7e77ee54f4f6f4cbcaf82c1b plus the shared uncommitted working tree (other tasks' edits); no tracked product, test, runtime, or manifest file was edited for this task",
+  "file_sha256": {
+    "tests/worker_commands_task_test.go": "13a3b0d4d89192f322da261aba61d949d29c41f7b5242b72843d3fb6ae7ce195",
+    "service/history/workflow/timer_sequence.go": "0b8ef9216060579de855328ffa3fa7d55fcbc281c8875ea945faa0a5ba565ecb",
+    "chasm/lib/activity/validator.go": "3163852cc54fe6220aa738f6bb00bbd37491eef1f7e8c94efa6b883bbf7ae795",
+    "tools/gomad3integration/qualification/tests.json": "8b4237b23859c00257be4f6e7522c7fac594a99b09146b27bf8ddfd8f5357146",
+    "tools/gomad3integration/qualification/tests.generator.json": "e7c74ae3b3c537bb1663ec639ac1606236e9be5ecbcb0091b2acab27f82ec4b9",
+    "go.mod": "cda5b0aab2e32ef4aca50bd0d8ccf8ae67416db94fd4f28ceb9ac1588c48d0a4"
+  },
+  "runner": {
+    "binary_sha256": "sha256:4dce3aed3599865194224c2b4219d0f13458585c8d849da10ffbc21a79db5222",
+    "doctor": "available=true host=darwin/arm64 go=go1.27.1 toolchain=8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc boundary=go1.27.1-v1"
+  },
+  "toolchain": {
+    "go_version": "go1.27.1",
+    "build_key": "8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc",
+    "boundary_manifest_version": "go1.27.1-v1",
+    "boundary_manifest_sha256": "sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0"
+  },
+  "native_go": "go1.27.0 darwin/arm64 (/opt/homebrew/bin/go)",
+  "commands": {
+    "gomad_explore": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad explore --seeds <seeds> --parallel 2 --on-failure=all --clock-tick=<strict|forward> --build-tag=disable_grpc_modules --build-tag=gomad --build-tag=test_dep --capability-mode=closure --io-ro-mount ./schema=/go.temporal.io/server/schema --keep-successes=all --success-limit=64 --success-bytes=8GiB --execution-timeout=8m --overall-timeout=9m --artifacts <scratch> go-test ./tests -- -test.run=<pattern> -test.parallel=8 -test.v (wrapper: fn105-d18-run.sh, which resolves the repository from its own location and writes to $D18_OUT; the first suite run used the same flags without --clock-tick and with --success-limit=2 --success-bytes=1GiB)",
+    "gomad_qualify_set": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad qualify-set --manifest=<scratch manifest> --working-dir=<repo> --artifacts=<scratch> --output=<scratch report> --prune-qualified-artifacts",
+    "native_leaf": "go test -tags test_dep ./tests -run '^TestWorkerCommandsTaskSuite$/^TestDispatchCancelOnWorkflowTimeout$' -count=5 -p 2 -timeout 20m -v",
+    "native_suite": "go test -tags test_dep ./tests -run '^TestWorkerCommandsTaskSuite$' -count=3 -p 2 -timeout 20m -v",
+    "patterns": {
+      "suite": "^TestWorkerCommandsTaskSuite$",
+      "leaf": "^TestWorkerCommandsTaskSuite$/^TestDispatchCancelOnWorkflowTimeout$"
+    }
+  },
+  "gomad_explore_runs": [
+    {
+      "name": "suite, strict, first run",
+      "seeds": "11,17",
+      "exit": 1,
+      "result": {
+        "11": "FAIL (120.00s virtual)",
+        "17": "PASS (3.00s virtual)"
+      }
+    },
+    {
+      "name": "suite-strict-rerun",
+      "seeds": "11,17",
+      "exit": 1,
+      "result": {
+        "11": "FAIL (120.00s), ActivityTimeoutTask processed first, 0 WorkerCommands tasks",
+        "17": "PASS (3.00s), WorkflowRunTimeoutTask processed first, 1 WorkerCommands task"
+      }
+    },
+    {
+      "name": "suite, strict, third run (seed 11 only, successes not retained)",
+      "seeds": "11",
+      "exit": 1,
+      "result": {
+        "11": "target_failure, attempted=1 failures=1 watchdogs=0 replay-divergences=0"
+      },
+      "note": "source of fn105-d18-gomad-suite-strict-seed11-sibling-no-poller.txt; flags as gomad_explore without --keep-successes, --success-limit, and --success-bytes"
+    },
+    {
+      "name": "leaf-strict",
+      "seeds": "11,17",
+      "exit": 1,
+      "result": {
+        "11": "PASS, WorkflowRunTimeoutTask first",
+        "17": "FAIL (120.00s), ActivityTimeoutTask first"
+      },
+      "note": "the failing seed flips when the leaf runs alone; the seed selects the schedule, and the schedule selects which equal-deadline timer task runs first; a second run through the retained fn105-d18-run.sh gave the same per-seed outcome"
+    },
+    {
+      "name": "sweep-leaf-strict",
+      "seeds": "1-16",
+      "exit": 1,
+      "pass": 7,
+      "fail": 9,
+      "note": "every failure processed ActivityTimeoutTask first and created 0 WorkerCommands tasks; every pass processed WorkflowRunTimeoutTask first and created 1"
+    },
+    {
+      "name": "suite-forward",
+      "seeds": "11,17",
+      "exit": 0,
+      "pass": 2,
+      "fail": 0
+    },
+    {
+      "name": "sweep-leaf-forward (four batches)",
+      "seeds": "1-64",
+      "exit": 0,
+      "pass": 64,
+      "fail": 0,
+      "note": "0 ActivityTimeout tasks created on every seed"
+    },
+    {
+      "name": "variantB-leaf-strict (throwaway copy, test change fn105-d18-variant-b-test.diff.txt)",
+      "seeds": "1-16",
+      "exit": 0,
+      "pass": 16,
+      "fail": 0,
+      "note": "0 ActivityTimeout tasks created"
+    },
+    {
+      "name": "variantC-leaf-strict (throwaway copy, server change fn105-d18-variant-c-server.diff.txt)",
+      "seeds": "1-16",
+      "exit": 0,
+      "pass": 16,
+      "fail": 0
+    }
+  ],
+  "gomad_qualify_set_runs": [
+    {
+      "manifest": "fn105-d18-qualify-set-strict-unskipped-manifest.json",
+      "manifest_file_sha256": "574b123514a67a7f4f95397e5ed0b56511cb9571d6c5faf94815c230210345d6",
+      "manifest_sha256_in_report": "sha256:f1c86f631288fe142289b309a9859f0d9247500888b219dd08cbbec6b11f13b9",
+      "description": "the TestWorkerCommandsTaskSuite entry of tests.json with its skip list removed (strict tick, repeat 2, choice_bytes 0)",
+      "exit": 1,
+      "report": "fn105-d18-qualify-set-strict-unskipped-report.json",
+      "report_file_sha256": "3d5da60f8aee0268a4227482349b40c560a290752178defd278bd1a1160747e1",
+      "result": {
+        "expectations_met": false,
+        "failed": 1,
+        "infrastructure_errors": 0,
+        "timed_out": 0
+      },
+      "seeds": {
+        "11": "target_failure (failure replayed, replay_match true)",
+        "17": "qualified"
+      }
+    },
+    {
+      "manifest": "fn105-d18-qualify-set-forward-unskipped-manifest.json",
+      "manifest_file_sha256": "f7a38be639a0afce45f9835ca8449cd0093c3ccdef1c3c4271a69f176d88fdb9",
+      "manifest_sha256_in_report": "sha256:c4cb83aac89a0d6567f3752e58c39b78a98d7cf5f2019dcd3342904ab9947bd0",
+      "description": "the same entry with the skip list removed and clock_tick forward (repeat 2, choice_bytes 0)",
+      "exit": 0,
+      "report": "fn105-d18-qualify-set-forward-unskipped-report.json",
+      "report_file_sha256": "1812a13c59f11be9d601f743d6f6242415e0b433b0bcc42379982ff77c099d24",
+      "result": {
+        "expectations_met": true,
+        "supported": 1,
+        "failed": 0,
+        "infrastructure_errors": 0,
+        "timed_out": 0
+      },
+      "seeds": {
+        "11": "qualified",
+        "17": "qualified"
+      }
+    },
+    {
+      "manifest": "fn105-d18-qualify-set-forward-unskipped-traced-manifest.json",
+      "manifest_file_sha256": "fc10508400c74a6b226b9a82be210b79d766934b50c107ca4e32895d88f4591c",
+      "manifest_sha256_in_report": "sha256:20bf18ade7d9bee267e156abbfa025093db83ab10be42924ee210ae79d44b0f6",
+      "description": "the forward manifest with choice_bytes 64 MiB and replay_successes true",
+      "exit": 0,
+      "report": "fn105-d18-qualify-set-forward-unskipped-traced-report.json",
+      "report_file_sha256": "650d9576be5f3efac94252a4d2116db85fba2d58381395256eb18809e958d4ef",
+      "result": {
+        "expectations_met": true,
+        "supported": 1,
+        "failed": 0,
+        "replayed": 2,
+        "replay_diverged": 0
+      },
+      "seeds": {
+        "11": "qualified, replay_match true, choice_replay_exact true",
+        "17": "qualified, replay_match true, choice_replay_exact true"
+      }
+    }
+  ],
+  "native_runs": [
+    {
+      "command": "native_leaf",
+      "exit": 0,
+      "result": "5 of 5 PASS in 3.02s to 3.12s",
+      "observation": "0 ActivityTimeout timer tasks created; the activity was scheduled 5, 5, 5, 40, and 49 ms after the workflow started, so its capped deadline lies that far after the run expiration"
+    },
+    {
+      "command": "native_suite",
+      "exit": 0,
+      "result": "21 of 21 subtest runs PASS"
+    },
+    {
+      "command": "native_leaf in the throwaway copy with variant B",
+      "exit": 0,
+      "result": "5 of 5 PASS in 3.01s to 3.08s"
+    }
+  ],
+  "cause": "Under the strict tick the workflow start and the activity schedule share one virtual instant. The server caps the activity's ScheduleToClose at the 3s run timeout, so the activity deadline equals the run expiration, and CreateNextActivityTimer skips an activity timer only when it is strictly after the run expiration. The ActivityTimeoutTask and the WorkflowRunTimeoutTask then carry the same visibility timestamp and the seeded schedule picks the order. When the activity task runs first the activity is closed as timed out, the workflow closes with no pending activity, and no WorkerCommandsTask is generated. The command is never created, so no budget can deliver it.",
+  "proposed_correction": {
+    "recommended": "Run TestWorkerCommandsTaskSuite under clock_tick forward in tests.generator.json and remove the skip after verification",
+    "owner": "Gomad qualification configuration (tools/gomad3integration, owner gomad3)",
+    "alternatives": [
+      "Test owner: schedule the activity one second into the run (fn105-d18-variant-b-test.diff.txt)",
+      "History service owner, with production review: skip the activity timer when its deadline equals the run expiration (fn105-d18-variant-c-server.diff.txt)"
+    ],
+    "state": "open work in fn-105 for a subsequent decision; nothing is implemented"
+  },
+  "files": [
+    "fn105-d18-gomad-runs.txt",
+    "fn105-d18-gomad-suite-strict-seed11-timeline.txt",
+    "fn105-d18-gomad-suite-strict-seed17-timeline.txt",
+    "fn105-d18-gomad-suite-strict-seed11-await-report.txt",
+    "fn105-d18-gomad-suite-strict-seed11-sibling-no-poller.txt",
+    "fn105-d18-gomad-suite-forward-seed11-timeline.txt",
+    "fn105-d18-native-leaf-count5-timeline.txt",
+    "fn105-d18-native-results.txt",
+    "fn105-d18-variant-b-test.diff.txt",
+    "fn105-d18-variant-c-server.diff.txt",
+    "fn105-d18-qualify-set-strict-unskipped-manifest.json",
+    "fn105-d18-qualify-set-strict-unskipped-report.json",
+    "fn105-d18-qualify-set-forward-unskipped-manifest.json",
+    "fn105-d18-qualify-set-forward-unskipped-report.json",
+    "fn105-d18-qualify-set-forward-unskipped-traced-manifest.json",
+    "fn105-d18-qualify-set-forward-unskipped-traced-report.json",
+    "fn105-d18-run.sh",
+    "fn105-d18-timeline.py",
+    "fn105-d18-summarize.py"
+  ],
+  "artifacts": "scratch campaigns, qualification artifacts, and the throwaway source copy were deleted after recording"
+}

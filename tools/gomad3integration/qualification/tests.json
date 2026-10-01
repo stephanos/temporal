@@ -33,10 +33,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -62,10 +62,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -91,10 +91,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -120,10 +120,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -149,10 +149,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -178,10 +178,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -207,10 +207,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -236,10 +236,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -265,10 +265,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -294,10 +294,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -323,10 +323,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -352,10 +352,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -381,10 +381,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -410,10 +410,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -439,10 +439,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -473,10 +473,10 @@
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -502,10 +502,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -531,10 +531,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -560,10 +560,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -589,10 +589,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -618,10 +618,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -647,11 +647,11 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
+      "choice_bytes": 0,
       "clock_tick": "forward",
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -677,11 +677,11 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
+      "choice_bytes": 0,
       "clock_tick": "forward",
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -707,10 +707,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -736,10 +736,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -765,10 +765,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -794,10 +794,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -828,10 +828,10 @@
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -857,10 +857,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -891,10 +891,10 @@
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -920,10 +920,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -978,10 +978,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1012,10 +1012,10 @@
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1041,10 +1041,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1075,10 +1075,10 @@
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1104,11 +1104,11 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
+      "choice_bytes": 0,
       "clock_tick": "forward",
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1134,10 +1134,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1163,10 +1163,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1192,10 +1192,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1221,10 +1221,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "skip": [
         "Test_Activity_Basic"
@@ -1253,10 +1253,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "skip": [
         "Test_Activity_Basic"
@@ -1285,10 +1285,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1314,10 +1314,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1343,10 +1343,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1372,10 +1372,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1401,10 +1401,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1430,10 +1430,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1459,10 +1459,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1488,10 +1488,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1517,10 +1517,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1546,10 +1546,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1575,10 +1575,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1604,10 +1604,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1633,15 +1633,11 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
-      "skip": [
-        "TestNexusCancelOperation_Outcomes",
-        "TestNexusStartOperation_Outcomes"
-      ],
       "test_parallel": 8,
       "expectation": {
         "classification": "qualified"
@@ -1666,15 +1662,11 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
-      "skip": [
-        "TestNexusCancelOperation_Outcomes",
-        "TestNexusStartOperation_Outcomes"
-      ],
       "test_parallel": 8,
       "expectation": {
         "classification": "qualified"
@@ -1699,10 +1691,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1728,10 +1720,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1757,10 +1749,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1786,10 +1778,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1815,10 +1807,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1844,11 +1836,11 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
+      "choice_bytes": 0,
       "clock_tick": "forward",
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "skip": [
         "TestOperation"
@@ -1877,10 +1869,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1906,11 +1898,11 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
+      "choice_bytes": 0,
       "clock_tick": "forward",
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1936,10 +1928,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -1965,14 +1957,11 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
-      "skip": [
-        "TestNexusOperationSurvivesResetCrossTree"
-      ],
       "test_parallel": 8,
       "expectation": {
         "classification": "qualified"
@@ -1997,10 +1986,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2026,10 +2015,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2055,10 +2044,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2084,10 +2073,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2113,10 +2102,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2142,10 +2131,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2171,10 +2160,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2200,10 +2189,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2229,10 +2218,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2258,10 +2247,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2287,10 +2276,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2316,10 +2305,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2345,10 +2334,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2374,10 +2363,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2403,10 +2392,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2437,10 +2426,10 @@
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2466,10 +2455,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2495,10 +2484,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2524,10 +2513,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2553,10 +2542,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2582,10 +2571,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2611,10 +2600,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2640,10 +2629,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2669,10 +2658,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2698,10 +2687,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2727,10 +2716,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2756,10 +2745,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2785,10 +2774,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2814,10 +2803,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2843,14 +2832,11 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
-      "skip": [
-        "TestScheduleMigrationV2ToV1Idempotent"
-      ],
       "test_parallel": 8,
       "expectation": {
         "classification": "qualified"
@@ -2875,10 +2861,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2904,10 +2890,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2933,10 +2919,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -2962,10 +2948,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3049,10 +3035,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3088,10 +3074,6 @@
         "classification": "qualified"
       },
       "platform_expectations": {
-        "darwin/arm64": {
-          "classification": "intermittent",
-          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
-        },
         "linux/amd64": {
           "classification": "intermittent",
           "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
@@ -3117,10 +3099,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3146,10 +3128,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3175,11 +3157,11 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
+      "choice_bytes": 0,
       "clock_tick": "forward",
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "skip": [
         "TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch"
@@ -3208,10 +3190,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3268,11 +3250,11 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
+      "choice_bytes": 0,
       "clock_tick": "forward",
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3298,10 +3280,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3327,10 +3309,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3356,10 +3338,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3385,10 +3367,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3414,10 +3396,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3443,10 +3425,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3472,10 +3454,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3501,10 +3483,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3530,10 +3512,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3568,16 +3550,6 @@
       "test_parallel": 8,
       "expectation": {
         "classification": "qualified"
-      },
-      "platform_expectations": {
-        "darwin/arm64": {
-          "classification": "target_failure",
-          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
-        },
-        "linux/amd64": {
-          "classification": "target_failure",
-          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
-        }
       }
     },
     {
@@ -3630,10 +3602,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3690,10 +3662,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3719,10 +3691,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "skip": [
         "TestDispatchCancelOnWorkflowTimeout"
@@ -3782,10 +3754,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3811,10 +3783,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3840,10 +3812,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3869,10 +3841,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3898,10 +3870,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3927,10 +3899,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3956,10 +3928,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -3985,10 +3957,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -4014,10 +3986,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -4043,10 +4015,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -4072,10 +4044,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -4101,10 +4073,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -4130,10 +4102,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -4159,10 +4131,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -4188,10 +4160,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -4217,10 +4189,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "skip": [
         "TestWorkflowTaskHeartbeatingWithEmptyResult"
@@ -4254,10 +4226,10 @@
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -4288,10 +4260,10 @@
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -4317,10 +4289,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -4351,10 +4323,10 @@
         "stdlib.os.newfile",
         "stdlib.os.openfile"
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {
@@ -4380,10 +4352,10 @@
           "target": "/go.temporal.io/server/schema"
         }
       ],
-      "choice_bytes": 67108864,
-      "replay_successes": true,
-      "success_artifact_limit": 1,
-      "success_bytes_limit": 1073741824,
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
       "overall_timeout": "20m",
       "test_parallel": 8,
       "expectation": {

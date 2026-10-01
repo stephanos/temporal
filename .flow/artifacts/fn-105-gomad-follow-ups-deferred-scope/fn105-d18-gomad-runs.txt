@@ -1,0 +1,158 @@
+## suite-strict-rerun
+seed result virtual_s first_timer_task worker_commands_tasks activity_timeout_tasks run_expiration activity_scheduled
+11 FAIL 120.00 ActivityTimeoutTask 0 1 00:00:03.001Z 00:00:00.000Z
+17 PASS 3.00 WorkflowRunTimeoutTask 1 1 00:00:03.001Z 00:00:00.000Z
+# seeds=2 pass=1 fail=1
+
+## leaf-strict
+seed result virtual_s first_timer_task worker_commands_tasks activity_timeout_tasks run_expiration activity_scheduled
+11 PASS 3.00 WorkflowRunTimeoutTask 1 1 00:00:03.001Z 00:00:00.000Z
+17 FAIL 120.00 ActivityTimeoutTask 0 1 00:00:03.001Z 00:00:00.000Z
+# seeds=2 pass=1 fail=1
+
+## suite-forward
+seed result virtual_s first_timer_task worker_commands_tasks activity_timeout_tasks run_expiration activity_scheduled
+11 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.004Z 00:00:00.007Z
+17 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.005Z 00:00:00.009Z
+# seeds=2 pass=2 fail=0
+
+## sweep-leaf-strict
+seed result virtual_s first_timer_task worker_commands_tasks activity_timeout_tasks run_expiration activity_scheduled
+1 FAIL 120.00 ActivityTimeoutTask 0 1 00:00:03.001Z 00:00:00.000Z
+2 PASS 3.00 WorkflowRunTimeoutTask 1 1 00:00:03.001Z 00:00:00.000Z
+3 FAIL 120.00 ActivityTimeoutTask 0 1 00:00:03.001Z 00:00:00.000Z
+4 FAIL 120.00 ActivityTimeoutTask 0 1 00:00:03.001Z 00:00:00.000Z
+5 FAIL 120.00 ActivityTimeoutTask 0 1 00:00:03.001Z 00:00:00.000Z
+6 PASS 3.00 WorkflowRunTimeoutTask 1 1 00:00:03.001Z 00:00:00.000Z
+7 FAIL 120.00 ActivityTimeoutTask 0 1 00:00:03.001Z 00:00:00.000Z
+8 PASS 3.00 WorkflowRunTimeoutTask 1 1 00:00:03.001Z 00:00:00.000Z
+9 FAIL 120.00 ActivityTimeoutTask 0 1 00:00:03.001Z 00:00:00.000Z
+10 PASS 3.00 WorkflowRunTimeoutTask 1 1 00:00:03.001Z 00:00:00.000Z
+11 PASS 3.00 WorkflowRunTimeoutTask 1 1 00:00:03.001Z 00:00:00.000Z
+12 FAIL 120.00 ActivityTimeoutTask 0 1 00:00:03.001Z 00:00:00.000Z
+13 FAIL 120.00 ActivityTimeoutTask 0 1 00:00:03.001Z 00:00:00.000Z
+14 FAIL 120.00 ActivityTimeoutTask 0 1 00:00:03.001Z 00:00:00.000Z
+15 PASS 3.00 WorkflowRunTimeoutTask 1 1 00:00:03.001Z 00:00:00.000Z
+16 PASS 3.00 WorkflowRunTimeoutTask 1 1 00:00:03.001Z 00:00:00.000Z
+# seeds=16 pass=7 fail=9
+
+## sweep-leaf-forward
+seed result virtual_s first_timer_task worker_commands_tasks activity_timeout_tasks run_expiration activity_scheduled
+1 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+2 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+3 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+4 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+5 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+6 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+7 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+8 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+9 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+10 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+11 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+12 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+13 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+14 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+15 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+16 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+# seeds=16 pass=16 fail=0
+
+## sweep-leaf-forward-17-32
+seed result virtual_s first_timer_task worker_commands_tasks activity_timeout_tasks run_expiration activity_scheduled
+17 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+18 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+19 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+20 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+21 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+22 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+23 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+24 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+25 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+26 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+27 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+28 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+29 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+30 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+31 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+32 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+# seeds=16 pass=16 fail=0
+
+## sweep-leaf-forward-33-48
+seed result virtual_s first_timer_task worker_commands_tasks activity_timeout_tasks run_expiration activity_scheduled
+33 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+34 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+35 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+36 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+37 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+38 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+39 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+40 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+41 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+42 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+43 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+44 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+45 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+46 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+47 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+48 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+# seeds=16 pass=16 fail=0
+
+## sweep-leaf-forward-49-64
+seed result virtual_s first_timer_task worker_commands_tasks activity_timeout_tasks run_expiration activity_scheduled
+49 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+50 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+51 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+52 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+53 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+54 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+55 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+56 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+57 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+58 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+59 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+60 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+61 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+62 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+63 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+64 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.002Z 00:00:00.002Z
+# seeds=16 pass=16 fail=0
+
+## variantB-leaf-strict
+seed result virtual_s first_timer_task worker_commands_tasks activity_timeout_tasks run_expiration activity_scheduled
+1 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:01.002Z
+2 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:01.002Z
+3 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:01.002Z
+4 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:01.002Z
+5 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:01.002Z
+6 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:01.002Z
+7 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:01.002Z
+8 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:01.002Z
+9 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:01.002Z
+10 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:01.002Z
+11 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:01.002Z
+12 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:01.002Z
+13 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:01.002Z
+14 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:01.002Z
+15 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:01.002Z
+16 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:01.002Z
+# seeds=16 pass=16 fail=0
+
+## variantC-leaf-strict
+seed result virtual_s first_timer_task worker_commands_tasks activity_timeout_tasks run_expiration activity_scheduled
+1 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:00.000Z
+2 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:00.000Z
+3 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:00.000Z
+4 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:00.000Z
+5 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:00.000Z
+6 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:00.000Z
+7 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:00.000Z
+8 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:00.000Z
+9 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:00.000Z
+10 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:00.000Z
+11 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:00.000Z
+12 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:00.000Z
+13 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:00.000Z
+14 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:00.000Z
+15 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:00.000Z
+16 PASS 3.00 WorkflowRunTimeoutTask 1 0 00:00:03.001Z 00:00:00.000Z
+# seeds=16 pass=16 fail=0
+

@@ -212,7 +212,17 @@ increment at each `time.Now` read, using a separate seed-derived stream. Only
 `time.Now` observes that offset; the native timer clock, scheduler clock reads,
 and simulation time retain the idle-driven clock. Application calculations
 that derive deadlines or durations from `time.Now` can still observe the
-offset. The recorded environment binds the policy into Campaign, Artifact,
+offset. For a reading that still carries its monotonic value, `time.Since`
+and `time.Until` read the idle-driven clock rather than the ticked one, so an
+elapsed time measured against such a reading is short by that reading's offset
+and negative within one busy stretch, and a deadline derived from it expires
+later than a native timer armed for the same duration. A reading stripped of
+its monotonic value, as by `Round(0)`, serialization, or parsing, is compared
+against a fresh ticked `time.Now` instead. Distinct readings are a
+nanosecond-resolution property of process
+`time.Now`; a `testing/synctest` bubble keeps its own clock, and timestamps
+truncated to a coarser unit can still tie. The recorded environment binds the
+policy into Campaign, Artifact,
 and portable-plan identity, and replay restores it. Separating the offset
 keeps timestamp ticking out of native timer-clock advancement.
 
@@ -613,8 +623,8 @@ Cross-endpoint layouts are declared once in the deterministic-I/O, Choice, and
 simulation schemas under their respective `schema` directories. The protocol
 generator emits dependency-free typed codecs and the same golden, truncation,
 validation, allocation-bound, and fuzz tests for the Runner module and patched
-standard library. `make generate` updates checked-in output, while `make
-validate` rejects drift. Protocol changes require an explicit version and
+standard library. `make -C tools/gomad3 generate` updates checked-in output,
+while `make -C tools/gomad3 validate` rejects drift. Protocol changes require an explicit version and
 compatibility decision.
 
 Callers do not own offsets, byte order, magic, reserved bytes, or enum checks.

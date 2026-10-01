@@ -1,0 +1,81 @@
+--- tests/activity_standalone_test.go	2026-09-27 08:32:56
++++ instrumented/tests/activity_standalone_test.go	2026-09-30 23:12:40
+@@ -23,6 +23,7 @@
+ 	"go.temporal.io/server/chasm/lib/activity"
+ 	"go.temporal.io/server/chasm/lib/callback"
+ 	"go.temporal.io/server/common"
++	"go.temporal.io/server/common/contextutil"
+ 	"go.temporal.io/server/common/dynamicconfig"
+ 	"go.temporal.io/server/common/headers"
+ 	"go.temporal.io/server/common/log"
+@@ -8490,7 +8491,9 @@
+ 		// update not taken effect, the elapsed original delay would dispatch immediately on unpause.
+ 		pollCtx, cancel := context.WithTimeout(s.Context(), 3*time.Second)
+ 		defer cancel()
++		contextutil.D16Probe("1-client-before-poll", taskQueue, pollCtx, nil)
+ 		pollResp, err := env.pollActivityTaskQueue(pollCtx, taskQueue)
++		contextutil.D16Probe("7-client-after-poll", taskQueue, pollCtx, err)
+ 		// A long-poll that gets no task within its timeout gets a non-error empty response
+ 		require.NoError(t, err)
+ 		require.Empty(t, pollResp.GetTaskToken(),
+--- service/frontend/workflow_handler.go	2026-09-27 08:32:56
++++ instrumented/service/frontend/workflow_handler.go	2026-09-30 23:12:40
+@@ -1383,11 +1383,13 @@
+ 	pollerID := uuid.NewString()
+ 	childCtx := wh.registerOutstandingPollContext(ctx, pollerID, namespaceID.String())
+ 	defer wh.unregisterOutstandingPollContext(pollerID, namespaceID.String())
++	contextutil.D16Probe("2-frontend-before-matching", request.GetTaskQueue().GetName(), childCtx, nil)
+ 	matchingResponse, err := wh.matchingClient.PollActivityTaskQueue(childCtx, &matchingservice.PollActivityTaskQueueRequest{
+ 		NamespaceId: namespaceID.String(),
+ 		PollerId:    pollerID,
+ 		PollRequest: request,
+ 	})
++	contextutil.D16Probe("6-frontend-after-matching", request.GetTaskQueue().GetName(), childCtx, err)
+ 	if err != nil {
+ 		contextWasCanceled := wh.cancelOutstandingPoll(childCtx, namespaceID, enumspb.TASK_QUEUE_TYPE_ACTIVITY, request.TaskQueue, pollerID)
+ 		if contextWasCanceled {
+--- service/matching/matching_engine.go	2026-09-30 18:34:39
++++ instrumented/service/matching/matching_engine.go	2026-09-30 23:12:40
+@@ -3107,8 +3107,11 @@
+ 			longPollInterval -= backoff.FullJitter(jitterMax)
+ 		}
+ 	}
++	contextutil.D16Probe("3-matching-handler-ctx", partition.TaskQueue().Name(), ctx, nil)
+ 	ctx, cancel := contextutil.WithDeadlineBuffer(ctx, longPollInterval, returnEmptyTaskTimeBudget)
+ 	defer cancel()
++	contextutil.D16Probe("4-matching-child-ctx", partition.TaskQueue().Name(), ctx, nil)
++	defer func() { contextutil.D16Probe("5-matching-poll-return", partition.TaskQueue().Name(), ctx, nil) }()
+ 
+ 	if workerInstanceKey := pollMetadata.workerInstanceKey; workerInstanceKey != "" {
+ 		// Register before checking shutdownWorkers. The shutdown path does the reverse:
+--- /dev/null
++++ instrumented/common/contextutil/d16probe.go
++package contextutil
++
++import (
++	"context"
++	"fmt"
++	"os"
++	"time"
++)
++
++var d16Epoch = time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
++
++// D16Probe prints, for a context whose deadline is at most 4.5s away, the ticked
++// time.Now reading, the forward offset (time.Now minus the timer clock), the
++// timer-clock reading, and the deadline. A deadline carrying a monotonic reading
++// fires when the timer clock reaches the deadline's own numeric value.
++func D16Probe(site string, label string, ctx context.Context, err error) {
++	dl, ok := ctx.Deadline()
++	if !ok {
++		return
++	}
++	now := time.Now()
++	offset := -time.Since(now)
++	until := time.Until(dl)
++	if until > 4500*time.Millisecond {
++		return
++	}
++	fmt.Fprintf(os.Stderr, "[d16] site=%s label=%q now=%v offset=%v timer_clock=%v deadline=%v until=%v ctx_err=%v err=%v\n",
++		site, label, now.Sub(d16Epoch), offset, now.Sub(d16Epoch)-offset, dl.Sub(d16Epoch), until, ctx.Err(), err)
++}

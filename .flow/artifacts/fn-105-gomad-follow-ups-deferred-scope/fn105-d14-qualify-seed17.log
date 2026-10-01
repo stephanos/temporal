@@ -1,0 +1,10 @@
+gomad: qualification iteration=1/4
+gomad: qualification iteration=2/4
+gomad: qualification iteration=3/4
+gomad: qualification iteration=4/4
+gomad: qualification qualified=true deterministic=true target-success=true seed=17 repeat=4 report=/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/d14/fixed-q17/qualifications/v1/qualification-2530419624.json
+gomad: choices profile=gomad3-choice-trace/v2 records=88825 decisions=59471 branching=59471 runnable=31669 select-poll=27802 select-result=29354 sha256=sha256:29e753fc9f4a9ca0d1766a10e31d5aeeb1b7f3e55333cba5e847df09bded2762 tape-sha256=sha256:d088248dd57c2b83e893719b04a2bf33c6dab6897fd3692101cd916f0fef186a terminal=complete
+gomad: replay artifact=/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/d14/fixed-q17/v1/campaign-20261001T041349.290332000Z-e04aba1ee4273e3806970e807ac19a58/successes/sha256-ad76065ea2cae16270a2e72004d16b2d attempted=true match=true diagnostic=false choice-replay=exact divergence=
+gomad: replay artifact=/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/d14/fixed-q17/v1/campaign-20261001T041416.948189000Z-17efddb1af20a4b6cb7114f77edc6a1e/successes/sha256-ad76065ea2cae16270a2e72004d16b2d attempted=true match=true diagnostic=false choice-replay=exact divergence=
+gomad: replay artifact=/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/d14/fixed-q17/v1/campaign-20261001T041444.425859000Z-ac51ddf9529f7cfacb6eea206e02ed2a/successes/sha256-ad76065ea2cae16270a2e72004d16b2d attempted=true match=true diagnostic=false choice-replay=exact divergence=
+gomad: replay artifact=/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/d14/fixed-q17/v1/campaign-20261001T041512.826903000Z-4640fc5eaf1cf7006fcca1e141919c16/successes/sha256-ad76065ea2cae16270a2e72004d16b2d attempted=true match=true diagnostic=false choice-replay=exact divergence=

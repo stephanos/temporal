@@ -1,0 +1,39 @@
+=== qualify-lastgc
+gomad: qualification iteration=1/2
+gomad: qualification iteration=2/2
+gomad: qualification qualified=false deterministic=false target-success=true seed=1 repeat=2 report=<scratch>/artifacts-lastgc/qualifications/v1/qualification-20545181.json
+gomad: first-divergence=stdout.full_sha256
+=== qualify-control
+gomad: qualification iteration=1/2
+gomad: qualification iteration=2/2
+gomad: qualification qualified=true deterministic=true target-success=true seed=1 repeat=2 report=<scratch>/artifacts-control/qualifications/v1/qualification-1578262053.json
+=== qualify-lastgc-choices-11
+gomad: qualification iteration=1/2
+gomad: qualification iteration=2/2
+gomad: qualification qualified=false deterministic=false target-success=true seed=11 repeat=2 report=<scratch>/artifacts-lastgc-choices-11/qualifications/v1/qualification-1129865758.json
+gomad: choices profile=gomad3-choice-trace/v2 records=26 decisions=26 branching=26 runnable=26 select-poll=0 select-result=0 sha256=sha256:714935da90c81576e5abfdf760df8586936c1c5ed4f0592bbf2d51d347c006a6 tape-sha256=sha256:bd95d966e1e9379717f0e659df3609d66770e14a890bec813e50d0c711edc325 terminal=complete
+gomad: first-divergence=stdout.full_sha256
+gomad: replay artifact=<scratch>/artifacts-lastgc-choices-11/v1/campaign-20261001T022835.945958000Z-ee7abe1c701da5db30c608314a2f897e/successes/sha256-382dcb67451c48575dccf16fd760e1e8 attempted=true match=false diagnostic=false choice-replay=exact divergence=stdout.full_sha256
+gomad: replay artifact=<scratch>/artifacts-lastgc-choices-11/v1/campaign-20261001T022836.542979000Z-47d588f9b34e01639660b8d19f26ffe3/successes/sha256-18e67f1488446ffdf450b2d9eb784bda attempted=true match=false diagnostic=false choice-replay=exact divergence=stdout.full_sha256
+=== qualify-lastgc-choices-17
+gomad: qualification iteration=1/2
+gomad: qualification iteration=2/2
+gomad: qualification qualified=false deterministic=false target-success=true seed=17 repeat=2 report=<scratch>/artifacts-lastgc-choices-17/qualifications/v1/qualification-1054945362.json
+gomad: choices profile=gomad3-choice-trace/v2 records=29 decisions=29 branching=29 runnable=29 select-poll=0 select-result=0 sha256=sha256:d85d1a9e57485f5eccfd46fbdec21a065792600ae72976e360c6d4d71694bc4c tape-sha256=sha256:acadb42d5c07ee54548553739c1dce24c02b70203abfb5d4c3298cb5f4dc9a5b terminal=complete
+gomad: first-divergence=stdout.full_sha256
+gomad: replay artifact=<scratch>/artifacts-lastgc-choices-17/v1/campaign-20261001T022837.647292000Z-02f99364181e2f3061eddd8175900bb9/successes/sha256-e421faf02347c1449fa7d0679002be06 attempted=true match=false diagnostic=false choice-replay=exact divergence=stdout.full_sha256
+gomad: replay artifact=<scratch>/artifacts-lastgc-choices-17/v1/campaign-20261001T022838.222180000Z-80bac2b16febbd4c8de3c0e06906f4a9/successes/sha256-b100ff12801602cb6b15a36aff729f20 attempted=true match=false diagnostic=false choice-replay=exact divergence=stdout.full_sha256
+=== qualify-control-choices-11
+gomad: qualification iteration=1/2
+gomad: qualification iteration=2/2
+gomad: qualification qualified=true deterministic=true target-success=true seed=11 repeat=2 report=<scratch>/artifacts-control-choices-11/qualifications/v1/qualification-1512683873.json
+gomad: choices profile=gomad3-choice-trace/v2 records=26 decisions=26 branching=26 runnable=26 select-poll=0 select-result=0 sha256=sha256:c2df1975e4fc39d8ceec4fcd4726ed782212d6774f59401b9cf1ccef572f88a7 tape-sha256=sha256:077e6a74c4d2eef43fc7a84d761ff057e54f8269372be1af2044e1e515cce3fe terminal=complete
+gomad: replay artifact=<scratch>/artifacts-control-choices-11/v1/campaign-20261001T022839.317128000Z-cc2023051448a2240e8c2b3f41afdc46/successes/sha256-e42d55f619630bd0df28e7ef31688531 attempted=true match=true diagnostic=false choice-replay=exact divergence=
+gomad: replay artifact=<scratch>/artifacts-control-choices-11/v1/campaign-20261001T022839.905759000Z-b3a56e05722438cd0078c4cd8b939ccc/successes/sha256-e42d55f619630bd0df28e7ef31688531 attempted=true match=true diagnostic=false choice-replay=exact divergence=
+=== qualify-control-choices-17
+gomad: qualification iteration=1/2
+gomad: qualification iteration=2/2
+gomad: qualification qualified=true deterministic=true target-success=true seed=17 repeat=2 report=<scratch>/artifacts-control-choices-17/qualifications/v1/qualification-2708449134.json
+gomad: choices profile=gomad3-choice-trace/v2 records=29 decisions=29 branching=29 runnable=29 select-poll=0 select-result=0 sha256=sha256:3f06e6545697924cf107acdb42eaa1317ad0b9a3f2e8cc4279e79eb95e46b4f7 tape-sha256=sha256:f74e9946bccf4c7b171ce3454137fe771abddf3f0f3ec98d81a394574e3a3398 terminal=complete
+gomad: replay artifact=<scratch>/artifacts-control-choices-17/v1/campaign-20261001T022840.984827000Z-49b8f0e69a900220bf1bfbc5b79d0cec/successes/sha256-85e08dca81dc867fe8cb909fe91d212c attempted=true match=true diagnostic=false choice-replay=exact divergence=
+gomad: replay artifact=<scratch>/artifacts-control-choices-17/v1/campaign-20261001T022841.556247000Z-6c7443f3f78b50270a700eefc0a9968c/successes/sha256-85e08dca81dc867fe8cb909fe91d212c attempted=true match=true diagnostic=false choice-replay=exact divergence=

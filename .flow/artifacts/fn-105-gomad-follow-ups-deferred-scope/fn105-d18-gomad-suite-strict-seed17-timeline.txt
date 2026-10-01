@@ -1,0 +1,44 @@
+00:00:00.000Z debug Received StartWorkflowExecution. | 
+00:00:00.000Z debug Start workflow execution request namespace. | 
+00:00:00.000Z debug Workflow task updated | wf-scheduled-event-id=2
+00:00:00.000Z debug time skipping skipped for: time skipping is not enabled | 
+00:00:00.000Z debug Assigning new task key | queue-task-id=1048579 queue-task-type=WorkflowRunTimeout timestamp=2000-01-01T00:00:03.001Z
+00:00:00.000Z debug Assigning new task key | queue-task-id=1048580 queue-task-type=VisibilityStartExecution timestamp=2000-01-01T00:00:00.000Z
+00:00:00.000Z debug Assigning new task key | queue-task-id=1048581 queue-task-type=TransferWorkflowTask timestamp=2000-01-01T00:00:00.000Z
+00:00:00.000Z debug Process task as active. | task=WorkflowTask{VisibilityTimestamp: 2000-01-01 00:00:00 +0000 UTC, TaskID: 1048581, TaskQueue: TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout_task_queue, ScheduledEventID: 2, Version: 0} component=transfer-queue-processor
+00:00:00.000Z debug Poll workflow task queue. | 
+00:00:00.000Z debug Workflow task updated | wf-scheduled-event-id=2
+00:00:00.000Z debug time skipping skipped for: time skipping is not enabled | 
+00:00:00.000Z debug Assigning new task key | queue-task-id=1048585 queue-task-type=WorkflowTaskTimeout timestamp=2000-01-01T00:00:03.001Z
+00:00:00.000Z debug RespondWorkflowTaskCompleted | wf-scheduled-event-id=2
+00:00:00.000Z debug Workflow task updated | wf-scheduled-event-id=0
+00:00:00.000Z debug time skipping skipped for: time skipping is not enabled | 
+00:00:00.000Z debug Assigning new task key | queue-task-id=1048590 queue-task-type=TransferActivityTask timestamp=2000-01-01T00:00:00.000Z
+00:00:00.000Z debug Assigning new task key | queue-task-id=1048591 queue-task-type=ActivityTimeout timestamp=2000-01-01T00:00:03.001Z
+00:00:00.000Z debug Assigning new task key | queue-task-id=1048592 queue-task-type=VisibilityUpsertExecution timestamp=2000-01-01T00:00:00.000Z
+00:00:00.000Z debug Process task as active. | component=transfer-queue-processor
+00:00:00.000Z debug Received PollNexusTaskQueue | 
+00:00:00.000Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:00.000Z debug time skipping skipped for: time skipping is not enabled | 
+00:00:00.000Z debug Received PollNexusTaskQueue | 
+00:00:00.000Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:00.000Z debug Received PollNexusTaskQueue | 
+00:00:00.000Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:00.000Z debug Received PollNexusTaskQueue | 
+00:00:00.000Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:00.000Z debug Received PollNexusTaskQueue | 
+00:00:00.000Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:00.000Z debug Received PollNexusTaskQueue | 
+00:00:00.000Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:00.000Z debug Received PollNexusTaskQueue | 
+00:00:00.000Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:03.002Z debug Process task as active. | task=WorkflowRunTimeoutTask{VisibilityTimestamp: 2000-01-01 00:00:03.001 +0000 UTC, TaskID: 1048579, Version: 0} component=timer-queue-processor
+00:00:03.002Z debug time skipping skipped for: time skipping is not enabled | 
+00:00:03.002Z debug Assigning new task key | queue-task-id=1048597 queue-task-type=WorkerCommands timestamp=2000-01-01T00:00:03.002Z
+00:00:03.002Z debug Assigning new task key | queue-task-id=1048598 queue-task-type=DeleteHistoryEvent timestamp=2000-01-02T00:00:03.778Z
+00:00:03.002Z debug Assigning new task key | queue-task-id=1048599 queue-task-type=TransferCloseExecution timestamp=2000-01-01T00:00:03.002Z
+00:00:03.002Z debug Assigning new task key | queue-task-id=1048600 queue-task-type=VisibilityCloseExecution timestamp=2000-01-01T00:00:03.002Z
+00:00:03.002Z debug Process task as active. | task=ActivityTimeoutTask{VisibilityTimestamp: 2000-01-01 00:00:03.001 +0000 UTC, TaskID: 1048591, TimeoutType: ScheduleToClose, EventID: 5, Attempt: 1, Stamp: 0} component=timer-queue-processor
+00:00:03.002Z debug Process task as active. | task=WorkflowTaskTimeoutTask{VisibilityTimestamp: 2000-01-01 00:00:03.001 +0000 UTC, TaskID: 1048585, EventID: 2, ScheduleAttempt: 1, TimeoutType: StartToClose, Version: 0, InMemory: false} component=timer-queue-processor
+00:00:03.002Z debug Process task as active. | task=WorkerCommandsTask{VisibilityTimestamp: 2000-01-01 00:00:03.002 +0000 UTC, TaskID: 1048597, Commands: 1, Destination: /temporal-sys/worker-commands/TestWorkerCommandsTaskSuite-TestDispatchCancelOnWorkflowTimeout-f5c424e7-f7fe-498f-9d47-bc11ea5de2b5/TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout_worker_instance_key} component=outbound-queue-processor
+00:00:03.002Z debug Process task as active. | task=CloseExecutionTask{VisibilityTimestamp: 2000-01-01 00:00:03.002 +0000 UTC, TaskID: 1048599, Version: 0, DeleteAfterClose: false, DeleteProcessStage: 0} component=transfer-queue-processor

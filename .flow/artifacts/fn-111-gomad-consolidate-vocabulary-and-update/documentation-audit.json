@@ -1,12 +1,12 @@
 {
   "baseline_revision": "29917069e089dc0739ec091b18e99161245b9bd5",
-  "head_revision": "5b77480876c8262a8c882882a7f1ecffcc7aa10b",
+  "head_revision": "d4d800fb473f008fa4a51a4d8575249f11c9cf3f",
   "guide_sha256": {
-    "SPEC": "sha256:ffd2cc5a1642b4943f2874af71d48b5a4abd050e003db093e1ce0a914ba77559",
-    "ARCHITECTURE": "sha256:6bd432d60ac5acedd2bd95409061d211209ec6d9cf8ca3029e5d3693987dcd23",
-    "CLI": "sha256:40b62e27779cabe3a1f8c3a0920c6961f137fbf46ec73cfacd12949e34138fd2",
-    "TUTORIAL": "sha256:220d57ce3fc1655f7454569d0c90c9f876f371012c4c2822be1493a2de6b6372",
-    "README": "sha256:6e7d5d399bb5ee279f665e7406f021865f55d1720b9a976e69938b3369deba13"
+    "SPEC": "sha256:cc96c283ff1131cba5e217ba4773cd4a8d196c90132ee6e47cce62cfe8da533d",
+    "ARCHITECTURE": "sha256:3690db757882664d6009beac10796187afa6d5538e2a82ae5808bdbb0aa9d85e",
+    "CLI": "sha256:256833cc3e85f13abcf05afa44ceb80010f8596045e19f1355e17012f82df10a",
+    "TUTORIAL": "sha256:b56a32f109700b32e02c51b45a442f5831065ca5db6d7b39238fdbef29eeafb5",
+    "README": "sha256:607ebac7ba7c586695d9095d754ed453a21c43c0383cec87040adf84da59cab7"
   },
   "original_semantic_identifiers": [
     "PRODUCT",
@@ -362,6 +362,11 @@
     },
     {
       "file": "tools/gomad3/README.md",
+      "destination": "../../.plans/GOMAD_MILESTONES.md#open-findings",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/README.md",
       "destination": "SPEC.md#productvocabulary-ubiquitous-language",
       "exists": true
     },
@@ -409,7 +414,7 @@
   "actual_help": [
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomad",
         "doctor",
         "-h"
       ],
@@ -423,7 +428,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomad",
         "analyze",
         "-h"
       ],
@@ -440,7 +445,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomad",
         "explore",
         "-h"
       ],
@@ -493,7 +498,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomad",
         "inspect",
         "-h"
       ],
@@ -506,7 +511,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomad",
         "replay",
         "-h"
       ],
@@ -520,7 +525,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomad",
         "minimize",
         "-h"
       ],
@@ -536,7 +541,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomad",
         "qualify",
         "-h"
       ],
@@ -570,7 +575,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomad",
         "qualify-set",
         "-h"
       ],
@@ -590,7 +595,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomad",
         "merge-set",
         "-h"
       ],
@@ -604,7 +609,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomad",
         "compare-support",
         "-h"
       ],
@@ -619,7 +624,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomad",
         "plan",
         "-h"
       ],
@@ -672,7 +677,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomad",
         "execute-shard",
         "-h"
       ],
@@ -687,7 +692,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomad",
         "merge",
         "-h"
       ],
@@ -701,7 +706,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomad",
         "recover",
         "-h"
       ],
@@ -713,7 +718,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomad",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomad",
         "resume",
         "-h"
       ],
@@ -726,7 +731,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomadtool",
         "toolchain-build",
         "-h"
       ],
@@ -743,7 +748,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomadtool",
         "build-key",
         "-h"
       ],
@@ -765,7 +770,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomadtool",
         "patch-validate",
         "-h"
       ],
@@ -779,7 +784,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomadtool",
         "patch-materialize",
         "-h"
       ],
@@ -794,7 +799,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomadtool",
         "patch-regenerate",
         "-h"
       ],
@@ -812,7 +817,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomadtool",
         "version-generate",
         "-h"
       ],
@@ -825,7 +830,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomadtool",
         "protocol-generate",
         "-h"
       ],
@@ -838,7 +843,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomadtool",
         "qualification-manifest-generate",
         "-h"
       ],
@@ -853,7 +858,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomadtool",
         "boundary-generate",
         "-h"
       ],
@@ -872,7 +877,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomadtool",
         "compatibility-pack",
         "discover",
         "-h"
@@ -888,7 +893,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomadtool",
         "compatibility-pack",
         "review",
         "-h"
@@ -904,7 +909,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomadtool",
         "compatibility-pack",
         "generate",
         "-h"
@@ -920,7 +925,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomadtool",
         "compatibility-pack",
         "check",
         "-h"
@@ -934,7 +939,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomadtool",
         "compatibility-pack",
         "qualify",
         "-h"
@@ -950,7 +955,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomadtool",
         "script-validate",
         "-h"
       ],
@@ -962,7 +967,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomadtool",
         "checked-run",
         "-h"
       ],
@@ -972,7 +977,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomadtool",
         "test",
         "-h"
       ],
@@ -989,7 +994,7 @@
     },
     {
       "argv": [
-        "/private/tmp/fn107-d9-darwin/v14/bin/gomadtool",
+        "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/bin/gomadtool",
         "upgrade-dossier",
         "-h"
       ],

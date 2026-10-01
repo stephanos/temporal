@@ -1,0 +1,1674 @@
+--- FAIL: TestDescribeTaskQueueEnhanced_CacheIsolation (0.00s)
+    matching_engine_describe_enhanced_test.go:316: 
+        	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+        	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:316
+        	Error:      	Proto mismatch (-want +got):
+        	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+        	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+        	            	  	"desc_response": protocmp.Message{
+        	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+        	            	  		"versions_info": map[string]protocmp.Message{
+        	            	  			"A": {
+        	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+        	            	  				"types_info": map[int32]protocmp.Message{
+        	            	  					1: {
+        	            	  						"@type":   s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+        	            	  						"pollers": []protocmp.Message{{"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-"A"-Workflow-gen0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-"A"-Workflow-gen0-p0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-"A"-Workflow-gen0-p1`)}},
+        	            	  						"stats": protocmp.Message{
+        	            	  							"@type":                     s"temporal.api.taskqueue.v1.TaskQueueStats",
+        	            	  							"approximate_backlog_age":   protocmp.Message{"@type": s"google.protobuf.Duration"},
+        	            	- 							"approximate_backlog_count": int64(223),
+        	            	+ 							"approximate_backlog_count": int64(446),
+        	            	  						},
+        	            	  					},
+        	            	  					2: {"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo", "pollers": []protocmp.Message{{"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-"A"-Activity-gen0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-"A"-Activity-gen0-p0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-"A"-Activity-gen0-p1`)}}, "stats": protocmp.Message{"@type": s"temporal.api.taskqueue.v1.TaskQueueStats", "approximate_backlog_age": protocmp.Message{"@type": s"google.protobuf.Duration"}, "approximate_backlog_count": int64(243)}},
+        	            	  				},
+        	            	  			},
+        	            	  		},
+        	            	  	},
+        	            	  }))
+        	Test:       	TestDescribeTaskQueueEnhanced_CacheIsolation
+--- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL (0.00s)
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=true_then_pollers=false,stats=false,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	+ 						},
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	+ 						},
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=true_then_pollers=false,stats=false,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=true_then_pollers=false,stats=false,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	+ 						},
+            	            	+ 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	+ 						},
+            	            	+ 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=true_then_pollers=false,stats=false,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=true_then_pollers=false,stats=true,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	+ 						},
+            	            	- 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	+ 						},
+            	            	- 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=true_then_pollers=false,stats=true,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=true_then_pollers=false,stats=true,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	+ 						},
+            	            	- 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	+ 						},
+            	            	- 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=true_then_pollers=false,stats=true,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=true_then_pollers=false,stats=false,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	+ 						},
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	+ 						},
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=true_then_pollers=false,stats=false,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=true_then_pollers=true,stats=false,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type":   s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	  						"pollers": []protocmp.Message{{"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0-p0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0-p1`)}},
+            	            	+ 						"stats":   s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type":   s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	  						"pollers": []protocmp.Message{{"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0-p0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0-p1`)}},
+            	            	+ 						"stats":   s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=true_then_pollers=true,stats=false,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=false_then_pollers=true,stats=true,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type":   s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	  						"pollers": []protocmp.Message{{"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0-p0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0-p1`)}},
+            	            	- 						"stats":   s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type":   s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	  						"pollers": []protocmp.Message{{"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0-p0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0-p1`)}},
+            	            	- 						"stats":   s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=false_then_pollers=true,stats=true,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=false_then_pollers=false,stats=true,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	+ 						},
+            	            	- 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	+ 						},
+            	            	- 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=false_then_pollers=false,stats=true,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=false_then_pollers=true,stats=true,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type":   s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	  						"pollers": []protocmp.Message{{"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0-p0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0-p1`)}},
+            	            	- 						"stats":   s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type":   s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	  						"pollers": []protocmp.Message{{"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0-p0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0-p1`)}},
+            	            	- 						"stats":   s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=false_then_pollers=true,stats=true,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=false_then_pollers=false,stats=false,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	+ 						},
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	+ 						},
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=false_then_pollers=false,stats=false,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=true_then_pollers=true,stats=true,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	- 						},
+            	            	  						"stats": protocmp.Message{"@type": s"temporal.api.taskqueue.v1.TaskQueueStats", "approximate_backlog_age": protocmp.Message{"@type": s"google.protobuf.Duration"}, "approximate_backlog_count": int64(23)},
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	- 						},
+            	            	  						"stats": protocmp.Message{"@type": s"temporal.api.taskqueue.v1.TaskQueueStats", "approximate_backlog_age": protocmp.Message{"@type": s"google.protobuf.Duration"}, "approximate_backlog_count": int64(43)},
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=true_then_pollers=true,stats=true,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=true_then_pollers=true,stats=true,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	- 						},
+            	            	  						"stats": protocmp.Message{"@type": s"temporal.api.taskqueue.v1.TaskQueueStats", "approximate_backlog_age": protocmp.Message{"@type": s"google.protobuf.Duration"}, "approximate_backlog_count": int64(23)},
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	- 						},
+            	            	  						"stats": protocmp.Message{"@type": s"temporal.api.taskqueue.v1.TaskQueueStats", "approximate_backlog_age": protocmp.Message{"@type": s"google.protobuf.Duration"}, "approximate_backlog_count": int64(43)},
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=true_then_pollers=true,stats=true,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=false_then_pollers=false,stats=true,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	+ 						},
+            	            	- 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	+ 						},
+            	            	- 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=false_then_pollers=false,stats=true,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=true_then_pollers=true,stats=false,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	- 						},
+            	            	+ 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	- 						},
+            	            	+ 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=true_then_pollers=true,stats=false,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=false_then_pollers=false,stats=false,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	+ 						},
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	+ 						},
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=false_then_pollers=false,stats=false,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=true_then_pollers=false,stats=false,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=true_then_pollers=false,stats=false,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=true_then_pollers=false,stats=false,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=true_then_pollers=false,stats=false,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=false_then_pollers=true,stats=false,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	- 						},
+            	            	+ 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	- 						},
+            	            	+ 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=false_then_pollers=true,stats=false,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=true_then_pollers=true,stats=false,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	- 						},
+            	            	+ 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	- 						},
+            	            	+ 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=true_then_pollers=true,stats=false,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=false_then_pollers=false,stats=false,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=false_then_pollers=false,stats=false,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=false_then_pollers=true,stats=false,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	- 						},
+            	            	+ 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	- 						},
+            	            	+ 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=false_then_pollers=true,stats=false,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=true_then_pollers=true,stats=true,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	- 						},
+            	            	- 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	- 						},
+            	            	- 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=true_then_pollers=true,stats=true,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=false_then_pollers=true,stats=true,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	- 						},
+            	            	  						"stats": protocmp.Message{"@type": s"temporal.api.taskqueue.v1.TaskQueueStats", "approximate_backlog_age": protocmp.Message{"@type": s"google.protobuf.Duration"}, "approximate_backlog_count": int64(23)},
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	- 						},
+            	            	  						"stats": protocmp.Message{"@type": s"temporal.api.taskqueue.v1.TaskQueueStats", "approximate_backlog_age": protocmp.Message{"@type": s"google.protobuf.Duration"}, "approximate_backlog_count": int64(43)},
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=false_then_pollers=true,stats=true,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=true_then_pollers=true,stats=false,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	- 						},
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	- 						},
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=true_then_pollers=true,stats=false,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=false_then_pollers=false,stats=false,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=false_then_pollers=false,stats=false,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=true_then_pollers=true,stats=true,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	- 						},
+            	            	- 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	- 						},
+            	            	- 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=true_then_pollers=true,stats=true,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=true_then_pollers=false,stats=true,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=true_then_pollers=false,stats=true,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=false_then_pollers=true,stats=true,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	- 						},
+            	            	  						"stats": protocmp.Message{"@type": s"temporal.api.taskqueue.v1.TaskQueueStats", "approximate_backlog_age": protocmp.Message{"@type": s"google.protobuf.Duration"}, "approximate_backlog_count": int64(23)},
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	- 						},
+            	            	  						"stats": protocmp.Message{"@type": s"temporal.api.taskqueue.v1.TaskQueueStats", "approximate_backlog_age": protocmp.Message{"@type": s"google.protobuf.Duration"}, "approximate_backlog_count": int64(43)},
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=true,reachability=false_then_pollers=true,stats=true,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=true_then_pollers=true,stats=false,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	- 						},
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	- 						},
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=true_then_pollers=true,stats=false,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=true_then_pollers=false,stats=true,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=true_then_pollers=false,stats=true,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=false_then_pollers=true,stats=false,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	- 						},
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	- 						},
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=false_then_pollers=true,stats=false,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=true_then_pollers=false,stats=false,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	+ 						},
+            	            	+ 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	+ 						},
+            	            	+ 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=true_then_pollers=false,stats=false,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=false_then_pollers=true,stats=true,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	- 						},
+            	            	- 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	- 						},
+            	            	- 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=false_then_pollers=true,stats=true,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=false_then_pollers=true,stats=false,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	- 						},
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	- 						},
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=false_then_pollers=true,stats=false,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=false_then_pollers=true,stats=false,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type":   s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	  						"pollers": []protocmp.Message{{"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0-p0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0-p1`)}},
+            	            	+ 						"stats":   s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type":   s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	  						"pollers": []protocmp.Message{{"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0-p0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0-p1`)}},
+            	            	+ 						"stats":   s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=false_then_pollers=true,stats=false,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=false_then_pollers=false,stats=true,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	+ 						},
+            	            	  						"stats": protocmp.Message{"@type": s"temporal.api.taskqueue.v1.TaskQueueStats", "approximate_backlog_age": protocmp.Message{"@type": s"google.protobuf.Duration"}, "approximate_backlog_count": int64(23)},
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	+ 						},
+            	            	  						"stats": protocmp.Message{"@type": s"temporal.api.taskqueue.v1.TaskQueueStats", "approximate_backlog_age": protocmp.Message{"@type": s"google.protobuf.Duration"}, "approximate_backlog_count": int64(43)},
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=false_then_pollers=false,stats=true,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=false_then_pollers=false,stats=false,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	+ 						},
+            	            	+ 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	+ 						},
+            	            	+ 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=false_then_pollers=false,stats=false,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=false_then_pollers=true,stats=true,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	- 						},
+            	            	- 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"pollers": []protocmp.Message{
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	- 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	- 						},
+            	            	- 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=false_then_pollers=true,stats=true,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=false_then_pollers=true,stats=false,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type":   s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	  						"pollers": []protocmp.Message{{"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0-p0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0-p1`)}},
+            	            	+ 						"stats":   s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type":   s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	  						"pollers": []protocmp.Message{{"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0-p0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0-p1`)}},
+            	            	+ 						"stats":   s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=false_then_pollers=true,stats=false,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=false_then_pollers=false,stats=false,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	+ 						},
+            	            	+ 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	+ 						},
+            	            	+ 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=false_then_pollers=false,stats=false,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=false_then_pollers=false,stats=true,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	+ 						},
+            	            	  						"stats": protocmp.Message{"@type": s"temporal.api.taskqueue.v1.TaskQueueStats", "approximate_backlog_age": protocmp.Message{"@type": s"google.protobuf.Duration"}, "approximate_backlog_count": int64(23)},
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	+ 						},
+            	            	  						"stats": protocmp.Message{"@type": s"temporal.api.taskqueue.v1.TaskQueueStats", "approximate_backlog_age": protocmp.Message{"@type": s"google.protobuf.Duration"}, "approximate_backlog_count": int64(43)},
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=false_then_pollers=false,stats=true,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=false_then_pollers=false,stats=true,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=false_then_pollers=false,stats=true,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=true_then_pollers=true,stats=true,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type":   s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	  						"pollers": []protocmp.Message{{"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0-p0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0-p1`)}},
+            	            	- 						"stats":   s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type":   s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	  						"pollers": []protocmp.Message{{"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0-p0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0-p1`)}},
+            	            	- 						"stats":   s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=true_then_pollers=true,stats=true,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=true_then_pollers=true,stats=true,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type":   s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	  						"pollers": []protocmp.Message{{"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0-p0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0-p1`)}},
+            	            	- 						"stats":   s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type":   s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	  						"pollers": []protocmp.Message{{"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0-p0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0-p1`)}},
+            	            	- 						"stats":   s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=false,reachability=true_then_pollers=true,stats=true,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=false_then_pollers=false,stats=true,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"stats": s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	- 						"stats": s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=false,stats=false,reachability=false_then_pollers=false,stats=true,reachability=true
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=true_then_pollers=true,stats=false,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type":   s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	  						"pollers": []protocmp.Message{{"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0-p0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Workflow-gen0-p1`)}},
+            	            	+ 						"stats":   s"{approximate_backlog_count:23  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type":   s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	  						"pollers": []protocmp.Message{{"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0-p0`)}, {"@type": s"temporal.api.taskqueue.v1.PollerInfo", "identity": string(`worker-""-Activity-gen0-p1`)}},
+            	            	+ 						"stats":   s"{approximate_backlog_count:43  approximate_backlog_age:0s}",
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=true_then_pollers=true,stats=false,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=true_then_pollers=false,stats=true,reachability=false (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type": s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	+ 						},
+            	            	  						"stats": protocmp.Message{"@type": s"temporal.api.taskqueue.v1.TaskQueueStats", "approximate_backlog_age": protocmp.Message{"@type": s"google.protobuf.Duration"}, "approximate_backlog_count": int64(23)},
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	+ 						},
+            	            	  						"stats": protocmp.Message{"@type": s"temporal.api.taskqueue.v1.TaskQueueStats", "approximate_backlog_age": protocmp.Message{"@type": s"google.protobuf.Duration"}, "approximate_backlog_count": int64(43)},
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=true_then_pollers=false,stats=true,reachability=false
+    --- FAIL: TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=true_then_pollers=false,stats=true,reachability=true (0.00s)
+        matching_engine_describe_enhanced_test.go:248: 
+            	Error Trace:	/Users/stephan/Workspace/temporal/gomad/common/testing/protorequire/require.go:56
+            	            				/Users/stephan/Workspace/temporal/gomad/service/matching/matching_engine_describe_enhanced_test.go:248
+            	Error:      	Proto mismatch (-want +got):
+            	            	  (*matchingservice.DescribeTaskQueueResponse)(Inverse(protocmp.Transform, protocmp.Message{
+            	            	  	"@type": s"temporal.server.api.matchingservice.v1.DescribeTaskQueueResponse",
+            	            	  	"desc_response": protocmp.Message{
+            	            	  		"@type": s"temporal.api.workflowservice.v1.DescribeTaskQueueResponse",
+            	            	  		"versions_info": map[string]protocmp.Message{
+            	            	  			"": {
+            	            	  				"@type":             s"temporal.api.taskqueue.v1.TaskQueueVersionInfo",
+            	            	  				"task_reachability": s"BUILD_ID_TASK_REACHABILITY_REACHABLE",
+            	            	  				"types_info": map[int32]protocmp.Message{
+            	            	  					1: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Workflow-gen0-p1"}`,
+            	            	+ 						},
+            	            	  						"stats": protocmp.Message{"@type": s"temporal.api.taskqueue.v1.TaskQueueStats", "approximate_backlog_age": protocmp.Message{"@type": s"google.protobuf.Duration"}, "approximate_backlog_count": int64(23)},
+            	            	  					},
+            	            	  					2: {
+            	            	  						"@type": s"temporal.api.taskqueue.v1.TaskQueueTypeInfo",
+            	            	+ 						"pollers": []protocmp.Message{
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p0"}`,
+            	            	+ 							s`{identity:"worker-\"\"-Activity-gen0-p1"}`,
+            	            	+ 						},
+            	            	  						"stats": protocmp.Message{"@type": s"temporal.api.taskqueue.v1.TaskQueueStats", "approximate_backlog_age": protocmp.Message{"@type": s"google.protobuf.Duration"}, "approximate_backlog_count": int64(43)},
+            	            	  					},
+            	            	  				},
+            	            	  			},
+            	            	  		},
+            	            	  	},
+            	            	  }))
+            	Test:       	TestDescribeTaskQueueEnhanced_ReportFlagsWithinCacheTTL/pollers=true,stats=true,reachability=true_then_pollers=false,stats=true,reachability=true
+FAIL
+FAIL	go.temporal.io/server/service/matching	1.509s
+FAIL

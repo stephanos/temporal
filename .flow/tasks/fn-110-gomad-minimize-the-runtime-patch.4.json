@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-01T01:03:53.768478Z",
+  "depends_on": [
+    "fn-110-gomad-minimize-the-runtime-patch.3"
+  ],
+  "id": "fn-110-gomad-minimize-the-runtime-patch.4",
+  "priority": null,
+  "spec": "fn-110-gomad-minimize-the-runtime-patch",
+  "spec_path": ".flow/tasks/fn-110-gomad-minimize-the-runtime-patch.4.md",
+  "status": "todo",
+  "title": "Emit the canonical one-context-line patch and pin regeneration to the descriptor",
+  "updated_at": "2026-10-01T01:03:53.768478Z"
+}

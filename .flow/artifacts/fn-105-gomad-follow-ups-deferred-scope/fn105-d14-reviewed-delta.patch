@@ -1,0 +1,412 @@
+--- a/tools/gomad3/toolchain/runtime/go1.27.1.patch
++++ b/tools/gomad3/toolchain/runtime/go1.27.1.patch
+@@ -79,9 +79,18 @@
+  //
+  //go:linkname fatal
+ diff --git a/src/runtime/lock_spinbit.go b/src/runtime/lock_spinbit.go
+-index 6f21c54..fb87322 100644
++index 6f21c54..2e53160 100644
+ --- a/src/runtime/lock_spinbit.go
+ +++ b/src/runtime/lock_spinbit.go
++@@ -241,7 +241,7 @@ tryAcquire:
++ 		// and for "/sync/mutex/wait/total:seconds" metric (to match).
++ 		if !haveTimers {
++ 			gp.m.mWaitList.startTicks = cputicks()
++-			startTime = gp.m.mLockProfile.start()
+++			startTime = gomadLockProfileStart(&gp.m.mLockProfile)
++ 			haveTimers = true
++ 		}
++ 		// Store the current head of the list of sleeping Ms in our gp.m.mWaitList.next field
+ @@ -348,7 +348,7 @@ func unlock2Wake(l *mutex, haveStackLock bool, endTicks int64) {
+  
+  	// On occasion, seek out and wake the M at the bottom of the stack so it
+--- a/tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go
++++ b/tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go
+@@ -424,6 +424,25 @@
+ 	return uint32(uint64(gomadHostCheapRand()) * uint64(n) >> 32)
+ }
+ 
++// gomadLockProfileStart stands in for mLockProfile.start where lock2 is about
++// to sleep on a contended runtime lock. Whether a lock outlasts the spin is
++// host timing, and the waiting M can hold the P: wakep and findRunnable take
++// sched.lock while Ms returning from runner syscalls queue their arrival and
++// park under it. The wait-time sampling draw came from the process-wide
++// stream there, so one contended acquisition shifted every later
++// type-assertion cache fill, a cache grew on a different assertion, and a
++// same-seed replay refilled two heap spans in the other order and printed
++// different addresses.
++func gomadLockProfileStart(prof *mLockProfile) int64 {
++	if !gomadEnabled {
++		return prof.start()
++	}
++	if gomadHostCheapRandN(gTrackingPeriod) == 0 {
++		return nanotime()
++	}
++	return 0
++}
++
+ func gomadChoiceRunqSeeded(n uint32) uint32 {
+ 	if !gomadEnabled {
+ 		return randn(n)
+--- a/tools/gomad3/choice/internal/wire/wire_generated.go
++++ b/tools/gomad3/choice/internal/wire/wire_generated.go
+@@ -27,7 +27,7 @@
+ 	traceMagic                 = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'H', '\x02'}
+ 	tapeMagic                  = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'P', '\x02'}
+ 	terminalMagic              = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'T', '\x02'}
+-	ImplementationSourceSHA256 = [DigestBytes]byte{'H', 'Ú', '\u0098', '\t', 'W', 'G', 'à', '\x11', '\x14', 'ï', '§', '~', '¨', '´', '\u009c', '3', 'ä', '9', '2', 'í', '²', '\x0e', 'Ý', '\u0083', '\x14', '¡', '\u0081', '\r', '·', 'ø', 'ê', ','}
++	ImplementationSourceSHA256 = [DigestBytes]byte{'²', 't', 'H', 'N', 'O', 's', '\u0085', 'T', 'Å', '\x00', ';', '+', '\'', '\x16', '\x15', '^', '½', 'Ù', 'Þ', ' ', '|', '¿', '¯', 'Ï', 'ü', '\x13', 'À', '×', 'l', '²', 'ü', 'D'}
+ )
+ 
+ type Kind uint8
+--- a/tools/gomad3/target/internal/livecap/protocol_generated.go
++++ b/tools/gomad3/target/internal/livecap/protocol_generated.go
+@@ -31,8 +31,8 @@
+ 	MaximumFacts                 = 100000
+ 	MaximumStringBytes           = 4096
+ 	MaximumOwnerFacts            = 4096
+-	ProducerImplementationSHA256 = "sha256:1d4953841623024434e026ddb614588c180a67355397ae14726267eb75584f06"
+-	GuardImplementationSHA256    = "sha256:1d4953841623024434e026ddb614588c180a67355397ae14726267eb75584f06"
++	ProducerImplementationSHA256 = "sha256:7f82e5be881d4298265e436249c44475f3db2d1ff8a59ff72cad98251986f41c"
++	GuardImplementationSHA256    = "sha256:7f82e5be881d4298265e436249c44475f3db2d1ff8a59ff72cad98251986f41c"
+ 	CapabilityUniverseSHA256     = "sha256:d919ef8e9695c3dfc0c4f46155c52ed9bfb5715cbefb1e37c586a3d69f8417dd"
+ 	BoundaryManifestSHA256       = "sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0"
+ )
+--- a/tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go
++++ b/tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go
+@@ -31,8 +31,8 @@
+ 	MaximumFacts                 = 100000
+ 	MaximumStringBytes           = 4096
+ 	MaximumOwnerFacts            = 4096
+-	ProducerImplementationSHA256 = "sha256:1d4953841623024434e026ddb614588c180a67355397ae14726267eb75584f06"
+-	GuardImplementationSHA256    = "sha256:1d4953841623024434e026ddb614588c180a67355397ae14726267eb75584f06"
++	ProducerImplementationSHA256 = "sha256:7f82e5be881d4298265e436249c44475f3db2d1ff8a59ff72cad98251986f41c"
++	GuardImplementationSHA256    = "sha256:7f82e5be881d4298265e436249c44475f3db2d1ff8a59ff72cad98251986f41c"
+ 	CapabilityUniverseSHA256     = "sha256:d919ef8e9695c3dfc0c4f46155c52ed9bfb5715cbefb1e37c586a3d69f8417dd"
+ 	BoundaryManifestSHA256       = "sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0"
+ )
+--- a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go
++++ b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go
+@@ -27,7 +27,7 @@
+ 	traceMagic                 = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'H', '\x02'}
+ 	tapeMagic                  = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'P', '\x02'}
+ 	terminalMagic              = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'T', '\x02'}
+-	ImplementationSourceSHA256 = [DigestBytes]byte{'H', 'Ú', '\u0098', '\t', 'W', 'G', 'à', '\x11', '\x14', 'ï', '§', '~', '¨', '´', '\u009c', '3', 'ä', '9', '2', 'í', '²', '\x0e', 'Ý', '\u0083', '\x14', '¡', '\u0081', '\r', '·', 'ø', 'ê', ','}
++	ImplementationSourceSHA256 = [DigestBytes]byte{'²', 't', 'H', 'N', 'O', 's', '\u0085', 'T', 'Å', '\x00', ';', '+', '\'', '\x16', '\x15', '^', '½', 'Ù', 'Þ', ' ', '|', '¿', '¯', 'Ï', 'ü', '\x13', 'À', '×', 'l', '²', 'ü', 'D'}
+ )
+ 
+ type Kind uint8
+--- a/tools/gomad3/README.md
++++ b/tools/gomad3/README.md
+@@ -767,16 +767,22 @@
+ 
+ Runtime decisions that only shape host-side scheduling draw from the M's own
+ random stream rather than the process-wide seeded one: lock hand-off
+-anti-starvation wakes, work-steal order, and pcvalue-cache eviction all happen
++anti-starvation wakes, the wait-time sample an M takes before it sleeps on a
++contended runtime lock, work-steal order, and pcvalue-cache eviction all happen
+ at host-timed moments (contended runtime locks, idle windows whose length the
+ Runner decides, stack walks on whichever M holds the P), and drawing them from
+ the seeded stream moved every later type-assertion-cache fill and semaphore
+-ticket between same-seed runs. A garbage-collector stack scan, and any other
+-`suspendG`, first waits for a goroutine inside a plain host syscall (a pipe
+-write, a read-only mount lookup) to return and queue itself as an arrival, so
+-the collector's view of live memory does not depend on when the host answered;
+-simulation transport reads are exempt because they block until the simulation
+-advances.
++ticket between same-seed runs. The wait-time sample was the last of these to
++move: an M that holds the P sleeps on the scheduler lock only when another M,
++parking or returning from a Runner syscall, keeps it past the spin, and that
++single draw shifted the stream, so a type-assertion cache grew at a different
++call site, two heap-span refills swapped order, and a few same-seed replays in
++a hundred of a functional suite diverged on darwin/arm64. A garbage-collector
++stack scan, and any other `suspendG`, first waits for a goroutine inside a
++plain host syscall (a pipe write, a read-only mount lookup) to return and
++queue itself as an arrival, so the collector's view of live memory does not
++depend on when the host answered; simulation transport reads are exempt
++because they block until the simulation advances.
+ 
+ At the start of every mark phase, while the world is still stopped, the
+ runtime greys every M with its g0, gsignal and `self` handle, every P's `oldm`
+--- a/.plans/GOMAD_MILESTONES.md
++++ b/.plans/GOMAD_MILESTONES.md
+@@ -49,11 +49,11 @@
+   choice-tape replay claim (`replayed` and `choice.available` are false), and a mismatch between
+   repetitions is still `nondeterministic`. Tracing and success replay stay on in the replay
+   gates (`temporal.json`, `smoke.json`, and `qualification/core.json`) and for the one test the
+-  generator spec opts in, `TestSignalWorkflowTestSuiteChasm`, whose open finding is a replay
+-  divergence (D14). A seed there verifies choice-tape replay when it reports
+-  `choice_replay_exact`; the `intermittent` expectations of D12 and D14 still accept a seed that
+-  diverged. The exact-replay results recorded below for individual suites are the dated traced
+-  runs they name, not a property of routine runs.
++  generator spec opts in, `TestSignalWorkflowTestSuiteChasm`, which carried the darwin replay
++  divergence fixed under D14 and stays `intermittent` on linux under D12. A seed there verifies
++  choice-tape replay when it reports `choice_replay_exact`; the `intermittent` expectations of
++  D12 still accept a seed that diverged. The exact-replay results recorded below for individual
++  suites are the dated traced runs they name, not a property of routine runs.
+ - **No exact replay available for eight suites.** Their choice traces overflow the 64 MiB
+   maximum, so they cannot opt into tracing until larger traces exist (deferred as D15).
+   `TestTaskQueueStats_Pri_Suite`, `TestVersioning3FunctionalSuite`,
+@@ -79,9 +79,10 @@
+     during server work. Investigations are approved as
+     [D19](../.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.19.md) for fairness and
+     [D20](../.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.20.md) for heartbeat timeouts.
+-- **Intermittent suites.** `TestSignalWorkflowTestSuiteChasm` on darwin (F10 D14) and the F5/F6
+-  suites on linux (F10 D12). The generated manifest expects `TestSignalWorkflowTestSuiteChasm`
+-  `intermittent` on both platforms. The linux `intermittent` expectation for the F5/F6 suites is
++- **Intermittent suites.** The F5/F6 suites and `TestSignalWorkflowTestSuiteChasm` on linux
++  (F10 D12). The darwin divergence of `TestSignalWorkflowTestSuiteChasm` is fixed (F10 D14,
++  2026-09-30): the generated manifest expects it `qualified` on darwin/arm64 and `intermittent`
++  on linux/amd64. The linux `intermittent` expectation for the F5/F6 suites is
+   stated in the representative and smoke manifests (`temporal.json`, `smoke.json`); the generated
+   manifest still expects those suites `qualified` on linux, where the full set is not run as a gate.
+ 
+@@ -173,7 +174,7 @@
+ | --- | --- | --- |
+ | D7 | Add a darwin/arm64 job for the existing functional smoke selection (`fn-101.4`) | Required CI addition approved 2026-09-30. R7 in fn-105 requires a standard macOS runner, preserved Linux coverage, platform-specific reports/artifacts, zero unsupported/failed/infrastructure errors, explicitly traced exact replay, and passing GitHub Actions evidence. |
+ | D12 | Identify and fix the linux/amd64 replay-divergence channel (`fn-106.1`); about one tier-3 seed-run in 26 diverged, and the recorded evidence points to host timing under load | Must be fixed, decided 2026-09-30. Native Linux instrumentation is an execution prerequisite. R12 in fn-105 requires a regression reproducer, repeated exact replay on both seeds under load, and restoration of strict CI expectations; diagnosis alone cannot close the task. |
+-| D14 | Fix Darwin TestSignalWorkflowTestSuiteChasm replay divergence (F7); two heap-span refills swap order at cluster start, historically about one seed-11 replay in 28 | Required fix, decided 2026-09-30. R14 in fn-105 requires identifying and fixing the cause, a regression reproducer, and repeated Darwin exact replay on both seeds under load. A shared D12 fix requires separate Darwin verification before restoring the suite to qualified. |
++| D14 | Fix Darwin TestSignalWorkflowTestSuiteChasm replay divergence (F7); two heap-span refills swap order at cluster start, historically about one seed-11 replay in 28 | Fixed in the working tree on darwin/arm64 (2026-09-30, toolchain key `8d28bd44`). Cause: before an M sleeps on a contended runtime lock, `lock2` samples the wait time (`mLockProfile.start`), and that draw came from the process-wide seeded stream when the M held the P. Whether the scheduler lock outlasts the spin is host timing; in the instrumented divergent replay the P's M waited in `findRunnable` while another M parked in `stopm`. The draw shifted every later seeded draw, type-assertion caches grew at other call sites (first on the cluster-start goroutine, in `database/sql` and `fx`), a later goroutine allocated a cache of another size, two heap-span refills swapped order, and the replay diverged at a choice ordinal. Fix: the sample draws from the M's own stream (`gomadLockProfileStart`, one `lock_spinbit.go` hunk). On the unfixed toolchain with scratch instrumentation 5 of 350 seed-11 replays diverged under host load; none of the 345 matching replays slept on a runtime lock while holding the P, and the dumped divergent replay did so once, just before its first differing event. Reproducer: `TestProfileSchedulerLockContentionLeavesSeededStreamInPlace` (fixture `io_handoff_contention`) failed 20 of 20 invocations on the unfixed toolchain and passed 20 of 20 on the fixed one. Fixed toolchain, tracing on, host load: 400 exact replays per seed of a retained success on seeds 11 and 17 with no divergence, 12 fresh repetitions per seed that agreed within each qualification, and four runs of the generated workload `qualified` on both seeds. The generated manifest expects darwin/arm64 `qualified` again. The patched code also runs on linux/amd64, so the same draw may be the D12 channel; that is an unverified hypothesis, linux/amd64 was not run, and D12 stays open. Evidence: `.flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d14-evidence.json`. |
+ | D16 | Investigate TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch; the client times out before an empty poll response under the forward clock | Investigation approved 2026-09-30. R16 in fn-105 requires a reproducer, native/Gomad comparison, causal deadline evidence, and a proposed correction with an owner for a subsequent decision. Keep the skip until evidence supports removal; retain any needed fix as explicit open work. |
+ | D17 | Investigate TestNexusOTELSuite/TestOperation with two clusters; configuring two pool slots resolves the initial wait but repeated runs and replay still differ | Investigation approved 2026-09-30. R17 in fn-105 requires reproductions, control comparisons, the first divergent event and missing-terminal-frame diagnosis, and an owned correction proposal for a subsequent decision. Keep the skip until verification supports removal; a shared D12/D14 cause requires evidence. |
+ | D18 | Investigate worker cancellation delivery and inconsistent test timeout budgets | Approved 2026-09-30. R18 requires causal delivery/deadline evidence and an owned correction proposal; keep the skip until verified. |
+--- a/tools/gomad3integration/qualification/tests.generator.json
++++ b/tools/gomad3integration/qualification/tests.generator.json
+@@ -205,10 +205,6 @@
+     },
+     "TestSignalWorkflowTestSuiteChasm": {
+       "platform_expectations": {
+-        "darwin/arm64": {
+-          "classification": "intermittent",
+-          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+-        },
+         "linux/amd64": {
+           "classification": "intermittent",
+           "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+@@ -218,7 +214,7 @@
+       "replay_successes": true,
+       "success_artifact_limit": 1,
+       "success_bytes_limit": 1073741824,
+-      "reason": "Residual replay divergence: about 1 in 28 seed-11 replays differ in stderr (two heap-span refills swap order before any collection; allocating goroutine not yet identified). Open Gomad finding recorded in F7's status (2026-09-29). It opts into the 64 MiB choice trace and success replay that routine workloads no longer record, because an untraced run cannot observe a replay divergence (F10 D14)."
++      "reason": "Carried the darwin replay divergence fixed under F10 D14 (2026-09-30): a contended scheduler lock drew from the seeded runtime stream, a type-assertion cache grew on a different call, and two heap-span refills swapped order. It keeps the 64 MiB choice trace and success replay that routine workloads no longer record, because an untraced run cannot observe a replay divergence; darwin/arm64 is expected to qualify with exact replay, and linux/amd64 stays intermittent until F10 D12 is verified there."
+     },
+     "TestTaskQueueStats_Pri_Suite": {
+       "io_transcript_bytes": 536870912,
+--- a/tools/gomad3integration/qualification/tests.json
++++ b/tools/gomad3integration/qualification/tests.json
+@@ -3074,10 +3074,6 @@
+         "classification": "qualified"
+       },
+       "platform_expectations": {
+-        "darwin/arm64": {
+-          "classification": "intermittent",
+-          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+-        },
+         "linux/amd64": {
+           "classification": "intermittent",
+           "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+--- /dev/null
++++ b/tools/gomad3/internal/gomadtool/conformance/testdata/io_handoff_contention/main.go
+@@ -0,0 +1,124 @@
++// io_handoff_contention contends the scheduler lock at host-timed moments and
++// then prints where the seeded runtime stream stands. Every lookup of a path
++// the read-only mount has not answered is a runner syscall that hands the P to
++// another M, and the wake-ups after it take the scheduler lock on the M that
++// holds the P while the Ms returning from earlier lookups queue and park under
++// the same lock. A type-assertion site then misses its cache on every call:
++// each miss draws from the seeded stream to decide whether the cache grows, so
++// the calls on which it allocates place the stream exactly.
++package main
++
++import (
++	"fmt"
++	"os"
++	"runtime"
++	"strings"
++	"sync"
++)
++
++const (
++	readers    = 6
++	lookups    = 3000
++	wakes      = 4
++	assertions = 1 << 13
++)
++
++type (
++	s0  int
++	s1  int
++	s2  int
++	s3  int
++	s4  int
++	s5  int
++	s6  int
++	s7  int
++	s8  int
++	s9  int
++	s10 int
++	s11 int
++	s12 int
++	s13 int
++	s14 int
++	s15 int
++)
++
++func (s0) String() string  { return "" }
++func (s1) String() string  { return "" }
++func (s2) String() string  { return "" }
++func (s3) String() string  { return "" }
++func (s4) String() string  { return "" }
++func (s5) String() string  { return "" }
++func (s6) String() string  { return "" }
++func (s7) String() string  { return "" }
++func (s8) String() string  { return "" }
++func (s9) String() string  { return "" }
++func (s10) String() string { return "" }
++func (s11) String() string { return "" }
++func (s12) String() string { return "" }
++func (s13) String() string { return "" }
++func (s14) String() string { return "" }
++func (s15) String() string { return "" }
++
++var values = [...]any{s0(0), s1(0), s2(0), s3(0), s4(0), s5(0), s6(0), s7(0), s8(0), s9(0), s10(0), s11(0), s12(0), s13(0), s14(0), s15(0)}
++
++//go:noinline
++func assert(value any) fmt.Stringer {
++	return value.(fmt.Stringer)
++}
++
++func main() {
++	if err := contend(); err != nil {
++		fmt.Fprintln(os.Stderr, err)
++		os.Exit(1)
++	}
++	var grown []string
++	var stats runtime.MemStats
++	runtime.ReadMemStats(&stats)
++	previous := stats.Mallocs
++	for index := range assertions {
++		assert(values[index%len(values)])
++		runtime.ReadMemStats(&stats)
++		if stats.Mallocs != previous {
++			grown = append(grown, fmt.Sprint(index))
++			runtime.ReadMemStats(&stats)
++			previous = stats.Mallocs
++		}
++	}
++	fmt.Printf("type-assertion cache grew at %s\n", strings.Join(grown, " "))
++}
++
++func contend() error {
++	errs := make([]error, readers)
++	var group sync.WaitGroup
++	for reader := range readers {
++		group.Add(1)
++		go func() {
++			defer group.Done()
++			ping, pong := make(chan struct{}), make(chan struct{})
++			go func() {
++				for range ping {
++					pong <- struct{}{}
++				}
++			}()
++			defer close(ping)
++			for lookup := range lookups {
++				probe := fmt.Sprintf("/mounted/missing.reader-%d.lookup-%d", reader, lookup)
++				if _, err := os.Stat(probe); !os.IsNotExist(err) {
++					errs[reader] = fmt.Errorf("stat %s: %v, want not exist", probe, err)
++					return
++				}
++				for range wakes {
++					ping <- struct{}{}
++					<-pong
++				}
++			}
++		}()
++	}
++	group.Wait()
++	for _, err := range errs {
++		if err != nil {
++			return err
++		}
++	}
++	return nil
++}
+--- /dev/null
++++ b/tools/gomad3/runner/internal/execution/io_handoff_toolchain_test.go
+@@ -0,0 +1,75 @@
++package execution_test
++
++import (
++	"context"
++	"fmt"
++	"os"
++	"path/filepath"
++	"strings"
++	"sync"
++	"testing"
++	"time"
++
++	"go.temporal.io/server/tools/gomad3/deterministicio"
++	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
++	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
++	"go.temporal.io/server/tools/gomad3/target"
++)
++
++// A runtime lock that outlasts the waiter's spin is host timing. The sampling
++// draw lock2 makes before it sleeps once came from the seeded stream when the
++// waiting M held the P, so the stream stood one draw further in the executions
++// where the scheduler lock was contended that long. No single execution is
++// certain to contend, so the test compares several, run together so that they
++// also compete for the host's processors.
++func TestProfileSchedulerLockContentionLeavesSeededStreamInPlace(t *testing.T) {
++	const executions = 12
++	toolchainRoot, err := filepath.Abs(filepath.Join("..", "..", "..", ".toolchain"))
++	if err != nil {
++		t.Fatal(err)
++	}
++	prepared, err := target.Prepare(context.Background(), target.Spec{
++		Kind: target.KindGoRun, Source: "./io_handoff_contention", WorkingDir: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"),
++		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
++	})
++	if err != nil {
++		t.Fatal(err)
++	}
++	profile := deterministicio.Default()
++	frame, err := profile.BootstrapFrame(prepared, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 7)
++	if err != nil {
++		t.Fatal(err)
++	}
++	source := t.TempDir()
++	outputs := make([]string, executions)
++	failures := make([]string, executions)
++	var group sync.WaitGroup
++	for index := range executions {
++		directory := t.TempDir()
++		group.Add(1)
++		go func() {
++			defer group.Done()
++			result, err := execution.Run(context.Background(), execution.Spec{
++				SupervisorCommand: []string{os.Args[0], "-test.run=TestEntropySupervisorHelper"}, BootstrapCommand: []string{os.Args[0], "-test.run=TestEntropyBootstrapHelper"},
++				Command: prepared.Path, Argv0: prepared.Argv[0], Dir: directory, Env: []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
++				ExecutionTimeout: time.Minute, TerminateGrace: time.Second, OutputLimit: 4096,
++				World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
++				IO: &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20},
++					ReadOnlyMount: &execution.ReadOnlyMountCapability{Mappings: []readonlymount.Mapping{{Source: source, Target: "/mounted"}}, Limits: readonlymount.DefaultLimits()}},
++			})
++			outputs[index] = string(result.Stdout.Bytes)
++			if err != nil || result.ExitCode != 0 || !strings.HasPrefix(outputs[index], "type-assertion cache grew at ") {
++				failures[index] = fmt.Sprintf("execution.Run() error = %v, result = %#v, stderr = %q", err, result, result.Stderr.Bytes)
++			}
++		}()
++	}
++	group.Wait()
++	for index := range executions {
++		if failures[index] != "" {
++			t.Fatalf("execution %d: %s", index, failures[index])
++		}
++		if outputs[index] != outputs[0] {
++			t.Fatalf("execution %d placed the seeded stream differently:\n%s%s", index, outputs[0], outputs[index])
++		}
++	}
++}

@@ -1,0 +1,310 @@
+[
+ {
+  "round": 1,
+  "name": "temporal-tests-chasm",
+  "platform": {
+   "goarch": "arm64",
+   "goos": "darwin"
+  },
+  "toolchain": {
+   "boundary_manifest_sha256": "sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0",
+   "boundary_manifest_version": "go1.27.1-v1",
+   "build_key": "8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc",
+   "go_version": "go1.27.1",
+   "target_goarch": "arm64",
+   "target_goos": "darwin"
+  },
+  "expectations_met": true,
+  "supported": 1,
+  "unsupported": 0,
+  "failed": 0,
+  "infrastructure_errors": 0,
+  "replayed": 2,
+  "replay_diverged": 0,
+  "seeds": [
+   "11",
+   "17"
+  ],
+  "manifest_sha256": "sha256:1d3eb026d0bbe54221cc98e5221edf999874e24c8676baf589e9d371d139672a",
+  "elapsed_nanos": "88084288000",
+  "workload": {
+   "blockers": [],
+   "capability_mode": "closure",
+   "choice": {
+    "adjacent_pairs_observed": "310728",
+    "adjacent_pairs_truncated": false,
+    "available": true,
+    "exact_replay_available": true,
+    "implementation_sha256": "sha256:61ac017c2b00488e0b6dc0bcba138763965d2dc04fd3d9dbadb754faf93ebf8b",
+    "limit": "67108864",
+    "profile": "gomad3-choice-trace/v2"
+   },
+   "classification": "qualified",
+   "expectation_met": true,
+   "expected": {
+    "classification": "qualified"
+   },
+   "id": "tests-signal-workflow-test-suite-chasm",
+   "invariant": "TestSignalWorkflowTestSuiteChasm passes through the one-box cluster under virtual time",
+   "name": "TestSignalWorkflowTestSuiteChasm",
+   "seeds": [
+    {
+     "artifact_bytes": "325611511",
+     "artifacts_pruned": true,
+     "choice_replay_exact": true,
+     "classification": "qualified",
+     "elapsed_nanos": "45576622000",
+     "evidence_sha256": "sha256:73a26dbbdf681b10fff53d36eacf167f1da32d4fea356acf14ffae28055e0a5c",
+     "replay_match": true,
+     "replayed": true,
+     "seed": "11",
+     "trace_bytes": "14744640"
+    },
+    {
+     "artifact_bytes": "325947355",
+     "artifacts_pruned": true,
+     "choice_replay_exact": true,
+     "classification": "qualified",
+     "elapsed_nanos": "42507666000",
+     "evidence_sha256": "sha256:f202627ef2eddc1f602f29a8276fc818863e7a42930978b93115e8464c238457",
+     "replay_match": true,
+     "replayed": true,
+     "seed": "17",
+     "trace_bytes": "15085632"
+    }
+   ],
+   "tier": 3
+  }
+ },
+ {
+  "round": 2,
+  "name": "temporal-tests-chasm",
+  "platform": {
+   "goarch": "arm64",
+   "goos": "darwin"
+  },
+  "toolchain": {
+   "boundary_manifest_sha256": "sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0",
+   "boundary_manifest_version": "go1.27.1-v1",
+   "build_key": "8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc",
+   "go_version": "go1.27.1",
+   "target_goarch": "arm64",
+   "target_goos": "darwin"
+  },
+  "expectations_met": true,
+  "supported": 1,
+  "unsupported": 0,
+  "failed": 0,
+  "infrastructure_errors": 0,
+  "replayed": 2,
+  "replay_diverged": 0,
+  "seeds": [
+   "11",
+   "17"
+  ],
+  "manifest_sha256": "sha256:1d3eb026d0bbe54221cc98e5221edf999874e24c8676baf589e9d371d139672a",
+  "elapsed_nanos": "90017475000",
+  "workload": {
+   "blockers": [],
+   "capability_mode": "closure",
+   "choice": {
+    "adjacent_pairs_observed": "310728",
+    "adjacent_pairs_truncated": false,
+    "available": true,
+    "exact_replay_available": true,
+    "implementation_sha256": "sha256:61ac017c2b00488e0b6dc0bcba138763965d2dc04fd3d9dbadb754faf93ebf8b",
+    "limit": "67108864",
+    "profile": "gomad3-choice-trace/v2"
+   },
+   "classification": "qualified",
+   "expectation_met": true,
+   "expected": {
+    "classification": "qualified"
+   },
+   "id": "tests-signal-workflow-test-suite-chasm",
+   "invariant": "TestSignalWorkflowTestSuiteChasm passes through the one-box cluster under virtual time",
+   "name": "TestSignalWorkflowTestSuiteChasm",
+   "seeds": [
+    {
+     "artifact_bytes": "325611512",
+     "artifacts_pruned": true,
+     "choice_replay_exact": true,
+     "classification": "qualified",
+     "elapsed_nanos": "44925088000",
+     "evidence_sha256": "sha256:73a26dbbdf681b10fff53d36eacf167f1da32d4fea356acf14ffae28055e0a5c",
+     "replay_match": true,
+     "replayed": true,
+     "seed": "11",
+     "trace_bytes": "14744640"
+    },
+    {
+     "artifact_bytes": "325947358",
+     "artifacts_pruned": true,
+     "choice_replay_exact": true,
+     "classification": "qualified",
+     "elapsed_nanos": "45092387000",
+     "evidence_sha256": "sha256:f202627ef2eddc1f602f29a8276fc818863e7a42930978b93115e8464c238457",
+     "replay_match": true,
+     "replayed": true,
+     "seed": "17",
+     "trace_bytes": "15085632"
+    }
+   ],
+   "tier": 3
+  }
+ },
+ {
+  "round": 3,
+  "name": "temporal-tests-chasm",
+  "platform": {
+   "goarch": "arm64",
+   "goos": "darwin"
+  },
+  "toolchain": {
+   "boundary_manifest_sha256": "sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0",
+   "boundary_manifest_version": "go1.27.1-v1",
+   "build_key": "8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc",
+   "go_version": "go1.27.1",
+   "target_goarch": "arm64",
+   "target_goos": "darwin"
+  },
+  "expectations_met": true,
+  "supported": 1,
+  "unsupported": 0,
+  "failed": 0,
+  "infrastructure_errors": 0,
+  "replayed": 2,
+  "replay_diverged": 0,
+  "seeds": [
+   "11",
+   "17"
+  ],
+  "manifest_sha256": "sha256:1d3eb026d0bbe54221cc98e5221edf999874e24c8676baf589e9d371d139672a",
+  "elapsed_nanos": "94355547000",
+  "workload": {
+   "blockers": [],
+   "capability_mode": "closure",
+   "choice": {
+    "adjacent_pairs_observed": "310728",
+    "adjacent_pairs_truncated": false,
+    "available": true,
+    "exact_replay_available": true,
+    "implementation_sha256": "sha256:61ac017c2b00488e0b6dc0bcba138763965d2dc04fd3d9dbadb754faf93ebf8b",
+    "limit": "67108864",
+    "profile": "gomad3-choice-trace/v2"
+   },
+   "classification": "qualified",
+   "expectation_met": true,
+   "expected": {
+    "classification": "qualified"
+   },
+   "id": "tests-signal-workflow-test-suite-chasm",
+   "invariant": "TestSignalWorkflowTestSuiteChasm passes through the one-box cluster under virtual time",
+   "name": "TestSignalWorkflowTestSuiteChasm",
+   "seeds": [
+    {
+     "artifact_bytes": "325611514",
+     "artifacts_pruned": true,
+     "choice_replay_exact": true,
+     "classification": "qualified",
+     "elapsed_nanos": "48416149000",
+     "evidence_sha256": "sha256:73a26dbbdf681b10fff53d36eacf167f1da32d4fea356acf14ffae28055e0a5c",
+     "replay_match": true,
+     "replayed": true,
+     "seed": "11",
+     "trace_bytes": "14744640"
+    },
+    {
+     "artifact_bytes": "325947358",
+     "artifacts_pruned": true,
+     "choice_replay_exact": true,
+     "classification": "qualified",
+     "elapsed_nanos": "45939398000",
+     "evidence_sha256": "sha256:f202627ef2eddc1f602f29a8276fc818863e7a42930978b93115e8464c238457",
+     "replay_match": true,
+     "replayed": true,
+     "seed": "17",
+     "trace_bytes": "15085632"
+    }
+   ],
+   "tier": 3
+  }
+ },
+ {
+  "round": 4,
+  "name": "temporal-tests-chasm",
+  "platform": {
+   "goarch": "arm64",
+   "goos": "darwin"
+  },
+  "toolchain": {
+   "boundary_manifest_sha256": "sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0",
+   "boundary_manifest_version": "go1.27.1-v1",
+   "build_key": "8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc",
+   "go_version": "go1.27.1",
+   "target_goarch": "arm64",
+   "target_goos": "darwin"
+  },
+  "expectations_met": true,
+  "supported": 1,
+  "unsupported": 0,
+  "failed": 0,
+  "infrastructure_errors": 0,
+  "replayed": 2,
+  "replay_diverged": 0,
+  "seeds": [
+   "11",
+   "17"
+  ],
+  "manifest_sha256": "sha256:1d3eb026d0bbe54221cc98e5221edf999874e24c8676baf589e9d371d139672a",
+  "elapsed_nanos": "94131269000",
+  "workload": {
+   "blockers": [],
+   "capability_mode": "closure",
+   "choice": {
+    "adjacent_pairs_observed": "310728",
+    "adjacent_pairs_truncated": false,
+    "available": true,
+    "exact_replay_available": true,
+    "implementation_sha256": "sha256:61ac017c2b00488e0b6dc0bcba138763965d2dc04fd3d9dbadb754faf93ebf8b",
+    "limit": "67108864",
+    "profile": "gomad3-choice-trace/v2"
+   },
+   "classification": "qualified",
+   "expectation_met": true,
+   "expected": {
+    "classification": "qualified"
+   },
+   "id": "tests-signal-workflow-test-suite-chasm",
+   "invariant": "TestSignalWorkflowTestSuiteChasm passes through the one-box cluster under virtual time",
+   "name": "TestSignalWorkflowTestSuiteChasm",
+   "seeds": [
+    {
+     "artifact_bytes": "325611514",
+     "artifacts_pruned": true,
+     "choice_replay_exact": true,
+     "classification": "qualified",
+     "elapsed_nanos": "45163047000",
+     "evidence_sha256": "sha256:73a26dbbdf681b10fff53d36eacf167f1da32d4fea356acf14ffae28055e0a5c",
+     "replay_match": true,
+     "replayed": true,
+     "seed": "11",
+     "trace_bytes": "14744640"
+    },
+    {
+     "artifact_bytes": "325947358",
+     "artifacts_pruned": true,
+     "choice_replay_exact": true,
+     "classification": "qualified",
+     "elapsed_nanos": "48968222000",
+     "evidence_sha256": "sha256:f202627ef2eddc1f602f29a8276fc818863e7a42930978b93115e8464c238457",
+     "replay_match": true,
+     "replayed": true,
+     "seed": "17",
+     "trace_bytes": "15085632"
+    }
+   ],
+   "tier": 3
+  }
+ }
+]

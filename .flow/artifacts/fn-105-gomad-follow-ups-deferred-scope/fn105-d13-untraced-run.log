@@ -1,0 +1,2 @@
+qualification set: name=temporal-tests expectations-met=true supported=1 unsupported=0 failed=0 infrastructure-errors=0 completed=1/1
+env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad qualify-set      21.60s user 23.16s system 117% cpu 38.070 total

@@ -1,0 +1,59 @@
+[1;36mLinting code...[0m
+level=info msg="golangci-lint has version 2.13.0 built with go1.27.1 from (unknown, modified: ?, mod sum: \"h1:n/YR8sCuTAfjwKLHOU0q63X2e4tObi1PCNOz+HXJ3cE=\") on (unknown)"
+level=info msg="[config_reader] Used config file .github/.golangci.yml"
+level=info msg="[config_reader] Module name \"go.temporal.io/server\""
+level=info msg="[goenv] Read go env for 14.041666ms: map[string]string{\"GOCACHE\":\"/Users/stephan/Library/Caches/go-build\", \"GOROOT\":\"/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64\"}"
+level=info msg="[lintersdb] Active 13 linters: [depguard errcheck exhaustive forbidigo gci godox goimports govet importas iotamixing revive staticcheck testifylint]"
+level=info msg="[loader] Using build tags: [disable_grpc_modules  test_dep ]"
+level=info msg="[loader] Go packages loading at mode 8767 (deps|name|types_sizes|exports_file|files|imports|compiled_files) took 2.488474958s"
+level=info msg="[runner/filename_unadjuster] Pre-built 0 adjustments in 195.759625ms"
+level=error msg="[linters_context] typechecking error: main module (go.temporal.io/server) does not contain package go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance/testdata/io_filesystem"
+level=error msg="[linters_context] typechecking error: main module (go.temporal.io/server) does not contain package go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/boundary"
+level=error msg="[linters_context] typechecking error: main module (go.temporal.io/server) does not contain package go.temporal.io/server/tools/gomad3/deterministicio/testdata/hashicorpmetrics"
+level=error msg="[linters_context] typechecking error: main module (go.temporal.io/server) does not contain package go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance/testdata/interceptfail/missing_hook"
+level=error msg="[linters_context] typechecking error: main module (go.temporal.io/server) does not contain package go.temporal.io/server/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadwire"
+level=info msg="[linters_context/goanalysis] analyzers took 158.625µs with top 10 stages: framepointer: 54.583µs, errcheck: 40µs, directive: 32.709µs, config: 17.833µs, typecheck: 13.5µs"
+level=info msg="[runner] Applying suggested fixes"
+level=info msg="[runner] fixer took 2.125µs with stages: all: 2.125µs"
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^proto\""
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^.git\""
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^api\""
+level=info msg="[runner/exclusion_rules] Skipped 6 issues by rules: [Text: \"time.Sleep\", Path Except: \"_test\\\\.go|tests/.+\\\\.go\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 45 issues by rules: [Text: \"Unix|UnixMilli|UnixNano\", Path Except: \"common/persistence/cassandra/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 66 issues by rules: [Text: \"panic\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"FunctionalTestBase\", Path: \"tests/testcore/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"ActiveInCluster\", Path: \"common/namespace/(namespace|replication_resolver)(_test)?\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 3 issues by rules: [Text: \"context.Background\", Path Except: \"tests/.+_test\\\\.go\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 33 issues by rules: [Text: \"assert\\\\.CollectT\", Path: \"tests/(nexus_standalone|nexus_workflow)_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"Unix|UnixMilli|UnixNano\", Path: \"_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 119 issues by rules: [Text: \"Eventually\", Path: \"tests/(nexus_standalone|nexus_workflow|schedule|schedule_migration)_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 3 issues by rules: [Text: \"SA1019: go.temporal.io/server/service/history/hsm/(callbacks|nexusoperations) is deprecated\", Linters: \"staticcheck\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"time.Now\", Path: \"chasm/lib/.*_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Path: \"^tools\\\\/.+\\\\.go\", Linters: \"revive\"]"
+level=info msg="[runner/exclusion_rules] Skipped 565 issues by rules: [Text: \"time.Now\", Path Except: \"chasm/lib/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"panic\", Path: \"chasm/lib/activity/model/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 45 issues by rules: [Text: \"(cyclomatic|cognitive)\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"revive\"]"
+level=info msg="[runner/exclusion_rules] Skipped 57 issues by rules: [Text: \"(dot-imports|unchecked-type-assertion)\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"revive\"]"
+level=info msg="[runner/exclusion_rules] Skipped 51 issues by rules: [Text: \"use of `softassert\\\\.\\\\w+`\", Linters: \"forbidigo\"]"
+level=warning msg="[runner/nolint_filter] Found unknown linters in //nolint directives: cognitive-complexity"
+level=info msg="[runner] Issues before processing: 3753, after processing: 3"
+level=info msg="[runner] Processors filtering stat (in/out): max_same_issues: 3/3, path_absoluter: 3753/3753, cgo: 3753/3753, invalid_issue: 3753/3753, path_relativity: 3753/3753, nolint_filter: 2746/2229, diff: 2229/3, path_shortener: 3/3, sort_results: 3/3, filename_unadjuster: 3753/3753, exclusion_paths: 3753/3753, path_prettifier: 3/3, fixer: 3/3, uniq_by_line: 3/3, max_from_linter: 3/3, source_code: 3/3, severity-rules: 3/3, generated_file_filter: 3753/3739, exclusion_rules: 3739/2746, max_per_file_from_linter: 3/3"
+level=info msg="[runner] processing took 980.453789ms with stages: diff: 824.126167ms, nolint_filter: 135.873084ms, exclusion_rules: 13.835958ms, generated_file_filter: 3.609709ms, path_relativity: 2.168874ms, exclusion_paths: 337.249µs, source_code: 169.458µs, fixer: 106.167µs, cgo: 103.583µs, invalid_issue: 72.916µs, path_absoluter: 28.125µs, filename_unadjuster: 12.958µs, uniq_by_line: 5.25µs, sort_results: 1.75µs, path_shortener: 1.292µs, max_same_issues: 416ns, path_prettifier: 332ns, max_per_file_from_linter: 292ns, max_from_linter: 125ns, severity-rules: 84ns"
+level=info msg="[runner] linters took 2.946220125s with stages: goanalysis_metalinter: 1.965716667s"
+../tests/timeskipping_propagation_test.go:702:7: SA1019: (go.temporal.io/api/command/v1.StartChildWorkflowExecutionCommandAttributes).Namespace is deprecated: Marked as deprecated in temporal/api/command/v1/message.proto. (staticcheck)
+						Namespace:                ns,
+						^
+../tests/versioning_3_query_test.go:106:4: SA1019: (go.temporal.io/api/workflowservice/v1.DescribeWorkerDeploymentVersionRequest).Version is deprecated: Marked as deprecated in temporal/api/workflowservice/v1/request_response.proto. (staticcheck)
+			Version:   tv.DeploymentVersionString(),
+			^
+../tests/versioning_3_query_test.go:136:5: SA1019: (go.temporal.io/api/workflowservice/v1.DescribeWorkerDeploymentVersionRequest).Version is deprecated: Marked as deprecated in temporal/api/workflowservice/v1/request_response.proto. (staticcheck)
+				Version:   tv.DeploymentVersionString(),
+				^
+3 issues:
+* staticcheck: 3
+level=info msg="File cache stats: 2 entries of total size 103.2KiB"
+level=info msg="Memory: 58 samples, avg is 183.7MB, max is 566.2MB"
+level=info msg="Execution took 5.668452s"
+make[1]: *** [lint-code] Error 1
+make: *** [lint-code-fast] Error 2
+suite_rc=2
