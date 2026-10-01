@@ -1,0 +1,28 @@
+== seed=11
+=== RUN   TestNexusWorkflowTestSuiteHSM
+=== RUN   TestNexusWorkflowTestSuiteHSM/TestNexusOperationSurvivesResetCrossTree
+=== RUN   TestNexusWorkflowTestSuiteHSM/TestNexusOperationSurvivesResetCrossTree/ChasmOpStaysChasm
+=== RUN   TestNexusWorkflowTestSuiteHSM/TestNexusOperationSurvivesResetCrossTree/HsmOpStaysHsm
+=== RUN   TestNexusWorkflowTestSuiteHSM/TestNexusOperationSurvivesResetCrossTree/ChasmOpRealignsToHsmAfterDowngrade
+=== RUN   TestNexusWorkflowTestSuiteHSM/TestNexusOperationSurvivesResetCrossTree/HsmOpRealignsToChasmAfterUpgrade
+--- PASS: TestNexusWorkflowTestSuiteHSM (0.00s)
+    --- PASS: TestNexusWorkflowTestSuiteHSM/TestNexusOperationSurvivesResetCrossTree (0.00s)
+        --- PASS: TestNexusWorkflowTestSuiteHSM/TestNexusOperationSurvivesResetCrossTree/ChasmOpStaysChasm (0.10s)
+        --- PASS: TestNexusWorkflowTestSuiteHSM/TestNexusOperationSurvivesResetCrossTree/ChasmOpRealignsToHsmAfterDowngrade (0.10s)
+        --- PASS: TestNexusWorkflowTestSuiteHSM/TestNexusOperationSurvivesResetCrossTree/HsmOpStaysHsm (0.10s)
+        --- PASS: TestNexusWorkflowTestSuiteHSM/TestNexusOperationSurvivesResetCrossTree/HsmOpRealignsToChasmAfterUpgrade (0.10s)
+PASS
+== seed=17
+=== RUN   TestNexusWorkflowTestSuiteHSM
+=== RUN   TestNexusWorkflowTestSuiteHSM/TestNexusOperationSurvivesResetCrossTree
+=== RUN   TestNexusWorkflowTestSuiteHSM/TestNexusOperationSurvivesResetCrossTree/ChasmOpStaysChasm
+=== RUN   TestNexusWorkflowTestSuiteHSM/TestNexusOperationSurvivesResetCrossTree/HsmOpStaysHsm
+=== RUN   TestNexusWorkflowTestSuiteHSM/TestNexusOperationSurvivesResetCrossTree/ChasmOpRealignsToHsmAfterDowngrade
+=== RUN   TestNexusWorkflowTestSuiteHSM/TestNexusOperationSurvivesResetCrossTree/HsmOpRealignsToChasmAfterUpgrade
+--- PASS: TestNexusWorkflowTestSuiteHSM (0.00s)
+    --- PASS: TestNexusWorkflowTestSuiteHSM/TestNexusOperationSurvivesResetCrossTree (0.00s)
+        --- PASS: TestNexusWorkflowTestSuiteHSM/TestNexusOperationSurvivesResetCrossTree/HsmOpRealignsToChasmAfterUpgrade (0.10s)
+        --- PASS: TestNexusWorkflowTestSuiteHSM/TestNexusOperationSurvivesResetCrossTree/ChasmOpRealignsToHsmAfterDowngrade (0.10s)
+        --- PASS: TestNexusWorkflowTestSuiteHSM/TestNexusOperationSurvivesResetCrossTree/HsmOpStaysHsm (0.10s)
+        --- PASS: TestNexusWorkflowTestSuiteHSM/TestNexusOperationSurvivesResetCrossTree/ChasmOpStaysChasm (0.10s)
+PASS

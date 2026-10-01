@@ -80,20 +80,36 @@ tier 3 workload per test. It is generated, never edited:
 tests `go test -list` reports under the `disable_grpc_modules`, `gomad`, and
 `test_dep` tags on darwin/arm64 and linux/amd64 and applies
 `qualification/tests.generator.json`, which holds the manifest and workload
-defaults (the F6 slice's closure mode, tags, schema mount, 64 MiB choices,
-retention, and timeouts), per-test overrides, and exclusions.
+defaults (the F6 slice's closure mode, tags, schema mount, and timeouts, with
+no choice trace and no success replay), per-test overrides, and exclusions.
 `make -C tools/gomad3 validate`, which CI runs, fails when the checked-in
 manifest is stale relative to `./tests` or the spec.
 
 A new test therefore lands expecting `qualified` on both platforms and fails
 the set when it is not. An override changes a test's `expectation`,
 `platform_expectations`, or `required_probes`; a failure expectation names its
-`finding` as elsewhere. An override may also narrow what a test retains or
-how long it may run (`choice_bytes`, `replay_successes`, `execution_timeout`,
-`overall_timeout`), and then must carry a `reason`: a test whose choice tape
-overflows the 64 MiB bound runs with `choice_bytes` 0 and `replay_successes`
-false, so it still proves seed repeatability but retains and replays no
-success artifact. A test leaves the set only by an exclusion with an
+`finding` as elsewhere.
+
+Routine workloads are untraced: the defaults set `choice_bytes` 0,
+`replay_successes` false, and both success limits 0. A `qualified` workload
+therefore establishes same-seed repeatability, two fresh repetitions per seed
+with equal evidence, and its report makes no choice-tape replay claim
+(`replayed` and `choice.available` are false). A mismatch between repetitions
+is still `nondeterministic`, and target and infrastructure failures still fail
+the set. An override may change what a test retains or how long it may run
+(`choice_bytes`, `replay_successes`, `success_artifact_limit`,
+`success_bytes_limit`, `execution_timeout`, `overall_timeout`), and then must
+carry a `reason`. A test opts into tracing and success replay by setting a
+bounded `choice_bytes`, `replay_successes` true, and both success limits; the
+generator refuses replay without a trace or limits, and limits without replay.
+`TestSignalWorkflowTestSuiteChasm` opts in, because its open finding is a
+replay divergence. Eight suites keep an explicit `choice_bytes` 0 with the
+reason that their choice tapes overflow the 64 MiB maximum, so they cannot opt
+in until larger traces exist. `temporal.json` and `smoke.json` stay traced and
+replayed on every workload; they are the tracing-enabled replay gates, and a
+seed there verifies choice-tape replay when it reports `choice_replay_exact`.
+
+A test leaves the set only by an exclusion with an
 `owner`, a `date` (`YYYY-MM-DD`), and a `reason`; a single subtest leaves it
 through the override's `skip_subtests`, which takes the same three fields per
 subtest and runs the test with an anchored `-test.skip` while the rest of the

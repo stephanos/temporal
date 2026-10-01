@@ -1,0 +1,44 @@
+### tests.generator.json delta (this task only)
+--- /private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/gen.before24.json	2026-09-30 20:05:46
++++ tools/gomad3integration/qualification/tests.generator.json	2026-09-30 20:05:58
+@@ -127,15 +127,6 @@
+     "TestNexusStandaloneTestSuite": {
+       "clock_tick": "forward"
+     },
+-    "TestNexusWorkflowTestSuiteHSM": {
+-      "skip_subtests": {
+-        "TestNexusOperationSurvivesResetCrossTree": {
+-          "owner": "stephanos",
+-          "date": "2026-09-29",
+-          "reason": "Asserts the reset run's exact history with the done signal after the post-reset workflow task completes; the test sends the signal without waiting for that task, and under virtual time it lands first and is buffered into it (16 events instead of 19, nexus_workflow_test.go:3693)."
+-        }
+-      }
+-    },
+     "TestQueryWorkflowSuite": {
+       "required_probes": [
+         "stdlib.net.interfaces",
+
+### tests.json delta (regenerated)
+--- /private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/f662b53b-adef-414e-85f5-25221ab92e04/scratchpad/tests.before24.json	2026-09-30 20:05:46
++++ tools/gomad3integration/qualification/tests.json	2026-09-30 20:05:59
+@@ -1962,9 +1962,6 @@
+       "success_artifact_limit": 1,
+       "success_bytes_limit": 1073741824,
+       "overall_timeout": "20m",
+-      "skip": [
+-        "TestNexusOperationSurvivesResetCrossTree"
+-      ],
+       "test_parallel": 8,
+       "expectation": {
+         "classification": "qualified"
+
+### .plans/GOMAD_MILESTONES.md new text (this task's sentences)
+94:    was not run. Production behavior is unchanged. `TestNexusOperationSurvivesResetCrossTree`
+95-    signalled before the post-reset workflow task completed.
+96-    [D24](../.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.24.md) made the test wait for
+97-    that task in the reset run's history before signalling, and start the workflow together
+98-    with its update so the update always reaches the first workflow task (a second ordering
+99-    race, seen natively). The skip is removed: `TestNexusWorkflowTestSuiteHSM` qualifies with
+100-    exact replay on seeds 11 and 17 on darwin/arm64 (2026-09-30), all four creation-policy
+101-    cases passing. linux/amd64 was not run. No assertion or production behavior changed.
+102-- **Intermittent suites.** `TestSignalWorkflowTestSuiteChasm` on darwin (F10 D14) and the F5/F6

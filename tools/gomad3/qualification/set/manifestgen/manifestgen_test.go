@@ -99,6 +99,15 @@ func baseSpec() Spec {
 	}
 }
 
+// untracedSpec is baseSpec under the routine policy: no choice trace, no
+// success replay, and no retained successes unless a test opts in.
+func untracedSpec() Spec {
+	spec := baseSpec()
+	spec.Workload.ChoiceBytes, spec.Workload.ReplaySuccesses = 0, false
+	spec.Workload.SuccessArtifactLimit, spec.Workload.SuccessBytesLimit = 0, 0
+	return spec
+}
+
 func run(root string, check bool) error {
 	return Run(Config{Root: root, Spec: fixtureSpec, Output: fixtureOutput, Check: check})
 }
@@ -272,6 +281,39 @@ func TestSpecOverridesAndExclusionsApplyByName(t *testing.T) {
 	}
 }
 
+func TestUntracedDefaultsTraceOnlyTheTestsThatOptIn(t *testing.T) {
+	choices, replay, artifacts, bytes := uint64(8<<20), true, uint64(1), uint64(128<<20)
+	spec := untracedSpec()
+	spec.Tests = map[string]TestOverride{
+		"TestBeta_Parts": {
+			ChoiceBytes: &choices, ReplaySuccesses: &replay, SuccessArtifactLimit: &artifacts, SuccessBytesLimit: &bytes,
+			Reason: "its open finding is a replay divergence, which only a replayed tape can observe",
+		},
+	}
+	root := writeFixture(t, spec)
+	if err := run(root, false); err != nil {
+		t.Fatal(err)
+	}
+	manifest := loadGenerated(t, root)
+	type retained struct {
+		ChoiceBytes          uint64
+		ReplaySuccesses      bool
+		SuccessArtifactLimit uint64
+		SuccessBytesLimit    uint64
+	}
+	for test, want := range map[string]retained{
+		"TestAlphaSuite": {},
+		"TestBeta_Parts": {ChoiceBytes: 8 << 20, ReplaySuccesses: true, SuccessArtifactLimit: 1, SuccessBytesLimit: 128 << 20},
+		"TestNDCGamma":   {},
+	} {
+		workload, found := workloadFor(manifest, test)
+		got := retained{workload.ChoiceBytes, workload.ReplaySuccesses, workload.SuccessArtifactLimit, workload.SuccessBytesLimit}
+		if !found || got != want {
+			t.Fatalf("%s retains %+v (found %v), want %+v", test, got, found, want)
+		}
+	}
+}
+
 func TestInvalidSpecsAreRefused(t *testing.T) {
 	for name, testCase := range map[string]struct {
 		mutate func(*Spec)
@@ -326,6 +368,48 @@ func TestInvalidSpecsAreRefused(t *testing.T) {
 				spec.Tests = map[string]TestOverride{"TestAlphaSuite": {ExecutionTimeout: "4m"}}
 			},
 			want: "changes its evidence or budget and requires a reason",
+		},
+		"override widening evidence without reason": {
+			mutate: func(spec *Spec) {
+				limit := uint64(2)
+				spec.Tests = map[string]TestOverride{"TestAlphaSuite": {SuccessArtifactLimit: &limit}}
+			},
+			want: "changes its evidence or budget and requires a reason",
+		},
+		"default success limits without replay": {
+			mutate: func(spec *Spec) {
+				*spec = untracedSpec()
+				spec.Workload.SuccessArtifactLimit = 1
+			},
+			want: "workload sets success limits without replay_successes",
+		},
+		"default replay without a choice trace": {
+			mutate: func(spec *Spec) { spec.Workload.ChoiceBytes = 0 },
+			want:   "workload replays successes without a choice trace",
+		},
+		"opt-in replay without a choice trace": {
+			mutate: func(spec *Spec) {
+				*spec = untracedSpec()
+				replay, limit := true, uint64(1)
+				spec.Tests = map[string]TestOverride{"TestAlphaSuite": {ReplaySuccesses: &replay, SuccessArtifactLimit: &limit, SuccessBytesLimit: &limit, Reason: "opts into replay"}}
+			},
+			want: "override of TestAlphaSuite replays successes without a choice trace",
+		},
+		"opt-in replay without success limits": {
+			mutate: func(spec *Spec) {
+				*spec = untracedSpec()
+				replay, choices, limit := true, uint64(8<<20), uint64(1)
+				spec.Tests = map[string]TestOverride{"TestAlphaSuite": {ChoiceBytes: &choices, ReplaySuccesses: &replay, SuccessArtifactLimit: &limit, Reason: "opts into replay"}}
+			},
+			want: "override of TestAlphaSuite replays successes and requires success_artifact_limit and success_bytes_limit",
+		},
+		"success limits without replay": {
+			mutate: func(spec *Spec) {
+				*spec = untracedSpec()
+				choices, limit := uint64(8<<20), uint64(1)
+				spec.Tests = map[string]TestOverride{"TestAlphaSuite": {ChoiceBytes: &choices, SuccessArtifactLimit: &limit, SuccessBytesLimit: &limit, Reason: "opts into tracing"}}
+			},
+			want: "override of TestAlphaSuite sets success limits without replay_successes",
 		},
 		"subtest skip without owner": {
 			mutate: func(spec *Spec) {
@@ -417,18 +501,58 @@ func TestWorkloadID(t *testing.T) {
 	}
 }
 
-// TestCheckedInTestsManifestIsCurrent fails when ./tests or its generator
-// spec changed without regenerating the manifest.
-func TestCheckedInTestsManifestIsCurrent(t *testing.T) {
+const (
+	checkedInSpec     = "tools/gomad3integration/qualification/tests.generator.json"
+	checkedInManifest = "tools/gomad3integration/qualification/tests.json"
+)
+
+func repositoryRoot(t *testing.T) string {
+	t.Helper()
 	root, err := filepath.Abs(filepath.Join("..", "..", "..", "..", ".."))
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = Run(Config{
-		Root: root, Spec: "tools/gomad3integration/qualification/tests.generator.json",
-		Output: "tools/gomad3integration/qualification/tests.json", Check: true,
-	})
+	return root
+}
+
+// TestCheckedInTestsManifestIsCurrent fails when ./tests or its generator
+// spec changed without regenerating the manifest.
+func TestCheckedInTestsManifestIsCurrent(t *testing.T) {
+	err := Run(Config{Root: repositoryRoot(t), Spec: checkedInSpec, Output: checkedInManifest, Check: true})
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+// TestCheckedInTestsManifestTracesOnlyByOverride holds the routine ./tests set
+// to seed repeatability: a workload records a choice trace or replays its
+// successes only where the spec opts that test in by name.
+func TestCheckedInTestsManifestTracesOnlyByOverride(t *testing.T) {
+	root := repositoryRoot(t)
+	spec, err := LoadSpec(filepath.Join(root, filepath.FromSlash(checkedInSpec)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if spec.Workload.retention() != (retention{}) {
+		t.Fatalf("workload defaults retain %+v, want no choice trace, success replay, or success limits", spec.Workload.retention())
+	}
+	manifest, err := set.LoadManifest(filepath.Join(root, filepath.FromSlash(checkedInManifest)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var traced []string
+	for _, workload := range manifest.Suites {
+		if workload.ChoiceBytes == 0 && !workload.ReplaySuccesses && workload.SuccessArtifactLimit == 0 && workload.SuccessBytesLimit == 0 {
+			continue
+		}
+		traced = append(traced, workload.Test)
+		if override := spec.Tests[workload.Test]; override.ChoiceBytes == nil || *override.ChoiceBytes == 0 {
+			t.Errorf("%s is traced without an override that opts it in", workload.Test)
+		}
+	}
+	// Its open finding (GOMAD_MILESTONES.md F10 D14) is a replay divergence,
+	// which an untraced run cannot observe.
+	if chasm, _ := workloadFor(manifest, "TestSignalWorkflowTestSuiteChasm"); chasm.ChoiceBytes == 0 || !chasm.ReplaySuccesses {
+		t.Errorf("TestSignalWorkflowTestSuiteChasm must stay traced with success replay, traced tests = %v", traced)
 	}
 }

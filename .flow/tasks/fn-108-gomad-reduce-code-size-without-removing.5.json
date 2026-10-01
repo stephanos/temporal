@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-01T01:03:40.809244Z",
+  "depends_on": [
+    "fn-108-gomad-reduce-code-size-without-removing.2",
+    "fn-108-gomad-reduce-code-size-without-removing.3",
+    "fn-108-gomad-reduce-code-size-without-removing.4"
+  ],
+  "id": "fn-108-gomad-reduce-code-size-without-removing.5",
+  "priority": null,
+  "spec": "fn-108-gomad-reduce-code-size-without-removing",
+  "spec_path": ".flow/tasks/fn-108-gomad-reduce-code-size-without-removing.5.md",
+  "status": "todo",
+  "title": "Shared completed-execution assessment owner in Runner (fulfils fn-105.1 D1)",
+  "updated_at": "2026-10-01T01:03:40.809244Z"
+}

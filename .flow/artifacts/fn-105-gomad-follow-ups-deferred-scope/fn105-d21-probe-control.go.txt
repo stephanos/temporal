@@ -1,0 +1,31 @@
+// control performs the same collections and reads as lastgc. It prints the
+// virtual time, the collection count, the pause total, and one boolean derived
+// from the host-stamped LastGC that is true on every run.
+package main
+
+import (
+	"fmt"
+	"runtime"
+	"runtime/debug"
+	"time"
+)
+
+var sink [][]byte
+
+func main() {
+	for range 2 {
+		for range 64 {
+			sink = append(sink, make([]byte, 64<<10))
+		}
+		sink = nil
+		runtime.GC()
+	}
+	var memory runtime.MemStats
+	runtime.ReadMemStats(&memory)
+	var collection debug.GCStats
+	debug.ReadGCStats(&collection)
+	fmt.Println("virtual_now_unix_nanos", time.Now().UnixNano())
+	fmt.Println("num_gc", memory.NumGC)
+	fmt.Println("last_gc_is_host_time", memory.LastGC > uint64(time.Now().UnixNano()))
+	fmt.Println("memstats_pause_total_ns", memory.PauseTotalNs)
+}

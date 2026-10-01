@@ -1,0 +1,21 @@
+# go test -tags test_dep -p 2 ./tests -run 'TestTaskQueueStats_.*Suite/(TestAddMultipleTasks_ValidateStats_Cached|TestNoTasks_ValidateStats)|TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced' -count=1 -v -timeout 9m  (darwin/arm64, go1.27.0, suite_rc=0; result lines only, server logs dropped)
+=== RUN   TestTaskQueueStats_Pri_Suite
+=== RUN   TestVersioningFunctionalSuite
+=== RUN   TestTaskQueueStats_Pri_Suite/TestAddMultipleTasks_ValidateStats_Cached
+=== RUN   TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_ReportFlags
+=== RUN   TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_TooManyBuildIds
+=== RUN   TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_Unversioned
+=== RUN   TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_Versioned_BasicReachability
+=== RUN   TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_Versioned_ReachabilityCache
+--- PASS: TestVersioningFunctionalSuite (0.00s)
+    --- PASS: TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_Unversioned (0.84s)
+    --- PASS: TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_TooManyBuildIds (0.85s)
+    --- PASS: TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_Versioned_ReachabilityCache (0.88s)
+    --- PASS: TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_ReportFlags (0.91s)
+    --- PASS: TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_Versioned_BasicReachability (1.53s)
+=== RUN   TestTaskQueueStats_Pri_Suite/TestNoTasks_ValidateStats
+--- PASS: TestTaskQueueStats_Pri_Suite (21.53s)
+    --- PASS: TestTaskQueueStats_Pri_Suite/TestAddMultipleTasks_ValidateStats_Cached (11.38s)
+    --- PASS: TestTaskQueueStats_Pri_Suite/TestNoTasks_ValidateStats (10.12s)
+PASS
+ok  	go.temporal.io/server/tests	23.555s

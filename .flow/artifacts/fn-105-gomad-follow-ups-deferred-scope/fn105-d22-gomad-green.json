@@ -1,0 +1,143 @@
+{
+  "schema": "fn105-d22-gomad-green-evidence/v1",
+  "platform": {
+    "goarch": "arm64",
+    "goos": "darwin"
+  },
+  "host": "darwin/arm64, macOS 26.6.2",
+  "linux_amd64": "not run; unavailable on this host",
+  "source": "HEAD d4d800fb473f008fa4a51a4d8575249f11c9cf3f plus the uncommitted working tree at 2026-09-30T18:56 PDT; besides this task's tests/nexus_api_test.go the tree held other workers' uncommitted edits (service/matching/matching_engine.go, tests/schedule_migration_test.go, the rebound modernc libc packs)",
+  "nexus_api_test_sha256": "08c579780adf426e5d265f97f1ef378d21fa7ae7c1805ff2fec825d40ce53401",
+  "runner": {
+    "binary_sha256": "sha256:3062e6f84a854ce0652612a38beae2085428c1d470fc9b69747fc413f380f0d1",
+    "doctor": "available=true host=darwin/arm64 go=go1.27.1"
+  },
+  "toolchain": {
+    "boundary_manifest_sha256": "sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0",
+    "boundary_manifest_version": "go1.27.1-v1",
+    "build_key": "c0661e38b4e001c8d86912d4ce9e265eb0f33e5f3298015da27a4c97ac4019b9",
+    "go_version": "go1.27.1",
+    "target_goarch": "arm64",
+    "target_goos": "darwin"
+  },
+  "io_profile": {
+    "implementation_sha256": "sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0",
+    "inventory_sha256": "sha256:0d34edfc0ab13c693b78d514ca1a72a9adc196fe61e2142dba108c0ff47358f7",
+    "name": "gomad3-deterministic/v1"
+  },
+  "module": {
+    "go_mod_sha256": "sha256:cda5b0aab2e32ef4aca50bd0d8ccf8ae67416db94fd4f28ceb9ac1588c48d0a4",
+    "path": "go.temporal.io/server"
+  },
+  "manifest": "the two TestNexusApiTestSuiteWith* entries of tools/gomad3integration/qualification/tests.json with their skip lists removed; identical to the entries the regenerated tests.json now holds (tier 3, closure mode, tags disable_grpc_modules,gomad,test_dep, schema read-only mount, choice_bytes 64 MiB, replay_successes true, repeat 2, test_parallel 8)",
+  "manifest_sha256": "sha256:0d44bbd16bf6e27ba86ef37d98f9a555babfdf5f0b420a6271480cff4b0c52d6",
+  "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad qualify-set --manifest=<scratch>/after.json --working-dir=<repo> --artifacts=<scratch>/after-artifacts --output=<scratch>/after-report.json --prune-qualified-artifacts",
+  "exit_status": 0,
+  "result": {
+    "selected": 2,
+    "supported": 2,
+    "unsupported": 0,
+    "failed": 0,
+    "infrastructure_errors": 0,
+    "timed_out": 0,
+    "replayed": 4,
+    "replay_diverged": 0,
+    "expectations_met": true,
+    "qualified_artifacts_pruned": true
+  },
+  "workloads": [
+    {
+      "name": "TestNexusApiTestSuiteWithLegacyErrorPaths",
+      "classification": "qualified",
+      "expectation_met": true,
+      "arguments": [
+        "-test.run=^TestNexusApiTestSuiteWithLegacyErrorPaths$",
+        "-test.parallel=8"
+      ],
+      "blockers": 0,
+      "seeds": [
+        {
+          "seed": "11",
+          "classification": "qualified",
+          "replayed": true,
+          "replay_match": true,
+          "choice_replay_exact": true,
+          "evidence_sha256": "sha256:1f38ee372adec8c9857ac72fcac4121b121ef64ccfb6cf020fb05780f2fe0ff5",
+          "elapsed_nanos": "4018109000",
+          "choice_decisions": "28849",
+          "tape_sha256": "sha256:b714f59c90377f768102390458cf0f6a9fae372fb155e61c49f5a7fd46b95c9d"
+        },
+        {
+          "seed": "17",
+          "classification": "qualified",
+          "replayed": true,
+          "replay_match": true,
+          "choice_replay_exact": true,
+          "evidence_sha256": "sha256:f61d760d98221bfd6cebb01d2c96c16fe865d22faf3583275b2736d0783a3e8f",
+          "elapsed_nanos": "5160294000",
+          "choice_decisions": "50518",
+          "tape_sha256": "sha256:d3947f522c956c38600d70d58bd345c4a165b025c11e43d0fc89551ec79ab24b"
+        }
+      ]
+    },
+    {
+      "name": "TestNexusApiTestSuiteWithTemporalFailures",
+      "classification": "qualified",
+      "expectation_met": true,
+      "arguments": [
+        "-test.run=^TestNexusApiTestSuiteWithTemporalFailures$",
+        "-test.parallel=8"
+      ],
+      "blockers": 0,
+      "seeds": [
+        {
+          "seed": "11",
+          "classification": "qualified",
+          "replayed": true,
+          "replay_match": true,
+          "choice_replay_exact": true,
+          "evidence_sha256": "sha256:862a86801c1defc0b38c48b3474106a39a1433798377559090c3081e9bbe9418",
+          "elapsed_nanos": "4378156000",
+          "choice_decisions": "52285",
+          "tape_sha256": "sha256:c28a1feb29eec9e510ba46493309fdbbb7e9949d704fc0842abc5196a8eca3ac"
+        },
+        {
+          "seed": "17",
+          "classification": "qualified",
+          "replayed": true,
+          "replay_match": true,
+          "choice_replay_exact": true,
+          "evidence_sha256": "sha256:a6ca002c59e1319b09ace47ca8e54fe9322d960f726dd28eb7a74233bda7cb65",
+          "elapsed_nanos": "4711471000",
+          "choice_decisions": "28405",
+          "tape_sha256": "sha256:cb7fec4500c8018233d84ed03bb61e13e2dfe74dc743ecfd58d1ca73be9e0cdf"
+        }
+      ]
+    }
+  ],
+  "executed_leaf_check": {
+    "why": "the set report holds digests only, so a verbose run confirms the outcome leaves execute and pass under Gomad",
+    "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad explore --seeds 11,17 --parallel 1 --build-tag=disable_grpc_modules --build-tag=gomad --build-tag=test_dep --capability-mode=closure --io-ro-mount ./schema=/go.temporal.io/server/schema --keep-successes=all --success-limit=2 --success-bytes=1GiB --artifacts <scratch>/explore-artifacts go-test ./tests -- '-test.run=^TestNexusApiTestSuiteWith(LegacyErrorPaths|TemporalFailures)$/^TestNexus(Start|Cancel)Operation_Outcomes$' -test.parallel=8 -test.v",
+    "exit_status": 0,
+    "per_seed": {
+      "11": {
+        "pass_lines": 56,
+        "fail_lines": 0,
+        "skip_lines": 0,
+        "by_endpoint_leaves": 18,
+        "by_namespace_and_task_queue_leaves": 14,
+        "already_registered": 0
+      },
+      "17": {
+        "pass_lines": 56,
+        "fail_lines": 0,
+        "skip_lines": 0,
+        "by_endpoint_leaves": 18,
+        "by_namespace_and_task_queue_leaves": 14,
+        "already_registered": 0
+      }
+    },
+    "log": "fn105-d22-gomad-outcomes-verbose.log"
+  },
+  "artifacts": "scratch Campaigns deleted after recording; qualified seeds were pruned by the run"
+}

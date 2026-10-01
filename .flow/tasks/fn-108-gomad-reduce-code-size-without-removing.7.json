@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-01T01:03:40.809301Z",
+  "depends_on": [
+    "fn-108-gomad-reduce-code-size-without-removing.6"
+  ],
+  "id": "fn-108-gomad-reduce-code-size-without-removing.7",
+  "priority": null,
+  "spec": "fn-108-gomad-reduce-code-size-without-removing",
+  "spec_path": ".flow/tasks/fn-108-gomad-reduce-code-size-without-removing.7.md",
+  "status": "todo",
+  "title": "Equivalence, size comparison and final gate evidence",
+  "updated_at": "2026-10-01T01:03:40.809301Z"
+}

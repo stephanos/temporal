@@ -1,0 +1,6 @@
+2000-01-01T00:00:04.000Z No worker polling control queue, dropping command control_queue=...TestDispatchCancelOnWorkflowReset_worker_instance_key
+2000-01-01T00:00:04.000Z No worker polling control queue, dropping command control_queue=...TestDispatchCancelToWorker_worker_instance_key
+2000-01-01T00:00:04.000Z No worker polling control queue, dropping command control_queue=...TestPollWorkerCommandsWithWorkerVersionCapabilities_worker_instance_key
+2000-01-01T00:00:04.000Z No worker polling control queue, dropping command control_queue=...TestDispatchCancelOnWorkflowTermination_worker_instance_key
+2000-01-01T00:00:04.000Z No worker polling control queue, dropping command control_queue=...TestDispatchCancelOnContinueAsNew_worker_instance_key
+2000-01-01T00:00:04.000Z No worker polling control queue, dropping command control_queue=...TestPollWorkerCommandsWithDeploymentOptions_worker_instance_key

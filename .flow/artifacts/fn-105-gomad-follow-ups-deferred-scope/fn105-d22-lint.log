@@ -1,0 +1,15 @@
+# command: make lint-code LINT_CODE_TARGETS=./tests GOLANGCI_LINT_BASE_REV=HEAD  (exit 0)
+[1;36mLinting code...[0m
+0 issues.
+
+# command: make lint-code-fast  (exit 2, inherited: the branch diff against main includes the nested tools/gomad3 module, which the root module cannot typecheck; 0 issues reported)
+Linting code...
+level=error msg="[linters_context] typechecking error: main module (go.temporal.io/server) does not contain package go.temporal.io/server/tools/gomad3/deterministicio/testdata/validator"
+level=error msg="[linters_context] typechecking error: main module (go.temporal.io/server) does not contain package go.temporal.io/server/tools/gomad3/world/mailbox"
+level=error msg="[linters_context] typechecking error: main module (go.temporal.io/server) does not contain package go.temporal.io/server/tools/gomad3/world"
+level=error msg="[linters_context] typechecking error: main module (go.temporal.io/server) does not contain package go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/boundary"
+level=error msg="[linters_context] typechecking error: main module (go.temporal.io/server) does not contain package go.temporal.io/server/tools/gomad3/qualification/set/manifestgen"
+0 issues.
+make[1]: *** [lint-code] Error 7
+make: *** [lint-code-fast] Error 2
+make lint-code-fast  171.17s user 20.75s system 533% cpu 36.008 total

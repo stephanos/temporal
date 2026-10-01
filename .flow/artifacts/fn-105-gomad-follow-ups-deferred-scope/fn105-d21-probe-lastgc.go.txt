@@ -1,0 +1,61 @@
+// lastgc prints every runtime reporting field the D21 inventory names next to
+// the virtual clock, after forcing two collections.
+package main
+
+import (
+	"fmt"
+	"runtime"
+	"runtime/debug"
+	"runtime/metrics"
+	"time"
+)
+
+var sink [][]byte
+
+func main() {
+	for range 2 {
+		for range 64 {
+			sink = append(sink, make([]byte, 64<<10))
+		}
+		sink = nil
+		runtime.GC()
+	}
+	var memory runtime.MemStats
+	runtime.ReadMemStats(&memory)
+	var collection debug.GCStats
+	debug.ReadGCStats(&collection)
+	fmt.Println("virtual_now_unix_nanos", time.Now().UnixNano())
+	fmt.Println("num_gc", memory.NumGC)
+	fmt.Println("memstats_last_gc", memory.LastGC)
+	fmt.Println("memstats_pause_end_latest", memory.PauseEnd[(memory.NumGC+255)%256])
+	fmt.Println("memstats_pause_ns_latest", memory.PauseNs[(memory.NumGC+255)%256])
+	fmt.Println("memstats_pause_total_ns", memory.PauseTotalNs)
+	fmt.Println("gcstats_last_gc", collection.LastGC.UnixNano())
+	fmt.Println("gcstats_pause_end_latest", collection.PauseEnd[0].UnixNano())
+	fmt.Println("gcstats_pause_total", int64(collection.PauseTotal))
+
+	samples := []metrics.Sample{
+		{Name: "/gc/cycles/total:gc-cycles"},
+		{Name: "/sched/pauses/total/gc:seconds"},
+		{Name: "/cpu/classes/gc/total:cpu-seconds"},
+		{Name: "/sync/mutex/wait/total:seconds"},
+	}
+	metrics.Read(samples)
+	for _, sample := range samples {
+		switch sample.Value.Kind() {
+		case metrics.KindUint64:
+			fmt.Println(sample.Name, sample.Value.Uint64())
+		case metrics.KindFloat64:
+			fmt.Println(sample.Name, sample.Value.Float64())
+		case metrics.KindFloat64Histogram:
+			histogram := sample.Value.Float64Histogram()
+			var total uint64
+			for _, count := range histogram.Counts {
+				total += count
+			}
+			fmt.Println(sample.Name, "samples", total)
+		default:
+			fmt.Println(sample.Name, "unsupported")
+		}
+	}
+}

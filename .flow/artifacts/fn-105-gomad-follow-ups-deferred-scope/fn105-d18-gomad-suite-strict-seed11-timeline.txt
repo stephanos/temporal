@@ -1,0 +1,125 @@
+00:00:00.000Z debug Received StartWorkflowExecution. | 
+00:00:00.000Z debug Start workflow execution request namespace. | 
+00:00:00.000Z debug Workflow task updated | wf-scheduled-event-id=2
+00:00:00.000Z debug time skipping skipped for: time skipping is not enabled | 
+00:00:00.000Z debug Assigning new task key | queue-task-id=1048579 queue-task-type=VisibilityStartExecution timestamp=2000-01-01T00:00:00.000Z
+00:00:00.000Z debug Assigning new task key | queue-task-id=1048580 queue-task-type=TransferWorkflowTask timestamp=2000-01-01T00:00:00.000Z
+00:00:00.000Z debug Assigning new task key | queue-task-id=1048581 queue-task-type=WorkflowRunTimeout timestamp=2000-01-01T00:00:03.001Z
+00:00:00.000Z debug Process task as active. | task=WorkflowTask{VisibilityTimestamp: 2000-01-01 00:00:00 +0000 UTC, TaskID: 1048580, TaskQueue: TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout_task_queue, ScheduledEventID: 2, Version: 0} component=transfer-queue-processor
+00:00:00.000Z debug Poll workflow task queue. | 
+00:00:00.000Z debug Workflow task updated | wf-scheduled-event-id=2
+00:00:00.000Z debug time skipping skipped for: time skipping is not enabled | 
+00:00:00.000Z debug Assigning new task key | queue-task-id=1048585 queue-task-type=WorkflowTaskTimeout timestamp=2000-01-01T00:00:03.001Z
+00:00:00.000Z debug RespondWorkflowTaskCompleted | wf-scheduled-event-id=2
+00:00:00.000Z debug Workflow task updated | wf-scheduled-event-id=0
+00:00:00.000Z debug time skipping skipped for: time skipping is not enabled | 
+00:00:00.000Z debug Assigning new task key | queue-task-id=1048590 queue-task-type=VisibilityUpsertExecution timestamp=2000-01-01T00:00:00.000Z
+00:00:00.000Z debug Assigning new task key | queue-task-id=1048591 queue-task-type=TransferActivityTask timestamp=2000-01-01T00:00:00.000Z
+00:00:00.000Z debug Assigning new task key | queue-task-id=1048592 queue-task-type=ActivityTimeout timestamp=2000-01-01T00:00:03.001Z
+00:00:00.000Z debug Process task as active. | component=transfer-queue-processor
+00:00:00.000Z debug time skipping skipped for: time skipping is not enabled | 
+00:00:00.000Z debug Received PollNexusTaskQueue | 
+00:00:00.000Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:00.000Z debug Received PollNexusTaskQueue | 
+00:00:00.000Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:00.000Z debug Received PollNexusTaskQueue | 
+00:00:00.000Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:00.000Z debug Received PollNexusTaskQueue | 
+00:00:00.000Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:00.000Z debug Received PollNexusTaskQueue | 
+00:00:00.000Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:00.000Z debug Received PollNexusTaskQueue | 
+00:00:00.000Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:00.000Z debug Received PollNexusTaskQueue | 
+00:00:00.000Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:03.002Z debug Process task as active. | task=ActivityTimeoutTask{VisibilityTimestamp: 2000-01-01 00:00:03.001 +0000 UTC, TaskID: 1048592, TimeoutType: ScheduleToClose, EventID: 5, Attempt: 1, Stamp: 0} component=timer-queue-processor
+00:00:03.002Z debug Workflow task updated | wf-scheduled-event-id=8
+00:00:03.002Z debug time skipping skipped for: time skipping is not enabled | 
+00:00:03.002Z debug Assigning new task key | queue-task-id=1048599 queue-task-type=TransferWorkflowTask timestamp=2000-01-01T00:00:03.002Z
+00:00:03.002Z debug Process task as active. | task=WorkflowTaskTimeoutTask{VisibilityTimestamp: 2000-01-01 00:00:03.001 +0000 UTC, TaskID: 1048585, EventID: 2, ScheduleAttempt: 1, TimeoutType: StartToClose, Version: 0, InMemory: false} component=timer-queue-processor
+00:00:03.002Z debug Process task as active. | task=WorkflowTask{VisibilityTimestamp: 2000-01-01 00:00:03.002 +0000 UTC, TaskID: 1048599, TaskQueue: TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout_task_queue, ScheduledEventID: 8, Version: 0} component=transfer-queue-processor
+00:00:03.002Z debug Process task as active. | task=WorkflowRunTimeoutTask{VisibilityTimestamp: 2000-01-01 00:00:03.001 +0000 UTC, TaskID: 1048581, Version: 0} component=timer-queue-processor
+00:00:03.002Z debug time skipping skipped for: time skipping is not enabled | 
+00:00:03.002Z debug Assigning new task key | queue-task-id=1048602 queue-task-type=DeleteHistoryEvent timestamp=2000-01-02T00:00:03.094Z
+00:00:03.002Z debug Assigning new task key | queue-task-id=1048603 queue-task-type=TransferCloseExecution timestamp=2000-01-01T00:00:03.002Z
+00:00:03.002Z debug Assigning new task key | queue-task-id=1048604 queue-task-type=VisibilityCloseExecution timestamp=2000-01-01T00:00:03.002Z
+00:00:03.002Z debug Process task as active. | task=CloseExecutionTask{VisibilityTimestamp: 2000-01-01 00:00:03.002 +0000 UTC, TaskID: 1048603, Version: 0, DeleteAfterClose: false, DeleteProcessStage: 0} component=transfer-queue-processor
+00:00:04.100Z debug Received PollNexusTaskQueue | 
+00:00:04.100Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:08.200Z debug Received PollNexusTaskQueue | 
+00:00:08.200Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:12.300Z debug Received PollNexusTaskQueue | 
+00:00:12.300Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:16.400Z debug Received PollNexusTaskQueue | 
+00:00:16.400Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:20.500Z debug Received PollNexusTaskQueue | 
+00:00:20.500Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:24.600Z debug Received PollNexusTaskQueue | 
+00:00:24.600Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:28.700Z debug Received PollNexusTaskQueue | 
+00:00:28.700Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:32.800Z debug Received PollNexusTaskQueue | 
+00:00:32.800Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:36.900Z debug Received PollNexusTaskQueue | 
+00:00:36.900Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:41.000Z debug Received PollNexusTaskQueue | 
+00:00:41.000Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:45.100Z debug Received PollNexusTaskQueue | 
+00:00:45.100Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:49.200Z debug Received PollNexusTaskQueue | 
+00:00:49.200Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:53.300Z debug Received PollNexusTaskQueue | 
+00:00:53.300Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:00:57.400Z debug Received PollNexusTaskQueue | 
+00:00:57.400Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:01:01.500Z debug Received PollNexusTaskQueue | 
+00:01:01.500Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:01:03.002Z debug error setting partition count trailer | component=matching-engine error=rpc error: code = Internal desc = transport: SendHeader called multiple times
+00:01:05.600Z debug Received PollNexusTaskQueue | 
+00:01:05.600Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:01:09.700Z debug Received PollNexusTaskQueue | 
+00:01:09.700Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:01:13.800Z debug Received PollNexusTaskQueue | 
+00:01:13.800Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:01:17.900Z debug Received PollNexusTaskQueue | 
+00:01:17.900Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:01:22.000Z debug Received PollNexusTaskQueue | 
+00:01:22.000Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:01:26.100Z debug Received PollNexusTaskQueue | 
+00:01:26.100Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:01:30.200Z debug Received PollNexusTaskQueue | 
+00:01:30.200Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:01:34.300Z debug Received PollNexusTaskQueue | 
+00:01:34.300Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:01:38.400Z debug Received PollNexusTaskQueue | 
+00:01:38.400Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:01:42.500Z debug Received PollNexusTaskQueue | 
+00:01:42.500Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:01:46.600Z debug Received PollNexusTaskQueue | 
+00:01:46.600Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:01:50.700Z debug Received PollNexusTaskQueue | 
+00:01:50.700Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:01:54.800Z debug Received PollNexusTaskQueue | 
+00:01:54.800Z warn  Context timeout is lower than critical value for long poll API. | wf-poll-context-timeout=5
+00:01:58.900Z debug Received PollNexusTaskQueue | 
+00:01:58.900Z error Context timeout is too short for long poll API. | wf-poll-context-timeout=1.1 error=Context timeout is too short.
+00:01:59.000Z debug Received PollNexusTaskQueue | 
+00:01:59.000Z error Context timeout is too short for long poll API. | wf-poll-context-timeout=1 error=Context timeout is too short.
+00:01:59.100Z debug Received PollNexusTaskQueue | 
+00:01:59.100Z error Context timeout is too short for long poll API. | wf-poll-context-timeout=0.9 error=Context timeout is too short.
+00:01:59.200Z debug Received PollNexusTaskQueue | 
+00:01:59.200Z error Context timeout is too short for long poll API. | wf-poll-context-timeout=0.8 error=Context timeout is too short.
+00:01:59.300Z debug Received PollNexusTaskQueue | 
+00:01:59.300Z error Context timeout is too short for long poll API. | wf-poll-context-timeout=0.7 error=Context timeout is too short.
+00:01:59.400Z debug Received PollNexusTaskQueue | 
+00:01:59.400Z error Context timeout is too short for long poll API. | wf-poll-context-timeout=0.6 error=Context timeout is too short.
+00:01:59.500Z debug Received PollNexusTaskQueue | 
+00:01:59.500Z error Context timeout is too short for long poll API. | wf-poll-context-timeout=0.5 error=Context timeout is too short.
+00:01:59.600Z debug Received PollNexusTaskQueue | 
+00:01:59.600Z error Context timeout is too short for long poll API. | wf-poll-context-timeout=0.4 error=Context timeout is too short.
+00:01:59.700Z debug Received PollNexusTaskQueue | 
+00:01:59.700Z error Context timeout is too short for long poll API. | wf-poll-context-timeout=0.3 error=Context timeout is too short.
+00:01:59.800Z debug Received PollNexusTaskQueue | 
+00:01:59.800Z error Context timeout is too short for long poll API. | wf-poll-context-timeout=0.2 error=Context timeout is too short.
+00:01:59.900Z debug Received PollNexusTaskQueue | 
+00:01:59.900Z error Context timeout is too short for long poll API. | wf-poll-context-timeout=0.1 error=Context timeout is too short.

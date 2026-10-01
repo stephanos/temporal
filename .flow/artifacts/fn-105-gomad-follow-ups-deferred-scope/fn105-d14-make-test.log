@@ -1,0 +1,100 @@
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go test -tags test_dep \
+		./internal/hostexec ./internal/gomadtool/conformance ./cmd/gomadtool
+ok  	go.temporal.io/server/tools/gomad3/internal/hostexec	(cached)
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	0.481s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	0.752s
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool patch-validate --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 patch and overlay inputs are valid
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool script-validate --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 script ownership is valid
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache GOTOOLCHAIN=local GOWORK=off \
+		go run ./cmd/gomadtool toolchain-build --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 toolchain is ready (darwin/arm64, key 8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc)
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep ./toolchain
+ok  	go.temporal.io/server/tools/gomad3/toolchain	2.293s
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool boundary-generate \
+		-compiler-test-overlay=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/compiler-test-overlay -goroot="$(.toolchain/bin/go env GOROOT)"
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go build -trimpath \
+		-overlay=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/compiler-test-overlay/overlay.json -o /Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/compiler-test/compile cmd/compile
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool boundary-generate -qualify
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \
+		--root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3 --mode=test-interception --go=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go \
+		--compiler=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/compiler-test/compile
+gomad3 interception tier passed
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep \
+		. ./cmd/... ./runner/... ./qualification/... ./target/... ./record/... ./artifact/... ./choice/... \
+		./deterministicio/... ./world/... ./toolchain ./toolchain/version ./upgrade/... ./internal/...
+ok  	go.temporal.io/server/tools/gomad3	(cached)
+?   	go.temporal.io/server/tools/gomad3/cmd/gomad	[no test files]
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	2.589s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	1.469s
+ok  	go.temporal.io/server/tools/gomad3/runner	44.073s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/campaign	(cached)
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/corpus	(cached)
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/execution	63.047s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration	(cached)
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice	(cached)
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation	(cached)
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord	(cached)
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/minimizer	(cached)
+ok  	go.temporal.io/server/tools/gomad3/qualification	(cached)
+ok  	go.temporal.io/server/tools/gomad3/qualification/analysis	12.563s
+ok  	go.temporal.io/server/tools/gomad3/qualification/comparison	(cached)
+ok  	go.temporal.io/server/tools/gomad3/qualification/set	(cached)
+ok  	go.temporal.io/server/tools/gomad3/qualification/set/manifestgen	(cached)
+ok  	go.temporal.io/server/tools/gomad3/qualification/workload	(cached)
+ok  	go.temporal.io/server/tools/gomad3/target	35.822s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/build	(cached)
+ok  	go.temporal.io/server/tools/gomad3/target/internal/capabilityreview	(cached)
+ok  	go.temporal.io/server/tools/gomad3/target/internal/livecap	15.478s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/provenance	(cached)
+ok  	go.temporal.io/server/tools/gomad3/record	(cached)
+ok  	go.temporal.io/server/tools/gomad3/artifact	(cached)
+ok  	go.temporal.io/server/tools/gomad3/choice	(cached)
+ok  	go.temporal.io/server/tools/gomad3/choice/internal/wire	(cached)
+ok  	go.temporal.io/server/tools/gomad3/deterministicio	51.506s
+ok  	go.temporal.io/server/tools/gomad3/deterministicio/internal/wire	(cached)
+ok  	go.temporal.io/server/tools/gomad3/deterministicio/readonlymount	(cached)
+ok  	go.temporal.io/server/tools/gomad3/world	(cached)
+ok  	go.temporal.io/server/tools/gomad3/world/mailbox	(cached)
+ok  	go.temporal.io/server/tools/gomad3/world/process	(cached)
+ok  	go.temporal.io/server/tools/gomad3/toolchain	(cached)
+ok  	go.temporal.io/server/tools/gomad3/toolchain/version	(cached)
+ok  	go.temporal.io/server/tools/gomad3/upgrade	(cached)
+ok  	go.temporal.io/server/tools/gomad3/internal/canonicaljson	(cached)
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack	(cached)
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring	(cached)
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	0.909s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/boundary	7.119s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/protocol	(cached)
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/validation	1.404s
+ok  	go.temporal.io/server/tools/gomad3/internal/hostexec	(cached)
+ok  	go.temporal.io/server/tools/gomad3/internal/hostfs	(cached)
+.toolchain/bin/go test -tags test_dep internal/gomadfs internal/gomadwire internal/gomadchoicewire internal/gomadio/mount
+ok  	internal/gomadfs	0.374s
+ok  	internal/gomadwire	0.862s
+ok  	internal/gomadchoicewire	0.583s
+ok  	internal/gomadio/mount	1.124s
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go test -race -tags test_dep ./world/...
+ok  	go.temporal.io/server/tools/gomad3/world	2.717s
+ok  	go.temporal.io/server/tools/gomad3/world/mailbox	1.561s
+ok  	go.temporal.io/server/tools/gomad3/world/process	1.752s
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \
+		--root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3 --mode=test-builder --go="$(command -v go)"
+gomad3 builder tier passed
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \
+		--root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3 --mode=test-live-capability --go=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go
+gomad3 live-capability tier passed
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \
+		--root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3 --mode=test-runtime --go=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go
+gomad3 runtime tier passed
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \
+		--root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3 --mode=test-upstream --go=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go
+gomad3 upstream-compatibility tier passed
+gomad3 all black-box tiers passed
+make -C tools/gomad3 test > $S/make-test2.log 2>&1  945.23s user 614.57s system 215% cpu 12:02.92 total
+suite_rc=0

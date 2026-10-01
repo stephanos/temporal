@@ -1,0 +1,173 @@
+{
+  "schema": "fn105-task26-pack-rebind-evidence/v1",
+  "source": "HEAD d4d800fb473f008fa4a51a4d8575249f11c9cf3f plus the uncommitted task-26 working-tree changes under tools/gomad3/internal/compatibilitypack and tools/gomad3/Makefile",
+  "platform": {
+    "goos": "darwin",
+    "goarch": "arm64"
+  },
+  "toolchain": {
+    "boundary_manifest_sha256": "sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0",
+    "boundary_manifest_version": "go1.27.1-v1",
+    "build_key": "c0661e38b4e001c8d86912d4ce9e265eb0f33e5f3298015da27a4c97ac4019b9",
+    "go_version": "go1.27.1",
+    "target_goarch": "arm64",
+    "target_goos": "darwin"
+  },
+  "cause": "HEAD d4d800fb47 registered seven adapters (sprig, validator, pebble, cactus statsd, memberlist, sentry, hashicorp metrics) in the deterministic profile, which changes its inventory and implementation digest on both platforms; deterministicio/profile_test.go pins the new digests in the same commit, so the drift is intended and only the libc-bound packs were left behind",
+  "profile": {
+    "name": "gomad3-deterministic/v1",
+    "darwin_arm64": {
+      "before": "sha256:80351583382e4c83bd375e48246813a2b15e45b7e013a33c6d2177ff53ee419b",
+      "current": "sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0"
+    },
+    "linux_amd64": {
+      "before": "sha256:964874354d1ad2f46f00e3d1b1109f89b0d1747b399a97ea867ff29c48eda8e1",
+      "current_per_profile_golden": "sha256:84b27e6227508fda72c8be6b0ae588e4f4f052a07bc35a27d6feff729b22d50b"
+    }
+  },
+  "audit": "all 12 packs and 12 requests read; only the four libc-bound ones carry an adapter binding, every other pack binds no profile digest",
+  "regenerated": [
+    {
+      "id": "modernc-libc-xsys-v041",
+      "platform": "darwin/arm64",
+      "working_dir": "tools/gomad3/internal/compatibilitypack/testdata/v041",
+      "before": {
+        "pack_sha256": "sha256:06921beb3702c40372b69e1f88d5420b5500b4d588ee5d5dd953df8fc3bc3009",
+        "request_sha256": "sha256:76e5badf9a904ce5ba57716939c2738b53b01d7a2720919983addaedd2c05d32",
+        "approval_sha256": "sha256:093cb5bac1c18ee75e5d3f7c2d8cf6d18adb5045b59d24d1367ce9b09ad19d38"
+      },
+      "after": {
+        "pack_sha256": "sha256:406aef2d9c91955e1e0e63eace8133481e5115796d83374536b27a7159509b85",
+        "request_sha256": "sha256:c0d6832049cf2a22fb0ecbfa43b71544bc14175df6a37a095dc1f4c0dbe2b530",
+        "approval_sha256": "sha256:0ea7c3348fb859e204f7cbfd36db3a735b99261597a3e33260e725b375fe8820"
+      },
+      "fresh_review_difference": "profile_implementation_sha256 of every adapter binding only; modules, sources, source sets, facts, dispositions, governance text and reviewed_at unchanged"
+    },
+    {
+      "id": "modernc-libc-xsys-v047",
+      "platform": "darwin/arm64",
+      "working_dir": "tools/gomad3/qualification/corpus",
+      "before": {
+        "pack_sha256": "sha256:169cc6da18223693f5f78a7e98873eb96cb6976da8f35691b958e2660fffa0ea",
+        "request_sha256": "sha256:de329b34acfc8b72c85ed864e35a1e72eec63e232cd6a30a755f1f964fcaddb7",
+        "approval_sha256": "sha256:eaeddaeec18b971cc3b8b19d0ed3b56619750b3315b0bac11c4b128495a40a08"
+      },
+      "after": {
+        "pack_sha256": "sha256:bf61f5cc8ba86595922e001a6624cc98507d83837a8d8627a73639dc4081c36f",
+        "request_sha256": "sha256:8a6bb627fcd99fdc010519590517d5f32f9af60b077ba7e01e401f9f047da0c2",
+        "approval_sha256": "sha256:9d656e14015df407eef5260bc52f50faf9800b711db4a6e83fdad08cded3069d"
+      },
+      "fresh_review_difference": "profile_implementation_sha256 of every adapter binding only; modules, sources, source sets, facts, dispositions, governance text and reviewed_at unchanged"
+    },
+    {
+      "id": "modernc-libc-xsys-v047-isatty-v021",
+      "platform": "darwin/arm64",
+      "working_dir": ".",
+      "before": {
+        "pack_sha256": "sha256:8c60c2363daab52b950eba4b661105c4d7a878e799e9cd920b2180c597a087ea",
+        "request_sha256": "sha256:51bdd78c06d81b80cd462cbb29d0d1c5562bc243145f774474e376944776075c",
+        "approval_sha256": "sha256:09d23cc4211b0c929f5a5a56b2eedd0ee194aa5878465422f63f1f3136f11a9d"
+      },
+      "after": {
+        "pack_sha256": "sha256:1c7bfa786bb0b858f9a267753c6189a5d464dc531a3ac5ea9d38062ad28bd48f",
+        "request_sha256": "sha256:983fbd74037bfc2040bb787138ffb2ede96b12ba3610504835137a659a343627",
+        "approval_sha256": "sha256:8113a08b8affa8395843cb6fadfd9bf8c0019942591cc7e19de95bc428ae2515"
+      },
+      "fresh_review_difference": "profile_implementation_sha256 of every adapter binding only; modules, sources, source sets, facts, dispositions, governance text and reviewed_at unchanged"
+    }
+  ],
+  "governed_flow": "per request: gomadtool compatibility-pack discover (existing request as draft) -> review -> generate --approve-review=<digest printed by both> -> check -> qualify, run with tools/gomad3/.toolchain/bin/go",
+  "linux_open_work": [
+    {
+      "id": "modernc-libc-xsys-v047-linux-amd64",
+      "platform": "linux/amd64",
+      "binds": "sha256:964874354d1ad2f46f00e3d1b1109f89b0d1747b399a97ea867ff29c48eda8e1",
+      "current_profile": "sha256:84b27e6227508fda72c8be6b0ae588e4f4f052a07bc35a27d6feff729b22d50b",
+      "pack_sha256": "sha256:f5d91a03f72b8b046b307d4bd350411b69665b47b24c093f416fc47594bf6af9",
+      "request_sha256": "sha256:f835de48b5d461ff135ab0e59734deccf1f3ed8935be8030d8857a8209afd1a1",
+      "approval_sha256": "sha256:9bdb99de5b50acb47a0fffca214fc21fc2a7e9ade762607d83d71345c48fbacc",
+      "request": "tools/gomad3/internal/compatibilitypack/requests/modernc-libc-xsys-v047-linux-amd64.json",
+      "working_dir": "tools/gomad3/qualification/corpus",
+      "status": "stale, not regenerated: discovery reviews the host platform, so it needs a linux/amd64 host; nothing is claimed for linux",
+      "consequence": "on linux/amd64 the pack is not selected, compatibility-pack-qualification reports drift, and make validate is expected to fail in TestHostPacksBindCurrentProfile until the request is rediscovered there (inferred from the pack contents and the linux profile golden; not run on linux)"
+    }
+  ],
+  "detection": {
+    "test": "tools/gomad3/internal/compatibilitypack/profile_binding_test.go",
+    "gate": "make -C tools/gomad3 validate-compatibility runs TestHostPacksBindCurrentProfile after compatibility-pack check",
+    "negative_make_run": "with the previous isatty request, report and pack restored and generation.json regenerated, compatibility-pack check still printed 'compatibility packs are current' and make validate-compatibility exited 2 naming modernc-libc-xsys-v047-isatty-v021; files restored afterwards",
+    "negative_test": "TestStaleProfileBindingsAreReported"
+  },
+  "results": {
+    "baseline": "red: make -C tools/gomad3 validate compatibility-pack-qualification exited 2 (validate green, modernc-libc-xsys-v041 'no longer matches the current target review')",
+    "gate": {
+      "command": "env -u GOROOT make -C tools/gomad3 validate compatibility-pack-qualification",
+      "exit_status": 0,
+      "qualified_requests": 9
+    },
+    "test_host": {
+      "command": "env -u GOROOT make -C tools/gomad3 test-host",
+      "exit_status": 0,
+      "packages_ok": 45
+    },
+    "analysis": {
+      "command": "tools/gomad3/.bin/gomad analyze --format=json --capability-mode=closure --build-tag=disable_grpc_modules --build-tag=gomad --build-tag=test_dep go-test ./tests",
+      "exit_status": 0,
+      "classification": "supported",
+      "blockers": 0,
+      "package_count": "1043",
+      "closure_sha256": "sha256:66950de8542e9bbd70ad9fbfd5e8436c3bedaf6a10147365d4257b4c9acdc2d7",
+      "io_profile": {
+        "implementation_sha256": "sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0",
+        "inventory_sha256": "sha256:0d34edfc0ab13c693b78d514ca1a72a9adc196fe61e2142dba108c0ff47358f7",
+        "name": "gomad3-deterministic/v1"
+      },
+      "packs": [
+        {
+          "id": "golang-x-sys-v047-darwin-arm64",
+          "sha256": "sha256:ca263b36199b7159742f513e709d1d354171346c43d00d00410737a8f8221c99"
+        },
+        {
+          "id": "modernc-libc-xsys-v047",
+          "sha256": "sha256:bf61f5cc8ba86595922e001a6624cc98507d83837a8d8627a73639dc4081c36f"
+        },
+        {
+          "id": "modernc-libc-xsys-v047-isatty-v021",
+          "sha256": "sha256:1c7bfa786bb0b858f9a267753c6189a5d464dc531a3ac5ea9d38062ad28bd48f"
+        },
+        {
+          "id": "reflect2-go126",
+          "sha256": "sha256:8df4d3135d4edc2903f0c5242397115ed5f1d5f39f9a46b1a6f2b8eeabad39ea"
+        },
+        {
+          "id": "temporal-functional-compute-darwin-arm64",
+          "sha256": "sha256:238575d9e6b642bccca180b780c4ec176d95b258d2dfdb22e23e99316b0d6d5b"
+        },
+        {
+          "id": "temporal-functional-tests-darwin-arm64",
+          "sha256": "sha256:4e861bc1e1f7a60704bbf52dfe2df997e06aba349b07be7ddac8011bd437a365"
+        },
+        {
+          "id": "temporal-leaf-xsys-darwin-arm64",
+          "sha256": "sha256:1ebf73e8f3a3bb424e617b9294e89290de68c7837171d602b71ac5ec425c5b77"
+        },
+        {
+          "id": "temporal-leaf-xxhash-darwin-arm64",
+          "sha256": "sha256:9a9f167727dafc89651503836f18b7f5ee87674a9c2f9ecaee9a824a66bafc91"
+        }
+      ]
+    },
+    "control": {
+      "command": "tools/gomad3/.bin/gomad qualify-set --manifest=<scratch>/control.json --working-dir=<repo> --artifacts=<scratch> --output=<scratch>/control-report.json --prune-qualified-artifacts",
+      "manifest": "the TestUserTimersTestSuite suite of tools/gomad3integration/qualification/tests.json, seeds [11]",
+      "exit_status": 0,
+      "classification": "qualified",
+      "expectations_met": true,
+      "seed": "11",
+      "replayed": true,
+      "replay_match": true,
+      "choice_replay_exact": true,
+      "evidence_sha256": "sha256:104a46fcdacccb1535eb7a7110e253f917d801c52fc89eee82b937d593d8f886"
+    }
+  }
+}

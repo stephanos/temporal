@@ -1,0 +1,46 @@
+{
+  "schema": "fn105-d25-gomad-evidence/v1",
+  "platform": {
+    "goos": "darwin",
+    "goarch": "arm64"
+  },
+  "linux_amd64": "not run; unavailable on this host",
+  "source": "HEAD d4d800fb473f008fa4a51a4d8575249f11c9cf3f plus the uncommitted working tree at 2026-09-30T19:05-19:10 PDT, including this task's service/matching fix; the tree also held other workers' uncommitted edits",
+  "matching_engine_sha256": "199c6b74f6438e2cf70d125fa00a61536e038dca09d4ff2cb3bbfd47bd6facda",
+  "versioning_test_sha256": "b61acf9e6bc980c6868343b60b640f063b87bb382d9cd79c32a4212ad9988c01",
+  "runner": {
+    "runner_build": "sha256:3062e6f84a854ce0652612a38beae2085428c1d470fc9b69747fc413f380f0d1",
+    "doctor": "available=true host=darwin/arm64 go=go1.27.1"
+  },
+  "toolchain": {
+    "build_key": "c0661e38b4e001c8d86912d4ce9e265eb0f33e5f3298015da27a4c97ac4019b9",
+    "go_version": "go1.27.1",
+    "boundary_manifest_version": "go1.27.1-v1",
+    "boundary_manifest_sha256": "sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0"
+  },
+  "io_profile_implementation_sha256": "sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0",
+  "scope": "single leaf TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_ReportFlags; the whole-suite qualify-set (manifest entry tests-versioning-functional-suite: about 20 min per repetition, 2 seeds x 2 repetitions) was NOT run because the leaf already fails on both seeds and the host had 5 GiB free",
+  "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad explore --seeds <11|17> --parallel 1 --build-tag=disable_grpc_modules --build-tag=gomad --build-tag=test_dep --capability-mode=closure --io-ro-mount ./schema=/go.temporal.io/server/schema --keep-successes=all --success-limit=2 --success-bytes=1GiB --artifacts <scratch> go-test ./tests -- '-test.run=^TestVersioningFunctionalSuite$/^TestDescribeTaskQueueEnhanced_ReportFlags$' -test.parallel=8 -test.v",
+  "per_seed": {
+    "11": {
+      "exit_status": 1,
+      "classification": "target_failure",
+      "runs": 2,
+      "stdout_sha256_identical_across_runs": true,
+      "record_hash": "sha256:c92208ba21a7303f2990e1736a9a11870c31b22abe26795155655faf3a6c7e3b",
+      "failed_assertion": "tests/versioning_test.go:4221 \"[]\" should have 1 item(s), but has 0 - only one poller info should be reported",
+      "original_assertion_4203_poller_info_should_not_be_reported": "passes"
+    },
+    "17": {
+      "exit_status": 1,
+      "classification": "target_failure",
+      "runs": 1,
+      "record_hash": "sha256:13f6df1ea85c98bd7a1215b5ce4e5b8400fe5c359d39136e61a67e9f856dd4a2",
+      "failed_assertion": "tests/versioning_test.go:4221 \"[]\" should have 1 item(s), but has 0 - only one poller info should be reported",
+      "original_assertion_4203_poller_info_should_not_be_reported": "passes"
+    }
+  },
+  "finding": "The report-flag leak is fixed: the reachability-only response no longer carries pollers on either seed. The test now fails two assertions later, in the pollers-only request. Every call in the test runs at one virtual instant (2000-01-01T00:00:00.000Z in all log lines), so the 1ns cache TTL the suite configures (TaskQueueInfoByBuildIdTTL=0, clamped to 1ns) never elapses. The test's Await accepts the first pollers response in which the worker shows up under either task-queue type; that response is cached under the pollers shape, and the later pollers-only request of the same shape is served it, with the other type's poller still missing. Inferred from the log order (no partition activity between the last DescribeTaskQueue and the failure); the response bodies are not logged.",
+  "log": "fn105-d25-gomad-red-leaf-stdout.log",
+  "artifacts": "scratch Campaigns deleted after recording"
+}

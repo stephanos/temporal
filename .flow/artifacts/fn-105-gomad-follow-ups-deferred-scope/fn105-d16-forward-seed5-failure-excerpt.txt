@@ -1,0 +1,17 @@
+=== CONT  TestStandaloneActivityTestSuite/TestStartDelay/UpdateNegative_Rejected
+=== CONT  TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch
+=== CONT  TestStandaloneActivityTestSuite/TestStartDelay/PauseDuringDelay_UnpauseHonorsWallClockTarget
+=== CONT  TestStandaloneActivityTestSuite/TestResetActivityExecution/RestoreOriginalOptions_OnStarted_DefersScheduleToCloseRestore
+=== CONT  TestStandaloneActivityTestSuite/TestResetActivityExecution/ResetRestoreOriginal_OnStarted_AppliesRestoredOptionsOnLanding
+=== CONT  TestStandaloneActivityTestSuite/TestResetActivityExecution/ResetRestoreOriginal_OnStarted_DefersPerAttemptOptionRestore
+=== NAME  TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch
+    activity_standalone_test.go:8495: 
+        	Error Trace:	go.temporal.io/server/tests/activity_standalone_test.go:8495
+        	            				go.temporal.io/server/common/testing/parallelsuite/suite.go:150
+        	Error:      	Received unexpected error:
+        	            	context deadline exceeded
+        	Test:       	TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch
+=== NAME  TestStandaloneActivityTestSuite/TestPauseActivityExecution
+--- FAIL: TestStandaloneActivityTestSuite (-0.38s)
+    --- FAIL: TestStandaloneActivityTestSuite/TestStartDelay (14.49s)
+        --- FAIL: TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch (5.76s)

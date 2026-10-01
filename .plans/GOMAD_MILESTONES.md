@@ -49,11 +49,11 @@ excluded. What still keeps the package short of "every functional test replays e
   choice-tape replay claim (`replayed` and `choice.available` are false), and a mismatch between
   repetitions is still `nondeterministic`. Tracing and success replay stay on in the replay
   gates (`temporal.json`, `smoke.json`, and `qualification/core.json`) and for the one test the
-  generator spec opts in, `TestSignalWorkflowTestSuiteChasm`, whose open finding is a replay
-  divergence (D14). A seed there verifies choice-tape replay when it reports
-  `choice_replay_exact`; the `intermittent` expectations of D12 and D14 still accept a seed that
-  diverged. The exact-replay results recorded below for individual suites are the dated traced
-  runs they name, not a property of routine runs.
+  generator spec opts in, `TestSignalWorkflowTestSuiteChasm`, which carried the darwin replay
+  divergence fixed under D14 and stays `intermittent` on linux under D12. A seed there verifies
+  choice-tape replay when it reports `choice_replay_exact`; the `intermittent` expectations of
+  D12 still accept a seed that diverged. The exact-replay results recorded below for individual
+  suites are the dated traced runs they name, not a property of routine runs.
 - **No exact replay available for eight suites.** Their choice traces overflow the 64 MiB
   maximum, so they cannot opt into tracing until larger traces exist (deferred as D15).
   `TestTaskQueueStats_Pri_Suite`, `TestVersioning3FunctionalSuite`,
@@ -63,25 +63,35 @@ excluded. What still keeps the package short of "every functional test replays e
   `TestVersioningFunctionalSuite` is expected `qualified` on the same seed-repeatability basis.
 - **Skips with an identified cause.**
   - `TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch`:
-    under `clock_tick: forward` a propagated gRPC deadline lands later on the server than on the
-    client (seed 11). Investigation is approved as
-    [D16](../.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.16.md); the correction
-    remains to be selected from its evidence.
+    under `clock_tick: forward` the lead of `time.Now` over the timer clock grows with every read
+    (about 0.33 s when this subtest polls), and each deadline re-derived from `time.Now` fires
+    later by that lead. The frontend hop, the matching hop, and matching's child context add
+    three leads, which use up the 1 s empty-response budget, so the client's 3 s deadline fires
+    first (seeds 5, 12, 20, 21, 24 of 1 to 24 on toolchain `8d28bd44`; seed 11 now passes with
+    about 20 ms to spare). The
+    [D16](../.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.16.md) investigation
+    ([report](../docs/research/gomad/GOMAD_D16_FORWARD_CLOCK_POLL_DEADLINE.md)) assigns the
+    correction to the Gomad forward clock. The correction is proposed and not implemented, and
+    the skip stays.
   - `TestNexusOTELSuite/TestOperation`: two dedicated clusters in one process are not yet
     deterministic. Investigation is approved as
     [D17](../.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.17.md); the pool-capacity
     wait is already resolved, and the remaining cause is unidentified.
-  - `TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout`: on seed 11 the cancel
-    command arrives after the test's 90 s context has run below the long-poll minimum.
-    Investigation is approved as [D18](../.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.18.md).
+  - `TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout`: under the strict tick the
+    activity's capped deadline equals the workflow run expiration, and when the activity's timer
+    task runs first the server never creates the cancel command (9 of 16 seeds; no timeout budget
+    is involved). [D18](../.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.18.md) identified the
+    cause in its [report](../docs/research/gomad/GOMAD_D18_WORKER_CANCEL_DELIVERY.md) and proposes
+    `clock_tick: forward` for the suite; the correction is undecided and the skip stays.
   - `TestFairness{,AutoEnable}Suite/Test_Activity_Basic` and
     `TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult` assume wall time passes
     during server work. Investigations are approved as
     [D19](../.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.19.md) for fairness and
     [D20](../.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.20.md) for heartbeat timeouts.
-- **Intermittent suites.** `TestSignalWorkflowTestSuiteChasm` on darwin (F10 D14) and the F5/F6
-  suites on linux (F10 D12). The generated manifest expects `TestSignalWorkflowTestSuiteChasm`
-  `intermittent` on both platforms. The linux `intermittent` expectation for the F5/F6 suites is
+- **Intermittent suites.** The F5/F6 suites and `TestSignalWorkflowTestSuiteChasm` on linux
+  (F10 D12). The darwin divergence of `TestSignalWorkflowTestSuiteChasm` is fixed (F10 D14,
+  2026-09-30): the generated manifest expects it `qualified` on darwin/arm64 and `intermittent`
+  on linux/amd64. The linux `intermittent` expectation for the F5/F6 suites is
   stated in the representative and smoke manifests (`temporal.json`, `smoke.json`); the generated
   manifest still expects those suites `qualified` on linux, where the full set is not run as a gate.
 
@@ -173,10 +183,10 @@ on the D21 findings.
 | --- | --- | --- |
 | D7 | Add a darwin/arm64 job for the existing functional smoke selection (`fn-101.4`) | Required CI addition approved 2026-09-30. R7 in fn-105 requires a standard macOS runner, preserved Linux coverage, platform-specific reports/artifacts, zero unsupported/failed/infrastructure errors, explicitly traced exact replay, and passing GitHub Actions evidence. |
 | D12 | Identify and fix the linux/amd64 replay-divergence channel (`fn-106.1`); about one tier-3 seed-run in 26 diverged, and the recorded evidence points to host timing under load | Must be fixed, decided 2026-09-30. Native Linux instrumentation is an execution prerequisite. R12 in fn-105 requires a regression reproducer, repeated exact replay on both seeds under load, and restoration of strict CI expectations; diagnosis alone cannot close the task. |
-| D14 | Fix Darwin TestSignalWorkflowTestSuiteChasm replay divergence (F7); two heap-span refills swap order at cluster start, historically about one seed-11 replay in 28 | Required fix, decided 2026-09-30. R14 in fn-105 requires identifying and fixing the cause, a regression reproducer, and repeated Darwin exact replay on both seeds under load. A shared D12 fix requires separate Darwin verification before restoring the suite to qualified. |
-| D16 | Investigate TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch; the client times out before an empty poll response under the forward clock | Investigation approved 2026-09-30. R16 in fn-105 requires a reproducer, native/Gomad comparison, causal deadline evidence, and a proposed correction with an owner for a subsequent decision. Keep the skip until evidence supports removal; retain any needed fix as explicit open work. |
+| D14 | Fix Darwin TestSignalWorkflowTestSuiteChasm replay divergence (F7); two heap-span refills swap order at cluster start, historically about one seed-11 replay in 28 | Fixed in the working tree on darwin/arm64 (2026-09-30, toolchain key `8d28bd44`). Cause: before an M sleeps on a contended runtime lock, `lock2` samples the wait time (`mLockProfile.start`), and that draw came from the process-wide seeded stream when the M held the P. Whether the scheduler lock outlasts the spin is host timing; in the instrumented divergent replay the P's M waited in `findRunnable` while another M parked in `stopm`. The draw shifted every later seeded draw, type-assertion caches grew at other call sites (first on the cluster-start goroutine, in `database/sql` and `fx`), a later goroutine allocated a cache of another size, two heap-span refills swapped order, and the replay diverged at a choice ordinal. Fix: the sample draws from the M's own stream (`gomadLockProfileStart`, one `lock_spinbit.go` hunk). On the unfixed toolchain with scratch instrumentation 5 of 350 seed-11 replays diverged under host load; none of the 345 matching replays slept on a runtime lock while holding the P, and the dumped divergent replay did so once, just before its first differing event. Reproducer: `TestProfileSchedulerLockContentionLeavesSeededStreamInPlace` (fixture `io_handoff_contention`) failed 20 of 20 invocations on the unfixed toolchain and passed 20 of 20 on the fixed one. Fixed toolchain, tracing on, host load: 400 exact replays per seed of a retained success on seeds 11 and 17 with no divergence, 12 fresh repetitions per seed that agreed within each qualification, and four runs of the generated workload `qualified` on both seeds. The generated manifest expects darwin/arm64 `qualified` again. The patched code also runs on linux/amd64, so the same draw may be the D12 channel; that is an unverified hypothesis, linux/amd64 was not run, and D12 stays open. Evidence: `.flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d14-evidence.json`. |
+| D16 | Investigate TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch; the client times out before an empty poll response under the forward clock | Investigated on darwin/arm64 (2026-10-01, toolchain key `8d28bd44`); nothing is fixed and the skip stays. Cause: the forward offset is cumulative and unbounded (`gomadTimeNow` adds 1 to 1024 ns per read and never subtracts), so `time.Now` led the timer clock by about 0.33 s when the subtest polled. `context.WithTimeout` arms its timer for `time.Until(time.Now()+d)`, which is `d` plus the lead, and each gRPC hop re-derives the deadline from `grpc-timeout` and adds the lead again. The frontend hop, the matching hop, and matching's `WithDeadlineBuffer` child add three leads; above 1 s in total the client deadline fires before the empty response. On the unmodified tree seeds 5, 12, 20, 21, 24 of 1 to 24 fail with the same error, and a rerun of each reproduced its stdout and stderr digests; seeds 11 and 17 pass (seed 11 by about 20 ms). Under `strict` the subtest passes on all seven of those seeds with the child deadline 1 s before the client's, and natively 999.8 ms before. A standard-library fixture reproduces the timeout on seeds 11 and 17 after 700,000 reads. gRPC, the 1 s budget, and the test behave as they do natively; the owner is the Gomad runtime clock. Proposed for a decision, not built or verified: add the draws to the virtual clock itself so `time.Now` and timers share one clock, as fn-103 specified; this first needs the simulation time transport failure that made fn-103 move to a separate offset reproduced and resolved, and its feasibility is not established. Partial fallbacks with stated residuals (offset-aware `time.Since`/`time.Until`; absorbing the offset on idle advances) and an accepted-limitation alternative are in the report. The correction, its conformance fixture, removal of the skip, and requalification of the seven forward suites remain open work in fn-105. linux/amd64 was not run. Report: `docs/research/gomad/GOMAD_D16_FORWARD_CLOCK_POLL_DEADLINE.md`; evidence: `.flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d16-evidence.json`. |
 | D17 | Investigate TestNexusOTELSuite/TestOperation with two clusters; configuring two pool slots resolves the initial wait but repeated runs and replay still differ | Investigation approved 2026-09-30. R17 in fn-105 requires reproductions, control comparisons, the first divergent event and missing-terminal-frame diagnosis, and an owned correction proposal for a subsequent decision. Keep the skip until verification supports removal; a shared D12/D14 cause requires evidence. |
-| D18 | Investigate worker cancellation delivery and inconsistent test timeout budgets | Approved 2026-09-30. R18 requires causal delivery/deadline evidence and an owned correction proposal; keep the skip until verified. |
+| D18 | Investigate worker cancellation delivery and inconsistent test timeout budgets | Investigated 2026-09-30 on darwin/arm64 ([report](../docs/research/gomad/GOMAD_D18_WORKER_CANCEL_DELIVERY.md)). Cause: a strict-tick timestamp tie between the workflow run-timeout timer and the activity's capped ScheduleToClose timer; when the activity timer task runs first, no cancel command is generated, and no test budget or delivery step is at fault. Proposed correction, owned by the Gomad qualification configuration: `clock_tick: forward` for the suite, which qualified seeds 11 and 17 with the skip lifted in scratch manifests. The correction is open work pending a decision; nothing is fixed and the skip stays until verified. |
 | D19 | Investigate activity fairness backlog readiness in both fairness suites | Blanket investigation approval 2026-09-30. R19 distinguishes setup bias from a fairness defect and preserves the fairness assertions. |
 | D20 | Investigate heartbeat timeout counting under virtual time | Blanket investigation approval 2026-09-30. R20 establishes timeout/reset semantics and proposes a correction preserving timeout/recovery coverage. |
 

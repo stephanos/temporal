@@ -147,6 +147,7 @@ validate-toolchain:
 
 validate-compatibility:
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool compatibility-pack check --root=$(CURDIR)
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go test -count=1 -tags test_dep -run '^TestHostPacksBindCurrentProfile$$' ./internal/compatibilitypack
 
 validate-qualification:
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool $(TESTS_QUALIFICATION_GENERATE) -check

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-01T01:09:58.149269Z",
+  "depends_on": [
+    "fn-109-gomad-deepen-modules-and-tool-interfaces.11"
+  ],
+  "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.12",
+  "priority": null,
+  "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
+  "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.12.md",
+  "status": "todo",
+  "title": "Separate detached Artifact references from owned opened handles",
+  "updated_at": "2026-10-01T01:10:29.736421Z"
+}

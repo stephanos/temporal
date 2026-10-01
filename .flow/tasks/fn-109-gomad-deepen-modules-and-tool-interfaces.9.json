@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-01T01:09:58.149193Z",
+  "depends_on": [
+    "fn-109-gomad-deepen-modules-and-tool-interfaces.8"
+  ],
+  "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.9",
+  "priority": null,
+  "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
+  "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.9.md",
+  "status": "todo",
+  "title": "Give target Go commands one private host-command seam with bounded output",
+  "updated_at": "2026-10-01T01:10:28.704939Z"
+}

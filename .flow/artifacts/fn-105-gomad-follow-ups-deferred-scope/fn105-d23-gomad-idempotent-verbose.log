@@ -1,0 +1,12 @@
+== seed=11
+=== RUN   TestScheduleMigrationTestSuite
+=== RUN   TestScheduleMigrationTestSuite/TestScheduleMigrationV2ToV1Idempotent
+--- PASS: TestScheduleMigrationTestSuite (0.10s)
+    --- PASS: TestScheduleMigrationTestSuite/TestScheduleMigrationV2ToV1Idempotent (0.10s)
+PASS
+== seed=17
+=== RUN   TestScheduleMigrationTestSuite
+=== RUN   TestScheduleMigrationTestSuite/TestScheduleMigrationV2ToV1Idempotent
+--- PASS: TestScheduleMigrationTestSuite (0.10s)
+    --- PASS: TestScheduleMigrationTestSuite/TestScheduleMigrationV2ToV1Idempotent (0.10s)
+PASS

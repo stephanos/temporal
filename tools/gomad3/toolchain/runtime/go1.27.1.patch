@@ -79,9 +79,18 @@ index 018fe01..cfaed04 100644
  //
  //go:linkname fatal
 diff --git a/src/runtime/lock_spinbit.go b/src/runtime/lock_spinbit.go
-index 6f21c54..fb87322 100644
+index 6f21c54..2e53160 100644
 --- a/src/runtime/lock_spinbit.go
 +++ b/src/runtime/lock_spinbit.go
+@@ -241,7 +241,7 @@ tryAcquire:
+ 		// and for "/sync/mutex/wait/total:seconds" metric (to match).
+ 		if !haveTimers {
+ 			gp.m.mWaitList.startTicks = cputicks()
+-			startTime = gp.m.mLockProfile.start()
++			startTime = gomadLockProfileStart(&gp.m.mLockProfile)
+ 			haveTimers = true
+ 		}
+ 		// Store the current head of the list of sleeping Ms in our gp.m.mWaitList.next field
 @@ -348,7 +348,7 @@ func unlock2Wake(l *mutex, haveStackLock bool, endTicks int64) {
  
  	// On occasion, seek out and wake the M at the bottom of the stack so it

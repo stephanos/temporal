@@ -185,7 +185,8 @@ stdout and no routine output on stderr. Event types are `progress`, `result`,
 `artifact`, and `error`. Result classifications are `success`,
 `target_failure`, `watchdog_observation`, `replay_divergence`, and
 `mixed_failure`; error classifications are `invalid_input`,
-`unsupported_target`, `semantic_coverage_failure`, and `runner_failure`.
+`unsupported_target`, `semantic_coverage_failure`, `capacity`, `cancelled`,
+`overall_timeout`, and `runner_failure`.
 
 Use `--coverage=semantic`, `--coverage=choice`, or
 `--coverage=semantic+choice` to retain versioned semantic probes, canonical
@@ -199,8 +200,9 @@ tools/gomad3/.bin/gomad explore --coverage=semantic \
 ```
 
 Use `--guide --corpus DIR` to feed replay-verified, semantically novel seeds
-back into later campaigns. Guidance enables semantic coverage unless an
-explicit incompatible `--coverage` was supplied. Each Campaign selects from one
+back into later campaigns. Guidance enables semantic coverage by default; an
+explicit `--coverage` must select semantic or choice coverage, and
+`--coverage=none` is rejected. Each Campaign selects from one
 immutable corpus snapshot: at most three quarters of its seeds come from the
 corpus and at least one quarter remain in the requested seed set. Corpus cases
 are ranked by reproducible failures, invariant and terminal states, abstract
@@ -243,7 +245,28 @@ toolchain and Runner identities, full output hashes, transcript, captured-mount
 identity, World identity, outcome, semantic probes, and optional choice
 features. Replay evidence is attached to its corresponding repetition. Add
 `--replay-successes` with explicit positive `--success-limit` and
-`--success-bytes` bounds to retain and replay every success. Repeat `--require-probe`
+`--success-bytes` bounds to retain and replay every success. `--choices` and
+`--replay-successes` are independent opt-in flags, so a `qualified` result makes
+up to three claims and the report says which:
+
+- **Same-seed repeatability** is what every `qualified` result establishes:
+  each repetition was prepared and executed afresh and their evidence digests
+  are equal. Repetitions that differ are `nondeterministic` and a failing target
+  is `target_failure`, with or without either flag.
+- **Tape availability** needs `--choices` and a retained Artifact. The evidence
+  then carries a choice profile with its `tape_sha256`, which the repetitions
+  must also agree on, but a success is retained only with `--replay-successes`,
+  so without it no Decision Tape is kept to replay.
+- **Verified choice-tape replay** needs both flags: each retained success is
+  replayed from its tape, and its repetition records a `replay` entry with
+  `match` and `choice_replay_status: exact`.
+
+`--replay-successes` without `--choices` still retains and replays each
+success, re-executing it from its seed: the `replay` entry then records `match`
+with `choice_replay_status: none`, which is a replay of the Artifact and not of
+a choice tape. A repetition without a `replay` entry was not replayed, so a
+qualification run with neither flag claims repeatability and nothing about
+replay. Repeat `--require-probe`
 to enforce known conditional probes; `--repeat` is bounded to 2 through 32.
 Add `--json` for newline-delimited `gomad3.qualify-event/v1` progress, result,
 and error records. Unsupported targets retain their first boundary and exact
@@ -275,6 +298,20 @@ An `unsupported_target` expectation names its boundary with `import_path` and
 `capability`; every other non-qualified expectation names the blocker it
 accepts with a `finding` identity, such as the milestone section that records
 it, and a `qualified` expectation names neither.
+A workload with `choice_bytes` 0 and `replay_successes` false runs without
+`--choices` and `--replay-successes`. Its `qualified` seeds establish same-seed
+repeatability: the seed reports the `evidence_sha256` its repetitions agreed on
+with `replayed` and `replay_match` false, `choice.available` false, and no
+`choice_replay_exact`. A workload that sets `choice_bytes`, `replay_successes`,
+and both success limits reports `choice.exact_replay_available` when its seed
+retained one Decision Tape and `choice_replay_exact` only when that tape was
+replayed and matched. A workload that traces choices in a set must also replay
+its successes, because the set reads choice coverage from the retained success
+Artifacts. The report's `replayed` count and `trace_bytes` total cover the
+replayed and traced seeds only, and `dimensions` names the evidence kinds the
+report format carries, not what each workload recorded. `compare-support`
+reports a seed that replayed in the baseline and not in the candidate as a
+replay regression.
 Status 0 means all expectations
 matched, 1 means a retained mismatch, 2 means invalid input, and 3 means
 cancellation, timeout, child, or publication infrastructure failure.
@@ -330,17 +367,40 @@ actual supported/unsupported counts remain separate.
 
 `make -C tools/gomad3 core-qualification` runs the checked
 `qualification/core.json` corpus from its self-contained fixture module. Its
-five assertion-based workloads cover concurrent state invariants, filesystem
+seven assertion-based workloads cover concurrent state invariants, filesystem
 lifecycle semantics, loopback TCP request/response, SQLite commit/rollback,
-and the direct modernc/libc file boundary. The aggregate and all evidence are
-retained below `.toolchain/core-qualification*`.
+a WAL-mode SQLite database, read-only mount lookups while the collector
+cycles, and the direct modernc/libc file boundary. The aggregate and all
+evidence are retained below `.toolchain/core-qualification*`.
 
-The checked Temporal corpus holds fifteen tier 2 package workloads and thirteen
-tier 3 functional suites. On darwin/arm64 all fifteen package workloads
-qualify; nine of them build with the `gomad` tag. On linux/amd64 five qualify and ten retain
+The checked representative Temporal corpus
+(`tools/gomad3integration/qualification/temporal.json`) holds fifteen tier 2
+package workloads and thirteen tier 3 functional workloads: twelve `./tests`
+suites and one `./tests/gomadfunctional` probe. Its expectations are per
+platform. On darwin/arm64 all twenty-eight workloads are expected to qualify;
+nine of the package workloads build with the `gomad` tag. On linux/amd64 five
+package workloads qualify and ten retain
 exact unsupported analyses (the amd64 xxhash assembly), because the packs that
-admit their facts are scoped to darwin/arm64. Every qualified workload runs two
+admit their facts are scoped to darwin/arm64, and the thirteen tier 3 workloads
+are expected `intermittent`: the twelve `./tests` suites cite the linux replay
+divergence recorded in the
+[milestones](../../.plans/GOMAD_MILESTONES.md#open-findings), and the probe
+cites its own finding, one linux run whose seed 17 did not reproduce its
+evidence. Every
+qualified workload runs two
 seeds and requires matching execution, World, I/O, and choice-tape replay.
+The generated `tests.json` manifest beside it holds one tier 3 workload per
+top-level `./tests` test. It is an on-demand local set rather than a CI gate,
+and it is untraced by default: its generator spec sets `choice_bytes` 0 and
+`replay_successes` false, so a `qualified` workload there establishes same-seed
+repeatability and makes no choice-tape replay claim. A test records a bounded
+choice trace and replays its successes only where the spec opts it in by name.
+The tracing-enabled replay gates are this representative corpus, the smoke
+selection copied from it, and `qualification/core.json`: each of their
+workloads records a choice trace and replays its successes, and a seed there
+verifies choice-tape replay when it reports `choice_replay_exact`. An
+`intermittent` expectation in those manifests still accepts a seed that
+diverged. The milestones record the remaining dispositions.
 
 An interrupted campaign retains a canonical `gomad3.campaign-plan/v1` beside
 its prepared target. A guided plan also records the selected corpus snapshot
@@ -410,7 +470,7 @@ printing its identity, outcome, transcripts, captured mounts, truncation,
 distinct failure paths, retained successes and byte totals, novelty reasons,
 copy-paste replay commands, and Campaign lifecycle, resumability, repairability,
 and recovery reason. Interrupted Campaigns can be inspected before publication.
-Add `--json` for the stable `gomad3.inspect/v3` report.
+Add `--json` for the stable `gomad3.inspect/v5` report.
 
 ### Deterministic I/O
 
@@ -482,7 +542,8 @@ build. It marks intercepted definitions non-inline so serialized pre-rewrite
 bodies cannot bypass the hook.
 
 Compiler conformance interceptions live in `boundary/compiler-tests.json`, not
-the production boundary manifest or shipped compiler table. `make intercept-test`
+the production boundary manifest or shipped compiler table.
+`make -C tools/gomad3 intercept-test`
 builds a temporary compiler from a Go overlay containing those fixtures, proves
 the production compiler ignores their package paths, and then runs the positive
 and fail-closed compiler cases through that test-only compiler.
@@ -554,10 +615,10 @@ its command adapter, and `internal/gomadtool/conformance` owns bounded
 black-box fixture execution and semantic result classification. The remaining
 scripts are reviewed argv adapters:
 POSIX compatibility entrypoints, the two upstream `-exec`/`-toolexec`
-adapters, and the Darwin-only DTrace audit. `make validate` rejects an
+adapters, and the Darwin-only DTrace audit. `make -C tools/gomad3 validate` rejects an
 unowned script or new Bash/Perl policy. Linux CI builds the toolchain, runs the
-harness, toolchain, interception, overlay, world, builder, live-capability, and
-upstream, and runtime tiers as gates, reports the host tier without gating, and
+harness, toolchain, interception, overlay, world, builder, live-capability,
+upstream, runtime, and host tiers as gates, and
 qualifies the Linux compatibility packs and the core corpus. The macOS sandbox
 test and the DTrace audit stay darwin-only. The modernc libc adapter covers both
 platforms: on darwin it models the libc functions themselves, on linux/amd64 it
@@ -644,7 +705,16 @@ even while work remains runnable. The advance accumulates in an offset that
 only `time.Now` observes: native timers, sleeps, runtime clock reads, and
 simulation time keep the idle-driven clock. Application calculations that
 derive deadlines or durations from `time.Now` can observe the offset and
-change behavior. Repeatability and exact replay remain workload qualification
+change behavior. For a reading that still carries its monotonic value,
+`time.Since` and `time.Until` read the idle-driven clock, so
+against such a reading `time.Since` reports less than a second `time.Now`
+would, and is negative within one busy stretch, while a deadline computed
+from it expires later than a timer armed for the same duration, by the
+offset accumulated when it was computed. A reading stripped of its monotonic
+value, as by `Round(0)`, serialization, or parsing, is compared against a
+fresh ticked `time.Now` instead. Consecutive readings differ at
+nanosecond resolution only; timestamps truncated to a coarser unit can still
+tie. Repeatability and exact replay remain workload qualification
 claims; the [milestones](../../.plans/GOMAD_MILESTONES.md#open-findings) record
 remaining divergence. Runtime-internal clock reads do not tick. The
 policy reaches the target as `GOMAD3_CLOCK_TICK=forward`, which is part of the
@@ -697,16 +767,22 @@ Runner has a separate configurable per-stream limit that defaults to 8 MiB.
 
 Runtime decisions that only shape host-side scheduling draw from the M's own
 random stream rather than the process-wide seeded one: lock hand-off
-anti-starvation wakes, work-steal order, and pcvalue-cache eviction all happen
+anti-starvation wakes, the wait-time sample an M takes before it sleeps on a
+contended runtime lock, work-steal order, and pcvalue-cache eviction all happen
 at host-timed moments (contended runtime locks, idle windows whose length the
 Runner decides, stack walks on whichever M holds the P), and drawing them from
 the seeded stream moved every later type-assertion-cache fill and semaphore
-ticket between same-seed runs. A garbage-collector stack scan, and any other
-`suspendG`, first waits for a goroutine inside a plain host syscall (a pipe
-write, a read-only mount lookup) to return and queue itself as an arrival, so
-the collector's view of live memory does not depend on when the host answered;
-simulation transport reads are exempt because they block until the simulation
-advances.
+ticket between same-seed runs. The wait-time sample was the last of these to
+move: an M that holds the P sleeps on the scheduler lock only when another M,
+parking or returning from a Runner syscall, keeps it past the spin, and that
+single draw shifted the stream, so a type-assertion cache grew at a different
+call site, two heap-span refills swapped order, and a few same-seed replays in
+a hundred of a functional suite diverged on darwin/arm64. A garbage-collector
+stack scan, and any other `suspendG`, first waits for a goroutine inside a
+plain host syscall (a pipe write, a read-only mount lookup) to return and
+queue itself as an arrival, so the collector's view of live memory does not
+depend on when the host answered; simulation transport reads are exempt
+because they block until the simulation advances.
 
 At the start of every mark phase, while the world is still stopped, the
 runtime greys every M with its g0, gsignal and `self` handle, every P's `oldm`
@@ -827,7 +903,9 @@ thirteen Gomad v2 behaviors to named v3 cases by citing exact source tests under
 cited, so every one of its source paths would now dangle. The thirteen cases it
 tracked remain implemented through the sixteen in-process and process prototypes
 described below, including process evidence for fresh arbitrary package globals
-and hard isolation.
+and hard isolation. Parity Case, the name for one of those mapped cases, is a
+historical term: the manifest was its only carrier, and it is not part of the
+current vocabulary.
 
 The root `tools/gomad3sim` package defines the no-dependency application
 harness. Its versioned schemas provide bounded specs, stable node and incarnation
@@ -892,7 +970,9 @@ make -C tools/gomad3 core-qualification
 make -C tools/gomad3 upgrade-dossier GOMAD3_BASELINE_REF=<previous-commit>
 ```
 
-`test` retains the full gate and runs the builder, runtime, and upstream tiers
+`test` retains the full gate: the harness, toolchain, interception, host,
+overlay, and World tests, then the builder, live-capability, runtime, and
+upstream tiers
 in that order. The focused targets reproduce the corresponding portion without
 weakening the full gate.
 
@@ -903,7 +983,7 @@ timeouts, nested synctest, cgo/link rejection, non-progress, bounded output,
 and deadlock; runs focused upstream `runtime`, `time`, and `testing/synctest`
 tests; audits map key families across seeds; and repeats prebuilt map and
 scheduler fixtures under distinct allocation layouts and bounded unrelated CPU
-load. Supported-host CI additionally runs `make clock-audit`: a privileged,
+load. Supported-host CI additionally runs `make -C tools/gomad3 clock-audit`: a privileged,
 positive-controlled DTrace gate that rejects seeded calls to `clock_gettime` or
 `mach_absolute_time` after Gomad activation. On both platforms the toolchain
 tier pins every standard-library reference to the host clock (`nanotime1`,

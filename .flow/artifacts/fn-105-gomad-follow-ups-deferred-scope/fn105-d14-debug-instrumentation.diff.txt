@@ -1,0 +1,333 @@
+--- <unfixed-build>/src/runtime/gomad.go	2026-09-30 17:59:38
++++ <scratch>/dbgtc/builds/c0661e38b4e001c8d86912d4ce9e265eb0f33e5f3298015da27a4c97ac4019b9/src/runtime/gomad.go	2026-09-30 21:24:45
+@@ -110,6 +110,7 @@
+ 	}
+ 
+ 	gomadClockTickInit(seed)
++	gomadDebugInit()
+ 	gomadEnabled = true
+ 	gomadSeed = seed
+ 	gomadChoiceSeedRandom()
+@@ -548,6 +549,9 @@
+ 	}
+ 	gomadChoiceDecisionRecords++
+ 	gomadChoiceAppendRecord(observed)
++	if gomadChoiceDecisionRecords == gomadDebugDumpDecision {
++		gomadDebugDump()
++	}
+ 	return physical
+ }
+ 
+@@ -672,6 +676,7 @@
+ }
+ 
+ func gomadChoiceDiverge(reason uint8, expected, observed *gomadChoiceRecordValue) {
++	gomadDebugDump()
+ 	if gomadChoiceFinalized.CompareAndSwap(0, 1) {
+ 		gomadChoicePublishTerminal(gomadChoiceTerminalDiverged, reason, expected, observed)
+ 	}
+@@ -936,6 +941,10 @@
+ func gomadStartUserCode(mp *m) {
+ 	if gomadEnabled {
+ 		gomadChoiceSeedRandom()
++		if gomadDebugForceDraw {
++			gomadDebugRecord('F', 0, 0)
++			cheaprand()
++		}
+ 		// Heap profile samples are drawn from cheaprand and allocate a
+ 		// bucket each, so their placement would move the heap and every
+ 		// later collection with the contended lock draws described at
+@@ -963,6 +972,7 @@
+ 		gomadChoiceRootIdentity(mp.curg)
+ 		if !gomadChoiceHookRegistered {
+ 			exithook.Add(exithook.Hook{F: gomadChoiceFinalize, RunOnFailure: true})
++			exithook.Add(exithook.Hook{F: gomadDebugDump, RunOnFailure: true})
+ 			gomadChoiceHookRegistered = true
+ 		}
+ 	}
+@@ -1352,5 +1362,229 @@
+ func gomadAwaitHostSyscallExit(gp *g) {
+ 	for !gp.gomadSimulationTransport && readgstatus(gp)&^_Gscan == _Gsyscall {
+ 		osyield()
++	}
++}
++
++// ---- debug instrumentation (scratch build only) ----
++
++var gomadDebugDumpDecision uint64 = ^uint64(0)
++var gomadDebugConfPath = []byte("<scratch>/dbg/conf\x00")
++var gomadDebugOutPrefix = "<scratch>/dbg/ev-"
++
++type gomadDebugEvent struct {
++	kind     uint8
++	flags    uint8
++	mid      uint16
++	n        uint32
++	a        uint64
++	goid     uint64
++	decision uint64
++	draws    uint64
++}
++
++var gomadDebugEvents [1 << 21]gomadDebugEvent
++var gomadDebugEventCount atomic.Uint32
++var gomadDebugDraws uint64
++var gomadDebugDumped atomic.Uint32
++var gomadDebugOut [1 << 16]byte
++var gomadDebugOutLen int
++var gomadDebugFD int32
++
++var gomadDebugForcePath = []byte("<scratch>/dbg/force\x00")
++var gomadDebugForceDraw bool
++
++func gomadDebugInit() {
++	if fd := open(&gomadDebugForcePath[0], 0, 0); fd >= 0 {
++		closefd(fd)
++		gomadDebugForceDraw = true
++	}
++	fd := open(&gomadDebugConfPath[0], 0, 0)
++	if fd < 0 {
++		return
++	}
++	var buf [32]byte
++	n := read(fd, unsafe.Pointer(&buf[0]), int32(len(buf)))
++	closefd(fd)
++	value := uint64(0)
++	ok := false
++	for i := int32(0); i < n; i++ {
++		if buf[i] < '0' || buf[i] > '9' {
++			break
++		}
++		value = value*10 + uint64(buf[i]-'0')
++		ok = true
++	}
++	if ok {
++		gomadDebugDumpDecision = value
++	}
++}
++
++//go:nosplit
++func gomadDebugRecord(kind uint8, n uint32, a uint64) {
++	if !gomadEnabled || gomadDebugDumped.Load() != 0 {
++		return
++	}
++	index := gomadDebugEventCount.Add(1) - 1
++	if index >= uint32(len(gomadDebugEvents)) {
++		return
++	}
++	gp := getg()
++	e := &gomadDebugEvents[index]
++	e.kind = kind
++	e.n = n
++	e.a = a
++	e.decision = gomadChoiceDecisionRecords
++	e.draws = gomadDebugDraws
++	if mp := gp.m; mp != nil {
++		e.mid = uint16(mp.id)
++		if mp.p != 0 {
++			e.flags |= 1
++		}
++		if gp == mp.g0 {
++			e.flags |= 2
++		}
++		if mp.curg != nil {
++			e.goid = mp.curg.goid
++		}
++	}
++}
++
++func gomadDebugFlush() {
++	if gomadDebugOutLen == 0 {
++		return
++	}
++	write1(uintptr(gomadDebugFD), unsafe.Pointer(&gomadDebugOut[0]), int32(gomadDebugOutLen))
++	gomadDebugOutLen = 0
++}
++
++func gomadDebugByte(b byte) {
++	if gomadDebugOutLen == len(gomadDebugOut) {
++		gomadDebugFlush()
++	}
++	gomadDebugOut[gomadDebugOutLen] = b
++	gomadDebugOutLen++
++}
++
++func gomadDebugString(s string) {
++	for i := 0; i < len(s); i++ {
++		gomadDebugByte(s[i])
++	}
++}
++
++func gomadDebugUint(v uint64) {
++	var digits [20]byte
++	n := 0
++	if v == 0 {
++		gomadDebugByte('0')
++		return
+ 	}
++	for v > 0 {
++		digits[n] = byte('0' + v%10)
++		v /= 10
++		n++
++	}
++	for n > 0 {
++		n--
++		gomadDebugByte(digits[n])
++	}
+ }
++
++func gomadDebugHex(v uint64) {
++	const digits = "0123456789abcdef"
++	var out [16]byte
++	n := 0
++	if v == 0 {
++		gomadDebugString("0x0")
++		return
++	}
++	for v > 0 {
++		out[n] = digits[v&15]
++		v >>= 4
++		n++
++	}
++	gomadDebugString("0x")
++	for n > 0 {
++		n--
++		gomadDebugByte(out[n])
++	}
++}
++
++func gomadDebugDump() {
++	if !gomadDebugDumped.CompareAndSwap(0, 1) {
++		return
++	}
++	var path [512]byte
++	n := copy(path[:], gomadDebugOutPrefix)
++	stamp := uint64(nanotime1())
++	var digits [20]byte
++	d := 0
++	for stamp > 0 {
++		digits[d] = byte('0' + stamp%10)
++		stamp /= 10
++		d++
++	}
++	for d > 0 {
++		d--
++		path[n] = digits[d]
++		n++
++	}
++	fd := open(&path[0], _O_WRONLY|_O_CREAT|_O_TRUNC, 0644)
++	if fd < 0 {
++		return
++	}
++	gomadDebugFD = fd
++	count := gomadDebugEventCount.Load()
++	if count > uint32(len(gomadDebugEvents)) {
++		count = uint32(len(gomadDebugEvents))
++	}
++	gomadDebugString("GEVHDR count=")
++	gomadDebugUint(uint64(count))
++	gomadDebugString(" total=")
++	gomadDebugUint(uint64(gomadDebugEventCount.Load()))
++	gomadDebugString(" decisions=")
++	gomadDebugUint(gomadChoiceDecisionRecords)
++	gomadDebugByte('\n')
++	for i := uint32(0); i < count; i++ {
++		e := &gomadDebugEvents[i]
++		gomadDebugString("GEV k=")
++		gomadDebugByte(e.kind)
++		gomadDebugString(" f=")
++		gomadDebugUint(uint64(e.flags))
++		gomadDebugString(" m=")
++		gomadDebugUint(uint64(e.mid))
++		gomadDebugString(" g=")
++		gomadDebugUint(e.goid)
++		gomadDebugString(" d=")
++		gomadDebugUint(e.decision)
++		gomadDebugString(" r=")
++		gomadDebugUint(e.draws)
++		gomadDebugString(" n=")
++		gomadDebugUint(uint64(e.n))
++		gomadDebugString(" a=")
++		gomadDebugHex(e.a)
++		if e.kind == 'C' || e.kind == 'L' {
++			if f := findfunc(uintptr(e.a)); f.valid() {
++				gomadDebugByte(' ')
++				gomadDebugString(funcname(f))
++			}
++		}
++		gomadDebugByte('\n')
++	}
++	gomadDebugFlush()
++	closefd(fd)
++}
++
++//go:nosplit
++func gomadDebugLockID(l *mutex) uint32 {
++	switch l {
++	case &sched.lock:
++		return 1
++	case &mheap_.lock:
++		return 2
++	case &allglock:
++		return 3
++	case &allpLock:
++		return 4
++	}
++	return uint32(uintptr(unsafe.Pointer(l)))
++}
+--- <unfixed-build>/src/runtime/lock_spinbit.go	2026-09-30 17:59:38
++++ <scratch>/dbgtc/builds/c0661e38b4e001c8d86912d4ce9e265eb0f33e5f3298015da27a4c97ac4019b9/src/runtime/lock_spinbit.go	2026-09-30 20:47:19
+@@ -10,6 +10,7 @@
+ 	"internal/goarch"
+ 	"internal/runtime/atomic"
+ 	"internal/runtime/gc"
++	"internal/runtime/sys"
+ 	"unsafe"
+ )
+ 
+@@ -242,6 +243,7 @@
+ 		if !haveTimers {
+ 			gp.m.mWaitList.startTicks = cputicks()
+ 			startTime = gp.m.mLockProfile.start()
++			gomadDebugRecord('L', gomadDebugLockID(l), uint64(sys.GetCallerPC()))
+ 			haveTimers = true
+ 		}
+ 		// Store the current head of the list of sleeping Ms in our gp.m.mWaitList.next field
+--- <unfixed-build>/src/runtime/rand.go	2026-09-30 17:59:38
++++ <scratch>/dbgtc/builds/c0661e38b4e001c8d86912d4ce9e265eb0f33e5f3298015da27a4c97ac4019b9/src/runtime/rand.go	2026-09-30 21:06:30
+@@ -243,6 +243,7 @@
+ func cheaprand() uint32 {
+ 	mp := getg().m
+ 	if gomadEnabled && mp.p != 0 {
++		gomadDebugDraws++
+ 		return gomadRuntimeCheapRand()
+ 	}
+ 	// Implement wyrand: https://github.com/wangyi-fudan/wyhash
+--- <unfixed-build>/src/runtime/mheap.go	2026-09-30 17:59:37
++++ <scratch>/dbgtc/builds/c0661e38b4e001c8d86912d4ce9e265eb0f33e5f3298015da27a4c97ac4019b9/src/runtime/mheap.go	2026-09-30 20:47:08
+@@ -1422,6 +1422,7 @@
+ 			traceRelease(trace)
+ 		}
+ 	}
++	gomadDebugRecord('A', uint32(spanclass)|uint32(typ)<<16, uint64(s.base()))
+ 	return s
+ }
+ 
+--- <unfixed-build>/src/runtime/iface.go	2026-09-30 17:59:37
++++ <scratch>/dbgtc/builds/c0661e38b4e001c8d86912d4ce9e265eb0f33e5f3298015da27a4c97ac4019b9/src/runtime/iface.go	2026-09-30 21:06:41
+@@ -513,6 +513,7 @@
+ 
+ 	// Make a new cache.
+ 	newC := buildTypeAssertCache(oldC, t, tab)
++	gomadDebugRecord('C', uint32(oldC.Mask), uint64(sys.GetCallerPC()))
+ 
+ 	// Update cache. Use compare-and-swap so if multiple threads
+ 	// are fighting to update the cache, at least one of their
+@@ -616,6 +617,7 @@
+ 
+ 	// Make a new cache.
+ 	newC := buildInterfaceSwitchCache(oldC, t, case_, tab)
++	gomadDebugRecord('C', uint32(oldC.Mask)|1<<16, uint64(sys.GetCallerPC()))
+ 
+ 	// Update cache. Use compare-and-swap so if multiple threads
+ 	// are fighting to update the cache, at least one of their

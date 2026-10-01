@@ -1,0 +1,74 @@
+# D22 collision reproduction, BEFORE the fix (tests/nexus_api_test.go at HEAD d4d800fb47)
+# platform: darwin/arm64 (macOS 26.6.2, go1.27.0), source HEAD d4d800fb47 + working-tree
+# command: TEMPORAL_TEST_SHARED_CLUSTERS=1 go test -tags test_dep,disable_grpc_modules -count=1 -v -run '^TestNexusApiTestSuiteWith(LegacyErrorPaths|TemporalFailures)$/^TestNexus(Start|Cancel)Operation_Outcomes$' ./tests
+# exit status: 1; filtered from the full -v output (leaf results, the AlreadyExists assertion text, final lines)
+# pass_lines=30 fail_lines=26
+        	            	error creating Nexus endpoint. Endpoint with name test-service-8a9c2c9d-19c0-443b-a16b-0c8d3cb48ec6 already registered
+        	            	error creating Nexus endpoint. Endpoint with name test-endpoint-fb033b99-2434-4dc1-b839-7564fca2da01 already registered
+        	            	error creating Nexus endpoint. Endpoint with name test-endpoint-cae35698-fd08-4c2e-95fe-d7ff557c6a46 already registered
+        	            	error creating Nexus endpoint. Endpoint with name test-service-c4b14a37-8fd0-429f-9991-c71d81f2f5a4 already registered
+        	            	error creating Nexus endpoint. Endpoint with name test-service-01303ec7-773d-412f-b41b-2cc196b97016 already registered
+        	            	error creating Nexus endpoint. Endpoint with name test-endpoint-75554dae-a514-41ad-b476-8cab80dfb03d already registered
+        	            	error creating Nexus endpoint. Endpoint with name test-endpoint-e7eaec53-dc2c-493e-bfff-323bd3a0b618 already registered
+        	            	error creating Nexus endpoint. Endpoint with name test-endpoint-06c4d07e-7129-46c4-85db-88e4ae04eb7e already registered
+        	            	error creating Nexus endpoint. Endpoint with name test-endpoint-ea133632-9caf-4cdc-a402-a0e927eaf6e9 already registered
+        	            	error creating Nexus endpoint. Endpoint with name test-service-169a3a16-816b-4ab7-bfaa-c4e370dd2c0f already registered
+--- FAIL: TestNexusApiTestSuiteWithLegacyErrorPaths (0.00s)
+    --- FAIL: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusCancelOperation_Outcomes (0.00s)
+        --- PASS: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusCancelOperation_Outcomes/success (0.00s)
+            --- PASS: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusCancelOperation_Outcomes/success/ByEndpoint (0.01s)
+        --- FAIL: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusCancelOperation_Outcomes/handler_timeout (0.00s)
+            --- FAIL: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusCancelOperation_Outcomes/handler_timeout/ByEndpoint (0.01s)
+            --- PASS: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusCancelOperation_Outcomes/handler_timeout/ByNamespaceAndTaskQueue (0.01s)
+        --- PASS: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusCancelOperation_Outcomes/handler_error:INTERNAL (0.00s)
+            --- PASS: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusCancelOperation_Outcomes/handler_error:INTERNAL/ByEndpoint (0.01s)
+            --- PASS: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusCancelOperation_Outcomes/handler_error:INTERNAL/ByNamespaceAndTaskQueue (0.24s)
+    --- FAIL: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusStartOperation_Outcomes (0.00s)
+        --- FAIL: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusStartOperation_Outcomes/sync_success (0.00s)
+            --- FAIL: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusStartOperation_Outcomes/sync_success/ByEndpoint (0.00s)
+            --- PASS: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusStartOperation_Outcomes/sync_success/ByNamespaceAndTaskQueue (0.01s)
+        --- FAIL: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusStartOperation_Outcomes/handler_error (0.00s)
+            --- FAIL: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusStartOperation_Outcomes/handler_error/ByEndpoint (0.00s)
+            --- PASS: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusStartOperation_Outcomes/handler_error/ByNamespaceAndTaskQueue (0.01s)
+        --- FAIL: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusStartOperation_Outcomes/operation_error (0.00s)
+            --- FAIL: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusStartOperation_Outcomes/operation_error/ByEndpoint (0.01s)
+            --- PASS: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusStartOperation_Outcomes/operation_error/ByNamespaceAndTaskQueue (0.01s)
+        --- PASS: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusStartOperation_Outcomes/async_success (0.00s)
+            --- PASS: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusStartOperation_Outcomes/async_success/ByEndpoint (0.01s)
+        --- FAIL: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusStartOperation_Outcomes/handler_error_non_retryable (0.00s)
+            --- FAIL: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusStartOperation_Outcomes/handler_error_non_retryable/ByEndpoint (0.00s)
+            --- PASS: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusStartOperation_Outcomes/handler_error_non_retryable/ByNamespaceAndTaskQueue (0.01s)
+        --- FAIL: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusStartOperation_Outcomes/handler_timeout (0.00s)
+            --- FAIL: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusStartOperation_Outcomes/handler_timeout/ByEndpoint (0.00s)
+            --- PASS: TestNexusApiTestSuiteWithLegacyErrorPaths/TestNexusStartOperation_Outcomes/handler_timeout/ByNamespaceAndTaskQueue (55.78s)
+--- FAIL: TestNexusApiTestSuiteWithTemporalFailures (0.00s)
+    --- FAIL: TestNexusApiTestSuiteWithTemporalFailures/TestNexusCancelOperation_Outcomes (0.00s)
+        --- PASS: TestNexusApiTestSuiteWithTemporalFailures/TestNexusCancelOperation_Outcomes/success (0.00s)
+            --- PASS: TestNexusApiTestSuiteWithTemporalFailures/TestNexusCancelOperation_Outcomes/success/ByEndpoint (0.01s)
+        --- FAIL: TestNexusApiTestSuiteWithTemporalFailures/TestNexusCancelOperation_Outcomes/handler_timeout (0.00s)
+            --- FAIL: TestNexusApiTestSuiteWithTemporalFailures/TestNexusCancelOperation_Outcomes/handler_timeout/ByEndpoint (0.00s)
+            --- PASS: TestNexusApiTestSuiteWithTemporalFailures/TestNexusCancelOperation_Outcomes/handler_timeout/ByNamespaceAndTaskQueue (0.01s)
+        --- PASS: TestNexusApiTestSuiteWithTemporalFailures/TestNexusCancelOperation_Outcomes/handler_error:INTERNAL (0.00s)
+            --- PASS: TestNexusApiTestSuiteWithTemporalFailures/TestNexusCancelOperation_Outcomes/handler_error:INTERNAL/ByNamespaceAndTaskQueue (0.01s)
+            --- PASS: TestNexusApiTestSuiteWithTemporalFailures/TestNexusCancelOperation_Outcomes/handler_error:INTERNAL/ByEndpoint (0.01s)
+    --- FAIL: TestNexusApiTestSuiteWithTemporalFailures/TestNexusStartOperation_Outcomes (0.00s)
+        --- FAIL: TestNexusApiTestSuiteWithTemporalFailures/TestNexusStartOperation_Outcomes/handler_error (0.00s)
+            --- FAIL: TestNexusApiTestSuiteWithTemporalFailures/TestNexusStartOperation_Outcomes/handler_error/ByEndpoint (0.00s)
+            --- PASS: TestNexusApiTestSuiteWithTemporalFailures/TestNexusStartOperation_Outcomes/handler_error/ByNamespaceAndTaskQueue (0.06s)
+        --- FAIL: TestNexusApiTestSuiteWithTemporalFailures/TestNexusStartOperation_Outcomes/handler_error_non_retryable (0.00s)
+            --- FAIL: TestNexusApiTestSuiteWithTemporalFailures/TestNexusStartOperation_Outcomes/handler_error_non_retryable/ByEndpoint (0.00s)
+            --- PASS: TestNexusApiTestSuiteWithTemporalFailures/TestNexusStartOperation_Outcomes/handler_error_non_retryable/ByNamespaceAndTaskQueue (0.01s)
+        --- PASS: TestNexusApiTestSuiteWithTemporalFailures/TestNexusStartOperation_Outcomes/operation_error (0.00s)
+            --- PASS: TestNexusApiTestSuiteWithTemporalFailures/TestNexusStartOperation_Outcomes/operation_error/ByNamespaceAndTaskQueue (0.07s)
+            --- PASS: TestNexusApiTestSuiteWithTemporalFailures/TestNexusStartOperation_Outcomes/operation_error/ByEndpoint (0.27s)
+        --- PASS: TestNexusApiTestSuiteWithTemporalFailures/TestNexusStartOperation_Outcomes/async_success (0.00s)
+            --- PASS: TestNexusApiTestSuiteWithTemporalFailures/TestNexusStartOperation_Outcomes/async_success/ByEndpoint (0.27s)
+        --- PASS: TestNexusApiTestSuiteWithTemporalFailures/TestNexusStartOperation_Outcomes/sync_success (0.00s)
+            --- PASS: TestNexusApiTestSuiteWithTemporalFailures/TestNexusStartOperation_Outcomes/sync_success/ByEndpoint (0.07s)
+            --- PASS: TestNexusApiTestSuiteWithTemporalFailures/TestNexusStartOperation_Outcomes/sync_success/ByNamespaceAndTaskQueue (0.30s)
+        --- FAIL: TestNexusApiTestSuiteWithTemporalFailures/TestNexusStartOperation_Outcomes/handler_timeout (0.00s)
+            --- FAIL: TestNexusApiTestSuiteWithTemporalFailures/TestNexusStartOperation_Outcomes/handler_timeout/ByNamespaceAndTaskQueue (0.06s)
+            --- PASS: TestNexusApiTestSuiteWithTemporalFailures/TestNexusStartOperation_Outcomes/handler_timeout/ByEndpoint (58.72s)
+FAIL
+FAIL	go.temporal.io/server/tests	60.162s
+FAIL

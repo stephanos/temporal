@@ -85,9 +85,10 @@ type WorkloadDefaults struct {
 }
 
 // TestOverride is the per-test deviation from the workload defaults. An
-// override of the evidence a test retains (choice_bytes, replay_successes) or
-// of its budget (execution_timeout, overall_timeout) must carry a reason, so
-// no test narrows its qualification silently.
+// override of the evidence a test retains (choice_bytes, replay_successes,
+// success_artifact_limit, success_bytes_limit) or of its budget
+// (execution_timeout, overall_timeout) must carry a reason, so no test changes
+// its qualification silently.
 type TestOverride struct {
 	RequiredProbes       []string                           `json:"required_probes,omitempty"`
 	Expectation          *set.WorkloadExpectation           `json:"expectation,omitempty"`
@@ -97,11 +98,16 @@ type TestOverride struct {
 	IOTranscriptBytes    uint64                             `json:"io_transcript_bytes,omitempty"`
 	// Environment sets target variables for the test, such as a pool size the
 	// test harness reads.
-	Environment      []string `json:"environment,omitempty"`
-	ReplaySuccesses  *bool    `json:"replay_successes,omitempty"`
-	ExecutionTimeout string   `json:"execution_timeout,omitempty"`
-	OverallTimeout   string   `json:"overall_timeout,omitempty"`
-	Reason           string   `json:"reason,omitempty"`
+	Environment     []string `json:"environment,omitempty"`
+	ReplaySuccesses *bool    `json:"replay_successes,omitempty"`
+	// SuccessArtifactLimit and SuccessBytesLimit bound the successes a test
+	// that replays them retains, which a test opting into replay under
+	// defaults that retain none must state.
+	SuccessArtifactLimit *uint64 `json:"success_artifact_limit,omitempty"`
+	SuccessBytesLimit    *uint64 `json:"success_bytes_limit,omitempty"`
+	ExecutionTimeout     string  `json:"execution_timeout,omitempty"`
+	OverallTimeout       string  `json:"overall_timeout,omitempty"`
+	Reason               string  `json:"reason,omitempty"`
 	// SkipSubtests excludes named subtests of the test, each with the owner,
 	// date, and reason an exclusion requires, so the rest of the test stays
 	// in the set.
@@ -111,7 +117,64 @@ type TestOverride struct {
 // narrows reports whether the override changes what the test retains or how
 // long it may run.
 func (override TestOverride) narrows() bool {
-	return override.ChoiceBytes != nil || override.ReplaySuccesses != nil || override.ExecutionTimeout != "" || override.OverallTimeout != ""
+	return override.ChoiceBytes != nil || override.ReplaySuccesses != nil || override.SuccessArtifactLimit != nil || override.SuccessBytesLimit != nil || override.ExecutionTimeout != "" || override.OverallTimeout != ""
+}
+
+// retention is the replay evidence a workload retains: the bound of its choice
+// trace and, when it replays its successes, how many of them it keeps.
+type retention struct {
+	choiceBytes     uint64
+	replaySuccesses bool
+	artifactLimit   uint64
+	bytesLimit      uint64
+}
+
+func (defaults WorkloadDefaults) retention() retention {
+	return retention{
+		choiceBytes: defaults.ChoiceBytes, replaySuccesses: defaults.ReplaySuccesses,
+		artifactLimit: defaults.SuccessArtifactLimit, bytesLimit: defaults.SuccessBytesLimit,
+	}
+}
+
+// with applies a test's override. A workload without a choice tape or without
+// success replay cannot retain replayed successes, which the manifest
+// validation enforces: turning the choice trace off turns inherited success
+// replay off with it, and a test without success replay inherits no success
+// limits, so a narrowing override states only what it turns off.
+func (inherited retention) with(override TestOverride) retention {
+	resolved := inherited
+	if override.ChoiceBytes != nil {
+		resolved.choiceBytes = *override.ChoiceBytes
+	}
+	if override.ReplaySuccesses != nil {
+		resolved.replaySuccesses = *override.ReplaySuccesses
+	} else if resolved.choiceBytes == 0 {
+		resolved.replaySuccesses = false
+	}
+	if !resolved.replaySuccesses {
+		resolved.artifactLimit, resolved.bytesLimit = 0, 0
+	}
+	if override.SuccessArtifactLimit != nil {
+		resolved.artifactLimit = *override.SuccessArtifactLimit
+	}
+	if override.SuccessBytesLimit != nil {
+		resolved.bytesLimit = *override.SuccessBytesLimit
+	}
+	return resolved
+}
+
+// validate refuses the combinations the manifest validation rejects, so the
+// spec entry at fault is named instead of every workload it generates.
+func (resolved retention) validate() error {
+	switch {
+	case resolved.replaySuccesses && resolved.choiceBytes == 0:
+		return errors.New("replays successes without a choice trace; set choice_bytes")
+	case resolved.replaySuccesses && (resolved.artifactLimit == 0 || resolved.bytesLimit == 0):
+		return errors.New("replays successes and requires success_artifact_limit and success_bytes_limit")
+	case !resolved.replaySuccesses && (resolved.artifactLimit != 0 || resolved.bytesLimit != 0):
+		return errors.New("sets success limits without replay_successes")
+	}
+	return nil
 }
 
 // Exclusion removes a test from the manifest by name. Owner, date, and reason
@@ -262,9 +325,16 @@ func validateSpec(spec Spec) error {
 	if strings.TrimSpace(spec.Workload.Invariant) == "" {
 		return errors.New("qualification manifest spec workload invariant is required")
 	}
+	defaultRetention := spec.Workload.retention()
+	if err := defaultRetention.validate(); err != nil {
+		return fmt.Errorf("qualification manifest spec workload %w", err)
+	}
 	for name, override := range spec.Tests {
 		if override.narrows() && strings.TrimSpace(override.Reason) == "" {
 			return fmt.Errorf("override of %s changes its evidence or budget and requires a reason", name)
+		}
+		if err := defaultRetention.with(override).validate(); err != nil {
+			return fmt.Errorf("override of %s %w", name, err)
 		}
 		for subtest, exclusion := range override.SkipSubtests {
 			if err := validateExclusion(name+"/"+subtest, exclusion); err != nil {
@@ -470,12 +540,12 @@ func workload(spec Spec, test, id string) set.Workload {
 		ID: id, Name: test, Tier: defaults.Tier, Invariant: test + " " + defaults.Invariant,
 		Package: spec.Package, Test: test, BuildTags: slices.Clone(spec.BuildTags),
 		CapabilityMode: defaults.CapabilityMode, ReadOnlyMounts: slices.Clone(defaults.ReadOnlyMounts),
-		ChoiceBytes: defaults.ChoiceBytes, ClockTick: defaults.ClockTick, ReplaySuccesses: defaults.ReplaySuccesses,
-		SuccessArtifactLimit: defaults.SuccessArtifactLimit, SuccessBytesLimit: defaults.SuccessBytesLimit,
-		ExecutionTimeout: defaults.ExecutionTimeout, OverallTimeout: defaults.OverallTimeout,
+		ClockTick: defaults.ClockTick, ExecutionTimeout: defaults.ExecutionTimeout, OverallTimeout: defaults.OverallTimeout,
 		TestParallel: defaults.TestParallel, Expectation: defaults.Expectation,
 	}
+	retained := defaults.retention()
 	if override, found := spec.Tests[test]; found {
+		retained = retained.with(override)
 		generated.RequiredProbes = slices.Clone(override.RequiredProbes)
 		if override.Expectation != nil {
 			generated.Expectation = *override.Expectation
@@ -483,22 +553,11 @@ func workload(spec Spec, test, id string) set.Workload {
 		if len(override.PlatformExpectations) != 0 {
 			generated.PlatformExpectations = maps.Clone(override.PlatformExpectations)
 		}
-		if override.ChoiceBytes != nil {
-			generated.ChoiceBytes = *override.ChoiceBytes
-		}
 		if override.ClockTick != "" {
 			generated.ClockTick = override.ClockTick
 		}
 		generated.IOTranscriptBytes = override.IOTranscriptBytes
 		generated.Environment = slices.Clone(override.Environment)
-		if override.ReplaySuccesses != nil {
-			generated.ReplaySuccesses = *override.ReplaySuccesses
-		}
-		// A workload without a choice tape or without success replay cannot
-		// retain replayed successes, which the manifest validation enforces.
-		if !generated.ReplaySuccesses || generated.ChoiceBytes == 0 {
-			generated.ReplaySuccesses, generated.SuccessArtifactLimit, generated.SuccessBytesLimit = false, 0, 0
-		}
 		if override.ExecutionTimeout != "" {
 			generated.ExecutionTimeout = override.ExecutionTimeout
 		}
@@ -509,6 +568,8 @@ func workload(spec Spec, test, id string) set.Workload {
 			generated.Skip = slices.Sorted(maps.Keys(override.SkipSubtests))
 		}
 	}
+	generated.ChoiceBytes, generated.ReplaySuccesses = retained.choiceBytes, retained.replaySuccesses
+	generated.SuccessArtifactLimit, generated.SuccessBytesLimit = retained.artifactLimit, retained.bytesLimit
 	return generated
 }
 

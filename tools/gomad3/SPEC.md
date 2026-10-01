@@ -47,7 +47,7 @@ The Runner reviews and prepares a Target once for a Campaign, then launches isol
 
 **Choice Replay Plan**: Identity-bound runtime replay controls. Exact replay uses a complete Decision Tape; exploration may force a finite prefix and then continue selecting Choices from the Seed.
 
-**Campaign**: One bounded exploration effort over a Prepared Target, comprising selected Executions, a failure policy, limits, and retained evidence.
+**Campaign**: One bounded exploration effort over a Prepared Target, comprising selected Executions, a failure policy, limits, and retained evidence. A Campaign is not its plan: a Portable Plan immutably describes selected work, while a Campaign executes work and retains its Evidence.
 
 **Choice Exploration**: Bounded exploration of alternative runtime Choice prefixes from one base Seed.
 
@@ -103,7 +103,7 @@ The Runner reviews and prepares a Target once for a Campaign, then launches isol
 
 **Backend** (also called **Simulation Backend**): The selected Simulation execution mechanism: in-process execution of logical Node incarnations or process execution with separate Node processes.
 
-**Fidelity**: The guarantee claimed by a Simulation independently from the selected Backend.
+**Fidelity**: The guarantee claimed by a Simulation, declared and recorded separately from the selected Backend. Both Backends support Model Fidelity; only the process Backend supports Hard Isolation.
 
 **Model Fidelity** (also called **Simulation Model Fidelity**): A claim that detached modeled transitions and Outcomes satisfy the Simulation contract. It does not claim fresh arbitrary package globals or hard cleanup of crashed work.
 
@@ -243,7 +243,7 @@ Runner-managed Targets must use a versioned, reviewed interaction boundary for s
 
 ### [INTERACTION.ADAPTERS] Dependency Adapters
 
-Gomad may adapt explicitly versioned third-party dependencies to the same deterministic boundaries. Adapter selection must be derived from the prepared Target and bound into its identity; resume and replay must reject unavailable or changed adapters.
+Gomad may adapt explicitly versioned third-party dependencies to the same deterministic boundaries. Adapter selection must be derived from the Prepared Target and bound into its identity; resume and replay must reject unavailable or changed adapters.
 
 ### [INTERACTION.TRANSCRIPT] Transcript
 
@@ -381,7 +381,7 @@ Completed Execution records and exploration rounds must be stored in bounded int
 
 ### [DURABILITY.RESUME] Resume
 
-Resume must lock and validate the interrupted Campaign, its identities, prepared Target, completed records, retained Artifacts, limits, and strategy state. It must schedule only unfinished logical work and fail closed for published, changed, incompatible, or concurrently resumed Campaigns.
+Resume must lock and validate the interrupted Campaign, its identities, Prepared Target, completed records, retained Artifacts, limits, and strategy state. It must schedule only unfinished logical work and fail closed for published, changed, incompatible, or concurrently resumed Campaigns.
 
 ### [DURABILITY.RECOVERY] Recovery
 

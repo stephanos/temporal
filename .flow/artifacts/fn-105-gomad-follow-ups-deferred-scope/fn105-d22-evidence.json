@@ -1,0 +1,135 @@
+{
+  "schema": "fn105-d22-evidence/v1",
+  "task": "fn-105-gomad-follow-ups-deferred-scope.22",
+  "status": "verified: test fix applied, native and Gomad (darwin/arm64, seeds 11 and 17) green, four skips removed, manifest regenerated",
+  "base_commit": "d4d800fb473f008fa4a51a4d8575249f11c9cf3f",
+  "commits": [],
+  "changed_source": [
+    {
+      "path": "tests/nexus_api_test.go",
+      "sha256": "08c579780adf426e5d265f97f1ef378d21fa7ae7c1805ff2fec825d40ce53401",
+      "state": "uncommitted working tree"
+    },
+    {
+      "path": "tools/gomad3integration/qualification/tests.generator.json",
+      "sha256": "4c6ef8dddef82e58c6b7365fa16b75d4cddf4ca843675f04a34498e807492ddf",
+      "state": "uncommitted working tree"
+    },
+    {
+      "path": "tools/gomad3integration/qualification/tests.json",
+      "sha256": "bf50184184f139bf2767d3c1ee8bd91f0109f61d49c1cb0b3b36e891033ec6f5",
+      "state": "uncommitted working tree"
+    },
+    {
+      "path": ".plans/GOMAD_MILESTONES.md",
+      "state": "uncommitted working tree; only the D22 sentences of the 'Test bugs' bullet are this task's"
+    }
+  ],
+  "platform": {
+    "goos": "darwin",
+    "goarch": "arm64",
+    "native_go": "go1.27.0",
+    "linux_amd64": "not run; unavailable on this host"
+  },
+  "baseline": "none (the spec defines no Quick commands)",
+  "runs": [
+    {
+      "phase": "red, before the fix",
+      "command": "TEMPORAL_TEST_SHARED_CLUSTERS=1 go test -tags test_dep,disable_grpc_modules -count=1 -v -run '^TestNexusApiTestSuiteWith(LegacyErrorPaths|TemporalFailures)$/^TestNexus(Start|Cancel)Operation_Outcomes$' ./tests",
+      "exit_status": 1,
+      "outcome": "10 leaf subtests fail on CreateNexusEndpoint AlreadyExists; 26 FAIL lines including parents",
+      "log": "fn105-d22-native-collision-red.log"
+    },
+    {
+      "phase": "before the fix, default pool",
+      "command": "go test -tags test_dep,disable_grpc_modules -count=1 -run '^TestNexusApiTestSuiteWith(LegacyErrorPaths|TemporalFailures)$/^TestNexus(Start|Cancel)Operation_Outcomes$' ./tests",
+      "exit_status": 0,
+      "outcome": "passes: the default pool holds GOMAXPROCS/2 shared clusters, so sibling subtests rarely share one"
+    },
+    {
+      "phase": "green, after the fix",
+      "command": "TEMPORAL_TEST_SHARED_CLUSTERS=1 go test -tags test_dep,disable_grpc_modules -count=1 -v -run '^TestNexusApiTestSuiteWith(LegacyErrorPaths|TemporalFailures)$/^TestNexus(Start|Cancel)Operation_Outcomes$' ./tests",
+      "exit_status": 0,
+      "outcome": "32 leaf subtests pass (18 ByEndpoint, 14 ByNamespaceAndTaskQueue); 56 PASS lines, 0 FAIL",
+      "log": "fn105-d22-native-green.log"
+    },
+    {
+      "phase": "green, after the fix",
+      "command": "go test -tags test_dep,disable_grpc_modules -count=1 -v -run '^TestNexusApiTestSuiteWith(LegacyErrorPaths|TemporalFailures)$/^TestNexus(Start|Cancel)Operation_Outcomes$' ./tests",
+      "exit_status": 0,
+      "outcome": "56 PASS lines, 0 FAIL",
+      "log": "fn105-d22-native-green.log"
+    },
+    {
+      "phase": "green, after the fix",
+      "command": "TEMPORAL_TEST_SHARED_CLUSTERS=1 go test -tags test_dep,disable_grpc_modules -count=1 -v -run '^TestNexusApiTestSuiteWith(LegacyErrorPaths|TemporalFailures)$' ./tests",
+      "exit_status": 0,
+      "outcome": "both whole suites: 80 PASS lines, 0 FAIL, 0 SKIP",
+      "log": "fn105-d22-native-green.log"
+    },
+    {
+      "phase": "lint",
+      "command": "make lint-code LINT_CODE_TARGETS=./tests GOLANGCI_LINT_BASE_REV=HEAD",
+      "exit_status": 0,
+      "outcome": "0 issues",
+      "log": "fn105-d22-lint.log"
+    },
+    {
+      "phase": "lint",
+      "command": "make lint-code-fast",
+      "exit_status": 2,
+      "outcome": "inherited: 0 issues, but the branch diff against main pulls in the nested tools/gomad3 module, which the root module cannot typecheck",
+      "log": "fn105-d22-lint.log"
+    },
+    {
+      "phase": "gomad seeds 11 and 17, first attempt",
+      "command": "tools/gomad3/.bin/gomad qualify-set (two Nexus API suites, skips removed)",
+      "exit_status": 1,
+      "outcome": "INCONCLUSIVE: both workloads unsupported at analysis because the modernc libc packs were stale; repaired by fn-105.26",
+      "log": "fn105-d22-gomad-blocked.json"
+    },
+    {
+      "phase": "gomad seeds 11 and 17, after the pack repair",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad qualify-set --manifest=<scratch>/after.json --working-dir=<repo> --artifacts=<scratch>/after-artifacts --output=<scratch>/after-report.json --prune-qualified-artifacts",
+      "exit_status": 0,
+      "outcome": "both suites qualified on seeds 11 and 17, repeat 2, 4 exact replays, 0 divergences",
+      "log": "fn105-d22-gomad-green.json"
+    },
+    {
+      "phase": "gomad executed-leaf check",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad explore --seeds 11,17 --parallel 1 --build-tag=disable_grpc_modules --build-tag=gomad --build-tag=test_dep --capability-mode=closure --io-ro-mount ./schema=/go.temporal.io/server/schema --keep-successes=all --success-limit=2 --success-bytes=1GiB --artifacts <scratch>/explore-artifacts go-test ./tests -- '-test.run=^TestNexusApiTestSuiteWith(LegacyErrorPaths|TemporalFailures)$/^TestNexus(Start|Cancel)Operation_Outcomes$' -test.parallel=8 -test.v",
+      "exit_status": 0,
+      "outcome": "per seed 32 outcome leaves pass, 0 fail, 0 skip",
+      "log": "fn105-d22-gomad-outcomes-verbose.log"
+    },
+    {
+      "phase": "manifest regeneration",
+      "command": "make -C tools/gomad3 tests-qualification-generate",
+      "exit_status": 0,
+      "outcome": "tests.json loses the two skip lists and nothing else"
+    },
+    {
+      "phase": "manifest staleness check",
+      "command": "make -C tools/gomad3 validate-qualification",
+      "exit_status": 0,
+      "outcome": "generated manifest is current"
+    },
+    {
+      "phase": "manifest load check",
+      "command": "tools/gomad3/.bin/gomad qualify-set --check --manifest=tools/gomad3integration/qualification/tests.json --working-dir=<repo>",
+      "exit_status": 0,
+      "outcome": "workloads=147"
+    }
+  ],
+  "review": {
+    "file": "task22-review.md",
+    "verdict": "SHIP",
+    "rounds": 2,
+    "model": "gpt-5.6-sol at high",
+    "scope": "round 1 the test change; round 2 the skip removal, regenerated manifest, and milestone sentence"
+  },
+  "not_done": [
+    "linux/amd64 verification (unavailable on this host)"
+  ],
+  "tool_note": "go commands under tools/gomad3 ran with PATH=$HOME/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin first, because the host go is 1.26.5 and the module requires 1.27.1 under GOTOOLCHAIN=local"
+}

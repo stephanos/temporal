@@ -1,0 +1,23 @@
+[d16] site=1-client-before-poll now=234495h3m30.195759s offset=-41ns timer_clock=234495h3m30.195759041s deadline=234495h3m33.195758s until=2.999998083s ctx_err=<nil> err=<nil>
+[d16] site=2-frontend-before-matching now=234495h3m30.196311s offset=-84ns timer_clock=234495h3m30.196311084s deadline=234495h3m33.195834s until=2.999523s ctx_err=<nil> err=<nil>
+[d16] site=3-matching-handler-ctx now=234495h3m30.202737s offset=-42ns timer_clock=234495h3m30.202737042s deadline=234495h3m33.195937s until=2.993199958s ctx_err=<nil> err=<nil>
+[d16] site=4-matching-child-ctx now=234495h3m30.202749s offset=-42ns timer_clock=234495h3m30.202749042s deadline=234495h3m32.19593675s until=1.993187833s ctx_err=<nil> err=<nil>
+[d16] site=3-matching-handler-ctx now=234495h3m30.203182s offset=-42ns timer_clock=234495h3m30.203182042s deadline=234495h3m32.196187s until=1.993005s ctx_err=<nil> err=<nil>
+[d16] site=4-matching-child-ctx now=234495h3m30.20319s offset=-41ns timer_clock=234495h3m30.203190041s deadline=234495h3m31.196187125s until=992.996292ms ctx_err=<nil> err=<nil>
+[d16] site=5-matching-poll-return now=234495h3m31.196519s offset=-292ns timer_clock=234495h3m31.196519292s deadline=234495h3m31.196187125s until=-320.916µs ctx_err=context deadline exceeded err=<nil>
+[d16] site=5-matching-poll-return now=234495h3m32.19633s offset=-42ns timer_clock=234495h3m32.196330042s deadline=234495h3m32.19593675s until=-369.417µs ctx_err=context deadline exceeded err=<nil>
+[d16] site=6-frontend-after-matching now=234495h3m32.196637s offset=-41ns timer_clock=234495h3m32.196637041s deadline=234495h3m33.195834s until=999.221458ms ctx_err=<nil> err=<nil>
+[d16] site=7-client-after-poll now=234495h3m32.196938s offset=-83ns timer_clock=234495h3m32.196938083s deadline=234495h3m33.195758s until=998.843333ms ctx_err=<nil> err=<nil>
+[d16] site=1-client-before-poll now=234495h3m35.302604s offset=-42ns timer_clock=234495h3m35.302604042s deadline=234495h3m38.3026s until=2.999995958s ctx_err=<nil> err=<nil>
+[d16] site=2-frontend-before-matching now=234495h3m35.303128s offset=-41ns timer_clock=234495h3m35.303128041s deadline=234495h3m38.302697s until=2.999568458s ctx_err=<nil> err=<nil>
+[d16] site=3-matching-handler-ctx now=234495h3m35.312815s offset=-83ns timer_clock=234495h3m35.312815083s deadline=234495h3m38.302809s until=2.989993417s ctx_err=<nil> err=<nil>
+[d16] site=4-matching-child-ctx now=234495h3m35.312833s offset=-42ns timer_clock=234495h3m35.312833042s deadline=234495h3m37.302809s until=1.989976209s ctx_err=<nil> err=<nil>
+[d16] site=3-matching-handler-ctx now=234495h3m35.313123s offset=-83ns timer_clock=234495h3m35.313123083s deadline=234495h3m37.302923s until=1.989800667s ctx_err=<nil> err=<nil>
+[d16] site=4-matching-child-ctx now=234495h3m35.313139s offset=-41ns timer_clock=234495h3m35.313139041s deadline=234495h3m36.302924s until=989.784625ms ctx_err=<nil> err=<nil>
+[d16] site=5-matching-poll-return now=234495h3m36.304065s offset=-83ns timer_clock=234495h3m36.304065083s deadline=234495h3m36.302924s until=-1.13025ms ctx_err=context deadline exceeded err=<nil>
+[d16] site=5-matching-poll-return now=234495h3m37.303895s offset=-41ns timer_clock=234495h3m37.303895041s deadline=234495h3m37.302809s until=-1.062333ms ctx_err=context deadline exceeded err=<nil>
+[d16] site=6-frontend-after-matching now=234495h3m37.304064s offset=-42ns timer_clock=234495h3m37.304064042s deadline=234495h3m38.302697s until=998.657291ms ctx_err=<nil> err=<nil>
+[d16] site=7-client-after-poll now=234495h3m37.304133s offset=0s timer_clock=234495h3m37.304133s deadline=234495h3m38.3026s until=998.491125ms ctx_err=<nil> err=<nil>
+--- PASS: TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch (5.04s)
+--- PASS: TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch (5.05s)
+ok  	go.temporal.io/server/tests	11.624s

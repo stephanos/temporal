@@ -424,6 +424,25 @@ func gomadHostCheapRandN(n uint32) uint32 {
 	return uint32(uint64(gomadHostCheapRand()) * uint64(n) >> 32)
 }
 
+// gomadLockProfileStart stands in for mLockProfile.start where lock2 is about
+// to sleep on a contended runtime lock. Whether a lock outlasts the spin is
+// host timing, and the waiting M can hold the P: wakep and findRunnable take
+// sched.lock while Ms returning from runner syscalls queue their arrival and
+// park under it. The wait-time sampling draw came from the process-wide
+// stream there, so one contended acquisition shifted every later
+// type-assertion cache fill, a cache grew on a different assertion, and a
+// same-seed replay refilled two heap spans in the other order and printed
+// different addresses.
+func gomadLockProfileStart(prof *mLockProfile) int64 {
+	if !gomadEnabled {
+		return prof.start()
+	}
+	if gomadHostCheapRandN(gTrackingPeriod) == 0 {
+		return nanotime()
+	}
+	return 0
+}
+
 func gomadChoiceRunqSeeded(n uint32) uint32 {
 	if !gomadEnabled {
 		return randn(n)

@@ -1,0 +1,325 @@
+{
+  "schema": "fn105-d16-evidence/v1",
+  "assessment_date": "2026-09-30 (runs 2026-09-30T23:07 through 2026-10-01T08:10 PDT; the host slept in between)",
+  "platform": {
+    "goos": "darwin",
+    "goarch": "arm64"
+  },
+  "host": "darwin/arm64, macOS 26.6.2 (25G83), 8 cores",
+  "linux_amd64": "not run; unavailable on this host",
+  "source": "HEAD 7ef3800a2c7d989f7e77ee54f4f6f4cbcaf82c1b plus the shared uncommitted working tree; no tracked product, test, runtime, or manifest file was edited by this task",
+  "source_sha256": {
+    "tests/activity_standalone_test.go": "9d0dd57d5bdceffe43a617f305950bdafe81d5523e3bfb3fb40300b31baab1ac",
+    "service/matching/matching_engine.go": "199c6b74f6438e2cf70d125fa00a61536e038dca09d4ff2cb3bbfd47bd6facda",
+    "service/frontend/workflow_handler.go": "27ea58ecbadafad1c426f1e5c3964ecae788fc978f7a7eeaafc950439a237dfd",
+    "common/contextutil/deadline.go": "d6f2d7352c2331c2144cffb33f3083ee9fae0518d6788a8818739841815f5b0c",
+    "tools/gomad3integration/qualification/tests.generator.json": "e7c74ae3b3c537bb1663ec639ac1606236e9be5ecbcb0091b2acab27f82ec4b9",
+    "tools/gomad3integration/qualification/tests.json": "8b4237b23859c00257be4f6e7522c7fac594a99b09146b27bf8ddfd8f5357146"
+  },
+  "runner": {
+    "runner_build": "sha256:4dce3aed3599865194224c2b4219d0f13458585c8d849da10ffbc21a79db5222",
+    "doctor": "available=true host=darwin/arm64 go=go1.27.1"
+  },
+  "toolchain": {
+    "build_key": "8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc",
+    "go_version": "go1.27.1",
+    "boundary_manifest_version": "go1.27.1-v1",
+    "boundary_manifest_sha256": "sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0"
+  },
+  "io_profile": {
+    "name": "gomad3-deterministic/v1",
+    "implementation_sha256": "sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0",
+    "inventory_sha256": "sha256:0d34edfc0ab13c693b78d514ca1a72a9adc196fe61e2142dba108c0ff47358f7"
+  },
+  "module": {
+    "path": "go.temporal.io/server",
+    "go_mod_sha256": "sha256:cda5b0aab2e32ef4aca50bd0d8ccf8ae67416db94fd4f28ceb9ac1588c48d0a4",
+    "grpc": "google.golang.org/grpc v1.83.2"
+  },
+  "native_go": "go1.27.0 darwin/arm64 (host go)",
+  "suite_target_sha256": "sha256:00afe9f408a65624163ee4026455419677bfc23bba72efbbe6dfe3cc4553149b",
+  "gomad_suite_runs": {
+    "note": "Whole TestStandaloneActivityTestSuite, unmodified tree, no -test.skip, so the skipped subtest runs. explore does not record choices here (choice_bytes 0 as in the manifest entry). The subject poll's frontend_observed_poll_timeout_seconds is the wf-poll-context-timeout the frontend logs for the subject's 3 s client timeout.",
+    "forward_seeds_11_17": {
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad explore --seeds 11,17 --parallel 2 --clock-tick=forward --build-tag=disable_grpc_modules --build-tag=gomad --build-tag=test_dep --capability-mode=closure --io-ro-mount ./schema=/go.temporal.io/server/schema --keep-successes=all --success-limit=N --success-bytes=2GiB --output-limit=512MiB --on-failure=all --execution-timeout=20m --overall-timeout=30m --artifacts <scratch>/suite-fwd-artifacts go-test ./tests -- '-test.run=^TestStandaloneActivityTestSuite$' -test.parallel=8 -test.v",
+      "exit_status": 0,
+      "executions": [
+        {
+          "seed": "11",
+          "execution": "success",
+          "subject_subtest": "PASS",
+          "subject_seconds": "5.75",
+          "frontend_observed_poll_timeout_seconds": "3.652651183",
+          "suite_fail_lines": 0,
+          "stdout_sha256": "sha256:50d0f14d836e1bb63566da535ff0b5dda5784352caff850681079b107aee6299",
+          "stderr_sha256": "sha256:32aef76b3e6f6a96d38cda781ab99d6126b7dda73db7814b62b00d7237d6932f"
+        },
+        {
+          "seed": "17",
+          "execution": "success",
+          "subject_subtest": "PASS",
+          "subject_seconds": "5.61",
+          "frontend_observed_poll_timeout_seconds": "3.556550291",
+          "suite_fail_lines": 0,
+          "stdout_sha256": "sha256:1e2c109507fb226ad5cd8633ebe2184f62872599180dfda638a2c4c73aed7691",
+          "stderr_sha256": "sha256:e8bf55446edd5341271badcc906aa0bd6a7d160be41cd68fe39bbdd79b01bf6f"
+        }
+      ]
+    },
+    "forward_seed_scan": {
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad explore --seeds 1-10,12-16,18-24 --parallel 2 --clock-tick=forward --build-tag=disable_grpc_modules --build-tag=gomad --build-tag=test_dep --capability-mode=closure --io-ro-mount ./schema=/go.temporal.io/server/schema --keep-successes=all --success-limit=N --success-bytes=2GiB --output-limit=512MiB --on-failure=all --execution-timeout=20m --overall-timeout=30m --artifacts <scratch>/scan-fwd-artifacts go-test ./tests -- '-test.run=^TestStandaloneActivityTestSuite$' -test.parallel=8 -test.v (successes not retained)",
+      "exit_status": 1,
+      "attempted": 22,
+      "succeeded": 17,
+      "failures": 5,
+      "failing_seeds": [
+        "5",
+        "12",
+        "20",
+        "21",
+        "24"
+      ],
+      "executions": [
+        {
+          "seed": "5",
+          "execution": "failure",
+          "subject_subtest": "FAIL",
+          "subject_seconds": "5.76",
+          "frontend_observed_poll_timeout_seconds": "3.684002031",
+          "suite_fail_lines": 3,
+          "stdout_sha256": "sha256:214643cb40d97d830ef86b0caaac385de834849f6709b181f4657f4e0283fce3",
+          "stderr_sha256": "sha256:3db7df9f06e27c3ba2681adeae8b49e078718183bf57719869c0bdfbcc939432"
+        },
+        {
+          "seed": "12",
+          "execution": "failure",
+          "subject_subtest": "FAIL",
+          "subject_seconds": "5.77",
+          "frontend_observed_poll_timeout_seconds": "3.685913008",
+          "suite_fail_lines": 3,
+          "stdout_sha256": "sha256:3aa0f4539b92355952ff2d1d466904bf4f8a563393116f58094e51d6289aa2a5",
+          "stderr_sha256": "sha256:708df88080cb82687d92216f72ba58f4f3aa895cce2ccd10b9c955c71399d722"
+        },
+        {
+          "seed": "20",
+          "execution": "failure",
+          "subject_subtest": "FAIL",
+          "subject_seconds": "5.76",
+          "frontend_observed_poll_timeout_seconds": "3.676164591",
+          "suite_fail_lines": 3,
+          "stdout_sha256": "sha256:a57f86fad4e6e874cbe9905e5ca4fc20413ce78e16fdbf71d04c83c916d5307b",
+          "stderr_sha256": "sha256:5f04ede81de84e5cb9f77b93eb6d3f99f4b2679130e0d403169b168c8454cead"
+        },
+        {
+          "seed": "21",
+          "execution": "failure",
+          "subject_subtest": "FAIL",
+          "subject_seconds": "5.75",
+          "frontend_observed_poll_timeout_seconds": "3.682896567",
+          "suite_fail_lines": 3,
+          "stdout_sha256": "sha256:81497f71fe564bb0c6c11f6e371f682bad4723fa82a49142461cdd3804f10384",
+          "stderr_sha256": "sha256:14e5921c2f57dd61a982fcc41ebc3533fca3da4427cbe96badf49ca7dbe4f5f6"
+        },
+        {
+          "seed": "24",
+          "execution": "failure",
+          "subject_subtest": "FAIL",
+          "subject_seconds": "5.77",
+          "frontend_observed_poll_timeout_seconds": "3.679914963",
+          "suite_fail_lines": 3,
+          "stdout_sha256": "sha256:1bada0f00d6041718c3ff451371dc4db297187382609a4c62db64c6708177c45",
+          "stderr_sha256": "sha256:c5f328f80c46593e8d979a64c38cb0f72337c3de09fe541dca5b152050c307a9"
+        }
+      ]
+    },
+    "forward_rerun_wall_watchdog": {
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad explore --seeds 5,11,17 --parallel 2 --clock-tick=forward --build-tag=disable_grpc_modules --build-tag=gomad --build-tag=test_dep --capability-mode=closure --io-ro-mount ./schema=/go.temporal.io/server/schema --keep-successes=all --success-limit=N --success-bytes=2GiB --output-limit=512MiB --on-failure=all --execution-timeout=5m --overall-timeout=30m --artifacts <scratch>/rerun-fwd-artifacts go-test ./tests -- '-test.run=^TestStandaloneActivityTestSuite$' -test.parallel=8 -test.v",
+      "exit_status": 1,
+      "note": "stdout and stderr digests equal the first runs for all three seeds",
+      "executions": [
+        {
+          "seed": "5",
+          "execution": "failure",
+          "subject_subtest": "FAIL",
+          "subject_seconds": "5.76",
+          "frontend_observed_poll_timeout_seconds": "3.684002031",
+          "suite_fail_lines": 3,
+          "stdout_sha256": "sha256:214643cb40d97d830ef86b0caaac385de834849f6709b181f4657f4e0283fce3",
+          "stderr_sha256": "sha256:3db7df9f06e27c3ba2681adeae8b49e078718183bf57719869c0bdfbcc939432"
+        },
+        {
+          "seed": "11",
+          "execution": "success",
+          "subject_subtest": "PASS",
+          "subject_seconds": "5.75",
+          "frontend_observed_poll_timeout_seconds": "3.652651183",
+          "suite_fail_lines": 0,
+          "stdout_sha256": "sha256:50d0f14d836e1bb63566da535ff0b5dda5784352caff850681079b107aee6299",
+          "stderr_sha256": "sha256:32aef76b3e6f6a96d38cda781ab99d6126b7dda73db7814b62b00d7237d6932f"
+        },
+        {
+          "seed": "17",
+          "execution": "success",
+          "subject_subtest": "PASS",
+          "subject_seconds": "5.61",
+          "frontend_observed_poll_timeout_seconds": "3.556550291",
+          "suite_fail_lines": 0,
+          "stdout_sha256": "sha256:1e2c109507fb226ad5cd8633ebe2184f62872599180dfda638a2c4c73aed7691",
+          "stderr_sha256": "sha256:e8bf55446edd5341271badcc906aa0bd6a7d160be41cd68fe39bbdd79b01bf6f"
+        }
+      ]
+    },
+    "strict_control": {
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad explore --seeds 5,11,12,17,20,21,24 --parallel 2 --clock-tick=strict --build-tag=disable_grpc_modules --build-tag=gomad --build-tag=test_dep --capability-mode=closure --io-ro-mount ./schema=/go.temporal.io/server/schema --keep-successes=all --success-limit=N --success-bytes=2GiB --output-limit=512MiB --on-failure=all --execution-timeout=20m --overall-timeout=30m --artifacts <scratch>/strict-artifacts go-test ./tests -- '-test.run=^TestStandaloneActivityTestSuite$' -test.parallel=8 -test.v",
+      "exit_status": 1,
+      "note": "every seed fails the suite on timestamp-tie subtests only (20 FAIL lines each including parents); the subject subtest passes in exactly 5.00 s on all seven seeds and the frontend observes exactly 3 s",
+      "executions": [
+        {
+          "seed": "5",
+          "execution": "failure",
+          "subject_subtest": "PASS",
+          "subject_seconds": "5.00",
+          "frontend_observed_poll_timeout_seconds": "3",
+          "suite_fail_lines": 20,
+          "stdout_sha256": "sha256:c524e7829a09ad74aa1431e281465e7d95fb77bc94e57bc6889a0de46093d57c",
+          "stderr_sha256": "sha256:30de7056107d0d4060b864afd4d95aa5f43bb6a9ff48b588f3956addde8e4f0a"
+        },
+        {
+          "seed": "11",
+          "execution": "failure",
+          "subject_subtest": "PASS",
+          "subject_seconds": "5.00",
+          "frontend_observed_poll_timeout_seconds": "3",
+          "suite_fail_lines": 20,
+          "stdout_sha256": "sha256:62334e816c9203d44fcbea50e064a8e2ef9284b72e9babe5820bfc7fe1e67742",
+          "stderr_sha256": "sha256:0a6bce3a4da54401ab0a1aedee1cde1009f725f240fd28eac31a9954aead7623"
+        },
+        {
+          "seed": "12",
+          "execution": "failure",
+          "subject_subtest": "PASS",
+          "subject_seconds": "5.00",
+          "frontend_observed_poll_timeout_seconds": "3",
+          "suite_fail_lines": 20,
+          "stdout_sha256": "sha256:cef8255ba780d8fad841b94f28f6285f935de2f027276a3ea90f2276e89731a9",
+          "stderr_sha256": "sha256:e38ac46a34748525ed78bca9139082c93034680cc3229636692ca6862d03f2d7"
+        },
+        {
+          "seed": "17",
+          "execution": "failure",
+          "subject_subtest": "PASS",
+          "subject_seconds": "5.00",
+          "frontend_observed_poll_timeout_seconds": "3",
+          "suite_fail_lines": 20,
+          "stdout_sha256": "sha256:6c0911790045a84b119560cfb10fcdd2748812d3e8d2cd7bbae85092ec783ebc",
+          "stderr_sha256": "sha256:7f68012b9e61ca38b47ca27bce8d3c7df462cce5f13b8a62239b105a6ec3e3a2"
+        },
+        {
+          "seed": "20",
+          "execution": "failure",
+          "subject_subtest": "PASS",
+          "subject_seconds": "5.00",
+          "frontend_observed_poll_timeout_seconds": "3",
+          "suite_fail_lines": 20,
+          "stdout_sha256": "sha256:c2d1c897ab936ec10381c02dd9b8a65474b1288367c20646d9027023a04d31ff",
+          "stderr_sha256": "sha256:933b947d606c36d221cbb93944b78b9c868aa61d6301ba5d2b64a00e3cd88d27"
+        },
+        {
+          "seed": "21",
+          "execution": "failure",
+          "subject_subtest": "PASS",
+          "subject_seconds": "5.00",
+          "frontend_observed_poll_timeout_seconds": "3",
+          "suite_fail_lines": 20,
+          "stdout_sha256": "sha256:2cc3443010b276877a9969c048fc6d310ca3a40e9ab9d27763bb66989a07f5d8",
+          "stderr_sha256": "sha256:6e04ef487feecb22f2517526bb190f118861fe31cd404d2ced461e6d1c42f7e8"
+        },
+        {
+          "seed": "24",
+          "execution": "failure",
+          "subject_subtest": "PASS",
+          "subject_seconds": "5.00",
+          "frontend_observed_poll_timeout_seconds": "3",
+          "suite_fail_lines": 20,
+          "stdout_sha256": "sha256:6b3c336d2715a74e47cf64d6729bf2eded47c4974bac0abcc9df5185dc95f90c",
+          "stderr_sha256": "sha256:49982a9c6465fd2647edeb8ad7dfbb814f7f66e65544713e9d60eb745922216d"
+        }
+      ]
+    },
+    "forward_rerun_failing_seeds": {
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad explore --seeds 12,20,21,24 --parallel 2 --clock-tick=forward --build-tag=disable_grpc_modules --build-tag=gomad --build-tag=test_dep --capability-mode=closure --io-ro-mount ./schema=/go.temporal.io/server/schema --keep-successes=all --success-limit=N --success-bytes=2GiB --output-limit=512MiB --on-failure=all --execution-timeout=5m --overall-timeout=30m --artifacts <scratch>/rerun2-fwd-artifacts go-test ./tests -- '-test.run=^TestStandaloneActivityTestSuite$' -test.parallel=8 -test.v",
+      "exit_status": 1,
+      "executions": [
+        {
+          "seed": "12",
+          "execution": "failure",
+          "stdout_sha256": "sha256:3aa0f4539b92355952ff2d1d466904bf4f8a563393116f58094e51d6289aa2a5",
+          "stderr_sha256": "sha256:708df88080cb82687d92216f72ba58f4f3aa895cce2ccd10b9c955c71399d722",
+          "digests_equal_first_run": true
+        },
+        {
+          "seed": "20",
+          "execution": "failure",
+          "stdout_sha256": "sha256:a57f86fad4e6e874cbe9905e5ca4fc20413ce78e16fdbf71d04c83c916d5307b",
+          "stderr_sha256": "sha256:5f04ede81de84e5cb9f77b93eb6d3f99f4b2679130e0d403169b168c8454cead",
+          "digests_equal_first_run": true
+        },
+        {
+          "seed": "21",
+          "execution": "failure",
+          "stdout_sha256": "sha256:81497f71fe564bb0c6c11f6e371f682bad4723fa82a49142461cdd3804f10384",
+          "stderr_sha256": "sha256:14e5921c2f57dd61a982fcc41ebc3533fca3da4427cbe96badf49ca7dbe4f5f6",
+          "digests_equal_first_run": true
+        },
+        {
+          "seed": "24",
+          "execution": "failure",
+          "stdout_sha256": "sha256:1bada0f00d6041718c3ff451371dc4db297187382609a4c62db64c6708177c45",
+          "stderr_sha256": "sha256:c5f328f80c46593e8d979a64c38cb0f72337c3de09fe541dca5b152050c307a9",
+          "digests_equal_first_run": true
+        }
+      ]
+    }
+  },
+  "instrumented_runs": {
+    "note": "Scratch copy of the tree with the stderr probes of fn105-d16-instrumentation.diff.txt; different target identity; the probes add time.Now reads, so per-seed outcomes can differ from the unmodified tree (seed 12 passes here by 21 ms and fails unmodified).",
+    "forward_suite_seeds_5_11_12_17": "fn105-d16-trace-forward-suite.txt (seed 5 fails: client deadline 2.5 ms before the matching child deadline; seeds 11, 12, 17 pass with 41.8 ms, 21.3 ms, 173.6 ms)",
+    "strict_suite_seeds_11_17": "fn105-d16-trace-strict-suite.txt (offset 0, margin exactly 1 s)",
+    "forward_leaf_only_seeds_11_17": "fn105-d16-trace-forward-leaf.txt (offset 3.4 ms, margin 989.5 ms)",
+    "native_leaf": "fn105-d16-trace-native-leaf.txt (server deadlines 76 to 179 microseconds after the client's; child deadline 999.8 ms before the client's; the empty response reaches the client with 998.5 to 998.8 ms left)",
+    "forward_suite_lead_growth_during_wait": "seed 5: lead 334.1 ms at the poll, 344.1 ms when the client deadline fires 3.33 s of timer time later"
+  },
+  "native_runs": "fn105-d16-native-outcomes.txt (leaf -count=3 PASS; whole suite PASS, 0 FAIL lines)",
+  "fixture": {
+    "source": "fn105-d16-fixture-main.go.txt",
+    "go_mod": "fn105-d16-fixture-go.mod.txt",
+    "main_go_sha256": "44ef0ba4faaafabe3d6e8613761aa83b453f2a6841b79a72a3fcf8ffd3e7166b",
+    "gomad_command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad explore --seeds 11,17 --parallel 2 --clock-tick=<strict|forward> --keep-successes=all --success-limit=2 --success-bytes=1GiB --on-failure=all --artifacts <scratch> go-run . -- <0|600000|700000>",
+    "native_command": "go run . <0|600000|700000>",
+    "outcomes": {
+      "native": "exit 0 for 0, 600000, 700000 (margin 999.9998 ms)",
+      "strict": "exit 0 for 0, 600000, 700000 on seeds 11 and 17 (offset 0, margin 1 s)",
+      "forward_burn_0": "exit 0 on seeds 11 and 17 (offset 1.6/1.2 microseconds, margin 999.99 ms)",
+      "forward_burn_600000": "exit 0 on seeds 11 and 17 (offset 307.1/307.6 ms, margin 78.6/77.2 ms)",
+      "forward_burn_700000": "exit 1 on seeds 11 and 17 (offset 358.4/358.9 ms, margin -75.3/-76.8 ms; client deadline first)"
+    },
+    "logs": [
+      "fn105-d16-fixture-gomad.log",
+      "fn105-d16-fixture-native.log"
+    ]
+  },
+  "claims": {
+    "fixed": "nothing; the skip stays and the correction is open work in fn-105",
+    "tracked_tree": "unchanged outside the report, its index line, the two D16 milestone entries, and these artifacts"
+  },
+  "proposal": {
+    "owner": "Gomad runtime clock (tools/gomad3/toolchain/runtime)",
+    "proposed": "one clock: add the forward draws to the virtual clock itself, as fn-103 specified; requires reproducing and resolving the simulation time transport failure that made fn-103 move to a separate offset; feasibility not established",
+    "partial_fallbacks": [
+      "offset-aware time.Since/time.Until (needs a time package patch; deadline passes on the user-visible clock before ctx.Done by the draws made during the context lifetime)",
+      "absorb the offset on idle advances (does not help inside a busy stretch; the retained fixture would still fail)"
+    ],
+    "alternative": "accepted limitation documented in the README, skip retained",
+    "status": "not built, not verified; decision and fix are open work in fn-105"
+  }
+}

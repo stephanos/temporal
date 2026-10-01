@@ -1,0 +1,82 @@
+// Command d16fixture reproduces, with the standard library only, the deadline
+// arithmetic of a Temporal long poll: a client context deadline, two gRPC hops
+// that each re-derive the deadline from the remaining time (grpc-go sends
+// time.Until(deadline) as grpc-timeout and the server calls
+// context.WithTimeout(ctx, timeout)), and a server child context that reserves a
+// one-second budget to return an empty response before the client gives up.
+//
+// Usage: d16fixture BURN, where BURN is the number of time.Now calls made first.
+// It exits 0 when the server's child deadline fires first (the empty response
+// wins) and 1 when the client deadline fires first (the client times out).
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"strconv"
+	"time"
+)
+
+const (
+	clientTimeout = 3 * time.Second
+	returnBudget  = time.Second
+	hops          = 2
+)
+
+// offset reports how far time.Now runs ahead of the clock that timers and
+// time.Until use. It is zero on a real clock up to the cost of the two reads.
+func offset() time.Duration {
+	now := time.Now()
+	return -time.Since(now)
+}
+
+func main() {
+	burn, err := strconv.Atoi(os.Args[1])
+	if err != nil {
+		fmt.Println("usage: d16fixture BURN")
+		os.Exit(2)
+	}
+	for range burn {
+		time.Now()
+	}
+	start := time.Now()
+	startOffset := -time.Since(start)
+	fmt.Printf("burn=%d offset=%v\n", burn, startOffset)
+
+	client, cancelClient := context.WithTimeout(context.Background(), clientTimeout)
+	defer cancelClient()
+	clientDeadline, _ := client.Deadline()
+	fmt.Printf("client: deadline in %v, fires after %v on the timer clock\n",
+		clientTimeout, time.Until(clientDeadline))
+
+	parent := client
+	for hop := 1; hop <= hops; hop++ {
+		deadline, _ := parent.Deadline()
+		header := time.Until(deadline) // grpc-timeout
+		server, cancel := context.WithTimeout(context.Background(), header)
+		defer cancel()
+		serverDeadline, _ := server.Deadline()
+		fmt.Printf("hop %d: grpc-timeout=%v, server deadline fires after %v (client+%v)\n",
+			hop, header, time.Until(serverDeadline), serverDeadline.Sub(clientDeadline))
+		parent = server
+	}
+
+	deadline, _ := parent.Deadline()
+	remaining := time.Until(deadline) - returnBudget
+	child, cancelChild := context.WithTimeout(parent, remaining)
+	defer cancelChild()
+	childDeadline, _ := child.Deadline()
+	fmt.Printf("child: fires after %v on the timer clock, margin before the client %v\n",
+		time.Until(childDeadline), clientDeadline.Sub(childDeadline))
+
+	select {
+	case <-child.Done():
+		fmt.Printf("result: empty response first, timer clock advanced %v, offset=%v\n",
+			time.Since(start)+startOffset, offset())
+	case <-client.Done():
+		fmt.Printf("result: client deadline first, timer clock advanced %v, offset=%v\n",
+			time.Since(start)+startOffset, offset())
+		os.Exit(1)
+	}
+}

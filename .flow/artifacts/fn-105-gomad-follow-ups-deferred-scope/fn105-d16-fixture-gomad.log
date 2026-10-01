@@ -1,0 +1,81 @@
+### clock_tick=strict burn=0
+explore_rc=0
+gomad: classification=success attempted=2 succeeded=2 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=2 retained-success-bytes=5764882 stop=seeds_exhausted
+-- seed 11 successes
+burn=0 offset=0s
+client: deadline in 3s, fires after 3s on the timer clock
+hop 1: grpc-timeout=3s, server deadline fires after 3s (client+0s)
+hop 2: grpc-timeout=3s, server deadline fires after 3s (client+0s)
+child: fires after 2s on the timer clock, margin before the client 1s
+result: empty response first, timer clock advanced 2s, offset=0s
+### clock_tick=strict burn=600000
+explore_rc=0
+gomad: classification=success attempted=2 succeeded=2 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=2 retained-success-bytes=5764902 stop=seeds_exhausted
+-- seed 11 successes
+burn=600000 offset=0s
+client: deadline in 3s, fires after 3s on the timer clock
+hop 1: grpc-timeout=3s, server deadline fires after 3s (client+0s)
+hop 2: grpc-timeout=3s, server deadline fires after 3s (client+0s)
+child: fires after 2s on the timer clock, margin before the client 1s
+result: empty response first, timer clock advanced 2s, offset=0s
+### clock_tick=strict burn=700000
+explore_rc=0
+gomad: classification=success attempted=2 succeeded=2 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=2 retained-success-bytes=5764898 stop=seeds_exhausted
+-- seed 11 successes
+burn=700000 offset=0s
+client: deadline in 3s, fires after 3s on the timer clock
+hop 1: grpc-timeout=3s, server deadline fires after 3s (client+0s)
+hop 2: grpc-timeout=3s, server deadline fires after 3s (client+0s)
+child: fires after 2s on the timer clock, margin before the client 1s
+result: empty response first, timer clock advanced 2s, offset=0s
+### clock_tick=forward burn=0
+explore_rc=0
+gomad: classification=success attempted=2 succeeded=2 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=2 retained-success-bytes=5765182 stop=seeds_exhausted
+-- seed 11 successes
+burn=0 offset=1.649µs
+client: deadline in 3s, fires after 3.000001893s on the timer clock
+hop 1: grpc-timeout=3.000001893s, server deadline fires after 3.000004238s (client+2.345µs)
+hop 2: grpc-timeout=3.000004238s, server deadline fires after 3.000007188s (client+5.295µs)
+child: fires after 2.000010435s on the timer clock, margin before the client 999.991458ms
+result: empty response first, timer clock advanced 2.000010435s, offset=4.235µs
+-- seed 17 successes
+burn=0 offset=1.154µs
+client: deadline in 3s, fires after 3.000001691s on the timer clock
+hop 1: grpc-timeout=3.000001691s, server deadline fires after 3.000004066s (client+2.375µs)
+hop 2: grpc-timeout=3.000004066s, server deadline fires after 3.000006535s (client+4.844µs)
+child: fires after 2.000009489s on the timer clock, margin before the client 999.992202ms
+result: empty response first, timer clock advanced 2.000009489s, offset=3.482µs
+### clock_tick=forward burn=600000
+explore_rc=0
+gomad: classification=success attempted=2 succeeded=2 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=2 retained-success-bytes=5765231 stop=seeds_exhausted
+-- seed 11 successes
+burn=600000 offset=307.140444ms
+client: deadline in 3s, fires after 3.307141091s on the timer clock
+hop 1: grpc-timeout=3.307141091s, server deadline fires after 3.614282219s (client+307.141128ms)
+hop 2: grpc-timeout=3.614282219s, server deadline fires after 3.921424346s (client+614.283255ms)
+child: fires after 3.22856705s on the timer clock, margin before the client 78.574041ms
+result: empty response first, timer clock advanced 3.22856705s, offset=307.142959ms
+-- seed 17 successes
+burn=600000 offset=307.584703ms
+client: deadline in 3s, fires after 3.307584862s on the timer clock
+hop 1: grpc-timeout=3.307584862s, server deadline fires after 3.615170337s (client+307.585475ms)
+hop 2: grpc-timeout=3.615170337s, server deadline fires after 3.92275653s (client+615.171668ms)
+child: fires after 3.230343447s on the timer clock, margin before the client 77.241415ms
+result: empty response first, timer clock advanced 3.230343447s, offset=307.587348ms
+### clock_tick=forward burn=700000
+explore_rc=1
+gomad: classification=target_failure attempted=2 succeeded=0 failures=2 watchdogs=0 replay-divergences=0 distinct=2 retained-successes=0 retained-success-bytes=0 stop=seeds_exhausted
+-- seed 17 failures
+burn=700000 offset=358.919685ms
+client: deadline in 3s, fires after 3.35892003s on the timer clock
+hop 1: grpc-timeout=3.35892003s, server deadline fires after 3.717840359s (client+358.920329ms)
+hop 2: grpc-timeout=3.717840359s, server deadline fires after 4.076760843s (client+717.840813ms)
+child: fires after 3.435681664s on the timer clock, margin before the client -76.761634ms
+result: client deadline first, timer clock advanced 3.35892003s, offset=358.921806ms
+-- seed 11 failures
+burn=700000 offset=358.419833ms
+client: deadline in 3s, fires after 3.358420834s on the timer clock
+hop 1: grpc-timeout=3.358420834s, server deadline fires after 3.716842259s (client+358.421425ms)
+hop 2: grpc-timeout=3.716842259s, server deadline fires after 4.075264237s (client+716.843403ms)
+child: fires after 3.433686784s on the timer clock, margin before the client -75.26595ms
+result: client deadline first, timer clock advanced 3.358420834s, offset=358.423174ms

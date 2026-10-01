@@ -1,0 +1,30 @@
+--- /Users/stephan/Workspace/temporal/gomad/tests/worker_commands_task_test.go	2026-08-09 15:10:27
++++ tests/worker_commands_task_test.go	2026-09-30 23:21:36
+@@ -418,6 +418,27 @@
+ 	})
+ 	s.NoError(err)
+ 
++	// The server caps every activity timeout at the workflow run timeout, measured from the
++	// activity's schedule time. Scheduling the activity one second into the run puts its deadline
++	// strictly after the run's, so only the workflow timeout can close the activity.
++	_, err = poller.PollAndHandleWorkflowTask(tv,
++		func(task *workflowservice.PollWorkflowTaskQueueResponse) (*workflowservice.RespondWorkflowTaskCompletedRequest, error) {
++			return &workflowservice.RespondWorkflowTaskCompletedRequest{
++				Commands: []*commandpb.Command{
++					{
++						CommandType: enumspb.COMMAND_TYPE_START_TIMER,
++						Attributes: &commandpb.Command_StartTimerCommandAttributes{
++							StartTimerCommandAttributes: &commandpb.StartTimerCommandAttributes{
++								TimerId:            "delay-activity",
++								StartToFireTimeout: durationpb.New(time.Second),
++							},
++						},
++					},
++				},
++			}, nil
++		})
++	s.NoError(err)
++
+ 	// Schedule the activity
+ 	_, err = poller.PollAndHandleWorkflowTask(tv,
+ 		func(task *workflowservice.PollWorkflowTaskQueueResponse) (*workflowservice.RespondWorkflowTaskCompletedRequest, error) {

@@ -1,0 +1,84 @@
+{
+  "schema": "fn105-d25-gomad-green-evidence/v1",
+  "platform": {
+    "goarch": "arm64",
+    "goos": "darwin"
+  },
+  "host": "darwin/arm64",
+  "linux_amd64": "not run; unavailable on this host",
+  "source": "HEAD d4d800fb473f008fa4a51a4d8575249f11c9cf3f plus the uncommitted working tree at 2026-09-30T19:15-19:50 PDT, including this task's service/matching fix and tests/versioning_test.go readiness wait; the tree also held other workers' uncommitted edits",
+  "matching_engine_sha256": "199c6b74f6438e2cf70d125fa00a61536e038dca09d4ff2cb3bbfd47bd6facda",
+  "versioning_test_sha256": "453489bf2bc4498ab46a1548e71fa8b93694b0919a7e33417bc5f274e14f1a92",
+  "runner": {
+    "runner_build": "sha256:3062e6f84a854ce0652612a38beae2085428c1d470fc9b69747fc413f380f0d1",
+    "doctor": "available=true host=darwin/arm64 go=go1.27.1"
+  },
+  "toolchain": {
+    "boundary_manifest_sha256": "sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0",
+    "boundary_manifest_version": "go1.27.1-v1",
+    "build_key": "c0661e38b4e001c8d86912d4ce9e265eb0f33e5f3298015da27a4c97ac4019b9",
+    "go_version": "go1.27.1",
+    "target_goarch": "arm64",
+    "target_goos": "darwin"
+  },
+  "module": {
+    "go_mod_sha256": "sha256:cda5b0aab2e32ef4aca50bd0d8ccf8ae67416db94fd4f28ceb9ac1588c48d0a4",
+    "path": "go.temporal.io/server"
+  },
+  "leaf": {
+    "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad explore --seeds 11,17 --parallel 1 --build-tag=disable_grpc_modules --build-tag=gomad --build-tag=test_dep --capability-mode=closure --io-ro-mount ./schema=/go.temporal.io/server/schema --keep-successes=all --success-limit=2 --success-bytes=1GiB --artifacts <scratch> go-test ./tests -- '-test.run=^TestVersioningFunctionalSuite$/^TestDescribeTaskQueueEnhanced_ReportFlags$' -test.parallel=8 -test.v",
+    "exit_status": 0,
+    "classification": "success",
+    "per_seed": {
+      "11": {
+        "result": "--- PASS (0.50s virtual)",
+        "record_hash": "sha256:6b7e0a2dca2b361cf95555cab9ec1e9d7a9705310213200d72e2fe58045ab593"
+      },
+      "17": {
+        "result": "--- PASS (0.50s virtual)",
+        "record_hash": "sha256:644d25c7e4f1ee13300e75d0c640ec91a21d823b91e1276f896a0373c670644a"
+      }
+    }
+  },
+  "suite": {
+    "manifest": "the TestVersioningFunctionalSuite entry of tools/gomad3integration/qualification/tests.json with its platform_expectations removed (expectation qualified); identical to the entry the regenerated tests.json now holds (tier 3, closure mode, tags disable_grpc_modules,gomad,test_dep, schema read-only mount, choice_bytes 0, replay_successes false, execution_timeout 30m, overall_timeout 90m, repeat 2, test_parallel 8)",
+    "manifest_sha256": "sha256:45e7a1b08d8a57be4427eb8b305486a04c2986fa9226aeb1fc4f4752b4d2a359",
+    "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad qualify-set --manifest=<scratch>/suite-manifest.json --working-dir=<repo> --artifacts=<scratch>/suite-artifacts --output=<scratch>/suite-report.json --prune-qualified-artifacts",
+    "started": "2026-10-01T02:15:16Z",
+    "ended": "2026-10-01T02:49:59Z",
+    "exit_status": 0,
+    "result": {
+      "selected": 1,
+      "supported": 1,
+      "unsupported": 0,
+      "failed": 0,
+      "infrastructure_errors": 0,
+      "timed_out": 0,
+      "replayed": 0,
+      "replay_diverged": 0,
+      "expectations_met": true,
+      "qualified_artifacts_pruned": true
+    },
+    "workload": {
+      "name": "TestVersioningFunctionalSuite",
+      "classification": "qualified",
+      "seeds": [
+        {
+          "seed": "11",
+          "classification": "qualified",
+          "evidence_sha256": "sha256:e3d5686ff307f2fb67082d893f7dcc3bf05e60ff7cf549afd170d09baa316527",
+          "replayed": false
+        },
+        {
+          "seed": "17",
+          "classification": "qualified",
+          "evidence_sha256": "sha256:c88204896bd0d7722f47483e77e91ab8f5e0ff00c8b3d97f4f56a207869f9e08",
+          "replayed": false
+        }
+      ]
+    },
+    "executions": "four (two per seed), 516 s and 499 s on seed 11, 488 s and 514 s on seed 17; per-seed qualification reports: repeat 2, deterministic true, target_success true",
+    "report": "fn105-d25-gomad-suite-report.json"
+  },
+  "artifacts": "scratch Campaigns deleted after recording"
+}

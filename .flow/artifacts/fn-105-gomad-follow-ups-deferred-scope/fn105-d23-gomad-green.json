@@ -1,0 +1,90 @@
+{
+  "schema": "fn105-d23-gomad-green-evidence/v1",
+  "platform": {
+    "goarch": "arm64",
+    "goos": "darwin"
+  },
+  "host": "darwin/arm64, macOS 26.6.2",
+  "linux_amd64": "not run; unavailable on this host",
+  "source": "HEAD d4d800fb473f008fa4a51a4d8575249f11c9cf3f plus the uncommitted working tree (this task: tests/schedule_migration_test.go; the tree also holds other workers uncommitted edits)",
+  "schedule_migration_test_sha256": "0e5d3a00fc928646c6067cb972903515339023078973893c84ff0d3027f8e7cd",
+  "runner": {
+    "binary_sha256": "sha256:3062e6f84a854ce0652612a38beae2085428c1d470fc9b69747fc413f380f0d1",
+    "doctor": "available=true host=darwin/arm64 go=go1.27.1"
+  },
+  "toolchain": {
+    "boundary_manifest_sha256": "sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0",
+    "boundary_manifest_version": "go1.27.1-v1",
+    "build_key": "c0661e38b4e001c8d86912d4ce9e265eb0f33e5f3298015da27a4c97ac4019b9",
+    "go_version": "go1.27.1",
+    "target_goarch": "arm64",
+    "target_goos": "darwin"
+  },
+  "io_profile": {
+    "implementation_sha256": "sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0",
+    "inventory_sha256": "sha256:0d34edfc0ab13c693b78d514ca1a72a9adc196fe61e2142dba108c0ff47358f7",
+    "name": "gomad3-deterministic/v1"
+  },
+  "module": {
+    "go_mod_sha256": "sha256:cda5b0aab2e32ef4aca50bd0d8ccf8ae67416db94fd4f28ceb9ac1588c48d0a4",
+    "path": "go.temporal.io/server"
+  },
+  "manifest": "the TestScheduleMigrationTestSuite entry of tools/gomad3integration/qualification/tests.json with its skip list removed (tier 3, closure mode, tags disable_grpc_modules,gomad,test_dep, schema read-only mount, choice_bytes 64 MiB, replay_successes true, repeat 2, test_parallel 8, overall_timeout 20m)",
+  "manifest_sha256": "sha256:e621278ff5602562d49cfa43d0e1502cb4bc66f8f119a1912a49827a5e61e80a",
+  "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad qualify-set --manifest=<scratch>/after.json --working-dir=<repo> --artifacts=<scratch>/after-artifacts --output=<scratch>/after-report.json --prune-qualified-artifacts",
+  "exit_status": 0,
+  "result": {
+    "selected": 1,
+    "supported": 1,
+    "unsupported": 0,
+    "failed": 0,
+    "infrastructure_errors": 0,
+    "timed_out": 0,
+    "replayed": 2,
+    "replay_diverged": 0,
+    "expectations_met": true,
+    "qualified_artifacts_pruned": true
+  },
+  "workloads": [
+    {
+      "name": "TestScheduleMigrationTestSuite",
+      "classification": "qualified",
+      "expectation_met": true,
+      "blockers": 0,
+      "seeds": [
+        {
+          "seed": "11",
+          "classification": "qualified",
+          "replayed": true,
+          "replay_match": true,
+          "choice_replay_exact": true,
+          "evidence_sha256": "sha256:5f70cc0b875de545a11374413ab56d7c9eea1dfd2ba5935c7bff2ebcea76497c",
+          "elapsed_nanos": "5548881000",
+          "choice_decisions": "60681"
+        },
+        {
+          "seed": "17",
+          "classification": "qualified",
+          "replayed": true,
+          "replay_match": true,
+          "choice_replay_exact": true,
+          "evidence_sha256": "sha256:801b03866b45c66a1c7ca3668d2aafb5ee6604b9dc74e4dbb65a92c6310d0ff3",
+          "elapsed_nanos": "5020320000",
+          "choice_decisions": "60381"
+        }
+      ]
+    }
+  ],
+  "executed_leaf_check": {
+    "why": "the set report holds digests only, so a verbose run confirms the formerly skipped test executes and passes under Gomad",
+    "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad explore --seeds 11,17 --parallel 1 --build-tag=disable_grpc_modules --build-tag=gomad --build-tag=test_dep --capability-mode=closure --io-ro-mount ./schema=/go.temporal.io/server/schema --keep-successes=all --success-limit=2 --success-bytes=1GiB --artifacts <scratch>/explore-artifacts go-test ./tests -- -test.run=^TestScheduleMigrationTestSuite$/^TestScheduleMigrationV2ToV1Idempotent$ -test.parallel=8 -test.v",
+    "exit_status": 0,
+    "summary": "classification=success attempted=2 succeeded=2 failures=0 watchdogs=0 replay-divergences=0",
+    "per_seed": {
+      "11": "--- PASS: TestScheduleMigrationTestSuite/TestScheduleMigrationV2ToV1Idempotent",
+      "17": "--- PASS: TestScheduleMigrationTestSuite/TestScheduleMigrationV2ToV1Idempotent"
+    },
+    "log": "fn105-d23-gomad-idempotent-verbose.log"
+  },
+  "artifacts": "scratch campaigns deleted after recording; qualified seeds were pruned by the run"
+}

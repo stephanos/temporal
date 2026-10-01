@@ -1,0 +1,622 @@
+--- a/tools/gomad3/qualification/set/manifestgen/manifestgen.go
++++ b/tools/gomad3/qualification/set/manifestgen/manifestgen.go
+@@ -85,9 +85,10 @@
+ }
+ 
+ // TestOverride is the per-test deviation from the workload defaults. An
+-// override of the evidence a test retains (choice_bytes, replay_successes) or
+-// of its budget (execution_timeout, overall_timeout) must carry a reason, so
+-// no test narrows its qualification silently.
++// override of the evidence a test retains (choice_bytes, replay_successes,
++// success_artifact_limit, success_bytes_limit) or of its budget
++// (execution_timeout, overall_timeout) must carry a reason, so no test changes
++// its qualification silently.
+ type TestOverride struct {
+ 	RequiredProbes       []string                           `json:"required_probes,omitempty"`
+ 	Expectation          *set.WorkloadExpectation           `json:"expectation,omitempty"`
+@@ -97,11 +98,16 @@
+ 	IOTranscriptBytes    uint64                             `json:"io_transcript_bytes,omitempty"`
+ 	// Environment sets target variables for the test, such as a pool size the
+ 	// test harness reads.
+-	Environment      []string `json:"environment,omitempty"`
+-	ReplaySuccesses  *bool    `json:"replay_successes,omitempty"`
+-	ExecutionTimeout string   `json:"execution_timeout,omitempty"`
+-	OverallTimeout   string   `json:"overall_timeout,omitempty"`
+-	Reason           string   `json:"reason,omitempty"`
++	Environment     []string `json:"environment,omitempty"`
++	ReplaySuccesses *bool    `json:"replay_successes,omitempty"`
++	// SuccessArtifactLimit and SuccessBytesLimit bound the successes a test
++	// that replays them retains, which a test opting into replay under
++	// defaults that retain none must state.
++	SuccessArtifactLimit *uint64 `json:"success_artifact_limit,omitempty"`
++	SuccessBytesLimit    *uint64 `json:"success_bytes_limit,omitempty"`
++	ExecutionTimeout     string  `json:"execution_timeout,omitempty"`
++	OverallTimeout       string  `json:"overall_timeout,omitempty"`
++	Reason               string  `json:"reason,omitempty"`
+ 	// SkipSubtests excludes named subtests of the test, each with the owner,
+ 	// date, and reason an exclusion requires, so the rest of the test stays
+ 	// in the set.
+@@ -111,9 +117,66 @@
+ // narrows reports whether the override changes what the test retains or how
+ // long it may run.
+ func (override TestOverride) narrows() bool {
+-	return override.ChoiceBytes != nil || override.ReplaySuccesses != nil || override.ExecutionTimeout != "" || override.OverallTimeout != ""
++	return override.ChoiceBytes != nil || override.ReplaySuccesses != nil || override.SuccessArtifactLimit != nil || override.SuccessBytesLimit != nil || override.ExecutionTimeout != "" || override.OverallTimeout != ""
+ }
+ 
++// retention is the replay evidence a workload retains: the bound of its choice
++// trace and, when it replays its successes, how many of them it keeps.
++type retention struct {
++	choiceBytes     uint64
++	replaySuccesses bool
++	artifactLimit   uint64
++	bytesLimit      uint64
++}
++
++func (defaults WorkloadDefaults) retention() retention {
++	return retention{
++		choiceBytes: defaults.ChoiceBytes, replaySuccesses: defaults.ReplaySuccesses,
++		artifactLimit: defaults.SuccessArtifactLimit, bytesLimit: defaults.SuccessBytesLimit,
++	}
++}
++
++// with applies a test's override. A workload without a choice tape or without
++// success replay cannot retain replayed successes, which the manifest
++// validation enforces: turning the choice trace off turns inherited success
++// replay off with it, and a test without success replay inherits no success
++// limits, so a narrowing override states only what it turns off.
++func (inherited retention) with(override TestOverride) retention {
++	resolved := inherited
++	if override.ChoiceBytes != nil {
++		resolved.choiceBytes = *override.ChoiceBytes
++	}
++	if override.ReplaySuccesses != nil {
++		resolved.replaySuccesses = *override.ReplaySuccesses
++	} else if resolved.choiceBytes == 0 {
++		resolved.replaySuccesses = false
++	}
++	if !resolved.replaySuccesses {
++		resolved.artifactLimit, resolved.bytesLimit = 0, 0
++	}
++	if override.SuccessArtifactLimit != nil {
++		resolved.artifactLimit = *override.SuccessArtifactLimit
++	}
++	if override.SuccessBytesLimit != nil {
++		resolved.bytesLimit = *override.SuccessBytesLimit
++	}
++	return resolved
++}
++
++// validate refuses the combinations the manifest validation rejects, so the
++// spec entry at fault is named instead of every workload it generates.
++func (resolved retention) validate() error {
++	switch {
++	case resolved.replaySuccesses && resolved.choiceBytes == 0:
++		return errors.New("replays successes without a choice trace; set choice_bytes")
++	case resolved.replaySuccesses && (resolved.artifactLimit == 0 || resolved.bytesLimit == 0):
++		return errors.New("replays successes and requires success_artifact_limit and success_bytes_limit")
++	case !resolved.replaySuccesses && (resolved.artifactLimit != 0 || resolved.bytesLimit != 0):
++		return errors.New("sets success limits without replay_successes")
++	}
++	return nil
++}
++
+ // Exclusion removes a test from the manifest by name. Owner, date, and reason
+ // are required so no test leaves the qualified set silently.
+ type Exclusion struct {
+@@ -262,10 +325,17 @@
+ 	if strings.TrimSpace(spec.Workload.Invariant) == "" {
+ 		return errors.New("qualification manifest spec workload invariant is required")
+ 	}
++	defaultRetention := spec.Workload.retention()
++	if err := defaultRetention.validate(); err != nil {
++		return fmt.Errorf("qualification manifest spec workload %w", err)
++	}
+ 	for name, override := range spec.Tests {
+ 		if override.narrows() && strings.TrimSpace(override.Reason) == "" {
+ 			return fmt.Errorf("override of %s changes its evidence or budget and requires a reason", name)
+ 		}
++		if err := defaultRetention.with(override).validate(); err != nil {
++			return fmt.Errorf("override of %s %w", name, err)
++		}
+ 		for subtest, exclusion := range override.SkipSubtests {
+ 			if err := validateExclusion(name+"/"+subtest, exclusion); err != nil {
+ 				return err
+@@ -470,12 +540,12 @@
+ 		ID: id, Name: test, Tier: defaults.Tier, Invariant: test + " " + defaults.Invariant,
+ 		Package: spec.Package, Test: test, BuildTags: slices.Clone(spec.BuildTags),
+ 		CapabilityMode: defaults.CapabilityMode, ReadOnlyMounts: slices.Clone(defaults.ReadOnlyMounts),
+-		ChoiceBytes: defaults.ChoiceBytes, ClockTick: defaults.ClockTick, ReplaySuccesses: defaults.ReplaySuccesses,
+-		SuccessArtifactLimit: defaults.SuccessArtifactLimit, SuccessBytesLimit: defaults.SuccessBytesLimit,
+-		ExecutionTimeout: defaults.ExecutionTimeout, OverallTimeout: defaults.OverallTimeout,
++		ClockTick: defaults.ClockTick, ExecutionTimeout: defaults.ExecutionTimeout, OverallTimeout: defaults.OverallTimeout,
+ 		TestParallel: defaults.TestParallel, Expectation: defaults.Expectation,
+ 	}
++	retained := defaults.retention()
+ 	if override, found := spec.Tests[test]; found {
++		retained = retained.with(override)
+ 		generated.RequiredProbes = slices.Clone(override.RequiredProbes)
+ 		if override.Expectation != nil {
+ 			generated.Expectation = *override.Expectation
+@@ -483,22 +553,11 @@
+ 		if len(override.PlatformExpectations) != 0 {
+ 			generated.PlatformExpectations = maps.Clone(override.PlatformExpectations)
+ 		}
+-		if override.ChoiceBytes != nil {
+-			generated.ChoiceBytes = *override.ChoiceBytes
+-		}
+ 		if override.ClockTick != "" {
+ 			generated.ClockTick = override.ClockTick
+ 		}
+ 		generated.IOTranscriptBytes = override.IOTranscriptBytes
+ 		generated.Environment = slices.Clone(override.Environment)
+-		if override.ReplaySuccesses != nil {
+-			generated.ReplaySuccesses = *override.ReplaySuccesses
+-		}
+-		// A workload without a choice tape or without success replay cannot
+-		// retain replayed successes, which the manifest validation enforces.
+-		if !generated.ReplaySuccesses || generated.ChoiceBytes == 0 {
+-			generated.ReplaySuccesses, generated.SuccessArtifactLimit, generated.SuccessBytesLimit = false, 0, 0
+-		}
+ 		if override.ExecutionTimeout != "" {
+ 			generated.ExecutionTimeout = override.ExecutionTimeout
+ 		}
+@@ -509,6 +568,8 @@
+ 			generated.Skip = slices.Sorted(maps.Keys(override.SkipSubtests))
+ 		}
+ 	}
++	generated.ChoiceBytes, generated.ReplaySuccesses = retained.choiceBytes, retained.replaySuccesses
++	generated.SuccessArtifactLimit, generated.SuccessBytesLimit = retained.artifactLimit, retained.bytesLimit
+ 	return generated
+ }
+ 
+--- a/tools/gomad3/qualification/set/manifestgen/manifestgen_test.go
++++ b/tools/gomad3/qualification/set/manifestgen/manifestgen_test.go
+@@ -97,6 +97,15 @@
+ 			OverallTimeout: "20m", TestParallel: 8, Expectation: set.WorkloadExpectation{Classification: "qualified"},
+ 		},
+ 	}
++}
++
++// untracedSpec is baseSpec under the routine policy: no choice trace, no
++// success replay, and no retained successes unless a test opts in.
++func untracedSpec() Spec {
++	spec := baseSpec()
++	spec.Workload.ChoiceBytes, spec.Workload.ReplaySuccesses = 0, false
++	spec.Workload.SuccessArtifactLimit, spec.Workload.SuccessBytesLimit = 0, 0
++	return spec
+ }
+ 
+ func run(root string, check bool) error {
+@@ -272,6 +281,39 @@
+ 	}
+ }
+ 
++func TestUntracedDefaultsTraceOnlyTheTestsThatOptIn(t *testing.T) {
++	choices, replay, artifacts, bytes := uint64(8<<20), true, uint64(1), uint64(128<<20)
++	spec := untracedSpec()
++	spec.Tests = map[string]TestOverride{
++		"TestBeta_Parts": {
++			ChoiceBytes: &choices, ReplaySuccesses: &replay, SuccessArtifactLimit: &artifacts, SuccessBytesLimit: &bytes,
++			Reason: "its open finding is a replay divergence, which only a replayed tape can observe",
++		},
++	}
++	root := writeFixture(t, spec)
++	if err := run(root, false); err != nil {
++		t.Fatal(err)
++	}
++	manifest := loadGenerated(t, root)
++	type retained struct {
++		ChoiceBytes          uint64
++		ReplaySuccesses      bool
++		SuccessArtifactLimit uint64
++		SuccessBytesLimit    uint64
++	}
++	for test, want := range map[string]retained{
++		"TestAlphaSuite": {},
++		"TestBeta_Parts": {ChoiceBytes: 8 << 20, ReplaySuccesses: true, SuccessArtifactLimit: 1, SuccessBytesLimit: 128 << 20},
++		"TestNDCGamma":   {},
++	} {
++		workload, found := workloadFor(manifest, test)
++		got := retained{workload.ChoiceBytes, workload.ReplaySuccesses, workload.SuccessArtifactLimit, workload.SuccessBytesLimit}
++		if !found || got != want {
++			t.Fatalf("%s retains %+v (found %v), want %+v", test, got, found, want)
++		}
++	}
++}
++
+ func TestInvalidSpecsAreRefused(t *testing.T) {
+ 	for name, testCase := range map[string]struct {
+ 		mutate func(*Spec)
+@@ -326,7 +368,49 @@
+ 				spec.Tests = map[string]TestOverride{"TestAlphaSuite": {ExecutionTimeout: "4m"}}
+ 			},
+ 			want: "changes its evidence or budget and requires a reason",
++		},
++		"override widening evidence without reason": {
++			mutate: func(spec *Spec) {
++				limit := uint64(2)
++				spec.Tests = map[string]TestOverride{"TestAlphaSuite": {SuccessArtifactLimit: &limit}}
++			},
++			want: "changes its evidence or budget and requires a reason",
++		},
++		"default success limits without replay": {
++			mutate: func(spec *Spec) {
++				*spec = untracedSpec()
++				spec.Workload.SuccessArtifactLimit = 1
++			},
++			want: "workload sets success limits without replay_successes",
++		},
++		"default replay without a choice trace": {
++			mutate: func(spec *Spec) { spec.Workload.ChoiceBytes = 0 },
++			want:   "workload replays successes without a choice trace",
++		},
++		"opt-in replay without a choice trace": {
++			mutate: func(spec *Spec) {
++				*spec = untracedSpec()
++				replay, limit := true, uint64(1)
++				spec.Tests = map[string]TestOverride{"TestAlphaSuite": {ReplaySuccesses: &replay, SuccessArtifactLimit: &limit, SuccessBytesLimit: &limit, Reason: "opts into replay"}}
++			},
++			want: "override of TestAlphaSuite replays successes without a choice trace",
+ 		},
++		"opt-in replay without success limits": {
++			mutate: func(spec *Spec) {
++				*spec = untracedSpec()
++				replay, choices, limit := true, uint64(8<<20), uint64(1)
++				spec.Tests = map[string]TestOverride{"TestAlphaSuite": {ChoiceBytes: &choices, ReplaySuccesses: &replay, SuccessArtifactLimit: &limit, Reason: "opts into replay"}}
++			},
++			want: "override of TestAlphaSuite replays successes and requires success_artifact_limit and success_bytes_limit",
++		},
++		"success limits without replay": {
++			mutate: func(spec *Spec) {
++				*spec = untracedSpec()
++				choices, limit := uint64(8<<20), uint64(1)
++				spec.Tests = map[string]TestOverride{"TestAlphaSuite": {ChoiceBytes: &choices, SuccessArtifactLimit: &limit, SuccessBytesLimit: &limit, Reason: "opts into tracing"}}
++			},
++			want: "override of TestAlphaSuite sets success limits without replay_successes",
++		},
+ 		"subtest skip without owner": {
+ 			mutate: func(spec *Spec) {
+ 				spec.Tests = map[string]TestOverride{"TestAlphaSuite": {SkipSubtests: map[string]Exclusion{"TestClock": {Date: "2026-09-28", Reason: "same instant"}}}}
+@@ -417,18 +501,58 @@
+ 	}
+ }
+ 
++const (
++	checkedInSpec     = "tools/gomad3integration/qualification/tests.generator.json"
++	checkedInManifest = "tools/gomad3integration/qualification/tests.json"
++)
++
++func repositoryRoot(t *testing.T) string {
++	t.Helper()
++	root, err := filepath.Abs(filepath.Join("..", "..", "..", "..", ".."))
++	if err != nil {
++		t.Fatal(err)
++	}
++	return root
++}
++
+ // TestCheckedInTestsManifestIsCurrent fails when ./tests or its generator
+ // spec changed without regenerating the manifest.
+ func TestCheckedInTestsManifestIsCurrent(t *testing.T) {
+-	root, err := filepath.Abs(filepath.Join("..", "..", "..", "..", ".."))
++	err := Run(Config{Root: repositoryRoot(t), Spec: checkedInSpec, Output: checkedInManifest, Check: true})
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+-	err = Run(Config{
+-		Root: root, Spec: "tools/gomad3integration/qualification/tests.generator.json",
+-		Output: "tools/gomad3integration/qualification/tests.json", Check: true,
+-	})
++}
++
++// TestCheckedInTestsManifestTracesOnlyByOverride holds the routine ./tests set
++// to seed repeatability: a workload records a choice trace or replays its
++// successes only where the spec opts that test in by name.
++func TestCheckedInTestsManifestTracesOnlyByOverride(t *testing.T) {
++	root := repositoryRoot(t)
++	spec, err := LoadSpec(filepath.Join(root, filepath.FromSlash(checkedInSpec)))
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
++	if spec.Workload.retention() != (retention{}) {
++		t.Fatalf("workload defaults retain %+v, want no choice trace, success replay, or success limits", spec.Workload.retention())
++	}
++	manifest, err := set.LoadManifest(filepath.Join(root, filepath.FromSlash(checkedInManifest)))
++	if err != nil {
++		t.Fatal(err)
++	}
++	var traced []string
++	for _, workload := range manifest.Suites {
++		if workload.ChoiceBytes == 0 && !workload.ReplaySuccesses && workload.SuccessArtifactLimit == 0 && workload.SuccessBytesLimit == 0 {
++			continue
++		}
++		traced = append(traced, workload.Test)
++		if override := spec.Tests[workload.Test]; override.ChoiceBytes == nil || *override.ChoiceBytes == 0 {
++			t.Errorf("%s is traced without an override that opts it in", workload.Test)
++		}
++	}
++	// Its open finding (GOMAD_MILESTONES.md F10 D14) is a replay divergence,
++	// which an untraced run cannot observe.
++	if chasm, _ := workloadFor(manifest, "TestSignalWorkflowTestSuiteChasm"); chasm.ChoiceBytes == 0 || !chasm.ReplaySuccesses {
++		t.Errorf("TestSignalWorkflowTestSuiteChasm must stay traced with success replay, traced tests = %v", traced)
++	}
+ }
+--- a/tools/gomad3/qualification/set/set_test.go
++++ b/tools/gomad3/qualification/set/set_test.go
+@@ -272,6 +272,52 @@
+ 	}
+ 	if !seed.Replayed || !seed.ReplayMatch || seed.ChoiceReplayExact {
+ 		t.Fatalf("seed evidence = %#v", seed)
++	}
++}
++
++// An untraced workload is qualified by same-seed repeatability alone, so its
++// seed must record the matching evidence without any replay or choice-tape
++// claim, and a mismatch between its repetitions must stay nondeterministic.
++func TestProjectSeedReportClaimsNoReplayForAnUntracedWorkload(t *testing.T) {
++	untraced := Workload{ID: "fixture-case", CapabilityMode: target.CapabilityModeClosure, Package: "./pkg", Test: "TestScenario"}
++	command := workloadCommand(Spec{GomadPath: "gomad", ArtifactRoot: "artifacts"}, Manifest{Repeat: 2, RunTimeout: "30s", OverallTimeout: "2m", TerminateGrace: "2s"}, untraced, 7)
++	if slices.ContainsFunc(command.Args, func(argument string) bool {
++		return strings.HasPrefix(argument, "--choice") || strings.HasPrefix(argument, "--replay-successes") || strings.HasPrefix(argument, "--success-")
++	}) {
++		t.Fatalf("untraced workload command = %q, want no choice trace or success replay", command.Args)
++	}
++	digest := record.HashBytes([]byte("evidence"))
++	report := qualification.QualificationReport{Seed: 7, EvidenceDigest: digest, Executions: []qualification.QualificationExecutionReport{
++		{CampaignPath: "run-1", EvidenceDigest: digest}, {CampaignPath: "run-2", EvidenceDigest: digest},
++	}}
++	var totals Report
++	for _, classification := range []string{"qualified", "nondeterministic"} {
++		seed, err := projectSeedReport(report, classification, 7, untraced, capabilityanalysis.Report{})
++		if err != nil {
++			t.Fatal(err)
++		}
++		addSeedTotals(&totals, seed)
++		if seed.Classification != classification || seed.EvidenceSHA256 != digest || seed.Replayed || seed.ReplayMatch || seed.ChoiceReplayExact || seed.Choice.Available || seed.Choice.ExactReplayAvailable || seed.Choice.TapeSHA256 != "" || seed.TraceBytes != 0 || seed.ArtifactBytes != 0 {
++			t.Fatalf("%s seed evidence = %#v", classification, seed)
++		}
++		encoded, err := canonicaljson.CanonicalJSON(seed)
++		if err != nil {
++			t.Fatal(err)
++		}
++		var public map[string]any
++		if err := json.Unmarshal(encoded, &public); err != nil {
++			t.Fatal(err)
++		}
++		if _, claimed := public["choice_replay_exact"]; claimed || public["replayed"] != false || public["replay_match"] != false || public["choice"].(map[string]any)["available"] != false {
++			t.Fatalf("%s public seed evidence = %s", classification, encoded)
++		}
++		workload := WorkloadReport{Classification: classification, Seeds: []SeedReport{seed}}
++		if got := matchesSupportedExpectation(WorkloadExpectation{Classification: "qualified"}, workload); got != (classification == "qualified") {
++			t.Fatalf("qualified expectation met = %t for a %s untraced seed", got, classification)
++		}
++	}
++	if totals.Replayed != 0 || totals.ReplayDiverged != 0 || totals.TraceBytes != 0 {
++		t.Fatalf("untraced seed totals = %#v", totals)
+ 	}
+ }
+ 
+--- a/tools/gomad3integration/qualification/tests.generator.json
++++ b/tools/gomad3integration/qualification/tests.generator.json
+@@ -36,10 +36,10 @@
+         "target": "/go.temporal.io/server/schema"
+       }
+     ],
+-    "choice_bytes": 67108864,
+-    "replay_successes": true,
+-    "success_artifact_limit": 1,
+-    "success_bytes_limit": 1073741824,
++    "choice_bytes": 0,
++    "replay_successes": false,
++    "success_artifact_limit": 0,
++    "success_bytes_limit": 0,
+     "overall_timeout": "20m",
+     "expectation": {
+       "classification": "qualified"
+@@ -214,7 +214,11 @@
+           "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+         }
+       },
+-      "reason": "Residual replay divergence: about 1 in 28 seed-11 replays differ in stderr (two heap-span refills swap order before any collection; allocating goroutine not yet identified). Open Gomad finding recorded in F7's status (2026-09-29)."
++      "choice_bytes": 67108864,
++      "replay_successes": true,
++      "success_artifact_limit": 1,
++      "success_bytes_limit": 1073741824,
++      "reason": "Residual replay divergence: about 1 in 28 seed-11 replays differ in stderr (two heap-span refills swap order before any collection; allocating goroutine not yet identified). Open Gomad finding recorded in F7's status (2026-09-29). It opts into the 64 MiB choice trace and success replay that routine workloads no longer record, because an untraced run cannot observe a replay divergence (F10 D14)."
+     },
+     "TestTaskQueueStats_Pri_Suite": {
+       "io_transcript_bytes": 536870912,
+--- a/tools/gomad3/README.md
++++ b/tools/gomad3/README.md
+@@ -245,7 +245,28 @@
+ identity, World identity, outcome, semantic probes, and optional choice
+ features. Replay evidence is attached to its corresponding repetition. Add
+ `--replay-successes` with explicit positive `--success-limit` and
+-`--success-bytes` bounds to retain and replay every success. Repeat `--require-probe`
++`--success-bytes` bounds to retain and replay every success. `--choices` and
++`--replay-successes` are independent opt-in flags, so a `qualified` result makes
++up to three claims and the report says which:
++
++- **Same-seed repeatability** is what every `qualified` result establishes:
++  each repetition was prepared and executed afresh and their evidence digests
++  are equal. Repetitions that differ are `nondeterministic` and a failing target
++  is `target_failure`, with or without either flag.
++- **Tape availability** needs `--choices` and a retained Artifact. The evidence
++  then carries a choice profile with its `tape_sha256`, which the repetitions
++  must also agree on, but a success is retained only with `--replay-successes`,
++  so without it no Decision Tape is kept to replay.
++- **Verified choice-tape replay** needs both flags: each retained success is
++  replayed from its tape, and its repetition records a `replay` entry with
++  `match` and `choice_replay_status: exact`.
++
++`--replay-successes` without `--choices` still retains and replays each
++success, re-executing it from its seed: the `replay` entry then records `match`
++with `choice_replay_status: none`, which is a replay of the Artifact and not of
++a choice tape. A repetition without a `replay` entry was not replayed, so a
++qualification run with neither flag claims repeatability and nothing about
++replay. Repeat `--require-probe`
+ to enforce known conditional probes; `--repeat` is bounded to 2 through 32.
+ Add `--json` for newline-delimited `gomad3.qualify-event/v1` progress, result,
+ and error records. Unsupported targets retain their first boundary and exact
+@@ -277,6 +298,20 @@
+ `capability`; every other non-qualified expectation names the blocker it
+ accepts with a `finding` identity, such as the milestone section that records
+ it, and a `qualified` expectation names neither.
++A workload with `choice_bytes` 0 and `replay_successes` false runs without
++`--choices` and `--replay-successes`. Its `qualified` seeds establish same-seed
++repeatability: the seed reports the `evidence_sha256` its repetitions agreed on
++with `replayed` and `replay_match` false, `choice.available` false, and no
++`choice_replay_exact`. A workload that sets `choice_bytes`, `replay_successes`,
++and both success limits reports `choice.exact_replay_available` when its seed
++retained one Decision Tape and `choice_replay_exact` only when that tape was
++replayed and matched. A workload that traces choices in a set must also replay
++its successes, because the set reads choice coverage from the retained success
++Artifacts. The report's `replayed` count and `trace_bytes` total cover the
++replayed and traced seeds only, and `dimensions` names the evidence kinds the
++report format carries, not what each workload recorded. `compare-support`
++reports a seed that replayed in the baseline and not in the candidate as a
++replay regression.
+ Status 0 means all expectations
+ matched, 1 means a retained mismatch, 2 means invalid input, and 3 means
+ cancellation, timeout, child, or publication infrastructure failure.
+@@ -356,8 +391,16 @@
+ seeds and requires matching execution, World, I/O, and choice-tape replay.
+ The generated `tests.json` manifest beside it holds one tier 3 workload per
+ top-level `./tests` test. It is an on-demand local set rather than a CI gate,
+-and its suites that run without a choice trace establish seed repeatability,
+-not exact replay; the milestones record its remaining dispositions.
++and it is untraced by default: its generator spec sets `choice_bytes` 0 and
++`replay_successes` false, so a `qualified` workload there establishes same-seed
++repeatability and makes no choice-tape replay claim. A test records a bounded
++choice trace and replays its successes only where the spec opts it in by name.
++The tracing-enabled replay gates are this representative corpus, the smoke
++selection copied from it, and `qualification/core.json`: each of their
++workloads records a choice trace and replays its successes, and a seed there
++verifies choice-tape replay when it reports `choice_replay_exact`. An
++`intermittent` expectation in those manifests still accepts a seed that
++diverged. The milestones record the remaining dispositions.
+ 
+ An interrupted campaign retains a canonical `gomad3.campaign-plan/v1` beside
+ its prepared target. A guided plan also records the selected corpus snapshot
+--- a/tools/gomad3/CLI.md
++++ b/tools/gomad3/CLI.md
+@@ -277,6 +277,8 @@
+ Qualification prepares and executes independently for each repetition, compares canonical evidence, and retains its own report. Optional successful replay proves that a passing observation is reproducible, not merely equal by summary.
+ 
+ The default is seed 1 with two repetitions; `--repeat` accepts 2 through 32. Qualification collects semantic coverage, and `--choices` adds choice coverage and runtime replay evidence. `--replay-successes` requires explicit count and byte bounds per repetition.
++
++The two flags are independent and opt-in, and the claim follows the flags. With neither, `qualified` means same-seed repeatability: fresh repetitions produced equal evidence, and nothing was replayed. With `--choices` the compared evidence includes the Choice Trace's tape digest, but a success keeps its Decision Tape only when it is retained. With `--replay-successes` alone each retained success is replayed from its seed and the result reports `choice-replay=none`. With both flags each retained success is replayed from its tape, and the result's `choice-replay=exact` is the verified choice-tape replay claim. A qualification-set workload states the same choice with `choice_bytes`, `replay_successes`, and its success limits, and there success replay requires a Choice Trace; an untraced workload's seeds report `replayed: false` and no `choice_replay_exact`.
+ 
+ A product claim usually contains more than one workload. First validate the qualification manifest without running targets:
+ 
+@@ -444,7 +446,7 @@
+ - `version-generate` derives consumers of the release descriptor.
+ - `protocol-generate` derives both endpoints and tests for the declared cross-process protocols.
+ - `boundary-generate` derives the reviewed host-capability inventory and compiler interception evidence.
+-- `qualification-manifest-generate` derives a qualification-set manifest with one workload per top-level test of a package, the tests `go test -list` reports under the spec's build tags, from a spec of defaults, per-test overrides, and exclusions. `--check` fails when the manifest is stale relative to the package or the spec.
++- `qualification-manifest-generate` derives a qualification-set manifest with one workload per top-level test of a package, the tests `go test -list` reports under the spec's build tags, from a spec of defaults, per-test overrides, and exclusions. `--check` fails when the manifest is stale relative to the package or the spec. The checked-in `./tests` spec defaults to no Choice Trace and no success replay; a test opts in by overriding `choice_bytes`, `replay_successes`, `success_artifact_limit`, and `success_bytes_limit` with a `reason`.
+ 
+ Without `--check`, these commands update generated outputs. `boundary-generate` also supports focused maintenance modes: `--discover` lists candidate host-capability entry points, `--qualify` verifies declared signatures and candidate coverage, `--refresh` updates reviewed source fingerprints, and `--check-compiler-tests` validates compiler conformance declarations.
+ 
+--- a/tools/gomad3integration/README.md
++++ b/tools/gomad3integration/README.md
+@@ -80,20 +80,36 @@
+ tests `go test -list` reports under the `disable_grpc_modules`, `gomad`, and
+ `test_dep` tags on darwin/arm64 and linux/amd64 and applies
+ `qualification/tests.generator.json`, which holds the manifest and workload
+-defaults (the F6 slice's closure mode, tags, schema mount, 64 MiB choices,
+-retention, and timeouts), per-test overrides, and exclusions.
++defaults (the F6 slice's closure mode, tags, schema mount, and timeouts, with
++no choice trace and no success replay), per-test overrides, and exclusions.
+ `make -C tools/gomad3 validate`, which CI runs, fails when the checked-in
+ manifest is stale relative to `./tests` or the spec.
+ 
+ A new test therefore lands expecting `qualified` on both platforms and fails
+ the set when it is not. An override changes a test's `expectation`,
+ `platform_expectations`, or `required_probes`; a failure expectation names its
+-`finding` as elsewhere. An override may also narrow what a test retains or
+-how long it may run (`choice_bytes`, `replay_successes`, `execution_timeout`,
+-`overall_timeout`), and then must carry a `reason`: a test whose choice tape
+-overflows the 64 MiB bound runs with `choice_bytes` 0 and `replay_successes`
+-false, so it still proves seed repeatability but retains and replays no
+-success artifact. A test leaves the set only by an exclusion with an
++`finding` as elsewhere.
++
++Routine workloads are untraced: the defaults set `choice_bytes` 0,
++`replay_successes` false, and both success limits 0. A `qualified` workload
++therefore establishes same-seed repeatability, two fresh repetitions per seed
++with equal evidence, and its report makes no choice-tape replay claim
++(`replayed` and `choice.available` are false). A mismatch between repetitions
++is still `nondeterministic`, and target and infrastructure failures still fail
++the set. An override may change what a test retains or how long it may run
++(`choice_bytes`, `replay_successes`, `success_artifact_limit`,
++`success_bytes_limit`, `execution_timeout`, `overall_timeout`), and then must
++carry a `reason`. A test opts into tracing and success replay by setting a
++bounded `choice_bytes`, `replay_successes` true, and both success limits; the
++generator refuses replay without a trace or limits, and limits without replay.
++`TestSignalWorkflowTestSuiteChasm` opts in, because its open finding is a
++replay divergence. Eight suites keep an explicit `choice_bytes` 0 with the
++reason that their choice tapes overflow the 64 MiB maximum, so they cannot opt
++in until larger traces exist. `temporal.json` and `smoke.json` stay traced and
++replayed on every workload; they are the tracing-enabled replay gates, and a
++seed there verifies choice-tape replay when it reports `choice_replay_exact`.
++
++A test leaves the set only by an exclusion with an
+ `owner`, a `date` (`YYYY-MM-DD`), and a `reason`; a single subtest leaves it
+ through the override's `skip_subtests`, which takes the same three fields per
+ subtest and runs the test with an anchored `-test.skip` while the rest of the
+--- a/.plans/GOMAD_MILESTONES.md
++++ b/.plans/GOMAD_MILESTONES.md
+@@ -55,15 +55,25 @@
+ (`tools/gomad3integration/qualification/tests.json`, from `tests.generator.json`); none is
+ excluded. What still keeps the package short of "every functional test replays exactly":
+ 
+-- **No exact replay for eight suites.** `TestTaskQueueStats_Pri_Suite`,
+-  `TestVersioning3FunctionalSuite`, `TestVersioning3QueryFunctionalSuite`, and
+-  `TestWorkerDeploymentSuite` run with a raised I/O transcript and no choice trace; repeatability
+-  is proven, exact replay is not (F10 D13). `TestClientMiscTestSuite`, `TestScheduleV1`, and
+-  `TestScheduleV1WorkflowPauseInteraction` run with the default transcript and no choice trace
+-  because their traces overflow the 64 MiB maximum; their `qualified` expectation likewise rests
+-  on seed repeatability. `TestVersioningFunctionalSuite` also runs without a choice trace and,
+-  with the D25 corrections, is expected `qualified` on the same basis (see
+-  [open findings](#open-findings), D25).
++- **Routine qualification is untraced (F10 D13).** The generated manifest defaults to no choice
++  trace and no success replay, so a `qualified` workload there establishes same-seed
++  repeatability: two fresh repetitions per seed with equal evidence. Its report makes no
++  choice-tape replay claim (`replayed` and `choice.available` are false), and a mismatch between
++  repetitions is still `nondeterministic`. Tracing and success replay stay on in the replay
++  gates (`temporal.json`, `smoke.json`, and `qualification/core.json`) and for the one test the
++  generator spec opts in, `TestSignalWorkflowTestSuiteChasm`, whose open finding is a replay
++  divergence (D14). A seed there verifies choice-tape replay when it reports
++  `choice_replay_exact`; the `intermittent` expectations of D12 and D14 still accept a seed that
++  diverged. The exact-replay results recorded below for individual suites are the dated traced
++  runs they name, not a property of routine runs.
++- **No exact replay available for eight suites.** Their choice traces overflow the 64 MiB
++  maximum, so they cannot opt into tracing until larger traces exist (deferred as D15).
++  `TestTaskQueueStats_Pri_Suite`, `TestVersioning3FunctionalSuite`,
++  `TestVersioning3QueryFunctionalSuite`, and `TestWorkerDeploymentSuite` also run with a raised
++  I/O transcript; `TestClientMiscTestSuite`, `TestScheduleV1`, and
++  `TestScheduleV1WorkflowPauseInteraction` run with the default transcript.
++  `TestVersioningFunctionalSuite`, with the D25 corrections, is expected `qualified` on the
++  same seed-repeatability basis (see [open findings](#open-findings), D25).
+ - **Skips with an identified cause.**
+   - `TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch`:
+     under `clock_tick: forward` a propagated gRPC deadline lands later on the server than on the
+@@ -213,14 +223,14 @@
+ | --- | --- | --- |
+ | D7 | Add a darwin/arm64 job for the existing functional smoke selection (`fn-101.4`) | Required CI addition approved 2026-09-30. R7 in fn-105 requires a standard macOS runner, preserved Linux coverage, platform-specific reports/artifacts, zero unsupported/failed/infrastructure errors, explicitly traced exact replay, and passing GitHub Actions evidence. |
+ | D12 | Identify and fix the linux/amd64 replay-divergence channel (`fn-106.1`); about one tier-3 seed-run in 26 diverged, and the recorded evidence points to host timing under load | Must be fixed, decided 2026-09-30. Native Linux instrumentation is an execution prerequisite. R12 in fn-105 requires a regression reproducer, repeated exact replay on both seeds under load, and restoration of strict CI expectations; diagnosis alone cannot close the task. |
+-| D13 | Make runtime choice tracing opt-in for routine full-suite qualification (`fn-106.3`) | Decided 2026-09-30. R13 in fn-105 requires untraced full-suite defaults, explicit tracing in representative replay/conformance gates and choice-based exploration, and separate reporting of seed repeatability and verified choice-tape replay. D12/D14 verification remains traced. Larger-trace support moves to deferred D15. |
++| D13 | Make runtime choice tracing opt-in for routine full-suite qualification (`fn-106.3`) | Decided 2026-09-30. R13 in fn-105 requires untraced full-suite defaults, explicit tracing in representative replay/conformance gates and choice-based exploration, and separate reporting of seed repeatability and verified choice-tape replay. D12/D14 verification remains traced. Larger-trace support moves to deferred D15. In the working tree (2026-09-30): the `./tests` generator spec defaults to `choice_bytes` 0 and `replay_successes` false with zero success limits, a test opts into a bounded trace and success replay by name, and 146 of the 147 generated workloads are untraced; `TestSignalWorkflowTestSuiteChasm` opts in for D14. `temporal.json`, `smoke.json`, and `core.json` stay traced on every workload, the CLI flags and choice exploration are unchanged, and no report field was added: an untraced `qualified` seed already reports `replayed` and `choice.available` false. One untraced run of `TestUserTimersTestSuite` on seed 11 qualified by repeatability on darwin/arm64; the full untraced set was not run, and linux/amd64 was not run. |
+ | D14 | Fix Darwin TestSignalWorkflowTestSuiteChasm replay divergence (F7); two heap-span refills swap order at cluster start, historically about one seed-11 replay in 28 | Required fix, decided 2026-09-30. R14 in fn-105 requires identifying and fixing the cause, a regression reproducer, and repeated Darwin exact replay on both seeds under load. A shared D12 fix requires separate Darwin verification before restoring the suite to qualified. |
+ | D16 | Investigate TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch; the client times out before an empty poll response under the forward clock | Investigation approved 2026-09-30. R16 in fn-105 requires a reproducer, native/Gomad comparison, causal deadline evidence, and a proposed correction with an owner for a subsequent decision. Keep the skip until evidence supports removal; retain any needed fix as explicit open work. |
+ | D17 | Investigate TestNexusOTELSuite/TestOperation with two clusters; configuring two pool slots resolves the initial wait but repeated runs and replay still differ | Investigation approved 2026-09-30. R17 in fn-105 requires reproductions, control comparisons, the first divergent event and missing-terminal-frame diagnosis, and an owned correction proposal for a subsequent decision. Keep the skip until verification supports removal; a shared D12/D14 cause requires evidence. |
+ | D18 | Investigate worker cancellation delivery and inconsistent test timeout budgets | Approved 2026-09-30. R18 requires causal delivery/deadline evidence and an owned correction proposal; keep the skip until verified. |
+ | D19 | Investigate activity fairness backlog readiness in both fairness suites | Blanket investigation approval 2026-09-30. R19 distinguishes setup bias from a fairness defect and preserves the fairness assertions. |
+ | D20 | Investigate heartbeat timeout counting under virtual time | Blanket investigation approval 2026-09-30. R20 establishes timeout/reset semantics and proposes a correction preserving timeout/recovery coverage. |
+-| D21 | Investigate host-clock reporting exposure and policy-compatible remedies | Investigated 2026-09-30 on darwin/arm64 ([report](../docs/research/gomad/GOMAD_HOST_CLOCK_ESCAPES.md)); nothing is fixed. No escape is read by runtime control flow; by source inspection none reaches functional-workload evidence, and the four inventoried escapes are not a cause of D12/D14 (linux `cputicks` is left open for D12). The limitation, the inventory corrections, and the proposed `proc.go` stamp overwrite await a decision by the fn-105 owner. The overwrite writes collector-owned state and needs patch-policy judgement, as do `mgc.go` and assembly changes. |
++| D21 | Investigate host-clock reporting exposure and policy-compatible remedies | Investigated 2026-09-30 on darwin/arm64 ([report](../docs/research/gomad/GOMAD_HOST_CLOCK_ESCAPES.md)); nothing is fixed. None of the four inventoried escapes is read by runtime control flow; by source inspection none reaches functional-workload evidence, and the four inventoried escapes are not a cause of D12/D14 (linux `cputicks` is left open for D12). The limitation, the inventory corrections, and the proposed `proc.go` stamp overwrite await a decision by the fn-105 owner. The overwrite writes collector-owned state and needs patch-policy judgement, as do `mgc.go` and assembly changes. |
+ | D22 | Fix parallel Nexus start/cancel outcome subtests that reuse endpoint names | Required fix approved 2026-09-30. R22 requires independent endpoint identities, preserved parallel/API coverage, native and Gomad verification, and removal of the four skips after verification. |
+ | D23 | Correct schedule-migration idempotency coverage with explicit pending and closed states | Required test correction approved 2026-09-30. R23 preserves current production semantics, verifies pending-state retry and closed-state behavior separately, and removes the skip after native/Gomad verification. |
+ | D24 | Correct the Nexus reset-cross-tree test's signal ordering | Required test fix approved 2026-09-30. R24 requires an explicit post-reset task-completion predicate, preserved operation-survival/HSM/CHASM/history assertions, native/Gomad verification, and skip removal after verification. |

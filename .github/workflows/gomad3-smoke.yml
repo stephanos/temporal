@@ -105,3 +105,70 @@ jobs:
           path: tools/gomad3/.toolchain/smoke-qualification-set.json
           if-no-files-found: error
           retention-days: 30
+
+  # The darwin/arm64 counterpart of the Linux job (GOMAD_MILESTONES.md F10 D7):
+  # the same triggers, the same manifest check, and the same smoke selection on
+  # a standard GitHub-hosted macOS runner.
+  functional-smoke-darwin:
+    runs-on: macos-15
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: tools/gomad3/go.mod
+          check-latest: true
+          cache: true
+
+      - name: Verify qualified host
+        run: test "$(go env GOHOSTOS)/$(go env GOHOSTARCH)" = darwin/arm64
+
+      - name: Check the ./tests qualification manifest is current
+        run: make -C tools/gomad3 validate-qualification
+
+      # Routine full-suite qualification runs untraced (GOMAD_MILESTONES.md F10
+      # D13), so this representative replay gate states its tracing itself: a
+      # suite without a choice trace and replayed successes could only show seed
+      # repeatability, which the evidence check below does not accept.
+      - name: Check the smoke selection is explicitly traced
+        run: >-
+          jq -e '
+          .schema == "gomad3.qualification-set/v3" and
+          .seeds == [11] and (.suites | length) == 4 and
+          ([.suites[] | .choice_bytes > 0 and .replay_successes == true] | all)
+          ' tools/gomad3integration/qualification/smoke.json
+
+      - name: Qualify the functional smoke selection
+        run: make gomad3-smoke-qualification
+
+      # Stricter than the Linux check: the open linux replay finding does not
+      # extend to darwin, so every smoke suite must be `qualified` on seed 11
+      # with verified exact choice-tape replay. A nondeterministic or
+      # replay-diverged suite fails the gate here and stays required work under
+      # GOMAD_MILESTONES.md F10 D12/D14.
+      - name: Verify functional smoke evidence
+        run: >-
+          jq -e '
+          .schema == "gomad3.qualification-set-report/v1" and
+          .platform == {"goos": "darwin", "goarch": "arm64"} and
+          .seeds == ["11"] and .expectations_met and
+          .selected == 4 and .completed == 4 and .supported == 4 and
+          .unsupported == 0 and .failed == 0 and .infrastructure_errors == 0 and
+          .replay_diverged == 0 and (.workloads | length) == 4 and
+          ([.workloads[] | .classification == "qualified" and
+          (.seeds | length) == 1 and .choice.available and
+          .choice.exact_replay_available and
+          ([.seeds[] | .classification == "qualified" and .replayed and
+          .replay_match and .choice_replay_exact] | all)] | all)
+          ' tools/gomad3/.toolchain/smoke-qualification-set.json
+
+      - name: Upload functional smoke evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: gomad3-functional-smoke-darwin-arm64-${{ github.run_id }}
+          path: |
+            tools/gomad3/.toolchain/smoke-qualification-set.json
+            tools/gomad3/.toolchain/smoke-qualification
+          if-no-files-found: error
+          retention-days: 30

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-01T01:09:58.149418Z",
+  "depends_on": [
+    "fn-109-gomad-deepen-modules-and-tool-interfaces.17"
+  ],
+  "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.18",
+  "priority": null,
+  "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
+  "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.18.md",
+  "status": "todo",
+  "title": "Select backend-specific filesystem handle and mapping implementations at creation",
+  "updated_at": "2026-10-01T01:10:31.820080Z"
+}

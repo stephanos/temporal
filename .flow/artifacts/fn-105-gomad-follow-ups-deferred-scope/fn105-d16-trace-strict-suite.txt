@@ -1,0 +1,24 @@
+== seed 11 (failures)
+[d16] site=1-client-before-poll now=26.31s offset=0s timer_clock=26.31s deadline=29.31s until=3s ctx_err=<nil> err=<nil>
+[d16] site=2-frontend-before-matching now=26.31s offset=0s timer_clock=26.31s deadline=29.31s until=3s ctx_err=<nil> err=<nil>
+[d16] site=3-matching-handler-ctx now=26.31s offset=0s timer_clock=26.31s deadline=29.31s until=3s ctx_err=<nil> err=<nil>
+[d16] site=4-matching-child-ctx now=26.31s offset=0s timer_clock=26.31s deadline=28.31s until=2s ctx_err=<nil> err=<nil>
+[d16] site=3-matching-handler-ctx now=26.31s offset=0s timer_clock=26.31s deadline=28.31s until=2s ctx_err=<nil> err=<nil>
+[d16] site=4-matching-child-ctx now=26.31s offset=0s timer_clock=26.31s deadline=27.31s until=1s ctx_err=<nil> err=<nil>
+[d16] site=5-matching-poll-return now=27.31s offset=0s timer_clock=27.31s deadline=27.31s until=0s ctx_err=context deadline exceeded err=<nil>
+[d16] site=5-matching-poll-return now=28.31s offset=0s timer_clock=28.31s deadline=28.31s until=0s ctx_err=context deadline exceeded err=<nil>
+[d16] site=6-frontend-after-matching now=28.31s offset=0s timer_clock=28.31s deadline=29.31s until=1s ctx_err=<nil> err=<nil>
+[d16] site=7-client-after-poll now=28.31s offset=0s timer_clock=28.31s deadline=29.31s until=1s ctx_err=<nil> err=<nil>
+--- PASS: TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch (5.00s)
+== seed 17 (failures)
+[d16] site=1-client-before-poll now=24.71s offset=0s timer_clock=24.71s deadline=27.71s until=3s ctx_err=<nil> err=<nil>
+[d16] site=2-frontend-before-matching now=24.71s offset=0s timer_clock=24.71s deadline=27.71s until=3s ctx_err=<nil> err=<nil>
+[d16] site=3-matching-handler-ctx now=24.71s offset=0s timer_clock=24.71s deadline=27.71s until=3s ctx_err=<nil> err=<nil>
+[d16] site=4-matching-child-ctx now=24.71s offset=0s timer_clock=24.71s deadline=26.71s until=2s ctx_err=<nil> err=<nil>
+[d16] site=3-matching-handler-ctx now=24.71s offset=0s timer_clock=24.71s deadline=26.71s until=2s ctx_err=<nil> err=<nil>
+[d16] site=4-matching-child-ctx now=24.71s offset=0s timer_clock=24.71s deadline=25.71s until=1s ctx_err=<nil> err=<nil>
+[d16] site=5-matching-poll-return now=25.71s offset=0s timer_clock=25.71s deadline=25.71s until=0s ctx_err=context deadline exceeded err=<nil>
+[d16] site=5-matching-poll-return now=26.71s offset=0s timer_clock=26.71s deadline=26.71s until=0s ctx_err=context deadline exceeded err=<nil>
+[d16] site=6-frontend-after-matching now=26.71s offset=0s timer_clock=26.71s deadline=27.71s until=1s ctx_err=<nil> err=<nil>
+[d16] site=7-client-after-poll now=26.71s offset=0s timer_clock=26.71s deadline=27.71s until=1s ctx_err=<nil> err=<nil>
+--- PASS: TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch (5.00s)

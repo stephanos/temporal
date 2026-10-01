@@ -1,0 +1,172 @@
+# seed 11, stdout sha256 0548d26e5fb4586e07dea6b384e298d67a43bc9173adb21b08b3193cbf43a50a; server log lines reduced to message and call site
+=== RUN   TestVersioningFunctionalSuite
+=== PAUSE TestVersioningFunctionalSuite
+=== CONT  TestVersioningFunctionalSuite
+=== RUN   TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_ReportFlags
+=== PAUSE TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_ReportFlags
+=== CONT  TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_ReportFlags
+    Frontend method invoked. | op=DescribeNamespace tq=... type= cause= | namespace_logger.go:53
+    Quota changed | op= tq=... type= cause= | logged_calculator.go:100
+    Quota changed | op= tq=... type= cause= | logged_calculator.go:100
+    Frontend method invoked. | op=AddSearchAttributes tq=... type= cause= | namespace_logger.go:53
+    Frontend method invoked. | op=DescribeNamespace tq=... type= cause= | namespace_logger.go:53
+    Frontend method invoked. | op=UpdateNamespace tq=... type= cause= | namespace_logger.go:53
+    Quota changed | op= tq=... type= cause= | logged_calculator.go:100
+    Update namespace succeeded | op= tq=... type= cause= | namespace_handler.go:686
+    Frontend method invoked. | op=ListSearchAttributes tq=... type= cause= | namespace_logger.go:53
+    Frontend method invoked. | op=DescribeNamespace tq=... type= cause= | namespace_logger.go:53
+    Register namespace succeeded | op= tq=... type= cause= | functional_test_base.go:602
+    Frontend method invoked. | op=GetSystemInfo tq=... type= cause= | namespace_logger.go:53
+    Frontend method invoked. | op=DescribeNamespace tq=... type= cause= | namespace_logger.go:53
+    Started Worker | op= tq=... type= cause= | sdk_logger.go:62
+    routing key extraction: adding routing key to context | op= tq=... type= cause= | routing_key_interceptor.go:112
+    Frontend method invoked. | op=RecordWorkerHeartbeat tq=... type= cause= | namespace_logger.go:53
+    Frontend method invoked. | op=PollActivityTaskQueue tq=... type= cause= | namespace_logger.go:53
+    Quota changed | op= tq=... type= cause= | logged_calculator.go:100
+    Received PollActivityTaskQueue | op= tq=... type= cause= | workflow_handler.go:1352
+    Frontend method invoked. | op=PollWorkflowTaskQueue tq=... type= cause= | namespace_logger.go:53
+    Received PollWorkflowTaskQueue | op= tq=... type= cause= | workflow_handler.go:1082
+    Poll workflow task queue. | op= tq=... type= cause= | workflow_handler.go:1119
+    routing key extraction: adding routing key to context | op= tq=... type= cause= | routing_key_interceptor.go:112
+    Frontend method invoked. | op=DescribeTaskQueue tq=... type= cause= | namespace_logger.go:53
+    Quota changed | op= tq=... type= cause= | logged_calculator.go:100
+    loaded user data from db | op= tq=...1-949d4198900c type=Workflow cause= | user_data_manager.go:871
+    Started physicalTaskQueueManager | op= tq=...1-949d4198900c type=Workflow cause=Describe | physical_task_queue_manager.go:312
+    Starting draining | op= tq=...1-949d4198900c type=Workflow cause= | physical_task_queue_manager.go:430
+    TrailerToContextMetadataInterceptor: No metadata in trailer | op= tq=... type= cause= | throttle_logger.go:44
+    returning empty user data (no data or no change) | op= tq=...1-949d4198900c type=Workflow cause= | user_data_manager.go:644
+    returning empty user data (no data or no change) | op= tq=...1-949d4198900c type=Workflow cause= | user_data_manager.go:644
+    returning empty user data (no data or no change) | op= tq=...1-949d4198900c type=Workflow cause= | user_data_manager.go:644
+    returning empty user data (no data or no change) | op= tq=...1-949d4198900c type=Workflow cause= | user_data_manager.go:644
+    fetched user data from parent, no change | op= tq=...949d4198900c/2 type=Workflow cause= | user_data_manager.go:351
+    Started physicalTaskQueueManager | op= tq=...949d4198900c/2 type=Workflow cause=Force | physical_task_queue_manager.go:312
+    fetched user data from parent, no change | op= tq=...949d4198900c/3 type=Workflow cause= | user_data_manager.go:351
+    fetched user data from parent, no change | op= tq=...1-949d4198900c type=Activity cause= | user_data_manager.go:351
+    Started physicalTaskQueueManager | op= tq=...949d4198900c/3 type=Workflow cause=Force | physical_task_queue_manager.go:312
+    Starting draining | op= tq=...949d4198900c/2 type=Workflow cause= | physical_task_queue_manager.go:430
+    Starting draining | op= tq=...949d4198900c/3 type=Workflow cause= | physical_task_queue_manager.go:430
+    Started physicalTaskQueueManager | op= tq=...1-949d4198900c type=Activity cause=UserData | physical_task_queue_manager.go:312
+    fetched user data from parent, no change | op= tq=...949d4198900c/1 type=Workflow cause= | user_data_manager.go:351
+    Starting draining | op= tq=...1-949d4198900c type=Activity cause= | physical_task_queue_manager.go:430
+    returning empty user data (no data or no change) | op= tq=...1-949d4198900c type=Activity cause= | user_data_manager.go:644
+    Started physicalTaskQueueManager | op= tq=...949d4198900c/1 type=Workflow cause=UserData | physical_task_queue_manager.go:312
+    Starting draining | op= tq=...949d4198900c/1 type=Workflow cause= | physical_task_queue_manager.go:430
+    returning empty user data (no data or no change) | op= tq=...949d4198900c/1 type=Workflow cause= | user_data_manager.go:644
+    fetched user data from parent, no change | op= tq=...949d4198900c/3 type=Activity cause= | user_data_manager.go:351
+    Started physicalTaskQueueManager | op= tq=...949d4198900c/3 type=Activity cause=Poll | physical_task_queue_manager.go:312
+    Starting draining | op= tq=...949d4198900c/3 type=Activity cause= | physical_task_queue_manager.go:430
+    fetched user data from parent, no change | op= tq=...1-1d470e6db089 type=Workflow cause= | user_data_manager.go:351
+    Started physicalTaskQueueManager | op= tq=...1-1d470e6db089 type=Workflow cause=Poll | physical_task_queue_manager.go:312
+    returning empty user data (no data or no change) | op= tq=...1-949d4198900c type=Activity cause= | user_data_manager.go:644
+    returning empty user data (no data or no change) | op= tq=...1-949d4198900c type=Activity cause= | user_data_manager.go:644
+    fetched user data from parent, no change | op= tq=...949d4198900c/2 type=Activity cause= | user_data_manager.go:351
+    Started physicalTaskQueueManager | op= tq=...949d4198900c/2 type=Activity cause=Force | physical_task_queue_manager.go:312
+    fetched user data from parent, no change | op= tq=...949d4198900c/1 type=Activity cause= | user_data_manager.go:351
+    Started physicalTaskQueueManager | op= tq=...949d4198900c/1 type=Activity cause=Force | physical_task_queue_manager.go:312
+    Starting draining | op= tq=...949d4198900c/2 type=Activity cause= | physical_task_queue_manager.go:430
+    Starting draining | op= tq=...949d4198900c/1 type=Activity cause= | physical_task_queue_manager.go:430
+    Calculated reachability for build id | op= tq=...1-949d4198900c type= cause= | reachability.go:99
+    routing key extraction: adding routing key to context | op= tq=... type= cause= | routing_key_interceptor.go:112
+    Frontend method invoked. | op=DescribeTaskQueue tq=... type= cause= | namespace_logger.go:53
+    Calculated reachability for build id | op= tq=...1-949d4198900c type= cause= | reachability.go:99
+    routing key extraction: adding routing key to context | op= tq=... type= cause= | routing_key_interceptor.go:112
+    Frontend method invoked. | op=DescribeTaskQueue tq=... type= cause= | namespace_logger.go:53
+    guard.go:33:
+        	Error Trace:	go.temporal.io/server/tests/versioning_test.go:4221
+        	            				runtime/asm_arm64.s:1039
+        	Error:      	"[]" should have 1 item(s), but has 0
+        	Test:       	TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_ReportFlags
+        	Messages:   	only one poller info should be reported
+    Frontend method invoked. | op=ShutdownWorker tq=... type= cause= | namespace_logger.go:53
+    Stopped physicalTaskQueueManager | op= tq=...1-1d470e6db089 type=Workflow cause=Force | physical_task_queue_manager.go:341
+    returning empty user data (expired) | op= tq=...949d4198900c/1 type=Workflow cause= | user_data_manager.go:651
+    Stopped Worker | op= tq=... type= cause= | sdk_logger.go:62
+--- FAIL: TestVersioningFunctionalSuite (0.00s)
+    --- FAIL: TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_ReportFlags (0.00s)
+FAIL
+# seed 17, stdout sha256 9d144a431a96516fab20d4fcdd6df395146e6c649e68a1abd8481281eb4a4d8b; server log lines reduced to message and call site
+=== RUN   TestVersioningFunctionalSuite
+=== PAUSE TestVersioningFunctionalSuite
+=== CONT  TestVersioningFunctionalSuite
+=== RUN   TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_ReportFlags
+=== PAUSE TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_ReportFlags
+=== CONT  TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_ReportFlags
+    Frontend method invoked. | op=DescribeNamespace tq=... type= cause= | namespace_logger.go:53
+    Quota changed | op= tq=... type= cause= | logged_calculator.go:100
+    Quota changed | op= tq=... type= cause= | logged_calculator.go:100
+    Frontend method invoked. | op=AddSearchAttributes tq=... type= cause= | namespace_logger.go:53
+    Frontend method invoked. | op=DescribeNamespace tq=... type= cause= | namespace_logger.go:53
+    Frontend method invoked. | op=UpdateNamespace tq=... type= cause= | namespace_logger.go:53
+    Quota changed | op= tq=... type= cause= | logged_calculator.go:100
+    Update namespace succeeded | op= tq=... type= cause= | namespace_handler.go:686
+    Frontend method invoked. | op=ListSearchAttributes tq=... type= cause= | namespace_logger.go:53
+    Frontend method invoked. | op=DescribeNamespace tq=... type= cause= | namespace_logger.go:53
+    Register namespace succeeded | op= tq=... type= cause= | functional_test_base.go:602
+    Frontend method invoked. | op=GetSystemInfo tq=... type= cause= | namespace_logger.go:53
+    Frontend method invoked. | op=DescribeNamespace tq=... type= cause= | namespace_logger.go:53
+    Started Worker | op= tq=... type= cause= | sdk_logger.go:62
+    routing key extraction: adding routing key to context | op= tq=... type= cause= | routing_key_interceptor.go:112
+    Frontend method invoked. | op=DescribeTaskQueue tq=... type= cause= | namespace_logger.go:53
+    routing key extraction: adding routing key to context | op= tq=... type= cause= | routing_key_interceptor.go:112
+    Frontend method invoked. | op=RecordWorkerHeartbeat tq=... type= cause= | namespace_logger.go:53
+    Frontend method invoked. | op=PollActivityTaskQueue tq=... type= cause= | namespace_logger.go:53
+    Quota changed | op= tq=... type= cause= | logged_calculator.go:100
+    Received PollActivityTaskQueue | op= tq=... type= cause= | workflow_handler.go:1352
+    Frontend method invoked. | op=PollWorkflowTaskQueue tq=... type= cause= | namespace_logger.go:53
+    Received PollWorkflowTaskQueue | op= tq=... type= cause= | workflow_handler.go:1082
+    Poll workflow task queue. | op= tq=... type= cause= | workflow_handler.go:1119
+    Quota changed | op= tq=... type= cause= | logged_calculator.go:100
+    loaded user data from db | op= tq=...1-949d4198900c type=Workflow cause= | user_data_manager.go:871
+    Started physicalTaskQueueManager | op= tq=...1-949d4198900c type=Workflow cause=Describe | physical_task_queue_manager.go:312
+    Starting draining | op= tq=...1-949d4198900c type=Workflow cause= | physical_task_queue_manager.go:430
+    returning empty user data (no data or no change) | op= tq=...1-949d4198900c type=Workflow cause= | user_data_manager.go:644
+    returning empty user data (no data or no change) | op= tq=...1-949d4198900c type=Workflow cause= | user_data_manager.go:644
+    TrailerToContextMetadataInterceptor: No metadata in trailer | op= tq=... type= cause= | throttle_logger.go:44
+    returning empty user data (no data or no change) | op= tq=...1-949d4198900c type=Workflow cause= | user_data_manager.go:644
+    fetched user data from parent, no change | op= tq=...949d4198900c/2 type=Workflow cause= | user_data_manager.go:351
+    Started physicalTaskQueueManager | op= tq=...949d4198900c/2 type=Workflow cause=Force | physical_task_queue_manager.go:312
+    Starting draining | op= tq=...949d4198900c/2 type=Workflow cause= | physical_task_queue_manager.go:430
+    returning empty user data (no data or no change) | op= tq=...1-949d4198900c type=Workflow cause= | user_data_manager.go:644
+    fetched user data from parent, no change | op= tq=...949d4198900c/3 type=Workflow cause= | user_data_manager.go:351
+    Started physicalTaskQueueManager | op= tq=...949d4198900c/3 type=Workflow cause=Force | physical_task_queue_manager.go:312
+    Starting draining | op= tq=...949d4198900c/3 type=Workflow cause= | physical_task_queue_manager.go:430
+    fetched user data from parent, no change | op= tq=...949d4198900c/1 type=Workflow cause= | user_data_manager.go:351
+    fetched user data from parent, no change | op= tq=...1-949d4198900c type=Activity cause= | user_data_manager.go:351
+    Started physicalTaskQueueManager | op= tq=...1-949d4198900c type=Activity cause=UserData | physical_task_queue_manager.go:312
+    Started physicalTaskQueueManager | op= tq=...949d4198900c/1 type=Workflow cause=UserData | physical_task_queue_manager.go:312
+    Starting draining | op= tq=...1-949d4198900c type=Activity cause= | physical_task_queue_manager.go:430
+    returning empty user data (no data or no change) | op= tq=...1-949d4198900c type=Activity cause= | user_data_manager.go:644
+    Starting draining | op= tq=...949d4198900c/1 type=Workflow cause= | physical_task_queue_manager.go:430
+    returning empty user data (no data or no change) | op= tq=...949d4198900c/1 type=Workflow cause= | user_data_manager.go:644
+    fetched user data from parent, no change | op= tq=...949d4198900c/1 type=Activity cause= | user_data_manager.go:351
+    Started physicalTaskQueueManager | op= tq=...949d4198900c/1 type=Activity cause=Poll | physical_task_queue_manager.go:312
+    fetched user data from parent, no change | op= tq=...1-1d470e6db089 type=Workflow cause= | user_data_manager.go:351
+    Starting draining | op= tq=...949d4198900c/1 type=Activity cause= | physical_task_queue_manager.go:430
+    Started physicalTaskQueueManager | op= tq=...1-1d470e6db089 type=Workflow cause=Poll | physical_task_queue_manager.go:312
+    returning empty user data (no data or no change) | op= tq=...1-949d4198900c type=Activity cause= | user_data_manager.go:644
+    returning empty user data (no data or no change) | op= tq=...1-949d4198900c type=Activity cause= | user_data_manager.go:644
+    fetched user data from parent, no change | op= tq=...949d4198900c/2 type=Activity cause= | user_data_manager.go:351
+    fetched user data from parent, no change | op= tq=...949d4198900c/3 type=Activity cause= | user_data_manager.go:351
+    Started physicalTaskQueueManager | op= tq=...949d4198900c/2 type=Activity cause=Force | physical_task_queue_manager.go:312
+    Started physicalTaskQueueManager | op= tq=...949d4198900c/3 type=Activity cause=Force | physical_task_queue_manager.go:312
+    Starting draining | op= tq=...949d4198900c/2 type=Activity cause= | physical_task_queue_manager.go:430
+    Starting draining | op= tq=...949d4198900c/3 type=Activity cause= | physical_task_queue_manager.go:430
+    Calculated reachability for build id | op= tq=...1-949d4198900c type= cause= | reachability.go:99
+    routing key extraction: adding routing key to context | op= tq=... type= cause= | routing_key_interceptor.go:112
+    Frontend method invoked. | op=DescribeTaskQueue tq=... type= cause= | namespace_logger.go:53
+    Calculated reachability for build id | op= tq=...1-949d4198900c type= cause= | reachability.go:99
+    routing key extraction: adding routing key to context | op= tq=... type= cause= | routing_key_interceptor.go:112
+    Frontend method invoked. | op=DescribeTaskQueue tq=... type= cause= | namespace_logger.go:53
+    guard.go:33:
+        	Error Trace:	go.temporal.io/server/tests/versioning_test.go:4221
+        	            				runtime/asm_arm64.s:1039
+        	Error:      	"[]" should have 1 item(s), but has 0
+        	Test:       	TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_ReportFlags
+        	Messages:   	only one poller info should be reported
+    Frontend method invoked. | op=ShutdownWorker tq=... type= cause= | namespace_logger.go:53
+    Stopped physicalTaskQueueManager | op= tq=...1-1d470e6db089 type=Workflow cause=Force | physical_task_queue_manager.go:341
+    returning empty user data (expired) | op= tq=...949d4198900c/1 type=Workflow cause= | user_data_manager.go:651
+    Stopped Worker | op= tq=... type= cause= | sdk_logger.go:62
+--- FAIL: TestVersioningFunctionalSuite (0.00s)
+    --- FAIL: TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_ReportFlags (0.00s)
+FAIL
