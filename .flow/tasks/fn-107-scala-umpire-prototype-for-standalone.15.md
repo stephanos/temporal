@@ -33,9 +33,17 @@ Extract IR admission and primitive finite interpretation from task 3. Task 14 ow
 
 
 ## Done summary
-TBD
+The finite IR consumer now admits typed declarations, evaluates channels and holes, and bounds catalog, class and table work before allocation. Task3 binds authored claims and receipts.
 
+The independent native rereview returned SHIP. Final integrated Scala-to-Go, focused Go tests and scoped lint passed. Tested source and all original comments are retained; the user owns commits.
+
+stage: implement - ran (model: claude-opus-5-5; CLI --model opus --effort high; owner session 42fe243d-e20b-46a4-833a-1a829b424d92)
+stage: impl-review - ran (codex:gpt-5.6-sol:high; first-round three-axis fanout and same-primary fix rereview; SHIP)
+stage: wave-join - ran (2/2 returned; guarded uncommitted copying; final integrated gates rc0; clones retained because they contain uncommitted work)
+Tier: session (jev-unavailable(no_key)); retained pinned opus/high.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests:
+- Tests: GOFLAGS=-tags=test_dep make umpire-check-scala (rc0; /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-107/parallel-integrated-gates/scala-wave-foundations-final.log), mise exec -- go test -tags test_dep -count=1 ./model/scalav2/... ./model/go/... (rc0; /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-107/parallel-integrated-gates/go-wave-foundations-final.log), GOFLAGS=-tags=test_dep mise exec -- make lint-code 'LINT_CODE_TARGETS=./model/go/umpire ./model/scalav2/goir' GOLANGCI_LINT=.flow/tmp/fn-107/task2-tools/golangci-lint-v2.13.1 ERRORTYPE=.flow/tmp/fn-107/task2-host-tools/errortype GOLANGCI_LINT_FIX=false (rc0; /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-107/parallel-integrated-gates/lint-wave-foundations-final.log), MISE_TRUSTED_CONFIG_PATHS=/private/tmp/fn-107-parallel-20260930T204609Z/15/temporal mise exec -- go test -tags test_dep ./model/scalav2/... ./model/go/..., MISE_TRUSTED_CONFIG_PATHS=/private/tmp/fn-107-parallel-20260930T204609Z/15/temporal GOFLAGS=-tags=test_dep mise exec -- make lint-code LINT_CODE_TARGETS=./model/scalav2/goir GOLANGCI_LINT=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-107/task2-tools/golangci-lint-v2.13.1 ERRORTYPE=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-107/task2-host-tools/errortype GOLANGCI_LINT_FIX=false, gofmt -l model/scalav2/goir, Actual independent native rereview SHIP; task15-final-review-receipt.json; task15-review-r2 immutable source artifact, Unchanged reviewed source, user HEAD and raw index guarded at bbc7dab1a4f9f0760f8c9316e9bfc5d9701334b7; task15-post-ship-guards.json; worker evidence at /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn-107/task15-reviewfix-r1-evidence.json
 - PRs:

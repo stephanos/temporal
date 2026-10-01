@@ -1,5 +1,5 @@
 {
-  "source": "model/scala: fixture.declarations.Declarations$package$.durableEventually, fixture.declarations.Declarations$package$.queries",
+  "source": "model/scalav2: fixture.declarations.Declarations$package$.durableEventually, fixture.declarations.Declarations$package$.queries",
   "types": [{
     "name": "fixture.declarations.DetailedPair",
     "position": {

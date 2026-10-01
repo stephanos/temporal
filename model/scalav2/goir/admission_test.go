@@ -200,7 +200,7 @@ func TestAdmissionAdmitsTheSourceDerivedModels(t *testing.T) {
 func TestAdmissionRejectsUnknownVersionsAndConstructs(t *testing.T) {
 	runAdmissionCases(t, []admissionCase{
 		{"version", "channels", func(m *modelirspb.Model) { m.Version = 1 },
-			"model/scala: fixture.channels.Channels$package$.relay, fixture.channels.Channels$package$.tallying: " +
+			"model/scalav2: fixture.channels.Channels$package$.relay, fixture.channels.Channels$package$.tallying: " +
 				"version 1 is not a version this reader knows"},
 		{"binary op unspecified", "declarations", func(m *modelirspb.Model) {
 			admFirst(admBody(m, "crashStep"), isBinary).GetBinary().Op = modelirspb.Binary_OP_UNSPECIFIED
@@ -561,10 +561,137 @@ func TestAdmissionReportsEveryProblem(t *testing.T) {
 	admChannel(m, "radio").Lossy = false
 	admMachine(m, "tallying").GetSteps()[0].Function = "nowhere"
 	err := Validate(m)
-	require.ErrorContains(t, err, "model/scala: fixture.channels.Channels$package$.relay, fixture.channels.Channels$package$.tallying: "+
+	require.ErrorContains(t, err, "model/scalav2: fixture.channels.Channels$package$.relay, fixture.channels.Channels$package$.tallying: "+
 		"version 2 is not a version this reader knows")
 	require.ErrorContains(t, err, admChannelsAt+"14: channel "+admChannelsPkg+"wire has capacity 0, below 1")
 	require.ErrorContains(t, err, admChannelsAt+"16: "+admChannelsPkg+"radio.lose loses channel "+admChannelsPkg+"radio, which is not lossy")
 	require.ErrorContains(t, err, admChannelsAt+"85: no function nowhere")
 	require.Len(t, strings.Split(err.Error(), "\n"), 4, "each problem once, and nothing else")
+}
+
+func admLiteral(at *modelirspb.Expr, v *modelirspb.Value) *modelirspb.Expr {
+	return &modelirspb.Expr{Position: at.GetPosition(), Kind: &modelirspb.Expr_Literal{Literal: v}}
+}
+
+func admEnum(typ, c string) *modelirspb.Value {
+	return &modelirspb.Value{Kind: &modelirspb.Value_Enum{Enum: &modelirspb.EnumValue{Type: typ, Case: c}}}
+}
+
+func admIntValue(n int64) *modelirspb.Value {
+	return &modelirspb.Value{Kind: &modelirspb.Value_Int{Int: n}}
+}
+
+func TestAdmissionRejectsAStepThatReturnsNoSteps(t *testing.T) {
+	putStep := admDeclaredPkg + "putStep"
+	runAdmissionCases(t, []admissionCase{
+		{"a Boolean", "declarations", func(m *modelirspb.Model) {
+			f := function(m, "Declarations$package$.putStep")
+			f.Body = admLiteral(f.GetBody(), &modelirspb.Value{Kind: &modelirspb.Value_Bool{Bool: false}})
+		}, admDeclaredAt + "59: " + putStep + " returns a Boolean, not a list of steps"},
+		{"a record", "declarations", func(m *modelirspb.Model) {
+			f := function(m, "Declarations$package$.putStep")
+			f.Body = &modelirspb.Expr{Position: f.GetBody().GetPosition(), Kind: &modelirspb.Expr_Construct{Construct: &modelirspb.Construct{
+				Type: "fixture.declarations.Disk", Args: []*modelirspb.Expr{admLiteral(f.GetBody(), admEnum("fixture.declarations.Stage", "empty"))}}}}
+		}, admDeclaredAt + "59: " + putStep + " returns a fixture.declarations.Disk, not a list of steps"},
+		{"a list of records", "declarations", func(m *modelirspb.Model) {
+			f := function(m, "Declarations$package$.putStep")
+			f.Body = &modelirspb.Expr{Position: f.GetBody().GetPosition(), Kind: &modelirspb.Expr_List{List: &modelirspb.ListOf{Items: []*modelirspb.Expr{
+				admLiteral(f.GetBody(), admEnum("fixture.declarations.Stage", "empty"))}}}}
+		}, admDeclaredAt + "59: " + putStep + " returns a list holding a fixture.declarations.Stage, not a list of steps"},
+	})
+}
+
+func TestAdmissionRejectsAnActionThatBothDeliversAndLoses(t *testing.T) {
+	runAdmissionCases(t, []admissionCase{
+		{"delivers and loses", "channels", func(m *modelirspb.Model) {
+			admAction(m, admChannelsPkg+"radio.lose").Delivers = admChannelsPkg + "radio"
+		}, admChannelsAt + "16: " + admChannelsPkg + "radio.lose both delivers and loses " + admChannelsPkg + "radio; an action does one"},
+	})
+}
+
+func TestAdmissionRejectsACatalogThatContainsItself(t *testing.T) {
+	runAdmissionCases(t, []admissionCase{
+		{"a record of itself", "channels", func(m *modelirspb.Model) {
+			admType(m, "fixture.channels.Relay").GetRecord().GetFields()[0].Type = named("fixture.channels.Relay")
+		}, admChannelsAt + "22: type fixture.channels.Relay has no finite catalog: it contains itself"},
+		{"a message holding its channel", "channels", func(m *modelirspb.Model) {
+			e := admType(m, "fixture.channels.Note").GetEnum()
+			e.Cases = append(e.Cases, &modelirspb.Case{Name: "echo", Fields: []*modelirspb.Field{{Name: "back",
+				Type: &modelirspb.TypeRef{Ref: &modelirspb.TypeRef_Channel{Channel: admChannelsPkg + "wire"}}}}})
+		}, admChannelsAt + "8: type fixture.channels.Note has no finite catalog: it contains itself through channel " + admChannelsPkg + "wire"},
+		{"a channel holding its message", "channels", func(m *modelirspb.Model) {
+			e := admType(m, "fixture.channels.Note").GetEnum()
+			e.Cases = append(e.Cases, &modelirspb.Case{Name: "echo", Fields: []*modelirspb.Field{{Name: "back",
+				Type: &modelirspb.TypeRef{Ref: &modelirspb.TypeRef_Channel{Channel: admChannelsPkg + "wire"}}}}})
+		}, admChannelsAt + "14: channel " + admChannelsPkg + "wire has no finite catalog: it contains itself through type fixture.channels.Note"},
+	})
+}
+
+// A Scenario on tallying, declared beside the lifted ones, that delivers message n.
+func admTallyScenario(m *modelirspb.Model, n int64) {
+	at := &modelirspb.Position{File: "generic", Line: 1}
+	m.Scenarios = append(m.Scenarios, &modelirspb.Scenario{Machine: "tallying", Name: "counts", Position: at,
+		Start:   proto.Clone(admMachine(m, "tallying").GetStarts()[0]).(*modelirspb.Expr),
+		Actions: []*modelirspb.ActionClass{{Action: admChannelsPkg + "tally.deliver", Inputs: []*modelirspb.Value{admIntValue(n)}}}})
+}
+
+func TestAdmissionRejectsMisaddressedSelectors(t *testing.T) {
+	put, flush, control := admDeclaredPkg+"put", admDeclaredPkg+"flush", "temporal.standaloneactivity.Model$package$.control"
+	runAdmissionCases(t, []admissionCase{
+		{"when_class input the action does not take", "declarations", func(m *modelirspb.Model) {
+			admProperty(m, "store", "putStores").GetWhenClass().Inputs = []*modelirspb.Value{admIntValue(1)}
+		}, admDeclaredAt + "137: store.putStores: " + put + " takes 0 inputs, not 1"},
+		{"when_class of an action the machine does not bind", "declarations", func(m *modelirspb.Model) {
+			admProperty(m, "store", "putStores").GetWhenClass().Action = flush
+		}, admDeclaredAt + "137: store.putStores: store binds no action " + flush},
+		{"when_action the machine does not bind", "declarations", func(m *modelirspb.Model) {
+			admProperty(m, "disk", "putAccepted").When = &modelirspb.Property_WhenAction{WhenAction: "nothing"}
+		}, admDeclaredAt + "139: disk.putAccepted: disk binds no action nothing"},
+		{"when_action on a composition", "declarations", func(m *modelirspb.Model) {
+			admProperty(m, "detailedPair", "frontHeld").When = &modelirspb.Property_WhenAction{WhenAction: "put"}
+		}, admDeclaredAt + "143: detailedPair.frontHeld: a Property of a composition is about every step"},
+		{"when_class on a composition", "declarations", func(m *modelirspb.Model) {
+			admProperty(m, "detailedPair", "frontHeld").When = &modelirspb.Property_WhenClass{WhenClass: &modelirspb.ActionClass{Action: put}}
+		}, admDeclaredAt + "143: detailedPair.frontHeld: a Property of a composition is about every step"},
+		{"scenario input the action does not take", "declarations", func(m *modelirspb.Model) {
+			admScenario(m, "store", "putOnce").GetActions()[0].Inputs = []*modelirspb.Value{admIntValue(1)}
+		}, admDeclaredAt + "148: store.putOnce: " + put + " takes 0 inputs, not 1"},
+		{"scenario input of a crossed type", "admission", func(m *modelirspb.Model) {
+			admScenario(m, "currentAdmission", "staleDeliveryAfterPause").GetActions()[1].Inputs[0] = admEnum(
+				"fixture.specimens.admission.AdmissionPhase", "paused")
+		}, admAdmissionAt + "188: currentAdmission.staleDeliveryAfterPause: " + control + " takes a temporal.standaloneactivity.Control for control, not paused"},
+		{"scenario input outside its range", "channels", func(m *modelirspb.Model) {
+			admTallyScenario(m, 3)
+		}, "generic:1: tallying.counts: " + admChannelsPkg + "tally.deliver takes a 0..2 for message, not 3"},
+		{"scenario action the machine does not bind", "declarations", func(m *modelirspb.Model) {
+			admScenario(m, "store", "putOnce").GetActions()[0].Action = flush
+		}, admDeclaredAt + "148: store.putOnce: store binds no action " + flush},
+		{"machine scenario start of another type", "declarations", func(m *modelirspb.Model) {
+			admScenario(m, "store", "putOnce").Start = proto.Clone(admScenario(m, "disk", "putThenFlush").GetStart()).(*modelirspb.Expr)
+		}, admDeclaredAt + "148: store.putOnce starts at empty, which is no fixture.declarations.Store"},
+		{"composition scenario start of another type", "declarations", func(m *modelirspb.Model) {
+			admScenario(m, "detailedPair", "bothPut").Start = proto.Clone(admScenario(m, "pair", "any").GetStart()).(*modelirspb.Expr)
+		}, admDeclaredAt + "152: detailedPair.bothPut starts at nothing-nothing, which is no fixture.declarations.DetailedPair"},
+		{"composition scenario key of no class", "declarations", func(m *modelirspb.Model) {
+			admScenario(m, "detailedPair", "bothPut").Keys = []string{"putNone"}
+		}, admDeclaredAt + "152: detailedPair.bothPut: detailedPair has no class putNone"},
+		{"composition scenario key of an action its member does not bind", "declarations", func(m *modelirspb.Model) {
+			admScenario(m, "detailedPair", "bothPut").Keys = []string{"front_flush"}
+		}, admDeclaredAt + "152: detailedPair.bothPut: detailedPair has no class front_flush"},
+		{"composition scenario of actions", "declarations", func(m *modelirspb.Model) {
+			admScenario(m, "detailedPair", "bothPut").Actions = []*modelirspb.ActionClass{{Action: put}}
+		}, admDeclaredAt + "152: detailedPair.bothPut: a Scenario of a composition schedules its class keys, not actions"},
+		{"machine scenario of keys", "declarations", func(m *modelirspb.Model) {
+			admScenario(m, "store", "putOnce").Keys = []string{"put"}
+		}, admDeclaredAt + "148: store.putOnce: a Scenario of a machine schedules action classes, not keys"},
+	})
+}
+
+func TestAdmissionAdmitsWellAddressedSelectors(t *testing.T) {
+	m := admFixture(t, "declarations")
+	admScenario(m, "detailedPair", "bothPut").Keys = []string{"putBoth", "front_put", "back_flush", "back_crash"}
+	require.NoError(t, Validate(m))
+	m = admFixture(t, "channels")
+	admTallyScenario(m, 2)
+	require.NoError(t, Validate(m))
 }

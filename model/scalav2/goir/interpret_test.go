@@ -5,6 +5,7 @@ package goir
 
 import (
 	"math"
+	"runtime/debug"
 	"strings"
 	"testing"
 
@@ -363,6 +364,7 @@ func TestACatalogIsCountedBeforeItIsListed(t *testing.T) {
 	require.ErrorAs(t, err, &limit)
 	require.Equal(t, "members", limit.Resource)
 	require.Equal(t, int64(math.MaxInt64), limit.Needed, "4^0 + … + 4^40 exceeds what an int64 counts: the count saturates")
+	require.True(t, limit.Overflow)
 }
 
 // A delivery without its one message input is refused where it is bound, not read past its inputs.
@@ -381,22 +383,167 @@ func TestADeliveryMovesOneMessage(t *testing.T) {
 func TestChannelSizeCountsWithoutListing(t *testing.T) {
 	for _, c := range []struct {
 		name      string
-		entries   int64
+		entries   count
 		capacity  int64
 		unordered bool
-		want      int64
+		want      count
 	}{
-		{"no entries", 0, 3, false, 1},
-		{"one entry", 1, 5, true, 6},
-		{"wire: 1 + 4 + 4²", 4, 2, false, 21},
-		{"radio at capacity 2: [], [u], [d], [u,u], [u,d], [d,d]", 2, 2, true, 6},
-		{"multisets of 200 from 2: C(202, 200)", 2, 200, true, 20301},
-		{"2⁶⁴ lists and more", 2, 64, false, math.MaxInt64},
-		{"C(200, 100) multisets", 100, 100, true, math.MaxInt64},
-		{"entries already saturated", math.MaxInt64, 1, true, math.MaxInt64},
+		{"no entries", count{n: 0}, 3, false, count{n: 1}},
+		{"one entry", count{n: 1}, 5, true, count{n: 6}},
+		{"wire: 1 + 4 + 4²", count{n: 4}, 2, false, count{n: 21}},
+		{"radio at capacity 2: [], [u], [d], [u,u], [u,d], [d,d]", count{n: 2}, 2, true, count{n: 6}},
+		{"multisets of 200 from 2: C(202, 200)", count{n: 2}, 200, true, count{n: 20301}},
+		{"2⁶⁴ lists and more", count{n: 2}, 64, false, overflowed},
+		{"C(200, 100) multisets", count{n: 100}, 100, true, overflowed},
+		{"entries already at the int64 bound", count{n: math.MaxInt64}, 1, true, overflowed},
+		{"entries past int64", overflowed, 1, false, overflowed},
+		{"only the empty list of entries past int64", overflowed, 0, false, count{n: 1}},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			require.Equal(t, c.want, channelSize(c.entries, c.capacity, c.unordered))
 		})
 	}
+}
+
+// Each step result malformed in one way, built without admission: a located error at the binding,
+// never a disabled pair or a panic.
+func TestAStepResultMustBeStepRecords(t *testing.T) {
+	putStep := "fixture.declarations.Declarations$package$.putStep"
+	for name, c := range map[string]struct {
+		fixture string
+		mutate  func(m *modelirspb.Model)
+		want    string
+	}{
+		"not a list": {"declarations", func(m *modelirspb.Model) {
+			f := function(m, "Declarations$package$.putStep")
+			f.Body = admLiteral(f.GetBody(), &modelirspb.Value{Kind: &modelirspb.Value_Bool{Bool: false}})
+		}, "Declarations.scala.fixture:107: " + putStep + " returns false, not a list of steps"},
+		"a step of two fields": {"declarations", func(m *modelirspb.Model) {
+			f := function(m, "Declarations$package$.putStep")
+			f.Body = admLiteral(f.GetBody(), &modelirspb.Value{Kind: &modelirspb.Value_List{List: &modelirspb.ListValue{Items: []*modelirspb.Value{
+				{Kind: &modelirspb.Value_Record{Record: &modelirspb.RecordValue{Type: StepType, Fields: []*modelirspb.Value{
+					admEnum("fixture.declarations.Outcome", "accepted"), admEnum("fixture.declarations.Stage", "staged")}}}}}}}})
+		}, "Declarations.scala.fixture:107: " + putStep + " returns a step of 2 fields, not 4"},
+		"an outcome of another type": {"presence", func(m *modelirspb.Model) {
+			f := function(m, "Presence$package$.forgetStep")
+			step := f.GetBody().GetMatch().GetCases()[0].GetBody().GetList().GetItems()[0].GetConstruct()
+			step.Args[0] = admLiteral(step.GetArgs()[0], admEnum("fixture.presence.Result", "failed"))
+		}, "Presence.scala.fixture:74: presence: row unsent-Some-succeeded-0-0-forget has outcome failed, which is no fixture.presence.Outcome"},
+		"a fact of another type": {"declarations", func(m *modelirspb.Model) {
+			f := function(m, "Declarations$package$.putStep")
+			facts := f.GetBody().GetMatch().GetCases()[0].GetBody().GetList().GetItems()[0].GetConstruct().GetArgs()[2]
+			facts.GetList().Items[0] = admLiteral(facts, admEnum("fixture.declarations.Kept", "held"))
+		}, "Declarations.scala.fixture:107: disk: row empty-put records held, which is no fixture.declarations.Fact"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			m := proto.Clone(lifted(t, c.fixture)).(*modelirspb.Model)
+			c.mutate(m)
+			_, err := Build(m)
+			require.ErrorContains(t, err, c.want)
+		})
+	}
+}
+
+func TestATransferIsADeliveryOrALossNotBoth(t *testing.T) {
+	m := proto.Clone(lifted(t, "channels")).(*modelirspb.Model)
+	for _, a := range m.GetActions() {
+		if a.GetName() == "radioLoss" {
+			a.Delivers = a.GetLoses()
+		}
+	}
+	_, err := Build(m)
+	require.ErrorContains(t, err, "Channels.scala.fixture:59: radioLoss both delivers and loses fixture.channels.Channels$package$.radio")
+}
+
+// keep and forget given an input of 0..59 each: no binding lists more than 60 classes, and together
+// with send's two and poll's one they are 123, counted before any is listed.
+func TestTheClassesOfAllBindingsAreCountedTogether(t *testing.T) {
+	m := proto.Clone(lifted(t, "presence")).(*modelirspb.Model)
+	for _, a := range m.GetActions() {
+		if a.GetName() == "keep" || a.GetName() == "forget" {
+			a.Inputs = []*modelirspb.Param{{Name: "n", Type: &modelirspb.TypeRef{Ref: &modelirspb.TypeRef_IntRange{
+				IntRange: &modelirspb.IntRange{High: 59}}}}}
+		}
+	}
+	_, err := BuildWithin(m, Ceilings{Members: 90, Evaluations: 1 << 20})
+	var limit *LimitError
+	require.ErrorAs(t, err, &limit)
+	require.Equal(t, LimitError{Machine: "presence", Resource: "classes", Ceiling: 90, Needed: 123}, *limit)
+}
+
+// A count past what an int64 holds overflows every int64 ceiling, the largest included.
+func TestACountPastInt64IsRefusedUnderAnyCeiling(t *testing.T) {
+	m := proto.Clone(lifted(t, "channels")).(*modelirspb.Model)
+	for _, c := range m.GetChannels() {
+		if c.GetName() == "wire" {
+			c.Capacity = 40
+		}
+	}
+	_, err := BuildWithin(m, Ceilings{Members: math.MaxInt64, Evaluations: math.MaxInt64})
+	var limit *LimitError
+	require.ErrorAs(t, err, &limit)
+	require.Equal(t, LimitError{Machine: "relay", Resource: "members", Ceiling: math.MaxInt64, Needed: math.MaxInt64, Overflow: true}, *limit)
+}
+
+// Relay's heard field typed as Relay itself, built without admission: refused, not recursed into.
+func TestACatalogThatContainsItselfIsRefused(t *testing.T) {
+	defer debug.SetMaxStack(debug.SetMaxStack(64 << 20))
+	m := proto.Clone(lifted(t, "channels")).(*modelirspb.Model)
+	for _, ty := range m.GetTypes() {
+		if ty.GetName() == "fixture.channels.Relay" {
+			ty.GetRecord().GetFields()[0].Type = named("fixture.channels.Relay")
+		}
+	}
+	_, err := Build(m)
+	require.ErrorContains(t, err, "the catalog of type fixture.channels.Relay contains itself")
+}
+
+func TestARangeEndingAtMaxInt64(t *testing.T) {
+	in := NewInterpreter(lifted(t, "presence"))
+	for _, c := range []struct {
+		low, high int64
+		want      []int64
+	}{
+		{math.MaxInt64, math.MaxInt64, []int64{math.MaxInt64}},
+		{math.MaxInt64 - 1, math.MaxInt64, []int64{math.MaxInt64 - 1, math.MaxInt64}},
+		{math.MinInt64, math.MinInt64 + 1, []int64{math.MinInt64, math.MinInt64 + 1}},
+	} {
+		members, err := in.Members(&modelirspb.TypeRef{Ref: &modelirspb.TypeRef_IntRange{IntRange: &modelirspb.IntRange{Low: c.low, High: c.high}}})
+		require.NoError(t, err)
+		var got []int64
+		for _, v := range members {
+			got = append(got, v.Int)
+		}
+		require.Equal(t, c.want, got)
+	}
+}
+
+func TestCountsCarryOverflow(t *testing.T) {
+	require.Equal(t, count{}, count{}.times(overflowed), "nothing times anything is nothing")
+	require.Equal(t, overflowed, count{n: 2}.times(overflowed))
+	require.Equal(t, overflowed, count{n: 1 << 32}.times(count{n: 1 << 31}), "2^63 is past an int64")
+	require.Equal(t, count{n: 1 << 62}, count{n: 1 << 31}.times(count{n: 1 << 31}))
+	require.Equal(t, overflowed, count{n: math.MaxInt64}.plus(count{n: 1}))
+	require.Equal(t, overflowed, count{n: 1}.plus(overflowed))
+	require.Equal(t, overflowed, overflowed.plus(count{}), "an overflow plus nothing still overflows")
+}
+
+// Members refuses a catalog past its ceiling by itself, as a caller outside Build reads it.
+func TestMembersIsBoundedOnItsOwn(t *testing.T) {
+	_, err := NewInterpreter(lifted(t, "presence")).Members(&modelirspb.TypeRef{Ref: &modelirspb.TypeRef_IntRange{
+		IntRange: &modelirspb.IntRange{High: 1 << 16}}})
+	var limit *LimitError
+	require.ErrorAs(t, err, &limit)
+	require.Equal(t, LimitError{Resource: "members", Ceiling: 1 << 16, Needed: 1<<16 + 1}, *limit)
+}
+
+// pollStep's update written as the string "1": its key is a state's, and its value is none.
+func TestAStateOfTheRightKeyButAnotherTypeIsOutsideTheDomain(t *testing.T) {
+	m := proto.Clone(lifted(t, "presence")).(*modelirspb.Model)
+	f := function(m, "Presence$package$.pollStep")
+	polls := f.GetBody().GetIf().GetThen().GetList().GetItems()[0].GetConstruct().GetArgs()[1].GetCopy().GetUpdates()[0]
+	polls.Value = admLiteral(polls.GetValue(), &modelirspb.Value{Kind: &modelirspb.Value_Text{Text: "1"}})
+	_, err := Build(m)
+	require.ErrorContains(t, err, "Presence.scala.fixture:74: presence: row unsent-None-0-0-poll lands in unsent-None-0-1, "+
+		"which is outside the state domain")
 }

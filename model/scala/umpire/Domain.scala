@@ -38,9 +38,6 @@ object Finite:
   /** A domain with no members: a machine that records no facts has `Nothing` as its fact type. */
   given Finite[Nothing] = of()
 
-  /** An optional value: absent, then present with each member of `A` in its catalog order. */
-  given [A](using a: Finite[A]): Finite[Option[A]] = of((None +: a.values.map(Some(_)))*)
-
   inline def derived[T](using m: Mirror.Of[T]): Finite[T] =
     inline m match
       case s: Mirror.SumOf[T] =>
@@ -90,9 +87,6 @@ object Keys:
     case b: Boolean             => b.toString
     case i: Int                 => i.toString
     case s: String              => s
-    // An optional value is spelled as the enum case of its constructor would be.
-    case None                   => "None"
-    case Some(v)                => s"Some-${of(v)}"
     case e: scala.reflect.Enum  =>
       if e.productArity == 0 then e.toString
       else (e.productPrefix :: e.productIterator.map(of).toList).mkString("-")

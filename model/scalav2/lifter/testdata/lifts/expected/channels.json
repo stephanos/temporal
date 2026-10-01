@@ -1,5 +1,5 @@
 {
-  "source": "model/scala: fixture.channels.Channels$package$.relay, fixture.channels.Channels$package$.tallying",
+  "source": "model/scalav2: fixture.channels.Channels$package$.relay, fixture.channels.Channels$package$.tallying",
   "types": [{
     "name": "fixture.channels.Heard",
     "position": {

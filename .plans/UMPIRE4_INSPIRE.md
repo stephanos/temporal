@@ -16,6 +16,10 @@ model-first exploration, a complementary implementation-simulation search, sever
 levels, and independent properties with strong oracles. The detailed recommendations below apply
 those patterns to Temporal's admission, queue, retention, and ownership boundaries.
 
+Welder adds a condition for scaling this work across components. Each component needs explicit
+limits on interference and named progress dependencies. Checking the components separately becomes
+useful for composition when their guarantees satisfy one another's assumptions.
+
 These techniques address different failure modes. Adding a stronger model checker cannot reveal a
 race omitted by an atomic model step. Running more Cases cannot expose an input relation the
 generator never produces. Replaying a recorded Verdict cannot show that a fresh execution followed
@@ -26,6 +30,11 @@ the same internal schedule. Umpire needs evidence about each of these boundaries
 “SandTable” refers to the EuroSys 2024 tool. “Mocket” refers to the EuroSys 2023 model-checking-guided
 tester. “plang” is interpreted as the [P language](https://p-org.github.io/P/). The ZooKeeper comparison
 focuses on the EuroSys 2025 multi-grained specification work and its Remix artifact.
+
+The [Tianyin Xu post](https://x.com/tianyin_xu/status/2101806075955794395) points to
+[Welder, SOSP 2026](https://cathy-cai.page/pubs/welder26.pdf), which extends Anvil with compositional
+controller verification. The comparison below uses the paper and its
+[SOSP 2026 artifact revision](https://github.com/anvil-verifier/anvil/tree/acca2bb454a0c8fcc1175ecb3c8b6c396d04aa41).
 
 MongoDB, TigerBeetle, and FoundationDB provide experience from production engineering. SandTable,
 Mocket, and Remix provide research implementations and evaluations. P provides a language and several
@@ -137,6 +146,12 @@ without forcing the whole feature model to expand. Each check must retain its mo
 interface obligations, assumptions, projection, and bounds. An informal connection between two
 models cannot justify carrying a Property from one into the other.
 
+Welder supplies a complementary requirement for composition. State what each module may change,
+what it requires others to preserve, and whose progress it depends on. Check that the other modules'
+guarantees meet those requirements before reusing local results. Selected abstraction levels and
+checked interference conditions address different parts of modular verification.
+[Welder, sections 3 and 4.4](https://cathy-cai.page/pubs/welder26.pdf).
+
 ### 6. Make invariants and Properties independent and explicit
 
 Declare correctness separately from execution generation. Protocol-aware checks and application
@@ -155,6 +170,12 @@ faulty implementation or evidence bundle. Include violations that a convenient g
 such as crossed identities or an acknowledged but unretained outcome. Independent properties do
 not require duplicated definitions; they require a meaning that does not derive from the execution
 generator's assumptions or copy the implementation's decision procedure.
+
+Keep a component's safety guarantee active even when an environmental assumption fails. Report
+whether the premises of conditional progress held and whether the obligation activated. Otherwise,
+excluding an interfering execution can make a progress result appear successful without exercising
+the promise. Welder's CORE deliberately separates the unconditional guarantee from conditional
+reconciliation. [Welder, section 3.3 and figure 5](https://cathy-cai.page/pubs/welder26.pdf).
 
 ## Where Umpire stands today
 
@@ -720,6 +741,89 @@ Select detail by the Property and the failure boundary. Keep interfaces and assu
 Report which module variants and bounds a Query actually checked. Continue using separate
 implementation trace assessment to challenge behavior missing from every model variant.
 
+## Welder / CORE: make local progress safe to compose
+
+### Goal and mechanism
+
+Welder verifies interacting Kubernetes controllers incrementally. Its CORE specification combines
+Eventually Stable Reconciliation (ESR) with request-based rely-guarantee conditions and named
+liveness dependencies. ESR requires eventual convergence and continued agreement once desired
+state stabilizes. A compact reading of CORE is:
+
+```text
+Under the declared environment Model:
+    Guarantee holds on every execution.
+    If Rely and Depend hold, Success holds.
+```
+
+Composition requires each side's Guarantee to imply the other's relevant Rely. A provider's Success
+must also discharge the consumer's Depend. Adding a controller can then reuse established results
+while checking the new compatibility obligations. Merely placing locally correct controllers
+together does not establish their collective progress.
+[Welder, sections 3 and 4.4](https://cathy-cai.page/pubs/welder26.pdf).
+
+The request conditions constrain owned objects, fields, names, and ownership changes. Welder derives
+a state-preservation invariant from these conditions before reasoning about progress. Requiring
+interference to cease eventually can be too weak. A single conflicting creation can leave an object
+that permanently blocks a controller. The rely condition restricts requests throughout execution.
+[Welder, sections 3.2 and 4.3](https://cathy-cai.page/pubs/welder26.pdf).
+
+Welder also addresses two progress subtleties. Iterative dependencies use a nonincreasing measure
+with eventual decreases to justify progress while an upper controller changes a lower controller's
+desired state. Its Compose-Dep rule handles acyclic dependencies; mutual waiting needs additional
+reasoning. For
+shared-object updates, fair request processing still permits endless version conflicts. Welder
+implements an atomic conditional-update abstraction with retry-on-conflict and explicitly assumes
+that the retry loop terminates, possibly with an error.
+[Welder, sections 4.1, 4.2, 4.4, and 8](https://cathy-cai.page/pubs/welder26.pdf).
+
+The authors implemented and verified three core controllers and one custom controller using
+Verus. These are verified implementations built from upstream references. The scope includes
+trusted environment and client models, libraries, and tooling. Liveness assumes weak fairness and
+eventual cessation of specified faults in an asynchronous environment with unbounded delays. CORE's
+feature coverage depends on the authored `match` predicate; it supplies neither complete behavioral
+conformance nor a finite latency guarantee.
+[Welder, sections 5, 6, and 9](https://cathy-cai.page/pubs/welder26.pdf).
+
+### Detailed comparison to Umpire
+
+Umpire's Composition builds a reachable joint Model. Its Capability laws, assumptions, Properties,
+and proposed provider replacement offer places to express component obligations. Those mechanisms
+do not yet establish Welder's composition theorem. Any general rely-guarantee reuse rule needs a
+separate specification decision and implemented checking semantics.
+
+Use Nexus retention and reset as a bounded experiment. The retention provider guarantees that an
+acknowledged outcome remains durably recoverable while its delivery obligation is outstanding.
+The ownership provider guarantees that a reset preserves the logical operation and its delivery
+obligation while changing the authorized owner.
+Each relies on the other's steps preserving its relevant state and identity. Delivery progress
+additionally depends on an available owner, retained outcome access, and successful retry conditions.
+These are proposed Temporal obligations, rather than claims made by the Kubernetes paper.
+Keep no-premature-acknowledgment as a separate safety Property. Eventual convergence alone permits
+intermediate mistakes that violate that promise.
+
+Check the local guarantees and their cross-component implications, then check the composed
+Property under explicit Limits. Keep unreplaced providers as named assumptions. Retain the exact
+module variants, Behavior Fingerprints, remaining assumptions, and explored bounds with the result.
+An assumption can be discharged only by evidence covering the obligation the consumer actually uses.
+
+A runtime assessment should distinguish a component guarantee violation, an observed rely violation,
+and missing evidence about a premise. Keep unconditional safety checks active and qualify the
+conditional progress result. Do not discard interfering records to manufacture a passing Run.
+Sampling and bounded checks can challenge these obligations; they cannot establish an unlimited
+composition theorem.
+
+### What to learn
+
+Start with one dependency edge and explicit preservation obligations. Expose transfer of ownership,
+retained knowledge, and acknowledgment at their real commit boundaries. For iterative handoffs,
+identify what decreases and which provider result permits the next step. For persistence retries,
+distinguish being scheduled from making a successful commit or returning an allowed error.
+
+Umpire's current weak-fair action declarations do not by themselves express Welder's retry-loop
+termination assumption. Keep conflict and retry detail visible until a justified abstraction and its
+progress conditions are supported. Preserve SEM-09's bounded meaning for finite checks and Runs.
+
 ## Comparison across the complete workflow
 
 This table compares mechanisms described above with Umpire's current or proposed counterpart.
@@ -736,6 +840,8 @@ An external mechanism is an existence example, not a requirement to import that 
 | When should recovery succeed? | Healthy-core recovery testing | Assumptions, progress claims, Deadlines | Declare the usable environment and permanent failures. |
 | How do rare paths become reachable? | FoundationDB perturbations and configuration variation | Model-owned variations, faults, Abstraction Claims | Generate relational corner cases and measure realized conditions. |
 | How does detail remain tractable? | Narrow storage seams; mixed-grained module composition | Small machines, compositions, provider replacement | Detail the target interaction without expanding every subsystem. |
+| When do local results compose? | Welder's compatible rely-guarantee conditions and discharged liveness dependencies | Capability laws, assumptions, Composition, scoped replacement | Check preservation and dependency obligations before reusing a local result. |
+| Did a conditional promise apply? | CORE's unconditional guarantee and conditional ESR | Property activation, assumption evidence, qualified progress results | Expose a failed or unobserved premise while continuing to check safety. |
 | What repeats a failure? | Versioned seeds or retained controlled schedules | Case identity, Profile identity, Run, semantic replay, fresh reruns | Retain the implementation version and scheduling basis as well as the artifact. |
 | What covers omitted dependencies? | Live API/integration testing and Vortex | Functional tests, SDK workers, black-box canary, specialized tests | Keep tests that challenge the modeled dependency contracts. |
 | What has actually been established? | Distinct model, test, monitoring, and proof workflows | Independent stage statuses, Known Gaps, Claim Assessment | A satisfied Contract and a conforming execution are different claims. |
@@ -812,6 +918,13 @@ Then use the Nexus ownership example to test retention and recovery under explic
 availability assumptions. Keep the negative controls in the experiment so we can show which
 meaningful mistakes each mechanism detects.
 
+Apply Welder's interference discipline to the same providers. Check preservation of retained outcome
+and delivery obligation across reset, and record which provider result discharges each dependency.
+Include an interfering owner transfer and a contention path that repeatedly schedules a retry
+without committing. The report should distinguish failed guarantees, unmet or unobserved assumptions,
+and bounded progress failures. This extends the scoped experiments rather than requiring a
+control-plane proof framework first.
+
 This can inform a later proposal for mixed granularity. Any change to Umpire's existing Refinement
 or Implementation Link meaning needs its own specification decision under GOV-02; this document
 does not enact one.
@@ -839,6 +952,8 @@ These are proposed evaluations, not task tracking or claims that the experiments
 | --- | --- | --- | --- |
 | Activity admission | MongoDB-style seam plus SandTable/Mocket-style witness realization | Current-eligibility admission; admission that trusts a stale dispatch | Model finds the bad design, a controlled Run realizes the ordering, committed admission identifies the same violation, corrected behavior passes. |
 | Queue replacement | Scoped provider detail inspired by P and Remix | Queue that preserves committed work; provider that loses committed work | Same product Property survives valid replacement; bad replacement fails its interface obligation; receipt shows changed assumptions and exact variant. |
+| Retention/reset composition | Welder-inspired preservation and dependency checks over a finite Model | Compatible retention and ownership providers; transfer that drops an obligation; acknowledgment followed by lost retention | Local guarantees and cross-component implications are checked within declared bounds; composed Property catches interference; replaced assumptions are discharged and remaining assumptions stay visible. |
+| Retry contention | Detailed persistence retries with explicit progress premises | Retry that commits or returns an allowed error; repeated conflicts despite fair request processing | Checker distinguishes scheduling fairness from retry termination, detects bounded starvation, and keeps safety active when progress premises fail. |
 | Nexus close/reset | Stateful obligation monitoring and explicit commit boundaries | Retained outcome with transferable obligation; premature acknowledgment; original-run acknowledgment after reset | Checker distinguishes handler effect from durable knowledge, retains the obligation across ownership change, and reports the first incorrect acknowledgment or lost obligation. |
 | Recovery phase | TigerBeetle-style healthy core | Usable workers/route/storage; permanently unavailable irrelevant worker; implementation that stalls despite usable resources | Progress conclusions name assumptions and bounds; permanent outside failures do not get healed accidentally; unavailable required resources remain distinct from a semantic failure. |
 | Input abstraction challenge | Independent, less structured generation | Same/distinct operation IDs, attempt stamps, duplicate deliveries, varied ordering | Divergence splits an Abstraction Claim; crossed evidence cannot satisfy another operation; no hidden equality assumption survives normalization. |

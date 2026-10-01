@@ -1,4 +1,4 @@
-/* The lifter: reads the typed trees (TASTy) of Scala Models compiled against model/scala's framework,
+/* The lifter: reads the typed trees (TASTy) of Scala Models compiled against the umpire framework,
  * and emits the Umpire IR they declare. It lifts what authors wrote, as written: the `machine`
  * blocks, the action chains, and the step functions' bodies, including native `match`, `if`,
  * `copy` and local `val`s. Anything outside the subset stops the lift with the source position of
@@ -1652,7 +1652,7 @@ class Lifter(roots: Seq[String], prefixes: Map[String, String]) extends Inspecto
           errors += e
           lifting.clear()
 
-    val m = ir.Model.newBuilder().setSource("model/scala: " + roots.toList.sorted.mkString(", "))
+    val m = ir.Model.newBuilder().setSource("model/scalav2: " + roots.toList.sorted.mkString(", "))
     types.toList.sortBy(_._1).foreach((_, t) => m.addTypes(t))
     functions.toList.sortBy(_._1).foreach((_, f) => m.addFunctions(f))
     actions.toList.sortBy(_._1).foreach((_, a) => m.addActions(a))

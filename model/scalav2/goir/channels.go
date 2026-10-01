@@ -119,6 +119,14 @@ func (in *Interpreter) inbox(x *modelirspb.Expr, b *modelirspb.Inbox, e *env) (V
 	}
 }
 
+// bothRoles says that an action both delivers and loses a channel's messages, which no action does.
+func bothRoles(a *modelirspb.Action) string {
+	if a.GetDelivers() == a.GetLoses() {
+		return "both delivers and loses " + a.GetDelivers()
+	}
+	return "both delivers " + a.GetDelivers() + " and loses " + a.GetLoses()
+}
+
 // holding is the field of a machine's state that holds a channel.
 func (in *Interpreter) holding(decl *modelirspb.Machine, channel string, at *modelirspb.Position) (int, error) {
 	for i, f := range in.types[decl.GetStateType()].GetRecord().GetFields() {
@@ -134,6 +142,9 @@ func (in *Interpreter) holding(decl *modelirspb.Machine, channel string, at *mod
 // again with the entry put back, its acknowledgment lost. No entry to take out disables the pair.
 func (in *Interpreter) transfer(decl *modelirspb.Machine, s Value, c Class) ([]Value, error) {
 	a := c.Action
+	if a.GetDelivers() != "" && a.GetLoses() != "" {
+		return nil, errorAt(c.at, "%s %s", a.GetName(), bothRoles(a))
+	}
 	id, delivers := a.GetDelivers(), true
 	if id == "" {
 		id, delivers = a.GetLoses(), false
@@ -165,10 +176,16 @@ func (in *Interpreter) transfer(decl *modelirspb.Machine, s Value, c Class) ([]V
 	if err != nil {
 		return nil, err
 	}
-	steps := result.Items
+	steps, err := in.stepList(decl, c, result)
+	if err != nil {
+		return nil, err
+	}
 	if r := held[taken].Fields[1].Int; delivers && len(steps) > 0 && r < int64(ch.GetDuplicates()) {
 		for _, step := range result.Items {
 			next := step.Fields[1]
+			if len(next.Fields) <= f || next.Fields[f].Kind != ListValue {
+				return nil, errorAt(c.at, "%s returns a step to %s, which does not hold %s", c.step, next.Key(), id)
+			}
 			next.Fields = slices.Clone(next.Fields)
 			items, err := in.put(ch, next.Fields[f].Items, delivery(m, r+1), true)
 			if err != nil {

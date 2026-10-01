@@ -81,7 +81,7 @@ func TestValidateReportsEveryProblemAtItsScalaPosition(t *testing.T) {
 	lines := strings.Split(err.Error(), "\n")
 	require.GreaterOrEqual(t, len(lines), 5, "every renamed call is reported, not only the first")
 	for _, l := range lines {
-		require.Regexp(t, `^model/scala/temporal/nexuscaller/kernel/Nexus\.scala:\d+: no function temporal\.nexuscaller\.kernel\.Protocol\$\.move$`, l)
+		require.Regexp(t, `^model/scalav2/scala/temporal/nexuscaller/kernel/Nexus\.scala:\d+: no function temporal\.nexuscaller\.kernel\.Protocol\$\.move$`, l)
 	}
 }
 
@@ -94,7 +94,7 @@ func TestValidateRejectsAStepWithTheWrongArity(t *testing.T) {
 			}
 		}
 	}
-	require.ErrorContains(t, Validate(m), "model/scala/temporal/nexuscaller/Model.scala:147: temporal.nexuscaller.kernel.Protocol$.backoffStep "+
+	require.ErrorContains(t, Validate(m), "model/scalav2/scala/temporal/nexuscaller/Model.scala:173: temporal.nexuscaller.kernel.Protocol$.backoffStep "+
 		"steps handlerReply, which has 1 inputs, so it takes the state and 1 arguments, not 0")
 }
 

@@ -79,6 +79,11 @@ func Validate(m *modelirspb.Model) error {
 	for _, p := range m.GetProgress() {
 		v.progress(p)
 	}
+	v.catalogs(m)
+	if len(v.errs) == 0 {
+		v.schedules(m, v.composedClasses(m))
+		v.identities(m)
+	}
 	return errors.Join(v.errs...)
 }
 
@@ -89,7 +94,8 @@ func newValidator(m *modelirspb.Model) *validator {
 		actions: map[string]*modelirspb.Action{}, channels: map[string]*modelirspb.Channel{},
 		monitors: map[string]*modelirspb.Monitor{}, assumptions: map[string]bool{}, holes: map[string]bool{},
 		machines: map[string]*modelirspb.Machine{}, compositions: map[string]*modelirspb.Composition{},
-		properties: map[claim]bool{}, scenarios: map[claim]bool{}, calls: map[string][]string{}}
+		properties: map[claim]bool{}, scenarios: map[claim]bool{}, calls: map[string][]string{},
+		in: NewInterpreter(m), returning: map[string]bool{}}
 	for _, t := range m.GetTypes() {
 		v.once(t.GetPosition(), "types named", t.GetName())
 		v.types[t.GetName()] = t
@@ -222,6 +228,9 @@ func (v *validator) action(a *modelirspb.Action) {
 	if c, ok := v.channels[a.GetLoses()]; ok && !c.GetLossy() {
 		v.report(a.GetPosition(), "%s loses channel %s, which is not lossy", a.GetId(), c.GetId())
 	}
+	if a.GetDelivers() != "" && a.GetLoses() != "" {
+		v.report(a.GetPosition(), "%s %s; an action does one", a.GetId(), bothRoles(a))
+	}
 }
 
 func (v *validator) actionRefs(at *modelirspb.Position, ids []string) {
@@ -259,6 +268,10 @@ type validator struct {
 	calls  map[string][]string
 	caller string
 	errs   []error
+	// in evaluates what admission reads as values: selectors' inputs and Scenarios' starts.
+	in *Interpreter
+	// returning holds the step functions whose results have been checked.
+	returning map[string]bool
 }
 
 // once reports a declaration whose key an earlier one of its kind took, and is whether it did. The
@@ -694,6 +707,102 @@ func (v *validator) step(m *modelirspb.Machine, b *modelirspb.StepBinding) {
 					f.GetName(), a.GetName(), p.GetName(), spell(args[i]), spell(p.GetType()))
 			}
 		}
+		if !v.returning[f.GetName()] {
+			v.returning[f.GetName()] = true
+			v.returnsSteps(f.GetName(), f.GetBody(), map[string]bool{f.GetName(): true})
+		}
+	}
+}
+
+// returnsSteps reports what a step function returns that is certainly no list of steps: a literal or
+// a record that is none, an operator's Boolean or integer, a function, or a list holding one of those.
+// What only evaluation shows, a parameter, a field or a hole, is left to it.
+func (v *validator) returnsSteps(step string, x *modelirspb.Expr, called map[string]bool) {
+	what := ""
+	switch k := x.GetKind().(type) {
+	case *modelirspb.Expr_Literal:
+		what = spellSteps(k.Literal)
+	case *modelirspb.Expr_Construct:
+		if k.Construct.GetType() != StepType {
+			what = "a " + k.Construct.GetType()
+		}
+	case *modelirspb.Expr_List:
+		for _, item := range k.List.GetItems() {
+			if c := item.GetConstruct(); c != nil && c.GetType() != StepType {
+				what = "a list holding a " + c.GetType()
+			} else if l := item.GetLiteral(); l != nil && l.GetRecord().GetType() != StepType {
+				what = "a list holding " + spellValue(l)
+			}
+		}
+	case *modelirspb.Expr_If:
+		v.returnsSteps(step, k.If.GetThen(), called)
+		v.returnsSteps(step, k.If.GetElse(), called)
+	case *modelirspb.Expr_Match:
+		for _, c := range k.Match.GetCases() {
+			v.returnsSteps(step, c.GetBody(), called)
+		}
+	case *modelirspb.Expr_Let:
+		v.returnsSteps(step, k.Let.GetBody(), called)
+	case *modelirspb.Expr_Binary:
+		what = v.binaryReturns(step, k.Binary, called)
+	case *modelirspb.Expr_Call:
+		if f, ok := v.functions[k.Call.GetFunction()]; ok && !called[f.GetName()] {
+			called[f.GetName()] = true
+			v.returnsSteps(step, f.GetBody(), called)
+		}
+	case *modelirspb.Expr_Unary, *modelirspb.Expr_Inbox, *modelirspb.Expr_Copy, *modelirspb.Expr_Lambda:
+		what = "no list"
+	default:
+	}
+	if what != "" {
+		v.report(x.GetPosition(), "%s returns %s, not a list of steps", step, what)
+	}
+}
+
+func (v *validator) binaryReturns(step string, b *modelirspb.Binary, called map[string]bool) string {
+	switch b.GetOp() {
+	case modelirspb.Binary_OP_CONCAT:
+		v.returnsSteps(step, b.GetLeft(), called)
+		v.returnsSteps(step, b.GetRight(), called)
+		return ""
+	case modelirspb.Binary_OP_ADD, modelirspb.Binary_OP_SUB:
+		return "an integer"
+	default:
+		return "a Boolean"
+	}
+}
+
+// spellSteps is how a literal a step function returns is no list of steps, or empty when it is one.
+func spellSteps(x *modelirspb.Value) string {
+	l := x.GetList()
+	if l == nil {
+		return spellValue(x)
+	}
+	for _, item := range l.GetItems() {
+		if item.GetRecord().GetType() != StepType {
+			return "a list holding " + spellValue(item)
+		}
+	}
+	return ""
+}
+
+// spellValue writes the type of a literal as a diagnostic names it.
+func spellValue(x *modelirspb.Value) string {
+	switch k := x.GetKind().(type) {
+	case *modelirspb.Value_Bool:
+		return "a Boolean"
+	case *modelirspb.Value_Int:
+		return "an integer"
+	case *modelirspb.Value_Text:
+		return "a string"
+	case *modelirspb.Value_Enum:
+		return "a " + k.Enum.GetType()
+	case *modelirspb.Value_Record:
+		return "a " + k.Record.GetType()
+	case *modelirspb.Value_List:
+		return "a list"
+	default:
+		return "no value"
 	}
 }
 
@@ -852,9 +961,20 @@ func (v *validator) property(p *modelirspb.Property) {
 	if p.GetTransition() {
 		n = 2
 	}
-	v.arity(at, p.GetMachine()+"."+p.GetName(), p.GetHolds(), n)
-	if c := p.GetWhenClass(); c != nil {
-		v.actionClass(c, at)
+	owner := p.GetMachine() + "." + p.GetName()
+	v.arity(at, owner, p.GetHolds(), n)
+	mm := v.machines[p.GetMachine()]
+	switch {
+	case p.GetWhen() == nil:
+	case mm == nil:
+		if v.compositions[p.GetMachine()] != nil {
+			v.report(at, "%s: a Property of a composition is about every step", owner)
+		}
+	case p.GetWhenClass() != nil:
+		v.actionClass(owner, mm, p.GetWhenClass(), at)
+	case !v.binds(mm, p.GetWhenAction()):
+		v.report(at, "%s: %s binds no action %s", owner, mm.GetName(), p.GetWhenAction())
+	default:
 	}
 }
 
@@ -864,15 +984,343 @@ func (v *validator) scenario(s *modelirspb.Scenario) {
 	if s.GetStart() != nil {
 		v.expr(s.GetStart(), map[string]bool{})
 	}
-	for _, c := range s.GetActions() {
-		v.actionClass(c, at)
+	owner := s.GetMachine() + "." + s.GetName()
+	if mm := v.machines[s.GetMachine()]; mm != nil {
+		for _, c := range s.GetActions() {
+			v.actionClass(owner, mm, c, at)
+		}
+		if len(s.GetKeys()) > 0 {
+			v.report(at, "%s: a Scenario of a machine schedules action classes, not keys", owner)
+		}
+	}
+	if v.compositions[s.GetMachine()] != nil && len(s.GetActions()) > 0 {
+		v.report(at, "%s: a Scenario of a composition schedules its class keys, not actions", owner)
 	}
 }
 
-func (v *validator) actionClass(c *modelirspb.ActionClass, at *modelirspb.Position) {
+// actionClass checks that a selector names an action its machine binds, with one value of each
+// input's type.
+func (v *validator) actionClass(owner string, mm *modelirspb.Machine, c *modelirspb.ActionClass, at *modelirspb.Position) {
 	v.actionRefs(at, []string{c.GetAction()})
 	for _, x := range c.GetInputs() {
 		v.value(x, at)
+	}
+	a, ok := v.actions[c.GetAction()]
+	switch {
+	case !ok:
+	case !slices.ContainsFunc(mm.GetSteps(), func(b *modelirspb.StepBinding) bool { return b.GetAction() == a.GetId() }):
+		v.report(at, "%s: %s binds no action %s", owner, mm.GetName(), a.GetId())
+	case len(c.GetInputs()) != len(a.GetInputs()):
+		v.report(at, "%s: %s takes %d inputs, not %d", owner, a.GetId(), len(a.GetInputs()), len(c.GetInputs()))
+	default:
+		for i, p := range a.GetInputs() {
+			if x := v.in.literal(c.GetInputs()[i]); !v.in.conforms(x, p.GetType()) {
+				v.report(at, "%s: %s takes a %s for %s, not %s", owner, a.GetId(), spell(p.GetType()), p.GetName(), x.Key())
+			}
+		}
+	}
+}
+
+// schedules evaluates every Scenario's start, which must be a state of its machine or composition,
+// and checks a composition's keys against its classes. It runs once the rest of the Model admits, so
+// what it evaluates is well formed.
+func (v *validator) schedules(m *modelirspb.Model, composed map[string]classKeys) {
+	for _, s := range m.GetScenarios() {
+		at, owner := s.GetPosition(), s.GetMachine()+"."+s.GetName()
+		state := v.machines[s.GetMachine()].GetStateType()
+		c := v.compositions[s.GetMachine()]
+		if c != nil {
+			state = c.GetStateType()
+		}
+		if s.GetStart() != nil {
+			start, err := v.in.Eval(s.GetStart())
+			switch {
+			case err != nil:
+				v.report(at, "%s: its start: %v", owner, err)
+			case !v.in.conforms(start, named(state)):
+				v.report(at, "%s starts at %s, which is no %s", owner, start.Key(), state)
+			default:
+			}
+		}
+		if c == nil || len(s.GetKeys()) == 0 {
+			continue
+		}
+		keys := composed[c.GetName()]
+		var limit *LimitError
+		if errors.As(keys.err, &limit) {
+			v.errs = append(v.errs, fmt.Errorf("%s: %s: its classes: %w", where(at), owner, keys.err))
+		}
+		if keys.err != nil {
+			continue
+		}
+		for _, k := range s.GetKeys() {
+			if _, ok := keys.owners[k]; !ok {
+				v.report(at, "%s: %s has no class %s", owner, c.GetName(), k)
+			}
+		}
+	}
+}
+
+// identities lists each machine's state, outcome and fact catalogs and its classes, and refuses two
+// values, two classes, or two state and class pairs that share a key. A catalog past the default
+// ceilings is left to Build, which refuses it within its own.
+func (v *validator) identities(m *modelirspb.Model) {
+	report := func(err error) {
+		var limit *LimitError
+		if err != nil && !errors.As(err, &limit) {
+			v.errs = append(v.errs, err)
+		}
+	}
+	for _, mm := range m.GetMachines() {
+		// The same counts Build refuses a machine by bound what is listed here.
+		if err := v.in.preflight(mm, v.actions); err != nil {
+			report(err)
+			continue
+		}
+		var states []Value
+		for i, t := range []string{mm.GetStateType(), mm.GetOutcomeType(), mm.GetFactType()} {
+			if t == "" {
+				continue
+			}
+			values, err := v.in.Members(named(t))
+			report(err)
+			if i == 0 {
+				states = values
+			}
+		}
+		classes, err := v.in.classes(mm, v.actions)
+		report(err)
+		if states != nil && err == nil {
+			report(rowKeys(mm, states, classes))
+		}
+	}
+}
+
+// classKeys is a composition's class keys, each with the class it names, or why they are not known.
+type classKeys struct {
+	owners map[string]string
+	err    error
+}
+
+// composedClasses keys every composition's classes, and reports a composition two of whose classes
+// share a key; one past the default ceilings is left to the Scenarios that read its keys.
+func (v *validator) composedClasses(m *modelirspb.Model) map[string]classKeys {
+	out := map[string]classKeys{}
+	for _, c := range m.GetCompositions() {
+		owners, err := v.composedKeys(c)
+		var limit *LimitError
+		if err != nil && !errors.As(err, &limit) {
+			v.errs = append(v.errs, err)
+		}
+		if limit != nil {
+			limit.Machine = c.GetName()
+		}
+		out[c.GetName()] = classKeys{owners: owners, err: err}
+	}
+	return out
+}
+
+// composedKeys is every class key of a composition: `<field>_<class>` for a member's own class, and a
+// sync's name followed by the inputs of each of its classes.
+// A key two classes spell alike, as `_` in a field or an action name and a sync named like a
+// member's class allow, is refused where the composition is declared.
+func (v *validator) composedKeys(c *modelirspb.Composition) (map[string]string, error) {
+	if err := v.composedCount(c); err != nil {
+		return nil, err
+	}
+	keys := &owned{composition: c, owners: map[string]string{}}
+	members := map[string]*modelirspb.Machine{}
+	for _, mb := range c.GetMembers() {
+		members[mb.GetField()] = v.machines[mb.GetMachine()]
+		if err := v.memberKeys(keys, mb, members[mb.GetField()]); err != nil {
+			return nil, err
+		}
+	}
+	for _, s := range c.GetSyncs() {
+		if err := v.syncKeys(keys, s, members); err != nil {
+			return nil, err
+		}
+	}
+	return keys.owners, nil
+}
+
+// composedCount counts a composition's class keys, its members' classes and each sync's pairs of
+// them, refusing them past the Members ceiling before any is made.
+func (v *validator) composedCount(c *modelirspb.Composition) error {
+	var n count
+	members := map[string]*modelirspb.Machine{}
+	for _, mb := range c.GetMembers() {
+		members[mb.GetField()] = v.machines[mb.GetMachine()]
+		k, err := v.in.classCount(members[mb.GetField()], v.actions)
+		if err != nil {
+			return err
+		}
+		n = n.plus(k)
+	}
+	for _, s := range c.GetSyncs() {
+		first, err := v.actionCount(members[s.GetFirst().GetMember()], s.GetFirst().GetAction())
+		if err != nil {
+			return err
+		}
+		second, err := v.actionCount(members[s.GetSecond().GetMember()], s.GetSecond().GetAction())
+		if err != nil {
+			return err
+		}
+		n = n.plus(first.times(second))
+	}
+	return v.in.within("classes", v.in.ceilings.Members, n)
+}
+
+// actionCount counts the classes of the action of this name a member binds.
+func (v *validator) actionCount(mm *modelirspb.Machine, action string) (count, error) {
+	for _, b := range mm.GetSteps() {
+		if a := v.actions[b.GetAction()]; a.GetName() == action {
+			return v.in.sizeOfProduct(inputFields(a))
+		}
+	}
+	return count{}, nil
+}
+
+// owned is a composition's class keys as they are made, each with the class it names.
+type owned struct {
+	composition *modelirspb.Composition
+	owners      map[string]string
+}
+
+func (o *owned) own(key, owner string) error {
+	if earlier, ok := o.owners[key]; ok && earlier != owner {
+		c := o.composition
+		return errorAt(c.GetPosition(), "composition %s: %s and %s share the key %q", c.GetName(), earlier, owner, key)
+	}
+	o.owners[key] = owner
+	return nil
+}
+
+func (v *validator) memberKeys(keys *owned, mb *modelirspb.Member, mm *modelirspb.Machine) error {
+	for _, b := range mm.GetSteps() {
+		classes, err := v.inputKeys(v.actions[b.GetAction()])
+		if err != nil {
+			return err
+		}
+		for _, k := range classes {
+			class := strings.Join(append([]string{v.actions[b.GetAction()].GetName()}, k...), "-")
+			if err := keys.own(mb.GetField()+"_"+class, "member "+mb.GetField()+"'s class "+class); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (v *validator) syncKeys(keys *owned, s *modelirspb.Sync, members map[string]*modelirspb.Machine) error {
+	first, err := v.syncInputs(members[s.GetFirst().GetMember()], s.GetFirst().GetAction())
+	if err != nil {
+		return err
+	}
+	second, err := v.syncInputs(members[s.GetSecond().GetMember()], s.GetSecond().GetAction())
+	if err != nil {
+		return err
+	}
+	for _, x := range first {
+		for _, y := range second {
+			owner := "sync " + s.GetName() + " of " + s.GetFirst().GetMember() + "." + s.GetFirst().GetAction() + " and " +
+				s.GetSecond().GetMember() + "." + s.GetSecond().GetAction()
+			if len(x)+len(y) > 0 {
+				owner += "(" + strings.Join(x, ", ") + "; " + strings.Join(y, ", ") + ")"
+			}
+			if err := keys.own(strings.Join(append(append([]string{s.GetName()}, x...), y...), "-"), owner); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// syncInputs is the input keys of every class of the action of this name a member binds.
+func (v *validator) syncInputs(mm *modelirspb.Machine, action string) ([][]string, error) {
+	for _, b := range mm.GetSteps() {
+		if a := v.actions[b.GetAction()]; a.GetName() == action {
+			return v.inputKeys(a)
+		}
+	}
+	return nil, nil
+}
+
+// inputKeys is, for every class of an action, the keys of its inputs.
+func (v *validator) inputKeys(a *modelirspb.Action) ([][]string, error) {
+	assignments, err := v.in.product(inputFields(a))
+	if err != nil {
+		return nil, err
+	}
+	out := make([][]string, len(assignments))
+	for i, inputs := range assignments {
+		for _, x := range inputs {
+			out[i] = append(out[i], x.Key())
+		}
+	}
+	return out, nil
+}
+
+// catalogs reports a type or a channel whose catalog contains itself, through the fields of types and
+// the messages of channels, naming the shortest chain of others it does so through.
+func (v *validator) catalogs(m *modelirspb.Model) {
+	holds := map[string][]string{}
+	var refs func(from string, t *modelirspb.TypeRef)
+	refs = func(from string, t *modelirspb.TypeRef) {
+		switch r := t.GetRef().(type) {
+		case *modelirspb.TypeRef_Named:
+			holds[from] = append(holds[from], "type "+r.Named)
+		case *modelirspb.TypeRef_Channel:
+			holds[from] = append(holds[from], "channel "+r.Channel)
+		case *modelirspb.TypeRef_List:
+			refs(from, r.List)
+		default:
+		}
+	}
+	for _, t := range m.GetTypes() {
+		fields := t.GetRecord().GetFields()
+		for _, c := range t.GetEnum().GetCases() {
+			fields = append(fields, c.GetFields()...)
+		}
+		for _, f := range fields {
+			refs("type "+t.GetName(), f.GetType())
+		}
+	}
+	for _, c := range m.GetChannels() {
+		refs("channel "+c.GetId(), c.GetMessage())
+	}
+	for _, t := range m.GetTypes() {
+		v.containsItself(t.GetPosition(), "type "+t.GetName(), holds)
+	}
+	for _, c := range m.GetChannels() {
+		v.containsItself(c.GetPosition(), "channel "+c.GetId(), holds)
+	}
+}
+
+func (v *validator) containsItself(at *modelirspb.Position, name string, holds map[string][]string) {
+	from := map[string]string{}
+	queue := []string{name}
+	for len(queue) > 0 {
+		here := queue[0]
+		queue = queue[1:]
+		for _, next := range holds[here] {
+			if next == name {
+				var through []string
+				for x := here; x != name; x = from[x] {
+					through = append([]string{x}, through...)
+				}
+				if len(through) == 0 {
+					v.report(at, "%s has no finite catalog: it contains itself", name)
+				} else {
+					v.report(at, "%s has no finite catalog: it contains itself through %s", name, strings.Join(through, ", "))
+				}
+				return
+			}
+			if _, seen := from[next]; !seen {
+				from[next] = here
+				queue = append(queue, next)
+			}
+		}
 	}
 }
 

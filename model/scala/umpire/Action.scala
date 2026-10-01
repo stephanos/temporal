@@ -4,7 +4,6 @@ package umpire
 final case class Party(name: String)
 
 object Party:
-  // `system` also performs the steps `internal` declares and a channel's deliveries and losses.
   val system: Party = Party("system")
 
 /** What a machine keeps state for. `key` names the recorded field that identifies an instance;
@@ -31,11 +30,6 @@ final case class ActionDecl(
     examples: List[ClassExample] = Nil,
     timer: Boolean = false,
     domains: List[Finite[?]] = Nil,
-    // Another step of the system: an internal step, or a channel's delivery or loss of a message,
-    // which `delivers` and `loses` name the channel of.
-    internal: Boolean = false,
-    delivers: String = "",
-    loses: String = "",
 ):
   /** Every class of the action: the product of its input domains, the last input varying fastest. */
   def classes: List[Class] =
@@ -92,9 +86,6 @@ def action(name: String, party: Party): Action[EmptyTuple] = Action(ActionDecl(n
 
 /** Declares a timer: an action with no input that the system performs. */
 def timer(name: String): Action[EmptyTuple] = Action(ActionDecl(name, Party.system, timer = true))
-
-/** Declares a step of the system that is not a timer, such as a dispatch or a commit. */
-def internal(name: String): Action[EmptyTuple] = Action(ActionDecl(name, Party.system, internal = true))
 
 /** One class of an action: the action with one assignment of its inputs. */
 final case class Class(decl: ActionDecl, values: List[Any]):

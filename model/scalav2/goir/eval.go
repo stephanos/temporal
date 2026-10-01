@@ -5,6 +5,7 @@ package goir
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -69,6 +70,28 @@ func (v Value) Key() string {
 		return "[" + strings.Join(parts, ",") + "]"
 	default:
 		return "<lambda>"
+	}
+}
+
+// spelled writes a value's structure, which its key may not tell apart: a record as its fields in
+// parentheses, a case with fields as the case applied to them, and a list in brackets.
+func (v Value) spelled() string {
+	spell := func(vs []Value) string {
+		parts := make([]string, len(vs))
+		for i, x := range vs {
+			parts[i] = x.spelled()
+		}
+		return strings.Join(parts, ", ")
+	}
+	switch {
+	case v.Kind == EnumValue && len(v.Fields) > 0:
+		return v.Case + "(" + spell(v.Fields) + ")"
+	case v.Kind == RecordValue:
+		return "(" + spell(v.Fields) + ")"
+	case v.Kind == ListValue:
+		return "[" + spell(v.Items) + "]"
+	default:
+		return v.Key()
 	}
 }
 
@@ -170,13 +193,16 @@ type Interpreter struct {
 	channels  map[string]*modelirspb.Channel
 	holes     map[string]*modelirspb.Hole
 	ceilings  Ceilings
+	// sizing holds the types and channels whose catalogs are being counted.
+	sizing map[string]bool
 }
 
 // NewInterpreter indexes a Model's declarations.
 // It interprets them within DefaultCeilings.
 func NewInterpreter(m *modelirspb.Model) *Interpreter {
 	in := &Interpreter{model: m, types: map[string]*modelirspb.Type{}, functions: map[string]*modelirspb.Function{},
-		channels: map[string]*modelirspb.Channel{}, holes: map[string]*modelirspb.Hole{}, ceilings: DefaultCeilings}
+		channels: map[string]*modelirspb.Channel{}, holes: map[string]*modelirspb.Hole{}, ceilings: DefaultCeilings,
+		sizing: map[string]bool{}}
 	for _, t := range m.GetTypes() {
 		in.types[t.GetName()] = t
 	}
@@ -338,6 +364,78 @@ func (in *Interpreter) literal(v *modelirspb.Value) Value {
 	default:
 		return Value{}
 	}
+}
+
+// conforms is whether a value is of a type: of the kind the type admits, within a range's bounds, of a
+// declared type's own case with fields of theirs, and for a channel a list of its deliveries. It does
+// not ask whether a channel's contents are in its catalog: the state domain does.
+func (in *Interpreter) conforms(v Value, t *modelirspb.TypeRef) bool {
+	all := func(vs []Value, t *modelirspb.TypeRef) bool {
+		for _, x := range vs {
+			if !in.conforms(x, t) {
+				return false
+			}
+		}
+		return true
+	}
+	switch r := t.GetRef().(type) {
+	case *modelirspb.TypeRef_Bool:
+		return v.Kind == BoolValue
+	case *modelirspb.TypeRef_Int:
+		return v.Kind == IntValue
+	case *modelirspb.TypeRef_IntRange:
+		return v.Kind == IntValue && r.IntRange.GetLow() <= v.Int && v.Int <= r.IntRange.GetHigh()
+	case *modelirspb.TypeRef_List:
+		return v.Kind == ListValue && all(v.Items, r.List)
+	case *modelirspb.TypeRef_Channel:
+		c, ok := in.channels[r.Channel]
+		if !ok || v.Kind != ListValue {
+			return false
+		}
+		redeliveries := &modelirspb.TypeRef{Ref: &modelirspb.TypeRef_IntRange{IntRange: &modelirspb.IntRange{High: int64(c.GetDuplicates())}}}
+		for _, d := range v.Items {
+			if d.Kind != RecordValue || d.Type != DeliveryType || len(d.Fields) != len(deliveryFields) ||
+				!in.conforms(d.Fields[0], c.GetMessage()) || !in.conforms(d.Fields[1], redeliveries) {
+				return false
+			}
+		}
+		return true
+	case *modelirspb.TypeRef_Named:
+		return in.conformsToDeclared(v, r.Named)
+	default:
+		return false
+	}
+}
+
+func (in *Interpreter) conformsToDeclared(v Value, name string) bool {
+	decl, ok := in.types[name]
+	if !ok || v.Type != name {
+		return false
+	}
+	fields := decl.GetRecord().GetFields()
+	switch decl.GetShape().(type) {
+	case *modelirspb.Type_Record:
+		if v.Kind != RecordValue {
+			return false
+		}
+	case *modelirspb.Type_Enum:
+		i := slices.IndexFunc(decl.GetEnum().GetCases(), func(c *modelirspb.Case) bool { return c.GetName() == v.Case })
+		if v.Kind != EnumValue || i < 0 {
+			return false
+		}
+		fields = decl.GetEnum().GetCases()[i].GetFields()
+	default:
+		return false
+	}
+	if len(v.Fields) != len(fields) {
+		return false
+	}
+	for i, f := range fields {
+		if !in.conforms(v.Fields[i], f.GetType()) {
+			return false
+		}
+	}
+	return true
 }
 
 // fieldNames is the field names of a record, or of one case of an enum.

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# The model/scalav2 gate. Scala is only the authoring front end: model/scala's Models are compiled,
-# the lifter reads their typed trees and emits the IR, and Go interprets the IR and checks every
-# table, identity and fingerprint against the Lean Model. Exits non-zero on the first failure.
+# The model/scalav2 gate. Scala is only the authoring front end: the Models in scala/ are compiled
+# and tested, the lifter reads their typed trees and emits the IR, and Go interprets the IR and checks
+# every table, identity and fingerprint against the Lean Model. Exits non-zero on the first failure.
 #
 #   model/scalav2/run.sh           lift, require ir/nexus-caller.json to be current, test
 #   model/scalav2/run.sh --update  lift and rewrite ir/nexus-caller.json
@@ -24,10 +24,10 @@ done
 
 scala_cli() { mise exec -- scala-cli "$@" --suppress-outdated-dependency-warning; }
 # scala-cli exits 0 when -Werror turns a warning into an error, such as a match that misses a case;
-# model/scala/scala.sh fails on any error it prints. Its output is shown only when the build fails.
+# scala.sh fails on any error it prints. Its output is shown only when the build fails.
 scala_build() {
   local out
-  out="$("$root/model/scala/scala.sh" "$@")" || { echo "$out" >&2; return 1; }
+  out="$("$here/scala.sh" "$@")" || { echo "$out" >&2; return 1; }
 }
 # The lifter's own arguments follow `--`, so scala-cli's flags go before it: an argument after it
 # is a root, and the lifter refuses a root that names nothing.
@@ -67,18 +67,22 @@ roots=('temporal.nexuscaller.Model$package$.nexusProduct' 'temporal.nexuscaller.
   'temporal.nexuscaller.Model$package$.handlerWorker' 'temporal.worker.Worker$package$.polling')
 
 schema="$root/proto/internal/temporal/server/api/modelir/v1/ir.proto"
-stamp="$(shasum -a 256 "$schema" | cut -d' ' -f1)"
-if [[ ! -f "$here/gen/ir-proto.jar" || "$(cat "$here/gen/ir.stamp" 2>/dev/null)" != "$stamp" ]]; then
-  echo "== generate the IR's Java classes"
-  "$here/gen.sh"
-  echo "$stamp" > "$here/gen/ir.stamp"
-fi
+echo "== generate the IR's and the Testpilot protos' Java classes when their inputs changed"
+"$here/gen.sh" --if-stale
 [[ api/modelir/v1/ir.pb.go -nt "$schema" ]] || { echo "run.sh: api/modelir/v1 is older than the IR schema; run make protoc" >&2; exit 1; }
 
-echo "== compile model/scala and package its TASTy"
-scala_build --power package --library model/scala/project.scala model/scala/umpire model/scala/temporal \
+# The framework must build without the Temporal Models, so nothing in umpire/ reaches into them.
+scala="model/scalav2/scala"
+echo "== compile the framework alone"
+scala_build compile "$scala/project.scala" "$scala/umpire"
+
+echo "== compile and test the framework and the Temporal Models"
+scala_build test "$scala/project.scala" "$scala/umpire" "$scala/temporal"
+
+echo "== package the Models' TASTy"
+scala_build --power package --library "$scala/project.scala" "$scala/umpire" "$scala/temporal" \
   -f -o "$here/gen/model-scala.jar"
-scala_cli compile --print-class-path model/scala/project.scala model/scala/umpire model/scala/temporal \
+scala_cli compile --print-class-path "$scala/project.scala" "$scala/umpire" "$scala/temporal" \
   > "$here/gen/model-scala.classpath"
 
 echo "== the build refuses a warning -Werror makes an error, and crossed types, at their lines"
@@ -87,7 +91,7 @@ refuses crossed Crossed.scala.fixture:35:14 Crossed.scala.fixture:45:28
 
 echo "== lift the Nexus caller Model"
 lifted="$(mktemp)"
-lift "$here/gen/model-scala.jar=model/scala/" "$here/gen/model-scala.classpath" "$lifted" "${roots[@]}" \
+lift "$here/gen/model-scala.jar=$scala/" "$here/gen/model-scala.classpath" "$lifted" "${roots[@]}" \
   2> >(grep -v '^WARNING' >&2)
 if $update; then
   cp "$lifted" "$here/ir/nexus-caller.json"
@@ -110,7 +114,7 @@ echo "$refused"
 echo "== lift the fixtures, compare them with lifter/testdata/lifts/expected, and lift the activity Models"
 fixtures="$here/lifter/testdata/lifts"
 scala_build --power package --library "$(materialize lifts)" -f -o "$here/gen/lifts.jar"
-jars="$here/gen/lifts.jar=$(stored lifts),$here/gen/model-scala.jar=model/scala/"
+jars="$here/gen/lifts.jar=$(stored lifts),$here/gen/model-scala.jar=$scala/"
 rm -rf "$here/gen/lifts" && mkdir -p "$here/gen/lifts"
 # Each lift is its own JVM, so they run side by side: <name> <jars> <root>...
 lift_into() {
@@ -134,7 +138,7 @@ lift_into closereset "$jars" 'fixture.specimens.closereset.CloseReset$package$.r
 rejected=(unbounded waiting doubled listening counter crossedRead negative watched unrefined misplaced noSuchRoot
   unrefinedOutcomes counting batching shuffling guessing)
 lift_into rejects "$jars" "${rejected[@]/#/fixture.rejects.Rejects\$package\$.}" &
-lift_into activity "$here/gen/model-scala.jar=model/scala/" 'temporal.standaloneactivity.Model$package$.standaloneActivity' \
+lift_into activity "$here/gen/model-scala.jar=$scala/" 'temporal.standaloneactivity.Model$package$.standaloneActivity' \
   'temporal.standaloneactivity.Model$package$.activityProduct' &
 wait
 for name in presence channels declarations admission closereset activity; do
@@ -164,7 +168,7 @@ shifted="$(mktemp -d)"
   > "$shifted/Declarations.scala"
 cp "$here/gen/fixtures/lifts/project.scala" "$shifted/project.scala"
 scala_build --power package --library "$shifted" -f -o "$here/gen/shifted.jar"
-lift "$here/gen/shifted.jar=$(stored lifts),$here/gen/model-scala.jar=model/scala/" \
+lift "$here/gen/shifted.jar=$(stored lifts),$here/gen/model-scala.jar=$scala/" \
   "$here/gen/model-scala.classpath" "$here/gen/lifts/shifted.json" 'fixture.declarations.Declarations$package$.queries' \
   'fixture.declarations.Declarations$package$.durableEventually' 2> >(grep -v '^WARNING' >&2)
 rm -rf "$shifted"

@@ -1,8 +1,8 @@
 package goir
 
-// The Nexus caller Model, lifted from model/scala into ir/nexus-caller.json and interpreted here,
-// against what the Lean Model computes, as dumped into model/go/parity/testdata/lean. Parity means the
-// IR carries the Model whole: nothing of the Scala code is run to get these tables.
+// The Nexus caller Model, lifted from model/scalav2/scala into ir/nexus-caller.json and interpreted
+// here, against what the Lean Model computes, as dumped into model/go/parity/testdata/lean. Parity means
+// the IR carries the Model whole: nothing of the Scala code is run to get these tables.
 
 import (
 	"encoding/json"

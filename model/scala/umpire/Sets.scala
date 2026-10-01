@@ -61,14 +61,7 @@ private def checkModel(m: Model): List[ModelError] = m.table match
         s"or '$s' belongs under ends"))
     val refinement = m match
       case mm: Machine[?, ?, ?] if mm.hasRefinement => mm.refinementCheck.left.toSeq.toList
-      case mm: Machine[?, ?, ?] if mm.visibleFacts.isDefined =>
-        List(ModelError(s"machine ${t.machine}", "the machine names the facts a refined machine sees, and declares no " +
-          "refinement"))
-      case mm: Machine[?, ?, ?] if mm.visibleOutcomeSet.isDefined =>
-        List(ModelError(s"machine ${t.machine}", "the machine names the outcomes a refined machine sees, and " +
-          "declares no refinement"))
-      case c: Composition[?] => c.replacements
-      case _                 => Nil
+      case _                                        => Nil
     names ++ stuck ++ refinement
 
 private def checkSet(s: UmpireSet): List[ModelError] =

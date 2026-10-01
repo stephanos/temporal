@@ -1,5 +1,5 @@
 {
-  "source": "model/scala: fixture.presence.Presence$package$.presence",
+  "source": "model/scalav2: fixture.presence.Presence$package$.presence",
   "types": [{
     "name": "fixture.presence.Outcome",
     "position": {

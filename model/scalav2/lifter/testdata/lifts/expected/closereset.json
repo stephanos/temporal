@@ -1,5 +1,5 @@
 {
-  "source": "model/scala: fixture.specimens.closereset.CloseReset$package$.ackByOriginalQueries, fixture.specimens.closereset.CloseReset$package$.rejectAfterCloseQueries, fixture.specimens.closereset.CloseReset$package$.retainAndRouteQueries",
+  "source": "model/scalav2: fixture.specimens.closereset.CloseReset$package$.ackByOriginalQueries, fixture.specimens.closereset.CloseReset$package$.rejectAfterCloseQueries, fixture.specimens.closereset.CloseReset$package$.retainAndRouteQueries",
   "types": [{
     "name": "fixture.specimens.closereset.Answer",
     "position": {
@@ -174,7 +174,7 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Resolution",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
       "line": 32
     },
     "enum": {
@@ -3247,8 +3247,8 @@
     "id": "temporal.nexuscaller.Model$package$.complete",
     "name": "complete",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/Model.scala",
-      "line": 76
+      "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+      "line": 99
     },
     "party": "handler",
     "inputs": [{

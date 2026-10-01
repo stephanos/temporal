@@ -1,10 +1,10 @@
 {
-  "source": "model/scala: temporal.nexuscaller.Model$package$.handlerWorker, temporal.nexuscaller.Model$package$.nexusProduct, temporal.nexuscaller.Model$package$.nexusProtocol, temporal.worker.Worker$package$.polling",
+  "source": "model/scalav2: temporal.nexuscaller.Model$package$.handlerWorker, temporal.nexuscaller.Model$package$.nexusProduct, temporal.nexuscaller.Model$package$.nexusProtocol, temporal.worker.Worker$package$.polling",
   "types": [{
     "name": "temporal.nexuscaller.kernel.Outcome",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 37
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 39
     },
     "enum": {
       "cases": [{
@@ -16,8 +16,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Phase",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 118
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 139
     },
     "enum": {
       "cases": [{
@@ -41,8 +41,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.ProductFact",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 50
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 52
     },
     "enum": {
       "cases": [{
@@ -62,8 +62,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.ProductPhase",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 45
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 47
     },
     "enum": {
       "cases": [{
@@ -83,8 +83,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.ProductState",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 48
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 50
     },
     "record": {
       "fields": [{
@@ -97,8 +97,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.ProtocolFact",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 135
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 158
     },
     "enum": {
       "cases": [{
@@ -126,8 +126,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.ProtocolState",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 127
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 150
     },
     "record": {
       "fields": [{
@@ -162,7 +162,7 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Reply",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
       "line": 27
     },
     "enum": {
@@ -188,7 +188,7 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Resolution",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
       "line": 32
     },
     "enum": {
@@ -203,7 +203,7 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Timeout",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
       "line": 23
     },
     "enum": {
@@ -216,8 +216,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.TimeoutType",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 123
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 146
     },
     "enum": {
       "cases": [{
@@ -231,8 +231,8 @@
   }, {
     "name": "temporal.worker.Outcome",
     "position": {
-      "file": "model/scala/temporal/worker/Worker.scala",
-      "line": 33
+      "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+      "line": 35
     },
     "enum": {
       "cases": [{
@@ -242,8 +242,8 @@
   }, {
     "name": "temporal.worker.Phase",
     "position": {
-      "file": "model/scala/temporal/worker/Worker.scala",
-      "line": 28
+      "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+      "line": 30
     },
     "enum": {
       "cases": [{
@@ -255,8 +255,8 @@
   }, {
     "name": "temporal.worker.State",
     "position": {
-      "file": "model/scala/temporal/worker/Worker.scala",
-      "line": 31
+      "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+      "line": 33
     },
     "record": {
       "fields": [{
@@ -270,8 +270,8 @@
   "functions": [{
     "name": "nexusProduct.evidence",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/Model.scala",
-      "line": 102
+      "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+      "line": 127
     },
     "params": [{
       "name": "x$1",
@@ -281,14 +281,14 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/Model.scala",
-        "line": 103
+        "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+        "line": 128
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/Model.scala",
-            "line": 103
+            "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+            "line": 128
           },
           "var": "x$1"
         },
@@ -303,8 +303,8 @@
           },
           "body": {
             "position": {
-              "file": "model/scala/temporal/nexuscaller/Model.scala",
-              "line": 103
+              "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+              "line": 128
             },
             "literal": {
               "text": "nexusOperationScheduled"
@@ -321,8 +321,8 @@
           },
           "body": {
             "position": {
-              "file": "model/scala/temporal/nexuscaller/Model.scala",
-              "line": 104
+              "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+              "line": 129
             },
             "literal": {
               "text": "nexusOperationStarted"
@@ -339,8 +339,8 @@
           },
           "body": {
             "position": {
-              "file": "model/scala/temporal/nexuscaller/Model.scala",
-              "line": 105
+              "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+              "line": 130
             },
             "literal": {
               "text": "nexusOperationCompleted"
@@ -357,8 +357,8 @@
           },
           "body": {
             "position": {
-              "file": "model/scala/temporal/nexuscaller/Model.scala",
-              "line": 106
+              "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+              "line": 131
             },
             "literal": {
               "text": "nexusOperationFailed"
@@ -375,8 +375,8 @@
           },
           "body": {
             "position": {
-              "file": "model/scala/temporal/nexuscaller/Model.scala",
-              "line": 107
+              "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+              "line": 132
             },
             "literal": {
               "text": "nexusOperationCanceled"
@@ -393,8 +393,8 @@
           },
           "body": {
             "position": {
-              "file": "model/scala/temporal/nexuscaller/Model.scala",
-              "line": 108
+              "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+              "line": 133
             },
             "literal": {
               "text": "nexusOperationTimedOut"
@@ -406,8 +406,8 @@
   }, {
     "name": "nexusProtocol.evidence",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/Model.scala",
-      "line": 136
+      "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+      "line": 162
     },
     "params": [{
       "name": "x$1",
@@ -417,14 +417,14 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/Model.scala",
-        "line": 137
+        "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+        "line": 163
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/Model.scala",
-            "line": 137
+            "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+            "line": 163
           },
           "var": "x$1"
         },
@@ -439,8 +439,8 @@
           },
           "body": {
             "position": {
-              "file": "model/scala/temporal/nexuscaller/Model.scala",
-              "line": 137
+              "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+              "line": 163
             },
             "literal": {
               "text": "nexusOperationScheduled"
@@ -457,8 +457,8 @@
           },
           "body": {
             "position": {
-              "file": "model/scala/temporal/nexuscaller/Model.scala",
-              "line": 138
+              "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+              "line": 164
             },
             "literal": {
               "text": "nexusOperationStarted"
@@ -475,8 +475,8 @@
           },
           "body": {
             "position": {
-              "file": "model/scala/temporal/nexuscaller/Model.scala",
-              "line": 139
+              "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+              "line": 165
             },
             "literal": {
               "text": "nexusOperationCompleted"
@@ -493,8 +493,8 @@
           },
           "body": {
             "position": {
-              "file": "model/scala/temporal/nexuscaller/Model.scala",
-              "line": 140
+              "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+              "line": 166
             },
             "literal": {
               "text": "nexusOperationFailed"
@@ -511,8 +511,8 @@
           },
           "body": {
             "position": {
-              "file": "model/scala/temporal/nexuscaller/Model.scala",
-              "line": 141
+              "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+              "line": 167
             },
             "literal": {
               "text": "nexusOperationCanceled"
@@ -531,8 +531,8 @@
           },
           "body": {
             "position": {
-              "file": "model/scala/temporal/nexuscaller/Model.scala",
-              "line": 142
+              "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+              "line": 168
             },
             "literal": {
               "text": "nexusOperationTimedOut"
@@ -549,8 +549,8 @@
           },
           "body": {
             "position": {
-              "file": "model/scala/temporal/nexuscaller/Model.scala",
-              "line": 143
+              "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+              "line": 169
             },
             "literal": {
               "text": "pendingAttempts"
@@ -562,8 +562,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Product$.completeStep",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 81
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 93
     },
     "params": [{
       "name": "s",
@@ -578,21 +578,21 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 82
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 94
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 82
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 94
           },
           "call": {
             "function": "temporal.nexuscaller.kernel.Product$.productTerminal",
             "args": [{
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 82
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 94
               },
               "var": "s"
             }]
@@ -600,21 +600,21 @@
         },
         "then": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 82
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 94
           },
           "list": {
             "items": [{
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 82
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 94
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [{
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 82
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 94
                   },
                   "literal": {
                     "enum": {
@@ -624,21 +624,21 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 82
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 94
                   },
                   "var": "s"
                 }, {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 82
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 94
                   },
                   "list": {
                   }
                 }, {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 82
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 94
                   },
                   "literal": {
                     "text": ""
@@ -650,14 +650,14 @@
         },
         "else": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 83
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 96
           },
           "match": {
             "scrutinee": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 83
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 96
               },
               "var": "resolution"
             },
@@ -672,15 +672,15 @@
               },
               "body": {
                 "position": {
-                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                  "line": 84
+                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 98
                 },
                 "call": {
                   "function": "temporal.nexuscaller.kernel.Product$.productStep",
                   "args": [{
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 84
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 98
                     },
                     "literal": {
                       "enum": {
@@ -690,8 +690,8 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 84
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 98
                     },
                     "literal": {
                       "enum": {
@@ -713,15 +713,15 @@
               },
               "body": {
                 "position": {
-                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                  "line": 85
+                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 99
                 },
                 "call": {
                   "function": "temporal.nexuscaller.kernel.Product$.productStep",
                   "args": [{
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 85
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 99
                     },
                     "literal": {
                       "enum": {
@@ -731,8 +731,8 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 85
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 99
                     },
                     "literal": {
                       "enum": {
@@ -754,15 +754,15 @@
               },
               "body": {
                 "position": {
-                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                  "line": 86
+                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 101
                 },
                 "call": {
                   "function": "temporal.nexuscaller.kernel.Product$.productStep",
                   "args": [{
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 86
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 101
                     },
                     "literal": {
                       "enum": {
@@ -772,8 +772,8 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 86
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 101
                     },
                     "literal": {
                       "enum": {
@@ -792,8 +792,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Product$.handlerReplyStep",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 62
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 67
     },
     "params": [{
       "name": "s",
@@ -808,27 +808,27 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 63
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 68
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 63
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 68
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 63
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 68
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 63
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 68
                   },
                   "var": "s"
                 },
@@ -837,8 +837,8 @@
             },
             "right": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 63
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 68
               },
               "literal": {
                 "enum": {
@@ -851,22 +851,22 @@
         },
         "then": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 63
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 68
           },
           "list": {
           }
         },
         "else": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 64
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 70
           },
           "match": {
             "scrutinee": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 64
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 70
               },
               "var": "reply"
             },
@@ -881,15 +881,15 @@
               },
               "body": {
                 "position": {
-                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                  "line": 65
+                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 72
                 },
                 "call": {
                   "function": "temporal.nexuscaller.kernel.Product$.productStep",
                   "args": [{
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 65
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 72
                     },
                     "literal": {
                       "enum": {
@@ -899,8 +899,8 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 65
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 72
                     },
                     "literal": {
                       "enum": {
@@ -922,15 +922,15 @@
               },
               "body": {
                 "position": {
-                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                  "line": 66
+                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 73
                 },
                 "call": {
                   "function": "temporal.nexuscaller.kernel.Product$.productStep",
                   "args": [{
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 66
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 73
                     },
                     "literal": {
                       "enum": {
@@ -940,8 +940,8 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 66
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 73
                     },
                     "literal": {
                       "enum": {
@@ -963,15 +963,15 @@
               },
               "body": {
                 "position": {
-                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                  "line": 67
+                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 75
                 },
                 "call": {
                   "function": "temporal.nexuscaller.kernel.Product$.productStep",
                   "args": [{
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 67
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 75
                     },
                     "literal": {
                       "enum": {
@@ -981,8 +981,8 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 67
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 75
                     },
                     "literal": {
                       "enum": {
@@ -1004,15 +1004,15 @@
               },
               "body": {
                 "position": {
-                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                  "line": 68
+                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 77
                 },
                 "call": {
                   "function": "temporal.nexuscaller.kernel.Product$.productStep",
                   "args": [{
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 68
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 77
                     },
                     "literal": {
                       "enum": {
@@ -1022,8 +1022,8 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 68
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 77
                     },
                     "literal": {
                       "enum": {
@@ -1052,36 +1052,36 @@
               },
               "body": {
                 "position": {
-                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                  "line": 72
+                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 81
                 },
                 "if": {
                   "condition": {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 72
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 81
                     },
                     "var": "retryable"
                   },
                   "then": {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 72
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 81
                     },
                     "list": {
                     }
                   },
                   "else": {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 72
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 82
                     },
                     "call": {
                       "function": "temporal.nexuscaller.kernel.Product$.productStep",
                       "args": [{
                         "position": {
-                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                          "line": 72
+                          "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 82
                         },
                         "literal": {
                           "enum": {
@@ -1091,8 +1091,8 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                          "line": 72
+                          "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 82
                         },
                         "literal": {
                           "enum": {
@@ -1113,8 +1113,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Product$.productStep",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 57
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 60
     },
     "params": [{
       "name": "phase",
@@ -1129,21 +1129,21 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 58
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 61
       },
       "list": {
         "items": [{
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 58
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 61
           },
           "construct": {
             "type": "umpire.Step",
             "args": [{
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 58
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 61
               },
               "literal": {
                 "enum": {
@@ -1153,37 +1153,37 @@
               }
             }, {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 58
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 61
               },
               "construct": {
                 "type": "temporal.nexuscaller.kernel.ProductState",
                 "args": [{
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 58
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 61
                   },
                   "var": "phase"
                 }]
               }
             }, {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 58
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 61
               },
               "list": {
                 "items": [{
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 58
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 61
                   },
                   "var": "recorded"
                 }]
               }
             }, {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 58
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 61
               },
               "literal": {
                 "text": ""
@@ -1196,8 +1196,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Product$.productTerminal",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 75
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 85
     },
     "params": [{
       "name": "s",
@@ -1207,42 +1207,42 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 76
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 86
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 76
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 86
           },
           "binary": {
             "op": "OP_OR",
             "left": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 76
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 86
               },
               "binary": {
                 "op": "OP_OR",
                 "left": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 76
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 86
                   },
                   "binary": {
                     "op": "OP_EQ",
                     "left": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 76
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 86
                       },
                       "field": {
                         "base": {
                           "position": {
-                            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                            "line": 76
+                            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                            "line": 86
                           },
                           "var": "s"
                         },
@@ -1251,8 +1251,8 @@
                     },
                     "right": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 76
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 86
                       },
                       "literal": {
                         "enum": {
@@ -1265,21 +1265,21 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 76
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 86
                   },
                   "binary": {
                     "op": "OP_EQ",
                     "left": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 76
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 86
                       },
                       "field": {
                         "base": {
                           "position": {
-                            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                            "line": 76
+                            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                            "line": 86
                           },
                           "var": "s"
                         },
@@ -1288,8 +1288,8 @@
                     },
                     "right": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 76
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 86
                       },
                       "literal": {
                         "enum": {
@@ -1304,21 +1304,21 @@
             },
             "right": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 76
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 86
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 76
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 86
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 76
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 86
                       },
                       "var": "s"
                     },
@@ -1327,8 +1327,8 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 76
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 86
                   },
                   "literal": {
                     "enum": {
@@ -1343,21 +1343,21 @@
         },
         "right": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 77
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 87
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 77
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 87
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 77
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 87
                   },
                   "var": "s"
                 },
@@ -1366,8 +1366,8 @@
             },
             "right": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 77
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 87
               },
               "literal": {
                 "enum": {
@@ -1383,8 +1383,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Product$.timeoutStep",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 100
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 121
     },
     "params": [{
       "name": "s",
@@ -1394,34 +1394,34 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 101
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 122
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 101
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 122
           },
           "binary": {
             "op": "OP_OR",
             "left": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 101
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 122
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 101
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 122
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 101
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 122
                       },
                       "var": "s"
                     },
@@ -1430,8 +1430,8 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 101
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 122
                   },
                   "literal": {
                     "enum": {
@@ -1444,21 +1444,21 @@
             },
             "right": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 101
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 122
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 101
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 122
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 101
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 122
                       },
                       "var": "s"
                     },
@@ -1467,8 +1467,8 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 101
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 122
                   },
                   "literal": {
                     "enum": {
@@ -1483,15 +1483,15 @@
         },
         "then": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 102
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 123
           },
           "call": {
             "function": "temporal.nexuscaller.kernel.Product$.productStep",
             "args": [{
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 102
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 123
               },
               "literal": {
                 "enum": {
@@ -1501,8 +1501,8 @@
               }
             }, {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 102
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 123
               },
               "literal": {
                 "enum": {
@@ -1515,8 +1515,8 @@
         },
         "else": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 103
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 124
           },
           "list": {
           }
@@ -1526,8 +1526,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Product$.transportFaultStep",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 90
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 107
     },
     "params": [{
       "name": "s",
@@ -1537,8 +1537,8 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 90
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 107
       },
       "list": {
       }
@@ -1546,8 +1546,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Product$.workerStopStep",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 96
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 115
     },
     "params": [{
       "name": "s",
@@ -1557,8 +1557,8 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 96
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 115
       },
       "list": {
       }
@@ -1566,8 +1566,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Protocol$.backoffStep",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 219
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 283
     },
     "params": [{
       "name": "s",
@@ -1577,27 +1577,27 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 220
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 284
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 220
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 284
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 220
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 284
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 220
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 284
                   },
                   "var": "s"
                 },
@@ -1606,8 +1606,8 @@
             },
             "right": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 220
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 284
               },
               "literal": {
                 "enum": {
@@ -1620,29 +1620,29 @@
         },
         "then": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 220
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 284
           },
           "list": {
           }
         },
         "else": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 220
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 284
           },
           "call": {
             "function": "temporal.nexuscaller.kernel.Protocol$.moves",
             "args": [{
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 220
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 284
               },
               "var": "s"
             }, {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 220
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 284
               },
               "literal": {
                 "enum": {
@@ -1652,8 +1652,8 @@
               }
             }, {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 220
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 284
               },
               "list": {
               }
@@ -1665,8 +1665,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Protocol$.completeStep",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 206
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 265
     },
     "params": [{
       "name": "s",
@@ -1681,27 +1681,27 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 207
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 266
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 207
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 266
           },
           "call": {
             "function": "temporal.nexuscaller.kernel.Protocol$.terminalPhase",
             "args": [{
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 207
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 266
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 207
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 266
                   },
                   "var": "s"
                 },
@@ -1712,21 +1712,21 @@
         },
         "then": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 207
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 266
           },
           "list": {
             "items": [{
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 207
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 266
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [{
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 207
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 266
                   },
                   "literal": {
                     "enum": {
@@ -1736,21 +1736,21 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 207
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 266
                   },
                   "var": "s"
                 }, {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 207
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 266
                   },
                   "list": {
                   }
                 }, {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 207
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 266
                   },
                   "literal": {
                     "text": ""
@@ -1762,27 +1762,27 @@
         },
         "else": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 208
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 267
           },
           "if": {
             "condition": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 208
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 267
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 208
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 267
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 208
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 267
                       },
                       "var": "s"
                     },
@@ -1791,8 +1791,8 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 208
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 267
                   },
                   "literal": {
                     "enum": {
@@ -1805,42 +1805,42 @@
             },
             "then": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 208
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 267
               },
               "list": {
               }
             },
             "else": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 210
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 269
               },
               "let": {
                 "name": "startedFirst",
                 "value": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 211
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 270
                   },
                   "if": {
                     "condition": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 211
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 270
                       },
                       "binary": {
                         "op": "OP_NE",
                         "left": {
                           "position": {
-                            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                            "line": 211
+                            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                            "line": 270
                           },
                           "field": {
                             "base": {
                               "position": {
-                                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                                "line": 211
+                                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                "line": 270
                               },
                               "var": "s"
                             },
@@ -1849,8 +1849,8 @@
                         },
                         "right": {
                           "position": {
-                            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                            "line": 211
+                            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                            "line": 270
                           },
                           "literal": {
                             "enum": {
@@ -1863,14 +1863,14 @@
                     },
                     "then": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 211
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 270
                       },
                       "list": {
                         "items": [{
                           "position": {
-                            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                            "line": 211
+                            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                            "line": 270
                           },
                           "literal": {
                             "enum": {
@@ -1883,8 +1883,8 @@
                     },
                     "else": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 211
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 270
                       },
                       "list": {
                       }
@@ -1893,14 +1893,14 @@
                 },
                 "body": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 212
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 271
                   },
                   "match": {
                     "scrutinee": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 212
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 271
                       },
                       "var": "resolution"
                     },
@@ -1915,21 +1915,21 @@
                       },
                       "body": {
                         "position": {
-                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                          "line": 213
+                          "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 273
                         },
                         "call": {
                           "function": "temporal.nexuscaller.kernel.Protocol$.moves",
                           "args": [{
                             "position": {
-                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                              "line": 213
+                              "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 273
                             },
                             "var": "s"
                           }, {
                             "position": {
-                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                              "line": 213
+                              "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 273
                             },
                             "literal": {
                               "enum": {
@@ -1939,28 +1939,28 @@
                             }
                           }, {
                             "position": {
-                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                              "line": 213
+                              "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 273
                             },
                             "binary": {
                               "op": "OP_CONCAT",
                               "left": {
                                 "position": {
-                                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                                  "line": 213
+                                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                  "line": 273
                                 },
                                 "var": "startedFirst"
                               },
                               "right": {
                                 "position": {
-                                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                                  "line": 213
+                                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                  "line": 273
                                 },
                                 "list": {
                                   "items": [{
                                     "position": {
-                                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                                      "line": 213
+                                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                      "line": 273
                                     },
                                     "literal": {
                                       "enum": {
@@ -1986,21 +1986,21 @@
                       },
                       "body": {
                         "position": {
-                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                          "line": 214
+                          "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 275
                         },
                         "call": {
                           "function": "temporal.nexuscaller.kernel.Protocol$.moves",
                           "args": [{
                             "position": {
-                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                              "line": 214
+                              "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 275
                             },
                             "var": "s"
                           }, {
                             "position": {
-                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                              "line": 214
+                              "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 275
                             },
                             "literal": {
                               "enum": {
@@ -2010,28 +2010,28 @@
                             }
                           }, {
                             "position": {
-                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                              "line": 214
+                              "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 275
                             },
                             "binary": {
                               "op": "OP_CONCAT",
                               "left": {
                                 "position": {
-                                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                                  "line": 214
+                                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                  "line": 275
                                 },
                                 "var": "startedFirst"
                               },
                               "right": {
                                 "position": {
-                                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                                  "line": 214
+                                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                  "line": 275
                                 },
                                 "list": {
                                   "items": [{
                                     "position": {
-                                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                                      "line": 214
+                                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                      "line": 275
                                     },
                                     "literal": {
                                       "enum": {
@@ -2057,21 +2057,21 @@
                       },
                       "body": {
                         "position": {
-                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                          "line": 215
+                          "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 277
                         },
                         "call": {
                           "function": "temporal.nexuscaller.kernel.Protocol$.moves",
                           "args": [{
                             "position": {
-                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                              "line": 215
+                              "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 277
                             },
                             "var": "s"
                           }, {
                             "position": {
-                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                              "line": 215
+                              "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 277
                             },
                             "literal": {
                               "enum": {
@@ -2081,28 +2081,28 @@
                             }
                           }, {
                             "position": {
-                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                              "line": 215
+                              "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 277
                             },
                             "binary": {
                               "op": "OP_CONCAT",
                               "left": {
                                 "position": {
-                                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                                  "line": 215
+                                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                  "line": 277
                                 },
                                 "var": "startedFirst"
                               },
                               "right": {
                                 "position": {
-                                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                                  "line": 215
+                                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                  "line": 277
                                 },
                                 "list": {
                                   "items": [{
                                     "position": {
-                                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                                      "line": 215
+                                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                      "line": 277
                                     },
                                     "literal": {
                                       "enum": {
@@ -2129,8 +2129,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Protocol$.handlerReplyStep",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 178
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 221
     },
     "params": [{
       "name": "s",
@@ -2145,27 +2145,27 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 180
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 223
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 180
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 223
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 180
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 223
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 180
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 223
                   },
                   "var": "s"
                 },
@@ -2174,8 +2174,8 @@
             },
             "right": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 180
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 223
               },
               "literal": {
                 "enum": {
@@ -2188,22 +2188,22 @@
         },
         "then": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 180
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 223
           },
           "list": {
           }
         },
         "else": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 181
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 225
           },
           "match": {
             "scrutinee": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 181
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 225
               },
               "var": "reply"
             },
@@ -2218,21 +2218,21 @@
               },
               "body": {
                 "position": {
-                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                  "line": 182
+                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 227
                 },
                 "call": {
                   "function": "temporal.nexuscaller.kernel.Protocol$.moves",
                   "args": [{
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 182
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 227
                     },
                     "var": "s"
                   }, {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 182
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 227
                     },
                     "literal": {
                       "enum": {
@@ -2242,14 +2242,14 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 182
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 227
                     },
                     "list": {
                       "items": [{
                         "position": {
-                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                          "line": 182
+                          "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 227
                         },
                         "literal": {
                           "enum": {
@@ -2273,21 +2273,21 @@
               },
               "body": {
                 "position": {
-                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                  "line": 183
+                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 228
                 },
                 "call": {
                   "function": "temporal.nexuscaller.kernel.Protocol$.moves",
                   "args": [{
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 183
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 228
                     },
                     "var": "s"
                   }, {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 183
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 228
                     },
                     "literal": {
                       "enum": {
@@ -2297,14 +2297,14 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 183
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 228
                     },
                     "list": {
                       "items": [{
                         "position": {
-                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                          "line": 183
+                          "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 228
                         },
                         "literal": {
                           "enum": {
@@ -2328,21 +2328,21 @@
               },
               "body": {
                 "position": {
-                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                  "line": 184
+                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 230
                 },
                 "call": {
                   "function": "temporal.nexuscaller.kernel.Protocol$.moves",
                   "args": [{
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 184
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 230
                     },
                     "var": "s"
                   }, {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 184
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 230
                     },
                     "literal": {
                       "enum": {
@@ -2352,14 +2352,14 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 184
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 230
                     },
                     "list": {
                       "items": [{
                         "position": {
-                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                          "line": 184
+                          "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 230
                         },
                         "literal": {
                           "enum": {
@@ -2383,21 +2383,21 @@
               },
               "body": {
                 "position": {
-                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                  "line": 185
+                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 232
                 },
                 "call": {
                   "function": "temporal.nexuscaller.kernel.Protocol$.moves",
                   "args": [{
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 185
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 232
                     },
                     "var": "s"
                   }, {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 185
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 232
                     },
                     "literal": {
                       "enum": {
@@ -2407,14 +2407,14 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 185
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 232
                     },
                     "list": {
                       "items": [{
                         "position": {
-                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                          "line": 185
+                          "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 232
                         },
                         "literal": {
                           "enum": {
@@ -2445,21 +2445,21 @@
               },
               "body": {
                 "position": {
-                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                  "line": 187
+                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 234
                 },
                 "if": {
                   "condition": {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 187
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 234
                     },
                     "unary": {
                       "op": "OP_NOT",
                       "operand": {
                         "position": {
-                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                          "line": 187
+                          "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 234
                         },
                         "var": "retryable"
                       }
@@ -2467,21 +2467,21 @@
                   },
                   "then": {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 187
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 234
                     },
                     "call": {
                       "function": "temporal.nexuscaller.kernel.Protocol$.moves",
                       "args": [{
                         "position": {
-                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                          "line": 187
+                          "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 234
                         },
                         "var": "s"
                       }, {
                         "position": {
-                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                          "line": 187
+                          "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 234
                         },
                         "literal": {
                           "enum": {
@@ -2491,14 +2491,14 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                          "line": 187
+                          "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 234
                         },
                         "list": {
                           "items": [{
                             "position": {
-                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                              "line": 187
+                              "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 234
                             },
                             "literal": {
                               "enum": {
@@ -2513,21 +2513,21 @@
                   },
                   "else": {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 188
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 236
                     },
                     "call": {
                       "function": "temporal.nexuscaller.kernel.Protocol$.moves",
                       "args": [{
                         "position": {
-                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                          "line": 188
+                          "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 237
                         },
                         "copy": {
                           "base": {
                             "position": {
-                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                              "line": 188
+                              "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 237
                             },
                             "var": "s"
                           },
@@ -2535,21 +2535,21 @@
                             "name": "attempts",
                             "value": {
                               "position": {
-                                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                                "line": 188
+                                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                "line": 237
                               },
                               "call": {
                                 "function": "temporal.nexuscaller.kernel.Protocol$.saturatingSucc",
                                 "args": [{
                                   "position": {
-                                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                                    "line": 188
+                                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                    "line": 237
                                   },
                                   "field": {
                                     "base": {
                                       "position": {
-                                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                                        "line": 188
+                                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                                        "line": 237
                                       },
                                       "var": "s"
                                     },
@@ -2562,8 +2562,8 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                          "line": 188
+                          "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 238
                         },
                         "literal": {
                           "enum": {
@@ -2573,14 +2573,14 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                          "line": 188
+                          "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 239
                         },
                         "list": {
                           "items": [{
                             "position": {
-                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                              "line": 188
+                              "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 239
                             },
                             "literal": {
                               "enum": {
@@ -2602,21 +2602,21 @@
     },
     "requires": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 179
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 222
       },
       "call": {
         "function": "temporal.nexuscaller.kernel.Protocol$.validAttempts",
         "args": [{
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 179
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 222
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 179
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 222
               },
               "var": "s"
             },
@@ -2628,8 +2628,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Protocol$.moves",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 164
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 192
     },
     "params": [{
       "name": "s",
@@ -2651,21 +2651,21 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 165
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 193
       },
       "list": {
         "items": [{
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 165
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 193
           },
           "construct": {
             "type": "umpire.Step",
             "args": [{
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 165
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 193
               },
               "literal": {
                 "enum": {
@@ -2675,14 +2675,14 @@
               }
             }, {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 165
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 193
               },
               "copy": {
                 "base": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 165
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 193
                   },
                   "var": "s"
                 },
@@ -2690,8 +2690,8 @@
                   "name": "phase",
                   "value": {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 165
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 193
                     },
                     "var": "phase"
                   }
@@ -2699,14 +2699,14 @@
               }
             }, {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 165
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 193
               },
               "var": "recorded"
             }, {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 165
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 193
               },
               "literal": {
                 "text": ""
@@ -2719,8 +2719,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Protocol$.productOf",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 246
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 329
     },
     "params": [{
       "name": "s",
@@ -2730,20 +2730,20 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 246
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 329
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 246
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 329
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 246
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 329
               },
               "var": "s"
             },
@@ -2779,15 +2779,15 @@
           },
           "body": {
             "position": {
-              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-              "line": 247
+              "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+              "line": 331
             },
             "construct": {
               "type": "temporal.nexuscaller.kernel.ProductState",
               "args": [{
                 "position": {
-                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                  "line": 247
+                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 331
                 },
                 "literal": {
                   "enum": {
@@ -2809,15 +2809,15 @@
           },
           "body": {
             "position": {
-              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-              "line": 248
+              "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+              "line": 332
             },
             "construct": {
               "type": "temporal.nexuscaller.kernel.ProductState",
               "args": [{
                 "position": {
-                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                  "line": 248
+                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 332
                 },
                 "literal": {
                   "enum": {
@@ -2839,15 +2839,15 @@
           },
           "body": {
             "position": {
-              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-              "line": 249
+              "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+              "line": 333
             },
             "construct": {
               "type": "temporal.nexuscaller.kernel.ProductState",
               "args": [{
                 "position": {
-                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                  "line": 249
+                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 333
                 },
                 "literal": {
                   "enum": {
@@ -2869,15 +2869,15 @@
           },
           "body": {
             "position": {
-              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-              "line": 250
+              "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+              "line": 334
             },
             "construct": {
               "type": "temporal.nexuscaller.kernel.ProductState",
               "args": [{
                 "position": {
-                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                  "line": 250
+                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 334
                 },
                 "literal": {
                   "enum": {
@@ -2899,15 +2899,15 @@
           },
           "body": {
             "position": {
-              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-              "line": 251
+              "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+              "line": 335
             },
             "construct": {
               "type": "temporal.nexuscaller.kernel.ProductState",
               "args": [{
                 "position": {
-                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                  "line": 251
+                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 335
                 },
                 "literal": {
                   "enum": {
@@ -2929,15 +2929,15 @@
           },
           "body": {
             "position": {
-              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-              "line": 252
+              "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+              "line": 336
             },
             "construct": {
               "type": "temporal.nexuscaller.kernel.ProductState",
               "args": [{
                 "position": {
-                  "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                  "line": 252
+                  "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                  "line": 336
                 },
                 "literal": {
                   "enum": {
@@ -2954,8 +2954,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Protocol$.running",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 162
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 189
     },
     "params": [{
       "name": "p",
@@ -2965,36 +2965,36 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 162
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 190
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 162
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 190
           },
           "binary": {
             "op": "OP_OR",
             "left": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 162
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 190
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 162
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 190
                   },
                   "var": "p"
                 },
                 "right": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 162
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 190
                   },
                   "literal": {
                     "enum": {
@@ -3007,22 +3007,22 @@
             },
             "right": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 162
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 190
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 162
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 190
                   },
                   "var": "p"
                 },
                 "right": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 162
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 190
                   },
                   "literal": {
                     "enum": {
@@ -3037,22 +3037,22 @@
         },
         "right": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 162
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 190
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 162
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 190
               },
               "var": "p"
             },
             "right": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 162
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 190
               },
               "literal": {
                 "enum": {
@@ -3068,8 +3068,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Protocol$.saturatingSucc",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 152
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 179
     },
     "params": [{
       "name": "a",
@@ -3080,28 +3080,28 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 154
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 181
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 154
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 181
           },
           "binary": {
             "op": "OP_LT",
             "left": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 154
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 181
               },
               "var": "a"
             },
             "right": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 147
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 174
               },
               "literal": {
                 "int": "2"
@@ -3111,22 +3111,22 @@
         },
         "then": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 154
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 181
           },
           "binary": {
             "op": "OP_ADD",
             "left": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 154
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 181
               },
               "var": "a"
             },
             "right": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 154
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 181
               },
               "literal": {
                 "int": "1"
@@ -3136,8 +3136,8 @@
         },
         "else": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 154
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 181
           },
           "var": "a"
         }
@@ -3145,15 +3145,15 @@
     },
     "requires": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 153
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 180
       },
       "call": {
         "function": "temporal.nexuscaller.kernel.Protocol$.validAttempts",
         "args": [{
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 153
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 180
           },
           "var": "a"
         }]
@@ -3162,8 +3162,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Protocol$.scheduleStep",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 170
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 200
     },
     "params": [{
       "name": "s",
@@ -3188,27 +3188,27 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 171
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 206
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 171
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 206
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 171
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 206
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 171
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 206
                   },
                   "var": "s"
                 },
@@ -3217,8 +3217,8 @@
             },
             "right": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 171
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 206
               },
               "literal": {
                 "enum": {
@@ -3231,29 +3231,29 @@
         },
         "then": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 171
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 206
           },
           "list": {
           }
         },
         "else": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 172
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 208
           },
           "list": {
             "items": [{
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 172
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 209
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [{
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 172
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 210
                   },
                   "literal": {
                     "enum": {
@@ -3263,15 +3263,15 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 172
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 211
                   },
                   "construct": {
                     "type": "temporal.nexuscaller.kernel.ProtocolState",
                     "args": [{
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 172
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 211
                       },
                       "literal": {
                         "enum": {
@@ -3281,42 +3281,42 @@
                       }
                     }, {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 172
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 211
                       },
                       "literal": {
                         "int": "0"
                       }
                     }, {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 172
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 211
                       },
                       "var": "scheduleToClose"
                     }, {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 172
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 211
                       },
                       "var": "scheduleToStart"
                     }, {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 172
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 211
                       },
                       "var": "startToClose"
                     }]
                   }
                 }, {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 173
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 212
                   },
                   "list": {
                     "items": [{
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 173
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 212
                       },
                       "literal": {
                         "enum": {
@@ -3328,8 +3328,8 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 172
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 209
                   },
                   "literal": {
                     "text": ""
@@ -3344,8 +3344,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Protocol$.scheduleToCloseStep",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 224
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 290
     },
     "params": [{
       "name": "s",
@@ -3355,34 +3355,34 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 225
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 291
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 225
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 291
           },
           "binary": {
             "op": "OP_AND",
             "left": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 225
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 291
               },
               "call": {
                 "function": "temporal.nexuscaller.kernel.Protocol$.running",
                 "args": [{
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 225
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 291
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 225
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 291
                       },
                       "var": "s"
                     },
@@ -3393,21 +3393,21 @@
             },
             "right": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 225
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 291
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 225
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 291
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 225
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 291
                       },
                       "var": "s"
                     },
@@ -3416,8 +3416,8 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 225
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 291
                   },
                   "literal": {
                     "enum": {
@@ -3432,21 +3432,21 @@
         },
         "then": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 226
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 292
           },
           "call": {
             "function": "temporal.nexuscaller.kernel.Protocol$.moves",
             "args": [{
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 226
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 293
               },
               "var": "s"
             }, {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 226
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 294
               },
               "literal": {
                 "enum": {
@@ -3456,22 +3456,22 @@
               }
             }, {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 226
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 295
               },
               "list": {
                 "items": [{
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 226
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 295
                   },
                   "construct": {
                     "type": "temporal.nexuscaller.kernel.ProtocolFact",
                     "case": "nexusOperationTimedOut",
                     "args": [{
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 226
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 295
                       },
                       "literal": {
                         "enum": {
@@ -3488,8 +3488,8 @@
         },
         "else": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 227
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 297
           },
           "list": {
           }
@@ -3499,8 +3499,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Protocol$.scheduleToStartStep",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 231
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 303
     },
     "params": [{
       "name": "s",
@@ -3510,41 +3510,41 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 232
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 304
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 232
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 304
           },
           "binary": {
             "op": "OP_AND",
             "left": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 232
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 304
               },
               "binary": {
                 "op": "OP_OR",
                 "left": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 232
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 304
                   },
                   "binary": {
                     "op": "OP_EQ",
                     "left": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 232
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 304
                       },
                       "field": {
                         "base": {
                           "position": {
-                            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                            "line": 232
+                            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                            "line": 304
                           },
                           "var": "s"
                         },
@@ -3553,8 +3553,8 @@
                     },
                     "right": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 232
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 304
                       },
                       "literal": {
                         "enum": {
@@ -3567,21 +3567,21 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 232
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 304
                   },
                   "binary": {
                     "op": "OP_EQ",
                     "left": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 232
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 304
                       },
                       "field": {
                         "base": {
                           "position": {
-                            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                            "line": 232
+                            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                            "line": 304
                           },
                           "var": "s"
                         },
@@ -3590,8 +3590,8 @@
                     },
                     "right": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 232
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 304
                       },
                       "literal": {
                         "enum": {
@@ -3606,21 +3606,21 @@
             },
             "right": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 232
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 304
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 232
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 304
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 232
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 304
                       },
                       "var": "s"
                     },
@@ -3629,8 +3629,8 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 232
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 304
                   },
                   "literal": {
                     "enum": {
@@ -3645,21 +3645,21 @@
         },
         "then": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 233
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 306
           },
           "call": {
             "function": "temporal.nexuscaller.kernel.Protocol$.moves",
             "args": [{
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 233
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 307
               },
               "var": "s"
             }, {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 233
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 308
               },
               "literal": {
                 "enum": {
@@ -3669,22 +3669,22 @@
               }
             }, {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 233
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 309
               },
               "list": {
                 "items": [{
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 233
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 309
                   },
                   "construct": {
                     "type": "temporal.nexuscaller.kernel.ProtocolFact",
                     "case": "nexusOperationTimedOut",
                     "args": [{
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 233
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 309
                       },
                       "literal": {
                         "enum": {
@@ -3701,8 +3701,8 @@
         },
         "else": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 234
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 311
           },
           "list": {
           }
@@ -3712,8 +3712,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Protocol$.startToCloseStep",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 237
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 314
     },
     "params": [{
       "name": "s",
@@ -3723,34 +3723,34 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 238
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 315
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 238
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 315
           },
           "binary": {
             "op": "OP_AND",
             "left": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 238
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 315
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 238
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 315
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 238
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 315
                       },
                       "var": "s"
                     },
@@ -3759,8 +3759,8 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 238
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 315
                   },
                   "literal": {
                     "enum": {
@@ -3773,21 +3773,21 @@
             },
             "right": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 238
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 315
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 238
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 315
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 238
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 315
                       },
                       "var": "s"
                     },
@@ -3796,8 +3796,8 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 238
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 315
                   },
                   "literal": {
                     "enum": {
@@ -3812,21 +3812,21 @@
         },
         "then": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 239
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 316
           },
           "call": {
             "function": "temporal.nexuscaller.kernel.Protocol$.moves",
             "args": [{
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 239
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 317
               },
               "var": "s"
             }, {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 239
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 318
               },
               "literal": {
                 "enum": {
@@ -3836,22 +3836,22 @@
               }
             }, {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 239
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 319
               },
               "list": {
                 "items": [{
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 239
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 319
                   },
                   "construct": {
                     "type": "temporal.nexuscaller.kernel.ProtocolFact",
                     "case": "nexusOperationTimedOut",
                     "args": [{
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 239
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 319
                       },
                       "literal": {
                         "enum": {
@@ -3868,8 +3868,8 @@
         },
         "else": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 240
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 321
           },
           "list": {
           }
@@ -3879,8 +3879,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Protocol$.terminalPhase",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 158
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 185
     },
     "params": [{
       "name": "p",
@@ -3890,43 +3890,43 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 159
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 186
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 159
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 186
           },
           "binary": {
             "op": "OP_OR",
             "left": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 159
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 186
               },
               "binary": {
                 "op": "OP_OR",
                 "left": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 159
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 186
                   },
                   "binary": {
                     "op": "OP_EQ",
                     "left": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 159
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 186
                       },
                       "var": "p"
                     },
                     "right": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 159
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 186
                       },
                       "literal": {
                         "enum": {
@@ -3939,22 +3939,22 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 159
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 186
                   },
                   "binary": {
                     "op": "OP_EQ",
                     "left": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 159
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 186
                       },
                       "var": "p"
                     },
                     "right": {
                       "position": {
-                        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                        "line": 159
+                        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                        "line": 186
                       },
                       "literal": {
                         "enum": {
@@ -3969,22 +3969,22 @@
             },
             "right": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 159
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 186
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 159
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 186
                   },
                   "var": "p"
                 },
                 "right": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 159
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 186
                   },
                   "literal": {
                     "enum": {
@@ -3999,22 +3999,22 @@
         },
         "right": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 159
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 186
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 159
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 186
               },
               "var": "p"
             },
             "right": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 159
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 186
               },
               "literal": {
                 "enum": {
@@ -4030,8 +4030,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Protocol$.transportFaultStep",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 192
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 243
     },
     "params": [{
       "name": "s",
@@ -4041,27 +4041,27 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 194
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 245
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 194
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 245
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 194
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 245
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 194
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 245
                   },
                   "var": "s"
                 },
@@ -4070,8 +4070,8 @@
             },
             "right": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 194
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 245
               },
               "literal": {
                 "enum": {
@@ -4084,29 +4084,29 @@
         },
         "then": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 194
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 245
           },
           "list": {
           }
         },
         "else": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 195
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 247
           },
           "call": {
             "function": "temporal.nexuscaller.kernel.Protocol$.moves",
             "args": [{
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 195
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 248
               },
               "copy": {
                 "base": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 195
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 248
                   },
                   "var": "s"
                 },
@@ -4114,21 +4114,21 @@
                   "name": "attempts",
                   "value": {
                     "position": {
-                      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                      "line": 195
+                      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                      "line": 248
                     },
                     "call": {
                       "function": "temporal.nexuscaller.kernel.Protocol$.saturatingSucc",
                       "args": [{
                         "position": {
-                          "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                          "line": 195
+                          "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                          "line": 248
                         },
                         "field": {
                           "base": {
                             "position": {
-                              "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                              "line": 195
+                              "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                              "line": 248
                             },
                             "var": "s"
                           },
@@ -4141,8 +4141,8 @@
               }
             }, {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 195
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 249
               },
               "literal": {
                 "enum": {
@@ -4152,14 +4152,14 @@
               }
             }, {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 195
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 250
               },
               "list": {
                 "items": [{
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                    "line": 195
+                    "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                    "line": 250
                   },
                   "literal": {
                     "enum": {
@@ -4176,21 +4176,21 @@
     },
     "requires": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 193
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 244
       },
       "call": {
         "function": "temporal.nexuscaller.kernel.Protocol$.validAttempts",
         "args": [{
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 193
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 244
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 193
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 244
               },
               "var": "s"
             },
@@ -4202,8 +4202,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Protocol$.validAttempts",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 149
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 176
     },
     "params": [{
       "name": "a",
@@ -4214,22 +4214,22 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 149
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 176
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 149
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 176
           },
           "binary": {
             "op": "OP_LE",
             "left": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 149
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 176
               },
               "literal": {
                 "int": "0"
@@ -4237,8 +4237,8 @@
             },
             "right": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 149
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 176
               },
               "var": "a"
             }
@@ -4246,22 +4246,22 @@
         },
         "right": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 149
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 176
           },
           "binary": {
             "op": "OP_LE",
             "left": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 149
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 176
               },
               "var": "a"
             },
             "right": {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 147
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 174
               },
               "literal": {
                 "int": "2"
@@ -4274,8 +4274,8 @@
   }, {
     "name": "temporal.nexuscaller.kernel.Protocol$.workerStopStep",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 201
+      "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "line": 258
     },
     "params": [{
       "name": "s",
@@ -4285,21 +4285,21 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-        "line": 201
+        "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+        "line": 258
       },
       "list": {
         "items": [{
           "position": {
-            "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-            "line": 201
+            "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+            "line": 258
           },
           "construct": {
             "type": "umpire.Step",
             "args": [{
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 201
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 258
               },
               "literal": {
                 "enum": {
@@ -4309,21 +4309,21 @@
               }
             }, {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 201
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 258
               },
               "var": "s"
             }, {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 201
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 258
               },
               "list": {
               }
             }, {
               "position": {
-                "file": "model/scala/temporal/nexuscaller/kernel/Nexus.scala",
-                "line": 201
+                "file": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+                "line": 258
               },
               "literal": {
                 "text": ""
@@ -4336,8 +4336,8 @@
   }, {
     "name": "temporal.worker.Worker$package$.resumeStep",
     "position": {
-      "file": "model/scala/temporal/worker/Worker.scala",
-      "line": 59
+      "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+      "line": 63
     },
     "params": [{
       "name": "s",
@@ -4347,27 +4347,27 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/worker/Worker.scala",
-        "line": 60
+        "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+        "line": 64
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/scala/temporal/worker/Worker.scala",
-            "line": 60
+            "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+            "line": 64
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
-                "file": "model/scala/temporal/worker/Worker.scala",
-                "line": 60
+                "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                "line": 64
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/scala/temporal/worker/Worker.scala",
-                    "line": 60
+                    "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                    "line": 64
                   },
                   "var": "s"
                 },
@@ -4376,8 +4376,8 @@
             },
             "right": {
               "position": {
-                "file": "model/scala/temporal/worker/Worker.scala",
-                "line": 60
+                "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                "line": 64
               },
               "literal": {
                 "enum": {
@@ -4390,29 +4390,29 @@
         },
         "then": {
           "position": {
-            "file": "model/scala/temporal/worker/Worker.scala",
-            "line": 60
+            "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+            "line": 64
           },
           "list": {
           }
         },
         "else": {
           "position": {
-            "file": "model/scala/temporal/worker/Worker.scala",
-            "line": 60
+            "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+            "line": 64
           },
           "list": {
             "items": [{
               "position": {
-                "file": "model/scala/temporal/worker/Worker.scala",
-                "line": 60
+                "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                "line": 64
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [{
                   "position": {
-                    "file": "model/scala/temporal/worker/Worker.scala",
-                    "line": 60
+                    "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                    "line": 64
                   },
                   "literal": {
                     "enum": {
@@ -4422,15 +4422,15 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/scala/temporal/worker/Worker.scala",
-                    "line": 60
+                    "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                    "line": 64
                   },
                   "construct": {
                     "type": "temporal.worker.State",
                     "args": [{
                       "position": {
-                        "file": "model/scala/temporal/worker/Worker.scala",
-                        "line": 60
+                        "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                        "line": 64
                       },
                       "literal": {
                         "enum": {
@@ -4442,15 +4442,15 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/scala/temporal/worker/Worker.scala",
-                    "line": 60
+                    "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                    "line": 64
                   },
                   "list": {
                   }
                 }, {
                   "position": {
-                    "file": "model/scala/temporal/worker/Worker.scala",
-                    "line": 60
+                    "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                    "line": 64
                   },
                   "literal": {
                     "text": ""
@@ -4465,8 +4465,8 @@
   }, {
     "name": "temporal.worker.Worker$package$.serveStep",
     "position": {
-      "file": "model/scala/temporal/worker/Worker.scala",
-      "line": 63
+      "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+      "line": 67
     },
     "params": [{
       "name": "s",
@@ -4476,27 +4476,27 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/worker/Worker.scala",
-        "line": 64
+        "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+        "line": 68
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/scala/temporal/worker/Worker.scala",
-            "line": 64
+            "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+            "line": 68
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
-                "file": "model/scala/temporal/worker/Worker.scala",
-                "line": 64
+                "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                "line": 68
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/scala/temporal/worker/Worker.scala",
-                    "line": 64
+                    "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                    "line": 68
                   },
                   "var": "s"
                 },
@@ -4505,8 +4505,8 @@
             },
             "right": {
               "position": {
-                "file": "model/scala/temporal/worker/Worker.scala",
-                "line": 64
+                "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                "line": 68
               },
               "literal": {
                 "enum": {
@@ -4519,29 +4519,29 @@
         },
         "then": {
           "position": {
-            "file": "model/scala/temporal/worker/Worker.scala",
-            "line": 64
+            "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+            "line": 68
           },
           "list": {
           }
         },
         "else": {
           "position": {
-            "file": "model/scala/temporal/worker/Worker.scala",
-            "line": 64
+            "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+            "line": 68
           },
           "list": {
             "items": [{
               "position": {
-                "file": "model/scala/temporal/worker/Worker.scala",
-                "line": 64
+                "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                "line": 68
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [{
                   "position": {
-                    "file": "model/scala/temporal/worker/Worker.scala",
-                    "line": 64
+                    "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                    "line": 68
                   },
                   "literal": {
                     "enum": {
@@ -4551,21 +4551,21 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/scala/temporal/worker/Worker.scala",
-                    "line": 64
+                    "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                    "line": 68
                   },
                   "var": "s"
                 }, {
                   "position": {
-                    "file": "model/scala/temporal/worker/Worker.scala",
-                    "line": 64
+                    "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                    "line": 68
                   },
                   "list": {
                   }
                 }, {
                   "position": {
-                    "file": "model/scala/temporal/worker/Worker.scala",
-                    "line": 64
+                    "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                    "line": 68
                   },
                   "literal": {
                     "text": ""
@@ -4580,8 +4580,8 @@
   }, {
     "name": "temporal.worker.Worker$package$.stopStep",
     "position": {
-      "file": "model/scala/temporal/worker/Worker.scala",
-      "line": 55
+      "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+      "line": 59
     },
     "params": [{
       "name": "s",
@@ -4591,27 +4591,27 @@
     }],
     "body": {
       "position": {
-        "file": "model/scala/temporal/worker/Worker.scala",
-        "line": 56
+        "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+        "line": 60
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/scala/temporal/worker/Worker.scala",
-            "line": 56
+            "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+            "line": 60
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
-                "file": "model/scala/temporal/worker/Worker.scala",
-                "line": 56
+                "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                "line": 60
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/scala/temporal/worker/Worker.scala",
-                    "line": 56
+                    "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                    "line": 60
                   },
                   "var": "s"
                 },
@@ -4620,8 +4620,8 @@
             },
             "right": {
               "position": {
-                "file": "model/scala/temporal/worker/Worker.scala",
-                "line": 56
+                "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                "line": 60
               },
               "literal": {
                 "enum": {
@@ -4634,29 +4634,29 @@
         },
         "then": {
           "position": {
-            "file": "model/scala/temporal/worker/Worker.scala",
-            "line": 56
+            "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+            "line": 60
           },
           "list": {
           }
         },
         "else": {
           "position": {
-            "file": "model/scala/temporal/worker/Worker.scala",
-            "line": 56
+            "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+            "line": 60
           },
           "list": {
             "items": [{
               "position": {
-                "file": "model/scala/temporal/worker/Worker.scala",
-                "line": 56
+                "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                "line": 60
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [{
                   "position": {
-                    "file": "model/scala/temporal/worker/Worker.scala",
-                    "line": 56
+                    "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                    "line": 60
                   },
                   "literal": {
                     "enum": {
@@ -4666,15 +4666,15 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/scala/temporal/worker/Worker.scala",
-                    "line": 56
+                    "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                    "line": 60
                   },
                   "construct": {
                     "type": "temporal.worker.State",
                     "args": [{
                       "position": {
-                        "file": "model/scala/temporal/worker/Worker.scala",
-                        "line": 56
+                        "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                        "line": 60
                       },
                       "literal": {
                         "enum": {
@@ -4686,15 +4686,15 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/scala/temporal/worker/Worker.scala",
-                    "line": 56
+                    "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                    "line": 60
                   },
                   "list": {
                   }
                 }, {
                   "position": {
-                    "file": "model/scala/temporal/worker/Worker.scala",
-                    "line": 56
+                    "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+                    "line": 60
                   },
                   "literal": {
                     "text": ""
@@ -4711,8 +4711,8 @@
     "id": "temporal.nexuscaller.Model$package$.backoff",
     "name": "backoff",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/Model.scala",
-      "line": 121
+      "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+      "line": 146
     },
     "party": "system",
     "timer": true
@@ -4720,8 +4720,8 @@
     "id": "temporal.nexuscaller.Model$package$.complete",
     "name": "complete",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/Model.scala",
-      "line": 76
+      "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+      "line": 99
     },
     "party": "handler",
     "inputs": [{
@@ -4736,8 +4736,8 @@
     "id": "temporal.nexuscaller.Model$package$.handlerReply",
     "name": "handlerReply",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/Model.scala",
-      "line": 69
+      "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+      "line": 87
     },
     "party": "handler",
     "inputs": [{
@@ -4775,8 +4775,8 @@
     "id": "temporal.nexuscaller.Model$package$.schedule",
     "name": "schedule",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/Model.scala",
-      "line": 64
+      "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+      "line": 80
     },
     "party": "caller",
     "inputs": [{
@@ -4801,8 +4801,8 @@
     "id": "temporal.nexuscaller.Model$package$.scheduleToClose",
     "name": "scheduleToClose",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/Model.scala",
-      "line": 122
+      "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+      "line": 147
     },
     "party": "system",
     "timer": true
@@ -4810,8 +4810,8 @@
     "id": "temporal.nexuscaller.Model$package$.scheduleToStart",
     "name": "scheduleToStart",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/Model.scala",
-      "line": 123
+      "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+      "line": 148
     },
     "party": "system",
     "timer": true
@@ -4819,8 +4819,8 @@
     "id": "temporal.nexuscaller.Model$package$.startToClose",
     "name": "startToClose",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/Model.scala",
-      "line": 124
+      "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+      "line": 149
     },
     "party": "system",
     "timer": true
@@ -4828,8 +4828,8 @@
     "id": "temporal.nexuscaller.Model$package$.timeout",
     "name": "timeout",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/Model.scala",
-      "line": 95
+      "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+      "line": 120
     },
     "party": "system",
     "timer": true
@@ -4837,8 +4837,8 @@
     "id": "temporal.nexuscaller.Model$package$.transportFault",
     "name": "transportFault",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/Model.scala",
-      "line": 78
+      "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+      "line": 101
     },
     "party": "network",
     "on": "operation"
@@ -4846,8 +4846,8 @@
     "id": "temporal.worker.Worker$package$.serve",
     "name": "serve",
     "position": {
-      "file": "model/scala/temporal/worker/Worker.scala",
-      "line": 50
+      "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+      "line": 54
     },
     "party": "worker",
     "on": "worker"
@@ -4855,16 +4855,16 @@
     "id": "temporal.worker.Worker$package$.workerResume",
     "name": "workerResume",
     "position": {
-      "file": "model/scala/temporal/worker/Worker.scala",
-      "line": 49
+      "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+      "line": 53
     },
     "party": "worker"
   }, {
     "id": "temporal.worker.Worker$package$.workerStop",
     "name": "workerStop",
     "position": {
-      "file": "model/scala/temporal/worker/Worker.scala",
-      "line": 48
+      "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+      "line": 52
     },
     "party": "worker"
   }],
@@ -4872,23 +4872,23 @@
     "family": "temporal.nexus.caller",
     "name": "handlerWorker",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/Model.scala",
-      "line": 165
+      "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+      "line": 193
     },
     "entity": "worker",
     "stateType": "temporal.worker.State",
     "outcomeType": "temporal.worker.Outcome",
     "starts": [{
       "position": {
-        "file": "model/scala/temporal/worker/Worker.scala",
-        "line": 69
+        "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+        "line": 73
       },
       "construct": {
         "type": "temporal.worker.State",
         "args": [{
           "position": {
-            "file": "model/scala/temporal/worker/Worker.scala",
-            "line": 69
+            "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+            "line": 73
           },
           "literal": {
             "enum": {
@@ -4901,8 +4901,8 @@
     }],
     "ends": {
       "position": {
-        "file": "model/scala/temporal/worker/Worker.scala",
-        "line": 70
+        "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+        "line": 74
       },
       "lambda": {
         "params": [{
@@ -4913,8 +4913,8 @@
         }],
         "body": {
           "position": {
-            "file": "model/scala/temporal/worker/Worker.scala",
-            "line": 70
+            "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+            "line": 74
           },
           "literal": {
             "bool": true
@@ -4926,23 +4926,23 @@
       "action": "temporal.worker.Worker$package$.workerStop",
       "function": "temporal.worker.Worker$package$.stopStep",
       "position": {
-        "file": "model/scala/temporal/worker/Worker.scala",
-        "line": 71
+        "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+        "line": 75
       }
     }, {
       "action": "temporal.worker.Worker$package$.serve",
       "function": "temporal.worker.Worker$package$.serveStep",
       "position": {
-        "file": "model/scala/temporal/worker/Worker.scala",
-        "line": 71
+        "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+        "line": 75
       }
     }]
   }, {
     "family": "temporal.nexus.caller",
     "name": "nexusProduct",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/Model.scala",
-      "line": 98
+      "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+      "line": 123
     },
     "entity": "operation",
     "stateType": "temporal.nexuscaller.kernel.ProductState",
@@ -4950,15 +4950,15 @@
     "factType": "temporal.nexuscaller.kernel.ProductFact",
     "starts": [{
       "position": {
-        "file": "model/scala/temporal/nexuscaller/Model.scala",
-        "line": 100
+        "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+        "line": 125
       },
       "construct": {
         "type": "temporal.nexuscaller.kernel.ProductState",
         "args": [{
           "position": {
-            "file": "model/scala/temporal/nexuscaller/Model.scala",
-            "line": 100
+            "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+            "line": 125
           },
           "literal": {
             "enum": {
@@ -4971,8 +4971,8 @@
     }],
     "ends": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/Model.scala",
-        "line": 101
+        "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+        "line": 126
       },
       "lambda": {
         "params": [{
@@ -4983,15 +4983,15 @@
         }],
         "body": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/Model.scala",
-            "line": 101
+            "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+            "line": 126
           },
           "call": {
             "function": "temporal.nexuscaller.kernel.Product$.productTerminal",
             "args": [{
               "position": {
-                "file": "model/scala/temporal/nexuscaller/Model.scala",
-                "line": 101
+                "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+                "line": 126
               },
               "var": "s"
             }]
@@ -5003,36 +5003,36 @@
       "action": "temporal.nexuscaller.Model$package$.handlerReply",
       "function": "temporal.nexuscaller.kernel.Product$.handlerReplyStep",
       "position": {
-        "file": "model/scala/temporal/nexuscaller/Model.scala",
-        "line": 111
+        "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+        "line": 136
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.complete",
       "function": "temporal.nexuscaller.kernel.Product$.completeStep",
       "position": {
-        "file": "model/scala/temporal/nexuscaller/Model.scala",
-        "line": 112
+        "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+        "line": 137
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.transportFault",
       "function": "temporal.nexuscaller.kernel.Product$.transportFaultStep",
       "position": {
-        "file": "model/scala/temporal/nexuscaller/Model.scala",
-        "line": 113
+        "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+        "line": 138
       }
     }, {
       "action": "temporal.worker.Worker$package$.workerStop",
       "function": "temporal.nexuscaller.kernel.Product$.workerStopStep",
       "position": {
-        "file": "model/scala/temporal/nexuscaller/Model.scala",
-        "line": 114
+        "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+        "line": 139
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.timeout",
       "function": "temporal.nexuscaller.kernel.Product$.timeoutStep",
       "position": {
-        "file": "model/scala/temporal/nexuscaller/Model.scala",
-        "line": 115
+        "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+        "line": 140
       }
     }],
     "evidence": "nexusProduct.evidence"
@@ -5040,8 +5040,8 @@
     "family": "temporal.nexus.caller",
     "name": "nexusProtocol",
     "position": {
-      "file": "model/scala/temporal/nexuscaller/Model.scala",
-      "line": 130
+      "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+      "line": 156
     },
     "entity": "operation",
     "stateType": "temporal.nexuscaller.kernel.ProtocolState",
@@ -5049,15 +5049,15 @@
     "factType": "temporal.nexuscaller.kernel.ProtocolFact",
     "starts": [{
       "position": {
-        "file": "model/scala/temporal/nexuscaller/Model.scala",
-        "line": 127
+        "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+        "line": 153
       },
       "construct": {
         "type": "temporal.nexuscaller.kernel.ProtocolState",
         "args": [{
           "position": {
-            "file": "model/scala/temporal/nexuscaller/Model.scala",
-            "line": 127
+            "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+            "line": 153
           },
           "literal": {
             "enum": {
@@ -5067,16 +5067,16 @@
           }
         }, {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/Model.scala",
-            "line": 127
+            "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+            "line": 153
           },
           "literal": {
             "int": "0"
           }
         }, {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/Model.scala",
-            "line": 127
+            "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+            "line": 153
           },
           "literal": {
             "enum": {
@@ -5086,8 +5086,8 @@
           }
         }, {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/Model.scala",
-            "line": 127
+            "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+            "line": 153
           },
           "literal": {
             "enum": {
@@ -5097,8 +5097,8 @@
           }
         }, {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/Model.scala",
-            "line": 127
+            "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+            "line": 153
           },
           "literal": {
             "enum": {
@@ -5111,8 +5111,8 @@
     }],
     "ends": {
       "position": {
-        "file": "model/scala/temporal/nexuscaller/Model.scala",
-        "line": 134
+        "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+        "line": 160
       },
       "lambda": {
         "params": [{
@@ -5123,21 +5123,21 @@
         }],
         "body": {
           "position": {
-            "file": "model/scala/temporal/nexuscaller/Model.scala",
-            "line": 134
+            "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+            "line": 160
           },
           "call": {
             "function": "temporal.nexuscaller.kernel.Protocol$.terminalPhase",
             "args": [{
               "position": {
-                "file": "model/scala/temporal/nexuscaller/Model.scala",
-                "line": 134
+                "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+                "line": 160
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/scala/temporal/nexuscaller/Model.scala",
-                    "line": 134
+                    "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+                    "line": 160
                   },
                   "var": "s"
                 },
@@ -5152,64 +5152,64 @@
       "action": "temporal.nexuscaller.Model$package$.schedule",
       "function": "temporal.nexuscaller.kernel.Protocol$.scheduleStep",
       "position": {
-        "file": "model/scala/temporal/nexuscaller/Model.scala",
-        "line": 146
+        "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+        "line": 172
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.handlerReply",
       "function": "temporal.nexuscaller.kernel.Protocol$.handlerReplyStep",
       "position": {
-        "file": "model/scala/temporal/nexuscaller/Model.scala",
-        "line": 147
+        "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+        "line": 173
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.complete",
       "function": "temporal.nexuscaller.kernel.Protocol$.completeStep",
       "position": {
-        "file": "model/scala/temporal/nexuscaller/Model.scala",
-        "line": 148
+        "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+        "line": 174
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.transportFault",
       "function": "temporal.nexuscaller.kernel.Protocol$.transportFaultStep",
       "position": {
-        "file": "model/scala/temporal/nexuscaller/Model.scala",
-        "line": 149
+        "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+        "line": 175
       }
     }, {
       "action": "temporal.worker.Worker$package$.workerStop",
       "function": "temporal.nexuscaller.kernel.Protocol$.workerStopStep",
       "position": {
-        "file": "model/scala/temporal/nexuscaller/Model.scala",
-        "line": 150
+        "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+        "line": 176
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.backoff",
       "function": "temporal.nexuscaller.kernel.Protocol$.backoffStep",
       "position": {
-        "file": "model/scala/temporal/nexuscaller/Model.scala",
-        "line": 151
+        "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+        "line": 177
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.scheduleToClose",
       "function": "temporal.nexuscaller.kernel.Protocol$.scheduleToCloseStep",
       "position": {
-        "file": "model/scala/temporal/nexuscaller/Model.scala",
-        "line": 152
+        "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+        "line": 178
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.scheduleToStart",
       "function": "temporal.nexuscaller.kernel.Protocol$.scheduleToStartStep",
       "position": {
-        "file": "model/scala/temporal/nexuscaller/Model.scala",
-        "line": 153
+        "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+        "line": 179
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.startToClose",
       "function": "temporal.nexuscaller.kernel.Protocol$.startToCloseStep",
       "position": {
-        "file": "model/scala/temporal/nexuscaller/Model.scala",
-        "line": 154
+        "file": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+        "line": 180
       }
     }],
     "evidence": "nexusProtocol.evidence",
@@ -5222,23 +5222,23 @@
     "family": "temporal.worker",
     "name": "polling",
     "position": {
-      "file": "model/scala/temporal/worker/Worker.scala",
-      "line": 67
+      "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+      "line": 71
     },
     "entity": "worker",
     "stateType": "temporal.worker.State",
     "outcomeType": "temporal.worker.Outcome",
     "starts": [{
       "position": {
-        "file": "model/scala/temporal/worker/Worker.scala",
-        "line": 69
+        "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+        "line": 73
       },
       "construct": {
         "type": "temporal.worker.State",
         "args": [{
           "position": {
-            "file": "model/scala/temporal/worker/Worker.scala",
-            "line": 69
+            "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+            "line": 73
           },
           "literal": {
             "enum": {
@@ -5251,8 +5251,8 @@
     }],
     "ends": {
       "position": {
-        "file": "model/scala/temporal/worker/Worker.scala",
-        "line": 70
+        "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+        "line": 74
       },
       "lambda": {
         "params": [{
@@ -5263,8 +5263,8 @@
         }],
         "body": {
           "position": {
-            "file": "model/scala/temporal/worker/Worker.scala",
-            "line": 70
+            "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+            "line": 74
           },
           "literal": {
             "bool": true
@@ -5276,22 +5276,22 @@
       "action": "temporal.worker.Worker$package$.workerStop",
       "function": "temporal.worker.Worker$package$.stopStep",
       "position": {
-        "file": "model/scala/temporal/worker/Worker.scala",
-        "line": 71
+        "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+        "line": 75
       }
     }, {
       "action": "temporal.worker.Worker$package$.workerResume",
       "function": "temporal.worker.Worker$package$.resumeStep",
       "position": {
-        "file": "model/scala/temporal/worker/Worker.scala",
-        "line": 71
+        "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+        "line": 75
       }
     }, {
       "action": "temporal.worker.Worker$package$.serve",
       "function": "temporal.worker.Worker$package$.serveStep",
       "position": {
-        "file": "model/scala/temporal/worker/Worker.scala",
-        "line": 71
+        "file": "model/scalav2/scala/temporal/worker/Worker.scala",
+        "line": 75
       }
     }]
   }]

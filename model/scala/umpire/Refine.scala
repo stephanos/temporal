@@ -60,17 +60,6 @@ object Refinement:
     val mapKey = (state: String) => decl.mapKey(src.stateValue(state).asInstanceOf[S])
     val mapValue = (state: String) => decl.mapValue(src.stateValue(state).asInstanceOf[S])
     val where = s"${m.name} refines ${dst.machine}"
-    // A machine that names the facts the product sees (`visible`) narrows both: the carrying step
-    // also records every fact the result records that the product sees, and a stutter records none.
-    // Named outcomes (`visibleOutcomes`) narrow a stutter the same way: it answers none of them.
-    val seesOutcome = m.visibleOutcomeSet.fold((_: String) => false) { f =>
-      val byKey = m.fo.values.map(v => Keys.of(v) -> v).toMap
-      (key: String) => byKey.get(key).exists(f)
-    }
-    val sees = m.visibleFacts.fold((_: String) => false) { f =>
-      val byKey = m.ff.values.map(v => Keys.of(v) -> v).toMap
-      (key: String) => byKey.get(key).exists(f)
-    }
     for o <- src.outcomes if !dst.outcomes.contains(o) do
       fail(where, s"'$o' is an outcome of ${src.machine} and no outcome of ${dst.machine} has that name")
     for s <- src.starts if !dst.starts.contains(mapKey(s)) do
@@ -78,16 +67,9 @@ object Refinement:
     val rows = for row <- src.rows; res <- row.results yield
       val from = mapKey(row.source)
       val to = mapKey(res.state)
-      carrierOf(dst, row, res, from, to, sees) match
-        case some @ Some(_) => RefinementRow(row.key, some)
-        case None if from == to =>
-          for f <- res.facts.find(sees) do
-            fail(where, s"the row '${row.key}' reads as a stutter of ${dst.machine}, and records '$f', which " +
-              s"${dst.machine} sees; a stutter records no fact the refined machine sees")
-          if seesOutcome(res.outcome) then
-            fail(where, s"the row '${row.key}' reads as a stutter of ${dst.machine}, and has the outcome " +
-              s"'${res.outcome}', which ${dst.machine} sees; a stutter emits no result the refined machine sees")
-          RefinementRow(row.key, None)
+      carrierOf(dst, row, res, from, to) match
+        case some @ Some(_)     => RefinementRow(row.key, some)
+        case None if from == to => RefinementRow(row.key, None)
         case None =>
           fail(where, s"the row '${row.key}' steps from '${row.source}' to '${res.state}', which read as '$from' " +
             s"and '$to' in ${dst.machine}; ${dst.machine} has no step from '$from' reaching '$to' with outcome " +
@@ -97,13 +79,10 @@ object Refinement:
   }
 
   /** The product action whose step carries a row result, preferring the action of the row's name. */
-  private def carrierOf(dst: Table, row: Row, res: RowResult, from: String, to: String, sees: String => Boolean)
-      : Option[String] =
+  private def carrierOf(dst: Table, row: Row, res: RowResult, from: String, to: String): Option[String] =
     val facts = res.facts.flatMap(f => sameNamedKey(dst.facts, f))
-    val seen = res.facts.filter(sees).map(f => sameNamedKey(dst.facts, f))
     val carriers = dst.rowsFrom(from).filter(_.results.exists(cr =>
-      cr.state == to && cr.outcome == res.outcome && cr.facts.forall(facts.contains) &&
-        seen.forall(_.exists(cr.facts.contains)))).map(_.action)
+      cr.state == to && cr.outcome == res.outcome && cr.facts.forall(facts.contains))).map(_.action)
     sameNamedKey(dst.actions, row.action).filter(carriers.contains).orElse(carriers.headOption)
 
   /** The product key a key names by default: the same key, or the constructor it applies

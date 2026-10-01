@@ -1,5 +1,5 @@
 // The Models run.sh lifts and compares with expected/, and the declarations it expects the lifter to
-// refuse. They build against model/scala's framework and Temporal Models, packaged by run.sh.
+// refuse. They build against the framework and Temporal Models of ../../../scala, packaged by run.sh.
 //> using scala 3.9.0
 //> using jvm 27
 //> using options -Werror -deprecation -feature -unchecked -Wunused:imports

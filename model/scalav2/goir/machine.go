@@ -1,6 +1,7 @@
 package goir
 
 import (
+	"cmp"
 	"errors"
 	"slices"
 	"strings"
@@ -29,19 +30,44 @@ func (in *Interpreter) Members(t *modelirspb.TypeRef) ([]Value, error) {
 		var out []Value
 		for i := r.IntRange.GetLow(); i <= r.IntRange.GetHigh(); i++ {
 			out = append(out, Value{Kind: IntValue, Int: i})
+			// Past the high end of a range ending at math.MaxInt64, i++ would wrap around.
+			if i == r.IntRange.GetHigh() {
+				break
+			}
 		}
 		return out, nil
 	case *modelirspb.TypeRef_Named:
-		return in.declaredMembers(r.Named)
+		out, err := in.declaredMembers(r.Named)
+		if err != nil {
+			return nil, err
+		}
+		return out, distinctKeys(in.types[r.Named].GetPosition(), r.Named, out)
 	case *modelirspb.TypeRef_Channel:
 		c, err := in.channel(r.Channel, nil)
 		if err != nil {
 			return nil, err
 		}
-		return in.contents(c)
+		out, err := in.contents(c)
+		if err != nil {
+			return nil, err
+		}
+		return out, distinctKeys(c.GetPosition(), "channel "+r.Channel, out)
 	default:
 		return nil, &Error{Message: "a finite type is a named type, the Booleans, an integer range, or a channel's contents"}
 	}
+}
+
+// distinctKeys refuses a catalog two of whose values share a key: tables, rows and Definition IDs name
+// a value by its key alone, so the two would be one.
+func distinctKeys(at *modelirspb.Position, catalog string, values []Value) error {
+	seen := make(map[string]Value, len(values))
+	for _, v := range values {
+		if earlier, ok := seen[v.Key()]; ok {
+			return errorAt(at, "the catalog of %s holds %s and %s, which share the key %q", catalog, earlier.spelled(), v.spelled(), v.Key())
+		}
+		seen[v.Key()] = v
+	}
+	return nil
 }
 
 // declaredMembers lists a declared type's catalog.
@@ -78,7 +104,16 @@ func (in *Interpreter) declaredMembers(name string) ([]Value, error) {
 	}
 }
 
+// product lists every assignment of fields, the last varying fastest, once their count is within the
+// Members ceiling.
 func (in *Interpreter) product(fields []*modelirspb.Field) ([][]Value, error) {
+	n, err := in.sizeOfProduct(fields)
+	if err != nil {
+		return nil, err
+	}
+	if err := in.within("members", in.ceilings.Members, n); err != nil {
+		return nil, err
+	}
 	out := [][]Value{{}}
 	for _, f := range fields {
 		members, err := in.Members(f.GetType())
@@ -247,6 +282,9 @@ func declarations(m *modelirspb.Model, mm *Machine) error {
 }
 
 func (in *Interpreter) machine(decl *modelirspb.Machine, actions map[string]*modelirspb.Action) (*Machine, error) {
+	if err := in.preflight(decl, actions); err != nil {
+		return nil, err
+	}
 	states, err := in.Members(named(decl.GetStateType()))
 	if err != nil {
 		return nil, err
@@ -269,9 +307,6 @@ func (in *Interpreter) machine(decl *modelirspb.Machine, actions map[string]*mod
 		Entity: decl.GetEntity()}
 	mm := &Machine{Decl: decl, states: map[string]Value{}, Classes: classes,
 		Work: Work{States: len(states), Classes: len(classes), Evaluations: len(states) * len(classes)}}
-	if err := in.within("evaluations", in.ceilings.Evaluations, int64(mm.Work.Evaluations)); err != nil {
-		return nil, err
-	}
 	for _, s := range states {
 		spec.States = append(spec.States, s.Key())
 		mm.states[s.Key()] = s
@@ -305,26 +340,61 @@ func (in *Interpreter) machine(decl *modelirspb.Machine, actions map[string]*mod
 	return mm, nil
 }
 
+// preflight counts a machine's states, its classes of every bound action together, and their pairs,
+// and refuses work past a ceiling before any of it is listed.
+func (in *Interpreter) preflight(decl *modelirspb.Machine, actions map[string]*modelirspb.Action) error {
+	states, err := in.size(named(decl.GetStateType()))
+	if err != nil {
+		return err
+	}
+	if err := in.within("members", in.ceilings.Members, states); err != nil {
+		return err
+	}
+	classes, err := in.classCount(decl, actions)
+	if err != nil {
+		return err
+	}
+	return in.within("evaluations", in.ceilings.Evaluations, states.times(classes))
+}
+
+// classCount counts a machine's classes of every bound action together, refusing them past the
+// Members ceiling, so no caller lists them first.
+func (in *Interpreter) classCount(decl *modelirspb.Machine, actions map[string]*modelirspb.Action) (count, error) {
+	var classes count
+	for _, b := range decl.GetSteps() {
+		a, ok := actions[b.GetAction()]
+		if !ok {
+			return count{}, errorAt(b.GetPosition(), "no action %s", b.GetAction())
+		}
+		n, err := in.sizeOfProduct(inputFields(a))
+		if err != nil {
+			return count{}, err
+		}
+		classes = classes.plus(n)
+	}
+	return classes, in.within("classes", in.ceilings.Members, classes)
+}
+
+func inputFields(a *modelirspb.Action) []*modelirspb.Field {
+	fields := make([]*modelirspb.Field, len(a.GetInputs()))
+	for i, p := range a.GetInputs() {
+		fields[i] = &modelirspb.Field{Name: p.GetName(), Type: p.GetType()}
+	}
+	return fields
+}
+
 // classes lists every class of every bound action, sorted by key, and rejects a class two steps bind.
 func (in *Interpreter) classes(decl *modelirspb.Machine, actions map[string]*modelirspb.Action) ([]Class, error) {
+	if _, err := in.classCount(decl, actions); err != nil {
+		return nil, err
+	}
 	var out []Class
 	for _, b := range decl.GetSteps() {
 		a, ok := actions[b.GetAction()]
 		if !ok {
 			return nil, errorAt(b.GetPosition(), "no action %s", b.GetAction())
 		}
-		fields := make([]*modelirspb.Field, len(a.GetInputs()))
-		for i, p := range a.GetInputs() {
-			fields[i] = &modelirspb.Field{Name: p.GetName(), Type: p.GetType()}
-		}
-		n, err := in.sizeOfProduct(fields)
-		if err != nil {
-			return nil, err
-		}
-		if err := in.within("members", in.ceilings.Members, n); err != nil {
-			return nil, err
-		}
-		assignments, err := in.product(fields)
+		assignments, err := in.product(inputFields(a))
 		if err != nil {
 			return nil, err
 		}
@@ -338,11 +408,40 @@ func (in *Interpreter) classes(decl *modelirspb.Machine, actions map[string]*mod
 	}
 	slices.SortStableFunc(out, func(x, y Class) int { return strings.Compare(x.Key, y.Key) })
 	for i := 1; i < len(out); i++ {
-		if out[i].Key == out[i-1].Key {
-			return nil, errorAt(out[i].at, "%s: two steps bind the action class %q", decl.GetName(), out[i].Key)
+		x, y := out[i-1], out[i]
+		switch {
+		case x.Key != y.Key:
+		case x.Action.GetId() == y.Action.GetId() && slices.EqualFunc(x.Inputs, y.Inputs, Value.Equal):
+			return nil, errorAt(y.at, "%s: two steps bind the action class %q", decl.GetName(), y.Key)
+		default:
+			return nil, errorAt(y.at, "%s: the classes %s and %s share the key %q", decl.GetName(), x.spelled(), y.spelled(), y.Key)
 		}
 	}
 	return out, nil
+}
+
+func (c Class) spelled() string {
+	if len(c.Inputs) == 0 {
+		return c.Action.GetName()
+	}
+	return c.Action.GetName() + Value{Kind: RecordValue, Fields: c.Inputs}.spelled()
+}
+
+// rowKeys refuses a machine two of whose state and class pairs share a row key, as a state and a
+// class whose keys hold a "-" can: rows, hole rows and disabled pairs are found by it.
+func rowKeys(decl *modelirspb.Machine, states []Value, classes []Class) error {
+	seen := make(map[string][2]string, len(states)*len(classes))
+	for _, s := range states {
+		for _, c := range classes {
+			key := s.Key() + "-" + c.Key
+			if earlier, ok := seen[key]; ok {
+				return errorAt(decl.GetPosition(), "%s: the state %s with the class %s, and the state %s with the class %s, share the row key %q",
+					decl.GetName(), earlier[0], earlier[1], s.Key(), c.Key, key)
+			}
+			seen[key] = [2]string{s.Key(), c.Key}
+		}
+	}
+	return nil
 }
 
 // rows evaluates every step function once per state and class, states-major, keeping the enabled
@@ -351,6 +450,9 @@ func (in *Interpreter) classes(decl *modelirspb.Machine, actions map[string]*mod
 // delivery and loss are evaluated as transfers.
 func (in *Interpreter) rows(mm *Machine, states []Value, spec *umpire.TableSpec) error {
 	decl := mm.Decl
+	if err := rowKeys(decl, states, mm.Classes); err != nil {
+		return err
+	}
 	for _, s := range states {
 		for _, c := range mm.Classes {
 			key := s.Key() + "-" + c.Key
@@ -368,7 +470,7 @@ func (in *Interpreter) rows(mm *Machine, states []Value, spec *umpire.TableSpec)
 			}
 			row := umpire.Row{Key: key, Source: s.Key(), Action: c.Key}
 			for _, step := range steps {
-				res, err := mm.result(c, key, step)
+				res, err := in.result(mm, c, key, step)
 				if err != nil {
 					return err
 				}
@@ -382,12 +484,19 @@ func (in *Interpreter) rows(mm *Machine, states []Value, spec *umpire.TableSpec)
 }
 
 // result keys one step record of a row, rejecting a state outside the domain.
-func (m *Machine) result(c Class, row string, step Value) (umpire.Result, error) {
-	if step.Type != StepType {
-		return umpire.Result{}, errorAt(c.at, "%s returns %s, not a list of steps", c.step, step.Type)
+// It also rejects an outcome or a fact not of the machine's types.
+func (in *Interpreter) result(m *Machine, c Class, row string, step Value) (umpire.Result, error) {
+	decl := m.Decl
+	if outcome := step.Fields[0]; !in.conforms(outcome, named(decl.GetOutcomeType())) {
+		return umpire.Result{}, errorAt(c.at, "%s: row %s has outcome %s, which is no %s", decl.GetName(), row, outcome.Key(), decl.GetOutcomeType())
+	}
+	for _, f := range step.Fields[2].Items {
+		if decl.GetFactType() == "" || !in.conforms(f, named(decl.GetFactType())) {
+			return umpire.Result{}, errorAt(c.at, "%s: row %s records %s, which is no %s", decl.GetName(), row, f.Key(), cmp.Or(decl.GetFactType(), "fact of it"))
+		}
 	}
 	next := step.Fields[1].Key()
-	if _, ok := m.states[next]; !ok {
+	if v, ok := m.states[next]; !ok || !v.Equal(step.Fields[1]) {
 		return umpire.Result{}, errorAt(c.at, "%s: row %s lands in %s, which is outside the state domain", m.Decl.GetName(), row, next)
 	}
 	res := umpire.Result{Outcome: step.Fields[0].Key(), State: next, Facts: []string{}, Because: step.Fields[3].Text}
@@ -402,7 +511,34 @@ func (in *Interpreter) steps(decl *modelirspb.Machine, s Value, c Class) ([]Valu
 		return in.transfer(decl, s, c)
 	}
 	results, err := in.Call(c.step, append([]Value{s}, c.Inputs...), c.at)
-	return results.Items, err
+	if err != nil {
+		return nil, err
+	}
+	return in.stepList(decl, c, results)
+}
+
+// stepList is the steps a bound function returned: a list of step records of four fields, each with a
+// state of the machine's state type, a list of facts and an explanation; whether the state is in the
+// domain is result's to say. Anything else is an error of
+// the Model, never an empty list.
+func (in *Interpreter) stepList(decl *modelirspb.Machine, c Class, v Value) ([]Value, error) {
+	if v.Kind != ListValue {
+		return nil, errorAt(c.at, "%s returns %s, not a list of steps", c.step, v.Key())
+	}
+	for _, step := range v.Items {
+		switch {
+		case step.Kind != RecordValue || step.Type != StepType:
+			return nil, errorAt(c.at, "%s returns %s, not a list of steps", c.step, v.Key())
+		case len(step.Fields) != len(stepFields):
+			return nil, errorAt(c.at, "%s returns a step of %d fields, not %d", c.step, len(step.Fields), len(stepFields))
+		case step.Fields[1].Type != decl.GetStateType():
+			return nil, errorAt(c.at, "%s returns a step to %s, which is no %s", c.step, step.Fields[1].Key(), decl.GetStateType())
+		case step.Fields[2].Kind != ListValue || step.Fields[3].Kind != TextValue:
+			return nil, errorAt(c.at, "%s returns a step whose facts are no list or whose explanation is no string", c.step)
+		default:
+		}
+	}
+	return v.Items, nil
 }
 
 func (in *Interpreter) startsAndEnds(decl *modelirspb.Machine, states []Value, domain map[string]Value) (starts, ends []string, err error) {

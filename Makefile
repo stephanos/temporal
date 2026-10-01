@@ -1177,8 +1177,8 @@ lint-yaml: $(YAMLFMT)
 
 # Scala model tooling, run through scala-cli: scalafmt formats the whole tree (.scalafmt.conf) and
 # scalafix lints each scala-cli project, i.e. every directory with a project.scala (.scalafix.conf).
-# Scalafix compiles each project, so the IR jar it links against is generated first. Not part of
-# `fmt`/`lint` yet: those run in CI, which has no JVM.
+# Scalafix compiles each project, so the IR and Testpilot jars they link against are generated first.
+# Not part of `fmt`/`lint` yet: those run in CI, which has no JVM.
 .PHONY: fmt-scala lint-scala fix-scala umpire-check-scala umpire-gen-scala
 SCALA_ROOT := model/scalav2
 SCALA_CLI := mise exec -- scala-cli
@@ -1187,15 +1187,21 @@ SCALAFIX = $(SCALA_CLI) --power fix --enable-built-in=false \
 	--scalafix-conf "$(CURDIR)/$(SCALA_ROOT)/.scalafix.conf" \
 	--scalac-option -Wunused:all --suppress-outdated-dependency-warning
 
+SCALA_PROTO_JARS := $(SCALA_ROOT)/gen/ir-proto.jar $(SCALA_ROOT)/gen/testpilot-proto.jar
+
 $(SCALA_ROOT)/gen/ir-proto.jar: proto/internal/temporal/server/api/modelir/v1/ir.proto $(SCALA_ROOT)/gen.sh
 	@printf $(COLOR) "Package Scala model IR classes..."
-	@$(SCALA_ROOT)/gen.sh
+	@$(SCALA_ROOT)/gen.sh ir
+
+$(SCALA_ROOT)/gen/testpilot-proto.jar: $(wildcard proto/internal/temporal/server/api/testpilot/v1/*.proto) $(API_BINPB) $(SCALA_ROOT)/gen.sh
+	@printf $(COLOR) "Package Scala model Testpilot classes..."
+	@$(SCALA_ROOT)/gen.sh testpilot
 
 fmt-scala:
 	@printf $(COLOR) "Formatting Scala files..."
 	@cd $(SCALA_ROOT) && $(SCALA_CLI) fmt .
 
-lint-scala: $(SCALA_ROOT)/gen/ir-proto.jar
+lint-scala: $(SCALA_PROTO_JARS)
 	@printf $(COLOR) "Checking Scala formatting..."
 	@cd $(SCALA_ROOT) && $(SCALA_CLI) fmt --check .
 	@printf $(COLOR) "Linting Scala files..."
@@ -1204,19 +1210,20 @@ lint-scala: $(SCALA_ROOT)/gen/ir-proto.jar
 	done
 
 # Applies the scalafix rewrites; findings without a rewrite (e.g. DisableSyntax) still fail.
-fix-scala: $(SCALA_ROOT)/gen/ir-proto.jar
+fix-scala: $(SCALA_PROTO_JARS)
 	@printf $(COLOR) "Applying Scala lint fixes..."
 	@for project in $(SCALA_PROJECTS); do \
 		(cd "$$project" && $(SCALAFIX) .) || exit 1; \
 	done
 
-# The model/scalav2 gate (see run.sh): lift the Scala Models to the IR, require ir/nexus-caller.json
-# to be current, and check the IR against the Lean Model in Go. umpire-gen-scala rewrites the IR.
-umpire-check-scala: $(SCALA_ROOT)/gen/ir-proto.jar
+# The model/scalav2 gate (see run.sh): compile and test the Scala Models, lift them to the IR, require
+# ir/nexus-caller.json to be current, and check the IR against the Lean Model in Go. umpire-gen-scala
+# rewrites the IR.
+umpire-check-scala: $(SCALA_PROTO_JARS)
 	@printf $(COLOR) "Check Scala model IR..."
 	@$(SCALA_ROOT)/run.sh
 
-umpire-gen-scala: $(SCALA_ROOT)/gen/ir-proto.jar
+umpire-gen-scala: $(SCALA_PROTO_JARS)
 	@printf $(COLOR) "Generate Scala model IR..."
 	@$(SCALA_ROOT)/run.sh --update
 
