@@ -1,0 +1,49 @@
+{
+  "base": "dbdba985846f7956bcdcdc51e061d8ac957ab2a3",
+  "effort": "high",
+  "findings": {
+    "backend": "claude",
+    "baseSha": "dbdba985846f7956bcdcdc51e061d8ac957ab2a3",
+    "headSha": "db085e2c0db2ad1459980a4bdca04f68a6b7278f",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "dbdba985846f7956bcdcdc51e061d8ac957ab2a3",
+          "headSha": "db085e2c0db2ad1459980a4bdca04f68a6b7278f",
+          "path": "tools/gomad3/runner/exploration_round.go",
+          "side": "head",
+          "startLine": 16
+        },
+        "body": "Long Parameter List / Data Clump. The function takes seven parameters, and `orderReason` and `subject` always travel together as a per-strategy label pair (`\"choice_exploration_order\", \"exploration\"` and `\"simulation_exploration_order\", \"simulation exploration\"`).",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-65fa552cd58e1c8fbe09b43a6eaa8501269f872bb847459f77e5ce4cecd00b9d",
+        "id": "finding-26219f2baba5577e91b2a65819875e77",
+        "lastSeenReceiptId": "review-65fa552cd58e1c8fbe09b43a6eaa8501269f872bb847459f77e5ce4cecd00b9d",
+        "ordinal": 1,
+        "rIds": [],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Optional. Fold the pair into a small strategy-label value if a third caller appears; not worth churn now.",
+        "title": "Long Parameter List / Data Clump"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-65fa552cd58e1c8fbe09b43a6eaa8501269f872bb847459f77e5ce4cecd00b9d"
+  },
+  "id": "fn-112-gomad-determinism-assurance-and-test.14",
+  "introduced_count": 1,
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "pre_existing_count": 0,
+  "review": "## Review: fn-112.14 \u2014 parent cancellation classification at the exploration round drain\n\nNo blocking findings. The fix is correct and minimal, but native Linux CI has not run on the repaired revision, so that acceptance clause is still open. I had no shell in this session, so I ran no tests; the verdict rests on reading the code and the committed evidence logs.\n\n**Why the fix is correct**\n\n- **Root cause addressed:** the old loops recorded the parent's end only when the `ctx.Done()` arm won the select. If the final completion won, the interrupted candidate's `errors.Join(context.Canceled)` fell through to `supervisionFailureReason` and became `target_supervision`. `collectRoundCompletions` now reads `ctx.Err()` after the drain (`tools/gomad3/runner/exploration_round.go:49`), so the classification no longer depends on which receive won.\n- **Right context:** both callers pass the parent `ctx`, not `roundCtx` (`choice_exploration_campaign.go:248`, `simulation_exploration_campaign.go:263`). The `progressErr` path, which cancels only `roundCtx`, still yields `progress_output`.\n- **No new behaviour elsewhere:**\n  - `parentDone = nil` is equivalent to the old `context.WithoutCancel` reassignment.\n  - Ordering errors keep their precedence, reasons and messages.\n  - The one newly failing window (parent ends after a clean final receive) was already failed by the `ctx.Err()` check at the top of `processExplorationCompletion` and `processSimulationExplorationCompletion`, with the same classification.\n- **Supervisor-error boundaries preserved:** under a live parent, completions are returned untouched for each strategy's own classification loop.\n- **Regression test is deterministic:** `finalCompletionFirst` (non-nil `Err`, never-ready `Done`) pins the losing interleaving without timing. The red log shows it failing on the extraction commit and the green log shows it passing after the fix. It covers `cancelled` and `overall_timeout` in both orders, plus ordering errors and stop counts.\n\n**Findings**\n\n- **Severity**: P3\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: `tools/gomad3/runner/exploration_round.go:16`\n- **R-IDs**: `[]`\n- **Problem**: Long Parameter List / Data Clump. The function takes seven parameters, and `orderReason` and `subject` always travel together as a per-strategy label pair (`\"choice_exploration_order\", \"exploration\"` and `\"simulation_exploration_order\", \"simulation exploration\"`).\n- **Suggestion**: Optional. Fold the pair into a small strategy-label value if a third caller appears; not worth churn now.\n\n**FYI (not blocking)**\n\n- **Linux CI still open:** `final-gates.json` says so itself under `not_run`. It closes when the branch is pushed.\n- **Root lint inconclusive:** the evidence records `make lint-code-fast` as exit 2 because golangci-lint cannot typecheck the nested module. `go vet` and `make -C tools/gomad3 validate` are recorded as passing.\n- **Test style:** the new tests use `reflect.DeepEqual` with `t.Fatalf` rather than `require`. I did not check whether that matches the rest of the nested module.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|------|--------|----------|\n| R1 | partial | The host-loop defect that broke native Linux CI (`TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/cancellation/simulation-exploration`) is fixed and reproduced red then green on darwin/arm64 with one P; the darwin host gate passed 45 packages. linux/amd64 CI on the repaired revision is recorded as not yet run. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 1 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":1,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>",
+  "review_reservation_id": "e5194ebf5d834359957b9045f31ab3e7",
+  "session_id": "1fac1529-f416-4d67-8096-2fd87c6bbbcb",
+  "spec": "claude:claude-fable-5-1:high",
+  "timestamp": "2026-10-02T17:30:41.585711Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}
