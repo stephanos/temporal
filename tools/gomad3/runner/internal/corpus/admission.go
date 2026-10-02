@@ -19,7 +19,7 @@ type Candidate struct {
 type ReplayCandidate func(context.Context, string) (ReplayResult, error)
 
 func (corpus *Corpus) Admit(ctx context.Context, candidate Candidate, replay ReplayCandidate) (bool, error) {
-	published, err := artifact.PublishArtifact(artifact.Store{Root: corpus.casesPath(), Context: ctx, MaximumBytes: maximumBytes, Key: artifact.StoreKeyRecord, TargetPool: artifact.TargetPool(corpus.path)}, candidate.Artifact)
+	published, err := artifact.PublishArtifact(artifact.Store{Root: corpus.casesPath(), Context: ctx, MaximumBytes: maximumBytes, Key: artifact.StoreKeyRecord, TargetPool: corpus.targetPool()}, candidate.Artifact)
 	if err != nil {
 		return false, fmt.Errorf("publish guided corpus case: %w", err)
 	}

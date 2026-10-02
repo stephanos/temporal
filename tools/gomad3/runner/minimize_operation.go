@@ -630,6 +630,10 @@ func projectMinimizationReductions(reductions []minimizer.Reduction) []record.Mi
 	return result
 }
 
+// defaultMinimizedArtifactBytes bounds one minimized artifact by its parent.
+// Both sides are the stored bytes of a single artifact, which count the target
+// whether or not a store shares it (artifact.RetainedBytes), so the bound is
+// the same for a parent that owns its target and a result linked to a pool.
 func defaultMinimizedArtifactBytes(parent uint64) uint64 {
 	const metadataAllowance = uint64(1 << 20)
 	if parent > ^uint64(0)-metadataAllowance {

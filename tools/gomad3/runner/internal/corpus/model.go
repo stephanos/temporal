@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 
+	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
@@ -85,6 +86,10 @@ type Entry struct {
 	NoveltyReasons []Feature                        `json:"novelty_reasons"`
 	Inputs         CapturedInputs                   `json:"captured_inputs"`
 	Replay         ReplayResult                     `json:"replay"`
+	// sharedTarget is the part of StoredBytes the case has in common with the
+	// other cases of its corpus. It is read from the case on disk, so a case
+	// that owns a private copy of the target counts in full against the cap.
+	sharedTarget artifact.SharedTarget
 }
 
 type Snapshot struct {

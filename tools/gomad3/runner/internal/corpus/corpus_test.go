@@ -394,3 +394,94 @@ func TestCorpusCasesShareOneTarget(t *testing.T) {
 		t.Fatalf("reopened snapshot = %#v", reopened.Snapshot())
 	}
 }
+
+func corpusTargets(t *testing.T, root string) []string {
+	t.Helper()
+	entries, err := filepath.Glob(filepath.Join(artifact.TargetPool(root), "*"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return entries
+}
+
+func TestCorpusKeepsItsTargetUntilNoCaseSharesIt(t *testing.T) {
+	matching := func(context.Context, string) (ReplayResult, error) {
+		return ReplayResult{Verified: true, Match: true}, nil
+	}
+	diverged := func(context.Context, string) (ReplayResult, error) {
+		return ReplayResult{Verified: true, Divergence: "outcome"}, nil
+	}
+	root := filepath.Join(t.TempDir(), "corpus")
+	input, coverage, _ := guideArtifactInput(t, 7)
+	identity := guideIdentity(t, input.Manifest)
+	corpus, err := Open(context.Background(), root, identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if added, err := corpus.Admit(context.Background(), Candidate{Artifact: input, Coverage: coverage}, diverged); err == nil || added {
+		t.Fatalf("Admit(diverging replay) = %t, %v", added, err)
+	}
+	if targets := corpusTargets(t, root); len(targets) != 0 {
+		t.Fatalf("the target of a discarded case stays in an empty corpus: %v", targets)
+	}
+	if added, err := corpus.Admit(context.Background(), Candidate{Artifact: input, Coverage: coverage}, matching); err != nil || !added {
+		t.Fatalf("Admit() = %t, %v", added, err)
+	}
+	duplicate, duplicateCoverage, _ := guideArtifactInput(t, 8)
+	if added, err := corpus.Admit(context.Background(), Candidate{Artifact: duplicate, Coverage: duplicateCoverage}, matching); err != nil || added {
+		t.Fatalf("Admit(duplicate) = %t, %v", added, err)
+	}
+	if err := corpus.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Mkdir(filepath.Join(artifact.TargetPool(root), ".publish-crashed"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	reopened, err := Open(context.Background(), root, identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer reopened.Close()
+	targets := corpusTargets(t, root)
+	if len(targets) != 1 {
+		t.Fatalf("corpus targets after a discarded case and a crashed publisher = %v, want the retained case's one", targets)
+	}
+	entry, err := os.Lstat(targets[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	retained, err := os.Lstat(filepath.Join(root, filepath.FromSlash(reopened.Snapshot().Entries[0].Artifact), "target"))
+	if err != nil || !os.SameFile(entry, retained) {
+		t.Fatalf("the retained case no longer shares the corpus target: %v", err)
+	}
+}
+
+func TestCorpusByteCapCountsTheSharedTargetOnce(t *testing.T) {
+	const targetBytes, caseBytes = 160 << 20, 170 << 20
+	shared := artifact.SharedTarget{SHA256: record.HashBytes([]byte("target")), Bytes: targetBytes}
+	for name, test := range map[string]struct {
+		cases  int
+		shared artifact.SharedTarget
+		want   int
+	}{
+		// 6 x 170 MiB is the last sum under 1 GiB.
+		"private copies": {cases: 200, want: 6},
+		// 170 MiB for the first case, 10 MiB for each later one.
+		"one shared target":        {cases: 200, shared: shared, want: 86},
+		"fewer cases than the cap": {cases: 40, shared: shared, want: 40},
+	} {
+		t.Run(name, func(t *testing.T) {
+			entries := make([]Entry, test.cases)
+			for index := range entries {
+				entries[index] = Entry{
+					Seed: record.Uint64String(index), RecordHash: record.HashBytes([]byte(strconv.Itoa(index))), StoredBytes: caseBytes,
+					Features: []Feature{{Kind: FeatureBoundaryProbe, Value: strconv.Itoa(index)}}, sharedTarget: test.shared,
+				}
+			}
+			selected, err := boundedEntries(entries)
+			if err != nil || len(selected) != test.want {
+				t.Fatalf("boundedEntries() kept %d cases, %v, want %d", len(selected), err, test.want)
+			}
+		})
+	}
+}

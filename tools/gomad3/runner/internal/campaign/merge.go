@@ -58,6 +58,39 @@ type MergedEvidence struct {
 	Reference        string              `json:"reference"`
 	RecordSHA256     record.SHA256       `json:"record_sha256"`
 	StoredBytes      record.Uint64String `json:"stored_bytes"`
+	// TargetSHA256 and TargetBytes name the part of StoredBytes that is the
+	// target. A merged campaign accounts for its evidence as one store holds
+	// it: under the stored-bytes rule of artifact.RetainedBytes, each distinct
+	// target counts once in the failure bytes and once in the success bytes,
+	// whichever shard store the evidence came from. A record written before
+	// targets were shared has neither field and counts every artifact in full.
+	TargetSHA256 record.SHA256       `json:"target_sha256,omitempty"`
+	TargetBytes  record.Uint64String `json:"target_bytes,omitempty"`
+}
+
+func (evidence MergedEvidence) sharedTarget() artifact.SharedTarget {
+	return artifact.SharedTarget{SHA256: evidence.TargetSHA256, Bytes: uint64(evidence.TargetBytes)}
+}
+
+// mergedEvidenceBytes sums the retained evidence of one kind.
+type mergedEvidenceBytes struct {
+	count    uint64
+	retained artifact.RetainedBytes
+}
+
+func (bytes *mergedEvidenceBytes) add(evidence MergedEvidence, limit ArtifactLimit, maximum uint64) error {
+	cost, err := bytes.retained.Cost(uint64(evidence.StoredBytes), evidence.sharedTarget())
+	if err != nil {
+		return err
+	}
+	if _, err := checkedMergedEvidenceBytes(bytes.retained.Total(), cost, limit, maximum); err != nil {
+		return err
+	}
+	if _, err := bytes.retained.Add(uint64(evidence.StoredBytes), evidence.sharedTarget()); err != nil {
+		return err
+	}
+	bytes.count++
+	return nil
 }
 
 type OrdinalRange struct {
@@ -264,7 +297,11 @@ func collectMergedCampaign(spec MergeSpec) ([]MergedShard, []MergedExecution, me
 				} else {
 					reference = *run.Artifact
 				}
-				candidate := MergedEvidence{SHA256: identity, Kind: resolved.Manifest.ArtifactKind, SourceCampaignID: batch.CampaignID, Reference: reference, RecordSHA256: resolved.Manifest.RecordHash, StoredBytes: record.Uint64String(resolved.StoredBytes)}
+				target := artifact.TargetOf(resolved.Manifest)
+				candidate := MergedEvidence{
+					SHA256: identity, Kind: resolved.Manifest.ArtifactKind, SourceCampaignID: batch.CampaignID, Reference: reference, RecordSHA256: resolved.Manifest.RecordHash, StoredBytes: record.Uint64String(resolved.StoredBytes),
+					TargetSHA256: target.SHA256, TargetBytes: record.Uint64String(target.Bytes),
+				}
 				if prior, found := retainedByIdentity[identity]; !found || mergedEvidenceLess(candidate, prior) {
 					retainedByIdentity[identity] = candidate
 				}
@@ -295,23 +332,22 @@ func collectMergedCampaign(spec MergeSpec) ([]MergedShard, []MergedExecution, me
 	sort.Slice(shards, func(i, j int) bool { return shards[i].Index < shards[j].Index })
 	sort.Slice(runs, func(i, j int) bool { return runs[i].Execution.SelectionOrdinal < runs[j].Execution.SelectionOrdinal })
 	retained := make([]MergedEvidence, 0, len(retainedByIdentity))
-	var failureCount, failureBytes, successCount, successBytes uint64
+	var failures, successes mergedEvidenceBytes
 	var err error
 	for _, item := range retainedByIdentity {
 		retained = append(retained, item)
 		if item.Kind == record.ArtifactSuccess {
-			successCount++
-			successBytes, err = checkedMergedEvidenceBytes(successBytes, uint64(item.StoredBytes), ArtifactLimitSuccessBytes, uint64(spec.Artifacts.SuccessBytes))
+			err = successes.add(item, ArtifactLimitSuccessBytes, uint64(spec.Artifacts.SuccessBytes))
 		} else {
-			failureCount++
-			failureBytes, err = checkedMergedEvidenceBytes(failureBytes, uint64(item.StoredBytes), ArtifactLimitFailureBytes, uint64(spec.Artifacts.FailureBytes))
+			err = failures.add(item, ArtifactLimitFailureBytes, uint64(spec.Artifacts.FailureBytes))
 		}
 		if err != nil {
 			return nil, nil, mergedSummary{}, err
 		}
 	}
+	failureBytes, successBytes := failures.retained.Total(), successes.retained.Total()
 	sort.Slice(retained, func(i, j int) bool { return retained[i].SHA256 < retained[j].SHA256 })
-	if err := validateMergedArtifactCapacity(spec.Artifacts, failureCount, failureBytes, successCount, successBytes); err != nil {
+	if err := validateMergedArtifactCapacity(spec.Artifacts, failures.count, failureBytes, successes.count, successBytes); err != nil {
 		return nil, nil, mergedSummary{}, err
 	}
 	for index := range runs {
@@ -518,11 +554,24 @@ func validateMergedCampaign(campaign MergedCampaignRecord, runs []MergedExecutio
 		failureSignatures = append(failureSignatures, signature)
 	}
 	sort.Slice(failureSignatures, func(i, j int) bool { return failureSignatures[i] < failureSignatures[j] })
+	// validateCampaign bounds the success bytes the executions report, where
+	// every artifact counts in full, by the success limit. A merged campaign
+	// bounds its retained evidence below instead, where a shared target counts
+	// once, so here that sum only has to match its executions.
+	executionLimits := campaign.Artifacts
+	if campaign.RetainedSuccessBytes > executionLimits.SuccessBytes {
+		executionLimits.SuccessBytes = campaign.RetainedSuccessBytes
+		total, err := checkedMergedEvidenceBytes(uint64(executionLimits.FailureBytes), uint64(executionLimits.SuccessBytes), ArtifactLimitTotalBytes, uint64(campaign.Artifacts.TotalBytes))
+		if err != nil {
+			return err
+		}
+		executionLimits.TotalBytes = record.Uint64String(total)
+	}
 	validationRecord := CampaignRecord{
 		Guidance:      campaign.Guidance,
 		SchemaVersion: record.SchemaVersion, Schema: "gomad3.campaign/v1", CampaignID: "merged-validation", Strategy: "seed", Selection: campaign.Selection, SelectionCount: campaign.SelectionCount,
 		Attempted: campaign.Attempted, Succeeded: campaign.Succeeded, Failures: campaign.Failures, Watchdogs: campaign.Watchdogs, Cancelled: campaign.Cancelled, DistinctFailures: campaign.DistinctFailures,
-		RetainedSuccesses: campaign.RetainedSuccesses, RetainedSuccessBytes: campaign.RetainedSuccessBytes, StopReason: "seeds_exhausted", Journal: &campaign.Journal, Artifacts: &campaign.Artifacts, FailureSignatures: failureSignatures,
+		RetainedSuccesses: campaign.RetainedSuccesses, RetainedSuccessBytes: campaign.RetainedSuccessBytes, StopReason: "seeds_exhausted", Journal: &campaign.Journal, Artifacts: &executionLimits, FailureSignatures: failureSignatures,
 	}
 	if err := validateCampaign(validationRecord, executions); err != nil {
 		return fmt.Errorf("validate merged executions: %w", err)
@@ -531,13 +580,13 @@ func validateMergedCampaign(campaign MergedCampaignRecord, runs []MergedExecutio
 		return errors.New("merged evidence summary is invalid")
 	}
 	evidenceByIdentity := make(map[record.SHA256]struct{}, uint64(campaign.RetainedEvidence))
-	var failureCount, failureBytes, successCount, successBytes uint64
+	var failureEvidence, successEvidence mergedEvidenceBytes
 	for _, mergedRun := range runs {
 		if mergedRun.Evidence == nil {
 			continue
 		}
 		retained := *mergedRun.Evidence
-		if !validRecordSHA256(retained.SHA256) || !validRecordSHA256(retained.RecordSHA256) || retained.SourceCampaignID == "" || retained.Reference == "" || retained.StoredBytes == 0 {
+		if !validRecordSHA256(retained.SHA256) || !validRecordSHA256(retained.RecordSHA256) || retained.SourceCampaignID == "" || retained.Reference == "" || retained.StoredBytes == 0 || retained.TargetSHA256 != "" && !validRecordSHA256(retained.TargetSHA256) {
 			return errors.New("merged evidence identity is invalid")
 		}
 		if retained.SHA256 != mergedRun.EvidenceSHA256 || retained.SourceCampaignID != mergedRun.SourceCampaignID {
@@ -561,22 +610,20 @@ func validateMergedCampaign(campaign MergedCampaignRecord, runs []MergedExecutio
 			if !validSuccessArtifactReference(retained.Reference) {
 				return errors.New("merged success evidence reference is invalid")
 			}
-			successCount++
-			if uint64(retained.StoredBytes) > ^uint64(0)-successBytes {
-				return errors.New("merged success evidence bytes overflow")
+			if err := successEvidence.add(retained, ArtifactLimitSuccessBytes, uint64(campaign.Artifacts.SuccessBytes)); err != nil {
+				return fmt.Errorf("merged success evidence bytes: %w", err)
 			}
-			successBytes += uint64(retained.StoredBytes)
 		} else {
 			if retained.Kind != record.ArtifactTargetFailure && retained.Kind != record.ArtifactWatchdogTimeout && retained.Kind != record.ArtifactRunnerFailure || !validArtifactReference(retained.Reference) {
 				return errors.New("merged failure evidence reference is invalid")
 			}
-			failureCount++
-			if uint64(retained.StoredBytes) > ^uint64(0)-failureBytes {
-				return errors.New("merged failure evidence bytes overflow")
+			if err := failureEvidence.add(retained, ArtifactLimitFailureBytes, uint64(campaign.Artifacts.FailureBytes)); err != nil {
+				return fmt.Errorf("merged failure evidence bytes: %w", err)
 			}
-			failureBytes += uint64(retained.StoredBytes)
 		}
 	}
+	failureCount, failureBytes := failureEvidence.count, failureEvidence.retained.Total()
+	successCount, successBytes := successEvidence.count, successEvidence.retained.Total()
 	if uint64(len(evidenceByIdentity)) != uint64(campaign.RetainedEvidence) {
 		return errors.New("merged retained evidence count is inconsistent")
 	}
