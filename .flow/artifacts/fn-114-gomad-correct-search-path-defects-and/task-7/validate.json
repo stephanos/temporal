@@ -1,0 +1,11 @@
+{
+  "command": [
+    "make",
+    "-C",
+    "tools/gomad3",
+    "validate"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 4.953,
+  "log": "validate.log"
+}

@@ -1,0 +1,15 @@
+{
+  "commits": [
+    "74a53f05b952ad95ceb522e9d8137e1314aa6ee0",
+    "10a0f091fb96e323f922edf3d70db124386a2800"
+  ],
+  "tests": [
+    "GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host",
+    "make -C tools/gomad3 validate",
+    "focused affected Runner/CLI regressions (review-green.json)",
+    "architecture (review-architecture.json)",
+    "focused vet (review-vet.json)",
+    "built CLI fully answered and regression exit-status checks (cli-exit-status.json)"
+  ],
+  "prs": []
+}

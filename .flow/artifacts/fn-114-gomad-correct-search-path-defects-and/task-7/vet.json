@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go",
+    "vet",
+    "-tags",
+    "test_dep",
+    "./runner/...",
+    "./cmd/gomad/internal/cli"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 0.52,
+  "log": "vet.log"
+}

@@ -1,0 +1,9 @@
+{
+  "command": [
+    "make",
+    "lint-code-fast"
+  ],
+  "exit_code": 2,
+  "elapsed_seconds": 1.499,
+  "log": "root-lint.log"
+}

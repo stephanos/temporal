@@ -1,0 +1,62 @@
+{
+  "base": "60883d7c16ee18bae97b6b7a481eb606b541325b",
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "60883d7c16ee18bae97b6b7a481eb606b541325b",
+    "headSha": "10a0f091fb96e323f922edf3d70db124386a2800",
+    "items": [
+      {
+        "body": "Fully answered campaigns produce merged output that cannot be reopened. This change permits empty merges, but `validateMergedCampaign` constructs a `CampaignRecord` without `Guidance`. Its call to `validateCampaign` therefore rejects the zero selection with `campaign record identity is invalid`. Merge succeeds, then inspection fails. The new empty-merge test never reopens its output.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-c25bd3a314770e681d555606321c14d8be7a739a093859ec034a7c155dcec677",
+        "id": "finding-913aa946ac70314225e39958c411468b",
+        "lastSeenReceiptId": "review-7cf873b0557ea325212ce10c7fa16f38d8464bc4160bb15a32f7ced57477b97d",
+        "ordinal": 1,
+        "rIds": [
+          "R6"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Preserve the guidance evidence through merged-record validation, and extend the regression test to reopen and inspect the merged campaign.",
+        "title": "Fully answered campaigns produce merged output that cannot be reopened"
+      },
+      {
+        "body": "An empty shard incorrectly reports \u201call requested seeds are answered.\u201d `summary.SelectionCount` counts seeds assigned to that shard, while `Guidance` describes the whole plan. For a guided plan with one unanswered seed and two shards, shard `1/2` prints this claim despite `requested=1 answered=0`. Filtering answered seeds makes empty shards especially likely.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-c25bd3a314770e681d555606321c14d8be7a739a093859ec034a7c155dcec677",
+        "id": "finding-eb43f30ef7bd6dc231f68b026d2b5a14",
+        "lastSeenReceiptId": "review-7cf873b0557ea325212ce10c7fa16f38d8464bc4160bb15a32f7ced57477b97d",
+        "ordinal": 2,
+        "rIds": [
+          "R6"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Check that `guidance.Requested > 0 && guidance.Answered == guidance.Requested`, and test an empty shard of a partially answered plan.",
+        "title": "An empty shard incorrectly reports \u201call requested seeds are answered"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-7cf873b0557ea325212ce10c7fa16f38d8464bc4160bb15a32f7ced57477b97d",
+    "supersedesReceiptId": "review-c25bd3a314770e681d555606321c14d8be7a739a093859ec034a7c155dcec677"
+  },
+  "focus": "Re-review same R6 task at committed fix10a0f091f. Both prior findings reproduced red in task-7/review-red.log/json and fixed; review-green.log/json passes affected suite, review-vet.json passes. Empty merged campaign now retains guidance through validation; regression reopens and inspects. Empty shard reporting uses global requested/answered counts. Fullhost initially exposed three outdated transport/portable tests, fixed with true/false/nil pointer transport coverage and guided early-stop rejection; final-test-host.json will record current running fullhost. Evaluate actual fixes and remaining R6 defects. Read-only source review; tests cannot mutate sandbox. Historical freeze is final-sources.json; corrected review-fix-sources.json. Do not expand to queued cancellation task.",
+  "id": "fn-114-gomad-correct-search-path-defects-and.7",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6-astra",
+  "pre_existing_count": 0,
+  "review": "Prior finding #1: fixed\nPrior finding #2: fixed\n\nMerged campaigns now retain guidance through serialization and validation; the regression test reopens and inspects empty merged output. The CLI now checks requested versus answered counts, with coverage for an empty shard of a partially answered plan.\n\nNo new blockers found. Targeted tests could not start because the read-only sandbox prevents Go from creating its build directory.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R6 | met | Both reported defects are corrected, with regression tests covering their failure paths. |\n| R1\u2013R5, R7\u2013R12 | deferred | Assigned to other epic tasks; outside this review\u2019s scope. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "e61c492493e34e029b2e9280b7c7c7c7",
+  "session_id": "01a0fd59-bf55-7903-bc0b-d2f16c2ea201",
+  "spec": "codex:gpt-6-astra:high",
+  "timestamp": "2026-10-02T16:10:47.375454Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}

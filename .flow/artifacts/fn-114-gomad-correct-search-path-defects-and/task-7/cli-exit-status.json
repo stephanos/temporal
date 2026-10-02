@@ -1,0 +1,174 @@
+[
+  {
+    "name": "build",
+    "command": [
+      "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go",
+      "build",
+      "-o",
+      "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task7-cli-fx3t5jjl/gomad",
+      "./cmd/gomad"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 2.176
+  },
+  {
+    "name": "populate",
+    "command": [
+      "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task7-cli-fx3t5jjl/gomad",
+      "explore",
+      "--json",
+      "--toolchain-root",
+      "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain",
+      "--guide",
+      "--corpus",
+      "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task7-cli-fx3t5jjl/corpus",
+      "--seeds",
+      "7",
+      "--parallel",
+      "1",
+      "--artifacts",
+      "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task7-cli-fx3t5jjl/campaigns",
+      "--working-dir",
+      "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/internal/gomadtool/conformance/testdata",
+      "go-run",
+      "./environment"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 1.934,
+    "result": [
+      {
+        "schema": "gomad3.explore-event/v3",
+        "type": "result",
+        "classification": "success",
+        "campaign_path": "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task7-cli-fx3t5jjl/campaigns/v1/campaign-20261002T155800.388322000Z-99f959c0440eee3191bb6353efa88649",
+        "selected": 1,
+        "attempted": 1,
+        "succeeded": 1,
+        "stop_reason": "seeds_exhausted",
+        "semantic_coverage": {
+          "schema": "gomad3.semantic-coverage/v1",
+          "digest": "sha256:90fbebf220441611871e432953bdbaf2846ee145232990022010f42157269eed",
+          "probes": [
+            "stdlib.os.file.write",
+            "stdlib.os.getwd",
+            "stdlib.os.newfile"
+          ]
+        },
+        "corpus_path": "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task7-cli-fx3t5jjl/corpus",
+        "corpus_entries": 1,
+        "guidance": {
+          "regression": false,
+          "requested": 1,
+          "answered": 0,
+          "guided": 0,
+          "new_executions": 1
+        },
+        "corpus_added": 1
+      }
+    ]
+  },
+  {
+    "name": "fully-answered",
+    "command": [
+      "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task7-cli-fx3t5jjl/gomad",
+      "explore",
+      "--json",
+      "--toolchain-root",
+      "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain",
+      "--guide",
+      "--corpus",
+      "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task7-cli-fx3t5jjl/corpus",
+      "--seeds",
+      "7",
+      "--parallel",
+      "1",
+      "--artifacts",
+      "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task7-cli-fx3t5jjl/campaigns",
+      "--working-dir",
+      "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/internal/gomadtool/conformance/testdata",
+      "go-run",
+      "./environment"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.291,
+    "result": [
+      {
+        "schema": "gomad3.explore-event/v3",
+        "type": "result",
+        "classification": "success",
+        "campaign_path": "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task7-cli-fx3t5jjl/campaigns/v1/campaign-20261002T155802.000916000Z-bcc0870c675e751fee6bfeb359c968a5",
+        "stop_reason": "seeds_exhausted",
+        "semantic_coverage": {
+          "schema": "gomad3.semantic-coverage/v1",
+          "digest": "sha256:b14c6b04e0e4bd4b4431562e77b1b78eb7940a9cc505e47a8df9f713f4058356",
+          "probes": []
+        },
+        "corpus_path": "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task7-cli-fx3t5jjl/corpus",
+        "corpus_entries": 1,
+        "guidance": {
+          "regression": false,
+          "requested": 1,
+          "answered": 1,
+          "guided": 0,
+          "new_executions": 0
+        }
+      }
+    ]
+  },
+  {
+    "name": "regression",
+    "command": [
+      "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task7-cli-fx3t5jjl/gomad",
+      "explore",
+      "--json",
+      "--toolchain-root",
+      "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain",
+      "--guide",
+      "--corpus",
+      "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task7-cli-fx3t5jjl/corpus",
+      "--seeds",
+      "7",
+      "--parallel",
+      "1",
+      "--artifacts",
+      "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task7-cli-fx3t5jjl/campaigns",
+      "--working-dir",
+      "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/internal/gomadtool/conformance/testdata",
+      "--guide-regression",
+      "go-run",
+      "./environment"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.791,
+    "result": [
+      {
+        "schema": "gomad3.explore-event/v3",
+        "type": "result",
+        "classification": "success",
+        "campaign_path": "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task7-cli-fx3t5jjl/campaigns/v1/campaign-20261002T155802.291709000Z-a9b775396f09212ad3fb03c78543c0a2",
+        "selected": 1,
+        "attempted": 1,
+        "succeeded": 1,
+        "stop_reason": "seeds_exhausted",
+        "semantic_coverage": {
+          "schema": "gomad3.semantic-coverage/v1",
+          "digest": "sha256:90fbebf220441611871e432953bdbaf2846ee145232990022010f42157269eed",
+          "probes": [
+            "stdlib.os.file.write",
+            "stdlib.os.getwd",
+            "stdlib.os.newfile"
+          ]
+        },
+        "corpus_path": "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task7-cli-fx3t5jjl/corpus",
+        "corpus_entries": 1,
+        "guidance": {
+          "regression": true,
+          "requested": 1,
+          "answered": 0,
+          "guided": 0,
+          "new_executions": 0
+        }
+      }
+    ]
+  }
+]

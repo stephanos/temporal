@@ -1,0 +1,33 @@
+{
+  "ci_run": 37027023410,
+  "job": 110904153304,
+  "commit": "67dbe02666afd68c064c6c3cb9197b03d4664687",
+  "native_platform": "linux/amd64",
+  "toolchain_key": "fa5d1aa10aeac8e2cd63ee9158b2387911b77b233620cca11efad1c493029d92",
+  "failing_test": "TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/cancellation/simulation-exploration",
+  "expected": "cancelled: context canceled",
+  "observed": "target_supervision: context canceled",
+  "counts_and_retained_runs_match": true,
+  "source_hypothesis": "Choice and simulation round collectors check contextErr only when the ctx.Done select arm ran. Receiving the final completion may terminate the loop without observing an already-cancelled parent. The subsequent completion error receives the supervisor classification.",
+  "darwin_reproduction": {
+    "count": 20,
+    "exit_code": 0,
+    "elapsed_seconds": 39.28,
+    "conclusion": "not reproduced locally; native CI remains failing evidence",
+    "source_snapshot": "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-ci-cancellation-ta8upwnh"
+  },
+  "source_files": [
+    "tools/gomad3/runner/choice_exploration_campaign.go",
+    "tools/gomad3/runner/simulation_exploration_campaign.go"
+  ],
+  "status": "investigated; no fix applied",
+  "darwin_one_p_reproduction": {
+    "count": 30,
+    "GOMAXPROCS": 1,
+    "exit_code": 1,
+    "elapsed_seconds": 16.97,
+    "failing_repetitions": 11,
+    "conclusion": "reproduced the native Linux classification failure on unchanged committed source",
+    "log": "darwin-one-p-baseline.log"
+  }
+}

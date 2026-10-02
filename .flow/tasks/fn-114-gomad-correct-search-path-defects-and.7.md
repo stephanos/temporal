@@ -49,9 +49,12 @@ E1 (R6): a guided campaign schedules no corpus seed whose retained record alread
 - [ ] The result reports the number of new executions as its own field in JSON and text
 - [ ] `go -C tools/gomad3 test -tags test_dep ./runner/... ./cmd/gomad/...` and `make -C tools/gomad3 validate` pass
 ## Done summary
-TBD
+Implemented fn-114.7 (R6): default guidance excludes replay-verified answered seeds without replacement; fully answered requests execute zero seeds and exit 0. Explicit regression mode reruns corpus cases. Plans bind mode and reduced selection across resume and shards; results distinguish requested, answered, guided, and actual new executions. Empty merged campaigns reopen and inspect correctly, and empty shards report global guidance accurately.
 
+Final fresh host gate passed on darwin/arm64: 45 packages in 188.95 seconds. Focused regressions, architecture, validate, vet, formatting, and real CLI exit-status checks passed. The initial full host run found three transport/portable test integration failures, all corrected. Both independent review findings have reproduced red/green tests; final review returned SHIP at 2026-10-02T16:10:47.375454Z (gpt-6-astra high, session 01a0fd59-bf55-7903-bc0b-d2f16c2ea201). Source bindings are in review-fix-sources.json; earlier freezes and failures remain as historical evidence.
+
+Root lint remains unavailable because its default main reference is absent. Native Linux is unverified for this change. The separate pre-existing cancellation classification failure is recorded in fn-112.14 and remains queued. Implementation commits: 74a53f05b and 10a0f091f. Plan sync disabled; tracker sync inactive. User requested stopping after this task; no next task started.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 74a53f05b952ad95ceb522e9d8137e1314aa6ee0, 10a0f091fb96e323f922edf3d70db124386a2800
+- Tests: GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host, make -C tools/gomad3 validate, focused affected Runner/CLI regressions (review-green.json), architecture (review-architecture.json), focused vet (review-vet.json), built CLI fully answered and regression exit-status checks (cli-exit-status.json)
 - PRs:

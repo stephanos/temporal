@@ -1,0 +1,4 @@
+=== RUN   TestGuidedCorpusSeedReproducesRetainedExecution
+--- PASS: TestGuidedCorpusSeedReproducesRetainedExecution (5.16s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner	5.669s

@@ -1,0 +1,934 @@
+diff --git a/tools/gomad3/CLI.md b/tools/gomad3/CLI.md
+index 3cf3023e4..ce29197df 100644
+--- a/tools/gomad3/CLI.md
++++ b/tools/gomad3/CLI.md
+@@ -175,7 +175,7 @@ tools/gomad3/.bin/gomad explore \
+   go-test ./path/to/package -- '-test.run=^TestName$'
+ ```
+ 
+-Guidance selects from one immutable corpus snapshot while reserving part of the Campaign for the originally requested seeds. The corpus advances only after a retained case replays exactly. Guidance reuses observed seeds and transcripts; it does not claim to mutate scenarios or enumerate schedules.
++Guidance excludes seeds answered by replay-verified, matching cases in one immutable corpus snapshot. It executes the requested selection minus those seeds, substitutes nothing, and reports requested, answered, guided, and new execution counts. With no unanswered corpus seed to prioritize, guidance selects none. A fully answered request executes zero seeds and exits 0. Add `--guide-regression` to re-run corpus cases; this mode reserves at least one quarter of the selection, rounded up, for the requested seed pool. Resume preserves the recorded selection and mode; an explicit conflicting `resume --guide-regression=true|false` is rejected.
+ 
+ ### Move from sampling to Choice Exploration
+ 
+@@ -353,7 +353,7 @@ tools/gomad3/.bin/gomad plan \
+   go-test ./path/to/package -- '-test.run=^TestName$'
+ ```
+ 
+-`plan` packages the verified Prepared Target, complete selection, identities, bounds, environment, and captured read-only inputs. The current portable format accepts unguided seed Campaigns and fixes the failure policy to complete all planned work.
++`plan` packages the verified Prepared Target, complete selection, identities, bounds, environment, and captured read-only inputs. The portable format accepts seed Campaigns and fixes the failure policy to complete all planned work. Guided plans freeze the corpus snapshot, selection, and regression mode; shards execute that selection without opening or updating the live corpus.
+ 
+ Workers must match the plan's platform and recorded toolchain, Runner, boundary, adapter, and compatibility-pack identities. Portability distributes work among compatible workers; it does not make a target binary portable across architectures or operating systems.
+ 
+diff --git a/tools/gomad3/README.md b/tools/gomad3/README.md
+index 40ae9bb80..7e3ea5dc8 100644
+--- a/tools/gomad3/README.md
++++ b/tools/gomad3/README.md
+@@ -199,16 +199,24 @@ tools/gomad3/.bin/gomad explore --coverage=semantic \
+   --require-probe=stdlib.os.openfile --count 100 go-test ./path/to/package
+ ```
+ 
+-Use `--guide --corpus DIR` to feed replay-verified, semantically novel seeds
+-back into later campaigns. Guidance enables semantic coverage by default; an
+-explicit `--coverage` must select semantic or choice coverage, and
+-`--coverage=none` is rejected. Each Campaign selects from one
+-immutable corpus snapshot: at most three quarters of its seeds come from the
+-corpus and at least one quarter remain in the requested seed set. Corpus cases
+-are ranked by reproducible failures, invariant and terminal states, abstract
+-World and I/O outcomes, operation and transition pairs, boundary probes, and
+-smaller reproductions. World feature values omit seeds, internal identities,
+-logical times, resource keys, and payloads.
++Use `--guide --corpus DIR` to exclude requested seeds already answered by
++replay-verified, matching corpus cases. Guidance enables semantic coverage by
++default; an explicit `--coverage` must select semantic or choice coverage, and
++`--coverage=none` is rejected. Each Campaign selects from one immutable corpus
++snapshot, executes the requested selection minus answered seeds, and substitutes
++nothing. When the corpus offers no unanswered seed to prioritize, guidance
++selects none. A fully answered request executes zero seeds and exits 0.
++
++Add `--guide-regression` to re-run corpus cases. This mode selects at most three
++quarters of its seeds from the corpus and reserves at least one quarter, rounded
++up, for the requested seed pool. Corpus cases are ranked by reproducible
++failures, invariant and terminal states, abstract World and I/O outcomes,
++operation and transition pairs, boundary probes, and smaller reproductions.
++World feature values omit seeds, internal identities, logical times, resource
++keys, and payloads. The Campaign plan freezes the selection, snapshot, and mode
++for resume and shards; shards neither reopen nor update the live corpus. An
++explicit conflicting resume mode is rejected. Human and JSON results report
++requested, answered, guided, and new execution counts.
+ 
+ The corpus is private, single-writer, and bounded to 1,024 cases and 1 GiB. Its
+ identity binds the prepared target and arguments, pinned toolchain, reviewed
+@@ -221,7 +229,7 @@ corrupt case, divergent replay, symbolic-link corpus, concurrent writer, or
+ capacity violation fails visibly. Human and JSON results report the corpus
+ path, retained entry count, and additions made by the Campaign.
+ 
+-Guidance currently reuses realized seeds and transcripts; it does not mutate
++Regression guidance reuses realized seeds and transcripts; it does not mutate
+ World scenarios, faults, or inputs and never forces runtime choices. Those
+ extensions require evidence that retained seeds cannot reproduce minimized
+ failures. Code coverage remains separate from versioned semantic probes and is
+@@ -404,7 +412,7 @@ diverged. The milestones record the remaining dispositions.
+ 
+ An interrupted campaign retains a canonical `gomad3.campaign-plan/v1` beside
+ its prepared target. A guided plan also records the selected corpus snapshot
+-identity and the already-mixed seed selection, so resume never reselects seeds.
++identity, regression mode, and frozen seed selection, so resume never reselects seeds.
+ The current plan records the seed or choice-exploration strategy, its controller
+ identity, every search bound, immutable-segment limit, simultaneous partial
+ Executions, and success, failure, transcript, and aggregate Artifact capacities.
+@@ -415,7 +423,7 @@ private, zero-padded JSONL segment by record count, byte count, and SHA-256.
+ private bundle containing the verified prepared target and complete bounded
+ copies of configured read-only mount trees. Plan identity is independent of
+ the plan output path and original mount source paths. The initial protocol
+-accepts only unguided seed campaigns with `--on-failure=all`; dynamically
++accepts only seed campaigns with `--on-failure=all`; dynamically
+ discovered choice-exploration prefixes require a later round coordinator.
+ `gomad execute-shard --shard INDEX/COUNT` uses a zero-based ordinal-modulo
+ partition, revalidates the entire bundle before execution, and records global
+diff --git a/tools/gomad3/cmd/gomad/internal/cli/cli.go b/tools/gomad3/cmd/gomad/internal/cli/cli.go
+index bbdbb1e91..3ee44b834 100644
+--- a/tools/gomad3/cmd/gomad/internal/cli/cli.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/cli.go
+@@ -435,7 +435,8 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
+ 	choices := flags.Bool("choices", false, "record bounded runtime choices")
+ 	diagnostics := flags.Bool("diagnostics", false, "record runtime-state diagnostics; implies --choices")
+ 	coverage := flags.String("coverage", string(runner.CoverageNone), "none, semantic, choice, or semantic+choice")
+-	guide := flags.Bool("guide", false, "guide selection from a bounded coverage corpus")
++	guide := flags.Bool("guide", false, "exclude answered seeds using a bounded coverage corpus")
++	guideRegression := flags.Bool("guide-regression", false, "re-run corpus seeds with --guide; fully answered default requests execute zero seeds and exit 0")
+ 	corpus := flags.String("corpus", "", "guided coverage corpus directory")
+ 	keepSuccesses := flags.String("keep-successes", string(runner.KeepSuccessesNone), "none, novel, or all")
+ 	successLimit := flags.Uint64("success-limit", 0, "maximum retained successful executions")
+@@ -555,6 +556,13 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
+ 		}
+ 		return 2
+ 	}
++	if *guideRegression && !*guide {
++		if err := reporter.Error("invalid_input", errors.New("--guide-regression requires --guide")); err != nil {
++			fmt.Fprintln(stderr, err)
++			return 3
++		}
++		return 2
++	}
+ 	resolvedCoverage, err := resolveExploreGuidance(*guide, *corpus, *coverage, coverageSet)
+ 	if err != nil {
+ 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
+@@ -636,7 +644,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
+ 		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts, SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
+ 		Coverage: coverageMode, RequiredSemanticProbes: requiredSemanticProbes,
+ 		KeepSuccesses: runner.KeepSuccesses(*keepSuccesses), SuccessArtifactLimit: *successLimit, SuccessBytesLimit: uint64(successBytes),
+-		Guide: *guide, Corpus: *corpus,
++		Guide: *guide, GuideRegression: *guideRegression, Corpus: *corpus,
+ 		Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
+ 		Target: target.Spec{
+ 			Kind: parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
+diff --git a/tools/gomad3/cmd/gomad/internal/cli/explore_output.go b/tools/gomad3/cmd/gomad/internal/cli/explore_output.go
+index 637d7acc2..820d46cf2 100644
+--- a/tools/gomad3/cmd/gomad/internal/cli/explore_output.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/explore_output.go
+@@ -40,6 +40,7 @@ type exploreEvent struct {
+ 	ChoiceTrace           *runner.ChoiceTraceSummary           `json:"choice_trace,omitempty"`
+ 	CorpusPath            string                               `json:"corpus_path,omitempty"`
+ 	CorpusEntries         uint64                               `json:"corpus_entries,omitempty"`
++	Guidance              *runner.GuidanceSummary              `json:"guidance,omitempty"`
+ 	CorpusAdded           uint64                               `json:"corpus_added,omitempty"`
+ 	ChoiceExploration     *runner.ChoiceExplorationSummary     `json:"exploration,omitempty"`
+ 	SimulationExploration *runner.SimulationExplorationSummary `json:"simulation_exploration,omitempty"`
+@@ -66,7 +67,7 @@ func (reporter *exploreReporter) Progress(progress runner.CampaignEvent) error {
+ 			Selected: progress.Selected, Attempted: progress.Attempted, Running: progress.Running, Succeeded: progress.Succeeded,
+ 			Failures: progress.Failures, Watchdogs: progress.Watchdogs, ReplayDivergences: progress.ReplayDivergences, Cancelled: progress.Cancelled, Novelty: progress.DistinctFailures,
+ 			RetainedSuccesses: progress.RetainedSuccesses, RetainedSuccessBytes: progress.RetainedSuccessBytes,
+-			CorpusPath: progress.CorpusPath, CorpusEntries: progress.CorpusEntries, CorpusAdded: progress.CorpusAdded,
++			Guidance: progress.Guidance, CorpusPath: progress.CorpusPath, CorpusEntries: progress.CorpusEntries, CorpusAdded: progress.CorpusAdded,
+ 			ChoiceTrace: progress.ChoiceTrace, ChoiceExploration: progress.ChoiceExploration, SimulationExploration: progress.SimulationExploration, RecoveryExecutions: progress.RecoveryExecutions,
+ 		})
+ 	}
+@@ -84,7 +85,7 @@ func (reporter *exploreReporter) Result(summary runner.CampaignResult) error {
+ 			Selected: summary.SelectionCount, Attempted: summary.Attempted, Succeeded: summary.Succeeded, Failures: summary.Failures,
+ 			Watchdogs: summary.Watchdogs, ReplayDivergences: summary.ReplayDivergences, Cancelled: summary.Cancelled, Novelty: summary.DistinctFailures, StopReason: summary.StopReason,
+ 			RetainedSuccesses: summary.RetainedSuccesses, RetainedSuccessBytes: summary.RetainedSuccessBytes, SemanticCoverage: summary.SemanticCoverage,
+-			CorpusPath: summary.CorpusPath, CorpusEntries: summary.CorpusEntries, CorpusAdded: summary.CorpusAdded,
++			Guidance: summary.Guidance, CorpusPath: summary.CorpusPath, CorpusEntries: summary.CorpusEntries, CorpusAdded: summary.CorpusAdded,
+ 			ChoiceTrace: summary.ChoiceTrace, ChoiceExploration: summary.ChoiceExploration, SimulationExploration: summary.SimulationExploration, RecoveryExecutions: summary.RecoveryExecutions,
+ 		}); err != nil {
+ 			return err
+@@ -123,6 +124,21 @@ func (reporter *exploreReporter) Result(summary runner.CampaignResult) error {
+ 			return err
+ 		}
+ 	}
++	if summary.Guidance != nil {
++		guidance := summary.Guidance
++		if _, err := fmt.Fprintf(reporter.stdout, "gomad: guidance regression=%t requested=%d answered=%d guided=%d new-executions=%d\n", guidance.Regression, guidance.Requested, guidance.Answered, guidance.Guided, guidance.NewExecutions); err != nil {
++			return err
++		}
++		if !guidance.Regression && summary.SelectionCount == 0 {
++			if _, err := fmt.Fprintln(reporter.stdout, "gomad: all requested seeds are answered; --guide-regression re-runs corpus cases (exit 0)"); err != nil {
++				return err
++			}
++		} else if guidance.Guided == 0 {
++			if _, err := fmt.Fprintln(reporter.stdout, "gomad: guidance selected no corpus seeds"); err != nil {
++				return err
++			}
++		}
++	}
+ 	if summary.CorpusPath != "" {
+ 		if _, err := fmt.Fprintf(reporter.stdout, "gomad: guided-corpus path=%s entries=%d added=%d\n", summary.CorpusPath, summary.CorpusEntries, summary.CorpusAdded); err != nil {
+ 			return err
+diff --git a/tools/gomad3/cmd/gomad/internal/cli/resume.go b/tools/gomad3/cmd/gomad/internal/cli/resume.go
+index 635c29021..ea22e8009 100644
+--- a/tools/gomad3/cmd/gomad/internal/cli/resume.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/resume.go
+@@ -23,6 +23,7 @@ func runResume(arguments []string, stdout, stderr io.Writer) int {
+ func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies resumeDependencies) int {
+ 	flags := flag.NewFlagSet("gomad resume", flag.ContinueOnError)
+ 	flags.SetOutput(io.Discard)
++	guideRegression := flags.Bool("guide-regression", false, "require the recorded guidance regression mode")
+ 	jsonOutput := flags.Bool("json", false, "emit stable JSON events")
+ 	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
+ 	if err := flags.Parse(arguments); err != nil {
+@@ -52,8 +53,14 @@ func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies re
+ 		}
+ 		return 3
+ 	}
++	var regressionOverride *bool
++	flags.Visit(func(value *flag.Flag) {
++		if value.Name == "guide-regression" {
++			regressionOverride = guideRegression
++		}
++	})
+ 	summary, err := dependencies.run(context.Background(), runner.ResumeSpec{
+-		CampaignPath: flags.Arg(0), RunnerBuild: runnerBuild, ToolchainRoot: toolchain,
++		CampaignPath: flags.Arg(0), GuideRegression: regressionOverride, RunnerBuild: runnerBuild, ToolchainRoot: toolchain,
+ 		SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"},
+ 		Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
+ 	})
+diff --git a/tools/gomad3/runner/campaign_merge.go b/tools/gomad3/runner/campaign_merge.go
+index 0e964ac2d..5b753b3b9 100644
+--- a/tools/gomad3/runner/campaign_merge.go
++++ b/tools/gomad3/runner/campaign_merge.go
+@@ -44,7 +44,7 @@ func MergeCampaignShards(ctx context.Context, spec CampaignMergeSpec) (CampaignM
+ 	if err != nil {
+ 		return CampaignMergeResult{}, err
+ 	}
+-	selection, err := ParseSeeds(opened.plan.Selection)
++	selection, err := parseCampaignSelection(opened.plan.Selection, uint64(opened.plan.SelectionCount))
+ 	if err != nil || selection.Count() != uint64(opened.plan.SelectionCount) {
+ 		return CampaignMergeResult{}, errors.Join(errors.New("campaign plan seed selection is invalid"), err)
+ 	}
+diff --git a/tools/gomad3/runner/campaign_plan.go b/tools/gomad3/runner/campaign_plan.go
+index 6ff5e5eca..d531c1d8e 100644
+--- a/tools/gomad3/runner/campaign_plan.go
++++ b/tools/gomad3/runner/campaign_plan.go
+@@ -77,7 +77,7 @@ func campaignPlanRecord(config CampaignSpec, journalPlan campaign.ExecutionJourn
+ 		}
+ 	}
+ 	if config.Guide {
+-		plan.Guidance = &campaign.GuidancePlan{Corpus: config.Corpus, SnapshotSHA256: config.GuideSnapshotSHA256}
++		plan.Guidance = config.guidancePlan
+ 	}
+ 	artifacts, err := campaign.DeriveArtifactCapacityPlan(plan)
+ 	if err != nil {
+diff --git a/tools/gomad3/runner/campaign_shard_execution.go b/tools/gomad3/runner/campaign_shard_execution.go
+index d8ddab785..a9c3ede00 100644
+--- a/tools/gomad3/runner/campaign_shard_execution.go
++++ b/tools/gomad3/runner/campaign_shard_execution.go
+@@ -91,6 +91,13 @@ func RunCampaignShard(ctx context.Context, spec CampaignShardSpec) (CampaignResu
+ 		Progress: spec.Progress, ProgressInterval: spec.ProgressInterval, Executor: spec.Executor, Replayer: spec.Replayer,
+ 		Preparer: &campaignPlanPreparer{source: opened.prepared},
+ 	}
++	if plan.Guidance != nil {
++		config.Guide = true
++		config.GuideRegression = plan.Guidance.Regression
++		config.Corpus = plan.Guidance.Corpus
++		config.GuideSnapshotSHA256 = plan.Guidance.SnapshotSHA256
++		config.guidancePlan = plan.Guidance
++	}
+ 	return runLocal(ctx, config)
+ }
+ 
+diff --git a/tools/gomad3/runner/coordinator.go b/tools/gomad3/runner/coordinator.go
+index 807a22e0c..f41bff3e0 100644
+--- a/tools/gomad3/runner/coordinator.go
++++ b/tools/gomad3/runner/coordinator.go
+@@ -58,6 +58,8 @@ type coordinatorConfig struct {
+ 	SuccessArtifactLimit      uint64
+ 	SuccessBytesLimit         uint64
+ 	Guide                     bool
++	GuideRegression           bool
++	GuideRegressionOverride   *bool
+ 	Corpus                    string
+ 	GuideSnapshotSHA256       record.SHA256
+ 	ProgressInterval          time.Duration
+@@ -108,7 +110,7 @@ func coordinatorConfigFromCampaignSpec(config CampaignSpec, childTimeout time.Du
+ 		Coverage: config.Coverage, RequiredSemanticProbes: append([]string(nil), config.RequiredSemanticProbes...),
+ 		CollectExecutionEvidence: config.CollectExecutionEvidence,
+ 		KeepSuccesses:            config.KeepSuccesses, SuccessArtifactLimit: config.SuccessArtifactLimit, SuccessBytesLimit: config.SuccessBytesLimit,
+-		Guide: config.Guide, Corpus: config.Corpus, GuideSnapshotSHA256: config.GuideSnapshotSHA256,
++		Guide: config.Guide, GuideRegression: config.GuideRegression, GuideRegressionOverride: config.GuideRegressionOverride, Corpus: config.Corpus, GuideSnapshotSHA256: config.GuideSnapshotSHA256,
+ 		ProgressInterval: config.ProgressInterval,
+ 	}
+ }
+@@ -127,7 +129,7 @@ func campaignSpecFromCoordinatorConfig(wire coordinatorConfig) CampaignSpec {
+ 		Coverage:         wire.Coverage, RequiredSemanticProbes: wire.RequiredSemanticProbes,
+ 		CollectExecutionEvidence: wire.CollectExecutionEvidence,
+ 		KeepSuccesses:            wire.KeepSuccesses, SuccessArtifactLimit: wire.SuccessArtifactLimit, SuccessBytesLimit: wire.SuccessBytesLimit,
+-		Guide: wire.Guide, Corpus: wire.Corpus, GuideSnapshotSHA256: wire.GuideSnapshotSHA256,
++		Guide: wire.Guide, GuideRegression: wire.GuideRegression, GuideRegressionOverride: wire.GuideRegressionOverride, Corpus: wire.Corpus, GuideSnapshotSHA256: wire.GuideSnapshotSHA256,
+ 	}
+ }
+ 
+diff --git a/tools/gomad3/runner/guidance.go b/tools/gomad3/runner/guidance.go
+index 90f3563e8..9c537aab3 100644
+--- a/tools/gomad3/runner/guidance.go
++++ b/tools/gomad3/runner/guidance.go
+@@ -4,11 +4,13 @@ import (
+ 	"context"
+ 	"fmt"
+ 	"path/filepath"
++	"slices"
+ 
+ 	"go.temporal.io/server/tools/gomad3/choice"
+ 	"go.temporal.io/server/tools/gomad3/deterministicio"
+ 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+ 	"go.temporal.io/server/tools/gomad3/record"
++	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
+ 	guide "go.temporal.io/server/tools/gomad3/runner/internal/corpus"
+ 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+ 	"go.temporal.io/server/tools/gomad3/target"
+@@ -110,3 +112,84 @@ func guidedCorpusPath(path string) (string, error) {
+ 	}
+ 	return absolute, nil
+ }
++
++type GuidanceSummary struct {
++	Regression    bool   `json:"regression"`
++	Requested     uint64 `json:"requested"`
++	Answered      uint64 `json:"answered"`
++	Guided        uint64 `json:"guided"`
++	NewExecutions uint64 `json:"new_executions"`
++}
++
++func selectGuidedSeeds(base SeedSelection, snapshot guide.Snapshot, corpus string, regression bool) (SeedSelection, *campaign.GuidancePlan, error) {
++	answeredSet := make(map[uint64]struct{})
++	for _, entry := range snapshot.Entries {
++		if entry.Replay.Verified && entry.Replay.Match {
++			answeredSet[uint64(entry.Seed)] = struct{}{}
++		}
++	}
++	answered := make([]uint64, 0, len(answeredSet))
++	for seed := range answeredSet {
++		answered = append(answered, seed)
++	}
++	slices.Sort(answered)
++	frozen := &campaign.GuidancePlan{Corpus: corpus, SnapshotSHA256: snapshot.SnapshotSHA256, Regression: regression, RequestedSelection: base.String(), RequestedCount: record.Uint64String(base.Count()), AnsweredSeeds: make([]record.Uint64String, len(answered))}
++	for i, seed := range answered {
++		frozen.AnsweredSeeds[i] = record.Uint64String(seed)
++	}
++	selection := base
++	if !regression {
++		selection = excludeAnsweredSeeds(base, answered)
++		frozen.AnsweredCount = record.Uint64String(base.Count() - selection.Count())
++	}
++	prioritized := snapshot.PrioritizedSeeds()
++	if !regression {
++		filtered := prioritized[:0]
++		for _, seed := range prioritized {
++			if _, found := answeredSet[seed]; !found {
++				filtered = append(filtered, seed)
++			}
++		}
++		prioritized = filtered
++	}
++	unguided := selection.Count() / 4
++	if selection.Count()%4 != 0 {
++		unguided++
++	}
++	frozen.GuidedCount = record.Uint64String(min(uint64(len(prioritized)), selection.Count()-unguided))
++	mixed, err := mixGuidedSelection(selection, prioritized)
++	return mixed, frozen, err
++}
++
++func guidanceSummary(plan *campaign.GuidancePlan, newExecutions uint64) *GuidanceSummary {
++	if plan == nil {
++		return nil
++	}
++	return &GuidanceSummary{Regression: plan.Regression, Requested: uint64(plan.RequestedCount), Answered: uint64(plan.AnsweredCount), Guided: uint64(plan.GuidedCount), NewExecutions: newExecutions}
++}
++
++func answeredSeed(plan *campaign.GuidancePlan, seed uint64) bool {
++	if plan == nil {
++		return false
++	}
++	_, found := slices.BinarySearch(plan.AnsweredSeeds, record.Uint64String(seed))
++	return found
++}
++
++func newGuidedExecutions(plan *campaign.GuidancePlan, runs []campaign.ExecutionRecord) uint64 {
++	var count uint64
++	for _, run := range runs {
++		if !answeredSeed(plan, uint64(run.Seed)) {
++			count++
++		}
++	}
++	return count
++}
++
++func cloneGuidanceSummary(summary *GuidanceSummary) *GuidanceSummary {
++	if summary == nil {
++		return nil
++	}
++	result := *summary
++	return &result
++}
+diff --git a/tools/gomad3/runner/internal/campaign/campaign_journal.go b/tools/gomad3/runner/internal/campaign/campaign_journal.go
+index bba88c853..a39c32bc8 100644
+--- a/tools/gomad3/runner/internal/campaign/campaign_journal.go
++++ b/tools/gomad3/runner/internal/campaign/campaign_journal.go
+@@ -25,6 +25,7 @@ type CampaignConfig struct {
+ 	Strategy       string
+ 	Selection      string
+ 	SelectionCount uint64
++	Guidance       *GuidancePlan
+ 	MaxExecutions  uint64
+ 	Parallel       uint64
+ 	Journal        ExecutionJournalLimits
+@@ -118,6 +119,7 @@ type ExecutionJournal struct {
+ }
+ 
+ type CampaignRecord struct {
++	Guidance                                  *GuidancePlan              `json:"guidance,omitempty"`
+ 	SchemaVersion                             uint32                     `json:"schema_version"`
+ 	Schema                                    string                     `json:"schema"`
+ 	CampaignID                                string                     `json:"campaign_id"`
+@@ -158,7 +160,7 @@ func NewCampaignJournal(ctx context.Context, config CampaignConfig) (_ *Campaign
+ 	if config.Strategy != "seed" && config.Strategy != "choice-exploration" && config.Strategy != "simulation-exploration" {
+ 		return nil, errors.New("campaign journal strategy is invalid")
+ 	}
+-	if config.Root == "" || config.CampaignID == "" || config.Selection == "" || config.SelectionCount == 0 {
++	if config.Root == "" || config.CampaignID == "" || (config.Selection == "") != (config.SelectionCount == 0) || config.SelectionCount == 0 && !isFullyAnsweredGuidance(config.Guidance) {
+ 		return nil, errors.New("campaign journal root, campaign ID, selection, and selection count are required")
+ 	}
+ 	if (config.PlanSHA256 == "") != (config.Shard == nil) {
+@@ -230,13 +232,19 @@ func (journal *CampaignJournal) ExecutionJournalPlan() ExecutionJournalPlan {
+ 	return recordExecutionJournalLimits(journal.config.Journal)
+ }
+ 
+-func (journal *CampaignJournal) SetSelection(selection string, count uint64) error {
+-	if selection == "" || count == 0 {
++func (journal *CampaignJournal) SetSelection(selection string, count uint64, guidance *GuidancePlan) error {
++	if (selection == "") != (count == 0) || count == 0 && !isFullyAnsweredGuidance(guidance) {
+ 		return errors.New("campaign selection and count are required")
+ 	}
+ 	if journal.segmentedRuns != nil || journal.published {
+ 		return errors.New("campaign selection cannot change after executions start")
+ 	}
++	limits, err := normalizeExecutionJournalLimits(CampaignConfig{Strategy: journal.config.Strategy, SelectionCount: count, MaxExecutions: journal.config.MaxExecutions, Parallel: journal.config.Parallel})
++	if err != nil {
++		return err
++	}
++	journal.config.Journal = limits
++	journal.config.Guidance = guidance
+ 	journal.config.Selection = selection
+ 	journal.config.SelectionCount = count
+ 	return nil
+@@ -361,6 +369,7 @@ func (journal *CampaignJournal) Publish(summary CampaignSummary) error {
+ 	}
+ 	sort.Slice(failureSignatures, func(i, j int) bool { return failureSignatures[i] < failureSignatures[j] })
+ 	batch := CampaignRecord{
++		Guidance:      journal.config.Guidance,
+ 		SchemaVersion: record.SchemaVersion, Schema: "gomad3.campaign/v1", CampaignID: journal.config.CampaignID, Strategy: journal.config.Strategy, Selection: journal.config.Selection,
+ 		PlanSHA256: journal.config.PlanSHA256, Shard: cloneCampaignShard(journal.config.Shard),
+ 		SelectionCount: record.Uint64String(journal.config.SelectionCount), Attempted: record.Uint64String(summary.Attempted), Succeeded: record.Uint64String(summary.Succeeded),
+diff --git a/tools/gomad3/runner/internal/campaign/merge.go b/tools/gomad3/runner/internal/campaign/merge.go
+index 6c641e7e0..5eb7b0396 100644
+--- a/tools/gomad3/runner/internal/campaign/merge.go
++++ b/tools/gomad3/runner/internal/campaign/merge.go
+@@ -97,7 +97,7 @@ func MergeCampaigns(ctx context.Context, spec MergeSpec) (_ MergedCampaign, retE
+ 	if ctx == nil {
+ 		ctx = context.Background()
+ 	}
+-	if spec.Output == "" || spec.Selection == "" || spec.SelectionCount == 0 || spec.SeedAt == nil || !validRecordSHA256(spec.PlanSHA256) || len(spec.ShardPaths) == 0 {
++	if spec.Output == "" || (spec.Selection == "") != (spec.SelectionCount == 0) || spec.SeedAt == nil || !validRecordSHA256(spec.PlanSHA256) || len(spec.ShardPaths) == 0 {
+ 		return MergedCampaign{}, errors.New("campaign merge input is incomplete")
+ 	}
+ 	limits := executionJournalLimitsFromPlan(spec.Journal)
+@@ -442,7 +442,7 @@ func OpenMergedCampaign(path string) (_ MergedCampaign, retErr error) {
+ 	if err := canonicaljson.DecodeCanonicalJSON(manifest, &campaign); err != nil {
+ 		return MergedCampaign{}, err
+ 	}
+-	if campaign.Schema != MergedCampaignSchema || campaign.SchemaVersion != record.SchemaVersion || !validRecordSHA256(campaign.PlanSHA256) || campaign.Selection == "" || campaign.SelectionCount == 0 {
++	if campaign.Schema != MergedCampaignSchema || campaign.SchemaVersion != record.SchemaVersion || !validRecordSHA256(campaign.PlanSHA256) || (campaign.Selection == "") != (campaign.SelectionCount == 0) {
+ 		return MergedCampaign{}, errors.New("merged campaign record is invalid")
+ 	}
+ 	runs, err := readMergedExecutionJournal(root, campaign.Journal)
+diff --git a/tools/gomad3/runner/internal/campaign/open_campaign.go b/tools/gomad3/runner/internal/campaign/open_campaign.go
+index b96ae4a60..6880b12b8 100644
+--- a/tools/gomad3/runner/internal/campaign/open_campaign.go
++++ b/tools/gomad3/runner/internal/campaign/open_campaign.go
+@@ -106,7 +106,7 @@ func decodeExecutions(contents []byte) ([]ExecutionRecord, error) {
+ }
+ 
+ func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
+-	if batch.SchemaVersion != record.SchemaVersion || batch.Schema != "gomad3.campaign/v1" || batch.CampaignID == "" || batch.Selection == "" || batch.SelectionCount == 0 {
++	if batch.SchemaVersion != record.SchemaVersion || batch.Schema != "gomad3.campaign/v1" || batch.CampaignID == "" || (batch.Selection == "") != (batch.SelectionCount == 0) || batch.SelectionCount == 0 && !isFullyAnsweredGuidance(batch.Guidance) {
+ 		return fmt.Errorf("campaign record identity is invalid")
+ 	}
+ 	if (batch.PlanSHA256 == "") != (batch.Shard == nil) {
+@@ -135,7 +135,7 @@ func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
+ 	if limits := batch.Artifacts; limits != nil {
+ 		failureBytes := uint64(limits.FailureBytes)
+ 		successBytes := uint64(limits.SuccessBytes)
+-		if limits.FailureOutcome != CapacityInfrastructureFailure || limits.SuccessOutcome != CapacityInfrastructureFailure || limits.FailureArtifacts == 0 || failureBytes == 0 || limits.TranscriptBytes == 0 || uint64(limits.TotalBytes) != failureBytes+successBytes || uint64(limits.TotalBytes) < failureBytes ||
++		if limits.FailureOutcome != CapacityInfrastructureFailure || limits.SuccessOutcome != CapacityInfrastructureFailure || ((limits.FailureArtifacts == 0 || failureBytes == 0) && !isFullyAnsweredGuidance(batch.Guidance)) || limits.TranscriptBytes == 0 || uint64(limits.TotalBytes) != failureBytes+successBytes || uint64(limits.TotalBytes) < failureBytes ||
+ 			batch.DistinctFailures > limits.FailureArtifacts || batch.RetainedSuccesses > limits.SuccessArtifacts || batch.RetainedSuccessBytes > limits.SuccessBytes {
+ 			return errors.New("campaign artifact capacity is invalid")
+ 		}
+diff --git a/tools/gomad3/runner/internal/campaign/resume_journal.go b/tools/gomad3/runner/internal/campaign/resume_journal.go
+index a304b2f02..7b043b976 100644
+--- a/tools/gomad3/runner/internal/campaign/resume_journal.go
++++ b/tools/gomad3/runner/internal/campaign/resume_journal.go
+@@ -102,7 +102,7 @@ func resumeSegmentedCampaignJournal(ctx context.Context, path string, plan Campa
+ 		ctx: ctx,
+ 		config: CampaignConfig{
+ 			Root: filepath.Dir(filepath.Dir(path)), CampaignID: filepath.Base(path), PlanSHA256: plan.PlanSHA256, Shard: cloneCampaignShard(plan.Shard), Strategy: plan.Strategy,
+-			Selection: plan.Selection, SelectionCount: uint64(plan.SelectionCount), MaxExecutions: uint64(plan.MaxExecutions), Parallel: uint64(plan.Parallel), Journal: limits,
++			Guidance: plan.Guidance, Selection: plan.Selection, SelectionCount: uint64(plan.SelectionCount), MaxExecutions: uint64(plan.MaxExecutions), Parallel: uint64(plan.Parallel), Journal: limits,
+ 		},
+ 		path: path, segmentedRuns: segmented, artifactPlan: &artifacts, resumeLock: lock,
+ 	}
+diff --git a/tools/gomad3/runner/internal/campaign/resume_plan.go b/tools/gomad3/runner/internal/campaign/resume_plan.go
+index 45d2451fb..819b5d8af 100644
+--- a/tools/gomad3/runner/internal/campaign/resume_plan.go
++++ b/tools/gomad3/runner/internal/campaign/resume_plan.go
+@@ -32,8 +32,14 @@ type ChoiceProfilePlan struct {
+ }
+ 
+ type GuidancePlan struct {
+-	Corpus         string        `json:"corpus"`
+-	SnapshotSHA256 record.SHA256 `json:"snapshot_sha256"`
++	Corpus             string                `json:"corpus"`
++	SnapshotSHA256     record.SHA256         `json:"snapshot_sha256"`
++	Regression         bool                  `json:"regression"`
++	RequestedSelection string                `json:"requested_selection"`
++	RequestedCount     record.Uint64String   `json:"requested_count"`
++	AnsweredSeeds      []record.Uint64String `json:"answered_seeds"`
++	AnsweredCount      record.Uint64String   `json:"answered_count"`
++	GuidedCount        record.Uint64String   `json:"guided_count"`
+ }
+ 
+ type CampaignShard struct {
+@@ -85,6 +91,10 @@ type CampaignPlan struct {
+ 	Guidance               *GuidancePlan              `json:"guidance,omitempty"`
+ }
+ 
++func isFullyAnsweredGuidance(guidance *GuidancePlan) bool {
++	return guidance != nil && !guidance.Regression && guidance.RequestedSelection != "" && guidance.RequestedCount != 0 && guidance.AnsweredCount == guidance.RequestedCount && guidance.GuidedCount == 0 && guidance.AnsweredCount <= record.Uint64String(len(guidance.AnsweredSeeds)) && validRecordSHA256(guidance.SnapshotSHA256)
++}
++
+ func (journal *CampaignJournal) RecordPlan(plan CampaignPlan) error {
+ 	if err := validateCampaignPlan(plan); err != nil {
+ 		return err
+@@ -120,6 +130,7 @@ func (journal *CampaignJournal) RecordPlan(plan CampaignPlan) error {
+ 	if err := atomicWriteContext(journal.ctx, path, encoded); err != nil {
+ 		return err
+ 	}
++	journal.config.Guidance = plan.Guidance
+ 	if plan.Artifacts != nil {
+ 		artifacts := *plan.Artifacts
+ 		journal.artifactPlan = &artifacts
+@@ -199,7 +210,7 @@ func validateResumeLifecycle(root *os.Root, campaignID string) error {
+ }
+ 
+ func validateCampaignPlan(plan CampaignPlan) error {
+-	if plan.Schema != CampaignPlanSchema || plan.Selection == "" || plan.SelectionCount == 0 || plan.Parallel == 0 {
++	if plan.Schema != CampaignPlanSchema || (plan.Selection == "") != (plan.SelectionCount == 0) || plan.SelectionCount == 0 && plan.Guidance == nil || plan.Parallel == 0 {
+ 		return fmt.Errorf("campaign plan identity is invalid")
+ 	}
+ 	if plan.Journal == nil || validateExecutionJournalPlan(*plan.Journal, plan) != nil || plan.Artifacts == nil {
+@@ -216,7 +227,7 @@ func validateCampaignPlan(plan CampaignPlan) error {
+ 		return fmt.Errorf("campaign plan portable identity is incomplete")
+ 	}
+ 	if plan.Shard != nil {
+-		if !validRecordSHA256(plan.PlanSHA256) || plan.Shard.Count == 0 || plan.Shard.Index >= plan.Shard.Count || plan.Strategy != "seed" || plan.Guidance != nil || plan.OnFailure != "all" {
++		if !validRecordSHA256(plan.PlanSHA256) || plan.Shard.Count == 0 || plan.Shard.Index >= plan.Shard.Count || plan.Strategy != "seed" || plan.OnFailure != "all" {
+ 			return fmt.Errorf("campaign plan shard identity is invalid")
+ 		}
+ 	}
+@@ -306,6 +317,28 @@ func validateCampaignPlan(plan CampaignPlan) error {
+ 			return fmt.Errorf("campaign plan guidance identity is invalid")
+ 		}
+ 	}
++	if plan.Guidance != nil {
++		guidance := plan.Guidance
++		unguided := plan.SelectionCount / 4
++		if plan.SelectionCount%4 != 0 {
++			unguided++
++		}
++		if guidance.RequestedSelection == "" || guidance.RequestedCount == 0 || guidance.AnsweredCount > guidance.RequestedCount || guidance.AnsweredCount > record.Uint64String(len(guidance.AnsweredSeeds)) || guidance.GuidedCount > plan.SelectionCount-unguided {
++			return errors.New("campaign plan guidance selection is invalid")
++		}
++		if guidance.Regression {
++			if plan.SelectionCount != guidance.RequestedCount || guidance.AnsweredCount != 0 {
++				return errors.New("campaign plan regression selection is invalid")
++			}
++		} else if plan.SelectionCount != guidance.RequestedCount-guidance.AnsweredCount {
++			return errors.New("campaign plan answered selection is invalid")
++		}
++		for i, seed := range guidance.AnsweredSeeds {
++			if i > 0 && seed <= guidance.AnsweredSeeds[i-1] {
++				return errors.New("campaign plan answered seeds are not unique and sorted")
++			}
++		}
++	}
+ 	return nil
+ }
+ 
+diff --git a/tools/gomad3/runner/internal/campaign/segmented_journal.go b/tools/gomad3/runner/internal/campaign/segmented_journal.go
+index 3bc7be358..0a1d2fea9 100644
+--- a/tools/gomad3/runner/internal/campaign/segmented_journal.go
++++ b/tools/gomad3/runner/internal/campaign/segmented_journal.go
+@@ -102,13 +102,13 @@ func normalizeExecutionJournalLimits(config CampaignConfig) (ExecutionJournalLim
+ 			return ExecutionJournalLimits{}, errors.New("execution journal byte capacity overflows")
+ 		}
+ 		limits = ExecutionJournalLimits{
+-			MaximumExecutions: maximumRuns, MaximumBytes: maximumRuns * defaultExecutionSegmentBytes,
++			MaximumExecutions: maximumRuns, MaximumBytes: max(maximumRuns, 1) * defaultExecutionSegmentBytes,
+ 			SegmentBytes: defaultExecutionSegmentBytes, SegmentRecords: defaultExecutionSegmentRecords,
+-			MaximumSegments: maximumRuns, MaximumPartialExecutions: maximumPartialRuns,
++			MaximumSegments: max(maximumRuns, 1), MaximumPartialExecutions: maximumPartialRuns,
+ 		}
+ 	}
+-	if limits.MaximumExecutions == 0 || limits.MaximumExecutions > maximumExecutionJournalExecutions || limits.MaximumBytes == 0 || limits.MaximumBytes > maximumExecutionJournalBytes || limits.SegmentBytes == 0 || limits.SegmentBytes > maximumExecutionSegmentBytes || limits.SegmentBytes > limits.MaximumBytes ||
+-		limits.SegmentRecords == 0 || limits.MaximumSegments == 0 || limits.MaximumSegments > limits.MaximumExecutions || limits.MaximumPartialExecutions == 0 || limits.MaximumPartialExecutions > limits.MaximumExecutions {
++	if limits.MaximumExecutions > maximumExecutionJournalExecutions || limits.MaximumBytes == 0 || limits.MaximumBytes > maximumExecutionJournalBytes || limits.SegmentBytes == 0 || limits.SegmentBytes > maximumExecutionSegmentBytes || limits.SegmentBytes > limits.MaximumBytes ||
++		limits.SegmentRecords == 0 || limits.MaximumSegments == 0 || limits.MaximumSegments > max(limits.MaximumExecutions, 1) || limits.MaximumExecutions != 0 && limits.MaximumPartialExecutions == 0 || limits.MaximumPartialExecutions > limits.MaximumExecutions {
+ 		return ExecutionJournalLimits{}, errors.New("execution journal limits are invalid")
+ 	}
+ 	return limits, nil
+@@ -605,9 +605,9 @@ func readIndexedRunSegments(root *os.Root, index executionJournalIndex) ([]Execu
+ 
+ func validateRunJournalIndex(index executionJournalIndex, reference ExecutionJournalReference) error {
+ 	limits := index.Limits
+-	if index.Schema != executionJournalSchema || limits.CapacityOutcome != CapacityInfrastructureFailure || limits.MaximumExecutions == 0 || limits.MaximumExecutions > maximumExecutionJournalExecutions || limits.MaximumBytes == 0 || limits.MaximumBytes > maximumExecutionJournalBytes || limits.SegmentBytes == 0 || limits.SegmentBytes > maximumExecutionSegmentBytes ||
+-		limits.SegmentBytes > limits.MaximumBytes || limits.SegmentRecords == 0 || limits.MaximumSegments == 0 || limits.MaximumSegments > limits.MaximumExecutions ||
+-		limits.MaximumPartialExecutions == 0 || limits.MaximumPartialExecutions > limits.MaximumExecutions || uint64(len(index.Segments)) > uint64(limits.MaximumSegments) {
++	if index.Schema != executionJournalSchema || limits.CapacityOutcome != CapacityInfrastructureFailure || limits.MaximumExecutions > maximumExecutionJournalExecutions || limits.MaximumBytes == 0 || limits.MaximumBytes > maximumExecutionJournalBytes || limits.SegmentBytes == 0 || limits.SegmentBytes > maximumExecutionSegmentBytes ||
++		limits.SegmentBytes > limits.MaximumBytes || limits.SegmentRecords == 0 || limits.MaximumSegments == 0 || limits.MaximumSegments > max(limits.MaximumExecutions, 1) ||
++		limits.MaximumExecutions != 0 && limits.MaximumPartialExecutions == 0 || limits.MaximumPartialExecutions > limits.MaximumExecutions || uint64(len(index.Segments)) > uint64(limits.MaximumSegments) {
+ 		return errors.New("execution journal index limits are invalid")
+ 	}
+ 	var records, bytes uint64
+diff --git a/tools/gomad3/runner/portable_plan.go b/tools/gomad3/runner/portable_plan.go
+index 7fccbda23..a47bfa69f 100644
+--- a/tools/gomad3/runner/portable_plan.go
++++ b/tools/gomad3/runner/portable_plan.go
+@@ -73,8 +73,8 @@ func CreateCampaignPlan(ctx context.Context, spec CampaignPlanSpec) (_ CampaignP
+ 	if err != nil {
+ 		return CampaignPlanResult{}, err
+ 	}
+-	if normalizedStrategy(config.Strategy) != StrategySeed || config.Guide || config.OnFailure != PolicyAll {
+-		return CampaignPlanResult{}, errors.New("portable campaign plans require an unguided seed campaign with on-failure=all")
++	if normalizedStrategy(config.Strategy) != StrategySeed || config.OnFailure != PolicyAll {
++		return CampaignPlanResult{}, errors.New("portable campaign plans require a seed campaign with on-failure=all")
+ 	}
+ 	if config.Shard.Count != 0 || config.PlanSHA256 != "" || config.ResumeCampaign != "" {
+ 		return CampaignPlanResult{}, errors.New("portable campaign plan input cannot already be a shard or resume")
+@@ -158,6 +158,24 @@ func CreateCampaignPlan(ctx context.Context, spec CampaignPlanSpec) (_ CampaignP
+ 	if err := materializeCampaignPlanMounts(bundle, capturedMounts); err != nil {
+ 		return CampaignPlanResult{}, fmt.Errorf("materialize campaign plan mounts: %w", err)
+ 	}
++	if config.Guide {
++		config.Corpus, err = guidedCorpusPath(config.Corpus)
++		if err != nil {
++			return CampaignPlanResult{}, err
++		}
++		guidance, err := openGuidance(ctx, config, prepared, environment, "plan")
++		if err != nil {
++			return CampaignPlanResult{}, err
++		}
++		snapshot := guidance.Snapshot()
++		selection, config.guidancePlan, err = selectGuidedSeeds(selection, snapshot, config.Corpus, config.GuideRegression)
++		err = errors.Join(err, guidance.Close())
++		if err != nil {
++			return CampaignPlanResult{}, err
++		}
++		config.Seeds = selection.String()
++		config.GuideSnapshotSHA256 = snapshot.SnapshotSHA256
++	}
+ 	journalPlan, err := campaign.DeriveExecutionJournalPlan(string(StrategySeed), selection.Count(), 0, uint64(config.Parallel))
+ 	if err != nil {
+ 		return CampaignPlanResult{}, fmt.Errorf("derive campaign journal capacity: %w", err)
+@@ -216,7 +234,7 @@ func openCampaignPlan(path string) (_ openedCampaignPlan, retErr error) {
+ 	if err := canonicaljson.DecodeCanonicalJSON(contents, &document); err != nil {
+ 		return openedCampaignPlan{}, fmt.Errorf("decode campaign plan: %w", err)
+ 	}
+-	if document.Schema != campaignPlanSchema || document.Mapping != campaignPlanMapping || document.Campaign.Strategy != string(StrategySeed) || document.Campaign.Guidance != nil || document.Campaign.OnFailure != string(PolicyAll) || document.Campaign.PlanSHA256 != "" || document.Campaign.Shard != nil {
++	if document.Schema != campaignPlanSchema || document.Mapping != campaignPlanMapping || document.Campaign.Strategy != string(StrategySeed) || document.Campaign.OnFailure != string(PolicyAll) || document.Campaign.PlanSHA256 != "" || document.Campaign.Shard != nil {
+ 		return openedCampaignPlan{}, errors.New("campaign plan protocol identity is invalid")
+ 	}
+ 	if err := campaign.ValidateCampaignPlan(document.Campaign); err != nil {
+diff --git a/tools/gomad3/runner/resume.go b/tools/gomad3/runner/resume.go
+index be501da03..a04e4c448 100644
+--- a/tools/gomad3/runner/resume.go
++++ b/tools/gomad3/runner/resume.go
+@@ -29,11 +29,12 @@ type ResumeSpec struct {
+ 	ProgressInterval   time.Duration
+ 	Executor           Executor
+ 	Replayer           ArtifactReplayer
++	GuideRegression    *bool
+ }
+ 
+ func Resume(ctx context.Context, spec ResumeSpec) (CampaignResult, error) {
+ 	return Explore(ctx, CampaignSpec{
+-		ResumeCampaign: spec.CampaignPath, RunnerBuild: spec.RunnerBuild,
++		ResumeCampaign: spec.CampaignPath, RunnerBuild: spec.RunnerBuild, GuideRegressionOverride: spec.GuideRegression,
+ 		Target:            target.Spec{ToolchainRoot: spec.ToolchainRoot},
+ 		SupervisorCommand: append([]string(nil), spec.SupervisorCommand...), CoordinatorCommand: append([]string(nil), spec.CoordinatorCommand...),
+ 		Progress: spec.Progress, ProgressInterval: spec.ProgressInterval, Executor: spec.Executor, Replayer: spec.Replayer,
+@@ -63,7 +64,10 @@ func resumeConfiguration(request CampaignSpec, plan campaign.CampaignPlan) (Camp
+ 	if !profile.Matches(plan.IOProfile) {
+ 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded I/O profile identity does not match this Runner")
+ 	}
+-	selection, err := ParseSeeds(plan.Selection)
++	if request.GuideRegressionOverride != nil && (plan.Guidance == nil || *request.GuideRegressionOverride != plan.Guidance.Regression) || request.GuideRegression && (plan.Guidance == nil || !plan.Guidance.Regression) || request.Guide && (plan.Guidance == nil || request.GuideRegression != plan.Guidance.Regression) {
++		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, errors.New("resume guidance regression mode does not match campaign plan")
++	}
++	selection, err := parseCampaignSelection(plan.Selection, uint64(plan.SelectionCount))
+ 	if err != nil || selection.Count() != uint64(plan.SelectionCount) {
+ 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded seed selection is invalid: %w", err)
+ 	}
+@@ -129,6 +133,8 @@ func resumeConfiguration(request CampaignSpec, plan campaign.CampaignPlan) (Camp
+ 	}
+ 	if plan.Guidance != nil {
+ 		config.Guide = true
++		config.GuideRegression = plan.Guidance.Regression
++		config.guidancePlan = plan.Guidance
+ 		config.Corpus = plan.Guidance.Corpus
+ 		config.GuideSnapshotSHA256 = plan.Guidance.SnapshotSHA256
+ 	}
+diff --git a/tools/gomad3/runner/runner.go b/tools/gomad3/runner/runner.go
+index e7f6003c8..7e1751052 100644
+--- a/tools/gomad3/runner/runner.go
++++ b/tools/gomad3/runner/runner.go
+@@ -103,6 +103,7 @@ type CampaignEvent struct {
+ 	CorpusPath            string
+ 	CorpusEntries         uint64
+ 	CorpusAdded           uint64
++	Guidance              *GuidanceSummary `json:"guidance,omitempty"`
+ 	ChoiceTrace           *ChoiceTraceSummary
+ 	ChoiceExploration     *ChoiceExplorationSummary
+ 	SimulationExploration *SimulationExplorationSummary
+@@ -165,6 +166,9 @@ type CampaignSpec struct {
+ 	SuccessArtifactLimit      uint64
+ 	SuccessBytesLimit         uint64
+ 	Guide                     bool
++	GuideRegression           bool
++	GuideRegressionOverride   *bool
++	guidancePlan              *campaign.GuidancePlan
+ 	Corpus                    string
+ 	GuideSnapshotSHA256       record.SHA256
+ 	Progress                  CampaignEventFunc
+@@ -199,6 +203,7 @@ type CampaignResult struct {
+ 	CorpusPath            string
+ 	CorpusEntries         uint64
+ 	CorpusAdded           uint64
++	Guidance              *GuidanceSummary `json:"guidance,omitempty"`
+ 	ChoiceTrace           *ChoiceTraceSummary
+ 	ChoiceExploration     *ChoiceExplorationSummary
+ 	SimulationExploration *SimulationExplorationSummary
+@@ -452,6 +457,10 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
+ 		var restored resumeSummaryState
+ 		restored, err = restoreResumeSummary(batchPath, selection, resumedRuns)
+ 		summary = restored.summary
++		summary.Guidance = guidanceSummary(config.guidancePlan, newGuidedExecutions(config.guidancePlan, resumedRuns))
++		if config.guidancePlan != nil {
++			summary.CorpusPath = config.guidancePlan.Corpus
++		}
+ 		summary.SelectionCount = normalizedCampaignShard(config.Shard).SelectionCount(selection.Count())
+ 		if err != nil {
+ 			return summary, &HostError{Reason: "resume_setup", Err: err}
+@@ -465,7 +474,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
+ 		summary = CampaignResult{CampaignPath: batchPath, SelectionCount: normalizedCampaignShard(config.Shard).SelectionCount(selection.Count())}
+ 		journal, err = campaign.NewCampaignJournal(overallCtx, campaign.CampaignConfig{
+ 			Root: config.Artifacts, CampaignID: runID, PlanSHA256: config.PlanSHA256, Shard: campaignStoreShard(config.Shard),
+-			Strategy: string(normalizedStrategy(config.Strategy)), Selection: config.Seeds, SelectionCount: selection.Count(), MaxExecutions: config.MaxExecutions, Parallel: uint64(config.Parallel),
++			Strategy: string(normalizedStrategy(config.Strategy)), Guidance: config.guidancePlan, Selection: config.Seeds, SelectionCount: selection.Count(), MaxExecutions: config.MaxExecutions, Parallel: uint64(config.Parallel),
+ 		})
+ 		if err != nil {
+ 			return summary, &HostError{Reason: "artifact_setup", Err: err}
+@@ -485,7 +494,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
+ 			Succeeded: summary.Succeeded, Failures: summary.Failures, Watchdogs: summary.Watchdogs, ReplayDivergences: summary.ReplayDivergences, Cancelled: summary.Cancelled,
+ 			DistinctFailures: summary.DistinctFailures, Artifacts: append([]string(nil), summary.Artifacts...),
+ 			RetainedSuccesses: summary.RetainedSuccesses, RetainedSuccessBytes: summary.RetainedSuccessBytes, SuccessArtifacts: append([]string(nil), summary.SuccessArtifacts...),
+-			CorpusPath: summary.CorpusPath, CorpusEntries: summary.CorpusEntries, CorpusAdded: summary.CorpusAdded,
++			Guidance: cloneGuidanceSummary(summary.Guidance), CorpusPath: summary.CorpusPath, CorpusEntries: summary.CorpusEntries, CorpusAdded: summary.CorpusAdded,
+ 			ChoiceTrace: cloneChoiceTraceSummary(summary.ChoiceTrace), ChoiceExploration: cloneChoiceExplorationSummary(summary.ChoiceExploration), SimulationExploration: cloneSimulationExplorationSummary(summary.SimulationExploration), RecoveryExecutions: summary.RecoveryExecutions,
+ 		})
+ 	}
+@@ -549,26 +558,33 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
+ 		if profileErr := selectedProfile.ValidatePreparedTarget(config.Target, prepared, config.Environment); profileErr != nil {
+ 			return summary, profileErr
+ 		}
+-		if config.Guide {
++		if config.Guide && config.PlanSHA256 == "" {
+ 			guidance, err = openGuidance(overallCtx, config, prepared, baseEnvironment, runID)
+ 			if err != nil {
+ 				return summary, &HostError{Reason: "guided_corpus", Err: err}
+ 			}
+ 			snapshot := guidance.Snapshot()
+-			selection, err = mixGuidedSelection(selection, snapshot.PrioritizedSeeds())
++			if config.guidancePlan == nil {
++				selection, config.guidancePlan, err = selectGuidedSeeds(selection, snapshot, config.Corpus, config.GuideRegression)
++			}
+ 			if err != nil {
+ 				return summary, &HostError{Reason: "guided_selection", Err: err}
+ 			}
+ 			config.Seeds = selection.String()
+ 			config.GuideSnapshotSHA256 = snapshot.SnapshotSHA256
+ 			guidance.config = config
+-			summary.SelectionCount = selection.Count()
++			summary.SelectionCount = normalizedCampaignShard(config.Shard).SelectionCount(selection.Count())
++			summary.Guidance = guidanceSummary(config.guidancePlan, 0)
+ 			summary.CorpusPath = guidance.corpus.Path()
+ 			summary.CorpusEntries = uint64(len(snapshot.Entries))
+-			if err := journal.SetSelection(config.Seeds, selection.Count()); err != nil {
++			if err := journal.SetSelection(config.Seeds, selection.Count(), config.guidancePlan); err != nil {
+ 				return summary, &HostError{Reason: "guided_selection", Err: err}
+ 			}
+ 		}
++		if config.guidancePlan != nil {
++			summary.Guidance = guidanceSummary(config.guidancePlan, 0)
++			summary.CorpusPath = config.guidancePlan.Corpus
++		}
+ 		plan, err := campaignPlan(config, journal, prepared, baseEnvironment, readOnlyMounts, selection.Count())
+ 		if err != nil {
+ 			return summary, &HostError{Reason: "campaign_plan", Err: err}
+@@ -582,7 +598,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
+ 			return summary, &HostError{Reason: "partial_cleanup", Err: err}
+ 		}
+ 	}
+-	if resuming && config.Guide {
++	if resuming && config.Guide && config.PlanSHA256 == "" {
+ 		guidance, err = openGuidance(overallCtx, config, prepared, baseEnvironment, runID)
+ 		if err != nil {
+ 			return summary, &HostError{Reason: "guided_corpus", Err: err}
+@@ -636,6 +652,10 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
+ 			return summary, &HostError{Reason: "resume_setup", Err: err}
+ 		}
+ 		summary = restored.summary
++		summary.Guidance = guidanceSummary(config.guidancePlan, newGuidedExecutions(config.guidancePlan, resumedRuns))
++		if config.guidancePlan != nil {
++			summary.CorpusPath = config.guidancePlan.Corpus
++		}
+ 		summary.SelectionCount = normalizedCampaignShard(config.Shard).SelectionCount(selection.Count())
+ 		distinct = restored.distinct
+ 		failureArtifactBytes = restored.failureArtifactBytes
+@@ -741,6 +761,9 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
+ 				break
+ 			}
+ 			job := runJob{ordinal: scheduled.Ordinal, seed: scheduled.Seed}
++			if summary.Guidance != nil && !answeredSeed(config.guidancePlan, job.seed) {
++				summary.Guidance.NewExecutions++
++			}
+ 			launch(job)
+ 			admittedThisTurn = true
+ 		}
+@@ -1095,7 +1118,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
+ 		}
+ 		return summary, hostFailure
+ 	}
+-	if summary.SemanticCoverage != nil {
++	if summary.SemanticCoverage != nil && selection.Count() != 0 {
+ 		missing, err := deterministicio.MissingRequiredSemanticProbes(*summary.SemanticCoverage, config.RequiredSemanticProbes)
+ 		if err != nil {
+ 			return summary, err
+@@ -1146,6 +1169,9 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e
+ 		return SeedSelection{}, nil, nil
+ 	}
+ 	selection, err := ParseSeeds(config.Seeds)
++	if config.guidancePlan != nil {
++		selection, err = parseCampaignSelection(config.Seeds, uint64(config.guidancePlan.RequestedCount-config.guidancePlan.AnsweredCount))
++	}
+ 	if err != nil {
+ 		return SeedSelection{}, nil, err
+ 	}
+@@ -1164,8 +1190,8 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e
+ 		if _, err := record.ParseSHA256(string(config.PlanSHA256)); err != nil {
+ 			return SeedSelection{}, nil, fmt.Errorf("canonical plan identity: %w", err)
+ 		}
+-		if strategy != StrategySeed || config.Guide {
+-			return SeedSelection{}, nil, errors.New("static sharding requires an unguided seed campaign")
++		if strategy != StrategySeed || config.Guide && config.guidancePlan == nil {
++			return SeedSelection{}, nil, errors.New("static sharding requires a seed campaign with frozen guidance")
+ 		}
+ 		if config.OnFailure != PolicyAll {
+ 			return SeedSelection{}, nil, errors.New("sharded campaign requires on-failure=all")
+@@ -1292,7 +1318,7 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e
+ 		if config.Corpus == "" || normalizedCoverage(config.Coverage) == CoverageNone {
+ 			return SeedSelection{}, nil, errors.New("guided exploration requires a corpus and coverage")
+ 		}
+-	} else if config.Corpus != "" || config.GuideSnapshotSHA256 != "" {
++	} else if config.GuideRegression || config.Corpus != "" || config.GuideSnapshotSHA256 != "" {
+ 		return SeedSelection{}, nil, errors.New("a guided corpus requires guided exploration")
+ 	}
+ 	switch config.OnFailure {
+diff --git a/tools/gomad3/runner/runner_test.go b/tools/gomad3/runner/runner_test.go
+index c991b9894..ee0a57b17 100644
+--- a/tools/gomad3/runner/runner_test.go
++++ b/tools/gomad3/runner/runner_test.go
+@@ -323,6 +323,7 @@ func TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds(t *testing.T) {
+ 	secondConfig := testConfig(t, newFakePreparer(t), secondExecutor, "100-107", PolicyAll, 3)
+ 	secondConfig.Coverage = CoverageSemantic
+ 	secondConfig.Guide = true
++	secondConfig.GuideRegression = true
+ 	secondConfig.Corpus = corpus
+ 	secondConfig.Replayer = replayer
+ 	second, err := Explore(context.Background(), secondConfig)
+diff --git a/tools/gomad3/runner/seeds.go b/tools/gomad3/runner/seeds.go
+index f59fb8008..077fc46d9 100644
+--- a/tools/gomad3/runner/seeds.go
++++ b/tools/gomad3/runner/seeds.go
+@@ -213,3 +213,42 @@ func parseSeed(input string) (uint64, error) {
+ 	}
+ 	return seed, nil
+ }
++
++func parseCampaignSelection(input string, count uint64) (SeedSelection, error) {
++	if input == "" && count == 0 {
++		return SeedSelection{}, nil
++	}
++	return ParseSeeds(input)
++}
++
++func excludeAnsweredSeeds(base SeedSelection, answered []uint64) SeedSelection {
++	excluded := append([]uint64(nil), answered...)
++	sort.Slice(excluded, func(i, j int) bool { return excluded[i] < excluded[j] })
++	ranges := make([]seedRange, 0, len(base.ranges)+len(excluded))
++	var count uint64
++	for _, selected := range base.ranges {
++		start := selected.start
++		exhausted := false
++		index := sort.Search(len(excluded), func(i int) bool { return excluded[i] >= start })
++		for ; index < len(excluded) && excluded[index] <= selected.end; index++ {
++			seed := excluded[index]
++			if seed < start {
++				continue
++			}
++			if start < seed {
++				ranges = append(ranges, seedRange{start: start, end: seed - 1})
++				count += seed - start
++			}
++			if seed == selected.end {
++				exhausted = true
++				break
++			}
++			start = seed + 1
++		}
++		if !exhausted {
++			ranges = append(ranges, seedRange{start: start, end: selected.end})
++			count += selected.end - start + 1
++		}
++	}
++	return SeedSelection{ranges: ranges, count: count}
++}

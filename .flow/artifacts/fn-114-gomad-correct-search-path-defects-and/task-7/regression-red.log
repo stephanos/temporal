@@ -1,0 +1,17 @@
+=== RUN   TestGuidedCorpusSeedReproducesRetainedExecution
+    guided_selection_test.go:38: corpus seed did not reproduce its retained execution
+--- FAIL: TestGuidedCorpusSeedReproducesRetainedExecution (5.89s)
+=== RUN   TestGuidedSelectionExcludesAnsweredRequestedSeeds
+=== RUN   TestGuidedSelectionExcludesAnsweredRequestedSeeds/partial
+    guided_selection_test.go:77: executed seeds=[0 1 2 3] want=[1 2 3]
+=== RUN   TestGuidedSelectionExcludesAnsweredRequestedSeeds/all
+    guided_selection_test.go:77: executed seeds=[0] want=[]
+=== RUN   TestGuidedSelectionExcludesAnsweredRequestedSeeds/outside
+    guided_selection_test.go:77: executed seeds=[0 10 11 12] want=[10 11 12 13]
+--- FAIL: TestGuidedSelectionExcludesAnsweredRequestedSeeds (7.12s)
+    --- FAIL: TestGuidedSelectionExcludesAnsweredRequestedSeeds/partial (1.13s)
+    --- FAIL: TestGuidedSelectionExcludesAnsweredRequestedSeeds/all (1.78s)
+    --- FAIL: TestGuidedSelectionExcludesAnsweredRequestedSeeds/outside (4.20s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner	13.439s
+FAIL

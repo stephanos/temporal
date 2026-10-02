@@ -1,0 +1,12 @@
+{
+  "command": [
+    "make",
+    "-C",
+    "tools/gomad3",
+    "test-host"
+  ],
+  "GOFLAGS": "-tags=test_dep -count=1",
+  "exit_code": 0,
+  "elapsed_seconds": 188.95,
+  "log": "final-test-host.log"
+}
