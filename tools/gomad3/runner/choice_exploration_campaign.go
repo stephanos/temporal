@@ -245,33 +245,9 @@ func executeExplorationRound(
 	if progressErr != nil {
 		cancel()
 	}
-	completions := make([]runCompletion, len(round.Candidates))
-	seen := make([]bool, len(round.Candidates))
-	received := 0
-	var contextErr error
-	for received < len(round.Candidates) {
-		select {
-		case completion := <-completionChannel:
-			if completion.job.ordinal < startOrdinal || completion.job.ordinal >= startOrdinal+uint64(len(completions)) {
-				cancel()
-				return nil, &HostError{Reason: "choice_exploration_order", Err: errors.New("exploration completion ordinal is outside its round")}
-			}
-			index := int(completion.job.ordinal - startOrdinal)
-			if seen[index] {
-				cancel()
-				return nil, &HostError{Reason: "choice_exploration_order", Err: errors.New("exploration completion ordinal is duplicated")}
-			}
-			completions[index] = completion
-			seen[index] = true
-			received++
-		case <-ctx.Done():
-			contextErr = ctx.Err()
-			cancel()
-			ctx = context.WithoutCancel(ctx)
-		}
-	}
-	if contextErr != nil {
-		return nil, &HostError{Reason: contextFailureReason(contextErr), Err: contextErr}
+	completions, err := collectRoundCompletions(ctx, cancel, completionChannel, startOrdinal, len(round.Candidates), "choice_exploration_order", "exploration")
+	if err != nil {
+		return nil, err
 	}
 	if progressErr != nil {
 		return nil, &HostError{Reason: "progress_output", Err: progressErr}
