@@ -1240,8 +1240,11 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e
 		if config.MaxExecutions == 0 {
 			return SeedSelection{}, nil, errors.New("simulation-exploration max executions must be positive")
 		}
-		if config.MaxChoiceDepth != 0 || config.ChoiceStartOrdinal != 0 {
-			return SeedSelection{}, nil, errors.New("choice depth and start ordinal require the choice-exploration strategy")
+		if config.MaxChoiceDepth != 0 {
+			return SeedSelection{}, nil, errors.New("choice depth requires the choice-exploration strategy")
+		}
+		if config.ChoiceStartOrdinal != 0 {
+			return SeedSelection{}, nil, errors.New("choice start ordinal requires the choice-exploration strategy")
 		}
 		if config.MaxForcedDecisions == 0 {
 			return SeedSelection{}, nil, errors.New("simulation-exploration forced decisions must be positive")
