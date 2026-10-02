@@ -128,7 +128,7 @@ func executeTests(ctx context.Context, root string, run invocation, events io.Wr
 }
 
 // fingerprintTree hashes the tracked and untracked (not ignored) files under the fingerprint roots
-// and the Lean helper binaries.
+// and the IR bridge binaries.
 func fingerprintTree(root string) (fingerprint, error) {
 	listing, err := gitOutput(context.Background(), root,
 		append([]string{"ls-files", "-z", "--cached", "--others", "--exclude-standard", "--"}, fingerprintRoots...)...)

@@ -45,9 +45,12 @@ Preserve the authorized uncommitted baseline and comments except the explicit R2
 - [ ] New-layout model/generation and affected consumer gates pass; source links and missing-fixture diagnostics resolve correctly.
 
 ## Done summary
-TBD
+Completed live model/tooling relocation and frozen archive isolation, with final dependency checks and transferred real IR bridge/schema/signature assertions. Rebuilt Make from origin/main, retained live runtime/model commands, renamed fmt/lint/fix-model, removed Lean targets and repaired fast lint. Deleted the production-canary workflow at the owner's request.
 
+Model generation/checks/lint, functional compilation, all49 required Go packages through combined full-run/affected-rerun evidence, package-local fixture and canary preflight harness tests, repeat fingerprint regression and final fast lint pass. Initial failures remain accurately recorded. All843 protected originals and1411 goldens remain unchanged.
+
+Independent same-session review fixed stale consumer paths and missing model runtime fingerprint inputs, then returned SHIP. Receipt: .flow/tmp/fn115-6-review/receipt.json. Full handover: .flow/tmp/fn115-6-summary.md; evidence: .flow/tmp/fn115-6-evidence.json. Owner committed migration as b9e5eeed; review fixes remain uncommitted. No agent staging/commit/worktree actions. Stop before task7 at owner request.
 ## Evidence
 - Commits:
-- Tests:
+- Tests: make umpire-gen-model MODEL_GATE_ARGS=--skip-go-checks; make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks, mise exec -- make lint-model; negative lint-selection probe rejected, Full Go attempt plus affected package reruns: all49 packages covered; .flow/tmp/fn115-6/combined-coverage.json, go test -count=1 -tags test_dep ./tests/testcore/testpilot/..., go test -count=1 -tags "test_dep canary_harness" ./tools/canary/preflight, go test -tags "test_dep integration canary_harness" -run "^$" ./tests, go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-repeat; fingerprint regression red then green, GOLANGCI_LINT_FIX=false CC=/usr/bin/clang mise exec -- make lint-code-fast, Independent Codex review round2 SHIP; .flow/tmp/fn115-6-review/receipt.json
 - PRs:

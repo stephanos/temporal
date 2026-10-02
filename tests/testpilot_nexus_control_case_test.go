@@ -117,7 +117,7 @@ func TestTestpilotNexusControlForgedCompletionIsViolated(t *testing.T) {
 // a scratch root -- proving the mechanism only, since the control's expected trace is the row the
 // platform never takes. The IR replay bridge re-answers the proposal before its Case is rerun.
 func TestTestpilotNexusControlReplaysThroughTheCommand(t *testing.T) {
-	modelRoot, err := filepath.Abs(filepath.Join("..", "model", "scalav2"))
+	modelRoot, err := filepath.Abs(filepath.Join("..", "model"))
 	require.NoError(t, err)
 	bridgeBinary := buildUmpireCommand(t, "umpire-ir-bridge")
 	runBinary := buildUmpireRun(t)

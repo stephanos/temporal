@@ -48,7 +48,7 @@ func assess(t *testing.T, ctx context.Context, binary, casePath, runPath, root, 
 // given an address, so neither can create or replay a Run, and the recorded Run is read, never
 // changed.
 func TestTestpilotAssessRecordedRuns(t *testing.T) {
-	modelRoot, err := filepath.Abs(filepath.Join("..", "model", "lean"))
+	modelRoot, err := filepath.Abs(filepath.Join("..", "model"))
 	require.NoError(t, err)
 	runBinary := buildUmpireRun(t)
 	assessBinary := buildUmpireCommand(t, "umpire-assess")
@@ -95,7 +95,7 @@ func TestTestpilotAssessRecordedRuns(t *testing.T) {
 	require.Equal(t, recorded, unchanged, "assessment reads the recorded Run and never changes it")
 
 	controlCase := filepath.Join("testcore", "testpilot", "testdata", "nexusCallerControl-forgedCompletion-case.json")
-	controlRun := filepath.Join("..", "tools", "umpire", "replay", "testdata", "nexusCallerControl-forgedCompletion-run.json")
+	controlRun := filepath.Join("..", "common", "testing", "testpilot", "replay", "testdata", "nexusCallerControl-forgedCompletion-run.json")
 	code, control := assess(t, ctx, assessBinary, controlCase, controlRun, root, modelRoot)
 	require.Equal(t, 1, code, "%+v", control)
 	require.Equal(t, evaluation.DecisionRejected, control.Status)

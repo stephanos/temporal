@@ -26,7 +26,7 @@ import (
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 )
 
-var scalaCaseDirectory = filepath.Join("..", "model", "scalav2", "cases")
+var scalaCaseDirectory = filepath.Join("..", "model", "cases")
 
 func generatedScalaFixture(t *testing.T, file string) *testpilotcore.ScalaCase {
 	t.Helper()

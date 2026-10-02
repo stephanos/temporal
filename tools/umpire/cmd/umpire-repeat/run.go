@@ -40,9 +40,9 @@ const (
 )
 
 // fingerprintRoots are the directories whose tracked and untracked files the live tests read at run
-// time, relative to the repository root; fingerprintBinaries are the Lean helpers they execute.
+// time, relative to the repository root; fingerprintBinaries are the IR bridge binaries they execute.
 var (
-	fingerprintRoots    = []string{"tests", "common/testing/testpilot", "tools/umpire"}
+	fingerprintRoots    = []string{"tests", "common/testing/testpilot", "tools/umpire", "model/ir", "model/cases"}
 	fingerprintBinaries = []string{".build/umpire-ir-bridge"}
 )
 

@@ -40,7 +40,7 @@ func TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint(t *testing.T) {
 	defer cancel()
 
 	arguments := []string{
-		"--case", filepath.Join("..", "model", "scalav2", "cases", "nexus-caller-asyncCompletion-case.json"),
+		"--case", filepath.Join("..", "model", "cases", "nexus-caller-asyncCompletion-case.json"),
 		"--grpc", env.FrontendGRPCAddress(),
 		"--http", env.HttpAPIAddress(),
 		"--namespace", namespaceName,

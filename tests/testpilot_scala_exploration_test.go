@@ -33,7 +33,7 @@ func writeExplorationArtifact(t *testing.T, name string, data []byte) {
 
 func TestTestpilotScalaExplorationDiscoversUnpinnedExecution(t *testing.T) {
 	env := newTestpilotTestEnvironment(t)
-	modelRoot, err := filepath.Abs(filepath.Join("..", "model", "scalav2"))
+	modelRoot, err := filepath.Abs(filepath.Join("..", "model"))
 	require.NoError(t, err)
 	model, err := umpiremodel.Load(filepath.Join(modelRoot, "ir", "nexus-caller.json"))
 	require.NoError(t, err)

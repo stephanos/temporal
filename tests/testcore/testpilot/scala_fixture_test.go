@@ -24,7 +24,7 @@ func TestScalaCasesLowerForExistingConsumers(t *testing.T) {
 		{"nexus-caller", "temporal.nexus.caller", "nexusProtocol", "nexusCallerTests", "asyncCompletion"},
 	} {
 		t.Run(item.query, func(t *testing.T) {
-			path := filepath.Join("..", "..", "..", "model", "scalav2", "ir", item.model+".json")
+			path := filepath.Join("..", "..", "..", "model", "ir", item.model+".json")
 			key := umpiremodel.ClaimKey{Family: item.family, Owner: item.owner, Name: item.query}
 			fixture, err := LoadScalaCase(path, key, item.set)
 			require.NoError(t, err)
@@ -50,7 +50,7 @@ func TestScalaCasesLowerForExistingConsumers(t *testing.T) {
 // Run of it is assessed for, and names its durable kinds, so a harness can take the commit evidence
 // out of a recorded Run without knowing the Case.
 func TestTheHeldRaceIsLoadedWithItsClaimAndItsDurableKinds(t *testing.T) {
-	fixture, err := LoadScalaCase(filepath.Join("..", "..", "..", "model", "scalav2", "ir", "activity-race.json"),
+	fixture, err := LoadScalaCase(filepath.Join("..", "..", "..", "model", "ir", "activity-race.json"),
 		umpiremodel.ClaimKey{Family: "temporal.activity.standalone.system", Owner: "heldAdmission", Name: "heldAdmission.staleDelivery"}, "standaloneActivityRace")
 	require.NoError(t, err)
 	require.Equal(t, "staleDeliveryRejected", fixture.Property)

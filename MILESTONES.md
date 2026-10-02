@@ -41,7 +41,7 @@ Apply these instructions when implementing the milestones:
 
 ## Direction
 
-The Scala model (`model/scalav2`) is the model. Lean is the past, and nothing has to look like it.
+The Scala model (`model/`) is the model. Lean is the past, and nothing has to look like it.
 Scala declares, a lifter reads the declarations into the Umpire IR, and generic Go consumers check
 that IR, lower it to Testpilot Cases, and run those Cases as functional tests and canary checks. The
 Umpire IR and the Testpilot IR are what connect the parts. The Lean toolchain is removed from this
@@ -53,10 +53,10 @@ layer, then the Models.
 
 ## Planned
 
-fn-115 has eight tasks remaining. The reviewed module map, ownership audit and immutable semantic
-goldens are recorded; legacy oracle comparisons now use those goldens and producer-neutral runtime
-helpers live in Testpilot. The checker and producer now live behind the reader/lowering interfaces.
-The directory migration and archive isolation are in progress.
+fn-115 has seven tasks remaining. The live model and Go tooling occupy their final directories;
+archives are isolated, dependency checks are enforced, and Make/CI cleanup is complete. Immutable
+semantic goldens remain the baseline. Next is reader/lowering cleanup, including the approved early
+Scala dead-code removal and measured test-setup speedups. No next task has started.
 The later specs have no tasks yet.
 Each starts after the spec it waits for closes; Flow records the dependencies. The approved
 exception is fn-113 Part A: fn-115.7 removes its confirmed unused Scala code immediately after the
@@ -78,11 +78,10 @@ directory migration. Dependency enforcement and obsolete build/CI cleanup accomp
 
 Changes the layout to say what is true.
 
-- `model/` becomes the Scala model (today `model/scalav2`) and holds no Go code.
-- `tools/umpire/` becomes the Go code that loads, checks, lowers and exports the IR (today
-  `model/scalav2/goir`, `backends` and the parts of `model/go` they import).
-- `model/lean`, `leanv2`, `go`, `quint`, `scala` move to `model0/`, and today's `tools/umpire` moves
-  to `tools/umpire0/`. Both leave the Go build, and no live code imports them.
+- `model/` holds the Scala model and no Go code.
+- `tools/umpire/` holds the Go code that loads, checks, lowers and exports the IR.
+- Retired model implementations live in `model0/` and old tooling in `tools/umpire0/`. Both are
+  outside the main Go build, and no live code imports them.
 - A module map for the model, the Umpire tooling and Testpilot, in Go and Scala, is recorded and
   independently reviewed before restructuring, under the owner's delegated decision authority.
   Import rules are enforced by a test.

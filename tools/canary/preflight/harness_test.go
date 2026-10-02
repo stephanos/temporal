@@ -145,7 +145,7 @@ func harnessFixture(t *testing.T) (*testpilotcore.ScalaCase, testpilot.ProfileSp
 
 func generatedHarnessCase(t *testing.T, file string) (*testpilotcore.ScalaCase, error) {
 	t.Helper()
-	directory := filepath.Join("..", "..", "..", "model", "scalav2", "cases")
+	directory := filepath.Join("..", "..", "..", "model", "cases")
 	entries, err := testpilotcore.ScalaManifest(directory)
 	if err != nil {
 		return nil, err
