@@ -7,8 +7,8 @@ satisfies: [R9]
 Stage 6, R9 (F8). Most of the original F8 premise is already fixed: verify and cite that, then document what this spec changed. This task is the single owner of fn-105.5 (D5, origin brief `.flow/tasks/fn-102-gomad-architecture-consolidate.6.md`); close fn-105.5 by reference afterwards.
 
 **Size:** S/M
-**Files:** `tools/gomad3/ARCHITECTURE.md`, `tools/gomad3/SPEC.md`, `tools/gomad3/README.md`, `tools/gomad3/CLI.md`, `tools/gomad3/TUTORIAL.md`, `.plans/GOMAD_MILESTONES.md` (status lines only), `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/documentation-evidence.md`.
-**Touches:** [tools/gomad3/*.md, .plans/GOMAD_MILESTONES.md, .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/documentation-evidence.md]
+**Files:** `tools/gomad3/ARCHITECTURE.md`, `tools/gomad3/SPEC.md`, `tools/gomad3/README.md`, `tools/gomad3/CLI.md`, `tools/gomad3/TUTORIAL.md`, `MILESTONES.md` (status lines only), `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/documentation-evidence.md`.
+**Touches:** [tools/gomad3/*.md, MILESTONES.md, .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/documentation-evidence.md]
 
 ### Approach
 - Already fixed since the assessment; needs evidence, not rewriting: `SPEC.md:176` names both `darwin/arm64` and `linux/amd64`; `ARCHITECTURE.md:17-23` and `:659-662` state both platforms; the closing paragraph (`:687-691`) no longer classifies choice tracing as research; `GLOSSARY.md` was deleted by fn-111 and its terms live in SPEC. Reuse fn-111's retained evidence (`flowctl show fn-111-gomad-consolidate-vocabulary-and-update`, its tasks .1/.2 and `.flow/artifacts/fn-111-gomad-consolidate-vocabulary-and-update/`) rather than re-deriving it. If fn-111 is still open, cite its state and do not edit the same passages concurrently.
@@ -16,14 +16,14 @@ Stage 6, R9 (F8). Most of the original F8 premise is already fixed: verify and c
 - Keep four claims separate everywhere: capability support, same-seed repeatability, exact replay, and CI expectation matching. Use existing SPEC requirement IDs; add none.
 - Residual findings stay visible and unchanged in meaning: Linux and Darwin replay divergence (D12/D14), suites without exact replay, host-clock escapes such as `MemStats.LastGC`. A structural refactor resolves none of them; say so.
 - No performance or support claim without a measurement retained under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`. Describe each change in the present tense as current behaviour; delivery history belongs in the milestones file.
-- Update only this spec's status rows in `.plans/GOMAD_MILESTONES.md` (work-tracking row and the fn-109 section status); leave other specs' text alone.
+- Update only this spec's status rows in `MILESTONES.md` (work-tracking row and the fn-109 section status); leave other specs' text alone.
 
 ### Investigation targets
 **Required:**
 - `tools/gomad3/ARCHITECTURE.md` (whole), `tools/gomad3/SPEC.md:140-240`
 - `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md`, `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/simulation-progress-design.md`
 - `.flow/tasks/fn-102-gomad-architecture-consolidate.6.md`
-- `.plans/GOMAD_MILESTONES.md` sections "Open findings", "Deep modules and tool interfaces (fn-109)", "Vocabulary and documentation (fn-111)"
+- `MILESTONES.md` sections "Open findings", "Deep modules and tool interfaces (fn-109)", "Vocabulary and documentation (fn-111)"
 - `tools/gomad3/toolchain/version/version.json` (supported platforms as generated fact)
 
 ### Quick commands

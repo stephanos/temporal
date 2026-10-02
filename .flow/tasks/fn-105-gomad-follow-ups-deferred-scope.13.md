@@ -23,7 +23,7 @@ Routine `./tests` qualification is now untraced by default, and a test opts into
 - **Opt-in path.** `TestOverride` gained `success_artifact_limit` and `success_bytes_limit`. The generator refuses replay without a trace or limits and limits without replay, naming the spec entry. `TestSignalWorkflowTestSuiteChasm` opts in (64 MiB, replay, 1 artifact, 1 GiB) because its D14 finding is a replay divergence.
 - **Unchanged.** CLI flags and defaults, choice exploration, `temporal.json`, `smoke.json`, `core.json`, every D12/D14 expectation, and the report schema. No report field was added: an untraced `qualified` seed already reports `replayed` and `choice.available` false with no `choice_replay_exact`, which `TestProjectSeedReportClaimsNoReplayForAnUntracedWorkload` pins.
 - **Tests.** `TestUntracedDefaultsTraceOnlyTheTestsThatOptIn` covers defaults and the override; six new refusal cases cover the enumerated spec errors; `TestCheckedInTestsManifestTracesOnlyByOverride` failed before the spec change and passes after.
-- **Docs.** `tools/gomad3/README.md`, `CLI.md`, `tools/gomad3integration/README.md`, and the D13 bullet and row of `.plans/GOMAD_MILESTONES.md` separate same-seed repeatability, tape availability, and verified choice-tape replay.
+- **Docs.** `tools/gomad3/README.md`, `CLI.md`, `tools/gomad3integration/README.md`, and the D13 bullet and row of `MILESTONES.md` separate same-seed repeatability, tape availability, and verified choice-tape replay.
 - **Real run (darwin/arm64).** One untraced run of the generated `TestUserTimersTestSuite` entry on seed 11 qualified in 38 s by repeatability: two executions with equal evidence digests, no `replay` entry, `replayed: false`. The full untraced set and linux/amd64 were not run.
 
 Open, not changed here:

@@ -20,7 +20,7 @@ TestScheduleMigrationV2ToV1Idempotent (tests/schedule_migration_test.go) now hol
 - Closed phase: releases the task, waits for CHASM Describe to return FailedPrecondition "schedule closed", checks the V1 workflow is RUNNING, then asserts a further MigrateSchedule returns the same closed error.
 - Native darwin/arm64 go1.27.0: 5/5 green, whole suite green, lint 0 issues. The original race does not reproduce natively; the corrected test fails with "schedule closed" when the old post-closure expectation is put back.
 - Gomad darwin/arm64 (toolchain go1.27.1): TestScheduleMigrationTestSuite without the skip qualifies on seeds 11 and 17 with exact replay; a verbose run shows the formerly skipped test passing on both seeds. linux/amd64 was not run.
-- Skip removed from tools/gomad3integration/qualification/tests.generator.json, tests.json regenerated, `validate-qualification` green, .plans/GOMAD_MILESTONES.md updated (also corrects the stale `target_failure` claim for TestVersioningFunctionalSuite).
+- Skip removed from tools/gomad3integration/qualification/tests.generator.json, tests.json regenerated, `validate-qualification` green, MILESTONES.md updated (also corrects the stale `target_failure` claim for TestVersioningFunctionalSuite).
 - The hook matches the registered task name "migrateToWorkflow" as a literal; a rename makes the test time out waiting for the held task rather than pass vacuously.
 
 stage: impl-review - ran (raw codex bridge on working-tree diff; commits forbidden) (model: gpt-5.6-sol)

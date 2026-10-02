@@ -3,7 +3,7 @@
 ## Goal & Context
 <!-- scope: business -->
 
-Milestone F5 of `.plans/GOMAD_MILESTONES.md`. `TestUserTimersTestSuite` exercises frontend,
+Milestone F5 of `MILESTONES.md`. `TestUserTimersTestSuite` exercises frontend,
 history, matching, SQLite, inter-service gRPC, and virtual time. On linux/amd64, after the switch
 to the classic collector, it reproduces eight of eight on both seeds, but the manifest still says
 `intermittent` and the acceptance (`--repeat 4`, two seeds, identical evidence, `replay_match`)

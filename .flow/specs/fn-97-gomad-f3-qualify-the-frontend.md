@@ -3,7 +3,7 @@
 ## Goal & Context
 <!-- scope: business -->
 
-Milestone F3 of `.plans/GOMAD_MILESTONES.md`. `TestFrontendSystemInfo` must carry a checked
+Milestone F3 of `MILESTONES.md`. `TestFrontendSystemInfo` must carry a checked
 determinism claim: the one-box cluster boots, serves an RPC, and shuts down under virtual time
 repeatably. On linux/amd64 the probe runs under guarded mode but was left `unrepeatable`
 (same-seed choice-trace divergence and replay divergence). Several host-timing channels were

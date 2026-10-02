@@ -1,7 +1,7 @@
 # Gomad remaining work and decisions
 
 [fn-105](fn-105-gomad-follow-ups-deferred-scope.md) owns the tasks and
-acceptance criteria for all 25 remaining items. Required fixes stay open until
+acceptance criteria for all 27 remaining items. Required fixes stay open until
 their acceptance criteria are met. Deferred items record why they are deferred
 and what would revive them;
 a trigger must be recorded before their implementation. Deferred items may remain
@@ -102,12 +102,43 @@ open or close as won't-do.
   unrelated findings remain intact. This is an explicitly approved production
   behavior correction; a Gomad-only workaround cannot close it.
 
+- **R26:** Correct the forward clock in D26
+  ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.31.md)). Decision on
+  2026-10-01: implement the correction the D16 investigation proposed. Add the
+  forward draws to the virtual clock itself so `time.Now`, timers, sleeps, and
+  context deadlines share one clock, as fn-103 specified. First reproduce and
+  resolve the simulation time transport failure that moved fn-103 to a separate
+  offset; feasibility is not established. If the shared clock proves infeasible,
+  record the evidence and return the partial fallbacks and the accepted-limitation
+  alternative from the D16 report for a decision; a fallback is not selected by
+  this requirement. Add a standard-library conformance fixture that fails on
+  the current offset and passes with the correction, remove the
+  `UpdateWhilePaused_AfterWindow_ExtendsDispatch` skip, and requalify every
+  `clock_tick: forward` workload on seeds 11 and 17 with traced exact replay.
+  Preserve `strict` identities and behavior. The tick policy stays part of
+  execution identity, and the changed runtime produces a new toolchain identity.
+  Errors: a remaining lead of `time.Now` over the timer clock, a changed
+  `strict` result, or missing linux/amd64 evidence leaves this requirement open.
+
+- **R27:** Apply the host-clock escape remedies in D27
+  ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.32.md)). Decision on
+  2026-10-01: act on the D21 proposals. State in the README contract that
+  `MemStats.LastGC`, `MemStats.PauseEnd`, the FIPS entropy `monoTime`, the
+  execution tracer's clock snapshot, and pack-gated `syscall.Gettimeofday` carry
+  host time. Pin the unpinned darwin `gettimeofday` path and `cputicks` in the
+  clock inventory with a fixture for each. The overwrite of the collector stamps
+  with stored virtual time from `runtime/proc.go` needs the patch-policy owner's
+  recorded approval before implementation; without it the stamps stay a stated
+  limitation. The collector and assembly patch prohibitions remain in force.
+  Errors: an unclassified clock reference, a remedy that edits a prohibited
+  file without approval, or missing linux/amd64 evidence leaves this open.
+
 ### Approved investigations
 
 Decision on 2026-09-30: the user approves all remaining investigations, including
 the worker-command investigation and R19-R21 below. These tasks must establish
 causes and propose owned corrections or explicit limitations. Any needed fix
-remains tracked as open work for the subsequent decision; an investigation
+remains tracked until selected and verified; an investigation
 receipt does not claim the underlying issue is fixed.
 
 - **R16:** Investigate the standalone-activity forward-clock poll deadline
@@ -135,6 +166,8 @@ receipt does not claim the underlying issue is fixed.
   action for a subsequent decision, retaining any needed fix as explicit open
   work in fn-105. Keep the skip until verification supports its removal;
   classification alone does not resolve the operation.
+  The recommended explicit-environment correction and skip removal are tracked by
+  [task 30](../tasks/fn-105-gomad-follow-ups-deferred-scope.30.md).
 
 - **R18:** Investigate the worker cancellation delivery delay and inconsistent
   timeout budgets ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.18.md)).
@@ -143,6 +176,8 @@ receipt does not claim the underlying issue is fixed.
   Account for the 90-second context, five-second child polls, two-second server
   minimum, and 120-second await budget. Record the cause, correction owner, and
   next action. Preserve cancellation assertions and keep the skip until verified.
+  The recommended forward-clock correction and skip removal are tracked by
+  [task 27](../tasks/fn-105-gomad-follow-ups-deferred-scope.27.md).
 
 - **R19:** Investigate activity fairness backlog readiness in both fairness
   suites ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.19.md)). Establish
@@ -150,6 +185,8 @@ receipt does not claim the underlying issue is fixed.
   compare native/Gomad runs and unfairness evidence, and distinguish setup bias
   from a product fairness defect. Propose an owned correction that preserves the
   workload distribution and fairness assertion. Keep the skips until verified.
+  The backlog wait, trigger retry, and skip removal are tracked by
+  [task 28](../tasks/fn-105-gomad-follow-ups-deferred-scope.28.md).
 
 - **R20:** Investigate heartbeat timeout counting under virtual time
   ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.20.md)). Compare native
@@ -157,6 +194,8 @@ receipt does not claim the underlying issue is fixed.
   whether the second expected timeout depends on incidental RPC latency, then
   propose an explicit semantic event/deadline condition or a product correction.
   Preserve heartbeat timeout/recovery coverage and keep the skip until verified.
+  The explicit heartbeat deadlines and skip removal are tracked by
+  [task 29](../tasks/fn-105-gomad-follow-ups-deferred-scope.29.md).
 
 - **R21:** Investigate target exposure and remedies for host-clock reporting
   escapes ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.21.md)), including
@@ -295,7 +334,7 @@ claiming completion or changing task status.
 | D11 | Dynamic Linux clock audit with disabled vDSO, seccomp denial, and positive control (`fn-101.3`, pre-amendment R5) | Conditional on D21, decided 2026-09-30 under R11 | Complete D21 and retain findings establishing audit need and feasible scope |
 | D15 | Larger choice traces (`fn-106.3`, split from D13 on 2026-09-30) | Routine qualification uses seed repeatability; the opt-in policy does not require larger tapes | A named workload needs a retained decision tape beyond 64 MiB for debugging, replay verification, exploration, or minimization |
 
-The constraints in [GOMAD_MILESTONES.md](../../.plans/GOMAD_MILESTONES.md#constraints) apply throughout.
+The constraints in [MILESTONES.md](../../MILESTONES.md#constraints) apply throughout.
 New tick policies carry execution identity and the
 [COMPAT-5 evidence set](../../.plans/GOMAD_NEXT.md#compat-5-targeted-deterministic-adapters-and-io-models).
 Downstream packs/adapters bind exact versions; dependency drift reopens their

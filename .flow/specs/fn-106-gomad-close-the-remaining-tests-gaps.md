@@ -7,7 +7,7 @@ F0–F9 delivered deterministic execution for the Temporal functional package wi
 a disposition. The dispositions still leave real gaps: four suites excluded for transcript
 overflow, Gomad-side limits behind three skipped subtests, a linux replay divergence that made the
 F5/F6 suites intermittent on linux and the smoke gate seed-11-only, and a host-clock escape
-through `MemStats.LastGC`. This spec tracks them; `GOMAD_MILESTONES.md` "Remaining `./tests` gaps"
+through `MemStats.LastGC`. This spec tracks them; `MILESTONES.md` "Remaining `./tests` gaps"
 and "Open findings" keep the rationale.
 
 ## Acceptance Criteria

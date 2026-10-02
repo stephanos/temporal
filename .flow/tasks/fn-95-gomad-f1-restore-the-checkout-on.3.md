@@ -19,7 +19,7 @@ Run `make gomad3-integration-test` and `make -C tools/gomad3 compatibility-pack-
 
 All four darwin packs now qualify: reflect2-go126, v041, v047 and v047-isatty-v021.
 
-For task .4: `.plans/GOMAD_MILESTONES.md` says "Nothing references a `compatibilitypack/testdata/v041` fixture any more". That is wrong on darwin, because the Makefile's non-linux branch still qualifies it. The fixture now exists.
+For task .4: `MILESTONES.md` says "Nothing references a `compatibilitypack/testdata/v041` fixture any more". That is wrong on darwin, because the Makefile's non-linux branch still qualifies it. The fixture now exists.
 
 stage: impl-review - ran (codex 3-draw fan-out, all SHIP, no findings)
 

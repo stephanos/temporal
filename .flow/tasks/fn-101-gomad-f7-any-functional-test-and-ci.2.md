@@ -30,7 +30,7 @@ Exclusions and their reasons (tools/gomad3integration/qualification/tests.genera
 
 Non-gomad server changes: none in this task (earlier ones in this branch: the history eager-task and ScheduleToClose fixes, the update registry admission order, and the reverted SQLite listing order, all recorded in their own commits).
 
-Open findings (not fixed, recorded in .plans/GOMAD_MILESTONES.md F7 status):
+Open findings (not fixed, recorded in MILESTONES.md F7 status):
 1. A second, smaller channel: about one chasm seed-11 replay in thirty (1 of 28) differs in stderr (`%p` again), and the instrumented runs place it before any collection, at decision 46 of cluster start, where two heap-span refills (size classes 11 and 50) swap order between same-seed runs; the allocating goroutine was not identified (the last instrumentation lap ran out of disk).
 2. TestVersioningFunctionalSuite/TestDescribeTaskQueueEnhanced_ReportFlags fails deterministically ("poller info should not be reported", tests/versioning_test.go:4203): a DescribeTaskQueue without ReportPollers returns pollers right after one with it. Not demonstrated as a test bug, so no exclusion; the suite's expectation stays `qualified` and would report `failed` if run.
 3. Runner: a target the watchdog kills with an unterminated choice trace is reported as `runner_failure: unsupported choice trace version 0` (coverage projection of an empty trace) instead of a watchdog outcome.

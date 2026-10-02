@@ -11,7 +11,7 @@ Make gcMarkTermination use virtual time when gomadEnabled (patch + regenerate), 
 
 
 ## Done summary
-Classified, not fixed. gcMarkTermination reads time_now to stamp MemStats.LastGC; the patch policy (toolchain/patch.go prohibitedRuntimeArea) keeps every mgc* and mstats* runtime file out of the patch so it never touches the collector, and time_now on linux/amd64 is platform assembly, also prohibited. Widening that prohibition for a reporting field was rejected: LastGC is written but never read by runtime control flow, so it cannot perturb scheduling, GC pacing, or replay evidence unless a target prints the value. The escape stays pinned in toolchain/clock_inventory_test.go (runtime/mgc.go time_now, escape with finding) and recorded in GOMAD_MILESTONES.md Open findings.
+Classified, not fixed. gcMarkTermination reads time_now to stamp MemStats.LastGC; the patch policy (toolchain/patch.go prohibitedRuntimeArea) keeps every mgc* and mstats* runtime file out of the patch so it never touches the collector, and time_now on linux/amd64 is platform assembly, also prohibited. Widening that prohibition for a reporting field was rejected: LastGC is written but never read by runtime control flow, so it cannot perturb scheduling, GC pacing, or replay evidence unless a target prints the value. The escape stays pinned in toolchain/clock_inventory_test.go (runtime/mgc.go time_now, escape with finding) and recorded in MILESTONES.md Open findings.
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence

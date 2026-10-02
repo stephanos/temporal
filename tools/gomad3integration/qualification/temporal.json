@@ -27,10 +27,10 @@
       "success_bytes_limit": 1073741824,
       "execution_timeout": "6m",
       "overall_timeout": "20m",
-      "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f5-one-workflow-executing-functional-test-deterministic"},
+      "expectation": {"classification": "intermittent", "finding": "MILESTONES.md#f5-one-workflow-executing-functional-test-deterministic"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"}
+        "linux/amd64": {"classification": "intermittent", "finding": "MILESTONES.md#f7-any-functional-test-and-ci"}
       }
     },
     {
@@ -64,7 +64,7 @@
       "expectation": {"classification": "qualified"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f3-qualify-the-existing-functional-probe"}
+        "linux/amd64": {"classification": "intermittent", "finding": "MILESTONES.md#f3-qualify-the-existing-functional-probe"}
       }
     },
     {
@@ -83,10 +83,10 @@
       "success_artifact_limit": 1,
       "success_bytes_limit": 1073741824,
       "overall_timeout": "20m",
-      "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"},
+      "expectation": {"classification": "intermittent", "finding": "MILESTONES.md#f6-a-package-level-functional-slice"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"}
+        "linux/amd64": {"classification": "intermittent", "finding": "MILESTONES.md#f7-any-functional-test-and-ci"}
       }
     },
     {
@@ -105,10 +105,10 @@
       "success_artifact_limit": 1,
       "success_bytes_limit": 1073741824,
       "overall_timeout": "20m",
-      "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"},
+      "expectation": {"classification": "intermittent", "finding": "MILESTONES.md#f6-a-package-level-functional-slice"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"}
+        "linux/amd64": {"classification": "intermittent", "finding": "MILESTONES.md#f7-any-functional-test-and-ci"}
       }
     },
     {
@@ -127,10 +127,10 @@
       "success_artifact_limit": 1,
       "success_bytes_limit": 1073741824,
       "overall_timeout": "20m",
-      "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"},
+      "expectation": {"classification": "intermittent", "finding": "MILESTONES.md#f6-a-package-level-functional-slice"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"}
+        "linux/amd64": {"classification": "intermittent", "finding": "MILESTONES.md#f7-any-functional-test-and-ci"}
       }
     },
     {
@@ -149,10 +149,10 @@
       "success_artifact_limit": 1,
       "success_bytes_limit": 1073741824,
       "overall_timeout": "20m",
-      "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"},
+      "expectation": {"classification": "intermittent", "finding": "MILESTONES.md#f6-a-package-level-functional-slice"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"}
+        "linux/amd64": {"classification": "intermittent", "finding": "MILESTONES.md#f7-any-functional-test-and-ci"}
       }
     },
     {
@@ -171,10 +171,10 @@
       "success_artifact_limit": 1,
       "success_bytes_limit": 1073741824,
       "overall_timeout": "20m",
-      "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"},
+      "expectation": {"classification": "intermittent", "finding": "MILESTONES.md#f6-a-package-level-functional-slice"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"}
+        "linux/amd64": {"classification": "intermittent", "finding": "MILESTONES.md#f7-any-functional-test-and-ci"}
       }
     },
     {
@@ -193,10 +193,10 @@
       "success_artifact_limit": 1,
       "success_bytes_limit": 1073741824,
       "overall_timeout": "20m",
-      "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"},
+      "expectation": {"classification": "intermittent", "finding": "MILESTONES.md#f6-a-package-level-functional-slice"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"}
+        "linux/amd64": {"classification": "intermittent", "finding": "MILESTONES.md#f7-any-functional-test-and-ci"}
       }
     },
     {
@@ -215,10 +215,10 @@
       "success_artifact_limit": 1,
       "success_bytes_limit": 1073741824,
       "overall_timeout": "20m",
-      "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"},
+      "expectation": {"classification": "intermittent", "finding": "MILESTONES.md#f6-a-package-level-functional-slice"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"}
+        "linux/amd64": {"classification": "intermittent", "finding": "MILESTONES.md#f7-any-functional-test-and-ci"}
       }
     },
     {
@@ -237,10 +237,10 @@
       "success_artifact_limit": 1,
       "success_bytes_limit": 1073741824,
       "overall_timeout": "20m",
-      "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"},
+      "expectation": {"classification": "intermittent", "finding": "MILESTONES.md#f6-a-package-level-functional-slice"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"}
+        "linux/amd64": {"classification": "intermittent", "finding": "MILESTONES.md#f7-any-functional-test-and-ci"}
       }
     },
     {
@@ -259,10 +259,10 @@
       "success_artifact_limit": 1,
       "success_bytes_limit": 1073741824,
       "overall_timeout": "20m",
-      "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"},
+      "expectation": {"classification": "intermittent", "finding": "MILESTONES.md#f6-a-package-level-functional-slice"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"}
+        "linux/amd64": {"classification": "intermittent", "finding": "MILESTONES.md#f7-any-functional-test-and-ci"}
       }
     },
     {
@@ -281,10 +281,10 @@
       "success_artifact_limit": 1,
       "success_bytes_limit": 1073741824,
       "overall_timeout": "20m",
-      "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"},
+      "expectation": {"classification": "intermittent", "finding": "MILESTONES.md#f6-a-package-level-functional-slice"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"}
+        "linux/amd64": {"classification": "intermittent", "finding": "MILESTONES.md#f7-any-functional-test-and-ci"}
       }
     },
     {
@@ -583,10 +583,10 @@
       "success_bytes_limit": 1073741824,
       "execution_timeout": "6m",
       "overall_timeout": "20m",
-      "expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f5-one-workflow-executing-functional-test-deterministic"},
+      "expectation": {"classification": "intermittent", "finding": "MILESTONES.md#f5-one-workflow-executing-functional-test-deterministic"},
       "platform_expectations": {
         "darwin/arm64": {"classification": "qualified"},
-        "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"}
+        "linux/amd64": {"classification": "intermittent", "finding": "MILESTONES.md#f7-any-functional-test-and-ci"}
       }
     }
   ]

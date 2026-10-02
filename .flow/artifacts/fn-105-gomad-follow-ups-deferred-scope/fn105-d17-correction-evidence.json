@@ -1,0 +1,273 @@
+{
+  "task": "fn-105-gomad-follow-ups-deferred-scope.30",
+  "status": "complete_on_darwin_arm64",
+  "decision": "Recommended D17 option A, preserving TZ-only scrubbing for direct seeded launches; only authenticated Runner I/O targets keep the runtime-filtered environment.",
+  "baseline": {
+    "runner_test": "--- FAIL: TestRunnerDeliversExplicitEnvironmentBeforeInitAndReplays (7.04s)\n    --- FAIL: TestRunnerDeliversExplicitEnvironmentBeforeInitAndReplays/explicit (1.33s)\n        environment_integration_test.go:38: target environment = init=[\"TZ=UTC\"] main=[\"TZ=UTC\"]\n            , want init=[\"EMPTY=\" \"TZ=UTC\" \"VALUE=spaces = unicode \u03bb\"] main=[\"EMPTY=\" \"TZ=UTC\" \"VALUE=spaces = unicode \u03bb\"]\nFAIL\nFAIL\tgo.temporal.io/server/tools/gomad3/runner\t13.424s\nFAIL\n",
+    "direct_control": "ok  \tgo.temporal.io/server/tools/gomad3/runner\t5.858s\n"
+  },
+  "regression_command": "go -C tools/gomad3 test -tags test_dep ./runner -run '^Test(RunnerDeliversExplicitEnvironmentBeforeInitAndReplays|DirectTargetEnvironmentPreservesSeededScrubbingAndDisabledBehavior)$' -count=1",
+  "linux": "Native linux/amd64 requalification remains an overall milestone gate. Darwin qualification is the selected gate for this skip removal; no Linux result is claimed.",
+  "toolchain_build": "4412b5b276ef89f37995a401bcebc83b842733c18f0c39f9b57e00e74df0ca95",
+  "regression_green": "ok  \tgo.temporal.io/server/tools/gomad3/runner\t6.138s\n",
+  "native_suite": "ok  \tgo.temporal.io/server/tests\t17.811s\n",
+  "review": {
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "scope": "D17 runtime hunk, environment fixture and regression, generated identity, README environment contract, Nexus manifest setting",
+    "verdict": "No correctness findings; static review only. Runtime initialization order, isolation, direct behavior, and generated implementation identity verified."
+  },
+  "source_sha256": {
+    "tools/gomad3/toolchain/runtime/go1.27.1.patch": "bde66c455efabe9cafbf8736104ef84abc4afde0ca447ad1d9e7c529d59a9582",
+    "tools/gomad3/runner/environment_integration_test.go": "955b585ea0acab4517ae5915435d4328edc98df587405eb863cdcfc1f8c6fb2b",
+    "tools/gomad3/internal/gomadtool/conformance/testdata/environment/main.go": "6d23c87622f42e5cc829f65e6f377a26f8359414d55c9d0fe3ba5690aa16f14f",
+    "tools/gomad3/README.md": "e4f3d692b6ffeeae1b93dd8942fedf0e8ceff46c855eafcbfbe14dc6363cd030",
+    "tools/gomad3/choice/internal/wire/wire_generated.go": "c57c25ff6b61cc36123a2e33399b2e79c72e288453dd6250d63bb9314073c2b7",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go": "449ee132b99d35719e65de760d5797d67c079067926ebfddbb204b36144a7c0e"
+  },
+  "leaf": [
+    {
+      "seed": "11",
+      "passed": [
+        "--- PASS: TestNexusOTELSuite/TestOperation (5.00s)"
+      ],
+      "operation_cluster_count": 2,
+      "stdout_sha256": "c360f7d24a9662ecadddea61b78d14f84528fa144a3d34e1194f6b6499120b69",
+      "stderr_sha256": "1382688c62c12412b0da87bb3668d2f8c5e4bbb92bed53ad62b71f8279e204be"
+    },
+    {
+      "seed": "17",
+      "passed": [
+        "--- PASS: TestNexusOTELSuite/TestOperation (5.00s)"
+      ],
+      "operation_cluster_count": 2,
+      "stdout_sha256": "1e9fc4780dac4f89703e9901fb9702f5cb12526f3d42f4884a12a9a45958eed5",
+      "stderr_sha256": "d6a00d4dd5c8edd3575d92dfde8d77245dab85757627332050cf6a661c4915a0"
+    }
+  ],
+  "suite_sweep": [
+    {
+      "seed": "1",
+      "passed": [
+        "--- PASS: TestNexusOTELSuite/TestCallback (5.00s)",
+        "--- PASS: TestNexusOTELSuite/TestWorkerOperation (10.10s)",
+        "--- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (15.20s)",
+        "--- PASS: TestNexusOTELSuite/TestOperation (20.20s)"
+      ],
+      "operation_cluster_count": 2,
+      "stdout_sha256": "45613884a3e8218233ea586283026c5589f9ba415bd9dea905766e9e6fa9c84d",
+      "stderr_sha256": "7c87d0d8faba0fffa23cc74ff84f8ff0a0fd9077c7b106eea0b5339273af1e3c"
+    },
+    {
+      "seed": "2",
+      "passed": [
+        "--- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (5.10s)",
+        "--- PASS: TestNexusOTELSuite/TestWorkerOperation (10.10s)",
+        "--- PASS: TestNexusOTELSuite/TestCallback (15.10s)",
+        "--- PASS: TestNexusOTELSuite/TestOperation (20.10s)"
+      ],
+      "operation_cluster_count": 2,
+      "stdout_sha256": "b175ba53f03ebbc734ddb25f407e477b13c2ec17fe58f57f53f503a14dc15601",
+      "stderr_sha256": "21ab376bd75889471ccea1a045aa19e528a7aa3005ff7096c56d83ecd2b07298"
+    },
+    {
+      "seed": "3",
+      "passed": [
+        "--- PASS: TestNexusOTELSuite/TestWorkerOperation (5.10s)",
+        "--- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (10.10s)",
+        "--- PASS: TestNexusOTELSuite/TestCallback (15.10s)",
+        "--- PASS: TestNexusOTELSuite/TestOperation (20.10s)"
+      ],
+      "operation_cluster_count": 2,
+      "stdout_sha256": "d80fda5997efbd64e6ae1d32c40ed3531710b1cf03ee6e55789c617eafa6c1b9",
+      "stderr_sha256": "23003e3b7b85a735d666f59785320c70737a0464935a9fad9253a7388a88ae1a"
+    },
+    {
+      "seed": "4",
+      "passed": [
+        "--- PASS: TestNexusOTELSuite/TestWorkerOperation (5.00s)",
+        "--- PASS: TestNexusOTELSuite/TestCallback (5.00s)",
+        "--- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (10.00s)",
+        "--- PASS: TestNexusOTELSuite/TestOperation (15.10s)"
+      ],
+      "operation_cluster_count": 2,
+      "stdout_sha256": "35bbebfd92b4e01f126985ff9d61ecf3f0083e40c915b8bdcaa758bcfffdab35",
+      "stderr_sha256": "4fadd45da5da5fa192980da1c078ee4fd622b930f10fbe124ed268cd4396a844"
+    },
+    {
+      "seed": "5",
+      "passed": [
+        "--- PASS: TestNexusOTELSuite/TestCallback (5.00s)",
+        "--- PASS: TestNexusOTELSuite/TestWorkerOperation (5.10s)",
+        "--- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (10.20s)",
+        "--- PASS: TestNexusOTELSuite/TestOperation (15.20s)"
+      ],
+      "operation_cluster_count": 2,
+      "stdout_sha256": "a4cbcfe306c7a1a3b4e5bdd3d64fa513e90ef50f7ec473773ffe9daae27bcc91",
+      "stderr_sha256": "ec73b2922dc637f873ed25a6fc4dd214a0ba5b058b90549121647831956c6ff3"
+    },
+    {
+      "seed": "6",
+      "passed": [
+        "--- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (5.00s)",
+        "--- PASS: TestNexusOTELSuite/TestWorkerOperation (5.10s)",
+        "--- PASS: TestNexusOTELSuite/TestCallback (10.10s)",
+        "--- PASS: TestNexusOTELSuite/TestOperation (15.10s)"
+      ],
+      "operation_cluster_count": 2,
+      "stdout_sha256": "182d56f234f5da1ca3cda8149346495c6ea0011829f6951d4fc9db4c3983775e",
+      "stderr_sha256": "f211f9d61d1a64f55dc20e319c74050771bbf7ceb480b9bc0594046bbd916599"
+    },
+    {
+      "seed": "7",
+      "passed": [
+        "--- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (5.00s)",
+        "--- PASS: TestNexusOTELSuite/TestWorkerOperation (5.00s)",
+        "--- PASS: TestNexusOTELSuite/TestCallback (10.00s)",
+        "--- PASS: TestNexusOTELSuite/TestOperation (15.00s)"
+      ],
+      "operation_cluster_count": 2,
+      "stdout_sha256": "6ddfa52116ab993012956144cc97653e91847f4003de5d90e78f28c6d247b276",
+      "stderr_sha256": "97bfcd0dd85a2e2b5ab8087bdb8b10acd1746c67dc0cd891b9ec5c3a2946bd5f"
+    },
+    {
+      "seed": "8",
+      "passed": [
+        "--- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (5.00s)",
+        "--- PASS: TestNexusOTELSuite/TestCallback (5.00s)",
+        "--- PASS: TestNexusOTELSuite/TestWorkerOperation (10.00s)",
+        "--- PASS: TestNexusOTELSuite/TestOperation (15.00s)"
+      ],
+      "operation_cluster_count": 2,
+      "stdout_sha256": "ba9fd8a2a8518bd6470b4269d29f3e3ea601473ff42181b3366d284be5ca4fdb",
+      "stderr_sha256": "ed762ba66abd7a3fde05ecabb89daff37724725e46b91b823daa99e5ea3de668"
+    },
+    {
+      "seed": "9",
+      "passed": [
+        "--- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (5.00s)",
+        "--- PASS: TestNexusOTELSuite/TestWorkerOperation (5.10s)",
+        "--- PASS: TestNexusOTELSuite/TestCallback (10.10s)",
+        "--- PASS: TestNexusOTELSuite/TestOperation (15.10s)"
+      ],
+      "operation_cluster_count": 2,
+      "stdout_sha256": "559d6c8a237415d5b8078ac57c81026708c281971ae8191bdc0016d0ae164a6c",
+      "stderr_sha256": "8be455e372dcfbb25565ecd93c853cb0ba867c8768f933bcb835ae8849baf7a5"
+    },
+    {
+      "seed": "10",
+      "passed": [
+        "--- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (5.00s)",
+        "--- PASS: TestNexusOTELSuite/TestWorkerOperation (5.10s)",
+        "--- PASS: TestNexusOTELSuite/TestCallback (10.00s)",
+        "--- PASS: TestNexusOTELSuite/TestOperation (15.00s)"
+      ],
+      "operation_cluster_count": 2,
+      "stdout_sha256": "db9e8614105c5e469da186da3196b09673da7fd1374d9b97c625ba8588fb0292",
+      "stderr_sha256": "ef942e1721cda33d489c7ad04ebbb59d0aae5c4f4af3acc82a0795e9da2f66c4"
+    },
+    {
+      "seed": "11",
+      "passed": [
+        "--- PASS: TestNexusOTELSuite/TestCallback (5.00s)",
+        "--- PASS: TestNexusOTELSuite/TestWorkerOperation (10.00s)",
+        "--- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (15.00s)",
+        "--- PASS: TestNexusOTELSuite/TestOperation (20.00s)"
+      ],
+      "operation_cluster_count": 2,
+      "stdout_sha256": "bfbc88605a615817c2a6f14f908bda4348e03db9dc62e50a5d2cf431c78a8ed5",
+      "stderr_sha256": "ca949970c1e567509fc1bc953b36aa925dab3e92a4081feb2854c56db1d7a965"
+    },
+    {
+      "seed": "12",
+      "passed": [
+        "--- PASS: TestNexusOTELSuite/TestWorkerOperation (5.10s)",
+        "--- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (10.10s)",
+        "--- PASS: TestNexusOTELSuite/TestCallback (15.10s)",
+        "--- PASS: TestNexusOTELSuite/TestOperation (20.10s)"
+      ],
+      "operation_cluster_count": 2,
+      "stdout_sha256": "47b3b6b03f0c99a64107a67e3df2a3267a0c6d4125dbc9c9a99e2057a32d3927",
+      "stderr_sha256": "b498646f0a7cd0278b0789bf0c6e610e873637304f80e97ef45f3e3d1b76b65c"
+    },
+    {
+      "seed": "13",
+      "passed": [
+        "--- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (5.10s)",
+        "--- PASS: TestNexusOTELSuite/TestWorkerOperation (5.10s)",
+        "--- PASS: TestNexusOTELSuite/TestCallback (10.10s)",
+        "--- PASS: TestNexusOTELSuite/TestOperation (15.10s)"
+      ],
+      "operation_cluster_count": 2,
+      "stdout_sha256": "9c1385a79184a9b8f50e1b2eb11651d78ff9279a1abcad0c009391d73d496fbc",
+      "stderr_sha256": "67b77956184995d2a52f93a796a145992265c284bb1e236d44e53636dcb5cb80"
+    },
+    {
+      "seed": "14",
+      "passed": [
+        "--- PASS: TestNexusOTELSuite/TestCallback (5.00s)",
+        "--- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (10.00s)",
+        "--- PASS: TestNexusOTELSuite/TestWorkerOperation (15.00s)",
+        "--- PASS: TestNexusOTELSuite/TestOperation (20.10s)"
+      ],
+      "operation_cluster_count": 2,
+      "stdout_sha256": "8ccfa276de384ac97b5eb15c88f83bf983dfaf909dfddde78e9cf178c2eb1f36",
+      "stderr_sha256": "79480048dc3631332894197e3e8c0ed0d3cd2ecc875475a4ebfa23524f1c6b7c"
+    },
+    {
+      "seed": "15",
+      "passed": [
+        "--- PASS: TestNexusOTELSuite/TestWorkerOperation (5.00s)",
+        "--- PASS: TestNexusOTELSuite/TestCallback (5.00s)",
+        "--- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (10.00s)",
+        "--- PASS: TestNexusOTELSuite/TestOperation (15.00s)"
+      ],
+      "operation_cluster_count": 2,
+      "stdout_sha256": "922c3b7cd821bf3320bbf9d852a26ffda74711126a60d22249f68dd34e5ecf23",
+      "stderr_sha256": "1c39e12281d27d645eb33302543f231b12ba5e9a5613368c1d16fe649b3b17ac"
+    },
+    {
+      "seed": "16",
+      "passed": [
+        "--- PASS: TestNexusOTELSuite/TestWorkerOperation (5.00s)",
+        "--- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (10.10s)",
+        "--- PASS: TestNexusOTELSuite/TestCallback (15.10s)",
+        "--- PASS: TestNexusOTELSuite/TestOperation (20.20s)"
+      ],
+      "operation_cluster_count": 2,
+      "stdout_sha256": "c363451acd45c90796923af9c32b9fc8db97554b96466248584e973455811edb",
+      "stderr_sha256": "34a10fda886ffefa159b115f20a74c740da6498ec395f7fd2d72b23c74a9ab68"
+    },
+    {
+      "seed": "17",
+      "passed": [
+        "--- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (5.00s)",
+        "--- PASS: TestNexusOTELSuite/TestCallback (10.00s)",
+        "--- PASS: TestNexusOTELSuite/TestWorkerOperation (15.00s)",
+        "--- PASS: TestNexusOTELSuite/TestOperation (20.00s)"
+      ],
+      "operation_cluster_count": 2,
+      "stdout_sha256": "12e3442b5a0c4da247b71a6941ef1d915dc2887cb7164053c7d8767b79170cb2",
+      "stderr_sha256": "249d9438ccf1db9f514aa80b89b8e884cc51b26be8800d75af692e485bc900ed"
+    }
+  ],
+  "one_slot_control": {
+    "seed": 11,
+    "environment": [],
+    "outcome": "target_failure at virtual test.timeout=2m",
+    "cluster_count": 1,
+    "stack_excerpt": "goroutine 12 [chan receive, 2 minutes]:\ngo.temporal.io/server/tests/testcore.(*clusterPool).reserveSlot(0x4923b9ef0a80, 0x4923b9e72b48)\n\tgo.temporal.io/server/tests/testcore/test_cluster_pool.go:109 +0x38\ngo.temporal.io/server/tests/testcore.(*clusterRouter).getDedicated(0x4923b9e37130, 0x4923b9e72b48, {{0x1025dfc09, 0x9}, 0x1, {0x10260478c, 0x18}, 0x0, 0x4923ba3dd440, {0x4923bb4f6be8, ...}})\n\tgo.temporal.io/server/tests/testcore/test_cluster_pool.go:342 +0x7c\ngo.temporal.io/server/tests/testcore.(*clusterRouter).get(?, ?, {{0x0, 0x0}, 0x1, {0x10260478c, 0x18}, 0x0, 0x4923ba3dd440, {0x4923bb4f6be8, ...}})"
+  },
+  "traced_report": "fn105-d17-correction-traced-report.json",
+  "manifest_sha256": {
+    "tools/gomad3integration/qualification/tests.generator.json": "797a6372e9e7da6a315f732f42d831de0eac863f263f60096aa07a985a626b79",
+    "tools/gomad3integration/qualification/tests.json": "bb2c25d636ff1c4ffe8c7e507001c5d3cc134c7a5313b258b67298e0e20ad278"
+  },
+  "tracked_report": "fn105-d17-correction-tracked-report.json",
+  "full_gate": {
+    "command": "PATH=<installed go1.27.1 bin>:$PATH GOMAD3_STOCK_GO=<installed go1.27.1 bin>/go make -C tools/gomad3 test",
+    "exit_status": 0,
+    "log": "fn105-d17-correction-full-test.log",
+    "log_sha256": "b2c617ce8514a46ffa13bf51aa25abfaf052f0f8473e2cc4f6c93855a96d24cf"
+  }
+}

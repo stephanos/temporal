@@ -1,0 +1,54 @@
+{
+  "scope": "D20 correction on darwin/arm64; linux/amd64 not run",
+  "source_sha256": "077578d519ef84421e3e4636e7ebde8795a6b1c0beaaf660f6ae8eb745895239",
+  "sweep_and_native20_source_sha256": "5b5dacac6f79d5938e3efc29b8cf832bc08804c99413130688d1a76c1a062e2f",
+  "assertion_followup": "Sweeps and native count=20 used s.Equal. Final source changes only this new heartbeat outcome assertion to s.Require().Equal; native suite and both qualification reports were rerun on final source.",
+  "baseline": {
+    "source_sha256": "2e42b3f4e717a3b2a20ea38c53f8e22504bebd2fc65f1748fde28b7ecd343f07",
+    "clock": "strict",
+    "seed": 11,
+    "outcome": "target_failure",
+    "stdout_excerpt": "        \tError Trace:\tgo.temporal.io/server/tests/workflow_task_test.go:110\n        \t            \t\t\t\truntime/asm_arm64.s:1039\n        \tError:      \tNot equal: \n        \t            \texpected: 2\n        \t            \tactual  : 1\n        \tTest:       \tTestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult\n--- FAIL: TestWorkflowTaskTestSuite (0.00s)\n    --- FAIL: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (15.00s)"
+  },
+  "sweeps": {
+    "strict": {
+      "schema": "gomad3.explore-event/v3",
+      "type": "result",
+      "classification": "success",
+      "selected": 64,
+      "attempted": 64,
+      "succeeded": 64,
+      "stop_reason": "seeds_exhausted"
+    },
+    "forward": {
+      "schema": "gomad3.explore-event/v3",
+      "type": "result",
+      "classification": "success",
+      "selected": 64,
+      "attempted": 64,
+      "succeeded": 64,
+      "stop_reason": "seeds_exhausted"
+    }
+  },
+  "reports": {
+    "traced": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d20-correction-traced-report.json",
+    "tracked": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d20-correction-tracked-report.json"
+  },
+  "native": {
+    "leaf_count20": "ok  \tgo.temporal.io/server/tests\t367.398s",
+    "final_suite": "ok  \tgo.temporal.io/server/tests\t20.215s"
+  },
+  "files": {
+    "tests/workflow_task_test.go": "077578d519ef84421e3e4636e7ebde8795a6b1c0beaaf660f6ae8eb745895239",
+    "tools/gomad3integration/qualification/tests.generator.json": "23d31876cf055dc28fb652160574d6261193e4c5ad401666ef1087d7631633e2",
+    "tools/gomad3integration/qualification/tests.json": "4f991fd80fd6605dcedd12ec5f88e08f569bc140c5142b41efe2c33dd95d30d3",
+    "tools/gomad3/toolchain/runtime/go1.27.1.patch": "950063a87d63cb01dada2e6ef232fdeb4acc52f71a008e2158885666669f80bc"
+  },
+  "lint": {
+    "command": "TMPDIR=<isolated temp directory> GOLANGCI_LINT_BASE_REV=HEAD GOLANGCI_LINT_FIX=false make lint-code LINT_CODE_TARGETS='./tests'",
+    "exit_status": 0,
+    "issues": 0,
+    "fast_target_limitation": "make lint-code-fast includes changed nested-module directories as root-module packages and exits 7; scoped root lint and vet passed."
+  },
+  "qualification_manifest_scope": "Reports bind the D20 manifest before the D17 environment setting was added. The WorkflowTaskTestSuite entry is unchanged by D17."
+}

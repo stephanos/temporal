@@ -2,7 +2,7 @@
 
 > Dated research snapshot. Local capability and support statements describe the
 > assessment below. Use the [current README](../../../tools/gomad3/README.md) and
-> [active milestones](../../../.plans/GOMAD_MILESTONES.md) for present behavior and delivery order.
+> [active milestones](../../../MILESTONES.md) for present behavior and delivery order.
 
 Research date: 2026-08-15
 

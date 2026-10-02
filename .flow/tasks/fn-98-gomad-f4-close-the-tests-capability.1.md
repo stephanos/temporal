@@ -10,7 +10,7 @@ Run discover/review/generate for the darwin packs on this host against the curre
 - `make validate` and `compatibility-pack-qualification` pass on darwin
 
 ## Done summary
-Observed on darwin/arm64 that every compatibility pack is current against the profile digest and that the fx, SDK, and otel darwin prepared source-set pins match what the darwin capability review computes (mutation probe per pin); nothing needed correcting. `make -C tools/gomad3 validate compatibility-pack-qualification` passes (six requests), and the observation is recorded in `.plans/GOMAD_MILESTONES.md` F4 status.
+Observed on darwin/arm64 that every compatibility pack is current against the profile digest and that the fx, SDK, and otel darwin prepared source-set pins match what the darwin capability review computes (mutation probe per pin); nothing needed correcting. `make -C tools/gomad3 validate compatibility-pack-qualification` passes (six requests), and the observation is recorded in `MILESTONES.md` F4 status.
 
 baseline: green (make -C tools/gomad3 validate compatibility-pack-qualification)
 

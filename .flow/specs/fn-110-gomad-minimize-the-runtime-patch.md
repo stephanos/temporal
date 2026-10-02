@@ -22,7 +22,7 @@ implementation. The production-code cleanup in
 [fn-108](fn-108-gomad-reduce-code-size-without-removing.md) has a separate
 metric and excludes runtime/overlay redesign. Moving code into an overlay
 reduces the upstream patch without claiming a net deletion of production code.
-The [milestone constraints](../../.plans/GOMAD_MILESTONES.md#constraints)
+The [milestone constraints](../../MILESTONES.md#constraints)
 continue to apply.
 
 ## Architecture & Data Models

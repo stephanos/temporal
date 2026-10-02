@@ -14,7 +14,7 @@ Required fix approved on 2026-09-30. The start/cancel outcome tests in TestNexus
 - Production endpoint uniqueness behavior remains unchanged; diagnosis or a still-skipped test cannot close this required fix.
 
 ## Done summary
-Each start/cancel outcome leaf subtest in `tests/nexus_api_test.go` now registers its own endpoint name, and every by-endpoint leaf asserts the poll request carries the name that leaf registered. The four outcome skips are removed from `tests.generator.json`, `tests.json` is regenerated and passes its staleness check, and the D22 sentence in `.plans/GOMAD_MILESTONES.md` states the verified result.
+Each start/cancel outcome leaf subtest in `tests/nexus_api_test.go` now registers its own endpoint name, and every by-endpoint leaf asserts the poll request carries the name that leaf registered. The four outcome skips are removed from `tests.generator.json`, `tests.json` is regenerated and passes its staleness check, and the D22 sentence in `MILESTONES.md` states the verified result.
 
 - Collision reproduced natively before the fix with `TEMPORAL_TEST_SHARED_CLUSTERS=1` (10 leaves fail with "already registered"); after the fix the same run, the default-pool run, and both whole suites pass.
 - Gomad on darwin/arm64 (toolchain build `c0661e38b4e0`, runner `sha256:3062e6f84a85`): both Nexus API suites qualify on seeds 11 and 17 with repeat 2 and 4 exact replays, using their manifest settings without skips; a verbose run shows 32 outcome leaves passing per seed.

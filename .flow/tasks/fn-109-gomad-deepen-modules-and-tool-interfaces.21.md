@@ -8,7 +8,7 @@ Stage 6, R18-R20, plus the evidence links for R2/R3. Run the complete gates once
 
 **Size:** M
 **Files:** `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/completion-matrix.md`, `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/qualification-evidence.md`, retained command output under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/evidence/`.
-**Touches:** [.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/**, .plans/GOMAD_MILESTONES.md]
+**Touches:** [.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/**, MILESTONES.md]
 
 ### Approach
 - Baseline: record the pre-fn-109 revision (planning anchored at `d4d800fb47`; use the actual first-task base), toolchain build key, and the current qualification dispositions (`tools/gomad3integration/qualification/*.json`, the core set report) before judging regressions.
@@ -25,7 +25,7 @@ Stage 6, R18-R20, plus the evidence links for R2/R3. Run the complete gates once
 - `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md`, `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/simulation-progress-design.md`, `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/documentation-evidence.md`
 - `.github/workflows/gomad3.yml`, `.github/workflows/gomad3-smoke.yml` (gate definitions per platform)
 - `tools/gomad3/Makefile` and the root `Makefile:165-235`
-- `.plans/GOMAD_MILESTONES.md` sections "Open findings" and "Constraints"
+- `MILESTONES.md` sections "Open findings" and "Constraints"
 
 ### Quick commands
 ```bash

@@ -1,7 +1,7 @@
 # Gomad v3 capability roadmap
 
 This roadmap collects candidate investments beyond committed work.
-[GOMAD_MILESTONES.md](GOMAD_MILESTONES.md) owns delivery constraints, remaining
+[MILESTONES.md](../MILESTONES.md) owns delivery constraints, remaining
 functional-test dispositions, open findings, and deferred follow-ups with revival
 triggers. Flow-Next specs own tasks and acceptance criteria.
 

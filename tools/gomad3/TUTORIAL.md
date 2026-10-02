@@ -644,7 +644,7 @@ Qualification still has explicit limitations. Allocation-heavy Targets can
 expose unresolved repeatability or replay divergence, and some Temporal suites
 qualify without Choices because their traces exceed the current capacity. Such
 evidence proves repeated observations, not Exact Replay. Read the current
-[delivery milestones](../../.plans/GOMAD_MILESTONES.md) and retained qualification
+[delivery milestones](../../MILESTONES.md) and retained qualification
 reports before applying a broader support claim.
 
 ## A practical way to start

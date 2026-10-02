@@ -21,7 +21,7 @@ TestNexusOperationSurvivesResetCrossTree (tests/nexus_workflow_test.go) now wait
 - The signal race does not reproduce natively by timing; forcing the ordering (worker stopped across the reset) fails all four cases with 16 events, the shape the Gomad finding recorded.
 - Native darwin/arm64 go1.27.0: 200/200 subtests green at -count=50, 20/20 at -count=5, lint 0 issues.
 - Gomad darwin/arm64 (toolchain go1.27.1): TestNexusWorkflowTestSuiteHSM without the skip qualifies on seeds 11 and 17 with exact replay; a verbose run shows all four cases passing on both seeds. linux/amd64 was not run.
-- Skip removed from tools/gomad3integration/qualification/tests.generator.json, tests.json regenerated, `validate-qualification` green, .plans/GOMAD_MILESTONES.md updated.
+- Skip removed from tools/gomad3integration/qualification/tests.generator.json, tests.json regenerated, `validate-qualification` green, MILESTONES.md updated.
 
 stage: impl-review - ran (raw codex bridge on working-tree diff; commits forbidden) (model: gpt-5.6-sol)
 stage: plan-sync - skipped(config: planSync.enabled != true)

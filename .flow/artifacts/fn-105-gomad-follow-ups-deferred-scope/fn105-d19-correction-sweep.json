@@ -1,0 +1,305 @@
+{
+  "schema": "gomad3.d19-correction-evidence/v1",
+  "platform": "darwin/arm64",
+  "source_sha256": "f8b735bdeee03962143ee801dc017f8d022d48e2a08132ce56af299b6491a3fe",
+  "generated_manifest_sha256": "28740b195a29ab7bfb032212e0beff4b2d466c23c15255b674a7fb4652c9de0a",
+  "strict_tick_sweeps": {
+    "fairness": [
+      {
+        "seed": 1,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 2,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 3,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 4,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 5,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 6,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 7,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 8,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 9,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 10,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 11,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 12,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 13,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 14,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 15,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 16,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 17,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      }
+    ],
+    "auto_enable": [
+      {
+        "seed": 1,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 2,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 3,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 4,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 5,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 6,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 7,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 8,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 9,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 10,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 11,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 12,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 13,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 14,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 15,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 16,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      },
+      {
+        "seed": 17,
+        "unfairness": 0.45,
+        "leaf_passed": true,
+        "transfers_created_at_first_poll": 225,
+        "transfers_started_at_first_poll": 225,
+        "workflows_at_first_poll": 15
+      }
+    ]
+  },
+  "qualification": {
+    "tracked_report": "fn105-d19-correction-tracked-report.json",
+    "tracked_report_sha256": "738b6ec6660a24080cac045b75915b38eee24e12a85361912aee75ac86b303fc",
+    "traced_report": "fn105-d19-correction-traced-report.json",
+    "traced_report_sha256": "9b6e0057a99b03fac91f3bb8c9a42ccfb8958c1899747247073fdec8c0b80fce",
+    "seeds": [
+      11,
+      17
+    ],
+    "supported_workloads": 2,
+    "exact_replayed_seeds": 4
+  },
+  "native": {
+    "suite_run": "passed",
+    "auto_enable_leaf_count30": "2 failures at the preexisting line-468 workflow-task wait; unrelated to the new backlog wait"
+  },
+  "strict_baseline": {
+    "seed": 11,
+    "classification": "target_failure",
+    "unfairness": 1.3
+  }
+}

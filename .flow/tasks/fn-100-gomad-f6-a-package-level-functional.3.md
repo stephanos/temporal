@@ -26,7 +26,7 @@ The ten F6 slice suites are in `temporal.json` as tier 3 `functional-*` workload
 | functional-workflow | TestWorkflowTestSuite | qualified; qualified with exact replay |
 
 - **required_probes (R5):** every slice suite requires `stdlib.net.interfaces`, `stdlib.os.getwd`, `stdlib.os.newfile`, and `stdlib.os.openfile`, which every measured run observed. `qualify` always runs semantic coverage, so a seed that misses a required probe fails instead of qualifying.
-- **linux/amd64 expectation:** `intermittent`, with `finding: GOMAD_MILESTONES.md#f6-a-package-level-functional-slice`. Linux last measured the slice before the environment-filter and mark-start greying fixes, when 6 of 20 seed runs qualified. Those fixes are platform-neutral, but until a linux run re-measures the slice the manifest does not claim `qualified` there. The existing intermittent/unrepeatable entries now name their milestone sections the same way: F5 for user-timers and batch cancel, F3 for the frontend probe.
+- **linux/amd64 expectation:** `intermittent`, with `finding: MILESTONES.md#f6-a-package-level-functional-slice`. Linux last measured the slice before the environment-filter and mark-start greying fixes, when 6 of 20 seed runs qualified. Those fixes are platform-neutral, but until a linux run re-measures the slice the manifest does not claim `qualified` there. The existing intermittent/unrepeatable entries now name their milestone sections the same way: F5 for user-timers and batch cancel, F3 for the frontend probe.
 
 Evidence:
 
