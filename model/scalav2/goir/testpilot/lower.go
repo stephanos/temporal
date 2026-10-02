@@ -47,13 +47,9 @@ type Unsupported struct {
 	Why       string
 }
 
-// The tasks of fn-107 that own what this package has nothing to lower into: the race controls and
-// authored monitors. What no task owns is a limit of the prototype, and is said to be one.
-const (
-	ownerControls   = "fn-107.10"
-	ownerAssessment = "fn-107.12"
-	ownerNone       = "none: a recorded limit of the prototype"
-)
+// What this package has nothing to lower into is owned by no task: it is a limit of the prototype,
+// and is said to be one.
+const ownerNone = "none: a recorded limit of the prototype"
 
 // Disposition is what became of one declaration of a realization in one Case.
 type Disposition string
@@ -218,33 +214,30 @@ func (p *Producer) Lower(query string, identity cp.Identity) (*Lowering, error) 
 	return &Lowering{Standing: Lowered, Case: produced, OffPath: off, Inventory: inventory}, nil
 }
 
-// gaps lists every declaration of a realization, and of the machine it runs, that Testpilot has
-// nothing for, in the order the IR lists them: the ones in a Query's way, and the ones off its path.
-// A monitor, a kind of evidence and a control are the realization's, and stand in the way of every
-// Query of it. A command stands in the way of the Queries whose Case would carry it,
+// gaps lists every declaration of a realization that Testpilot has nothing for, in the order the IR
+// lists them: the ones in a Query's way, and the ones off its path. A kind of evidence and a control
+// are the realization's, and stand in the way of every Query of it. An authored monitor of the
+// machine is no gap: a Case's Contract carries none, and the prepared assessment reads each beside
+// the Contract (goir/conformance). The record of an attempt stands in the way of the Queries whose Case runs two
+// activities: the Run's record names neither. A command stands in the way of the Queries whose Case would carry it,
 // which takes says, and is off the path of the others.
 func (p *Producer) gaps(r *modelirspb.Realization, takes func(*modelirspb.Item, *modelirspb.Performance) bool) (out, off []Unsupported) {
-	var watching []*modelirspb.Monitor
-	if mm := p.realizer.Machine(r.GetMachine()); mm != nil {
-		watching = mm.Monitors
-	}
-	for _, mo := range watching {
-		out = append(out, Unsupported{Construct: "authored monitor", ID: mo.GetName(), Position: locate(mo.GetPosition()), Owner: ownerAssessment,
-			Why: "a Case's Contract carries no authored monitor: it is assessed beside the Contract through the prepared assessment seam"})
-	}
 	for _, e := range r.GetEvidence() {
 		out = append(out, evidenceGaps(e)...)
 	}
+	out = append(out, indistinct(r, takes)...)
 	for _, c := range r.GetControls() {
-		out = append(out, Unsupported{Construct: "hold-delivery control", ID: c.GetId(), Position: locate(c.GetPosition()), Owner: ownerControls,
-			Why: "a Driver's faults are worker lifecycle transitions; none holds a delivery inside the server"})
+		if !heldByDriver(c) {
+			out = append(out, Unsupported{Construct: "hold-delivery control", ID: c.GetId(), Position: locate(c.GetPosition()), Owner: ownerNone,
+				Why: "a Driver holds what a step dispatched to a task queue; none holds the deliveries of a channel"})
+		}
 	}
 	command := func(s *modelirspb.Script, item *modelirspb.Item, performance *modelirspb.Performance) {
 		c := item.GetCommand()
 		if performance != nil {
 			c = performance.GetCommand()
 		}
-		gap, unsupported := commandGap(s, c)
+		gap, unsupported := commandGap(r, s, c)
 		switch {
 		case !unsupported:
 		case takes(item, performance):
@@ -266,12 +259,72 @@ func (p *Producer) gaps(r *modelirspb.Realization, takes func(*modelirspb.Item, 
 	return out, off
 }
 
-// commandGap is what a Case has no instruction for in a command, if anything.
-func commandGap(s *modelirspb.Script, c *modelirspb.Command) (Unsupported, bool) {
+// indistinct is the records of attempts a Case of a Query cannot tell apart: every one, where the Case
+// runs two activities. A Run records an attempt at the command that carries it, and the one carrier of
+// a Case reserves every activity entrypoint the Case gives an instruction, so the records of all of
+// them are that command's, and none names its script.
+func indistinct(r *modelirspb.Realization, takes func(*modelirspb.Item, *modelirspb.Performance) bool) (out []Unsupported) {
+	var activities []string
+	for _, s := range r.GetScripts() {
+		if s.GetActivity() == nil {
+			continue
+		}
+		if slices.ContainsFunc(s.GetItems(), func(item *modelirspb.Item) bool {
+			return item.GetCommand() != nil && takes(item, nil) ||
+				slices.ContainsFunc(item.GetPerforms(), func(performance *modelirspb.Performance) bool { return takes(item, performance) })
+		}) {
+			activities = append(activities, s.GetId())
+		}
+	}
+	if len(activities) < 2 {
+		return nil
+	}
+	for _, e := range r.GetEvidence() {
+		of := e.GetRunEvent().GetAttempt()
+		if of == nil {
+			continue
+		}
+		at := of.GetPosition()
+		if at.GetFile() == "" {
+			at = e.GetPosition()
+		}
+		out = append(out, Unsupported{Construct: "attempt record among several activities", ID: e.GetId(), Position: locate(at), Owner: ownerNone,
+			Why: fmt.Sprintf("a Run records an attempt at the command that carries it, by its number and under no script's name, and one command of a Case "+
+				"carries every activity the Case runs: the attempts of scripts %s are not told apart", strings.Join(activities, " and "))})
+	}
+	return out
+}
+
+// heldByDriver is whether a control is one a Driver realizes: the hold of what a step dispatched to
+// a task queue.
+func heldByDriver(c *modelirspb.Control) bool {
+	return c.GetHoldDispatched() != nil && c.GetRole() != ""
+}
+
+// controlOf is the control of a realization a hold or a release names, by id.
+func controlOf(r *modelirspb.Realization, c *modelirspb.Command) *modelirspb.Control {
+	id := c.GetHold()
+	if _, releases := c.GetInstruction().(*modelirspb.Command_Release); releases {
+		id = c.GetRelease()
+	}
+	for _, declared := range r.GetControls() {
+		if declared.GetId() == id {
+			return declared
+		}
+	}
+	return nil
+}
+
+// commandGap is what a Case has no instruction for in a command, if anything: the hold or the
+// release of a control no Driver realizes.
+func commandGap(r *modelirspb.Realization, s *modelirspb.Script, c *modelirspb.Command) (Unsupported, bool) {
 	switch c.GetInstruction().(type) {
 	case *modelirspb.Command_Hold, *modelirspb.Command_Release:
+		if heldByDriver(controlOf(r, c)) {
+			return Unsupported{}, false
+		}
 		return Unsupported{Construct: "hold-delivery command", ID: s.GetId() + "/" + c.GetId(), Position: locate(c.GetPosition()),
-			Owner: ownerControls, Why: "no instruction holds or releases a delivery"}, true
+			Owner: ownerNone, Why: "no instruction holds or releases the deliveries of a channel"}, true
 	default:
 		return Unsupported{}, false
 	}
@@ -279,9 +332,11 @@ func commandGap(s *modelirspb.Script, c *modelirspb.Command) (Unsupported, bool)
 
 // evidenceGaps is what a Case cannot carry of one kind of evidence, in the order it is declared.
 func evidenceGaps(e *modelirspb.Evidence) (out []Unsupported) {
-	if e.GetCommitment() == modelirspb.Evidence_COMMITMENT_DURABLE {
-		out = append(out, Unsupported{Construct: "durable-commit observation", ID: e.GetId(), Position: locate(e.GetPosition()), Owner: ownerControls,
-			Why: "a Run records what an RPC returned and what history holds, and no durable commit of the receiver"})
+	// A Run records a durable commit of the receiver only as the record of the instruction that
+	// observed it, a release that delivered to it: no RPC a caller makes and no history reports one.
+	if e.GetCommitment() == modelirspb.Evidence_COMMITMENT_DURABLE && e.GetRunEvent() == nil {
+		out = append(out, Unsupported{Construct: "durable-commit observation", ID: e.GetId(), Position: locate(e.GetPosition()), Owner: ownerNone,
+			Why: "what an RPC returned and what history holds report no durable commit of the receiver: a Run records one only as the record of the release that observed it"})
 	}
 	for _, f := range e.GetFields() {
 		if !f.GetRedacted() {
@@ -341,7 +396,8 @@ func (l *lowering) unanswered() (out []Unsupported) {
 }
 
 // When a Run records each piece of a path's evidence is said here and nowhere else, and it is read
-// from declarations: nothing is inferred from what kind of event evidence is.
+// from declarations: nothing is inferred from what kind of event evidence is. Admission sees to it
+// that what a worker reports of an activation is always declared the record of an attempt.
 //
 //   - Evidence that is the record of an attempt (a Run Event source that names the attempt, and the
 //     activity script it is an attempt of) reaches a Run once that attempt is answered: with the step
@@ -369,20 +425,35 @@ type published struct {
 	number int64
 }
 
-// misplaced is the record of an attempt that a Run would record out of the path's order, and the
-// kind beside it on the path that it trades places with: one whose evidence it follows though it
-// confirms earlier steps, or precedes though it confirms later ones.
+// clash is how the record of an attempt stands against the kind beside it on the path.
+type clash int
+
+const (
+	// recordedLate is a record a Run records after the other kind's evidence, though it confirms
+	// earlier steps.
+	recordedLate clash = iota + 1
+	// recordedEarly is a record a Run records before the other kind's evidence, though it confirms
+	// later steps.
+	recordedEarly
+	// recordedTwice is a record of the attempt the other kind is the record of: the Run records the
+	// attempt as one Run Event, which is evidence of one kind.
+	recordedTwice
+)
+
+// misplaced is the record of an attempt that a Run would not record in the path's order, the kind
+// beside it on the path that it clashes with, and how.
 type misplaced struct {
 	kind, beside string
-	follows      bool
+	how          clash
 }
 
-// outOfOrder is the first record of an attempt that a Run would record out of the path's order, or
+// outOfOrder is the first record of an attempt that a Run would not record in the path's order, or
 // nil. The kinds are in path order, and answers is, for each activity script, the places on the path
 // of the steps that answer its attempts, in order. Evidence the controller records for a step is
 // recorded after that step and before the next; the record of an attempt is recorded with the
-// attempt's answer, before that step's own evidence. A record of an attempt the path does not answer
-// is recorded at no step, and is in no order with the rest.
+// attempt's answer, before that step's own evidence. Two kinds recorded at one moment are two records
+// of one attempt, which the Run records once. A record of an attempt the path does not answer is
+// recorded at no step, and is in no order with the rest.
 func outOfOrder(kinds []published, answers map[string][]int) *misplaced {
 	// Each step is two moments: what is recorded with it, and what is recorded after it.
 	type moment struct {
@@ -403,10 +474,12 @@ func outOfOrder(kinds []published, answers map[string][]int) *misplaced {
 		earlier, later := moments[i-1], moments[i]
 		switch {
 		case earlier.when < later.when:
+		case earlier.when == later.when:
+			return &misplaced{kind: later.of.kind, beside: earlier.of.kind, how: recordedTwice}
 		case earlier.of.script != "":
-			return &misplaced{kind: earlier.of.kind, beside: later.of.kind, follows: true}
+			return &misplaced{kind: earlier.of.kind, beside: later.of.kind, how: recordedLate}
 		default:
-			return &misplaced{kind: later.of.kind, beside: earlier.of.kind}
+			return &misplaced{kind: later.of.kind, beside: earlier.of.kind, how: recordedEarly}
 		}
 	}
 	return nil
@@ -447,9 +520,10 @@ func (l *lowering) unstarted() (problems []error) {
 	return problems
 }
 
-// late is the record of an attempt that a Run of this Query's path would record out of the path's
+// late is the record of an attempt that a Run of this Query's path would not record in the path's
 // order, if there is one: the Contract reads evidence in the order a Run records it, and would meet
-// the record and the kind beside it the wrong way round.
+// the record and the kind beside it the wrong way round, or one event where the path has two pieces
+// of evidence.
 func (l *lowering) late() []Unsupported {
 	var kinds []published
 	for _, confirmed := range l.confirmations {
@@ -478,10 +552,17 @@ func (l *lowering) late() []Unsupported {
 	gap := Unsupported{Construct: "attempt record that precedes earlier evidence", ID: record.kind, Position: locate(l.adapter.evidence[record.kind].GetPosition()),
 		Owner: ownerNone, Why: fmt.Sprintf("a Run records an attempt once it is answered, which on this path is before the Run records %s, "+
 			"though the record confirms later steps", record.beside)}
-	if record.follows {
+	switch record.how {
+	case recordedLate:
 		gap.Construct = "attempt record that follows later evidence"
 		gap.Why = fmt.Sprintf("a Run records an attempt once it is answered, which on this path is after the Run records %s, "+
 			"though the record confirms earlier steps", record.beside)
+	case recordedTwice:
+		of := l.attemptOf(record.kind)
+		gap.Construct = "attempt recorded as two kinds of evidence"
+		gap.Why = fmt.Sprintf("a Run records attempt %d of script %s as one Run Event, which is evidence of one kind, and the path confirms steps by %s as well",
+			of.GetNumber(), of.GetScript(), record.beside)
+	default:
 	}
 	return []Unsupported{gap}
 }
@@ -1205,11 +1286,28 @@ func (a *accounting) window(*modelirspb.Correlation, *testpilotspb.CorrelatedCon
 	return nil
 }
 
-// controls refuses a control in a Case: Testpilot has no part that carries one, and a realization
-// that declares one is not lowered.
+// controls records a control a Driver realizes as the instructions of the Case that hold and release
+// what it holds, the delivery controls of its task-queue role; one no instruction of the Case uses is
+// off the path. It refuses any other control in a Case: Testpilot has no part that carries one, and a
+// realization that declares one is not lowered.
 func (a *accounting) controls() error {
 	for _, c := range a.l.a.r.GetControls() {
-		return errorAt(c.GetPosition(), "controls %s of realization %s is in no part of the Case", c.GetId(), a.l.a.r.GetName())
+		if !heldByDriver(c) {
+			return errorAt(c.GetPosition(), "controls %s of realization %s is in no part of the Case", c.GetId(), a.l.a.r.GetName())
+		}
+		entry := Entry{Kind: "controls", ID: c.GetId(), Position: locate(c.GetPosition()), Disposition: OffPath}
+		for _, e := range a.c.GetProgram().GetEntrypoints() {
+			for _, n := range e.GetInstructions() {
+				fault := n.GetInstruction().GetInjectFault()
+				if fault.GetRoleId() != c.GetRole() ||
+					fault.GetKind() != testpilotspb.FAULT_KIND_DELIVERY_HOLD && fault.GetKind() != testpilotspb.FAULT_KIND_DELIVERY_RELEASE {
+					continue
+				}
+				entry.Disposition = InCase
+				entry.As = append(entry.As, "program.entrypoints["+e.GetEntrypointId()+"].instructions["+n.GetInstructionId()+"]")
+			}
+		}
+		a.entries = append(a.entries, entry)
 	}
 	return nil
 }

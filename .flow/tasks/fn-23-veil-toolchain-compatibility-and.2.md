@@ -14,8 +14,8 @@ Add the fixed handwritten compatibility source at `model/TemporalVeilCompatibili
 The checked-in source has one stable digest, parses into the expected positive/mutation semantic markers, and cannot be mistaken for a Temporal claim or ordinary model import. Tests reject generated markers, product imports, missing or duplicate cases, output-text-only success hooks, source drift, unsafe overlay paths, and any primary Lake dependency or manifest change.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
 ## Evidence
 - Commits:
 - Tests:

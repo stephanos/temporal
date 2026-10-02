@@ -1052,3 +1052,22 @@ def overMatchingQueries(c: Composition[OverMatching]): Vector[Query] =
 val currentOverMatchingQueries: Vector[Query] = overMatchingQueries(currentOverMatching)
 val staleOverMatchingQueries: Vector[Query] = overMatchingQueries(staleOverMatching)
 val currentOverLossyMatchingQueries: Vector[Query] = overMatchingQueries(currentOverLossyMatching)
+
+// ### The held race, run against a server
+//
+// The stale message is held at the dispatch cut while the pause commits, then delivered to
+// admission. The server is expected to follow the corrected design, so the Query that realizes the
+// race is declared on it, and the Run says whether the server conforms. The stale design's violation
+// is shown by its own verify Query, never by a Run.
+
+/** Admission met the stale message and rejected it. */
+val staleDeliveryRejected: Property[AdmissionState] =
+  currentAdmission.property("staleDeliveryRejected") when attemptStart holds (after =>
+    after.facts.contains(AdmissionFact.admissionRejected)
+  )
+
+val heldStaleDelivery: Query =
+  query("currentAdmission.heldStaleDelivery") find staleDeliveryRejected in currentAdmission
+    .scenario("heldStaleDelivery")
+    .starts(scheduledIdle)
+    .actions(dispatch, control(Control.pause), attemptStart) limits three

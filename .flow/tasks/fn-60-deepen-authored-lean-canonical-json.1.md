@@ -49,8 +49,8 @@ GOLANGCI_LINT_FIX=false make lint-code
 - [ ] The focused build, regression gate, model lint, and repository lint commands pass or report only a verified inherited baseline.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
 ## Evidence
 - Commits:
 - Tests:

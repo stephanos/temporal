@@ -36,8 +36,8 @@ Derive complete API catalog facts from the existing neutral descriptor projectio
 - [ ] Existing generated comments, type planning, command arguments, and exactly-three-artifact ownership remain unchanged.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
 ## Evidence
 - Commits:
 - Tests:

@@ -305,8 +305,9 @@ A realization says how the find Queries of one machine run against a system. It 
 - **kinds of evidence**, each the recorded data that confirms the facts the machine's evidence
   function names: a member of the history event's attributes, the elements of a repeated field a
   unary method returns, the one message at a path of a unary method's response, or the Run's own
-  record of one command's events of one kind, where a guard over the event's payload holds, which
-  may be declared the record of one attempt, by its number, of the activity one script runs; the
+  record of one command's events of one kind, where a guard over the event's payload holds, which,
+  where it is what a worker reports of an activation, is declared the record of one attempt, by its
+  number, of the activity one script runs; the
   field path that keys it to its operation, or, for the Run's record, the source's key, the run's own
   id or a path of the payload; what it commits to, what a caller was told or a durable commit of the
   receiver; the fields of the recorded data it keeps, each with the identity it names, if it
@@ -492,7 +493,7 @@ A reader rejects, before any check and at the position the IR gives, a Model tha
   polls such evidence;
 - declares the Run's record of an attempt of no script, of a script it does not declare or that no
   activity activates, of a script that starts with no delivery, of an attempt counted from below one,
-  or as an event that is no diagnostic;
+  or as an event that is no diagnostic, or declares a diagnostic the record of no attempt;
 - declares a field of evidence with no id or no path, two fields of one kind under one id, a field
   whose role is none it knows, a role on a redacted field, or two fields of one kind with one role;
 - declares an exhaustive kind of evidence that no command closes; or closes a kind that is not
@@ -556,17 +557,25 @@ message to a single read; a kept field to the Program's field declaration and th
 field, as the text, flag or unsigned integer its descriptor makes it; and an attempt answered as
 canceled to the instruction of that name. It lowers no realization that declares what Testpilot has no
 primitive for: a durable-commit kind of evidence and a control (fn-107.10), and a machine that names
-monitors (fn-107.12). Three more things have no task that owns them and are named as limits of the
+monitors (fn-107.12). Four more things have no task that owns them and are named as limits of the
 prototype. A redacted field: a lift reads a value for every field its evidence declares, so none
 carries a field without its value. An attempt of an activity the path starts and gives no answer: an
 activity entrypoint's instructions are answers, and none waits out a deadline. And the record of an
-attempt that a Run would record out of the path's order, which the Contract reads evidence in. When a
+attempt that a Run would record out of the path's order, which the Contract reads evidence in. And
+the record of an attempt in a Case that runs two activities: a Run records an attempt at the command
+that carries it, by its number and under no script's name, and the one carrier of a Case carries
+every activity the Case gives an instruction, so neither the Case's guard nor `Admits` can tell the
+attempts of the two apart. When a
 Run records a piece of evidence is read from declarations and never from the kind of event it is.
+What a worker reports of an activation is always declared the record of an attempt, so no such
+evidence is placed by a guess.
 Evidence declared the record of an attempt reaches a Run once that attempt is answered: with the
 step of the path that is the script's answer of that number, before that step's own evidence. Any
 other evidence is recorded by an instruction of the controller and reaches the Run as the controller
 runs it. A record that confirms steps before other evidence and is answered after it, or confirms
-steps after other evidence and is answered before it, has no Case. A record of an attempt the path
+steps after other evidence and is answered before it, has no Case. Neither has a path confirmed by
+two kinds that are the record of one attempt, which the Run records as one Run Event, evidence of
+one kind. A record of an attempt the path
 never starts is an error. The lowered guard of such a record also says the record is of the attempt
 its source names, after the source's own guard, so the runtime selects the record by the declaration.
 For the evidence the controller records, the Case itself is checked: each kind that confirms a step
@@ -578,8 +587,8 @@ the attempt's record, and that an attempt's record is recorded before the status
 answer. A Run that breaks either carries evidence the Contract refuses, and is incomplete, never a
 wrong Verdict. Each gap is named where it was written. A monitor, a kind of
 evidence and a control are the realization's, and stand in the way of every Query of it. A command
-Testpilot cannot run, an unanswered attempt and a late record stand in the way of the Queries whose
-path meets them and of no other: a command off a Query's path is listed as off the path, and the
+Testpilot cannot run, an unanswered attempt, a late record and a record among two activities stand in
+the way of the Queries whose path meets them and of no other: a command off a Query's path is listed as off the path, and the
 Case's inventory accounts for it as a command the path does not perform. A path that takes one class
 more than once is lowered like any other, each step confirmed by the kind that names it; what the
 producer refuses of such a path is an error. The inventory of a Case checks what it carries of a kind
@@ -595,7 +604,8 @@ the same identity they must agree, and the evidence of one operation is of one a
 `Admits` says whether a Run Event is an occurrence of the evidence a Run Event source declares, by
 the event's kind, the command that recorded it, the number of the attempt the event records where
 the source is declared the record of one, and the source's guard, which it checks by the one reading
-above before it evaluates it. Evidence of a kind that is the Run's own record is read only
+above before it evaluates it. The script such a source names it cannot read off the event, which is
+why a Case that runs two activities is not lowered. Evidence of a kind that is the Run's own record is read only
 from a Run Event its source admits: on any other event it is refused at that event, and a guard that
 cannot be evaluated there is an error. The assessment reads a kind by the fact it records and not by
 the steps it names: a piece of evidence may be explained by any step that records its fact, which

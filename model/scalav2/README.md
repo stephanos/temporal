@@ -144,7 +144,9 @@ Queries lower to Cases `testpilot.Prepare` admits: `completion`, `nonRetryableFa
 task owns. `startToCloseTimeout` starts an attempt it gives no answer, and no instruction of an
 activity entrypoint waits. `cancel` and `cancelRequest` request the cancellation while the attempt is
 held, and a Run records an attempt once it is answered, so the attempt's record would reach the Run
-after the cancel request's answer, out of the path's order. No lowered activity Case has run against
+after the cancel request's answer, out of the path's order. What a worker reports of an activation
+is admitted as the record of a named attempt alone, and a Case that would run two activities is not
+lowered, since a Run's record of an attempt names no script. No lowered activity Case has run against
 a server: the six run live through Testpilot's executor against a Driver that plays their paths, and
 their Runs replay to the same Verdict and assessment (`goir/conformance/played_test.go`). The activity's system designs and the Nexus close designs declare no realization yet, so
 their find Queries have the standing `no-realization`; a verify Query realizes nothing.

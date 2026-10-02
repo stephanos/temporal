@@ -7,7 +7,8 @@
     "fn-107-scala-umpire-prototype-for-standalone.7",
     "fn-107-scala-umpire-prototype-for-standalone.8",
     "fn-107-scala-umpire-prototype-for-standalone.9",
-    "fn-107-scala-umpire-prototype-for-standalone.10"
+    "fn-107-scala-umpire-prototype-for-standalone.10",
+    "fn-107-scala-umpire-prototype-for-standalone.22"
   ],
   "id": "fn-107-scala-umpire-prototype-for-standalone.11",
   "priority": null,
@@ -15,5 +16,5 @@
   "spec_path": ".flow/tasks/fn-107-scala-umpire-prototype-for-standalone.11.md",
   "status": "todo",
   "title": "Close the exploration, regression, and trace-inspection loop",
-  "updated_at": "2026-09-30T22:10:27.003429Z"
+  "updated_at": "2026-10-02T02:43:55.018727Z"
 }

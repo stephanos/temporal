@@ -14,8 +14,8 @@ Expose the diagnostic module through a zero-configuration `umpire-veil-compatibi
 Status 0 emits only canonical receipt JSON plus LF for completed adopt/defer decisions, status 2 does so for inconclusive, and status 1 leaves stdout empty. Stderr contains at most 128 ordered canonical progress lines and, only for status 1, exactly one final canonical error line. Argument, signal, phase ordering, event/stream N/N+1, temp-root, cleanup, and write-failure tests preserve this split; target-graph tests prove no existing Make/Lake/CI/runtime target invokes the command and the command cannot write the checkout.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
 ## Evidence
 - Commits:
 - Tests:

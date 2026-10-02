@@ -302,7 +302,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-25-optional-callerclosure-veil-binding-and.md",
-  "status": "open",
+  "status": "done",
   "title": "Optional CallerClosure Veil binding and canonical replay",
   "tracker": {
     "baseHashFlow": null,
@@ -315,5 +315,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T00:52:38.140933Z"
+  "updated_at": "2026-10-02T03:14:09.026717Z"
 }

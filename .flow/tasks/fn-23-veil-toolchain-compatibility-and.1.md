@@ -14,8 +14,8 @@ Implement the closed compatibility manifest, Linux/aarch64 reference profile, an
 The exact two candidates and entire reference closure validate deterministically; reordered, duplicate, moving, unknown, unresolved, unsafe, mutable, cache-missing, rootfs/bundle/wrapper/preflight-mismatched, ambient runtime/compiler-path-resolving, or undeclared inputs fail before dependency execution with no repository write. Fake acquisition covers success, unsupported host status 2, supported-host mismatch status 1, transport failure, every Git/npm/archive/OCI/tool-bundle/tree digest family, bad manifest, branch-only dependency, OCI whiteout/path escape, symlink/path escape, submodule, every numeric N/N+1 closure bound, credential stripping, offline-cache layout, missing/escaping ELF interpreter or `DT_NEEDED`, compiler include/resource/crt/libc++/linker/archive-tool escape, and complete cleanup.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
 ## Evidence
 - Commits:
 - Tests:

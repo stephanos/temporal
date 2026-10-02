@@ -38,8 +38,8 @@ Register the executable, expose root-only commands, publish the shared-core cont
 - [ ] No CI file, regeneration/diff recipe, persisted JSON, fourth generated artifact, model-local Makefile, runtime/evidence code, or Umpire3 reference is added.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
 ## Evidence
 - Commits:
 - Tests:

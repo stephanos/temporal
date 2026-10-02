@@ -188,7 +188,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-24-lean-native-verification-receipts-and.md",
-  "status": "open",
+  "status": "done",
   "title": "Lean-native verification receipts and canonical replay",
   "tracker": {
     "baseHashFlow": null,
@@ -201,5 +201,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T00:52:38.503766Z"
+  "updated_at": "2026-10-02T03:14:03.929697Z"
 }

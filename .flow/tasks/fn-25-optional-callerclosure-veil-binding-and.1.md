@@ -14,8 +14,8 @@ Run the completed fn-23 opt-in gate once, capture stdout outside the repository,
 The task evidence contains the exact closed branch record, admitted receipt identity, and equal normalized decisionStableDigest, with raw host/measurement fields absent. Adopt has non-null selected candidate/commit/closure, the unchanged complete solver capability array, and deterministically selected command mode/trust matching one exact entry; defer has an empty capability array, null selected fields, and the exact defer/inconclusive decision. No repository model, Lake, Make, or product artifact change is made by this task, and no later task may rerun the gate to switch modes.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
 ## Evidence
 - Commits:
 - Tests:

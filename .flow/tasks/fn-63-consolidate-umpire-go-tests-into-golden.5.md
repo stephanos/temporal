@@ -37,8 +37,8 @@ Finish R3-R6 by removing cross-package remnants, proving the reduction target, a
 - [ ] Documentation matches the final fixture layout and commands, and no unrelated architecture documentation changes.
 - [ ] `make fmt-imports` and `make lint-code` pass; public APIs, production imports/dependencies, generated protocols, runtime behavior, and existing comments remain unchanged.
 ## Done summary
-TBD
-
+Blocked:
+Won't do: the spec was cancelled and closed on 2026-10-01. It was built on fn-61 and on the runtime fn-64 removed.
 ## Evidence
 - Commits:
 - Tests:

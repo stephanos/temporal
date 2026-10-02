@@ -36,8 +36,8 @@ Migrate duplicated portable execution/evaluation behavior to the shared scenario
 - [ ] Focused package tests and portable fixture-diff checks pass without runtime Lean invocation.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do: the spec was cancelled and closed on 2026-10-01. It was built on fn-61 and on the runtime fn-64 removed.
 ## Evidence
 - Commits:
 - Tests:

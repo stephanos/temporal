@@ -741,7 +741,8 @@ message RunEventSource {
   Operand guard = 5;
   // Set where the events are the Run's record of one attempt of an activity: the attempt, and the
   // activity script it is an attempt of. A Run records an attempt once it is answered, so such
-  // evidence reaches the Run with that answer, and not with the command that carries it.
+  // evidence reaches the Run with that answer, and not with the command that carries it. A
+  // KIND_DIAGNOSTIC source always sets it, and no other kind does.
   AttemptOf attempt = 6;
 }
 
@@ -789,7 +790,15 @@ message Control {
   oneof kind {
     // Holds the deliveries of a channel, by the channel's id, until a command releases them.
     string hold_delivery = 3;
+    HoldDispatched hold_dispatched = 5;
   }
+  // The task-queue role whose deliveries a run holds, by id.
+  string role = 4;
+}
+
+// Holds what a step of the class dispatches, until a command releases it.
+message HoldDispatched {
+  ActionClass step = 1;
 }
 
 // One ordered list of commands and who runs it: the controller, or a worker for each workflow,

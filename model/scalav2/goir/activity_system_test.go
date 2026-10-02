@@ -133,6 +133,9 @@ func TestActivitySystemResults(t *testing.T) {
 		"composition currentOverForgetful":     RefinementRejected,
 		"composition currentOverVolatile":      RefinementRejected,
 
+		// The held race the server is run through: the corrected design rejects the stale message.
+		"query currentAdmission currentAdmission.heldStaleDelivery": Found,
+
 		"query activityProtocol competingTimers.scheduleToStartFirst": Found,
 		"query activityProtocol competingTimers.scheduleToCloseFirst": Found,
 

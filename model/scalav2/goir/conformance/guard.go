@@ -54,7 +54,9 @@ func Admits(source *modelirspb.RunEventSource, event *testpilotspb.RunEvent) (bo
 		return false, nil
 	}
 	// The record of an attempt is of the attempt its source names, by the number the Run records it
-	// under; an outcome that records no attempt is the record of none.
+	// under; an outcome that records no attempt is the record of none. The script the source names is
+	// not read here: a Run records an attempt at the command that carries it and under no script's
+	// name, so the lowering to a Case refuses a realization whose command carries two activities.
 	if of := source.GetAttempt(); of != nil && int64(event.GetOutcome().GetActivityAttempt().GetSdkAttempt()) != of.GetNumber() {
 		return false, nil
 	}

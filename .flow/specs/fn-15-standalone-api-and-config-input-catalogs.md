@@ -1,5 +1,9 @@
 # Standalone API and config input catalogs
 
+## Closed: won't do
+
+Closed on 2026-10-01 as won't-do by the owner. The Lean model is retired in favour of the Scala front end (`model/scalav2`), and the Lean toolchain is removed from this checkout. This specification is a historical record and must not be implemented. Its unfinished tasks are blocked rather than done because the tracker has no won't-do state.
+
 > HTML render lens: local file `.flow/artifacts/fn-15-standalone-api-and-config-input-catalogs/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Overview

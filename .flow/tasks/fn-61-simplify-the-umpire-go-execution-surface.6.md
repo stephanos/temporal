@@ -42,8 +42,8 @@ Delete the superseded HTTP resident executor and its `ExecuteRequest`/`ExecuteRe
 - [ ] One private evaluator preserves exact portable semantics and parity.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do: the spec was cancelled and closed on 2026-10-01. It is superseded by the Case Runtime (fn-64).
 ## Evidence
 - Commits:
 - Tests:

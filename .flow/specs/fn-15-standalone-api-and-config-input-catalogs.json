@@ -183,7 +183,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-15-standalone-api-and-config-input-catalogs.md",
-  "status": "open",
+  "status": "done",
   "title": "Standalone API and config input catalogs",
   "tracker": {
     "baseHashFlow": null,
@@ -196,5 +196,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-03T19:24:37.540894Z"
+  "updated_at": "2026-10-02T03:13:53.715555Z"
 }

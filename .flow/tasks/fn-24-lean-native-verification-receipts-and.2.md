@@ -14,8 +14,8 @@ Implement `Umpire.Formal.Native` over the existing checked Query and dependent `
 Exact matrices cover verified, complete no-counterexample, opaque violating context, budget exhausted, unsatisfiable, invalid, and unexpected found reasons, plus missing completeness, query form, policy, Property count, and dependent-kernel construction. Compile-time/API tests prove no free `PlanResult`, target, or kernel lineage can be crossed. Only the two complete outcomes establish within Limits; budget stays unknown, invalid/unsatisfiable stay invalid, violating selection remains an opaque context, and no path emits kernel trust or reads `Plan`.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
 ## Evidence
 - Commits:
 - Tests:

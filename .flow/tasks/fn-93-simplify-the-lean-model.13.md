@@ -34,8 +34,8 @@ LEAN_NUM_THREADS=1 make lint-model
 - [ ] Surviving goldens byte-identical; INVENTORY.md lost only the deleted rows; `internal/artifactv2` test green
 - [ ] Gate entries added without false hits; every gate green
 ## Done summary
-TBD
-
+Blocked:
+Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
 ## Evidence
 - Commits:
 - Tests:

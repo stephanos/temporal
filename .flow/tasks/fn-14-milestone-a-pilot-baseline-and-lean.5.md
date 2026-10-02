@@ -46,8 +46,8 @@ Compose provider-free and Agentworkflow evidence into one strict recomputable re
 - [ ] Check/verify make no provider call, run no mutation, and do not alter retained evidence.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do: the spec was cancelled and closed on 2026-10-01. It is superseded as a roadmap gate, and fn-81 deleted the Agentworkflow tooling it needs.
 ## Evidence
 - Commits:
 - Tests:

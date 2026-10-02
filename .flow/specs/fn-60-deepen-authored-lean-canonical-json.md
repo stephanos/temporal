@@ -1,5 +1,9 @@
 # Deepen authored Lean canonical JSON construction
 
+## Closed: won't do
+
+Closed on 2026-10-01 as won't-do by the owner. The Lean model is retired in favour of the Scala front end (`model/scalav2`), and the Lean toolchain is removed from this checkout. This specification is a historical record and must not be implemented. Its unfinished tasks are blocked rather than done because the tracker has no won't-do state.
+
 ## Overview
 
 Consolidate duplicated handwritten JSON construction in the authored Lean Behavior Model behind the existing ordered `CanonicalJson` interface. This is an internal, behavior-preserving cleanup for model maintainers: public authoring interfaces, checked values, typed diagnostics, canonical bytes, Behavior Fingerprints, imports, and trust remain unchanged.

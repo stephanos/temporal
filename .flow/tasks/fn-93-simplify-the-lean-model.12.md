@@ -34,8 +34,8 @@ make umpire-check-inventory umpire-check-goldens
 - [ ] No kept module needs anything from RunRecord, Evidence, Result or Set artifacts
 - [ ] Everything byte-identical, INVENTORY.md included
 ## Done summary
-TBD
-
+Blocked:
+Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
 ## Evidence
 - Commits:
 - Tests:

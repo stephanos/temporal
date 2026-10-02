@@ -410,3 +410,168 @@ object ActivityRealization:
     evidence = sources,
     cleanup = "cleanup"
   )
+
+  // ### The held race
+  //
+  // A controller starts one activity on a queue no worker polls, holds its dispatch at the cut
+  // between history's validated dispatch task and matching, pauses it, reads the pause back, and
+  // releases the old message. The release delivers it to admission, so it performs the attempt
+  // start, and records what admission committed for it: the commit observation. A Driver realizes
+  // the hold only where its environment runs the server, so the canary refuses the Case before any
+  // I/O.
+
+  private val holdDispatch = "hold-dispatch"
+  private val holdCommand = "hold-dispatch"
+  private val releaseCommand = "release-dispatch"
+
+  /**
+   * What admission committed for the released delivery, from the release's own record: the
+   * decision the server committed, never what a caller was told. The delivery is the stamp the
+   * message carried, so a decision of another delivery is no evidence of this one.
+   */
+  private def committed(records: String, decision: String) =
+    Evidence(
+      id = evidenceID(records),
+      records = records,
+      source = recordSource,
+      from = Recorded.RunEvent(
+        EventKind.instructionCompleted,
+        "controller",
+        releaseCommand,
+        key = Run,
+        guard = Some(
+          All(
+            succeeded,
+            Equal(
+              Path(Projected, "delivery_admission.decision"),
+              Literal(EnumName("DELIVERY_ADMISSION_DECISION_" + decision))
+            )
+          )
+        )
+      ),
+      operation = "",
+      commitment = Commitment.durable,
+      fields = Vector(
+        EvidenceField(
+          "delivery",
+          "delivery_admission.delivery_id",
+          role = Some(FieldRole.delivery)
+        ),
+        EvidenceField("activityRun", "delivery_admission.activity_run_id")
+      )
+    )
+
+  /** The start request of the held activity: the deadlines one path's timer needs, and no other. */
+  private def heldStart(id: String, deadlines: Vector[Assignment]) =
+    Command(
+      id,
+      Rpc(
+        workflowServiceRole,
+        service + "StartActivityExecution",
+        named ++ Vector(
+          Assignment("activity_type.name", Literal(Named(activityType))),
+          Assignment("task_queue.name", Environment(taskQueueBinding)),
+          Assignment("request_id", Run)
+        ) ++ deadlines
+      )
+    )
+
+  // The machine starts scheduled, so no step of a path is the start: a Case carries the start its
+  // path's steps need. A path that delivers to admission sets no deadline that could fire first,
+  // and a path a deadline ends sets that deadline alone. The dispatch stays held in a path that
+  // never releases it, which is what lets its deadline fire with no worker in the way. No Query's
+  // path both delivers and times out; one that did would carry two starts, and its Run would fail
+  // at the second.
+  private val heldController = Script(
+    "controller",
+    Activation.Controller,
+    Vector(
+      Item(
+        command = Some(
+          heldStart(startActivity, Vector(Assignment("start_to_close_timeout.seconds", longSeconds)))
+        ),
+        when = Vector(attemptStart)
+      ),
+      Item(
+        command = Some(
+          heldStart(
+            "start-activity-until-schedule-to-start",
+            Vector(
+              Assignment("start_to_close_timeout.seconds", longSeconds),
+              Assignment("schedule_to_start_timeout.seconds", deadlineSeconds)
+            )
+          )
+        ),
+        when = Vector(scheduleToStart)
+      ),
+      Item(
+        command = Some(
+          heldStart(
+            "start-activity-until-schedule-to-close",
+            Vector(Assignment("schedule_to_close_timeout.seconds", deadlineSeconds))
+          )
+        ),
+        when = Vector(scheduleToClose)
+      ),
+      Item(performs = Vector(Performance(dispatch, Command(holdCommand, Hold(holdDispatch))))),
+      Item(performs =
+        Vector(controlBinding(control(Control.pause), "pause-activity", "PauseActivityExecution"))
+      ),
+      Item(
+        command = Some(awaitStatus("await-paused", "statusPaused", "PAUSED")),
+        when = Vector(control(Control.pause))
+      ),
+      Item(performs =
+        Vector(Performance(attemptStart, Command(releaseCommand, Release(holdDispatch))))
+      ),
+      Item(
+        command = Some(awaitStatus("await-timed-out", "statusTimedOut", "TIMED_OUT")),
+        when = Vector(scheduleToClose, scheduleToStart)
+      )
+    )
+  )
+
+  /** The stale dispatch of one paused activity, held, then delivered to admission. */
+  val heldDelivery: Realization = Realization(
+    name = "heldDelivery",
+    machine = currentAdmission,
+    producer = "temporal.activity.standalone.testpilot",
+    producerVersion = "1",
+    roles = Vector(
+      Role(workflowServiceRole, RoleKind.endpoint),
+      Role(
+        taskQueueRole,
+        RoleKind.taskQueue,
+        namespace = workerNamespaceBinding,
+        resource = taskQueueBinding
+      )
+    ),
+    correlation = Correlation(
+      projection = projectionID,
+      run = runFieldID,
+      operation = operationFieldID,
+      observation = correlatedObservation,
+      events = 32,
+      buffered = 16,
+      keys = 8,
+      support = 128,
+      work = 1000000000,
+      eventSize = 512
+    ),
+    scripts = Vector(heldController),
+    observations = Vector(
+      Observed(correlatedObservation, "temporal.server.api.testpilot.v1.CorrelatedEvidence")
+    ),
+    evidence = Vector(
+      accepted("dispatchSent", "dispatchSent", holdCommand),
+      status("statusPaused"),
+      status("statusTimedOut"),
+      committed("admissionRejected", "REJECTED"),
+      committed("attemptAdmitted", "ADMITTED")
+    ),
+    controls = Vector(
+      umpire.realize.Control(holdDispatch, ControlKind.HoldDispatched(dispatch), role = taskQueueRole)
+    ),
+    cleanup = "cleanup"
+  )
+

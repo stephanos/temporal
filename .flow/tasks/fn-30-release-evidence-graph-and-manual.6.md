@@ -45,8 +45,8 @@ Expose the reviewed release boundary through root commands and one isolated, man
 - [ ] Local retention, the signed evidence index, and role decisions have explicit protected signer ownership; build/deployment attestations are fixed external inputs.
 - [ ] Ref/SHA binding, gate semantics, permissions, timeouts, concurrency, and capability scans pass.
 ## Done summary
-TBD
-
+Blocked:
+Won't do: the spec was cancelled and closed on 2026-10-01. It was re-scoped to the release owner, outside `tools/umpire`, and nothing in this tree depends on it.
 ## Evidence
 - Commits:
 - Tests:

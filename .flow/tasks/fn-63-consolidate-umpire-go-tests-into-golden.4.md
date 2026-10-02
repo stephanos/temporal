@@ -36,8 +36,8 @@ Collapse repeated whole-Artifact acceptance and cross-Artifact closure checks in
 - [ ] Artifact package tests pass with `go test -count=1 -tags test_dep`.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do: the spec was cancelled and closed on 2026-10-01. It was built on fn-61 and on the runtime fn-64 removed.
 ## Evidence
 - Commits:
 - Tests:

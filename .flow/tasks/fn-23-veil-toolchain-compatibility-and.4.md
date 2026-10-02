@@ -14,8 +14,8 @@ Add pure normalization, decision, canonical receipt/error schema, and receipt-id
 The exact complete matrix deterministically yields `adopt-optional`, `defer-incompatible`, or `inconclusive` and selects the first fully compatible candidate in declared order. An explicit preview-incompatible/main-compatible fixture selects main. Boundary tests cover every N/N+1 threshold, candidate-scoped applicability/nullability, incomplete matrix, candidate priority, three-run disagreement, solver/trust distinctions, every schema field/enum/order/bound, stable reason ordering, host/raw-metric identity exclusion, semantic identity inclusion, and repeat-byte canonical receipt/error JSON fixtures.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
 ## Evidence
 - Commits:
 - Tests:

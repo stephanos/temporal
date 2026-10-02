@@ -41,8 +41,8 @@ Create proposed Temporal.Feature.Nexus.Success.ProducerTests for the timeout/low
 - [ ] No request rewriting, monitor duplication or unrelated generated fixture changes enter the delivery.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do: the spec was closed on 2026-10-01. Its plan rests on Lean-owned Cases, the fn-68 producer and fn-78 monitoring, all retired. What it set out to show, functional tests and a canary consuming one model-owned Case through Testpilot, is shown by the production canary in `tools/canary` and by fn-107.9, which runs one Scala-lowered Case through both consumers. Only minute-by-minute scheduling is not built; if it is wanted, write a new spec on the Scala IR.
 ## Evidence
 - Commits:
 - Tests:

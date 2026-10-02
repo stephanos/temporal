@@ -35,8 +35,8 @@ Implement the pure shared query, validation, JSON-envelope, and dispatch boundar
 - [ ] No API, config, semantic registry, IO, file, runtime, or Temporal-independent Umpire dependency enters the core.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
 ## Evidence
 - Commits:
 - Tests:

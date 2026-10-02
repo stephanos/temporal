@@ -45,8 +45,8 @@ Define the fresh-session harness and closed usability evaluator for R2/R4/R5/R7 
 - [ ] No candidate patch is applied, no live provider is invoked, and no Agentworkflow engine/store layout is scraped.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do: the spec was cancelled and closed on 2026-10-01. It is superseded as a roadmap gate, and fn-81 deleted the Agentworkflow tooling it needs.
 ## Evidence
 - Commits:
 - Tests:

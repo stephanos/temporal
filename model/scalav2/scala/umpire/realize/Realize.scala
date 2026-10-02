@@ -64,9 +64,9 @@ enum Recorded:
    * `guard` holds of the event's payload, its instruction outcome. `key` names the operation an event
    * is of: the run's own id, or a path of the payload.
    *
-   * `attempt` says the events are the record of one attempt of an activity. A Run records an attempt
-   * once it is answered, so the evidence reaches the Run with that answer and not with the command
-   * that carries it, and the events are the ones that record the attempt of that number.
+   * `attempt` says the events are the record of one attempt of an activity, and a `diagnostic` always
+   * names one. A Run records an attempt once it is answered, so the evidence reaches the Run with that
+   * answer and not with the carrying command, as the events that record the attempt of that number.
    */
   case RunEvent(
       kind: EventKind,
@@ -164,8 +164,17 @@ enum ControlKind:
   /** Holds a channel's deliveries until a command releases them. */
   case HoldDelivery(channel: Channel[?])
 
-/** An actuator a run needs beyond its commands. */
-final case class Control(id: String, kind: ControlKind)
+  /**
+   * Holds what a step of the class dispatches until a command releases it: the step has sent its
+   * message, and nothing has delivered it.
+   */
+  case HoldDispatched(step: ClassRef)
+
+/**
+ * An actuator a run needs beyond its commands. `role` is the task-queue role whose deliveries a run
+ * holds: a run reaches the channel through the deliveries of that queue.
+ */
+final case class Control(id: String, kind: ControlKind, role: String = "")
 
 /**
  * A text a Case gets its own copy of: the prefix, then the Case's fixture name when `fixture` is

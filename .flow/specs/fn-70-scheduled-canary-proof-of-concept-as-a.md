@@ -1,5 +1,9 @@
 # Scheduled canary proof of concept as a second model consumer
 
+## Closed: won't do
+
+Closed on 2026-10-01 as won't-do in this form. Its plan rests on Lean-owned Cases, the fn-68 producer and fn-78 monitoring, all retired. What it set out to show, functional tests and a canary consuming one model-owned Case through Testpilot, is shown by the production canary in `tools/canary` and by fn-107.9, which runs one Scala-lowered Case through both consumers. Only minute-by-minute scheduling is not built; if it is wanted, write a new spec on the Scala IR. This specification is a historical record and must not be implemented as written. Its unfinished tasks are blocked rather than done because the tracker has no won't-do state.
+
 Status: task planning against delivered dependencies. Nexus operation cancellation is deferred to fn-79. This canary consumes the existing success Case and fn-78’s generic monitoring delivery; it does not wait for a cancellation adapter, capability, or demonstration. Activity/Workflow cancellation and bounded cleanup below remain operational requirements.
 
 > HTML render lens: `.flow/artifacts/fn-70-scheduled-canary-proof-of-concept-as-a/spec.html` — open locally; regenerable, markdown is the record. <!-- flow-next:artifact-link -->

@@ -146,7 +146,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-63-consolidate-umpire-go-tests-into-golden.md",
-  "status": "open",
+  "status": "done",
   "title": "Consolidate Umpire Go tests into golden scenarios",
   "tracker": {
     "baseHashFlow": null,
@@ -159,5 +159,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T18:38:03.626657Z"
+  "updated_at": "2026-10-02T03:23:34.280214Z"
 }

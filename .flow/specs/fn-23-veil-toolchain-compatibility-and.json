@@ -283,7 +283,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-23-veil-toolchain-compatibility-and.md",
-  "status": "open",
+  "status": "done",
   "title": "Veil toolchain compatibility and adoption gate",
   "tracker": {
     "baseHashFlow": null,
@@ -296,5 +296,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-01T10:37:44.164613Z"
+  "updated_at": "2026-10-02T03:13:58.878191Z"
 }

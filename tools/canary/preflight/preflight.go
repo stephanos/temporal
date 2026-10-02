@@ -18,6 +18,7 @@ import (
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/canary/authority"
 	"go.temporal.io/server/tools/canary/casebinding"
 	"go.temporal.io/server/tools/canary/policy"
@@ -100,6 +101,10 @@ type Scope struct {
 // Check runs every check in order, the ones that need no connection first, and returns the Scope
 // or the first Refusal.
 func Check(ctx context.Context, input Input) (*Scope, error) {
+	return check(ctx, input, casebinding.Bind)
+}
+
+func check(ctx context.Context, input Input, bind func(*policy.Policy, testpilotdriver.Environment) (*casebinding.Bound, error)) (*Scope, error) {
 	if input.Policy == nil || input.Lookup == nil || input.Redactor == nil || input.Namespaces == nil {
 		return nil, errors.New("preflight needs a policy, an environment, a Redactor and a namespace read")
 	}
@@ -118,7 +123,7 @@ func Check(ctx context.Context, input Input) (*Scope, error) {
 	if name, differs := digests.Mismatch(canary.Coordinates); differs {
 		return refuse(StatusCoordinateMismatch, "the %s coordinate's digest is not the policy's", name)
 	}
-	bound, err := casebinding.Bind(canary, input.Coordinates.Driver())
+	bound, err := bind(canary, input.Coordinates.Driver())
 	if err != nil {
 		return refuse(StatusCaseMismatch, "%s", err)
 	}

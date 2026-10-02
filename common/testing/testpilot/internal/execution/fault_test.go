@@ -73,6 +73,15 @@ func TestPrepareAdmitsFaultInjection(t *testing.T) {
 		category ir.ErrorCategory
 	}{
 		{"admitted", func(*testpilotspb.Case, *Profile) {}, ""},
+		// Whether a Driver can hold a delivery is the Driver's to answer at Validate, as a worker
+		// outage is: admission takes every declared kind.
+		{"delivery control", func(c *testpilotspb.Case, _ *Profile) {
+			c.Program.Entrypoints[0].Instructions[0].Instruction.GetInjectFault().Kind = testpilotspb.FAULT_KIND_DELIVERY_HOLD
+			c.Program.Entrypoints[0].Instructions[1].Instruction.GetInjectFault().Kind = testpilotspb.FAULT_KIND_DELIVERY_RELEASE
+		}, ""},
+		{"undeclared fault kind", func(c *testpilotspb.Case, _ *Profile) {
+			c.Program.Entrypoints[0].Instructions[0].Instruction.GetInjectFault().Kind = testpilotspb.FAULT_KIND_DELIVERY_RELEASE + 1
+		}, ir.Unknown},
 		{"missing opcode", func(_ *testpilotspb.Case, p *Profile) {
 			p.Opcodes = p.Opcodes[:len(p.Opcodes)-1]
 		}, ir.Unsupported},
@@ -147,6 +156,77 @@ func TestSchedulerRecordsOneFaultEventPerInstruction(t *testing.T) {
 			for i, want := range tc.want {
 				require.True(t, proto.Equal(want, recorded[i]))
 			}
+		})
+	}
+}
+
+// What admission committed for a released delivery is the outcome of the release that delivered it
+// and of nothing else: a release that succeeded without it, and any other instruction that reports
+// one, are malformed outcomes, never evidence.
+func TestDeliveryAdmissionIsCarriedOnlyByASuccessfulRelease(t *testing.T) {
+	admission := &testpilotspb.DeliveryAdmission{ActivityId: "activity", ActivityRunId: "run", DeliveryId: "7",
+		Decision: testpilotspb.DELIVERY_ADMISSION_DECISION_REJECTED}
+	for _, tc := range []struct {
+		name     string
+		outcome  func(testpilotspb.FaultKind) *testpilotspb.InstructionOutcome
+		recorded *testpilotspb.DeliveryAdmission
+	}{
+		{"release carries the decision", func(kind testpilotspb.FaultKind) *testpilotspb.InstructionOutcome {
+			if kind == testpilotspb.FAULT_KIND_DELIVERY_RELEASE {
+				return &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, DeliveryAdmission: admission}
+			}
+			return &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}
+		}, admission},
+		{"release without a decision", func(testpilotspb.FaultKind) *testpilotspb.InstructionOutcome {
+			return &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}
+		}, nil},
+		{"hold with a decision", func(testpilotspb.FaultKind) *testpilotspb.InstructionOutcome {
+			return &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, DeliveryAdmission: admission}
+		}, nil},
+		{"undecided release with a decision", func(kind testpilotspb.FaultKind) *testpilotspb.InstructionOutcome {
+			if kind == testpilotspb.FAULT_KIND_DELIVERY_RELEASE {
+				return &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE, DeliveryAdmission: admission}
+			}
+			return &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}
+		}, nil},
+		{"unspecified decision", func(kind testpilotspb.FaultKind) *testpilotspb.InstructionOutcome {
+			if kind == testpilotspb.FAULT_KIND_DELIVERY_RELEASE {
+				return &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, DeliveryAdmission: &testpilotspb.DeliveryAdmission{ActivityId: "activity"}}
+			}
+			return &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}
+		}, nil},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			c, catalog, policy := faultFixture(t)
+			c.Program.Entrypoints[0].Instructions[0].Instruction.GetInjectFault().Kind = testpilotspb.FAULT_KIND_DELIVERY_HOLD
+			c.Program.Entrypoints[0].Instructions[1].Instruction.GetInjectFault().Kind = testpilotspb.FAULT_KIND_DELIVERY_RELEASE
+			prepared, err := Prepare(c, catalog, policy)
+			require.NoError(t, err)
+			host := &testsupport.Session{OnInjectFault: func(_ context.Context, _ contract.Coordinate, _ string, kind testpilotspb.FaultKind) (contract.EffectHandle, error) {
+				return &testsupport.Effect{OnWait: func(context.Context) (contract.EffectResult, error) {
+					return contract.EffectResult{Outcome: tc.outcome(kind)}, nil
+				}}, nil
+			}}
+			s, err := newScheduler(prepared, "run", "case", host, schedulerMonitor{}, time.Now)
+			require.NoError(t, err)
+			executeErr := s.execute(context.Background())
+			s.waits.Wait()
+			var completed []*testpilotspb.InstructionOutcome
+			for _, event := range s.recorder.run.Events {
+				if event.Kind == testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED {
+					completed = append(completed, event.GetOutcome())
+				}
+			}
+			if tc.recorded == nil {
+				require.Error(t, executeErr)
+				for _, outcome := range completed {
+					require.Nil(t, outcome.GetDeliveryAdmission())
+				}
+				return
+			}
+			require.NoError(t, executeErr)
+			require.Len(t, completed, 2)
+			require.True(t, proto.Equal(tc.recorded, completed[1].GetDeliveryAdmission()))
 		})
 	}
 }

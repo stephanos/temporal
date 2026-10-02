@@ -8,7 +8,9 @@ import (
 	"go.temporal.io/server/chasm"
 	"go.temporal.io/server/chasm/lib/activity/gen/activitypb/v1"
 	"go.temporal.io/server/common/metrics"
+	"go.temporal.io/server/common/namespace"
 	"go.temporal.io/server/common/resource"
+	"go.temporal.io/server/common/testing/testhooks"
 	"go.temporal.io/server/common/util"
 	"go.uber.org/fx"
 )
@@ -28,6 +30,7 @@ type DispatchTaskHook func(
 type activityDispatchTaskHandlerOptions struct {
 	fx.In
 
+	TestHooks        testhooks.TestHooks
 	MatchingClient   resource.MatchingClient
 	DispatchTaskHook DispatchTaskHook `optional:"true"`
 }
@@ -70,6 +73,12 @@ func (h *activityDispatchTaskHandler) Execute(
 	request, err := h.createMatchingRequest(ctx, activityRef)
 	if err != nil {
 		return err
+	}
+
+	if hold, ok := testhooks.Get(h.opts.TestHooks, testhooks.ActivityDispatch, namespace.ID(activityRef.NamespaceID)); ok {
+		if err := hold(ctx, testhooks.ActivityDelivery{Execution: activityRef.ExecutionKey, Stamp: request.GetStamp()}); err != nil {
+			return err
+		}
 	}
 
 	// Invoke the hook at the final dispatch boundary so it observes only validated

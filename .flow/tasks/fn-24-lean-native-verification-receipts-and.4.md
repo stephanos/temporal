@@ -14,8 +14,8 @@ Add the family-owned `CallerClosureFormal` adapter for the existing target/verif
 The positive fixture is exactly established-within-Limits/bounded-symbolic-search and cross-binds current target/kernel/query/Property/Limits/completeness/toolchain digests. The negative control deterministically selects the unchanged force-close trace, evaluates only its test-owned clause false, matches canonical replay, and produces exactly violated/concrete-replay. Target and production Property/Query/artifact bytes remain unchanged; no negative identity appears in public registries or projections.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
 ## Evidence
 - Commits:
 - Tests:

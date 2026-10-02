@@ -31,7 +31,15 @@ scala_build() {
 }
 # The lifter's own arguments follow `--`, so scala-cli's flags go before it: an argument after it
 # is a root, and the lifter refuses a root that names nothing.
-lift() { mise exec -- scala-cli run --suppress-outdated-dependency-warning "$here/lifter" -- "$@"; }
+lift() {
+  local diagnostics lift_rc=0
+  diagnostics="$(mktemp "$here/gen/lift-stderr.XXXXXX")" || return $?
+  mise exec -- scala-cli run --suppress-outdated-dependency-warning "$here/lifter" -- "$@" \
+    2> "$diagnostics" || lift_rc=$?
+  sed '/^WARNING/d' "$diagnostics" >&2 || return $?
+  rm "$diagnostics" || return $?
+  return "$lift_rc"
+}
 # A fixture's sources are stored as <file>.scala.fixture, which no build, formatter or linter of the
 # tree reads, since some of them must not compile. materialize <fixture> copies them into
 # gen/fixtures/<fixture> as the .scala files its build reads, with its project's jar path resolved,
@@ -81,7 +89,7 @@ activity_roots=("${activity}standaloneActivity" "${activity}activityProduct" "${
 activity_system_roots=(currentQueries staleQueries competingTimers matchingQueueQueries forgetfulQueueQueries
   volatileQueueQueries lossyMatchingQueueQueries storageLossQuery currentOverQueueQueries staleOverQueueQueries
   currentOverMatchingQueries staleOverMatchingQueries currentOverLossyMatchingQueries currentOverForgetful
-  currentOverVolatile)
+  currentOverVolatile heldStaleDelivery)
 
 # The Nexus caller close and reset designs: ir/nexus-close.json. Each design's Queries are a root, and
 # so is each progress claim.
@@ -117,8 +125,7 @@ refuses crossed Crossed.scala.fixture:35:14 Crossed.scala.fixture:45:28
 
 echo "== lift the Nexus caller Model"
 lifted="$(mktemp)"
-lift "$here/gen/model-scala.jar=$scala/" "$here/gen/model-scala.classpath" "$lifted" "${roots[@]}" \
-  2> >(grep -v '^WARNING' >&2)
+lift "$here/gen/model-scala.jar=$scala/" "$here/gen/model-scala.classpath" "$lifted" "${roots[@]}"
 if $update; then
   cp "$lifted" "$here/ir/nexus-caller.json"
 elif ! diff -q "$here/ir/nexus-caller.json" "$lifted" >/dev/null; then
@@ -173,7 +180,8 @@ rejected=(unbounded waiting doubled listening counter crossedRead negative watch
 lift_into rejects "$jars" "${rejected[@]/#/fixture.rejects.Rejects\$package\$.}" &
 lift_into activity "$here/gen/model-scala.jar=$scala/" "${activity_roots[@]}" &
 lift_into activity-system "$here/gen/model-scala.jar=$scala/" \
-  "${activity_system_roots[@]/#/temporal.standaloneactivity.System\$package\$.}" &
+  "${activity_system_roots[@]/#/temporal.standaloneactivity.System\$package\$.}" \
+  'temporal.standaloneactivity.ActivityRealization$.heldDelivery' &
 lift_into nexus-close "$here/gen/model-scala.jar=$scala/" \
   "${nexus_close_roots[@]/#/temporal.nexuscaller.closepolicy.Claims\$package\$.}" &
 wait
@@ -209,7 +217,7 @@ cp "$here/gen/fixtures/lifts/project.scala" "$shifted/project.scala"
 scala_build --power package --library "$shifted" -f -o "$here/gen/shifted.jar"
 lift "$here/gen/shifted.jar=$(stored lifts),$here/gen/model-scala.jar=$scala/" \
   "$here/gen/model-scala.classpath" "$here/gen/lifts/shifted.json" 'fixture.declarations.Declarations$package$.queries' \
-  'fixture.declarations.Declarations$package$.durableEventually' 2> >(grep -v '^WARNING' >&2)
+  'fixture.declarations.Declarations$package$.durableEventually'
 rm -rf "$shifted"
 lines() { sed -E 's/"line": [0-9]+/"line": _/' "$1"; }
 cmp -s "$here/gen/lifts/declarations.json" "$here/gen/lifts/shifted.json" \

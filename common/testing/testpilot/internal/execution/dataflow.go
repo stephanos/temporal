@@ -266,11 +266,12 @@ func (a *admission) bindRPC(g *graph, i int, n *node) error {
 	return a.bindResponseReads(g, i, n)
 }
 
-// A fault names the task-queue role whose worker the Driver stops or resumes; the role's own
-// resource binding identifies the queue, so the instruction carries no queue of its own.
+// A fault names the task-queue role whose worker the Driver stops or resumes, or whose delivery it
+// holds or releases; the role's own resource binding identifies the queue, so the instruction
+// carries no queue of its own.
 func (a *admission) bindFault(g *graph, n *node) error {
 	fault := n.source.Instruction.GetInjectFault()
-	if fault == nil || fault.Kind < testpilotspb.FAULT_KIND_WORKER_STOP || fault.Kind > testpilotspb.FAULT_KIND_WORKER_RESUME {
+	if fault == nil || fault.Kind < testpilotspb.FAULT_KIND_WORKER_STOP || fault.Kind > testpilotspb.FAULT_KIND_DELIVERY_RELEASE {
 		return ir.Invalid(ir.Malformed, nodePath(g, n), "fault injection requires a known fault kind")
 	}
 	// The role check does not go through a.role: a fault aimed at the wrong role kind is a

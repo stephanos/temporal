@@ -19,8 +19,8 @@ Add `Temporal.Tool.Verify` with the exact one-entry production registry and the 
 The sole registered identity emits the exact fixture plus LF and status 0; missing/extra/unknown input and registry/serialization failures follow the exact error envelope with empty stdout. Output is preconstructed and attempted once; a simulated short write proves status 1, the final error line, and the explicitly indeterminate stdout prefix contract. Fixture-driven harness tests also pin status mapping for valid violated/unknown/unsupported/invalid receipts without registering the negative control. Target-graph and checkout snapshots prove the opt-in target is absent from default Lake/build/regression/CI/runtime/production paths and performs no repository write.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
 ## Evidence
 - Commits:
 - Tests:

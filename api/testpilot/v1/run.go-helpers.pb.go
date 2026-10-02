@@ -192,6 +192,43 @@ func (this *InstructionOutcome) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type DeliveryAdmission to the protobuf v3 wire format
+func (val *DeliveryAdmission) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type DeliveryAdmission from the protobuf v3 wire format
+func (val *DeliveryAdmission) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *DeliveryAdmission) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two DeliveryAdmission values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *DeliveryAdmission) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *DeliveryAdmission
+	switch t := that.(type) {
+	case *DeliveryAdmission:
+		that1 = t
+	case DeliveryAdmission:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type ActivityAttempt to the protobuf v3 wire format
 func (val *ActivityAttempt) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
@@ -412,6 +449,25 @@ func (this *RuleVerdict) Equal(that interface{}) bool {
 	}
 
 	return proto.Equal(this, that1)
+}
+
+var (
+	DeliveryAdmissionDecision_shorthandValue = map[string]int32{
+		"Unspecified": 0,
+		"Admitted":    1,
+		"Rejected":    2,
+	}
+)
+
+// DeliveryAdmissionDecisionFromString parses a DeliveryAdmissionDecision value from  either the protojson
+// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to DeliveryAdmissionDecision
+func DeliveryAdmissionDecisionFromString(s string) (DeliveryAdmissionDecision, error) {
+	if v, ok := DeliveryAdmissionDecision_value[s]; ok {
+		return DeliveryAdmissionDecision(v), nil
+	} else if v, ok := DeliveryAdmissionDecision_shorthandValue[s]; ok {
+		return DeliveryAdmissionDecision(v), nil
+	}
+	return DeliveryAdmissionDecision(0), fmt.Errorf("%s is not a valid DeliveryAdmissionDecision", s)
 }
 
 var (

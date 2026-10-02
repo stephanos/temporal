@@ -1,0 +1,110 @@
+//go:build canary_harness
+
+package preflight
+
+import (
+	"path/filepath"
+	"slices"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/common/testing/protorequire"
+	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/temporal"
+	"go.temporal.io/server/model/scalav2/goir"
+	testpilotcore "go.temporal.io/server/tests/testcore/testpilot"
+	"go.temporal.io/server/tools/canary/casebinding"
+	"go.temporal.io/server/tools/canary/policy"
+	"go.temporal.io/server/tools/umpire/recordedrun"
+)
+
+func TestHarnessBindingUsesTheFunctionalCaseAndLeavesProductionPinned(t *testing.T) {
+	fixture, profile, canary := harnessFixture(t)
+	production := configured(t)
+	pinned := casebinding.Case()
+	before, err := casebinding.Bind(production, testCoordinates.Driver())
+	require.NoError(t, err)
+	reads := registered()
+	scope, err := CheckHarness(t.Context(), input(canary, dispatch(canary), testCoordinates, reads), fixture.Bytes, profile)
+	require.NoError(t, err)
+	require.Equal(t, 1, reads.reads)
+	protorequire.ProtoEqual(t, fixture.Source, scope.Prepared.Snapshot())
+	functional, err := testpilot.Prepare(fixture.Source, profile)
+	require.NoError(t, err)
+	require.Equal(t, functional.Identity(), scope.Prepared.Identity())
+	fixture.Bytes[0] = '!'
+	profile.EnvironmentBindings[0].Value = "mutated"
+	protorequire.ProtoEqual(t, fixture.Source, scope.Prepared.Snapshot())
+	require.Equal(t, functional.Identity(), scope.Prepared.Identity())
+	after, err := casebinding.Bind(production, testCoordinates.Driver())
+	require.NoError(t, err)
+	require.Equal(t, before.Prepared.Identity(), after.Prepared.Identity())
+	require.Equal(t, pinned, casebinding.Case())
+	rejected, err := Check(t.Context(), input(canary, dispatch(canary), testCoordinates, reads))
+	require.Error(t, err)
+	require.Nil(t, rejected)
+	require.Equal(t, 1, reads.reads)
+}
+
+func TestHarnessRejectsMissingCapabilityBeforeIO(t *testing.T) {
+	fixture, profile, canary := harnessFixture(t)
+	profile.Opcodes = slices.DeleteFunc(profile.Opcodes, func(op testpilot.Opcode) bool { return op == testpilot.Finish })
+	reads := registered()
+	scope, err := CheckHarness(t.Context(), input(canary, dispatch(canary), testCoordinates, reads), fixture.Bytes, profile)
+	require.Nil(t, scope)
+	require.ErrorContains(t, err, "unsupported at activity.complete-attempt")
+	refusal, ok := AsRefusal(err)
+	require.True(t, ok)
+	require.Equal(t, StatusCaseMismatch, refusal.Status)
+	require.Zero(t, reads.reads)
+}
+
+func TestHarnessBindingRejectsMismatchedAuthorityAndResources(t *testing.T) {
+	for _, mismatch := range []string{"authority", "evaluation", "identity", "profile", "namespace", "workflow", "coordinates"} {
+		t.Run(mismatch, func(t *testing.T) {
+			fixture, profile, canary := harnessFixture(t)
+			reads := registered()
+			in := input(canary, dispatch(canary), testCoordinates, reads)
+			switch mismatch {
+			case "authority":
+				canary.AuthorityClass = policy.AuthorityProtectedWorkflow
+			case "evaluation":
+				canary.EvaluationProfile = "production-canary"
+			case "identity":
+				canary.CaseIdentity = "another"
+			case "profile":
+				profile.Identity = "another"
+			case "namespace":
+				profile.EnvironmentBindings[0].Value = "another"
+			case "workflow":
+				in.Lookup = lookupOf(map[string]string{})
+			case "coordinates":
+				in.Coordinates.TaskQueue = "another"
+			default:
+				require.FailNow(t, "unknown mismatch", mismatch)
+			}
+			scope, err := CheckHarness(t.Context(), in, fixture.Bytes, profile)
+			require.Error(t, err)
+			require.Nil(t, scope)
+			require.Zero(t, reads.reads)
+		})
+	}
+}
+
+func harnessFixture(t *testing.T) (*testpilotcore.ScalaCase, testpilot.ProfileSpec, *policy.Policy) {
+	t.Helper()
+	fixture, err := testpilotcore.LoadScalaCase(filepath.Join("..", "..", "..", "model", "scalav2", "ir", "activity.json"),
+		goir.ClaimKey{Family: "temporal.activity.standalone", Owner: "activityProtocol", Name: "completion"}, "standaloneActivityTests")
+	require.NoError(t, err)
+	catalog, err := temporal.NewWorkflowServiceCatalog()
+	require.NoError(t, err)
+	canary := configured(t)
+	canary.AuthorityClass, canary.EvaluationProfile = policy.AuthorityHarness, "canary-harness"
+	canary.CaseIdentity, err = recordedrun.CaseIdentity(fixture.Bytes)
+	require.NoError(t, err)
+	environment := testCoordinates.Driver()
+	environment.Identity = canary.CaseProfile
+	profile, err := temporal.DeriveProfile(fixture.Source, catalog, environment)
+	require.NoError(t, err)
+	return fixture, profile, canary
+}

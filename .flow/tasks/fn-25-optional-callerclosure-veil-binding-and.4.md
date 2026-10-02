@@ -14,8 +14,8 @@ In adopt mode, translate the exact production family checker result into the v3 
 Adopt-mode production checking yields an honestly trusted bounded result; the distinct test-only negative Query/declaration yields a candidate that only becomes violated after matched replay against that same lineage. Crossing it with production Query/Property/binding fails stale. Mutations of gate/binding/request identities, Limits, trust, setup, state, action, outcome, observations, Property, order, or replay status fail closed. No backend verdict, concrete-only result, partial binding, or forged status can establish or violate. Defer mode has no lowering or receipt adapter.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
 ## Evidence
 - Commits:
 - Tests:

@@ -1,5 +1,9 @@
 # Nexus operation cancellation — deferred
 
+## Closed: won't do
+
+Closed on 2026-10-01 as won't-do in this form. Its requirements are written against the Lean model (fn-85 case blocks, the deleted `Temporal.Feature.Nexus.Race` prototype) and it was deferred by the owner. Nexus operation cancellation is still unmodeled; when it is taken up, author it in Scala under a new spec. The race behaviour recorded below is the part worth reusing. This specification is a historical record and must not be implemented as written. Its unfinished tasks are blocked rather than done because the tracker has no won't-do state.
+
 User decision: defer Nexus operation cancellation until explicitly requested again. This is outside fn-78, fn-77, and fn-70 completion requirements. The autonomous delivery goal is not approval to resume it.
 
 ## Scope

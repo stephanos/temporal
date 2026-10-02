@@ -148,7 +148,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-60-deepen-authored-lean-canonical-json.md",
-  "status": "open",
+  "status": "done",
   "title": "Deepen authored Lean canonical JSON construction",
   "tracker": {
     "baseHashFlow": null,
@@ -161,5 +161,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-07T03:07:10.018800Z"
+  "updated_at": "2026-10-02T03:13:47.705655Z"
 }

@@ -45,8 +45,8 @@ Add the generic read-only Agentworkflow evidence export required to prove trial 
 - [ ] The CLI is read-only, generic, canonical, and covered by exact stream/exit tests; existing comments are preserved.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do: the spec was cancelled and closed on 2026-10-01. It is superseded as a roadmap gate, and fn-81 deleted the Agentworkflow tooling it needs.
 ## Evidence
 - Commits:
 - Tests:

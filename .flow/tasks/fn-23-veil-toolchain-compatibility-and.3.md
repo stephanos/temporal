@@ -14,8 +14,8 @@ Build the acquisition/execution deep module around the frozen manifest and handw
 The runner returns complete candidate-scoped raw phase results and all three focused observations needed by the pure decision layer; preview-incompatible/main-compatible reaches and fully observes main, while preview-compatible stops without starting main. Every exact dependency/tool revision, rootfs/bundle/tree/wrapper identity, ELF/compiler preflight result, and trust capability is retained. Source patching, cache miss/network during build, ambient interpreter/runtime/header/resource/crt/library/linker/subtool resolution, current-toolchain drift, any numeric N+1, timeout, cancellation, solver failure, child leak, or cleanup uncertainty follows the exact tooling/incompatibility boundary and can never yield compatible status.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
 ## Evidence
 - Commits:
 - Tests:

@@ -77,6 +77,36 @@ message InstructionOutcome {
   // Set on the outcome of an activity activation: which attempt it was and what the worker offered
   // Temporal for it.
   ActivityAttempt activity_attempt = 6;
+  // Set on the successful outcome of a FAULT_KIND_DELIVERY_RELEASE: what the server's
+  // authoritative admission committed for the released delivery.
+  DeliveryAdmission delivery_admission = 7;
+}
+
+// DeliveryAdmission is the committed decision of the server's authoritative admission for one
+// released activity delivery, observed only after the decision committed. A decision the Driver
+// could not observe is no DeliveryAdmission.
+message DeliveryAdmission {
+  // The activity the delivery is of, and its run, as the server named them.
+  string activity_id = 1;
+  string activity_run_id = 2;
+  // The delivery: the attempt stamp the dispatch message carried, as decimal text.
+  string delivery_id = 3;
+  DeliveryAdmissionDecision decision = 4;
+  // The attempt number Temporal counts, from 1, of the attempt admission committed. Unset when the
+  // delivery was rejected.
+  int32 attempt = 5;
+}
+
+// DeliveryAdmissionDecision is what authoritative admission committed for one delivery.
+// (-- api-linter: core::0191::file-layout=disabled
+//     core::0216::synonyms=disabled --)
+enum DeliveryAdmissionDecision {
+  DELIVERY_ADMISSION_DECISION_UNSPECIFIED = 0;
+  // Admission committed an attempt for the delivery.
+  DELIVERY_ADMISSION_DECISION_ADMITTED = 1;
+  // Admission read the activity's current state, found the delivery obsolete, and committed
+  // nothing for it.
+  DELIVERY_ADMISSION_DECISION_REJECTED = 2;
 }
 
 // ActivityAttempt is what a worker reports about one attempt a standalone activity's script declares.

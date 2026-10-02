@@ -31,8 +31,8 @@ make umpire-check-goldens umpire-check-regression umpire-check-case-runtime-conf
 - [ ] The negative pins for field presence established only under disjunction or negation (`model/Umpire/Property/Tests/Fields.lean` ~148) and for lowering a disjunction (`model/Umpire/Case/Tests/FieldLowering.lean` ~745) pass unchanged
 - [ ] Precedence test added and green; every diagnostic order and every golden/fixture byte-identical
 ## Done summary
-TBD
-
+Blocked:
+Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
 ## Evidence
 - Commits:
 - Tests:

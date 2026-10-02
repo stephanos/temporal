@@ -1563,14 +1563,21 @@ func (v *validator) realization(r *modelirspb.Realization) {
 		a.attemptOf(e)
 	}
 	a.confirms(mm)
+	a.held(mm)
 }
 
 // attemptOf checks evidence that is the Run's record of an attempt: it names an attempt, counted from
 // one, of a script an activity activates, whose activation is a delivery a path can take, and it is
-// what a worker reports of an activation, which is how a Run records an attempt.
+// what a worker reports of an activation, which is how a Run records an attempt. What a worker reports
+// of an activation is such a record whatever the realization says of it, so it names its attempt: a
+// reader places it by that attempt, and has nothing else to place it by.
 func (a *realizing) attemptOf(e *modelirspb.Evidence) {
 	of := e.GetRunEvent().GetAttempt()
 	if of == nil {
+		if e.GetRunEvent().GetKind() == modelirspb.RunEventSource_KIND_DIAGNOSTIC {
+			a.report(e.GetPosition(), "evidence %s is what a worker reports of an activation and is declared the record of no attempt: "+
+				"a Run records it once the attempt is answered, and the realization says which attempt that is", e.GetId())
+		}
 		return
 	}
 	at := of.GetPosition()
@@ -1741,8 +1748,30 @@ func (a *realizing) declarations() {
 			if _, ok := a.v.channels[k.HoldDelivery]; !ok {
 				a.report(c.GetPosition(), "control %s: no channel %s", c.GetId(), k.HoldDelivery)
 			}
+		case *modelirspb.Control_HoldDispatched:
+			// A run holds a dispatch through the deliveries of a queue, so the control names one.
+			switch {
+			case k.HoldDispatched.GetStep() == nil:
+				a.report(c.GetPosition(), "control %s holds what a step of no class dispatches", c.GetId())
+			case c.GetRole() == "":
+				a.report(c.GetPosition(), "control %s holds deliveries and names no task-queue role", c.GetId())
+			default:
+				a.role(c.GetPosition(), "control "+c.GetId(), c.GetRole(), modelirspb.Role_KIND_TASK_QUEUE)
+			}
 		default:
 			a.report(c.GetPosition(), "control %s is of no known kind", c.GetId())
+		}
+	}
+}
+
+// held checks that a control that holds what a step dispatches names a class the machine binds.
+func (a *realizing) held(mm *modelirspb.Machine) {
+	if mm == nil {
+		return
+	}
+	for _, c := range a.r.GetControls() {
+		if step := c.GetHoldDispatched().GetStep(); step != nil {
+			a.v.actionClass(a.owner+": control "+c.GetId(), mm, step, c.GetPosition())
 		}
 	}
 }

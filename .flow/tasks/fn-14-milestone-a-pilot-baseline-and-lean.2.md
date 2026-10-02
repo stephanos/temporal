@@ -44,8 +44,8 @@ Build the provider-free source-snapshot, mutation-validity, detection, coverage,
 - [ ] Two provider-free reruns reproduce classifications, coverage, and non-duration decision inputs; tests use `require` and whole-value comparisons.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do: the spec was cancelled and closed on 2026-10-01. It is superseded as a roadmap gate, and fn-81 deleted the Agentworkflow tooling it needs.
 ## Evidence
 - Commits:
 - Tests:

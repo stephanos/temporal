@@ -13,6 +13,7 @@ import (
 	"go.temporal.io/sdk/client"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/temporal/control"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 	"go.temporal.io/server/common/testing/testpilot/temporal/server"
@@ -33,6 +34,10 @@ type Options struct {
 	SDKClient             client.Client
 	WorkerRoleID          string
 	WorkerStopTimeout     time.Duration
+	// Deliveries holds activity deliveries inside the server under test. Only an environment that
+	// runs that server can supply it; without it, a Program that holds a delivery is refused at
+	// Validate, before any I/O.
+	Deliveries *control.Deliveries
 }
 
 // Driver keeps server transport authority and SDK worker authority in their owning packages.
@@ -40,6 +45,8 @@ type Driver struct {
 	profile    testpilot.ProfileSpec
 	controller *server.Driver
 	worker     *workerhost.Driver
+	deliveries *control.Deliveries
+	poll       ActivityPoller
 }
 
 func New(options Options) (*Driver, error) {
@@ -57,7 +64,14 @@ func New(options Options) (*Driver, error) {
 		closeErr := controller.Close(context.Background())
 		return nil, errors.Join(err, closeErr)
 	}
-	return &Driver{profile: options.Profile.Snapshot(), controller: controller, worker: workers}, nil
+	driver := &Driver{profile: options.Profile.Snapshot(), controller: controller, worker: workers, deliveries: options.Deliveries}
+	if options.Deliveries != nil && options.SDKClient != nil {
+		service := options.SDKClient.WorkflowService()
+		driver.poll = func(ctx context.Context, request *workflowservice.PollActivityTaskQueueRequest) (*workflowservice.PollActivityTaskQueueResponse, error) {
+			return service.PollActivityTaskQueue(ctx, request)
+		}
+	}
+	return driver, nil
 }
 
 func (h *Driver) Snapshot() testpilot.ProfileSpec {
@@ -81,6 +95,9 @@ func (h *Driver) Validate(ctx context.Context, program testpilot.PreparedProgram
 	if err := h.controller.Validate(ctx, program); err != nil {
 		return err
 	}
+	if _, err := planDeliveries(program, h.poll != nil); err != nil {
+		return err
+	}
 	return h.worker.Validate(ctx, program)
 }
 
@@ -88,12 +105,18 @@ func (h *Driver) Open(ctx context.Context, runID string, program testpilot.Prepa
 	if h == nil || ctx == nil || runID == "" {
 		return nil, ErrInvalid
 	}
+	plan, err := planDeliveries(program, h.poll != nil)
+	if err != nil {
+		return nil, err
+	}
 	controller, err := h.controller.OpenSession(ctx, runID, program)
 	if err != nil {
 		return nil, err
 	}
 	if !primitive.HasWorkerEntrypoint(program.Entrypoints()) && !hasFaultInstruction(program) {
-		return newPreparedCompositeSession(controller, nil, program), nil
+		session := newPreparedCompositeSession(controller, nil, program)
+		session.deliveries = newDeliverySession(h.deliveries, h.poll, plan)
+		return session, nil
 	}
 	bridge, err := controller.Bridge(ctx)
 	if err != nil {
@@ -107,7 +130,9 @@ func (h *Driver) Open(ctx context.Context, runID string, program testpilot.Prepa
 	if err != nil {
 		return nil, errors.Join(err, controller.Close(context.Background()))
 	}
-	return newPreparedCompositeSession(controller, worker, program), nil
+	session := newPreparedCompositeSession(controller, worker, program)
+	session.deliveries = newDeliverySession(h.deliveries, h.poll, plan)
+	return session, nil
 }
 
 // A fault is realized by the worker Driver, so a Program that requests one is routed there even
@@ -143,6 +168,7 @@ type compositeSession struct {
 	program      testpilot.PreparedProgram
 	mu           sync.Mutex
 	reservations map[testpilot.Coordinate][]testpilot.ReservationHandle
+	deliveries   *deliverySession
 }
 
 func newPreparedCompositeSession(controller testpilot.Session, worker workerSession, program testpilot.PreparedProgram) *compositeSession {
@@ -168,6 +194,9 @@ func (s *compositeSession) PollRPC(ctx context.Context, coordinate testpilot.Coo
 }
 
 func (s *compositeSession) InvokeRPC(ctx context.Context, coordinate testpilot.Coordinate, role string, method protoreflect.MethodDescriptor, request proto.Message) (testpilot.EffectHandle, error) {
+	if err := s.deliveries.arm(method, request); err != nil {
+		return nil, err
+	}
 	plan, carrierRequired := s.program.ReservationCarrier(coordinate.EntrypointID, coordinate.InstructionID)
 	if !carrierRequired {
 		return s.controller.InvokeRPC(ctx, coordinate, role, method, request)
@@ -249,9 +278,12 @@ func (s *compositeSession) InvokeHandle(ctx context.Context, coordinate testpilo
 	return s.controller.InvokeHandle(ctx, coordinate, handle, value)
 }
 
-// A fault is a worker-lifecycle outage, so it is the worker Session's to realize; a Program with
-// no worker use has no worker Session and no queue to stop.
+// A worker-lifecycle outage is the worker Session's to realize; a Program with no worker use has
+// no worker Session and no queue to stop. A delivery control is the delivery session's.
 func (s *compositeSession) InjectFault(ctx context.Context, coordinate testpilot.Coordinate, roleID string, kind testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
+	if s != nil && deliveryFault(kind) {
+		return s.deliveries.inject(ctx, roleID, kind)
+	}
 	if s == nil || s.worker == nil {
 		return nil, ErrInvalid
 	}
@@ -270,6 +302,7 @@ func (s *compositeSession) Quarantine(ctx context.Context, handle testpilot.Effe
 	return s.controller.Quarantine(ctx, handle)
 }
 func (s *compositeSession) Close(ctx context.Context) error {
+	s.deliveries.close()
 	var workerErr error
 	if s.worker != nil {
 		workerErr = s.worker.Close(ctx)

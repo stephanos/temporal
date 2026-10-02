@@ -125,7 +125,8 @@ func runEvent(r *modelirspb.Realization, change func(*modelirspb.RunEventSource)
 }
 
 // A Run Event source that names its command, keys by the run or a path of the payload and guards on
-// the payload alone is admitted.
+// the payload alone is admitted. What a worker reports of an activation is admitted as the record of
+// an attempt alone (TestTheAttemptARunEventRecordsIsOfAnActivitysScript).
 func TestARunEventSourceIsAdmitted(t *testing.T) {
 	m := proto.Clone(load(t)).(*modelirspb.Model)
 	projected := &modelirspb.Operand{Kind: &modelirspb.Operand_Projected{Projected: &modelirspb.Empty{}}}
@@ -136,7 +137,7 @@ func TestARunEventSourceIsAdmitted(t *testing.T) {
 		return &modelirspb.Operand{Kind: &modelirspb.Operand_Present{Present: &modelirspb.Present{Of: o}}}
 	}
 	runEvent(m.GetRealizations()[0], func(e *modelirspb.RunEventSource) {
-		e.Kind, e.Key = modelirspb.RunEventSource_KIND_DIAGNOSTIC, path("activity_attempt.activity_run_id")
+		e.Key = path("activity_attempt.activity_run_id")
 		e.Guard = &modelirspb.Operand{Kind: &modelirspb.Operand_All{All: &modelirspb.All{Operands: []*modelirspb.Operand{
 			present(path("activity_attempt")),
 			admGreater(path("activity_attempt.sdk_attempt"), admWritten(&modelirspb.ProtoValue_Number{Number: 0})),
@@ -160,6 +161,26 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 		mutate func(t *testing.T, m *modelirspb.Model, r *modelirspb.Realization)
 		want   string
 	}{
+		// A control that holds what a step dispatches names a class its machine binds, and a
+		// task-queue role.
+		{"a control that holds the dispatch of no class", func(_ *testing.T, _ *modelirspb.Model, r *modelirspb.Realization) {
+			r.Controls = append(r.Controls, &modelirspb.Control{Id: "held", Role: "temporal.task-queue",
+				Kind: &modelirspb.Control_HoldDispatched{HoldDispatched: &modelirspb.HoldDispatched{}}})
+		}, "realization asyncNexus: control held holds what a step of no class dispatches"},
+		{"a control that holds the dispatch of a class the machine does not bind", func(_ *testing.T, _ *modelirspb.Model, r *modelirspb.Realization) {
+			r.Controls = append(r.Controls, &modelirspb.Control{Id: "held", Role: "temporal.task-queue",
+				Kind: &modelirspb.Control_HoldDispatched{HoldDispatched: &modelirspb.HoldDispatched{Step: &modelirspb.ActionClass{Action: "nope"}}}})
+		}, "no action nope"},
+		{"a control that holds the deliveries of no task queue", func(t *testing.T, _ *modelirspb.Model, r *modelirspb.Realization) {
+			step := admScript(t, r, "handler").GetItems()[0].GetPerforms()[0].GetStep()
+			r.Controls = append(r.Controls, &modelirspb.Control{Id: "held", Role: "temporal.workflow-service",
+				Kind: &modelirspb.Control_HoldDispatched{HoldDispatched: &modelirspb.HoldDispatched{Step: step}}})
+		}, "realization asyncNexus: control held: role temporal.workflow-service is"},
+		{"a control that holds a dispatch on no role", func(t *testing.T, _ *modelirspb.Model, r *modelirspb.Realization) {
+			step := admScript(t, r, "handler").GetItems()[0].GetPerforms()[0].GetStep()
+			r.Controls = append(r.Controls, &modelirspb.Control{Id: "held",
+				Kind: &modelirspb.Control_HoldDispatched{HoldDispatched: &modelirspb.HoldDispatched{Step: step}}})
+		}, "realization asyncNexus: control held holds deliveries and names no task-queue role"},
 		// Absent and empty ids.
 		{"a realization with no name", func(_ *testing.T, _ *modelirspb.Model, r *modelirspb.Realization) { r.Name = "" },
 			"a realization has no name"},
@@ -810,6 +831,11 @@ func TestTheAttemptARunEventRecordsIsOfAnActivitysScript(t *testing.T) {
 		"an attempt recorded as the completion of a call": {func(_ *modelirspb.Model, s *modelirspb.RunEventSource) {
 			s.Kind = modelirspb.RunEventSource_KIND_INSTRUCTION_COMPLETED
 		}, "evidence " + started + " is the record of an attempt and of no diagnostic: a Run records an attempt as what a worker reports of an activation"},
+		// What a worker reports of an activation reaches a Run once the activation is answered, whatever
+		// the realization says of it: with no attempt named, when that is would be anyone's guess.
+		"what a worker reports of an activation, declared the record of no attempt": {func(_ *modelirspb.Model, s *modelirspb.RunEventSource) { s.Attempt = nil },
+			"evidence " + started + " is what a worker reports of an activation and is declared the record of no attempt: " +
+				"a Run records it once the attempt is answered, and the realization says which attempt that is"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			m, err := Load(filepath.Join("..", "ir", "activity.json"))

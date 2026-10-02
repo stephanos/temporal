@@ -12,7 +12,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-79-deferred-nexus-operation-cancellation.md",
-  "status": "open",
+  "status": "done",
   "title": "Deferred Nexus operation cancellation",
   "tracker": {
     "baseHashFlow": null,
@@ -25,5 +25,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-27T05:44:15.560266Z"
+  "updated_at": "2026-10-02T03:29:18.158721Z"
 }

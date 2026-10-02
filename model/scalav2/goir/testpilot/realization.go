@@ -623,9 +623,20 @@ func (a *adapter) instruction(s *modelirspb.Script, c *modelirspb.Command) (*tes
 	case *modelirspb.Command_NexusCompletion:
 		return a.nexusCompletion(c, in.NexusCompletion)
 	case *modelirspb.Command_Hold, *modelirspb.Command_Release:
-		// No instruction holds or releases a delivery, and a realization that declares one is reported
-		// as a gap and never produced; the command writes nothing to check.
-		return &testpilotspb.Instruction{}, nil
+		control := controlOf(a.r, c)
+		if !heldByDriver(control) {
+			// No instruction holds or releases a delivery, and a realization that declares one is reported
+			// as a gap and never produced; the command writes nothing to check.
+			return &testpilotspb.Instruction{}, nil
+		}
+		// A hold waits until the Driver holds what the control's step dispatched to its queue, and a
+		// release delivers it: both are the Driver's delivery control of the control's task-queue role.
+		kind := testpilotspb.FAULT_KIND_DELIVERY_HOLD
+		if c.GetRelease() != "" {
+			kind = testpilotspb.FAULT_KIND_DELIVERY_RELEASE
+		}
+		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InjectFault{InjectFault: &testpilotspb.InjectFault{
+			RoleId: control.GetRole(), Kind: kind}}}, nil
 	case *modelirspb.Command_AttemptCanceled:
 		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptCancellation{
 			ActivityAttemptCancellation: &testpilotspb.ActivityAttemptCancellation{}}}, nil

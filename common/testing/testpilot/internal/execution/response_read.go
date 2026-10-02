@@ -94,6 +94,9 @@ func validateOutcome(w *valueWork, entryContext contract.EntrypointKind, n *node
 			return nil, err
 		}
 	}
+	if err := validateDeliveryAdmission(n, frozen); err != nil {
+		return nil, err
+	}
 	result := &contract.OutcomeSnapshot{Outcome: frozen, Fields: make(map[testpilotspb.InstructionOutcomeField]*testpilotspb.Value, len(n.outcomes))}
 	for _, field := range outcomeFieldOrder {
 		typ, produced := n.outcomes[field]
@@ -113,6 +116,26 @@ func validateOutcome(w *valueWork, entryContext contract.EntrypointKind, n *node
 	}
 	return result, nil
 }
+// validateDeliveryAdmission admits a delivery admission on the successful outcome of a delivery
+// release alone, and requires it there: the release succeeds only once the decision is observed.
+func validateDeliveryAdmission(n *node, outcome *testpilotspb.InstructionOutcome) error {
+	release := n.opcode == contract.InjectFault && n.source.GetInstruction().GetInjectFault().GetKind() == testpilotspb.FAULT_KIND_DELIVERY_RELEASE
+	succeeded := outcome.GetStatus() == testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED
+	admission := outcome.GetDeliveryAdmission()
+	if admission == nil && !(release && succeeded) {
+		return nil
+	}
+	if !release || !succeeded {
+		return ir.Invalid(ir.Malformed, "outcome", "a delivery admission is the outcome of a successful delivery release alone")
+	}
+	decision := admission.GetDecision()
+	if admission.GetActivityId() == "" || admission.GetDeliveryId() == "" ||
+		decision != testpilotspb.DELIVERY_ADMISSION_DECISION_ADMITTED && decision != testpilotspb.DELIVERY_ADMISSION_DECISION_REJECTED {
+		return ir.Invalid(ir.Malformed, "outcome", "a successful delivery release requires the admission decision it observed")
+	}
+	return nil
+}
+
 func textValue(text string) *testpilotspb.Value {
 	return &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: text}}
 }

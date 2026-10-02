@@ -293,7 +293,7 @@ def terminalPhase(p: Phase): Boolean =
 def running(p: Phase): Boolean =
   p == Phase.scheduled || p == Phase.backingOff || p == Phase.started || p == Phase.paused ||
     p == Phase.pauseRequested || p == Phase.cancelRequested
-/goal
+
 /**
  * Where a worker holds the attempt: the phases a start-to-close deadline covers and a worker's answer
  * settles.

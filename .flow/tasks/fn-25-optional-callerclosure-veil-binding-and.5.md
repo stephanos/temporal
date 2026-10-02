@@ -14,8 +14,8 @@ In adopt mode, add the non-default TemporalVeilTests aggregate and focused tests
 The selected branch's full positive, negative, mutation, structural-expression/axiom digest, capability/trust, canonical replay, v2 compatibility, v3 canonicalization, and isolation matrix passes. Default targets and current regression fixtures do not import optional code or change semantic bytes. Source/import guards keep reusable Umpire domain-neutral, generated projections unchanged, runtime/production untouched, and existing comments preserved.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
 ## Evidence
 - Commits:
 - Tests:

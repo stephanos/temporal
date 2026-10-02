@@ -48,8 +48,8 @@ Build the strict operational trust boundary for R2: canonical retention, the sig
 - [ ] The fixed protected signer cannot select or disclose signing authority.
 - [ ] Focused negative, race, permission, and secret tests pass.
 ## Done summary
-TBD
-
+Blocked:
+Won't do: the spec was cancelled and closed on 2026-10-01. It was re-scoped to the release owner, outside `tools/umpire`, and nothing in this tree depends on it.
 ## Evidence
 - Commits:
 - Tests:

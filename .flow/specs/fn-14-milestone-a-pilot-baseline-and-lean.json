@@ -151,7 +151,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-14-milestone-a-pilot-baseline-and-lean.md",
-  "status": "open",
+  "status": "done",
   "title": "Milestone A pilot baseline and Lean-first usability decision",
   "tracker": {
     "baseHashFlow": null,
@@ -164,5 +164,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T17:57:36.298020Z"
+  "updated_at": "2026-10-02T03:23:34.280214Z"
 }

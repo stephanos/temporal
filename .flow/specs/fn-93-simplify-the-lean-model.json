@@ -516,7 +516,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-93-simplify-the-lean-model.md",
-  "status": "open",
+  "status": "done",
   "title": "Simplify the Lean model",
   "tracker": {
     "baseHashFlow": null,
@@ -529,5 +529,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-29T22:25:06.117487Z"
+  "updated_at": "2026-10-02T03:13:41.840621Z"
 }

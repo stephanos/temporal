@@ -1,5 +1,9 @@
 # Release evidence graph and manual authorization
 
+## Closed: won't do
+
+Closed on 2026-10-01 as won't-do by the owner. It was re-scoped to the release owner, outside `tools/umpire`, and nothing in this tree depends on it. This specification is a historical record and must not be implemented. Its unfinished tasks are blocked rather than done because the tracker has no won't-do state.
+
 > HTML render lens (local): open `.flow/artifacts/fn-30-release-evidence-graph-and-manual/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Umpire4 architecture reconciliation

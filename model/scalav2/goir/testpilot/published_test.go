@@ -14,6 +14,7 @@ import (
 	"go.temporal.io/server/common/testing/protorequire"
 	cp "go.temporal.io/server/model/go/caseproducer"
 	"go.temporal.io/server/model/scalav2/goir"
+	"google.golang.org/protobuf/proto"
 )
 
 // The rule, on paths written out: each kind with the place of the last step it confirms, a record
@@ -36,10 +37,10 @@ func TestARecordOfAnAttemptReachesARunWithTheAttemptsAnswer(t *testing.T) {
 		// call is made, before the attempt is answered.
 		"a cancel request while the attempt is held": {
 			[]published{plain("scheduled", 0), record("first", 1, "activity", 1), plain("requested", 2), plain("canceled", 3)},
-			map[string][]int{"activity": {3}}, &misplaced{kind: "first", beside: "requested", follows: true}},
-		// The same path with the attempt start confirmed by evidence that is no record of an attempt:
-		// what a worker reports of an activation is not thereby deferred.
-		"a diagnostic that is no record of an attempt": {
+			map[string][]int{"activity": {3}}, &misplaced{kind: "first", beside: "requested", how: recordedLate}},
+		// The same path with the attempt start confirmed by evidence an instruction of the controller
+		// records, which reaches the Run as the controller runs it.
+		"evidence the controller records in the record's place": {
 			[]published{plain("scheduled", 0), plain("first", 1), plain("requested", 2), plain("canceled", 3)},
 			map[string][]int{"activity": {3}}, nil},
 		// The second attempt's record confirms the failure alone, and other evidence the second attempt
@@ -47,30 +48,30 @@ func TestARecordOfAnAttemptReachesARunWithTheAttemptsAnswer(t *testing.T) {
 		// the evidence of the attempt start that follows what it confirms.
 		"a second attempt's record that confirms only the failure before it": {
 			[]published{plain("scheduled", 0), record("first", 1, "activity", 1), record("second", 2, "activity", 2), plain("again", 4), plain("completed", 5)},
-			map[string][]int{"activity": {2, 5}}, &misplaced{kind: "second", beside: "again", follows: true}},
+			map[string][]int{"activity": {2, 5}}, &misplaced{kind: "second", beside: "again", how: recordedLate}},
 		// Two activities: each record is published at the answer of its own script's attempt.
 		"two activities, each answered after its own record's steps": {
 			[]published{plain("begun", 0), record("one", 1, "a", 1), record("two", 2, "b", 1), plain("done", 5)},
 			map[string][]int{"a": {3}, "b": {4}}, nil},
 		"two activities, the first answered after the second": {
 			[]published{plain("begun", 0), record("one", 1, "a", 1), record("two", 2, "b", 1), plain("done", 5)},
-			map[string][]int{"a": {4}, "b": {3}}, &misplaced{kind: "one", beside: "two", follows: true}},
+			map[string][]int{"a": {4}, "b": {3}}, &misplaced{kind: "one", beside: "two", how: recordedLate}},
 		"two activities, a call's evidence before the first is answered": {
 			[]published{plain("begun", 0), record("one", 1, "a", 1), plain("mid", 2), record("two", 3, "b", 1), plain("done", 6)},
-			map[string][]int{"a": {5}, "b": {4}}, &misplaced{kind: "one", beside: "mid", follows: true}},
+			map[string][]int{"a": {5}, "b": {4}}, &misplaced{kind: "one", beside: "mid", how: recordedLate}},
 		// A record that confirms a step after its attempt's answer reaches the Run before the evidence
 		// of the steps between.
 		"a record that confirms a step after its answer": {
 			[]published{plain("scheduled", 0), plain("mid", 2), record("first", 3, "activity", 1)},
-			map[string][]int{"activity": {1}}, &misplaced{kind: "first", beside: "mid"}},
+			map[string][]int{"activity": {1}}, &misplaced{kind: "first", beside: "mid", how: recordedEarly}},
 		// The answer's own evidence is read after the answer, and so after the attempt's record.
 		"a record whose last step is the step before its answer": {
 			[]published{record("first", 0, "activity", 1), plain("completed", 1)}, map[string][]int{"activity": {1}}, nil},
-		// One Run Event carries one piece of evidence, so two kinds declared the record of one attempt
-		// are not both recorded: neither is before the other.
+		// A Run records an attempt as one Run Event, which is evidence of one kind: two kinds declared
+		// the record of one attempt are in no order, and the second is the one too many.
 		"two records of one attempt": {
 			[]published{plain("scheduled", 0), record("first", 1, "activity", 1), record("again", 2, "activity", 1), plain("completed", 3)},
-			map[string][]int{"activity": {3}}, &misplaced{kind: "first", beside: "again", follows: true}},
+			map[string][]int{"activity": {3}}, &misplaced{kind: "again", beside: "first", how: recordedTwice}},
 		// An attempt the path does not answer is recorded at no answer; that it has none is another gap.
 		"a record of an attempt the path does not answer": {
 			[]published{plain("scheduled", 0), record("first", 1, "activity", 1), plain("timedOut", 2)}, map[string][]int{}, nil},
@@ -149,11 +150,10 @@ func TestARecordIsEarlyByTheAttemptItIsDeclaredOf(t *testing.T) {
 		Owner: "none: a recorded limit of the prototype"}, gap)
 }
 
-// What a worker reports of an activation is deferred only where the realization says it is the record
-// of an attempt. The first attempt's evidence with that declaration taken away is evidence the start
-// call's instruction records, and the cancel path, which the declared record keeps from a Case, is not
-// said to be out of order by it.
-func TestADiagnosticThatIsDeclaredNoRecordOfAnAttemptIsNotDeferred(t *testing.T) {
+// Evidence an instruction of the controller records is not deferred. The first attempt's record keeps
+// the cancel path from a Case; the same step confirmed by the start call's own completion, which the
+// Run records as the controller makes the call, is in the path's order.
+func TestEvidenceTheControllerRecordsIsNotDeferred(t *testing.T) {
 	late := func(change func(*modelirspb.Model)) []string {
 		m := loaded(t, "activity")
 		change(m)
@@ -170,7 +170,94 @@ func TestADiagnosticThatIsDeclaredNoRecordOfAnAttemptIsNotDeferred(t *testing.T)
 		return out
 	}
 	require.Equal(t, []string{activityEvidence + "statusStarted"}, late(func(*modelirspb.Model) {}))
-	require.Empty(t, late(func(m *modelirspb.Model) { evidenceOf(t, m, "statusStarted").GetRunEvent().Attempt = nil }))
+	require.Empty(t, late(func(m *modelirspb.Model) {
+		source := evidenceOf(t, m, "statusStarted").GetRunEvent()
+		source.Kind, source.Attempt = modelirspb.RunEventSource_KIND_INSTRUCTION_COMPLETED, nil
+	}))
+}
+
+// What a worker reports of an activation reaches a Run once the activation is answered, whether or not
+// the realization says so. One declared the record of no attempt has no Case to be out of order in:
+// the Model is refused where the evidence is written, before any Query of it is lowered.
+func TestADiagnosticDeclaredTheRecordOfNoAttemptHasNoProducer(t *testing.T) {
+	m := loaded(t, "activity")
+	evidenceOf(t, m, "statusStarted").GetRunEvent().Attempt = nil
+	p, err := NewProducer(m)
+	require.Nil(t, p)
+	require.ErrorContains(t, err, "evidence "+activityEvidence+"statusStarted is what a worker reports of an activation and is declared the record of no attempt")
+	var located *goir.Error
+	require.ErrorAs(t, err, &located)
+	require.Contains(t, located.Position, activityRealizationAt)
+}
+
+// A Run records an attempt at the command that carries it, and a Case's one carrier carries every
+// activity entrypoint the Case gives an instruction: the record names the attempt's number and no
+// script. With two activity scripts under the one start call, the first attempt of either is a record
+// a source declared for the other takes, so a Query whose Case runs both has no Case, and each record
+// says why. A Query whose Case runs one of them is not in the way of it.
+func TestTheAttemptsOfTwoActivitiesUnderOneCarrierAreNotToldApart(t *testing.T) {
+	m := loaded(t, "activity")
+	r := m.GetRealizations()[0]
+	// A class is performed by one script, so the second activity takes over the failure that is
+	// retried, and is activated by no class of its own.
+	first := scriptNamed(t, r, "activity")
+	other := proto.CloneOf(first)
+	other.Id, other.GetActivity().Starts, other.Items = "other", nil, nil
+	for _, item := range first.GetItems() {
+		for i, performance := range item.GetPerforms() {
+			if performance.GetCommand().GetId() == "fail-attempt" {
+				other.Items = append(other.Items, &modelirspb.Item{Position: item.GetPosition(), When: item.GetWhen(), Performs: []*modelirspb.Performance{performance}})
+				item.Performs = append(item.GetPerforms()[:i:i], item.GetPerforms()[i+1:]...)
+				break
+			}
+		}
+	}
+	require.Len(t, other.GetItems(), 1)
+	r.Scripts = append(r.Scripts, other)
+	p, err := NewProducer(m)
+	require.NoError(t, err)
+
+	const construct = "attempt record among several activities"
+	both, err := p.Lower("retry", activityIdentity("retry"))
+	require.NoError(t, err)
+	require.Equal(t, NotSupported, both.Standing)
+	var gaps []Unsupported
+	for _, gap := range both.Unsupported {
+		if gap.Construct == construct {
+			require.Contains(t, gap.Position, activityRealizationAt)
+			require.Contains(t, gap.Why, "the attempts of scripts activity and other are not told apart")
+			gap.Why, gap.Position = "", ""
+			gaps = append(gaps, gap)
+		}
+	}
+	require.Equal(t, []Unsupported{
+		{Construct: construct, ID: activityEvidence + "statusStarted", Owner: "none: a recorded limit of the prototype"},
+		{Construct: construct, ID: activityEvidence + "attemptCount", Owner: "none: a recorded limit of the prototype"},
+	}, gaps)
+
+	one, err := p.Lower("completion", activityIdentity("completion"))
+	require.NoError(t, err)
+	require.Equal(t, Lowered, one.Standing, "%v", one.Unsupported)
+}
+
+// Two kinds declared the record of one attempt are not out of order with each other: the Run records
+// the attempt as one Run Event, and the path asks for two pieces of evidence of it.
+func TestAnAttemptRecordedAsTwoKindsOfEvidenceHasNoCase(t *testing.T) {
+	m := loaded(t, "activity")
+	evidenceOf(t, m, "attemptCount").GetRunEvent().GetAttempt().Number = 1
+	p, err := NewProducer(m)
+	require.NoError(t, err)
+	l, err := p.Lower("retry", activityIdentity("retry"))
+	require.NoError(t, err)
+	require.Equal(t, NotSupported, l.Standing)
+	require.Len(t, l.Unsupported, 1)
+	gap := l.Unsupported[0]
+	require.Contains(t, gap.Position, activityRealizationAt)
+	require.Equal(t, "a Run records attempt 1 of script activity as one Run Event, which is evidence of one kind, and the path confirms steps by "+
+		activityEvidence+"statusStarted as well", gap.Why)
+	gap.Why, gap.Position = "", ""
+	require.Equal(t, Unsupported{Construct: "attempt recorded as two kinds of evidence", ID: activityEvidence + "attemptCount",
+		Owner: "none: a recorded limit of the prototype"}, gap)
 }
 
 // A record of an attempt the path never starts confirms nothing a Run of the path could record: it

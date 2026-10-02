@@ -1,5 +1,9 @@
 # Simplify the Umpire Go execution surface
 
+## Closed: won't do
+
+Closed on 2026-10-01 as won't-do by the owner. It is superseded by the Case Runtime (fn-64). This specification is a historical record and must not be implemented. Its unfinished tasks are blocked rather than done because the tracker has no won't-do state.
+
 ## Superseded by fn-64
 
 This specification is a historical record and must not be implemented. Its resident-executor facade, `PortableTestPlan` handoff, generated binding adapter, Run Evaluation path, and legacy transport assumptions were replaced by the standalone Case Runtime in fn-64.

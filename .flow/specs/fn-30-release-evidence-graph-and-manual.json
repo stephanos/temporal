@@ -224,7 +224,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-30-release-evidence-graph-and-manual.md",
-  "status": "open",
+  "status": "done",
   "title": "Release evidence graph and manual authorization",
   "tracker": {
     "baseHashFlow": null,
@@ -237,5 +237,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T05:23:38.427115Z"
+  "updated_at": "2026-10-02T03:23:34.280214Z"
 }

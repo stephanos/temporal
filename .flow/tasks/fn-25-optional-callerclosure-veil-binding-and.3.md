@@ -19,8 +19,8 @@ In adopt mode, add only the exact gate-selected immutable Veil requirement and r
 Adopt mode uses exactly one selected pinned requirement, unchanged upstream source, the current toolchain, one primary Lake project, no generated Lean, and no ordinary/default import. External establishment is possible only for complete bidirectional binding, exact Limits/identities, the deterministically selected command capability, and trust no stronger than the gate. V2 fixtures remain byte-identical; v3 uses the exact expanded evidence order and rejects partial v2 decoding. Defer mode has byte-equivalent dependency surfaces and no optional source. Reusable Umpire contains no Veil, Temporal, Workflow, or Nexus vocabulary.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
 ## Evidence
 - Commits:
 - Tests:

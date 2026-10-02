@@ -155,12 +155,12 @@ func ProgramPlans(program testpilot.PreparedProgram) []testpilot.EntrypointPlan 
 	return plans
 }
 
-// DeclaresFault reports whether any plan requests a deliberate outage. The composite Driver uses
+// DeclaresFault reports whether any plan requests a deliberate worker outage. The composite Driver uses
 // it to decide that a Program needs a worker Session at all, so both Drivers read one predicate.
 func DeclaresFault(plans []testpilot.EntrypointPlan) bool {
 	for _, plan := range plans {
 		for _, instruction := range plan.Instructions() {
-			if instruction.Source().GetInstruction().GetInjectFault() != nil {
+			if fault := instruction.Source().GetInstruction().GetInjectFault(); fault != nil && WorkerFault(fault.GetKind()) {
 				return true
 			}
 		}

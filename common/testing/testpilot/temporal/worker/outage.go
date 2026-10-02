@@ -18,14 +18,14 @@ type OutagePlan struct {
 	queues map[string]string
 }
 
-// PlanOutages resolves every fault instruction in plans to the queue its task-queue role names.
+// PlanOutages resolves every worker fault instruction in plans to the queue its task-queue role names.
 // registered holds the queues this Program registers a worker on.
 func PlanOutages(plans []testpilot.EntrypointPlan, roles map[string]testpilot.PreparedRole, registered map[string]bool) (OutagePlan, error) {
 	plan := OutagePlan{queues: make(map[string]string)}
 	for _, entrypoint := range plans {
 		for _, instruction := range entrypoint.Instructions() {
 			fault := instruction.Source().GetInstruction().GetInjectFault()
-			if fault == nil {
+			if fault == nil || !WorkerFault(fault.GetKind()) {
 				continue
 			}
 			role, ok := roles[fault.GetRoleId()]
@@ -44,6 +44,12 @@ func PlanOutages(plans []testpilot.EntrypointPlan, roles map[string]testpilot.Pr
 		}
 	}
 	return plan, nil
+}
+
+// WorkerFault reports whether a fault kind is a worker-lifecycle outage, the faults this Driver
+// realizes. A delivery control reaches the server and is another Driver's.
+func WorkerFault(kind testpilotspb.FaultKind) bool {
+	return kind == testpilotspb.FAULT_KIND_WORKER_STOP || kind == testpilotspb.FAULT_KIND_WORKER_RESUME
 }
 
 // Requires reports whether the Run needs worker groups no other Run shares. A Program that

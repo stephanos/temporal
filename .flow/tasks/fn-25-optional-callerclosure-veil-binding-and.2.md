@@ -19,8 +19,8 @@ In adopt mode, add the family-owned CallerClosure/FirstOrder Lean module outside
 Adopt mode elaborates total two-way finite proofs with exact Query Limits, empty unsupported vocabulary, unique decoding, complete tables, normalized type/value expression digests, axiom inventories, and identity mutation coverage. The test-only binding has distinct lineage and cannot admit a production candidate; reusable Umpire gains no Temporal/backend IR or case analysis. Defer mode checks in no FirstOrder or surrogate binding source. In both modes existing native model builds and comments remain intact.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
 ## Evidence
 - Commits:
 - Tests:

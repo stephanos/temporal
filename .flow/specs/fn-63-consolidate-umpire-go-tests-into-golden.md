@@ -1,5 +1,9 @@
 # Consolidate Umpire Go tests into golden scenarios
 
+## Closed: won't do
+
+Closed on 2026-10-01 as won't-do by the owner. It was built on fn-61 and on the runtime fn-64 removed. This specification is a historical record and must not be implemented. Its unfinished tasks are blocked rather than done because the tracker has no won't-do state.
+
 ## Superseded by fn-64
 
 This specification is a historical record and must not be implemented. Its golden ownership model and baselines were designed around fn-61, `PortableTestPlan`, Run Evaluation, caller closure, and the legacy runtime removed by fn-64.

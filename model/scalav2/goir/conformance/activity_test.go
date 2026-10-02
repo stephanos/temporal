@@ -161,6 +161,37 @@ func TestTheRetryContractRefusesItsEvidenceOutOfOrder(t *testing.T) {
 	require.ErrorContains(t, err, "event 3:", "the Contract's evaluation fails on the second attempt's record")
 }
 
+// The lowering takes two orders from the runtime that no declaration fixes: the completion of the call
+// that carries an attempt is recorded before the attempt's record, and an attempt's record before the
+// status read after its answer. A Run that records either pair the other way round holds evidence the
+// Contract does not authorize where it stands, so its evaluation fails at that event and gives no
+// satisfied Verdict: the first attempt's record is no step of an activity that has not started, and a
+// completed status is no step of an activity no attempt of which has started.
+func TestARunThatReversesAnOrderTheLoweringTakesFromTheRuntimeIsNeverSatisfied(t *testing.T) {
+	b := loweredActivity(t, activityModel(t), "completion")
+	start := recorded{answered("start-activity"), "statusScheduled"}
+	record := recorded{attemptRecord(1, testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED), "statusStarted"}
+	read := recorded{statusRead("await-completed"), "statusCompleted"}
+
+	verdict, _, err := b.plain.Evaluate(t.Context(), activityRun(t, b.source, start, record, read))
+	require.NoError(t, err)
+	require.Equal(t, testpilotspb.VERDICT_STATUS_SATISFIED, verdict.GetStatus(), "the Run in the order the lowering takes is satisfied")
+
+	for name, test := range map[string]struct {
+		events []recorded
+		at     string
+	}{
+		"the attempt's record before its carrier's completion": {[]recorded{record, start, read}, "event 2:"},
+		"the last status read before the attempt's record":     {[]recorded{start, read, record}, "event 3:"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			verdict, _, err := b.plain.Evaluate(t.Context(), activityRun(t, b.source, test.events...))
+			require.ErrorContains(t, err, test.at)
+			require.NotEqual(t, testpilotspb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
+		})
+	}
+}
+
 // Evidence that is the Run's own record is read only from a Run Event its source takes: the event of
 // the source's kind, at the source's command, that the source's guard holds of
 // (TestOnlyADeliveredAttemptIsEvidenceOfAnAttemptStart). Evidence of such a kind on any other event is
@@ -189,20 +220,20 @@ func TestEvidenceOfTheRunsRecordIsReadOnlyFromAnEventItsSourceTakes(t *testing.T
 			attemptOf(1, "token-1", completed)), want: &EvidenceError{Event: 3, Message: notTaken("evidence.statusStarted")}},
 		"the start call's own completion": {carrier: reported(testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, "start-activity",
 			attemptOf(1, "token-1", completed)), want: &EvidenceError{Event: 3, Message: notTaken("evidence.statusStarted")}},
-		// Declared the record of no attempt, and with the guard's first operand gone, the source compares
-		// the delivery of an outcome that holds no attempt, which is an error at that event, and not a
-		// guard that does not hold.
+		// Declared the start call's own completion, which is the record of no attempt, and with the
+		// guard's first operand gone, the source compares the delivery of an outcome that holds no
+		// attempt, which is an error at that event, and not a guard that does not hold.
 		"a guard that cannot be evaluated on the event": {
 			model: func(m *modelirspb.Model) {
 				for _, e := range m.GetRealizations()[0].GetEvidence() {
 					if e.GetId() == started {
-						e.GetRunEvent().Attempt = nil
+						e.GetRunEvent().Kind, e.GetRunEvent().Attempt = modelirspb.RunEventSource_KIND_INSTRUCTION_COMPLETED, nil
 						all := e.GetRunEvent().GetGuard().GetAll()
 						all.Operands = all.GetOperands()[1:]
 					}
 				}
 			},
-			carrier: reported(testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, "start-activity",
+			carrier: reported(testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, "start-activity",
 				&testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}),
 			want: &GuardError{Event: 3, Message: "compares an absent value"}},
 	} {

@@ -1,5 +1,9 @@
 # Milestone A pilot baseline and Lean-first usability decision
 
+## Closed: won't do
+
+Closed on 2026-10-01 as won't-do by the owner. It is superseded as a roadmap gate, and fn-81 deleted the Agentworkflow tooling it needs. This specification is a historical record and must not be implemented. Its unfinished tasks are blocked rather than done because the tracker has no won't-do state.
+
 > HTML render lens (local): open `.flow/artifacts/fn-14-milestone-a-pilot-baseline-and-lean/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Umpire4 architecture reconciliation

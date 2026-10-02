@@ -45,8 +45,8 @@ The state-machine complexity is real distributed-systems correctness and should 
 - [ ] Exhaustive pure tests preserve all lifecycle semantics while shallow layers disappear.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do: the spec was cancelled and closed on 2026-10-01. It is superseded by the Case Runtime (fn-64).
 ## Evidence
 - Commits:
 - Tests:

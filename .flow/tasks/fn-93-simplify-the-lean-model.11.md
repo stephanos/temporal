@@ -35,8 +35,8 @@ make umpire-check-inventory umpire-check-goldens umpire-check-regression
 - [ ] No kept module imports `Evidence/Evaluate/{Raw,Structure,Admission}`, `Evidence/Reading/Check`, `Evidence/Check` or `Evidence/PropertyStatus`, except modules kept by a declined decision (e.g. `Artifact/Result` when D3 is declined), which are listed
 - [ ] Everything byte-identical, INVENTORY.md included; Known Gap code list for DG3 in the receipt
 ## Done summary
-TBD
-
+Blocked:
+Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
 ## Evidence
 - Commits:
 - Tests:

@@ -89,8 +89,10 @@ func (ReadCardinality) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{0}
 }
 
-// FaultKind names the version-one deliberate outages a Driver can realize. Every value is a
-// worker-lifecycle transition on one activation queue; nothing here reaches the server.
+// FaultKind names the deliberate outages and delivery controls a Driver can realize. The worker
+// values are worker-lifecycle transitions on one activation queue. The delivery values reach the
+// server: a Driver realizes them only where its environment supplies a delivery control, and
+// refuses them before any I/O otherwise.
 // (-- api-linter: core::0216::synonyms=disabled --)
 type FaultKind int32
 
@@ -98,6 +100,15 @@ const (
 	FAULT_KIND_UNSPECIFIED   FaultKind = 0
 	FAULT_KIND_WORKER_STOP   FaultKind = 1
 	FAULT_KIND_WORKER_RESUME FaultKind = 2
+	// Succeeds once the server holds a validated dispatch of the activity the Run starts on the
+	// role's queue, before the dispatch reaches matching. The Driver arms the hold before it sends
+	// the activity's start, so no dispatch of that activity passes it unheld.
+	FAULT_KIND_DELIVERY_HOLD FaultKind = 3
+	// Releases the held dispatch and delivers it to the server's authoritative admission. It
+	// succeeds once the admission's decision is observed after the decision committed, and its
+	// outcome carries that decision as its delivery admission; an admission whose decision cannot be
+	// observed is no success.
+	FAULT_KIND_DELIVERY_RELEASE FaultKind = 4
 )
 
 // Enum value maps for FaultKind.
@@ -106,11 +117,15 @@ var (
 		0: "FAULT_KIND_UNSPECIFIED",
 		1: "FAULT_KIND_WORKER_STOP",
 		2: "FAULT_KIND_WORKER_RESUME",
+		3: "FAULT_KIND_DELIVERY_HOLD",
+		4: "FAULT_KIND_DELIVERY_RELEASE",
 	}
 	FaultKind_value = map[string]int32{
-		"FAULT_KIND_UNSPECIFIED":   0,
-		"FAULT_KIND_WORKER_STOP":   1,
-		"FAULT_KIND_WORKER_RESUME": 2,
+		"FAULT_KIND_UNSPECIFIED":      0,
+		"FAULT_KIND_WORKER_STOP":      1,
+		"FAULT_KIND_WORKER_RESUME":    2,
+		"FAULT_KIND_DELIVERY_HOLD":    3,
+		"FAULT_KIND_DELIVERY_RELEASE": 4,
 	}
 )
 
@@ -128,6 +143,10 @@ func (x FaultKind) String() string {
 		return "WorkerStop"
 	case FAULT_KIND_WORKER_RESUME:
 		return "WorkerResume"
+	case FAULT_KIND_DELIVERY_HOLD:
+		return "DeliveryHold"
+	case FAULT_KIND_DELIVERY_RELEASE:
+		return "DeliveryRelease"
 	default:
 		return strconv.Itoa(int(x))
 	}
@@ -1108,7 +1127,7 @@ func (*ActivityAttemptCancellation) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{11}
 }
 
-// InjectFault asks the Driver for one deliberate outage. role_id must name a
+// InjectFault asks the Driver for one deliberate outage or delivery control. role_id must name a
 // ROLE_KIND_TASK_QUEUE role; that role's resource binding identifies the affected queue.
 type InjectFault struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -1674,11 +1693,13 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\x0fReadCardinality\x12 \n" +
 	"\x1cREAD_CARDINALITY_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14READ_CARDINALITY_ONE\x10\x01\x12\x1e\n" +
-	"\x1aREAD_CARDINALITY_EMIT_EACH\x10\x02*a\n" +
+	"\x1aREAD_CARDINALITY_EMIT_EACH\x10\x02*\xa0\x01\n" +
 	"\tFaultKind\x12\x1a\n" +
 	"\x16FAULT_KIND_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16FAULT_KIND_WORKER_STOP\x10\x01\x12\x1c\n" +
-	"\x18FAULT_KIND_WORKER_RESUME\x10\x02*\xa0\x02\n" +
+	"\x18FAULT_KIND_WORKER_RESUME\x10\x02\x12\x1c\n" +
+	"\x18FAULT_KIND_DELIVERY_HOLD\x10\x03\x12\x1f\n" +
+	"\x1bFAULT_KIND_DELIVERY_RELEASE\x10\x04*\xa0\x02\n" +
 	"\x18InstructionOutcomeStatus\x12*\n" +
 	"&INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED\x10\x00\x12(\n" +
 	"$INSTRUCTION_OUTCOME_STATUS_SUCCEEDED\x10\x01\x12/\n" +

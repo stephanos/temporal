@@ -118,20 +118,31 @@ message ActivityAttemptFailure { temporal.api.failure.v1.Failure failure = 1; }
 // attempt whose cancellation the server never requests offers nothing the Program declared.
 message ActivityAttemptCancellation {}
 
-// InjectFault asks the Driver for one deliberate outage. role_id must name a
+// InjectFault asks the Driver for one deliberate outage or delivery control. role_id must name a
 // ROLE_KIND_TASK_QUEUE role; that role's resource binding identifies the affected queue.
 message InjectFault {
   string role_id = 1;
   FaultKind kind = 2;
 }
 
-// FaultKind names the version-one deliberate outages a Driver can realize. Every value is a
-// worker-lifecycle transition on one activation queue; nothing here reaches the server.
+// FaultKind names the deliberate outages and delivery controls a Driver can realize. The worker
+// values are worker-lifecycle transitions on one activation queue. The delivery values reach the
+// server: a Driver realizes them only where its environment supplies a delivery control, and
+// refuses them before any I/O otherwise.
 // (-- api-linter: core::0216::synonyms=disabled --)
 enum FaultKind {
   FAULT_KIND_UNSPECIFIED = 0;
   FAULT_KIND_WORKER_STOP = 1;
   FAULT_KIND_WORKER_RESUME = 2;
+  // Succeeds once the server holds a validated dispatch of the activity the Run starts on the
+  // role's queue, before the dispatch reaches matching. The Driver arms the hold before it sends
+  // the activity's start, so no dispatch of that activity passes it unheld.
+  FAULT_KIND_DELIVERY_HOLD = 3;
+  // Releases the held dispatch and delivers it to the server's authoritative admission. It
+  // succeeds once the admission's decision is observed after the decision committed, and its
+  // outcome carries that decision as its delivery admission; an admission whose decision cannot be
+  // observed is no success.
+  FAULT_KIND_DELIVERY_RELEASE = 4;
 }
 
 // WorkflowCommand issues one workflow command from a workflow entrypoint, carrying the command the

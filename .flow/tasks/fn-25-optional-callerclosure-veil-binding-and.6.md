@@ -19,8 +19,8 @@ In adopt mode, add the statically registered temporal-model-verify-veil executab
 Adopt mode accepts only workflow-nexus.target.caller-closure, emits one canonical v3 receipt, honors exact status/resource/error/progress caps and terminal-line rules, and changes only the repository-root Makefile among Makefiles. Defer mode has no unsupported placeholder surface. Native v2 verification and default regression commands pass in both modes, the roadmap states the exact branch and trust/Known Gaps, and no Claim Assessment/promotion/runtime/CI behavior is added.
 
 ## Done summary
-TBD
-
+Blocked:
+Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
 ## Evidence
 - Commits:
 - Tests:
