@@ -1,0 +1,44 @@
+== A1-two-forward-traced: working tree, --env TEMPORAL_TEST_DEDICATED_CLUSTERS=2, skip lifted, forward, traced, repeat 2
+   set report: {'expectations_met': False, 'supported': 0, 'failed': 1, 'infrastructure_errors': 0, 'timed_out': 0, 'replayed': 2, 'replay_diverged': 1} classification=nondeterministic
+   seed 11: qualified=False deterministic=False target_success=False first_divergence=virtual_time_elapsed_nanos outcome=watchdog_timeout vt_nanos=37061000994501 runner=4dce3aed3599
+      execution 0: digest=73417a2a358bbe86 wall=117.9s replay={'attempted': True, 'choice_replay_status': 'none', 'diagnostic': True, 'divergence': 'stderr.full_sha256', 'match': False}
+      execution 1: digest=e3bd252b0c700675 wall=118.0s replay={'attempted': True, 'choice_replay_status': 'none', 'diagnostic': True, 'divergence': 'stderr.full_sha256', 'match': False}
+   seed 17: qualified=False deterministic=False target_success=False first_divergence=virtual_time_elapsed_nanos outcome=watchdog_timeout vt_nanos=14044400000000 runner=4dce3aed3599
+      execution 0: digest=ad571a00baa009d7 wall=118.0s replay={'attempted': True, 'choice_replay_status': 'none', 'diagnostic': True, 'match': True}
+      execution 1: digest=65a37ebd536fb658 wall=117.9s replay={'attempted': True, 'choice_replay_status': 'none', 'diagnostic': True, 'match': True}
+== F1-pool2-forward-traced: throwaway copy with the pool forced to two slots, skip lifted, forward, traced, repeat 2
+   set report: {'expectations_met': True, 'supported': 1, 'failed': 0, 'infrastructure_errors': 0, 'timed_out': 0, 'replayed': 2, 'replay_diverged': 0} classification=qualified
+   seed 11: qualified=True deterministic=True target_success=True first_divergence=None outcome=success vt_nanos=20000996748 runner=4dce3aed3599
+      execution 0: digest=6abb1d2875fb1453 wall=2.3s replay={'attempted': True, 'choice_replay_status': 'exact', 'diagnostic': False, 'match': True}
+      execution 1: digest=6abb1d2875fb1453 wall=2.2s replay={'attempted': True, 'choice_replay_status': 'exact', 'diagnostic': False, 'match': True}
+   seed 17: qualified=True deterministic=True target_success=True first_divergence=None outcome=success vt_nanos=20000989794 runner=4dce3aed3599
+      execution 0: digest=b41c8ac38ed84e6a wall=2.2s replay={'attempted': True, 'choice_replay_status': 'exact', 'diagnostic': False, 'match': True}
+      execution 1: digest=b41c8ac38ed84e6a wall=2.0s replay={'attempted': True, 'choice_replay_status': 'exact', 'diagnostic': False, 'match': True}
+== H3-pool2-forward-traced-repeat4: throwaway copy, pool forced to two slots, skip lifted, forward, traced, repeat 4
+   set report: {'expectations_met': True, 'supported': 1, 'failed': 0, 'infrastructure_errors': 0, 'timed_out': 0, 'replayed': 2, 'replay_diverged': 0} classification=qualified
+   seed 17: qualified=True deterministic=True target_success=True first_divergence=None outcome=success vt_nanos=20000989794 runner=0e00a1bef3aa
+      execution 0: digest=24e27d2bad10534c wall=2.7s replay={'attempted': True, 'choice_replay_status': 'exact', 'diagnostic': False, 'match': True}
+      execution 1: digest=24e27d2bad10534c wall=3.3s replay={'attempted': True, 'choice_replay_status': 'exact', 'diagnostic': False, 'match': True}
+      execution 2: digest=24e27d2bad10534c wall=3.7s replay={'attempted': True, 'choice_replay_status': 'exact', 'diagnostic': False, 'match': True}
+      execution 3: digest=24e27d2bad10534c wall=2.9s replay={'attempted': True, 'choice_replay_status': 'exact', 'diagnostic': False, 'match': True}
+   seed 11: qualified=True deterministic=True target_success=True first_divergence=None outcome=success vt_nanos=20000996748 runner=0e00a1bef3aa
+      execution 0: digest=ba0346241e4f21c6 wall=2.0s replay={'attempted': True, 'choice_replay_status': 'exact', 'diagnostic': False, 'match': True}
+      execution 1: digest=ba0346241e4f21c6 wall=1.9s replay={'attempted': True, 'choice_replay_status': 'exact', 'diagnostic': False, 'match': True}
+      execution 2: digest=ba0346241e4f21c6 wall=2.0s replay={'attempted': True, 'choice_replay_status': 'exact', 'diagnostic': False, 'match': True}
+      execution 3: digest=ba0346241e4f21c6 wall=2.0s replay={'attempted': True, 'choice_replay_status': 'exact', 'diagnostic': False, 'match': True}
+== H2-pool2-strict-traced: throwaway copy, pool forced to two slots, skip lifted, strict, traced, repeat 2
+   set report: {'expectations_met': False, 'supported': 0, 'failed': 1, 'infrastructure_errors': 0, 'timed_out': 0, 'replayed': 2, 'replay_diverged': 0} classification=target_failure
+   seed 11: qualified=False deterministic=True target_success=False first_divergence=None outcome=nonzero_exit vt_nanos=30001000000 runner=0e00a1bef3aa
+      execution 0: digest=6caccedbf34de87d wall=2.2s replay={'attempted': True, 'choice_replay_status': 'exact', 'diagnostic': False, 'match': True}
+      execution 1: digest=6caccedbf34de87d wall=2.2s replay={'attempted': True, 'choice_replay_status': 'exact', 'diagnostic': False, 'match': True}
+   seed 17: qualified=False deterministic=True target_success=False first_divergence=None outcome=nonzero_exit vt_nanos=30001000000 runner=0e00a1bef3aa
+      execution 0: digest=016327e0b01eafb6 wall=2.4s replay={'attempted': True, 'choice_replay_status': 'exact', 'diagnostic': False, 'match': True}
+      execution 1: digest=016327e0b01eafb6 wall=2.3s replay={'attempted': True, 'choice_replay_status': 'exact', 'diagnostic': False, 'match': True}
+== H1-single-forward-traced-skipped: working tree, TestOperation skipped (the tracked entry, traced), forward, repeat 2
+   set report: {'expectations_met': True, 'supported': 1, 'failed': 0, 'infrastructure_errors': 0, 'timed_out': 0, 'replayed': 2, 'replay_diverged': 0} classification=qualified
+   seed 17: qualified=True deterministic=True target_success=True first_divergence=None outcome=success vt_nanos=15100996296 runner=0e00a1bef3aa
+      execution 0: digest=6af8541b3e32403c wall=2.2s replay={'attempted': True, 'choice_replay_status': 'exact', 'diagnostic': False, 'match': True}
+      execution 1: digest=6af8541b3e32403c wall=1.9s replay={'attempted': True, 'choice_replay_status': 'exact', 'diagnostic': False, 'match': True}
+   seed 11: qualified=True deterministic=True target_success=True first_divergence=None outcome=success vt_nanos=15000996299 runner=0e00a1bef3aa
+      execution 0: digest=99a77cdc5c3da27c wall=3.1s replay={'attempted': True, 'choice_replay_status': 'exact', 'diagnostic': False, 'match': True}
+      execution 1: digest=99a77cdc5c3da27c wall=3.7s replay={'attempted': True, 'choice_replay_status': 'exact', 'diagnostic': False, 'match': True}

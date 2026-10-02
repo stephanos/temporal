@@ -1,0 +1,41 @@
+# per file: status path baseline-comment-lines final-comment-lines removed added
+M tools/gomad3/architecture_test.go 0 0 0 0
+M tools/gomad3/deterministicio/domain.go 0 0 0 0
+M tools/gomad3/deterministicio/memory_adapter.go 0 0 0 0
+M tools/gomad3/deterministicio/memory_adapter_test.go 0 0 0 0
+M tools/gomad3/qualification/set/set.go 61 61 0 0
+M tools/gomad3/runner/campaign.go 0 0 0 0
+M tools/gomad3/runner/choice_exploration_campaign.go 2 0 2 0
+? tools/gomad3/runner/completion.go 0 10 0 10
+? tools/gomad3/runner/completion_characterization_test.go 0 17 0 17
+? tools/gomad3/runner/completion_test.go 0 0 0 0
+M tools/gomad3/runner/deterministicio.go 0 0 0 0
+M tools/gomad3/runner/guidance.go 0 0 0 0
+M tools/gomad3/runner/internal/campaign/campaign_journal.go 0 0 0 0
+M tools/gomad3/runner/internal/campaign/merge.go 0 0 0 0
+M tools/gomad3/runner/internal/campaign/merge_capacity_test.go 0 0 0 0
+M tools/gomad3/runner/internal/minimizer/minimizer.go 0 0 0 0
+M tools/gomad3/runner/internal/minimizer/minimizer_test.go 0 0 0 0
+M tools/gomad3/runner/minimize_operation.go 0 0 0 0
+M tools/gomad3/runner/portable_plan.go 0 0 0 0
+M tools/gomad3/runner/portable_plan_test.go 0 0 0 0
+? tools/gomad3/runner/retention.go 0 12 0 12
+? tools/gomad3/runner/retention_characterization_test.go 0 75 0 75
+? tools/gomad3/runner/retention_test.go 0 0 0 0
+M tools/gomad3/runner/runner.go 12 10 2 0
+M tools/gomad3/runner/runner_test.go 5 9 0 4
+M tools/gomad3/runner/simulation_exploration_campaign.go 2 0 2 0
+M tools/gomad3/target/capability.go 5 5 0 0
+M tools/gomad3/upgrade/upgrade.go 0 0 0 0
+M tools/gomad3/upgrade/upgrade_test.go 2 4 0 2
+? tools/gomad3/upgrade/upgrade_unix_test.go 0 7 0 7
+# total comment lines in changed and new Go files: baseline 89, final 210
+
+# removed comment lines: path:baseline-line | text | identical comment line added at
+tools/gomad3/runner/choice_exploration_campaign.go:346 | // A target the watchdog or a cancellation killed wrote no choice trace to | tools/gomad3/runner/completion.go:58
+tools/gomad3/runner/choice_exploration_campaign.go:347 | // project; the termination is its outcome. | tools/gomad3/runner/completion.go:59
+tools/gomad3/runner/runner.go:894 | // A target the watchdog or a cancellation killed wrote no choice trace | nowhere
+tools/gomad3/runner/runner.go:895 | // to project; the termination is its outcome. | nowhere
+tools/gomad3/runner/simulation_exploration_campaign.go:363 | // A target the watchdog or a cancellation killed wrote no choice trace to | tools/gomad3/runner/completion.go:58
+tools/gomad3/runner/simulation_exploration_campaign.go:364 | // project; the termination is its outcome. | tools/gomad3/runner/completion.go:59
+# removed comment lines: 6

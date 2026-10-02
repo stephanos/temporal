@@ -1,0 +1,11 @@
+{
+ "Replace": {
+  "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/runner/runner.go": "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/109bf7ee-3bb8-496e-aaa3-18744f7a3514/scratchpad/fn108-6/pre/runner.go",
+  "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/runner/choice_exploration_campaign.go": "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/109bf7ee-3bb8-496e-aaa3-18744f7a3514/scratchpad/fn108-6/pre/choice_exploration_campaign.go",
+  "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/runner/simulation_exploration_campaign.go": "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/109bf7ee-3bb8-496e-aaa3-18744f7a3514/scratchpad/fn108-6/pre/simulation_exploration_campaign.go",
+  "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/runner/guidance.go": "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/109bf7ee-3bb8-496e-aaa3-18744f7a3514/scratchpad/fn108-6/pre/guidance.go",
+  "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/runner/minimize_operation.go": "/private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/109bf7ee-3bb8-496e-aaa3-18744f7a3514/scratchpad/fn108-6/pre/minimize_operation.go",
+  "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/runner/retention.go": "",
+  "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/runner/retention_test.go": ""
+ }
+}

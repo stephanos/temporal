@@ -580,10 +580,6 @@ func atomicWriteContext(ctx context.Context, path string, data []byte) (retErr e
 	return syncDirectoryContext(ctx, directory)
 }
 
-func removeCompletedPartial(path string) error {
-	return removeCompletedPartialContext(context.Background(), path, "completed-partial")
-}
-
 func removeCompletedPartialContext(ctx context.Context, path, operation string) error {
 	if path == "" {
 		return nil

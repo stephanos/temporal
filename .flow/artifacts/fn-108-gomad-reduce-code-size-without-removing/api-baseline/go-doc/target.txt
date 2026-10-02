@@ -1,0 +1,307 @@
+package target // import "go.temporal.io/server/tools/gomad3/target"
+
+
+CONSTANTS
+
+const (
+	DispositionAllowedExactPack CompatibilityDisposition = CompatibilityDisposition(compatibility.DispositionAllowedExactPack)
+	DispositionDenied           CompatibilityDisposition = CompatibilityDisposition(compatibility.DispositionDenied)
+
+	RemediationAddExactPack      CompatibilityRemediation = CompatibilityRemediation(compatibility.RemediationAddExactPack)
+	RemediationAddAdapter        CompatibilityRemediation = CompatibilityRemediation(compatibility.RemediationAddAdapter)
+	RemediationModelOperation    CompatibilityRemediation = CompatibilityRemediation(compatibility.RemediationModelOperation)
+	RemediationRemoveDependency  CompatibilityRemediation = CompatibilityRemediation(compatibility.RemediationRemoveDependency)
+	RemediationRemainUnsupported CompatibilityRemediation = CompatibilityRemediation(compatibility.RemediationRemainUnsupported)
+)
+const CapabilityClosureSchema = "gomad3.target-capability-closure/v3"
+const CapabilityReviewSchema = "gomad3.target-capability-review/v4"
+
+FUNCTIONS
+
+func DigestAdapterSourceInventory(root string) (string, error)
+func DownloadModule(ctx context.Context, root string, module ModuleIdentity) (retErr error)
+    DownloadModule places module in the pinned Go command's module cache, so a
+    build input read from the cache does not depend on an earlier build having
+    fetched it, and fails unless the downloaded module has the pinned checksum.
+    It runs outside every module, because inside one the go command records the
+    downloaded module's sums in that module's go.sum.
+
+func IsInvalidCapabilityReview(err error) bool
+func IsUnsupportedCapability(err error) bool
+func ModuleDirectory(spec Spec) (string, error)
+    ModuleDirectory returns the directory of the module that owns a go-run
+    or go-test target: the nearest go.mod above a path source, or the working
+    directory for an import-path source. Build adapters read that module's
+    go.mod, so a target named from a subdirectory selects the same adapters as
+    one named from the module root.
+
+func ProjectBuildInfo(info *debug.BuildInfo) record.BuildInfo
+func ReadModuleCache(ctx context.Context, root string) (string, error)
+func ValidateWorkingDirectory(directory string) error
+    ValidateWorkingDirectory checks an explicitly supplied target working
+    directory: it must be an absolute, clean path to a directory that holds a
+    go.mod, because the go command runs there with workspaces disabled.
+
+func VerifyCompatibility(packs []record.CompatibilityPack) error
+func WriteProvenance(path string, provenance Provenance) error
+
+TYPES
+
+type AdapterCapacityError struct {
+	Resource string
+	Limit    uint64
+}
+
+func (err *AdapterCapacityError) Error() string
+
+type AdapterReplacement struct {
+	Original                         ModuleIdentity
+	ReplacementPath                  string
+	PreparedPackage                  string
+	ProfileName                      string
+	ProfileImplementationSHA256      string
+	Adapter                          ModuleIdentity
+	OriginalSourceInventorySHA256    string
+	ReplacementSourceInventorySHA256 string
+	PreparedSourceSetSHA256          string
+}
+
+type CapabilityAdapterReplacement struct {
+	ProfileName                      string         `json:"profile_name"`
+	ProfileImplementationSHA256      string         `json:"profile_implementation_sha256"`
+	Adapter                          ModuleIdentity `json:"adapter"`
+	OriginalSourceInventorySHA256    string         `json:"original_source_inventory_sha256"`
+	ReplacementSourceInventorySHA256 string         `json:"replacement_source_inventory_sha256"`
+	PreparedSourceSetSHA256          string         `json:"prepared_source_set_sha256"`
+}
+
+type CapabilityClosure struct {
+	Schema        string                  `json:"schema"`
+	Compatibility []CompatibilityIdentity `json:"compatibility"`
+	Packages      []CapabilityPackage     `json:"packages"`
+}
+
+func ReviewCapabilityClosure(ctx context.Context, spec Spec) (CapabilityClosure, error)
+
+type CapabilityFinding struct {
+	Kind              CapabilityFindingKind      `json:"kind"`
+	Package           CapabilityPackageReference `json:"package"`
+	Module            *CapabilityModule          `json:"module,omitempty"`
+	SourceSetSHA256   string                     `json:"source_set_sha256"`
+	SourceName        string                     `json:"source_name,omitempty"`
+	SourceSHA256      string                     `json:"source_sha256,omitempty"`
+	Directives        []string                   `json:"directives"`
+	Capability        string                     `json:"capability"`
+	PolicyDisposition CompatibilityDisposition   `json:"policy_disposition"`
+	Remediation       CompatibilityRemediation   `json:"remediation"`
+	PackID            string                     `json:"pack_id,omitempty"`
+}
+
+type CapabilityFindingKind string
+
+const (
+	FindingForbiddenImport    CapabilityFindingKind = "forbidden_import"
+	FindingForeignSource      CapabilityFindingKind = "foreign_source"
+	FindingUnapprovedLinkname CapabilityFindingKind = "unapproved_linkname"
+	FindingMalformedLinkname  CapabilityFindingKind = "malformed_linkname"
+	FindingNoReviewedGoSource CapabilityFindingKind = "no_reviewed_go_source"
+	FindingDeniedBoundary     CapabilityFindingKind = "denied_boundary"
+)
+type CapabilityForeignSource struct {
+	Kind   string `json:"kind"`
+	Name   string `json:"name"`
+	SHA256 string `json:"sha256"`
+}
+
+type CapabilityManifest struct {
+	Schema                       string        `json:"schema"`
+	SHA256                       record.SHA256 `json:"sha256"`
+	Bytes                        uint64        `json:"bytes"`
+	Facts                        uint64        `json:"facts"`
+	ProducerImplementationSHA256 string        `json:"producer_implementation_sha256"`
+	GuardImplementationSHA256    string        `json:"guard_implementation_sha256"`
+	CapabilityUniverseSHA256     string        `json:"capability_universe_sha256"`
+	Payload                      []byte        `json:"-"`
+}
+
+func CapabilityManifestFromRecord(manifest *record.TargetCapabilityManifest) *CapabilityManifest
+
+func ReadCapabilityManifest(path string, identity ToolchainIdentity) (*CapabilityManifest, error)
+
+func ReadCapabilityManifestFile(file *os.File, identity ToolchainIdentity) (*CapabilityManifest, error)
+
+func (manifest CapabilityManifest) Record() *record.TargetCapabilityManifest
+
+type CapabilityMode string
+
+const (
+	CapabilityModeClosure CapabilityMode = "closure"
+	CapabilityModeLinked  CapabilityMode = "linked"
+	CapabilityModeGuarded CapabilityMode = "guarded"
+)
+type CapabilityModule struct {
+	Path        string                        `json:"path"`
+	Version     string                        `json:"version"`
+	Sum         string                        `json:"sum"`
+	Main        bool                          `json:"main"`
+	Local       bool                          `json:"local"`
+	Replacement *CapabilityModule             `json:"replacement,omitempty"`
+	Adapter     *CapabilityAdapterReplacement `json:"adapter,omitempty"`
+}
+
+type CapabilityPackage struct {
+	ImportPath        string                    `json:"import_path"`
+	ForTest           string                    `json:"for_test,omitempty"`
+	Name              string                    `json:"name"`
+	Root              bool                      `json:"root,omitempty"`
+	Standard          bool                      `json:"standard"`
+	Imports           []string                  `json:"imports"`
+	Module            *CapabilityModule         `json:"module,omitempty"`
+	Sources           []CapabilitySource        `json:"sources"`
+	ForeignSources    []CapabilityForeignSource `json:"foreign_sources"`
+	GeneratedTestMain bool                      `json:"generated_test_main,omitempty"`
+}
+
+type CapabilityPackageReference struct {
+	ImportPath string `json:"import_path"`
+	ForTest    string `json:"for_test,omitempty"`
+	Name       string `json:"name"`
+}
+
+type CapabilityReview struct {
+	Schema             string                       `json:"schema"`
+	BuildTags          []string                     `json:"build_tags"`
+	Roots              []CapabilityPackageReference `json:"roots"`
+	Closure            CapabilityClosure            `json:"closure"`
+	Packs              []CompatibilityPackEvidence  `json:"packs"`
+	CapabilityMode     CapabilityMode               `json:"capability_mode"`
+	CapabilityManifest *CapabilityManifest          `json:"capability_manifest,omitempty"`
+	Findings           []CapabilityFinding          `json:"findings"`
+	GuardedFindings    []CapabilityFinding          `json:"guarded_findings"`
+	EliminatedFindings []CapabilityFinding          `json:"eliminated_findings"`
+}
+
+func ReviewCapabilities(ctx context.Context, spec Spec) (CapabilityReview, error)
+
+type CapabilitySource struct {
+	Name               string   `json:"name"`
+	SHA256             string   `json:"sha256"`
+	LinknameDirectives []string `json:"linkname_directives,omitempty"`
+	MalformedLinkname  bool     `json:"malformed_linkname,omitempty"`
+}
+
+type CompatibilityDisposition compatibility.Disposition
+
+type CompatibilityIdentity compatibility.Identity
+
+type CompatibilityPackEvidence compatibility.PackEvidence
+
+type CompatibilityRemediation compatibility.RemediationCategory
+
+type InvalidCapabilityReviewError struct {
+	Err error
+}
+
+func (err *InvalidCapabilityReviewError) Error() string
+
+func (err *InvalidCapabilityReviewError) Unwrap() error
+
+type Kind string
+
+const (
+	KindExec   Kind = "exec"
+	KindGoRun  Kind = "go-run"
+	KindGoTest Kind = "go-test"
+)
+type ModuleIdentity struct {
+	Path    string `json:"path"`
+	Version string `json:"version"`
+	Sum     string `json:"sum"`
+}
+
+type Prepared struct {
+	Path               string
+	Kind               Kind
+	Source             string
+	SHA256             string
+	Size               uint64
+	Argv               []string
+	BuildTags          []string
+	Adapters           []record.TargetAdapter
+	Compatibility      []record.CompatibilityPack
+	BuildInfo          record.BuildInfo
+	GoVersion          string
+	BuildKey           string
+	TargetGOOS         string
+	TargetGOARCH       string
+	CapabilityMode     CapabilityMode
+	CapabilityManifest *CapabilityManifest
+}
+
+func Prepare(ctx context.Context, spec Spec) (prepared Prepared, retErr error)
+
+func (prepared Prepared) RecordTarget() record.Target
+
+func (prepared Prepared) RecordToolchain() record.Toolchain
+
+func (prepared Prepared) Verify() error
+
+type Provenance struct {
+	SchemaVersion      int
+	GoVersion          string
+	BuildKey           string
+	TargetGOOS         string
+	TargetGOARCH       string
+	BinarySHA256       string
+	BinarySize         uint64
+	BuildInfo          record.BuildInfo
+	CapabilityClosure  CapabilityClosure
+	CapabilityMode     CapabilityMode
+	CapabilityManifest *CapabilityManifest
+}
+
+func ReadProvenance(path string) (Provenance, error)
+
+type Spec struct {
+	Kind                Kind
+	Source              string
+	Provenance          string
+	Args                []string
+	BuildTags           []string
+	WorkingDir          string
+	PreparationRoot     string
+	ToolchainRoot       string
+	BuildOverlay        string
+	BuildModFile        string
+	AdapterReplacements []AdapterReplacement
+	CapabilityMode      CapabilityMode
+}
+
+type ToolchainIdentity struct {
+	GoVersion    string
+	BuildKey     string
+	TargetGOOS   string
+	TargetGOARCH string
+}
+
+func ReadToolchainIdentity(root string) (ToolchainIdentity, error)
+
+type UnsupportedCapabilityCapacityError struct {
+	Resource string
+	Required uint64
+	Maximum  uint64
+	Err      error
+}
+
+func (err *UnsupportedCapabilityCapacityError) Error() string
+
+func (err *UnsupportedCapabilityCapacityError) Unwrap() error
+
+type UnsupportedCapabilityError struct {
+	ImportPath string
+	Capability string
+	Finding    CapabilityFinding
+}
+
+func (err *UnsupportedCapabilityError) Error() string
+

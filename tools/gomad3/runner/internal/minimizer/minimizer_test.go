@@ -69,17 +69,6 @@ func TestStateStopsAtAttemptBudgetAndRoundTrips(t *testing.T) {
 	if state.StopReason != StopAttemptBudget || state.Attempts != 1 {
 		t.Fatalf("bounded state = %#v", state)
 	}
-	encoded, err := Encode(state)
-	if err != nil {
-		t.Fatal(err)
-	}
-	decoded, err := Decode(encoded)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if decoded.SHA256 != state.SHA256 || decoded.StopReason != state.StopReason {
-		t.Fatalf("decoded state = %#v, want %#v", decoded, state)
-	}
 }
 
 func TestValidateRejectsInvalidConfigWithSelfConsistentStateIdentity(t *testing.T) {

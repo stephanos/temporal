@@ -1,0 +1,42 @@
+gofmt start=2026-10-01T21:51:53Z
+gofmt rc=0 end=2026-10-01T21:51:53Z
+vet start=2026-10-01T21:51:53Z
+vet rc=0 end=2026-10-01T21:51:54Z
+focused start=2026-10-01T21:51:54Z
+focused rc=0 end=2026-10-01T21:53:15Z
+architecture start=2026-10-01T21:53:15Z
+architecture rc=0 end=2026-10-01T21:53:16Z
+validate start=2026-10-01T21:53:16Z
+validate rc=0 end=2026-10-01T21:53:21Z
+test-harness start=2026-10-01T21:53:21Z
+test-harness rc=2 end=2026-10-01T21:53:29Z
+world-test start=2026-10-01T21:53:29Z
+world-test rc=0 end=2026-10-01T21:53:37Z
+note: the test-harness rc=2 above is inconclusive, not a code failure: the gate script put -json into GOFLAGS, which made 'go env GOROOT' inside TestBootstrapGofmtResolvesInstalledTool print JSON. Rerun below with GOFLAGS='-count=1 -v'.
+test-harness start=2026-10-01T21:53:55Z
+test-harness rc=0 end=2026-10-01T21:53:56Z
+world-test start=2026-10-01T21:53:56Z
+world-test rc=0 end=2026-10-01T21:53:59Z
+test-host start=2026-10-01T21:54:05Z
+test-host rc=0 end=2026-10-01T21:55:51Z
+gomad3sim start=2026-10-01T21:55:51Z
+gomad3sim rc=0 end=2026-10-01T21:55:55Z
+integration start=2026-10-01T21:55:55Z
+integration rc=0 end=2026-10-01T21:56:08Z
+build-cli start=2026-10-01T21:56:08Z
+build-cli rc=0 end=2026-10-01T21:56:10Z
+smoke-qualification start=2026-10-01T21:56:14Z
+smoke-qualification rc=0 end=2026-10-01T22:00:10Z
+api-capture rc=0; diff -r api-baseline api-after:        0 lines
+e2e-guided rc=0 attempted=4 succeeded=4 retained_successes=1 corpus_added=1 corpus_entries=1; replay of the retained success: reproduced=true
+e2e-guided-second-campaign rc=0 corpus_entries=1 corpus_added=0
+e2e-choice-exploration rc=0 attempted=6 succeeded=6 retained_successes=3 stop_reason=max_executions; replay of each retained success: 3/3 reproduced=true
+note: three test helper functions in retention_characterization_test.go were renamed after the gates above; gofmt, vet and the focused tier were rerun on the final tree:
+final-gofmt start=2026-10-01T22:08:23Z
+final-gofmt rc=0 end=2026-10-01T22:08:23Z
+final-vet start=2026-10-01T22:08:23Z
+final-vet rc=0 end=2026-10-01T22:08:23Z
+final-focused start=2026-10-01T22:08:23Z
+final-focused rc=0 end=2026-10-01T22:09:54Z
+final-architecture start=2026-10-01T22:09:54Z
+final-architecture rc=0 end=2026-10-01T22:09:57Z

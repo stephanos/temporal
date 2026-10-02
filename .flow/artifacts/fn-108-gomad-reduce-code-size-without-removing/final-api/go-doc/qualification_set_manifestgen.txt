@@ -1,0 +1,142 @@
+package manifestgen // import "go.temporal.io/server/tools/gomad3/qualification/set/manifestgen"
+
+Package manifestgen derives a qualification-set manifest from the top-level
+tests of one Go package, so coverage of that package is a property of the
+generator rather than of hand curation: every test is a workload with the
+default expectation unless a checked-in spec overrides or excludes it by name.
+
+CONSTANTS
+
+const SpecSchema = "gomad3.qualification-set-generator/v1"
+
+FUNCTIONS
+
+func Encode(manifest set.Manifest) ([]byte, error)
+    Encode renders the manifest as indented JSON in field order, so regeneration
+    is byte-stable and reviewable.
+
+func Generate(spec Spec, tests []string) (set.Manifest, error)
+    Generate derives the manifest: one workload per listed test that is not
+    excluded, ordered by workload identity. Overrides or exclusions naming
+    a test that is not listed are refused, so the spec cannot drift from the
+    package.
+
+func ListTests(dir string, tags []string, platforms []string) ([]string, error)
+    ListTests returns the sorted top-level test names `go test -list` reports
+    for the package in dir under tags, on every platform. It parses the test
+    files rather than building the test binary, applying the go command's
+    file-selection and test-function rules, so it needs no toolchain and runs in
+    milliseconds. A package whose tests differ between platforms is refused.
+
+func Run(config Config) error
+    Run generates the manifest described by config and writes it, or, in check
+    mode, fails when Output differs from what the generator produces.
+
+func WorkloadID(prefix, test string) string
+    WorkloadID derives a stable workload identity from a test name: the prefix,
+    then the name without Test in lower-case words, split at case changes and
+    underscores, with each non-ASCII rune spelled as its code point.
+
+
+TYPES
+
+type Config struct {
+	Root   string
+	Spec   string
+	Output string
+	// Check compares the generated manifest with Output instead of writing it.
+	Check bool
+}
+    Config names the files of one generation. Relative Spec and Output paths
+    resolve against Root, as does the spec's Package.
+
+type Exclusion struct {
+	Owner  string `json:"owner"`
+	Date   string `json:"date"`
+	Reason string `json:"reason"`
+}
+    Exclusion removes a test from the manifest by name. Owner, date, and reason
+    are required so no test leaves the qualified set silently.
+
+type ManifestDefaults struct {
+	Name                 string   `json:"name"`
+	Description          string   `json:"description"`
+	Module               string   `json:"module"`
+	Seeds                []uint64 `json:"seeds"`
+	Repeat               uint64   `json:"repeat"`
+	RunTimeout           string   `json:"run_timeout"`
+	OverallTimeout       string   `json:"overall_timeout"`
+	TerminateGrace       string   `json:"terminate_grace"`
+	OutputBytes          uint64   `json:"output_bytes"`
+	WorldTransitionBytes uint64   `json:"world_transition_bytes"`
+}
+
+type Spec struct {
+	Schema string `json:"schema"`
+	// Package is the enumerated package, relative to the generation root.
+	Package string `json:"package"`
+	// BuildTags select the package's files for enumeration and are the
+	// workloads' build tags, so the listed tests are the built tests.
+	BuildTags []string `json:"build_tags"`
+	// Platforms are the GOOS/GOARCH pairs the package must enumerate the same
+	// tests on; one manifest serves every qualified host.
+	Platforms  []string                `json:"platforms"`
+	IDPrefix   string                  `json:"id_prefix"`
+	Manifest   ManifestDefaults        `json:"manifest"`
+	Workload   WorkloadDefaults        `json:"workload"`
+	Tests      map[string]TestOverride `json:"tests,omitempty"`
+	Exclusions map[string]Exclusion    `json:"exclusions,omitempty"`
+}
+    Spec is the checked-in input of a generated manifest: the package to
+    enumerate, the manifest and workload defaults, and the only per-test
+    deviations the generator accepts.
+
+func LoadSpec(path string) (Spec, error)
+
+type TestOverride struct {
+	RequiredProbes       []string                           `json:"required_probes,omitempty"`
+	Expectation          *set.WorkloadExpectation           `json:"expectation,omitempty"`
+	PlatformExpectations map[string]set.WorkloadExpectation `json:"platform_expectations,omitempty"`
+	ChoiceBytes          *uint64                            `json:"choice_bytes,omitempty"`
+	ClockTick            string                             `json:"clock_tick,omitempty"`
+	IOTranscriptBytes    uint64                             `json:"io_transcript_bytes,omitempty"`
+	// Environment sets target variables for the test, such as a pool size the
+	// test harness reads.
+	Environment     []string `json:"environment,omitempty"`
+	ReplaySuccesses *bool    `json:"replay_successes,omitempty"`
+	// SuccessArtifactLimit and SuccessBytesLimit bound the successes a test
+	// that replays them retains, which a test opting into replay under
+	// defaults that retain none must state.
+	SuccessArtifactLimit *uint64 `json:"success_artifact_limit,omitempty"`
+	SuccessBytesLimit    *uint64 `json:"success_bytes_limit,omitempty"`
+	ExecutionTimeout     string  `json:"execution_timeout,omitempty"`
+	OverallTimeout       string  `json:"overall_timeout,omitempty"`
+	Reason               string  `json:"reason,omitempty"`
+	// SkipSubtests excludes named subtests of the test, each with the owner,
+	// date, and reason an exclusion requires, so the rest of the test stays
+	// in the set.
+	SkipSubtests map[string]Exclusion `json:"skip_subtests,omitempty"`
+}
+    TestOverride is the per-test deviation from the workload defaults.
+    An override of the evidence a test retains (choice_bytes, replay_successes,
+    success_artifact_limit, success_bytes_limit) or of its budget
+    (execution_timeout, overall_timeout) must carry a reason, so no test changes
+    its qualification silently.
+
+type WorkloadDefaults struct {
+	Tier           uint64                `json:"tier"`
+	CapabilityMode target.CapabilityMode `json:"capability_mode"`
+	// Invariant follows the test name in each workload's invariant.
+	Invariant            string                  `json:"invariant"`
+	ReadOnlyMounts       []set.Mount             `json:"read_only_mounts,omitempty"`
+	ChoiceBytes          uint64                  `json:"choice_bytes"`
+	ClockTick            string                  `json:"clock_tick,omitempty"`
+	ReplaySuccesses      bool                    `json:"replay_successes"`
+	SuccessArtifactLimit uint64                  `json:"success_artifact_limit"`
+	SuccessBytesLimit    uint64                  `json:"success_bytes_limit"`
+	ExecutionTimeout     string                  `json:"execution_timeout,omitempty"`
+	OverallTimeout       string                  `json:"overall_timeout,omitempty"`
+	TestParallel         uint64                  `json:"test_parallel,omitempty"`
+	Expectation          set.WorkloadExpectation `json:"expectation"`
+}
+

@@ -1,0 +1,21 @@
+--- FAIL: TestRewriteModerncMemoryRejectsSourceIdentityDrift (0.02s)
+    memory_adapter_test.go:48: rewriteAdapterSource() accepted changed mmap_unix.go
+--- FAIL: TestModerncMemoryRewriteRejectsAnchorDrift (0.02s)
+    --- FAIL: TestModerncMemoryRewriteRejectsAnchorDrift/missing-anchor (0.00s)
+        memory_adapter_test.go:67: modernc memory rewrite: <nil>, want anchor mismatch
+    --- FAIL: TestModerncMemoryRewriteRejectsAnchorDrift/ambiguous-anchor (0.00s)
+        memory_adapter_test.go:67: modernc memory rewrite: <nil>, want anchor mismatch
+    --- FAIL: TestModerncMemoryRewriteRejectsAnchorDrift/replacement-digest (0.00s)
+        memory_adapter_test.go:67: modernc memory rewrite: <nil>, want replacement identity mismatch
+--- FAIL: TestPrepareModerncMemoryRejectsModuleDrift (0.04s)
+    --- FAIL: TestPrepareModerncMemoryRejectsModuleDrift/changed-source (0.01s)
+        memory_adapter_test.go:114: changed modernc memory module: <nil>, want source inventory identity mismatch
+    --- FAIL: TestPrepareModerncMemoryRejectsModuleDrift/non-regular-source (0.01s)
+        memory_adapter_test.go:120: changed modernc memory source: <nil>, want not a regular file
+--- FAIL: TestModerncMemoryRejectsChangedReplacementInventory (0.02s)
+    memory_adapter_test.go:139: changed modernc memory replacement inventory: <nil>
+--- FAIL: TestPrepareModerncMemoryRejectsChangedIdentity (0.03s)
+    memory_adapter_test.go:174: prepareModerncMemory() accepted a changed identity version.AdapterIdentity{Module:"modernc.org/memory", Version:"v1.11.1", Sum:"h1:changed"}
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/deterministicio	0.644s
+FAIL

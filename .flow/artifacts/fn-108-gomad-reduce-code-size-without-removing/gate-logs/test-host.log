@@ -1,0 +1,60 @@
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool patch-validate --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 patch and overlay inputs are valid
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool script-validate --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 script ownership is valid
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache GOTOOLCHAIN=local GOWORK=off \
+		go run ./cmd/gomadtool toolchain-build --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 toolchain is ready (darwin/arm64, key 8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc)
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep \
+		. ./cmd/... ./runner/... ./qualification/... ./target/... ./record/... ./artifact/... ./choice/... \
+		./deterministicio/... ./world/... ./toolchain ./toolchain/version ./upgrade/... ./internal/...
+ok  	go.temporal.io/server/tools/gomad3	2.591s
+?   	go.temporal.io/server/tools/gomad3/cmd/gomad	[no test files]
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	5.028s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	1.064s
+ok  	go.temporal.io/server/tools/gomad3/runner	63.364s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/campaign	29.045s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/corpus	1.699s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/execution	147.400s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration	1.758s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice	2.313s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation	1.673s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord	1.292s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/minimizer	1.534s
+ok  	go.temporal.io/server/tools/gomad3/qualification	1.250s
+ok  	go.temporal.io/server/tools/gomad3/qualification/analysis	25.145s
+ok  	go.temporal.io/server/tools/gomad3/qualification/comparison	1.279s
+ok  	go.temporal.io/server/tools/gomad3/qualification/set	4.866s
+ok  	go.temporal.io/server/tools/gomad3/qualification/set/manifestgen	4.690s
+ok  	go.temporal.io/server/tools/gomad3/qualification/workload	0.995s
+ok  	go.temporal.io/server/tools/gomad3/target	61.671s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/build	0.563s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/capabilityreview	0.995s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/livecap	33.182s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/provenance	0.660s
+ok  	go.temporal.io/server/tools/gomad3/record	1.145s
+ok  	go.temporal.io/server/tools/gomad3/artifact	2.200s
+ok  	go.temporal.io/server/tools/gomad3/choice	1.060s
+ok  	go.temporal.io/server/tools/gomad3/choice/internal/wire	0.531s
+ok  	go.temporal.io/server/tools/gomad3/deterministicio	144.697s
+ok  	go.temporal.io/server/tools/gomad3/deterministicio/internal/wire	1.035s
+ok  	go.temporal.io/server/tools/gomad3/deterministicio/readonlymount	0.657s
+ok  	go.temporal.io/server/tools/gomad3/world	0.646s
+ok  	go.temporal.io/server/tools/gomad3/world/mailbox	0.410s
+ok  	go.temporal.io/server/tools/gomad3/world/process	0.528s
+ok  	go.temporal.io/server/tools/gomad3/toolchain	7.798s
+ok  	go.temporal.io/server/tools/gomad3/toolchain/version	2.509s
+ok  	go.temporal.io/server/tools/gomad3/upgrade	0.712s
+ok  	go.temporal.io/server/tools/gomad3/internal/canonicaljson	0.413s
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack	1.595s
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring	0.987s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	0.840s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/boundary	5.635s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/protocol	2.666s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/validation	1.554s
+ok  	go.temporal.io/server/tools/gomad3/internal/hostexec	1.210s
+ok  	go.temporal.io/server/tools/gomad3/internal/hostfs	1.668s

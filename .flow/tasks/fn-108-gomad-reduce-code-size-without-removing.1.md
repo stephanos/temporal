@@ -59,9 +59,32 @@ make -C tools/gomad3 test-host
 
 
 ## Done summary
-TBD
+Recorded the fn-108 implementation baseline at `6782b55f49a0317b230e827ea2a63a37d116d502` on darwin/arm64 under `.flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/`. No Go source changed, nothing is staged or committed. Review ended at SHIP in the fourth round, which the conductor authorized after the three-round cap.
 
+Baseline (counting rule v2, `size-count.sh`): authored production Go across the three directories is 252 files, 63187 physical lines, 58624 code lines, 1970324 code bytes. Test Go 279 files / 42849 code lines, runtime-overlay Go 35 / 11462, generated Go 19 / 4124, protocol/schema/template inputs 56 / 13926, other 77 / 5918. The inventory (718 paths) equals the HEAD tree; `git diff --stat HEAD` and the untracked listing for the three directories are empty.
+
+Deviations from the task text, each stated in `baseline.md`:
+- Baseline revision is HEAD `6782b55f4` with 80 uncommitted docs/evidence paths (conductor decision), recorded in `git-status-baseline.txt`.
+- The inventory is tracked plus untracked-not-ignored files, because fn-108 forbids commits and a tracked-only count would miss new helper files. Any ignored path other than `.toolchain/` and `.bin/` fails the script.
+- A sixth class `other` makes the classes cover the whole inventory. A fourth unit `codebytes` (non-whitespace bytes outside comments, commas and semicolons excluded in Go) is the guard against line joining.
+- `size-compare.sh` (not in the task's file list) decides the R1 size condition: production change plus per-file growth in overlay, generated, protocol-input and non-Markdown other files must be negative in code lines and code bytes, and no file may change class.
+- `api-capture.sh` (not in the task's file list) reproduces `api-baseline/`: `go doc -all` for 19 public packages plus `gomad3sim`, and 39 CLI usage/help captures with exit status and separate streams. `simulation/...` has no Go package and the module root package is test-only; neither has a capture.
+
+Gates on darwin/arm64, go1.27.1 on PATH, toolchain key `8d28bd44…`, all exit 0: `make -C tools/gomad3 validate`, `test-harness` (50 tests pass), `test-host` (45 packages ok, 975 pass, 21 skip), `world-test` (36 pass), `go test -tags test_dep ./tools/gomad3sim/...` (55 pass), `make gomad3-integration-test` (3 pass). linux/amd64: all six not run (host unavailable); `validate` is expected to fail there on the stale pack. Not run on either platform and without a baseline here: the other `make -C tools/gomad3 test` tiers, clock-audit, compatibility-pack and core qualification, smoke, temporal and tests qualification.
+
+Pre-existing findings recorded with owners: D12 linux replay divergence (open, fn-105.12); D14 darwin Chasm divergence (fixed in the baseline, fn-105.14); stale linux pack `modernc-libc-xsys-v047-linux-amd64` (open, recorded by fn-105.26, no open task owns it, needs a linux/amd64 host).
+
+Integrity: `SHA256SUMS` digest `a64ac192433c03e4c7813027dd8a9832790a6fd34af0217468231ab6a1a64327` covers 74 files; `baseline.md` digest `54e10ab35ba98f2b67ac4f178f36f3fd0deecdca294358e1d62fcef26715190c`. Round 4 reviewed `baseline.md` at `b3a8c0dd…`; the one change since names `task1-review.md` as outside the manifest and is applied and unreviewed. `flowctl gate classify` reports FULL (uncommitted `.plans/GOMAD_MILESTONES.md` from earlier tasks); the six gates ran in full and no gate receipt was written.
+
+Session restart: the scratchpad was cleared mid-task. The six gate runs had finished before it (`gate-logs/results.txt` ends with ALL_DONE) and no gate was in flight, so none was re-run. The go/scanner cross-check program, the fixture repositories, the extra capture runs and the round-1 and round-2 review files are gone from disk; `baseline.md` reports the check results and `task1-review.md` reconstructs those two rounds.
+
+baseline: green (the six gates above, run before any file was written)
+
+stage: impl-review - ran (raw codex bridge on working-tree files; commits forbidden; 4 rounds, 4th authorized by conductor) (model: gpt-5.6-sol) [round 1 NEEDS_WORK 5 findings, round 2 NEEDS_WORK 3, round 3 NEEDS_WORK 1, round 4 SHIP; record in task1-review.md]
+stage: plan-sync - skipped(config: planSync.enabled != true)
+
+GATE_SKIPPED lines: none.
 ## Evidence
 - Commits:
-- Tests:
+- Tests: make -C tools/gomad3 validate (darwin/arm64, exit 0), make -C tools/gomad3 test-harness (darwin/arm64, exit 0), make -C tools/gomad3 test-host (darwin/arm64, exit 0), make -C tools/gomad3 world-test (darwin/arm64, exit 0), go test -tags test_dep ./tools/gomad3sim/... (darwin/arm64, exit 0), make gomad3-integration-test (darwin/arm64, exit 0), sh .flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/size-count.sh (exit 0, two runs byte-identical), shasum -a 256 -c SHA256SUMS (74 files OK), linux/amd64: all six gates not run (host unavailable)
 - PRs:

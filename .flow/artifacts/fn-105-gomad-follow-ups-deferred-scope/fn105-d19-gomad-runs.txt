@@ -1,0 +1,336 @@
+# D19 Gomad explore runs of Test_Activity_Basic (fn105-d19-run.sh / fn105-d19-sweep.sh), darwin/arm64, 2026-10-01
+# Campaigns without a prefix ran on 7ef3800a2c plus the shared uncommitted tree (runner 4dce3aed...); r2- and r3- campaigns ran on the
+# restored clone 6782b55f4 (runner 0e00a1be...). The files under test have the same SHA-256 in both.
+# Variant P+T (assert form) differs from the proposed diff only in assert.NoError instead of require.NoError inside the trigger retry.
+# campaign | what | seeds | pass | fail at :603 (fairness assertion): seeds | fail at :508 (triggerAutoEnable activity poll): seeds | seeds with an incomplete backlog at the first measured poll / seeds that reached it | unfairness values
+leaf-strict | working tree, unchanged, TestFairnessSuite leaf, strict | 11,17 | 2 | 0: - | 0: - | 0/2 | 0.45 x2
+suite-strict | working tree, unchanged, TestFairnessSuite, strict | 11,17 | 1 | 1: 11 | 0: - | 2/2 | 0.85 x1 1.3 x1
+suite-forward | working tree, unchanged, TestFairnessSuite, forward | 11,17 | 0 | 2: 11,17 | 0: - | 2/2 | 1.15 x1 1.4 x1
+sweep-suite-strict | working tree, unchanged, TestFairnessSuite, strict | 1-17 | 10 | 7: 1,3,4,5,11,12,14 | 0: - | 17/17 | 0.45 x9 0.85 x1 1.02 x1 1.05 x1 1.3 x1 1.31 x1 1.32 x2 2.23 x1
+sweep-forward-TestFairnessSuite | working tree, unchanged, TestFairnessSuite, forward | 1-17 | 10 | 7: 1,4,6,7,11,16,17 | 0: - | 17/17 | 0.45 x8 0.71 x1 0.72 x1 1.15 x1 1.32 x1 1.4 x1 1.42 x1 1.48 x1 2.17 x1 2.32 x1
+auto-leaf-strict | working tree, unchanged, TestFairnessAutoEnableSuite leaf, strict | 11,17 | 1 | 0: - | 1: 11 | 0/1 | 0.45 x1
+auto-suite-strict | working tree, unchanged, TestFairnessAutoEnableSuite, strict | 11,17 | 1 | 0: - | 1: 11 | 1/1 | 0.45 x1
+auto-suite-forward | working tree, unchanged, TestFairnessAutoEnableSuite, forward | 11,17 | 2 | 0: - | 0: - | 2/2 | 0.45 x2
+sweep-auto-suite-strict | working tree, unchanged, TestFairnessAutoEnableSuite, strict | 1-17 | 13 | 1: 9 | 3: 6,11,12 | 14/14 | 0.45 x12 0.53 x1 1.04 x1
+sweep-forward-TestFairnessAutoEnableSuite | working tree, unchanged, TestFairnessAutoEnableSuite, forward | 1-17 | 15 | 0: - | 2: 10,16 | 15/15 | 0.45 x15
+copy-base-suite-strict | throwaway copy, unchanged, TestFairnessSuite, strict | 11,17 | 1 | 1: 11 | 0: - | 2/2 | 0.85 x1 1.3 x1
+variantR-suite-strict | throwaway copy, variant R, TestFairnessSuite, strict | 11,17 | 2 | 0: - | 0: - | 0/2 | 0.45 x2
+variantR-auto-suite-strict | throwaway copy, variant R, TestFairnessAutoEnableSuite, strict | 11,17 | 2 | 0: - | 0: - | 0/2 | 0.45 x2
+variantR-sweep-TestFairnessSuite | throwaway copy, variant R, TestFairnessSuite, strict | 1-17 | 17 | 0: - | 0: - | 0/17 | 0.45 x17
+variantR-sweep-TestFairnessAutoEnableSuite | throwaway copy, variant R, TestFairnessAutoEnableSuite, strict | 1-17 | 12 | 0: - | 5: 6,7,9,12,16 | 0/12 | 0.45 x12
+variantP-suite-strict | throwaway copy, variant P only, TestFairnessSuite, strict | 1-17 | 17 | 0: - | 0: - | 0/17 | 0.45 x17
+variantP-auto-suite-strict | throwaway copy, variant P only, TestFairnessAutoEnableSuite, strict | 1-17 | 13 | 0: - | 4: 5,6,13,17 | 0/13 | 0.45 x13
+variantPT-suite-strict | throwaway copy, variant P+T (assert form), TestFairnessSuite, strict | 1-17 | 17 | 0: - | 0: - | 0/17 | 0.45 x17
+variantPT-auto-suite-strict | throwaway copy, variant P+T (assert form), TestFairnessAutoEnableSuite, strict | 1-17 | 17 | 0: - | 0: - | 0/17 | 0.45 x17
+variantPT-forward-suite-TestFairnessSuite | throwaway copy, variant P+T (assert form), TestFairnessSuite, forward | 11,17 | 2 | 0: - | 0: - | 0/2 | 0.45 x2
+variantPT-forward-suite-TestFairnessAutoEnableSuite | throwaway copy, variant P+T (assert form), TestFairnessAutoEnableSuite, forward | 11,17 | 2 | 0: - | 0: - | 0/2 | 0.45 x2
+variantPT-strict-leaf-TestFairnessSuite | throwaway copy, variant P+T (assert form), TestFairnessSuite leaf, strict | 11,17 | 2 | 0: - | 0: - | 0/2 | 0.45 x2
+variantPT-strict-leaf-TestFairnessAutoEnableSuite | throwaway copy, variant P+T (assert form), TestFairnessAutoEnableSuite leaf, strict | 11,17 | 2 | 0: - | 0: - | 0/2 | 0.45 x2
+r2-base-strict-suite-TestFairnessSuite | restored checkout, working tree, unchanged, TestFairnessSuite, strict | 11,17 | 1 | 1: 11 | 0: - | 2/2 | 0.85 x1 1.3 x1
+r2-base-strict-leaf-TestFairnessSuite | restored checkout, working tree, unchanged, TestFairnessSuite leaf, strict | 11,17 | 2 | 0: - | 0: - | 0/2 | 0.45 x2
+r2-base-forward-suite-TestFairnessSuite | restored checkout, working tree, unchanged, TestFairnessSuite, forward | 11,17 | 0 | 2: 11,17 | 0: - | 2/2 | 1.15 x1 1.4 x1
+r2-variantPT-strict-suite-TestFairnessSuite | restored checkout, throwaway copy, variant P+T (assert form), TestFairnessSuite, strict | 1-17 | 17 | 0: - | 0: - | 0/17 | 0.45 x17
+r2-variantR-strict-suite-TestFairnessSuite | restored checkout, throwaway copy, variant R, TestFairnessSuite, strict | 11,17 | 2 | 0: - | 0: - | 0/2 | 0.45 x2
+r2-base-strict-suite-TestFairnessAutoEnableSuite | restored checkout, working tree, unchanged, TestFairnessAutoEnableSuite, strict | 11,17 | 1 | 0: - | 1: 11 | 1/1 | 0.45 x1
+r2-base-strict-leaf-TestFairnessAutoEnableSuite | restored checkout, working tree, unchanged, TestFairnessAutoEnableSuite leaf, strict | 11,17 | 1 | 0: - | 1: 11 | 0/1 | 0.45 x1
+r2-base-forward-suite-TestFairnessAutoEnableSuite | restored checkout, working tree, unchanged, TestFairnessAutoEnableSuite, forward | 11,17 | 2 | 0: - | 0: - | 2/2 | 0.45 x2
+r2-variantPT-strict-suite-TestFairnessAutoEnableSuite | restored checkout, throwaway copy, variant P+T (assert form), TestFairnessAutoEnableSuite, strict | 1-17 | 17 | 0: - | 0: - | 0/17 | 0.45 x17
+r2-variantR-strict-suite-TestFairnessAutoEnableSuite | restored checkout, throwaway copy, variant R, TestFairnessAutoEnableSuite, strict | 11,17 | 2 | 0: - | 0: - | 0/2 | 0.45 x2
+r3-variantPT-strict-suite-TestFairnessSuite | restored checkout, throwaway copy, variant P+T as proposed (require form), TestFairnessSuite, strict | 1-17 | 17 | 0: - | 0: - | 0/17 | 0.45 x17
+r3-variantPT-forward-suite-TestFairnessSuite | restored checkout, throwaway copy, variant P+T as proposed (require form), TestFairnessSuite, forward | 11,17 | 2 | 0: - | 0: - | 0/2 | 0.45 x2
+r3-variantPT-strict-leaf-TestFairnessSuite | restored checkout, throwaway copy, variant P+T as proposed (require form), TestFairnessSuite leaf, strict | 11,17 | 2 | 0: - | 0: - | 0/2 | 0.45 x2
+r3-variantPT-strict-suite-TestFairnessAutoEnableSuite | restored checkout, throwaway copy, variant P+T as proposed (require form), TestFairnessAutoEnableSuite, strict | 1-17 | 17 | 0: - | 0: - | 0/17 | 0.45 x17
+r3-variantPT-forward-suite-TestFairnessAutoEnableSuite | restored checkout, throwaway copy, variant P+T as proposed (require form), TestFairnessAutoEnableSuite, forward | 11,17 | 2 | 0: - | 0: - | 0/2 | 0.45 x2
+r3-variantPT-strict-leaf-TestFairnessAutoEnableSuite | restored checkout, throwaway copy, variant P+T as proposed (require form), TestFairnessAutoEnableSuite leaf, strict | 11,17 | 2 | 0: - | 0: - | 0/2 | 0.45 x2
+# totals: runs=288 complete=191 complete_045=191 incomplete=79 incomplete_pass=57 incomplete_fail=22 f508=18 present_keys_first=79
+
+# per seed: campaign seed result unfairness first-poll-transfers(started/225,wf=workflows/15) failed-at(line of tests/priority_fairness_test.go)
+#   partial=K,W,S,K,M for an incomplete backlog: K keys present in the W workflows transferred at the first poll, S dispatches before further transfers started, M distinct keys in the first K dispatches
+leaf-strict seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+leaf-strict seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+suite-strict seed=11 FAIL unfairness=1.3 first-poll-transfers=30/225,wf=2/15 failed-at=603 partial=7,2,30,7,7
+suite-strict seed=17 PASS unfairness=0.85 first-poll-transfers=45/225,wf=3/15 failed-at=- partial=9,3,45,9,9
+suite-forward seed=11 FAIL unfairness=1.15 first-poll-transfers=75/225,wf=5/15 failed-at=603 partial=9,5,75,9,9
+suite-forward seed=17 FAIL unfairness=1.4 first-poll-transfers=15/225,wf=1/15 failed-at=603 partial=7,1,15,7,7
+sweep-suite-strict seed=1 FAIL unfairness=1.05 first-poll-transfers=60/225,wf=4/15 failed-at=603 partial=9,4,60,9,9
+sweep-suite-strict seed=2 PASS unfairness=0.45 first-poll-transfers=60/225,wf=4/15 failed-at=- partial=10,4,60,10,10
+sweep-suite-strict seed=3 FAIL unfairness=1.32 first-poll-transfers=90/225,wf=6/15 failed-at=603 partial=9,6,90,9,9
+sweep-suite-strict seed=4 FAIL unfairness=1.31 first-poll-transfers=45/225,wf=3/15 failed-at=603 partial=8,3,45,8,8
+sweep-suite-strict seed=5 FAIL unfairness=1.02 first-poll-transfers=30/225,wf=2/15 failed-at=603 partial=8,2,30,8,8
+sweep-suite-strict seed=6 PASS unfairness=0.45 first-poll-transfers=105/225,wf=7/15 failed-at=- partial=10,7,105,10,10
+sweep-suite-strict seed=7 PASS unfairness=0.45 first-poll-transfers=210/225,wf=14/15 failed-at=- partial=10,14,210,10,10
+sweep-suite-strict seed=8 PASS unfairness=0.45 first-poll-transfers=210/225,wf=14/15 failed-at=- partial=10,14,210,10,10
+sweep-suite-strict seed=9 PASS unfairness=0.45 first-poll-transfers=210/225,wf=14/15 failed-at=- partial=10,14,210,10,10
+sweep-suite-strict seed=10 PASS unfairness=0.45 first-poll-transfers=210/225,wf=14/15 failed-at=- partial=10,14,210,10,10
+sweep-suite-strict seed=11 FAIL unfairness=1.3 first-poll-transfers=30/225,wf=2/15 failed-at=603 partial=7,2,30,7,7
+sweep-suite-strict seed=12 FAIL unfairness=1.32 first-poll-transfers=90/225,wf=6/15 failed-at=603 partial=9,6,90,9,9
+sweep-suite-strict seed=13 PASS unfairness=0.45 first-poll-transfers=210/225,wf=14/15 failed-at=- partial=10,14,210,10,10
+sweep-suite-strict seed=14 FAIL unfairness=2.23 first-poll-transfers=45/225,wf=3/15 failed-at=603 partial=6,3,45,6,6
+sweep-suite-strict seed=15 PASS unfairness=0.45 first-poll-transfers=60/225,wf=4/15 failed-at=- partial=10,4,60,10,10
+sweep-suite-strict seed=16 PASS unfairness=0.45 first-poll-transfers=120/225,wf=8/15 failed-at=- partial=10,8,120,10,10
+sweep-suite-strict seed=17 PASS unfairness=0.85 first-poll-transfers=45/225,wf=3/15 failed-at=- partial=9,3,45,9,9
+sweep-forward-TestFairnessSuite seed=1 FAIL unfairness=1.42 first-poll-transfers=45/225,wf=3/15 failed-at=603 partial=8,3,45,8,8
+sweep-forward-TestFairnessSuite seed=2 PASS unfairness=0.45 first-poll-transfers=90/225,wf=6/15 failed-at=- partial=10,6,90,10,10
+sweep-forward-TestFairnessSuite seed=3 PASS unfairness=0.45 first-poll-transfers=90/225,wf=6/15 failed-at=- partial=10,6,90,10,10
+sweep-forward-TestFairnessSuite seed=4 FAIL unfairness=2.32 first-poll-transfers=45/225,wf=3/15 failed-at=603 partial=8,3,45,8,8
+sweep-forward-TestFairnessSuite seed=5 PASS unfairness=0.45 first-poll-transfers=60/225,wf=4/15 failed-at=- partial=10,4,60,10,10
+sweep-forward-TestFairnessSuite seed=6 FAIL unfairness=2.17 first-poll-transfers=45/225,wf=3/15 failed-at=603 partial=7,3,45,7,7
+sweep-forward-TestFairnessSuite seed=7 FAIL unfairness=1.32 first-poll-transfers=30/225,wf=2/15 failed-at=603 partial=7,2,30,7,7
+sweep-forward-TestFairnessSuite seed=8 PASS unfairness=0.45 first-poll-transfers=120/225,wf=8/15 failed-at=- partial=10,8,120,10,10
+sweep-forward-TestFairnessSuite seed=9 PASS unfairness=0.45 first-poll-transfers=90/225,wf=6/15 failed-at=- partial=10,6,90,10,10
+sweep-forward-TestFairnessSuite seed=10 PASS unfairness=0.72 first-poll-transfers=30/225,wf=2/15 failed-at=- partial=9,2,30,9,9
+sweep-forward-TestFairnessSuite seed=11 FAIL unfairness=1.15 first-poll-transfers=75/225,wf=5/15 failed-at=603 partial=9,5,75,9,9
+sweep-forward-TestFairnessSuite seed=12 PASS unfairness=0.45 first-poll-transfers=210/225,wf=14/15 failed-at=- partial=10,14,210,10,10
+sweep-forward-TestFairnessSuite seed=13 PASS unfairness=0.45 first-poll-transfers=75/225,wf=5/15 failed-at=- partial=10,5,75,10,10
+sweep-forward-TestFairnessSuite seed=14 PASS unfairness=0.45 first-poll-transfers=210/225,wf=14/15 failed-at=- partial=10,14,210,10,10
+sweep-forward-TestFairnessSuite seed=15 PASS unfairness=0.71 first-poll-transfers=30/225,wf=2/15 failed-at=- partial=9,2,30,9,9
+sweep-forward-TestFairnessSuite seed=16 FAIL unfairness=1.48 first-poll-transfers=45/225,wf=3/15 failed-at=603 partial=9,3,45,9,9
+sweep-forward-TestFairnessSuite seed=17 FAIL unfairness=1.4 first-poll-transfers=15/225,wf=1/15 failed-at=603 partial=7,1,15,7,7
+auto-leaf-strict seed=11 FAIL unfairness=- first-poll-transfers=- failed-at=508 partial=-
+auto-leaf-strict seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+auto-suite-strict seed=11 FAIL unfairness=- first-poll-transfers=- failed-at=508 partial=-
+auto-suite-strict seed=17 PASS unfairness=0.45 first-poll-transfers=135/225,wf=9/15 failed-at=- partial=10,9,135,10,10
+auto-suite-forward seed=11 PASS unfairness=0.45 first-poll-transfers=165/225,wf=11/15 failed-at=- partial=10,11,165,10,10
+auto-suite-forward seed=17 PASS unfairness=0.45 first-poll-transfers=165/225,wf=11/15 failed-at=- partial=10,11,165,10,10
+sweep-auto-suite-strict seed=1 PASS unfairness=0.45 first-poll-transfers=150/225,wf=10/15 failed-at=- partial=10,10,150,10,10
+sweep-auto-suite-strict seed=2 PASS unfairness=0.45 first-poll-transfers=180/225,wf=12/15 failed-at=- partial=10,12,180,10,10
+sweep-auto-suite-strict seed=3 PASS unfairness=0.45 first-poll-transfers=165/225,wf=11/15 failed-at=- partial=10,11,165,10,10
+sweep-auto-suite-strict seed=4 PASS unfairness=0.45 first-poll-transfers=120/225,wf=8/15 failed-at=- partial=10,8,120,10,10
+sweep-auto-suite-strict seed=5 PASS unfairness=0.45 first-poll-transfers=195/225,wf=13/15 failed-at=- partial=10,13,195,10,10
+sweep-auto-suite-strict seed=6 FAIL unfairness=- first-poll-transfers=- failed-at=508 partial=-
+sweep-auto-suite-strict seed=7 PASS unfairness=0.45 first-poll-transfers=165/225,wf=11/15 failed-at=- partial=10,11,165,10,10
+sweep-auto-suite-strict seed=8 PASS unfairness=0.53 first-poll-transfers=0/225,wf=0/15 failed-at=- partial=0,0,0,0,0
+sweep-auto-suite-strict seed=9 FAIL unfairness=1.04 first-poll-transfers=60/225,wf=4/15 failed-at=603 partial=9,4,60,9,9
+sweep-auto-suite-strict seed=10 PASS unfairness=0.45 first-poll-transfers=135/225,wf=9/15 failed-at=- partial=10,9,135,10,10
+sweep-auto-suite-strict seed=11 FAIL unfairness=- first-poll-transfers=- failed-at=508 partial=-
+sweep-auto-suite-strict seed=12 FAIL unfairness=- first-poll-transfers=- failed-at=508 partial=-
+sweep-auto-suite-strict seed=13 PASS unfairness=0.45 first-poll-transfers=75/225,wf=5/15 failed-at=- partial=10,5,75,10,10
+sweep-auto-suite-strict seed=14 PASS unfairness=0.45 first-poll-transfers=120/225,wf=8/15 failed-at=- partial=10,8,120,10,10
+sweep-auto-suite-strict seed=15 PASS unfairness=0.45 first-poll-transfers=105/225,wf=7/15 failed-at=- partial=10,7,105,10,10
+sweep-auto-suite-strict seed=16 PASS unfairness=0.45 first-poll-transfers=165/225,wf=11/15 failed-at=- partial=10,11,165,10,10
+sweep-auto-suite-strict seed=17 PASS unfairness=0.45 first-poll-transfers=135/225,wf=9/15 failed-at=- partial=10,9,135,10,10
+sweep-forward-TestFairnessAutoEnableSuite seed=1 PASS unfairness=0.45 first-poll-transfers=135/225,wf=9/15 failed-at=- partial=10,9,135,10,10
+sweep-forward-TestFairnessAutoEnableSuite seed=2 PASS unfairness=0.45 first-poll-transfers=150/225,wf=10/15 failed-at=- partial=10,10,150,10,10
+sweep-forward-TestFairnessAutoEnableSuite seed=3 PASS unfairness=0.45 first-poll-transfers=105/225,wf=7/15 failed-at=- partial=10,7,105,10,10
+sweep-forward-TestFairnessAutoEnableSuite seed=4 PASS unfairness=0.45 first-poll-transfers=165/225,wf=11/15 failed-at=- partial=10,11,165,10,10
+sweep-forward-TestFairnessAutoEnableSuite seed=5 PASS unfairness=0.45 first-poll-transfers=120/225,wf=8/15 failed-at=- partial=10,8,120,10,10
+sweep-forward-TestFairnessAutoEnableSuite seed=6 PASS unfairness=0.45 first-poll-transfers=150/225,wf=10/15 failed-at=- partial=10,10,150,10,10
+sweep-forward-TestFairnessAutoEnableSuite seed=7 PASS unfairness=0.45 first-poll-transfers=195/225,wf=13/15 failed-at=- partial=10,13,195,10,10
+sweep-forward-TestFairnessAutoEnableSuite seed=8 PASS unfairness=0.45 first-poll-transfers=180/225,wf=12/15 failed-at=- partial=10,12,180,10,10
+sweep-forward-TestFairnessAutoEnableSuite seed=9 PASS unfairness=0.45 first-poll-transfers=210/225,wf=14/15 failed-at=- partial=10,14,210,10,10
+sweep-forward-TestFairnessAutoEnableSuite seed=10 FAIL unfairness=- first-poll-transfers=- failed-at=508 partial=-
+sweep-forward-TestFairnessAutoEnableSuite seed=11 PASS unfairness=0.45 first-poll-transfers=165/225,wf=11/15 failed-at=- partial=10,11,165,10,10
+sweep-forward-TestFairnessAutoEnableSuite seed=12 PASS unfairness=0.45 first-poll-transfers=90/225,wf=6/15 failed-at=- partial=10,6,90,10,10
+sweep-forward-TestFairnessAutoEnableSuite seed=13 PASS unfairness=0.45 first-poll-transfers=210/225,wf=14/15 failed-at=- partial=10,14,210,10,10
+sweep-forward-TestFairnessAutoEnableSuite seed=14 PASS unfairness=0.45 first-poll-transfers=180/225,wf=12/15 failed-at=- partial=10,12,180,10,10
+sweep-forward-TestFairnessAutoEnableSuite seed=15 PASS unfairness=0.45 first-poll-transfers=90/225,wf=6/15 failed-at=- partial=10,6,90,10,10
+sweep-forward-TestFairnessAutoEnableSuite seed=16 FAIL unfairness=- first-poll-transfers=- failed-at=508 partial=-
+sweep-forward-TestFairnessAutoEnableSuite seed=17 PASS unfairness=0.45 first-poll-transfers=165/225,wf=11/15 failed-at=- partial=10,11,165,10,10
+copy-base-suite-strict seed=11 FAIL unfairness=1.3 first-poll-transfers=30/225,wf=2/15 failed-at=603 partial=7,2,30,7,7
+copy-base-suite-strict seed=17 PASS unfairness=0.85 first-poll-transfers=45/225,wf=3/15 failed-at=- partial=9,3,45,9,9
+variantR-suite-strict seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-suite-strict seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-auto-suite-strict seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-auto-suite-strict seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessSuite seed=1 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessSuite seed=2 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessSuite seed=3 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessSuite seed=4 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessSuite seed=5 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessSuite seed=6 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessSuite seed=7 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessSuite seed=8 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessSuite seed=9 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessSuite seed=10 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessSuite seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessSuite seed=12 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessSuite seed=13 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessSuite seed=14 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessSuite seed=15 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessSuite seed=16 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessSuite seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessAutoEnableSuite seed=1 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessAutoEnableSuite seed=2 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessAutoEnableSuite seed=3 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessAutoEnableSuite seed=4 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessAutoEnableSuite seed=5 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessAutoEnableSuite seed=6 FAIL unfairness=- first-poll-transfers=- failed-at=508 partial=-
+variantR-sweep-TestFairnessAutoEnableSuite seed=7 FAIL unfairness=- first-poll-transfers=- failed-at=508 partial=-
+variantR-sweep-TestFairnessAutoEnableSuite seed=8 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessAutoEnableSuite seed=9 FAIL unfairness=- first-poll-transfers=- failed-at=508 partial=-
+variantR-sweep-TestFairnessAutoEnableSuite seed=10 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessAutoEnableSuite seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessAutoEnableSuite seed=12 FAIL unfairness=- first-poll-transfers=- failed-at=508 partial=-
+variantR-sweep-TestFairnessAutoEnableSuite seed=13 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessAutoEnableSuite seed=14 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessAutoEnableSuite seed=15 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantR-sweep-TestFairnessAutoEnableSuite seed=16 FAIL unfairness=- first-poll-transfers=- failed-at=508 partial=-
+variantR-sweep-TestFairnessAutoEnableSuite seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-suite-strict seed=1 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-suite-strict seed=2 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-suite-strict seed=3 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-suite-strict seed=4 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-suite-strict seed=5 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-suite-strict seed=6 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-suite-strict seed=7 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-suite-strict seed=8 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-suite-strict seed=9 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-suite-strict seed=10 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-suite-strict seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-suite-strict seed=12 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-suite-strict seed=13 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-suite-strict seed=14 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-suite-strict seed=15 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-suite-strict seed=16 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-suite-strict seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-auto-suite-strict seed=1 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-auto-suite-strict seed=2 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-auto-suite-strict seed=3 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-auto-suite-strict seed=4 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-auto-suite-strict seed=5 FAIL unfairness=- first-poll-transfers=- failed-at=508 partial=-
+variantP-auto-suite-strict seed=6 FAIL unfairness=- first-poll-transfers=- failed-at=508 partial=-
+variantP-auto-suite-strict seed=7 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-auto-suite-strict seed=8 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-auto-suite-strict seed=9 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-auto-suite-strict seed=10 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-auto-suite-strict seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-auto-suite-strict seed=12 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-auto-suite-strict seed=13 FAIL unfairness=- first-poll-transfers=- failed-at=508 partial=-
+variantP-auto-suite-strict seed=14 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-auto-suite-strict seed=15 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-auto-suite-strict seed=16 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantP-auto-suite-strict seed=17 FAIL unfairness=- first-poll-transfers=- failed-at=508 partial=-
+variantPT-suite-strict seed=1 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-suite-strict seed=2 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-suite-strict seed=3 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-suite-strict seed=4 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-suite-strict seed=5 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-suite-strict seed=6 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-suite-strict seed=7 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-suite-strict seed=8 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-suite-strict seed=9 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-suite-strict seed=10 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-suite-strict seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-suite-strict seed=12 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-suite-strict seed=13 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-suite-strict seed=14 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-suite-strict seed=15 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-suite-strict seed=16 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-suite-strict seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-auto-suite-strict seed=1 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-auto-suite-strict seed=2 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-auto-suite-strict seed=3 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-auto-suite-strict seed=4 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-auto-suite-strict seed=5 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-auto-suite-strict seed=6 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-auto-suite-strict seed=7 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-auto-suite-strict seed=8 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-auto-suite-strict seed=9 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-auto-suite-strict seed=10 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-auto-suite-strict seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-auto-suite-strict seed=12 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-auto-suite-strict seed=13 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-auto-suite-strict seed=14 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-auto-suite-strict seed=15 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-auto-suite-strict seed=16 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-auto-suite-strict seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-forward-suite-TestFairnessSuite seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-forward-suite-TestFairnessSuite seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-forward-suite-TestFairnessAutoEnableSuite seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-forward-suite-TestFairnessAutoEnableSuite seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-strict-leaf-TestFairnessSuite seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-strict-leaf-TestFairnessSuite seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-strict-leaf-TestFairnessAutoEnableSuite seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+variantPT-strict-leaf-TestFairnessAutoEnableSuite seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-base-strict-suite-TestFairnessSuite seed=11 FAIL unfairness=1.3 first-poll-transfers=30/225,wf=2/15 failed-at=603 partial=7,2,30,7,7
+r2-base-strict-suite-TestFairnessSuite seed=17 PASS unfairness=0.85 first-poll-transfers=45/225,wf=3/15 failed-at=- partial=9,3,45,9,9
+r2-base-strict-leaf-TestFairnessSuite seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-base-strict-leaf-TestFairnessSuite seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-base-forward-suite-TestFairnessSuite seed=11 FAIL unfairness=1.15 first-poll-transfers=75/225,wf=5/15 failed-at=603 partial=9,5,75,9,9
+r2-base-forward-suite-TestFairnessSuite seed=17 FAIL unfairness=1.4 first-poll-transfers=15/225,wf=1/15 failed-at=603 partial=7,1,15,7,7
+r2-variantPT-strict-suite-TestFairnessSuite seed=1 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessSuite seed=2 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessSuite seed=3 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessSuite seed=4 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessSuite seed=5 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessSuite seed=6 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessSuite seed=7 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessSuite seed=8 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessSuite seed=9 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessSuite seed=10 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessSuite seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessSuite seed=12 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessSuite seed=13 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessSuite seed=14 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessSuite seed=15 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessSuite seed=16 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessSuite seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantR-strict-suite-TestFairnessSuite seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantR-strict-suite-TestFairnessSuite seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-base-strict-suite-TestFairnessAutoEnableSuite seed=11 FAIL unfairness=- first-poll-transfers=- failed-at=508 partial=-
+r2-base-strict-suite-TestFairnessAutoEnableSuite seed=17 PASS unfairness=0.45 first-poll-transfers=135/225,wf=9/15 failed-at=- partial=10,9,135,10,10
+r2-base-strict-leaf-TestFairnessAutoEnableSuite seed=11 FAIL unfairness=- first-poll-transfers=- failed-at=508 partial=-
+r2-base-strict-leaf-TestFairnessAutoEnableSuite seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-base-forward-suite-TestFairnessAutoEnableSuite seed=11 PASS unfairness=0.45 first-poll-transfers=165/225,wf=11/15 failed-at=- partial=10,11,165,10,10
+r2-base-forward-suite-TestFairnessAutoEnableSuite seed=17 PASS unfairness=0.45 first-poll-transfers=165/225,wf=11/15 failed-at=- partial=10,11,165,10,10
+r2-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=1 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=2 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=3 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=4 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=5 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=6 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=7 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=8 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=9 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=10 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=12 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=13 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=14 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=15 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=16 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantR-strict-suite-TestFairnessAutoEnableSuite seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r2-variantR-strict-suite-TestFairnessAutoEnableSuite seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessSuite seed=1 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessSuite seed=2 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessSuite seed=3 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessSuite seed=4 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessSuite seed=5 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessSuite seed=6 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessSuite seed=7 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessSuite seed=8 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessSuite seed=9 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessSuite seed=10 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessSuite seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessSuite seed=12 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessSuite seed=13 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessSuite seed=14 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessSuite seed=15 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessSuite seed=16 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessSuite seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-forward-suite-TestFairnessSuite seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-forward-suite-TestFairnessSuite seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-leaf-TestFairnessSuite seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-leaf-TestFairnessSuite seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=1 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=2 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=3 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=4 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=5 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=6 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=7 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=8 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=9 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=10 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=12 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=13 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=14 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=15 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=16 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-suite-TestFairnessAutoEnableSuite seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-forward-suite-TestFairnessAutoEnableSuite seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-forward-suite-TestFairnessAutoEnableSuite seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-leaf-TestFairnessAutoEnableSuite seed=11 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-
+r3-variantPT-strict-leaf-TestFairnessAutoEnableSuite seed=17 PASS unfairness=0.45 first-poll-transfers=225/225,wf=15/15 failed-at=- partial=-

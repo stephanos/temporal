@@ -71,9 +71,27 @@ env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags te
 
 
 ## Done summary
-TBD
+Removed the enumerated unreachable private code and the second canonical re-encoding in the portable-plan and merged-campaign readers. Nothing is staged or committed; the change is the working-tree diff recorded as `task2.diff` under `.flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/`, with the full record in `task2-evidence.md`.
 
+Removed after a whole-repository consumer search (`task2-consumer-search.txt`): `validateGoCapabilityClosure`, `matchesExpectation`, `firstReplay`, `deterministicCapturedInputs`, `orderRunCompletions`, `removeCompletedPartial`, the deterministic-I/O `decimal` type with its two methods, `decodeCanonicalJSON`, and minimizer `Encode`/`Decode` with the round-trip lines of their test. No symbol had a live consumer, so none was kept. `canonicalJSON`, `validateCanonicalStrings`, minimizer `Validate`/`seal`/`stateIdentity` and the budget and stop-reason assertions are unchanged.
+
+Readers: `openCampaignPlan` and `OpenMergedCampaign` now validate canonical bytes once, through `canonicaljson.DecodeCanonicalJSON`. The removed re-check was unreachable because no reachable type has a pointer-receiver marshal method. Every schema, identity, mapping, count and capacity check stays. `OpenMergedCampaign` returns `errors.New("merged campaign record is invalid")` where it returned `errors.Join` of the same text and an always-nil error; message and `errors.Is`/`errors.As` results are the same.
+
+Tests added outside the Touches list, as the task's investigation targets direct because neither reader had a noncanonical-input case: `TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments` (`runner/portable_plan_test.go`) and `TestOpenMergedCampaignRejectsNoncanonicalAndInvalidRecords` (`runner/internal/campaign/merge_capacity_test.go`). Each covers noncanonical, trailing-data, unknown-field, malformed and invalid-identity input (R3 error cases) with exact error text. Replacing the remaining decoder call with `StrictDecode` turned the noncanonical cases red; the mutation was reverted.
+
+Size (rule v2, this task's files): production Go -139 physical / -127 code lines / -4110 code bytes; test Go +61 code lines. Overlay, generated, protocol-input and other classes unchanged; `size-compare.sh` exits 0. Public `go doc` and CLI help capture diff against `api-baseline/`: empty.
+
+Gates on darwin/arm64, all exit 0: focused vet, focused tests (14 packages), `TestPackageArchitecture`, `TestCanonicalJSONHasOnePrivateOwner`, `make -C tools/gomad3 validate`, `make -C tools/gomad3 test-host` (45 packages ok, run once with fn-108.4's in-progress edits present). linux/amd64: not run (no host).
+
+baseline: red (`go build ./...` failed pre-edit). `./...` matches `toolchain/runtime/overlay`, which builds only inside the patched GOROOT; the failure is identical after the change. The host package set builds with exit 0. Follow-up for the fn-108 task text owner: replace that Quick command in the remaining tasks.
+
+Follow-up, not done here: `TestStateStopsAtAttemptBudgetAndRoundTrips` keeps its name although it no longer round-trips, because the task removes only those lines and the baseline disposition table is keyed by test name.
+
+stage: impl-review - ran (raw codex bridge on working-tree diff; commits forbidden) (model: gpt-5.6-sol) [round 1 NEEDS_WORK 1 finding (evidence note absent), round 2 SHIP with 1 NIT applied unreviewed; record in task2-review.md]
+stage: plan-sync - skipped(config: planSync.enabled != true)
+
+GATE_SKIPPED lines: none.
 ## Evidence
 - Commits:
-- Tests:
+- Tests: baseline: red (go build ./... failed pre-edit; ./... matches toolchain/runtime/overlay; same failure post-edit), darwin/arm64: .toolchain/bin/go build <host package set> exit 0, darwin/arm64: .toolchain/bin/go vet -tags test_dep ./target ./qualification/set ./runner/... ./deterministicio exit 0, darwin/arm64: .toolchain/bin/go test -tags test_dep . ./target ./qualification/set ./runner/... ./deterministicio ./internal/canonicaljson exit 0 (14 packages ok), darwin/arm64: go test -run '^(TestPackageArchitecture|TestCanonicalJSONHasOnePrivateOwner)$' . exit 0, darwin/arm64: make -C tools/gomad3 validate exit 0, darwin/arm64: make -C tools/gomad3 test-host exit 0 (45 packages ok), size-compare.sh exit 0 (this task: production-go -127 code lines), api-capture.sh diff -r against api-baseline: empty, linux/amd64: all gates not run (no host)
 - PRs:

@@ -1,0 +1,52 @@
+$ gomad qualify --help
+exit status: 2
+--- stdout
+--- stderr
+gomad: invalid_input: flag: help requested
+Usage of gomad qualify:
+  -artifacts string
+    	artifact and qualification report root (default ".gomad/artifacts")
+  -build-tag value
+    	validated Go build tag
+  -capability-mode string
+    	closure, linked, or guarded capability assessment (default "closure")
+  -choice-bytes value
+    	runtime choice trace capacity (default 8388608)
+  -choices
+    	record bounded runtime choices
+  -clock-tick string
+    	virtual-clock tick policy: strict or forward (default "strict")
+  -env value
+    	target NAME=VALUE
+  -execution-timeout duration
+    	per-execution host deadline (default 30s)
+  -io-ro-mount value
+    	read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping
+  -io-transcript-bytes value
+    	I/O transcript capacity (64MiB to 1GiB, whole MiB) (default 67108864)
+  -json
+    	emit stable JSON events
+  -output-limit value
+    	retained bytes per output stream (default 8388608)
+  -overall-timeout duration
+    	complete qualification host deadline (default 10m0s)
+  -repeat uint
+    	fresh same-seed repetitions (default 2)
+  -replay-successes
+    	retain and replay every successful repetition
+  -require-probe value
+    	required semantic probe
+  -seed uint
+    	schedule seed (default 1)
+  -success-bytes value
+    	retained successful-execution bytes per repetition
+  -success-limit uint
+    	maximum retained successful executions per repetition
+  -terminate-grace duration
+    	termination grace inside deadlines (default 2s)
+  -toolchain-root string
+    	absolute pinned toolchain root
+  -working-dir string
+    	absolute target module root (default: the current directory)
+  -world-transition-limit value
+    	World transition capacity (default 67108864)

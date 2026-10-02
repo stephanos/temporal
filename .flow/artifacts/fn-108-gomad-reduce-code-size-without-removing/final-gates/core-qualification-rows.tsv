@@ -1,0 +1,7 @@
+concurrency-state-invariant	Concurrency state invariant	qualified	qualified	true	17	qualified	true	true	true	sha256:c1e89515b9fd6f3348cd7548a902ad7406766a4ebed57347302a0545ea5ed54f
+filesystem-transaction	Filesystem transaction	qualified	qualified	true	17	qualified	true	true	true	sha256:751db4f9f491739cee92af21c90401db3bbb99fb1d80f455a6afaeb9ee2224be
+loopback-tcp-roundtrip	Loopback TCP round trip	qualified	qualified	true	17	qualified	true	true	true	sha256:3567ea45e28111fe0fd586da5b052206ea948877821f832ade1cc0277c4a1dfa
+modernc-libc-boundary	Modernc libc boundary	qualified	qualified	true	17	qualified	true	true	true	sha256:e0406f528052daa1a0a9beca2a0b5ceb39cf497625509da3b17488882a0422a1
+mount-reads-under-collection	Mount reads under collection	qualified	qualified	true	17	qualified	true	true	true	sha256:27f16420357681ecc9b4ca6d5b1e79c38dbfcde910e08a94472945c7bf2fdb02
+sqlite-transaction	SQLite transaction	qualified	qualified	true	17	qualified	true	true	true	sha256:2329302c30bb3123b686253f54c3bcbf402e909698e5a5e335c08033858ccdc1
+sqlite-write-ahead-log	SQLite write-ahead log	qualified	qualified	true	17	qualified	true	true	true	sha256:6b3bb5596f82f2b2d7655ee18d2b597f4fdb6d89e9f0b69cce4324bafc4d5c32

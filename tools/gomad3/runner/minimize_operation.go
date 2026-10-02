@@ -345,12 +345,8 @@ func (session *minimizationSession) evaluate(ctx context.Context, explorationCon
 		return minimizationTrial{}, err
 	}
 	retained.SimulationProfile = &simulationProfile
-	input := artifact.ArtifactInput{
-		Manifest: retained, TargetPath: session.prepared.Path, Stdout: observed.Stdout.Bytes, Stderr: observed.Stderr.Bytes,
-		IOTranscript: observed.IOTranscript.Bytes, ChoiceTrace: observed.ChoiceTrace.Trace.Bytes,
-		ReadOnlyMounts: session.mountArtifact, World: worldBundle.Payloads,
-		Simulation: &artifact.SimulationPayloads{Plan: executionForCandidate.SimulationPlan, Record: observed.SimulationRecords[0]},
-	}
+	input := executionArtifactInput(retained, session.prepared, observed, session.mountArtifact, worldBundle)
+	input.Simulation = &artifact.SimulationPayloads{Plan: executionForCandidate.SimulationPlan, Record: observed.SimulationRecords[0]}
 	published, err := artifact.PublishArtifact(artifact.Store{
 		Root: session.temporaryRoot, Context: ctx, MaximumBytes: defaultMinimizedArtifactBytes(session.opened.StoredBytes), Key: artifact.StoreKeyRecord,
 	}, input)

@@ -1,0 +1,31 @@
+Leaf TestOperation, seed 11, forward, --env=TEMPORAL_TEST_DEDICATED_CLUSTERS=2, no -test.timeout, --execution-timeout=2m (wall).
+outcome: {'deadline': 'execution_timeout', 'domain': 'watchdog', 'exit_code': None, 'failure_signature': 'sha256:e87f3411732301d8896c20fb043b5e3000b7e8bdfdb6eb2012552a439e1962da', 'reason': 'watchdog_timeout', 'replay_match': None, 'signal': None, 'termination': 'timeout'}
+stdout bytes: 7395115; log lines per virtual minute (first 12, then last 3 of 808 distinct minutes):
+  00:00 56
+  00:01 43
+  00:02 42
+  00:03 42
+  00:04 45
+  00:05 42
+  00:06 42
+  00:07 42
+  00:08 42
+  00:09 45
+  00:10 42
+  00:11 42
+  ...
+  13:25 45
+  13:26 42
+  13:27 42
+
+Non-periodic lines after the first virtual second:
+    shared_cluster_t.go:72: 2000-01-01T00:00:53.692Z	debug	cleaning up replication task queue	{"address": "127.0.0.1:20002", "read-level": 1048575, "shard-id": 4, "logging-call-at": "go.temporal.io/server/service/history/replication/task_processor_manager.go:2
+    shared_cluster_t.go:72: 2000-01-01T00:00:54.635Z	debug	cleaning up replication task queue	{"address": "127.0.0.1:20002", "read-level": 1048575, "shard-id": 3, "logging-call-at": "go.temporal.io/server/service/history/replication/task_processor_manager.go:2
+    shared_cluster_t.go:72: 2000-01-01T00:00:58.735Z	debug	cleaning up replication task queue	{"address": "127.0.0.1:20002", "read-level": 1048575, "shard-id": 2, "logging-call-at": "go.temporal.io/server/service/history/replication/task_processor_manager.go:2
+    shared_cluster_t.go:72: 2000-01-01T00:01:06.842Z	debug	cleaning up replication task queue	{"address": "127.0.0.1:20002", "read-level": 1048575, "shard-id": 1, "logging-call-at": "go.temporal.io/server/service/history/replication/task_processor_manager.go:2
+    shared_cluster_t.go:72: 2000-01-01T00:04:50.058Z	info	ContextMetadataInterceptor: No metadata in context, not setting trailer	{"fullMethod": "/temporal.server.api.matchingservice.v1.MatchingService/ListNexusEndpoints", "logging-call-at": "go.temporal.io/se
+    shared_cluster_t.go:72: 2000-01-01T00:04:50.058Z	info	TrailerToContextMetadataInterceptor: No metadata in trailer	{"contextWrapped": false, "method": "/temporal.server.api.matchingservice.v1.MatchingService/ListNexusEndpoints", "service": "frontend", "logg
+    shared_cluster_t.go:72: 2000-01-01T00:04:50.058Z	info	TrailerToContextMetadataInterceptor: No metadata in trailer	{"contextWrapped": false, "method": "/temporal.server.api.matchingservice.v1.MatchingService/ListNexusEndpoints", "service": "history", "loggi
+    shared_cluster_t.go:72: 2000-01-01T00:09:40.173Z	info	ContextMetadataInterceptor: No metadata in context, not setting trailer	{"fullMethod": "/temporal.server.api.matchingservice.v1.MatchingService/ListNexusEndpoints", "logging-call-at": "go.temporal.io/se
+    shared_cluster_t.go:72: 2000-01-01T00:09:40.173Z	info	TrailerToContextMetadataInterceptor: No metadata in trailer	{"contextWrapped": false, "method": "/temporal.server.api.matchingservice.v1.MatchingService/ListNexusEndpoints", "service": "frontend", "logg
+    shared_cluster_t.go:72: 2000-01-01T00:09:40.173Z	info	TrailerToContextMetadataInterceptor: No metadata in trailer	{"contextWrapped": false, "method": "/temporal.server.api.matchingservice.v1.MatchingService/ListNexusEndpoints", "service": "history", "loggi

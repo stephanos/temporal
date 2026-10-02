@@ -1,0 +1,17 @@
+package main
+
+import (
+	"fmt"
+	"os"
+	"runtime"
+)
+
+var atInit string
+
+func init() { atInit = os.Getenv("TEMPORAL_TEST_DEDICATED_CLUSTERS") }
+
+func main() {
+	v, ok := os.LookupEnv("TEMPORAL_TEST_DEDICATED_CLUSTERS")
+	fmt.Printf("init=%q main=%q ok=%v gomaxprocs=%d environ=%d\n", atInit, v, ok, runtime.GOMAXPROCS(0), len(os.Environ()))
+	fmt.Printf("environ=%q args=%q\n", os.Environ(), os.Args); os.Exit(3)
+}

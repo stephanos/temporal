@@ -39,14 +39,6 @@ func recordedCapturedInputs(manifest readonlymount.CapturedInputsManifest) recor
 	}
 }
 
-func deterministicCapturedInputs(manifest record.ReadOnlyMounts) readonlymount.CapturedInputsManifest {
-	return readonlymount.CapturedInputsManifest{
-		Schema: manifest.Schema, File: manifest.File, SHA256: manifest.SHA256, Bytes: uint64(manifest.Bytes),
-		Entries: uint64(manifest.Entries), NotExist: uint64(manifest.NotExist), TotalBytes: uint64(manifest.TotalBytes),
-		Mappings: append([]string(nil), manifest.Mappings...), Limits: deterministicCapturedInputLimits(manifest.Limits),
-	}
-}
-
 func recordedCapturedInputLimits(limits readonlymount.CapturedInputLimits) record.ReadOnlyMountLimits {
 	return record.ReadOnlyMountLimits{
 		PathBytes: record.Uint64String(limits.PathBytes), Requests: record.Uint64String(limits.Requests), Files: record.Uint64String(limits.Files),

@@ -1,0 +1,4 @@
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go test -race -tags test_dep ./world/...
+ok  	go.temporal.io/server/tools/gomad3/world	3.301s
+ok  	go.temporal.io/server/tools/gomad3/world/mailbox	1.334s
+ok  	go.temporal.io/server/tools/gomad3/world/process	1.800s

@@ -1,0 +1,21 @@
+$ gomadtool boundary-generate --help
+exit status: 2
+--- stdout
+--- stderr
+Usage of gomadtool boundary-generate:
+  -check
+    	check generated files without changing them
+  -check-compiler-tests
+    	validate the compiler conformance-test manifest
+  -compiler-test-overlay string
+    	emit a compiler conformance-test overlay
+  -discover
+    	list source-discovered host-capability entry points
+  -goroot string
+    	installed production GOROOT for the compiler test overlay
+  -qualify
+    	type-check manifest signatures against this Go toolchain
+  -refresh
+    	refresh source fingerprints in the manifest
+  -root string
+    	Gomad v3 module root (default ".")

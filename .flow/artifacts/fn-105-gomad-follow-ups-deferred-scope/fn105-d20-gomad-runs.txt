@@ -1,0 +1,224 @@
+## instr-leaf-forward
+   gomad: classification=success attempted=2 succeeded=2 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=2 retained-success-bytes=309531566 stop=seeds_exhausted
+   seed 11: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: 2
+   seed 17: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: 2
+## instr-leaf-strict
+   gomad: classification=target_failure attempted=2 succeeded=0 failures=2 watchdogs=0 replay-divergences=0 distinct=2 retained-successes=0 retained-success-bytes=0 stop=seeds_exhausted
+   seed 11: FAIL (15.00s virtual); subtests pass=0 fail=1; heartbeat rejections counted by the test: 1
+   seed 17: FAIL (15.00s virtual); subtests pass=0 fail=1; heartbeat rejections counted by the test: 1
+## instr-suite-forward
+   gomad: classification=success attempted=2 succeeded=2 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=2 retained-success-bytes=310513105 stop=seeds_exhausted
+   seed 11: PASS (18.00s virtual); subtests pass=9 fail=0; heartbeat rejections counted by the test: 2
+   seed 17: PASS (18.00s virtual); subtests pass=9 fail=0; heartbeat rejections counted by the test: 2
+## instr-suite-strict
+   gomad: classification=target_failure attempted=2 succeeded=0 failures=2 watchdogs=0 replay-divergences=0 distinct=2 retained-successes=0 retained-success-bytes=0 stop=seeds_exhausted
+   seed 11: FAIL (15.00s virtual); subtests pass=8 fail=1; heartbeat rejections counted by the test: 1
+   seed 17: FAIL (15.00s virtual); subtests pass=8 fail=1; heartbeat rejections counted by the test: 1
+## leaf-strict
+   gomad: classification=target_failure attempted=2 succeeded=0 failures=2 watchdogs=0 replay-divergences=0 distinct=2 retained-successes=0 retained-success-bytes=0 stop=seeds_exhausted
+   seed 11: FAIL (15.00s virtual); subtests pass=0 fail=1; heartbeat rejections counted by the test: not instrumented
+   seed 17: FAIL (15.00s virtual); subtests pass=0 fail=1; heartbeat rejections counted by the test: not instrumented
+## suite-forward
+   gomad: classification=success attempted=2 succeeded=2 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=2 retained-success-bytes=310528138 stop=seeds_exhausted
+   seed 11: PASS (18.00s virtual); subtests pass=9 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 17: PASS (18.00s virtual); subtests pass=9 fail=0; heartbeat rejections counted by the test: not instrumented
+## suite-strict
+   gomad: classification=target_failure attempted=2 succeeded=0 failures=2 watchdogs=0 replay-divergences=0 distinct=2 retained-successes=0 retained-success-bytes=0 stop=seeds_exhausted
+   seed 11: FAIL (15.00s virtual); subtests pass=8 fail=1; heartbeat rejections counted by the test: not instrumented
+   seed 17: FAIL (15.00s virtual); subtests pass=8 fail=1; heartbeat rejections counted by the test: not instrumented
+## sweep-leaf-forward
+   gomad: classification=success attempted=16 succeeded=16 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=16 retained-success-bytes=2476374061 stop=seeds_exhausted
+   seed  1: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  2: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  3: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  4: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  5: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  6: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  7: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  8: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  9: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 10: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 11: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 12: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 13: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 14: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 15: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 16: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+## sweep-leaf-forward-17-32
+   gomad: classification=success attempted=16 succeeded=16 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=16 retained-success-bytes=2476374082 stop=seeds_exhausted
+   seed 17: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 18: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 19: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 20: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 21: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 22: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 23: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 24: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 25: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 26: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 27: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 28: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 29: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 30: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 31: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 32: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+## sweep-leaf-strict
+   gomad: classification=target_failure attempted=16 succeeded=0 failures=16 watchdogs=0 replay-divergences=0 distinct=16 retained-successes=0 retained-success-bytes=0 stop=seeds_exhausted
+   seed  1: FAIL (15.00s virtual); subtests pass=0 fail=1; heartbeat rejections counted by the test: not instrumented
+   seed  2: FAIL (15.00s virtual); subtests pass=0 fail=1; heartbeat rejections counted by the test: not instrumented
+   seed  3: FAIL (15.00s virtual); subtests pass=0 fail=1; heartbeat rejections counted by the test: not instrumented
+   seed  4: FAIL (15.00s virtual); subtests pass=0 fail=1; heartbeat rejections counted by the test: not instrumented
+   seed  5: FAIL (15.00s virtual); subtests pass=0 fail=1; heartbeat rejections counted by the test: not instrumented
+   seed  6: FAIL (15.00s virtual); subtests pass=0 fail=1; heartbeat rejections counted by the test: not instrumented
+   seed  7: FAIL (15.00s virtual); subtests pass=0 fail=1; heartbeat rejections counted by the test: not instrumented
+   seed  8: FAIL (15.00s virtual); subtests pass=0 fail=1; heartbeat rejections counted by the test: not instrumented
+   seed  9: FAIL (15.00s virtual); subtests pass=0 fail=1; heartbeat rejections counted by the test: not instrumented
+   seed 10: FAIL (15.00s virtual); subtests pass=0 fail=1; heartbeat rejections counted by the test: not instrumented
+   seed 11: FAIL (15.00s virtual); subtests pass=0 fail=1; heartbeat rejections counted by the test: not instrumented
+   seed 12: FAIL (15.00s virtual); subtests pass=0 fail=1; heartbeat rejections counted by the test: not instrumented
+   seed 13: FAIL (15.00s virtual); subtests pass=0 fail=1; heartbeat rejections counted by the test: not instrumented
+   seed 14: FAIL (15.00s virtual); subtests pass=0 fail=1; heartbeat rejections counted by the test: not instrumented
+   seed 15: FAIL (15.00s virtual); subtests pass=0 fail=1; heartbeat rejections counted by the test: not instrumented
+   seed 16: FAIL (15.00s virtual); subtests pass=0 fail=1; heartbeat rejections counted by the test: not instrumented
+## variantP-sweep-leaf-forward
+   gomad: classification=success attempted=16 succeeded=16 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=16 retained-success-bytes=2476374069 stop=seeds_exhausted
+   seed  1: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  2: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  3: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  4: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  5: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  6: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  7: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  8: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  9: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 10: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 11: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 12: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 13: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 14: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 15: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 16: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+## variantP-sweep-leaf-strict
+   gomad: classification=success attempted=16 succeeded=16 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=16 retained-success-bytes=2476372853 stop=seeds_exhausted
+   seed  1: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  2: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  3: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  4: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  5: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  6: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  7: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  8: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  9: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 10: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 11: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 12: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 13: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 14: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 15: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 16: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+## variantPI-leaf-forward
+   gomad: classification=success attempted=2 succeeded=2 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=2 retained-success-bytes=309531565 stop=seeds_exhausted
+   seed 11: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: 2
+   seed 17: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: 2
+## variantPI-leaf-strict
+   gomad: classification=success attempted=2 succeeded=2 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=2 retained-success-bytes=309531012 stop=seeds_exhausted
+   seed 11: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: 2
+   seed 17: PASS (18.00s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: 2
+## variantT-sweep-leaf-forward
+   gomad: classification=success attempted=16 succeeded=16 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=16 retained-success-bytes=2476110115 stop=seeds_exhausted
+   seed  1: PASS (18.21s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  2: PASS (18.21s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  3: PASS (18.21s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  4: PASS (18.21s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  5: PASS (18.21s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  6: PASS (18.21s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  7: PASS (18.21s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  8: PASS (18.21s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  9: PASS (18.21s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 10: PASS (18.21s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 11: PASS (18.21s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 12: PASS (18.21s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 13: PASS (18.21s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 14: PASS (18.21s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 15: PASS (18.21s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 16: PASS (18.21s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+## variantT-sweep-leaf-strict
+   gomad: classification=success attempted=16 succeeded=16 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=16 retained-success-bytes=2476108905 stop=seeds_exhausted
+   seed  1: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  2: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  3: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  4: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  5: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  6: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  7: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  8: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed  9: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 10: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 11: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 12: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 13: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 14: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 15: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 16: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+## variantT-sweep-leaf-strict-17-32
+   gomad: classification=success attempted=16 succeeded=16 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=16 retained-success-bytes=2476108936 stop=seeds_exhausted
+   seed 17: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 18: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 19: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 20: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 21: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 22: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 23: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 24: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 25: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 26: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 27: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 28: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 29: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 30: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 31: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 32: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+## variantT-sweep-leaf-strict-33-48
+   gomad: classification=success attempted=16 succeeded=16 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=16 retained-success-bytes=2476108918 stop=seeds_exhausted
+   seed 33: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 34: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 35: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 36: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 37: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 38: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 39: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 40: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 41: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 42: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 43: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 44: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 45: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 46: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 47: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 48: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+## variantT-sweep-leaf-strict-49-64
+   gomad: classification=success attempted=16 succeeded=16 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=16 retained-success-bytes=2476108930 stop=seeds_exhausted
+   seed 49: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 50: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 51: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 52: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 53: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 54: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 55: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 56: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 57: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 58: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 59: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 60: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 61: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 62: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 63: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+   seed 64: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: not instrumented
+## variantTI-leaf-forward
+   gomad: classification=success attempted=2 succeeded=2 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=2 retained-success-bytes=309531565 stop=seeds_exhausted
+   seed 11: PASS (18.21s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: 2
+   seed 17: PASS (18.21s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: 2
+## variantTI-leaf-strict
+   gomad: classification=success attempted=2 succeeded=2 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=2 retained-success-bytes=309531020 stop=seeds_exhausted
+   seed 11: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: 2
+   seed 17: PASS (18.20s virtual); subtests pass=1 fail=0; heartbeat rejections counted by the test: 2

@@ -1,0 +1,986 @@
+--- a/tools/gomad3/runner/runner.go (pre-edit copy)
++++ b/tools/gomad3/runner/runner.go
+@@ -842,76 +842,33 @@
+ 			}
+ 			continue
+ 		}
+-		worldBundle := noneWorldBundle()
+-		if len(completion.result.WorldRecord) != 0 {
+-			recording, decodeErr := world.DecodeRecording(completion.result.WorldRecord)
+-			if decodeErr != nil {
+-				err = decodeErr
+-			} else {
+-				worldBundle, err = execution.ComposeRecording(recording, config.WorldTransitionLimit)
+-			}
+-			if err == nil {
+-				initialWorld, _, validateErr := execution.Validate(worldBundle.Manifest, worldBundle.Payloads)
+-				if validateErr != nil {
+-					err = validateErr
+-				} else if worldBundle.Manifest.Initial.Schema != "gomad3.world.snapshot/v1" || uint64(initialWorld.Config.Seed) != completion.job.seed {
+-					err = fmt.Errorf("World record seed or schema does not match seed %d", completion.job.seed)
+-				}
++		worldBundle, err := assessWorld(completion.result, completion.job.seed, config.WorldTransitionLimit)
++		if err != nil {
++			if publishErr := publishRunnerFailure(completion, "world_record"); publishErr != nil {
++				err = errors.Join(err, publishErr)
+ 			}
+-			if err != nil {
+-				if publishErr := publishRunnerFailure(completion, "world_record"); publishErr != nil {
+-					err = errors.Join(err, publishErr)
+-				}
+-				if hostFailure == nil {
+-					hostFailure = &HostError{Reason: "world_record", Err: err}
+-					controller.Stop()
+-					activeCancel()
+-				}
+-				continue
++			if hostFailure == nil {
++				hostFailure = &HostError{Reason: "world_record", Err: err}
++				controller.Stop()
++				activeCancel()
+ 			}
++			continue
+ 		}
+-		runCoverage, coverageErr := deterministicio.SummarizeSemanticProbes(nil)
+-		if coverageErr != nil {
+-			return summary, &HostError{Reason: "semantic_coverage", Err: coverageErr}
+-		}
+-		if coverageHasSemantic(config.Coverage) {
+-			coverage, coverageErr := deterministicio.DecodeSemanticCoverage(completion.result.IOTranscript.Bytes)
+-			if coverageErr != nil {
+-				if partialErr := preservePartial(completion.journal); partialErr != nil {
+-					coverageErr = errors.Join(coverageErr, partialErr)
+-				}
+-				if hostFailure == nil {
+-					hostFailure = &HostError{Reason: "semantic_coverage", Err: coverageErr}
+-					controller.Stop()
+-					activeCancel()
+-				}
+-				continue
+-			}
+-			runCoverage = coverage
+-		}
+-		runChoiceFeatures := []string{}
+-		var runChoiceProjection *choice.FeatureProjection
+-		// A target the watchdog or a cancellation killed wrote no choice trace
+-		// to project; the termination is its outcome.
+-		if coverageHasChoice(config.Coverage) && choiceTraceObserved(completion.result) {
+-			projected, features, choiceErr := projectChoiceFeatures(completion.result.ChoiceTrace, prepared)
+-			if choiceErr != nil {
+-				if partialErr := preservePartial(completion.journal); partialErr != nil {
+-					choiceErr = errors.Join(choiceErr, partialErr)
+-				}
+-				if hostFailure == nil {
+-					hostFailure = &HostError{Reason: "choice_coverage", Err: choiceErr}
+-					controller.Stop()
+-					activeCancel()
+-				}
+-				continue
++		assessed, assessErr := assessCompletion(completion.result, worldBundle.Manifest.Terminal, config.Coverage, prepared)
++		if assessErr != nil {
++			if partialErr := preservePartial(completion.journal); partialErr != nil {
++				assessErr.Err = errors.Join(assessErr.Err, partialErr)
+ 			}
+-			runChoiceProjection = &projected
+-			runChoiceFeatures = features
++			if hostFailure == nil {
++				hostFailure = assessErr
++				controller.Stop()
++				activeCancel()
++			}
++			continue
+ 		}
+-		novelProbes := novelSemanticProbes(runCoverage.Probes, semanticProbes)
++		runCoverage, runChoiceFeatures, runChoiceProjection, outcome := assessed.coverage, assessed.choiceFeatures, assessed.choiceProjection, assessed.outcome
++		novelProbes := novelStrings(runCoverage.Probes, semanticProbes)
+ 		novelChoices := novelStrings(runChoiceFeatures, choiceFeatures)
+-		outcome := execution.Classify(completion.result, false, worldBundle.Manifest.Terminal)
+ 		if config.CollectExecutionEvidence {
+ 			mountArtifact, evidenceErr := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
+ 			if evidenceErr != nil {
+@@ -1034,7 +991,7 @@
+ 			if hostFailure == nil {
+ 				controller.RecordSuccess()
+ 				synchronizeCampaignStatistics(&summary, controller.Statistics())
+-				addSemanticProbes(semanticProbes, runCoverage.Probes)
++				addStrings(semanticProbes, runCoverage.Probes)
+ 				addStrings(choiceFeatures, runChoiceFeatures)
+ 			}
+ 			completePartial(completion.journal)
+@@ -1121,7 +1078,7 @@
+ 			activeCancel()
+ 		}
+ 		if hostFailure == nil {
+-			addSemanticProbes(semanticProbes, runCoverage.Probes)
++			addStrings(semanticProbes, runCoverage.Probes)
+ 			addStrings(choiceFeatures, runChoiceFeatures)
+ 		}
+ 		completePartial(completion.journal)
+@@ -1857,22 +1814,6 @@
+ 	return &projected
+ }
+ 
+-func novelSemanticProbes(observed []string, prior map[string]struct{}) []string {
+-	novel := make([]string, 0, len(observed))
+-	for _, probe := range observed {
+-		if _, found := prior[probe]; !found {
+-			novel = append(novel, probe)
+-		}
+-	}
+-	return novel
+-}
+-
+-func addSemanticProbes(destination map[string]struct{}, probes []string) {
+-	for _, probe := range probes {
+-		destination[probe] = struct{}{}
+-	}
+-}
+-
+ func preservePartial(run *campaign.ExecutionJournal) error {
+ 	if run == nil {
+ 		return nil
+--- a/tools/gomad3/runner/choice_exploration_campaign.go (pre-edit copy)
++++ b/tools/gomad3/runner/choice_exploration_campaign.go
+@@ -18,7 +18,6 @@
+ 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+ 	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
+ 	"go.temporal.io/server/tools/gomad3/target"
+-	"go.temporal.io/server/tools/gomad3/world"
+ )
+ 
+ type explorationRoundResult struct {
+@@ -313,47 +312,15 @@
+ 		return explorationRoundResult{}, &HostError{Reason: "prepared_target_integrity", Err: err}
+ 	}
+ 	candidate := round.Candidates[index]
+-	worldBundle := noneWorldBundle()
+-	if len(completion.result.WorldRecord) != 0 {
+-		recording, err := world.DecodeRecording(completion.result.WorldRecord)
+-		if err == nil {
+-			worldBundle, err = execution.ComposeRecording(recording, config.WorldTransitionLimit)
+-		}
+-		if err == nil {
+-			initialWorld, _, validateErr := execution.Validate(worldBundle.Manifest, worldBundle.Payloads)
+-			if validateErr != nil {
+-				err = validateErr
+-			} else if worldBundle.Manifest.Initial.Schema != "gomad3.world.snapshot/v1" || uint64(initialWorld.Config.Seed) != completion.job.seed {
+-				err = fmt.Errorf("World record seed or schema does not match seed %d", completion.job.seed)
+-			}
+-		}
+-		if err != nil {
+-			return explorationRoundResult{}, &HostError{Reason: "world_record", Err: err}
+-		}
+-	}
+-	runCoverage, err := deterministicio.SummarizeSemanticProbes(nil)
++	worldBundle, err := assessWorld(completion.result, completion.job.seed, config.WorldTransitionLimit)
+ 	if err != nil {
+-		return explorationRoundResult{}, &HostError{Reason: "semantic_coverage", Err: err}
++		return explorationRoundResult{}, &HostError{Reason: "world_record", Err: err}
+ 	}
+-	if coverageHasSemantic(config.Coverage) {
+-		runCoverage, err = deterministicio.DecodeSemanticCoverage(completion.result.IOTranscript.Bytes)
+-		if err != nil {
+-			return explorationRoundResult{}, &HostError{Reason: "semantic_coverage", Err: err}
+-		}
++	assessed, assessErr := assessCompletion(completion.result, worldBundle.Manifest.Terminal, config.Coverage, prepared)
++	if assessErr != nil {
++		return explorationRoundResult{}, assessErr
+ 	}
+-	runChoiceFeatures := []string{}
+-	var runChoiceProjection *choice.FeatureProjection
+-	// A target the watchdog or a cancellation killed wrote no choice trace to
+-	// project; the termination is its outcome.
+-	if coverageHasChoice(config.Coverage) && choiceTraceObserved(completion.result) {
+-		projection, features, err := projectChoiceFeatures(completion.result.ChoiceTrace, prepared)
+-		if err != nil {
+-			return explorationRoundResult{}, &HostError{Reason: "choice_coverage", Err: err}
+-		}
+-		runChoiceProjection = &projection
+-		runChoiceFeatures = features
+-	}
+-	outcome := execution.Classify(completion.result, false, worldBundle.Manifest.Terminal)
++	runCoverage, runChoiceFeatures, runChoiceProjection, outcome := assessed.coverage, assessed.choiceFeatures, assessed.choiceProjection, assessed.outcome
+ 	if outcome.Domain == "runner" {
+ 		return explorationRoundResult{}, &HostError{Reason: outcome.Reason, Err: errors.New("choice-exploration controller result is not expandable")}
+ 	}
+@@ -395,7 +362,7 @@
+ 		summary.ExecutionEvidence = &runRecord
+ 	}
+ 	if outcome.Domain == "success" {
+-		novelProbes := novelSemanticProbes(runCoverage.Probes, semanticProbes)
++		novelProbes := novelStrings(runCoverage.Probes, semanticProbes)
+ 		novelChoices := novelStrings(runChoiceFeatures, choiceFeatures)
+ 		retain := config.KeepSuccesses == KeepSuccessesAll || config.KeepSuccesses == KeepSuccessesNovel && (len(novelProbes) != 0 || len(novelChoices) != 0)
+ 		if retain {
+@@ -486,7 +453,7 @@
+ 	}
+ 	summary.Attempted++
+ 	summary.DistinctFailures = uint64(len(distinct))
+-	addSemanticProbes(semanticProbes, runCoverage.Probes)
++	addStrings(semanticProbes, runCoverage.Probes)
+ 	addStrings(choiceFeatures, runChoiceFeatures)
+ 	if err := completion.journal.Transition(campaign.ExecutionClassified); err != nil {
+ 		return explorationRoundResult{}, &HostError{Reason: "partial_write", Err: err}
+--- a/tools/gomad3/runner/simulation_exploration_campaign.go (pre-edit copy)
++++ b/tools/gomad3/runner/simulation_exploration_campaign.go
+@@ -15,11 +15,9 @@
+ 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+ 	"go.temporal.io/server/tools/gomad3/record"
+ 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
+-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+ 	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
+ 	simulationrecord "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord"
+ 	"go.temporal.io/server/tools/gomad3/target"
+-	"go.temporal.io/server/tools/gomad3/world"
+ )
+ 
+ const combinedExplorationRecordLimit = uint64(128 << 20)
+@@ -330,47 +328,15 @@
+ 		return simulationExplorationRoundResult{}, &HostError{Reason: "prepared_target_integrity", Err: err}
+ 	}
+ 	candidate := round.Candidates[index]
+-	worldBundle := noneWorldBundle()
+-	if len(completion.result.WorldRecord) != 0 {
+-		recording, err := world.DecodeRecording(completion.result.WorldRecord)
+-		if err == nil {
+-			worldBundle, err = execution.ComposeRecording(recording, config.WorldTransitionLimit)
+-		}
+-		if err == nil {
+-			initialWorld, _, validateErr := execution.Validate(worldBundle.Manifest, worldBundle.Payloads)
+-			if validateErr != nil {
+-				err = validateErr
+-			} else if worldBundle.Manifest.Initial.Schema != "gomad3.world.snapshot/v1" || uint64(initialWorld.Config.Seed) != completion.job.seed {
+-				err = fmt.Errorf("World record seed or schema does not match seed %d", completion.job.seed)
+-			}
+-		}
+-		if err != nil {
+-			return simulationExplorationRoundResult{}, &HostError{Reason: "world_record", Err: err}
+-		}
+-	}
+-	runCoverage, err := deterministicio.SummarizeSemanticProbes(nil)
++	worldBundle, err := assessWorld(completion.result, completion.job.seed, config.WorldTransitionLimit)
+ 	if err != nil {
+-		return simulationExplorationRoundResult{}, &HostError{Reason: "semantic_coverage", Err: err}
++		return simulationExplorationRoundResult{}, &HostError{Reason: "world_record", Err: err}
+ 	}
+-	if coverageHasSemantic(config.Coverage) {
+-		runCoverage, err = deterministicio.DecodeSemanticCoverage(completion.result.IOTranscript.Bytes)
+-		if err != nil {
+-			return simulationExplorationRoundResult{}, &HostError{Reason: "semantic_coverage", Err: err}
+-		}
++	assessed, assessErr := assessCompletion(completion.result, worldBundle.Manifest.Terminal, config.Coverage, prepared)
++	if assessErr != nil {
++		return simulationExplorationRoundResult{}, assessErr
+ 	}
+-	runChoiceFeatures := []string{}
+-	var runChoiceProjection *choice.FeatureProjection
+-	// A target the watchdog or a cancellation killed wrote no choice trace to
+-	// project; the termination is its outcome.
+-	if coverageHasChoice(config.Coverage) && choiceTraceObserved(completion.result) {
+-		projection, features, err := projectChoiceFeatures(completion.result.ChoiceTrace, prepared)
+-		if err != nil {
+-			return simulationExplorationRoundResult{}, &HostError{Reason: "choice_coverage", Err: err}
+-		}
+-		runChoiceProjection = &projection
+-		runChoiceFeatures = features
+-	}
+-	outcome := execution.Classify(completion.result, false, worldBundle.Manifest.Terminal)
++	runCoverage, runChoiceFeatures, runChoiceProjection, outcome := assessed.coverage, assessed.choiceFeatures, assessed.choiceProjection, assessed.outcome
+ 	if outcome.Domain == "runner" {
+ 		return simulationExplorationRoundResult{}, &HostError{Reason: outcome.Reason, Err: errors.New("simulation-exploration controller result is not expandable")}
+ 	}
+@@ -427,7 +393,7 @@
+ 		if explorationResult.Failed {
+ 			return simulationExplorationRoundResult{}, &HostError{Reason: "simulation_exploration_outcome", Err: errors.New("simulation failure completed with a successful target outcome")}
+ 		}
+-		novelProbes := novelSemanticProbes(runCoverage.Probes, semanticProbes)
++		novelProbes := novelStrings(runCoverage.Probes, semanticProbes)
+ 		novelChoices := novelStrings(runChoiceFeatures, choiceFeatures)
+ 		retain := config.KeepSuccesses == KeepSuccessesAll || config.KeepSuccesses == KeepSuccessesNovel && (len(novelProbes) != 0 || len(novelChoices) != 0)
+ 		if retain {
+@@ -522,7 +488,7 @@
+ 	}
+ 	summary.Attempted++
+ 	summary.DistinctFailures = uint64(len(distinct))
+-	addSemanticProbes(semanticProbes, runCoverage.Probes)
++	addStrings(semanticProbes, runCoverage.Probes)
+ 	addStrings(choiceFeatures, runChoiceFeatures)
+ 	if err := completion.journal.Transition(campaign.ExecutionClassified); err != nil {
+ 		return simulationExplorationRoundResult{}, &HostError{Reason: "partial_write", Err: err}
+--- /dev/null	2026-10-01 13:56:33
++++ b/tools/gomad3/runner/completion.go (new file)
+@@ -0,0 +1,70 @@
++package runner
++
++import (
++	"fmt"
++
++	"go.temporal.io/server/tools/gomad3/choice"
++	"go.temporal.io/server/tools/gomad3/deterministicio"
++	"go.temporal.io/server/tools/gomad3/record"
++	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
++	"go.temporal.io/server/tools/gomad3/target"
++	"go.temporal.io/server/tools/gomad3/world"
++)
++
++// completedExecution is what every strategy reads from one captured execution
++// once its World record is validated: the coverage it observed and its outcome.
++type completedExecution struct {
++	coverage         deterministicio.SemanticCoverage
++	choiceFeatures   []string
++	choiceProjection *choice.FeatureProjection
++	outcome          execution.Classification
++}
++
++// assessWorld validates the World record a captured execution left for the
++// seed it ran with. An execution that recorded none has the none World.
++func assessWorld(result execution.Result, seed, transitionLimit uint64) (execution.Bundle, error) {
++	worldBundle := noneWorldBundle()
++	if len(result.WorldRecord) == 0 {
++		return worldBundle, nil
++	}
++	recording, err := world.DecodeRecording(result.WorldRecord)
++	if err == nil {
++		worldBundle, err = execution.ComposeRecording(recording, transitionLimit)
++	}
++	if err == nil {
++		initialWorld, _, validateErr := execution.Validate(worldBundle.Manifest, worldBundle.Payloads)
++		if validateErr != nil {
++			err = validateErr
++		} else if worldBundle.Manifest.Initial.Schema != "gomad3.world.snapshot/v1" || uint64(initialWorld.Config.Seed) != seed {
++			err = fmt.Errorf("World record seed or schema does not match seed %d", seed)
++		}
++	}
++	return worldBundle, err
++}
++
++// assessCompletion projects the coverage a captured execution observed and
++// classifies its outcome against the terminal of its validated World record.
++// Semantic coverage is decoded before choice features are projected, and the
++// first failure is the reported one.
++func assessCompletion(result execution.Result, terminal record.WorldTerminal, mode CoverageMode, prepared target.Prepared) (completedExecution, *HostError) {
++	coverage, err := deterministicio.SummarizeSemanticProbes(nil)
++	if err == nil && coverageHasSemantic(mode) {
++		coverage, err = deterministicio.DecodeSemanticCoverage(result.IOTranscript.Bytes)
++	}
++	if err != nil {
++		return completedExecution{}, &HostError{Reason: "semantic_coverage", Err: err}
++	}
++	assessed := completedExecution{coverage: coverage, choiceFeatures: []string{}}
++	// A target the watchdog or a cancellation killed wrote no choice trace to
++	// project; the termination is its outcome.
++	if coverageHasChoice(mode) && choiceTraceObserved(result) {
++		projection, features, err := projectChoiceFeatures(result.ChoiceTrace, prepared)
++		if err != nil {
++			return completedExecution{}, &HostError{Reason: "choice_coverage", Err: err}
++		}
++		assessed.choiceProjection = &projection
++		assessed.choiceFeatures = features
++	}
++	assessed.outcome = execution.Classify(result, false, terminal)
++	return assessed, nil
++}
+--- /dev/null	2026-10-01 13:56:33
++++ b/tools/gomad3/runner/completion_test.go (new file)
+@@ -0,0 +1,145 @@
++package runner
++
++import (
++	"bytes"
++	"reflect"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/choice"
++	"go.temporal.io/server/tools/gomad3/deterministicio"
++	"go.temporal.io/server/tools/gomad3/record"
++	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
++	"go.temporal.io/server/tools/gomad3/world"
++)
++
++func TestAssessWorldValidatesTheRecordAgainstItsSeed(t *testing.T) {
++	recording := completionWorldRecord(t, 7)
++	decoded, err := world.DecodeRecording(recording)
++	if err != nil {
++		t.Fatal(err)
++	}
++	composed, err := execution.ComposeRecording(decoded, 1<<20)
++	if err != nil {
++		t.Fatal(err)
++	}
++	malformed := bytes.Clone(recording)
++	malformed[len(malformed)-1] ^= 1
++	for _, test := range []struct {
++		name   string
++		record []byte
++		seed   uint64
++		limit  uint64
++		want   execution.Bundle
++		cause  string
++	}{
++		{name: "no record", seed: 7, limit: 1 << 20, want: noneWorldBundle()},
++		{name: "valid record", record: recording, seed: 7, limit: 1 << 20, want: composed},
++		{name: "malformed record", record: malformed, seed: 7, limit: 1 << 20, cause: "decode World terminal: invalid character '|' after object key:value pair"},
++		{name: "seed mismatch", record: recording, seed: 8, limit: 1 << 20, cause: "World record seed or schema does not match seed 8"},
++		{name: "transition limit", record: recording, seed: 7, cause: "World transition limit must be positive"},
++		{name: "malformed record before seed mismatch", record: malformed, seed: 8, limit: 1 << 20, cause: "decode World terminal: invalid character '|' after object key:value pair"},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			captured := bytes.Clone(test.record)
++			bundle, err := assessWorld(execution.Result{WorldRecord: captured}, test.seed, test.limit)
++			if test.cause != "" {
++				if err == nil || err.Error() != test.cause {
++					t.Fatalf("assessWorld() error = %v, want %q", err, test.cause)
++				}
++				return
++			}
++			if err != nil {
++				t.Fatal(err)
++			}
++			clear(captured)
++			if !reflect.DeepEqual(bundle, test.want) {
++				t.Fatalf("assessWorld() = %#v, want %#v", bundle, test.want)
++			}
++		})
++	}
++}
++
++func TestAssessCompletionProjectsCoverageInOrderAndClassifies(t *testing.T) {
++	prepared := newFakePreparer(t).prepared
++	limit := choiceTraceLimit(t, 1)
++	trace := completeChoiceTrace(t, prepared.BuildKey, limit, []choice.Record{{
++		Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, Alternatives: 2,
++	}})
++	projection, features, err := projectChoiceFeatures(trace, prepared)
++	if err != nil {
++		t.Fatal(err)
++	}
++	noCoverage, err := deterministicio.SummarizeSemanticProbes(nil)
++	if err != nil {
++		t.Fatal(err)
++	}
++	probeCoverage, err := deterministicio.SummarizeSemanticProbes([]string{completionProbe})
++	if err != nil {
++		t.Fatal(err)
++	}
++	wellFormed := processResult(0, "", "")
++	wellFormed.IOTranscript = semanticTranscript(t, completionProbe)
++	wellFormed.ChoiceTrace = trace
++	malformed := wellFormed
++	malformed.IOTranscript = deterministicio.Transcript{Bytes: []byte("not an I/O transcript")}
++	malformed.ChoiceTrace.Trace.Bytes = []byte("not a choice trace")
++	malformedChoices := malformed
++	malformedChoices.IOTranscript = wellFormed.IOTranscript
++	watchdog, cancelled := malformedChoices, malformedChoices
++	watchdog.WatchdogTimeout = true
++	cancelled.Cancelled = true
++	exitCode := record.Uint64String(0)
++	deadline := "execution_timeout"
++	success := execution.Classification{Domain: "success", Reason: "success", Termination: "exit", ExitCode: &exitCode, ArtifactKind: record.ArtifactSuccess, ReplayMode: record.ReplayExact}
++	deadlock := execution.Classification{Domain: "target", Reason: "world_deadlock", Termination: "exit", ExitCode: &exitCode, ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact}
++	for _, test := range []struct {
++		name     string
++		result   execution.Result
++		terminal record.WorldTerminal
++		mode     CoverageMode
++		want     completedExecution
++		reason   string
++		cause    string
++	}{
++		{name: "no coverage ignores malformed evidence", result: malformed, mode: CoverageNone, want: completedExecution{coverage: noCoverage, choiceFeatures: []string{}, outcome: success}},
++		{name: "unset coverage", result: malformed, want: completedExecution{coverage: noCoverage, choiceFeatures: []string{}, outcome: success}},
++		{name: "semantic coverage", result: malformedChoices, mode: CoverageSemantic, want: completedExecution{coverage: probeCoverage, choiceFeatures: []string{}, outcome: success}},
++		{name: "choice coverage", result: wellFormed, mode: CoverageChoice, want: completedExecution{coverage: noCoverage, choiceFeatures: features, choiceProjection: &projection, outcome: success}},
++		{
++			name: "semantic and choice coverage with a World terminal", result: wellFormed, terminal: record.WorldTerminal{Kind: string(world.TerminalDeadlock)}, mode: CoverageSemanticChoice,
++			want: completedExecution{coverage: probeCoverage, choiceFeatures: features, choiceProjection: &projection, outcome: deadlock},
++		},
++		{name: "malformed semantic coverage", result: malformed, mode: CoverageSemantic, reason: "semantic_coverage", cause: "I/O transcript has invalid length 21"},
++		{name: "malformed semantic coverage before malformed choices", result: malformed, mode: CoverageSemanticChoice, reason: "semantic_coverage", cause: "I/O transcript has invalid length 21"},
++		{name: "malformed choices", result: malformedChoices, mode: CoverageSemanticChoice, reason: "choice_coverage", cause: "project choice coverage: malformed choice trace\ninvalid choice terminal values"},
++		{name: "malformed semantic coverage of a watchdog kill", result: func() execution.Result { killed := malformed; killed.WatchdogTimeout = true; return killed }(), mode: CoverageSemanticChoice, reason: "semantic_coverage", cause: "I/O transcript has invalid length 21"},
++		{
++			name: "watchdog kill projects no choices", result: watchdog, mode: CoverageSemanticChoice,
++			want: completedExecution{coverage: probeCoverage, choiceFeatures: []string{}, outcome: execution.Classification{
++				Domain: "watchdog", Reason: "watchdog_timeout", Termination: "timeout", Deadline: &deadline, ArtifactKind: record.ArtifactWatchdogTimeout, ReplayMode: record.ReplayDiagnostic,
++			}},
++		},
++		{
++			name: "cancellation projects no choices", result: cancelled, mode: CoverageChoice,
++			want: completedExecution{coverage: noCoverage, choiceFeatures: []string{}, outcome: execution.Classification{
++				Domain: "runner", Reason: "runner_cancelled", Termination: "none", ArtifactKind: record.ArtifactRunnerFailure, ReplayMode: record.ReplayNone,
++			}},
++		},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			assessed, hostError := assessCompletion(test.result, test.terminal, test.mode, prepared)
++			if test.reason != "" {
++				if hostError == nil || hostError.Reason != test.reason || hostError.Err.Error() != test.cause {
++					t.Fatalf("assessCompletion() error = %v, want %s: %s", hostError, test.reason, test.cause)
++				}
++				return
++			}
++			if hostError != nil {
++				t.Fatal(hostError)
++			}
++			if !reflect.DeepEqual(assessed, test.want) {
++				t.Fatalf("assessCompletion() = %#v, want %#v", assessed, test.want)
++			}
++		})
++	}
++}
+--- /dev/null	2026-10-01 13:56:33
++++ b/tools/gomad3/runner/completion_characterization_test.go (new file)
+@@ -0,0 +1,453 @@
++package runner
++
++import (
++	"bytes"
++	"context"
++	"crypto/sha256"
++	"encoding/json"
++	"errors"
++	"io/fs"
++	"os"
++	"path/filepath"
++	"reflect"
++	"sort"
++	"sync"
++	"testing"
++	"time"
++
++	"go.temporal.io/server/tools/gomad3/artifact"
++	"go.temporal.io/server/tools/gomad3/choice"
++	"go.temporal.io/server/tools/gomad3/deterministicio"
++	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
++	"go.temporal.io/server/tools/gomad3/record"
++	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
++	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
++	"go.temporal.io/server/tools/gomad3/world"
++)
++
++const completionProbe = "stdlib.os.openfile"
++
++var completionStrategies = []Strategy{StrategySeed, StrategyChoiceExploration, StrategySimulationExploration}
++
++// completionObservation is what one campaign leaves observable after its
++// executions completed: the host failure, the counters (attempted, succeeded,
++// failures, watchdogs, distinct failures), every published failure artifact,
++// every journaled execution and every partial that outlived the campaign.
++type completionObservation struct {
++	Reason    string
++	Cause     string
++	Counts    [5]uint64
++	Artifacts []string
++	Journal   []string
++	Partials  []string
++}
++
++// faultExecutor completes every execution of its strategy's well-formed
++// executor with one fixed fault applied to the captured result.
++type faultExecutor struct {
++	t     *testing.T
++	base  Executor
++	fault func(*execution.Result)
++	err   error
++	mu    *sync.Mutex
++	last  *execution.Result
++}
++
++func (executor faultExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
++	result, err := executor.base.Run(ctx, request)
++	if err != nil {
++		return result, err
++	}
++	result.IOTranscript = semanticTranscript(executor.t, completionProbe)
++	if executor.fault != nil {
++		executor.fault(&result)
++	}
++	executor.mu.Lock()
++	*executor.last = result
++	executor.mu.Unlock()
++	return result, executor.err
++}
++
++func completionCampaign(t *testing.T, strategy Strategy, coverage CoverageMode, fault func(*execution.Result), runErr error) (CampaignSpec, faultExecutor) {
++	t.Helper()
++	preparer := newFakePreparer(t)
++	limit := choiceTraceLimit(t, 1)
++	executor := faultExecutor{t: t, fault: fault, err: runErr, mu: &sync.Mutex{}, last: &execution.Result{}}
++	switch strategy {
++	case StrategySeed:
++		executor.base = &fakeExecutor{result: func(uint64) execution.Result {
++			result := processResult(0, "", "")
++			result.ChoiceTrace = completeChoiceTrace(t, preparer.prepared.BuildKey, limit, []choice.Record{{
++				Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, Alternatives: 2,
++			}})
++			return result
++		}}
++	case StrategyChoiceExploration:
++		executor.base = &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
++	case StrategySimulationExploration:
++		executor.base = &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
++	}
++	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
++	config.Strategy = strategy
++	config.Coverage = coverage
++	config.ChoiceTraceLimit = limit
++	config.WorldTransitionLimit = 1 << 20
++	switch strategy {
++	case StrategyChoiceExploration:
++		config.MaxExecutions = 8
++		config.MaxChoiceDepth = 4
++		config.MaxExplorationBytes = 1 << 20
++	case StrategySimulationExploration:
++		config.MaxExecutions = 4
++		config.MaxForcedDecisions = 2
++		config.MaxExplorationBytes = 1 << 20
++		config.MaxExplorationResultBytes = 1 << 20
++		config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 2, Scenario: 2, Network: 2, Storage: 2, Fault: 2, Crash: 2}
++	}
++	return config, executor
++}
++
++func completionWorldRecord(t *testing.T, seed uint64) []byte {
++	t.Helper()
++	core, err := world.New(world.Config{Seed: world.Seed(seed), Limits: world.Limits{MaxRequests: 10, MaxEvents: 10, MaxQueuedEvents: 10, MaxTransitions: 10, MaxPayloadBytes: 1024, MaxStringBytes: 64}})
++	if err != nil {
++		t.Fatal(err)
++	}
++	initial := core.Snapshot()
++	if _, err := core.Quiesce(); err != nil {
++		t.Fatal(err)
++	}
++	recording, err := world.EncodeRecording(world.Recording{Initial: initial, Final: core.Snapshot(), Terminal: world.Terminal{Kind: world.TerminalIdle}})
++	if err != nil {
++		t.Fatal(err)
++	}
++	return recording
++}
++
++func observeCompletion(t *testing.T, summary CampaignResult, err error) completionObservation {
++	t.Helper()
++	observed := completionObservation{Counts: [5]uint64{summary.Attempted, summary.Succeeded, summary.Failures, summary.Watchdogs, summary.DistinctFailures}}
++	if err != nil {
++		var hostError *HostError
++		if !errors.As(err, &hostError) {
++			t.Fatalf("Explore() error = %#v, want a host failure", err)
++		}
++		observed.Reason = hostError.Reason
++		observed.Cause = hostError.Err.Error()
++	}
++	for _, path := range summary.Artifacts {
++		opened, openErr := artifact.OpenArtifact(path)
++		if openErr != nil {
++			t.Fatal(openErr)
++		}
++		manifest := opened.Manifest
++		if closeErr := opened.Close(); closeErr != nil {
++			t.Fatal(closeErr)
++		}
++		choices := "no-choices"
++		if manifest.ChoiceProfile != nil {
++			choices = "choices"
++		}
++		observed.Artifacts = append(observed.Artifacts, manifest.ArtifactKind+" "+manifest.Outcome.Reason+" "+manifest.ReplayMode+" "+manifest.World.Terminal.Kind+" "+choices)
++	}
++	walkErr := filepath.WalkDir(summary.CampaignPath, func(path string, entry fs.DirEntry, walkErr error) error {
++		if walkErr != nil || entry.IsDir() {
++			return walkErr
++		}
++		journaled := filepath.Base(filepath.Dir(path)) == "executions" && filepath.Ext(path) == ".jsonl"
++		if !journaled && entry.Name() != "partial.json" {
++			return nil
++		}
++		contents, readErr := os.ReadFile(path)
++		if readErr != nil {
++			return readErr
++		}
++		if !journaled {
++			var partial struct {
++				State string `json:"state"`
++			}
++			if decodeErr := json.Unmarshal(contents, &partial); decodeErr != nil {
++				return decodeErr
++			}
++			observed.Partials = append(observed.Partials, filepath.Base(filepath.Dir(path))+" "+partial.State)
++			return nil
++		}
++		for _, line := range bytes.Split(bytes.TrimSuffix(contents, []byte{'\n'}), []byte{'\n'}) {
++			var run campaign.ExecutionRecord
++			if decodeErr := canonicaljson.DecodeCanonicalJSON(line, &run); decodeErr != nil {
++				return decodeErr
++			}
++			observed.Journal = append(observed.Journal, run.Domain+" "+run.Reason+" "+run.Termination)
++		}
++		return nil
++	})
++	if walkErr != nil {
++		t.Fatal(walkErr)
++	}
++	return observed
++}
++
++// Each row fixes one captured result and pins what every strategy makes of it.
++// The exploration strategies share one expectation: they fail the whole round
++// before committing it, so only the cancellation diagnostic names the strategy.
++func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
++	const failedCampaign = "campaign recoverable-failure"
++	malformedWorld := func(result *execution.Result) {
++		result.WorldRecord = completionWorldRecord(t, 7)
++		result.WorldRecord[len(result.WorldRecord)-1] ^= 1
++	}
++	seedMismatch := func(result *execution.Result) { result.WorldRecord = completionWorldRecord(t, 8) }
++	malformedCoverage := func(result *execution.Result) {
++		payload := []byte("not an I/O transcript")
++		result.IOTranscript = deterministicio.Transcript{Bytes: payload, SHA256: sha256.Sum256(payload), Records: 1, Complete: true}
++	}
++	// The digest and record count are consistent, so supervision accepts the
++	// trace and only the coverage projection decodes the payload.
++	malformedChoices := func(result *execution.Result) {
++		payload := []byte("not a choice trace")
++		result.ChoiceTrace.Trace = choice.Trace{Version: choice.Version2, Bytes: payload, SHA256: sha256.Sum256(payload), Summary: choice.Summary{Terminal: choice.TerminalComplete}}
++	}
++	unterminated := func(result *execution.Result) { result.ChoiceTrace = execution.ChoiceTrace{} }
++	watchdog := func(result *execution.Result) {
++		result.Termination = execution.TerminationSignal
++		result.Signal = "SIGKILL"
++		result.WatchdogTimeout = true
++		result.ChoiceTrace = execution.ChoiceTrace{Profile: choice.Profile, Limit: result.ChoiceTrace.Limit}
++	}
++	unprojectableChoices := func(result *execution.Result) { result.ChoiceTrace.Trace.Bytes = []byte("x") }
++	cancelled := func(result *execution.Result) {
++		result.Termination = execution.TerminationSignal
++		result.Signal = "killed"
++		result.Cancelled = true
++		result.ChoiceTrace = execution.ChoiceTrace{Profile: choice.Profile, Limit: result.ChoiceTrace.Limit}
++	}
++	all := func(faults ...func(*execution.Result)) func(*execution.Result) {
++		return func(result *execution.Result) {
++			for _, fault := range faults {
++				fault(result)
++			}
++		}
++	}
++	for _, test := range []struct {
++		name            string
++		coverage        CoverageMode
++		fault           func(*execution.Result)
++		err             error
++		seed            completionObservation
++		exploration     completionObservation
++		simulationCause string
++	}{
++		{
++			name: "malformed World", fault: malformedWorld,
++			seed:        completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair", Counts: [5]uint64{1, 0, 0, 0, 1}, Artifacts: []string{"gomad3.runner-failure/v1 world_record none none choices"}, Journal: []string{"runner world_record none"}, Partials: []string{"00000000000000000000-7 captured", failedCampaign}},
++			exploration: completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
++		},
++		{
++			name: "World seed mismatch", fault: seedMismatch,
++			seed:        completionObservation{Reason: "world_record", Cause: "World record seed or schema does not match seed 7", Counts: [5]uint64{1, 0, 0, 0, 1}, Artifacts: []string{"gomad3.runner-failure/v1 world_record none none choices"}, Journal: []string{"runner world_record none"}, Partials: []string{"00000000000000000000-7 captured", failedCampaign}},
++			exploration: completionObservation{Reason: "world_record", Cause: "World record seed or schema does not match seed 7", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
++		},
++		{
++			name: "malformed semantic coverage", coverage: CoverageSemantic, fault: malformedCoverage,
++			seed:        completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
++			exploration: completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
++		},
++		{
++			name: "malformed choice trace", coverage: CoverageChoice, fault: malformedChoices,
++			seed:        completionObservation{Reason: "choice_coverage", Cause: "project choice coverage: malformed choice trace\ninvalid choice terminal values", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
++			exploration: completionObservation{Reason: "choice_coverage", Cause: "project choice coverage: malformed choice trace\ninvalid choice terminal values", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
++		},
++		{
++			name: "choice trace rejected by supervision", err: execution.ErrChoiceTraceMalformed,
++			seed:        completionObservation{Reason: "choice_trace_malformed", Cause: "choice trace malformed", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
++			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "choice trace malformed", Partials: []string{failedCampaign, "00000000000000000000 exited"}},
++		},
++		{
++			name: "missing terminal choice frame", fault: unterminated,
++			seed:        completionObservation{Reason: "choice_trace_unterminated", Cause: "choice trace unterminated", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
++			exploration: completionObservation{Reason: "choice_trace_unterminated", Cause: "choice trace unterminated", Partials: []string{failedCampaign, "00000000000000000000 exited"}},
++		},
++		{
++			name: "watchdog", coverage: CoverageSemanticChoice, fault: watchdog,
++			seed:        completionObservation{Counts: [5]uint64{1, 0, 1, 1, 1}, Artifacts: []string{"gomad3.watchdog-timeout/v1 watchdog_timeout diagnostic none no-choices"}, Journal: []string{"watchdog watchdog_timeout timeout"}},
++			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "invalid choice decision tape\nchoice trace is not complete v2 evidence", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
++		},
++		{
++			name: "cancelled execution", coverage: CoverageSemanticChoice, fault: cancelled,
++			seed:            completionObservation{Counts: [5]uint64{1, 0, 1, 0, 1}, Artifacts: []string{"gomad3.runner-failure/v1 runner_cancelled none none no-choices"}, Journal: []string{"runner runner_cancelled none"}},
++			exploration:     completionObservation{Reason: "runner_cancelled", Cause: "choice-exploration candidate was cancelled", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
++			simulationCause: "simulation exploration candidate was cancelled",
++		},
++		{
++			name: "malformed World, semantic coverage and choice trace", coverage: CoverageSemanticChoice, fault: all(malformedWorld, malformedCoverage, malformedChoices),
++			seed:        completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair\npublish Runner failure artifact: validate choice trace payload: malformed choice trace\ninvalid choice terminal values", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 captured", failedCampaign}},
++			exploration: completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
++		},
++		{
++			name: "malformed semantic coverage and choice trace", coverage: CoverageSemanticChoice, fault: all(malformedCoverage, malformedChoices),
++			seed:        completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
++			exploration: completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
++		},
++		{
++			name: "watchdog and malformed World", fault: all(watchdog, malformedWorld),
++			seed:        completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair\nconstruct Runner failure manifest: enabled choice profile did not produce the required terminal trace", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 captured", failedCampaign}},
++			exploration: completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
++		},
++		{
++			name: "watchdog and malformed semantic coverage", coverage: CoverageSemantic, fault: all(watchdog, malformedCoverage),
++			seed:        completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
++			exploration: completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
++		},
++		{
++			name: "watchdog and malformed choice trace", coverage: CoverageChoice, fault: all(watchdog, unprojectableChoices),
++			seed:        completionObservation{Reason: "artifact_publication", Cause: "unexpected choice trace payload", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 classified", failedCampaign}},
++			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "invalid choice decision tape\nchoice trace is not complete v2 evidence", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
++		},
++		{
++			name: "cancelled execution and malformed World", fault: all(cancelled, malformedWorld),
++			seed:            completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair\nconstruct Runner failure manifest: enabled choice profile did not produce the required terminal trace", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 captured", failedCampaign}},
++			exploration:     completionObservation{Reason: "runner_cancelled", Cause: "choice-exploration candidate was cancelled", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
++			simulationCause: "simulation exploration candidate was cancelled",
++		},
++		{
++			name: "cancelled execution and malformed semantic coverage", coverage: CoverageSemantic, fault: all(cancelled, malformedCoverage),
++			seed:            completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
++			exploration:     completionObservation{Reason: "runner_cancelled", Cause: "choice-exploration candidate was cancelled", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
++			simulationCause: "simulation exploration candidate was cancelled",
++		},
++		{
++			name: "supervision failure and World seed mismatch", fault: seedMismatch, err: execution.ErrChoiceTraceMalformed,
++			seed:        completionObservation{Reason: "choice_trace_malformed", Cause: "choice trace malformed", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
++			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "choice trace malformed", Partials: []string{failedCampaign, "00000000000000000000 exited"}},
++		},
++	} {
++		for _, strategy := range completionStrategies {
++			t.Run(test.name+"/"+string(strategy), func(t *testing.T) {
++				want := test.seed
++				if strategy != StrategySeed {
++					want = test.exploration
++					if strategy == StrategySimulationExploration && test.simulationCause != "" {
++						want.Cause = test.simulationCause
++					}
++				}
++				config, _ := completionCampaign(t, strategy, test.coverage, test.fault, test.err)
++				summary, err := Explore(context.Background(), config)
++				if observed := observeCompletion(t, summary, err); !reflect.DeepEqual(observed, want) {
++					t.Fatalf("completion = %#v, want %#v", observed, want)
++				}
++			})
++		}
++	}
++}
++
++// A context cancelled while exploration candidates run fails the round as a
++// cancellation, ahead of the cancelled results the candidates then report.
++func TestExplorationCancellationIsAHostFailure(t *testing.T) {
++	for _, strategy := range completionStrategies[1:] {
++		t.Run(string(strategy), func(t *testing.T) {
++			config, _ := completionCampaign(t, strategy, CoverageNone, nil, nil)
++			config.Executor = blockingExecutor{}
++			ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.Running == 1 })
++			config.TerminateGrace = 10 * time.Millisecond
++			summary, err := Explore(ctx, config)
++			observed := observeCompletion(t, summary, err)
++			// The round returns while its candidate is still exiting, so the
++			// candidate's partial state is not settled yet.
++			observed.Partials = nil
++			if want := (completionObservation{Reason: "cancelled", Cause: "context canceled"}); !reflect.DeepEqual(observed, want) {
++				t.Fatalf("completion = %#v, want %#v", observed, want)
++			}
++		})
++	}
++}
++
++// A well-formed completion carries its World record, semantic probe and choice
++// features into the execution evidence and the journal for fixed identities.
++func TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy(t *testing.T) {
++	type projection struct {
++		Outcome  OutcomeEvidence
++		World    record.World
++		Coverage deterministicio.SemanticCoverage
++		Features choice.FeatureProjection
++		Journal  []string
++		Probes   []string
++		Choices  []string
++	}
++	for _, strategy := range completionStrategies {
++		t.Run(string(strategy), func(t *testing.T) {
++			recording := completionWorldRecord(t, 7)
++			config, executor := completionCampaign(t, strategy, CoverageSemanticChoice, func(result *execution.Result) { result.WorldRecord = recording }, nil)
++			config.CollectExecutionEvidence = true
++			summary, err := Explore(context.Background(), config)
++			if err != nil {
++				t.Fatal(err)
++			}
++			batch, err := campaign.OpenCampaign(summary.CampaignPath)
++			if err != nil {
++				t.Fatal(err)
++			}
++			evidence := summary.ExecutionEvidence
++			if evidence == nil || evidence.Choices == nil || len(batch.Executions) == 0 {
++				t.Fatalf("execution evidence = %#v, executions = %#v", evidence, batch.Executions)
++			}
++			last := batch.Executions[len(batch.Executions)-1]
++			observed := projection{
++				Outcome: evidence.Outcome, World: evidence.World, Coverage: evidence.SemanticCoverage,
++				Features: choice.FeatureProjection{
++					Values: evidence.Choices.Features, AdjacentPairsObserved: uint64(evidence.Choices.AdjacentPairsObserved), AdjacentPairsTruncated: evidence.Choices.AdjacentPairsTruncated,
++				},
++				Probes: last.SemanticProbes, Choices: last.ChoiceFeatures,
++			}
++			for _, run := range batch.Executions {
++				observed.Journal = append(observed.Journal, run.Domain+" "+run.Reason+" "+run.Termination)
++			}
++
++			decoded, err := world.DecodeRecording(recording)
++			if err != nil {
++				t.Fatal(err)
++			}
++			bundle, err := execution.ComposeRecording(decoded, config.WorldTransitionLimit)
++			if err != nil {
++				t.Fatal(err)
++			}
++			coverage, err := deterministicio.SummarizeSemanticProbes([]string{completionProbe})
++			if err != nil {
++				t.Fatal(err)
++			}
++			executor.mu.Lock()
++			trace := executor.last.ChoiceTrace
++			executor.mu.Unlock()
++			projected, err := choice.ProjectTrace(trace.Trace, trace.Limit, sha256.Sum256([]byte("fake prepared target")))
++			if err != nil {
++				t.Fatal(err)
++			}
++			exitCode := record.Uint64String(0)
++			want := projection{
++				Outcome: OutcomeEvidence{Domain: "success", Reason: "world_idle", Termination: "exit", ExitCode: &exitCode},
++				World:   cloneWorld(bundle.Manifest), Coverage: coverage, Features: projected.Features,
++				Probes: []string{completionProbe}, Choices: []string{},
++			}
++			for _, feature := range projected.Features.Values {
++				want.Choices = append(want.Choices, feature.ID())
++			}
++			sort.Strings(want.Choices)
++			for range batch.Executions {
++				want.Journal = append(want.Journal, "success world_idle exit")
++			}
++			if !reflect.DeepEqual(observed, want) {
++				t.Fatalf("projection = %#v, want %#v", observed, want)
++			}
++			for index := range batch.Executions {
++				batch.Executions[index].ElapsedNanos = 0
++			}
++			encoded, err := canonicaljson.CanonicalJSON(struct {
++				Evidence   *ExecutionEvidence
++				Executions []campaign.ExecutionRecord
++			}{evidence, batch.Executions})
++			if err != nil {
++				t.Fatal(err)
++			}
++			t.Logf("fixed-input canonical record inputs: %s", encoded)
++		})
++	}
++}

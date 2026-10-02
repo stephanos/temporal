@@ -1,0 +1,274 @@
+package deterministicio
+
+// fn-108.3 fingerprint probe. Compiled into the package only through
+// `go test -overlay`; it is never a file of the repository. It calls only
+// prepareModerncMemory and package helpers that exist before and after the
+// rewrite, so the same source produces the BEFORE and the AFTER fingerprint.
+
+import (
+	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"runtime"
+	"sort"
+	"strings"
+	"testing"
+
+	"go.temporal.io/server/tools/gomad3/target"
+	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+)
+
+func TestFn108Task3Fingerprint(t *testing.T) {
+	out := os.Getenv("FN108_FINGERPRINT_OUT")
+	if out == "" {
+		t.Skip("FN108_FINGERPRINT_OUT is not set")
+	}
+	moduleCache := pinnedModuleCache(t)
+	identity := gomadversion.AdapterIdentity{Module: memoryModulePath, Version: memoryVersion, Sum: memorySum}
+	var b strings.Builder
+	fmt.Fprintf(&b, "platform %s/%s\n", runtime.GOOS, runtime.GOARCH)
+	fmt.Fprintf(&b, "profile identity %#v\n", Default().Identity())
+	for _, definition := range deterministicAdapters.definitions {
+		if definition.identity.Module == memoryModulePath {
+			fmt.Fprintf(&b, "registered identity %#v\n", definition.identity)
+			fmt.Fprintf(&b, "registered inventory %#v\n", definition.implementation.inventory)
+		}
+	}
+
+	root := t.TempDir()
+	prepared, err := prepareModerncMemory(moduleCache, root, identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	scrub := func(value string) string {
+		value = strings.ReplaceAll(value, root, "<ROOT>")
+		resolvedCache, err := filepath.EvalSymlinks(moduleCache)
+		if err != nil {
+			t.Fatal(err)
+		}
+		value = strings.ReplaceAll(value, resolvedCache, "<MODCACHE>")
+		return strings.ReplaceAll(value, moduleCache, "<MODCACHE>")
+	}
+	fmt.Fprintf(&b, "prepared replacement %s\n", scrub(prepared.replacement))
+	fmt.Fprintf(&b, "prepared evidence %s\n", scrub(fmt.Sprintf("%#v", prepared.evidence)))
+	fmt.Fprintf(&b, "prepared full %s\n", scrub(fmt.Sprintf("%#v", prepared)))
+
+	replacementInventory, err := digestAdapterSourceInventory(prepared.replacement)
+	if err != nil {
+		t.Fatal(err)
+	}
+	originalInventory, err := digestAdapterSourceInventory(filepath.Join(moduleCache, "modernc.org", "memory@"+memoryVersion))
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Fprintf(&b, "original inventory %s\nreplacement inventory %s\n", originalInventory, replacementInventory)
+
+	var lines []string
+	tree := sha256.New()
+	err = filepath.WalkDir(prepared.replacement, func(path string, entry fs.DirEntry, visitErr error) error {
+		if visitErr != nil {
+			return visitErr
+		}
+		relative, err := filepath.Rel(prepared.replacement, path)
+		if err != nil {
+			return err
+		}
+		info, err := entry.Info()
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() {
+			lines = append(lines, fmt.Sprintf("dir  %s %s", info.Mode(), filepath.ToSlash(relative)))
+			return nil
+		}
+		contents, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		sum := sha256.Sum256(contents)
+		lines = append(lines, fmt.Sprintf("file %s %d sha256:%s %s", info.Mode(), len(contents), hex.EncodeToString(sum[:]), filepath.ToSlash(relative)))
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	sort.Strings(lines)
+	for _, line := range lines {
+		tree.Write([]byte(line + "\n"))
+	}
+	fmt.Fprintf(&b, "replacement tree entries %d\nreplacement tree sha256:%s\n", len(lines), hex.EncodeToString(tree.Sum(nil)))
+	for _, line := range lines {
+		b.WriteString("  " + line + "\n")
+	}
+	rewritten, err := os.ReadFile(prepared.evidence.Replacement)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(out+".mmap_unix.go", rewritten, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	// The profile path: selection, preparation and prepared source-set review
+	// for a module that imports modernc.org/memory.
+	workingDirectory := t.TempDir()
+	preparationRoot := t.TempDir()
+	for name, contents := range map[string]string{
+		"go.mod":  "module modernc.org/memory/adaptertest\n\ngo 1.26.4\n\nrequire (\n\tgolang.org/x/sys v0.47.0 // indirect\n\tmodernc.org/memory v1.11.0\n)\n",
+		"go.sum":  "github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=\ngithub.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=\ngolang.org/x/sys v0.47.0 h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=\ngolang.org/x/sys v0.47.0/go.mod h1:4GL1E5IUh+htKOUEOaiffhrAeqysfVGipDYzABqnCmw=\nmodernc.org/mathutil v1.7.1 h1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=\nmodernc.org/mathutil v1.7.1/go.mod h1:4p5IwJITfppl0G4sUEDtCr4DthTaT47/N3aT6MhfgJg=\nmodernc.org/memory v1.11.0 h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=\nmodernc.org/memory v1.11.0/go.mod h1:/JP4VbVC+K5sU2wZi9bHoq2MAkCnrt2r98UGeSK7Mjw=\n",
+		"main.go": "package main\n\nimport _ \"modernc.org/memory\"\n\nfunc main() {}\n",
+	} {
+		if err := os.WriteFile(filepath.Join(workingDirectory, name), []byte(contents), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	toolchainRoot, err := filepath.Abs(filepath.Join("..", ".toolchain"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	spec, adapters, err := Default().PrepareBuildAdapters(target.Spec{
+		Kind: target.KindGoRun, Source: ".", WorkingDir: workingDirectory,
+		PreparationRoot: preparationRoot, ToolchainRoot: toolchainRoot,
+	}, moduleCache)
+	if err != nil {
+		t.Fatal(err)
+	}
+	profileScrub := func(value string) string {
+		for _, pair := range [][2]string{{workingDirectory, "<WORK>"}, {preparationRoot, "<PREP>"}, {toolchainRoot, "<TOOLCHAIN>"}} {
+			value = strings.ReplaceAll(value, pair[0], pair[1])
+			if resolved, err := filepath.EvalSymlinks(pair[0]); err == nil {
+				value = strings.ReplaceAll(value, resolved, pair[1])
+			}
+		}
+		return scrub(value)
+	}
+	fmt.Fprintf(&b, "profile adapters %s\n", profileScrub(fmt.Sprintf("%#v", adapters)))
+	if _, err := target.ReviewCapabilities(context.Background(), spec); err != nil {
+		t.Fatal(err)
+	}
+	b.WriteString("profile prepared source-set review: accepted\n")
+	if spec.BuildModFile != "" {
+		buildModFile, err := os.ReadFile(spec.BuildModFile)
+		if err != nil {
+			t.Fatal(err)
+		}
+		sum := sha256.Sum256([]byte(profileScrub(string(buildModFile))))
+		fmt.Fprintf(&b, "profile build modfile (scrubbed) sha256:%s\n%s\n", hex.EncodeToString(sum[:]), profileScrub(string(buildModFile)))
+	}
+
+	// Failure modes reached through prepareModerncMemory. The text is recorded
+	// separately so the fingerprint proper stays comparable byte for byte.
+	var f strings.Builder
+	report := func(name string, err error) {
+		if err == nil {
+			fmt.Fprintf(&f, "%s: ACCEPTED (no error)\n", name)
+			return
+		}
+		fmt.Fprintf(&f, "%s: %s\n", name, scrub(err.Error()))
+	}
+	prepareIn := func(cache string, identity gomadversion.AdapterIdentity) error {
+		workRoot := t.TempDir()
+		_, err := prepareModerncMemory(cache, workRoot, identity)
+		if err != nil {
+			return fmt.Errorf("%s", strings.ReplaceAll(strings.ReplaceAll(err.Error(), workRoot, "<ROOT>"), cache, "<CACHE>"))
+		}
+		return nil
+	}
+	report("changed version", prepareIn(moduleCache, gomadversion.AdapterIdentity{Module: memoryModulePath, Version: "v1.11.1", Sum: memorySum}))
+	report("changed sum", prepareIn(moduleCache, gomadversion.AdapterIdentity{Module: memoryModulePath, Version: memoryVersion, Sum: "h1:changed"}))
+	report("changed module", prepareIn(moduleCache, gomadversion.AdapterIdentity{Module: "modernc.org/memory2", Version: memoryVersion, Sum: memorySum}))
+	report("missing module", prepareIn(t.TempDir(), identity))
+
+	// copyCache builds a private module cache holding a writable copy of the
+	// pinned module that mutate then edits.
+	copyCache := func(mutate func(moduleRoot string)) string {
+		cache, err := filepath.EvalSymlinks(t.TempDir())
+		if err != nil {
+			t.Fatal(err)
+		}
+		source := filepath.Join(moduleCache, "modernc.org", "memory@"+memoryVersion)
+		destination := filepath.Join(cache, "modernc.org", "memory@"+memoryVersion)
+		err = filepath.WalkDir(source, func(path string, entry fs.DirEntry, visitErr error) error {
+			if visitErr != nil {
+				return visitErr
+			}
+			relative, err := filepath.Rel(source, path)
+			if err != nil {
+				return err
+			}
+			if entry.IsDir() {
+				return os.MkdirAll(filepath.Join(destination, relative), 0o700)
+			}
+			contents, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			return os.WriteFile(filepath.Join(destination, relative), contents, 0o600)
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		mutate(destination)
+		return cache
+	}
+	must := func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	report("unmodified private copy", prepareIn(copyCache(func(string) {}), identity))
+	report("source drift (appended newline)", prepareIn(copyCache(func(moduleRoot string) {
+		contents, err := os.ReadFile(filepath.Join(moduleRoot, memoryMmapPath))
+		must(err)
+		must(os.WriteFile(filepath.Join(moduleRoot, memoryMmapPath), append(contents, '\n'), 0o600))
+	}), identity))
+	report("missing anchor (anchor text edited)", prepareIn(copyCache(func(moduleRoot string) {
+		contents, err := os.ReadFile(filepath.Join(moduleRoot, memoryMmapPath))
+		must(err)
+		must(os.WriteFile(filepath.Join(moduleRoot, memoryMmapPath), []byte(strings.Replace(string(contents), "\tsize = roundup(size, osPageSize)\n", "\tsize = roundup(size,  osPageSize)\n", 1)), 0o600))
+	}), identity))
+	report("duplicate anchor (anchor text repeated)", prepareIn(copyCache(func(moduleRoot string) {
+		contents, err := os.ReadFile(filepath.Join(moduleRoot, memoryMmapPath))
+		must(err)
+		must(os.WriteFile(filepath.Join(moduleRoot, memoryMmapPath), []byte(strings.Replace(string(contents), "\tsize = roundup(size, osPageSize)\n", "\tsize = roundup(size, osPageSize)\n\tsize = roundup(size, osPageSize)\n", 1)), 0o600))
+	}), identity))
+	report("source file missing", prepareIn(copyCache(func(moduleRoot string) {
+		must(os.Remove(filepath.Join(moduleRoot, memoryMmapPath)))
+	}), identity))
+	report("source file is a symbolic link to identical bytes", prepareIn(copyCache(func(moduleRoot string) {
+		contents, err := os.ReadFile(filepath.Join(moduleRoot, memoryMmapPath))
+		must(err)
+		outside := filepath.Join(t.TempDir(), "mmap_unix.go")
+		must(os.WriteFile(outside, contents, 0o600))
+		must(os.Remove(filepath.Join(moduleRoot, memoryMmapPath)))
+		must(os.Symlink(outside, filepath.Join(moduleRoot, memoryMmapPath)))
+	}), identity))
+	report("source file is a directory", prepareIn(copyCache(func(moduleRoot string) {
+		must(os.Remove(filepath.Join(moduleRoot, memoryMmapPath)))
+		must(os.Mkdir(filepath.Join(moduleRoot, memoryMmapPath), 0o700))
+	}), identity))
+	report("another module file changed", prepareIn(copyCache(func(moduleRoot string) {
+		must(os.WriteFile(filepath.Join(moduleRoot, "memory.go"), []byte("package memory\n"), 0o600))
+	}), identity))
+	report("extra module file", prepareIn(copyCache(func(moduleRoot string) {
+		must(os.WriteFile(filepath.Join(moduleRoot, "extra.go"), []byte("package memory\n"), 0o600))
+	}), identity))
+	occupied := t.TempDir()
+	must(os.Mkdir(filepath.Join(occupied, "modernc-memory"), 0o700))
+	_, err = prepareModerncMemory(moduleCache, occupied, identity)
+	if err != nil {
+		err = fmt.Errorf("%s", strings.ReplaceAll(err.Error(), occupied, "<ROOT>"))
+	}
+	report("replacement directory already exists", err)
+
+	if err := os.WriteFile(out, []byte(b.String()), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(out+".failures", []byte(f.String()), 0o600); err != nil {
+		t.Fatal(err)
+	}
+}

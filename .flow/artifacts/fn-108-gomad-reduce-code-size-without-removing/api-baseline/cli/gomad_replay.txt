@@ -1,0 +1,11 @@
+$ gomad replay --help
+exit status: 2
+--- stdout
+--- stderr
+Usage of gomad replay:
+  -observed string
+    	directory that receives the replayed target's stdout and stderr
+  -toolchain-root string
+    	absolute pinned toolchain root
+  -verify-only
+    	validate without executing the target

@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
@@ -349,5 +350,38 @@ func TestMergeCampaignShardsDeduplicatesSharedFailureEvidence(t *testing.T) {
 	}
 	if merged.Failures != 2 || merged.DistinctFailures != 1 || merged.RetainedEvidence != 1 {
 		t.Fatalf("merged failure evidence = %#v", merged)
+	}
+}
+
+func TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments(t *testing.T) {
+	canonical, err := canonicaljson.CanonicalJSON(portableCampaignPlan{Schema: campaignPlanSchema, Mapping: campaignPlanMapping})
+	if err != nil {
+		t.Fatal(err)
+	}
+	invalidIdentity, err := canonicaljson.CanonicalJSON(portableCampaignPlan{Schema: "gomad3.campaign-plan/v0", Mapping: campaignPlanMapping})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		name     string
+		contents string
+		want     string
+	}{
+		{name: "incomplete object", contents: `{"schema":"gomad3.campaign-plan/v1","mapping":"ordinal-modulo/v1"}`, want: "decode campaign plan: JSON is not canonical"},
+		{name: "trailing whitespace", contents: string(canonical) + "\n", want: "decode campaign plan: JSON is not canonical"},
+		{name: "trailing data", contents: string(canonical) + "{}", want: "decode campaign plan: unexpected trailing JSON token {"},
+		{name: "unknown field", contents: `{"extra":true}`, want: `decode campaign plan: decode JSON: json: unknown field "extra"`},
+		{name: "malformed", contents: `{"schema":`, want: "decode campaign plan: decode JSON token: EOF"},
+		{name: "invalid protocol identity", contents: string(invalidIdentity), want: "campaign plan protocol identity is invalid"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "campaign.plan.json")
+			if err := os.WriteFile(path, []byte(test.contents), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := openCampaignPlan(path); err == nil || err.Error() != test.want {
+				t.Fatalf("openCampaignPlan() error = %v, want %s", err, test.want)
+			}
+		})
 	}
 }

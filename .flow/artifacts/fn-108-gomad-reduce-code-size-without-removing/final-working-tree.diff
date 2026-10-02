@@ -1,0 +1,1637 @@
+diff --git a/tools/gomad3/ARCHITECTURE.md b/tools/gomad3/ARCHITECTURE.md
+index e74ff177a..078bb52ba 100644
+--- a/tools/gomad3/ARCHITECTURE.md
++++ b/tools/gomad3/ARCHITECTURE.md
+@@ -689,7 +689,11 @@ in one JSON dossier. The supported-host gate must also rerun the
+ platform's host-clock inventory and, on Darwin, the positive-controlled clock
+ trace because dynamic imports and probe names are platform implementation
+ details. The dossier is published on failure and uploaded by CI, so a rejected
+-upgrade retains its first failing gate and bounded output. Boundary comparison
++upgrade retains its first failing gate and bounded output. Publication uses the
++shared host-filesystem replacement primitive, so a failed write, file or
++directory synchronization, rename, or temporary-file cleanup is returned as a
++host error ahead of the gate result, and a partial dossier never replaces the
++prior complete one. Boundary comparison
+ canonicalizes complete manifest metadata, intercepts, and hook policies so a
+ field unknown to an older comparator cannot disappear
+ from upgrade evidence.
+diff --git a/tools/gomad3/architecture_test.go b/tools/gomad3/architecture_test.go
+index 2785ce83f..f1abf3d45 100644
+--- a/tools/gomad3/architecture_test.go
++++ b/tools/gomad3/architecture_test.go
+@@ -454,7 +454,7 @@ func ownerMayImport(owner, importedOwner, importing, imported string) bool {
+ 		"world":           {"canonicaljson"},
+ 		"simulation":      {"record", "canonicaljson"},
+ 		"toolchain":       {"canonicaljson", "hostexec", "hostfs"},
+-		"upgrade":         {"qualification", "toolchain", "hostexec"},
++		"upgrade":         {"qualification", "toolchain", "hostexec", "hostfs"},
+ 	}
+ 	if !slices.Contains(allowed[owner], importedOwner) {
+ 		return false
+diff --git a/tools/gomad3/deterministicio/domain.go b/tools/gomad3/deterministicio/domain.go
+index e87262af9..dfc373c89 100644
+--- a/tools/gomad3/deterministicio/domain.go
++++ b/tools/gomad3/deterministicio/domain.go
+@@ -7,8 +7,6 @@ import (
+ 	"encoding/json"
+ 	"errors"
+ 	"fmt"
+-	"io"
+-	"strconv"
+ 	"unicode/utf8"
+ )
+ 
+@@ -39,36 +37,6 @@ type Adapter struct {
+ 	Version string `json:"version"`
+ }
+ 
+-type decimal uint64
+-
+-func (value decimal) MarshalJSON() ([]byte, error) {
+-	return []byte(strconv.Quote(strconv.FormatUint(uint64(value), 10))), nil
+-}
+-
+-func (value *decimal) UnmarshalJSON(data []byte) error {
+-	if value == nil {
+-		return errors.New("decode decimal string into nil destination")
+-	}
+-	var text string
+-	if err := json.Unmarshal(data, &text); err != nil {
+-		return errors.New("decimal integer must be a JSON string")
+-	}
+-	if text == "" || len(text) > 1 && text[0] == '0' {
+-		return fmt.Errorf("invalid canonical decimal string %q", text)
+-	}
+-	for _, character := range text {
+-		if character < '0' || character > '9' {
+-			return fmt.Errorf("invalid canonical decimal string %q", text)
+-		}
+-	}
+-	parsed, err := strconv.ParseUint(text, 10, 64)
+-	if err != nil {
+-		return fmt.Errorf("decimal string out of range: %w", err)
+-	}
+-	*value = decimal(parsed)
+-	return nil
+-}
+-
+ func canonicalJSON(value any) ([]byte, error) {
+ 	if err := validateCanonicalStrings(value); err != nil {
+ 		return nil, err
+@@ -82,31 +50,6 @@ func canonicalJSON(value any) ([]byte, error) {
+ 	return bytes.TrimSuffix(output.Bytes(), []byte{'\n'}), nil
+ }
+ 
+-func decodeCanonicalJSON(data []byte, destination any) error {
+-	if !utf8.Valid(data) {
+-		return errors.New("JSON is not valid UTF-8")
+-	}
+-	decoder := json.NewDecoder(bytes.NewReader(data))
+-	decoder.DisallowUnknownFields()
+-	if err := decoder.Decode(destination); err != nil {
+-		return fmt.Errorf("decode JSON: %w", err)
+-	}
+-	var trailing any
+-	if err := decoder.Decode(&trailing); err == nil {
+-		return errors.New("JSON contains trailing data")
+-	} else if !errors.Is(err, io.EOF) {
+-		return fmt.Errorf("decode trailing JSON: %w", err)
+-	}
+-	canonical, err := canonicalJSON(destination)
+-	if err != nil {
+-		return fmt.Errorf("canonicalize JSON: %w", err)
+-	}
+-	if !bytes.Equal(data, canonical) {
+-		return errors.New("JSON is not canonical")
+-	}
+-	return nil
+-}
+-
+ func validateCanonicalStrings(value any) error {
+ 	encoded, err := json.Marshal(value)
+ 	if err != nil {
+diff --git a/tools/gomad3/deterministicio/memory_adapter.go b/tools/gomad3/deterministicio/memory_adapter.go
+index 007d79353..9037ef415 100644
+--- a/tools/gomad3/deterministicio/memory_adapter.go
++++ b/tools/gomad3/deterministicio/memory_adapter.go
+@@ -1,14 +1,6 @@
+ package deterministicio
+ 
+-import (
+-	"bytes"
+-	"errors"
+-	"fmt"
+-	"os"
+-	"path/filepath"
+-
+-	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+-)
++import gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+ 
+ const (
+ 	memoryModulePath                       = "modernc.org/memory"
+@@ -26,85 +18,35 @@ var memoryPreparedSourceSetSHA256 = hostPin(map[string]string{
+ 	"linux/amd64":  "sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849",
+ })
+ 
+-func prepareModerncMemory(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
+-	if identity.Module != memoryModulePath || identity.Version != memoryVersion || identity.Sum != memorySum {
+-		return adapterPreparation{}, errors.New("modernc memory adapter identity mismatch")
+-	}
+-	moduleSource, err := filepath.EvalSymlinks(filepath.Join(moduleCache, "modernc.org", "memory@"+identity.Version))
+-	if err != nil {
+-		return adapterPreparation{}, fmt.Errorf("resolve pinned modernc memory module: %w", err)
+-	}
+-	originalInventory, err := digestAdapterSourceInventory(moduleSource)
+-	if err != nil {
+-		return adapterPreparation{}, fmt.Errorf("hash pinned modernc memory source inventory: %w", err)
+-	}
+-	if originalInventory != memoryOriginalSourceInventorySHA256 {
+-		return adapterPreparation{}, fmt.Errorf("pinned modernc memory source inventory identity mismatch: got %s, want %s", originalInventory, memoryOriginalSourceInventorySHA256)
+-	}
+-	source, err := os.ReadFile(filepath.Join(moduleSource, memoryMmapPath))
+-	if err != nil {
+-		return adapterPreparation{}, fmt.Errorf("read pinned modernc memory source: %w", err)
+-	}
+-	rewritten, err := rewriteModerncMemory(source)
+-	if err != nil {
+-		return adapterPreparation{}, err
+-	}
+-	moduleReplacement := filepath.Join(root, "modernc-memory")
+-	if err := copyAdapterModule(moduleSource, moduleReplacement, map[string][]byte{memoryMmapPath: rewritten}, defaultAdapterCopyLimits); err != nil {
+-		return adapterPreparation{}, fmt.Errorf("copy modernc memory adapter module: %w", err)
+-	}
+-	replacementInventory, err := digestAdapterSourceInventory(moduleReplacement)
+-	if err != nil {
+-		return adapterPreparation{}, fmt.Errorf("hash modernc memory replacement inventory: %w", err)
+-	}
+-	if replacementInventory != memoryReplacementSourceInventorySHA256 {
+-		return adapterPreparation{}, fmt.Errorf("modernc memory replacement inventory identity mismatch: got %s, want %s", replacementInventory, memoryReplacementSourceInventorySHA256)
+-	}
+-	return adapterPreparation{
+-		replacement: moduleReplacement,
+-		evidence: BuildAdapter{
+-			Module: identity.Module, Version: identity.Version, Sum: identity.Sum,
+-			Source: filepath.Join(moduleSource, memoryMmapPath), ReplacementRoot: moduleReplacement, Replacement: filepath.Join(moduleReplacement, memoryMmapPath),
+-			PreparedPackage:                  memoryModulePath,
+-			SourceSHA256:                     memoryMmapSourceSHA256,
+-			ReplacementSHA256:                memoryMmapReplacementSHA256,
+-			OriginalSourceInventorySHA256:    originalInventory,
+-			ReplacementSourceInventorySHA256: replacementInventory,
+-			PreparedSourceSetSHA256:          memoryPreparedSourceSetSHA256,
++var memoryRewrites = []sourceRewrite{
++	{
++		path: memoryMmapPath, sourceSHA256: memoryMmapSourceSHA256, replacementSHA256: memoryMmapReplacementSHA256,
++		rewrites: []anchorRewrite{
++			{
++				anchor:      []byte("var (\n\tosPageMask = osPageSize - 1\n\tosPageSize = os.Getpagesize()\n)\n"),
++				replacement: []byte("var (\n\tosPageMask = osPageSize - 1\n\tosPageSize = os.Getpagesize()\n)\n\n//go:linkname gomadMemoryEnabled internal/gomadio.Enabled\nfunc gomadMemoryEnabled() bool\n\n//go:linkname gomadMemoryMap internal/gomadio.AnonymousMap\nfunc gomadMemoryMap(size, alignment uintptr) uintptr\n\n//go:linkname gomadMemoryUnmap internal/gomadio.AnonymousUnmap\nfunc gomadMemoryUnmap(address, size uintptr) bool\n"),
++			},
++			{
++				anchor:      []byte("func unmap(addr uintptr, size int) error {\n\treturn unix.MunmapPtr(unsafe.Pointer(addr), uintptr(size))\n}\n"),
++				replacement: []byte("func unmap(addr uintptr, size int) error {\n\tif gomadMemoryEnabled() {\n\t\tif !gomadMemoryUnmap(addr, uintptr(size)) {\n\t\t\treturn unix.EINVAL\n\t\t}\n\t\treturn nil\n\t}\n\treturn unix.MunmapPtr(unsafe.Pointer(addr), uintptr(size))\n}\n"),
++			},
++			{
++				anchor:      []byte("\tsize = roundup(size, osPageSize)\n"),
++				replacement: []byte("\tsize = roundup(size, osPageSize)\n\tif gomadMemoryEnabled() {\n\t\tp := gomadMemoryMap(uintptr(size), pageSize)\n\t\tif p == 0 {\n\t\t\treturn 0, 0, unix.ENOMEM\n\t\t}\n\t\treturn p, size, nil\n\t}\n"),
++			},
+ 		},
+-	}, nil
++	},
+ }
+ 
+-func rewriteModerncMemory(source []byte) ([]byte, error) {
+-	if digestBytes(source) != memoryMmapSourceSHA256 {
+-		return nil, errors.New("pinned modernc memory source identity mismatch")
+-	}
+-	rewrites := []struct {
+-		anchor      []byte
+-		replacement []byte
+-	}{
+-		{
+-			anchor:      []byte("var (\n\tosPageMask = osPageSize - 1\n\tosPageSize = os.Getpagesize()\n)\n"),
+-			replacement: []byte("var (\n\tosPageMask = osPageSize - 1\n\tosPageSize = os.Getpagesize()\n)\n\n//go:linkname gomadMemoryEnabled internal/gomadio.Enabled\nfunc gomadMemoryEnabled() bool\n\n//go:linkname gomadMemoryMap internal/gomadio.AnonymousMap\nfunc gomadMemoryMap(size, alignment uintptr) uintptr\n\n//go:linkname gomadMemoryUnmap internal/gomadio.AnonymousUnmap\nfunc gomadMemoryUnmap(address, size uintptr) bool\n"),
+-		},
+-		{
+-			anchor:      []byte("func unmap(addr uintptr, size int) error {\n\treturn unix.MunmapPtr(unsafe.Pointer(addr), uintptr(size))\n}\n"),
+-			replacement: []byte("func unmap(addr uintptr, size int) error {\n\tif gomadMemoryEnabled() {\n\t\tif !gomadMemoryUnmap(addr, uintptr(size)) {\n\t\t\treturn unix.EINVAL\n\t\t}\n\t\treturn nil\n\t}\n\treturn unix.MunmapPtr(unsafe.Pointer(addr), uintptr(size))\n}\n"),
+-		},
+-		{
+-			anchor:      []byte("\tsize = roundup(size, osPageSize)\n"),
+-			replacement: []byte("\tsize = roundup(size, osPageSize)\n\tif gomadMemoryEnabled() {\n\t\tp := gomadMemoryMap(uintptr(size), pageSize)\n\t\tif p == 0 {\n\t\t\treturn 0, 0, unix.ENOMEM\n\t\t}\n\t\treturn p, size, nil\n\t}\n"),
+-		},
+-	}
+-	result := append([]byte(nil), source...)
+-	for _, rewrite := range rewrites {
+-		if bytes.Count(result, rewrite.anchor) != 1 {
+-			return nil, errors.New("pinned modernc memory rewrite anchor mismatch")
+-		}
+-		result = bytes.Replace(result, rewrite.anchor, rewrite.replacement, 1)
+-	}
+-	if got := digestBytes(result); got != memoryMmapReplacementSHA256 {
+-		return nil, fmt.Errorf("modernc memory replacement identity mismatch: got %s, want %s", got, memoryMmapReplacementSHA256)
+-	}
+-	return result, nil
++func prepareModerncMemory(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
++	return prepareRewrittenModule(moduleCache, root, identity, rewrittenModule{
++		module: memoryModulePath, version: memoryVersion, sum: memorySum,
++		cacheElements:              []string{"modernc.org", "memory@" + memoryVersion},
++		replacementDirectory:       "modernc-memory",
++		originalInventorySHA256:    memoryOriginalSourceInventorySHA256,
++		replacementInventorySHA256: memoryReplacementSourceInventorySHA256,
++		preparedPackage:            memoryModulePath,
++		preparedSourceSetSHA256:    memoryPreparedSourceSetSHA256,
++		rewrites:                   memoryRewrites,
++	})
+ }
+diff --git a/tools/gomad3/deterministicio/memory_adapter_test.go b/tools/gomad3/deterministicio/memory_adapter_test.go
+index c16dd240d..009c752e5 100644
+--- a/tools/gomad3/deterministicio/memory_adapter_test.go
++++ b/tools/gomad3/deterministicio/memory_adapter_test.go
+@@ -24,7 +24,7 @@ func TestPinnedModerncMemoryModuleInventory(t *testing.T) {
+ 
+ func TestRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings(t *testing.T) {
+ 	source := readPinnedModerncMemorySource(t)
+-	rewritten, err := rewriteModerncMemory(source)
++	rewritten, err := rewriteAdapterSource(memoryModulePath, memoryRewrites[0], source)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -44,8 +44,99 @@ func TestRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings(t *testing.T)
+ }
+ 
+ func TestRewriteModerncMemoryRejectsSourceIdentityDrift(t *testing.T) {
+-	if _, err := rewriteModerncMemory(append(readPinnedModerncMemorySource(t), '\n')); err == nil {
+-		t.Fatal("rewriteModerncMemory() accepted changed mmap_unix.go")
++	if _, err := rewriteAdapterSource(memoryModulePath, memoryRewrites[0], append(readPinnedModerncMemorySource(t), '\n')); err == nil {
++		t.Fatal("rewriteAdapterSource() accepted changed mmap_unix.go")
++	}
++}
++
++func TestModerncMemoryRewriteRejectsAnchorDrift(t *testing.T) {
++	source := readPinnedModerncMemorySource(t)
++	for _, test := range []struct {
++		name, want string
++		change     func(*sourceRewrite)
++	}{
++		{name: "missing-anchor", want: "anchor mismatch", change: func(rewrite *sourceRewrite) { rewrite.rewrites[0].anchor = []byte("absent page size anchor") }},
++		{name: "ambiguous-anchor", want: "anchor mismatch", change: func(rewrite *sourceRewrite) { rewrite.rewrites[0].anchor = []byte("osPageSize") }},
++		{name: "replacement-digest", want: "replacement identity mismatch", change: func(rewrite *sourceRewrite) { rewrite.replacementSHA256 = memoryMmapSourceSHA256 }},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			rewrite := memoryRewrites[0]
++			rewrite.rewrites = append([]anchorRewrite(nil), rewrite.rewrites...)
++			test.change(&rewrite)
++			if _, err := rewriteAdapterSource(memoryModulePath, rewrite, source); err == nil || !strings.Contains(err.Error(), test.want) {
++				t.Fatalf("modernc memory rewrite: %v, want %s", err, test.want)
++			}
++		})
++	}
++}
++
++func TestPrepareModerncMemoryRejectsModuleDrift(t *testing.T) {
++	identity := gomadversion.AdapterIdentity{Module: memoryModulePath, Version: memoryVersion, Sum: memorySum}
++	pinned := filepath.Join(pinnedModuleCache(t), "modernc.org", "memory@"+memoryVersion)
++	for _, test := range []struct {
++		name, want, wantRead string
++		change               func(t *testing.T, path string, contents []byte)
++	}{
++		{name: "changed-source", want: "source inventory identity mismatch", change: func(t *testing.T, path string, contents []byte) {
++			if err := os.WriteFile(path, append(contents, '\n'), 0o600); err != nil {
++				t.Fatal(err)
++			}
++		}},
++		{name: "non-regular-source", want: "symbolic link", wantRead: "not a regular file", change: func(t *testing.T, path string, contents []byte) {
++			outside := filepath.Join(t.TempDir(), memoryMmapPath)
++			if err := os.WriteFile(outside, contents, 0o600); err != nil {
++				t.Fatal(err)
++			}
++			if err := os.Symlink(outside, path); err != nil {
++				t.Fatal(err)
++			}
++		}},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			moduleCache := t.TempDir()
++			moduleRoot := filepath.Join(moduleCache, "modernc.org", "memory@"+memoryVersion)
++			if err := os.MkdirAll(filepath.Dir(moduleRoot), 0o700); err != nil {
++				t.Fatal(err)
++			}
++			if err := copyAdapterModule(pinned, moduleRoot, nil, defaultAdapterCopyLimits); err != nil {
++				t.Fatal(err)
++			}
++			path := filepath.Join(moduleRoot, memoryMmapPath)
++			contents, err := os.ReadFile(path)
++			if err != nil {
++				t.Fatal(err)
++			}
++			if err := os.Remove(path); err != nil {
++				t.Fatal(err)
++			}
++			test.change(t, path, contents)
++			if _, err := prepareModerncMemory(moduleCache, t.TempDir(), identity); err == nil || !strings.Contains(err.Error(), test.want) {
++				t.Fatalf("changed modernc memory module: %v, want %s", err, test.want)
++			}
++			if test.wantRead == "" {
++				return
++			}
++			if _, err := readAdapterSource(memoryModulePath, moduleRoot, memoryMmapPath); err == nil || !strings.Contains(err.Error(), test.wantRead) {
++				t.Fatalf("changed modernc memory source: %v, want %s", err, test.wantRead)
++			}
++		})
++	}
++}
++
++func TestModerncMemoryRejectsChangedReplacementInventory(t *testing.T) {
++	identity := gomadversion.AdapterIdentity{Module: memoryModulePath, Version: memoryVersion, Sum: memorySum}
++	_, err := prepareRewrittenModule(pinnedModuleCache(t), t.TempDir(), identity, rewrittenModule{
++		module: memoryModulePath, version: memoryVersion, sum: memorySum,
++		cacheElements:              []string{"modernc.org", "memory@" + memoryVersion},
++		replacementDirectory:       "modernc-memory",
++		originalInventorySHA256:    memoryOriginalSourceInventorySHA256,
++		replacementInventorySHA256: memoryOriginalSourceInventorySHA256,
++		preparedPackage:            memoryModulePath,
++		preparedSourceSetSHA256:    memoryPreparedSourceSetSHA256,
++		rewrites:                   memoryRewrites,
++	})
++	if err == nil || !strings.Contains(err.Error(), "replacement inventory identity mismatch") {
++		t.Fatalf("changed modernc memory replacement inventory: %v", err)
+ 	}
+ }
+ 
+@@ -61,6 +152,9 @@ func TestPrepareModerncMemoryRecordsExactPrivateReplacement(t *testing.T) {
+ 	if prepared.evidence.PreparedPackage != memoryModulePath || prepared.evidence.PreparedSourceSetSHA256 != memoryPreparedSourceSetSHA256 {
+ 		t.Fatalf("prepared package evidence = %#v", prepared.evidence)
+ 	}
++	if prepared.evidence.SourceSHA256 != memoryMmapSourceSHA256 || prepared.evidence.ReplacementSHA256 != memoryMmapReplacementSHA256 || prepared.evidence.OriginalSourceInventorySHA256 != memoryOriginalSourceInventorySHA256 || prepared.evidence.ReplacementSourceInventorySHA256 != memoryReplacementSourceInventorySHA256 {
++		t.Fatalf("prepared identity evidence = %#v", prepared.evidence)
++	}
+ 	contents, err := os.ReadFile(prepared.evidence.Replacement)
+ 	if err != nil {
+ 		t.Fatal(err)
+@@ -71,9 +165,14 @@ func TestPrepareModerncMemoryRecordsExactPrivateReplacement(t *testing.T) {
+ }
+ 
+ func TestPrepareModerncMemoryRejectsChangedIdentity(t *testing.T) {
+-	identity := gomadversion.AdapterIdentity{Module: memoryModulePath, Version: "v1.11.1", Sum: "h1:changed"}
+-	if _, err := prepareModerncMemory(pinnedModuleCache(t), t.TempDir(), identity); err == nil {
+-		t.Fatal("prepareModerncMemory() accepted a changed identity")
++	for _, identity := range []gomadversion.AdapterIdentity{
++		{Module: memoryModulePath, Version: "v1.11.1", Sum: "h1:changed"},
++		{Module: memoryModulePath, Version: "v1.11.1", Sum: memorySum},
++		{Module: memoryModulePath, Version: memoryVersion, Sum: "h1:changed"},
++	} {
++		if _, err := prepareModerncMemory(pinnedModuleCache(t), t.TempDir(), identity); err == nil {
++			t.Fatalf("prepareModerncMemory() accepted a changed identity %#v", identity)
++		}
+ 	}
+ }
+ 
+diff --git a/tools/gomad3/qualification/set/set.go b/tools/gomad3/qualification/set/set.go
+index cf3a6cf0e..46f2605b6 100644
+--- a/tools/gomad3/qualification/set/set.go
++++ b/tools/gomad3/qualification/set/set.go
+@@ -899,37 +899,6 @@ func retainedQualification(artifactRoot string, command Command, result CommandR
+ 	return opened, classification, path, record.HashBytes(contents), nil
+ }
+ 
+-func matchesExpectation(expected WorkloadExpectation, classification string, report qualification.QualificationReport, exitCode int) bool {
+-	if expected.Classification != classification || exitCode != qualification.ExitStatus(classification) {
+-		return false
+-	}
+-	switch classification {
+-	case "qualified":
+-		return report.Qualified && report.Deterministic && report.TargetSuccess && report.Failure == nil
+-	case "unsupported_target":
+-		return report.Failure != nil && report.Failure.ImportPath == expected.ImportPath && report.Failure.Capability == expected.Capability
+-	case "target_failure":
+-		replay := firstReplay(report)
+-		return report.Deterministic && !report.TargetSuccess && replay != nil && replay.Attempted && replay.Match
+-	case "nondeterministic":
+-		return !report.Deterministic
+-	case "replay_divergence":
+-		replay := firstReplay(report)
+-		return replay != nil && replay.Attempted && !replay.Match
+-	default:
+-		return false
+-	}
+-}
+-
+-func firstReplay(report qualification.QualificationReport) *qualification.QualificationReplay {
+-	for _, run := range report.Executions {
+-		if run.Replay != nil {
+-			return run.Replay
+-		}
+-	}
+-	return nil
+-}
+-
+ type qualificationBucket uint8
+ 
+ const (
+diff --git a/tools/gomad3/runner/campaign.go b/tools/gomad3/runner/campaign.go
+index 9a254bce5..c1f1eab2a 100644
+--- a/tools/gomad3/runner/campaign.go
++++ b/tools/gomad3/runner/campaign.go
+@@ -2,10 +2,6 @@ package runner
+ 
+ import "go.temporal.io/server/tools/gomad3/runner/internal/campaign"
+ 
+-func orderRunCompletions(selection SeedSelection, completed map[uint64]struct{}, input <-chan runCompletion, output chan<- runCompletion) {
+-	orderShardRunCompletions(selection, CampaignShard{}, completed, input, output)
+-}
+-
+ func orderShardRunCompletions(selection SeedSelection, shard CampaignShard, completed map[uint64]struct{}, input <-chan runCompletion, output chan<- runCompletion) {
+ 	jobs := pendingJobs{seeds: selection.Iterator(), shard: shard, completed: completed}
+ 	next, hasNext := jobs.Next()
+diff --git a/tools/gomad3/runner/choice_exploration_campaign.go b/tools/gomad3/runner/choice_exploration_campaign.go
+index 479ad55b1..d80709594 100644
+--- a/tools/gomad3/runner/choice_exploration_campaign.go
++++ b/tools/gomad3/runner/choice_exploration_campaign.go
+@@ -18,7 +18,6 @@ import (
+ 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+ 	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
+ 	"go.temporal.io/server/tools/gomad3/target"
+-	"go.temporal.io/server/tools/gomad3/world"
+ )
+ 
+ type explorationRoundResult struct {
+@@ -313,47 +312,15 @@ func processExplorationCompletion(
+ 		return explorationRoundResult{}, &HostError{Reason: "prepared_target_integrity", Err: err}
+ 	}
+ 	candidate := round.Candidates[index]
+-	worldBundle := noneWorldBundle()
+-	if len(completion.result.WorldRecord) != 0 {
+-		recording, err := world.DecodeRecording(completion.result.WorldRecord)
+-		if err == nil {
+-			worldBundle, err = execution.ComposeRecording(recording, config.WorldTransitionLimit)
+-		}
+-		if err == nil {
+-			initialWorld, _, validateErr := execution.Validate(worldBundle.Manifest, worldBundle.Payloads)
+-			if validateErr != nil {
+-				err = validateErr
+-			} else if worldBundle.Manifest.Initial.Schema != "gomad3.world.snapshot/v1" || uint64(initialWorld.Config.Seed) != completion.job.seed {
+-				err = fmt.Errorf("World record seed or schema does not match seed %d", completion.job.seed)
+-			}
+-		}
+-		if err != nil {
+-			return explorationRoundResult{}, &HostError{Reason: "world_record", Err: err}
+-		}
+-	}
+-	runCoverage, err := deterministicio.SummarizeSemanticProbes(nil)
++	worldBundle, err := assessWorld(completion.result, completion.job.seed, config.WorldTransitionLimit)
+ 	if err != nil {
+-		return explorationRoundResult{}, &HostError{Reason: "semantic_coverage", Err: err}
+-	}
+-	if coverageHasSemantic(config.Coverage) {
+-		runCoverage, err = deterministicio.DecodeSemanticCoverage(completion.result.IOTranscript.Bytes)
+-		if err != nil {
+-			return explorationRoundResult{}, &HostError{Reason: "semantic_coverage", Err: err}
+-		}
++		return explorationRoundResult{}, &HostError{Reason: "world_record", Err: err}
+ 	}
+-	runChoiceFeatures := []string{}
+-	var runChoiceProjection *choice.FeatureProjection
+-	// A target the watchdog or a cancellation killed wrote no choice trace to
+-	// project; the termination is its outcome.
+-	if coverageHasChoice(config.Coverage) && choiceTraceObserved(completion.result) {
+-		projection, features, err := projectChoiceFeatures(completion.result.ChoiceTrace, prepared)
+-		if err != nil {
+-			return explorationRoundResult{}, &HostError{Reason: "choice_coverage", Err: err}
+-		}
+-		runChoiceProjection = &projection
+-		runChoiceFeatures = features
++	assessed, assessErr := assessCompletion(completion.result, worldBundle.Manifest.Terminal, config.Coverage, prepared)
++	if assessErr != nil {
++		return explorationRoundResult{}, assessErr
+ 	}
+-	outcome := execution.Classify(completion.result, false, worldBundle.Manifest.Terminal)
++	runCoverage, runChoiceFeatures, runChoiceProjection, outcome := assessed.coverage, assessed.choiceFeatures, assessed.choiceProjection, assessed.outcome
+ 	if outcome.Domain == "runner" {
+ 		return explorationRoundResult{}, &HostError{Reason: outcome.Reason, Err: errors.New("choice-exploration controller result is not expandable")}
+ 	}
+@@ -395,43 +362,24 @@ func processExplorationCompletion(
+ 		summary.ExecutionEvidence = &runRecord
+ 	}
+ 	if outcome.Domain == "success" {
+-		novelProbes := novelSemanticProbes(runCoverage.Probes, semanticProbes)
+-		novelChoices := novelStrings(runChoiceFeatures, choiceFeatures)
+-		retain := config.KeepSuccesses == KeepSuccessesAll || config.KeepSuccesses == KeepSuccessesNovel && (len(novelProbes) != 0 || len(novelChoices) != 0)
+-		if retain {
+-			if !completion.result.IOTranscript.Complete {
+-				return explorationRoundResult{}, &HostError{Reason: "success_artifact_publication", Err: errors.New("retained success requires a complete I/O transcript for exact replay")}
+-			}
+-			if summary.RetainedSuccesses >= config.SuccessArtifactLimit || summary.RetainedSuccessBytes >= config.SuccessBytesLimit {
+-				return explorationRoundResult{}, &HostError{Reason: "success_retention_capacity", Err: errors.New("successful-execution retention capacity is exhausted")}
+-			}
++		retention, retentionErr := decideSuccessRetention(config, assessed, completion.result.IOTranscript.Complete, semanticProbes, choiceFeatures, summary.RetainedSuccesses, summary.RetainedSuccessBytes)
++		if retentionErr != nil {
++			return explorationRoundResult{}, retentionErr
++		}
++		if retention.retain {
+ 			manifest, err := manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest, mountArtifact)
+ 			if err != nil {
+ 				return explorationRoundResult{}, &HostError{Reason: "success_artifact_publication", Err: err}
+ 			}
+-			published, err := artifact.PublishArtifact(artifact.Store{Root: filepath.Join(staged.Path(), "successes"), Context: ctx, MaximumBytes: config.SuccessBytesLimit - summary.RetainedSuccessBytes}, artifact.ArtifactInput{
+-				Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
+-				IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
+-			})
++			published, err := artifact.PublishArtifact(artifact.Store{Root: filepath.Join(staged.Path(), "successes"), Context: ctx, MaximumBytes: retention.maximumBytes}, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
+ 			if err != nil {
+-				reason := "success_artifact_publication"
+-				var capacity *artifact.CapacityError
+-				if errors.As(err, &capacity) {
+-					reason = "success_retention_capacity"
+-				}
+-				return explorationRoundResult{}, &HostError{Reason: reason, Err: err}
++				return explorationRoundResult{}, successPublicationFailure(err)
+ 			}
+ 			finalPath, relative, err := explorationPublishedPath(batchPath, round.Index, staged.Path(), published.Path)
+ 			if err != nil {
+ 				return explorationRoundResult{}, &HostError{Reason: "artifact_path", Err: err}
+ 			}
+-			bytes := record.Uint64String(published.StoredBytes)
+-			run.SuccessArtifact = &relative
+-			run.SuccessArtifactBytes = &bytes
+-			if config.KeepSuccesses == KeepSuccessesNovel {
+-				run.NovelSemanticProbes = append([]string(nil), novelProbes...)
+-				run.NovelChoiceFeatures = append([]string(nil), novelChoices...)
+-			}
++			retention.annotate(&run, relative, published.StoredBytes)
+ 			summary.SuccessArtifacts = append(summary.SuccessArtifacts, finalPath)
+ 			summary.RetainedSuccesses++
+ 			summary.RetainedSuccessBytes += published.StoredBytes
+@@ -442,10 +390,7 @@ func processExplorationCompletion(
+ 		if err != nil {
+ 			return explorationRoundResult{}, &HostError{Reason: "manifest", Err: err}
+ 		}
+-		published, err := publishBoundedFailureArtifact(ctx, config, filepath.Join(staged.Path(), "failures"), manifest.Outcome.FailureSignature, distinct, &summary.failureArtifactBytes, artifact.ArtifactInput{
+-			Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
+-			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
+-		})
++		published, err := publishBoundedFailureArtifact(ctx, config, filepath.Join(staged.Path(), "failures"), manifest.Outcome.FailureSignature, distinct, &summary.failureArtifactBytes, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
+ 		if err != nil {
+ 			return explorationRoundResult{}, &HostError{Reason: "artifact_publication", Err: err}
+ 		}
+@@ -486,7 +431,7 @@ func processExplorationCompletion(
+ 	}
+ 	summary.Attempted++
+ 	summary.DistinctFailures = uint64(len(distinct))
+-	addSemanticProbes(semanticProbes, runCoverage.Probes)
++	addStrings(semanticProbes, runCoverage.Probes)
+ 	addStrings(choiceFeatures, runChoiceFeatures)
+ 	if err := completion.journal.Transition(campaign.ExecutionClassified); err != nil {
+ 		return explorationRoundResult{}, &HostError{Reason: "partial_write", Err: err}
+diff --git a/tools/gomad3/runner/deterministicio.go b/tools/gomad3/runner/deterministicio.go
+index 830ed8923..e48455180 100644
+--- a/tools/gomad3/runner/deterministicio.go
++++ b/tools/gomad3/runner/deterministicio.go
+@@ -39,14 +39,6 @@ func recordedCapturedInputs(manifest readonlymount.CapturedInputsManifest) recor
+ 	}
+ }
+ 
+-func deterministicCapturedInputs(manifest record.ReadOnlyMounts) readonlymount.CapturedInputsManifest {
+-	return readonlymount.CapturedInputsManifest{
+-		Schema: manifest.Schema, File: manifest.File, SHA256: manifest.SHA256, Bytes: uint64(manifest.Bytes),
+-		Entries: uint64(manifest.Entries), NotExist: uint64(manifest.NotExist), TotalBytes: uint64(manifest.TotalBytes),
+-		Mappings: append([]string(nil), manifest.Mappings...), Limits: deterministicCapturedInputLimits(manifest.Limits),
+-	}
+-}
+-
+ func recordedCapturedInputLimits(limits readonlymount.CapturedInputLimits) record.ReadOnlyMountLimits {
+ 	return record.ReadOnlyMountLimits{
+ 		PathBytes: record.Uint64String(limits.PathBytes), Requests: record.Uint64String(limits.Requests), Files: record.Uint64String(limits.Files),
+diff --git a/tools/gomad3/runner/guidance.go b/tools/gomad3/runner/guidance.go
+index 8ed53cf53..ef3e08688 100644
+--- a/tools/gomad3/runner/guidance.go
++++ b/tools/gomad3/runner/guidance.go
+@@ -5,7 +5,6 @@ import (
+ 	"fmt"
+ 	"path/filepath"
+ 
+-	"go.temporal.io/server/tools/gomad3/artifact"
+ 	"go.temporal.io/server/tools/gomad3/choice"
+ 	"go.temporal.io/server/tools/gomad3/deterministicio"
+ 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+@@ -88,10 +87,7 @@ func (campaign *guidanceCampaign) MergeRun(
+ 		choiceFeatures = &projected
+ 	}
+ 	candidate := guide.Candidate{
+-		Artifact: artifact.ArtifactInput{
+-			Manifest: manifest, TargetPath: campaign.prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
+-			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
+-		},
++		Artifact: executionArtifactInput(manifest, campaign.prepared, completion.result, mountArtifact, worldBundle),
+ 		Coverage: coverage, Choices: choiceFeatures,
+ 	}
+ 	return campaign.corpus.Admit(ctx, candidate, func(ctx context.Context, path string) (guide.ReplayResult, error) {
+diff --git a/tools/gomad3/runner/internal/campaign/campaign_journal.go b/tools/gomad3/runner/internal/campaign/campaign_journal.go
+index 63c0bf13e..f7eebdef9 100644
+--- a/tools/gomad3/runner/internal/campaign/campaign_journal.go
++++ b/tools/gomad3/runner/internal/campaign/campaign_journal.go
+@@ -580,10 +580,6 @@ func atomicWriteContext(ctx context.Context, path string, data []byte) (retErr e
+ 	return syncDirectoryContext(ctx, directory)
+ }
+ 
+-func removeCompletedPartial(path string) error {
+-	return removeCompletedPartialContext(context.Background(), path, "completed-partial")
+-}
+-
+ func removeCompletedPartialContext(ctx context.Context, path, operation string) error {
+ 	if path == "" {
+ 		return nil
+diff --git a/tools/gomad3/runner/internal/campaign/merge.go b/tools/gomad3/runner/internal/campaign/merge.go
+index d4a39accf..6c641e7e0 100644
+--- a/tools/gomad3/runner/internal/campaign/merge.go
++++ b/tools/gomad3/runner/internal/campaign/merge.go
+@@ -442,9 +442,8 @@ func OpenMergedCampaign(path string) (_ MergedCampaign, retErr error) {
+ 	if err := canonicaljson.DecodeCanonicalJSON(manifest, &campaign); err != nil {
+ 		return MergedCampaign{}, err
+ 	}
+-	canonical, err := canonicaljson.CanonicalJSON(campaign)
+-	if err != nil || !bytes.Equal(canonical, manifest) || campaign.Schema != MergedCampaignSchema || campaign.SchemaVersion != record.SchemaVersion || !validRecordSHA256(campaign.PlanSHA256) || campaign.Selection == "" || campaign.SelectionCount == 0 {
+-		return MergedCampaign{}, errors.Join(errors.New("merged campaign record is invalid"), err)
++	if campaign.Schema != MergedCampaignSchema || campaign.SchemaVersion != record.SchemaVersion || !validRecordSHA256(campaign.PlanSHA256) || campaign.Selection == "" || campaign.SelectionCount == 0 {
++		return MergedCampaign{}, errors.New("merged campaign record is invalid")
+ 	}
+ 	runs, err := readMergedExecutionJournal(root, campaign.Journal)
+ 	if err != nil {
+diff --git a/tools/gomad3/runner/internal/campaign/merge_capacity_test.go b/tools/gomad3/runner/internal/campaign/merge_capacity_test.go
+index 0950f39da..b9160a5be 100644
+--- a/tools/gomad3/runner/internal/campaign/merge_capacity_test.go
++++ b/tools/gomad3/runner/internal/campaign/merge_capacity_test.go
+@@ -2,8 +2,11 @@ package campaign
+ 
+ import (
+ 	"errors"
++	"os"
++	"path/filepath"
+ 	"testing"
+ 
++	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+ 	"go.temporal.io/server/tools/gomad3/record"
+ )
+ 
+@@ -29,3 +32,40 @@ func TestCheckedMergedEvidenceBytesReportsTypedOverflow(t *testing.T) {
+ 		t.Fatalf("checkedMergedEvidenceBytes() error = %#v", err)
+ 	}
+ }
++
++func TestOpenMergedCampaignRejectsNoncanonicalAndInvalidRecords(t *testing.T) {
++	canonical, err := canonicaljson.CanonicalJSON(MergedCampaignRecord{Schema: MergedCampaignSchema})
++	if err != nil {
++		t.Fatal(err)
++	}
++	invalidIdentity, err := canonicaljson.CanonicalJSON(MergedCampaignRecord{Schema: "gomad3.merged-campaign/v0"})
++	if err != nil {
++		t.Fatal(err)
++	}
++	for _, test := range []struct {
++		name     string
++		contents string
++		want     string
++	}{
++		{name: "incomplete object", contents: `{"schema":"gomad3.merged-campaign/v1"}`, want: "JSON is not canonical"},
++		{name: "trailing whitespace", contents: string(canonical) + "\n", want: "JSON is not canonical"},
++		{name: "trailing data", contents: string(canonical) + "{}", want: "unexpected trailing JSON token {"},
++		{name: "unknown field", contents: `{"extra":true}`, want: `decode JSON: json: unknown field "extra"`},
++		{name: "malformed", contents: `{"schema":`, want: "decode JSON token: EOF"},
++		{name: "invalid schema", contents: string(invalidIdentity), want: "merged campaign record is invalid"},
++		{name: "invalid identity", contents: string(canonical), want: "merged campaign record is invalid"},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			path := filepath.Join(t.TempDir(), "merged")
++			if err := os.MkdirAll(filepath.Join(path, "executions"), 0o700); err != nil {
++				t.Fatal(err)
++			}
++			if err := os.WriteFile(filepath.Join(path, "merge.json"), []byte(test.contents), 0o600); err != nil {
++				t.Fatal(err)
++			}
++			if _, err := OpenMergedCampaign(path); err == nil || err.Error() != test.want {
++				t.Fatalf("OpenMergedCampaign() error = %v, want %s", err, test.want)
++			}
++		})
++	}
++}
+diff --git a/tools/gomad3/runner/internal/minimizer/minimizer.go b/tools/gomad3/runner/internal/minimizer/minimizer.go
+index 39e271c91..a371e92fc 100644
+--- a/tools/gomad3/runner/internal/minimizer/minimizer.go
++++ b/tools/gomad3/runner/internal/minimizer/minimizer.go
+@@ -118,24 +118,6 @@ func Commit(state State, attempt Attempt, accepted bool) (State, error) {
+ 	return seal(next)
+ }
+ 
+-func Encode(state State) ([]byte, error) {
+-	if err := Validate(state); err != nil {
+-		return nil, err
+-	}
+-	return canonicaljson.CanonicalJSON(state)
+-}
+-
+-func Decode(encoded []byte) (State, error) {
+-	var state State
+-	if err := canonicaljson.DecodeCanonicalJSON(encoded, &state); err != nil {
+-		return State{}, fmt.Errorf("decode minimizer state: %w", err)
+-	}
+-	if err := Validate(state); err != nil {
+-		return State{}, err
+-	}
+-	return state, nil
+-}
+-
+ func Validate(state State) error {
+ 	if state.Schema != Schema || state.AttemptBudget == 0 || state.Attempts > state.AttemptBudget || uint64(len(state.Evaluated)) != state.Attempts || uint64(len(state.Accepted)) > state.Attempts {
+ 		return errors.New("minimizer state shape is invalid")
+diff --git a/tools/gomad3/runner/internal/minimizer/minimizer_test.go b/tools/gomad3/runner/internal/minimizer/minimizer_test.go
+index b0cccdddd..b5cf77d9c 100644
+--- a/tools/gomad3/runner/internal/minimizer/minimizer_test.go
++++ b/tools/gomad3/runner/internal/minimizer/minimizer_test.go
+@@ -69,17 +69,6 @@ func TestStateStopsAtAttemptBudgetAndRoundTrips(t *testing.T) {
+ 	if state.StopReason != StopAttemptBudget || state.Attempts != 1 {
+ 		t.Fatalf("bounded state = %#v", state)
+ 	}
+-	encoded, err := Encode(state)
+-	if err != nil {
+-		t.Fatal(err)
+-	}
+-	decoded, err := Decode(encoded)
+-	if err != nil {
+-		t.Fatal(err)
+-	}
+-	if decoded.SHA256 != state.SHA256 || decoded.StopReason != state.StopReason {
+-		t.Fatalf("decoded state = %#v, want %#v", decoded, state)
+-	}
+ }
+ 
+ func TestValidateRejectsInvalidConfigWithSelfConsistentStateIdentity(t *testing.T) {
+diff --git a/tools/gomad3/runner/minimize_operation.go b/tools/gomad3/runner/minimize_operation.go
+index f78d3ffa7..fbec5c8e5 100644
+--- a/tools/gomad3/runner/minimize_operation.go
++++ b/tools/gomad3/runner/minimize_operation.go
+@@ -345,12 +345,8 @@ func (session *minimizationSession) evaluate(ctx context.Context, explorationCon
+ 		return minimizationTrial{}, err
+ 	}
+ 	retained.SimulationProfile = &simulationProfile
+-	input := artifact.ArtifactInput{
+-		Manifest: retained, TargetPath: session.prepared.Path, Stdout: observed.Stdout.Bytes, Stderr: observed.Stderr.Bytes,
+-		IOTranscript: observed.IOTranscript.Bytes, ChoiceTrace: observed.ChoiceTrace.Trace.Bytes,
+-		ReadOnlyMounts: session.mountArtifact, World: worldBundle.Payloads,
+-		Simulation: &artifact.SimulationPayloads{Plan: executionForCandidate.SimulationPlan, Record: observed.SimulationRecords[0]},
+-	}
++	input := executionArtifactInput(retained, session.prepared, observed, session.mountArtifact, worldBundle)
++	input.Simulation = &artifact.SimulationPayloads{Plan: executionForCandidate.SimulationPlan, Record: observed.SimulationRecords[0]}
+ 	published, err := artifact.PublishArtifact(artifact.Store{
+ 		Root: session.temporaryRoot, Context: ctx, MaximumBytes: defaultMinimizedArtifactBytes(session.opened.StoredBytes), Key: artifact.StoreKeyRecord,
+ 	}, input)
+diff --git a/tools/gomad3/runner/portable_plan.go b/tools/gomad3/runner/portable_plan.go
+index d96bbb5c4..7fccbda23 100644
+--- a/tools/gomad3/runner/portable_plan.go
++++ b/tools/gomad3/runner/portable_plan.go
+@@ -1,7 +1,6 @@
+ package runner
+ 
+ import (
+-	"bytes"
+ 	"context"
+ 	"errors"
+ 	"fmt"
+@@ -217,10 +216,6 @@ func openCampaignPlan(path string) (_ openedCampaignPlan, retErr error) {
+ 	if err := canonicaljson.DecodeCanonicalJSON(contents, &document); err != nil {
+ 		return openedCampaignPlan{}, fmt.Errorf("decode campaign plan: %w", err)
+ 	}
+-	canonical, err := canonicaljson.CanonicalJSON(document)
+-	if err != nil || !bytes.Equal(canonical, contents) {
+-		return openedCampaignPlan{}, errors.Join(errors.New("campaign plan is not canonical"), err)
+-	}
+ 	if document.Schema != campaignPlanSchema || document.Mapping != campaignPlanMapping || document.Campaign.Strategy != string(StrategySeed) || document.Campaign.Guidance != nil || document.Campaign.OnFailure != string(PolicyAll) || document.Campaign.PlanSHA256 != "" || document.Campaign.Shard != nil {
+ 		return openedCampaignPlan{}, errors.New("campaign plan protocol identity is invalid")
+ 	}
+diff --git a/tools/gomad3/runner/portable_plan_test.go b/tools/gomad3/runner/portable_plan_test.go
+index 906d7f404..b787fbb99 100644
+--- a/tools/gomad3/runner/portable_plan_test.go
++++ b/tools/gomad3/runner/portable_plan_test.go
+@@ -7,6 +7,7 @@ import (
+ 	"testing"
+ 	"time"
+ 
++	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+ 	"go.temporal.io/server/tools/gomad3/record"
+ 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
+ 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+@@ -351,3 +352,36 @@ func TestMergeCampaignShardsDeduplicatesSharedFailureEvidence(t *testing.T) {
+ 		t.Fatalf("merged failure evidence = %#v", merged)
+ 	}
+ }
++
++func TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments(t *testing.T) {
++	canonical, err := canonicaljson.CanonicalJSON(portableCampaignPlan{Schema: campaignPlanSchema, Mapping: campaignPlanMapping})
++	if err != nil {
++		t.Fatal(err)
++	}
++	invalidIdentity, err := canonicaljson.CanonicalJSON(portableCampaignPlan{Schema: "gomad3.campaign-plan/v0", Mapping: campaignPlanMapping})
++	if err != nil {
++		t.Fatal(err)
++	}
++	for _, test := range []struct {
++		name     string
++		contents string
++		want     string
++	}{
++		{name: "incomplete object", contents: `{"schema":"gomad3.campaign-plan/v1","mapping":"ordinal-modulo/v1"}`, want: "decode campaign plan: JSON is not canonical"},
++		{name: "trailing whitespace", contents: string(canonical) + "\n", want: "decode campaign plan: JSON is not canonical"},
++		{name: "trailing data", contents: string(canonical) + "{}", want: "decode campaign plan: unexpected trailing JSON token {"},
++		{name: "unknown field", contents: `{"extra":true}`, want: `decode campaign plan: decode JSON: json: unknown field "extra"`},
++		{name: "malformed", contents: `{"schema":`, want: "decode campaign plan: decode JSON token: EOF"},
++		{name: "invalid protocol identity", contents: string(invalidIdentity), want: "campaign plan protocol identity is invalid"},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			path := filepath.Join(t.TempDir(), "campaign.plan.json")
++			if err := os.WriteFile(path, []byte(test.contents), 0o600); err != nil {
++				t.Fatal(err)
++			}
++			if _, err := openCampaignPlan(path); err == nil || err.Error() != test.want {
++				t.Fatalf("openCampaignPlan() error = %v, want %s", err, test.want)
++			}
++		})
++	}
++}
+diff --git a/tools/gomad3/runner/runner.go b/tools/gomad3/runner/runner.go
+index 0590699ff..2cdc06ad4 100644
+--- a/tools/gomad3/runner/runner.go
++++ b/tools/gomad3/runner/runner.go
+@@ -680,10 +680,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
+ 		if err != nil {
+ 			return fmt.Errorf("construct Runner failure manifest: %w", err)
+ 		}
+-		published, err := publishBoundedFailureArtifact(overallCtx, config, journal.FailuresPath(), manifest.Outcome.FailureSignature, distinct, &failureArtifactBytes, artifact.ArtifactInput{
+-			Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
+-			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
+-		})
++		published, err := publishBoundedFailureArtifact(overallCtx, config, journal.FailuresPath(), manifest.Outcome.FailureSignature, distinct, &failureArtifactBytes, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
+ 		if err != nil {
+ 			return fmt.Errorf("publish Runner failure artifact: %w", err)
+ 		}
+@@ -842,76 +839,31 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
+ 			}
+ 			continue
+ 		}
+-		worldBundle := noneWorldBundle()
+-		if len(completion.result.WorldRecord) != 0 {
+-			recording, decodeErr := world.DecodeRecording(completion.result.WorldRecord)
+-			if decodeErr != nil {
+-				err = decodeErr
+-			} else {
+-				worldBundle, err = execution.ComposeRecording(recording, config.WorldTransitionLimit)
+-			}
+-			if err == nil {
+-				initialWorld, _, validateErr := execution.Validate(worldBundle.Manifest, worldBundle.Payloads)
+-				if validateErr != nil {
+-					err = validateErr
+-				} else if worldBundle.Manifest.Initial.Schema != "gomad3.world.snapshot/v1" || uint64(initialWorld.Config.Seed) != completion.job.seed {
+-					err = fmt.Errorf("World record seed or schema does not match seed %d", completion.job.seed)
+-				}
++		worldBundle, err := assessWorld(completion.result, completion.job.seed, config.WorldTransitionLimit)
++		if err != nil {
++			if publishErr := publishRunnerFailure(completion, "world_record"); publishErr != nil {
++				err = errors.Join(err, publishErr)
+ 			}
+-			if err != nil {
+-				if publishErr := publishRunnerFailure(completion, "world_record"); publishErr != nil {
+-					err = errors.Join(err, publishErr)
+-				}
+-				if hostFailure == nil {
+-					hostFailure = &HostError{Reason: "world_record", Err: err}
+-					controller.Stop()
+-					activeCancel()
+-				}
+-				continue
++			if hostFailure == nil {
++				hostFailure = &HostError{Reason: "world_record", Err: err}
++				controller.Stop()
++				activeCancel()
+ 			}
++			continue
+ 		}
+-		runCoverage, coverageErr := deterministicio.SummarizeSemanticProbes(nil)
+-		if coverageErr != nil {
+-			return summary, &HostError{Reason: "semantic_coverage", Err: coverageErr}
+-		}
+-		if coverageHasSemantic(config.Coverage) {
+-			coverage, coverageErr := deterministicio.DecodeSemanticCoverage(completion.result.IOTranscript.Bytes)
+-			if coverageErr != nil {
+-				if partialErr := preservePartial(completion.journal); partialErr != nil {
+-					coverageErr = errors.Join(coverageErr, partialErr)
+-				}
+-				if hostFailure == nil {
+-					hostFailure = &HostError{Reason: "semantic_coverage", Err: coverageErr}
+-					controller.Stop()
+-					activeCancel()
+-				}
+-				continue
++		assessed, assessErr := assessCompletion(completion.result, worldBundle.Manifest.Terminal, config.Coverage, prepared)
++		if assessErr != nil {
++			if partialErr := preservePartial(completion.journal); partialErr != nil {
++				assessErr.Err = errors.Join(assessErr.Err, partialErr)
+ 			}
+-			runCoverage = coverage
+-		}
+-		runChoiceFeatures := []string{}
+-		var runChoiceProjection *choice.FeatureProjection
+-		// A target the watchdog or a cancellation killed wrote no choice trace
+-		// to project; the termination is its outcome.
+-		if coverageHasChoice(config.Coverage) && choiceTraceObserved(completion.result) {
+-			projected, features, choiceErr := projectChoiceFeatures(completion.result.ChoiceTrace, prepared)
+-			if choiceErr != nil {
+-				if partialErr := preservePartial(completion.journal); partialErr != nil {
+-					choiceErr = errors.Join(choiceErr, partialErr)
+-				}
+-				if hostFailure == nil {
+-					hostFailure = &HostError{Reason: "choice_coverage", Err: choiceErr}
+-					controller.Stop()
+-					activeCancel()
+-				}
+-				continue
++			if hostFailure == nil {
++				hostFailure = assessErr
++				controller.Stop()
++				activeCancel()
+ 			}
+-			runChoiceProjection = &projected
+-			runChoiceFeatures = features
++			continue
+ 		}
+-		novelProbes := novelSemanticProbes(runCoverage.Probes, semanticProbes)
+-		novelChoices := novelStrings(runChoiceFeatures, choiceFeatures)
+-		outcome := execution.Classify(completion.result, false, worldBundle.Manifest.Terminal)
++		runCoverage, runChoiceFeatures, runChoiceProjection, outcome := assessed.coverage, assessed.choiceFeatures, assessed.choiceProjection, assessed.outcome
+ 		if config.CollectExecutionEvidence {
+ 			mountArtifact, evidenceErr := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
+ 			if evidenceErr != nil {
+@@ -954,42 +906,27 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
+ 			setRunChoiceTrace(&run, completion.result.ChoiceTrace)
+ 			run.SemanticProbes = append([]string(nil), runCoverage.Probes...)
+ 			run.ChoiceFeatures = append([]string(nil), runChoiceFeatures...)
+-			retain := config.KeepSuccesses == KeepSuccessesAll || config.KeepSuccesses == KeepSuccessesNovel && (len(novelProbes) != 0 || len(novelChoices) != 0)
+-			if retain {
+-				if !completion.result.IOTranscript.Complete {
+-					hostFailure = &HostError{Reason: "success_artifact_publication", Err: errors.New("retained success requires a complete I/O transcript for exact replay")}
+-					controller.Stop()
+-					activeCancel()
+-					continue
+-				}
+-				if summary.RetainedSuccesses >= config.SuccessArtifactLimit || summary.RetainedSuccessBytes >= config.SuccessBytesLimit {
+-					hostFailure = &HostError{Reason: "success_retention_capacity", Err: errors.New("successful-execution retention capacity is exhausted")}
+-					controller.Stop()
+-					activeCancel()
+-					continue
+-				}
++			retention, retentionErr := decideSuccessRetention(config, assessed, completion.result.IOTranscript.Complete, semanticProbes, choiceFeatures, summary.RetainedSuccesses, summary.RetainedSuccessBytes)
++			if retentionErr != nil {
++				hostFailure = retentionErr
++				controller.Stop()
++				activeCancel()
++				continue
++			}
++			if retention.retain {
+ 				mountArtifact, publishErr := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
+ 				if publishErr == nil {
+ 					var manifest record.ExecutionRecord
+ 					manifest, publishErr = manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest, mountArtifact)
+ 					if publishErr == nil {
+ 						var published artifact.Artifact
+-						published, publishErr = artifact.PublishArtifact(artifact.Store{Root: journal.SuccessesPath(), Context: overallCtx, MaximumBytes: config.SuccessBytesLimit - summary.RetainedSuccessBytes}, artifact.ArtifactInput{
+-							Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
+-							IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
+-						})
++						published, publishErr = artifact.PublishArtifact(artifact.Store{Root: journal.SuccessesPath(), Context: overallCtx, MaximumBytes: retention.maximumBytes}, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
+ 						if publishErr == nil {
+ 							relative, relErr := filepath.Rel(batchPath, published.Path)
+ 							if relErr != nil {
+ 								publishErr = relErr
+ 							} else {
+-								bytes := record.Uint64String(published.StoredBytes)
+-								run.SuccessArtifact = &relative
+-								run.SuccessArtifactBytes = &bytes
+-								if config.KeepSuccesses == KeepSuccessesNovel {
+-									run.NovelSemanticProbes = append([]string(nil), novelProbes...)
+-									run.NovelChoiceFeatures = append([]string(nil), novelChoices...)
+-								}
++								retention.annotate(&run, relative, published.StoredBytes)
+ 								summary.SuccessArtifacts = append(summary.SuccessArtifacts, published.Path)
+ 								summary.RetainedSuccesses++
+ 								summary.RetainedSuccessBytes += published.StoredBytes
+@@ -998,12 +935,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
+ 					}
+ 				}
+ 				if publishErr != nil {
+-					reason := "success_artifact_publication"
+-					var capacity *artifact.CapacityError
+-					if errors.As(publishErr, &capacity) {
+-						reason = "success_retention_capacity"
+-					}
+-					hostFailure = &HostError{Reason: reason, Err: publishErr}
++					hostFailure = successPublicationFailure(publishErr)
+ 					controller.Stop()
+ 					activeCancel()
+ 					continue
+@@ -1034,7 +966,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
+ 			if hostFailure == nil {
+ 				controller.RecordSuccess()
+ 				synchronizeCampaignStatistics(&summary, controller.Statistics())
+-				addSemanticProbes(semanticProbes, runCoverage.Probes)
++				addStrings(semanticProbes, runCoverage.Probes)
+ 				addStrings(choiceFeatures, runChoiceFeatures)
+ 			}
+ 			completePartial(completion.journal)
+@@ -1059,10 +991,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
+ 			}
+ 			continue
+ 		}
+-		published, publishErr := publishBoundedFailureArtifact(overallCtx, config, journal.FailuresPath(), manifest.Outcome.FailureSignature, distinct, &failureArtifactBytes, artifact.ArtifactInput{
+-			Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
+-			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
+-		})
++		published, publishErr := publishBoundedFailureArtifact(overallCtx, config, journal.FailuresPath(), manifest.Outcome.FailureSignature, distinct, &failureArtifactBytes, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
+ 		if publishErr != nil {
+ 			if hostFailure == nil {
+ 				hostFailure = &HostError{Reason: "artifact_publication", Err: publishErr}
+@@ -1121,7 +1050,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
+ 			activeCancel()
+ 		}
+ 		if hostFailure == nil {
+-			addSemanticProbes(semanticProbes, runCoverage.Probes)
++			addStrings(semanticProbes, runCoverage.Probes)
+ 			addStrings(choiceFeatures, runChoiceFeatures)
+ 		}
+ 		completePartial(completion.journal)
+@@ -1857,22 +1786,6 @@ func projectSimulationExplorationSummaryPointer(summary *simulationengine.Summar
+ 	return &projected
+ }
+ 
+-func novelSemanticProbes(observed []string, prior map[string]struct{}) []string {
+-	novel := make([]string, 0, len(observed))
+-	for _, probe := range observed {
+-		if _, found := prior[probe]; !found {
+-			novel = append(novel, probe)
+-		}
+-	}
+-	return novel
+-}
+-
+-func addSemanticProbes(destination map[string]struct{}, probes []string) {
+-	for _, probe := range probes {
+-		destination[probe] = struct{}{}
+-	}
+-}
+-
+ func preservePartial(run *campaign.ExecutionJournal) error {
+ 	if run == nil {
+ 		return nil
+diff --git a/tools/gomad3/runner/runner_test.go b/tools/gomad3/runner/runner_test.go
+index 89ebfae93..749be4e28 100644
+--- a/tools/gomad3/runner/runner_test.go
++++ b/tools/gomad3/runner/runner_test.go
+@@ -2012,8 +2012,11 @@ type explorationExecutor struct {
+ 	buildKey string
+ 	limit    uint64
+ 	exitCode int
+-	mu       sync.Mutex
+-	requests []execution.Spec
++	// alternatives is the width of the one decision every execution records;
++	// zero means two.
++	alternatives uint32
++	mu           sync.Mutex
++	requests     []execution.Spec
+ }
+ 
+ type simulationExplorationExecutor struct {
+@@ -2021,8 +2024,11 @@ type simulationExplorationExecutor struct {
+ 	buildKey string
+ 	limit    uint64
+ 	fail     bool
+-	mu       sync.Mutex
+-	requests []execution.Spec
++	// scenarios is the width of the one scenario decision every execution
++	// records; zero means two.
++	scenarios int
++	mu        sync.Mutex
++	requests  []execution.Spec
+ }
+ 
+ type explorationInterruptExecutor struct {
+@@ -2063,7 +2069,7 @@ func (executor *explorationExecutor) Run(_ context.Context, request execution.Sp
+ 	}
+ 	result := processResult(executor.exitCode, "", "")
+ 	result.ChoiceTrace = completeChoiceTrace(executor.t, executor.buildKey, executor.limit, []choice.Record{{
+-		Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, Alternatives: 2, Selected: selected,
++		Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, Alternatives: max(executor.alternatives, 2), Selected: selected,
+ 	}})
+ 	return result, nil
+ }
+@@ -2091,9 +2097,13 @@ func (executor *simulationExplorationExecutor) Run(_ context.Context, request ex
+ 			selected = override.Selected
+ 		}
+ 	}
++	scenarios := []string{"alpha", "beta", "gamma"}[:max(executor.scenarios, 2)]
++	alternatives := make([]record.SHA256, len(scenarios))
++	for index, scenario := range scenarios {
++		alternatives[index] = record.HashBytes([]byte(scenario))
++	}
+ 	decision, err := simulationengine.CanonicalDecision(
+-		simulationengine.DimensionScenario, 0, record.HashBytes([]byte("route")),
+-		[]record.SHA256{record.HashBytes([]byte("alpha")), record.HashBytes([]byte("beta"))}, selected,
++		simulationengine.DimensionScenario, 0, record.HashBytes([]byte("route")), alternatives, selected,
+ 	)
+ 	if err != nil {
+ 		return execution.Result{}, err
+@@ -2116,7 +2126,7 @@ func (executor *simulationExplorationExecutor) Run(_ context.Context, request ex
+ 		Schema: "gomad3.cluster-record/v7", Seed: plan.BaseSeed, SpecSHA256: record.HashBytes([]byte("spec")), Outcome: outcome,
+ 		FailureIdentity: record.HashBytes([]byte("normalized oracle failure")),
+ 		ExplorationPlan: request.Simulation.ExplorationPlan, ExplorationDecisions: []simulationengine.Decision{decision},
+-		ScenarioTape: []string{[]string{"alpha", "beta"}[selected]}, Identity: record.HashBytes([]byte(fmt.Sprintf("record-%d", selected))),
++		ScenarioTape: []string{scenarios[selected]}, Identity: record.HashBytes([]byte(fmt.Sprintf("record-%d", selected))),
+ 	})
+ 	if err != nil {
+ 		return execution.Result{}, err
+diff --git a/tools/gomad3/runner/simulation_exploration_campaign.go b/tools/gomad3/runner/simulation_exploration_campaign.go
+index 5dbdfea23..6fd3e0a43 100644
+--- a/tools/gomad3/runner/simulation_exploration_campaign.go
++++ b/tools/gomad3/runner/simulation_exploration_campaign.go
+@@ -15,11 +15,9 @@ import (
+ 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+ 	"go.temporal.io/server/tools/gomad3/record"
+ 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
+-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+ 	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
+ 	simulationrecord "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord"
+ 	"go.temporal.io/server/tools/gomad3/target"
+-	"go.temporal.io/server/tools/gomad3/world"
+ )
+ 
+ const combinedExplorationRecordLimit = uint64(128 << 20)
+@@ -330,47 +328,15 @@ func processSimulationExplorationCompletion(
+ 		return simulationExplorationRoundResult{}, &HostError{Reason: "prepared_target_integrity", Err: err}
+ 	}
+ 	candidate := round.Candidates[index]
+-	worldBundle := noneWorldBundle()
+-	if len(completion.result.WorldRecord) != 0 {
+-		recording, err := world.DecodeRecording(completion.result.WorldRecord)
+-		if err == nil {
+-			worldBundle, err = execution.ComposeRecording(recording, config.WorldTransitionLimit)
+-		}
+-		if err == nil {
+-			initialWorld, _, validateErr := execution.Validate(worldBundle.Manifest, worldBundle.Payloads)
+-			if validateErr != nil {
+-				err = validateErr
+-			} else if worldBundle.Manifest.Initial.Schema != "gomad3.world.snapshot/v1" || uint64(initialWorld.Config.Seed) != completion.job.seed {
+-				err = fmt.Errorf("World record seed or schema does not match seed %d", completion.job.seed)
+-			}
+-		}
+-		if err != nil {
+-			return simulationExplorationRoundResult{}, &HostError{Reason: "world_record", Err: err}
+-		}
+-	}
+-	runCoverage, err := deterministicio.SummarizeSemanticProbes(nil)
++	worldBundle, err := assessWorld(completion.result, completion.job.seed, config.WorldTransitionLimit)
+ 	if err != nil {
+-		return simulationExplorationRoundResult{}, &HostError{Reason: "semantic_coverage", Err: err}
++		return simulationExplorationRoundResult{}, &HostError{Reason: "world_record", Err: err}
+ 	}
+-	if coverageHasSemantic(config.Coverage) {
+-		runCoverage, err = deterministicio.DecodeSemanticCoverage(completion.result.IOTranscript.Bytes)
+-		if err != nil {
+-			return simulationExplorationRoundResult{}, &HostError{Reason: "semantic_coverage", Err: err}
+-		}
++	assessed, assessErr := assessCompletion(completion.result, worldBundle.Manifest.Terminal, config.Coverage, prepared)
++	if assessErr != nil {
++		return simulationExplorationRoundResult{}, assessErr
+ 	}
+-	runChoiceFeatures := []string{}
+-	var runChoiceProjection *choice.FeatureProjection
+-	// A target the watchdog or a cancellation killed wrote no choice trace to
+-	// project; the termination is its outcome.
+-	if coverageHasChoice(config.Coverage) && choiceTraceObserved(completion.result) {
+-		projection, features, err := projectChoiceFeatures(completion.result.ChoiceTrace, prepared)
+-		if err != nil {
+-			return simulationExplorationRoundResult{}, &HostError{Reason: "choice_coverage", Err: err}
+-		}
+-		runChoiceProjection = &projection
+-		runChoiceFeatures = features
+-	}
+-	outcome := execution.Classify(completion.result, false, worldBundle.Manifest.Terminal)
++	runCoverage, runChoiceFeatures, runChoiceProjection, outcome := assessed.coverage, assessed.choiceFeatures, assessed.choiceProjection, assessed.outcome
+ 	if outcome.Domain == "runner" {
+ 		return simulationExplorationRoundResult{}, &HostError{Reason: outcome.Reason, Err: errors.New("simulation-exploration controller result is not expandable")}
+ 	}
+@@ -427,44 +393,27 @@ func processSimulationExplorationCompletion(
+ 		if explorationResult.Failed {
+ 			return simulationExplorationRoundResult{}, &HostError{Reason: "simulation_exploration_outcome", Err: errors.New("simulation failure completed with a successful target outcome")}
+ 		}
+-		novelProbes := novelSemanticProbes(runCoverage.Probes, semanticProbes)
+-		novelChoices := novelStrings(runChoiceFeatures, choiceFeatures)
+-		retain := config.KeepSuccesses == KeepSuccessesAll || config.KeepSuccesses == KeepSuccessesNovel && (len(novelProbes) != 0 || len(novelChoices) != 0)
+-		if retain {
+-			if !completion.result.IOTranscript.Complete {
+-				return simulationExplorationRoundResult{}, &HostError{Reason: "success_artifact_publication", Err: errors.New("retained success requires a complete I/O transcript for exact replay")}
+-			}
+-			if summary.RetainedSuccesses >= config.SuccessArtifactLimit || summary.RetainedSuccessBytes >= config.SuccessBytesLimit {
+-				return simulationExplorationRoundResult{}, &HostError{Reason: "success_retention_capacity", Err: errors.New("successful-execution retention capacity is exhausted")}
+-			}
++		retention, retentionErr := decideSuccessRetention(config, assessed, completion.result.IOTranscript.Complete, semanticProbes, choiceFeatures, summary.RetainedSuccesses, summary.RetainedSuccessBytes)
++		if retentionErr != nil {
++			return simulationExplorationRoundResult{}, retentionErr
++		}
++		if retention.retain {
+ 			manifest, err := manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest, mountArtifact)
+ 			if err != nil {
+ 				return simulationExplorationRoundResult{}, &HostError{Reason: "success_artifact_publication", Err: err}
+ 			}
+ 			manifest.SimulationProfile = &simulationProfile
+-			published, err := artifact.PublishArtifact(artifact.Store{Root: filepath.Join(staged.Path(), "successes"), Context: ctx, MaximumBytes: config.SuccessBytesLimit - summary.RetainedSuccessBytes}, artifact.ArtifactInput{
+-				Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
+-				IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads, Simulation: simulationPayloads,
+-			})
++			input := executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle)
++			input.Simulation = simulationPayloads
++			published, err := artifact.PublishArtifact(artifact.Store{Root: filepath.Join(staged.Path(), "successes"), Context: ctx, MaximumBytes: retention.maximumBytes}, input)
+ 			if err != nil {
+-				reason := "success_artifact_publication"
+-				var capacity *artifact.CapacityError
+-				if errors.As(err, &capacity) {
+-					reason = "success_retention_capacity"
+-				}
+-				return simulationExplorationRoundResult{}, &HostError{Reason: reason, Err: err}
++				return simulationExplorationRoundResult{}, successPublicationFailure(err)
+ 			}
+ 			finalPath, relative, err := simulationExplorationPublishedPath(batchPath, round.Index, staged.Path(), published.Path)
+ 			if err != nil {
+ 				return simulationExplorationRoundResult{}, &HostError{Reason: "artifact_path", Err: err}
+ 			}
+-			bytes := record.Uint64String(published.StoredBytes)
+-			run.SuccessArtifact = &relative
+-			run.SuccessArtifactBytes = &bytes
+-			if config.KeepSuccesses == KeepSuccessesNovel {
+-				run.NovelSemanticProbes = append([]string(nil), novelProbes...)
+-				run.NovelChoiceFeatures = append([]string(nil), novelChoices...)
+-			}
++			retention.annotate(&run, relative, published.StoredBytes)
+ 			summary.SuccessArtifacts = append(summary.SuccessArtifacts, finalPath)
+ 			summary.RetainedSuccesses++
+ 			summary.RetainedSuccessBytes += published.StoredBytes
+@@ -476,10 +425,9 @@ func processSimulationExplorationCompletion(
+ 			return simulationExplorationRoundResult{}, &HostError{Reason: "manifest", Err: err}
+ 		}
+ 		manifest.SimulationProfile = &simulationProfile
+-		published, err := publishBoundedFailureArtifact(ctx, config, filepath.Join(staged.Path(), "failures"), manifest.Outcome.FailureSignature, distinct, &summary.failureArtifactBytes, artifact.ArtifactInput{
+-			Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
+-			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads, Simulation: simulationPayloads,
+-		})
++		input := executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle)
++		input.Simulation = simulationPayloads
++		published, err := publishBoundedFailureArtifact(ctx, config, filepath.Join(staged.Path(), "failures"), manifest.Outcome.FailureSignature, distinct, &summary.failureArtifactBytes, input)
+ 		if err != nil {
+ 			return simulationExplorationRoundResult{}, &HostError{Reason: "artifact_publication", Err: err}
+ 		}
+@@ -522,7 +470,7 @@ func processSimulationExplorationCompletion(
+ 	}
+ 	summary.Attempted++
+ 	summary.DistinctFailures = uint64(len(distinct))
+-	addSemanticProbes(semanticProbes, runCoverage.Probes)
++	addStrings(semanticProbes, runCoverage.Probes)
+ 	addStrings(choiceFeatures, runChoiceFeatures)
+ 	if err := completion.journal.Transition(campaign.ExecutionClassified); err != nil {
+ 		return simulationExplorationRoundResult{}, &HostError{Reason: "partial_write", Err: err}
+diff --git a/tools/gomad3/target/capability.go b/tools/gomad3/target/capability.go
+index 3c129d76e..d5917c783 100644
+--- a/tools/gomad3/target/capability.go
++++ b/tools/gomad3/target/capability.go
+@@ -181,17 +181,6 @@ func (err *UnsupportedCapabilityError) Error() string {
+ 	return fmt.Sprintf("unsupported target capability: package %s %s", err.ImportPath, err.Capability)
+ }
+ 
+-func validateGoCapabilityClosure(ctx context.Context, goCommand string, spec Spec, tags []string, commandDirectory, packageArgument string) (CapabilityClosure, error) {
+-	review, err := reviewGoCapabilityReview(ctx, goCommand, spec, tags, commandDirectory, packageArgument)
+-	if err != nil {
+-		return CapabilityClosure{}, err
+-	}
+-	if err := validateCapabilityReview(review.Closure); err != nil {
+-		return CapabilityClosure{}, err
+-	}
+-	return review.Closure, nil
+-}
+-
+ func ReviewCapabilityClosure(ctx context.Context, spec Spec) (CapabilityClosure, error) {
+ 	review, err := ReviewCapabilities(ctx, spec)
+ 	if err != nil {
+diff --git a/tools/gomad3/upgrade/upgrade.go b/tools/gomad3/upgrade/upgrade.go
+index 005b1a70e..f5fbb179c 100644
+--- a/tools/gomad3/upgrade/upgrade.go
++++ b/tools/gomad3/upgrade/upgrade.go
+@@ -18,6 +18,7 @@ import (
+ 	"time"
+ 
+ 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
++	"go.temporal.io/server/tools/gomad3/internal/hostfs"
+ 	qualificationset "go.temporal.io/server/tools/gomad3/qualification/set"
+ 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+ )
+@@ -514,27 +515,7 @@ func publish(path string, dossier Dossier) error {
+ 		return fmt.Errorf("encode upgrade dossier: %w", err)
+ 	}
+ 	contents = append(contents, '\n')
+-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+-		return fmt.Errorf("create upgrade dossier directory: %w", err)
+-	}
+-	temporary, err := os.CreateTemp(filepath.Dir(path), ".upgrade-dossier-*")
+-	if err != nil {
+-		return fmt.Errorf("create upgrade dossier: %w", err)
+-	}
+-	temporaryPath := temporary.Name()
+-	defer os.Remove(temporaryPath)
+-	if err := temporary.Chmod(0o644); err != nil {
+-		temporary.Close()
+-		return fmt.Errorf("chmod upgrade dossier: %w", err)
+-	}
+-	if _, err := temporary.Write(contents); err != nil {
+-		temporary.Close()
+-		return fmt.Errorf("write upgrade dossier: %w", err)
+-	}
+-	if err := temporary.Close(); err != nil {
+-		return fmt.Errorf("close upgrade dossier: %w", err)
+-	}
+-	if err := os.Rename(temporaryPath, path); err != nil {
++	if err := hostfs.Replace(path, contents, 0o644); err != nil {
+ 		return fmt.Errorf("publish upgrade dossier: %w", err)
+ 	}
+ 	return nil
+diff --git a/tools/gomad3/upgrade/upgrade_test.go b/tools/gomad3/upgrade/upgrade_test.go
+index 86d9e0f42..b94635037 100644
+--- a/tools/gomad3/upgrade/upgrade_test.go
++++ b/tools/gomad3/upgrade/upgrade_test.go
+@@ -6,10 +6,13 @@ import (
+ 	"context"
+ 	"crypto/sha256"
+ 	"encoding/json"
++	"errors"
+ 	"fmt"
+ 	"os"
+ 	"path/filepath"
++	"slices"
+ 	"strings"
++	"syscall"
+ 	"testing"
+ 
+ 	"go.temporal.io/server/tools/gomad3/deterministicio"
+@@ -161,6 +164,251 @@ func TestRunPublishesFailedGateEvidence(t *testing.T) {
+ 	}
+ }
+ 
++func TestPublishWritesFixedDossierBytes(t *testing.T) {
++	directory := filepath.Join(t.TempDir(), "nested", "evidence")
++	path := filepath.Join(directory, "upgrade-dossier.json")
++	dossier := Dossier{
++		Schema: "gomad3.upgrade-dossier/v2", BoundaryApproved: true,
++		Version:              VersionEvidence{GoVersion: "go1.26.4", SupportedPlatforms: []string{"darwin/arm64"}},
++		Host:                 HostEvidence{Platform: "darwin/arm64", Supported: true},
++		BoundaryDiff:         BoundaryDiff{Status: "not-requested", CurrentVersion: "v1", Added: []string{}, Removed: []string{}, Changed: []string{}},
++		OverlayCollision:     OverlayCollisionEvidence{Checked: true, OverlayPaths: []string{"src/os/gomad.go"}, Collisions: []string{}},
++		Gates:                []GateResult{{Name: "unit", Command: []string{"/bin/sh", "-c", "a<b"}, Status: "failed", ExitCode: 23, Output: "a<b\n"}},
++		RetainedCorpus:       CorpusEvidence{Status: "not-configured"},
++		MandatoryProbePolicy: "policy",
++	}
++	want := `{
++  "schema": "gomad3.upgrade-dossier/v2",
++  "qualified": false,
++  "boundary_changes_approved": true,
++  "version": {
++    "go_version": "go1.26.4",
++    "archive_sha256": "",
++    "boundary_manifest_version": "",
++    "patch": "",
++    "supported_platforms": [
++      "darwin/arm64"
++    ]
++  },
++  "host": {
++    "platform": "darwin/arm64",
++    "supported": true
++  },
++  "upstream_patch": {
++    "path": "",
++    "sha256": "",
++    "diff": ""
++  },
++  "boundary_manifest_diff": {
++    "status": "not-requested",
++    "sha256": "",
++    "current_version": "v1",
++    "added": [],
++    "removed": [],
++    "changed": []
++  },
++  "interception_report": {
++    "path": "",
++    "sha256": "",
++    "report": ""
++  },
++  "overlay_collision_report": {
++    "checked": true,
++    "archive_sha256": "",
++    "overlay_paths": [
++      "src/os/gomad.go"
++    ],
++    "collisions": []
++  },
++  "gates": [
++    {
++      "name": "unit",
++      "command": [
++        "/bin/sh",
++        "-c",
++        "a\u003cb"
++      ],
++      "status": "failed",
++      "exit_code": 23,
++      "output": "a\u003cb\n",
++      "output_sha256": "",
++      "output_truncated": false
++    }
++  ],
++  "retained_corpus": {
++    "status": "not-configured"
++  },
++  "mandatory_probe_policy": "policy"
++}
++`
++	if err := publish(path, dossier); err != nil {
++		t.Fatal(err)
++	}
++	assertPublishedDossier(t, path, want)
++	if err := os.WriteFile(path, []byte(want+strings.Repeat("stale\n", 64)), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	if err := os.Chmod(path, 0o600); err != nil {
++		t.Fatal(err)
++	}
++	if err := publish(path, dossier); err != nil {
++		t.Fatal(err)
++	}
++	assertPublishedDossier(t, path, want)
++}
++
++func TestRunReplacesExistingDossierAfterFailedGate(t *testing.T) {
++	root := writeUpgradeFixture(t, false)
++	output := filepath.Join(root, ".toolchain", "upgrade-dossier.json")
++	if err := os.WriteFile(output, []byte("{\"prior\":\"complete dossier\"}\n"), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	err := Run(context.Background(), Spec{
++		Root: root, Output: output,
++		Gates: []Gate{{Name: "failure", Command: []string{"/bin/sh", "-c", "printf failed-output; exit 23"}}},
++	})
++	if err == nil || !strings.Contains(err.Error(), "qualification gate failure") {
++		t.Fatalf("Run() error = %v", err)
++	}
++	contents, err := os.ReadFile(output)
++	if err != nil {
++		t.Fatal(err)
++	}
++	var dossier Dossier
++	if err := json.Unmarshal(contents, &dossier); err != nil {
++		t.Fatal(err)
++	}
++	if dossier.Qualified || len(dossier.Gates) != 1 || dossier.Gates[0].Status != "failed" {
++		t.Fatalf("failed dossier = %#v", dossier)
++	}
++	want, err := json.MarshalIndent(dossier, "", "  ")
++	if err != nil {
++		t.Fatal(err)
++	}
++	assertPublishedDossier(t, output, string(want)+"\n")
++	if names := directoryNames(t, filepath.Dir(output)); fmt.Sprint(names) != fmt.Sprint([]string{"downloads", "upgrade-dossier.json"}) {
++		t.Fatalf("output directory entries = %v", names)
++	}
++}
++
++func TestRunReportsPublicationFailureAndKeepsPriorDossier(t *testing.T) {
++	prior := []byte("{\"prior\":\"complete dossier\"}\n")
++	for _, test := range []struct {
++		name string
++		// prepare returns the dossier output path, the file holding the prior
++		// complete dossier, and the directory that must hold only that entry.
++		prepare func(t *testing.T, directory string) (output, kept, listed string)
++		want    error
++	}{
++		{
++			name: "replacement cannot be created",
++			prepare: func(t *testing.T, directory string) (string, string, string) {
++				if os.Geteuid() == 0 {
++					t.Skip("root bypasses directory permissions")
++				}
++				output := filepath.Join(directory, "upgrade-dossier.json")
++				if err := os.Mkdir(directory, 0o700); err != nil {
++					t.Fatal(err)
++				}
++				if err := os.WriteFile(output, prior, 0o644); err != nil {
++					t.Fatal(err)
++				}
++				if err := os.Chmod(directory, 0o500); err != nil {
++					t.Fatal(err)
++				}
++				t.Cleanup(func() {
++					if err := os.Chmod(directory, 0o700); err != nil {
++						t.Error(err)
++					}
++				})
++				return output, output, directory
++			},
++			want: os.ErrPermission,
++		},
++		{
++			name: "parent is a file",
++			prepare: func(t *testing.T, directory string) (string, string, string) {
++				if err := os.WriteFile(directory, prior, 0o644); err != nil {
++					t.Fatal(err)
++				}
++				return filepath.Join(directory, "upgrade-dossier.json"), directory, ""
++			},
++			want: syscall.ENOTDIR,
++		},
++		{
++			name: "replacement cannot be renamed",
++			prepare: func(t *testing.T, directory string) (string, string, string) {
++				output := filepath.Join(directory, "upgrade-dossier.json")
++				if err := os.MkdirAll(output, 0o700); err != nil {
++					t.Fatal(err)
++				}
++				kept := filepath.Join(output, "prior.json")
++				if err := os.WriteFile(kept, prior, 0o644); err != nil {
++					t.Fatal(err)
++				}
++				return output, kept, directory
++			},
++		},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			root := writeUpgradeFixture(t, false)
++			output, kept, listed := test.prepare(t, filepath.Join(root, "evidence"))
++			err := Run(context.Background(), Spec{
++				Root: root, Output: output,
++				Gates: []Gate{{Name: "failure", Command: []string{"/bin/sh", "-c", "printf failed-output; exit 23"}}},
++			})
++			if err == nil || !strings.Contains(err.Error(), "upgrade dossier") || strings.Contains(err.Error(), "qualification gate") {
++				t.Fatalf("Run() error = %v", err)
++			}
++			if test.want != nil && !errors.Is(err, test.want) {
++				t.Fatalf("Run() error = %v, want %v", err, test.want)
++			}
++			contents, readErr := os.ReadFile(kept)
++			if readErr != nil {
++				t.Fatal(readErr)
++			}
++			if string(contents) != string(prior) {
++				t.Fatalf("prior dossier = %q, want %q", contents, prior)
++			}
++			if listed == "" {
++				return
++			}
++			if names := directoryNames(t, listed); fmt.Sprint(names) != fmt.Sprint([]string{"upgrade-dossier.json"}) {
++				t.Fatalf("output directory entries = %v", names)
++			}
++		})
++	}
++}
++
++func assertPublishedDossier(t *testing.T, path, want string) {
++	t.Helper()
++	contents, err := os.ReadFile(path)
++	if err != nil {
++		t.Fatal(err)
++	}
++	info, err := os.Stat(path)
++	if err != nil {
++		t.Fatal(err)
++	}
++	names := directoryNames(t, filepath.Dir(path))
++	if string(contents) != want || info.Mode() != 0o644 || !slices.Contains(names, filepath.Base(path)) || slices.ContainsFunc(names, func(name string) bool { return strings.HasPrefix(name, ".") && name != ".toolchain" }) {
++		t.Fatalf("published dossier = %q, want %q; mode = %v; directory entries = %v", contents, want, info.Mode(), names)
++	}
++}
++
++func directoryNames(t *testing.T, directory string) []string {
++	t.Helper()
++	entries, err := os.ReadDir(directory)
++	if err != nil {
++		t.Fatal(err)
++	}
++	names := make([]string, 0, len(entries))
++	for _, entry := range entries {
++		names = append(names, entry.Name())
++	}
++	return names
++}
++
+ func TestRunRejectsOverlayCollisionBeforeGates(t *testing.T) {
+ 	root := writeUpgradeFixture(t, true)
+ 	err := Run(context.Background(), Spec{Root: root, Output: filepath.Join(root, "dossier.json")})

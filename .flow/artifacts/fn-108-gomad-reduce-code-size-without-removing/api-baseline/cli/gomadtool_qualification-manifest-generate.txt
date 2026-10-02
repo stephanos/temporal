@@ -1,0 +1,13 @@
+$ gomadtool qualification-manifest-generate --help
+exit status: 2
+--- stdout
+--- stderr
+Usage of gomadtool qualification-manifest-generate:
+  -check
+    	check the generated manifest without changing it
+  -output string
+    	generated qualification-set manifest
+  -root string
+    	root the spec, output, and enumerated package resolve against (default ".")
+  -spec string
+    	generator spec: defaults, per-test overrides, and exclusions

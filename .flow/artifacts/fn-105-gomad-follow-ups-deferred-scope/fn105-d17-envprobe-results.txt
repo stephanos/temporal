@@ -1,0 +1,12 @@
+probe=P1-none supplied= exit=1
+target stdout: init="" main="" ok=false gomaxprocs=1 environ=1
+environ=["TZ=UTC"] args=["gomad3-target"]
+recorded environment: ['GOMAD3_IO_PROFILE=gomad3-deterministic/v1', 'GOMADSEED=1', 'TZ=UTC']
+probe=P2-dedicated supplied=TEMPORAL_TEST_DEDICATED_CLUSTERS=2 exit=1
+target stdout: init="" main="" ok=false gomaxprocs=1 environ=1
+environ=["TZ=UTC"] args=["gomad3-target"]
+recorded environment: ['GOMAD3_IO_PROFILE=gomad3-deterministic/v1', 'GOMADSEED=1', 'TEMPORAL_TEST_DEDICATED_CLUSTERS=2', 'TZ=UTC']
+probe=P3-two supplied=FOO=bar TEMPORAL_TEST_DEDICATED_CLUSTERS=2 exit=1
+target stdout: init="" main="" ok=false gomaxprocs=1 environ=1
+environ=["TZ=UTC"] args=["gomad3-target"]
+recorded environment: ['FOO=bar', 'GOMAD3_IO_PROFILE=gomad3-deterministic/v1', 'GOMADSEED=1', 'TEMPORAL_TEST_DEDICATED_CLUSTERS=2', 'TZ=UTC']

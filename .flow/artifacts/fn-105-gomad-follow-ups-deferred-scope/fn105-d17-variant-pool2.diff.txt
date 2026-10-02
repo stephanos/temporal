@@ -1,0 +1,10 @@
+--- tests/testcore/test_cluster_pool.go	2026-09-27 08:32:28
++++ tests/testcore/test_cluster_pool.go	2026-10-01 09:13:48
+@@ -33,6 +33,7 @@
+ 		}
+ 		dedicatedSize = n
+ 	}
++	dedicatedSize = 2 // fn-105 D17 throwaway probe: what TEMPORAL_TEST_DEDICATED_CLUSTERS=2 would give if it reached the target
+ 
+ 	// In CI, recreate clusters after 50 tests to prevent resource accumulation.
+ 	// Locally, clusters are reused indefinitely for faster iteration.

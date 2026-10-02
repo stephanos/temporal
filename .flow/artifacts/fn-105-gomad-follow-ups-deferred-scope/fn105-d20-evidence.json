@@ -1,0 +1,303 @@
+{
+  "schema": "fn105-d20-investigation-evidence/v1",
+  "task": "fn-105-gomad-follow-ups-deferred-scope.20",
+  "subject": "TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult",
+  "assessment_date": "2026-10-01",
+  "status": "investigation only; no fix applied; the skip in tools/gomad3integration/qualification/tests.generator.json is unchanged",
+  "platform": {
+    "goos": "darwin",
+    "goarch": "arm64",
+    "host": "macOS 26.6.2 (25G83), 8 cores, 16 GB"
+  },
+  "linux_amd64": "not run; unavailable on this host",
+  "source": "HEAD 6782b55f49a0317b230e827ea2a63a37d116d502 plus the shared uncommitted working tree (other tasks' report and milestone edits); no tracked product, test, runtime, or manifest file was edited for this task",
+  "file_sha256": {
+    "tests/workflow_task_test.go": "2e42b3f4e717a3b2a20ea38c53f8e22504bebd2fc65f1748fde28b7ecd343f07",
+    "service/history/api/respondworkflowtaskcompleted/api.go": "afb6e333ac224581777825cf3a84d0bec31e5182fc85843992a0d8a631ae1d56",
+    "tools/gomad3integration/qualification/tests.json": "8b4237b23859c00257be4f6e7522c7fac594a99b09146b27bf8ddfd8f5357146",
+    "tools/gomad3integration/qualification/tests.generator.json": "e7c74ae3b3c537bb1663ec639ac1606236e9be5ecbcb0091b2acab27f82ec4b9",
+    "go.mod": "cda5b0aab2e32ef4aca50bd0d8ccf8ae67416db94fd4f28ceb9ac1588c48d0a4",
+    "variant T test file (tests/workflow_task_test.go with fn105-d20-variant-t-test.diff.txt applied)": "5a1657da141ebc17a69483d70b4f7435a9f7a06e9f4d17f40f9f33e33ac14498",
+    "variant P server file (api.go with fn105-d20-variant-p-server.diff.txt applied)": "367ff5862d99a46c09ff1aef47c6fd607080c11b805d60d7675164ca68bb4444"
+  },
+  "runner": {
+    "binary_sha256": "sha256:0e00a1bef3aaeb718cf207e614defcc135b7d5de95b4361f9d845f709ee42a2f",
+    "doctor": "available=true host=darwin/arm64 go=go1.27.1 toolchain=8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc boundary=go1.27.1-v1"
+  },
+  "native_go": "go1.27.0 darwin/arm64 (/opt/homebrew/bin/go)",
+  "configured_deadlines": {
+    "WorkflowTaskHeartbeatTimeout": "5s (tests/testcore/dynamic_config_overrides.go:39; production default 30m, common/dynamicconfig/constants.go:2772)",
+    "WorkflowTaskTimeout (start-to-close)": "3s (tests/workflow_task_test.go:48)",
+    "WorkflowRunTimeout": "20s (tests/workflow_task_test.go:47)",
+    "heartbeat cadence": "12 iterations, time.Sleep(1s) after each (tests/workflow_task_test.go:80,107)"
+  },
+  "commands": {
+    "gomad_explore": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad explore --seeds <seeds> --parallel 2 --on-failure=all --clock-tick=<strict|forward> --build-tag=disable_grpc_modules --build-tag=gomad --build-tag=test_dep --capability-mode=closure --io-ro-mount ./schema=/go.temporal.io/server/schema --keep-successes=all --success-limit=64 --success-bytes=8GiB --execution-timeout=8m --overall-timeout=9m --artifacts <scratch> go-test ./tests -- -test.run=<pattern> -test.parallel=8 -test.v (wrapper: D20_OUT=<scratch> fn105-d20-run.sh <name> <seeds> <tick> <pattern> [source-dir]; run from the repository or from the throwaway copy)",
+    "gomad_qualify_set": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad qualify-set --manifest=<scratch manifest> --working-dir=<repo or throwaway copy> --artifacts=<scratch> --output=<scratch report> --prune-qualified-artifacts (wrapper: fn105-d20-run-qs.sh; manifests from fn105-d20-gen-manifest.py, which copies the suite entry of the tracked tests.json and removes its skip)",
+    "native_leaf": "go test [-overlay <scratch overlay json>] -tags test_dep ./tests -run '^TestWorkflowTaskTestSuite$/^TestWorkflowTaskHeartbeatingWithEmptyResult$' -count=<n> -p 2 -timeout 15m -v",
+    "native_suite": "go test [-overlay <scratch overlay json>] -tags test_dep ./tests -run '^TestWorkflowTaskTestSuite$' -count=<n> -p 2 -timeout 15m -v",
+    "native_unit_variant_p": "go test -overlay <scratch overlay json> -tags test_dep ./service/history -run 'TestEngineSuite/TestRespondWorkflowTaskCompleted_WorkflowTaskHeartbeat' -count=1 -p 2 -timeout 15m -v",
+    "analysis": "fn105-d20-analyze.py [--history] <log or log.gz>... (per-run heartbeat iterations and per-chain elapsed times); fn105-d20-summarize.py <D20_OUT>/out (per-seed results)",
+    "patterns": {
+      "suite": "^TestWorkflowTaskTestSuite$",
+      "leaf": "^TestWorkflowTaskTestSuite$/^TestWorkflowTaskHeartbeatingWithEmptyResult$"
+    }
+  },
+  "variants": {
+    "I": "fn105-d20-variant-i-instrumentation.diff.txt: logging only (iteration send/return times, recovery poll, history with event times before the count assertion); no logic change",
+    "T": "fn105-d20-variant-t-test.diff.txt: the proposed test correction; the two heartbeats that must be rejected are sent 100 ms after a deadline the test computes, and every heartbeat's outcome is asserted",
+    "P": "fn105-d20-variant-p-server.diff.txt: server alternative; the heartbeat check uses !Now.Before(deadline) instead of Now.After(deadline)",
+    "L": "native control: variant I with the loop sleep reduced from 1 s to 995 ms",
+    "TI / PI": "T or P combined with the instrumentation of I",
+    "where": "Gomad runs of variants used a throwaway copy of the source tree in the session scratchpad (rsync without .git, .flow, tools/gomad3/.toolchain, tools/gomad3/.bin); native runs used go test -overlay. The working tree was not edited."
+  },
+  "gomad_explore_runs": [
+    {
+      "name": "leaf-strict",
+      "source": "working tree",
+      "seeds": "11,17",
+      "exit": 1,
+      "result": "both FAIL at 15.00s virtual, tests/workflow_task_test.go:110 expected 2 actual 1"
+    },
+    {
+      "name": "sweep-leaf-strict",
+      "source": "working tree",
+      "seeds": "1-16",
+      "exit": 1,
+      "pass": 0,
+      "fail": 16,
+      "note": "every seed fails at 15.00s virtual"
+    },
+    {
+      "name": "suite-strict",
+      "source": "working tree",
+      "seeds": "11,17",
+      "exit": 1,
+      "result": "8 subtests pass, the heartbeat test fails, on both seeds"
+    },
+    {
+      "name": "suite-forward",
+      "source": "working tree",
+      "seeds": "11,17",
+      "exit": 0,
+      "result": "9 of 9 subtests pass on both seeds"
+    },
+    {
+      "name": "sweep-leaf-forward, sweep-leaf-forward-17-32",
+      "source": "working tree",
+      "seeds": "1-32",
+      "exit": 0,
+      "pass": 32,
+      "fail": 0
+    },
+    {
+      "name": "instr-leaf-strict",
+      "source": "copy, variant I",
+      "seeds": "11,17",
+      "exit": 1,
+      "result": "1 heartbeat rejection; histories in fn105-d20-gomad-unchanged-histories.txt"
+    },
+    {
+      "name": "instr-leaf-forward",
+      "source": "copy, variant I",
+      "seeds": "11,17",
+      "exit": 0,
+      "result": "2 heartbeat rejections, 2.29 ms and 1.43 to 1.44 ms past the deadline"
+    },
+    {
+      "name": "instr-suite-strict",
+      "source": "copy, variant I",
+      "seeds": "11,17",
+      "exit": 1,
+      "result": "same instants as the leaf: accepted at chain+5.000000000 s twice, 1 rejection"
+    },
+    {
+      "name": "instr-suite-forward",
+      "source": "copy, variant I",
+      "seeds": "11,17",
+      "exit": 0,
+      "result": "2 rejections, 18.1 to 19.8 ms and 1.49 to 1.51 ms past the deadline"
+    },
+    {
+      "name": "variantTI-leaf-strict, variantTI-leaf-forward",
+      "source": "copy, variant TI",
+      "seeds": "11,17",
+      "exit": 0,
+      "result": "pass; rejections 100.0 ms (strict) and 105.0 to 106.5 ms (forward) past the server deadline"
+    },
+    {
+      "name": "variantT-sweep-leaf-strict (four batches)",
+      "source": "copy, variant T",
+      "seeds": "1-64",
+      "exit": 0,
+      "pass": 64,
+      "fail": 0
+    },
+    {
+      "name": "variantT-sweep-leaf-forward",
+      "source": "copy, variant T",
+      "seeds": "1-16",
+      "exit": 0,
+      "pass": 16,
+      "fail": 0
+    },
+    {
+      "name": "variantPI-leaf-strict, variantPI-leaf-forward",
+      "source": "copy, variant PI",
+      "seeds": "11,17",
+      "exit": 0,
+      "result": "pass; under strict both rejections at chain+5.000000000 s"
+    },
+    {
+      "name": "variantP-sweep-leaf-strict, variantP-sweep-leaf-forward",
+      "source": "copy, variant P",
+      "seeds": "1-16",
+      "exit": 0,
+      "pass": 32,
+      "fail": 0
+    }
+  ],
+  "discarded_runs": "one invocation of four sweeps passed a seed list with a trailing comma and was rejected by the Runner with invalid_input before any execution; it was repeated with a valid list and is not counted",
+  "gomad_qualify_set_runs": [
+    {
+      "manifest": "fn105-d20-qualify-set-strict-unskipped-manifest.json",
+      "source": "working tree",
+      "report": "fn105-d20-qualify-set-strict-unskipped-unchanged-report.json",
+      "exit": 1,
+      "result": "target_failure on seeds 11 and 17, each replayed with a matching failure"
+    },
+    {
+      "manifest": "fn105-d20-qualify-set-strict-unskipped-traced-manifest.json",
+      "source": "copy, variant T",
+      "report": "fn105-d20-qualify-set-strict-unskipped-traced-variantT-report.json",
+      "exit": 0,
+      "result": "qualified on seeds 11 and 17 at repeat 2 with exact choice-tape replay"
+    },
+    {
+      "manifest": "fn105-d20-qualify-set-forward-unskipped-traced-manifest.json",
+      "source": "copy, variant T",
+      "report": "fn105-d20-qualify-set-forward-unskipped-traced-variantT-report.json",
+      "exit": 0,
+      "result": "qualified on seeds 11 and 17 at repeat 2 with exact choice-tape replay"
+    },
+    {
+      "manifest": "fn105-d20-qualify-set-forward-unskipped-traced-manifest.json",
+      "source": "working tree",
+      "report": "fn105-d20-qualify-set-forward-unskipped-traced-unchanged-report.json",
+      "exit": 0,
+      "result": "qualified on seeds 11 and 17 at repeat 2 with exact choice-tape replay"
+    },
+    {
+      "manifest": "fn105-d20-qualify-set-strict-unskipped-traced-manifest.json",
+      "source": "copy, variant P",
+      "report": "fn105-d20-qualify-set-strict-unskipped-traced-variantP-report.json",
+      "exit": 0,
+      "result": "qualified on seeds 11 and 17 at repeat 2 with exact choice-tape replay"
+    }
+  ],
+  "native_runs": [
+    {
+      "what": "unchanged logic, variant I, leaf, -count=3 and -count=10",
+      "pass": 13,
+      "fail": 0,
+      "margins_ms": {
+        "first_chain": "19.8 to 92.3, median 33.2",
+        "second_chain": "10.3 to 64.2, median 21.4"
+      },
+      "file": "fn105-d20-native-unchanged-histories.txt"
+    },
+    {
+      "what": "control L (995 ms sleeps), leaf, -count=3",
+      "pass": 1,
+      "fail": 2,
+      "note": "in both failures the second chain's fifth heartbeat is accepted 4.99 s into the chain and the rejection moves to the last loop iteration; the count stays 2 and the history assertion at tests/workflow_task_test.go:133 fails; the passing run was rejected 2.2 ms past the deadline",
+      "file": "fn105-d20-native-sleep-995ms-control.txt"
+    },
+    {
+      "what": "variant TI leaf -count=3 and variant T leaf -count=5",
+      "pass": 8,
+      "fail": 0,
+      "margins_ms": "103.6 to 109.6 in the three instrumented runs",
+      "file": "fn105-d20-native-variant-t-histories.txt"
+    },
+    {
+      "what": "variant T suite -count=2",
+      "pass": "18 of 18 subtest runs",
+      "fail": 0
+    },
+    {
+      "what": "unchanged suite -count=2",
+      "pass": "18 of 18 subtest runs",
+      "fail": 0
+    },
+    {
+      "what": "variant PI leaf -count=3",
+      "pass": 3,
+      "fail": 0,
+      "file": "fn105-d20-native-variant-p-histories.txt"
+    },
+    {
+      "what": "variant P suite -count=1",
+      "pass": "9 of 9 subtests",
+      "fail": 0
+    },
+    {
+      "what": "variant P, service/history TestRespondWorkflowTaskCompleted_WorkflowTaskHeartbeat* (3 unit tests)",
+      "pass": 3,
+      "fail": 0,
+      "note": "none of the three tests a deadline exactly equal to the current time"
+    }
+  ],
+  "native_latency": {
+    "RespondWorkflowTaskCompleted round trip ms": "n=156 min 0.82 median 2.43 max 25.04",
+    "time.Sleep(1s) overshoot ms": "n=143 min 0.03 median 1.03 max 19.78",
+    "first workflow task, scheduled event to started event ms": "n=13 min 2.48 median 7.11 max 43.85"
+  },
+  "files": [
+    "fn105-d20-evidence.json",
+    "fn105-d20-run.sh",
+    "fn105-d20-run-qs.sh",
+    "fn105-d20-gen-manifest.py",
+    "fn105-d20-analyze.py",
+    "fn105-d20-summarize.py",
+    "fn105-d20-variant-i-instrumentation.diff.txt",
+    "fn105-d20-variant-t-test.diff.txt",
+    "fn105-d20-variant-p-server.diff.txt",
+    "fn105-d20-gomad-runs.txt",
+    "fn105-d20-gomad-unchanged-histories.txt",
+    "fn105-d20-gomad-variant-t-histories.txt",
+    "fn105-d20-gomad-variant-p-histories.txt",
+    "fn105-d20-native-results.txt",
+    "fn105-d20-native-unchanged-histories.txt",
+    "fn105-d20-native-sleep-995ms-control.txt",
+    "fn105-d20-native-variant-t-histories.txt",
+    "fn105-d20-native-variant-p-histories.txt",
+    "fn105-d20-qualify-set-strict-unskipped-manifest.json",
+    "fn105-d20-qualify-set-strict-unskipped-traced-manifest.json",
+    "fn105-d20-qualify-set-forward-unskipped-traced-manifest.json",
+    "fn105-d20-qualify-set-strict-unskipped-unchanged-report.json",
+    "fn105-d20-qualify-set-strict-unskipped-traced-variantT-report.json",
+    "fn105-d20-qualify-set-forward-unskipped-traced-variantT-report.json",
+    "fn105-d20-qualify-set-forward-unskipped-traced-unchanged-report.json",
+    "fn105-d20-qualify-set-strict-unskipped-traced-variantP-report.json",
+    "task20-review.md"
+  ],
+  "artifacts": "scratch campaigns and qualification artifacts were deleted after each run through the scratchpad's safe-rm.sh; the throwaway source copy is deleted when the task closes",
+  "watchdogs": "no run hit a wall watchdog, an infrastructure error, or a replay divergence",
+  "review": {
+    "procedure": "raw codex bridge on the working-tree diff (commits forbidden): codex exec -s read-only --skip-git-repo-check -m gpt-5.6-sol -c model_reasoning_effort=high",
+    "rounds": [
+      {
+        "round": 1,
+        "verdict": "NEEDS_WORK",
+        "findings": "1 blocker (variant T presented as time-independent although accepted heartbeats keep a latency ceiling), 3 should-fix, 3 nits; six fixed in the report and milestone row, one (s.Equal not fatal) rejected with evidence from common/testing/parallelsuite/suite.go:59,95"
+      },
+      {
+        "round": 2,
+        "verdict": "SHIP",
+        "findings": "none"
+      }
+    ],
+    "file": "task20-review.md"
+  }
+}

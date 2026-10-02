@@ -1,0 +1,9 @@
+$ gomad inspect --help
+exit status: 2
+--- stdout
+--- stderr
+Usage of gomad inspect:
+  -choices
+    	project a validated runtime choice trace
+  -json
+    	emit stable JSON

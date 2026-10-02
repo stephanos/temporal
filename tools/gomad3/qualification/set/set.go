@@ -899,37 +899,6 @@ func retainedQualification(artifactRoot string, command Command, result CommandR
 	return opened, classification, path, record.HashBytes(contents), nil
 }
 
-func matchesExpectation(expected WorkloadExpectation, classification string, report qualification.QualificationReport, exitCode int) bool {
-	if expected.Classification != classification || exitCode != qualification.ExitStatus(classification) {
-		return false
-	}
-	switch classification {
-	case "qualified":
-		return report.Qualified && report.Deterministic && report.TargetSuccess && report.Failure == nil
-	case "unsupported_target":
-		return report.Failure != nil && report.Failure.ImportPath == expected.ImportPath && report.Failure.Capability == expected.Capability
-	case "target_failure":
-		replay := firstReplay(report)
-		return report.Deterministic && !report.TargetSuccess && replay != nil && replay.Attempted && replay.Match
-	case "nondeterministic":
-		return !report.Deterministic
-	case "replay_divergence":
-		replay := firstReplay(report)
-		return replay != nil && replay.Attempted && !replay.Match
-	default:
-		return false
-	}
-}
-
-func firstReplay(report qualification.QualificationReport) *qualification.QualificationReplay {
-	for _, run := range report.Executions {
-		if run.Replay != nil {
-			return run.Replay
-		}
-	}
-	return nil
-}
-
 type qualificationBucket uint8
 
 const (

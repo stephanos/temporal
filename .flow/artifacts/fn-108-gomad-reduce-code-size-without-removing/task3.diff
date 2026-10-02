@@ -1,0 +1,277 @@
+diff --git a/tools/gomad3/deterministicio/memory_adapter.go b/tools/gomad3/deterministicio/memory_adapter.go
+index 007d79353..9037ef415 100644
+--- a/tools/gomad3/deterministicio/memory_adapter.go
++++ b/tools/gomad3/deterministicio/memory_adapter.go
+@@ -1,14 +1,6 @@
+ package deterministicio
+ 
+-import (
+-	"bytes"
+-	"errors"
+-	"fmt"
+-	"os"
+-	"path/filepath"
+-
+-	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+-)
++import gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+ 
+ const (
+ 	memoryModulePath                       = "modernc.org/memory"
+@@ -26,85 +18,35 @@ var memoryPreparedSourceSetSHA256 = hostPin(map[string]string{
+ 	"linux/amd64":  "sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849",
+ })
+ 
+-func prepareModerncMemory(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
+-	if identity.Module != memoryModulePath || identity.Version != memoryVersion || identity.Sum != memorySum {
+-		return adapterPreparation{}, errors.New("modernc memory adapter identity mismatch")
+-	}
+-	moduleSource, err := filepath.EvalSymlinks(filepath.Join(moduleCache, "modernc.org", "memory@"+identity.Version))
+-	if err != nil {
+-		return adapterPreparation{}, fmt.Errorf("resolve pinned modernc memory module: %w", err)
+-	}
+-	originalInventory, err := digestAdapterSourceInventory(moduleSource)
+-	if err != nil {
+-		return adapterPreparation{}, fmt.Errorf("hash pinned modernc memory source inventory: %w", err)
+-	}
+-	if originalInventory != memoryOriginalSourceInventorySHA256 {
+-		return adapterPreparation{}, fmt.Errorf("pinned modernc memory source inventory identity mismatch: got %s, want %s", originalInventory, memoryOriginalSourceInventorySHA256)
+-	}
+-	source, err := os.ReadFile(filepath.Join(moduleSource, memoryMmapPath))
+-	if err != nil {
+-		return adapterPreparation{}, fmt.Errorf("read pinned modernc memory source: %w", err)
+-	}
+-	rewritten, err := rewriteModerncMemory(source)
+-	if err != nil {
+-		return adapterPreparation{}, err
+-	}
+-	moduleReplacement := filepath.Join(root, "modernc-memory")
+-	if err := copyAdapterModule(moduleSource, moduleReplacement, map[string][]byte{memoryMmapPath: rewritten}, defaultAdapterCopyLimits); err != nil {
+-		return adapterPreparation{}, fmt.Errorf("copy modernc memory adapter module: %w", err)
+-	}
+-	replacementInventory, err := digestAdapterSourceInventory(moduleReplacement)
+-	if err != nil {
+-		return adapterPreparation{}, fmt.Errorf("hash modernc memory replacement inventory: %w", err)
+-	}
+-	if replacementInventory != memoryReplacementSourceInventorySHA256 {
+-		return adapterPreparation{}, fmt.Errorf("modernc memory replacement inventory identity mismatch: got %s, want %s", replacementInventory, memoryReplacementSourceInventorySHA256)
+-	}
+-	return adapterPreparation{
+-		replacement: moduleReplacement,
+-		evidence: BuildAdapter{
+-			Module: identity.Module, Version: identity.Version, Sum: identity.Sum,
+-			Source: filepath.Join(moduleSource, memoryMmapPath), ReplacementRoot: moduleReplacement, Replacement: filepath.Join(moduleReplacement, memoryMmapPath),
+-			PreparedPackage:                  memoryModulePath,
+-			SourceSHA256:                     memoryMmapSourceSHA256,
+-			ReplacementSHA256:                memoryMmapReplacementSHA256,
+-			OriginalSourceInventorySHA256:    originalInventory,
+-			ReplacementSourceInventorySHA256: replacementInventory,
+-			PreparedSourceSetSHA256:          memoryPreparedSourceSetSHA256,
++var memoryRewrites = []sourceRewrite{
++	{
++		path: memoryMmapPath, sourceSHA256: memoryMmapSourceSHA256, replacementSHA256: memoryMmapReplacementSHA256,
++		rewrites: []anchorRewrite{
++			{
++				anchor:      []byte("var (\n\tosPageMask = osPageSize - 1\n\tosPageSize = os.Getpagesize()\n)\n"),
++				replacement: []byte("var (\n\tosPageMask = osPageSize - 1\n\tosPageSize = os.Getpagesize()\n)\n\n//go:linkname gomadMemoryEnabled internal/gomadio.Enabled\nfunc gomadMemoryEnabled() bool\n\n//go:linkname gomadMemoryMap internal/gomadio.AnonymousMap\nfunc gomadMemoryMap(size, alignment uintptr) uintptr\n\n//go:linkname gomadMemoryUnmap internal/gomadio.AnonymousUnmap\nfunc gomadMemoryUnmap(address, size uintptr) bool\n"),
++			},
++			{
++				anchor:      []byte("func unmap(addr uintptr, size int) error {\n\treturn unix.MunmapPtr(unsafe.Pointer(addr), uintptr(size))\n}\n"),
++				replacement: []byte("func unmap(addr uintptr, size int) error {\n\tif gomadMemoryEnabled() {\n\t\tif !gomadMemoryUnmap(addr, uintptr(size)) {\n\t\t\treturn unix.EINVAL\n\t\t}\n\t\treturn nil\n\t}\n\treturn unix.MunmapPtr(unsafe.Pointer(addr), uintptr(size))\n}\n"),
++			},
++			{
++				anchor:      []byte("\tsize = roundup(size, osPageSize)\n"),
++				replacement: []byte("\tsize = roundup(size, osPageSize)\n\tif gomadMemoryEnabled() {\n\t\tp := gomadMemoryMap(uintptr(size), pageSize)\n\t\tif p == 0 {\n\t\t\treturn 0, 0, unix.ENOMEM\n\t\t}\n\t\treturn p, size, nil\n\t}\n"),
++			},
+ 		},
+-	}, nil
++	},
+ }
+ 
+-func rewriteModerncMemory(source []byte) ([]byte, error) {
+-	if digestBytes(source) != memoryMmapSourceSHA256 {
+-		return nil, errors.New("pinned modernc memory source identity mismatch")
+-	}
+-	rewrites := []struct {
+-		anchor      []byte
+-		replacement []byte
+-	}{
+-		{
+-			anchor:      []byte("var (\n\tosPageMask = osPageSize - 1\n\tosPageSize = os.Getpagesize()\n)\n"),
+-			replacement: []byte("var (\n\tosPageMask = osPageSize - 1\n\tosPageSize = os.Getpagesize()\n)\n\n//go:linkname gomadMemoryEnabled internal/gomadio.Enabled\nfunc gomadMemoryEnabled() bool\n\n//go:linkname gomadMemoryMap internal/gomadio.AnonymousMap\nfunc gomadMemoryMap(size, alignment uintptr) uintptr\n\n//go:linkname gomadMemoryUnmap internal/gomadio.AnonymousUnmap\nfunc gomadMemoryUnmap(address, size uintptr) bool\n"),
+-		},
+-		{
+-			anchor:      []byte("func unmap(addr uintptr, size int) error {\n\treturn unix.MunmapPtr(unsafe.Pointer(addr), uintptr(size))\n}\n"),
+-			replacement: []byte("func unmap(addr uintptr, size int) error {\n\tif gomadMemoryEnabled() {\n\t\tif !gomadMemoryUnmap(addr, uintptr(size)) {\n\t\t\treturn unix.EINVAL\n\t\t}\n\t\treturn nil\n\t}\n\treturn unix.MunmapPtr(unsafe.Pointer(addr), uintptr(size))\n}\n"),
+-		},
+-		{
+-			anchor:      []byte("\tsize = roundup(size, osPageSize)\n"),
+-			replacement: []byte("\tsize = roundup(size, osPageSize)\n\tif gomadMemoryEnabled() {\n\t\tp := gomadMemoryMap(uintptr(size), pageSize)\n\t\tif p == 0 {\n\t\t\treturn 0, 0, unix.ENOMEM\n\t\t}\n\t\treturn p, size, nil\n\t}\n"),
+-		},
+-	}
+-	result := append([]byte(nil), source...)
+-	for _, rewrite := range rewrites {
+-		if bytes.Count(result, rewrite.anchor) != 1 {
+-			return nil, errors.New("pinned modernc memory rewrite anchor mismatch")
+-		}
+-		result = bytes.Replace(result, rewrite.anchor, rewrite.replacement, 1)
+-	}
+-	if got := digestBytes(result); got != memoryMmapReplacementSHA256 {
+-		return nil, fmt.Errorf("modernc memory replacement identity mismatch: got %s, want %s", got, memoryMmapReplacementSHA256)
+-	}
+-	return result, nil
++func prepareModerncMemory(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
++	return prepareRewrittenModule(moduleCache, root, identity, rewrittenModule{
++		module: memoryModulePath, version: memoryVersion, sum: memorySum,
++		cacheElements:              []string{"modernc.org", "memory@" + memoryVersion},
++		replacementDirectory:       "modernc-memory",
++		originalInventorySHA256:    memoryOriginalSourceInventorySHA256,
++		replacementInventorySHA256: memoryReplacementSourceInventorySHA256,
++		preparedPackage:            memoryModulePath,
++		preparedSourceSetSHA256:    memoryPreparedSourceSetSHA256,
++		rewrites:                   memoryRewrites,
++	})
+ }
+diff --git a/tools/gomad3/deterministicio/memory_adapter_test.go b/tools/gomad3/deterministicio/memory_adapter_test.go
+index c16dd240d..009c752e5 100644
+--- a/tools/gomad3/deterministicio/memory_adapter_test.go
++++ b/tools/gomad3/deterministicio/memory_adapter_test.go
+@@ -24,7 +24,7 @@ func TestPinnedModerncMemoryModuleInventory(t *testing.T) {
+ 
+ func TestRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings(t *testing.T) {
+ 	source := readPinnedModerncMemorySource(t)
+-	rewritten, err := rewriteModerncMemory(source)
++	rewritten, err := rewriteAdapterSource(memoryModulePath, memoryRewrites[0], source)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -44,8 +44,99 @@ func TestRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings(t *testing.T)
+ }
+ 
+ func TestRewriteModerncMemoryRejectsSourceIdentityDrift(t *testing.T) {
+-	if _, err := rewriteModerncMemory(append(readPinnedModerncMemorySource(t), '\n')); err == nil {
+-		t.Fatal("rewriteModerncMemory() accepted changed mmap_unix.go")
++	if _, err := rewriteAdapterSource(memoryModulePath, memoryRewrites[0], append(readPinnedModerncMemorySource(t), '\n')); err == nil {
++		t.Fatal("rewriteAdapterSource() accepted changed mmap_unix.go")
++	}
++}
++
++func TestModerncMemoryRewriteRejectsAnchorDrift(t *testing.T) {
++	source := readPinnedModerncMemorySource(t)
++	for _, test := range []struct {
++		name, want string
++		change     func(*sourceRewrite)
++	}{
++		{name: "missing-anchor", want: "anchor mismatch", change: func(rewrite *sourceRewrite) { rewrite.rewrites[0].anchor = []byte("absent page size anchor") }},
++		{name: "ambiguous-anchor", want: "anchor mismatch", change: func(rewrite *sourceRewrite) { rewrite.rewrites[0].anchor = []byte("osPageSize") }},
++		{name: "replacement-digest", want: "replacement identity mismatch", change: func(rewrite *sourceRewrite) { rewrite.replacementSHA256 = memoryMmapSourceSHA256 }},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			rewrite := memoryRewrites[0]
++			rewrite.rewrites = append([]anchorRewrite(nil), rewrite.rewrites...)
++			test.change(&rewrite)
++			if _, err := rewriteAdapterSource(memoryModulePath, rewrite, source); err == nil || !strings.Contains(err.Error(), test.want) {
++				t.Fatalf("modernc memory rewrite: %v, want %s", err, test.want)
++			}
++		})
++	}
++}
++
++func TestPrepareModerncMemoryRejectsModuleDrift(t *testing.T) {
++	identity := gomadversion.AdapterIdentity{Module: memoryModulePath, Version: memoryVersion, Sum: memorySum}
++	pinned := filepath.Join(pinnedModuleCache(t), "modernc.org", "memory@"+memoryVersion)
++	for _, test := range []struct {
++		name, want, wantRead string
++		change               func(t *testing.T, path string, contents []byte)
++	}{
++		{name: "changed-source", want: "source inventory identity mismatch", change: func(t *testing.T, path string, contents []byte) {
++			if err := os.WriteFile(path, append(contents, '\n'), 0o600); err != nil {
++				t.Fatal(err)
++			}
++		}},
++		{name: "non-regular-source", want: "symbolic link", wantRead: "not a regular file", change: func(t *testing.T, path string, contents []byte) {
++			outside := filepath.Join(t.TempDir(), memoryMmapPath)
++			if err := os.WriteFile(outside, contents, 0o600); err != nil {
++				t.Fatal(err)
++			}
++			if err := os.Symlink(outside, path); err != nil {
++				t.Fatal(err)
++			}
++		}},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			moduleCache := t.TempDir()
++			moduleRoot := filepath.Join(moduleCache, "modernc.org", "memory@"+memoryVersion)
++			if err := os.MkdirAll(filepath.Dir(moduleRoot), 0o700); err != nil {
++				t.Fatal(err)
++			}
++			if err := copyAdapterModule(pinned, moduleRoot, nil, defaultAdapterCopyLimits); err != nil {
++				t.Fatal(err)
++			}
++			path := filepath.Join(moduleRoot, memoryMmapPath)
++			contents, err := os.ReadFile(path)
++			if err != nil {
++				t.Fatal(err)
++			}
++			if err := os.Remove(path); err != nil {
++				t.Fatal(err)
++			}
++			test.change(t, path, contents)
++			if _, err := prepareModerncMemory(moduleCache, t.TempDir(), identity); err == nil || !strings.Contains(err.Error(), test.want) {
++				t.Fatalf("changed modernc memory module: %v, want %s", err, test.want)
++			}
++			if test.wantRead == "" {
++				return
++			}
++			if _, err := readAdapterSource(memoryModulePath, moduleRoot, memoryMmapPath); err == nil || !strings.Contains(err.Error(), test.wantRead) {
++				t.Fatalf("changed modernc memory source: %v, want %s", err, test.wantRead)
++			}
++		})
++	}
++}
++
++func TestModerncMemoryRejectsChangedReplacementInventory(t *testing.T) {
++	identity := gomadversion.AdapterIdentity{Module: memoryModulePath, Version: memoryVersion, Sum: memorySum}
++	_, err := prepareRewrittenModule(pinnedModuleCache(t), t.TempDir(), identity, rewrittenModule{
++		module: memoryModulePath, version: memoryVersion, sum: memorySum,
++		cacheElements:              []string{"modernc.org", "memory@" + memoryVersion},
++		replacementDirectory:       "modernc-memory",
++		originalInventorySHA256:    memoryOriginalSourceInventorySHA256,
++		replacementInventorySHA256: memoryOriginalSourceInventorySHA256,
++		preparedPackage:            memoryModulePath,
++		preparedSourceSetSHA256:    memoryPreparedSourceSetSHA256,
++		rewrites:                   memoryRewrites,
++	})
++	if err == nil || !strings.Contains(err.Error(), "replacement inventory identity mismatch") {
++		t.Fatalf("changed modernc memory replacement inventory: %v", err)
+ 	}
+ }
+ 
+@@ -61,6 +152,9 @@ func TestPrepareModerncMemoryRecordsExactPrivateReplacement(t *testing.T) {
+ 	if prepared.evidence.PreparedPackage != memoryModulePath || prepared.evidence.PreparedSourceSetSHA256 != memoryPreparedSourceSetSHA256 {
+ 		t.Fatalf("prepared package evidence = %#v", prepared.evidence)
+ 	}
++	if prepared.evidence.SourceSHA256 != memoryMmapSourceSHA256 || prepared.evidence.ReplacementSHA256 != memoryMmapReplacementSHA256 || prepared.evidence.OriginalSourceInventorySHA256 != memoryOriginalSourceInventorySHA256 || prepared.evidence.ReplacementSourceInventorySHA256 != memoryReplacementSourceInventorySHA256 {
++		t.Fatalf("prepared identity evidence = %#v", prepared.evidence)
++	}
+ 	contents, err := os.ReadFile(prepared.evidence.Replacement)
+ 	if err != nil {
+ 		t.Fatal(err)
+@@ -71,9 +165,14 @@ func TestPrepareModerncMemoryRecordsExactPrivateReplacement(t *testing.T) {
+ }
+ 
+ func TestPrepareModerncMemoryRejectsChangedIdentity(t *testing.T) {
+-	identity := gomadversion.AdapterIdentity{Module: memoryModulePath, Version: "v1.11.1", Sum: "h1:changed"}
+-	if _, err := prepareModerncMemory(pinnedModuleCache(t), t.TempDir(), identity); err == nil {
+-		t.Fatal("prepareModerncMemory() accepted a changed identity")
++	for _, identity := range []gomadversion.AdapterIdentity{
++		{Module: memoryModulePath, Version: "v1.11.1", Sum: "h1:changed"},
++		{Module: memoryModulePath, Version: "v1.11.1", Sum: memorySum},
++		{Module: memoryModulePath, Version: memoryVersion, Sum: "h1:changed"},
++	} {
++		if _, err := prepareModerncMemory(pinnedModuleCache(t), t.TempDir(), identity); err == nil {
++			t.Fatalf("prepareModerncMemory() accepted a changed identity %#v", identity)
++		}
+ 	}
+ }
+ 

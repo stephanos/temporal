@@ -1,0 +1,139 @@
+## instrumented-leaf-count3.log
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.12s)
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.15s)
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.13s)
+   PASS
+   ok  	go.temporal.io/server/tests	56.255s
+## variant-i-leaf-count10.log
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.24s)
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.24s)
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.31s)
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.20s)
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.12s)
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.09s)
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.11s)
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.07s)
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.07s)
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.07s)
+   PASS
+   ok  	go.temporal.io/server/tests	183.891s
+## variant-li-leaf-count3.log
+   --- FAIL: TestWorkflowTaskTestSuite (0.00s)
+       --- FAIL: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.28s)
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.10s)
+   --- FAIL: TestWorkflowTaskTestSuite (0.00s)
+       --- FAIL: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.09s)
+   FAIL
+   FAIL	go.temporal.io/server/tests	56.864s
+   FAIL
+## variant-ti-leaf-count3.log
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.28s)
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.26s)
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.26s)
+   PASS
+   ok  	go.temporal.io/server/tests	56.899s
+## variant-t-leaf-count5.log
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.29s)
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.30s)
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.30s)
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.31s)
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.23s)
+   PASS
+   ok  	go.temporal.io/server/tests	93.272s
+## variant-pi-leaf-count3.log
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.23s)
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.26s)
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.31s)
+   PASS
+   ok  	go.temporal.io/server/tests	56.547s
+## variant-p-unit.log
+   --- PASS: TestEngineSuite (0.01s)
+       --- PASS: TestEngineSuite/TestRespondWorkflowTaskCompleted_WorkflowTaskHeartbeatNotTimeout (0.00s)
+       --- PASS: TestEngineSuite/TestRespondWorkflowTaskCompleted_WorkflowTaskHeartbeatNotTimeout_ZeroOrignalScheduledTime (0.00s)
+       --- PASS: TestEngineSuite/TestRespondWorkflowTaskCompleted_WorkflowTaskHeartbeatTimeout (0.00s)
+   PASS
+   ok  	go.temporal.io/server/service/history	1.203s
+## variant-t-suite-count2.log
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestRawHistoryFlowWithSearchAttributes (0.11s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalAfterRegularWorkflowTaskStarted (0.12s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithLocalActivitiesResult (0.12s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalBeforeRegularWorkflowTaskStarted (0.14s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalAfterRegularWorkflowTaskStartedAndFailWorkflowTask (0.14s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalAfterTransientWorkflowTaskStartedAndFailWorkflowTask (0.14s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalAfterTransientWorkflowTaskStarted (0.16s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalBeforeTransientWorkflowTaskStarted (0.45s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.24s)
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalAfterRegularWorkflowTaskStarted (0.03s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalBeforeRegularWorkflowTaskStarted (0.04s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalAfterRegularWorkflowTaskStartedAndFailWorkflowTask (0.04s)
+       --- PASS: TestWorkflowTaskTestSuite/TestRawHistoryFlowWithSearchAttributes (0.04s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalBeforeTransientWorkflowTaskStarted (0.07s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalAfterTransientWorkflowTaskStarted (0.07s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithLocalActivitiesResult (0.04s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalAfterTransientWorkflowTaskStartedAndFailWorkflowTask (0.09s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.26s)
+   PASS
+   ok  	go.temporal.io/server/tests	38.195s
+## unchanged-suite-count2.log
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestRawHistoryFlowWithSearchAttributes (0.14s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalBeforeRegularWorkflowTaskStarted (0.13s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalAfterRegularWorkflowTaskStarted (0.14s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithLocalActivitiesResult (0.14s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalAfterRegularWorkflowTaskStartedAndFailWorkflowTask (0.15s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalBeforeTransientWorkflowTaskStarted (0.19s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalAfterTransientWorkflowTaskStarted (0.19s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalAfterTransientWorkflowTaskStartedAndFailWorkflowTask (0.38s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.07s)
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestRawHistoryFlowWithSearchAttributes (0.04s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalBeforeRegularWorkflowTaskStarted (0.05s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalAfterRegularWorkflowTaskStartedAndFailWorkflowTask (0.05s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalAfterRegularWorkflowTaskStarted (0.05s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithLocalActivitiesResult (0.06s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalAfterTransientWorkflowTaskStarted (0.10s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalBeforeTransientWorkflowTaskStarted (0.10s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalAfterTransientWorkflowTaskStartedAndFailWorkflowTask (0.11s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.11s)
+   PASS
+   ok  	go.temporal.io/server/tests	38.219s
+## variant-p-suite-count1.log
+   --- PASS: TestWorkflowTaskTestSuite (0.00s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalBeforeRegularWorkflowTaskStarted (0.11s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalAfterRegularWorkflowTaskStarted (0.11s)
+       --- PASS: TestWorkflowTaskTestSuite/TestRawHistoryFlowWithSearchAttributes (0.14s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithLocalActivitiesResult (0.14s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalAfterTransientWorkflowTaskStarted (0.15s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalAfterTransientWorkflowTaskStartedAndFailWorkflowTask (0.17s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalBeforeTransientWorkflowTaskStarted (0.17s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTerminationSignalAfterRegularWorkflowTaskStartedAndFailWorkflowTask (0.31s)
+       --- PASS: TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult (18.07s)
+   PASS
+   ok  	go.temporal.io/server/tests	19.709s

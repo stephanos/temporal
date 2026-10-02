@@ -1,0 +1,218 @@
+package deterministicio // import "go.temporal.io/server/tools/gomad3/deterministicio"
+
+
+CONSTANTS
+
+const (
+	Deterministic = "gomad3-deterministic/v1"
+)
+const (
+	// DefaultTranscriptBytes is the I/O transcript a campaign gets unless it
+	// asks for more; a cluster-sized target can exceed it.
+	DefaultTranscriptBytes = 64 << 20
+	// MaximumTranscriptBytes bounds any requested transcript; the runtime
+	// refuses a larger backing.
+	MaximumTranscriptBytes = 1 << 30
+	// TranscriptBytesGranularity keeps requested limits on whole mebibytes.
+	TranscriptBytesGranularity = 1 << 20
+)
+const SemanticCoverageSchema = "gomad3.semantic-coverage/v1"
+
+FUNCTIONS
+
+func BoundaryManifestIdentity() (string, Digest)
+func BoundaryPlatforms() []string
+    BoundaryPlatforms lists the GOOS/GOARCH pairs the boundary manifest
+    qualifies.
+
+func EncodeOperation(operation Operation) ([]byte, error)
+func EncodeTranscript(operations []Operation) ([]byte, error)
+func ExpectedTranscriptBytes(records uint64) (uint64, error)
+func HashArgument(encoded []byte) [sha256.Size]byte
+func IsInvalidBuildAdapterConfiguration(err error) bool
+func MissingRequiredSemanticProbes(coverage SemanticCoverage, required []string) ([]string, error)
+func RequiredSemanticProbes() []string
+func TranscriptRecordCount(encoded []byte) (uint64, error)
+func ValidateSessionSpec(spec SessionSpec) error
+func ValidateTranscriptLimit(limit uint64) error
+    ValidateTranscriptLimit checks a campaign's requested I/O transcript bound.
+
+func WriteCompletion(writer io.Writer, transcript Transcript) error
+
+TYPES
+
+type Adapter struct {
+	Module  string `json:"module"`
+	Sum     string `json:"sum"`
+	Version string `json:"version"`
+}
+
+func SelectedAdapters(adapters []BuildAdapter) []Adapter
+
+type AdapterCapacityError struct {
+	Resource string
+	Limit    uint64
+}
+
+func (err *AdapterCapacityError) Error() string
+
+type Bootstrap struct {
+	Profile              string
+	InventorySHA256      Digest
+	ImplementationSHA256 Digest
+	TargetSHA256         string
+	RunnerSHA256         string
+	ArgvSHA256           Digest
+	Seed                 uint64
+}
+
+func DecodeBootstrapFrame(frame []byte) (Bootstrap, error)
+
+type BuildAdapter struct {
+	Module                           string
+	Version                          string
+	Sum                              string
+	BuildModFile                     string
+	Source                           string
+	ReplacementRoot                  string
+	Replacement                      string
+	PreparedPackage                  string
+	SourceSHA256                     string
+	ReplacementSHA256                string
+	OriginalSourceInventorySHA256    string
+	ReplacementSourceInventorySHA256 string
+	PreparedSourceSetSHA256          string
+}
+
+type Contract struct {
+	ImplementationSHA256 Digest `json:"implementation_sha256"`
+	InventorySHA256      Digest `json:"inventory_sha256"`
+	Name                 string `json:"name"`
+}
+
+type Digest string
+
+func SemanticInstrumentationIdentity() Digest
+
+func (identity Digest) Bytes() ([sha256.Size]byte, error)
+
+type InvalidBuildAdapterConfigurationError struct {
+	Err error
+}
+
+func (err *InvalidBuildAdapterConfigurationError) Error() string
+
+func (err *InvalidBuildAdapterConfigurationError) Unwrap() error
+
+type MissingSemanticProbesError struct {
+	Probes []string
+}
+
+func (err *MissingSemanticProbesError) Error() string
+
+type Operation struct {
+	Ordinal      uint64
+	Name         string
+	ArgumentHash [sha256.Size]byte
+	ContentHash  [sha256.Size]byte
+	Count        uint64
+	Result       uint32
+	EntropyStart uint64
+	EntropyEnd   uint64
+}
+
+func DecodeTranscript(encoded []byte) ([]Operation, error)
+
+type Requirement struct {
+	Feature  string                              `json:"feature"`
+	Modeled  bool                                `json:"modeled"`
+	Packages []target.CapabilityPackageReference `json:"packages"`
+}
+
+type SemanticCoverage struct {
+	Schema string   `json:"schema"`
+	Digest Digest   `json:"digest"`
+	Probes []string `json:"probes"`
+}
+
+func DecodeSemanticCoverage(transcript []byte) (SemanticCoverage, error)
+
+func SummarizeSemanticProbes(probes []string) (SemanticCoverage, error)
+
+type Session struct {
+	// Has unexported fields.
+}
+
+func NewSession(spec SessionSpec) (_ *Session, retErr error)
+
+func (session *Session) Close() error
+
+func (session *Session) Collect() (Transcript, error)
+
+func (session *Session) Files() SessionFiles
+
+type SessionFiles struct {
+	Transcript *os.File
+	Terminal   *os.File
+	Expected   *os.File
+}
+
+type SessionSpec struct {
+	Limit    uint64
+	Replay   bool
+	Expected []byte
+}
+
+type Spec struct {
+	// Has unexported fields.
+}
+
+func Default() Spec
+
+func (profile Spec) Adapters() []gomadversion.AdapterIdentity
+
+func (profile Spec) BootstrapFrame(prepared target.Prepared, runnerSHA256 string, seed uint64) ([]byte, error)
+
+func (profile Spec) Identity() Contract
+
+func (profile Spec) ImplementationSHA256() Digest
+
+func (profile Spec) Inventory() []byte
+
+func (profile Spec) InventorySHA256() Digest
+
+func (profile Spec) Matches(identity Contract) bool
+
+func (profile Spec) MatchesRecorded(name, implementationSHA256, inventorySHA256, encodedInventory string) bool
+
+func (profile Spec) Name() string
+
+func (profile Spec) PrepareBuildAdapters(spec target.Spec, moduleCache string) (target.Spec, []BuildAdapter, error)
+
+func (profile Spec) PrepareTargetBuildAdapters(ctx context.Context, spec target.Spec) (target.Spec, []BuildAdapter, error)
+    PrepareTargetBuildAdapters prepares spec's build adapters from the module
+    cache of spec's pinned toolchain after downloading each selected adapter's
+    pinned module into it, so a clean module cache prepares the same adapters.
+
+func (profile Spec) Requirements(closure target.CapabilityClosure, adapters []Adapter) ([]Requirement, error)
+
+func (profile Spec) TargetContract() TargetContract
+
+func (profile Spec) ValidatePreparedTarget(spec target.Spec, prepared target.Prepared, environment []string) error
+
+func (profile Spec) VerifyAdapters(adapters []Adapter) error
+
+type TargetContract struct {
+	GoVersion string
+	GOOS      string
+	GOARCH    string
+}
+
+type Transcript struct {
+	Bytes            []byte
+	SHA256           [sha256.Size]byte
+	Records          uint64
+	Complete         bool
+	ReplayDivergence *uint64
+}
+

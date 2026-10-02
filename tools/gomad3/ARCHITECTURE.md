@@ -689,7 +689,11 @@ in one JSON dossier. The supported-host gate must also rerun the
 platform's host-clock inventory and, on Darwin, the positive-controlled clock
 trace because dynamic imports and probe names are platform implementation
 details. The dossier is published on failure and uploaded by CI, so a rejected
-upgrade retains its first failing gate and bounded output. Boundary comparison
+upgrade retains its first failing gate and bounded output. Publication uses the
+shared host-filesystem replacement primitive, so a failed write, file or
+directory synchronization, rename, or temporary-file cleanup is returned as a
+host error ahead of the gate result, and a partial dossier never replaces the
+prior complete one. Boundary comparison
 canonicalizes complete manifest metadata, intercepts, and hook policies so a
 field unknown to an older comparator cannot disappear
 from upgrade evidence.

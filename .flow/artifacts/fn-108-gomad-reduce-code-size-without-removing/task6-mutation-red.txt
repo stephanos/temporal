@@ -1,0 +1,14 @@
+m1-novel-ignores-choices direct_rc=1 direct_fail=1 char_rc=1 char_fail=2 build=0
+m2-novel-needs-both direct_rc=1 direct_fail=4 char_rc=1 char_fail=17 build=0
+m3-no-transcript-check direct_rc=1 direct_fail=3 char_rc=1 char_fail=6 build=0
+m4-count-off-by-one direct_rc=1 direct_fail=1 char_rc=1 char_fail=8 build=0
+m5-bytes-off-by-one direct_rc=1 direct_fail=1 char_rc=1 char_fail=1 build=0
+m6-full-byte-bound direct_rc=1 direct_fail=2 char_rc=1 char_fail=4 build=0
+m7-all-records-novelty direct_rc=1 direct_fail=9 char_rc=1 char_fail=20 build=0
+m8-annotate-drops-novel-probes direct_rc=1 direct_fail=1 char_rc=1 char_fail=18 build=0
+m9-capacity-is-publication direct_rc=1 direct_fail=1 char_rc=1 char_fail=3 build=0
+m10-input-drops-world direct_rc=1 direct_fail=1 char_rc=0 char_fail=0 build=0
+m11-novelty-against-wrong-set direct_rc=1 direct_fail=1 char_rc=1 char_fail=15 build=0
+m12-input-swaps-streams direct_rc=1 direct_fail=1 char_rc=1 char_fail=1 build=0
+m13-annotate-shares-novel-slice direct_rc=1 direct_fail=1 char_rc=0 char_fail=0 build=0
+m10-input-drops-world projection_lines_changed=28 of 31 (tests pass; caught only by the before/after projection comparison)

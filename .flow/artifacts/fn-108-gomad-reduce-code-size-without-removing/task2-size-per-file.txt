@@ -1,0 +1,24 @@
+# per-file delta (current minus baseline), files whose counts differ; columns: class physical code codebytes path owner
+other +4 +4 +230 tools/gomad3/ARCHITECTURE.md fn-108.4(other worker)
+test-go +0 +0 +8 tools/gomad3/architecture_test.go fn-108.4(other worker)
+production-go -57 -53 -1327 tools/gomad3/deterministicio/domain.go fn-108.2
+production-go -31 -29 -985 tools/gomad3/qualification/set/set.go fn-108.2
+production-go -4 -3 -196 tools/gomad3/runner/campaign.go fn-108.2
+production-go -8 -7 -444 tools/gomad3/runner/deterministicio.go fn-108.2
+production-go -4 -3 -125 tools/gomad3/runner/internal/campaign/campaign_journal.go fn-108.2
+production-go -1 -1 -110 tools/gomad3/runner/internal/campaign/merge.go fn-108.2
+test-go +40 +39 +1439 tools/gomad3/runner/internal/campaign/merge_capacity_test.go fn-108.2
+production-go -18 -16 -353 tools/gomad3/runner/internal/minimizer/minimizer.go fn-108.2
+test-go -11 -11 -218 tools/gomad3/runner/internal/minimizer/minimizer_test.go fn-108.2
+production-go -5 -5 -185 tools/gomad3/runner/portable_plan.go fn-108.2
+test-go +34 +33 +1428 tools/gomad3/runner/portable_plan_test.go fn-108.2
+production-go -11 -10 -385 tools/gomad3/target/capability.go fn-108.2
+production-go -19 -19 -521 tools/gomad3/upgrade/upgrade.go fn-108.4(other worker)
+test-go +248 +241 +5847 tools/gomad3/upgrade/upgrade_test.go fn-108.4(other worker)
+test-go +75 +62 +1830 tools/gomad3/upgrade/upgrade_unix_test.go fn-108.4(other worker) NEW
+fn-108.2 total production-go code -127
+fn-108.2 total production-go codebytes -4110
+fn-108.2 total production-go physical -139
+fn-108.2 total test-go code 61
+fn-108.2 total test-go codebytes 2649
+fn-108.2 total test-go physical 63

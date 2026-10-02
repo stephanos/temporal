@@ -1,0 +1,930 @@
+package gomad3sim // import "go.temporal.io/server/tools/gomad3sim"
+
+Package gomad3sim defines the application-facing Gomad v3 cluster contract.
+Its in-process backend provides lifecycle, runtime-domain, and node-aware
+virtual-network fidelity. It composes separate durable-volume, fault, scenario,
+history, oracle, artifact, and replay modules. Its process backend adds fresh
+package initialization and hard isolation while reusing the same detached
+models.
+
+CONSTANTS
+
+const (
+	MaximumNodes                 uint64 = 64
+	MaximumDirectionalLinks      uint64 = 4096
+	MaximumVolumes               uint64 = 64
+	MaximumScenarioActions       uint64 = 4096
+	MaximumScenarioDecisions     uint64 = 4096
+	MaximumHistoryOperations     uint64 = 1 << 16
+	MaximumObservations          uint64 = 1 << 16
+	MaximumOracleResults         uint64 = 4096
+	MaximumScenarioEvidenceBytes uint64 = 64 << 20
+	MaximumBootConfigBytes       uint64 = 1 << 20
+	MaximumVolumeCapacityBytes   uint64 = 1 << 30
+	MaximumObservationBytes      uint64 = 64 << 20
+	MaximumNetworkListeners      uint64 = 4096
+	MaximumNetworkConnections    uint64 = 65536
+	MaximumNetworkDeliveries     uint64 = 65536
+	MaximumNetworkBytes          uint64 = 1 << 30
+	MaximumNetworkTransitions    uint64 = 1 << 20
+	MaximumVolumeOperations      uint64 = 1 << 20
+	MaximumVolumeTransitions     uint64 = 1 << 20
+	MaximumCrashStates           uint64 = 1 << 16
+	MaximumCrashDepth            uint64 = 256
+	MaximumCrashBytes            uint64 = 128 << 20
+	MaximumCrashWallNanos        uint64 = 60_000_000_000
+	MaximumSpecJSONBytes                = 128 << 20
+	MaximumMountPathBytes               = 4096
+)
+const ClusterInspectionSchema = "gomad3.cluster-inspection/v2"
+const ClusterRecordSchema = "gomad3.cluster-record/v7"
+const ClusterReplaySchema = "gomad3.cluster-replay/v7"
+const ExplorationPlanSchema = "gomad3.simulation-exploration-plan/v1"
+const FaultPlanSchema = "gomad3.fault-plan/v1"
+const MaximumClusterRecordBytes = 128 << 20
+const MaximumExplorationOverrides = 1 << 16
+const MaximumExplorationPlanBytes = 16 << 20
+const MaximumFaultActions uint64 = 4096
+const MaximumFaultPlanBytes = 16 << 20
+const MaximumOperationTextBytes = 4096
+const MaximumOracleNameBytes = 256
+const MaximumScenarioChoicePlanBytes = 16 << 20
+const MaximumTerminalReasonBytes = 4096
+const ScenarioChoicePlanSchema = "gomad3.scenario-choice-plan/v1"
+const SpecSchema = "gomad3.simulation-spec/v7"
+
+VARIABLES
+
+var ErrBackendUnavailable = errors.New("simulation backend is unavailable")
+var ErrCapacity = errors.New("simulation capacity exhausted")
+var ErrFaultInapplicable = errors.New("simulation fault is inapplicable")
+var ErrFaultPlanMismatch = errors.New("simulation fault does not match the planned action")
+var ErrInvalidTransition = errors.New("invalid simulation lifecycle transition")
+var ErrReplayDiverged = errors.New("simulation lifecycle replay diverged")
+var ErrRuntimeUnavailable = errors.New("gomad3 simulation runtime is unavailable")
+var ErrStaleIncarnation = errors.New("stale simulation node incarnation")
+
+FUNCTIONS
+
+func EncodeClusterInspection(inspection ClusterInspection) ([]byte, error)
+func EncodeClusterRecord(record ClusterRecord) ([]byte, error)
+func EncodeExplorationPlan(plan ExplorationPlan) ([]byte, error)
+func EncodeFaultPlan(plan FaultPlan) ([]byte, error)
+func EncodeScenarioChoicePlan(plan ScenarioChoicePlan) ([]byte, error)
+func FormatClusterInspection(inspection ClusterInspection) (string, error)
+func RegisterBoot(id BootID, boot BootFunc) error
+func ValidateHistory(operations []HistoryOperation, maximumBytes uint64) error
+func ValidateSpec(spec Spec) error
+
+TYPES
+
+type Backend string
+
+const (
+	BackendInProcess Backend = "in_process"
+	BackendProcess   Backend = "process"
+)
+type BackendUnavailableError struct {
+	Backend Backend
+}
+
+func (err *BackendUnavailableError) Error() string
+
+func (err *BackendUnavailableError) Unwrap() error
+
+type BootFunc func(context.Context, NodeContext) error
+
+func RegisteredBoot(id BootID) (BootFunc, bool)
+
+type BootID string
+
+func RegisteredBootIDs() []BootID
+
+type CapacityError struct {
+	Resource string
+	Required uint64
+	Maximum  uint64
+}
+
+func (err *CapacityError) Error() string
+
+func (err *CapacityError) Unwrap() error
+
+type Cluster interface {
+	Start(context.Context, NodeID) (NodeHandle, error)
+	Wait(context.Context, NodeHandle) (NodeResult, error)
+	Stop(context.Context, NodeHandle) error
+	Crash(context.Context, NodeHandle) error
+	Restart(context.Context, NodeID) (NodeHandle, error)
+	Partition(context.Context, NodeID, NodeID) error
+	Heal(context.Context, NodeID, NodeID) error
+	SetDelay(context.Context, NodeID, NodeID, uint64) error
+	ApplyFault(context.Context, FaultAction) (FaultRealization, error)
+	TriggerFault(context.Context, FaultMatch) (FaultRealization, bool, error)
+	Observe(context.Context, Observation) error
+	RecordOperation(context.Context, HistoryOperation) error
+	RecordOracle(context.Context, OracleResult) error
+	EnumerateCrashStates(context.Context, NodeHandle, VolumeID, VolumeCrashEnumerationLimits, *VolumeCrashFrontier) (VolumeCrashEnumeration, error)
+}
+
+type ClusterInspection struct {
+	Schema          string                    `json:"schema"`
+	RecordIdentity  string                    `json:"record_identity"`
+	Backend         Backend                   `json:"backend"`
+	Fidelity        Fidelity                  `json:"fidelity"`
+	Seed            uint64                    `json:"seed"`
+	Outcome         Outcome                   `json:"outcome"`
+	Reason          string                    `json:"reason,omitempty"`
+	FailureIdentity string                    `json:"failure_identity,omitempty"`
+	Static          ClusterStaticIdentities   `json:"static_identities"`
+	Models          ClusterModelIdentities    `json:"model_identities"`
+	Limits          Limits                    `json:"limits"`
+	Counts          ClusterInspectionCounts   `json:"counts"`
+	Tapes           ClusterInspectionTapes    `json:"tapes"`
+	Terminal        ClusterInspectionTerminal `json:"terminal"`
+	OracleFailures  []ClusterOracleFailure    `json:"oracle_failures"`
+	Identity        string                    `json:"identity"`
+}
+
+func InspectClusterRecord(record ClusterRecord) (ClusterInspection, error)
+
+type ClusterInspectionCounts struct {
+	Nodes                   uint64 `json:"nodes"`
+	Incarnations            uint64 `json:"incarnations"`
+	Lifecycle               uint64 `json:"lifecycle_transitions"`
+	Faults                  uint64 `json:"faults"`
+	ScenarioChoiceOverrides uint64 `json:"scenario_choice_overrides"`
+	ScenarioDecisions       uint64 `json:"scenario_decisions"`
+	HistoryOperations       uint64 `json:"history_operations"`
+	Observations            uint64 `json:"observations"`
+	OracleResults           uint64 `json:"oracle_results"`
+	NetworkTransitions      uint64 `json:"network_transitions"`
+	VolumeTransitions       uint64 `json:"volume_transitions"`
+}
+
+type ClusterInspectionTapes struct {
+	FaultPlanSHA256          string `json:"fault_plan_sha256"`
+	ScenarioChoicePlanSHA256 string `json:"scenario_choice_plan_sha256"`
+	NetworkSHA256            string `json:"network_sha256"`
+	VolumeSHA256             string `json:"volume_sha256"`
+}
+
+type ClusterInspectionTerminal struct {
+	NetworkSHA256 string `json:"network_sha256"`
+	VolumeSHA256  string `json:"volume_sha256"`
+}
+
+type ClusterModelIdentities struct {
+	RuntimeDomainSHA256 string `json:"runtime_domain_sha256"`
+	ProcessSHA256       string `json:"process_sha256"`
+	NetworkSHA256       string `json:"network_sha256"`
+	VolumeSHA256        string `json:"volume_sha256"`
+	FaultSHA256         string `json:"fault_sha256"`
+	ScenarioSHA256      string `json:"scenario_sha256"`
+	OracleSHA256        string `json:"oracle_sha256"`
+}
+
+type ClusterOracleFailure struct {
+	Name     string `json:"name"`
+	Identity string `json:"identity"`
+}
+
+type ClusterRecord struct {
+	Schema               string                  `json:"schema"`
+	Backend              Backend                 `json:"backend"`
+	Fidelity             Fidelity                `json:"fidelity"`
+	Seed                 uint64                  `json:"seed"`
+	Limits               Limits                  `json:"limits"`
+	Static               ClusterStaticIdentities `json:"static_identities"`
+	Models               ClusterModelIdentities  `json:"model_identities"`
+	NodeSpecs            []NodeSpec              `json:"node_specs"`
+	LinkSpecs            []LinkSpec              `json:"link_specs"`
+	VolumeSpecs          []VolumeSpec            `json:"volume_specs"`
+	SpecSHA256           string                  `json:"spec_sha256"`
+	Outcome              Outcome                 `json:"outcome"`
+	Reason               string                  `json:"reason,omitempty"`
+	FailureIdentity      string                  `json:"failure_identity,omitempty"`
+	Nodes                []NodeResult            `json:"nodes"`
+	Transitions          []LifecycleTransition   `json:"transitions"`
+	FaultPlan            FaultPlan               `json:"fault_plan"`
+	Faults               []FaultRealization      `json:"faults"`
+	ExplorationPlan      *ExplorationPlan        `json:"exploration_plan,omitempty"`
+	ExplorationDecisions []ExplorationDecision   `json:"exploration_decisions,omitempty"`
+	ScenarioChoices      ScenarioChoicePlan      `json:"scenario_choice_plan"`
+	Scenarios            []ScenarioDecision      `json:"scenario_tape"`
+	History              []HistoryOperation      `json:"history"`
+	Observations         []Observation           `json:"observations"`
+	Oracles              []OracleResult          `json:"oracles"`
+	Network              NetworkRecord           `json:"network"`
+	Volumes              VolumeRecord            `json:"volumes"`
+	Outputs              []OutputObservation     `json:"outputs"`
+	Limitations          []Limitation            `json:"limitations"`
+	Leaks                []LeakDiagnostic        `json:"leaks"`
+	Divergence           *ReplayDivergence       `json:"divergence,omitempty"`
+	Identity             string                  `json:"identity"`
+}
+
+func DecodeClusterRecord(data []byte) (ClusterRecord, error)
+
+type ClusterStaticIdentities struct {
+	TargetSHA256         string `json:"target_sha256"`
+	PlatformBundleSHA256 string `json:"platform_bundle_sha256"`
+}
+
+type ExplorationDecision struct {
+	Dimension            ExplorationDimension `json:"dimension"`
+	Ordinal              uint64               `json:"ordinal"`
+	SiteSHA256           string               `json:"site_sha256"`
+	Alternatives         []string             `json:"alternatives"`
+	AlternativeSetSHA256 string               `json:"alternative_set_sha256"`
+	Selected             uint32               `json:"selected"`
+	Identity             string               `json:"identity"`
+}
+
+type ExplorationDimension string
+
+const (
+	ExplorationRuntime  ExplorationDimension = "runtime"
+	ExplorationScenario ExplorationDimension = "scenario"
+	ExplorationNetwork  ExplorationDimension = "network"
+	ExplorationStorage  ExplorationDimension = "storage"
+	ExplorationFault    ExplorationDimension = "fault"
+	ExplorationCrash    ExplorationDimension = "crash"
+)
+type ExplorationOverride struct {
+	Dimension            ExplorationDimension `json:"dimension"`
+	Ordinal              uint64               `json:"ordinal"`
+	SiteSHA256           string               `json:"site_sha256"`
+	Alternatives         uint32               `json:"alternatives"`
+	AlternativeSetSHA256 string               `json:"alternative_set_sha256"`
+	Selected             uint32               `json:"selected"`
+	SelectedSHA256       string               `json:"selected_sha256"`
+	Identity             string               `json:"identity"`
+}
+
+func NewExplorationOverride(dimension ExplorationDimension, ordinal uint64, site string, alternatives []string, selected uint32) (ExplorationOverride, error)
+
+type ExplorationPlan struct {
+	Schema           string                `json:"schema"`
+	ExecutionSHA256  string                `json:"execution_sha256"`
+	ControllerSHA256 string                `json:"controller_sha256"`
+	BaseSeed         uint64                `json:"base_seed"`
+	Overrides        []ExplorationOverride `json:"overrides"`
+	CandidateSHA256  string                `json:"candidate_sha256"`
+}
+
+func DecodeExplorationPlan(data []byte) (ExplorationPlan, error)
+
+func NewExplorationPlan(execution, controller string, baseSeed uint64, overrides []ExplorationOverride) (ExplorationPlan, error)
+
+type FaultAction struct {
+	ID          FaultID          `json:"id"`
+	Kind        FaultKind        `json:"kind"`
+	Match       FaultMatch       `json:"match,omitempty"`
+	Node        NodeID           `json:"node,omitempty"`
+	Candidates  []NodeID         `json:"candidates,omitempty"`
+	TargetFrom  FaultID          `json:"target_from,omitempty"`
+	From        NodeID           `json:"from,omitempty"`
+	To          NodeID           `json:"to,omitempty"`
+	Left        []NodeID         `json:"left,omitempty"`
+	Right       []NodeID         `json:"right,omitempty"`
+	DelayNanos  uint64           `json:"delay_nanos,omitempty"`
+	Persistence FaultPersistence `json:"persistence,omitempty"`
+}
+
+type FaultID string
+
+type FaultKind string
+
+const (
+	FaultGracefulStop FaultKind = "graceful_stop"
+	FaultHarshCrash   FaultKind = "harsh_crash"
+	FaultRestart      FaultKind = "restart"
+	FaultDisconnect   FaultKind = "disconnect"
+	FaultReconnect    FaultKind = "reconnect"
+	FaultPartition    FaultKind = "partition"
+	FaultHeal         FaultKind = "heal"
+	FaultDelay        FaultKind = "delay"
+)
+type FaultMatch struct {
+	Node        NodeID `json:"node,omitempty"`
+	Incarnation uint64 `json:"incarnation,omitempty"`
+	NodeClass   string `json:"node_class,omitempty"`
+	Model       string `json:"model,omitempty"`
+	Resource    string `json:"resource,omitempty"`
+	Operation   string `json:"operation,omitempty"`
+	Occurrence  uint64 `json:"occurrence,omitempty"`
+	Phase       string `json:"phase,omitempty"`
+	Equivalence string `json:"equivalence,omitempty"`
+}
+
+type FaultPersistence string
+
+const (
+	FaultPersistencePersisted FaultPersistence = "persisted_only"
+	FaultPersistencePartial   FaultPersistence = "selected_partial"
+)
+type FaultPlan struct {
+	Schema   string        `json:"schema"`
+	Actions  []FaultAction `json:"actions"`
+	Identity string        `json:"identity"`
+}
+
+func DecodeFaultPlan(data []byte) (FaultPlan, error)
+
+func NewFaultPlan(actions []FaultAction) (FaultPlan, error)
+
+type FaultPlanError struct {
+	Ordinal  uint64
+	Expected *FaultAction
+	Actual   *FaultAction
+	Cause    error
+}
+
+func (err *FaultPlanError) Error() string
+
+func (err *FaultPlanError) Unwrap() error
+
+type FaultRealization struct {
+	Ordinal  uint64      `json:"ordinal"`
+	Action   FaultAction `json:"action"`
+	Matched  FaultMatch  `json:"matched"`
+	Target   NodeHandle  `json:"target,omitempty"`
+	Identity string      `json:"identity"`
+}
+
+type Fidelity string
+
+const (
+	FidelitySimulationModel Fidelity = "simulation_model"
+	FidelityHardIsolation   Fidelity = "hard_isolation"
+)
+type HistoryOperation struct {
+	ID         string `json:"id"`
+	Actor      string `json:"actor"`
+	Kind       string `json:"kind"`
+	Invocation uint64 `json:"invocation"`
+	Completion uint64 `json:"completion"`
+	Input      []byte `json:"input,omitempty"`
+	Output     []byte `json:"output,omitempty"`
+	Error      string `json:"error,omitempty"`
+}
+
+type LeakDiagnostic struct {
+	Handle NodeHandle `json:"handle"`
+	Kind   LeakKind   `json:"kind"`
+}
+
+type LeakKind string
+
+const LeakRevokedGoroutineMayRemain LeakKind = "revoked_goroutine_may_remain"
+type LifecycleAction string
+
+const (
+	LifecycleStart   LifecycleAction = "start"
+	LifecycleWait    LifecycleAction = "wait"
+	LifecycleStop    LifecycleAction = "stop"
+	LifecycleCrash   LifecycleAction = "crash"
+	LifecycleRestart LifecycleAction = "restart"
+)
+type LifecycleTransition struct {
+	Ordinal uint64          `json:"ordinal"`
+	Action  LifecycleAction `json:"action"`
+	Handle  NodeHandle      `json:"handle"`
+	From    NodeState       `json:"from"`
+	To      NodeState       `json:"to"`
+}
+
+type Limitation string
+
+const (
+	LimitationSharedPackageGlobals         Limitation = "shared_package_globals"
+	LimitationRevokedGoroutinesMayRemain   Limitation = "revoked_goroutines_may_remain"
+	LimitationCPULoopsRequireWatchdog      Limitation = "cpu_loops_require_outer_watchdog"
+	LimitationHardIsolationRequiresProcess Limitation = "hard_isolation_requires_process_backend"
+)
+type Limits struct {
+	Nodes                 uint64 `json:"nodes"`
+	DirectionalLinks      uint64 `json:"directional_links"`
+	Volumes               uint64 `json:"volumes"`
+	ScenarioActions       uint64 `json:"scenario_actions"`
+	ScenarioDecisions     uint64 `json:"scenario_decisions"`
+	FaultActions          uint64 `json:"fault_actions"`
+	HistoryOperations     uint64 `json:"history_operations"`
+	Observations          uint64 `json:"observations"`
+	OracleResults         uint64 `json:"oracle_results"`
+	ScenarioEvidenceBytes uint64 `json:"scenario_evidence_bytes"`
+	BootConfigBytes       uint64 `json:"boot_config_bytes"`
+	VolumeCapacityBytes   uint64 `json:"volume_capacity_bytes"`
+	ObservationBytes      uint64 `json:"observation_bytes"`
+	NetworkListeners      uint64 `json:"network_listeners"`
+	NetworkConnections    uint64 `json:"network_connections"`
+	NetworkDeliveries     uint64 `json:"network_deliveries"`
+	NetworkBytes          uint64 `json:"network_bytes"`
+	NetworkTransitions    uint64 `json:"network_transitions"`
+	VolumeOperations      uint64 `json:"volume_operations"`
+	VolumeTransitions     uint64 `json:"volume_transitions"`
+	CrashStates           uint64 `json:"crash_states"`
+	CrashDepth            uint64 `json:"crash_depth"`
+	CrashBytes            uint64 `json:"crash_bytes"`
+	CrashWallNanos        uint64 `json:"crash_wall_nanos"`
+}
+
+func DefaultLimits() Limits
+
+type LinkSpec struct {
+	From       NodeID `json:"from"`
+	To         NodeID `json:"to"`
+	Enabled    bool   `json:"enabled"`
+	DelayNanos uint64 `json:"delay_nanos"`
+}
+
+type NetworkConnectionSnapshot struct {
+	Identity uint64          `json:"identity"`
+	Client   NetworkEndpoint `json:"client"`
+	Server   NetworkEndpoint `json:"server"`
+	Closed   bool            `json:"closed"`
+	Reset    bool            `json:"reset"`
+}
+
+type NetworkDeliverySnapshot struct {
+	Identity    uint64          `json:"identity"`
+	Connection  uint64          `json:"connection"`
+	Source      NetworkEndpoint `json:"source"`
+	Destination NetworkEndpoint `json:"destination"`
+	Bytes       uint64          `json:"bytes"`
+	DelayNanos  uint64          `json:"delay_nanos"`
+}
+
+type NetworkEndpoint struct {
+	Node        NodeID `json:"node,omitempty"`
+	Incarnation uint64 `json:"incarnation,omitempty"`
+	Address     string `json:"address,omitempty"`
+	Port        uint64 `json:"port,omitempty"`
+}
+
+type NetworkLinkSnapshot struct {
+	From       NodeID `json:"from"`
+	To         NodeID `json:"to"`
+	Enabled    bool   `json:"enabled"`
+	DelayNanos uint64 `json:"delay_nanos"`
+}
+
+type NetworkListenerSnapshot struct {
+	Endpoint NetworkEndpoint `json:"endpoint"`
+	Closed   bool            `json:"closed"`
+}
+
+type NetworkNodeSnapshot struct {
+	Node             NodeID `json:"node"`
+	Address          string `json:"address"`
+	LastIncarnation  uint64 `json:"last_incarnation"`
+	NextListenerPort uint64 `json:"next_listener_port"`
+	NextClientPort   uint64 `json:"next_client_port"`
+}
+
+type NetworkOutcome string
+
+const (
+	NetworkOutcomeOK            NetworkOutcome = "ok"
+	NetworkOutcomeClosed        NetworkOutcome = "closed"
+	NetworkOutcomeRefused       NetworkOutcome = "refused"
+	NetworkOutcomeDeadline      NetworkOutcome = "deadline"
+	NetworkOutcomePartitionDrop NetworkOutcome = "partition_drop"
+	NetworkOutcomeStaleDrop     NetworkOutcome = "stale_drop"
+	NetworkOutcomeReset         NetworkOutcome = "reset"
+	NetworkOutcomeCapacity      NetworkOutcome = "capacity"
+	NetworkOutcomeUnsupported   NetworkOutcome = "unsupported"
+)
+type NetworkRecord struct {
+	Transitions []NetworkTransition `json:"transitions"`
+	Snapshot    NetworkSnapshot     `json:"snapshot"`
+}
+
+type NetworkSnapshot struct {
+	Nodes            []NetworkNodeSnapshot       `json:"nodes"`
+	Links            []NetworkLinkSnapshot       `json:"links"`
+	Listeners        []NetworkListenerSnapshot   `json:"listeners"`
+	Connections      []NetworkConnectionSnapshot `json:"connections"`
+	Deliveries       []NetworkDeliverySnapshot   `json:"deliveries"`
+	NextConnection   uint64                      `json:"next_connection"`
+	NextDelivery     uint64                      `json:"next_delivery"`
+	TransitionSHA256 string                      `json:"transition_sha256"`
+	Identity         string                      `json:"identity"`
+}
+
+type NetworkTransition struct {
+	Ordinal       uint64                `json:"ordinal"`
+	Kind          NetworkTransitionKind `json:"kind"`
+	Source        NetworkEndpoint       `json:"source,omitempty"`
+	Destination   NetworkEndpoint       `json:"destination,omitempty"`
+	Connection    uint64                `json:"connection,omitempty"`
+	Delivery      uint64                `json:"delivery,omitempty"`
+	Bytes         uint64                `json:"bytes,omitempty"`
+	Count         uint64                `json:"count,omitempty"`
+	DelayNanos    uint64                `json:"delay_nanos,omitempty"`
+	Outcome       NetworkOutcome        `json:"outcome"`
+	PayloadSHA256 string                `json:"payload_sha256,omitempty"`
+}
+
+type NetworkTransitionKind string
+
+const (
+	NetworkListen           NetworkTransitionKind = "listen"
+	NetworkDial             NetworkTransitionKind = "dial"
+	NetworkAccept           NetworkTransitionKind = "accept"
+	NetworkWrite            NetworkTransitionKind = "write"
+	NetworkDeliver          NetworkTransitionKind = "deliver"
+	NetworkClose            NetworkTransitionKind = "close"
+	NetworkListenerClose    NetworkTransitionKind = "listener_close"
+	NetworkPartition        NetworkTransitionKind = "partition"
+	NetworkHeal             NetworkTransitionKind = "heal"
+	NetworkDelay            NetworkTransitionKind = "delay"
+	NetworkDisconnect       NetworkTransitionKind = "disconnect"
+	NetworkReconnect        NetworkTransitionKind = "reconnect"
+	NetworkDirectionalDelay NetworkTransitionKind = "directional_delay"
+	NetworkStop             NetworkTransitionKind = "stop"
+	NetworkCrash            NetworkTransitionKind = "crash"
+)
+type NodeContext struct {
+	NodeHandle
+	Address string `json:"address"`
+	Config  []byte `json:"config,omitempty"`
+}
+
+type NodeHandle struct {
+	Node        NodeID `json:"node"`
+	Incarnation uint64 `json:"incarnation"`
+}
+
+type NodeID string
+
+type NodeResult struct {
+	Handle NodeHandle `json:"handle"`
+	State  NodeState  `json:"state"`
+	Reason string     `json:"reason,omitempty"`
+}
+
+type NodeSpec struct {
+	ID      NodeID        `json:"id"`
+	Boot    BootID        `json:"boot"`
+	Address string        `json:"address"`
+	Config  []byte        `json:"config,omitempty"`
+	Volumes []VolumeMount `json:"volumes,omitempty"`
+}
+
+type NodeState string
+
+const (
+	NodeStateDefined NodeState = "defined"
+	NodeStateRunning NodeState = "running"
+	NodeStateExited  NodeState = "exited"
+	NodeStateStopped NodeState = "stopped"
+	NodeStateCrashed NodeState = "crashed"
+	NodeStateFailed  NodeState = "failed"
+)
+type Observation struct {
+	Ordinal    uint64     `json:"ordinal"`
+	ID         string     `json:"id"`
+	Kind       string     `json:"kind"`
+	Handle     NodeHandle `json:"handle,omitempty"`
+	Value      []byte     `json:"value"`
+	FullSHA256 string     `json:"full_sha256"`
+	Identity   string     `json:"identity"`
+}
+
+type OracleEvidence struct {
+	Label      string `json:"label"`
+	Value      []byte `json:"value"`
+	FullSHA256 string `json:"full_sha256"`
+}
+
+type OracleResult struct {
+	Name            string           `json:"name"`
+	Passed          bool             `json:"passed"`
+	Evidence        []OracleEvidence `json:"evidence"`
+	FailureIdentity string           `json:"failure_identity,omitempty"`
+	Identity        string           `json:"identity"`
+}
+
+func EventualConvergence(name string, values map[string][]byte, maximumBytes uint64) (OracleResult, error)
+
+func ExactHistory(name string, expected, actual []HistoryOperation, maximumBytes uint64) (OracleResult, error)
+
+func NoDuplicateOrLost(name string, expected, actual []string, maximumBytes uint64) (OracleResult, error)
+
+func StateInvariant(name string, passed bool, evidence []OracleEvidence, maximumBytes uint64) (OracleResult, error)
+
+type Outcome string
+
+const (
+	OutcomeCompleted      Outcome = "completed"
+	OutcomeScenarioFailed Outcome = "scenario_failed"
+	OutcomeOracleFailed   Outcome = "oracle_failed"
+	OutcomeReplayDiverged Outcome = "replay_diverged"
+)
+type OutputObservation struct {
+	Handle         NodeHandle   `json:"handle"`
+	Stream         OutputStream `json:"stream"`
+	Bytes          []byte       `json:"bytes"`
+	FullSHA256     string       `json:"full_sha256"`
+	TotalBytes     uint64       `json:"total_bytes"`
+	RetainedBytes  uint64       `json:"retained_bytes"`
+	DiscardedBytes uint64       `json:"discarded_bytes"`
+	Truncated      bool         `json:"truncated"`
+}
+
+type OutputStream string
+
+const (
+	OutputStdout OutputStream = "stdout"
+	OutputStderr OutputStream = "stderr"
+)
+type ReplayDimension string
+
+const (
+	ReplayDimensionTransition  ReplayDimension = "transition"
+	ReplayDimensionNetwork     ReplayDimension = "network"
+	ReplayDimensionVolume      ReplayDimension = "volume"
+	ReplayDimensionFault       ReplayDimension = "fault"
+	ReplayDimensionScenario    ReplayDimension = "scenario"
+	ReplayDimensionExploration ReplayDimension = "exploration"
+	ReplayDimensionEvidence    ReplayDimension = "evidence"
+	ReplayDimensionTerminal    ReplayDimension = "terminal"
+)
+type ReplayDivergence struct {
+	Dimension                   ReplayDimension      `json:"dimension"`
+	Ordinal                     uint64               `json:"ordinal"`
+	Expected                    LifecycleTransition  `json:"expected"`
+	Actual                      LifecycleTransition  `json:"actual"`
+	ExpectedSHA256              string               `json:"expected_sha256,omitempty"`
+	ActualSHA256                string               `json:"actual_sha256,omitempty"`
+	ExpectedNetwork             *NetworkTransition   `json:"expected_network,omitempty"`
+	ActualNetwork               *NetworkTransition   `json:"actual_network,omitempty"`
+	ExpectedVolume              *VolumeTransition    `json:"expected_volume,omitempty"`
+	ActualVolume                *VolumeTransition    `json:"actual_volume,omitempty"`
+	ExpectedFault               *FaultAction         `json:"expected_fault,omitempty"`
+	ActualFault                 *FaultAction         `json:"actual_fault,omitempty"`
+	ExpectedScenario            *ScenarioDecision    `json:"expected_scenario,omitempty"`
+	ActualScenario              *ScenarioDecision    `json:"actual_scenario,omitempty"`
+	ExpectedExplorationOverride *ExplorationOverride `json:"expected_exploration_override,omitempty"`
+	ExpectedExploration         *ExplorationDecision `json:"expected_exploration,omitempty"`
+	ActualExploration           *ExplorationDecision `json:"actual_exploration,omitempty"`
+}
+
+type ReplayDivergenceError struct {
+	Divergence ReplayDivergence
+}
+
+func (err *ReplayDivergenceError) Error() string
+
+func (err *ReplayDivergenceError) Unwrap() error
+
+type ReplayPlan struct {
+	Schema               string                  `json:"schema"`
+	SpecSHA256           string                  `json:"spec_sha256"`
+	Static               ClusterStaticIdentities `json:"static_identities"`
+	Models               ClusterModelIdentities  `json:"model_identities"`
+	Outcome              Outcome                 `json:"outcome"`
+	Reason               string                  `json:"reason,omitempty"`
+	FailureIdentity      string                  `json:"failure_identity,omitempty"`
+	Nodes                []NodeResult            `json:"nodes"`
+	Transitions          []LifecycleTransition   `json:"transitions"`
+	FaultPlan            FaultPlan               `json:"fault_plan"`
+	Faults               []FaultRealization      `json:"faults"`
+	ExplorationPlan      *ExplorationPlan        `json:"exploration_plan,omitempty"`
+	ExplorationDecisions []ExplorationDecision   `json:"exploration_decisions,omitempty"`
+	ScenarioChoices      ScenarioChoicePlan      `json:"scenario_choice_plan"`
+	Scenarios            []ScenarioDecision      `json:"scenario_tape"`
+	History              []HistoryOperation      `json:"history"`
+	Observations         []Observation           `json:"observations"`
+	Oracles              []OracleResult          `json:"oracles"`
+	Network              NetworkRecord           `json:"network"`
+	Volumes              VolumeRecord            `json:"volumes"`
+	Outputs              []OutputObservation     `json:"outputs"`
+	Leaks                []LeakDiagnostic        `json:"leaks"`
+	Identity             string                  `json:"identity"`
+}
+
+func ReplayPlanFor(record ClusterRecord) (ReplayPlan, error)
+
+type Result struct {
+	Outcome         Outcome             `json:"outcome"`
+	Reason          string              `json:"reason,omitempty"`
+	FailureIdentity string              `json:"failure_identity,omitempty"`
+	Nodes           []NodeResult        `json:"nodes"`
+	Outputs         []OutputObservation `json:"outputs"`
+	Leaks           []LeakDiagnostic    `json:"leaks"`
+	Network         NetworkRecord       `json:"network"`
+	Volumes         VolumeRecord        `json:"volumes"`
+	Faults          []FaultRealization  `json:"faults"`
+	Scenarios       []ScenarioDecision  `json:"scenario_tape"`
+	History         []HistoryOperation  `json:"history"`
+	Observations    []Observation       `json:"observations"`
+	Oracles         []OracleResult      `json:"oracles"`
+	Divergence      *ReplayDivergence   `json:"divergence,omitempty"`
+	Record          ClusterRecord       `json:"record"`
+}
+
+func Run(ctx context.Context, spec Spec, scenario Scenario) (Result, error)
+
+type Scenario func(context.Context, Cluster) error
+
+func BoundedParallel(id string, maximum uint64, steps ...ScenarioStep) Scenario
+
+func Choose(id string, steps ...ScenarioStep) Scenario
+
+func Sequence(steps ...ScenarioStep) Scenario
+
+type ScenarioChoiceOverride struct {
+	Ordinal      uint64   `json:"ordinal"`
+	ID           string   `json:"id"`
+	Occurrence   uint64   `json:"occurrence"`
+	Alternatives []string `json:"alternatives"`
+	Selected     uint64   `json:"selected"`
+	Identity     string   `json:"identity"`
+}
+
+type ScenarioChoicePlan struct {
+	Schema    string                   `json:"schema"`
+	Overrides []ScenarioChoiceOverride `json:"overrides"`
+	Identity  string                   `json:"identity"`
+}
+
+func DecodeScenarioChoicePlan(data []byte) (ScenarioChoicePlan, error)
+
+func NewScenarioChoicePlan(overrides []ScenarioChoiceOverride) (ScenarioChoicePlan, error)
+
+type ScenarioDecision struct {
+	Ordinal      uint64               `json:"ordinal"`
+	ID           string               `json:"id"`
+	Kind         ScenarioDecisionKind `json:"kind"`
+	Occurrence   uint64               `json:"occurrence"`
+	Alternatives []string             `json:"alternatives,omitempty"`
+	Selected     uint64               `json:"selected,omitempty"`
+	Identity     string               `json:"identity"`
+}
+
+type ScenarioDecisionKind string
+
+const (
+	ScenarioDecisionAction   ScenarioDecisionKind = "action"
+	ScenarioDecisionChoose   ScenarioDecisionKind = "choose"
+	ScenarioDecisionParallel ScenarioDecisionKind = "parallel"
+)
+type ScenarioStep struct {
+	// Has unexported fields.
+}
+
+func NewScenarioStep(id string, scenario Scenario) (ScenarioStep, error)
+
+func Repeat(count uint64, step ScenarioStep) ScenarioStep
+
+type Spec struct {
+	Schema          string              `json:"schema"`
+	Backend         Backend             `json:"backend"`
+	Fidelity        Fidelity            `json:"fidelity"`
+	Seed            uint64              `json:"seed"`
+	Limits          Limits              `json:"limits"`
+	Nodes           []NodeSpec          `json:"nodes"`
+	Links           []LinkSpec          `json:"links,omitempty"`
+	Volumes         []VolumeSpec        `json:"volumes,omitempty"`
+	Faults          *FaultPlan          `json:"faults,omitempty"`
+	Exploration     *ExplorationPlan    `json:"exploration,omitempty"`
+	ScenarioChoices *ScenarioChoicePlan `json:"scenario_choice_plan,omitempty"`
+	Replay          *ReplayPlan         `json:"replay,omitempty"`
+}
+
+func DecodeSpec(data []byte) (Spec, error)
+
+type VolumeCrashCapacity string
+
+const (
+	VolumeCrashCapacityStates     VolumeCrashCapacity = "states"
+	VolumeCrashCapacityOperations VolumeCrashCapacity = "operations"
+	VolumeCrashCapacityDepth      VolumeCrashCapacity = "depth"
+	VolumeCrashCapacityBytes      VolumeCrashCapacity = "bytes"
+	VolumeCrashCapacityWall       VolumeCrashCapacity = "wall"
+)
+type VolumeCrashEntry struct {
+	Path    string `json:"path"`
+	Mode    uint32 `json:"mode"`
+	Kind    string `json:"kind"`
+	ModTime int64  `json:"mod_time"`
+	Data    []byte `json:"data"`
+}
+
+type VolumeCrashEnumeration struct {
+	States   []VolumeCrashState   `json:"states"`
+	Frontier *VolumeCrashFrontier `json:"frontier,omitempty"`
+	Complete bool                 `json:"complete"`
+	Capacity VolumeCrashCapacity  `json:"capacity,omitempty"`
+}
+
+type VolumeCrashEnumerationLimits struct {
+	States     uint64 `json:"states"`
+	Operations uint64 `json:"operations"`
+	Depth      uint64 `json:"depth"`
+	Bytes      uint64 `json:"bytes"`
+	WallNanos  uint64 `json:"wall_nanos"`
+}
+
+type VolumeCrashFrontier struct {
+	Volume        VolumeID `json:"volume"`
+	PendingSHA256 string   `json:"pending_sha256"`
+	Cursor        []byte   `json:"cursor"`
+	Seen          []string `json:"seen"`
+	Identity      string   `json:"identity"`
+}
+
+type VolumeCrashState struct {
+	Volume             VolumeID           `json:"volume"`
+	PendingSHA256      string             `json:"pending_sha256"`
+	SelectedOperations []uint64           `json:"selected_operations"`
+	Entries            []VolumeCrashEntry `json:"entries"`
+	Identity           string             `json:"identity"`
+}
+
+type VolumeEntrySnapshot struct {
+	Path       string `json:"path"`
+	Mode       uint32 `json:"mode"`
+	Kind       string `json:"kind"`
+	ModTime    int64  `json:"mod_time"`
+	Size       uint64 `json:"size"`
+	DataSHA256 string `json:"data_sha256,omitempty"`
+}
+
+type VolumeID string
+
+type VolumeMount struct {
+	Volume VolumeID `json:"volume"`
+	Path   string   `json:"path"`
+}
+
+type VolumeOutcome string
+
+const (
+	VolumeOutcomeOK       VolumeOutcome = "ok"
+	VolumeOutcomeCapacity VolumeOutcome = "capacity"
+	VolumeOutcomeStale    VolumeOutcome = "stale"
+)
+type VolumeRecord struct {
+	Transitions []VolumeTransition `json:"transitions"`
+	Snapshot    VolumeSnapshot     `json:"snapshot"`
+}
+
+type VolumeSnapshot struct {
+	Volumes          []VolumeStateSnapshot `json:"volumes"`
+	TransitionSHA256 string                `json:"transition_sha256"`
+	Identity         string                `json:"identity"`
+}
+
+type VolumeSpec struct {
+	ID            VolumeID `json:"id"`
+	CapacityBytes uint64   `json:"capacity_bytes"`
+}
+
+type VolumeStateSnapshot struct {
+	Volume            VolumeID              `json:"volume"`
+	Node              NodeID                `json:"node"`
+	Mount             string                `json:"mount"`
+	CapacityBytes     uint64                `json:"capacity_bytes"`
+	Persisted         []VolumeEntrySnapshot `json:"persisted"`
+	Volatile          []VolumeEntrySnapshot `json:"volatile"`
+	PendingOperations uint64                `json:"pending_operations"`
+	PendingSHA256     string                `json:"pending_sha256"`
+	NextOperation     uint64                `json:"next_operation"`
+	Identity          string                `json:"identity"`
+}
+
+type VolumeTransition struct {
+	Ordinal            uint64               `json:"ordinal"`
+	Kind               VolumeTransitionKind `json:"kind"`
+	Handle             NodeHandle           `json:"handle"`
+	Volume             VolumeID             `json:"volume"`
+	Operation          uint64               `json:"operation,omitempty"`
+	Dependencies       []uint64             `json:"dependencies,omitempty"`
+	SelectedOperations []uint64             `json:"selected_operations,omitempty"`
+	Path               string               `json:"path,omitempty"`
+	Destination        string               `json:"destination,omitempty"`
+	Inode              uint64               `json:"inode,omitempty"`
+	Offset             uint64               `json:"offset,omitempty"`
+	Bytes              uint64               `json:"bytes,omitempty"`
+	PayloadSHA256      string               `json:"payload_sha256,omitempty"`
+	EffectSHA256       string               `json:"effect_sha256,omitempty"`
+	Outcome            VolumeOutcome        `json:"outcome"`
+}
+
+type VolumeTransitionKind string
+
+const (
+	VolumeOperationAllocate      VolumeTransitionKind = "allocate"
+	VolumeOperationResize        VolumeTransitionKind = "resize"
+	VolumeOperationWrite         VolumeTransitionKind = "write"
+	VolumeOperationMetadata      VolumeTransitionKind = "metadata"
+	VolumeOperationNamespace     VolumeTransitionKind = "namespace"
+	VolumeOperationFileSync      VolumeTransitionKind = "file_sync"
+	VolumeOperationDirectorySync VolumeTransitionKind = "directory_sync"
+	VolumeOperationFlush         VolumeTransitionKind = "flush"
+	VolumeOperationCrash         VolumeTransitionKind = "crash"
+)

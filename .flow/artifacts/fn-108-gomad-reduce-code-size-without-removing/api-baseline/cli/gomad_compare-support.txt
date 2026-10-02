@@ -1,0 +1,13 @@
+$ gomad compare-support --help
+exit status: 2
+--- stdout
+--- stderr
+Usage of gomad compare-support:
+  -approve-boundary-diff string
+    	exact approved boundary diff SHA-256
+  -baseline string
+    	baseline qualification-set report
+  -candidate string
+    	candidate qualification-set report
+  -format string
+    	text or json (default "text")

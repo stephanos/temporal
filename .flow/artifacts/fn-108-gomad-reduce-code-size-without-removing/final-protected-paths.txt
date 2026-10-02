@@ -1,0 +1,64 @@
+$ git diff --stat 6782b55f49a0317b230e827ea2a63a37d116d502 -- tools/gomad3/internal/compatibilitypack "tools/gomad3/qualification/*.json" tools/gomad3integration/qualification ":(glob)tools/gomad3/**/schema/**" ":(glob)tools/**/*.json" ":(glob)tools/**/*.tmpl" ":(glob)tools/**/*.patch" tools/gomad3/toolchain/runtime tools/gomad3sim tools/gomad3integration
+(exit 0; empty output above means no tracked change)
+$ git status --short --untracked-files=all -- <same paths>
+(exit 0; empty output above means no untracked or modified path)
+$ git diff --stat 6782b55f49a0317b230e827ea2a63a37d116d502 -- tools/gomad3 tools/gomad3sim tools/gomad3integration
+ tools/gomad3/ARCHITECTURE.md                       |   6 +-
+ tools/gomad3/architecture_test.go                  |   2 +-
+ tools/gomad3/deterministicio/domain.go             |  57 -----
+ tools/gomad3/deterministicio/memory_adapter.go     | 116 +++-------
+ .../gomad3/deterministicio/memory_adapter_test.go  | 111 ++++++++-
+ tools/gomad3/qualification/set/set.go              |  31 ---
+ tools/gomad3/runner/campaign.go                    |   4 -
+ tools/gomad3/runner/choice_exploration_campaign.go |  87 ++------
+ tools/gomad3/runner/deterministicio.go             |   8 -
+ tools/gomad3/runner/guidance.go                    |   6 +-
+ .../runner/internal/campaign/campaign_journal.go   |   4 -
+ tools/gomad3/runner/internal/campaign/merge.go     |   5 +-
+ .../internal/campaign/merge_capacity_test.go       |  40 ++++
+ .../gomad3/runner/internal/minimizer/minimizer.go  |  18 --
+ .../runner/internal/minimizer/minimizer_test.go    |  11 -
+ tools/gomad3/runner/minimize_operation.go          |   8 +-
+ tools/gomad3/runner/portable_plan.go               |   5 -
+ tools/gomad3/runner/portable_plan_test.go          |  34 +++
+ tools/gomad3/runner/runner.go                      | 155 +++----------
+ tools/gomad3/runner/runner_test.go                 |  26 ++-
+ .../runner/simulation_exploration_campaign.go      |  92 ++------
+ tools/gomad3/target/capability.go                  |  11 -
+ tools/gomad3/upgrade/upgrade.go                    |  23 +-
+ tools/gomad3/upgrade/upgrade_test.go               | 248 +++++++++++++++++++++
+ 24 files changed, 557 insertions(+), 551 deletions(-)
+$ git status --short --untracked-files=all -- tools/gomad3 tools/gomad3sim tools/gomad3integration
+ M tools/gomad3/ARCHITECTURE.md
+ M tools/gomad3/architecture_test.go
+ M tools/gomad3/deterministicio/domain.go
+ M tools/gomad3/deterministicio/memory_adapter.go
+ M tools/gomad3/deterministicio/memory_adapter_test.go
+ M tools/gomad3/qualification/set/set.go
+ M tools/gomad3/runner/campaign.go
+ M tools/gomad3/runner/choice_exploration_campaign.go
+ M tools/gomad3/runner/deterministicio.go
+ M tools/gomad3/runner/guidance.go
+ M tools/gomad3/runner/internal/campaign/campaign_journal.go
+ M tools/gomad3/runner/internal/campaign/merge.go
+ M tools/gomad3/runner/internal/campaign/merge_capacity_test.go
+ M tools/gomad3/runner/internal/minimizer/minimizer.go
+ M tools/gomad3/runner/internal/minimizer/minimizer_test.go
+ M tools/gomad3/runner/minimize_operation.go
+ M tools/gomad3/runner/portable_plan.go
+ M tools/gomad3/runner/portable_plan_test.go
+ M tools/gomad3/runner/runner.go
+ M tools/gomad3/runner/runner_test.go
+ M tools/gomad3/runner/simulation_exploration_campaign.go
+ M tools/gomad3/target/capability.go
+ M tools/gomad3/upgrade/upgrade.go
+ M tools/gomad3/upgrade/upgrade_test.go
+?? tools/gomad3/runner/completion.go
+?? tools/gomad3/runner/completion_characterization_test.go
+?? tools/gomad3/runner/completion_test.go
+?? tools/gomad3/runner/retention.go
+?? tools/gomad3/runner/retention_characterization_test.go
+?? tools/gomad3/runner/retention_test.go
+?? tools/gomad3/upgrade/upgrade_unix_test.go
+$ git diff --cached --stat
+(empty: nothing staged)

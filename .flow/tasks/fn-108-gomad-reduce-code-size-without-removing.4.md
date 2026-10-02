@@ -57,9 +57,24 @@ Equivalence pin: add (or extend an existing upgrade test with) an assertion that
 
 
 ## Done summary
-TBD
+`upgrade.publish` now writes the dossier through `hostfs.Replace(path, contents, 0o644)`; the private temp-file/chmod/write/close/rename sequence is gone. Payload bytes, trailing newline, mode, destination, replace-over-existing and publication before the gate-failure return are unchanged and pinned by tests. Nothing is staged or committed.
 
+- Errors are now `publish upgrade dossier: <hostfs stage>: ...`; the wrapped OS error is unchanged. File sync, directory sync and temp-file cleanup failures are newly reported (documented in one sentence in `tools/gomad3/ARCHITECTURE.md`). A directory-sync failure returns after the rename, with the complete new dossier in place.
+- `ownerMayImport` gains only the `upgrade` -> `hostfs` edge; without it `TestPackageArchitecture` fails.
+- Tests written before the switch and green against both publishers: golden bytes, mode and replacement (`TestPublishWritesFixedDossierBytes`), failed-gate replacement (`TestRunReplacesExistingDossierAfterFailedGate`), create/mkdir/rename failures with the prior dossier intact and the publication error ahead of the gate error (`TestRunReportsPublicationFailureAndKeepsPriorDossier`), and a real partial-write failure under `RLIMIT_FSIZE` in a child process (`TestRunKeepsPriorDossierWhenWriteFails`, unix). A direct `os.WriteFile` mutant fails all four.
+- Not injected: close, file-sync, directory-sync and cleanup failures. They need a seam in `internal/hostfs`, which is outside this task's Touches; follow-up for the hostfs owner.
+- Size: `upgrade/upgrade.go` 515 -> 496 code lines (production Go -19). `go doc -all` of `upgrade` is identical to the baseline.
+- Gates on darwin/arm64, all exit 0: focused `go test` for `./upgrade/... ./internal/hostfs ./cmd/gomadtool`, the three architecture tests, `gofmt`, `go vet`, `make -C tools/gomad3 validate`. Not run: full `make -C tools/gomad3 test` (conductor instruction, fn-108.2 edits concurrently; `gate classify` reports FULL, no receipt written) and every linux/amd64 gate (no host; a `GOOS=linux` vet compile check passed).
+
+Evidence: `.flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/task4-evidence.md`, `task4-review.md`, `task4-working-tree.diff`.
+
+baseline: green (focused Quick commands, before any edit)
+
+stage: impl-review - ran (raw codex bridge on working-tree diff; commits forbidden) (model: gpt-5.6-sol) [round 1 SHIP, no findings]
+stage: plan-sync - skipped(config: planSync.enabled != true)
+
+GATE_SKIPPED lines: none.
 ## Evidence
 - Commits:
-- Tests:
+- Tests: env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep ./upgrade/... ./internal/hostfs ./cmd/gomadtool, env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep . -run 'TestPackageArchitecture|TestExactModuleEdges|TestUpgradeOrchestrationIsAboveToolchain', GOWORK=off .toolchain/bin/go vet -tags test_dep ./upgrade/... ., GOOS=linux GOARCH=amd64 GOWORK=off .toolchain/bin/go vet -tags test_dep ./upgrade/ (compile check only), make -C tools/gomad3 validate, NOT RUN: make -C tools/gomad3 test (conductor instruction; concurrent fn-108.2 edits), NOT RUN: linux/amd64 gates (no host)
 - PRs:

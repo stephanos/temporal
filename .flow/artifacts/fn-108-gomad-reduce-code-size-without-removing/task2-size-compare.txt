@@ -1,0 +1,20 @@
+# fn-108 size-compare: current minus baseline
+class                  files  physical      code  codebytes
+production-go             +0      -158      -146      -4631
+overlay-go                +0        +0        +0         +0
+generated-go              +0        +0        +0         +0
+protocol-input            +0        +0        +0         +0
+other-non-markdown        +0        +0        +0         +0
+other-markdown            +0        +4        +4       +230
+test-go                   +1      +386      +364     +10334
+
+files that changed class: 0
+
+offsetting growth, summed over files that grew or are new:
+  overlay-go           code +0 codebytes +0
+  generated-go         code +0 codebytes +0
+  protocol-input       code +0 codebytes +0
+  other-non-markdown   code +0 codebytes +0
+
+residual (production change plus offsetting growth): code -146 codebytes -4631
+R1 size condition: PASS

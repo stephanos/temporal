@@ -1,0 +1,203 @@
+# triggerAutoEnable phase of TestFairnessAutoEnableSuite/Test_Activity_Basic, reduced by fn105-d19-trigger.py (repeated GetTaskQueueTasks polls elided)
+
+=== Gomad leaf, strict, seed 11: FAILS at :508 (restored checkout 6782b55f4)
+00:00:00.000 info  Register namespace succeeded | 
+00:00:00.000 debug Frontend method invoked. | operation=StartWorkflowExecution
+00:00:00.000 debug Assigning new task key | queue-task-type=VisibilityStartExecution wf-id=trigger
+00:00:00.000 debug Assigning new task key | queue-task-type=TransferWorkflowTask wf-id=trigger
+00:00:00.000 debug Process task as active. | task=WorkflowTask
+00:00:00.000 info  loaded user data from db | wf-task-queue-type=Workflow user-data-version=0
+00:00:00.000 info  Started physicalTaskQueueManager | backlog=classic cause=Task lifecycle=Started wf-task-queue-type=Workflow
+00:00:00.000 debug Frontend method invoked. | operation=GetTaskQueueTasks
+00:00:00.100 debug Frontend method invoked. | operation=GetTaskQueueTasks
+00:00:00.100 info  modified user data | wf-task-queue-type=Workflow user-data-version=1 user-data-update-source=Matching auto enable
+00:00:00.100 debug unloading partitionManager due to change in FairnessState | wf-task-queue-type=Workflow
+00:00:00.100 info  Stopped physicalTaskQueueManager | backlog=classic cause=ConfigChange lifecycle=Stopped wf-task-queue-type=Workflow
+00:00:01.057 info  loaded user data from db | wf-task-queue-type=Workflow user-data-version=1
+00:00:01.057 info  Started physicalTaskQueueManager | backlog=fairness cause=Task lifecycle=Started wf-task-queue-type=Workflow
+00:00:01.057 info  Starting draining | backlog=priority-drain wf-task-queue-type=Workflow
+00:00:01.100 debug Frontend method invoked. | operation=PollWorkflowTaskQueue
+00:00:01.100 debug Poll workflow task queue. | 
+00:00:01.100 debug Assigning new task key | queue-task-type=WorkflowTaskTimeout wf-id=trigger
+00:00:01.100 debug Frontend method invoked. | operation=RespondWorkflowTaskCompleted
+00:00:01.100 debug RespondWorkflowTaskCompleted | wf-id=trigger
+00:00:01.100 debug Assigning new task key | queue-task-type=VisibilityUpsertExecution wf-id=trigger
+00:00:01.100 debug Assigning new task key | queue-task-type=TransferActivityTask wf-id=trigger
+00:00:01.100 debug Assigning new task key | queue-task-type=ActivityTimeout wf-id=trigger
+00:00:01.100 debug Process task as active. | 
+00:00:01.100 debug returning user data | wf-task-queue-type=Workflow user-data-version=1 long-poll=false
+00:00:01.100 info  fetched user data from parent | wf-task-queue-type=Activity user-data-version=1
+00:00:01.100 info  Started physicalTaskQueueManager | backlog=classic cause=Task lifecycle=Started wf-task-queue-type=Activity
+00:00:01.100 debug Frontend method invoked. | operation=PollActivityTaskQueue
+00:00:01.200 info  modified user data | wf-task-queue-type=Workflow user-data-version=2 user-data-update-source=Matching auto enable
+00:00:01.200 debug user data changed while blocked in long poll | wf-task-queue-type=Workflow
+00:00:01.200 debug returning user data | wf-task-queue-type=Workflow user-data-version=2 long-poll=true
+00:00:01.200 info  fetched user data from parent | wf-task-queue-type=Activity user-data-version=2
+00:00:01.200 debug unloading partitionManager due to change in FairnessState | wf-task-queue-type=Activity
+00:00:01.200 info  Stopped physicalTaskQueueManager | backlog=classic cause=ConfigChange lifecycle=Stopped wf-task-queue-type=Activity
+TEST  Error Trace:	go.temporal.io/server/tests/priority_fairness_test.go:508
+TEST  Error:      	Received unexpected error:
+TEST  failed to poll activity task: taskpoller test helper timed out while waiting for the PollActivityTaskQueue API response, meaning no activity task was ever created
+TEST  --- FAIL: TestFairnessAutoEnableSuite/Test_Activity_Basic (1.20s)
+
+=== Gomad leaf, strict, seed 17: passes (restored checkout 6782b55f4)
+00:00:00.000 info  Register namespace succeeded | 
+00:00:00.000 debug Frontend method invoked. | operation=StartWorkflowExecution
+00:00:00.000 debug Assigning new task key | queue-task-type=VisibilityStartExecution wf-id=trigger
+00:00:00.000 debug Assigning new task key | queue-task-type=TransferWorkflowTask wf-id=trigger
+00:00:00.000 debug Process task as active. | task=WorkflowTask
+00:00:00.000 info  loaded user data from db | wf-task-queue-type=Workflow user-data-version=0
+00:00:00.000 info  Started physicalTaskQueueManager | backlog=classic cause=Task lifecycle=Started wf-task-queue-type=Workflow
+00:00:00.000 debug Frontend method invoked. | operation=GetTaskQueueTasks
+00:00:00.100 info  modified user data | wf-task-queue-type=Workflow user-data-version=1 user-data-update-source=Matching auto enable
+00:00:00.100 debug unloading partitionManager due to change in FairnessState | wf-task-queue-type=Workflow
+00:00:00.100 info  Stopped physicalTaskQueueManager | backlog=classic cause=ConfigChange lifecycle=Stopped wf-task-queue-type=Workflow
+00:00:00.100 debug Frontend method invoked. | operation=GetTaskQueueTasks
+00:00:01.057 info  loaded user data from db | wf-task-queue-type=Workflow user-data-version=1
+00:00:01.057 info  Started physicalTaskQueueManager | backlog=fairness cause=Task lifecycle=Started wf-task-queue-type=Workflow
+00:00:01.057 info  Starting draining | backlog=priority-drain wf-task-queue-type=Workflow
+00:00:01.100 debug Frontend method invoked. | operation=PollWorkflowTaskQueue
+00:00:01.100 debug Poll workflow task queue. | 
+00:00:01.100 debug Assigning new task key | queue-task-type=WorkflowTaskTimeout wf-id=trigger
+00:00:01.100 debug Frontend method invoked. | operation=RespondWorkflowTaskCompleted
+00:00:01.100 debug RespondWorkflowTaskCompleted | wf-id=trigger
+00:00:01.100 debug Assigning new task key | queue-task-type=VisibilityUpsertExecution wf-id=trigger
+00:00:01.100 debug Assigning new task key | queue-task-type=TransferActivityTask wf-id=trigger
+00:00:01.100 debug Assigning new task key | queue-task-type=ActivityTimeout wf-id=trigger
+00:00:01.100 debug Process task as active. | 
+00:00:01.100 debug returning user data | wf-task-queue-type=Workflow user-data-version=1 long-poll=false
+00:00:01.100 debug Frontend method invoked. | operation=PollActivityTaskQueue
+00:00:01.100 info  fetched user data from parent | wf-task-queue-type=Activity user-data-version=1
+00:00:01.100 info  Started physicalTaskQueueManager | backlog=classic cause=Task lifecycle=Started wf-task-queue-type=Activity
+00:00:01.200 info  modified user data | wf-task-queue-type=Workflow user-data-version=2 user-data-update-source=Matching auto enable
+00:00:01.200 debug user data changed while blocked in long poll | wf-task-queue-type=Workflow
+00:00:01.200 debug returning user data | wf-task-queue-type=Workflow user-data-version=2 long-poll=true
+00:00:01.200 info  fetched user data from parent | wf-task-queue-type=Activity user-data-version=2
+00:00:01.200 debug unloading partitionManager due to change in FairnessState | wf-task-queue-type=Activity
+00:00:01.200 info  Stopped physicalTaskQueueManager | backlog=classic cause=ConfigChange lifecycle=Stopped wf-task-queue-type=Activity
+00:00:01.200 debug Frontend method invoked. | operation=RespondActivityTaskCompleted
+00:00:01.200 debug Assigning new task key | queue-task-type=TransferWorkflowTask wf-id=trigger
+00:00:01.200 debug Process task as active. | task=WorkflowTask
+00:00:01.200 debug Frontend method invoked. | operation=DeleteWorkflowExecution
+00:00:01.200 info  DeleteWorkflowExecution requested | wf-id=trigger
+00:00:01.200 debug Assigning new task key | queue-task-type=TransferCloseExecution wf-id=trigger
+00:00:01.200 debug Process task as active. | task=CloseExecutionTask
+00:00:01.200 debug Assigning new task key | queue-task-type=VisibilityDeleteExecution wf-id=trigger
+00:00:01.200 debug Frontend method invoked. | operation=StartWorkflowExecution
+
+=== Gomad suite, strict, seed 6, variant P+T (assert form): first poll returns empty, second poll receives the task (restored checkout)
+00:00:00.000 info  Register namespace succeeded | 
+00:00:00.000 debug Frontend method invoked. | operation=StartWorkflowExecution
+00:00:00.000 debug Assigning new task key | queue-task-type=VisibilityStartExecution wf-id=trigger
+00:00:00.000 debug Assigning new task key | queue-task-type=TransferWorkflowTask wf-id=trigger
+00:00:00.000 debug Process task as active. | task=WorkflowTask
+00:00:00.000 info  loaded user data from db | wf-task-queue-type=Workflow user-data-version=0
+00:00:00.000 info  Started physicalTaskQueueManager | backlog=classic cause=Task lifecycle=Started wf-task-queue-type=Workflow
+00:00:00.000 debug Frontend method invoked. | operation=GetTaskQueueTasks
+00:00:00.100 debug Frontend method invoked. | operation=GetTaskQueueTasks
+00:00:00.100 info  modified user data | wf-task-queue-type=Workflow user-data-version=1 user-data-update-source=Matching auto enable
+00:00:00.100 debug unloading partitionManager due to change in FairnessState | wf-task-queue-type=Workflow
+00:00:00.100 info  Stopped physicalTaskQueueManager | backlog=classic cause=ConfigChange lifecycle=Stopped wf-task-queue-type=Workflow
+00:00:00.919 info  loaded user data from db | wf-task-queue-type=Workflow user-data-version=1
+00:00:00.919 info  Started physicalTaskQueueManager | backlog=fairness cause=Task lifecycle=Started wf-task-queue-type=Workflow
+00:00:00.919 info  Starting draining | backlog=priority-drain wf-task-queue-type=Workflow
+00:00:01.000 debug Frontend method invoked. | operation=PollWorkflowTaskQueue
+00:00:01.000 debug Poll workflow task queue. | 
+00:00:01.000 debug Assigning new task key | queue-task-type=WorkflowTaskTimeout wf-id=trigger
+00:00:01.000 debug Frontend method invoked. | operation=RespondWorkflowTaskCompleted
+00:00:01.000 debug RespondWorkflowTaskCompleted | wf-id=trigger
+00:00:01.000 debug Assigning new task key | queue-task-type=VisibilityUpsertExecution wf-id=trigger
+00:00:01.000 debug Assigning new task key | queue-task-type=TransferActivityTask wf-id=trigger
+00:00:01.000 debug Assigning new task key | queue-task-type=ActivityTimeout wf-id=trigger
+00:00:01.000 debug Process task as active. | 
+00:00:01.000 debug returning user data | wf-task-queue-type=Workflow user-data-version=1 long-poll=false
+00:00:01.000 info  fetched user data from parent | wf-task-queue-type=Activity user-data-version=1
+00:00:01.000 debug Frontend method invoked. | operation=PollActivityTaskQueue
+00:00:01.000 info  Started physicalTaskQueueManager | backlog=classic cause=Task lifecycle=Started wf-task-queue-type=Activity
+00:00:01.100 info  modified user data | wf-task-queue-type=Workflow user-data-version=2 user-data-update-source=Matching auto enable
+00:00:01.100 debug returning user data | wf-task-queue-type=Workflow user-data-version=2 long-poll=true
+00:00:01.100 info  fetched user data from parent | wf-task-queue-type=Activity user-data-version=2
+00:00:01.100 debug unloading partitionManager due to change in FairnessState | wf-task-queue-type=Activity
+00:00:01.100 info  Stopped physicalTaskQueueManager | backlog=classic cause=ConfigChange lifecycle=Stopped wf-task-queue-type=Activity
+00:00:01.100 debug Frontend method invoked. | operation=PollActivityTaskQueue
+00:00:01.100 debug returning user data | wf-task-queue-type=Workflow user-data-version=2 long-poll=false
+00:00:01.100 info  fetched user data from parent | wf-task-queue-type=Activity user-data-version=2
+00:00:01.100 info  Started physicalTaskQueueManager | backlog=fairness cause=Poll lifecycle=Started wf-task-queue-type=Activity
+00:00:01.100 info  Starting draining | backlog=priority-drain wf-task-queue-type=Activity
+00:00:01.995 info  Stopped physicalTaskQueueManager | backlog=fairness cause=ConfigChange lifecycle=Stopped wf-task-queue-type=Workflow
+00:00:01.995 debug user data changed while blocked in long poll | wf-task-queue-type=Workflow
+00:00:01.995 debug Frontend method invoked. | operation=RespondActivityTaskCompleted
+00:00:01.995 debug Assigning new task key | queue-task-type=TransferWorkflowTask wf-id=trigger
+00:00:01.995 debug Process task as active. | task=WorkflowTask
+00:00:01.995 debug Frontend method invoked. | operation=DeleteWorkflowExecution
+00:00:01.995 info  DeleteWorkflowExecution requested | wf-id=trigger
+00:00:01.995 debug Assigning new task key | queue-task-type=TransferCloseExecution wf-id=trigger
+00:00:01.995 debug Process task as active. | task=CloseExecutionTask
+00:00:01.995 debug Assigning new task key | queue-task-type=VisibilityDeleteExecution wf-id=trigger
+00:00:01.995 debug Frontend method invoked. | operation=StartWorkflowExecution
+
+=== native suite run 1, unchanged test: passes
+08:59:01.269 info  Register namespace succeeded | 
+08:59:01.269 debug Frontend method invoked. | operation=StartWorkflowExecution
+08:59:01.273 debug Assigning new task key | queue-task-type=VisibilityStartExecution wf-id=trigger
+08:59:01.273 debug Assigning new task key | queue-task-type=TransferWorkflowTask wf-id=trigger
+08:59:01.275 debug Frontend method invoked. | operation=GetTaskQueueTasks
+08:59:01.308 debug Process task as active. | task=WorkflowTask
+08:59:01.308 info  loaded user data from db | wf-task-queue-type=Workflow user-data-version=0
+08:59:01.308 info  Started physicalTaskQueueManager | backlog=classic cause=Task lifecycle=Started wf-task-queue-type=Workflow
+08:59:01.376 debug Frontend method invoked. | operation=GetTaskQueueTasks
+08:59:01.411 info  modified user data | wf-task-queue-type=Workflow user-data-version=1 user-data-update-source=Matching auto enable
+08:59:01.411 debug unloading partitionManager due to change in FairnessState | wf-task-queue-type=Workflow
+08:59:01.411 info  Stopped physicalTaskQueueManager | backlog=classic cause=ConfigChange lifecycle=Stopped wf-task-queue-type=Workflow
+08:59:01.411 error Persistent store operation failure | backlog=classic wf-task-queue-type=Workflow error=context canceled
+08:59:01.411 error service failures | operation=AddWorkflowTask wf-id=trigger error=task queue shutting down
+08:59:01.411 warn  Fail to process task | lifecycle=ProcessingFailed queue-task-type=TransferWorkflowTask wf-id=trigger error=task queue shutting down
+08:59:01.411 debug Process task as active. | task=WorkflowTask
+08:59:01.412 info  loaded user data from db | wf-task-queue-type=Workflow user-data-version=1
+08:59:01.412 info  Started physicalTaskQueueManager | backlog=fairness cause=Task lifecycle=Started wf-task-queue-type=Workflow
+08:59:01.412 info  Starting draining | backlog=priority-drain wf-task-queue-type=Workflow
+08:59:01.476 debug Frontend method invoked. | operation=PollWorkflowTaskQueue
+08:59:01.476 debug Poll workflow task queue. | 
+08:59:01.477 debug Assigning new task key | queue-task-type=WorkflowTaskTimeout wf-id=trigger
+08:59:01.479 debug Frontend method invoked. | operation=RespondWorkflowTaskCompleted
+08:59:01.479 debug RespondWorkflowTaskCompleted | wf-id=trigger
+08:59:01.479 debug Assigning new task key | queue-task-type=VisibilityUpsertExecution wf-id=trigger
+08:59:01.479 debug Assigning new task key | queue-task-type=TransferActivityTask wf-id=trigger
+08:59:01.479 debug Assigning new task key | queue-task-type=ActivityTimeout wf-id=trigger
+08:59:01.480 debug Process task as active. | 
+08:59:01.480 debug Frontend method invoked. | operation=PollActivityTaskQueue
+08:59:01.480 debug returning user data | wf-task-queue-type=Workflow user-data-version=1 long-poll=false
+08:59:01.480 info  fetched user data from parent | wf-task-queue-type=Activity user-data-version=1
+08:59:01.480 info  Started physicalTaskQueueManager | backlog=classic cause=Task lifecycle=Started wf-task-queue-type=Activity
+08:59:01.581 info  modified user data | wf-task-queue-type=Workflow user-data-version=2 user-data-update-source=Matching auto enable
+08:59:01.581 debug user data changed while blocked in long poll | wf-task-queue-type=Workflow
+08:59:01.581 debug returning user data | wf-task-queue-type=Workflow user-data-version=2 long-poll=true
+08:59:01.582 info  fetched user data from parent | wf-task-queue-type=Activity user-data-version=2
+08:59:01.582 debug unloading partitionManager due to change in FairnessState | wf-task-queue-type=Activity
+08:59:01.582 info  Stopped physicalTaskQueueManager | backlog=classic cause=ConfigChange lifecycle=Stopped wf-task-queue-type=Activity
+08:59:01.583 debug Frontend method invoked. | operation=RespondActivityTaskCompleted
+08:59:01.583 debug Assigning new task key | queue-task-type=TransferWorkflowTask wf-id=trigger
+08:59:01.584 debug Process task as active. | task=WorkflowTask
+08:59:01.584 debug Frontend method invoked. | operation=DeleteWorkflowExecution
+08:59:01.584 info  DeleteWorkflowExecution requested | wf-id=trigger
+08:59:01.585 debug Assigning new task key | queue-task-type=TransferCloseExecution wf-id=trigger
+08:59:01.585 debug Process task as active. | task=CloseExecutionTask
+08:59:01.585 debug Assigning new task key | queue-task-type=VisibilityDeleteExecution wf-id=trigger
+08:59:01.585 debug Frontend method invoked. | operation=StartWorkflowExecution
+
+=== native leaf -count=30, run 24, unchanged test: FAILS at :468 after 10 s (100 GetTaskQueueTasks polls)
+09:07:39.777 info  Register namespace succeeded | 
+09:07:39.777 debug Frontend method invoked. | operation=StartWorkflowExecution
+09:07:39.777 debug Assigning new task key | queue-task-type=VisibilityStartExecution wf-id=trigger
+09:07:39.777 debug Assigning new task key | queue-task-type=TransferWorkflowTask wf-id=trigger
+09:07:39.778 debug Process task as active. | task=WorkflowTask
+09:07:39.778 debug Frontend method invoked. | operation=GetTaskQueueTasks
+09:07:39.780 info  loaded user data from db | wf-task-queue-type=Workflow user-data-version=0
+09:07:39.780 info  Started physicalTaskQueueManager | backlog=classic cause=Task lifecycle=Started wf-task-queue-type=Workflow
+09:07:39.878 debug Frontend method invoked. | operation=GetTaskQueueTasks
+09:07:39.880 info  modified user data | wf-task-queue-type=Workflow user-data-version=1 user-data-update-source=Matching auto enable
+09:07:39.880 debug unloading partitionManager due to change in FairnessState | wf-task-queue-type=Workflow
+09:07:39.881 info  Stopped physicalTaskQueueManager | backlog=classic cause=ConfigChange lifecycle=Stopped wf-task-queue-type=Workflow
+TEST  Error Trace:	/Users/stephan/Workspace/temporal/gomad/tests/priority_fairness_test.go:468
+TEST  Error:      	Condition never satisfied
+TEST  --- FAIL: TestFairnessAutoEnableSuite/Test_Activity_Basic (10.01s)

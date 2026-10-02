@@ -1,0 +1,9 @@
+$ gomadtool compatibility-pack check --help
+exit status: 2
+--- stdout
+--- stderr
+Usage of gomadtool compatibility-pack check:
+  -compatibility-root string
+    	absolute pack authoring root owned by another module (default: internal/compatibilitypack)
+  -root string
+    	Gomad v3 module root

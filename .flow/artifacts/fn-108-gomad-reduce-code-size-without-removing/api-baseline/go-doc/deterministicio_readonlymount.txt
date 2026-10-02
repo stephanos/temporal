@@ -1,0 +1,130 @@
+package readonlymount // import "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+
+
+VARIABLES
+
+var ErrCapacity = errors.New("read-only mount capacity exceeded")
+var ErrReplayDivergence = errors.New("read-only mount replay lookup was not captured")
+
+FUNCTIONS
+
+func DecodeCapturedInputs(manifest CapturedInputsManifest, descriptorBytes []byte, readPayload PayloadReader) ([]Mapping, Limits, Snapshot, error)
+func WriteLookupRequest(writer io.Writer, ordinal uint64, name string) error
+
+TYPES
+
+type Broker struct {
+	// Has unexported fields.
+}
+
+func Prepare(mappings []Mapping, limits Limits) (*Broker, error)
+
+func PrepareReplay(mappings []Mapping, limits Limits, snapshot Snapshot) (*Broker, error)
+
+func (broker *Broker) Captured() Snapshot
+
+func (broker *Broker) Close() error
+
+func (broker *Broker) Lookup(name string) (Entry, error)
+
+func (broker *Broker) Serve(requests io.Reader, responses io.Writer) error
+
+type CapturedInputLimits struct {
+	DirectoryEntries uint64
+	Files            uint64
+	PathBytes        uint64
+	Requests         uint64
+	SingleFileBytes  uint64
+	TotalBytes       uint64
+}
+
+func CapturedInputLimitsOf(limits Limits) CapturedInputLimits
+
+type CapturedInputs struct {
+	Manifest   CapturedInputsManifest
+	Descriptor []byte
+	Payloads   map[string][]byte
+}
+
+func CaptureReadOnlyMountInputs(mappings []Mapping, limits Limits) (_ CapturedInputs, retErr error)
+
+func EncodeCapturedInputs(mappings []Mapping, limits Limits, snapshot Snapshot) (CapturedInputs, error)
+
+type CapturedInputsManifest struct {
+	Bytes      uint64
+	Entries    uint64
+	File       string
+	Limits     CapturedInputLimits
+	Mappings   []string
+	NotExist   uint64
+	Schema     string
+	SHA256     record.SHA256
+	TotalBytes uint64
+}
+
+func CaptureReadOnlyMountInventory(mappings []Mapping, limits Limits) (_ CapturedInputsManifest, retErr error)
+
+type Child struct {
+	Name string
+	Mode os.FileMode
+	Kind Kind
+}
+
+type Entry struct {
+	Path     string
+	Mode     os.FileMode
+	Kind     Kind
+	Data     []byte
+	Children []Child
+}
+
+type Kind uint8
+
+const (
+	KindFile Kind = iota + 1
+	KindDirectory
+)
+type Limits struct {
+	PathBytes        uint64
+	Requests         uint64
+	Files            uint64
+	DirectoryEntries uint64
+	SingleFileBytes  uint64
+	TotalBytes       uint64
+}
+
+func DecodeLimits(limits CapturedInputLimits) (Limits, error)
+
+func DefaultLimits() Limits
+
+type Mapping struct {
+	Source string
+	Target string
+}
+
+func ParseMappings(values []string, workingDirectory string) ([]Mapping, error)
+
+type PayloadReader func(string, uint64) ([]byte, error)
+
+type Response struct {
+	Ordinal uint64
+	Status  Status
+	Entry   Entry
+}
+
+func ReadResponse(reader io.Reader, limits Limits) (Response, error)
+
+type Snapshot struct {
+	Entries    []Entry
+	NotExist   []string
+	Requests   uint64
+	TotalBytes uint64
+}
+
+type Status uint16
+
+const (
+	StatusOK        Status = Status(iowire.MountStatusOK)
+	StatusUnmounted Status = Status(iowire.MountStatusUnmounted)
+	StatusNotExist  Status = Status(iowire.MountStatusNotExist)
+)

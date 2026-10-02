@@ -1,0 +1,27 @@
+$ gomadtool build-key --help
+exit status: 2
+--- stdout
+--- stderr
+Usage of gomadtool build-key:
+  -archive-sha256 string
+    	source archive digest
+  -bash-path string
+    	build bash path
+  -bash-version string
+    	build bash version
+  -bootstrap-version string
+    	bootstrap Go version
+  -build-path string
+    	sterile build PATH
+  -go-version string
+    	Go release
+  -host-arch string
+    	host architecture
+  -host-os string
+    	host operating system
+  -overlay string
+    	overlay root
+  -patch string
+    	patch path
+  -recipe-version string
+    	build recipe version

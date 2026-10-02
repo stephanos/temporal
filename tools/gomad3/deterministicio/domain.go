@@ -7,8 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"strconv"
 	"unicode/utf8"
 )
 
@@ -39,36 +37,6 @@ type Adapter struct {
 	Version string `json:"version"`
 }
 
-type decimal uint64
-
-func (value decimal) MarshalJSON() ([]byte, error) {
-	return []byte(strconv.Quote(strconv.FormatUint(uint64(value), 10))), nil
-}
-
-func (value *decimal) UnmarshalJSON(data []byte) error {
-	if value == nil {
-		return errors.New("decode decimal string into nil destination")
-	}
-	var text string
-	if err := json.Unmarshal(data, &text); err != nil {
-		return errors.New("decimal integer must be a JSON string")
-	}
-	if text == "" || len(text) > 1 && text[0] == '0' {
-		return fmt.Errorf("invalid canonical decimal string %q", text)
-	}
-	for _, character := range text {
-		if character < '0' || character > '9' {
-			return fmt.Errorf("invalid canonical decimal string %q", text)
-		}
-	}
-	parsed, err := strconv.ParseUint(text, 10, 64)
-	if err != nil {
-		return fmt.Errorf("decimal string out of range: %w", err)
-	}
-	*value = decimal(parsed)
-	return nil
-}
-
 func canonicalJSON(value any) ([]byte, error) {
 	if err := validateCanonicalStrings(value); err != nil {
 		return nil, err
@@ -80,31 +48,6 @@ func canonicalJSON(value any) ([]byte, error) {
 		return nil, fmt.Errorf("encode JSON: %w", err)
 	}
 	return bytes.TrimSuffix(output.Bytes(), []byte{'\n'}), nil
-}
-
-func decodeCanonicalJSON(data []byte, destination any) error {
-	if !utf8.Valid(data) {
-		return errors.New("JSON is not valid UTF-8")
-	}
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.DisallowUnknownFields()
-	if err := decoder.Decode(destination); err != nil {
-		return fmt.Errorf("decode JSON: %w", err)
-	}
-	var trailing any
-	if err := decoder.Decode(&trailing); err == nil {
-		return errors.New("JSON contains trailing data")
-	} else if !errors.Is(err, io.EOF) {
-		return fmt.Errorf("decode trailing JSON: %w", err)
-	}
-	canonical, err := canonicalJSON(destination)
-	if err != nil {
-		return fmt.Errorf("canonicalize JSON: %w", err)
-	}
-	if !bytes.Equal(data, canonical) {
-		return errors.New("JSON is not canonical")
-	}
-	return nil
 }
 
 func validateCanonicalStrings(value any) error {

@@ -1,0 +1,11 @@
+--- a/service/history/api/respondworkflowtaskcompleted/api.go
++++ b/service/history/api/respondworkflowtaskcompleted/api.go
+@@ -321,7 +321,7 @@
+ 		// and new WT will be scheduled on non-sticky task queue (see ClearStickyTaskQueue call bellow).
+ 		wtHeartbeatTimeoutDuration := handler.config.WorkflowTaskHeartbeatTimeout(nsName)
+ 		if currentWorkflowTask.OriginalScheduledTime.UnixNano() > 0 &&
+-			handler.timeSource.Now().After(currentWorkflowTask.OriginalScheduledTime.Add(wtHeartbeatTimeoutDuration)) {
++			!handler.timeSource.Now().Before(currentWorkflowTask.OriginalScheduledTime.Add(wtHeartbeatTimeoutDuration)) {
+ 
+ 			scope := handler.metricsHandler.WithTags(
+ 				metrics.OperationTag(metrics.HistoryRespondWorkflowTaskCompletedScope),

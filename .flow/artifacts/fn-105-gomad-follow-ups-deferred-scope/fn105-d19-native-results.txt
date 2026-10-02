@@ -1,0 +1,53 @@
+# D19 native runs (go1.27.0 darwin/arm64, go test -tags test_dep ./tests -run <pattern> -count=1 -p 2 -timeout 15m -v), 2026-10-01
+# run | Test_Activity_Basic result | time of first measured activity poll | TransferActivityTasks started by then | unfairness | first dispatch completed after all 225 transfers started
+## unchanged test, 7ef3800a2c plus the shared uncommitted tree
+TestFairnessSuite suite run 1 | 1 pass 0 fail | 08:42:39.854 | 225/225 from 15/15 workflows | 0.45 | #1
+TestFairnessSuite suite run 2 | 1 pass 0 fail | 08:43:23.561 | 218/225 from 15/15 workflows | 0.45 | #1
+TestFairnessSuite suite run 3 | 1 pass 0 fail | 08:44:00.994 | 224/225 from 15/15 workflows | 0.45 | #1
+TestFairnessSuite leaf run 1 | 1 pass 0 fail | 08:44:23.490 | 212/225 from 15/15 workflows | 0.45 | #1
+TestFairnessSuite leaf run 2 | 1 pass 0 fail | 08:44:51.743 | 218/225 from 15/15 workflows | 0.45 | #1
+TestFairnessSuite leaf run 3 | 1 pass 0 fail | 08:45:25.146 | 212/225 from 15/15 workflows | 0.45 | #1
+TestFairnessAutoEnableSuite suite run 1 | 1 pass 0 fail | 08:59:01.671 | 225/225 from 15/15 workflows | 0.45 | #1
+TestFairnessAutoEnableSuite suite run 2 | 1 pass 0 fail | 08:59:17.631 | 225/225 from 15/15 workflows | 0.45 | #1
+TestFairnessAutoEnableSuite suite run 3 | 1 pass 0 fail | 08:59:28.115 | 223/225 from 15/15 workflows | 0.45 | #1
+TestFairnessAutoEnableSuite leaf run 1 | 1 pass 0 fail | 08:59:37.161 | 220/225 from 15/15 workflows | 0.45 | #1
+## unchanged test, leaf, -count=30 in one process: TestFairnessAutoEnableSuite/Test_Activity_Basic
+   1 FAIL:   29 PASS: 
+  29 unfairness: 0.45 
+run 24 of 30 failed:
+	Error Trace:	/Users/stephan/Workspace/temporal/gomad/tests/priority_fairness_test.go:468
+	            				/Users/stephan/Workspace/temporal/gomad/tests/priority_fairness_test.go:526
+	Error:      	Condition never satisfied
+	Test:       	TestFairnessAutoEnableSuite/Test_Activity_Basic
+--- FAIL: TestFairnessAutoEnableSuite (0.00s)
+## variant P+T (assert form: assert.NoError inside the trigger retry) through go test -overlay (tests/priority_fairness_test.go replaced by the variant; working tree untouched), 7ef3800a2c plus the shared uncommitted tree
+TestFairnessSuite suite run 1, variant P+T | 1 pass 0 fail | 09:06:08.926 | 225/225 from 15/15 workflows | 0.45 | #1
+TestFairnessSuite suite run 2, variant P+T | 1 pass 0 fail | 09:06:20.401 | 225/225 from 15/15 workflows | 0.45 | #1
+TestFairnessSuite suite run 3, variant P+T | 1 pass 0 fail | 09:06:29.946 | 225/225 from 15/15 workflows | 0.45 | #1
+TestFairnessAutoEnableSuite suite run 1, variant P+T | 1 pass 0 fail | 09:06:39.872 | 225/225 from 15/15 workflows | 0.45 | #1
+TestFairnessAutoEnableSuite suite run 2, variant P+T | 1 pass 0 fail | 09:06:50.317 | 225/225 from 15/15 workflows | 0.45 | #1
+TestFairnessAutoEnableSuite suite run 3, variant P+T | 1 pass 0 fail | 09:07:00.663 | 225/225 from 15/15 workflows | 0.45 | #1
+## restored checkout 6782b55f4
+TestFairnessSuite suite, unchanged | 1 pass 0 fail | 09:41:39.237 | 210/225 from 14/15 workflows | 0.45 | #1
+TestFairnessSuite suite, variant P+T, assert form (overlay) | 1 pass 0 fail | 09:41:52.145 | 225/225 from 15/15 workflows | 0.45 | #1
+TestFairnessAutoEnableSuite suite, unchanged | 1 pass 0 fail | 09:42:03.509 | 225/225 from 15/15 workflows | 0.45 | #1
+TestFairnessAutoEnableSuite suite, variant P+T, assert form (overlay) | 1 pass 0 fail | 09:42:14.120 | 225/225 from 15/15 workflows | 0.45 | #1
+## restored checkout 6782b55f4, variant P+T as proposed (require form), go test -overlay
+TestFairnessSuite suite run 1, variant P+T as proposed | 1 pass 0 fail | 10:03:39.854 | 225/225 from 15/15 workflows | 0.45 | #1
+TestFairnessSuite suite run 2, variant P+T as proposed | 1 pass 0 fail | 10:03:59.736 | 225/225 from 15/15 workflows | 0.45 | #1
+TestFairnessAutoEnableSuite suite run 1, variant P+T as proposed | 1 pass 0 fail | 10:04:08.670 | 225/225 from 15/15 workflows | 0.45 | #1
+TestFairnessAutoEnableSuite suite run 2, variant P+T as proposed | 1 pass 0 fail | 10:04:18.141 | 225/225 from 15/15 workflows | 0.45 | #1
+## unchanged test, the 12 single runs: this test's workflows whose 15 TransferActivityTasks had not all started at the first measured poll (fn105-d19-timeline.py, per-workflow counts of the 'at the first activity poll' line)
+TestFairnessSuite suite run 1 | none (225/225)
+TestFairnessSuite suite run 2 | wf14 8/15
+TestFairnessSuite suite run 3 | wf14 14/15
+TestFairnessSuite leaf run 1 | wf14 2/15
+TestFairnessSuite leaf run 2 | wf14 8/15
+TestFairnessSuite leaf run 3 | wf14 2/15
+TestFairnessAutoEnableSuite suite run 1 | none (225/225)
+TestFairnessAutoEnableSuite suite run 2 | none (225/225)
+TestFairnessAutoEnableSuite suite run 3 | wf14 13/15
+TestFairnessAutoEnableSuite leaf run 1 | wf14 10/15
+restored checkout, TestFairnessSuite suite, unchanged | wf5 0/15
+restored checkout, TestFairnessAutoEnableSuite suite, unchanged | none (225/225)
+incomplete at the first poll: 8 of 12 runs

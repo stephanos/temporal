@@ -1,0 +1,53 @@
+{
+  "analysis_completed": 28,
+  "artifact_bytes": "11418746156",
+  "cancelled": 0,
+  "completed": 28,
+  "description": "Representative pure-Go Temporal package qualification",
+  "dimensions": {
+    "analysis": true,
+    "choice": true,
+    "portable_v3": true,
+    "replay": true
+  },
+  "elapsed_nanos": "169142810000",
+  "expectations_met": true,
+  "failed": 0,
+  "infrastructure_errors": 0,
+  "io_profile": {
+    "implementation_sha256": "sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0",
+    "inventory_sha256": "sha256:0d34edfc0ab13c693b78d514ca1a72a9adc196fe61e2142dba108c0ff47358f7",
+    "name": "gomad3-deterministic/v1"
+  },
+  "manifest_sha256": "sha256:5a9ad0846cdcf258ec2f2713abcde0129a6ed9b5f6a2e25335c28c14f41c1f3e",
+  "module": {
+    "go_mod_sha256": "sha256:cda5b0aab2e32ef4aca50bd0d8ccf8ae67416db94fd4f28ceb9ac1588c48d0a4",
+    "path": "go.temporal.io/server"
+  },
+  "name": "temporal-representative",
+  "platform": {
+    "goarch": "arm64",
+    "goos": "darwin"
+  },
+  "qualified_artifacts_pruned": true,
+  "replay_diverged": 0,
+  "replayed": 56,
+  "schema": "gomad3.qualification-set-report/v1",
+  "seeds": [
+    "11",
+    "17"
+  ],
+  "selected": 28,
+  "supported": 28,
+  "timed_out": 0,
+  "toolchain": {
+    "boundary_manifest_sha256": "sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0",
+    "boundary_manifest_version": "go1.27.1-v1",
+    "build_key": "8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc",
+    "go_version": "go1.27.1",
+    "target_goarch": "arm64",
+    "target_goos": "darwin"
+  },
+  "trace_bytes": "286634112",
+  "unsupported": 0
+}

@@ -1,0 +1,576 @@
+{
+  "schema": "fn105-d19-investigation-evidence/v1",
+  "task": "fn-105-gomad-follow-ups-deferred-scope.19",
+  "subject": [
+    "TestFairnessSuite/Test_Activity_Basic",
+    "TestFairnessAutoEnableSuite/Test_Activity_Basic"
+  ],
+  "assessment_date": "2026-10-01",
+  "status": "investigation only; no fix applied; both skips in tools/gomad3integration/qualification/tests.generator.json are unchanged",
+  "platform": {
+    "goos": "darwin",
+    "goarch": "arm64",
+    "host": "macOS 26.6.2 (25G83)"
+  },
+  "linux_amd64": "not run; unavailable on this host",
+  "source": {
+    "first_part": "HEAD 7ef3800a2c7d989f7e77ee54f4f6f4cbcaf82c1b plus the shared uncommitted working tree; runner sha256:4dce3aed3599865194224c2b4219d0f13458585c8d849da10ffbc21a79db5222",
+    "second_part": "fresh clone at HEAD 6782b55f49a0317b230e827ea2a63a37d116d502 (contains the earlier working tree as a commit); runner sha256:0e00a1bef3aaeb718cf207e614defcc135b7d5de95b4361f9d845f709ee42a2f; campaigns and native runs named r2- and r3- ran here",
+    "note": "the checkout was replaced mid-investigation; the files below had the same SHA-256 before and after (those listed in files_checksummed_at_both_revisions were checksummed at both revisions); every run repeated on the clone gave the outcome of its predecessor; no tracked product, test, runtime, or manifest file was edited for this task"
+  },
+  "file_sha256": {
+    "tests/priority_fairness_test.go": "ce9d9b9e51bc8d4a95d5d3e90cba188889ac4dedc9f22976d8157a291fb293fc",
+    "service/history/queues/reader_quotas.go": "43b1bb7a74e9d71fd47bcfa9571ac9d2a1c5d01cef525f67d15ee95ac75cf237",
+    "tools/gomad3integration/qualification/tests.json": "8b4237b23859c00257be4f6e7522c7fac594a99b09146b27bf8ddfd8f5357146",
+    "tools/gomad3integration/qualification/tests.generator.json": "e7c74ae3b3c537bb1663ec639ac1606236e9be5ecbcb0091b2acab27f82ec4b9",
+    "go.mod": "cda5b0aab2e32ef4aca50bd0d8ccf8ae67416db94fd4f28ceb9ac1588c48d0a4",
+    "service/history/queues/reader.go": "ebf327fe30205927dc245e3f8031c4df4f70bdf3bad0a84280796994f6830c5c",
+    "common/quotas/multi_request_rate_limiter_impl.go": "6679f56e2a5bdeaf51c55535b8d0c759fd85a21e8fb436e2ae1ee8616d4f1b96",
+    "service/matching/task_queue_partition_manager.go": "812962b9207ddf5dcb6362d2468da7fe0f6b84a949446e4515e2e4731c9d8e0c",
+    "common/testing/taskpoller/taskpoller.go": "10fdbb6c92a6991e2851c7d852362c5a91c4e73efae049fefdacfe68250c2a8b"
+  },
+  "files_checksummed_at_both_revisions": [
+    "tests/priority_fairness_test.go",
+    "service/history/queues/reader_quotas.go",
+    "tools/gomad3integration/qualification/tests.json",
+    "tools/gomad3integration/qualification/tests.generator.json",
+    "go.mod"
+  ],
+  "toolchain": {
+    "go_version": "go1.27.1",
+    "build_key": "8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc",
+    "boundary_manifest_version": "go1.27.1-v1",
+    "doctor": "available=true host=darwin/arm64 go=go1.27.1 toolchain=8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc boundary=go1.27.1-v1"
+  },
+  "native_go": "go1.27.0 darwin/arm64 (/opt/homebrew/bin/go)",
+  "commands": {
+    "gomad_explore": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad explore --seeds <seeds> --parallel 2 --on-failure=all --clock-tick=<strict|forward> --build-tag=disable_grpc_modules --build-tag=gomad --build-tag=test_dep --capability-mode=closure --io-ro-mount ./schema=/go.temporal.io/server/schema --keep-successes=all --success-limit=64 --success-bytes=8GiB --execution-timeout=8m --overall-timeout=9m --artifacts <scratch> go-test ./tests -- -test.run=<pattern> -test.parallel=8 -test.v (wrapper fn105-d19-run.sh; fn105-d19-sweep.sh runs it per seed batch)",
+    "gomad_qualify_set": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad qualify-set --manifest=<scratch>/fn105-d19-qualify-set-unskipped-manifest.json --working-dir=<repo or throwaway copy> --artifacts=<scratch> --output=<scratch report> --prune-qualified-artifacts",
+    "native": "go test -tags test_dep ./tests -run <pattern> -count=1 -p 2 -timeout 15m -v (and -count=30 -timeout 20m for the auto-enable leaf)",
+    "native_variant": "go test -overlay <scratch overlay json> -tags test_dep ./tests -run <pattern> -count=1 -p 2 -timeout 15m -v, where the overlay replaces tests/priority_fairness_test.go with the variant file: assert form SHA-256 f4754bbbe0474cfd9f4aecba00b70b4781fe1a375944279d94548f4dab55eb60, proposed require form = tests/priority_fairness_test.go with fn105-d19-variant-pt-test.diff.txt applied",
+    "patterns": {
+      "suite": "^TestFairnessSuite$ and ^TestFairnessAutoEnableSuite$",
+      "leaf": "^<suite>$/^Test_Activity_Basic$"
+    },
+    "analysis": "fn105-d19-timeline.py [--suite NAME] [--events] <stderr> <stdout>; fn105-d19-shards.py [--suite NAME] <log>; fn105-d19-trigger.py [--suite NAME] <log>"
+  },
+  "gomad_explore_campaigns": [
+    {
+      "name": "leaf-strict",
+      "what": "working tree, unchanged, TestFairnessSuite leaf, strict",
+      "seeds": "11,17",
+      "pass": 2,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "0/2",
+      "unfairness_values": "0.45 x2"
+    },
+    {
+      "name": "suite-strict",
+      "what": "working tree, unchanged, TestFairnessSuite, strict",
+      "seeds": "11,17",
+      "pass": 1,
+      "fail_603": "1: 11",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "2/2",
+      "unfairness_values": "0.85 x1 1.3 x1"
+    },
+    {
+      "name": "suite-forward",
+      "what": "working tree, unchanged, TestFairnessSuite, forward",
+      "seeds": "11,17",
+      "pass": 0,
+      "fail_603": "2: 11,17",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "2/2",
+      "unfairness_values": "1.15 x1 1.4 x1"
+    },
+    {
+      "name": "sweep-suite-strict",
+      "what": "working tree, unchanged, TestFairnessSuite, strict",
+      "seeds": "1-17",
+      "pass": 10,
+      "fail_603": "7: 1,3,4,5,11,12,14",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "17/17",
+      "unfairness_values": "0.45 x9 0.85 x1 1.02 x1 1.05 x1 1.3 x1 1.31 x1 1.32 x2 2.23 x1"
+    },
+    {
+      "name": "sweep-forward-TestFairnessSuite",
+      "what": "working tree, unchanged, TestFairnessSuite, forward",
+      "seeds": "1-17",
+      "pass": 10,
+      "fail_603": "7: 1,4,6,7,11,16,17",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "17/17",
+      "unfairness_values": "0.45 x8 0.71 x1 0.72 x1 1.15 x1 1.32 x1 1.4 x1 1.42 x1 1.48 x1 2.17 x1 2.32 x1"
+    },
+    {
+      "name": "auto-leaf-strict",
+      "what": "working tree, unchanged, TestFairnessAutoEnableSuite leaf, strict",
+      "seeds": "11,17",
+      "pass": 1,
+      "fail_603": "0: -",
+      "fail_508": "1: 11",
+      "backlog_incomplete_of_reached": "0/1",
+      "unfairness_values": "0.45 x1"
+    },
+    {
+      "name": "auto-suite-strict",
+      "what": "working tree, unchanged, TestFairnessAutoEnableSuite, strict",
+      "seeds": "11,17",
+      "pass": 1,
+      "fail_603": "0: -",
+      "fail_508": "1: 11",
+      "backlog_incomplete_of_reached": "1/1",
+      "unfairness_values": "0.45 x1"
+    },
+    {
+      "name": "auto-suite-forward",
+      "what": "working tree, unchanged, TestFairnessAutoEnableSuite, forward",
+      "seeds": "11,17",
+      "pass": 2,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "2/2",
+      "unfairness_values": "0.45 x2"
+    },
+    {
+      "name": "sweep-auto-suite-strict",
+      "what": "working tree, unchanged, TestFairnessAutoEnableSuite, strict",
+      "seeds": "1-17",
+      "pass": 13,
+      "fail_603": "1: 9",
+      "fail_508": "3: 6,11,12",
+      "backlog_incomplete_of_reached": "14/14",
+      "unfairness_values": "0.45 x12 0.53 x1 1.04 x1"
+    },
+    {
+      "name": "sweep-forward-TestFairnessAutoEnableSuite",
+      "what": "working tree, unchanged, TestFairnessAutoEnableSuite, forward",
+      "seeds": "1-17",
+      "pass": 15,
+      "fail_603": "0: -",
+      "fail_508": "2: 10,16",
+      "backlog_incomplete_of_reached": "15/15",
+      "unfairness_values": "0.45 x15"
+    },
+    {
+      "name": "copy-base-suite-strict",
+      "what": "throwaway copy, unchanged, TestFairnessSuite, strict",
+      "seeds": "11,17",
+      "pass": 1,
+      "fail_603": "1: 11",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "2/2",
+      "unfairness_values": "0.85 x1 1.3 x1"
+    },
+    {
+      "name": "variantR-suite-strict",
+      "what": "throwaway copy, variant R, TestFairnessSuite, strict",
+      "seeds": "11,17",
+      "pass": 2,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "0/2",
+      "unfairness_values": "0.45 x2"
+    },
+    {
+      "name": "variantR-auto-suite-strict",
+      "what": "throwaway copy, variant R, TestFairnessAutoEnableSuite, strict",
+      "seeds": "11,17",
+      "pass": 2,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "0/2",
+      "unfairness_values": "0.45 x2"
+    },
+    {
+      "name": "variantR-sweep-TestFairnessSuite",
+      "what": "throwaway copy, variant R, TestFairnessSuite, strict",
+      "seeds": "1-17",
+      "pass": 17,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "0/17",
+      "unfairness_values": "0.45 x17"
+    },
+    {
+      "name": "variantR-sweep-TestFairnessAutoEnableSuite",
+      "what": "throwaway copy, variant R, TestFairnessAutoEnableSuite, strict",
+      "seeds": "1-17",
+      "pass": 12,
+      "fail_603": "0: -",
+      "fail_508": "5: 6,7,9,12,16",
+      "backlog_incomplete_of_reached": "0/12",
+      "unfairness_values": "0.45 x12"
+    },
+    {
+      "name": "variantP-suite-strict",
+      "what": "throwaway copy, variant P only, TestFairnessSuite, strict",
+      "seeds": "1-17",
+      "pass": 17,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "0/17",
+      "unfairness_values": "0.45 x17"
+    },
+    {
+      "name": "variantP-auto-suite-strict",
+      "what": "throwaway copy, variant P only, TestFairnessAutoEnableSuite, strict",
+      "seeds": "1-17",
+      "pass": 13,
+      "fail_603": "0: -",
+      "fail_508": "4: 5,6,13,17",
+      "backlog_incomplete_of_reached": "0/13",
+      "unfairness_values": "0.45 x13"
+    },
+    {
+      "name": "variantPT-suite-strict",
+      "what": "throwaway copy, variant P+T (assert form), TestFairnessSuite, strict",
+      "seeds": "1-17",
+      "pass": 17,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "0/17",
+      "unfairness_values": "0.45 x17"
+    },
+    {
+      "name": "variantPT-auto-suite-strict",
+      "what": "throwaway copy, variant P+T (assert form), TestFairnessAutoEnableSuite, strict",
+      "seeds": "1-17",
+      "pass": 17,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "0/17",
+      "unfairness_values": "0.45 x17"
+    },
+    {
+      "name": "variantPT-forward-suite-TestFairnessSuite",
+      "what": "throwaway copy, variant P+T (assert form), TestFairnessSuite, forward",
+      "seeds": "11,17",
+      "pass": 2,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "0/2",
+      "unfairness_values": "0.45 x2"
+    },
+    {
+      "name": "variantPT-forward-suite-TestFairnessAutoEnableSuite",
+      "what": "throwaway copy, variant P+T (assert form), TestFairnessAutoEnableSuite, forward",
+      "seeds": "11,17",
+      "pass": 2,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "0/2",
+      "unfairness_values": "0.45 x2"
+    },
+    {
+      "name": "variantPT-strict-leaf-TestFairnessSuite",
+      "what": "throwaway copy, variant P+T (assert form), TestFairnessSuite leaf, strict",
+      "seeds": "11,17",
+      "pass": 2,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "0/2",
+      "unfairness_values": "0.45 x2"
+    },
+    {
+      "name": "variantPT-strict-leaf-TestFairnessAutoEnableSuite",
+      "what": "throwaway copy, variant P+T (assert form), TestFairnessAutoEnableSuite leaf, strict",
+      "seeds": "11,17",
+      "pass": 2,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "0/2",
+      "unfairness_values": "0.45 x2"
+    },
+    {
+      "name": "r2-base-strict-suite-TestFairnessSuite",
+      "what": "restored checkout, working tree, unchanged, TestFairnessSuite, strict",
+      "seeds": "11,17",
+      "pass": 1,
+      "fail_603": "1: 11",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "2/2",
+      "unfairness_values": "0.85 x1 1.3 x1"
+    },
+    {
+      "name": "r2-base-strict-leaf-TestFairnessSuite",
+      "what": "restored checkout, working tree, unchanged, TestFairnessSuite leaf, strict",
+      "seeds": "11,17",
+      "pass": 2,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "0/2",
+      "unfairness_values": "0.45 x2"
+    },
+    {
+      "name": "r2-base-forward-suite-TestFairnessSuite",
+      "what": "restored checkout, working tree, unchanged, TestFairnessSuite, forward",
+      "seeds": "11,17",
+      "pass": 0,
+      "fail_603": "2: 11,17",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "2/2",
+      "unfairness_values": "1.15 x1 1.4 x1"
+    },
+    {
+      "name": "r2-variantPT-strict-suite-TestFairnessSuite",
+      "what": "restored checkout, throwaway copy, variant P+T (assert form), TestFairnessSuite, strict",
+      "seeds": "1-17",
+      "pass": 17,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "0/17",
+      "unfairness_values": "0.45 x17"
+    },
+    {
+      "name": "r2-variantR-strict-suite-TestFairnessSuite",
+      "what": "restored checkout, throwaway copy, variant R, TestFairnessSuite, strict",
+      "seeds": "11,17",
+      "pass": 2,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "0/2",
+      "unfairness_values": "0.45 x2"
+    },
+    {
+      "name": "r2-base-strict-suite-TestFairnessAutoEnableSuite",
+      "what": "restored checkout, working tree, unchanged, TestFairnessAutoEnableSuite, strict",
+      "seeds": "11,17",
+      "pass": 1,
+      "fail_603": "0: -",
+      "fail_508": "1: 11",
+      "backlog_incomplete_of_reached": "1/1",
+      "unfairness_values": "0.45 x1"
+    },
+    {
+      "name": "r2-base-strict-leaf-TestFairnessAutoEnableSuite",
+      "what": "restored checkout, working tree, unchanged, TestFairnessAutoEnableSuite leaf, strict",
+      "seeds": "11,17",
+      "pass": 1,
+      "fail_603": "0: -",
+      "fail_508": "1: 11",
+      "backlog_incomplete_of_reached": "0/1",
+      "unfairness_values": "0.45 x1"
+    },
+    {
+      "name": "r2-base-forward-suite-TestFairnessAutoEnableSuite",
+      "what": "restored checkout, working tree, unchanged, TestFairnessAutoEnableSuite, forward",
+      "seeds": "11,17",
+      "pass": 2,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "2/2",
+      "unfairness_values": "0.45 x2"
+    },
+    {
+      "name": "r2-variantPT-strict-suite-TestFairnessAutoEnableSuite",
+      "what": "restored checkout, throwaway copy, variant P+T (assert form), TestFairnessAutoEnableSuite, strict",
+      "seeds": "1-17",
+      "pass": 17,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "0/17",
+      "unfairness_values": "0.45 x17"
+    },
+    {
+      "name": "r2-variantR-strict-suite-TestFairnessAutoEnableSuite",
+      "what": "restored checkout, throwaway copy, variant R, TestFairnessAutoEnableSuite, strict",
+      "seeds": "11,17",
+      "pass": 2,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "0/2",
+      "unfairness_values": "0.45 x2"
+    },
+    {
+      "name": "r3-variantPT-strict-suite-TestFairnessSuite",
+      "what": "restored checkout, throwaway copy, variant P+T as proposed (require form), TestFairnessSuite, strict",
+      "seeds": "1-17",
+      "pass": 17,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "0/17",
+      "unfairness_values": "0.45 x17"
+    },
+    {
+      "name": "r3-variantPT-forward-suite-TestFairnessSuite",
+      "what": "restored checkout, throwaway copy, variant P+T as proposed (require form), TestFairnessSuite, forward",
+      "seeds": "11,17",
+      "pass": 2,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "0/2",
+      "unfairness_values": "0.45 x2"
+    },
+    {
+      "name": "r3-variantPT-strict-leaf-TestFairnessSuite",
+      "what": "restored checkout, throwaway copy, variant P+T as proposed (require form), TestFairnessSuite leaf, strict",
+      "seeds": "11,17",
+      "pass": 2,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "0/2",
+      "unfairness_values": "0.45 x2"
+    },
+    {
+      "name": "r3-variantPT-strict-suite-TestFairnessAutoEnableSuite",
+      "what": "restored checkout, throwaway copy, variant P+T as proposed (require form), TestFairnessAutoEnableSuite, strict",
+      "seeds": "1-17",
+      "pass": 17,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "0/17",
+      "unfairness_values": "0.45 x17"
+    },
+    {
+      "name": "r3-variantPT-forward-suite-TestFairnessAutoEnableSuite",
+      "what": "restored checkout, throwaway copy, variant P+T as proposed (require form), TestFairnessAutoEnableSuite, forward",
+      "seeds": "11,17",
+      "pass": 2,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "0/2",
+      "unfairness_values": "0.45 x2"
+    },
+    {
+      "name": "r3-variantPT-strict-leaf-TestFairnessAutoEnableSuite",
+      "what": "restored checkout, throwaway copy, variant P+T as proposed (require form), TestFairnessAutoEnableSuite leaf, strict",
+      "seeds": "11,17",
+      "pass": 2,
+      "fail_603": "0: -",
+      "fail_508": "0: -",
+      "backlog_incomplete_of_reached": "0/2",
+      "unfairness_values": "0.45 x2"
+    }
+  ],
+  "gomad_totals": {
+    "runs": 288,
+    "backlog_complete_at_first_measured_poll": 191,
+    "of_which_unfairness_0.45": 191,
+    "backlog_incomplete": 79,
+    "incomplete_passed": 57,
+    "incomplete_failed_603": 22,
+    "incomplete_runs_whose_first_K_dispatches_carried_the_K_keys_present": 79,
+    "failed_508_before_measurement": 18,
+    "wall_watchdogs": 0,
+    "infrastructure_errors": 0,
+    "replay_divergences": 0
+  },
+  "gomad_qualify_set_runs": [
+    {
+      "manifest": "fn105-d19-qualify-set-unskipped-manifest.json",
+      "description": "the TestFairnessSuite and TestFairnessAutoEnableSuite entries of tests.json with their skip lists removed (strict tick, repeat 2, choice_bytes 0)",
+      "source": "restored checkout 6782b55f4, unchanged test",
+      "exit": 1,
+      "report": "fn105-d19-qualify-set-unskipped-unchanged-report.json",
+      "result": {
+        "expectations_met": false,
+        "failed": 2,
+        "infrastructure_errors": 0,
+        "timed_out": 0,
+        "replayed": 3,
+        "replay_diverged": 0
+      },
+      "seeds": {
+        "TestFairnessSuite": {
+          "11": "qualified",
+          "17": "target_failure (unfairness 1.65 at :603)"
+        },
+        "TestFairnessAutoEnableSuite": {
+          "11": "target_failure (:508)",
+          "17": "target_failure (:508)"
+        }
+      },
+      "failures": "fn105-d19-qualify-set-unskipped-unchanged-failures.txt",
+      "pre_restore": "the same manifest on 7ef3800a2c plus the working tree gave the same classifications"
+    },
+    {
+      "manifest": "fn105-d19-qualify-set-unskipped-manifest.json",
+      "source": "throwaway copy of 6782b55f4 with variant P+T as proposed (require form)",
+      "exit": 0,
+      "report": "fn105-d19-qualify-set-unskipped-variant-pt-report.json",
+      "result": {
+        "expectations_met": true,
+        "supported": 2,
+        "failed": 0,
+        "infrastructure_errors": 0,
+        "timed_out": 0
+      },
+      "seeds": {
+        "TestFairnessSuite": {
+          "11": "qualified",
+          "17": "qualified"
+        },
+        "TestFairnessAutoEnableSuite": {
+          "11": "qualified",
+          "17": "qualified"
+        }
+      },
+      "pre_restore": "the same manifest gave the same classifications with the assert form of variant P+T, once on a copy of 7ef3800a2c plus the working tree and once on a copy of 6782b55f4",
+      "not_done": "no traced run with choice-tape replay"
+    }
+  ],
+  "native_runs": {
+    "file": "fn105-d19-native-results.txt",
+    "unchanged_single_runs": {
+      "runs": 12,
+      "pass": 12,
+      "unfairness": "0.45 in all",
+      "backlog_incomplete_at_first_poll": "8 of 12 (210 to 224 of 225 transfers started)"
+    },
+    "unchanged_autoenable_leaf_count30": {
+      "pass": 29,
+      "fail": 1,
+      "failure": "run 24, tests/priority_fairness_test.go:468, Condition never satisfied after 10 s"
+    },
+    "variant_pt_overlay": {
+      "runs": 12,
+      "pass": 12,
+      "assert_form_runs": 8,
+      "proposed_require_form_runs": 4,
+      "unfairness": "0.45 in all",
+      "backlog_incomplete_at_first_poll": "0 of 12"
+    }
+  },
+  "variants": {
+    "P+T (proposed, require.NoError in the trigger retry; r3- campaigns)": "fn105-d19-variant-pt-test.diff.txt",
+    "P+T assert form (variantPT- and r2-variantPT- campaigns)": "the same diff with assert.NoError(c, err) in the trigger retry",
+    "R (diagnostic only)": "fn105-d19-variant-r-server.diff.txt",
+    "P only": "the second hunk of fn105-d19-variant-pt-test.diff.txt"
+  },
+  "conclusion": {
+    "cause": "setup bias: the test polls before its 225 activity tasks reach matching; under Gomad the per-shard transfer reader rate limiter (20/s, burst 20) cannot refill within a busy stretch, and its 50 ms timer is delivered only after the test has drained the partial backlog. Separate second failure in triggerAutoEnable: the queue reload can end the single trigger activity poll with an empty response.",
+    "product_fairness_defect": "none found",
+    "proposed_correction": "variant P+T in tests/priority_fairness_test.go",
+    "owner": "owner of tests/priority_fairness_test.go (matching); the skip-reason replacement belongs to the Gomad qualification configuration",
+    "state": "proposed, not applied; both skips stay; open work in fn-105 R19"
+  },
+  "artifacts": "scratch campaigns, qualification artifacts, and the throwaway source copies were deleted after recording; raw per-seed logs are not retained in the repository (they remained in the session scratchpad), and the retained files hold their reductions",
+  "files": {
+    "fn105-d19-gomad-autoenable-timeline.txt": "5558a2f2dd30b2c483cc7af5adbfaa20238ef2ca88b779824e18a435295ecfb1",
+    "fn105-d19-gomad-controls-timeline.txt": "c541baaa9270cc41557d7c733eaabd2984662b0db628089c4880e5afd24beb49",
+    "fn105-d19-gomad-runs.txt": "dfadbbd41665985ea86ff54b4b87ef212b85b0f1ae32bfb7d0ba8bb4f2f4a97e",
+    "fn105-d19-gomad-suite-strict-timeline.txt": "a82c60ffb7dd9b67ff26933aa39da6f85b4940bf20483a6e4a2ba98f61ba9935",
+    "fn105-d19-native-results.txt": "7c55963fe19dc3c6b5e473d771d8e9334cc603b7730ff6da7c7d633e89c434b4",
+    "fn105-d19-qualify-set-unskipped-manifest.json": "02ac78a3af46e7b683d64b1ee8edf7b7ef924cd1861596e38571017e5e09749c",
+    "fn105-d19-qualify-set-unskipped-unchanged-failures.txt": "680a8febb3ef2daa27d742acea9062e3b854206ad33f7a30beae88af2aed2172",
+    "fn105-d19-qualify-set-unskipped-unchanged-report.json": "b60ced09387d548471b14a5b2286fc1b8ce809f1c5c5c4641305f4188e438471",
+    "fn105-d19-qualify-set-unskipped-variant-pt-report.json": "07e18fbf8d4e45c7e6a0bf21834842a09707f7f1db0d5dbec2da5dc2e4c2f997",
+    "fn105-d19-run.sh": "0bae9d82290111bc276856072aec1f8736f760b79240e76c9a248de9f63f768a",
+    "fn105-d19-shards.py": "f4e52aca29fc2d32aa5f835a8310300dc9ea96a44a8b3950c5c7a8a80740eb63",
+    "fn105-d19-sweep.sh": "6efcf9a8c1929c64c96e084d03328b4939e3ac6ff2e5ce1aa788836e19d94609",
+    "fn105-d19-timeline.py": "ef2bee63c5c73e6ac7b724b7dc1ff94fa5d7bd03310e1762b5ee0a840a3cd321",
+    "fn105-d19-trigger-phase.txt": "9ace466b00a48503c7255c788bf18fc8d5ff9bc81a8da6f02e003f84955e4891",
+    "fn105-d19-trigger.py": "c770116c0ad2edd0568f9f206e0bed599ab885021426ea6c2a856ec6f3dade68",
+    "fn105-d19-variant-pt-test.diff.txt": "760dd29eab610b4f09713eecc3230858f11ca38b2e37745a84b21e4c585c88d4",
+    "fn105-d19-variant-r-server.diff.txt": "809305feadc2881d4277d7a66fdf11c268e3b09e703d44e4a15a08349da69d5f"
+  },
+  "review": {
+    "round_1": "NEEDS_WORK: scope three statements to the evidence, use require in the retained proposal, wording nit; all applied, the require form re-validated (r3- runs, qualify-set, 4 native runs)",
+    "round_2": "NEEDS_WORK: retain the derivation of the per-workflow native detail (added as the last section of fn105-d19-native-results.txt), two citation additions, and 'under the strict tick' on the 3-of-17 figure; all applied",
+    "round_3": "SHIP, no findings (raw codex bridge, gpt-5.6-sol, read-only, on the working-tree diff); rounds retained in task19-review.md"
+  }
+}

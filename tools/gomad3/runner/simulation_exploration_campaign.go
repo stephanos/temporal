@@ -15,11 +15,9 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
 	simulationrecord "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord"
 	"go.temporal.io/server/tools/gomad3/target"
-	"go.temporal.io/server/tools/gomad3/world"
 )
 
 const combinedExplorationRecordLimit = uint64(128 << 20)
@@ -330,47 +328,15 @@ func processSimulationExplorationCompletion(
 		return simulationExplorationRoundResult{}, &HostError{Reason: "prepared_target_integrity", Err: err}
 	}
 	candidate := round.Candidates[index]
-	worldBundle := noneWorldBundle()
-	if len(completion.result.WorldRecord) != 0 {
-		recording, err := world.DecodeRecording(completion.result.WorldRecord)
-		if err == nil {
-			worldBundle, err = execution.ComposeRecording(recording, config.WorldTransitionLimit)
-		}
-		if err == nil {
-			initialWorld, _, validateErr := execution.Validate(worldBundle.Manifest, worldBundle.Payloads)
-			if validateErr != nil {
-				err = validateErr
-			} else if worldBundle.Manifest.Initial.Schema != "gomad3.world.snapshot/v1" || uint64(initialWorld.Config.Seed) != completion.job.seed {
-				err = fmt.Errorf("World record seed or schema does not match seed %d", completion.job.seed)
-			}
-		}
-		if err != nil {
-			return simulationExplorationRoundResult{}, &HostError{Reason: "world_record", Err: err}
-		}
-	}
-	runCoverage, err := deterministicio.SummarizeSemanticProbes(nil)
+	worldBundle, err := assessWorld(completion.result, completion.job.seed, config.WorldTransitionLimit)
 	if err != nil {
-		return simulationExplorationRoundResult{}, &HostError{Reason: "semantic_coverage", Err: err}
+		return simulationExplorationRoundResult{}, &HostError{Reason: "world_record", Err: err}
 	}
-	if coverageHasSemantic(config.Coverage) {
-		runCoverage, err = deterministicio.DecodeSemanticCoverage(completion.result.IOTranscript.Bytes)
-		if err != nil {
-			return simulationExplorationRoundResult{}, &HostError{Reason: "semantic_coverage", Err: err}
-		}
+	assessed, assessErr := assessCompletion(completion.result, worldBundle.Manifest.Terminal, config.Coverage, prepared)
+	if assessErr != nil {
+		return simulationExplorationRoundResult{}, assessErr
 	}
-	runChoiceFeatures := []string{}
-	var runChoiceProjection *choice.FeatureProjection
-	// A target the watchdog or a cancellation killed wrote no choice trace to
-	// project; the termination is its outcome.
-	if coverageHasChoice(config.Coverage) && choiceTraceObserved(completion.result) {
-		projection, features, err := projectChoiceFeatures(completion.result.ChoiceTrace, prepared)
-		if err != nil {
-			return simulationExplorationRoundResult{}, &HostError{Reason: "choice_coverage", Err: err}
-		}
-		runChoiceProjection = &projection
-		runChoiceFeatures = features
-	}
-	outcome := execution.Classify(completion.result, false, worldBundle.Manifest.Terminal)
+	runCoverage, runChoiceFeatures, runChoiceProjection, outcome := assessed.coverage, assessed.choiceFeatures, assessed.choiceProjection, assessed.outcome
 	if outcome.Domain == "runner" {
 		return simulationExplorationRoundResult{}, &HostError{Reason: outcome.Reason, Err: errors.New("simulation-exploration controller result is not expandable")}
 	}
@@ -427,44 +393,27 @@ func processSimulationExplorationCompletion(
 		if explorationResult.Failed {
 			return simulationExplorationRoundResult{}, &HostError{Reason: "simulation_exploration_outcome", Err: errors.New("simulation failure completed with a successful target outcome")}
 		}
-		novelProbes := novelSemanticProbes(runCoverage.Probes, semanticProbes)
-		novelChoices := novelStrings(runChoiceFeatures, choiceFeatures)
-		retain := config.KeepSuccesses == KeepSuccessesAll || config.KeepSuccesses == KeepSuccessesNovel && (len(novelProbes) != 0 || len(novelChoices) != 0)
-		if retain {
-			if !completion.result.IOTranscript.Complete {
-				return simulationExplorationRoundResult{}, &HostError{Reason: "success_artifact_publication", Err: errors.New("retained success requires a complete I/O transcript for exact replay")}
-			}
-			if summary.RetainedSuccesses >= config.SuccessArtifactLimit || summary.RetainedSuccessBytes >= config.SuccessBytesLimit {
-				return simulationExplorationRoundResult{}, &HostError{Reason: "success_retention_capacity", Err: errors.New("successful-execution retention capacity is exhausted")}
-			}
+		retention, retentionErr := decideSuccessRetention(config, assessed, completion.result.IOTranscript.Complete, semanticProbes, choiceFeatures, summary.RetainedSuccesses, summary.RetainedSuccessBytes)
+		if retentionErr != nil {
+			return simulationExplorationRoundResult{}, retentionErr
+		}
+		if retention.retain {
 			manifest, err := manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest, mountArtifact)
 			if err != nil {
 				return simulationExplorationRoundResult{}, &HostError{Reason: "success_artifact_publication", Err: err}
 			}
 			manifest.SimulationProfile = &simulationProfile
-			published, err := artifact.PublishArtifact(artifact.Store{Root: filepath.Join(staged.Path(), "successes"), Context: ctx, MaximumBytes: config.SuccessBytesLimit - summary.RetainedSuccessBytes}, artifact.ArtifactInput{
-				Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
-				IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads, Simulation: simulationPayloads,
-			})
+			input := executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle)
+			input.Simulation = simulationPayloads
+			published, err := artifact.PublishArtifact(artifact.Store{Root: filepath.Join(staged.Path(), "successes"), Context: ctx, MaximumBytes: retention.maximumBytes}, input)
 			if err != nil {
-				reason := "success_artifact_publication"
-				var capacity *artifact.CapacityError
-				if errors.As(err, &capacity) {
-					reason = "success_retention_capacity"
-				}
-				return simulationExplorationRoundResult{}, &HostError{Reason: reason, Err: err}
+				return simulationExplorationRoundResult{}, successPublicationFailure(err)
 			}
 			finalPath, relative, err := simulationExplorationPublishedPath(batchPath, round.Index, staged.Path(), published.Path)
 			if err != nil {
 				return simulationExplorationRoundResult{}, &HostError{Reason: "artifact_path", Err: err}
 			}
-			bytes := record.Uint64String(published.StoredBytes)
-			run.SuccessArtifact = &relative
-			run.SuccessArtifactBytes = &bytes
-			if config.KeepSuccesses == KeepSuccessesNovel {
-				run.NovelSemanticProbes = append([]string(nil), novelProbes...)
-				run.NovelChoiceFeatures = append([]string(nil), novelChoices...)
-			}
+			retention.annotate(&run, relative, published.StoredBytes)
 			summary.SuccessArtifacts = append(summary.SuccessArtifacts, finalPath)
 			summary.RetainedSuccesses++
 			summary.RetainedSuccessBytes += published.StoredBytes
@@ -476,10 +425,9 @@ func processSimulationExplorationCompletion(
 			return simulationExplorationRoundResult{}, &HostError{Reason: "manifest", Err: err}
 		}
 		manifest.SimulationProfile = &simulationProfile
-		published, err := publishBoundedFailureArtifact(ctx, config, filepath.Join(staged.Path(), "failures"), manifest.Outcome.FailureSignature, distinct, &summary.failureArtifactBytes, artifact.ArtifactInput{
-			Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
-			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads, Simulation: simulationPayloads,
-		})
+		input := executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle)
+		input.Simulation = simulationPayloads
+		published, err := publishBoundedFailureArtifact(ctx, config, filepath.Join(staged.Path(), "failures"), manifest.Outcome.FailureSignature, distinct, &summary.failureArtifactBytes, input)
 		if err != nil {
 			return simulationExplorationRoundResult{}, &HostError{Reason: "artifact_publication", Err: err}
 		}
@@ -522,7 +470,7 @@ func processSimulationExplorationCompletion(
 	}
 	summary.Attempted++
 	summary.DistinctFailures = uint64(len(distinct))
-	addSemanticProbes(semanticProbes, runCoverage.Probes)
+	addStrings(semanticProbes, runCoverage.Probes)
 	addStrings(choiceFeatures, runChoiceFeatures)
 	if err := completion.journal.Transition(campaign.ExecutionClassified); err != nil {
 		return simulationExplorationRoundResult{}, &HostError{Reason: "partial_write", Err: err}

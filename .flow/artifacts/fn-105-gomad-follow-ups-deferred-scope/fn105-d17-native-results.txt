@@ -1,0 +1,64 @@
+native Go go1.27.0 darwin/arm64 (/opt/homebrew/bin/go), HEAD 7ef3800a2c plus the working tree of 2026-10-01 08:35 PDT
+
+go test -tags test_dep ./tests -run '^TestNexusOTELSuite$' -count=3 -p 2 -timeout 10m -v   (exit 0, 32 s; dedicated pool = GOMAXPROCS = 8)
+  log sha256 c11edde2e336611e6c5ffba7c7e5d72487fa266e3de5ec5b4cb8ccd77ce866d8
+  --- PASS: TestNexusOTELSuite (0.00s)
+  --- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (5.07s)
+  --- PASS: TestNexusOTELSuite/TestCallback (5.07s)
+  --- PASS: TestNexusOTELSuite/TestWorkerOperation (5.07s)
+  --- PASS: TestNexusOTELSuite/TestOperation (5.17s)
+  --- PASS: TestNexusOTELSuite (0.00s)
+  --- PASS: TestNexusOTELSuite/TestCallback (5.05s)
+  --- PASS: TestNexusOTELSuite/TestWorkerOperation (5.05s)
+  --- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (5.15s)
+  --- PASS: TestNexusOTELSuite/TestOperation (5.16s)
+  --- PASS: TestNexusOTELSuite (0.00s)
+  --- PASS: TestNexusOTELSuite/TestCallback (5.06s)
+  --- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (5.12s)
+  --- PASS: TestNexusOTELSuite/TestWorkerOperation (5.12s)
+  --- PASS: TestNexusOTELSuite/TestOperation (5.17s)
+  PASS
+  ok  	go.temporal.io/server/tests	16.968s
+
+TEMPORAL_TEST_DEDICATED_CLUSTERS=2 go test -tags test_dep ./tests -run '^TestNexusOTELSuite$' -count=3 -p 2 -timeout 10m -v   (exit 0, 54 s)
+  log sha256 dbdb95a2347402a19a81a074445ec52bcaac2cda09a86ae7fab4c7eec90b91e0
+  --- PASS: TestNexusOTELSuite (0.00s)
+  --- PASS: TestNexusOTELSuite/TestWorkerOperation (5.05s)
+  --- PASS: TestNexusOTELSuite/TestCallback (5.06s)
+  --- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (10.18s)
+  --- PASS: TestNexusOTELSuite/TestOperation (15.29s)
+  --- PASS: TestNexusOTELSuite (0.00s)
+  --- PASS: TestNexusOTELSuite/TestCallback (5.05s)
+  --- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (5.12s)
+  --- PASS: TestNexusOTELSuite/TestWorkerOperation (10.16s)
+  --- PASS: TestNexusOTELSuite/TestOperation (15.28s)
+  --- PASS: TestNexusOTELSuite (0.00s)
+  --- PASS: TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (5.03s)
+  --- PASS: TestNexusOTELSuite/TestCallback (5.04s)
+  --- PASS: TestNexusOTELSuite/TestWorkerOperation (10.14s)
+  --- PASS: TestNexusOTELSuite/TestOperation (15.26s)
+  PASS
+  ok  	go.temporal.io/server/tests	47.314s
+
+TEMPORAL_TEST_DEDICATED_CLUSTERS=1 go test -tags test_dep ./tests -run '^TestNexusOTELSuite$/^TestOperation$' -count=1 -p 2 -timeout 60s -v   (exit 1, 67 s)
+  log sha256 1ecb62b08e2436169589373538b0af5de77990b7f82ea329a28c2a7627b1e724
+  FAIL	go.temporal.io/server/tests	61.572s
+  FAIL
+  panic: test timed out after 1m0s
+  	running tests:
+  		TestNexusOTELSuite/TestOperation (1m0s)
+  goroutine 51 [chan receive]:
+  go.temporal.io/server/tests/testcore.(*clusterPool).reserveSlot(0x5a6c37f97560, 0x5a6c37f61208)
+  	/Users/stephan/Workspace/temporal/gomad/tests/testcore/test_cluster_pool.go:109 +0x38
+  go.temporal.io/server/tests/testcore.(*clusterRouter).getDedicated(0x5a6c37f6a5f0, 0x5a6c37f61208, {{0x1080beb75, 0x9}, 0x1, {0x1080fff4b, 0x18}, 0x0, 0x5a6c3805ae10, {0x5a6c3814f938, ...}})
+  	/Users/stephan/Workspace/temporal/gomad/tests/testcore/test_cluster_pool.go:342 +0x7c
+  go.temporal.io/server/tests/testcore.(*clusterRouter).get(0x10d078f10?, 0x5a6c3805ae10?, {{0x0, 0x0}, 0x1, {0x1080fff4b, 0x18}, 0x0, 0x5a6c3805ae10, {0x5a6c3814f938, ...}})
+  	/Users/stephan/Workspace/temporal/gomad/tests/testcore/test_cluster_pool.go:300 +0x144
+  go.temporal.io/server/tests/testcore.NewEnv(0x5a6c37f61208, {0x5a6c382d7328, 0x5, 0xd?})
+  	/Users/stephan/Workspace/temporal/gomad/tests/testcore/test_env.go:302 +0x1cc
+  go.temporal.io/server/tests.newNexusTestEnv(...)
+  	/Users/stephan/Workspace/temporal/gomad/tests/nexus_test_base.go:35
+  go.temporal.io/server/tests.(*NexusOTELSuite).newTestEnv(0x20?, {0x10dc21008?, 0x5a6c376cd280?})
+  	/Users/stephan/Workspace/temporal/gomad/tests/nexus_otel_test.go:67 +0x27c
+  go.temporal.io/server/tests.(*NexusOTELSuite).TestOperation(0x5a6c37a0d290)
+

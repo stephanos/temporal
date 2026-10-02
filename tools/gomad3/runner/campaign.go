@@ -2,10 +2,6 @@ package runner
 
 import "go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 
-func orderRunCompletions(selection SeedSelection, completed map[uint64]struct{}, input <-chan runCompletion, output chan<- runCompletion) {
-	orderShardRunCompletions(selection, CampaignShard{}, completed, input, output)
-}
-
 func orderShardRunCompletions(selection SeedSelection, shard CampaignShard, completed map[uint64]struct{}, input <-chan runCompletion, output chan<- runCompletion) {
 	jobs := pendingJobs{seeds: selection.Iterator(), shard: shard, completed: completed}
 	next, hasNext := jobs.Next()

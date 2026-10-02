@@ -1,0 +1,222 @@
+== variant-ti-leaf-count3.log run 1: PASS, heartbeat timeouts=2, loop elapsed=18.214942s
+  heartbeat  0 sent=+0.000036s rpc=0.001268s -> accepted
+  heartbeat  1 sent=+1.002359s rpc=0.001327s gap-since-previous-return=1.001054s -> accepted
+  heartbeat  2 sent=+2.004748s rpc=0.001264s gap-since-previous-return=1.001062s -> accepted
+  heartbeat  3 sent=+3.006540s rpc=0.001527s gap-since-previous-return=1.000528s -> accepted
+  heartbeat  4 sent=+4.008623s rpc=0.001206s gap-since-previous-return=1.000556s -> accepted
+  heartbeat  5 sent=+5.101065s rpc=0.001793s gap-since-previous-return=1.091237s -> REJECTED (NotFound)
+               recovery poll returned=+8.105942s
+  heartbeat  6 sent=+9.106983s rpc=0.001535s gap-since-previous-return=1.001041s -> accepted
+  heartbeat  7 sent=+10.109538s rpc=0.001411s gap-since-previous-return=1.001021s -> accepted
+  heartbeat  8 sent=+11.111620s rpc=0.001421s gap-since-previous-return=1.000670s -> accepted
+  heartbeat  9 sent=+12.113690s rpc=0.001340s gap-since-previous-return=1.000649s -> accepted
+  heartbeat 10 sent=+13.206968s rpc=0.001271s gap-since-previous-return=1.091937s -> REJECTED (NotFound)
+               recovery poll returned=+16.211294s
+  heartbeat 11 sent=+17.212351s rpc=0.001526s gap-since-previous-return=1.001057s -> accepted
+  event  1 WorkflowExecutionStarted 62128.939503000 
+  event  2 WorkflowTaskScheduled    62128.940289000 attempt=1 start_to_close=3s
+  event  3 WorkflowTaskStarted      62128.946055000 
+  event  4 WorkflowTaskCompleted    62128.948551000 
+  chain from event  2: event  4 completed                          at chain+0.008262000s (deadline -4.991738000s)
+  event  5 WorkflowTaskScheduled    62128.948627000 attempt=1 start_to_close=3s
+  event  6 WorkflowTaskStarted      62128.948649000 
+  event  7 WorkflowTaskCompleted    62129.950943000 
+  chain from event  2: event  7 completed                          at chain+1.010654000s (deadline -3.989346000s)
+  event  8 WorkflowTaskScheduled    62129.950968000 attempt=1 start_to_close=3s
+  event  9 WorkflowTaskStarted      62129.950988000 
+  event 10 WorkflowTaskCompleted    62130.953330000 
+  chain from event  2: event 10 completed                          at chain+2.013041000s (deadline -2.986959000s)
+  event 11 WorkflowTaskScheduled    62130.953354000 attempt=1 start_to_close=3s
+  event 12 WorkflowTaskStarted      62130.953375000 
+  event 13 WorkflowTaskCompleted    62131.955299000 
+  chain from event  2: event 13 completed                          at chain+3.015010000s (deadline -1.984990000s)
+  event 14 WorkflowTaskScheduled    62131.955324000 attempt=1 start_to_close=3s
+  event 15 WorkflowTaskStarted      62131.955347000 
+  event 16 WorkflowTaskCompleted    62132.957148000 
+  chain from event  2: event 16 completed                          at chain+4.016859000s (deadline -0.983141000s)
+  event 17 WorkflowTaskScheduled    62132.957169000 attempt=1 start_to_close=3s
+  event 18 WorkflowTaskStarted      62132.957191000 
+  event 19 WorkflowTaskTimedOut     62134.049848000 timeout_type=StartToClose scheduled_event_id=17
+  chain from event  2: event 19 TIMED OUT by heartbeat check       at chain+5.109559000s (deadline +0.109559000s)
+  event 20 WorkflowTaskScheduled    62134.049921000 attempt=1 start_to_close=3s
+  event 21 WorkflowTaskStarted      62134.049952000 
+  event 22 WorkflowTaskTimedOut     62137.051466000 timeout_type=StartToClose scheduled_event_id=20
+  chain from event 20: event 22 TIMED OUT by start-to-close timer  at chain+3.001545000s (deadline -1.998455000s)
+  event 23 WorkflowTaskScheduled    62137.051508000 attempt=1 start_to_close=3s
+  event 24 WorkflowTaskStarted      62137.052857000 
+  event 25 WorkflowTaskCompleted    62138.055681000 
+  chain from event 23: event 25 completed                          at chain+1.004173000s (deadline -3.995827000s)
+  event 26 WorkflowTaskScheduled    62138.055713000 attempt=1 start_to_close=3s
+  event 27 WorkflowTaskStarted      62138.055737000 
+  event 28 WorkflowTaskCompleted    62139.058207000 
+  chain from event 23: event 28 completed                          at chain+2.006699000s (deadline -2.993301000s)
+  event 29 WorkflowTaskScheduled    62139.058233000 attempt=1 start_to_close=3s
+  event 30 WorkflowTaskStarted      62139.058254000 
+  event 31 WorkflowTaskCompleted    62140.060280000 
+  chain from event 23: event 31 completed                          at chain+3.008772000s (deadline -1.991228000s)
+  event 32 WorkflowTaskScheduled    62140.060303000 attempt=1 start_to_close=3s
+  event 33 WorkflowTaskStarted      62140.060325000 
+  event 34 WorkflowTaskCompleted    62141.062330000 
+  chain from event 23: event 34 completed                          at chain+4.010822000s (deadline -0.989178000s)
+  event 35 WorkflowTaskScheduled    62141.062355000 attempt=1 start_to_close=3s
+  event 36 WorkflowTaskStarted      62141.062377000 
+  event 37 WorkflowTaskTimedOut     62142.155653000 timeout_type=StartToClose scheduled_event_id=35
+  chain from event 23: event 37 TIMED OUT by heartbeat check       at chain+5.104145000s (deadline +0.104145000s)
+  event 38 WorkflowTaskScheduled    62142.155691000 attempt=1 start_to_close=3s
+  event 39 WorkflowTaskStarted      62142.155713000 
+  event 40 WorkflowTaskTimedOut     62145.157361000 timeout_type=StartToClose scheduled_event_id=38
+  chain from event 38: event 40 TIMED OUT by start-to-close timer  at chain+3.001670000s (deadline -1.998330000s)
+  event 41 WorkflowTaskScheduled    62145.157393000 attempt=1 start_to_close=3s
+  event 42 WorkflowTaskStarted      62145.158401000 
+  event 43 WorkflowTaskCompleted    62146.161154000 
+  chain from event 41: event 43 completed                          at chain+1.003761000s (deadline -3.996239000s)
+  event 44 WorkflowTaskScheduled    62146.161179000 attempt=1 start_to_close=3s
+  event 45 WorkflowTaskStarted      62146.161202000 
+== variant-ti-leaf-count3.log run 2: PASS, heartbeat timeouts=2, loop elapsed=18.215134s
+  heartbeat  0 sent=+0.000009s rpc=0.000771s -> accepted
+  heartbeat  1 sent=+1.001078s rpc=0.001399s gap-since-previous-return=1.000297s -> accepted
+  heartbeat  2 sent=+2.003530s rpc=0.001369s gap-since-previous-return=1.001054s -> accepted
+  heartbeat  3 sent=+3.005361s rpc=0.001280s gap-since-previous-return=1.000462s -> accepted
+  heartbeat  4 sent=+4.007071s rpc=0.001303s gap-since-previous-return=1.000430s -> accepted
+  heartbeat  5 sent=+5.101064s rpc=0.001251s gap-since-previous-return=1.092690s -> REJECTED (NotFound)
+               recovery poll returned=+8.105935s
+  heartbeat  6 sent=+9.106989s rpc=0.001482s gap-since-previous-return=1.001053s -> accepted
+  heartbeat  7 sent=+10.109518s rpc=0.001437s gap-since-previous-return=1.001048s -> accepted
+  heartbeat  8 sent=+11.111562s rpc=0.001288s gap-since-previous-return=1.000607s -> accepted
+  heartbeat  9 sent=+12.113303s rpc=0.001344s gap-since-previous-return=1.000453s -> accepted
+  heartbeat 10 sent=+13.206969s rpc=0.001442s gap-since-previous-return=1.092323s -> REJECTED (NotFound)
+               recovery poll returned=+16.211470s
+  heartbeat 11 sent=+17.212521s rpc=0.001560s gap-since-previous-return=1.001052s -> accepted
+  event  1 WorkflowExecutionStarted 62147.203013000 
+  event  2 WorkflowTaskScheduled    62147.203045000 attempt=1 start_to_close=3s
+  event  3 WorkflowTaskStarted      62147.206148000 
+  event  4 WorkflowTaskCompleted    62147.207625000 
+  chain from event  2: event  4 completed                          at chain+0.004580000s (deadline -4.995420000s)
+  event  5 WorkflowTaskScheduled    62147.207642000 attempt=1 start_to_close=3s
+  event  6 WorkflowTaskStarted      62147.207662000 
+  event  7 WorkflowTaskCompleted    62148.208989000 
+  chain from event  2: event  7 completed                          at chain+1.005944000s (deadline -3.994056000s)
+  event  8 WorkflowTaskScheduled    62148.209014000 attempt=1 start_to_close=3s
+  event  9 WorkflowTaskStarted      62148.209034000 
+  event 10 WorkflowTaskCompleted    62149.211468000 
+  chain from event  2: event 10 completed                          at chain+2.008423000s (deadline -2.991577000s)
+  event 11 WorkflowTaskScheduled    62149.211492000 attempt=1 start_to_close=3s
+  event 12 WorkflowTaskStarted      62149.211514000 
+  event 13 WorkflowTaskCompleted    62150.213270000 
+  chain from event  2: event 13 completed                          at chain+3.010225000s (deadline -1.989775000s)
+  event 14 WorkflowTaskScheduled    62150.213292000 attempt=1 start_to_close=3s
+  event 15 WorkflowTaskStarted      62150.213342000 
+  event 16 WorkflowTaskCompleted    62151.215013000 
+  chain from event  2: event 16 completed                          at chain+4.011968000s (deadline -0.988032000s)
+  event 17 WorkflowTaskScheduled    62151.215038000 attempt=1 start_to_close=3s
+  event 18 WorkflowTaskStarted      62151.215060000 
+  event 19 WorkflowTaskTimedOut     62152.308983000 timeout_type=StartToClose scheduled_event_id=17
+  chain from event  2: event 19 TIMED OUT by heartbeat check       at chain+5.105938000s (deadline +0.105938000s)
+  event 20 WorkflowTaskScheduled    62152.309026000 attempt=1 start_to_close=3s
+  event 21 WorkflowTaskStarted      62152.309048000 
+  event 22 WorkflowTaskTimedOut     62155.311141000 timeout_type=StartToClose scheduled_event_id=20
+  chain from event 20: event 22 TIMED OUT by start-to-close timer  at chain+3.002115000s (deadline -1.997885000s)
+  event 23 WorkflowTaskScheduled    62155.311181000 attempt=1 start_to_close=3s
+  event 24 WorkflowTaskStarted      62155.312319000 
+  event 25 WorkflowTaskCompleted    62156.315016000 
+  chain from event 23: event 25 completed                          at chain+1.003835000s (deadline -3.996165000s)
+  event 26 WorkflowTaskScheduled    62156.315045000 attempt=1 start_to_close=3s
+  event 27 WorkflowTaskStarted      62156.315067000 
+  event 28 WorkflowTaskCompleted    62157.317505000 
+  chain from event 23: event 28 completed                          at chain+2.006324000s (deadline -2.993676000s)
+  event 29 WorkflowTaskScheduled    62157.317532000 attempt=1 start_to_close=3s
+  event 30 WorkflowTaskStarted      62157.317557000 
+  event 31 WorkflowTaskCompleted    62158.319525000 
+  chain from event 23: event 31 completed                          at chain+3.008344000s (deadline -1.991656000s)
+  event 32 WorkflowTaskScheduled    62158.319548000 attempt=1 start_to_close=3s
+  event 33 WorkflowTaskStarted      62158.319569000 
+  event 34 WorkflowTaskCompleted    62159.321279000 
+  chain from event 23: event 34 completed                          at chain+4.010098000s (deadline -0.989902000s)
+  event 35 WorkflowTaskScheduled    62159.321301000 attempt=1 start_to_close=3s
+  event 36 WorkflowTaskStarted      62159.321322000 
+  event 37 WorkflowTaskTimedOut     62160.415181000 timeout_type=StartToClose scheduled_event_id=35
+  chain from event 23: event 37 TIMED OUT by heartbeat check       at chain+5.104000000s (deadline +0.104000000s)
+  event 38 WorkflowTaskScheduled    62160.415223000 attempt=1 start_to_close=3s
+  event 39 WorkflowTaskStarted      62160.415246000 
+  event 40 WorkflowTaskTimedOut     62163.417200000 timeout_type=StartToClose scheduled_event_id=38
+  chain from event 38: event 40 TIMED OUT by start-to-close timer  at chain+3.001977000s (deadline -1.998023000s)
+  event 41 WorkflowTaskScheduled    62163.417237000 attempt=1 start_to_close=3s
+  event 42 WorkflowTaskStarted      62163.418139000 
+  event 43 WorkflowTaskCompleted    62164.420578000 
+  chain from event 41: event 43 completed                          at chain+1.003341000s (deadline -3.996659000s)
+  event 44 WorkflowTaskScheduled    62164.420601000 attempt=1 start_to_close=3s
+  event 45 WorkflowTaskStarted      62164.420622000 
+== variant-ti-leaf-count3.log run 3: PASS, heartbeat timeouts=2, loop elapsed=18.215267s
+  heartbeat  0 sent=+0.000009s rpc=0.000786s -> accepted
+  heartbeat  1 sent=+1.001857s rpc=0.001458s gap-since-previous-return=1.001062s -> accepted
+  heartbeat  2 sent=+2.003553s rpc=0.001267s gap-since-previous-return=1.000238s -> accepted
+  heartbeat  3 sent=+3.005180s rpc=0.001252s gap-since-previous-return=1.000359s -> accepted
+  heartbeat  4 sent=+4.006779s rpc=0.001176s gap-since-previous-return=1.000346s -> accepted
+  heartbeat  5 sent=+5.100867s rpc=0.001268s gap-since-previous-return=1.092913s -> REJECTED (NotFound)
+               recovery poll returned=+8.105471s
+  heartbeat  6 sent=+9.106513s rpc=0.001393s gap-since-previous-return=1.001043s -> accepted
+  heartbeat  7 sent=+10.108780s rpc=0.001563s gap-since-previous-return=1.000875s -> accepted
+  heartbeat  8 sent=+11.110945s rpc=0.001360s gap-since-previous-return=1.000602s -> accepted
+  heartbeat  9 sent=+12.112753s rpc=0.001304s gap-since-previous-return=1.000449s -> accepted
+  heartbeat 10 sent=+13.206541s rpc=0.001227s gap-since-previous-return=1.092483s -> REJECTED (NotFound)
+               recovery poll returned=+16.211727s
+  heartbeat 11 sent=+17.212766s rpc=0.001394s gap-since-previous-return=1.001039s -> accepted
+  event  1 WorkflowExecutionStarted 62165.460247000 
+  event  2 WorkflowTaskScheduled    62165.460279000 attempt=1 start_to_close=3s
+  event  3 WorkflowTaskStarted      62165.463685000 
+  event  4 WorkflowTaskCompleted    62165.465078000 
+  chain from event  2: event  4 completed                          at chain+0.004799000s (deadline -4.995201000s)
+  event  5 WorkflowTaskScheduled    62165.465094000 attempt=1 start_to_close=3s
+  event  6 WorkflowTaskStarted      62165.465111000 
+  event  7 WorkflowTaskCompleted    62166.467257000 
+  chain from event  2: event  7 completed                          at chain+1.006978000s (deadline -3.993022000s)
+  event  8 WorkflowTaskScheduled    62166.467281000 attempt=1 start_to_close=3s
+  event  9 WorkflowTaskStarted      62166.467303000 
+  event 10 WorkflowTaskCompleted    62167.468957000 
+  chain from event  2: event 10 completed                          at chain+2.008678000s (deadline -2.991322000s)
+  event 11 WorkflowTaskScheduled    62167.468978000 attempt=1 start_to_close=3s
+  event 12 WorkflowTaskStarted      62167.469001000 
+  event 13 WorkflowTaskCompleted    62168.470542000 
+  chain from event  2: event 13 completed                          at chain+3.010263000s (deadline -1.989737000s)
+  event 14 WorkflowTaskScheduled    62168.470564000 attempt=1 start_to_close=3s
+  event 15 WorkflowTaskStarted      62168.470587000 
+  event 16 WorkflowTaskCompleted    62169.472134000 
+  chain from event  2: event 16 completed                          at chain+4.011855000s (deadline -0.988145000s)
+  event 17 WorkflowTaskScheduled    62169.472155000 attempt=1 start_to_close=3s
+  event 18 WorkflowTaskStarted      62169.472177000 
+  event 19 WorkflowTaskTimedOut     62170.566303000 timeout_type=StartToClose scheduled_event_id=17
+  chain from event  2: event 19 TIMED OUT by heartbeat check       at chain+5.106024000s (deadline +0.106024000s)
+  event 20 WorkflowTaskScheduled    62170.566342000 attempt=1 start_to_close=3s
+  event 21 WorkflowTaskStarted      62170.566365000 
+  event 22 WorkflowTaskTimedOut     62173.568337000 timeout_type=StartToClose scheduled_event_id=20
+  chain from event 20: event 22 TIMED OUT by start-to-close timer  at chain+3.001995000s (deadline -1.998005000s)
+  event 23 WorkflowTaskScheduled    62173.568374000 attempt=1 start_to_close=3s
+  event 24 WorkflowTaskStarted      62173.569430000 
+  event 25 WorkflowTaskCompleted    62174.572008000 
+  chain from event 23: event 25 completed                          at chain+1.003634000s (deadline -3.996366000s)
+  event 26 WorkflowTaskScheduled    62174.572033000 attempt=1 start_to_close=3s
+  event 27 WorkflowTaskStarted      62174.572055000 
+  event 28 WorkflowTaskCompleted    62175.574297000 
+  chain from event 23: event 28 completed                          at chain+2.005923000s (deadline -2.994077000s)
+  event 29 WorkflowTaskScheduled    62175.574323000 attempt=1 start_to_close=3s
+  event 30 WorkflowTaskStarted      62175.574362000 
+  event 31 WorkflowTaskCompleted    62176.576353000 
+  chain from event 23: event 31 completed                          at chain+3.007979000s (deadline -1.992021000s)
+  event 32 WorkflowTaskScheduled    62176.576376000 attempt=1 start_to_close=3s
+  event 33 WorkflowTaskStarted      62176.576400000 
+  event 34 WorkflowTaskCompleted    62177.578240000 
+  chain from event 23: event 34 completed                          at chain+4.009866000s (deadline -0.990134000s)
+  event 35 WorkflowTaskScheduled    62177.578265000 attempt=1 start_to_close=3s
+  event 36 WorkflowTaskStarted      62177.578287000 
+  event 37 WorkflowTaskTimedOut     62178.672004000 timeout_type=StartToClose scheduled_event_id=35
+  chain from event 23: event 37 TIMED OUT by heartbeat check       at chain+5.103630000s (deadline +0.103630000s)
+  event 38 WorkflowTaskScheduled    62178.672046000 attempt=1 start_to_close=3s
+  event 39 WorkflowTaskStarted      62178.672069000 
+  event 40 WorkflowTaskTimedOut     62181.674389000 timeout_type=StartToClose scheduled_event_id=38
+  chain from event 38: event 40 TIMED OUT by start-to-close timer  at chain+3.002343000s (deadline -1.997657000s)
+  event 41 WorkflowTaskScheduled    62181.674427000 attempt=1 start_to_close=3s
+  event 42 WorkflowTaskStarted      62181.675788000 
+  event 43 WorkflowTaskCompleted    62182.678276000 
+  chain from event 41: event 43 completed                          at chain+1.003849000s (deadline -3.996151000s)
+  event 44 WorkflowTaskScheduled    62182.678300000 attempt=1 start_to_close=3s
+  event 45 WorkflowTaskStarted      62182.678322000 

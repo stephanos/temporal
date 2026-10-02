@@ -1,0 +1,21 @@
+gomad3-build rc=0 start=2026-10-01T22:15:08Z end=2026-10-01T22:15:11Z seconds=3 load_start=[4.49 8.09 7.21] load_end=[5.01 8.14 7.23] tree=a875ec2570434ad6/a875ec2570434ad6 cmd=[make gomad3]
+validate rc=0 start=2026-10-01T22:15:11Z end=2026-10-01T22:15:13Z seconds=2 load_start=[5.01 8.14 7.23] load_end=[5.01 8.14 7.23] tree=a875ec2570434ad6/a875ec2570434ad6 cmd=[make -C tools/gomad3 validate]
+test rc=0 start=2026-10-01T22:15:13Z end=2026-10-01T22:35:10Z seconds=1197 load_start=[5.01 8.14 7.23] load_end=[13.13 15.94 14.31] tree=a875ec2570434ad6/a875ec2570434ad6 cmd=[env GOFLAGS=-count=1 make -C tools/gomad3 test]
+gomad3sim rc=0 start=2026-10-01T22:35:10Z end=2026-10-01T22:35:12Z seconds=2 load_start=[13.13 15.94 14.31] load_end=[13.44 15.96 14.33] tree=a875ec2570434ad6/a875ec2570434ad6 cmd=[go test -count=1 -tags test_dep ./tools/gomad3sim/...]
+integration rc=0 start=2026-10-01T22:35:12Z end=2026-10-01T22:35:25Z seconds=13 load_start=[13.44 15.96 14.33] load_end=[12.47 15.66 14.24] tree=a875ec2570434ad6/a875ec2570434ad6 cmd=[make gomad3-integration-test]
+smoke-qualification rc=0 start=2026-10-01T22:35:25Z end=2026-10-01T22:41:08Z seconds=343 load_start=[12.47 15.66 14.24] load_end=[7.60 12.31 13.22] tree=a875ec2570434ad6/a875ec2570434ad6 cmd=[make gomad3-smoke-qualification]
+core-qualification rc=0 start=2026-10-01T22:41:08Z end=2026-10-01T22:46:52Z seconds=344 load_start=[7.60 12.31 13.22] load_end=[9.38 12.39 13.06] tree=a875ec2570434ad6/a875ec2570434ad6 cmd=[make -C tools/gomad3 core-qualification]
+lint-code-fast rc=2 start=2026-10-01T22:46:52Z end=2026-10-01T22:46:53Z seconds=1 load_start=[9.38 12.39 13.06] load_end=[9.38 12.39 13.06] tree=a875ec2570434ad6/a875ec2570434ad6 cmd=[make lint-code-fast]
+CHAIN_A_DONE
+json-test-harness rc=0 start=2026-10-01T22:47:20Z end=2026-10-01T22:47:24Z load_start=[7.29 11.66 12.78] load_end=[7.19 11.57 12.74]
+json-world-test rc=0 start=2026-10-01T22:47:24Z end=2026-10-01T22:47:28Z load_start=[7.19 11.57 12.74] load_end=[6.85 11.42 12.68]
+json-test-host rc=0 start=2026-10-01T22:47:28Z end=2026-10-01T22:50:00Z load_start=[6.85 11.42 12.68] load_end=[17.65 14.21 13.59]
+json-gomad3sim rc=0 start=2026-10-01T22:50:00Z end=2026-10-01T22:50:02Z load_start=[17.65 14.21 13.59] load_end=[17.52 14.24 13.61]
+json-integration rc=0 start=2026-10-01T22:50:02Z end=2026-10-01T22:50:19Z load_start=[17.52 14.24 13.61] load_end=[18.44 14.61 13.75]
+DISPOSITIONS_DONE
+vet-darwin-arm64 rc=0 start=2026-10-01T22:50:19Z end=2026-10-01T22:50:22Z seconds=3 load_start=[18.44 14.61 13.75] load_end=[18.44 14.61 13.75] tree=a875ec2570434ad6/a875ec2570434ad6 cmd=[sh /private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/109bf7ee-3bb8-496e-aaa3-18744f7a3514/scratchpad/fn108-7/vet.sh]
+vet-linux-amd64-cross rc=0 start=2026-10-01T22:50:22Z end=2026-10-01T22:50:29Z seconds=7 load_start=[17.69 14.51 13.72] load_end=[20.28 15.10 13.93] tree=a875ec2570434ad6/a875ec2570434ad6 cmd=[env GOOS=linux GOARCH=amd64 sh /private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/109bf7ee-3bb8-496e-aaa3-18744f7a3514/scratchpad/fn108-7/vet.sh]
+lint-code-fast-base-stephanos-main rc=2 start=2026-10-01T22:50:29Z end=2026-10-01T22:53:11Z seconds=162 load_start=[20.28 15.10 13.93] load_end=[32.51 23.78 17.76] tree=a875ec2570434ad6/a875ec2570434ad6 cmd=[make lint-code-fast GOLANGCI_LINT_BASE_REV=stephanos/main]
+CHAIN_B_DONE
+temporal-qualification rc=0 start=2026-10-01T22:53:53Z end=2026-10-01T23:33:14Z seconds=2361 load_start=[27.70 23.31 17.87] load_end=[12.95 12.25 12.84] tree=a875ec2570434ad6/a875ec2570434ad6 cmd=[make gomad3-qualification GOMAD3_QUALIFICATION_PRUNE=1]
+TEMPORAL_QUALIFICATION_DONE rc=0

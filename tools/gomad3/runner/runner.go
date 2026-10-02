@@ -680,10 +680,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 		if err != nil {
 			return fmt.Errorf("construct Runner failure manifest: %w", err)
 		}
-		published, err := publishBoundedFailureArtifact(overallCtx, config, journal.FailuresPath(), manifest.Outcome.FailureSignature, distinct, &failureArtifactBytes, artifact.ArtifactInput{
-			Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
-			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
-		})
+		published, err := publishBoundedFailureArtifact(overallCtx, config, journal.FailuresPath(), manifest.Outcome.FailureSignature, distinct, &failureArtifactBytes, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
 		if err != nil {
 			return fmt.Errorf("publish Runner failure artifact: %w", err)
 		}
@@ -842,76 +839,31 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 			}
 			continue
 		}
-		worldBundle := noneWorldBundle()
-		if len(completion.result.WorldRecord) != 0 {
-			recording, decodeErr := world.DecodeRecording(completion.result.WorldRecord)
-			if decodeErr != nil {
-				err = decodeErr
-			} else {
-				worldBundle, err = execution.ComposeRecording(recording, config.WorldTransitionLimit)
+		worldBundle, err := assessWorld(completion.result, completion.job.seed, config.WorldTransitionLimit)
+		if err != nil {
+			if publishErr := publishRunnerFailure(completion, "world_record"); publishErr != nil {
+				err = errors.Join(err, publishErr)
 			}
-			if err == nil {
-				initialWorld, _, validateErr := execution.Validate(worldBundle.Manifest, worldBundle.Payloads)
-				if validateErr != nil {
-					err = validateErr
-				} else if worldBundle.Manifest.Initial.Schema != "gomad3.world.snapshot/v1" || uint64(initialWorld.Config.Seed) != completion.job.seed {
-					err = fmt.Errorf("World record seed or schema does not match seed %d", completion.job.seed)
-				}
+			if hostFailure == nil {
+				hostFailure = &HostError{Reason: "world_record", Err: err}
+				controller.Stop()
+				activeCancel()
 			}
-			if err != nil {
-				if publishErr := publishRunnerFailure(completion, "world_record"); publishErr != nil {
-					err = errors.Join(err, publishErr)
-				}
-				if hostFailure == nil {
-					hostFailure = &HostError{Reason: "world_record", Err: err}
-					controller.Stop()
-					activeCancel()
-				}
-				continue
-			}
+			continue
 		}
-		runCoverage, coverageErr := deterministicio.SummarizeSemanticProbes(nil)
-		if coverageErr != nil {
-			return summary, &HostError{Reason: "semantic_coverage", Err: coverageErr}
-		}
-		if coverageHasSemantic(config.Coverage) {
-			coverage, coverageErr := deterministicio.DecodeSemanticCoverage(completion.result.IOTranscript.Bytes)
-			if coverageErr != nil {
-				if partialErr := preservePartial(completion.journal); partialErr != nil {
-					coverageErr = errors.Join(coverageErr, partialErr)
-				}
-				if hostFailure == nil {
-					hostFailure = &HostError{Reason: "semantic_coverage", Err: coverageErr}
-					controller.Stop()
-					activeCancel()
-				}
-				continue
+		assessed, assessErr := assessCompletion(completion.result, worldBundle.Manifest.Terminal, config.Coverage, prepared)
+		if assessErr != nil {
+			if partialErr := preservePartial(completion.journal); partialErr != nil {
+				assessErr.Err = errors.Join(assessErr.Err, partialErr)
 			}
-			runCoverage = coverage
-		}
-		runChoiceFeatures := []string{}
-		var runChoiceProjection *choice.FeatureProjection
-		// A target the watchdog or a cancellation killed wrote no choice trace
-		// to project; the termination is its outcome.
-		if coverageHasChoice(config.Coverage) && choiceTraceObserved(completion.result) {
-			projected, features, choiceErr := projectChoiceFeatures(completion.result.ChoiceTrace, prepared)
-			if choiceErr != nil {
-				if partialErr := preservePartial(completion.journal); partialErr != nil {
-					choiceErr = errors.Join(choiceErr, partialErr)
-				}
-				if hostFailure == nil {
-					hostFailure = &HostError{Reason: "choice_coverage", Err: choiceErr}
-					controller.Stop()
-					activeCancel()
-				}
-				continue
+			if hostFailure == nil {
+				hostFailure = assessErr
+				controller.Stop()
+				activeCancel()
 			}
-			runChoiceProjection = &projected
-			runChoiceFeatures = features
+			continue
 		}
-		novelProbes := novelSemanticProbes(runCoverage.Probes, semanticProbes)
-		novelChoices := novelStrings(runChoiceFeatures, choiceFeatures)
-		outcome := execution.Classify(completion.result, false, worldBundle.Manifest.Terminal)
+		runCoverage, runChoiceFeatures, runChoiceProjection, outcome := assessed.coverage, assessed.choiceFeatures, assessed.choiceProjection, assessed.outcome
 		if config.CollectExecutionEvidence {
 			mountArtifact, evidenceErr := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
 			if evidenceErr != nil {
@@ -954,42 +906,27 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 			setRunChoiceTrace(&run, completion.result.ChoiceTrace)
 			run.SemanticProbes = append([]string(nil), runCoverage.Probes...)
 			run.ChoiceFeatures = append([]string(nil), runChoiceFeatures...)
-			retain := config.KeepSuccesses == KeepSuccessesAll || config.KeepSuccesses == KeepSuccessesNovel && (len(novelProbes) != 0 || len(novelChoices) != 0)
-			if retain {
-				if !completion.result.IOTranscript.Complete {
-					hostFailure = &HostError{Reason: "success_artifact_publication", Err: errors.New("retained success requires a complete I/O transcript for exact replay")}
-					controller.Stop()
-					activeCancel()
-					continue
-				}
-				if summary.RetainedSuccesses >= config.SuccessArtifactLimit || summary.RetainedSuccessBytes >= config.SuccessBytesLimit {
-					hostFailure = &HostError{Reason: "success_retention_capacity", Err: errors.New("successful-execution retention capacity is exhausted")}
-					controller.Stop()
-					activeCancel()
-					continue
-				}
+			retention, retentionErr := decideSuccessRetention(config, assessed, completion.result.IOTranscript.Complete, semanticProbes, choiceFeatures, summary.RetainedSuccesses, summary.RetainedSuccessBytes)
+			if retentionErr != nil {
+				hostFailure = retentionErr
+				controller.Stop()
+				activeCancel()
+				continue
+			}
+			if retention.retain {
 				mountArtifact, publishErr := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
 				if publishErr == nil {
 					var manifest record.ExecutionRecord
 					manifest, publishErr = manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest, mountArtifact)
 					if publishErr == nil {
 						var published artifact.Artifact
-						published, publishErr = artifact.PublishArtifact(artifact.Store{Root: journal.SuccessesPath(), Context: overallCtx, MaximumBytes: config.SuccessBytesLimit - summary.RetainedSuccessBytes}, artifact.ArtifactInput{
-							Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
-							IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
-						})
+						published, publishErr = artifact.PublishArtifact(artifact.Store{Root: journal.SuccessesPath(), Context: overallCtx, MaximumBytes: retention.maximumBytes}, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
 						if publishErr == nil {
 							relative, relErr := filepath.Rel(batchPath, published.Path)
 							if relErr != nil {
 								publishErr = relErr
 							} else {
-								bytes := record.Uint64String(published.StoredBytes)
-								run.SuccessArtifact = &relative
-								run.SuccessArtifactBytes = &bytes
-								if config.KeepSuccesses == KeepSuccessesNovel {
-									run.NovelSemanticProbes = append([]string(nil), novelProbes...)
-									run.NovelChoiceFeatures = append([]string(nil), novelChoices...)
-								}
+								retention.annotate(&run, relative, published.StoredBytes)
 								summary.SuccessArtifacts = append(summary.SuccessArtifacts, published.Path)
 								summary.RetainedSuccesses++
 								summary.RetainedSuccessBytes += published.StoredBytes
@@ -998,12 +935,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 					}
 				}
 				if publishErr != nil {
-					reason := "success_artifact_publication"
-					var capacity *artifact.CapacityError
-					if errors.As(publishErr, &capacity) {
-						reason = "success_retention_capacity"
-					}
-					hostFailure = &HostError{Reason: reason, Err: publishErr}
+					hostFailure = successPublicationFailure(publishErr)
 					controller.Stop()
 					activeCancel()
 					continue
@@ -1034,7 +966,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 			if hostFailure == nil {
 				controller.RecordSuccess()
 				synchronizeCampaignStatistics(&summary, controller.Statistics())
-				addSemanticProbes(semanticProbes, runCoverage.Probes)
+				addStrings(semanticProbes, runCoverage.Probes)
 				addStrings(choiceFeatures, runChoiceFeatures)
 			}
 			completePartial(completion.journal)
@@ -1059,10 +991,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 			}
 			continue
 		}
-		published, publishErr := publishBoundedFailureArtifact(overallCtx, config, journal.FailuresPath(), manifest.Outcome.FailureSignature, distinct, &failureArtifactBytes, artifact.ArtifactInput{
-			Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
-			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
-		})
+		published, publishErr := publishBoundedFailureArtifact(overallCtx, config, journal.FailuresPath(), manifest.Outcome.FailureSignature, distinct, &failureArtifactBytes, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
 		if publishErr != nil {
 			if hostFailure == nil {
 				hostFailure = &HostError{Reason: "artifact_publication", Err: publishErr}
@@ -1121,7 +1050,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 			activeCancel()
 		}
 		if hostFailure == nil {
-			addSemanticProbes(semanticProbes, runCoverage.Probes)
+			addStrings(semanticProbes, runCoverage.Probes)
 			addStrings(choiceFeatures, runChoiceFeatures)
 		}
 		completePartial(completion.journal)
@@ -1855,22 +1784,6 @@ func projectSimulationExplorationSummaryPointer(summary *simulationengine.Summar
 	}
 	projected := projectSimulationExplorationSummary(*summary)
 	return &projected
-}
-
-func novelSemanticProbes(observed []string, prior map[string]struct{}) []string {
-	novel := make([]string, 0, len(observed))
-	for _, probe := range observed {
-		if _, found := prior[probe]; !found {
-			novel = append(novel, probe)
-		}
-	}
-	return novel
-}
-
-func addSemanticProbes(destination map[string]struct{}, probes []string) {
-	for _, probe := range probes {
-		destination[probe] = struct{}{}
-	}
 }
 
 func preservePartial(run *campaign.ExecutionJournal) error {
