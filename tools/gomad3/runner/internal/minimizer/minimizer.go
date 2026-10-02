@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"slices"
 
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
@@ -309,7 +310,7 @@ func sameCandidate(left, right simulationengine.Candidate) bool {
 func cloneState(state State) State {
 	state.Original = cloneCandidate(state.Original)
 	state.Current = cloneCandidate(state.Current)
-	state.Evaluated = append([]record.SHA256(nil), state.Evaluated...)
+	state.Evaluated = slices.Clone(state.Evaluated)
 	accepted := make([]Reduction, len(state.Accepted))
 	for index, reduction := range state.Accepted {
 		accepted[index] = reduction

@@ -39,7 +39,7 @@ const usage = `usage:
   gomad resume [--json] INTERRUPTED_BATCH
   gomad recover [--json] INTERRUPTED_BATCH
   gomad replay [--verify-only] [--observed DIR] ARTIFACT_DIR
-  gomad minimize [--json] [--attempt-budget N] [--artifacts DIR] ARTIFACT_DIR
+  gomad minimize [--json] [--resume] [--attempt-budget N] [--artifacts DIR] ARTIFACT_DIR
   gomad doctor [--artifacts DIR] [--json]
   gomad inspect [--json] [--choices] ARTIFACT_OR_BATCH
 `
@@ -958,6 +958,7 @@ func runMinimizeWith(arguments []string, stdout, stderr io.Writer, dependencies 
 	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact root")
 	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
 	attemptBudget := flags.Uint64("attempt-budget", 64, "maximum fresh-process minimization candidates")
+	resume := flags.Bool("resume", false, "continue an interrupted minimization from the state under the artifact root")
 	maximumBytes := byteSize(0)
 	flags.Var(&maximumBytes, "max-bytes", "maximum minimized artifact bytes")
 	if err := flags.Parse(arguments); err != nil {
@@ -977,7 +978,7 @@ func runMinimizeWith(arguments []string, stdout, stderr io.Writer, dependencies 
 	result, err := dependencies.minimize(context.Background(), runner.MinimizeSpec{
 		ArtifactPath: flags.Arg(0), OutputRoot: filepath.Join(artifactRoot, "minimized"),
 		AttemptBudget: *attemptBudget, MaximumBytes: uint64(maximumBytes), ToolchainRoot: resolvedToolchain,
-		SupervisorCommand: []string{executable, "__supervisor"},
+		SupervisorCommand: []string{executable, "__supervisor"}, Resume: *resume,
 	})
 	if err != nil {
 		var preflight *runner.ReplayPreflightError
