@@ -120,6 +120,7 @@ When planning (under 'Software Engineering Tasks'):
 
 <!-- BEGIN FLOW-NEXT -->
 <!-- flow-next:snippet:v2 -->
+
 ## Flow-Next
 
 This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow-next plugin install — every flow-next skill resolves it itself, and on Claude Code it is also on PATH. Do NOT create markdown TODOs or use TodoWrite. Cold session: `flowctl brief` first — one bounded call (specs, ready tasks, memory); go deeper with `show`/`cat`/`anchor <task-id>`.
@@ -154,7 +155,7 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
      Codex budget returned; between 2026-09-09 and 2026-09-27 reviews ran on the
      same-family `claude` backend, whose receipts say `mode: "claude"`. -->
 
-reviewer: gpt-5.6-sol at high
+reviewer: fable at high
 
 <!-- implementer: <model> at <effort> - work handed to another harness (plan
      here, implement cheaper or faster there). Absent = the session model
