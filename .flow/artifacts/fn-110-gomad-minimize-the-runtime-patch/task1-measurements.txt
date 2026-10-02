@@ -1,0 +1,73 @@
+## identity
+head 6782b55f49a0317b230e827ea2a63a37d116d502
+toolchain_tree_at_head d3d28af6492184d34cab57780d5a5742331324d3
+toolchain_status_lines 0
+toolchain_diff_against_head_lines 0
+patch_sha256 950063a87d63cb01dada2e6ef232fdeb4acc52f71a008e2158885666669f80bc
+archive_sha256 4e408abae126d916b6164627193f2c54f0e3ca1312d693b86db45f862ab238b1
+descriptor_archive_sha256 4e408abae126d916b6164627193f2c54f0e3ca1312d693b86db45f862ab238b1
+descriptor_sha256 87eb02f3f8c27c42d411c5a82ae98ef5e86d0e17605f1c6cec10bae316275c2c
+build_key 8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc
+## patch
+patch_bytes 32652
+patch_lines 1007
+patch_files 20
+patch_hunks 71
+## patch numstat (added deleted path), from git apply --numstat
+4	0	src/cmd/compile/internal/gc/main.go
+1	0	src/cmd/dist/buildtool.go
+7	0	src/cmd/link/internal/ld/lib.go
+10	0	src/crypto/rand/rand.go
+2	2	src/runtime/lock_spinbit.go
+3	0	src/runtime/panic.go
+4	0	src/runtime/preempt.go
+205	20	src/runtime/proc.go
+16	1	src/runtime/rand.go
+11	7	src/runtime/runtime2.go
+14	1	src/runtime/select.go
+1	1	src/runtime/sizeof_test.go
+1	1	src/runtime/symtab.go
+20	5	src/runtime/time.go
+3	0	src/runtime/time_nofake.go
+9	1	src/runtime/traceback.go
+7	0	src/syscall/env_unix.go
+2	16	src/syscall/rlimit.go
+14	0	src/syscall/syscall_unix.go
+8	0	src/testing/testing.go
+patch_added 342
+patch_deleted 55
+## patch sections (bytes lines hunks path)
+758 22 2 src/cmd/compile/internal/gc/main.go
+379 12 1 src/cmd/dist/buildtool.go
+638 18 1 src/cmd/link/internal/ld/lib.go
+747 28 2 src/crypto/rand/rand.go
+888 22 2 src/runtime/lock_spinbit.go
+464 14 1 src/runtime/panic.go
+404 15 1 src/runtime/preempt.go
+15145 467 31 src/runtime/proc.go
+1499 49 4 src/runtime/rand.go
+1352 29 1 src/runtime/runtime2.go
+1583 47 4 src/runtime/select.go
+539 13 1 src/runtime/sizeof_test.go
+519 13 1 src/runtime/symtab.go
+2798 87 7 src/runtime/time.go
+334 14 1 src/runtime/time_nofake.go
+639 22 1 src/runtime/traceback.go
+656 27 2 src/syscall/env_unix.go
+1144 29 1 src/syscall/rlimit.go
+1155 39 3 src/syscall/syscall_unix.go
+1011 40 4 src/testing/testing.go
+## overlay
+overlay_files 57
+overlay_bytes 601516
+overlay_lines 17105
+overlay_runtime_gomad_go_bytes 46630
+overlay_runtime_gomad_go_lines 1375
+## source sets
+patch_allowlist_entries 20
+patch_allowlist_equals_patched_files True
+overlay_allowlist_entries 57
+overlay_allowlist_equals_overlay_tree True
+## host
+/dev/disk3s5   228Gi   174Gi    28Gi    87%    3.3M  294M    1%   /System/Volumes/Data
+build_dir 6.4G	tools/gomad3/.toolchain/builds/8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc

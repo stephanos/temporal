@@ -1,0 +1,24 @@
+ok  	runtime	76.792s
+ok  	time	11.045s
+ok  	testing/synctest	0.935s
+
+##### Test execution environment.
+# GOARCH: arm64
+# CPU: Apple M2
+# GOOS: darwin
+# OS Version: Darwin 25.6.0 Darwin Kernel Version 25.6.0: Fri Jul 31 19:18:43 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_T8112 arm64
+
+##### Testing packages.
+ok  	bytes	0.360s
+ok  	context	0.512s
+ok  	encoding/json	0.824s
+ok  	io	1.027s
+?   	cmd/compile/internal/gc	[no test files]
+ok  	cmd/compile/internal/ssa	24.469s
+ok  	cmd/go/internal/load	0.909s
+ok  	cmd/go/internal/modload	1.537s
+ok  	cmd/go/internal/work	0.693s
+ok  	cmd/link/internal/ld	6.864s
+ok  	cmd/link/internal/loader	2.047s
+
+ALL TESTS PASSED (some were excluded)

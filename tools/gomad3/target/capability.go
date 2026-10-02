@@ -747,23 +747,27 @@ func collectLinknameFindings(pkg CapabilityPackage, compatibilityPackage compati
 
 var builtInSimulationLinknames = map[string]CapabilitySource{
 	"runtime_domain.go": {
-		Name: "runtime_domain.go", SHA256: "sha256:8d7f3d9d4fa4f3ad939364e2dc26110fc0cbdff4698ba8f234927e792d5f57af",
+		Name: "runtime_domain.go", SHA256: "sha256:67364238aab705541b2db0db17ad5388949dc9db988c85e548b5db288ad3b74f",
 		LinknameDirectives: []string{"gomadSimulationEnabled runtime.gomadDeterministicEnabled", "gomadSimulationBegin internal/gomadsim.Begin", "gomadSimulationRegister internal/gomadsim.Register", "gomadSimulationEnter internal/gomadsim.Enter", "gomadSimulationLeave internal/gomadsim.Leave", "gomadSimulationRevoke internal/gomadsim.Revoke", "gomadSimulationFinish internal/gomadsim.Finish"},
 	},
 	"runtime_network.go": {
-		Name: "runtime_network.go", SHA256: "sha256:2f4c6f740dfe9d10fac2e75e07db096d6e6adef99f1370bc385ccfe7efd77223",
+		Name: "runtime_network.go", SHA256: "sha256:9e90c09d6ff0d6d2ad576453a0c018c12336a08981eceabc20a6bc3193139ecc",
 		LinknameDirectives: []string{"gomadNetworkBegin internal/gomadio.BeginSimulation", "gomadNetworkPartition internal/gomadio.PartitionSimulation", "gomadNetworkHeal internal/gomadio.HealSimulation", "gomadNetworkDelay internal/gomadio.DelaySimulation", "gomadNetworkGroup internal/gomadio.ChangeSimulationGroup", "gomadNetworkRevoke internal/gomadio.RevokeSimulation", "gomadNetworkFinish internal/gomadio.FinishSimulation"},
 	},
 	"runtime_process.go": {
-		Name: "runtime_process.go", SHA256: "sha256:3f5cc7f97fe13f8699503ca2b9654ec3cfaea4c0865699838e2c4adfee507124",
+		Name: "runtime_process.go", SHA256: "sha256:db3266da1521d4d3e87ad59de1390a21a58c33cac8b39829a9cb3243bc52cedb",
 		LinknameDirectives: []string{"gomadProcessAvailable internal/gomadsim.ProcessAvailable", "gomadProcessRole internal/gomadsim.ProcessRole", "gomadProcessBootstrap internal/gomadsim.ProcessBootstrap", "gomadProcessExchange internal/gomadsim.ProcessExchange", "gomadProcessWaitStop internal/gomadsim.ProcessWaitStop", "gomadProcessServeModel internal/gomadsim.ProcessServeModel"},
 	},
 	"runtime_process_model.go": {
-		Name: "runtime_process_model.go", SHA256: "sha256:d42aab0768800d79393eb23cd8f3e29c47663afcb5694bfc61b2285ddb24e7a4",
-		LinknameDirectives: []string{"gomadProcessNetworkOperation internal/gomadio.ProcessSimulationNetworkOperation"},
+		Name: "runtime_process_model.go", SHA256: "sha256:2d46945f0cd4b45afe49f5b84f19cc87a90370d2a3600b3ba332b6a7d7e7924d",
+		LinknameDirectives: []string{"gomadProcessNetworkOperation internal/gomadio.ProcessSimulationNetworkOperation", "gomadProcessVolumeOperation internal/gomadfs.ProcessSimulationVolumeOperation"},
+	},
+	"runtime_time_toolchain.go": {
+		Name: "runtime_time_toolchain.go", SHA256: "sha256:e6402e8fbfc848c7360d19a1b77de93e841d64870ab625433fac8a47de83d23d",
+		LinknameDirectives: []string{"gomadSimulationTimeAdvance runtime.gomadSimulationTimeAdvance", "gomadSimulationTimeTakeArrivals runtime.gomadSimulationTimeTakeArrivals"},
 	},
 	"runtime_volume.go": {
-		Name: "runtime_volume.go", SHA256: "sha256:08072b86675fead340e8266d7c1c6d7c027159c3c30573e33b318a68b75de2de",
+		Name: "runtime_volume.go", SHA256: "sha256:feb0d31fa9c0d7d6a7c85c3aac6d9d12666bbfe94874e6e2077ca4c78b430a0c",
 		LinknameDirectives: []string{"gomadVolumeBegin internal/gomadfs.BeginSimulationVolumes", "gomadInitializeVolumeFilesystem os.gomadInitializeSimulationFilesystem", "gomadVolumeRegister internal/gomadfs.RegisterSimulationVolumes", "gomadVolumeRevoke internal/gomadfs.RevokeSimulationVolumes", "gomadVolumeEnumerate internal/gomadfs.EnumerateSimulationVolume", "gomadVolumeFinish internal/gomadfs.FinishSimulationVolumes"},
 	},
 }

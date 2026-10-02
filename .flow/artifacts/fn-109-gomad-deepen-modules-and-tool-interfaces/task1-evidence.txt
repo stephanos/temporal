@@ -1,0 +1,88 @@
+fn-109.1 evidence (darwin/arm64, toolchain key 8d28bd44, HEAD 6782b55f4 + uncommitted fn-108 work; no commits made)
+
+== 1. CLI before/after: simulation-exploration through the isolated coordinator ==
+Command (identical for both binaries; pre-fix binary built from the tree before the edit, post-fix after it, both with
+.toolchain/bin/go build -trimpath ./cmd/gomad into the session scratch directory):
+  gomad explore --json --strategy=simulation-exploration --seeds 89 --parallel 2 --max-executions=5 --max-forced-decisions=3
+    --max-exploration-bytes=2MiB --max-exploration-result-bytes=3MiB --max-runtime-decisions=7 --max-scenario-decisions=11
+    --max-network-decisions=13 --max-storage-decisions=17 --max-fault-decisions=19 --max-crash-decisions=23
+    --toolchain-root tools/gomad3/.toolchain --working-dir tools/gomad3/internal/gomadtool/conformance/testdata
+    --artifacts <scratch> go-run ./choice_exploration
+
+-- before: before exit=3
+{"schema":"gomad3.explore-event/v3","type":"error","classification":"runner_failure","message":"gomad3 Runner/host failure: coordinator_run: simulation-exploration forced decisions must be positive"}
+-- after: after exit=3
+{"schema":"gomad3.explore-event/v3","type":"progress","phase":"preparing","campaign_path":"<scratch>/cli-plain-after/v1/campaign-20261002T000953.473674000Z-cb6306f60bd7702d1dcfe591242383ec","selected":1}
+{"schema":"gomad3.explore-event/v3","type":"progress","phase":"running","campaign_path":"<scratch>/cli-plain-after/v1/campaign-20261002T000953.473674000Z-cb6306f60bd7702d1dcfe591242383ec","selected":1}
+{"schema":"gomad3.explore-event/v3","type":"progress","phase":"running","campaign_path":"<scratch>/cli-plain-after/v1/campaign-20261002T000953.473674000Z-cb6306f60bd7702d1dcfe591242383ec","selected":1,"running":1,"simulation_exploration":{"parallel":2,"max_executions":5,"max_forced_decisions":3,"max_exploration_bytes":2097152,"max_result_bytes":3145728,"failure_budget":1,"dimension_limits":{"runtime":7,"scenario":11,"network":13,"storage":17,"fault":19,"crash":23},"logical_executions":0,"committed_rounds":0,"pending":1,"pending_bytes":101,"seen_candidates":1,"deduplicated_outcomes":0,"distinct_failures":0,"deepest_override":0,"omitted_by_execution_bound":0,"omitted_by_depth":0,"omitted_by_dimension":0,"omitted_by_capacity":0,"bounded_complete":false}}
+{"schema":"gomad3.explore-event/v3","type":"error","classification":"runner_failure","message":"gomad3 Runner/host failure: simulation_exploration_record: gomad3 Runner/host failure: simulation_exploration_record: simulation exploration records = 0, want 1"}
+
+Reading: before, the coordinator child rejected the request in runLocal validation (bounds dropped on the wire). After, the
+request passes validation, the target is prepared, the root candidate executes and the running event echoes every supplied
+bound. The campaign then stops with simulation_exploration_record because ./choice_exploration is not a simulation target.
+Exit status 3 / runner_failure is the existing classification for both failures; no flag, default or status changed.
+
+-- same request against the only simulation fixture (go-test ./tools/gomad3sim, tags test_dep,gomad3_toolchain,
+   -test.run=^TestProcessExplorationConsumesExternalPlanAndPublishesRecord$, --working-dir <repo root>):
+before: exit=3
+{"schema":"gomad3.explore-event/v3","type":"error","classification":"runner_failure","message":"gomad3 Runner/host failure: coordinator_run: simulation-exploration forced decisions must be positive"}
+after (--capability-mode=closure): exit=2
+{"schema":"gomad3.explore-event/v3","type":"error","classification":"unsupported_target","message":"gomad3 Runner/host failure: target_preparation: unsupported target capability: package go.temporal.io/server/tools/gomad3sim uses go:linkname in runtime_domain.go"}
+after (--capability-mode=linked): exit=2
+{"schema":"gomad3.explore-event/v3","type":"error","classification":"unsupported_target","message":"gomad3 Runner/host failure: target_preparation: unsupported target capability: package go.temporal.io/server/tools/gomad3sim uses go:linkname in runtime_domain.go"}
+after (--capability-mode=guarded): exit=2
+{"schema":"gomad3.explore-event/v3","type":"error","classification":"unsupported_target","message":"gomad3 Runner/host failure: target_preparation: unsupported target capability: package go.temporal.io/server/tools/gomad3sim uses go:linkname in runtime_domain.go"}
+
+== 2. Simulation fixture gap (why no simulation-exploration campaign completes on this host) ==
+a. tools/gomad3/target/capability.go builtInSimulationLinknames no longer matches tools/gomad3sim (both unchanged from HEAD):
+   runtime_domain.go actual=sha256:67364238aab705541b2db0db17ad5388949dc9db988c85e548b5db288ad3b74f pinned=sha256:8d7f3d9d4fa4f3ad939364e2dc26110fc0cbdff4698ba8f234927e792d5f57af
+   runtime_network.go actual=sha256:9e90c09d6ff0d6d2ad576453a0c018c12336a08981eceabc20a6bc3193139ecc pinned=sha256:2f4c6f740dfe9d10fac2e75e07db096d6e6adef99f1370bc385ccfe7efd77223
+   runtime_process.go actual=sha256:db3266da1521d4d3e87ad59de1390a21a58c33cac8b39829a9cb3243bc52cedb pinned=sha256:3f5cc7f97fe13f8699503ca2b9654ec3cfaea4c0865699838e2c4adfee507124
+   runtime_process_model.go actual=sha256:2d46945f0cd4b45afe49f5b84f19cc87a90370d2a3600b3ba332b6a7d7e7924d pinned=sha256:d42aab0768800d79393eb23cd8f3e29c47663afcb5694bfc61b2285ddb24e7a4
+   runtime_volume.go actual=sha256:feb0d31fa9c0d7d6a7c85c3aac6d9d12666bbfe94874e6e2077ca4c78b430a0c pinned=sha256:08072b86675fead340e8266d7c1c6d7c027159c3c30573e33b318a68b75de2de
+   runtime_process_model.go also carries an unpinned directive (gomadProcessVolumeOperation internal/gomadfs.ProcessSimulationVolumeOperation);
+   runtime_time_toolchain.go (two runtime.gomadSimulationTime* directives) has no allowlist entry.
+b. Scratch-only probe (go build -overlay replacing capability.go with corrected pins; repository untouched):
+   closure : gomad3 Runner/host failure: target_preparation: unsupported target capability: package go.temporal.io/server/tools/gomad3sim [go.temporal.io/server/tools/gomad3sim.test] imports syscall
+   linked  : gomad3 Runner/host failure: simulation_exploration_record: gomad3 Runner/host failure: simulation_exploration_record: simulation exploration records = 0, want 1
+   guarded : gomad3 Runner/host failure: simulation_exploration_record: gomad3 Runner/host failure: simulation_exploration_record: simulation exploration records = 0, want 1
+   target stdout in linked mode: TestProcessExplorationConsumesExternalPlanAndPublishesRecord fails with
+   'simulation exploration candidate identity does not match' (gomad3sim rejects the Runner-issued plan).
+   So three stacked defects outside this task's Touches block a completing campaign: stale allowlist, the test variant's
+   syscall import under closure mode, and a Runner/gomad3sim candidate-identity mismatch.
+
+== 3. Red/green for the new tests ==
+Red: final coordinator_transport_test.go against the unfixed transport (go test -overlay with the three fields removed):
+   --- FAIL: TestCoordinatorTransportCoversEveryCampaignSpecField (0.00s)
+   --- FAIL: TestCoordinatorTransportRoundTripsEveryTransportedField (0.00s)
+   --- PASS: TestIsolatedRunnerExecutesSeedStrategyWithSuppliedLimits (1.27s)
+   --- PASS: TestIsolatedRunnerExecutesChoiceStrategyWithSuppliedLimits (3.04s)
+   --- FAIL: TestIsolatedRunnerCarriesSimulationBoundsToCandidateExecution (0.01s)
+   --- FAIL: TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner (3.20s)
+   --- FAIL: TestCoordinatorRejectsMalformedRequests (0.02s)
+   FAIL
+   FAIL	go.temporal.io/server/tools/gomad3/runner	7.971s
+   FAIL
+   coordinator_transport_test.go:112: coordinator transport changed [MaxForcedDecisions MaxExplorationResultBytes SimulationDimensionLimits]:
+   coordinator_transport_test.go:67: CampaignSpec.MaxForcedDecisions is neither transported to the coordinator nor listed as local-only
+   coordinator_transport_test.go:67: CampaignSpec.MaxExplorationResultBytes is neither transported to the coordinator nor listed as local-only
+   coordinator_transport_test.go:67: CampaignSpec.SimulationDimensionLimits is neither transported to the coordinator nor listed as local-only
+   --- FAIL: TestIsolatedRunnerCarriesSimulationBoundsToCandidateExecution (0.01s)
+   === RUN   TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner
+   === RUN   TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/zero_forced_decisions
+   coordinator_transport_test.go:276: isolated Explore() error = gomad3 Runner/host failure: coordinator_run: simulation-exploration forced decisions must be positive, want the executed candidate to lack a simulation record
+Green: same tests against the fixed tree:
+   --- PASS: TestCoordinatorTransportCoversEveryCampaignSpecField (0.00s)
+   --- PASS: TestCoordinatorTransportRoundTripsEveryTransportedField (0.00s)
+   --- PASS: TestIsolatedRunnerExecutesSeedStrategyWithSuppliedLimits (1.42s)
+   --- PASS: TestIsolatedRunnerExecutesChoiceStrategyWithSuppliedLimits (2.67s)
+   --- PASS: TestIsolatedRunnerCarriesSimulationBoundsToCandidateExecution (1.02s)
+   --- PASS: TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner (0.10s)
+   --- PASS: TestCoordinatorRejectsMalformedRequests (0.03s)
+   ok  	go.temporal.io/server/tools/gomad3/runner	5.600s
+
+== 4. Gates ==
+baseline (pre-edit): q1 rc=0; q2 rc=1 then rc=0 on isolated re-run (TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/discard,
+  an fn-108 wall-clock-bounded test, tripped at load average 16; passed alone); q3 (go vet) rc=0
+post-edit: q1 rc=0; q2 rc=0; q3 rc=0; gofmt clean; make -C tools/gomad3 validate rc=0; make -C tools/gomad3 test-host rc=0 (45 packages ok)
+not run: linux/amd64 gates (host is darwin/arm64); full make -C tools/gomad3 test (another worker active)

@@ -131,3 +131,259 @@ Measurements used repository HEAD `29917069e` on 2026-09-30. The patch SHA-256 w
 To reproduce the representation measurements, initialize an ordinary temporary Git repository containing pristine files from the verified archive, stage those files, apply the current patch, and run `git diff --no-ext-diff --diff-algorithm=myers -U<N>` for each context size. No commit or worktree is needed. Apply each generated patch to a separate pristine copy using the builder's zero-fuzz commands and compare every resulting file to the current materialization. The local `patch-validate` command also accepted the `-U1` candidate.
 
 Temporary experiment outputs remain under `/var/folders/4w/5qdjw8sd6417nldg5pvhs_rr0000gn/T/gomad-patch-size-aa2bzfn6`, including measured patches and Go build-overlay JSON files. They are investigation artifacts, not governed release inputs.
+
+## Implementation baseline
+
+Recorded 2026-10-02 (UTC) by task fn-110.1 on darwin/arm64, before any patch or overlay edit. Every later fn-110 size and equivalence claim compares against this section. The baseline patch is 32,652 bytes and 1,007 lines, which is 377 bytes and 9 lines more than the investigation measured above. Task fn-110.1 changed no file under `tools/gomad3/toolchain/`.
+
+Three findings limit later claims. The process-simulation test fails at the baseline in 2 of its 11 subtests. Runner source files changed after the reused gates ran. No linux/amd64 gate ran. "Blocking and drifting inputs" states what each one blocks.
+
+### Identity and inputs
+
+| Item | Value |
+| --- | --- |
+| Measured revision | `6782b55f49a0317b230e827ea2a63a37d116d502` on branch `stephanos/gomad`, plus the then-uncommitted fn-108 edits |
+| Baseline commit | `38957053f1ce342a8797af1803f5f8f6bb53fcad`, committed by the user at 2026-10-02T00:23 UTC while this task ran. For `tools/gomad3`, `tools/gomad3sim`, and `tools/gomad3integration` it holds exactly the tree the reused gates ran on: `git diff 6782b55f4 38957053f --diff-filter=M` over those directories has SHA-256 `47afb287…14513855`, the digest the gates recorded, and the commit adds the same seven files |
+| `git status --short -- tools/gomad3/toolchain` | empty before and after that commit; `git diff 6782b55f4 38957053f -- tools/gomad3/toolchain` is empty |
+| Git tree of `tools/gomad3/toolchain` | `d3d28af6492184d34cab57780d5a5742331324d3` at both revisions |
+| Patch SHA-256 | `950063a87d63cb01dada2e6ef232fdeb4acc52f71a008e2158885666669f80bc` |
+| Archive SHA-256 | `4e408abae126d916b6164627193f2c54f0e3ca1312d693b86db45f862ab238b1`, equal to `archive.sha256` in [version.json](../../../tools/gomad3/toolchain/version/version.json) |
+| Archive location | `tools/gomad3/.toolchain/downloads/go1.27.1.src.tar.gz`, 35,109,201 bytes |
+| Descriptor SHA-256 | `87eb02f3f8c27c42d411c5a82ae98ef5e86d0e17605f1c6cec10bae316275c2c` |
+| Baseline build key | `8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc` |
+| Runner build of the reused gates | `sha256:f8b0a8d42df61c41cfc007ca19a5891a76b0fe50f9c5e8061c9ab5279a93737f`, the SHA-256 of `tools/gomad3/.bin/gomad` |
+| Host | macOS 26.6.2 (25G83), Apple M2, host `go1.27.1`, `git` 2.54.0, `patch` 2.0-12u11-Apple |
+
+`make -C tools/gomad3 toolchain` printed `gomad3 toolchain is ready (darwin/arm64, key 8d28bd44…)` in two seconds without rebuilding, so the active toolchain already matches the patch and overlay bytes. `make -C tools/gomad3 validate` exited 0.
+
+### Difference from the investigation figures
+
+The investigation measured HEAD `29917069e`, patch SHA-256 `3ac420be…`, 32,275 bytes and 998 lines. Task fn-105.14 (D14) then added one hunk to `src/runtime/lock_spinbit.go` that replaces `gp.m.mLockProfile.start()` with `gomadLockProfileStart(&gp.m.mLockProfile)`, and added that function to the runtime overlay. The file stayed in the patch, so the count of edited upstream files is still 20. The overlay grew by 792 bytes in total: `src/runtime/gomad.go` grew by 809 bytes and 19 lines for the new function, the regenerated `src/internal/gomadchoicewire/wire_generated.go` shrank by 17 bytes, and the regenerated `src/cmd/internal/gomadcap/protocol_generated.go` changed two lines at the same size.
+
+| Quantity | Investigation | Baseline | Change |
+| --- | ---: | ---: | ---: |
+| Patch bytes | 32,275 | 32,652 | +377 |
+| Patch lines | 998 | 1,007 | +9 |
+| Added / deleted source lines | 341 / 54 | 342 / 55 | +1 / +1 |
+| `lock_spinbit.go` section bytes / lines | 511 / 13 | 888 / 22 | +377 / +9 |
+| Overlay files | 57 | 57 | 0 |
+| Overlay bytes | 600,724 | 601,516 | +792 |
+| Overlay lines | 17,086 | 17,105 | +19 |
+| `overlay/src/runtime/gomad.go` bytes / lines | 45,821 / 1,356 | 46,630 / 1,375 | +809 / +19 |
+| Build key | `1803c664…` | `8d28bd44…` | new identity |
+
+The `proc.go`, `crypto/rand`, `env_unix.go`, `syscall_unix.go`, and `runtime2.go` sections have the sizes the investigation reported, so its per-candidate savings still apply to the same hunks. Its percentages used 32,275 bytes as the denominator. Requirement R8 compares against 32,652 bytes.
+
+### Patch and overlay measurements
+
+[task1-measure.sh](../../../.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task1-measure.sh) produced every figure in this subsection and [task1-measurements.txt](../../../.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task1-measurements.txt) holds its output. The script reads files and writes nothing. Run it from the repository root.
+
+| Figure | Value | Command |
+| --- | ---: | --- |
+| Patch bytes | 32,652 | `wc -c < tools/gomad3/toolchain/runtime/go1.27.1.patch` |
+| Patch lines | 1,007 | `wc -l < tools/gomad3/toolchain/runtime/go1.27.1.patch` |
+| Edited upstream files | 20 | `grep -c '^diff --git' tools/gomad3/toolchain/runtime/go1.27.1.patch` |
+| Hunks | 71 | `grep -c '^@@ ' tools/gomad3/toolchain/runtime/go1.27.1.patch` |
+| Added source lines | 342 | `git apply --numstat tools/gomad3/toolchain/runtime/go1.27.1.patch`, first column summed |
+| Deleted source lines | 55 | same command, second column summed |
+| `src/runtime/proc.go` added / deleted | 205 / 20 | same command, `proc.go` row |
+| Overlay files | 57 | `find tools/gomad3/toolchain/runtime/overlay -type f \| wc -l` |
+| Overlay bytes | 601,516 | `find tools/gomad3/toolchain/runtime/overlay -type f -print0 \| xargs -0 cat \| wc -c` |
+| Overlay lines | 17,105 | the same pipeline ending in `wc -l` |
+| `overlay/src/runtime/gomad.go` bytes / lines | 46,630 / 1,375 | `wc -c` and `wc -l` on that file |
+
+Each patch section starts at its `diff --git` line and ends before the next one.
+
+| Patched file | Section bytes | Section lines | Hunks | Added | Deleted |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `src/cmd/compile/internal/gc/main.go` | 758 | 22 | 2 | 4 | 0 |
+| `src/cmd/dist/buildtool.go` | 379 | 12 | 1 | 1 | 0 |
+| `src/cmd/link/internal/ld/lib.go` | 638 | 18 | 1 | 7 | 0 |
+| `src/crypto/rand/rand.go` | 747 | 28 | 2 | 10 | 0 |
+| `src/runtime/lock_spinbit.go` | 888 | 22 | 2 | 2 | 2 |
+| `src/runtime/panic.go` | 464 | 14 | 1 | 3 | 0 |
+| `src/runtime/preempt.go` | 404 | 15 | 1 | 4 | 0 |
+| `src/runtime/proc.go` | 15,145 | 467 | 31 | 205 | 20 |
+| `src/runtime/rand.go` | 1,499 | 49 | 4 | 16 | 1 |
+| `src/runtime/runtime2.go` | 1,352 | 29 | 1 | 11 | 7 |
+| `src/runtime/select.go` | 1,583 | 47 | 4 | 14 | 1 |
+| `src/runtime/sizeof_test.go` | 539 | 13 | 1 | 1 | 1 |
+| `src/runtime/symtab.go` | 519 | 13 | 1 | 1 | 1 |
+| `src/runtime/time.go` | 2,798 | 87 | 7 | 20 | 5 |
+| `src/runtime/time_nofake.go` | 334 | 14 | 1 | 3 | 0 |
+| `src/runtime/traceback.go` | 639 | 22 | 1 | 9 | 1 |
+| `src/syscall/env_unix.go` | 656 | 27 | 2 | 7 | 0 |
+| `src/syscall/rlimit.go` | 1,144 | 29 | 1 | 2 | 16 |
+| `src/syscall/syscall_unix.go` | 1,155 | 39 | 3 | 14 | 0 |
+| `src/testing/testing.go` | 1,011 | 40 | 4 | 8 | 0 |
+| Total | 32,652 | 1,007 | 71 | 342 | 55 |
+
+### Reproduction from the pinned archive
+
+The checked-in patch is exactly the three-context-line diff of its own materialization. The 20 patched members were extracted from the verified archive into a scratch directory outside the repository and copied to `a/src` and `b/src`. The builder's `patch --dry-run --batch -V none -p1 -F 0` and `patch --batch -V none -p1 -F 0` both exited 0 on `b` with no fuzz or offset message and no `.orig` or `.rej` file. `git diff --no-index --no-ext-diff --binary --no-prefix --abbrev=7 --diff-algorithm=myers -U<N> a b` then produced the rows below. No Git repository, index, or worktree was created.
+
+| Context | Bytes | Lines | SHA-256 | Note |
+| --- | ---: | ---: | --- | --- |
+| `-U3` | 32,652 | 1,007 | `950063a8…669f80bc` | `cmp` reports it identical to the checked-in patch |
+| `-U2` | 28,859 | 865 | `caea8024…94ef76cf6` | reference only |
+| `-U1` | 24,620 | 715 | `5f021b81…4254642067` | baseline source at the final representation, 24.6% fewer bytes than `-U3` |
+| `-U0` | 20,844 | 558 | `c1adc512…b8dd208c66` | reference only; excluded by the spec |
+
+This proves the baseline source and its `-U3` form on the local macOS `patch` and Git 2.54.0. It was not run on Linux.
+
+### Source sets
+
+`patch_allowlist` has 20 entries and `overlay_allowlist` has 57 entries. The script compares each list with the sorted paths in the patch headers and in the overlay tree, and both comparisons are equal. `make -C tools/gomad3 validate` ran `version-generate -check`, `protocol-generate -check`, `boundary-generate -check`, `boundary-generate -check-compiler-tests`, `patch-validate`, `script-validate`, `compatibility-pack check`, `TestHostPacksBindCurrentProfile`, and `qualification-manifest-generate -check`, and exited 0.
+
+### Darwin outcomes before the change
+
+Two kinds of result appear below. "Reused" results come from the fn-108.7 final gates, which ran on 2026-10-01 between 22:15 and 23:33 UTC on these toolchain inputs. "Fresh" results were run by fn-110.1 between 2026-10-01T23:57 and 2026-10-02T00:16 UTC. Reuse is valid for the toolchain because the patch SHA-256, the toolchain Git tree, the empty toolchain status, and the build key recorded in `tools/gomad3/.toolchain/fn-110/baseline/identity.json` equal the values in "Identity and inputs". The three report digests and the three row listings also equal the fn-108 copies. The Runner caveat is in "Blocking and drifting inputs".
+
+| Gate | Command | Result | Source |
+| --- | --- | --- | --- |
+| Governed validation | `make -C tools/gomad3 validate` | exit 0 | fresh, and reused |
+| Toolchain current | `make -C tools/gomad3 toolchain` | exit 0, no rebuild, key `8d28bd44…` | fresh |
+| Gomad gate, ten tiers | `env GOFLAGS=-count=1 make -C tools/gomad3 test` | exit 0 in 1,197 s; `gomad3 all black-box tiers passed` | reused |
+| Runtime tier, per case | `conformance.Run` in mode `test-runtime` | 4,245 of 4,245 cases pass in 625 s | fresh |
+| Upstream tier, per case | `conformance.Run` in mode `test-upstream` | 2 of 2 cases pass in 108 s | fresh |
+| Upstream `crypto/rand` and `syscall` | `.toolchain/bin/go test -tags test_dep -count=1 crypto/rand syscall` | exit 0; 317 pass in `crypto/rand`; 30 pass and 3 skip in `syscall` | fresh |
+| Process simulation | `.toolchain/bin/go test -count=1 -v -tags test_dep,integration -run '^TestRootProcessSimulationUsesRunnerTransport$' ./runner/internal/execution` (14 runs), and the same command with the host `go` (11 runs) | **exit 1 in 25 of 25 runs**. In 23 runs 9 subtests pass and 2 fail. In 2 runs 8 pass and 3 fail, the third on a watchdog timeout | fresh |
+| `gomad3sim` host tests | `go test -count=1 -tags test_dep ./tools/gomad3sim/...` | exit 0; 55 tests pass | reused |
+| Temporal integration | `make gomad3-integration-test` | exit 0; 3 tests pass | reused |
+| Smoke qualification | `make gomad3-smoke-qualification` | exit 0; 4 of 4 qualified on seed 11; 4 replayed, 0 diverged | reused |
+| Core qualification | `make -C tools/gomad3 core-qualification` | exit 0; 9 compatibility-pack requests qualified; 7 of 7 qualified on seed 17; 7 replayed, 0 diverged | reused |
+| Temporal qualification | `make gomad3-qualification GOMAD3_QUALIFICATION_PRUNE=1` | exit 0 in 2,361 s; 28 of 28 qualified on seeds 11 and 17; 56 seed-runs replayed, 0 diverged | reused |
+
+The reused gate log is [final-gates/results.txt](../../../.flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/final-gates/results.txt) and its tier output is [final-gates/test.log](../../../.flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/final-gates/test.log). The ten tiers are `test-harness`, `test-toolchain`, `intercept-test`, `test-host`, `overlay-test`, `world-test`, `test-builder`, `test-live-capability`, `test-runtime`, and `test-upstream`. [test-dispositions-darwin-arm64.tsv](../../../.flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/final-gates/test-dispositions-darwin-arm64.tsv) lists 1,163 test names for `test-harness`, `test-host`, `world-test`, `gomad3sim`, and integration: 1,142 pass and 21 skip. Nineteen skips are helper entry points that only run as a child process. `TestMemberlistSuppliedTCPConsumer` skips without `GOMAD_MEMBERLIST_TCP_CONSUMER_DIR`. `TestRegenerateMatchesCheckedPatchForPinnedArchive` skips because it looks for the `go1.26.4` archive. The `test-toolchain`, `intercept-test`, `overlay-test`, and `test-live-capability` tiers have package-level results only.
+
+**Runtime and upstream tiers by case.** `gomadtool test` prints one success line per tier and discards the per-case report. A 69-line scratch program under the gitignored `tools/gomad3/.toolchain/fn-110/baseline/casereport/` calls the same `toolchain.ValidatePatch` and `conformance.Run` and writes one row per case. It ran with `env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./.toolchain/fn-110/baseline/casereport --root="$PWD" --mode=<tier> --go="$PWD/.toolchain/bin/go" --out=<tsv>` from `tools/gomad3`. A copy of its source is [task1-casereport-main.go.txt](../../../.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task1-casereport-main.go.txt).
+
+- Runtime tier: 4,245 cases in 141 name families, all `pass`. [task1-test-runtime-case-families.tsv](../../../.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task1-test-runtime-case-families.tsv) lists the families with counts. The full list is `tools/gomad3/.toolchain/fn-110/baseline/test-runtime-cases.tsv`, 620,557 bytes, SHA-256 `6dc6bb1e…04b061c41`.
+- Upstream tier: `upstream-clock` passes (`runtime` 76.8 s, `time`, `testing/synctest`). `upstream-dist` passes (`bytes`, `context`, `encoding/json`, `io`, `cmd/compile/internal/ssa`, `cmd/go/internal/load`, `cmd/go/internal/modload`, `cmd/go/internal/work`, `cmd/link/internal/ld`, `cmd/link/internal/loader`; `cmd/compile/internal/gc` has no test files). See [task1-test-upstream-cases.tsv](../../../.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task1-test-upstream-cases.tsv) and [task1-test-upstream-stdout.txt](../../../.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task1-test-upstream-stdout.txt).
+
+**Process simulation.** No Makefile target or CI job runs `TestRootProcessSimulationUsesRunnerTransport`. The command in the table ran from `tools/gomad3` with `env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off`. [task1-process-simulation.tsv](../../../.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task1-process-simulation.tsv) holds 275 rows from 25 runs: 14 with `.toolchain/bin/go` as the test runner and 11 with the host `go`. One of the 14 is the build-overlay run described below the table.
+
+| Subtest | Baseline result in 25 runs |
+| --- | --- |
+| `TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays` | pass 25 |
+| `TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection` | **fail 25**: `scenario decision identity is invalid` at `scenario_control_toolchain_test.go:66` |
+| `TestProcessExplorationConsumesExternalPlanAndPublishesRecord` | **fail 25**: `simulation exploration candidate identity does not match` at `scenario_control_toolchain_test.go:120` |
+| `TestProcessBackendResetsGlobalsDescriptorsAndGoroutines` | pass 25 |
+| `TestProcessAndInProcessBackendsHaveEquivalentDetachedModels` | pass 25 |
+| `TestProcessBackendRoutesTCPThroughSharedHostModel` | pass 25 |
+| `TestProcessBackendSynchronizesNodeClockWithModelDelay` | pass 25 |
+| `TestProcessBackendRoutesListenThroughSharedHostModel` | pass 25 |
+| `TestProcessBackendPreservesHostVolumeAcrossRestart` | pass 24; 1 watchdog timeout after 30 s |
+| `TestProcessBackendCrashDrainsInflightModelOperationDeterministically` | pass 25 |
+| `TestProcessBackendModelDigestsIgnoreCompletionOrder` | pass 24; 1 watchdog timeout after 30 s, at a 1-minute load average of 18.6 |
+
+The two identity failures occur in every run with either test runner. They also occur when a Go build overlay substitutes the HEAD versions of the three fn-108-modified files in the test's dependency closure (`deterministicio/domain.go`, `deterministicio/memory_adapter.go`, `target/capability.go`), so the uncommitted fn-108 edits did not cause them. Their cause was not investigated and fn-110.1 changed nothing to address them. The two watchdog timeouts hit different subtests in 2 of 25 runs, with no target output before the timeout.
+
+**Tests that tasks 2, 3, and 5 rely on, by name.**
+
+| Test or case | Tier | Baseline result |
+| --- | --- | --- |
+| `TestProfileEntropyIsIndependentOfScheduleSeed` (`runner/internal/execution`; runs the `io_entropy` fixture: `rand.Read`, `rand.Text`, ECDSA key generation) | `test-host` | pass (reused) |
+| `TestProfileSQLiteUsesVirtualTimeAndEntropy` | `test-host` | pass (reused) |
+| `TestBoundaryManifestSemanticCanaries`, `TestProfilePassesHostCapabilitySandbox`, `TestRunBoundsFloodedOutputWithoutBlocking`, `TestValidateRequestRejectsChoiceEnvironmentInjection` | `test-host` | pass (reused) |
+| `TestRegenerateMatchesCheckedPatchForPinnedArchive` (`toolchain`) | `test-host`, `test-builder` | **skip** (reused); proves nothing for Go 1.27.1 until task 4 retargets it |
+| `random-seed-<seed>-golden-random-0` (3) and `random-seed-<seed>-repeatable-<n>` (300) | `test-runtime` | pass (fresh) |
+| `gotest-seed-<seed>-repeatable-<n>` (300), `gotest-stock-compatibility`, `gotest-custom-compatibility` (seeded environment fixture, `TZ=UTC`) | `test-runtime` | pass (fresh) |
+| `activation-*` (18 families, including `activation-disabled`, `activation-explicit-disabled`, `activation-io-direct`, `activation-io-disabled`, and 8 invalid-seed cases) | `test-runtime` | pass (fresh) |
+| `clock-*` (including `clock-deadlock`, `clock-synctest`, `clock-blocking-io`, `clock-disabled`), `scheduler-*`, `runqueue-*`, `select-*`, `preemption-enabled`, `preemption-disabled` | `test-runtime` | pass (fresh) |
+| `upstream-clock` (`runtime`, including `TestSizeof`; `time`; `testing/synctest`) | `test-upstream` | pass (fresh) |
+| Upstream `crypto/rand` (317 tests) and `syscall` (30 tests; `TestForeground`, `TestForegroundSignal`, `TestRlimitRestored` skip) | none; task 3 names the command | pass (fresh); [dispositions](../../../.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task1-upstream-crypto-rand-syscall-dispositions.tsv) |
+
+The runtime tier has no case that runs the `io_entropy` fixture. Enabled entropy coverage at the baseline is the one `test-host` test above.
+
+**Qualification per workload.** Every row was `qualified` against a darwin/arm64 expectation of `qualified`, with `replayed`, `choice_replay_exact`, and `replay_match` all true on every listed seed. The row listings with evidence digests are `smoke-`, `core-`, and `temporal-qualification-rows.tsv` in `tools/gomad3/.toolchain/fn-110/baseline/` and in [final-gates](../../../.flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/final-gates/).
+
+| Set | Seeds | Workloads, all `qualified` with exact replay |
+| --- | --- | --- |
+| Smoke (`smoke.json`) | 11 | `functional-activity`, `functional-child-workflow`, `functional-update`, `user-timers-workflow` |
+| Core (`qualification/core.json`) | 17 | `concurrency-state-invariant`, `filesystem-transaction`, `loopback-tcp-roundtrip`, `modernc-libc-boundary`, `mount-reads-under-collection`, `sqlite-transaction`, `sqlite-write-ahead-log` |
+| Temporal (`temporal.json`) | 11 and 17 | `activity-batch-cancel-boundary`, `clock-context-timeout`, `frontend-system-info`, `functional-activity`, `functional-cancel`, `functional-child-workflow`, `functional-continue-as-new`, `functional-cron`, `functional-query`, `functional-signal-chasm`, `functional-timer`, `functional-update`, `functional-workflow`, `future-suite`, `sqlite-persistence-boundary`, `temporal-backoff-overflow`, `temporal-cache-concurrent`, `temporal-dither-pass`, `temporal-map-concurrent`, `temporal-poller-history`, `temporal-queue-key`, `temporal-sqlite-schema-rewrite`, `temporal-transition-history`, `temporal-update-abort-matrix`, `temporal-version-set-merge`, `temporal-workflow-backoff`, `timer-local-gate`, `user-timers-workflow` |
+
+Report digests: smoke `b25ac128…dfa964433d`, core `e82a5afe…bca27f0be`, Temporal `2bbb4659…bf4cc290d7`. Every `evidence_sha256` in the reports covers the Runner build, so a rebuilt Runner changes those digests without any change in target behavior. Compare classifications and replay fields across builds.
+
+### D12 and D14 dispositions
+
+D12 is open and D14 is fixed in this baseline. [GOMAD_MILESTONES.md](../../../.plans/GOMAD_MILESTONES.md) states them as follows.
+
+> **Intermittent suites.** The F5/F6 suites and `TestSignalWorkflowTestSuiteChasm` on linux (F10 D12). The darwin divergence of `TestSignalWorkflowTestSuiteChasm` is fixed (F10 D14, 2026-09-30): the generated manifest expects it `qualified` on darwin/arm64 and `intermittent` on linux/amd64. The linux `intermittent` expectation for the F5/F6 suites is stated in the representative and smoke manifests (`temporal.json`, `smoke.json`); the generated manifest still expects those suites `qualified` on linux, where the full set is not run as a gate.
+
+> **Linux replay divergence (F10 D12).** About one tier-3 seed-run in 26 on linux/amd64 is nondeterministic or diverges on replay, on either seed and a different suite each run, at choice ordinals from 8 to ~85k. […] The F5 and F6 suites are `intermittent` on linux, and both the dispatch-only linux gate and the required smoke gate accept `nondeterministic` and `replay_divergence` for them while failing on target failures, unsupported targets, and infrastructure errors. The darwin representative set stays fully qualified.
+
+> D12 is a required fix that needs a linux/amd64 host; the D14 lock-profile fix is an unverified candidate for it.
+
+> The F10 items D1, D2, D13, D14, and D21–D25 are complete as well and were removed by 2026-10-01; their outcomes are in the done summaries of the fn-105 tasks under `.flow/tasks/`.
+
+The D12 row of the F10 table reads: "Must be fixed, decided 2026-09-30. Native Linux instrumentation is an execution prerequisite. R12 in fn-105 requires a regression reproducer, repeated exact replay on both seeds under load, and restoration of strict CI expectations; diagnosis alone cannot close the task."
+
+Manifest expectations, verbatim. `temporal.json` has SHA-256 `31d17baf…c39433aa6` and 28 suites. `smoke.json` has SHA-256 `cc676039…4437c18c1` and 4 suites. `core.json` has SHA-256 `048222eb…a94ef9a43a` and 7 suites.
+
+The `functional-signal-chasm` suite (`TestSignalWorkflowTestSuiteChasm`) in `temporal.json`:
+
+```json
+"expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"},
+"platform_expectations": {
+  "darwin/arm64": {"classification": "qualified"},
+  "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"}
+}
+```
+
+The same test in the generated `tests.json`:
+
+```json
+"expectation": {
+  "classification": "qualified"
+},
+"platform_expectations": {
+  "linux/amd64": {
+    "classification": "intermittent",
+    "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+  }
+}
+```
+
+Expectation forms across the gated manifests:
+
+| Manifest | Suites | `expectation` | `platform_expectations` |
+| --- | ---: | --- | --- |
+| `temporal.json` | 10 | `intermittent`, finding `#f6-a-package-level-functional-slice` | darwin/arm64 `qualified`; linux/amd64 `intermittent`, finding `#f7-any-functional-test-and-ci` |
+| `temporal.json` | 2 | `intermittent`, finding `#f5-one-workflow-executing-functional-test-deterministic` | darwin/arm64 `qualified`; linux/amd64 `intermittent`, finding `#f7-any-functional-test-and-ci` |
+| `temporal.json` | 1 | `qualified` | darwin/arm64 `qualified`; linux/amd64 `intermittent`, finding `#f3-qualify-the-existing-functional-probe` |
+| `temporal.json` | 10 | `qualified` | linux/amd64 `unsupported_target`, capability `foreign:assembly:xxhash_amd64.s`, import path `github.com/cespare/xxhash/v2` |
+| `temporal.json` | 5 | `qualified` | none |
+| `smoke.json` | 3 | `intermittent`, finding `#f6-a-package-level-functional-slice` | darwin/arm64 `qualified`; linux/amd64 `intermittent`, finding `#f7-any-functional-test-and-ci` |
+| `smoke.json` | 1 | `intermittent`, finding `#f5-one-workflow-executing-functional-test-deterministic` | darwin/arm64 `qualified`; linux/amd64 `intermittent`, finding `#f7-any-functional-test-and-ci` |
+| `core.json` | 7 | `qualified` | none |
+
+Later fn-110 tasks keep these expectations unchanged. A darwin result weaker than `qualified` for any of the 28 Temporal, 4 smoke, or 7 core workloads is a regression against this baseline.
+
+### Blocking and drifting inputs
+
+| Input | State | Effect on later claims |
+| --- | --- | --- |
+| Pinned archive | present; SHA-256 equals the descriptor | none |
+| Patch | SHA-256 recorded; reproduces byte-for-byte from the archive at `-U3` | none; a different patch SHA-256 before task 2 starts invalidates this section |
+| `tools/gomad3/toolchain` tree | clean; identical at `6782b55f4` and `38957053f` | none |
+| Active build | key `8d28bd44…` matches the inputs | none |
+| Process-simulation test | **fails at the baseline**: 2 of 11 subtests fail in every run, and 2 of 25 runs also hit a 30 s watchdog timeout in one process-backend subtest | **Blocks any claim that this test passes.** Tasks 2 and 5 compare per subtest against the table above. The two identity failures must stay the same two failures with the same messages. One watchdog timeout in a single run does not show a regression and its absence does not show equivalence; repeat the run at least ten times on a quiet host before judging a process-backend subtest. Exploration-plan consumption over the Runner transport has no passing coverage at the baseline. |
+| Runner source | **drifted after the reused gates, and still changing.** The reused gates ran on the source now committed as `38957053f`. Another session then left uncommitted edits in `tools/gomad3/runner/coordinator.go` (modified 2026-10-02T00:06 UTC), `tools/gomad3/target/capability.go` and `capability_test.go` (00:34 UTC), and new untracked tests under `tools/gomad3/runner/`. `tools/gomad3/.bin/gomad` is still the `f8b0a8d4…` build, which no longer matches the working tree. | **Blocks a before/after comparison across different Runner sources.** `make -C tools/gomad3 test` compiles the Runner, and the integration, smoke, core, and Temporal qualification targets rebuild it, so an "after" run on a changed Runner differs from this baseline in two inputs. Task 5 has two valid routes. Either the Runner source of the "after" run equals `38957053f` for `tools/gomad3`, `tools/gomad3sim`, and `tools/gomad3integration` outside `tools/gomad3/toolchain`, or task 5 reruns the "before" gates on its own Runner source with the retained baseline toolchain `8d28bd44…` and compares against that rerun. The size figures and the toolchain identity do not depend on the Runner. The fresh results in this section ran before 00:17 UTC, when their dependency closure equaled `38957053f`: package `runner` is outside the closure of `runner/internal/execution`, `internal/gomadtool/conformance`, and `toolchain`, and `target/capability.go` changed after the last fresh run. |
+| Host load | another session ran test suites during both the reused gates (1-minute load average 4 to 32) and the fresh runs (3 to 19) | no gate other than the two process-simulation runs reported a watchdog timeout |
+| linux/amd64 | **not run** | blocks every both-platform claim; see below |
+
+### Linux baseline
+
+No linux/amd64 gate ran for this baseline. No Linux host is available locally, and cross-compilation is not Linux evidence. The Linux `-U3` application of the patch is also unverified. The jobs that supply a Linux baseline run in GitHub Actions after a push: `host-tools-linux` and `core-linux` in [gomad3.yml](../../../.github/workflows/gomad3.yml), and `functional-smoke-linux` in [gomad3-smoke.yml](../../../.github/workflows/gomad3-smoke.yml). Until a run of those jobs on this baseline revision exists, every Linux comparison in fn-110 is incomplete.
+
+### Disk and build directories
+
+`df -h .` reported 28 GiB free of 228 GiB at 2026-10-02T00:16 UTC. `tools/gomad3/.toolchain/builds/` holds one directory, the baseline key `8d28bd44…`, at 6.4 GiB. The whole `tools/gomad3/.toolchain` directory is 7.1 GiB. Each candidate build adds a directory of about that size, so three more builds would leave about 8.8 GiB, just above the spec's 8 GiB floor. Remove a superseded fn-110 candidate before a fourth. Keep the baseline directory, because task 2 runs fixtures on it for comparison. `make -C tools/gomad3 prune-cache` deletes build directories other than the active key, and downloads, once they are older than its age limit, so it can remove the baseline build after another key becomes active.
+
+### Evidence
+
+Tracked, under `.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/`: `task1-measure.sh`, `task1-measurements.txt`, `task1-process-simulation.tsv`, `task1-test-runtime-case-families.tsv`, `task1-test-upstream-cases.tsv`, `task1-test-upstream-stdout.txt`, `task1-upstream-crypto-rand-syscall-dispositions.tsv`, `task1-casereport-main.go.txt`, and `task1-baseline.json`, which indexes the gitignored files with their digests.
+
+Gitignored, under `tools/gomad3/.toolchain/fn-110/baseline/`: `identity.json` and the three set reports and row listings from the fn-108 gates, `test-runtime-cases.tsv`, `test-upstream-cases.tsv`, `upstream-case-output/`, `upstream-crypto-rand-syscall-dispositions.tsv`, `casereport/main.go`, and `logs/` with the toolchain, validate, case-report, `crypto/rand`, and 25 process-simulation logs. `make -C tools/gomad3 clean-qualifications` and `make -C tools/gomad3 clean` leave this directory in place.

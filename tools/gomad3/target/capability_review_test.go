@@ -489,3 +489,42 @@ func requireTestEqual(t *testing.T, want, got any) {
 		t.Fatalf("got %#v, want %#v", got, want)
 	}
 }
+
+// tools/gomad3sim's own tests probe host descriptors and errno values through
+// syscall, so closure mode keeps refusing that test variant. The Simulation
+// fixture is the closure-supported way to run the harness.
+func TestClosureReviewSupportsSimulationFixtureAndRefusesHarnessTests(t *testing.T) {
+	const harness = "go.temporal.io/server/tools/gomad3sim"
+	root, err := filepath.Abs(filepath.Join("..", "..", ".."))
+	requireTestNoError(t, err)
+
+	fixture, err := ReviewCapabilities(context.Background(), Spec{
+		Kind: KindGoRun, Source: "./tools/gomad3sim/testdata/simulation_exploration", WorkingDir: root,
+		BuildTags: []string{"gomad3_toolchain"}, ToolchainRoot: toolchainRoot(t),
+	})
+	requireTestNoError(t, err)
+	if fixture.CapabilityMode != CapabilityModeClosure || len(fixture.Findings) != 0 {
+		t.Fatalf("simulation fixture review = mode %s findings %#v", fixture.CapabilityMode, fixture.Findings)
+	}
+	bridged := false
+	for _, pkg := range fixture.Closure.Packages {
+		bridged = bridged || pkg.ImportPath == harness
+	}
+	if !bridged {
+		t.Fatalf("simulation fixture closure does not contain %s", harness)
+	}
+
+	tests, err := ReviewCapabilities(context.Background(), Spec{
+		Kind: KindGoTest, Source: "./tools/gomad3sim", WorkingDir: root,
+		BuildTags: []string{"gomad3_toolchain", "test_dep"}, ToolchainRoot: toolchainRoot(t),
+	})
+	requireTestNoError(t, err)
+	if len(tests.Findings) == 0 {
+		t.Fatal("harness test variant review has no findings, want its syscall import refused")
+	}
+	for _, finding := range tests.Findings {
+		if finding.Kind != FindingForbiddenImport || finding.Capability != "import:syscall" || finding.Package.ForTest != harness {
+			t.Fatalf("harness test variant finding = %#v, want only its syscall import", finding)
+		}
+	}
+}

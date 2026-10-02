@@ -1,0 +1,276 @@
+run	runner_go	start_utc	loadavg_1m	subtest	disposition	seconds	watchdog
+patched-initial-1	.toolchain/bin/go	2026-10-01T23:58:06Z	2.88	TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	3.13	false
+patched-initial-1	.toolchain/bin/go	2026-10-01T23:58:06Z	2.88	TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.03	false
+patched-initial-1	.toolchain/bin/go	2026-10-01T23:58:06Z	2.88	TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.02	false
+patched-initial-1	.toolchain/bin/go	2026-10-01T23:58:06Z	2.88	TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.14	false
+patched-initial-1	.toolchain/bin/go	2026-10-01T23:58:06Z	2.88	TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.06	false
+patched-initial-1	.toolchain/bin/go	2026-10-01T23:58:06Z	2.88	TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.06	false
+patched-initial-1	.toolchain/bin/go	2026-10-01T23:58:06Z	2.88	TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.07	false
+patched-initial-1	.toolchain/bin/go	2026-10-01T23:58:06Z	2.88	TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.04	false
+patched-initial-1	.toolchain/bin/go	2026-10-01T23:58:06Z	2.88	TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.06	false
+patched-initial-1	.toolchain/bin/go	2026-10-01T23:58:06Z	2.88	TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.06	false
+patched-initial-1	.toolchain/bin/go	2026-10-01T23:58:06Z	2.88	TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.11	false
+patched-initial-2	.toolchain/bin/go	2026-10-01T23:58:55Z		TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.29	false
+patched-initial-2	.toolchain/bin/go	2026-10-01T23:58:55Z		TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.04	false
+patched-initial-2	.toolchain/bin/go	2026-10-01T23:58:55Z		TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.04	false
+patched-initial-2	.toolchain/bin/go	2026-10-01T23:58:55Z		TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.37	false
+patched-initial-2	.toolchain/bin/go	2026-10-01T23:58:55Z		TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.16	false
+patched-initial-2	.toolchain/bin/go	2026-10-01T23:58:55Z		TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.13	false
+patched-initial-2	.toolchain/bin/go	2026-10-01T23:58:55Z		TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.16	false
+patched-initial-2	.toolchain/bin/go	2026-10-01T23:58:55Z		TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.13	false
+patched-initial-2	.toolchain/bin/go	2026-10-01T23:58:55Z		TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.17	false
+patched-initial-2	.toolchain/bin/go	2026-10-01T23:58:55Z		TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.13	false
+patched-initial-2	.toolchain/bin/go	2026-10-01T23:58:55Z		TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.34	false
+patched-initial-3	.toolchain/bin/go	2026-10-01T23:59:01Z		TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.36	false
+patched-initial-3	.toolchain/bin/go	2026-10-01T23:59:01Z		TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.08	false
+patched-initial-3	.toolchain/bin/go	2026-10-01T23:59:01Z		TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.05	false
+patched-initial-3	.toolchain/bin/go	2026-10-01T23:59:01Z		TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.36	false
+patched-initial-3	.toolchain/bin/go	2026-10-01T23:59:01Z		TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.14	false
+patched-initial-3	.toolchain/bin/go	2026-10-01T23:59:01Z		TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.15	false
+patched-initial-3	.toolchain/bin/go	2026-10-01T23:59:01Z		TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.17	false
+patched-initial-3	.toolchain/bin/go	2026-10-01T23:59:01Z		TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.12	false
+patched-initial-3	.toolchain/bin/go	2026-10-01T23:59:01Z		TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.20	false
+patched-initial-3	.toolchain/bin/go	2026-10-01T23:59:01Z		TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.16	false
+patched-initial-3	.toolchain/bin/go	2026-10-01T23:59:01Z		TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.38	false
+host-initial-1	host go1.27.1	2026-10-01T23:59:06Z		TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.72	false
+host-initial-1	host go1.27.1	2026-10-01T23:59:06Z		TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.06	false
+host-initial-1	host go1.27.1	2026-10-01T23:59:06Z		TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.06	false
+host-initial-1	host go1.27.1	2026-10-01T23:59:06Z		TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.44	false
+host-initial-1	host go1.27.1	2026-10-01T23:59:06Z		TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.13	false
+host-initial-1	host go1.27.1	2026-10-01T23:59:06Z		TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.14	false
+host-initial-1	host go1.27.1	2026-10-01T23:59:06Z		TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.25	false
+host-initial-1	host go1.27.1	2026-10-01T23:59:06Z		TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.17	false
+host-initial-1	host go1.27.1	2026-10-01T23:59:06Z		TestProcessBackendPreservesHostVolumeAcrossRestart	fail	27.87	true
+host-initial-1	host go1.27.1	2026-10-01T23:59:06Z		TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.23	false
+host-initial-1	host go1.27.1	2026-10-01T23:59:06Z		TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.41	false
+host-01	host go1.27.1	2026-10-02T00:01:04Z	12.78	TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.33	false
+host-01	host go1.27.1	2026-10-02T00:01:04Z	12.78	TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.03	false
+host-01	host go1.27.1	2026-10-02T00:01:04Z	12.78	TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.03	false
+host-01	host go1.27.1	2026-10-02T00:01:04Z	12.78	TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.19	false
+host-01	host go1.27.1	2026-10-02T00:01:04Z	12.78	TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.08	false
+host-01	host go1.27.1	2026-10-02T00:01:04Z	12.78	TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.08	false
+host-01	host go1.27.1	2026-10-02T00:01:04Z	12.78	TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.08	false
+host-01	host go1.27.1	2026-10-02T00:01:04Z	12.78	TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.05	false
+host-01	host go1.27.1	2026-10-02T00:01:04Z	12.78	TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.08	false
+host-01	host go1.27.1	2026-10-02T00:01:04Z	12.78	TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.08	false
+host-01	host go1.27.1	2026-10-02T00:01:04Z	12.78	TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.14	false
+host-02	host go1.27.1	2026-10-02T00:01:07Z	12.78	TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.33	false
+host-02	host go1.27.1	2026-10-02T00:01:07Z	12.78	TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.03	false
+host-02	host go1.27.1	2026-10-02T00:01:07Z	12.78	TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.03	false
+host-02	host go1.27.1	2026-10-02T00:01:07Z	12.78	TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.19	false
+host-02	host go1.27.1	2026-10-02T00:01:07Z	12.78	TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.08	false
+host-02	host go1.27.1	2026-10-02T00:01:07Z	12.78	TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.08	false
+host-02	host go1.27.1	2026-10-02T00:01:07Z	12.78	TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.08	false
+host-02	host go1.27.1	2026-10-02T00:01:07Z	12.78	TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.06	false
+host-02	host go1.27.1	2026-10-02T00:01:07Z	12.78	TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.09	false
+host-02	host go1.27.1	2026-10-02T00:01:07Z	12.78	TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.08	false
+host-02	host go1.27.1	2026-10-02T00:01:07Z	12.78	TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.14	false
+host-03	host go1.27.1	2026-10-02T00:01:09Z	12.64	TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.34	false
+host-03	host go1.27.1	2026-10-02T00:01:09Z	12.64	TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.03	false
+host-03	host go1.27.1	2026-10-02T00:01:09Z	12.64	TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.03	false
+host-03	host go1.27.1	2026-10-02T00:01:09Z	12.64	TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.20	false
+host-03	host go1.27.1	2026-10-02T00:01:09Z	12.64	TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.08	false
+host-03	host go1.27.1	2026-10-02T00:01:09Z	12.64	TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.08	false
+host-03	host go1.27.1	2026-10-02T00:01:09Z	12.64	TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.09	false
+host-03	host go1.27.1	2026-10-02T00:01:09Z	12.64	TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.06	false
+host-03	host go1.27.1	2026-10-02T00:01:09Z	12.64	TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.09	false
+host-03	host go1.27.1	2026-10-02T00:01:09Z	12.64	TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.09	false
+host-03	host go1.27.1	2026-10-02T00:01:09Z	12.64	TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.14	false
+host-04	host go1.27.1	2026-10-02T00:01:11Z	12.64	TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.34	false
+host-04	host go1.27.1	2026-10-02T00:01:11Z	12.64	TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.03	false
+host-04	host go1.27.1	2026-10-02T00:01:11Z	12.64	TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.03	false
+host-04	host go1.27.1	2026-10-02T00:01:11Z	12.64	TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.19	false
+host-04	host go1.27.1	2026-10-02T00:01:11Z	12.64	TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.08	false
+host-04	host go1.27.1	2026-10-02T00:01:11Z	12.64	TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.08	false
+host-04	host go1.27.1	2026-10-02T00:01:11Z	12.64	TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.08	false
+host-04	host go1.27.1	2026-10-02T00:01:11Z	12.64	TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.06	false
+host-04	host go1.27.1	2026-10-02T00:01:11Z	12.64	TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.09	false
+host-04	host go1.27.1	2026-10-02T00:01:11Z	12.64	TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.08	false
+host-04	host go1.27.1	2026-10-02T00:01:11Z	12.64	TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.14	false
+host-05	host go1.27.1	2026-10-02T00:01:13Z	11.86	TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.34	false
+host-05	host go1.27.1	2026-10-02T00:01:13Z	11.86	TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.03	false
+host-05	host go1.27.1	2026-10-02T00:01:13Z	11.86	TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.03	false
+host-05	host go1.27.1	2026-10-02T00:01:13Z	11.86	TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.20	false
+host-05	host go1.27.1	2026-10-02T00:01:13Z	11.86	TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.09	false
+host-05	host go1.27.1	2026-10-02T00:01:13Z	11.86	TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.09	false
+host-05	host go1.27.1	2026-10-02T00:01:13Z	11.86	TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.09	false
+host-05	host go1.27.1	2026-10-02T00:01:13Z	11.86	TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.06	false
+host-05	host go1.27.1	2026-10-02T00:01:13Z	11.86	TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.09	false
+host-05	host go1.27.1	2026-10-02T00:01:13Z	11.86	TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.09	false
+host-05	host go1.27.1	2026-10-02T00:01:13Z	11.86	TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.15	false
+host-06	host go1.27.1	2026-10-02T00:01:16Z	11.86	TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.34	false
+host-06	host go1.27.1	2026-10-02T00:01:16Z	11.86	TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.03	false
+host-06	host go1.27.1	2026-10-02T00:01:16Z	11.86	TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.03	false
+host-06	host go1.27.1	2026-10-02T00:01:16Z	11.86	TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.21	false
+host-06	host go1.27.1	2026-10-02T00:01:16Z	11.86	TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.09	false
+host-06	host go1.27.1	2026-10-02T00:01:16Z	11.86	TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.09	false
+host-06	host go1.27.1	2026-10-02T00:01:16Z	11.86	TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.09	false
+host-06	host go1.27.1	2026-10-02T00:01:16Z	11.86	TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.06	false
+host-06	host go1.27.1	2026-10-02T00:01:16Z	11.86	TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.09	false
+host-06	host go1.27.1	2026-10-02T00:01:16Z	11.86	TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.09	false
+host-06	host go1.27.1	2026-10-02T00:01:16Z	11.86	TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.15	false
+host-07	host go1.27.1	2026-10-02T00:01:18Z	11.86	TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.34	false
+host-07	host go1.27.1	2026-10-02T00:01:18Z	11.86	TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.03	false
+host-07	host go1.27.1	2026-10-02T00:01:18Z	11.86	TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.03	false
+host-07	host go1.27.1	2026-10-02T00:01:18Z	11.86	TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.21	false
+host-07	host go1.27.1	2026-10-02T00:01:18Z	11.86	TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.09	false
+host-07	host go1.27.1	2026-10-02T00:01:18Z	11.86	TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.09	false
+host-07	host go1.27.1	2026-10-02T00:01:18Z	11.86	TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.09	false
+host-07	host go1.27.1	2026-10-02T00:01:18Z	11.86	TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.06	false
+host-07	host go1.27.1	2026-10-02T00:01:18Z	11.86	TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.09	false
+host-07	host go1.27.1	2026-10-02T00:01:18Z	11.86	TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.09	false
+host-07	host go1.27.1	2026-10-02T00:01:18Z	11.86	TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.16	false
+host-08	host go1.27.1	2026-10-02T00:01:20Z	11.23	TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.36	false
+host-08	host go1.27.1	2026-10-02T00:01:20Z	11.23	TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.03	false
+host-08	host go1.27.1	2026-10-02T00:01:20Z	11.23	TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.03	false
+host-08	host go1.27.1	2026-10-02T00:01:20Z	11.23	TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.23	false
+host-08	host go1.27.1	2026-10-02T00:01:20Z	11.23	TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.10	false
+host-08	host go1.27.1	2026-10-02T00:01:20Z	11.23	TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.10	false
+host-08	host go1.27.1	2026-10-02T00:01:20Z	11.23	TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.10	false
+host-08	host go1.27.1	2026-10-02T00:01:20Z	11.23	TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.06	false
+host-08	host go1.27.1	2026-10-02T00:01:20Z	11.23	TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.10	false
+host-08	host go1.27.1	2026-10-02T00:01:20Z	11.23	TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.09	false
+host-08	host go1.27.1	2026-10-02T00:01:20Z	11.23	TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.15	false
+host-09	host go1.27.1	2026-10-02T00:01:23Z	11.23	TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.35	false
+host-09	host go1.27.1	2026-10-02T00:01:23Z	11.23	TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.03	false
+host-09	host go1.27.1	2026-10-02T00:01:23Z	11.23	TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.03	false
+host-09	host go1.27.1	2026-10-02T00:01:23Z	11.23	TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.21	false
+host-09	host go1.27.1	2026-10-02T00:01:23Z	11.23	TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.09	false
+host-09	host go1.27.1	2026-10-02T00:01:23Z	11.23	TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.09	false
+host-09	host go1.27.1	2026-10-02T00:01:23Z	11.23	TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.09	false
+host-09	host go1.27.1	2026-10-02T00:01:23Z	11.23	TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.06	false
+host-09	host go1.27.1	2026-10-02T00:01:23Z	11.23	TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.10	false
+host-09	host go1.27.1	2026-10-02T00:01:23Z	11.23	TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.09	false
+host-09	host go1.27.1	2026-10-02T00:01:23Z	11.23	TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.14	false
+host-10	host go1.27.1	2026-10-02T00:01:25Z	10.57	TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.35	false
+host-10	host go1.27.1	2026-10-02T00:01:25Z	10.57	TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.03	false
+host-10	host go1.27.1	2026-10-02T00:01:25Z	10.57	TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.03	false
+host-10	host go1.27.1	2026-10-02T00:01:25Z	10.57	TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.21	false
+host-10	host go1.27.1	2026-10-02T00:01:25Z	10.57	TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.09	false
+host-10	host go1.27.1	2026-10-02T00:01:25Z	10.57	TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.09	false
+host-10	host go1.27.1	2026-10-02T00:01:25Z	10.57	TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.09	false
+host-10	host go1.27.1	2026-10-02T00:01:25Z	10.57	TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.06	false
+host-10	host go1.27.1	2026-10-02T00:01:25Z	10.57	TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.09	false
+host-10	host go1.27.1	2026-10-02T00:01:25Z	10.57	TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.09	false
+host-10	host go1.27.1	2026-10-02T00:01:25Z	10.57	TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.15	false
+patched-01	.toolchain/bin/go	2026-10-01T23:59:55Z	18.56	TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.47	false
+patched-01	.toolchain/bin/go	2026-10-01T23:59:55Z	18.56	TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.13	false
+patched-01	.toolchain/bin/go	2026-10-01T23:59:55Z	18.56	TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.11	false
+patched-01	.toolchain/bin/go	2026-10-01T23:59:55Z	18.56	TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.64	false
+patched-01	.toolchain/bin/go	2026-10-01T23:59:55Z	18.56	TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.22	false
+patched-01	.toolchain/bin/go	2026-10-01T23:59:55Z	18.56	TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.19	false
+patched-01	.toolchain/bin/go	2026-10-01T23:59:55Z	18.56	TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.14	false
+patched-01	.toolchain/bin/go	2026-10-01T23:59:55Z	18.56	TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.12	false
+patched-01	.toolchain/bin/go	2026-10-01T23:59:55Z	18.56	TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.17	false
+patched-01	.toolchain/bin/go	2026-10-01T23:59:55Z	18.56	TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.16	false
+patched-01	.toolchain/bin/go	2026-10-01T23:59:55Z	18.56	TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.30	false
+patched-02	.toolchain/bin/go	2026-10-02T00:00:06Z	18.65	TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.33	false
+patched-02	.toolchain/bin/go	2026-10-02T00:00:06Z	18.65	TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.04	false
+patched-02	.toolchain/bin/go	2026-10-02T00:00:06Z	18.65	TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.04	false
+patched-02	.toolchain/bin/go	2026-10-02T00:00:06Z	18.65	TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.39	false
+patched-02	.toolchain/bin/go	2026-10-02T00:00:06Z	18.65	TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.32	false
+patched-02	.toolchain/bin/go	2026-10-02T00:00:06Z	18.65	TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.37	false
+patched-02	.toolchain/bin/go	2026-10-02T00:00:06Z	18.65	TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.38	false
+patched-02	.toolchain/bin/go	2026-10-02T00:00:06Z	18.65	TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.17	false
+patched-02	.toolchain/bin/go	2026-10-02T00:00:06Z	18.65	TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.36	false
+patched-02	.toolchain/bin/go	2026-10-02T00:00:06Z	18.65	TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.48	false
+patched-02	.toolchain/bin/go	2026-10-02T00:00:06Z	18.65	TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.38	false
+patched-03	.toolchain/bin/go	2026-10-02T00:00:13Z	19.40	TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.32	false
+patched-03	.toolchain/bin/go	2026-10-02T00:00:13Z	19.40	TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.04	false
+patched-03	.toolchain/bin/go	2026-10-02T00:00:13Z	19.40	TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.04	false
+patched-03	.toolchain/bin/go	2026-10-02T00:00:13Z	19.40	TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.25	false
+patched-03	.toolchain/bin/go	2026-10-02T00:00:13Z	19.40	TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.12	false
+patched-03	.toolchain/bin/go	2026-10-02T00:00:13Z	19.40	TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.11	false
+patched-03	.toolchain/bin/go	2026-10-02T00:00:13Z	19.40	TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.12	false
+patched-03	.toolchain/bin/go	2026-10-02T00:00:13Z	19.40	TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.07	false
+patched-03	.toolchain/bin/go	2026-10-02T00:00:13Z	19.40	TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.12	false
+patched-03	.toolchain/bin/go	2026-10-02T00:00:13Z	19.40	TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.22	false
+patched-03	.toolchain/bin/go	2026-10-02T00:00:13Z	19.40	TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.22	false
+patched-04	.toolchain/bin/go	2026-10-02T00:00:17Z	20.49	TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.30	false
+patched-04	.toolchain/bin/go	2026-10-02T00:00:17Z	20.49	TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.04	false
+patched-04	.toolchain/bin/go	2026-10-02T00:00:17Z	20.49	TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.04	false
+patched-04	.toolchain/bin/go	2026-10-02T00:00:17Z	20.49	TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.23	false
+patched-04	.toolchain/bin/go	2026-10-02T00:00:17Z	20.49	TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.10	false
+patched-04	.toolchain/bin/go	2026-10-02T00:00:17Z	20.49	TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.11	false
+patched-04	.toolchain/bin/go	2026-10-02T00:00:17Z	20.49	TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.10	false
+patched-04	.toolchain/bin/go	2026-10-02T00:00:17Z	20.49	TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.07	false
+patched-04	.toolchain/bin/go	2026-10-02T00:00:17Z	20.49	TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.16	false
+patched-04	.toolchain/bin/go	2026-10-02T00:00:17Z	20.49	TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.14	false
+patched-04	.toolchain/bin/go	2026-10-02T00:00:17Z	20.49	TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.22	false
+patched-05	.toolchain/bin/go	2026-10-02T00:00:20Z	19.57	TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.31	false
+patched-05	.toolchain/bin/go	2026-10-02T00:00:20Z	19.57	TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.04	false
+patched-05	.toolchain/bin/go	2026-10-02T00:00:20Z	19.57	TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.04	false
+patched-05	.toolchain/bin/go	2026-10-02T00:00:20Z	19.57	TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.23	false
+patched-05	.toolchain/bin/go	2026-10-02T00:00:20Z	19.57	TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.10	false
+patched-05	.toolchain/bin/go	2026-10-02T00:00:20Z	19.57	TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.09	false
+patched-05	.toolchain/bin/go	2026-10-02T00:00:20Z	19.57	TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.11	false
+patched-05	.toolchain/bin/go	2026-10-02T00:00:20Z	19.57	TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.07	false
+patched-05	.toolchain/bin/go	2026-10-02T00:00:20Z	19.57	TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.10	false
+patched-05	.toolchain/bin/go	2026-10-02T00:00:20Z	19.57	TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.09	false
+patched-05	.toolchain/bin/go	2026-10-02T00:00:20Z	19.57	TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.15	false
+patched-06	.toolchain/bin/go	2026-10-02T00:00:22Z	19.57	TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.34	false
+patched-06	.toolchain/bin/go	2026-10-02T00:00:22Z	19.57	TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.04	false
+patched-06	.toolchain/bin/go	2026-10-02T00:00:22Z	19.57	TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.07	false
+patched-06	.toolchain/bin/go	2026-10-02T00:00:22Z	19.57	TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.39	false
+patched-06	.toolchain/bin/go	2026-10-02T00:00:22Z	19.57	TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.12	false
+patched-06	.toolchain/bin/go	2026-10-02T00:00:22Z	19.57	TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.09	false
+patched-06	.toolchain/bin/go	2026-10-02T00:00:22Z	19.57	TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.15	false
+patched-06	.toolchain/bin/go	2026-10-02T00:00:22Z	19.57	TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.07	false
+patched-06	.toolchain/bin/go	2026-10-02T00:00:22Z	19.57	TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.10	false
+patched-06	.toolchain/bin/go	2026-10-02T00:00:22Z	19.57	TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.09	false
+patched-06	.toolchain/bin/go	2026-10-02T00:00:22Z	19.57	TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.14	false
+patched-07	.toolchain/bin/go	2026-10-02T00:00:25Z	18.56	TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.30	false
+patched-07	.toolchain/bin/go	2026-10-02T00:00:25Z	18.56	TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.04	false
+patched-07	.toolchain/bin/go	2026-10-02T00:00:25Z	18.56	TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.03	false
+patched-07	.toolchain/bin/go	2026-10-02T00:00:25Z	18.56	TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.25	false
+patched-07	.toolchain/bin/go	2026-10-02T00:00:25Z	18.56	TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.09	false
+patched-07	.toolchain/bin/go	2026-10-02T00:00:25Z	18.56	TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.10	false
+patched-07	.toolchain/bin/go	2026-10-02T00:00:25Z	18.56	TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.09	false
+patched-07	.toolchain/bin/go	2026-10-02T00:00:25Z	18.56	TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.06	false
+patched-07	.toolchain/bin/go	2026-10-02T00:00:25Z	18.56	TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.09	false
+patched-07	.toolchain/bin/go	2026-10-02T00:00:25Z	18.56	TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.09	false
+patched-07	.toolchain/bin/go	2026-10-02T00:00:25Z	18.56	TestProcessBackendModelDigestsIgnoreCompletionOrder	fail	27.84	true
+patched-08	.toolchain/bin/go	2026-10-02T00:00:55Z	14.37	TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.35	false
+patched-08	.toolchain/bin/go	2026-10-02T00:00:55Z	14.37	TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.03	false
+patched-08	.toolchain/bin/go	2026-10-02T00:00:55Z	14.37	TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.03	false
+patched-08	.toolchain/bin/go	2026-10-02T00:00:55Z	14.37	TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.28	false
+patched-08	.toolchain/bin/go	2026-10-02T00:00:55Z	14.37	TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.10	false
+patched-08	.toolchain/bin/go	2026-10-02T00:00:55Z	14.37	TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.10	false
+patched-08	.toolchain/bin/go	2026-10-02T00:00:55Z	14.37	TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.10	false
+patched-08	.toolchain/bin/go	2026-10-02T00:00:55Z	14.37	TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.07	false
+patched-08	.toolchain/bin/go	2026-10-02T00:00:55Z	14.37	TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.10	false
+patched-08	.toolchain/bin/go	2026-10-02T00:00:55Z	14.37	TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.10	false
+patched-08	.toolchain/bin/go	2026-10-02T00:00:55Z	14.37	TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.17	false
+patched-09	.toolchain/bin/go	2026-10-02T00:00:58Z	14.37	TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.38	false
+patched-09	.toolchain/bin/go	2026-10-02T00:00:58Z	14.37	TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.03	false
+patched-09	.toolchain/bin/go	2026-10-02T00:00:58Z	14.37	TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.03	false
+patched-09	.toolchain/bin/go	2026-10-02T00:00:58Z	14.37	TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.23	false
+patched-09	.toolchain/bin/go	2026-10-02T00:00:58Z	14.37	TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.10	false
+patched-09	.toolchain/bin/go	2026-10-02T00:00:58Z	14.37	TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.10	false
+patched-09	.toolchain/bin/go	2026-10-02T00:00:58Z	14.37	TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.10	false
+patched-09	.toolchain/bin/go	2026-10-02T00:00:58Z	14.37	TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.08	false
+patched-09	.toolchain/bin/go	2026-10-02T00:00:58Z	14.37	TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.11	false
+patched-09	.toolchain/bin/go	2026-10-02T00:00:58Z	14.37	TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.11	false
+patched-09	.toolchain/bin/go	2026-10-02T00:00:58Z	14.37	TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.18	false
+patched-10	.toolchain/bin/go	2026-10-02T00:01:01Z	13.46	TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.38	false
+patched-10	.toolchain/bin/go	2026-10-02T00:01:01Z	13.46	TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.04	false
+patched-10	.toolchain/bin/go	2026-10-02T00:01:01Z	13.46	TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.03	false
+patched-10	.toolchain/bin/go	2026-10-02T00:01:01Z	13.46	TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.26	false
+patched-10	.toolchain/bin/go	2026-10-02T00:01:01Z	13.46	TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.11	false
+patched-10	.toolchain/bin/go	2026-10-02T00:01:01Z	13.46	TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.11	false
+patched-10	.toolchain/bin/go	2026-10-02T00:01:01Z	13.46	TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.13	false
+patched-10	.toolchain/bin/go	2026-10-02T00:01:01Z	13.46	TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.09	false
+patched-10	.toolchain/bin/go	2026-10-02T00:01:01Z	13.46	TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.11	false
+patched-10	.toolchain/bin/go	2026-10-02T00:01:01Z	13.46	TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.13	false
+patched-10	.toolchain/bin/go	2026-10-02T00:01:01Z	13.46	TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.20	false
+patched-head-closure-overlay	.toolchain/bin/go	2026-10-02T00:16:06Z		TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays	pass	0.43	false
+patched-head-closure-overlay	.toolchain/bin/go	2026-10-02T00:16:06Z		TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection	fail	0.03	false
+patched-head-closure-overlay	.toolchain/bin/go	2026-10-02T00:16:06Z		TestProcessExplorationConsumesExternalPlanAndPublishesRecord	fail	0.03	false
+patched-head-closure-overlay	.toolchain/bin/go	2026-10-02T00:16:06Z		TestProcessBackendResetsGlobalsDescriptorsAndGoroutines	pass	0.19	false
+patched-head-closure-overlay	.toolchain/bin/go	2026-10-02T00:16:06Z		TestProcessAndInProcessBackendsHaveEquivalentDetachedModels	pass	0.08	false
+patched-head-closure-overlay	.toolchain/bin/go	2026-10-02T00:16:06Z		TestProcessBackendRoutesTCPThroughSharedHostModel	pass	0.08	false
+patched-head-closure-overlay	.toolchain/bin/go	2026-10-02T00:16:06Z		TestProcessBackendSynchronizesNodeClockWithModelDelay	pass	0.08	false
+patched-head-closure-overlay	.toolchain/bin/go	2026-10-02T00:16:06Z		TestProcessBackendRoutesListenThroughSharedHostModel	pass	0.06	false
+patched-head-closure-overlay	.toolchain/bin/go	2026-10-02T00:16:06Z		TestProcessBackendPreservesHostVolumeAcrossRestart	pass	0.08	false
+patched-head-closure-overlay	.toolchain/bin/go	2026-10-02T00:16:06Z		TestProcessBackendCrashDrainsInflightModelOperationDeterministically	pass	0.09	false
+patched-head-closure-overlay	.toolchain/bin/go	2026-10-02T00:16:06Z		TestProcessBackendModelDigestsIgnoreCompletionOrder	pass	0.13	false
