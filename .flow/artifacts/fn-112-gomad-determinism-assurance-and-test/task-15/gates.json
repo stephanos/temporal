@@ -1,0 +1,53 @@
+{
+  "host": "darwin/arm64, 8 CPUs",
+  "base_commit": "f55cf10c7a8c3ed38e42c03946feaa81ccd8fcfd",
+  "code_commit": "25330890b",
+  "baseline": "green via receipt 92cb85de (GATE_SKIPPED:unittest:green-receipt 92cb85de - baseline reused from prior post-gate pass); the receipt's own task recorded this test as intermittently red",
+  "cause": {
+    "kind": "wall-clock assumption in the test, not a product race",
+    "statement": "The fixture target reads /mounted/input, prints it, and spins. The test gave it a 1 s execution timeout. The supervisor measures that deadline from its own start (supervisor_unix.go: deadline := startedAt.Add(ExecutionTimeout)) and sends SIGTERM 150 ms before it (50 ms cleanup reserve plus the 100 ms terminate grace), so the target had 850 ms of host time to be launched through the supervisor and bootstrap processes, read, and print. Under CPU load the watchdog fired first.",
+    "retained_output": "red-failing-output.txt: WatchdogTimeout:true, Signal:\"terminated\", Stdout empty, IOROMounts Requests:0 (the target had not asked for its input)",
+    "same_cause_at_three_lines": "line 22 is the fixture; lines 33 and 47 (old numbering) are the two real-executor replays, which read the same 1 s limit from the manifest"
+  },
+  "fix": "The fixture and the two real-executor replays repeat a run whose watchdog fired before the target wrote output, under the next of 1, 2, 4, 8, 16, 32 s. The manifest records the timeout the fixture used. No assertion changed.",
+  "focused_command": "runner.test -test.run '^TestWatchdogDiagnosticReplayUsesCapturedInputs$' -test.count=1 -test.v, run from tools/gomad3/runner; the binary is built once with .toolchain/bin/go test -tags test_dep -c ./runner",
+  "load": "N `yes > /dev/null` processes started and stopped by the run script by recorded pid; none left afterwards (pgrep -x yes: 0)",
+  "focused_runs": [
+    {"test": "old (f55cf10c7)", "load_processes": 0, "host_load_average": "13 to 20 from other sessions", "runs": 40, "failed": 0},
+    {"test": "old (f55cf10c7)", "load_processes": 16, "host_load_average": 32, "runs": 40, "failed": 1, "failure": "fixture, line 22, empty stdout"},
+    {"test": "old (f55cf10c7)", "load_processes": 64, "host_load_average": 63, "runs": 20, "failed": 1, "failure": "fixture, line 22, empty stdout"},
+    {"test": "new (25330890b)", "load_processes": 16, "host_load_average": "24 to 26", "runs": 100, "failed": 0, "repeated_under_a_longer_timeout": 0},
+    {"test": "new (25330890b)", "load_processes": 32, "host_load_average": "45 to 49", "runs": 100, "failed": 0, "repeated_under_a_longer_timeout": 4, "detail": "recovered-preemptions.txt"},
+    {"test": "new (25330890b)", "load_processes": 64, "host_load_average": 75, "runs": 20, "failed": 1, "repeated_under_a_longer_timeout": 4, "failure": "residual-64-load.txt: execution.Run returned 'supervisor protocol requires exactly started then final reports'"}
+  ],
+  "forced_escalation": {
+    "file": "forced-escalation.txt",
+    "what": "a temporary edit put a 150 ms timeout first and made the replay helper start from the first timeout; the fixture and both real replays logged the early watchdog, moved to 1 s, and every subtest passed. The edit was reverted before the commit (the committed file was byte-compared with the saved copy)."
+  },
+  "full_gate": {
+    "command": "GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host",
+    "path_note": "pinned stock go1.27.1 first on PATH",
+    "revision": "25330890b",
+    "exit_code": 0,
+    "elapsed_seconds": 213,
+    "packages_ok": 45,
+    "packages": "test-host-packages.txt",
+    "host_load_average": "36 at start, 9 at end",
+    "toolchain_build_key": "245141dc288328269b6fc164034c6d74b87c525e5d3c4756d3b82a3fcde40d52",
+    "receipt": ".flow/tmp/green-receipts/25330890-unittest.json"
+  },
+  "vet": {"command": ".toolchain/bin/go vet -tags test_dep ./runner", "exit_code": 0},
+  "gofmt": {"command": "gofmt -l runner/watchdog_replay_test.go", "files_listed": 0},
+  "residual": {
+    "what": "At 64 load processes on 8 CPUs, 1 of 20 runs of the new test failed with a different signature: execution.Run returned an untyped error because the supervisor did not deliver its started and final reports inside the 1 s deadline. The old test makes the same call with the same deadline, so this is not introduced here; it was not seen in the old test's 100 runs. It did not occur in 200 runs at 16 and 32 load processes.",
+    "why_not_handled": "The error carries no type, so the test could only repeat on any error or match its text, and either would hide a real execution failure. Separating 'the deadline passed before the supervisor finished' from other protocol failures is a product change in runner/internal/execution."
+  },
+  "observed_outside_this_task": [
+    "tools/gomad3/cmd/gomad/watchdog_replay_e2e_test.go (outside this task's Touches) runs a watchdog target through the built CLI with --execution-timeout 2s and compares a real replay of it; if its target writes output, it has the same assumption with a wider margin (not reproduced here)"
+  ],
+  "not_run": [
+    "linux/amd64 (no native host)",
+    "make -C tools/gomad3 validate as a separate command (test-host runs the generator and patch checks shown at the top of its log; only a test file changed)",
+    "root make lint-code-fast (cannot typecheck the nested module, as recorded by task 8)"
+  ]
+}

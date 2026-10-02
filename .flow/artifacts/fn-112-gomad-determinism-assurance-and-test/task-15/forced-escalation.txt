@@ -1,0 +1,28 @@
+# new test with a 150ms first timeout and replay restarted from the first timeout (temporary edit, not committed)
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs
+    watchdog_replay_test.go:22: fixture watchdog fired after 150ms before the target wrote output
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/captured_input_after_host_removal
+    watchdog_replay_test.go:27: replay watchdog fired after 150ms before the target wrote output
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/uncaptured_input_fails
+    watchdog_replay_test.go:43: replay watchdog fired after 150ms before the target wrote output
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/exact_replay_requires_transcript
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/changed_retained_input_fails_before_execution
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/missing_retained_input_fails_before_execution
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/malformed_retained_descriptor_fails_before_execution
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/cancelled_replay_does_not_match
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/stdout_divergence
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/stderr_divergence
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/outcome_divergence
+--- PASS: TestWatchdogDiagnosticReplayUsesCapturedInputs (3.95s)
+    --- PASS: TestWatchdogDiagnosticReplayUsesCapturedInputs/captured_input_after_host_removal (1.20s)
+    --- PASS: TestWatchdogDiagnosticReplayUsesCapturedInputs/uncaptured_input_fails (1.06s)
+    --- PASS: TestWatchdogDiagnosticReplayUsesCapturedInputs/exact_replay_requires_transcript (0.14s)
+    --- PASS: TestWatchdogDiagnosticReplayUsesCapturedInputs/changed_retained_input_fails_before_execution (0.07s)
+    --- PASS: TestWatchdogDiagnosticReplayUsesCapturedInputs/missing_retained_input_fails_before_execution (0.07s)
+    --- PASS: TestWatchdogDiagnosticReplayUsesCapturedInputs/malformed_retained_descriptor_fails_before_execution (0.07s)
+    --- PASS: TestWatchdogDiagnosticReplayUsesCapturedInputs/cancelled_replay_does_not_match (0.13s)
+    --- PASS: TestWatchdogDiagnosticReplayUsesCapturedInputs/stdout_divergence (0.11s)
+    --- PASS: TestWatchdogDiagnosticReplayUsesCapturedInputs/stderr_divergence (0.11s)
+    --- PASS: TestWatchdogDiagnosticReplayUsesCapturedInputs/outcome_divergence (0.11s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner	4.262s
