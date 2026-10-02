@@ -1,0 +1,8 @@
+green-load32-a/run-15.log:    watchdog_replay_test.go:22: fixture watchdog fired after 1s before the target wrote output
+green-load32-a/run-16.log:    watchdog_replay_test.go:43: replay watchdog fired after 1s before the target wrote output
+green-load32-a/run-24.log:    watchdog_replay_test.go:22: fixture watchdog fired after 1s before the target wrote output
+green-load32-a/run-7.log:    watchdog_replay_test.go:43: replay watchdog fired after 1s before the target wrote output
+green-load64/run-14.log:    watchdog_replay_test.go:22: fixture watchdog fired after 1s before the target wrote output
+green-load64/run-20.log:    watchdog_replay_test.go:43: replay watchdog fired after 1s before the target wrote output
+green-load64/run-5.log:    watchdog_replay_test.go:27: replay watchdog fired after 1s before the target wrote output
+green-load64/run-5.log:    watchdog_replay_test.go:43: replay watchdog fired after 1s before the target wrote output

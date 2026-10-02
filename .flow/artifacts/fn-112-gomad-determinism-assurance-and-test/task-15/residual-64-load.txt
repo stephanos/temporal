@@ -1,0 +1,5 @@
+# new test at 25330890b, 64 load processes, run 19 of 20 (the only failure)
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs
+    watchdog_replay_test.go:22: supervisor protocol requires exactly started then final reports
+--- FAIL: TestWatchdogDiagnosticReplayUsesCapturedInputs (1.23s)
+FAIL
