@@ -172,6 +172,11 @@ func TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration(t *t
 	if strategy != runner.StrategyChoiceExploration || !choices {
 		t.Fatalf("resolveExploreStrategy() = %q, %t", strategy, choices)
 	}
+	withStart := valid
+	withStart.ChoiceStartOrdinalSet = true
+	if _, _, err := resolveExploreStrategy(withStart); err != nil {
+		t.Fatal(err)
+	}
 
 	for _, test := range []struct {
 		name      string
@@ -222,6 +227,7 @@ func TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration(t *t
 		{name: "multiple seeds", configure: func(options *exploreStrategyOptions) { options.Seeds = "7-8" }, want: "exactly one base seed"},
 		{name: "guidance", configure: func(options *exploreStrategyOptions) { options.Guide = true }, want: "does not support --guide"},
 		{name: "choice depth", configure: func(options *exploreStrategyOptions) { options.MaxChoiceDepthSet = true; options.MaxChoiceDepth = 1 }, want: "does not accept --max-choice-depth"},
+		{name: "choice start ordinal", configure: func(options *exploreStrategyOptions) { options.ChoiceStartOrdinalSet = true }, want: "does not accept --choice-start-ordinal"},
 		{name: "missing max executions", configure: func(options *exploreStrategyOptions) { options.MaxExecutionsSet = false }, want: "--max-executions"},
 		{name: "missing forced decisions", configure: func(options *exploreStrategyOptions) { options.MaxForcedDecisionsSet = false }, want: "--max-forced-decisions"},
 		{name: "missing exploration bytes", configure: func(options *exploreStrategyOptions) { options.MaxExplorationBytesSet = false }, want: "--max-exploration-bytes"},
@@ -240,9 +246,13 @@ func TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration(t *t
 }
 
 func TestResolveExploreStrategyRejectsExplorationBoundsForSeeds(t *testing.T) {
-	_, _, err := resolveExploreStrategy(exploreStrategyOptions{Value: "seed", Seeds: "7", MaxExecutions: 1, MaxExecutionsSet: true})
-	if err == nil || !strings.Contains(err.Error(), "require --strategy=choice-exploration") {
-		t.Fatalf("resolveExploreStrategy() error = %v", err)
+	for _, options := range []exploreStrategyOptions{
+		{Value: "seed", Seeds: "7", MaxExecutions: 1, MaxExecutionsSet: true},
+		{Value: "seed", Seeds: "7", ChoiceStartOrdinalSet: true},
+	} {
+		if _, _, err := resolveExploreStrategy(options); err == nil || !strings.Contains(err.Error(), "require") || !strings.Contains(err.Error(), "--strategy=choice-exploration") {
+			t.Fatalf("resolveExploreStrategy(%#v) error = %v", options, err)
+		}
 	}
 }
 

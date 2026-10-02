@@ -266,6 +266,13 @@ func printArtifactInspection(printer *inspectionPrinter, inspected *runner.Artif
 		for _, site := range choices.Sites {
 			printer.printf("choice-site: kind=%s fingerprint=%s count=%d max-alternatives=%d\n", site.Kind, site.Fingerprint, site.Count, site.MaximumAlternatives)
 		}
+		for _, decision := range choices.ReplayDecisions {
+			site := fmt.Sprintf("%#x", decision.SiteOffset)
+			if decision.SiteMissing {
+				site = "missing"
+			}
+			printer.printf("choice-decision: ordinal=%d kind=%s site-offset=%s alternatives=%d selected=%d\n", decision.Ordinal, decision.Kind, site, decision.Alternatives, decision.Selected)
+		}
 	}
 	if simulation := inspected.Simulation; simulation != nil {
 		printer.printf("simulation: profile=%s controller=%s execution=%s candidate=%s outcome=%s failure=%s plan-schema=%s plan-bytes=%d plan-sha256=%s record-schema=%s record-bytes=%d record-limit=%d record-sha256=%s\n", simulation.Profile, simulation.ControllerSHA256, simulation.ExecutionSHA256, simulation.CandidateSHA256, simulation.OutcomeSHA256, simulation.FailureSHA256, simulation.Plan.Schema, simulation.Plan.Bytes, simulation.Plan.SHA256, simulation.Record.Schema, simulation.Record.Bytes, simulation.Record.Limit, simulation.Record.SHA256)
@@ -299,7 +306,7 @@ func printCampaignInspection(printer *inspectionPrinter, campaign *runner.Campai
 		printer.printf("artifact-capacity: failures=%d failure-bytes=%d successes=%d success-bytes=%d total-bytes=%d transcript-bytes=%d failure-outcome=%s success-outcome=%s\n", capacity.FailureArtifacts, capacity.FailureBytes, capacity.SuccessArtifacts, capacity.SuccessBytes, capacity.TotalBytes, capacity.TranscriptBytes, capacity.FailureOutcome, capacity.SuccessOutcome)
 	}
 	if exploration := campaign.ChoiceExploration; exploration != nil {
-		printer.printf("exploration: rounds=%d pending=%d bytes=%d seen=%d outcomes=%d depth=%d max-executions=%d max-depth=%d max-bytes=%d omitted-executions=%d omitted-depth=%d omitted-bytes=%d complete=%t recovery-executions=%d implementation=%s chain=%s\n", exploration.CommittedRounds, exploration.Pending, exploration.PendingBytes, exploration.SeenPrefixes, exploration.DeduplicatedOutcomes, exploration.DeepestPrefix, exploration.MaxExecutions, exploration.MaxChoiceDepth, exploration.MaxExplorationBytes, exploration.OmittedByExecutionBound, exploration.OmittedByDepth, exploration.OmittedByCapacity, exploration.BoundedComplete, campaign.RecoveryExecutions, campaign.ChoiceExplorationImplementationSHA256, campaign.ChoiceExplorationChainSHA256)
+		printer.printf("exploration: rounds=%d pending=%d bytes=%d seen=%d outcomes=%d depth=%d max-executions=%d max-depth=%d start=%d max-bytes=%d omitted-executions=%d omitted-depth=%d omitted-bytes=%d complete=%t recovery-executions=%d implementation=%s chain=%s\n", exploration.CommittedRounds, exploration.Pending, exploration.PendingBytes, exploration.SeenPrefixes, exploration.DeduplicatedOutcomes, exploration.DeepestPrefix, exploration.MaxExecutions, exploration.MaxChoiceDepth, exploration.StartOrdinal, exploration.MaxExplorationBytes, exploration.OmittedByExecutionBound, exploration.OmittedByDepth, exploration.OmittedByCapacity, exploration.BoundedComplete, campaign.RecoveryExecutions, campaign.ChoiceExplorationImplementationSHA256, campaign.ChoiceExplorationChainSHA256)
 	}
 	if exploration := campaign.SimulationExploration; exploration != nil {
 		limits := exploration.Limits
@@ -413,6 +420,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	count := flags.Uint64("count", 0, "explore seeds 0 through N-1")
 	maxRuns := flags.Uint64("max-executions", 0, "maximum exploration candidates")
 	maxChoiceDepth := flags.Uint64("max-choice-depth", 0, "maximum forced choice decisions")
+	choiceStartOrdinal := flags.Uint64("choice-start-ordinal", 0, "first replay-plan decision ordinal choice exploration expands; inspect --choices lists ordinals")
 	maxForcedDecisions := flags.Uint64("max-forced-decisions", 0, "maximum combined forced decisions")
 	maxRuntimeDecisions := flags.Uint64("max-runtime-decisions", 0, "maximum runtime decision ordinal")
 	maxScenarioDecisions := flags.Uint64("max-scenario-decisions", 0, "maximum scenario decision ordinal")
@@ -492,7 +500,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		}
 		return 2
 	}
-	var seedsSet, countSet, coverageSet, choiceLimitSet, maxRunsSet, maxChoiceDepthSet, maxForcedDecisionsSet, maxExplorationBytesSet, maxExplorationResultBytesSet bool
+	var seedsSet, countSet, coverageSet, choiceLimitSet, maxRunsSet, maxChoiceDepthSet, choiceStartOrdinalSet, maxForcedDecisionsSet, maxExplorationBytesSet, maxExplorationResultBytesSet bool
 	var runtimeLimitSet, scenarioLimitSet, networkLimitSet, storageLimitSet, faultLimitSet, crashLimitSet bool
 	flags.Visit(func(visited *flag.Flag) {
 		switch visited.Name {
@@ -508,6 +516,8 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 			maxRunsSet = true
 		case "max-choice-depth":
 			maxChoiceDepthSet = true
+		case "choice-start-ordinal":
+			choiceStartOrdinalSet = true
 		case "max-forced-decisions":
 			maxForcedDecisionsSet = true
 		case "max-exploration-bytes":
@@ -536,7 +546,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 			Runtime: *maxRuntimeDecisions, Scenario: *maxScenarioDecisions, Network: *maxNetworkDecisions,
 			Storage: *maxStorageDecisions, Fault: *maxFaultDecisions, Crash: *maxCrashDecisions,
 		},
-		MaxExecutionsSet: maxRunsSet, MaxChoiceDepthSet: maxChoiceDepthSet, MaxForcedDecisionsSet: maxForcedDecisionsSet,
+		MaxExecutionsSet: maxRunsSet, MaxChoiceDepthSet: maxChoiceDepthSet, ChoiceStartOrdinalSet: choiceStartOrdinalSet, MaxForcedDecisionsSet: maxForcedDecisionsSet,
 		MaxExplorationBytesSet: maxExplorationBytesSet, MaxExplorationResultBytesSet: maxExplorationResultBytesSet,
 		RuntimeLimitSet: runtimeLimitSet, ScenarioLimitSet: scenarioLimitSet, NetworkLimitSet: networkLimitSet,
 		StorageLimitSet: storageLimitSet, FaultLimitSet: faultLimitSet, CrashLimitSet: crashLimitSet,
@@ -635,7 +645,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	config := runner.CampaignSpec{
 		Strategy: resolvedStrategy, Seeds: resolvedSeeds, Parallel: *parallel, ExecutionTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
 		OnFailure: runner.FailurePolicy(*onFailure), FailureBudget: *failureBudget, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
-		Diagnostics: *diagnostics, ChoiceTraceLimit: resolvedChoiceLimit, ClockTick: *clockTick, IOTranscriptLimit: uint64(transcriptLimit), MaxExecutions: *maxRuns, MaxChoiceDepth: *maxChoiceDepth, MaxForcedDecisions: *maxForcedDecisions,
+		Diagnostics: *diagnostics, ChoiceTraceLimit: resolvedChoiceLimit, ClockTick: *clockTick, IOTranscriptLimit: uint64(transcriptLimit), MaxExecutions: *maxRuns, MaxChoiceDepth: *maxChoiceDepth, ChoiceStartOrdinal: *choiceStartOrdinal, MaxForcedDecisions: *maxForcedDecisions,
 		MaxExplorationBytes: uint64(explorationLimit), MaxExplorationResultBytes: uint64(explorationResultLimit),
 		SimulationDimensionLimits: runner.SimulationDimensionLimits{
 			Runtime: *maxRuntimeDecisions, Scenario: *maxScenarioDecisions, Network: *maxNetworkDecisions,
@@ -719,6 +729,7 @@ type exploreStrategyOptions struct {
 	SimulationDimensionLimits    runner.SimulationDimensionLimits
 	MaxExecutionsSet             bool
 	MaxChoiceDepthSet            bool
+	ChoiceStartOrdinalSet        bool
 	MaxForcedDecisionsSet        bool
 	MaxExplorationBytesSet       bool
 	MaxExplorationResultBytesSet bool
@@ -742,6 +753,9 @@ func resolveExploreStrategy(options exploreStrategyOptions) (runner.Strategy, bo
 		}
 		if options.MaxExecutionsSet || options.MaxChoiceDepthSet || options.MaxExplorationBytesSet {
 			return "", false, errors.New("exploration bounds require --strategy=choice-exploration")
+		}
+		if options.ChoiceStartOrdinalSet {
+			return "", false, errors.New("--choice-start-ordinal requires --strategy=choice-exploration")
 		}
 		return strategy, options.Choices, nil
 	case runner.StrategyChoiceExploration:
@@ -787,6 +801,9 @@ func resolveExploreStrategy(options exploreStrategyOptions) (runner.Strategy, bo
 		}
 		if options.MaxChoiceDepthSet {
 			return "", false, errors.New("--strategy=simulation-exploration does not accept --max-choice-depth")
+		}
+		if options.ChoiceStartOrdinalSet {
+			return "", false, errors.New("--strategy=simulation-exploration does not accept --choice-start-ordinal")
 		}
 		for _, bound := range []struct {
 			name  string

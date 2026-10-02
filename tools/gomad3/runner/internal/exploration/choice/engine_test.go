@@ -153,6 +153,86 @@ func TestExplorationStopsAtExplicitRunDepthAndCapacityBounds(t *testing.T) {
 	}
 }
 
+func TestExplorationStartOrdinalExpandsOnlyFromTheStart(t *testing.T) {
+	config := testConfig()
+	config.StartOrdinal = 2
+	config.MaxChoiceDepth = 1
+	state, err := New(config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	round, _ := state.NextRound()
+	trace := testTape(t, config.Execution,
+		testDecision(t, 0, choice.KindRunnable, 2, 0),
+		testDecision(t, 1, choice.KindSelectPoll, 3, 1),
+		testDecision(t, 2, choice.KindRunnable, 2, 0),
+		testDecision(t, 3, choice.KindRunnable, 3, 0),
+	)
+	state, _, err = CommitRound(state, round, []Result{testResult(round.Candidates[0], trace, "root")})
+	if err != nil {
+		t.Fatal(err)
+	}
+	summary := state.Summary()
+	if summary.StartOrdinal != 2 || summary.Pending != 1 || summary.OmittedByDepth != 2 || summary.DeepestPrefix != 3 {
+		t.Fatalf("summary = %#v", summary)
+	}
+	prefix, err := state.Queue[0].PrefixReplayPlan(config.Execution)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(prefix.Decisions) != 3 || prefix.Decisions[0] != trace.Decisions[0] || prefix.Decisions[1] != trace.Decisions[1] || !prefix.Decisions[2].RankOverride || prefix.Decisions[2].Selected != 1 {
+		t.Fatalf("forced prefix = %#v", prefix.Decisions)
+	}
+}
+
+func TestExplorationReportsStartAtOrPastRootTrace(t *testing.T) {
+	for _, test := range []struct {
+		name    string
+		start   uint64
+		pending uint64
+		want    StopReason
+	}{
+		{name: "before end", start: 1, pending: 1},
+		{name: "at end", start: 2, want: StopStartUnreached},
+		{name: "past end", start: 9, want: StopStartUnreached},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			config := testConfig()
+			config.StartOrdinal = test.start
+			state, err := New(config)
+			if err != nil {
+				t.Fatal(err)
+			}
+			round, _ := state.NextRound()
+			trace := testTape(t, config.Execution, testDecision(t, 0, choice.KindRunnable, 2, 0), testDecision(t, 1, choice.KindRunnable, 2, 0))
+			state, _, err = CommitRound(state, round, []Result{testResult(round.Candidates[0], trace, "root")})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if summary := state.Summary(); summary.StopReason != test.want || summary.Pending != test.pending || summary.BoundedComplete {
+				t.Fatalf("summary = %#v, want stop %q with %d pending", summary, test.want, test.pending)
+			}
+		})
+	}
+}
+
+func TestExplorationRejectsCandidateAlteringADecisionBeforeTheStart(t *testing.T) {
+	config := testConfig()
+	trace := testTape(t, config.Execution, testDecision(t, 0, choice.KindRunnable, 2, 0), testDecision(t, 1, choice.KindRunnable, 2, 0))
+	prefix, err := choice.BuildRankPrefix(trace, 1, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	config.StartOrdinal = 2
+	if _, err := newCandidate(config, &prefix, "", ""); err == nil || !strings.Contains(err.Error(), "before start ordinal 2") {
+		t.Fatalf("newCandidate() error = %v", err)
+	}
+	config.StartOrdinal = 1
+	if _, err := newCandidate(config, &prefix, "", ""); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestExplorationRejectsIncompleteExecutionIdentity(t *testing.T) {
 	config := testConfig()
 	config.Execution.TargetSHA256 = [sha256.Size]byte{}

@@ -40,6 +40,7 @@ type coordinatorConfig struct {
 	IOTranscriptLimit         uint64
 	MaxExecutions             uint64
 	MaxChoiceDepth            uint64
+	ChoiceStartOrdinal        uint64
 	MaxForcedDecisions        uint64
 	MaxExplorationBytes       uint64
 	MaxExplorationResultBytes uint64
@@ -102,7 +103,7 @@ func coordinatorConfigFromCampaignSpec(config CampaignSpec, childTimeout time.Du
 		Strategy: config.Strategy, Seeds: config.Seeds, Parallel: config.Parallel, ExecutionTimeout: config.ExecutionTimeout, OverallTimeout: childTimeout,
 		TerminateGrace: config.TerminateGrace, OnFailure: config.OnFailure, FailureBudget: config.FailureBudget,
 		OutputLimit: config.OutputLimit, WorldTransitionLimit: config.WorldTransitionLimit, Diagnostics: config.Diagnostics, ChoiceTraceLimit: config.ChoiceTraceLimit, ClockTick: config.ClockTick, IOTranscriptLimit: config.IOTranscriptLimit,
-		MaxExecutions: config.MaxExecutions, MaxChoiceDepth: config.MaxChoiceDepth, MaxForcedDecisions: config.MaxForcedDecisions,
+		MaxExecutions: config.MaxExecutions, MaxChoiceDepth: config.MaxChoiceDepth, ChoiceStartOrdinal: config.ChoiceStartOrdinal, MaxForcedDecisions: config.MaxForcedDecisions,
 		MaxExplorationBytes: config.MaxExplorationBytes, MaxExplorationResultBytes: config.MaxExplorationResultBytes, SimulationDimensionLimits: config.SimulationDimensionLimits, Artifacts: config.Artifacts,
 		Environment: append([]string(nil), config.Environment...), Target: config.Target,
 		IOROMounts: append([]string(nil), config.IOROMounts...), IOROMountLimits: config.IOROMountLimits,
@@ -121,7 +122,7 @@ func campaignSpecFromCoordinatorConfig(wire coordinatorConfig) CampaignSpec {
 		Strategy: wire.Strategy, Seeds: wire.Seeds, Parallel: wire.Parallel, ExecutionTimeout: wire.ExecutionTimeout, OverallTimeout: wire.OverallTimeout,
 		TerminateGrace: wire.TerminateGrace, OnFailure: wire.OnFailure, FailureBudget: wire.FailureBudget,
 		OutputLimit: wire.OutputLimit, WorldTransitionLimit: wire.WorldTransitionLimit, Diagnostics: wire.Diagnostics, ChoiceTraceLimit: wire.ChoiceTraceLimit, ClockTick: wire.ClockTick, IOTranscriptLimit: wire.IOTranscriptLimit,
-		MaxExecutions: wire.MaxExecutions, MaxChoiceDepth: wire.MaxChoiceDepth, MaxForcedDecisions: wire.MaxForcedDecisions,
+		MaxExecutions: wire.MaxExecutions, MaxChoiceDepth: wire.MaxChoiceDepth, ChoiceStartOrdinal: wire.ChoiceStartOrdinal, MaxForcedDecisions: wire.MaxForcedDecisions,
 		MaxExplorationBytes: wire.MaxExplorationBytes, MaxExplorationResultBytes: wire.MaxExplorationResultBytes, SimulationDimensionLimits: wire.SimulationDimensionLimits, Artifacts: wire.Artifacts,
 		Environment: wire.Environment, Target: wire.Target, SupervisorCommand: wire.SupervisorCommand, RunnerBuild: wire.RunnerBuild,
 		IOROMounts: wire.IOROMounts, IOROMountLimits: wire.IOROMountLimits,

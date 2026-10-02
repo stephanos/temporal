@@ -42,6 +42,7 @@ const (
 	StopExplorationCapacity StopReason = "exploration_capacity"
 	StopFirstFailure        StopReason = "first_failure"
 	StopFailureBudget       StopReason = "failure_budget"
+	StopStartUnreached      StopReason = "choice_start_unreached"
 )
 
 type Config struct {
@@ -51,6 +52,7 @@ type Config struct {
 	Parallel            int                      `json:"parallel"`
 	MaxExecutions       uint64                   `json:"max_executions"`
 	MaxChoiceDepth      uint64                   `json:"max_choice_depth"`
+	StartOrdinal        uint64                   `json:"start_ordinal,omitempty"`
 	MaxExplorationBytes uint64                   `json:"max_exploration_bytes"`
 	FailurePolicy       FailurePolicy            `json:"failure_policy"`
 	FailureBudget       uint64                   `json:"failure_budget"`
@@ -119,6 +121,7 @@ type Summary struct {
 	Parallel                int        `json:"parallel"`
 	MaxExecutions           uint64     `json:"max_executions"`
 	MaxChoiceDepth          uint64     `json:"max_choice_depth"`
+	StartOrdinal            uint64     `json:"start_ordinal,omitempty"`
 	MaxExplorationBytes     uint64     `json:"max_exploration_bytes"`
 	LogicalExecutions       uint64     `json:"logical_executions"`
 	CommittedRounds         uint64     `json:"committed_rounds"`
@@ -177,7 +180,7 @@ func (state State) NextRound() (Round, bool) {
 
 func (state State) Summary() Summary {
 	return Summary{
-		Parallel: state.Config.Parallel, MaxExecutions: state.Config.MaxExecutions, MaxChoiceDepth: state.Config.MaxChoiceDepth, MaxExplorationBytes: state.Config.MaxExplorationBytes,
+		Parallel: state.Config.Parallel, MaxExecutions: state.Config.MaxExecutions, MaxChoiceDepth: state.Config.MaxChoiceDepth, StartOrdinal: state.Config.StartOrdinal, MaxExplorationBytes: state.Config.MaxExplorationBytes,
 		LogicalExecutions: state.LogicalExecutions, CommittedRounds: state.CommittedRounds,
 		Pending: uint64(len(state.Queue)), PendingBytes: state.PendingBytes, SeenPrefixes: uint64(len(state.Seen)),
 		DeduplicatedOutcomes: uint64(len(state.Outcomes)), DeepestPrefix: state.DeepestPrefix,
@@ -220,6 +223,7 @@ func CommitRound(state State, round Round, results []Result) (State, RoundSegmen
 	segmentResults := make([]SegmentResult, len(results))
 	newChildren := make(map[record.SHA256]Candidate)
 	policyStopped := false
+	startUnreached := false
 	for index, result := range results {
 		candidate := round.Candidates[index]
 		if result.CandidateSHA256 != candidate.SHA256 {
@@ -261,6 +265,9 @@ func CommitRound(state State, round Round, results []Result) (State, RoundSegmen
 			}
 		}
 		segmentResult := SegmentResult{CandidateSHA256: result.CandidateSHA256, OutcomeSHA256: result.OutcomeSHA256, Failed: result.Failed, FailureSHA256: result.FailureSHA256}
+		if candidate.ForcedDepth == 0 && next.Config.StartOrdinal != 0 && (result.Trace == nil || uint64(len(result.Trace.Decisions)) <= next.Config.StartOrdinal) {
+			startUnreached = true
+		}
 		if result.Trace != nil {
 			trace, validateErr := choice.ValidateReplayPlan(*result.Trace, next.Config.Execution)
 			if validateErr != nil {
@@ -290,6 +297,8 @@ func CommitRound(state State, round Round, results []Result) (State, RoundSegmen
 	}
 	if next.StopReason == "" && len(next.Queue) == 0 {
 		switch {
+		case startUnreached:
+			next.StopReason = StopStartUnreached
 		case next.OmittedByExecutionBound != 0 || next.LogicalExecutions >= next.Config.MaxExecutions:
 			next.StopReason = StopMaxExecutions
 		case next.OmittedByDepth != 0:
@@ -391,13 +400,13 @@ func ValidateCandidateDivergence(candidate Candidate, identity choice.ExecutionI
 
 func expandCandidate(state *State, parent Candidate, trace choice.ReplayPlan, children map[record.SHA256]Candidate) error {
 	for ordinal, decision := range trace.Decisions {
-		if uint64(ordinal) < parent.ForcedDepth {
+		if uint64(ordinal) < max(parent.ForcedDepth, state.Config.StartOrdinal) {
 			continue
 		}
 		if decision.Alternatives <= 1 {
 			continue
 		}
-		depth := uint64(ordinal + 1)
+		depth := uint64(ordinal) - state.Config.StartOrdinal + 1
 		if depth > state.Config.MaxChoiceDepth {
 			state.OmittedByDepth += uint64(decision.Alternatives - 1)
 			continue
@@ -493,6 +502,9 @@ func newCandidate(config Config, prefix *choice.ReplayPlan, parent, source recor
 			return Candidate{}, err
 		}
 		decisions = validated.Decisions
+		if uint64(len(decisions)) <= config.StartOrdinal {
+			return Candidate{}, fmt.Errorf("choice exploration candidate of forced depth %d alters a decision before start ordinal %d", len(decisions), config.StartOrdinal)
+		}
 		candidate.ForcedDepth = uint64(len(decisions))
 		candidate.PrefixSHA256 = record.SHA256FromSum(validated.SHA256)
 		candidate.PrefixBytes = append([]byte(nil), validated.Bytes...)
