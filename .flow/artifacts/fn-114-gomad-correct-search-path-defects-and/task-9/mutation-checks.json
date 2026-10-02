@@ -1,0 +1,110 @@
+{
+ "note": "each mutation reverted one piece of the change in the working tree, ran the named tests with -count=3, and restored the file byte-identically before the commit; every row is red",
+ "mutations": [
+  {
+   "mutation": "store ignores its pool",
+   "file": "tools/gomad3/artifact/store.go",
+   "tests": "TestPublishSharesOneTargetAcrossTheStoresOfOnePool|TestPublishConcurrentlyIntoOnePoolLeavesOneEntry",
+   "exit_code": 1,
+   "first_failure": "target_pool_test.go:85: target sharing = \"private\", want \"shared\""
+  },
+  {
+   "mutation": "reader keeps the single-link check for the target",
+   "file": "tools/gomad3/artifact/open.go",
+   "tests": "TestPublishSharesOneTargetAcrossTheStoresOfOnePool",
+   "exit_code": 1,
+   "first_failure": "target_pool_test.go:87: existing artifact <tmp> failed validation: validate artifact file target: target has unexpected link count 3"
+  },
+  {
+   "mutation": "pool entry published with a replacing rename",
+   "file": "tools/gomad3/artifact/target_pool.go",
+   "tests": "TestPublishConcurrentlyIntoOnePoolLeavesOneEntry",
+   "exit_code": 1,
+   "first_failure": "target_pool_test.go:185: concurrent publishers hold 3 target files, want one"
+  },
+  {
+   "mutation": "existing pool entry linked without content verification",
+   "file": "tools/gomad3/artifact/target_pool.go",
+   "tests": "TestDamagedSharedTargetFailsOpenAndLaterPublication",
+   "exit_code": 1,
+   "first_failure": "target_pool_test.go:237: PublishArtifact() over a damaged pool entry error = artifact payload target identity changed during publication"
+  },
+  {
+   "mutation": "existing pool entry linked without metadata verification",
+   "file": "tools/gomad3/artifact/target_pool.go",
+   "tests": "TestDamagedSharedTargetFailsOpenAndLaterPublication",
+   "exit_code": 1,
+   "first_failure": "target_pool_test.go:237: PublishArtifact() over a damaged pool entry error = <nil>"
+  },
+  {
+   "mutation": "unavailable hard links are a failure",
+   "file": "tools/gomad3/artifact/target_pool.go",
+   "tests": "TestPublishWithoutHardLinksKeepsPrivateCopiesAndSaysSo",
+   "exit_code": 1,
+   "first_failure": "target_pool_test.go:317: link payload target to the shared target pool: link <tmp> <tmp> cross-device link"
+  },
+  {
+   "mutation": "every link failure falls back silently",
+   "file": "tools/gomad3/artifact/target_pool.go",
+   "tests": "TestPublishWithoutHardLinksKeepsPrivateCopiesAndSaysSo",
+   "exit_code": 1,
+   "first_failure": "target_pool_test.go:349: PublishArtifact() error = <nil>, want the link failure"
+  },
+  {
+   "mutation": "unshared publication reported as shared",
+   "file": "tools/gomad3/artifact/target_pool.go",
+   "tests": "TestPublishWithoutHardLinksKeepsPrivateCopiesAndSaysSo",
+   "exit_code": 1,
+   "first_failure": "target_pool_test.go:319: target sharing = \"shared\", want \"unshared\""
+  },
+  {
+   "mutation": "seed success store has no pool",
+   "file": "tools/gomad3/runner/runner.go",
+   "tests": "TestRunKeepsOneTargetCopyAcrossArtifactsRoundsAndCampaigns",
+   "exit_code": 1,
+   "first_failure": "runner_test.go:2785: 16 published artifacts, 16 of them hold a target, in 4 files [...]"
+  },
+  {
+   "mutation": "failure store has no pool",
+   "file": "tools/gomad3/runner/runner.go",
+   "tests": "TestRunKeepsOneTargetCopyAcrossArtifactsRoundsAndCampaigns",
+   "exit_code": 1,
+   "first_failure": "runner_test.go:2785: 16 published artifacts, 16 of them hold a target, in 8 files [...]"
+  },
+  {
+   "mutation": "choice round success store has no pool",
+   "file": "tools/gomad3/runner/choice_exploration_campaign.go",
+   "tests": "TestRunKeepsOneTargetCopyAcrossArtifactsRoundsAndCampaigns",
+   "exit_code": 1,
+   "first_failure": "runner_test.go:2785: 16 published artifacts, 16 of them hold a target, in 4 files [...]"
+  },
+  {
+   "mutation": "simulation round success store has no pool",
+   "file": "tools/gomad3/runner/simulation_exploration_campaign.go",
+   "tests": "TestRunKeepsOneTargetCopyAcrossArtifactsRoundsAndCampaigns",
+   "exit_code": 1,
+   "first_failure": "runner_test.go:2785: 16 published artifacts, 16 of them hold a target, in 4 files [...]"
+  },
+  {
+   "mutation": "minimizer output stores have no pool",
+   "file": "tools/gomad3/runner/minimize_operation.go",
+   "tests": "TestMinimizeKeepsOneTargetCopyInItsOutputRoot",
+   "exit_code": 1,
+   "first_failure": "runner_test.go:2847: interrupted run holds 1 accepted artifacts in [...]"
+  },
+  {
+   "mutation": "minimizer candidate store has no pool",
+   "file": "tools/gomad3/runner/minimize_operation.go",
+   "tests": "TestMinimizeKeepsOneTargetCopyInItsOutputRoot",
+   "exit_code": 1,
+   "first_failure": "runner_test.go:2859: 2 replayed candidates, private target copies in [...]"
+  },
+  {
+   "mutation": "corpus case store has no pool",
+   "file": "tools/gomad3/runner/internal/corpus/admission.go",
+   "tests": "TestCorpusCasesShareOneTarget",
+   "exit_code": 1,
+   "first_failure": "corpus_test.go:373: corpus holds cases [...]"
+  }
+ ]
+}

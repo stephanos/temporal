@@ -1,0 +1,30 @@
+{
+  "host": "darwin/arm64",
+  "baseline": {"result": "green via handoff", "source": "full test-host verified at 44dbf795 by the conductor after fn-114.5: 45 packages, exit 0, toolchain build key 245141dc"},
+  "base_commit": "44dbf7950e24ed8f681bea52f7c335147a2ad6aa",
+  "full_gate": {"revision": "577003f9833bbb0163b5e2a9c39851552f98bf42", "command": "GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host", "exit_code": 0, "elapsed_seconds": 185, "packages_ok": 45, "packages": "test-host-packages.txt", "path_note": "run with the pinned stock go1.27.1 first on PATH", "toolchain_build_key": "245141dc288328269b6fc164034c6d74b87c525e5d3c4756d3b82a3fcde40d52"},
+  "validate": {"revision": "working tree equal to 577003f98", "command": "make -C tools/gomad3 validate", "exit_code": 0},
+  "architecture": {"command": ".toolchain/bin/go test -tags test_dep -count=1 -run TestPackageArchitecture .", "exit_code": 0},
+  "vet": {"command": ".toolchain/bin/go vet -tags test_dep ./artifact/... ./runner/...", "exit_code": 0, "also": "GOOS=linux GOARCH=amd64 vet of ./artifact/ and ./runner/internal/corpus/ exit 0; GOOS=linux and GOOS=windows builds of ./artifact/ exit 0 (compile only)"},
+  "race": {"command": ".toolchain/bin/go test -tags test_dep -count=1 -race -run 'TestPublish|TestDamaged|TestCopied|TestOpen' ./artifact/", "exit_code": 0},
+  "pre_commit_focused_run": {
+    "command": ".toolchain/bin/go test -tags test_dep -count=1 ./artifact/... ./runner/... ./cmd/... ./qualification/...",
+    "exit_code": 1, "result": "inconclusive", "host_load_average": 14,
+    "failures": [
+      {"test": "runner TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/discard", "observed": "overall_timeout after 86 of 100 executions; the package took 214 s against about 110 s unloaded", "focused_rerun": "exit 0 in 9.6 s", "note": "this row retains no success, so it publishes no artifact; passed again in the full gate"},
+      {"test": "runner/internal/execution TestModelConformanceFilesystem and TestModelConformanceTCP", "observed": "stock Go resolves to Gomad toolchain", "note": "environment: the run used .toolchain/bin/go without the stock go setup that test-host provides; both pass in the full gate"}
+    ]
+  },
+  "new_tests": {
+    "tools/gomad3/artifact/target_pool_test.go": ["TestPublishSharesOneTargetAcrossTheStoresOfOnePool", "TestPublishConcurrentlyIntoOnePoolLeavesOneEntry", "TestDamagedSharedTargetFailsOpenAndLaterPublication", "TestCopiedArtifactOpensWithoutItsStore", "TestPublishWithoutHardLinksKeepsPrivateCopiesAndSaysSo"],
+    "tools/gomad3/artifact/target_pool_unix_test.go": ["TestOpenRejectsAnotherLinkToAPayloadThatIsNotTheTarget"],
+    "tools/gomad3/runner/runner_test.go": ["TestRunKeepsOneTargetCopyAcrossArtifactsRoundsAndCampaigns", "TestMinimizeKeepsOneTargetCopyInItsOutputRoot"],
+    "tools/gomad3/runner/replay_operation_test.go": ["TestReplayRejectsDamagedSharedTargetBeforeTargetStart", "TestReplayRunsAnArtifactCopiedOutOfItsStore"],
+    "tools/gomad3/runner/internal/corpus/corpus_test.go": ["TestCorpusCasesShareOneTarget"]
+  },
+  "existing_tests_changed": "none; replay_operation_test.go's publish helper gained an optional TargetPool field that defaults to the previous store",
+  "mutation_checks": "mutation-checks.json (15 mutations, all red)",
+  "hard_link_fallback_test": "uses an in-package link seam returning EXDEV, ENOTSUP, EPERM, and EMLINK; no filesystem without hard links was mounted",
+  "stock_go_quick_command": {"command": "go -C tools/gomad3 test -tags test_dep ./artifact/... ./runner/...", "result": "not run", "note": "known red before this task with an unpatched go (13 helper-target tests); test-host covers both package sets"},
+  "not_run": ["linux/amd64 (no native host): the renameat2 no-replace rename of a regular file and the link fallback errnos are compiled and vetted for linux but not executed", "root make lint-code-fast (cannot typecheck the nested module, as recorded by task 8)", "a real filesystem without hard-link support"]
+}
