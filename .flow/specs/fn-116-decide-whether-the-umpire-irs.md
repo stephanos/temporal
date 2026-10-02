@@ -54,10 +54,10 @@ The spike's output is a report and a prototype branch of the reader. The report 
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** A prototype translates every expression of the Nexus caller and standalone activity IR files to CEL and evaluates it with `cel-go` behind the reader's existing interface, on a branch that is not merged. Errors: an expression that has no translation is listed with its Scala position and the construct that blocks it.
+- **R1:** A prototype translates every expression of the Nexus caller and standalone activity IR files to CEL and evaluates it with `cel-go` behind the reader's existing interface, on a branch that is not merged. The translation is written in Go, from the IR's `Expr` trees, so the spike touches neither the lifter nor the checked-in IR and can run while the Scala cleanup specs are in progress. Errors: an expression that has no translation is listed with its Scala position and the construct that blocks it.
 - **R2:** The prototype derives the same tables, Definition IDs, refinement rows, fingerprints and Query answers as the current evaluator, checked by the baseline goldens of fn-115 R2. Errors: each difference is listed with the expression that causes it; the spike does not hide a difference by changing a golden.
 - **R3:** The same translated step functions are evaluated with `cel-java` on every state and class of both Models, and the results equal `cel-go`'s. Errors: each disagreement is listed with the expression and both results.
-- **R4:** A committed report gives the measurements listed under API Contracts and a recommendation with its reasons: adopt, adopt for a subset (for example Properties and monitors only), or keep the IR's own expressions. Errors: a measurement the spike could not take is stated as not taken, with the reason.
+- **R4:** A report committed under `.plans/` gives the measurements listed under API Contracts and a recommendation with its reasons: adopt, adopt for a subset (for example Properties and monitors only), or keep the IR's own expressions. Errors: a measurement the spike could not take is stated as not taken, with the reason.
 - **R5:** The report names what adoption would cost beyond the prototype: the lifter's new translation rules, the Quint and P exports, `SEMANTICS.md`, the IR schema change and the regeneration of every checked-in IR file (no error surface).
 
 ## Boundaries

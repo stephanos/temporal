@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport"
@@ -233,7 +234,7 @@ func TestDeliveryAdmissionIsCarriedOnlyByASuccessfulRelease(t *testing.T) {
 			}
 			require.NoError(t, executeErr)
 			require.Len(t, completed, 2)
-			require.True(t, proto.Equal(tc.recorded, completed[1].GetDeliveryAdmission()))
+			protorequire.ProtoEqual(t, tc.recorded, completed[1].GetDeliveryAdmission())
 			// Each realized delivery control is one recorded fault, as a worker outage is.
 			var faults []testpilotspb.FaultKind
 			for _, event := range s.recorder.run.Events {

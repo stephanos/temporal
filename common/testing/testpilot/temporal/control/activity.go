@@ -22,8 +22,9 @@ type Injector func(testhooks.Hook) func()
 // Deliveries holds every validated dispatch of named activities inside one in-process server and
 // observes what the server's authoritative admission decided once one is released. Admission is
 // read from the response of history's RecordActivityTaskStarted, after its handler returned: a
-// success is an attempt the durable update committed, an obsolete-task refusal is a decision that
-// committed nothing, and any other answer decides nothing that can be told, so it is no decision.
+// success is an attempt the durable update committed, an obsolete-task refusal of the held stamp with
+// every earlier answer accounted for is a decision that committed nothing, and any other answer
+// decides nothing that can be told, so it is no decision and no later refusal is one either.
 type Deliveries struct {
 	mu      sync.Mutex
 	holds   map[string]*Held
@@ -126,6 +127,9 @@ type Held struct {
 	mu       sync.Mutex
 	first    *testhooks.ActivityDelivery
 	released bool
+	// undecided says an answer for the run decided nothing that can be told, so the run may hold an
+	// admission no answer reported.
+	undecided bool
 }
 
 func (h *Held) arrived(delivery testhooks.ActivityDelivery) {
@@ -140,11 +144,16 @@ func (h *Held) arrived(delivery testhooks.ActivityDelivery) {
 // admission commits for any delivery of the activity's run, since the hold let none pass before, or
 // the rejection of the held delivery. An answer for another run is another activity's, and the
 // rejection of another stamp another delivery's: neither decides anything of this one.
+//
+// The server answers a delivery as obsolete both when its stamp is no longer the activity's, which
+// commits nothing, and when the activity has already started, which a redelivery meets after an
+// admission that committed and whose answer was lost. So a rejection is read only while every answer
+// for the run so far is accounted for: once one decided nothing that can be told, no later obsolete
+// answer is a rejection, and only an admission the server reports is still a decision.
 func (h *Held) answered(execution chasm.ExecutionKey, stamp int32, response any, err error) {
 	h.mu.Lock()
-	first, released := h.first, h.released
-	h.mu.Unlock()
-	if !released || first == nil || execution != first.Execution {
+	defer h.mu.Unlock()
+	if !h.released || h.first == nil || execution != h.first.Execution {
 		return
 	}
 	admission := &testpilotspb.DeliveryAdmission{ActivityId: execution.BusinessID, ActivityRunId: execution.RunID, DeliveryId: strconv.FormatInt(int64(stamp), 10)}
@@ -152,9 +161,13 @@ func (h *Held) answered(execution chasm.ExecutionKey, stamp int32, response any,
 	switch started, ok := response.(*historyservice.RecordActivityTaskStartedResponse); {
 	case err == nil && ok && started != nil:
 		admission.Decision, admission.Attempt = testpilotspb.DELIVERY_ADMISSION_DECISION_ADMITTED, started.GetAttempt()
-	case errors.As(err, &obsolete) && stamp == first.Stamp:
+	case errors.As(err, &obsolete):
+		if stamp != h.first.Stamp || h.undecided {
+			return
+		}
 		admission.Decision = testpilotspb.DELIVERY_ADMISSION_DECISION_REJECTED
 	default:
+		h.undecided = true
 		return
 	}
 	select {
@@ -163,17 +176,22 @@ func (h *Held) answered(execution chasm.ExecutionKey, stamp int32, response any,
 	}
 }
 
-// Await waits until the server holds a dispatch of the activity, and returns it.
-func (h *Held) Await(ctx context.Context) (testhooks.ActivityDelivery, error) {
+// Await waits until the server holds a dispatch of the activity.
+func (h *Held) Await(ctx context.Context) error {
 	if h == nil {
-		return testhooks.ActivityDelivery{}, ErrInvalid
+		return ErrInvalid
 	}
-	if err := h.gate.WaitHeld(ctx); err != nil {
-		return testhooks.ActivityDelivery{}, err
-	}
+	return h.gate.WaitHeld(ctx)
+}
+
+// Delivery is the first dispatch the server held, once one is.
+func (h *Held) Delivery() (testhooks.ActivityDelivery, bool) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	return *h.first, nil
+	if h.first == nil {
+		return testhooks.ActivityDelivery{}, false
+	}
+	return *h.first, true
 }
 
 // Release lets the held dispatch reach matching, runs deliver, which polls as a worker would so

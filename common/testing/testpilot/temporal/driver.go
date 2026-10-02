@@ -13,7 +13,6 @@ import (
 	"go.temporal.io/sdk/client"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	"go.temporal.io/server/common/testing/testpilot/temporal/control"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
 	"go.temporal.io/server/common/testing/testpilot/temporal/server"
@@ -37,7 +36,7 @@ type Options struct {
 	// Deliveries holds activity deliveries inside the server under test. Only an environment that
 	// runs that server can supply it; without it, a Program that holds a delivery is refused at
 	// Validate, before any I/O.
-	Deliveries *control.Deliveries
+	Deliveries DeliveryControl
 }
 
 // Driver keeps server transport authority and SDK worker authority in their owning packages.
@@ -45,11 +44,16 @@ type Driver struct {
 	profile    testpilot.ProfileSpec
 	controller *server.Driver
 	worker     *workerhost.Driver
-	deliveries *control.Deliveries
+	deliveries DeliveryControl
 	poll       ActivityPoller
 }
 
 func New(options Options) (*Driver, error) {
+	// Refused here, as the wiring mistake it is: left to Validate, it would read as an environment
+	// that supplies no delivery control.
+	if options.Deliveries != nil && primitive.NilValue(options.SDKClient) {
+		return nil, fmt.Errorf("%w: a delivery control needs the SDK client its release polls through", ErrInvalid)
+	}
 	controller, err := server.New(server.Options{
 		Profile: options.Profile, Endpoints: options.ServerEndpoints,
 	})
@@ -65,7 +69,7 @@ func New(options Options) (*Driver, error) {
 		return nil, errors.Join(err, closeErr)
 	}
 	driver := &Driver{profile: options.Profile.Snapshot(), controller: controller, worker: workers, deliveries: options.Deliveries}
-	if options.Deliveries != nil && options.SDKClient != nil {
+	if options.Deliveries != nil {
 		service := options.SDKClient.WorkflowService()
 		driver.poll = func(ctx context.Context, request *workflowservice.PollActivityTaskQueueRequest) (*workflowservice.PollActivityTaskQueueResponse, error) {
 			return service.PollActivityTaskQueue(ctx, request)

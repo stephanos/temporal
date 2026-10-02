@@ -25,7 +25,6 @@ import (
 const (
 	liftsDir       = "model/scalav2/lifter/testdata/lifts/"
 	realizationsAt = liftsDir + "Realizations.scala.fixture"
-	admissionAt    = liftsDir + "Admission.scala.fixture"
 )
 
 func liftedRealizations(t *testing.T) *modelirspb.Model {

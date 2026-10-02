@@ -21,8 +21,18 @@ generic opaque handle claims. Composite Close and quarantine preserve that split
 that declares one; the server Session refuses every fault the way it refuses worker reservations. A
 delivery control routes to the composite's own delivery session, which holds the activity a
 `StartActivityExecution` of the held queue names before that request is sent, through
-`Options.Deliveries` (`control.Deliveries`, the test hooks of an in-process server). A Driver built
-without it refuses a Program that holds a delivery at `Validate`, before any I/O.
+`Options.Deliveries` (which a test wires to `control.Deliveries`, the test hooks of an in-process
+server; the Driver itself imports no test hook). A Driver built
+without it refuses a Program that holds a delivery at `Validate`, before any I/O, and one given a
+control and no SDK client, which the release polls through, is refused at construction.
+
+Two limits of the delivery control. `control.Deliveries` observes admission through the gRPC
+response fault hook of the namespace (`GRPCResponseFaultGeneratorByNamespaceID`), which holds one
+value per namespace: a test that injects a gRPC response fault into the same namespace replaces the
+observer, or is replaced by it, without either noticing, so a namespace has the one or the other.
+And whether a Profile's environment supplies a delivery control (`ProfileSpec.DeliveryControl`) is
+no part of the binding fingerprint: two Drivers of one identity may differ in it, and it is the
+Driver's own `Validate` that refuses the one without.
 
 Reserved `StartWorkflowExecution` calls pass through an SDK worker `Carrier` before server dispatch. The
 Carrier takes the reservation topology preparation compiled as admitted, checks the physical workflow

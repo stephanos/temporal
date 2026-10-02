@@ -1,16 +1,16 @@
 {
-  "branch_name": "fn-114-state-every-scala-model-declaration-once",
-  "created_at": "2026-10-02T05:20:46.073780Z",
+  "branch_name": "fn-118-declare-how-temporal-apis-behave-once",
+  "created_at": "2026-10-02T05:52:04.877949Z",
   "depends_on_epics": [
     "fn-112-make-the-standalone-activity-scala"
   ],
-  "id": "fn-114-state-every-scala-model-declaration-once",
+  "id": "fn-118-declare-how-temporal-apis-behave-once",
   "next_task": 1,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
-  "spec_path": ".flow/specs/fn-114-state-every-scala-model-declaration-once.md",
+  "spec_path": ".flow/specs/fn-118-declare-how-temporal-apis-behave-once.md",
   "status": "open",
-  "title": "State every Scala Model declaration once",
+  "title": "Declare how Temporal APIs behave once, and let the generated tests use it",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -22,5 +22,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T05:49:38.798317Z"
+  "updated_at": "2026-10-02T05:52:05.346751Z"
 }

@@ -17,6 +17,7 @@ import (
 	"go.temporal.io/server/chasm"
 	"go.temporal.io/server/common/namespace"
 	serviceerrors "go.temporal.io/server/common/serviceerror"
+	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testhooks"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
@@ -98,7 +99,13 @@ func TestDeliverySessionHoldsTheStartedActivityAndReportsItsAdmission(t *testing
 	}
 	plan, err := planDeliveries(heldProgram(t, nil), true)
 	require.NoError(t, err)
-	session := newDeliverySession(deliveries, poll, plan)
+	session := newDeliverySession(func(activityID string) (HeldDelivery, error) {
+		held, err := deliveries.Hold(activityID)
+		if err != nil {
+			return nil, err
+		}
+		return held, nil
+	}, poll, plan)
 	defer session.close()
 
 	hold, err := session.inject(t.Context(), "temporal.task-queue", testpilotspb.FAULT_KIND_DELIVERY_HOLD)
@@ -126,7 +133,7 @@ func TestDeliverySessionHoldsTheStartedActivityAndReportsItsAdmission(t *testing
 	result, err = release.Wait(t.Context())
 	require.NoError(t, err)
 	require.NoError(t, <-dispatched)
-	require.Equal(t, &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, DeliveryAdmission: &testpilotspb.DeliveryAdmission{
+	protorequire.ProtoEqual(t, &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, DeliveryAdmission: &testpilotspb.DeliveryAdmission{
 		ActivityId: "activity", ActivityRunId: "run", DeliveryId: "3", Decision: testpilotspb.DELIVERY_ADMISSION_DECISION_REJECTED,
 	}}, result.Outcome)
 	require.Len(t, polls, 1)
@@ -140,4 +147,20 @@ func protoreflectMethod(name string) (protoreflect.MethodDescriptor, error) {
 		return nil, err
 	}
 	return descriptor.(protoreflect.MethodDescriptor), nil
+}
+
+// A delivery control releases through the SDK client's poll, so a Driver given one and no client is
+// a wiring mistake, refused where it is made and not later as an environment without a control.
+func TestADeliveryControlWithoutAnSDKClientIsRefusedAtConstruction(t *testing.T) {
+	source := heldProgram(t, nil).Snapshot()
+	require.NotNil(t, source)
+	catalog, err := NewWorkflowServiceCatalog()
+	require.NoError(t, err)
+	profile, err := DeriveProfile(&testpilotspb.Case{Program: source}, catalog, Environment{Identity: "held", Namespace: "namespace", TaskQueue: "queue", DeliveryControl: true})
+	require.NoError(t, err)
+	driver, err := New(Options{Profile: profile, WorkerRoleID: "temporal.worker",
+		Deliveries: func(string) (HeldDelivery, error) { return nil, nil }})
+	require.Nil(t, driver)
+	require.ErrorIs(t, err, ErrInvalid)
+	require.ErrorContains(t, err, "a delivery control needs the SDK client its release polls through")
 }

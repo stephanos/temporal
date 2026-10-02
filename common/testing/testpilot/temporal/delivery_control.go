@@ -11,7 +11,6 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	"go.temporal.io/server/common/testing/testpilot/temporal/control"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -20,6 +19,20 @@ import (
 // ErrNoDeliveryControl refuses a Program that holds a delivery on a Driver whose environment
 // supplies no delivery control, such as one that reaches a server it does not run.
 var ErrNoDeliveryControl = errors.New("the environment supplies no delivery control")
+
+// DeliveryControl arms a hold on every dispatch of one activity inside the server under test, before
+// the activity is started. Only an environment that runs the server can supply one.
+type DeliveryControl func(activityID string) (HeldDelivery, error)
+
+// HeldDelivery is the hold on one activity's dispatches. Await is done once the server holds one.
+// Release lets it reach matching, runs deliver, which polls as a worker would so that admission is
+// asked, and returns what admission committed once that is observed, or the reason it was not. Close
+// cancels a delivery still held.
+type HeldDelivery interface {
+	Await(context.Context) error
+	Release(ctx context.Context, deliver func(context.Context) error) (*testpilotspb.DeliveryAdmission, error)
+	Close()
+}
 
 // ActivityPoller is the poll a released delivery reaches admission through, as a worker's would.
 type ActivityPoller func(context.Context, *workflowservice.PollActivityTaskQueueRequest) (*workflowservice.PollActivityTaskQueueResponse, error)
@@ -77,18 +90,18 @@ func cleanupPlans(program testpilot.PreparedProgram) []testpilot.EntrypointPlan 
 // deliverySession is one Run's delivery control: it arms a hold when the Run starts the activity
 // a held queue serves, and realizes the hold and release faults on it.
 type deliverySession struct {
-	deliveries *control.Deliveries
-	poll       ActivityPoller
-	plan       map[string]deliveryQueue
-	mu         sync.Mutex
-	held       map[string]*control.Held
+	hold DeliveryControl
+	poll ActivityPoller
+	plan map[string]deliveryQueue
+	mu   sync.Mutex
+	held map[string]HeldDelivery
 }
 
-func newDeliverySession(deliveries *control.Deliveries, poll ActivityPoller, plan map[string]deliveryQueue) *deliverySession {
+func newDeliverySession(hold DeliveryControl, poll ActivityPoller, plan map[string]deliveryQueue) *deliverySession {
 	if len(plan) == 0 {
 		return nil
 	}
-	return &deliverySession{deliveries: deliveries, poll: poll, plan: plan, held: map[string]*control.Held{}}
+	return &deliverySession{hold: hold, poll: poll, plan: plan, held: map[string]HeldDelivery{}}
 }
 
 // arm holds the activity a start request names when its queue is one the Program holds, before the
@@ -110,9 +123,12 @@ func (s *deliverySession) arm(method protoreflect.MethodDescriptor, request prot
 		if _, armed := s.held[role]; armed {
 			return fmt.Errorf("%w: role %s holds one activity, and the Run starts another", ErrInvalid, role)
 		}
-		held, err := s.deliveries.Hold(binding.ActivityID)
+		held, err := s.hold(binding.ActivityID)
 		if err != nil {
 			return err
+		}
+		if held == nil {
+			return ErrInvalid
 		}
 		s.held[role] = held
 	}
@@ -137,8 +153,7 @@ func (s *deliverySession) inject(ctx context.Context, roleID string, kind testpi
 	}
 	if kind == testpilotspb.FAULT_KIND_DELIVERY_HOLD {
 		return &deliveryEffect{work: func(ctx context.Context) (*testpilotspb.InstructionOutcome, error) {
-			_, err := held.Await(ctx)
-			return &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}, err
+			return &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}, held.Await(ctx)
 		}}, nil
 	}
 	return &deliveryEffect{work: func(ctx context.Context) (*testpilotspb.InstructionOutcome, error) {
@@ -171,7 +186,7 @@ func (s *deliverySession) close() {
 	}
 	s.mu.Lock()
 	held := s.held
-	s.held = map[string]*control.Held{}
+	s.held = map[string]HeldDelivery{}
 	s.mu.Unlock()
 	for _, h := range held {
 		h.Close()

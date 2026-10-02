@@ -14,6 +14,7 @@ import (
 	"go.temporal.io/server/chasm"
 	"go.temporal.io/server/common/namespace"
 	serviceerrors "go.temporal.io/server/common/serviceerror"
+	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testhooks"
 )
 
@@ -48,26 +49,46 @@ func started(t *testing.T, key chasm.ExecutionKey, stamp int32) *historyservice.
 	return &historyservice.RecordActivityTaskStartedRequest{ComponentRef: ref, Stamp: stamp}
 }
 
-// The held dispatch is released only by Release, and what admission decided for that delivery is
-// the release's result. Answers for another run, another stamp, an answer that decides nothing,
-// and one given before the release are not the released delivery's decision.
+// answer is one answer of history's admission, for a delivery of the held activity by its stamp.
+type answer struct {
+	stamp    int32
+	response any
+	err      error
+}
+
+// The held dispatch is released only by Release, and what admission decided is the release's result.
+// Answers for another run, the rejection of another stamp, another method's answer, and an answer
+// given before the release decide nothing of the released delivery.
+//
+// A rejection is read only while every answer so far is accounted for. The server answers a delivery
+// as obsolete for two reasons: its stamp is no longer the activity's, which commits nothing, or the
+// activity has already started, which a redelivery meets after an admission that committed and whose
+// answer was lost (chasm/lib/activity/activity.go, HandleStarted). So once an answer for the activity
+// decided nothing that can be told, a later obsolete answer is no rejection: the release has no
+// decision. An admission the server then reports, as it does for the retry of the same request, is
+// still a committed one.
 func TestReleaseReportsAdmissionsDecisionForTheHeldDelivery(t *testing.T) {
 	key := chasm.ExecutionKey{NamespaceID: string(scope), BusinessID: "activity", RunID: "run"}
 	obsolete := serviceerrors.NewObsoleteMatchingTask("activity attempt stamp mismatch")
+	lost := serviceerror.NewUnavailable("lost")
+	admitted := func(attempt int32) any { return &historyservice.RecordActivityTaskStartedResponse{Attempt: attempt} }
+	decision := func(delivery string, decision testpilotspb.DeliveryAdmissionDecision, attempt int32) *testpilotspb.DeliveryAdmission {
+		return &testpilotspb.DeliveryAdmission{ActivityId: "activity", ActivityRunId: "run", DeliveryId: delivery, Decision: decision, Attempt: attempt}
+	}
 	for _, test := range []struct {
-		name     string
-		response any
-		err      error
-		want     *testpilotspb.DeliveryAdmission
+		name    string
+		answers []answer
+		want    *testpilotspb.DeliveryAdmission
 	}{
-		{"rejected", nil, obsolete, &testpilotspb.DeliveryAdmission{ActivityId: "activity", ActivityRunId: "run", DeliveryId: "7",
-			Decision: testpilotspb.DELIVERY_ADMISSION_DECISION_REJECTED}},
-		{"admitted", &historyservice.RecordActivityTaskStartedResponse{Attempt: 1}, nil, &testpilotspb.DeliveryAdmission{ActivityId: "activity",
-			ActivityRunId: "run", DeliveryId: "7", Decision: testpilotspb.DELIVERY_ADMISSION_DECISION_ADMITTED, Attempt: 1}},
+		{"rejected", []answer{{7, nil, obsolete}}, decision("7", testpilotspb.DELIVERY_ADMISSION_DECISION_REJECTED, 0)},
+		{"admitted", []answer{{7, admitted(1), nil}}, decision("7", testpilotspb.DELIVERY_ADMISSION_DECISION_ADMITTED, 1)},
 		// The hold lets no dispatch of the activity pass, so an attempt admission commits for any
 		// delivery of it is one the release let through, and is reported under that delivery.
-		{"admitted by another delivery", &historyservice.RecordActivityTaskStartedResponse{Attempt: 2}, nil, &testpilotspb.DeliveryAdmission{ActivityId: "activity",
-			ActivityRunId: "run", DeliveryId: "9", Decision: testpilotspb.DELIVERY_ADMISSION_DECISION_ADMITTED, Attempt: 2}},
+		{"admitted by another delivery", []answer{{9, admitted(2), nil}}, decision("9", testpilotspb.DELIVERY_ADMISSION_DECISION_ADMITTED, 2)},
+		{"a lost answer, then the admission it committed", []answer{{7, nil, lost}, {7, admitted(1), nil}},
+			decision("7", testpilotspb.DELIVERY_ADMISSION_DECISION_ADMITTED, 1)},
+		{"a lost answer, then the redelivery refused", []answer{{7, nil, lost}, {7, nil, obsolete}}, nil},
+		{"a lost answer of another delivery, then the held one refused", []answer{{9, nil, lost}, {7, nil, obsolete}}, nil},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			s, d := newServer(t)
@@ -75,8 +96,11 @@ func TestReleaseReportsAdmissionsDecisionForTheHeldDelivery(t *testing.T) {
 			require.NoError(t, err)
 			dispatched := make(chan error, 1)
 			go func() { dispatched <- s.dispatch(t.Context(), testhooks.ActivityDelivery{Execution: key, Stamp: 7}) }()
-			delivery, err := held.Await(t.Context())
-			require.NoError(t, err)
+			_, arrived := held.Delivery()
+			require.False(t, arrived)
+			require.NoError(t, held.Await(t.Context()))
+			delivery, arrived := held.Delivery()
+			require.True(t, arrived)
 			require.Equal(t, testhooks.ActivityDelivery{Execution: key, Stamp: 7}, delivery)
 			s.answer(started(t, key, 7), nil, obsolete)
 			select {
@@ -84,24 +108,33 @@ func TestReleaseReportsAdmissionsDecisionForTheHeldDelivery(t *testing.T) {
 				t.Fatalf("the dispatch crossed the hold before release: %v", err)
 			default:
 			}
-			admission, err := held.Release(t.Context(), func(ctx context.Context) error {
+			ctx, expire := context.WithCancel(t.Context())
+			defer expire()
+			admission, err := held.Release(ctx, func(polling context.Context) error {
 				require.NoError(t, <-dispatched)
 				crossed := key
 				crossed.RunID = "other"
 				s.answer(started(t, crossed, 7), nil, obsolete)
+				s.answer(started(t, crossed, 7), nil, lost)
 				s.answer(started(t, key, 8), nil, obsolete)
-				s.answer(started(t, key, 7), nil, serviceerror.NewUnavailable("lost"))
-				s.answer(&historyservice.RecordActivityTaskHeartbeatRequest{}, nil, obsolete)
-				stamp := int32(7)
-				if test.want.GetDeliveryId() != "7" {
-					stamp = 9
+				s.answer(&historyservice.RecordActivityTaskHeartbeatRequest{}, nil, lost)
+				for _, a := range test.answers {
+					s.answer(started(t, key, a.stamp), a.response, a.err)
 				}
-				s.answer(started(t, key, stamp), test.response, test.err)
-				<-ctx.Done()
-				return ctx.Err()
+				if test.want == nil {
+					// The instruction's deadline is what ends a release that has no decision.
+					expire()
+				}
+				<-polling.Done()
+				return polling.Err()
 			})
+			if test.want == nil {
+				require.ErrorIs(t, err, context.Canceled)
+				require.Nil(t, admission)
+				return
+			}
 			require.NoError(t, err)
-			require.Equal(t, test.want, admission)
+			protorequire.ProtoEqual(t, test.want, admission)
 		})
 	}
 }
@@ -117,8 +150,7 @@ func TestReleaseFailsWithoutAHeldDeliveryOrADecision(t *testing.T) {
 	require.ErrorIs(t, err, ErrNotHeld)
 
 	go func() { _ = s.dispatch(t.Context(), testhooks.ActivityDelivery{Execution: key, Stamp: 7}) }()
-	_, err = held.Await(t.Context())
-	require.NoError(t, err)
+	require.NoError(t, held.Await(t.Context()))
 	failed := errors.New("poll failed")
 	_, err = held.Release(t.Context(), func(context.Context) error { return failed })
 	require.ErrorIs(t, err, failed)
@@ -130,8 +162,7 @@ func TestReleaseFailsWithoutAHeldDeliveryOrADecision(t *testing.T) {
 	go func() {
 		_ = s.dispatch(t.Context(), testhooks.ActivityDelivery{Execution: chasm.ExecutionKey{BusinessID: "other"}, Stamp: 1})
 	}()
-	_, err = other.Await(t.Context())
-	require.NoError(t, err)
+	require.NoError(t, other.Await(t.Context()))
 	_, err = other.Release(ctx, func(ctx context.Context) error { <-ctx.Done(); return ctx.Err() })
 	require.ErrorIs(t, err, context.Canceled)
 }
@@ -147,8 +178,7 @@ func TestUnheldDispatchPassesAndCloseCancelsAHeldOne(t *testing.T) {
 	go func() {
 		dispatched <- s.dispatch(t.Context(), testhooks.ActivityDelivery{Execution: chasm.ExecutionKey{BusinessID: "activity"}, Stamp: 1})
 	}()
-	_, err = held.Await(t.Context())
-	require.NoError(t, err)
+	require.NoError(t, held.Await(t.Context()))
 	held.Close()
 	require.ErrorIs(t, <-dispatched, ErrClosed)
 	again, err := d.Hold("activity")

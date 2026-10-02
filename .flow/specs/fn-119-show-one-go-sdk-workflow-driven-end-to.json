@@ -1,0 +1,27 @@
+{
+  "branch_name": "fn-119-show-one-go-sdk-workflow-driven-end-to",
+  "created_at": "2026-10-02T05:53:46.836065Z",
+  "depends_on_epics": [
+    "fn-114-state-every-scala-model-declaration-once",
+    "fn-118-declare-how-temporal-apis-behave-once"
+  ],
+  "id": "fn-119-show-one-go-sdk-workflow-driven-end-to",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-119-show-one-go-sdk-workflow-driven-end-to.md",
+  "status": "open",
+  "title": "Show one Go SDK workflow driven end to end from the IRs",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-02T05:53:49.408389Z"
+}

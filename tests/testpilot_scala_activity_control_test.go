@@ -62,7 +62,13 @@ func bindControlledCase(t *testing.T, env *testcore.TestEnv, source *testpilotsp
 		SDKClient:             live.client,
 		WorkerRoleID:          "temporal.worker",
 		WorkerStopTimeout:     testpilotCleanupTimeout,
-		Deliveries:            deliveries,
+		Deliveries: func(activityID string) (testpilotdriver.HeldDelivery, error) {
+			held, err := deliveries.Hold(activityID)
+			if err != nil {
+				return nil, err
+			}
+			return held, nil
+		},
 	})
 	require.NoError(t, err)
 	t.Cleanup(func() {

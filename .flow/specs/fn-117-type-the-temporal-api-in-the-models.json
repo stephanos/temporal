@@ -1,0 +1,26 @@
+{
+  "branch_name": "fn-117-type-the-temporal-api-in-the-models",
+  "created_at": "2026-10-02T05:38:54.668120Z",
+  "depends_on_epics": [
+    "fn-113-clean-up-the-scala-model-layer-around"
+  ],
+  "id": "fn-117-type-the-temporal-api-in-the-models",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-117-type-the-temporal-api-in-the-models.md",
+  "status": "open",
+  "title": "Type the Temporal API in the Models",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-02T05:49:42.800555Z"
+}

@@ -838,10 +838,11 @@ it.
   Case and recorded Run identities, the recorded Driver identity, the Verdict with its evidence
   links, the decision and every reason, the Known Gaps and the admission caps. A receipt is not
   self-authenticating and authorizes nothing; `local-ephemeral` is the one declared Profile.
-- **`Temporal.Verify`.** Optional Temporal-specific checker integration. It does not define
-  behavior. *(planned: fn-24-lean-native-verification-receipts-and)*
-- **`Umpire.Verify.Veil`.** Optional reusable Veil checker integration. Ordinary models and runtimes
-  do not import it. *(planned: fn-25-optional-callerclosure-veil-binding-and)*
+- **Temporal.Verify (not built).** Optional Temporal-specific checker integration. It does not
+  define behavior. *(withdrawn: fn-24-lean-native-verification-receipts-and closed as won't-do)*
+- **Umpire.Verify.Veil (not built).** Optional reusable Veil checker integration. Ordinary models
+  and runtimes do not import it.
+  *(withdrawn: fn-25-optional-callerclosure-veil-binding-and closed as won't-do)*
   *Amendment (drafted by fn-88; awaiting GOV-02 approval.)* This slot is Veil's symbolic path:
   SMT-backed bounded model checking, inductive invariants, and parametric claims, still owned by
   fn-23, fn-24, and fn-25. It is no longer the only way Veil enters the model. Veil's concrete

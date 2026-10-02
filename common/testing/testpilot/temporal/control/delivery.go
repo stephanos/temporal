@@ -13,8 +13,10 @@ var (
 	ErrInvalid = errors.New("invalid delivery control")
 )
 
-// DeliveryGate holds one declared identity, including concurrent redeliveries. Closing it cancels
-// blocked deliveries rather than allowing cleanup to dispatch work the controller never released.
+// DeliveryGate holds one declared identity, including concurrent redeliveries. Closing it fails the
+// blocked deliveries instead of letting them through, so nothing is dispatched by the close itself.
+// A delivery whose sender retries it arrives again once the hold is gone, and is then the sender's to
+// dispatch or to drop.
 type DeliveryGate[K comparable] struct {
 	key      K
 	mu       sync.Mutex

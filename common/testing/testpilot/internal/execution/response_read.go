@@ -123,7 +123,7 @@ func validateDeliveryAdmission(n *node, outcome *testpilotspb.InstructionOutcome
 	release := n.opcode == contract.InjectFault && n.source.GetInstruction().GetInjectFault().GetKind() == testpilotspb.FAULT_KIND_DELIVERY_RELEASE
 	succeeded := outcome.GetStatus() == testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED
 	admission := outcome.GetDeliveryAdmission()
-	if admission == nil && !(release && succeeded) {
+	if admission == nil && (!release || !succeeded) {
 		return nil
 	}
 	if !release || !succeeded {
