@@ -958,7 +958,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 					manifest, publishErr = manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest, mountArtifact)
 					if publishErr == nil {
 						var published artifact.Artifact
-						published, publishErr = artifact.PublishArtifact(artifact.Store{Root: journal.SuccessesPath(), Context: overallCtx, MaximumBytes: retention.maximumBytes}, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
+						published, publishErr = artifact.PublishArtifact(artifact.Store{Root: journal.SuccessesPath(), Context: overallCtx, MaximumBytes: retention.maximumBytes, TargetPool: artifact.TargetPool(config.Artifacts)}, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
 						if publishErr == nil {
 							relative, relErr := filepath.Rel(batchPath, published.Path)
 							if relErr != nil {
@@ -1860,7 +1860,7 @@ func publishBoundedFailureArtifact(
 	storedBytes *uint64,
 	input artifact.ArtifactInput,
 ) (artifact.Artifact, error) {
-	store := artifact.Store{Root: root, Context: ctx}
+	store := artifact.Store{Root: root, Context: ctx, TargetPool: artifact.TargetPool(config.Artifacts)}
 	_, existing := distinct[signature]
 	if !existing && config.failureArtifactLimit != 0 && uint64(len(distinct)) == config.failureArtifactLimit {
 		return artifact.Artifact{}, &campaign.ArtifactCapacityError{

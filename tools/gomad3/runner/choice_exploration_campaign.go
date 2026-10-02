@@ -374,7 +374,7 @@ func processExplorationCompletion(
 			if err != nil {
 				return explorationRoundResult{}, &HostError{Reason: "success_artifact_publication", Err: err}
 			}
-			published, err := artifact.PublishArtifact(artifact.Store{Root: filepath.Join(staged.Path(), "successes"), Context: ctx, MaximumBytes: retention.maximumBytes}, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
+			published, err := artifact.PublishArtifact(artifact.Store{Root: filepath.Join(staged.Path(), "successes"), Context: ctx, MaximumBytes: retention.maximumBytes, TargetPool: artifact.TargetPool(config.Artifacts)}, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
 			if err != nil {
 				return explorationRoundResult{}, successPublicationFailure(err)
 			}

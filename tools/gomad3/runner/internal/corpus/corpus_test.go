@@ -333,3 +333,64 @@ func TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema(t *testing.T) {
 		})
 	}
 }
+
+func TestCorpusCasesShareOneTarget(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "corpus")
+	first, coverage, _ := guideArtifactInput(t, 7)
+	identity := guideIdentity(t, first.Manifest)
+	corpus, err := Open(context.Background(), root, identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, _, _ := guideArtifactInput(t, 8)
+	second.IOTranscript, err = deterministicio.EncodeTranscript([]deterministicio.Operation{{Name: "os.open"}, {Ordinal: 1, Name: "os.read"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	second.Manifest.IOProfile.Transcript.SHA256 = record.HashBytes(second.IOTranscript)
+	second.Manifest.IOProfile.Transcript.Bytes = record.Uint64String(len(second.IOTranscript))
+	second.Manifest.IOProfile.Transcript.Records = 2
+	for _, input := range []artifact.ArtifactInput{first, second} {
+		added, err := corpus.Admit(context.Background(), Candidate{Artifact: input, Coverage: coverage}, func(context.Context, string) (ReplayResult, error) {
+			return ReplayResult{Verified: true, Match: true}, nil
+		})
+		if err != nil || !added {
+			t.Fatalf("Admit(seed %d) = %t, %v", input.Manifest.Seed, added, err)
+		}
+	}
+	if err := corpus.Close(); err != nil {
+		t.Fatal(err)
+	}
+	targets, err := filepath.Glob(filepath.Join(root, "cases", "*", "target"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	entries, err := filepath.Glob(filepath.Join(artifact.TargetPool(root), "*"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(targets) != 2 || len(entries) != 1 {
+		t.Fatalf("corpus holds cases %v and pool entries %v, want two cases and one entry", targets, entries)
+	}
+	entry, err := os.Lstat(entries[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, target := range targets {
+		info, err := os.Lstat(target)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !os.SameFile(entry, info) {
+			t.Fatalf("corpus case target %s is a separate copy", target)
+		}
+	}
+	reopened, err := Open(context.Background(), root, identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer reopened.Close()
+	if len(reopened.Snapshot().Entries) != 2 {
+		t.Fatalf("reopened snapshot = %#v", reopened.Snapshot())
+	}
+}

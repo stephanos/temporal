@@ -142,6 +142,7 @@ func (session *minimizationSession) reduce(ctx context.Context) (minimizer.State
 func (session *minimizationSession) retainAccepted(ctx context.Context, trial minimizationTrial) (*minimizer.AcceptedArtifact, error) {
 	retained, err := artifact.PublishArtifact(artifact.Store{
 		Root: session.workspace.AcceptedRoot(), Context: ctx, MaximumBytes: defaultMinimizedArtifactBytes(session.opened.StoredBytes), Key: artifact.StoreKeyRecord,
+		TargetPool: artifact.TargetPool(session.config.OutputRoot),
 	}, trial.input)
 	if err != nil {
 		return nil, fmt.Errorf("retain accepted minimization candidate: %w", err)
@@ -206,6 +207,7 @@ func (session *minimizationSession) publishAccepted(ctx context.Context, checkpo
 	}
 	published, err := artifact.PublishArtifact(artifact.Store{
 		Root: session.config.OutputRoot, Context: ctx, MaximumBytes: maximumBytes, Key: artifact.StoreKeyRecord,
+		TargetPool: artifact.TargetPool(session.config.OutputRoot),
 	}, input)
 	if err != nil {
 		return artifact.Artifact{}, fmt.Errorf("publish minimized artifact: %w", err)
@@ -500,6 +502,7 @@ func (session *minimizationSession) evaluate(ctx context.Context, explorationCon
 	input.Simulation = &artifact.SimulationPayloads{Plan: executionForCandidate.SimulationPlan, Record: observed.SimulationRecords[0]}
 	published, err := artifact.PublishArtifact(artifact.Store{
 		Root: session.temporaryRoot, Context: ctx, MaximumBytes: defaultMinimizedArtifactBytes(session.opened.StoredBytes), Key: artifact.StoreKeyRecord,
+		TargetPool: artifact.TargetPool(session.workDirectory),
 	}, input)
 	if err != nil {
 		return minimizationTrial{}, fmt.Errorf("publish minimization candidate: %w", err)

@@ -324,6 +324,42 @@ because it needs a new record form, a schema decision for retained artifacts,
 store-level resolution in a reader confined to the artifact directory, and an
 export step the CLI does not have.
 
+**E2 form, chosen (task 9, 2026-10-02).** The recommended form is the one
+implemented: a content-addressed pool, with each artifact's `target` a hard link
+to the pool entry `sha256-<hex>`. Reasons: the manifest, the artifact schema,
+and the record hash are unchanged, so retained artifacts open as before; an
+artifact stays a complete directory, so `cp -R` is the export and removing a
+pool entry never breaks an artifact that links to it; and the reader stays
+confined to the artifact directory. The alternative was not needed, because hard
+links meet R7 on both qualified platforms.
+
+- The pool is `targets` under its owner: the artifacts root (`ARTIFACTS/targets`,
+  beside `v1`), the corpus directory, and the minimizer output root. The default
+  minimizer output root is `ARTIFACTS/minimized`, so a parent artifact and its
+  minimized artifact are in two pools and keep two copies. The minimizer's
+  scratch candidate store pools in its work directory.
+- `Store` takes the pool from its caller (`Store.TargetPool`); an empty pool
+  publishes a private copy, which is what every caller outside the Runner does.
+- An entry is written to a staging directory in the pool and published with a
+  no-replace rename, so concurrent publishers end with one entry and the loser
+  links to the winner's. A linked entry is verified (mode, size, SHA-256)
+  through the new link before the manifest is written. A pool entry that no
+  longer matches its name fails the publication; it is not repaired, because
+  every artifact linked to it is damaged too.
+- When the link fails with `EXDEV`, `EPERM`, `EMLINK`, or an unsupported
+  operation, the artifact gets a private copy and the publication result says
+  `unshared`. Any other link failure fails the publication.
+- Re-anchoring correction: the task expected a hard-linked file to pass the
+  no-symlink open path. It does not. `hostfs.OpenRoot` rejects a link count
+  other than one. The artifact reader now opens the one file the manifest names
+  as the target without that check and keeps it for every other payload. The
+  target's content is still hashed at open and again while it is copied for
+  execution, so an alias cannot change what runs.
+- Left for task 10: an unreferenced pool entry (a failed or abandoned
+  publication, a discarded corpus case, a staging directory left by a crash) is
+  removed only by pruning. Per-artifact stored bytes still count the target, and
+  no campaign or CLI report shows the sharing state yet.
+
 **E3 recording point.** Poll order is drawn before the channels are locked, so
 readiness is recorded with the select result and carried onto the select-poll
 decisions when the replay plan is projected. The record also carries shape

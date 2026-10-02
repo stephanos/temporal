@@ -51,7 +51,7 @@ func OpenArtifact(path string) (Artifact, error) {
 		expected[filepath.FromSlash(file.Path)] = file
 	}
 	seen := map[string]bool{}
-	err = validateDirectory(root, ".", expected, seen)
+	err = validateDirectory(root, ".", expected, seen, manifest.Target.File)
 	if err != nil {
 		return Artifact{}, errors.Join(err, root.Close())
 	}
@@ -77,7 +77,7 @@ func (opened *Artifact) Close() error {
 }
 
 func (opened Artifact) Detached() Artifact {
-	return Artifact{Path: opened.Path, Manifest: opened.Manifest, StoredBytes: opened.StoredBytes}
+	return Artifact{Path: opened.Path, Manifest: opened.Manifest, StoredBytes: opened.StoredBytes, TargetSharing: opened.TargetSharing}
 }
 
 func OpenPayload(opened Artifact, relativePath string, maximum uint64) (*os.File, error) {
@@ -95,7 +95,7 @@ func OpenPayload(opened Artifact, relativePath string, maximum uint64) (*os.File
 	if expected.Mode == "0700" {
 		mode = 0o700
 	}
-	file, info, err := openValidatedFile(opened.root, relativePath, mode, uint64(expected.Size))
+	file, info, err := openValidatedFile(opened.root, relativePath, mode, uint64(expected.Size), relativePath == opened.Manifest.Target.File)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func OpenPayload(opened Artifact, relativePath string, maximum uint64) (*os.File
 	return file, nil
 }
 
-func validateDirectory(root *os.Root, directory string, expected map[string]record.File, seen map[string]bool) error {
+func validateDirectory(root *os.Root, directory string, expected map[string]record.File, seen map[string]bool, target string) error {
 	opened, err := root.Open(directory)
 	if err != nil {
 		return err
@@ -150,7 +150,7 @@ func validateDirectory(root *os.Root, directory string, expected map[string]reco
 			if infoErr != nil || info.Mode().Perm() != 0o700 {
 				return errors.Join(fmt.Errorf("artifact directory %s is not private", relative), infoErr)
 			}
-			if err := validateDirectory(root, relative, expected, seen); err != nil {
+			if err := validateDirectory(root, relative, expected, seen, target); err != nil {
 				return err
 			}
 			continue
@@ -166,7 +166,7 @@ func validateDirectory(root *os.Root, directory string, expected map[string]reco
 		if file.Mode == "0700" {
 			mode = 0o700
 		}
-		digest, size, readErr := hashValidatedFile(root, relative, mode, uint64(file.Size))
+		digest, size, readErr := hashValidatedFile(root, relative, mode, uint64(file.Size), file.Path == target)
 		if readErr != nil {
 			return fmt.Errorf("validate artifact file %s: %w", file.Path, readErr)
 		}
@@ -290,8 +290,8 @@ func readValidatedFile(root *os.Root, path string, mode os.FileMode, maximum uin
 	return data, file.Close()
 }
 
-func hashValidatedFile(root *os.Root, path string, mode os.FileMode, expectedSize uint64) (record.SHA256, uint64, error) {
-	file, info, err := openValidatedFile(root, path, mode, expectedSize)
+func hashValidatedFile(root *os.Root, path string, mode os.FileMode, expectedSize uint64, shared bool) (record.SHA256, uint64, error) {
+	file, info, err := openValidatedFile(root, path, mode, expectedSize, shared)
 	if err != nil {
 		return "", 0, err
 	}
@@ -308,8 +308,15 @@ func hashValidatedFile(root *os.Root, path string, mode os.FileMode, expectedSiz
 	return record.SHA256("sha256:" + hex.EncodeToString(hasher.Sum(nil))), uint64(size), file.Close()
 }
 
-func openValidatedFile(root *os.Root, path string, mode os.FileMode, expectedSize uint64) (*os.File, os.FileInfo, error) {
-	file, info, err := hostfs.OpenRoot(root, path)
+// openValidatedFile opens a listed payload. Only the target may have other
+// hard links, because a store shares it with its pool; every other payload
+// keeps the single-link check.
+func openValidatedFile(root *os.Root, path string, mode os.FileMode, expectedSize uint64, shared bool) (*os.File, os.FileInfo, error) {
+	open := hostfs.OpenRoot
+	if shared {
+		open = openSharedFile
+	}
+	file, info, err := open(root, path)
 	if err != nil {
 		return nil, nil, err
 	}
