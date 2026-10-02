@@ -24,8 +24,7 @@ func TestWatchdogDiagnosticReplayUsesCapturedInputs(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Run("captured input after host removal", func(t *testing.T) {
-		path := publishWatchdogReplayInput(t, input)
-		result, err := Replay(t.Context(), watchdogReplaySpec(t, path))
+		result, err := replayWatchdogInput(t, input)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -41,8 +40,7 @@ func TestWatchdogDiagnosticReplayUsesCapturedInputs(t *testing.T) {
 		}
 		missing.ReadOnlyMounts = &mounts
 		missing.Manifest.IOProfile.ReadOnlyMounts = pointerToReadOnlyMounts(replayRecordedCapturedInputs(mounts.Manifest))
-		path := publishWatchdogReplayInput(t, missing)
-		result, err := Replay(t.Context(), watchdogReplaySpec(t, path))
+		result, err := replayWatchdogInput(t, missing)
 		if !errors.Is(err, readonlymount.ErrReplayDivergence) || result.Match {
 			t.Fatalf("uncaptured input replay = %#v, %v", result, err)
 		}
@@ -175,6 +173,39 @@ func watchdogReplaySpec(t *testing.T, path string) ReplaySpec {
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"}}
 }
 
+// watchdogReplayTimeouts are the execution timeouts a real watchdog run may use, shortest first.
+// The watchdog is a host wall-clock deadline that starts with the supervisor, so a loaded host can
+// fire it before the target has started. Such a run observed nothing of the target and is repeated
+// under the next timeout instead of being compared.
+var watchdogReplayTimeouts = []time.Duration{time.Second, 2 * time.Second, 4 * time.Second, 8 * time.Second, 16 * time.Second, 32 * time.Second}
+
+func replayWatchdogInput(t *testing.T, input artifact.ArtifactInput) (ReplayResult, error) {
+	t.Helper()
+	var result ReplayResult
+	var err error
+	for _, timeout := range watchdogReplayTimeouts {
+		if record.Uint64String(timeout) < input.Manifest.Limits.ExecutionTimeoutNanos {
+			continue
+		}
+		input.Manifest.Limits.ExecutionTimeoutNanos = record.Uint64String(timeout)
+		config := watchdogReplaySpec(t, publishWatchdogReplayInput(t, input))
+		config.ObservedDir = t.TempDir()
+		result, err = Replay(t.Context(), config)
+		if err != nil || result.Divergence != "stdout.full_sha256" {
+			return result, err
+		}
+		stdout, readErr := os.ReadFile(filepath.Join(config.ObservedDir, "stdout"))
+		if readErr != nil {
+			t.Fatal(readErr)
+		}
+		if len(stdout) != 0 {
+			return result, err
+		}
+		t.Logf("replay watchdog fired after %v before the target wrote output", timeout)
+	}
+	return result, err
+}
+
 func publishWatchdogReplayInput(t *testing.T, input artifact.ArtifactInput) string {
 	t.Helper()
 	published, err := artifact.PublishArtifact(artifact.Store{Root: t.TempDir()}, input)
@@ -217,15 +248,23 @@ func main() {
 	}
 	mappings := []readonlymount.Mapping{{Source: source, Target: "/mounted"}}
 	limits := readonlymount.DefaultLimits()
-	observed, err := execution.Run(t.Context(), execution.Spec{
-		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"}, BootstrapCommand: []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
-		Command: prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
-		ExecutionTimeout: time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 1 << 20,
-		World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
-		IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}, ReadOnlyMount: &execution.ReadOnlyMountCapability{Mappings: mappings, Limits: limits}},
-	})
-	if err != nil {
-		t.Fatal(err)
+	var observed execution.Result
+	var timeout time.Duration
+	for _, timeout = range watchdogReplayTimeouts {
+		observed, err = execution.Run(t.Context(), execution.Spec{
+			SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"}, BootstrapCommand: []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
+			Command: prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
+			ExecutionTimeout: timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: 1 << 20,
+			World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
+			IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}, ReadOnlyMount: &execution.ReadOnlyMountCapability{Mappings: mappings, Limits: limits}},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !observed.WatchdogTimeout || observed.Stdout.TotalBytes != 0 {
+			break
+		}
+		t.Logf("fixture watchdog fired after %v before the target wrote output", timeout)
 	}
 	if !observed.WatchdogTimeout || observed.IOTranscript.Complete || string(observed.Stdout.Bytes) != "captured input\n" || len(observed.IOROMounts.Entries) != 1 {
 		t.Fatalf("watchdog fixture = %#v", observed)
@@ -243,7 +282,7 @@ func main() {
 			Toolchain: prepared.RecordToolchain(), Target: prepared.RecordTarget(),
 			IOProfile:   record.IOProfile{Name: profile.Name(), ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: record.SHA256(profile.InventorySHA256()), ReadOnlyMounts: pointerToReadOnlyMounts(replayRecordedCapturedInputs(mounts.Manifest))},
 			Environment: []record.Environment{{Name: "GOMAD3_IO_PROFILE", Value: profile.Name()}, {Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
-			Limits:      record.Limits{ExecutionTimeoutNanos: record.Uint64String(time.Second), OverallTimeoutNanos: record.Uint64String(time.Minute), TerminateGraceNanos: record.Uint64String(100 * time.Millisecond), OutputBytes: 1 << 20, WorldTransitionBytes: 1 << 20, IOTranscriptBytes: 64 << 20},
+			Limits:      record.Limits{ExecutionTimeoutNanos: record.Uint64String(timeout), OverallTimeoutNanos: record.Uint64String(time.Minute), TerminateGraceNanos: record.Uint64String(100 * time.Millisecond), OutputBytes: 1 << 20, WorldTransitionBytes: 1 << 20, IOTranscriptBytes: 64 << 20},
 			World:       worldRecord, Outcome: record.Outcome{Domain: "watchdog", Reason: "watchdog_timeout", Termination: "timeout", Deadline: &deadline},
 			Streams: record.Streams{Stdout: replayStream(observed.Stdout), Stderr: replayStream(observed.Stderr)},
 			Host:    record.Host{StartedAt: "2026-10-02T12:00:00Z", FinishedAt: "2026-10-02T12:00:01Z", ElapsedNanos: record.Uint64String(time.Second)},
