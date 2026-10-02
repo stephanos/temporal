@@ -1,0 +1,488 @@
+{
+  "conclusion": "",
+  "databaseId": 37027023410,
+  "headSha": "67dbe02666afd68c064c6c3cb9197b03d4664687",
+  "jobs": [
+    {
+      "completedAt": "0001-01-01T00:00:00Z",
+      "conclusion": "",
+      "databaseId": 110904153304,
+      "name": "core-linux",
+      "startedAt": "2026-10-02T15:26:51Z",
+      "status": "in_progress",
+      "steps": [
+        {
+          "completedAt": "2026-10-02T15:26:54Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-02T15:26:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-02T15:27:01Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10",
+          "number": 2,
+          "startedAt": "2026-10-02T15:26:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-02T15:27:11Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c",
+          "number": 3,
+          "startedAt": "2026-10-02T15:27:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-02T15:27:11Z",
+          "conclusion": "success",
+          "name": "Verify qualified host",
+          "number": 4,
+          "startedAt": "2026-10-02T15:27:11Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Build the toolchain and run the conformance tiers qualified on Linux",
+          "number": 5,
+          "startedAt": "2026-10-02T15:27:11Z",
+          "status": "in_progress"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Run the host tier",
+          "number": 6,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Qualify the Linux compatibility packs and the core corpus",
+          "number": 7,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Verify portable core qualification evidence",
+          "number": 8,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Upload core qualification",
+          "number": 9,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Close the functional test capability closure",
+          "number": 10,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Requalify representative Temporal workloads",
+          "number": 11,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Verify portable Temporal qualification evidence",
+          "number": 12,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Upload Temporal qualification",
+          "number": 13,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Post Run actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c",
+          "number": 25,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Post Run actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10",
+          "number": 26,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        }
+      ],
+      "url": "https://github.com/stephanos/temporal/actions/runs/37027023410/job/110904153304"
+    },
+    {
+      "completedAt": "0001-01-01T00:00:00Z",
+      "conclusion": "",
+      "databaseId": 110904153717,
+      "name": "core",
+      "startedAt": "2026-10-02T15:27:00Z",
+      "status": "in_progress",
+      "steps": [
+        {
+          "completedAt": "2026-10-02T15:27:03Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-02T15:27:00Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Run actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10",
+          "number": 2,
+          "startedAt": "2026-10-02T15:27:03Z",
+          "status": "in_progress"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Run actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c",
+          "number": 3,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Verify qualified host",
+          "number": 4,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Produce checked upgrade qualification dossier",
+          "number": 5,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Run the simulation tier",
+          "number": 6,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Verify portable core qualification evidence",
+          "number": 7,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Upload upgrade qualification dossier",
+          "number": 8,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Close the functional test capability closure",
+          "number": 9,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Post Run actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10",
+          "number": 18,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        }
+      ],
+      "url": "https://github.com/stephanos/temporal/actions/runs/37027023410/job/110904153717"
+    },
+    {
+      "completedAt": "0001-01-01T00:00:00Z",
+      "conclusion": "",
+      "databaseId": 110904153810,
+      "name": "host-tools-linux",
+      "startedAt": "2026-10-02T15:26:52Z",
+      "status": "in_progress",
+      "steps": [
+        {
+          "completedAt": "2026-10-02T15:26:54Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-02T15:26:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-02T15:27:01Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10",
+          "number": 2,
+          "startedAt": "2026-10-02T15:26:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-02T15:27:12Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c",
+          "number": 3,
+          "startedAt": "2026-10-02T15:27:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Validate generated outputs, patches, scripts, compatibility packs, and the ./tests qualification manifest",
+          "number": 4,
+          "startedAt": "2026-10-02T15:27:12Z",
+          "status": "in_progress"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Test platform-neutral host tooling",
+          "number": 5,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Post Run actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c",
+          "number": 9,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Post Run actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10",
+          "number": 10,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        }
+      ],
+      "url": "https://github.com/stephanos/temporal/actions/runs/37027023410/job/110904153810"
+    },
+    {
+      "completedAt": "0001-01-01T00:00:00Z",
+      "conclusion": "",
+      "databaseId": 110904153942,
+      "name": "functional-smoke / functional-smoke-linux",
+      "startedAt": "2026-10-02T15:26:52Z",
+      "status": "in_progress",
+      "steps": [
+        {
+          "completedAt": "2026-10-02T15:26:54Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-02T15:26:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-02T15:26:58Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10",
+          "number": 2,
+          "startedAt": "2026-10-02T15:26:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-02T15:27:10Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c",
+          "number": 3,
+          "startedAt": "2026-10-02T15:26:58Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-02T15:27:10Z",
+          "conclusion": "success",
+          "name": "Verify qualified host",
+          "number": 4,
+          "startedAt": "2026-10-02T15:27:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Check the ./tests qualification manifest is current",
+          "number": 5,
+          "startedAt": "2026-10-02T15:27:10Z",
+          "status": "in_progress"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Qualify the functional smoke selection",
+          "number": 6,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Verify functional smoke evidence",
+          "number": 7,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Upload functional smoke evidence",
+          "number": 8,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Post Run actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c",
+          "number": 15,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Post Run actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10",
+          "number": 16,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        }
+      ],
+      "url": "https://github.com/stephanos/temporal/actions/runs/37027023410/job/110904153942"
+    },
+    {
+      "completedAt": "0001-01-01T00:00:00Z",
+      "conclusion": "",
+      "databaseId": 110904154139,
+      "name": "functional-smoke / functional-smoke-darwin",
+      "startedAt": "2026-10-02T15:26:59Z",
+      "status": "in_progress",
+      "steps": [
+        {
+          "completedAt": "2026-10-02T15:27:02Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-10-02T15:27:00Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-10-02T15:27:08Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10",
+          "number": 2,
+          "startedAt": "2026-10-02T15:27:02Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Run actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c",
+          "number": 3,
+          "startedAt": "2026-10-02T15:27:08Z",
+          "status": "in_progress"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Verify qualified host",
+          "number": 4,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Check the ./tests qualification manifest is current",
+          "number": 5,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Check the smoke selection is explicitly traced",
+          "number": 6,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Qualify the functional smoke selection",
+          "number": 7,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Verify functional smoke evidence",
+          "number": 8,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Upload functional smoke evidence",
+          "number": 9,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Post Run actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c",
+          "number": 17,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        },
+        {
+          "completedAt": "0001-01-01T00:00:00Z",
+          "conclusion": "",
+          "name": "Post Run actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10",
+          "number": 18,
+          "startedAt": "0001-01-01T00:00:00Z",
+          "status": "pending"
+        }
+      ],
+      "url": "https://github.com/stephanos/temporal/actions/runs/37027023410/job/110904154139"
+    }
+  ],
+  "status": "in_progress",
+  "url": "https://github.com/stephanos/temporal/actions/runs/37027023410"
+}
