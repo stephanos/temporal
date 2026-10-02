@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -38,6 +39,9 @@ type retentionExecutor struct {
 	t        *testing.T
 	strategy Strategy
 	base     Executor
+	// order maps the alternative an exploration candidate forces to its rank;
+	// an alternative it does not hold is its own rank.
+	order map[uint64]uint64
 	// shape edits the captured result of the execution with the given rank.
 	shape func(rank uint64, result *execution.Result)
 	// before runs ahead of the execution with the given rank.
@@ -54,6 +58,16 @@ type retentionExecutor struct {
 }
 
 func (executor *retentionExecutor) rank(request execution.Spec) uint64 {
+	alternative := executor.alternative(request)
+	if rank, ordered := executor.order[alternative]; ordered {
+		return rank
+	}
+	return alternative
+}
+
+// alternative is the seed's position for the seed strategy and, for the
+// exploration strategies, the alternative the candidate forces last.
+func (executor *retentionExecutor) alternative(request execution.Spec) uint64 {
 	switch executor.strategy {
 	case StrategyChoiceExploration:
 		if request.Choice != nil && request.Choice.Mode == choice.ModePrefix {
@@ -127,6 +141,50 @@ func (executor *retentionExecutor) Run(ctx context.Context, request execution.Sp
 // strategy runs all three at once; the exploration strategies run the root and
 // then, with parallel candidates, both remaining alternatives in one round.
 func retentionCampaign(t *testing.T, strategy Strategy, parallel bool, fail bool) (CampaignSpec, *retentionExecutor) {
+	t.Helper()
+	config, executor := unorderedRetentionCampaign(t, strategy, parallel, fail)
+	executor.order = explorationRanks(t, strategy)
+	return config, executor
+}
+
+var explorationRankCache sync.Map
+
+// explorationRanks maps each alternative an exploration strategy forces to the
+// journal position of its execution. Candidates of one depth run in the order
+// of their identities, which bind the platform, so the two alternatives beside
+// the root run in either order. The fixture's identities are fixed, and one
+// campaign whose alternatives observe distinct probes shows the order.
+func explorationRanks(t *testing.T, strategy Strategy) map[uint64]uint64 {
+	t.Helper()
+	if strategy == StrategySeed {
+		return nil
+	}
+	if cached, found := explorationRankCache.Load(strategy); found {
+		return cached.(map[uint64]uint64)
+	}
+	probes := []string{probeA, probeB, probeC}
+	config, executor := unorderedRetentionCampaign(t, strategy, false, false)
+	keepSuccesses(&config, KeepSuccessesNovel)
+	executor.shape = rankProbes(t, probes...)
+	summary, err := Explore(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	order := make(map[uint64]uint64)
+	for _, run := range journaledExecutions(t, summary.CampaignPath, true) {
+		if len(run.NovelSemanticProbes) != 1 {
+			t.Fatalf("execution %d found %v novel, want its own probe", run.SelectionOrdinal, run.NovelSemanticProbes)
+		}
+		order[uint64(slices.Index(probes, run.NovelSemanticProbes[0]))] = uint64(run.SelectionOrdinal)
+	}
+	if len(order) != len(probes) || order[0] != 0 {
+		t.Fatalf("exploration order = %v, want the root first and every alternative once", order)
+	}
+	explorationRankCache.Store(strategy, order)
+	return order
+}
+
+func unorderedRetentionCampaign(t *testing.T, strategy Strategy, parallel bool, fail bool) (CampaignSpec, *retentionExecutor) {
 	t.Helper()
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)

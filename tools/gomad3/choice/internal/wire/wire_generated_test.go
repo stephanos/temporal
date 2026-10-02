@@ -110,3 +110,66 @@ func TestChoiceWireHeaderAndTerminalRoundTrip(t *testing.T) {
 		t.Fatalf("divergence terminal = %+v", decodedDivergence)
 	}
 }
+
+func TestChoiceWireDiagnosticHeaderRoundTrip(t *testing.T) {
+	capacity := uint64(DiagnosticHeaderBytes + 2*DiagnosticRecordBytes)
+	header := EncodeDiagnosticHeader(capacity)
+	decoded, err := DecodeDiagnosticHeader(header[:])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := (DiagnosticHeader{Capacity: capacity, NextOffset: DiagnosticHeaderBytes}); decoded != want {
+		t.Fatalf("diagnostic header = %+v, want %+v", decoded, want)
+	}
+	for name, mutate := range map[string]func(*[DiagnosticHeaderBytes]byte){
+		"magic":        func(header *[DiagnosticHeaderBytes]byte) { header[0]++ },
+		"version":      func(header *[DiagnosticHeaderBytes]byte) { header[11]++ },
+		"state":        func(header *[DiagnosticHeaderBytes]byte) { header[12] = byte(DiagnosticOverflow) + 1 },
+		"reserved":     func(header *[DiagnosticHeaderBytes]byte) { header[DiagnosticHeaderBytes-1] = 1 },
+		"capacity":     func(header *[DiagnosticHeaderBytes]byte) { header[22] = 0 },
+		"record count": func(header *[DiagnosticHeaderBytes]byte) { header[39] = 1 },
+	} {
+		invalid := header
+		mutate(&invalid)
+		if _, err := DecodeDiagnosticHeader(invalid[:]); err == nil {
+			t.Fatalf("diagnostic header with invalid %s accepted", name)
+		}
+	}
+	if _, err := DecodeDiagnosticHeader(header[:DiagnosticHeaderBytes-1]); err == nil {
+		t.Fatal("short diagnostic header accepted")
+	}
+	oversized := EncodeDiagnosticHeader(DiagnosticMaximumBytes + 1)
+	if _, err := DecodeDiagnosticHeader(oversized[:]); err == nil {
+		t.Fatal("oversized diagnostic trace accepted")
+	}
+}
+
+func TestChoiceWireDiagnosticRecordRoundTrip(t *testing.T) {
+	value := DiagnosticRecord{
+		Ordinal: 9, VirtualTime: 946684800000000001, Allocations: 1 << 40, GCCycle: 3, GCPhase: 2, RunQueueLength: 255,
+		RunqDraws: 1, SchedulerDraws: 2, SelectDraws: 3, RuntimeRandDraws: 4, RuntimeCheapRandDraws: 5, TimerDraws: 6, ClockTickDraws: 7,
+	}
+	encoded := EncodeDiagnosticRecord(value)
+	decoded, err := DecodeDiagnosticRecord(encoded[:])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if decoded != value {
+		t.Fatalf("round trip = %+v, want %+v", decoded, value)
+	}
+	for name, offset := range map[string]int{"phase padding": 29, "queue padding": 36} {
+		invalid := encoded
+		invalid[offset] = 1
+		if _, err := DecodeDiagnosticRecord(invalid[:]); err == nil {
+			t.Fatalf("diagnostic record with nonzero %s accepted", name)
+		}
+	}
+	invalid := encoded
+	invalid[28] = 3
+	if _, err := DecodeDiagnosticRecord(invalid[:]); err == nil {
+		t.Fatal("unknown collector phase accepted")
+	}
+	if _, err := DecodeDiagnosticRecord(encoded[:DiagnosticRecordBytes-1]); err == nil {
+		t.Fatal("short diagnostic record accepted")
+	}
+}

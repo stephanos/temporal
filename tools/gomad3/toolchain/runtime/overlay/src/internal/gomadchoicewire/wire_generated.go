@@ -27,7 +27,7 @@ var (
 	traceMagic                 = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'H', '\x02'}
 	tapeMagic                  = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'P', '\x02'}
 	terminalMagic              = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'T', '\x02'}
-	ImplementationSourceSHA256 = [DigestBytes]byte{'4', '&', '2', 'j', 'ï', 'Ì', '\u0098', 'ò', '}', 'b', '#', 'Æ', '\u008b', 'n', '\u009a', '\u0095', '¸', 'F', 'ù', 'Ä', '«', '\x1e', 'X', '0', 'n', '4', ']', '\u0090', '+', 'U', 'p', '\f'}
+	ImplementationSourceSHA256 = [DigestBytes]byte{'ð', '.', ':', '\u0082', '\u008f', '½', 'È', '¨', 'û', 'B', 'Ê', 'Í', 'A', '©', '3', 'e', 'Æ', '.', '\x18', 'Ü', '¦', 'Å', '¸', 'N', 'e', '\u008a', 'æ', '¬', '\u00ad', 'S', '»', 'n'}
 )
 
 type Kind uint8
@@ -326,6 +326,106 @@ func DecodeTerminal(frame []byte) (Terminal, error) {
 		return Terminal{}, errors.New("unexpected choice terminal divergence metadata")
 	}
 	return value, nil
+}
+
+const (
+	DiagnosticProfile      = "gomad3-diagnostic-trace/v1"
+	DiagnosticHeaderBytes  = 64
+	DiagnosticRecordBytes  = 96
+	DiagnosticMaximumBytes = 67108864
+	diagnosticWireVersion  = 1
+)
+
+var diagnosticMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'D', 'G', '\x01'}
+
+type DiagnosticState uint8
+
+const (
+	// DiagnosticRecording is the state the Runner writes. A trace still in
+	// it was not closed by the runtime.
+	DiagnosticRecording DiagnosticState = 0
+	DiagnosticComplete  DiagnosticState = 1
+	DiagnosticOverflow  DiagnosticState = 2
+)
+
+type DiagnosticHeader struct {
+	Capacity    uint64
+	NextOffset  uint64
+	RecordCount uint64
+	State       DiagnosticState
+}
+
+func EncodeDiagnosticHeader(capacity uint64) [DiagnosticHeaderBytes]byte {
+	var header [DiagnosticHeaderBytes]byte
+	copy(header[:8], diagnosticMagic[:])
+	binary.BigEndian.PutUint32(header[8:12], diagnosticWireVersion)
+	binary.BigEndian.PutUint64(header[16:24], capacity)
+	binary.BigEndian.PutUint64(header[24:32], DiagnosticHeaderBytes)
+	return header
+}
+
+func DecodeDiagnosticHeader(header []byte) (DiagnosticHeader, error) {
+	if len(header) != DiagnosticHeaderBytes || !bytes.Equal(header[:8], diagnosticMagic[:]) || binary.BigEndian.Uint32(header[8:12]) != diagnosticWireVersion || !zero(header[13:16]) || !zero(header[40:64]) {
+		return DiagnosticHeader{}, errors.New("invalid diagnostic trace header")
+	}
+	value := DiagnosticHeader{Capacity: binary.BigEndian.Uint64(header[16:24]), NextOffset: binary.BigEndian.Uint64(header[24:32]), RecordCount: binary.BigEndian.Uint64(header[32:40]), State: DiagnosticState(header[12])}
+	if value.State > DiagnosticOverflow {
+		return DiagnosticHeader{}, errors.New("invalid diagnostic trace state")
+	}
+	if value.Capacity < DiagnosticHeaderBytes+DiagnosticRecordBytes || value.Capacity > DiagnosticMaximumBytes || value.NextOffset < DiagnosticHeaderBytes || value.NextOffset > value.Capacity || (value.NextOffset-DiagnosticHeaderBytes)%DiagnosticRecordBytes != 0 || value.RecordCount != (value.NextOffset-DiagnosticHeaderBytes)/DiagnosticRecordBytes {
+		return DiagnosticHeader{}, errors.New("invalid diagnostic trace bounds")
+	}
+	return value, nil
+}
+
+// DiagnosticRecord is the runtime-state digest taken when the choice record
+// with the same ordinal was appended. The draw counts are per seeded stream
+// since the process started.
+type DiagnosticRecord struct {
+	Ordinal               uint64
+	VirtualTime           int64
+	Allocations           uint64
+	GCCycle               uint32
+	GCPhase               uint8
+	RunQueueLength        uint32
+	RunqDraws             uint64
+	SchedulerDraws        uint64
+	SelectDraws           uint64
+	RuntimeRandDraws      uint64
+	RuntimeCheapRandDraws uint64
+	TimerDraws            uint64
+	ClockTickDraws        uint64
+}
+
+func EncodeDiagnosticRecord(value DiagnosticRecord) [DiagnosticRecordBytes]byte {
+	var record [DiagnosticRecordBytes]byte
+	binary.BigEndian.PutUint64(record[:8], value.Ordinal)
+	binary.BigEndian.PutUint64(record[8:16], uint64(value.VirtualTime))
+	binary.BigEndian.PutUint64(record[16:24], value.Allocations)
+	binary.BigEndian.PutUint32(record[24:28], value.GCCycle)
+	record[28] = value.GCPhase
+	binary.BigEndian.PutUint32(record[32:36], value.RunQueueLength)
+	binary.BigEndian.PutUint64(record[40:48], value.RunqDraws)
+	binary.BigEndian.PutUint64(record[48:56], value.SchedulerDraws)
+	binary.BigEndian.PutUint64(record[56:64], value.SelectDraws)
+	binary.BigEndian.PutUint64(record[64:72], value.RuntimeRandDraws)
+	binary.BigEndian.PutUint64(record[72:80], value.RuntimeCheapRandDraws)
+	binary.BigEndian.PutUint64(record[80:88], value.TimerDraws)
+	binary.BigEndian.PutUint64(record[88:96], value.ClockTickDraws)
+	return record
+}
+
+func DecodeDiagnosticRecord(record []byte) (DiagnosticRecord, error) {
+	// The runtime has three collector phases: off, mark, and mark termination.
+	if len(record) != DiagnosticRecordBytes || record[28] > 2 || !zero(record[29:32]) || !zero(record[36:40]) {
+		return DiagnosticRecord{}, errors.New("invalid diagnostic trace record")
+	}
+	return DiagnosticRecord{
+		Ordinal: binary.BigEndian.Uint64(record[:8]), VirtualTime: int64(binary.BigEndian.Uint64(record[8:16])), Allocations: binary.BigEndian.Uint64(record[16:24]),
+		GCCycle: binary.BigEndian.Uint32(record[24:28]), GCPhase: record[28], RunQueueLength: binary.BigEndian.Uint32(record[32:36]),
+		RunqDraws: binary.BigEndian.Uint64(record[40:48]), SchedulerDraws: binary.BigEndian.Uint64(record[48:56]), SelectDraws: binary.BigEndian.Uint64(record[56:64]),
+		RuntimeRandDraws: binary.BigEndian.Uint64(record[64:72]), RuntimeCheapRandDraws: binary.BigEndian.Uint64(record[72:80]), TimerDraws: binary.BigEndian.Uint64(record[80:88]), ClockTickDraws: binary.BigEndian.Uint64(record[88:96]),
+	}, nil
 }
 
 func zero(data []byte) bool {

@@ -1,11 +1,166 @@
 {
   "branch_name": "fn-112-gomad-determinism-assurance-and-test",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-02T03:18:17.258887Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-112-gomad-determinism-assurance-and-test",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-02T03:55:17.096073Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "3329bafee91e36324c67b86937b1da8ee7a13d6b70be4949e2f249d9f325376e",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f02618f1ad279a38d12f9b007c4c2e0d",
+            "classification": "introduced",
+            "findingId": "finding-f02618f1ad279a38d12f9b007c4c2e0d",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2090d5f2abb66dd05b28a5f606f9496b",
+            "classification": "introduced",
+            "findingId": "finding-2090d5f2abb66dd05b28a5f606f9496b",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-f376e0971c285aa154bab2f0cbee8934",
+            "classification": "introduced",
+            "findingId": "finding-f376e0971c285aa154bab2f0cbee8934",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-46539443f00e617e2b1c6ebcfc6c9519",
+            "classification": "introduced",
+            "findingId": "finding-46539443f00e617e2b1c6ebcfc6c9519",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6d6a704f576a1d7d508345437df7599ac34197e3",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 422842,
+      "output_sha256": "3a34554a169972cd6a98394c6e056f66729cb3d7000657b69fa45e9db55d5953",
+      "reservation_id": "77ea7429fa2b4c4992d823e9ecca9b88",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-02T03:51:11.996234Z",
+      "tool_calls": 25,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "e8193c1d8cca0dd45d064a277af8933e6234888eaaacaaac559aa8d5f92408c1",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f02618f1ad279a38d12f9b007c4c2e0d",
+            "classification": "introduced",
+            "findingId": "finding-f02618f1ad279a38d12f9b007c4c2e0d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-2090d5f2abb66dd05b28a5f606f9496b",
+            "classification": "introduced",
+            "findingId": "finding-2090d5f2abb66dd05b28a5f606f9496b",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-f376e0971c285aa154bab2f0cbee8934",
+            "classification": "introduced",
+            "findingId": "finding-f376e0971c285aa154bab2f0cbee8934",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-46539443f00e617e2b1c6ebcfc6c9519",
+            "classification": "introduced",
+            "findingId": "finding-46539443f00e617e2b1c6ebcfc6c9519",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6d6a704f576a1d7d508345437df7599ac34197e3",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 736,
+      "output_sha256": "4acbf82966b3dd8b0a51ef63dcc505ffb4b9f0c37b389159a0a762d5ca401f6f",
+      "reservation_id": "77216371c95c45b180a9af2a778568a4",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-02T03:55:17.090301Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-112-gomad-determinism-assurance-and-test.md",
   "status": "open",
   "title": "Gomad determinism assurance and test strategy",
@@ -20,5 +175,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T03:18:17.261700Z"
+  "updated_at": "2026-10-02T03:55:17.096945Z"
 }

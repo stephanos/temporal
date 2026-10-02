@@ -122,6 +122,7 @@
     "src/cmd/internal/gomadcap/encode_test.go",
     "src/cmd/internal/gomadcap/protocol_generated.go",
     "src/cmd/link/internal/ld/gomadcap.go",
+    "src/internal/gomadchoicewire/diagnostic_runtime_test.go",
     "src/internal/gomadchoicewire/hash.go",
     "src/internal/gomadchoicewire/hash_test.go",
     "src/internal/gomadchoicewire/wire_generated.go",

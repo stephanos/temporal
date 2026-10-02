@@ -135,6 +135,18 @@ type choiceSchema struct {
 		AlternativeCapacity uint8 `json:"alternative_capacity"`
 		Observation         uint8 `json:"observation"`
 	} `json:"divergence_reasons"`
+	Diagnostic struct {
+		Version      uint16 `json:"version"`
+		Profile      string `json:"profile"`
+		Magic        string `json:"magic"`
+		HeaderBytes  int    `json:"header_bytes"`
+		RecordBytes  int    `json:"record_bytes"`
+		MaximumBytes uint64 `json:"maximum_bytes"`
+		States       struct {
+			Complete uint8 `json:"complete"`
+			Overflow uint8 `json:"overflow"`
+		} `json:"states"`
+	} `json:"diagnostic"`
 }
 
 type choiceTemplateData struct {
@@ -618,7 +630,7 @@ func readChoiceSchema(path string) (choiceSchema, error) {
 	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
 		return choiceSchema{}, errors.New("choice wire schema has trailing data")
 	}
-	if len(definition.Trace.Magic) != 8 || len(definition.Tape.Magic) != 8 || len(definition.Terminal.Magic) != 8 {
+	if len(definition.Trace.Magic) != 8 || len(definition.Tape.Magic) != 8 || len(definition.Terminal.Magic) != 8 || len(definition.Diagnostic.Magic) != 8 {
 		return choiceSchema{}, errors.New("choice wire schema magic must have 8 bytes")
 	}
 	checks := []bool{
@@ -656,6 +668,13 @@ func readChoiceSchema(path string) (choiceSchema, error) {
 		definition.DivergenceReasons.IdentityDuplicate == 9,
 		definition.DivergenceReasons.AlternativeCapacity == 10,
 		definition.DivergenceReasons.Observation == 11,
+		definition.Diagnostic.Version != 0,
+		definition.Diagnostic.Profile == "gomad3-diagnostic-trace/v1",
+		definition.Diagnostic.HeaderBytes == 64,
+		definition.Diagnostic.RecordBytes == 96,
+		definition.Diagnostic.MaximumBytes == 64<<20,
+		definition.Diagnostic.States.Complete == 1,
+		definition.Diagnostic.States.Overflow == 2,
 	}
 	for _, valid := range checks {
 		if !valid {

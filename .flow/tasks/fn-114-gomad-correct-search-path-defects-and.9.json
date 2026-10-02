@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-02T04:33:05.224952Z",
+  "depends_on": [
+    "fn-114-gomad-correct-search-path-defects-and.3",
+    "fn-114-gomad-correct-search-path-defects-and.8"
+  ],
+  "id": "fn-114-gomad-correct-search-path-defects-and.9",
+  "priority": null,
+  "spec": "fn-114-gomad-correct-search-path-defects-and",
+  "spec_path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.9.md",
+  "status": "todo",
+  "title": "Keep one copy of each prepared target per artifact store",
+  "updated_at": "2026-10-02T04:39:43.284732Z"
+}

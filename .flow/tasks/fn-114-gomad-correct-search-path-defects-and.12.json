@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-02T04:33:05.225068Z",
+  "depends_on": [
+    "fn-114-gomad-correct-search-path-defects-and.10",
+    "fn-114-gomad-correct-search-path-defects-and.11"
+  ],
+  "id": "fn-114-gomad-correct-search-path-defects-and.12",
+  "priority": null,
+  "spec": "fn-114-gomad-correct-search-path-defects-and",
+  "spec_path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.12.md",
+  "status": "todo",
+  "title": "Check the select-poll reduction for soundness and stop expanding no-op decisions",
+  "updated_at": "2026-10-02T04:39:45.646284Z"
+}

@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-02T03:43:39.094944Z",
+  "depends_on": [
+    "fn-113-gomad-reduce-version-pin-maintenance.1",
+    "fn-113-gomad-reduce-version-pin-maintenance.2"
+  ],
+  "id": "fn-113-gomad-reduce-version-pin-maintenance.3",
+  "priority": null,
+  "spec": "fn-113-gomad-reduce-version-pin-maintenance",
+  "spec_path": ".flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.3.md",
+  "status": "todo",
+  "title": "Refresh invalidated packs in one command and remove unselected variants",
+  "updated_at": "2026-10-02T03:59:44.699076Z"
+}

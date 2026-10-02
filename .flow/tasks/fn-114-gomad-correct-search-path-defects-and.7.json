@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-02T04:33:05.224877Z",
+  "depends_on": [
+    "fn-114-gomad-correct-search-path-defects-and.3",
+    "fn-114-gomad-correct-search-path-defects-and.6"
+  ],
+  "id": "fn-114-gomad-correct-search-path-defects-and.7",
+  "priority": null,
+  "spec": "fn-114-gomad-correct-search-path-defects-and",
+  "spec_path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.7.md",
+  "status": "todo",
+  "title": "Stop guided selection from re-running answered corpus seeds and add the regression mode",
+  "updated_at": "2026-10-02T04:39:41.821930Z"
+}

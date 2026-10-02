@@ -51,5 +51,17 @@
     "identity_duplicate": 9,
     "alternative_capacity": 10,
     "observation": 11
+  },
+  "diagnostic": {
+    "version": 1,
+    "profile": "gomad3-diagnostic-trace/v1",
+    "magic": "GOMADDG\u0001",
+    "header_bytes": 64,
+    "record_bytes": 96,
+    "maximum_bytes": 67108864,
+    "states": {
+      "complete": 1,
+      "overflow": 2
+    }
   }
 }

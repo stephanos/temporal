@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-02T03:43:38.436106Z",
+  "depends_on": [
+    "fn-112-gomad-determinism-assurance-and-test.2"
+  ],
+  "id": "fn-112-gomad-determinism-assurance-and-test.6",
+  "priority": null,
+  "spec": "fn-112-gomad-determinism-assurance-and-test",
+  "spec_path": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.6.md",
+  "status": "todo",
+  "title": "Add conformance fixtures for unverified channels and state the closure-mode limit",
+  "updated_at": "2026-10-02T03:52:50.512098Z"
+}
