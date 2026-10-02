@@ -1,0 +1,72 @@
+{
+  "base": "9216937b8894951fc66c305e4c1740c885ad6e7a",
+  "effort": "high",
+  "findings": {
+    "backend": "claude",
+    "baseSha": "9216937b8894951fc66c305e4c1740c885ad6e7a",
+    "headSha": "7867d51ccda2b306364bfe7a856d966df421052e",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "9216937b8894951fc66c305e4c1740c885ad6e7a",
+          "headSha": "7867d51ccda2b306364bfe7a856d966df421052e",
+          "path": "tools/gomad3/runner/internal/campaign/open_campaign.go",
+          "side": "head",
+          "startLine": 152
+        },
+        "body": "The new `executionBytes == executionSuccessBytesBounded && batch.RetainedSuccessBytes > limits.SuccessBytes` term is appended, unparenthesized, to an already very long `||` chain. It is correct under Go precedence, but it is the one term in that chain whose truth depends on an argument rather than record contents, and it reads as if `&&` might bind the preceding clause. (Code-smell baseline: Long Method, pre-existing; the new term makes the chain harder to audit.)",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-d280858e7633c0be00bd29ce584d4d50025b33a652d021b261c71d8378b5e169",
+        "id": "finding-5b6017f5947eae9ad01cc5fb591a42a4",
+        "lastSeenReceiptId": "review-d280858e7633c0be00bd29ce584d4d50025b33a652d021b261c71d8378b5e169",
+        "ordinal": 1,
+        "rIds": [
+          "R7"
+        ],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Pull the bound into its own `if` right after the chain, e.g. `if executionBytes == executionSuccessBytesBounded && batch.RetainedSuccessBytes > limits.SuccessBytes { return errors.New(\"campaign artifact capacity is invalid\") }`, or parenthesize the term. No behavior change.",
+        "title": "The new `executionBytes == executionSuccessBytesBounded && batch"
+      },
+      {
+        "anchor": {
+          "baseSha": "9216937b8894951fc66c305e4c1740c885ad6e7a",
+          "headSha": "7867d51ccda2b306364bfe7a856d966df421052e",
+          "path": "tools/gomad3/runner/internal/campaign/choice_exploration_start_test.go",
+          "side": "head",
+          "startLine": 147
+        },
+        "body": "`copyRetainedRecords` is now a general testdata-copy helper used by `merge_capacity_test.go`, but it lives in a file named for choice-exploration start tests. Future readers of the merge tests will not find it where they expect.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-d280858e7633c0be00bd29ce584d4d50025b33a652d021b261c71d8378b5e169",
+        "id": "finding-fe1abd4eb6e0645a8bb624f86eea118e",
+        "lastSeenReceiptId": "review-d280858e7633c0be00bd29ce584d4d50025b33a652d021b261c71d8378b5e169",
+        "ordinal": 2,
+        "rIds": [],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Move `copyRetainedRecords` (and `privateDirectory`, which it depends on from `choice_exploration_journal_test.go`) into a shared `testdata_test.go` or `helpers_test.go` in the package.",
+        "title": "`copyRetainedRecords` is now a general testdata-copy helper used by `merge_capacity_test"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-d280858e7633c0be00bd29ce584d4d50025b33a652d021b261c71d8378b5e169"
+  },
+  "id": "fn-114-gomad-correct-search-path-defects-and.16",
+  "introduced_count": 2,
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "pre_existing_count": 0,
+  "review": "**Summary.** The change does what the task asks: the limit widening in `validateMergedCampaign` is replaced by an explicit `executionSuccessBytes` option on `validateCampaign` that skips only the per-execution success-byte bound, the merged record is otherwise validated against its real limits, the pre-task-10 merged record opens through `OpenMergedCampaign`, and the in-campaign accounting difference is stated on the `RetainedBytes` contract with a pinning test. The `TargetReport.Sharing` comment now matches what `artifact.TargetSharingOf` actually does (link count only, `target_pool.go:252-269`). I traced all three `validateCampaign` call sites; both are updated and compile-consistent.\n\n## Findings\n\n- **Severity**: P3\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: `tools/gomad3/runner/internal/campaign/open_campaign.go:152`\n- **R-IDs**: [R7]\n- **Problem**: The new `executionBytes == executionSuccessBytesBounded && batch.RetainedSuccessBytes > limits.SuccessBytes` term is appended, unparenthesized, to an already very long `||` chain. It is correct under Go precedence, but it is the one term in that chain whose truth depends on an argument rather than record contents, and it reads as if `&&` might bind the preceding clause. (Code-smell baseline: Long Method, pre-existing; the new term makes the chain harder to audit.)\n- **Suggestion**: Pull the bound into its own `if` right after the chain, e.g. `if executionBytes == executionSuccessBytesBounded && batch.RetainedSuccessBytes > limits.SuccessBytes { return errors.New(\"campaign artifact capacity is invalid\") }`, or parenthesize the term. No behavior change.\n\n- **Severity**: P3\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: `tools/gomad3/runner/internal/campaign/choice_exploration_start_test.go:147`\n- **R-IDs**: []\n- **Problem**: `copyRetainedRecords` is now a general testdata-copy helper used by `merge_capacity_test.go`, but it lives in a file named for choice-exploration start tests. Future readers of the merge tests will not find it where they expect.\n- **Suggestion**: Move `copyRetainedRecords` (and `privateDirectory`, which it depends on from `choice_exploration_journal_test.go`) into a shared `testdata_test.go` or `helpers_test.go` in the package.\n\n**FYI (non-blocking):**\n- `final-gates.json` records `make -C tools/gomad3 validate` at `6f01faffa` only; the final code commit `92cb85de8` adds three lines to a test file, so this is a reasonable skip, but the acceptance line names the gate at the final revision.\n- `generate-pre-target-evidence-merged.go.txt` carries `var _ = errors.New` / `var _ = canonicaljson.CanonicalJSON` to silence unused imports. It is a scratch generator transcript under `.flow/`, so this is cosmetic.\n- The retention test's second `run` sets a limit half a target short of the measured stored bytes. The margin is ~53 KB against manifest bytes that vary by a few bytes per run, so it is stable in practice; the evidence file reports 30/30 focused passes.\n\n## Requirements coverage\n\nThe task file has no R-IDs. The epic's acceptance criteria do; this task is a slice of R7 (E2). Other R-IDs belong to other tasks of fn-114.\n\n| R-ID | Status | Evidence |\n|------|--------|----------|\n| R7 | met (this task's slice) | `validateMergedCampaign` validates real limits with only the execution success-byte bound skipped; `TestOpenMergedCampaignChecksItsOtherLimitsWhenExecutionsReportMoreSuccessBytes` shows three other limits still reject; `TestOpenMergedCampaignOpensARecordWrittenBeforeEvidenceNamedItsTarget` opens the retained pre-task-10 record; `TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit` pins the in-campaign rule; contract stated on `artifact.RetainedBytes`. |\n| R1\u2013R6, R8\u2013R12 | deferred | Owned by other fn-114 tasks; out of this task's scope. |\n\nUnaddressed R-IDs: []\n\nSuppressed findings: 0\nClassification counts: 2 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":2,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>",
+  "review_reservation_id": "01f0b5b6a6214dc9a3e857abb90ac3ae",
+  "session_id": "f2341c22-72ed-463f-a902-eb498bb3f851",
+  "spec": "claude:claude-fable-5-1:high",
+  "timestamp": "2026-10-02T21:16:09.452760Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}
