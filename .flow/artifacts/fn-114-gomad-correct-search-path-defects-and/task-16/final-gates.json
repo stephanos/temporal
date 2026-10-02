@@ -15,7 +15,8 @@
       {"revision": "92cb85de8", "exit_code": 0, "elapsed_seconds": 344, "packages_ok": 45, "packages": "test-host-packages.txt", "host_load_average": "16.7 at start, 15.2 at end", "receipt": ".flow/tmp/green-receipts/92cb85de-unittest.json"}
     ]
   },
-  "validate": {"revision": "6f01faffa", "command": "make -C tools/gomad3 validate", "exit_code": 0, "note": "92cb85de8 adds three lines to merge_capacity_test.go and .flow files; not rerun"},
+  "validate": {"revision": "7867d51cc (code equal to 92cb85de8)", "command": "make -C tools/gomad3 validate", "exit_code": 0, "also": "exit 0 at fe8e14c21 and 6f01faffa"},
+  "review": {"verdict": "SHIP", "round": 1, "backend": "claude:claude-fable-5-1:high", "family_note": "same model family as the writer; the reviewer had no shell and read the diff and this evidence", "receipt": "impl-review-receipt.json", "open_p3": ["open_campaign.go:152: move the execution success-byte term out of the long || chain into its own if", "choice_exploration_start_test.go: copyRetainedRecords is a shared helper in a file named for another test; move it to a helpers test file"]},
   "architecture": {"revision": "6f01faffa", "command": ".toolchain/bin/go test -tags test_dep -count=1 -run TestPackageArchitecture .", "exit_code": 0},
   "vet": {"revision": "6f01faffa", "command": ".toolchain/bin/go vet -tags test_dep ./artifact/... ./runner/... ./cmd/...", "exit_code": 0, "also": "GOOS=linux GOARCH=amd64 with the same packages exit 0"},
   "gofmt": {"revision": "92cb85de8", "command": "gofmt -l artifact runner cmd", "files_listed": 0},
@@ -52,7 +53,6 @@
     "linux/amd64 (no native host); the changed packages vet for linux/amd64",
     "root make lint-code-fast (cannot typecheck the nested module, as recorded by task 8)",
     "the spec's literal `go -C tools/gomad3 test` Quick command with an unpatched go (known red on 13 helper-target tests); test-host covers its packages",
-    "make -C tools/gomad3 validate at 92cb85de8 (run at 6f01faffa)",
     "any qualification set"
   ],
   "observed_outside_this_task": [

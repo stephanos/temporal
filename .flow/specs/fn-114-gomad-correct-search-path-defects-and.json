@@ -12,6 +12,7 @@
     "fn-114-gomad-correct-search-path-defects-and.1": 0,
     "fn-114-gomad-correct-search-path-defects-and.10": 0,
     "fn-114-gomad-correct-search-path-defects-and.15": 0,
+    "fn-114-gomad-correct-search-path-defects-and.16": 0,
     "fn-114-gomad-correct-search-path-defects-and.2": 0,
     "fn-114-gomad-correct-search-path-defects-and.3": 0,
     "fn-114-gomad-correct-search-path-defects-and.4": 0,
@@ -751,12 +752,65 @@
       "task": "fn-114-gomad-correct-search-path-defects-and.10",
       "timestamp": "2026-10-02T20:33:51.351614Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "66a4218c0e56610b00e76066de88cb38ad0ed12c2e7c8c7d4306012510f0c8ff",
+      "backend": "claude",
+      "base_sha": "9216937b8894951fc66c305e4c1740c885ad6e7a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5b6017f5947eae9ad01cc5fb591a42a4",
+            "classification": "introduced",
+            "findingId": "finding-5b6017f5947eae9ad01cc5fb591a42a4",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-fe1abd4eb6e0645a8bb624f86eea118e",
+            "classification": "introduced",
+            "findingId": "finding-fe1abd4eb6e0645a8bb624f86eea118e",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7867d51ccda2b306364bfe7a856d966df421052e",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4053,
+      "output_sha256": "c4ba2a3daaeacbd2cb03a24277c50b5fd3a99c6c2b0fda779d0a3e3eda195696",
+      "reservation_id": "01f0b5b6a6214dc9a3e857abb90ac3ae",
+      "round_consumed": true,
+      "scope": "impl:fn-114-gomad-correct-search-path-defects-and.16",
+      "superseded_by": null,
+      "task": "fn-114-gomad-correct-search-path-defects-and.16",
+      "timestamp": "2026-10-02T21:16:09.454207Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-114-gomad-correct-search-path-defects-and.1": 1,
     "impl:fn-114-gomad-correct-search-path-defects-and.10": 1,
     "impl:fn-114-gomad-correct-search-path-defects-and.15": 1,
+    "impl:fn-114-gomad-correct-search-path-defects-and.16": 1,
     "impl:fn-114-gomad-correct-search-path-defects-and.2": 1,
     "impl:fn-114-gomad-correct-search-path-defects-and.3": 1,
     "impl:fn-114-gomad-correct-search-path-defects-and.4": 1,
@@ -774,6 +828,7 @@
     "impl:fn-114-gomad-correct-search-path-defects-and.1": 0,
     "impl:fn-114-gomad-correct-search-path-defects-and.10": 0,
     "impl:fn-114-gomad-correct-search-path-defects-and.15": 0,
+    "impl:fn-114-gomad-correct-search-path-defects-and.16": 0,
     "impl:fn-114-gomad-correct-search-path-defects-and.2": 0,
     "impl:fn-114-gomad-correct-search-path-defects-and.3": 0,
     "impl:fn-114-gomad-correct-search-path-defects-and.4": 0,
@@ -798,5 +853,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T20:33:51.356382Z"
+  "updated_at": "2026-10-02T21:16:09.456845Z"
 }
