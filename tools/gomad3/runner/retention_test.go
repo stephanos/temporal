@@ -1,7 +1,9 @@
 package runner
 
 import (
+	"bytes"
 	"context"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"os"
@@ -80,11 +82,24 @@ func TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds(t *testing.T) {
 // A campaign's success-byte limit counts every kept success in full, where a
 // corpus and a merged campaign count a shared target once
 // (artifact.RetainedBytes says why): two successes that link to one pool entry
-// do not fit a limit one byte short of their stored bytes.
+// do not fit a limit that is half a target short of their stored bytes.
 func TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit(t *testing.T) {
+	// The target is large against the bytes a manifest varies by between runs.
+	targetBytes := bytes.Repeat([]byte("target bytes "), 8<<10)
 	run := func(limit uint64) (CampaignResult, error) {
-		config := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
-			result := processResult(0, "", "")
+		preparer := newFakePreparer(t)
+		prepared := &preparer.prepared
+		if err := os.Chmod(prepared.Path, 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(prepared.Path, targetBytes, 0o700); err != nil {
+			t.Fatal(err)
+		}
+		prepared.SHA256, prepared.Size = fmt.Sprintf("sha256:%x", sha256.Sum256(targetBytes)), uint64(len(targetBytes))
+		// Successes of one outcome signature are stored as one artifact, so each
+		// execution prints its own output.
+		config := testConfig(t, preparer, &fakeExecutor{result: func(seed uint64) execution.Result {
+			result := processResult(0, fmt.Sprint(seed), "")
 			result.IOTranscript = completeEmptyTranscript()
 			return result
 		}}, "1-2", PolicyAll, 1)
@@ -94,8 +109,8 @@ func TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit(t *testing.T) {
 		return Explore(context.Background(), config)
 	}
 	measured, err := run(64 << 20)
-	if err != nil || len(measured.SuccessArtifacts) != 2 {
-		t.Fatalf("summary = %#v, error = %v", measured, err)
+	if err != nil || len(measured.SuccessArtifacts) != 2 || measured.SuccessArtifacts[0] == measured.SuccessArtifacts[1] {
+		t.Fatalf("summary = %#v, error = %v, want two success artifacts", measured, err)
 	}
 	var targets [2]os.FileInfo
 	for index, path := range measured.SuccessArtifacts {
@@ -106,7 +121,7 @@ func TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit(t *testing.T) {
 	if !os.SameFile(targets[0], targets[1]) {
 		t.Fatal("the two kept successes do not share one target file")
 	}
-	summary, err := run(measured.RetainedSuccessBytes - 1)
+	summary, err := run(measured.RetainedSuccessBytes - uint64(len(targetBytes))/2)
 	var hostError *HostError
 	if !errors.As(err, &hostError) || hostError.Reason != "success_retention_capacity" || summary.RetainedSuccesses != 1 {
 		t.Fatalf("summary = %#v, error = %v, want a capacity failure at the second success", summary, err)
