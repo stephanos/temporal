@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -197,6 +198,87 @@ func TestReplayRejectsChangedPayloadBeforeTargetStart(t *testing.T) {
 	})
 	if err == nil || executor.calls != 0 {
 		t.Fatalf("Replay() error = %v, calls = %d", err, executor.calls)
+	}
+}
+
+func TestReplayRejectsDamagedSharedTargetBeforeTargetStart(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		damage func(t *testing.T, artifactPath, entry string)
+	}{
+		{name: "altered", damage: func(t *testing.T, _, entry string) {
+			file, err := os.OpenFile(entry, os.O_WRONLY, 0)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, err := file.WriteAt([]byte("altered"), 0); err != nil {
+				t.Fatal(err)
+			}
+			if err := file.Close(); err != nil {
+				t.Fatal(err)
+			}
+		}},
+		{name: "truncated", damage: func(t *testing.T, _, entry string) {
+			info, err := os.Stat(entry)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := os.Truncate(entry, info.Size()-1); err != nil {
+				t.Fatal(err)
+			}
+		}},
+		{name: "missing", damage: func(t *testing.T, artifactPath, _ string) {
+			if err := os.Remove(filepath.Join(artifactPath, "target")); err != nil {
+				t.Fatal(err)
+			}
+		}},
+	} {
+		for _, verifyOnly := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%s/verify-only=%t", test.name, verifyOnly), func(t *testing.T) {
+				pool := artifact.TargetPool(t.TempDir())
+				artifactPath, expected := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{TargetPool: pool})
+				entries, err := os.ReadDir(pool)
+				if err != nil || len(entries) != 1 {
+					t.Fatalf("pool entries = %v, %v", entries, err)
+				}
+				entry := filepath.Join(pool, entries[0].Name())
+				if distinctFiles(t, []string{entry, filepath.Join(artifactPath, "target")}) != 1 {
+					t.Fatal("published target does not share its pool entry")
+				}
+				test.damage(t, artifactPath, entry)
+				executor := &fakeReplayExecutor{result: expected}
+				_, err = Replay(context.Background(), ReplaySpec{
+					ArtifactPath: artifactPath, VerifyOnly: verifyOnly, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
+				})
+				if err == nil || executor.calls != 0 {
+					t.Fatalf("Replay() error = %v, calls = %d", err, executor.calls)
+				}
+			})
+		}
+	}
+}
+
+func TestReplayRunsAnArtifactCopiedOutOfItsStore(t *testing.T) {
+	owner := t.TempDir()
+	artifactPath, expected := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{TargetPool: artifact.TargetPool(owner)})
+	exported := filepath.Join(t.TempDir(), "exported")
+	if output, err := exec.Command("cp", "-R", artifactPath, exported).CombinedOutput(); err != nil {
+		t.Fatalf("cp -R: %v: %s", err, output)
+	}
+	for _, removed := range []string{owner, artifactPath} {
+		if err := os.RemoveAll(removed); err != nil {
+			t.Fatal(err)
+		}
+	}
+	executor := &fakeReplayExecutor{result: expected}
+	result, err := Replay(context.Background(), ReplaySpec{
+		ArtifactPath: exported, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !result.Match || result.Divergence != "" || executor.calls != 1 {
+		t.Fatalf("replay result = %#v, calls = %d", result, executor.calls)
 	}
 }
 
@@ -512,6 +594,8 @@ type replayArtifactTarget struct {
 	Choices          bool
 	Simulation       bool
 	ForcedSimulation bool
+	// TargetPool publishes the artifact into a store that shares its target.
+	TargetPool string
 }
 
 func publishReplayArtifactForTarget(t *testing.T, connected *execution.Bundle, replayTarget replayArtifactTarget) (string, execution.Result) {
@@ -739,7 +823,7 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *exe
 		input.Simulation = &artifact.SimulationPayloads{Plan: plan, Record: record}
 		recordedSimulationRecords = [][]byte{record}
 	}
-	published, err := artifact.PublishArtifact(artifact.Store{Root: t.TempDir()}, input)
+	published, err := artifact.PublishArtifact(artifact.Store{Root: t.TempDir(), TargetPool: replayTarget.TargetPool}, input)
 	if err != nil {
 		t.Fatal(err)
 	}

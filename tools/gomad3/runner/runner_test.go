@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -2706,5 +2707,159 @@ func TestRunClassifiesWatchdogTimeoutBeforeUnterminatedChoiceTrace(t *testing.T)
 	}
 	if opened.Manifest.ArtifactKind != record.ArtifactWatchdogTimeout || opened.Manifest.Outcome.Reason != "watchdog_timeout" || opened.Manifest.ChoiceProfile != nil {
 		t.Fatalf("watchdog manifest = %#v", opened.Manifest)
+	}
+}
+
+// retainedTargets returns every file under root that holds the content, and
+// how many of them are artifact targets.
+func retainedTargets(t *testing.T, root string, content []byte) (paths []string, artifacts int) {
+	t.Helper()
+	err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
+		if err != nil || !entry.Type().IsRegular() {
+			return err
+		}
+		held, err := os.ReadFile(path)
+		if err != nil || !bytes.Equal(held, content) {
+			return err
+		}
+		paths = append(paths, path)
+		if entry.Name() == "target" && strings.HasPrefix(filepath.Base(filepath.Dir(path)), "sha256-") {
+			artifacts++
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return paths, artifacts
+}
+
+// distinctFiles counts the files the paths name, counting hard links to one
+// file once.
+func distinctFiles(t *testing.T, paths []string) int {
+	t.Helper()
+	var distinct []os.FileInfo
+next:
+	for _, path := range paths {
+		info, err := os.Lstat(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, seen := range distinct {
+			if os.SameFile(seen, info) {
+				continue next
+			}
+		}
+		distinct = append(distinct, info)
+	}
+	return len(distinct)
+}
+
+func TestRunKeepsOneTargetCopyAcrossArtifactsRoundsAndCampaigns(t *testing.T) {
+	artifacts := t.TempDir()
+	published := 0
+	for _, strategy := range completionStrategies {
+		for _, fail := range []bool{false, true} {
+			config, executor := retentionCampaign(t, strategy, false, fail)
+			config.Artifacts = artifacts
+			keepSuccesses(&config, KeepSuccessesAll)
+			executor.shape = rankProbes(t, probeA, probeA, probeB)
+			summary, err := Explore(context.Background(), config)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if exploration := summary.ChoiceExploration; exploration != nil && exploration.CommittedRounds != 3 {
+				t.Fatalf("choice exploration committed %d rounds, want 3", exploration.CommittedRounds)
+			}
+			if exploration := summary.SimulationExploration; exploration != nil && exploration.CommittedRounds != 3 {
+				t.Fatalf("simulation exploration committed %d rounds, want 3", exploration.CommittedRounds)
+			}
+			published += len(summary.Artifacts) + len(summary.SuccessArtifacts)
+		}
+	}
+	// Three successes per succeeding campaign, three distinct failures per
+	// failing seed and choice campaign, and the one failure identity the
+	// simulation candidates share.
+	paths, held := retainedTargets(t, artifacts, []byte("fake prepared target"))
+	if published != 16 || held != published || distinctFiles(t, paths) != 1 {
+		t.Fatalf("%d published artifacts, %d of them hold a target, in %d files; want 16 artifacts and one file", published, held, distinctFiles(t, paths))
+	}
+}
+
+// sharedTargetReplayer records every replayed artifact whose target is not a
+// link to the pool of its store's owner: the minimizer's work directory for a
+// candidate, the output root for the published artifact.
+type sharedTargetReplayer struct {
+	ArtifactReplayer
+	replayed int
+	private  []string
+}
+
+func (replayer *sharedTargetReplayer) Replay(ctx context.Context, spec ReplaySpec) (ReplayResult, error) {
+	replayer.replayed++
+	store := filepath.Dir(spec.ArtifactPath)
+	var entries []string
+	for _, owner := range []string{store, filepath.Dir(store)} {
+		pooled, err := filepath.Glob(filepath.Join(artifact.TargetPool(owner), "sha256-*"))
+		if err != nil {
+			return ReplayResult{}, err
+		}
+		entries = append(entries, pooled...)
+	}
+	target, err := os.Lstat(filepath.Join(spec.ArtifactPath, "target"))
+	if err != nil {
+		return ReplayResult{}, err
+	}
+	shared := false
+	for _, entry := range entries {
+		info, err := os.Lstat(entry)
+		if err != nil {
+			return ReplayResult{}, err
+		}
+		shared = shared || os.SameFile(info, target)
+	}
+	if !shared {
+		replayer.private = append(replayer.private, spec.ArtifactPath)
+	}
+	return replayer.ArtifactReplayer.Replay(ctx, spec)
+}
+
+func TestMinimizeKeepsOneTargetCopyInItsOutputRoot(t *testing.T) {
+	artifactPath := minimizationParent(t)
+	targetPath, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	target, err := os.ReadFile(targetPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	outputRoot := t.TempDir()
+	replayer := &sharedTargetReplayer{ArtifactReplayer: &minimizationReplayer{}}
+	spec := minimizationSpec(t, artifactPath, outputRoot)
+	spec.Executor = &minimizationExecutor{before: interruptAt(minimizationCallAfterAcceptedReduction)}
+	spec.Replayer = replayer
+	if _, err := Minimize(context.Background(), spec); !errors.Is(err, errMinimizationInterrupted) {
+		t.Fatalf("interrupted Minimize() error = %v", err)
+	}
+	paths, accepted := retainedTargets(t, outputRoot, target)
+	if accepted != 1 || len(paths) != 2 || distinctFiles(t, paths) != 1 {
+		t.Fatalf("interrupted run holds %d accepted artifacts in %v, want one sharing the pool entry", accepted, paths)
+	}
+	spec.Executor = &minimizationExecutor{}
+	spec.Resume = true
+	result, err := Minimize(context.Background(), spec)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Artifact.TargetSharing != artifact.TargetShared {
+		t.Fatalf("minimized artifact target sharing = %q", result.Artifact.TargetSharing)
+	}
+	if replayer.replayed < 2 || len(replayer.private) != 0 {
+		t.Fatalf("%d replayed candidates, private target copies in %v", replayer.replayed, replayer.private)
+	}
+	paths, minimized := retainedTargets(t, outputRoot, target)
+	if minimized != 1 || len(paths) != 2 || distinctFiles(t, paths) != 1 {
+		t.Fatalf("completed run holds %d minimized artifacts in %v, want one sharing the pool entry", minimized, paths)
 	}
 }

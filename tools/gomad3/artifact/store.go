@@ -23,6 +23,10 @@ type Store struct {
 	Context      context.Context
 	MaximumBytes uint64
 	Key          StoreKey
+	// TargetPool is the directory holding the one copy of each target that
+	// artifacts of this and every other store given the same pool share. The
+	// caller chooses it; an empty pool gives every artifact a private copy.
+	TargetPool string
 }
 
 type StoreKey uint8
@@ -50,7 +54,9 @@ type Artifact struct {
 	Path        string
 	Manifest    record.ExecutionRecord
 	StoredBytes uint64
-	root        *os.Root
+	// TargetSharing is set by publication and is empty on an opened artifact.
+	TargetSharing TargetSharing
+	root          *os.Root
 }
 
 type CapacityError struct {
@@ -102,14 +108,15 @@ func (store Store) PublishArtifact(publication Publication) (_ Artifact, retErr 
 	manifest := publication.Record
 	manifest.Files = nil
 	files := make([]record.File, 0, len(publication.Payloads))
+	sharing := TargetPrivate
 	for _, payload := range publication.Payloads {
 		destination := filepath.Join(staging, filepath.FromSlash(payload.Path))
 		var file record.File
 		var err error
-		if payload.SourcePath != "" {
-			file, err = copyPayload(ctx, payload.SourcePath, destination, payload.Path, payload.Mode)
+		if store.TargetPool != "" && payload.Path == publication.Record.Target.File {
+			file, sharing, err = placeSharedPayload(ctx, store.TargetPool, payload, destination)
 		} else {
-			file, err = writePayload(ctx, destination, payload.Path, payload.Data, payload.Mode)
+			file, err = placePayload(ctx, payload, destination)
 		}
 		if err != nil {
 			return Artifact{}, err
@@ -165,7 +172,7 @@ func (store Store) PublishArtifact(publication Publication) (_ Artifact, retErr 
 			return Artifact{}, errors.Join(identityErr, existing.Close())
 		}
 		if existingIdentity == identity {
-			identity := Artifact{Path: existing.Path, Manifest: existing.Manifest, StoredBytes: existing.StoredBytes}
+			identity := Artifact{Path: existing.Path, Manifest: existing.Manifest, StoredBytes: existing.StoredBytes, TargetSharing: store.sharingOf(existing)}
 			if closeErr := existing.Close(); closeErr != nil {
 				return Artifact{}, fmt.Errorf("close existing artifact: %w", closeErr)
 			}
@@ -186,7 +193,26 @@ func (store Store) PublishArtifact(publication Publication) (_ Artifact, retErr 
 	if err := syncDirectoryContext(ctx, store.Root); err != nil {
 		return Artifact{}, fmt.Errorf("sync artifact store: %w", err)
 	}
-	return Artifact{Path: finalPath, Manifest: manifest, StoredBytes: storedBytes}, nil
+	return Artifact{Path: finalPath, Manifest: manifest, StoredBytes: storedBytes, TargetSharing: sharing}, nil
+}
+
+// sharingOf reports how an artifact already in the store holds its target.
+func (store Store) sharingOf(existing Artifact) TargetSharing {
+	switch {
+	case store.TargetPool == "":
+		return TargetPrivate
+	case sharesPoolEntry(store.TargetPool, existing.Path, existing.Manifest):
+		return TargetShared
+	default:
+		return TargetUnshared
+	}
+}
+
+func placePayload(ctx context.Context, payload Payload, destination string) (record.File, error) {
+	if payload.SourcePath != "" {
+		return copyPayload(ctx, payload.SourcePath, destination, payload.Path, payload.Mode)
+	}
+	return writePayload(ctx, destination, payload.Path, payload.Data, payload.Mode)
 }
 
 func validatePublicationPayloads(payloads []Payload) error {
