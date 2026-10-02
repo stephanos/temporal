@@ -54,9 +54,68 @@ E2 (R7), store half: publication places the target once per store and every arti
 - [ ] A store without hard-link support publishes private copies and reports that sharing is off
 - [ ] `go -C tools/gomad3 test -tags test_dep ./artifact/... ./runner/...` and `make -C tools/gomad3 validate` pass
 ## Done summary
-TBD
+Artifacts of one target in one artifacts root, corpus, or minimizer output root now share one copy of the target binary (R7/E2, store half). Each artifact's `target` is a hard link to `OWNER/targets/sha256-<hex>`. The manifest, the artifact schema, and the record hash are unchanged, so retained artifacts open as before and `cp -R` of an artifact directory is a standalone export.
 
+What a user sees:
+
+- `ARTIFACTS/targets` appears beside `v1`; a corpus gets `CORPUS/targets`; a minimizer output root gets `OUTPUT/targets`.
+- Sixteen artifacts from six campaigns (seed, choice exploration, simulation exploration; successes and failures; three rounds per exploration) hold one target file.
+- An altered, truncated, or missing target fails `replay` and `replay --verify-only` before the target starts.
+- A pool entry that no longer matches its name fails every later publication of that target in that pool. Nothing repairs it; removing the entry is the recovery until task 10 adds pruning.
+- The default minimizer output root is `ARTIFACTS/minimized`, so a parent artifact and its minimized artifact sit in two pools and keep two copies.
+
+How it holds together:
+
+- `artifact.Store.TargetPool` is supplied by the caller; `artifact.TargetPool(owner)` names the directory. An empty pool publishes a private copy, as before.
+- `placeSharedPayload` (`artifact/target_pool.go`) writes a missing entry into a staging directory in the pool and publishes it with the existing no-replace rename. A publisher that loses the race links to the winner's entry. The link is verified for mode, size, and SHA-256 before the manifest is written.
+- A link that fails with `EXDEV`, `EPERM`, `EMLINK`, or an unsupported operation gives the artifact a private copy and `Artifact.TargetSharing` reports `unshared`. Any other link failure fails the publication.
+- The target keeps mode 0700 on disk and in the manifest.
+- The minimizer's scratch candidate store pools in its work directory, so a candidate links the target instead of copying it.
+
+Correction to the task's premise: a hard-linked file does not pass the no-symlink open path. `hostfs.OpenRoot` rejects a link count other than one, and `internal/hostfs` is outside this task's Touches. `artifact.openSharedFile` therefore repeats the same checks without the link count, for the one file the manifest names as the target. Every other payload keeps the single-link check. The target's content is hashed at open and again while it is copied for execution.
+
+The sharing form and these reasons are in the spec's Decision Context.
+
+Tests, one per acceptance item:
+
+- One copy across stores, rounds, and campaigns: `TestRunKeepsOneTargetCopyAcrossArtifactsRoundsAndCampaigns`, `TestPublishSharesOneTargetAcrossTheStoresOfOnePool`.
+- Mode unchanged and artifacts without a pool unchanged: the same artifact test and the existing store tests.
+- Concurrent publishers: `TestPublishConcurrentlyIntoOnePoolLeavesOneEntry` (eight publishers, one entry; green under `-race`).
+- Altered, truncated, missing: `TestReplayRejectsDamagedSharedTargetBeforeTargetStart` (replay and verify-only), `TestDamagedSharedTargetFailsOpenAndLaterPublication`.
+- Export: `TestReplayRunsAnArtifactCopiedOutOfItsStore` (`cp -R`, then the store and pool are removed), `TestCopiedArtifactOpensWithoutItsStore`.
+- No hard links: `TestPublishWithoutHardLinksKeepsPrivateCopiesAndSaysSo`.
+- Minimizer and corpus: `TestMinimizeKeepsOneTargetCopyInItsOutputRoot`, `TestCorpusCasesShareOneTarget`.
+- The narrowed reader exception: `TestOpenRejectsAnotherLinkToAPayloadThatIsNotTheTarget`.
+
+No existing test changed. Fifteen single-change mutations each turned a named test red (`mutation-checks.json`).
+
+Gates on darwin/arm64 at 577003f98: `test-host` exit 0 (45 packages, 185 s), `validate` exit 0, architecture test, vet, and `-race` on the artifact pool tests exit 0.
+GATE_SKIPPED:unittest:green-receipt 577003f9 - Verify at 91c1b5ea5 reused the post-commit pass; only .flow evidence files changed after it
+
+Inconclusive, not counted as a pass: one pre-commit focused run exited 1 while the host load average was 14. `TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/discard` hit `overall_timeout` after 86 of 100 executions; that row publishes no artifact, its focused rerun passed in 9.6 s, and it passed in the full gate. `TestModelConformanceFilesystem` and `TestModelConformanceTCP` failed in the same run because it lacked the stock-go setup `test-host` provides.
+
+Not met or not run:
+
+- The hard-link fallback test uses an in-package link seam. No filesystem without hard links was mounted.
+- linux/amd64 was not run (no native host). The `renameat2` no-replace rename of a regular file and the fallback errnos are compiled and vetted for linux only.
+- The spec's literal `go -C tools/gomad3 test` Quick command with an unpatched go was not run; `test-host` covers both package sets.
+- "Reports that sharing is off" is met at the publication result only. No campaign result or CLI output reads `TargetSharing`; `cmd/gomad` is outside this task's Touches.
+
+Review: SHIP on the first round from claude-fable-5-1 at high through the `claude` backend (same family as the writer; the reviewer had no shell and read the committed gate evidence). Four P3 findings stay open as follow-ups:
+
+- `openSharedFile` duplicates `hostfs.openRegular`. A link-tolerant variant belongs in `hostfs` once a task may edit it.
+- The `artifact.TargetPool` doc comment says the pool is never below a store root. The minimizer's final store uses `Root: OutputRoot` with the pool at `OutputRoot/targets`. The real constraint is a store root that is staged and renamed. Task 10 edits `artifact/**` and should correct the comment before it writes pruning against it.
+- On a filesystem without hard links the first publication still creates one pool entry that nothing links to.
+- `distinctFiles` exists in both the artifact and runner test packages.
+
+For task 10: unreferenced pool entries come from a failed or capacity-rejected publication, an abandoned round, a discarded corpus case, and a `.publish-*` staging directory left by a crash. Per-artifact `StoredBytes` still counts the target. A resumed campaign derives its pool from two directories above the campaign path.
+
+For task 14's docs: the `targets` directories, the fail-closed pool entry, and the `cp -R` export.
+
+Evidence: `.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-9/`.
+
+stage: impl-review - ran (SHIP, claude:claude-fable-5-1:high, round 1)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 577003f9833bbb0163b5e2a9c39851552f98bf42, 91c1b5ea5f1649e061a2672cbc365163b1135b64, 765dc0e4d88d8189312b0b6a063b6ea3e7f57982
+- Tests: baseline: green via handoff (full test-host verified at 44dbf795 by the conductor after fn-114.5: 45 packages, exit 0, toolchain build key 245141dc), GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host (at 577003f98: exit 0, 45 packages, 185 s, pinned stock go1.27.1 first on PATH), GATE_SKIPPED:unittest:green-receipt 577003f9 - Verify at 91c1b5ea5 reused the post-commit pass; only .flow evidence files changed after it, make -C tools/gomad3 validate (exit 0), .toolchain/bin/go test -tags test_dep -count=1 -run TestPackageArchitecture . (exit 0), .toolchain/bin/go vet -tags test_dep ./artifact/... ./runner/... (exit 0), .toolchain/bin/go test -tags test_dep -count=1 -race -run 'TestPublish|TestDamaged|TestCopied|TestOpen' ./artifact/ (exit 0), 15 single-change mutations, each red against its named test (.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-9/mutation-checks.json), INCONCLUSIVE: pre-commit focused run '.toolchain/bin/go test -tags test_dep -count=1 ./artifact/... ./runner/... ./cmd/... ./qualification/...' exit 1 under load average 14: TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/discard hit overall_timeout (focused rerun exit 0 in 9.6 s; green in the full gate) and TestModelConformanceFilesystem/TCP failed on the missing stock-go setup (green in the full gate), NOT RUN: linux/amd64 (no native host); the spec's literal 'go -C tools/gomad3 test' Quick command with an unpatched go; root make lint-code-fast; a real filesystem without hard links
 - PRs:
