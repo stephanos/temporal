@@ -102,9 +102,22 @@ func TestResumeExplorationJournalRequiresItsStartOrdinal(t *testing.T) {
 
 func TestSeedCampaignPlanRejectsChoiceStartOrdinal(t *testing.T) {
 	plan := testBatchPlan(nil, record.HashBytes([]byte("prepared target")), 15)
+	journalPlan := recordExecutionJournalLimits(ExecutionJournalLimits{
+		MaximumExecutions: 3, MaximumBytes: 3 << 20, SegmentBytes: 1 << 20,
+		SegmentRecords: 1024, MaximumSegments: 3, MaximumPartialExecutions: 2,
+	})
+	plan.Journal = &journalPlan
+	artifacts, err := DeriveArtifactCapacityPlan(plan)
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan.Artifacts = &artifacts
+	if err := validateCampaignPlan(plan); err != nil {
+		t.Fatal(err)
+	}
 	plan.ChoiceStartOrdinal = 3
-	if !hasCampaignPlanExplorationFields(plan) {
-		t.Fatal("seed plan with a choice start ordinal reports no exploration fields")
+	if err := validateCampaignPlan(plan); err == nil || !strings.Contains(err.Error(), "seed campaign plan contains exploration bounds") {
+		t.Fatalf("validateCampaignPlan() error = %v", err)
 	}
 }
 
