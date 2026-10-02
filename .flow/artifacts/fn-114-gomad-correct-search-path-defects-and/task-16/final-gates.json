@@ -1,0 +1,64 @@
+{
+  "host": "darwin/arm64",
+  "baseline": {"result": "green via handoff", "source": "full test-host verified at b12b15b1 by fn-114.10; only .flow commits since"},
+  "base_commit": "9216937b8894951fc66c305e4c1740c885ad6e7a",
+  "code_commits": ["fe8e14c21", "6f01faffa", "92cb85de8"],
+  "full_gate": {
+    "command": "GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host",
+    "path_note": "run with the pinned stock go1.27.1 first on PATH",
+    "toolchain_build_key": "245141dc288328269b6fc164034c6d74b87c525e5d3c4756d3b82a3fcde40d52",
+    "runs": [
+      {"revision": "fe8e14c21", "exit_code": 2, "elapsed_seconds": 180, "packages_ok": 44, "failed": "TestWatchdogDiagnosticReplayUsesCapturedInputs (runner): the watchdog fixture's target printed nothing within its 1 s execution timeout", "cause": "not this task: the same test fails 5 of 20 focused runs at the base commit 9216937b8 (extracted to scratch) and 7 of 20 at fe8e14c21, at the same three assertions (watchdog_replay_test.go:22, :33, :47)"},
+      {"revision": "fe8e14c21", "exit_code": 2, "elapsed_seconds": 159, "packages_ok": 44, "failed": "TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit (runner), this task's new test", "cause": "this task: the first form of the test kept two successes of one outcome signature (one artifact directory) and set its limit one byte under stored bytes that vary between runs; fixed in 6f01faffa (30 of 30 focused runs pass)"},
+      {"revision": "6f01faffa", "exit_code": 0, "elapsed_seconds": 196, "packages_ok": 45, "receipt": ".flow/tmp/green-receipts/6f01faff-unittest.json"},
+      {"revision": "92cb85de8", "exit_code": 2, "elapsed_seconds": 345, "packages_ok": 44, "failed": "TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/discard (runner): overall_timeout after 95 of 100 executions", "cause": "host load: load average 14 to 16, and another session ran `go clean -cache` on the shared build cache during the run; the test passes focused at the same revision (exit 0, 13 s)"},
+      {"revision": "92cb85de8", "exit_code": 0, "elapsed_seconds": 344, "packages_ok": 45, "packages": "test-host-packages.txt", "host_load_average": "16.7 at start, 15.2 at end", "receipt": ".flow/tmp/green-receipts/92cb85de-unittest.json"}
+    ]
+  },
+  "validate": {"revision": "6f01faffa", "command": "make -C tools/gomad3 validate", "exit_code": 0, "note": "92cb85de8 adds three lines to merge_capacity_test.go and .flow files; not rerun"},
+  "architecture": {"revision": "6f01faffa", "command": ".toolchain/bin/go test -tags test_dep -count=1 -run TestPackageArchitecture .", "exit_code": 0},
+  "vet": {"revision": "6f01faffa", "command": ".toolchain/bin/go vet -tags test_dep ./artifact/... ./runner/... ./cmd/...", "exit_code": 0, "also": "GOOS=linux GOARCH=amd64 with the same packages exit 0"},
+  "gofmt": {"revision": "92cb85de8", "command": "gofmt -l artifact runner cmd", "files_listed": 0},
+  "red_first": {"file": "red-first.txt", "note": "at the base code, a merged record whose total_bytes is not the sum of its byte limits opened without error once its executions reported more success bytes than the limit, because the widened limits were recomputed"},
+  "retained_record": {
+    "path": "tools/gomad3/runner/internal/campaign/testdata/pre-target-evidence-merged",
+    "produced_at": "b5b498004 (the commit before fn-114.10), extracted with `git archive b5b498004 tools/gomad3` into scratch; never checked out in the working tree",
+    "generator": "generate-pre-target-evidence-merged.go.txt (a test file added to runner/internal/campaign of the extracted tree; it runs today's publishMergeShard helper against the old code)",
+    "command": "GOMAD_TASK16_OUT=<scratch>/pre10-merged GOWORK=off <repo>/tools/gomad3/.toolchain/bin/go test -tags test_dep -count=1 -run TestZZGenerateRetainedMergedRecord ./runner/internal/campaign/",
+    "sha256": {
+      "merge.json": "b42e8b329b9b67a7b337702ebff67fef19e0d7186d52e92711fd4e6200feae52",
+      "executions/index.json": "b4f055d5ba3fb9dd7073e75d491d7b9dbeecfe1eb45afce1d4e322c2296f6265",
+      "executions/00000000000000000000.jsonl": "ef1de4a2d140a892c8a33274310096e4b4cd16a399083f9328869c8343356df9"
+    }
+  },
+  "new_tests": {
+    "tools/gomad3/runner/internal/campaign/merge_capacity_test.go": ["TestOpenMergedCampaignOpensARecordWrittenBeforeEvidenceNamedItsTarget", "TestOpenMergedCampaignChecksItsOtherLimitsWhenExecutionsReportMoreSuccessBytes"],
+    "tools/gomad3/runner/retention_test.go": ["TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit"]
+  },
+  "existing_tests_changed": "no assertion changed; copyRetainedExplorationJournal in choice_exploration_start_test.go now calls the extracted copyRetainedRecords helper",
+  "mutation_checks": "mutation-checks.json (4 single-change mutations, each red against its named tests)",
+  "in_campaign_success_bytes": {
+    "decision": "left counting every retained artifact in full; the difference is stated on artifact.RetainedBytes",
+    "reasons": [
+      "campaign.json records retained_success_bytes; validateCampaign requires it to equal the sum of the executions' success_artifact_bytes and to stay within artifacts.success_bytes of the same record, and validateResumeExecutions holds the same sum to the plan's success_bytes_limit",
+      "counting a shared target once makes that recorded sum either a different number for the same campaign (campaign.json bytes change, and with them the campaign_sha256 a merged record binds) or a number above its recorded limit, which every reader of gomad3.campaign/v1 rejects",
+      "neither the campaign record nor an execution record names the target's size or says whether an artifact links to the pool or fell back to a private copy, so a record-only validator cannot recompute the bound",
+      "the retention decision and Store.MaximumBytes are fixed before publication, and whether the target was linked is known only after it"
+    ],
+    "also": "the retention sites of the choice and simulation exploration strategies and resume's summary restore are in runner/choice_exploration_campaign.go, runner/simulation_exploration_campaign.go, and runner/resume.go, outside this task's Touches",
+    "pinned_by": "TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit"
+  },
+  "not_run": [
+    "linux/amd64 (no native host); the changed packages vet for linux/amd64",
+    "root make lint-code-fast (cannot typecheck the nested module, as recorded by task 8)",
+    "the spec's literal `go -C tools/gomad3 test` Quick command with an unpatched go (known red on 13 helper-target tests); test-host covers its packages",
+    "make -C tools/gomad3 validate at 92cb85de8 (run at 6f01faffa)",
+    "any qualification set"
+  ],
+  "observed_outside_this_task": [
+    "TestWatchdogDiagnosticReplayUsesCapturedInputs fails intermittently on this host at the base commit (5 of 20 focused runs)",
+    "a seed campaign that keeps two successes of one outcome signature stores them as one artifact directory, counts both, and publishes a record OpenCampaign rejects ('retained success artifact does not match its campaign execution'); seen with the fake executor, which returns the same result for every seed",
+    "another session ran `go clean -cache` on the shared Go build cache during this task; one focused run failed to build until it was repeated",
+    "free disk fell from 9 GiB to 2 GiB during the task as the shared Go build cache was rebuilt"
+  ]
+}
