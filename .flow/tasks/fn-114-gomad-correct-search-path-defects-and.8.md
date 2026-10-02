@@ -50,9 +50,53 @@ E6 (R11): `minimize` writes its sealed state and last accepted artifact under th
 - [ ] A kill after the final publication and before its validation resumes without a second publication
 - [ ] `go -C tools/gomad3 test -tags test_dep ./runner/... ./cmd/gomad/...` and `make -C tools/gomad3 validate` pass
 ## Done summary
-TBD
+Added minimizer resume (R11/E6). `gomad minimize` now checkpoints its sealed state after every committed attempt under `OUTPUT/.minimize/state.json`, and `gomad minimize --resume` continues from it. `minimizer.Workspace` (new, `runner/internal/minimizer/workspace.go`) owns the lock, the checkpoint, and the accepted-artifact store; `Minimize` drives it.
 
+What a user sees:
+
+- An interrupted run leaves state. A plain `minimize` on that output root is refused (`ErrCheckpointExists`: resume it or remove `.minimize`). `--resume` with no state fails with `ErrNoCheckpoint`.
+- Resume rejects a different parent artifact, attempt budget, minimizer implementation, or toolchain build key. It also rejects a state whose starting candidate or exploration config differs from the parent's.
+- A completed run removes its state, so the next `minimize` into the same root starts fresh.
+- A second `minimize` or `minimize --resume` on a locked root fails with `hostfs.ErrContended`. The lock is the `flock` campaign resume uses (`OUTPUT/.minimize.lock`), taken before the state check and held through final publication and its replay validation.
+
+Behavior change to know about: any run that ends in an error, not only a killed one, leaves state. The default output root `ARTIFACTS/minimized` is shared by all parents, so a failed run blocks minimizing other artifacts into that root until it is resumed or `.minimize` is removed.
+
+How it holds together:
+
+- Write order: the accepted artifact is published into `.minimize/accepted` first, then the state is written by temporary file and rename. `Workspace.Commit` refuses a reference whose directory is absent. Superseded accepted artifacts are pruned after the state commit and on resume.
+- The checkpoint wraps the unchanged sealed `State` with the binding, the accepted-artifact reference, and the publication reference. It is canonical JSON with its own seal; load rejects a symlink, a non-canonical or edited file, and a missing accepted artifact. `Minimize` then opens the accepted artifact and checks its record hash and payloads before evaluating anything.
+- The final artifact is always published from the retained accepted artifact, so an uninterrupted and a resumed run publish from the same bytes. Their record hashes are equal in the tests.
+- The publication is recorded in the checkpoint. A run killed before validating it reopens the published artifact by record hash and only replays it.
+- `Changed` comes from the persisted accepted reference, so a resume with no further acceptance still reports a change.
+- `cloneState` now keeps an empty `Evaluated` list empty. It used to turn `[]` into `null`, which changed the state seal on the first clone of an initial state.
+
+Tests, one per acceptance item:
+
+- `TestMinimizeResumeContinuesAfterAcceptedReductionWithoutRepeatingAttempts`: resume after an accepted reduction evaluates one candidate, equals the uninterrupted outcome, reports `Changed`, refuses a plain run over the state, and allows a fresh run after completion.
+- `TestMinimizeResumeRejectsStateOfAnotherRun` (parent, budget, no state) and `TestWorkspaceResumeRejectsStateOfAnotherRun` (parent, implementation, build key, budget, starting candidate).
+- `TestMinimizeResumeFailsClosedOnDamagedAcceptedArtifact` (missing, corrupt payload) and `TestWorkspaceResumeFailsClosedOnDamagedState`.
+- `TestMinimizeExcludesConcurrentRunsOnOneOutputRoot` (initial runs, resumes).
+- `TestWorkspaceLockOfKilledProcessDoesNotBlockResume` kills a real lock-holding process.
+- `TestMinimizeResumeAfterFinalPublicationValidatesWithoutPublishingAgain`.
+- `TestRunMinimizeResumesOnlyOnRequest` (CLI flag).
+
+Five mutations of the implementation each turned the matching test red; `final-gates.json` lists them.
+
+Gates on darwin/arm64 at 0b5eb20f8: `test-host` green (45 packages, 169 s), `validate` green, architecture test, vet, and `-race` on the Minimize tests green.
+GATE_SKIPPED:unittest:green-receipt 0b5eb20f - Verify at fd24d8264 reused the post-commit pass; only .flow evidence files changed after it
+Inconclusive, not counted as passes: the first `test-host` attempt stopped in 2 s because the default `go` on PATH was 1.26.5 (rerun with the pinned go1.27.1 first on PATH); root `make lint-code-fast` cannot typecheck the nested module. Not run: linux/amd64 (no native host); the literal spec Quick command with the Homebrew go.
+
+Review: SHIP on the first round from claude-fable-5-1 at high through the `claude` backend (same family as the writer; the reviewer had no shell and relied on the committed gate evidence). Two P3 notes are left open as follow-ups:
+
+- The build-key binding is taken from the parent manifest, which the parent record hash already covers and preflight already checks against the pinned toolchain. Through `Minimize` that branch is unreachable; only the workspace test exercises it.
+- No test covers a kill between the final publication and the checkpoint that records it. That window relies on the republished record being byte-identical, so the record-keyed store returns the existing artifact. A test needs a seam in `RecordPublication`.
+
+For task 14's docs: the `--resume` flag, the `.minimize` state directory and lock file in the minimized output root, and the leftover-state behavior above. For task 9: each accepted reduction keeps one extra copy of the target under `.minimize/accepted` until the run completes.
+
+Evidence: `.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-8/`.
+
+stage: impl-review - ran (model: claude-fable-5-1)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0b5eb20f8fbf9d2ef36b367e3fa3afd2d505bcb7, fd24d8264e951f3594697275fc097dc0d97f7be1
+- Tests: baseline: green via handoff (verified at baef81f6 by fn-114.6; only a test assertion in runner/internal/campaign and .flow files changed since), GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host (0b5eb20f8, exit 0, 45 packages ok, 169 s, pinned go1.27.1 first on PATH), GATE_SKIPPED:unittest:green-receipt 0b5eb20f - Verify at fd24d8264 reused the post-commit pass; only .flow evidence files changed after it, make -C tools/gomad3 validate (exit 0), .toolchain/bin/go test -tags test_dep -count=1 -run TestPackageArchitecture . (exit 0), .toolchain/bin/go vet -tags test_dep ./runner/ ./runner/internal/minimizer/ ./cmd/gomad/... (exit 0), .toolchain/bin/go test -tags test_dep -count=1 -race -run TestMinimize ./runner/ (exit 0), INCONCLUSIVE: first test-host attempt at 0b5eb20f8 exited 2 after 2 s before any test ran (default PATH go resolved to go1.26.5 under GOTOOLCHAIN=local), INCONCLUSIVE: GOLANGCI_LINT_BASE_REV=619891e5c make lint-code-fast exited 2 - 0 issues reported but golangci-lint cannot typecheck the nested tools/gomad3 module, NOT RUN: go -C tools/gomad3 test -tags test_dep ./runner/... ./cmd/gomad/... (literal spec command; red before this task with the Homebrew go, covered by test-host), NOT RUN: linux/amd64 (no native host)
 - PRs:
