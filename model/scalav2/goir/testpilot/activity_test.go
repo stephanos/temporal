@@ -633,8 +633,8 @@ func TestAnUnsupportedCommandBlocksOnlyTheQueriesWhosePathTakesIt(t *testing.T) 
 	p, err := NewProducer(m)
 	require.NoError(t, err)
 	type gap struct{ construct, id, owner string }
-	control := gap{"hold-delivery control", race.GetControls()[0].GetId(), "fn-107.10"}
-	command := gap{"hold-delivery command", "controller/hold-it", "fn-107.10"}
+	control := gap{"hold-delivery control", race.GetControls()[0].GetId(), ownerNone}
+	command := gap{"hold-delivery command", "controller/hold-it", ownerNone}
 	listed := func(entries []Unsupported) []gap {
 		var out []gap
 		for _, u := range entries {

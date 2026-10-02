@@ -1056,18 +1056,53 @@ val currentOverLossyMatchingQueries: Vector[Query] = overMatchingQueries(current
 // ### The held race, run against a server
 //
 // The stale message is held at the dispatch cut while the pause commits, then delivered to
-// admission. The server is expected to follow the corrected design, so the Query that realizes the
-// race is declared on it, and the Run says whether the server conforms. The stale design's violation
-// is shown by its own verify Query, never by a Run.
+// admission. The server is expected to follow the corrected design, so the race is declared on that
+// design, in the scope a Run of it has: the start sets no schedule deadline, so none fires, and no
+// fault is injected, so admission's durable update does not fail. The hold is what makes that scope
+// true of a Run: no delivery reaches admission before the release, and after the pause the corrected
+// design rejects whatever arrives. The stale design's violation is shown by its own verify Query,
+// never by a Run.
+
+/** Admission as the corrected design decides it, with no failure of its durable update. */
+def admitHeld(s: AdmissionState): List[AdmissionStep] =
+  if s.phase == AdmissionPhase.scheduled then
+    List(
+      Step(
+        Outcome.accepted,
+        s.copy(phase = AdmissionPhase.started, active = oneMore(s.active), answer = Answer.owed),
+        List(AdmissionFact.statusStarted, AdmissionFact.attemptAdmitted)
+      )
+    )
+  else
+    List(
+      Step(Outcome.accepted, s.copy(answer = Answer.owed), List(AdmissionFact.admissionRejected))
+    )
+
+val heldAdmission: Machine[AdmissionState, Outcome, AdmissionFact] =
+  machine[AdmissionState, Outcome, AdmissionFact](SystemFamily, "heldAdmission") {
+    forEntity(activity)
+    monitors(atMostOneActiveAttempt, terminalFinality)
+    refines(activityProduct)(productOfAdmission)
+    visible(productSees)
+    starts(scheduledIdle)
+    ends(admissionEnds)
+    evidence(admissionEvidence)
+    steps(
+      dispatch ~> dispatchStep,
+      control ~> pauseStep,
+      attemptStart ~> admitHeld,
+      answerDelivery ~> answerStep
+    )
+  }
 
 /** Admission met the stale message and rejected it. */
 val staleDeliveryRejected: Property[AdmissionState] =
-  currentAdmission.property("staleDeliveryRejected") when attemptStart holds (after =>
+  heldAdmission.property("staleDeliveryRejected") when attemptStart holds (after =>
     after.facts.contains(AdmissionFact.admissionRejected)
   )
 
 val heldStaleDelivery: Query =
-  query("currentAdmission.heldStaleDelivery") find staleDeliveryRejected in currentAdmission
+  query("heldAdmission.staleDelivery") find staleDeliveryRejected in heldAdmission
     .scenario("heldStaleDelivery")
     .starts(scheduledIdle)
     .actions(dispatch, control(Control.pause), attemptStart) limits three

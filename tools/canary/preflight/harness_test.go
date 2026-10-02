@@ -59,6 +59,42 @@ func TestHarnessRejectsMissingCapabilityBeforeIO(t *testing.T) {
 	require.Zero(t, reads.reads)
 }
 
+// The canary reaches a server it does not run, so its environment supplies no delivery control: the
+// Case that holds a delivery is refused at preparation, naming the actuator, before the first read.
+// The same Case under the same coordinates is admitted once the environment supplies the control,
+// so the refusal is the capability's and nothing else's.
+func TestHarnessRejectsTheHoldDeliveryActuatorBeforeIO(t *testing.T) {
+	fixture, err := testpilotcore.LoadScalaCase(filepath.Join("..", "..", "..", "model", "scalav2", "ir", "activity-race.json"),
+		goir.ClaimKey{Family: "temporal.activity.standalone.system", Owner: "heldAdmission", Name: "heldAdmission.staleDelivery"}, "standaloneActivityRace")
+	require.NoError(t, err)
+	catalog, err := temporal.NewWorkflowServiceCatalog()
+	require.NoError(t, err)
+	canary := configured(t)
+	canary.AuthorityClass, canary.EvaluationProfile = policy.AuthorityHarness, "canary-harness"
+	canary.CaseIdentity, err = recordedrun.CaseIdentity(fixture.Bytes)
+	require.NoError(t, err)
+	environment := testCoordinates.Driver()
+	environment.Identity = canary.CaseProfile
+	require.False(t, environment.DeliveryControl)
+	profile, err := temporal.DeriveProfile(fixture.Source, catalog, environment)
+	require.NoError(t, err)
+
+	reads := registered()
+	scope, err := CheckHarness(t.Context(), input(canary, dispatch(canary), testCoordinates, reads), fixture.Bytes, profile)
+	require.Nil(t, scope)
+	require.ErrorContains(t, err, "unsupported at controller.hold-dispatch")
+	refusal, ok := AsRefusal(err)
+	require.True(t, ok)
+	require.Equal(t, StatusCaseMismatch, refusal.Status)
+	require.Zero(t, reads.reads)
+
+	environment.DeliveryControl = true
+	capable, err := temporal.DeriveProfile(fixture.Source, catalog, environment)
+	require.NoError(t, err)
+	_, err = testpilot.Prepare(fixture.Source, capable)
+	require.NoError(t, err)
+}
+
 func TestHarnessBindingRejectsMismatchedAuthorityAndResources(t *testing.T) {
 	for _, mismatch := range []string{"authority", "evaluation", "identity", "profile", "namespace", "workflow", "coordinates"} {
 		t.Run(mismatch, func(t *testing.T) {

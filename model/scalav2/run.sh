@@ -89,7 +89,11 @@ activity_roots=("${activity}standaloneActivity" "${activity}activityProduct" "${
 activity_system_roots=(currentQueries staleQueries competingTimers matchingQueueQueries forgetfulQueueQueries
   volatileQueueQueries lossyMatchingQueueQueries storageLossQuery currentOverQueueQueries staleOverQueueQueries
   currentOverMatchingQueries staleOverMatchingQueries currentOverLossyMatchingQueries currentOverForgetful
-  currentOverVolatile heldStaleDelivery)
+  currentOverVolatile)
+# The held race a server is run through, and the realization that runs it: ir/activity-race.json. It
+# is a Model of its own, so the system contract's Queries are the ones its checkers were given.
+activity_race_roots=('temporal.standaloneactivity.System$package$.heldStaleDelivery'
+  'temporal.standaloneactivity.ActivityRealization$.heldDelivery')
 
 # The Nexus caller close and reset designs: ir/nexus-close.json. Each design's Queries are a root, and
 # so is each progress claim.
@@ -180,19 +184,19 @@ rejected=(unbounded waiting doubled listening counter crossedRead negative watch
 lift_into rejects "$jars" "${rejected[@]/#/fixture.rejects.Rejects\$package\$.}" &
 lift_into activity "$here/gen/model-scala.jar=$scala/" "${activity_roots[@]}" &
 lift_into activity-system "$here/gen/model-scala.jar=$scala/" \
-  "${activity_system_roots[@]/#/temporal.standaloneactivity.System\$package\$.}" \
-  'temporal.standaloneactivity.ActivityRealization$.heldDelivery' &
+  "${activity_system_roots[@]/#/temporal.standaloneactivity.System\$package\$.}" &
+lift_into activity-race "$here/gen/model-scala.jar=$scala/" "${activity_race_roots[@]}" &
 lift_into nexus-close "$here/gen/model-scala.jar=$scala/" \
   "${nexus_close_roots[@]/#/temporal.nexuscaller.closepolicy.Claims\$package\$.}" &
 wait
-for name in presence channels declarations admission closereset realizations activity activity-system nexus-close; do
+for name in presence channels declarations admission closereset realizations activity activity-system activity-race nexus-close; do
   [[ "$(cat "$here/gen/lifts/$name.status")" == 0 ]] \
     || { grep -v '^WARNING' "$here/gen/lifts/$name.log" >&2; echo "run.sh: the $name fixture did not lift" >&2; exit 1; }
 done
 grep '^lift:' "$here/gen/lifts/rejects.log" > "$here/gen/lifts/rejects.txt" || true
 [[ "$(cat "$here/gen/lifts/rejects.status")" != 0 && ! -f "$here/gen/lifts/rejects.json" ]] \
   || { echo "run.sh: the lifter wrote the rejected declarations' IR" >&2; exit 1; }
-for name in presence channels declarations admission closereset realizations rejects activity activity-system nexus-close; do
+for name in presence channels declarations admission closereset realizations rejects activity activity-system activity-race nexus-close; do
   file="$name.json"
   [[ "$name" == rejects ]] && file=rejects.txt
   # The activity Models' IR and the Nexus close designs' are checked in beside the Nexus caller's; the

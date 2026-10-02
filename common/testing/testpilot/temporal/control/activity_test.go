@@ -12,8 +12,8 @@ import (
 	"go.temporal.io/server/api/historyservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/chasm"
-	serviceerrors "go.temporal.io/server/common/serviceerror"
 	"go.temporal.io/server/common/namespace"
+	serviceerrors "go.temporal.io/server/common/serviceerror"
 	"go.temporal.io/server/common/testing/testhooks"
 )
 
@@ -64,6 +64,10 @@ func TestReleaseReportsAdmissionsDecisionForTheHeldDelivery(t *testing.T) {
 			Decision: testpilotspb.DELIVERY_ADMISSION_DECISION_REJECTED}},
 		{"admitted", &historyservice.RecordActivityTaskStartedResponse{Attempt: 1}, nil, &testpilotspb.DeliveryAdmission{ActivityId: "activity",
 			ActivityRunId: "run", DeliveryId: "7", Decision: testpilotspb.DELIVERY_ADMISSION_DECISION_ADMITTED, Attempt: 1}},
+		// The hold lets no dispatch of the activity pass, so an attempt admission commits for any
+		// delivery of it is one the release let through, and is reported under that delivery.
+		{"admitted by another delivery", &historyservice.RecordActivityTaskStartedResponse{Attempt: 2}, nil, &testpilotspb.DeliveryAdmission{ActivityId: "activity",
+			ActivityRunId: "run", DeliveryId: "9", Decision: testpilotspb.DELIVERY_ADMISSION_DECISION_ADMITTED, Attempt: 2}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			s, d := newServer(t)
@@ -88,7 +92,11 @@ func TestReleaseReportsAdmissionsDecisionForTheHeldDelivery(t *testing.T) {
 				s.answer(started(t, key, 8), nil, obsolete)
 				s.answer(started(t, key, 7), nil, serviceerror.NewUnavailable("lost"))
 				s.answer(&historyservice.RecordActivityTaskHeartbeatRequest{}, nil, obsolete)
-				s.answer(started(t, key, 7), test.response, test.err)
+				stamp := int32(7)
+				if test.want.GetDeliveryId() != "7" {
+					stamp = 9
+				}
+				s.answer(started(t, key, stamp), test.response, test.err)
 				<-ctx.Done()
 				return ctx.Err()
 			})
@@ -119,7 +127,9 @@ func TestReleaseFailsWithoutAHeldDeliveryOrADecision(t *testing.T) {
 	cancel()
 	other, err := d.Hold("other")
 	require.NoError(t, err)
-	go func() { _ = s.dispatch(t.Context(), testhooks.ActivityDelivery{Execution: chasm.ExecutionKey{BusinessID: "other"}, Stamp: 1}) }()
+	go func() {
+		_ = s.dispatch(t.Context(), testhooks.ActivityDelivery{Execution: chasm.ExecutionKey{BusinessID: "other"}, Stamp: 1})
+	}()
 	_, err = other.Await(t.Context())
 	require.NoError(t, err)
 	_, err = other.Release(ctx, func(ctx context.Context) error { <-ctx.Done(); return ctx.Err() })

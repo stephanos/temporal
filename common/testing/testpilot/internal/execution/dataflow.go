@@ -279,6 +279,11 @@ func (a *admission) bindFault(g *graph, n *node) error {
 	if a.roles[fault.RoleId] != testpilotspb.ROLE_KIND_TASK_QUEUE {
 		return ir.Invalid(ir.Malformed, nodePath(g, n), "fault injection requires a declared task-queue role")
 	}
+	// A delivery control reaches inside the server, which only some environments can: one that
+	// cannot refuses the actuator here, naming the instruction, before any Driver is asked.
+	if fault.Kind >= testpilotspb.FAULT_KIND_DELIVERY_HOLD && !a.deliveryControl {
+		return ir.Invalid(ir.Unsupported, nodePath(g, n), "the Profile's environment supplies no delivery control")
+	}
 	return nil
 }
 

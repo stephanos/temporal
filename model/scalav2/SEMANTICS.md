@@ -316,7 +316,9 @@ A realization says how the find Queries of one machine run against a system. It 
   counted from one;
 - a **correlation**: the fields that scope evidence to its run and name its operation, the
   observation that carries it, and the window a check keeps;
-- **controls**, the actuators a run needs beyond its commands;
+- **controls**, the actuators a run needs beyond its commands: one that holds the deliveries of a
+  channel, or one that holds what a step of a class dispatched, which names the task-queue role
+  whose deliveries a run holds it through;
 - **scripts**, each an ordered list of items run by the controller or by a worker for each workflow,
   Nexus operation or activity that activates it. An activity's script names the classes the delivery
   of an attempt to its worker is.
@@ -326,7 +328,9 @@ performances, each the command that performs one class of an action. A command n
 the commands of its script it runs after, a deadline, and whether it runs whatever became of those
 commands. Without `after` it runs after the item before it; with it, commands that name the same
 predecessors and not each other are independent branches. A command may name the exhaustive kinds of
-evidence its read closes. A message a command writes out names its protobuf type and the fields it
+evidence its read closes. A command holds what a control holds, or releases it: the hold is done once
+the held thing is held, and the release once what it let go was delivered and what the receiver
+committed for it is observed, which the release's own record carries. A message a command writes out names its protobuf type and the fields it
 sets, and a field it does not name stays unset.
 
 An activity's script answers its attempts: its commands end an attempt with a result, fail it with a
@@ -395,7 +399,8 @@ it:
   observation reports may still have happened. The one exception is declared. A kind of evidence is
   `exhaustive` when its source reports every occurrence of the facts it records, for the operations
   its closing read covers, and one command of the realization, which every Case carries, names the
-  kind in `closes`. On a Run that closed complete, where that command's last completion is a success
+  kind in `closes`. The Run's own record of a command is closed by that command, which may perform a
+  step: a Case that does not carry it has no record of the kind, and nothing is inferred from it. On a Run that closed complete, where that command's last completion is a success
   and the ordinals of the kind's source are unbroken, a step that records a fact of a kind the Case
   carries has an observation of it, and a step taken without one did not happen. Short of any of
   that, and for a kind the Case does not carry, absence says nothing.
@@ -498,8 +503,11 @@ A reader rejects, before any check and at the position the IR gives, a Model tha
   whose role is none it knows, a role on a redacted field, or two fields of one kind with one role;
 - declares an exhaustive kind of evidence that no command closes; or closes a kind that is not
   declared or not exhaustive, one kind by two commands, a kind by a command that does not read it (a
-  history kind is closed by the read that lifts it, any other by a poll of it), or by a command some
-  Cases do not carry;
+  history kind is closed by the read that lifts it, the Run's own record of a command by that
+  command, any other by a poll of it), or, unless the kind is the command's own record, by a command
+  some Cases do not carry;
+- declares a control that holds what a step dispatched and names no class its machine binds, or no
+  task-queue role;
 - fails an attempt, or answers one as canceled, in a script no activity activates;
 - names, in a realization, a role, learned value, observation, kind of evidence, control, channel or
   command it does not declare, a role of another kind than its use needs, or a class the
@@ -555,10 +563,15 @@ the lowered guard, at the controller's instruction the source names and keyed by
 payload's path, and refuses such evidence of a command no controller runs; evidence read from one
 message to a single read; a kept field to the Program's field declaration and the Contract's retained
 field, as the text, flag or unsigned integer its descriptor makes it; and an attempt answered as
-canceled to the instruction of that name. It lowers no realization that declares what Testpilot has no
-primitive for: a durable-commit kind of evidence and a control (fn-107.10), and a machine that names
-monitors (fn-107.12). Four more things have no task that owns them and are named as limits of the
-prototype. A redacted field: a lift reads a value for every field its evidence declares, so none
+canceled to the instruction of that name. It lowers the hold and the release of a control that holds
+what a step dispatched to the Driver's delivery controls of the control's task-queue role, which a
+Profile admits only where its environment supplies a delivery control; and evidence of a durable
+commit where it is the Run's own record, of the release that observed it. A machine's monitors are no
+part of a Case: the prepared assessment reads each beside the Contract. Six things have no task that
+owns them and are named as limits of the prototype. A durable commit read back through an RPC or from
+history: neither reports a commit of the receiver. A control that holds the deliveries of a channel,
+and a command that holds or releases one: a Driver holds only what a step dispatched to a task queue.
+A redacted field: a lift reads a value for every field its evidence declares, so none
 carries a field without its value. An attempt of an activity the path starts and gives no answer: an
 activity entrypoint's instructions are answers, and none waits out a deadline. And the record of an
 attempt that a Run would record out of the path's order, which the Contract reads evidence in. And

@@ -426,10 +426,11 @@ object ActivityRealization:
 
   /**
    * What admission committed for the released delivery, from the release's own record: the
-   * decision the server committed, never what a caller was told. The delivery is the stamp the
-   * message carried, so a decision of another delivery is no evidence of this one.
+   * decision the server committed, never what a caller was told. It is keyed by the activity the
+   * record names, so a decision of another activity is no evidence of this one; and the delivery is
+   * the stamp the message carried, which tells two deliveries apart.
    */
-  private def committed(records: String, decision: String) =
+  private def committed(records: String, decision: String, exhaustive: Boolean = false) =
     Evidence(
       id = evidenceID(records),
       records = records,
@@ -438,7 +439,7 @@ object ActivityRealization:
         EventKind.instructionCompleted,
         "controller",
         releaseCommand,
-        key = Run,
+        key = Path(Projected, "delivery_admission.activity_id"),
         guard = Some(
           All(
             succeeded,
@@ -458,60 +459,32 @@ object ActivityRealization:
           role = Some(FieldRole.delivery)
         ),
         EvidenceField("activityRun", "delivery_admission.activity_run_id")
-      )
+      ),
+      exhaustive = exhaustive
     )
 
-  /** The start request of the held activity: the deadlines one path's timer needs, and no other. */
-  private def heldStart(id: String, deadlines: Vector[Assignment]) =
-    Command(
-      id,
-      Rpc(
-        workflowServiceRole,
-        service + "StartActivityExecution",
-        named ++ Vector(
-          Assignment("activity_type.name", Literal(Named(activityType))),
-          Assignment("task_queue.name", Environment(taskQueueBinding)),
-          Assignment("request_id", Run)
-        ) ++ deadlines
-      )
-    )
-
-  // The machine starts scheduled, so no step of a path is the start: a Case carries the start its
-  // path's steps need. A path that delivers to admission sets no deadline that could fire first,
-  // and a path a deadline ends sets that deadline alone. The dispatch stays held in a path that
-  // never releases it, which is what lets its deadline fire with no worker in the way. No Query's
-  // path both delivers and times out; one that did would carry two starts, and its Run would fail
-  // at the second.
+  // The machine starts scheduled, so no step of a path is the start: every Case carries it. It sets
+  // one deadline, a start-to-close no Case lives to see, so no deadline competes with the delivery.
   private val heldController = Script(
     "controller",
     Activation.Controller,
     Vector(
-      Item(
-        command = Some(
-          heldStart(startActivity, Vector(Assignment("start_to_close_timeout.seconds", longSeconds)))
-        ),
-        when = Vector(attemptStart)
-      ),
-      Item(
-        command = Some(
-          heldStart(
-            "start-activity-until-schedule-to-start",
-            Vector(
-              Assignment("start_to_close_timeout.seconds", longSeconds),
-              Assignment("schedule_to_start_timeout.seconds", deadlineSeconds)
+      Item(command =
+        Some(
+          Command(
+            startActivity,
+            Rpc(
+              workflowServiceRole,
+              service + "StartActivityExecution",
+              named ++ Vector(
+                Assignment("activity_type.name", Literal(Named(activityType))),
+                Assignment("task_queue.name", Environment(taskQueueBinding)),
+                Assignment("request_id", Run),
+                Assignment("start_to_close_timeout.seconds", longSeconds)
+              )
             )
           )
-        ),
-        when = Vector(scheduleToStart)
-      ),
-      Item(
-        command = Some(
-          heldStart(
-            "start-activity-until-schedule-to-close",
-            Vector(Assignment("schedule_to_close_timeout.seconds", deadlineSeconds))
-          )
-        ),
-        when = Vector(scheduleToClose)
+        )
       ),
       Item(performs = Vector(Performance(dispatch, Command(holdCommand, Hold(holdDispatch))))),
       Item(performs =
@@ -521,12 +494,20 @@ object ActivityRealization:
         command = Some(awaitStatus("await-paused", "statusPaused", "PAUSED")),
         when = Vector(control(Control.pause))
       ),
+      // The hold lets no dispatch of the activity reach admission before the release, and the release
+      // records an attempt admission commits for any delivery of it: its record is every admission
+      // there was, so the release closes that kind, and a Run that records none admitted none.
       Item(performs =
-        Vector(Performance(attemptStart, Command(releaseCommand, Release(holdDispatch))))
-      ),
-      Item(
-        command = Some(awaitStatus("await-timed-out", "statusTimedOut", "TIMED_OUT")),
-        when = Vector(scheduleToClose, scheduleToStart)
+        Vector(
+          Performance(
+            attemptStart,
+            Command(
+              releaseCommand,
+              Release(holdDispatch),
+              closes = Vector(evidenceID("attemptAdmitted"))
+            )
+          )
+        )
       )
     )
   )
@@ -534,7 +515,7 @@ object ActivityRealization:
   /** The stale dispatch of one paused activity, held, then delivered to admission. */
   val heldDelivery: Realization = Realization(
     name = "heldDelivery",
-    machine = currentAdmission,
+    machine = heldAdmission,
     producer = "temporal.activity.standalone.testpilot",
     producerVersion = "1",
     roles = Vector(
@@ -565,13 +546,12 @@ object ActivityRealization:
     evidence = Vector(
       accepted("dispatchSent", "dispatchSent", holdCommand),
       status("statusPaused"),
-      status("statusTimedOut"),
       committed("admissionRejected", "REJECTED"),
-      committed("attemptAdmitted", "ADMITTED")
+      committed("attemptAdmitted", "ADMITTED", exhaustive = true)
     ),
     controls = Vector(
-      umpire.realize.Control(holdDispatch, ControlKind.HoldDispatched(dispatch), role = taskQueueRole)
+      umpire.realize
+        .Control(holdDispatch, ControlKind.HoldDispatched(dispatch), role = taskQueueRole)
     ),
     cleanup = "cleanup"
   )
-

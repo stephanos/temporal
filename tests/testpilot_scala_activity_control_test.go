@@ -4,109 +4,176 @@ package tests
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	commonpb "go.temporal.io/api/common/v1"
-	enumspb "go.temporal.io/api/enums/v1"
-	"go.temporal.io/api/serviceerror"
-	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
-	"go.temporal.io/server/api/historyservice/v1"
-	"go.temporal.io/server/chasm"
-	"go.temporal.io/server/common/rpc/grpcfaults"
-	serviceerrors "go.temporal.io/server/common/serviceerror"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/namespace"
+	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testhooks"
+	"go.temporal.io/server/common/testing/testpilot"
+	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/common/testing/testpilot/temporal/control"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/protobuf/types/known/durationpb"
+	"go.temporal.io/server/tests/testcore"
+	testpilotcore "go.temporal.io/server/tests/testcore/testpilot"
+	"go.temporal.io/server/tools/umpire/replay"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
-// This qualifies the server cut independently of Case lowering. The post-handler hook observes
-// the authoritative refusal, so an empty poll alone cannot make this test pass.
-func TestTestpilotActivityDeliveryCut(t *testing.T) {
-	env := scalaActivityEnvironment(t)
-	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
-	defer cancel()
-	id := uuid.NewString()
-	queue := &taskqueuepb.TaskQueue{Name: "held-" + id}
-	gate := control.NewDeliveryGate(id)
-	defer gate.Close()
-	held := make(chan testhooks.ActivityDelivery, 1)
-	env.InjectHook(testhooks.NewHook(testhooks.ActivityDispatch, func(ctx context.Context, delivery testhooks.ActivityDelivery) error {
-		if delivery.Execution.BusinessID == id {
-			select {
-			case held <- delivery:
-			default:
+// scalaControlledCases is the lowered Cases whose realization holds a delivery, by where the IR
+// declares each. What a Run of one must show is its Contract and its Query's Property; nothing
+// here says it again.
+var scalaControlledCases = []struct{ model, family, owner, set, query string }{
+	{"activity-race", "temporal.activity.standalone.system", "heldAdmission", "standaloneActivityRace", "heldAdmission.staleDelivery"},
+}
+
+// controlledCase is a Case bound for the in-process server: under a Profile whose environment
+// supplies a delivery control, with the Driver that holds it and one that does not.
+type controlledCase struct {
+	testpilotLiveCase
+	uncontrolled *testpilotdriver.Driver
+}
+
+func bindControlledCase(t *testing.T, env *testcore.TestEnv, source *testpilotspb.Case, name string) controlledCase {
+	t.Helper()
+	catalog, err := testpilotdriver.NewWorkflowServiceCatalog()
+	require.NoError(t, err)
+	profile, err := testpilotdriver.DeriveProfile(source, catalog, testpilotdriver.Environment{
+		Identity: name, Namespace: name, TaskQueue: name, DeliveryControl: true,
+	})
+	require.NoError(t, err)
+	live := newTestpilotLiveCase(t, env, source, profile, testpilotLiveResources{Namespace: name, TaskQueue: name}, testpilotCleanupTimeout)
+	described, err := env.FrontendClient().DescribeNamespace(t.Context(), &workflowservice.DescribeNamespaceRequest{Namespace: name})
+	require.NoError(t, err)
+	scope := namespace.ID(described.GetNamespaceInfo().GetId())
+	deliveries, err := control.NewDeliveries(func(hook testhooks.Hook) func() { return env.GetTestCluster().InjectHook(t, hook, scope) })
+	require.NoError(t, err)
+	t.Cleanup(deliveries.Close)
+	driver, err := testpilotdriver.New(testpilotdriver.Options{
+		Profile: live.profile,
+		ServerEndpoints: map[string]testpilotdriver.Endpoint{
+			"temporal.workflow-service": {Target: env.FrontendGRPCAddress(), Credentials: insecure.NewCredentials()},
+		},
+		SystemCallbackBaseURL: "http://" + env.HttpAPIAddress(),
+		SDKClient:             live.client,
+		WorkerRoleID:          "temporal.worker",
+		WorkerStopTimeout:     testpilotCleanupTimeout,
+		Deliveries:            deliveries,
+	})
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), testpilotCleanupTimeout)
+		defer cancel()
+		require.NoError(t, driver.Close(ctx))
+	})
+	bound := controlledCase{testpilotLiveCase: live, uncontrolled: live.driver}
+	bound.driver = driver
+	return bound
+}
+
+// requireScalaClaim requires of a Run what its Case declares and no more: it completed and cleaned
+// up, its Contract is satisfied, the model explains it, the Query's Property is satisfied on it and
+// no claim is violated; it realized and recorded every fault the Case declares; and the recorded Run
+// replays to the same Verdict and assessment.
+func requireScalaClaim(t *testing.T, fixture *testpilotcore.ScalaCase, live testpilotLiveCase, result scalaRun) {
+	t.Helper()
+	if dir := os.Getenv(umpireRepeatRunDirVariable); dir != "" && result.run != nil {
+		require.NoError(t, replay.WriteRecordedRun(capturePath(t, dir), fixture.Bytes, live.prepared.Identity(), result.run))
+	}
+	require.NoError(t, result.err)
+	require.NotNil(t, result.run)
+	require.Equal(t, testpilotspb.RUN_DISPOSITION_COMPLETED, result.run.GetDisposition(), "%v", result.run.GetDiagnostics())
+	require.Equal(t, testpilotspb.CLEANUP_STATUS_SUCCEEDED, result.run.GetCleanup().GetStatus())
+	require.Equal(t, testpilotspb.VERDICT_STATUS_SATISFIED, result.verdict.GetStatus(), "%v", result.run.GetDiagnostics())
+	require.NotNil(t, result.assessment)
+	require.Nil(t, result.assessment.Failure)
+	require.Equal(t, testpilot.ConformanceConformant, result.assessment.Conformance.Status, result.assessment.Conformance.Detail)
+	claim := claimOf(t, fixture, result.assessment)
+	require.Equal(t, testpilot.PropertySatisfied, claim.Status, claim.Detail)
+	for _, claim := range result.assessment.Properties {
+		require.NotEqual(t, testpilot.PropertyViolated, claim.Status, claim.ID)
+	}
+	// Every fault the Case declares was realized, and each is on the Run's record.
+	var declared, realized []testpilotspb.FaultKind
+	for _, entrypoint := range fixture.Source.GetProgram().GetEntrypoints() {
+		for _, node := range entrypoint.GetInstructions() {
+			if fault := node.GetInstruction().GetInjectFault(); fault != nil {
+				declared = append(declared, fault.GetKind())
 			}
 		}
-		return gate.Arrive(ctx, delivery.Execution.BusinessID)
-	}))
-	type admission struct {
-		request *historyservice.RecordActivityTaskStartedRequest
-		err     error
 	}
-	observed := make(chan admission, 1)
-	env.InjectHook(testhooks.NewHook(testhooks.GRPCResponseFaultGeneratorByNamespaceID,
-		grpcfaults.ResponseCallback(func(_ context.Context, _ string, request, response any, err error) *grpcfaults.Outcome {
-			if req, ok := request.(*historyservice.RecordActivityTaskStartedRequest); ok {
-				ref, decodeErr := chasm.DeserializeComponentRef(req.GetComponentRef())
-				if decodeErr == nil && ref.BusinessID == id {
-					select {
-					case observed <- admission{request: req, err: err}:
-					default:
-					}
-				}
+	for _, event := range result.run.GetEvents() {
+		if event.GetKind() == testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED {
+			realized = append(realized, event.GetFaultInjected().GetKind())
+		}
+	}
+	require.Equal(t, declared, realized)
+	assessed, err := live.prepared.WithAssessment(fixture.Assessment)
+	require.NoError(t, err)
+	verdict, evaluation, err := assessed.Evaluate(t.Context(), result.run, result.assessment)
+	require.NoError(t, err)
+	protorequire.ProtoEqual(t, result.verdict, verdict)
+	require.Equal(t, result.assessment, evaluation.Assessment)
+	protorequire.ProtoEqual(t, fixture.Source, live.prepared.Snapshot())
+}
+
+func claimOf(t *testing.T, fixture *testpilotcore.ScalaCase, assessment *testpilot.Assessment) testpilot.PropertyAssessment {
+	t.Helper()
+	require.NotEmpty(t, fixture.Property)
+	for _, claim := range assessment.Properties {
+		if claim.ID == fixture.Property {
+			return claim
+		}
+	}
+	require.FailNow(t, "the assessment reads no claim "+fixture.Property)
+	return testpilot.PropertyAssessment{}
+}
+
+// requireInconclusiveWithoutDurableEvidence is the ambiguity control: the same recorded Run with its
+// durable-commit evidence taken out no longer satisfies the Contract, and leaves the Query's Property
+// inconclusive, never satisfied and never violated.
+func requireInconclusiveWithoutDurableEvidence(t *testing.T, fixture *testpilotcore.ScalaCase, live testpilotLiveCase, run *testpilotspb.Run) {
+	t.Helper()
+	require.NotEmpty(t, fixture.Durable)
+	stripped, err := fixture.WithoutDurableEvidence(run)
+	require.NoError(t, err)
+	require.NotEqual(t, len(run.String()), len(stripped.String()), "the Run recorded no durable-commit evidence to take out")
+	assessed, err := live.prepared.WithAssessment(fixture.Assessment)
+	require.NoError(t, err)
+	verdict, evaluation, err := assessed.Evaluate(t.Context(), stripped, nil)
+	require.NoError(t, err)
+	require.Equal(t, testpilotspb.VERDICT_STATUS_INCONCLUSIVE, verdict.GetStatus())
+	require.NotNil(t, evaluation.Assessment)
+	require.Nil(t, evaluation.Assessment.Failure)
+	require.NotEqual(t, testpilot.ConformanceNonconformant, evaluation.Assessment.Conformance.Status)
+	claim := claimOf(t, fixture, evaluation.Assessment)
+	require.Equal(t, testpilot.PropertyInconclusive, claim.Status)
+	require.NotEmpty(t, claim.Detail)
+}
+
+func TestTestpilotScalaActivityControlled(t *testing.T) {
+	env := scalaActivityEnvironment(t)
+	for _, item := range scalaControlledCases {
+		t.Run(item.query, func(t *testing.T) {
+			fixture := scalaFixture(t, item.model, item.family, item.owner, item.set, item.query)
+			live := bindControlledCase(t, env, fixture.Source, fmt.Sprintf("scala-controlled-%s", uuid.NewString()))
+
+			// A Driver whose environment holds no delivery refuses the Case before it opens a Run.
+			_, _, err := live.prepared.Run(t.Context(), live.uncontrolled)
+			require.ErrorIs(t, err, testpilotdriver.ErrNoDeliveryControl)
+
+			ids := map[string]bool{}
+			for range 2 {
+				result := runScalaCase(t, env, fixture, live.testpilotLiveCase)
+				requireScalaClaim(t, fixture, live.testpilotLiveCase, result)
+				require.NotContains(t, ids, result.run.GetRunId())
+				ids[result.run.GetRunId()] = true
+				requireInconclusiveWithoutDurableEvidence(t, fixture, live.testpilotLiveCase, result.run)
 			}
-			return nil
-		})))
-	start, err := env.FrontendClient().StartActivityExecution(ctx, &workflowservice.StartActivityExecutionRequest{
-		Namespace: env.Namespace().String(), ActivityId: id, RequestId: uuid.NewString(),
-		ActivityType: &commonpb.ActivityType{Name: "held"}, TaskQueue: queue, StartToCloseTimeout: durationpb.New(time.Minute),
-	})
-	require.NoError(t, err)
-	require.NoError(t, gate.WaitHeld(ctx))
-	delivery := <-held
-	require.Equal(t, chasm.ExecutionKey{NamespaceID: env.NamespaceID().String(), BusinessID: id, RunID: start.GetRunId()}, delivery.Execution)
-	_, err = env.FrontendClient().PauseActivityExecution(ctx, &workflowservice.PauseActivityExecutionRequest{
-		Namespace: env.Namespace().String(), ActivityId: id, RunId: start.GetRunId(), RequestId: uuid.NewString(),
-	})
-	require.NoError(t, err)
-	require.NoError(t, gate.Release())
-	pollCtx, stopPoll := context.WithCancel(ctx)
-	defer stopPoll()
-	type pollResult struct {
-		response *workflowservice.PollActivityTaskQueueResponse
-		err      error
-	}
-	polled := make(chan pollResult, 1)
-	go func() {
-		response, pollErr := env.FrontendClient().PollActivityTaskQueue(pollCtx, &workflowservice.PollActivityTaskQueueRequest{
-			Namespace: env.Namespace().String(), TaskQueue: queue, Identity: "held-delivery-poller",
 		})
-		polled <- pollResult{response: response, err: pollErr}
-	}()
-	select {
-	case result := <-observed:
-		require.Equal(t, delivery.Stamp, result.request.GetStamp())
-		require.NotEmpty(t, result.request.GetRequestId())
-		var obsolete *serviceerrors.ObsoleteMatchingTask
-		require.ErrorAs(t, result.err, &obsolete)
-	case <-ctx.Done():
-		t.Fatal(ctx.Err())
 	}
-	stopPoll()
-	poll := <-polled
-	require.Empty(t, poll.response.GetTaskToken())
-	if poll.err != nil {
-		require.Equal(t, codes.Canceled, serviceerror.ToStatus(poll.err).Code())
-	}
-	description, err := env.FrontendClient().DescribeActivityExecution(ctx, &workflowservice.DescribeActivityExecutionRequest{
-		Namespace: env.Namespace().String(), ActivityId: id, RunId: start.GetRunId(),
-	})
-	require.NoError(t, err)
-	require.Equal(t, enumspb.ACTIVITY_EXECUTION_STATUS_PAUSED, description.GetInfo().GetStatus())
-	require.Nil(t, description.GetInfo().GetLastStartedTime())
 }

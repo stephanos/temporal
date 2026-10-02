@@ -28,6 +28,8 @@ type Environment struct {
 	HandlerTaskQueue string
 	NexusEndpoint    string
 	DynamicConfig    map[string]string
+	// DeliveryControl says the environment runs the server and can hold a delivery inside it.
+	DeliveryControl bool
 }
 
 // HandlerTaskQueueBindingID names the resource binding of the task-queue role a Nexus handler
@@ -153,6 +155,7 @@ func DeriveProfile(source *testpilotspb.Case, catalog *testpilot.Catalog, enviro
 		ContractLimits:      contractLimits,
 		CorrelatedLimits:    correlatedLimits,
 		InstructionDefaults: DefaultInstructionLimits(),
+		DeliveryControl:     environment.DeliveryControl,
 	}, nil
 }
 

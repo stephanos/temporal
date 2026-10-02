@@ -116,6 +116,7 @@ func validateOutcome(w *valueWork, entryContext contract.EntrypointKind, n *node
 	}
 	return result, nil
 }
+
 // validateDeliveryAdmission admits a delivery admission on the successful outcome of a delivery
 // release alone, and requires it there: the release succeeds only once the decision is observed.
 func validateDeliveryAdmission(n *node, outcome *testpilotspb.InstructionOutcome) error {

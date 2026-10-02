@@ -122,10 +122,13 @@ func lineOf(t *testing.T, position string) string {
 	return lines[n-1]
 }
 
-// The held race declares the three primitives the reviewed specimens need and Testpilot does not
-// have: authored monitors, a durable-commit observation, and a hold-delivery control with the commands
-// that use it. Lowering names each where it was written, with the task that owns it, and builds no
-// Case around them. Its activity script is no gap: Testpilot runs an activity's attempts.
+// The held race of the fixture declares what no Driver realizes: a durable commit read back through a
+// public listing, and a control that holds the deliveries of a channel, with the commands that use it.
+// Lowering names each where it was written, as a limit no task owns, and builds no Case around them.
+// Its activity script is no gap: Testpilot runs an activity's attempts. Neither are its machine's
+// authored monitors: a Case carries none, and the prepared assessment reads each beside the Contract.
+// The race a Driver does realize holds what a step dispatched to a task queue, and reads the commit
+// from the release that observed it (ir/activity-race.json; TestTheHeldRaceLowers).
 func TestWhatTestpilotCannotRunIsNamedWithItsOwner(t *testing.T) {
 	p, err := NewProducer(liftedRealizations(t))
 	require.NoError(t, err)
@@ -137,13 +140,11 @@ func TestWhatTestpilotCannotRunIsNamedWithItsOwner(t *testing.T) {
 
 	type gap struct{ construct, id, owner, file, written string }
 	want := []gap{
-		{"authored monitor", "atMostOneActiveAttempt", "fn-107.12", admissionAt, "val atMostOneActiveAttempt"},
-		{"authored monitor", "terminalFinality", "fn-107.12", admissionAt, "val terminalFinality"},
-		{"durable-commit observation", "fixture.realizations.race.evidence.dispatchEnqueued", "fn-107.10", realizationsAt, "Evidence("},
-		{"durable-commit observation", "fixture.realizations.race.evidence.attemptAdmitted", "fn-107.10", realizationsAt, "Evidence("},
-		{"hold-delivery control", "hold-dispatch", "fn-107.10", realizationsAt, "Control(holdDispatch"},
-		{"hold-delivery command", "controller/hold-dispatch-before-start", "fn-107.10", realizationsAt, "hold-dispatch-before-start"},
-		{"hold-delivery command", "controller/release-dispatch", "fn-107.10", realizationsAt, "release-dispatch"},
+		{"durable-commit observation", "fixture.realizations.race.evidence.dispatchEnqueued", ownerNone, realizationsAt, "Evidence("},
+		{"durable-commit observation", "fixture.realizations.race.evidence.attemptAdmitted", ownerNone, realizationsAt, "Evidence("},
+		{"hold-delivery control", "hold-dispatch", ownerNone, realizationsAt, "Control(holdDispatch"},
+		{"hold-delivery command", "controller/hold-dispatch-before-start", ownerNone, realizationsAt, "hold-dispatch-before-start"},
+		{"hold-delivery command", "controller/release-dispatch", ownerNone, realizationsAt, "release-dispatch"},
 	}
 	var got []gap
 	for i, u := range l.Unsupported {

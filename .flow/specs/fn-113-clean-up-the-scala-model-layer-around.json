@@ -1,0 +1,33 @@
+{
+  "branch_name": "fn-113-clean-up-the-scala-model-layer-around",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-02T04:21:17.718952Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-115-make-the-scala-model-the-model-and"
+  ],
+  "id": "fn-113-clean-up-the-scala-model-layer-around",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-113-clean-up-the-scala-model-layer-around.md",
+  "status": "open",
+  "title": "Clean up the Scala model layer around the IR",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-02T05:28:00.157383Z"
+}

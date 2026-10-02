@@ -47,7 +47,7 @@ func heldProgram(t *testing.T, mutate func(*testpilotspb.Case)) testpilot.Prepar
 	}
 	catalog, err := NewWorkflowServiceCatalog()
 	require.NoError(t, err)
-	profile, err := DeriveProfile(source, catalog, Environment{Identity: "held", Namespace: "namespace", TaskQueue: "queue"})
+	profile, err := DeriveProfile(source, catalog, Environment{Identity: "held", Namespace: "namespace", TaskQueue: "queue", DeliveryControl: true})
 	require.NoError(t, err)
 	prepared, err := testpilot.Prepare(source, profile)
 	require.NoError(t, err)

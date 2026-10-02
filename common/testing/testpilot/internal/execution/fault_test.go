@@ -75,10 +75,16 @@ func TestPrepareAdmitsFaultInjection(t *testing.T) {
 		{"admitted", func(*testpilotspb.Case, *Profile) {}, ""},
 		// Whether a Driver can hold a delivery is the Driver's to answer at Validate, as a worker
 		// outage is: admission takes every declared kind.
-		{"delivery control", func(c *testpilotspb.Case, _ *Profile) {
+		{"delivery control", func(c *testpilotspb.Case, p *Profile) {
+			p.DeliveryControl = true
 			c.Program.Entrypoints[0].Instructions[0].Instruction.GetInjectFault().Kind = testpilotspb.FAULT_KIND_DELIVERY_HOLD
 			c.Program.Entrypoints[0].Instructions[1].Instruction.GetInjectFault().Kind = testpilotspb.FAULT_KIND_DELIVERY_RELEASE
 		}, ""},
+		// A Profile whose environment supplies no delivery control, such as the canary's, refuses the
+		// actuator at preparation, before any Driver exists to ask.
+		{"delivery control the Profile lacks", func(c *testpilotspb.Case, _ *Profile) {
+			c.Program.Entrypoints[0].Instructions[1].Instruction.GetInjectFault().Kind = testpilotspb.FAULT_KIND_DELIVERY_RELEASE
+		}, ir.Unsupported},
 		{"undeclared fault kind", func(c *testpilotspb.Case, _ *Profile) {
 			c.Program.Entrypoints[0].Instructions[0].Instruction.GetInjectFault().Kind = testpilotspb.FAULT_KIND_DELIVERY_RELEASE + 1
 		}, ir.Unknown},
@@ -198,6 +204,7 @@ func TestDeliveryAdmissionIsCarriedOnlyByASuccessfulRelease(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			c, catalog, policy := faultFixture(t)
+			policy.DeliveryControl = true
 			c.Program.Entrypoints[0].Instructions[0].Instruction.GetInjectFault().Kind = testpilotspb.FAULT_KIND_DELIVERY_HOLD
 			c.Program.Entrypoints[0].Instructions[1].Instruction.GetInjectFault().Kind = testpilotspb.FAULT_KIND_DELIVERY_RELEASE
 			prepared, err := Prepare(c, catalog, policy)
@@ -227,6 +234,14 @@ func TestDeliveryAdmissionIsCarriedOnlyByASuccessfulRelease(t *testing.T) {
 			require.NoError(t, executeErr)
 			require.Len(t, completed, 2)
 			require.True(t, proto.Equal(tc.recorded, completed[1].GetDeliveryAdmission()))
+			// Each realized delivery control is one recorded fault, as a worker outage is.
+			var faults []testpilotspb.FaultKind
+			for _, event := range s.recorder.run.Events {
+				if event.Kind == testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED {
+					faults = append(faults, event.GetFaultInjected().GetKind())
+				}
+			}
+			require.Equal(t, []testpilotspb.FaultKind{testpilotspb.FAULT_KIND_DELIVERY_HOLD, testpilotspb.FAULT_KIND_DELIVERY_RELEASE}, faults)
 		})
 	}
 }

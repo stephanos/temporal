@@ -37,6 +37,14 @@ records one `FAULT_INJECTED` event per realized outage, carrying the fault in it
 payload, which a Contract reads through a path. Nothing about a requested fault is evidence until
 that event exists.
 
+Two fault kinds are delivery controls, which reach inside the server: a hold, done once the server
+holds a dispatch of the activity the Run starts on the role's queue, and a release, which delivers the
+held dispatch to the server's authoritative admission and is done once what admission committed for
+it is observed. A successful release's outcome carries that decision as its `delivery_admission`, and
+no other outcome carries one. Only an environment that runs the server can supply the control, so a
+Profile says whether its environment does (`ProfileSpec.DeliveryControl`), and a Case that holds a
+delivery is refused under a Profile that does not, at preparation, naming the instruction.
+
 A worker instruction may carry the Temporal API message the Driver realizes through its SDK
 (fn-85 R10): `WorkflowCommand` carries a `temporal.api.command.v1.Command`, `NexusHandlerReply` a
 `temporal.api.nexus.v1.StartOperationResponse` or `HandlerError`, and `NexusOperationCompletion` a
@@ -230,8 +238,8 @@ Verdict and admission.
 ### A new fault kind
 
 1. A value of `FaultKind` in `instruction.proto`. `InjectFault.kind` and the recorded
-   `FaultInjected.kind` share the enum. The enum's comment admits only worker-lifecycle transitions on
-   one activation queue, so any other outage amends it.
+   `FaultInjected.kind` share the enum. The enum's comment names what its kinds are, worker-lifecycle
+   transitions on one activation queue and delivery controls, so any other outage amends it.
 2. `make proto`.
 3. No new constructor: `Program.injectFault` takes any kind.
 4. Widen the kind range `admission.bindFault` admits. Dispatch and recording carry the kind unchanged,

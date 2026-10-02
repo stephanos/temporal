@@ -61,7 +61,19 @@ var (
 	// (the invocation attempt times out) or NexusForceTimeoutFromBackingOff (the backoff
 	// retry task times out instead of rescheduling).
 	NexusOperationForceTimeout = newKey[string, namespace.ID]()
+	// ActivityDispatch, when set for a namespace, is called by a standalone activity's dispatch
+	// task with each delivery it is about to send to matching, after the task read and validated
+	// the activity. The dispatch is sent once the hook returns nil, so a hook that blocks holds the
+	// delivery at that cut; an error it returns is the task's, which is retried.
+	ActivityDispatch = newKey[func(context.Context, ActivityDelivery) error, namespace.ID]()
 )
+
+// ActivityDelivery is one dispatch of a standalone activity: the activity, and the attempt stamp
+// the message carries, which admission compares with the activity's current one.
+type ActivityDelivery struct {
+	Execution chasm.ExecutionKey
+	Stamp     int32
+}
 
 // Values for the NexusOperationForceTimeout hook.
 const (

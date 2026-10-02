@@ -17,8 +17,12 @@ Session only when the prepared Program contains workflow, activity, or Nexus-han
 handle bridge and generic handle factory. The SDK worker Session owns reservations, SDK
 routes, callback validation, and Nexus completion transport. The server Session owns RPC effects and
 generic opaque handle claims. Composite Close and quarantine preserve that split.
-`InjectFault` routes to the SDK worker Session, which `Open` also creates for a Program that declares
-a fault; the server Session refuses every fault the way it refuses worker reservations.
+`InjectFault` routes a worker outage to the SDK worker Session, which `Open` also creates for a Program
+that declares one; the server Session refuses every fault the way it refuses worker reservations. A
+delivery control routes to the composite's own delivery session, which holds the activity a
+`StartActivityExecution` of the held queue names before that request is sent, through
+`Options.Deliveries` (`control.Deliveries`, the test hooks of an in-process server). A Driver built
+without it refuses a Program that holds a delivery at `Validate`, before any I/O.
 
 Reserved `StartWorkflowExecution` calls pass through an SDK worker `Carrier` before server dispatch. The
 Carrier takes the reservation topology preparation compiled as admitted, checks the physical workflow

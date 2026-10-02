@@ -187,12 +187,18 @@ func rolesOf(r *modelirspb.Realization, source *testpilotspb.Case, e *modelirspb
 
 // closingRead is the command a realization closes an exhaustive kind of evidence by: its script and
 // its id, which are the entrypoint and the instruction of every Case that carries it. Admission lets
-// through no exhaustive kind without one.
+// through no exhaustive kind without one. The command that closes its own record may perform a step,
+// and is then the instruction of the first step of its class a Case's path takes.
 func closingRead(r *modelirspb.Realization, evidence string) coordinate {
 	for _, s := range r.GetScripts() {
 		for _, item := range s.GetItems() {
 			if slices.Contains(item.GetCommand().GetCloses(), evidence) {
 				return coordinate{entrypoint: s.GetId(), instruction: item.GetCommand().GetId()}
+			}
+			for _, performance := range item.GetPerforms() {
+				if slices.Contains(performance.GetCommand().GetCloses(), evidence) {
+					return coordinate{entrypoint: s.GetId(), instruction: performance.GetCommand().GetId()}
+				}
 			}
 		}
 	}

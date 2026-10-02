@@ -75,6 +75,8 @@ func (h *activityDispatchTaskHandler) Execute(
 		return err
 	}
 
+	// The request is built from the activity as the task just read it, so a test that holds the
+	// dispatch here holds exactly the message matching would receive. Production builds have no hook.
 	if hold, ok := testhooks.Get(h.opts.TestHooks, testhooks.ActivityDispatch, namespace.ID(activityRef.NamespaceID)); ok {
 		if err := hold(ctx, testhooks.ActivityDelivery{Execution: activityRef.ExecutionKey, Stamp: request.GetStamp()}); err != nil {
 			return err

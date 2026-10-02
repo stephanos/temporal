@@ -27,6 +27,9 @@ type Profile struct {
 	EnvironmentBindings []contract.EnvironmentBinding
 	Limits              *testpilotspb.ProgramLimits
 	InstructionDefaults contract.InstructionDefaults
+	// DeliveryControl says the Profile's environment can hold and release a delivery inside the
+	// server; without it a Program that does is refused at preparation.
+	DeliveryControl bool
 }
 
 type Observation struct {

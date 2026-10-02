@@ -19,8 +19,8 @@ var ErrConflict = errors.New("activity delivery is already held")
 // Injector applies one test hook to the server under test and returns its removal.
 type Injector func(testhooks.Hook) func()
 
-// Deliveries holds the validated dispatches of named activities inside one in-process server and
-// observes what the server's authoritative admission decided for each released one. Admission is
+// Deliveries holds every validated dispatch of named activities inside one in-process server and
+// observes what the server's authoritative admission decided once one is released. Admission is
 // read from the response of history's RecordActivityTaskStarted, after its handler returned: a
 // success is an attempt the durable update committed, an obsolete-task refusal is a decision that
 // committed nothing, and any other answer decides nothing that can be told, so it is no decision.
@@ -136,13 +136,15 @@ func (h *Held) arrived(delivery testhooks.ActivityDelivery) {
 	}
 }
 
-// answered keeps the first decision of admission for the held delivery once it is released. An
-// answer for another run or another stamp is another delivery's, and decides nothing of this one.
+// answered keeps the first decision of admission once the held delivery is released: an attempt
+// admission commits for any delivery of the activity's run, since the hold let none pass before, or
+// the rejection of the held delivery. An answer for another run is another activity's, and the
+// rejection of another stamp another delivery's: neither decides anything of this one.
 func (h *Held) answered(execution chasm.ExecutionKey, stamp int32, response any, err error) {
 	h.mu.Lock()
 	first, released := h.first, h.released
 	h.mu.Unlock()
-	if !released || first == nil || execution != first.Execution || stamp != first.Stamp {
+	if !released || first == nil || execution != first.Execution {
 		return
 	}
 	admission := &testpilotspb.DeliveryAdmission{ActivityId: execution.BusinessID, ActivityRunId: execution.RunID, DeliveryId: strconv.FormatInt(int64(stamp), 10)}
@@ -150,7 +152,7 @@ func (h *Held) answered(execution chasm.ExecutionKey, stamp int32, response any,
 	switch started, ok := response.(*historyservice.RecordActivityTaskStartedResponse); {
 	case err == nil && ok && started != nil:
 		admission.Decision, admission.Attempt = testpilotspb.DELIVERY_ADMISSION_DECISION_ADMITTED, started.GetAttempt()
-	case errors.As(err, &obsolete):
+	case errors.As(err, &obsolete) && stamp == first.Stamp:
 		admission.Decision = testpilotspb.DELIVERY_ADMISSION_DECISION_REJECTED
 	default:
 		return

@@ -16,6 +16,7 @@ ir/*.json  (ProtoJSON of the IR schema; checked in)
       │    nexus-caller.json     the Nexus caller and worker machines, its functional Queries and their realization
       │    activity.json         the standalone activity Model, as model/go/standaloneactivity has it, and its realization
       │    activity-system.json  the standalone activity's system contract and its dispatch queue
+      │    activity-race.json    the held race a server is run through, and its realization
       │    nexus-close.json      the Nexus caller close and reset designs
       │
 goir/  ── validate, interpret, derive tables → model/go's umpire.Table
@@ -48,6 +49,7 @@ scala-cli, the JDK and protoc come from the repository's `mise.toml`. After chan
 | `ir/nexus-caller.json` | The Nexus caller and worker Models, lifted with the functional Queries and the realization that runs them |
 | `ir/activity.json` | The standalone activity Model, lifted with the claims `model/go/standaloneactivity` declares and the realization that runs its find Queries |
 | `ir/activity-system.json` | The standalone activity's system contract, lifted: the admission designs, the dispatch queue's providers and their compositions |
+| `ir/activity-race.json` | The held race, lifted: the corrected admission design in the scope a Run of the race has, the Query that finds the stale delivery rejected, and the realization that holds the dispatch, pauses, releases it and reads what admission committed |
 | `ir/nexus-close.json` | The Nexus caller close and reset designs, lifted with their monitors, Queries and progress claims |
 | `scala/` | The Scala authoring project: the `umpire` framework with the realization declarations in `umpire/realize`, the Temporal Models, and their munit tests |
 | `lifter/` | The TASTy lifter; `testdata/unsupported` is a Model it must refuse |
@@ -124,8 +126,11 @@ ordinary `testpilot.Prepare` admits, the same bytes for the same inputs. The Nex
 functional Queries lower that way from `scala/temporal/nexuscaller/Realization.scala`.
 
 What a realization declares that Testpilot has no primitive for is named instead of lowered around,
-with the fn-107 task that owns the primitive: a durable-commit observation and a hold-delivery
-control (task 10), and the authored monitors of the machine a realization runs (task 12). Evidence
+as a limit of the prototype: a durable commit read back through an RPC or from history, and a control
+that holds the deliveries of a channel. A control that holds what a step dispatched to a task queue
+lowers to the Driver's delivery controls, and the commit its release observes to the release's own
+record (`ir/activity-race.json`); the authored monitors of the machine a realization runs are read by
+the prepared assessment, beside the Case's Contract. Evidence
 that is the Run's own record under a guard, evidence read from one message of a response, the fields
 a kind keeps and an attempt answered as canceled lower to Testpilot's own declarations. A class a
 path takes more than once is confirmed step by step: a kind of evidence may name the steps of a path

@@ -121,10 +121,10 @@ script("controller")(
 - **Behavior is frozen.** For all four IR files, `goir` must derive the same tables, Definition IDs, refinement rows, fingerprints and Query answers before and after every task, and `goir/testpilot` must lower the same Case bytes. `goir/activity_parity_test.go` keeps comparing `ir/activity.json` with `model/go/standaloneactivity` on every row and Property. The checked-in `ir/*.json` may differ only in source positions and in the lifter-internal names of functions that moved into objects. The first task records the exact allowed-difference list and a script that proves a diff stays inside it.
 - **Name capture must not change a name.** A captured name equals the string the declaration wrote before. The six Queries whose names are computed (`s"${m.name}.any.terminalStays"`) keep their spelling.
 - **The lifter refuses what it cannot read, at its line.** Each new construct gets a lifter fixture under `lifter/testdata` for the form it lifts and one for the misuse it refuses. Misuses to refuse are `rebind` of an unbound action, `extend` of a bound one, a composition member selector that names no field, and a named input that is no input of the action.
-- **Native Scala and lifted IR agree.** The munit tests under `scala/temporal/test` and `scala/umpire/test` run the native framework. A derived machine's native table equals the table Go derives from its lifted IR.
+- **Each construct is built once, in the lifter.** `fn-113-clean-up-the-scala-model-layer-around` retires the native Scala evaluator (its R14 and R15), so a new construct is a typed declaration in `umpire` plus its lifting, with no runtime implementation. This spec depends on fn-113 and starts after it closes.
 - **A machine is still found by its `val`.** `Lift.scala:1046` resolves machines by `ValDef`. Derivation ops are lifted from the `val` that calls them. Machines built inside a `def` with parameters stay unsupported.
 - **`UpTo[N]` replaces a lifter rule.** Today every `Int` field of one record shares the range of the one `given Finite[Int]`. The bound moves to the field's type. `Active` in the admission record may then become a counter, provided state keys and IDs stay equal. If they cannot, `Active` stays an enum and the done summary says why.
-- **Comments are preserved.** Existing comments move with the code they describe. A comment whose code is deleted (the second and third copy of a machine) is deleted with it. No task rewrites provenance comments.
+- **Comments.** A comment that explains a rule moves with the code it describes and loses any Lean or Stainless citation. A comment whose only content is such a citation is deleted, and a comment whose code is deleted (the second and third copy of a machine) is deleted with it. This follows fn-113's R19 and is a deliberate exception to the repository rule that refactors preserve comments.
 - **Nexus Models keep compiling and lifting.** `temporal/nexuscaller` adopts the shared kit and whatever framework defaults change under it. Its IR obeys the same frozen-behavior rule.
 - **Sequencing with fn-107.** Tasks 10, 11 and 22 of `fn-107-scala-umpire-prototype-for-standalone` are open and edit `Realization.scala`, `System.scala` and the lifter. This spec starts after they land, or its planner coordinates file ownership with the session working them.
 - **Gates.** Each task runs `model/scalav2/run.sh`, `make lint-scala`, the scoped `go test -tags test_dep ./model/scalav2/...` and `make lint-code-fast`. The closing task also runs `model/scalav2/backends/run.sh` where its tools are installed. No task installs a Lean toolchain. The Lean-dump parity tests skip without the dumps.
@@ -132,7 +132,7 @@ script("controller")(
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** A baseline script records, for the four IR files, the tables, Definition IDs, fingerprints, Query answers and lowered Case bytes, and fails on any difference outside the recorded allowed-difference list. Every later task passes it.
+- **R1:** A baseline script records, for the four IR files, the tables, Definition IDs, fingerprints, Query answers and lowered Case bytes, and fails on any difference outside the recorded allowed-difference list. Every later task passes it. It is the same script as fn-113's R13; whichever spec runs first writes it and the other extends it.
 - **R2:** `umpire` provides `rebind`, `extend` and `unmonitored`, the lifter lifts them, and `System.scala`'s successors declare each of the admission designs, the queue providers and the record members once. No two machine declarations in the feature Model share a `steps(...)` list.
 - **R3:** A composition names members and synchronized actions by field selector, and a composition derives from another by replacing a member. The feature Model contains no `actionKeys` call, no `whenAction` string, no fact or action key written as a string literal, and one set of `sync` lines per composed state type.
 - **R4:** `notAdmittedWhilePaused`, `atMostOneActive` and `terminalStays` are each written once and declared on the machine and on both composition families from that one definition.
@@ -156,10 +156,9 @@ script("controller")(
 - No change to what the Model says. No new Property, Scenario, machine, fault or assumption.
 - No IR schema change unless a task proves one is required, and then only by amending this spec.
 - No polish of `temporal/nexuscaller` beyond R12 and what the framework changes force.
-- No rewrite or relocation of the Lean provenance comments.
 - No change to `goir`, `goir/testpilot` or `backends` semantics. They change only if the lifter emits a construct they already define differently.
-- No new third-party library. Name capture is a macro written in `umpire`.
-- Making the native Scala search evaluate monitors is out of scope. `unmonitored` names the workaround once instead.
+- No library in `scala/temporal`. A library in `scala/umpire` or the lifter follows fn-113's R25. Name capture needs neither a library nor a macro: the lifter reads the name from the `val`'s symbol.
+- Defining whether a member's monitors watch a composition is out of scope. `SEMANTICS.md` leaves it undefined and `goir` refuses a Query over such a composition, so `unmonitored` names the workaround once instead.
 - `model/scala`, `model/go` and `model/lean` are untouched.
 
 ## Decision Context
@@ -169,7 +168,8 @@ script("controller")(
 - **Semantic freeze over byte freeze of the IR.** Moving a step function into an object may change the function name the lifter writes. Tables, IDs, fingerprints, answers and Case bytes are what consumers read, so those are frozen.
 - **Objects per machine over prefixes.** Prefixes are how the file got `protocolAttemptStartStep` beside `startStep`. Objects let both machines say `attemptStart`.
 - **A shared Temporal kit over a general one.** Role ids such as `temporal.workflow-service` are Temporal's. `umpire` stays free of them.
-- **Order of work.** R1 first. R3's use of `own` and `synced` needs no framework change and comes next. R2, R5, R6 and R7 are independent framework additions. R10 and R11 move code and follow them. R12 and R13 are last, after fn-107's realization work lands.
+- **Order of work.** R1 first. R3's use of `own` and `synced` needs no framework change and comes next. R2, R5, R6 and R7 are independent framework additions. R10 and R11 move code and follow them. R12 and R13 are last, after fn-107's realization work lands. Against the neighbouring specs: this spec depends on fn-113 and starts after it closes, and `fn-114-state-every-scala-model-declaration-once` rolls this spec's constructs out to the other Models afterwards.
+- **Amended 2026-10-01 for fn-113.** The owner retired Lean as a reference and made the IR the only thing the Scala layer answers to. Three rules of the first version went with that: the native framework had to agree with the lifted IR, no library was allowed, and Lean provenance comments were frozen.
 
 ## Parked unknowns
 

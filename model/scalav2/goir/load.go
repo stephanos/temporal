@@ -1771,7 +1771,11 @@ func (a *realizing) held(mm *modelirspb.Machine) {
 	}
 	for _, c := range a.r.GetControls() {
 		if step := c.GetHoldDispatched().GetStep(); step != nil {
-			a.v.actionClass(a.owner+": control "+c.GetId(), mm, step, c.GetPosition())
+			at := c.GetPosition()
+			if at.GetFile() == "" {
+				at = a.r.GetPosition()
+			}
+			a.v.actionClass(a.owner+": control "+c.GetId(), mm, step, at)
 		}
 	}
 }
@@ -2221,6 +2225,8 @@ type commandOf struct {
 	at   *modelirspb.Position
 	// always says every Case carries the command: it is no performance, and is under no condition.
 	always bool
+	// script is the id of the script the command is of.
+	script string
 }
 
 func (a *realizing) script(mm *modelirspb.Machine, s *modelirspb.Script) {
@@ -2250,7 +2256,7 @@ func (a *realizing) script(mm *modelirspb.Machine, s *modelirspb.Script) {
 		default:
 		}
 		all[c.GetId()] = c
-		commands = append(commands, commandOf{c, fmt.Sprintf("%s of script %s", c.GetId(), s.GetId()), pos, always})
+		commands = append(commands, commandOf{c, fmt.Sprintf("%s of script %s", c.GetId(), s.GetId()), pos, always, s.GetId()})
 	}
 	for _, item := range s.GetItems() {
 		if item.GetCommand() != nil && len(item.GetPerforms()) == 0 {
@@ -2478,8 +2484,14 @@ func (a *realizing) closes(c commandOf, id string) {
 			}
 		}
 	}
+	// The Run's own record of a command is read by that command: what the command records is all
+	// there is of the kind. A Case that does not carry the command has no record of it, and nothing
+	// is inferred from a source that was never read, so such a command need not be in every Case.
+	if record := e.GetRunEvent(); record != nil && record.GetScript() == c.script && record.GetCommand() == c.c.GetId() {
+		return
+	}
 	if !reads {
-		a.report(c.at, "command %s closes evidence %s and does not read it: a history kind is closed by the read that lifts it, and any other by a poll of it", c.name, id)
+		a.report(c.at, "command %s closes evidence %s and does not read it: a history kind is closed by the read that lifts it, the Run's own record of a command by that command, and any other by a poll of it", c.name, id)
 	}
 	if !c.always {
 		a.report(c.at, "command %s closes evidence %s and is not a command every Case carries", c.name, id)

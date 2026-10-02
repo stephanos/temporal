@@ -22,6 +22,7 @@ type admission struct {
 	carriers         map[string]map[string]contract.ReservationCarrierPolicy
 	opcodes          map[contract.Opcode]bool
 	commandTypes     map[enumspb.CommandType]bool
+	deliveryControl  bool
 	bindingsRequired bool
 	// environment holds the Profile's binding values, and bindings those of the Program's derived
 	// binding graph.
@@ -129,6 +130,7 @@ func (a *admission) bindPolicy(policy Profile) error {
 			return err
 		}
 	}
+	a.deliveryControl = policy.DeliveryControl
 	for _, opcode := range policy.Opcodes {
 		if opcode < contract.InvokeRPC || opcode > contract.MaxOpcode || a.opcodes[opcode] {
 			return ir.Invalid(ir.Malformed, "policy.opcodes", "invalid or duplicate opcode")

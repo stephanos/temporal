@@ -95,6 +95,10 @@ type ProfileSpec struct {
 	ContractLimits      *testpilotspb.ContractLimits
 	CorrelatedLimits    *testpilotspb.CorrelatedLimits
 	InstructionDefaults InstructionDefaults
+	// DeliveryControl says the environment can hold and release a delivery inside the server, which
+	// only an environment that runs the server can. A Case that holds a delivery is refused under a
+	// Profile without it, at preparation.
+	DeliveryControl bool
 }
 
 // WithinProgramCeiling reports whether every ProgramLimits field is positive and within the ceiling

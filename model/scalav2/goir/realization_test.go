@@ -169,8 +169,8 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 		}, "realization asyncNexus: control held holds what a step of no class dispatches"},
 		{"a control that holds the dispatch of a class the machine does not bind", func(_ *testing.T, _ *modelirspb.Model, r *modelirspb.Realization) {
 			r.Controls = append(r.Controls, &modelirspb.Control{Id: "held", Role: "temporal.task-queue",
-				Kind: &modelirspb.Control_HoldDispatched{HoldDispatched: &modelirspb.HoldDispatched{Step: &modelirspb.ActionClass{Action: "nope"}}}})
-		}, "no action nope"},
+				Kind: &modelirspb.Control_HoldDispatched{HoldDispatched: &modelirspb.HoldDispatched{Step: &modelirspb.ActionClass{Action: "temporal.worker.Worker$package$.workerResume"}}}})
+		}, "realization asyncNexus: control held: nexusProtocol binds no action temporal.worker.Worker$package$.workerResume"},
 		{"a control that holds the deliveries of no task queue", func(t *testing.T, _ *modelirspb.Model, r *modelirspb.Realization) {
 			step := admScript(t, r, "handler").GetItems()[0].GetPerforms()[0].GetStep()
 			r.Controls = append(r.Controls, &modelirspb.Control{Id: "held", Role: "temporal.workflow-service",
@@ -409,7 +409,7 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 			unclosed(r)
 			r.Evidence[1].Exhaustive = true
 			admCommand(t, admScript(t, r, "controller"), "await-close").Closes = []string{"temporal.nexus.caller.evidence.started"}
-		}, "command await-close of script controller closes evidence temporal.nexus.caller.evidence.started and does not read it: a history kind is closed by the read that lifts it, and any other by a poll of it"},
+		}, "command await-close of script controller closes evidence temporal.nexus.caller.evidence.started and does not read it: a history kind is closed by the read that lifts it, the Run's own record of a command by that command, and any other by a poll of it"},
 		{"a polled kind closed by a history read", func(t *testing.T, _ *modelirspb.Model, r *modelirspb.Realization) {
 			unclosed(r)
 			r.Evidence[6].Exhaustive = true
@@ -850,4 +850,27 @@ func TestTheAttemptARunEventRecordsIsOfAnActivitysScript(t *testing.T) {
 			require.ErrorContains(t, err, "model/scalav2/scala/temporal/standaloneactivity/Realization.scala:", "the error is located")
 		})
 	}
+}
+
+// The Run's own record of a command is closed by that command: its record is the read. The held
+// race declares the admission its release observes exhaustive, closed by the release, which is a
+// performance, since a Case that does not release has no record whose silence could say anything.
+// Any other command does not read the record, and closes nothing.
+func TestTheRunsOwnRecordIsClosedByTheCommandItRecords(t *testing.T) {
+	race := func(t *testing.T) (*modelirspb.Model, *modelirspb.Realization) {
+		m, err := Load(filepath.Join("..", "ir", "activity-race.json"))
+		require.NoError(t, err)
+		require.Len(t, m.GetRealizations(), 1)
+		return m, m.GetRealizations()[0]
+	}
+	const admitted = "temporal.activity.standalone.evidence.attemptAdmitted"
+	m, r := race(t)
+	release := admCommand(t, admScript(t, r, "controller"), "release-dispatch")
+	require.Equal(t, []string{admitted}, release.GetCloses())
+	require.NoError(t, Validate(m))
+
+	m, r = race(t)
+	admCommand(t, admScript(t, r, "controller"), "release-dispatch").Closes = nil
+	admCommand(t, admScript(t, r, "controller"), "hold-dispatch").Closes = []string{admitted}
+	require.ErrorContains(t, Validate(m), "command hold-dispatch of script controller closes evidence "+admitted+" and does not read it")
 }
