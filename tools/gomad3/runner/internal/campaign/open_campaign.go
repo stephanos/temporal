@@ -64,7 +64,7 @@ func OpenCampaign(path string) (Campaign, error) {
 	if err != nil {
 		return Campaign{}, classifyIntegrityError(err)
 	}
-	if err := validateCampaign(batch, runs); err != nil {
+	if err := validateCampaign(batch, runs, executionSuccessBytesBounded); err != nil {
 		return Campaign{}, err
 	}
 	if batch.Artifacts != nil {
@@ -105,7 +105,20 @@ func decodeExecutions(contents []byte) ([]ExecutionRecord, error) {
 	return runs, nil
 }
 
-func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
+// executionSuccessBytes says how validateCampaign holds the success bytes the
+// executions of a record report against the record's success-byte limit.
+type executionSuccessBytes uint8
+
+const (
+	// executionSuccessBytesBounded bounds their sum by the limit, as the
+	// campaign that retained them did.
+	executionSuccessBytesBounded executionSuccessBytes = iota
+	// executionSuccessBytesUnbounded leaves their sum to its summary alone, for
+	// a record whose limit bounds something other than that sum.
+	executionSuccessBytesUnbounded
+)
+
+func validateCampaign(batch CampaignRecord, runs []ExecutionRecord, executionBytes executionSuccessBytes) error {
 	if batch.SchemaVersion != record.SchemaVersion || batch.Schema != "gomad3.campaign/v1" || batch.CampaignID == "" || (batch.Selection == "") != (batch.SelectionCount == 0) || batch.SelectionCount == 0 && !isFullyAnsweredGuidance(batch.Guidance) {
 		return fmt.Errorf("campaign record identity is invalid")
 	}
@@ -136,7 +149,7 @@ func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
 		failureBytes := uint64(limits.FailureBytes)
 		successBytes := uint64(limits.SuccessBytes)
 		if limits.FailureOutcome != CapacityInfrastructureFailure || limits.SuccessOutcome != CapacityInfrastructureFailure || ((limits.FailureArtifacts == 0 || failureBytes == 0) && !isFullyAnsweredGuidance(batch.Guidance)) || limits.TranscriptBytes == 0 || uint64(limits.TotalBytes) != failureBytes+successBytes || uint64(limits.TotalBytes) < failureBytes ||
-			batch.DistinctFailures > limits.FailureArtifacts || batch.RetainedSuccesses > limits.SuccessArtifacts || batch.RetainedSuccessBytes > limits.SuccessBytes {
+			batch.DistinctFailures > limits.FailureArtifacts || batch.RetainedSuccesses > limits.SuccessArtifacts || executionBytes == executionSuccessBytesBounded && batch.RetainedSuccessBytes > limits.SuccessBytes {
 			return errors.New("campaign artifact capacity is invalid")
 		}
 	}

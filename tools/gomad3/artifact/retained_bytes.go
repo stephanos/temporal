@@ -25,6 +25,25 @@ type SharedTarget struct {
 // A bound on several artifacts sums them here, and a target the artifacts share
 // is counted once: the first artifact of a shared target adds all of its stored
 // bytes, and each later one adds its stored bytes without the target.
+//
+// The caller says which artifacts share a target, and the callers differ:
+//
+//   - A corpus shares a target among the cases whose target file is its pool's
+//     entry on disk (PoolTarget). A case with a private copy counts in full.
+//   - A merged campaign shares a target among all evidence that records the same
+//     target SHA-256, whether or not the shard stores share the file on disk.
+//     It accounts for one store that holds all of the merged evidence. Merge
+//     copies no evidence, so shards of two artifacts roots keep one copy per
+//     root while the merged limits count one.
+//   - The byte limits inside one campaign do not sum here: every retained
+//     artifact counts its full stored bytes, linked to the pool or not. The
+//     campaign record states retained_success_bytes as the sum of its
+//     executions' success_artifact_bytes and holds that sum to the success-byte
+//     limit beside it. Counting a shared target once would change that recorded
+//     sum or let it pass its recorded limit, and neither the record nor its
+//     journal says which artifacts share a target. A campaign's limits
+//     therefore bound what its artifacts take as standalone copies, which is
+//     more than they take in a store that shares their target.
 type RetainedBytes struct {
 	total   uint64
 	targets map[record.SHA256]struct{}

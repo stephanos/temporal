@@ -554,26 +554,17 @@ func validateMergedCampaign(campaign MergedCampaignRecord, runs []MergedExecutio
 		failureSignatures = append(failureSignatures, signature)
 	}
 	sort.Slice(failureSignatures, func(i, j int) bool { return failureSignatures[i] < failureSignatures[j] })
-	// validateCampaign bounds the success bytes the executions report, where
-	// every artifact counts in full, by the success limit. A merged campaign
-	// bounds its retained evidence below instead, where a shared target counts
-	// once, so here that sum only has to match its executions.
-	executionLimits := campaign.Artifacts
-	if campaign.RetainedSuccessBytes > executionLimits.SuccessBytes {
-		executionLimits.SuccessBytes = campaign.RetainedSuccessBytes
-		total, err := checkedMergedEvidenceBytes(uint64(executionLimits.FailureBytes), uint64(executionLimits.SuccessBytes), ArtifactLimitTotalBytes, uint64(campaign.Artifacts.TotalBytes))
-		if err != nil {
-			return err
-		}
-		executionLimits.TotalBytes = record.Uint64String(total)
-	}
 	validationRecord := CampaignRecord{
 		Guidance:      campaign.Guidance,
 		SchemaVersion: record.SchemaVersion, Schema: "gomad3.campaign/v1", CampaignID: "merged-validation", Strategy: "seed", Selection: campaign.Selection, SelectionCount: campaign.SelectionCount,
 		Attempted: campaign.Attempted, Succeeded: campaign.Succeeded, Failures: campaign.Failures, Watchdogs: campaign.Watchdogs, Cancelled: campaign.Cancelled, DistinctFailures: campaign.DistinctFailures,
-		RetainedSuccesses: campaign.RetainedSuccesses, RetainedSuccessBytes: campaign.RetainedSuccessBytes, StopReason: "seeds_exhausted", Journal: &campaign.Journal, Artifacts: &executionLimits, FailureSignatures: failureSignatures,
+		RetainedSuccesses: campaign.RetainedSuccesses, RetainedSuccessBytes: campaign.RetainedSuccessBytes, StopReason: "seeds_exhausted", Journal: &campaign.Journal, Artifacts: &campaign.Artifacts, FailureSignatures: failureSignatures,
 	}
-	if err := validateCampaign(validationRecord, executions); err != nil {
+	// The success limit of a campaign bounds the success bytes its executions
+	// report, where every artifact counts in full. A merged campaign bounds its
+	// retained evidence below instead, where a shared target counts once, so
+	// here that sum only has to match its executions.
+	if err := validateCampaign(validationRecord, executions, executionSuccessBytesUnbounded); err != nil {
 		return fmt.Errorf("validate merged executions: %w", err)
 	}
 	if uint64(campaign.DistinctFailures) != uint64(len(failures)) {

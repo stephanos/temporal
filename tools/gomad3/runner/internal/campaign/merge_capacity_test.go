@@ -289,3 +289,71 @@ func TestOpenMergedCampaignCountsEvidenceWithoutATargetInFull(t *testing.T) {
 		})
 	}
 }
+
+// testdata/pre-target-evidence-merged is a merged record the Runner published
+// at b5b498004, before merged evidence named its target: publishMergeShard's
+// four successes of one target, merged under a success-byte limit of exactly
+// their stored bytes.
+func TestOpenMergedCampaignOpensARecordWrittenBeforeEvidenceNamedItsTarget(t *testing.T) {
+	opened, err := OpenMergedCampaign(copyRetainedRecords(t, "pre-target-evidence-merged"))
+	if err != nil {
+		t.Fatalf("OpenMergedCampaign() rejected the retained record: %v", err)
+	}
+	var stored uint64
+	for _, run := range opened.Executions {
+		if run.Evidence == nil || run.Evidence.sharedTarget() != (artifact.SharedTarget{}) {
+			t.Fatalf("retained execution evidence = %#v, want evidence that names no target", run.Evidence)
+		}
+		stored += uint64(run.Evidence.StoredBytes)
+	}
+	// Every artifact counts in full, so the record sits exactly at its limit.
+	got := [3]uint64{uint64(len(opened.Executions)), uint64(opened.Record.EvidenceBytes), uint64(opened.Record.Artifacts.SuccessBytes)}
+	if want := [3]uint64{mergeTestOrdinals, stored, stored}; got != want {
+		t.Fatalf("retained record executions, evidence bytes, and success-byte limit = %d, want %d", got, want)
+	}
+}
+
+// The executions of a merged campaign may report more success bytes than the
+// success-byte limit, because the limit bounds the retained evidence. Every
+// other limit of the record is still checked with the value the record states.
+func TestOpenMergedCampaignChecksItsOtherLimitsWhenExecutionsReportMoreSuccessBytes(t *testing.T) {
+	root := t.TempDir()
+	var shards []string
+	var full uint64
+	for index := uint64(0); index < mergeTestShards; index++ {
+		path, stored := publishMergeShard(t, root, index)
+		shards = append(shards, path)
+		for _, bytes := range stored {
+			full += bytes
+		}
+	}
+	once := full - (mergeTestOrdinals-1)*uint64(len(mergeTestTarget))
+	merged, err := MergeCampaigns(context.Background(), mergeTestSpec(t, shards, once, false))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if uint64(merged.Record.RetainedSuccessBytes) <= uint64(merged.Record.Artifacts.SuccessBytes) {
+		t.Fatalf("executions report %d success bytes under a limit of %d: the record would not need the bound skipped", merged.Record.RetainedSuccessBytes, merged.Record.Artifacts.SuccessBytes)
+	}
+	for name, change := range map[string]func(*ArtifactCapacityPlan){
+		"total bytes that are not the sum of the byte limits":  func(limits *ArtifactCapacityPlan) { limits.TotalBytes++ },
+		"fewer success artifacts than the executions retained": func(limits *ArtifactCapacityPlan) { limits.SuccessArtifacts = mergeTestOrdinals - 1 },
+		"no transcript bytes": func(limits *ArtifactCapacityPlan) { limits.TranscriptBytes = 0 },
+	} {
+		t.Run(name, func(t *testing.T) {
+			changed := merged.Record
+			change(&changed.Artifacts)
+			manifest, err := canonicaljson.CanonicalJSON(changed)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(merged.Path, "merge.json"), manifest, 0o600); err != nil {
+				t.Fatal(err)
+			}
+			const want = "validate merged executions: campaign artifact capacity is invalid"
+			if _, err := OpenMergedCampaign(merged.Path); err == nil || err.Error() != want {
+				t.Fatalf("OpenMergedCampaign() error = %v, want %s", err, want)
+			}
+		})
+	}
+}

@@ -1,8 +1,11 @@
 package runner
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -11,6 +14,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
+	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -70,6 +74,42 @@ func TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds(t *testing.T) {
 				t.Fatalf("decideSuccessRetention() advanced the committed novelty to %v, %v", seenProbes, seenChoices)
 			}
 		})
+	}
+}
+
+// A campaign's success-byte limit counts every kept success in full, where a
+// corpus and a merged campaign count a shared target once
+// (artifact.RetainedBytes says why): two successes that link to one pool entry
+// do not fit a limit one byte short of their stored bytes.
+func TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit(t *testing.T) {
+	run := func(limit uint64) (CampaignResult, error) {
+		config := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
+			result := processResult(0, "", "")
+			result.IOTranscript = completeEmptyTranscript()
+			return result
+		}}, "1-2", PolicyAll, 1)
+		config.KeepSuccesses = KeepSuccessesAll
+		config.SuccessArtifactLimit = 2
+		config.SuccessBytesLimit = limit
+		return Explore(context.Background(), config)
+	}
+	measured, err := run(64 << 20)
+	if err != nil || len(measured.SuccessArtifacts) != 2 {
+		t.Fatalf("summary = %#v, error = %v", measured, err)
+	}
+	var targets [2]os.FileInfo
+	for index, path := range measured.SuccessArtifacts {
+		if targets[index], err = os.Lstat(filepath.Join(path, "target")); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if !os.SameFile(targets[0], targets[1]) {
+		t.Fatal("the two kept successes do not share one target file")
+	}
+	summary, err := run(measured.RetainedSuccessBytes - 1)
+	var hostError *HostError
+	if !errors.As(err, &hostError) || hostError.Reason != "success_retention_capacity" || summary.RetainedSuccesses != 1 {
+		t.Fatalf("summary = %#v, error = %v, want a capacity failure at the second success", summary, err)
 	}
 }
 
