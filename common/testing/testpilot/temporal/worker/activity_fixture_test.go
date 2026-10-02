@@ -45,6 +45,23 @@ func failingAttempt(id, failureType string, nonRetryable bool) *testpilotspb.Ins
 	}
 }
 
+// cancelingAttempt is the instruction that answers its attempt as canceled.
+func cancelingAttempt(id string) *testpilotspb.InstructionNode {
+	return &testpilotspb.InstructionNode{
+		InstructionId: id,
+		Instruction:   &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptCancellation{ActivityAttemptCancellation: &testpilotspb.ActivityAttemptCancellation{}}},
+		Limits:        facadetest.Bounds(),
+	}
+}
+
+// canceledActivity is standaloneActivity whose script declares two attempts: the first answers a
+// requested cancellation, which ends the activity, so the second never comes.
+func canceledActivity(program *testpilotspb.Program) {
+	standaloneActivity(program)
+	script := program.Entrypoints[1]
+	script.Instructions = []*testpilotspb.InstructionNode{cancelingAttempt("first-attempt"), script.Instructions[0]}
+}
+
 // retriedActivity is standaloneActivity whose script declares two attempts: the first fails
 // retryably and the second completes.
 func retriedActivity(program *testpilotspb.Program) {
@@ -75,7 +92,7 @@ func startActivityNode() *testpilotspb.InstructionNode {
 }
 
 func authorizeActivities(profile *testpilot.ProfileSpec) {
-	profile.Opcodes = append(profile.Opcodes, testpilot.ActivityAttemptFailure)
+	profile.Opcodes = append(profile.Opcodes, testpilot.ActivityAttemptFailure, testpilot.ActivityAttemptCancellation)
 	profile.Roles[0].Methods = append(profile.Roles[0].Methods, delivery.StartActivityPath)
 	profile.Roles[0].ReservationCarriers = append(profile.Roles[0].ReservationCarriers, testpilot.ReservationCarrierPolicy{Method: delivery.StartActivityPath, Shapes: []testpilot.ReservationCarrierShape{{Kind: testpilot.ActivityEntrypoint, MaximumCount: 8}}})
 }
@@ -221,6 +238,14 @@ func serverClosure(host *Driver) (chan string, *atomic.Int32) {
 	return closed, asked
 }
 
+// countHeartbeats replaces the heartbeat an attempt sends through the SDK with a count of them: a
+// delivery these tests hand the worker directly has no SDK activity behind it.
+func countHeartbeats(host *Driver) *atomic.Int32 {
+	sent := &atomic.Int32{}
+	host.options.heartbeat = func(context.Context) { sent.Add(1) }
+	return sent
+}
+
 // diagnosed is one diagnostic a Session reported to its Run, whole but for the id the Session
 // numbers it with.
 type diagnosed struct {
@@ -268,6 +293,7 @@ const (
 	completed          = testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED
 	failedRetryable    = testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_RETRYABLE
 	failedNonRetryable = testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_NON_RETRYABLE
+	canceledAnswer     = testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED
 )
 
 // settledActivity is the settled outcome of the first attempt's reservation.

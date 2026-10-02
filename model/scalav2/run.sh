@@ -75,7 +75,7 @@ activity='temporal.standaloneactivity.Model$package$.'
 activity_claims='temporal.standaloneactivity.Claims$package$.'
 activity_roots=("${activity}standaloneActivity" "${activity}activityProduct" "${activity_claims}functionalQueries"
   "${activity_claims}terminalHolds" "${activity_claims}pauseHolds" "${activity_claims}cancelRequest"
-  "${activity_claims}stoppedWorkerStartsNothing")
+  "${activity_claims}stoppedWorkerStartsNothing" 'temporal.standaloneactivity.ActivityRealization$.standalone')
 # Its system contract, the admission designs and the dispatch queue's providers: ir/activity-system.json.
 # A composition no Query runs over is a root of its own.
 activity_system_roots=(currentQueries staleQueries competingTimers matchingQueueQueries forgetfulQueueQueries
@@ -164,7 +164,10 @@ lift_into closereset "$jars" 'fixture.specimens.closereset.CloseReset$package$.r
 lift_into realizations "$jars" 'fixture.realizations.Realizations$package$.learnedRun' \
   'temporal.nexuscaller.Claims$package$.syncCompletion' 'fixture.realizations.Realizations$package$.pauseRace' \
   'fixture.realizations.Realizations$package$.pauseRaceQuery' \
-  'fixture.realizations.Realizations$package$.doorRealization' 'fixture.realizations.Realizations$package$.doorOpens' &
+  'fixture.realizations.Realizations$package$.doorRealization' 'fixture.realizations.Realizations$package$.doorOpens' \
+  'fixture.realizations.Realizations$package$.errandRealization' 'fixture.realizations.Realizations$package$.errandRetry' \
+  'fixture.realizations.Realizations$package$.errandWithdrawn' \
+  'fixture.realizations.Realizations$package$.tallyRealization' 'fixture.realizations.Realizations$package$.tallyOpens' &
 rejected=(unbounded waiting doubled listening counter crossedRead negative watched unrefined misplaced noSuchRoot
   unrefinedOutcomes counting batching shuffling guessing)
 lift_into rejects "$jars" "${rejected[@]/#/fixture.rejects.Rejects\$package\$.}" &

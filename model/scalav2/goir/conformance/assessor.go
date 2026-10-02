@@ -28,6 +28,10 @@ type assessor struct {
 	// frozen says execution became incomplete: as for the Contract, no later event is read.
 	frozen bool
 	spent  int
+	// closings is the last outcome the Run recorded of each closing read, and recorded the ordinals of
+	// each source: what an exhaustive source is closed by.
+	closings map[coordinate]closingOutcome
+	recorded map[string]*ordinals
 	// nonconformance and violations are what Observe has reported as established.
 	nonconformance *testpilot.ConformanceAssessment
 	violations     []testpilot.PropertyAssessment
@@ -41,10 +45,13 @@ type instance struct {
 	evidence []*observation
 	// open is the latest reading of its evidence that concludes nothing from what is absent.
 	open *survey
+	// run is the activity run the Run Events that carried its evidence record, once one does.
+	run role
 }
 
 func newAssessor(p *plan) *assessor {
-	return &assessor{plan: p, byName: map[string]*instance{}, named: map[string]*observation{}, awaited: map[string]*observation{}}
+	return &assessor{plan: p, byName: map[string]*instance{}, named: map[string]*observation{}, awaited: map[string]*observation{},
+		closings: map[coordinate]closingOutcome{}, recorded: map[string]*ordinals{}}
 }
 
 func (i *instance) support() []int64 {
@@ -81,6 +88,7 @@ func (a *assessor) observe(ctx context.Context, event *testpilotspb.RunEvent) (t
 	if a.frozen = a.frozen || event.GetExecutionIncomplete(); a.frozen {
 		return testpilot.Established{}, nil
 	}
+	a.completion(event)
 	seen, err := a.plan.reader.read(event)
 	if err != nil || seen == nil {
 		return testpilot.Established{}, err
@@ -97,6 +105,34 @@ func (a *assessor) observe(ctx context.Context, event *testpilotspb.RunEvent) (t
 		return testpilot.Established{}, err
 	}
 	return a.established(of), nil
+}
+
+// completion records what an instruction's own completion says of a closing read: the Run Event that
+// carries its outcome, which is no reservation's record and none of the events its response reads
+// emit. A later completion of the same instruction replaces an earlier one.
+func (a *assessor) completion(event *testpilotspb.RunEvent) {
+	if kind := event.GetKind(); kind != testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED && kind != testpilotspb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT {
+		return
+	}
+	at := coordinate{entrypoint: event.GetCoordinates().GetEntrypointId(), instruction: event.GetCoordinates().GetInstructionId()}
+	if !a.plan.closing[at] || event.GetOutcome() == nil {
+		return
+	}
+	a.closings[at] = readFailed
+	if event.GetOutcome().GetStatus() == testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED {
+		a.closings[at] = readSucceeded
+	}
+}
+
+// closed is the facts whose exhaustive source is closed on this Run, by the rule of sourceClosed.
+func (a *assessor) closed(positive bool) map[string]bool {
+	closed := map[string]bool{}
+	for _, k := range a.plan.reader.kinds {
+		if k.closing != nil && sourceClosed(positive, a.closings[*k.closing], a.recorded[k.source].unbroken()) {
+			closed[k.records] = true
+		}
+	}
+	return closed
 }
 
 // admit takes one observation into the instance it is of, or returns no instance for evidence the Run
@@ -124,8 +160,20 @@ func (a *assessor) admit(seen *observation) (*instance, error) {
 	if len(of.evidence) >= maxEvidence {
 		return nil, &LimitError{Resource: "evidence of one operation", Ceiling: maxEvidence, Event: seen.sequence}
 	}
+	// One operation is one activity run: evidence two Run Events record under two runs is crossed.
+	if seen.run.known && of.run.known && seen.run.id != of.run.id {
+		return nil, &EvidenceError{Event: seen.sequence, Message: fmt.Sprintf("evidence of operation %s on a Run Event of activity run %q, and the operation's evidence is of activity run %q",
+			of.name, seen.run.id, of.run.id)}
+	}
+	if seen.run.known {
+		of.run = seen.run
+	}
 	of.evidence = append(of.evidence, seen)
 	a.named[seen.identity] = seen
+	if a.recorded[seen.source] == nil {
+		a.recorded[seen.source] = &ordinals{}
+	}
+	a.recorded[seen.source].record(seen.ordinal)
 	// A parent recorded for another operation is found where the later of the two is read, whichever
 	// that is, without reading the other operations again.
 	if child, awaited := a.awaited[seen.identity]; awaited && child.instance != seen.instance {
@@ -173,9 +221,10 @@ func (a *assessor) detail(of *instance, why string) string {
 }
 
 // Close implements testpilot.Assessor. A Run that closed complete is read once more as a whole, so
-// that a monitor read at the end of a path is read. One that did not keeps what its events
-// established, and concludes nothing else. Neither reading concludes anything from evidence that is
-// absent.
+// that a monitor read at the end of a path is read, and so that an exhaustive source its closing read
+// closed says what did not happen. One that did not close complete keeps what its events established,
+// and concludes nothing else. No reading concludes anything from the absence of evidence whose source
+// is not closed.
 func (a *assessor) Close(ctx context.Context, closure testpilot.AssessmentClosure) (*testpilot.AssessmentOutcome, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -185,6 +234,7 @@ func (a *assessor) Close(ctx context.Context, closure testpilot.AssessmentClosur
 	conformances, reasons := make([]testpilot.ConformanceStatus, 0, len(a.instances)), make([]string, 0, len(a.instances))
 	claims, claimReasons := make([][]testpilot.PropertyStatus, len(a.plan.claims)), make([][]string, len(a.plan.claims))
 	var support []int64
+	closed := a.closed(positive)
 	for _, of := range a.instances {
 		support = append(support, of.support()...)
 		read := of.open
@@ -194,7 +244,7 @@ func (a *assessor) Close(ctx context.Context, closure testpilot.AssessmentClosur
 				return nil, err
 			}
 			event := of.evidence[len(of.evidence)-1].sequence
-			if read, err = a.plan.explore(related, regime{ended: true, event: event}, &a.spent); err != nil {
+			if read, err = a.plan.explore(related, regime{ended: true, event: event, closed: closed}, &a.spent); err != nil {
 				return nil, err
 			}
 		}

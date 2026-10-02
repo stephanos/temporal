@@ -122,10 +122,10 @@ func lineOf(t *testing.T, position string) string {
 	return lines[n-1]
 }
 
-// The held race declares the four primitives the reviewed specimens need and Testpilot does not
-// have: authored monitors, a durable-commit observation, a hold-delivery control with the commands
-// that use it, and an activity's worker script. Lowering names each where it was written, with the
-// task that owns it, and builds no Case around them.
+// The held race declares the three primitives the reviewed specimens need and Testpilot does not
+// have: authored monitors, a durable-commit observation, and a hold-delivery control with the commands
+// that use it. Lowering names each where it was written, with the task that owns it, and builds no
+// Case around them. Its activity script is no gap: Testpilot runs an activity's attempts.
 func TestWhatTestpilotCannotRunIsNamedWithItsOwner(t *testing.T) {
 	p, err := NewProducer(liftedRealizations(t))
 	require.NoError(t, err)
@@ -144,7 +144,6 @@ func TestWhatTestpilotCannotRunIsNamedWithItsOwner(t *testing.T) {
 		{"hold-delivery control", "hold-dispatch", "fn-107.10", realizationsAt, "Control(holdDispatch"},
 		{"hold-delivery command", "controller/hold-dispatch-before-start", "fn-107.10", realizationsAt, "hold-dispatch-before-start"},
 		{"hold-delivery command", "controller/release-dispatch", "fn-107.10", realizationsAt, "release-dispatch"},
-		{"activity activation", "activity", "fn-107.13", realizationsAt, "Script("},
 	}
 	var got []gap
 	for i, u := range l.Unsupported {

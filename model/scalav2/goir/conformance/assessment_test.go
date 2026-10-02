@@ -1,6 +1,7 @@
 package conformance
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -120,6 +121,10 @@ type row struct {
 	query   goir.ClaimKey
 	carried []string
 	script  []any
+	// retains is the fields the Case's evidence keeps, by the fact a kind records. closes says the Case
+	// ends with the closing read, and closingFails that the read then fails.
+	retains              map[string][]*testpilotspb.CorrelatedFieldPolicy
+	closes, closingFails bool
 	// incomplete says the Run does not close complete, and contractFails names the read whose
 	// evidence the Contract's own evaluation failed on.
 	incomplete    bool
@@ -310,6 +315,10 @@ func admissionRows() []row {
 	}
 }
 
+func allRows() []row {
+	return slices.Concat(admissionRows(), holeRows(), identityRows(), exhaustiveRows())
+}
+
 // run runs the row's Case live against the fake source and returns everything a caller gets.
 func (r row) run(t *testing.T) (*bound, []read, *testpilotspb.Run, *testpilotspb.Verdict, *testpilot.Assessment) {
 	t.Helper()
@@ -318,8 +327,8 @@ func (r row) run(t *testing.T) (*bound, []read, *testpilotspb.Run, *testpilotspb
 	if r.model != nil {
 		model, query = r.model, r.query
 	}
-	b := bind(t, model(t), query, carrier(r.design, r.carried, len(reads)), generous)
-	run, verdict, assessment, err := b.assessed.Run(t.Context(), &sourceDriver{identity: b.plain.Identity(), script: reads})
+	b := bind(t, model(t), query, carrierWith(r.design, r.carried, len(reads), r.retains, r.closes), generous)
+	run, verdict, assessment, err := b.assessed.Run(t.Context(), &sourceDriver{identity: b.plain.Identity(), script: reads, closingFails: r.closingFails})
 	require.NotNil(t, run)
 	if r.incomplete {
 		require.Equal(t, testpilotspb.RUN_DISPOSITION_INCOMPLETE, run.GetDisposition())
@@ -338,7 +347,7 @@ func (r row) run(t *testing.T) (*bound, []read, *testpilotspb.Run, *testpilotspb
 // Every row is assessed live and replayed, and the two Assessments are one value: the one worked out
 // from the specimen. The Contract's Verdict is what the Case gives without an assessment.
 func TestEvidenceIsAssessedLiveAndReplayedAlike(t *testing.T) {
-	for _, r := range append(admissionRows(), holeRows()...) {
+	for _, r := range allRows() {
 		t.Run(r.name, func(t *testing.T) {
 			b, reads, run, verdict, live := r.run(t)
 			require.Equal(t, r.want.assessment(t, b, r.design, run, reads), live)
@@ -358,7 +367,7 @@ func TestEvidenceIsAssessedLiveAndReplayedAlike(t *testing.T) {
 // Host-clock coordinates are no evidence: the same Run with every elapsed coordinate moved, and
 // nothing causal changed, is assessed to the same value.
 func TestClockSkewChangesNoAssessment(t *testing.T) {
-	for _, r := range append(admissionRows(), holeRows()...) {
+	for _, r := range allRows() {
 		t.Run(r.name, func(t *testing.T) {
 			b, _, run, verdict, live := r.run(t)
 			skewed := proto.CloneOf(run)

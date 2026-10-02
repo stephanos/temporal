@@ -3,6 +3,3 @@ go = "1.27.0"
 protoc = "29.5"
 scala-cli = "1.17.1"
 java = "temurin-27"
-
-[env]
-_.source = "develop/mise-env.sh"

@@ -57,7 +57,12 @@ An activity entrypoint (`ActivityActivation`) runs as a standalone activity: the
 `StartActivityExecution` starts. Its script is the activity's attempts in order, one instruction
 per attempt. A `Finish` completes its attempt with its result, whatever value that is, and the
 activity closes when the server accepts that completion. An `ActivityAttemptFailure` fails its attempt with the application failure it
-carries, which the server retries unless the failure says otherwise. Preparation reserves one
+carries, which the server retries unless the failure says otherwise. An
+`ActivityAttemptCancellation` answers its attempt as canceled, which a worker may do only for a
+cancellation the server asked for: the attempt heartbeats until the server answers a heartbeat with
+the requested cancellation, and then hands the SDK a canceled error. The SDK tells Temporal an
+attempt is canceled only for a delivery the server asked to cancel and reports any other canceled
+error as a failure, so the worker never offers a cancellation the SDK would not send. Preparation reserves one
 activation per instruction, so every attempt is its own activation under its own reservation, and
 the script's values carry across the attempts as a Nexus handler's do across its deliveries, so a
 later attempt's guard reads what an earlier one admitted.
@@ -90,6 +95,7 @@ exactly one of these states, and settles at most once:
 | offered-completed | its `Finish` ran and the worker offered the completion | succeeded, `OFFERED_COMPLETED`, run, SDK attempt, delivery |
 | offered-failed-retryable | its `ActivityAttemptFailure` ran and the worker offered a failure the server may retry | succeeded, `OFFERED_FAILED_RETRYABLE`, run, SDK attempt, delivery |
 | offered-failed-non-retryable | the same, with a failure the server does not retry | succeeded, `OFFERED_FAILED_NON_RETRYABLE`, run, SDK attempt, delivery |
+| offered-canceled | its `ActivityAttemptCancellation` ran: the server answered the attempt's heartbeat with the requested cancellation, and the worker offered the canceled answer | succeeded, `OFFERED_CANCELED`, run, SDK attempt, delivery |
 | refused | the worker performed nothing declared and offered its own non-retryable failure | SDK failure `umpire_worker` with the cause, `REFUSED`, run, SDK attempt, delivery; then the Run is incomplete |
 | released-not-needed | the server reported the activity closed before any attempt was delivered for it | canceled, `NOT_NEEDED`, the run only, caused by the last recorded attempt |
 | never-seen | the Run released the reservation while nothing was delivered for it and the server had said nothing | canceled with no attempt fact, which fails the Run unrecorded |
@@ -100,7 +106,8 @@ The allowed transitions, and what brings each about:
 | --- | --- | --- |
 | reserved | admitted | the first delivery of the SDK attempt whose number is the reservation's position, in the activity run the start answered with |
 | admitted | offered-completed, offered-failed-retryable, offered-failed-non-retryable | the attempt's instruction ran, after every earlier attempt of the activity settled |
-| admitted | refused | the instruction is disabled, the Run canceled the reservation, the delivery's context ended, or the SDK or the Driver failed |
+| admitted | offered-canceled | the attempt's instruction ran, after every earlier attempt of the activity settled, and the server answered a heartbeat of the attempt with the requested cancellation |
+| admitted | refused | the instruction is disabled, the Run canceled the reservation, the delivery's context ended, a cancellation to answer was never requested before it did, or the SDK or the Driver failed |
 | reserved | released-not-needed | the server answered the worker's long poll for the activity's outcome, and the reservation is after the last attempt admitted |
 | reserved | never-seen | the Run canceled the reservation |
 
@@ -108,6 +115,8 @@ Everything else is refused and changes no state:
 
 - A delivery of an attempt already admitted or settled, under whatever delivery identity, runs
   nothing and settles nothing. It waits for the first delivery's answer and returns the same one.
+  A canceled answer is returned to it only once the server has asked that delivery to cancel too,
+  which it heartbeats to learn; if its context ends first it is refused, and nothing is settled.
 - An offered answer releases nothing, whichever it is. Only the server closing the activity does.
   If the server loses the answer and redelivers the attempt, the worker answers again; if it timed
   the attempt out and issues the next, that attempt finds its reservation and runs its instruction.
@@ -137,7 +146,11 @@ cancellation request, so the worker offers a failure, never a cancellation, and 
 same. `Validate` rejects, with no I/O, an activity reservation carried by
 anything but `StartActivityExecution`, a start that carries anything beside the one activity it
 starts, and a start that does not name the worker's namespace and the entrypoint's task queue by
-their binding identities. No instruction makes an attempt heartbeat or wait, and an activity a
+their binding identities. Only an `ActivityAttemptCancellation` makes an attempt heartbeat, and it
+waits only for the server's request: every 100 ms it records a heartbeat, and the worker's SDK
+options cap the heartbeat throttle at that period whatever heartbeat timeout the activity has, so
+the request is seen about that soon. No instruction makes an attempt give no answer, so an attempt
+the server times out is not realized, and an activity a
 workflow schedules is not realized: its task names no activity run and is refused.
 
 Controller code reserves worker activations before dispatch and creates a `Carrier` from the

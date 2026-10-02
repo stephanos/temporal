@@ -54,13 +54,22 @@ object NexusRealization:
   private val operationFieldID = "temporal.nexus.caller.scope.operation"
 
   private val scheduledEvidence = "temporal.nexus.caller.evidence.scheduled"
+  private val startedEvidence = "temporal.nexus.caller.evidence.started"
+  private val completedEvidence = "temporal.nexus.caller.evidence.completed"
+  private val failedEvidence = "temporal.nexus.caller.evidence.failed"
+  private val canceledEvidence = "temporal.nexus.caller.evidence.canceled"
+  private val timedOutEvidence = "temporal.nexus.caller.evidence.timedOut"
   private val pendingAttemptsEvidence = "temporal.nexus.caller.evidence.pendingAttempts"
 
   /** The service and operation the handler script answers. */
   private val service = "umpire.case.service"
   private val operation = "complete"
 
-  /** One history event kind of the operation, keyed by the scheduled event it answers. */
+  /**
+   * One history event kind of the operation, keyed by the scheduled event it answers. The history is
+   * read once the workflow has closed, when it holds every event the operation will ever have, so the
+   * kind is exhaustive and that read closes it.
+   */
   private def historySource(kind: String, attributes: String, id: String) =
     Evidence(
       id = id,
@@ -68,7 +77,8 @@ object NexusRealization:
       source = historySourceID,
       from = Recorded.History(attributes),
       operation = s"attributes<$attributes>.scheduled_event_id",
-      commitment = Commitment.reported
+      commitment = Commitment.reported,
+      exhaustive = true
     )
 
   private val historyEvents = "history.events[*]"
@@ -89,27 +99,27 @@ object NexusRealization:
     historySource(
       "nexusOperationStarted",
       "nexus_operation_started_event_attributes",
-      "temporal.nexus.caller.evidence.started"
+      startedEvidence
     ),
     historySource(
       "nexusOperationCompleted",
       "nexus_operation_completed_event_attributes",
-      "temporal.nexus.caller.evidence.completed"
+      completedEvidence
     ),
     historySource(
       "nexusOperationFailed",
       "nexus_operation_failed_event_attributes",
-      "temporal.nexus.caller.evidence.failed"
+      failedEvidence
     ),
     historySource(
       "nexusOperationCanceled",
       "nexus_operation_canceled_event_attributes",
-      "temporal.nexus.caller.evidence.canceled"
+      canceledEvidence
     ),
     historySource(
       "nexusOperationTimedOut",
       "nexus_operation_timed_out_event_attributes",
-      "temporal.nexus.caller.evidence.timedOut"
+      timedOutEvidence
     ),
     Evidence(
       id = pendingAttemptsEvidence,
@@ -167,18 +177,29 @@ object NexusRealization:
 
   /**
    * Lifts the history kinds among the resolved rules; a path that records none lifts nothing,
-   * because a lift with no rule is a Case preparation rejects.
+   * because a lift with no rule is a Case preparation rejects. It runs after the workflow closed, so
+   * it is the closing read of every history kind.
    */
-  private val history = rpc(
+  private val history = Command(
     "history",
-    getHistoryMethod,
-    historyAssignments,
-    Vector(
-      ResponseRead(
-        historyEvents,
-        Cardinality.each,
-        Vector(Target.Observe(historyObservation), Target.Lift(correlatedObservation))
+    Rpc(
+      workflowServiceRole,
+      getHistoryMethod,
+      historyAssignments,
+      Vector(
+        ResponseRead(
+          historyEvents,
+          Cardinality.each,
+          Vector(Target.Observe(historyObservation), Target.Lift(correlatedObservation))
+        )
       )
+    ),
+    closes = Vector(
+      startedEvidence,
+      completedEvidence,
+      failedEvidence,
+      canceledEvidence,
+      timedOutEvidence
     )
   )
 

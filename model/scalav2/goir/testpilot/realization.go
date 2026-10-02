@@ -6,6 +6,8 @@ package testpilot
 // realization.
 
 import (
+	"errors"
+	"math"
 	"slices"
 
 	commandpb "go.temporal.io/api/command/v1"
@@ -16,6 +18,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	cp "go.temporal.io/server/model/go/caseproducer"
 	"go.temporal.io/server/model/go/umpire"
+	"go.temporal.io/server/model/scalav2/goir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -102,11 +105,24 @@ func (a *adapter) realization() (*cp.Realization, []error) {
 	return out, problems
 }
 
+var runEventKinds = map[modelirspb.RunEventSource_Kind]testpilotspb.RunEventKind{
+	modelirspb.RunEventSource_KIND_INSTRUCTION_COMPLETED: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED,
+	modelirspb.RunEventSource_KIND_INSTRUCTION_TIMED_OUT: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT,
+	modelirspb.RunEventSource_KIND_DIAGNOSTIC:            testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC,
+}
+
+var fieldRoles = map[modelirspb.EvidenceField_Role]string{
+	modelirspb.EvidenceField_ROLE_OPERATION: "operation",
+	modelirspb.EvidenceField_ROLE_ATTEMPT:   "attempt",
+	modelirspb.EvidenceField_ROLE_DELIVERY:  "delivery",
+}
+
 // source is one kind of evidence as a producer reads it, once its recorded message and the field
 // that keys its operation are found in the descriptors it names.
 func (a *adapter) source(e *modelirspb.Evidence) (*cp.EvidenceSource, error) {
 	at := e.GetPosition()
-	out := &cp.EvidenceSource{EventKind: e.GetRecords(), OperationKeyPath: e.GetOperation(), KindID: e.GetId(), SourceID: e.GetSource()}
+	out := &cp.EvidenceSource{EventKind: e.GetRecords(), OperationKeyPath: e.GetOperation(), KindID: e.GetId(), SourceID: e.GetSource(),
+		Exhaustive: e.GetExhaustive()}
 	var element protoreflect.MessageDescriptor
 	switch from := e.GetFrom().(type) {
 	case *modelirspb.Evidence_History:
@@ -119,30 +135,232 @@ func (a *adapter) source(e *modelirspb.Evidence) (*cp.EvidenceSource, error) {
 		}
 		element, out.Recorded = event, cp.Recorded{HistoryAttributes: from.History}
 	case *modelirspb.Evidence_Read:
-		method, err := methodNamed(at, from.Read.GetMethod())
+		read, err := readFrom(e, from.Read, true)
 		if err != nil {
 			return nil, err
 		}
-		end, err := walk(at, method.Output(), from.Read.GetPath())
+		element, out.Recorded = read, cp.Recorded{Method: from.Read.GetMethod(), Path: from.Read.GetPath()}
+	case *modelirspb.Evidence_Single:
+		read, err := readFrom(e, from.Single, false)
 		if err != nil {
 			return nil, err
 		}
-		if !end.field.IsList() || end.message() == nil {
-			return nil, errorAt(at, "evidence %s is read from %s, which is no repeated message of %s", e.GetId(), from.Read.GetPath(), method.Output().FullName())
+		element, out.Recorded = read, cp.Recorded{Method: from.Single.GetMethod(), Path: from.Single.GetPath(), Single: true}
+	case *modelirspb.Evidence_RunEvent:
+		payload, err := a.payloadOf(e, from.RunEvent)
+		if err != nil {
+			return nil, err
 		}
-		element, out.Recorded = end.message(), cp.Recorded{Method: from.Read.GetMethod(), Path: from.Read.GetPath()}
+		recorded, err := a.runEvent(e, from.RunEvent, payload)
+		if err != nil {
+			return nil, err
+		}
+		element, out.Recorded = payload, cp.Recorded{RunEvent: recorded}
+		// A key that is a path of the payload is the kind's operation key path; the run's id is none.
+		out.OperationKeyPath = from.RunEvent.GetKey().GetPath().GetPath()
 	default:
 		return nil, errorAt(at, "evidence %s is recorded nowhere", e.GetId())
 	}
-	key, err := walk(at, element, e.GetOperation())
-	if err != nil {
-		return nil, err
+	if e.GetRunEvent() == nil {
+		key, err := walk(at, element, e.GetOperation())
+		if err != nil {
+			return nil, err
+		}
+		if key.fanned || key.field.IsList() || key.message() != nil {
+			return nil, errorAt(at, "evidence %s keys its operation by %s, which is no single scalar of %s", e.GetId(), e.GetOperation(), element.FullName())
+		}
 	}
-	if key.fanned || key.field.IsList() || key.message() != nil {
-		return nil, errorAt(at, "evidence %s keys its operation by %s, which is no single scalar of %s", e.GetId(), e.GetOperation(), element.FullName())
+	for _, f := range e.GetFields() {
+		kind, err := carriedField(e, f, element)
+		if err != nil {
+			return nil, err
+		}
+		// A field is carried with its value. One the realization redacts is a gap before any Case is
+		// produced, and has no place in a Case's inventory.
+		out.Fields = append(out.Fields, cp.EvidenceField{ID: f.GetId(), Path: f.GetPath(), Type: kind, Role: fieldRoles[f.GetRole()]})
+	}
+	for _, taking := range e.GetConfirms() {
+		out.Confirms = append(out.Confirms, cp.Taking{Key: a.classKey(taking.GetStep()), Occurrence: int(min(taking.GetOccurrence(), math.MaxInt32))})
 	}
 	a.element[e.GetId()] = element
 	return out, nil
+}
+
+// runEvent is the Run's own record as a producer declares it: the events of one kind that one
+// instruction records, under the source's guard, keyed by the Run or by a path of the payload. A Run
+// records the events of a controller's instructions under their own coordinates and no other
+// script's, so the command is a controller's.
+func (a *adapter) runEvent(e *modelirspb.Evidence, source *modelirspb.RunEventSource, payload protoreflect.MessageDescriptor) (*cp.RunEvent, error) {
+	at := e.GetPosition()
+	kind, known := runEventKinds[source.GetKind()]
+	if !known {
+		return nil, errorAt(at, "evidence %s is a Run Event of no kind this reader lowers", e.GetId())
+	}
+	for _, s := range a.r.GetScripts() {
+		if s.GetId() == source.GetScript() && s.GetController() == nil {
+			return nil, errorAt(at, "evidence %s is the Run's record of a command of script %s, which no controller runs: a Run records the events of a controller's instructions",
+				e.GetId(), s.GetId())
+		}
+	}
+	out := &cp.RunEvent{Kind: kind, EntrypointID: source.GetScript(), InstructionID: source.GetCommand(), RunKeyed: source.GetKey().GetRun() != nil}
+	var err error
+	if out.Guard, err = a.guardOf(e, source, payload); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// attemptNumber is where the Run's record of an attempt holds the number the server counts it by.
+const attemptNumber = "activity_attempt.sdk_attempt"
+
+// guardOf is the guard a Case's declaration of the Run's own record states: the source's own, and,
+// for the record of an attempt, that the record is of the attempt the source names. The declaration of
+// which attempt a record is of is then what the runtime selects the record by, and no guard a
+// realization writes can take another attempt's record for it. The source's own guard is read first: it
+// says the record is of an attempt at all.
+func (a *adapter) guardOf(e *modelirspb.Evidence, source *modelirspb.RunEventSource, payload protoreflect.MessageDescriptor) (*testpilotspb.Expression, error) {
+	at := e.GetPosition()
+	var guard *testpilotspb.Expression
+	if source.GetGuard() != nil {
+		var err error
+		if guard, err = a.operand(at, source.GetGuard(), payload); err != nil {
+			return nil, err
+		}
+	}
+	of := source.GetAttempt()
+	if of == nil {
+		return guard, nil
+	}
+	if _, err := walk(at, payload, attemptNumber); err != nil {
+		return nil, err
+	}
+	numbered := cp.Equal(cp.Path(cp.ProjectedValue(), attemptNumber), cp.Literal(cp.SignedInteger(of.GetNumber())))
+	if guard == nil {
+		return numbered, nil
+	}
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{
+		Operands: []*testpilotspb.Expression{guard, numbered}}}}, nil
+}
+
+// readFrom is the message a kind of evidence is read from at a path of a method's response: the
+// element of a repeated field, or the one message a single read names.
+func readFrom(e *modelirspb.Evidence, read *modelirspb.ReadSource, repeated bool) (protoreflect.MessageDescriptor, error) {
+	at := e.GetPosition()
+	method, err := methodNamed(at, read.GetMethod())
+	if err != nil {
+		return nil, err
+	}
+	end, err := walk(at, method.Output(), read.GetPath())
+	if err != nil {
+		return nil, err
+	}
+	switch {
+	case repeated && (!end.field.IsList() || end.message() == nil):
+		return nil, errorAt(at, "evidence %s is read from %s, which is no repeated message of %s", e.GetId(), read.GetPath(), method.Output().FullName())
+	case !repeated && (end.fanned || end.field.IsList() || end.message() == nil):
+		return nil, errorAt(at, "evidence %s is read from %s, which is no single message of %s", e.GetId(), read.GetPath(), method.Output().FullName())
+	default:
+		return end.message(), nil
+	}
+}
+
+// payloadOf is the payload of the Run Events a kind of evidence is: the instruction outcome, which
+// the source's guard, and its key where that is a path, are read against.
+func (a *adapter) payloadOf(e *modelirspb.Evidence, source *modelirspb.RunEventSource) (protoreflect.MessageDescriptor, error) {
+	at := e.GetPosition()
+	payload, err := messageNamed(at, instructionOutcomeMessage)
+	if err != nil {
+		return nil, err
+	}
+	if guard := source.GetGuard(); guard != nil {
+		if err := goir.GuardProblem(guard, payload); err != nil {
+			return nil, errorAt(at, "evidence %s: its guard %s", e.GetId(), err)
+		}
+	}
+	// The key names one operation: the run's own id, or one text or integer of the payload.
+	if key := source.GetKey(); key.GetPath() != nil {
+		computes, err := goir.TypeOf(key, payload, lifted(at))
+		if err != nil {
+			return nil, mistyped(at, err, "evidence %s: its key", e.GetId())
+		}
+		if computes.Shape != goir.TextShape && computes.Shape != goir.NumberShape {
+			return nil, errorAt(at, "evidence %s: its key reads %s, which is no single text or integer of %s", e.GetId(), key.GetPath().GetPath(), payload.FullName())
+		}
+	}
+	return payload, nil
+}
+
+// mistyped locates a type problem under what it is a problem of, and leaves any other error as it is.
+func mistyped(at *modelirspb.Position, err error, format string, args ...any) error {
+	var problem *goir.Mistype
+	if errors.As(err, &problem) {
+		return errorAt(at, format+" %s", append(args, problem.Says)...)
+	}
+	return err
+}
+
+// lifted types a path as Testpilot reads one where it lifts evidence: a field, each element of a
+// repeated field, or a member of a oneof, of the message the path is read from.
+func lifted(at *modelirspb.Position) goir.Paths {
+	return func(of goir.Typed, path string) (goir.Typed, error) {
+		if of.Message == nil {
+			return goir.Typed{}, nil
+		}
+		end, err := walk(at, of.Message, path)
+		if err != nil {
+			return goir.Typed{}, err
+		}
+		return fieldValue(end), nil
+	}
+}
+
+func fieldValue(end reached) goir.Typed {
+	if end.fanned || end.field.IsList() {
+		return goir.Typed{Shape: goir.SeveralShape}
+	}
+	switch end.field.Kind() {
+	case protoreflect.MessageKind, protoreflect.GroupKind:
+		return goir.Typed{Shape: goir.MessageShape, Message: end.message()}
+	case protoreflect.BoolKind:
+		return goir.Typed{Shape: goir.ConditionShape}
+	case protoreflect.StringKind:
+		return goir.Typed{Shape: goir.TextShape}
+	case protoreflect.EnumKind:
+		return goir.Typed{Shape: goir.EnumShape, Enum: end.field.Enum()}
+	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind, protoreflect.Uint32Kind, protoreflect.Fixed32Kind,
+		protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind, protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
+		return goir.Typed{Shape: goir.NumberShape}
+	default:
+		return goir.Typed{Shape: goir.OtherShape}
+	}
+}
+
+// carriedField checks that a field of evidence reads what evidence can carry, one text, flag or
+// integer of the recorded message, and is the scalar evidence carries it as.
+func carriedField(e *modelirspb.Evidence, f *modelirspb.EvidenceField, element protoreflect.MessageDescriptor) (testpilotspb.ScalarKind, error) {
+	at := f.GetPosition()
+	if at.GetFile() == "" {
+		at = e.GetPosition()
+	}
+	end, err := walk(at, element, f.GetPath())
+	if err != nil {
+		return 0, err
+	}
+	carried := testpilotspb.SCALAR_KIND_UNSPECIFIED
+	switch end.field.Kind() {
+	case protoreflect.StringKind:
+		carried = testpilotspb.SCALAR_KIND_TEXT
+	case protoreflect.BoolKind:
+		carried = testpilotspb.SCALAR_KIND_BOOLEAN
+	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind, protoreflect.Uint32Kind, protoreflect.Fixed32Kind,
+		protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind, protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
+		carried = testpilotspb.SCALAR_KIND_UINT64
+	default:
+	}
+	if carried == testpilotspb.SCALAR_KIND_UNSPECIFIED || end.fanned || end.field.IsList() {
+		return 0, errorAt(at, "evidence %s: field %s reads %s, which is no single text, flag or integer of %s", e.GetId(), f.GetId(), f.GetPath(), element.FullName())
+	}
+	return carried, nil
 }
 
 // built is one command as an instruction node, with the lifts a producer fills from the rules a
@@ -269,6 +487,12 @@ func (a *adapter) activation(s *modelirspb.Script) (func() *testpilotspb.Entrypo
 }
 
 func (a *adapter) command(s *modelirspb.Script, c *modelirspb.Command) (built, error) {
+	// The commands of an activity's script are the answers to its attempts, and Testpilot admits no
+	// other instruction there.
+	if s.GetActivity() != nil && c.GetFinish() == nil && c.GetAttemptFailure() == nil && c.GetAttemptCanceled() == nil {
+		return built{}, errorAt(c.GetPosition(), "command %s of activity script %s is no answer to an attempt: an attempt ends with a result or a failure",
+			c.GetId(), s.GetId())
+	}
 	instruction, err := a.instruction(s, c)
 	if err != nil {
 		return built{}, err
@@ -324,6 +548,15 @@ func learnedBy(c *modelirspb.Command) []string {
 		case *modelirspb.Operand_Equal:
 			read(k.Equal.GetLeft())
 			read(k.Equal.GetRight())
+		case *modelirspb.Operand_All:
+			for _, operand := range k.All.GetOperands() {
+				read(operand)
+			}
+		case *modelirspb.Operand_Greater:
+			read(k.Greater.GetLeft())
+			read(k.Greater.GetRight())
+		case *modelirspb.Operand_Not:
+			read(k.Not.GetOf())
 		default:
 		}
 	}
@@ -388,30 +621,57 @@ func (a *adapter) instruction(s *modelirspb.Script, c *modelirspb.Command) (*tes
 		}
 		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_NexusHandlerReply{NexusHandlerReply: reply}}, nil
 	case *modelirspb.Command_NexusCompletion:
-		completion := &testpilotspb.NexusOperationCompletion{HandleSlotId: in.NexusCompletion.GetHandle()}
-		payload, failure := &commonpb.Payload{}, &failurepb.Failure{}
-		switch written := in.NexusCompletion.GetResult(); protoreflect.FullName(written.GetMessage()) {
-		case payload.ProtoReflect().Descriptor().FullName():
-			if err := a.w.into(written, payload); err != nil {
-				return nil, err
-			}
-			completion.Result = &testpilotspb.NexusOperationCompletion_Payload{Payload: payload}
-		case failure.ProtoReflect().Descriptor().FullName():
-			if err := a.w.into(written, failure); err != nil {
-				return nil, err
-			}
-			completion.Result = &testpilotspb.NexusOperationCompletion_Failure{Failure: failure}
-		default:
-			return nil, errorAt(at, "command %s completes with %s; a Nexus operation completes with a payload or a failure", c.GetId(), written.GetMessage())
-		}
-		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_NexusOperationCompletion{NexusOperationCompletion: completion}}, nil
+		return a.nexusCompletion(c, in.NexusCompletion)
 	case *modelirspb.Command_Hold, *modelirspb.Command_Release:
 		// No instruction holds or releases a delivery, and a realization that declares one is reported
 		// as a gap and never produced; the command writes nothing to check.
 		return &testpilotspb.Instruction{}, nil
+	case *modelirspb.Command_AttemptCanceled:
+		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptCancellation{
+			ActivityAttemptCancellation: &testpilotspb.ActivityAttemptCancellation{}}}, nil
+	case *modelirspb.Command_AttemptFailure:
+		return a.attemptFailure(c, in.AttemptFailure)
 	default:
 		return nil, errorAt(at, "command %s is no instruction this reader lowers", c.GetId())
 	}
+}
+
+// nexusCompletion completes the Nexus operation a handle names, with the payload or the failure a
+// command writes out.
+func (a *adapter) nexusCompletion(c *modelirspb.Command, in *modelirspb.NexusCompletion) (*testpilotspb.Instruction, error) {
+	completion := &testpilotspb.NexusOperationCompletion{HandleSlotId: in.GetHandle()}
+	payload, failure := &commonpb.Payload{}, &failurepb.Failure{}
+	switch written := in.GetResult(); protoreflect.FullName(written.GetMessage()) {
+	case payload.ProtoReflect().Descriptor().FullName():
+		if err := a.w.into(written, payload); err != nil {
+			return nil, err
+		}
+		completion.Result = &testpilotspb.NexusOperationCompletion_Payload{Payload: payload}
+	case failure.ProtoReflect().Descriptor().FullName():
+		if err := a.w.into(written, failure); err != nil {
+			return nil, err
+		}
+		completion.Result = &testpilotspb.NexusOperationCompletion_Failure{Failure: failure}
+	default:
+		return nil, errorAt(c.GetPosition(), "command %s completes with %s; a Nexus operation completes with a payload or a failure", c.GetId(), written.GetMessage())
+	}
+	return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_NexusOperationCompletion{NexusOperationCompletion: completion}}, nil
+}
+
+// attemptFailure fails an activity's attempt with the failure a command writes out: what an activity
+// itself can return, which is what Testpilot offers the server and all it admits.
+func (a *adapter) attemptFailure(c *modelirspb.Command, in *modelirspb.AttemptFailure) (*testpilotspb.Instruction, error) {
+	failure := &failurepb.Failure{}
+	if err := a.w.into(in.GetFailure(), failure); err != nil {
+		return nil, err
+	}
+	message := failure.ProtoReflect()
+	if info := message.WhichOneof(message.Descriptor().Oneofs().ByName("failure_info")); info != nil && failure.GetApplicationFailureInfo() == nil {
+		return nil, errorAt(c.GetPosition(), "command %s fails its attempt with a %s; an attempt fails with an application failure or one that names no kind",
+			c.GetId(), info.Name())
+	}
+	return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptFailure{
+		ActivityAttemptFailure: &testpilotspb.ActivityAttemptFailure{Failure: failure}}}, nil
 }
 
 // assignments builds a request's assignments, each a field of the request the value fits.
@@ -550,7 +810,11 @@ func (a *adapter) target(c *modelirspb.Command, path string, end reached, target
 func (a *adapter) poll(c *modelirspb.Command, poll *modelirspb.Poll) (*testpilotspb.Instruction, error) {
 	at := c.GetPosition()
 	e := a.evidence[poll.GetEvidence()]
-	method, err := methodNamed(at, e.GetRead().GetMethod())
+	read := e.GetRead()
+	if read == nil {
+		read = e.GetSingle()
+	}
+	method, err := methodNamed(at, read.GetMethod())
 	if err != nil {
 		return nil, err
 	}
@@ -558,11 +822,79 @@ func (a *adapter) poll(c *modelirspb.Command, poll *modelirspb.Poll) (*testpilot
 	if err != nil {
 		return nil, err
 	}
+	if outside := outsideTheElement(poll.GetUntil()); outside != "" {
+		return nil, errorAt(at, "command %s polls until a condition that reads %s; a poll's condition reads only the value the poll is looking at",
+			c.GetId(), outside)
+	}
+	switch computes, err := goir.TypeOf(poll.GetUntil(), a.element[poll.GetEvidence()], lifted(at)); {
+	case err != nil:
+		return nil, mistyped(at, err, "command %s polls until a condition that", c.GetId())
+	case computes.Shape != goir.AnyShape && computes.Shape != goir.ConditionShape:
+		return nil, errorAt(at, "command %s polls until %s, and a poll's condition is a condition", c.GetId(), computes.Shape)
+	default:
+	}
 	until, err := a.operand(at, poll.GetUntil(), a.element[poll.GetEvidence()])
 	if err != nil {
 		return nil, err
 	}
 	return cp.ReadEvidence(poll.GetEvidence(), poll.GetRole(), assignments, until, poll.GetIntervalMs()), nil
+}
+
+// literal is a value an operand writes out, as the expression of it.
+func (a *adapter) literal(at *modelirspb.Position, written *modelirspb.ProtoValue) (*testpilotspb.Expression, error) {
+	switch v := written.GetKind().(type) {
+	case *modelirspb.ProtoValue_Text:
+		return cp.Literal(cp.Text(v.Text)), nil
+	case *modelirspb.ProtoValue_Named:
+		return cp.Literal(cp.Text(a.w.name(v.Named))), nil
+	case *modelirspb.ProtoValue_Flag:
+		return cp.Literal(cp.Bool(v.Flag)), nil
+	case *modelirspb.ProtoValue_Number:
+		return cp.Literal(cp.SignedInteger(v.Number)), nil
+	case *modelirspb.ProtoValue_EnumName:
+		return cp.Literal(cp.Enum(v.EnumName)), nil
+	default:
+		return nil, errorAt(at, "a literal operand is a text, a flag, a number, an enum value or a name")
+	}
+}
+
+// outsideTheElement is what an operand reads beside the value a poll is looking at and what is
+// written out, or empty: Testpilot evaluates a poll's condition over one element of the response, where
+// neither the run, nor its environment, nor what it has learned is in reach.
+func outsideTheElement(o *modelirspb.Operand) string {
+	switch k := o.GetKind().(type) {
+	case *modelirspb.Operand_Run:
+		return "the run's id"
+	case *modelirspb.Operand_Environment:
+		return "the environment binding " + k.Environment
+	case *modelirspb.Operand_LearnedValue:
+		return "the learned value " + k.LearnedValue
+	case *modelirspb.Operand_Path:
+		return outsideTheElement(k.Path.GetOf())
+	case *modelirspb.Operand_Present:
+		return outsideTheElement(k.Present.GetOf())
+	case *modelirspb.Operand_Equal:
+		if left := outsideTheElement(k.Equal.GetLeft()); left != "" {
+			return left
+		}
+		return outsideTheElement(k.Equal.GetRight())
+	case *modelirspb.Operand_All:
+		for _, operand := range k.All.GetOperands() {
+			if outside := outsideTheElement(operand); outside != "" {
+				return outside
+			}
+		}
+		return ""
+	case *modelirspb.Operand_Greater:
+		if left := outsideTheElement(k.Greater.GetLeft()); left != "" {
+			return left
+		}
+		return outsideTheElement(k.Greater.GetRight())
+	case *modelirspb.Operand_Not:
+		return outsideTheElement(k.Not.GetOf())
+	default:
+		return ""
+	}
 }
 
 // operand is a value a command computes, as the expression that computes it. A path read out of the
@@ -573,20 +905,7 @@ func (a *adapter) operand(at *modelirspb.Position, o *modelirspb.Operand, projec
 	}
 	switch k := o.GetKind().(type) {
 	case *modelirspb.Operand_Literal:
-		switch v := k.Literal.GetKind().(type) {
-		case *modelirspb.ProtoValue_Text:
-			return cp.Literal(cp.Text(v.Text)), nil
-		case *modelirspb.ProtoValue_Named:
-			return cp.Literal(cp.Text(a.w.name(v.Named))), nil
-		case *modelirspb.ProtoValue_Flag:
-			return cp.Literal(cp.Bool(v.Flag)), nil
-		case *modelirspb.ProtoValue_Number:
-			return cp.Literal(cp.SignedInteger(v.Number)), nil
-		case *modelirspb.ProtoValue_EnumName:
-			return cp.Literal(cp.Enum(v.EnumName)), nil
-		default:
-			return nil, errorAt(at, "a literal operand is a text, a flag, a number, an enum value or a name")
-		}
+		return a.literal(at, k.Literal)
 	case *modelirspb.Operand_Environment:
 		return cp.Environment(k.Environment), nil
 	case *modelirspb.Operand_Run:
@@ -613,16 +932,46 @@ func (a *adapter) operand(at *modelirspb.Position, o *modelirspb.Operand, projec
 		}
 		return cp.Present(of), nil
 	case *modelirspb.Operand_Equal:
-		left, err := a.operand(at, k.Equal.GetLeft(), projected)
-		if err != nil {
-			return nil, err
-		}
-		right, err := a.operand(at, k.Equal.GetRight(), projected)
+		left, right, err := a.sides(at, k.Equal.GetLeft(), k.Equal.GetRight(), projected)
 		if err != nil {
 			return nil, err
 		}
 		return cp.Equal(left, right), nil
+	case *modelirspb.Operand_All:
+		all := &testpilotspb.AllExpression{}
+		for _, operand := range k.All.GetOperands() {
+			lowered, err := a.operand(at, operand, projected)
+			if err != nil {
+				return nil, err
+			}
+			all.Operands = append(all.Operands, lowered)
+		}
+		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: all}}, nil
+	case *modelirspb.Operand_Greater:
+		left, right, err := a.sides(at, k.Greater.GetLeft(), k.Greater.GetRight(), projected)
+		if err != nil {
+			return nil, err
+		}
+		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{
+			Operator: testpilotspb.COMPARISON_OPERATOR_GREATER_THAN, Left: left, Right: right}}}, nil
+	case *modelirspb.Operand_Not:
+		of, err := a.operand(at, k.Not.GetOf(), projected)
+		if err != nil {
+			return nil, err
+		}
+		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Not{Not: &testpilotspb.NotExpression{Operand: of}}}, nil
 	default:
 		return nil, errorAt(at, "an operand of no known kind")
 	}
+}
+
+// sides is the two operands of a comparison, as the expressions that compute them.
+func (a *adapter) sides(at *modelirspb.Position, left, right *modelirspb.Operand, projected protoreflect.MessageDescriptor) (l, r *testpilotspb.Expression, err error) {
+	if l, err = a.operand(at, left, projected); err != nil {
+		return nil, nil, err
+	}
+	if r, err = a.operand(at, right, projected); err != nil {
+		return nil, nil, err
+	}
+	return l, r, nil
 }

@@ -43,6 +43,7 @@ message Instruction {
     NexusOperationCompletion nexus_operation_completion = 8;
     ReadEvidence read_evidence = 9;
     ActivityAttemptFailure activity_attempt_failure = 10;
+    ActivityAttemptCancellation activity_attempt_cancellation = 11;
   }
 }
 
@@ -101,7 +102,7 @@ message AwaitInstruction { InstructionReference instruction = 1; }
 
 // Finish completes with result: the workflow of a workflow entrypoint, or the attempt of an activity
 // entrypoint and with it the activity. The result is a value whatever its type; an attempt fails only
-// through ActivityAttemptFailure.
+// through ActivityAttemptFailure and is answered as canceled only through ActivityAttemptCancellation.
 message Finish { Expression result = 1; }
 
 // ActivityAttemptFailure fails the attempt of an activity entrypoint with failure, an application
@@ -109,6 +110,13 @@ message Finish { Expression result = 1; }
 // not retryable, so an attempt that fails retryably is followed by the entrypoint's next instruction
 // and one that does not ends the activity.
 message ActivityAttemptFailure { temporal.api.failure.v1.Failure failure = 1; }
+
+// ActivityAttemptCancellation answers the attempt of an activity entrypoint as canceled. A worker
+// answers so only what the server asked it to cancel, and learns of that through the attempt's
+// heartbeat: the attempt heartbeats until the server reports the activity's cancellation requested
+// and then offers the canceled answer, which ends the activity once the server accepts it. An
+// attempt whose cancellation the server never requests offers nothing the Program declared.
+message ActivityAttemptCancellation {}
 
 // InjectFault asks the Driver for one deliberate outage. role_id must name a
 // ROLE_KIND_TASK_QUEUE role; that role's resource binding identifies the affected queue.
@@ -161,15 +169,16 @@ message NexusOperationCompletion {
 }
 
 // ReadEvidence polls, from a controller, the RPC the read-source EvidenceDeclaration it names reads
-// through, until an element of the declared path satisfies `until` or the instruction's timeout
-// expires, and then lifts every element `until` selects into the declaration's evidence. The request
+// through, until a value of the declared path satisfies `until` or the instruction's timeout
+// expires, and then lifts every value `until` selects into the declaration's evidence. The values
+// are the elements of the declared repeated field, or the one message of a single read. The request
 // is built from the assignments once, at dispatch, and sent again after each interval; a poll that
 // fails is the instruction's outcome.
 message ReadEvidence {
   string evidence_id = 1;
   string endpoint_role_id = 2;
   repeated RequestAssignment request_assignments = 3;
-  // A boolean over the projected value, one element of the declared path.
+  // A boolean over the projected value, one value of the declared path.
   Expression until = 4;
   int64 poll_interval_milliseconds = 5;
 }

@@ -103,6 +103,11 @@ func init() {
 			arm: "activity_attempt_failure", context: contract.ActivityEntrypoint,
 			bind: func(_ *admission, g *graph, _ int, n *node) error { return bindAttemptFailure(g, n) },
 		},
+		contract.ActivityAttemptCancellation: {
+			arm: "activity_attempt_cancellation", context: contract.ActivityEntrypoint,
+			// The canceled answer carries nothing to bind.
+			bind: func(*admission, *graph, int, *node) error { return nil },
+		},
 	}
 }
 

@@ -56,13 +56,83 @@ enum Recorded:
   /** The elements of the repeated field at `path` in the response of a unary method. */
   case Read(method: String, path: String)
 
+  /** The one message at `path` in the response of a unary method. */
+  case Single(method: String, path: String)
+
+  /**
+   * The Run's own record of the events of one kind that one command of a script records, where
+   * `guard` holds of the event's payload, its instruction outcome. `key` names the operation an event
+   * is of: the run's own id, or a path of the payload.
+   *
+   * `attempt` says the events are the record of one attempt of an activity. A Run records an attempt
+   * once it is answered, so the evidence reaches the Run with that answer and not with the command
+   * that carries it, and the events are the ones that record the attempt of that number.
+   */
+  case RunEvent(
+      kind: EventKind,
+      script: String,
+      command: String,
+      key: Operand,
+      guard: Option[Operand] = None,
+      attempt: Option[AttemptOf] = None
+  )
+
+/**
+ * One attempt of the activity one script runs: the `number`-th delivery to the script's worker,
+ * counted from one, as the server numbers attempts.
+ */
+final case class AttemptOf(script: String, number: Long)
+
+/** The kinds of Run Event that carry an instruction outcome. */
+enum EventKind:
+  /** The command's own completion. */
+  case instructionCompleted
+  case instructionTimedOut
+
+  /** What a worker reports of an activation the command carries, such as an attempt of an activity. */
+  case diagnostic
+
 /** What evidence commits to: what a caller was told, or a durable commit of the receiver. */
 enum Commitment:
   case reported, durable
 
+/** The identity a field of evidence names. */
+enum FieldRole:
+  /** The logical operation, as the kind's operation key names it. */
+  case operation
+
+  /** The execution attempt the fact belongs to. */
+  case attempt
+
+  /** The delivery the fact belongs to. */
+  case delivery
+
+/**
+ * One field evidence carries, read at `path` in the recorded data. A field with a role names an
+ * identity a check compares; a redacted field is carried without its value, and so names none.
+ */
+final case class EvidenceField(
+    id: String,
+    path: String,
+    role: Option[FieldRole] = None,
+    redacted: Boolean = false
+)
+
+/** One step of a path: the `occurrence`-th step, counted from one, of a class. */
+final case class Taking(step: ClassRef, occurrence: Long)
+
 /**
  * One kind of evidence: the recorded data that confirms the facts the machine's evidence function
- * names `records`, and the field that keys it to its operation.
+ * names `records`, and the field that keys it to its operation, which a Run Event's evidence leaves
+ * empty, since its source's key names the operation. An `exhaustive` kind's source reports
+ * every occurrence of those facts for the operations its closing read covers, the read of the command
+ * that names the kind in `closes`; only then does a fact nothing reports count as one that did not
+ * happen.
+ *
+ * A kind confirms the one step of a path that records its fact. Where steps of several classes
+ * record one fact, or a path takes one class more than once, each such step has evidence of its own:
+ * a kind that names the steps it `confirms` is evidence of those and of no other, all of them by one
+ * piece of evidence, and several such kinds may record one fact.
  */
 final case class Evidence(
     id: String,
@@ -70,7 +140,10 @@ final case class Evidence(
     source: String,
     from: Recorded,
     operation: String,
-    commitment: Commitment
+    commitment: Commitment,
+    fields: Vector[EvidenceField] = Vector.empty,
+    exhaustive: Boolean = false,
+    confirms: Vector[Taking] = Vector.empty
 )
 
 /** How a run's evidence is keyed into operations, and the window a check of it keeps. */
@@ -105,7 +178,18 @@ enum Activation:
   case Controller
   case Workflow(workflowType: Name, worker: String, taskQueue: String)
   case NexusHandler(service: String, operation: String, worker: String, taskQueue: String)
-  case Activity(activityType: Name, worker: String, taskQueue: String)
+
+  /**
+   * Each attempt of an activity the worker is delivered. `starts` is the classes that delivery is: a
+   * step of one of them is the activation itself, and no command performs it. The commands the path
+   * places in the script are the attempts in order.
+   */
+  case Activity(
+      activityType: Name,
+      worker: String,
+      taskQueue: String,
+      starts: Vector[ClassRef] = Vector.empty
+  )
 
 /** One ordered list of commands and who runs it. */
 final case class Script(id: String, activation: Activation, items: Vector[Item])
@@ -129,14 +213,16 @@ final case class After(commands: String*)
 
 /**
  * One command of a script. Without `after` it runs after the command before it; `regardless` runs
- * it whatever became of the commands it runs after.
+ * it whatever became of the commands it runs after. `closes` names the exhaustive kinds of evidence
+ * its read is the closing read of.
  */
 final case class Command(
     id: String,
     instruction: Instruction,
     after: Option[After] = None,
     timeoutMs: Long = 0,
-    regardless: Boolean = false
+    regardless: Boolean = false,
+    closes: Vector[String] = Vector.empty
 )
 
 enum FaultKind:
@@ -184,7 +270,15 @@ enum Instruction:
 
   /** Waits for the operation an earlier command of the script started. */
   case AwaitCommand(command: String)
+
+  /** Completes with a result: a workflow, or the attempt of an activity. */
   case Finish(result: Operand)
+
+  /** Fails the attempt of an activity, with a `temporal.api.failure.v1.Failure`. */
+  case AttemptFailure(failure: Proto)
+
+  /** Answers the attempt of an activity as canceled. */
+  case AttemptCanceled
   case Fault(role: String, kind: FaultKind)
 
   /** A workflow command, as the message the SDK would emit. */
@@ -205,11 +299,20 @@ enum Operand:
   case Run
   case LearnedValue(learned: String)
 
-  /** The value a poll is looking at. */
+  /** The value a poll is looking at, or the payload a Run Event's guard and key read. */
   case Projected
   case Path(of: Operand, path: String)
   case Present(of: Operand)
   case Equal(left: Operand, right: Operand)
+
+  /** Holds when every operand does, read left to right up to the first that does not. */
+  case All(operands: Operand*)
+
+  /** Holds when the left integer is greater than the right. */
+  case Greater(left: Operand, right: Operand)
+
+  /** Holds when its operand, a condition, does not. */
+  case Not(of: Operand)
 
 /**
  * A protobuf message written out: its full name and the fields it sets. A field it does not name

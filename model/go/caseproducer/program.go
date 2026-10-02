@@ -138,7 +138,7 @@ func (p *production) actionNodes(placement Placement, bindings []ActionBinding, 
 }
 
 // evidenceDeclarations declares each admitted kind the rules read once, in the order the rules first
-// name them, scoped to this Case's Run.
+// name them, scoped to this Case's Run, with the fields the kind retains.
 func (p *production) evidenceDeclarations(rules []EvidenceRule) []*testpilotspb.EvidenceDeclaration {
 	var sources []*EvidenceSource
 	for _, r := range rules {
@@ -154,10 +154,19 @@ func (p *production) evidenceDeclarations(rules []EvidenceRule) []*testpilotspb.
 			Scope:          []*testpilotspb.NamedValue{{FieldId: p.r.ScopeField, Value: text(p.identity.RunScope)}},
 			Operation:      s.OperationKeyPath,
 		}
-		if s.readsHistory() {
+		switch event := s.Recorded.RunEvent; {
+		case s.readsHistory():
 			d.Source = &testpilotspb.EvidenceDeclaration_HistoryEvent{HistoryEvent: &testpilotspb.HistoryEventSource{AttributesField: s.Recorded.HistoryAttributes}}
-		} else {
-			d.Source = &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: s.Recorded.Method, Path: s.Recorded.Path}}
+		case event != nil:
+			d.Source = &testpilotspb.EvidenceDeclaration_RunEvent{RunEvent: &testpilotspb.RunEventSource{Kind: event.Kind, Guard: event.Guard,
+				Instruction: &testpilotspb.InstructionReference{EntrypointId: event.EntrypointID, InstructionId: event.InstructionID},
+				RunKeyed:    event.RunKeyed}}
+		default:
+			d.Source = &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: s.Recorded.Method, Path: s.Recorded.Path,
+				Single: s.Recorded.Single}}
+		}
+		for _, f := range s.Fields {
+			d.Fields = append(d.Fields, &testpilotspb.EvidenceFieldDeclaration{FieldId: f.ID, Path: f.Path})
 		}
 		out = append(out, d)
 	}

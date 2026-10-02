@@ -6,6 +6,12 @@
 //
 // Orders, identities and spellings follow the Lean producer exactly, because the Case bytes are
 // compared with the checked-in fixtures Lean renders.
+//
+// A realization may declare more of its evidence than the Lean producer reads: the fields a kind
+// keeps, a kind every Case carries because its source is exhaustive, the Run's own record and a read
+// of one message as sources, and the steps of a path a kind confirms, which is how a class a path
+// takes more than once is confirmed step by step. None of that has a Lean counterpart. A realization
+// that declares none of it produces the bytes it did.
 package caseproducer
 
 import (
@@ -63,11 +69,42 @@ func (p Placement) Suffix() string {
 	return fmt.Sprintf("-%d", p.Number)
 }
 
-// Recorded is where one evidence kind is read from: one arm of the history event's attributes, or
-// the elements of a repeated field a unary RPC returns.
+// Recorded is where one evidence kind is read from: one arm of the history event's attributes, the
+// elements of a repeated field a unary RPC returns, the one message at a path of what it returns, or
+// the Run's own record.
 type Recorded struct {
 	HistoryAttributes string
 	Method, Path      string
+	// Single reads the one message at Path, where a read otherwise takes each element of a repeated
+	// field.
+	Single bool
+	// RunEvent is the Run's own record, where the kind is read from no response.
+	RunEvent *RunEvent
+}
+
+// RunEvent is the Run Events of one kind that one instruction of an entrypoint records, where Guard
+// holds of the event's payload.
+type RunEvent struct {
+	Kind                        testpilotspb.RunEventKind
+	EntrypointID, InstructionID string
+	// RunKeyed keys the evidence by the Run's own ID, and the kind then names no operation key path.
+	RunKeyed bool
+	Guard    *testpilotspb.Expression
+}
+
+// EvidenceField is one field evidence of a kind retains: where it is read in the recorded data and
+// the scalar it is. Role is the identity the realization says the field names. No part of a Case
+// states it, so it reaches a Case in the fingerprint of its projection alone.
+type EvidenceField struct {
+	ID, Path string
+	Type     testpilotspb.ScalarKind
+	Role     string
+}
+
+// Taking is one step of a path: the Occurrence-th step, counted from one, of the class Key names.
+type Taking struct {
+	Key        string
+	Occurrence int
 }
 
 // EvidenceSource is what a realization knows about one admitted evidence kind.
@@ -76,6 +113,15 @@ type EvidenceSource struct {
 	Recorded         Recorded
 	OperationKeyPath string
 	KindID, SourceID string
+	// Fields is the fields evidence of the kind retains, in declaration order.
+	Fields []EvidenceField
+	// Exhaustive says the kind's source reports every occurrence of what it records, so every Case
+	// carries the kind, on its path or off it: only a kind a Case carries can be seen to be absent.
+	Exhaustive bool
+	// Confirms names the steps of a path one piece of evidence of this kind confirms. A kind that
+	// names steps confirms those and no other, all of them or none; a kind that names none confirms
+	// the one step of a path that records what the kind records.
+	Confirms []Taking
 }
 
 func (s *EvidenceSource) readsHistory() bool { return s.Recorded.HistoryAttributes != "" }
@@ -260,6 +306,37 @@ func Preflight(q *umpire.Query, identity Identity, r *Realization) error {
 	return err
 }
 
+// Confirmation is the steps of a Query's path one kind of evidence confirms, each by its place on the
+// path, counted from zero, in path order: the steps that record nothing among them.
+type Confirmation struct {
+	Source *EvidenceSource
+	Steps  []int
+}
+
+// Confirmations is which kind of evidence confirms each step of a Query's path, as Produce decides
+// it and in path order. It refuses what Produce refuses of the path's evidence.
+func Confirmations(q *umpire.Query, identity Identity, r *Realization) ([]Confirmation, error) {
+	p, err := newProduction(q, identity, r, Source{})
+	if err != nil {
+		return nil, err
+	}
+	resolved, _, err := p.resolveEvidence(p.derivedEvidence())
+	if err != nil {
+		return nil, err
+	}
+	var out []Confirmation
+	at := 0
+	for _, rule := range resolved {
+		confirmed := Confirmation{Source: rule.Rule.Source}
+		for range rule.Steps {
+			confirmed.Steps = append(confirmed.Steps, at)
+			at++
+		}
+		out = append(out, confirmed)
+	}
+	return out, nil
+}
+
 // decided is what a production decides before it writes a Case.
 type decided struct {
 	silentGaps          []*testpilotspb.KnownGap
@@ -293,11 +370,16 @@ func (p *production) decide() (*decided, error) {
 	}
 	propertyID := p.q.Property.PropertyID(p.t)
 	propertyFingerprint := umpire.Fingerprint(p.correlatedPropertySemantic(propertyID, clauses))
-	plan := p.projection(evidenceRules)
+	offPath := p.offPath(evidenceRules)
+	plan := p.projection(evidenceRules, offPath)
 	contract := p.correlatedContract(plan, clauses)
 	var rules []EvidenceRule
 	for _, r := range evidenceRules {
 		rules = append(rules, r.Rule)
+	}
+	// A kind carried off the path is read like the path's own, by a rule that confirms no action.
+	for _, s := range offPath {
+		rules = append(rules, EvidenceRule{Source: s})
 	}
 	program, err := p.assembleProgram(rules)
 	if err != nil {
@@ -375,56 +457,161 @@ func (p *production) derivedEvidence() [][2]string {
 	return out
 }
 
+// sourceOf is the kind that confirms the one step of a path that records a fact of this name: the
+// kind that records it and names no step of its own.
 func (p *production) sourceOf(kind string) (*EvidenceSource, bool) {
 	for _, s := range p.r.Sources {
-		if s.EventKind == kind {
+		if s.EventKind == kind && len(s.Confirms) == 0 {
 			return s, true
 		}
 	}
 	return nil, false
 }
 
+// recorded reports whether some kind of the realization records a fact of this name.
+func (p *production) recorded(kind string) bool {
+	return slices.ContainsFunc(p.r.Sources, func(s *EvidenceSource) bool { return s.EventKind == kind })
+}
+
+// confirming is the one decision of which kind of evidence confirms a step of a path, in its one
+// order. A kind that names the step confirms it, and two that name it are refused, as is one that
+// records none of the step's facts. Any other step is confirmed by the kind that records the first
+// fact its class is named by, among the kinds that name no step. A step whose class records facts
+// that only kinds naming other steps record has no evidence of its own, and is refused: nothing is
+// confirmed by a kind that says it confirms something else. A step whose class records nothing
+// evidence names is confirmed by no kind, which is no error.
+//
+// names is the evidence names the step's class records on the path, in the order the path meets them,
+// and facts the evidence names the step itself records.
+func confirming(sources []*EvidenceSource, taking Taking, action string, names, facts []string) (*EvidenceSource, error) {
+	var named *EvidenceSource
+	for _, s := range sources {
+		if !slices.Contains(s.Confirms, taking) {
+			continue
+		}
+		if named != nil {
+			return nil, reject(s.KindID, "evidence.taking-ambiguous")
+		}
+		named = s
+	}
+	if named != nil {
+		if !slices.Contains(facts, named.EventKind) {
+			return nil, reject(named.KindID, "evidence.taking-crossed")
+		}
+		return named, nil
+	}
+	for _, name := range names {
+		for _, s := range sources {
+			if s.EventKind == name && len(s.Confirms) == 0 {
+				return s, nil
+			}
+		}
+	}
+	if len(names) > 0 {
+		return nil, reject(action, "evidence.taking-unrecorded")
+	}
+	return nil, nil
+}
+
+// evidenceNames is the evidence names the facts of a step are recorded under, in fact order.
+func (p *production) evidenceNames(facts []umpire.Atom) []string {
+	var out []string
+	for _, f := range facts {
+		for _, line := range p.t.Evidence {
+			if f.Value == line[0] || strings.HasPrefix(f.Value, line[0]+"-") {
+				out = append(out, line[1])
+				break
+			}
+		}
+	}
+	return out
+}
+
 // resolveEvidence resolves each mapping against the realization's admitted kinds and walks the
 // witness: an observed step's rule confirms the silent steps before it together with its own, and
-// each silent step becomes a Known Gap.
+// each silent step becomes a Known Gap. A step is confirmed by the kind confirming gives it. A kind
+// that names several steps confirms them by one piece of evidence, so its rule takes each of them as
+// the path reaches it, with the silent steps between, and no other kind's evidence lies between them;
+// and it confirms every step it names or none, since its evidence is of all of them.
 func (p *production) resolveEvidence(mappings [][2]string) ([]resolvedRule, []*testpilotspb.KnownGap, error) {
-	type admitted struct {
-		action string
-		source *EvidenceSource
-	}
-	var admittedRules []admitted
+	names := map[string][]string{}
 	for _, m := range mappings {
-		s, ok := p.sourceOf(m[1])
-		if !ok {
+		if !p.recorded(m[1]) {
 			return nil, nil, reject(m[1], "evidence.kind-unknown")
 		}
 		if !slices.Contains(p.schedule, m[0]) {
 			return nil, nil, reject(m[0], "evidence.action-unselected")
 		}
-		admittedRules = append(admittedRules, admitted{m[0], s})
+		names[m[0]] = append(names[m[0]], m[1])
 	}
 	var resolved []resolvedRule
 	var silent []step
 	var gaps []*testpilotspb.KnownGap
+	taken := map[string]int{}
 	for _, s := range p.steps {
-		i := slices.IndexFunc(admittedRules, func(a admitted) bool { return a.action == s.Action.ID })
-		if i < 0 {
+		taken[s.Action.Value]++
+		source, err := confirming(p.r.Sources, Taking{Key: s.Action.Value, Occurrence: taken[s.Action.Value]}, s.Action.ID,
+			names[s.Action.ID], p.evidenceNames(s.Facts))
+		if err != nil {
+			return nil, nil, err
+		}
+		if source == nil {
 			silent = append(silent, s)
 			if !slices.ContainsFunc(gaps, func(g *testpilotspb.KnownGap) bool { return g.GetSubject() == s.Action.ID }) {
 				gaps = append(gaps, silentGap(s.Action))
 			}
 			continue
 		}
-		if slices.ContainsFunc(resolved, func(r resolvedRule) bool { return r.Rule.Action.ID == s.Action.ID }) {
-			return nil, nil, reject(s.Action.ID, "evidence.action-repeated")
+		if resolved, err = claim(resolved, source, silent, s); err != nil {
+			return nil, nil, err
 		}
-		resolved = append(resolved, resolvedRule{EvidenceRule{s.Action, admittedRules[i].source}, append(silent, s)})
 		silent = nil
 	}
 	if len(silent) > 0 {
 		return nil, nil, reject(silent[0].Action.ID, "evidence.action-unmapped")
 	}
+	for _, r := range resolved {
+		for _, named := range r.Rule.Source.Confirms {
+			if taken[named.Key] < named.Occurrence {
+				return nil, nil, reject(r.Rule.Source.KindID, "evidence.confirmation-partial")
+			}
+		}
+	}
 	return resolved, gaps, nil
+}
+
+// claim gives a step, with the silent steps before it, to the rule of the kind that confirms it. A
+// kind no rule has yet opens one. A kind that names no step confirms one step of a path, so a second
+// step of it is refused: as a class taken again where the first was of the same class, and as a kind
+// two steps would share where it was not. A kind that names its steps takes the step into its rule,
+// which must be the last one: its one piece of evidence confirms its steps with nothing between.
+func claim(resolved []resolvedRule, source *EvidenceSource, silent []step, s step) ([]resolvedRule, error) {
+	claimed := slices.IndexFunc(resolved, func(r resolvedRule) bool { return r.Rule.Source == source })
+	switch {
+	case claimed < 0:
+		return append(resolved, resolvedRule{EvidenceRule{s.Action, source}, append(silent, s)}), nil
+	case len(source.Confirms) == 0 && resolved[claimed].Rule.Action.ID == s.Action.ID:
+		return nil, reject(s.Action.ID, "evidence.action-repeated")
+	case len(source.Confirms) == 0:
+		return nil, reject(s.Action.ID, "evidence.kind-repeated")
+	case claimed != len(resolved)-1:
+		return nil, reject(source.KindID, "evidence.kind-interrupted")
+	default:
+		resolved[claimed].Steps = append(append(resolved[claimed].Steps, silent...), s)
+		return resolved, nil
+	}
+}
+
+// offPath is the exhaustive kinds no rule of the path reads, in declaration order: a Case carries
+// them with the path's own, and gives them no meaning.
+func (p *production) offPath(rules []resolvedRule) []*EvidenceSource {
+	var out []*EvidenceSource
+	for _, s := range p.r.Sources {
+		if s.Exhaustive && !slices.ContainsFunc(rules, func(r resolvedRule) bool { return r.Rule.Source.KindID == s.KindID }) {
+			out = append(out, s)
+		}
+	}
+	return out
 }
 
 // silentGap is the Known Gap a silent step records: the Contract infers it from the evidence of the
@@ -441,28 +628,21 @@ func silentGap(action umpire.Atom) *testpilotspb.KnownGap {
 }
 
 // alternativeRules adds a rule for every other result of a witnessed row, declared by the first
-// kind its facts record, so a Run that took it reads as a violation rather than as nothing.
+// kind its facts record, so a Run that took it reads as a violation rather than as nothing. The
+// resolved rules hold the path's steps in path order, each rule its own, so the steps before one in
+// its rule are the ones another result of its row is confirmed with.
 func (p *production) alternativeRules(resolved []resolvedRule) ([]resolvedRule, error) {
 	rules := slices.Clone(resolved)
 	prior := p.initial
-	var silent []step
-	for _, s := range p.steps {
-		witness := slices.IndexFunc(rules, func(r resolvedRule) bool { return r.Steps[len(r.Steps)-1].same(s) })
-		before := silent
-		if witness >= 0 {
-			before = rules[witness].Steps[:len(rules[witness].Steps)-1]
+	for _, r := range resolved {
+		for i, s := range r.Steps {
+			added, err := p.alternativesOf(rules, prior, s, r.Steps[:i])
+			if err != nil {
+				return nil, err
+			}
+			rules = append(rules, added...)
+			prior = s.State
 		}
-		added, err := p.alternativesOf(rules, prior, s, before)
-		if err != nil {
-			return nil, err
-		}
-		rules = append(rules, added...)
-		if witness >= 0 {
-			silent = nil
-		} else {
-			silent = append(silent, s)
-		}
-		prior = s.State
 	}
 	return rules, nil
 }

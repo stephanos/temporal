@@ -64,10 +64,10 @@ func TestOnlyARunThatClosedCompleteIsConcludedPositively(t *testing.T) {
 	}
 }
 
-// A durable kind proves the commits it reports and nothing about the ones it does not. No declaration
-// marks an evidence source exhaustive, so on a Run that closed complete, with every durable source's
-// ordinals unbroken, or with a durable source that recorded nothing at all, a step whose commit was
-// not observed may still have happened: absence eliminates no execution.
+// A durable kind proves the commits it reports and nothing about the ones it does not. These
+// realizations declare no evidence source exhaustive, so on a Run that closed complete, with every
+// durable source's ordinals unbroken, or with a durable source that recorded nothing at all, a step
+// whose commit was not observed may still have happened: absence eliminates no execution.
 func TestNoAbsenceIsInferredWithoutAnExhaustiveDeclaration(t *testing.T) {
 	onStale, err := Prepare(admission(t), admissionQuery(stale), carrier(stale, localKinds, 2), generous)
 	require.NoError(t, err)

@@ -52,6 +52,9 @@ func declared(t *testing.T, m *modelirspb.Model, r *modelirspb.Realization) [][2
 		}
 	}
 	for _, s := range r.GetScripts() {
+		for _, class := range s.GetActivity().GetStarts() {
+			out = append(out, [2]string{"activation", s.GetId() + " [" + classKey(class) + "]"})
+		}
 		for _, item := range s.GetItems() {
 			if c := item.GetCommand(); c != nil {
 				out = append(out, [2]string{"command", s.GetId() + "/" + c.GetId()})
@@ -89,8 +92,8 @@ func TestTheInventoryIsEveryDeclarationOfTheRealization(t *testing.T) {
 	}
 }
 
-// Every field the IR gives a Realization and a Correlation has a place in the inventory, so a field
-// the schema gains fails here until it is accounted for.
+// Every field the IR gives a Realization, a Correlation and a kind of evidence has a place in the
+// inventory, so a field the schema gains fails here until it is accounted for.
 func TestEveryFieldOfARealizationHasAPlaceInTheInventory(t *testing.T) {
 	fields := (&modelirspb.Realization{}).ProtoReflect().Descriptor().Fields()
 	for i := range fields.Len() {
@@ -102,6 +105,11 @@ func TestEveryFieldOfARealizationHasAPlaceInTheInventory(t *testing.T) {
 		require.Contains(t, correlationFields, fields.Get(i).Name())
 	}
 	require.Len(t, correlationFields, fields.Len())
+	fields = (&modelirspb.Evidence{}).ProtoReflect().Descriptor().Fields()
+	for i := range fields.Len() {
+		require.Contains(t, evidenceFields, fields.Get(i).Name())
+	}
+	require.Len(t, evidenceFields, fields.Len())
 }
 
 // What the inventory says of each declaration is what the Case holds: a command in the Case is one of
@@ -167,8 +175,9 @@ func TestTheInventoryAgreesWithTheCase(t *testing.T) {
 		"command workflow/await-nexus-operation":                                InCase,
 		"evidence temporal.nexus.caller.evidence.scheduled":                     InCase,
 		"evidence temporal.nexus.caller.evidence.timedOut":                      InCase,
-		"evidence temporal.nexus.caller.evidence.completed":                     OffPath,
-		"evidence temporal.nexus.caller.evidence.pendingAttempts":               OffPath,
+		// The completed event is exhaustive, so the Case carries it though the path records none.
+		"evidence temporal.nexus.caller.evidence.completed":       InCase,
+		"evidence temporal.nexus.caller.evidence.pendingAttempts": OffPath,
 		"realization name": Names,
 	} {
 		require.Equal(t, want, dispositions[id], id)
@@ -260,12 +269,56 @@ func TestAnInventoryThatDoesNotCloseIsAnError(t *testing.T) {
 			"the Case's contract.correlated.projection_fingerprint carries"},
 		{"a source the evidence does not name", func(c *testpilotspb.Case) { c.GetContract().GetCorrelated().Sources = []string{"elsewhere"} },
 			"the Case's contract.correlated.sources carries \"elsewhere\""},
+		{"an exhaustive kind with no closing read", func(c *testpilotspb.Case) {
+			controller := c.GetProgram().GetEntrypoints()[0]
+			controller.Instructions = controller.GetInstructions()[:len(controller.GetInstructions())-1]
+		}, "evidence temporal.nexus.caller.evidence.started is exhaustive, and the Case carries no controller/history to close it"},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			changed := proto.CloneOf(produced)
 			c.change(changed)
 			_, err := l.inventory(changed)
 			require.ErrorContains(t, err, c.want)
+		})
+	}
+}
+
+// A kind of evidence the Case carries is carried as the realization declares it or is an error: where
+// it is recorded, and the fields it keeps. The Case here is produced first and the declaration changed
+// after, so each change is one the Case does not carry.
+func TestAKindOfEvidenceTheCaseDoesNotCarryAsDeclaredDoesNotClose(t *testing.T) {
+	const completed = "evidence temporal.nexus.caller.evidence.completed"
+	for name, test := range map[string]struct {
+		change func(e *modelirspb.Evidence)
+		want   string
+	}{
+		"a field": {func(e *modelirspb.Evidence) {
+			e.Fields = []*modelirspb.EvidenceField{{Id: "request", Path: "request_id"}}
+		}, completed + " keeps field request at request_id, and the Case's program.evidence[completed] does not"},
+		"a read from one message": {func(e *modelirspb.Evidence) {
+			e.From = &modelirspb.Evidence_Single{Single: &modelirspb.ReadSource{Method: "/temporal.api.workflowservice.v1.WorkflowService/DescribeWorkflowExecution", Path: "workflow_execution_info"}}
+		}, completed + ` of realization asyncNexus is "single read /temporal.api.workflowservice.v1.WorkflowService/DescribeWorkflowExecution workflow_execution_info", ` +
+			`and the Case's program.evidence[completed] carries "history event nexus_operation_completed_event_attributes"`},
+		"the Run's own record": {func(e *modelirspb.Evidence) {
+			e.From = &modelirspb.Evidence_RunEvent{RunEvent: &modelirspb.RunEventSource{Kind: modelirspb.RunEventSource_KIND_INSTRUCTION_COMPLETED,
+				Script: "controller", Command: "start-workflow"}}
+		}, completed + ` of realization asyncNexus is "run event KIND_INSTRUCTION_COMPLETED of controller/start-workflow keyed by nothing", ` +
+			`and the Case's program.evidence[completed] carries "history event nexus_operation_completed_event_attributes"`},
+		"another history event": {func(e *modelirspb.Evidence) {
+			e.From = &modelirspb.Evidence_History{History: "nexus_operation_failed_event_attributes"}
+		}, completed + ` of realization asyncNexus is "history event nexus_operation_failed_event_attributes", ` +
+			`and the Case's program.evidence[completed] carries "history event nexus_operation_completed_event_attributes"`},
+	} {
+		t.Run(name, func(t *testing.T) {
+			l, produced := ready(t, loaded(t, "nexus-caller"), "syncCompletion")
+			for _, e := range l.a.r.GetEvidence() {
+				if e.GetId() == "temporal.nexus.caller.evidence.completed" {
+					test.change(e)
+				}
+			}
+			_, err := l.inventory(produced)
+			require.ErrorContains(t, err, test.want)
+			require.ErrorContains(t, err, realizationAt)
 		})
 	}
 }

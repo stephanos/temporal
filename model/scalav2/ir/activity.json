@@ -1,5 +1,5 @@
 {
-  "source": "model/scalav2: temporal.standaloneactivity.Claims$package$.cancelRequest, temporal.standaloneactivity.Claims$package$.functionalQueries, temporal.standaloneactivity.Claims$package$.pauseHolds, temporal.standaloneactivity.Claims$package$.stoppedWorkerStartsNothing, temporal.standaloneactivity.Claims$package$.terminalHolds, temporal.standaloneactivity.Model$package$.activityProduct, temporal.standaloneactivity.Model$package$.standaloneActivity",
+  "source": "model/scalav2: temporal.standaloneactivity.ActivityRealization$.standalone, temporal.standaloneactivity.Claims$package$.cancelRequest, temporal.standaloneactivity.Claims$package$.functionalQueries, temporal.standaloneactivity.Claims$package$.pauseHolds, temporal.standaloneactivity.Claims$package$.stoppedWorkerStartsNothing, temporal.standaloneactivity.Claims$package$.terminalHolds, temporal.standaloneactivity.Model$package$.activityProduct, temporal.standaloneactivity.Model$package$.standaloneActivity",
   "types": [{
     "name": "temporal.standaloneactivity.AttemptResult",
     "position": {
@@ -9208,5 +9208,1918 @@
       "actions": 3,
       "search": 4096
     }
+  }],
+  "realizations": [{
+    "id": "temporal.standaloneactivity.ActivityRealization$.standalone",
+    "name": "standalone",
+    "position": {
+      "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+      "line": 379
+    },
+    "machine": "activityProtocol",
+    "producer": "temporal.activity.standalone.testpilot",
+    "producerVersion": "1",
+    "roles": [{
+      "id": "temporal.workflow-service",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 385
+      },
+      "kind": "KIND_ENDPOINT"
+    }, {
+      "id": "temporal.worker",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 386
+      },
+      "kind": "KIND_WORKER",
+      "namespace": "temporal.worker.namespace"
+    }, {
+      "id": "temporal.task-queue",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 387
+      },
+      "kind": "KIND_TASK_QUEUE",
+      "namespace": "temporal.worker.namespace",
+      "resource": "temporal.task-queue.resource"
+    }],
+    "observations": [{
+      "id": "correlated-evidence",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 408
+      },
+      "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+    }],
+    "evidence": [{
+      "id": "temporal.activity.standalone.evidence.statusScheduled",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 87
+      },
+      "records": "statusScheduled",
+      "source": "temporal.activity.standalone.source.record",
+      "commitment": "COMMITMENT_REPORTED",
+      "runEvent": {
+        "kind": "KIND_INSTRUCTION_COMPLETED",
+        "script": "controller",
+        "command": "start-activity",
+        "key": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 95
+          },
+          "run": {
+          }
+        },
+        "guard": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 75
+          },
+          "equal": {
+            "left": {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                "line": 75
+              },
+              "path": {
+                "of": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 75
+                  },
+                  "projected": {
+                  }
+                },
+                "path": "status"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                "line": 75
+              },
+              "literal": {
+                "enumName": "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"
+              }
+            }
+          }
+        }
+      }
+    }, {
+      "id": "temporal.activity.standalone.evidence.statusStarted",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 114
+      },
+      "records": "statusStarted",
+      "source": "temporal.activity.standalone.source.record",
+      "commitment": "COMMITMENT_REPORTED",
+      "fields": [{
+        "id": "attempt",
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 134
+        },
+        "path": "activity_attempt.sdk_attempt",
+        "role": "ROLE_ATTEMPT"
+      }, {
+        "id": "delivery",
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 135
+        },
+        "path": "activity_attempt.delivery_id",
+        "role": "ROLE_DELIVERY"
+      }, {
+        "id": "activityRun",
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 136
+        },
+        "path": "activity_attempt.activity_run_id"
+      }],
+      "runEvent": {
+        "kind": "KIND_DIAGNOSTIC",
+        "script": "controller",
+        "command": "start-activity",
+        "key": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 122
+          },
+          "run": {
+          }
+        },
+        "guard": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 124
+          },
+          "all": {
+            "operands": [{
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                "line": 125
+              },
+              "present": {
+                "of": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 125
+                  },
+                  "path": {
+                    "of": {
+                      "position": {
+                        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                        "line": 125
+                      },
+                      "projected": {
+                      }
+                    },
+                    "path": "activity_attempt"
+                  }
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                "line": 126
+              },
+              "not": {
+                "of": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 126
+                  },
+                  "equal": {
+                    "left": {
+                      "position": {
+                        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                        "line": 126
+                      },
+                      "path": {
+                        "of": {
+                          "position": {
+                            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                            "line": 126
+                          },
+                          "projected": {
+                          }
+                        },
+                        "path": "activity_attempt.delivery_id"
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                        "line": 126
+                      },
+                      "literal": {
+                        "text": ""
+                      }
+                    }
+                  }
+                }
+              }
+            }]
+          }
+        },
+        "attempt": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 129
+          },
+          "script": "activity",
+          "number": "1"
+        }
+      },
+      "confirms": [{
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 148
+        },
+        "step": {
+          "action": "temporal.standaloneactivity.Model$package$.attemptStart"
+        },
+        "occurrence": "1"
+      }]
+    }, {
+      "id": "temporal.activity.standalone.evidence.statusPaused",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 60
+      },
+      "records": "statusPaused",
+      "source": "temporal.activity.standalone.source.statusPaused",
+      "operation": "activity_id",
+      "commitment": "COMMITMENT_REPORTED",
+      "single": {
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution",
+        "path": "info"
+      }
+    }, {
+      "id": "temporal.activity.standalone.evidence.statusCancelRequested",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 87
+      },
+      "records": "statusCancelRequested",
+      "source": "temporal.activity.standalone.source.record",
+      "commitment": "COMMITMENT_REPORTED",
+      "runEvent": {
+        "kind": "KIND_INSTRUCTION_COMPLETED",
+        "script": "controller",
+        "command": "request-cancel-activity",
+        "key": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 95
+          },
+          "run": {
+          }
+        },
+        "guard": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 75
+          },
+          "equal": {
+            "left": {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                "line": 75
+              },
+              "path": {
+                "of": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 75
+                  },
+                  "projected": {
+                  }
+                },
+                "path": "status"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                "line": 75
+              },
+              "literal": {
+                "enumName": "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"
+              }
+            }
+          }
+        }
+      }
+    }, {
+      "id": "temporal.activity.standalone.evidence.statusCompleted",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 60
+      },
+      "records": "statusCompleted",
+      "source": "temporal.activity.standalone.source.statusCompleted",
+      "operation": "activity_id",
+      "commitment": "COMMITMENT_REPORTED",
+      "single": {
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution",
+        "path": "info"
+      }
+    }, {
+      "id": "temporal.activity.standalone.evidence.statusFailed",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 60
+      },
+      "records": "statusFailed",
+      "source": "temporal.activity.standalone.source.statusFailed",
+      "operation": "activity_id",
+      "commitment": "COMMITMENT_REPORTED",
+      "single": {
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution",
+        "path": "info"
+      }
+    }, {
+      "id": "temporal.activity.standalone.evidence.statusCanceled",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 60
+      },
+      "records": "statusCanceled",
+      "source": "temporal.activity.standalone.source.statusCanceled",
+      "operation": "activity_id",
+      "commitment": "COMMITMENT_REPORTED",
+      "single": {
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution",
+        "path": "info"
+      }
+    }, {
+      "id": "temporal.activity.standalone.evidence.statusTerminated",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 60
+      },
+      "records": "statusTerminated",
+      "source": "temporal.activity.standalone.source.statusTerminated",
+      "operation": "activity_id",
+      "commitment": "COMMITMENT_REPORTED",
+      "single": {
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution",
+        "path": "info"
+      }
+    }, {
+      "id": "temporal.activity.standalone.evidence.statusTimedOut",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 60
+      },
+      "records": "statusTimedOut",
+      "source": "temporal.activity.standalone.source.statusTimedOut",
+      "operation": "activity_id",
+      "commitment": "COMMITMENT_REPORTED",
+      "single": {
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution",
+        "path": "info"
+      }
+    }, {
+      "id": "temporal.activity.standalone.evidence.attemptCount",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 114
+      },
+      "records": "attemptCount",
+      "source": "temporal.activity.standalone.source.record",
+      "commitment": "COMMITMENT_REPORTED",
+      "fields": [{
+        "id": "attempt",
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 134
+        },
+        "path": "activity_attempt.sdk_attempt",
+        "role": "ROLE_ATTEMPT"
+      }, {
+        "id": "delivery",
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 135
+        },
+        "path": "activity_attempt.delivery_id",
+        "role": "ROLE_DELIVERY"
+      }, {
+        "id": "activityRun",
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 136
+        },
+        "path": "activity_attempt.activity_run_id"
+      }],
+      "runEvent": {
+        "kind": "KIND_DIAGNOSTIC",
+        "script": "controller",
+        "command": "start-activity",
+        "key": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 122
+          },
+          "run": {
+          }
+        },
+        "guard": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 124
+          },
+          "all": {
+            "operands": [{
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                "line": 125
+              },
+              "present": {
+                "of": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 125
+                  },
+                  "path": {
+                    "of": {
+                      "position": {
+                        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                        "line": 125
+                      },
+                      "projected": {
+                      }
+                    },
+                    "path": "activity_attempt"
+                  }
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                "line": 126
+              },
+              "not": {
+                "of": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 126
+                  },
+                  "equal": {
+                    "left": {
+                      "position": {
+                        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                        "line": 126
+                      },
+                      "path": {
+                        "of": {
+                          "position": {
+                            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                            "line": 126
+                          },
+                          "projected": {
+                          }
+                        },
+                        "path": "activity_attempt.delivery_id"
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                        "line": 126
+                      },
+                      "literal": {
+                        "text": ""
+                      }
+                    }
+                  }
+                }
+              }
+            }]
+          }
+        },
+        "attempt": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 129
+          },
+          "script": "activity",
+          "number": "2"
+        }
+      },
+      "confirms": [{
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 160
+        },
+        "step": {
+          "action": "temporal.standaloneactivity.Model$package$.attemptResult",
+          "inputs": [{
+            "enum": {
+              "type": "temporal.standaloneactivity.AttemptResult",
+              "case": "failed",
+              "fields": [{
+                "bool": true
+              }]
+            }
+          }]
+        },
+        "occurrence": "1"
+      }, {
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 160
+        },
+        "step": {
+          "action": "temporal.standaloneactivity.Model$package$.attemptStart"
+        },
+        "occurrence": "2"
+      }]
+    }, {
+      "id": "temporal.activity.standalone.evidence.statusScheduledAgain",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 87
+      },
+      "records": "statusScheduled",
+      "source": "temporal.activity.standalone.source.record",
+      "commitment": "COMMITMENT_REPORTED",
+      "runEvent": {
+        "kind": "KIND_INSTRUCTION_COMPLETED",
+        "script": "controller",
+        "command": "unpause-activity",
+        "key": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 95
+          },
+          "run": {
+          }
+        },
+        "guard": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 75
+          },
+          "equal": {
+            "left": {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                "line": 75
+              },
+              "path": {
+                "of": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 75
+                  },
+                  "projected": {
+                  }
+                },
+                "path": "status"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                "line": 75
+              },
+              "literal": {
+                "enumName": "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"
+              }
+            }
+          }
+        }
+      },
+      "confirms": [{
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 166
+        },
+        "step": {
+          "action": "temporal.standaloneactivity.Model$package$.control",
+          "inputs": [{
+            "enum": {
+              "type": "temporal.standaloneactivity.Control",
+              "case": "unpause"
+            }
+          }]
+        },
+        "occurrence": "1"
+      }]
+    }],
+    "correlation": {
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 394
+      },
+      "projection": "temporal.activity.standalone.projection",
+      "run": "temporal.activity.standalone.scope.run",
+      "operation": "temporal.activity.standalone.scope.activity",
+      "observation": "correlated-evidence",
+      "events": "32",
+      "buffered": "16",
+      "keys": "8",
+      "support": "128",
+      "work": "1000000000",
+      "eventSize": "512"
+    },
+    "scripts": [{
+      "id": "controller",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 234
+      },
+      "controller": {
+      },
+      "items": [{
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 238
+        },
+        "performs": [{
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 240
+          },
+          "step": {
+            "action": "temporal.worker.Worker$package$.workerStop"
+          },
+          "command": {
+            "id": "stop-worker",
+            "position": {
+              "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+              "line": 242
+            },
+            "fault": {
+              "role": "temporal.task-queue",
+              "kind": "KIND_WORKER_STOP"
+            }
+          }
+        }]
+      }, {
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 246
+        },
+        "command": {
+          "id": "stop-worker-until-released",
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 248
+          },
+          "fault": {
+            "role": "temporal.task-queue",
+            "kind": "KIND_WORKER_STOP"
+          }
+        },
+        "when": [{
+          "action": "temporal.standaloneactivity.Model$package$.control",
+          "inputs": [{
+            "enum": {
+              "type": "temporal.standaloneactivity.Control",
+              "case": "pause"
+            }
+          }]
+        }]
+      }, {
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 252
+        },
+        "performs": [{
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 192
+          },
+          "step": {
+            "action": "temporal.standaloneactivity.Model$package$.start",
+            "inputs": [{
+              "enum": {
+                "type": "temporal.standaloneactivity.Timeout",
+                "case": "unset"
+              }
+            }, {
+              "enum": {
+                "type": "temporal.standaloneactivity.Timeout",
+                "case": "unset"
+              }
+            }, {
+              "enum": {
+                "type": "temporal.standaloneactivity.Timeout",
+                "case": "unset"
+              }
+            }]
+          },
+          "command": {
+            "id": "start-activity",
+            "position": {
+              "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+              "line": 194
+            },
+            "rpc": {
+              "role": "temporal.workflow-service",
+              "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
+              "assign": [{
+                "target": "namespace",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 177
+                  },
+                  "environment": "temporal.worker.namespace"
+                }
+              }, {
+                "target": "activity_id",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 178
+                  },
+                  "run": {
+                  }
+                }
+              }, {
+                "target": "activity_type.name",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 200
+                  },
+                  "literal": {
+                    "named": {
+                      "prefix": "umpire-",
+                      "fixture": true,
+                      "suffix": "-activity"
+                    }
+                  }
+                }
+              }, {
+                "target": "task_queue.name",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 201
+                  },
+                  "environment": "temporal.task-queue.resource"
+                }
+              }, {
+                "target": "request_id",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 202
+                  },
+                  "run": {
+                  }
+                }
+              }, {
+                "target": "start_to_close_timeout.seconds",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 188
+                  },
+                  "literal": {
+                    "number": "300"
+                  }
+                }
+              }]
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 192
+          },
+          "step": {
+            "action": "temporal.standaloneactivity.Model$package$.start",
+            "inputs": [{
+              "enum": {
+                "type": "temporal.standaloneactivity.Timeout",
+                "case": "unset"
+              }
+            }, {
+              "enum": {
+                "type": "temporal.standaloneactivity.Timeout",
+                "case": "expires"
+              }
+            }, {
+              "enum": {
+                "type": "temporal.standaloneactivity.Timeout",
+                "case": "unset"
+              }
+            }]
+          },
+          "command": {
+            "id": "start-activity",
+            "position": {
+              "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+              "line": 194
+            },
+            "rpc": {
+              "role": "temporal.workflow-service",
+              "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
+              "assign": [{
+                "target": "namespace",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 177
+                  },
+                  "environment": "temporal.worker.namespace"
+                }
+              }, {
+                "target": "activity_id",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 178
+                  },
+                  "run": {
+                  }
+                }
+              }, {
+                "target": "activity_type.name",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 200
+                  },
+                  "literal": {
+                    "named": {
+                      "prefix": "umpire-",
+                      "fixture": true,
+                      "suffix": "-activity"
+                    }
+                  }
+                }
+              }, {
+                "target": "task_queue.name",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 201
+                  },
+                  "environment": "temporal.task-queue.resource"
+                }
+              }, {
+                "target": "request_id",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 202
+                  },
+                  "run": {
+                  }
+                }
+              }, {
+                "target": "start_to_close_timeout.seconds",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 188
+                  },
+                  "literal": {
+                    "number": "300"
+                  }
+                }
+              }, {
+                "target": "schedule_to_start_timeout.seconds",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 182
+                  },
+                  "literal": {
+                    "number": "2"
+                  }
+                }
+              }]
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 192
+          },
+          "step": {
+            "action": "temporal.standaloneactivity.Model$package$.start",
+            "inputs": [{
+              "enum": {
+                "type": "temporal.standaloneactivity.Timeout",
+                "case": "unset"
+              }
+            }, {
+              "enum": {
+                "type": "temporal.standaloneactivity.Timeout",
+                "case": "unset"
+              }
+            }, {
+              "enum": {
+                "type": "temporal.standaloneactivity.Timeout",
+                "case": "expires"
+              }
+            }]
+          },
+          "command": {
+            "id": "start-activity",
+            "position": {
+              "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+              "line": 194
+            },
+            "rpc": {
+              "role": "temporal.workflow-service",
+              "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
+              "assign": [{
+                "target": "namespace",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 177
+                  },
+                  "environment": "temporal.worker.namespace"
+                }
+              }, {
+                "target": "activity_id",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 178
+                  },
+                  "run": {
+                  }
+                }
+              }, {
+                "target": "activity_type.name",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 200
+                  },
+                  "literal": {
+                    "named": {
+                      "prefix": "umpire-",
+                      "fixture": true,
+                      "suffix": "-activity"
+                    }
+                  }
+                }
+              }, {
+                "target": "task_queue.name",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 201
+                  },
+                  "environment": "temporal.task-queue.resource"
+                }
+              }, {
+                "target": "request_id",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 202
+                  },
+                  "run": {
+                  }
+                }
+              }, {
+                "target": "start_to_close_timeout.seconds",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 182
+                  },
+                  "literal": {
+                    "number": "2"
+                  }
+                }
+              }]
+            }
+          }
+        }]
+      }, {
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 271
+        },
+        "performs": [{
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 209
+          },
+          "step": {
+            "action": "temporal.standaloneactivity.Model$package$.control",
+            "inputs": [{
+              "enum": {
+                "type": "temporal.standaloneactivity.Control",
+                "case": "pause"
+              }
+            }]
+          },
+          "command": {
+            "id": "pause-activity",
+            "position": {
+              "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+              "line": 209
+            },
+            "rpc": {
+              "role": "temporal.workflow-service",
+              "method": "/temporal.api.workflowservice.v1.WorkflowService/PauseActivityExecution",
+              "assign": [{
+                "target": "namespace",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 177
+                  },
+                  "environment": "temporal.worker.namespace"
+                }
+              }, {
+                "target": "activity_id",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 178
+                  },
+                  "run": {
+                  }
+                }
+              }]
+            }
+          }
+        }]
+      }, {
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 274
+        },
+        "command": {
+          "id": "await-paused",
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 213
+          },
+          "poll": {
+            "evidence": "temporal.activity.standalone.evidence.statusPaused",
+            "role": "temporal.workflow-service",
+            "assign": [{
+              "target": "namespace",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                  "line": 177
+                },
+                "environment": "temporal.worker.namespace"
+              }
+            }, {
+              "target": "activity_id",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                  "line": 178
+                },
+                "run": {
+                }
+              }
+            }],
+            "until": {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                "line": 219
+              },
+              "equal": {
+                "left": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 219
+                  },
+                  "path": {
+                    "of": {
+                      "position": {
+                        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                        "line": 219
+                      },
+                      "projected": {
+                      }
+                    },
+                    "path": "status"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 219
+                  },
+                  "literal": {
+                    "enumName": "ACTIVITY_EXECUTION_STATUS_PAUSED"
+                  }
+                }
+              }
+            },
+            "intervalMs": "250"
+          }
+        },
+        "when": [{
+          "action": "temporal.standaloneactivity.Model$package$.control",
+          "inputs": [{
+            "enum": {
+              "type": "temporal.standaloneactivity.Control",
+              "case": "pause"
+            }
+          }]
+        }]
+      }, {
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 278
+        },
+        "performs": [{
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 209
+          },
+          "step": {
+            "action": "temporal.standaloneactivity.Model$package$.control",
+            "inputs": [{
+              "enum": {
+                "type": "temporal.standaloneactivity.Control",
+                "case": "unpause"
+              }
+            }]
+          },
+          "command": {
+            "id": "unpause-activity",
+            "position": {
+              "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+              "line": 209
+            },
+            "rpc": {
+              "role": "temporal.workflow-service",
+              "method": "/temporal.api.workflowservice.v1.WorkflowService/UnpauseActivityExecution",
+              "assign": [{
+                "target": "namespace",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 177
+                  },
+                  "environment": "temporal.worker.namespace"
+                }
+              }, {
+                "target": "activity_id",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 178
+                  },
+                  "run": {
+                  }
+                }
+              }]
+            }
+          }
+        }]
+      }, {
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 283
+        },
+        "command": {
+          "id": "resume-worker",
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 284
+          },
+          "fault": {
+            "role": "temporal.task-queue",
+            "kind": "KIND_WORKER_RESUME"
+          }
+        },
+        "when": [{
+          "action": "temporal.standaloneactivity.Model$package$.control",
+          "inputs": [{
+            "enum": {
+              "type": "temporal.standaloneactivity.Control",
+              "case": "unpause"
+            }
+          }]
+        }]
+      }, {
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 287
+        },
+        "performs": [{
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 209
+          },
+          "step": {
+            "action": "temporal.standaloneactivity.Model$package$.control",
+            "inputs": [{
+              "enum": {
+                "type": "temporal.standaloneactivity.Control",
+                "case": "requestCancel"
+              }
+            }]
+          },
+          "command": {
+            "id": "request-cancel-activity",
+            "position": {
+              "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+              "line": 209
+            },
+            "rpc": {
+              "role": "temporal.workflow-service",
+              "method": "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution",
+              "assign": [{
+                "target": "namespace",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 177
+                  },
+                  "environment": "temporal.worker.namespace"
+                }
+              }, {
+                "target": "activity_id",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 178
+                  },
+                  "run": {
+                  }
+                }
+              }]
+            }
+          }
+        }]
+      }, {
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 296
+        },
+        "performs": [{
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 209
+          },
+          "step": {
+            "action": "temporal.standaloneactivity.Model$package$.control",
+            "inputs": [{
+              "enum": {
+                "type": "temporal.standaloneactivity.Control",
+                "case": "terminate"
+              }
+            }]
+          },
+          "command": {
+            "id": "terminate-activity",
+            "position": {
+              "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+              "line": 209
+            },
+            "rpc": {
+              "role": "temporal.workflow-service",
+              "method": "/temporal.api.workflowservice.v1.WorkflowService/TerminateActivityExecution",
+              "assign": [{
+                "target": "namespace",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 177
+                  },
+                  "environment": "temporal.worker.namespace"
+                }
+              }, {
+                "target": "activity_id",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 178
+                  },
+                  "run": {
+                  }
+                }
+              }]
+            }
+          }
+        }]
+      }, {
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 305
+        },
+        "command": {
+          "id": "await-completed",
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 213
+          },
+          "poll": {
+            "evidence": "temporal.activity.standalone.evidence.statusCompleted",
+            "role": "temporal.workflow-service",
+            "assign": [{
+              "target": "namespace",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                  "line": 177
+                },
+                "environment": "temporal.worker.namespace"
+              }
+            }, {
+              "target": "activity_id",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                  "line": 178
+                },
+                "run": {
+                }
+              }
+            }],
+            "until": {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                "line": 219
+              },
+              "equal": {
+                "left": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 219
+                  },
+                  "path": {
+                    "of": {
+                      "position": {
+                        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                        "line": 219
+                      },
+                      "projected": {
+                      }
+                    },
+                    "path": "status"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 219
+                  },
+                  "literal": {
+                    "enumName": "ACTIVITY_EXECUTION_STATUS_COMPLETED"
+                  }
+                }
+              }
+            },
+            "intervalMs": "250"
+          }
+        },
+        "when": [{
+          "action": "temporal.standaloneactivity.Model$package$.attemptResult",
+          "inputs": [{
+            "enum": {
+              "type": "temporal.standaloneactivity.AttemptResult",
+              "case": "completed"
+            }
+          }]
+        }]
+      }, {
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 309
+        },
+        "command": {
+          "id": "await-failed",
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 213
+          },
+          "poll": {
+            "evidence": "temporal.activity.standalone.evidence.statusFailed",
+            "role": "temporal.workflow-service",
+            "assign": [{
+              "target": "namespace",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                  "line": 177
+                },
+                "environment": "temporal.worker.namespace"
+              }
+            }, {
+              "target": "activity_id",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                  "line": 178
+                },
+                "run": {
+                }
+              }
+            }],
+            "until": {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                "line": 219
+              },
+              "equal": {
+                "left": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 219
+                  },
+                  "path": {
+                    "of": {
+                      "position": {
+                        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                        "line": 219
+                      },
+                      "projected": {
+                      }
+                    },
+                    "path": "status"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 219
+                  },
+                  "literal": {
+                    "enumName": "ACTIVITY_EXECUTION_STATUS_FAILED"
+                  }
+                }
+              }
+            },
+            "intervalMs": "250"
+          }
+        },
+        "when": [{
+          "action": "temporal.standaloneactivity.Model$package$.attemptResult",
+          "inputs": [{
+            "enum": {
+              "type": "temporal.standaloneactivity.AttemptResult",
+              "case": "failed",
+              "fields": [{
+                "bool": false
+              }]
+            }
+          }]
+        }]
+      }, {
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 313
+        },
+        "command": {
+          "id": "await-canceled",
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 213
+          },
+          "poll": {
+            "evidence": "temporal.activity.standalone.evidence.statusCanceled",
+            "role": "temporal.workflow-service",
+            "assign": [{
+              "target": "namespace",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                  "line": 177
+                },
+                "environment": "temporal.worker.namespace"
+              }
+            }, {
+              "target": "activity_id",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                  "line": 178
+                },
+                "run": {
+                }
+              }
+            }],
+            "until": {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                "line": 219
+              },
+              "equal": {
+                "left": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 219
+                  },
+                  "path": {
+                    "of": {
+                      "position": {
+                        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                        "line": 219
+                      },
+                      "projected": {
+                      }
+                    },
+                    "path": "status"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 219
+                  },
+                  "literal": {
+                    "enumName": "ACTIVITY_EXECUTION_STATUS_CANCELED"
+                  }
+                }
+              }
+            },
+            "intervalMs": "250"
+          }
+        },
+        "when": [{
+          "action": "temporal.standaloneactivity.Model$package$.attemptResult",
+          "inputs": [{
+            "enum": {
+              "type": "temporal.standaloneactivity.AttemptResult",
+              "case": "canceled"
+            }
+          }]
+        }]
+      }, {
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 317
+        },
+        "command": {
+          "id": "await-terminated",
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 213
+          },
+          "poll": {
+            "evidence": "temporal.activity.standalone.evidence.statusTerminated",
+            "role": "temporal.workflow-service",
+            "assign": [{
+              "target": "namespace",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                  "line": 177
+                },
+                "environment": "temporal.worker.namespace"
+              }
+            }, {
+              "target": "activity_id",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                  "line": 178
+                },
+                "run": {
+                }
+              }
+            }],
+            "until": {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                "line": 219
+              },
+              "equal": {
+                "left": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 219
+                  },
+                  "path": {
+                    "of": {
+                      "position": {
+                        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                        "line": 219
+                      },
+                      "projected": {
+                      }
+                    },
+                    "path": "status"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 219
+                  },
+                  "literal": {
+                    "enumName": "ACTIVITY_EXECUTION_STATUS_TERMINATED"
+                  }
+                }
+              }
+            },
+            "intervalMs": "250"
+          }
+        },
+        "when": [{
+          "action": "temporal.standaloneactivity.Model$package$.control",
+          "inputs": [{
+            "enum": {
+              "type": "temporal.standaloneactivity.Control",
+              "case": "terminate"
+            }
+          }]
+        }]
+      }, {
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 321
+        },
+        "command": {
+          "id": "await-timed-out",
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 213
+          },
+          "poll": {
+            "evidence": "temporal.activity.standalone.evidence.statusTimedOut",
+            "role": "temporal.workflow-service",
+            "assign": [{
+              "target": "namespace",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                  "line": 177
+                },
+                "environment": "temporal.worker.namespace"
+              }
+            }, {
+              "target": "activity_id",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                  "line": 178
+                },
+                "run": {
+                }
+              }
+            }],
+            "until": {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                "line": 219
+              },
+              "equal": {
+                "left": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 219
+                  },
+                  "path": {
+                    "of": {
+                      "position": {
+                        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                        "line": 219
+                      },
+                      "projected": {
+                      }
+                    },
+                    "path": "status"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 219
+                  },
+                  "literal": {
+                    "enumName": "ACTIVITY_EXECUTION_STATUS_TIMED_OUT"
+                  }
+                }
+              }
+            },
+            "intervalMs": "250"
+          }
+        },
+        "when": [{
+          "action": "temporal.standaloneactivity.Model$package$.scheduleToClose"
+        }, {
+          "action": "temporal.standaloneactivity.Model$package$.scheduleToStart"
+        }, {
+          "action": "temporal.standaloneactivity.Model$package$.startToClose"
+        }]
+      }]
+    }, {
+      "id": "activity",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 351
+      },
+      "activity": {
+        "activityType": {
+          "prefix": "umpire-",
+          "fixture": true,
+          "suffix": "-activity"
+        },
+        "worker": "temporal.worker",
+        "taskQueue": "temporal.task-queue",
+        "starts": [{
+          "action": "temporal.standaloneactivity.Model$package$.attemptStart"
+        }]
+      },
+      "items": [{
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 355
+        },
+        "performs": [{
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 357
+          },
+          "step": {
+            "action": "temporal.standaloneactivity.Model$package$.attemptResult",
+            "inputs": [{
+              "enum": {
+                "type": "temporal.standaloneactivity.AttemptResult",
+                "case": "completed"
+              }
+            }]
+          },
+          "command": {
+            "id": "complete-attempt",
+            "position": {
+              "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+              "line": 359
+            },
+            "finish": {
+              "result": {
+                "position": {
+                  "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                  "line": 359
+                },
+                "literal": {
+                  "text": "done"
+                }
+              }
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 361
+          },
+          "step": {
+            "action": "temporal.standaloneactivity.Model$package$.attemptResult",
+            "inputs": [{
+              "enum": {
+                "type": "temporal.standaloneactivity.AttemptResult",
+                "case": "failed",
+                "fields": [{
+                  "bool": true
+                }]
+              }
+            }]
+          },
+          "command": {
+            "id": "fail-attempt",
+            "position": {
+              "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+              "line": 363
+            },
+            "attemptFailure": {
+              "failure": {
+                "position": {
+                  "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                  "line": 332
+                },
+                "message": "temporal.api.failure.v1.Failure",
+                "fields": [{
+                  "name": "message",
+                  "value": {
+                    "text": "attempt failed"
+                  }
+                }, {
+                  "name": "application_failure_info",
+                  "value": {
+                    "message": {
+                      "position": {
+                        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                        "line": 338
+                      },
+                      "message": "temporal.api.failure.v1.ApplicationFailureInfo",
+                      "fields": [{
+                        "name": "type",
+                        "value": {
+                          "text": "AttemptFailed"
+                        }
+                      }, {
+                        "name": "non_retryable",
+                        "value": {
+                          "flag": false
+                        }
+                      }]
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 365
+          },
+          "step": {
+            "action": "temporal.standaloneactivity.Model$package$.attemptResult",
+            "inputs": [{
+              "enum": {
+                "type": "temporal.standaloneactivity.AttemptResult",
+                "case": "failed",
+                "fields": [{
+                  "bool": false
+                }]
+              }
+            }]
+          },
+          "command": {
+            "id": "fail-activity",
+            "position": {
+              "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+              "line": 367
+            },
+            "attemptFailure": {
+              "failure": {
+                "position": {
+                  "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                  "line": 332
+                },
+                "message": "temporal.api.failure.v1.Failure",
+                "fields": [{
+                  "name": "message",
+                  "value": {
+                    "text": "attempt failed"
+                  }
+                }, {
+                  "name": "application_failure_info",
+                  "value": {
+                    "message": {
+                      "position": {
+                        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                        "line": 338
+                      },
+                      "message": "temporal.api.failure.v1.ApplicationFailureInfo",
+                      "fields": [{
+                        "name": "type",
+                        "value": {
+                          "text": "AttemptFailed"
+                        }
+                      }, {
+                        "name": "non_retryable",
+                        "value": {
+                          "flag": true
+                        }
+                      }]
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 369
+          },
+          "step": {
+            "action": "temporal.standaloneactivity.Model$package$.attemptResult",
+            "inputs": [{
+              "enum": {
+                "type": "temporal.standaloneactivity.AttemptResult",
+                "case": "canceled"
+              }
+            }]
+          },
+          "command": {
+            "id": "cancel-attempt",
+            "position": {
+              "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+              "line": 371
+            },
+            "attemptCanceled": {
+            }
+          }
+        }]
+      }]
+    }],
+    "cleanup": "cleanup"
   }]
 }

@@ -38,6 +38,7 @@ func TestReservationOutcomesAreJudgedByOneClosedTable(t *testing.T) {
 		testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED:            {succeeded, reservationRecorded},
 		testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_RETRYABLE:     {succeeded, reservationRecorded},
 		testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_NON_RETRYABLE: {succeeded, reservationRecorded},
+		testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED:             {succeeded, reservationRecorded},
 		testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_REFUSED:                      {failed, reservationRecordedThenFailed},
 		testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED:                   {canceled, reservationRecorded},
 	} {
@@ -80,10 +81,10 @@ func TestReservationOutcomesAreJudgedByOneClosedTable(t *testing.T) {
 	}
 	require.Equal(t, len(kinds)*len(statuses)*2*(1+len(responses)), judged)
 	require.Len(t, statuses, 7)
-	require.Len(t, responses, 7)
+	require.Len(t, responses, 8)
 	// The table holds nothing the list above does not: one row per allowed combination, whatever
 	// the entrypoint performs.
-	require.Len(t, reservationOutcomes, 9)
+	require.Len(t, reservationOutcomes, 10)
 	require.Equal(t, reservationRejected, judgeReservation(activity, false, 1, "activity-run", nil))
 }
 

@@ -1,10 +1,10 @@
 {
-  "source": "model/scalav2: fixture.realizations.Realizations$package$.doorOpens, fixture.realizations.Realizations$package$.doorRealization, fixture.realizations.Realizations$package$.learnedRun, fixture.realizations.Realizations$package$.pauseRace, fixture.realizations.Realizations$package$.pauseRaceQuery, temporal.nexuscaller.Claims$package$.syncCompletion",
+  "source": "model/scalav2: fixture.realizations.Realizations$package$.doorOpens, fixture.realizations.Realizations$package$.doorRealization, fixture.realizations.Realizations$package$.errandRealization, fixture.realizations.Realizations$package$.errandRetry, fixture.realizations.Realizations$package$.errandWithdrawn, fixture.realizations.Realizations$package$.learnedRun, fixture.realizations.Realizations$package$.pauseRace, fixture.realizations.Realizations$package$.pauseRaceQuery, fixture.realizations.Realizations$package$.tallyOpens, fixture.realizations.Realizations$package$.tallyRealization, temporal.nexuscaller.Claims$package$.syncCompletion",
   "types": [{
     "name": "fixture.realizations.DoorFact",
     "position": {
       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-      "line": 372
+      "line": 375
     },
     "enum": {
       "cases": [{
@@ -15,7 +15,7 @@
     "name": "fixture.realizations.DoorOutcome",
     "position": {
       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-      "line": 369
+      "line": 372
     },
     "enum": {
       "cases": [{
@@ -26,13 +26,75 @@
     "name": "fixture.realizations.DoorState",
     "position": {
       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-      "line": 366
+      "line": 369
     },
     "enum": {
       "cases": [{
         "name": "closed"
       }, {
         "name": "open"
+      }]
+    }
+  }, {
+    "name": "fixture.realizations.ErrandAnswer",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 500
+    },
+    "enum": {
+      "cases": [{
+        "name": "failed"
+      }, {
+        "name": "completed"
+      }, {
+        "name": "canceled"
+      }]
+    }
+  }, {
+    "name": "fixture.realizations.ErrandFact",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 507
+    },
+    "enum": {
+      "cases": [{
+        "name": "errandListed"
+      }, {
+        "name": "errandClosed"
+      }, {
+        "name": "errandWithdrawn"
+      }]
+    }
+  }, {
+    "name": "fixture.realizations.ErrandOutcome",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 503
+    },
+    "enum": {
+      "cases": [{
+        "name": "accepted"
+      }]
+    }
+  }, {
+    "name": "fixture.realizations.ErrandState",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 496
+    },
+    "enum": {
+      "cases": [{
+        "name": "idle"
+      }, {
+        "name": "queued"
+      }, {
+        "name": "held"
+      }, {
+        "name": "retrying"
+      }, {
+        "name": "done"
+      }, {
+        "name": "withdrawn"
       }]
     }
   }, {
@@ -687,7 +749,7 @@
     "name": "door.evidence",
     "position": {
       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-      "line": 396
+      "line": 399
     },
     "params": [{
       "name": "f",
@@ -698,14 +760,14 @@
     "body": {
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 396
+        "line": 399
       },
       "call": {
         "function": "fixture.realizations.Realizations$package$.doorEvidence",
         "args": [{
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 396
+            "line": 399
           },
           "var": "f"
         }]
@@ -715,7 +777,7 @@
     "name": "door.property.opensBecauseTheLatchGives",
     "position": {
       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-      "line": 402
+      "line": 405
     },
     "params": [{
       "name": "s",
@@ -726,27 +788,27 @@
     "body": {
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 403
+        "line": 406
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 403
+            "line": 406
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                "line": 403
+                "line": 406
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                    "line": 403
+                    "line": 406
                   },
                   "var": "s"
                 },
@@ -756,7 +818,7 @@
             "right": {
               "position": {
                 "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                "line": 403
+                "line": 406
               },
               "literal": {
                 "text": "the latch gives"
@@ -767,14 +829,14 @@
         "right": {
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 403
+            "line": 406
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                "line": 403
+                "line": 406
               },
               "literal": {
                 "enum": {
@@ -786,13 +848,13 @@
             "right": {
               "position": {
                 "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                "line": 403
+                "line": 406
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                    "line": 403
+                    "line": 406
                   },
                   "var": "s"
                 },
@@ -804,10 +866,637 @@
       }
     }
   }, {
+    "name": "errand.evidence",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 553
+    },
+    "params": [{
+      "name": "f",
+      "type": {
+        "named": "fixture.realizations.ErrandFact"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 553
+      },
+      "call": {
+        "function": "fixture.realizations.Realizations$package$.errandEvidence",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 553
+          },
+          "var": "f"
+        }]
+      }
+    }
+  }, {
+    "name": "errand.property.closesOnCompletion",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 558
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "umpire.Step"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 559
+      },
+      "binary": {
+        "op": "OP_AND",
+        "left": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 559
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                "line": 559
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 559
+                  },
+                  "var": "s"
+                },
+                "field": "state"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                "line": 559
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.realizations.ErrandState",
+                  "case": "done"
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 559
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                "line": 559
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.realizations.ErrandFact",
+                  "case": "errandClosed"
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                "line": 559
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 559
+                  },
+                  "var": "s"
+                },
+                "field": "facts"
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "errand.property.withdrawsOnCancel",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 573
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "umpire.Step"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 574
+      },
+      "binary": {
+        "op": "OP_AND",
+        "left": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 574
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                "line": 574
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 574
+                  },
+                  "var": "s"
+                },
+                "field": "state"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                "line": 574
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.realizations.ErrandState",
+                  "case": "withdrawn"
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 574
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                "line": 574
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.realizations.ErrandFact",
+                  "case": "errandWithdrawn"
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                "line": 574
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 574
+                  },
+                  "var": "s"
+                },
+                "field": "facts"
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.realizations.Realizations$package$.answerStep",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 533
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "fixture.realizations.ErrandState"
+      }
+    }, {
+      "name": "a",
+      "type": {
+        "named": "fixture.realizations.ErrandAnswer"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 534
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 534
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                "line": 534
+              },
+              "var": "s"
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                "line": 534
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.realizations.ErrandState",
+                  "case": "held"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 534
+          },
+          "list": {
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 536
+          },
+          "match": {
+            "scrutinee": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                "line": 536
+              },
+              "var": "a"
+            },
+            "cases": [{
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "fixture.realizations.ErrandAnswer",
+                    "case": "failed"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                  "line": 537
+                },
+                "list": {
+                  "items": [{
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                      "line": 537
+                    },
+                    "construct": {
+                      "type": "umpire.Step",
+                      "args": [{
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                          "line": 537
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.realizations.ErrandOutcome",
+                            "case": "accepted"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                          "line": 537
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.realizations.ErrandState",
+                            "case": "retrying"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                          "line": 537
+                        },
+                        "list": {
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                          "line": 537
+                        },
+                        "literal": {
+                          "text": ""
+                        }
+                      }]
+                    }
+                  }]
+                }
+              }
+            }, {
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "fixture.realizations.ErrandAnswer",
+                    "case": "completed"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                  "line": 539
+                },
+                "list": {
+                  "items": [{
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                      "line": 539
+                    },
+                    "construct": {
+                      "type": "umpire.Step",
+                      "args": [{
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                          "line": 539
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.realizations.ErrandOutcome",
+                            "case": "accepted"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                          "line": 539
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.realizations.ErrandState",
+                            "case": "done"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                          "line": 539
+                        },
+                        "list": {
+                          "items": [{
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                              "line": 539
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "fixture.realizations.ErrandFact",
+                                "case": "errandClosed"
+                              }
+                            }
+                          }]
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                          "line": 539
+                        },
+                        "literal": {
+                          "text": ""
+                        }
+                      }]
+                    }
+                  }]
+                }
+              }
+            }, {
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "fixture.realizations.ErrandAnswer",
+                    "case": "canceled"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                  "line": 541
+                },
+                "list": {
+                  "items": [{
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                      "line": 541
+                    },
+                    "construct": {
+                      "type": "umpire.Step",
+                      "args": [{
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                          "line": 541
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.realizations.ErrandOutcome",
+                            "case": "accepted"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                          "line": 541
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.realizations.ErrandState",
+                            "case": "withdrawn"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                          "line": 541
+                        },
+                        "list": {
+                          "items": [{
+                            "position": {
+                              "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                              "line": 541
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "fixture.realizations.ErrandFact",
+                                "case": "errandWithdrawn"
+                              }
+                            }
+                          }]
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                          "line": 541
+                        },
+                        "literal": {
+                          "text": ""
+                        }
+                      }]
+                    }
+                  }]
+                }
+              }
+            }]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.realizations.Realizations$package$.deliverStep",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 525
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "fixture.realizations.ErrandState"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 525
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 525
+          },
+          "var": "s"
+        },
+        "cases": [{
+          "pattern": {
+            "alternatives": {
+              "patterns": [{
+                "literal": {
+                  "enum": {
+                    "type": "fixture.realizations.ErrandState",
+                    "case": "queued"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "fixture.realizations.ErrandState",
+                    "case": "retrying"
+                  }
+                }
+              }]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+              "line": 526
+            },
+            "list": {
+              "items": [{
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                  "line": 526
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [{
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                      "line": 526
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.realizations.ErrandOutcome",
+                        "case": "accepted"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                      "line": 526
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.realizations.ErrandState",
+                        "case": "held"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                      "line": 526
+                    },
+                    "list": {
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                      "line": 526
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  }]
+                }
+              }]
+            }
+          }
+        }, {
+          "pattern": {
+            "wildcard": {
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+              "line": 527
+            },
+            "list": {
+            }
+          }
+        }]
+      }
+    }
+  }, {
     "name": "fixture.realizations.Realizations$package$.doorEvidence",
     "position": {
       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-      "line": 388
+      "line": 391
     },
     "params": [{
       "name": "f",
@@ -818,13 +1507,13 @@
     "body": {
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 388
+        "line": 391
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 388
+            "line": 391
           },
           "var": "f"
         },
@@ -840,7 +1529,7 @@
           "body": {
             "position": {
               "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-              "line": 389
+              "line": 392
             },
             "literal": {
               "text": "doorOpened"
@@ -850,10 +1539,92 @@
       }
     }
   }, {
+    "name": "fixture.realizations.Realizations$package$.errandEvidence",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 543
+    },
+    "params": [{
+      "name": "f",
+      "type": {
+        "named": "fixture.realizations.ErrandFact"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 543
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 543
+          },
+          "var": "f"
+        },
+        "cases": [{
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.realizations.ErrandFact",
+                "case": "errandListed"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+              "line": 544
+            },
+            "literal": {
+              "text": "errandListed"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.realizations.ErrandFact",
+                "case": "errandClosed"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+              "line": 545
+            },
+            "literal": {
+              "text": "errandClosed"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.realizations.ErrandFact",
+                "case": "errandWithdrawn"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+              "line": 546
+            },
+            "literal": {
+              "text": "errandWithdrawn"
+            }
+          }
+        }]
+      }
+    }
+  }, {
     "name": "fixture.realizations.Realizations$package$.pushStep",
     "position": {
       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-      "line": 383
+      "line": 386
     },
     "params": [{
       "name": "s",
@@ -864,13 +1635,13 @@
     "body": {
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 383
+        "line": 386
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 383
+            "line": 386
           },
           "var": "s"
         },
@@ -886,20 +1657,20 @@
           "body": {
             "position": {
               "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-              "line": 385
+              "line": 388
             },
             "list": {
               "items": [{
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 385
+                  "line": 388
                 },
                 "construct": {
                   "type": "umpire.Step",
                   "args": [{
                     "position": {
                       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                      "line": 385
+                      "line": 388
                     },
                     "literal": {
                       "enum": {
@@ -910,7 +1681,7 @@
                   }, {
                     "position": {
                       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                      "line": 385
+                      "line": 388
                     },
                     "literal": {
                       "enum": {
@@ -921,13 +1692,13 @@
                   }, {
                     "position": {
                       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                      "line": 385
+                      "line": 388
                     },
                     "list": {
                       "items": [{
                         "position": {
                           "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                          "line": 385
+                          "line": 388
                         },
                         "literal": {
                           "enum": {
@@ -940,7 +1711,7 @@
                   }, {
                     "position": {
                       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                      "line": 385
+                      "line": 388
                     },
                     "literal": {
                       "text": "the latch gives"
@@ -962,7 +1733,124 @@
           "body": {
             "position": {
               "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-              "line": 386
+              "line": 389
+            },
+            "list": {
+            }
+          }
+        }]
+      }
+    }
+  }, {
+    "name": "fixture.realizations.Realizations$package$.requestStep",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 520
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "fixture.realizations.ErrandState"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 520
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 520
+          },
+          "var": "s"
+        },
+        "cases": [{
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.realizations.ErrandState",
+                "case": "idle"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+              "line": 521
+            },
+            "list": {
+              "items": [{
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                  "line": 521
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [{
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                      "line": 521
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.realizations.ErrandOutcome",
+                        "case": "accepted"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                      "line": 521
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.realizations.ErrandState",
+                        "case": "queued"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                      "line": 521
+                    },
+                    "list": {
+                      "items": [{
+                        "position": {
+                          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                          "line": 521
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.realizations.ErrandFact",
+                            "case": "errandListed"
+                          }
+                        }
+                      }]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                      "line": 521
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  }]
+                }
+              }]
+            }
+          }
+        }, {
+          "pattern": {
+            "wildcard": {
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+              "line": 522
             },
             "list": {
             }
@@ -3627,7 +4515,7 @@
     "name": "staleAdmission.property.pausedWhileQueued",
     "position": {
       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-      "line": 258
+      "line": 261
     },
     "params": [{
       "name": "_$1",
@@ -3638,14 +4526,14 @@
     "body": {
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 258
+        "line": 261
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 258
+            "line": 261
           },
           "literal": {
             "enum": {
@@ -3657,15 +4545,92 @@
         "right": {
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 258
+            "line": 261
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                "line": 258
+                "line": 261
               },
               "var": "_$1"
+            },
+            "field": "facts"
+          }
+        }
+      }
+    }
+  }, {
+    "name": "tally.evidence",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 739
+    },
+    "params": [{
+      "name": "f",
+      "type": {
+        "named": "fixture.realizations.DoorFact"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 739
+      },
+      "call": {
+        "function": "fixture.realizations.Realizations$package$.doorEvidence",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 739
+          },
+          "var": "f"
+        }]
+      }
+    }
+  }, {
+    "name": "tally.property.tallyOpened",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 744
+    },
+    "params": [{
+      "name": "_$4",
+      "type": {
+        "named": "umpire.Step"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 744
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 744
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.realizations.DoorFact",
+              "case": "doorOpened"
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 744
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                "line": 744
+              },
+              "var": "_$4"
             },
             "field": "facts"
           }
@@ -9075,14 +10040,47 @@
     }
   }],
   "actions": [{
+    "id": "fixture.realizations.Realizations$package$.answer",
+    "name": "answer",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 518
+    },
+    "party": "runner",
+    "inputs": [{
+      "name": "answer",
+      "type": {
+        "named": "fixture.realizations.ErrandAnswer"
+      }
+    }],
+    "on": "errand"
+  }, {
+    "id": "fixture.realizations.Realizations$package$.deliver",
+    "name": "deliver",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 517
+    },
+    "party": "runner",
+    "on": "errand"
+  }, {
     "id": "fixture.realizations.Realizations$package$.push",
     "name": "push",
     "position": {
       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-      "line": 380
+      "line": 383
     },
     "party": "doorkeeper",
     "on": "door"
+  }, {
+    "id": "fixture.realizations.Realizations$package$.request",
+    "name": "request",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 516
+    },
+    "party": "requester",
+    "creates": "errand"
   }, {
     "id": "fixture.specimens.admission.Admission$package$.dispatch",
     "name": "dispatch",
@@ -9415,7 +10413,7 @@
     "name": "door",
     "position": {
       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-      "line": 392
+      "line": 395
     },
     "entity": "door",
     "stateType": "fixture.realizations.DoorState",
@@ -9424,7 +10422,7 @@
     "starts": [{
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 394
+        "line": 397
       },
       "literal": {
         "enum": {
@@ -9436,7 +10434,7 @@
     "ends": {
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 395
+        "line": 398
       },
       "lambda": {
         "params": [{
@@ -9448,21 +10446,21 @@
         "body": {
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 395
+            "line": 398
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                "line": 395
+                "line": 398
               },
               "var": "_$2"
             },
             "right": {
               "position": {
                 "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                "line": 395
+                "line": 398
               },
               "literal": {
                 "enum": {
@@ -9480,10 +10478,135 @@
       "function": "fixture.realizations.Realizations$package$.pushStep",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 397
+        "line": 400
       }
     }],
     "evidence": "door.evidence"
+  }, {
+    "family": "fixture.realizations.errand",
+    "name": "errand",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 549
+    },
+    "entity": "errand",
+    "stateType": "fixture.realizations.ErrandState",
+    "outcomeType": "fixture.realizations.ErrandOutcome",
+    "factType": "fixture.realizations.ErrandFact",
+    "starts": [{
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 551
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.realizations.ErrandState",
+          "case": "idle"
+        }
+      }
+    }],
+    "ends": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 552
+      },
+      "lambda": {
+        "params": [{
+          "name": "s",
+          "type": {
+            "named": "fixture.realizations.ErrandState"
+          }
+        }],
+        "body": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 552
+          },
+          "binary": {
+            "op": "OP_OR",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                "line": 552
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 552
+                  },
+                  "var": "s"
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 552
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.realizations.ErrandState",
+                      "case": "done"
+                    }
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                "line": 552
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 552
+                  },
+                  "var": "s"
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 552
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.realizations.ErrandState",
+                      "case": "withdrawn"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [{
+      "action": "fixture.realizations.Realizations$package$.request",
+      "function": "fixture.realizations.Realizations$package$.requestStep",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 554
+      }
+    }, {
+      "action": "fixture.realizations.Realizations$package$.deliver",
+      "function": "fixture.realizations.Realizations$package$.deliverStep",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 554
+      }
+    }, {
+      "action": "fixture.realizations.Realizations$package$.answer",
+      "function": "fixture.realizations.Realizations$package$.answerStep",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 554
+      }
+    }],
+    "evidence": "errand.evidence"
   }, {
     "family": "temporal.nexus.caller",
     "name": "nexusProduct",
@@ -9884,13 +11007,87 @@
       "map": "fixture.specimens.admission.Admission$package$.productOfAdmission"
     },
     "monitors": ["fixture.specimens.admission.Admission$package$.atMostOneActiveAttempt", "fixture.specimens.admission.Admission$package$.terminalFinality"]
+  }, {
+    "family": "fixture.realizations.door",
+    "name": "tally",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 735
+    },
+    "entity": "door",
+    "stateType": "fixture.realizations.DoorState",
+    "outcomeType": "fixture.realizations.DoorOutcome",
+    "factType": "fixture.realizations.DoorFact",
+    "starts": [{
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 737
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.realizations.DoorState",
+          "case": "closed"
+        }
+      }
+    }],
+    "ends": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 738
+      },
+      "lambda": {
+        "params": [{
+          "name": "_$3",
+          "type": {
+            "named": "fixture.realizations.DoorState"
+          }
+        }],
+        "body": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 738
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                "line": 738
+              },
+              "var": "_$3"
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                "line": 738
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.realizations.DoorState",
+                  "case": "open"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [{
+      "action": "fixture.realizations.Realizations$package$.push",
+      "function": "fixture.realizations.Realizations$package$.pushStep",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 740
+      }
+    }],
+    "evidence": "tally.evidence"
   }],
   "channels": [{
     "id": "fixture.realizations.Realizations$package$.dispatchChannel",
     "name": "dispatchChannel",
     "position": {
       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-      "line": 247
+      "line": 250
     },
     "message": {
       "named": "fixture.specimens.admission.Message"
@@ -9955,12 +11152,46 @@
     "name": "opensBecauseTheLatchGives",
     "position": {
       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-      "line": 402
+      "line": 405
     },
     "whenClass": {
       "action": "fixture.realizations.Realizations$package$.push"
     },
     "holds": "door.property.opensBecauseTheLatchGives"
+  }, {
+    "machine": "errand",
+    "name": "closesOnCompletion",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 558
+    },
+    "whenClass": {
+      "action": "fixture.realizations.Realizations$package$.answer",
+      "inputs": [{
+        "enum": {
+          "type": "fixture.realizations.ErrandAnswer",
+          "case": "completed"
+        }
+      }]
+    },
+    "holds": "errand.property.closesOnCompletion"
+  }, {
+    "machine": "errand",
+    "name": "withdrawsOnCancel",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 573
+    },
+    "whenClass": {
+      "action": "fixture.realizations.Realizations$package$.answer",
+      "inputs": [{
+        "enum": {
+          "type": "fixture.realizations.ErrandAnswer",
+          "case": "canceled"
+        }
+      }]
+    },
+    "holds": "errand.property.withdrawsOnCancel"
   }, {
     "machine": "nexusProtocol",
     "name": "syncSucceeds",
@@ -9983,7 +11214,7 @@
     "name": "pausedWhileQueued",
     "position": {
       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-      "line": 257
+      "line": 260
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.control",
@@ -9995,18 +11226,29 @@
       }]
     },
     "holds": "staleAdmission.property.pausedWhileQueued"
+  }, {
+    "machine": "tally",
+    "name": "tallyOpened",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 744
+    },
+    "whenClass": {
+      "action": "fixture.realizations.Realizations$package$.push"
+    },
+    "holds": "tally.property.tallyOpened"
   }],
   "scenarios": [{
     "machine": "door",
     "name": "pushed",
     "position": {
       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-      "line": 406
+      "line": 409
     },
     "start": {
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 406
+        "line": 409
       },
       "literal": {
         "enum": {
@@ -10017,6 +11259,80 @@
     },
     "actions": [{
       "action": "fixture.realizations.Realizations$package$.push"
+    }]
+  }, {
+    "machine": "errand",
+    "name": "canceledOnce",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 577
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 579
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.realizations.ErrandState",
+          "case": "idle"
+        }
+      }
+    },
+    "actions": [{
+      "action": "fixture.realizations.Realizations$package$.request"
+    }, {
+      "action": "fixture.realizations.Realizations$package$.deliver"
+    }, {
+      "action": "fixture.realizations.Realizations$package$.answer",
+      "inputs": [{
+        "enum": {
+          "type": "fixture.realizations.ErrandAnswer",
+          "case": "canceled"
+        }
+      }]
+    }]
+  }, {
+    "machine": "errand",
+    "name": "retriedOnce",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 562
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 564
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.realizations.ErrandState",
+          "case": "idle"
+        }
+      }
+    },
+    "actions": [{
+      "action": "fixture.realizations.Realizations$package$.request"
+    }, {
+      "action": "fixture.realizations.Realizations$package$.deliver"
+    }, {
+      "action": "fixture.realizations.Realizations$package$.answer",
+      "inputs": [{
+        "enum": {
+          "type": "fixture.realizations.ErrandAnswer",
+          "case": "failed"
+        }
+      }]
+    }, {
+      "action": "fixture.realizations.Realizations$package$.deliver"
+    }, {
+      "action": "fixture.realizations.Realizations$package$.answer",
+      "inputs": [{
+        "enum": {
+          "type": "fixture.realizations.ErrandAnswer",
+          "case": "completed"
+        }
+      }]
     }]
   }, {
     "machine": "nexusProtocol",
@@ -10119,7 +11435,7 @@
     "name": "heldRace",
     "position": {
       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-      "line": 260
+      "line": 263
     },
     "start": {
       "position": {
@@ -10175,12 +11491,34 @@
         }
       }]
     }]
+  }, {
+    "machine": "tally",
+    "name": "tallied",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 746
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 746
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.realizations.DoorState",
+          "case": "closed"
+        }
+      }
+    },
+    "actions": [{
+      "action": "fixture.realizations.Realizations$package$.push"
+    }]
   }],
   "queries": [{
     "name": "door.opens",
     "position": {
       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-      "line": 409
+      "line": 412
     },
     "form": "FORM_FIND",
     "property": {
@@ -10198,10 +11536,52 @@
       "search": 16
     }
   }, {
+    "name": "errand.retry",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 568
+    },
+    "form": "FORM_FIND",
+    "property": {
+      "machine": "errand",
+      "name": "closesOnCompletion"
+    },
+    "scenario": {
+      "machine": "errand",
+      "name": "retriedOnce"
+    },
+    "limits": {
+      "name": "five",
+      "steps": 5,
+      "actions": 5,
+      "search": 4096
+    }
+  }, {
+    "name": "errand.withdrawn",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 583
+    },
+    "form": "FORM_FIND",
+    "property": {
+      "machine": "errand",
+      "name": "withdrawsOnCancel"
+    },
+    "scenario": {
+      "machine": "errand",
+      "name": "canceledOnce"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 4096
+    }
+  }, {
     "name": "staleAdmission.pauseRace",
     "position": {
       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-      "line": 265
+      "line": 268
     },
     "form": "FORM_FIND",
     "property": {
@@ -10239,13 +11619,34 @@
       "actions": 2,
       "search": 512
     }
+  }, {
+    "name": "tally.opens",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 749
+    },
+    "form": "FORM_FIND",
+    "property": {
+      "machine": "tally",
+      "name": "tallyOpened"
+    },
+    "scenario": {
+      "machine": "tally",
+      "name": "tallied"
+    },
+    "limits": {
+      "name": "one",
+      "steps": 1,
+      "actions": 1,
+      "search": 16
+    }
   }],
   "realizations": [{
     "id": "fixture.realizations.Realizations$package$.doorRealization",
     "name": "doorRealization",
     "position": {
       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-      "line": 411
+      "line": 414
     },
     "machine": "door",
     "producer": "fixture.realizations",
@@ -10254,14 +11655,14 @@
       "id": "temporal.workflow-service",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 30
+        "line": 33
       },
       "kind": "KIND_ENDPOINT"
     }, {
       "id": "temporal.worker",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 31
+        "line": 34
       },
       "kind": "KIND_WORKER",
       "namespace": "temporal.worker.namespace"
@@ -10269,7 +11670,7 @@
       "id": "temporal.task-queue",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 32
+        "line": 35
       },
       "kind": "KIND_TASK_QUEUE",
       "namespace": "temporal.worker.namespace",
@@ -10279,7 +11680,7 @@
       "id": "correlated-evidence",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 478
+        "line": 481
       },
       "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
     }],
@@ -10287,7 +11688,7 @@
       "id": "fixture.realizations.door.evidence.opened",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 480
+        "line": 483
       },
       "records": "doorOpened",
       "source": "fixture.realizations.door.source.history",
@@ -10298,7 +11699,7 @@
     "correlation": {
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 417
+        "line": 420
       },
       "projection": "fixture.realizations.door.projection",
       "run": "fixture.realizations.door.scope.run",
@@ -10315,19 +11716,19 @@
       "id": "controller",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 430
+        "line": 433
       },
       "controller": {
       },
       "items": [{
         "position": {
           "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-          "line": 434
+          "line": 437
         },
         "performs": [{
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 436
+            "line": 439
           },
           "step": {
             "action": "fixture.realizations.Realizations$package$.push"
@@ -10336,7 +11737,7 @@
             "id": "push-door",
             "position": {
               "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-              "line": 438
+              "line": 441
             },
             "rpc": {
               "role": "temporal.workflow-service",
@@ -10346,7 +11747,7 @@
                 "value": {
                   "position": {
                     "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                    "line": 444
+                    "line": 447
                   },
                   "environment": "temporal.worker.namespace"
                 }
@@ -10355,7 +11756,7 @@
                 "value": {
                   "position": {
                     "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                    "line": 445
+                    "line": 448
                   },
                   "run": {
                   }
@@ -10367,13 +11768,13 @@
       }, {
         "position": {
           "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-          "line": 452
+          "line": 455
         },
         "command": {
           "id": "history",
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 454
+            "line": 457
           },
           "rpc": {
             "role": "temporal.workflow-service",
@@ -10383,7 +11784,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 460
+                  "line": 463
                 },
                 "environment": "temporal.worker.namespace"
               }
@@ -10392,7 +11793,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 461
+                  "line": 464
                 },
                 "run": {
                 }
@@ -10410,11 +11811,612 @@
       }]
     }]
   }, {
+    "id": "fixture.realizations.Realizations$package$.errandRealization",
+    "name": "errandRealization",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 614
+    },
+    "machine": "errand",
+    "producer": "fixture.realizations",
+    "producerVersion": "1",
+    "roles": [{
+      "id": "temporal.workflow-service",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 33
+      },
+      "kind": "KIND_ENDPOINT"
+    }, {
+      "id": "temporal.worker",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 34
+      },
+      "kind": "KIND_WORKER",
+      "namespace": "temporal.worker.namespace"
+    }, {
+      "id": "temporal.task-queue",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 35
+      },
+      "kind": "KIND_TASK_QUEUE",
+      "namespace": "temporal.worker.namespace",
+      "resource": "temporal.task-queue.resource"
+    }],
+    "observations": [{
+      "id": "correlated-evidence",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 726
+      },
+      "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+    }],
+    "evidence": [{
+      "id": "fixture.realizations.errand.evidence.errandListed",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 593
+      },
+      "records": "errandListed",
+      "source": "fixture.realizations.errand.source.errandListed",
+      "read": {
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/ListActivityExecutions",
+        "path": "executions"
+      },
+      "operation": "activity_id",
+      "commitment": "COMMITMENT_REPORTED"
+    }, {
+      "id": "fixture.realizations.errand.evidence.errandClosed",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 593
+      },
+      "records": "errandClosed",
+      "source": "fixture.realizations.errand.source.errandClosed",
+      "read": {
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/ListActivityExecutions",
+        "path": "executions"
+      },
+      "operation": "activity_id",
+      "commitment": "COMMITMENT_REPORTED"
+    }, {
+      "id": "fixture.realizations.errand.evidence.errandWithdrawn",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 593
+      },
+      "records": "errandWithdrawn",
+      "source": "fixture.realizations.errand.source.errandWithdrawn",
+      "read": {
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/ListActivityExecutions",
+        "path": "executions"
+      },
+      "operation": "activity_id",
+      "commitment": "COMMITMENT_REPORTED"
+    }],
+    "correlation": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 620
+      },
+      "projection": "fixture.realizations.errand.projection",
+      "run": "fixture.realizations.errand.scope.run",
+      "operation": "fixture.realizations.errand.scope.errand",
+      "observation": "correlated-evidence",
+      "events": "8",
+      "buffered": "8",
+      "keys": "2",
+      "support": "16",
+      "work": "1000",
+      "eventSize": "512"
+    },
+    "scripts": [{
+      "id": "controller",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 633
+      },
+      "controller": {
+      },
+      "items": [{
+        "position": {
+          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+          "line": 637
+        },
+        "performs": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 639
+          },
+          "step": {
+            "action": "fixture.realizations.Realizations$package$.request"
+          },
+          "command": {
+            "id": "start-activity",
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+              "line": 641
+            },
+            "rpc": {
+              "role": "temporal.workflow-service",
+              "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
+              "assign": [{
+                "target": "namespace",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 647
+                  },
+                  "environment": "temporal.worker.namespace"
+                }
+              }, {
+                "target": "activity_id",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 648
+                  },
+                  "run": {
+                  }
+                }
+              }, {
+                "target": "activity_type.name",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 649
+                  },
+                  "literal": {
+                    "named": {
+                      "prefix": "umpire-",
+                      "fixture": true,
+                      "suffix": "-errand"
+                    }
+                  }
+                }
+              }, {
+                "target": "task_queue.name",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 650
+                  },
+                  "environment": "temporal.task-queue.resource"
+                }
+              }, {
+                "target": "request_id",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 651
+                  },
+                  "run": {
+                  }
+                }
+              }, {
+                "target": "start_to_close_timeout.seconds",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 652
+                  },
+                  "literal": {
+                    "number": "300"
+                  }
+                }
+              }]
+            }
+          }
+        }]
+      }, {
+        "position": {
+          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+          "line": 660
+        },
+        "command": {
+          "id": "await-listed",
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 603
+          },
+          "poll": {
+            "evidence": "fixture.realizations.errand.evidence.errandListed",
+            "role": "temporal.workflow-service",
+            "assign": [{
+              "target": "namespace",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                  "line": 608
+                },
+                "environment": "temporal.worker.namespace"
+              }
+            }],
+            "until": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                "line": 665
+              },
+              "all": {
+                "operands": [{
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 666
+                  },
+                  "present": {
+                    "of": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                        "line": 666
+                      },
+                      "path": {
+                        "of": {
+                          "position": {
+                            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                            "line": 666
+                          },
+                          "projected": {
+                          }
+                        },
+                        "path": "schedule_time"
+                      }
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 667
+                  },
+                  "greater": {
+                    "left": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                        "line": 667
+                      },
+                      "path": {
+                        "of": {
+                          "position": {
+                            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                            "line": 667
+                          },
+                          "projected": {
+                          }
+                        },
+                        "path": "state_transition_count"
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                        "line": 667
+                      },
+                      "literal": {
+                        "number": "0"
+                      }
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 668
+                  },
+                  "not": {
+                    "of": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                        "line": 668
+                      },
+                      "equal": {
+                        "left": {
+                          "position": {
+                            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                            "line": 668
+                          },
+                          "path": {
+                            "of": {
+                              "position": {
+                                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                                "line": 668
+                              },
+                              "projected": {
+                              }
+                            },
+                            "path": "activity_id"
+                          }
+                        },
+                        "right": {
+                          "position": {
+                            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                            "line": 668
+                          },
+                          "literal": {
+                            "text": ""
+                          }
+                        }
+                      }
+                    }
+                  }
+                }]
+              }
+            },
+            "intervalMs": "250"
+          }
+        }
+      }, {
+        "position": {
+          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+          "line": 673
+        },
+        "command": {
+          "id": "await-closed",
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 603
+          },
+          "poll": {
+            "evidence": "fixture.realizations.errand.evidence.errandClosed",
+            "role": "temporal.workflow-service",
+            "assign": [{
+              "target": "namespace",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                  "line": 608
+                },
+                "environment": "temporal.worker.namespace"
+              }
+            }],
+            "until": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                "line": 678
+              },
+              "equal": {
+                "left": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 678
+                  },
+                  "path": {
+                    "of": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                        "line": 678
+                      },
+                      "projected": {
+                      }
+                    },
+                    "path": "status"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 678
+                  },
+                  "literal": {
+                    "enumName": "ACTIVITY_EXECUTION_STATUS_COMPLETED"
+                  }
+                }
+              }
+            },
+            "intervalMs": "250"
+          }
+        }
+      }, {
+        "position": {
+          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+          "line": 682
+        },
+        "command": {
+          "id": "await-withdrawn",
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 603
+          },
+          "poll": {
+            "evidence": "fixture.realizations.errand.evidence.errandWithdrawn",
+            "role": "temporal.workflow-service",
+            "assign": [{
+              "target": "namespace",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                  "line": 608
+                },
+                "environment": "temporal.worker.namespace"
+              }
+            }],
+            "until": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                "line": 687
+              },
+              "equal": {
+                "left": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 687
+                  },
+                  "path": {
+                    "of": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                        "line": 687
+                      },
+                      "projected": {
+                      }
+                    },
+                    "path": "status"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 687
+                  },
+                  "literal": {
+                    "enumName": "ACTIVITY_EXECUTION_STATUS_CANCELED"
+                  }
+                }
+              }
+            },
+            "intervalMs": "250"
+          }
+        },
+        "when": [{
+          "action": "fixture.realizations.Realizations$package$.answer",
+          "inputs": [{
+            "enum": {
+              "type": "fixture.realizations.ErrandAnswer",
+              "case": "canceled"
+            }
+          }]
+        }]
+      }]
+    }, {
+      "id": "errand",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 694
+      },
+      "activity": {
+        "activityType": {
+          "prefix": "umpire-",
+          "fixture": true,
+          "suffix": "-errand"
+        },
+        "worker": "temporal.worker",
+        "taskQueue": "temporal.task-queue",
+        "starts": [{
+          "action": "fixture.realizations.Realizations$package$.deliver"
+        }]
+      },
+      "items": [{
+        "position": {
+          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+          "line": 698
+        },
+        "performs": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 700
+          },
+          "step": {
+            "action": "fixture.realizations.Realizations$package$.answer",
+            "inputs": [{
+              "enum": {
+                "type": "fixture.realizations.ErrandAnswer",
+                "case": "failed"
+              }
+            }]
+          },
+          "command": {
+            "id": "fail-attempt",
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+              "line": 702
+            },
+            "attemptFailure": {
+              "failure": {
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                  "line": 705
+                },
+                "message": "temporal.api.failure.v1.Failure",
+                "fields": [{
+                  "name": "message",
+                  "value": {
+                    "text": "not yet"
+                  }
+                }, {
+                  "name": "application_failure_info",
+                  "value": {
+                    "message": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                        "line": 711
+                      },
+                      "message": "temporal.api.failure.v1.ApplicationFailureInfo",
+                      "fields": [{
+                        "name": "type",
+                        "value": {
+                          "text": "NotYet"
+                        }
+                      }]
+                    }
+                  }
+                }]
+              }
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 718
+          },
+          "step": {
+            "action": "fixture.realizations.Realizations$package$.answer",
+            "inputs": [{
+              "enum": {
+                "type": "fixture.realizations.ErrandAnswer",
+                "case": "completed"
+              }
+            }]
+          },
+          "command": {
+            "id": "complete-attempt",
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+              "line": 718
+            },
+            "finish": {
+              "result": {
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                  "line": 718
+                },
+                "literal": {
+                  "text": "done"
+                }
+              }
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 719
+          },
+          "step": {
+            "action": "fixture.realizations.Realizations$package$.answer",
+            "inputs": [{
+              "enum": {
+                "type": "fixture.realizations.ErrandAnswer",
+                "case": "canceled"
+              }
+            }]
+          },
+          "command": {
+            "id": "cancel-attempt",
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+              "line": 719
+            },
+            "attemptCanceled": {
+            }
+          }
+        }]
+      }]
+    }],
+    "cleanup": "cleanup"
+  }, {
     "id": "fixture.realizations.Realizations$package$.learnedRun",
     "name": "learnedRun",
     "position": {
       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-      "line": 117
+      "line": 120
     },
     "machine": "nexusProtocol",
     "producer": "fixture.realizations",
@@ -10423,14 +12425,14 @@
       "id": "temporal.workflow-service",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 30
+        "line": 33
       },
       "kind": "KIND_ENDPOINT"
     }, {
       "id": "temporal.worker",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 31
+        "line": 34
       },
       "kind": "KIND_WORKER",
       "namespace": "temporal.worker.namespace"
@@ -10438,7 +12440,7 @@
       "id": "temporal.task-queue",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 32
+        "line": 35
       },
       "kind": "KIND_TASK_QUEUE",
       "namespace": "temporal.worker.namespace",
@@ -10447,7 +12449,7 @@
       "id": "temporal.nexus-endpoint",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 122
+        "line": 125
       },
       "kind": "KIND_ENDPOINT",
       "resource": "temporal.nexus-endpoint.resource"
@@ -10456,7 +12458,7 @@
       "id": "workflow-run",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 218
+        "line": 221
       },
       "kind": "KIND_TEXT"
     }],
@@ -10464,14 +12466,14 @@
       "id": "history-event",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 220
+        "line": 223
       },
       "message": "temporal.api.history.v1.HistoryEvent"
     }, {
       "id": "correlated-evidence",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 221
+        "line": 224
       },
       "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
     }],
@@ -10479,7 +12481,7 @@
       "id": "fixture.realizations.evidence.scheduled",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 224
+        "line": 227
       },
       "records": "nexusOperationScheduled",
       "source": "fixture.realizations.source.scheduled",
@@ -10493,7 +12495,7 @@
       "id": "fixture.realizations.evidence.completed",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 232
+        "line": 235
       },
       "records": "nexusOperationCompleted",
       "source": "fixture.realizations.source.history",
@@ -10504,7 +12506,7 @@
     "correlation": {
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 123
+        "line": 126
       },
       "projection": "fixture.realizations.projection",
       "run": "fixture.realizations.scope.run",
@@ -10521,20 +12523,20 @@
       "id": "controller",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 136
+        "line": 139
       },
       "controller": {
       },
       "items": [{
         "position": {
           "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-          "line": 140
+          "line": 143
         },
         "command": {
           "id": "start-workflow",
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 47
+            "line": 50
           },
           "rpc": {
             "role": "temporal.workflow-service",
@@ -10544,7 +12546,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 53
+                  "line": 56
                 },
                 "environment": "temporal.worker.namespace"
               }
@@ -10553,7 +12555,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 54
+                  "line": 57
                 },
                 "run": {
                 }
@@ -10563,7 +12565,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 55
+                  "line": 58
                 },
                 "literal": {
                   "named": {
@@ -10578,7 +12580,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 56
+                  "line": 59
                 },
                 "environment": "temporal.task-queue.resource"
               }
@@ -10587,7 +12589,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 57
+                  "line": 60
                 },
                 "run": {
                 }
@@ -10605,13 +12607,13 @@
       }, {
         "position": {
           "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-          "line": 141
+          "line": 144
         },
         "command": {
           "id": "await-scheduled",
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 64
+            "line": 67
           },
           "after": {
             "commands": ["start-workflow"]
@@ -10624,7 +12626,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 42
+                  "line": 45
                 },
                 "environment": "temporal.worker.namespace"
               }
@@ -10633,7 +12635,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 43
+                  "line": 46
                 },
                 "run": {
                 }
@@ -10643,7 +12645,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 44
+                  "line": 47
                 },
                 "learnedValue": "workflow-run"
               }
@@ -10651,19 +12653,19 @@
             "until": {
               "position": {
                 "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                "line": 70
+                "line": 73
               },
               "present": {
                 "of": {
                   "position": {
                     "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                    "line": 70
+                    "line": 73
                   },
                   "path": {
                     "of": {
                       "position": {
                         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                        "line": 70
+                        "line": 73
                       },
                       "projected": {
                       }
@@ -10679,13 +12681,13 @@
       }, {
         "position": {
           "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-          "line": 142
+          "line": 145
         },
         "command": {
           "id": "await-close",
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 77
+            "line": 80
           },
           "after": {
             "commands": ["start-workflow"]
@@ -10698,7 +12700,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 42
+                  "line": 45
                 },
                 "environment": "temporal.worker.namespace"
               }
@@ -10707,7 +12709,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 43
+                  "line": 46
                 },
                 "run": {
                 }
@@ -10717,7 +12719,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 44
+                  "line": 47
                 },
                 "learnedValue": "workflow-run"
               }
@@ -10726,7 +12728,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 83
+                  "line": 86
                 },
                 "literal": {
                   "flag": true
@@ -10737,7 +12739,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 86
+                  "line": 89
                 },
                 "literal": {
                   "enumName": "HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT"
@@ -10749,13 +12751,13 @@
       }, {
         "position": {
           "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-          "line": 143
+          "line": 146
         },
         "command": {
           "id": "history",
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 94
+            "line": 97
           },
           "after": {
             "commands": ["await-scheduled", "await-close"]
@@ -10768,7 +12770,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 42
+                  "line": 45
                 },
                 "environment": "temporal.worker.namespace"
               }
@@ -10777,7 +12779,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 43
+                  "line": 46
                 },
                 "run": {
                 }
@@ -10787,7 +12789,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 44
+                  "line": 47
                 },
                 "learnedValue": "workflow-run"
               }
@@ -10808,7 +12810,7 @@
       "id": "workflow",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 146
+        "line": 149
       },
       "workflow": {
         "workflowType": {
@@ -10822,12 +12824,12 @@
       "items": [{
         "position": {
           "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-          "line": 150
+          "line": 153
         },
         "performs": [{
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 152
+            "line": 155
           },
           "step": {
             "action": "temporal.nexuscaller.Model$package$.schedule",
@@ -10852,13 +12854,13 @@
             "id": "start-nexus-operation",
             "position": {
               "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-              "line": 154
+              "line": 157
             },
             "workflowCommand": {
               "command": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 157
+                  "line": 160
                 },
                 "message": "temporal.api.command.v1.Command",
                 "fields": [{
@@ -10872,7 +12874,7 @@
                     "message": {
                       "position": {
                         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                        "line": 163
+                        "line": 166
                       },
                       "message": "temporal.api.command.v1.ScheduleNexusOperationCommandAttributes",
                       "fields": [{
@@ -10901,13 +12903,13 @@
       }, {
         "position": {
           "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-          "line": 177
+          "line": 180
         },
         "command": {
           "id": "await-nexus-operation",
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 179
+            "line": 182
           },
           "regardless": true,
           "awaitCommand": "start-nexus-operation"
@@ -10915,20 +12917,20 @@
       }, {
         "position": {
           "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-          "line": 182
+          "line": 185
         },
         "command": {
           "id": "finish-workflow",
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 183
+            "line": 186
           },
           "regardless": true,
           "finish": {
             "result": {
               "position": {
                 "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                "line": 183
+                "line": 186
               },
               "literal": {
                 "text": "done"
@@ -10941,7 +12943,7 @@
       "id": "handler",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 187
+        "line": 190
       },
       "nexusHandler": {
         "service": "fixture.service",
@@ -10952,12 +12954,12 @@
       "items": [{
         "position": {
           "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-          "line": 191
+          "line": 194
         },
         "performs": [{
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 193
+            "line": 196
           },
           "step": {
             "action": "temporal.nexuscaller.Model$package$.handlerReply",
@@ -10972,13 +12974,13 @@
             "id": "respond-sync",
             "position": {
               "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-              "line": 195
+              "line": 198
             },
             "nexusReply": {
               "reply": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 198
+                  "line": 201
                 },
                 "message": "temporal.api.nexus.v1.StartOperationResponse",
                 "fields": [{
@@ -10987,7 +12989,7 @@
                     "message": {
                       "position": {
                         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                        "line": 203
+                        "line": 206
                       },
                       "message": "temporal.api.nexus.v1.StartOperationResponse.Sync",
                       "fields": [{
@@ -10996,7 +12998,7 @@
                           "message": {
                             "position": {
                               "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                              "line": 111
+                              "line": 114
                             },
                             "message": "temporal.api.common.v1.Payload",
                             "fields": [{
@@ -11035,7 +13037,7 @@
     "name": "pauseRace",
     "position": {
       "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-      "line": 277
+      "line": 280
     },
     "machine": "staleAdmission",
     "producer": "fixture.realizations",
@@ -11044,14 +13046,14 @@
       "id": "temporal.workflow-service",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 30
+        "line": 33
       },
       "kind": "KIND_ENDPOINT"
     }, {
       "id": "temporal.worker",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 31
+        "line": 34
       },
       "kind": "KIND_WORKER",
       "namespace": "temporal.worker.namespace"
@@ -11059,7 +13061,7 @@
       "id": "temporal.task-queue",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 32
+        "line": 35
       },
       "kind": "KIND_TASK_QUEUE",
       "namespace": "temporal.worker.namespace",
@@ -11069,7 +13071,7 @@
       "id": "activity-run",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 349
+        "line": 352
       },
       "kind": "KIND_TEXT"
     }],
@@ -11077,7 +13079,7 @@
       "id": "correlated-evidence",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 351
+        "line": 354
       },
       "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
     }],
@@ -11085,7 +13087,7 @@
       "id": "fixture.realizations.race.evidence.statusPaused",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 268
+        "line": 271
       },
       "records": "statusPaused",
       "source": "fixture.realizations.race.source.statusPaused",
@@ -11099,7 +13101,7 @@
       "id": "fixture.realizations.race.evidence.statusStarted",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 268
+        "line": 271
       },
       "records": "statusStarted",
       "source": "fixture.realizations.race.source.statusStarted",
@@ -11113,7 +13115,7 @@
       "id": "fixture.realizations.race.evidence.dispatchEnqueued",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 268
+        "line": 271
       },
       "records": "dispatchEnqueued",
       "source": "fixture.realizations.race.source.dispatchEnqueued",
@@ -11127,7 +13129,7 @@
       "id": "fixture.realizations.race.evidence.attemptAdmitted",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 268
+        "line": 271
       },
       "records": "attemptAdmitted",
       "source": "fixture.realizations.race.source.attemptAdmitted",
@@ -11141,7 +13143,7 @@
     "correlation": {
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 283
+        "line": 286
       },
       "projection": "fixture.realizations.race.projection",
       "run": "fixture.realizations.race.scope.run",
@@ -11158,7 +13160,7 @@
       "id": "hold-dispatch",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 361
+        "line": 364
       },
       "holdDelivery": "fixture.realizations.Realizations$package$.dispatchChannel"
     }],
@@ -11166,33 +13168,33 @@
       "id": "controller",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 296
+        "line": 299
       },
       "controller": {
       },
       "items": [{
         "position": {
           "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-          "line": 300
+          "line": 303
         },
         "command": {
           "id": "hold-dispatch-before-start",
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 300
+            "line": 303
           },
           "hold": "hold-dispatch"
         }
       }, {
         "position": {
           "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-          "line": 301
+          "line": 304
         },
         "command": {
           "id": "start-activity",
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 303
+            "line": 306
           },
           "rpc": {
             "role": "temporal.workflow-service",
@@ -11202,7 +13204,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 309
+                  "line": 312
                 },
                 "environment": "temporal.worker.namespace"
               }
@@ -11211,7 +13213,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 310
+                  "line": 313
                 },
                 "run": {
                 }
@@ -11229,12 +13231,12 @@
       }, {
         "position": {
           "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-          "line": 317
+          "line": 320
         },
         "performs": [{
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 319
+            "line": 322
           },
           "step": {
             "action": "temporal.standaloneactivity.Model$package$.control",
@@ -11249,7 +13251,7 @@
             "id": "pause-activity",
             "position": {
               "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-              "line": 321
+              "line": 324
             },
             "rpc": {
               "role": "temporal.workflow-service",
@@ -11259,7 +13261,7 @@
                 "value": {
                   "position": {
                     "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                    "line": 327
+                    "line": 330
                   },
                   "environment": "temporal.worker.namespace"
                 }
@@ -11268,7 +13270,7 @@
                 "value": {
                   "position": {
                     "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                    "line": 328
+                    "line": 331
                   },
                   "run": {
                   }
@@ -11278,7 +13280,7 @@
                 "value": {
                   "position": {
                     "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                    "line": 329
+                    "line": 332
                   },
                   "learnedValue": "activity-run"
                 }
@@ -11289,13 +13291,13 @@
       }, {
         "position": {
           "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-          "line": 336
+          "line": 339
         },
         "command": {
           "id": "release-dispatch",
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 336
+            "line": 339
           },
           "release": "hold-dispatch"
         }
@@ -11304,7 +13306,7 @@
       "id": "activity",
       "position": {
         "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-        "line": 339
+        "line": 342
       },
       "activity": {
         "activityType": {
@@ -11318,12 +13320,12 @@
       "items": [{
         "position": {
           "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-          "line": 343
+          "line": 346
         },
         "performs": [{
           "position": {
             "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-            "line": 344
+            "line": 347
           },
           "step": {
             "action": "temporal.standaloneactivity.Model$package$.attemptStart"
@@ -11332,13 +13334,13 @@
             "id": "run-attempt",
             "position": {
               "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-              "line": 344
+              "line": 347
             },
             "finish": {
               "result": {
                 "position": {
                   "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
-                  "line": 344
+                  "line": 347
                 },
                 "literal": {
                   "text": "done"
@@ -11347,6 +13349,289 @@
             }
           }
         }]
+      }]
+    }]
+  }, {
+    "id": "fixture.realizations.Realizations$package$.tallyRealization",
+    "name": "tallyRealization",
+    "position": {
+      "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "line": 752
+    },
+    "machine": "tally",
+    "producer": "fixture.realizations",
+    "producerVersion": "1",
+    "roles": [{
+      "id": "temporal.workflow-service",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 33
+      },
+      "kind": "KIND_ENDPOINT"
+    }, {
+      "id": "temporal.worker",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 34
+      },
+      "kind": "KIND_WORKER",
+      "namespace": "temporal.worker.namespace"
+    }, {
+      "id": "temporal.task-queue",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 35
+      },
+      "kind": "KIND_TASK_QUEUE",
+      "namespace": "temporal.worker.namespace",
+      "resource": "temporal.task-queue.resource"
+    }],
+    "observations": [{
+      "id": "correlated-evidence",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 809
+      },
+      "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+    }],
+    "evidence": [{
+      "id": "fixture.realizations.tally.evidence.opened",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 811
+      },
+      "records": "doorOpened",
+      "source": "fixture.realizations.tally.source.describe",
+      "operation": "activity_id",
+      "commitment": "COMMITMENT_REPORTED",
+      "fields": [{
+        "id": "run",
+        "position": {
+          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+          "line": 819
+        },
+        "path": "run_id",
+        "role": "ROLE_OPERATION"
+      }, {
+        "id": "attempt",
+        "position": {
+          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+          "line": 820
+        },
+        "path": "attempt",
+        "role": "ROLE_ATTEMPT"
+      }, {
+        "id": "identity",
+        "position": {
+          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+          "line": 821
+        },
+        "path": "last_worker_identity",
+        "redacted": true
+      }],
+      "exhaustive": true,
+      "single": {
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution",
+        "path": "info"
+      }
+    }, {
+      "id": "fixture.realizations.tally.evidence.pushed",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 827
+      },
+      "records": "doorPushed",
+      "source": "fixture.realizations.tally.source.pushed",
+      "commitment": "COMMITMENT_REPORTED",
+      "runEvent": {
+        "kind": "KIND_INSTRUCTION_COMPLETED",
+        "script": "controller",
+        "command": "push-door",
+        "key": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 835
+          },
+          "run": {
+          }
+        },
+        "guard": {
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 836
+          },
+          "equal": {
+            "left": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                "line": 836
+              },
+              "path": {
+                "of": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 836
+                  },
+                  "projected": {
+                  }
+                },
+                "path": "status"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                "line": 836
+              },
+              "literal": {
+                "enumName": "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"
+              }
+            }
+          }
+        }
+      }
+    }],
+    "correlation": {
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 758
+      },
+      "projection": "fixture.realizations.tally.projection",
+      "run": "fixture.realizations.tally.scope.run",
+      "operation": "fixture.realizations.tally.scope.door",
+      "observation": "correlated-evidence",
+      "events": "8",
+      "buffered": "8",
+      "keys": "2",
+      "support": "16",
+      "work": "1000",
+      "eventSize": "512"
+    },
+    "scripts": [{
+      "id": "controller",
+      "position": {
+        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+        "line": 771
+      },
+      "controller": {
+      },
+      "items": [{
+        "position": {
+          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+          "line": 775
+        },
+        "performs": [{
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 777
+          },
+          "step": {
+            "action": "fixture.realizations.Realizations$package$.push"
+          },
+          "command": {
+            "id": "push-door",
+            "position": {
+              "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+              "line": 779
+            },
+            "rpc": {
+              "role": "temporal.workflow-service",
+              "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
+              "assign": [{
+                "target": "namespace",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 784
+                  },
+                  "environment": "temporal.worker.namespace"
+                }
+              }, {
+                "target": "activity_id",
+                "value": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 784
+                  },
+                  "run": {
+                  }
+                }
+              }]
+            }
+          }
+        }]
+      }, {
+        "position": {
+          "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+          "line": 790
+        },
+        "command": {
+          "id": "await-opened",
+          "position": {
+            "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+            "line": 792
+          },
+          "poll": {
+            "evidence": "fixture.realizations.tally.evidence.opened",
+            "role": "temporal.workflow-service",
+            "assign": [{
+              "target": "namespace",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                  "line": 797
+                },
+                "environment": "temporal.worker.namespace"
+              }
+            }, {
+              "target": "activity_id",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                  "line": 797
+                },
+                "run": {
+                }
+              }
+            }],
+            "until": {
+              "position": {
+                "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                "line": 798
+              },
+              "equal": {
+                "left": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 798
+                  },
+                  "path": {
+                    "of": {
+                      "position": {
+                        "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                        "line": 798
+                      },
+                      "projected": {
+                      }
+                    },
+                    "path": "attempt"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+                    "line": 798
+                  },
+                  "literal": {
+                    "number": "1"
+                  }
+                }
+              }
+            },
+            "intervalMs": "250"
+          },
+          "closes": ["fixture.realizations.tally.evidence.opened"]
+        }
       }]
     }]
   }]

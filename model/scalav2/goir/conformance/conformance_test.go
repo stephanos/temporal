@@ -368,12 +368,12 @@ func TestPrepareRefusesWhatItCannotAssess(t *testing.T) {
 		"a kind from a source the Case does not name": {func() (*Factory, error) {
 			return Prepare(m, query, with(func(c *testpilotspb.Case) { c.Contract.Correlated.Sources = c.Contract.Correlated.Sources[1:] }), generous)
 		}, "is not a source of the Case"},
-		"a kind that retains a field of no declared role": {func() (*Factory, error) {
+		"a kind that retains a field the realization does not declare": {func() (*Factory, error) {
 			return Prepare(m, query, with(func(c *testpilotspb.Case) {
 				c.Contract.Correlated.ProjectionRules[0].Fields = []*testpilotspb.CorrelatedFieldPolicy{{FieldId: "attempt",
 					Type: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_UINT64}, Disposition: testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN}}
 			}), generous)
-		}, "is not supported: evidence of kind test.staleAdmission.evidence.statusStarted retains field attempt"},
+		}, "evidence of kind test.staleAdmission.evidence.statusStarted retains field attempt, which realization staleAdmissionEvidence does not declare for it"},
 		"a field with no disposition": {func() (*Factory, error) {
 			return Prepare(m, query, with(func(c *testpilotspb.Case) {
 				c.Contract.Correlated.ProjectionRules[0].Fields = []*testpilotspb.CorrelatedFieldPolicy{{FieldId: "note"}}

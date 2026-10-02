@@ -182,12 +182,16 @@ cannot mutate the plan or a subsequent validation result. An RPC response is rea
 response reads, the SDK future a schedule command starts is an opaque runtime handle, and a Finish
 result or a `NexusHandlerReply` ends its activation, so none of them has a VALUE.
 
-An activity entrypoint runs two instructions. `Finish`, the one that ends a workflow, completes an
+An activity entrypoint runs three instructions. `Finish`, the one that ends a workflow, completes an
 attempt with its result, whatever the value. `ActivityAttemptFailure`, which only an activity
 entrypoint runs and a Profile authorizes as its own Opcode, fails an attempt. Admission reads its
 failure against the Driver-reach table and admits only one with application failure info or none,
 naming the field of any other under
 `program.entrypoints[<id>].instructions[<id>].instruction.activity_attempt_failure.failure`.
+`ActivityAttemptCancellation`, likewise an activity entrypoint's alone and its own Opcode, answers
+an attempt as canceled and carries nothing to bind. Its outcome is the attempt response
+`OFFERED_CANCELED`, a succeeded activation like the other offers, which `reservationOutcomes`
+admits for an activity entrypoint only.
 
 A reservation's outcome is recorded as a diagnostic Run Event under the instruction that carried
 it. One table, `reservationOutcomes` in `scheduler.go`, lists every outcome a reservation may settle
@@ -231,19 +235,32 @@ A rule may instead name one of the Program's evidence declarations (`evidence_id
 else: the declaration must be a history event kind and the projected value the recorded
 `HistoryEvent`, and the rule's guard is the presence of the declared attributes arm, its scope,
 operation key and fields the declaration's. `bindEvidence` admits the declarations before the
-instructions: each identity once, each source and operation key path once, a history arm that the
-event's attributes oneof carries, a Run Event kind that carries a payload, a read method the catalog
-knows whose path ends in repeated messages, and every path typed against the recorded value. A Run
-Event declaration is lifted by `scheduler.liftRunEvents` as the event is recorded, into the Program's
-one `CorrelatedEvidence` Observation, with ordinals dense per source across the Run. Every lift names
+instructions: each identity once, each recorded kind once under a source and operation key path
+(`evidenceDeclaration.sameRecord`: one history arm, one Run Event kind at one instruction under one
+guard, any two reads), no source that both the Run and an instruction would count, a history arm
+that the event's attributes oneof carries, a Run Event kind that carries a payload, whose guard,
+when it writes one, binds as a lift guard over that payload, whose instruction, when it names one,
+is a controller's, and which reads either an operation key path or, keyed by the Run,
+none, a read method the catalog knows whose path
+ends in repeated messages, or in one message when the read is `single`, and every path typed
+against the recorded value. A Run Event declaration is lifted by `scheduler.liftRunEvents` as the
+event is recorded, into the Program's one `CorrelatedEvidence` Observation, with ordinals dense per
+source across the Run: the events of an instruction's completion, and the record of each
+reservation, which carries the activity attempt. A fact takes an ordinal only when a declaration's
+guard selects it and its evidence was built; a fact two declarations select is an error. A
+reservation's record that cannot be lifted is still published, without evidence and as the event
+from which execution is incomplete, and then fails the Run with `outcome_failed`, unless the record
+itself already fails it. Every lift names
 as its parent the operation's previously lifted evidence when that came from another source
 (`valueStore.chainEvidence`): ordinals order one source's evidence, only a parent orders evidence
 across sources, and the Run's own order is the order the Program's instructions took, so an
 operation read back by a poll and then by a history read is one comparable chain to the verifier. A read
 declaration is polled by a `ReadEvidence` instruction: the Session's `PollRPC` repeats the
-declaration's method with the request the assignments build until `readSatisfied` finds an element
+declaration's method with the request the assignments build until `readSatisfied` finds a value
 of the declared path satisfying `until`, and the instruction's one synthesized response read then
-lifts every element the condition selects, `until` doubling as the lift's guard.
+lifts every value the condition selects, `until` doubling as the lift's guard. The values are the
+elements of the repeated field, read with `EMIT_EACH` and bounded by the path fanout, or the one
+message of a `single` read, read with `ONE`.
 
 `EvaluateInput` evaluates the compiled guard first and skips the input on false, through the same
 `node.evaluateGuarded` that `activationValues.request` and the scheduler use. Its callback must

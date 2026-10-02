@@ -422,6 +422,7 @@ var (
 		"OfferedFailedNonRetryable": 3,
 		"Refused":                   4,
 		"NotNeeded":                 5,
+		"OfferedCanceled":           6,
 	}
 )
 

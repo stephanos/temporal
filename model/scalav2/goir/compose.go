@@ -205,3 +205,50 @@ func (b *binding) composedEnds(c *modelirspb.Composition, state *composedState, 
 		return v.Bool, nil
 	}, nil
 }
+
+// Composed is one composition of the bound Model as Check reads it: the composed table the binding
+// builds for its claims, and what that table's keys stand for. Table holds the states the members'
+// starts reach, the starts, the composed classes, a row for each enabled pair and an unknown pair for
+// each one a member's hole leaves unknown; a state and class with neither is a disabled pair. A
+// Composed is not changed after it is given, and its functions are not safe to call from two
+// goroutines at once.
+type Composed struct {
+	Decl  *modelirspb.Composition
+	Table *umpire.Table
+	// State is the composition's state record a state key stands for, one member state per field, and
+	// Step the step record a claim reads of a result: that state, with the composed outcome and facts
+	// as strings.
+	State func(key string) (Value, error)
+	Step  func(res umpire.Result) (Value, error)
+	// Properties are the Properties the Model declares on the composition, in the Model's order, as
+	// Check declares them to the generic search.
+	Properties []BoundProperty
+}
+
+// Composition is the composition the Model declares under a name, as Check builds it within the
+// Realizer's scope. A composition Check has no table for has none here, for the same reason: a
+// *umpire.ComposeLimitError past the scope's ceiling, a *umpire.RefinementError for a member that does
+// not refine what it replaces, and a member's own failure otherwise. A name that is no composition
+// names nothing.
+func (r *Realizer) Composition(name string) (*Composed, error) {
+	i := slices.IndexFunc(r.b.model.GetCompositions(), func(c *modelirspb.Composition) bool { return c.GetName() == name })
+	if i < 0 {
+		return nil, &Error{Position: r.b.model.GetSource(), Message: "no composition " + name}
+	}
+	s := r.b.subject(name)
+	if s.err != nil {
+		return nil, s.err
+	}
+	out := &Composed{Decl: r.b.model.GetCompositions()[i], Table: s.table, State: s.state, Step: s.step}
+	for _, p := range r.b.model.GetProperties() {
+		if p.GetMachine() != name {
+			continue
+		}
+		reading, err := r.b.propertyReads(s, p)
+		if err != nil {
+			return nil, err
+		}
+		out.Properties = append(out.Properties, boundProperty(p, reading))
+	}
+	return out, nil
+}

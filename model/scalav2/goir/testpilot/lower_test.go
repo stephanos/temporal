@@ -231,30 +231,92 @@ func TestALearnedHandleIsBoundOnceAndReadByItsDependents(t *testing.T) {
 	require.Equal(t, slot, instruction(t, c, "controller", "complete-nexus-operation").GetInstruction().GetNexusOperationCompletion().GetHandleSlotId())
 }
 
+// offPathKinds is, for each functional Query, the history kinds its Case carries off its path: the
+// five history events less the ones the comparative Model's checked-in Case declares
+// (tests/testcore/testpilot/testdata/nexusCallerTests-<query>-case.json, `program.evidence`), which
+// are the ones a step of the path records.
+var offPathKinds = map[string][]string{
+	"syncCompletion":         {"started", "failed", "canceled", "timedOut"},
+	"asyncCompletion":        {"failed", "canceled", "timedOut"},
+	"asyncFailure":           {"completed", "canceled", "timedOut"},
+	"handlerError":           {"started", "completed", "canceled", "timedOut"},
+	"retry":                  {"started", "failed", "canceled", "timedOut"},
+	"scheduleToStartTimeout": {"started", "completed", "failed", "canceled"},
+	"startToCloseTimeout":    {"completed", "failed", "canceled"},
+}
+
 // The Scala Model and its realization say what the comparative Go Model and model/go/nexuscaller's
-// realization say, so the Case lowered from the IR is the Case model/go produces. They differ in one
-// thing, which is not behaviour: the provenance says where the Model was written, and the comparative
-// Model names its Lean counterpart where the IR names the Scala file. The test gives the comparative
+// realization say, but for one declaration: the Scala realization declares the five history kinds
+// exhaustive (Realization.scala, historySource), which the comparative realization, a port of the Lean
+// one, does not. So the Case lowered from the IR is the Case model/go produces from the comparative
+// Model once its realization is given that declaration, and it differs from the comparative Model's
+// own Case in exactly what the declaration adds: the history kinds off the path, each declared, lifted
+// by the history read and given no meaning in the Contract, with the projection's fingerprint and the
+// Case's own names that follow from them.
+//
+// The provenance also says where the Model was written, and the comparative Model names its Lean
+// counterpart where the IR names the Scala file, which is not behaviour. The test gives the comparative
 // Case the Scala source and compares the rest whole.
 func TestALoweredCaseIsTheComparativeGoModelsCase(t *testing.T) {
 	written := &testpilotspb.SourceLocation{Path: "model/scalav2/scala/temporal/nexuscaller/Claims.scala", Line: 1, Column: 1,
 		Provenance: "scala-model"}
+	rewritten := func(c *testpilotspb.Case) *testpilotspb.Case {
+		for i := range c.GetProvenance().GetSources() {
+			c.GetProvenance().Sources[i] = written
+		}
+		for _, rule := range c.GetProvenance().GetCorrelatedRules() {
+			rule.Source = written
+		}
+		return c
+	}
 	p, err := NewProducer(loaded(t, "nexus-caller"))
 	require.NoError(t, err)
-	realization := nexuscaller.AsyncNexus("umpire.case.service", "complete")
+	comparative := nexuscaller.AsyncNexus("umpire.case.service", "complete")
+	exhaustive := nexuscaller.AsyncNexus("umpire.case.service", "complete")
+	exhaustive.Sources = nil
+	history := 0
+	for _, source := range comparative.Sources {
+		declared := *source
+		if declared.Recorded.HistoryAttributes != "" {
+			declared.Exhaustive = true
+			history++
+		}
+		exhaustive.Sources = append(exhaustive.Sources, &declared)
+	}
+	require.Equal(t, 5, history, "the five history kinds are the exhaustive ones")
+
 	var compared []string
 	for _, q := range nexuscaller.FunctionalQueries {
 		compared = append(compared, q.Name)
 		t.Run(q.Name, func(t *testing.T) {
-			want, err := cp.Produce(q, nexusIdentity(q.Name), realization, nexuscaller.ModelSource)
+			got := lowered(t, p, q.Name)
+			want, err := cp.Produce(q, nexusIdentity(q.Name), exhaustive, nexuscaller.ModelSource)
 			require.NoError(t, err)
-			for i := range want.GetProvenance().GetSources() {
-				want.GetProvenance().Sources[i] = written
+			require.Empty(t, cmp.Diff(rewritten(want), got, protocmp.Transform()))
+
+			// What the declaration adds to the comparative Model's own Case, and nothing else of the
+			// Contract: the kinds off the path, each with no meaning.
+			plain, err := cp.Produce(q, nexusIdentity(q.Name), comparative, nexuscaller.ModelSource)
+			require.NoError(t, err)
+			kinds := func(c *testpilotspb.Case, meaning testpilotspb.CorrelatedEvidenceMeaning) []string {
+				names := definitions(c)
+				var out []string
+				for _, rule := range c.GetContract().GetCorrelated().GetProjectionRules() {
+					if rule.GetMeaning() == meaning {
+						out = append(out, strings.TrimPrefix(defined(names, rule.GetKind()), "temporal.nexus.caller.evidence."))
+					}
+				}
+				return out
 			}
-			for _, rule := range want.GetProvenance().GetCorrelatedRules() {
-				rule.Source = written
-			}
-			require.Empty(t, cmp.Diff(want, lowered(t, p, q.Name), protocmp.Transform()))
+			require.ElementsMatch(t, offPathKinds[q.Name], kinds(got, testpilotspb.CORRELATED_EVIDENCE_MEANING_IRRELEVANT))
+			require.Empty(t, kinds(plain, testpilotspb.CORRELATED_EVIDENCE_MEANING_IRRELEVANT))
+			require.ElementsMatch(t, kinds(plain, testpilotspb.CORRELATED_EVIDENCE_MEANING_CONFIRMED), kinds(got, testpilotspb.CORRELATED_EVIDENCE_MEANING_CONFIRMED))
+			require.Len(t, got.GetProgram().GetEvidence(), len(plain.GetProgram().GetEvidence())+len(offPathKinds[q.Name]))
+			require.NotEqual(t, plain.GetContract().GetCorrelated().GetProjectionFingerprint(), got.GetContract().GetCorrelated().GetProjectionFingerprint())
+			// The instructions, the transitions and the Property's clauses are the comparative Case's.
+			require.Equal(t, instructionIDs(plain), instructionIDs(got))
+			require.Len(t, got.GetContract().GetCorrelated().GetTransitions(), len(plain.GetContract().GetCorrelated().GetTransitions()))
+			require.Len(t, got.GetContract().GetCorrelated().GetRules(), len(plain.GetContract().GetCorrelated().GetRules()))
 		})
 	}
 	require.ElementsMatch(t, functionalQueries, compared)
@@ -363,12 +425,13 @@ func TestADescriptorARealizationCrossesIsRejectedWhereItIsWritten(t *testing.T) 
 
 // Every Query of a Model has a standing, so none is left unlowered without a reason: a verify Query
 // is searched and never realized, and a find Query lowers only through a realization of its machine.
-// The activity Models and the Nexus close designs declare no realization yet.
+// The activity's system designs and the Nexus close designs declare no realization yet; the standing
+// of each Query of the activity Model, which declares one, is in activity_cases_test.go.
 func TestEveryQueryHasAStanding(t *testing.T) {
 	cases := []struct {
 		model              string
 		verify, unrealized int
-	}{{"activity", 3, 9}, {"activity-system", 61, 23}, {"nexus-close", 84, 72}}
+	}{{"activity-system", 61, 23}, {"nexus-close", 84, 72}}
 	for _, c := range cases {
 		t.Run(c.model, func(t *testing.T) {
 			m := loaded(t, c.model)

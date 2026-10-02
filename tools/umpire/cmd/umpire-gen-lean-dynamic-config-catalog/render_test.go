@@ -141,6 +141,11 @@ func requireArtifactsLeanElaborate(t *testing.T, artifacts map[string][]byte) {
 
 func requireArtifactsLeanElaborateAtRoot(t *testing.T, moduleRoot string, artifacts map[string][]byte) {
 	t.Helper()
+	// Elaboration needs the built Lean model. Without its build directory the step is skipped, and
+	// lake is not called at all: an elan shim on PATH would download a toolchain to answer.
+	if _, err := os.Stat(filepath.Join(moduleRoot, "model", "lean", ".lake")); os.IsNotExist(err) {
+		t.Skip("the Lean model is not built (no model/lean/.lake); skipping Lean elaboration")
+	}
 	candidateRoot := t.TempDir()
 	for path, encoded := range artifacts {
 		absolute := filepath.Join(candidateRoot, filepath.FromSlash(path))

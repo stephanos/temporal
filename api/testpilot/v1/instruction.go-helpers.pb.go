@@ -414,6 +414,43 @@ func (this *ActivityAttemptFailure) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type ActivityAttemptCancellation to the protobuf v3 wire format
+func (val *ActivityAttemptCancellation) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ActivityAttemptCancellation from the protobuf v3 wire format
+func (val *ActivityAttemptCancellation) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ActivityAttemptCancellation) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ActivityAttemptCancellation values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ActivityAttemptCancellation) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ActivityAttemptCancellation
+	switch t := that.(type) {
+	case *ActivityAttemptCancellation:
+		that1 = t
+	case ActivityAttemptCancellation:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type InjectFault to the protobuf v3 wire format
 func (val *InjectFault) Marshal() ([]byte, error) {
 	return proto.Marshal(val)

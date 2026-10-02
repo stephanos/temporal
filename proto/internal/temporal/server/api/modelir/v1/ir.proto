@@ -650,7 +650,8 @@ message Observed {
 }
 
 // One kind of evidence: the recorded data that confirms the facts a machine's evidence function
-// names `records`, the field that keys it to its operation, and what it commits to.
+// names `records`, the field that keys it to its operation, what it commits to, the fields it keeps
+// of the recorded data, and whether its source reports every occurrence.
 message Evidence {
   string id = 1;
   Position position = 2;
@@ -662,8 +663,13 @@ message Evidence {
     // The attributes member of temporal.api.history.v1.HistoryEvent a history read lifts.
     string history = 5;
     ReadSource read = 6;
+    // The one message at `path` in the response of a unary method.
+    ReadSource single = 11;
+    // The Run's own record of one command's events.
+    RunEventSource run_event = 12;
   }
-  // The field path, in the recorded message, of the key that names the operation.
+  // The field path, in the recorded message, of the key that names the operation. A Run Event's
+  // evidence leaves it empty: its source's key names the operation.
   string operation = 7;
   enum Commitment {
     COMMITMENT_UNSPECIFIED = 0;
@@ -673,9 +679,83 @@ message Evidence {
     COMMITMENT_DURABLE = 2;
   }
   Commitment commitment = 8;
+  // The fields of the recorded data the evidence carries.
+  repeated EvidenceField fields = 9;
+  // Whether the source reports every occurrence of the facts this kind records, for the operations
+  // its closing read covers. A command of the realization names the kind in `closes`.
+  bool exhaustive = 10;
+  // The steps of a path one piece of this evidence confirms, where the fact it records is recorded
+  // by more steps than one and each has evidence of its own. A kind that names steps confirms those
+  // and no other, all of them or none. Empty, the kind confirms the one step of a path that records
+  // its fact.
+  repeated Taking confirms = 13;
 }
 
-// One element of the repeated field at `path` in the response of a unary method.
+// One step of a path: the `occurrence`-th step, counted from one, of a class.
+message Taking {
+  Position position = 1;
+  ActionClass step = 2;
+  int64 occurrence = 3;
+}
+
+// One field evidence carries: where it is read in the recorded data, and the identity it names.
+message EvidenceField {
+  string id = 1;
+  Position position = 2;
+  // The field path, in the recorded message.
+  string path = 3;
+  enum Role {
+    // Data that names no identity.
+    ROLE_UNSPECIFIED = 0;
+    // The logical operation, as the kind's operation key names it.
+    ROLE_OPERATION = 1;
+    // The execution attempt the fact belongs to.
+    ROLE_ATTEMPT = 2;
+    // The delivery the fact belongs to.
+    ROLE_DELIVERY = 3;
+  }
+  Role role = 4;
+  // Whether the evidence carries the field without its value.
+  bool redacted = 5;
+}
+
+// The Run Events of one kind that one command of a script records, where `guard` holds of the event's
+// payload, the instruction outcome: each is one occurrence of the evidence, of the operation `key`
+// names.
+message RunEventSource {
+  enum Kind {
+    KIND_UNSPECIFIED = 0;
+    // The command's own completion.
+    KIND_INSTRUCTION_COMPLETED = 1;
+    KIND_INSTRUCTION_TIMED_OUT = 2;
+    // What a worker reports of an activation the command carries, such as one attempt of an activity.
+    KIND_DIAGNOSTIC = 3;
+  }
+  Kind kind = 1;
+  // The script, by id, and its command, by id.
+  string script = 2;
+  string command = 3;
+  // The operation's key: the run's own id, or a path of the payload.
+  Operand key = 4;
+  // A condition over the payload, the value `projected` names. Unset, every such event is evidence.
+  Operand guard = 5;
+  // Set where the events are the Run's record of one attempt of an activity: the attempt, and the
+  // activity script it is an attempt of. A Run records an attempt once it is answered, so such
+  // evidence reaches the Run with that answer, and not with the command that carries it.
+  AttemptOf attempt = 6;
+}
+
+// One attempt of the activity one script runs: the `number`-th delivery to the script's worker,
+// counted from one, as the server numbers attempts.
+message AttemptOf {
+  Position position = 1;
+  // The activity's script, by id.
+  string script = 2;
+  int64 number = 3;
+}
+
+// The field at `path` in the response of a unary method: the elements of a repeated field, or one
+// message.
 message ReadSource {
   // The full method name, "/package.Service/Method".
   string method = 1;
@@ -744,6 +824,9 @@ message ActivityActivation {
   Name activity_type = 1;
   string worker = 2;
   string task_queue = 3;
+  // The classes an attempt's delivery to the worker is: a step of one of them is each activation of
+  // the script, and no command performs it.
+  repeated ActionClass starts = 4;
 }
 
 // A text a Case gets its own copy of: the prefix, then the Case's fixture name when `fixture` is
@@ -796,7 +879,13 @@ message Command {
     // Starts holding what a control, by id, holds; and lets it go.
     string hold = 15;
     string release = 16;
+    AttemptFailure attempt_failure = 17;
+    // Answers the attempt an activity script's command runs in as canceled.
+    Empty attempt_canceled = 19;
   }
+  // The exhaustive kinds of evidence, by id, this command's read is the closing read of: the read
+  // after which their sources report nothing more.
+  repeated string closes = 18;
 }
 
 message After {
@@ -854,9 +943,15 @@ message Poll {
   int64 interval_ms = 5;
 }
 
-// Completes the workflow a workflow script runs in.
+// Completes with a result: the workflow a workflow script runs in, or the attempt a command of an
+// activity script runs in.
 message Finish {
   Operand result = 1;
+}
+
+// Fails the attempt an activity script's command runs in, with a temporal.api.failure.v1.Failure.
+message AttemptFailure {
+  Proto failure = 1;
 }
 
 // A deliberate outage of the worker that polls a task-queue role.
@@ -900,11 +995,14 @@ message Operand {
     Empty run = 4;
     // A learned value, by id.
     string learned_value = 5;
-    // The value a poll is looking at.
+    // The value a poll is looking at, or the payload a Run Event's guard and key read.
     Empty projected = 6;
     PathOf path = 7;
     Present present = 8;
     Equal equal = 9;
+    All all = 10;
+    Greater greater = 11;
+    Not not = 12;
   }
 }
 
@@ -921,6 +1019,23 @@ message Equal {
   Operand left = 1;
   Operand right = 2;
 }
+
+// Holds when every operand does, read left to right up to the first that does not.
+message All {
+  repeated Operand operands = 1;
+}
+
+// Holds when the left integer is greater than the right.
+message Greater {
+  Operand left = 1;
+  Operand right = 2;
+}
+
+// Holds when its operand, a condition, does not.
+message Not {
+  Operand of = 1;
+}
+
 
 // A protobuf message written out: its fully qualified name and the fields it sets. A field it does
 // not name stays unset.

@@ -24,6 +24,7 @@ const (
 	offeredCompleted          = "offered-completed"
 	offeredFailedRetryable    = "offered-failed-retryable"
 	offeredFailedNonRetryable = "offered-failed-non-retryable"
+	offeredCanceled           = "offered-canceled"
 	refusedAttempt            = "refused"
 	releasedNotNeeded         = "released-not-needed"
 	neverSeen                 = "never-seen"
@@ -58,6 +59,12 @@ type lifecycle struct {
 	runs    map[int32]int
 	gates   map[int32]chan struct{}
 	pending map[int32]chan error
+	// requests are, per attempt under way, how the server tells its delivery that the activity's
+	// cancellation is requested, which it does in answer to a heartbeat: heartbeats counts the ones
+	// the worker sent, and asking holds the count at which each such delivery arrived.
+	requests   map[int32]context.CancelCauseFunc
+	asking     map[int32]int32
+	heartbeats *atomic.Int32
 }
 
 // deliver hands the worker one delivery of an attempt and returns the refusal it was answered with,
@@ -75,6 +82,11 @@ func (l *lifecycle) deliver(ctx context.Context, activityRunID string, attempt i
 	})
 	var answer *temporal.ApplicationError
 	if errors.As(err, &answer) && answer.Type() != activationErrorType {
+		return nil
+	}
+	// A cancellation its instruction declares is the attempt's answer too.
+	var canceled *temporal.CanceledError
+	if errors.As(err, &canceled) {
 		return nil
 	}
 	return err
@@ -98,6 +110,7 @@ func (l *lifecycle) state(reservationID string) string {
 		testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED:            offeredCompleted,
 		testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_RETRYABLE:     offeredFailedRetryable,
 		testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_NON_RETRYABLE: offeredFailedNonRetryable,
+		testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED:             offeredCanceled,
 		testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_REFUSED:                      refusedAttempt,
 		testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED:                   releasedNotNeeded,
 	}[attempt.GetResponse()]
@@ -141,6 +154,33 @@ func arrived(attempt int32, deliveryID string, held bool) transition {
 		l.mu.Unlock()
 		go func() { answer <- l.deliver(context.Background(), "activity-run", attempt, deliveryID) }()
 		return nil
+	}
+}
+
+// arrivedCancelable starts a delivery whose context the server can cancel, as the SDK's does when a
+// heartbeat is answered with a requested cancellation, and leaves it under way.
+func arrivedCancelable(attempt int32, deliveryID string) transition {
+	return func(l *lifecycle) error {
+		ctx, request := context.WithCancelCause(context.Background())
+		answer := make(chan error, 1)
+		l.mu.Lock()
+		l.pending[attempt], l.requests[attempt], l.asking[attempt] = answer, request, l.heartbeats.Load()
+		l.mu.Unlock()
+		go func() { answer <- l.deliver(ctx, "activity-run", attempt, deliveryID) }()
+		return nil
+	}
+}
+
+// cancellationRequested is the server answering a heartbeat of the delivery under way with the
+// activity's requested cancellation, and the delivery's answer to that.
+func cancellationRequested(attempt int32) transition {
+	return func(l *lifecycle) error {
+		l.mu.Lock()
+		request, arrivedAt := l.requests[attempt], l.asking[attempt]
+		l.mu.Unlock()
+		await.RequireTrue(l.t, func() bool { return l.heartbeats.Load() > arrivedAt }, 5*time.Second, 5*time.Millisecond)
+		request(temporal.NewCanceledError())
+		return answeredDelivery(attempt)(l)
 	}
 }
 
@@ -209,6 +249,7 @@ func TestDeclaredActivityAttemptsFollowTheirLifecycle(t *testing.T) {
 	disabled := finishingAttempt("second", "never")
 	disabled.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: false}}}}
 	refusingSecond := declaring(failingAttempt("first", "transient", false), disabled, finishingAttempt("third", "done"))
+	canceling := declaring(cancelingAttempt("first"), finishingAttempt("second", "late"), finishingAttempt("third", "later"))
 
 	type step struct {
 		name string
@@ -221,6 +262,9 @@ func TestDeclaredActivityAttemptsFollowTheirLifecycle(t *testing.T) {
 		steps    []step
 		runs     map[int32]int
 		outcomes [3]*testpilotspb.InstructionOutcome
+		// heartbeats says whether any attempt of the scenario waits for the server to ask it to
+		// cancel, which is the only reason one heartbeats.
+		heartbeats bool
 		// diagnostics names, in order, what the Session reported to the Run: each refusal for an
 		// identity that names another activity run, an undeclared attempt, a released position or
 		// a crossed answer of the server.
@@ -300,6 +344,59 @@ func TestDeclaredActivityAttemptsFollowTheirLifecycle(t *testing.T) {
 				answered("activity-run", 1, "delivery-1", failedRetryable), refused("activity-run", 2, "delivery-2", errAttemptDisabled.Error()), notNeeded("activity-run"),
 			},
 		},
+		// The worker may answer canceled only what the server asked it to cancel, and learns of that
+		// through the attempt's heartbeat. The canceled answer is an offer like any other.
+		"a cancellation the server requests is answered, and the server then closes the activity": {
+			script: canceling, heartbeats: true,
+			steps: []step{
+				{"the first attempt is admitted and waits for the server to ask", arrivedCancelable(1, "delivery-1"), nil, [3]string{admitted, reserved, reserved}},
+				{"the server asks, and the attempt offers the cancellation, which releases nothing", cancellationRequested(1), nil, [3]string{offeredCanceled, reserved, reserved}},
+				{"a redelivery waits for the server to ask it too", arrivedCancelable(1, "redelivery-1"), nil, [3]string{offeredCanceled, reserved, reserved}},
+				{"the server asks, and the redelivery is answered canceled again, which settles nothing", cancellationRequested(1), nil, [3]string{offeredCanceled, reserved, reserved}},
+				{"a redelivery the server never asks is not answered canceled", abandoned(1, "redelivery-2"), context.DeadlineExceeded, [3]string{offeredCanceled, reserved, reserved}},
+				{"the server closes the activity", serverClosed, nil, [3]string{offeredCanceled, releasedNotNeeded, releasedNotNeeded}},
+			},
+			runs: map[int32]int{1: 1},
+			outcomes: [3]*testpilotspb.InstructionOutcome{
+				answered("activity-run", 1, "delivery-1", canceledAnswer), notNeeded("activity-run"), notNeeded("activity-run"),
+			},
+		},
+		"a canceled answer the server never accepts is followed by the next attempt": {
+			script: canceling, heartbeats: true,
+			steps: []step{
+				{"the first attempt is admitted and waits for the server to ask", arrivedCancelable(1, "delivery-1"), nil, [3]string{admitted, reserved, reserved}},
+				{"the server asks, and the attempt offers the cancellation", cancellationRequested(1), nil, [3]string{offeredCanceled, reserved, reserved}},
+				{"the server issues the second attempt, which finds its reservation and the first's outcome", delivered(2, "delivery-2"), nil, [3]string{offeredCanceled, offeredCompleted, reserved}},
+				{"the server closes the activity", serverClosed, nil, [3]string{offeredCanceled, offeredCompleted, releasedNotNeeded}},
+			},
+			runs: map[int32]int{1: 1, 2: 1},
+			outcomes: [3]*testpilotspb.InstructionOutcome{
+				answered("activity-run", 1, "delivery-1", canceledAnswer), answered("activity-run", 2, "delivery-2", completed), notNeeded("activity-run"),
+			},
+		},
+		"a cancellation the server never requests is refused": {
+			script: canceling, heartbeats: true,
+			steps: []step{
+				{"the first attempt's delivery ends while it waits for the server to ask", abandoned(1, "delivery-1"), context.DeadlineExceeded, [3]string{refusedAttempt, reserved, reserved}},
+				{"the server closes the activity", serverClosed, nil, [3]string{refusedAttempt, releasedNotNeeded, releasedNotNeeded}},
+			},
+			runs: map[int32]int{1: 1},
+			outcomes: [3]*testpilotspb.InstructionOutcome{
+				refused("activity-run", 1, "delivery-1", context.DeadlineExceeded.Error()), notNeeded("activity-run"), notNeeded("activity-run"),
+			},
+		},
+		"the Run cancels an attempt that waits for the server to ask": {
+			script: canceling, heartbeats: true,
+			steps: []step{
+				{"the first attempt is admitted and waits", arrivedCancelable(1, "delivery-1"), nil, [3]string{admitted, reserved, reserved}},
+				{"the Run cancels its reservation, which is no request of the server", runReleased("reservation-1"), nil, [3]string{refusedAttempt, reserved, reserved}},
+				{"the attempt was refused, not answered canceled", answeredDelivery(1), context.Canceled, [3]string{refusedAttempt, reserved, reserved}},
+			},
+			runs: map[int32]int{1: 1},
+			outcomes: [3]*testpilotspb.InstructionOutcome{
+				refused("activity-run", 1, "delivery-1", context.Canceled.Error()), nil, nil,
+			},
+		},
 		"an earlier attempt the worker never sees": {
 			script: failingThenEnding,
 			steps: []step{
@@ -358,7 +455,8 @@ func TestDeclaredActivityAttemptsFollowTheirLifecycle(t *testing.T) {
 			diagnostics := captureDiagnostics(t, session)
 			l := &lifecycle{
 				t: t, host: host, session: session, worker: activityWorker(host, definition), request: request, closed: closed, asked: asked,
-				runs: map[int32]int{}, gates: map[int32]chan struct{}{}, pending: map[int32]chan error{},
+				runs: map[int32]int{}, gates: map[int32]chan struct{}{}, pending: map[int32]chan error{}, requests: map[int32]context.CancelCauseFunc{},
+				asking: map[int32]int32{}, heartbeats: countHeartbeats(host),
 			}
 			states := func() [3]string {
 				return [3]string{l.state("reservation-1"), l.state("reservation-2"), l.state("reservation-3")}
@@ -393,6 +491,8 @@ func TestDeclaredActivityAttemptsFollowTheirLifecycle(t *testing.T) {
 				require.NoError(t, err)
 				requireOutcome(t, want, settled)
 			}
+			// An attempt heartbeats only to learn whether the server asks it to cancel.
+			require.Equal(t, test.heartbeats, l.heartbeats.Load() > 0)
 			require.NoError(t, session.Close(t.Context()))
 		})
 	}

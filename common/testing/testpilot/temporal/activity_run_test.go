@@ -50,6 +50,9 @@ type activityServer struct {
 	attempt    int32
 	deliveries int
 	answers    []string
+	// cancelRequested is set once a cancellation of the activity is requested; the server then says
+	// so in answer to a heartbeat, and accepts a canceled answer.
+	cancelRequested bool
 }
 
 const (
@@ -163,6 +166,32 @@ func (s *activityServer) RespondActivityTaskFailed(_ context.Context, request *w
 	return &workflowservice.RespondActivityTaskFailedResponse{}, nil
 }
 
+func (s *activityServer) RequestCancelActivityExecution(context.Context, *workflowservice.RequestCancelActivityExecutionRequest) (*workflowservice.RequestCancelActivityExecutionResponse, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.cancelRequested = true
+	return &workflowservice.RequestCancelActivityExecutionResponse{}, nil
+}
+
+func (s *activityServer) RecordActivityTaskHeartbeat(context.Context, *workflowservice.RecordActivityTaskHeartbeatRequest) (*workflowservice.RecordActivityTaskHeartbeatResponse, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return &workflowservice.RecordActivityTaskHeartbeatResponse{CancelRequested: s.cancelRequested}, nil
+}
+
+// The server accepts a canceled answer only for an activity whose cancellation is requested, and
+// the answer closes the activity.
+func (s *activityServer) RespondActivityTaskCanceled(context.Context, *workflowservice.RespondActivityTaskCanceledRequest) (*workflowservice.RespondActivityTaskCanceledResponse, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if !s.cancelRequested {
+		return nil, serviceerror.NewInvalidArgument("activity task cancellation was not requested")
+	}
+	s.answers = append(s.answers, "canceled")
+	close(s.closed)
+	return &workflowservice.RespondActivityTaskCanceledResponse{}, nil
+}
+
 func (s *activityServer) told() []string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -171,6 +200,10 @@ func (s *activityServer) told() []string {
 
 func attemptFinish(id string, result *testpilotspb.Expression) *testpilotspb.InstructionNode {
 	return &testpilotspb.InstructionNode{InstructionId: id, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: result}}}}
+}
+
+func attemptCancellation(id string) *testpilotspb.InstructionNode {
+	return &testpilotspb.InstructionNode{InstructionId: id, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptCancellation{ActivityAttemptCancellation: &testpilotspb.ActivityAttemptCancellation{}}}}
 }
 
 func attemptFailure(id, failureType string, nonRetryable bool) *testpilotspb.InstructionNode {
@@ -194,6 +227,52 @@ type recordedAttempt struct {
 	Source  string
 	Causes  []string
 	Outcome string
+}
+
+// activityScriptCase is activityCase's activity alone: the controller starts it and the script
+// declares its attempts.
+func activityScriptCase(script []*testpilotspb.InstructionNode) *testpilotspb.Case {
+	source := activityCase()
+	source.Program.Entrypoints[0].Instructions = source.Program.Entrypoints[0].Instructions[1:]
+	source.Program.Entrypoints[3].Instructions = script
+	source.Program.Entrypoints = []*testpilotspb.Entrypoint{source.Program.Entrypoints[0], source.Program.Entrypoints[3]}
+	source.Program.Roles = append(source.Program.Roles[:2:2], source.Program.Roles[3])
+	return source
+}
+
+// runActivityScript prepares the Case under the Profile derived from it and runs it through
+// PreparedCase.Run with the composite Driver and a real SDK worker, against the server.
+func runActivityScript(t *testing.T, server *activityServer, source *testpilotspb.Case) (*testpilot.PreparedCase, *testpilotspb.Run, *testpilotspb.Verdict) {
+	t.Helper()
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	transport := grpc.NewServer()
+	workflowservice.RegisterWorkflowServiceServer(transport, server)
+	go func() { _ = transport.Serve(listener) }()
+	t.Cleanup(transport.Stop)
+	sdk, err := client.Dial(client.Options{HostPort: listener.Addr().String(), Namespace: "namespace"})
+	require.NoError(t, err)
+	t.Cleanup(sdk.Close)
+
+	catalog, err := temporal.NewWorkflowServiceCatalog()
+	require.NoError(t, err)
+	profile, err := temporal.DeriveProfile(source, catalog, temporal.Environment{Identity: "activity", Namespace: "namespace", TaskQueue: "task-queue"})
+	require.NoError(t, err)
+	prepared, err := testpilot.Prepare(source, profile)
+	require.NoError(t, err)
+	driver, err := temporal.New(temporal.Options{
+		Profile:         profile,
+		ServerEndpoints: map[string]temporal.Endpoint{"workflow-service": {Target: listener.Addr().String(), Credentials: insecure.NewCredentials()}},
+		SDKClient:       sdk, WorkerRoleID: "worker", WorkerStopTimeout: time.Second,
+	})
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, driver.Close(context.Background())) })
+
+	bounded, cancel := context.WithTimeout(t.Context(), 30*time.Second)
+	defer cancel()
+	run, verdict, err := prepared.Run(bounded, driver)
+	require.NoError(t, err)
+	return prepared, run, verdict
 }
 
 // A Run of a Case whose activity script declares its attempts, through PreparedCase.Run, the
@@ -222,7 +301,9 @@ func TestRunRecordsWhatEachDeclaredActivityAttemptDid(t *testing.T) {
 	}
 
 	for name, test := range map[string]struct {
-		script      []*testpilotspb.InstructionNode
+		script []*testpilotspb.InstructionNode
+		// cancels makes the controller request the activity's cancellation once it started it.
+		cancels     bool
 		loses       string
 		noRetry     bool
 		told        []string
@@ -306,6 +387,18 @@ func TestRunRecordsWhatEachDeclaredActivityAttemptDid(t *testing.T) {
 			facts:       []recordedAttempt{fact(first, attemptFact(succeeded, 1, deliveryOf("token-1"), completed))},
 			disposition: testpilotspb.RUN_DISPOSITION_COMPLETED,
 		},
+		// The attempt heartbeats, the server answers that the cancellation is requested, and the
+		// worker answers canceled, which the server accepts and closes the activity on.
+		"a requested cancellation is answered and closes the activity": {
+			script:  []*testpilotspb.InstructionNode{attemptCancellation("first-attempt"), attemptFinish("second-attempt", textLiteral("late"))},
+			cancels: true,
+			told:    []string{"canceled"},
+			facts: []recordedAttempt{
+				fact(first, attemptFact(succeeded, 1, deliveryOf("token-1"), testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED)),
+				fact(second, notNeeded, first),
+			},
+			disposition: testpilotspb.RUN_DISPOSITION_COMPLETED,
+		},
 		"the worker refuses an attempt": {
 			script:      []*testpilotspb.InstructionNode{disabled},
 			told:        []string{"failed:umpire_worker"},
@@ -316,41 +409,21 @@ func TestRunRecordsWhatEachDeclaredActivityAttemptDid(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			server := &activityServer{tasks: make(chan *workflowservice.PollActivityTaskQueueResponse, 8), closed: make(chan struct{}), loses: test.loses, noRetry: test.noRetry}
-			listener, err := net.Listen("tcp", "127.0.0.1:0")
-			require.NoError(t, err)
-			transport := grpc.NewServer()
-			workflowservice.RegisterWorkflowServiceServer(transport, server)
-			go func() { _ = transport.Serve(listener) }()
-			t.Cleanup(transport.Stop)
-			sdk, err := client.Dial(client.Options{HostPort: listener.Addr().String(), Namespace: "namespace"})
-			require.NoError(t, err)
-			t.Cleanup(sdk.Close)
-
-			// The Case is activityCase's activity alone: the controller starts it and its script
-			// declares the attempts.
-			source := activityCase()
-			source.Program.Entrypoints[0].Instructions = source.Program.Entrypoints[0].Instructions[1:]
-			source.Program.Entrypoints[3].Instructions = test.script
-			source.Program.Entrypoints = []*testpilotspb.Entrypoint{source.Program.Entrypoints[0], source.Program.Entrypoints[3]}
-			source.Program.Roles = append(source.Program.Roles[:2:2], source.Program.Roles[3])
-			catalog, err := temporal.NewWorkflowServiceCatalog()
-			require.NoError(t, err)
-			profile, err := temporal.DeriveProfile(source, catalog, temporal.Environment{Identity: "activity", Namespace: "namespace", TaskQueue: "task-queue"})
-			require.NoError(t, err)
-			prepared, err := testpilot.Prepare(source, profile)
-			require.NoError(t, err)
-			driver, err := temporal.New(temporal.Options{
-				Profile:         profile,
-				ServerEndpoints: map[string]temporal.Endpoint{"workflow-service": {Target: listener.Addr().String(), Credentials: insecure.NewCredentials()}},
-				SDKClient:       sdk, WorkerRoleID: "worker", WorkerStopTimeout: time.Second,
-			})
-			require.NoError(t, err)
-			t.Cleanup(func() { require.NoError(t, driver.Close(context.Background())) })
-
-			bounded, cancel := context.WithTimeout(t.Context(), 30*time.Second)
-			defer cancel()
-			run, _, err := prepared.Run(bounded, driver)
-			require.NoError(t, err)
+			source := activityScriptCase(test.script)
+			if test.cancels {
+				controller := source.Program.Entrypoints[0]
+				controller.Instructions = append(controller.Instructions, &testpilotspb.InstructionNode{
+					InstructionId: "request-cancel",
+					Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{
+						EndpointRoleId: "workflow-service", Method: "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution",
+						RequestAssignments: []*testpilotspb.RequestAssignment{
+							{Target: "namespace", Value: environmentReference("namespace")},
+							{Target: "activity_id", Value: textLiteral("activity-id")},
+						},
+					}}},
+				})
+			}
+			_, run, _ := runActivityScript(t, server, source)
 
 			var facts []recordedAttempt
 			for _, event := range run.GetEvents() {

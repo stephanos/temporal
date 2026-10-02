@@ -19,7 +19,12 @@ import (
 	"google.golang.org/protobuf/types/dynamicpb"
 )
 
-const historyEventMessage = "temporal.api.history.v1.HistoryEvent"
+const (
+	historyEventMessage = "temporal.api.history.v1.HistoryEvent"
+	// instructionOutcomeMessage is the payload of the Run Events that are evidence: the outcome of an
+	// instruction, or of an activation it carries.
+	instructionOutcomeMessage = "temporal.server.api.testpilot.v1.InstructionOutcome"
+)
 
 func locate(at *modelirspb.Position) string {
 	if at.GetFile() == "" {

@@ -19,6 +19,7 @@ import (
 	cp "go.temporal.io/server/model/go/caseproducer"
 	"go.temporal.io/server/model/go/umpire"
 	"go.temporal.io/server/model/scalav2/goir"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -37,7 +38,7 @@ const (
 )
 
 // Unsupported is one declaration of a realization that Testpilot has no primitive for: what it is,
-// where it was written, and the task that owns the primitive.
+// where it was written, and the task that owns the primitive, or that none does.
 type Unsupported struct {
 	Construct string
 	ID        string
@@ -46,11 +47,12 @@ type Unsupported struct {
 	Why       string
 }
 
-// The tasks of fn-107 that own a Testpilot primitive this package has nothing to lower into.
+// The tasks of fn-107 that own what this package has nothing to lower into: the race controls and
+// authored monitors. What no task owns is a limit of the prototype, and is said to be one.
 const (
 	ownerControls   = "fn-107.10"
 	ownerAssessment = "fn-107.12"
-	ownerActivities = "fn-107.13"
+	ownerNone       = "none: a recorded limit of the prototype"
 )
 
 // Disposition is what became of one declaration of a realization in one Case.
@@ -59,8 +61,8 @@ type Disposition string
 const (
 	// InCase is a declaration the Case carries, in the parts As names.
 	InCase Disposition = "in-case"
-	// OffPath is a command the Query's path does not perform, or a kind of evidence no step of it
-	// records.
+	// OffPath is a command the Query's path does not perform, or a kind of evidence the Case does not
+	// carry: one that confirms no step of the path and is not exhaustive.
 	OffPath Disposition = "off-path"
 	// Names is what identifies the realization in the IR, which no part of a Case repeats.
 	Names Disposition = "names"
@@ -78,11 +80,14 @@ type Entry struct {
 }
 
 // Lowering is what lowering one Query came to: its standing, the Case of a lowered one with every
-// declaration accounted for, and the gaps of an unsupported one.
+// declaration accounted for, and the gaps of an unsupported one. OffPath is what the realization
+// declares that Testpilot cannot run and this Query's path does not take: it stands in the way of
+// other Queries, and of this one not at all.
 type Lowering struct {
 	Standing    Standing
 	Case        *testpilotspb.Case
 	Unsupported []Unsupported
+	OffPath     []Unsupported
 	Inventory   []Entry
 }
 
@@ -184,33 +189,41 @@ func (p *Producer) Lower(query string, identity cp.Identity) (*Lowering, error) 
 	}
 	var l *lowering
 	var problems []error
-	var gaps []Unsupported
+	var gaps, off []Unsupported
 	if realizable == Lowered {
-		l, problems = p.check(a, identity)
-		gaps = p.gaps(a.r)
+		// A realization or a path that cannot be read at all is an error, and has no gaps to list.
+		if l, problems = p.check(a, identity); l != nil {
+			gaps, off = p.gaps(a.r, l.takes)
+			gaps = append(append(gaps, l.unanswered()...), l.late()...)
+		}
 	}
 	standing, err := standingOf(problems, gaps, realizable)
 	if err != nil {
 		return nil, err
 	}
 	if standing != Lowered {
-		return &Lowering{Standing: standing, Unsupported: gaps}, nil
+		return &Lowering{Standing: standing, Unsupported: gaps, OffPath: off}, nil
 	}
 	produced, err := cp.Produce(l.query, identity, l.realization, p.source(a.q))
 	if err != nil {
 		return nil, errorAt(a.q.GetPosition(), "query %s: %v", query, err)
 	}
+	if err := l.ordered(produced); err != nil {
+		return nil, err
+	}
 	inventory, err := l.inventory(produced)
 	if err != nil {
 		return nil, err
 	}
-	return &Lowering{Standing: Lowered, Case: produced, Inventory: inventory}, nil
+	return &Lowering{Standing: Lowered, Case: produced, OffPath: off, Inventory: inventory}, nil
 }
 
-// gaps lists every declaration of a realization, and of the machine it runs, that Testpilot has no
-// primitive for, in the order the IR lists them.
-func (p *Producer) gaps(r *modelirspb.Realization) []Unsupported {
-	var out []Unsupported
+// gaps lists every declaration of a realization, and of the machine it runs, that Testpilot has
+// nothing for, in the order the IR lists them: the ones in a Query's way, and the ones off its path.
+// A monitor, a kind of evidence and a control are the realization's, and stand in the way of every
+// Query of it. A command stands in the way of the Queries whose Case would carry it,
+// which takes says, and is off the path of the others.
+func (p *Producer) gaps(r *modelirspb.Realization, takes func(*modelirspb.Item, *modelirspb.Performance) bool) (out, off []Unsupported) {
 	var watching []*modelirspb.Monitor
 	if mm := p.realizer.Machine(r.GetMachine()); mm != nil {
 		watching = mm.Monitors
@@ -220,30 +233,391 @@ func (p *Producer) gaps(r *modelirspb.Realization) []Unsupported {
 			Why: "a Case's Contract carries no authored monitor: it is assessed beside the Contract through the prepared assessment seam"})
 	}
 	for _, e := range r.GetEvidence() {
-		if e.GetCommitment() == modelirspb.Evidence_COMMITMENT_DURABLE {
-			out = append(out, Unsupported{Construct: "durable-commit observation", ID: e.GetId(), Position: locate(e.GetPosition()), Owner: ownerControls,
-				Why: "a Run records what an RPC returned and what history holds, and no durable commit of the receiver"})
-		}
+		out = append(out, evidenceGaps(e)...)
 	}
 	for _, c := range r.GetControls() {
 		out = append(out, Unsupported{Construct: "hold-delivery control", ID: c.GetId(), Position: locate(c.GetPosition()), Owner: ownerControls,
 			Why: "a Driver's faults are worker lifecycle transitions; none holds a delivery inside the server"})
 	}
-	for _, s := range r.GetScripts() {
-		if s.GetActivity() != nil {
-			out = append(out, Unsupported{Construct: "activity activation", ID: s.GetId(), Position: locate(s.GetPosition()), Owner: ownerActivities,
-				Why: "no instruction is admitted in an activity entrypoint, and the worker Driver registers no activity"})
+	command := func(s *modelirspb.Script, item *modelirspb.Item, performance *modelirspb.Performance) {
+		c := item.GetCommand()
+		if performance != nil {
+			c = performance.GetCommand()
 		}
-		for _, c := range commandsOf(s) {
-			switch c.GetInstruction().(type) {
-			case *modelirspb.Command_Hold, *modelirspb.Command_Release:
-				out = append(out, Unsupported{Construct: "hold-delivery command", ID: s.GetId() + "/" + c.GetId(), Position: locate(c.GetPosition()),
-					Owner: ownerControls, Why: "no instruction holds or releases a delivery"})
-			default:
+		gap, unsupported := commandGap(s, c)
+		switch {
+		case !unsupported:
+		case takes(item, performance):
+			out = append(out, gap)
+		default:
+			off = append(off, gap)
+		}
+	}
+	for _, s := range r.GetScripts() {
+		for _, item := range s.GetItems() {
+			if item.GetCommand() != nil {
+				command(s, item, nil)
+			}
+			for _, performance := range item.GetPerforms() {
+				command(s, item, performance)
+			}
+		}
+	}
+	return out, off
+}
+
+// commandGap is what a Case has no instruction for in a command, if anything.
+func commandGap(s *modelirspb.Script, c *modelirspb.Command) (Unsupported, bool) {
+	switch c.GetInstruction().(type) {
+	case *modelirspb.Command_Hold, *modelirspb.Command_Release:
+		return Unsupported{Construct: "hold-delivery command", ID: s.GetId() + "/" + c.GetId(), Position: locate(c.GetPosition()),
+			Owner: ownerControls, Why: "no instruction holds or releases a delivery"}, true
+	default:
+		return Unsupported{}, false
+	}
+}
+
+// evidenceGaps is what a Case cannot carry of one kind of evidence, in the order it is declared.
+func evidenceGaps(e *modelirspb.Evidence) (out []Unsupported) {
+	if e.GetCommitment() == modelirspb.Evidence_COMMITMENT_DURABLE {
+		out = append(out, Unsupported{Construct: "durable-commit observation", ID: e.GetId(), Position: locate(e.GetPosition()), Owner: ownerControls,
+			Why: "a Run records what an RPC returned and what history holds, and no durable commit of the receiver"})
+	}
+	for _, f := range e.GetFields() {
+		if !f.GetRedacted() {
+			continue
+		}
+		at := f.GetPosition()
+		if at.GetFile() == "" {
+			at = e.GetPosition()
+		}
+		out = append(out, Unsupported{Construct: "redacted evidence field", ID: e.GetId() + "/" + f.GetId(), Position: locate(at), Owner: ownerNone,
+			Why: "a lift reads a value for every field its evidence declares, so no evidence carries a field without its value"})
+	}
+	return out
+}
+
+// attemptClasses is the classes an activity's script starts an attempt with, and the classes its
+// commands answer one with, by key.
+func (l *lowering) attemptClasses(s *modelirspb.Script) (started, answered map[string]bool) {
+	started, answered = map[string]bool{}, map[string]bool{}
+	for _, class := range s.GetActivity().GetStarts() {
+		started[l.adapter.classKey(class)] = true
+	}
+	for _, item := range s.GetItems() {
+		for _, performance := range item.GetPerforms() {
+			answered[l.adapter.classKey(performance.GetStep())] = true
+		}
+	}
+	return started, answered
+}
+
+// unanswered is the attempts of an activity that a path starts and gives no answer: for each activity
+// script, how many more steps of the path are a delivery the script starts with than are performed by
+// one of its commands. An activity entrypoint's instructions are its attempts' answers, and none waits,
+// so an attempt the path leaves to run out a deadline has nothing to be lowered to.
+func (l *lowering) unanswered() (out []Unsupported) {
+	for _, s := range l.a.r.GetScripts() {
+		if s.GetActivity() == nil {
+			continue
+		}
+		started, answered := l.attemptClasses(s)
+		starts, answers := 0, 0
+		for _, key := range l.keys {
+			if started[key] {
+				starts++
+			}
+			if answered[key] {
+				answers++
+			}
+		}
+		if starts > answers {
+			out = append(out, Unsupported{Construct: "attempt that gives no answer", ID: s.GetId(), Position: locate(s.GetPosition()), Owner: ownerNone,
+				Why: fmt.Sprintf("the path starts %d attempts of the activity and answers %d: an activity entrypoint's instructions are answers, and none waits out a deadline",
+					starts, answers)})
+		}
+	}
+	return out
+}
+
+// When a Run records each piece of a path's evidence is said here and nowhere else, and it is read
+// from declarations: nothing is inferred from what kind of event evidence is.
+//
+//   - Evidence that is the record of an attempt (a Run Event source that names the attempt, and the
+//     activity script it is an attempt of) reaches a Run once that attempt is answered: with the step
+//     of the path that is the script's answer of that number, and before the evidence of that step.
+//   - Every other evidence is recorded by an instruction of the Case's controller, and reaches a Run
+//     as the controller runs the instruction: the command a Run Event source names, the poll that
+//     reads a kind, the read that lifts it. ordered checks, on the Case, that the controller runs those
+//     instructions in the order the path records their evidence.
+//
+// Both read the path as the order its steps are taken in. That a Run takes them in that order is what
+// the Case's own commands bring about, and no reading of evidence can establish it.
+//
+// Two orders are the runtime's and no declaration fixes them: that the completion of the call that
+// carries an attempt is recorded before the attempt's record, and that an attempt's record is recorded
+// before the status a later instruction reads after the attempt's answer. A Run that breaks either
+// carries evidence its Contract refuses, and is incomplete: it is given no Verdict it has not earned.
+
+// published is one kind of evidence on a path, as the producer confirms the path by it: the place of
+// the last step it confirms, and, where it is the record of an attempt, the activity script and the
+// attempt it is of.
+type published struct {
+	kind   string
+	last   int
+	script string
+	number int64
+}
+
+// misplaced is the record of an attempt that a Run would record out of the path's order, and the
+// kind beside it on the path that it trades places with: one whose evidence it follows though it
+// confirms earlier steps, or precedes though it confirms later ones.
+type misplaced struct {
+	kind, beside string
+	follows      bool
+}
+
+// outOfOrder is the first record of an attempt that a Run would record out of the path's order, or
+// nil. The kinds are in path order, and answers is, for each activity script, the places on the path
+// of the steps that answer its attempts, in order. Evidence the controller records for a step is
+// recorded after that step and before the next; the record of an attempt is recorded with the
+// attempt's answer, before that step's own evidence. A record of an attempt the path does not answer
+// is recorded at no step, and is in no order with the rest.
+func outOfOrder(kinds []published, answers map[string][]int) *misplaced {
+	// Each step is two moments: what is recorded with it, and what is recorded after it.
+	type moment struct {
+		of   published
+		when int
+	}
+	var moments []moment
+	for _, k := range kinds {
+		switch {
+		case k.script == "":
+			moments = append(moments, moment{k, 2*k.last + 1})
+		case k.number >= 1 && k.number <= int64(len(answers[k.script])):
+			moments = append(moments, moment{k, 2 * answers[k.script][k.number-1]})
+		default:
+		}
+	}
+	for i := 1; i < len(moments); i++ {
+		earlier, later := moments[i-1], moments[i]
+		switch {
+		case earlier.when < later.when:
+		case earlier.of.script != "":
+			return &misplaced{kind: earlier.of.kind, beside: later.of.kind, follows: true}
+		default:
+			return &misplaced{kind: later.of.kind, beside: earlier.of.kind}
+		}
+	}
+	return nil
+}
+
+// attemptOf is the attempt a kind of evidence is declared the record of, or nil.
+func (l *lowering) attemptOf(kind string) *modelirspb.AttemptOf {
+	return l.adapter.evidence[kind].GetRunEvent().GetAttempt()
+}
+
+// unstarted is, for each record of an attempt that confirms a step of the path, the error of a path
+// that starts fewer attempts of the record's script than the record's number: such a record is of
+// nothing a Run of the path could record.
+func (l *lowering) unstarted() (problems []error) {
+	for _, confirmed := range l.confirmations {
+		of := l.attemptOf(confirmed.Source.KindID)
+		if of == nil {
+			continue
+		}
+		for _, s := range l.a.r.GetScripts() {
+			if s.GetId() != of.GetScript() {
+				continue
+			}
+			started, _ := l.attemptClasses(s)
+			starts := int64(0)
+			for _, key := range l.keys {
+				if started[key] {
+					starts++
+				}
+			}
+			if of.GetNumber() > starts {
+				problems = append(problems, errorAt(l.adapter.evidence[confirmed.Source.KindID].GetPosition(),
+					"evidence %s is the record of attempt %d of script %s, and the path of query %s starts %d", confirmed.Source.KindID, of.GetNumber(),
+					s.GetId(), l.a.q.GetName(), starts))
+			}
+		}
+	}
+	return problems
+}
+
+// late is the record of an attempt that a Run of this Query's path would record out of the path's
+// order, if there is one: the Contract reads evidence in the order a Run records it, and would meet
+// the record and the kind beside it the wrong way round.
+func (l *lowering) late() []Unsupported {
+	var kinds []published
+	for _, confirmed := range l.confirmations {
+		kind := published{kind: confirmed.Source.KindID, last: confirmed.Steps[len(confirmed.Steps)-1]}
+		if of := l.attemptOf(kind.kind); of != nil {
+			kind.script, kind.number = of.GetScript(), of.GetNumber()
+		}
+		kinds = append(kinds, kind)
+	}
+	answers := map[string][]int{}
+	for _, s := range l.a.r.GetScripts() {
+		if s.GetActivity() == nil {
+			continue
+		}
+		_, answered := l.attemptClasses(s)
+		for at, key := range l.keys {
+			if answered[key] {
+				answers[s.GetId()] = append(answers[s.GetId()], at)
+			}
+		}
+	}
+	record := outOfOrder(kinds, answers)
+	if record == nil {
+		return nil
+	}
+	gap := Unsupported{Construct: "attempt record that precedes earlier evidence", ID: record.kind, Position: locate(l.adapter.evidence[record.kind].GetPosition()),
+		Owner: ownerNone, Why: fmt.Sprintf("a Run records an attempt once it is answered, which on this path is before the Run records %s, "+
+			"though the record confirms later steps", record.beside)}
+	if record.follows {
+		gap.Construct = "attempt record that follows later evidence"
+		gap.Why = fmt.Sprintf("a Run records an attempt once it is answered, which on this path is after the Run records %s, "+
+			"though the record confirms earlier steps", record.beside)
+	}
+	return []Unsupported{gap}
+}
+
+// instructionOrder says which instructions of one entrypoint run after which.
+type instructionOrder struct {
+	// before is, for each instruction, the instructions it runs directly after.
+	before map[string][]string
+}
+
+// runOrder reads the order of an entrypoint's instructions: one runs after the one written before
+// it, or, where it names the instructions it runs after, after those and no other.
+func runOrder(ids []string, after map[string][]string) instructionOrder {
+	order := instructionOrder{before: map[string][]string{}}
+	for i, id := range ids {
+		switch named, names := after[id]; {
+		case names:
+			order.before[id] = named
+		case i > 0:
+			order.before[id] = []string{ids[i-1]}
+		default:
+		}
+	}
+	return order
+}
+
+// after is whether one instruction runs after another, directly or through the ones between.
+func (o instructionOrder) after(later, earlier string) bool {
+	seen := map[string]bool{}
+	var reaches func(id string) bool
+	reaches = func(id string) bool {
+		if seen[id] {
+			return false
+		}
+		seen[id] = true
+		for _, before := range o.before[id] {
+			if before == earlier || reaches(before) {
+				return true
+			}
+		}
+		return false
+	}
+	return reaches(later)
+}
+
+// recorders is, for each kind of evidence a Case declares, by the Case's name for it, the instruction
+// of the Case that records it: the instruction a Run Event declaration names, the poll that reads the
+// kind, or the read that lifts it.
+func recorders(c *testpilotspb.Case) map[string]*testpilotspb.InstructionReference {
+	out := map[string]*testpilotspb.InstructionReference{}
+	for _, d := range c.GetProgram().GetEvidence() {
+		if at := d.GetRunEvent().GetInstruction(); at != nil {
+			out[d.GetEvidenceId()] = at
+		}
+	}
+	for _, entrypoint := range c.GetProgram().GetEntrypoints() {
+		for _, node := range entrypoint.GetInstructions() {
+			at := &testpilotspb.InstructionReference{EntrypointId: entrypoint.GetEntrypointId(), InstructionId: node.GetInstructionId()}
+			if poll := node.GetInstruction().GetReadEvidence(); poll != nil {
+				out[poll.GetEvidenceId()] = at
+			}
+			for _, read := range node.GetInstruction().GetInvokeRpc().GetResponseReads() {
+				for _, target := range read.GetTargets() {
+					for _, rule := range target.GetCorrelatedEvidence().GetRules() {
+						out[rule.GetEvidenceId()] = at
+					}
+				}
 			}
 		}
 	}
 	return out
+}
+
+// ordered checks, on the Case, that its instructions record the path's evidence in the path's order:
+// every kind that confirms a step of the path and is no record of an attempt has an instruction that
+// records it, and the instruction of each such kind is the one that records the kind before it or
+// runs after it. Kinds one instruction records reach the Run in the order of what it reads.
+func (l *lowering) ordered(c *testpilotspb.Case) error {
+	local := map[string]string{}
+	for _, n := range c.GetProvenance().GetLocalNames() {
+		local[n.GetDefinitionId()] = n.GetLocalName()
+	}
+	at, query := l.a.scenario.GetPosition(), l.a.q.GetName()
+	orders := map[string]instructionOrder{}
+	for _, entrypoint := range c.GetProgram().GetEntrypoints() {
+		var ids []string
+		after := map[string][]string{}
+		for _, node := range entrypoint.GetInstructions() {
+			ids = append(ids, node.GetInstructionId())
+			if node.GetAfter() != nil {
+				after[node.GetInstructionId()] = []string{}
+				for _, before := range node.GetAfter().GetInstructions() {
+					after[node.GetInstructionId()] = append(after[node.GetInstructionId()], before.GetInstructionId())
+				}
+			}
+		}
+		orders[entrypoint.GetEntrypointId()] = runOrder(ids, after)
+	}
+	recorded := recorders(c)
+	var earlier *testpilotspb.InstructionReference
+	var earlierKind string
+	for _, confirmed := range l.confirmations {
+		kind := confirmed.Source.KindID
+		if l.attemptOf(kind) != nil {
+			continue
+		}
+		name := kind
+		if renamed, ok := local[kind]; ok {
+			name = renamed
+		}
+		by := recorded[name]
+		if by == nil {
+			return errorAt(at, "query %s: no instruction of the Case records evidence %s, which confirms a step of the path", query, kind)
+		}
+		spelled := func(ref *testpilotspb.InstructionReference) string {
+			return ref.GetEntrypointId() + "/" + ref.GetInstructionId()
+		}
+		if earlier != nil && spelled(earlier) != spelled(by) && (earlier.GetEntrypointId() != by.GetEntrypointId() ||
+			!orders[by.GetEntrypointId()].after(by.GetInstructionId(), earlier.GetInstructionId())) {
+			return errorAt(at, "query %s: evidence %s is recorded by %s, which the Case does not run after %s, and the path records %s first", query, kind,
+				spelled(by), spelled(earlier), earlierKind)
+		}
+		earlier, earlierKind = by, kind
+	}
+	return nil
+}
+
+// takes is whether a Case of this Query's path would carry a command: one every Case carries, one
+// carried for a class the path takes, or the performance of a class the path takes.
+func (l *lowering) takes(item *modelirspb.Item, performance *modelirspb.Performance) bool {
+	if performance != nil {
+		return slices.Contains(l.keys, l.adapter.classKey(performance.GetStep()))
+	}
+	return len(item.GetWhen()) == 0 || slices.ContainsFunc(item.GetWhen(), func(class *modelirspb.ActionClass) bool {
+		return slices.Contains(l.keys, l.adapter.classKey(class))
+	})
 }
 
 // commandsOf is every command a script declares, in declaration order.
@@ -269,6 +643,9 @@ type lowering struct {
 	realization *cp.Realization
 	query       *umpire.Query
 	keys        []string
+	// confirmations is which kind of evidence confirms each step of the path, as the producer decides
+	// it: set once the producer has read the path whole and refused nothing.
+	confirmations []cp.Confirmation
 }
 
 func (p *Producer) source(q *modelirspb.Query) cp.Source {
@@ -319,16 +696,25 @@ func (p *Producer) check(a *asked, identity cp.Identity) (*lowering, []error) {
 		// with no witness or no clauses has nothing for it to decide; either is already reported.
 		if err := cp.Preflight(query, identity, l.realization); err != nil {
 			problems = append(problems, fmt.Errorf("%s: query %s: %w", locate(at), name, err))
+		} else if l.confirmations, err = cp.Confirmations(query, identity, l.realization); err != nil {
+			problems = append(problems, fmt.Errorf("%s: query %s: %w", locate(at), name, err))
+		} else {
+			problems = append(problems, l.unstarted()...)
 		}
 	}
 	return l, problems
 }
 
-// performed rejects a path with a step a party takes that no command performs: a Case that does not
-// drive it would wait for something nothing does. A step of the system needs no command.
+// performed rejects a path with a step a party takes that nothing performs: a Case that does not
+// drive it would wait for something nothing does. A command performs a step, and so does the
+// activation of an activity script that starts with the step's class. A step of the system needs
+// neither.
 func (l *lowering) performed() error {
 	bound := map[string]bool{}
 	for _, s := range l.a.r.GetScripts() {
+		for _, class := range s.GetActivity().GetStarts() {
+			bound[l.adapter.classKey(class)] = true
+		}
 		for _, item := range s.GetItems() {
 			for _, performance := range item.GetPerforms() {
 				bound[l.adapter.classKey(performance.GetStep())] = true
@@ -558,20 +944,227 @@ func (a *accounting) observations() error {
 	return nil
 }
 
+// evidenceFields says how each field of a kind of evidence the Case carries is accounted for. A field
+// with no entry of its own is part of what the Case's evidence declaration states. The inventory walks
+// the message's descriptor, so a field the IR gains is an error of every lowering until it is
+// accounted for here.
+var evidenceFields = map[protoreflect.Name]func(a *accounting, e *modelirspb.Evidence, d *testpilotspb.EvidenceDeclaration) ([]string, error){
+	"id":         nil,
+	"position":   nil,
+	"records":    nil,
+	"source":     nil,
+	"operation":  nil,
+	"commitment": nil,
+	"history":    (*accounting).recorded,
+	"read":       (*accounting).recorded,
+	"single":     (*accounting).recorded,
+	"run_event":  (*accounting).recorded,
+	"fields":     (*accounting).kept,
+	"exhaustive": (*accounting).closing,
+	"confirms":   (*accounting).confirmed,
+}
+
+// recordedIn spells where a realization says a kind of evidence is recorded, and declaredIn where a
+// Case's declaration says it is, in the same words, so that the two are compared as one text.
+func recordedIn(e *modelirspb.Evidence) string {
+	switch from := e.GetFrom().(type) {
+	case *modelirspb.Evidence_History:
+		return "history event " + from.History
+	case *modelirspb.Evidence_Read:
+		return "read " + from.Read.GetMethod() + " " + from.Read.GetPath()
+	case *modelirspb.Evidence_Single:
+		return "single read " + from.Single.GetMethod() + " " + from.Single.GetPath()
+	case *modelirspb.Evidence_RunEvent:
+		keyed := "nothing"
+		switch key := from.RunEvent.GetKey(); {
+		case key.GetRun() != nil:
+			keyed = "the run"
+		case key.GetPath() != nil:
+			keyed = key.GetPath().GetPath()
+		default:
+		}
+		return fmt.Sprintf("run event %s of %s/%s keyed by %s", modelirspb.RunEventSource_Kind_name[int32(from.RunEvent.GetKind())],
+			from.RunEvent.GetScript(), from.RunEvent.GetCommand(), keyed)
+	default:
+		return "nowhere"
+	}
+}
+
+func declaredIn(d *testpilotspb.EvidenceDeclaration) string {
+	switch from := d.GetSource().(type) {
+	case *testpilotspb.EvidenceDeclaration_HistoryEvent:
+		return "history event " + from.HistoryEvent.GetAttributesField()
+	case *testpilotspb.EvidenceDeclaration_Read:
+		if from.Read.GetSingle() {
+			return "single read " + from.Read.GetMethod() + " " + from.Read.GetPath()
+		}
+		return "read " + from.Read.GetMethod() + " " + from.Read.GetPath()
+	case *testpilotspb.EvidenceDeclaration_RunEvent:
+		kind := modelirspb.RunEventSource_KIND_UNSPECIFIED
+		for declared, lowered := range runEventKinds {
+			if lowered == from.RunEvent.GetKind() {
+				kind = declared
+			}
+		}
+		keyed := "the run"
+		if !from.RunEvent.GetRunKeyed() {
+			keyed = d.GetOperation()
+		}
+		return fmt.Sprintf("run event %s of %s/%s keyed by %s", modelirspb.RunEventSource_Kind_name[int32(kind)],
+			from.RunEvent.GetInstruction().GetEntrypointId(), from.RunEvent.GetInstruction().GetInstructionId(), keyed)
+	default:
+		return "nowhere"
+	}
+}
+
+// recorded checks that the Case declares a kind of evidence recorded where the realization says it
+// is. The Run's own record is an instruction's, which the Case must carry: the instruction is part of
+// what carries the kind.
+func (a *accounting) recorded(e *modelirspb.Evidence, d *testpilotspb.EvidenceDeclaration) ([]string, error) {
+	part := "program.evidence[" + d.GetEvidenceId() + "]"
+	if declared, carried := recordedIn(e), declaredIn(d); declared != carried {
+		return nil, a.differs("evidence", e.GetId(), declared, carried, part)
+	}
+	source := e.GetRunEvent()
+	if source == nil {
+		return nil, nil
+	}
+	// The guard is compared as the Case states it: lowered again from the declaration.
+	payload, err := messageNamed(e.GetPosition(), instructionOutcomeMessage)
+	if err != nil {
+		return nil, err
+	}
+	guard, err := a.l.adapter.guardOf(e, source, payload)
+	if err != nil {
+		return nil, err
+	}
+	if !proto.Equal(guard, d.GetRunEvent().GetGuard()) {
+		return nil, errorAt(e.GetPosition(), "evidence %s is the Run's record under a guard, and the Case's %s declares it under another", e.GetId(), part)
+	}
+	for _, entrypoint := range a.c.GetProgram().GetEntrypoints() {
+		if entrypoint.GetEntrypointId() == source.GetScript() && slices.ContainsFunc(entrypoint.GetInstructions(), func(n *testpilotspb.InstructionNode) bool {
+			return n.GetInstructionId() == source.GetCommand()
+		}) {
+			return []string{"program.entrypoints[" + source.GetScript() + "].instructions[" + source.GetCommand() + "]"}, nil
+		}
+	}
+	return nil, errorAt(e.GetPosition(), "evidence %s is the Run's record of %s/%s, and the Case carries no such instruction", e.GetId(),
+		source.GetScript(), source.GetCommand())
+}
+
+// kept checks that the Case keeps the fields a kind of evidence declares, each at its path in the
+// Program's declaration and retained by the Contract's rule for the kind, and no other. A redacted
+// field has no part of a Case.
+func (a *accounting) kept(e *modelirspb.Evidence, d *testpilotspb.EvidenceDeclaration) ([]string, error) {
+	part := "program.evidence[" + d.GetEvidenceId() + "]"
+	var rule *testpilotspb.CorrelatedProjectionRule
+	for _, r := range a.c.GetContract().GetCorrelated().GetProjectionRules() {
+		if r.GetKind() == d.GetEvidenceId() {
+			rule = r
+		}
+	}
+	for i, f := range e.GetFields() {
+		at := f.GetPosition()
+		if at.GetFile() == "" {
+			at = e.GetPosition()
+		}
+		if f.GetRedacted() {
+			return nil, errorAt(at, "field %s of evidence %s of realization %s is carried without its value, which is in no part of the Case", f.GetId(),
+				e.GetId(), a.l.a.r.GetName())
+		}
+		name := a.named(f.GetId())
+		if i >= len(d.GetFields()) || i >= len(rule.GetFields()) || d.GetFields()[i].GetFieldId() != name || d.GetFields()[i].GetPath() != f.GetPath() ||
+			rule.GetFields()[i].GetFieldId() != name || rule.GetFields()[i].GetDisposition() != testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN {
+			return nil, errorAt(at, "evidence %s keeps field %s at %s, and the Case's %s does not", e.GetId(), f.GetId(), f.GetPath(), part)
+		}
+	}
+	if kept := max(len(d.GetFields()), len(rule.GetFields())); kept > len(e.GetFields()) {
+		return nil, errorAt(e.GetPosition(), "evidence %s keeps %d fields, and the Case's %s keeps %d", e.GetId(), len(e.GetFields()), part, kept)
+	}
+	return nil, nil
+}
+
+// confirmed checks that the Case's rule for a kind that names the steps it confirms confirms as many:
+// the kind is carried for all of them or for none.
+func (a *accounting) confirmed(e *modelirspb.Evidence, d *testpilotspb.EvidenceDeclaration) ([]string, error) {
+	for _, rule := range a.c.GetContract().GetCorrelated().GetProjectionRules() {
+		if rule.GetKind() != d.GetEvidenceId() {
+			continue
+		}
+		// A rule confirms the steps its kind names and the steps between them that record nothing.
+		named := 0
+		for _, output := range rule.GetOutputs() {
+			if slices.ContainsFunc(e.GetConfirms(), func(taking *modelirspb.Taking) bool {
+				return a.l.adapter.classKey(taking.GetStep()) == output.GetAction().GetValue()
+			}) {
+				named++
+			}
+		}
+		if named != len(e.GetConfirms()) {
+			return nil, errorAt(e.GetPosition(), "evidence %s confirms %d steps, and the Case's rule for it confirms %d", e.GetId(), len(e.GetConfirms()), named)
+		}
+		return nil, nil
+	}
+	return nil, errorAt(e.GetPosition(), "evidence %s confirms %d steps, and the Case has no rule for it", e.GetId(), len(e.GetConfirms()))
+}
+
+// closing is the instruction whose read closes an exhaustive kind of evidence the Case carries: the
+// command the realization names, which every Case carries.
+func (a *accounting) closing(e *modelirspb.Evidence, _ *testpilotspb.EvidenceDeclaration) ([]string, error) {
+	for _, s := range a.l.a.r.GetScripts() {
+		for _, c := range commandsOf(s) {
+			if !slices.Contains(c.GetCloses(), e.GetId()) {
+				continue
+			}
+			for _, entrypoint := range a.c.GetProgram().GetEntrypoints() {
+				if entrypoint.GetEntrypointId() == s.GetId() && slices.ContainsFunc(entrypoint.GetInstructions(), func(n *testpilotspb.InstructionNode) bool {
+					return n.GetInstructionId() == c.GetId()
+				}) {
+					return []string{"program.entrypoints[" + s.GetId() + "].instructions[" + c.GetId() + "]"}, nil
+				}
+			}
+			return nil, errorAt(e.GetPosition(), "evidence %s is exhaustive, and the Case carries no %s/%s to close it", e.GetId(), s.GetId(), c.GetId())
+		}
+	}
+	return nil, errorAt(e.GetPosition(), "evidence %s is exhaustive, and no command of realization %s closes it", e.GetId(), a.l.a.r.GetName())
+}
+
 // evidence records each kind of evidence under the Case-local name the Case declares it by, with the
-// source the Contract counts it in, or as off the path where no step of the path records it.
+// source the Contract counts it in, the instruction whose record it is where it is the Run's own, and,
+// for an exhaustive kind, the instruction that closes it; or as off the path where the Case does not
+// carry it: no step of the path is confirmed by it, and it is not exhaustive.
 func (a *accounting) evidence() error {
 	sources := a.c.GetContract().GetCorrelated().GetSources()
 	for _, e := range a.l.a.r.GetEvidence() {
 		name := a.named(e.GetId())
-		if !slices.ContainsFunc(a.c.GetProgram().GetEvidence(), func(x *testpilotspb.EvidenceDeclaration) bool { return x.GetEvidenceId() == name }) {
+		at := slices.IndexFunc(a.c.GetProgram().GetEvidence(), func(x *testpilotspb.EvidenceDeclaration) bool { return x.GetEvidenceId() == name })
+		if at < 0 {
 			a.entries = append(a.entries, Entry{Kind: "evidence", ID: e.GetId(), Position: locate(e.GetPosition()), Disposition: OffPath})
 			continue
 		}
+		declaration := a.c.GetProgram().GetEvidence()[at]
 		if !slices.Contains(sources, a.named(e.GetSource())) {
 			return a.differs("evidence", e.GetId(), a.named(e.GetSource()), strings.Join(sources, ","), "contract.correlated.sources")
 		}
-		a.own("evidence", e.GetId(), e.GetPosition(), "program.evidence["+name+"]", "contract.correlated.sources")
+		parts := []string{"program.evidence[" + name + "]", "contract.correlated.sources"}
+		message := e.ProtoReflect()
+		fields := message.Descriptor().Fields()
+		for i := range fields.Len() {
+			f := fields.Get(i)
+			account, known := evidenceFields[f.Name()]
+			if !known {
+				return errorAt(e.GetPosition(), "a kind of evidence's %s has no place in the inventory of a Case", f.Name())
+			}
+			if account == nil || !message.Has(f) {
+				continue
+			}
+			carried, err := account(a, e, declaration)
+			if err != nil {
+				return err
+			}
+			parts = append(parts, carried...)
+		}
+		a.own("evidence", e.GetId(), e.GetPosition(), parts...)
 	}
 	return nil
 }
@@ -641,6 +1234,15 @@ func (a *accounting) script(s *modelirspb.Script) error {
 	}
 	if err := a.carried("scripts", s.GetId(), s.GetPosition(), "program.entrypoints["+s.GetId()+"]", entrypoint != nil); err != nil {
 		return err
+	}
+	// A delivery the script starts with is performed by the script's activation, which the entrypoint is.
+	for _, class := range s.GetActivity().GetStarts() {
+		key := a.l.adapter.classKey(class)
+		entry := Entry{Kind: "activation", ID: fmt.Sprintf("%s [%s]", s.GetId(), key), Position: locate(s.GetPosition()), Disposition: OffPath}
+		if slices.Contains(a.l.keys, key) {
+			entry.Disposition, entry.As = InCase, []string{"program.entrypoints[" + s.GetId() + "]"}
+		}
+		a.entries = append(a.entries, entry)
 	}
 	carries := func(id string) bool {
 		return slices.ContainsFunc(entrypoint.GetInstructions(), func(n *testpilotspb.InstructionNode) bool { return n.GetInstructionId() == id })

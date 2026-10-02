@@ -192,6 +192,13 @@ func (i *sdkWorkerInterceptor) activateActivity(ctx context.Context, input deliv
 		case <-ctx.Done():
 			return nil, activationError(ctx.Err())
 		case <-answer.done:
+			// The canceled answer is told to Temporal only for a delivery the server asked to
+			// cancel, so this delivery learns of the request for itself before it is answered.
+			if answer.canceled {
+				if err := i.host.awaitCancellationRequest(ctx); err != nil {
+					return nil, activationError(err)
+				}
+			}
 			return answer.result, answer.err
 		}
 	}
@@ -211,6 +218,9 @@ func (i *sdkWorkerInterceptor) activateActivity(ctx context.Context, input deliv
 	var declared *declaredFailure
 	switch {
 	case answer.err == nil:
+	case errors.Is(answer.err, errDeclaredCancellation):
+		answer.result, answer.err, answer.canceled = nil, temporal.NewCanceledError(), true
+		outcome.ActivityAttempt.Response = testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED
 	case errors.As(answer.err, &declared):
 		answer.result, answer.err = nil, declared.failure
 		outcome.ActivityAttempt.Response = testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_RETRYABLE
@@ -326,6 +336,8 @@ type activityAnswer struct {
 	done   chan struct{}
 	result interface{}
 	err    error
+	// canceled says the answer is the cancellation the attempt's instruction declares.
+	canceled bool
 }
 
 type routedNexus struct {

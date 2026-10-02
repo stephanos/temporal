@@ -508,8 +508,8 @@ synchronous and asynchronous completion.
 
 | Fact or observation | Kind | Source today | Testpilot today | Task |
 | --- | --- | --- | --- | --- |
-| Handler reply and asynchronous completion | public | Handler reply; completion through a handle slot | `NexusHandlerReply`, `NexusOperationCompletion` (`../../scala/temporal/nexuscaller/Realization.scala:173-205`) | 9 (existing) |
-| Caller knowledge: NexusOperationCompleted, Failed or Canceled | public | Caller history (`Realization.scala:59-78`) | `GetWorkflowExecutionHistory` evidence | existing |
+| Handler reply and asynchronous completion | public | Handler reply; completion through a handle slot | `NexusHandlerReply`, `NexusOperationCompletion` (`../../scala/temporal/nexuscaller/Realization.scala:307-327`) | 9 (existing) |
+| Caller knowledge: NexusOperationCompleted, Failed or Canceled | public | Caller history (`Realization.scala:68-132`) | `GetWorkflowExecutionHistory` evidence | existing |
 | Caller close | public | The workflow finishes | `Finish` instruction | existing |
 | Reset | public | ResetWorkflowExecution | Admissible through `InvokeRPC`; no Case uses it | 6 |
 | Successor knowledge | public | The successor run's history | History evidence; needs run correlation (E8) | 6, 7 |

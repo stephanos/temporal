@@ -105,6 +105,9 @@ type regime struct {
 	ended bool
 	// event is the Run Event the reading was made at, for an error to name.
 	event int64
+	// closed is the facts, by the name evidence records them under, whose exhaustive source is closed:
+	// a step that records one has it observed.
+	closed map[string]bool
 }
 
 // explore keeps every execution of the machine from its start that explains the observations in an
@@ -170,7 +173,7 @@ func (p *plan) expand(o *ordered, at *candidate, how regime, spent *int, seen ma
 			reached = append(reached, next)
 			return nil
 		}
-		if err := p.explaining(o, at.explained, s.facts, 0, charge, take); err != nil {
+		if err := p.explaining(o, at.explained, s.facts, 0, how.closed, charge, take); err != nil {
 			return nil, err
 		}
 	}
@@ -179,15 +182,18 @@ func (p *plan) expand(o *ordered, at *candidate, how regime, spent *int, seen ma
 
 // explaining visits the sets of unexplained observations a step's facts can be explained by: for each
 // fact, no observation, which is the fact going unobserved, or one of that fact's name that is of the
-// same attempt and delivery as the ones already in the set. The empty set is the step taken
-// unobserved, which every step may be: no kind of evidence is declared to report every occurrence of
-// its fact.
-func (p *plan) explaining(o *ordered, explained uint64, facts []string, set uint64, charge func() error, visit func(uint64) error) error {
+// same attempt and delivery as the ones already in the set. A fact goes unobserved unless its source
+// is closed: an exhaustive source whose closing read is done reports every occurrence, so a step that
+// records such a fact is taken only with an observation of it. The empty set is the step taken
+// unobserved, which a step that records no such fact may always be.
+func (p *plan) explaining(o *ordered, explained uint64, facts []string, set uint64, closed map[string]bool, charge func() error, visit func(uint64) error) error {
 	if len(facts) == 0 {
 		return visit(set)
 	}
-	if err := p.explaining(o, explained, facts[1:], set, charge, visit); err != nil {
-		return err
+	if !closed[facts[0]] {
+		if err := p.explaining(o, explained, facts[1:], set, closed, charge, visit); err != nil {
+			return err
+		}
 	}
 	for j, e := range o.evidence {
 		if e.kind.records != facts[0] || (explained|set)>>j&1 == 1 || !o.together(set, e) {
@@ -196,7 +202,7 @@ func (p *plan) explaining(o *ordered, explained uint64, facts []string, set uint
 		if err := charge(); err != nil {
 			return err
 		}
-		if err := p.explaining(o, explained, facts[1:], set|1<<j, charge, visit); err != nil {
+		if err := p.explaining(o, explained, facts[1:], set|1<<j, closed, charge, visit); err != nil {
 			return err
 		}
 	}

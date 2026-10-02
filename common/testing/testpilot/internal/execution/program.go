@@ -151,8 +151,8 @@ type node struct {
 	assignments   []assignment
 	responseReads []responseRead
 	input         *ir.Expression
-	// until and pollIntervalMilliseconds bound a ReadEvidence poll: the poll ends when an element
-	// of the declared path satisfies until, which is also the guard of the lift it feeds.
+	// until and pollIntervalMilliseconds bound a ReadEvidence poll: the poll ends when a value of
+	// the declared path satisfies until, which is also the guard of the lift it feeds.
 	until                    *ir.Expression
 	pollIntervalMilliseconds int64
 }
@@ -180,8 +180,9 @@ type evidenceRule struct {
 	guard        *ir.Expression
 	scope        []evidenceBinding
 	source, kind string
-	operation    *ir.Path
-	fields       []evidenceBinding
+	// operation reads the operation key out of the projected value; nil, the key is the Run's ID.
+	operation *ir.Path
+	fields    []evidenceBinding
 }
 
 // evidenceLift is the bound form of one declared CorrelatedEvidenceProjection target.
@@ -202,16 +203,48 @@ type evidenceDeclaration struct {
 	scope     []evidenceBinding
 	operation *ir.Path
 	fields    []evidenceBinding
-	// guard selects the recorded value: the presence of the declared history arm, or true for a
-	// Run Event payload, whose kind already selects it.
+	// guard selects the recorded value: the presence of the declared history arm, or for a Run
+	// Event payload the declared guard, true when the declaration writes none and the kind alone
+	// selects it.
 	guard *ir.Expression
 	// attributesField names the history arm; runEventKind and payloadArm the Run Event kind and
-	// the arm it carries; method and readPath the RPC and the repeated field a read polls.
+	// the arm it carries, guardSource the guard as the Case wrote it and instruction the one
+	// instruction whose events it reads, nil for every instruction's; method and readPath the
+	// RPC and the repeated field a read polls, or the one message when single is set.
 	attributesField string
 	runEventKind    testpilotspb.RunEventKind
 	payloadArm      protoreflect.Name
+	guardSource     *testpilotspb.Expression
+	instruction     *testpilotspb.InstructionReference
 	method          protoreflect.MethodDescriptor
 	readPath        *ir.Path
+	single          bool
+}
+
+// keyPath is the operation key path as the Case wrote it, empty for evidence keyed by the Run.
+func (d *evidenceDeclaration) keyPath() string {
+	if d.operation == nil {
+		return ""
+	}
+	return d.operation.Text()
+}
+
+// sameRecord reports whether two declarations read the same recorded data, so that within one
+// source and under one key nothing tells their evidence apart: one history arm, one Run Event
+// kind at one instruction under one guard, or any two reads, which no guard of their own
+// distinguishes. Data of two sorts is never told apart.
+func (d *evidenceDeclaration) sameRecord(other *evidenceDeclaration) bool {
+	if d.kind != other.kind {
+		return true
+	}
+	switch d.kind {
+	case HistoryEventSource:
+		return d.attributesField == other.attributesField
+	case RunEventSource:
+		return d.runEventKind == other.runEventKind && proto.Equal(d.instruction, other.instruction) && proto.Equal(d.guardSource, other.guardSource)
+	default:
+		return true
+	}
 }
 
 // lift is the declaration as the one-rule lift a Run Event or a read feeds.

@@ -18,6 +18,8 @@ type plan struct {
 	realization string
 	limits      Limits
 	reader      *reader
+	// closing is the instructions whose reads close the exhaustive kinds the Case carries.
+	closing map[coordinate]bool
 
 	states []string
 	ends   []bool
@@ -112,6 +114,12 @@ func compile(m *modelirspb.Model, key goir.ClaimKey, source *testpilotspb.Case, 
 	p := &plan{machine: bound.Table.Machine, realization: realization.GetId(), limits: limits, states: bound.Table.States}
 	if p.reader, err = newReader(realization, source); err != nil {
 		return nil, err
+	}
+	p.closing = map[coordinate]bool{}
+	for _, k := range p.reader.kinds {
+		if k.closing != nil {
+			p.closing[*k.closing] = true
+		}
 	}
 	all, err := p.index(bound, at)
 	if err != nil {

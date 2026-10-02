@@ -139,16 +139,20 @@ type projectedRow struct {
 	result step
 }
 
-// projection is `Case.Projection.check` over the declaration the evidence rules make.
-func (p *production) projection(rules []resolvedRule) projectionPlan {
+// projection is `Case.Projection.check` over the declaration the evidence rules make. A kind carried
+// off the path is a rule that confirms nothing.
+func (p *production) projection(rules []resolvedRule, offPath []*EvidenceSource) projectionPlan {
+	sorted := slices.Clone(rules)
+	for _, s := range offPath {
+		sorted = append(sorted, resolvedRule{Rule: EvidenceRule{Source: s}})
+	}
 	var sources []string
-	for _, r := range rules {
+	for _, r := range sorted {
 		if !slices.Contains(sources, r.Rule.Source.SourceID) {
 			sources = append(sources, r.Rule.Source.SourceID)
 		}
 	}
 	slices.Sort(sources)
-	sorted := slices.Clone(rules)
 	slices.SortStableFunc(sorted, func(a, b resolvedRule) int {
 		return strings.Compare(a.Rule.Source.KindID, b.Rule.Source.KindID)
 	})
@@ -157,7 +161,9 @@ func (p *production) projection(rules []resolvedRule) projectionPlan {
 		transitions: p.projectedRows(sorted)}
 }
 
-// projectionCanonical is the array the projection's fingerprint hashes.
+// projectionCanonical is the array the projection's fingerprint hashes. Each rule is its kind, the
+// fields the kind retains, each with its path, its type and the identity it names, and what its
+// evidence means: the steps it confirms, or nothing.
 func (p *production) projectionCanonical(sorted []resolvedRule, sources []string) string {
 	var ruleJSON []string
 	for _, r := range sorted {
@@ -166,7 +172,16 @@ func (p *production) projectionCanonical(sorted []resolvedRule, sources []string
 			confirmed = append(confirmed, "["+quote(s.Action.Value)+","+quote(s.State.Value)+","+quote(s.Outcome.Value)+
 				","+jsonArray(atomValues(s.Facts))+"]")
 		}
-		ruleJSON = append(ruleJSON, "["+quote(r.Rule.Source.KindID)+",[],"+`["confirmed",null,`+jsonArray(confirmed)+"]]")
+		var fields []string
+		for _, f := range r.Rule.Source.Fields {
+			// The type is spelled by its name in the protocol, which no rendering of the Go value changes.
+			fields = append(fields, jsonArray([]string{quote(f.ID), quote(f.Path), quote(testpilotspb.ScalarKind_name[int32(f.Type)]), quote("retain"), quote(f.Role)}))
+		}
+		meaning := `["confirmed",null,` + jsonArray(confirmed) + "]"
+		if len(r.Steps) == 0 {
+			meaning = `["irrelevant"]`
+		}
+		ruleJSON = append(ruleJSON, "["+quote(r.Rule.Source.KindID)+","+jsonArray(fields)+","+meaning+"]")
 	}
 	l := p.r.ProjectionLimits
 	// The limits are numbers written into the array as they are, not strings.
@@ -242,8 +257,15 @@ func (p *production) correlatedContract(plan projectionPlan, clauses []clause) *
 	}
 	for _, r := range plan.rules {
 		rule := &testpilotspb.CorrelatedProjectionRule{Kind: r.Rule.Source.KindID, Meaning: testpilotspb.CORRELATED_EVIDENCE_MEANING_CONFIRMED}
+		if len(r.Steps) == 0 {
+			rule.Meaning = testpilotspb.CORRELATED_EVIDENCE_MEANING_IRRELEVANT
+		}
 		for _, s := range r.Steps {
 			rule.Outputs = append(rule.Outputs, p.output(s))
+		}
+		for _, f := range r.Rule.Source.Fields {
+			rule.Fields = append(rule.Fields, &testpilotspb.CorrelatedFieldPolicy{FieldId: f.ID, Type: &testpilotspb.ScalarType{Kind: f.Type},
+				Disposition: testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN})
 		}
 		c.ProjectionRules = append(c.ProjectionRules, rule)
 	}

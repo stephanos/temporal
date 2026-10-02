@@ -3,6 +3,7 @@ package conformance
 import (
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 
 	modelirspb "go.temporal.io/server/api/modelir/v1"
@@ -15,22 +16,32 @@ import (
 // delivery the fact belongs to, and what it is ordered after.
 //
 // The instance is the operation key under the Run's one scope, and the order is the evidence's
-// parents and source ordinals; both are text of the correlated evidence today. The attempt and the
-// delivery are typed roles of an observation that nothing can fill yet: a realization declares the
-// field that scopes a Run and the field that names an operation, and no field for an attempt or a
-// delivery, so a Case whose evidence retains any other field is refused when the factory is prepared
-// rather than read with that field ignored. When the Run protocol's typed attempt identity is in
-// reach, `observed` is where it is read into `attempt` and `delivery`, and that refusal is where a
-// declared role lifts it. Nothing else of the package changes.
+// parents and source ordinals; both are text of the correlated evidence. Evidence of a kind that is
+// the Run's own record is read only from a Run Event the kind's source takes (Admits). The attempt and the delivery
+// are typed roles of an observation, filled from two places: a field the Case retains and the
+// realization gives that role, and the activity attempt a Run Event records beside the evidence it
+// carries, which is typed data of the Run protocol. Where both name an identity they must name the
+// same one. A field the Case retains and the realization does not declare is refused when the factory
+// is prepared: nothing says what it names, so it could be neither matched nor safely ignored.
 
 // kind is one kind of evidence the Case carries, as the realization declares it.
 type kind struct {
 	// local is the name the Case spells the kind and its source by.
 	local, source string
 	records       string
-	// fields is the fields the Case declares for the kind. None of them is retained.
+	// fields is the fields the Case declares for the kind, and roles the identity each retained one
+	// names, by the Case's name for the field.
 	fields []*testpilotspb.CorrelatedFieldPolicy
+	roles  map[string]modelirspb.EvidenceField_Role
+	// closing is the instruction whose read closes the kind's source, for a kind declared exhaustive.
+	closing *coordinate
+	// record is the Run Event source of a kind that is the Run's own record: the events its evidence
+	// is read from, and from no other.
+	record *modelirspb.RunEventSource
 }
+
+// coordinate names one instruction of a Case's Program.
+type coordinate struct{ entrypoint, instruction string }
 
 // role is one typed correlation role of an observation: known when the evidence names it.
 type role struct {
@@ -54,8 +65,8 @@ type observation struct {
 	source          string
 	ordinal         int64
 	// attempt and delivery name the execution attempt and the delivery the fact belongs to, where the
-	// evidence says.
-	attempt, delivery role
+	// evidence says, and run the activity run the Run Event that carried it records.
+	attempt, delivery, run role
 	// after is the identities the evidence names as its causal parents.
 	after []string
 	// recorded is the evidence as the Run carries it, which a republished identity must equal.
@@ -124,24 +135,85 @@ func newReader(r *modelirspb.Realization, source *testpilotspb.Case) (*reader, e
 		if !ok {
 			return nil, located(at, "case %s carries evidence of kind %s, which realization %s does not declare", source.GetCaseId(), rule.GetKind(), r.GetName())
 		}
-		k := &kind{local: rule.GetKind(), source: spelled(e.GetSource()), records: e.GetRecords(), fields: rule.GetFields()}
+		k := &kind{local: rule.GetKind(), source: spelled(e.GetSource()), records: e.GetRecords(), fields: rule.GetFields(), record: e.GetRunEvent()}
 		if !slices.Contains(out.sources, k.source) {
 			return nil, located(e.GetPosition(), "evidence %s is recorded from %s, which is not a source of the Case %s", e.GetId(), k.source, source.GetCaseId())
 		}
-		for _, field := range k.fields {
-			switch field.GetDisposition() {
-			case testpilotspb.CORRELATED_FIELD_DISPOSITION_REDACT, testpilotspb.CORRELATED_FIELD_DISPOSITION_REJECT:
-			case testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN:
-				// A retained field may be what tells two attempts or two deliveries of one operation apart.
-				return nil, located(e.GetPosition(), "case %s is not supported: evidence of kind %s retains field %s, and neither the realization nor the Case "+
-					"declares the correlation role it plays, so it could be neither matched nor safely ignored", source.GetCaseId(), rule.GetKind(), field.GetFieldId())
-			default:
-				return nil, located(e.GetPosition(), "case %s: evidence of kind %s: field %s has no disposition", source.GetCaseId(), rule.GetKind(), field.GetFieldId())
+		var err error
+		if k.roles, err = rolesOf(r, source, e, rule, spelled); err != nil {
+			return nil, err
+		}
+		if e.GetExhaustive() {
+			if k.closing = closingOf(r, source, e.GetId()); k.closing == nil {
+				at := closingRead(r, e.GetId())
+				return nil, located(e.GetPosition(), "case %s carries the exhaustive evidence %s and no instruction %s/%s, the read realization %s closes it by",
+					source.GetCaseId(), e.GetId(), at.entrypoint, at.instruction, r.GetName())
 			}
 		}
 		out.kinds[rule.GetKind()] = k
 	}
 	return out, nil
+}
+
+// rolesOf is the identity each field a Case retains of one kind names, by the Case's name for the
+// field. A retained field may be what tells two attempts or two deliveries of one operation apart, so
+// it is read only as what the realization says it is: one the realization does not declare for the
+// kind, or redacts, is refused.
+func rolesOf(r *modelirspb.Realization, source *testpilotspb.Case, e *modelirspb.Evidence, rule *testpilotspb.CorrelatedProjectionRule,
+	spelled func(string) string) (map[string]modelirspb.EvidenceField_Role, error) {
+	fields := map[string]*modelirspb.EvidenceField{}
+	for _, f := range e.GetFields() {
+		fields[spelled(f.GetId())] = f
+	}
+	roles := map[string]modelirspb.EvidenceField_Role{}
+	for _, field := range rule.GetFields() {
+		f, declared := fields[field.GetFieldId()]
+		switch disposition := field.GetDisposition(); {
+		case disposition == testpilotspb.CORRELATED_FIELD_DISPOSITION_REDACT || disposition == testpilotspb.CORRELATED_FIELD_DISPOSITION_REJECT:
+		case disposition != testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN:
+			return nil, located(e.GetPosition(), "case %s: evidence of kind %s: field %s has no disposition", source.GetCaseId(), rule.GetKind(), field.GetFieldId())
+		case !declared:
+			return nil, located(e.GetPosition(), "case %s: evidence of kind %s retains field %s, which realization %s does not declare for it",
+				source.GetCaseId(), rule.GetKind(), field.GetFieldId(), r.GetName())
+		case f.GetRedacted():
+			return nil, located(e.GetPosition(), "case %s: evidence of kind %s retains field %s, which realization %s redacts",
+				source.GetCaseId(), rule.GetKind(), field.GetFieldId(), r.GetName())
+		default:
+			roles[field.GetFieldId()] = f.GetRole()
+		}
+	}
+	return roles, nil
+}
+
+// closingRead is the command a realization closes an exhaustive kind of evidence by: its script and
+// its id, which are the entrypoint and the instruction of every Case that carries it. Admission lets
+// through no exhaustive kind without one.
+func closingRead(r *modelirspb.Realization, evidence string) coordinate {
+	for _, s := range r.GetScripts() {
+		for _, item := range s.GetItems() {
+			if slices.Contains(item.GetCommand().GetCloses(), evidence) {
+				return coordinate{entrypoint: s.GetId(), instruction: item.GetCommand().GetId()}
+			}
+		}
+	}
+	return coordinate{}
+}
+
+// closingOf is the instruction of the Case that is the closing read of an exhaustive kind, or nil
+// where the Case has none.
+func closingOf(r *modelirspb.Realization, source *testpilotspb.Case, evidence string) *coordinate {
+	at := closingRead(r, evidence)
+	for _, entrypoint := range source.GetProgram().GetEntrypoints() {
+		if entrypoint.GetEntrypointId() != at.entrypoint {
+			continue
+		}
+		for _, node := range entrypoint.GetInstructions() {
+			if node.GetInstructionId() == at.instruction && at.instruction != "" {
+				return &at
+			}
+		}
+	}
+	return nil
 }
 
 // identityOf spells an evidence identity, and scopeOf the scope it is recorded under.
@@ -179,11 +251,32 @@ func (r *reader) read(event *testpilotspb.RunEvent) (*observation, error) {
 			return nil, &EvidenceError{Event: sequence, Message: "the evidence observation is no correlated evidence: " + err.Error()}
 		}
 		var err error
-		if found, err = r.observed(sequence, evidence); err != nil {
+		if found, err = r.observed(sequence, evidence, event.GetOutcome().GetActivityAttempt()); err != nil {
+			return nil, err
+		}
+		if err := occurrence(found.kind, event); err != nil {
 			return nil, err
 		}
 	}
 	return found, nil
+}
+
+// occurrence checks that evidence of a kind that is the Run's own record is carried by a Run Event the
+// kind's source takes: the declaration says which events are occurrences of the evidence, and evidence
+// on any other event is none of them. A guard that cannot be evaluated on the event is its error.
+func occurrence(declared *kind, event *testpilotspb.RunEvent) error {
+	if declared.record == nil {
+		return nil
+	}
+	admitted, err := Admits(declared.record, event)
+	if err != nil {
+		return err
+	}
+	if !admitted {
+		return &EvidenceError{Event: event.GetSequence(), Message: fmt.Sprintf("evidence of kind %q on a Run Event its source does not take: the Run's record of %s/%s under its guard",
+			declared.local, declared.record.GetScript(), declared.record.GetCommand())}
+	}
+	return nil
 }
 
 // scoped checks that an identity is recorded under the Case's scope fields, in their order, each with
@@ -204,37 +297,76 @@ func (r *reader) scoped(id *testpilotspb.CorrelatedIdentity) string {
 }
 
 // carried checks that evidence carries its kind's fields as the Case declares them: each declared
-// field once, a redacted one without a value and a rejected one not at all, and no other.
+// field once, a retained one with a value, a redacted one without and a rejected one not at all, and
+// no other.
 func carried(declared *kind, evidence *testpilotspb.CorrelatedEvidence) string {
 	seen := map[string]bool{}
 	for _, field := range evidence.GetFields() {
 		at := slices.IndexFunc(declared.fields, func(policy *testpilotspb.CorrelatedFieldPolicy) bool {
 			return policy.GetFieldId() == field.GetFieldId()
 		})
-		switch {
-		case at < 0:
+		if at < 0 {
 			return fmt.Sprintf("carries field %s, which its kind does not declare", field.GetFieldId())
-		case seen[field.GetFieldId()]:
+		}
+		if seen[field.GetFieldId()] {
 			return fmt.Sprintf("carries field %s twice", field.GetFieldId())
-		case declared.fields[at].GetDisposition() == testpilotspb.CORRELATED_FIELD_DISPOSITION_REJECT:
+		}
+		_, valued := scalar(field.GetValue())
+		switch disposition := declared.fields[at].GetDisposition(); {
+		case disposition == testpilotspb.CORRELATED_FIELD_DISPOSITION_REJECT:
 			return fmt.Sprintf("carries field %s, which the Case rejects", field.GetFieldId())
-		case field.GetValue() != nil:
+		case disposition == testpilotspb.CORRELATED_FIELD_DISPOSITION_REDACT && field.GetValue() != nil:
 			return fmt.Sprintf("carries a value for field %s, which the Case redacts", field.GetFieldId())
+		case disposition == testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN && field.GetValue() == nil:
+			return fmt.Sprintf("carries no value for field %s, which the Case retains", field.GetFieldId())
+		case disposition == testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN && !valued:
+			return fmt.Sprintf("carries a value for field %s that is no text, number or flag", field.GetFieldId())
 		default:
 			seen[field.GetFieldId()] = true
 		}
 	}
 	for _, policy := range declared.fields {
-		if policy.GetDisposition() == testpilotspb.CORRELATED_FIELD_DISPOSITION_REDACT && !seen[policy.GetFieldId()] {
+		if policy.GetDisposition() != testpilotspb.CORRELATED_FIELD_DISPOSITION_REJECT && !seen[policy.GetFieldId()] {
 			return "carries no field " + policy.GetFieldId()
 		}
 	}
 	return ""
 }
 
+// scalar spells a value of the portable evidence domain, a text, an unsigned integer or a flag, and
+// is whether the value is one.
+func scalar(v *testpilotspb.Value) (string, bool) {
+	switch value := v.GetValue().(type) {
+	case *testpilotspb.Value_TextValue:
+		return value.TextValue, true
+	case *testpilotspb.Value_UnsignedIntegerValue:
+		return value.UnsignedIntegerValue, true
+	case *testpilotspb.Value_BoolValue:
+		return strconv.FormatBool(value.BoolValue), true
+	default:
+		return "", false
+	}
+}
+
+// named is the one identity two sources give a role: the field the evidence retains, and the typed
+// record of the Run Event. Either may be silent; where both speak they agree, or the evidence is
+// crossed.
+func named(what, field, fromField, fromEvent string) (role, string) {
+	switch {
+	case fromField != "" && fromEvent != "" && fromField != fromEvent:
+		return role{}, fmt.Sprintf("evidence whose field %s names %s %q on a Run Event of %s %q", field, what, fromField, what, fromEvent)
+	case fromField != "":
+		return role{known: true, id: fromField}, ""
+	case fromEvent != "":
+		return role{known: true, id: fromEvent}, ""
+	default:
+		return role{}, ""
+	}
+}
+
 // observed is one piece of evidence as an observation, checked against what the Case declares for its
-// kind.
-func (r *reader) observed(sequence int64, evidence *testpilotspb.CorrelatedEvidence) (*observation, error) {
+// kind. attempt is the activity attempt the Run Event that carried the evidence records, or nil.
+func (r *reader) observed(sequence int64, evidence *testpilotspb.CorrelatedEvidence, attempt *testpilotspb.ActivityAttempt) (*observation, error) {
 	refused := func(format string, args ...any) (*observation, error) {
 		return nil, &EvidenceError{Event: sequence, Message: fmt.Sprintf(format, args...)}
 	}
@@ -258,6 +390,31 @@ func (r *reader) observed(sequence int64, evidence *testpilotspb.CorrelatedEvide
 	scope := scopeOf(id)
 	found := &observation{identity: identityOf(id), scope: scope, instance: scope + evidence.GetOperation(), sequence: sequence, kind: declared,
 		source: id.GetEvidenceSource(), ordinal: id.GetOrdinal(), recorded: proto.CloneOf(evidence)}
+	// The identities the evidence's own fields name, and the ones the Run Event records as typed data.
+	fields, names := map[modelirspb.EvidenceField_Role]string{}, map[modelirspb.EvidenceField_Role]string{}
+	for _, field := range evidence.GetFields() {
+		if role := declared.roles[field.GetFieldId()]; role != modelirspb.EvidenceField_ROLE_UNSPECIFIED {
+			fields[role], _ = scalar(field.GetValue())
+			names[role] = field.GetFieldId()
+		}
+	}
+	if name, keyed := names[modelirspb.EvidenceField_ROLE_OPERATION]; keyed && fields[modelirspb.EvidenceField_ROLE_OPERATION] != evidence.GetOperation() {
+		return refused("evidence of kind %q for operation %q, whose field %s names operation %q", declared.local, evidence.GetOperation(), name,
+			fields[modelirspb.EvidenceField_ROLE_OPERATION])
+	}
+	delivered := ""
+	if attempt.GetSdkAttempt() > 0 {
+		delivered = strconv.FormatInt(int64(attempt.GetSdkAttempt()), 10)
+	}
+	var crossed string
+	if found.attempt, crossed = named("attempt", names[modelirspb.EvidenceField_ROLE_ATTEMPT], fields[modelirspb.EvidenceField_ROLE_ATTEMPT], delivered); crossed != "" {
+		return refused("%s", crossed)
+	}
+	if found.delivery, crossed = named("delivery", names[modelirspb.EvidenceField_ROLE_DELIVERY], fields[modelirspb.EvidenceField_ROLE_DELIVERY],
+		attempt.GetDeliveryId()); crossed != "" {
+		return refused("%s", crossed)
+	}
+	found.run, _ = named("activity run", "", "", attempt.GetActivityRunId())
 	for _, parent := range evidence.GetParents() {
 		if parent.GetEvidenceSource() == "" {
 			return refused("evidence with an empty causal parent")
@@ -272,3 +429,36 @@ func (r *reader) observed(sequence int64, evidence *testpilotspb.CorrelatedEvide
 	}
 	return found, nil
 }
+
+// closingOutcome is what became of the read that closes an exhaustive source, as the Run records it.
+type closingOutcome uint8
+
+const (
+	// notRun is a read the Run records no completion of.
+	notRun closingOutcome = iota
+	readFailed
+	readSucceeded
+)
+
+// sourceClosed is the one rule by which an exhaustive source says what did not happen: the Run closed
+// complete, the last completion of its closing read is a success, and its ordinals are unbroken, so no
+// evidence of it is missing from the record. Short of that it proves what it reports and no more.
+func sourceClosed(positive bool, read closingOutcome, unbroken bool) bool {
+	return positive && read == readSucceeded && unbroken
+}
+
+// ordinals is the ordinals a Run recorded for one source.
+type ordinals struct {
+	count int
+	// highest is the greatest ordinal recorded.
+	highest int64
+}
+
+func (o *ordinals) record(ordinal int64) {
+	o.count++
+	o.highest = max(o.highest, ordinal)
+}
+
+// unbroken is whether the ordinals are zero up to their count. Each is recorded once, since an
+// identity recorded again is not counted again, so they are when the greatest is the count less one.
+func (o *ordinals) unbroken() bool { return o == nil || o.count == 0 || o.highest == int64(o.count)-1 }

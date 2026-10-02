@@ -114,6 +114,9 @@ enum ActivityAttemptResponse {
   // No attempt was delivered for this declared position, and the server reported the activity closed
   // after an earlier attempt, so none will be.
   ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED = 5;
+  // The worker offered the canceled answer the attempt's instruction declared, once the server had
+  // reported the activity's cancellation requested.
+  ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED = 6;
 }
 
 // FaultInjected is the recorded fact that a Driver realized one requested outage.

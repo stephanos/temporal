@@ -67,10 +67,37 @@ read is a repeated field in the response of a unary RPC, polled from a controlle
 `ReadEvidence` instruction until an element satisfies its `until` or the instruction times out, and
 every element the condition selects is lifted; `pendingAttempts` reads
 `DescribeWorkflowExecution`'s `pending_nexus_operations.attempt` keyed by `scheduled_event_id`.
-A Correlated Contract's projection rules name the declarations by kind, so the kind, source, key
-path and fields are written once and cannot drift; a reference to an undeclared kind, or the same
-source and key path declared twice, rejects at preparation. A Program that declares nothing keeps
-the spelled-out lift rules, which slot-bound reads still use.
+A read that sets `single` reads the one message at its path instead, with the same method
+authorization, descriptor checks, polling and limits: a response that lacks the message supplies
+nothing, as an empty repeated field does, and the message is one event at most.
+
+A Run Event declaration may carry a `guard`, a boolean over the event's payload in the evidence-lift
+context, which selects the events of the kind that are evidence. An event it rejects is no
+occurrence and takes no ordinal; a guard that might have no value rejects at preparation, so it is
+never read as false; and an event two declarations accept is evidence of neither and makes the Run
+incomplete. The record of a worker reservation is a `DIAGNOSTIC` event whose outcome names the
+activity attempt, so a guard that compares `activity_attempt.sdk_attempt` as greater than zero and
+`activity_attempt.delivery_id` as not empty selects the attempts a worker was delivered, keyed by
+`activity_attempt.activity_run_id`, and leaves out a position recorded as not needed. A presence
+check would not: a scalar the record leaves at zero still reads as a value. That record says what
+the worker was delivered and offered. It is never the server's acceptance of the offer, and the
+offered response is an enum, which no evidence field reads.
+
+A Run Event declaration may also name the one controller `instruction` whose events it
+reads: that instruction's completion or timeout, the fault it realized, and the record of each
+reservation it carried. And it may be `run_keyed`: the operation key of its evidence is then the
+Run's own ID, the value a Program input reads as its Run reference, and it writes no operation
+path. That joins the Run's record of a call to evidence read back from the target under a key the
+Case set to the Run's ID.
+
+Kinds may share a source. One emitter numbers a source's evidence in one dense stream, whichever
+kind each piece is: the instruction whose lift names the kinds, or the Run for its own events, and
+never both. Within a source and under one operation key each recorded kind is declared once: a
+history arm, or a Run Event kind at an instruction under a guard. A Correlated Contract's projection rules name the
+declarations by kind, so the kind, source, key path and fields are written once and cannot drift;
+a reference to an undeclared kind, the same recorded kind declared twice under a source and key
+path, or a source the Run and an instruction would both count, rejects at preparation. A Program
+that declares nothing keeps the spelled-out lift rules, which slot-bound reads still use.
 
 ## Field paths and enum literals
 

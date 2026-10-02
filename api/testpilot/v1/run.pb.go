@@ -43,6 +43,9 @@ const (
 	// No attempt was delivered for this declared position, and the server reported the activity closed
 	// after an earlier attempt, so none will be.
 	ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED ActivityAttemptResponse = 5
+	// The worker offered the canceled answer the attempt's instruction declared, once the server had
+	// reported the activity's cancellation requested.
+	ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED ActivityAttemptResponse = 6
 )
 
 // Enum value maps for ActivityAttemptResponse.
@@ -54,6 +57,7 @@ var (
 		3: "ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_NON_RETRYABLE",
 		4: "ACTIVITY_ATTEMPT_RESPONSE_REFUSED",
 		5: "ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED",
+		6: "ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED",
 	}
 	ActivityAttemptResponse_value = map[string]int32{
 		"ACTIVITY_ATTEMPT_RESPONSE_UNSPECIFIED":                  0,
@@ -62,6 +66,7 @@ var (
 		"ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_NON_RETRYABLE": 3,
 		"ACTIVITY_ATTEMPT_RESPONSE_REFUSED":                      4,
 		"ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED":                   5,
+		"ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED":             6,
 	}
 )
 
@@ -85,6 +90,10 @@ func (x ActivityAttemptResponse) String() string {
 		return "Refused"
 	case ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED:
 		return "NotNeeded"
+	case ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED:
+		return "OfferedCanceled"
+
+		// Deprecated: Use ActivityAttemptResponse.Descriptor instead.
 	default:
 		return strconv.Itoa(int(x))
 	}
@@ -103,7 +112,6 @@ func (x ActivityAttemptResponse) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// Deprecated: Use ActivityAttemptResponse.Descriptor instead.
 func (ActivityAttemptResponse) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{0}
 }
@@ -1477,14 +1485,15 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\arule_id\x18\x01 \x01(\tR\x06ruleId\x12K\n" +
 	"\x06status\x18\x02 \x01(\x0e23.temporal.server.api.testpilot.v1.RuleVerdictStatusR\x06status\x12*\n" +
 	"\x11terminal_state_id\x18\x03 \x01(\tR\x0fterminalStateId\x12<\n" +
-	"\x1asupporting_event_sequences\x18\x04 \x03(\x03R\x18supportingEventSequences*\xba\x02\n" +
+	"\x1asupporting_event_sequences\x18\x04 \x03(\x03R\x18supportingEventSequences*\xea\x02\n" +
 	"\x17ActivityAttemptResponse\x12)\n" +
 	"%ACTIVITY_ATTEMPT_RESPONSE_UNSPECIFIED\x10\x00\x12/\n" +
 	"+ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED\x10\x01\x126\n" +
 	"2ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_RETRYABLE\x10\x02\x12:\n" +
 	"6ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_NON_RETRYABLE\x10\x03\x12%\n" +
 	"!ACTIVITY_ATTEMPT_RESPONSE_REFUSED\x10\x04\x12(\n" +
-	"$ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED\x10\x05*\x98\x01\n" +
+	"$ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED\x10\x05\x12.\n" +
+	"*ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED\x10\x06*\x98\x01\n" +
 	"\x0eRunDisposition\x12\x1f\n" +
 	"\x1bRUN_DISPOSITION_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19RUN_DISPOSITION_COMPLETED\x10\x01\x12&\n" +

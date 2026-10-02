@@ -476,6 +476,20 @@ func TestRunRecordsEachActivityAttemptAsATypedFact(t *testing.T) {
 				fact(third, notNeeded, second),
 			},
 		},
+		// The worker's canceled answer is an offer like any other: it is recorded, and the positions
+		// after it are not needed only because the server then reported the activity closed.
+		"an offered cancellation and the position no longer needed": {
+			outcomes: []*testpilotspb.InstructionOutcome{attempted(succeeded, 1, "delivery-1", testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED), notNeeded},
+			recorded: []recordedAttempt{
+				fact(first, attempted(succeeded, 1, "delivery-1", testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED)),
+				fact(second, notNeeded, first),
+			},
+		},
+		"a canceled attempt that claims it offered a cancellation": {
+			outcomes:   []*testpilotspb.InstructionOutcome{retryable, attempted(canceled, 2, "delivery-2", testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED)},
+			recorded:   []recordedAttempt{fact(first, retryable)},
+			incomplete: "activation_failed",
+		},
 		"an attempt the worker refused": {
 			outcomes:   []*testpilotspb.InstructionOutcome{retryable, refused},
 			recorded:   []recordedAttempt{fact(first, retryable), fact(second, refused)},

@@ -47,6 +47,19 @@ type frontend struct {
 	expired atomic.Int32
 	// closedRun is the run the server reports the outcome of; unset, the run it was asked about.
 	closedRun string
+	// heartbeats are the heartbeats the worker sent, and cancelRequested is what the server answers
+	// each with: whether the activity's cancellation is requested.
+	heartbeats      chan *workflowservice.RecordActivityTaskHeartbeatRequest
+	cancelRequested atomic.Bool
+}
+
+func (f *frontend) RecordActivityTaskHeartbeat(_ context.Context, request *workflowservice.RecordActivityTaskHeartbeatRequest) (*workflowservice.RecordActivityTaskHeartbeatResponse, error) {
+	requested := f.cancelRequested.Load()
+	select {
+	case f.heartbeats <- request:
+	default:
+	}
+	return &workflowservice.RecordActivityTaskHeartbeatResponse{CancelRequested: requested}, nil
 }
 
 // The server long-polls for the activity's outcome and answers once the activity closed.
@@ -166,6 +179,7 @@ func transportSession(t *testing.T, shape func(*testpilotspb.Program)) (*fronten
 		failed:    make(chan *workflowservice.RespondActivityTaskFailedRequest, 8),
 		canceled:  make(chan *workflowservice.RespondActivityTaskCanceledRequest, 8),
 		closed:    make(chan struct{}), polled: make(chan *workflowservice.PollActivityExecutionRequest, 8),
+		heartbeats: make(chan *workflowservice.RecordActivityTaskHeartbeatRequest, 64),
 	}
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
@@ -333,6 +347,75 @@ func TestTransportACanceledAttemptIsReportedAndRecordedAsFailed(t *testing.T) {
 	require.Empty(t, server.completed)
 
 	settled, err := settledActivity(t, session)
+	require.NoError(t, err)
+	requireOutcome(t, refused("activity-run", 1, tokenDigest("token-1"), "context canceled"), settled)
+}
+
+// heartbeat waits for a heartbeat of the task from the worker.
+func (f *frontend) heartbeat(t *testing.T, token string) {
+	t.Helper()
+	timeout, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+	defer cancel()
+	select {
+	case <-timeout.Done():
+		require.FailNow(t, "the worker sent no heartbeat")
+	case request := <-f.heartbeats:
+		require.Equal(t, token, string(request.GetTaskToken()))
+	}
+}
+
+// Through a real SDK worker, an attempt whose instruction answers canceled heartbeats to learn
+// whether the server asks for the cancellation, and answers nothing while it does not. Once the
+// server's answer to a heartbeat says the cancellation is requested, the SDK tells Temporal the
+// attempt is canceled, which it does for no cancellation the server did not ask for, and the
+// reservation records that offer. A redelivery of the attempt is answered canceled again, once
+// the server has asked it too.
+func TestTransportTemporalIsToldAnAttemptIsCanceledOnceTheServerAsked(t *testing.T) {
+	server, session, task := transportSession(t, canceledActivity)
+	raw := session.reservations["reservation-1"]
+
+	server.tasks <- task("token-1", 1)
+	server.heartbeat(t, "token-1")
+	require.False(t, raw.settled())
+	require.Empty(t, server.canceled)
+	require.Empty(t, server.failed)
+
+	server.cancelRequested.Store(true)
+	requireAnswer(t, sent{Response: "canceled", Token: "token-1"}, server.answer(t))
+	first, err := settledAttempt(t, session, "reservation-1")
+	require.NoError(t, err)
+	requireOutcome(t, answered("activity-run", 1, tokenDigest("token-1"), canceledAnswer), first)
+	// The offer releases nothing: the declared retry stays reserved until the server closes the
+	// activity.
+	require.False(t, session.reservations["reservation-2"].settled())
+
+	server.tasks <- task("token-1-again", 1)
+	requireAnswer(t, sent{Response: "canceled", Token: "token-1-again"}, server.answer(t))
+	require.Empty(t, server.failed)
+	require.Empty(t, server.completed)
+	require.NoError(t, session.Close(t.Context()))
+}
+
+// An attempt that waits for a cancellation the server never asks for answers nothing canceled. When
+// the Run cancels it, Temporal is told the attempt failed with the Driver's own non-retryable
+// failure, and the reservation records that refusal.
+func TestTransportACancellationTheServerNeverAsksForIsRefused(t *testing.T) {
+	server, session, task := transportSession(t, canceledActivity)
+	raw := session.reservations["reservation-1"]
+
+	server.tasks <- task("token-1", 1)
+	server.heartbeat(t, "token-1")
+	require.NoError(t, raw.Cancel(t.Context()))
+
+	got := server.answer(t)
+	require.Equal(t, "failed", got.Response)
+	require.Equal(t, "token-1", got.Token)
+	require.True(t, proto.Equal(&failurepb.ApplicationFailureInfo{Type: "umpire_worker", NonRetryable: true}, got.Failure.GetApplicationFailureInfo()), got.Failure)
+	require.Equal(t, "context canceled", got.Failure.GetCause().GetMessage())
+	require.Empty(t, server.canceled)
+	require.Empty(t, server.completed)
+
+	settled, err := settledAttempt(t, session, "reservation-1")
 	require.NoError(t, err)
 	requireOutcome(t, refused("activity-run", 1, tokenDigest("token-1"), "context canceled"), settled)
 }

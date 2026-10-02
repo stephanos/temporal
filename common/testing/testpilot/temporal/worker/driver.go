@@ -11,6 +11,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
@@ -48,6 +49,9 @@ type hostOptions struct {
 	// run the server reports closed. It is the only evidence that no further attempt of the activity
 	// will be issued; nil means there is none.
 	activityClosed func(ctx context.Context, namespace, activityID, activityRunID string) (string, error)
+	// heartbeat records a heartbeat of the activity attempt whose context it is given, through
+	// which alone the server tells the attempt that its cancellation is requested.
+	heartbeat func(ctx context.Context)
 }
 
 func New(options Options) (*Driver, error) {
@@ -72,9 +76,13 @@ func New(options Options) (*Driver, error) {
 		nexusRoutes:    make(map[nexusRouteIndex][]*Session),
 		options: hostOptions{
 			profile: options.Profile.Snapshot(), workerRoleID: options.WorkerRoleID, client: options.Client,
-			workerOptions: worker.Options{WorkerStopTimeout: options.WorkerStopTimeout},
+			// The SDK sends a heartbeat at most once per throttle interval, by default a share of
+			// the activity's heartbeat timeout and half a minute without one. An attempt heartbeats
+			// only to learn of a requested cancellation, so the interval is capped at that poll.
+			workerOptions: worker.Options{WorkerStopTimeout: options.WorkerStopTimeout, MaxHeartbeatThrottleInterval: cancellationPoll},
 			maximum:       maximum, diagnostics: diagnostics, requestBytes: limits.GetMaxRequestBytes(),
 			now: time.Now, completion: completion, activityClosed: pollActivityClosed(options.Client),
+			heartbeat: func(ctx context.Context) { activity.RecordHeartbeat(ctx) },
 		},
 	}
 	h.registry = newWorkerRegistry(maximum, h.newSDKWorker)

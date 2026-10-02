@@ -22,13 +22,15 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
-// The Runs these tests assess are of two kinds, and no lowered Case has run against a server:
+// The Runs these tests assess are of three kinds, and no lowered Case has run against a server:
 //
 //   - recorded from a fake: a carrier Case, written here, reads one piece of correlated evidence per
 //     instruction from a fake Driver, so Testpilot's own executor and recorder make the Run, live, and
 //     the same Run is then replayed;
-//   - constructed: a Run of a lowered Nexus caller Case written out event by event, which only a
-//     replay reads (nexus_test.go).
+//   - played: a lowered Case run live, by Testpilot's own executor and recorder, against a Driver that
+//     plays the path of its Query, and then replayed (nexus_test.go, played_test.go);
+//   - constructed: a Run of a lowered Case written out event by event, which only a replay reads
+//     (nexus_test.go, activity_test.go).
 
 const (
 	evidenceObservation = "correlated-evidence"
@@ -50,6 +52,17 @@ type kindOf struct {
 	durable bool
 }
 
+// declaring is what a test realization says of one kind beyond that: the fields it keeps, and whether
+// its source reports every occurrence.
+type declaring struct {
+	fields     []*modelirspb.EvidenceField
+	exhaustive bool
+}
+
+// closingInstruction is the command a test realization closes its exhaustive kinds by, and the instruction of
+// the carrier Case that stands for it.
+const closingInstruction = "close"
+
 // admissionKinds is the activity specimen's evidence and capability matrix
 // (model/scalav2/specimens/activity.md): the statuses are public, what a caller reads back; the
 // dispatch, the admission commit and the rejection are internal, observed where the server commits
@@ -70,6 +83,13 @@ func sourceID(machine, records string) string { return "test." + machine + ".sou
 // the carrier Case.
 func realized(t testing.TB, m *modelirspb.Model, machine string, kinds []kindOf) *modelirspb.Model {
 	t.Helper()
+	return realizedWith(t, m, machine, kinds, nil)
+}
+
+// realizedWith is realized with more declared of the kinds that record the named facts. The
+// exhaustive ones are closed by one read of a controller script.
+func realizedWith(t testing.TB, m *modelirspb.Model, machine string, kinds []kindOf, more map[string]declaring) *modelirspb.Model {
+	t.Helper()
 	out := proto.CloneOf(m)
 	r := &modelirspb.Realization{Id: "test." + machine + ".realization", Name: machine + "Evidence", Machine: machine, Producer: "test.conformance",
 		ProducerVersion: "1",
@@ -83,7 +103,21 @@ func realized(t testing.TB, m *modelirspb.Model, machine string, kinds []kindOf)
 		}
 		r.Evidence = append(r.Evidence, &modelirspb.Evidence{Id: kindID(machine, k.records), Records: k.records, Source: sourceID(machine, k.records),
 			From:      &modelirspb.Evidence_History{History: "workflow_execution_started_event_attributes"},
-			Operation: "event_id", Commitment: commitment})
+			Operation: "event_id", Commitment: commitment, Fields: more[k.records].fields, Exhaustive: more[k.records].exhaustive})
+	}
+	// The exhaustive kinds are closed by one read of the controller, which lifts them.
+	closing := &modelirspb.Command{Id: closingInstruction, Instruction: &modelirspb.Command_Rpc{Rpc: &modelirspb.Rpc{Role: sourceRole, Method: sourceMethod,
+		Reads: []*modelirspb.ResponseRead{{Path: "history.events[*]", Cardinality: modelirspb.ResponseRead_CARDINALITY_EACH,
+			Targets: []*modelirspb.Target{{Target: &modelirspb.Target_Lift{Lift: evidenceObservation}}}}}}}}
+	for _, k := range kinds {
+		if more[k.records].exhaustive {
+			closing.Closes = append(closing.Closes, kindID(machine, k.records))
+		}
+	}
+	if len(closing.GetCloses()) > 0 {
+		r.Roles = []*modelirspb.Role{{Id: sourceRole, Kind: modelirspb.Role_KIND_ENDPOINT}}
+		r.Scripts = []*modelirspb.Script{{Id: "controller", Activation: &modelirspb.Script_Controller{Controller: &modelirspb.Empty{}},
+			Items: []*modelirspb.Item{{Command: closing}}}}
 	}
 	out.Realizations = append(out.Realizations, r)
 	require.NoError(t, goir.Validate(out))
@@ -95,6 +129,18 @@ func realized(t testing.TB, m *modelirspb.Model, machine string, kinds []kindOf)
 // evidence is well formed and concludes nothing from it, so the Run closes whatever the model would
 // say. The kinds it carries are the ones of machine whose facts are named.
 func carrier(machine string, carried []string, reads int) *testpilotspb.Case {
+	return carrierWith(machine, carried, reads, nil, false)
+}
+
+// retained is the policy of one field a carrier Case's evidence keeps with its value.
+func retained(id string, kind testpilotspb.ScalarKind) *testpilotspb.CorrelatedFieldPolicy {
+	return &testpilotspb.CorrelatedFieldPolicy{FieldId: id, Type: &testpilotspb.ScalarType{Kind: kind}, Disposition: testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN}
+}
+
+// carrierWith is a carrier Case whose kinds carry the named fields, by the fact each kind records, and
+// which ends, when closes is set, with the instruction that stands for the realization's closing read:
+// a call that reads nothing into the Run and whose outcome the Run records.
+func carrierWith(machine string, carried []string, reads int, fields map[string][]*testpilotspb.CorrelatedFieldPolicy, closes bool) *testpilotspb.Case {
 	message := func(name string) *testpilotspb.ValueType {
 		return &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{
 			Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: name}}}}}
@@ -116,7 +162,7 @@ func carrier(machine string, carried []string, reads int) *testpilotspb.Case {
 	for _, records := range carried {
 		correlated.Sources = append(correlated.Sources, sourceID(machine, records))
 		correlated.ProjectionRules = append(correlated.ProjectionRules, &testpilotspb.CorrelatedProjectionRule{Kind: kindID(machine, records),
-			Meaning: testpilotspb.CORRELATED_EVIDENCE_MEANING_IRRELEVANT})
+			Meaning: testpilotspb.CORRELATED_EVIDENCE_MEANING_IRRELEVANT, Fields: fields[records]})
 	}
 	controller := &testpilotspb.Entrypoint{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}
 	for i := range reads {
@@ -132,6 +178,13 @@ func carrier(machine string, carried []string, reads int) *testpilotspb.Case {
 		controller.Instructions = append(controller.Instructions, node)
 	}
 	name := fmt.Sprintf("test.conformance.%s.%s.%d", machine, strings.Join(carried, "-"), reads)
+	if closes {
+		name += ".closed"
+		controller.Instructions = append(controller.Instructions, &testpilotspb.InstructionNode{InstructionId: closingInstruction,
+			Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{
+				EndpointRoleId: sourceRole, Method: sourceMethod}}},
+			Guard: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}})
+	}
 	return &testpilotspb.Case{CaseId: name, Version: &testpilotspb.FormatVersion{Major: 1},
 		Provenance: &testpilotspb.CaseProvenance{ProducerId: "test.conformance"},
 		Program: &testpilotspb.Program{ProgramId: name + ".program", Roles: []*testpilotspb.Role{{RoleId: sourceRole, Kind: testpilotspb.ROLE_KIND_ENDPOINT}},
@@ -203,11 +256,21 @@ type read struct {
 }
 
 // fact is evidence of one fact of machine for an operation of a Run scope, at an ordinal of its
-// kind's own source, ordered after the named reads of the same script.
+// kind's own source, ordered after the named reads of the same script, carrying these fields.
 type fact struct {
 	name, records, operation, run string
 	ordinal                       int64
 	after                         []string
+	fields                        []*testpilotspb.NamedValue
+}
+
+func textField(id, value string) *testpilotspb.NamedValue {
+	return &testpilotspb.NamedValue{FieldId: id, Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: value}}}
+}
+
+func numberField(id string, value uint64) *testpilotspb.NamedValue {
+	return &testpilotspb.NamedValue{FieldId: id, Value: &testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{
+		UnsignedIntegerValue: strconv.FormatUint(value, 10)}}}
 }
 
 // script turns facts and failures into what each read returns, resolving each `after` to the identity
@@ -227,7 +290,7 @@ func script(machine string, items ...any) []read {
 			}
 			identity := &testpilotspb.CorrelatedIdentity{EvidenceSource: sourceID(machine, item.records), Ordinal: item.ordinal,
 				Scope: []*testpilotspb.NamedValue{{FieldId: "run", Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: run}}}}}
-			evidence := &testpilotspb.CorrelatedEvidence{Identity: identity, Operation: operation, Kind: kindID(machine, item.records)}
+			evidence := &testpilotspb.CorrelatedEvidence{Identity: identity, Operation: operation, Kind: kindID(machine, item.records), Fields: item.fields}
 			for _, parent := range item.after {
 				evidence.Parents = append(evidence.Parents, proto.CloneOf(identities[parent]))
 			}
@@ -247,10 +310,12 @@ var (
 )
 
 // sourceDriver is a fake Driver written against the public facade alone: it answers instruction
-// read.N with the Nth read of its script.
+// read.N with the Nth read of its script, and the closing read with success unless it is to fail.
 type sourceDriver struct {
 	identity testpilot.DriverIdentity
 	script   []read
+	// closingFails makes the closing read time out, as a read does.
+	closingFails bool
 }
 
 func (d *sourceDriver) Identity(context.Context) (testpilot.DriverIdentity, error) {
@@ -258,14 +323,23 @@ func (d *sourceDriver) Identity(context.Context) (testpilot.DriverIdentity, erro
 }
 func (d *sourceDriver) Validate(context.Context, testpilot.PreparedProgram) error { return nil }
 func (d *sourceDriver) Open(context.Context, string, testpilot.PreparedProgram) (testpilot.Session, error) {
-	return &sourceSession{script: d.script}, nil
+	return &sourceSession{script: d.script, closingFails: d.closingFails}, nil
 }
 
-type sourceSession struct{ script []read }
+type sourceSession struct {
+	script       []read
+	closingFails bool
+}
 
 var errUnscripted = errors.New("the carrier Case makes no such call")
 
 func (s *sourceSession) InvokeRPC(_ context.Context, at testpilot.Coordinate, role string, _ protoreflect.MethodDescriptor, _ proto.Message) (testpilot.EffectHandle, error) {
+	if at.InstructionID == closingInstruction && role == sourceRole {
+		if s.closingFails {
+			return effect{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE, ProtocolCode: "deadline_exceeded"}}, nil
+		}
+		return effect{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}, Response: &testpilotspb.CorrelatedEvidence{}}, nil
+	}
 	index, err := strconv.Atoi(strings.TrimPrefix(at.InstructionID, "read."))
 	if err != nil || role != sourceRole || index < 0 || index >= len(s.script) {
 		return nil, errUnscripted

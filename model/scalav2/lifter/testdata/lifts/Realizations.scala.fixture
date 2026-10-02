@@ -3,9 +3,12 @@
 // `learnedRun` runs the Nexus caller's synchronous completion with a run id the start call binds and
 // two branches that each read it. `pauseRace` is the activity specimen's proposed race scenario
 // (specimens/activity.md, E8 and E10): it declares what Testpilot cannot run yet, a held delivery, a
-// durable-commit observation, an activity's worker script and a machine with authored monitors, so
-// lowering it names each gap instead of a Case. run.sh lifts both and compares the IR with
-// expected/realizations.json.
+// durable-commit observation and a machine with authored monitors, so lowering it names each gap
+// instead of a Case. `errandRealization` runs a standalone activity whose first attempt fails and
+// whose retry completes, on a machine whose facts a listing reports. `tallyRealization` declares
+// evidence read from one message that keeps fields, one of them without its value, which no Case
+// carries, and the Run's own record as evidence. run.sh
+// lifts them and compares the IR with expected/realizations.json.
 package fixture.realizations
 
 import fixture.specimens.admission.{AdmissionFact, Message as Dispatched, dispatch, scheduledEmpty, staleAdmission, three}
@@ -483,6 +486,356 @@ val doorRealization: Realization = Realization(
       source = "fixture.realizations.door.source.history",
       from = Recorded.History("workflow_execution_started_event_attributes"),
       operation = "event_id",
+      commitment = Commitment.reported
+    )
+  )
+)
+
+// ### An activity whose first attempt fails and whose retry completes
+
+enum ErrandState derives Finite:
+  case idle, queued, held, retrying, done, withdrawn
+
+/** How the worker answers one attempt. */
+enum ErrandAnswer derives Finite:
+  case failed, completed, canceled
+
+enum ErrandOutcome derives Finite:
+  case accepted
+
+/** What a listing of the errand shows: that it exists, and that it closed completed or canceled. */
+enum ErrandFact derives Finite:
+  case errandListed, errandClosed, errandWithdrawn
+
+type ErrandStep = Step[ErrandState, ErrandOutcome, ErrandFact]
+
+val errandFamily: umpire.Family = umpire.Family("fixture.realizations.errand")
+val requester: Party = Party("requester")
+val runner: Party = Party("runner")
+val errand: Entity = Entity("errand", key = "errandId")
+val request = action("request", requester).creates(errand)
+val deliver = action("deliver", runner) on errand
+val answer = action("answer", runner).on(errand).input[ErrandAnswer]("answer")
+
+def requestStep(s: ErrandState): List[ErrandStep] = s match
+  case ErrandState.idle => List(Step(ErrandOutcome.accepted, ErrandState.queued, List(ErrandFact.errandListed)))
+  case _                => Nil
+
+/** The runner is handed the attempt. Nothing a caller reads says so. */
+def deliverStep(s: ErrandState): List[ErrandStep] = s match
+  case ErrandState.queued | ErrandState.retrying => List(Step(ErrandOutcome.accepted, ErrandState.held))
+  case _                                         => Nil
+
+/**
+ * A failed attempt is retried and a caller reads nothing new; a completed one closes the errand, and
+ * a canceled one withdraws it.
+ */
+def answerStep(s: ErrandState, a: ErrandAnswer): List[ErrandStep] =
+  if s != ErrandState.held then Nil
+  else
+    a match
+      case ErrandAnswer.failed    => List(Step(ErrandOutcome.accepted, ErrandState.retrying))
+      case ErrandAnswer.completed =>
+        List(Step(ErrandOutcome.accepted, ErrandState.done, List(ErrandFact.errandClosed)))
+      case ErrandAnswer.canceled =>
+        List(Step(ErrandOutcome.accepted, ErrandState.withdrawn, List(ErrandFact.errandWithdrawn)))
+
+def errandEvidence(f: ErrandFact): String = f match
+  case ErrandFact.errandListed => "errandListed"
+  case ErrandFact.errandClosed => "errandClosed"
+  case ErrandFact.errandWithdrawn => "errandWithdrawn"
+
+val errandMachine: Machine[ErrandState, ErrandOutcome, ErrandFact] =
+  machine[ErrandState, ErrandOutcome, ErrandFact](errandFamily, "errand") {
+    forEntity(errand)
+    starts(ErrandState.idle)
+    ends(s => s == ErrandState.done || s == ErrandState.withdrawn)
+    evidence(errandEvidence)
+    steps(request ~> requestStep, deliver ~> deliverStep, answer ~> answerStep)
+  }
+
+private val closesOnCompletion =
+  errandMachine.property("closesOnCompletion") when answer(ErrandAnswer.completed) holds { s =>
+    s.state == ErrandState.done && s.facts.contains(ErrandFact.errandClosed)
+  }
+
+private val retriedOnce = errandMachine
+  .scenario("retriedOnce")
+  .starts(ErrandState.idle)
+  .actions(request, deliver, answer(ErrandAnswer.failed), deliver, answer(ErrandAnswer.completed))
+
+val errandRetry: Query =
+  query("errand.retry") find closesOnCompletion in retriedOnce limits Limits("five", steps = 5, actions = 5, search = 4096)
+
+// The one path that takes the worker's canceled answer, which Testpilot has no instruction for: its
+// Query is blocked by that command, and the retry above, whose path does not take it, is not.
+private val withdrawsOnCancel =
+  errandMachine.property("withdrawsOnCancel") when answer(ErrandAnswer.canceled) holds { s =>
+    s.state == ErrandState.withdrawn && s.facts.contains(ErrandFact.errandWithdrawn)
+  }
+
+private val canceledOnce = errandMachine
+  .scenario("canceledOnce")
+  .starts(ErrandState.idle)
+  .actions(request, deliver, answer(ErrandAnswer.canceled))
+
+val errandWithdrawn: Query =
+  query("errand.withdrawn") find withdrawsOnCancel in canceledOnce limits Limits("three", steps = 3, actions = 3, search = 4096)
+
+private val errandType = Name("umpire-", fixture = true, suffix = "-errand")
+
+/**
+ * One kind of the errand's evidence: an entry of the namespace's listing, once it reads so. A poll's
+ * condition reads the entry alone, so the listing is the run's own only in a namespace that holds no
+ * other activity.
+ */
+private def listed(records: String) =
+  Evidence(
+    id = "fixture.realizations.errand.evidence." + records,
+    records = records,
+    source = "fixture.realizations.errand.source." + records,
+    from = Recorded.Read(service + "ListActivityExecutions", "executions"),
+    operation = "activity_id",
+    commitment = Commitment.reported
+  )
+
+private def awaitListed(id: String, records: String, reads: Operand) =
+  Command(
+    id,
+    Poll(
+      "fixture.realizations.errand.evidence." + records,
+      workflowService,
+      Vector(Assignment("namespace", Environment(namespace))),
+      reads,
+      250
+    )
+  )
+
+val errandRealization: Realization = Realization(
+  name = "errandRealization",
+  machine = errandMachine,
+  producer = "fixture.realizations",
+  producerVersion = "1",
+  roles = roles,
+  correlation = Correlation(
+    projection = "fixture.realizations.errand.projection",
+    run = "fixture.realizations.errand.scope.run",
+    operation = "fixture.realizations.errand.scope.errand",
+    observation = "correlated-evidence",
+    events = 8,
+    buffered = 8,
+    keys = 2,
+    support = 16,
+    work = 1000,
+    eventSize = 512
+  ),
+  scripts = Vector(
+    Script(
+      "controller",
+      Activation.Controller,
+      Vector(
+        Item(performs =
+          Vector(
+            Performance(
+              request,
+              Command(
+                "start-activity",
+                Rpc(
+                  workflowService,
+                  service + "StartActivityExecution",
+                  Vector(
+                    Assignment("namespace", Environment(namespace)),
+                    Assignment("activity_id", Run),
+                    Assignment("activity_type.name", Literal(Named(errandType))),
+                    Assignment("task_queue.name", Environment(queueResource)),
+                    Assignment("request_id", Run),
+                    Assignment("start_to_close_timeout.seconds", Literal(Number(300)))
+                  )
+                )
+              )
+            )
+          )
+        ),
+        // The entry is the errand's once it has a schedule time, has made a transition and names an activity.
+        Item(command =
+          Some(
+            awaitListed(
+              "await-listed",
+              "errandListed",
+              All(
+                Present(Path(Projected, "schedule_time")),
+                Greater(Path(Projected, "state_transition_count"), Literal(Number(0))),
+                Not(Equal(Path(Projected, "activity_id"), Literal(Text(""))))
+              )
+            )
+          )
+        ),
+        Item(command =
+          Some(
+            awaitListed(
+              "await-closed",
+              "errandClosed",
+              Equal(Path(Projected, "status"), Literal(EnumName("ACTIVITY_EXECUTION_STATUS_COMPLETED")))
+            )
+          )
+        ),
+        Item(
+          command = Some(
+            awaitListed(
+              "await-withdrawn",
+              "errandWithdrawn",
+              Equal(Path(Projected, "status"), Literal(EnumName("ACTIVITY_EXECUTION_STATUS_CANCELED")))
+            )
+          ),
+          when = Vector(answer(ErrandAnswer.canceled))
+        )
+      )
+    ),
+    Script(
+      "errand",
+      Activation.Activity(errandType, workerRole, taskQueue, starts = Vector(deliver)),
+      Vector(
+        Item(performs =
+          Vector(
+            Performance(
+              answer(ErrandAnswer.failed),
+              Command(
+                "fail-attempt",
+                AttemptFailure(
+                  Proto(
+                    "temporal.api.failure.v1.Failure",
+                    ProtoField("message", Text("not yet")),
+                    ProtoField(
+                      "application_failure_info",
+                      Message(
+                        Proto("temporal.api.failure.v1.ApplicationFailureInfo", ProtoField("type", Text("NotYet")))
+                      )
+                    )
+                  )
+                )
+              )
+            ),
+            Performance(answer(ErrandAnswer.completed), Command("complete-attempt", Finish(Literal(Text("done"))))),
+            Performance(answer(ErrandAnswer.canceled), Command("cancel-attempt", AttemptCanceled))
+          )
+        )
+      )
+    )
+  ),
+  observations =
+    Vector(Observed("correlated-evidence", "temporal.server.api.testpilot.v1.CorrelatedEvidence")),
+  evidence = Vector(listed("errandListed"), listed("errandClosed"), listed("errandWithdrawn")),
+  cleanup = "cleanup"
+)
+
+// ### What no Case carries yet
+
+/** A second door, for a realization of its own: a machine runs under one. */
+val tallyMachine: Machine[DoorState, DoorOutcome, DoorFact] =
+  machine[DoorState, DoorOutcome, DoorFact](doorFamily, "tally") {
+    forEntity(door)
+    starts(DoorState.closed)
+    ends(_ == DoorState.open)
+    evidence(doorEvidence)
+    steps(push ~> pushStep)
+  }
+
+private val tallyOpened =
+  tallyMachine.property("tallyOpened") when push holds (_.facts.contains(DoorFact.doorOpened))
+
+private val tallied = tallyMachine.scenario("tallied").starts(DoorState.closed).actions(push)
+
+val tallyOpens: Query =
+  query("tally.opens") find tallyOpened in tallied limits Limits("one", steps = 1, actions = 1, search = 16)
+
+/** A realization whose evidence keeps fields and is read from one message. */
+val tallyRealization: Realization = Realization(
+  name = "tallyRealization",
+  machine = tallyMachine,
+  producer = "fixture.realizations",
+  producerVersion = "1",
+  roles = roles,
+  correlation = Correlation(
+    projection = "fixture.realizations.tally.projection",
+    run = "fixture.realizations.tally.scope.run",
+    operation = "fixture.realizations.tally.scope.door",
+    observation = "correlated-evidence",
+    events = 8,
+    buffered = 8,
+    keys = 2,
+    support = 16,
+    work = 1000,
+    eventSize = 512
+  ),
+  scripts = Vector(
+    Script(
+      "controller",
+      Activation.Controller,
+      Vector(
+        Item(performs =
+          Vector(
+            Performance(
+              push,
+              Command(
+                "push-door",
+                Rpc(
+                  workflowService,
+                  service + "StartActivityExecution",
+                  Vector(Assignment("namespace", Environment(namespace)), Assignment("activity_id", Run))
+                )
+              )
+            )
+          )
+        ),
+        Item(command =
+          Some(
+            Command(
+              "await-opened",
+              Poll(
+                "fixture.realizations.tally.evidence.opened",
+                workflowService,
+                Vector(Assignment("namespace", Environment(namespace)), Assignment("activity_id", Run)),
+                Equal(Path(Projected, "attempt"), Literal(Number(1))),
+                250
+              ),
+              closes = Vector("fixture.realizations.tally.evidence.opened")
+            )
+          )
+        )
+      )
+    )
+  ),
+  observations =
+    Vector(Observed("correlated-evidence", "temporal.server.api.testpilot.v1.CorrelatedEvidence")),
+  evidence = Vector(
+    Evidence(
+      id = "fixture.realizations.tally.evidence.opened",
+      records = "doorOpened",
+      source = "fixture.realizations.tally.source.describe",
+      from = Recorded.Single(service + "DescribeActivityExecution", "info"),
+      operation = "activity_id",
+      commitment = Commitment.reported,
+      fields = Vector(
+        EvidenceField("run", "run_id", role = Some(FieldRole.operation)),
+        EvidenceField("attempt", "attempt", role = Some(FieldRole.attempt)),
+        EvidenceField("identity", "last_worker_identity", redacted = true)
+      ),
+      exhaustive = true
+    ),
+    // The start call's own answer, as the Run records it. A machine's evidence names each fact once,
+    // so this second kind confirms a fact the door does not record and is off every path.
+    Evidence(
+      id = "fixture.realizations.tally.evidence.pushed",
+      records = "doorPushed",
+      source = "fixture.realizations.tally.source.pushed",
+      from = Recorded.RunEvent(
+        EventKind.instructionCompleted,
+        "controller",
+        "push-door",
+        key = Run,
+        guard = Some(Equal(Path(Projected, "status"), Literal(EnumName("INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"))))
+      ),
+      operation = "",
       commitment = Commitment.reported
     )
   )

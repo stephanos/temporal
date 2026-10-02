@@ -157,6 +157,35 @@ func (f *declaredFailure) Unwrap() error { return f.failure }
 
 var errAttemptDisabled = errors.New("the activity attempt's instruction is disabled")
 
+// errDeclaredCancellation is the answer of an attempt whose instruction answers a cancellation the
+// server requested. The attempt performed its instruction, so it is not an activation failure.
+var errDeclaredCancellation = errors.New("the activity attempt answers its requested cancellation")
+
+// cancellationPoll is how often an attempt that answers a requested cancellation heartbeats to
+// learn whether the server has asked for it.
+const cancellationPoll = 100 * time.Millisecond
+
+// awaitCancellationRequest heartbeats the activity attempt whose context ctx is until the server
+// answers a heartbeat with the activity's requested cancellation, which the SDK reports by ending
+// the context with a canceled error as its cause. A worker may answer canceled only then: the SDK
+// tells Temporal of no cancellation the server did not ask that delivery for. Any other end of the
+// context is the attempt ending unasked, and is the error returned.
+func (h *Driver) awaitCancellationRequest(ctx context.Context) error {
+	ticker := time.NewTicker(cancellationPoll)
+	defer ticker.Stop()
+	for ctx.Err() == nil {
+		h.options.heartbeat(ctx)
+		select {
+		case <-ctx.Done():
+		case <-ticker.C:
+		}
+	}
+	if temporal.IsCanceledError(context.Cause(ctx)) {
+		return nil
+	}
+	return ctx.Err()
+}
+
 func (s *Session) scriptOf(delivered delivery.Activation) (*activityScript, error) {
 	if err := s.mu.LockContext(context.Background(), ErrInvalid); err != nil {
 		return nil, err
@@ -198,7 +227,8 @@ func (s *Session) awaitEarlierAttempts(ctx context.Context, delivered delivery.A
 // the activity's attempts in order and the attempt's reservation is the one of its number, so the
 // attempt performs the instruction at its reservation's ordinal and no other, under the attempt's
 // context, whose cancellation fails the evaluation. A Finish completes the attempt with its result,
-// whatever that value is, and an ActivityAttemptFailure fails it with the failure it carries. An
+// whatever that value is, an ActivityAttemptFailure fails it with the failure it carries, and an
+// ActivityAttemptCancellation answers it as canceled once the server has asked for that. An
 // attempt whose instruction is disabled has nothing declared for it and is a failed activation.
 func (s *Session) executeActivity(ctx context.Context, delivered delivery.Activation) (*testpilotspb.Value, error) {
 	entry, exists := s.definition.entries[delivered.Coordinate().EntrypointID]
@@ -247,6 +277,16 @@ func (s *Session) executeActivity(ctx context.Context, delivered delivery.Activa
 			failure:      temporal.GetDefaultFailureConverter().FailureToError(failure),
 			nonRetryable: failure.GetApplicationFailureInfo().GetNonRetryable(),
 		}
+	case testpilot.ActivityAttemptCancellation:
+		if err := s.host.awaitCancellationRequest(ctx); err != nil {
+			return nil, err
+		}
+		// The request ended the attempt's context, and the server may still refuse the answer and
+		// issue the next attempt, whose guard reads this instruction's outcome.
+		if err := script.state.Admit(context.WithoutCancel(ctx), index, terminalOutcome()); err != nil {
+			return nil, err
+		}
+		return nil, errDeclaredCancellation
 	default:
 		return nil, ErrInvalid
 	}

@@ -57,6 +57,9 @@ type scheduledReservation struct {
 	identity contract.ReservationIdentity
 	source   string
 	cause    string
+	// values is the activation of the instruction that carried the reservation, under whose work
+	// ceiling the reservation's record is lifted into evidence.
+	values *activationValues
 }
 type schedulerCompletion struct {
 	node        *scheduledNode
@@ -167,6 +170,9 @@ var reservationOutcomes = map[reservationOutcome]reservationRule{
 		verdict: reservationRecorded, attempt: deliveredAttempt,
 	},
 	{kind: contract.ActivityEntrypoint, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, response: testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_NON_RETRYABLE}: {
+		verdict: reservationRecorded, attempt: deliveredAttempt,
+	},
+	{kind: contract.ActivityEntrypoint, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, response: testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED}: {
 		verdict: reservationRecorded, attempt: deliveredAttempt,
 	},
 	{kind: contract.ActivityEntrypoint, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE, response: testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_REFUSED}: {
@@ -818,7 +824,7 @@ func (s *scheduler) validateReservations(task scheduledNode, declarationIndex in
 		}
 		ordinals[id.Ordinal] = true
 		s.reservations[id.ID] = true
-		reservations = append(reservations, scheduledReservation{handle: h, identity: id, source: fmt.Sprintf("%s.r%d.i%d", s.nodeSource(task), declarationIndex, id.Ordinal), cause: s.nodeSource(task) + ".started"})
+		reservations = append(reservations, scheduledReservation{handle: h, identity: id, source: fmt.Sprintf("%s.r%d.i%d", s.nodeSource(task), declarationIndex, id.Ordinal), cause: s.nodeSource(task) + ".started", values: task.activation.values})
 	}
 	return reservations, nil
 }
@@ -933,11 +939,25 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 		if completion.cleanup {
 			publish = s.recorder.publishCleanup
 		}
-		decision, err := publish(ctx, []*testpilotspb.RunEvent{{Kind: testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, SourceId: reservation.source, CausalSourceIds: causes, Coordinates: eventCoordinates(id.Origin), Payload: &testpilotspb.RunEvent_Outcome{Outcome: outcome}}}, nil)
-		if err != nil || decision == Stop || verdict != reservationRecordedThenFailed {
+		record := &testpilotspb.RunEvent{Kind: testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, SourceId: reservation.source, CausalSourceIds: causes, Coordinates: eventCoordinates(id.Origin), Payload: &testpilotspb.RunEvent_Outcome{Outcome: outcome}}
+		// What the reservation settled with happened whatever the Program's declarations make of
+		// it, so a record that cannot be lifted is still recorded: without evidence, and as the
+		// event from which execution is incomplete, so no reader takes it for a record its
+		// declaration rejected.
+		liftErr := s.liftRunEvents(ctx, reservation.values, []*testpilotspb.RunEvent{record})
+		record.ExecutionIncomplete = liftErr != nil
+		decision, err := publish(ctx, []*testpilotspb.RunEvent{record}, nil)
+		switch {
+		case err != nil:
 			return decision, err
+		// The record's own failure is named before the failure to lift it.
+		case verdict == reservationRecordedThenFailed && (decision != Stop || liftErr != nil):
+			return Stop, s.recorder.completionFailure(ctx, "activation_failed", ir.Invalid(ir.Malformed, "reservation", "required activation failed"))
+		case liftErr != nil:
+			return Stop, s.recorder.completionFailure(ctx, "outcome_failed", liftErr)
+		default:
+			return decision, nil
 		}
-		return Stop, s.recorder.completionFailure(ctx, "activation_failed", ir.Invalid(ir.Malformed, "reservation", "required activation failed"))
 	}
 	task := *completion.node
 	a := task.activation.values

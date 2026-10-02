@@ -151,8 +151,8 @@ func TestABoundQueryReadsStepsAsCheckDoes(t *testing.T) {
 		}
 	}
 	// admission: the stale design's five counterexamples; closereset: five and three; declarations: one
-	// found; realizations: three found.
-	require.Equal(t, 17, witnesses)
+	// found; realizations: six found.
+	require.Equal(t, 20, witnesses)
 	require.Positive(t, refused)
 	require.Positive(t, atEnds)
 }

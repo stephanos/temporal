@@ -134,7 +134,7 @@ are:
 | `ReadEvidence` polling; history and read evidence sources | `proto/internal/temporal/server/api/testpilot/v1/program.proto:28-61` | Status reads, history events |
 | CorrelatedEvidence: scope, operation key, parents, dense ordinals | `proto/internal/temporal/server/api/testpilot/v1/correlated.proto:213-232`, `common/testing/testpilot/internal/verification/correlated.go:125-226` | Correlating operation, attempt and run evidence |
 | `WORKER_STOP` / `WORKER_RESUME` faults and one `FAULT_INJECTED` event each | `proto/internal/temporal/server/api/testpilot/v1/instruction.proto:111-118`, `common/testing/testpilot/internal/execution/scheduler.go:810-814` | The one realized fault that R8 requires, if a worker fault suffices |
-| Handle slots, `NexusHandlerReply`, `NexusOperationCompletion` | `proto/internal/temporal/server/api/testpilot/v1/instruction.proto:140-147` | Nexus sync and async completion (`../../scala/temporal/nexuscaller/Realization.scala:286-306`) |
+| Handle slots, `NexusHandlerReply`, `NexusOperationCompletion` | `proto/internal/temporal/server/api/testpilot/v1/instruction.proto:140-147` | Nexus sync and async completion (`../../scala/temporal/nexuscaller/Realization.scala:307-327`) |
 | Offline `Evaluate` through the same `Observe` | `common/testing/testpilot/prepared_case.go:33-42`, `common/testing/testpilot/internal/verification/evaluator.go:503-541` | Offline replay of a live assessment |
 | Canary build-tag seams and `runWith` | `tools/canary/cmd/umpire-canary/seams_harness.go`, `tools/canary/controller/run.go:176-196` | Starting point for the test-only Case/Profile binding |
 
@@ -142,7 +142,9 @@ These primitives are missing. Each one blocks a named experiment:
 
 | Missing | Evidence | Needed by | Task |
 | --- | --- | --- | --- |
-| Activity SDK activation | `ActivityActivation` exists (`proto/internal/temporal/server/api/testpilot/v1/program.proto:131-135`), but no opcode is admitted in an activity entrypoint (`common/testing/testpilot/internal/execution/dataflow.go:145-151`), the worker Driver skips them (`common/testing/testpilot/temporal/worker/driver.go:265-284`), and the SDK registers no activity (`common/testing/testpilot/temporal/worker/sdk.go:29`, `:42`) | Scala-declared Go SDK activity script; functional and canary completion | 13 (6 for the script vocabulary) |
+| Activity SDK activation | No longer missing. Task 13 admits `Finish` and `ActivityAttemptFailure` in an activity entrypoint, one instruction per attempt, and the worker registers the activity; task 19 lowers a Scala activity script to it | Scala-declared Go SDK activity script; functional and canary completion | 13, 19 |
+| Evidence read from one message | `ReadEvidence` requires a repeated field (`common/testing/testpilot/internal/execution/evidence.go:121-127`), and DescribeActivityExecution returns one `info` message. A poll's condition reads only the element it is looking at, so a listing cannot be narrowed to the Run's own activity either | The paused and terminal statuses of the standalone activity; the activity completion Case | 20 |
+| Run Events as evidence under a guard | A Run Event declaration lifts every event of its kind that carries a payload, with no guard and no command, and reads the operation key from the payload alone (`common/testing/testpilot/internal/execution/evidence.go:89-105`, `:313-343`), so an instruction outcome with no activity attempt fails the lift | The start call's answer and the delivered attempt as evidence of the activity's scheduling and attempt start | 20 |
 | Durable-commit observation | Run Events record RPC outcomes. Persisted state is visible only by reading it back | Attempt-admission commit correlated with activity, attempt and causal pause (R8) | 10, with 6 for the observation declaration |
 | Hold-delivery control | `FaultKind` holds only worker lifecycle values, "nothing here reaches the server" (`proto/internal/temporal/server/api/testpilot/v1/instruction.proto:111-118`). The server Session refuses faults. The candidate hook is `DispatchTaskHook` (`chasm/lib/activity/tasks.go:16-26`, `:69-77`), which runs after `Validate` (`tasks.go:46-54`) | Holding the stale dispatch past the pause | 10 |
 | Authored monitor / prepared assessment | `MonitorFactory` is internal (`common/testing/testpilot/internal/execution/contracts.go:20-29`). The facade "does not accept replacement monitors" (`common/testing/testpilot/internal/verification/README.md:6`) | Trace conformance and property assessment beside the Contract Verdict, live and offline | 12 (seam), 7 (adapter) |
@@ -161,7 +163,8 @@ scala-cli 1.17.1, a warm Bloop server, on the same working tree. Logs are under
 | --- | --- |
 | Existing activity Model and Claims (`../../scala/temporal/standaloneactivity/`) | 600 / 357 |
 | Existing Nexus caller Model, Claims, kernel and action dispatch (`../../scala/temporal/nexuscaller/`) | 697 / 375 |
-| Nexus realization (`Realization.scala`), remeasured on 2026-10-01 after fn-107 task 6 rewrote it as declarations the lifter emits; it was 291 / 202 as producer calls | 496 / 400 |
+| Nexus realization (`Realization.scala`), remeasured on 2026-10-01 after fn-107 task 19 declared its history kinds exhaustive; it was 496 / 400 after task 6 rewrote it as declarations the lifter emits, and 291 / 202 as producer calls | 517 / 416 |
+| Activity realization (`../../scala/temporal/standaloneactivity/Realization.scala`), fn-107 task 19 | 363 / 282 |
 | Existing Go activity model and claims (`../../go/standaloneactivity/`) | 869 / 586 |
 | Existing Go Nexus model and claims (`../../go/nexuscaller/`) | 835 / 504 |
 | Activity sketch, supported block ([activity.md](activity.md)) | 173 / 119 |

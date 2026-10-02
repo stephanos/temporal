@@ -389,12 +389,7 @@ func (r *Realizer) Bound(key ClaimKey) (*Bound, error) {
 	if err != nil {
 		return nil, err
 	}
-	out := &Bound{Table: bound.table, Start: bound.q.Scenario.Start, Property: BoundProperty{Name: declared.Property.GetName(),
-		About: func(action string) bool { return reading.about == nil || reading.about(action) }}}
-	out.Property.Holds = reading.across
-	if reading.across == nil {
-		out.Property.Holds = func(_ string, step umpire.Result) (bool, error) { return reading.same(step) }
-	}
+	out := &Bound{Table: bound.table, Start: bound.q.Scenario.Start, Property: boundProperty(declared.Property, reading)}
 	for _, w := range on.watched {
 		monitor := BoundMonitor{Name: w.name, Initial: w.initial, Next: w.next, Violated: w.violated, AtEnds: w.atEnds, Read: w.after}
 		if monitor.Read == nil {
@@ -403,6 +398,16 @@ func (r *Realizer) Bound(key ClaimKey) (*Bound, error) {
 		out.Monitors = append(out.Monitors, monitor)
 	}
 	return out, nil
+}
+
+// boundProperty is a Property's reading over its table's keys, as a reader of recorded steps takes it.
+func boundProperty(p *modelirspb.Property, reading *reads) BoundProperty {
+	out := BoundProperty{Name: p.GetName(), About: func(action string) bool { return reading.about == nil || reading.about(action) },
+		Holds: reading.across}
+	if reading.across == nil {
+		out.Holds = func(_ string, step umpire.Result) (bool, error) { return reading.same(step) }
+	}
+	return out
 }
 
 // Unknown reports whether an error of a bound function leaves what it read unknown, neither held nor

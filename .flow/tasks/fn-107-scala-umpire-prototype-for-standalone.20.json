@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-01T17:14:26.901695Z",
+  "depends_on": [
+    "fn-107-scala-umpire-prototype-for-standalone.13",
+    "fn-107-scala-umpire-prototype-for-standalone.12"
+  ],
+  "id": "fn-107-scala-umpire-prototype-for-standalone.20",
+  "priority": null,
+  "spec": "fn-107-scala-umpire-prototype-for-standalone",
+  "spec_path": ".flow/tasks/fn-107-scala-umpire-prototype-for-standalone.20.md",
+  "status": "todo",
+  "title": "Generic Testpilot evidence sources: single message, Run Events under a guard, kinds sharing a source",
+  "updated_at": "2026-10-01T17:14:26.901695Z"
+}

@@ -15,12 +15,13 @@ const (
 	NexusOperationCompletion
 	ReadEvidence
 	ActivityAttemptFailure
+	ActivityAttemptCancellation
 )
 
 // MaxOpcode is the highest declared Opcode. A Profile authorizes each Opcode at most
 // once, so it is also the ceiling on an authorized Opcode list; Driver profile validation
 // reuses it rather than restating a literal a new instruction would silently invalidate.
-const MaxOpcode = ActivityAttemptFailure
+const MaxOpcode = ActivityAttemptCancellation
 
 // EntrypointKind classifies an Entrypoint by its activation. The protocol carries no kind: the
 // activation oneof is the one source, read by EntrypointKindOf.

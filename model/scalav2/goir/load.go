@@ -4,12 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"regexp"
 	"slices"
 	"strings"
 
 	modelirspb "go.temporal.io/server/api/modelir/v1"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 // Load reads a Model in ProtoJSON, rejects fields the schema does not have, and validates it.
@@ -1496,11 +1498,14 @@ type realizing struct {
 	bound     map[string]string
 	performed map[string]string
 	read      map[string]bool
+	// closed names the command whose read closes an exhaustive kind of evidence.
+	closed map[string]string
 }
 
 var (
 	roleKinds    = map[modelirspb.Role_Kind]string{modelirspb.Role_KIND_ENDPOINT: "an endpoint", modelirspb.Role_KIND_WORKER: "a worker", modelirspb.Role_KIND_TASK_QUEUE: "a task queue", modelirspb.Role_KIND_PARTICIPANT: "a participant"}
 	learnedKinds = map[modelirspb.Learned_Kind]string{modelirspb.Learned_KIND_TEXT: "a text", modelirspb.Learned_KIND_HANDLE: "a handle"}
+	fieldRoles   = map[modelirspb.EvidenceField_Role]string{modelirspb.EvidenceField_ROLE_OPERATION: "the operation", modelirspb.EvidenceField_ROLE_ATTEMPT: "the attempt", modelirspb.EvidenceField_ROLE_DELIVERY: "the delivery"}
 )
 
 // realization checks that a realization names what it declares, declares each thing once, binds each
@@ -1512,7 +1517,8 @@ func (v *validator) realization(r *modelirspb.Realization) {
 	at := r.GetPosition()
 	a := &realizing{v: v, r: r, label: r.GetName(), owner: "realization " + r.GetName(), roles: map[string]*modelirspb.Role{},
 		learned: map[string]*modelirspb.Learned{}, observations: map[string]bool{}, evidence: map[string]*modelirspb.Evidence{},
-		controls: map[string]bool{}, bound: map[string]string{}, performed: map[string]string{}, read: map[string]bool{}}
+		controls: map[string]bool{}, bound: map[string]string{}, performed: map[string]string{}, read: map[string]bool{},
+		closed: map[string]string{}}
 	switch {
 	case r.GetName() != "":
 		v.once(at, "realizations named", r.GetName())
@@ -1549,6 +1555,133 @@ func (v *validator) realization(r *modelirspb.Realization) {
 			a.report(l.GetPosition(), "learned value %s is neither bound nor read", l.GetId())
 		}
 	}
+	for _, e := range r.GetEvidence() {
+		if _, closed := a.closed[e.GetId()]; e.GetExhaustive() && !closed {
+			a.report(e.GetPosition(), "evidence %s is exhaustive and no command closes it", e.GetId())
+		}
+		a.recordedBy(e)
+		a.attemptOf(e)
+	}
+	a.confirms(mm)
+}
+
+// attemptOf checks evidence that is the Run's record of an attempt: it names an attempt, counted from
+// one, of a script an activity activates, whose activation is a delivery a path can take, and it is
+// what a worker reports of an activation, which is how a Run records an attempt.
+func (a *realizing) attemptOf(e *modelirspb.Evidence) {
+	of := e.GetRunEvent().GetAttempt()
+	if of == nil {
+		return
+	}
+	at := of.GetPosition()
+	if at.GetFile() == "" {
+		at = e.GetPosition()
+	}
+	if e.GetRunEvent().GetKind() != modelirspb.RunEventSource_KIND_DIAGNOSTIC {
+		a.report(at, "evidence %s is the record of an attempt and of no diagnostic: a Run records an attempt as what a worker reports of an activation", e.GetId())
+	}
+	if of.GetScript() == "" {
+		a.report(at, "evidence %s is the record of an attempt of no script", e.GetId())
+		return
+	}
+	for _, s := range a.r.GetScripts() {
+		if s.GetId() != of.GetScript() {
+			continue
+		}
+		switch {
+		case s.GetActivity() == nil:
+			a.report(at, "evidence %s is the record of an attempt of script %s, which no activity activates", e.GetId(), s.GetId())
+		case len(s.GetActivity().GetStarts()) == 0:
+			a.report(at, "evidence %s is the record of an attempt of script %s, which starts with no delivery: no step of a path is an attempt of it", e.GetId(), s.GetId())
+		case of.GetNumber() < 1:
+			a.report(at, "evidence %s is the record of attempt %d of script %s; the attempts of an activity are counted from one", e.GetId(), of.GetNumber(), s.GetId())
+		default:
+		}
+		return
+	}
+	a.report(at, "evidence %s is the record of an attempt of script %s, which the realization does not declare", e.GetId(), of.GetScript())
+}
+
+// confirms checks the steps of a path that kinds of evidence name as the ones they confirm: each is a
+// step of a class the machine binds, counted from one, which its kind names once and no other kind
+// names; and no kind that names steps is exhaustive, or records a fact an exhaustive kind records.
+func (a *realizing) confirms(mm *modelirspb.Machine) {
+	// An exhaustive kind reports every occurrence of the fact it records, so it is the one kind of
+	// that fact: read with a second kind beside it, its silence would say nothing of the steps the
+	// second confirms.
+	exhaustive := map[string]string{}
+	for _, e := range a.r.GetEvidence() {
+		if e.GetExhaustive() && e.GetRecords() != "" {
+			exhaustive[e.GetRecords()] = e.GetId()
+		}
+	}
+	named := map[string]string{}
+	for _, e := range a.r.GetEvidence() {
+		switch reporting, reported := exhaustive[e.GetRecords()]; {
+		case len(e.GetConfirms()) == 0:
+		case e.GetExhaustive():
+			a.report(e.GetPosition(), "evidence %s is exhaustive and names the steps it confirms; an exhaustive kind reports every step that records its fact", e.GetId())
+		case reported:
+			a.report(e.GetPosition(), "evidence %s records %s, every occurrence of which the exhaustive %s reports", e.GetId(), e.GetRecords(), reporting)
+		default:
+		}
+		own := map[string]bool{}
+		for _, taking := range e.GetConfirms() {
+			at := taking.GetPosition()
+			if at.GetFile() == "" {
+				at = e.GetPosition()
+			}
+			if taking.GetStep() == nil {
+				a.report(at, "evidence %s confirms a step of no class", e.GetId())
+				continue
+			}
+			if mm == nil {
+				continue
+			}
+			before := len(a.v.errs)
+			a.v.actionClass(a.owner+": evidence "+e.GetId(), mm, taking.GetStep(), at)
+			if len(a.v.errs) != before {
+				continue
+			}
+			step := fmt.Sprintf("step %d of class %s", taking.GetOccurrence(), classKey(a.v.in, a.v.actions, taking.GetStep()))
+			switch other, taken := named[step]; {
+			case taking.GetOccurrence() < 1:
+				a.report(at, "evidence %s confirms %s; the steps of a class on a path are counted from one", e.GetId(), step)
+			case own[step]:
+				a.report(at, "evidence %s confirms %s twice", e.GetId(), step)
+			case taken:
+				a.report(at, "evidence %s and %s both confirm %s; one kind confirms a step", other, e.GetId(), step)
+			default:
+				named[step], own[step] = e.GetId(), true
+			}
+		}
+	}
+}
+
+// recordedBy checks that a Run Event's evidence names a command of a script the realization declares.
+func (a *realizing) recordedBy(e *modelirspb.Evidence) {
+	source := e.GetRunEvent()
+	if source == nil {
+		return
+	}
+	for _, s := range a.r.GetScripts() {
+		if s.GetId() != source.GetScript() || s.GetId() == "" {
+			continue
+		}
+		for _, item := range s.GetItems() {
+			if item.GetCommand() != nil && item.GetCommand().GetId() == source.GetCommand() {
+				return
+			}
+			for _, p := range item.GetPerforms() {
+				if p.GetCommand() != nil && p.GetCommand().GetId() == source.GetCommand() {
+					return
+				}
+			}
+		}
+		a.report(e.GetPosition(), "evidence %s: no command %s of script %s", e.GetId(), source.GetCommand(), s.GetId())
+		return
+	}
+	a.report(e.GetPosition(), "evidence %s: no script %s", e.GetId(), source.GetScript())
 }
 
 func (a *realizing) report(at *modelirspb.Position, format string, args ...any) {
@@ -1619,16 +1752,24 @@ func (a *realizing) evidenceKind(e *modelirspb.Evidence) {
 	if a.declared(at, "a kind of evidence", "kinds of evidence", id) {
 		a.evidence[id] = e
 	}
-	if e.GetRecords() == "" {
+	switch {
+	case e.GetRecords() == "":
 		a.report(at, "evidence %s names no recorded kind", id)
-	} else {
+	case len(e.GetConfirms()) == 0:
+		// One kind confirms the step of a path that records a fact. Kinds that name the steps they
+		// confirm are told apart by those steps, and may record one fact beside it.
 		a.v.once(at, "kinds of evidence recording", e.GetRecords(), "of realization", a.label)
+	default:
 	}
 	if e.GetSource() == "" {
 		a.report(at, "evidence %s names no source", id)
 	}
-	if e.GetOperation() == "" {
+	switch {
+	case e.GetRunEvent() != nil && e.GetOperation() != "":
+		a.report(at, "evidence %s names a field that keys its operation, and a Run Event's key is its source's", id)
+	case e.GetRunEvent() == nil && e.GetOperation() == "":
 		a.report(at, "evidence %s names no field that keys its operation", id)
+	default:
 	}
 	switch from := e.GetFrom().(type) {
 	case *modelirspb.Evidence_History:
@@ -1639,11 +1780,380 @@ func (a *realizing) evidenceKind(e *modelirspb.Evidence) {
 		if from.Read.GetMethod() == "" || from.Read.GetPath() == "" {
 			a.report(at, "evidence %s reads no method or no path", id)
 		}
+	case *modelirspb.Evidence_Single:
+		if from.Single.GetMethod() == "" || from.Single.GetPath() == "" {
+			a.report(at, "evidence %s reads no method or no path", id)
+		}
+	case *modelirspb.Evidence_RunEvent:
+		a.runEvent(e, from.RunEvent)
 	default:
 		a.report(at, "evidence %s is recorded nowhere", id)
 	}
 	if !known(modelirspb.Evidence_Commitment_name, int32(e.GetCommitment())) {
 		a.report(at, "evidence %s is of no known commitment", id)
+	}
+	a.evidenceFields(e)
+}
+
+// runEvent checks the Run's own record as a source of evidence: it is of a known kind, its key is the
+// run's id or a path of the event's payload, and its guard reads the payload alone. The command it
+// names is checked once the scripts are read.
+func (a *realizing) runEvent(e *modelirspb.Evidence, source *modelirspb.RunEventSource) {
+	at, id := e.GetPosition(), e.GetId()
+	if !known(modelirspb.RunEventSource_Kind_name, int32(source.GetKind())) {
+		a.report(at, "evidence %s is a Run Event of no known kind", id)
+	}
+	key := source.GetKey()
+	if key.GetRun() == nil && (key.GetPath() == nil || key.GetPath().GetOf().GetProjected() == nil || key.GetPath().GetPath() == "") {
+		a.report(at, "evidence %s: a Run Event's key is the run's id or a path of its payload", id)
+	}
+	if source.GetGuard() != nil {
+		if err := GuardProblem(source.GetGuard(), nil); err != nil {
+			a.report(at, "evidence %s: its guard %s", id, err)
+		}
+	}
+}
+
+// Shape is the type of the value an operand computes.
+type Shape string
+
+const (
+	// AnyShape is a value its reader does not type: a path read where no descriptor is.
+	AnyShape       Shape = ""
+	ConditionShape Shape = "a condition"
+	NumberShape    Shape = "a number"
+	TextShape      Shape = "a text"
+	EnumShape      Shape = "an enum value"
+	MessageShape   Shape = "a message"
+	SeveralShape   Shape = "several values"
+	OtherShape     Shape = "a value that is no text, flag, integer or enum value"
+)
+
+// Typed is what an operand computes: its shape and, where a descriptor was read, the enum an enum
+// value is of and the message a message is. An enum value written out has its name and no enum.
+type Typed struct {
+	Shape   Shape
+	Enum    protoreflect.EnumDescriptor
+	Name    string
+	Message protoreflect.MessageDescriptor
+}
+
+// Mistype is what is wrong with the types of an operand, as the rest of a sentence about it.
+type Mistype struct{ Says string }
+
+func (m *Mistype) Error() string { return m.Says }
+
+func mistype(format string, args ...any) error { return &Mistype{Says: fmt.Sprintf(format, args...)} }
+
+// Paths types the value at a path of a value that is a message, by its descriptor where one was read,
+// or of a value of any shape.
+type Paths func(of Typed, path string) (Typed, error)
+
+// TypeOf is the one reading of the types of an operand, which admission, the lowering to a Case and
+// the evaluation of a guard all make, so that what is well typed for one is well typed for all. An
+// order is of numbers, a negation and a conjunction of conditions, a comparison of two values of one
+// type that is no message, and a path of a message. projected is the message the projected value is,
+// or nil where no descriptor is read, and paths types a path; with no paths every path is of any
+// shape. An operand of no known kind is of any shape: what a command and a guard may be made of is
+// checked where each is admitted.
+func TypeOf(o *modelirspb.Operand, projected protoreflect.MessageDescriptor, paths Paths) (Typed, error) {
+	of := func(operands ...*modelirspb.Operand) ([]Typed, error) {
+		out := make([]Typed, len(operands))
+		for i, operand := range operands {
+			var err error
+			if out[i], err = TypeOf(operand, projected, paths); err != nil {
+				return nil, err
+			}
+		}
+		return out, nil
+	}
+	condition := Typed{Shape: ConditionShape}
+	switch k := o.GetKind().(type) {
+	case *modelirspb.Operand_Literal:
+		return writtenType(k.Literal), nil
+	case *modelirspb.Operand_Environment, *modelirspb.Operand_Run, *modelirspb.Operand_LearnedValue:
+		return Typed{Shape: TextShape}, nil
+	case *modelirspb.Operand_Projected:
+		return Typed{Shape: MessageShape, Message: projected}, nil
+	case *modelirspb.Operand_Path:
+		from, err := of(k.Path.GetOf())
+		switch {
+		case err != nil:
+			return Typed{}, err
+		case from[0].Shape != AnyShape && from[0].Shape != MessageShape:
+			return Typed{}, mistype("reads %s of %s, which is no message", k.Path.GetPath(), from[0].Shape)
+		case paths == nil:
+			return Typed{}, nil
+		default:
+			return paths(from[0], k.Path.GetPath())
+		}
+	case *modelirspb.Operand_Present:
+		_, err := of(k.Present.GetOf())
+		return condition, err
+	case *modelirspb.Operand_Equal:
+		sides, err := of(k.Equal.GetLeft(), k.Equal.GetRight())
+		if err != nil {
+			return Typed{}, err
+		}
+		return condition, compared(sides[0], sides[1])
+	case *modelirspb.Operand_Greater:
+		sides, err := of(k.Greater.GetLeft(), k.Greater.GetRight())
+		return condition, every(sides, err, NumberShape, "orders", "numbers are ordered")
+	case *modelirspb.Operand_Not:
+		operands, err := of(k.Not.GetOf())
+		return condition, every(operands, err, ConditionShape, "negates", "a condition is negated")
+	case *modelirspb.Operand_All:
+		operands, err := of(k.All.GetOperands()...)
+		return condition, every(operands, err, ConditionShape, "joins", "conditions are joined")
+	default:
+		return Typed{}, nil
+	}
+}
+
+// every is what is wrong with the first operand that is of neither one shape nor any, after what was
+// wrong with typing them.
+func every(operands []Typed, err error, want Shape, verb, only string) error {
+	if err != nil {
+		return err
+	}
+	for _, operand := range operands {
+		if operand.Shape != AnyShape && operand.Shape != want {
+			return mistype("%s %s, and only %s", verb, operand.Shape, only)
+		}
+	}
+	return nil
+}
+
+// compared is what is wrong with comparing two values, or nil: each is one flag, number, text or
+// enum value, they are of one type, and two enum values are of one enum, a written one being a name
+// the other's enum has.
+func compared(left, right Typed) error {
+	for _, side := range []Typed{left, right} {
+		if side.Shape == MessageShape || side.Shape == SeveralShape || side.Shape == OtherShape {
+			return mistype("compares %s", side.Shape)
+		}
+	}
+	switch {
+	case left.Shape == AnyShape || right.Shape == AnyShape:
+		return nil
+	case left.Shape != right.Shape:
+		return mistype("compares %s with %s", left.Shape, right.Shape)
+	case left.Shape != EnumShape:
+		return nil
+	case left.Enum == nil && right.Enum == nil:
+		return mistype("compares two enum values it writes out")
+	case left.Enum != nil && right.Enum != nil && left.Enum.FullName() != right.Enum.FullName():
+		return mistype("compares a value of %s with one of %s", left.Enum.FullName(), right.Enum.FullName())
+	case left.Enum == nil && right.Enum.Values().ByName(protoreflect.Name(left.Name)) == nil:
+		return mistype("compares a value of %s with %s, which it does not have", right.Enum.FullName(), left.Name)
+	case right.Enum == nil && left.Enum.Values().ByName(protoreflect.Name(right.Name)) == nil:
+		return mistype("compares a value of %s with %s, which it does not have", left.Enum.FullName(), right.Name)
+	default:
+		return nil
+	}
+}
+
+// writtenType is the type of a value an operand writes out.
+func writtenType(value *modelirspb.ProtoValue) Typed {
+	switch v := value.GetKind().(type) {
+	case *modelirspb.ProtoValue_Text, *modelirspb.ProtoValue_Named:
+		return Typed{Shape: TextShape}
+	case *modelirspb.ProtoValue_Flag:
+		return Typed{Shape: ConditionShape}
+	case *modelirspb.ProtoValue_Number:
+		return Typed{Shape: NumberShape}
+	case *modelirspb.ProtoValue_EnumName:
+		return Typed{Shape: EnumShape, Name: v.EnumName}
+	default:
+		return Typed{Shape: OtherShape}
+	}
+}
+
+var payloadSegment = regexp.MustCompile(`^([a-z0-9_]+)(<([a-z0-9_]+)>)?$`)
+
+// PayloadFields is the fields a path of a Run Event's payload names, in order: plain fields, and
+// `oneof<member>` for one member of a oneof, each one value. With no descriptor it checks how the
+// path is written and names no field.
+func PayloadFields(of protoreflect.MessageDescriptor, path string) ([]protoreflect.FieldDescriptor, error) {
+	if path == "" {
+		return nil, mistype("reads an empty path")
+	}
+	segments := strings.Split(path, ".")
+	parts := make([][]string, len(segments))
+	for i, segment := range segments {
+		if parts[i] = payloadSegment.FindStringSubmatch(segment); parts[i] == nil {
+			return nil, mistype("reads %q of the path %s, and a guard reads a field or oneof<member>", segment, path)
+		}
+	}
+	if of == nil {
+		return nil, nil
+	}
+	fields := make([]protoreflect.FieldDescriptor, len(segments))
+	for i, segment := range segments {
+		name, member := protoreflect.Name(parts[i][1]), protoreflect.Name(parts[i][3])
+		field := of.Fields().ByName(name)
+		if member != "" {
+			oneof := of.Oneofs().ByName(name)
+			if oneof == nil || oneof.Fields().ByName(member) == nil {
+				return nil, mistype("reads %s, and %s has no such member", segment, of.FullName())
+			}
+			field = oneof.Fields().ByName(member)
+		}
+		switch {
+		case field == nil:
+			return nil, mistype("reads %s, and %s has no field %s", path, of.FullName(), name)
+		case field.IsList() || field.IsMap():
+			return nil, mistype("reads %s, and %s holds several values", path, field.FullName())
+		case i < len(segments)-1 && field.Message() == nil:
+			return nil, mistype("reads %s, and %s is no message", path, field.FullName())
+		default:
+		}
+		fields[i], of = field, field.Message()
+	}
+	return fields, nil
+}
+
+// PayloadPath types a path of a Run Event's payload, as a guard reads one: a message, or one flag,
+// text, enum value or signed integer.
+func PayloadPath(of Typed, path string) (Typed, error) {
+	fields, err := PayloadFields(of.Message, path)
+	if err != nil || fields == nil {
+		return Typed{}, err
+	}
+	switch field := fields[len(fields)-1]; field.Kind() {
+	case protoreflect.MessageKind, protoreflect.GroupKind:
+		return Typed{Shape: MessageShape, Message: field.Message()}, nil
+	case protoreflect.BoolKind:
+		return Typed{Shape: ConditionShape}, nil
+	case protoreflect.StringKind:
+		return Typed{Shape: TextShape}, nil
+	case protoreflect.EnumKind:
+		return Typed{Shape: EnumShape, Enum: field.Enum()}, nil
+	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind, protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind:
+		return Typed{Shape: NumberShape}, nil
+	default:
+		return Typed{}, mistype("reads %s, which is of kind %s", field.FullName(), field.Kind())
+	}
+}
+
+// GuardProblem is what is wrong with the guard of a Run Event source, or nil. It is the one check of
+// a guard: admission makes it with no descriptor, the lowering to a Case with the descriptor of the
+// payload, and the evaluation of the guard on a recorded Run with the descriptor of the payload it
+// evaluates. A guard is made of the payload and of the flags, numbers, texts and enum values it writes
+// out, is well typed, and is a condition.
+func GuardProblem(guard *modelirspb.Operand, payload protoreflect.MessageDescriptor) error {
+	if problem := overThePayload(guard); problem != "" {
+		return &Mistype{Says: problem}
+	}
+	computes, err := TypeOf(guard, payload, PayloadPath)
+	if err != nil {
+		return err
+	}
+	if computes.Shape != AnyShape && computes.Shape != ConditionShape {
+		return mistype("is %s, and a guard is a condition", computes.Shape)
+	}
+	return nil
+}
+
+// payloadAlone ends what is wrong with a guard that reads something a recorded Run does not hold.
+const payloadAlone = "; a Run Event's guard reads the event's payload alone"
+
+// writtenInAGuard is what is wrong with a value a guard writes out, or empty. A guard is evaluated on
+// a recorded Run, which holds no name a Case binds.
+func writtenInAGuard(value *modelirspb.ProtoValue) string {
+	switch value.GetKind().(type) {
+	case *modelirspb.ProtoValue_Text, *modelirspb.ProtoValue_Flag, *modelirspb.ProtoValue_Number, *modelirspb.ProtoValue_EnumName:
+		return ""
+	case *modelirspb.ProtoValue_Named:
+		return "writes out a name a Case binds" + payloadAlone
+	default:
+		return "writes out a value that is no text, flag, number or enum value"
+	}
+}
+
+// overThePayload is what is wrong with what a Run Event's guard is made of, or empty: it reads the
+// event's payload and what is written out, and nothing of the run.
+func overThePayload(o *modelirspb.Operand) string {
+	const alone = payloadAlone
+	switch k := o.GetKind().(type) {
+	case *modelirspb.Operand_Literal:
+		return writtenInAGuard(k.Literal)
+	case *modelirspb.Operand_Projected:
+		return ""
+	case *modelirspb.Operand_Run:
+		return "reads the run's id" + alone
+	case *modelirspb.Operand_Environment:
+		return "reads the environment binding " + k.Environment + alone
+	case *modelirspb.Operand_LearnedValue:
+		return "reads the learned value " + k.LearnedValue + alone
+	case *modelirspb.Operand_Path:
+		return overThePayload(k.Path.GetOf())
+	case *modelirspb.Operand_Present:
+		return overThePayload(k.Present.GetOf())
+	case *modelirspb.Operand_Equal:
+		if left := overThePayload(k.Equal.GetLeft()); left != "" {
+			return left
+		}
+		return overThePayload(k.Equal.GetRight())
+	case *modelirspb.Operand_Greater:
+		if left := overThePayload(k.Greater.GetLeft()); left != "" {
+			return left
+		}
+		return overThePayload(k.Greater.GetRight())
+	case *modelirspb.Operand_Not:
+		return overThePayload(k.Not.GetOf())
+	case *modelirspb.Operand_All:
+		if len(k.All.GetOperands()) == 0 {
+			return "is a conjunction of no operand"
+		}
+		for _, operand := range k.All.GetOperands() {
+			if problem := overThePayload(operand); problem != "" {
+				return problem
+			}
+		}
+		return ""
+	default:
+		return "has an operand of no known kind"
+	}
+}
+
+// evidenceFields checks the fields a kind of evidence carries: each is named once and read from a
+// path, and an identity is named by one field of the kind, which the evidence retains.
+func (a *realizing) evidenceFields(e *modelirspb.Evidence) {
+	declared, named := map[string]bool{}, map[modelirspb.EvidenceField_Role]string{}
+	for _, f := range e.GetFields() {
+		at := f.GetPosition()
+		if at.GetFile() == "" {
+			at = e.GetPosition()
+		}
+		switch {
+		case f.GetId() == "":
+			a.report(at, "evidence %s has a field with no id", e.GetId())
+			continue
+		case declared[f.GetId()]:
+			a.report(at, "evidence %s declares field %s twice", e.GetId(), f.GetId())
+			continue
+		default:
+			declared[f.GetId()] = true
+		}
+		if f.GetPath() == "" {
+			a.report(at, "evidence %s: field %s names no path", e.GetId(), f.GetId())
+		}
+		role := f.GetRole()
+		if role == modelirspb.EvidenceField_ROLE_UNSPECIFIED {
+			continue
+		}
+		spelled, isKnown := fieldRoles[role]
+		switch other, taken := named[role]; {
+		case !isKnown:
+			a.report(at, "evidence %s: field %s names an identity of no known role", e.GetId(), f.GetId())
+		case f.GetRedacted():
+			a.report(at, "evidence %s: field %s names %s and is redacted; an identity is read from a field the evidence retains", e.GetId(), f.GetId(), spelled)
+		case taken:
+			a.report(at, "evidence %s: fields %s and %s both name %s; one field of a kind names an identity", e.GetId(), other, f.GetId(), spelled)
+		default:
+			named[role] = f.GetId()
+		}
 	}
 }
 
@@ -1680,6 +2190,8 @@ type commandOf struct {
 	c    *modelirspb.Command
 	name string
 	at   *modelirspb.Position
+	// always says every Case carries the command: it is no performance, and is under no condition.
+	always bool
 }
 
 func (a *realizing) script(mm *modelirspb.Machine, s *modelirspb.Script) {
@@ -1687,11 +2199,11 @@ func (a *realizing) script(mm *modelirspb.Machine, s *modelirspb.Script) {
 	if !a.declared(at, "a script", "scripts", s.GetId()) && s.GetId() == "" {
 		return
 	}
-	a.activation(s)
+	a.activation(mm, s)
 	a.items(mm, s)
 	fixed, all := map[string]bool{}, map[string]*modelirspb.Command{}
 	var commands []commandOf
-	note := func(c *modelirspb.Command, performs bool) {
+	note := func(c *modelirspb.Command, performs, always bool) {
 		pos := c.GetPosition()
 		if pos.GetFile() == "" {
 			pos = at
@@ -1709,11 +2221,11 @@ func (a *realizing) script(mm *modelirspb.Machine, s *modelirspb.Script) {
 		default:
 		}
 		all[c.GetId()] = c
-		commands = append(commands, commandOf{c, fmt.Sprintf("%s of script %s", c.GetId(), s.GetId()), pos})
+		commands = append(commands, commandOf{c, fmt.Sprintf("%s of script %s", c.GetId(), s.GetId()), pos, always})
 	}
 	for _, item := range s.GetItems() {
 		if item.GetCommand() != nil && len(item.GetPerforms()) == 0 {
-			note(item.GetCommand(), false)
+			note(item.GetCommand(), false, len(item.GetWhen()) == 0)
 		}
 	}
 	for _, item := range s.GetItems() {
@@ -1722,7 +2234,7 @@ func (a *realizing) script(mm *modelirspb.Machine, s *modelirspb.Script) {
 				a.report(p.GetPosition(), "script %s performs a class with no command", s.GetId())
 				continue
 			}
-			note(p.GetCommand(), true)
+			note(p.GetCommand(), true, false)
 			a.performs(mm, s, p)
 		}
 	}
@@ -1760,18 +2272,23 @@ func (a *realizing) items(mm *modelirspb.Machine, s *modelirspb.Script) {
 // performs checks the class a performance binds, and that no other performance of the realization
 // binds it.
 func (a *realizing) performs(mm *modelirspb.Machine, s *modelirspb.Script, p *modelirspb.Performance) {
+	a.performing(mm, "script "+s.GetId(), p.GetStep(), p.GetPosition(), fmt.Sprintf("%s of script %s", p.GetCommand().GetId(), s.GetId()))
+}
+
+// performing records what performs one class of the machine, a command or the activation of a script,
+// and reports a class the machine does not bind and one something else performs already.
+func (a *realizing) performing(mm *modelirspb.Machine, where string, class *modelirspb.ActionClass, at *modelirspb.Position, by string) {
 	if mm == nil {
 		return
 	}
 	before := len(a.v.errs)
-	a.v.actionClass(a.owner+": script "+s.GetId(), mm, p.GetStep(), p.GetPosition())
+	a.v.actionClass(a.owner+": "+where, mm, class, at)
 	if len(a.v.errs) != before {
 		return
 	}
-	key := classKey(a.v.in, a.v.actions, p.GetStep())
-	by := fmt.Sprintf("%s of script %s", p.GetCommand().GetId(), s.GetId())
+	key := classKey(a.v.in, a.v.actions, class)
 	if other, ok := a.performed[key]; ok {
-		a.report(p.GetPosition(), "class %s is performed by %s and by %s; a class is performed once", key, other, by)
+		a.report(at, "class %s is performed by %s and by %s; a class is performed once", key, other, by)
 		return
 	}
 	a.performed[key] = by
@@ -1788,7 +2305,7 @@ func (a *realizing) role(at *modelirspb.Position, where, id string, kind modelir
 	}
 }
 
-func (a *realizing) activation(s *modelirspb.Script) {
+func (a *realizing) activation(mm *modelirspb.Machine, s *modelirspb.Script) {
 	at, where := s.GetPosition(), "script "+s.GetId()
 	worker := func(name *modelirspb.Name, workerRole, queue string) {
 		if name != nil && name.GetPrefix() == "" && name.GetSuffix() == "" && !name.GetFixture() {
@@ -1803,6 +2320,9 @@ func (a *realizing) activation(s *modelirspb.Script) {
 		worker(act.Workflow.GetWorkflowType(), act.Workflow.GetWorker(), act.Workflow.GetTaskQueue())
 	case *modelirspb.Script_Activity:
 		worker(act.Activity.GetActivityType(), act.Activity.GetWorker(), act.Activity.GetTaskQueue())
+		for _, class := range act.Activity.GetStarts() {
+			a.performing(mm, where, class, at, "the activation of "+where)
+		}
 	case *modelirspb.Script_NexusHandler:
 		if act.NexusHandler.GetService() == "" || act.NexusHandler.GetOperation() == "" {
 			a.report(at, "%s answers no service or no operation", where)
@@ -1852,6 +2372,9 @@ func (a *realizing) command(s *modelirspb.Script, c commandOf, all map[string]*m
 	if c.c.GetTimeoutMs() < 0 {
 		a.report(c.at, "command %s has a deadline of %d milliseconds", c.name, c.c.GetTimeoutMs())
 	}
+	for _, id := range c.c.GetCloses() {
+		a.closes(c, id)
+	}
 	switch in := c.c.GetInstruction().(type) {
 	case *modelirspb.Command_Rpc:
 		a.rpc(c, in.Rpc)
@@ -1864,7 +2387,7 @@ func (a *realizing) command(s *modelirspb.Script, c commandOf, all map[string]*m
 	case *modelirspb.Command_AwaitCommand:
 		named(in.AwaitCommand)
 	case *modelirspb.Command_Finish:
-		a.operand(c, in.Finish.GetResult(), false)
+		a.typed(c, in.Finish.GetResult(), false)
 	case *modelirspb.Command_Fault:
 		a.role(c.at, "command "+c.name, in.Fault.GetRole(), modelirspb.Role_KIND_TASK_QUEUE)
 		if !known(modelirspb.Fault_Kind_name, int32(in.Fault.GetKind())) {
@@ -1886,8 +2409,51 @@ func (a *realizing) command(s *modelirspb.Script, c commandOf, all map[string]*m
 		a.control(c, in.Hold)
 	case *modelirspb.Command_Release:
 		a.control(c, in.Release)
+	case *modelirspb.Command_AttemptFailure:
+		if s.GetActivity() == nil {
+			a.report(c.at, "command %s fails an attempt, and script %s is no activity's", c.name, s.GetId())
+		}
+		a.message(c, in.AttemptFailure.GetFailure())
+	case *modelirspb.Command_AttemptCanceled:
+		if s.GetActivity() == nil {
+			a.report(c.at, "command %s cancels an attempt, and script %s is no activity's", c.name, s.GetId())
+		}
 	default:
 		a.report(c.at, "command %s names no instruction", c.name)
+	}
+}
+
+// closes checks that a command's read is the one closing read of an exhaustive kind of evidence: it
+// reads the kind, and every Case carries it.
+func (a *realizing) closes(c commandOf, id string) {
+	e, declared := a.evidence[id]
+	switch other, closed := a.closed[id]; {
+	case !declared:
+		a.report(c.at, "command %s closes evidence %s, which is not declared", c.name, id)
+		return
+	case !e.GetExhaustive():
+		a.report(c.at, "command %s closes evidence %s, which is not exhaustive", c.name, id)
+		return
+	case closed:
+		a.report(c.at, "evidence %s is closed by %s and by %s; an exhaustive kind has one closing read", id, other, c.name)
+		return
+	default:
+		a.closed[id] = c.name
+	}
+	reads := c.c.GetPoll().GetEvidence() == id
+	if e.GetHistory() != "" {
+		reads = false
+		for _, read := range c.c.GetRpc().GetReads() {
+			for _, target := range read.GetTargets() {
+				reads = reads || target.GetLift() != ""
+			}
+		}
+	}
+	if !reads {
+		a.report(c.at, "command %s closes evidence %s and does not read it: a history kind is closed by the read that lifts it, and any other by a poll of it", c.name, id)
+	}
+	if !c.always {
+		a.report(c.at, "command %s closes evidence %s and is not a command every Case carries", c.name, id)
 	}
 }
 
@@ -1906,8 +2472,19 @@ func (a *realizing) assignments(c commandOf, assign []*modelirspb.Assignment, po
 			a.report(c.at, "command %s assigns %s twice", c.name, as.GetTarget())
 		}
 		targets[as.GetTarget()] = true
-		a.operand(c, as.GetValue(), polls)
+		a.typed(c, as.GetValue(), polls)
 	}
+}
+
+// typed checks a value a command computes, and the types of what it computes it from, and is its
+// shape.
+func (a *realizing) typed(c commandOf, o *modelirspb.Operand, polls bool) Shape {
+	a.operand(c, o, polls)
+	computes, err := TypeOf(o, nil, nil)
+	if err != nil {
+		a.report(c.at, "command %s: %s", c.name, err)
+	}
+	return computes.Shape
 }
 
 func (a *realizing) rpc(c commandOf, rpc *modelirspb.Rpc) {
@@ -1952,12 +2529,16 @@ func (a *realizing) poll(c commandOf, poll *modelirspb.Poll) {
 	switch e, ok := a.evidence[poll.GetEvidence()]; {
 	case !ok:
 		a.report(c.at, "command %s: no evidence %s", c.name, poll.GetEvidence())
-	case e.GetRead() == nil && e.GetFrom() != nil:
+	case e.GetRunEvent() != nil:
+		a.report(c.at, "command %s: evidence %s is a Run Event, which a poll does not read", c.name, poll.GetEvidence())
+	case e.GetRead() == nil && e.GetSingle() == nil && e.GetFrom() != nil:
 		a.report(c.at, "command %s: evidence %s is a history event, which a poll does not read", c.name, poll.GetEvidence())
 	default:
 	}
 	a.assignments(c, poll.GetAssign(), false)
-	a.operand(c, poll.GetUntil(), true)
+	if computes := a.typed(c, poll.GetUntil(), true); computes != AnyShape && computes != ConditionShape {
+		a.report(c.at, "command %s polls until %s, and a poll's condition is a condition", c.name, computes)
+	}
 	if poll.GetIntervalMs() < 1 {
 		a.report(c.at, "command %s polls every %d milliseconds", c.name, poll.GetIntervalMs())
 	}
@@ -1998,6 +2579,18 @@ func (a *realizing) operand(c commandOf, o *modelirspb.Operand, polls bool) {
 	case *modelirspb.Operand_Equal:
 		a.operand(c, k.Equal.GetLeft(), polls)
 		a.operand(c, k.Equal.GetRight(), polls)
+	case *modelirspb.Operand_All:
+		if len(k.All.GetOperands()) == 0 {
+			a.report(c.at, "command %s: a conjunction of no operand", c.name)
+		}
+		for _, operand := range k.All.GetOperands() {
+			a.operand(c, operand, polls)
+		}
+	case *modelirspb.Operand_Greater:
+		a.operand(c, k.Greater.GetLeft(), polls)
+		a.operand(c, k.Greater.GetRight(), polls)
+	case *modelirspb.Operand_Not:
+		a.operand(c, k.Not.GetOf(), polls)
 	default:
 		a.report(c.at, "command %s: an operand of no known kind", c.name)
 	}

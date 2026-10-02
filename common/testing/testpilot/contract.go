@@ -39,17 +39,18 @@ const (
 )
 
 const (
-	InvokeRPC                = contract.InvokeRPC
-	AwaitSlot                = contract.AwaitSlot
-	Await                    = contract.Await
-	Finish                   = contract.Finish
-	InjectFault              = contract.InjectFault
-	WorkflowCommand          = contract.WorkflowCommand
-	NexusHandlerReply        = contract.NexusHandlerReply
-	NexusOperationCompletion = contract.NexusOperationCompletion
-	ReadEvidence             = contract.ReadEvidence
-	ActivityAttemptFailure   = contract.ActivityAttemptFailure
-	MaxOpcode                = contract.MaxOpcode
+	InvokeRPC                   = contract.InvokeRPC
+	AwaitSlot                   = contract.AwaitSlot
+	Await                       = contract.Await
+	Finish                      = contract.Finish
+	InjectFault                 = contract.InjectFault
+	WorkflowCommand             = contract.WorkflowCommand
+	NexusHandlerReply           = contract.NexusHandlerReply
+	NexusOperationCompletion    = contract.NexusOperationCompletion
+	ReadEvidence                = contract.ReadEvidence
+	ActivityAttemptFailure      = contract.ActivityAttemptFailure
+	ActivityAttemptCancellation = contract.ActivityAttemptCancellation
+	MaxOpcode                   = contract.MaxOpcode
 )
 
 const (

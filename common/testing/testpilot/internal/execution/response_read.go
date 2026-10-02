@@ -217,53 +217,72 @@ func (p responseRead) liftAt(index int) *evidenceLift {
 // but cannot read one of its own declared coordinates fails rather than recording partial evidence.
 func (a *activationValues) liftEvidence(w *valueWork, lift *evidenceLift, value *testpilotspb.Value, ordinal int64) (*testpilotspb.Value, error) {
 	for _, rule := range lift.rules {
-		guard, work, err := rule.guard.EvaluateExecution(w.ctx, func(reference ir.Reference) *testpilotspb.Value {
-			if reference.Kind == ir.ProjectedValueReference {
-				return value
-			}
-			return nil
-		}, w.limits.Work-w.work)
-		w.work += work
+		selected, err := selectsEvidence(w, rule.guard, value)
 		if err != nil {
 			return nil, err
 		}
-		if !guard.GetBoolValue() {
+		if !selected {
 			continue
 		}
-		evidence := &testpilotspb.CorrelatedEvidence{Kind: rule.kind, Identity: &testpilotspb.CorrelatedIdentity{EvidenceSource: rule.source, Ordinal: ordinal}}
-		for _, binding := range rule.scope {
-			text := binding.literal
-			if binding.path != nil {
-				if text, err = a.readLiftText(w, lift, binding.path, value); err != nil {
-					return nil, err
-				}
-			}
-			evidence.Identity.Scope = append(evidence.Identity.Scope, &testpilotspb.NamedValue{FieldId: binding.fieldID, Value: textValue(text)})
-		}
-		if evidence.Operation, err = a.readLiftKey(w, lift, rule.operation, value); err != nil {
-			return nil, err
-		}
-		for _, binding := range rule.fields {
-			scalar := textValue(binding.literal)
-			if binding.path != nil {
-				if scalar, err = a.readLiftScalar(w, lift, binding.path, value); err != nil {
-					return nil, err
-				}
-			}
-			evidence.Fields = append(evidence.Fields, &testpilotspb.NamedValue{FieldId: binding.fieldID, Value: scalar})
-		}
-		a.store.chainEvidence(evidence)
-		encoded, err := proto.Marshal(evidence)
-		if err != nil {
-			return nil, ir.Invalid(ir.Malformed, "response_read", "evidence lift produced an unencodable value")
-		}
-		if err := w.charge(int64(len(encoded)) + 1); err != nil {
-			return nil, err
-		}
-		return &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{
-			TypeUrl: "type.googleapis.com/" + string(evidence.ProtoReflect().Descriptor().FullName()), Value: encoded}}}, nil
+		return a.buildEvidence(w, lift, rule, value, ordinal)
 	}
 	return nil, nil
+}
+
+// selectsEvidence evaluates a lift guard over one projected value. A guard that has no value is an
+// error, never a rejection.
+func selectsEvidence(w *valueWork, guard *ir.Expression, value *testpilotspb.Value) (bool, error) {
+	selected, work, err := guard.EvaluateExecution(w.ctx, func(reference ir.Reference) *testpilotspb.Value {
+		if reference.Kind == ir.ProjectedValueReference {
+			return value
+		}
+		return nil
+	}, w.limits.Work-w.work)
+	w.work += work
+	if err != nil {
+		return false, err
+	}
+	return selected.GetBoolValue(), nil
+}
+
+// buildEvidence builds the evidence the rule declares from the projected value its guard selected,
+// under the ordinal.
+func (a *activationValues) buildEvidence(w *valueWork, lift *evidenceLift, rule evidenceRule, value *testpilotspb.Value, ordinal int64) (*testpilotspb.Value, error) {
+	var err error
+	evidence := &testpilotspb.CorrelatedEvidence{Kind: rule.kind, Identity: &testpilotspb.CorrelatedIdentity{EvidenceSource: rule.source, Ordinal: ordinal}}
+	for _, binding := range rule.scope {
+		text := binding.literal
+		if binding.path != nil {
+			if text, err = a.readLiftText(w, lift, binding.path, value); err != nil {
+				return nil, err
+			}
+		}
+		evidence.Identity.Scope = append(evidence.Identity.Scope, &testpilotspb.NamedValue{FieldId: binding.fieldID, Value: textValue(text)})
+	}
+	if rule.operation == nil {
+		evidence.Operation = a.store.runID
+	} else if evidence.Operation, err = a.readLiftKey(w, lift, rule.operation, value); err != nil {
+		return nil, err
+	}
+	for _, binding := range rule.fields {
+		scalar := textValue(binding.literal)
+		if binding.path != nil {
+			if scalar, err = a.readLiftScalar(w, lift, binding.path, value); err != nil {
+				return nil, err
+			}
+		}
+		evidence.Fields = append(evidence.Fields, &testpilotspb.NamedValue{FieldId: binding.fieldID, Value: scalar})
+	}
+	a.store.chainEvidence(evidence)
+	encoded, err := proto.Marshal(evidence)
+	if err != nil {
+		return nil, ir.Invalid(ir.Malformed, "response_read", "evidence lift produced an unencodable value")
+	}
+	if err := w.charge(int64(len(encoded)) + 1); err != nil {
+		return nil, err
+	}
+	return &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{
+		TypeUrl: "type.googleapis.com/" + string(evidence.ProtoReflect().Descriptor().FullName()), Value: encoded}}}, nil
 }
 func (a *activationValues) readLift(w *valueWork, lift *evidenceLift, path *ir.Path, value *testpilotspb.Value) (*testpilotspb.Value, error) {
 	read, work, err := ir.ReadValue(w.ctx, value, lift.element, path, w.remaining(w.limits.Bytes))

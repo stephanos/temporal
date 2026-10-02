@@ -6941,7 +6941,7 @@
     "name": "asyncNexus",
     "position": {
       "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-      "line": 454
+      "line": 475
     },
     "machine": "nexusProtocol",
     "producer": "temporal.nexus.caller.testpilot",
@@ -6950,14 +6950,14 @@
       "id": "temporal.workflow-service",
       "position": {
         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-        "line": 460
+        "line": 481
       },
       "kind": "KIND_ENDPOINT"
     }, {
       "id": "temporal.worker",
       "position": {
         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-        "line": 461
+        "line": 482
       },
       "kind": "KIND_WORKER",
       "namespace": "temporal.worker.namespace"
@@ -6965,7 +6965,7 @@
       "id": "temporal.task-queue",
       "position": {
         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-        "line": 462
+        "line": 483
       },
       "kind": "KIND_TASK_QUEUE",
       "namespace": "temporal.worker.namespace",
@@ -6974,7 +6974,7 @@
       "id": "temporal.handler-task-queue",
       "position": {
         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-        "line": 468
+        "line": 489
       },
       "kind": "KIND_TASK_QUEUE",
       "namespace": "temporal.worker.namespace",
@@ -6983,7 +6983,7 @@
       "id": "temporal.nexus-endpoint",
       "position": {
         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-        "line": 474
+        "line": 495
       },
       "kind": "KIND_ENDPOINT",
       "resource": "temporal.nexus-endpoint.resource"
@@ -6992,7 +6992,7 @@
       "id": "completion-authority",
       "position": {
         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-        "line": 489
+        "line": 510
       },
       "kind": "KIND_HANDLE"
     }],
@@ -7000,14 +7000,14 @@
       "id": "history-event",
       "position": {
         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-        "line": 491
+        "line": 512
       },
       "message": "temporal.api.history.v1.HistoryEvent"
     }, {
       "id": "correlated-evidence",
       "position": {
         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-        "line": 492
+        "line": 513
       },
       "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
     }],
@@ -7015,7 +7015,7 @@
       "id": "temporal.nexus.caller.evidence.scheduled",
       "position": {
         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-        "line": 81
+        "line": 91
       },
       "records": "nexusOperationScheduled",
       "source": "temporal.nexus.caller.source.scheduled",
@@ -7029,62 +7029,67 @@
       "id": "temporal.nexus.caller.evidence.started",
       "position": {
         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-        "line": 65
+        "line": 74
       },
       "records": "nexusOperationStarted",
       "source": "temporal.nexus.caller.source.history",
       "history": "nexus_operation_started_event_attributes",
       "operation": "attributes\u003cnexus_operation_started_event_attributes\u003e.scheduled_event_id",
-      "commitment": "COMMITMENT_REPORTED"
+      "commitment": "COMMITMENT_REPORTED",
+      "exhaustive": true
     }, {
       "id": "temporal.nexus.caller.evidence.completed",
       "position": {
         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-        "line": 65
+        "line": 74
       },
       "records": "nexusOperationCompleted",
       "source": "temporal.nexus.caller.source.history",
       "history": "nexus_operation_completed_event_attributes",
       "operation": "attributes\u003cnexus_operation_completed_event_attributes\u003e.scheduled_event_id",
-      "commitment": "COMMITMENT_REPORTED"
+      "commitment": "COMMITMENT_REPORTED",
+      "exhaustive": true
     }, {
       "id": "temporal.nexus.caller.evidence.failed",
       "position": {
         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-        "line": 65
+        "line": 74
       },
       "records": "nexusOperationFailed",
       "source": "temporal.nexus.caller.source.history",
       "history": "nexus_operation_failed_event_attributes",
       "operation": "attributes\u003cnexus_operation_failed_event_attributes\u003e.scheduled_event_id",
-      "commitment": "COMMITMENT_REPORTED"
+      "commitment": "COMMITMENT_REPORTED",
+      "exhaustive": true
     }, {
       "id": "temporal.nexus.caller.evidence.canceled",
       "position": {
         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-        "line": 65
+        "line": 74
       },
       "records": "nexusOperationCanceled",
       "source": "temporal.nexus.caller.source.history",
       "history": "nexus_operation_canceled_event_attributes",
       "operation": "attributes\u003cnexus_operation_canceled_event_attributes\u003e.scheduled_event_id",
-      "commitment": "COMMITMENT_REPORTED"
+      "commitment": "COMMITMENT_REPORTED",
+      "exhaustive": true
     }, {
       "id": "temporal.nexus.caller.evidence.timedOut",
       "position": {
         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-        "line": 65
+        "line": 74
       },
       "records": "nexusOperationTimedOut",
       "source": "temporal.nexus.caller.source.history",
       "history": "nexus_operation_timed_out_event_attributes",
       "operation": "attributes\u003cnexus_operation_timed_out_event_attributes\u003e.scheduled_event_id",
-      "commitment": "COMMITMENT_REPORTED"
+      "commitment": "COMMITMENT_REPORTED",
+      "exhaustive": true
     }, {
       "id": "temporal.nexus.caller.evidence.pendingAttempts",
       "position": {
         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-        "line": 114
+        "line": 124
       },
       "records": "pendingAttempts",
       "source": "temporal.nexus.caller.source.describe",
@@ -7098,7 +7103,7 @@
     "correlation": {
       "position": {
         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-        "line": 476
+        "line": 497
       },
       "projection": "temporal.nexus.caller.projection",
       "run": "temporal.nexus.caller.scope.run",
@@ -7115,19 +7120,19 @@
       "id": "controller",
       "position": {
         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-        "line": 316
+        "line": 337
       },
       "controller": {
       },
       "items": [{
         "position": {
           "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-          "line": 321
+          "line": 342
         },
         "performs": [{
           "position": {
             "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-            "line": 323
+            "line": 344
           },
           "step": {
             "action": "temporal.worker.Worker$package$.workerStop"
@@ -7136,7 +7141,7 @@
             "id": "stop-handler-worker",
             "position": {
               "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-              "line": 325
+              "line": 346
             },
             "fault": {
               "role": "temporal.handler-task-queue",
@@ -7147,13 +7152,13 @@
       }, {
         "position": {
           "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-          "line": 329
+          "line": 350
         },
         "command": {
           "id": "start-workflow",
           "position": {
             "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-            "line": 135
+            "line": 145
           },
           "rpc": {
             "role": "temporal.workflow-service",
@@ -7163,7 +7168,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 148
+                  "line": 158
                 },
                 "environment": "temporal.worker.namespace"
               }
@@ -7172,7 +7177,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 149
+                  "line": 159
                 },
                 "run": {
                 }
@@ -7182,7 +7187,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 150
+                  "line": 160
                 },
                 "literal": {
                   "named": {
@@ -7197,7 +7202,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 151
+                  "line": 161
                 },
                 "environment": "temporal.task-queue.resource"
               }
@@ -7206,7 +7211,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 152
+                  "line": 162
                 },
                 "run": {
                 }
@@ -7217,13 +7222,13 @@
       }, {
         "position": {
           "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-          "line": 330
+          "line": 351
         },
         "command": {
           "id": "await-scheduled",
           "position": {
             "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-            "line": 203
+            "line": 224
           },
           "poll": {
             "evidence": "temporal.nexus.caller.evidence.scheduled",
@@ -7233,7 +7238,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 186
+                  "line": 207
                 },
                 "environment": "temporal.worker.namespace"
               }
@@ -7242,7 +7247,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 187
+                  "line": 208
                 },
                 "run": {
                 }
@@ -7251,19 +7256,19 @@
             "until": {
               "position": {
                 "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                "line": 209
+                "line": 230
               },
               "present": {
                 "of": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                    "line": 209
+                    "line": 230
                   },
                   "path": {
                     "of": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                        "line": 209
+                        "line": 230
                       },
                       "projected": {
                       }
@@ -7279,13 +7284,13 @@
       }, {
         "position": {
           "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-          "line": 331
+          "line": 352
         },
         "command": {
           "id": "pending-attempts",
           "position": {
             "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-            "line": 191
+            "line": 212
           },
           "poll": {
             "evidence": "temporal.nexus.caller.evidence.pendingAttempts",
@@ -7295,7 +7300,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 186
+                  "line": 207
                 },
                 "environment": "temporal.worker.namespace"
               }
@@ -7304,7 +7309,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 187
+                  "line": 208
                 },
                 "run": {
                 }
@@ -7313,19 +7318,19 @@
             "until": {
               "position": {
                 "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                "line": 197
+                "line": 218
               },
               "equal": {
                 "left": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                    "line": 197
+                    "line": 218
                   },
                   "path": {
                     "of": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                        "line": 197
+                        "line": 218
                       },
                       "projected": {
                       }
@@ -7336,7 +7341,7 @@
                 "right": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                    "line": 197
+                    "line": 218
                   },
                   "literal": {
                     "number": "1"
@@ -7362,13 +7367,13 @@
       }, {
         "position": {
           "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-          "line": 332
+          "line": 353
         },
         "command": {
           "id": "await-completion-authority",
           "position": {
             "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-            "line": 333
+            "line": 354
           },
           "awaitLearned": "completion-authority"
         },
@@ -7392,12 +7397,12 @@
       }, {
         "position": {
           "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-          "line": 336
+          "line": 357
         },
         "performs": [{
           "position": {
             "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-            "line": 306
+            "line": 327
           },
           "step": {
             "action": "temporal.nexuscaller.Model$package$.complete",
@@ -7412,14 +7417,14 @@
             "id": "complete-nexus-operation",
             "position": {
               "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-              "line": 306
+              "line": 327
             },
             "nexusCompletion": {
               "handle": "completion-authority",
               "result": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 219
+                  "line": 240
                 },
                 "message": "temporal.api.common.v1.Payload",
                 "fields": [{
@@ -7446,7 +7451,7 @@
         }, {
           "position": {
             "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-            "line": 306
+            "line": 327
           },
           "step": {
             "action": "temporal.nexuscaller.Model$package$.complete",
@@ -7461,14 +7466,14 @@
             "id": "fail-nexus-operation",
             "position": {
               "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-              "line": 306
+              "line": 327
             },
             "nexusCompletion": {
               "handle": "completion-authority",
               "result": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 226
+                  "line": 247
                 },
                 "message": "temporal.api.failure.v1.Failure",
                 "fields": [{
@@ -7482,7 +7487,7 @@
                     "message": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                        "line": 232
+                        "line": 253
                       },
                       "message": "temporal.api.failure.v1.ApplicationFailureInfo",
                       "fields": [{
@@ -7506,13 +7511,13 @@
       }, {
         "position": {
           "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-          "line": 346
+          "line": 367
         },
         "command": {
           "id": "await-close",
           "position": {
             "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-            "line": 135
+            "line": 145
           },
           "rpc": {
             "role": "temporal.workflow-service",
@@ -7522,7 +7527,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 138
+                  "line": 148
                 },
                 "environment": "temporal.worker.namespace"
               }
@@ -7531,7 +7536,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 139
+                  "line": 149
                 },
                 "run": {
                 }
@@ -7541,7 +7546,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 140
+                  "line": 150
                 },
                 "literal": {
                   "number": "64"
@@ -7552,7 +7557,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 141
+                  "line": 151
                 },
                 "literal": {
                   "flag": true
@@ -7563,7 +7568,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 163
+                  "line": 173
                 },
                 "literal": {
                   "enumName": "HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT"
@@ -7575,13 +7580,13 @@
       }, {
         "position": {
           "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-          "line": 347
+          "line": 368
         },
         "command": {
           "id": "history",
           "position": {
             "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-            "line": 135
+            "line": 183
           },
           "rpc": {
             "role": "temporal.workflow-service",
@@ -7591,7 +7596,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 138
+                  "line": 148
                 },
                 "environment": "temporal.worker.namespace"
               }
@@ -7600,7 +7605,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 139
+                  "line": 149
                 },
                 "run": {
                 }
@@ -7610,7 +7615,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 140
+                  "line": 150
                 },
                 "literal": {
                   "number": "64"
@@ -7621,7 +7626,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 141
+                  "line": 151
                 },
                 "literal": {
                   "flag": true
@@ -7637,14 +7642,15 @@
                 "lift": "correlated-evidence"
               }]
             }]
-          }
+          },
+          "closes": ["temporal.nexus.caller.evidence.started", "temporal.nexus.caller.evidence.completed", "temporal.nexus.caller.evidence.failed", "temporal.nexus.caller.evidence.canceled", "temporal.nexus.caller.evidence.timedOut"]
         }
       }]
     }, {
       "id": "workflow",
       "position": {
         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-        "line": 351
+        "line": 372
       },
       "workflow": {
         "workflowType": {
@@ -7658,12 +7664,12 @@
       "items": [{
         "position": {
           "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-          "line": 356
+          "line": 377
         },
         "performs": [{
           "position": {
             "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-            "line": 264
+            "line": 285
           },
           "step": {
             "action": "temporal.nexuscaller.Model$package$.schedule",
@@ -7688,13 +7694,13 @@
             "id": "start-nexus-operation",
             "position": {
               "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-              "line": 266
+              "line": 287
             },
             "workflowCommand": {
               "command": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 269
+                  "line": 290
                 },
                 "message": "temporal.api.command.v1.Command",
                 "fields": [{
@@ -7708,7 +7714,7 @@
                     "message": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                        "line": 275
+                        "line": 296
                       },
                       "message": "temporal.api.command.v1.ScheduleNexusOperationCommandAttributes",
                       "fields": [{
@@ -7732,7 +7738,7 @@
                           "message": {
                             "position": {
                               "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                              "line": 219
+                              "line": 240
                             },
                             "message": "temporal.api.common.v1.Payload",
                             "fields": [{
@@ -7765,7 +7771,7 @@
         }, {
           "position": {
             "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-            "line": 264
+            "line": 285
           },
           "step": {
             "action": "temporal.nexuscaller.Model$package$.schedule",
@@ -7790,13 +7796,13 @@
             "id": "start-nexus-operation",
             "position": {
               "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-              "line": 266
+              "line": 287
             },
             "workflowCommand": {
               "command": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 269
+                  "line": 290
                 },
                 "message": "temporal.api.command.v1.Command",
                 "fields": [{
@@ -7810,7 +7816,7 @@
                     "message": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                        "line": 275
+                        "line": 296
                       },
                       "message": "temporal.api.command.v1.ScheduleNexusOperationCommandAttributes",
                       "fields": [{
@@ -7834,7 +7840,7 @@
                           "message": {
                             "position": {
                               "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                              "line": 219
+                              "line": 240
                             },
                             "message": "temporal.api.common.v1.Payload",
                             "fields": [{
@@ -7863,7 +7869,7 @@
                           "message": {
                             "position": {
                               "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                              "line": 243
+                              "line": 264
                             },
                             "message": "google.protobuf.Duration",
                             "fields": [{
@@ -7884,7 +7890,7 @@
         }, {
           "position": {
             "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-            "line": 264
+            "line": 285
           },
           "step": {
             "action": "temporal.nexuscaller.Model$package$.schedule",
@@ -7909,13 +7915,13 @@
             "id": "start-nexus-operation",
             "position": {
               "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-              "line": 266
+              "line": 287
             },
             "workflowCommand": {
               "command": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 269
+                  "line": 290
                 },
                 "message": "temporal.api.command.v1.Command",
                 "fields": [{
@@ -7929,7 +7935,7 @@
                     "message": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                        "line": 275
+                        "line": 296
                       },
                       "message": "temporal.api.command.v1.ScheduleNexusOperationCommandAttributes",
                       "fields": [{
@@ -7953,7 +7959,7 @@
                           "message": {
                             "position": {
                               "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                              "line": 219
+                              "line": 240
                             },
                             "message": "temporal.api.common.v1.Payload",
                             "fields": [{
@@ -7982,7 +7988,7 @@
                           "message": {
                             "position": {
                               "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                              "line": 243
+                              "line": 264
                             },
                             "message": "google.protobuf.Duration",
                             "fields": [{
@@ -8004,13 +8010,13 @@
       }, {
         "position": {
           "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-          "line": 369
+          "line": 390
         },
         "command": {
           "id": "await-nexus-operation",
           "position": {
             "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-            "line": 371
+            "line": 392
           },
           "regardless": true,
           "awaitCommand": "start-nexus-operation"
@@ -8073,13 +8079,13 @@
       }, {
         "position": {
           "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-          "line": 381
+          "line": 402
         },
         "command": {
           "id": "finish-workflow",
           "position": {
             "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-            "line": 383
+            "line": 404
           },
           "timeoutMs": "5000",
           "regardless": true,
@@ -8087,7 +8093,7 @@
             "result": {
               "position": {
                 "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                "line": 385
+                "line": 406
               },
               "literal": {
                 "text": "done"
@@ -8100,7 +8106,7 @@
       "id": "handler",
       "position": {
         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-        "line": 394
+        "line": 415
       },
       "nexusHandler": {
         "service": "umpire.case.service",
@@ -8111,12 +8117,12 @@
       "items": [{
         "position": {
           "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-          "line": 398
+          "line": 419
         },
         "performs": [{
           "position": {
             "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-            "line": 287
+            "line": 308
           },
           "step": {
             "action": "temporal.nexuscaller.Model$package$.handlerReply",
@@ -8131,14 +8137,14 @@
             "id": "respond-async",
             "position": {
               "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-              "line": 287
+              "line": 308
             },
             "timeoutMs": "5000",
             "nexusReply": {
               "reply": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 290
+                  "line": 311
                 },
                 "message": "temporal.api.nexus.v1.StartOperationResponse",
                 "fields": [{
@@ -8147,7 +8153,7 @@
                     "message": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                        "line": 406
+                        "line": 427
                       },
                       "message": "temporal.api.nexus.v1.StartOperationResponse.Async"
                     }
@@ -8160,7 +8166,7 @@
         }, {
           "position": {
             "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-            "line": 287
+            "line": 308
           },
           "step": {
             "action": "temporal.nexuscaller.Model$package$.handlerReply",
@@ -8175,14 +8181,14 @@
             "id": "respond-sync",
             "position": {
               "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-              "line": 287
+              "line": 308
             },
             "timeoutMs": "5000",
             "nexusReply": {
               "reply": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 290
+                  "line": 311
                 },
                 "message": "temporal.api.nexus.v1.StartOperationResponse",
                 "fields": [{
@@ -8191,7 +8197,7 @@
                     "message": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                        "line": 418
+                        "line": 439
                       },
                       "message": "temporal.api.nexus.v1.StartOperationResponse.Sync",
                       "fields": [{
@@ -8200,7 +8206,7 @@
                           "message": {
                             "position": {
                               "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                              "line": 219
+                              "line": 240
                             },
                             "message": "temporal.api.common.v1.Payload",
                             "fields": [{
@@ -8233,7 +8239,7 @@
         }, {
           "position": {
             "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-            "line": 287
+            "line": 308
           },
           "step": {
             "action": "temporal.nexuscaller.Model$package$.handlerReply",
@@ -8248,14 +8254,14 @@
             "id": "respond-failed",
             "position": {
               "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-              "line": 287
+              "line": 308
             },
             "timeoutMs": "5000",
             "nexusReply": {
               "reply": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 290
+                  "line": 311
                 },
                 "message": "temporal.api.nexus.v1.StartOperationResponse",
                 "fields": [{
@@ -8264,7 +8270,7 @@
                     "message": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                        "line": 226
+                        "line": 247
                       },
                       "message": "temporal.api.failure.v1.Failure",
                       "fields": [{
@@ -8278,7 +8284,7 @@
                           "message": {
                             "position": {
                               "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                              "line": 232
+                              "line": 253
                             },
                             "message": "temporal.api.failure.v1.ApplicationFailureInfo",
                             "fields": [{
@@ -8304,7 +8310,7 @@
         }, {
           "position": {
             "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-            "line": 287
+            "line": 308
           },
           "step": {
             "action": "temporal.nexuscaller.Model$package$.handlerReply",
@@ -8322,14 +8328,14 @@
             "id": "respond-error-retryable",
             "position": {
               "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-              "line": 287
+              "line": 308
             },
             "timeoutMs": "5000",
             "nexusReply": {
               "reply": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 293
+                  "line": 314
                 },
                 "message": "temporal.api.nexus.v1.HandlerError",
                 "fields": [{
@@ -8343,7 +8349,7 @@
                     "message": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                        "line": 299
+                        "line": 320
                       },
                       "message": "temporal.api.nexus.v1.Failure",
                       "fields": [{
@@ -8366,7 +8372,7 @@
         }, {
           "position": {
             "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-            "line": 287
+            "line": 308
           },
           "step": {
             "action": "temporal.nexuscaller.Model$package$.handlerReply",
@@ -8384,14 +8390,14 @@
             "id": "respond-error",
             "position": {
               "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-              "line": 287
+              "line": 308
             },
             "timeoutMs": "5000",
             "nexusReply": {
               "reply": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                  "line": 293
+                  "line": 314
                 },
                 "message": "temporal.api.nexus.v1.HandlerError",
                 "fields": [{
@@ -8405,7 +8411,7 @@
                     "message": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
-                        "line": 299
+                        "line": 320
                       },
                       "message": "temporal.api.nexus.v1.Failure",
                       "fields": [{

@@ -303,21 +303,36 @@ A realization says how the find Queries of one machine run against a system. It 
   that depend on it;
 - **observations**, each one protobuf message a run records;
 - **kinds of evidence**, each the recorded data that confirms the facts the machine's evidence
-  function names: a member of the history event's attributes, or the elements of a repeated field a
-  unary method returns; the field path that keys it to its operation; and what it commits to, what a
-  caller was told or a durable commit of the receiver;
+  function names: a member of the history event's attributes, the elements of a repeated field a
+  unary method returns, the one message at a path of a unary method's response, or the Run's own
+  record of one command's events of one kind, where a guard over the event's payload holds, which
+  may be declared the record of one attempt, by its number, of the activity one script runs; the
+  field path that keys it to its operation, or, for the Run's record, the source's key, the run's own
+  id or a path of the payload; what it commits to, what a caller was told or a durable commit of the
+  receiver; the fields of the recorded data it keeps, each with the identity it names, if it
+  names one: the operation, the attempt or the delivery; whether its source is exhaustive; and the
+  steps of a path one piece of it confirms, where it names them, each the n-th step of a class,
+  counted from one;
 - a **correlation**: the fields that scope evidence to its run and name its operation, the
   observation that carries it, and the window a check keeps;
 - **controls**, the actuators a run needs beyond its commands;
 - **scripts**, each an ordered list of items run by the controller or by a worker for each workflow,
-  Nexus operation or activity that activates it.
+  Nexus operation or activity that activates it. An activity's script names the classes the delivery
+  of an attempt to its worker is.
 
 A script item is a command every Case carries, a command with `when` classes, or a list of
 performances, each the command that performs one class of an action. A command names what it does,
 the commands of its script it runs after, a deadline, and whether it runs whatever became of those
 commands. Without `after` it runs after the item before it; with it, commands that name the same
-predecessors and not each other are independent branches. A message a command writes out names its
-protobuf type and the fields it sets, and a field it does not name stays unset.
+predecessors and not each other are independent branches. A command may name the exhaustive kinds of
+evidence its read closes. A message a command writes out names its protobuf type and the fields it
+sets, and a field it does not name stays unset.
+
+An activity's script answers its attempts: its commands end an attempt with a result, fail it with a
+failure, or answer it as canceled, and the commands a path places in it are the activity's attempts
+in path order. The
+delivery of an attempt is the script's activation, so a step of a class the script starts with is
+performed by no command.
 
 A realization carries no Case and decides nothing a Query's path decides. Lowering a find Query
 through it is the same for every realization:
@@ -327,12 +342,22 @@ through it is the same for every realization:
 2. A script becomes one entrypoint. A plain command is carried by every Case; a command with `when`
    by the Cases whose path takes one of those classes; a performance by the Cases whose path takes
    its class, once per step that takes it, in path order, a class taken again under its ordinal. A
-   step of the path that a party takes and no performance binds is refused; a step of the system
-   needs no command.
+   step of the path that a party takes and neither a performance binds nor an activity script starts
+   with is refused; a step of the system needs no command.
 3. A command that reads a learned text runs only where every one it reads is bound.
-4. A kind of evidence is carried where a step of the path, or another result of a row the path takes,
-   records a fact the machine's evidence function gives its name. A step that records nothing the
-   evidence names is confirmed with the next step that does, and listed as a Known Gap.
+4. A step of the path is confirmed by one kind of evidence, and one piece of a kind confirms each
+   step once. A kind that names a step confirms it, and must record one of the step's facts. Any
+   other step is confirmed by the kind that records a fact of its class, the first the path meets,
+   among the kinds that name no step. A kind that names several steps confirms them all by one piece
+   of evidence, with the steps between them that record nothing: it confirms every step it names or
+   none, and no other kind's evidence lies between them. A class the path takes again, and a second
+   step that records a fact another step's kind already confirmed, therefore each need a kind that
+   names the step; a step that records a fact evidence names and is left with no kind of its own is
+   refused, and so is a kind two steps would both be confirmed by. A step that records nothing the
+   evidence names is confirmed with the next step that does, and listed as a Known Gap. A kind is
+   carried where it confirms a step of the path or records another result of a row the path takes,
+   and an exhaustive kind is carried by every Case: where it confirms nothing of the path it is
+   declared, lifted by its closing read, and given no meaning in the Contract.
 5. The Property is lowered to the clauses that say the same thing over the machine's table: over the
    steps its `when` admits, a state, an outcome and facts are fixed where every accepted step carries
    them and the predicate rejects every accepted step with them changed. Each clause is due within as
@@ -343,6 +368,41 @@ through it is the same for every realization:
 
 A verify Query is searched and realizes nothing. A find Query whose machine declares no realization
 has none to be lowered through. A Query with no witness is no Case.
+
+A value a command or a source computes is typed. A condition is a presence test, a comparison of
+two values of one type, an order of two numbers, the negation of a condition, or a conjunction of
+conditions, which is read left to right up to the first that does not hold. Presence is of a message
+or of a oneof member: a scalar a message holds is present whatever its value, so a condition that
+means a positive number or a text that is not empty says so. A path is of a message, to any depth: a path of a
+path is read against the message the inner path reaches. A guard of the Run's own record is a
+condition over the event's payload and reads nothing else: it writes out flags, numbers, texts and
+enum values, and no name a Case binds, since a recorded Run holds no such binding. Its paths name
+fields and oneof members, each one flag, text, enum value, signed integer or message. Its key is the
+run's id or one text or integer of the payload. What a well-formed guard is has one reading
+(`goir.GuardProblem`, over `goir.TypeOf`), which admission makes with no descriptor, the lowering
+with the payload's, and the evaluation on a recorded Run with the payload's again, so a guard one of
+them refuses is refused by all, in the same words, by the first that can know. A guard that cannot be evaluated on an event, because it reads a field the
+payload's type does not have, compares or orders a value that is absent, or is no condition, is an
+error at that event and is never read as a guard that does not hold. A value the payload does not
+hold keeps the type its descriptor gives it, so what is wrong with a guard's types is an error on
+every event, and only the absence of a value it compares depends on the event.
+
+What a Run's evidence says of the machine is the same for every reader that assesses a Run against
+it:
+
+- Evidence proves what it reports and nothing of what it does not: a step that records a fact no
+  observation reports may still have happened. The one exception is declared. A kind of evidence is
+  `exhaustive` when its source reports every occurrence of the facts it records, for the operations
+  its closing read covers, and one command of the realization, which every Case carries, names the
+  kind in `closes`. On a Run that closed complete, where that command's last completion is a success
+  and the ordinals of the kind's source are unbroken, a step that records a fact of a kind the Case
+  carries has an observation of it, and a step taken without one did not happen. Short of any of
+  that, and for a kind the Case does not carry, absence says nothing.
+- A field with the role `attempt` or `delivery` names the attempt or the delivery its evidence
+  belongs to: two observations that name different ones are not facts of one step. A field with the
+  role `operation` repeats the operation the evidence is keyed to, and evidence whose field and key
+  differ is crossed and is read as neither. A redacted field is carried without its value and names
+  nothing.
 
 A reader lowers a realization only into what its runtime can run. What a realization declares that
 the runtime has no primitive for is reported with the declaration's position, and the Query has no
@@ -419,19 +479,43 @@ A reader rejects, before any check and at the position the IR gives, a Model tha
   does not declare, or one with no correlation; a
   role, learned value, observation, kind of evidence, control, script or command with no id, or two
   of one kind under one id; a kind of evidence that names no recorded kind, no source, no operation
-  key, nowhere it is recorded or no commitment, or two kinds for one recorded kind;
+  key, nowhere it is recorded or no commitment, or two kinds for one recorded kind that both name no
+  step they confirm;
+- declares a kind of evidence that confirms a step of no class or of a class the realization's
+  machine does not bind, a step counted from below one, or one step twice; two kinds that confirm one
+  step; an exhaustive kind that names the steps it confirms; or a kind that names its steps and
+  records a fact an exhaustive kind records, since an exhaustive kind is the one kind of its fact;
+- declares evidence that is the Run's own record of no known kind of event, of a script or a command
+  the realization does not declare, with a key that is neither the run's id nor a path of the
+  payload, with a guard that reads anything but the payload or writes out a name a Case binds or a
+  value that is no flag, number, text or enum value, or with an operation path beside its key; or
+  polls such evidence;
+- declares the Run's record of an attempt of no script, of a script it does not declare or that no
+  activity activates, of a script that starts with no delivery, of an attempt counted from below one,
+  or as an event that is no diagnostic;
+- declares a field of evidence with no id or no path, two fields of one kind under one id, a field
+  whose role is none it knows, a role on a redacted field, or two fields of one kind with one role;
+- declares an exhaustive kind of evidence that no command closes; or closes a kind that is not
+  declared or not exhaustive, one kind by two commands, a kind by a command that does not read it (a
+  history kind is closed by the read that lifts it, any other by a poll of it), or by a command some
+  Cases do not carry;
+- fails an attempt, or answers one as canceled, in a script no activity activates;
 - names, in a realization, a role, learned value, observation, kind of evidence, control, channel or
   command it does not declare, a role of another kind than its use needs, or a class the
   realization's machine does not bind;
 - binds a learned value by two commands or by none, reads a text as a handle or a handle as a text,
   reads a learned value in a command that runs whatever became of the commands before it, or
-  performs one class by two commands;
+  performs one class by two commands, or by a command and the activation of an activity script;
 - keys a realization's runs and operations by one field, lifts evidence into an observation the
   correlation does not read, or observes a value into the one it does;
 - orders the commands of a script in a cycle;
 - declares a script item that is neither a command nor performances, or both; a command with no
-  instruction or a deadline below 0; an operand or a written value of no known kind; or a written
-  message with no name or a field set twice.
+  instruction or a deadline below 0; an operand or a written value of no known kind, or a conjunction
+  of no operand; or a written message with no name or a field set twice;
+- orders what is written out as no number, negates or joins what is written out as no condition,
+  compares two written values of two types, two enum values it writes out, or a message, reads a
+  path of what is no message, polls until what is no condition, or guards the Run's own record by
+  what is no condition or by a path written as no field or oneof member.
 
 The lifter refuses the ones it can see at the Scala line that declares them; a Model written some
 other way meets the same rules at its reader.
@@ -456,10 +540,67 @@ state fields and Abstraction Claims. The realization is translated declaration f
 descriptors it names, at the declaration: a message, field, enum value or method the descriptors do not have, a
 value of another kind than its field, a message written where another belongs, a path that does not
 resolve, and a value observed into an observation of another message. It reads the path selectors
-`field`, `field[*]` and `oneof<member>` and refuses the others. It lowers no realization that
-declares an activity's script, a durable-commit kind of evidence, a control, or a machine that names
-monitors: Testpilot has no primitive for them yet, and each is named with the fn-107 task that owns
-it. A Case is over one operation.
+`field`, `field[*]` and `oneof<member>` and refuses the others. It lowers an activity's script to
+the attempts of an activity entrypoint, a failing one as an attempt failure and never as a result
+that is a failure, and refuses, where they are written, what Testpilot would refuse: a command of
+that script that is no answer to an attempt, a failure that is neither an application failure nor
+one of no kind, and a poll's condition that reads the run, its environment or a learned value. It
+types a poll's condition and the guard, the key and the fields of the Run's own record against the
+descriptor of what they read, the instruction outcome for the Run's record, and refuses, as an error
+at the declaration and before any gap is said, a condition that is none, an order of what is no
+number, a comparison of two types or with a name an enum does not have, and a key that is no single
+text or integer. It lowers evidence that is the Run's own record to a Run Event declaration under
+the lowered guard, at the controller's instruction the source names and keyed by the Run or by the
+payload's path, and refuses such evidence of a command no controller runs; evidence read from one
+message to a single read; a kept field to the Program's field declaration and the Contract's retained
+field, as the text, flag or unsigned integer its descriptor makes it; and an attempt answered as
+canceled to the instruction of that name. It lowers no realization that declares what Testpilot has no
+primitive for: a durable-commit kind of evidence and a control (fn-107.10), and a machine that names
+monitors (fn-107.12). Three more things have no task that owns them and are named as limits of the
+prototype. A redacted field: a lift reads a value for every field its evidence declares, so none
+carries a field without its value. An attempt of an activity the path starts and gives no answer: an
+activity entrypoint's instructions are answers, and none waits out a deadline. And the record of an
+attempt that a Run would record out of the path's order, which the Contract reads evidence in. When a
+Run records a piece of evidence is read from declarations and never from the kind of event it is.
+Evidence declared the record of an attempt reaches a Run once that attempt is answered: with the
+step of the path that is the script's answer of that number, before that step's own evidence. Any
+other evidence is recorded by an instruction of the controller and reaches the Run as the controller
+runs it. A record that confirms steps before other evidence and is answered after it, or confirms
+steps after other evidence and is answered before it, has no Case. A record of an attempt the path
+never starts is an error. The lowered guard of such a record also says the record is of the attempt
+its source names, after the source's own guard, so the runtime selects the record by the declaration.
+For the evidence the controller records, the Case itself is checked: each kind that confirms a step
+has an instruction that records it, and the instruction of a later kind is the same one or runs after
+the instruction of an earlier kind, by the order the script is written in and the instructions it
+names to run after; anything else is an error. Two orders are Testpilot's and are assumed, since no
+declaration fixes them: that the completion of the call that carries an attempt is recorded before
+the attempt's record, and that an attempt's record is recorded before the status read after its
+answer. A Run that breaks either carries evidence the Contract refuses, and is incomplete, never a
+wrong Verdict. Each gap is named where it was written. A monitor, a kind of
+evidence and a control are the realization's, and stand in the way of every Query of it. A command
+Testpilot cannot run, an unanswered attempt and a late record stand in the way of the Queries whose
+path meets them and of no other: a command off a Query's path is listed as off the path, and the
+Case's inventory accounts for it as a command the path does not perform. A path that takes one class
+more than once is lowered like any other, each step confirmed by the kind that names it; what the
+producer refuses of such a path is an error. The inventory of a Case checks what it carries of a kind
+against the declaration, both ways: where it is recorded, the guard and the instruction of the Run's
+own record, the fields it keeps, the steps it confirms, and the closing read of an exhaustive kind,
+which every Case carries. A Case is over one operation.
+
+`goir/conformance` assesses a Run against the Model through the Query `goir.Realizer` binds, and
+reads the Run's evidence as [Realizations](#realizations) says. Beside the fields a realization
+gives a role, it reads the activity attempt a Run Event records with the evidence it carries, the
+Run protocol's typed data, as that evidence's attempt and delivery: where a field and the event name
+the same identity they must agree, and the evidence of one operation is of one activity run. Its
+`Admits` says whether a Run Event is an occurrence of the evidence a Run Event source declares, by
+the event's kind, the command that recorded it, the number of the attempt the event records where
+the source is declared the record of one, and the source's guard, which it checks by the one reading
+above before it evaluates it. Evidence of a kind that is the Run's own record is read only
+from a Run Event its source admits: on any other event it is refused at that event, and a guard that
+cannot be evaluated there is an error. The assessment reads a kind by the fact it records and not by
+the steps it names: a piece of evidence may be explained by any step that records its fact, which
+keeps more executions than the Contract's reading of the same piece and rules out none that
+happened.
 
 The Scala framework's own composition starts from each member's first start only. `goir` composes
 every start, as model/go does and as [Compositions](#compositions) says; bringing the front end in line

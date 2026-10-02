@@ -10,12 +10,17 @@
 //
 //   - One observation is one fact of one step. Two observations no order relates may have happened
 //     either way round, and both orders are kept. Observations that name different attempts or
-//     deliveries are not facts of one step.
+//     deliveries are not facts of one step: the attempt and the delivery are what a field the
+//     realization gives that role names, and what the Run Event that carried the evidence records of
+//     the activity attempt it came from.
 //   - A step that records a fact no observation reports may still have happened. Evidence proves
 //     what it reports and nothing about what it does not: what a caller was told can go untold, a
 //     durable commit can go unobserved, and a fact of a kind the Case does not carry cannot be seen at
-//     all. Nothing in a realization declares a source exhaustive, so no execution is ever ruled out
-//     by evidence that is absent, on a Run that closed complete as on any other.
+//     all. The one exception is declared: a kind of evidence the realization declares exhaustive,
+//     which the Case carries, on a Run that closed complete, once the read that closes its source has
+//     succeeded and the source's ordinals are unbroken. A step that records a fact of such a kind then
+//     has its observation, and an execution that takes one unobserved is ruled out. Short of all of
+//     that, no execution is ever ruled out by evidence that is absent.
 //
 // Conformance fails when no execution is left and no hole of the Model was in reach of the ones
 // tried; a hole in reach leaves it inconclusive. A claim is violated when every execution left

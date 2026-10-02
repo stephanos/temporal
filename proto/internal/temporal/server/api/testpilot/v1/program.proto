@@ -2,6 +2,7 @@ syntax = "proto3";
 package temporal.server.api.testpilot.v1;
 import "temporal/server/api/testpilot/v1/correlated.proto";
 import "temporal/server/api/testpilot/v1/event.proto";
+import "temporal/server/api/testpilot/v1/expression.proto";
 import "temporal/server/api/testpilot/v1/instruction.proto";
 import "temporal/server/api/testpilot/v1/value.proto";
 option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
@@ -28,7 +29,9 @@ message Program {
 message EvidenceDeclaration {
   // The evidence kind; the id a lift and a projection rule name.
   string evidence_id = 1;
-  // The evidence source identity whose dense ordinals this kind's evidence counts in.
+  // The evidence source identity whose dense ordinals this kind's evidence counts in. Kinds read
+  // from different recorded data of the same sort may count in one source, which one emitter
+  // numbers: the instruction that lifts them, or the Run for its own events.
   string evidence_source = 2;
   oneof source {
     HistoryEventSource history_event = 3;
@@ -38,7 +41,7 @@ message EvidenceDeclaration {
   // The scope field values of every evidence identity of this kind, each a text literal.
   repeated NamedValue scope = 6;
   // The field path of the operation key, in the grammar PathExpression.path documents, read from
-  // the recorded value.
+  // the recorded value. Empty only for a Run Event source keyed by the Run.
   string operation = 7;
   repeated EvidenceFieldDeclaration fields = 8;
 }
@@ -49,15 +52,37 @@ message HistoryEventSource { string attributes_field = 1; }
 
 // RunEventSource is the Run's own record of one Run Event kind that carries a payload; the runtime
 // lifts each such event as it records it, reading the operation key and fields from the payload.
-message RunEventSource { RunEventKind kind = 1; }
+// The record of a worker reservation is a DIAGNOSTIC event whose outcome may name an activity
+// attempt: it says what the worker was delivered and what it offered, never that the server
+// accepted the offer.
+message RunEventSource {
+  RunEventKind kind = 1;
+  // A boolean over the projected value, the event's payload, that selects which events of the kind
+  // are evidence. An event it rejects is no occurrence and takes no ordinal in the source; an event
+  // two declarations accept is evidence of neither and fails the Run. Absent, every event of the
+  // kind is evidence. A scalar the payload leaves at its zero value still reads as a value, so a
+  // guard tells such events apart by comparing the value, not by its presence.
+  Expression guard = 2;
+  // When set, only the events recorded at this instruction of a controller entrypoint are
+  // evidence: its own completion or timeout, the fault it realized, and the record of each worker
+  // reservation it carried.
+  InstructionReference instruction = 3;
+  // The operation key of the evidence is the Run's own ID, which a Program input reads as its Run
+  // reference, rather than a value of the payload. The declaration's operation path is then empty.
+  bool run_keyed = 4;
+}
 
-// ReadSource is a value read back through a unary RPC: one element of the repeated field at path
-// in the response of method, polled by a ReadEvidence instruction.
+// ReadSource is a value read back through a unary RPC, polled by a ReadEvidence instruction: one
+// element of the repeated field at path in the response of method, or the one message at path.
 message ReadSource {
   // The full method name, "/package.Service/Method".
   string method = 1;
-  // A field path in the grammar PathExpression.path documents, ending in a repeated field.
+  // A field path in the grammar PathExpression.path documents, ending in a repeated field of
+  // messages, or in one message when single is set.
   string path = 2;
+  // The value is the one message at path rather than each element of a repeated field. A response
+  // that lacks the message supplies no value, as an empty repeated field supplies none.
+  bool single = 3;
 }
 
 // EvidenceFieldDeclaration is one field the evidence exposes, read from the recorded value at path.

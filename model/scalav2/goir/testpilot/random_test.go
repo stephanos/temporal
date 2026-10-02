@@ -169,7 +169,8 @@ func answered(t *testing.T, seed uint64, iteration int, done []string, run func(
 }
 
 func randomModels(t *testing.T) map[string]*modelirspb.Model {
-	return map[string]*modelirspb.Model{"nexus-caller": loaded(t, "nexus-caller"), "realizations": liftedRealizations(t)}
+	return map[string]*modelirspb.Model{"nexus-caller": loaded(t, "nexus-caller"), "realizations": liftedRealizations(t),
+		"activity": loaded(t, "activity")}
 }
 
 // Admission answers every changed Model: it admits it or says what is wrong with it.

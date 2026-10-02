@@ -200,7 +200,9 @@ type EvidenceDeclaration struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The evidence kind; the id a lift and a projection rule name.
 	EvidenceId string `protobuf:"bytes,1,opt,name=evidence_id,json=evidenceId,proto3" json:"evidence_id,omitempty"`
-	// The evidence source identity whose dense ordinals this kind's evidence counts in.
+	// The evidence source identity whose dense ordinals this kind's evidence counts in. Kinds read
+	// from different recorded data of the same sort may count in one source, which one emitter
+	// numbers: the instruction that lifts them, or the Run for its own events.
 	EvidenceSource string `protobuf:"bytes,2,opt,name=evidence_source,json=evidenceSource,proto3" json:"evidence_source,omitempty"`
 	// Types that are valid to be assigned to Source:
 	//
@@ -211,7 +213,7 @@ type EvidenceDeclaration struct {
 	// The scope field values of every evidence identity of this kind, each a text literal.
 	Scope []*NamedValue `protobuf:"bytes,6,rep,name=scope,proto3" json:"scope,omitempty"`
 	// The field path of the operation key, in the grammar PathExpression.path documents, read from
-	// the recorded value.
+	// the recorded value. Empty only for a Run Event source keyed by the Run.
 	Operation     string                      `protobuf:"bytes,7,opt,name=operation,proto3" json:"operation,omitempty"`
 	Fields        []*EvidenceFieldDeclaration `protobuf:"bytes,8,rep,name=fields,proto3" json:"fields,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -387,9 +389,25 @@ func (x *HistoryEventSource) GetAttributesField() string {
 
 // RunEventSource is the Run's own record of one Run Event kind that carries a payload; the runtime
 // lifts each such event as it records it, reading the operation key and fields from the payload.
+// The record of a worker reservation is a DIAGNOSTIC event whose outcome may name an activity
+// attempt: it says what the worker was delivered and what it offered, never that the server
+// accepted the offer.
 type RunEventSource struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Kind          RunEventKind           `protobuf:"varint,1,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.RunEventKind" json:"kind,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Kind  RunEventKind           `protobuf:"varint,1,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.RunEventKind" json:"kind,omitempty"`
+	// A boolean over the projected value, the event's payload, that selects which events of the kind
+	// are evidence. An event it rejects is no occurrence and takes no ordinal in the source; an event
+	// two declarations accept is evidence of neither and fails the Run. Absent, every event of the
+	// kind is evidence. A scalar the payload leaves at its zero value still reads as a value, so a
+	// guard tells such events apart by comparing the value, not by its presence.
+	Guard *Expression `protobuf:"bytes,2,opt,name=guard,proto3" json:"guard,omitempty"`
+	// When set, only the events recorded at this instruction of a controller entrypoint are
+	// evidence: its own completion or timeout, the fault it realized, and the record of each worker
+	// reservation it carried.
+	Instruction *InstructionReference `protobuf:"bytes,3,opt,name=instruction,proto3" json:"instruction,omitempty"`
+	// The operation key of the evidence is the Run's own ID, which a Program input reads as its Run
+	// reference, rather than a value of the payload. The declaration's operation path is then empty.
+	RunKeyed      bool `protobuf:"varint,4,opt,name=run_keyed,json=runKeyed,proto3" json:"run_keyed,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -431,14 +449,39 @@ func (x *RunEventSource) GetKind() RunEventKind {
 	return RUN_EVENT_KIND_UNSPECIFIED
 }
 
-// ReadSource is a value read back through a unary RPC: one element of the repeated field at path
-// in the response of method, polled by a ReadEvidence instruction.
+func (x *RunEventSource) GetGuard() *Expression {
+	if x != nil {
+		return x.Guard
+	}
+	return nil
+}
+
+func (x *RunEventSource) GetInstruction() *InstructionReference {
+	if x != nil {
+		return x.Instruction
+	}
+	return nil
+}
+
+func (x *RunEventSource) GetRunKeyed() bool {
+	if x != nil {
+		return x.RunKeyed
+	}
+	return false
+}
+
+// ReadSource is a value read back through a unary RPC, polled by a ReadEvidence instruction: one
+// element of the repeated field at path in the response of method, or the one message at path.
 type ReadSource struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The full method name, "/package.Service/Method".
 	Method string `protobuf:"bytes,1,opt,name=method,proto3" json:"method,omitempty"`
-	// A field path in the grammar PathExpression.path documents, ending in a repeated field.
-	Path          string `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
+	// A field path in the grammar PathExpression.path documents, ending in a repeated field of
+	// messages, or in one message when single is set.
+	Path string `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
+	// The value is the one message at path rather than each element of a repeated field. A response
+	// that lacks the message supplies no value, as an empty repeated field supplies none.
+	Single        bool `protobuf:"varint,3,opt,name=single,proto3" json:"single,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -485,6 +528,13 @@ func (x *ReadSource) GetPath() string {
 		return x.Path
 	}
 	return ""
+}
+
+func (x *ReadSource) GetSingle() bool {
+	if x != nil {
+		return x.Single
+	}
+	return false
 }
 
 // EvidenceFieldDeclaration is one field the evidence exposes, read from the recorded value at path.
@@ -1345,7 +1395,7 @@ var File_temporal_server_api_testpilot_v1_program_proto protoreflect.FileDescrip
 
 const file_temporal_server_api_testpilot_v1_program_proto_rawDesc = "" +
 	"\n" +
-	".temporal/server/api/testpilot/v1/program.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/correlated.proto\x1a,temporal/server/api/testpilot/v1/event.proto\x1a2temporal/server/api/testpilot/v1/instruction.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xdf\x03\n" +
+	".temporal/server/api/testpilot/v1/program.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/correlated.proto\x1a,temporal/server/api/testpilot/v1/event.proto\x1a1temporal/server/api/testpilot/v1/expression.proto\x1a2temporal/server/api/testpilot/v1/instruction.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xdf\x03\n" +
 	"\aProgram\x12\x1d\n" +
 	"\n" +
 	"program_id\x18\x01 \x01(\tR\tprogramId\x12<\n" +
@@ -1367,13 +1417,17 @@ const file_temporal_server_api_testpilot_v1_program_proto_rawDesc = "" +
 	"\x06fields\x18\b \x03(\v2:.temporal.server.api.testpilot.v1.EvidenceFieldDeclarationR\x06fieldsB\b\n" +
 	"\x06source\"?\n" +
 	"\x12HistoryEventSource\x12)\n" +
-	"\x10attributes_field\x18\x01 \x01(\tR\x0fattributesField\"T\n" +
+	"\x10attributes_field\x18\x01 \x01(\tR\x0fattributesField\"\x8f\x02\n" +
 	"\x0eRunEventSource\x12B\n" +
-	"\x04kind\x18\x01 \x01(\x0e2..temporal.server.api.testpilot.v1.RunEventKindR\x04kind\"8\n" +
+	"\x04kind\x18\x01 \x01(\x0e2..temporal.server.api.testpilot.v1.RunEventKindR\x04kind\x12B\n" +
+	"\x05guard\x18\x02 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x05guard\x12X\n" +
+	"\vinstruction\x18\x03 \x01(\v26.temporal.server.api.testpilot.v1.InstructionReferenceR\vinstruction\x12\x1b\n" +
+	"\trun_keyed\x18\x04 \x01(\bR\brunKeyed\"P\n" +
 	"\n" +
 	"ReadSource\x12\x16\n" +
 	"\x06method\x18\x01 \x01(\tR\x06method\x12\x12\n" +
-	"\x04path\x18\x02 \x01(\tR\x04path\"I\n" +
+	"\x04path\x18\x02 \x01(\tR\x04path\x12\x16\n" +
+	"\x06single\x18\x03 \x01(\bR\x06single\"I\n" +
 	"\x18EvidenceFieldDeclaration\x12\x19\n" +
 	"\bfield_id\x18\x01 \x01(\tR\afieldId\x12\x12\n" +
 	"\x04path\x18\x02 \x01(\tR\x04path\"\xc1\x01\n" +
@@ -1476,9 +1530,11 @@ var file_temporal_server_api_testpilot_v1_program_proto_goTypes = []any{
 	(*ProgramLimits)(nil),            // 16: temporal.server.api.testpilot.v1.ProgramLimits
 	(*NamedValue)(nil),               // 17: temporal.server.api.testpilot.v1.NamedValue
 	(RunEventKind)(0),                // 18: temporal.server.api.testpilot.v1.RunEventKind
-	(*ValueType)(nil),                // 19: temporal.server.api.testpilot.v1.ValueType
-	(*OpaqueHandleType)(nil),         // 20: temporal.server.api.testpilot.v1.OpaqueHandleType
-	(*InstructionNode)(nil),          // 21: temporal.server.api.testpilot.v1.InstructionNode
+	(*Expression)(nil),               // 19: temporal.server.api.testpilot.v1.Expression
+	(*InstructionReference)(nil),     // 20: temporal.server.api.testpilot.v1.InstructionReference
+	(*ValueType)(nil),                // 21: temporal.server.api.testpilot.v1.ValueType
+	(*OpaqueHandleType)(nil),         // 22: temporal.server.api.testpilot.v1.OpaqueHandleType
+	(*InstructionNode)(nil),          // 23: temporal.server.api.testpilot.v1.InstructionNode
 }
 var file_temporal_server_api_testpilot_v1_program_proto_depIdxs = []int32{
 	7,  // 0: temporal.server.api.testpilot.v1.Program.roles:type_name -> temporal.server.api.testpilot.v1.Role
@@ -1493,21 +1549,23 @@ var file_temporal_server_api_testpilot_v1_program_proto_depIdxs = []int32{
 	17, // 9: temporal.server.api.testpilot.v1.EvidenceDeclaration.scope:type_name -> temporal.server.api.testpilot.v1.NamedValue
 	6,  // 10: temporal.server.api.testpilot.v1.EvidenceDeclaration.fields:type_name -> temporal.server.api.testpilot.v1.EvidenceFieldDeclaration
 	18, // 11: temporal.server.api.testpilot.v1.RunEventSource.kind:type_name -> temporal.server.api.testpilot.v1.RunEventKind
-	0,  // 12: temporal.server.api.testpilot.v1.Role.kind:type_name -> temporal.server.api.testpilot.v1.RoleKind
-	19, // 13: temporal.server.api.testpilot.v1.Slot.value:type_name -> temporal.server.api.testpilot.v1.ValueType
-	20, // 14: temporal.server.api.testpilot.v1.Slot.opaque_handle:type_name -> temporal.server.api.testpilot.v1.OpaqueHandleType
-	19, // 15: temporal.server.api.testpilot.v1.Observation.type:type_name -> temporal.server.api.testpilot.v1.ValueType
-	11, // 16: temporal.server.api.testpilot.v1.Entrypoint.controller:type_name -> temporal.server.api.testpilot.v1.ControllerActivation
-	12, // 17: temporal.server.api.testpilot.v1.Entrypoint.workflow:type_name -> temporal.server.api.testpilot.v1.WorkflowActivation
-	13, // 18: temporal.server.api.testpilot.v1.Entrypoint.activity:type_name -> temporal.server.api.testpilot.v1.ActivityActivation
-	14, // 19: temporal.server.api.testpilot.v1.Entrypoint.nexus_handler:type_name -> temporal.server.api.testpilot.v1.NexusHandlerActivation
-	21, // 20: temporal.server.api.testpilot.v1.Entrypoint.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionNode
-	21, // 21: temporal.server.api.testpilot.v1.Cleanup.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionNode
-	22, // [22:22] is the sub-list for method output_type
-	22, // [22:22] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	19, // 12: temporal.server.api.testpilot.v1.RunEventSource.guard:type_name -> temporal.server.api.testpilot.v1.Expression
+	20, // 13: temporal.server.api.testpilot.v1.RunEventSource.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionReference
+	0,  // 14: temporal.server.api.testpilot.v1.Role.kind:type_name -> temporal.server.api.testpilot.v1.RoleKind
+	21, // 15: temporal.server.api.testpilot.v1.Slot.value:type_name -> temporal.server.api.testpilot.v1.ValueType
+	22, // 16: temporal.server.api.testpilot.v1.Slot.opaque_handle:type_name -> temporal.server.api.testpilot.v1.OpaqueHandleType
+	21, // 17: temporal.server.api.testpilot.v1.Observation.type:type_name -> temporal.server.api.testpilot.v1.ValueType
+	11, // 18: temporal.server.api.testpilot.v1.Entrypoint.controller:type_name -> temporal.server.api.testpilot.v1.ControllerActivation
+	12, // 19: temporal.server.api.testpilot.v1.Entrypoint.workflow:type_name -> temporal.server.api.testpilot.v1.WorkflowActivation
+	13, // 20: temporal.server.api.testpilot.v1.Entrypoint.activity:type_name -> temporal.server.api.testpilot.v1.ActivityActivation
+	14, // 21: temporal.server.api.testpilot.v1.Entrypoint.nexus_handler:type_name -> temporal.server.api.testpilot.v1.NexusHandlerActivation
+	23, // 22: temporal.server.api.testpilot.v1.Entrypoint.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionNode
+	23, // 23: temporal.server.api.testpilot.v1.Cleanup.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionNode
+	24, // [24:24] is the sub-list for method output_type
+	24, // [24:24] is the sub-list for method input_type
+	24, // [24:24] is the sub-list for extension type_name
+	24, // [24:24] is the sub-list for extension extendee
+	0,  // [0:24] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_program_proto_init() }
@@ -1517,6 +1575,7 @@ func file_temporal_server_api_testpilot_v1_program_proto_init() {
 	}
 	file_temporal_server_api_testpilot_v1_correlated_proto_init()
 	file_temporal_server_api_testpilot_v1_event_proto_init()
+	file_temporal_server_api_testpilot_v1_expression_proto_init()
 	file_temporal_server_api_testpilot_v1_instruction_proto_init()
 	file_temporal_server_api_testpilot_v1_value_proto_init()
 	file_temporal_server_api_testpilot_v1_program_proto_msgTypes[1].OneofWrappers = []any{

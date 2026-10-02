@@ -2,7 +2,9 @@ package execution
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"slices"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
@@ -15,10 +17,12 @@ import (
 // names the kind.
 const historyEventMessage = "temporal.api.history.v1.HistoryEvent"
 
-// bindEvidence admits the Program's evidence declarations: each identity once, each source and key
-// path once, every path typed against the recorded value its source supplies. A declaration a Run
-// Event feeds is lifted by the scheduler as it records the event; a read declaration is polled by
-// a ReadEvidence instruction; a history declaration is named by a history read's lift rule.
+// bindEvidence admits the Program's evidence declarations: each identity once, each recorded kind
+// once under a source and key path, every path typed against the recorded value its source
+// supplies. A declaration a Run Event feeds is lifted by the scheduler as it records the event; a
+// read declaration is polled by a ReadEvidence instruction; a history declaration is named by a
+// history read's lift rule. Kinds that share a source are numbered by its one emitter, the Run for
+// its own events or the instruction that lifts the others, so no source holds both.
 func (a *admission) bindEvidence(p *testpilotspb.Program) error {
 	a.prepared.evidence = map[string]*evidenceDeclaration{}
 	for _, observation := range a.prepared.view.observations {
@@ -30,13 +34,13 @@ func (a *admission) bindEvidence(p *testpilotspb.Program) error {
 			a.prepared.correlatedObservationID = observation.ID
 		}
 	}
-	keys := map[string]bool{}
+	sources := map[string][]*evidenceDeclaration{}
 	for index, source := range p.Evidence {
 		location := fmt.Sprintf("program.evidence[%d]", index)
 		if err := a.charge(1); err != nil {
 			return err
 		}
-		if source == nil || !ir.ValidID(source.GetEvidenceId()) || !ir.ValidID(source.GetEvidenceSource()) || source.GetOperation() == "" {
+		if source == nil || !ir.ValidID(source.GetEvidenceId()) || !ir.ValidID(source.GetEvidenceSource()) || source.GetOperation() == "" && !source.GetRunEvent().GetRunKeyed() {
 			return ir.Invalid(ir.Malformed, location, "evidence declaration requires an identity, a source and an operation key path")
 		}
 		if _, exists := a.prepared.evidence[source.EvidenceId]; exists {
@@ -46,11 +50,18 @@ func (a *admission) bindEvidence(p *testpilotspb.Program) error {
 		if err != nil {
 			return err
 		}
-		key := bound.source + "\x00" + bound.operation.Text()
-		if keys[key] {
-			return ir.Invalid(ir.Malformed, location, "evidence source and operation key path are declared twice")
+		for _, other := range sources[bound.source] {
+			if err := a.charge(int64(proto.Size(bound.guardSource)) + 1); err != nil {
+				return err
+			}
+			if (bound.kind == RunEventSource) != (other.kind == RunEventSource) {
+				return ir.Invalid(ir.Malformed, location, "evidence source is counted by the Run and by an instruction")
+			}
+			if bound.keyPath() == other.keyPath() && bound.sameRecord(other) {
+				return ir.Invalid(ir.Malformed, location, "evidence source and operation key path are declared twice")
+			}
 		}
-		keys[key] = true
+		sources[bound.source] = append(sources[bound.source], bound)
 		a.prepared.evidence[bound.id] = bound
 		if bound.kind == RunEventSource {
 			a.prepared.runEventLifts = append(a.prepared.runEventLifts, bound)
@@ -98,8 +109,20 @@ func (a *admission) bindEvidenceDeclaration(location string, source *testpilotsp
 			return nil, ir.Invalid(ir.Unknown, location+".run_event.kind", "Run Event payload arm is not in the catalog")
 		}
 		bound.element, bound.runEventKind, bound.payloadArm = element, kind, payload.Arm
+		if bound.instruction = recorded.RunEvent.GetInstruction(); bound.instruction != nil && !recordsRunEvents(a.prepared.source, bound.instruction) {
+			return nil, ir.Invalid(ir.Unknown, location+".run_event.instruction", "Run Event evidence names an instruction no controller entrypoint declares")
+		}
 		var err error
-		bound.guard, err = a.liftGuard(location+".run_event", element, &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}})
+		if bound.guardSource = recorded.RunEvent.GetGuard(); bound.guardSource != nil {
+			// The binder locates a reference it rejects, but not a guard of another type or one
+			// that may have no value, which are faults of the guard as a whole.
+			var unlocated *ir.Error
+			if bound.guard, err = a.liftGuard(location+".run_event.guard", element, bound.guardSource); errors.As(err, &unlocated) && unlocated.Path == "expression" {
+				err = ir.Invalid(unlocated.Category, location+".run_event.guard", unlocated.Detail)
+			}
+		} else {
+			bound.guard, err = a.liftGuard(location+".run_event", element, &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}})
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -117,20 +140,31 @@ func (a *admission) bindEvidenceDeclaration(location string, source *testpilotsp
 		if err != nil {
 			return nil, err
 		}
-		element := path.Type()
-		if element.Cardinality() != ir.Repeated {
-			return nil, ir.Invalid(ir.TypeMismatch, location+".read.path", "read evidence requires a repeated field")
+		element, requirement := path.Type(), "read evidence requires repeated messages"
+		if bound.single = recorded.Read.GetSingle(); bound.single {
+			requirement = "a single read requires one message"
+			if element.Cardinality() != ir.Singular {
+				return nil, ir.Invalid(ir.TypeMismatch, location+".read.path", requirement)
+			}
+		} else {
+			if element.Cardinality() != ir.Repeated {
+				return nil, ir.Invalid(ir.TypeMismatch, location+".read.path", "read evidence requires a repeated field")
+			}
+			element = element.Element()
 		}
-		element = element.Element()
 		if element.Message() == nil || element.Opaque() || element.Any() {
-			return nil, ir.Invalid(ir.TypeMismatch, location+".read.path", "read evidence requires repeated messages")
+			return nil, ir.Invalid(ir.TypeMismatch, location+".read.path", requirement)
 		}
 		bound.element, bound.method, bound.readPath = element, method, path
 	default:
 		return nil, ir.Invalid(ir.Malformed, location+".source", "evidence declaration requires a source")
 	}
 	var err error
-	if bound.operation, err = a.bindEvidencePath(location, bound.element, location+".operation", source.Operation, evidenceKeyKinds...); err != nil {
+	if source.GetRunEvent().GetRunKeyed() {
+		if source.Operation != "" {
+			return nil, ir.Invalid(ir.Malformed, location+".operation", "evidence keyed by the Run reads no operation key path")
+		}
+	} else if bound.operation, err = a.bindEvidencePath(location, bound.element, location+".operation", source.Operation, evidenceKeyKinds...); err != nil {
 		return nil, err
 	}
 	seen := map[string]bool{}
@@ -155,6 +189,19 @@ func (a *admission) bindEvidenceDeclaration(location string, source *testpilotsp
 		bound.fields = append(bound.fields, evidenceBinding{fieldID: field.FieldId, path: path})
 	}
 	return bound, nil
+}
+
+// recordsRunEvents reports whether the reference names an instruction whose events the Run records
+// under the instruction's own coordinates: one of a controller entrypoint.
+func recordsRunEvents(p *testpilotspb.Program, reference *testpilotspb.InstructionReference) bool {
+	for _, entrypoint := range p.GetEntrypoints() {
+		if entrypoint.GetEntrypointId() == reference.GetEntrypointId() && entrypoint.GetController() != nil {
+			return slices.ContainsFunc(entrypoint.GetInstructions(), func(n *testpilotspb.InstructionNode) bool {
+				return n.GetInstructionId() == reference.GetInstructionId()
+			})
+		}
+	}
+	return false
 }
 
 // liftGuard binds a boolean over one recorded value in the evidence-lift context.
@@ -203,8 +250,9 @@ func (a *admission) bindDeclaredRule(g *graph, n *node, location string, source 
 
 // bindReadEvidence admits a controller poll of a read declaration: the endpoint role authorizes the
 // declaration's method, the poll interval fits the instruction's timeout, and the instruction's one
-// response read lifts every element `until` selects into the Program's CorrelatedEvidence
-// Observation, under the declaration's coordinates.
+// response read lifts every value `until` selects into the Program's CorrelatedEvidence
+// Observation, under the declaration's coordinates. The values are the elements of the declared
+// repeated field, or the one message of a single read, which emits one event at most.
 func (a *admission) bindReadEvidence(g *graph, n *node) error {
 	read := n.source.Instruction.GetReadEvidence()
 	if read == nil {
@@ -232,7 +280,10 @@ func (a *admission) bindReadEvidence(g *graph, n *node) error {
 	if read.PollIntervalMilliseconds > n.timeoutMilliseconds {
 		return ir.Invalid(ir.LimitExceeded, expressionPath(g, n, "instruction.read_evidence.poll_interval_milliseconds"), "poll interval exceeds the instruction timeout")
 	}
-	if a.prepared.limits.MaxPathFanout > a.prepared.limits.MaxInstructionEmittedEvents {
+	cardinality := testpilotspb.READ_CARDINALITY_EMIT_EACH
+	if declaration.single {
+		cardinality = testpilotspb.READ_CARDINALITY_ONE
+	} else if a.prepared.limits.MaxPathFanout > a.prepared.limits.MaxInstructionEmittedEvents {
 		return ir.Invalid(ir.LimitExceeded, nodePath(g, n), "read evidence emission exceeds instruction bound")
 	}
 	until, err := a.liftGuard(expressionPath(g, n, "instruction.read_evidence.until"), declaration.element, read.Until)
@@ -247,7 +298,7 @@ func (a *admission) bindReadEvidence(g *graph, n *node) error {
 	lift := declaration.lift(a.prepared.correlatedObservationID, until)
 	n.method, n.until, n.pollIntervalMilliseconds = declaration.method, until, read.PollIntervalMilliseconds
 	n.responseReads = []responseRead{{
-		path: declaration.readPath, cardinality: testpilotspb.READ_CARDINALITY_EMIT_EACH,
+		path: declaration.readPath, cardinality: cardinality,
 		targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_CorrelatedEvidence{CorrelatedEvidence: &testpilotspb.CorrelatedEvidenceProjection{ObservationId: lift.observationID}}}},
 		lifts:   []*evidenceLift{lift},
 	}}
@@ -258,8 +309,8 @@ func methodName(method protoreflect.MethodDescriptor) string {
 	return "/" + string(method.Parent().FullName()) + "/" + string(method.Name())
 }
 
-// readSatisfied reports whether an element of the poll's declared path satisfies the instruction's
-// `until`, which ends a ReadEvidence poll.
+// readSatisfied reports whether a value of the poll's declared path satisfies the instruction's
+// `until`, which ends a ReadEvidence poll: an element of its repeated field, or its one message.
 func (a *activationValues) readSatisfied(ctx context.Context, c contract.Coordinate, response proto.Message, limit int64) (bool, int64, error) {
 	n, err := a.instruction(c)
 	if err != nil {
@@ -286,7 +337,11 @@ func (a *activationValues) readSatisfied(ctx context.Context, c contract.Coordin
 	if err != nil {
 		return false, w.work, err
 	}
-	for _, element := range value.GetListValue().GetValues() {
+	elements := value.GetListValue().GetValues()
+	if read.cardinality == testpilotspb.READ_CARDINALITY_ONE && value != nil {
+		elements = []*testpilotspb.Value{value}
+	}
+	for _, element := range elements {
 		if err := w.charge(1); err != nil {
 			return false, w.work, err
 		}
@@ -307,9 +362,11 @@ func (a *activationValues) readSatisfied(ctx context.Context, c contract.Coordin
 	return false, w.work, nil
 }
 
-// liftRunEvents attaches, to each recorded fact whose kind a Run Event declaration names, the
-// evidence lifted from the fact's payload. Ordinals are dense per source across the Run, in
-// recording order.
+// liftRunEvents attaches, to each recorded fact a Run Event declaration names by kind and, when it
+// names one, by instruction, and selects by its guard, the evidence lifted from the fact's payload. A fact carries the Program's one
+// CorrelatedEvidence Observation once, so a fact two declarations select is an error rather than
+// evidence of either. Ordinals are dense per source across the Run, in recording order: a fact no
+// declaration selects, and one that fails to lift, takes none.
 func (s *scheduler) liftRunEvents(ctx context.Context, a *activationValues, facts []*testpilotspb.RunEvent) error {
 	program := s.values.program
 	if len(program.runEventLifts) == 0 {
@@ -320,24 +377,45 @@ func (s *scheduler) liftRunEvents(ctx context.Context, a *activationValues, fact
 		return err
 	}
 	for _, fact := range facts {
+		var selected *evidenceDeclaration
+		var value *testpilotspb.Value
 		for _, declaration := range program.runEventLifts {
 			if fact.Kind != declaration.runEventKind {
 				continue
 			}
-			value := ir.RunEventPayloadValue(fact, declaration.payloadArm)
-			if value == nil {
+			if at := declaration.instruction; at != nil && (fact.GetCoordinates().GetEntrypointId() != at.GetEntrypointId() || fact.GetCoordinates().GetInstructionId() != at.GetInstructionId()) {
 				continue
 			}
-			s.evidenceMu.Lock()
-			ordinal := s.runEventOrdinals[declaration.source]
-			s.runEventOrdinals[declaration.source]++
-			s.evidenceMu.Unlock()
-			evidence, err := a.liftEvidence(w, declaration.lift(program.correlatedObservationID, declaration.guard), value, ordinal)
+			payload := ir.RunEventPayloadValue(fact, declaration.payloadArm)
+			if payload == nil {
+				continue
+			}
+			accepted, err := selectsEvidence(w, declaration.guard, payload)
 			if err != nil {
 				return err
 			}
-			fact.Observations = append(fact.Observations, &testpilotspb.ObservationResult{ObservationId: program.correlatedObservationID, Value: evidence})
+			if !accepted {
+				continue
+			}
+			if selected != nil {
+				return ir.Invalid(ir.Malformed, "run_event", fmt.Sprintf("a Run Event is evidence of both %s and %s", selected.id, declaration.id))
+			}
+			selected, value = declaration, payload
 		}
+		if selected == nil {
+			continue
+		}
+		lift := selected.lift(program.correlatedObservationID, selected.guard)
+		s.evidenceMu.Lock()
+		evidence, err := a.buildEvidence(w, lift, lift.rules[0], value, s.runEventOrdinals[selected.source])
+		if err == nil {
+			s.runEventOrdinals[selected.source]++
+		}
+		s.evidenceMu.Unlock()
+		if err != nil {
+			return err
+		}
+		fact.Observations = append(fact.Observations, &testpilotspb.ObservationResult{ObservationId: program.correlatedObservationID, Value: evidence})
 	}
 	return nil
 }
