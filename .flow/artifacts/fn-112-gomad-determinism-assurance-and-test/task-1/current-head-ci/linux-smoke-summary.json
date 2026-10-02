@@ -1,0 +1,68 @@
+{
+  "run_id": 37027023410,
+  "commit": "67dbe02666afd68c064c6c3cb9197b03d4664687",
+  "platform": {
+    "goarch": "amd64",
+    "goos": "linux"
+  },
+  "report_sha256": "27ec3d024782ba79479ffca1d1b4375e38ace3b9f16958f3f7033016f1e76781",
+  "report_path": "/tmp/gomad-ci-37027023410-linux-smoke/smoke-qualification-set.json",
+  "workloads": [
+    {
+      "id": "functional-activity",
+      "classification": "qualified",
+      "expected": "intermittent",
+      "seeds": [
+        {
+          "seed": "11",
+          "classification": "qualified",
+          "replayed": true,
+          "replay_match": true,
+          "choice_replay_exact": true
+        }
+      ]
+    },
+    {
+      "id": "functional-child-workflow",
+      "classification": "qualified",
+      "expected": "intermittent",
+      "seeds": [
+        {
+          "seed": "11",
+          "classification": "qualified",
+          "replayed": true,
+          "replay_match": true,
+          "choice_replay_exact": true
+        }
+      ]
+    },
+    {
+      "id": "functional-update",
+      "classification": "qualified",
+      "expected": "intermittent",
+      "seeds": [
+        {
+          "seed": "11",
+          "classification": "qualified",
+          "replayed": true,
+          "replay_match": true,
+          "choice_replay_exact": true
+        }
+      ]
+    },
+    {
+      "id": "user-timers-workflow",
+      "classification": "qualified",
+      "expected": "intermittent",
+      "seeds": [
+        {
+          "seed": "11",
+          "classification": "qualified",
+          "replayed": true,
+          "replay_match": true,
+          "choice_replay_exact": true
+        }
+      ]
+    }
+  ]
+}
