@@ -153,7 +153,10 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
      through the `codex` review backend (`review.backend` in .flow/config.json),
      so the verdict is independent of the writer. Restored 2026-09-27 after the
      Codex budget returned; between 2026-09-09 and 2026-09-27 reviews ran on the
-     same-family `claude` backend, whose receipts say `mode: "claude"`. -->
+     same-family `claude` backend, whose receipts say `mode: "claude"`.
+     Since 2026-10-02 all tiers are Claude models at the owner's request, so
+     reviews are same-family again (`review.backend` is `claude`); the reviewer
+     runs in a fresh context on a stronger model than the implementer. -->
 
 reviewer: claude-fable-5-1 at high
 
@@ -183,7 +186,7 @@ fast scout: claude-haiku-4-5-20251001
      later as rework in implementation. Reviews stay on the cross-family
      reviewer above, never on this tier. -->
 
-thinking scout: claude-opus-5-5 at high
+thinking scout: claude-fable-5-1 at high
 
 <!-- Unset is the default and the doctrine: planning, capture, interview,
      requirement analysis, every verdict, and the worker run on the session
