@@ -160,35 +160,37 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
      produced. Prefer a different family than the writer: a same-family review
      is not an independent verdict. Advice, not enforcement. -->
 
-<!-- Reviews are cross-family: Claude implements in-session and Codex reviews
-     through the `codex` review backend (`review.backend` in .flow/config.json),
-     so the verdict is independent of the writer. -->
+<!-- Codex reviews through the `codex` review backend (`review.backend` in
+     .flow/config.json). The implementer below is a Codex model too, so the
+     review is same-family and is separated from the writer by model and by a
+     fresh context only. -->
 
-reviewer: fable at high
+reviewer: gpt-6-astra at high
 
 <!-- implementer: <model> at <effort> - work handed to another harness (plan
      here, implement cheaper or faster there). Absent = the session model
      implements. -->
 
-<!-- Pinned rather than left unset: the worker implements in-session on Claude
-     Code, and these are patched-runtime and determinism tasks that degrade badly
-     on a cheaper tier, so the pin holds even if the session model is switched down.
+<!-- Pinned rather than left unset: the worker hands implementation to Codex
+     (`codex exec` from a Claude Code host), and these are patched-runtime and
+     determinism tasks that degrade badly on a cheaper tier, so the pin holds even
+     if the session model is switched down.
      Escalate gnarly determinism-divergence tasks (tracing same-seed divergence to
-     a runtime channel) to fable (Claude Fable 5.1) at high. -->
+     a runtime channel) to gpt-6-astra at high. -->
 
-implementer: opus at high
+implementer: gpt-6.1-sol at high
 
 <!-- fast scout: <model> - mechanical inventory scanning, where
      the cheapest tier is the correct one. -->
 
-fast scout: haiku
+fast scout: gpt-6-luna
 
 <!-- thinking scout: <model> - analysis that degrades badly on a
      fast tier. -->
 
 <!-- Spec writing, planning, and design decisions. -->
 
-thinking scout: fable at high
+thinking scout: gpt-6-astra at high
 
 <!-- Unset is the default and the doctrine: planning, capture, interview,
      requirement analysis, every verdict, and the worker run on the session
