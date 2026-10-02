@@ -7,7 +7,9 @@
     "fn-112-gomad-determinism-assurance-and-test.4",
     "fn-112-gomad-determinism-assurance-and-test.5",
     "fn-112-gomad-determinism-assurance-and-test.6",
-    "fn-112-gomad-determinism-assurance-and-test.7"
+    "fn-112-gomad-determinism-assurance-and-test.7",
+    "fn-112-gomad-determinism-assurance-and-test.15",
+    "fn-112-gomad-determinism-assurance-and-test.16"
   ],
   "id": "fn-112-gomad-determinism-assurance-and-test.10",
   "priority": null,
@@ -15,5 +17,5 @@
   "spec_path": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.10.md",
   "status": "todo",
   "title": "Add the scheduled determinism soak gate and update the docs to the delivered state",
-  "updated_at": "2026-10-02T03:52:52.748238Z"
+  "updated_at": "2026-10-02T21:20:36.877545Z"
 }
