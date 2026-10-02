@@ -3,7 +3,6 @@ package conformance
 import (
 	"context"
 	"crypto/sha256"
-	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -217,11 +216,9 @@ func TestRuntimeChannelFixtures(t *testing.T) {
 }
 
 func TestTimerCallbackAssociationRejectsUnidentifiedHandoff(t *testing.T) {
-	input := append([]byte("gomad3-choice-goroutine-runtime/v1"), make([]byte, 8)...)
-	binary.BigEndian.PutUint64(input[len(input)-8:], 2)
-	identity := sha256.Sum256(input)
+	identity := sha256.Sum256([]byte("callback"))
 	run := choiceRun{transcript: "A B", trace: choice.Trace{Records: []choice.Record{
-		{Kind: choice.KindRunnable, SelectedIdentity: identity},
+		{Kind: choice.KindRunnable, Alternatives: 2, SelectedIdentity: identity},
 		{Kind: choice.KindSelectResult},
 		{Kind: choice.KindSelectPoll, SiteOffset: 1},
 		{Kind: choice.KindSelectResult},
@@ -231,11 +228,54 @@ func TestTimerCallbackAssociationRejectsUnidentifiedHandoff(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(association.CallbackIdentities) != 0 {
+	if association.FirstIdentity != "" || association.AlternativeSet != "" {
 		t.Fatalf("unidentified callback handoff associated identities: %+v", association)
+	}
+	if _, err := goroutineHandoffEvidence("none", "6", run, []string{"A", "B"}); err == nil {
+		t.Fatal("unidentified hand-off was accepted as evidence")
 	}
 	run.transcript = "A A"
 	if _, err := timerCallbackAssociation("6", run); err == nil {
 		t.Fatal("duplicate callback markers were accepted")
+	}
+}
+
+func TestStableHandoffsRequireOneAlternativeSetAndConsistentLeaders(t *testing.T) {
+	first, second := sha256.Sum256([]byte("first")), sha256.Sum256([]byte("second"))
+	set, err := choice.AlternativeSetDigest([][sha256.Size]byte{first, second})
+	if err != nil {
+		t.Fatal(err)
+	}
+	other, err := choice.AlternativeSetDigest([][sha256.Size]byte{first, sha256.Sum256([]byte("third"))})
+	if err != nil {
+		t.Fatal(err)
+	}
+	handoff := func(label string, identity, set [sha256.Size]byte) goroutineHandoff {
+		return goroutineHandoff{Seed: label, FirstLabel: label, FirstIdentity: fmt.Sprintf("%x", identity), AlternativeSet: fmt.Sprintf("%x", set)}
+	}
+	for _, test := range []struct {
+		name string
+		runs []goroutineHandoff
+		led  int
+		want string
+	}{
+		{name: "both lead", runs: []goroutineHandoff{handoff("A", first, set), handoff("B", second, set), handoff("A", first, set)}, led: 2},
+		{name: "one leads", runs: []goroutineHandoff{handoff("A", first, set), handoff("A", first, set)}, led: 1},
+		{name: "set changed", runs: []goroutineHandoff{handoff("A", first, set), handoff("B", second, other)}, want: "decided among alternative set"},
+		{name: "leader changed", runs: []goroutineHandoff{handoff("A", first, set), handoff("A", second, set)}, want: "led A with identity"},
+		{name: "leaders outside set", runs: []goroutineHandoff{handoff("A", first, set), handoff("B", sha256.Sum256([]byte("third")), set)}, want: "do not make up the alternative set"},
+		{name: "unidentified", runs: []goroutineHandoff{{Seed: "1"}}, want: "did not identify its hand-off"},
+		{name: "empty", want: "no hand-offs to compare"},
+	} {
+		led, err := requireStableHandoffs(test.runs)
+		if test.want == "" {
+			if err != nil || led != test.led {
+				t.Fatalf("%s: requireStableHandoffs() = %d, %v", test.name, led, err)
+			}
+			continue
+		}
+		if err == nil || !strings.Contains(err.Error(), test.want) {
+			t.Fatalf("%s: requireStableHandoffs() error = %v, want %q", test.name, err, test.want)
+		}
 	}
 }

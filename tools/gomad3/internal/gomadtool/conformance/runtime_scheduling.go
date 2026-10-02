@@ -3,6 +3,7 @@ package conformance
 import (
 	"crypto/sha256"
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -165,12 +166,29 @@ type selectShapeEvidence struct {
 	StopReason        string   `json:"stop_reason"`
 }
 
+// goroutineHandoff is the two-way Runnable decision immediately before a
+// fixture's first marker select: the scheduler handed the P to the goroutine
+// whose marker follows, so that goroutine's identity is the decision's selected
+// identity and the two goroutines it chose between are its alternative set.
+type goroutineHandoff struct {
+	Mode           string `json:"mode,omitempty"`
+	Seed           string `json:"seed"`
+	Transcript     string `json:"transcript"`
+	FirstLabel     string `json:"first_label"`
+	FirstIdentity  string `json:"first_identity"`
+	AlternativeSet string `json:"alternative_set"`
+}
+
+func (handoff goroutineHandoff) name() string {
+	if handoff.Mode != "" {
+		return handoff.Mode + " seed " + handoff.Seed
+	}
+	return "seed " + handoff.Seed
+}
+
 type timerCallbackEvidence struct {
-	Seed               string            `json:"seed"`
-	Transcript         string            `json:"transcript"`
-	CallbackIdentities map[string]string `json:"callback_identities"`
-	ParentlessOrdinals map[string]uint64 `json:"parentless_ordinals"`
-	CallbackSites      map[string]uint64 `json:"callback_sites"`
+	goroutineHandoff
+	CallbackSites map[string]uint64 `json:"callback_sites"`
 }
 
 type searchReproduction struct {
@@ -181,7 +199,9 @@ type searchReproduction struct {
 	Reduced                      bool                    `json:"reduced"`
 	TimerCallbacks               []timerCallbackEvidence `json:"timer_callbacks"`
 	TimerPrefixes                []timerPrefixEvidence   `json:"timer_prefixes"`
-	CrossSeedPrefix              timerDivergenceEvidence `json:"cross_seed_prefix"`
+	CrossSeedPrefix              timerCrossSeedEvidence  `json:"cross_seed_prefix"`
+	TimerCreators                []goroutineHandoff      `json:"timer_creators"`
+	TimerResets                  []goroutineHandoff      `json:"timer_resets"`
 	SelectShapes                 []selectShapeEvidence   `json:"select_shapes"`
 }
 
@@ -192,6 +212,7 @@ func (campaign *runtimeCampaign) requireSearchReproduction(binaries map[string]s
 	}
 	evidence := searchReproduction{ToolchainBuildKey: identity.ToolchainBuildKey, Seed: "1", MaximumExecutionsPerShape: 2048, MaximumDecisionsPerExecution: 32}
 	var timerBase choiceRun
+	var handoffs []goroutineHandoff
 	for seed := 1; seed <= 32; seed++ {
 		value := strconv.Itoa(seed)
 		run, err := campaign.runChoice("timer-callback-seed-"+value, binaries["timer-callback-identity"], value, nil)
@@ -205,18 +226,29 @@ func (campaign *runtimeCampaign) requireSearchReproduction(binaries map[string]s
 		if err != nil {
 			return err
 		}
-		if len(association.CallbackIdentities) != 0 {
-			evidence.TimerCallbacks = append(evidence.TimerCallbacks, association)
-		}
+		evidence.TimerCallbacks = append(evidence.TimerCallbacks, association)
+		handoffs = append(handoffs, association.goroutineHandoff)
 	}
-	if !oppositeTimerCallbackIdentities(evidence.TimerCallbacks) {
-		return errors.New("timer callbacks did not change parentless identity under opposite firing orders")
+	led, err := requireStableHandoffs(handoffs)
+	if err != nil {
+		return fmt.Errorf("timer callback identities: %w", err)
 	}
-	prefixes, divergence, err := campaign.requireTimerPrefixes(binaries["timer-callback-identity"], timerBase, identity)
+	if led != 2 {
+		return errors.New("timer callbacks fired in one order only across the recorded seeds")
+	}
+	prefixes, crossSeed, err := campaign.requireTimerPrefixes(binaries["timer-callback-identity"], timerBase, identity)
 	if err != nil {
 		return err
 	}
-	evidence.TimerPrefixes, evidence.CrossSeedPrefix = prefixes, divergence
+	evidence.TimerPrefixes, evidence.CrossSeedPrefix = prefixes, crossSeed
+	evidence.TimerCreators, err = campaign.requireTimerCreatorIdentities(binaries["timer-creator-identity"])
+	if err != nil {
+		return err
+	}
+	evidence.TimerResets, err = campaign.requireTimerResetIdentities(binaries["timer-reset-identity"])
+	if err != nil {
+		return err
+	}
 	for _, shape := range selectReadinessShapes {
 		result, err := campaign.exploreSelectShape(binaries["select-readiness"], shape)
 		if err != nil {
@@ -236,8 +268,7 @@ func timerCallbackAssociation(seed string, run choiceRun) (timerCallbackEvidence
 	if len(labels) != 2 || labels[0] == labels[1] || !slices.Contains(labels, "A") || !slices.Contains(labels, "B") {
 		return timerCallbackEvidence{}, fmt.Errorf("timer callback output = %q", run.transcript)
 	}
-	evidence := timerCallbackEvidence{Seed: seed, Transcript: run.transcript, CallbackIdentities: map[string]string{}, ParentlessOrdinals: map[string]uint64{}, CallbackSites: map[string]uint64{}}
-	ordinals := map[[sha256.Size]byte]uint64{}
+	evidence := timerCallbackEvidence{goroutineHandoff: goroutineHandoff{Seed: seed, Transcript: run.transcript}, CallbackSites: map[string]uint64{}}
 	index := 0
 	for recordIndex, record := range run.trace.Records {
 		if record.Kind != choice.KindSelectPoll {
@@ -249,28 +280,16 @@ func timerCallbackAssociation(seed string, run choiceRun) (timerCallbackEvidence
 		label := labels[index]
 		index++
 		evidence.CallbackSites[label] = record.SiteOffset
-		if recordIndex == 0 || run.trace.Records[recordIndex-1].Kind != choice.KindRunnable {
+		if index != 1 {
 			continue
 		}
-		runnable := run.trace.Records[recordIndex-1]
-		if index == 1 && runnable.Alternatives == 2 {
-			// The virtual clock advanced only after all goroutines blocked. These
-			// two alternatives are the callbacks just created by the two due timers.
-			for ordinal := uint64(1); ordinal < 64; ordinal++ {
-				first, second := timerParentlessIdentity(ordinal), timerParentlessIdentity(ordinal+1)
-				digest, err := choice.AlternativeSetDigest([][sha256.Size]byte{first, second})
-				if err != nil {
-					return evidence, err
-				}
-				if digest == runnable.AlternativeSetDigest {
-					ordinals[first], ordinals[second] = ordinal, ordinal+1
-					break
-				}
-			}
-		}
-		if ordinal, ok := ordinals[runnable.SelectedIdentity]; ok {
-			evidence.CallbackIdentities[label] = fmt.Sprintf("%x", runnable.SelectedIdentity)
-			evidence.ParentlessOrdinals[label] = ordinal
+		// The virtual clock advanced only after all goroutines blocked, so a
+		// two-way decision here is between the callbacks the two due timers just
+		// created. A missing or wider decision identifies nothing.
+		if handoff, ok := markerHandoff(run.trace.Records, recordIndex); ok {
+			evidence.FirstLabel = label
+			evidence.FirstIdentity = fmt.Sprintf("%x", handoff.SelectedIdentity)
+			evidence.AlternativeSet = fmt.Sprintf("%x", handoff.AlternativeSetDigest)
 		}
 	}
 
@@ -280,21 +299,131 @@ func timerCallbackAssociation(seed string, run choiceRun) (timerCallbackEvidence
 	return evidence, nil
 }
 
-func timerParentlessIdentity(ordinal uint64) [sha256.Size]byte {
-	input := append([]byte("gomad3-choice-goroutine-runtime/v1"), make([]byte, 8)...)
-	binary.BigEndian.PutUint64(input[len(input)-8:], ordinal)
-	return sha256.Sum256(input)
+func markerHandoff(records []choice.Record, marker int) (choice.Record, bool) {
+	if marker == 0 || records[marker-1].Kind != choice.KindRunnable || records[marker-1].Alternatives != 2 {
+		return choice.Record{}, false
+	}
+	return records[marker-1], true
 }
 
-func oppositeTimerCallbackIdentities(runs []timerCallbackEvidence) bool {
-	for _, first := range runs {
-		for _, second := range runs {
-			if len(first.ParentlessOrdinals) == 2 && len(second.ParentlessOrdinals) == 2 && first.ParentlessOrdinals["A"] != first.ParentlessOrdinals["B"] && first.ParentlessOrdinals["A"] == second.ParentlessOrdinals["B"] && first.ParentlessOrdinals["B"] == second.ParentlessOrdinals["A"] {
-				return true
+// goroutineHandoffEvidence requires the fixture's first marker select to follow
+// a two-way decision and labels the goroutine that ran it with the first word
+// of the transcript, which must be a permutation of labels.
+func goroutineHandoffEvidence(mode, seed string, run choiceRun, labels []string) (goroutineHandoff, error) {
+	evidence := goroutineHandoff{Mode: mode, Seed: seed, Transcript: run.transcript}
+	words := strings.Fields(run.transcript)
+	sorted, want := slices.Clone(words), slices.Clone(labels)
+	slices.Sort(sorted)
+	slices.Sort(want)
+	if len(words) != 2 || !slices.Equal(sorted, want) {
+		return evidence, fmt.Errorf("%s output = %q", evidence.name(), run.transcript)
+	}
+	evidence.FirstLabel = words[0]
+	marker := slices.IndexFunc(run.trace.Records, func(record choice.Record) bool { return record.Kind == choice.KindSelectPoll })
+	if marker < 0 {
+		return evidence, fmt.Errorf("%s recorded no marker select", evidence.name())
+	}
+	handoff, ok := markerHandoff(run.trace.Records, marker)
+	if !ok {
+		return evidence, fmt.Errorf("%s did not hand off through a two-way decision", evidence.name())
+	}
+	evidence.FirstIdentity = fmt.Sprintf("%x", handoff.SelectedIdentity)
+	evidence.AlternativeSet = fmt.Sprintf("%x", handoff.AlternativeSetDigest)
+	return evidence, nil
+}
+
+// requireStableHandoffs requires every run to decide between the same two
+// goroutines and each label to lead with one identity wherever it leads. When
+// both labels have led, their identities must differ and make up that
+// alternative set, which fixes the identity of the goroutine that ran second
+// as well. It reports how many labels led.
+func requireStableHandoffs(runs []goroutineHandoff) (int, error) {
+	if len(runs) == 0 {
+		return 0, errors.New("no hand-offs to compare")
+	}
+	identities := map[string]string{}
+	for _, run := range runs {
+		if run.AlternativeSet == "" {
+			return 0, fmt.Errorf("%s did not identify its hand-off", run.name())
+		}
+		if run.AlternativeSet != runs[0].AlternativeSet {
+			return 0, fmt.Errorf("%s decided among alternative set %s, %s among %s", run.name(), run.AlternativeSet, runs[0].name(), runs[0].AlternativeSet)
+		}
+		if previous, led := identities[run.FirstLabel]; led && previous != run.FirstIdentity {
+			return 0, fmt.Errorf("%s led %s with identity %s, earlier runs with %s", run.name(), run.FirstLabel, run.FirstIdentity, previous)
+		}
+		identities[run.FirstLabel] = run.FirstIdentity
+	}
+	if len(identities) == 2 {
+		var members [][sha256.Size]byte
+		for _, identity := range identities {
+			decoded, err := hex.DecodeString(identity)
+			if err != nil || len(decoded) != sha256.Size {
+				return 0, fmt.Errorf("malformed goroutine identity %q", identity)
 			}
+			members = append(members, [sha256.Size]byte(decoded))
+		}
+		if members[0] == members[1] {
+			return 0, errors.New("both labels led with the same identity")
+		}
+		digest, err := choice.AlternativeSetDigest(members)
+		if err != nil {
+			return 0, err
+		}
+		if fmt.Sprintf("%x", digest) != runs[0].AlternativeSet {
+			return 0, errors.New("the two leading identities do not make up the alternative set")
 		}
 	}
-	return false
+	return len(identities), nil
+}
+
+// requireTimerCreatorIdentities runs the creator fixture in every mode under
+// several seeds: the children started after a stopped timer, after a timer
+// that never fires, and after no timer must be the same two goroutines.
+func (campaign *runtimeCampaign) requireTimerCreatorIdentities(fixture string) ([]goroutineHandoff, error) {
+	var runs []goroutineHandoff
+	for _, mode := range []string{"none", "stopped", "pending"} {
+		for seed := 1; seed <= 8; seed++ {
+			value := strconv.Itoa(seed)
+			run, err := campaign.runChoiceMode(fmt.Sprintf("timer-creator-%s-seed-%s", mode, value), fixture, value, nil, choice.ModeRecord, 0, mode)
+			if err != nil {
+				return runs, err
+			}
+			handoff, err := goroutineHandoffEvidence(mode, value, run, []string{"A", "B"})
+			if err != nil {
+				return runs, err
+			}
+			runs = append(runs, handoff)
+		}
+	}
+	if _, err := requireStableHandoffs(runs); err != nil {
+		return runs, fmt.Errorf("timer creator identities: %w", err)
+	}
+	return runs, nil
+}
+
+// requireTimerResetIdentities runs the reset fixture under several seeds. Its
+// two callback goroutines of one timer are both runnable when main releases
+// them, so a two-way decision between them exists only if their identities
+// differ; a shared identity diverges the run instead of completing it.
+func (campaign *runtimeCampaign) requireTimerResetIdentities(fixture string) ([]goroutineHandoff, error) {
+	var runs []goroutineHandoff
+	for seed := 1; seed <= 8; seed++ {
+		value := strconv.Itoa(seed)
+		run, err := campaign.runChoice("timer-reset-seed-"+value, fixture, value, nil)
+		if err != nil {
+			return runs, err
+		}
+		handoff, err := goroutineHandoffEvidence("reset", value, run, []string{"1", "2"})
+		if err != nil {
+			return runs, err
+		}
+		runs = append(runs, handoff)
+	}
+	if _, err := requireStableHandoffs(runs); err != nil {
+		return runs, fmt.Errorf("timer reset identities: %w", err)
+	}
+	return runs, nil
 }
 
 func (campaign *runtimeCampaign) exploreSelectShape(fixture string, shape selectShape) (selectShapeEvidence, error) {
@@ -376,25 +505,31 @@ type timerPrefixEvidence struct {
 	Association     timerCallbackEvidence `json:"association"`
 }
 
-type timerDivergenceEvidence struct {
+// timerCrossSeedEvidence records the seed-6 plan executed under seed 16. Replay
+// binds the recorded seed, so this is an experiment whose outcome is retained
+// as evidence; it completes or diverges, and neither is a requirement.
+type timerCrossSeedEvidence struct {
 	RecordedSeed    string `json:"recorded_seed"`
 	ExecutedSeed    string `json:"executed_seed"`
 	PrefixSHA256    string `json:"prefix_sha256"`
+	Exit            int    `json:"exit"`
+	Transcript      string `json:"transcript"`
 	DecisionOrdinal uint64 `json:"decision_ordinal"`
 	Reason          string `json:"reason"`
 }
 
-func (campaign *runtimeCampaign) requireTimerPrefixes(fixture string, base choiceRun, identity choice.ExecutionIdentity) ([]timerPrefixEvidence, timerDivergenceEvidence, error) {
+func (campaign *runtimeCampaign) requireTimerPrefixes(fixture string, base choiceRun, identity choice.ExecutionIdentity) ([]timerPrefixEvidence, timerCrossSeedEvidence, error) {
 	plan, err := choice.ProjectReplayPlan(base.trace, identity)
 	if err != nil {
-		return nil, timerDivergenceEvidence{}, err
+		return nil, timerCrossSeedEvidence{}, err
 	}
 	prefixes := []timerPrefixEvidence{}
 	baseAssociation, err := timerCallbackAssociation("6", base)
 	if err != nil {
-		return nil, timerDivergenceEvidence{}, err
+		return nil, timerCrossSeedEvidence{}, err
 	}
-	associations := []timerCallbackEvidence{baseAssociation}
+	handoffs := []goroutineHandoff{baseAssociation.goroutineHandoff}
+	swapped := false
 	for ordinal, decision := range plan.Decisions {
 		for rank := uint32(0); rank < decision.Alternatives; rank++ {
 			if rank == decision.Selected {
@@ -402,32 +537,36 @@ func (campaign *runtimeCampaign) requireTimerPrefixes(fixture string, base choic
 			}
 			prefix, err := choice.BuildRankPrefix(plan, uint64(ordinal), rank)
 			if err != nil {
-				return prefixes, timerDivergenceEvidence{}, err
+				return prefixes, timerCrossSeedEvidence{}, err
 			}
 			name := fmt.Sprintf("timer-prefix-same-seed-6-decision-%d-rank-%d", ordinal, rank)
 			run, err := campaign.runChoiceMode(name, fixture, "6", &prefix, choice.ModePrefix, 0)
 			if err != nil {
-				return prefixes, timerDivergenceEvidence{}, err
+				return prefixes, timerCrossSeedEvidence{}, err
 			}
 			association, err := timerCallbackAssociation("6", run)
 			if err != nil {
-				return prefixes, timerDivergenceEvidence{}, err
+				return prefixes, timerCrossSeedEvidence{}, err
 			}
-			associations = append(associations, association)
+			handoffs = append(handoffs, association.goroutineHandoff)
+			swapped = swapped || association.Transcript != baseAssociation.Transcript
 			prefixes = append(prefixes, timerPrefixEvidence{DecisionOrdinal: uint64(ordinal), SelectedRank: rank, PrefixSHA256: fmt.Sprintf("%x", prefix.SHA256), Association: association})
 		}
 	}
-	if !oppositeTimerCallbackIdentities(associations) {
-		return prefixes, timerDivergenceEvidence{}, errors.New("same-seed timer prefixes did not swap callback identities")
+	if _, err := requireStableHandoffs(handoffs); err != nil {
+		return prefixes, timerCrossSeedEvidence{}, fmt.Errorf("same-seed timer prefixes: %w", err)
 	}
-	run, err := campaign.runChoiceMode("timer-prefix-cross-seed-6-to-16", fixture, "16", &plan, choice.ModePrefix, 125)
+	if !swapped {
+		return prefixes, timerCrossSeedEvidence{}, errors.New("no same-seed timer prefix swapped the callbacks")
+	}
+	run, exit, err := campaign.runChoiceAccepting("timer-prefix-cross-seed-6-to-16", fixture, "16", &plan, choice.ModePrefix, 0, []int{125})
 	if err != nil {
-		return prefixes, timerDivergenceEvidence{}, err
+		return prefixes, timerCrossSeedEvidence{}, err
 	}
-	reason := choice.DivergenceReason(run.terminal[13])
-	if reason != choice.DivergenceSite {
-		return prefixes, timerDivergenceEvidence{}, fmt.Errorf("cross-seed timer prefix reason = %s, want site", choice.DivergenceReasonName(reason))
+	crossSeed := timerCrossSeedEvidence{RecordedSeed: "6", ExecutedSeed: "16", PrefixSHA256: fmt.Sprintf("%x", plan.SHA256), Exit: exit, Transcript: run.transcript}
+	if exit == 125 {
+		crossSeed.DecisionOrdinal = binary.BigEndian.Uint64(run.terminal[72:80])
+		crossSeed.Reason = choice.DivergenceReasonName(choice.DivergenceReason(run.terminal[13]))
 	}
-	divergence := timerDivergenceEvidence{RecordedSeed: "6", ExecutedSeed: "16", PrefixSHA256: fmt.Sprintf("%x", plan.SHA256), DecisionOrdinal: binary.BigEndian.Uint64(run.terminal[72:80]), Reason: choice.DivergenceReasonName(reason)}
-	return prefixes, divergence, nil
+	return prefixes, crossSeed, nil
 }

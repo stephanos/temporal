@@ -646,10 +646,10 @@ index d2ad7aa..6dd89d8 100644
  	// Only the platform that supports 64-bit multiplication
  	// natively should be allowed.
 diff --git a/src/runtime/runtime2.go b/src/runtime/runtime2.go
-index 9e0e0df..0325dfc 100644
+index 9e0e0df..8200d38 100644
 --- a/src/runtime/runtime2.go
 +++ b/src/runtime/runtime2.go
-@@ -501,13 +501,17 @@ type g struct {
+@@ -501,13 +501,18 @@ type g struct {
  	//    closure in the runtime is forbidden.
  	// 4. When a panic is recovered and control returns to the respective frame,
  	//    param may point to a savedOpenDeferState.
@@ -666,6 +666,7 @@ index 9e0e0df..0325dfc 100644
 +	goid                     uint64
 +	gomadIdentity            [32]byte
 +	gomadChildOrdinal        uint64
++	gomadTimerOrdinal        uint64
 +	gomadSimulationDomain    uint64
 +	gomadSimulationTransport bool
 +	schedlink                guintptr
@@ -722,7 +723,7 @@ index 553f696..a4c8a1d 100644
  
  sclose:
 diff --git a/src/runtime/sizeof_test.go b/src/runtime/sizeof_test.go
-index 219bcb9..27dadf9 100644
+index 219bcb9..76ec475 100644
 --- a/src/runtime/sizeof_test.go
 +++ b/src/runtime/sizeof_test.go
 @@ -21,7 +21,7 @@ func TestSizeof(t *testing.T) {
@@ -730,7 +731,7 @@ index 219bcb9..27dadf9 100644
  		_64bit uintptr // size on 64bit platforms
  	}{
 -		{runtime.G{}, 288 + xreg, 448 + xreg}, // g, but exported for testing
-+		{runtime.G{}, 340 + xreg, 504 + xreg}, // g, but exported for testing
++		{runtime.G{}, 348 + xreg, 512 + xreg}, // g, but exported for testing
  		{runtime.Sudog{}, 64, 104},            // sudog, but exported for testing
  	}
  
@@ -748,7 +749,7 @@ index aa84a6f..bcc234f 100644
  					e[0] = pcvalueCacheEnt{
  						targetpc: targetpc,
 diff --git a/src/runtime/time.go b/src/runtime/time.go
-index 6c569b5..61915da 100644
+index 6c569b5..c3e279f 100644
 --- a/src/runtime/time.go
 +++ b/src/runtime/time.go
 @@ -26,6 +26,9 @@ func time_runtimeNow() (sec int64, nsec int32, mono int64) {
@@ -761,17 +762,23 @@ index 6c569b5..61915da 100644
  	return time_now()
  }
  
-@@ -68,7 +71,8 @@ type timer struct {
+@@ -68,7 +71,14 @@ type timer struct {
  	isFake bool         // timer is using fake time; immutable; can be read without lock
  
  	blocked uint32 // number of goroutines blocked on timer's channel
 -	rand    uint32 // randomizes order of timers at same instant; only set when isFake
 +	// Gomad timers also set rand even though they are not synctest timers.
 +	rand uint32 // randomizes order of timers at same instant; only set when isFake
++
++	// Gomad derives the identity of a goroutine that f starts from the timer's
++	// creator: gomadCreator is fixed when package time creates the timer, and
++	// gomadFirings counts the runs so the callbacks of a reset timer differ.
++	gomadCreator [32]byte
++	gomadFirings uint64
  
  	// Timer wakes up at when, and then at when+period, ... (period > 0 only)
  	// each time calling f(arg, seq, delay) in the timer goroutine, so f must be
-@@ -307,6 +311,10 @@ func (t *timer) updateHeap() (updated bool) {
+@@ -307,6 +317,10 @@ func (t *timer) updateHeap() (updated bool) {
  
  	if t.state&timerModified != 0 {
  		// Update ts.heap[0].when and move within heap.
@@ -782,7 +789,17 @@ index 6c569b5..61915da 100644
  		t.state &^= timerModified
  		ts.heap[0].when = t.when
  		ts.siftDown(0)
-@@ -709,11 +717,12 @@ func (t *timer) maybeAdd() {
+@@ -394,6 +408,9 @@ type timeTimer struct {
+ func newTimer(when, period int64, f func(arg any, seq uintptr, delay int64), arg any, c *hchan) *timeTimer {
+ 	t := new(timeTimer)
+ 	t.timer.init(nil, nil)
++	if gomadChoiceEnabled {
++		gomadChoiceTimerCreated(&t.timer, sys.GetCallerPC())
++	}
+ 	t.trace("new")
+ 	if raceenabled {
+ 		racerelease(unsafe.Pointer(&t.timer))
+@@ -709,11 +726,12 @@ func (t *timer) maybeAdd() {
  	when := int64(0)
  	wake := false
  	if t.needsAdd() {
@@ -797,7 +814,7 @@ index 6c569b5..61915da 100644
  		}
  		t.state |= timerHeaped
  		when = t.when
-@@ -932,6 +941,10 @@ func (ts *timers) adjust(now int64, force bool) {
+@@ -932,6 +950,10 @@ func (ts *timers) adjust(now int64, force bool) {
  			changed = true
  
  		case t.state&timerModified != 0:
@@ -808,7 +825,23 @@ index 6c569b5..61915da 100644
  			tw.when = t.when
  			t.state &^= timerModified
  			changed = true
-@@ -1281,8 +1294,9 @@ func (ts *timers) updateMinWhenModified(when int64) {
+@@ -1142,6 +1164,7 @@ func (t *timer) unlockAndRun(now int64, bubble *synctestBubble) {
+ 		}
+ 	}
+ 
++	callback := gomadChoiceTimerFire(t)
+ 	t.unlock()
+ 
+ 	if raceenabled {
+@@ -1203,6 +1226,7 @@ func (t *timer) unlockAndRun(now int64, bubble *synctestBubble) {
+ 	}
+ 
+ 	f(arg, seq, delay)
++	gomadChoiceTimerFired(callback)
+ 
+ 	if t.isChan {
+ 		unlock(&t.sendLock)
+@@ -1281,8 +1305,9 @@ func (ts *timers) updateMinWhenModified(when int64) {
  // timeSleepUntil returns the time when the next timer should fire. Returns
  // maxWhen if there are no timers.
  // This is only called by sysmon and checkdead.
@@ -819,7 +852,7 @@ index 6c569b5..61915da 100644
  
  	// Prevent allp slice changes. This is like retake.
  	lock(&allpLock)
-@@ -1294,12 +1308,13 @@ func timeSleepUntil() int64 {
+@@ -1294,12 +1319,13 @@ func timeSleepUntil() int64 {
  		}
  
  		if w := pp.timers.wakeTime(); w != 0 {
