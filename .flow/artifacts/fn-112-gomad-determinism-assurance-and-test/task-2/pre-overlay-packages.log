@@ -1,0 +1,11 @@
+# internal/gomadsim
+package internal/gomadsim
+	imports testing from process_time_test.go
+	imports os from benchmark.go
+	imports internal/gomadsim from gomad.go: import cycle not allowed in test
+FAIL	internal/gomadsim [setup failed]
+ok  	internal/gomadmodelwire	0.335s
+ok  	internal/gomadio	0.338s
+ok  	os	32.532s
+ok  	cmd/internal/gomadcap	1.907s
+FAIL

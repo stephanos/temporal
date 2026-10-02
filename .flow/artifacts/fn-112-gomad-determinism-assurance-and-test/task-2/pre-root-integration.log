@@ -1,0 +1,36 @@
+=== RUN   TestRootProcessSimulationUsesRunnerTransport
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection
+    simulation_root_integration_test.go:67: root simulation termination=exit exit=1 signal= watchdog=false group-gone=true stdout==== RUN   TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection
+            scenario_control_toolchain_test.go:66: 
+                	Error Trace:	go.temporal.io/server/tools/gomad3sim/scenario_control_toolchain_test.go:66
+                	Error:      	Received unexpected error:
+                	            	scenario decision identity is invalid
+                	Test:       	TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection
+        --- FAIL: TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection (0.00s)
+        FAIL
+         stderr=
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessExplorationConsumesExternalPlanAndPublishesRecord
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessAndInProcessBackendsHaveEquivalentDetachedModels
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendRoutesTCPThroughSharedHostModel
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendRoutesListenThroughSharedHostModel
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendPreservesHostVolumeAcrossRestart
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendCrashDrainsInflightModelOperationDeterministically
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendModelDigestsIgnoreCompletionOrder
+--- FAIL: TestRootProcessSimulationUsesRunnerTransport (16.75s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays (0.48s)
+    --- FAIL: TestRootProcessSimulationUsesRunnerTransport/TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection (0.04s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessExplorationConsumesExternalPlanAndPublishesRecord (0.06s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines (0.38s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessAndInProcessBackendsHaveEquivalentDetachedModels (0.15s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendRoutesTCPThroughSharedHostModel (0.18s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay (0.13s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendRoutesListenThroughSharedHostModel (0.08s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendPreservesHostVolumeAcrossRestart (0.15s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendCrashDrainsInflightModelOperationDeterministically (0.14s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendModelDigestsIgnoreCompletionOrder (0.23s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	17.148s
+FAIL

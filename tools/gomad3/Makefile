@@ -1,4 +1,4 @@
-.PHONY: generate clean prune-cache clean-qualifications clock-audit compatibility-pack-qualification compiler-test-compiler core-qualification core-qualification-set intercept-test test-toolchain qualification-set qualification-set-merge runner test-host overlay-test world-test toolchain upgrade-dossier validate validate-toolchain validate-compatibility validate-qualification tests-qualification-generate test-harness test-builder test-live-capability test-runtime test-upstream test
+.PHONY: generate clean prune-cache clean-qualifications clock-audit compatibility-pack-qualification compiler-test-compiler core-qualification core-qualification-set intercept-test test-toolchain test-simulation qualification-set qualification-set-merge runner test-host overlay-test world-test toolchain upgrade-dossier validate validate-toolchain validate-compatibility validate-qualification tests-qualification-generate test-harness test-builder test-live-capability test-runtime test-upstream test
 
 include version_generated.mk
 
@@ -127,10 +127,25 @@ upgrade-dossier: core-qualification
 test-host: toolchain
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep \
 		. ./cmd/... ./runner/... ./qualification/... ./target/... ./record/... ./artifact/... ./choice/... \
-		./deterministicio/... ./world/... ./toolchain ./toolchain/version ./upgrade/... ./internal/...
+		./deterministicio/... ./world/... ./toolchain/version ./upgrade/... ./internal/...
 
+# internal/gomadsim is absent because its tests do not build: an in-package
+# test file imports testing, which reaches the package again through os.
 overlay-test: toolchain
-	.toolchain/bin/go test -tags test_dep internal/gomadfs internal/gomadwire internal/gomadchoicewire internal/gomadio/mount
+	.toolchain/bin/go test -tags test_dep internal/gomadfs internal/gomadwire internal/gomadchoicewire internal/gomadmodelwire \
+		internal/gomadio internal/gomadio/mount os cmd/internal/gomadcap
+
+# The gomad3_toolchain tests of the root module's tools/gomad3sim need a seeded
+# runtime, so they run through the exec wrapper. The tests that need the
+# Runner's simulation transport skip there; the integration-tagged Runner test
+# is their executor. Its TestProcessBackend subtests start node processes and
+# fail intermittently, so only the subtests that start none are selected.
+test-simulation: toolchain
+	cd $(CURDIR)/../.. && env -u GOMADSEED CGO_ENABLED=0 GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 \
+		$(CURDIR)/.toolchain/bin/go test -exec $(CURDIR)/internal/gomadtool/conformance/scripts/exec.sh \
+		-count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim
+	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration \
+		-run '^TestRootProcessSimulationUsesRunnerTransport$$/^Test(Scenario|ProcessExploration)' ./runner/internal/execution
 
 world-test:
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go test -race -tags test_dep ./world/...
@@ -172,5 +187,5 @@ test-upstream: toolchain
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \
 		--root=$(CURDIR) --mode=test-upstream --go=$(CURDIR)/.toolchain/bin/go
 
-test: test-harness test-toolchain intercept-test test-host overlay-test world-test test-builder test-live-capability test-runtime test-upstream
+test: test-harness test-toolchain intercept-test test-host overlay-test test-simulation world-test test-builder test-live-capability test-runtime test-upstream
 	@printf 'gomad3 all black-box tiers passed\n'

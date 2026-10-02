@@ -87,6 +87,8 @@ const (
 
 type diagnosticRequest struct {
 	withoutChoiceTrace bool
+	// choiceBytes is the choice trace capacity; zero takes the fixture default.
+	choiceBytes uint64
 	// diagnosticBytes is the diagnostic trace capacity; zero leaves it off.
 	diagnosticBytes   uint64
 	withoutByteBound  bool
@@ -208,6 +210,21 @@ func TestDiagnosticTrace(t *testing.T) {
 		}
 	})
 
+	t.Run("choice trace overflow leaves the diagnostic trace marked truncated", func(t *testing.T) {
+		const choiceCapacity = gomadchoicewire.HeaderBytes + 2*gomadchoicewire.RecordBytes
+		run := runDiagnosticFixture(t, binary, diagnosticRequest{choiceBytes: choiceCapacity, diagnosticBytes: diagnosticFixtureBytes})
+		terminal, err := gomadchoicewire.DecodeTerminal(run.terminal)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if run.exitCode != 0 || terminal.State != gomadchoicewire.TerminalOverflow || terminal.Records != 2 {
+			t.Fatalf("exit = %d, choice terminal = %+v, stderr = %q", run.exitCode, terminal, run.stderr)
+		}
+		if want := (gomadchoicewire.DiagnosticHeader{Capacity: diagnosticFixtureBytes, NextOffset: gomadchoicewire.DiagnosticHeaderBytes + 2*gomadchoicewire.DiagnosticRecordBytes, RecordCount: 2, State: gomadchoicewire.DiagnosticOverflow}); run.header != want {
+			t.Fatalf("header = %+v, want %+v", run.header, want)
+		}
+	})
+
 	t.Run("invalid configuration stops before user code", func(t *testing.T) {
 		for name, request := range map[string]diagnosticRequest{
 			"no choice trace":                {diagnosticBytes: diagnosticFixtureBytes, withoutChoiceTrace: true},
@@ -235,8 +252,12 @@ func runDiagnosticFixture(t *testing.T, binary string, request diagnosticRequest
 
 	var trace, diagnostic, terminalReader, terminalWriter *os.File
 	if !request.withoutChoiceTrace {
-		header := gomadchoicewire.EncodeHeader(diagnosticFixtureChoiceBytes)
-		trace = diagnosticBacking(t, filepath.Join(directory, "choices"), header[:], diagnosticFixtureChoiceBytes)
+		choiceBytes := uint64(diagnosticFixtureChoiceBytes)
+		if request.choiceBytes != 0 {
+			choiceBytes = request.choiceBytes
+		}
+		header := gomadchoicewire.EncodeHeader(choiceBytes)
+		trace = diagnosticBacking(t, filepath.Join(directory, "choices"), header[:], choiceBytes)
 		reader, writer, err := os.Pipe()
 		if err != nil {
 			t.Fatal(err)
@@ -245,7 +266,7 @@ func runDiagnosticFixture(t *testing.T, binary string, request diagnosticRequest
 		t.Cleanup(func() { reader.Close() })
 		command.Env = append(command.Env,
 			fmt.Sprintf("GOMAD3_CHOICE_TRACE_FD=%d", 3+len(command.ExtraFiles)), fmt.Sprintf("GOMAD3_CHOICE_TERMINAL_FD=%d", 4+len(command.ExtraFiles)),
-			fmt.Sprintf("GOMAD3_CHOICE_TRACE_BYTES=%d", diagnosticFixtureChoiceBytes), fmt.Sprintf("GOMAD3_CHOICE_MODE=%d", gomadchoicewire.ModeRecord))
+			fmt.Sprintf("GOMAD3_CHOICE_TRACE_BYTES=%d", choiceBytes), fmt.Sprintf("GOMAD3_CHOICE_MODE=%d", gomadchoicewire.ModeRecord))
 		command.ExtraFiles = append(command.ExtraFiles, trace, writer)
 	}
 	if request.diagnosticBytes != 0 {

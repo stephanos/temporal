@@ -1,0 +1,5 @@
+--- FAIL: TestProcessModelExchangeCorrelatesConcurrentResponses (0.00s)
+    process_model_test.go:77: responses = map[failed:true]
+FAIL
+FAIL	internal/gomadsim	0.313s
+FAIL

@@ -686,10 +686,12 @@ func (cluster *inProcessCluster) scenarioDivergenceLocked(ordinal uint64, expect
 	divergence := ReplayDivergence{Dimension: ReplayDimensionScenario, Ordinal: ordinal, ExpectedSHA256: expectedIdentity, ActualSHA256: actualIdentity}
 	if expected.ID != "" {
 		value := expected
+		value.Identity = expectedIdentity
 		divergence.ExpectedScenario = &value
 	}
 	if actual.ID != "" {
 		value := actual
+		value.Identity = actualIdentity
 		divergence.ActualScenario = &value
 	}
 	err := &ReplayDivergenceError{Divergence: divergence}

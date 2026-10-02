@@ -408,12 +408,19 @@ func gomadDiagnosticAllocations(pp *p) uint64 {
 	return count
 }
 
-// gomadDiagnosticComplete marks a trace the runtime closed in order, as
-// opposed to one cut short by overflow or by a killed process.
-func gomadDiagnosticComplete() {
-	if gomadDiagnosticEnabled {
-		*(*byte)(add(gomadDiagnosticMapping, gomadDiagnosticStateOffset)) = gomadDiagnosticStateComplete
+// gomadDiagnosticClose marks a trace the runtime closed in order, as opposed
+// to one cut short by a killed process. Digests are written only alongside
+// choice records, so a choice trace that overflowed leaves the diagnostic
+// trace short of the run as well, and it is closed as overflowed.
+func gomadDiagnosticClose() {
+	if !gomadDiagnosticEnabled {
+		return
 	}
+	state := uint8(gomadDiagnosticStateComplete)
+	if gomadChoiceOverflow.Load() != 0 {
+		state = gomadDiagnosticStateOverflow
+	}
+	*(*byte)(add(gomadDiagnosticMapping, gomadDiagnosticStateOffset)) = state
 }
 
 func gomadEnvEarly(prefix string) (string, bool) {
@@ -834,7 +841,7 @@ func gomadChoiceDivergeCurrent(reason uint8) {
 }
 
 func gomadChoicePublishTerminal(state, reason uint8, expected, observed *gomadChoiceRecordValue) {
-	gomadDiagnosticComplete()
+	gomadDiagnosticClose()
 	records := gomadChoiceRecords.Load()
 	mappingBytes := uint64(gomadChoiceHeaderBytes) + records*gomadChoiceRecordBytes
 	bytes := unsafe.Slice((*byte)(gomadChoiceMapping), int(gomadChoiceMappingBytes))

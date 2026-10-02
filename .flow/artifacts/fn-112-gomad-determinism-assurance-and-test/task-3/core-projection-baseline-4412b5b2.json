@@ -1,0 +1,1094 @@
+{
+  "./basic/concurrency -test.run=^TestConcurrentTransfersPreserveBalance$": {
+    "behavior": {
+      "choice_features": [
+        {
+          "kind": "record_kind",
+          "value": "decision/runnable"
+        },
+        {
+          "kind": "terminal",
+          "value": "complete"
+        }
+      ],
+      "choice_structural": [
+        "sha256:a73bbe4584470b704e7887444bc4ba7f311e5acf42469b7f461adfc3d56831b4",
+        "sha256:a73bbe4584470b704e7887444bc4ba7f311e5acf42469b7f461adfc3d56831b4"
+      ],
+      "choices": {
+        "branching_records": "23",
+        "decisions": "23",
+        "peak_goroutines": "18",
+        "records": "23",
+        "runnable": "23",
+        "select_poll": "0",
+        "select_result": "0",
+        "terminal_state": "complete"
+      },
+      "deterministic": true,
+      "executions": [
+        {
+          "evidence_matches_first": true,
+          "replay": {
+            "attempted": true,
+            "choice_replay_status": "exact",
+            "match": true
+          }
+        },
+        {
+          "evidence_matches_first": true,
+          "replay": {
+            "attempted": true,
+            "choice_replay_status": "exact",
+            "match": true
+          }
+        }
+      ],
+      "io_transcript": {
+        "complete": true,
+        "records": "3",
+        "sha256": "sha256:294caf78c0c36d4735a815bb9180c5a51ce3ff17a0e56264dc2608d33b1cc265"
+      },
+      "outcome": {
+        "domain": "success",
+        "exit_code": "0",
+        "reason": "success",
+        "termination": "exit"
+      },
+      "qualified": true,
+      "repeat": "2",
+      "seed": "17",
+      "semantic_coverage": "sha256:760338f250f30a56d3356dda9f6d668103594e041d414a293e6d0e2974dcf7cc",
+      "stderr": {
+        "full_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "total_bytes": "0",
+        "truncated": false
+      },
+      "stdout": {
+        "full_sha256": "sha256:c26de83abdc9496cd1301470918ec39ecca1cf389ef0ae1c6504da1800d1c431",
+        "total_bytes": "5",
+        "truncated": false
+      },
+      "target_success": true,
+      "virtual_time_elapsed_nanos": "0",
+      "world": {
+        "final": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "initial": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "terminal": {
+          "kind": "none"
+        },
+        "transition_count": "0",
+        "transitions": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "identity": {
+      "choice_implementation_sha256": "sha256:e7b9450936e8a4ea592a33bcd3948e2b99031b23708caafd8ade12f8d6f10324",
+      "choice_tape_sha256": "sha256:da31564fc13ce418fa364d6cd263a6d14f8c7068f2b245528ad3af744e4ea024",
+      "evidence_digest": "sha256:7ea14c71c5f6a7bec932134acc3f5f58cdef70ce710ebf29347c07a160aa5ba0",
+      "runner_build": "sha256:b464cecfc6513abe53351471b3837002097db630c6ed719632190c1640ecec73",
+      "target_sha256": "sha256:e5eacbcd72a34c2893c3a3a14735deaaa58ae1602101022623966f4c38811d9f",
+      "toolchain_build_key": "4412b5b276ef89f37995a401bcebc83b842733c18f0c39f9b57e00e74df0ca95"
+    },
+    "site_dependent": {
+      "choice_features": [
+        {
+          "kind": "site",
+          "value": "runnable/missing"
+        },
+        {
+          "kind": "branching_site",
+          "value": "runnable/missing/max-alternatives=18"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "decision/runnable/missing/interior"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "decision/runnable/missing/last"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "decision/runnable/missing/first"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/interior->decision/runnable/missing/last"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/last->decision/runnable/missing/last"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/last->decision/runnable/missing/interior"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/interior->decision/runnable/missing/interior"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/interior->decision/runnable/missing/first"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/first->decision/runnable/missing/last"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/first->decision/runnable/missing/first"
+        }
+      ],
+      "choice_full": [
+        "sha256:5bbaf71186dcecf254ca3b7fe8d73646aea7401c4f35c4ccfa89a59b4c14ecfb",
+        "sha256:5bbaf71186dcecf254ca3b7fe8d73646aea7401c4f35c4ccfa89a59b4c14ecfb"
+      ],
+      "choice_site_offsets": [
+        "sha256:92bf547b010e8d8a19a6bc5a1bf6410faee9c909c0e18f4b57fee131322ad941",
+        "sha256:92bf547b010e8d8a19a6bc5a1bf6410faee9c909c0e18f4b57fee131322ad941"
+      ],
+      "choice_trace_sha256": "sha256:5bbaf71186dcecf254ca3b7fe8d73646aea7401c4f35c4ccfa89a59b4c14ecfb"
+    }
+  },
+  "./basic/filesystem -test.run=^TestFileLifecyclePreservesContentsAndMetadata$": {
+    "behavior": {
+      "choice_features": [
+        {
+          "kind": "record_kind",
+          "value": "decision/runnable"
+        },
+        {
+          "kind": "terminal",
+          "value": "complete"
+        }
+      ],
+      "choice_structural": [
+        "sha256:ce6485704d060ed8675674791690704f96b6dfad050470b2ce0ec1b0cd92489a",
+        "sha256:ce6485704d060ed8675674791690704f96b6dfad050470b2ce0ec1b0cd92489a"
+      ],
+      "choices": {
+        "branching_records": "7",
+        "decisions": "7",
+        "peak_goroutines": "2",
+        "records": "7",
+        "runnable": "7",
+        "select_poll": "0",
+        "select_result": "0",
+        "terminal_state": "complete"
+      },
+      "deterministic": true,
+      "executions": [
+        {
+          "evidence_matches_first": true,
+          "replay": {
+            "attempted": true,
+            "choice_replay_status": "exact",
+            "match": true
+          }
+        },
+        {
+          "evidence_matches_first": true,
+          "replay": {
+            "attempted": true,
+            "choice_replay_status": "exact",
+            "match": true
+          }
+        }
+      ],
+      "io_transcript": {
+        "complete": true,
+        "records": "27",
+        "sha256": "sha256:8ec021f63eca45fa352e3c0905039515a63dbe8057ca536e5dfea3cfb96550e7"
+      },
+      "outcome": {
+        "domain": "success",
+        "exit_code": "0",
+        "reason": "success",
+        "termination": "exit"
+      },
+      "qualified": true,
+      "repeat": "2",
+      "seed": "17",
+      "semantic_coverage": "sha256:db27ae5ab0d9943a717a3e97a7095dd5130072922185fc1ab397892c71502016",
+      "stderr": {
+        "full_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "total_bytes": "0",
+        "truncated": false
+      },
+      "stdout": {
+        "full_sha256": "sha256:c26de83abdc9496cd1301470918ec39ecca1cf389ef0ae1c6504da1800d1c431",
+        "total_bytes": "5",
+        "truncated": false
+      },
+      "target_success": true,
+      "virtual_time_elapsed_nanos": "0",
+      "world": {
+        "final": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "initial": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "terminal": {
+          "kind": "none"
+        },
+        "transition_count": "0",
+        "transitions": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "identity": {
+      "choice_implementation_sha256": "sha256:e7b9450936e8a4ea592a33bcd3948e2b99031b23708caafd8ade12f8d6f10324",
+      "choice_tape_sha256": "sha256:90b94a1b1632e2f65ea7c01197d496cefbaf011e711342e30848fc2b9fe77722",
+      "evidence_digest": "sha256:13a90a00549b6c4062bf68f353daa024b96931752902358bceae56972b4e8fb3",
+      "runner_build": "sha256:b464cecfc6513abe53351471b3837002097db630c6ed719632190c1640ecec73",
+      "target_sha256": "sha256:3e1651f3545b0b555eedbf5fe6f77e1479d3234d26bee0a721ba2b5519cdd363",
+      "toolchain_build_key": "4412b5b276ef89f37995a401bcebc83b842733c18f0c39f9b57e00e74df0ca95"
+    },
+    "site_dependent": {
+      "choice_features": [
+        {
+          "kind": "site",
+          "value": "runnable/missing"
+        },
+        {
+          "kind": "branching_site",
+          "value": "runnable/missing/max-alternatives=4"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "decision/runnable/missing/interior"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "decision/runnable/missing/last"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "decision/runnable/missing/first"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/interior->decision/runnable/missing/last"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/last->decision/runnable/missing/last"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/last->decision/runnable/missing/interior"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/interior->decision/runnable/missing/first"
+        }
+      ],
+      "choice_full": [
+        "sha256:a1f52ea51efa4aa089d8c381d76078674bc86de81cbfda3ac85983e09f9f1e49",
+        "sha256:a1f52ea51efa4aa089d8c381d76078674bc86de81cbfda3ac85983e09f9f1e49"
+      ],
+      "choice_site_offsets": [
+        "sha256:45851a4bf060e4f518fa118bdb445c52d1277513c84c117a262ddfcea1f11a89",
+        "sha256:45851a4bf060e4f518fa118bdb445c52d1277513c84c117a262ddfcea1f11a89"
+      ],
+      "choice_trace_sha256": "sha256:a1f52ea51efa4aa089d8c381d76078674bc86de81cbfda3ac85983e09f9f1e49"
+    }
+  },
+  "./basic/mount -test.run=^TestMountReadsUnderCollectionAreRepeatable$": {
+    "behavior": {
+      "choice_features": [
+        {
+          "kind": "record_kind",
+          "value": "decision/runnable"
+        },
+        {
+          "kind": "terminal",
+          "value": "complete"
+        }
+      ],
+      "choice_structural": [
+        "sha256:3134489f8799c886f1317f5c29c4960886901572379338b6882c70223107d4b5",
+        "sha256:3134489f8799c886f1317f5c29c4960886901572379338b6882c70223107d4b5"
+      ],
+      "choices": {
+        "branching_records": "26",
+        "decisions": "26",
+        "peak_goroutines": "15",
+        "records": "26",
+        "runnable": "26",
+        "select_poll": "0",
+        "select_result": "0",
+        "terminal_state": "complete"
+      },
+      "deterministic": true,
+      "executions": [
+        {
+          "evidence_matches_first": true,
+          "replay": {
+            "attempted": true,
+            "choice_replay_status": "exact",
+            "match": true
+          }
+        },
+        {
+          "evidence_matches_first": true,
+          "replay": {
+            "attempted": true,
+            "choice_replay_status": "exact",
+            "match": true
+          }
+        }
+      ],
+      "io_transcript": {
+        "complete": true,
+        "records": "4622",
+        "sha256": "sha256:55eee7751e5b2c07f50a767eb2a2ee1573c3197a7a83da2a6ee01526cd7f1356"
+      },
+      "outcome": {
+        "domain": "success",
+        "exit_code": "0",
+        "reason": "success",
+        "termination": "exit"
+      },
+      "qualified": true,
+      "repeat": "2",
+      "seed": "17",
+      "semantic_coverage": "sha256:36bb758a426dac99040e072a50e243c2930e603b344b45e813e57eb68976446c",
+      "stderr": {
+        "full_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "total_bytes": "0",
+        "truncated": false
+      },
+      "stdout": {
+        "full_sha256": "sha256:b36d34d03f6c05dcc961e14ed4ed8ad2e0a9d1bc29c08af911faf7fcfc7d1ab0",
+        "total_bytes": "72",
+        "truncated": false
+      },
+      "target_success": true,
+      "virtual_time_elapsed_nanos": "0",
+      "world": {
+        "final": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "initial": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "terminal": {
+          "kind": "none"
+        },
+        "transition_count": "0",
+        "transitions": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "identity": {
+      "choice_implementation_sha256": "sha256:e7b9450936e8a4ea592a33bcd3948e2b99031b23708caafd8ade12f8d6f10324",
+      "choice_tape_sha256": "sha256:ac68b92f26d36b4e0a08301604cfec9d08915016df47a5707fd273d260d882b1",
+      "evidence_digest": "sha256:e83f8240c428b5a40b608b74fe9dedd6aee5d7557abca17e13e1c7a2e5912d03",
+      "runner_build": "sha256:b464cecfc6513abe53351471b3837002097db630c6ed719632190c1640ecec73",
+      "target_sha256": "sha256:0b56b09542b5a9dd6bfe40688dd0e23fd91ecb287d6d664243acf8881218255c",
+      "toolchain_build_key": "4412b5b276ef89f37995a401bcebc83b842733c18f0c39f9b57e00e74df0ca95"
+    },
+    "site_dependent": {
+      "choice_features": [
+        {
+          "kind": "site",
+          "value": "runnable/missing"
+        },
+        {
+          "kind": "branching_site",
+          "value": "runnable/missing/max-alternatives=12"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "decision/runnable/missing/interior"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "decision/runnable/missing/last"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "decision/runnable/missing/first"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/interior->decision/runnable/missing/last"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/last->decision/runnable/missing/last"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/last->decision/runnable/missing/interior"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/interior->decision/runnable/missing/first"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/first->decision/runnable/missing/last"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/interior->decision/runnable/missing/interior"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/last->decision/runnable/missing/first"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/first->decision/runnable/missing/interior"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/first->decision/runnable/missing/first"
+        }
+      ],
+      "choice_full": [
+        "sha256:3bb42a42eb3eb656513686eaab080dd98d48f111278748886712a5de3001f819",
+        "sha256:3bb42a42eb3eb656513686eaab080dd98d48f111278748886712a5de3001f819"
+      ],
+      "choice_site_offsets": [
+        "sha256:e3b4b190996d2b88f44a2e1fc11073c40adaf16b72eb190373aed2c3e6a66216",
+        "sha256:e3b4b190996d2b88f44a2e1fc11073c40adaf16b72eb190373aed2c3e6a66216"
+      ],
+      "choice_trace_sha256": "sha256:3bb42a42eb3eb656513686eaab080dd98d48f111278748886712a5de3001f819"
+    }
+  },
+  "./basic/network -test.run=^TestLoopbackRoundTripPreservesMessage$": {
+    "behavior": {
+      "choice_features": [
+        {
+          "kind": "record_kind",
+          "value": "decision/runnable"
+        },
+        {
+          "kind": "record_kind",
+          "value": "observation/select-result"
+        },
+        {
+          "kind": "terminal",
+          "value": "complete"
+        }
+      ],
+      "choice_structural": [
+        "sha256:c24850030be5dc63e2a91de0f5786c6f8251ba4362937b629aa263003c823705",
+        "sha256:c24850030be5dc63e2a91de0f5786c6f8251ba4362937b629aa263003c823705"
+      ],
+      "choices": {
+        "branching_records": "10",
+        "decisions": "10",
+        "peak_goroutines": "3",
+        "records": "11",
+        "runnable": "10",
+        "select_poll": "0",
+        "select_result": "1",
+        "terminal_state": "complete"
+      },
+      "deterministic": true,
+      "executions": [
+        {
+          "evidence_matches_first": true,
+          "replay": {
+            "attempted": true,
+            "choice_replay_status": "exact",
+            "match": true
+          }
+        },
+        {
+          "evidence_matches_first": true,
+          "replay": {
+            "attempted": true,
+            "choice_replay_status": "exact",
+            "match": true
+          }
+        }
+      ],
+      "io_transcript": {
+        "complete": true,
+        "records": "23",
+        "sha256": "sha256:4f5834f7891486af426bfa2b72884f990be7d11666fc80e23298138541bf7659"
+      },
+      "outcome": {
+        "domain": "success",
+        "exit_code": "0",
+        "reason": "success",
+        "termination": "exit"
+      },
+      "qualified": true,
+      "repeat": "2",
+      "seed": "17",
+      "semantic_coverage": "sha256:c667c29e2e98145f86bd55d62faa332a42c498be8224c435d1554a150638cb71",
+      "stderr": {
+        "full_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "total_bytes": "0",
+        "truncated": false
+      },
+      "stdout": {
+        "full_sha256": "sha256:c26de83abdc9496cd1301470918ec39ecca1cf389ef0ae1c6504da1800d1c431",
+        "total_bytes": "5",
+        "truncated": false
+      },
+      "target_success": true,
+      "virtual_time_elapsed_nanos": "0",
+      "world": {
+        "final": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "initial": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "terminal": {
+          "kind": "none"
+        },
+        "transition_count": "0",
+        "transitions": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "identity": {
+      "choice_implementation_sha256": "sha256:e7b9450936e8a4ea592a33bcd3948e2b99031b23708caafd8ade12f8d6f10324",
+      "choice_tape_sha256": "sha256:5a98facd5438f3a29244def34cb4a5e03e5028db71298e771c0fd7addbcaa9e8",
+      "evidence_digest": "sha256:048c85fab4d03e0ad1fbe13d4b2e0d3557c0064fb1e944035332dde67ab96bd3",
+      "runner_build": "sha256:b464cecfc6513abe53351471b3837002097db630c6ed719632190c1640ecec73",
+      "target_sha256": "sha256:c0da9806d48267aac0e70fc26b55a0168274459a693851c6e3e3d7ad4cbe7b1a",
+      "toolchain_build_key": "4412b5b276ef89f37995a401bcebc83b842733c18f0c39f9b57e00e74df0ca95"
+    },
+    "site_dependent": {
+      "choice_features": [
+        {
+          "kind": "site",
+          "value": "runnable/missing"
+        },
+        {
+          "kind": "site",
+          "value": "select-result/3976547ff339ecd944b0180b5f134b341dec3aca4cf06dd38b3dce5d813c088a"
+        },
+        {
+          "kind": "branching_site",
+          "value": "runnable/missing/max-alternatives=5"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "decision/runnable/missing/last"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "decision/runnable/missing/first"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "decision/runnable/missing/interior"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "observation/select-result/3976547ff339ecd944b0180b5f134b341dec3aca4cf06dd38b3dce5d813c088a/last"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/last->decision/runnable/missing/last"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/last->decision/runnable/missing/first"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/first->decision/runnable/missing/last"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/last->decision/runnable/missing/interior"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/interior->decision/runnable/missing/interior"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/interior->decision/runnable/missing/first"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/first->observation/select-result/3976547ff339ecd944b0180b5f134b341dec3aca4cf06dd38b3dce5d813c088a/last"
+        }
+      ],
+      "choice_full": [
+        "sha256:56d0ae432b8b24bf024e675367fb0f8b22f5de797cbe9032baaf0dbdbaf67e6a",
+        "sha256:56d0ae432b8b24bf024e675367fb0f8b22f5de797cbe9032baaf0dbdbaf67e6a"
+      ],
+      "choice_site_offsets": [
+        "sha256:a0b5d5df657d653da0d260e964c3a62f28d9e1d475f5e2c870114781c5ed8969",
+        "sha256:a0b5d5df657d653da0d260e964c3a62f28d9e1d475f5e2c870114781c5ed8969"
+      ],
+      "choice_trace_sha256": "sha256:56d0ae432b8b24bf024e675367fb0f8b22f5de797cbe9032baaf0dbdbaf67e6a"
+    }
+  },
+  "./thirdparty/libc -test.run=^TestLibcFileBoundaryPreservesContents$": {
+    "behavior": {
+      "choice_features": [
+        {
+          "kind": "record_kind",
+          "value": "decision/runnable"
+        },
+        {
+          "kind": "terminal",
+          "value": "complete"
+        }
+      ],
+      "choice_structural": [
+        "sha256:d5bbb8c608b78db999890179f155f4b7888935e69741a1af450c9b38fbe159cb",
+        "sha256:d5bbb8c608b78db999890179f155f4b7888935e69741a1af450c9b38fbe159cb"
+      ],
+      "choices": {
+        "branching_records": "7",
+        "decisions": "7",
+        "peak_goroutines": "2",
+        "records": "7",
+        "runnable": "7",
+        "select_poll": "0",
+        "select_result": "0",
+        "terminal_state": "complete"
+      },
+      "deterministic": true,
+      "executions": [
+        {
+          "evidence_matches_first": true,
+          "replay": {
+            "attempted": true,
+            "choice_replay_status": "exact",
+            "match": true
+          }
+        },
+        {
+          "evidence_matches_first": true,
+          "replay": {
+            "attempted": true,
+            "choice_replay_status": "exact",
+            "match": true
+          }
+        }
+      ],
+      "io_transcript": {
+        "complete": true,
+        "records": "17",
+        "sha256": "sha256:c9bb9cba7485afe16b440299dbc66676054f55f8efd8f02a30b0d707259a665f"
+      },
+      "outcome": {
+        "domain": "success",
+        "exit_code": "0",
+        "reason": "success",
+        "termination": "exit"
+      },
+      "qualified": true,
+      "repeat": "2",
+      "seed": "17",
+      "semantic_coverage": "sha256:ec00ad1975ec180c0dae75edebcd667f786c52252f718d6704c973926d2779c4",
+      "stderr": {
+        "full_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "total_bytes": "0",
+        "truncated": false
+      },
+      "stdout": {
+        "full_sha256": "sha256:c26de83abdc9496cd1301470918ec39ecca1cf389ef0ae1c6504da1800d1c431",
+        "total_bytes": "5",
+        "truncated": false
+      },
+      "target_success": true,
+      "virtual_time_elapsed_nanos": "0",
+      "world": {
+        "final": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "initial": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "terminal": {
+          "kind": "none"
+        },
+        "transition_count": "0",
+        "transitions": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "identity": {
+      "choice_implementation_sha256": "sha256:e7b9450936e8a4ea592a33bcd3948e2b99031b23708caafd8ade12f8d6f10324",
+      "choice_tape_sha256": "sha256:e60a14a1ebc5620fe13d58c853442fedad028d45748b96595dd14ec57a504560",
+      "evidence_digest": "sha256:414f025529b8e82b713e9185a4c8969f4176b090fef8c54cd6915bf29491ebf4",
+      "runner_build": "sha256:b464cecfc6513abe53351471b3837002097db630c6ed719632190c1640ecec73",
+      "target_sha256": "sha256:9a61f4f8a95ee8356f2551d765c73da55fa63bb9d9be721e9858b9479fe3baca",
+      "toolchain_build_key": "4412b5b276ef89f37995a401bcebc83b842733c18f0c39f9b57e00e74df0ca95"
+    },
+    "site_dependent": {
+      "choice_features": [
+        {
+          "kind": "site",
+          "value": "runnable/missing"
+        },
+        {
+          "kind": "branching_site",
+          "value": "runnable/missing/max-alternatives=3"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "decision/runnable/missing/last"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "decision/runnable/missing/interior"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/last->decision/runnable/missing/last"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/last->decision/runnable/missing/interior"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/interior->decision/runnable/missing/last"
+        }
+      ],
+      "choice_full": [
+        "sha256:24fa84fbb0877e5fa68a2d8a478e222f1f71655c0cbdebfcd45e965b2cfa526a",
+        "sha256:24fa84fbb0877e5fa68a2d8a478e222f1f71655c0cbdebfcd45e965b2cfa526a"
+      ],
+      "choice_site_offsets": [
+        "sha256:45851a4bf060e4f518fa118bdb445c52d1277513c84c117a262ddfcea1f11a89",
+        "sha256:45851a4bf060e4f518fa118bdb445c52d1277513c84c117a262ddfcea1f11a89"
+      ],
+      "choice_trace_sha256": "sha256:24fa84fbb0877e5fa68a2d8a478e222f1f71655c0cbdebfcd45e965b2cfa526a"
+    }
+  },
+  "./thirdparty/persistence -test.run=^TestSQLiteCommitAndRollbackPreserveState$": {
+    "behavior": {
+      "choice_features": [
+        {
+          "kind": "record_kind",
+          "value": "decision/runnable"
+        },
+        {
+          "kind": "record_kind",
+          "value": "decision/select-poll"
+        },
+        {
+          "kind": "record_kind",
+          "value": "observation/select-result"
+        },
+        {
+          "kind": "terminal",
+          "value": "complete"
+        }
+      ],
+      "choice_structural": [
+        "sha256:cb16854342cb4a33855a6453077920961899fe0064f5da00373054844fc4a111",
+        "sha256:cb16854342cb4a33855a6453077920961899fe0064f5da00373054844fc4a111"
+      ],
+      "choices": {
+        "branching_records": "10",
+        "decisions": "10",
+        "peak_goroutines": "5",
+        "records": "11",
+        "runnable": "9",
+        "select_poll": "1",
+        "select_result": "1",
+        "terminal_state": "complete"
+      },
+      "deterministic": true,
+      "executions": [
+        {
+          "evidence_matches_first": true,
+          "replay": {
+            "attempted": true,
+            "choice_replay_status": "exact",
+            "match": true
+          }
+        },
+        {
+          "evidence_matches_first": true,
+          "replay": {
+            "attempted": true,
+            "choice_replay_status": "exact",
+            "match": true
+          }
+        }
+      ],
+      "io_transcript": {
+        "complete": true,
+        "records": "8",
+        "sha256": "sha256:7035feb84ba1b64e81739b1e604a20ef349a522991fb98c5031886f49e56e99f"
+      },
+      "outcome": {
+        "domain": "success",
+        "exit_code": "0",
+        "reason": "success",
+        "termination": "exit"
+      },
+      "qualified": true,
+      "repeat": "2",
+      "seed": "17",
+      "semantic_coverage": "sha256:ba67b558d89f81472d339ad9af344809dcb20d15276beaadb82c0ad54d6d92df",
+      "stderr": {
+        "full_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "total_bytes": "0",
+        "truncated": false
+      },
+      "stdout": {
+        "full_sha256": "sha256:c26de83abdc9496cd1301470918ec39ecca1cf389ef0ae1c6504da1800d1c431",
+        "total_bytes": "5",
+        "truncated": false
+      },
+      "target_success": true,
+      "virtual_time_elapsed_nanos": "0",
+      "world": {
+        "final": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "initial": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "terminal": {
+          "kind": "none"
+        },
+        "transition_count": "0",
+        "transitions": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "identity": {
+      "choice_implementation_sha256": "sha256:e7b9450936e8a4ea592a33bcd3948e2b99031b23708caafd8ade12f8d6f10324",
+      "choice_tape_sha256": "sha256:2b0e904002f097207d75f6c2d571b53543b1a870e83010b152475ae675ee1085",
+      "evidence_digest": "sha256:13bc80c8202ac9219296d4d3082ae8c4a3143a2982439ef3075e20fb241e9eb8",
+      "runner_build": "sha256:b464cecfc6513abe53351471b3837002097db630c6ed719632190c1640ecec73",
+      "target_sha256": "sha256:9167f162b2961dcdb66d8bbce32cc0a1e985677bde7919dc8d64a9671129449d",
+      "toolchain_build_key": "4412b5b276ef89f37995a401bcebc83b842733c18f0c39f9b57e00e74df0ca95"
+    },
+    "site_dependent": {
+      "choice_features": [
+        {
+          "kind": "site",
+          "value": "runnable/missing"
+        },
+        {
+          "kind": "site",
+          "value": "select-poll/eb714e531c405a8c6ccda56f993bd3e2cb50ee61b88b0fd8024005edc7e4d012"
+        },
+        {
+          "kind": "site",
+          "value": "select-result/1165a8a8a729111bde77044640d8cc03f46c442eef40a2cd998d907eba116503"
+        },
+        {
+          "kind": "branching_site",
+          "value": "runnable/missing/max-alternatives=3"
+        },
+        {
+          "kind": "branching_site",
+          "value": "select-poll/eb714e531c405a8c6ccda56f993bd3e2cb50ee61b88b0fd8024005edc7e4d012/max-alternatives=2"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "decision/runnable/missing/last"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "decision/runnable/missing/interior"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "decision/runnable/missing/first"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "decision/select-poll/eb714e531c405a8c6ccda56f993bd3e2cb50ee61b88b0fd8024005edc7e4d012/last"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "observation/select-result/1165a8a8a729111bde77044640d8cc03f46c442eef40a2cd998d907eba116503/last"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/last->decision/runnable/missing/last"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/last->decision/runnable/missing/interior"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/interior->decision/runnable/missing/last"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/last->decision/runnable/missing/first"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/first->decision/select-poll/eb714e531c405a8c6ccda56f993bd3e2cb50ee61b88b0fd8024005edc7e4d012/last"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/select-poll/eb714e531c405a8c6ccda56f993bd3e2cb50ee61b88b0fd8024005edc7e4d012/last->observation/select-result/1165a8a8a729111bde77044640d8cc03f46c442eef40a2cd998d907eba116503/last"
+        }
+      ],
+      "choice_full": [
+        "sha256:c0a9f5aac391bd643155b96a7661e2913f34c719291c29c86e36e3ee41e73298",
+        "sha256:c0a9f5aac391bd643155b96a7661e2913f34c719291c29c86e36e3ee41e73298"
+      ],
+      "choice_site_offsets": [
+        "sha256:4b4ad6fd65fcc56ff9024d53292e9e8cc263231b3478551a9f626510fdcdda8f",
+        "sha256:4b4ad6fd65fcc56ff9024d53292e9e8cc263231b3478551a9f626510fdcdda8f"
+      ],
+      "choice_trace_sha256": "sha256:c0a9f5aac391bd643155b96a7661e2913f34c719291c29c86e36e3ee41e73298"
+    }
+  },
+  "./thirdparty/persistence -test.run=^TestSQLiteWriteAheadLogCommitIsReadable$": {
+    "behavior": {
+      "choice_features": [
+        {
+          "kind": "record_kind",
+          "value": "decision/runnable"
+        },
+        {
+          "kind": "record_kind",
+          "value": "decision/select-poll"
+        },
+        {
+          "kind": "record_kind",
+          "value": "observation/select-result"
+        },
+        {
+          "kind": "terminal",
+          "value": "complete"
+        }
+      ],
+      "choice_structural": [
+        "sha256:e6b4da3f65476370eb4d7b115b0923226d859a9cc0092a88d7f8b3497cfa2bcf",
+        "sha256:e6b4da3f65476370eb4d7b115b0923226d859a9cc0092a88d7f8b3497cfa2bcf"
+      ],
+      "choices": {
+        "branching_records": "8",
+        "decisions": "8",
+        "peak_goroutines": "3",
+        "records": "9",
+        "runnable": "7",
+        "select_poll": "1",
+        "select_result": "1",
+        "terminal_state": "complete"
+      },
+      "deterministic": true,
+      "executions": [
+        {
+          "evidence_matches_first": true,
+          "replay": {
+            "attempted": true,
+            "choice_replay_status": "exact",
+            "match": true
+          }
+        },
+        {
+          "evidence_matches_first": true,
+          "replay": {
+            "attempted": true,
+            "choice_replay_status": "exact",
+            "match": true
+          }
+        }
+      ],
+      "io_transcript": {
+        "complete": true,
+        "records": "105",
+        "sha256": "sha256:c3b2b6f1c88f8f917c0478ae9d24d4f8f5b17efdbb5485bb28b72e2f0caab4f7"
+      },
+      "outcome": {
+        "domain": "success",
+        "exit_code": "0",
+        "reason": "success",
+        "termination": "exit"
+      },
+      "qualified": true,
+      "repeat": "2",
+      "seed": "17",
+      "semantic_coverage": "sha256:66783e671df845ae18c50bc434486de0f0ecb7671b604efb8b1a41f686ea7027",
+      "stderr": {
+        "full_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "total_bytes": "0",
+        "truncated": false
+      },
+      "stdout": {
+        "full_sha256": "sha256:c26de83abdc9496cd1301470918ec39ecca1cf389ef0ae1c6504da1800d1c431",
+        "total_bytes": "5",
+        "truncated": false
+      },
+      "target_success": true,
+      "virtual_time_elapsed_nanos": "0",
+      "world": {
+        "final": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "initial": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+        "terminal": {
+          "kind": "none"
+        },
+        "transition_count": "0",
+        "transitions": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "identity": {
+      "choice_implementation_sha256": "sha256:e7b9450936e8a4ea592a33bcd3948e2b99031b23708caafd8ade12f8d6f10324",
+      "choice_tape_sha256": "sha256:1af3d2b0bad01fa33a249de011cbe7359a36d33733567442ab7b9c3ad8d8381a",
+      "evidence_digest": "sha256:742cd581e77218d5ca134212161b16ab7851d1fa8f5415b37e056d796c6590b4",
+      "runner_build": "sha256:b464cecfc6513abe53351471b3837002097db630c6ed719632190c1640ecec73",
+      "target_sha256": "sha256:9167f162b2961dcdb66d8bbce32cc0a1e985677bde7919dc8d64a9671129449d",
+      "toolchain_build_key": "4412b5b276ef89f37995a401bcebc83b842733c18f0c39f9b57e00e74df0ca95"
+    },
+    "site_dependent": {
+      "choice_features": [
+        {
+          "kind": "site",
+          "value": "runnable/missing"
+        },
+        {
+          "kind": "site",
+          "value": "select-poll/eb714e531c405a8c6ccda56f993bd3e2cb50ee61b88b0fd8024005edc7e4d012"
+        },
+        {
+          "kind": "site",
+          "value": "select-result/1165a8a8a729111bde77044640d8cc03f46c442eef40a2cd998d907eba116503"
+        },
+        {
+          "kind": "branching_site",
+          "value": "runnable/missing/max-alternatives=3"
+        },
+        {
+          "kind": "branching_site",
+          "value": "select-poll/eb714e531c405a8c6ccda56f993bd3e2cb50ee61b88b0fd8024005edc7e4d012/max-alternatives=2"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "decision/runnable/missing/last"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "decision/runnable/missing/interior"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "decision/select-poll/eb714e531c405a8c6ccda56f993bd3e2cb50ee61b88b0fd8024005edc7e4d012/last"
+        },
+        {
+          "kind": "selected_alternative",
+          "value": "observation/select-result/1165a8a8a729111bde77044640d8cc03f46c442eef40a2cd998d907eba116503/last"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/last->decision/runnable/missing/last"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/last->decision/runnable/missing/interior"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/interior->decision/runnable/missing/last"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/runnable/missing/last->decision/select-poll/eb714e531c405a8c6ccda56f993bd3e2cb50ee61b88b0fd8024005edc7e4d012/last"
+        },
+        {
+          "kind": "adjacent_pair",
+          "value": "decision/select-poll/eb714e531c405a8c6ccda56f993bd3e2cb50ee61b88b0fd8024005edc7e4d012/last->observation/select-result/1165a8a8a729111bde77044640d8cc03f46c442eef40a2cd998d907eba116503/last"
+        }
+      ],
+      "choice_full": [
+        "sha256:31820a7527686b0d61d11fc2d1f34bdaef6b32d2557df3194165bcce8d8d5a80",
+        "sha256:31820a7527686b0d61d11fc2d1f34bdaef6b32d2557df3194165bcce8d8d5a80"
+      ],
+      "choice_site_offsets": [
+        "sha256:d19dd6bca6c0824f5900620da1a6cf2777b923bca8a827d0daed954db511aefe",
+        "sha256:d19dd6bca6c0824f5900620da1a6cf2777b923bca8a827d0daed954db511aefe"
+      ],
+      "choice_trace_sha256": "sha256:31820a7527686b0d61d11fc2d1f34bdaef6b32d2557df3194165bcce8d8d5a80"
+    }
+  }
+}

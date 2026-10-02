@@ -9,6 +9,7 @@ on:
       - "go.sum"
       - "tools/gomad3/**"
       - "tools/gomad3integration/**"
+      - "tools/gomad3sim/**"
   push:
     branches:
       - main
@@ -19,6 +20,7 @@ on:
       - "go.sum"
       - "tools/gomad3/**"
       - "tools/gomad3integration/**"
+      - "tools/gomad3sim/**"
   workflow_dispatch:
   schedule:
     - cron: "17 9 * * 1"
@@ -52,7 +54,6 @@ jobs:
           go test -count=1 -tags test_dep
           ./internal/hostexec
           ./internal/hostfs
-          ./toolchain
           ./internal/gomadtool/...
           ./cmd/gomadtool
 
@@ -72,7 +73,7 @@ jobs:
 
       - name: Build the toolchain and run the conformance tiers qualified on Linux
         run: >-
-          make -C tools/gomad3 test-harness test-toolchain intercept-test overlay-test
+          make -C tools/gomad3 test-harness test-toolchain intercept-test overlay-test test-simulation
           world-test test-builder test-live-capability test-upstream test-runtime
 
       - name: Run the host tier
@@ -183,6 +184,9 @@ jobs:
           GOMAD3_BASELINE_REF: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
           GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256: ${{ vars.GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256 }}
         run: make -C tools/gomad3 upgrade-dossier
+
+      - name: Run the simulation tier
+        run: make -C tools/gomad3 test-simulation
 
       - name: Verify portable core qualification evidence
         run: >-

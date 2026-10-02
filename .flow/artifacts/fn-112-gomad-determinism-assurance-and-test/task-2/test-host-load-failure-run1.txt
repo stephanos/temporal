@@ -1,0 +1,11 @@
+		./deterministicio/... ./world/... ./toolchain/version ./upgrade/... ./internal/...
+ok  	go.temporal.io/server/tools/gomad3	1.909s
+?   	go.temporal.io/server/tools/gomad3/cmd/gomad	[no test files]
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	1.369s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	1.394s
+--- FAIL: TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs (19.63s)
+    --- FAIL: TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/discard (10.05s)
+        retention_characterization_test.go:927: bounded campaign = runner.bounded{Reason:"overall_timeout", Attempted:0x27, Retained:0x0, MaximumActive:2}, want runner.bounded{Reason:"", Attempted:0x64, Retained:0x0, MaximumActive:2}
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner	153.547s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/campaign	30.019s

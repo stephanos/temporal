@@ -1,0 +1,34 @@
+{
+  "arguments": [
+    "-test.run=^TestConcurrentTransfersPreserveBalance$"
+  ],
+  "binary": "concurrency.test",
+  "off": {
+    "choice_records": 23,
+    "choice_sha256": "bb56d96ea61c8e9a636e596af40632f8eb83bfa422fa964765f39d529012ec1d",
+    "choice_terminal_sha256": "cb7b9765da3c31dc330bf9393ec3c4c28c52abe4fb2d70bbc237c9f466ac8984",
+    "choice_terminal_state": 1,
+    "exit": 0,
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_sha256": "c26de83abdc9496cd1301470918ec39ecca1cf389ef0ae1c6504da1800d1c431"
+  },
+  "off_repeatable": true,
+  "on": {
+    "choice_records": 23,
+    "choice_sha256": "bb56d96ea61c8e9a636e596af40632f8eb83bfa422fa964765f39d529012ec1d",
+    "choice_terminal_sha256": "cb7b9765da3c31dc330bf9393ec3c4c28c52abe4fb2d70bbc237c9f466ac8984",
+    "choice_terminal_state": 1,
+    "diagnostic_records": 23,
+    "diagnostic_sha256": "86a954fb20a4a1506d7f5e0d600a98a798066dacc0361e32dfb35e92369a097d",
+    "diagnostic_state": 1,
+    "exit": 0,
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_sha256": "c26de83abdc9496cd1301470918ec39ecca1cf389ef0ae1c6504da1800d1c431"
+  },
+  "on_matches_off": true,
+  "on_repeatable": true,
+  "one_digest_per_choice_record": true,
+  "pass": true,
+  "repetitions": 10,
+  "seed": 17
+}
