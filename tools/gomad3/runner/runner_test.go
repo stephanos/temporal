@@ -519,7 +519,7 @@ func TestValidateConfigRequiresBoundedSingleSeedSimulationExploration(t *testing
 		{name: "missing exploration bound", configure: func(config *CampaignSpec) { config.MaxExplorationBytes = 0 }, want: "exploration bytes"},
 		{name: "missing result bound", configure: func(config *CampaignSpec) { config.MaxExplorationResultBytes = 0 }, want: "result bytes"},
 		{name: "missing dimension bound", configure: func(config *CampaignSpec) { config.SimulationDimensionLimits.Network = 0 }, want: "network dimension"},
-		{name: "choice start ordinal", configure: func(config *CampaignSpec) { config.ChoiceStartOrdinal = 1 }, want: "start ordinal require the choice-exploration strategy"},
+		{name: "choice start ordinal", configure: func(config *CampaignSpec) { config.ChoiceStartOrdinal = 1 }, want: "choice start ordinal requires the choice-exploration strategy"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			config := valid
