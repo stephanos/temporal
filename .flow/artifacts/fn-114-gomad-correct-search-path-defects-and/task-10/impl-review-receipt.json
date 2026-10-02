@@ -1,0 +1,124 @@
+{
+  "base": "b5b498004b196d9b681bcb8d7a0b1a59dd2b2a41",
+  "effort": "high",
+  "findings": {
+    "backend": "claude",
+    "baseSha": "b5b498004b196d9b681bcb8d7a0b1a59dd2b2a41",
+    "headSha": "982f4c2b232cc2ceb9aedd4e8af5bbe84c87397c",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "b5b498004b196d9b681bcb8d7a0b1a59dd2b2a41",
+          "headSha": "982f4c2b232cc2ceb9aedd4e8af5bbe84c87397c",
+          "path": "tools/gomad3/runner/internal/campaign/merge.go",
+          "side": "head",
+          "startLine": 557
+        },
+        "body": "`validateMergedCampaign` builds a synthetic `executionLimits` (success limit raised to `RetainedSuccessBytes`, total recomputed) so that `validateCampaign`'s `RetainedSuccessBytes > limits.SuccessBytes` and `TotalBytes == failure + success` checks at `open_campaign.go:138-139` pass. The comment above it narrates the workaround. The real bound is still enforced afterwards by `validateMergedArtifactCapacity`, so nothing is unsound today; however, any limit check later added to `validateCampaign` is silently defeated for merged records.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-c17270f9d1b3f791259b9d628c8ba3985326334647919b05aa3e96a6386ede64",
+        "id": "finding-347d960bbb1124cda66df4a524f56842",
+        "lastSeenReceiptId": "review-c17270f9d1b3f791259b9d628c8ba3985326334647919b05aa3e96a6386ede64",
+        "ordinal": 1,
+        "rIds": [
+          "R7"
+        ],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Give `validateCampaign` an explicit way to skip the per-execution success-byte bound (a parameter, or split the capacity check out) instead of forging the limits.",
+        "title": "`validateMergedCampaign` builds a synthetic `executionLimits` (success limit raised to `RetainedSuccessBytes`, total recomputed) so that `validateCampaign`'s `RetainedSuccessBytes > limits"
+      },
+      {
+        "anchor": {
+          "baseSha": "b5b498004b196d9b681bcb8d7a0b1a59dd2b2a41",
+          "headSha": "982f4c2b232cc2ceb9aedd4e8af5bbe84c87397c",
+          "path": "tools/gomad3/artifact/target_pool.go",
+          "side": "head",
+          "startLine": 252
+        },
+        "body": "`TargetSharingOf` decides from link count alone, so a target hard-linked anywhere reads `shared`, and a pool-store artifact that fell back to a private copy reads `private`, never `unshared`. The `TargetReport.Sharing` comment (`runner/inspect.go:147`) says \"held with its store's pool\", which the code does not check. Inspect output for the same artifact now also depends on host filesystem state.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-c17270f9d1b3f791259b9d628c8ba3985326334647919b05aa3e96a6386ede64",
+        "id": "finding-4a8b646f582e5992c0a723a0db9452ad",
+        "lastSeenReceiptId": "review-c17270f9d1b3f791259b9d628c8ba3985326334647919b05aa3e96a6386ede64",
+        "ordinal": 3,
+        "rIds": [
+          "R7"
+        ],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Reword the field contract to \"the target file has other links\", or pass the pool and use `sharesPoolEntry`.",
+        "title": "`TargetSharingOf` decides from link count alone, so a target hard-linked anywhere reads `shared`, and a pool-store artifact that fell back to a private copy reads `private`, never `unshared`"
+      },
+      {
+        "anchor": {
+          "baseSha": "b5b498004b196d9b681bcb8d7a0b1a59dd2b2a41",
+          "headSha": "982f4c2b232cc2ceb9aedd4e8af5bbe84c87397c",
+          "path": "tools/gomad3/runner/internal/campaign/merge_capacity_test.go",
+          "side": "head",
+          "startLine": 255
+        },
+        "body": "`TestOpenMergedCampaignCountsEvidenceWithoutATargetInFull` only calls `mergedEvidenceBytes.add`; no test opens a record written before the target fields existed.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-c17270f9d1b3f791259b9d628c8ba3985326334647919b05aa3e96a6386ede64",
+        "id": "finding-0d7386cb4242106aa9fc8faa75ecdb1f",
+        "lastSeenReceiptId": "review-c17270f9d1b3f791259b9d628c8ba3985326334647919b05aa3e96a6386ede64",
+        "ordinal": 4,
+        "rIds": [
+          "R7"
+        ],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Rename the test to what it exercises, or add a case that round-trips a record without `target_sha256` through `OpenMergedCampaign`.",
+        "title": "`TestOpenMergedCampaignCountsEvidenceWithoutATargetInFull` only calls `mergedEvidenceBytes"
+      },
+      {
+        "anchor": {
+          "baseSha": "b5b498004b196d9b681bcb8d7a0b1a59dd2b2a41",
+          "headSha": "982f4c2b232cc2ceb9aedd4e8af5bbe84c87397c",
+          "path": "tools/gomad3/runner/internal/campaign/merge.go",
+          "side": "head",
+          "startLine": 300
+        },
+        "body": "Merge uses `artifact.TargetOf` unconditionally, while the corpus uses `artifact.PoolTarget`, which checks the file really is the pool entry. Shards from two artifacts roots, or a root where linking fell back to `TargetUnshared`, therefore hold several copies that the merged byte limits charge once. The acceptance line \"leave one copy per target\" is tested as one copy per artifacts root (`merge_capacity_test.go:228-236`). The `MergedEvidence` comment states this on purpose (\"as one store holds it\"), and each shard is still bounded in full by its own limit, so I treat it as a recorded design choice, not a blocker.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-c17270f9d1b3f791259b9d628c8ba3985326334647919b05aa3e96a6386ede64",
+        "id": "finding-5b6d1edfbd3f5ffff6037afae7091c8e",
+        "lastSeenReceiptId": "review-c17270f9d1b3f791259b9d628c8ba3985326334647919b05aa3e96a6386ede64",
+        "ordinal": 2,
+        "rIds": [
+          "R7"
+        ],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Either state in the `RetainedBytes` contract that merge accounts a hypothetical single store, or resolve the evidence with `PoolTarget` and key the count by pool.",
+        "title": "Merge uses `artifact"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-c17270f9d1b3f791259b9d628c8ba3985326334647919b05aa3e96a6386ede64"
+  },
+  "id": "fn-114-gomad-correct-search-path-defects-and.10",
+  "introduced_count": 4,
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "pre_existing_count": 0,
+  "review": "Review finished: I read the spec, the full diff, and the current `merge.go`, `corpus.go`, `target_pool.go` and `open_campaign.go`; nothing was executed (this session has no shell), so test results are taken from the retained gate evidence.\n\n## Findings\n\n**1. Merged-record validation rewrites the limits to get past a shared check**\n- **Severity**: P3\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: `tools/gomad3/runner/internal/campaign/merge.go:557`\n- **R-IDs**: [R7]\n- **Problem**: `validateMergedCampaign` builds a synthetic `executionLimits` (success limit raised to `RetainedSuccessBytes`, total recomputed) so that `validateCampaign`'s `RetainedSuccessBytes > limits.SuccessBytes` and `TotalBytes == failure + success` checks at `open_campaign.go:138-139` pass. The comment above it narrates the workaround. The real bound is still enforced afterwards by `validateMergedArtifactCapacity`, so nothing is unsound today; however, any limit check later added to `validateCampaign` is silently defeated for merged records.\n- **Suggestion**: Give `validateCampaign` an explicit way to skip the per-execution success-byte bound (a parameter, or split the capacity check out) instead of forging the limits.\n\n**2. Merge counts a target once whether or not the evidence shares it on disk**\n- **Severity**: P3\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: `tools/gomad3/runner/internal/campaign/merge.go:300`\n- **R-IDs**: [R7]\n- **Problem**: Merge uses `artifact.TargetOf` unconditionally, while the corpus uses `artifact.PoolTarget`, which checks the file really is the pool entry. Shards from two artifacts roots, or a root where linking fell back to `TargetUnshared`, therefore hold several copies that the merged byte limits charge once. The acceptance line \"leave one copy per target\" is tested as one copy per artifacts root (`merge_capacity_test.go:228-236`). The `MergedEvidence` comment states this on purpose (\"as one store holds it\"), and each shard is still bounded in full by its own limit, so I treat it as a recorded design choice, not a blocker.\n- **Suggestion**: Either state in the `RetainedBytes` contract that merge accounts a hypothetical single store, or resolve the evidence with `PoolTarget` and key the count by pool.\n\n**3. `inspect` reports any multiply-linked target as `shared`**\n- **Severity**: P3\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: `tools/gomad3/artifact/target_pool.go:252`\n- **R-IDs**: [R7]\n- **Problem**: `TargetSharingOf` decides from link count alone, so a target hard-linked anywhere reads `shared`, and a pool-store artifact that fell back to a private copy reads `private`, never `unshared`. The `TargetReport.Sharing` comment (`runner/inspect.go:147`) says \"held with its store's pool\", which the code does not check. Inspect output for the same artifact now also depends on host filesystem state.\n- **Suggestion**: Reword the field contract to \"the target file has other links\", or pass the pool and use `sharesPoolEntry`.\n\n**4. Legacy merged records are not tested through the open path**\n- **Severity**: P3\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: `tools/gomad3/runner/internal/campaign/merge_capacity_test.go:255`\n- **R-IDs**: [R7]\n- **Problem**: `TestOpenMergedCampaignCountsEvidenceWithoutATargetInFull` only calls `mergedEvidenceBytes.add`; no test opens a record written before the target fields existed.\n- **Suggestion**: Rename the test to what it exercises, or add a case that round-trips a record without `target_sha256` through `OpenMergedCampaign`.\n\n## What I checked and found sound\n\n- **Stored-bytes rule**: `RetainedBytes` is a small, isolated module; totals are order-independent, so the map iteration in `collectMergedCampaign` is safe.\n- **Corpus**: `sharedTarget` survives `cloneEntries` and `finalizeSnapshot` (struct copies) and is re-derived from disk on load. The cap is unchanged at 1 GiB and 1,024 cases.\n- **Pruning**: an entry is removed only at link count 1, through a pinned `os.Root`, and a symlinked pool is refused. Staging directories are removed only under the corpus lock.\n- **Minimized-artifact default**: a comment only, which is correct because both sides are single-artifact stored bytes.\n- **Measurement**: the \"before\" figure in `retained-bytes.md` is the same run counted without sharing, not a run at an earlier revision. The file says so and corroborates it against the 2026-10-01 report (11.42 GB).\n\n## FYI (not affecting the verdict)\n\n- `inspect.go` and `cli.go` are outside the task's listed files.\n- The spec's stock-go quick command is recorded as not run; `test-host` covered the same packages.\n- `measure-retained-bytes.sh` uses BSD `stat -f` and is darwin-only.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n| --- | --- | --- |\n| R7 | met (this task's half) | `artifact/retained_bytes.go`; `PruneTargetPool` and its tests; corpus and merge capacity tests; `retained-bytes.md` with before/after and the command; `final-gates.json` records `test-host` and `validate` at exit 0 |\n\nUnaddressed R-IDs: []\n\nSuppressed findings: 2 (one at 50: a non-exclusive prune racing a publisher can drop a pool entry and lose deduplication, with no data loss; one at 25: exhausting `poolEntryAttempts` fails the publication instead of falling back to a private copy).\n\nClassification counts: 4 introduced, 0 pre_existing.\n\n```json\n{\"suppressed_count\":{\"50\":1,\"25\":1},\"classification_counts\":{\"introduced\":4,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>",
+  "review_reservation_id": "0def90bc54904f57a7820a9f0cae55e4",
+  "session_id": "4f631003-f670-460f-9d5d-8cca8bd17879",
+  "spec": "claude:claude-fable-5-1:high",
+  "suppressed_count": {
+    "25": 1,
+    "50": 1
+  },
+  "timestamp": "2026-10-02T20:33:51.349189Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}
