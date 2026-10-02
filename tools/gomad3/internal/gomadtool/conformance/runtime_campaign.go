@@ -325,6 +325,9 @@ func (campaign *runtimeCampaign) execute() error {
 	if err := campaign.requireSchedulingBehavior(binaries); err != nil {
 		return err
 	}
+	if err := campaign.requireChoiceReplay(binaries["choice-replay"]); err != nil {
+		return err
+	}
 	return campaign.requireRepeatability(binaries)
 }
 

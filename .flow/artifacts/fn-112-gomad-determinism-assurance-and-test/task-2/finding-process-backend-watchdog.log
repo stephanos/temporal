@@ -1,0 +1,29 @@
+=== RUN   TestRootProcessSimulationUsesRunnerTransport
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessExplorationConsumesExternalPlanAndPublishesRecord
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessAndInProcessBackendsHaveEquivalentDetachedModels
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendRoutesTCPThroughSharedHostModel
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay
+    simulation_root_integration_test.go:67: root simulation termination=signal exit=0 signal=terminated watchdog=true group-gone=true stdout==== RUN   TestProcessBackendSynchronizesNodeClockWithModelDelay
+         stderr=
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendRoutesListenThroughSharedHostModel
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendPreservesHostVolumeAcrossRestart
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendCrashDrainsInflightModelOperationDeterministically
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendModelDigestsIgnoreCompletionOrder
+--- FAIL: TestRootProcessSimulationUsesRunnerTransport (30.98s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays (0.48s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection (0.07s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessExplorationConsumesExternalPlanAndPublishesRecord (0.07s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines (0.55s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessAndInProcessBackendsHaveEquivalentDetachedModels (0.21s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendRoutesTCPThroughSharedHostModel (0.25s)
+    --- FAIL: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay (27.90s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendRoutesListenThroughSharedHostModel (0.07s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendPreservesHostVolumeAcrossRestart (0.11s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendCrashDrainsInflightModelOperationDeterministically (0.11s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendModelDigestsIgnoreCompletionOrder (0.18s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	32.397s
+FAIL

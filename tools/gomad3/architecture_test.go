@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -141,7 +142,7 @@ func TestMakeTargetsMatchTheirOwnership(t *testing.T) {
 		t.Fatal(err)
 	}
 	makefile := string(contents)
-	for _, target := range []string{"clean:", "prune-cache:", "clean-qualifications:", "test-toolchain:", "test-host:", "validate-toolchain:", "validate-compatibility:"} {
+	for _, target := range []string{"clean:", "prune-cache:", "clean-qualifications:", "test-toolchain:", "test-host:", "overlay-test:", "test-simulation:", "validate-toolchain:", "validate-compatibility:"} {
 		if !strings.Contains(makefile, "\n"+target) {
 			t.Errorf("Makefile is missing %s", target)
 		}
@@ -150,6 +151,11 @@ func TestMakeTargetsMatchTheirOwnership(t *testing.T) {
 		if strings.Contains(makefile, obsolete) {
 			t.Errorf("Makefile retains obsolete ownership %q", obsolete)
 		}
+	}
+	// test-builder runs ./toolchain under stock Go through gomadtool, so the
+	// Makefile names the package once, for the patched toolchain.
+	if recipes := regexp.MustCompile(`(?m)\s\./toolchain(\s|$)`).FindAllString(makefile, -1); len(recipes) != 1 {
+		t.Errorf("Makefile tests ./toolchain in %d recipes, want only test-toolchain", len(recipes))
 	}
 }
 
@@ -292,7 +298,7 @@ func TestConformanceRuntimeIsGroupedByBehavior(t *testing.T) {
 		t.Errorf("conformance runtime monolith still exists or cannot be checked: %v", err)
 	}
 	for _, path := range []string{
-		"runtime_campaign.go", "runtime_clocks.go", "runtime_compatibility.go", "runtime_linking.go",
+		"runtime_campaign.go", "runtime_choice.go", "runtime_clocks.go", "runtime_compatibility.go", "runtime_linking.go",
 		"runtime_load.go", "runtime_repeatability.go", "runtime_scheduling.go",
 	} {
 		if _, err := os.Stat(filepath.Join("internal/gomadtool/conformance", path)); err != nil {
@@ -443,7 +449,7 @@ func ownerMayImport(owner, importedOwner, importing, imported string) bool {
 	}
 	allowed := map[string][]string{
 		"cli":             {"runner", "qualification", "target", "record", "artifact", "deterministicio", "toolchain", "canonicaljson"},
-		"developer":       {"compatibility", "qualification", "simulation", "toolchain", "upgrade", "hostexec", "hostfs"},
+		"developer":       {"choice", "compatibility", "qualification", "simulation", "toolchain", "upgrade", "hostexec", "hostfs"},
 		"runner":          {"target", "record", "artifact", "choice", "deterministicio", "world", "canonicaljson", "hostexec", "hostfs"},
 		"qualification":   {"runner", "target", "record", "artifact", "choice", "deterministicio", "canonicaljson", "hostexec", "hostfs"},
 		"target":          {"compatibility", "record", "toolchain", "canonicaljson", "hostexec", "hostfs"},

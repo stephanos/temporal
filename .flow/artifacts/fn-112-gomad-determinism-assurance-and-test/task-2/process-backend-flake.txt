@@ -1,0 +1,8 @@
+TestRootProcessSimulationUsesRunnerTransport (-tags test_dep,integration ./runner/internal/execution), build key f292ea6a..., darwin/arm64.
+
+25 runs of all 11 subtests at host load about 10:  21 pass, 4 fail
+  2 x TestProcessBackendSynchronizesNodeClockWithModelDelay  watchdog after about 28 s (finding-process-backend-watchdog.log)
+  2 x TestProcessBackendResetsGlobalsDescriptorsAndGoroutines  graceful stop ends in SIGTERM after the 2 s grace (finding-process-backend-stop.log)
+25 runs of the 8 node-process subtests at host load about 3:  24 pass, 1 fail
+  1 x TestProcessBackendResetsGlobalsDescriptorsAndGoroutines  same signature
+30 runs of `make -C tools/gomad3 test-simulation` (the three subtests that start no node process):  30 pass

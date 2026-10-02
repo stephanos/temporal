@@ -1,0 +1,274 @@
+{
+  "candidate_build_key": "1c34ea0753ab3a38a18f69e9efb1f6593b54fb6c8adde6a4f8ec6790093f9179",
+  "candidate_choice_implementation_sha256": "sha256:03e99777efa78b9b198d6753f945b3dd1bc5740e62bda97c24416a7d8c325aca",
+  "match": true,
+  "same_workload_set": true,
+  "workloads": {
+    "./basic/concurrency -test.run=^TestConcurrentTransfersPreserveBalance$": {
+      "behavior_differences": [],
+      "behavior_matches": true,
+      "identity": {
+        "choice_implementation_sha256": {
+          "baseline": "sha256:e7b9450936e8a4ea592a33bcd3948e2b99031b23708caafd8ade12f8d6f10324",
+          "candidate": "sha256:03e99777efa78b9b198d6753f945b3dd1bc5740e62bda97c24416a7d8c325aca",
+          "changed": true
+        },
+        "choice_tape_sha256": {
+          "baseline": "sha256:da31564fc13ce418fa364d6cd263a6d14f8c7068f2b245528ad3af744e4ea024",
+          "candidate": "sha256:c11879b36d9dab01e4f40010b005cd28cda5e1505eca0fe1c8e70f881ff7b865",
+          "changed": true
+        },
+        "evidence_digest": {
+          "baseline": "sha256:7ea14c71c5f6a7bec932134acc3f5f58cdef70ce710ebf29347c07a160aa5ba0",
+          "candidate": "sha256:558e5464fa3030fc3cd6e4c3940863fce4422a5f06faf96b951ff0d8f4dd629c",
+          "changed": true
+        },
+        "runner_build": {
+          "baseline": "sha256:b464cecfc6513abe53351471b3837002097db630c6ed719632190c1640ecec73",
+          "candidate": "sha256:c189bbd070edbfca0a5f5d80341c982a2f9f2cc6dbc59b53ef655067b4f0bd41",
+          "changed": true
+        },
+        "target_sha256": {
+          "baseline": "sha256:e5eacbcd72a34c2893c3a3a14735deaaa58ae1602101022623966f4c38811d9f",
+          "candidate": "sha256:b408ef4263e01b02ae67590b2e3412d1a55953a9d217951c3515c8189a8449dd",
+          "changed": true
+        },
+        "toolchain_build_key": {
+          "baseline": "4412b5b276ef89f37995a401bcebc83b842733c18f0c39f9b57e00e74df0ca95",
+          "candidate": "1c34ea0753ab3a38a18f69e9efb1f6593b54fb6c8adde6a4f8ec6790093f9179",
+          "changed": true
+        }
+      },
+      "new_identities_recorded": true,
+      "site_dependent_matches": false
+    },
+    "./basic/filesystem -test.run=^TestFileLifecyclePreservesContentsAndMetadata$": {
+      "behavior_differences": [],
+      "behavior_matches": true,
+      "identity": {
+        "choice_implementation_sha256": {
+          "baseline": "sha256:e7b9450936e8a4ea592a33bcd3948e2b99031b23708caafd8ade12f8d6f10324",
+          "candidate": "sha256:03e99777efa78b9b198d6753f945b3dd1bc5740e62bda97c24416a7d8c325aca",
+          "changed": true
+        },
+        "choice_tape_sha256": {
+          "baseline": "sha256:90b94a1b1632e2f65ea7c01197d496cefbaf011e711342e30848fc2b9fe77722",
+          "candidate": "sha256:a0c48739f97d6569c0a5147d3a9e7a637ebd18fb5758e91b74c583ef2f73b17e",
+          "changed": true
+        },
+        "evidence_digest": {
+          "baseline": "sha256:13a90a00549b6c4062bf68f353daa024b96931752902358bceae56972b4e8fb3",
+          "candidate": "sha256:0474b7afe9658e3f3b3c552e9f11e70ccb2a6bec6f94b51f1613d4d573ec1b4a",
+          "changed": true
+        },
+        "runner_build": {
+          "baseline": "sha256:b464cecfc6513abe53351471b3837002097db630c6ed719632190c1640ecec73",
+          "candidate": "sha256:c189bbd070edbfca0a5f5d80341c982a2f9f2cc6dbc59b53ef655067b4f0bd41",
+          "changed": true
+        },
+        "target_sha256": {
+          "baseline": "sha256:3e1651f3545b0b555eedbf5fe6f77e1479d3234d26bee0a721ba2b5519cdd363",
+          "candidate": "sha256:2b279128091408990b5920d0aa9e705998a41caefad9a1314cf989aa4344368a",
+          "changed": true
+        },
+        "toolchain_build_key": {
+          "baseline": "4412b5b276ef89f37995a401bcebc83b842733c18f0c39f9b57e00e74df0ca95",
+          "candidate": "1c34ea0753ab3a38a18f69e9efb1f6593b54fb6c8adde6a4f8ec6790093f9179",
+          "changed": true
+        }
+      },
+      "new_identities_recorded": true,
+      "site_dependent_matches": false
+    },
+    "./basic/mount -test.run=^TestMountReadsUnderCollectionAreRepeatable$": {
+      "behavior_differences": [],
+      "behavior_matches": true,
+      "identity": {
+        "choice_implementation_sha256": {
+          "baseline": "sha256:e7b9450936e8a4ea592a33bcd3948e2b99031b23708caafd8ade12f8d6f10324",
+          "candidate": "sha256:03e99777efa78b9b198d6753f945b3dd1bc5740e62bda97c24416a7d8c325aca",
+          "changed": true
+        },
+        "choice_tape_sha256": {
+          "baseline": "sha256:ac68b92f26d36b4e0a08301604cfec9d08915016df47a5707fd273d260d882b1",
+          "candidate": "sha256:a5cb999390b2595f1f2198e8c7aa9afd30f7c34390b7cd21c5b5476d800300a0",
+          "changed": true
+        },
+        "evidence_digest": {
+          "baseline": "sha256:e83f8240c428b5a40b608b74fe9dedd6aee5d7557abca17e13e1c7a2e5912d03",
+          "candidate": "sha256:6897b22be916eb8c0a3420362116abc47e006cdc8e92c7e3afaac3de7e2491a3",
+          "changed": true
+        },
+        "runner_build": {
+          "baseline": "sha256:b464cecfc6513abe53351471b3837002097db630c6ed719632190c1640ecec73",
+          "candidate": "sha256:c189bbd070edbfca0a5f5d80341c982a2f9f2cc6dbc59b53ef655067b4f0bd41",
+          "changed": true
+        },
+        "target_sha256": {
+          "baseline": "sha256:0b56b09542b5a9dd6bfe40688dd0e23fd91ecb287d6d664243acf8881218255c",
+          "candidate": "sha256:95d5def5aa85c7a7edf26b0f6b9af22a9ae05195057876848b9247b9d4f5faa4",
+          "changed": true
+        },
+        "toolchain_build_key": {
+          "baseline": "4412b5b276ef89f37995a401bcebc83b842733c18f0c39f9b57e00e74df0ca95",
+          "candidate": "1c34ea0753ab3a38a18f69e9efb1f6593b54fb6c8adde6a4f8ec6790093f9179",
+          "changed": true
+        }
+      },
+      "new_identities_recorded": true,
+      "site_dependent_matches": false
+    },
+    "./basic/network -test.run=^TestLoopbackRoundTripPreservesMessage$": {
+      "behavior_differences": [],
+      "behavior_matches": true,
+      "identity": {
+        "choice_implementation_sha256": {
+          "baseline": "sha256:e7b9450936e8a4ea592a33bcd3948e2b99031b23708caafd8ade12f8d6f10324",
+          "candidate": "sha256:03e99777efa78b9b198d6753f945b3dd1bc5740e62bda97c24416a7d8c325aca",
+          "changed": true
+        },
+        "choice_tape_sha256": {
+          "baseline": "sha256:5a98facd5438f3a29244def34cb4a5e03e5028db71298e771c0fd7addbcaa9e8",
+          "candidate": "sha256:777c31ebefd902f58379a62498039823761c161646e806d28e390aa165a0f606",
+          "changed": true
+        },
+        "evidence_digest": {
+          "baseline": "sha256:048c85fab4d03e0ad1fbe13d4b2e0d3557c0064fb1e944035332dde67ab96bd3",
+          "candidate": "sha256:71b6ced04066681883358db85e70f24c3648d8303ef86db86f83b60761096577",
+          "changed": true
+        },
+        "runner_build": {
+          "baseline": "sha256:b464cecfc6513abe53351471b3837002097db630c6ed719632190c1640ecec73",
+          "candidate": "sha256:c189bbd070edbfca0a5f5d80341c982a2f9f2cc6dbc59b53ef655067b4f0bd41",
+          "changed": true
+        },
+        "target_sha256": {
+          "baseline": "sha256:c0da9806d48267aac0e70fc26b55a0168274459a693851c6e3e3d7ad4cbe7b1a",
+          "candidate": "sha256:606b5e837a2160cf7a30c96274540281417bcced4a1f82ba008fd2d93df7568b",
+          "changed": true
+        },
+        "toolchain_build_key": {
+          "baseline": "4412b5b276ef89f37995a401bcebc83b842733c18f0c39f9b57e00e74df0ca95",
+          "candidate": "1c34ea0753ab3a38a18f69e9efb1f6593b54fb6c8adde6a4f8ec6790093f9179",
+          "changed": true
+        }
+      },
+      "new_identities_recorded": true,
+      "site_dependent_matches": false
+    },
+    "./thirdparty/libc -test.run=^TestLibcFileBoundaryPreservesContents$": {
+      "behavior_differences": [],
+      "behavior_matches": true,
+      "identity": {
+        "choice_implementation_sha256": {
+          "baseline": "sha256:e7b9450936e8a4ea592a33bcd3948e2b99031b23708caafd8ade12f8d6f10324",
+          "candidate": "sha256:03e99777efa78b9b198d6753f945b3dd1bc5740e62bda97c24416a7d8c325aca",
+          "changed": true
+        },
+        "choice_tape_sha256": {
+          "baseline": "sha256:e60a14a1ebc5620fe13d58c853442fedad028d45748b96595dd14ec57a504560",
+          "candidate": "sha256:5ba3acec90e51324317218f9ce90d4c3f881db5754570497aa1d3b842403e5cc",
+          "changed": true
+        },
+        "evidence_digest": {
+          "baseline": "sha256:414f025529b8e82b713e9185a4c8969f4176b090fef8c54cd6915bf29491ebf4",
+          "candidate": "sha256:00d49baf0dfc5ce24b36f6aeccd6f6af04184d707e03978fce2272972ee6297b",
+          "changed": true
+        },
+        "runner_build": {
+          "baseline": "sha256:b464cecfc6513abe53351471b3837002097db630c6ed719632190c1640ecec73",
+          "candidate": "sha256:c189bbd070edbfca0a5f5d80341c982a2f9f2cc6dbc59b53ef655067b4f0bd41",
+          "changed": true
+        },
+        "target_sha256": {
+          "baseline": "sha256:9a61f4f8a95ee8356f2551d765c73da55fa63bb9d9be721e9858b9479fe3baca",
+          "candidate": "sha256:f0b8434923a29a2433dbf4b4ce0a4940d3860ac47774f2b231b4d32dcf8b8737",
+          "changed": true
+        },
+        "toolchain_build_key": {
+          "baseline": "4412b5b276ef89f37995a401bcebc83b842733c18f0c39f9b57e00e74df0ca95",
+          "candidate": "1c34ea0753ab3a38a18f69e9efb1f6593b54fb6c8adde6a4f8ec6790093f9179",
+          "changed": true
+        }
+      },
+      "new_identities_recorded": true,
+      "site_dependent_matches": false
+    },
+    "./thirdparty/persistence -test.run=^TestSQLiteCommitAndRollbackPreserveState$": {
+      "behavior_differences": [],
+      "behavior_matches": true,
+      "identity": {
+        "choice_implementation_sha256": {
+          "baseline": "sha256:e7b9450936e8a4ea592a33bcd3948e2b99031b23708caafd8ade12f8d6f10324",
+          "candidate": "sha256:03e99777efa78b9b198d6753f945b3dd1bc5740e62bda97c24416a7d8c325aca",
+          "changed": true
+        },
+        "choice_tape_sha256": {
+          "baseline": "sha256:2b0e904002f097207d75f6c2d571b53543b1a870e83010b152475ae675ee1085",
+          "candidate": "sha256:0a43d4e495821a618e8c3fee3bdd46ef8b609fdcf74563d2fff17884e305d9ac",
+          "changed": true
+        },
+        "evidence_digest": {
+          "baseline": "sha256:13bc80c8202ac9219296d4d3082ae8c4a3143a2982439ef3075e20fb241e9eb8",
+          "candidate": "sha256:3467af1f82798dae36f2f70635387999b00b5e7bfd66fcf49fcd1c173db40fbc",
+          "changed": true
+        },
+        "runner_build": {
+          "baseline": "sha256:b464cecfc6513abe53351471b3837002097db630c6ed719632190c1640ecec73",
+          "candidate": "sha256:c189bbd070edbfca0a5f5d80341c982a2f9f2cc6dbc59b53ef655067b4f0bd41",
+          "changed": true
+        },
+        "target_sha256": {
+          "baseline": "sha256:9167f162b2961dcdb66d8bbce32cc0a1e985677bde7919dc8d64a9671129449d",
+          "candidate": "sha256:e9bd6d9e0f1e0f5e6484f7e11c2944ee613b2b221c0074ef95b5731a43e0c612",
+          "changed": true
+        },
+        "toolchain_build_key": {
+          "baseline": "4412b5b276ef89f37995a401bcebc83b842733c18f0c39f9b57e00e74df0ca95",
+          "candidate": "1c34ea0753ab3a38a18f69e9efb1f6593b54fb6c8adde6a4f8ec6790093f9179",
+          "changed": true
+        }
+      },
+      "new_identities_recorded": true,
+      "site_dependent_matches": false
+    },
+    "./thirdparty/persistence -test.run=^TestSQLiteWriteAheadLogCommitIsReadable$": {
+      "behavior_differences": [],
+      "behavior_matches": true,
+      "identity": {
+        "choice_implementation_sha256": {
+          "baseline": "sha256:e7b9450936e8a4ea592a33bcd3948e2b99031b23708caafd8ade12f8d6f10324",
+          "candidate": "sha256:03e99777efa78b9b198d6753f945b3dd1bc5740e62bda97c24416a7d8c325aca",
+          "changed": true
+        },
+        "choice_tape_sha256": {
+          "baseline": "sha256:1af3d2b0bad01fa33a249de011cbe7359a36d33733567442ab7b9c3ad8d8381a",
+          "candidate": "sha256:c0dc9155aaed15a9a70bac23fceeeb98927935c1c6c02d3da69c743fb9cd6821",
+          "changed": true
+        },
+        "evidence_digest": {
+          "baseline": "sha256:742cd581e77218d5ca134212161b16ab7851d1fa8f5415b37e056d796c6590b4",
+          "candidate": "sha256:733503df5fd26563d4e8a4fdf69ac7ea3339ab264f95d190e969bf938a9f6c79",
+          "changed": true
+        },
+        "runner_build": {
+          "baseline": "sha256:b464cecfc6513abe53351471b3837002097db630c6ed719632190c1640ecec73",
+          "candidate": "sha256:c189bbd070edbfca0a5f5d80341c982a2f9f2cc6dbc59b53ef655067b4f0bd41",
+          "changed": true
+        },
+        "target_sha256": {
+          "baseline": "sha256:9167f162b2961dcdb66d8bbce32cc0a1e985677bde7919dc8d64a9671129449d",
+          "candidate": "sha256:e9bd6d9e0f1e0f5e6484f7e11c2944ee613b2b221c0074ef95b5731a43e0c612",
+          "changed": true
+        },
+        "toolchain_build_key": {
+          "baseline": "4412b5b276ef89f37995a401bcebc83b842733c18f0c39f9b57e00e74df0ca95",
+          "candidate": "1c34ea0753ab3a38a18f69e9efb1f6593b54fb6c8adde6a4f8ec6790093f9179",
+          "changed": true
+        }
+      },
+      "new_identities_recorded": true,
+      "site_dependent_matches": false
+    }
+  }
+}

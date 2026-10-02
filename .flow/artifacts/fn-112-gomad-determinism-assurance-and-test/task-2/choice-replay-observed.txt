@@ -1,0 +1,10 @@
+requireChoiceReplay run against the built fixture (toolchain build key f292ea6a..., darwin/arm64),
+driven through a temporary test in the conformance package that was removed afterwards.
+30 consecutive repetitions passed.
+
+choice-replay-build            exit 0
+choice-replay-record-seed-1    exit 0  stdout "LRRLRR"
+choice-replay-control-seed-2   exit 0  stdout "LLLRLL"   (no tape: seed 2 selects differently)
+choice-replay-tape-seed-2      exit 0  stdout "LRRLRR"   (seed 2 with the tape of seed 1)
+
+Recorded trace: 15 records, 9 branching decisions (3 runnable, 6 select poll), terminal complete.
