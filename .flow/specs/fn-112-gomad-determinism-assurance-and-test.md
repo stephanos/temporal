@@ -27,11 +27,15 @@ fresh runs under host load.
   This spec supplies the localiser D12 needs. The two D12 candidates from the
   assessment (the one-shot syscall wait in `suspendG`, and uncontrolled linux
   ASLR and `runtime.NumCPU`) are recorded on the D12 task.
-- fn-105 D16 keeps the forward-clock decision (assessment Q5).
+- fn-105 D26 owns the forward-clock correction (assessment Q5).
 - fn-109 owns interface changes. Where this spec reshapes tests around an
   interface fn-109 migrates, the test change follows the verified migration.
 - fn-110 owns patch relocation. Runtime edits here coordinate source-set and
   descriptor changes with it.
+- fn-114 corrects search-path defects and edits the runtime choice hooks
+  (goroutine identity, select-poll records, system goroutines). Its runtime
+  and choice-wire edits and this spec's are batched into as few toolchain
+  identities as the work allows.
 - Removing or freezing features without a caller (`tools/gomad3sim`, campaign
   plans and shards, guidance, choice exploration, `minimize`,
   `compare-support`) needs an owner decision and is outside this spec.
@@ -149,7 +153,7 @@ original identity, and qualification of the candidate records fresh artifacts.
   fresh same-seed runs. A fixture with a deliberate host-timed draw
   demonstrates localisation at the injected site. Errors: diagnostics that
   allocate on the Go heap, draw from the seeded stream, or change a workload's
-  evidence with diagnostics off fail this criterion.
+  behavior with diagnostics off fail this criterion.
 
 - **R5:** The seeded-stream draw-site inventory is complete and classified,
   host-timed sites use the M-local stream, and a diagnostic-mode check fails
@@ -189,8 +193,8 @@ original identity, and qualification of the candidate records fresh artifacts.
 - No feature is removed. Deterministic GC, multi-P scheduling, and rr-style
   machine recording remain research items.
 - No capability is widened and no test in `./tests` is rewritten for Gomad.
-- A one-command adapter regeneration is a maintenance candidate recorded in
-  the milestones and is not part of this spec.
+- Pin-repair tooling, including one-command adapter regeneration, belongs to
+  fn-113.
 
 ## Decision Context
 
@@ -207,3 +211,101 @@ that would otherwise expose a divergence between fresh runs.
 Suite reshaping is in the same spec because the assessment found the
 assurance gaps and the test-mass imbalance together: the layers that are
 missing are the ones that test the product claim.
+
+## Planning decisions (2026-10-01)
+
+Task breakdown settled the points below. Each is a default the owner can
+change before the task that uses it starts.
+
+- **R1 includes repair.** A failing job is reproduced and fixed on a committed
+  tree. A failure whose cause stays unknown is recorded as a finding with its
+  log and keeps R1 open.
+- **R2 gates.** The `gomad3_toolchain` tests get their own Make target inside
+  `test`. `./toolchain` runs once with the patched toolchain and once with
+  stock Go, and leaves the host tier.
+- **R3 has no task of its own.** Each task re-anchors the findings it uses as
+  its first step and records confirmed, changed, or refuted.
+- **R4 transport.** The diagnostic trace uses its own inherited descriptor and
+  byte bound, separate from the 64 MiB Choice Trace. A `--diagnostics` flag on
+  `explore` and `qualify` enables it. The differ is a `gomadtool` subcommand.
+- **R4 off-mode comparison.** A runtime edit changes the toolchain build key
+  and the choice implementation digest, which are part of evidence. Comparison
+  across toolchain builds therefore uses a behavioral projection (output
+  hashes, transcript, World identity, outcome, virtual time, peak goroutines,
+  decision content) with those identities as the allowed differences.
+  Byte-identity is required only within one toolchain identity.
+- **Docs are written once.** Tasks 2 and 4 to 7 record names and contract
+  sentences in their done summaries, and task 10 writes all documentation.
+- **R4 digest fields** are limited to state the overlay can read without
+  editing a collector file. Draw counters are included so a divergence on an
+  untaped draw (timer ties, run-queue shuffle) shows as a counter delta at the
+  next choice point.
+- **R4 and R5 fixtures** inject their fault through an overlay-only,
+  diagnostics-only environment switch. No test-only hunk enters the patch.
+- **R5 seeded stream** means every draw that reaches the `GOMADSEED`-derived
+  state through the patch's runtime rand helpers. The inventory test counts
+  references in the patched source, as the clock inventory does.
+- **R6 size.** The soak loops `qualify` at its 32-repetition bound. The first
+  step measures per-run cost and picks the largest N that fits one scheduled
+  job. Each `qualify` batch compares only against its own first execution, so
+  the soak also compares the baseline across batches within one cohort
+  (workload, seed, platform, execution identity). The report carries a
+  cumulative count per cohort across scheduled runs, and the quotable bound is
+  that per-cohort count. A new toolchain identity starts a new cohort.
+- **R8 generator** uses the standard library's seeded random source with fixed
+  seeds and bounded sequence lengths. Declared differences are per platform.
+- **R9 kill point.** The test sends SIGKILL to the coordinator after a fixed
+  number of journaled executions and compares decoded execution records and
+  semantic summary counts with an uninterrupted run. Campaign IDs and artifact
+  references are normalized. Wall-time fields, journal segmentation, and
+  journal hashes are excluded, because recovery legitimately changes them, and
+  each Campaign's storage integrity is validated separately.
+- **R10 follows fn-109 task 6**, which rewrites the executor-injection tests.
+  A behavior is one named subtest or table row. The mapping is retained under
+  `.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/`.
+
+## Open Questions
+
+1. What cumulative soak count is the target bound, and may the soak use
+   runners other than the GitHub-hosted ones?
+2. fn-110 tasks 2 to 4, fn-109 task 13, fn-114 C2/E3/E4, and fn-105 D26 edit
+   the same patch hunks and `runtime/gomad.go`. Which lands first, and who owns
+   the batched toolchain identity? R5 rerouting shifts every seed's schedule,
+   so it should share one identity bump with them. No task dependency is
+   recorded, because the localiser is the prerequisite for D12.
+3. If a digest field or a draw site turns out to need a collector file, who
+   gives patch-policy approval, and is dropping the field acceptable?
+4. R2 and R9 invest in `tools/gomad3sim` tests and `resume`. Both are on the
+   list of features with no caller whose fate is undecided.
+
+## Quick commands
+
+```bash
+make -C tools/gomad3 validate
+make -C tools/gomad3 test
+gh run list --repo stephanos/temporal --workflow gomad3.yml -L 5
+```
+
+## Early proof point
+
+Task fn-112-gomad-determinism-assurance-and-test.3 validates the core approach:
+a runtime-state digest recorded at each choice point without allocating or
+drawing, with evidence unchanged when diagnostics are off. If recording
+perturbs the run, re-evaluate the digest fields and the transport before
+tasks 4, 5, and 10.
+
+## Requirement coverage
+
+| Req | Description | Task(s) | Gap justification |
+|-----|-------------|---------|-------------------|
+| R1 | Workflows green on both platforms | .1 | — |
+| R2 | Orphaned tests run in a gate | .2 | — |
+| R3 | Findings re-anchored before work | .3, .5, .6 | First step of each task that uses an assessment finding |
+| R4 | Diagnostic trace and differ | .3, .4 | — |
+| R5 | Draw-site inventory and runtime check | .5 | — |
+| R6 | Scheduled soak gate | .10 | — |
+| R7 | Channel fixtures and closure-mode contract | .6, .10 | Task 6 drafts the contract sentences; task 10 writes them into README and SPEC |
+| R8 | Model conformance against the host OS | .7 | — |
+| R9 | End-to-end CLI and kill-then-resume | .8 | — |
+| R10 | Change-detector tests consolidated | .9 | — |
+| R11 | Docs updated to delivered state | .10 | — |

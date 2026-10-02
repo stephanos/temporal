@@ -52,6 +52,17 @@ var gomadChoiceRunqRandom chacha8rand.State
 var gomadChoiceSchedulerRandom chacha8rand.State
 var gomadChoiceSelectRandom uint64
 
+var gomadDiagnosticEnabled bool
+var gomadDiagnosticMapping unsafe.Pointer
+var gomadDiagnosticMappingBytes uint64
+var gomadDiagnosticPerturb bool
+var gomadDiagnosticPerturbOrdinal uint64
+
+// gomadDiagnosticDraws counts the draws taken from each seeded stream since
+// the process started. The counts are kept whether or not a diagnostic trace
+// is recorded, so a traced run executes the same draw paths as an untraced one.
+var gomadDiagnosticDraws gomadDiagnosticDrawCounts
+
 const gomadInitialTime = 946684800000000000
 const gomadMapShared = 1
 const gomadChoiceMaximumAlternatives = 256
@@ -83,6 +94,7 @@ func gomadInit() {
 	if choiceConfigured {
 		gomadChoiceInit()
 	}
+	gomadDiagnosticInit()
 	_, profile := gomadEnv("GOMAD3_IO_PROFILE=")
 	if profile {
 		if !gomadReadConfig() {
@@ -151,6 +163,7 @@ func gomadClockTickInit(seed uint64) {
 }
 
 func gomadClockTickDraw() int64 {
+	gomadDiagnosticDraws.clockTick++
 	gomadClockTickState += 0x9e3779b97f4a7c15
 	value := gomadClockTickState
 	value = (value ^ value>>30) * 0xbf58476d1ce4e5b9
@@ -296,6 +309,113 @@ func gomadChoiceInitTape() {
 	gomadChoiceTapeRecords = records
 }
 
+// gomadDiagnosticInit maps the diagnostic trace, which holds one runtime-state
+// digest per choice record. It has its own descriptor and byte bound so that
+// it never takes space from the choice trace, and it is read from the control
+// variables that gomadGoenvs hides, so requesting it leaves the early heap as
+// it was.
+func gomadDiagnosticInit() {
+	descriptorValue, enabled := gomadEnvEarly("GOMAD3_DIAGNOSTIC_TRACE_FD=")
+	perturbValue, perturbPresent := gomadEnvEarly("GOMAD3_DIAGNOSTIC_PERTURB_DRAW=")
+	if !enabled && !perturbPresent {
+		return
+	}
+	bytesValue, bytesPresent := gomadEnvEarly("GOMAD3_DIAGNOSTIC_TRACE_BYTES=")
+	descriptor, descriptorOK := gomadParseSeed(descriptorValue)
+	mappingBytes, bytesOK := gomadParseSeed(bytesValue)
+	perturbOrdinal, perturbOK := gomadParseSeed(perturbValue)
+	if !enabled || !gomadChoiceEnabled || !bytesPresent || !descriptorOK || !bytesOK || perturbPresent && !perturbOK || descriptor > 1<<31-1 || mappingBytes < gomadDiagnosticHeaderBytes+gomadDiagnosticRecordBytes || mappingBytes > gomadDiagnosticMaximumBytes {
+		print("runtime: invalid Gomad diagnostic trace configuration\n")
+		exit(2)
+	}
+	mapped, errno := mmap(nil, uintptr(mappingBytes), _PROT_READ|_PROT_WRITE, gomadMapShared, int32(descriptor), 0)
+	if errno != 0 {
+		print("runtime: invalid Gomad diagnostic trace mapping\n")
+		exit(2)
+	}
+	bytes := unsafe.Slice((*byte)(mapped), int(mappingBytes))
+	for index := range gomadDiagnosticMagic {
+		if bytes[index] != gomadDiagnosticMagic[index] {
+			print("runtime: invalid Gomad diagnostic trace backing\n")
+			exit(2)
+		}
+	}
+	if gomadChoiceRead32(bytes[8:12]) != gomadDiagnosticWireVersion || !gomadChoiceZero(bytes[12:16]) || gomadChoiceRead64(bytes[16:24]) != mappingBytes || gomadChoiceRead64(bytes[24:32]) != gomadDiagnosticHeaderBytes || !gomadChoiceZero(bytes[32:gomadDiagnosticHeaderBytes]) {
+		print("runtime: invalid Gomad diagnostic trace header\n")
+		exit(2)
+	}
+	gomadDiagnosticEnabled = true
+	gomadDiagnosticMapping = mapped
+	gomadDiagnosticMappingBytes = mappingBytes
+	gomadDiagnosticPerturb = perturbPresent
+	gomadDiagnosticPerturbOrdinal = perturbOrdinal
+}
+
+// gomadDiagnosticAppend writes the digest for the choice record just appended
+// at ordinal, into the slot with the same ordinal. It reads runtime state and
+// stores into the mapping only: an allocation or a seeded draw here would move
+// the state it reports.
+func gomadDiagnosticAppend(ordinal uint64) {
+	if !gomadDiagnosticEnabled {
+		return
+	}
+	// The perturbation stands in for a host-timed draw from the process-wide
+	// stream, so that a fixture can show the differ naming this ordinal.
+	if gomadDiagnosticPerturb && ordinal == gomadDiagnosticPerturbOrdinal {
+		gomadRuntimeCheapRand()
+	}
+	bytes := unsafe.Slice((*byte)(gomadDiagnosticMapping), int(gomadDiagnosticMappingBytes))
+	offset := gomadDiagnosticHeaderBytes + ordinal*gomadDiagnosticRecordBytes
+	if offset > gomadDiagnosticMappingBytes-gomadDiagnosticRecordBytes {
+		bytes[gomadDiagnosticStateOffset] = gomadDiagnosticStateOverflow
+		print("runtime: Gomad diagnostic trace overflow\n")
+		exit(125)
+	}
+	pp := getg().m.p.ptr()
+	value := gomadDiagnosticRecordValue{
+		ordinal: ordinal, virtualTime: faketime, allocations: gomadDiagnosticAllocations(pp),
+		gcCycle: work.cycles.Load(), gcPhase: uint8(gcphase), runQueueLength: pp.runqtail - pp.runqhead,
+		draws: gomadDiagnosticDraws,
+	}
+	if pp.runnext != 0 {
+		value.runQueueLength++
+	}
+	gomadDiagnosticEncodeRecord(bytes[offset:offset+gomadDiagnosticRecordBytes], &value)
+	gomadChoicePut64(bytes[24:32], offset+gomadDiagnosticRecordBytes)
+	gomadChoicePut64(bytes[32:40], ordinal+1)
+}
+
+// gomadDiagnosticAllocations counts the objects allocated so far: the counts
+// the allocator has already flushed to the heap statistics plus the slots used
+// in the spans pp still caches. Only the M holding the P writes either, and it
+// writes them between choice points, so the sum needs no synchronization and
+// does not depend on when a span was last refilled.
+func gomadDiagnosticAllocations(pp *p) uint64 {
+	var count uint64
+	for generation := range memstats.heapStats.stats {
+		stats := &memstats.heapStats.stats[generation]
+		count += stats.tinyAllocCount + stats.largeAllocCount
+		for class := range stats.smallAllocCount {
+			count += stats.smallAllocCount[class]
+		}
+	}
+	cache := pp.mcache
+	count += uint64(cache.tinyAllocs)
+	for class := range cache.alloc {
+		span := cache.alloc[class]
+		count += uint64(span.allocCount - span.allocCountBeforeCache)
+	}
+	return count
+}
+
+// gomadDiagnosticComplete marks a trace the runtime closed in order, as
+// opposed to one cut short by overflow or by a killed process.
+func gomadDiagnosticComplete() {
+	if gomadDiagnosticEnabled {
+		*(*byte)(add(gomadDiagnosticMapping, gomadDiagnosticStateOffset)) = gomadDiagnosticStateComplete
+	}
+}
+
 func gomadEnvEarly(prefix string) (string, bool) {
 	n := int32(0)
 	for argv_index(argv, argc+1+n) != nil {
@@ -342,6 +462,7 @@ func gomadChoiceAppendRecord(value gomadChoiceRecordValue) {
 	gomadChoiceRecords.Store(ordinal + 1)
 	gomadChoicePut64(bytes[24:32], offset+gomadChoiceRecordBytes)
 	gomadChoicePut64(bytes[32:40], ordinal+1)
+	gomadDiagnosticAppend(ordinal)
 }
 
 func gomadChoiceRecord(kind, flags uint8, siteOffset uint64, alternatives, selected, data uint32) {
@@ -367,6 +488,7 @@ var gomadTimerRandom uint32
 
 //go:nosplit
 func gomadTimerRand() uint32 {
+	gomadDiagnosticDraws.timer++
 	gomadTimerRandom += 0xa0761d65
 	value := uint64(gomadTimerRandom) * 0xe7037ed1a0b428db
 	return uint32(value>>32) ^ uint32(value)
@@ -385,6 +507,7 @@ var gomadRuntimeCheapRandom uint32
 
 //go:nosplit
 func gomadRuntimeRand(mp *m) uint64 {
+	gomadDiagnosticDraws.runtimeRand++
 	for {
 		x, ok := gomadRuntimeRandom.Next()
 		if ok {
@@ -398,6 +521,7 @@ func gomadRuntimeRand(mp *m) uint64 {
 
 //go:nosplit
 func gomadRuntimeCheapRand() uint32 {
+	gomadDiagnosticDraws.runtimeCheapRand++
 	gomadRuntimeCheapRandom += 0x53c5ca59
 	hi, lo := bits.Mul32(gomadRuntimeCheapRandom, gomadRuntimeCheapRandom^0x74743c1b)
 	return hi ^ lo
@@ -447,6 +571,7 @@ func gomadChoiceRunqSeeded(n uint32) uint32 {
 	if !gomadEnabled {
 		return randn(n)
 	}
+	gomadDiagnosticDraws.runq++
 	return gomadChoiceRandom(&gomadChoiceRunqRandom, n)
 }
 
@@ -454,6 +579,7 @@ func gomadChoiceRunnextSeeded(n uint32) uint32 {
 	if !gomadEnabled {
 		return randn(n)
 	}
+	gomadDiagnosticDraws.scheduler++
 	return gomadChoiceRandom(&gomadChoiceSchedulerRandom, n)
 }
 
@@ -461,6 +587,7 @@ func gomadChoiceShuffleSeeded(n uint32) uint32 {
 	if !gomadEnabled {
 		return cheaprandn(n)
 	}
+	gomadDiagnosticDraws.scheduler++
 	return gomadChoiceRandom(&gomadChoiceSchedulerRandom, n)
 }
 
@@ -478,6 +605,7 @@ func gomadChoiceSelectSeeded(n uint32) uint32 {
 	if !gomadEnabled {
 		return cheaprandn(n)
 	}
+	gomadDiagnosticDraws.selectPoll++
 	gomadChoiceSelectRandom += 0xa0761d6478bd642f
 	if goarch.IsAmd64|goarch.IsArm64|goarch.IsPpc64|
 		goarch.IsPpc64le|goarch.IsMips64|goarch.IsMips64le|
@@ -706,6 +834,7 @@ func gomadChoiceDivergeCurrent(reason uint8) {
 }
 
 func gomadChoicePublishTerminal(state, reason uint8, expected, observed *gomadChoiceRecordValue) {
+	gomadDiagnosticComplete()
 	records := gomadChoiceRecords.Load()
 	mappingBytes := uint64(gomadChoiceHeaderBytes) + records*gomadChoiceRecordBytes
 	bytes := unsafe.Slice((*byte)(gomadChoiceMapping), int(gomadChoiceMappingBytes))

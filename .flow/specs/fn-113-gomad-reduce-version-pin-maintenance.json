@@ -1,11 +1,166 @@
 {
   "branch_name": "fn-113-gomad-reduce-version-pin-maintenance",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-02T03:34:29.349673Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-113-gomad-reduce-version-pin-maintenance",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-02T04:00:32.611166Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "5f9c8d703607b730e48950799a86ce909d0440f553dbd65fbeed0ed28998a601",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e1ad071ac76c24a63147ee89eb06f7a7",
+            "classification": "introduced",
+            "findingId": "finding-e1ad071ac76c24a63147ee89eb06f7a7",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ad4d1a468aeb555ce4f2e4e0c3e66d7f",
+            "classification": "introduced",
+            "findingId": "finding-ad4d1a468aeb555ce4f2e4e0c3e66d7f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-56061820c98ce98b695911c9458dc76a",
+            "classification": "introduced",
+            "findingId": "finding-56061820c98ce98b695911c9458dc76a",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-816175cef6c6ac174b12b3a0b69438bb",
+            "classification": "introduced",
+            "findingId": "finding-816175cef6c6ac174b12b3a0b69438bb",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6d6a704f576a1d7d508345437df7599ac34197e3",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 383139,
+      "output_sha256": "b593d2ec0cf2beeda74ddb6d387e1e151343e14bdf6b581cf5f07a40ff622783",
+      "reservation_id": "19260ad6237e4b38804e51e10c4e5fc7",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-02T03:59:15.350976Z",
+      "tool_calls": 14,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "33623f63a859402aea01202cb10f6540baf5f8fd3851aaaab2f2d15b491c1b19",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e1ad071ac76c24a63147ee89eb06f7a7",
+            "classification": "introduced",
+            "findingId": "finding-e1ad071ac76c24a63147ee89eb06f7a7",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ad4d1a468aeb555ce4f2e4e0c3e66d7f",
+            "classification": "introduced",
+            "findingId": "finding-ad4d1a468aeb555ce4f2e4e0c3e66d7f",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-56061820c98ce98b695911c9458dc76a",
+            "classification": "introduced",
+            "findingId": "finding-56061820c98ce98b695911c9458dc76a",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-816175cef6c6ac174b12b3a0b69438bb",
+            "classification": "introduced",
+            "findingId": "finding-816175cef6c6ac174b12b3a0b69438bb",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6d6a704f576a1d7d508345437df7599ac34197e3",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1083,
+      "output_sha256": "c460df24003e54ec3438a94aefaf9daf2abe0a3bbe543fc093989210da2d92ac",
+      "reservation_id": "5c157a22ac0b40c28428096cb42b5aa3",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-02T04:00:32.606920Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-113-gomad-reduce-version-pin-maintenance.md",
   "status": "open",
   "title": "Gomad reduce version-pin maintenance",
@@ -20,5 +175,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T03:34:29.352305Z"
+  "updated_at": "2026-10-02T04:00:32.611938Z"
 }

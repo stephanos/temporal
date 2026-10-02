@@ -36,11 +36,56 @@ const (
 	gomadChoiceDivergenceIdentityDuplicate   = 9
 	gomadChoiceDivergenceAlternativeCapacity = 10
 	gomadChoiceDivergenceObservation         = 11
+	gomadDiagnosticWireVersion               = 1
+	gomadDiagnosticHeaderBytes               = 64
+	gomadDiagnosticRecordBytes               = 96
+	gomadDiagnosticMaximumBytes              = 67108864
+	gomadDiagnosticStateComplete             = 1
+	gomadDiagnosticStateOverflow             = 2
+	gomadDiagnosticStateOffset               = 12
 )
 
 var gomadChoiceTraceMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'H', '\x02'}
 var gomadChoiceTapeMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'P', '\x02'}
 var gomadChoiceTerminalMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'T', '\x02'}
+var gomadDiagnosticMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'D', 'G', '\x01'}
+
+type gomadDiagnosticDrawCounts struct {
+	runq             uint64
+	scheduler        uint64
+	selectPoll       uint64
+	runtimeRand      uint64
+	runtimeCheapRand uint64
+	timer            uint64
+	clockTick        uint64
+}
+
+type gomadDiagnosticRecordValue struct {
+	ordinal        uint64
+	virtualTime    int64
+	allocations    uint64
+	gcCycle        uint32
+	gcPhase        uint8
+	runQueueLength uint32
+	draws          gomadDiagnosticDrawCounts
+}
+
+func gomadDiagnosticEncodeRecord(record []byte, value *gomadDiagnosticRecordValue) {
+	gomadChoicePut64(record[:8], value.ordinal)
+	gomadChoicePut64(record[8:16], uint64(value.virtualTime))
+	gomadChoicePut64(record[16:24], value.allocations)
+	gomadChoicePut32(record[24:28], value.gcCycle)
+	gomadChoicePut32(record[28:32], uint32(value.gcPhase)<<24)
+	gomadChoicePut32(record[32:36], value.runQueueLength)
+	gomadChoicePut32(record[36:40], 0)
+	gomadChoicePut64(record[40:48], value.draws.runq)
+	gomadChoicePut64(record[48:56], value.draws.scheduler)
+	gomadChoicePut64(record[56:64], value.draws.selectPoll)
+	gomadChoicePut64(record[64:72], value.draws.runtimeRand)
+	gomadChoicePut64(record[72:80], value.draws.runtimeCheapRand)
+	gomadChoicePut64(record[80:88], value.draws.timer)
+	gomadChoicePut64(record[88:96], value.draws.clockTick)
+}
 
 func gomadChoicePut32(target []byte, value uint32) {
 	target[0] = byte(value >> 24)

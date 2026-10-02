@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-02T04:33:05.224799Z",
+  "depends_on": [
+    "fn-114-gomad-correct-search-path-defects-and.2"
+  ],
+  "id": "fn-114-gomad-correct-search-path-defects-and.5",
+  "priority": null,
+  "spec": "fn-114-gomad-correct-search-path-defects-and",
+  "spec_path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.5.md",
+  "status": "todo",
+  "title": "Derive timer-callback goroutine identity from the timer's creator and inventory parentless creations",
+  "updated_at": "2026-10-02T04:33:05.224799Z"
+}
