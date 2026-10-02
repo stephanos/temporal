@@ -335,6 +335,9 @@ func TestOpenMergedCampaignChecksItsOtherLimitsWhenExecutionsReportMoreSuccessBy
 	if uint64(merged.Record.RetainedSuccessBytes) <= uint64(merged.Record.Artifacts.SuccessBytes) {
 		t.Fatalf("executions report %d success bytes under a limit of %d: the record would not need the bound skipped", merged.Record.RetainedSuccessBytes, merged.Record.Artifacts.SuccessBytes)
 	}
+	if _, err := OpenMergedCampaign(merged.Path); err != nil {
+		t.Fatalf("OpenMergedCampaign() rejected the record before any limit was changed: %v", err)
+	}
 	for name, change := range map[string]func(*ArtifactCapacityPlan){
 		"total bytes that are not the sum of the byte limits":  func(limits *ArtifactCapacityPlan) { limits.TotalBytes++ },
 		"fewer success artifacts than the executions retained": func(limits *ArtifactCapacityPlan) { limits.SuccessArtifacts = mergeTestOrdinals - 1 },
