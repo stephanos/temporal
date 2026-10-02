@@ -1,0 +1,141 @@
+{
+  "schema": "fn110-task1-baseline/v1",
+  "recorded_utc": "2026-10-02T00:20:00Z",
+  "platform": "darwin/arm64",
+  "head": "6782b55f49a0317b230e827ea2a63a37d116d502",
+  "toolchain_inputs": {
+    "git_status_short": "",
+    "git_tree_at_head": "d3d28af6492184d34cab57780d5a5742331324d3",
+    "patch_sha256": "950063a87d63cb01dada2e6ef232fdeb4acc52f71a008e2158885666669f80bc",
+    "archive_sha256": "4e408abae126d916b6164627193f2c54f0e3ca1312d693b86db45f862ab238b1",
+    "descriptor_sha256": "87eb02f3f8c27c42d411c5a82ae98ef5e86d0e17605f1c6cec10bae316275c2c"
+  },
+  "build_key": "8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc",
+  "runner_binary_sha256": "f8b0a8d42df61c41cfc007ca19a5891a76b0fe50f9c5e8061c9ab5279a93737f",
+  "matches_fn108_identity": {
+    "head": true,
+    "patch_sha256": true,
+    "toolchain_tree": true,
+    "build_key": true,
+    "runner_build": true,
+    "report_digests": true
+  },
+  "runner_source_drift": {
+    "observed_utc": "2026-10-02T00:35Z",
+    "uncommitted_against_38957053f": [
+      " M tools/gomad3/runner/coordinator.go",
+      " M tools/gomad3/target/capability.go",
+      " M tools/gomad3/target/capability_test.go",
+      " M tools/gomad3sim/exploration.go",
+      " M tools/gomad3sim/exploration_test.go",
+      "?? tools/gomad3/runner/coordinator_transport_test.go",
+      "?? tools/gomad3/runner/simulation_exploration_plan_test.go",
+      "?? tools/gomad3/runner/testdata/"
+    ],
+    "effect": "before/after comparison of Runner-dependent gates requires Runner source equal to 38957053f, or a rerun of the before gates on the later Runner source with toolchain key 8d28bd44"
+  },
+  "patch": {
+    "bytes": 32652,
+    "lines": 1007,
+    "files": 20,
+    "hunks": 71,
+    "added": 342,
+    "deleted": 55,
+    "proc_go_added": 205,
+    "proc_go_deleted": 20
+  },
+  "overlay": {
+    "files": 57,
+    "bytes": 601516,
+    "lines": 17105,
+    "runtime_gomad_go_bytes": 46630,
+    "runtime_gomad_go_lines": 1375
+  },
+  "context_variants_of_baseline_source": {
+    "U3": {
+      "bytes": 32652,
+      "lines": 1007,
+      "sha256": "950063a87d63cb01dada2e6ef232fdeb4acc52f71a008e2158885666669f80bc",
+      "identical_to_checked_in_patch": true
+    },
+    "U2": {
+      "bytes": 28859,
+      "lines": 865,
+      "sha256": "caea80243fd71e608073c436e4f29e238c83c5b493e2a0c3c6bf51294ef76cf6"
+    },
+    "U1": {
+      "bytes": 24620,
+      "lines": 715,
+      "sha256": "5f021b81325d746deac31ed6b8ca999b6d2ac3ce12f2bd991c290a4254642067"
+    },
+    "U0": {
+      "bytes": 20844,
+      "lines": 558,
+      "sha256": "c1adc5123e1e85fd0e3d9abd50f19673bd578bc0b84ef0609f96c0b8dd208c66"
+    }
+  },
+  "fresh_results": {
+    "validate": "exit 0",
+    "toolchain": "exit 0, no rebuild",
+    "test-runtime": "4245/4245 cases pass",
+    "test-upstream": "2/2 cases pass",
+    "upstream crypto/rand syscall": "exit 0; crypto/rand 317 pass; syscall 30 pass, 3 skip",
+    "process simulation": "exit 1 in 25/25 runs; 9 subtests pass; TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection and TestProcessExplorationConsumesExternalPlanAndPublishesRecord fail in 25/25; 2 runs have one 30 s watchdog timeout each"
+  },
+  "reused_results": "fn-108.7 final gates; see tools/gomad3/.toolchain/fn-110/baseline/identity.json and .flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/final-gates/results.txt",
+  "linux_amd64": "not run",
+  "gitignored_evidence_sha256": {
+    "tools/gomad3/.toolchain/fn-110/baseline/casereport/main.go": "86028a0f81291836f0cd29ccd27b8a8112bcac85ec241f24c8b504736586b82b",
+    "tools/gomad3/.toolchain/fn-110/baseline/core-qualification-rows.tsv": "40d1beb5b44b4ba54164157f3df4ce932f35f69168a5bb85cd25af03c9165609",
+    "tools/gomad3/.toolchain/fn-110/baseline/core-set-report.json": "e82a5afec48560e2090c259529440ccbfcd147e6eb06712f1320f57bca27f0be",
+    "tools/gomad3/.toolchain/fn-110/baseline/identity.json": "395ac2a42719edde797cbb6d71ccf5acd537732c2ebc823d29e66dd01aedbf2b",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-head-closure.log": "3bb6891102859a3b91eb147dbf38cd0e69134bedaa203c135804ab42a317d8ed",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-hostgo.log": "308aa194cfcbb00f54618f7b9469c74bbdbbddbf51b3d1d10b16b0349eff7da5",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-repeat2.log": "5b1fc02fe8426b09d9f3331b755224fda78426bb1c28016cc2541ce6e3afb9af",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-repeat3.log": "8e92f45c8b66df9fa71b4395ea18db43a62711ef83ef0f5db8c1207de91c9a40",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-repeats/host-01.log": "98bb8be42928681b881c8e664499d63d93060aa3b728b070c45f8d885762e63e",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-repeats/host-02.log": "730fc36e98e295b666522244602481cd42802dedc5b3ea91b7bf5934dbbfb2ea",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-repeats/host-03.log": "5a4e4577f8d663b4f7d12dd179df0a3bc5bb2170dabbf827048bb8ed79c51157",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-repeats/host-04.log": "aab691c9fce2a93d6e91b7978446f3aa11982553036219c67f86368f2cd1eb11",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-repeats/host-05.log": "070a00587b11bc639f514f3fd355862322b68808374f0be88be38b54f75b3847",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-repeats/host-06.log": "f82a569f2e69f7d38c0434222ca7a876960c6447f6c0d4847b579eaf740a6817",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-repeats/host-07.log": "5780113744758232105bbb9cc54ab57b324cf1f1b6691f42f726b331dd7eed37",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-repeats/host-08.log": "1e8ea70d916c65028473f3f9b67788b75073943152e4847d82e581e5c270e5c2",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-repeats/host-09.log": "8efc6cd69d9f5fed06810820cb8efbcbd8ffedba764f915f17f6f68839f83cbb",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-repeats/host-10.log": "e5e1c3d3c947aabf44ee226a7949e21f643bf8d16a29cc3c5f47634bb6617cd1",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-repeats/patched-01.log": "13716495a54c770618d095cf912cd854e91e80435a8061444661b42eba38e340",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-repeats/patched-02.log": "352ea0291dcf167a75abff15496c72d9959b214c127888723b4fba1108a8c84f",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-repeats/patched-03.log": "fc2f1bc9f1fb1124fcad9e92c3ee02f7ae690d07fc9b1c9f1cf367a5738fb05a",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-repeats/patched-04.log": "3f6920306bc1493bb6b6270aa4de98c2cc1646a032262a258226101fe72400e2",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-repeats/patched-05.log": "46a084934a175402b6971de76d2caa2a3d6b5d423f1df2ffe5cd333f6898dfbc",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-repeats/patched-06.log": "54bbd30f742a2bb0f1047626523d9799121ac9567cb4a15de5f522aa1a79f847",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-repeats/patched-07.log": "1894f3a3599c41f810b7253868173e311135758d2a7b5e7fe4f2f2d81e417286",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-repeats/patched-08.log": "b45311d89b3d57096842117ff0a98e0c584c7fcf4879852e0c236cf8635de210",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-repeats/patched-09.log": "71df0300068a92e1d57e7a0a967c6920127c1391fd056b5264501eb3af39f582",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation-repeats/patched-10.log": "3f2218b4ebff450b6c7de2b246c20661c748987bcf527bf10fea2fe335edb190",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/process-simulation.log": "1974f5e9b0d3f5b33275730a631c74a266aeae7aef35f749ab7eeb89bbf622c9",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/test-runtime-casereport.log": "5305d95ec3ba5e6568b115b24c4bb297cb8f5467fe75103cc8932b370abd9115",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/test-upstream-casereport.log": "e068fdd30a77622446ecda3f5a09b45d45d33444132ba0171be6f468830f93ff",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/toolchain.log": "6eeca69b4a0f965c0ea97fedca5be2ee5538a060f843c331d73e256750119fe5",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/upstream-crypto-rand-syscall.log": "d5ca203b128ec9d83f8bf1b230760a98655ff2716134dd2c53e207fedb1a7a3b",
+    "tools/gomad3/.toolchain/fn-110/baseline/logs/validate.log": "7fffc868d22f90bc141bd9b17e416117d23d5be7c1d69f55d42f2ccf13a71412",
+    "tools/gomad3/.toolchain/fn-110/baseline/smoke-qualification-rows.tsv": "9b7b285fe53672d9708c1cfc0d862db7506be41ec8d2f6fce254f7540ab5f5cc",
+    "tools/gomad3/.toolchain/fn-110/baseline/smoke-set-report.json": "b25ac12812b9a924111bdda6cf5ecfc0a064238b3d7a5e80eb0034dfa964433d",
+    "tools/gomad3/.toolchain/fn-110/baseline/temporal-qualification-rows.tsv": "f421c53330545b6398ad1fd842cae561690f569ceda8dd58e2afcf248f39065b",
+    "tools/gomad3/.toolchain/fn-110/baseline/temporal-set-report.json": "2bbb4659e2e91a627473efd9acdbe5390138c000ea9f93d1c83f67bf4cc290d7",
+    "tools/gomad3/.toolchain/fn-110/baseline/test-runtime-cases.tsv": "6dc6bb1ef97879b0799e9e8c42473978ac35e9492ae05a0a16fbdab04b061c41",
+    "tools/gomad3/.toolchain/fn-110/baseline/test-upstream-cases.tsv": "d2bad43412bdea9b1b7e4cdad880d8d673691e196721d559e306b4ff3ec76c34",
+    "tools/gomad3/.toolchain/fn-110/baseline/upstream-case-output/0000-upstream-clock.stdout": "0d4eb8cbdb6cb66f952e4a92d4b81fe44f39ce269ffe1519406f7b99d31fb1c4",
+    "tools/gomad3/.toolchain/fn-110/baseline/upstream-case-output/0001-upstream-dist.stdout": "fd9c1b4e194e3daf868b9a686e766e3bfceabd09e135a45088b6826fda113dfb",
+    "tools/gomad3/.toolchain/fn-110/baseline/upstream-crypto-rand-syscall-dispositions.tsv": "fa711c131809567407d1007e29508aa9e03b7f48e3f821125416107d0e2ebc5a"
+  },
+  "head_note": "measured revision; the user committed the fn-108 working tree as 38957053f1ce342a8797af1803f5f8f6bb53fcad at 2026-10-02T00:23Z while the task ran",
+  "baseline_commit": "38957053f1ce342a8797af1803f5f8f6bb53fcad",
+  "baseline_commit_checks": {
+    "toolchain_tree": "d3d28af6492184d34cab57780d5a5742331324d3",
+    "toolchain_diff_6782b55f4_to_38957053f_bytes": 0,
+    "modified_files_diff_sha256_6782b55f4_to_38957053f": "47afb28785b4680a405c198bb07a334307ebbb4c11e3e5fbef9ae3a114513855",
+    "fn108_recorded_working_tree_diff_sha256": "47afb28785b4680a405c198bb07a334307ebbb4c11e3e5fbef9ae3a114513855"
+  },
+  "identity_json_correction": "fn-110.1 swapped the reversed core/temporal manifest_sha256_in_report values after review round 2; previous file SHA-256 e65b9c6f3e76226231e8a8b832030aeefd60d44ed43adb018ce7eea3eae77a96"
+}

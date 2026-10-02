@@ -193,13 +193,13 @@ func explorationAlternativeSetIdentity(dimension ExplorationDimension, ordinal u
 		}
 		seen[alternative] = struct{}{}
 	}
-	return explorationDomainHash("gomad3-combined-frontier-alternative-set/v1", map[string]any{
+	return explorationDomainHash("gomad3-simulation-exploration-alternative-set/v1", map[string]any{
 		"alternatives": append([]string(nil), alternatives...), "dimension": dimension, "ordinal": ordinal, "site_sha256": site,
 	})
 }
 
 func explorationOverrideIdentity(override ExplorationOverride) (string, error) {
-	return explorationDomainHash("gomad3-combined-frontier-forced-decision/v1", map[string]any{
+	return explorationDomainHash("gomad3-simulation-exploration-forced-decision/v1", map[string]any{
 		"alternative_set_sha256": override.AlternativeSetSHA256, "alternatives": override.Alternatives,
 		"dimension": override.Dimension, "identity": "", "ordinal": override.Ordinal, "selected": override.Selected,
 		"selected_sha256": override.SelectedSHA256, "site_sha256": override.SiteSHA256,
@@ -239,7 +239,7 @@ func validateExplorationDecision(decision ExplorationDecision) error {
 }
 
 func explorationDecisionIdentity(decision ExplorationDecision) (string, error) {
-	return explorationDomainHash("gomad3-combined-frontier-decision/v1", map[string]any{
+	return explorationDomainHash("gomad3-simulation-exploration-decision/v1", map[string]any{
 		"alternative_set_sha256": decision.AlternativeSetSHA256, "alternatives": append([]string(nil), decision.Alternatives...),
 		"dimension": decision.Dimension, "identity": "", "ordinal": decision.Ordinal,
 		"selected": decision.Selected, "site_sha256": decision.SiteSHA256,
@@ -258,7 +258,7 @@ func explorationCandidateIdentity(plan ExplorationPlan) (string, error) {
 			"selected": override.Selected, "selected_sha256": override.SelectedSHA256, "site_sha256": override.SiteSHA256,
 		}
 	}
-	return explorationDomainHash("gomad3-combined-frontier-candidate/v1", map[string]any{
+	return explorationDomainHash("gomad3-simulation-exploration-candidate/v1", map[string]any{
 		"base_seed": plan.BaseSeed, "controller_sha256": plan.ControllerSHA256,
 		"execution_sha256": plan.ExecutionSHA256, "overrides": overrides,
 	})
@@ -408,6 +408,11 @@ func validateExplorationEvidence(plan *ExplorationPlan, decisions []ExplorationD
 		seen[key] = struct{}{}
 	}
 	for _, override := range plan.Overrides {
+		// The cluster never decides a runtime choice, so its record cannot prove
+		// one: the host controller proves runtime overrides from the choice tape.
+		if override.Dimension == ExplorationRuntime {
+			continue
+		}
 		decision, ok := findExplorationDecision(decisions, override.Dimension, override.Ordinal)
 		if !ok || override.SiteSHA256 != decision.SiteSHA256 || override.Alternatives != uint32(len(decision.Alternatives)) || override.AlternativeSetSHA256 != decision.AlternativeSetSHA256 || override.Selected != decision.Selected || override.SelectedSHA256 != decision.Alternatives[decision.Selected] {
 			return errors.New("simulation exploration record does not prove a forced decision")

@@ -67,9 +67,22 @@ The descriptor requires `patch_allowlist` and `overlay_allowlist` to equal the c
 
 
 ## Done summary
-TBD
+Added the "Implementation baseline" section to docs/research/gomad/GOMAD_PATCH_SIZE.md and recorded evidence; no file under tools/gomad3/toolchain changed and nothing is staged or committed. Baseline: patch 32,652 bytes / 1,007 lines / 20 files / 71 hunks / +342 -55 (proc.go +205 -20), SHA-256 950063a8…; overlay 57 files / 601,516 bytes / 17,105 lines; build key 8d28bd44…; archive SHA-256 equals version.json; the checked-in patch reproduces byte-for-byte as the -U3 diff of the verified archive (baseline -U1 reference 24,620 bytes / 715 lines). Delta against the investigation (+377 bytes, +9 lines) is the fn-105.14 D14 lock_spinbit.go hunk.
 
+Reused (identity-verified against identity.json): fn-108.7 gates for `make -C tools/gomad3 test`, gomad3sim, integration, smoke 4/4, core 7/7, Temporal 28/28 on seeds 11 and 17 with 56 exact replays. Run fresh: validate (exit 0), toolchain (no rebuild), test-runtime per case (4,245/4,245 pass), test-upstream per case (2/2 pass), upstream crypto/rand and syscall (pass), process simulation (25 runs).
+
+Findings the conductor must act on:
+- RED baseline: TestRootProcessSimulationUsesRunnerTransport exits 1 in 25/25 runs. TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection and TestProcessExplorationConsumesExternalPlanAndPublishesRecord fail every run (also with HEAD versions of the fn-108-modified closure files); 2/25 runs add one 30 s watchdog timeout in a process-backend subtest. Tasks 2 and 5 name this test as a passing gate; they must compare per subtest. Not fixed here (out of scope).
+- Runner source drift: the reused gates ran on the source the user committed as 38957053f during this task; another session (fn-109) is editing tools/gomad3/runner, tools/gomad3/target and, by the end of this task, tools/gomad3sim/exploration.go and conformance/testdata/README.md. Task 5 needs Runner source equal to 38957053f or a rerun of the before gates with toolchain 8d28bd44.
+- linux/amd64: not run; supplied by host-tools-linux and core-linux (gomad3.yml) and functional-smoke-linux (gomad3-smoke.yml).
+- The fn-108.7 identity.json had the core and Temporal manifest digests swapped; corrected with a note.
+- Phase 5 full gates were not run for this docs-only change: `flowctl gate classify` returned FULL because of the user's commit and another session's in-flight edits in the base range, and a suite run on that moving tree would not test this task.
+
+Tier: implementer per project routing (opus at high); no IMPLEMENTER line in the dispatch.
+
+stage: impl-review - ran (raw codex bridge on working-tree files; commits forbidden) (model: gpt-5.6-sol) - NEEDS_WORK, NEEDS_WORK, SHIP
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests:
+- Tests: make -C tools/gomad3 validate (exit 0), make -C tools/gomad3 toolchain (exit 0, no rebuild, key 8d28bd44), sh .flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task1-measure.sh (exit 0), go run ./.toolchain/fn-110/baseline/casereport --mode=test-runtime (4245/4245 cases pass), go run ./.toolchain/fn-110/baseline/casereport --mode=test-upstream (2/2 cases pass), .toolchain/bin/go test -tags test_dep -count=1 crypto/rand syscall (exit 0), .toolchain/bin/go test -count=1 -v -tags test_dep,integration -run '^TestRootProcessSimulationUsesRunnerTransport$' ./runner/internal/execution (exit 1 in 25/25 runs: baseline red, 2 of 11 subtests fail; recorded, not fixed), REUSED fn-108.7 final gates on toolchain key 8d28bd44: make -C tools/gomad3 test, gomad3sim, make gomad3-integration-test, smoke, core, Temporal qualification (all exit 0), NOT RUN: Phase 5 full gates for this docs-only change; flowctl gate classify returned FULL due to concurrent non-task paths in the base range, NOT RUN: any linux/amd64 gate
 - PRs:

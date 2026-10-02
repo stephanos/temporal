@@ -1,0 +1,20 @@
+{
+  "execution_sha256": "sha256:e2df47d163976fa4f0b28655a8320d6221595b7b33b0db642def0293a297d8f6",
+  "controller_sha256": "sha256:a2d2504c9512ea0c0e5935918c3cc3e283b67b608d2428b706b9dca2a2c4dd93",
+  "base_seed": 89,
+  "decision": {
+    "dimension": "scenario",
+    "ordinal": 0,
+    "site_sha256": "sha256:bc4e759125538e35c373aede2019bfa07c2762c00442677eef3bc65147d87391",
+    "alternatives": [
+      "sha256:b542a6558722d3dd6395eb386337d0df9791e32bde7ba97344fd0709f5792443",
+      "sha256:95bdb3585571bd4b90469268ca08141c6c6a48b7b1108b1203ca747e5102e653"
+    ],
+    "alternative_set_sha256": "sha256:254c7dbbb5054ed31fc4fe950bf5186604fc04e4b1a993e3ddb0dddd2925a047",
+    "selected": 0,
+    "identity": "sha256:acd0127ecb46db642a454c37bfc1327068f6ad1c3b7f0152fa15b9ea5b742416"
+  },
+  "forced": 1,
+  "root_plan": "{\"schema\":\"gomad3.simulation-exploration-plan/v1\",\"execution_sha256\":\"sha256:e2df47d163976fa4f0b28655a8320d6221595b7b33b0db642def0293a297d8f6\",\"controller_sha256\":\"sha256:a2d2504c9512ea0c0e5935918c3cc3e283b67b608d2428b706b9dca2a2c4dd93\",\"base_seed\":89,\"overrides\":null,\"candidate_sha256\":\"sha256:0ae4a42ebafe9427543be86f2c54a2515b993055c269a6624a58c5638c9e84b6\"}",
+  "forced_plan": "{\"schema\":\"gomad3.simulation-exploration-plan/v1\",\"execution_sha256\":\"sha256:e2df47d163976fa4f0b28655a8320d6221595b7b33b0db642def0293a297d8f6\",\"controller_sha256\":\"sha256:a2d2504c9512ea0c0e5935918c3cc3e283b67b608d2428b706b9dca2a2c4dd93\",\"base_seed\":89,\"overrides\":[{\"dimension\":\"scenario\",\"ordinal\":0,\"site_sha256\":\"sha256:bc4e759125538e35c373aede2019bfa07c2762c00442677eef3bc65147d87391\",\"alternatives\":2,\"alternative_set_sha256\":\"sha256:254c7dbbb5054ed31fc4fe950bf5186604fc04e4b1a993e3ddb0dddd2925a047\",\"selected\":1,\"selected_sha256\":\"sha256:95bdb3585571bd4b90469268ca08141c6c6a48b7b1108b1203ca747e5102e653\",\"identity\":\"sha256:7c6b6a85f75e733ecbbd34888152608166ef91beda1ea8973a17f4d96329f04c\"}],\"candidate_sha256\":\"sha256:7b4c738f2454b94011d6fe1964283f83db0bdb9472029e994847ba7c6aa4220b\"}"
+}

@@ -21,42 +21,45 @@ import (
 const maximumCoordinatorMessageBytes = 16 << 20
 
 type coordinatorConfig struct {
-	ResumeCampaign           string
-	PlanSHA256               record.SHA256
-	Shard                    CampaignShard
-	Strategy                 Strategy
-	Seeds                    string
-	Parallel                 int
-	ExecutionTimeout         time.Duration
-	OverallTimeout           time.Duration
-	TerminateGrace           time.Duration
-	OnFailure                FailurePolicy
-	FailureBudget            uint64
-	OutputLimit              uint64
-	WorldTransitionLimit     uint64
-	ChoiceTraceLimit         uint64
-	ClockTick                string
-	IOTranscriptLimit        uint64
-	MaxExecutions            uint64
-	MaxChoiceDepth           uint64
-	MaxExplorationBytes      uint64
-	Artifacts                string
-	Environment              []string
-	IOROMounts               []string
-	IOROMountLimits          readonlymount.Limits
-	Target                   target.Spec
-	SupervisorCommand        []string
-	RunnerBuild              string
-	Coverage                 CoverageMode
-	RequiredSemanticProbes   []string
-	CollectExecutionEvidence bool
-	KeepSuccesses            KeepSuccesses
-	SuccessArtifactLimit     uint64
-	SuccessBytesLimit        uint64
-	Guide                    bool
-	Corpus                   string
-	GuideSnapshotSHA256      record.SHA256
-	ProgressInterval         time.Duration
+	ResumeCampaign            string
+	PlanSHA256                record.SHA256
+	Shard                     CampaignShard
+	Strategy                  Strategy
+	Seeds                     string
+	Parallel                  int
+	ExecutionTimeout          time.Duration
+	OverallTimeout            time.Duration
+	TerminateGrace            time.Duration
+	OnFailure                 FailurePolicy
+	FailureBudget             uint64
+	OutputLimit               uint64
+	WorldTransitionLimit      uint64
+	ChoiceTraceLimit          uint64
+	ClockTick                 string
+	IOTranscriptLimit         uint64
+	MaxExecutions             uint64
+	MaxChoiceDepth            uint64
+	MaxForcedDecisions        uint64
+	MaxExplorationBytes       uint64
+	MaxExplorationResultBytes uint64
+	SimulationDimensionLimits SimulationDimensionLimits
+	Artifacts                 string
+	Environment               []string
+	IOROMounts                []string
+	IOROMountLimits           readonlymount.Limits
+	Target                    target.Spec
+	SupervisorCommand         []string
+	RunnerBuild               string
+	Coverage                  CoverageMode
+	RequiredSemanticProbes    []string
+	CollectExecutionEvidence  bool
+	KeepSuccesses             KeepSuccesses
+	SuccessArtifactLimit      uint64
+	SuccessBytesLimit         uint64
+	Guide                     bool
+	Corpus                    string
+	GuideSnapshotSHA256       record.SHA256
+	ProgressInterval          time.Duration
 }
 
 type coordinatorResponse struct {
@@ -90,6 +93,43 @@ func (err *coordinatorProgressError) Unwrap() error {
 	return err.err
 }
 
+func coordinatorConfigFromCampaignSpec(config CampaignSpec, childTimeout time.Duration) coordinatorConfig {
+	return coordinatorConfig{
+		ResumeCampaign: config.ResumeCampaign, PlanSHA256: config.PlanSHA256, Shard: config.Shard,
+		Strategy: config.Strategy, Seeds: config.Seeds, Parallel: config.Parallel, ExecutionTimeout: config.ExecutionTimeout, OverallTimeout: childTimeout,
+		TerminateGrace: config.TerminateGrace, OnFailure: config.OnFailure, FailureBudget: config.FailureBudget,
+		OutputLimit: config.OutputLimit, WorldTransitionLimit: config.WorldTransitionLimit, ChoiceTraceLimit: config.ChoiceTraceLimit, ClockTick: config.ClockTick, IOTranscriptLimit: config.IOTranscriptLimit,
+		MaxExecutions: config.MaxExecutions, MaxChoiceDepth: config.MaxChoiceDepth, MaxForcedDecisions: config.MaxForcedDecisions,
+		MaxExplorationBytes: config.MaxExplorationBytes, MaxExplorationResultBytes: config.MaxExplorationResultBytes, SimulationDimensionLimits: config.SimulationDimensionLimits, Artifacts: config.Artifacts,
+		Environment: append([]string(nil), config.Environment...), Target: config.Target,
+		IOROMounts: append([]string(nil), config.IOROMounts...), IOROMountLimits: config.IOROMountLimits,
+		SupervisorCommand: append([]string(nil), config.SupervisorCommand...), RunnerBuild: config.RunnerBuild,
+		Coverage: config.Coverage, RequiredSemanticProbes: append([]string(nil), config.RequiredSemanticProbes...),
+		CollectExecutionEvidence: config.CollectExecutionEvidence,
+		KeepSuccesses:            config.KeepSuccesses, SuccessArtifactLimit: config.SuccessArtifactLimit, SuccessBytesLimit: config.SuccessBytesLimit,
+		Guide: config.Guide, Corpus: config.Corpus, GuideSnapshotSHA256: config.GuideSnapshotSHA256,
+		ProgressInterval: config.ProgressInterval,
+	}
+}
+
+func campaignSpecFromCoordinatorConfig(wire coordinatorConfig) CampaignSpec {
+	return CampaignSpec{
+		ResumeCampaign: wire.ResumeCampaign, PlanSHA256: wire.PlanSHA256, Shard: wire.Shard,
+		Strategy: wire.Strategy, Seeds: wire.Seeds, Parallel: wire.Parallel, ExecutionTimeout: wire.ExecutionTimeout, OverallTimeout: wire.OverallTimeout,
+		TerminateGrace: wire.TerminateGrace, OnFailure: wire.OnFailure, FailureBudget: wire.FailureBudget,
+		OutputLimit: wire.OutputLimit, WorldTransitionLimit: wire.WorldTransitionLimit, ChoiceTraceLimit: wire.ChoiceTraceLimit, ClockTick: wire.ClockTick, IOTranscriptLimit: wire.IOTranscriptLimit,
+		MaxExecutions: wire.MaxExecutions, MaxChoiceDepth: wire.MaxChoiceDepth, MaxForcedDecisions: wire.MaxForcedDecisions,
+		MaxExplorationBytes: wire.MaxExplorationBytes, MaxExplorationResultBytes: wire.MaxExplorationResultBytes, SimulationDimensionLimits: wire.SimulationDimensionLimits, Artifacts: wire.Artifacts,
+		Environment: wire.Environment, Target: wire.Target, SupervisorCommand: wire.SupervisorCommand, RunnerBuild: wire.RunnerBuild,
+		IOROMounts: wire.IOROMounts, IOROMountLimits: wire.IOROMountLimits,
+		ProgressInterval: wire.ProgressInterval,
+		Coverage:         wire.Coverage, RequiredSemanticProbes: wire.RequiredSemanticProbes,
+		CollectExecutionEvidence: wire.CollectExecutionEvidence,
+		KeepSuccesses:            wire.KeepSuccesses, SuccessArtifactLimit: wire.SuccessArtifactLimit, SuccessBytesLimit: wire.SuccessBytesLimit,
+		Guide: wire.Guide, Corpus: wire.Corpus, GuideSnapshotSHA256: wire.GuideSnapshotSHA256,
+	}
+}
+
 func runIsolated(ctx context.Context, config CampaignSpec) (CampaignResult, error) {
 	if _, _, err := validateConfig(config); err != nil {
 		return CampaignResult{}, err
@@ -102,21 +142,7 @@ func runIsolated(ctx context.Context, config CampaignSpec) (CampaignResult, erro
 	deadline, _ := overallCtx.Deadline()
 	reserve := min(250*time.Millisecond, max(time.Until(deadline)/5, time.Nanosecond))
 	childTimeout := max(time.Until(deadline)-2*reserve, time.Nanosecond)
-	wire := coordinatorConfig{
-		ResumeCampaign: config.ResumeCampaign, PlanSHA256: config.PlanSHA256, Shard: config.Shard,
-		Strategy: config.Strategy, Seeds: config.Seeds, Parallel: config.Parallel, ExecutionTimeout: config.ExecutionTimeout, OverallTimeout: childTimeout,
-		TerminateGrace: config.TerminateGrace, OnFailure: config.OnFailure, FailureBudget: config.FailureBudget,
-		OutputLimit: config.OutputLimit, WorldTransitionLimit: config.WorldTransitionLimit, ChoiceTraceLimit: config.ChoiceTraceLimit, ClockTick: config.ClockTick, IOTranscriptLimit: config.IOTranscriptLimit,
-		MaxExecutions: config.MaxExecutions, MaxChoiceDepth: config.MaxChoiceDepth, MaxExplorationBytes: config.MaxExplorationBytes, Artifacts: config.Artifacts,
-		Environment: append([]string(nil), config.Environment...), Target: config.Target,
-		IOROMounts: append([]string(nil), config.IOROMounts...), IOROMountLimits: config.IOROMountLimits,
-		SupervisorCommand: append([]string(nil), config.SupervisorCommand...), RunnerBuild: config.RunnerBuild,
-		Coverage: config.Coverage, RequiredSemanticProbes: append([]string(nil), config.RequiredSemanticProbes...),
-		CollectExecutionEvidence: config.CollectExecutionEvidence,
-		KeepSuccesses:            config.KeepSuccesses, SuccessArtifactLimit: config.SuccessArtifactLimit, SuccessBytesLimit: config.SuccessBytesLimit,
-		Guide: config.Guide, Corpus: config.Corpus, GuideSnapshotSHA256: config.GuideSnapshotSHA256,
-		ProgressInterval: config.ProgressInterval,
-	}
+	wire := coordinatorConfigFromCampaignSpec(config, childTimeout)
 	request, err := json.Marshal(wire)
 	if err != nil {
 		return CampaignResult{}, &HostError{Reason: "coordinator_encode", Err: err}
@@ -292,20 +318,7 @@ func CoordinatorMain(input io.Reader, output io.Writer) error {
 	if token, err := decoder.Token(); err != io.EOF {
 		return fmt.Errorf("trailing coordinator request %v: %w", token, err)
 	}
-	config := CampaignSpec{
-		ResumeCampaign: wire.ResumeCampaign, PlanSHA256: wire.PlanSHA256, Shard: wire.Shard,
-		Strategy: wire.Strategy, Seeds: wire.Seeds, Parallel: wire.Parallel, ExecutionTimeout: wire.ExecutionTimeout, OverallTimeout: wire.OverallTimeout,
-		TerminateGrace: wire.TerminateGrace, OnFailure: wire.OnFailure, FailureBudget: wire.FailureBudget,
-		OutputLimit: wire.OutputLimit, WorldTransitionLimit: wire.WorldTransitionLimit, ChoiceTraceLimit: wire.ChoiceTraceLimit, ClockTick: wire.ClockTick, IOTranscriptLimit: wire.IOTranscriptLimit,
-		MaxExecutions: wire.MaxExecutions, MaxChoiceDepth: wire.MaxChoiceDepth, MaxExplorationBytes: wire.MaxExplorationBytes, Artifacts: wire.Artifacts,
-		Environment: wire.Environment, Target: wire.Target, SupervisorCommand: wire.SupervisorCommand, RunnerBuild: wire.RunnerBuild,
-		IOROMounts: wire.IOROMounts, IOROMountLimits: wire.IOROMountLimits,
-		ProgressInterval: wire.ProgressInterval,
-		Coverage:         wire.Coverage, RequiredSemanticProbes: wire.RequiredSemanticProbes,
-		CollectExecutionEvidence: wire.CollectExecutionEvidence,
-		KeepSuccesses:            wire.KeepSuccesses, SuccessArtifactLimit: wire.SuccessArtifactLimit, SuccessBytesLimit: wire.SuccessBytesLimit,
-		Guide: wire.Guide, Corpus: wire.Corpus, GuideSnapshotSHA256: wire.GuideSnapshotSHA256,
-	}
+	config := campaignSpecFromCoordinatorConfig(wire)
 	encoder := json.NewEncoder(output)
 	config.Progress = func(progress CampaignEvent) error {
 		return encoder.Encode(coordinatorMessage{Type: "progress", Progress: &progress})

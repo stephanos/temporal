@@ -55,6 +55,46 @@ func TestBuiltInSimulationLinknamesRequireExactFirstPartySource(t *testing.T) {
 	}
 }
 
+// The pins are literals in this module while the sources they pin live in the
+// root module, so only a test that reads those sources can see them drift.
+func TestBuiltInSimulationLinknamesPinCurrentFirstPartySources(t *testing.T) {
+	const importPath = "go.temporal.io/server/tools/gomad3sim"
+	directory, err := filepath.Abs(filepath.Join("..", "..", "gomad3sim"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	entries, err := os.ReadDir(directory)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pkg := CapabilityPackage{ImportPath: importPath, Module: &CapabilityModule{Path: "go.temporal.io/server", Main: true}}
+	bridging := make(map[string]struct{})
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".go") {
+			continue
+		}
+		source, err := projectCapabilitySource(listedPackage{ImportPath: importPath, Dir: directory}, nil, entry.Name())
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, _, present := linknameFinding(source); !present {
+			continue
+		}
+		bridging[source.Name] = struct{}{}
+		if !builtInSimulationLinknameAllowed(pkg, source) {
+			t.Errorf("%s is %s with directives %q, pinned as %#v", source.Name, source.SHA256, source.LinknameDirectives, builtInSimulationLinknames[source.Name])
+		}
+	}
+	if len(bridging) == 0 {
+		t.Fatalf("no first-party simulation source in %s carries a bridge directive", directory)
+	}
+	for name := range builtInSimulationLinknames {
+		if _, found := bridging[name]; !found {
+			t.Errorf("%s is pinned but no longer carries a bridge directive", name)
+		}
+	}
+}
+
 func TestValidateCapabilityClosureRejectsLinkname(t *testing.T) {
 	directory := t.TempDir()
 	if err := os.WriteFile(filepath.Join(directory, "target.go"), []byte("package target\n\n//go:linkname escape syscall.Syscall\nfunc escape()\n"), 0o600); err != nil {

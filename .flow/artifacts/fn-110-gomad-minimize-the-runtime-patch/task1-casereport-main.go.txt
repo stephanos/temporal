@@ -1,0 +1,69 @@
+// casereport runs one gomadtool conformance mode exactly as `gomadtool test`
+// does and writes one row per executed case. `gomadtool test` prints only the
+// tier's success line, so the per-case list needs the Report it discards.
+package main
+
+import (
+	"context"
+	"crypto/sha256"
+	"flag"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance"
+	toolchainbuild "go.temporal.io/server/tools/gomad3/toolchain"
+)
+
+func main() {
+	var config conformance.Config
+	var out, outputDir string
+	flag.StringVar(&config.Root, "root", "", "Gomad v3 module root")
+	flag.StringVar(&config.Mode, "mode", "", "test mode")
+	flag.StringVar(&config.Go, "go", "", "Gomad toolchain Go executable")
+	flag.StringVar(&out, "out", "", "TSV output path")
+	flag.StringVar(&outputDir, "output-dir", "", "directory for per-case stdout (optional)")
+	flag.Parse()
+	if config.Root == "" || config.Mode == "" || config.Go == "" || out == "" {
+		fmt.Fprintln(os.Stderr, "usage: casereport --root --mode --go --out [--output-dir]")
+		os.Exit(2)
+	}
+	if err := toolchainbuild.ValidatePatch(toolchainbuild.PatchSpec{Root: config.Root}); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	report, runErr := conformance.Run(context.Background(), config)
+	var rows strings.Builder
+	rows.WriteString("index\ttier\tcase\tdisposition\texit_code\ttimed_out\tsignaled\ttruncated\tstdout_bytes\tstdout_sha256\n")
+	for index, result := range report.Cases {
+		disposition := "fail"
+		if result.Passed {
+			disposition = "pass"
+		}
+		fmt.Fprintf(&rows, "%d\t%s\t%s\t%s\t%d\t%t\t%t\t%t\t%d\t%x\n", index, result.Tier, result.Name, disposition,
+			result.ExitCode, result.TimedOut, result.Signaled, result.Truncated, len(result.Stdout), sha256.Sum256(result.Stdout))
+		if outputDir != "" {
+			name := fmt.Sprintf("%04d-%s", index, strings.NewReplacer("/", "_", " ", "_").Replace(result.Name))
+			if err := os.WriteFile(filepath.Join(outputDir, name+".stdout"), result.Stdout, 0o644); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+			if len(result.Stderr) != 0 {
+				if err := os.WriteFile(filepath.Join(outputDir, name+".stderr"), result.Stderr, 0o644); err != nil {
+					fmt.Fprintln(os.Stderr, err)
+					os.Exit(1)
+				}
+			}
+		}
+	}
+	if err := os.WriteFile(out, []byte(rows.String()), 0o644); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	fmt.Printf("mode=%s report_passed=%t cases=%d\n", report.Mode, report.Passed, len(report.Cases))
+	if runErr != nil {
+		fmt.Fprintln(os.Stderr, runErr)
+		os.Exit(1)
+	}
+}
