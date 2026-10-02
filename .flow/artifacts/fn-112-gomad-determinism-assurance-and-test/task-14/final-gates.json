@@ -1,0 +1,45 @@
+{
+  "host": "darwin/arm64",
+  "base_commit": "dbdba985846f7956bcdcdc51e061d8ac957ab2a3",
+  "commits": {
+    "002284e4b": "behaviour-preserving extraction of the shared round collector plus the regression, red",
+    "46083d3d8": "the fix"
+  },
+  "root_cause": {
+    "confirmed_by": "a temporary trace in executeExplorationRound on the base commit, removed before any commit",
+    "observation": "the interrupted candidate's completion carries result.Cancelled=true and err=errors.Join(context.Canceled): runSeed's journal transition refuses to advance once the campaign context has ended (runner/internal/campaign/campaign_journal.go journal.ctx.Err())",
+    "defect": "both round collectors recorded the parent's end only when the ctx.Done arm of the select ran; when the final completion was received first the loop ended, the round returned, and the completion's context error was classified by supervisionFailureReason as target_supervision",
+    "prior_hypothesis": "investigation.json source_hypothesis: confirmed",
+    "fix": "collectRoundCompletions (runner/exploration_round.go) reads ctx.Err() after the last completion, so classification no longer depends on which receive won"
+  },
+  "baseline": {
+    "unittest": "GATE_SKIPPED:unittest:green-receipt 0b5eb20f - baseline reused from prior post-gate pass",
+    "validate": {"command": "make -C tools/gomad3 validate", "exit_code": 0},
+    "known_flake": "the cancellation subtests this task fixes fail intermittently on the base; see red-explore-one-p.log"
+  },
+  "red": {
+    "explore_level": {"revision": "dbdba9858", "command": ".toolchain/bin/go test -tags test_dep -run 'TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/cancellation' -cpu 1 -count 30 ./runner", "exit_code": 1, "failing_repetitions": {"choice-exploration": 11, "simulation-exploration": 10}, "log": "red-explore-one-p.log"},
+    "round_regression": {"revision": "002284e4b", "command": ".toolchain/bin/go test -tags test_dep -count=1 -run 'TestRound' -v ./runner", "exit_code": 1, "failing": ["cancelled/final_completion_first", "overall_timeout/final_completion_first"], "deterministic": true, "log": "red-round-regression.log"}
+  },
+  "green": {
+    "round_regression": {"revision": "46083d3d8", "command": ".toolchain/bin/go test -tags test_dep -count=20 -run 'TestRound' -v ./runner", "exit_code": 0, "log": "green-round-regression.log"},
+    "explore_level_one_p": {"revision": "46083d3d8", "command": ".toolchain/bin/go test -tags test_dep -run 'TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/cancellation' -cpu 1 -count 30 ./runner", "exit_code": 0, "elapsed_seconds": 48, "note": "90 subtest runs (3 strategies x 30), 0 failures; the base failed 21 of the 60 exploration runs"},
+    "focused_boundaries": {"revision": "46083d3d8", "command": ".toolchain/bin/go test -tags test_dep -count=5 -cpu 1,10 -run 'TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState|TestExplorationCancellationIsAHostFailure|TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors|TestCompletion|TestRound' ./runner", "exit_code": 0, "elapsed_seconds": 167, "covers": "cancelled classification, retained committed counts and runs, runner_cancelled candidates, target_supervision and choice_trace_* supervisor errors for every strategy"}
+  },
+  "full_gate": {"revision": "46083d3d87c6041496c6603d981541158455893d", "command": "GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host", "exit_code": 0, "elapsed_seconds": 208, "packages_ok": 45, "packages": "test-host-packages.txt", "path_note": "run with the pinned stock go1.27.1 first on PATH", "receipt": ".flow/tmp/green-receipts/46083d3d-unittest.json"},
+  "full_gate_earlier_attempts": [
+    {"revision": "46083d3d8", "exit_code": 2, "result": "inconclusive", "note": "my environment error: the patched .toolchain/bin was first on PATH, so TestModelConformanceFilesystem and TestModelConformanceTCP stopped with 'stock Go resolves to Gomad toolchain'; the runner package passed in 186s"},
+    {"revision": "46083d3d8", "exit_code": 2, "elapsed_seconds": 280, "result": "red under unrelated host load", "note": "an unrelated 'go test ./tools/umpire/...' from another session ran two test binaries at about 190% CPU each for the whole run. TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_after_a_known_one/simulation-exploration failed with 'sync artifact store: context deadline exceeded' and TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/bytes/seed with an unfinished measuring campaign; both hit the fixture's 10s OverallTimeout. Both passed focused (20s) while that load was still present, and the gate above was run after it exited. The seed-strategy failure does not execute the changed code.", "log": "test-host-loaded-attempt.txt"}
+  ],
+  "validate": {"revision": "working tree equal to 46083d3d8", "command": "make -C tools/gomad3 validate", "exit_code": 0},
+  "architecture": {"command": ".toolchain/bin/go test -tags test_dep -count=1 -run TestPackageArchitecture .", "exit_code": 0},
+  "vet": {"command": ".toolchain/bin/go vet -tags test_dep ./runner", "exit_code": 0},
+  "root_lint": {"command": "GOLANGCI_LINT_BASE_REV=dbdba9858 make lint-code-fast", "exit_code": 2, "result": "inconclusive", "note": "golangci-lint reports 0 issues but cannot typecheck the nested module (main module does not contain package tools/gomad3/runner)"},
+  "identity": "no runtime, overlay, patch, or protocol file changed; the toolchain build key is unchanged (56e4a2f0... on darwin/arm64)",
+  "not_run": [
+    "linux/amd64: no native host here and pushing is forbidden for this run, so native Linux CI has not run on the repaired revision; the acceptance clause 'native Linux CI pass' stays open until the conductor pushes",
+    "the original Linux reproduction was not rerun; the same failure was reproduced on darwin/arm64 with one P",
+    "make -C tools/gomad3 test (toolchain, runtime, upstream tiers): no file those tiers build changed"
+  ],
+  "observed_not_changed": "runner/coordinator.go waits on the coordinator process with a similar select; it returns from the Done arm directly and classifies a process exit separately, so it is outside this task's surface and was left as it is"
+}

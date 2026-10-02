@@ -1,0 +1,5 @@
+# 46083d3d8, darwin/arm64: go test -tags test_dep -count=20 -run 'TestRound' -v ./runner ; exit 0
+  20 --- PASS: TestRoundClassifiesAParentEndIndependentOfReceiveOrder (0.00s)
+  20 --- PASS: TestRoundKeepsCandidateOutcomesUnderALiveParent (0.00s)
+   1 PASS
+   1 ok  	go.temporal.io/server/tools/gomad3/runner	0.349s
