@@ -1,0 +1,90 @@
+{
+  "base": "f419052989df4424b9a73293ca9f390352108924",
+  "effort": "high",
+  "findings": {
+    "backend": "claude",
+    "baseSha": "f419052989df4424b9a73293ca9f390352108924",
+    "headSha": "6299870b04f2c98f22c3c279334818a4143a6994",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "f419052989df4424b9a73293ca9f390352108924",
+          "headSha": "6299870b04f2c98f22c3c279334818a4143a6994",
+          "path": "tools/gomad3/runner/internal/minimizer/workspace.go",
+          "side": "head",
+          "startLine": 109
+        },
+        "body": "Each parent ever minimized, or resumed with no state while `.minimize` exists, leaves a zero-byte `.minimize/sha256-<parent>.lock` forever. `Complete` removes the state directory but not the lock. Before this change there was one `.minimize.lock` per root; now the count grows with the number of parents.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-3ebae9191f2e7bcd3330d2bbc881822c62756a1fdb8a1d3490f0566ff56a5dcc",
+        "id": "finding-6f4e99c268715c61e8831aed1e621df6",
+        "lastSeenReceiptId": "review-3ebae9191f2e7bcd3330d2bbc881822c62756a1fdb8a1d3490f0566ff56a5dcc",
+        "ordinal": 1,
+        "rIds": [],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Not blocking; unlinking a flock file safely is racy, so keeping them is defensible. Either record a `CONSIDER:` note, or have resume `Lstat` the checkpoint before taking the lock so a mistaken `--resume` creates nothing.",
+        "title": "Each parent ever minimized, or resumed with no state while `"
+      },
+      {
+        "anchor": {
+          "baseSha": "f419052989df4424b9a73293ca9f390352108924",
+          "headSha": "6299870b04f2c98f22c3c279334818a4143a6994",
+          "path": "tools/gomad3/README.md",
+          "side": "head",
+          "startLine": 163
+        },
+        "body": "still says \"Minimizer checkpoint/resume \u2026 are not yet implemented\", although `--resume` exists since task 8. The file is outside this diff.",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-3ebae9191f2e7bcd3330d2bbc881822c62756a1fdb8a1d3490f0566ff56a5dcc",
+        "id": "finding-8c042191540a4764dd804f9a7de97b69",
+        "lastSeenReceiptId": "review-3ebae9191f2e7bcd3330d2bbc881822c62756a1fdb8a1d3490f0566ff56a5dcc",
+        "ordinal": 3,
+        "rIds": [],
+        "severity": "P3",
+        "status": "open",
+        "title": "still says \"Minimizer checkpoint/resume \u2026 are not yet implemented\", although `--resume` exists since task 8"
+      },
+      {
+        "anchor": {
+          "baseSha": "f419052989df4424b9a73293ca9f390352108924",
+          "headSha": "6299870b04f2c98f22c3c279334818a4143a6994",
+          "path": "tools/gomad3/runner/minimize_operation_test.go",
+          "side": "head",
+          "startLine": 341
+        },
+        "body": "`TestMinimizeExcludesConcurrentRunsOfOneParentOnOneOutputRoot` runs the other parent to completion while the holder is parked in its first evaluation. The two runs never publish into the output root at the same time, which is the one path this change newly makes concurrent.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-3ebae9191f2e7bcd3330d2bbc881822c62756a1fdb8a1d3490f0566ff56a5dcc",
+        "id": "finding-2c206f75189e6272653a7416d1b08e2b",
+        "lastSeenReceiptId": "review-3ebae9191f2e7bcd3330d2bbc881822c62756a1fdb8a1d3490f0566ff56a5dcc",
+        "ordinal": 2,
+        "rIds": [],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Optional. Park the holder in its final replay (the `minimizationReplayer.before` hook) while the other parent publishes, or accept the store's rename-without-replace as sufficient.",
+        "title": "`TestMinimizeExcludesConcurrentRunsOfOneParentOnOneOutputRoot` runs the other parent to completion while the holder is parked in its first evaluation"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-3ebae9191f2e7bcd3330d2bbc881822c62756a1fdb8a1d3490f0566ff56a5dcc"
+  },
+  "id": "fn-114-gomad-correct-search-path-defects-and.15",
+  "introduced_count": 2,
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "pre_existing_count": 1,
+  "review": "I've finished reading the diff, the spec, and the surrounding code (workspace, minimize operation, lock, artifact store); here is the review.\n\n## Review: fn-114.15 \u2014 scope minimizer workspace state per parent artifact\n\n**The change meets every acceptance criterion I could check by reading; no blocking findings.** This session has no shell, so I ran no tests. The verdict rests on reading the code plus the committed gate evidence in `final-gates.json` (test-host 45/45 ok, validate exit 0, six mutation checks each caught by named tests).\n\n### Acceptance check\n\n- **Parent A's state does not block parent B:** state and lock are keyed by parent record hash under `OUTPUT/.minimize/` (`workspace.go:98-109`, `:326`). Covered by `TestMinimizeKeepsStatePerParentArtifactInOneOutputRoot` and `TestWorkspaceKeepsStatePerParentArtifact`.\n- **Resume for A repeats no attempt:** the same Minimize-level test asserts the exact executor call count after B completed beside A's state.\n- **Same-parent exclusion:** the per-parent lock is taken before any state is read or written. Both the Minimize and Workspace tests assert `ErrContended`, and the Minimize test runs the other parent to completion while the lock is held.\n- **Kill between publication and its checkpoint:** `TestMinimizeResumeAfterUnrecordedFinalPublicationDoesNotPublishAgain` builds that state through the new `reduce`/`publishAccepted` split, then asserts zero evaluations, one replay, and an unchanged published set. The evidence discloses that this test also passes on the base, since it pins task 8 behaviour; mutation M6 shows it can fail.\n- **Concurrent publication into one root:** this is newly reachable because the root-wide lock is gone. It is safe by construction: `artifact/store.go:91` stages in a unique directory and `:154` renames without replace. Two parents cannot collide on a record, because the minimization evidence embeds the parent record hash.\n- **Defence in depth kept:** `load` still checks the parent binding (`workspace.go:175`), so a state directory moved between parents fails closed. A symlinked state root is rejected by `Lstat` before anything is written through it.\n\n### Findings\n\n**1. Lock files accumulate per parent**\n- **Severity**: P3\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: `tools/gomad3/runner/internal/minimizer/workspace.go:109`\n- **R-IDs**: []\n- **Problem**: Each parent ever minimized, or resumed with no state while `.minimize` exists, leaves a zero-byte `.minimize/sha256-<parent>.lock` forever. `Complete` removes the state directory but not the lock. Before this change there was one `.minimize.lock` per root; now the count grows with the number of parents.\n- **Suggestion**: Not blocking; unlinking a flock file safely is racy, so keeping them is defensible. Either record a `CONSIDER:` note, or have resume `Lstat` the checkpoint before taking the lock so a mistaken `--resume` creates nothing.\n\n**2. No test overlaps two parents in the publication phase**\n- **Severity**: P3\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: `tools/gomad3/runner/minimize_operation_test.go:341`\n- **R-IDs**: []\n- **Problem**: `TestMinimizeExcludesConcurrentRunsOfOneParentOnOneOutputRoot` runs the other parent to completion while the holder is parked in its first evaluation. The two runs never publish into the output root at the same time, which is the one path this change newly makes concurrent.\n- **Suggestion**: Optional. Park the holder in its final replay (the `minimizationReplayer.before` hook) while the other parent publishes, or accept the store's rename-without-replace as sufficient.\n\n### Code smells\n\nNone worth flagging. The `reduce`/`publishAccepted` extraction shortens `Minimize` and serves as the test seam. `parentDirectory` mirrors `artifact.identityDirectory` in one line, which is unexported in another package, so sharing it is not worth the coupling.\n\n## Pre-existing issues (not blocking this verdict)\n\n- [P3, confidence 100, introduced=false] `tools/gomad3/README.md:163` \u2014 still says \"Minimizer checkpoint/resume \u2026 are not yet implemented\", although `--resume` exists since task 8. The file is outside this diff.\n\nFYI (process, non-blocking):\n- The task's Done summary is still TBD; the spec asks it to state that no migration is needed.\n- The spec's literal `go -C tools/gomad3 test` quick command and linux/amd64 are listed under `not_run`.\n\nClassification counts: 2 introduced, 1 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":2,\"pre_existing\":1},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>",
+  "review_reservation_id": "21d930c978824962b43d7809d1fe4e19",
+  "session_id": "89ca5e57-c517-4f33-abc2-dae34d8e3df2",
+  "spec": "claude:claude-fable-5-1:high",
+  "timestamp": "2026-10-02T17:45:48.085468Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}
