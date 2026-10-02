@@ -39,19 +39,20 @@ changes, change the spec and summarize the change here.
 | Vocabulary and documentation | [fn-111](.flow/specs/fn-111-gomad-consolidate-vocabulary-and-update.md) | done; all three tasks and current spec completion review passed on 2026-10-02; canonical vocabulary and current guide/audit acceptance retained ([scope](#vocabulary-and-documentation-fn-111)) |
 | Determinism assurance and test strategy | [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md) | open; tasks 1–4, 6–8, and 11–13 done; baseline CI green on `8789deab0`, simulation/replay gates repaired, diagnostics and timer/shuffle fixtures verified, generated filesystem/TCP conformance added with model fixes, and built-CLI recovery tests reviewed on darwin/arm64; watchdog classification and diagnostic replay repaired; stream isolation, soak gate, and suite reshaping remain ([findings and proposed order](#quality-assessment-2026-10-01)) |
 | Version-pin maintenance | [fn-113](.flow/specs/fn-113-gomad-reduce-version-pin-maintenance.md) | open; four tasks, plan reviewed; pin impact report, adapter regeneration, and pack refresh, with no pin loosened; implementation not started ([cost evidence](#maintenance-cost)) |
-| Search-path defects and wasted work | [fn-114](.flow/specs/fn-114-gomad-correct-search-path-defects-and.md) | open; tasks 1–4 done and reviewed; C3's error path, E4's historical probe premise, and C2's predicted prefix divergence corrected. Callback identities swap but valid same-seed prefixes succeed; all seven select shapes have an exhausted unreduced baseline. Corpus identity now binds environment and tick policy, and coverage-instrumented targets are rejected by provenance and replay validation ([task 3 evidence](.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-3/final-completion-summary.md)). Host gates pass on darwin/arm64; Linux remains unverified; forced-prefix divergences and completed siblings now survive commit/resume ([task 4 evidence](.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-4/final-completion-summary.md)); remaining fixes and qualification span ten tasks |
+| Search-path defects and wasted work | [fn-114](.flow/specs/fn-114-gomad-correct-search-path-defects-and.md) | open; tasks 1–4 and 7 done and reviewed; guided selection now skips answered seeds, with frozen regression/resume/shard selection ([task 7 evidence](.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-7/final-completion-summary.md)); C3's error path, E4's historical probe premise, and C2's predicted prefix divergence corrected. Callback identities swap but valid same-seed prefixes succeed; all seven select shapes have an exhausted unreduced baseline. Corpus identity now binds environment and tick policy, and coverage-instrumented targets are rejected by provenance and replay validation ([task 3 evidence](.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-3/final-completion-summary.md)). Host gates pass on darwin/arm64; Linux remains unverified; forced-prefix divergences and completed siblings now survive commit/resume ([task 4 evidence](.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-4/final-completion-summary.md)); remaining fixes and qualification span nine tasks |
 
 Work a spec with `/flow-next:work <spec>`; list what is ready with `flowctl ready`.
 
 ## Immediate delivery order
 
 Approved on 2026-10-02: fn-114.4 is reviewed, complete, and pushed through `67dbe0266`.
-Fn-111 documentation acceptance and completion review are also done. Next, deliver
-fn-114.7 guided seed deduplication before fn-114.6 start-ordinal support, followed
-by fn-114.8. Task 7 removes repeated work directly and its corpus-identity prerequisite
-is complete; task 6 was only an ordering dependency for shared files. Flow dependencies
-now express this order. Runtime extraction and pin maintenance retain their existing
-qualification requirements.
+Fn-111 documentation acceptance and completion review are also done. Fn-114.7 guided
+seed deduplication is now reviewed and complete; its final Darwin host gate passed.
+Milestone execution is paused at the user's request on 2026-10-02 after this task.
+On resumption, fn-114.6 start-ordinal support precedes fn-114.8. The independently
+reproduced cancellation classification failure from native Linux CI is queued as
+fn-112.14; its evidence is retained and no fix is included in task 7. Runtime extraction
+and pin maintenance retain their existing qualification requirements.
 
 ## Verification instructions for agents
 

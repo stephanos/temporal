@@ -1,0 +1,72 @@
+=== RUN   TestGuidedCorpusSeedReproducesRetainedExecution
+--- PASS: TestGuidedCorpusSeedReproducesRetainedExecution (1.61s)
+=== RUN   TestGuidedSelectionExcludesAnsweredRequestedSeeds
+=== RUN   TestGuidedSelectionExcludesAnsweredRequestedSeeds/partial
+=== RUN   TestGuidedSelectionExcludesAnsweredRequestedSeeds/all
+=== RUN   TestGuidedSelectionExcludesAnsweredRequestedSeeds/outside
+--- PASS: TestGuidedSelectionExcludesAnsweredRequestedSeeds (1.49s)
+    --- PASS: TestGuidedSelectionExcludesAnsweredRequestedSeeds/partial (0.57s)
+    --- PASS: TestGuidedSelectionExcludesAnsweredRequestedSeeds/all (0.28s)
+    --- PASS: TestGuidedSelectionExcludesAnsweredRequestedSeeds/outside (0.64s)
+=== RUN   TestGuidedPlanShardsPreserveSelectionWithoutLiveCorpus
+=== RUN   TestGuidedPlanShardsPreserveSelectionWithoutLiveCorpus/new
+=== RUN   TestGuidedPlanShardsPreserveSelectionWithoutLiveCorpus/regression
+--- PASS: TestGuidedPlanShardsPreserveSelectionWithoutLiveCorpus (1.36s)
+    --- PASS: TestGuidedPlanShardsPreserveSelectionWithoutLiveCorpus/new (0.68s)
+    --- PASS: TestGuidedPlanShardsPreserveSelectionWithoutLiveCorpus/regression (0.68s)
+=== RUN   TestGuidedResumeRejectsChangedRegressionModeAndCountsNewExecutions
+--- PASS: TestGuidedResumeRejectsChangedRegressionModeAndCountsNewExecutions (0.71s)
+=== RUN   TestGuidedRegressionEarlyFailureCountsOnlyAttemptedNewExecutions
+--- PASS: TestGuidedRegressionEarlyFailureCountsOnlyAttemptedNewExecutions (0.41s)
+=== RUN   TestExcludeAnsweredSeedsPreservesMaximumRangesAndInputOrder
+--- PASS: TestExcludeAnsweredSeedsPreservesMaximumRangesAndInputOrder (0.00s)
+=== RUN   TestFullyAnsweredGuidedPlanExecutesEmptyShardsAndMerges
+--- PASS: TestFullyAnsweredGuidedPlanExecutesEmptyShardsAndMerges (0.41s)
+=== RUN   TestRegressionGuidanceReservesRoundedUnguidedQuarter
+--- PASS: TestRegressionGuidanceReservesRoundedUnguidedQuarter (0.00s)
+=== RUN   TestRunCampaignShardRejectsChangedReadOnlyMountBeforeExecution
+--- PASS: TestRunCampaignShardRejectsChangedReadOnlyMountBeforeExecution (0.03s)
+=== RUN   TestRunCampaignShardExecutesOnlyItsGlobalOrdinalPartition
+--- PASS: TestRunCampaignShardExecutesOnlyItsGlobalOrdinalPartition (0.21s)
+=== RUN   TestRunCampaignShardResumePreservesItsPlanAndAssignment
+--- PASS: TestRunCampaignShardResumePreservesItsPlanAndAssignment (0.29s)
+=== RUN   TestMergeCampaignShardsIsOrderIndependentAndRequiresCompleteness
+--- PASS: TestMergeCampaignShardsIsOrderIndependentAndRequiresCompleteness (0.59s)
+=== RUN   TestMergeCampaignShardsDeduplicatesSharedFailureEvidence
+--- PASS: TestMergeCampaignShardsDeduplicatesSharedFailureEvidence (0.44s)
+=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances
+=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/exact_replay
+    retention_characterization_test.go:824: fixed-identity projection: {"artifact_kind":"gomad3.success/v1","campaign_id":"","created_at":"","environment":[{"name":"GOMAD3_IO_PROFILE","value":"gomad3-deterministic/v1"},{"name":"GOMADSEED","value":"1"},{"name":"MODE","value":"test"},{"name":"TZ","value":"UTC"}],"files":[{"mode":"0600","path":"io/transcript.bin","sha256":"sha256:20e78223fe6135d4f2c87b90df87509021ef0d76bb70bf768b28dae837515896","size":"128"},{"mode":"0600","path":"stderr","sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","size":"0"},{"mode":"0600","path":"stdout","sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","size":"0"},{"mode":"0700","path":"target","sha256":"sha256:cd613b764a4e634182274f0df5e7c860bac9eeb8e4b6e0be6f394c722400985c","size":"20"},{"mode":"0600","path":"world/final-snapshot.json","sha256":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b","size":"4"},{"mode":"0600","path":"world/snapshot.json","sha256":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b","size":"4"},{"mode":"0600","path":"world/transitions.jsonl","sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","size":"0"}],"host":{"elapsed_nanos":"0","finished_at":"","started_at":""},"io_profile":{"implementation_sha256":"sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0","inventory":"{\"boundary_manifest_sha256\":\"sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0\",\"boundary_manifest_version\":\"go1.27.1-v1\",\"entries\":[{\"boundary\":\"crypto/rand\",\"disposition\":\"in-memory\",\"operations\":[\"Reader.Read\",\"Read\"]},{\"boundary\":\"filesystem\",\"disposition\":\"in-memory\",\"operations\":[\"open\",\"read\",\"write\",\"stat\",\"rename\",\"remove\",\"mkdir\",\"map\"]},{\"boundary\":\"io-transcript\",\"disposition\":\"shared-memory\",\"operations\":[\"expected-replay\",\"record\",\"terminal\"]},{\"boundary\":\"github.com/Masterminds/sprig/v3\",\"disposition\":\"target-adapter\",\"operations\":[\"host-dns-refusal\"]},{\"boundary\":\"github.com/cactus/go-statsd-client/v5\",\"disposition\":\"target-adapter\",\"operations\":[\"udp-sender-refusal\"]},{\"boundary\":\"github.com/cockroachdb/pebble\",\"disposition\":\"target-adapter\",\"operations\":[\"os-file-construction-refusal\",\"hard-link-refusal\"]},{\"boundary\":\"github.com/getsentry/sentry-go\",\"disposition\":\"target-adapter\",\"operations\":[\"optional-git-release-suppression\"]},{\"boundary\":\"github.com/go-playground/validator/v10\",\"disposition\":\"target-adapter\",\"operations\":[\"address-resolution-refusal\"]},{\"boundary\":\"github.com/hashicorp/go-metrics\",\"disposition\":\"target-adapter\",\"operations\":[\"signal-service-refusal\"]},{\"boundary\":\"github.com/hashicorp/go-sockaddr\",\"disposition\":\"target-adapter\",\"operations\":[\"route-command-denial\",\"interface-discovery-refusal\",\"literal-address-parsing\"]},{\"boundary\":\"github.com/hashicorp/memberlist\",\"disposition\":\"target-adapter\",\"operations\":[\"native-udp-transport-refusal\"]},{\"boundary\":\"go.opentelemetry.io/otel/sdk\",\"disposition\":\"target-adapter\",\"operations\":[\"process-owner-placeholder\",\"uname-placeholder\",\"host-command-denial\"]},{\"boundary\":\"go.temporal.io/sdk\",\"disposition\":\"target-adapter\",\"operations\":[\"interrupt-channel-suppression\"]},{\"boundary\":\"go.uber.org/fx\",\"disposition\":\"target-adapter\",\"operations\":[\"signal-relay-suppression\"]},{\"boundary\":\"golang.org/x/net\",\"disposition\":\"target-adapter\",\"operations\":[\"raw-socket-option-denial\"]},{\"boundary\":\"google.golang.org/grpc\",\"disposition\":\"target-adapter\",\"operations\":[\"virtual-tcp-keepalive-suppression\",\"portable-syscall-removal\",\"host-dns-refusal\"]},{\"boundary\":\"modernc.org/libc\",\"disposition\":\"target-adapter\",\"operations\":[\"filesystem\",\"entropy\",\"time\"]},{\"boundary\":\"modernc.org/memory\",\"disposition\":\"target-adapter\",\"operations\":[\"anonymous-memory\"]},{\"boundary\":\"net\",\"disposition\":\"in-memory\",\"operations\":[\"Dial\",\"DialTCP\",\"Dialer.DialContext\",\"Listen\",\"ListenConfig.Listen\",\"ListenTCP\",\"Resolver.LookupIPAddr(localhost)\"]},{\"boundary\":\"os.read-only-mount\",\"disposition\":\"lazy-in-memory\",\"operations\":[\"open\",\"read\",\"stat\",\"readdir\"]}],\"platform\":\"darwin/arm64\",\"profile\":\"gomad3-deterministic/v1\",\"reserved_fds\":[\"bootstrap\",\"expected-transcript\",\"io-config\",\"io-terminal\",\"stderr\",\"stdout\",\"transcript\",\"world-config\",\"world-record\",\"read-only-mount-request\",\"read-only-mount-response\"],\"schema\":\"gomad3.io-inventory/v1\"}","inventory_sha256":"sha256:0d34edfc0ab13c693b78d514ca1a72a9adc196fe61e2142dba108c0ff47358f7","name":"gomad3-deterministic/v1","transcript":{"bytes":"128","file":"io/transcript.bin","records":"1","schema":"gomad3.io-transcript/v1","sha256":"sha256:20e78223fe6135d4f2c87b90df87509021ef0d76bb70bf768b28dae837515896"}},"limits":{"execution_timeout_nanos":"1000000000","io_transcript_bytes":"67108864","output_bytes":"64","overall_timeout_nanos":"10000000000","terminate_grace_nanos":"100000000","world_transition_bytes":"64"},"outcome":{"deadline":null,"domain":"success","exit_code":"0","failure_signature":"sha256:956d0da847de45133e7317ba0edde10bf002bae63c58780d61150c682dde97d8","reason":"success","replay_match":null,"signal":null,"termination":"exit"},"record_hash":"","replay_mode":"exact","runner":{"host_arch":"arm64","host_os":"darwin","record_contract":"gomad3.execution-record/v1","runner_build":"sha256:0000000000000000000000000000000000000000000000000000000000000000"},"schema_version":1,"seed":"1","selection_ordinal":"0","streams":{"stderr":{"discarded_bytes":"0","file":"stderr","full_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","retained_bytes":"0","retained_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","total_bytes":"0","truncated":false},"stdout":{"discarded_bytes":"0","file":"stdout","full_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","retained_bytes":"0","retained_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","total_bytes":"0","truncated":false}},"target":{"adapters":[],"argv":["gomad3-target"],"build_info":{"go_version":"go1.27.1","main_module":"","path":"example.com/target","settings":null},"build_tags":[],"capability_mode":"closure","compatibility":[],"file":"target","kind":"go-run","sha256":"sha256:cd613b764a4e634182274f0df5e7c860bac9eeb8e4b6e0be6f394c722400985c","size":"20","source":"."},"toolchain":{"build_key":"cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e","go_version":"go1.27.1","target_goarch":"arm64","target_goos":"darwin"},"world":{"adapters":[],"final":{"file":"world/final-snapshot.json","raw_sha256":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b","schema":"gomad3.world.snapshot/none","semantic_digest":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"},"initial":{"file":"world/snapshot.json","raw_sha256":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b","schema":"gomad3.world.snapshot/none","semantic_digest":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"},"terminal":{"kind":"none"},"transitions":{"count":"0","file":"world/transitions.jsonl","raw_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","schema":"gomad3.world.transitions/none","transcript_digest":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}}}
+=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/diverged_replay
+=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/unverified_replay
+=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/failed_replay
+=== RUN   TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/incomplete_transcript
+--- PASS: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances (0.76s)
+    --- PASS: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/exact_replay (0.18s)
+    --- PASS: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/diverged_replay (0.15s)
+    --- PASS: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/unverified_replay (0.14s)
+    --- PASS: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/failed_replay (0.15s)
+    --- PASS: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/incomplete_transcript (0.14s)
+=== RUN   TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds
+--- PASS: TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds (1.42s)
+=== RUN   TestRunGuidesFromReplayVerifiedChoiceCoverage
+--- PASS: TestRunGuidesFromReplayVerifiedChoiceCoverage (0.30s)
+=== RUN   TestRunResumesGuidedBatchWithoutReselectingSeeds
+--- PASS: TestRunResumesGuidedBatchWithoutReselectingSeeds (0.35s)
+=== RUN   TestMixGuidedSelectionReservesOneQuarterForUnguidedSeeds
+--- PASS: TestMixGuidedSelectionReservesOneQuarterForUnguidedSeeds (0.00s)
+=== RUN   TestMixGuidedSelectionSkipsCorpusSeedsInUnguidedPool
+--- PASS: TestMixGuidedSelectionSkipsCorpusSeedsInUnguidedPool (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner	11.347s
+testing: warning: no tests to run
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/campaign	0.390s [no tests to run]
+=== RUN   TestFullyAnsweredGuidanceReportsZeroExecutionsAndSuccessStatus
+--- PASS: TestFullyAnsweredGuidanceReportsZeroExecutionsAndSuccessStatus (0.00s)
+=== RUN   TestGuidanceReportsNoCorpusSelectionAndNewExecutions
+--- PASS: TestGuidanceReportsNoCorpusSelectionAndNewExecutions (0.00s)
+=== RUN   TestResumeGuidanceModePreservesExplicitFalseAndTrue
+--- PASS: TestResumeGuidanceModePreservesExplicitFalseAndTrue (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	0.680s

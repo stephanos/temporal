@@ -1,0 +1,209 @@
+{
+  "task": "fn-114-gomad-correct-search-path-defects-and.7",
+  "base": "74a53f05b952ad95ceb522e9d8137e1314aa6ee0",
+  "commits": [],
+  "prs": [],
+  "checks": [
+    {
+      "command": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./runner",
+        "./cmd/gomad/internal/cli",
+        "-run",
+        "TestCoordinatorTransportCoversEveryCampaignSpecField|TestCoordinatorTransportRoundTripsEveryTransportedField|TestCreateCampaignPlan|TestGuided|TestExcludeAnswered|TestRunGuidesFrom|TestRunResumesGuided|TestMixGuided|TestRunCampaignShard|TestMergeCampaignShards|TestFullyAnswered|TestGuidanceReports|TestResumeGuidance|TestRegressionGuidance|TestGuidanceRegression|TestGuideRegression",
+        "-v"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 12.405,
+      "log": "integration-fix.log"
+    },
+    {
+      "command": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./runner",
+        "./cmd/gomad/internal/cli",
+        "-run",
+        "TestFullyAnsweredGuidedPlanExecutesEmptyShardsAndMerges|TestEmptyShardDoesNotReport",
+        "-v"
+      ],
+      "exit_code": 1,
+      "elapsed_seconds": 2.285,
+      "log": "review-red.log"
+    },
+    {
+      "command": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./runner",
+        "./cmd/gomad/internal/cli",
+        "-run",
+        "TestCoordinatorTransportCoversEveryCampaignSpecField|TestCoordinatorTransportRoundTripsEveryTransportedField|TestCreateCampaignPlan|TestGuided|TestExcludeAnswered|TestRunGuidesFrom|TestRunResumesGuided|TestMixGuided|TestRunCampaignShard|TestMergeCampaignShards|TestFullyAnswered|TestGuidanceReports|TestResumeGuidance|TestRegressionGuidance|TestGuidanceRegression|TestGuideRegression|TestEmptyShardDoesNotReport",
+        "-v"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 12.867,
+      "log": "review-green.log"
+    },
+    {
+      "command": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "."
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.535,
+      "log": "review-architecture.log"
+    },
+    {
+      "command": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go",
+        "vet",
+        "-tags",
+        "test_dep",
+        "./runner/...",
+        "./cmd/gomad/internal/cli"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.852,
+      "log": "review-vet.log"
+    }
+  ],
+  "changed_files": [
+    "tools/gomad3/cmd/gomad/internal/cli/explore_output.go",
+    "tools/gomad3/cmd/gomad/internal/cli/guidance_test.go",
+    "tools/gomad3/runner/campaign_merge.go",
+    "tools/gomad3/runner/coordinator_transport_test.go",
+    "tools/gomad3/runner/guided_selection_test.go",
+    "tools/gomad3/runner/internal/campaign/merge.go",
+    "tools/gomad3/runner/portable_plan_test.go"
+  ],
+  "source_manifest": "review-fix-sources.json",
+  "source_hashes": [
+    {
+      "path": "tools/gomad3/CLI.md",
+      "sha256": "9ab048c0da4aa52dfe8a4f32c9859f87ee580c4eb3851dd725f8ca52eb816e6d"
+    },
+    {
+      "path": "tools/gomad3/README.md",
+      "sha256": "d2a386d8be93413a730bf65e9b96bb06324bdaca898ef15cfb4ff6ecc4fa73f1"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "sha256": "13b1da09b111423951c253edb6a4a2b5b2a410c568dfb9a85b5a6269825844b1"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/explore_output.go",
+      "sha256": "fb837321177cc0ca00dc027ed2c1f78735a8224988b60d26b16067c7a46b5cd4"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/guidance_test.go",
+      "sha256": "36b3aa9c4e490b49b503979949045e87c0c1e3d9439287da6a92692dcc164682"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+      "sha256": "6f36c46d707ae86aebb9d9a49c2259224c31d7210ec0c394984410e344f7e83b"
+    },
+    {
+      "path": "tools/gomad3/runner/campaign_merge.go",
+      "sha256": "aaf6e2a54680d5608a9c60e32e1c5fde0fa0f82df62522881f348159a97fc298"
+    },
+    {
+      "path": "tools/gomad3/runner/campaign_plan.go",
+      "sha256": "81ecad020e45826d80393c314c2da8ee90453b85c1dc44217ffc3953cacfba45"
+    },
+    {
+      "path": "tools/gomad3/runner/campaign_shard_execution.go",
+      "sha256": "b1f55723fb00c752771b646c2a2ffab453a7be612be9727644ee0061e804fa1c"
+    },
+    {
+      "path": "tools/gomad3/runner/coordinator.go",
+      "sha256": "6f46681c8ad71131b1b9972439b912f716a06a4953a36f497be675763432a0a9"
+    },
+    {
+      "path": "tools/gomad3/runner/coordinator_transport_test.go",
+      "sha256": "76b5d8992c421e9332097a532940d6fb950b5ef8c4e54ce7bad076bd99304e1f"
+    },
+    {
+      "path": "tools/gomad3/runner/guidance.go",
+      "sha256": "3df9975230b5fc22d1e3643189ee66b8e9ac7ef366f5c24791e7241f7a7cb036"
+    },
+    {
+      "path": "tools/gomad3/runner/guided_selection_test.go",
+      "sha256": "dcc1b118e3d4825f3111c331eefe4778a1bf7a25f41eed9c437a0a788cc633e1"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/campaign_journal.go",
+      "sha256": "acd68ff0131f4d2d1f6050a0cb6e53e8a4ebc8e6a58cd5299a2cbaa7cc8b2f25"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/merge.go",
+      "sha256": "6d331a088299a5389f9d0580b1da00ca2c1080ff33c80f121af9b78f6c40ecca"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/open_campaign.go",
+      "sha256": "7dba24f8b3b3709bf327be539e7a352291693271dfae73513e618fcddaaed165"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/resume_journal.go",
+      "sha256": "96f35fbe9b300a619e8b2f259e5c003cfa7760596d2d88b1f90d500dfce1b93f"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/resume_plan.go",
+      "sha256": "ddfec883b75157a9847bcfc452c6e54f248c16bd375eeb54a4a2f98bd7ca6f8f"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/segmented_journal.go",
+      "sha256": "b724320128fa5d111ce42329226b6408cf4b794eda3a78b5dd23ac59f0d7b38f"
+    },
+    {
+      "path": "tools/gomad3/runner/portable_plan.go",
+      "sha256": "7eedba01ebecafebb92f5f2130492df10129880c86da140d17b3a6791fa98c69"
+    },
+    {
+      "path": "tools/gomad3/runner/portable_plan_test.go",
+      "sha256": "5dfb87425c9c31245a296356686740f76c5added82134307de8820751fd9c185"
+    },
+    {
+      "path": "tools/gomad3/runner/resume.go",
+      "sha256": "697423b656e3243d4aebad522698ed4370a4c279c4bb64f039fe3aa7bde68403"
+    },
+    {
+      "path": "tools/gomad3/runner/runner.go",
+      "sha256": "774e8703d8fe8b79ebbb0394ee6d26edc52d30f281e69e20bc701634b851bdd3"
+    },
+    {
+      "path": "tools/gomad3/runner/runner_test.go",
+      "sha256": "123f9a35c2e7151dbfa45fafbc79b7453d6607e90f475c3e930e6e5f59da7677"
+    },
+    {
+      "path": "tools/gomad3/runner/seeds.go",
+      "sha256": "d50c3232253fb5a1471669df47d61d39ab96e26d74ca271b60abe69b78c15c79"
+    }
+  ],
+  "formatting_exit": 0,
+  "whitespace_exit": 0,
+  "first_full_host": "parent-test-host.log failed three tests reflecting old transport/portable assumptions; corrected here",
+  "review": "review-round-1.md both introduced R6 findings confirmed by review-red",
+  "full_host_gate": "pending parent final gate on corrected frozen sources",
+  "independent_review": "pending parent re-review",
+  "platform": "darwin/arm64",
+  "limitations": [
+    "Linux unverified for corrected sources.",
+    "Unchanged rootlint missing main; no retry.",
+    "Pre-existing fn112.14 cancellation race remains outside task7."
+  ]
+}

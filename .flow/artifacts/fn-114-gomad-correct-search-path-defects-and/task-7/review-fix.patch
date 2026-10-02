@@ -1,0 +1,177 @@
+diff --git a/tools/gomad3/cmd/gomad/internal/cli/explore_output.go b/tools/gomad3/cmd/gomad/internal/cli/explore_output.go
+index 820d46cf2..5bcd200f9 100644
+--- a/tools/gomad3/cmd/gomad/internal/cli/explore_output.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/explore_output.go
+@@ -129,7 +129,7 @@ func (reporter *exploreReporter) Result(summary runner.CampaignResult) error {
+ 		if _, err := fmt.Fprintf(reporter.stdout, "gomad: guidance regression=%t requested=%d answered=%d guided=%d new-executions=%d\n", guidance.Regression, guidance.Requested, guidance.Answered, guidance.Guided, guidance.NewExecutions); err != nil {
+ 			return err
+ 		}
+-		if !guidance.Regression && summary.SelectionCount == 0 {
++		if !guidance.Regression && guidance.Requested != 0 && guidance.Answered == guidance.Requested {
+ 			if _, err := fmt.Fprintln(reporter.stdout, "gomad: all requested seeds are answered; --guide-regression re-runs corpus cases (exit 0)"); err != nil {
+ 				return err
+ 			}
+diff --git a/tools/gomad3/cmd/gomad/internal/cli/guidance_test.go b/tools/gomad3/cmd/gomad/internal/cli/guidance_test.go
+index cccf7186a..b80f7302a 100644
+--- a/tools/gomad3/cmd/gomad/internal/cli/guidance_test.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/guidance_test.go
+@@ -76,3 +76,14 @@ func TestGuideRegressionRequiresGuidance(t *testing.T) {
+ 		t.Fatalf("status=%d stdout=%s stderr=%s", status, &stdout, &stderr)
+ 	}
+ }
++
++func TestEmptyShardDoesNotReportPartiallyAnsweredPlanAsFullyAnswered(t *testing.T) {
++	var stdout, stderr bytes.Buffer
++	summary := runner.CampaignResult{SelectionCount: 0, StopReason: runner.StopSeedsExhausted, Guidance: &runner.GuidanceSummary{Requested: 2, Answered: 1}}
++	if err := newExploreReporter(false, &stdout, &stderr).Result(summary); err != nil {
++		t.Fatal(err)
++	}
++	if strings.Contains(stdout.String(), "all requested seeds are answered") || !strings.Contains(stdout.String(), "requested=2 answered=1") || !strings.Contains(stdout.String(), "guidance selected no corpus seeds") {
++		t.Fatalf("empty shard output=%s", &stdout)
++	}
++}
+diff --git a/tools/gomad3/runner/campaign_merge.go b/tools/gomad3/runner/campaign_merge.go
+index 5b753b3b9..dfb993570 100644
+--- a/tools/gomad3/runner/campaign_merge.go
++++ b/tools/gomad3/runner/campaign_merge.go
+@@ -52,7 +52,7 @@ func MergeCampaignShards(ctx context.Context, spec CampaignMergeSpec) (CampaignM
+ 		return CampaignMergeResult{}, errors.New("campaign plan capacities are incomplete")
+ 	}
+ 	merged, err := campaign.MergeCampaigns(ctx, campaign.MergeSpec{
+-		Output: spec.Output, PlanSHA256: opened.identity, Selection: opened.plan.Selection, SelectionCount: selection.Count(),
++		Output: spec.Output, Guidance: opened.plan.Guidance, PlanSHA256: opened.identity, Selection: opened.plan.Selection, SelectionCount: selection.Count(),
+ 		Journal: *opened.plan.Journal, Artifacts: *opened.plan.Artifacts, Partial: spec.Partial, ShardPaths: append([]string(nil), spec.Shards...), SeedAt: selection.SeedAt,
+ 	})
+ 	if err != nil {
+diff --git a/tools/gomad3/runner/coordinator_transport_test.go b/tools/gomad3/runner/coordinator_transport_test.go
+index 2e75b2000..d859b4188 100644
+--- a/tools/gomad3/runner/coordinator_transport_test.go
++++ b/tools/gomad3/runner/coordinator_transport_test.go
+@@ -47,6 +47,7 @@ var coordinatorLocalOnlyFields = map[string]string{
+ 	"Executor":             "injected execution is rejected for isolated campaigns",
+ 	"Replayer":             "injected replay is rejected for isolated campaigns",
+ 	"resumePreflight":      "the child opens its own resume preflight",
++	"guidancePlan":         "selected locally after target preparation; resume restores it from the recorded plan",
+ 	"failureArtifactLimit": "the child derives it from the campaign plan",
+ 	"failureBytesLimit":    "the child derives it from the campaign plan",
+ }
+@@ -86,12 +87,16 @@ func TestCoordinatorTransportCoversEveryCampaignSpecField(t *testing.T) {
+ func TestCoordinatorTransportRoundTripsEveryTransportedField(t *testing.T) {
+ 	const childTimeout = 987654321 * time.Nanosecond
+ 	distinct := distinctCampaignSpec(t)
++	falseOverride := false
++	explicitFalse := distinct
++	explicitFalse.GuideRegressionOverride = &falseOverride
+ 	for _, test := range []struct {
+ 		name string
+ 		spec CampaignSpec
+ 	}{
+ 		{name: "distinct nonzero values", spec: distinct},
+ 		{name: "zero values", spec: CampaignSpec{}},
++		{name: "explicit false regression override", spec: explicitFalse},
+ 	} {
+ 		t.Run(test.name, func(t *testing.T) {
+ 			encoded, err := json.Marshal(coordinatorConfigFromCampaignSpec(test.spec, childTimeout))
+@@ -145,6 +150,9 @@ func fillDistinct(t *testing.T, path string, value reflect.Value, next *uint64)
+ 		value.SetUint(*next)
+ 	case reflect.Bool:
+ 		value.SetBool(true)
++	case reflect.Pointer:
++		value.Set(reflect.New(value.Type().Elem()))
++		fillDistinct(t, path+"*", value.Elem(), next)
+ 	case reflect.Slice:
+ 		value.Set(reflect.MakeSlice(value.Type(), 2, 2))
+ 		for index := range value.Len() {
+diff --git a/tools/gomad3/runner/guided_selection_test.go b/tools/gomad3/runner/guided_selection_test.go
+index 5c9e62cca..a04b821f0 100644
+--- a/tools/gomad3/runner/guided_selection_test.go
++++ b/tools/gomad3/runner/guided_selection_test.go
+@@ -304,6 +304,20 @@ func TestFullyAnsweredGuidedPlanExecutesEmptyShardsAndMerges(t *testing.T) {
+ 	if merged.Attempted != 0 || merged.SelectionCount != 0 {
+ 		t.Fatalf("merged=%#v", merged)
+ 	}
++	opened, err := campaign.OpenMergedCampaign(merged.Path)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if len(opened.Executions) != 0 || opened.Record.Attempted != 0 {
++		t.Fatalf("reopened=%#v", opened)
++	}
++	inspected, err := Inspect(merged.Path, InspectOptions{})
++	if err != nil {
++		t.Fatal(err)
++	}
++	if inspected.Kind != "merged-campaign" || inspected.Merged == nil || inspected.Merged.Attempted != 0 {
++		t.Fatalf("inspection=%#v", inspected)
++	}
+ }
+ 
+ func TestRegressionGuidanceReservesRoundedUnguidedQuarter(t *testing.T) {
+diff --git a/tools/gomad3/runner/internal/campaign/merge.go b/tools/gomad3/runner/internal/campaign/merge.go
+index 5eb7b0396..35233c217 100644
+--- a/tools/gomad3/runner/internal/campaign/merge.go
++++ b/tools/gomad3/runner/internal/campaign/merge.go
+@@ -27,6 +27,7 @@ type MergeSpec struct {
+ 	PlanSHA256     record.SHA256
+ 	Selection      string
+ 	SelectionCount uint64
++	Guidance       *GuidancePlan
+ 	Journal        ExecutionJournalPlan
+ 	Artifacts      ArtifactCapacityPlan
+ 	Partial        bool
+@@ -65,6 +66,7 @@ type OrdinalRange struct {
+ }
+ 
+ type MergedCampaignRecord struct {
++	Guidance             *GuidancePlan             `json:"guidance,omitempty"`
+ 	Schema               string                    `json:"schema"`
+ 	SchemaVersion        uint32                    `json:"schema_version"`
+ 	PlanSHA256           record.SHA256             `json:"plan_sha256"`
+@@ -97,7 +99,7 @@ func MergeCampaigns(ctx context.Context, spec MergeSpec) (_ MergedCampaign, retE
+ 	if ctx == nil {
+ 		ctx = context.Background()
+ 	}
+-	if spec.Output == "" || (spec.Selection == "") != (spec.SelectionCount == 0) || spec.SeedAt == nil || !validRecordSHA256(spec.PlanSHA256) || len(spec.ShardPaths) == 0 {
++	if spec.Output == "" || (spec.Selection == "") != (spec.SelectionCount == 0) || spec.SelectionCount == 0 && !isFullyAnsweredGuidance(spec.Guidance) || spec.SeedAt == nil || !validRecordSHA256(spec.PlanSHA256) || len(spec.ShardPaths) == 0 {
+ 		return MergedCampaign{}, errors.New("campaign merge input is incomplete")
+ 	}
+ 	limits := executionJournalLimitsFromPlan(spec.Journal)
+@@ -156,7 +158,8 @@ func MergeCampaigns(ctx context.Context, spec MergeSpec) (_ MergedCampaign, retE
+ 		return MergedCampaign{}, fmt.Errorf("remove merged journal staging: %w", err)
+ 	}
+ 	record := MergedCampaignRecord{
+-		Schema: MergedCampaignSchema, SchemaVersion: record.SchemaVersion, PlanSHA256: spec.PlanSHA256, Selection: spec.Selection, SelectionCount: record.Uint64String(spec.SelectionCount),
++		Guidance: spec.Guidance,
++		Schema:   MergedCampaignSchema, SchemaVersion: record.SchemaVersion, PlanSHA256: spec.PlanSHA256, Selection: spec.Selection, SelectionCount: record.Uint64String(spec.SelectionCount),
+ 		Partial: len(missing) != 0, Missing: missing, Attempted: record.Uint64String(len(runs)), Succeeded: record.Uint64String(summary.succeeded), Failures: record.Uint64String(summary.failures), Watchdogs: record.Uint64String(summary.watchdogs), Cancelled: record.Uint64String(summary.cancelled),
+ 		DistinctFailures: record.Uint64String(len(summary.failuresSeen)), RetainedSuccesses: record.Uint64String(summary.retainedSuccesses), RetainedSuccessBytes: record.Uint64String(summary.retainedSuccessBytes), RetainedEvidence: record.Uint64String(summary.retainedEvidence), EvidenceBytes: record.Uint64String(summary.evidenceBytes),
+ 		Journal: reference, Artifacts: spec.Artifacts, Shards: shards,
+@@ -210,7 +213,7 @@ func collectMergedCampaign(spec MergeSpec) ([]MergedShard, []MergedExecution, me
+ 			return nil, nil, mergedSummary{}, err
+ 		}
+ 		batch := opened.Record
+-		if batch.Schema != "gomad3.campaign/v1" || batch.PlanSHA256 != spec.PlanSHA256 || batch.Selection != spec.Selection || uint64(batch.SelectionCount) != spec.SelectionCount || batch.Shard == nil {
++		if batch.Schema != "gomad3.campaign/v1" || batch.PlanSHA256 != spec.PlanSHA256 || batch.Selection != spec.Selection || uint64(batch.SelectionCount) != spec.SelectionCount || batch.Shard == nil || !reflect.DeepEqual(batch.Guidance, spec.Guidance) {
+ 			return nil, nil, mergedSummary{}, fmt.Errorf("shard campaign %s does not match the campaign plan", path)
+ 		}
+ 		count := uint64(batch.Shard.Count)
+@@ -516,6 +519,7 @@ func validateMergedCampaign(campaign MergedCampaignRecord, runs []MergedExecutio
+ 	}
+ 	sort.Slice(failureSignatures, func(i, j int) bool { return failureSignatures[i] < failureSignatures[j] })
+ 	validationRecord := CampaignRecord{
++		Guidance:      campaign.Guidance,
+ 		SchemaVersion: record.SchemaVersion, Schema: "gomad3.campaign/v1", CampaignID: "merged-validation", Strategy: "seed", Selection: campaign.Selection, SelectionCount: campaign.SelectionCount,
+ 		Attempted: campaign.Attempted, Succeeded: campaign.Succeeded, Failures: campaign.Failures, Watchdogs: campaign.Watchdogs, Cancelled: campaign.Cancelled, DistinctFailures: campaign.DistinctFailures,
+ 		RetainedSuccesses: campaign.RetainedSuccesses, RetainedSuccessBytes: campaign.RetainedSuccessBytes, StopReason: "seeds_exhausted", Journal: &campaign.Journal, Artifacts: &campaign.Artifacts, FailureSignatures: failureSignatures,
+diff --git a/tools/gomad3/runner/portable_plan_test.go b/tools/gomad3/runner/portable_plan_test.go
+index b787fbb99..e28529efc 100644
+--- a/tools/gomad3/runner/portable_plan_test.go
++++ b/tools/gomad3/runner/portable_plan_test.go
+@@ -74,6 +74,7 @@ func TestCreateCampaignPlanRejectsDynamicallyDiscoveredOrEarlyStopWork(t *testin
+ 			config.Guide = true
+ 			config.Corpus = t.TempDir()
+ 			config.Coverage = CoverageSemantic
++			config.OnFailure = PolicyFirst
+ 		},
+ 		func(config *CampaignSpec) {
+ 			config.Strategy = StrategyChoiceExploration

@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    "./runner",
+    "./cmd/gomad/internal/cli",
+    "-run",
+    "TestCoordinatorTransportCoversEveryCampaignSpecField|TestCoordinatorTransportRoundTripsEveryTransportedField|TestCreateCampaignPlan|TestGuided|TestExcludeAnswered|TestRunGuidesFrom|TestRunResumesGuided|TestMixGuided|TestRunCampaignShard|TestMergeCampaignShards|TestFullyAnswered|TestGuidanceReports|TestResumeGuidance|TestRegressionGuidance|TestGuidanceRegression|TestGuideRegression",
+    "-v"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 12.405,
+  "log": "integration-fix.log"
+}

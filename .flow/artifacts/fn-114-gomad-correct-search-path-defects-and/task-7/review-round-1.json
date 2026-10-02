@@ -1,0 +1,75 @@
+{
+  "base": "60883d7c16ee18bae97b6b7a481eb606b541325b",
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "60883d7c16ee18bae97b6b7a481eb606b541325b",
+    "headSha": "74a53f05b952ad95ceb522e9d8137e1314aa6ee0",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "60883d7c16ee18bae97b6b7a481eb606b541325b",
+          "headSha": "74a53f05b952ad95ceb522e9d8137e1314aa6ee0",
+          "path": "tools/gomad3/runner/internal/campaign/merge.go",
+          "side": "head",
+          "startLine": 445
+        },
+        "body": "Fully answered campaigns produce merged output that cannot be reopened. This change permits empty merges, but `validateMergedCampaign` constructs a `CampaignRecord` without `Guidance`. Its call to `validateCampaign` therefore rejects the zero selection with `campaign record identity is invalid`. Merge succeeds, then inspection fails. The new empty-merge test never reopens its output.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-c25bd3a314770e681d555606321c14d8be7a739a093859ec034a7c155dcec677",
+        "id": "finding-913aa946ac70314225e39958c411468b",
+        "lastSeenReceiptId": "review-c25bd3a314770e681d555606321c14d8be7a739a093859ec034a7c155dcec677",
+        "ordinal": 1,
+        "rIds": [
+          "R6"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Preserve the guidance evidence through merged-record validation, and extend the regression test to reopen and inspect the merged campaign.",
+        "title": "Fully answered campaigns produce merged output that cannot be reopened"
+      },
+      {
+        "anchor": {
+          "baseSha": "60883d7c16ee18bae97b6b7a481eb606b541325b",
+          "headSha": "74a53f05b952ad95ceb522e9d8137e1314aa6ee0",
+          "path": "tools/gomad3/cmd/gomad/internal/cli/explore_output.go",
+          "side": "head",
+          "startLine": 132
+        },
+        "body": "An empty shard incorrectly reports \u201call requested seeds are answered.\u201d `summary.SelectionCount` counts seeds assigned to that shard, while `Guidance` describes the whole plan. For a guided plan with one unanswered seed and two shards, shard `1/2` prints this claim despite `requested=1 answered=0`. Filtering answered seeds makes empty shards especially likely.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-c25bd3a314770e681d555606321c14d8be7a739a093859ec034a7c155dcec677",
+        "id": "finding-eb43f30ef7bd6dc231f68b026d2b5a14",
+        "lastSeenReceiptId": "review-c25bd3a314770e681d555606321c14d8be7a739a093859ec034a7c155dcec677",
+        "ordinal": 2,
+        "rIds": [
+          "R6"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Check that `guidance.Requested > 0 && guidance.Answered == guidance.Requested`, and test an empty shard of a partially answered plan.",
+        "title": "An empty shard incorrectly reports \u201call requested seeds are answered"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-c25bd3a314770e681d555606321c14d8be7a739a093859ec034a7c155dcec677"
+  },
+  "focus": "Review R6 against committed change 74a53f05b and task acceptance. Evidence .flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-7/handover-summary.md and final-sources.json. Parent full host gate running, inspect parent-test-host.json if available. Separate pre-existing cancellation race tracked fn112.14 with unchanged-source red in task-14; do not attribute to this diff. Check answered selection, zero selection, actual new execution counts, resume mode identity, frozen portable plans and shards. Read-only review; do not run commands that mutate workspace.",
+  "id": "fn-114-gomad-correct-search-path-defects-and.7",
+  "introduced_count": 2,
+  "mode": "codex",
+  "model": "gpt-6-astra",
+  "pre_existing_count": 0,
+  "review": "I\u2019ll read the task spec first, then trace the diff and its callers against the acceptance criteria.\nThe default selection removes answered seeds, and the plan records the reduced selection and regression mode. I\u2019m checking resume, shards, and empty campaigns next, where this change also affects validation and reporting.\nThe test suite cannot start because the read-only sandbox blocks Go from creating its build directory. I\u2019m continuing the source review, focusing on frozen guidance across shards and the meaning of the reported counts.\n1. **Severity:** P2  \n   **Confidence:** 100  \n   **Classification:** introduced  \n   **File:Line:** `tools/gomad3/runner/internal/campaign/merge.go:445`  \n   **R-IDs:** [R6]  \n   **Problem:** Fully answered campaigns produce merged output that cannot be reopened. This change permits empty merges, but `validateMergedCampaign` constructs a `CampaignRecord` without `Guidance`. Its call to `validateCampaign` therefore rejects the zero selection with `campaign record identity is invalid`. Merge succeeds, then inspection fails. The new empty-merge test never reopens its output.  \n   **Suggestion:** Preserve the guidance evidence through merged-record validation, and extend the regression test to reopen and inspect the merged campaign.\n\n2. **Severity:** P2  \n   **Confidence:** 100  \n   **Classification:** introduced  \n   **File:Line:** `tools/gomad3/cmd/gomad/internal/cli/explore_output.go:132`  \n   **R-IDs:** [R6]  \n   **Problem:** An empty shard incorrectly reports \u201call requested seeds are answered.\u201d `summary.SelectionCount` counts seeds assigned to that shard, while `Guidance` describes the whole plan. For a guided plan with one unanswered seed and two shards, shard `1/2` prints this claim despite `requested=1 answered=0`. Filtering answered seeds makes empty shards especially likely.  \n   **Suggestion:** Check that `guidance.Requested > 0 && guidance.Answered == guidance.Requested`, and test an empty shard of a partially answered plan.\n\nBoth required validation commands were attempted, but the read-only sandbox prevented Go from creating its build directory.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R6 | partial | Selection filtering, frozen plans, regression mode, resume checks, and execution counts are implemented; empty-merge reopening and empty-shard reporting remain defective. |\n| R1\u2013R5, R7\u2013R12 | deferred | Assigned to other tasks in the epic; outside this task\u2019s review scope. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 2 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":2,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>NEEDS_WORK</verdict>",
+  "review_reservation_id": "9056ca9a36b3455c8ae0a0d9817fd661",
+  "session_id": "01a0fd59-bf55-7903-bc0b-d2f16c2ea201",
+  "spec": "codex:gpt-6-astra:high",
+  "timestamp": "2026-10-02T16:05:29.780225Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "NEEDS_WORK"
+}

@@ -1,0 +1,13 @@
+=== RUN   TestFullyAnsweredGuidedPlanExecutesEmptyShardsAndMerges
+    guided_selection_test.go:309: validate merged executions: campaign record identity is invalid
+--- FAIL: TestFullyAnsweredGuidedPlanExecutesEmptyShardsAndMerges (0.47s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner	1.173s
+=== RUN   TestEmptyShardDoesNotReportPartiallyAnsweredPlanAsFullyAnswered
+    guidance_test.go:87: empty shard output=gomad: classification=success attempted=0 succeeded=0 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=0 retained-success-bytes=0 stop=seeds_exhausted artifact=
+        gomad: guidance regression=false requested=2 answered=1 guided=0 new-executions=0
+        gomad: all requested seeds are answered; --guide-regression re-runs corpus cases (exit 0)
+--- FAIL: TestEmptyShardDoesNotReportPartiallyAnsweredPlanAsFullyAnswered (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	0.405s
+FAIL

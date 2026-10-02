@@ -1,0 +1,97 @@
+{
+  "base": "f5e43b5fa6fe5959bd8c2f88a16bf00460934978",
+  "files": [
+    {
+      "path": "tools/gomad3/CLI.md",
+      "sha256": "9ab048c0da4aa52dfe8a4f32c9859f87ee580c4eb3851dd725f8ca52eb816e6d"
+    },
+    {
+      "path": "tools/gomad3/README.md",
+      "sha256": "d2a386d8be93413a730bf65e9b96bb06324bdaca898ef15cfb4ff6ecc4fa73f1"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "sha256": "13b1da09b111423951c253edb6a4a2b5b2a410c568dfb9a85b5a6269825844b1"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/explore_output.go",
+      "sha256": "d16226d423bb457d0e40d1d11f84aefcfe30dad1e2b12297defa57e893afce0d"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/guidance_test.go",
+      "sha256": "4dcc9063e4bc4f09fef033ba9b5925f90a63aadfeed5041e363ad14ec45ae252"
+    },
+    {
+      "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+      "sha256": "6f36c46d707ae86aebb9d9a49c2259224c31d7210ec0c394984410e344f7e83b"
+    },
+    {
+      "path": "tools/gomad3/runner/campaign_merge.go",
+      "sha256": "f4a5967dbe50adf62d4a96800f20861c83dee6b8708456768587bde1fc1c1024"
+    },
+    {
+      "path": "tools/gomad3/runner/campaign_plan.go",
+      "sha256": "81ecad020e45826d80393c314c2da8ee90453b85c1dc44217ffc3953cacfba45"
+    },
+    {
+      "path": "tools/gomad3/runner/campaign_shard_execution.go",
+      "sha256": "b1f55723fb00c752771b646c2a2ffab453a7be612be9727644ee0061e804fa1c"
+    },
+    {
+      "path": "tools/gomad3/runner/coordinator.go",
+      "sha256": "6f46681c8ad71131b1b9972439b912f716a06a4953a36f497be675763432a0a9"
+    },
+    {
+      "path": "tools/gomad3/runner/guidance.go",
+      "sha256": "3df9975230b5fc22d1e3643189ee66b8e9ac7ef366f5c24791e7241f7a7cb036"
+    },
+    {
+      "path": "tools/gomad3/runner/guided_selection_test.go",
+      "sha256": "88f34bf0355d103070ef39fc74103bb2cb5e2d3255feb8b594ffb707f06c528f"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/campaign_journal.go",
+      "sha256": "acd68ff0131f4d2d1f6050a0cb6e53e8a4ebc8e6a58cd5299a2cbaa7cc8b2f25"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/merge.go",
+      "sha256": "623274c204d2acadee738f365296d231596bbf11af2709568918dcf15a182ab9"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/open_campaign.go",
+      "sha256": "7dba24f8b3b3709bf327be539e7a352291693271dfae73513e618fcddaaed165"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/resume_journal.go",
+      "sha256": "96f35fbe9b300a619e8b2f259e5c003cfa7760596d2d88b1f90d500dfce1b93f"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/resume_plan.go",
+      "sha256": "ddfec883b75157a9847bcfc452c6e54f248c16bd375eeb54a4a2f98bd7ca6f8f"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/campaign/segmented_journal.go",
+      "sha256": "b724320128fa5d111ce42329226b6408cf4b794eda3a78b5dd23ac59f0d7b38f"
+    },
+    {
+      "path": "tools/gomad3/runner/portable_plan.go",
+      "sha256": "7eedba01ebecafebb92f5f2130492df10129880c86da140d17b3a6791fa98c69"
+    },
+    {
+      "path": "tools/gomad3/runner/resume.go",
+      "sha256": "697423b656e3243d4aebad522698ed4370a4c279c4bb64f039fe3aa7bde68403"
+    },
+    {
+      "path": "tools/gomad3/runner/runner.go",
+      "sha256": "774e8703d8fe8b79ebbb0394ee6d26edc52d30f281e69e20bc701634b851bdd3"
+    },
+    {
+      "path": "tools/gomad3/runner/runner_test.go",
+      "sha256": "123f9a35c2e7151dbfa45fafbc79b7453d6607e90f475c3e930e6e5f59da7677"
+    },
+    {
+      "path": "tools/gomad3/runner/seeds.go",
+      "sha256": "d50c3232253fb5a1471669df47d61d39ab96e26d74ca271b60abe69b78c15c79"
+    }
+  ]
+}

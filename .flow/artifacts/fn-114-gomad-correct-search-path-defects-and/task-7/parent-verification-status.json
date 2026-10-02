@@ -1,0 +1,32 @@
+{
+  "implementation_commit": "74a53f05b952ad95ceb522e9d8137e1314aa6ee0",
+  "initial_full_host": {
+    "exit_code": 2,
+    "elapsed_seconds": 200.195,
+    "failures": [
+      "TestCoordinatorTransportCoversEveryCampaignSpecField",
+      "TestCoordinatorTransportRoundTripsEveryTransportedField",
+      "TestCreateCampaignPlanRejectsDynamicallyDiscoveredOrEarlyStopWork"
+    ],
+    "log": "parent-test-host.log"
+  },
+  "review_round_1": "NEEDS_WORK",
+  "review_fixes": [
+    "Retain guidance in merged campaign validation and verify reopen/inspect",
+    "Report fully answered using global requested/answered counts rather than empty shard selection"
+  ],
+  "status": "complete: final host gate passed and independent re-review SHIP",
+  "final_full_host": {
+    "command": [
+      "make",
+      "-C",
+      "tools/gomad3",
+      "test-host"
+    ],
+    "GOFLAGS": "-tags=test_dep -count=1",
+    "exit_code": 0,
+    "elapsed_seconds": 188.95,
+    "log": "final-test-host.log"
+  },
+  "review_round_2": "SHIP"
+}

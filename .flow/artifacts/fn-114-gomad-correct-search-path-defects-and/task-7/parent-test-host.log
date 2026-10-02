@@ -1,0 +1,65 @@
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool patch-validate --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 patch and overlay inputs are valid
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool script-validate --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 script ownership is valid
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache GOTOOLCHAIN=local GOWORK=off \
+		go run ./cmd/gomadtool toolchain-build --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 toolchain is ready (darwin/arm64, key 56e4a2f0c5514d43b9a0682d030964588dd3d5a58978ba0b989459bb556843a3)
+ok  	go.temporal.io/server/tools/gomad3	1.398s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad	50.279s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	4.584s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	1.023s
+--- FAIL: TestCoordinatorTransportCoversEveryCampaignSpecField (0.00s)
+    coordinator_transport_test.go:67: CampaignSpec.guidancePlan is neither transported to the coordinator nor listed as local-only
+--- FAIL: TestCoordinatorTransportRoundTripsEveryTransportedField (0.00s)
+    coordinator_transport_test.go:88: GuideRegressionOverride has kind ptr, which the coordinator transport test cannot populate
+--- FAIL: TestCreateCampaignPlanRejectsDynamicallyDiscoveredOrEarlyStopWork (0.09s)
+    portable_plan_test.go:91: CreateCampaignPlan() accepted a non-static campaign
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner	195.068s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/campaign	35.557s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/corpus	2.364s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/execution	109.471s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration	1.614s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice	1.504s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation	0.597s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord	1.098s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/minimizer	1.289s
+ok  	go.temporal.io/server/tools/gomad3/qualification	1.934s
+ok  	go.temporal.io/server/tools/gomad3/qualification/analysis	34.293s
+ok  	go.temporal.io/server/tools/gomad3/qualification/comparison	0.938s
+ok  	go.temporal.io/server/tools/gomad3/qualification/set	5.480s
+ok  	go.temporal.io/server/tools/gomad3/qualification/set/manifestgen	3.805s
+ok  	go.temporal.io/server/tools/gomad3/qualification/workload	1.340s
+ok  	go.temporal.io/server/tools/gomad3/target	42.382s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/build	0.760s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/capabilityreview	0.889s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/livecap	14.092s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/provenance	0.270s
+ok  	go.temporal.io/server/tools/gomad3/record	0.314s
+ok  	go.temporal.io/server/tools/gomad3/artifact	1.963s
+ok  	go.temporal.io/server/tools/gomad3/choice	0.360s
+ok  	go.temporal.io/server/tools/gomad3/choice/internal/wire	0.605s
+ok  	go.temporal.io/server/tools/gomad3/deterministicio	115.852s
+ok  	go.temporal.io/server/tools/gomad3/deterministicio/internal/wire	0.348s
+ok  	go.temporal.io/server/tools/gomad3/deterministicio/readonlymount	0.433s
+ok  	go.temporal.io/server/tools/gomad3/world	0.389s
+ok  	go.temporal.io/server/tools/gomad3/world/mailbox	0.379s
+ok  	go.temporal.io/server/tools/gomad3/world/process	0.263s
+ok  	go.temporal.io/server/tools/gomad3/toolchain/version	1.976s
+ok  	go.temporal.io/server/tools/gomad3/upgrade	1.545s
+ok  	go.temporal.io/server/tools/gomad3/internal/canonicaljson	0.283s
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack	0.831s
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring	0.940s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	31.958s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/boundary	4.620s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/protocol	1.727s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/validation	0.360s
+ok  	go.temporal.io/server/tools/gomad3/internal/hostexec	0.648s
+ok  	go.temporal.io/server/tools/gomad3/internal/hostfs	0.576s
+FAIL
+make: *** [test-host] Error 1

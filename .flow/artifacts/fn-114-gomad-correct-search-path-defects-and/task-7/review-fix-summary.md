@@ -1,0 +1,7 @@
+Corrected the three host-gate integration tests: guidancePlan is explicitly local to prepared Runner/recorded resume state; pointer transport coverage now exercises nil, true, and explicit false overrides; portable-plan rejection retains seed/all constraints and guided early-stop rejection. Existing guided-plan acceptance/shard tests remain enabled. Production unchanged for these three corrections.
+
+Both review findings reproduced before fixes (review-red, 2.285s). Merge now passes frozen guidance from the portable plan into MergeSpec, checks shard guidance equality, persists it in the merged record, and retains it when validating reopened executions. The empty-merge regression now reopens and inspects the result. The CLI fully-answered message uses global requested/answered counts; a partially answered plan's empty shard reports no guidance selection without claiming the entire request was answered.
+
+Affected transport/plan/guidance tests pass (review-green, 12.867s); architecture and vet pass, formatting and whitespace are clean. Original first-freeze source/evidence files are preserved. Corrected source freeze: review-fix-sources.json (25 total files, 7 changed since the parent implementation commit); review-fix.patch contains only those corrections. Detailed commands and timings: review-fix-evidence.json.
+
+Parent owns final host gate, commit/push and independent re-review. No Flow/Git mutation, dependency, runtime, toolchain, or cancellation-fix changes. Rootlint's unchanged missing-main limitation was not retried. Linux remains unverified.

@@ -1,0 +1,413 @@
+﻿2026-10-02T15:26:52.5852877Z Current runner version: '2.337.0'
+2026-10-02T15:26:52.5878587Z ##[group]Runner Image Provisioner
+2026-10-02T15:26:52.5879533Z Hosted Compute Agent
+2026-10-02T15:26:52.5880160Z Version: 20260901.588
+2026-10-02T15:26:52.5880901Z Commit: f88ec8081b781fac6c440065ac7ff9e710ce3d0b
+2026-10-02T15:26:52.5881655Z Build Date: 2026-09-01T19:56:44Z
+2026-10-02T15:26:52.5882604Z Worker ID: {4af633ae-8d19-4a70-a857-ec13a8d3e65e}
+2026-10-02T15:26:52.5883546Z Azure Region: westus3
+2026-10-02T15:26:52.5884179Z ##[endgroup]
+2026-10-02T15:26:52.5885836Z ##[group]Operating System
+2026-10-02T15:26:52.5886501Z Ubuntu
+2026-10-02T15:26:52.5887038Z 24.04.5
+2026-10-02T15:26:52.5887717Z LTS
+2026-10-02T15:26:52.5888266Z ##[endgroup]
+2026-10-02T15:26:52.5888876Z ##[group]Runner Image
+2026-10-02T15:26:52.5889524Z Image: ubuntu-24.04
+2026-10-02T15:26:52.5890122Z Version: 20260927.320.1
+2026-10-02T15:26:52.5891508Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260927.320/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-02T15:26:52.5893442Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260927.320
+2026-10-02T15:26:52.5894457Z ##[endgroup]
+2026-10-02T15:26:52.5896039Z ##[group]GITHUB_TOKEN Permissions
+2026-10-02T15:26:52.5898298Z Contents: read
+2026-10-02T15:26:52.5898930Z Metadata: read
+2026-10-02T15:26:52.5899650Z ##[endgroup]
+2026-10-02T15:26:52.5901747Z Secret source: Actions
+2026-10-02T15:26:52.5903127Z Cache mode: write
+2026-10-02T15:26:52.5903948Z Prepare workflow directory
+2026-10-02T15:26:52.6274955Z Prepare all required actions
+2026-10-02T15:26:52.6322114Z Getting action download info
+2026-10-02T15:26:53.0086410Z Download action repository 'actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10' (SHA:df4cb1c069e1874edd31b4311f1884172cec0e10)
+2026-10-02T15:26:53.1118578Z Download action repository 'actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c' (SHA:4a3601121dd01d1626a1e23e37211e3254c1c06c)
+2026-10-02T15:26:54.0273195Z Download action repository 'actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f' (SHA:b7c566a772e6b6bfb58ed0dc250532a479d7789f)
+2026-10-02T15:26:54.2743601Z Complete job name: core-linux
+2026-10-02T15:26:54.3535774Z ##[group]Run actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+2026-10-02T15:26:54.3536901Z with:
+2026-10-02T15:26:54.3537391Z   repository: stephanos/temporal
+2026-10-02T15:26:54.3541864Z   token: ***
+2026-10-02T15:26:54.3542507Z   ssh-strict: true
+2026-10-02T15:26:54.3542989Z   ssh-user: git
+2026-10-02T15:26:54.3543483Z   persist-credentials: true
+2026-10-02T15:26:54.3544012Z   clean: true
+2026-10-02T15:26:54.3544503Z   sparse-checkout-cone-mode: true
+2026-10-02T15:26:54.3545060Z   fetch-depth: 1
+2026-10-02T15:26:54.3545523Z   fetch-tags: false
+2026-10-02T15:26:54.3546005Z   show-progress: true
+2026-10-02T15:26:54.3546506Z   lfs: false
+2026-10-02T15:26:54.3546973Z   submodules: false
+2026-10-02T15:26:54.3547470Z   set-safe-directory: true
+2026-10-02T15:26:54.3548201Z ##[endgroup]
+2026-10-02T15:26:54.4560060Z Syncing repository: stephanos/temporal
+2026-10-02T15:26:54.4562958Z ##[group]Getting Git version info
+2026-10-02T15:26:54.4564114Z Working directory is '/home/runner/work/temporal/temporal'
+2026-10-02T15:26:54.4565472Z [command]/usr/bin/git version
+2026-10-02T15:26:54.4598456Z git version 2.55.0
+2026-10-02T15:26:54.4622282Z ##[endgroup]
+2026-10-02T15:26:54.4638105Z Temporarily overriding HOME='/home/runner/work/_temp/b4d64973-888d-4d2f-ac92-d72cc7dee21d' before making global git config changes
+2026-10-02T15:26:54.4640317Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-02T15:26:54.4642942Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/temporal/temporal
+2026-10-02T15:26:54.4704763Z Deleting the contents of '/home/runner/work/temporal/temporal'
+2026-10-02T15:26:54.4706766Z ##[group]Determining repository object format
+2026-10-02T15:26:54.4708312Z ##[endgroup]
+2026-10-02T15:26:54.4709599Z ##[group]Initializing the repository
+2026-10-02T15:26:54.4711187Z [command]/usr/bin/git init /home/runner/work/temporal/temporal
+2026-10-02T15:26:54.4797372Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-02T15:26:54.4798896Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-02T15:26:54.4799938Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-02T15:26:54.4800775Z hint: call:
+2026-10-02T15:26:54.4801242Z hint:
+2026-10-02T15:26:54.4801895Z hint: 	git config --global init.defaultBranch <name>
+2026-10-02T15:26:54.4802717Z hint:
+2026-10-02T15:26:54.4803351Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-02T15:26:54.4804369Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-02T15:26:54.4805616Z hint:
+2026-10-02T15:26:54.4806422Z hint: 	git branch -m <name>
+2026-10-02T15:26:54.4807194Z hint:
+2026-10-02T15:26:54.4808345Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-02T15:26:54.4809881Z Initialized empty Git repository in /home/runner/work/temporal/temporal/.git/
+2026-10-02T15:26:54.4817749Z [command]/usr/bin/git remote add origin https://github.com/stephanos/temporal
+2026-10-02T15:26:54.4865025Z ##[endgroup]
+2026-10-02T15:26:54.4865884Z ##[group]Disabling automatic garbage collection
+2026-10-02T15:26:54.4869182Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-02T15:26:54.4901845Z ##[endgroup]
+2026-10-02T15:26:54.4903653Z ##[group]Setting up auth
+2026-10-02T15:26:54.4904386Z Removing SSH command configuration
+2026-10-02T15:26:54.4909840Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-02T15:26:54.4945764Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-02T15:26:54.5276879Z Removing HTTP extra header
+2026-10-02T15:26:54.5284495Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-02T15:26:54.5325437Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-02T15:26:54.5594604Z Removing includeIf entries pointing to credentials config files
+2026-10-02T15:26:54.5596361Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-02T15:26:54.5644697Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-02T15:26:54.5894966Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-8b4d161d-49ae-42ba-bb4c-9517c567ab7b.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-02T15:26:54.5938123Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/temporal/temporal/.git.path /home/runner/work/_temp/git-credentials-8b4d161d-49ae-42ba-bb4c-9517c567ab7b.config
+2026-10-02T15:26:54.5975367Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/temporal/temporal/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-8b4d161d-49ae-42ba-bb4c-9517c567ab7b.config
+2026-10-02T15:26:54.6013485Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-8b4d161d-49ae-42ba-bb4c-9517c567ab7b.config
+2026-10-02T15:26:54.6050052Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-8b4d161d-49ae-42ba-bb4c-9517c567ab7b.config
+2026-10-02T15:26:54.6084907Z ##[endgroup]
+2026-10-02T15:26:54.6085800Z ##[group]Fetching the repository
+2026-10-02T15:26:54.6093955Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +67dbe02666afd68c064c6c3cb9197b03d4664687:refs/remotes/origin/gomad
+2026-10-02T15:27:00.9231146Z From https://github.com/stephanos/temporal
+2026-10-02T15:27:00.9233459Z  * [new ref]         67dbe02666afd68c064c6c3cb9197b03d4664687 -> origin/gomad
+2026-10-02T15:27:00.9242231Z [command]/usr/bin/git branch --list --remote origin/gomad
+2026-10-02T15:27:00.9273135Z   origin/gomad
+2026-10-02T15:27:00.9283210Z [command]/usr/bin/git rev-parse refs/remotes/origin/gomad
+2026-10-02T15:27:00.9311360Z 67dbe02666afd68c064c6c3cb9197b03d4664687
+2026-10-02T15:27:00.9316631Z ##[endgroup]
+2026-10-02T15:27:00.9318095Z ##[group]Determining the checkout info
+2026-10-02T15:27:00.9321801Z ##[endgroup]
+2026-10-02T15:27:00.9323183Z [command]/usr/bin/git sparse-checkout disable
+2026-10-02T15:27:00.9373089Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-02T15:27:00.9406875Z ##[group]Checking out the ref
+2026-10-02T15:27:00.9409701Z [command]/usr/bin/git checkout --progress --force -B gomad refs/remotes/origin/gomad
+2026-10-02T15:27:01.4970264Z Switched to a new branch 'gomad'
+2026-10-02T15:27:01.4974311Z branch 'gomad' set up to track 'origin/gomad'.
+2026-10-02T15:27:01.4999812Z ##[endgroup]
+2026-10-02T15:27:01.5056626Z [command]/usr/bin/git log -1 --format=%H
+2026-10-02T15:27:01.5090034Z 67dbe02666afd68c064c6c3cb9197b03d4664687
+2026-10-02T15:27:01.5433927Z ##[group]Run actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
+2026-10-02T15:27:01.5434341Z with:
+2026-10-02T15:27:01.5434571Z   go-version-file: tools/gomad3/go.mod
+2026-10-02T15:27:01.5434851Z   check-latest: false
+2026-10-02T15:27:01.5435078Z   cache: true
+2026-10-02T15:27:01.5437733Z   token: ***
+2026-10-02T15:27:01.5437946Z ##[endgroup]
+2026-10-02T15:27:01.6889913Z Setup go version spec 1.27.1
+2026-10-02T15:27:01.6902577Z Attempting to download 1.27.1...
+2026-10-02T15:27:02.6694180Z matching 1.27.1...
+2026-10-02T15:27:02.6721553Z Acquiring 1.27.1 from https://github.com/actions/go-versions/releases/download/1.27.1-33583469715/go-1.27.1-linux-x64.tar.gz
+2026-10-02T15:27:03.2559959Z Extracting Go...
+2026-10-02T15:27:03.2671746Z [command]/usr/bin/tar xz --warning=no-unknown-keyword --overwrite -C /home/runner/work/_temp/c2152e52-a08d-40af-a30a-3b36349f350f -f /home/runner/work/_temp/406c72b7-487e-4e73-a995-84c0409b2c63
+2026-10-02T15:27:05.0982543Z Successfully extracted go to /home/runner/work/_temp/c2152e52-a08d-40af-a30a-3b36349f350f
+2026-10-02T15:27:05.0983124Z Adding to the cache ...
+2026-10-02T15:27:09.9601400Z Successfully cached go to /opt/hostedtoolcache/go/1.27.1/x64
+2026-10-02T15:27:09.9604538Z Added go to the path
+2026-10-02T15:27:09.9607025Z Successfully set up Go version 1.27.1
+2026-10-02T15:27:09.9833318Z [command]/opt/hostedtoolcache/go/1.27.1/x64/bin/go env GOMODCACHE
+2026-10-02T15:27:09.9870737Z [command]/opt/hostedtoolcache/go/1.27.1/x64/bin/go env GOCACHE
+2026-10-02T15:27:09.9909257Z /home/runner/go/pkg/mod
+2026-10-02T15:27:09.9929498Z /home/runner/.cache/go-build
+2026-10-02T15:27:10.2004671Z Cache hit for: setup-go-Linux-x64-ubuntu24-go-1.27.1-35d284535b10f48be60b38d68d200fef32fdb8e6e5d26be07b9dec0f85b8db4b
+2026-10-02T15:27:11.4270461Z Received 37154451 of 41348755 (89.9%), 35.4 MBs/sec
+2026-10-02T15:27:11.4447258Z Received 41348755 of 41348755 (100.0%), 38.7 MBs/sec
+2026-10-02T15:27:11.4447848Z Cache Size: ~39 MB (41348755 B)
+2026-10-02T15:27:11.4487064Z [command]/usr/bin/tar -xf /home/runner/work/_temp/b2b3b757-3f12-4746-b7bb-4ae04ac804f8/cache.tzst -P -C /home/runner/work/temporal/temporal --use-compress-program unzstd
+2026-10-02T15:27:11.7634057Z Cache restored successfully
+2026-10-02T15:27:11.7663131Z Cache restored from key: setup-go-Linux-x64-ubuntu24-go-1.27.1-35d284535b10f48be60b38d68d200fef32fdb8e6e5d26be07b9dec0f85b8db4b
+2026-10-02T15:27:11.7689682Z go version go1.27.1 linux/amd64
+2026-10-02T15:27:11.7689896Z 
+2026-10-02T15:27:11.7690222Z ##[group]go env
+2026-10-02T15:27:11.7813143Z AR='ar'
+2026-10-02T15:27:11.7813565Z CC='gcc'
+2026-10-02T15:27:11.7813924Z CGO_CFLAGS='-O2 -g'
+2026-10-02T15:27:11.7814364Z CGO_CPPFLAGS=''
+2026-10-02T15:27:11.7814773Z CGO_CXXFLAGS='-O2 -g'
+2026-10-02T15:27:11.7815191Z CGO_ENABLED='1'
+2026-10-02T15:27:11.7816050Z CGO_FFLAGS='-O2 -g'
+2026-10-02T15:27:11.7816442Z CGO_LDFLAGS='-O2 -g'
+2026-10-02T15:27:11.7816825Z CXX='g++'
+2026-10-02T15:27:11.7817165Z GCCGO='gccgo'
+2026-10-02T15:27:11.7817526Z GO111MODULE=''
+2026-10-02T15:27:11.7817896Z GOAMD64='v1'
+2026-10-02T15:27:11.7818234Z GOARCH='amd64'
+2026-10-02T15:27:11.7818580Z GOAUTH='netrc'
+2026-10-02T15:27:11.7818980Z GOBIN='/home/runner/go/bin'
+2026-10-02T15:27:11.7819435Z GOCACHE='/home/runner/.cache/go-build'
+2026-10-02T15:27:11.7819888Z GOCACHEPROG=''
+2026-10-02T15:27:11.7820267Z GODEBUG=''
+2026-10-02T15:27:11.7820648Z GOENV='/home/runner/.config/go/env'
+2026-10-02T15:27:11.7821102Z GOEXE=''
+2026-10-02T15:27:11.7821445Z GOEXPERIMENT=''
+2026-10-02T15:27:11.7821837Z GOFIPS140='off'
+2026-10-02T15:27:11.7822193Z GOFLAGS=''
+2026-10-02T15:27:11.7823425Z GOGCCFLAGS='-fPIC -m64 -pthread -Wl,--no-gc-sections -fmessage-length=0 -ffile-prefix-map=/tmp/go-build3896700520=/tmp/go-build -gno-record-gcc-switches'
+2026-10-02T15:27:11.7824542Z GOHOSTARCH='amd64'
+2026-10-02T15:27:11.7824920Z GOHOSTOS='linux'
+2026-10-02T15:27:11.7825348Z GOINSECURE=''
+2026-10-02T15:27:11.7825780Z GOMOD='/home/runner/work/temporal/temporal/go.mod'
+2026-10-02T15:27:11.7826694Z GOMODCACHE='/home/runner/go/pkg/mod'
+2026-10-02T15:27:11.7827161Z GONOPROXY=''
+2026-10-02T15:27:11.7827520Z GONOSUMDB=''
+2026-10-02T15:27:11.7827865Z GOOS='linux'
+2026-10-02T15:27:11.7828226Z GOPACKAGESDRIVER=''
+2026-10-02T15:27:11.7828616Z GOPATH='/home/runner/go'
+2026-10-02T15:27:11.7829007Z GOPRIVATE=''
+2026-10-02T15:27:11.7829486Z GOPROXY='https://proxy.golang.org,direct'
+2026-10-02T15:27:11.7830022Z GOROOT='/opt/hostedtoolcache/go/1.27.1/x64'
+2026-10-02T15:27:11.7830532Z GOSUMDB='sum.golang.org'
+2026-10-02T15:27:11.7830941Z GOTELEMETRY='local'
+2026-10-02T15:27:11.7831405Z GOTELEMETRYDIR='/home/runner/.config/go/telemetry'
+2026-10-02T15:27:11.7831928Z GOTMPDIR=''
+2026-10-02T15:27:11.7832280Z GOTOOLCHAIN='local'
+2026-10-02T15:27:11.7833017Z GOTOOLDIR='/opt/hostedtoolcache/go/1.27.1/x64/pkg/tool/linux_amd64'
+2026-10-02T15:27:11.7833623Z GOVCS=''
+2026-10-02T15:27:11.7833981Z GOVERSION='go1.27.1'
+2026-10-02T15:27:11.7834351Z GOWORK=''
+2026-10-02T15:27:11.7834903Z PKG_CONFIG='pkg-config'
+2026-10-02T15:27:11.7835178Z 
+2026-10-02T15:27:11.7835833Z ##[endgroup]
+2026-10-02T15:27:11.8047195Z ##[group]Run test "$(go env GOHOSTOS)/$(go env GOHOSTARCH)" = linux/amd64
+2026-10-02T15:27:11.8047750Z [36;1mtest "$(go env GOHOSTOS)/$(go env GOHOSTARCH)" = linux/amd64[0m
+2026-10-02T15:27:11.8294534Z shell: /usr/bin/bash -e {0}
+2026-10-02T15:27:11.8294827Z env:
+2026-10-02T15:27:11.8295040Z   GOTOOLCHAIN: local
+2026-10-02T15:27:11.8295279Z ##[endgroup]
+2026-10-02T15:27:11.8510457Z ##[group]Run make -C tools/gomad3 test-harness test-toolchain intercept-test overlay-test test-simulation world-test test-builder test-live-capability test-upstream test-runtime
+2026-10-02T15:27:11.8511699Z [36;1mmake -C tools/gomad3 test-harness test-toolchain intercept-test overlay-test test-simulation world-test test-builder test-live-capability test-upstream test-runtime[0m
+2026-10-02T15:27:11.8581178Z shell: /usr/bin/bash -e {0}
+2026-10-02T15:27:11.8581454Z env:
+2026-10-02T15:27:11.8581659Z   GOTOOLCHAIN: local
+2026-10-02T15:27:11.8581896Z ##[endgroup]
+2026-10-02T15:27:11.8847933Z make: Entering directory '/home/runner/work/temporal/temporal/tools/gomad3'
+2026-10-02T15:27:11.8976241Z env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go test -tags test_dep \
+2026-10-02T15:27:11.8977114Z 	./internal/hostexec ./internal/gomadtool/conformance ./cmd/gomadtool
+2026-10-02T15:27:13.0703800Z ok  	go.temporal.io/server/tools/gomad3/internal/hostexec	0.315s
+2026-10-02T15:27:14.1681608Z ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	0.071s
+2026-10-02T15:27:16.2975607Z ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	0.053s
+2026-10-02T15:27:16.3350642Z GOCACHE=/home/runner/work/temporal/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check
+2026-10-02T15:27:34.3763823Z GOCACHE=/home/runner/work/temporal/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate -check
+2026-10-02T15:27:34.4990470Z GOCACHE=/home/runner/work/temporal/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check
+2026-10-02T15:27:34.5977742Z GOCACHE=/home/runner/work/temporal/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests
+2026-10-02T15:27:34.6896069Z GOCACHE=/home/runner/work/temporal/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool patch-validate --root=/home/runner/work/temporal/temporal/tools/gomad3
+2026-10-02T15:27:34.7848444Z gomad3 patch and overlay inputs are valid
+2026-10-02T15:27:34.7869995Z GOCACHE=/home/runner/work/temporal/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool script-validate --root=/home/runner/work/temporal/temporal/tools/gomad3
+2026-10-02T15:27:34.8814313Z gomad3 script ownership is valid
+2026-10-02T15:27:34.9007403Z env -u GOMADSEED -u GOMAD3_CHILD_SEED GOCACHE=/home/runner/work/temporal/temporal/tools/gomad3/.toolchain/generator-cache GOTOOLCHAIN=local GOWORK=off \
+2026-10-02T15:27:34.9008463Z 	go run ./cmd/gomadtool toolchain-build --root=/home/runner/work/temporal/temporal/tools/gomad3
+2026-10-02T15:30:15.2921173Z gomad3 toolchain is ready (linux/amd64, key fa5d1aa10aeac8e2cd63ee9158b2387911b77b233620cca11efad1c493029d92)
+2026-10-02T15:30:15.2945628Z env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep ./toolchain
+2026-10-02T15:30:31.6623008Z ok  	go.temporal.io/server/tools/gomad3/toolchain	1.405s
+2026-10-02T15:30:31.7165617Z env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool boundary-generate \
+2026-10-02T15:30:31.7166687Z 	-compiler-test-overlay=/home/runner/work/temporal/temporal/tools/gomad3/.toolchain/compiler-test-overlay -goroot="$(.toolchain/bin/go env GOROOT)"
+2026-10-02T15:30:36.8445872Z env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go build -trimpath \
+2026-10-02T15:30:36.8447167Z 	-overlay=/home/runner/work/temporal/temporal/tools/gomad3/.toolchain/compiler-test-overlay/overlay.json -o /home/runner/work/temporal/temporal/tools/gomad3/.toolchain/compiler-test/compile cmd/compile
+2026-10-02T15:31:10.6959955Z env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool boundary-generate -qualify
+2026-10-02T15:31:13.5601250Z env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \
+2026-10-02T15:31:13.5603153Z 	--root=/home/runner/work/temporal/temporal/tools/gomad3 --mode=test-interception --go=/home/runner/work/temporal/temporal/tools/gomad3/.toolchain/bin/go \
+2026-10-02T15:31:13.5604145Z 	--compiler=/home/runner/work/temporal/temporal/tools/gomad3/.toolchain/compiler-test/compile
+2026-10-02T15:33:08.3845425Z gomad3 interception tier passed
+2026-10-02T15:33:08.3893536Z .toolchain/bin/go test -tags test_dep internal/gomadfs internal/gomadwire internal/gomadchoicewire internal/gomadmodelwire \
+2026-10-02T15:33:08.3894583Z 	internal/gomadsim internal/gomadio internal/gomadio/mount os cmd/internal/gomadcap
+2026-10-02T15:33:12.9831806Z ok  	internal/gomadfs	0.066s
+2026-10-02T15:33:12.9885585Z ok  	internal/gomadwire	0.008s
+2026-10-02T15:33:13.4954113Z ok  	internal/gomadchoicewire	0.551s
+2026-10-02T15:33:13.4996243Z ok  	internal/gomadmodelwire	0.007s
+2026-10-02T15:33:13.9918832Z ok  	internal/gomadsim	0.011s
+2026-10-02T15:33:13.9973396Z ok  	internal/gomadio	0.008s
+2026-10-02T15:33:14.0003019Z ok  	internal/gomadio/mount	0.005s
+2026-10-02T15:33:43.4152511Z ok  	os	21.500s
+2026-10-02T15:33:43.4569683Z ok  	cmd/internal/gomadcap	0.005s
+2026-10-02T15:33:43.4570801Z cd /home/runner/work/temporal/temporal/tools/gomad3/../.. && env -u GOMADSEED CGO_ENABLED=0 GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 \
+2026-10-02T15:33:43.4572018Z 	/home/runner/work/temporal/temporal/tools/gomad3/.toolchain/bin/go test -exec /home/runner/work/temporal/temporal/tools/gomad3/internal/gomadtool/conformance/scripts/exec.sh \
+2026-10-02T15:33:43.4574054Z 	-count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim
+2026-10-02T15:33:43.4760136Z go: downloading github.com/stretchr/testify v1.11.1
+2026-10-02T15:33:43.5889382Z go: downloading github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2
+2026-10-02T15:33:43.5890241Z go: downloading gopkg.in/yaml.v3 v3.0.1
+2026-10-02T15:33:43.5890883Z go: downloading github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
+2026-10-02T15:33:45.8456261Z ok  	go.temporal.io/server/tools/gomad3sim	0.050s
+2026-10-02T15:33:45.8590568Z env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration \
+2026-10-02T15:33:45.8592302Z 	-run '^TestRootProcessSimulationUsesRunnerTransport$/^Test(Scenario|ProcessExploration|ProcessAndInProcess|ProcessBackend(Resets|Routes|Preserves|Crash|Model))' ./runner/internal/execution
+2026-10-02T15:34:03.4471216Z ok  	go.temporal.io/server/tools/gomad3/runner/internal/execution	16.468s
+2026-10-02T15:34:03.4576890Z env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go test -race -tags test_dep ./world/...
+2026-10-02T15:34:17.8590301Z ok  	go.temporal.io/server/tools/gomad3/world	3.086s
+2026-10-02T15:34:17.8590948Z ok  	go.temporal.io/server/tools/gomad3/world/mailbox	1.050s
+2026-10-02T15:34:17.8591566Z ok  	go.temporal.io/server/tools/gomad3/world/process	1.010s
+2026-10-02T15:34:17.8941080Z env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \
+2026-10-02T15:34:17.8942150Z 	--root=/home/runner/work/temporal/temporal/tools/gomad3 --mode=test-builder --go="$(command -v go)"
+2026-10-02T15:34:20.0032311Z gomad3 builder tier passed
+2026-10-02T15:34:20.0051672Z env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \
+2026-10-02T15:34:20.0053073Z 	--root=/home/runner/work/temporal/temporal/tools/gomad3 --mode=test-live-capability --go=/home/runner/work/temporal/temporal/tools/gomad3/.toolchain/bin/go
+2026-10-02T15:34:20.4207420Z gomad3 live-capability tier passed
+2026-10-02T15:34:20.4225806Z env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \
+2026-10-02T15:34:20.4227180Z 	--root=/home/runner/work/temporal/temporal/tools/gomad3 --mode=test-upstream --go=/home/runner/work/temporal/temporal/tools/gomad3/.toolchain/bin/go
+2026-10-02T15:38:55.6321463Z gomad3 upstream-compatibility tier passed
+2026-10-02T15:38:55.6345163Z env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \
+2026-10-02T15:38:55.6346562Z 	--root=/home/runner/work/temporal/temporal/tools/gomad3 --mode=test-runtime --go=/home/runner/work/temporal/temporal/tools/gomad3/.toolchain/bin/go
+2026-10-02T15:43:38.9147681Z gomad3 runtime tier passed
+2026-10-02T15:43:38.9178554Z make: Leaving directory '/home/runner/work/temporal/temporal/tools/gomad3'
+2026-10-02T15:43:38.9218740Z ##[group]Run make -C tools/gomad3 test-host
+2026-10-02T15:43:38.9219117Z [36;1mmake -C tools/gomad3 test-host[0m
+2026-10-02T15:43:38.9288524Z shell: /usr/bin/bash -e {0}
+2026-10-02T15:43:38.9288818Z env:
+2026-10-02T15:43:38.9289028Z   GOTOOLCHAIN: local
+2026-10-02T15:43:38.9289258Z ##[endgroup]
+2026-10-02T15:43:38.9398092Z make: Entering directory '/home/runner/work/temporal/temporal/tools/gomad3'
+2026-10-02T15:43:38.9533888Z GOCACHE=/home/runner/work/temporal/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check
+2026-10-02T15:43:39.0538581Z GOCACHE=/home/runner/work/temporal/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate -check
+2026-10-02T15:43:39.2144814Z GOCACHE=/home/runner/work/temporal/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check
+2026-10-02T15:43:39.3259661Z GOCACHE=/home/runner/work/temporal/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests
+2026-10-02T15:43:39.4211646Z GOCACHE=/home/runner/work/temporal/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool patch-validate --root=/home/runner/work/temporal/temporal/tools/gomad3
+2026-10-02T15:43:39.5273350Z gomad3 patch and overlay inputs are valid
+2026-10-02T15:43:39.5295220Z GOCACHE=/home/runner/work/temporal/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool script-validate --root=/home/runner/work/temporal/temporal/tools/gomad3
+2026-10-02T15:43:39.6408114Z gomad3 script ownership is valid
+2026-10-02T15:43:39.6601048Z env -u GOMADSEED -u GOMAD3_CHILD_SEED GOCACHE=/home/runner/work/temporal/temporal/tools/gomad3/.toolchain/generator-cache GOTOOLCHAIN=local GOWORK=off \
+2026-10-02T15:43:39.6602006Z 	go run ./cmd/gomadtool toolchain-build --root=/home/runner/work/temporal/temporal/tools/gomad3
+2026-10-02T15:43:39.7926735Z gomad3 toolchain is ready (linux/amd64, key fa5d1aa10aeac8e2cd63ee9158b2387911b77b233620cca11efad1c493029d92)
+2026-10-02T15:43:42.0861839Z ok  	go.temporal.io/server/tools/gomad3	1.651s
+2026-10-02T15:44:43.0773563Z ok  	go.temporal.io/server/tools/gomad3/cmd/gomad	60.671s
+2026-10-02T15:44:43.0797569Z ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	0.418s
+2026-10-02T15:44:43.0803672Z ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	0.177s
+2026-10-02T15:46:04.9593859Z --- FAIL: TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState (9.40s)
+2026-10-02T15:46:04.9595827Z     --- FAIL: TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/cancellation/simulation-exploration (0.39s)
+2026-10-02T15:46:04.9638743Z         retention_characterization_test.go:717: interrupted retention = runner.retentionObservation{Reason:"target_supervision", Cause:"context canceled", Counts:[5]uint64{0x2, 0x2, 0x0, 0x0, 0x2}, Runs:[]string{"0 success/world_idle kept novel=stdlib.os.openfile", "1 success/world_idle kept novel=stdlib.os.file.read"}}, want runner.retentionObservation{Reason:"cancelled", Cause:"context canceled", Counts:[5]uint64{0x2, 0x2, 0x0, 0x0, 0x2}, Runs:[]string{"0 success/world_idle kept novel=stdlib.os.openfile", "1 success/world_idle kept novel=stdlib.os.file.read"}}
+2026-10-02T15:46:04.9642132Z FAIL
+2026-10-02T15:46:04.9653157Z FAIL	go.temporal.io/server/tools/gomad3/runner	137.503s
+2026-10-02T15:46:04.9683342Z ok  	go.temporal.io/server/tools/gomad3/runner/internal/campaign	10.459s
+2026-10-02T15:46:04.9733126Z ok  	go.temporal.io/server/tools/gomad3/runner/internal/corpus	0.458s
+2026-10-02T15:46:04.9770720Z ok  	go.temporal.io/server/tools/gomad3/runner/internal/execution	110.191s
+2026-10-02T15:46:04.9771636Z ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration	0.005s
+2026-10-02T15:46:04.9772712Z ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice	0.165s
+2026-10-02T15:46:04.9773689Z ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation	0.054s
+2026-10-02T15:46:04.9775287Z ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord	0.013s
+2026-10-02T15:46:04.9776271Z ok  	go.temporal.io/server/tools/gomad3/runner/internal/minimizer	0.079s
+2026-10-02T15:46:04.9777035Z ok  	go.temporal.io/server/tools/gomad3/qualification	0.368s
+2026-10-02T15:46:04.9777756Z ok  	go.temporal.io/server/tools/gomad3/qualification/analysis	12.190s
+2026-10-02T15:46:04.9778538Z ok  	go.temporal.io/server/tools/gomad3/qualification/comparison	0.019s
+2026-10-02T15:46:04.9779297Z ok  	go.temporal.io/server/tools/gomad3/qualification/set	1.025s
+2026-10-02T15:46:04.9780062Z ok  	go.temporal.io/server/tools/gomad3/qualification/set/manifestgen	1.222s
+2026-10-02T15:46:04.9780857Z ok  	go.temporal.io/server/tools/gomad3/qualification/workload	0.007s
+2026-10-02T15:46:04.9781545Z ok  	go.temporal.io/server/tools/gomad3/target	50.901s
+2026-10-02T15:46:04.9782236Z ok  	go.temporal.io/server/tools/gomad3/target/internal/build	0.007s
+2026-10-02T15:46:04.9783604Z ok  	go.temporal.io/server/tools/gomad3/target/internal/capabilityreview	0.014s
+2026-10-02T15:46:04.9784445Z ok  	go.temporal.io/server/tools/gomad3/target/internal/livecap	0.011s
+2026-10-02T15:46:04.9785235Z ok  	go.temporal.io/server/tools/gomad3/target/internal/provenance	0.005s
+2026-10-02T15:46:04.9786256Z ok  	go.temporal.io/server/tools/gomad3/record	0.043s
+2026-10-02T15:46:04.9786844Z ok  	go.temporal.io/server/tools/gomad3/artifact	0.347s
+2026-10-02T15:46:04.9787506Z ok  	go.temporal.io/server/tools/gomad3/choice	0.060s
+2026-10-02T15:46:04.9788150Z ok  	go.temporal.io/server/tools/gomad3/choice/internal/wire	0.003s
+2026-10-02T15:46:42.0302178Z ok  	go.temporal.io/server/tools/gomad3/deterministicio	102.178s
+2026-10-02T15:46:42.0303188Z ok  	go.temporal.io/server/tools/gomad3/deterministicio/internal/wire	0.008s
+2026-10-02T15:46:42.0303854Z ok  	go.temporal.io/server/tools/gomad3/deterministicio/readonlymount	0.010s
+2026-10-02T15:46:42.0304345Z ok  	go.temporal.io/server/tools/gomad3/world	0.405s
+2026-10-02T15:46:42.0304894Z ok  	go.temporal.io/server/tools/gomad3/world/mailbox	0.025s
+2026-10-02T15:46:42.0305345Z ok  	go.temporal.io/server/tools/gomad3/world/process	0.004s
+2026-10-02T15:46:42.0305784Z ok  	go.temporal.io/server/tools/gomad3/toolchain/version	1.051s
+2026-10-02T15:46:42.0306270Z ok  	go.temporal.io/server/tools/gomad3/upgrade	0.292s
+2026-10-02T15:46:42.0306719Z ok  	go.temporal.io/server/tools/gomad3/internal/canonicaljson	0.009s
+2026-10-02T15:46:42.0307247Z ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack	1.837s
+2026-10-02T15:46:42.0307831Z ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring	0.102s
+2026-10-02T15:46:42.0308420Z ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	33.788s
+2026-10-02T15:46:42.0309464Z ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/boundary	4.751s
+2026-10-02T15:46:42.0310324Z ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/protocol	0.932s
+2026-10-02T15:46:42.0311090Z ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/validation	0.026s
+2026-10-02T15:46:42.0311699Z ok  	go.temporal.io/server/tools/gomad3/internal/hostexec	0.303s
+2026-10-02T15:46:42.0312174Z ok  	go.temporal.io/server/tools/gomad3/internal/hostfs	0.006s
+2026-10-02T15:46:42.0312806Z FAIL
+2026-10-02T15:46:42.0822111Z make: *** [Makefile:129: test-host] Error 1
+2026-10-02T15:46:42.0823053Z make: Leaving directory '/home/runner/work/temporal/temporal/tools/gomad3'
+2026-10-02T15:46:42.0846629Z ##[error]Process completed with exit code 2.
+2026-10-02T15:46:42.0962830Z ##[group]Run actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+2026-10-02T15:46:42.0963283Z with:
+2026-10-02T15:46:42.0963536Z   name: gomad3-linux-qualification-37027023410
+2026-10-02T15:46:42.0964079Z   path: tools/gomad3/.toolchain/core-qualification-set.json
+tools/gomad3/.toolchain/core-qualification
+
+2026-10-02T15:46:42.0964589Z   if-no-files-found: error
+2026-10-02T15:46:42.0964836Z   retention-days: 90
+2026-10-02T15:46:42.0965060Z   compression-level: 6
+2026-10-02T15:46:42.0965288Z   overwrite: false
+2026-10-02T15:46:42.0965514Z   include-hidden-files: false
+2026-10-02T15:46:42.0965763Z env:
+2026-10-02T15:46:42.0965955Z   GOTOOLCHAIN: local
+2026-10-02T15:46:42.0966195Z ##[endgroup]
+2026-10-02T15:46:42.2570950Z Multiple search paths detected. Calculating the least common ancestor of all paths
+2026-10-02T15:46:42.2575006Z The least common ancestor is /home/runner/work/temporal/temporal/tools/gomad3/.toolchain. This will be the root directory of the artifact
+2026-10-02T15:46:42.2593486Z ##[error]No files were found with the provided path: tools/gomad3/.toolchain/core-qualification-set.json
+tools/gomad3/.toolchain/core-qualification. No artifacts will be uploaded.
+2026-10-02T15:46:42.2780765Z ##[group]Run actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+2026-10-02T15:46:42.2781193Z with:
+2026-10-02T15:46:42.2781473Z   name: gomad3-linux-temporal-qualification-37027023410
+2026-10-02T15:46:42.2781886Z   path: tools/gomad3/.toolchain/temporal-qualification-set.json
+2026-10-02T15:46:42.2782258Z   if-no-files-found: error
+2026-10-02T15:46:42.2782717Z   retention-days: 90
+2026-10-02T15:46:42.2782949Z   compression-level: 6
+2026-10-02T15:46:42.2783171Z   overwrite: false
+2026-10-02T15:46:42.2783617Z   include-hidden-files: false
+2026-10-02T15:46:42.2783861Z env:
+2026-10-02T15:46:42.2784054Z   GOTOOLCHAIN: local
+2026-10-02T15:46:42.2784277Z ##[endgroup]
+2026-10-02T15:46:42.4436781Z ##[error]No files were found with the provided path: tools/gomad3/.toolchain/temporal-qualification-set.json. No artifacts will be uploaded.
+2026-10-02T15:46:42.4728141Z Post job cleanup.
+2026-10-02T15:46:42.5657517Z [command]/usr/bin/git version
+2026-10-02T15:46:42.5704524Z git version 2.55.0
+2026-10-02T15:46:42.5748797Z Temporarily overriding HOME='/home/runner/work/_temp/1089237f-8505-4b7b-88bb-0cc64730a812' before making global git config changes
+2026-10-02T15:46:42.5750306Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-02T15:46:42.5754968Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/temporal/temporal
+2026-10-02T15:46:42.5789957Z Removing SSH command configuration
+2026-10-02T15:46:42.5797271Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-02T15:46:42.5835778Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-02T15:46:42.6166925Z Removing HTTP extra header
+2026-10-02T15:46:42.6174226Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-02T15:46:42.6239405Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-02T15:46:42.6540577Z Removing includeIf entries pointing to credentials config files
+2026-10-02T15:46:42.6541499Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-02T15:46:42.6573294Z includeif.gitdir:/home/runner/work/temporal/temporal/.git.path
+2026-10-02T15:46:42.6581687Z includeif.gitdir:/home/runner/work/temporal/temporal/.git/worktrees/*.path
+2026-10-02T15:46:42.6583494Z includeif.gitdir:/github/workspace/.git.path
+2026-10-02T15:46:42.6586123Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-02T15:46:42.6596307Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/temporal/temporal/.git.path
+2026-10-02T15:46:42.6615212Z /home/runner/work/_temp/git-credentials-8b4d161d-49ae-42ba-bb4c-9517c567ab7b.config
+2026-10-02T15:46:42.6640681Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/temporal/temporal/.git.path /home/runner/work/_temp/git-credentials-8b4d161d-49ae-42ba-bb4c-9517c567ab7b.config
+2026-10-02T15:46:42.6706724Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/temporal/temporal/.git/worktrees/*.path
+2026-10-02T15:46:42.6749951Z /home/runner/work/_temp/git-credentials-8b4d161d-49ae-42ba-bb4c-9517c567ab7b.config
+2026-10-02T15:46:42.6777083Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/temporal/temporal/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-8b4d161d-49ae-42ba-bb4c-9517c567ab7b.config
+2026-10-02T15:46:42.6819495Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-10-02T15:46:42.6857650Z /github/runner_temp/git-credentials-8b4d161d-49ae-42ba-bb4c-9517c567ab7b.config
+2026-10-02T15:46:42.6867799Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-8b4d161d-49ae-42ba-bb4c-9517c567ab7b.config
+2026-10-02T15:46:42.6920991Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-02T15:46:42.6961879Z /github/runner_temp/git-credentials-8b4d161d-49ae-42ba-bb4c-9517c567ab7b.config
+2026-10-02T15:46:42.6988408Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-8b4d161d-49ae-42ba-bb4c-9517c567ab7b.config
+2026-10-02T15:46:42.7032269Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-02T15:46:42.7306730Z Removing credentials config '/home/runner/work/_temp/git-credentials-8b4d161d-49ae-42ba-bb4c-9517c567ab7b.config'
+2026-10-02T15:46:42.7498235Z Cleaning up orphan processes

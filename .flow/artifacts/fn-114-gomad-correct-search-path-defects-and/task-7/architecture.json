@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    "."
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 1.635,
+  "log": "architecture.log"
+}
