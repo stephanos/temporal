@@ -11,6 +11,7 @@
   "impl_review_rounds": {
     "fn-114-gomad-correct-search-path-defects-and.1": 0,
     "fn-114-gomad-correct-search-path-defects-and.10": 0,
+    "fn-114-gomad-correct-search-path-defects-and.11": 0,
     "fn-114-gomad-correct-search-path-defects-and.15": 0,
     "fn-114-gomad-correct-search-path-defects-and.16": 0,
     "fn-114-gomad-correct-search-path-defects-and.2": 0,
@@ -804,11 +805,41 @@
       "task": "fn-114-gomad-correct-search-path-defects-and.16",
       "timestamp": "2026-10-02T21:16:09.454207Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "8d56a0e6c6a333fb62d11253dd5c838c89efad8c069e4281f50df8c416fe5f13",
+      "backend": "claude",
+      "base_sha": "d56cc809ae138c57b01b29fdd81c788fdcb1ba7b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7c93c66538f4d8ee43c5e7462a806bb33106b998",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4574,
+      "output_sha256": "a062f992de054201632233b0d0e8fe6411b27977c0962e612d3e99f0ca729269",
+      "reservation_id": "31af8efe1a184db9953e29ec6eec288f",
+      "round_consumed": true,
+      "scope": "impl:fn-114-gomad-correct-search-path-defects-and.11",
+      "superseded_by": null,
+      "task": "fn-114-gomad-correct-search-path-defects-and.11",
+      "timestamp": "2026-10-02T23:37:29.102407Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-114-gomad-correct-search-path-defects-and.1": 1,
     "impl:fn-114-gomad-correct-search-path-defects-and.10": 1,
+    "impl:fn-114-gomad-correct-search-path-defects-and.11": 1,
     "impl:fn-114-gomad-correct-search-path-defects-and.15": 1,
     "impl:fn-114-gomad-correct-search-path-defects-and.16": 1,
     "impl:fn-114-gomad-correct-search-path-defects-and.2": 1,
@@ -827,6 +858,7 @@
   "review_transport_failures": {
     "impl:fn-114-gomad-correct-search-path-defects-and.1": 0,
     "impl:fn-114-gomad-correct-search-path-defects-and.10": 0,
+    "impl:fn-114-gomad-correct-search-path-defects-and.11": 0,
     "impl:fn-114-gomad-correct-search-path-defects-and.15": 0,
     "impl:fn-114-gomad-correct-search-path-defects-and.16": 0,
     "impl:fn-114-gomad-correct-search-path-defects-and.2": 0,
@@ -853,5 +885,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T21:16:09.456845Z"
+  "updated_at": "2026-10-02T23:37:29.117563Z"
 }
