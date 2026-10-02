@@ -27,6 +27,17 @@ func workspaceBinding() Binding {
 	}
 }
 
+func otherWorkspaceBinding() Binding {
+	binding := workspaceBinding()
+	binding.ParentRecordHash = record.HashBytes([]byte("other parent record"))
+	return binding
+}
+
+// parentStateDirectory is where root keeps the state of binding's parent.
+func parentStateDirectory(root string, binding Binding) string {
+	return filepath.Join(root, workspaceStateRoot, parentDirectory(binding.ParentRecordHash))
+}
+
 func workspaceInitialState(t *testing.T, attemptBudget uint64) State {
 	t.Helper()
 	config := testConfig()
@@ -122,8 +133,8 @@ func TestWorkspaceResumeRejectsStateOfAnotherRun(t *testing.T) {
 		want   string
 	}{
 		{name: "parent artifact", change: func(_ *testing.T, binding *Binding, _ *State) {
-			binding.ParentRecordHash = record.HashBytes([]byte("other parent record"))
-		}, want: "different parent artifact"},
+			*binding = otherWorkspaceBinding()
+		}, want: ErrNoCheckpoint.Error()},
 		{name: "minimizer implementation", change: func(_ *testing.T, binding *Binding, _ *State) {
 			binding.ImplementationSHA256 = record.HashBytes([]byte("other implementation"))
 		}, want: "different minimizer implementation"},
@@ -160,7 +171,7 @@ func TestWorkspaceResumeFailsClosedOnDamagedState(t *testing.T) {
 		damage func(t *testing.T, root string, persisted Checkpoint)
 	}{
 		{name: "missing accepted artifact", damage: func(t *testing.T, root string, persisted Checkpoint) {
-			if err := os.Remove(filepath.Join(root, workspaceStateDirectory, workspaceAcceptedName, persisted.Accepted.Directory)); err != nil {
+			if err := os.Remove(filepath.Join(parentStateDirectory(root, workspaceBinding()), workspaceAcceptedName, persisted.Accepted.Directory)); err != nil {
 				t.Fatal(err)
 			}
 		}},
@@ -176,7 +187,7 @@ func TestWorkspaceResumeFailsClosedOnDamagedState(t *testing.T) {
 			rewriteCheckpoint(t, root, func(encoded string) string { return encoded + "\n" })
 		}},
 		{name: "symbolic link state", damage: func(t *testing.T, root string, _ Checkpoint) {
-			path := filepath.Join(root, workspaceStateDirectory, workspaceCheckpointName)
+			path := filepath.Join(parentStateDirectory(root, workspaceBinding()), workspaceCheckpointName)
 			moved := path + ".moved"
 			if err := os.Rename(path, moved); err != nil {
 				t.Fatal(err)
@@ -196,9 +207,58 @@ func TestWorkspaceResumeFailsClosedOnDamagedState(t *testing.T) {
 	}
 }
 
+func TestWorkspaceKeepsStatePerParentArtifact(t *testing.T) {
+	root, persisted := interruptedWorkspace(t)
+	held := openTestWorkspace(t, root, true)
+	initial := workspaceInitialState(t, 8)
+
+	other, err := OpenWorkspace(context.Background(), root, otherWorkspaceBinding(), initial, false)
+	if err != nil {
+		t.Fatalf("OpenWorkspace() of another parent beside held state: %v", err)
+	}
+	if err := errors.Join(other.Complete(), other.Close()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := OpenWorkspace(context.Background(), root, workspaceBinding(), initial, true); !errors.Is(err, hostfs.ErrContended) {
+		t.Fatalf("second OpenWorkspace() of the held parent error = %v", err)
+	}
+	if err := held.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if restored := openTestWorkspace(t, root, true).Checkpoint(); !reflect.DeepEqual(restored, persisted) {
+		t.Fatalf("checkpoint after another parent completed = %#v, want %#v", restored, persisted)
+	}
+}
+
+func TestWorkspaceResumeRejectsStateMovedFromAnotherParent(t *testing.T) {
+	root, _ := interruptedWorkspace(t)
+	if err := os.Rename(parentStateDirectory(root, workspaceBinding()), parentStateDirectory(root, otherWorkspaceBinding())); err != nil {
+		t.Fatal(err)
+	}
+	_, err := OpenWorkspace(context.Background(), root, otherWorkspaceBinding(), workspaceInitialState(t, 8), true)
+	if want := "different parent artifact"; err == nil || !strings.Contains(err.Error(), want) {
+		t.Fatalf("OpenWorkspace() error = %v, want %q", err, want)
+	}
+}
+
+func TestWorkspaceRejectsSymbolicLinkStateRoot(t *testing.T) {
+	root, elsewhere := t.TempDir(), t.TempDir()
+	if err := os.Symlink(elsewhere, filepath.Join(root, workspaceStateRoot)); err != nil {
+		t.Fatal(err)
+	}
+	for _, resume := range []bool{false, true} {
+		if _, err := OpenWorkspace(context.Background(), root, workspaceBinding(), workspaceInitialState(t, 8), resume); err == nil || errors.Is(err, ErrNoCheckpoint) {
+			t.Fatalf("OpenWorkspace(resume=%t) through a symbolic link error = %v", resume, err)
+		}
+	}
+	if entries, err := os.ReadDir(elsewhere); err != nil || len(entries) != 0 {
+		t.Fatalf("entries written through the symbolic link = %v, %v", entries, err)
+	}
+}
+
 func rewriteCheckpoint(t *testing.T, root string, rewrite func(string) string) {
 	t.Helper()
-	path := filepath.Join(root, workspaceStateDirectory, workspaceCheckpointName)
+	path := filepath.Join(parentStateDirectory(root, workspaceBinding()), workspaceCheckpointName)
 	encoded, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatal(err)
@@ -259,12 +319,12 @@ func TestWorkspaceStateGatesInitialRunsAndResumes(t *testing.T) {
 	if err := resumed.Close(); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := os.Lstat(filepath.Join(root, workspaceStateDirectory)); !errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Lstat(parentStateDirectory(root, workspaceBinding())); !errors.Is(err, os.ErrNotExist) {
 		t.Fatalf("state directory after completion: %v", err)
 	}
 	// A run that died between removing the checkpoint and its directory
 	// leaves a directory the next initial run discards.
-	if err := os.MkdirAll(filepath.Join(root, workspaceStateDirectory, workspaceAcceptedName, "sha256-stale"), 0o700); err != nil {
+	if err := os.MkdirAll(filepath.Join(parentStateDirectory(root, workspaceBinding()), workspaceAcceptedName, "sha256-stale"), 0o700); err != nil {
 		t.Fatal(err)
 	}
 	restarted := openTestWorkspace(t, root, false)
@@ -344,7 +404,7 @@ func TestWorkspaceLockOfKilledProcessDoesNotBlockResume(t *testing.T) {
 	if err := holder.Wait(); err == nil {
 		t.Fatal("lock holder exited cleanly instead of being killed")
 	}
-	if _, err := os.Lstat(filepath.Join(root, workspaceLockName)); err != nil {
+	if _, err := os.Lstat(parentStateDirectory(root, workspaceBinding()) + workspaceLockSuffix); err != nil {
 		t.Fatalf("lock file of the killed holder: %v", err)
 	}
 	resumed := openTestWorkspace(t, root, true)
