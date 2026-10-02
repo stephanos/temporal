@@ -1,0 +1,22 @@
+{
+  "commits": [
+    "e153d05a76083b797525eca6bb685c78f5b623be"
+  ],
+  "tests": [
+    "GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host (before two-file review fix; PASS 173.2s)",
+    "make -C tools/gomad3 validate (PASS before review fix)",
+    "review-fix-tests.json: focused divergence and architecture checks (PASS 6.13s)",
+    "git diff --cached --check -- tools/gomad3 MILESTONES.md .flow/tasks .flow/specs (PASS)"
+  ],
+  "prs": [],
+  "review": {
+    "verdict": "SHIP",
+    "model": "gpt-6-astra",
+    "effort": "high",
+    "session_id": "01a0fd25-c019-7121-af47-bb64c0979f8d"
+  },
+  "limitations": [
+    "Linux unverified",
+    "Root lint unavailable: absent main and nested module discovery"
+  ]
+}
