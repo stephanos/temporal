@@ -1,0 +1,13 @@
+{
+  "commits": [
+    "4bc2a2201501b7eba55d3491d7fc6a1c460d7674"
+  ],
+  "tests": [
+    "verify-guides.py with current binaries and task-3 output: PASS (4.506s)",
+    "91 input hashes: match",
+    "Independent 89-link/98-claim/123-identifier checks and 4 actual CLI controls: PASS",
+    "Edited-document whitespace: PASS"
+  ],
+  "prs": [],
+  "review_receipt": ".flow/artifacts/fn-111-gomad-consolidate-vocabulary-and-update/task-3/completion-review.json"
+}

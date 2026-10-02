@@ -1,0 +1,28 @@
+{
+  "attempt_timestamp": "2026-10-02T15:39:27.911187Z",
+  "base": "67dbe02666afd68c064c6c3cb9197b03d4664687",
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "67dbe02666afd68c064c6c3cb9197b03d4664687",
+    "headSha": "4bc2a2201501b7eba55d3491d7fc6a1c460d7674",
+    "items": [],
+    "reviewKind": "completion",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-1840f79ab15d3c41f301c41e9e58b39c4fbd719c22680ed25f58c8ccfbbea4eb"
+  },
+  "id": "fn-111-gomad-consolidate-vocabulary-and-update",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6-astra",
+  "pre_existing_count": 0,
+  "review": "Prior findings: all fixed\n\nThe prior review raised no formal findings. Its stale-evidence limitation is resolved: all 91 recorded input hashes match the current files, and both acceptance-report hashes match.\n\n## Requirements Extracted\n\n1. **R1:** Assess 25 glossary entries, preserve 24 current concepts, and mark Parity Case historical.\n2. **R2:** Establish SPEC as canonical vocabulary, remove GLOSSARY, update links, and preserve ordered unique identifiers.\n3. **R3:** Preserve target/preparation, campaign/plan, trace/tape, exact/prefix replay, backend/fidelity, and World/I/O distinctions.\n4. **R4:** Accurately document tracing, exploration, replay, backends, platforms, qualification limitations, and clocks.\n5. **R5:** Match implemented commands, flags, examples, defaults, bounds, classifications, and workflows.\n6. **R6:** Use canonical tutorial terminology, distinguish repeatability from exact replay, and preserve the roadmap.\n7. **R7:** Validate navigation and fences, remove stale vocabulary, and preserve historical evidence.\n8. **R8:** Retain source-bound acceptance results and requirement mappings, with limited fn-109 R9/D5 reuse.\n9. Preserve runtime, API, schema, qualification, and other implementation contracts.\n\n## Coverage Verification\n\n1. **R1 \u2014 COVERED:** `tools/gomad3/SPEC.md:32`; `tools/gomad3/README.md:916`. Independent comparison confirms 25 original entries and no missing current concepts.\n2. **R2 \u2014 COVERED:** `tools/gomad3/SPEC.md:24`; `tools/gomad3/README.md:963`. Independently confirmed glossary absence and all 123 unique identifiers preserved in order.\n3. **R3 \u2014 COVERED:** `tools/gomad3/SPEC.md:44`, `:50`, `:84`, `:98`, and `:104` retain the required distinctions.\n4. **R4 \u2014 COVERED:** `tools/gomad3/ARCHITECTURE.md:17`, `:98`, `:209`, and `:252`. The added divergence-status explanation matches implementation and regression cases.\n5. **R5 \u2014 COVERED:** `tools/gomad3/CLI.md:143`, `:281`, `:430`, and `:548`; `tools/gomad3/README.md:983`. Diagnostics constraints, diagnostic comparison, divergence statuses, and the simulation gate match current source.\n6. **R6 \u2014 COVERED:** `tools/gomad3/TUTORIAL.md:153`, `:353`, `:467`, `:570`, and `:676`. Preparation, fidelity, replay, divergence handling, and roadmap references remain consistent.\n7. **R7 \u2014 COVERED:** Independently checked all 89 recorded local links/fragments, fence balance, and stale vocabulary without errors. Historical acceptance is explicitly retained at `.flow/artifacts/fn-111-gomad-consolidate-vocabulary-and-update/acceptance-summary.md:3`.\n8. **R8 \u2014 COVERED:** `.flow/artifacts/fn-111-gomad-consolidate-vocabulary-and-update/task-3/acceptance-summary.md:3` binds the checked tree; line 18 maps requirements; line 49 limits reuse. All 91 input hashes match.\n9. **Implementation boundaries \u2014 COVERED:** The diff contains documentation, tracking, and acceptance tooling/evidence; no product runtime or qualification expectations change.\n\nIndependent verification also reconfirmed all 98 recorded source/statement matches. The four CLI controls reproduced their recorded outputs and statuses: equal diagnostics **0**, different diagnostics **1**, malformed diagnostics **2**, and unsupported diagnostics/exploration combination **2**.\n\nThe edited-document whitespace check passes. The full-range check flags space-before-tab indentation in captured Go help output; this is informational and does not block convergence.\n\n## Reverse Coverage (untraced changes)\n\nNone \u2014 every changed file traces to a requirement. Guide and milestone updates serve R4\u2013R7; audit scripts, help captures, reports, historical receipts, and Flow tracking support R8 and its R1\u2013R7 verification.\n\n## Gaps Found\n\nNone. No new blocking finding was identified.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | met | Vocabulary comparison and historical Parity Case disposition |\n| R2 | met | Canonical ownership, glossary absence, 123 ordered identifiers |\n| R3 | met | SPEC\u2019s preserved conceptual distinctions |\n| R4 | met | Architecture and source-bound behavior checks |\n| R5 | met | Updated CLI documentation, source checks, reproduced controls |\n| R6 | met | Tutorial terminology, replay distinctions, retained roadmap |\n| R7 | met | 89 valid links/fragments, balanced fences, historical preservation |\n| R8 | met | Matching input hashes, current acceptance summary, bounded reuse |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "9d2dc5e477c14a589da287d31f1a026f",
+  "session_id": "01a0fd33-abf9-7071-b805-20c49041a379",
+  "spec": "codex:gpt-6-astra:high",
+  "timestamp": "2026-10-02T15:39:27.909916Z",
+  "type": "completion_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}
