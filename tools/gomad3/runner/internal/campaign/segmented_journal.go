@@ -102,13 +102,13 @@ func normalizeExecutionJournalLimits(config CampaignConfig) (ExecutionJournalLim
 			return ExecutionJournalLimits{}, errors.New("execution journal byte capacity overflows")
 		}
 		limits = ExecutionJournalLimits{
-			MaximumExecutions: maximumRuns, MaximumBytes: maximumRuns * defaultExecutionSegmentBytes,
+			MaximumExecutions: maximumRuns, MaximumBytes: max(maximumRuns, 1) * defaultExecutionSegmentBytes,
 			SegmentBytes: defaultExecutionSegmentBytes, SegmentRecords: defaultExecutionSegmentRecords,
-			MaximumSegments: maximumRuns, MaximumPartialExecutions: maximumPartialRuns,
+			MaximumSegments: max(maximumRuns, 1), MaximumPartialExecutions: maximumPartialRuns,
 		}
 	}
-	if limits.MaximumExecutions == 0 || limits.MaximumExecutions > maximumExecutionJournalExecutions || limits.MaximumBytes == 0 || limits.MaximumBytes > maximumExecutionJournalBytes || limits.SegmentBytes == 0 || limits.SegmentBytes > maximumExecutionSegmentBytes || limits.SegmentBytes > limits.MaximumBytes ||
-		limits.SegmentRecords == 0 || limits.MaximumSegments == 0 || limits.MaximumSegments > limits.MaximumExecutions || limits.MaximumPartialExecutions == 0 || limits.MaximumPartialExecutions > limits.MaximumExecutions {
+	if limits.MaximumExecutions > maximumExecutionJournalExecutions || limits.MaximumBytes == 0 || limits.MaximumBytes > maximumExecutionJournalBytes || limits.SegmentBytes == 0 || limits.SegmentBytes > maximumExecutionSegmentBytes || limits.SegmentBytes > limits.MaximumBytes ||
+		limits.SegmentRecords == 0 || limits.MaximumSegments == 0 || limits.MaximumSegments > max(limits.MaximumExecutions, 1) || limits.MaximumExecutions != 0 && limits.MaximumPartialExecutions == 0 || limits.MaximumPartialExecutions > limits.MaximumExecutions {
 		return ExecutionJournalLimits{}, errors.New("execution journal limits are invalid")
 	}
 	return limits, nil
@@ -605,9 +605,9 @@ func readIndexedRunSegments(root *os.Root, index executionJournalIndex) ([]Execu
 
 func validateRunJournalIndex(index executionJournalIndex, reference ExecutionJournalReference) error {
 	limits := index.Limits
-	if index.Schema != executionJournalSchema || limits.CapacityOutcome != CapacityInfrastructureFailure || limits.MaximumExecutions == 0 || limits.MaximumExecutions > maximumExecutionJournalExecutions || limits.MaximumBytes == 0 || limits.MaximumBytes > maximumExecutionJournalBytes || limits.SegmentBytes == 0 || limits.SegmentBytes > maximumExecutionSegmentBytes ||
-		limits.SegmentBytes > limits.MaximumBytes || limits.SegmentRecords == 0 || limits.MaximumSegments == 0 || limits.MaximumSegments > limits.MaximumExecutions ||
-		limits.MaximumPartialExecutions == 0 || limits.MaximumPartialExecutions > limits.MaximumExecutions || uint64(len(index.Segments)) > uint64(limits.MaximumSegments) {
+	if index.Schema != executionJournalSchema || limits.CapacityOutcome != CapacityInfrastructureFailure || limits.MaximumExecutions > maximumExecutionJournalExecutions || limits.MaximumBytes == 0 || limits.MaximumBytes > maximumExecutionJournalBytes || limits.SegmentBytes == 0 || limits.SegmentBytes > maximumExecutionSegmentBytes ||
+		limits.SegmentBytes > limits.MaximumBytes || limits.SegmentRecords == 0 || limits.MaximumSegments == 0 || limits.MaximumSegments > max(limits.MaximumExecutions, 1) ||
+		limits.MaximumExecutions != 0 && limits.MaximumPartialExecutions == 0 || limits.MaximumPartialExecutions > limits.MaximumExecutions || uint64(len(index.Segments)) > uint64(limits.MaximumSegments) {
 		return errors.New("execution journal index limits are invalid")
 	}
 	var records, bytes uint64

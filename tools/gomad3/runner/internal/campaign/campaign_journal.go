@@ -25,6 +25,7 @@ type CampaignConfig struct {
 	Strategy       string
 	Selection      string
 	SelectionCount uint64
+	Guidance       *GuidancePlan
 	MaxExecutions  uint64
 	Parallel       uint64
 	Journal        ExecutionJournalLimits
@@ -118,6 +119,7 @@ type ExecutionJournal struct {
 }
 
 type CampaignRecord struct {
+	Guidance                                  *GuidancePlan              `json:"guidance,omitempty"`
 	SchemaVersion                             uint32                     `json:"schema_version"`
 	Schema                                    string                     `json:"schema"`
 	CampaignID                                string                     `json:"campaign_id"`
@@ -158,7 +160,7 @@ func NewCampaignJournal(ctx context.Context, config CampaignConfig) (_ *Campaign
 	if config.Strategy != "seed" && config.Strategy != "choice-exploration" && config.Strategy != "simulation-exploration" {
 		return nil, errors.New("campaign journal strategy is invalid")
 	}
-	if config.Root == "" || config.CampaignID == "" || config.Selection == "" || config.SelectionCount == 0 {
+	if config.Root == "" || config.CampaignID == "" || (config.Selection == "") != (config.SelectionCount == 0) || config.SelectionCount == 0 && !isFullyAnsweredGuidance(config.Guidance) {
 		return nil, errors.New("campaign journal root, campaign ID, selection, and selection count are required")
 	}
 	if (config.PlanSHA256 == "") != (config.Shard == nil) {
@@ -230,13 +232,19 @@ func (journal *CampaignJournal) ExecutionJournalPlan() ExecutionJournalPlan {
 	return recordExecutionJournalLimits(journal.config.Journal)
 }
 
-func (journal *CampaignJournal) SetSelection(selection string, count uint64) error {
-	if selection == "" || count == 0 {
+func (journal *CampaignJournal) SetSelection(selection string, count uint64, guidance *GuidancePlan) error {
+	if (selection == "") != (count == 0) || count == 0 && !isFullyAnsweredGuidance(guidance) {
 		return errors.New("campaign selection and count are required")
 	}
 	if journal.segmentedRuns != nil || journal.published {
 		return errors.New("campaign selection cannot change after executions start")
 	}
+	limits, err := normalizeExecutionJournalLimits(CampaignConfig{Strategy: journal.config.Strategy, SelectionCount: count, MaxExecutions: journal.config.MaxExecutions, Parallel: journal.config.Parallel})
+	if err != nil {
+		return err
+	}
+	journal.config.Journal = limits
+	journal.config.Guidance = guidance
 	journal.config.Selection = selection
 	journal.config.SelectionCount = count
 	return nil
@@ -361,6 +369,7 @@ func (journal *CampaignJournal) Publish(summary CampaignSummary) error {
 	}
 	sort.Slice(failureSignatures, func(i, j int) bool { return failureSignatures[i] < failureSignatures[j] })
 	batch := CampaignRecord{
+		Guidance:      journal.config.Guidance,
 		SchemaVersion: record.SchemaVersion, Schema: "gomad3.campaign/v1", CampaignID: journal.config.CampaignID, Strategy: journal.config.Strategy, Selection: journal.config.Selection,
 		PlanSHA256: journal.config.PlanSHA256, Shard: cloneCampaignShard(journal.config.Shard),
 		SelectionCount: record.Uint64String(journal.config.SelectionCount), Attempted: record.Uint64String(summary.Attempted), Succeeded: record.Uint64String(summary.Succeeded),

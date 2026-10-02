@@ -97,7 +97,7 @@ func MergeCampaigns(ctx context.Context, spec MergeSpec) (_ MergedCampaign, retE
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	if spec.Output == "" || spec.Selection == "" || spec.SelectionCount == 0 || spec.SeedAt == nil || !validRecordSHA256(spec.PlanSHA256) || len(spec.ShardPaths) == 0 {
+	if spec.Output == "" || (spec.Selection == "") != (spec.SelectionCount == 0) || spec.SeedAt == nil || !validRecordSHA256(spec.PlanSHA256) || len(spec.ShardPaths) == 0 {
 		return MergedCampaign{}, errors.New("campaign merge input is incomplete")
 	}
 	limits := executionJournalLimitsFromPlan(spec.Journal)
@@ -442,7 +442,7 @@ func OpenMergedCampaign(path string) (_ MergedCampaign, retErr error) {
 	if err := canonicaljson.DecodeCanonicalJSON(manifest, &campaign); err != nil {
 		return MergedCampaign{}, err
 	}
-	if campaign.Schema != MergedCampaignSchema || campaign.SchemaVersion != record.SchemaVersion || !validRecordSHA256(campaign.PlanSHA256) || campaign.Selection == "" || campaign.SelectionCount == 0 {
+	if campaign.Schema != MergedCampaignSchema || campaign.SchemaVersion != record.SchemaVersion || !validRecordSHA256(campaign.PlanSHA256) || (campaign.Selection == "") != (campaign.SelectionCount == 0) {
 		return MergedCampaign{}, errors.New("merged campaign record is invalid")
 	}
 	runs, err := readMergedExecutionJournal(root, campaign.Journal)

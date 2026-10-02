@@ -32,8 +32,14 @@ type ChoiceProfilePlan struct {
 }
 
 type GuidancePlan struct {
-	Corpus         string        `json:"corpus"`
-	SnapshotSHA256 record.SHA256 `json:"snapshot_sha256"`
+	Corpus             string                `json:"corpus"`
+	SnapshotSHA256     record.SHA256         `json:"snapshot_sha256"`
+	Regression         bool                  `json:"regression"`
+	RequestedSelection string                `json:"requested_selection"`
+	RequestedCount     record.Uint64String   `json:"requested_count"`
+	AnsweredSeeds      []record.Uint64String `json:"answered_seeds"`
+	AnsweredCount      record.Uint64String   `json:"answered_count"`
+	GuidedCount        record.Uint64String   `json:"guided_count"`
 }
 
 type CampaignShard struct {
@@ -85,6 +91,10 @@ type CampaignPlan struct {
 	Guidance               *GuidancePlan              `json:"guidance,omitempty"`
 }
 
+func isFullyAnsweredGuidance(guidance *GuidancePlan) bool {
+	return guidance != nil && !guidance.Regression && guidance.RequestedSelection != "" && guidance.RequestedCount != 0 && guidance.AnsweredCount == guidance.RequestedCount && guidance.GuidedCount == 0 && guidance.AnsweredCount <= record.Uint64String(len(guidance.AnsweredSeeds)) && validRecordSHA256(guidance.SnapshotSHA256)
+}
+
 func (journal *CampaignJournal) RecordPlan(plan CampaignPlan) error {
 	if err := validateCampaignPlan(plan); err != nil {
 		return err
@@ -120,6 +130,7 @@ func (journal *CampaignJournal) RecordPlan(plan CampaignPlan) error {
 	if err := atomicWriteContext(journal.ctx, path, encoded); err != nil {
 		return err
 	}
+	journal.config.Guidance = plan.Guidance
 	if plan.Artifacts != nil {
 		artifacts := *plan.Artifacts
 		journal.artifactPlan = &artifacts
@@ -199,7 +210,7 @@ func validateResumeLifecycle(root *os.Root, campaignID string) error {
 }
 
 func validateCampaignPlan(plan CampaignPlan) error {
-	if plan.Schema != CampaignPlanSchema || plan.Selection == "" || plan.SelectionCount == 0 || plan.Parallel == 0 {
+	if plan.Schema != CampaignPlanSchema || (plan.Selection == "") != (plan.SelectionCount == 0) || plan.SelectionCount == 0 && plan.Guidance == nil || plan.Parallel == 0 {
 		return fmt.Errorf("campaign plan identity is invalid")
 	}
 	if plan.Journal == nil || validateExecutionJournalPlan(*plan.Journal, plan) != nil || plan.Artifacts == nil {
@@ -216,7 +227,7 @@ func validateCampaignPlan(plan CampaignPlan) error {
 		return fmt.Errorf("campaign plan portable identity is incomplete")
 	}
 	if plan.Shard != nil {
-		if !validRecordSHA256(plan.PlanSHA256) || plan.Shard.Count == 0 || plan.Shard.Index >= plan.Shard.Count || plan.Strategy != "seed" || plan.Guidance != nil || plan.OnFailure != "all" {
+		if !validRecordSHA256(plan.PlanSHA256) || plan.Shard.Count == 0 || plan.Shard.Index >= plan.Shard.Count || plan.Strategy != "seed" || plan.OnFailure != "all" {
 			return fmt.Errorf("campaign plan shard identity is invalid")
 		}
 	}
@@ -304,6 +315,28 @@ func validateCampaignPlan(plan CampaignPlan) error {
 		corpus := filepath.Clean(plan.Guidance.Corpus)
 		if !filepath.IsAbs(corpus) || corpus != plan.Guidance.Corpus || corpus == filepath.VolumeName(corpus)+string(filepath.Separator) || !validRecordSHA256(plan.Guidance.SnapshotSHA256) || plan.Coverage == "none" {
 			return fmt.Errorf("campaign plan guidance identity is invalid")
+		}
+	}
+	if plan.Guidance != nil {
+		guidance := plan.Guidance
+		unguided := plan.SelectionCount / 4
+		if plan.SelectionCount%4 != 0 {
+			unguided++
+		}
+		if guidance.RequestedSelection == "" || guidance.RequestedCount == 0 || guidance.AnsweredCount > guidance.RequestedCount || guidance.AnsweredCount > record.Uint64String(len(guidance.AnsweredSeeds)) || guidance.GuidedCount > plan.SelectionCount-unguided {
+			return errors.New("campaign plan guidance selection is invalid")
+		}
+		if guidance.Regression {
+			if plan.SelectionCount != guidance.RequestedCount || guidance.AnsweredCount != 0 {
+				return errors.New("campaign plan regression selection is invalid")
+			}
+		} else if plan.SelectionCount != guidance.RequestedCount-guidance.AnsweredCount {
+			return errors.New("campaign plan answered selection is invalid")
+		}
+		for i, seed := range guidance.AnsweredSeeds {
+			if i > 0 && seed <= guidance.AnsweredSeeds[i-1] {
+				return errors.New("campaign plan answered seeds are not unique and sorted")
+			}
 		}
 	}
 	return nil

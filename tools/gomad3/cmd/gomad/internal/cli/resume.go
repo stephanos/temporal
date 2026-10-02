@@ -23,6 +23,7 @@ func runResume(arguments []string, stdout, stderr io.Writer) int {
 func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies resumeDependencies) int {
 	flags := flag.NewFlagSet("gomad resume", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
+	guideRegression := flags.Bool("guide-regression", false, "require the recorded guidance regression mode")
 	jsonOutput := flags.Bool("json", false, "emit stable JSON events")
 	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
 	if err := flags.Parse(arguments); err != nil {
@@ -52,8 +53,14 @@ func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies re
 		}
 		return 3
 	}
+	var regressionOverride *bool
+	flags.Visit(func(value *flag.Flag) {
+		if value.Name == "guide-regression" {
+			regressionOverride = guideRegression
+		}
+	})
 	summary, err := dependencies.run(context.Background(), runner.ResumeSpec{
-		CampaignPath: flags.Arg(0), RunnerBuild: runnerBuild, ToolchainRoot: toolchain,
+		CampaignPath: flags.Arg(0), GuideRegression: regressionOverride, RunnerBuild: runnerBuild, ToolchainRoot: toolchain,
 		SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"},
 		Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
 	})

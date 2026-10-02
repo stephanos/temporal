@@ -91,6 +91,13 @@ func RunCampaignShard(ctx context.Context, spec CampaignShardSpec) (CampaignResu
 		Progress: spec.Progress, ProgressInterval: spec.ProgressInterval, Executor: spec.Executor, Replayer: spec.Replayer,
 		Preparer: &campaignPlanPreparer{source: opened.prepared},
 	}
+	if plan.Guidance != nil {
+		config.Guide = true
+		config.GuideRegression = plan.Guidance.Regression
+		config.Corpus = plan.Guidance.Corpus
+		config.GuideSnapshotSHA256 = plan.Guidance.SnapshotSHA256
+		config.guidancePlan = plan.Guidance
+	}
 	return runLocal(ctx, config)
 }
 

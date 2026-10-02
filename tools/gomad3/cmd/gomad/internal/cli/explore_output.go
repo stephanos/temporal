@@ -40,6 +40,7 @@ type exploreEvent struct {
 	ChoiceTrace           *runner.ChoiceTraceSummary           `json:"choice_trace,omitempty"`
 	CorpusPath            string                               `json:"corpus_path,omitempty"`
 	CorpusEntries         uint64                               `json:"corpus_entries,omitempty"`
+	Guidance              *runner.GuidanceSummary              `json:"guidance,omitempty"`
 	CorpusAdded           uint64                               `json:"corpus_added,omitempty"`
 	ChoiceExploration     *runner.ChoiceExplorationSummary     `json:"exploration,omitempty"`
 	SimulationExploration *runner.SimulationExplorationSummary `json:"simulation_exploration,omitempty"`
@@ -66,7 +67,7 @@ func (reporter *exploreReporter) Progress(progress runner.CampaignEvent) error {
 			Selected: progress.Selected, Attempted: progress.Attempted, Running: progress.Running, Succeeded: progress.Succeeded,
 			Failures: progress.Failures, Watchdogs: progress.Watchdogs, ReplayDivergences: progress.ReplayDivergences, Cancelled: progress.Cancelled, Novelty: progress.DistinctFailures,
 			RetainedSuccesses: progress.RetainedSuccesses, RetainedSuccessBytes: progress.RetainedSuccessBytes,
-			CorpusPath: progress.CorpusPath, CorpusEntries: progress.CorpusEntries, CorpusAdded: progress.CorpusAdded,
+			Guidance: progress.Guidance, CorpusPath: progress.CorpusPath, CorpusEntries: progress.CorpusEntries, CorpusAdded: progress.CorpusAdded,
 			ChoiceTrace: progress.ChoiceTrace, ChoiceExploration: progress.ChoiceExploration, SimulationExploration: progress.SimulationExploration, RecoveryExecutions: progress.RecoveryExecutions,
 		})
 	}
@@ -84,7 +85,7 @@ func (reporter *exploreReporter) Result(summary runner.CampaignResult) error {
 			Selected: summary.SelectionCount, Attempted: summary.Attempted, Succeeded: summary.Succeeded, Failures: summary.Failures,
 			Watchdogs: summary.Watchdogs, ReplayDivergences: summary.ReplayDivergences, Cancelled: summary.Cancelled, Novelty: summary.DistinctFailures, StopReason: summary.StopReason,
 			RetainedSuccesses: summary.RetainedSuccesses, RetainedSuccessBytes: summary.RetainedSuccessBytes, SemanticCoverage: summary.SemanticCoverage,
-			CorpusPath: summary.CorpusPath, CorpusEntries: summary.CorpusEntries, CorpusAdded: summary.CorpusAdded,
+			Guidance: summary.Guidance, CorpusPath: summary.CorpusPath, CorpusEntries: summary.CorpusEntries, CorpusAdded: summary.CorpusAdded,
 			ChoiceTrace: summary.ChoiceTrace, ChoiceExploration: summary.ChoiceExploration, SimulationExploration: summary.SimulationExploration, RecoveryExecutions: summary.RecoveryExecutions,
 		}); err != nil {
 			return err
@@ -121,6 +122,21 @@ func (reporter *exploreReporter) Result(summary runner.CampaignResult) error {
 	if summary.SemanticCoverage != nil {
 		if _, err := fmt.Fprintf(reporter.stdout, "gomad: semantic-coverage digest=%s probes=%d %s\n", summary.SemanticCoverage.Digest, len(summary.SemanticCoverage.Probes), strings.Join(summary.SemanticCoverage.Probes, ",")); err != nil {
 			return err
+		}
+	}
+	if summary.Guidance != nil {
+		guidance := summary.Guidance
+		if _, err := fmt.Fprintf(reporter.stdout, "gomad: guidance regression=%t requested=%d answered=%d guided=%d new-executions=%d\n", guidance.Regression, guidance.Requested, guidance.Answered, guidance.Guided, guidance.NewExecutions); err != nil {
+			return err
+		}
+		if !guidance.Regression && summary.SelectionCount == 0 {
+			if _, err := fmt.Fprintln(reporter.stdout, "gomad: all requested seeds are answered; --guide-regression re-runs corpus cases (exit 0)"); err != nil {
+				return err
+			}
+		} else if guidance.Guided == 0 {
+			if _, err := fmt.Fprintln(reporter.stdout, "gomad: guidance selected no corpus seeds"); err != nil {
+				return err
+			}
 		}
 	}
 	if summary.CorpusPath != "" {

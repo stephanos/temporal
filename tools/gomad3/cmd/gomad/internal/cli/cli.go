@@ -435,7 +435,8 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	choices := flags.Bool("choices", false, "record bounded runtime choices")
 	diagnostics := flags.Bool("diagnostics", false, "record runtime-state diagnostics; implies --choices")
 	coverage := flags.String("coverage", string(runner.CoverageNone), "none, semantic, choice, or semantic+choice")
-	guide := flags.Bool("guide", false, "guide selection from a bounded coverage corpus")
+	guide := flags.Bool("guide", false, "exclude answered seeds using a bounded coverage corpus")
+	guideRegression := flags.Bool("guide-regression", false, "re-run corpus seeds with --guide; fully answered default requests execute zero seeds and exit 0")
 	corpus := flags.String("corpus", "", "guided coverage corpus directory")
 	keepSuccesses := flags.String("keep-successes", string(runner.KeepSuccessesNone), "none, novel, or all")
 	successLimit := flags.Uint64("success-limit", 0, "maximum retained successful executions")
@@ -555,6 +556,13 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		}
 		return 2
 	}
+	if *guideRegression && !*guide {
+		if err := reporter.Error("invalid_input", errors.New("--guide-regression requires --guide")); err != nil {
+			fmt.Fprintln(stderr, err)
+			return 3
+		}
+		return 2
+	}
 	resolvedCoverage, err := resolveExploreGuidance(*guide, *corpus, *coverage, coverageSet)
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
@@ -636,7 +644,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts, SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
 		Coverage: coverageMode, RequiredSemanticProbes: requiredSemanticProbes,
 		KeepSuccesses: runner.KeepSuccesses(*keepSuccesses), SuccessArtifactLimit: *successLimit, SuccessBytesLimit: uint64(successBytes),
-		Guide: *guide, Corpus: *corpus,
+		Guide: *guide, GuideRegression: *guideRegression, Corpus: *corpus,
 		Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
 		Target: target.Spec{
 			Kind: parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,

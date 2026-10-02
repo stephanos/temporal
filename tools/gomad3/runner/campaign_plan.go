@@ -77,7 +77,7 @@ func campaignPlanRecord(config CampaignSpec, journalPlan campaign.ExecutionJourn
 		}
 	}
 	if config.Guide {
-		plan.Guidance = &campaign.GuidancePlan{Corpus: config.Corpus, SnapshotSHA256: config.GuideSnapshotSHA256}
+		plan.Guidance = config.guidancePlan
 	}
 	artifacts, err := campaign.DeriveArtifactCapacityPlan(plan)
 	if err != nil {

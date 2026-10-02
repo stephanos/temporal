@@ -103,6 +103,7 @@ type CampaignEvent struct {
 	CorpusPath            string
 	CorpusEntries         uint64
 	CorpusAdded           uint64
+	Guidance              *GuidanceSummary `json:"guidance,omitempty"`
 	ChoiceTrace           *ChoiceTraceSummary
 	ChoiceExploration     *ChoiceExplorationSummary
 	SimulationExploration *SimulationExplorationSummary
@@ -165,6 +166,9 @@ type CampaignSpec struct {
 	SuccessArtifactLimit      uint64
 	SuccessBytesLimit         uint64
 	Guide                     bool
+	GuideRegression           bool
+	GuideRegressionOverride   *bool
+	guidancePlan              *campaign.GuidancePlan
 	Corpus                    string
 	GuideSnapshotSHA256       record.SHA256
 	Progress                  CampaignEventFunc
@@ -199,6 +203,7 @@ type CampaignResult struct {
 	CorpusPath            string
 	CorpusEntries         uint64
 	CorpusAdded           uint64
+	Guidance              *GuidanceSummary `json:"guidance,omitempty"`
 	ChoiceTrace           *ChoiceTraceSummary
 	ChoiceExploration     *ChoiceExplorationSummary
 	SimulationExploration *SimulationExplorationSummary
@@ -452,6 +457,10 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 		var restored resumeSummaryState
 		restored, err = restoreResumeSummary(batchPath, selection, resumedRuns)
 		summary = restored.summary
+		summary.Guidance = guidanceSummary(config.guidancePlan, newGuidedExecutions(config.guidancePlan, resumedRuns))
+		if config.guidancePlan != nil {
+			summary.CorpusPath = config.guidancePlan.Corpus
+		}
 		summary.SelectionCount = normalizedCampaignShard(config.Shard).SelectionCount(selection.Count())
 		if err != nil {
 			return summary, &HostError{Reason: "resume_setup", Err: err}
@@ -465,7 +474,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 		summary = CampaignResult{CampaignPath: batchPath, SelectionCount: normalizedCampaignShard(config.Shard).SelectionCount(selection.Count())}
 		journal, err = campaign.NewCampaignJournal(overallCtx, campaign.CampaignConfig{
 			Root: config.Artifacts, CampaignID: runID, PlanSHA256: config.PlanSHA256, Shard: campaignStoreShard(config.Shard),
-			Strategy: string(normalizedStrategy(config.Strategy)), Selection: config.Seeds, SelectionCount: selection.Count(), MaxExecutions: config.MaxExecutions, Parallel: uint64(config.Parallel),
+			Strategy: string(normalizedStrategy(config.Strategy)), Guidance: config.guidancePlan, Selection: config.Seeds, SelectionCount: selection.Count(), MaxExecutions: config.MaxExecutions, Parallel: uint64(config.Parallel),
 		})
 		if err != nil {
 			return summary, &HostError{Reason: "artifact_setup", Err: err}
@@ -485,7 +494,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 			Succeeded: summary.Succeeded, Failures: summary.Failures, Watchdogs: summary.Watchdogs, ReplayDivergences: summary.ReplayDivergences, Cancelled: summary.Cancelled,
 			DistinctFailures: summary.DistinctFailures, Artifacts: append([]string(nil), summary.Artifacts...),
 			RetainedSuccesses: summary.RetainedSuccesses, RetainedSuccessBytes: summary.RetainedSuccessBytes, SuccessArtifacts: append([]string(nil), summary.SuccessArtifacts...),
-			CorpusPath: summary.CorpusPath, CorpusEntries: summary.CorpusEntries, CorpusAdded: summary.CorpusAdded,
+			Guidance: cloneGuidanceSummary(summary.Guidance), CorpusPath: summary.CorpusPath, CorpusEntries: summary.CorpusEntries, CorpusAdded: summary.CorpusAdded,
 			ChoiceTrace: cloneChoiceTraceSummary(summary.ChoiceTrace), ChoiceExploration: cloneChoiceExplorationSummary(summary.ChoiceExploration), SimulationExploration: cloneSimulationExplorationSummary(summary.SimulationExploration), RecoveryExecutions: summary.RecoveryExecutions,
 		})
 	}
@@ -549,25 +558,32 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 		if profileErr := selectedProfile.ValidatePreparedTarget(config.Target, prepared, config.Environment); profileErr != nil {
 			return summary, profileErr
 		}
-		if config.Guide {
+		if config.Guide && config.PlanSHA256 == "" {
 			guidance, err = openGuidance(overallCtx, config, prepared, baseEnvironment, runID)
 			if err != nil {
 				return summary, &HostError{Reason: "guided_corpus", Err: err}
 			}
 			snapshot := guidance.Snapshot()
-			selection, err = mixGuidedSelection(selection, snapshot.PrioritizedSeeds())
+			if config.guidancePlan == nil {
+				selection, config.guidancePlan, err = selectGuidedSeeds(selection, snapshot, config.Corpus, config.GuideRegression)
+			}
 			if err != nil {
 				return summary, &HostError{Reason: "guided_selection", Err: err}
 			}
 			config.Seeds = selection.String()
 			config.GuideSnapshotSHA256 = snapshot.SnapshotSHA256
 			guidance.config = config
-			summary.SelectionCount = selection.Count()
+			summary.SelectionCount = normalizedCampaignShard(config.Shard).SelectionCount(selection.Count())
+			summary.Guidance = guidanceSummary(config.guidancePlan, 0)
 			summary.CorpusPath = guidance.corpus.Path()
 			summary.CorpusEntries = uint64(len(snapshot.Entries))
-			if err := journal.SetSelection(config.Seeds, selection.Count()); err != nil {
+			if err := journal.SetSelection(config.Seeds, selection.Count(), config.guidancePlan); err != nil {
 				return summary, &HostError{Reason: "guided_selection", Err: err}
 			}
+		}
+		if config.guidancePlan != nil {
+			summary.Guidance = guidanceSummary(config.guidancePlan, 0)
+			summary.CorpusPath = config.guidancePlan.Corpus
 		}
 		plan, err := campaignPlan(config, journal, prepared, baseEnvironment, readOnlyMounts, selection.Count())
 		if err != nil {
@@ -582,7 +598,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 			return summary, &HostError{Reason: "partial_cleanup", Err: err}
 		}
 	}
-	if resuming && config.Guide {
+	if resuming && config.Guide && config.PlanSHA256 == "" {
 		guidance, err = openGuidance(overallCtx, config, prepared, baseEnvironment, runID)
 		if err != nil {
 			return summary, &HostError{Reason: "guided_corpus", Err: err}
@@ -636,6 +652,10 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 			return summary, &HostError{Reason: "resume_setup", Err: err}
 		}
 		summary = restored.summary
+		summary.Guidance = guidanceSummary(config.guidancePlan, newGuidedExecutions(config.guidancePlan, resumedRuns))
+		if config.guidancePlan != nil {
+			summary.CorpusPath = config.guidancePlan.Corpus
+		}
 		summary.SelectionCount = normalizedCampaignShard(config.Shard).SelectionCount(selection.Count())
 		distinct = restored.distinct
 		failureArtifactBytes = restored.failureArtifactBytes
@@ -741,6 +761,9 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 				break
 			}
 			job := runJob{ordinal: scheduled.Ordinal, seed: scheduled.Seed}
+			if summary.Guidance != nil && !answeredSeed(config.guidancePlan, job.seed) {
+				summary.Guidance.NewExecutions++
+			}
 			launch(job)
 			admittedThisTurn = true
 		}
@@ -1095,7 +1118,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 		}
 		return summary, hostFailure
 	}
-	if summary.SemanticCoverage != nil {
+	if summary.SemanticCoverage != nil && selection.Count() != 0 {
 		missing, err := deterministicio.MissingRequiredSemanticProbes(*summary.SemanticCoverage, config.RequiredSemanticProbes)
 		if err != nil {
 			return summary, err
@@ -1146,6 +1169,9 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e
 		return SeedSelection{}, nil, nil
 	}
 	selection, err := ParseSeeds(config.Seeds)
+	if config.guidancePlan != nil {
+		selection, err = parseCampaignSelection(config.Seeds, uint64(config.guidancePlan.RequestedCount-config.guidancePlan.AnsweredCount))
+	}
 	if err != nil {
 		return SeedSelection{}, nil, err
 	}
@@ -1164,8 +1190,8 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e
 		if _, err := record.ParseSHA256(string(config.PlanSHA256)); err != nil {
 			return SeedSelection{}, nil, fmt.Errorf("canonical plan identity: %w", err)
 		}
-		if strategy != StrategySeed || config.Guide {
-			return SeedSelection{}, nil, errors.New("static sharding requires an unguided seed campaign")
+		if strategy != StrategySeed || config.Guide && config.guidancePlan == nil {
+			return SeedSelection{}, nil, errors.New("static sharding requires a seed campaign with frozen guidance")
 		}
 		if config.OnFailure != PolicyAll {
 			return SeedSelection{}, nil, errors.New("sharded campaign requires on-failure=all")
@@ -1292,7 +1318,7 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e
 		if config.Corpus == "" || normalizedCoverage(config.Coverage) == CoverageNone {
 			return SeedSelection{}, nil, errors.New("guided exploration requires a corpus and coverage")
 		}
-	} else if config.Corpus != "" || config.GuideSnapshotSHA256 != "" {
+	} else if config.GuideRegression || config.Corpus != "" || config.GuideSnapshotSHA256 != "" {
 		return SeedSelection{}, nil, errors.New("a guided corpus requires guided exploration")
 	}
 	switch config.OnFailure {

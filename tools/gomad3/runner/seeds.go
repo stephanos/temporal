@@ -213,3 +213,42 @@ func parseSeed(input string) (uint64, error) {
 	}
 	return seed, nil
 }
+
+func parseCampaignSelection(input string, count uint64) (SeedSelection, error) {
+	if input == "" && count == 0 {
+		return SeedSelection{}, nil
+	}
+	return ParseSeeds(input)
+}
+
+func excludeAnsweredSeeds(base SeedSelection, answered []uint64) SeedSelection {
+	excluded := append([]uint64(nil), answered...)
+	sort.Slice(excluded, func(i, j int) bool { return excluded[i] < excluded[j] })
+	ranges := make([]seedRange, 0, len(base.ranges)+len(excluded))
+	var count uint64
+	for _, selected := range base.ranges {
+		start := selected.start
+		exhausted := false
+		index := sort.Search(len(excluded), func(i int) bool { return excluded[i] >= start })
+		for ; index < len(excluded) && excluded[index] <= selected.end; index++ {
+			seed := excluded[index]
+			if seed < start {
+				continue
+			}
+			if start < seed {
+				ranges = append(ranges, seedRange{start: start, end: seed - 1})
+				count += seed - start
+			}
+			if seed == selected.end {
+				exhausted = true
+				break
+			}
+			start = seed + 1
+		}
+		if !exhausted {
+			ranges = append(ranges, seedRange{start: start, end: selected.end})
+			count += selected.end - start + 1
+		}
+	}
+	return SeedSelection{ranges: ranges, count: count}
+}

@@ -44,7 +44,7 @@ func MergeCampaignShards(ctx context.Context, spec CampaignMergeSpec) (CampaignM
 	if err != nil {
 		return CampaignMergeResult{}, err
 	}
-	selection, err := ParseSeeds(opened.plan.Selection)
+	selection, err := parseCampaignSelection(opened.plan.Selection, uint64(opened.plan.SelectionCount))
 	if err != nil || selection.Count() != uint64(opened.plan.SelectionCount) {
 		return CampaignMergeResult{}, errors.Join(errors.New("campaign plan seed selection is invalid"), err)
 	}
