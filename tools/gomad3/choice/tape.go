@@ -122,10 +122,68 @@ func CanonicalDecision(
 	return decision, nil
 }
 
+// SelectReadiness is what a select observed once it had locked its channels:
+// how many of its cases could proceed, and the shape properties that tell the
+// fixture shapes apart. The projection carries a select's readiness onto each
+// of its select-poll decisions. Known is false for a runnable decision and for
+// a select-poll decision whose select recorded no result because it blocked
+// and never resumed.
+type SelectReadiness struct {
+	Known bool `json:"known"`
+	// Ready counts the cases that could proceed; the default is not a case.
+	Ready           uint32 `json:"ready"`
+	Default         bool   `json:"default"`
+	NilChannel      bool   `json:"nil_channel"`
+	TimerChannel    bool   `json:"timer_channel"`
+	ClosedChannel   bool   `json:"closed_channel"`
+	RepeatedChannel bool   `json:"repeated_channel"`
+}
+
+func selectReadinessFromWord(readiness Readiness) SelectReadiness {
+	if !readiness.Known() {
+		return SelectReadiness{}
+	}
+	return SelectReadiness{
+		Known: true, Ready: readiness.Ready(),
+		Default: readiness&ReadinessDefault != 0, NilChannel: readiness&ReadinessNilChannel != 0, TimerChannel: readiness&ReadinessTimerChannel != 0,
+		ClosedChannel: readiness&ReadinessClosedChannel != 0, RepeatedChannel: readiness&ReadinessRepeatedChannel != 0,
+	}
+}
+
+// Word packs the readiness for a record; an unknown readiness is the zero word.
+func (readiness SelectReadiness) Word() (Readiness, error) {
+	if !readiness.Known {
+		if readiness != (SelectReadiness{}) {
+			return 0, errors.Join(ErrInvalidDecision, errors.New("unknown select readiness carries evidence"))
+		}
+		return 0, nil
+	}
+	var flags Readiness
+	for _, flag := range []struct {
+		set  bool
+		flag Readiness
+	}{{readiness.Default, ReadinessDefault}, {readiness.NilChannel, ReadinessNilChannel}, {readiness.TimerChannel, ReadinessTimerChannel}, {readiness.ClosedChannel, ReadinessClosedChannel}, {readiness.RepeatedChannel, ReadinessRepeatedChannel}} {
+		if flag.set {
+			flags |= flag.flag
+		}
+	}
+	word, err := NewReadiness(readiness.Ready, flags)
+	if err != nil {
+		return 0, errors.Join(ErrInvalidDecision, err)
+	}
+	return word, nil
+}
+
+// ReplayPlan is a decision tape. Readiness has one entry per decision and is
+// encoded in each decision's record, so it survives the tape's byte form; it is
+// kept beside Decisions rather than inside Decision because a decision's
+// identity and replay comparison exclude it: a child whose select never
+// resumes still forced the same decision its parent recorded.
 type ReplayPlan struct {
 	Identity          ExecutionIdentity
 	SourceTraceSHA256 [sha256.Size]byte
 	Decisions         []Decision
+	Readiness         []SelectReadiness
 	Bytes             []byte
 	SHA256            [sha256.Size]byte
 }
@@ -134,14 +192,16 @@ func ProjectReplayPlan(trace Trace, identity ExecutionIdentity) (ReplayPlan, err
 	if trace.Version == Version1 {
 		return ReplayPlan{}, ErrReplayUnavailable
 	}
-	if trace.Version != Version2 || trace.Summary.Terminal != TerminalComplete {
-		return ReplayPlan{}, errors.Join(ErrInvalidReplayPlan, errors.New("choice trace is not complete v2 evidence"))
+	if trace.Version != Version3 || trace.Summary.Terminal != TerminalComplete {
+		return ReplayPlan{}, errors.Join(ErrInvalidReplayPlan, errors.New("choice trace is not complete v3 evidence"))
 	}
 	if trace.SHA256 != sha256.Sum256(trace.Bytes) || trace.Summary.Records != uint64(len(trace.Records)) {
 		return ReplayPlan{}, errors.Join(ErrInvalidReplayPlan, errors.New("choice trace identity is inconsistent"))
 	}
 	decisions := make([]Decision, 0, len(trace.Records))
-	for _, record := range trace.Records {
+	planIndex := make([]int, len(trace.Records))
+	for index, record := range trace.Records {
+		planIndex[index] = -1
 		if record.Flags&FlagObservation != 0 || record.Alternatives < 2 {
 			continue
 		}
@@ -150,9 +210,52 @@ func ProjectReplayPlan(trace Trace, identity ExecutionIdentity) (ReplayPlan, err
 			return ReplayPlan{}, err
 		}
 		decision.Ordinal = uint64(len(decisions))
+		planIndex[index] = len(decisions)
 		decisions = append(decisions, decision)
 	}
-	return encodeTape(identity, trace.SHA256, decisions)
+	readiness, err := projectSelectReadiness(trace.Records, planIndex, len(decisions))
+	if err != nil {
+		return ReplayPlan{}, err
+	}
+	return encodeTape(identity, trace.SHA256, decisions, readiness)
+}
+
+// projectSelectReadiness carries each select_result's readiness onto the
+// select-poll decisions of the same select. A result names its select's
+// decisions exactly: they are the polled-case count minus one consecutive
+// records from the result's origin, each a select-poll decision at the
+// result's site whose alternatives count the poll steps 2, 3, ... in order.
+// Nothing else records between the poll steps of one select, because the
+// poll loop neither parks nor schedules, so a record that breaks the pattern
+// is corrupt evidence and fails the projection rather than being guessed at.
+// A decision no result names keeps the unknown readiness.
+func projectSelectReadiness(records []Record, planIndex []int, decisions int) ([]SelectReadiness, error) {
+	readiness := make([]SelectReadiness, decisions)
+	for _, result := range records {
+		if result.Kind != KindSelectResult {
+			continue
+		}
+		polled := uint64(result.Data)
+		if polled < 2 {
+			continue
+		}
+		if polled-1 > result.Ordinal-result.Origin {
+			return nil, errors.Join(ErrInvalidReplayPlan, fmt.Errorf("select result %d names %d poll decisions before its origin %d", result.Ordinal, polled-1, result.Origin))
+		}
+		for step := uint64(0); step < polled-1; step++ {
+			ordinal := result.Origin + step
+			decision := records[ordinal]
+			if decision.Kind != KindSelectPoll || decision.Flags&FlagDecision == 0 || decision.SiteOffset != result.SiteOffset || decision.Flags&FlagSiteMissing != result.Flags&FlagSiteMissing || uint64(decision.Alternatives) != step+2 {
+				return nil, errors.Join(ErrInvalidReplayPlan, fmt.Errorf("select result %d does not match the poll decision at %d", result.Ordinal, ordinal))
+			}
+			index := planIndex[ordinal]
+			if readiness[index].Known {
+				return nil, errors.Join(ErrInvalidReplayPlan, fmt.Errorf("select results %d and another both name the poll decision at %d", result.Ordinal, ordinal))
+			}
+			readiness[index] = selectReadinessFromWord(result.Readiness)
+		}
+	}
+	return readiness, nil
 }
 
 func ValidateReplayPlan(tape ReplayPlan, identity ExecutionIdentity) (ReplayPlan, error) {
@@ -230,14 +333,18 @@ func buildRankPrefix(source ReplayPlan, decisionOrdinal uint64, rank uint32, rec
 	if err != nil {
 		return ReplayPlan{}, err
 	}
-	return encodeTape(validated.Identity, sourceHash, decisions)
+	return encodeTape(validated.Identity, sourceHash, decisions, validated.Readiness[:decisionOrdinal+1])
 }
 
 func (tape ReplayPlan) Prefix(records uint64) (ReplayPlan, error) {
 	if records > uint64(len(tape.Decisions)) {
 		return ReplayPlan{}, errors.Join(ErrInvalidReplayPlan, errors.New("choice prefix exceeds its source tape"))
 	}
-	return encodeTape(tape.Identity, tape.SourceTraceSHA256, tape.Decisions[:records])
+	var readiness []SelectReadiness
+	if tape.Readiness != nil {
+		readiness = tape.Readiness[:records]
+	}
+	return encodeTape(tape.Identity, tape.SourceTraceSHA256, tape.Decisions[:records], readiness)
 }
 
 func (tape ReplayPlan) Branching() []Decision {
@@ -250,16 +357,30 @@ func (tape ReplayPlan) Branching() []Decision {
 	return result
 }
 
-func encodeTape(identity ExecutionIdentity, sourceTrace [sha256.Size]byte, decisions []Decision) (ReplayPlan, error) {
+// encodeTape writes one record per decision; readiness is nil when every
+// decision's readiness is unknown, otherwise it has one entry per decision.
+func encodeTape(identity ExecutionIdentity, sourceTrace [sha256.Size]byte, decisions []Decision, readiness []SelectReadiness) (ReplayPlan, error) {
 	headerIdentity, err := tapeHeaderIdentity(identity)
 	if err != nil {
 		return ReplayPlan{}, err
 	}
+	if readiness != nil && len(readiness) != len(decisions) {
+		return ReplayPlan{}, errors.Join(ErrInvalidReplayPlan, errors.New("choice tape readiness does not cover its decisions"))
+	}
 	payload := make([]byte, len(decisions)*replayPlanRecordBytes)
 	cloned := make([]Decision, len(decisions))
+	clonedReadiness := make([]SelectReadiness, len(decisions))
 	for index, decision := range decisions {
 		decision.Ordinal = uint64(index)
-		record, err := encodeRecord(decision.Record())
+		value := decision.Record()
+		if readiness != nil {
+			value.Readiness, err = readiness[index].Word()
+			if err != nil {
+				return ReplayPlan{}, errors.Join(ErrInvalidReplayPlan, fmt.Errorf("encode decision %d readiness: %w", index, err))
+			}
+			clonedReadiness[index] = readiness[index]
+		}
+		record, err := encodeRecord(value)
 		if err != nil {
 			return ReplayPlan{}, errors.Join(ErrInvalidReplayPlan, fmt.Errorf("encode decision %d: %w", index, err))
 		}
@@ -280,7 +401,7 @@ func encodeTape(identity ExecutionIdentity, sourceTrace [sha256.Size]byte, decis
 	encoded = append(encoded, header[:]...)
 	encoded = append(encoded, payload...)
 	return ReplayPlan{
-		Identity: identity, SourceTraceSHA256: sourceTrace, Decisions: cloned,
+		Identity: identity, SourceTraceSHA256: sourceTrace, Decisions: cloned, Readiness: clonedReadiness,
 		Bytes: encoded, SHA256: sha256.Sum256(encoded),
 	}, nil
 }
@@ -328,6 +449,7 @@ func decodeTape(encoded []byte, identity ExecutionIdentity) (ReplayPlan, error) 
 		return ReplayPlan{}, errors.Join(ErrInvalidReplayPlan, errors.New("choice tape payload digest mismatch"))
 	}
 	decisions := make([]Decision, header.Records)
+	readiness := make([]SelectReadiness, header.Records)
 	for index := range decisions {
 		record, err := decodeRecord(payload[index*replayPlanRecordBytes : (index+1)*replayPlanRecordBytes])
 		if err != nil {
@@ -340,10 +462,11 @@ func decodeTape(encoded []byte, identity ExecutionIdentity) (ReplayPlan, error) 
 		if err != nil {
 			return ReplayPlan{}, err
 		}
+		readiness[index] = selectReadinessFromWord(record.Readiness)
 	}
 	copyBytes := append([]byte(nil), encoded...)
 	return ReplayPlan{
-		Identity: identity, SourceTraceSHA256: header.SourceTraceHash, Decisions: decisions,
+		Identity: identity, SourceTraceSHA256: header.SourceTraceHash, Decisions: decisions, Readiness: readiness,
 		Bytes: copyBytes, SHA256: sha256.Sum256(copyBytes),
 	}, nil
 }

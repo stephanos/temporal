@@ -1,19 +1,19 @@
 {
-  "version": 2,
-  "profile": "gomad3-choice-trace/v2",
+  "version": 3,
+  "profile": "gomad3-choice-trace/v3",
   "trace": {
-    "magic": "GOMADCH\u0002",
+    "magic": "GOMADCH\u0003",
     "header_bytes": 64,
     "record_bytes": 96
   },
   "tape": {
-    "magic": "GOMADTP\u0002",
+    "magic": "GOMADTP\u0003",
     "header_bytes": 264,
     "record_bytes": 96,
     "checksum_offset": 232
   },
   "terminal": {
-    "magic": "GOMADCT\u0002",
+    "magic": "GOMADCT\u0003",
     "states": {
       "complete": 1,
       "overflow": 2,
@@ -32,6 +32,18 @@
     "observation": 2,
     "site_missing": 4,
     "rank_override": 8
+  },
+  "readiness": {
+    "flags": {
+      "known": 1,
+      "default": 2,
+      "nil_channel": 4,
+      "timer_channel": 8,
+      "closed_channel": 16,
+      "repeated_channel": 32
+    },
+    "count_shift": 6,
+    "maximum_count": 1023
   },
   "modes": {
     "seed": 0,

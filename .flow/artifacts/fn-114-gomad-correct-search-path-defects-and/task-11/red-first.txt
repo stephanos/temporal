@@ -1,0 +1,27 @@
+# Red first
+
+## Choice package: select results without readiness are refused (before the fixtures gained one)
+
+```
+--- FAIL: TestProjectExposesCanonicalChoiceFeatures (0.00s)
+    trace_test.go:18: invalid choice select result readiness
+--- FAIL: TestImplementationIdentityAndProjectionAreCanonical (0.00s)
+    trace_test.go:84: invalid choice select result readiness
+--- FAIL: TestDecodeTraceValidatesRecordsAndSummarizes (0.00s)
+    trace_test.go:122: invalid choice select result readiness
+```
+
+## Runner golden pins the v2 profile and the old implementation identity (before the refresh)
+
+```
+--- FAIL: TestDiagnosticsOffPreservesExistingCanonicalIdentities (0.51s)
+    --- FAIL: TestDiagnosticsOffPreservesExistingCanonicalIdentities/choices (0.26s)
+        diagnostic_identity_test.go:83: diagnostics-off canonical identities changed (choices)
+```
+
+## Fixture assertion bites: blocking-two-ready told to expect one ready case (mutation, reverted)
+
+```
+--- FAIL: TestRuntimeSearchFixtures (30.72s)
+    runtime_test.go:183: select shape blocking-two-ready execution 0: decision 3 (select-poll) readiness = {Known:true Ready:2 Default:false NilChannel:false TimerChannel:false ClosedChannel:false RepeatedChannel:false}, want {Known:true Ready:1 Default:false NilChannel:false TimerChannel:false ClosedChannel:false RepeatedChannel:false}
+```

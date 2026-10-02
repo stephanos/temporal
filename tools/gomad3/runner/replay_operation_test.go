@@ -708,7 +708,7 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *exe
 		input.Manifest.ChoiceProfile = &record.ChoiceProfile{
 			Name: choice.Profile, ImplementationSHA256: record.SHA256FromSum(implementation),
 			Trace: record.ChoiceTrace{
-				Schema: "gomad3.choice-trace/v2", SHA256: record.SHA256FromSum(choiceTrace.SHA256), Bytes: record.Uint64String(len(choiceTrace.Bytes)),
+				Schema: "gomad3.choice-trace/v3", SHA256: record.SHA256FromSum(choiceTrace.SHA256), Bytes: record.Uint64String(len(choiceTrace.Bytes)),
 				Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: record.Uint64String(choiceLimit),
 				TapeSHA256: record.SHA256FromSum(tape.SHA256), Decisions: 1,
 			},

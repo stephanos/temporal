@@ -10,10 +10,15 @@ import (
 func TestChoiceWireRecordRoundTrip(t *testing.T) {
 	selected := Hash([]byte("selected"))
 	set := Hash([]byte("set"))
+	twoReady, err := NewReadiness(2, ReadinessDefault|ReadinessTimerChannel)
+	if err != nil {
+		t.Fatal(err)
+	}
 	values := []Record{
 		{Ordinal: 4, Kind: KindRunnable, Flags: FlagDecision, SiteOffset: 32, Alternatives: 3, Selected: 1, SelectedIdentity: selected, AlternativeSetDigest: set},
 		{Ordinal: 5, Kind: KindSelectPoll, Flags: FlagDecision | FlagSiteMissing, Alternatives: 2, Selected: 0, SelectedIdentity: selected, AlternativeSetDigest: set},
-		{Ordinal: 6, Kind: KindSelectResult, Flags: FlagObservation, SiteOffset: 48, Alternatives: 4, Selected: 3, Data: 2},
+		{Ordinal: 5, Kind: KindSelectPoll, Flags: FlagDecision, SiteOffset: 48, Alternatives: 2, Selected: 1, Readiness: twoReady, SelectedIdentity: selected, AlternativeSetDigest: set},
+		{Ordinal: 6, Kind: KindSelectResult, Flags: FlagObservation, SiteOffset: 48, Alternatives: 4, Selected: 3, Data: 2, Readiness: twoReady, Origin: 4},
 		{Ordinal: 7, Kind: KindRunnable, Flags: FlagDecision | FlagRankOverride, SiteOffset: 64, Alternatives: 3, Selected: 2, AlternativeSetDigest: set},
 	}
 	for _, value := range values {
@@ -29,21 +34,46 @@ func TestChoiceWireRecordRoundTrip(t *testing.T) {
 			t.Fatalf("round trip = %+v, want %+v", decoded, value)
 		}
 	}
+	if twoReady.Ready() != 2 || !twoReady.Known() || twoReady.Flags() != ReadinessKnown|ReadinessDefault|ReadinessTimerChannel {
+		t.Fatalf("readiness word = %#x", uint16(twoReady))
+	}
+	if _, err := NewReadiness(ReadinessMaximumCount+1, 0); err == nil {
+		t.Fatal("ready count above the word capacity accepted")
+	}
+	if _, err := NewReadiness(0, 1<<ReadinessCountShift); err == nil {
+		t.Fatal("count bit accepted as a readiness flag")
+	}
 }
 
-func TestChoiceWireRejectsInvalidSelectionAndReservedBytes(t *testing.T) {
+func TestChoiceWireRejectsInvalidSelectionReadinessAndOrigin(t *testing.T) {
 	selected := Hash([]byte("selected"))
 	set := Hash([]byte("set"))
-	if _, err := EncodeRecord(Record{Kind: KindRunnable, Flags: FlagDecision, Alternatives: 2, Selected: 2, SelectedIdentity: selected, AlternativeSetDigest: set}); err == nil {
-		t.Fatal("invalid selected index accepted")
-	}
-	encoded, err := EncodeRecord(Record{Kind: KindRunnable, Flags: FlagDecision, Alternatives: 2, Selected: 1, SelectedIdentity: selected, AlternativeSetDigest: set})
+	oneReady, err := NewReadiness(1, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
-	encoded[10] = 1
+	if _, err := EncodeRecord(Record{Kind: KindRunnable, Flags: FlagDecision, Alternatives: 2, Selected: 2, SelectedIdentity: selected, AlternativeSetDigest: set}); err == nil {
+		t.Fatal("invalid selected index accepted")
+	}
+	for name, value := range map[string]Record{
+		"runnable readiness":                   {Kind: KindRunnable, Flags: FlagDecision, Alternatives: 2, Selected: 1, Readiness: oneReady, SelectedIdentity: selected, AlternativeSetDigest: set},
+		"unknown readiness with flags":         {Kind: KindSelectPoll, Flags: FlagDecision, Alternatives: 2, Selected: 1, Readiness: ReadinessDefault, SelectedIdentity: selected, AlternativeSetDigest: set},
+		"select result without readiness":      {Kind: KindSelectResult, Flags: FlagObservation, Alternatives: 2, Selected: 1, Data: 2},
+		"select result readier than its cases": {Kind: KindSelectResult, Flags: FlagObservation, Alternatives: 2, Selected: 1, Data: 2, Readiness: ReadinessKnown | ReadinessDefault | 2<<ReadinessCountShift},
+		"decision origin":                      {Kind: KindRunnable, Flags: FlagDecision, Alternatives: 2, Selected: 1, Origin: 1, SelectedIdentity: selected, AlternativeSetDigest: set},
+		"origin after its record":              {Ordinal: 3, Kind: KindSelectResult, Flags: FlagObservation, Alternatives: 2, Selected: 1, Data: 2, Readiness: oneReady, Origin: 4},
+	} {
+		if _, err := EncodeRecord(value); err == nil {
+			t.Fatalf("%s accepted", name)
+		}
+	}
+	encoded, err := EncodeRecord(Record{Kind: KindSelectResult, Flags: FlagObservation, Alternatives: 2, Selected: 1, Data: 2, Readiness: oneReady})
+	if err != nil {
+		t.Fatal(err)
+	}
+	encoded[40] = 1
 	if _, err := DecodeRecord(encoded[:]); err == nil {
-		t.Fatal("reserved bytes accepted")
+		t.Fatal("observation identity bytes accepted")
 	}
 }
 

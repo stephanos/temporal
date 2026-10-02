@@ -135,7 +135,7 @@ func TestSessionReplayPlanIsInheritedReadOnly(t *testing.T) {
 		TargetSHA256: sha256.Sum256([]byte("target")), ToolchainBuildKey: strings.Repeat("a", 64),
 		GOOS: "darwin", GOARCH: "arm64", ImplementationSHA256: sha256.Sum256([]byte("implementation")),
 	}
-	plan, err := ProjectReplayPlan(Trace{Version: Version2, Bytes: []byte{}, SHA256: sha256.Sum256(nil), Records: []Record{}, Summary: Summary{Terminal: TerminalComplete}}, identity)
+	plan, err := ProjectReplayPlan(Trace{Version: Version3, Bytes: []byte{}, SHA256: sha256.Sum256(nil), Records: []Record{}, Summary: Summary{Terminal: TerminalComplete}}, identity)
 	if err != nil {
 		t.Fatal(err)
 	}

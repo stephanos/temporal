@@ -205,7 +205,7 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 	// trace and only the coverage projection decodes the payload.
 	malformedChoices := func(result *execution.Result) {
 		payload := []byte("not a choice trace")
-		result.ChoiceTrace.Trace = choice.Trace{Version: choice.Version2, Bytes: payload, SHA256: sha256.Sum256(payload), Summary: choice.Summary{Terminal: choice.TerminalComplete}}
+		result.ChoiceTrace.Trace = choice.Trace{Version: choice.Version3, Bytes: payload, SHA256: sha256.Sum256(payload), Summary: choice.Summary{Terminal: choice.TerminalComplete}}
 	}
 	unterminated := func(result *execution.Result) { result.ChoiceTrace = execution.ChoiceTrace{} }
 	watchdog := func(result *execution.Result) {
@@ -270,7 +270,7 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 		{
 			name: "watchdog", coverage: CoverageSemanticChoice, fault: watchdog,
 			seed:        completionObservation{Counts: [5]uint64{1, 0, 1, 1, 1}, Artifacts: []string{"gomad3.watchdog-timeout/v1 watchdog_timeout diagnostic none no-choices"}, Journal: []string{"watchdog watchdog_timeout timeout"}},
-			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "invalid choice decision tape\nchoice trace is not complete v2 evidence", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
+			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "invalid choice decision tape\nchoice trace is not complete v3 evidence", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
 		},
 		{
 			name: "cancelled execution", coverage: CoverageSemanticChoice, fault: cancelled,
@@ -301,7 +301,7 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 		{
 			name: "watchdog and malformed choice trace", coverage: CoverageChoice, fault: all(watchdog, unprojectableChoices),
 			seed:        completionObservation{Reason: "artifact_publication", Cause: "unexpected choice trace payload", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 classified", failedCampaign}},
-			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "invalid choice decision tape\nchoice trace is not complete v2 evidence", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
+			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "invalid choice decision tape\nchoice trace is not complete v3 evidence", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
 		},
 		{
 			name: "cancelled execution and malformed World", fault: all(cancelled, malformedWorld),

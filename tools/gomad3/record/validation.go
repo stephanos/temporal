@@ -59,7 +59,7 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 	} else if manifest.Limits.ChoiceTraceBytes != 0 {
 		// The killed target ran with the profile its environment names even
 		// though it left no trace to record.
-		choiceProfile = "gomad3-choice-trace/v2"
+		choiceProfile = "gomad3-choice-trace/v3"
 	}
 	if err := validateEnvironment(manifest.Environment, uint64(manifest.Seed), manifest.IOProfile.Name, choiceProfile); err != nil {
 		return err
@@ -251,7 +251,7 @@ func validateChoiceProfile(profile *ChoiceProfile, limit Uint64String, artifactK
 	}
 	trace := profile.Trace
 	const recordBytes = Uint64String(96)
-	if profile.Name != "gomad3-choice-trace/v2" || trace.Schema != "gomad3.choice-trace/v2" {
+	if profile.Name != "gomad3-choice-trace/v3" || trace.Schema != "gomad3.choice-trace/v3" {
 		return errors.New("invalid choice trace identity")
 	}
 	if trace.File != "choices.bin" {

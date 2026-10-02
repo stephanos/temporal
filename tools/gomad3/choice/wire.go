@@ -17,6 +17,12 @@ const (
 
 	Version1 = wire.Version1
 	Version2 = wire.Version2
+	Version3 = wire.Version3
+
+	// SupersededProfile is the v2 profile, whose select results recorded no
+	// readiness. Its traces are refused by name; LegacyProfile keeps v1
+	// inspectable.
+	SupersededProfile = "gomad3-choice-trace/v2"
 )
 
 type Kind uint8
@@ -35,6 +41,32 @@ const (
 	FlagSiteMissing  Flags = Flags(wire.FlagSiteMissing)
 	FlagRankOverride Flags = Flags(wire.FlagRankOverride)
 )
+
+// Readiness is the packed select readiness word: flag bits below the count,
+// which is the number of cases that could proceed. Zero means unknown; a known
+// word carries ReadinessKnown.
+type Readiness uint16
+
+const (
+	ReadinessKnown           Readiness = Readiness(wire.ReadinessKnown)
+	ReadinessDefault         Readiness = Readiness(wire.ReadinessDefault)
+	ReadinessNilChannel      Readiness = Readiness(wire.ReadinessNilChannel)
+	ReadinessTimerChannel    Readiness = Readiness(wire.ReadinessTimerChannel)
+	ReadinessClosedChannel   Readiness = Readiness(wire.ReadinessClosedChannel)
+	ReadinessRepeatedChannel Readiness = Readiness(wire.ReadinessRepeatedChannel)
+	ReadinessMaximumCount              = wire.ReadinessMaximumCount
+)
+
+// NewReadiness packs a known ready count and its shape flags.
+func NewReadiness(ready uint32, flags Readiness) (Readiness, error) {
+	word, err := wire.NewReadiness(ready, wire.Readiness(flags))
+	return Readiness(word), err
+}
+
+func (readiness Readiness) Known() bool { return wire.Readiness(readiness).Known() }
+
+// Ready is the number of cases that could proceed; zero when unknown.
+func (readiness Readiness) Ready() uint32 { return wire.Readiness(readiness).Ready() }
 
 type Mode uint8
 
@@ -71,6 +103,10 @@ const (
 
 var implementationSourceSHA256 = wire.ImplementationSourceSHA256
 
+// Record mirrors wire.Record. Readiness is set on a select_result observation
+// by the runtime and on a select_poll decision only by the replay-plan
+// projection; Origin is an observation's field: the trace ordinal the runtime
+// would have assigned next when the observed select began polling.
 type Record struct {
 	Ordinal              uint64
 	Kind                 Kind
@@ -79,6 +115,8 @@ type Record struct {
 	Selected             uint32
 	Data                 uint32
 	SiteOffset           uint64
+	Readiness            Readiness
+	Origin               uint64
 	SelectedIdentity     [sha256.Size]byte
 	AlternativeSetDigest [sha256.Size]byte
 }
@@ -173,6 +211,7 @@ func toWireRecord(value Record) wire.Record {
 	return wire.Record{
 		Ordinal: value.Ordinal, Kind: wire.Kind(value.Kind), Flags: wire.Flags(value.Flags),
 		Alternatives: value.Alternatives, Selected: value.Selected, Data: value.Data, SiteOffset: value.SiteOffset,
+		Readiness: wire.Readiness(value.Readiness), Origin: value.Origin,
 		SelectedIdentity: value.SelectedIdentity, AlternativeSetDigest: value.AlternativeSetDigest,
 	}
 }
@@ -181,6 +220,7 @@ func fromWireRecord(value wire.Record) Record {
 	return Record{
 		Ordinal: value.Ordinal, Kind: Kind(value.Kind), Flags: Flags(value.Flags),
 		Alternatives: value.Alternatives, Selected: value.Selected, Data: value.Data, SiteOffset: value.SiteOffset,
+		Readiness: Readiness(value.Readiness), Origin: value.Origin,
 		SelectedIdentity: value.SelectedIdentity, AlternativeSetDigest: value.AlternativeSetDigest,
 	}
 }

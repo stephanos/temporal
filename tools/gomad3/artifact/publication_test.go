@@ -21,7 +21,7 @@ func TestPublishArtifactWritesAndValidatesChoiceTrace(t *testing.T) {
 		Name:                 choice.Profile,
 		ImplementationSHA256: choiceImplementationIdentity(t, input.Manifest.Toolchain.BuildKey),
 		Trace: record.ChoiceTrace{
-			Schema: "gomad3.choice-trace/v2", SHA256: record.HashBytes(trace), Bytes: record.Uint64String(len(trace)),
+			Schema: "gomad3.choice-trace/v3", SHA256: record.HashBytes(trace), Bytes: record.Uint64String(len(trace)),
 			Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: choice.MinimumTraceBytes,
 			TapeSHA256: tapeSHA256, Decisions: record.Uint64String(decisions),
 		},
@@ -62,7 +62,7 @@ func TestPublishArtifactRejectsMalformedChoiceTraceWithMatchingIdentity(t *testi
 	input.Manifest.ChoiceProfile = &record.ChoiceProfile{
 		Name: choice.Profile, ImplementationSHA256: choiceImplementationIdentity(t, input.Manifest.Toolchain.BuildKey),
 		Trace: record.ChoiceTrace{
-			Schema: "gomad3.choice-trace/v2", SHA256: record.HashBytes(trace), Bytes: record.Uint64String(len(trace)),
+			Schema: "gomad3.choice-trace/v3", SHA256: record.HashBytes(trace), Bytes: record.Uint64String(len(trace)),
 			Records: 1, BranchingRecords: 0, TerminalState: "complete", Limit: choice.MinimumTraceBytes,
 			TapeSHA256: record.HashBytes([]byte("invalid tape")),
 		},
@@ -81,7 +81,7 @@ func TestPublishArtifactRejectsChangedChoiceTraceIdentity(t *testing.T) {
 	input := executionArtifactInput(t)
 	input.Manifest.ChoiceProfile = &record.ChoiceProfile{
 		Name: choice.Profile, ImplementationSHA256: record.HashBytes([]byte("choice implementation")),
-		Trace: record.ChoiceTrace{Schema: "gomad3.choice-trace/v2", SHA256: record.HashBytes([]byte("expected")), Bytes: 8, Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: 1 << 20, TapeSHA256: record.HashBytes([]byte("tape")), Decisions: 1},
+		Trace: record.ChoiceTrace{Schema: "gomad3.choice-trace/v3", SHA256: record.HashBytes([]byte("expected")), Bytes: 8, Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: 1 << 20, TapeSHA256: record.HashBytes([]byte("tape")), Decisions: 1},
 	}
 	input.Manifest.Limits.ChoiceTraceBytes = 1 << 20
 	input.Manifest.Environment = append(input.Manifest.Environment, record.Environment{Name: "GOMAD3_CHOICE_PROFILE", Value: choice.Profile})
@@ -99,7 +99,7 @@ func TestPublishArtifactRejectsChangedChoiceTapeIdentity(t *testing.T) {
 	input.Manifest.ChoiceProfile = &record.ChoiceProfile{
 		Name: choice.Profile, ImplementationSHA256: choiceImplementationIdentity(t, input.Manifest.Toolchain.BuildKey),
 		Trace: record.ChoiceTrace{
-			Schema: "gomad3.choice-trace/v2", SHA256: record.HashBytes(trace), Bytes: record.Uint64String(len(trace)),
+			Schema: "gomad3.choice-trace/v3", SHA256: record.HashBytes(trace), Bytes: record.Uint64String(len(trace)),
 			Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: choice.MinimumTraceBytes,
 			TapeSHA256: record.HashBytes([]byte("different tape")), Decisions: record.Uint64String(decisions),
 		},

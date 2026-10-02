@@ -3,7 +3,7 @@
 package runtime
 
 const (
-	gomadChoiceWireVersion                   = 2
+	gomadChoiceWireVersion                   = 3
 	gomadChoiceHeaderBytes                   = 64
 	gomadChoiceRecordBytes                   = 96
 	gomadChoiceTapeHeaderBytes               = 264
@@ -21,6 +21,14 @@ const (
 	gomadChoiceTerminalComplete              = 1
 	gomadChoiceTerminalOverflow              = 2
 	gomadChoiceTerminalDiverged              = 3
+	gomadChoiceReadinessKnown                = 1
+	gomadChoiceReadinessDefault              = 2
+	gomadChoiceReadinessNilChannel           = 4
+	gomadChoiceReadinessTimerChannel         = 8
+	gomadChoiceReadinessClosedChannel        = 16
+	gomadChoiceReadinessRepeatedChannel      = 32
+	gomadChoiceReadinessCountShift           = 6
+	gomadChoiceReadinessMaximumCount         = 1023
 	gomadChoiceModeSeed                      = 0
 	gomadChoiceModeRecord                    = 1
 	gomadChoiceModeReplay                    = 2
@@ -45,9 +53,9 @@ const (
 	gomadDiagnosticStateOffset               = 12
 )
 
-var gomadChoiceTraceMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'H', '\x02'}
-var gomadChoiceTapeMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'P', '\x02'}
-var gomadChoiceTerminalMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'T', '\x02'}
+var gomadChoiceTraceMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'H', '\x03'}
+var gomadChoiceTapeMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'P', '\x03'}
+var gomadChoiceTerminalMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'T', '\x03'}
 var gomadDiagnosticMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'D', 'G', '\x01'}
 
 type gomadDiagnosticDrawCounts struct {

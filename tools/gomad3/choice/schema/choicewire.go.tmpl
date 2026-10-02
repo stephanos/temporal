@@ -20,7 +20,8 @@ const (
 	DigestBytes         = 32
 	wireVersion         = {{.Schema.Version}}
 	Version1            = 1
-	Version2            = wireVersion
+	Version2            = 2
+	Version3            = wireVersion
 )
 
 var (
@@ -46,6 +47,41 @@ const (
 	FlagSiteMissing Flags = {{.Schema.Flags.SiteMissing}}
 	FlagRankOverride Flags = {{.Schema.Flags.RankOverride}}
 )
+
+// Readiness is the sixteen-bit word a select records when it has locked its
+// channels: the low bits are flags, the rest the number of cases that could
+// proceed. A zero word means the readiness is unknown; a known word always
+// carries ReadinessKnown. The runtime writes it on a select_result observation
+// and the replay-plan projection copies it onto that select's select_poll
+// decisions, so a trace decision never carries one and a tape decision may.
+type Readiness uint16
+
+const (
+	ReadinessKnown Readiness = {{.Schema.Readiness.Flags.Known}}
+	ReadinessDefault Readiness = {{.Schema.Readiness.Flags.Default}}
+	ReadinessNilChannel Readiness = {{.Schema.Readiness.Flags.NilChannel}}
+	ReadinessTimerChannel Readiness = {{.Schema.Readiness.Flags.TimerChannel}}
+	ReadinessClosedChannel Readiness = {{.Schema.Readiness.Flags.ClosedChannel}}
+	ReadinessRepeatedChannel Readiness = {{.Schema.Readiness.Flags.RepeatedChannel}}
+	ReadinessCountShift = {{.Schema.Readiness.CountShift}}
+	ReadinessMaximumCount = {{.Schema.Readiness.MaximumCount}}
+	readinessFlagMask = ReadinessKnown | ReadinessDefault | ReadinessNilChannel | ReadinessTimerChannel | ReadinessClosedChannel | ReadinessRepeatedChannel
+)
+
+// NewReadiness packs a known ready count and its shape flags.
+func NewReadiness(ready uint32, flags Readiness) (Readiness, error) {
+	if ready > ReadinessMaximumCount || flags&^readinessFlagMask != 0 {
+		return 0, errors.New("invalid choice readiness")
+	}
+	return Readiness(ready)<<ReadinessCountShift | flags | ReadinessKnown, nil
+}
+
+func (readiness Readiness) Known() bool { return readiness&ReadinessKnown != 0 }
+
+// Ready is the number of cases that could proceed; zero when unknown.
+func (readiness Readiness) Ready() uint32 { return uint32(readiness >> ReadinessCountShift) }
+
+func (readiness Readiness) Flags() Readiness { return readiness & readinessFlagMask }
 
 type Mode uint8
 
@@ -111,6 +147,12 @@ func PublishHeader(header []byte, nextOffset, recordCount uint64) error {
 	return nil
 }
 
+// Record is one 96-byte trace or tape record. A decision carries its selected
+// identity at bytes 32:64 and its alternative set at 64:96; an observation
+// carries no identities and instead holds Origin at bytes 32:40, the trace
+// ordinal the runtime would have assigned next when the observed operation
+// began, which for a select_result is the ordinal of its first select_poll
+// decision. Readiness occupies bytes 10:12 of select records.
 type Record struct {
 	Ordinal uint64
 	Kind Kind
@@ -119,6 +161,8 @@ type Record struct {
 	Selected uint32
 	Data uint32
 	SiteOffset uint64
+	Readiness Readiness
+	Origin uint64
 	SelectedIdentity [DigestBytes]byte
 	AlternativeSetDigest [DigestBytes]byte
 }
@@ -131,26 +175,58 @@ func EncodeRecord(value Record) ([RecordBytes]byte, error) {
 	binary.BigEndian.PutUint64(record[:8], value.Ordinal)
 	record[8] = byte(value.Kind)
 	record[9] = byte(value.Flags)
+	binary.BigEndian.PutUint16(record[10:12], uint16(value.Readiness))
 	binary.BigEndian.PutUint32(record[12:16], value.Alternatives)
 	binary.BigEndian.PutUint32(record[16:20], value.Selected)
 	binary.BigEndian.PutUint32(record[20:24], value.Data)
 	binary.BigEndian.PutUint64(record[24:32], value.SiteOffset)
-	copy(record[32:64], value.SelectedIdentity[:])
+	if value.Flags&FlagObservation != 0 {
+		binary.BigEndian.PutUint64(record[32:40], value.Origin)
+	} else {
+		copy(record[32:64], value.SelectedIdentity[:])
+	}
 	copy(record[64:96], value.AlternativeSetDigest[:])
 	return record, nil
 }
 
 func DecodeRecord(record []byte) (Record, error) {
-	if len(record) != RecordBytes || !zero(record[10:12]) {
+	if len(record) != RecordBytes {
 		return Record{}, errors.New("invalid choice trace record")
 	}
-	value := Record{Ordinal: binary.BigEndian.Uint64(record[:8]), Kind: Kind(record[8]), Flags: Flags(record[9]), Alternatives: binary.BigEndian.Uint32(record[12:16]), Selected: binary.BigEndian.Uint32(record[16:20]), Data: binary.BigEndian.Uint32(record[20:24]), SiteOffset: binary.BigEndian.Uint64(record[24:32])}
-	copy(value.SelectedIdentity[:], record[32:64])
+	value := Record{Ordinal: binary.BigEndian.Uint64(record[:8]), Kind: Kind(record[8]), Flags: Flags(record[9]), Readiness: Readiness(binary.BigEndian.Uint16(record[10:12])), Alternatives: binary.BigEndian.Uint32(record[12:16]), Selected: binary.BigEndian.Uint32(record[16:20]), Data: binary.BigEndian.Uint32(record[20:24]), SiteOffset: binary.BigEndian.Uint64(record[24:32])}
+	if value.Flags&FlagObservation != 0 {
+		if !zero(record[40:64]) {
+			return Record{}, errors.New("invalid choice trace record")
+		}
+		value.Origin = binary.BigEndian.Uint64(record[32:40])
+	} else {
+		copy(value.SelectedIdentity[:], record[32:64])
+	}
 	copy(value.AlternativeSetDigest[:], record[64:96])
 	if err := validateRecord(value); err != nil {
 		return Record{}, err
 	}
 	return value, nil
+}
+
+func validateReadiness(value Record) error {
+	readiness := value.Readiness
+	if !readiness.Known() && readiness != 0 || value.Kind == KindRunnable && readiness != 0 {
+		return errors.New("invalid choice readiness")
+	}
+	if value.Kind != KindSelectResult {
+		return nil
+	}
+	cases := value.Alternatives
+	if readiness&ReadinessDefault != 0 {
+		cases--
+	}
+	// The runtime records every completed select's readiness, and a result
+	// cannot have more ready cases than the select has cases.
+	if !readiness.Known() || readiness.Ready() > cases {
+		return errors.New("invalid choice select result readiness")
+	}
+	return nil
 }
 
 func validateRecord(value Record) error {
@@ -171,6 +247,12 @@ func validateRecord(value Record) error {
 	}
 	if value.Flags&FlagSiteMissing != 0 && value.SiteOffset != 0 {
 		return errors.New("invalid missing choice trace site")
+	}
+	if err := validateReadiness(value); err != nil {
+		return err
+	}
+	if value.Flags&FlagDecision != 0 && value.Origin != 0 || value.Flags&FlagObservation != 0 && value.Origin > value.Ordinal {
+		return errors.New("invalid choice trace origin")
 	}
 	selectedZero := zero(value.SelectedIdentity[:])
 	setZero := zero(value.AlternativeSetDigest[:])
