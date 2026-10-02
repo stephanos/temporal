@@ -1,0 +1,12 @@
+{
+  "host": "darwin/arm64",
+  "baseline": {"revision": "49bada28ef652cc44f00c00b0a9f64af7bc4ba6f", "command": "GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host", "exit_code": 0, "elapsed_seconds": 178, "packages_ok": 45},
+  "stock_go_quick_command": {"command": "go -C tools/gomad3 test -tags test_dep ./runner/... ./cmd/gomad/...", "exit_code": 1, "note": "pre-edit; Homebrew go1.27.0 without the patched toolchain fails runner and runner/internal/execution choice-trace transport tests; test-host with the pinned stock go1.27.1 and .toolchain/bin/go is the gate"},
+  "first_full_gate": {"revision": "07f7cb69fae9133408a5bd4ea93a956ab332525b", "exit_code": 2, "elapsed_seconds": 170, "failure": "TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner/choice_depth_with_simulation_strategy pinned the choice-depth message this change had widened; fixed in baef81f6e"},
+  "runner_rerun": {"revision": "baef81f6e", "command": ".toolchain/bin/go test -tags test_dep -count=1 ./runner", "exit_code": 0, "elapsed_seconds": 118},
+  "final_full_gate": {"revision": "baef81f6e", "command": "GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host", "exit_code": 0, "elapsed_seconds": 146, "packages_ok": 45},
+  "validate": {"revision": "baef81f6e", "command": "make -C tools/gomad3 validate", "exit_code": 0},
+  "vet": {"command": "go vet -tags test_dep ./runner/... ./cmd/...", "exit_code": 0},
+  "root_lint": {"command": "make lint-code-fast", "exit_code": 2, "note": "unavailable: GOLANGCI_LINT_BASE_REV=main is not a known commit (same as fn-114.7)"},
+  "not_run": ["linux/amd64 (no native host)"]
+}
