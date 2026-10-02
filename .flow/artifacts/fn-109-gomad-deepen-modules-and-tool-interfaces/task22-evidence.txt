@@ -1,0 +1,140 @@
+fn-109.22 evidence (darwin/arm64, toolchain key 8d28bd44, base HEAD 38957053f + uncommitted fn-109.1 work; no commits, no staging)
+
+== 1. Drift or never-working ==
+Every retained commit shows the same state. `git log -- tools/gomad3sim` has one commit, 88f48d6fc (2026-08-23, "wip"), the squash that
+landed the whole tools/gomad3 tree; 4aab98266 on other refs is the same content. At 88f48d6fc the five pins already differed from the
+committed sources (pinned 8d7f3d9d/2f4c6f74/3f5cc7f9/d42aab07/08072b86, sources 67364238/9e90c09d/db3266da/2d46945f/feb0d31f, unchanged
+through HEAD), `gomadProcessVolumeOperation` and `runtime_time_toolchain.go` were already unpinned, and tools/gomad3sim/exploration.go
+already hashed under `gomad3-combined-frontier-*` while the Runner hashed under `gomad3-simulation-exploration-*`. Later commits touched
+capability.go (e4814bebc, 896f69c37, 627b2b00f, d4d800fb4, 38957053f) without touching the pins. The pre-squash predecessor on other refs
+(1870fdcb2, 2026-08-20) has no tools/gomad3sim and no capability.go; its Runner frontier used `gomadv3-choice-frontier-*`, so the target's
+`combined-frontier` names are a leftover of a rename that happened inside the squash. No retained commit, artifact or receipt shows a
+passing simulation-exploration campaign. So: drift whose break point predates retained history; within retained history a never-working,
+never-gated path.
+Why nothing caught it:
+ - TestBuiltInSimulationLinknamesRequireExactFirstPartySource compares a pin with itself; no test read tools/gomad3sim.
+ - The only test crossing Runner plan -> target, TestRootProcessSimulationUsesRunnerTransport (runner/internal/execution), carries
+   `//go:build integration`; no Makefile tier passes that tag (test-host uses `-tags test_dep`), and it builds with `go test -c`,
+   bypassing capability review.
+ - tools/gomad3sim tests build plans with the package's own constructors, so they are self-consistent under any domain string.
+
+== 2. Defects, cause, owner, fix, red/green ==
+D1 stale pins. Owner tools/gomad3/target/capability.go `builtInSimulationLinknames`. Fix: five SHA-256 pins set to the committed
+   sources, the second directive of runtime_process_model.go added, an entry for runtime_time_toolchain.go added. Still exact
+   name+SHA+directive-list equality for the main module's own package; `builtInSimulationLinknameAllowed` and `forbiddenImport` unchanged.
+   Bridge targets exist in the reviewed overlay (internal/gomadfs/process_volume_host.go:30, runtime/gomad.go:1027,1074).
+   Test: TestBuiltInSimulationLinknamesPinCurrentFirstPartySources reads every .go file of tools/gomad3sim with the collector's own
+   projectCapabilitySource and requires each directive-bearing file to pass builtInSimulationLinknameAllowed, and every pin to name such
+   a file. red: 6 files reported (red-pins.log); green after re-pin.
+D2 fixture under closure mode. The only simulation fixture was tools/gomad3sim's white-box test variant, whose
+   cluster_toolchain_test.go imports syscall for host probes (syscall.Fstat over descriptors 0..63, errors.Is(err, syscall.ESTALE)).
+   Closure policy forbids syscall; those assertions cannot be expressed without it short of weakening them, so neither policy nor tests
+   were changed. Owner: the fixture choice. Fix: retained fixture tools/gomad3sim/testdata/simulation_exploration (root module,
+   standard library + tools/gomad3sim only). It cannot live under conformance/testdata: that is module gomad3.test, and the bridges are
+   admitted only for Module.Main without a replacement.
+   Test: TestClosureReviewSupportsSimulationFixtureAndRefusesHarnessTests - closure review of the fixture has zero findings and contains
+   tools/gomad3sim; closure review of `go-test ./tools/gomad3sim` still returns only `import:syscall` findings on the test variant.
+   red against pre-edit capability.go via `go test -overlay` (red-closure.log: unapproved_linkname); green after.
+D3 candidate identity. Minimal reproduction: TestRootProcessSimulationUsesRunnerTransport/TestProcessExplorationConsumesExternalPlanAndPublishesRecord
+   (`-tags test_dep,integration`), red-root-integration.log: "simulation exploration candidate identity does not match". Differing input:
+   the hash domain. Runner (issuer; simulationrecord/wire.go, simulation/frontier.go; also binds journal and artifact bytes):
+   gomad3-simulation-exploration-{candidate,forced-decision,decision,alternative-set}/v1. Target: gomad3-combined-frontier-* for the same
+   four. JSON projections are byte-identical. Owner: tools/gomad3sim/exploration.go, the stale side; the Runner's domains bind durable
+   campaign journals and its own vectors, the target's bound nothing retained. Fix: the four domain strings. The check itself
+   (recompute and compare, on both sides) is unchanged.
+   Test: runner/testdata/simulation_exploration_plan_vector.json holds a Runner-issued root plan, forced plan and decision.
+   TestSimulationExplorationPlanMatchesRetainedVector (Runner) regenerates it; TestExplorationIdentitiesMatchRunnerIssuedPlanVector
+   (tools/gomad3sim) must compute the same bytes and decode them. red: red-identity.log (alternative-set and decision identity differ);
+   green after. The integration subtest is green after (green-root-integration.log).
+D4 (found while completing a campaign; not in the task's list) runtime override proof. With D1-D3 fixed the root candidate committed and
+   every candidate forcing a runtime decision failed in the target: "simulation exploration record does not prove a forced decision".
+   tools/gomad3sim validateExplorationEvidence required a cluster decision for every plan override, including runtime ones, which the
+   cluster never decides: finishExplorationLocked already skips ExplorationRuntime and
+   TestRuntimeExplorationOverrideIsCompletedByHostController names the contract. The Runner proves runtime overrides from the choice tape
+   (simulation.canonicalResult -> "result does not prove a forced decision"). Fix: validateExplorationEvidence skips runtime overrides;
+   scenario/network/storage/fault/crash proof is unchanged.
+   Test: TestExplorationEvidenceProvesOnlyTheOverridesTheClusterDecides - plan with a runtime and a scenario override: accepted with the
+   forced scenario decision, rejected with the unforced one and with none. red: red-runtime-proof.log; green after.
+
+== 3. Campaign ==
+Transport test (tools/gomad3/runner/coordinator_transport_test.go), TestIsolatedRunnerCompletesSimulationStrategyWithSuppliedLimits,
+replaces TestIsolatedRunnerCarriesSimulationBoundsToCandidateExecution. For the isolated coordinator and the local path it requires:
+Explore() == nil; bounds Parallel 2, MaxExecutions 16, MaxForcedDecisions 3, MaxExplorationBytes 2MiB, MaxResultBytes 3MiB,
+FailureBudget 4, limits {1,11,13,17,19,23} in the result and in the first running event; BoundedComplete, Pending==0,
+LogicalExecutions>=2, CommittedRounds>=2, DeduplicatedOutcomes>=2, DeepestOverride>0; Attempted==LogicalExecutions==Succeeded==RetainedSuccesses,
+Failures==0; every retained artifact replays with Match, no divergence and ChoiceReplayExact; the retained stdouts are exactly
+{"route alpha\n","route beta\n"}; isolated summary == local summary. Target is prepared in the default closure mode.
+red against pre-edit pins (red-transport.log): "target_preparation: unsupported target capability ... uses go:linkname in
+runtime_domain.go". green: --- PASS (13.95s).
+Bounds changed from fn-109.1's values: runtime limit 7 -> 1 and MaxExecutions 5 -> 16. With the old values the campaign stopped at
+max_executions after five runtime-only candidates and never executed the Scenario alternative (candidates sort by depth, then SHA).
+With runtime bounded to its first decision the whole space is 2a candidates (a = alternatives of runtime decision 0; 3 on this host,
+so 6 candidates), which fits the execution bound up to a = 8, and the campaign ends bounded-complete (dimension_depth_complete).
+
+Built CLI (.toolchain/bin/go build -trimpath ./cmd/gomad into scratch), isolated coordinator, closure mode:
+  gomad explore --json --strategy=simulation-exploration --seeds 89 --parallel 2 --max-executions=16 --max-forced-decisions=3
+    --max-exploration-bytes=2MiB --max-exploration-result-bytes=3MiB --max-runtime-decisions=1 --max-scenario-decisions=11
+    --max-network-decisions=13 --max-storage-decisions=17 --max-fault-decisions=19 --max-crash-decisions=23 --on-failure=budget
+    --failure-budget=4 --keep-successes=all --success-limit=16 --success-bytes=256MiB --build-tag gomad3_toolchain
+    --toolchain-root <repo>/tools/gomad3/.toolchain --working-dir <repo> --artifacts <scratch> go-run ./tools/gomad3sim/testdata/simulation_exploration
+  explore_exit=0
+  {"type":"result","classification":"success","selected":1,"attempted":6,"succeeded":6,"retained_successes":6,"stop_reason":"dimension_depth_complete",
+   "simulation_exploration":{"parallel":2,"max_executions":16,"max_forced_decisions":3,"max_exploration_bytes":2097152,"max_result_bytes":3145728,
+   "failure_budget":4,"dimension_limits":{"runtime":1,"scenario":11,"network":13,"storage":17,"fault":19,"crash":23},"logical_executions":6,
+   "committed_rounds":4,"pending":0,"seen_candidates":6,"deduplicated_outcomes":2,"distinct_failures":0,"deepest_override":2,
+   "omitted_by_execution_bound":0,"omitted_by_depth":0,"omitted_by_dimension":34,"omitted_by_capacity":0,"stop_reason":"dimension_depth_complete","bounded_complete":true}}
+  gomad replay of each retained artifact (manifest capability_mode closure):
+   round 0 overrides=[]                      stdout 'route alpha'  reproduced=true result=success choice-replay=exact exit 0
+   round 1 overrides=[runtime 0]             stdout 'route alpha'  reproduced=true result=success choice-replay=exact exit 0
+   round 2 overrides=[scenario 0]            stdout 'route beta'   reproduced=true result=success choice-replay=exact exit 0
+   round 3 overrides=[runtime 0, scenario 0] stdout 'route beta'   reproduced=true result=success choice-replay=exact exit 0
+
+== 4. Gates (darwin/arm64) ==
+baseline (pre-edit): `.toolchain/bin/go test -count=1 -tags test_dep ./runner/... ./target/...` rc=0; `go test -count=1 -tags test_dep ./tools/gomad3sim/...` rc=0
+post-edit:
+  make -C tools/gomad3 validate                                                       rc=0
+  make -C tools/gomad3 test-host                                                      rc=0 (45 packages ok; runner 142.8s, target 58.2s, load average 21)
+  go test -count=1 -tags test_dep ./tools/gomad3sim/... (repo root)                   rc=0
+  gofmt -l on touched files                                                           clean
+  GOWORK=off go vet -tags test_dep ./runner/... ./target/... (tools/gomad3)           rc=0
+  go vet -tags test_dep ./tools/gomad3sim/... ; go vet -tags test_dep,gomad3_toolchain ./tools/gomad3sim ./tools/gomad3sim/testdata/simulation_exploration   rc=0
+  make lint-code LINT_CODE_TARGETS=./tools/gomad3sim/... GOLANGCI_LINT_BASE_REV=HEAD  rc=0, 0 issues
+  go build ./tools/gomad3sim/testdata/simulation_exploration with stock go1.27.1      rc=0
+after the review round (only coordinator_transport_test.go changed since test-host: MaxExecutions 8 -> 16, BoundedComplete required):
+  .toolchain/bin/go test -count=1 -tags test_dep ./runner/... ./target/... (tools/gomad3)   rc=0 (14 packages ok)
+  make -C tools/gomad3 validate                                                       rc=0
+  go test -count=1 -tags test_dep ./tools/gomad3sim/... (repo root)                   rc=0
+  gofmt -l, go vet ./runner/... ./target/...                                          clean, rc=0
+  test-host was not repeated after that test-only edit.
+gate receipts: none written (flowctl gate check reports the worktree dirty; commits are forbidden for this task).
+ungated check, TestRootProcessSimulationUsesRunnerTransport (`-tags test_dep,integration ./runner/internal/execution`; no Make target or
+CI entrypoint runs the `integration` tag for tools/gomad3 - a gap for the conductor):
+   before: rc=1; subtests TestProcessExplorationConsumesExternalPlanAndPublishesRecord and
+     TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection fail (red-root-integration.log; fn-110 baseline: 25/25 runs, see
+     docs/research/gomad/GOMAD_PATCH_SIZE.md "Implementation baseline" and fn-110 task1-baseline.json).
+   after (3 verbose runs, after-root-integration-{1,2,3}.log): TestProcessExplorationConsumesExternalPlanAndPublishesRecord PASS 3/3,
+     including the Runner's ResultForRecord projection of the published record. The run stays rc=1:
+     - TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection FAIL 3/3, "scenario decision identity is invalid" - a different
+       cause with no exploration plan involved. Read from the code, not proven by experiment: commitScenarioDecision
+       (tools/gomad3sim/controller.go) reports a scenario-choice-plan mismatch through scenarioDivergenceLocked before the decision's
+       Identity is assigned, and the divergence embeds that decision, which validateScenarioDecision then rejects. Owner:
+       tools/gomad3sim/controller.go, outside this task's Touches; not changed.
+     - one process-backend subtest ran about 28s and failed in 2 of 6 runs (a different subtest each time:
+       TestProcessAndInProcessBackendsHaveEquivalentDetachedModels, and TestProcessBackendSynchronizesNodeClockWithModelDelay with
+       watchdog=true) and
+       TestProcessBackendResetsGlobalsDescriptorsAndGoroutines failed once after 2.2s; the fn-110 baseline recorded the same
+       intermittent watchdog. Not caused by this change (no process-backend code touched); owner not established here.
+  `.toolchain/bin/go test -exec exec.sh -tags test_dep,gomad3_toolchain ./tools/gomad3sim` (GOMAD3_CHILD_SEED=89): rc=1 on that same
+   pre-existing test only; every other toolchain-variant test passes.
+not run: linux/amd64 gates (host is darwin/arm64); full `make -C tools/gomad3 test` (another worker active; conductor asked for validate + test-host).
+
+== 5. Observations outside this task ==
+ - A program importing tools/gomad3sim but not `net` fails to link under the patched toolchain ("relocation target
+   internal/gomadio.BeginSimulation not defined"): the harness pulls internal/gomadio by linkname without importing a package that links
+   it. The fixture binds a modeled listener, so it imports net.
+ - The runtime hides GOMADSEED from the target and the harness requires plan.base_seed == Spec.Seed, so a simulation-exploration target
+   must hard-code the campaign Seed (the fixture uses 89) or receive it another way.
+ - Success artifacts are stored under the default store key, so candidates with the same outcome in one round share one artifact
+   directory while retained_successes and retained_success_bytes count each of them (6 retained, 4 directories above). Same for the
+   choice-exploration and seed strategies.
+ - TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection fails under the patched toolchain, before and after this task.

@@ -55,9 +55,15 @@ GOWORK=off go vet -tags test_dep ./runner/...
 - [ ] Before/after evidence shows the simulation request failed validation before the fix and reaches execution after it; CLI flags, defaults and exit statuses are unchanged.
 
 ## Done summary
-TBD
+The isolated coordinator transport now carries `MaxForcedDecisions`, `MaxExplorationResultBytes` and `SimulationDimensionLimits`: `coordinatorConfig` and both conversions (`coordinatorConfigFromCampaignSpec`, `campaignSpecFromCoordinatorConfig`) in `tools/gomad3/runner/coordinator.go`. `coordinator_transport_test.go` proves seed, choice and simulation strategies through real isolated execution (its TestMain serves the private coordinator, supervisor and target-bootstrap modes) with distinguishable nonzero limits that match the local run, plus a whole-value round trip, a field guard, and rejection of zero or missing bounds, incompatible strategies, malformed JSON, unknown fields and trailing data through the coordinator process.
 
+The simulation leg was blocked on four defects outside this task's files (stale simulation source pins, no closure-clean simulation fixture, mismatched candidate-identity domain strings, runtime-forced evidence validation). fn-109-gomad-deepen-modules-and-tool-interfaces.22 fixed them and the leg now passes as `TestIsolatedRunnerCompletesSimulationStrategyWithSuppliedLimits`; that task changed the test's simulation bounds to runtime limit 1 and MaxExecutions 16 so the Scenario alternative runs. Built-CLI before/after: before, exit 3 `coordinator_run: simulation-exploration forced decisions must be positive`; after, 6 logical executions over 4 rounds to `bounded_complete` with exact replay of all 4 retained artifacts.
+
+Gates on darwin/arm64: focused runner tests, gofmt, `make -C tools/gomad3 validate` and `test-host` pass. linux/amd64 was not run for this task. The code is in the owner's commit 97bdba0fd.
+
+stage: impl-review - ran (raw codex bridge; round 1 NEEDS_WORK on the incomplete simulation leg, resolved and reviewed SHIP under fn-109.22) (model: gpt-5.6-sol)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 97bdba0fd
+- Tests: go test -count=1 ./runner/... (tools/gomad3), make -C tools/gomad3 validate, make -C tools/gomad3 test-host, see .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task1-evidence.txt and task22-evidence.txt
 - PRs:
