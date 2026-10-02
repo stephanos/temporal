@@ -1,0 +1,95 @@
+{
+  "base": "49bada28ef652cc44f00c00b0a9f64af7bc4ba6f",
+  "effort": "high",
+  "findings": {
+    "backend": "claude",
+    "baseSha": "49bada28ef652cc44f00c00b0a9f64af7bc4ba6f",
+    "headSha": "b3aebefea692498c6669fdab8547de26cbd4f0f9",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "49bada28ef652cc44f00c00b0a9f64af7bc4ba6f",
+          "headSha": "b3aebefea692498c6669fdab8547de26cbd4f0f9",
+          "path": "tools/gomad3/runner/internal/campaign/choice_exploration_start_test.go",
+          "side": "head",
+          "startLine": 103
+        },
+        "body": "`TestSeedCampaignPlanRejectsChoiceStartOrdinal` only asserts that `hasCampaignPlanExplorationFields` returns true. It never calls `validateCampaignPlan`, so the rejection itself is not exercised, and nothing covers the simulation-exploration plan branch at `resume_plan.go:245`.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-86dbb3de56842bb03735d2f799850121a29292891b31caa099c36b647e8209b0",
+        "id": "finding-b22cf8a8b4c56a9805137172de00b17f",
+        "lastSeenReceiptId": "review-86dbb3de56842bb03735d2f799850121a29292891b31caa099c36b647e8209b0",
+        "ordinal": 1,
+        "rIds": [],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Assert on `validateCampaignPlan` for a seed plan and a simulation-exploration plan with a non-zero start, or rename the test to match what it checks.",
+        "title": "`TestSeedCampaignPlanRejectsChoiceStartOrdinal` only asserts that `hasCampaignPlanExplorationFields` returns true"
+      },
+      {
+        "anchor": {
+          "baseSha": "49bada28ef652cc44f00c00b0a9f64af7bc4ba6f",
+          "headSha": "b3aebefea692498c6669fdab8547de26cbd4f0f9",
+          "path": "tools/gomad3/cmd/gomad/internal/cli/explore_output.go",
+          "side": "head",
+          "startLine": 154
+        },
+        "body": "`exploration-depth` (`DeepestPrefix`) is an absolute forced depth, while `exploration-max-depth` is now relative to the start. The e2e evidence shows `exploration-depth=5 exploration-max-depth=2 exploration-start=3`, which reads as depth exceeding its bound unless the reader adds the start.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-86dbb3de56842bb03735d2f799850121a29292891b31caa099c36b647e8209b0",
+        "id": "finding-ffdab2b97e9e6d6925f0da40d0433051",
+        "lastSeenReceiptId": "review-86dbb3de56842bb03735d2f799850121a29292891b31caa099c36b647e8209b0",
+        "ordinal": 2,
+        "rIds": [
+          "R10"
+        ],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Leave the fields as they are (changing `DeepestPrefix` would touch state identity) and document the relation in the task 14 CLI prose, or add a derived relative field to the output only.",
+        "title": "`exploration-depth` (`DeepestPrefix`) is an absolute forced depth, while `exploration-max-depth` is now relative to the start"
+      },
+      {
+        "anchor": {
+          "baseSha": "49bada28ef652cc44f00c00b0a9f64af7bc4ba6f",
+          "headSha": "b3aebefea692498c6669fdab8547de26cbd4f0f9",
+          "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+          "side": "head",
+          "startLine": 269
+        },
+        "body": "The acceptance item \"shown by a test\" is met at the `runner.Inspect` level (`TestInspectChoicesListsReplayPlanDecisionOrdinals`). The printed line, including the `site-offset=missing` branch, is covered only by the retained e2e transcript. The neighbouring `choice-site:` line is equally untested, so this matches the existing convention.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-86dbb3de56842bb03735d2f799850121a29292891b31caa099c36b647e8209b0",
+        "id": "finding-046a6258ee28d1aa0708b9c0be10b962",
+        "lastSeenReceiptId": "review-86dbb3de56842bb03735d2f799850121a29292891b31caa099c36b647e8209b0",
+        "ordinal": 3,
+        "rIds": [
+          "R10"
+        ],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Add a small printer test for `printArtifactInspection` with one missing-site and one present-site decision.",
+        "title": "The acceptance item \"shown by a test\" is met at the `runner"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-86dbb3de56842bb03735d2f799850121a29292891b31caa099c36b647e8209b0"
+  },
+  "id": "fn-114-gomad-correct-search-path-defects-and.6",
+  "introduced_count": 3,
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "pre_existing_count": 0,
+  "review": "## Review: fn-114.6, choice-exploration start ordinal\n\nNo blocking findings. I could not run tests in this session (no shell), so the verdict rests on reading the code and on the committed gate evidence in `final-gates.json`, which records the full `test-host` gate and `validate` passing at `baef81f6e`.\n\n**What I traced**\n\n- **Expansion** (`engine.go:403-409`): decisions below `max(parent.ForcedDepth, StartOrdinal)` are skipped before the omitted-by-depth count. Depth is `ordinal - StartOrdinal + 1`, which cannot underflow because of that skip.\n- **Pre-start assertion** (`engine.go:505`): `len(decisions) <= StartOrdinal` is the right bound, since the altered decision sits at index `len-1`.\n- **Default identity**: `start_ordinal,omitempty` on `Config` and `Summary`, and `choice_start_ordinal,omitempty` on `CampaignPlan`, keep the zero encoding unchanged. The retained journal's segment chain (`before_sha256` to `after_sha256`) is replayed through the new `CommitRound`, which is a real pin.\n- **Resume**: the start is restored from the plan (`resume.go:108`), and a different start fails the whole-config comparison in `ResumeExplorationJournal`; tested for 0, 2 and the retained journal.\n- **Start unreached**: only the root is checked, which is sufficient because every child has forced depth greater than the start. The outcome is deterministic under `ReplaySegment`, is accepted by `validateCampaign`, and reports `BoundedComplete=false`.\n- **Strategy rejection**: present in the CLI, in `validateConfig`, and in `validateCampaignPlan` for seed and simulation-exploration.\n- **Ordinals**: `ProjectReplayPlan` renumbers decisions by plan index, the same index `expandCandidate` uses, so `inspect --choices` and the engine agree. The projection is also checked against the recorded tape hash.\n\n## Findings\n\n**1. Test name overstates what it checks**\n- **Severity**: P3\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: `tools/gomad3/runner/internal/campaign/choice_exploration_start_test.go:103`\n- **R-IDs**: []\n- **Problem**: `TestSeedCampaignPlanRejectsChoiceStartOrdinal` only asserts that `hasCampaignPlanExplorationFields` returns true. It never calls `validateCampaignPlan`, so the rejection itself is not exercised, and nothing covers the simulation-exploration plan branch at `resume_plan.go:245`.\n- **Suggestion**: Assert on `validateCampaignPlan` for a seed plan and a simulation-exploration plan with a non-zero start, or rename the test to match what it checks.\n\n**2. Result line mixes absolute and start-relative depth**\n- **Severity**: P3\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: `tools/gomad3/cmd/gomad/internal/cli/explore_output.go:154`\n- **R-IDs**: [R10]\n- **Problem**: `exploration-depth` (`DeepestPrefix`) is an absolute forced depth, while `exploration-max-depth` is now relative to the start. The e2e evidence shows `exploration-depth=5 exploration-max-depth=2 exploration-start=3`, which reads as depth exceeding its bound unless the reader adds the start.\n- **Suggestion**: Leave the fields as they are (changing `DeepestPrefix` would touch state identity) and document the relation in the task 14 CLI prose, or add a derived relative field to the output only.\n\n**3. The `choice-decision:` text line has no test**\n- **Severity**: P3\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: `tools/gomad3/cmd/gomad/internal/cli/cli.go:269`\n- **R-IDs**: [R10]\n- **Problem**: The acceptance item \"shown by a test\" is met at the `runner.Inspect` level (`TestInspectChoicesListsReplayPlanDecisionOrdinals`). The printed line, including the `site-offset=missing` branch, is covered only by the retained e2e transcript. The neighbouring `choice-site:` line is equally untested, so this matches the existing convention.\n- **Suggestion**: Add a small printer test for `printArtifactInspection` with one missing-site and one present-site decision.\n\n**FYI (not findings)**\n- The inspection schema moved from `gomad3.choice-inspection/v2` to `v3` for an additive `omitempty` field. Nothing in the repo pins v2, so this is harmless.\n- `inspect --choices` now fails on an exact-replay artifact whose replay plan cannot be re-projected or does not match the recorded tape hash. That is stricter than before; I consider it correct.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R10 | met | Engine start ordinal with depth counted from the start (`engine.go:403-409`, `:505`); plan and resume plumbing (`campaign_plan.go:47`, `resume.go:108`, `resume_plan.go:62`); `choice_start_unreached` stop reason; CLI flag with strategy rejection; `inspect --choices` ordinals; default-identity pin and retained-journal resume tests |\n\nUnaddressed R-IDs: []\n\nClassification counts: 3 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":3,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>",
+  "review_reservation_id": "631ec4b7b3da4919bbf6642865c87fee",
+  "session_id": "0a45e164-7249-4f02-8344-6c695108ca9b",
+  "spec": "claude:claude-fable-5-1:high",
+  "timestamp": "2026-10-02T16:44:53.519466Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}
