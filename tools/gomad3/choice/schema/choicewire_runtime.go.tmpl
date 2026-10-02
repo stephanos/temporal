@@ -21,6 +21,14 @@ const (
 	gomadChoiceTerminalComplete = {{.Schema.Terminal.States.Complete}}
 	gomadChoiceTerminalOverflow = {{.Schema.Terminal.States.Overflow}}
 	gomadChoiceTerminalDiverged = {{.Schema.Terminal.States.Diverged}}
+	gomadChoiceReadinessKnown = {{.Schema.Readiness.Flags.Known}}
+	gomadChoiceReadinessDefault = {{.Schema.Readiness.Flags.Default}}
+	gomadChoiceReadinessNilChannel = {{.Schema.Readiness.Flags.NilChannel}}
+	gomadChoiceReadinessTimerChannel = {{.Schema.Readiness.Flags.TimerChannel}}
+	gomadChoiceReadinessClosedChannel = {{.Schema.Readiness.Flags.ClosedChannel}}
+	gomadChoiceReadinessRepeatedChannel = {{.Schema.Readiness.Flags.RepeatedChannel}}
+	gomadChoiceReadinessCountShift = {{.Schema.Readiness.CountShift}}
+	gomadChoiceReadinessMaximumCount = {{.Schema.Readiness.MaximumCount}}
 	gomadChoiceModeSeed = {{.Schema.Modes.Seed}}
 	gomadChoiceModeRecord = {{.Schema.Modes.Record}}
 	gomadChoiceModeReplay = {{.Schema.Modes.Replay}}

@@ -438,7 +438,7 @@ func TestRunTargetInheritsChoiceTapeReadOnly(t *testing.T) {
 		GOOS: runtime.GOOS, GOARCH: runtime.GOARCH, ImplementationSHA256: testChoiceImplementationSHA256,
 	}
 	tape, err := choice.ProjectReplayPlan(choice.Trace{
-		Version: choice.Version2, Bytes: []byte{}, SHA256: sha256.Sum256(nil), Records: []choice.Record{},
+		Version: choice.Version3, Bytes: []byte{}, SHA256: sha256.Sum256(nil), Records: []choice.Record{},
 		Summary: choice.Summary{Terminal: choice.TerminalComplete},
 	}, identity)
 	if err != nil {

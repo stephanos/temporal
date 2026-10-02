@@ -30,6 +30,19 @@ type choiceRun struct {
 	transcript string
 	trace      choice.Trace
 	terminal   []byte
+	// diagnostic is the runtime-state digest per choice record, collected
+	// only when the run asked for it.
+	diagnostic choice.DiagnosticTrace
+}
+
+type choiceRunSpec struct {
+	name, fixture, seed string
+	tape                *choice.ReplayPlan
+	mode                choice.Mode
+	wantExit            int
+	acceptExits         []int
+	diagnostic          bool
+	args                []string
 }
 
 // requireChoiceReplay records the fixture's Choice Trace under one seed and
@@ -125,7 +138,11 @@ func (campaign *runtimeCampaign) runChoiceMode(name, fixture, seed string, tape 
 // status observed, for an experiment whose outcome is evidence rather than a
 // requirement.
 func (campaign *runtimeCampaign) runChoiceAccepting(name, fixture, seed string, tape *choice.ReplayPlan, mode choice.Mode, wantExit int, acceptExits []int, fixtureArgs ...string) (choiceRun, int, error) {
-	directory := filepath.Join(campaign.workspace, name)
+	return campaign.runChoiceSpec(choiceRunSpec{name: name, fixture: fixture, seed: seed, tape: tape, mode: mode, wantExit: wantExit, acceptExits: acceptExits, args: fixtureArgs})
+}
+
+func (campaign *runtimeCampaign) runChoiceSpec(spec choiceRunSpec) (choiceRun, int, error) {
+	directory := filepath.Join(campaign.workspace, spec.name)
 	if err := os.Mkdir(directory, 0o700); err != nil {
 		return choiceRun{}, 0, fmt.Errorf("create choice trace directory: %w", err)
 	}
@@ -136,27 +153,44 @@ func (campaign *runtimeCampaign) runChoiceAccepting(name, fixture, seed string, 
 	if err := os.Truncate(tracePath, choiceTraceBytes); err != nil {
 		return choiceRun{}, 0, fmt.Errorf("size choice trace backing: %w", err)
 	}
-	script, arguments := `exec "$0" 3<>"$1" 4>"$2"`, []string{fixture, tracePath, terminalPath}
+	script, arguments := `exec "$0" 3<>"$1" 4>"$2"`, []string{spec.fixture, tracePath, terminalPath}
 	values := []string{
-		"GOMADSEED=" + seed, "GOMAD3_CHOICE_TRACE_FD=3", "GOMAD3_CHOICE_TERMINAL_FD=4",
+		"GOMADSEED=" + spec.seed, "GOMAD3_CHOICE_TRACE_FD=3", "GOMAD3_CHOICE_TERMINAL_FD=4",
 		"GOMAD3_CHOICE_TRACE_BYTES=" + strconv.Itoa(choiceTraceBytes),
 	}
-	if tape != nil {
+	if spec.tape != nil {
 		tapePath := filepath.Join(directory, "tape")
-		if err := os.WriteFile(tapePath, tape.Bytes, 0o400); err != nil {
+		if err := os.WriteFile(tapePath, spec.tape.Bytes, 0o400); err != nil {
 			return choiceRun{}, 0, fmt.Errorf("write choice tape: %w", err)
 		}
 		script, arguments = script+` 5<"$3"`, append(arguments, tapePath)
-		values = append(values, "GOMAD3_CHOICE_TAPE_FD=5", "GOMAD3_CHOICE_TAPE_BYTES="+strconv.Itoa(len(tape.Bytes)))
+		values = append(values, "GOMAD3_CHOICE_TAPE_FD=5", "GOMAD3_CHOICE_TAPE_BYTES="+strconv.Itoa(len(spec.tape.Bytes)))
 	}
-	values = append(values, "GOMAD3_CHOICE_MODE="+strconv.Itoa(int(mode)))
-	for index := range fixtureArgs {
+	diagnosticPath, diagnosticLimit := "", uint64(0)
+	if spec.diagnostic {
+		var err error
+		diagnosticLimit, err = choice.DiagnosticLimit(choiceTraceBytes)
+		if err != nil {
+			return choiceRun{}, 0, err
+		}
+		diagnosticPath = filepath.Join(directory, "diagnostic")
+		if err := os.WriteFile(diagnosticPath, diagnosticTraceBacking(diagnosticLimit), 0o600); err != nil {
+			return choiceRun{}, 0, fmt.Errorf("write diagnostic trace backing: %w", err)
+		}
+		if err := os.Truncate(diagnosticPath, int64(diagnosticLimit)); err != nil {
+			return choiceRun{}, 0, fmt.Errorf("size diagnostic trace backing: %w", err)
+		}
+		script, arguments = script+fmt.Sprintf(` 6<>"$%d"`, len(arguments)), append(arguments, diagnosticPath)
+		values = append(values, "GOMAD3_DIAGNOSTIC_TRACE_FD=6", "GOMAD3_DIAGNOSTIC_TRACE_BYTES="+strconv.FormatUint(diagnosticLimit, 10))
+	}
+	values = append(values, "GOMAD3_CHOICE_MODE="+strconv.Itoa(int(spec.mode)))
+	for index := range spec.args {
 		script += fmt.Sprintf(` "${%d}"`, len(arguments)+index)
 	}
-	arguments = append(arguments, fixtureArgs...)
-	result, err := campaign.runCase(runtimeCase{name: name, wantExit: wantExit, acceptExits: acceptExits, request: campaign.request(
+	arguments = append(arguments, spec.args...)
+	result, err := campaign.runCase(runtimeCase{name: spec.name, wantExit: spec.wantExit, acceptExits: spec.acceptExits, request: campaign.request(
 		append([]string{"/bin/sh", "-c", script}, arguments...), campaign.testdata, 10*time.Second,
-		[]string{"GOMADSEED", "GOMAD3_IO_PROFILE", "GOMAD3_CHOICE_TRACE_FD", "GOMAD3_CHOICE_TERMINAL_FD", "GOMAD3_CHOICE_TRACE_BYTES", "GOMAD3_CHOICE_MODE", "GOMAD3_CHOICE_TAPE_FD", "GOMAD3_CHOICE_TAPE_BYTES"},
+		[]string{"GOMADSEED", "GOMAD3_IO_PROFILE", "GOMAD3_CHOICE_TRACE_FD", "GOMAD3_CHOICE_TERMINAL_FD", "GOMAD3_CHOICE_TRACE_BYTES", "GOMAD3_CHOICE_MODE", "GOMAD3_CHOICE_TAPE_FD", "GOMAD3_CHOICE_TAPE_BYTES", "GOMAD3_DIAGNOSTIC_TRACE_FD", "GOMAD3_DIAGNOSTIC_TRACE_BYTES"},
 		values...,
 	)})
 	if err != nil {
@@ -171,25 +205,62 @@ func (campaign *runtimeCampaign) runChoiceAccepting(name, fixture, seed string, 
 		return choiceRun{}, result.ExitCode, fmt.Errorf("read choice terminal frame: %w", err)
 	}
 	if len(backing) != choiceTraceBytes {
-		return choiceRun{}, result.ExitCode, fmt.Errorf("%s resized its choice trace backing to %d bytes", name, len(backing))
+		return choiceRun{}, result.ExitCode, fmt.Errorf("%s resized its choice trace backing to %d bytes", spec.name, len(backing))
 	}
 	next := binary.BigEndian.Uint64(backing[choiceTraceNextOffset : choiceTraceNextOffset+8])
 	if next < choiceTraceHeaderBytes || next > choiceTraceBytes {
-		return choiceRun{}, result.ExitCode, fmt.Errorf("%s published choice trace offset %d", name, next)
+		return choiceRun{}, result.ExitCode, fmt.Errorf("%s published choice trace offset %d", spec.name, next)
 	}
 	trace, err := choice.DecodeTrace(backing[choiceTraceHeaderBytes:next], terminal, choiceTraceBytes)
 	if err != nil && !(result.ExitCode == 125 && errors.Is(err, choice.ErrDiverged)) {
-		return choiceRun{}, result.ExitCode, fmt.Errorf("decode %s choice trace: %w", name, err)
+		return choiceRun{}, result.ExitCode, fmt.Errorf("decode %s choice trace: %w", spec.name, err)
 	}
-	return choiceRun{transcript: commandOutput(result), trace: trace, terminal: terminal}, result.ExitCode, nil
+	run := choiceRun{transcript: commandOutput(result), trace: trace, terminal: terminal}
+	if spec.diagnostic {
+		run.diagnostic, err = readDiagnosticBacking(diagnosticPath, diagnosticLimit)
+		if err != nil {
+			return choiceRun{}, result.ExitCode, fmt.Errorf("decode %s diagnostic trace: %w", spec.name, err)
+		}
+		if uint64(len(run.diagnostic.Records)) != trace.Summary.Records {
+			return choiceRun{}, result.ExitCode, fmt.Errorf("%s recorded %d diagnostic digests for %d choice records", spec.name, len(run.diagnostic.Records), trace.Summary.Records)
+		}
+	}
+	return run, result.ExitCode, nil
 }
 
-// choiceTraceBacking builds the empty v2 trace header the runtime maps: the
+// diagnosticTraceBacking builds the empty diagnostic header the runtime maps,
+// the same way choiceTraceBacking does for the choice trace.
+func diagnosticTraceBacking(capacity uint64) []byte {
+	header := make([]byte, choiceTraceHeaderBytes)
+	copy(header, "GOMADDG\x01")
+	binary.BigEndian.PutUint32(header[8:12], 1)
+	binary.BigEndian.PutUint64(header[16:24], capacity)
+	binary.BigEndian.PutUint64(header[choiceTraceNextOffset:choiceTraceNextOffset+8], choiceTraceHeaderBytes)
+	return header
+}
+
+// readDiagnosticBacking decodes the written part of a capacity-sized backing.
+func readDiagnosticBacking(path string, capacity uint64) (choice.DiagnosticTrace, error) {
+	backing, err := os.ReadFile(path)
+	if err != nil {
+		return choice.DiagnosticTrace{}, err
+	}
+	if uint64(len(backing)) != capacity {
+		return choice.DiagnosticTrace{}, fmt.Errorf("diagnostic trace backing resized to %d bytes", len(backing))
+	}
+	next := binary.BigEndian.Uint64(backing[choiceTraceNextOffset : choiceTraceNextOffset+8])
+	if next < choiceTraceHeaderBytes || next > capacity {
+		return choice.DiagnosticTrace{}, fmt.Errorf("diagnostic trace published offset %d", next)
+	}
+	return choice.DecodeDiagnosticTrace(backing[:next])
+}
+
+// choiceTraceBacking builds the empty v3 trace header the runtime maps: the
 // magic, the wire version, the capacity, and a next offset just past the header.
 func choiceTraceBacking(capacity uint64) []byte {
 	header := make([]byte, choiceTraceHeaderBytes)
-	copy(header, "GOMADCH\x02")
-	binary.BigEndian.PutUint32(header[8:12], 2)
+	copy(header, "GOMADCH\x03")
+	binary.BigEndian.PutUint32(header[8:12], 3)
 	binary.BigEndian.PutUint64(header[16:24], capacity)
 	binary.BigEndian.PutUint64(header[choiceTraceNextOffset:choiceTraceNextOffset+8], choiceTraceHeaderBytes)
 	return header

@@ -13,7 +13,7 @@ func TestProjectExposesCanonicalChoiceFeatures(t *testing.T) {
 	records := []Record{
 		{Ordinal: 0, Kind: KindRunnable, Flags: FlagDecision, SiteOffset: 24, Alternatives: 3, Selected: 0},
 		{Ordinal: 1, Kind: KindSelectPoll, Flags: FlagDecision | FlagSiteMissing, Alternatives: 2, Selected: 1},
-		{Ordinal: 2, Kind: KindSelectResult, Flags: FlagObservation, SiteOffset: 40, Alternatives: 4, Selected: 2, Data: 2},
+		{Ordinal: 2, Kind: KindSelectResult, Flags: FlagObservation, SiteOffset: 40, Alternatives: 4, Selected: 2, Data: 2, Readiness: readinessWord(t, 1, 0), Origin: 1},
 	}
 	payload := encodeRecords(t, records)
 	projection, err := ProjectComplete(payload, CompleteMetadata{
@@ -79,7 +79,7 @@ func TestImplementationIdentityAndProjectionAreCanonical(t *testing.T) {
 	records := []Record{
 		{Ordinal: 0, Kind: KindRunnable, Flags: FlagDecision, SiteOffset: 24, Alternatives: 3, Selected: 2},
 		{Ordinal: 1, Kind: KindRunnable, Flags: FlagDecision, SiteOffset: 24, Alternatives: 5, Selected: 4},
-		{Ordinal: 2, Kind: KindSelectResult, Flags: FlagObservation | FlagSiteMissing, Alternatives: 2, Selected: 1, Data: 1},
+		{Ordinal: 2, Kind: KindSelectResult, Flags: FlagObservation | FlagSiteMissing, Alternatives: 2, Selected: 1, Data: 1, Readiness: readinessWord(t, 0, ReadinessNilChannel), Origin: 2},
 	}
 	payload := encodeRecords(t, records)
 	projection, err := ProjectComplete(payload, CompleteMetadata{Limit: traceHeaderBytes + uint64(len(payload)), Records: 3, SHA256: sha256.Sum256(payload)}, target)
@@ -117,7 +117,7 @@ func TestDecodeTraceValidatesRecordsAndSummarizes(t *testing.T) {
 	records := []Record{
 		{Ordinal: 0, Kind: KindRunnable, Flags: FlagDecision, SiteOffset: 24, Alternatives: 3, Selected: 2},
 		{Ordinal: 1, Kind: KindSelectPoll, Flags: FlagDecision | FlagSiteMissing, Alternatives: 2, Selected: 0},
-		{Ordinal: 2, Kind: KindSelectResult, Flags: FlagObservation, SiteOffset: 40, Alternatives: 4, Selected: 3, Data: 2},
+		{Ordinal: 2, Kind: KindSelectResult, Flags: FlagObservation, SiteOffset: 40, Alternatives: 4, Selected: 3, Data: 2, Readiness: readinessWord(t, 2, ReadinessDefault), Origin: 1},
 	}
 	payload := encodeRecords(t, records)
 	terminal := encodeTerminal(terminal{State: TerminalComplete, Records: 3, MappingBytes: traceHeaderBytes + uint64(len(payload)), PayloadHash: sha256.Sum256(payload)})

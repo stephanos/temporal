@@ -85,7 +85,7 @@ func TestBuildReportRecordsPerRunSuccessfulReplay(t *testing.T) {
 
 func TestBuildReportRequiresExactChoiceStatusForMatchedChoiceReplay(t *testing.T) {
 	evidence := successfulEvidence()
-	evidence.Choices = &runner.ChoiceEvidence{Profile: "gomad3-choice-trace/v2"}
+	evidence.Choices = &runner.ChoiceEvidence{Profile: "gomad3-choice-trace/v3"}
 	runs := []QualificationExecution{
 		{CampaignPath: "/artifacts/run-1", ArtifactPath: "/artifacts/success-1", Evidence: evidence, Replay: &QualificationReplay{ArtifactPath: "/artifacts/success-1", Attempted: true, Match: true}},
 		{CampaignPath: "/artifacts/run-2", ArtifactPath: "/artifacts/success-2", Evidence: evidence, Replay: &QualificationReplay{ArtifactPath: "/artifacts/success-2", Attempted: true, Match: true}},
@@ -125,7 +125,7 @@ func TestBuildReportRejectsMismatchedPerRunReplay(t *testing.T) {
 // evidence.
 func TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence(t *testing.T) {
 	evidence := successfulEvidence()
-	evidence.Choices = &runner.ChoiceEvidence{Profile: "gomad3-choice-trace/v2"}
+	evidence.Choices = &runner.ChoiceEvidence{Profile: "gomad3-choice-trace/v3"}
 	report, err := BuildQualificationReport(QualificationInput{Command: []string{"gomad", "qualify", "--replay-successes"}, Executions: []QualificationExecution{
 		{CampaignPath: "/artifacts/run-1", ArtifactPath: "/artifacts/success-1", Evidence: evidence, Replay: &QualificationReplay{ArtifactPath: "/artifacts/success-1", Attempted: true, Divergence: "stderr.full_sha256", ChoiceReplayStatus: ChoiceReplayExact}},
 		{CampaignPath: "/artifacts/run-2", ArtifactPath: "/artifacts/success-2", Evidence: evidence, Replay: &QualificationReplay{ArtifactPath: "/artifacts/success-2", Attempted: true, Match: true, ChoiceReplayStatus: ChoiceReplayExact}},

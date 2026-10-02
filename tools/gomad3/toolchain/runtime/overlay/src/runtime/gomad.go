@@ -448,14 +448,20 @@ func gomadEnvEarly(prefix string) (string, bool) {
 	return "", false
 }
 
+// readiness and origin are the select result's fields: what the select found
+// ready once it held its channel locks, and the ordinal its first poll
+// decision took. A decision in a tape may carry a projected readiness word,
+// which replay ignores.
 type gomadChoiceRecordValue struct {
 	ordinal          uint64
 	kind             uint8
 	flags            uint8
+	readiness        uint16
 	alternatives     uint32
 	selected         uint32
 	data             uint32
 	siteOffset       uint64
+	origin           uint64
 	selectedIdentity [32]byte
 	alternativeSet   [32]byte
 }
@@ -485,6 +491,86 @@ func gomadChoiceAppendRecord(value gomadChoiceRecordValue) {
 
 func gomadChoiceRecord(kind, flags uint8, siteOffset uint64, alternatives, selected, data uint32) {
 	gomadChoiceAppendRecord(gomadChoiceRecordValue{kind: kind, flags: flags, siteOffset: siteOffset, alternatives: alternatives, selected: selected, data: data})
+}
+
+// gomadChoiceRecordSelectResult records a completed select: the case it took
+// among alternatives (the cases plus one for a default), how many cases it
+// polled, what it found ready once locked, and the ordinal its first poll
+// decision took, so the projection can hand the readiness to those decisions.
+func gomadChoiceRecordSelectResult(siteFlags uint8, siteOffset uint64, alternatives, selected, polled uint32, readiness uint16, origin uint64) {
+	gomadChoiceAppendRecord(gomadChoiceRecordValue{
+		kind: gomadChoiceKindSelectResult, flags: gomadChoiceFlagObservation | siteFlags, siteOffset: siteOffset,
+		alternatives: alternatives, selected: selected, data: polled, readiness: readiness, origin: origin,
+	})
+}
+
+// gomadChoiceSelectOrigin is the ordinal the next record will take. A select
+// reads it before its poll loop, so it names the select's first poll decision
+// when the select polls more than one case.
+func gomadChoiceSelectOrigin() uint64 {
+	if !gomadChoiceEnabled {
+		return 0
+	}
+	return gomadChoiceRecords.Load()
+}
+
+// gomadChoiceSelectReadiness counts, with every channel of the select locked
+// and before its first pass dequeues anything, the cases that pass could take,
+// and notes the shape properties that tell the fixture shapes apart. It reads
+// channel state only: it must neither allocate nor draw, because the record
+// it feeds must leave the schedule exactly as it was without it. lockorder is
+// sorted by channel, so a repeated channel is adjacent in it.
+func gomadChoiceSelectReadiness(scases []scase, lockorder []uint16, nsends int, block bool) uint16 {
+	if !gomadChoiceEnabled {
+		return 0
+	}
+	flags := uint16(gomadChoiceReadinessKnown)
+	if !block {
+		flags |= gomadChoiceReadinessDefault
+	}
+	if len(lockorder) != len(scases) {
+		flags |= gomadChoiceReadinessNilChannel
+	}
+	ready := uint32(0)
+	for index, casei := range lockorder {
+		c := scases[casei].c
+		if c.timer != nil {
+			flags |= gomadChoiceReadinessTimerChannel
+		}
+		if index != 0 && scases[lockorder[index-1]].c == c {
+			flags |= gomadChoiceReadinessRepeatedChannel
+		}
+		var proceeds bool
+		if int(casei) >= nsends {
+			proceeds = gomadChoiceWaiterPresent(&c.sendq) || c.qcount > 0 || c.closed != 0
+		} else {
+			proceeds = c.closed != 0 || gomadChoiceWaiterPresent(&c.recvq) || c.qcount < c.dataqsiz
+		}
+		if proceeds {
+			ready++
+			if c.closed != 0 {
+				flags |= gomadChoiceReadinessClosedChannel
+			}
+		}
+	}
+	return uint16(ready)<<gomadChoiceReadinessCountShift | flags
+}
+
+// The poll loop diverges past gomadChoiceMaximumAlternatives polled cases, so
+// the ready count always fits the readiness word.
+var _ [gomadChoiceReadinessMaximumCount - gomadChoiceMaximumAlternatives]struct{}
+
+// gomadChoiceWaiterPresent reports whether dequeue would hand back a waiter:
+// a select waiter another case has already won is skipped the way dequeue
+// skips it, but nothing is dequeued or marked.
+func gomadChoiceWaiterPresent(q *waitq) bool {
+	for sgp := q.first; sgp != nil; sgp = sgp.next {
+		if sgp.isSelect && sgp.g.selectDone.Load() != 0 {
+			continue
+		}
+		return true
+	}
+	return false
 }
 
 // The scheduler draws from process-wide seeded states rather than the per-M
@@ -745,28 +831,45 @@ func gomadChoiceEncodeRecord(record []byte, value gomadChoiceRecordValue) {
 	gomadChoicePut64(record[:8], value.ordinal)
 	record[8] = value.kind
 	record[9] = value.flags
+	record[10] = byte(value.readiness >> 8)
+	record[11] = byte(value.readiness)
 	gomadChoicePut32(record[12:16], value.alternatives)
 	gomadChoicePut32(record[16:20], value.selected)
 	gomadChoicePut32(record[20:24], value.data)
 	gomadChoicePut64(record[24:32], value.siteOffset)
-	copy(record[32:64], value.selectedIdentity[:])
+	if value.flags&gomadChoiceFlagObservation != 0 {
+		gomadChoicePut64(record[32:40], value.origin)
+	} else {
+		copy(record[32:64], value.selectedIdentity[:])
+	}
 	copy(record[64:96], value.alternativeSet[:])
 }
 
 func gomadChoiceDecodeRecord(record []byte) gomadChoiceRecordValue {
 	value := gomadChoiceRecordValue{
-		ordinal: gomadChoiceRead64(record[:8]), kind: record[8], flags: record[9], alternatives: gomadChoiceRead32(record[12:16]),
+		ordinal: gomadChoiceRead64(record[:8]), kind: record[8], flags: record[9], readiness: uint16(record[10])<<8 | uint16(record[11]), alternatives: gomadChoiceRead32(record[12:16]),
 		selected: gomadChoiceRead32(record[16:20]), data: gomadChoiceRead32(record[20:24]), siteOffset: gomadChoiceRead64(record[24:32]),
 	}
-	copy(value.selectedIdentity[:], record[32:64])
+	if value.flags&gomadChoiceFlagObservation != 0 {
+		value.origin = gomadChoiceRead64(record[32:40])
+	} else {
+		copy(value.selectedIdentity[:], record[32:64])
+	}
 	copy(value.alternativeSet[:], record[64:96])
 	return value
+}
+
+// A tape decision's readiness word is the projection's evidence about the
+// recording run; replay carries it without comparing it, since the observed
+// decision is made before the select locks its channels.
+func gomadChoiceValidDecisionReadiness(kind uint8, readiness uint16) bool {
+	return readiness == 0 || kind == gomadChoiceKindSelectPoll && readiness&gomadChoiceReadinessKnown != 0
 }
 
 func gomadChoiceValidDecisionRecord(record []byte, ordinal, records uint64) bool {
 	value := gomadChoiceDecodeRecord(record)
 	rankOverride := value.flags&gomadChoiceFlagRankOverride != 0
-	return len(record) == gomadChoiceTapeRecordBytes && value.ordinal == ordinal && value.kind >= gomadChoiceKindRunnable && value.kind <= gomadChoiceKindSelectPoll && value.flags&gomadChoiceFlagDecision != 0 && value.flags&gomadChoiceFlagObservation == 0 && value.flags & ^uint8(gomadChoiceFlagDecision|gomadChoiceFlagSiteMissing|gomadChoiceFlagRankOverride) == 0 && (!rankOverride || gomadChoiceMode == gomadChoiceModePrefix && ordinal+1 == records) && gomadChoiceZero(record[10:12]) && value.alternatives != 0 && value.selected < value.alternatives && (value.flags&gomadChoiceFlagSiteMissing == 0 || value.siteOffset == 0) && (rankOverride && gomadChoiceZero(value.selectedIdentity[:]) || !rankOverride && !gomadChoiceZero(value.selectedIdentity[:])) && !gomadChoiceZero(value.alternativeSet[:])
+	return len(record) == gomadChoiceTapeRecordBytes && value.ordinal == ordinal && value.kind >= gomadChoiceKindRunnable && value.kind <= gomadChoiceKindSelectPoll && value.flags&gomadChoiceFlagDecision != 0 && value.flags&gomadChoiceFlagObservation == 0 && value.flags & ^uint8(gomadChoiceFlagDecision|gomadChoiceFlagSiteMissing|gomadChoiceFlagRankOverride) == 0 && (!rankOverride || gomadChoiceMode == gomadChoiceModePrefix && ordinal+1 == records) && gomadChoiceValidDecisionReadiness(value.kind, value.readiness) && value.alternatives != 0 && value.selected < value.alternatives && (value.flags&gomadChoiceFlagSiteMissing == 0 || value.siteOffset == 0) && (rankOverride && gomadChoiceZero(value.selectedIdentity[:]) || !rankOverride && !gomadChoiceZero(value.selectedIdentity[:])) && !gomadChoiceZero(value.alternativeSet[:])
 }
 
 func gomadChoiceAlternativeSet(ordered [][32]byte) [32]byte {

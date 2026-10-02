@@ -504,9 +504,9 @@ func TestCurrentRecordContractUsesExecutionVocabulary(t *testing.T) {
 func TestFinalizeManifestRequiresTapeIdentityForCurrentCompleteChoiceTrace(t *testing.T) {
 	manifest := manifestFixture()
 	manifest.ChoiceProfile = &ChoiceProfile{
-		Name: "gomad3-choice-trace/v2", ImplementationSHA256: HashBytes([]byte("choice implementation")),
+		Name: "gomad3-choice-trace/v3", ImplementationSHA256: HashBytes([]byte("choice implementation")),
 		Trace: ChoiceTrace{
-			Schema: "gomad3.choice-trace/v2", File: "choices.bin", SHA256: HashBytes(make([]byte, 96)),
+			Schema: "gomad3.choice-trace/v3", File: "choices.bin", SHA256: HashBytes(make([]byte, 96)),
 			Bytes: 96, Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: 160,
 		},
 	}

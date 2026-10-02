@@ -14,10 +14,14 @@ import (
 )
 
 // The values below and testdata/pre-start-ordinal-journal were produced by the
-// Runner before choice exploration had a start ordinal.
+// Runner before choice exploration had a start ordinal. The root segment was
+// re-encoded through CommitRound when the choice tape header moved to v3,
+// which changed its trace digest, its identity, and the after-state identity
+// through the children's prefix bytes; the decisions and candidates are as
+// recorded.
 const (
 	retainedInitialStateSHA256      record.SHA256 = "sha256:32e05cff3064bd1c6d2f76b178b48eb596076514ddea276dd1dd31825316845a"
-	retainedAfterRootStateSHA256    record.SHA256 = "sha256:8b6c07658014d8a18b855e7ba34d6b8e530dadb2a2af4cc3c8ee3727ed652f1e"
+	retainedAfterRootStateSHA256    record.SHA256 = "sha256:5a9d06998c19a945ad1cf3b1566f66775fa74f9dd67d866c548a1d3ad8259737"
 	retainedChoicePlanCanonicalHash record.SHA256 = "sha256:a59870db6176bca22c6f4c4cfe2d67779e9e25b3a8b2c6bc8958cee8e37a4ea0"
 )
 

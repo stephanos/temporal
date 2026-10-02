@@ -1658,7 +1658,7 @@ func manifestForRun(config CampaignSpec, prepared target.Prepared, baseEnvironme
 		recordedChoices = &record.ChoiceProfile{
 			Name: choice.Profile, ImplementationSHA256: record.SHA256FromSum(implementation),
 			Trace: record.ChoiceTrace{
-				Schema: "gomad3.choice-trace/v2", File: "choices.bin", SHA256: record.SHA256FromSum(observed.Trace.SHA256),
+				Schema: "gomad3.choice-trace/v3", File: "choices.bin", SHA256: record.SHA256FromSum(observed.Trace.SHA256),
 				Bytes: record.Uint64String(len(observed.Trace.Bytes)), Records: record.Uint64String(observed.Trace.Summary.Records),
 				BranchingRecords: record.Uint64String(observed.Trace.Summary.Branching), TerminalState: terminalState, Limit: record.Uint64String(observed.Limit),
 			},

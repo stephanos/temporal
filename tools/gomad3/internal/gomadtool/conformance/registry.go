@@ -1,6 +1,10 @@
 package conformance
 
-import "fmt"
+import (
+	"fmt"
+
+	"go.temporal.io/server/tools/gomad3/choice"
+)
 
 type Mode struct {
 	Tiers   []string
@@ -50,12 +54,21 @@ var schedulingSearchFixtures = []struct{ name, packageName string }{
 	{name: "select-readiness", packageName: "./select_readiness"},
 }
 
+// selectReadinessShapes are the select shapes of the E3 fixture with the
+// readiness the runtime must record for each. The first seven are the task 2
+// reference shapes; timer-channel-due has its timer run inside the poll loop,
+// before the lock, so the timer's send counts as a ready case; repeated-channel
+// names one channel in two cases, so both cases count as ready although one
+// receive empties the channel. The blocking shapes park between their polls
+// and their result, so only the others show the recording adding nothing.
 var selectReadinessShapes = []selectShape{
-	{name: "blocking-zero-ready", readyAtPoll: 0, outcomes: []string{"blocking-zero-ready first"}},
-	{name: "blocking-one-ready", readyAtPoll: 1, outcomes: []string{"blocking-one-ready first"}},
-	{name: "blocking-two-ready", readyAtPoll: 2, outcomes: []string{"blocking-two-ready first", "blocking-two-ready second"}},
-	{name: "nonblocking-default", readyAtPoll: 0, outcomes: []string{"nonblocking-default default"}},
-	{name: "timer-channel", readyAtPoll: 0, outcomes: []string{"timer-channel timer"}},
-	{name: "closed-channel", readyAtPoll: 1, outcomes: []string{"closed-channel closed"}},
-	{name: "nil-channel", readyAtPoll: 1, outcomes: []string{"nil-channel first"}},
+	{name: "blocking-zero-ready", outcomes: []string{"blocking-zero-ready first"}, readiness: choice.SelectReadiness{Known: true}},
+	{name: "blocking-one-ready", outcomes: []string{"blocking-one-ready first"}, readiness: choice.SelectReadiness{Known: true, Ready: 1}, completesLocked: true},
+	{name: "blocking-two-ready", outcomes: []string{"blocking-two-ready first", "blocking-two-ready second"}, readiness: choice.SelectReadiness{Known: true, Ready: 2}, completesLocked: true},
+	{name: "nonblocking-default", outcomes: []string{"nonblocking-default default"}, readiness: choice.SelectReadiness{Known: true, Default: true}, completesLocked: true},
+	{name: "timer-channel", outcomes: []string{"timer-channel timer"}, readiness: choice.SelectReadiness{Known: true, TimerChannel: true}},
+	{name: "closed-channel", outcomes: []string{"closed-channel closed"}, readiness: choice.SelectReadiness{Known: true, Ready: 1, ClosedChannel: true}, completesLocked: true},
+	{name: "nil-channel", outcomes: []string{"nil-channel first"}, readiness: choice.SelectReadiness{Known: true, Ready: 1, NilChannel: true}, completesLocked: true},
+	{name: "timer-channel-due", outcomes: []string{"timer-channel-due timer"}, readiness: choice.SelectReadiness{Known: true, Ready: 1, TimerChannel: true}, completesLocked: true},
+	{name: "repeated-channel", outcomes: []string{"repeated-channel again", "repeated-channel first"}, readiness: choice.SelectReadiness{Known: true, Ready: 2, RepeatedChannel: true}, completesLocked: true},
 }

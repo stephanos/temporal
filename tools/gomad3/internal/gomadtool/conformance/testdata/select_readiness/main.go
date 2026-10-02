@@ -77,6 +77,25 @@ func main() {
 		case <-second:
 			outcome = "second"
 		}
+	case "timer-channel-due":
+		// Nothing waits on the timer channel while the clock passes its
+		// deadline, so the select's poll loop is what runs the timer.
+		timer := time.NewTimer(time.Second)
+		time.Sleep(2 * time.Second)
+		select {
+		case <-timer.C:
+			outcome = "timer"
+		case <-second:
+			outcome = "second"
+		}
+	case "repeated-channel":
+		first <- 1
+		select {
+		case <-first:
+			outcome = "first"
+		case <-first:
+			outcome = "again"
+		}
 	default:
 		panic("unknown select shape")
 	}

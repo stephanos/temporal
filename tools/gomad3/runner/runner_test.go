@@ -920,7 +920,7 @@ func TestRunPassesChoiceProfileToExecutorAndArtifact(t *testing.T) {
 			t.Error(err)
 		}
 	})
-	if opened.Manifest.ChoiceProfile == nil || opened.Manifest.ChoiceProfile.Trace.Schema != "gomad3.choice-trace/v2" || opened.Manifest.ChoiceProfile.Trace.Limit != record.Uint64String(limit) || opened.Manifest.ChoiceProfile.Trace.TapeSHA256 == "" {
+	if opened.Manifest.ChoiceProfile == nil || opened.Manifest.ChoiceProfile.Trace.Schema != "gomad3.choice-trace/v3" || opened.Manifest.ChoiceProfile.Trace.Limit != record.Uint64String(limit) || opened.Manifest.ChoiceProfile.Trace.TapeSHA256 == "" {
 		t.Fatalf("artifact choice profile = %#v", opened.Manifest.ChoiceProfile)
 	}
 }
@@ -2638,6 +2638,12 @@ func choiceTraceLimit(t *testing.T, records uint64) uint64 {
 
 func validTestChoiceRecord(t *testing.T, choiceRecord choice.Record) choice.Record {
 	t.Helper()
+	if choiceRecord.Kind == choice.KindSelectResult && !choiceRecord.Readiness.Known() {
+		var err error
+		if choiceRecord.Readiness, err = choice.NewReadiness(0, 0); err != nil {
+			t.Fatal(err)
+		}
+	}
 	if choiceRecord.Flags&choice.FlagDecision == 0 || choiceRecord.SelectedIdentity != ([sha256.Size]byte{}) {
 		return choiceRecord
 	}

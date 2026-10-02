@@ -676,18 +676,19 @@ index 9e0e0df..8200d38 100644
  	preempt       bool // preemption signal, duplicates stackguard0 = stackpreempt
  	preemptStop   bool // transition to _Gpreempted on preemption; otherwise, just deschedule
 diff --git a/src/runtime/select.go b/src/runtime/select.go
-index 553f696..a4c8a1d 100644
+index 553f696..e0df123 100644
 --- a/src/runtime/select.go
 +++ b/src/runtime/select.go
-@@ -121,6 +121,7 @@ func block() {
+@@ -121,6 +121,8 @@ func block() {
  // a value was received.
  func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, block bool) (int, bool) {
  	gp := getg()
 +	choiceSite, choiceSiteFlags := gomadChoiceSite(sys.GetCallerPC())
++	choiceOrigin := gomadChoiceSelectOrigin()
  	if debugSelect {
  		print("select: cas0=", cas0, "\n")
  	}
-@@ -188,7 +189,8 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
+@@ -188,7 +190,8 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
  			cas.c.timer.maybeRunChan(cas.c)
  		}
  
@@ -697,16 +698,17 @@ index 553f696..a4c8a1d 100644
  		pollorder[norder] = pollorder[j]
  		pollorder[j] = uint16(i)
  		norder++
-@@ -267,6 +269,8 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
+@@ -267,6 +270,9 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
  	var caseSuccess bool
  	var caseReleaseTime int64 = -1
  	var recvOK bool
 +	var selected uint32
 +	var alternatives uint32
++	choiceReadiness := gomadChoiceSelectReadiness(scases, lockorder, nsends, block)
  	for _, casei := range pollorder {
  		casi = int(casei)
  		cas = &scases[casi]
-@@ -534,6 +538,15 @@ retc:
+@@ -534,6 +540,15 @@ retc:
  	if caseReleaseTime > 0 {
  		blockevent(caseReleaseTime-t0, 1)
  	}
@@ -718,7 +720,7 @@ index 553f696..a4c8a1d 100644
 +			selected = uint32(ncases)
 +		}
 +	}
-+	gomadChoiceRecord(gomadChoiceKindSelectResult, gomadChoiceFlagObservation|choiceSiteFlags, choiceSite, alternatives, selected, uint32(norder))
++	gomadChoiceRecordSelectResult(choiceSiteFlags, choiceSite, alternatives, selected, uint32(norder), choiceReadiness, choiceOrigin)
  	return casi, recvOK
  
  sclose:

@@ -116,6 +116,18 @@ type choiceSchema struct {
 		SiteMissing  uint8 `json:"site_missing"`
 		RankOverride uint8 `json:"rank_override"`
 	} `json:"flags"`
+	Readiness struct {
+		Flags struct {
+			Known           uint16 `json:"known"`
+			Default         uint16 `json:"default"`
+			NilChannel      uint16 `json:"nil_channel"`
+			TimerChannel    uint16 `json:"timer_channel"`
+			ClosedChannel   uint16 `json:"closed_channel"`
+			RepeatedChannel uint16 `json:"repeated_channel"`
+		} `json:"flags"`
+		CountShift   uint8  `json:"count_shift"`
+		MaximumCount uint16 `json:"maximum_count"`
+	} `json:"readiness"`
 	Modes struct {
 		Seed   uint8 `json:"seed"`
 		Record uint8 `json:"record"`
@@ -635,7 +647,7 @@ func readChoiceSchema(path string) (choiceSchema, error) {
 	}
 	checks := []bool{
 		definition.Version != 0,
-		definition.Profile == "gomad3-choice-trace/v2",
+		definition.Profile == "gomad3-choice-trace/v3",
 		definition.Trace.HeaderBytes == 64,
 		definition.Trace.RecordBytes == 96,
 		definition.Tape.HeaderBytes == 264,
@@ -657,6 +669,16 @@ func readChoiceSchema(path string) (choiceSchema, error) {
 		definition.Modes.Record == 1,
 		definition.Modes.Replay == 2,
 		definition.Modes.Prefix == 3,
+		// The readiness word shares a record's two former reserved bytes: six
+		// flag bits and a ten-bit ready count fill the sixteen exactly.
+		definition.Readiness.Flags.Known == 1,
+		definition.Readiness.Flags.Default == 2,
+		definition.Readiness.Flags.NilChannel == 4,
+		definition.Readiness.Flags.TimerChannel == 8,
+		definition.Readiness.Flags.ClosedChannel == 16,
+		definition.Readiness.Flags.RepeatedChannel == 32,
+		definition.Readiness.CountShift == 6,
+		definition.Readiness.MaximumCount == 1<<(16-6)-1,
 		definition.DivergenceReasons.Kind == 1,
 		definition.DivergenceReasons.Site == 2,
 		definition.DivergenceReasons.Alternatives == 3,

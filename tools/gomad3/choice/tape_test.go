@@ -61,7 +61,7 @@ func TestProjectDecisionTapeCopiesAndBindsCompleteTrace(t *testing.T) {
 	}
 	payload := append([]byte(nil), encoded[:]...)
 	trace := Trace{
-		Version: Version2,
+		Version: Version3,
 		Bytes:   payload,
 		SHA256:  sha256.Sum256(payload),
 		Records: []Record{record},
@@ -126,7 +126,7 @@ func TestProjectReplayPlanOmitsNonBranchingDecisions(t *testing.T) {
 	if len(tape.Decisions) != 1 || tape.Decisions[0].Ordinal != 0 || tape.Decisions[0].Alternatives != 2 || tape.Decisions[0].Kind != KindRunnable {
 		t.Fatalf("replay decisions = %#v", tape.Decisions)
 	}
-	singletonTape, err := encodeTape(identity, trace.SHA256, []Decision{singleton})
+	singletonTape, err := encodeTape(identity, trace.SHA256, []Decision{singleton}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -147,7 +147,7 @@ func TestValidateDivergenceTerminalBindsExpectedTapeDecision(t *testing.T) {
 		t.Fatal(err)
 	}
 	trace := Trace{
-		Version: Version2, Bytes: record[:], SHA256: sha256.Sum256(record[:]), Records: []Record{decision.Record()},
+		Version: Version3, Bytes: record[:], SHA256: sha256.Sum256(record[:]), Records: []Record{decision.Record()},
 		Summary: Summary{Records: 1, Branching: 1, Runnable: 1, Terminal: TerminalComplete},
 	}
 	identity := ExecutionIdentity{
@@ -181,7 +181,7 @@ func TestValidateDivergenceTerminalBindsExpectedTapeDecision(t *testing.T) {
 func TestValidateDivergenceTerminalAcceptsRankPrefix(t *testing.T) {
 	identity := testExecutionIdentity()
 	decision := testCanonicalDecision(t, 0, KindRunnable, 2, 0)
-	tape, err := encodeTape(identity, sha256.Sum256([]byte("source trace")), []Decision{decision})
+	tape, err := encodeTape(identity, sha256.Sum256([]byte("source trace")), []Decision{decision}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -211,7 +211,7 @@ func TestProjectDecisionTapeRejectsObservationOnlyAndLegacyTrace(t *testing.T) {
 	if _, err := ProjectReplayPlan(Trace{Version: Version1, Summary: Summary{Terminal: TerminalComplete}}, identity); !strings.Contains(errString(err), "unavailable") {
 		t.Fatalf("legacy ProjectReplayPlan() error = %v", err)
 	}
-	if _, err := ProjectReplayPlan(Trace{Version: Version2, Summary: Summary{Terminal: TerminalOverflow}}, identity); err == nil {
+	if _, err := ProjectReplayPlan(Trace{Version: Version3, Summary: Summary{Terminal: TerminalOverflow}}, identity); err == nil {
 		t.Fatal("ProjectReplayPlan() accepted overflow evidence")
 	}
 }
@@ -220,11 +220,11 @@ func TestBuildRankPrefixBindsCanonicalRankWithoutParentTraceIdentity(t *testing.
 	identity := testExecutionIdentity()
 	first := testCanonicalDecision(t, 0, KindRunnable, 2, 0)
 	branch := testCanonicalDecision(t, 1, KindSelectPoll, 3, 1)
-	left, err := encodeTape(identity, sha256.Sum256([]byte("left parent trace")), []Decision{first, branch})
+	left, err := encodeTape(identity, sha256.Sum256([]byte("left parent trace")), []Decision{first, branch}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	right, err := encodeTape(identity, sha256.Sum256([]byte("right parent trace")), []Decision{first, branch})
+	right, err := encodeTape(identity, sha256.Sum256([]byte("right parent trace")), []Decision{first, branch}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -263,11 +263,11 @@ func TestBuildForcedRankPrefixReconstructsSelectedOverride(t *testing.T) {
 	identity := testExecutionIdentity()
 	unforced := testCanonicalDecision(t, 0, KindRunnable, 2, 0)
 	forced := testCanonicalDecision(t, 0, KindRunnable, 2, 1)
-	parent, err := encodeTape(identity, sha256.Sum256([]byte("parent trace")), []Decision{unforced})
+	parent, err := encodeTape(identity, sha256.Sum256([]byte("parent trace")), []Decision{unforced}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	observed, err := encodeTape(identity, sha256.Sum256([]byte("observed trace")), []Decision{forced})
+	observed, err := encodeTape(identity, sha256.Sum256([]byte("observed trace")), []Decision{forced}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -291,7 +291,7 @@ func TestBuildForcedRankPrefixReconstructsSelectedOverride(t *testing.T) {
 func TestBuildRankPrefixRejectsInvalidOverrideTargets(t *testing.T) {
 	identity := testExecutionIdentity()
 	decision := testCanonicalDecision(t, 0, KindRunnable, 2, 0)
-	tape, err := encodeTape(identity, sha256.Sum256([]byte("parent trace")), []Decision{decision})
+	tape, err := encodeTape(identity, sha256.Sum256([]byte("parent trace")), []Decision{decision}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

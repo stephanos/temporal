@@ -137,6 +137,11 @@ func DecodeStoredTrace(profile string, payload []byte, metadata TerminalMetadata
 		return DecodeTrace(payload, terminal[:], metadata.Limit)
 	case LegacyProfile:
 		return decodeStoredLegacyV1Trace(payload, metadata)
+	case SupersededProfile:
+		// A v2 record is byte-compatible with v3 apart from the readiness its
+		// select results lack, so it is refused by name rather than decoded as
+		// evidence it never carried.
+		return Trace{}, errors.Join(ErrMalformed, fmt.Errorf("superseded choice trace profile %q records no select readiness", profile))
 	default:
 		return Trace{}, errors.Join(ErrMalformed, fmt.Errorf("unsupported choice trace profile %q", profile))
 	}
@@ -178,7 +183,7 @@ func ProjectTrace(trace Trace, limit uint64, targetIdentity [sha256.Size]byte) (
 	profile := Profile
 	if trace.Version == Version1 {
 		profile = LegacyProfile
-	} else if trace.Version != Version2 {
+	} else if trace.Version != Version3 {
 		return Projection{}, errors.Join(ErrMalformed, fmt.Errorf("unsupported choice trace version %d", trace.Version))
 	}
 	validated, err := DecodeStoredTrace(profile, trace.Bytes, TerminalMetadata{State: trace.Summary.Terminal, Limit: limit, Records: trace.Summary.Records, SHA256: trace.SHA256})
@@ -393,7 +398,7 @@ func DecodeTrace(payload, terminalFrame []byte, mappingLimit uint64) (Trace, err
 		return Trace{}, errors.Join(ErrMalformed, errors.New("choice trace digest mismatch"))
 	}
 	result := Trace{
-		Version: Version2,
+		Version: Version3,
 		Bytes:   append([]byte(nil), payload...),
 		SHA256:  digest,
 		Records: make([]Record, 0, terminal.Records),
@@ -406,6 +411,12 @@ func DecodeTrace(payload, terminalFrame []byte, mappingLimit uint64) (Trace, err
 		}
 		if record.Flags&FlagRankOverride != 0 {
 			return Trace{}, errors.Join(ErrMalformed, errors.New("choice trace contains a controller-only rank override"))
+		}
+		// Poll order is drawn before the channels are locked, so the runtime
+		// records readiness on the select result only; a decision carries it
+		// after projection, never in the trace.
+		if record.Flags&FlagDecision != 0 && record.Readiness != 0 {
+			return Trace{}, errors.Join(ErrMalformed, errors.New("choice trace decision carries projected readiness"))
 		}
 		if record.Ordinal != uint64(len(result.Records)) {
 			return Trace{}, errors.Join(ErrMalformed, fmt.Errorf("choice trace ordinal %d at record %d", record.Ordinal, len(result.Records)))

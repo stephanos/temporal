@@ -150,20 +150,35 @@ func (campaign *runtimeCampaign) requireSchedulingBehavior(binaries map[string]s
 }
 
 type selectShape struct {
-	name        string
-	readyAtPoll int
-	outcomes    []string
+	name     string
+	outcomes []string
+	// readiness is what the runtime must record for the shape's select, on
+	// its result and on every select-poll decision of every execution.
+	readiness choice.SelectReadiness
+	// completesLocked marks a select that takes a case in its first locked
+	// pass: nothing runs between its last poll decision and its result but
+	// the lock, the readiness count, and that pass, so the diagnostic trace
+	// must show no allocation and no seeded draw across them.
+	completesLocked bool
 }
 
 type selectShapeEvidence struct {
-	Name              string   `json:"name"`
-	ReadyAtPoll       int      `json:"ready_at_poll"`
-	SelectPoll        uint64   `json:"select_poll"`
-	FewerThanTwoReady uint64   `json:"fewer_than_two_ready"`
-	Executions        int      `json:"executions"`
-	Outcomes          []string `json:"outcomes"`
-	Deadlocks         []string `json:"deadlocks"`
-	StopReason        string   `json:"stop_reason"`
+	Name              string                 `json:"name"`
+	ReadyAtPoll       int                    `json:"ready_at_poll"`
+	Readiness         choice.SelectReadiness `json:"readiness"`
+	SelectPoll        uint64                 `json:"select_poll"`
+	FewerThanTwoReady uint64                 `json:"fewer_than_two_ready"`
+	Executions        int                    `json:"executions"`
+	Outcomes          []string               `json:"outcomes"`
+	Deadlocks         []string               `json:"deadlocks"`
+	StopReason        string                 `json:"stop_reason"`
+	// RecordingAllocations and RecordingDraws are what the first execution's
+	// diagnostic trace counted between the select's last poll decision and
+	// its result: heap objects allocated and seeded draws taken. A blocking
+	// shape parks in between, so its numbers describe the schedule, not the
+	// recording.
+	RecordingAllocations uint64 `json:"recording_allocations"`
+	RecordingDraws       uint64 `json:"recording_draws"`
 }
 
 // goroutineHandoff is the two-way Runnable decision immediately before a
@@ -431,7 +446,7 @@ func (campaign *runtimeCampaign) exploreSelectShape(fixture string, shape select
 	if err != nil {
 		return selectShapeEvidence{}, err
 	}
-	evidence := selectShapeEvidence{Name: shape.name, ReadyAtPoll: shape.readyAtPoll, Outcomes: []string{}, Deadlocks: []string{}}
+	evidence := selectShapeEvidence{Name: shape.name, ReadyAtPoll: int(shape.readiness.Ready), Readiness: shape.readiness, Outcomes: []string{}, Deadlocks: []string{}}
 	frontier := []*choice.ReplayPlan{nil}
 	seen := map[[sha256.Size]byte]bool{}
 	outcomes := map[string]bool{}
@@ -446,7 +461,7 @@ func (campaign *runtimeCampaign) exploreSelectShape(fixture string, shape select
 			mode = choice.ModePrefix
 		}
 		name := fmt.Sprintf("select-%s-execution-%04d", shape.name, evidence.Executions)
-		run, err := campaign.runChoiceMode(name, fixture, "1", prefix, mode, 0, shape.name)
+		run, _, err := campaign.runChoiceSpec(choiceRunSpec{name: name, fixture: fixture, seed: "1", tape: prefix, mode: mode, diagnostic: evidence.Executions == 0, args: []string{shape.name}})
 		if err != nil {
 			return evidence, err
 		}
@@ -456,8 +471,15 @@ func (campaign *runtimeCampaign) exploreSelectShape(fixture string, shape select
 		}
 		if evidence.Executions == 1 {
 			evidence.SelectPoll = run.trace.Summary.SelectPoll
-			if shape.readyAtPoll < 2 {
+			if shape.readiness.Ready < 2 {
 				evidence.FewerThanTwoReady = evidence.SelectPoll
+			}
+			evidence.RecordingAllocations, evidence.RecordingDraws, err = selectRecordingCost(run)
+			if err != nil {
+				return evidence, fmt.Errorf("select shape %s: %w", shape.name, err)
+			}
+			if shape.completesLocked && (evidence.RecordingAllocations != 0 || evidence.RecordingDraws != 0) {
+				return evidence, fmt.Errorf("select shape %s allocated %d objects and drew %d times between its last poll decision and its result", shape.name, evidence.RecordingAllocations, evidence.RecordingDraws)
 			}
 		}
 		if !slices.Contains(shape.outcomes, run.transcript) {
@@ -467,6 +489,9 @@ func (campaign *runtimeCampaign) exploreSelectShape(fixture string, shape select
 		plan, err := choice.ProjectReplayPlan(run.trace, identity)
 		if err != nil {
 			return evidence, err
+		}
+		if err := requireSelectReadiness(plan, shape.readiness); err != nil {
+			return evidence, fmt.Errorf("select shape %s execution %d: %w", shape.name, evidence.Executions-1, err)
 		}
 		if len(plan.Decisions) > 32 {
 			return evidence, fmt.Errorf("select shape %s exceeded the 32-decision bound", shape.name)
@@ -496,6 +521,65 @@ func (campaign *runtimeCampaign) exploreSelectShape(fixture string, shape select
 	}
 	evidence.StopReason = "frontier_exhausted"
 	return evidence, nil
+}
+
+// requireSelectReadiness requires the projected plan to carry want on every
+// select-poll decision, at least one of which exists, and nothing on any other.
+func requireSelectReadiness(plan choice.ReplayPlan, want choice.SelectReadiness) error {
+	if len(plan.Readiness) != len(plan.Decisions) {
+		return fmt.Errorf("plan carries readiness for %d of %d decisions", len(plan.Readiness), len(plan.Decisions))
+	}
+	polls := 0
+	for index, decision := range plan.Decisions {
+		expected := choice.SelectReadiness{}
+		if decision.Kind == choice.KindSelectPoll {
+			expected = want
+			polls++
+		}
+		if plan.Readiness[index] != expected {
+			return fmt.Errorf("decision %d (%s) readiness = %+v, want %+v", index, choiceKindName(decision.Kind), plan.Readiness[index], expected)
+		}
+	}
+	if polls == 0 {
+		return errors.New("plan carries no select-poll decision")
+	}
+	return nil
+}
+
+func choiceKindName(kind choice.Kind) string {
+	switch kind {
+	case choice.KindRunnable:
+		return "runnable"
+	case choice.KindSelectPoll:
+		return "select-poll"
+	case choice.KindSelectResult:
+		return "select-result"
+	default:
+		return "unknown"
+	}
+}
+
+// selectRecordingCost reads the diagnostic digests at the run's single select
+// result and at that select's last poll decision, which the result names
+// through its origin and polled-case count, and returns how many objects were
+// allocated and how many seeded draws were taken between the two records.
+func selectRecordingCost(run choiceRun) (allocations, draws uint64, err error) {
+	index := slices.IndexFunc(run.trace.Records, func(record choice.Record) bool { return record.Kind == choice.KindSelectResult })
+	if index < 0 {
+		return 0, 0, errors.New("trace records no select result")
+	}
+	result := run.trace.Records[index]
+	if result.Data < 2 {
+		return 0, 0, fmt.Errorf("select result polled %d cases, want at least two", result.Data)
+	}
+	last := result.Origin + uint64(result.Data) - 2
+	if last >= result.Ordinal || result.Ordinal >= uint64(len(run.diagnostic.Records)) {
+		return 0, 0, fmt.Errorf("select result %d names poll decision %d outside %d diagnostic records", result.Ordinal, last, len(run.diagnostic.Records))
+	}
+	before, after := run.diagnostic.Records[last], run.diagnostic.Records[result.Ordinal]
+	draws = after.RunqDraws - before.RunqDraws + after.SchedulerDraws - before.SchedulerDraws + after.SelectDraws - before.SelectDraws +
+		after.RuntimeRandDraws - before.RuntimeRandDraws + after.RuntimeCheapRandDraws - before.RuntimeCheapRandDraws + after.TimerDraws - before.TimerDraws + after.ClockTickDraws - before.ClockTickDraws
+	return after.Allocations - before.Allocations, draws, nil
 }
 
 type timerPrefixEvidence struct {
