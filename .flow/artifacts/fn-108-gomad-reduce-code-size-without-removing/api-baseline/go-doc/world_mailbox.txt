@@ -1,0 +1,54 @@
+package mailbox // import "go.temporal.io/server/tools/gomad3/world/mailbox"
+
+Package mailbox is an explicit deterministic adapter pilot. It models mailbox
+receive completion without performing host I/O or creating a dispatcher
+goroutine.
+
+CONSTANTS
+
+const SchemaVersion uint32 = 1
+
+TYPES
+
+type Adapter struct {
+	// Has unexported fields.
+}
+
+func New(core *world.Model) (*Adapter, error)
+
+func Restore(core *world.Model, snapshot Snapshot) (*Adapter, error)
+
+func (adapter *Adapter) Cancel(requestID world.RequestID) (world.Cancellation, error)
+
+func (adapter *Adapter) Drive() (world.Quiescence, error)
+
+func (adapter *Adapter) MessageReady(requestID world.RequestID, at world.LogicalTime, payload []byte) (world.EventID, error)
+
+func (adapter *Adapter) Receive(mailbox string, priority world.Priority, payload []byte) (world.RequestID, error)
+
+func (adapter *Adapter) Snapshot() (Snapshot, error)
+
+type ReceiveSnapshot struct {
+	RequestID world.RequestID `json:"requestId"`
+	EventID   world.EventID   `json:"eventId,omitempty"`
+	Mailbox   string          `json:"mailbox"`
+	Priority  world.Priority  `json:"priority"`
+	State     ReceiveState    `json:"state"`
+}
+
+type ReceiveState string
+
+const (
+	ReceivePending   ReceiveState = "pending"
+	ReceiveQueued    ReceiveState = "queued"
+	ReceiveCanceled  ReceiveState = "canceled"
+	ReceiveDelivered ReceiveState = "delivered"
+)
+type Snapshot struct {
+	SchemaVersion uint32            `json:"schemaVersion"`
+	Receives      []ReceiveSnapshot `json:"receives"`
+	Digest        world.Digest      `json:"digest"`
+}
+
+func DeriveSnapshot(core world.Snapshot) (Snapshot, error)
+

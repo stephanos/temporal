@@ -1,0 +1,391 @@
+diff --git a/tools/gomad3/deterministicio/domain.go b/tools/gomad3/deterministicio/domain.go
+index e87262af9..dfc373c89 100644
+--- a/tools/gomad3/deterministicio/domain.go
++++ b/tools/gomad3/deterministicio/domain.go
+@@ -7,8 +7,6 @@ import (
+ 	"encoding/json"
+ 	"errors"
+ 	"fmt"
+-	"io"
+-	"strconv"
+ 	"unicode/utf8"
+ )
+ 
+@@ -39,36 +37,6 @@ type Adapter struct {
+ 	Version string `json:"version"`
+ }
+ 
+-type decimal uint64
+-
+-func (value decimal) MarshalJSON() ([]byte, error) {
+-	return []byte(strconv.Quote(strconv.FormatUint(uint64(value), 10))), nil
+-}
+-
+-func (value *decimal) UnmarshalJSON(data []byte) error {
+-	if value == nil {
+-		return errors.New("decode decimal string into nil destination")
+-	}
+-	var text string
+-	if err := json.Unmarshal(data, &text); err != nil {
+-		return errors.New("decimal integer must be a JSON string")
+-	}
+-	if text == "" || len(text) > 1 && text[0] == '0' {
+-		return fmt.Errorf("invalid canonical decimal string %q", text)
+-	}
+-	for _, character := range text {
+-		if character < '0' || character > '9' {
+-			return fmt.Errorf("invalid canonical decimal string %q", text)
+-		}
+-	}
+-	parsed, err := strconv.ParseUint(text, 10, 64)
+-	if err != nil {
+-		return fmt.Errorf("decimal string out of range: %w", err)
+-	}
+-	*value = decimal(parsed)
+-	return nil
+-}
+-
+ func canonicalJSON(value any) ([]byte, error) {
+ 	if err := validateCanonicalStrings(value); err != nil {
+ 		return nil, err
+@@ -82,31 +50,6 @@ func canonicalJSON(value any) ([]byte, error) {
+ 	return bytes.TrimSuffix(output.Bytes(), []byte{'\n'}), nil
+ }
+ 
+-func decodeCanonicalJSON(data []byte, destination any) error {
+-	if !utf8.Valid(data) {
+-		return errors.New("JSON is not valid UTF-8")
+-	}
+-	decoder := json.NewDecoder(bytes.NewReader(data))
+-	decoder.DisallowUnknownFields()
+-	if err := decoder.Decode(destination); err != nil {
+-		return fmt.Errorf("decode JSON: %w", err)
+-	}
+-	var trailing any
+-	if err := decoder.Decode(&trailing); err == nil {
+-		return errors.New("JSON contains trailing data")
+-	} else if !errors.Is(err, io.EOF) {
+-		return fmt.Errorf("decode trailing JSON: %w", err)
+-	}
+-	canonical, err := canonicalJSON(destination)
+-	if err != nil {
+-		return fmt.Errorf("canonicalize JSON: %w", err)
+-	}
+-	if !bytes.Equal(data, canonical) {
+-		return errors.New("JSON is not canonical")
+-	}
+-	return nil
+-}
+-
+ func validateCanonicalStrings(value any) error {
+ 	encoded, err := json.Marshal(value)
+ 	if err != nil {
+diff --git a/tools/gomad3/qualification/set/set.go b/tools/gomad3/qualification/set/set.go
+index cf3a6cf0e..46f2605b6 100644
+--- a/tools/gomad3/qualification/set/set.go
++++ b/tools/gomad3/qualification/set/set.go
+@@ -899,37 +899,6 @@ func retainedQualification(artifactRoot string, command Command, result CommandR
+ 	return opened, classification, path, record.HashBytes(contents), nil
+ }
+ 
+-func matchesExpectation(expected WorkloadExpectation, classification string, report qualification.QualificationReport, exitCode int) bool {
+-	if expected.Classification != classification || exitCode != qualification.ExitStatus(classification) {
+-		return false
+-	}
+-	switch classification {
+-	case "qualified":
+-		return report.Qualified && report.Deterministic && report.TargetSuccess && report.Failure == nil
+-	case "unsupported_target":
+-		return report.Failure != nil && report.Failure.ImportPath == expected.ImportPath && report.Failure.Capability == expected.Capability
+-	case "target_failure":
+-		replay := firstReplay(report)
+-		return report.Deterministic && !report.TargetSuccess && replay != nil && replay.Attempted && replay.Match
+-	case "nondeterministic":
+-		return !report.Deterministic
+-	case "replay_divergence":
+-		replay := firstReplay(report)
+-		return replay != nil && replay.Attempted && !replay.Match
+-	default:
+-		return false
+-	}
+-}
+-
+-func firstReplay(report qualification.QualificationReport) *qualification.QualificationReplay {
+-	for _, run := range report.Executions {
+-		if run.Replay != nil {
+-			return run.Replay
+-		}
+-	}
+-	return nil
+-}
+-
+ type qualificationBucket uint8
+ 
+ const (
+diff --git a/tools/gomad3/runner/campaign.go b/tools/gomad3/runner/campaign.go
+index 9a254bce5..c1f1eab2a 100644
+--- a/tools/gomad3/runner/campaign.go
++++ b/tools/gomad3/runner/campaign.go
+@@ -2,10 +2,6 @@ package runner
+ 
+ import "go.temporal.io/server/tools/gomad3/runner/internal/campaign"
+ 
+-func orderRunCompletions(selection SeedSelection, completed map[uint64]struct{}, input <-chan runCompletion, output chan<- runCompletion) {
+-	orderShardRunCompletions(selection, CampaignShard{}, completed, input, output)
+-}
+-
+ func orderShardRunCompletions(selection SeedSelection, shard CampaignShard, completed map[uint64]struct{}, input <-chan runCompletion, output chan<- runCompletion) {
+ 	jobs := pendingJobs{seeds: selection.Iterator(), shard: shard, completed: completed}
+ 	next, hasNext := jobs.Next()
+diff --git a/tools/gomad3/runner/deterministicio.go b/tools/gomad3/runner/deterministicio.go
+index 830ed8923..e48455180 100644
+--- a/tools/gomad3/runner/deterministicio.go
++++ b/tools/gomad3/runner/deterministicio.go
+@@ -39,14 +39,6 @@ func recordedCapturedInputs(manifest readonlymount.CapturedInputsManifest) recor
+ 	}
+ }
+ 
+-func deterministicCapturedInputs(manifest record.ReadOnlyMounts) readonlymount.CapturedInputsManifest {
+-	return readonlymount.CapturedInputsManifest{
+-		Schema: manifest.Schema, File: manifest.File, SHA256: manifest.SHA256, Bytes: uint64(manifest.Bytes),
+-		Entries: uint64(manifest.Entries), NotExist: uint64(manifest.NotExist), TotalBytes: uint64(manifest.TotalBytes),
+-		Mappings: append([]string(nil), manifest.Mappings...), Limits: deterministicCapturedInputLimits(manifest.Limits),
+-	}
+-}
+-
+ func recordedCapturedInputLimits(limits readonlymount.CapturedInputLimits) record.ReadOnlyMountLimits {
+ 	return record.ReadOnlyMountLimits{
+ 		PathBytes: record.Uint64String(limits.PathBytes), Requests: record.Uint64String(limits.Requests), Files: record.Uint64String(limits.Files),
+diff --git a/tools/gomad3/runner/internal/campaign/campaign_journal.go b/tools/gomad3/runner/internal/campaign/campaign_journal.go
+index 63c0bf13e..f7eebdef9 100644
+--- a/tools/gomad3/runner/internal/campaign/campaign_journal.go
++++ b/tools/gomad3/runner/internal/campaign/campaign_journal.go
+@@ -580,10 +580,6 @@ func atomicWriteContext(ctx context.Context, path string, data []byte) (retErr e
+ 	return syncDirectoryContext(ctx, directory)
+ }
+ 
+-func removeCompletedPartial(path string) error {
+-	return removeCompletedPartialContext(context.Background(), path, "completed-partial")
+-}
+-
+ func removeCompletedPartialContext(ctx context.Context, path, operation string) error {
+ 	if path == "" {
+ 		return nil
+diff --git a/tools/gomad3/runner/internal/campaign/merge.go b/tools/gomad3/runner/internal/campaign/merge.go
+index d4a39accf..6c641e7e0 100644
+--- a/tools/gomad3/runner/internal/campaign/merge.go
++++ b/tools/gomad3/runner/internal/campaign/merge.go
+@@ -442,9 +442,8 @@ func OpenMergedCampaign(path string) (_ MergedCampaign, retErr error) {
+ 	if err := canonicaljson.DecodeCanonicalJSON(manifest, &campaign); err != nil {
+ 		return MergedCampaign{}, err
+ 	}
+-	canonical, err := canonicaljson.CanonicalJSON(campaign)
+-	if err != nil || !bytes.Equal(canonical, manifest) || campaign.Schema != MergedCampaignSchema || campaign.SchemaVersion != record.SchemaVersion || !validRecordSHA256(campaign.PlanSHA256) || campaign.Selection == "" || campaign.SelectionCount == 0 {
+-		return MergedCampaign{}, errors.Join(errors.New("merged campaign record is invalid"), err)
++	if campaign.Schema != MergedCampaignSchema || campaign.SchemaVersion != record.SchemaVersion || !validRecordSHA256(campaign.PlanSHA256) || campaign.Selection == "" || campaign.SelectionCount == 0 {
++		return MergedCampaign{}, errors.New("merged campaign record is invalid")
+ 	}
+ 	runs, err := readMergedExecutionJournal(root, campaign.Journal)
+ 	if err != nil {
+diff --git a/tools/gomad3/runner/internal/campaign/merge_capacity_test.go b/tools/gomad3/runner/internal/campaign/merge_capacity_test.go
+index 0950f39da..b9160a5be 100644
+--- a/tools/gomad3/runner/internal/campaign/merge_capacity_test.go
++++ b/tools/gomad3/runner/internal/campaign/merge_capacity_test.go
+@@ -2,8 +2,11 @@ package campaign
+ 
+ import (
+ 	"errors"
++	"os"
++	"path/filepath"
+ 	"testing"
+ 
++	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+ 	"go.temporal.io/server/tools/gomad3/record"
+ )
+ 
+@@ -29,3 +32,40 @@ func TestCheckedMergedEvidenceBytesReportsTypedOverflow(t *testing.T) {
+ 		t.Fatalf("checkedMergedEvidenceBytes() error = %#v", err)
+ 	}
+ }
++
++func TestOpenMergedCampaignRejectsNoncanonicalAndInvalidRecords(t *testing.T) {
++	canonical, err := canonicaljson.CanonicalJSON(MergedCampaignRecord{Schema: MergedCampaignSchema})
++	if err != nil {
++		t.Fatal(err)
++	}
++	invalidIdentity, err := canonicaljson.CanonicalJSON(MergedCampaignRecord{Schema: "gomad3.merged-campaign/v0"})
++	if err != nil {
++		t.Fatal(err)
++	}
++	for _, test := range []struct {
++		name     string
++		contents string
++		want     string
++	}{
++		{name: "incomplete object", contents: `{"schema":"gomad3.merged-campaign/v1"}`, want: "JSON is not canonical"},
++		{name: "trailing whitespace", contents: string(canonical) + "\n", want: "JSON is not canonical"},
++		{name: "trailing data", contents: string(canonical) + "{}", want: "unexpected trailing JSON token {"},
++		{name: "unknown field", contents: `{"extra":true}`, want: `decode JSON: json: unknown field "extra"`},
++		{name: "malformed", contents: `{"schema":`, want: "decode JSON token: EOF"},
++		{name: "invalid schema", contents: string(invalidIdentity), want: "merged campaign record is invalid"},
++		{name: "invalid identity", contents: string(canonical), want: "merged campaign record is invalid"},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			path := filepath.Join(t.TempDir(), "merged")
++			if err := os.MkdirAll(filepath.Join(path, "executions"), 0o700); err != nil {
++				t.Fatal(err)
++			}
++			if err := os.WriteFile(filepath.Join(path, "merge.json"), []byte(test.contents), 0o600); err != nil {
++				t.Fatal(err)
++			}
++			if _, err := OpenMergedCampaign(path); err == nil || err.Error() != test.want {
++				t.Fatalf("OpenMergedCampaign() error = %v, want %s", err, test.want)
++			}
++		})
++	}
++}
+diff --git a/tools/gomad3/runner/internal/minimizer/minimizer.go b/tools/gomad3/runner/internal/minimizer/minimizer.go
+index 39e271c91..a371e92fc 100644
+--- a/tools/gomad3/runner/internal/minimizer/minimizer.go
++++ b/tools/gomad3/runner/internal/minimizer/minimizer.go
+@@ -118,24 +118,6 @@ func Commit(state State, attempt Attempt, accepted bool) (State, error) {
+ 	return seal(next)
+ }
+ 
+-func Encode(state State) ([]byte, error) {
+-	if err := Validate(state); err != nil {
+-		return nil, err
+-	}
+-	return canonicaljson.CanonicalJSON(state)
+-}
+-
+-func Decode(encoded []byte) (State, error) {
+-	var state State
+-	if err := canonicaljson.DecodeCanonicalJSON(encoded, &state); err != nil {
+-		return State{}, fmt.Errorf("decode minimizer state: %w", err)
+-	}
+-	if err := Validate(state); err != nil {
+-		return State{}, err
+-	}
+-	return state, nil
+-}
+-
+ func Validate(state State) error {
+ 	if state.Schema != Schema || state.AttemptBudget == 0 || state.Attempts > state.AttemptBudget || uint64(len(state.Evaluated)) != state.Attempts || uint64(len(state.Accepted)) > state.Attempts {
+ 		return errors.New("minimizer state shape is invalid")
+diff --git a/tools/gomad3/runner/internal/minimizer/minimizer_test.go b/tools/gomad3/runner/internal/minimizer/minimizer_test.go
+index b0cccdddd..b5cf77d9c 100644
+--- a/tools/gomad3/runner/internal/minimizer/minimizer_test.go
++++ b/tools/gomad3/runner/internal/minimizer/minimizer_test.go
+@@ -69,17 +69,6 @@ func TestStateStopsAtAttemptBudgetAndRoundTrips(t *testing.T) {
+ 	if state.StopReason != StopAttemptBudget || state.Attempts != 1 {
+ 		t.Fatalf("bounded state = %#v", state)
+ 	}
+-	encoded, err := Encode(state)
+-	if err != nil {
+-		t.Fatal(err)
+-	}
+-	decoded, err := Decode(encoded)
+-	if err != nil {
+-		t.Fatal(err)
+-	}
+-	if decoded.SHA256 != state.SHA256 || decoded.StopReason != state.StopReason {
+-		t.Fatalf("decoded state = %#v, want %#v", decoded, state)
+-	}
+ }
+ 
+ func TestValidateRejectsInvalidConfigWithSelfConsistentStateIdentity(t *testing.T) {
+diff --git a/tools/gomad3/runner/portable_plan.go b/tools/gomad3/runner/portable_plan.go
+index d96bbb5c4..7fccbda23 100644
+--- a/tools/gomad3/runner/portable_plan.go
++++ b/tools/gomad3/runner/portable_plan.go
+@@ -1,7 +1,6 @@
+ package runner
+ 
+ import (
+-	"bytes"
+ 	"context"
+ 	"errors"
+ 	"fmt"
+@@ -217,10 +216,6 @@ func openCampaignPlan(path string) (_ openedCampaignPlan, retErr error) {
+ 	if err := canonicaljson.DecodeCanonicalJSON(contents, &document); err != nil {
+ 		return openedCampaignPlan{}, fmt.Errorf("decode campaign plan: %w", err)
+ 	}
+-	canonical, err := canonicaljson.CanonicalJSON(document)
+-	if err != nil || !bytes.Equal(canonical, contents) {
+-		return openedCampaignPlan{}, errors.Join(errors.New("campaign plan is not canonical"), err)
+-	}
+ 	if document.Schema != campaignPlanSchema || document.Mapping != campaignPlanMapping || document.Campaign.Strategy != string(StrategySeed) || document.Campaign.Guidance != nil || document.Campaign.OnFailure != string(PolicyAll) || document.Campaign.PlanSHA256 != "" || document.Campaign.Shard != nil {
+ 		return openedCampaignPlan{}, errors.New("campaign plan protocol identity is invalid")
+ 	}
+diff --git a/tools/gomad3/runner/portable_plan_test.go b/tools/gomad3/runner/portable_plan_test.go
+index 906d7f404..b787fbb99 100644
+--- a/tools/gomad3/runner/portable_plan_test.go
++++ b/tools/gomad3/runner/portable_plan_test.go
+@@ -7,6 +7,7 @@ import (
+ 	"testing"
+ 	"time"
+ 
++	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+ 	"go.temporal.io/server/tools/gomad3/record"
+ 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
+ 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+@@ -351,3 +352,36 @@ func TestMergeCampaignShardsDeduplicatesSharedFailureEvidence(t *testing.T) {
+ 		t.Fatalf("merged failure evidence = %#v", merged)
+ 	}
+ }
++
++func TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments(t *testing.T) {
++	canonical, err := canonicaljson.CanonicalJSON(portableCampaignPlan{Schema: campaignPlanSchema, Mapping: campaignPlanMapping})
++	if err != nil {
++		t.Fatal(err)
++	}
++	invalidIdentity, err := canonicaljson.CanonicalJSON(portableCampaignPlan{Schema: "gomad3.campaign-plan/v0", Mapping: campaignPlanMapping})
++	if err != nil {
++		t.Fatal(err)
++	}
++	for _, test := range []struct {
++		name     string
++		contents string
++		want     string
++	}{
++		{name: "incomplete object", contents: `{"schema":"gomad3.campaign-plan/v1","mapping":"ordinal-modulo/v1"}`, want: "decode campaign plan: JSON is not canonical"},
++		{name: "trailing whitespace", contents: string(canonical) + "\n", want: "decode campaign plan: JSON is not canonical"},
++		{name: "trailing data", contents: string(canonical) + "{}", want: "decode campaign plan: unexpected trailing JSON token {"},
++		{name: "unknown field", contents: `{"extra":true}`, want: `decode campaign plan: decode JSON: json: unknown field "extra"`},
++		{name: "malformed", contents: `{"schema":`, want: "decode campaign plan: decode JSON token: EOF"},
++		{name: "invalid protocol identity", contents: string(invalidIdentity), want: "campaign plan protocol identity is invalid"},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			path := filepath.Join(t.TempDir(), "campaign.plan.json")
++			if err := os.WriteFile(path, []byte(test.contents), 0o600); err != nil {
++				t.Fatal(err)
++			}
++			if _, err := openCampaignPlan(path); err == nil || err.Error() != test.want {
++				t.Fatalf("openCampaignPlan() error = %v, want %s", err, test.want)
++			}
++		})
++	}
++}
+diff --git a/tools/gomad3/target/capability.go b/tools/gomad3/target/capability.go
+index 3c129d76e..d5917c783 100644
+--- a/tools/gomad3/target/capability.go
++++ b/tools/gomad3/target/capability.go
+@@ -181,17 +181,6 @@ func (err *UnsupportedCapabilityError) Error() string {
+ 	return fmt.Sprintf("unsupported target capability: package %s %s", err.ImportPath, err.Capability)
+ }
+ 
+-func validateGoCapabilityClosure(ctx context.Context, goCommand string, spec Spec, tags []string, commandDirectory, packageArgument string) (CapabilityClosure, error) {
+-	review, err := reviewGoCapabilityReview(ctx, goCommand, spec, tags, commandDirectory, packageArgument)
+-	if err != nil {
+-		return CapabilityClosure{}, err
+-	}
+-	if err := validateCapabilityReview(review.Closure); err != nil {
+-		return CapabilityClosure{}, err
+-	}
+-	return review.Closure, nil
+-}
+-
+ func ReviewCapabilityClosure(ctx context.Context, spec Spec) (CapabilityClosure, error) {
+ 	review, err := ReviewCapabilities(ctx, spec)
+ 	if err != nil {

@@ -1,0 +1,99 @@
+package upgrade // import "go.temporal.io/server/tools/gomad3/upgrade"
+
+
+FUNCTIONS
+
+func Run(ctx context.Context, options Spec) error
+
+TYPES
+
+type BoundaryDiff struct {
+	Status          string   `json:"status"`
+	SHA256          string   `json:"sha256"`
+	BaselineVersion string   `json:"baseline_version,omitempty"`
+	CurrentVersion  string   `json:"current_version"`
+	Added           []string `json:"added"`
+	Removed         []string `json:"removed"`
+	Changed         []string `json:"changed"`
+}
+
+type CorpusEvidence struct {
+	Status string          `json:"status"`
+	Path   string          `json:"path,omitempty"`
+	SHA256 string          `json:"sha256,omitempty"`
+	Report json.RawMessage `json:"report,omitempty"`
+}
+
+type Dossier struct {
+	Schema                 string                   `json:"schema"`
+	Qualified              bool                     `json:"qualified"`
+	BoundaryApproved       bool                     `json:"boundary_changes_approved"`
+	BoundaryApprovalSHA256 string                   `json:"boundary_approval_sha256,omitempty"`
+	Version                VersionEvidence          `json:"version"`
+	Host                   HostEvidence             `json:"host"`
+	UpstreamPatch          PatchEvidence            `json:"upstream_patch"`
+	BoundaryDiff           BoundaryDiff             `json:"boundary_manifest_diff"`
+	InterceptionReport     InterceptionEvidence     `json:"interception_report"`
+	OverlayCollision       OverlayCollisionEvidence `json:"overlay_collision_report"`
+	Gates                  []GateResult             `json:"gates"`
+	RetainedCorpus         CorpusEvidence           `json:"retained_corpus"`
+	MandatoryProbePolicy   string                   `json:"mandatory_probe_policy"`
+}
+
+type Gate struct {
+	Name    string
+	Command []string
+}
+
+type GateResult struct {
+	Name            string   `json:"name"`
+	Command         []string `json:"command"`
+	Status          string   `json:"status"`
+	ExitCode        int      `json:"exit_code"`
+	Output          string   `json:"output"`
+	OutputSHA256    string   `json:"output_sha256"`
+	OutputTruncated bool     `json:"output_truncated"`
+}
+
+type HostEvidence struct {
+	Platform  string `json:"platform"`
+	Supported bool   `json:"supported"`
+}
+
+type InterceptionEvidence struct {
+	Path   string `json:"path"`
+	SHA256 string `json:"sha256"`
+	Report string `json:"report"`
+}
+
+type OverlayCollisionEvidence struct {
+	Checked       bool     `json:"checked"`
+	ArchiveSHA256 string   `json:"archive_sha256"`
+	OverlayPaths  []string `json:"overlay_paths"`
+	Collisions    []string `json:"collisions"`
+}
+
+type PatchEvidence struct {
+	Path   string `json:"path"`
+	SHA256 string `json:"sha256"`
+	Diff   string `json:"diff"`
+}
+
+type Spec struct {
+	Root                       string
+	Output                     string
+	BaselineManifest           []byte
+	ApprovedBoundaryDiffSHA256 string
+	CorpusReport               string
+	Gates                      []Gate
+	Writer                     io.Writer
+}
+
+type VersionEvidence struct {
+	GoVersion               string   `json:"go_version"`
+	ArchiveSHA256           string   `json:"archive_sha256"`
+	BoundaryManifestVersion string   `json:"boundary_manifest_version"`
+	Patch                   string   `json:"patch"`
+	SupportedPlatforms      []string `json:"supported_platforms"`
+}
+

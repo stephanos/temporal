@@ -2012,8 +2012,11 @@ type explorationExecutor struct {
 	buildKey string
 	limit    uint64
 	exitCode int
-	mu       sync.Mutex
-	requests []execution.Spec
+	// alternatives is the width of the one decision every execution records;
+	// zero means two.
+	alternatives uint32
+	mu           sync.Mutex
+	requests     []execution.Spec
 }
 
 type simulationExplorationExecutor struct {
@@ -2021,8 +2024,11 @@ type simulationExplorationExecutor struct {
 	buildKey string
 	limit    uint64
 	fail     bool
-	mu       sync.Mutex
-	requests []execution.Spec
+	// scenarios is the width of the one scenario decision every execution
+	// records; zero means two.
+	scenarios int
+	mu        sync.Mutex
+	requests  []execution.Spec
 }
 
 type explorationInterruptExecutor struct {
@@ -2063,7 +2069,7 @@ func (executor *explorationExecutor) Run(_ context.Context, request execution.Sp
 	}
 	result := processResult(executor.exitCode, "", "")
 	result.ChoiceTrace = completeChoiceTrace(executor.t, executor.buildKey, executor.limit, []choice.Record{{
-		Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, Alternatives: 2, Selected: selected,
+		Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, Alternatives: max(executor.alternatives, 2), Selected: selected,
 	}})
 	return result, nil
 }
@@ -2091,9 +2097,13 @@ func (executor *simulationExplorationExecutor) Run(_ context.Context, request ex
 			selected = override.Selected
 		}
 	}
+	scenarios := []string{"alpha", "beta", "gamma"}[:max(executor.scenarios, 2)]
+	alternatives := make([]record.SHA256, len(scenarios))
+	for index, scenario := range scenarios {
+		alternatives[index] = record.HashBytes([]byte(scenario))
+	}
 	decision, err := simulationengine.CanonicalDecision(
-		simulationengine.DimensionScenario, 0, record.HashBytes([]byte("route")),
-		[]record.SHA256{record.HashBytes([]byte("alpha")), record.HashBytes([]byte("beta"))}, selected,
+		simulationengine.DimensionScenario, 0, record.HashBytes([]byte("route")), alternatives, selected,
 	)
 	if err != nil {
 		return execution.Result{}, err
@@ -2116,7 +2126,7 @@ func (executor *simulationExplorationExecutor) Run(_ context.Context, request ex
 		Schema: "gomad3.cluster-record/v7", Seed: plan.BaseSeed, SpecSHA256: record.HashBytes([]byte("spec")), Outcome: outcome,
 		FailureIdentity: record.HashBytes([]byte("normalized oracle failure")),
 		ExplorationPlan: request.Simulation.ExplorationPlan, ExplorationDecisions: []simulationengine.Decision{decision},
-		ScenarioTape: []string{[]string{"alpha", "beta"}[selected]}, Identity: record.HashBytes([]byte(fmt.Sprintf("record-%d", selected))),
+		ScenarioTape: []string{scenarios[selected]}, Identity: record.HashBytes([]byte(fmt.Sprintf("record-%d", selected))),
 	})
 	if err != nil {
 		return execution.Result{}, err

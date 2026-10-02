@@ -1,0 +1,43 @@
+--- a/tests/priority_fairness_test.go
++++ b/tests/priority_fairness_test.go
+@@ -498,14 +498,18 @@
+ 	)
+ 	s.NoError(err)
+ 
+-	_, err = env.TaskPoller().PollAndHandleActivityTask(
+-		env.Tv(),
+-		func(task *workflowservice.PollActivityTaskQueueResponse) (*workflowservice.RespondActivityTaskCompletedRequest, error) {
+-			return &workflowservice.RespondActivityTaskCompletedRequest{}, nil
+-		},
+-		taskpoller.WithContext(s.Context()),
+-	)
+-	s.NoError(err)
++	// the activity queue reloads when auto-enable switches it; a poll that is waiting at that
++	// moment can return empty, so poll again until the trigger task arrives
++	s.EventuallyWithT(func(c *assert.CollectT) {
++		_, err := env.TaskPoller().PollAndHandleActivityTask(
++			env.Tv(),
++			func(task *workflowservice.PollActivityTaskQueueResponse) (*workflowservice.RespondActivityTaskCompletedRequest, error) {
++				return &workflowservice.RespondActivityTaskCompletedRequest{}, nil
++			},
++			taskpoller.WithContext(s.Context()),
++		)
++		require.NoError(c, err)
++	}, 5*time.Second, time.Millisecond)
+ 
+ 	_, err = env.FrontendClient().DeleteWorkflowExecution(s.Context(), &workflowservice.DeleteWorkflowExecutionRequest{
+ 		Namespace: env.Namespace().String(),
+@@ -579,6 +583,13 @@
+ 		s.NoError(err)
+ 	}
+ 
++	// wait for all activity tasks to appear in the matching backlog (from transfer queue)
++	s.EventuallyWithT(func(c *assert.CollectT) {
++		tasksOnDraining, tasksOnActive, _, _, _, err := s.countTasksByDrainingActive(env, enumspb.TASK_QUEUE_TYPE_ACTIVITY)
++		require.NoError(c, err)
++		require.EqualValues(c, Workflows*Tasks, tasksOnDraining+tasksOnActive)
++	}, 10*time.Second, 100*time.Millisecond)
++
+ 	// process activity tasks
+ 	var runs []int
+ 	for range Workflows * Tasks {

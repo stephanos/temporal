@@ -1,0 +1,59 @@
+--- a/tests/workflow_task_test.go
++++ b/tests/workflow_task_test.go
+@@ -1,6 +1,7 @@
+ package tests
+ 
+ import (
++	"fmt"
+ 	"testing"
+ 	"time"
+ 
+@@ -77,7 +78,22 @@
+ 
+ 	taskToken := resp1.GetTaskToken()
+ 	hbTimeout := 0
+-	for range 12 {
++	d20Start := time.Now()
++	d20Dump := func(label string) {
++		for _, e := range env.GetHistory(env.Namespace().String(), we) {
++			extra := ""
++			if a := e.GetWorkflowTaskScheduledEventAttributes(); a != nil {
++				extra = fmt.Sprintf(" attempt=%d start_to_close=%s", a.GetAttempt(), a.GetStartToCloseTimeout().AsDuration())
++			}
++			if a := e.GetWorkflowTaskTimedOutEventAttributes(); a != nil {
++				extra = fmt.Sprintf(" timeout_type=%s scheduled_event_id=%d", a.GetTimeoutType(), a.GetScheduledEventId())
++			}
++			s.T().Logf("D20 history %s %3d %-26s %s%s", label, e.GetEventId(), e.GetEventType(), e.GetEventTime().AsTime().Format("15:04:05.000000000"), extra)
++		}
++	}
++	s.T().Logf("D20 loop-start now=%s", d20Start.Format("15:04:05.000000000"))
++	for d20i := range 12 {
++		d20Sent := time.Now()
+ 		resp2, err2 := env.FrontendClient().RespondWorkflowTaskCompleted(s.Context(), &workflowservice.RespondWorkflowTaskCompletedRequest{
+ 			Namespace: env.Namespace().String(),
+ 			TaskToken: taskToken,
+@@ -89,6 +105,7 @@
+ 			ReturnNewWorkflowTask:      true,
+ 			ForceCreateNewWorkflowTask: true,
+ 		})
++		s.T().Logf("D20 iter=%d sent=%s (+%s) returned=+%s err=%v", d20i, d20Sent.Format("15:04:05.000000000"), d20Sent.Sub(d20Start), time.Since(d20Start), err2)
+ 		if _, isNotFound := err2.(*serviceerror.NotFound); isNotFound {
+ 			hbTimeout++
+ 			s.IsType(&workflowservice.RespondWorkflowTaskCompletedResponse{}, resp2)
+@@ -100,6 +117,7 @@
+ 			})
+ 			s.NoError(err)
+ 			taskToken = resp.GetTaskToken()
++			s.T().Logf("D20 iter=%d recovery-poll returned=+%s attempt=%d", d20i, time.Since(d20Start), resp.GetAttempt())
+ 		} else {
+ 			s.NoError(err2)
+ 			taskToken = resp2.WorkflowTask.GetTaskToken()
+@@ -107,6 +125,8 @@
+ 		time.Sleep(time.Second) //nolint:forbidigo
+ 	}
+ 
++	s.T().Logf("D20 loop-end elapsed=+%s hbTimeout=%d", time.Since(d20Start), hbTimeout)
++	d20Dump("before-count-assert")
+ 	s.Equal(2, hbTimeout)
+ 
+ 	resp5, err5 := env.FrontendClient().RespondWorkflowTaskCompleted(s.Context(), &workflowservice.RespondWorkflowTaskCompletedRequest{

@@ -1,0 +1,43 @@
+--- a/tests/workflow_task_test.go
++++ b/tests/workflow_task_test.go
+@@ -76,8 +76,20 @@
+   3 WorkflowTaskStarted`, env.GetHistory(env.Namespace().String(), we))
+ 
+ 	taskToken := resp1.GetTaskToken()
++	// The server rejects a heartbeat once its chain of heartbeat workflow tasks has run for longer
++	// than WorkflowTaskHeartbeatTimeout, measured from the time the chain's first workflow task was
++	// scheduled. That task was scheduled before the poll that returned it, so a heartbeat sent
++	// after chainDeadline is past the server's deadline.
++	const heartbeatTimeout = 5 * time.Second // set in testcore's dynamic config overrides
++	chainDeadline := time.Now().Add(heartbeatTimeout)
+ 	hbTimeout := 0
+-	for range 12 {
++	for i := range 12 {
++		// Five heartbeats fit into the first chain and four into the second, which starts one
++		// sleep after its workflow task was polled. The next heartbeat is sent after the deadline.
++		expectTimeout := i == 5 || i == 10
++		if expectTimeout {
++			time.Sleep(time.Until(chainDeadline) + 100*time.Millisecond) //nolint:forbidigo
++		}
+ 		resp2, err2 := env.FrontendClient().RespondWorkflowTaskCompleted(s.Context(), &workflowservice.RespondWorkflowTaskCompletedRequest{
+ 			Namespace: env.Namespace().String(),
+ 			TaskToken: taskToken,
+@@ -89,7 +101,9 @@
+ 			ReturnNewWorkflowTask:      true,
+ 			ForceCreateNewWorkflowTask: true,
+ 		})
+-		if _, isNotFound := err2.(*serviceerror.NotFound); isNotFound {
++		_, isNotFound := err2.(*serviceerror.NotFound)
++		s.Equal(expectTimeout, isNotFound, "heartbeat %d: %v", i, err2)
++		if isNotFound {
+ 			hbTimeout++
+ 			s.IsType(&workflowservice.RespondWorkflowTaskCompletedResponse{}, resp2)
+ 
+@@ -100,6 +114,7 @@
+ 			})
+ 			s.NoError(err)
+ 			taskToken = resp.GetTaskToken()
++			chainDeadline = time.Now().Add(heartbeatTimeout)
+ 		} else {
+ 			s.NoError(err2)
+ 			taskToken = resp2.WorkflowTask.GetTaskToken()

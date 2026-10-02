@@ -1,0 +1,7 @@
+validate rc=0 start=2026-10-01T18:00:22Z end=2026-10-01T18:00:26Z
+test-harness rc=0 start=2026-10-01T18:00:26Z end=2026-10-01T18:00:31Z
+world-test rc=0 start=2026-10-01T18:00:31Z end=2026-10-01T18:00:41Z
+test-host rc=0 start=2026-10-01T18:00:41Z end=2026-10-01T18:03:43Z
+gomad3sim rc=0 start=2026-10-01T18:03:43Z end=2026-10-01T18:03:45Z
+integration rc=0 start=2026-10-01T18:03:45Z end=2026-10-01T18:04:04Z
+ALL_DONE

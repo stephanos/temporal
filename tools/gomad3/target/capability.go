@@ -181,17 +181,6 @@ func (err *UnsupportedCapabilityError) Error() string {
 	return fmt.Sprintf("unsupported target capability: package %s %s", err.ImportPath, err.Capability)
 }
 
-func validateGoCapabilityClosure(ctx context.Context, goCommand string, spec Spec, tags []string, commandDirectory, packageArgument string) (CapabilityClosure, error) {
-	review, err := reviewGoCapabilityReview(ctx, goCommand, spec, tags, commandDirectory, packageArgument)
-	if err != nil {
-		return CapabilityClosure{}, err
-	}
-	if err := validateCapabilityReview(review.Closure); err != nil {
-		return CapabilityClosure{}, err
-	}
-	return review.Closure, nil
-}
-
 func ReviewCapabilityClosure(ctx context.Context, spec Spec) (CapabilityClosure, error) {
 	review, err := ReviewCapabilities(ctx, spec)
 	if err != nil {

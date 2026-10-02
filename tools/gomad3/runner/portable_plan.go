@@ -1,7 +1,6 @@
 package runner
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -216,10 +215,6 @@ func openCampaignPlan(path string) (_ openedCampaignPlan, retErr error) {
 	var document portableCampaignPlan
 	if err := canonicaljson.DecodeCanonicalJSON(contents, &document); err != nil {
 		return openedCampaignPlan{}, fmt.Errorf("decode campaign plan: %w", err)
-	}
-	canonical, err := canonicaljson.CanonicalJSON(document)
-	if err != nil || !bytes.Equal(canonical, contents) {
-		return openedCampaignPlan{}, errors.Join(errors.New("campaign plan is not canonical"), err)
 	}
 	if document.Schema != campaignPlanSchema || document.Mapping != campaignPlanMapping || document.Campaign.Strategy != string(StrategySeed) || document.Campaign.Guidance != nil || document.Campaign.OnFailure != string(PolicyAll) || document.Campaign.PlanSHA256 != "" || document.Campaign.Shard != nil {
 		return openedCampaignPlan{}, errors.New("campaign plan protocol identity is invalid")

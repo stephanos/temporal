@@ -1,0 +1,10 @@
+$ gomad resume --help
+exit status: 2
+--- stdout
+--- stderr
+gomad: invalid_input: flag: help requested
+Usage of gomad resume:
+  -json
+    	emit stable JSON events
+  -toolchain-root string
+    	absolute pinned toolchain root

@@ -79,9 +79,23 @@ env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags te
 
 
 ## Done summary
-TBD
+The seed, choice-exploration and simulation-exploration completion paths now call one private owner, `tools/gomad3/runner/completion.go`, for World decoding and seed validation, semantic coverage, choice-feature projection and outcome classification. Fulfils fn-105.1 (D1); that task's state is untouched. Nothing is staged or committed; the delta is `task5.diff` and the full record is `task5-evidence.md` under `.flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/`.
 
+- Owner: `assessWorld(result, seed, transitionLimit)` returns the validated `execution.Bundle`; `assessCompletion(result, terminal, mode, prepared)` returns `completedExecution` (coverage, choice features and projection, classification) or a `*HostError` with reason `semantic_coverage` or `choice_coverage`. Both are pure and take no `CampaignSpec` or strategy flag. The interface is staged because the seed path publishes a Runner failure artifact on a World error and preserves the partial on a coverage or choice error.
+- Characterization came first: `completion_characterization_test.go` passed on the unmodified production files and unchanged after each of the three migrations. It pins reason, cause text, counters, published artifacts, journaled executions and partial states for 16 faults (malformed World, seed mismatch, malformed coverage, malformed choices, missing terminal frame, watchdog, cancellation, eight simultaneous combinations) on all three strategies, plus context cancellation for both exploration strategies. Canonical execution evidence and journal records for fixed identities are byte-identical before and after.
+- Direct tests: `completion_test.go` (`TestAssessWorldValidatesTheRecordAgainstItsSeed`, `TestAssessCompletionProjectsCoverageInOrderAndClassifies`). Seven of eight overlay mutants of the owner fail them; the survivor (ignoring `execution.Validate`'s error) has no reachable input.
+- Size (rule v2): production Go -63 code lines, -1843 code bytes; `runner` package 7255 -> 7192 code lines; test Go +563 code lines. `size-compare.sh` exits 0 against the task start and the fn-108 baseline. About 13 of the 63 lines are the deleted `novelSemanticProbes`/`addSemanticProbes`, exact copies of `novelStrings`/`addStrings`.
+- One unreachable difference: the seed path used to return at once if `SummarizeSemanticProbes(nil)` failed and now treats it like a decode failure. That call cannot fail with no probes; the reason string is unchanged.
+- Not done: `recordedWorldForMinimization` keeps its own World steps because its error text differs. `coverage.go`, `minimize_operation.go` and `runner_test.go` are unchanged.
+- Gates on darwin/arm64, all exit 0: gofmt, vet, `go test ./runner/... ./artifact/... ./record/...`, architecture tests, `make -C tools/gomad3 validate test-harness world-test test-host` (45 packages ok), `go test ./tools/gomad3sim/...`, `make gomad3-integration-test`, `make gomad3`, `make gomad3-smoke-qualification` (4/4 supported). `world-test` and `gomad3sim` results came from the test cache; no input of theirs changed. Public `go doc` and CLI capture diff against `api-baseline/`: empty. 378 baseline tests in the 11 affected packages keep their disposition. linux/amd64: not run (no host).
+
+baseline: green (focused Quick commands and `TestPackageArchitecture`, before any edit)
+
+stage: impl-review - ran (raw codex bridge on working-tree diff; commits forbidden) (model: gpt-5.6-sol) [round 1 SHIP, no findings; record in task5-review.md]
+stage: plan-sync - skipped(config: planSync.enabled != true)
+
+GATE_SKIPPED lines: none.
 ## Evidence
 - Commits:
-- Tests:
+- Tests: gofmt -l runner (empty), env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go vet -tags test_dep ./runner/..., env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep ./runner/... ./artifact/... ./record/..., env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep ., make -C tools/gomad3 validate, make -C tools/gomad3 test-harness, make -C tools/gomad3 world-test (ok, test cache), make -C tools/gomad3 test-host (45 packages ok), go test -tags test_dep ./tools/gomad3sim/... (ok, test cache), make gomad3-integration-test, make gomad3, make gomad3-smoke-qualification (supported=4 completed=4/4), sh api-capture.sh + diff -r api-baseline (empty), sh size-compare.sh task5-size-files-before.txt task5-size-files.txt (exit 0, production -63 code lines), go test -overlay <mutant> ./runner -run 'TestAssess|TestCompletion' (7 of 8 mutants red), linux/amd64 gates: not run (no host), baseline: green (focused Quick commands + TestPackageArchitecture pre-edit)
 - PRs:

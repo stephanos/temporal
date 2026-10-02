@@ -1,0 +1,213 @@
+=== Gomad, TestFairnessSuite/Test_Activity_Basic alone, strict tick, seed 11 (restored checkout 6782b55f4)
+namespace-id=929849e3-0243-4aa6-b46f-2abd54d625d9 server events: created(K)=225 transfer-started(T)=225 polls(P)=225 completed(C)=225; test dispatch lines(D)=225
+timestamps: first=00:00:00.000 last=00:00:00.000
+server completion order == test dispatch order (by workflow): True
+at the first activity poll (ts 00:00:00.000): transfer tasks created=225/225, transfer started=225/225 from 15/15 workflows [(0, 15), (1, 15), (2, 15), (3, 15), (4, 15), (5, 15), (6, 15), (7, 15), (8, 15), (9, 15), (10, 15), (11, 15), (12, 15), (13, 15), (14, 15)]
+  when dispatch #  1 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 10 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 20 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 40 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 66 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #100 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #150 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #200 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #225 completes: transfer started=225/225 from 15/15 workflows
+first dispatch completed after all 225 transfers had started: #1
+unfairness recomputed=0.45 logged=0.45 (threshold: < 1.0); keys seen=10
+first dispatch index per fairness key: [(0, 0), (1, 1), (2, 6), (3, 8), (4, 3), (5, 7), (6, 4), (7, 2), (8, 5), (9, 9)]
+ideal (every key within the first 10 dispatches) = 0.45
+  first 10 dispatches:  4 distinct workflows, 10 distinct keys
+  first 20 dispatches:  8 distinct workflows, 10 distinct keys
+  first 40 dispatches: 13 distinct workflows, 10 distinct keys
+  first 66 dispatches: 14 distinct workflows, 10 distinct keys
+tasks per key: [(0, 95), (1, 43), (2, 25), (3, 20), (4, 17), (5, 8), (6, 5), (7, 6), (8, 4), (9, 2)]
+dispatch order (fkey@wf): 0@0 1@0 7@0 4@0 6@0 8@0 2@0 5@1 3@3 9@4 0@0 1@0 2@1 5@2 4@3 3@4 7@4 8@8 6@9 9@10 0@0 1@0 2@1 4@3 3@4 5@4 7@5 8@10 6@11 0@0 1@1 2@1 4@4 3@5 5@5 7@7 6@13 8@14 0@0 1@1 2@1 4@5 3@5 5@6 7@8 6@14 0@0 1@1 2@2 4@5 3@5 5@9 7@13 0@0 1@1 2@2 4@5 3@6 5@10 0@1 1@2 2@3 4@6 3@7 5@11 0@1 1@2 2@3 3@7 4@7 0@1 1@2 2@3 3@7 4@8 0@1 1@2 2@4 3@7 4@9 ...
+
+before the first measured activity poll:
+  shard 1: transfer tasks created= 64 started= 64 not-started=  0 | this test's workflows: wf7(15/15) wf9(15/15) wf12(15/15) wf14(15/15)
+  shard 2: transfer tasks created= 64 started= 64 not-started=  0 | this test's workflows: wf5(15/15) wf6(15/15) wf10(15/15) wf13(15/15)
+  shard 3: transfer tasks created= 64 started= 64 not-started=  0 | this test's workflows: wf1(15/15) wf2(15/15) wf4(15/15) wf8(15/15)
+  shard 4: transfer tasks created= 48 started= 48 not-started=  0 | this test's workflows: wf0(15/15) wf3(15/15) wf11(15/15)
+
+=== Gomad, TestFairnessSuite/Test_Activity_Basic alone, strict tick, seed 17 (restored checkout 6782b55f4)
+namespace-id=929849e3-0243-4aa6-b46f-2abd54d625d9 server events: created(K)=225 transfer-started(T)=225 polls(P)=225 completed(C)=225; test dispatch lines(D)=225
+timestamps: first=00:00:00.000 last=00:00:00.000
+server completion order == test dispatch order (by workflow): True
+at the first activity poll (ts 00:00:00.000): transfer tasks created=225/225, transfer started=225/225 from 15/15 workflows [(0, 15), (1, 15), (2, 15), (3, 15), (4, 15), (5, 15), (6, 15), (7, 15), (8, 15), (9, 15), (10, 15), (11, 15), (12, 15), (13, 15), (14, 15)]
+  when dispatch #  1 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 10 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 20 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 40 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 66 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #100 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #150 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #200 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #225 completes: transfer started=225/225 from 15/15 workflows
+first dispatch completed after all 225 transfers had started: #1
+unfairness recomputed=0.45 logged=0.45 (threshold: < 1.0); keys seen=10
+first dispatch index per fairness key: [(0, 1), (1, 2), (2, 4), (3, 8), (4, 0), (5, 7), (6, 6), (7, 5), (8, 3), (9, 9)]
+ideal (every key within the first 10 dispatches) = 0.45
+  first 10 dispatches:  4 distinct workflows, 10 distinct keys
+  first 20 dispatches:  8 distinct workflows, 10 distinct keys
+  first 40 dispatches: 13 distinct workflows, 10 distinct keys
+  first 66 dispatches: 14 distinct workflows, 10 distinct keys
+tasks per key: [(0, 95), (1, 43), (2, 25), (3, 20), (4, 17), (5, 8), (6, 5), (7, 6), (8, 4), (9, 2)]
+dispatch order (fkey@wf): 4@0 0@0 1@0 8@0 2@0 7@0 6@0 5@1 3@3 9@4 0@0 1@0 2@1 5@2 4@3 7@4 3@4 8@8 6@9 9@10 0@0 1@0 2@1 4@3 5@4 3@4 7@5 8@10 6@11 0@0 1@1 2@1 4@4 3@5 5@5 7@7 6@13 8@14 0@0 1@1 2@1 4@5 3@5 5@6 7@8 6@14 0@0 1@1 2@2 3@5 4@5 5@9 7@13 0@0 1@1 2@2 4@5 3@6 5@10 0@1 1@2 2@3 4@6 3@7 5@11 0@1 1@2 2@3 3@7 4@7 0@1 1@2 2@3 3@7 4@8 0@1 1@2 2@4 3@7 4@9 ...
+
+before the first measured activity poll:
+  shard 1: transfer tasks created= 64 started= 64 not-started=  0 | this test's workflows: wf7(15/15) wf9(15/15) wf12(15/15) wf14(15/15)
+  shard 2: transfer tasks created= 64 started= 64 not-started=  0 | this test's workflows: wf5(15/15) wf6(15/15) wf10(15/15) wf13(15/15)
+  shard 3: transfer tasks created= 64 started= 64 not-started=  0 | this test's workflows: wf1(15/15) wf2(15/15) wf4(15/15) wf8(15/15)
+  shard 4: transfer tasks created= 48 started= 48 not-started=  0 | this test's workflows: wf0(15/15) wf3(15/15) wf11(15/15)
+
+=== Gomad, TestFairnessSuite whole suite, forward tick, seed 11 (restored checkout 6782b55f4)
+namespace-id=e0411594-303b-4df6-b668-eaeab7b1283c server events: created(K)=225 transfer-started(T)=225 polls(P)=225 completed(C)=225; test dispatch lines(D)=225
+timestamps: first=00:00:00.017 last=00:00:00.102
+server completion order == test dispatch order (by workflow): True
+at the first activity poll (ts 00:00:00.025): transfer tasks created=225/225, transfer started=75/225 from 5/15 workflows [(0, 15), (1, 15), (2, 15), (7, 15), (11, 15)]
+  when dispatch #  1 completes: transfer started= 75/225 from  5/15 workflows
+  when dispatch # 10 completes: transfer started= 75/225 from  5/15 workflows
+  when dispatch # 20 completes: transfer started= 75/225 from  5/15 workflows
+  when dispatch # 40 completes: transfer started= 75/225 from  5/15 workflows
+  when dispatch # 66 completes: transfer started= 75/225 from  5/15 workflows
+  when dispatch #100 completes: transfer started=165/225 from 11/15 workflows
+  when dispatch #150 completes: transfer started=165/225 from 11/15 workflows
+  when dispatch #200 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #225 completes: transfer started=225/225 from 15/15 workflows
+first dispatch completed after all 225 transfers had started: #166
+partial backlog: 9 keys present in the 5 workflows transferred at the first poll; 75 dispatches before further transfers started; distinct keys in the first 9 dispatches: 9
+unfairness recomputed=1.15 logged=1.15 (threshold: < 1.0); keys seen=10
+first dispatch index per fairness key: [(0, 1), (1, 0), (2, 4), (3, 8), (4, 3), (5, 7), (6, 6), (7, 2), (8, 5), (9, 79)]
+ideal (every key within the first 10 dispatches) = 0.45
+  first 10 dispatches:  3 distinct workflows,  9 distinct keys
+  first 20 dispatches:  5 distinct workflows,  9 distinct keys
+  first 40 dispatches:  5 distinct workflows,  9 distinct keys
+  first 66 dispatches:  5 distinct workflows,  9 distinct keys
+tasks per key: [(0, 95), (1, 43), (2, 25), (3, 20), (4, 17), (5, 8), (6, 5), (7, 6), (8, 4), (9, 2)]
+dispatch order (fkey@wf): 1@0 0@0 7@0 4@0 2@0 8@0 6@0 5@1 3@7 1@0 0@0 2@1 5@2 7@7 3@7 4@7 6@11 0@0 1@0 2@1 3@7 5@11 4@11 0@0 1@1 2@1 3@7 0@0 2@1 1@1 3@11 0@0 1@1 2@2 0@0 1@1 2@2 0@1 1@2 2@7 0@1 1@2 2@11 0@1 1@2 2@11 0@1 1@2 0@1 1@2 0@1 1@7 0@2 1@7 0@2 1@11 0@2 1@11 0@2 1@11 0@2 1@11 0@2 1@11 0@2 1@11 0@7 1@11 0@7 0@7 0@7 0@7 0@7 0@11 0@11 4@10 1@10 3@10 5@10 9@10 ...
+
+=== Gomad, TestFairnessSuite whole suite, forward tick, seed 17 (restored checkout 6782b55f4)
+namespace-id=e0411594-303b-4df6-b668-eaeab7b1283c server events: created(K)=225 transfer-started(T)=225 polls(P)=225 completed(C)=225; test dispatch lines(D)=225
+timestamps: first=00:00:00.018 last=00:00:00.103
+server completion order == test dispatch order (by workflow): True
+at the first activity poll (ts 00:00:00.029): transfer tasks created=225/225, transfer started=15/225 from 1/15 workflows [(0, 15)]
+  when dispatch #  1 completes: transfer started= 15/225 from  1/15 workflows
+  when dispatch # 10 completes: transfer started= 15/225 from  1/15 workflows
+  when dispatch # 20 completes: transfer started= 75/225 from  5/15 workflows
+  when dispatch # 40 completes: transfer started= 75/225 from  5/15 workflows
+  when dispatch # 66 completes: transfer started= 75/225 from  5/15 workflows
+  when dispatch #100 completes: transfer started=105/225 from  7/15 workflows
+  when dispatch #150 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #200 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #225 completes: transfer started=225/225 from 15/15 workflows
+first dispatch completed after all 225 transfers had started: #136
+partial backlog: 7 keys present in the 1 workflows transferred at the first poll; 15 dispatches before further transfers started; distinct keys in the first 7 dispatches: 7
+unfairness recomputed=1.4 logged=1.4 (threshold: < 1.0); keys seen=10
+first dispatch index per fairness key: [(0, 0), (1, 1), (2, 4), (3, 19), (4, 3), (5, 21), (6, 2), (7, 6), (8, 5), (9, 79)]
+ideal (every key within the first 10 dispatches) = 0.45
+  first 10 dispatches:  1 distinct workflows,  7 distinct keys
+  first 20 dispatches:  4 distinct workflows,  8 distinct keys
+  first 40 dispatches:  5 distinct workflows,  9 distinct keys
+  first 66 dispatches:  5 distinct workflows,  9 distinct keys
+tasks per key: [(0, 95), (1, 43), (2, 25), (3, 20), (4, 17), (5, 8), (6, 5), (7, 6), (8, 4), (9, 2)]
+dispatch order (fkey@wf): 0@0 1@0 6@0 4@0 2@0 8@0 7@0 0@0 1@0 0@0 1@0 0@0 0@0 0@0 0@0 0@13 4@9 2@9 1@8 3@13 7@8 5@9 6@9 8@8 0@12 1@8 4@13 2@9 3@13 7@13 6@13 0@8 1@9 2@8 3@12 4@8 0@12 1@12 2@13 3@12 0@12 1@12 3@9 2@9 0@13 1@8 2@9 3@13 0@9 1@13 0@8 1@9 0@12 1@13 0@12 1@13 0@13 0@8 0@9 0@9 0@12 0@12 0@13 0@13 0@9 0@9 0@12 0@8 0@12 0@8 0@12 0@12 0@8 0@8 0@8 1@10 8@10 4@7 1@7 9@10 ...
+
+=== Gomad, variant R (reader poll rate x1000, test unchanged), TestFairnessSuite whole suite, strict tick, seed 11 (restored checkout)
+namespace-id=e0411594-303b-4df6-b668-eaeab7b1283c server events: created(K)=225 transfer-started(T)=225 polls(P)=225 completed(C)=225; test dispatch lines(D)=225
+timestamps: first=00:00:00.000 last=00:00:00.000
+server completion order == test dispatch order (by workflow): True
+at the first activity poll (ts 00:00:00.000): transfer tasks created=225/225, transfer started=225/225 from 15/15 workflows [(0, 15), (1, 15), (2, 15), (3, 15), (4, 15), (5, 15), (6, 15), (7, 15), (8, 15), (9, 15), (10, 15), (11, 15), (12, 15), (13, 15), (14, 15)]
+  when dispatch #  1 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 10 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 20 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 40 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 66 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #100 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #150 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #200 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #225 completes: transfer started=225/225 from 15/15 workflows
+first dispatch completed after all 225 transfers had started: #1
+unfairness recomputed=0.45 logged=0.45 (threshold: < 1.0); keys seen=10
+first dispatch index per fairness key: [(0, 0), (1, 3), (2, 4), (3, 8), (4, 2), (5, 7), (6, 1), (7, 6), (8, 5), (9, 9)]
+ideal (every key within the first 10 dispatches) = 0.45
+  first 10 dispatches:  4 distinct workflows, 10 distinct keys
+  first 20 dispatches:  8 distinct workflows, 10 distinct keys
+  first 40 dispatches: 13 distinct workflows, 10 distinct keys
+  first 66 dispatches: 14 distinct workflows, 10 distinct keys
+tasks per key: [(0, 95), (1, 43), (2, 25), (3, 20), (4, 17), (5, 8), (6, 5), (7, 6), (8, 4), (9, 2)]
+dispatch order (fkey@wf): 0@0 6@0 4@0 1@0 2@0 8@0 7@0 5@1 3@3 9@4 0@0 1@0 2@1 5@2 4@3 7@4 3@4 8@8 6@9 9@10 0@0 1@0 2@1 4@3 5@4 3@4 7@5 8@10 6@11 0@0 1@1 2@1 4@4 3@5 5@5 7@7 6@13 8@14 0@0 1@1 2@1 4@5 3@5 5@6 7@8 6@14 0@0 1@1 2@2 4@5 3@5 5@9 7@13 0@0 1@1 2@2 4@5 3@6 5@10 0@1 1@2 2@3 4@6 3@7 5@11 0@1 1@2 2@3 3@7 4@7 0@1 1@2 2@3 3@7 4@8 0@1 1@2 2@4 3@7 4@9 ...
+
+=== Gomad, variant R (reader poll rate x1000, test unchanged), TestFairnessSuite whole suite, strict tick, seed 17 (restored checkout)
+namespace-id=e0411594-303b-4df6-b668-eaeab7b1283c server events: created(K)=225 transfer-started(T)=225 polls(P)=225 completed(C)=225; test dispatch lines(D)=225
+timestamps: first=00:00:00.000 last=00:00:00.000
+server completion order == test dispatch order (by workflow): True
+at the first activity poll (ts 00:00:00.000): transfer tasks created=225/225, transfer started=225/225 from 15/15 workflows [(0, 15), (1, 15), (2, 15), (3, 15), (4, 15), (5, 15), (6, 15), (7, 15), (8, 15), (9, 15), (10, 15), (11, 15), (12, 15), (13, 15), (14, 15)]
+  when dispatch #  1 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 10 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 20 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 40 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 66 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #100 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #150 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #200 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #225 completes: transfer started=225/225 from 15/15 workflows
+first dispatch completed after all 225 transfers had started: #1
+unfairness recomputed=0.45 logged=0.45 (threshold: < 1.0); keys seen=10
+first dispatch index per fairness key: [(0, 0), (1, 2), (2, 1), (3, 8), (4, 3), (5, 7), (6, 4), (7, 5), (8, 6), (9, 9)]
+ideal (every key within the first 10 dispatches) = 0.45
+  first 10 dispatches:  4 distinct workflows, 10 distinct keys
+  first 20 dispatches:  8 distinct workflows, 10 distinct keys
+  first 40 dispatches: 13 distinct workflows, 10 distinct keys
+  first 66 dispatches: 14 distinct workflows, 10 distinct keys
+tasks per key: [(0, 95), (1, 43), (2, 25), (3, 20), (4, 17), (5, 8), (6, 5), (7, 6), (8, 4), (9, 2)]
+dispatch order (fkey@wf): 0@0 2@0 1@0 4@0 6@0 7@0 8@0 5@1 3@3 9@4 0@0 1@0 2@1 5@2 4@3 3@4 7@4 8@8 6@9 9@10 0@0 1@0 2@1 4@3 3@4 5@4 7@5 8@10 6@11 0@0 1@1 2@1 4@4 3@5 5@5 7@7 6@13 8@14 0@0 1@1 2@1 4@5 3@5 5@6 7@8 6@14 0@0 1@1 2@2 4@5 3@5 5@9 7@13 0@0 1@1 2@2 4@5 3@6 5@10 0@1 1@2 2@3 4@6 3@7 5@11 0@1 1@2 2@3 4@7 3@7 0@1 1@2 2@3 3@7 4@8 0@1 1@2 2@4 3@7 4@9 ...
+
+=== Gomad, variant P+T as proposed, TestFairnessSuite whole suite, strict tick, seed 11 (restored checkout)
+namespace-id=e0411594-303b-4df6-b668-eaeab7b1283c server events: created(K)=225 transfer-started(T)=225 polls(P)=225 completed(C)=225; test dispatch lines(D)=225
+timestamps: first=00:00:00.000 last=00:00:00.100
+server completion order == test dispatch order (by workflow): True
+at the first activity poll (ts 00:00:00.100): transfer tasks created=225/225, transfer started=225/225 from 15/15 workflows [(0, 15), (1, 15), (2, 15), (3, 15), (4, 15), (5, 15), (6, 15), (7, 15), (8, 15), (9, 15), (10, 15), (11, 15), (12, 15), (13, 15), (14, 15)]
+  when dispatch #  1 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 10 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 20 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 40 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 66 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #100 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #150 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #200 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #225 completes: transfer started=225/225 from 15/15 workflows
+first dispatch completed after all 225 transfers had started: #1
+unfairness recomputed=0.45 logged=0.45 (threshold: < 1.0); keys seen=10
+first dispatch index per fairness key: [(0, 0), (1, 5), (2, 3), (3, 8), (4, 4), (5, 7), (6, 2), (7, 6), (8, 1), (9, 9)]
+ideal (every key within the first 10 dispatches) = 0.45
+  first 10 dispatches:  4 distinct workflows, 10 distinct keys
+  first 20 dispatches:  7 distinct workflows, 10 distinct keys
+  first 40 dispatches: 11 distinct workflows, 10 distinct keys
+  first 66 dispatches: 15 distinct workflows, 10 distinct keys
+tasks per key: [(0, 95), (1, 43), (2, 25), (3, 20), (4, 17), (5, 8), (6, 5), (7, 6), (8, 4), (9, 2)]
+dispatch order (fkey@wf): 0@0 8@0 6@0 2@0 4@0 1@0 7@0 5@2 3@11 9@10 0@0 1@0 2@2 6@11 5@11 4@11 3@13 7@13 8@8 9@4 0@0 1@0 2@2 4@9 3@12 5@9 6@13 7@8 8@10 0@0 1@2 2@11 4@8 3@12 6@9 7@7 5@10 8@14 0@0 1@2 2@11 3@13 4@13 5@1 7@5 6@14 0@0 1@2 2@9 3@13 4@7 5@4 7@4 0@0 1@2 2@9 3@9 4@3 5@6 0@2 1@2 2@13 3@7 4@3 5@5 0@2 1@11 2@9 3@7 4@10 0@2 1@11 2@9 3@7 4@10 0@2 1@11 2@8 3@7 4@4 ...
+
+=== Gomad, variant P+T as proposed, TestFairnessSuite whole suite, strict tick, seed 17 (restored checkout)
+namespace-id=e0411594-303b-4df6-b668-eaeab7b1283c server events: created(K)=225 transfer-started(T)=225 polls(P)=225 completed(C)=225; test dispatch lines(D)=225
+timestamps: first=00:00:00.000 last=00:00:00.100
+server completion order == test dispatch order (by workflow): True
+at the first activity poll (ts 00:00:00.100): transfer tasks created=225/225, transfer started=225/225 from 15/15 workflows [(0, 15), (1, 15), (2, 15), (3, 15), (4, 15), (5, 15), (6, 15), (7, 15), (8, 15), (9, 15), (10, 15), (11, 15), (12, 15), (13, 15), (14, 15)]
+  when dispatch #  1 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 10 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 20 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 40 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch # 66 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #100 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #150 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #200 completes: transfer started=225/225 from 15/15 workflows
+  when dispatch #225 completes: transfer started=225/225 from 15/15 workflows
+first dispatch completed after all 225 transfers had started: #1
+unfairness recomputed=0.45 logged=0.45 (threshold: < 1.0); keys seen=10
+first dispatch index per fairness key: [(0, 2), (1, 0), (2, 3), (3, 6), (4, 4), (5, 8), (6, 9), (7, 1), (8, 5), (9, 7)]
+ideal (every key within the first 10 dispatches) = 0.45
+  first 10 dispatches:  4 distinct workflows, 10 distinct keys
+  first 20 dispatches:  7 distinct workflows, 10 distinct keys
+  first 40 dispatches: 12 distinct workflows, 10 distinct keys
+  first 66 dispatches: 14 distinct workflows, 10 distinct keys
+tasks per key: [(0, 95), (1, 43), (2, 25), (3, 20), (4, 17), (5, 8), (6, 5), (7, 6), (8, 4), (9, 2)]
+dispatch order (fkey@wf): 1@8 7@8 0@8 2@8 4@8 8@8 3@4 9@4 5@5 6@14 0@8 1@8 2@1 4@5 3@5 7@5 5@4 6@9 8@14 9@10 0@8 1@8 2@3 4@4 3@5 7@4 5@1 6@13 8@10 0@8 2@1 4@5 1@5 3@4 5@6 7@13 6@11 8@0 0@8 2@3 4@3 1@1 3@3 5@9 7@7 6@0 0@8 2@1 1@4 4@3 3@5 5@2 7@0 0@8 1@1 2@3 4@5 3@6 5@10 0@8 1@5 2@5 3@14 4@14 5@11 0@4 1@3 2@1 4@9 3@9 0@4 1@1 2@4 4@14 3@13 0@3 1@4 2@6 4@6 3@12 ...

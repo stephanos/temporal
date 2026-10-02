@@ -1,0 +1,23 @@
+Suite ^TestNexusOTELSuite$, seed 11, forward, --env=TEMPORAL_TEST_DEDICATED_CLUSTERS=2, runner 4dce3aed.
+traced recording (explore --choices --choice-bytes=64MiB), watchdog_timeout: stderr sha256 7222dc79b24b044572f2bb4e6b03bd01b46d918abd13f468a541ed5bd5230a78 (145962 bytes)
+gomad replay #1 of that artifact (reproduced=false divergence=stderr.full_sha256 choice-replay=none, wall 119 s): stderr sha256 9a4b0a2669141b35e5bcef5b2ae34ae20ad6a10212b015a6dc33cd810d11bf34
+gomad replay #2 (same result, wall 118 s): stderr sha256 9a4b0a2669141b35e5bcef5b2ae34ae20ad6a10212b015a6dc33cd810d11bf34
+fresh untraced run (explore without --choices), watchdog_timeout: stderr sha256 9a4b0a2669141b35e5bcef5b2ae34ae20ad6a10212b015a6dc33cd810d11bf34
+the two qualify-set repetitions of the traced manifest (A1) recorded stderr sha256 7222dc79b24b044572f2bb4e6b03bd01b46d918abd13f468a541ed5bd5230a78
+
+replay logs:
+gomad: reproduced=false divergence=stderr.full_sha256 choice-replay=none
+gomad: reproduced=false divergence=stderr.full_sha256 choice-replay=none
+
+diff recorded-stderr replay1-stderr:
+401c401
+< 2000-01-01T00:00:05.005Z	warn	network dial error	{"address": "membership://frontend~0x4923ba3045c0", "connectAddr": "", "connectDuration": 0, "error": "dial tcp 127.0.0.1:20000: connection refused", "error-type": "net.OpError", "service": "client", "totalDuration": -0.004233309, "logging-call-at": "go.temporal.io/server/common/rpc/dial_tracer.go:73"}
+---
+> 2000-01-01T00:00:05.005Z	warn	network dial error	{"address": "membership://frontend~0x4923ba3045d0", "connectAddr": "", "connectDuration": 0, "error": "dial tcp 127.0.0.1:20000: connection refused", "error-type": "net.OpError", "service": "client", "totalDuration": -0.004233309, "logging-call-at": "go.temporal.io/server/common/rpc/dial_tracer.go:73"}
+
+
+Scan of the four traced qualify-set recordings (run A1) for address-bearing text: lines containing membership:// and lines containing a hex address of six or more digits.
+exec1 seed=11 sha=7222dc79b24b0445 bytes=145962 membership_lines=1 hex_addr_lines=1
+exec2 seed=11 sha=7222dc79b24b0445 bytes=145962 membership_lines=1 hex_addr_lines=1
+exec3 seed=17 sha=ffda5990715599f9 bytes=51670 membership_lines=0 hex_addr_lines=0
+exec4 seed=17 sha=ffda5990715599f9 bytes=51670 membership_lines=0 hex_addr_lines=0

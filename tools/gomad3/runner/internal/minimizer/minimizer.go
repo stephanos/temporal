@@ -118,24 +118,6 @@ func Commit(state State, attempt Attempt, accepted bool) (State, error) {
 	return seal(next)
 }
 
-func Encode(state State) ([]byte, error) {
-	if err := Validate(state); err != nil {
-		return nil, err
-	}
-	return canonicaljson.CanonicalJSON(state)
-}
-
-func Decode(encoded []byte) (State, error) {
-	var state State
-	if err := canonicaljson.DecodeCanonicalJSON(encoded, &state); err != nil {
-		return State{}, fmt.Errorf("decode minimizer state: %w", err)
-	}
-	if err := Validate(state); err != nil {
-		return State{}, err
-	}
-	return state, nil
-}
-
 func Validate(state State) error {
 	if state.Schema != Schema || state.AttemptBudget == 0 || state.Attempts > state.AttemptBudget || uint64(len(state.Evaluated)) != state.Attempts || uint64(len(state.Accepted)) > state.Attempts {
 		return errors.New("minimizer state shape is invalid")

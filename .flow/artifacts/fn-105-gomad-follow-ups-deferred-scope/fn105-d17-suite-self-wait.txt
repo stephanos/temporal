@@ -1,0 +1,12 @@
+Suite ^TestNexusOTELSuite$ under gomad explore, forward, --env=TEMPORAL_TEST_DEDICATED_CLUSTERS=2, -test.parallel=8 -test.v -test.timeout=2m, restored checkout (runner 0e00a1be); goroutines blocked in reserveSlot at the timeout:
+--- seed 11: panic: test timed out after 2m0s | 	running tests: | 		TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (2m0s) | 		TestNexusOTELSuite/TestOperation (2m0s) | 		TestNexusOTELSuite/TestWorkerOperation (2m0s)
+  goroutine 13 [chan receive, 2 minutes]: :: go.temporal.io/server/tests/testcore/test_cluster_pool.go:109 +0x38 <- go.temporal.io/server/tests/nexus_otel_test.go:353 +0x54
+  goroutine 14 [chan receive, 1 minutes]: :: go.temporal.io/server/tests/testcore/test_cluster_pool.go:109 +0x38 <- go.temporal.io/server/tests/nexus_otel_test.go:143 +0x6c
+  goroutine 15 [chan receive, 2 minutes]: :: go.temporal.io/server/tests/testcore/test_cluster_pool.go:109 +0x38 <- go.temporal.io/server/tests/nexus_otel_test.go:262 +0x54
+  results: 
+--- seed 17: panic: test timed out after 2m0s | 	running tests: | 		TestNexusOTELSuite/TestCallback (2m0s) | 		TestNexusOTELSuite/TestNamespaceAndTaskQueueDispatch (2m0s) | 		TestNexusOTELSuite/TestOperation (2m0s) | 		TestNexusOTELSuite/TestWorkerOperation (2m0s)
+  goroutine 12 [chan receive, 2 minutes]: :: go.temporal.io/server/tests/testcore/test_cluster_pool.go:109 +0x38 <- go.temporal.io/server/tests/nexus_otel_test.go:82 +0x54
+  goroutine 13 [chan receive, 2 minutes]: :: go.temporal.io/server/tests/testcore/test_cluster_pool.go:109 +0x38 <- go.temporal.io/server/tests/nexus_otel_test.go:353 +0x54
+  goroutine 14 [chan receive, 2 minutes]: :: go.temporal.io/server/tests/testcore/test_cluster_pool.go:109 +0x38 <- go.temporal.io/server/tests/nexus_otel_test.go:143 +0x6c
+  goroutine 15 [chan receive, 2 minutes]: :: go.temporal.io/server/tests/testcore/test_cluster_pool.go:109 +0x38 <- go.temporal.io/server/tests/nexus_otel_test.go:262 +0x54
+  results: 

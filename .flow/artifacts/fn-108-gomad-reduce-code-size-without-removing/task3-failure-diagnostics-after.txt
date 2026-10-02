@@ -1,0 +1,14 @@
+changed version: modernc.org/memory adapter identity mismatch
+changed sum: modernc.org/memory adapter identity mismatch
+changed module: modernc.org/memory adapter identity mismatch
+missing module: resolve pinned modernc.org/memory module: lstat /private<CACHE>/modernc.org: no such file or directory
+unmodified private copy: ACCEPTED (no error)
+source drift (appended newline): pinned modernc.org/memory source inventory identity mismatch: got sha256:19b9aa888c1b8e1b3cb16a94b9ade4be6b719ef574dfaef6603b9cc4fb91200e, want sha256:f6d838c731cb22881e472d086c21895e431123e0a08fd190b41ff34be59f0264
+missing anchor (anchor text edited): pinned modernc.org/memory source inventory identity mismatch: got sha256:2c2d0a3b9aa2a9e26b23b4026efc7ac8a7066595ec7499a04ae01a5437b824fe, want sha256:f6d838c731cb22881e472d086c21895e431123e0a08fd190b41ff34be59f0264
+duplicate anchor (anchor text repeated): pinned modernc.org/memory source inventory identity mismatch: got sha256:93fbf81911517033eb68003003935483401b229c3b9095ff7f5101c496f01a9e, want sha256:f6d838c731cb22881e472d086c21895e431123e0a08fd190b41ff34be59f0264
+source file missing: pinned modernc.org/memory source inventory identity mismatch: got sha256:07e58902f247a87f562e84cece2f9d9b3f91b21057fb53674dd28d4f8b7c16a5, want sha256:f6d838c731cb22881e472d086c21895e431123e0a08fd190b41ff34be59f0264
+source file is a symbolic link to identical bytes: hash pinned modernc.org/memory source inventory: adapter source inventory contains a symbolic link
+source file is a directory: pinned modernc.org/memory source inventory identity mismatch: got sha256:07e58902f247a87f562e84cece2f9d9b3f91b21057fb53674dd28d4f8b7c16a5, want sha256:f6d838c731cb22881e472d086c21895e431123e0a08fd190b41ff34be59f0264
+another module file changed: pinned modernc.org/memory source inventory identity mismatch: got sha256:b9ede6855b2852de3e70227263364d27b15c4cafafd9004f0843f39f395009ab, want sha256:f6d838c731cb22881e472d086c21895e431123e0a08fd190b41ff34be59f0264
+extra module file: pinned modernc.org/memory source inventory identity mismatch: got sha256:92a3e6f57d15060a28db3c7ea748c580c4297fa0fa046db3f6cac5a37c10f832, want sha256:f6d838c731cb22881e472d086c21895e431123e0a08fd190b41ff34be59f0264
+replacement directory already exists: copy modernc.org/memory adapter module: create deterministic I/O adapter module: mkdir <ROOT>/modernc-memory: file exists

@@ -1,0 +1,4 @@
+functional-activity	Activity workflow	qualified	qualified	true	11	qualified	true	true	true	sha256:b24ec7e2cb25c1d66099c12013e7c035d7795485da8fe086deaed09fa67d3272
+functional-child-workflow	Child workflow	qualified	qualified	true	11	qualified	true	true	true	sha256:6697801f0d9403bfb86e0ef11772e9c7b64d03bd017b7a5eeee14fffb192681b
+functional-update	Workflow update	qualified	qualified	true	11	qualified	true	true	true	sha256:1330e9dc3a2db25f12b2f8b236954a2f65bdb28fe9ae9f471221be23d37b6dfe
+user-timers-workflow	User timers workflow	qualified	qualified	true	11	qualified	true	true	true	sha256:80fcbf79fdb3527642791a7a63f0f43a51f1ba373c358c9b5306692535b969e7

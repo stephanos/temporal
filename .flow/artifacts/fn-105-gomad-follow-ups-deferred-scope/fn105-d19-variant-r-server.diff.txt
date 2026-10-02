@@ -1,0 +1,11 @@
+--- a/service/history/queues/reader_quotas.go
++++ b/service/history/queues/reader_quotas.go
+@@ -43,7 +43,7 @@
+ ) quotas.RequestRateLimiter {
+ 	return quotas.NewMultiRequestRateLimiter(
+ 		NewReaderPriorityRateLimiter(
+-			func() float64 { return float64(shardMaxPollRPS()) },
++			func() float64 { return float64(shardMaxPollRPS()) * 1000 },
+ 			maxReaders,
+ 		),
+ 		hostReaderRateLimiter,

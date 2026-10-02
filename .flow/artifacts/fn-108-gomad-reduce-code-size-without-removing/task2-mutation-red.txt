@@ -1,0 +1,16 @@
+--- FAIL: TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments (0.01s)
+    --- FAIL: TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments/incomplete_object (0.00s)
+        portable_plan_test.go:383: openCampaignPlan() error = campaign plan protocol identity is invalid, want decode campaign plan: JSON is not canonical
+    --- FAIL: TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments/trailing_whitespace (0.00s)
+        portable_plan_test.go:383: openCampaignPlan() error = campaign plan protocol identity is invalid, want decode campaign plan: JSON is not canonical
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner	0.419s
+--- FAIL: TestOpenMergedCampaignRejectsNoncanonicalAndInvalidRecords (0.01s)
+    --- FAIL: TestOpenMergedCampaignRejectsNoncanonicalAndInvalidRecords/incomplete_object (0.00s)
+        merge_capacity_test.go:67: OpenMergedCampaign() error = merged campaign record is invalid, want JSON is not canonical
+    --- FAIL: TestOpenMergedCampaignRejectsNoncanonicalAndInvalidRecords/trailing_whitespace (0.00s)
+        merge_capacity_test.go:67: OpenMergedCampaign() error = merged campaign record is invalid, want JSON is not canonical
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/campaign	0.749s
+FAIL
+rc=1

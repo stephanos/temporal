@@ -1,0 +1,94 @@
+# fn-108.2 consumer search (pre-edit), HEAD 6782b55f49a0317b230e827ea2a63a37d116d502, 2026-10-01T19:25:27Z
+# command: git grep -n --untracked -w <symbol> -- . (whole repository: tracked + untracked-not-ignored; grep is build-tag/GOOS agnostic)
+
+## validateGoCapabilityClosure
+tools/gomad3/target/capability.go:184:func validateGoCapabilityClosure(ctx context.Context, goCommand string, spec Spec, tags []string, commandDirectory, packageArgument string) (CapabilityClosure, error) {
+### spec/plan mentions (.flow .turbo): .flow/specs/fn-108-gomad-reduce-code-size-without-removing.md .flow/tasks/fn-108-gomad-reduce-code-size-without-removing.2.md .flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.11.md .flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.9.md 
+
+## matchesExpectation
+tools/gomad3/qualification/set/set.go:902:func matchesExpectation(expected WorkloadExpectation, classification string, report qualification.QualificationReport, exitCode int) bool {
+### spec/plan mentions (.flow .turbo): .flow/specs/fn-108-gomad-reduce-code-size-without-removing.md .flow/tasks/fn-108-gomad-reduce-code-size-without-removing.2.md 
+
+## firstReplay
+tools/gomad3/qualification/set/set.go:912:		replay := firstReplay(report)
+tools/gomad3/qualification/set/set.go:917:		replay := firstReplay(report)
+tools/gomad3/qualification/set/set.go:924:func firstReplay(report qualification.QualificationReport) *qualification.QualificationReplay {
+### spec/plan mentions (.flow .turbo): .flow/specs/fn-108-gomad-reduce-code-size-without-removing.md .flow/tasks/fn-108-gomad-reduce-code-size-without-removing.2.md 
+
+## deterministicCapturedInputs
+tools/gomad3/runner/deterministicio.go:42:func deterministicCapturedInputs(manifest record.ReadOnlyMounts) readonlymount.CapturedInputsManifest {
+### spec/plan mentions (.flow .turbo): .flow/specs/fn-108-gomad-reduce-code-size-without-removing.md .flow/tasks/fn-108-gomad-reduce-code-size-without-removing.2.md 
+
+## orderRunCompletions
+tools/gomad3/runner/campaign.go:5:func orderRunCompletions(selection SeedSelection, completed map[uint64]struct{}, input <-chan runCompletion, output chan<- runCompletion) {
+### spec/plan mentions (.flow .turbo): .flow/specs/fn-108-gomad-reduce-code-size-without-removing.md .flow/tasks/fn-108-gomad-reduce-code-size-without-removing.2.md 
+
+## removeCompletedPartial
+tools/gomad3/runner/internal/campaign/campaign_journal.go:583:func removeCompletedPartial(path string) error {
+### spec/plan mentions (.flow .turbo): .flow/specs/fn-108-gomad-reduce-code-size-without-removing.md .flow/tasks/fn-108-gomad-reduce-code-size-without-removing.2.md 
+
+## decodeCanonicalJSON
+tools/gomad3/deterministicio/domain.go:85:func decodeCanonicalJSON(data []byte, destination any) error {
+### spec/plan mentions (.flow .turbo): .flow/specs/fn-108-gomad-reduce-code-size-without-removing.md .flow/tasks/fn-108-gomad-reduce-code-size-without-removing.2.md 
+
+## decimal (type) inside tools/gomad3/deterministicio (all files, all build tags)
+tools/gomad3/deterministicio/domain.go:42:type decimal uint64
+tools/gomad3/deterministicio/domain.go:44:func (value decimal) MarshalJSON() ([]byte, error) {
+tools/gomad3/deterministicio/domain.go:48:func (value *decimal) UnmarshalJSON(data []byte) error {
+tools/gomad3/deterministicio/domain.go:50:		return errors.New("decode decimal string into nil destination")
+tools/gomad3/deterministicio/domain.go:54:		return errors.New("decimal integer must be a JSON string")
+tools/gomad3/deterministicio/domain.go:57:		return fmt.Errorf("invalid canonical decimal string %q", text)
+tools/gomad3/deterministicio/domain.go:61:			return fmt.Errorf("invalid canonical decimal string %q", text)
+tools/gomad3/deterministicio/domain.go:66:		return fmt.Errorf("decimal string out of range: %w", err)
+tools/gomad3/deterministicio/domain.go:68:	*value = decimal(parsed)
+tools/gomad3/deterministicio/testdata/sprig/go.mod:15:	github.com/shopspring/decimal v1.4.0 // indirect
+tools/gomad3/deterministicio/testdata/sprig/go.sum:31:github.com/shopspring/decimal v1.4.0 h1:bxl37RwXBklmTi0C79JfXCEBD1cqqHt0bbgBAGFp81k=
+tools/gomad3/deterministicio/testdata/sprig/go.sum:32:github.com/shopspring/decimal v1.4.0/go.mod h1:gawqmDU56v4yIKSwfBSFip1HdCCXN8/+DMd9qYNcwME=
+
+## minimizer.Encode / minimizer.Decode (qualified uses, whole repo)
+(no match)
+
+## importers of runner/internal/minimizer (whole repo)
+docs/research/gomad/GOMAD_CMPv2.md:41:[minimizer](../../../tools/gomad3/runner/internal/minimizer/minimizer.go).
+tools/gomad3/architecture_test.go:476:			modulePath + "/runner/internal/execution", modulePath + "/runner/internal/corpus", modulePath + "/runner/internal/minimizer",
+tools/gomad3/runner/minimize_operation.go:20:	"go.temporal.io/server/tools/gomad3/runner/internal/minimizer"
+
+## unqualified Encode(/Decode( inside tools/gomad3/runner/internal/minimizer
+(no match)
+
+## CORRECTION: the previous unqualified Encode(/Decode( query used , which git grep -E on darwin does not honour; rerun with -w
+## -w Encode / Decode inside tools/gomad3/runner/internal/minimizer
+tools/gomad3/runner/internal/minimizer/minimizer.go:121:func Encode(state State) ([]byte, error) {
+tools/gomad3/runner/internal/minimizer/minimizer.go:128:func Decode(encoded []byte) (State, error) {
+tools/gomad3/runner/internal/minimizer/minimizer_test.go:72:	encoded, err := Encode(state)
+tools/gomad3/runner/internal/minimizer/minimizer_test.go:76:	decoded, err := Decode(encoded)
+
+## every selector use of the minimizer package in its only importer (runner/minimize_operation.go; import is unaliased, no dot-import)
+   1 tools/gomad3/runner/minimize_operation.go:137:minimizer.State
+   1 tools/gomad3/runner/minimize_operation.go:139:minimizer.State
+   1 tools/gomad3/runner/minimize_operation.go:142:minimizer.State
+   1 tools/gomad3/runner/minimize_operation.go:146:minimizer.State
+   1 tools/gomad3/runner/minimize_operation.go:156:minimizer.State
+   1 tools/gomad3/runner/minimize_operation.go:160:minimizer.State
+   1 tools/gomad3/runner/minimize_operation.go:163:minimizer.State
+   1 tools/gomad3/runner/minimize_operation.go:166:minimizer.State
+   1 tools/gomad3/runner/minimize_operation.go:173:minimizer.State
+   1 tools/gomad3/runner/minimize_operation.go:177:minimizer.State
+   1 tools/gomad3/runner/minimize_operation.go:179:minimizer.New
+   1 tools/gomad3/runner/minimize_operation.go:181:minimizer.State
+   1 tools/gomad3/runner/minimize_operation.go:184:minimizer.State
+   1 tools/gomad3/runner/minimize_operation.go:447:minimizer.State
+   1 tools/gomad3/runner/minimize_operation.go:453:minimizer.ImplementationSHA
+   1 tools/gomad3/runner/minimize_operation.go:467:minimizer.Reduction
+   1 tools/gomad3/runner/minimize_operation.go:86:minimizer.Next
+   1 tools/gomad3/runner/minimize_operation.go:97:minimizer.Commit
+
+## any aliased or dot import of the minimizer package
+(no match)
+
+## fn-109 mentions of validateGoCapabilityClosure
+.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.11.md:9:**External ordering:** after `fn-108-gomad-reduce-code-size-without-removing.2` (local cleanup of `target/capability.go`; it deletes `validateGoCapabilityClosure`, `:184`).
+.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.9.md:9:**External ordering:** after `fn-108-gomad-reduce-code-size-without-removing.2` (local cleanup; it removes `validateGoCapabilityClosure`, `target/capability.go:184`). Re-anchor `capability.go` line references after it lands.
+
+## reflection / linkname / go:generate references by name (strings) for all candidates in non-.flow files
+(no linkname match)

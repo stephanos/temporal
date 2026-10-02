@@ -1,0 +1,78 @@
+Leaf ^TestNexusOTELSuite$/^TestOperation$ under gomad explore, clock tick forward, -test.parallel=8 -test.v -test.timeout=2m (virtual).
+B2/B2b: --env=TEMPORAL_TEST_DEDICATED_CLUSTERS=2 (runner 4dce3aed), H0: the same on the restored checkout (runner 0e00a1be), G2/G2b: no --env (runner 4dce3aed).
+
+sha256 of the retained streams (first 16 hex):
+  seed 11 B2-leaf-two-forward-testtimeout: stdout=89fd608248b196bf stderr=a084cd20d52117ee
+  seed 11 B2b-leaf-two-forward-testtimeout: stdout=89fd608248b196bf stderr=a084cd20d52117ee
+  seed 11 H0-leaf-two-forward-testtimeout: stdout=89fd608248b196bf stderr=a084cd20d52117ee
+  seed 11 G2-leaf-noenv-forward-testtimeout: stdout=f687d0ba77d30e1e stderr=89e836bf6e9fb113
+  seed 11 G2b-leaf-noenv-forward-testtimeout: stdout=f687d0ba77d30e1e stderr=89e836bf6e9fb113
+  seed 17 B2-leaf-two-forward-testtimeout: stdout=d693a1b5b06aa804 stderr=8a037e0d3ed879a3
+  seed 17 B2b-leaf-two-forward-testtimeout: stdout=d693a1b5b06aa804 stderr=8a037e0d3ed879a3
+  seed 17 H0-leaf-two-forward-testtimeout: stdout=d693a1b5b06aa804 stderr=8a037e0d3ed879a3
+  seed 17 G2-leaf-noenv-forward-testtimeout: stdout=d693a1b5b06aa804 stderr=df119d146943774c
+  seed 17 G2b-leaf-noenv-forward-testtimeout: stdout=d693a1b5b06aa804 stderr=df119d146943774c
+  seed 11: stderr lines env=2 4538, no env 4556; equal after masking hex addresses: False
+  seed 17: stderr lines env=2 4560, no env 4560; equal after masking hex addresses: True
+
+--- seed 11, --env=TEMPORAL_TEST_DEDICATED_CLUSTERS=2: timeout header and the test goroutine
+panic: test timed out after 2m0s
+	running tests:
+		TestNexusOTELSuite/TestOperation (2m0s)
+goroutine 12 [chan receive, 2 minutes]:
+go.temporal.io/server/tests/testcore.(*clusterPool).reserveSlot(0x4923b9ef0a80, 0x4923b9e72b48)
+	go.temporal.io/server/tests/testcore/test_cluster_pool.go:109 +0x38
+go.temporal.io/server/tests/testcore.(*clusterRouter).getDedicated(0x4923b9e37130, 0x4923b9e72b48, {{0x1025df749, 0x9}, 0x1, {0x1026042bc, 0x18}, 0x0, 0x4923ba3dd440, {0x4923bb4f6be8, ...}})
+	go.temporal.io/server/tests/testcore/test_cluster_pool.go:342 +0x7c
+go.temporal.io/server/tests/testcore.(*clusterRouter).get(?, ?, {{0x0, 0x0}, 0x1, {0x1026042bc, 0x18}, 0x0, 0x4923ba3dd440, {0x4923bb4f6be8, ...}})
+	go.temporal.io/server/tests/testcore/test_cluster_pool.go:300 +0x144
+go.temporal.io/server/tests/testcore.NewEnv(0x4923b9e72b48, {0x4923bb931328, 0x5, ?})
+	go.temporal.io/server/tests/testcore/test_env.go:302 +0x1cc
+go.temporal.io/server/tests.newNexusTestEnv(...)
+	go.temporal.io/server/tests/nexus_test_base.go:35
+go.temporal.io/server/tests.(*NexusOTELSuite).newTestEnv(?, {?, ?})
+	go.temporal.io/server/tests/nexus_otel_test.go:67 +0x27c
+go.temporal.io/server/tests.(*NexusOTELSuite).TestOperation(0x4923b9e6e0b0)
+	go.temporal.io/server/tests/nexus_otel_test.go:143 +0x6c
+reflect.Value.call({?, ?, ?}, {0x1025d78b9, 0x4}, {0x4923b9f04f40, 0x1, ?})
+	reflect/value.go:586 +0xa88
+reflect.Value.Call({?, ?, ?}, {?, ?, ?})
+	reflect/value.go:369 +0x94
+go.temporal.io/server/common/testing/parallelsuite.run[...].func1()
+	go.temporal.io/server/common/testing/parallelsuite/suite.go:230 +0x140
+testing.tRunner(0x4923b9e72b48, 0x4923b9e58cf0)
+	testing/testing.go:2197 +0xc4
+created by testing.(*T).Run in goroutine 11
+	testing/testing.go:2265 +0x3b8
+CLUSTEREVENT lines before the timeout: 1
+
+--- seed 17, --env=TEMPORAL_TEST_DEDICATED_CLUSTERS=2: timeout header and the test goroutine
+panic: test timed out after 2m0s
+	running tests:
+		TestNexusOTELSuite/TestOperation (2m0s)
+goroutine 12 [chan receive, 2 minutes]:
+go.temporal.io/server/tests/testcore.(*clusterPool).reserveSlot(0x4b2779382a80, 0x4b2779330b48)
+	go.temporal.io/server/tests/testcore/test_cluster_pool.go:109 +0x38
+go.temporal.io/server/tests/testcore.(*clusterRouter).getDedicated(0x4b27792c9130, 0x4b2779330b48, {{0x1025df749, 0x9}, 0x1, {0x1026042bc, 0x18}, 0x0, 0x4b2779871470, {0x4b277a96ebd8, ...}})
+	go.temporal.io/server/tests/testcore/test_cluster_pool.go:342 +0x7c
+go.temporal.io/server/tests/testcore.(*clusterRouter).get(?, ?, {{0x0, 0x0}, 0x1, {0x1026042bc, 0x18}, 0x0, 0x4b2779871470, {0x4b277a96ebd8, ...}})
+	go.temporal.io/server/tests/testcore/test_cluster_pool.go:300 +0x144
+go.temporal.io/server/tests/testcore.NewEnv(0x4b2779330b48, {0x4b277addd328, 0x5, ?})
+	go.temporal.io/server/tests/testcore/test_env.go:302 +0x1cc
+go.temporal.io/server/tests.newNexusTestEnv(...)
+	go.temporal.io/server/tests/nexus_test_base.go:35
+go.temporal.io/server/tests.(*NexusOTELSuite).newTestEnv(?, {?, ?})
+	go.temporal.io/server/tests/nexus_otel_test.go:67 +0x27c
+go.temporal.io/server/tests.(*NexusOTELSuite).TestOperation(0x4b277932c0b0)
+	go.temporal.io/server/tests/nexus_otel_test.go:143 +0x6c
+reflect.Value.call({?, ?, ?}, {0x1025d78b9, 0x4}, {0x4b2779398f40, 0x1, ?})
+	reflect/value.go:586 +0xa88
+reflect.Value.Call({?, ?, ?}, {?, ?, ?})
+	reflect/value.go:369 +0x94
+go.temporal.io/server/common/testing/parallelsuite.run[...].func1()
+	go.temporal.io/server/common/testing/parallelsuite/suite.go:230 +0x140
+testing.tRunner(0x4b2779330b48, 0x4b27792eccf0)
+	testing/testing.go:2197 +0xc4
+created by testing.(*T).Run in goroutine 11
+	testing/testing.go:2265 +0x3b8
+CLUSTEREVENT lines before the timeout: 1

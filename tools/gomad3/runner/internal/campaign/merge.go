@@ -442,9 +442,8 @@ func OpenMergedCampaign(path string) (_ MergedCampaign, retErr error) {
 	if err := canonicaljson.DecodeCanonicalJSON(manifest, &campaign); err != nil {
 		return MergedCampaign{}, err
 	}
-	canonical, err := canonicaljson.CanonicalJSON(campaign)
-	if err != nil || !bytes.Equal(canonical, manifest) || campaign.Schema != MergedCampaignSchema || campaign.SchemaVersion != record.SchemaVersion || !validRecordSHA256(campaign.PlanSHA256) || campaign.Selection == "" || campaign.SelectionCount == 0 {
-		return MergedCampaign{}, errors.Join(errors.New("merged campaign record is invalid"), err)
+	if campaign.Schema != MergedCampaignSchema || campaign.SchemaVersion != record.SchemaVersion || !validRecordSHA256(campaign.PlanSHA256) || campaign.Selection == "" || campaign.SelectionCount == 0 {
+		return MergedCampaign{}, errors.New("merged campaign record is invalid")
 	}
 	runs, err := readMergedExecutionJournal(root, campaign.Journal)
 	if err != nil {

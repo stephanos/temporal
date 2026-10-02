@@ -1,0 +1,61 @@
+--- /private/tmp/claude-501/-Users-stephan-Workspace-temporal-gomad/109bf7ee-3bb8-496e-aaa3-18744f7a3514/scratchpad/fn108-7/GOMAD_MILESTONES.pre-edit.md	2026-10-01 15:12:58
++++ .plans/GOMAD_MILESTONES.md	2026-10-01 16:37:35
+@@ -12,7 +12,7 @@
+ Initial functional-test delivery is complete: milestones F0–F9 (removed on 2026-09-30; see revision `3e4303807`
+ of this file, which manifest findings citing `GOMAD_MILESTONES.md#f3-…` through `#f7-…` refer to),
+ the clock-tick spec `fn-103`, and the gap spec `fn-106` (see revision `3a7deb99d` for their
+-outcomes). The F10 items D13, D14, and D21–D25 are complete as well and were removed by 2026-10-01;
++outcomes). The F10 items D1, D2, D13, D14, and D21–D25 are complete as well and were removed by 2026-10-01;
+ their outcomes are in the done summaries of the fn-105 tasks under `.flow/tasks/`. What remains
+ is the F10 backlog, the downstream implementation and qualification
+ in fn-107, feature-preserving code-size reduction in fn-108, deep modules and tool
+@@ -30,7 +30,7 @@
+ | --- | --- | --- |
+ | F10 | `fn-105-gomad-follow-ups-deferred-scope` | required D7 CI job and D12 fix, the corrections proposed by the D16–D20 investigations, and deferred follow-ups ([decisions and scope](#f10-follow-ups-deferred-scope)) |
+ | Downstream cell | [fn-107](../.flow/specs/fn-107-gomad-finish-downstream-cell.md) | open; consumer implementation and exact replay on both platforms, including D8/D9/D10 |
+-| Code-size cleanup | [fn-108](../.flow/specs/fn-108-gomad-reduce-code-size-without-removing.md) | open; local cleanup, then D1/D2 consolidation and equivalence checks ([delivery order](#code-size-cleanup-fn-108)) |
++| Code-size cleanup | [fn-108](../.flow/specs/fn-108-gomad-reduce-code-size-without-removing.md) | implemented and verified on darwin/arm64: production Go down 286 code lines, D1/D2 delivered; R9 stays incomplete until the linux/amd64 gates run ([status](#code-size-cleanup-fn-108)) |
+ | Deep modules and tool interfaces | [fn-109](../.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) | open; all sixteen architecture findings, reusing D1/D2 and reviving D3/D4/D5 ([delivery order](#deep-modules-and-tool-interfaces-fn-109)) |
+ | Runtime patch minimization | [fn-110](../.flow/specs/fn-110-gomad-minimize-the-runtime-patch.md) | open; overlay extraction and canonical one-context-line regeneration, with both-platform qualification ([delivery order](#runtime-patch-minimization-fn-110)) |
+ | Vocabulary and documentation | [fn-111](../.flow/specs/fn-111-gomad-consolidate-vocabulary-and-update.md) | open; glossary merged into SPEC, guides reconciled with parsers and source, and acceptance evidence retained; spec completion review pending ([scope](#vocabulary-and-documentation-fn-111)) |
+@@ -191,7 +191,7 @@
+ triggers from the 2026-09-29 scope cut. A trigger must be recorded here before a
+ deferred item is implemented; deferred items may remain open or close as won't-do.
+ 
+-**Status.** Eighteen open items. D7 is required CI work: its darwin job is written and its
++**Status.** Sixteen open items. D7 is required CI work: its darwin job is written and its
+ commands pass locally on darwin/arm64, and it stays open until a GitHub Actions run passes.
+ D12 is a required fix that needs a linux/amd64 host; the D14 lock-profile fix is an unverified
+ candidate for it. D16-D20 are investigated; each row records a proposed correction that is not
+@@ -216,8 +216,6 @@
+ 
+ | Item | Scope and origin | Revival trigger |
+ | --- | --- | --- |
+-| D1 | Shared completed-execution assessment across seed, choice, and simulation (`fn-102` R2) | Revived by the 2026-09-30 cleanup request; fn-108 R6 owns delivery |
+-| D2 | Shared retention and artifact-input composition, with separate strategy transactions (`fn-102` R3) | Revived by the 2026-09-30 cleanup request; fn-108 R7 owns delivery |
+ | D3 | Private executor injection instead of public `Executor`/`ReplayExecutor` (`fn-102` R4); a Go API change | Revived by the 2026-09-30 architecture request; fn-109 R5 owns delivery |
+ | D4 | Architecture fitness checks for ownership, host effects, and public signatures, with negative fixtures (`fn-102` R5) | Revived by the 2026-09-30 architecture request; fn-109 R8 owns delivery |
+ | D5 | Architecture/platform/determinism documentation reconciliation (`fn-102` R6) | Revived by the 2026-09-30 architecture request; fn-109 R9 owns delivery |
+@@ -290,7 +288,21 @@
+ D12/D14 replay fixes retain their separate owners and acceptance requirements. Cleanup
+ cannot weaken their expectations or treat existing divergence as new qualification evidence.
+ 
+-**Status.** Open spec; tasks are broken down and implementation has not started.
++**Status.** Implemented on 2026-10-01 in the working tree; nothing is committed. Authored
++production Go across `tools/gomad3`, `tools/gomad3sim`, and `tools/gomad3integration` fell from
++58624 to 58338 code lines (-286) and by 10691 code bytes under one counting script, with the two
++new owner files `runner/completion.go` and `runner/retention.go` counted. The runtime overlay,
++generated files, the patch, schemas, and templates are unchanged; tests grew by 1929 code lines.
++Public `go doc` and CLI help captures equal the baseline, and compatibility packs, qualification
++manifests, and schemas are untouched. Six comment lines were removed: three copies of one comment
++whose code was merged, and the comment remains above the merged code. On darwin/arm64,
++`make -C tools/gomad3 validate` and `test`, the `gomad3sim` and integration tests, the smoke set
++(4/4), the core set (7/7), and the representative Temporal set (28/28 on seeds 11 and 17, 56
++exact replays) passed, and all 1140 baseline tests keep their result. R9 is incomplete: no
++linux/amd64 gate ran because no host was available. `make lint-code-fast` exits 2 as it did
++before fn-108 and cannot analyse the nested module. Minimization has no before-and-after
++projection and rests on its existing tests. Evidence and the linux commands are in
++[final.md](../.flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/final.md).
+ 
+ ## Deep modules and tool interfaces (fn-109)
+ 

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
@@ -88,10 +87,7 @@ func (campaign *guidanceCampaign) MergeRun(
 		choiceFeatures = &projected
 	}
 	candidate := guide.Candidate{
-		Artifact: artifact.ArtifactInput{
-			Manifest: manifest, TargetPath: campaign.prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
-			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
-		},
+		Artifact: executionArtifactInput(manifest, campaign.prepared, completion.result, mountArtifact, worldBundle),
 		Coverage: coverage, Choices: choiceFeatures,
 	}
 	return campaign.corpus.Admit(ctx, candidate, func(ctx context.Context, path string) (guide.ReplayResult, error) {

@@ -1,0 +1,11 @@
+$ gomadtool patch-validate --help
+exit status: 2
+--- stdout
+--- stderr
+Usage of gomadtool patch-validate:
+  -overlay string
+    	overlay root override
+  -patch string
+    	versioned patch override
+  -root string
+    	Gomad v3 module root

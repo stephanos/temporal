@@ -1,0 +1,7 @@
+$ gomadtool script-validate --help
+exit status: 2
+--- stdout
+--- stderr
+Usage of gomadtool script-validate:
+  -root string
+    	Gomad v3 module root

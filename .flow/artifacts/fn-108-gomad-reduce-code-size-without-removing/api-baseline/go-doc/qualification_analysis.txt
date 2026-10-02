@@ -1,0 +1,103 @@
+package analysis // import "go.temporal.io/server/tools/gomad3/qualification/analysis"
+
+
+CONSTANTS
+
+const (
+	AnalysisSchema = "gomad3.capability-analysis/v1"
+)
+const MaximumAnalysisReportBytes = 16 << 20
+
+FUNCTIONS
+
+func FormatText(report Report) string
+
+TYPES
+
+type Blocker struct {
+	target.CapabilityFinding
+	DependencyPath []target.CapabilityPackageReference `json:"dependency_path"`
+}
+
+type Classification string
+
+const (
+	ClassificationSupported   Classification = "supported"
+	ClassificationUnsupported Classification = "unsupported"
+)
+type Closure struct {
+	SHA256       record.SHA256                       `json:"sha256"`
+	PackageCount record.Uint64String                 `json:"package_count"`
+	Roots        []target.CapabilityPackageReference `json:"roots"`
+}
+
+type Input struct {
+	Spec      target.Spec
+	Review    target.CapabilityReview
+	Toolchain target.ToolchainIdentity
+	IOProfile deterministicio.Spec
+	Adapters  []deterministicio.Adapter
+}
+
+type PreparedCapabilityReview struct {
+	Spec          target.Spec
+	Review        target.CapabilityReview
+	BuildAdapters []deterministicio.BuildAdapter
+	Adapters      []deterministicio.Adapter
+	// Has unexported fields.
+}
+
+func PrepareCapabilityReview(ctx context.Context, spec target.Spec) (_ PreparedCapabilityReview, retErr error)
+
+func (prepared *PreparedCapabilityReview) Close() error
+
+type Report struct {
+	Schema             string                             `json:"schema"`
+	Classification     Classification                     `json:"classification"`
+	Target             Target                             `json:"target"`
+	Toolchain          Toolchain                          `json:"toolchain"`
+	Closure            Closure                            `json:"closure"`
+	IOProfile          deterministicio.Contract           `json:"io_profile"`
+	Packs              []target.CompatibilityPackEvidence `json:"packs"`
+	Requirements       []deterministicio.Requirement      `json:"requirements"`
+	Blockers           []Blocker                          `json:"blockers"`
+	GuardedBlockers    []Blocker                          `json:"guarded_blockers"`
+	EliminatedBlockers []Blocker                          `json:"eliminated_blockers"`
+}
+
+func Analyze(ctx context.Context, spec Spec) (Report, error)
+
+func Build(input Input) (Report, error)
+
+func Decode(data []byte) (Report, error)
+
+func (report Report) ForArguments(arguments []string) Report
+    ForArguments rebinds the report to another argument list for the same
+    target: a go target's arguments reach its process, never its build, so the
+    capability evidence does not depend on them.
+
+type Spec struct {
+	Target    target.Spec
+	Toolchain target.ToolchainIdentity
+	IOProfile deterministicio.Spec
+	Adapters  []deterministicio.Adapter
+}
+
+type Target struct {
+	Kind               target.Kind                      `json:"kind"`
+	Source             string                           `json:"source"`
+	Arguments          []string                         `json:"arguments"`
+	BuildTags          []string                         `json:"build_tags"`
+	CapabilityMode     target.CapabilityMode            `json:"capability_mode,omitempty"`
+	CapabilityManifest *record.TargetCapabilityManifest `json:"capability_manifest,omitempty"`
+}
+
+type Toolchain struct {
+	GoVersion               string        `json:"go_version"`
+	BuildKey                string        `json:"build_key"`
+	TargetGOOS              string        `json:"target_goos"`
+	TargetGOARCH            string        `json:"target_goarch"`
+	BoundaryManifestVersion string        `json:"boundary_manifest_version"`
+	BoundaryManifestSHA256  record.SHA256 `json:"boundary_manifest_sha256"`
+}
+

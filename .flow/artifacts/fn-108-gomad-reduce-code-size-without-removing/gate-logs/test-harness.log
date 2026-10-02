@@ -1,0 +1,5 @@
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go test -tags test_dep \
+		./internal/hostexec ./internal/gomadtool/conformance ./cmd/gomadtool
+ok  	go.temporal.io/server/tools/gomad3/internal/hostexec	0.635s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	0.569s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	0.798s

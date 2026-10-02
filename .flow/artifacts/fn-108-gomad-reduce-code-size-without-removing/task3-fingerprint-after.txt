@@ -1,0 +1,51 @@
+platform darwin/arm64
+profile identity deterministicio.Contract{ImplementationSHA256:"sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0", InventorySHA256:"sha256:0d34edfc0ab13c693b78d514ca1a72a9adc196fe61e2142dba108c0ff47358f7", Name:"gomad3-deterministic/v1"}
+registered identity version.AdapterIdentity{Module:"modernc.org/memory", Version:"v1.11.0", Sum:"h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI="}
+registered inventory deterministicio.inventoryEntry{Boundary:"modernc.org/memory", Disposition:"target-adapter", Operations:[]string{"anonymous-memory"}}
+prepared replacement <ROOT>/modernc-memory
+prepared evidence deterministicio.BuildAdapter{Module:"modernc.org/memory", Version:"v1.11.0", Sum:"h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=", BuildModFile:"", Source:"<MODCACHE>/modernc.org/memory@v1.11.0/mmap_unix.go", ReplacementRoot:"<ROOT>/modernc-memory", Replacement:"<ROOT>/modernc-memory/mmap_unix.go", PreparedPackage:"modernc.org/memory", SourceSHA256:"sha256:d487e0d7f447b25397874a79e53c0e42b8568ed0503b562c959c83e8ef47f0a7", ReplacementSHA256:"sha256:c8a86dca80f526b39f0a855f59552d1085a352fb7fef47b86da827b854ab88ad", OriginalSourceInventorySHA256:"sha256:f6d838c731cb22881e472d086c21895e431123e0a08fd190b41ff34be59f0264", ReplacementSourceInventorySHA256:"sha256:b947d0e7fbcc3f18b995e5710e5d26d8073bf921ba1f907ef2b3972f4257a535", PreparedSourceSetSHA256:"sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849"}
+prepared full deterministicio.adapterPreparation{replacement:"<ROOT>/modernc-memory", evidence:deterministicio.BuildAdapter{Module:"modernc.org/memory", Version:"v1.11.0", Sum:"h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=", BuildModFile:"", Source:"<MODCACHE>/modernc.org/memory@v1.11.0/mmap_unix.go", ReplacementRoot:"<ROOT>/modernc-memory", Replacement:"<ROOT>/modernc-memory/mmap_unix.go", PreparedPackage:"modernc.org/memory", SourceSHA256:"sha256:d487e0d7f447b25397874a79e53c0e42b8568ed0503b562c959c83e8ef47f0a7", ReplacementSHA256:"sha256:c8a86dca80f526b39f0a855f59552d1085a352fb7fef47b86da827b854ab88ad", OriginalSourceInventorySHA256:"sha256:f6d838c731cb22881e472d086c21895e431123e0a08fd190b41ff34be59f0264", ReplacementSourceInventorySHA256:"sha256:b947d0e7fbcc3f18b995e5710e5d26d8073bf921ba1f907ef2b3972f4257a535", PreparedSourceSetSHA256:"sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849"}}
+original inventory sha256:f6d838c731cb22881e472d086c21895e431123e0a08fd190b41ff34be59f0264
+replacement inventory sha256:b947d0e7fbcc3f18b995e5710e5d26d8073bf921ba1f907ef2b3972f4257a535
+replacement tree entries 26
+replacement tree sha256:76434754174e9341920a5d2caded6870cee10e9bdba5e7f89233b4d808876d97
+  dir  drwx------ .
+  dir  drwx------ internal
+  dir  drwx------ internal/autogen
+  file -r-------- 0 sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 internal/autogen/.keep
+  file -r-------- 11369 sha256:17bb2fd3442aeb1f4a17554ac930ff9d6060cca69dde043dd621327ac76e0880 logo.png
+  file -r-------- 1143 sha256:4416d536852f09bc19b75103768a4c2a5b382cde752dbabd2d1c4f2c2e0cd453 mmap_windows.go
+  file -r-------- 14069 sha256:3f5cee8943da57ffd3db70129f87abdf45c86e5299b81d09504ec2838dc31909 memory.go
+  file -r-------- 1479 sha256:2d36597f7117c38b006835ae7f537487207d8ec407aa9d9980794b2030cbc067 LICENSE-GO
+  file -r-------- 1484 sha256:59895e669f48f168b6b858358f6005779cdf40a265f7828813061b56af67b496 LICENSE
+  file -r-------- 1518 sha256:c2eba69f20d05414538c3a5df7694dde392e065ff70882e1625e90f5d6659fff LICENSE-MMAP-GO
+  file -r-------- 16487 sha256:f86d24e5ff7e9f087aae04a4ab53e3fbcb40a063f211bf97c8a013a465437232 all_test.go
+  file -r-------- 223 sha256:e9890d3b9794d40a3703aa9809edc4e131cbb55a2831b602314076e91c5ace97 go.mod
+  file -r-------- 2237 sha256:c8a86dca80f526b39f0a855f59552d1085a352fb7fef47b86da827b854ab88ad mmap_unix.go
+  file -r-------- 278 sha256:bfee5c7e88fa5971620a69c2f13599be575ceee985382ac69ec696fac38ca15e trace_enabled.go
+  file -r-------- 281 sha256:ecd151b29853826767c9fd0e2c9b48b4acd08bd211ce558016399afae693b950 trace_disabled.go
+  file -r-------- 287 sha256:f5e34ab5707ffdb35ee8e932acb3d002dbccc0cdfc102dbded247356529e6b45 counters.go
+  file -r-------- 290 sha256:070021a593fc3c28988ad04bee02d83547ff56a9665e7703a80366392e30c18c nocounters.go
+  file -r-------- 328 sha256:0bb55fb1137b237df074eaf9a8ec936e1279c81a18a64887fcc145025ade5966 README.md
+  file -r-------- 3524 sha256:f090b00331e35972b6eb63ae42a9c46b3faf0be8eda9478abb6aafbd2cab5e7b Makefile
+  file -r-------- 379 sha256:509a2dd5a15f3afdc0535f40069f52a5f1efa8ebaf8d2dc94e62e88e1d02c676 memory32.go
+  file -r-------- 507 sha256:1b91a327f3b95d6fc3f80f090175a9c5bc033083a2c675b7a56f009af8fa4813 memory64.go
+  file -r-------- 529 sha256:df1f424436f279309de85b82e494d548297a2570e9b5794630d7e72c9eb50b6a AUTHORS
+  file -r-------- 532 sha256:1066923ff5a4ddebd362c37f64bf4f2622a41696a298623ab1f82406165477e0 CONTRIBUTORS
+  file -r-------- 551 sha256:7d1d50cf2667026ca77bae911e6ae55f9c152fd23f033fde81f53280ff6d2705 go.sum
+  file -r-------- 62 sha256:5ae5bee3072a841376451b48d8cfcec7188e10543926d5870828d36c8a750dc5 LICENSE-LOGO
+  file -r-------- 76 sha256:453f03431ef4410eca64cbf5091ef19be4f5e0b9bf7c5512138dac4f4d122db5 builder.json
+profile adapters []deterministicio.BuildAdapter{deterministicio.BuildAdapter{Module:"modernc.org/memory", Version:"v1.11.0", Sum:"h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=", BuildModFile:"<PREP>/.io-adapter/gomad.mod", Source:"<MODCACHE>/modernc.org/memory@v1.11.0/mmap_unix.go", ReplacementRoot:"<TOOLCHAIN>/adapters/modernc-memory@v1.11.0-b947d0e7fbcc3f18", Replacement:"<TOOLCHAIN>/adapters/modernc-memory@v1.11.0-b947d0e7fbcc3f18/mmap_unix.go", PreparedPackage:"modernc.org/memory", SourceSHA256:"sha256:d487e0d7f447b25397874a79e53c0e42b8568ed0503b562c959c83e8ef47f0a7", ReplacementSHA256:"sha256:c8a86dca80f526b39f0a855f59552d1085a352fb7fef47b86da827b854ab88ad", OriginalSourceInventorySHA256:"sha256:f6d838c731cb22881e472d086c21895e431123e0a08fd190b41ff34be59f0264", ReplacementSourceInventorySHA256:"sha256:b947d0e7fbcc3f18b995e5710e5d26d8073bf921ba1f907ef2b3972f4257a535", PreparedSourceSetSHA256:"sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849"}}
+profile prepared source-set review: accepted
+profile build modfile (scrubbed) sha256:355a1a45da173b6ef17cc068a1560edb555609fc9462465f087d82223728b125
+module modernc.org/memory/adaptertest
+
+go 1.26.4
+
+require (
+	golang.org/x/sys v0.47.0 // indirect
+	modernc.org/memory v1.11.0
+)
+
+replace modernc.org/memory v1.11.0 => <TOOLCHAIN>/adapters/modernc-memory@v1.11.0-b947d0e7fbcc3f18
+

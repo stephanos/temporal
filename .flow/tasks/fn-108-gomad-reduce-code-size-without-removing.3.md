@@ -62,9 +62,25 @@ make -C . validate
 
 
 ## Done summary
-TBD
+`prepareModerncMemory` is now one call to `prepareRewrittenModule`; the private preparation and anchored-rewrite loop and `rewriteModerncMemory` are gone, and the three anchor/replacement pairs live verbatim in `memoryRewrites`. Nothing is staged or committed; the change is the working-tree diff of `tools/gomad3/deterministicio/memory_adapter.go` and `memory_adapter_test.go`, recorded as `task3.diff` under `.flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/`, with the full record in `task3-evidence.md`.
 
+Byte equality: a probe compiled in with `go test -overlay` produced the same fingerprint before and after the rewrite (sha256 `ab05ceb1...d71cdd`): replacement `mmap_unix.go` bytes (`sha256:c8a86dca...`, the pin), the 26-entry replacement tree, both inventories, the `BuildAdapter` evidence, the profile-path evidence and build modfile, and the profile identity (implementation `sha256:9cd0cff9...`). Every constant, version, sum and both platform source-set pins are textually identical to `HEAD`. No pin was edited and no compatibility pack needs rebinding.
+
+Diagnostics change only through the shared owner: eleven strings go from `modernc memory ...` to `modernc.org/memory ...` (three gain `for mmap_unix.go`, the anchor one also the quoted anchor), and the owner adds a regular-file check on the source. The table is in `task3-evidence.md`. Check order, `%w` wrapping and failure classification are unchanged; fourteen recorded failure inputs fail at the same check before and after. No assertion, doc or script depends on the old wording.
+
+Tests: the two retargeted tests call `rewriteAdapterSource` with `memoryRewrites[0]` and keep their assertions. `TestPrepareModerncMemoryRejectsChangedIdentity` also covers a changed version alone and a changed sum alone (R4). `TestPrepareModerncMemoryRecordsExactPrivateReplacement` also pins the four evidence digests. New: `TestModerncMemoryRewriteRejectsAnchorDrift` (missing anchor, duplicate anchor, replacement digest), `TestPrepareModerncMemoryRejectsModuleDrift` (source drift, non-regular source) and `TestModerncMemoryRejectsChangedReplacementInventory`. All rejection tests fail against an overlay copy of the owner with its checks disabled.
+
+Size (rule v2): `memory_adapter.go` 110 -> 52 physical lines, 104 -> 47 code lines, -2222 code bytes; `memory_adapter_test.go` +96 code lines. `size-compare.sh` exits 0. Public `go doc` and CLI capture diff against `api-baseline/`: empty.
+
+Gates on darwin/arm64, all exit 0: gofmt, vet, `go test ./deterministicio/...`, `make -C tools/gomad3 validate validate-compatibility`, `make gomad3`, `gomad doctor`, `make -C tools/gomad3 test-host` (45 packages ok), `compatibility-pack-qualification` (9 requests), `core-qualification` (7/7 supported, report names `modernc.org/memory`). linux/amd64: not run (no host), including the linux/amd64 prepared source-set pin; `GOOS=linux GOARCH=amd64 go vet` is a compile check only.
+
+baseline: green (`go test -tags test_dep ./deterministicio` before any edit).
+
+stage: impl-review - ran (raw codex bridge on working-tree diff; commits forbidden) (model: gpt-5.6-sol) [round 1 SHIP with 2 NITs on the evidence note, both applied unreviewed; record in task3-review.md]
+stage: plan-sync - skipped(config: planSync.enabled != true)
+
+GATE_SKIPPED lines: none.
 ## Evidence
 - Commits:
-- Tests:
+- Tests: baseline: green (darwin/arm64: .toolchain/bin/go test -tags test_dep ./deterministicio exit 0 before any edit), fingerprint before == after: sha256 ab05ceb1a6ee3b30d959e6da54394b766f85faf3a459ed5d8844ea925cd71cdd (replacement bytes, 26-entry tree, inventories, BuildAdapter evidence, profile identity), darwin/arm64: gofmt -l deterministicio no output; .toolchain/bin/go vet -tags test_dep ./deterministicio exit 0, darwin/arm64 host, compile check only: GOOS=linux GOARCH=amd64 .toolchain/bin/go vet -tags test_dep ./deterministicio exit 0, darwin/arm64: .toolchain/bin/go test -count=1 -tags test_dep ./deterministicio/... exit 0 (3 packages ok), darwin/arm64: make -C tools/gomad3 validate validate-compatibility exit 0, darwin/arm64: make gomad3 exit 0; tools/gomad3/.bin/gomad doctor exit 0 (adapter:modernc.org/memory ok), darwin/arm64: make -C tools/gomad3 test-host exit 0 (45 packages ok), darwin/arm64: make -C tools/gomad3 compatibility-pack-qualification exit 0 (9 requests qualified), darwin/arm64: make -C tools/gomad3 core-qualification exit 0 (expectations-met=true supported=7 failed=0 completed=7/7), mutation check: rejection tests fail against an overlay copy of adapter_rewrite.go with its checks disabled, size-compare.sh exit 0 (this task: memory_adapter.go production -57 code lines, -2222 code bytes), api-capture.sh diff -r against api-baseline: empty, linux/amd64: all gates not run (no host), including the linux/amd64 prepared source-set pin
 - PRs:

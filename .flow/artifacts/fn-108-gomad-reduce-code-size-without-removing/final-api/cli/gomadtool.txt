@@ -1,0 +1,5 @@
+$ gomadtool
+exit status: 2
+--- stdout
+--- stderr
+usage: gomadtool boundary-generate|build-key|checked-run|compatibility-pack|patch-materialize|patch-regenerate|patch-validate|protocol-generate|qualification-manifest-generate|script-validate|test|toolchain-build|upgrade-dossier|version-generate [flags]

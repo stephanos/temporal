@@ -1,0 +1,108 @@
+package toolchain // import "go.temporal.io/server/tools/gomad3/toolchain"
+
+
+CONSTANTS
+
+const InstallationManifestName = "gomad3-install.json"
+
+FUNCTIONS
+
+func DeriveBuildKey(input BuildKeySpec) (string, error)
+func EnsureSource(ctx context.Context, config SourceSpec) (string, error)
+func ExtractSource(ctx context.Context, archivePath, destination string) error
+func FileSHA256(path string) (string, error)
+func MaterializePatch(ctx context.Context, config PatchSpec) error
+func RegeneratePatch(ctx context.Context, config PatchSpec) error
+func ValidatePatch(config PatchSpec) error
+
+TYPES
+
+type BuildKeySourceError struct {
+	// Has unexported fields.
+}
+
+func (err *BuildKeySourceError) Error() string
+
+func (err *BuildKeySourceError) Unwrap() error
+
+type BuildKeySpec struct {
+	GoVersion        string
+	ArchiveSHA256    string
+	PatchPath        string
+	OverlayPath      string
+	HostOS           string
+	HostArch         string
+	BootstrapVersion string
+	RecipeVersion    string
+	BuildPath        string
+	BashPath         string
+	BashVersion      string
+}
+
+type BuildResult struct {
+	BuildKey string
+	BuildDir string
+	HostOS   string
+	HostArch string
+	Reused   bool
+	Waited   bool
+}
+
+func Build(ctx context.Context, config BuildSpec) (BuildResult, error)
+
+type BuildSpec struct {
+	Root             string
+	ToolchainRoot    string
+	Patch            string
+	Overlay          string
+	BootstrapGo      string
+	BuildBash        string
+	BuildBashVersion string
+	BuildPath        string
+	BuildTimeout     time.Duration
+	Testing          bool
+	FailurePhase     string
+}
+
+type InjectedFailure struct {
+	Phase string
+}
+
+func (failure *InjectedFailure) Error() string
+
+type Installation struct {
+	ToolchainRoot     string
+	Source            string
+	ManifestPath      string
+	RepairInstruction string
+}
+
+func ResolveInstallation(config InstallationSpec) (Installation, error)
+
+type InstallationSpec struct {
+	Executable               string
+	ExplicitToolchainRoot    string
+	EnvironmentToolchainRoot string
+}
+
+type PatchSpec struct {
+	Root          string
+	Patch         string
+	Overlay       string
+	SourceRoot    string
+	CandidateRoot string
+	Archive       string
+	Output        string
+	Gofmt         string
+	ToolchainRoot string
+}
+
+type SourceSpec struct {
+	CacheDir string
+	Name     string
+	URL      string
+	SHA256   string
+	Retries  int
+	Client   *http.Client
+}
+

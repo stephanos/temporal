@@ -1,0 +1,19 @@
+$ gomadtool patch-regenerate --help
+exit status: 2
+--- stdout
+--- stderr
+Usage of gomadtool patch-regenerate:
+  -archive string
+    	verified Go source archive override
+  -bootstrap-go string
+    	bootstrap Go executable
+  -candidate-root string
+    	modified Go source root
+  -gofmt string
+    	bootstrap gofmt executable
+  -output string
+    	regenerated patch output
+  -root string
+    	Gomad v3 module root
+  -toolchain-root string
+    	Gomad v3 toolchain state root

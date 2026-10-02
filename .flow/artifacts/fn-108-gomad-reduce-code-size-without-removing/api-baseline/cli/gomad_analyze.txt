@@ -1,0 +1,17 @@
+$ gomad analyze --help
+exit status: 2
+--- stdout
+--- stderr
+Usage of gomad analyze:
+  -build-tag value
+    	validated Go build tag
+  -capability-mode string
+    	closure, linked, or guarded capability assessment (default "closure")
+  -format string
+    	text or json (default "text")
+  -timeout duration
+    	analysis wall-time bound
+  -toolchain-root string
+    	absolute pinned toolchain root
+  -working-dir string
+    	absolute target module root (default: the current directory)

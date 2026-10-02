@@ -1,0 +1,21 @@
+baseline-deterministicio (before any edit; started after 2026-10-01T20:00:46Z) rc=0 cmd=env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep ./deterministicio
+focused-deterministicio start=2026-10-01T20:06:16Z
+focused-deterministicio rc=0 end=2026-10-01T20:07:02Z cmd=env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep ./deterministicio/...
+validate start=2026-10-01T20:07:02Z
+validate rc=0 end=2026-10-01T20:07:08Z cmd=make -C tools/gomad3 validate validate-compatibility
+make-gomad3 start=2026-10-01T20:07:18Z
+make-gomad3 rc=0 end=2026-10-01T20:07:24Z cmd=make gomad3
+doctor start=2026-10-01T20:07:24Z
+doctor rc=0 end=2026-10-01T20:07:24Z cmd=tools/gomad3/.bin/gomad doctor
+test-host start=2026-10-01T20:07:24Z
+test-host rc=0 end=2026-10-01T20:09:54Z cmd=make -C tools/gomad3 test-host
+compatibility-pack-qualification start=2026-10-01T20:10:01Z
+compatibility-pack-qualification rc=0 end=2026-10-01T20:12:13Z cmd=make -C tools/gomad3 compatibility-pack-qualification
+core-qualification start=2026-10-01T20:12:19Z
+core-qualification rc=0 end=2026-10-01T20:19:22Z cmd=make -C tools/gomad3 core-qualification
+gofmt start=2026-10-01T20:28:35Z
+gofmt rc=0 end=2026-10-01T20:28:35Z cmd=gofmt -l deterministicio
+vet-host start=2026-10-01T20:28:35Z
+vet-host rc=0 end=2026-10-01T20:28:36Z cmd=env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go vet -tags test_dep ./deterministicio
+vet-linux-amd64-compile-only start=2026-10-01T20:28:36Z
+vet-linux-amd64-compile-only rc=0 end=2026-10-01T20:28:36Z cmd=env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off GOOS=linux GOARCH=amd64 .toolchain/bin/go vet -tags test_dep ./deterministicio

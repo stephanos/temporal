@@ -1,0 +1,695 @@
+{
+  "schema": "fn105-d17-investigation-evidence/v1",
+  "task": "fn-105-gomad-follow-ups-deferred-scope.17",
+  "subject": "TestNexusOTELSuite/TestOperation",
+  "assessment_date": "2026-10-01",
+  "status": "investigation only; no fix applied; the skip in tools/gomad3integration/qualification/tests.generator.json is unchanged",
+  "platform": {
+    "goos": "darwin",
+    "goarch": "arm64",
+    "host": "macOS 26.6.2 (25G83), 8 cores, 16 GiB"
+  },
+  "linux_amd64": "not run; unavailable on this host",
+  "host_load": "another project's Go tests ran on the host throughout; 1-minute load average between 4 and 21 at the end of the recorded runs",
+  "source": {
+    "first_session": "HEAD 7ef3800a2c7d989f7e77ee54f4f6f4cbcaf82c1b plus the shared uncommitted working tree, runner sha256:4dce3aed3599865194224c2b4219d0f13458585c8d849da10ffbc21a79db5222 (runs A1, B1, B2, B2b, C1, C2, E1, F1, F2, G2, G2b, native, first env probe)",
+    "second_session": "HEAD 6782b55f49a0317b230e827ea2a63a37d116d502 (a commit of that working tree), clean, runner sha256:0e00a1bef3aaeb718cf207e614defcc135b7d5de95b4361f9d845f709ee42a2f (runs H0, H1, H2, H3, H4, env probes P1-P3)",
+    "continuity": "go1.27.1.patch, runtime/gomad.go, tests.generator.json, tests.json, and go.mod have the SHA-256 the D14 and D18 evidence recorded for the first working tree; run H0 on the second checkout reproduced the stdout and stderr digests of B2 on both seeds",
+    "edits": "no tracked product, test, runtime, or manifest file was edited; the two-slot variant ran in a throwaway copy of the source tree (fn105-d17-variant-pool2.diff.txt)"
+  },
+  "file_sha256_at_6782b55f49": {
+    "tests/nexus_otel_test.go": "ece9451a2c3bf3584e06f082326a980265380c728ff0503a9f6f98ae6e07cd9f",
+    "tests/testcore/test_cluster_pool.go": "feca6003a84bf9de05f4a81b913b931990c6b2c03e835aae7a75abb1073fd6d5",
+    "tools/gomad3/toolchain/runtime/go1.27.1.patch": "950063a87d63cb01dada2e6ef232fdeb4acc52f71a008e2158885666669f80bc",
+    "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go": "307f40ea7c550d016527fc118bd09b1b35808feae12586c33afde5b56792ddd1",
+    "tools/gomad3/runner/runner.go": "356749fba51e9e012289c849a181499a950a87a55790c67368fe22083d511882",
+    "tools/gomad3/runner/replay_operation.go": "9e6ce1586cc2eb7e71fb5a0ce47abb318faa41bc39b9ad95fa0f080c958b3056",
+    "common/membership/grpc_resolver.go": "28a4bb40444ada36dbdeffba625c94c01ce600b7fccec55de356687a7a63388e",
+    "tools/gomad3integration/qualification/tests.generator.json": "e7c74ae3b3c537bb1663ec639ac1606236e9be5ecbcb0091b2acab27f82ec4b9",
+    "tools/gomad3integration/qualification/tests.json": "8b4237b23859c00257be4f6e7522c7fac594a99b09146b27bf8ddfd8f5357146",
+    "go.mod": "cda5b0aab2e32ef4aca50bd0d8ccf8ae67416db94fd4f28ceb9ac1588c48d0a4"
+  },
+  "toolchain": {
+    "go_version": "go1.27.1",
+    "build_key": "8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc",
+    "boundary": "go1.27.1-v1",
+    "includes_d14_fix": true
+  },
+  "native_go": "go1.27.0 darwin/arm64 (/opt/homebrew/bin/go)",
+  "commands": {
+    "gomad_explore": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad explore --seeds <seeds> --parallel 2 --on-failure=all --clock-tick=<strict|forward> --build-tag=disable_grpc_modules --build-tag=gomad --build-tag=test_dep --capability-mode=closure --io-ro-mount ./schema=/go.temporal.io/server/schema --keep-successes=all --success-limit=64 --success-bytes=8GiB --execution-timeout=2m --overall-timeout=15m [--env=TEMPORAL_TEST_DEDICATED_CLUSTERS=2] [--choices --choice-bytes=64MiB] --artifacts <scratch> go-test ./tests -- -test.run=<pattern> -test.parallel=8 [-test.v] [-test.timeout=2m] (wrapper: fn105-d17-run-ex.sh; the first-session runs used an earlier wrapper with the same flags that is not retained)",
+    "gomad_qualify_set": "env -u GOMADSEED -u GOMAD3_CHILD_SEED tools/gomad3/.bin/gomad qualify-set --manifest=<scratch manifest> --working-dir=<source dir> --artifacts=<scratch> --output=<scratch report> (wrapper: fn105-d17-run-qs.sh; manifests from fn105-d17-gen-manifest.py)",
+    "gomad_replay": "tools/gomad3/.bin/gomad replay --observed <dir> <artifact>",
+    "env_probe": "tools/gomad3/.bin/gomad explore --seeds 1 [--env=NAME=VALUE ...] --artifacts <scratch> go-run . --   (wrapper: fn105-d17-run-probe.sh, program fn105-d17-envprobe-main.go.txt)",
+    "native": "see fn105-d17-native-results.txt",
+    "patterns": {
+      "suite": "^TestNexusOTELSuite$",
+      "leaf": "^TestNexusOTELSuite$/^TestOperation$"
+    }
+  },
+  "env_probe": {
+    "result": "with zero, one, or two supplied entries the target's os.Environ() is [\"TZ=UTC\"] and os.Getenv of a supplied name is empty at init and in main, while the artifact manifest records every supplied entry",
+    "runs": "one probe with four entry sets on runner 4dce3aed (observed, output not retained) and three on runner 0e00a1be (fn105-d17-envprobe-results.txt)"
+  },
+  "gomad_explore_runs": [
+    {
+      "name": "B1 leaf, env=2, forward, no test timeout",
+      "seeds": "11,17",
+      "exit": 1,
+      "result": "watchdog_timeout on both seeds at the 2m wall limit; seed 11 log reaches virtual 13:27:30",
+      "file": "fn105-d17-hang-timeline-seed11.txt"
+    },
+    {
+      "name": "B2, B2b, H0 leaf, env=2, forward, -test.timeout=2m",
+      "seeds": "11,17",
+      "exit": 1,
+      "result": "target_failure in 16 to 31 s wall; the test goroutine waits at test_cluster_pool.go:109 called from nexus_otel_test.go:143; one CLUSTEREVENT; stdout and stderr byte-identical across the three runs per seed",
+      "file": "fn105-d17-self-wait-goroutine.txt"
+    },
+    {
+      "name": "G2, G2b leaf, no env, forward, -test.timeout=2m",
+      "seeds": "11,17",
+      "exit": 1,
+      "result": "same wait; byte-identical across the two runs per seed; against env=2, seed 17 differs only in hex addresses, seed 11 also in which goroutines are runnable at the timeout instant",
+      "file": "fn105-d17-self-wait-goroutine.txt"
+    },
+    {
+      "name": "H4 suite, env=2, forward, -test.timeout=2m",
+      "seeds": "11,17",
+      "exit": 1,
+      "result": "seed 11: three tests wait at reserveSlot after TestCallback finished; seed 17: all four",
+      "file": "fn105-d17-suite-self-wait.txt"
+    },
+    {
+      "name": "C1 suite, env=2, forward, traced, then gomad replay twice; C2 the same untraced",
+      "seeds": "11",
+      "exit": 1,
+      "result": "watchdog_timeout; both replays report reproduced=false divergence=stderr.full_sha256 choice-replay=none and themselves run to the wall limit; the one differing byte is a %p address; the untraced run's stderr equals the replays'",
+      "file": "fn105-d17-seed11-replay-stderr.txt"
+    },
+    {
+      "name": "E1 leaf, pool forced to two slots (throwaway copy), forward",
+      "seeds": "11,17",
+      "exit": 0,
+      "result": "PASS on both seeds at 5.10 s virtual, two CLUSTEREVENT lines each"
+    },
+    {
+      "name": "F2 suite, pool forced to two slots (throwaway copy), forward, verbose",
+      "seeds": "1-17",
+      "exit": 0,
+      "result": "17 of 17 seeds pass, all four subtests each; five cluster creations on seeds 11 and 17",
+      "file": "fn105-d17-pool2-sweep-seeds1-17.txt"
+    }
+  ],
+  "gomad_qualify_set_runs": {
+    "env2-unskipped-forward-traced": {
+      "description": "working tree, --env TEMPORAL_TEST_DEDICATED_CLUSTERS=2, skip lifted, forward, traced, repeat 2",
+      "manifest": "fn105-d17-manifest-two-forward-traced-unskipped.json",
+      "manifest_file_sha256": "4cfee9498ddd830ed9dcec98cad36b4cb933c99707690d83b03cfe1166a19990",
+      "manifest_sha256_in_report": "sha256:e645a26265e42b7b867e09eaf002d5df2f7fbae7d88589e73cf50c2d9c45397d",
+      "report_file_sha256": "80d5d65b606cc8a2fe8b13823ea572784fcd5a444180bb18d9114d376d7ddd44",
+      "result": {
+        "expectations_met": false,
+        "supported": 0,
+        "failed": 1,
+        "infrastructure_errors": 0,
+        "timed_out": 0,
+        "replayed": 2,
+        "replay_diverged": 1
+      },
+      "classification": "nondeterministic",
+      "toolchain_build_key": "8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc",
+      "seeds": {
+        "11": {
+          "qualified": false,
+          "deterministic": false,
+          "target_success": false,
+          "first_divergence": "virtual_time_elapsed_nanos",
+          "outcome": {
+            "deadline": "execution_timeout",
+            "domain": "watchdog",
+            "reason": "watchdog_timeout",
+            "termination": "timeout"
+          },
+          "runner_build": "sha256:4dce3aed3599865194224c2b4219d0f13458585c8d849da10ffbc21a79db5222",
+          "virtual_time_elapsed_nanos": "37061000994501",
+          "stderr_sha256": "sha256:7222dc79b24b044572f2bb4e6b03bd01b46d918abd13f468a541ed5bd5230a78",
+          "stderr_bytes": "145962",
+          "executions": [
+            {
+              "evidence_digest": "sha256:73417a2a358bbe86ebd5de783d6292d493632c4739def71fdd8402b97e7f9b0f",
+              "wall_seconds": 117.9,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "none",
+                "diagnostic": true,
+                "divergence": "stderr.full_sha256",
+                "match": false
+              }
+            },
+            {
+              "evidence_digest": "sha256:e3bd252b0c700675416bcc20d3c5cde966ff85bceb1f872958b250f1019a3a08",
+              "wall_seconds": 118.0,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "none",
+                "diagnostic": true,
+                "divergence": "stderr.full_sha256",
+                "match": false
+              }
+            }
+          ]
+        },
+        "17": {
+          "qualified": false,
+          "deterministic": false,
+          "target_success": false,
+          "first_divergence": "virtual_time_elapsed_nanos",
+          "outcome": {
+            "deadline": "execution_timeout",
+            "domain": "watchdog",
+            "reason": "watchdog_timeout",
+            "termination": "timeout"
+          },
+          "runner_build": "sha256:4dce3aed3599865194224c2b4219d0f13458585c8d849da10ffbc21a79db5222",
+          "virtual_time_elapsed_nanos": "14044400000000",
+          "stderr_sha256": "sha256:ffda5990715599f9fb8127e44b8aab4895a043a71b769c70db02d0192f57a9a3",
+          "stderr_bytes": "51670",
+          "executions": [
+            {
+              "evidence_digest": "sha256:ad571a00baa009d754684647461c367610cd365277580a4ef81d7a2ee8e227cf",
+              "wall_seconds": 118.0,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "none",
+                "diagnostic": true,
+                "match": true
+              }
+            },
+            {
+              "evidence_digest": "sha256:65a37ebd536fb65882f77216bdb24807d4a94b7af2467870447aa631bd17fd92",
+              "wall_seconds": 117.9,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "none",
+                "diagnostic": true,
+                "match": true
+              }
+            }
+          ]
+        }
+      }
+    },
+    "pool2-unskipped-forward-traced": {
+      "description": "throwaway copy with the pool forced to two slots, skip lifted, forward, traced, repeat 2",
+      "manifest": "fn105-d17-manifest-pool2-forward-traced-unskipped.json",
+      "manifest_file_sha256": "f7b2379ae184d14775ab4b18433ceeea17482ea10a23259b7f98e75153c69a39",
+      "manifest_sha256_in_report": "sha256:fb8ccf5f62dca78227053687f4864534bcfd1b321b78c7e309fa7cd20fcac0a8",
+      "report_file_sha256": "ef114203288f5ef7766265c9b3bee91c808e8aa18e506b254cd69450b315a374",
+      "result": {
+        "expectations_met": true,
+        "supported": 1,
+        "failed": 0,
+        "infrastructure_errors": 0,
+        "timed_out": 0,
+        "replayed": 2,
+        "replay_diverged": 0
+      },
+      "classification": "qualified",
+      "toolchain_build_key": "8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc",
+      "seeds": {
+        "11": {
+          "qualified": true,
+          "deterministic": true,
+          "target_success": true,
+          "first_divergence": null,
+          "outcome": {
+            "domain": "success",
+            "exit_code": "0",
+            "reason": "success",
+            "termination": "exit"
+          },
+          "runner_build": "sha256:4dce3aed3599865194224c2b4219d0f13458585c8d849da10ffbc21a79db5222",
+          "virtual_time_elapsed_nanos": "20000996748",
+          "stderr_sha256": "sha256:fc2af6705532c2f3ba36c540d9a0d075af6cd97f99ec11ee305b62573399c761",
+          "stderr_bytes": "470607",
+          "executions": [
+            {
+              "evidence_digest": "sha256:6abb1d2875fb1453cd1748f3ed0859039debc73ae2a1ac1d4a83f9274aa9affd",
+              "wall_seconds": 2.3,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "exact",
+                "diagnostic": false,
+                "match": true
+              }
+            },
+            {
+              "evidence_digest": "sha256:6abb1d2875fb1453cd1748f3ed0859039debc73ae2a1ac1d4a83f9274aa9affd",
+              "wall_seconds": 2.2,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "exact",
+                "diagnostic": false,
+                "match": true
+              }
+            }
+          ]
+        },
+        "17": {
+          "qualified": true,
+          "deterministic": true,
+          "target_success": true,
+          "first_divergence": null,
+          "outcome": {
+            "domain": "success",
+            "exit_code": "0",
+            "reason": "success",
+            "termination": "exit"
+          },
+          "runner_build": "sha256:4dce3aed3599865194224c2b4219d0f13458585c8d849da10ffbc21a79db5222",
+          "virtual_time_elapsed_nanos": "20000989794",
+          "stderr_sha256": "sha256:e877e78620ab6e1a47f6c8bcc61465dd846fa5a100c2be698a2ab15ed98d92db",
+          "stderr_bytes": "471115",
+          "executions": [
+            {
+              "evidence_digest": "sha256:b41c8ac38ed84e6ac0fc8b9f95fab02379322d8a375389dfb67e7a309a2ecfe9",
+              "wall_seconds": 2.2,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "exact",
+                "diagnostic": false,
+                "match": true
+              }
+            },
+            {
+              "evidence_digest": "sha256:b41c8ac38ed84e6ac0fc8b9f95fab02379322d8a375389dfb67e7a309a2ecfe9",
+              "wall_seconds": 2.0,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "exact",
+                "diagnostic": false,
+                "match": true
+              }
+            }
+          ]
+        }
+      }
+    },
+    "pool2-unskipped-forward-traced-repeat4": {
+      "description": "throwaway copy, pool forced to two slots, skip lifted, forward, traced, repeat 4",
+      "manifest": "fn105-d17-manifest-pool2-forward-traced-unskipped-repeat4.json",
+      "manifest_file_sha256": "7c60d693ea80d122c11edaa487db525480ef35c7a8a41dba43e883b8dc9d2c29",
+      "manifest_sha256_in_report": "sha256:7fc9edee4cf0c7a05b776ab75d8ff1ec4cde00f5299c620649adfa9f2795e432",
+      "report_file_sha256": "1ea152a6ffc650edd8e56193c3eabf717a6d5adcc2ca46f75bf6d60ffb342bfe",
+      "result": {
+        "expectations_met": true,
+        "supported": 1,
+        "failed": 0,
+        "infrastructure_errors": 0,
+        "timed_out": 0,
+        "replayed": 2,
+        "replay_diverged": 0
+      },
+      "classification": "qualified",
+      "toolchain_build_key": "8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc",
+      "seeds": {
+        "17": {
+          "qualified": true,
+          "deterministic": true,
+          "target_success": true,
+          "first_divergence": null,
+          "outcome": {
+            "domain": "success",
+            "exit_code": "0",
+            "reason": "success",
+            "termination": "exit"
+          },
+          "runner_build": "sha256:0e00a1bef3aaeb718cf207e614defcc135b7d5de95b4361f9d845f709ee42a2f",
+          "virtual_time_elapsed_nanos": "20000989794",
+          "stderr_sha256": "sha256:e877e78620ab6e1a47f6c8bcc61465dd846fa5a100c2be698a2ab15ed98d92db",
+          "stderr_bytes": "471115",
+          "executions": [
+            {
+              "evidence_digest": "sha256:24e27d2bad10534c37ef8ede764873868754da339e47e13ee2aa75c9dde0c1c7",
+              "wall_seconds": 2.7,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "exact",
+                "diagnostic": false,
+                "match": true
+              }
+            },
+            {
+              "evidence_digest": "sha256:24e27d2bad10534c37ef8ede764873868754da339e47e13ee2aa75c9dde0c1c7",
+              "wall_seconds": 3.3,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "exact",
+                "diagnostic": false,
+                "match": true
+              }
+            },
+            {
+              "evidence_digest": "sha256:24e27d2bad10534c37ef8ede764873868754da339e47e13ee2aa75c9dde0c1c7",
+              "wall_seconds": 3.7,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "exact",
+                "diagnostic": false,
+                "match": true
+              }
+            },
+            {
+              "evidence_digest": "sha256:24e27d2bad10534c37ef8ede764873868754da339e47e13ee2aa75c9dde0c1c7",
+              "wall_seconds": 2.9,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "exact",
+                "diagnostic": false,
+                "match": true
+              }
+            }
+          ]
+        },
+        "11": {
+          "qualified": true,
+          "deterministic": true,
+          "target_success": true,
+          "first_divergence": null,
+          "outcome": {
+            "domain": "success",
+            "exit_code": "0",
+            "reason": "success",
+            "termination": "exit"
+          },
+          "runner_build": "sha256:0e00a1bef3aaeb718cf207e614defcc135b7d5de95b4361f9d845f709ee42a2f",
+          "virtual_time_elapsed_nanos": "20000996748",
+          "stderr_sha256": "sha256:fc2af6705532c2f3ba36c540d9a0d075af6cd97f99ec11ee305b62573399c761",
+          "stderr_bytes": "470607",
+          "executions": [
+            {
+              "evidence_digest": "sha256:ba0346241e4f21c6545d905d6f9f8ffcceb59093d7410d3f5c3f7bf61156dc24",
+              "wall_seconds": 2.0,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "exact",
+                "diagnostic": false,
+                "match": true
+              }
+            },
+            {
+              "evidence_digest": "sha256:ba0346241e4f21c6545d905d6f9f8ffcceb59093d7410d3f5c3f7bf61156dc24",
+              "wall_seconds": 1.9,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "exact",
+                "diagnostic": false,
+                "match": true
+              }
+            },
+            {
+              "evidence_digest": "sha256:ba0346241e4f21c6545d905d6f9f8ffcceb59093d7410d3f5c3f7bf61156dc24",
+              "wall_seconds": 2.0,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "exact",
+                "diagnostic": false,
+                "match": true
+              }
+            },
+            {
+              "evidence_digest": "sha256:ba0346241e4f21c6545d905d6f9f8ffcceb59093d7410d3f5c3f7bf61156dc24",
+              "wall_seconds": 2.0,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "exact",
+                "diagnostic": false,
+                "match": true
+              }
+            }
+          ]
+        }
+      }
+    },
+    "pool2-unskipped-strict-traced": {
+      "description": "throwaway copy, pool forced to two slots, skip lifted, strict, traced, repeat 2",
+      "manifest": "fn105-d17-manifest-pool2-strict-traced-unskipped.json",
+      "manifest_file_sha256": "345b1a7fc80356d5d6d3992e236a5a21a3f1592c44d85791a0d8c85f878a94b4",
+      "manifest_sha256_in_report": "sha256:7dc88dac0608eba73dd4fbe6181a64858bc88889a4201cf39f1344d20d33481d",
+      "report_file_sha256": "b84182e2a7d944fb84d2c95f18c8c96b739fc25eb252445f976190ccfbb5fccc",
+      "result": {
+        "expectations_met": false,
+        "supported": 0,
+        "failed": 1,
+        "infrastructure_errors": 0,
+        "timed_out": 0,
+        "replayed": 2,
+        "replay_diverged": 0
+      },
+      "classification": "target_failure",
+      "toolchain_build_key": "8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc",
+      "seeds": {
+        "11": {
+          "qualified": false,
+          "deterministic": true,
+          "target_success": false,
+          "first_divergence": null,
+          "outcome": {
+            "domain": "target",
+            "exit_code": "1",
+            "reason": "nonzero_exit",
+            "termination": "exit"
+          },
+          "runner_build": "sha256:0e00a1bef3aaeb718cf207e614defcc135b7d5de95b4361f9d845f709ee42a2f",
+          "virtual_time_elapsed_nanos": "30001000000",
+          "stderr_sha256": "sha256:50abe34241e25bb17d9439a175bf7d4e66f6646d274cdae831dc7d9c64906fbc",
+          "stderr_bytes": "470920",
+          "executions": [
+            {
+              "evidence_digest": "sha256:6caccedbf34de87dff45ffa629aaf9d291daeea8c05308718abbd439d5731e5d",
+              "wall_seconds": 2.2,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "exact",
+                "diagnostic": false,
+                "match": true
+              }
+            },
+            {
+              "evidence_digest": "sha256:6caccedbf34de87dff45ffa629aaf9d291daeea8c05308718abbd439d5731e5d",
+              "wall_seconds": 2.2,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "exact",
+                "diagnostic": false,
+                "match": true
+              }
+            }
+          ]
+        },
+        "17": {
+          "qualified": false,
+          "deterministic": true,
+          "target_success": false,
+          "first_divergence": null,
+          "outcome": {
+            "domain": "target",
+            "exit_code": "1",
+            "reason": "nonzero_exit",
+            "termination": "exit"
+          },
+          "runner_build": "sha256:0e00a1bef3aaeb718cf207e614defcc135b7d5de95b4361f9d845f709ee42a2f",
+          "virtual_time_elapsed_nanos": "30001000000",
+          "stderr_sha256": "sha256:381608c51ba5ed26a120de7e1e1b6766d3ef6fea89870452eb197869480162ea",
+          "stderr_bytes": "468294",
+          "executions": [
+            {
+              "evidence_digest": "sha256:016327e0b01eafb6130384eb132533053ddf90c46be295e741e536263b14ee9d",
+              "wall_seconds": 2.4,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "exact",
+                "diagnostic": false,
+                "match": true
+              }
+            },
+            {
+              "evidence_digest": "sha256:016327e0b01eafb6130384eb132533053ddf90c46be295e741e536263b14ee9d",
+              "wall_seconds": 2.3,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "exact",
+                "diagnostic": false,
+                "match": true
+              }
+            }
+          ]
+        }
+      },
+      "failures": "fn105-d17-strict-failures.txt: on both seeds TestWorkerOperation and TestOperation fail the span list equality at nexus_otel_test.go:530; in the first compared pair of each, the actual list holds the expected spans in another order once the order-assigned trace, span, and parent IDs are removed"
+    },
+    "single-cluster-skipped-forward-traced": {
+      "description": "working tree, TestOperation skipped (the tracked entry, traced), forward, repeat 2",
+      "manifest": "fn105-d17-manifest-single-forward-traced-skipped.json",
+      "manifest_file_sha256": "896117728da352e2593151788525309e99b6bff140d4ac8a2e5ef7e354a5bfbb",
+      "manifest_sha256_in_report": "sha256:51f75d0c1698f2b43ab8703fd49834d0ee86a529d07c640dc8c8110385fde559",
+      "report_file_sha256": "4ff992d553e7515508b521bc40a234dc6dcba99c66b596f4377e0021b19a8c2a",
+      "result": {
+        "expectations_met": true,
+        "supported": 1,
+        "failed": 0,
+        "infrastructure_errors": 0,
+        "timed_out": 0,
+        "replayed": 2,
+        "replay_diverged": 0
+      },
+      "classification": "qualified",
+      "toolchain_build_key": "8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc",
+      "seeds": {
+        "17": {
+          "qualified": true,
+          "deterministic": true,
+          "target_success": true,
+          "first_divergence": null,
+          "outcome": {
+            "domain": "success",
+            "exit_code": "0",
+            "reason": "success",
+            "termination": "exit"
+          },
+          "runner_build": "sha256:0e00a1bef3aaeb718cf207e614defcc135b7d5de95b4361f9d845f709ee42a2f",
+          "virtual_time_elapsed_nanos": "15100996296",
+          "stderr_sha256": "sha256:0486ee2e71ee0d5f4f5f3c97823e0afc90a65ece47adb851098cb01df71dff88",
+          "stderr_bytes": "289428",
+          "executions": [
+            {
+              "evidence_digest": "sha256:6af8541b3e32403c3821b4da1f4d553d2dc8aab65ae8c3639fdfe520ea721447",
+              "wall_seconds": 2.2,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "exact",
+                "diagnostic": false,
+                "match": true
+              }
+            },
+            {
+              "evidence_digest": "sha256:6af8541b3e32403c3821b4da1f4d553d2dc8aab65ae8c3639fdfe520ea721447",
+              "wall_seconds": 1.9,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "exact",
+                "diagnostic": false,
+                "match": true
+              }
+            }
+          ]
+        },
+        "11": {
+          "qualified": true,
+          "deterministic": true,
+          "target_success": true,
+          "first_divergence": null,
+          "outcome": {
+            "domain": "success",
+            "exit_code": "0",
+            "reason": "success",
+            "termination": "exit"
+          },
+          "runner_build": "sha256:0e00a1bef3aaeb718cf207e614defcc135b7d5de95b4361f9d845f709ee42a2f",
+          "virtual_time_elapsed_nanos": "15000996299",
+          "stderr_sha256": "sha256:c0814327ada0ca7121ff88a4651b75fb6757a3f8cfb220a767cf5ce24a47c5aa",
+          "stderr_bytes": "288879",
+          "executions": [
+            {
+              "evidence_digest": "sha256:99a77cdc5c3da27c9aba393ed7a19e22eaefe9195b9b1719a08d34256d2f81a2",
+              "wall_seconds": 3.1,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "exact",
+                "diagnostic": false,
+                "match": true
+              }
+            },
+            {
+              "evidence_digest": "sha256:99a77cdc5c3da27c9aba393ed7a19e22eaefe9195b9b1719a08d34256d2f81a2",
+              "wall_seconds": 3.7,
+              "replay": {
+                "attempted": true,
+                "choice_replay_status": "exact",
+                "diagnostic": false,
+                "match": true
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "native_runs": {
+    "file": "fn105-d17-native-results.txt",
+    "default_pool": "12 of 12 subtest runs PASS (-count=3)",
+    "two_slots": "12 of 12 subtest runs PASS (-count=3)",
+    "one_slot": "TestOperation times out at go test's 60s limit with the test goroutine at test_cluster_pool.go:109 called from nexus_otel_test.go:143"
+  },
+  "cause": "TestOperation needs two dedicated cluster slots at once. Under Gomad GOMAXPROCS is 1, so the dedicated pool has one slot unless TEMPORAL_TEST_DEDICATED_CLUSTERS overrides it. The Runner records --env entries and places them in the process environment, but the patched syscall.copyenv replaces the environment with TZ=UTC in deterministic mode (go1.27.1.patch:892-896), so the override never reaches testcore. The test takes the only slot and waits on a bare channel receive for a second one. The wait has no deadline, the cluster's periodic timers keep virtual time advancing, and the wall watchdog kills the target at a host-timed virtual instant. The first evidence field that differs between repetitions is virtual_time_elapsed_nanos, and the workload is classified nondeterministic; the comparison stops at the first mismatch, so a complete field comparison is not retained. A killed target writes no terminal choice frame, its artifact is replayed diagnostically without tracing, and the replay's stderr differs from a traced recording in one %p address.",
+  "d12_d14": "no evidence of a shared cause. The D14 fix does not change the outcome: the recorded classification reproduces on toolchain 8d28bd44, which contains it. Supporting observations: stderr is byte-identical across repetitions up to the watchdog kill; with a virtual test timeout the failing run repeats byte for byte; with two real slots the suite qualifies with exact choice-tape replay. Not established: the killed runs keep no Choice Trace, so a choice divergence in them cannot be excluded from traces; the unfixed toolchain no longer exists, so no run compares the two; D12 is a linux/amd64 channel and is unassessed because no linux run exists.",
+  "proposed_correction": {
+    "recommended": "Deliver Runner-supplied environment entries to the target in deterministic mode (syscall.copyenv hunk of the runtime patch), with a conformance fixture; then set environment TEMPORAL_TEST_DEDICATED_CLUSTERS=2 on TestNexusOTELSuite in the generator manifest and remove the skip after verification",
+    "owner": "Gomad runtime patch and Runner (tools/gomad3, owner gomad3)",
+    "alternatives": [
+      "Reject --env and the manifest environment field while the runtime hides them, and correct TUTORIAL.md and ARCHITECTURE.md",
+      "Size the dedicated pool under the gomad build tag in tests/testcore (fn105-d17-variant-pool2.diff.txt shows the effect of two slots); owner gomad3 integration in tests/testcore"
+    ],
+    "state": "open work in fn-105 for a subsequent decision; nothing is implemented; the skip stays"
+  },
+  "files": [
+    "fn105-d17-envprobe-main.go.txt",
+    "fn105-d17-envprobe-results.txt",
+    "fn105-d17-evidence.json",
+    "fn105-d17-gen-manifest.py",
+    "fn105-d17-hang-timeline-seed11.txt",
+    "fn105-d17-manifest-pool2-forward-traced-unskipped-repeat4.json",
+    "fn105-d17-manifest-pool2-forward-traced-unskipped.json",
+    "fn105-d17-manifest-pool2-strict-traced-unskipped.json",
+    "fn105-d17-manifest-single-forward-traced-skipped.json",
+    "fn105-d17-manifest-two-forward-traced-unskipped.json",
+    "fn105-d17-native-results.txt",
+    "fn105-d17-native-sample-top.txt",
+    "fn105-d17-pool2-sweep-seeds1-17.txt",
+    "fn105-d17-qualification-env2-unskipped-seed11.json",
+    "fn105-d17-qualification-env2-unskipped-seed17.json",
+    "fn105-d17-qualify-set-runs.txt",
+    "fn105-d17-run-ex.sh",
+    "fn105-d17-run-probe.sh",
+    "fn105-d17-run-qs.sh",
+    "fn105-d17-seed11-replay-stderr.txt",
+    "fn105-d17-self-wait-goroutine.txt",
+    "fn105-d17-strict-failures.txt",
+    "fn105-d17-suite-self-wait.txt",
+    "fn105-d17-summarize-qualifications.py",
+    "fn105-d17-variant-pool2.diff.txt"
+  ],
+  "artifacts": "scratch campaigns, qualification artifacts, and the throwaway source copy are deleted after recording; full set reports (1.4 to 1.6 MB each) are summarized in fn105-d17-qualify-set-runs.txt with their SHA-256 here",
+  "review": {
+    "bridge": "codex exec -s read-only, model gpt-5.6-sol, reasoning effort high, on the working-tree report, document diffs, and evidence",
+    "rounds": [
+      {
+        "round": 1,
+        "verdict": "NEEDS_WORK",
+        "findings": "4 blockers (unobservable choice claims, categorical D12/D14 conclusion, 'differ only in', strict-tick generalization), 2 should-fix; all applied"
+      },
+      {
+        "round": 2,
+        "verdict": "NEEDS_WORK",
+        "findings": "1 blocker (a remaining inferred choice-equality sentence), 2 should-fix, 1 nit; all applied"
+      },
+      {
+        "round": 3,
+        "verdict": "NEEDS_WORK",
+        "findings": "no blocker; 1 should-fix (the strict-failure wording in this index), applied and not re-reviewed"
+      }
+    ],
+    "file": "task17-review.md"
+  }
+}

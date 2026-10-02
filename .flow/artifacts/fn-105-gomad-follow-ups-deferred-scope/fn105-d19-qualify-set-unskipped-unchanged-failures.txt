@@ -1,0 +1,3 @@
+   2 "seed":"11" --- FAIL: TestFairnessAutoEnableSuite ::  :: priority_fairness_test.go:508
+   2 "seed":"17" --- FAIL: TestFairnessAutoEnableSuite ::  :: priority_fairness_test.go:508
+   2 "seed":"17" --- FAIL: TestFairnessSuite :: unfairness: 1.65  :: priority_fairness_test.go:603

@@ -6,10 +6,13 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
+	"syscall"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/deterministicio"
@@ -159,6 +162,251 @@ func TestRunPublishesFailedGateEvidence(t *testing.T) {
 	if dossier.Qualified || len(dossier.Gates) != 1 || dossier.Gates[0].Status != "failed" || dossier.Gates[0].ExitCode != 23 || dossier.Gates[0].Output != "failed-output" {
 		t.Fatalf("failed dossier = %#v", dossier)
 	}
+}
+
+func TestPublishWritesFixedDossierBytes(t *testing.T) {
+	directory := filepath.Join(t.TempDir(), "nested", "evidence")
+	path := filepath.Join(directory, "upgrade-dossier.json")
+	dossier := Dossier{
+		Schema: "gomad3.upgrade-dossier/v2", BoundaryApproved: true,
+		Version:              VersionEvidence{GoVersion: "go1.26.4", SupportedPlatforms: []string{"darwin/arm64"}},
+		Host:                 HostEvidence{Platform: "darwin/arm64", Supported: true},
+		BoundaryDiff:         BoundaryDiff{Status: "not-requested", CurrentVersion: "v1", Added: []string{}, Removed: []string{}, Changed: []string{}},
+		OverlayCollision:     OverlayCollisionEvidence{Checked: true, OverlayPaths: []string{"src/os/gomad.go"}, Collisions: []string{}},
+		Gates:                []GateResult{{Name: "unit", Command: []string{"/bin/sh", "-c", "a<b"}, Status: "failed", ExitCode: 23, Output: "a<b\n"}},
+		RetainedCorpus:       CorpusEvidence{Status: "not-configured"},
+		MandatoryProbePolicy: "policy",
+	}
+	want := `{
+  "schema": "gomad3.upgrade-dossier/v2",
+  "qualified": false,
+  "boundary_changes_approved": true,
+  "version": {
+    "go_version": "go1.26.4",
+    "archive_sha256": "",
+    "boundary_manifest_version": "",
+    "patch": "",
+    "supported_platforms": [
+      "darwin/arm64"
+    ]
+  },
+  "host": {
+    "platform": "darwin/arm64",
+    "supported": true
+  },
+  "upstream_patch": {
+    "path": "",
+    "sha256": "",
+    "diff": ""
+  },
+  "boundary_manifest_diff": {
+    "status": "not-requested",
+    "sha256": "",
+    "current_version": "v1",
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "interception_report": {
+    "path": "",
+    "sha256": "",
+    "report": ""
+  },
+  "overlay_collision_report": {
+    "checked": true,
+    "archive_sha256": "",
+    "overlay_paths": [
+      "src/os/gomad.go"
+    ],
+    "collisions": []
+  },
+  "gates": [
+    {
+      "name": "unit",
+      "command": [
+        "/bin/sh",
+        "-c",
+        "a\u003cb"
+      ],
+      "status": "failed",
+      "exit_code": 23,
+      "output": "a\u003cb\n",
+      "output_sha256": "",
+      "output_truncated": false
+    }
+  ],
+  "retained_corpus": {
+    "status": "not-configured"
+  },
+  "mandatory_probe_policy": "policy"
+}
+`
+	if err := publish(path, dossier); err != nil {
+		t.Fatal(err)
+	}
+	assertPublishedDossier(t, path, want)
+	if err := os.WriteFile(path, []byte(want+strings.Repeat("stale\n", 64)), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(path, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := publish(path, dossier); err != nil {
+		t.Fatal(err)
+	}
+	assertPublishedDossier(t, path, want)
+}
+
+func TestRunReplacesExistingDossierAfterFailedGate(t *testing.T) {
+	root := writeUpgradeFixture(t, false)
+	output := filepath.Join(root, ".toolchain", "upgrade-dossier.json")
+	if err := os.WriteFile(output, []byte("{\"prior\":\"complete dossier\"}\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	err := Run(context.Background(), Spec{
+		Root: root, Output: output,
+		Gates: []Gate{{Name: "failure", Command: []string{"/bin/sh", "-c", "printf failed-output; exit 23"}}},
+	})
+	if err == nil || !strings.Contains(err.Error(), "qualification gate failure") {
+		t.Fatalf("Run() error = %v", err)
+	}
+	contents, err := os.ReadFile(output)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var dossier Dossier
+	if err := json.Unmarshal(contents, &dossier); err != nil {
+		t.Fatal(err)
+	}
+	if dossier.Qualified || len(dossier.Gates) != 1 || dossier.Gates[0].Status != "failed" {
+		t.Fatalf("failed dossier = %#v", dossier)
+	}
+	want, err := json.MarshalIndent(dossier, "", "  ")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertPublishedDossier(t, output, string(want)+"\n")
+	if names := directoryNames(t, filepath.Dir(output)); fmt.Sprint(names) != fmt.Sprint([]string{"downloads", "upgrade-dossier.json"}) {
+		t.Fatalf("output directory entries = %v", names)
+	}
+}
+
+func TestRunReportsPublicationFailureAndKeepsPriorDossier(t *testing.T) {
+	prior := []byte("{\"prior\":\"complete dossier\"}\n")
+	for _, test := range []struct {
+		name string
+		// prepare returns the dossier output path, the file holding the prior
+		// complete dossier, and the directory that must hold only that entry.
+		prepare func(t *testing.T, directory string) (output, kept, listed string)
+		want    error
+	}{
+		{
+			name: "replacement cannot be created",
+			prepare: func(t *testing.T, directory string) (string, string, string) {
+				if os.Geteuid() == 0 {
+					t.Skip("root bypasses directory permissions")
+				}
+				output := filepath.Join(directory, "upgrade-dossier.json")
+				if err := os.Mkdir(directory, 0o700); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(output, prior, 0o644); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.Chmod(directory, 0o500); err != nil {
+					t.Fatal(err)
+				}
+				t.Cleanup(func() {
+					if err := os.Chmod(directory, 0o700); err != nil {
+						t.Error(err)
+					}
+				})
+				return output, output, directory
+			},
+			want: os.ErrPermission,
+		},
+		{
+			name: "parent is a file",
+			prepare: func(t *testing.T, directory string) (string, string, string) {
+				if err := os.WriteFile(directory, prior, 0o644); err != nil {
+					t.Fatal(err)
+				}
+				return filepath.Join(directory, "upgrade-dossier.json"), directory, ""
+			},
+			want: syscall.ENOTDIR,
+		},
+		{
+			name: "replacement cannot be renamed",
+			prepare: func(t *testing.T, directory string) (string, string, string) {
+				output := filepath.Join(directory, "upgrade-dossier.json")
+				if err := os.MkdirAll(output, 0o700); err != nil {
+					t.Fatal(err)
+				}
+				kept := filepath.Join(output, "prior.json")
+				if err := os.WriteFile(kept, prior, 0o644); err != nil {
+					t.Fatal(err)
+				}
+				return output, kept, directory
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			root := writeUpgradeFixture(t, false)
+			output, kept, listed := test.prepare(t, filepath.Join(root, "evidence"))
+			err := Run(context.Background(), Spec{
+				Root: root, Output: output,
+				Gates: []Gate{{Name: "failure", Command: []string{"/bin/sh", "-c", "printf failed-output; exit 23"}}},
+			})
+			if err == nil || !strings.Contains(err.Error(), "upgrade dossier") || strings.Contains(err.Error(), "qualification gate") {
+				t.Fatalf("Run() error = %v", err)
+			}
+			if test.want != nil && !errors.Is(err, test.want) {
+				t.Fatalf("Run() error = %v, want %v", err, test.want)
+			}
+			contents, readErr := os.ReadFile(kept)
+			if readErr != nil {
+				t.Fatal(readErr)
+			}
+			if string(contents) != string(prior) {
+				t.Fatalf("prior dossier = %q, want %q", contents, prior)
+			}
+			if listed == "" {
+				return
+			}
+			if names := directoryNames(t, listed); fmt.Sprint(names) != fmt.Sprint([]string{"upgrade-dossier.json"}) {
+				t.Fatalf("output directory entries = %v", names)
+			}
+		})
+	}
+}
+
+func assertPublishedDossier(t *testing.T, path, want string) {
+	t.Helper()
+	contents, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	names := directoryNames(t, filepath.Dir(path))
+	if string(contents) != want || info.Mode() != 0o644 || !slices.Contains(names, filepath.Base(path)) || slices.ContainsFunc(names, func(name string) bool { return strings.HasPrefix(name, ".") && name != ".toolchain" }) {
+		t.Fatalf("published dossier = %q, want %q; mode = %v; directory entries = %v", contents, want, info.Mode(), names)
+	}
+}
+
+func directoryNames(t *testing.T, directory string) []string {
+	t.Helper()
+	entries, err := os.ReadDir(directory)
+	if err != nil {
+		t.Fatal(err)
+	}
+	names := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		names = append(names, entry.Name())
+	}
+	return names
 }
 
 func TestRunRejectsOverlayCollisionBeforeGates(t *testing.T) {

@@ -1,0 +1,8 @@
+m1-no-observed-guard rc=1 direct_fail=2 char_fail=7 build=0
+m2-no-seed-check rc=1 direct_fail=1 char_fail=3 build=0
+m3-skip-validate rc=0 direct_fail=0 char_fail=0 build=0
+m4-semantic-always rc=1 direct_fail=4 char_fail=0 build=0
+m5-classify-cancelled rc=1 direct_fail=6 char_fail=8 build=0
+m6-ignore-terminal rc=1 direct_fail=1 char_fail=3 build=0
+m7-reason rc=1 direct_fail=1 char_fail=3 build=0
+m8-choices-first rc=1 direct_fail=1 char_fail=3 build=0

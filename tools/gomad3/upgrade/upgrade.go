@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
+	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	qualificationset "go.temporal.io/server/tools/gomad3/qualification/set"
 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
 )
@@ -514,27 +515,7 @@ func publish(path string, dossier Dossier) error {
 		return fmt.Errorf("encode upgrade dossier: %w", err)
 	}
 	contents = append(contents, '\n')
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return fmt.Errorf("create upgrade dossier directory: %w", err)
-	}
-	temporary, err := os.CreateTemp(filepath.Dir(path), ".upgrade-dossier-*")
-	if err != nil {
-		return fmt.Errorf("create upgrade dossier: %w", err)
-	}
-	temporaryPath := temporary.Name()
-	defer os.Remove(temporaryPath)
-	if err := temporary.Chmod(0o644); err != nil {
-		temporary.Close()
-		return fmt.Errorf("chmod upgrade dossier: %w", err)
-	}
-	if _, err := temporary.Write(contents); err != nil {
-		temporary.Close()
-		return fmt.Errorf("write upgrade dossier: %w", err)
-	}
-	if err := temporary.Close(); err != nil {
-		return fmt.Errorf("close upgrade dossier: %w", err)
-	}
-	if err := os.Rename(temporaryPath, path); err != nil {
+	if err := hostfs.Replace(path, contents, 0o644); err != nil {
 		return fmt.Errorf("publish upgrade dossier: %w", err)
 	}
 	return nil

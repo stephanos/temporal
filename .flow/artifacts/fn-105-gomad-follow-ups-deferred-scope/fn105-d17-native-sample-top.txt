@@ -1,0 +1,45 @@
+sample(1) of the hung leaf target (seed 11 or 17, env=2, forward), 3 s at 1 ms, taken about 60 s into the run; header and top-of-stack summary:
+Analysis of sampling target (pid 72344) every 1 millisecond
+Process:         target [72344]
+Path:            /private/tmp/*/target
+Load Address:    0x100000000
+Identifier:      target
+Version:         ???
+Code Type:       ARM64
+Platform:        macOS
+Parent Process:  gomad [72342]
+Target Type:     live task
+
+Date/Time:       2026-10-01 08:57:31.077 -0700
+Sort by top of stack, same collapsed (when >= 5):
+        __psynch_cvwait  (in libsystem_kernel.dylib)        21042
+        kevent  (in libsystem_kernel.dylib)        536
+        read  (in libsystem_kernel.dylib)        366
+        internal/bytealg.IndexByteString  (in target)        109
+        runtime.findfunc  (in target)        82
+        runtime.checkdead.func1  (in target)        50
+        runtime.mallocgcTinySC2  (in target)        29
+        google.golang.org/protobuf/internal/impl.(*MessageInfo).unmarshalPointerEager  (in target)        28
+        runtime.isSystemGoroutine  (in target)        28
+        runtime.selectgo  (in target)        26
+        google.golang.org/protobuf/internal/impl.consumeMap  (in target)        25
+        write  (in libsystem_kernel.dylib)        23
+        runtime.mallocgcSmallScanNoHeaderSC2  (in target)        21
+        modernc.org/libc.Xmemset  (in target)        16
+        runtime.mallocgc  (in target)        16
+        unicode/utf8.Valid  (in target)        16
+        internal/runtime/maps.memHashAES  (in target)        14
+        modernc.org/libc.(*TLS).Free  (in target)        14
+        runtime.(*moduledata).funcName  (in target)        14
+        runtime.memmove  (in target)        14
+        modernc.org/libc.(*TLS).Alloc  (in target)        13
+        modernc.org/sqlite/lib._querySharedCacheTableLock  (in target)        13
+        modernc.org/sqlite/lib._sqlite3BtreeBeginTrans  (in target)        13
+        runtime.mapassign_faststr  (in target)        13
+        internal/sync.(*HashTrieMap[go.shape.interface {},go.shape.interface {}]).Load  (in target)        12
+        runtime.findnull  (in target)        12
+        runtime.memclrNoHeapPointers  (in target)        12
+        google.golang.org/protobuf/encoding/protowire.ConsumeBytes  (in target)        11
+        modernc.org/sqlite/lib._sqlite3GetToken  (in target)        11
+        modernc.org/sqlite/lib._sqlite3VdbeMemSetText  (in target)        11
+        modernc.org/sqlite/lib._yy_reduce  (in target)        10

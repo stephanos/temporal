@@ -1,0 +1,1435 @@
+--- a/tools/gomad3/runner/runner.go
++++ b/tools/gomad3/runner/runner.go
+@@ -680,10 +680,7 @@
+ 		if err != nil {
+ 			return fmt.Errorf("construct Runner failure manifest: %w", err)
+ 		}
+-		published, err := publishBoundedFailureArtifact(overallCtx, config, journal.FailuresPath(), manifest.Outcome.FailureSignature, distinct, &failureArtifactBytes, artifact.ArtifactInput{
+-			Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
+-			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
+-		})
++		published, err := publishBoundedFailureArtifact(overallCtx, config, journal.FailuresPath(), manifest.Outcome.FailureSignature, distinct, &failureArtifactBytes, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
+ 		if err != nil {
+ 			return fmt.Errorf("publish Runner failure artifact: %w", err)
+ 		}
+@@ -867,8 +864,6 @@
+ 			continue
+ 		}
+ 		runCoverage, runChoiceFeatures, runChoiceProjection, outcome := assessed.coverage, assessed.choiceFeatures, assessed.choiceProjection, assessed.outcome
+-		novelProbes := novelStrings(runCoverage.Probes, semanticProbes)
+-		novelChoices := novelStrings(runChoiceFeatures, choiceFeatures)
+ 		if config.CollectExecutionEvidence {
+ 			mountArtifact, evidenceErr := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
+ 			if evidenceErr != nil {
+@@ -911,42 +906,27 @@
+ 			setRunChoiceTrace(&run, completion.result.ChoiceTrace)
+ 			run.SemanticProbes = append([]string(nil), runCoverage.Probes...)
+ 			run.ChoiceFeatures = append([]string(nil), runChoiceFeatures...)
+-			retain := config.KeepSuccesses == KeepSuccessesAll || config.KeepSuccesses == KeepSuccessesNovel && (len(novelProbes) != 0 || len(novelChoices) != 0)
+-			if retain {
+-				if !completion.result.IOTranscript.Complete {
+-					hostFailure = &HostError{Reason: "success_artifact_publication", Err: errors.New("retained success requires a complete I/O transcript for exact replay")}
+-					controller.Stop()
+-					activeCancel()
+-					continue
+-				}
+-				if summary.RetainedSuccesses >= config.SuccessArtifactLimit || summary.RetainedSuccessBytes >= config.SuccessBytesLimit {
+-					hostFailure = &HostError{Reason: "success_retention_capacity", Err: errors.New("successful-execution retention capacity is exhausted")}
+-					controller.Stop()
+-					activeCancel()
+-					continue
+-				}
++			retention, retentionErr := decideSuccessRetention(config, assessed, completion.result.IOTranscript.Complete, semanticProbes, choiceFeatures, summary.RetainedSuccesses, summary.RetainedSuccessBytes)
++			if retentionErr != nil {
++				hostFailure = retentionErr
++				controller.Stop()
++				activeCancel()
++				continue
++			}
++			if retention.retain {
+ 				mountArtifact, publishErr := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
+ 				if publishErr == nil {
+ 					var manifest record.ExecutionRecord
+ 					manifest, publishErr = manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest, mountArtifact)
+ 					if publishErr == nil {
+ 						var published artifact.Artifact
+-						published, publishErr = artifact.PublishArtifact(artifact.Store{Root: journal.SuccessesPath(), Context: overallCtx, MaximumBytes: config.SuccessBytesLimit - summary.RetainedSuccessBytes}, artifact.ArtifactInput{
+-							Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
+-							IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
+-						})
++						published, publishErr = artifact.PublishArtifact(artifact.Store{Root: journal.SuccessesPath(), Context: overallCtx, MaximumBytes: retention.maximumBytes}, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
+ 						if publishErr == nil {
+ 							relative, relErr := filepath.Rel(batchPath, published.Path)
+ 							if relErr != nil {
+ 								publishErr = relErr
+ 							} else {
+-								bytes := record.Uint64String(published.StoredBytes)
+-								run.SuccessArtifact = &relative
+-								run.SuccessArtifactBytes = &bytes
+-								if config.KeepSuccesses == KeepSuccessesNovel {
+-									run.NovelSemanticProbes = append([]string(nil), novelProbes...)
+-									run.NovelChoiceFeatures = append([]string(nil), novelChoices...)
+-								}
++								retention.annotate(&run, relative, published.StoredBytes)
+ 								summary.SuccessArtifacts = append(summary.SuccessArtifacts, published.Path)
+ 								summary.RetainedSuccesses++
+ 								summary.RetainedSuccessBytes += published.StoredBytes
+@@ -955,12 +935,7 @@
+ 					}
+ 				}
+ 				if publishErr != nil {
+-					reason := "success_artifact_publication"
+-					var capacity *artifact.CapacityError
+-					if errors.As(publishErr, &capacity) {
+-						reason = "success_retention_capacity"
+-					}
+-					hostFailure = &HostError{Reason: reason, Err: publishErr}
++					hostFailure = successPublicationFailure(publishErr)
+ 					controller.Stop()
+ 					activeCancel()
+ 					continue
+@@ -1016,10 +991,7 @@
+ 			}
+ 			continue
+ 		}
+-		published, publishErr := publishBoundedFailureArtifact(overallCtx, config, journal.FailuresPath(), manifest.Outcome.FailureSignature, distinct, &failureArtifactBytes, artifact.ArtifactInput{
+-			Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
+-			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
+-		})
++		published, publishErr := publishBoundedFailureArtifact(overallCtx, config, journal.FailuresPath(), manifest.Outcome.FailureSignature, distinct, &failureArtifactBytes, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
+ 		if publishErr != nil {
+ 			if hostFailure == nil {
+ 				hostFailure = &HostError{Reason: "artifact_publication", Err: publishErr}
+--- a/tools/gomad3/runner/choice_exploration_campaign.go
++++ b/tools/gomad3/runner/choice_exploration_campaign.go
+@@ -362,43 +362,24 @@
+ 		summary.ExecutionEvidence = &runRecord
+ 	}
+ 	if outcome.Domain == "success" {
+-		novelProbes := novelStrings(runCoverage.Probes, semanticProbes)
+-		novelChoices := novelStrings(runChoiceFeatures, choiceFeatures)
+-		retain := config.KeepSuccesses == KeepSuccessesAll || config.KeepSuccesses == KeepSuccessesNovel && (len(novelProbes) != 0 || len(novelChoices) != 0)
+-		if retain {
+-			if !completion.result.IOTranscript.Complete {
+-				return explorationRoundResult{}, &HostError{Reason: "success_artifact_publication", Err: errors.New("retained success requires a complete I/O transcript for exact replay")}
+-			}
+-			if summary.RetainedSuccesses >= config.SuccessArtifactLimit || summary.RetainedSuccessBytes >= config.SuccessBytesLimit {
+-				return explorationRoundResult{}, &HostError{Reason: "success_retention_capacity", Err: errors.New("successful-execution retention capacity is exhausted")}
+-			}
++		retention, retentionErr := decideSuccessRetention(config, assessed, completion.result.IOTranscript.Complete, semanticProbes, choiceFeatures, summary.RetainedSuccesses, summary.RetainedSuccessBytes)
++		if retentionErr != nil {
++			return explorationRoundResult{}, retentionErr
++		}
++		if retention.retain {
+ 			manifest, err := manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest, mountArtifact)
+ 			if err != nil {
+ 				return explorationRoundResult{}, &HostError{Reason: "success_artifact_publication", Err: err}
+ 			}
+-			published, err := artifact.PublishArtifact(artifact.Store{Root: filepath.Join(staged.Path(), "successes"), Context: ctx, MaximumBytes: config.SuccessBytesLimit - summary.RetainedSuccessBytes}, artifact.ArtifactInput{
+-				Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
+-				IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
+-			})
++			published, err := artifact.PublishArtifact(artifact.Store{Root: filepath.Join(staged.Path(), "successes"), Context: ctx, MaximumBytes: retention.maximumBytes}, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
+ 			if err != nil {
+-				reason := "success_artifact_publication"
+-				var capacity *artifact.CapacityError
+-				if errors.As(err, &capacity) {
+-					reason = "success_retention_capacity"
+-				}
+-				return explorationRoundResult{}, &HostError{Reason: reason, Err: err}
++				return explorationRoundResult{}, successPublicationFailure(err)
+ 			}
+ 			finalPath, relative, err := explorationPublishedPath(batchPath, round.Index, staged.Path(), published.Path)
+ 			if err != nil {
+ 				return explorationRoundResult{}, &HostError{Reason: "artifact_path", Err: err}
+ 			}
+-			bytes := record.Uint64String(published.StoredBytes)
+-			run.SuccessArtifact = &relative
+-			run.SuccessArtifactBytes = &bytes
+-			if config.KeepSuccesses == KeepSuccessesNovel {
+-				run.NovelSemanticProbes = append([]string(nil), novelProbes...)
+-				run.NovelChoiceFeatures = append([]string(nil), novelChoices...)
+-			}
++			retention.annotate(&run, relative, published.StoredBytes)
+ 			summary.SuccessArtifacts = append(summary.SuccessArtifacts, finalPath)
+ 			summary.RetainedSuccesses++
+ 			summary.RetainedSuccessBytes += published.StoredBytes
+@@ -409,10 +390,7 @@
+ 		if err != nil {
+ 			return explorationRoundResult{}, &HostError{Reason: "manifest", Err: err}
+ 		}
+-		published, err := publishBoundedFailureArtifact(ctx, config, filepath.Join(staged.Path(), "failures"), manifest.Outcome.FailureSignature, distinct, &summary.failureArtifactBytes, artifact.ArtifactInput{
+-			Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
+-			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
+-		})
++		published, err := publishBoundedFailureArtifact(ctx, config, filepath.Join(staged.Path(), "failures"), manifest.Outcome.FailureSignature, distinct, &summary.failureArtifactBytes, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
+ 		if err != nil {
+ 			return explorationRoundResult{}, &HostError{Reason: "artifact_publication", Err: err}
+ 		}
+--- a/tools/gomad3/runner/simulation_exploration_campaign.go
++++ b/tools/gomad3/runner/simulation_exploration_campaign.go
+@@ -393,44 +393,27 @@
+ 		if explorationResult.Failed {
+ 			return simulationExplorationRoundResult{}, &HostError{Reason: "simulation_exploration_outcome", Err: errors.New("simulation failure completed with a successful target outcome")}
+ 		}
+-		novelProbes := novelStrings(runCoverage.Probes, semanticProbes)
+-		novelChoices := novelStrings(runChoiceFeatures, choiceFeatures)
+-		retain := config.KeepSuccesses == KeepSuccessesAll || config.KeepSuccesses == KeepSuccessesNovel && (len(novelProbes) != 0 || len(novelChoices) != 0)
+-		if retain {
+-			if !completion.result.IOTranscript.Complete {
+-				return simulationExplorationRoundResult{}, &HostError{Reason: "success_artifact_publication", Err: errors.New("retained success requires a complete I/O transcript for exact replay")}
+-			}
+-			if summary.RetainedSuccesses >= config.SuccessArtifactLimit || summary.RetainedSuccessBytes >= config.SuccessBytesLimit {
+-				return simulationExplorationRoundResult{}, &HostError{Reason: "success_retention_capacity", Err: errors.New("successful-execution retention capacity is exhausted")}
+-			}
++		retention, retentionErr := decideSuccessRetention(config, assessed, completion.result.IOTranscript.Complete, semanticProbes, choiceFeatures, summary.RetainedSuccesses, summary.RetainedSuccessBytes)
++		if retentionErr != nil {
++			return simulationExplorationRoundResult{}, retentionErr
++		}
++		if retention.retain {
+ 			manifest, err := manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest, mountArtifact)
+ 			if err != nil {
+ 				return simulationExplorationRoundResult{}, &HostError{Reason: "success_artifact_publication", Err: err}
+ 			}
+ 			manifest.SimulationProfile = &simulationProfile
+-			published, err := artifact.PublishArtifact(artifact.Store{Root: filepath.Join(staged.Path(), "successes"), Context: ctx, MaximumBytes: config.SuccessBytesLimit - summary.RetainedSuccessBytes}, artifact.ArtifactInput{
+-				Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
+-				IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads, Simulation: simulationPayloads,
+-			})
++			input := executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle)
++			input.Simulation = simulationPayloads
++			published, err := artifact.PublishArtifact(artifact.Store{Root: filepath.Join(staged.Path(), "successes"), Context: ctx, MaximumBytes: retention.maximumBytes}, input)
+ 			if err != nil {
+-				reason := "success_artifact_publication"
+-				var capacity *artifact.CapacityError
+-				if errors.As(err, &capacity) {
+-					reason = "success_retention_capacity"
+-				}
+-				return simulationExplorationRoundResult{}, &HostError{Reason: reason, Err: err}
++				return simulationExplorationRoundResult{}, successPublicationFailure(err)
+ 			}
+ 			finalPath, relative, err := simulationExplorationPublishedPath(batchPath, round.Index, staged.Path(), published.Path)
+ 			if err != nil {
+ 				return simulationExplorationRoundResult{}, &HostError{Reason: "artifact_path", Err: err}
+ 			}
+-			bytes := record.Uint64String(published.StoredBytes)
+-			run.SuccessArtifact = &relative
+-			run.SuccessArtifactBytes = &bytes
+-			if config.KeepSuccesses == KeepSuccessesNovel {
+-				run.NovelSemanticProbes = append([]string(nil), novelProbes...)
+-				run.NovelChoiceFeatures = append([]string(nil), novelChoices...)
+-			}
++			retention.annotate(&run, relative, published.StoredBytes)
+ 			summary.SuccessArtifacts = append(summary.SuccessArtifacts, finalPath)
+ 			summary.RetainedSuccesses++
+ 			summary.RetainedSuccessBytes += published.StoredBytes
+@@ -442,10 +425,9 @@
+ 			return simulationExplorationRoundResult{}, &HostError{Reason: "manifest", Err: err}
+ 		}
+ 		manifest.SimulationProfile = &simulationProfile
+-		published, err := publishBoundedFailureArtifact(ctx, config, filepath.Join(staged.Path(), "failures"), manifest.Outcome.FailureSignature, distinct, &summary.failureArtifactBytes, artifact.ArtifactInput{
+-			Manifest: manifest, TargetPath: prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
+-			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads, Simulation: simulationPayloads,
+-		})
++		input := executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle)
++		input.Simulation = simulationPayloads
++		published, err := publishBoundedFailureArtifact(ctx, config, filepath.Join(staged.Path(), "failures"), manifest.Outcome.FailureSignature, distinct, &summary.failureArtifactBytes, input)
+ 		if err != nil {
+ 			return simulationExplorationRoundResult{}, &HostError{Reason: "artifact_publication", Err: err}
+ 		}
+--- a/tools/gomad3/runner/guidance.go
++++ b/tools/gomad3/runner/guidance.go
+@@ -5,7 +5,6 @@
+ 	"fmt"
+ 	"path/filepath"
+ 
+-	"go.temporal.io/server/tools/gomad3/artifact"
+ 	"go.temporal.io/server/tools/gomad3/choice"
+ 	"go.temporal.io/server/tools/gomad3/deterministicio"
+ 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+@@ -88,10 +87,7 @@
+ 		choiceFeatures = &projected
+ 	}
+ 	candidate := guide.Candidate{
+-		Artifact: artifact.ArtifactInput{
+-			Manifest: manifest, TargetPath: campaign.prepared.Path, Stdout: completion.result.Stdout.Bytes, Stderr: completion.result.Stderr.Bytes,
+-			IOTranscript: completion.result.IOTranscript.Bytes, ChoiceTrace: completion.result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
+-		},
++		Artifact: executionArtifactInput(manifest, campaign.prepared, completion.result, mountArtifact, worldBundle),
+ 		Coverage: coverage, Choices: choiceFeatures,
+ 	}
+ 	return campaign.corpus.Admit(ctx, candidate, func(ctx context.Context, path string) (guide.ReplayResult, error) {
+--- a/tools/gomad3/runner/minimize_operation.go
++++ b/tools/gomad3/runner/minimize_operation.go
+@@ -345,12 +345,8 @@
+ 		return minimizationTrial{}, err
+ 	}
+ 	retained.SimulationProfile = &simulationProfile
+-	input := artifact.ArtifactInput{
+-		Manifest: retained, TargetPath: session.prepared.Path, Stdout: observed.Stdout.Bytes, Stderr: observed.Stderr.Bytes,
+-		IOTranscript: observed.IOTranscript.Bytes, ChoiceTrace: observed.ChoiceTrace.Trace.Bytes,
+-		ReadOnlyMounts: session.mountArtifact, World: worldBundle.Payloads,
+-		Simulation: &artifact.SimulationPayloads{Plan: executionForCandidate.SimulationPlan, Record: observed.SimulationRecords[0]},
+-	}
++	input := executionArtifactInput(retained, session.prepared, observed, session.mountArtifact, worldBundle)
++	input.Simulation = &artifact.SimulationPayloads{Plan: executionForCandidate.SimulationPlan, Record: observed.SimulationRecords[0]}
+ 	published, err := artifact.PublishArtifact(artifact.Store{
+ 		Root: session.temporaryRoot, Context: ctx, MaximumBytes: defaultMinimizedArtifactBytes(session.opened.StoredBytes), Key: artifact.StoreKeyRecord,
+ 	}, input)
+--- a/tools/gomad3/runner/runner_test.go
++++ b/tools/gomad3/runner/runner_test.go
+@@ -2012,8 +2012,11 @@
+ 	buildKey string
+ 	limit    uint64
+ 	exitCode int
+-	mu       sync.Mutex
+-	requests []execution.Spec
++	// alternatives is the width of the one decision every execution records;
++	// zero means two.
++	alternatives uint32
++	mu           sync.Mutex
++	requests     []execution.Spec
+ }
+ 
+ type simulationExplorationExecutor struct {
+@@ -2021,8 +2024,11 @@
+ 	buildKey string
+ 	limit    uint64
+ 	fail     bool
+-	mu       sync.Mutex
+-	requests []execution.Spec
++	// scenarios is the width of the one scenario decision every execution
++	// records; zero means two.
++	scenarios int
++	mu        sync.Mutex
++	requests  []execution.Spec
+ }
+ 
+ type explorationInterruptExecutor struct {
+@@ -2063,7 +2069,7 @@
+ 	}
+ 	result := processResult(executor.exitCode, "", "")
+ 	result.ChoiceTrace = completeChoiceTrace(executor.t, executor.buildKey, executor.limit, []choice.Record{{
+-		Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, Alternatives: 2, Selected: selected,
++		Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, Alternatives: max(executor.alternatives, 2), Selected: selected,
+ 	}})
+ 	return result, nil
+ }
+@@ -2090,10 +2096,14 @@
+ 		if override.Dimension == simulationengine.DimensionScenario {
+ 			selected = override.Selected
+ 		}
++	}
++	scenarios := []string{"alpha", "beta", "gamma"}[:max(executor.scenarios, 2)]
++	alternatives := make([]record.SHA256, len(scenarios))
++	for index, scenario := range scenarios {
++		alternatives[index] = record.HashBytes([]byte(scenario))
+ 	}
+ 	decision, err := simulationengine.CanonicalDecision(
+-		simulationengine.DimensionScenario, 0, record.HashBytes([]byte("route")),
+-		[]record.SHA256{record.HashBytes([]byte("alpha")), record.HashBytes([]byte("beta"))}, selected,
++		simulationengine.DimensionScenario, 0, record.HashBytes([]byte("route")), alternatives, selected,
+ 	)
+ 	if err != nil {
+ 		return execution.Result{}, err
+@@ -2116,7 +2126,7 @@
+ 		Schema: "gomad3.cluster-record/v7", Seed: plan.BaseSeed, SpecSHA256: record.HashBytes([]byte("spec")), Outcome: outcome,
+ 		FailureIdentity: record.HashBytes([]byte("normalized oracle failure")),
+ 		ExplorationPlan: request.Simulation.ExplorationPlan, ExplorationDecisions: []simulationengine.Decision{decision},
+-		ScenarioTape: []string{[]string{"alpha", "beta"}[selected]}, Identity: record.HashBytes([]byte(fmt.Sprintf("record-%d", selected))),
++		ScenarioTape: []string{scenarios[selected]}, Identity: record.HashBytes([]byte(fmt.Sprintf("record-%d", selected))),
+ 	})
+ 	if err != nil {
+ 		return execution.Result{}, err
+--- /dev/null
++++ b/tools/gomad3/runner/retention.go
+@@ -0,0 +1,75 @@
++package runner
++
++import (
++	"errors"
++
++	"go.temporal.io/server/tools/gomad3/artifact"
++	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
++	"go.temporal.io/server/tools/gomad3/record"
++	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
++	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
++	"go.temporal.io/server/tools/gomad3/target"
++)
++
++// successRetention is the decision to keep one successful execution: whether
++// to, what made it novel under the novel policy, and how many bytes of the
++// campaign's success bound its artifact may take.
++type successRetention struct {
++	retain       bool
++	novelProbes  []string
++	novelChoices []string
++	maximumBytes uint64
++}
++
++// decideSuccessRetention judges one assessed success against the novelty and
++// the retained count and bytes its strategy has committed. It reads that state
++// and advances none of it: the strategy does, at its own commit point.
++func decideSuccessRetention(config CampaignSpec, assessed completedExecution, transcriptComplete bool, seenProbes, seenChoices map[string]struct{}, retained, retainedBytes uint64) (successRetention, *HostError) {
++	decision := successRetention{retain: config.KeepSuccesses == KeepSuccessesAll}
++	if config.KeepSuccesses == KeepSuccessesNovel {
++		decision.novelProbes = novelStrings(assessed.coverage.Probes, seenProbes)
++		decision.novelChoices = novelStrings(assessed.choiceFeatures, seenChoices)
++		decision.retain = len(decision.novelProbes) != 0 || len(decision.novelChoices) != 0
++	}
++	if !decision.retain {
++		return decision, nil
++	}
++	if !transcriptComplete {
++		return decision, &HostError{Reason: "success_artifact_publication", Err: errors.New("retained success requires a complete I/O transcript for exact replay")}
++	}
++	if retained >= config.SuccessArtifactLimit || retainedBytes >= config.SuccessBytesLimit {
++		return decision, &HostError{Reason: "success_retention_capacity", Err: errors.New("successful-execution retention capacity is exhausted")}
++	}
++	decision.maximumBytes = config.SuccessBytesLimit - retainedBytes
++	return decision, nil
++}
++
++// annotate records on the journal record of a kept success where its artifact
++// is stored and, under the novel policy, what made it novel.
++func (decision successRetention) annotate(run *campaign.ExecutionRecord, relative string, storedBytes uint64) {
++	bytes := record.Uint64String(storedBytes)
++	run.SuccessArtifact = &relative
++	run.SuccessArtifactBytes = &bytes
++	run.NovelSemanticProbes = append([]string(nil), decision.novelProbes...)
++	run.NovelChoiceFeatures = append([]string(nil), decision.novelChoices...)
++}
++
++// successPublicationFailure classifies a failure to publish a kept success: a
++// store that is out of the bytes it was offered is a capacity failure.
++func successPublicationFailure(err error) *HostError {
++	reason := "success_artifact_publication"
++	var capacity *artifact.CapacityError
++	if errors.As(err, &capacity) {
++		reason = "success_retention_capacity"
++	}
++	return &HostError{Reason: reason, Err: err}
++}
++
++// executionArtifactInput composes what every published execution artifact
++// carries. The strategies that record simulation payloads add them.
++func executionArtifactInput(manifest record.ExecutionRecord, prepared target.Prepared, result execution.Result, mountArtifact *readonlymount.CapturedInputs, worldBundle execution.Bundle) artifact.ArtifactInput {
++	return artifact.ArtifactInput{
++		Manifest: manifest, TargetPath: prepared.Path, Stdout: result.Stdout.Bytes, Stderr: result.Stderr.Bytes,
++		IOTranscript: result.IOTranscript.Bytes, ChoiceTrace: result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,
++	}
++}
+--- /dev/null
++++ b/tools/gomad3/runner/retention_test.go
+@@ -0,0 +1,134 @@
++package runner
++
++import (
++	"errors"
++	"fmt"
++	"reflect"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/artifact"
++	"go.temporal.io/server/tools/gomad3/deterministicio"
++	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
++	"go.temporal.io/server/tools/gomad3/record"
++	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
++	"go.temporal.io/server/tools/gomad3/target"
++)
++
++func TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds(t *testing.T) {
++	const (
++		incomplete = "success_artifact_publication: retained success requires a complete I/O transcript for exact replay"
++		exhausted  = "success_retention_capacity: successful-execution retention capacity is exhausted"
++	)
++	for _, test := range []struct {
++		name          string
++		policy        KeepSuccesses
++		probes        []string
++		choices       []string
++		incomplete    bool
++		retained      uint64
++		retainedBytes uint64
++		want          successRetention
++		failure       string
++	}{
++		{name: "discard", policy: KeepSuccessesNone, probes: []string{"new"}, choices: []string{"new"}},
++		{name: "unset policy", probes: []string{"new"}, choices: []string{"new"}},
++		{name: "discard an unreplayable success beyond the bounds", policy: KeepSuccessesNone, incomplete: true, retained: 9, retainedBytes: 900},
++		{name: "all", policy: KeepSuccessesAll, probes: []string{"seen"}, retained: 2, retainedBytes: 40, want: successRetention{retain: true, maximumBytes: 60}},
++		{name: "all needs a complete transcript", policy: KeepSuccessesAll, incomplete: true, want: successRetention{retain: true}, failure: incomplete},
++		{name: "novel probe", policy: KeepSuccessesNovel, probes: []string{"seen", "new"}, choices: []string{"seen"}, want: successRetention{retain: true, novelProbes: []string{"new"}, novelChoices: []string{}, maximumBytes: 100}},
++		{name: "novel choice", policy: KeepSuccessesNovel, probes: []string{"seen"}, choices: []string{"seen", "new"}, want: successRetention{retain: true, novelProbes: []string{}, novelChoices: []string{"new"}, maximumBytes: 100}},
++		{
++			name: "probes and choices are judged against their own committed sets", policy: KeepSuccessesNovel, probes: []string{"seen choice"}, choices: []string{"seen probe"},
++			want: successRetention{retain: true, novelProbes: []string{"seen choice"}, novelChoices: []string{"seen probe"}, maximumBytes: 100},
++		},
++		{name: "novel values keep their observed order", policy: KeepSuccessesNovel, probes: []string{"z", "seen", "a"}, want: successRetention{retain: true, novelProbes: []string{"z", "a"}, novelChoices: []string{}, maximumBytes: 100}},
++		{
++			name: "nothing novel is not kept, whatever the transcript and the bounds", policy: KeepSuccessesNovel, probes: []string{"seen"}, choices: []string{"seen"},
++			incomplete: true, retained: 9, retainedBytes: 900, want: successRetention{novelProbes: []string{}, novelChoices: []string{}},
++		},
++		{name: "novel needs a complete transcript", policy: KeepSuccessesNovel, probes: []string{"new"}, incomplete: true, want: successRetention{retain: true, novelProbes: []string{"new"}, novelChoices: []string{}}, failure: incomplete},
++		{name: "count used up", policy: KeepSuccessesAll, retained: 3, want: successRetention{retain: true}, failure: exhausted},
++		{name: "count exceeded", policy: KeepSuccessesAll, retained: 4, want: successRetention{retain: true}, failure: exhausted},
++		{name: "bytes used up", policy: KeepSuccessesAll, retainedBytes: 100, want: successRetention{retain: true}, failure: exhausted},
++		{name: "bytes exceeded", policy: KeepSuccessesAll, retainedBytes: 101, want: successRetention{retain: true}, failure: exhausted},
++		{name: "last count and byte", policy: KeepSuccessesAll, retained: 2, retainedBytes: 99, want: successRetention{retain: true, maximumBytes: 1}},
++		{name: "transcript before bounds", policy: KeepSuccessesAll, incomplete: true, retained: 3, retainedBytes: 100, want: successRetention{retain: true}, failure: incomplete},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			config := CampaignSpec{KeepSuccesses: test.policy, SuccessArtifactLimit: 3, SuccessBytesLimit: 100}
++			assessed := completedExecution{coverage: deterministicio.SemanticCoverage{Probes: test.probes}, choiceFeatures: test.choices}
++			seenProbes, seenChoices := map[string]struct{}{"seen": {}, "seen probe": {}}, map[string]struct{}{"seen": {}, "seen choice": {}}
++			decision, hostError := decideSuccessRetention(config, assessed, !test.incomplete, seenProbes, seenChoices, test.retained, test.retainedBytes)
++			failure := ""
++			if hostError != nil {
++				failure = hostError.Reason + ": " + hostError.Err.Error()
++			}
++			if !reflect.DeepEqual(decision, test.want) || failure != test.failure {
++				t.Fatalf("decideSuccessRetention() = %#v, %q, want %#v, %q", decision, failure, test.want, test.failure)
++			}
++			if len(seenProbes) != 2 || len(seenChoices) != 2 {
++				t.Fatalf("decideSuccessRetention() advanced the committed novelty to %v, %v", seenProbes, seenChoices)
++			}
++		})
++	}
++}
++
++func TestSuccessRetentionAnnotatesTheJournalRecord(t *testing.T) {
++	relative, bytes := "successes/sha256-00", record.Uint64String(7)
++	for _, test := range []struct {
++		name     string
++		decision successRetention
++		want     campaign.ExecutionRecord
++	}{
++		{name: "all", decision: successRetention{retain: true}, want: campaign.ExecutionRecord{Domain: "success", SuccessArtifact: &relative, SuccessArtifactBytes: &bytes}},
++		{
++			name: "novel", decision: successRetention{retain: true, novelProbes: []string{"probe"}, novelChoices: []string{}},
++			want: campaign.ExecutionRecord{Domain: "success", SuccessArtifact: &relative, SuccessArtifactBytes: &bytes, NovelSemanticProbes: []string{"probe"}},
++		},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			run := campaign.ExecutionRecord{Domain: "success"}
++			test.decision.annotate(&run, relative, 7)
++			if len(test.decision.novelProbes) != 0 {
++				test.decision.novelProbes[0] = "changed after the record was annotated"
++			}
++			if !reflect.DeepEqual(run, test.want) {
++				t.Fatalf("annotated record = %#v, want %#v", run, test.want)
++			}
++		})
++	}
++}
++
++func TestSuccessPublicationFailureSeparatesCapacityFromPublication(t *testing.T) {
++	plain := errors.New("store is unavailable")
++	capacity := fmt.Errorf("publish: %w", &artifact.CapacityError{Required: 9, Maximum: 8})
++	for _, test := range []struct {
++		err  error
++		want HostError
++	}{
++		{err: plain, want: HostError{Reason: "success_artifact_publication", Err: plain}},
++		{err: capacity, want: HostError{Reason: "success_retention_capacity", Err: capacity}},
++	} {
++		if failure := successPublicationFailure(test.err); *failure != test.want {
++			t.Fatalf("successPublicationFailure(%v) = %#v, want %#v", test.err, *failure, test.want)
++		}
++	}
++}
++
++func TestExecutionArtifactInputCarriesTheCapturedEvidence(t *testing.T) {
++	manifest := record.ExecutionRecord{CampaignID: "campaign", Seed: 7}
++	mounts := &readonlymount.CapturedInputs{}
++	result := processResult(0, "stdout", "stderr")
++	result.IOTranscript = deterministicio.Transcript{Bytes: []byte("transcript")}
++	result.ChoiceTrace.Trace.Bytes = []byte("choices")
++	result.SimulationRecords = [][]byte{[]byte("simulation record")}
++	worldBundle := noneWorldBundle()
++	want := artifact.ArtifactInput{
++		Manifest: manifest, TargetPath: "/prepared/target", Stdout: []byte("stdout"), Stderr: []byte("stderr"),
++		IOTranscript: []byte("transcript"), ChoiceTrace: []byte("choices"), ReadOnlyMounts: mounts, World: worldBundle.Payloads,
++	}
++	input := executionArtifactInput(manifest, target.Prepared{Path: "/prepared/target"}, result, mounts, worldBundle)
++	if !reflect.DeepEqual(input, want) || input.ReadOnlyMounts != mounts {
++		t.Fatalf("executionArtifactInput() = %#v, want %#v", input, want)
++	}
++}
+--- /dev/null
++++ b/tools/gomad3/runner/retention_characterization_test.go
+@@ -0,0 +1,874 @@
++package runner
++
++import (
++	"bytes"
++	"context"
++	"encoding/json"
++	"errors"
++	"fmt"
++	"io/fs"
++	"os"
++	"path/filepath"
++	"reflect"
++	"strings"
++	"sync"
++	"testing"
++	"time"
++
++	"go.temporal.io/server/tools/gomad3/artifact"
++	"go.temporal.io/server/tools/gomad3/choice"
++	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
++	"go.temporal.io/server/tools/gomad3/record"
++	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
++	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
++)
++
++const (
++	probeA = "stdlib.os.openfile"
++	probeB = "stdlib.os.file.read"
++	probeC = "stdlib.os.file.close"
++)
++
++// retentionExecutor runs the three executions every retention campaign has,
++// gives each a World record of its seed, and identifies each by its rank: the seed strategy runs seeds 1 to 3 as ranks 0
++// to 2, the exploration strategies run the root as rank 0 and its two other
++// alternatives as ranks 1 and 2, which share the second round when the
++// campaign runs two candidates at a time.
++type retentionExecutor struct {
++	t        *testing.T
++	strategy Strategy
++	base     Executor
++	// shape edits the captured result of the execution with the given rank.
++	shape func(rank uint64, result *execution.Result)
++	// before runs ahead of the execution with the given rank.
++	before func(rank uint64)
++	// after names, per rank, the rank whose completion it waits for.
++	after map[uint64]uint64
++	// interrupt cancels the campaign when the execution with the rank
++	// interruptAt starts; that execution then reports its cancellation.
++	interrupt   context.CancelFunc
++	interruptAt uint64
++
++	mu       sync.Mutex
++	finished map[uint64]chan struct{}
++}
++
++func (executor *retentionExecutor) rank(request execution.Spec) uint64 {
++	switch executor.strategy {
++	case StrategyChoiceExploration:
++		if request.Choice != nil && request.Choice.Mode == choice.ModePrefix {
++			return uint64(request.Choice.ReplayPlan.Decisions[len(request.Choice.ReplayPlan.Decisions)-1].Selected)
++		}
++		return 0
++	case StrategySimulationExploration:
++		var plan struct {
++			Overrides []struct {
++				Selected uint64 `json:"selected"`
++			} `json:"overrides"`
++		}
++		if request.Simulation == nil || json.Unmarshal(request.Simulation.ExplorationPlan, &plan) != nil {
++			executor.t.Error("simulation exploration plan is unavailable")
++			return 0
++		}
++		if len(plan.Overrides) == 0 {
++			return 0
++		}
++		return plan.Overrides[len(plan.Overrides)-1].Selected
++	default:
++		return seedFromEnvironment(request.Env) - 1
++	}
++}
++
++func (executor *retentionExecutor) completion(rank uint64) chan struct{} {
++	executor.mu.Lock()
++	defer executor.mu.Unlock()
++	if executor.finished == nil {
++		executor.finished = make(map[uint64]chan struct{})
++	}
++	if executor.finished[rank] == nil {
++		executor.finished[rank] = make(chan struct{})
++	}
++	return executor.finished[rank]
++}
++
++func (executor *retentionExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
++	rank := executor.rank(request)
++	defer close(executor.completion(rank))
++	if executor.before != nil {
++		executor.before(rank)
++	}
++	if executor.interrupt != nil && rank == executor.interruptAt {
++		executor.interrupt()
++		<-ctx.Done()
++		result := processResult(0, "", "")
++		result.Cancelled = true
++		result.Termination = execution.TerminationSignal
++		result.Signal = "killed"
++		return result, nil
++	}
++	if other, waits := executor.after[rank]; waits {
++		select {
++		case <-executor.completion(other):
++		case <-ctx.Done():
++			return execution.Result{}, ctx.Err()
++		}
++	}
++	result, err := executor.base.Run(ctx, request)
++	if err == nil {
++		result.WorldRecord = completionWorldRecord(executor.t, request.World.Seed)
++		if executor.shape != nil {
++			executor.shape(rank, &result)
++		}
++	}
++	return result, err
++}
++
++// retentionCampaign is a three-execution campaign of the strategy. The seed
++// strategy runs all three at once; the exploration strategies run the root and
++// then, with parallel candidates, both remaining alternatives in one round.
++func retentionCampaign(t *testing.T, strategy Strategy, parallel bool, fail bool) (CampaignSpec, *retentionExecutor) {
++	t.Helper()
++	preparer := newFakePreparer(t)
++	limit := choiceTraceLimit(t, 1)
++	executor := &retentionExecutor{t: t, strategy: strategy}
++	width := 1
++	switch strategy {
++	case StrategySeed:
++		executor.base = &fakeExecutor{result: func(seed uint64) execution.Result {
++			exitCode := 0
++			if fail {
++				exitCode = 2
++			}
++			result := processResult(exitCode, "", "")
++			result.ChoiceTrace = completeChoiceTrace(t, preparer.prepared.BuildKey, limit, []choice.Record{{
++				Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, Alternatives: 3, Selected: uint32(seed - 1),
++			}})
++			return result
++		}}
++		if parallel {
++			width = 3
++		}
++	case StrategyChoiceExploration:
++		base := &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, alternatives: 3}
++		if fail {
++			base.exitCode = 2
++		}
++		executor.base = base
++		if parallel {
++			width = 2
++		}
++	case StrategySimulationExploration:
++		executor.base = &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, scenarios: 3, fail: fail}
++		if parallel {
++			width = 2
++		}
++	}
++	config := testConfig(t, preparer, executor, "7", PolicyAll, width)
++	config.Strategy = strategy
++	config.Coverage = CoverageSemantic
++	config.ChoiceTraceLimit = limit
++	config.WorldTransitionLimit = 1 << 20
++	switch strategy {
++	case StrategySeed:
++		config.Seeds = "1-3"
++	case StrategyChoiceExploration:
++		config.MaxExecutions = 8
++		config.MaxChoiceDepth = 4
++		config.MaxExplorationBytes = 1 << 20
++	case StrategySimulationExploration:
++		config.MaxExecutions = 8
++		config.MaxForcedDecisions = 2
++		config.MaxExplorationBytes = 1 << 20
++		config.MaxExplorationResultBytes = 1 << 20
++		config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 2, Scenario: 3, Network: 2, Storage: 2, Fault: 2, Crash: 2}
++	}
++	return config, executor
++}
++
++// rankProbes gives each rank a complete I/O transcript observing its probe.
++func rankProbes(t *testing.T, byRank ...string) func(uint64, *execution.Result) {
++	return func(rank uint64, result *execution.Result) {
++		result.IOTranscript = semanticTranscript(t, byRank[rank])
++	}
++}
++
++// reverseRankOrder makes the executions complete in the reverse of their rank order as
++// far as the strategy runs them together.
++func reverseRankOrder(strategy Strategy) map[uint64]uint64 {
++	if strategy == StrategySeed {
++		return map[uint64]uint64{0: 1, 1: 2}
++	}
++	return map[uint64]uint64{1: 2}
++}
++
++func keepSuccesses(config *CampaignSpec, policy KeepSuccesses) {
++	config.KeepSuccesses = policy
++	if policy != KeepSuccessesNone {
++		config.SuccessArtifactLimit = 8
++		config.SuccessBytesLimit = 64 << 20
++	}
++}
++
++func resumeRetentionCampaign(t *testing.T, interrupted CampaignSpec, campaignPath string, shape func(uint64, *execution.Result)) (CampaignResult, error) {
++	t.Helper()
++	_, executor := retentionCampaign(t, interrupted.Strategy, interrupted.Parallel != 1, false)
++	executor.shape = shape
++	return Explore(context.Background(), CampaignSpec{
++		ResumeCampaign: campaignPath, RunnerBuild: interrupted.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: executor,
++	})
++}
++
++// retentionObservation is what one campaign leaves observable about retention:
++// the host failure, the counters (attempted, succeeded, failures, distinct
++// failures, retained successes) and, per journaled execution in journal order,
++// its ordinal, outcome, whether its success was kept, what made it novel and
++// which distinct failure it shares.
++type retentionObservation struct {
++	Reason string
++	Cause  string
++	Counts [5]uint64
++	Runs   []string
++}
++
++// journaledExecutions reads the executions a campaign journaled: from the
++// published campaign when it completed, from its execution journal otherwise.
++func journaledExecutions(t *testing.T, campaignPath string, completed bool) []campaign.ExecutionRecord {
++	t.Helper()
++	if completed {
++		batch, err := campaign.OpenCampaign(campaignPath)
++		if err != nil {
++			t.Fatal(err)
++		}
++		return batch.Executions
++	}
++	var runs []campaign.ExecutionRecord
++	walkErr := filepath.WalkDir(campaignPath, func(path string, entry fs.DirEntry, walkErr error) error {
++		if walkErr != nil || entry.IsDir() || filepath.Base(filepath.Dir(path)) != "executions" || filepath.Ext(path) != ".jsonl" {
++			return walkErr
++		}
++		contents, readErr := os.ReadFile(path)
++		if readErr != nil {
++			return readErr
++		}
++		for _, line := range bytes.Split(bytes.TrimSuffix(contents, []byte{'\n'}), []byte{'\n'}) {
++			if len(line) == 0 {
++				continue
++			}
++			var run campaign.ExecutionRecord
++			if decodeErr := canonicaljson.DecodeCanonicalJSON(line, &run); decodeErr != nil {
++				return decodeErr
++			}
++			runs = append(runs, run)
++		}
++		return nil
++	})
++	if walkErr != nil {
++		t.Fatal(walkErr)
++	}
++	return runs
++}
++
++// observeRetention reads the campaign back and checks what must hold for every
++// retention outcome: each kept success is an exact-replay success artifact of
++// its own ordinal whose stored bytes the journal records, the summary lists the
++// kept successes in journal order and counts their bytes, and every failure
++// refers to a published distinct failure. It returns the observation and the
++// canonical projection of the journal records and published manifests with the
++// campaign identity, timestamps and store paths held fixed.
++func observeRetention(t *testing.T, summary CampaignResult, err error) (retentionObservation, []byte) {
++	t.Helper()
++	observed := retentionObservation{Counts: [5]uint64{summary.Attempted, summary.Succeeded, summary.Failures, summary.DistinctFailures, summary.RetainedSuccesses}}
++	if err != nil {
++		var hostError *HostError
++		if !errors.As(err, &hostError) {
++			t.Fatalf("Explore() error = %#v, want a host failure", err)
++		}
++		observed.Reason = hostError.Reason
++		observed.Cause = hostError.Err.Error()
++	}
++	fixedManifest := func(path string) record.ExecutionRecord {
++		opened, openErr := artifact.OpenArtifact(path)
++		if openErr != nil {
++			t.Fatal(openErr)
++		}
++		manifest := opened.Manifest
++		if closeErr := opened.Close(); closeErr != nil {
++			t.Fatal(closeErr)
++		}
++		manifest.CampaignID, manifest.CreatedAt, manifest.RecordHash, manifest.Host = "", "", "", record.Host{}
++		return manifest
++	}
++	projection := struct {
++		Runs      []campaign.ExecutionRecord
++		Successes []record.ExecutionRecord
++		Failures  []record.ExecutionRecord
++	}{Runs: journaledExecutions(t, summary.CampaignPath, err == nil)}
++	var kept []string
++	var keptBytes uint64
++	for index := range projection.Runs {
++		run := &projection.Runs[index]
++		run.ElapsedNanos = 0
++		line := fmt.Sprintf("%d %s/%s", run.SelectionOrdinal, run.Domain, run.Reason)
++		if run.SuccessArtifact != nil {
++			path := filepath.Join(summary.CampaignPath, filepath.FromSlash(*run.SuccessArtifact))
++			opened, openErr := artifact.OpenArtifact(path)
++			if openErr != nil {
++				t.Fatal(openErr)
++			}
++			if opened.StoredBytes != uint64(*run.SuccessArtifactBytes) || opened.Manifest.ArtifactKind != record.ArtifactSuccess || opened.Manifest.ReplayMode != record.ReplayExact || opened.Manifest.SelectionOrdinal != run.SelectionOrdinal {
++				t.Fatalf("kept success %s = %d bytes, %#v; journaled as %#v", path, opened.StoredBytes, opened.Manifest, *run)
++			}
++			if closeErr := opened.Close(); closeErr != nil {
++				t.Fatal(closeErr)
++			}
++			keptBytes += opened.StoredBytes
++			kept = append(kept, path)
++			projection.Successes = append(projection.Successes, fixedManifest(path))
++			fixedPath, fixedBytes := fmt.Sprintf("successes/#%d", len(kept)-1), record.Uint64String(0)
++			run.SuccessArtifact, run.SuccessArtifactBytes = &fixedPath, &fixedBytes
++			line += " kept"
++		}
++		if len(run.NovelSemanticProbes) != 0 {
++			line += " novel=" + strings.Join(run.NovelSemanticProbes, ",")
++		}
++		if len(run.NovelChoiceFeatures) != 0 {
++			line += " +choices"
++		}
++		if run.Artifact != nil {
++			path := filepath.Join(summary.CampaignPath, filepath.FromSlash(*run.Artifact))
++			distinct := -1
++			for candidate, published := range summary.Artifacts {
++				if published == path {
++					distinct = candidate
++				}
++			}
++			if distinct < 0 || run.FailureSignature == nil {
++				t.Fatalf("failure %#v does not refer to a published distinct failure in %v", *run, summary.Artifacts)
++			}
++			fixedPath := fmt.Sprintf("failures/#%d", distinct)
++			run.Artifact = &fixedPath
++			line += " failure#" + fmt.Sprint(distinct)
++		}
++		observed.Runs = append(observed.Runs, line)
++	}
++	if !reflect.DeepEqual(kept, summary.SuccessArtifacts) || keptBytes != summary.RetainedSuccessBytes || uint64(len(kept)) != summary.RetainedSuccesses {
++		t.Fatalf("summary keeps %v (%d successes, %d bytes); the journal keeps %v (%d bytes)", summary.SuccessArtifacts, summary.RetainedSuccesses, summary.RetainedSuccessBytes, kept, keptBytes)
++	}
++	for _, path := range summary.Artifacts {
++		projection.Failures = append(projection.Failures, fixedManifest(path))
++	}
++	encoded, encodeErr := canonicaljson.CanonicalJSON(projection)
++	if encodeErr != nil {
++		t.Fatal(encodeErr)
++	}
++	return observed, encoded
++}
++
++// Every strategy keeps the same executions under the same policy, and what it
++// journals and publishes does not depend on the order its executions complete.
++func TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy(t *testing.T) {
++	for _, test := range []struct {
++		name     string
++		policy   KeepSuccesses
++		coverage CoverageMode
++		probes   [3]string
++		fail     bool
++		want     retentionObservation
++		// other holds the simulation strategy where its fixture differs: its
++		// candidates record no choice decision of their own, and their failures
++		// share the failure identity of the simulation record, where the seeds
++		// and the forced choices of the other strategies fail distinctly.
++		other map[Strategy]retentionObservation
++	}{
++		{
++			name: "discard", policy: KeepSuccessesNone, probes: [3]string{probeA, probeA, probeB},
++			want: retentionObservation{Counts: [5]uint64{3, 3, 0, 0, 0}, Runs: []string{"0 success/world_idle", "1 success/world_idle", "2 success/world_idle"}},
++		},
++		{
++			name: "all", policy: KeepSuccessesAll, probes: [3]string{probeA, probeA, probeB},
++			want: retentionObservation{Counts: [5]uint64{3, 3, 0, 0, 3}, Runs: []string{"0 success/world_idle kept", "1 success/world_idle kept", "2 success/world_idle kept"}},
++		},
++		{
++			name: "novel probe after a known one", policy: KeepSuccessesNovel, probes: [3]string{probeA, probeA, probeB},
++			want: retentionObservation{Counts: [5]uint64{3, 3, 0, 0, 2}, Runs: []string{"0 success/world_idle kept novel=" + probeA, "1 success/world_idle", "2 success/world_idle kept novel=" + probeB}},
++		},
++		{
++			name: "novel probe ahead of its repeat", policy: KeepSuccessesNovel, probes: [3]string{probeA, probeB, probeB},
++			want: retentionObservation{Counts: [5]uint64{3, 3, 0, 0, 2}, Runs: []string{"0 success/world_idle kept novel=" + probeA, "1 success/world_idle kept novel=" + probeB, "2 success/world_idle"}},
++		},
++		{
++			name: "novel choices", policy: KeepSuccessesNovel, coverage: CoverageSemanticChoice, probes: [3]string{probeA, probeA, probeA},
++			want: retentionObservation{Counts: [5]uint64{3, 3, 0, 0, 3}, Runs: []string{"0 success/world_idle kept novel=" + probeA + " +choices", "1 success/world_idle kept +choices", "2 success/world_idle kept +choices"}},
++			other: map[Strategy]retentionObservation{StrategySimulationExploration: {
++				Counts: [5]uint64{3, 3, 0, 0, 1}, Runs: []string{"0 success/world_idle kept novel=" + probeA + " +choices", "1 success/world_idle", "2 success/world_idle"},
++			}},
++		},
++		{
++			name: "failures", policy: KeepSuccessesAll, probes: [3]string{probeA, probeA, probeA}, fail: true,
++			want: retentionObservation{Counts: [5]uint64{3, 0, 3, 3, 0}, Runs: []string{"0 target/nonzero_exit failure#0", "1 target/nonzero_exit failure#1", "2 target/nonzero_exit failure#2"}},
++			other: map[Strategy]retentionObservation{StrategySimulationExploration: {
++				Counts: [5]uint64{3, 0, 3, 1, 0}, Runs: []string{"0 target/nonzero_exit failure#0", "1 target/nonzero_exit failure#0", "2 target/nonzero_exit failure#0"},
++			}},
++		},
++	} {
++		for _, strategy := range completionStrategies {
++			t.Run(test.name+"/"+string(strategy), func(t *testing.T) {
++				want := test.want
++				if other, differs := test.other[strategy]; differs {
++					want = other
++				}
++				var projections [][]byte
++				for _, order := range []map[uint64]uint64{nil, reverseRankOrder(strategy)} {
++					config, executor := retentionCampaign(t, strategy, true, test.fail)
++					keepSuccesses(&config, test.policy)
++					if test.coverage != "" {
++						config.Coverage = test.coverage
++					}
++					executor.shape = rankProbes(t, test.probes[:]...)
++					executor.after = order
++					summary, err := Explore(context.Background(), config)
++					observed, projection := observeRetention(t, summary, err)
++					if !reflect.DeepEqual(observed, want) {
++						t.Fatalf("retention = %#v, want %#v", observed, want)
++					}
++					projections = append(projections, projection)
++				}
++				if !bytes.Equal(projections[0], projections[1]) {
++					t.Fatalf("projection depends on completion order:\n%s\n%s", projections[0], projections[1])
++				}
++				t.Logf("fixed-identity projection: %s", projections[0])
++			})
++		}
++	}
++}
++
++const retentionExhausted = "successful-execution retention capacity is exhausted"
++
++// A used-up success bound fails the campaign as a capacity failure and leaves
++// the kept successes where the strategy last committed them: the seed strategy
++// after every execution, the exploration strategies after every round.
++func TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy(t *testing.T) {
++	for _, strategy := range completionStrategies {
++		run := func(t *testing.T, parallel bool, configure func(*CampaignSpec)) (CampaignResult, retentionObservation) {
++			t.Helper()
++			config, executor := retentionCampaign(t, strategy, parallel, false)
++			keepSuccesses(&config, KeepSuccessesAll)
++			configure(&config)
++			executor.shape = rankProbes(t, probeA, probeA, probeB)
++			if parallel {
++				executor.after = reverseRankOrder(strategy)
++			}
++			summary, err := Explore(context.Background(), config)
++			observed, _ := observeRetention(t, summary, err)
++			return summary, observed
++		}
++		t.Run("count/"+string(strategy), func(t *testing.T) {
++			_, observed := run(t, false, func(config *CampaignSpec) { config.SuccessArtifactLimit = 1 })
++			want := retentionObservation{Reason: "success_retention_capacity", Cause: retentionExhausted, Counts: [5]uint64{2, 1, 0, 0, 1}, Runs: []string{"0 success/world_idle kept"}}
++			if strategy != StrategySeed {
++				want.Counts[0] = 1
++			}
++			if !reflect.DeepEqual(observed, want) {
++				t.Fatalf("retention = %#v, want %#v", observed, want)
++			}
++		})
++		// The third execution exhausts the bound after the second was kept. The
++		// seed strategy committed the second; the exploration strategies kept it
++		// in the round the third then failed.
++		t.Run("count inside a round/"+string(strategy), func(t *testing.T) {
++			_, observed := run(t, true, func(config *CampaignSpec) { config.SuccessArtifactLimit = 2 })
++			want := retentionObservation{Reason: "success_retention_capacity", Cause: retentionExhausted, Counts: [5]uint64{3, 2, 0, 0, 2}, Runs: []string{"0 success/world_idle kept", "1 success/world_idle kept"}}
++			if strategy != StrategySeed {
++				want.Counts, want.Runs = [5]uint64{1, 1, 0, 0, 1}, want.Runs[:1]
++			}
++			if !reflect.DeepEqual(observed, want) {
++				t.Fatalf("retention = %#v, want %#v", observed, want)
++			}
++		})
++		// The byte bound is the size of one kept success. A success of exactly
++		// that size uses the bound up, and the next one is rejected before it is
++		// published; a success of another size is rejected by the store, which
++		// is offered what the committed successes left of the bound.
++		t.Run("bytes/"+string(strategy), func(t *testing.T) {
++			measured, _ := run(t, false, func(*CampaignSpec) {})
++			if measured.RetainedSuccesses != 3 {
++				t.Fatalf("measured summary = %#v", measured)
++			}
++			limit := measured.RetainedSuccessBytes / 3
++			config, executor := retentionCampaign(t, strategy, false, false)
++			keepSuccesses(&config, KeepSuccessesAll)
++			config.SuccessBytesLimit = limit
++			executor.shape = rankProbes(t, probeA, probeA, probeB)
++			summary, err := Explore(context.Background(), config)
++			observed, _ := observeRetention(t, summary, err)
++			var capacity *artifact.CapacityError
++			switch {
++			case observed.Reason != "success_retention_capacity" || summary.RetainedSuccesses > 1:
++				t.Fatalf("retention = %#v, want a capacity failure at the first or second success", observed)
++			case summary.RetainedSuccessBytes == limit:
++				if observed.Cause != retentionExhausted {
++					t.Fatalf("retention = %#v, want the used-up bound rejected before publication", observed)
++				}
++			case !errors.As(err, &capacity) || capacity.Maximum != limit-summary.RetainedSuccessBytes:
++				t.Fatalf("retention = %#v with %d of %d bytes kept, want the store offered the remaining bytes", observed, summary.RetainedSuccessBytes, limit)
++			}
++		})
++	}
++}
++
++// replaceWithFile makes a store root unusable until the returned function
++// puts it back.
++func replaceWithFile(t *testing.T, root string) func() {
++	t.Helper()
++	held := root + ".held"
++	existed := true
++	if err := os.Rename(root, held); os.IsNotExist(err) {
++		existed = false
++	} else if err != nil {
++		t.Error(err)
++	}
++	if err := os.WriteFile(root, nil, 0o600); err != nil {
++		t.Error(err)
++	}
++	return func() {
++		if err := os.Remove(root); err != nil {
++			t.Fatal(err)
++		}
++		if existed {
++			if err := os.Rename(held, root); err != nil {
++				t.Fatal(err)
++			}
++		}
++	}
++}
++
++// A campaign that fails or is cancelled while it retains a success leaves the
++// counters and the novelty it judges later executions by where the strategy
++// last committed them, and resuming it retains what an uninterrupted campaign
++// retains.
++func TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState(t *testing.T) {
++	const incomplete = "retained success requires a complete I/O transcript for exact replay"
++	seedAndExploration := func(seed, exploration retentionObservation) map[Strategy]retentionObservation {
++		return map[Strategy]retentionObservation{StrategySeed: seed, StrategyChoiceExploration: exploration, StrategySimulationExploration: exploration}
++	}
++	everyStrategy := func(observed retentionObservation) map[Strategy]retentionObservation {
++		return seedAndExploration(observed, observed)
++	}
++	for _, test := range []struct {
++		name     string
++		policy   KeepSuccesses
++		probes   [3]string
++		parallel bool
++		// incomplete is the rank whose transcript is incomplete, blocked the
++		// rank that finds its success store unusable and cancelled the rank
++		// that cancels the campaign; each is off at 3.
++		incomplete, blocked, cancelled uint64
++		interrupted                    map[Strategy]retentionObservation
++		resumed                        map[Strategy]retentionObservation
++	}{
++		{
++			// The second execution is kept before the third fails. The seed
++			// strategy has committed it; the exploration strategies kept it in
++			// the round that then failed, and keep it again on resume.
++			name: "incomplete transcript behind a kept success", policy: KeepSuccessesNovel, probes: [3]string{probeA, probeB, probeC},
++			parallel: true, incomplete: 2, blocked: 3, cancelled: 3,
++			interrupted: seedAndExploration(
++				retentionObservation{Reason: "success_artifact_publication", Cause: incomplete, Counts: [5]uint64{3, 2, 0, 0, 2}, Runs: []string{"0 success/world_idle kept novel=" + probeA, "1 success/world_idle kept novel=" + probeB}},
++				retentionObservation{Reason: "success_artifact_publication", Cause: incomplete, Counts: [5]uint64{1, 1, 0, 0, 1}, Runs: []string{"0 success/world_idle kept novel=" + probeA}},
++			),
++			resumed: everyStrategy(retentionObservation{Counts: [5]uint64{3, 3, 0, 0, 3}, Runs: []string{"0 success/world_idle kept novel=" + probeA, "1 success/world_idle kept novel=" + probeB, "2 success/world_idle kept novel=" + probeC}}),
++		},
++		{
++			// The second execution fails to retain the probe the third repeats.
++			// The seed strategy has the third completed beside it, still finds
++			// its probe novel and journals it; the resumed second execution then
++			// repeats a committed probe. The exploration strategies rerun the
++			// round in order.
++			name: "incomplete transcript ahead of its repeat", policy: KeepSuccessesNovel, probes: [3]string{probeA, probeB, probeB},
++			parallel: true, incomplete: 1, blocked: 3, cancelled: 3,
++			interrupted: seedAndExploration(
++				retentionObservation{Reason: "success_artifact_publication", Cause: incomplete, Counts: [5]uint64{3, 1, 0, 0, 2}, Runs: []string{"0 success/world_idle kept novel=" + probeA, "2 success/world_idle kept novel=" + probeB}},
++				retentionObservation{Reason: "success_artifact_publication", Cause: incomplete, Counts: [5]uint64{1, 1, 0, 0, 1}, Runs: []string{"0 success/world_idle kept novel=" + probeA}},
++			),
++			resumed: seedAndExploration(
++				retentionObservation{Counts: [5]uint64{3, 3, 0, 0, 2}, Runs: []string{"0 success/world_idle kept novel=" + probeA, "2 success/world_idle kept novel=" + probeB, "1 success/world_idle"}},
++				retentionObservation{Counts: [5]uint64{3, 3, 0, 0, 2}, Runs: []string{"0 success/world_idle kept novel=" + probeA, "1 success/world_idle kept novel=" + probeB, "2 success/world_idle"}},
++			),
++		},
++		{
++			name: "unusable success store", policy: KeepSuccessesAll, probes: [3]string{probeA, probeA, probeB},
++			incomplete: 3, blocked: 1, cancelled: 3,
++			interrupted: seedAndExploration(
++				retentionObservation{Reason: "success_artifact_publication", Counts: [5]uint64{2, 1, 0, 0, 1}, Runs: []string{"0 success/world_idle kept"}},
++				retentionObservation{Reason: "success_artifact_publication", Counts: [5]uint64{1, 1, 0, 0, 1}, Runs: []string{"0 success/world_idle kept"}},
++			),
++			resumed: everyStrategy(retentionObservation{Counts: [5]uint64{3, 3, 0, 0, 3}, Runs: []string{"0 success/world_idle kept", "1 success/world_idle kept", "2 success/world_idle kept"}}),
++		},
++		{
++			name: "cancellation", policy: KeepSuccessesNovel, probes: [3]string{probeA, probeB, probeB},
++			incomplete: 3, blocked: 3, cancelled: 2,
++			interrupted: seedAndExploration(
++				retentionObservation{Reason: "cancelled", Cause: "context canceled", Counts: [5]uint64{3, 2, 0, 0, 2}, Runs: []string{"0 success/world_idle kept novel=" + probeA, "1 success/world_idle kept novel=" + probeB}},
++				retentionObservation{Reason: "cancelled", Cause: "context canceled", Counts: [5]uint64{2, 2, 0, 0, 2}, Runs: []string{"0 success/world_idle kept novel=" + probeA, "1 success/world_idle kept novel=" + probeB}},
++			),
++			resumed: everyStrategy(retentionObservation{Counts: [5]uint64{3, 3, 0, 0, 2}, Runs: []string{"0 success/world_idle kept novel=" + probeA, "1 success/world_idle kept novel=" + probeB, "2 success/world_idle"}}),
++		},
++	} {
++		for _, strategy := range completionStrategies {
++			t.Run(test.name+"/"+string(strategy), func(t *testing.T) {
++				config, executor := retentionCampaign(t, strategy, test.parallel, false)
++				keepSuccesses(&config, test.policy)
++				shape := rankProbes(t, test.probes[:]...)
++				executor.shape = func(rank uint64, result *execution.Result) {
++					shape(rank, result)
++					result.IOTranscript.Complete = rank != test.incomplete
++				}
++				if test.parallel {
++					executor.after = reverseRankOrder(strategy)
++				}
++				restore := func() {}
++				executor.before = func(rank uint64) {
++					if rank != test.blocked {
++						return
++					}
++					pattern := filepath.Join(config.Artifacts, "v1", "*", "successes")
++					if strategy != StrategySeed {
++						pattern = filepath.Join(config.Artifacts, "v1", "*", ".partial", string(strategy), fmt.Sprintf("%020d", rank), "successes")
++					}
++					roots, err := filepath.Glob(filepath.Dir(pattern))
++					if err != nil || len(roots) != 1 {
++						t.Errorf("success store parents = %v, %v", roots, err)
++						return
++					}
++					restore = replaceWithFile(t, filepath.Join(roots[0], "successes"))
++				}
++				ctx, cancel := context.WithCancel(context.Background())
++				defer cancel()
++				if test.cancelled < 3 {
++					executor.interrupt, executor.interruptAt = cancel, test.cancelled
++					config.TerminateGrace = 10 * time.Millisecond
++				}
++				partial, err := Explore(ctx, config)
++				restore()
++				observed, _ := observeRetention(t, partial, err)
++				if test.blocked < 3 {
++					// The store's diagnostic names the campaign directory.
++					observed.Cause = ""
++				}
++				if want := test.interrupted[strategy]; !reflect.DeepEqual(observed, want) {
++					t.Fatalf("interrupted retention = %#v, want %#v", observed, want)
++				}
++				resumed, err := resumeRetentionCampaign(t, config, partial.CampaignPath, shape)
++				observed, projection := observeRetention(t, resumed, err)
++				if want := test.resumed[strategy]; !reflect.DeepEqual(observed, want) {
++					t.Fatalf("resumed retention = %#v, want %#v", observed, want)
++				}
++				t.Logf("fixed-identity projection: %s", projection)
++			})
++		}
++	}
++}
++
++// replayRecorder replays a guided corpus case as its test directs and records
++// what the corpus held when the replay was requested.
++type replayRecorder struct {
++	t        *testing.T
++	corpus   string
++	result   ReplayResult
++	err      error
++	calls    int
++	indexed  bool
++	manifest record.ExecutionRecord
++}
++
++func (replayer *replayRecorder) Replay(_ context.Context, config ReplaySpec) (ReplayResult, error) {
++	replayer.calls++
++	opened, err := artifact.OpenArtifact(config.ArtifactPath)
++	if err != nil {
++		replayer.t.Errorf("guided corpus case was not published before its replay: %v", err)
++		return ReplayResult{}, err
++	}
++	defer opened.Close()
++	replayer.manifest = opened.Manifest
++	if _, err := os.Stat(filepath.Join(replayer.corpus, "corpus.json")); !os.IsNotExist(err) {
++		replayer.indexed = true
++	}
++	return replayer.result, replayer.err
++}
++
++// A guided campaign publishes a completion as a corpus case, replays it, and
++// advances the corpus index only when the replay was exact. A case that is not
++// replayable is not offered, and a case whose replay fails is discarded.
++func TestGuidedAdmissionReplaysBeforeTheCorpusAdvances(t *testing.T) {
++	type admission struct {
++		Reason  string
++		Replays int
++		Added   uint64
++		Entries uint64
++		Indexed bool
++		Cases   int
++	}
++	for _, test := range []struct {
++		name     string
++		complete bool
++		result   ReplayResult
++		err      error
++		want     admission
++	}{
++		{name: "exact replay", complete: true, result: ReplayResult{Verified: true, Match: true}, want: admission{Replays: 1, Added: 1, Entries: 1, Indexed: true, Cases: 1}},
++		{name: "diverged replay", complete: true, result: ReplayResult{Verified: true, Divergence: "stdout"}, want: admission{Reason: "guided_corpus", Replays: 1}},
++		{name: "unverified replay", complete: true, result: ReplayResult{Match: true}, want: admission{Reason: "guided_corpus", Replays: 1}},
++		{name: "failed replay", complete: true, err: errors.New("replay is unavailable"), want: admission{Reason: "guided_corpus", Replays: 1}},
++		{name: "incomplete transcript", want: admission{}},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			replayer := &replayRecorder{t: t, corpus: filepath.Join(t.TempDir(), "corpus"), result: test.result, err: test.err}
++			executor := &fakeExecutor{result: func(uint64) execution.Result {
++				result := processResult(0, "", "")
++				result.IOTranscript = semanticTranscript(t, probeA)
++				result.IOTranscript.Complete = test.complete
++				return result
++			}}
++			config := testConfig(t, newFakePreparer(t), executor, "1", PolicyAll, 1)
++			config.Coverage = CoverageSemantic
++			config.Guide = true
++			config.Corpus = replayer.corpus
++			config.Replayer = replayer
++			summary, err := Explore(context.Background(), config)
++			observed := admission{Replays: replayer.calls, Added: summary.CorpusAdded, Entries: summary.CorpusEntries}
++			var hostError *HostError
++			if errors.As(err, &hostError) {
++				observed.Reason = hostError.Reason
++			} else if err != nil {
++				t.Fatal(err)
++			}
++			if replayer.indexed {
++				t.Fatal("the corpus index advanced before the replay")
++			}
++			if _, err := os.Stat(filepath.Join(replayer.corpus, "corpus.json")); err == nil {
++				observed.Indexed = true
++			}
++			cases, err := os.ReadDir(filepath.Join(replayer.corpus, "cases"))
++			if err != nil {
++				t.Fatal(err)
++			}
++			observed.Cases = len(cases)
++			if observed != test.want {
++				t.Fatalf("admission = %#v, want %#v", observed, test.want)
++			}
++			if observed.Added == 1 {
++				manifest := replayer.manifest
++				manifest.CampaignID, manifest.CreatedAt, manifest.RecordHash, manifest.Host = "", "", "", record.Host{}
++				encoded, err := canonicaljson.CanonicalJSON(manifest)
++				if err != nil {
++					t.Fatal(err)
++				}
++				t.Logf("fixed-identity projection: %s", encoded)
++			}
++		})
++	}
++}
++
++// pairedExecutor holds every execution until a second one runs beside it, so a
++// campaign that runs two executions at a time is observed at exactly that
++// width. Every execution returns the same bounded payload.
++type pairedExecutor struct {
++	mu            sync.Mutex
++	waiting       chan struct{}
++	active        int
++	maximumActive int
++}
++
++func (executor *pairedExecutor) Run(ctx context.Context, _ execution.Spec) (execution.Result, error) {
++	executor.mu.Lock()
++	executor.active++
++	executor.maximumActive = max(executor.maximumActive, executor.active)
++	partner, own := executor.waiting, chan struct{}(nil)
++	if partner != nil {
++		executor.waiting = nil
++		close(partner)
++	} else {
++		own = make(chan struct{})
++		executor.waiting = own
++	}
++	executor.mu.Unlock()
++	result := processResult(0, "payload", "")
++	result.IOTranscript = completeEmptyTranscript()
++	if own != nil {
++		select {
++		case <-own:
++		case <-ctx.Done():
++			result.Cancelled = true
++			result.Termination = execution.TerminationSignal
++			result.Signal = "killed"
++		}
++	}
++	executor.mu.Lock()
++	executor.active--
++	executor.mu.Unlock()
++	return result, nil
++}
++
++// The number of selected seeds changes neither how many executions run at once
++// nor where a fixed success bound stops the campaign: at the fourth success,
++// with the fifth execution already started beside it.
++func TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs(t *testing.T) {
++	type bounded struct {
++		Reason        string
++		Attempted     uint64
++		Retained      uint64
++		MaximumActive int
++	}
++	run := func(t *testing.T, jobs uint64, configure func(*CampaignSpec)) (CampaignResult, bounded) {
++		t.Helper()
++		executor := &pairedExecutor{}
++		config := testConfig(t, newFakePreparer(t), executor, fmt.Sprintf("1-%d", jobs), PolicyAll, 2)
++		configure(&config)
++		summary, err := Explore(context.Background(), config)
++		observed := bounded{Attempted: summary.Attempted, Retained: summary.RetainedSuccesses, MaximumActive: executor.maximumActive}
++		var hostError *HostError
++		if errors.As(err, &hostError) {
++			observed.Reason = hostError.Reason
++		} else if err != nil {
++			t.Fatal(err)
++		}
++		return summary, observed
++	}
++	measured, _ := run(t, 2, func(config *CampaignSpec) { keepSuccesses(config, KeepSuccessesAll) })
++	if measured.RetainedSuccesses != 2 {
++		t.Fatalf("measured summary = %#v", measured)
++	}
++	threeAndAHalf := measured.RetainedSuccessBytes / 2 * 7 / 2
++	for _, jobs := range []uint64{10, 100} {
++		for _, test := range []struct {
++			name      string
++			configure func(*CampaignSpec)
++			want      bounded
++		}{
++			{name: "discard", configure: func(config *CampaignSpec) { keepSuccesses(config, KeepSuccessesNone) }, want: bounded{Attempted: jobs, MaximumActive: 2}},
++			{
++				name: "success count",
++				configure: func(config *CampaignSpec) {
++					keepSuccesses(config, KeepSuccessesAll)
++					config.SuccessArtifactLimit = 3
++				},
++				want: bounded{Reason: "success_retention_capacity", Attempted: 5, Retained: 3, MaximumActive: 2},
++			},
++			{
++				name: "success bytes",
++				configure: func(config *CampaignSpec) {
++					keepSuccesses(config, KeepSuccessesAll)
++					config.SuccessArtifactLimit = 1000
++					config.SuccessBytesLimit = threeAndAHalf
++				},
++				want: bounded{Reason: "success_retention_capacity", Attempted: 5, Retained: 3, MaximumActive: 2},
++			},
++		} {
++			t.Run(fmt.Sprintf("%d jobs/%s", jobs, test.name), func(t *testing.T) {
++				if _, observed := run(t, jobs, test.configure); observed != test.want {
++					t.Fatalf("bounded campaign = %#v, want %#v", observed, test.want)
++				}
++			})
++		}
++	}
++}
