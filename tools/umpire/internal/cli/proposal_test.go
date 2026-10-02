@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/common/testing/testpilot/publish"
 )
 
 // resolvedTemp is a temporary directory with its symlinks resolved, as the writer reports paths:
@@ -20,7 +21,7 @@ func resolvedTemp(t *testing.T) string {
 // Every path is checked before any write: one that leaves the root writes nothing.
 func TestWriteProposalsChecksEveryPathFirst(t *testing.T) {
 	root := filepath.Join(resolvedTemp(t), "proposals")
-	written, err := WriteProposals(root, []Proposal{
+	written, err := publish.WriteProposals(root, []publish.Proposal{
 		{Candidate: "a", Path: "set-a.lean", Source: "a"},
 		{Candidate: "b", Path: "../escaped.lean", Source: "b"},
 	})
@@ -28,14 +29,14 @@ func TestWriteProposalsChecksEveryPathFirst(t *testing.T) {
 	require.Empty(t, written)
 	require.NoDirExists(t, root)
 
-	written, err = WriteProposals(root, []Proposal{{Candidate: "a", Path: "set-a.lean", Source: "a"}})
+	written, err = publish.WriteProposals(root, []publish.Proposal{{Candidate: "a", Path: "set-a.lean", Source: "a"}})
 	require.NoError(t, err)
 	require.Equal(t, map[string]string{"a": filepath.Join(root, "set-a.lean")}, written)
 	source, err := os.ReadFile(written["a"])
 	require.NoError(t, err)
 	require.Equal(t, "a", string(source))
 
-	written, err = WriteProposals("", []Proposal{{Candidate: "a", Path: "set-a.lean"}})
+	written, err = publish.WriteProposals("", []publish.Proposal{{Candidate: "a", Path: "set-a.lean"}})
 	require.NoError(t, err)
 	require.Empty(t, written, "no root, nothing written")
 }
@@ -44,7 +45,7 @@ func TestWriteProposalsChecksEveryPathFirst(t *testing.T) {
 func TestWriteProposalsNeverReplacesAFile(t *testing.T) {
 	root := resolvedTemp(t)
 	require.NoError(t, os.WriteFile(filepath.Join(root, "set-a.lean"), []byte("reviewed"), 0o644))
-	written, err := WriteProposals(root, []Proposal{{Candidate: "a", Path: "set-a.lean", Source: "new"}})
+	written, err := publish.WriteProposals(root, []publish.Proposal{{Candidate: "a", Path: "set-a.lean", Source: "new"}})
 	require.ErrorIs(t, err, os.ErrExist)
 	require.Empty(t, written)
 	source, err := os.ReadFile(filepath.Join(root, "set-a.lean"))
@@ -69,12 +70,12 @@ func TestProposalRootsResolveSymlinks(t *testing.T) {
 	root := filepath.Join(base, "proposals")
 	require.NoError(t, os.MkdirAll(root, 0o755))
 	require.NoError(t, os.Symlink(model, filepath.Join(root, "into-model")))
-	written, err := WriteProposals(root, []Proposal{{Candidate: "a", Path: "into-model/set-a.lean", Source: "a"}})
+	written, err := publish.WriteProposals(root, []publish.Proposal{{Candidate: "a", Path: "into-model/set-a.lean", Source: "a"}})
 	require.ErrorContains(t, err, "resolves outside the promotion root")
 	require.Empty(t, written)
 	require.NoFileExists(t, filepath.Join(model, "set-a.lean"))
 	// A nested path through the symlink creates nothing on its far side.
-	_, err = WriteProposals(root, []Proposal{{Candidate: "b", Path: "into-model/sub/set-b.lean", Source: "b"}})
+	_, err = publish.WriteProposals(root, []publish.Proposal{{Candidate: "b", Path: "into-model/sub/set-b.lean", Source: "b"}})
 	require.ErrorContains(t, err, "resolves outside the promotion root")
 	require.NoDirExists(t, filepath.Join(model, "sub"))
 }

@@ -26,11 +26,10 @@ Split the TASTy lifter through a shared typed context. Implements R2, R19 using 
 - `model/scalav2/lifter/Lift.scala:1964`
 
 ### Quick commands
-The renamed model check command from task 1; make lint-scala; the semantic golden test
+The renamed model check command from task 1; make lint-model; the semantic golden test
 
 ### Execution constraints
 Preserve the authorized uncommitted baseline and comments except the explicit R25 historical-attribution change. No staging, commits, worktrees or recursive deletion. Once task 2 exists, run the complete golden verification after every task. Resolve task-1 map choices before using projected destination names; capture any change in the map and downstream task briefs before work.
-
 ## Acceptance
 - [ ] Lifter entrypoint and concern modules share one typed context and preserve the admitted language and diagnostic locations.
 - [ ] Every selected and fixture lift is unchanged relative to the post-relocation baseline; refusal checks still fail for the intended reasons.

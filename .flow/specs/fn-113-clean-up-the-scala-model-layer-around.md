@@ -26,7 +26,7 @@ The spec has four parts. Each is independent unless the order below says otherwi
 
 | Part | What it does | Depends on |
 | --- | --- | --- |
-| A. Dead code | Delete `Canonical.scala`, `Lower.scala` and the `Alterer` plumbing | nothing |
+| A. Dead code | Delivered early by fn-115.7 after relocation: delete unused `Canonical.scala`, `Lower.scala` and `Alterer` plumbing; this spec verifies R1 against that result | fn-115.6 |
 | B. ScalaPB | Replace protobuf-java in the lifter and in the gate's IR class generation | nothing |
 | C. One evaluator | Retire the native Scala evaluator, after its tests are covered on the IR | A |
 | D. Lean and Stainless residue | Fold the Nexus kernel into ordinary Scala, drop Lean-mirroring code and citations | C |

@@ -8,8 +8,8 @@ import (
 
 	_ "go.temporal.io/api/workflowservice/v1"
 	modelirspb "go.temporal.io/server/api/modelir/v1"
-	"go.temporal.io/server/model/scalav2/explore"
-	"go.temporal.io/server/model/scalav2/goir"
+	"go.temporal.io/server/tools/umpire/explore"
+	umpiremodel "go.temporal.io/server/tools/umpire/model"
 )
 
 func main() {
@@ -32,7 +32,7 @@ func run() error {
 		return err
 	}
 	if len(os.Args) != 1 {
-		return errors.New("usage: umpire-ir-bridge [proposal <regression.json>]; bridge runs in model/scalav2")
+		return errors.New("usage: umpire-ir-bridge [proposal <regression.json>]; bridge runs in model")
 	}
 	paths, err := filepath.Glob("ir/*.json")
 	if err != nil {
@@ -43,7 +43,7 @@ func run() error {
 	}
 	var models []*modelirspb.Model
 	for _, path := range paths {
-		m, err := goir.Load(path)
+		m, err := umpiremodel.Load(path)
 		if err != nil {
 			return err
 		}

@@ -10,7 +10,8 @@ import (
 	"os"
 	"time"
 
-	"go.temporal.io/server/tools/umpire/evaluation"
+	"go.temporal.io/server/common/testing/testpilot/evaluation"
+	"go.temporal.io/server/common/testing/testpilot/publish"
 	"go.temporal.io/server/tools/umpire/internal/cli"
 )
 
@@ -27,7 +28,7 @@ const (
 // an interrupt there simply ends the process with nothing published.
 const assessTimeout = time.Minute
 
-const defaultModelRoot = "model/lean"
+const defaultModelRoot = "model"
 
 // The summary statuses beyond the three decisions, each its own named failure.
 const (
@@ -61,7 +62,7 @@ type environment struct {
 	Catalog func() (string, error)
 	Context func() (context.Context, context.CancelFunc)
 	Decode  func([]byte) (*evaluation.Receipt, error)
-	Publish func(ctx context.Context, root, name string, contents []byte) (cli.Publication, error)
+	Publish func(ctx context.Context, root, name string, contents []byte) (publish.Publication, error)
 }
 
 // summary is the one JSON document on stdout, in a fixed key order.
@@ -130,7 +131,7 @@ func Run(arguments []string, stdout, stderr io.Writer, env environment) int {
 	ctx, cancel := env.context()
 	defer cancel()
 	publication, err := env.publish(ctx, configuration.ReceiptRoot, identity+".json", rendered)
-	var conflict *cli.ConflictError
+	var conflict *publish.ConflictError
 	switch {
 	case errors.As(err, &conflict):
 		return report(stdout, stderr, summary{Status: statusPublicationConflict, Receipt: identity, Path: conflict.Path, Detail: conflict.Detail}, exitFailed)
@@ -164,11 +165,11 @@ func (env environment) decode(rendered []byte) (*evaluation.Receipt, error) {
 	return evaluation.DecodeReceipt(rendered)
 }
 
-func (env environment) publish(ctx context.Context, root, name string, contents []byte) (cli.Publication, error) {
+func (env environment) publish(ctx context.Context, root, name string, contents []byte) (publish.Publication, error) {
 	if env.Publish != nil {
 		return env.Publish(ctx, root, name, contents)
 	}
-	return cli.Publish(ctx, root, name, contents)
+	return publish.Publish(ctx, root, name, contents)
 }
 
 func exitCode(outcome string) int {

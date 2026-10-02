@@ -10,7 +10,7 @@
 .coverage
 .testoutput
 testdata/
-!/model/lean/Temporal/Feature/Nexus/Experimental/testdata/
+!/model0/lean/Temporal/Feature/Nexus/Experimental/testdata/
 !/tools/umpire/testdata/
 !/tools/umpire/testdata/**
 !/tools/umpire/**/testdata/
@@ -56,7 +56,7 @@ testdata/
 /dist
 
 # Lake build output for the offline Lean model
-/model/lean/.lake/
+/model0/lean/.lake/
 /tools/common/formal/.lake/
 
 # direnv
@@ -83,9 +83,16 @@ testdata/
 # (os.CreateTemp, so the name carries a random suffix); a run that overlaps a commit must not add it.
 tools/umpire/cmd/*/zz_*_helper_*.go
 
-!model/scalav2/goir/testdata/
-!model/scalav2/goir/testdata/migration/
-!model/scalav2/goir/testdata/migration/**
-!model/scalav2/goir/testpilot/testdata/
-!model/scalav2/goir/testpilot/testdata/migration/
-!model/scalav2/goir/testpilot/testdata/migration/**
+!tools/umpire/model/testdata/
+!tools/umpire/model/testdata/migration/
+!tools/umpire/model/testdata/migration/**
+!tools/umpire/lower/testdata/
+!tools/umpire/lower/testdata/migration/
+!tools/umpire/lower/testdata/migration/**
+
+!/tools/umpire0/**/testdata/
+!/tools/umpire0/**/testdata/**
+!/model0/**/testdata/
+!/model0/**/testdata/**
+!/model/lifter/testdata/
+!/model/lifter/testdata/**

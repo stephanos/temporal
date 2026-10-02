@@ -155,7 +155,7 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
      Codex budget returned; between 2026-09-09 and 2026-09-27 reviews ran on the
      same-family `claude` backend, whose receipts say `mode: "claude"`. -->
 
-reviewer: gpt-6.1-sol at high
+reviewer: claude-fable-5-1 at high
 
 <!-- implementer: <model> at <effort> - work handed to another harness (plan
      here, implement cheaper or faster there). Absent = the session model
@@ -168,12 +168,12 @@ reviewer: gpt-6.1-sol at high
      task, such as an equivalence or agreement theorem; routine tasks stay on
      opus, which is 2.5x cheaper and much faster. -->
 
-implementer: gpt-6-astra at high
+implementer: claude-opus-5-5 at high
 
 <!-- fast scout: <model> - mechanical inventory scanning, where
      the cheapest tier is the correct one. -->
 
-fast scout: gpt-6-luna
+fast scout: claude-haiku-4-5-20251001
 
 <!-- thinking scout: <model> - analysis that degrades badly on a
      fast tier. -->
@@ -183,7 +183,7 @@ fast scout: gpt-6-luna
      later as rework in implementation. Reviews stay on the cross-family
      reviewer above, never on this tier. -->
 
-thinking scout: gpt-6-astra at high
+thinking scout: claude-opus-5-5 at high
 
 <!-- Unset is the default and the doctrine: planning, capture, interview,
      requirement analysis, every verdict, and the worker run on the session

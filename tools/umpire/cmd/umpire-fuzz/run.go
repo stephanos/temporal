@@ -12,11 +12,12 @@ import (
 	"strings"
 	"time"
 
-	"go.temporal.io/server/tools/umpire/binding"
-	"go.temporal.io/server/tools/umpire/campaign"
-	"go.temporal.io/server/tools/umpire/internal/casefile"
+	"go.temporal.io/server/common/testing/testpilot/campaign"
+	"go.temporal.io/server/common/testing/testpilot/casefile"
+	"go.temporal.io/server/common/testing/testpilot/publish"
+	"go.temporal.io/server/common/testing/testpilot/recordedrun"
+	"go.temporal.io/server/common/testing/testpilot/temporal/binding"
 	"go.temporal.io/server/tools/umpire/internal/cli"
-	"go.temporal.io/server/tools/umpire/replay"
 )
 
 // Exit codes. A counterexample or violated coverage outranks a stop or a cap, because the finding
@@ -32,9 +33,9 @@ const (
 const (
 	defaultTimeout    = 30 * time.Minute
 	defaultRunTimeout = 5 * time.Minute
-	defaultModelRoot  = "model/lean"
+	defaultModelRoot  = "model"
 	// The bridge the model package builds, relative to the model root.
-	bridgeRelativePath = ".lake/build/bin/umpire-explore"
+	bridgeRelativePath = "../.build/umpire-ir-bridge"
 	// minimumReportBytes is the floor a report cap cannot go below: the terminal-only summary
 	// (status, set, Profile, machine, budget, Limits, counters, coverage counts and the
 	// counterexamples by identity) is always written in full, so a cap under it could only be met by truncation, which is never
@@ -278,7 +279,7 @@ func recorder(configuration config) campaign.Recorder {
 		if err := file.Close(); err != nil {
 			return err
 		}
-		return replay.WriteRecordedRun(stem+"-run.json", compact, record.Driver, record.Run)
+		return recordedrun.Write(stem+"-run.json", compact, record.Driver, record.Run)
 	}
 }
 
@@ -289,14 +290,14 @@ func writeProposals(root string, finished *campaign.Finished) (map[string]string
 	if root == "" || finished == nil {
 		return nil, nil
 	}
-	var proposals []cli.Proposal
+	var proposals []publish.Proposal
 	for _, sample := range finished.Counterexamples {
 		if sample.PromotionSourceSHA256 == nil || sample.PromotionSourcePath == "" {
 			continue
 		}
-		proposals = append(proposals, cli.Proposal{Candidate: sample.Candidate, Path: sample.PromotionSourcePath, Source: sample.PromotionSource})
+		proposals = append(proposals, publish.Proposal{Candidate: sample.Candidate, Path: sample.PromotionSourcePath, Source: sample.PromotionSource})
 	}
-	return cli.WriteProposals(root, proposals)
+	return publish.WriteProposals(root, proposals)
 }
 
 // render is the canonical summary: one JSON document, keys in declaration order, one LF. The

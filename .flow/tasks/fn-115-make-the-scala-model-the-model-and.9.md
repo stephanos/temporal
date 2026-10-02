@@ -26,11 +26,10 @@ Rename and regenerate the Umpire IR namespace. Implements R2, R21 using the revi
 - `Makefile`
 
 ### Quick commands
-make proto; the renamed model generation/check commands; CC=/usr/bin/clang mise exec -- go test -tags test_dep ./tools/umpire/...; make lint-scala; make lint-code-fast
+make proto; the renamed model generation/check commands; CC=/usr/bin/clang mise exec -- go test -tags test_dep ./tools/umpire/...; make lint-model; make lint-code-fast
 
 ### Execution constraints
 Preserve the authorized uncommitted baseline and comments except the explicit R25 historical-attribution change. No staging, commits, worktrees or recursive deletion. Once task 2 exists, run the complete golden verification after every task. Resolve task-1 map choices before using projected destination names; capture any change in the map and downstream task briefs before work.
-
 ## Acceptance
 - [ ] Live proto/Go/generated JVM classes use umpire/v1, with regenerated owners and complete import/packaging updates.
 - [ ] Descriptor structure and representative wire bytes remain compatible; stale schema-generated jars are invalidated.

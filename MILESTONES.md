@@ -13,6 +13,32 @@ As of 2026-10-02.
   spec) and remove it from this page.
 - Update the "As of" date with every edit.
 
+## Verification instructions for agents
+
+Apply these instructions when implementing the milestones:
+
+- Reuse the previous task's passing baseline when its commands, source scope, fixtures and
+  environment still apply. Inspect its recorded evidence; a new task or agent is not a reason to
+  rerun it. Changes to relevant inputs invalidate the affected results.
+- During implementation, run the smallest tests that exercise the changed behavior and its failure
+  modes. Once ready for review, run the task's required full tests, goldens, lint and dependency
+  checks once. After a fix, repeat affected checks; repeat broader gates only when the change or
+  failure invalidates their results. Preserve all required coverage and acceptance criteria.
+- Give reviewers the source scope, commands, results and log paths from that run. Reviewers inspect
+  this evidence and request an additional check only for a concrete unresolved concern. Resume the
+  same review after fixes, with the changed code and relevant new results.
+- Measure the next already-required full Go test run with `-json`, retaining its exit status and
+  output in the task's `.flow/tmp/` directory. Use test completion events to identify slow tests;
+  package times overlap and must not be summed as wall time. Record elapsed wall time separately.
+  Keep a running process running; add instrumentation to the next run instead of restarting it.
+- Optimize measured bottlenecks, starting with duplicated model construction or golden decoding
+  if the timings implicate them. Preserve independent assertions and immutable fixtures; shared
+  test setup must not leak mutable state. Compare timings on equivalent inputs before claiming a
+  speedup. Do not add a profiling or caching framework without evidence it is needed.
+- Keep handovers concise and link existing evidence. Add audits, inventories or verification gates
+  only for an explicit requirement or a concrete uncovered risk. Move to the next implementation
+  task once the required checks and review pass.
+
 ## Direction
 
 The Scala model (`model/scalav2`) is the model. Lean is the past, and nothing has to look like it.
@@ -27,11 +53,14 @@ layer, then the Models.
 
 ## Planned
 
-fn-115 has nine tasks remaining. The reviewed module map, ownership audit and immutable semantic
+fn-115 has eight tasks remaining. The reviewed module map, ownership audit and immutable semantic
 goldens are recorded; legacy oracle comparisons now use those goldens and producer-neutral runtime
-helpers live in Testpilot. The checker and producer are being copied behind the reader interface.
+helpers live in Testpilot. The checker and producer now live behind the reader/lowering interfaces.
+The directory migration and archive isolation are in progress.
 The later specs have no tasks yet.
-Each starts after the spec it waits for closes; Flow records the dependencies.
+Each starts after the spec it waits for closes; Flow records the dependencies. The approved
+exception is fn-113 Part A: fn-115.7 removes its confirmed unused Scala code immediately after the
+directory migration. Dependency enforcement and obsolete build/CI cleanup accompany that migration.
 
 | Order | Spec | In one line | Waits for |
 | --- | --- | --- | --- |
@@ -76,7 +105,7 @@ Scala-generated. The 1,411 semantic and artifact snapshots now provide the basel
 
 Scala declares, the lifter reads, Go evaluates. Four parts:
 
-- **A. Dead code.** Delete about 390 lines of the framework that have no caller: `Canonical.scala`,
+- **A. Dead code (pulled forward into fn-115.7).** Delete about 390 lines of the framework that have no caller: `Canonical.scala`,
   `Lower.scala` and the `Alterer` plumbing.
 - **B. ScalaPB.** Replace the protobuf-java builders in the lifter with ScalaPB case classes. Which
   ScalaPB release fits Scala 3.9.0 and the pinned protoc is unverified and is the first step.

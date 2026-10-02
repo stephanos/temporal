@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	testpilotcore "go.temporal.io/server/tests/testcore/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 )
 
 func mustHash(t *testing.T, signature Signature) string {
@@ -84,7 +84,7 @@ func TestSignatureOfReadsTheLineALiveTestLogs(t *testing.T) {
 		Verdict:     verdict,
 		Diagnostics: []*testpilotspb.RunDiagnostic{{Kind: testpilotspb.RUN_DIAGNOSTIC_KIND_EXECUTION, Code: "instruction-timeout"}},
 	}
-	line, err := testpilotcore.RunSignature("TestTestpilotNexusPairCase", "verdict status", run, verdict).Line()
+	line, err := recordedrun.RunSignature("TestTestpilotNexusPairCase", "verdict status", run, verdict).Line()
 	require.NoError(t, err)
 
 	signature := signatureOf("TestTestpilotNexusPairCase", []outputLine{

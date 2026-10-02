@@ -29,7 +29,6 @@ jobs:
         with:
           version: "2026.8.16"
           sha256: "cff4832ded79af2951e800bddcb5a22acac58630d765a2d062c1180680a0bb35"
-          working_directory: model/lean
           cache: false
       - name: Generate the API descriptor set the model build reads
         run: make proto/api.binpb
@@ -51,7 +50,6 @@ jobs:
         with:
           version: "2026.8.16"
           sha256: "cff4832ded79af2951e800bddcb5a22acac58630d765a2d062c1180680a0bb35"
-          working_directory: model/lean
           cache: false
       - name: Generate the API descriptor set the model build reads
         run: make proto/api.binpb
@@ -59,7 +57,7 @@ jobs:
         run: mise exec -- go test -count=1 -tags test_dep ./tools/canary/...
       - name: Run the canary harness build's tests
         run: mise exec -- go test -count=1 -tags 'test_dep canary_harness' ./tools/canary/testharness/
-      - name: Check the canary's pinned Case and rendered Profiles
-        run: make canary-check-case umpire-check-evaluation-profiles
-      - name: Check the model goldens, rendered afresh on this machine
-        run: make umpire-check-goldens
+      - name: Check the generated Cases
+        run: make umpire-check-cases
+      - name: Build the production canary
+        run: make canary-build

@@ -28,11 +28,10 @@ Document the live system and validate the complete migration. Implements R2, R6,
 - `MILESTONES.md`
 
 ### Quick commands
-The final model gate and deterministic --update comparison; make lint-scala; make lint-code; CC=/usr/bin/clang mise exec -- go build ./...; CC=/usr/bin/clang mise exec -- go vet ./...; CC=/usr/bin/clang mise exec -- go test -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/...; the complete previously live Testpilot set with -tags 'test_dep integration canary_harness'
+The final model gate and deterministic --update comparison; make lint-model; make lint-code; CC=/usr/bin/clang mise exec -- go build ./...; CC=/usr/bin/clang mise exec -- go vet ./...; CC=/usr/bin/clang mise exec -- go test -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/...; the complete previously live Testpilot set with -tags 'test_dep integration canary_harness'
 
 ### Execution constraints
 Preserve the authorized uncommitted baseline and comments except the explicit R25 historical-attribution change. No staging, commits, worktrees or recursive deletion. Once task 2 exists, run the complete golden verification after every task. Resolve task-1 map choices before using projected destination names; capture any change in the map and downstream task briefs before work.
-
 ## Acceptance
 - [ ] README-only independent reader correctly answers purpose, both IRs and how to run the gate; the worked Query reaches a real recorded Verdict with honest support limits.
 - [ ] Active docs and open specs resolve to the current map; archived and closed history is preserved, existing archive-document hashes match, and user model pins remain unchanged.

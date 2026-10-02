@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"go.temporal.io/server/common/testing/testpilot/publish"
 	"go.temporal.io/server/tools/umpire/internal/cli"
 )
 
@@ -42,7 +43,7 @@ const (
 // time, relative to the repository root; fingerprintBinaries are the Lean helpers they execute.
 var (
 	fingerprintRoots    = []string{"tests", "common/testing/testpilot", "tools/umpire"}
-	fingerprintBinaries = []string{"model/lean/.lake/build/bin/umpire-explore", "model/lean/.lake/build/bin/umpire-replay-bridge"}
+	fingerprintBinaries = []string{".build/umpire-ir-bridge"}
 )
 
 type config struct {
@@ -301,7 +302,7 @@ func fingerprintRootHolding(root, path string) string {
 	}
 	for _, candidate := range fingerprintRoots {
 		directory := filepath.Join(resolvedRoot, filepath.FromSlash(candidate))
-		if cli.Within(directory, path) {
+		if publish.Within(directory, path) {
 			return directory
 		}
 	}

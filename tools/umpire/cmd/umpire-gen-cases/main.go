@@ -6,15 +6,15 @@ import (
 	"os"
 
 	_ "go.temporal.io/api/workflowservice/v1"
-	"go.temporal.io/server/model/scalav2/goir/testpilot"
+	"go.temporal.io/server/tools/umpire/lower"
 )
 
 func main() {
 	update := flag.Bool("update", false, "rewrite generated Cases and manifest")
 	flag.Parse()
-	files, err := testpilot.GenerateCases("model/scalav2/ir")
+	files, err := lower.GenerateCases("model/ir")
 	if err == nil {
-		err = testpilot.SyncCases("model/scalav2/cases", files, *update)
+		err = lower.SyncCases("model/cases", files, *update)
 	}
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)

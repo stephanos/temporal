@@ -28,7 +28,7 @@ Enforce the final import graph and reconcile build, export and archive rules. Im
 - `.gitignore`
 
 ### Quick commands
-All remaining model/umpire targets from the map; CC=/usr/bin/clang mise exec -- go build ./...; CC=/usr/bin/clang mise exec -- go vet ./...; make lint-code; make lint-scala
+All remaining model/umpire targets from the map; CC=/usr/bin/clang mise exec -- go build ./...; CC=/usr/bin/clang mise exec -- go vet ./...; make lint-code; make lint-model
 
 ### Execution constraints
 Preserve the authorized uncommitted baseline and comments except the explicit R25 historical-attribution change. No staging, commits, worktrees or recursive deletion. Once task 2 exists, run the complete golden verification after every task. Resolve task-1 map choices before using projected destination names; capture any change in the map and downstream task briefs before work.

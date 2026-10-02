@@ -12,9 +12,9 @@ import (
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	"go.temporal.io/server/tools/umpire/binding"
+	"go.temporal.io/server/common/testing/testpilot/recordedrun"
+	"go.temporal.io/server/common/testing/testpilot/temporal/binding"
 	"go.temporal.io/server/tools/umpire/internal/cli"
-	"go.temporal.io/server/tools/umpire/replay"
 )
 
 // Exit codes. 3 is deliberately separate from 2 so a caller can tell an unreachable server or a
@@ -73,7 +73,7 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 		// The record names the Case by its canonical bytes' identity, which a fixture in no
 		// canonical form does not have; refusing it now keeps a Run from happening that its record
 		// would then lose.
-		if _, err := replay.CaseIdentity(encoded); err != nil {
+		if _, err := recordedrun.CaseIdentity(encoded); err != nil {
 			cli.WriteLine(stderr, "--record: Case fixture %q is not in a canonical form: %v", configuration.CasePath, err)
 			return exitFailed
 		}
@@ -110,7 +110,7 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 		// The Run is reported and its Verdict decides the exit code whatever happens to its
 		// record; a record that could not be written after all is said on stderr, since the path
 		// was checked before anything ran and only a race or the disk can fail it now.
-		if err := replay.WriteRecordedRun(configuration.RecordPath, encoded, bound.identity, run); err != nil {
+		if err := recordedrun.Write(configuration.RecordPath, encoded, bound.identity, run); err != nil {
 			cli.WriteLine(stderr, "%s", err)
 		}
 	}

@@ -114,29 +114,44 @@ lowerer tests using reader Queries and local realization conversion: retry/backo
 placement, and exact Produce/Preflight evidence-source rejection agreement. Keep their assertions
 and comments. No raw checker constructor is added to the reader for these tests.
 
-The synthetic job fixture alone requires one closed row permutation: the original order
-`idle-submit, queued-take, queued-drop, running-fail, waiting-settle, running-finish,
-running-check, running-close` becomes the reader’s state-major order
-`idle-submit, queued-take, queued-drop, running-fail, running-finish, running-check,
-running-close, waiting-settle` (original indexes `0,1,2,3,5,6,7,4`). Task 2 retains the
-original baseline unchanged. Task 5 requires these exact sequences and compares complete rows by
-key for this fixture transfer only. Result/fact order, domains, evidence, witnesses, Query answers,
-full Case bytes and fingerprints must stay unchanged. The only additional serialization adaptation
-is the two empty fact lists described below; any other difference stops the transfer.
-Production Model goldens remain strictly order-sensitive. The comparator may adapt only
-`oracles/job/{once,retried,closed}/table.json`: first require lossless decode/re-encode of each
-original table, exact original and approved actual row-key vectors, and complete per-key row
-equality including result/fact/evidence order, subject only to the following empty-list projection.
-The original `waiting-settle.results[0].facts` and `running-check.results[0].facts` are JSON
-`null`; reader construction initializes each empty fact list and therefore emits `[]`. Require
-exactly one result in each named row, original facts nil and actual facts non-nil with length zero,
-then project only those two expected fields to empty arrays in memory. Never alter nonempty facts,
-other nil lists, result order, or the interpreter. Only then permute the expected Rows array in the
-in-memory copy before the existing whole-inventory byte comparison. The immutable files and all
-other entries stay byte-strict. Negative checks reject other orders, missing/duplicate/unknown
-keys, changed row contents, unexpected null/empty conversions and nonempty or reordered facts.
-This exception adapts a test fixture constructor; it does not relax
-the interpreter or its production golden comparisons.
+The synthetic job fixture alone needs a closed representation projection. The initial row-only
+proposal assumed declaration-order actions; task-5 execution disproved that assumption because
+reader `classes` sorts action keys. Preserve the original baseline and interpreter. For exactly
+`oracles/job/{once,retried,closed}` use these original-to-reader sequences:
+
+| Field | Original | Admitted reader |
+| --- | --- | --- |
+| Actions (also the corresponding Definition IDs) | submit, take, fail, settle, finish, drop, check, close | check, close, drop, fail, finish, settle, submit, take |
+| Row keys | idle-submit, queued-take, queued-drop, running-fail, waiting-settle, running-finish, running-check, running-close | idle-submit, queued-drop, queued-take, running-check, running-close, running-fail, running-finish, waiting-settle |
+| Reachable | idle, queued, running, dropped, waiting, done | idle, queued, dropped, running, done, waiting |
+
+Require exact vectors, lossless original decode/re-encode, and complete per-key row equality. The
+only result projection is `waiting-settle.results[0].facts` and `running-check.results[0].facts`:
+require exactly one result in each named row, original nil and actual non-nil empty, and project
+those two expected fields to empty arrays in memory. All other result/fact/evidence ordering and
+contents remain exact. Project only these fields of expected `table.json` and the corresponding
+action-ID order in `ids.json`; never mutate reader outputs to imitate handwritten constructors.
+
+Query canonicalization hashes the ordered action domain, so this exact ordering also changes the
+Query's Case provenance fingerprint and the resulting Case identities. Permit only that derived
+chain in `case.json` and `identity.json`. Establish the original Query fingerprint against frozen
+Case provenance after replacing only the admitted canonical Query's action-domain fingerprint
+with the fingerprint of the exact original action-ID vector. Equivalently, reconstruct the canonical descriptor from frozen scenario/property/table inputs,
+derive its property fingerprint with `Table.PropertySemantic`, and require the original Query
+fingerprint before changing only the action domain. This cryptographically checks every other
+canonical field. Then the exact admitted action-domain fingerprint derives the expected new
+Query fingerprint; replace only the uniquely identified Query provenance definition in an
+in-memory expected Case, and recompute its two identities through the existing runtime encoders.
+Require lossless original Case serialization and verify its original identities before projection.
+Never copy actual Case bytes or identities into expected data. Program, Contract, Query answers,
+witnesses, property/scenario/target fingerprints, and all other artifacts stay byte-strict.
+
+Negative checks reject other orders, missing/duplicate/unknown keys, changed result cardinality,
+nonempty or reordered facts, unlisted nil/empty conversions, changed canonical Query fields,
+unrelated provenance changes and incorrect hashes. Apply the projection before the existing
+whole-inventory comparison so inactive variants and unknown/missing/extra entries remain checked.
+All 1,411 immutable snapshots and production Model comparisons remain unchanged and order-sensitive.
+Any additional difference stops this synthetic fixture transfer.
 
 The original checker `model/go/umpire/replay_test.go` also imports handwritten Models. Leave it
 frozen and omit it from the private checker copy. Transfer its comment and exact witness replay /
@@ -220,8 +235,10 @@ DSL with exactly that file and `model/umpire`; compile/test/package Models with 
 subtrees. The lifter and gate have independent `project.scala` files. Their generated jars, fixtures
 and stamps live under ignored `model/gen`; the gate names source roots explicitly, so a broad
 recursive Scala compile never merges the authoring, lifter and gate projects. Lint/format commands
-visit these explicit roots. The native Scala evaluator (`Search`, `Table`, `Lower`, etc.) stays in
-the DSL until fn-113; this refactor does not retire it.
+visit these explicit roots. The native Scala evaluator (`Search`, `Table`, etc.) stays in the DSL until fn-113.
+Owner-approved early cleanup in task7, immediately after relocation, removes only the unused
+`Canonical.scala`, `Lower.scala` and `Alterer` plumbing from fn113 Part A / R1 after checking callers;
+this does not retire the evaluator.
 
 Checked IR, generated Cases, specimens, specs, README and SEMANTICS move directly under `model/`.
 Reserve `model/examples` for fn-119 authoring examples and `tools/umpire/explore` for fn-120 explorer
@@ -231,7 +248,7 @@ work; no example or UI is implemented here. Root lists keep their present meanin
 | --- | --- |
 | `make umpire-check-model` | `umpire-check-scala`; runs `mise exec -- scala-cli run model/gate`. |
 | `make umpire-gen-model` | `umpire-gen-scala`; same program with `-- --update`. |
-| `make lint-scala`, `fmt-scala`, `fix-scala` | Same language checks, explicit new roots; IR jar prerequisite uses the gate's schema-generation mode. |
+| `make lint-model`, `fmt-model`, `fix-model` | Model formatting and language checks, explicit new roots; IR jar prerequisite uses the gate's schema-generation mode. |
 | `make umpire-check-cases`, `umpire-gen-cases` | Run `umpire-gen-cases` without/with `--update`; default managed tree is `model/cases`. |
 | `make umpire-check-fixtures`, `umpire-gen-fixtures` | Same generator with `--kind functional` without/with `--update`; only the explicitly supported R22 replacement subset is managed. |
 | `make canary-check-case`, `canary-gen-case` | Same generator with `--kind canary` without/with `--update`; one pinned Case and reviewed policy identity. |
@@ -245,6 +262,16 @@ work; no example or UI is implemented here. Root lists keep their present meanin
 | `make umpire-check-testpilot-protocol` | Preserve the live protobuf comment/schema check; remove its retired frontend generation/build tail. |
 | `make canary-build` and other live canary build/run targets | Preserve production canary build and existing operator interfaces. |
 | `make umpire-rerecord-pinned-runs` | Remains an explicit operator action targeting current live fixture identities; never runs automatically as part of this migration or ordinary tests. |
+
+During task6, the renamed model Make entrypoints use the relocated shell gate until task10.
+A documented `--skip-go-checks` option may omit only its embedded Go test invocation when combined
+verification runs the complete live Go suite separately with `test_dep`; default invocation still
+runs Go checks. Record the check/update commands and that covering suite together. Scala checks,
+lifting and Case generation/verification remain enabled. Explicit temporary cache directories are
+retired by guarded renames into ignored history instead of recursive deletion. Existing CI keeps
+runtime/canary unit checks, harness checks and the production canary build, and checks live managed
+Cases; obsolete renderer steps are removed. Canary-kind generation/check wiring is added with its
+implementation in task11, not represented by a stub during relocation.
 
 The retained executable set is `umpire-run`, `umpire-fuzz`, `umpire-repeat`, `umpire-replay`,
 `umpire-assess`, `umpire-gen-cases`, `umpire-ir-bridge`. Their old source files are copied out of the
@@ -287,11 +314,18 @@ receive no new JVM job. Default unit tests neither run Scala nor regenerate fixt
    archive metadata additions. Cache exclusions are listed, not guessed from a broad `testdata` rule.
 
 Original legacy source-dependent tests outside the archive trees also require explicit disposition:
-archive the renderer-only portion of `protobuf_lean_authoring_test.go`, preserving its useful schema
-assertions in live Testpilot tests; transfer bridge protocol claims from the old binary-dependent
-functional helper, `campaign/bridge_live_test.go` and `replay/bridge_live_test.go` to the existing IR bridge tests before removing
-old executable paths. Preserve all runtime/fixture/negative-test claims. The audit does not authorize
+preserve full original bytes of `tests/testcore/testpilot/exploration_bridge_test.go` and
+`protobuf_lean_authoring_test.go` under `tools/umpire0/functional-fixtures/` with collision guards.
+These are explicit additions to the isolated archive, not edits to its 843 protected originals.
+Their live replacements retain useful protobuf schema assertions and transfer bridge protocol claims
+from the old binary-dependent functional helper, `campaign/bridge_live_test.go` and
+`replay/bridge_live_test.go` to the existing IR bridge tests before removing old executable paths. Preserve all runtime/fixture/negative-test claims. The audit does not authorize
 archiving a functional test merely because its Case still needs an R22 exception.
+
+The owner explicitly deleted `.github/workflows/umpire-production-canary.yml`. Preserve its obsolete
+workflow-only test, `tools/canary/workflow_test.go`, under
+`tools/umpire0/functional-fixtures/workflow_test.go`; keep the shared repository-root helper and
+checks of the remaining offline CI in the live package. Runtime authority and policy checks remain.
 
 During task 4's copy-before-archive state, frozen
 `tools/umpire/regression/TestTestpilotOwnsCaseProtocolAndRuntime` rejects the six newly permitted

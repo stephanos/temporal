@@ -26,11 +26,10 @@ Replace model shell orchestration with a Scala gate and lifter tests. Implements
 - `Makefile:1182`
 
 ### Quick commands
-The new Scala gate in check and --update modes; its focused process/lifter tests; make lint-scala; CC=/usr/bin/clang mise exec -- go test -tags test_dep ./tools/umpire/...
+The new Scala gate in check and --update modes; its focused process/lifter tests; make lint-model; CC=/usr/bin/clang mise exec -- go test -tags test_dep ./tools/umpire/...
 
 ### Execution constraints
 Preserve the authorized uncommitted baseline and comments except the explicit R25 historical-attribution change. No staging, commits, worktrees or recursive deletion. Once task 2 exists, run the complete golden verification after every task. Resolve task-1 map choices before using projected destination names; capture any change in the map and downstream task briefs before work.
-
 ## Acceptance
 - [ ] No shell script remains inside model, and one Scala gate performs the full live generation/check pipeline.
 - [ ] Lifter fixtures/refusals are actual tests; DSL-only compilation, source-location stability and deterministic goldens pass.

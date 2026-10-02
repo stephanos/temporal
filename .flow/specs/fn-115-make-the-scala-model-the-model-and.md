@@ -79,7 +79,7 @@ Semantic values, Definition IDs, Behavior Fingerprints, ordering and Query outco
 
 **Fixture replacement.** R22's replacement of a legacy pinned fixture by a Scala-produced Case is a separate, explicit artifact migration, not permissible interpreter drift. Its inventory names the replacement Query, Program, Contract, provenance/Case identity, consumer policy and binding consequences. Historical recorded Runs are never rewritten to impersonate executions of replacement Cases; existing recordings retain their established compatibility decision. A fixture that cannot yet lower uses R22's named exception until its missing primitive is supplied.
 
-**Commands.** The model's gate is one command with the same `--update` behavior `run.sh` has today. It is a Scala program run through scala-cli (see Edge Cases, Scripts). Make targets lose the `scala` qualifier where it no longer distinguishes anything: the reviewed map selects `make umpire-check-model` and `make umpire-gen-model`, invoking `scala-cli run model/gate` without/with `-- --update`. The complete command, module and fixture contracts are recorded in `.plans/UMPIRE_MODULES.md` and its two machine-readable inventories. `make lint-scala`, `fmt-scala` and `fix-scala` keep their names, since they name the language they lint.
+**Commands.** The model's gate is one command with the same `--update` behavior `run.sh` has today. It is a Scala program run through scala-cli (see Edge Cases, Scripts). Make targets lose the `scala` qualifier where it no longer distinguishes anything: the reviewed map selects `make umpire-check-model` and `make umpire-gen-model`, invoking `scala-cli run model/gate` without/with `-- --update`. The complete command, module and fixture contracts are recorded in `.plans/UMPIRE_MODULES.md` and its two machine-readable inventories. `make lint-model`, `fmt-model` and `fix-model` name the model they check and replace the former Scala-qualified targets, as requested by the owner.
 
 ## Edge Cases & Constraints
 <!-- scope: technical -->
@@ -116,7 +116,7 @@ Semantic values, Definition IDs, Behavior Fingerprints, ordering and Query outco
 - **R12:** The moved checker and lowering code carry no exported declaration without a live caller. The done summary states the line counts of `tools/umpire` (live) before and after this cleanup. Errors: a declaration kept for a test only is unexported or the test is removed with it.
 - **R13:** `AGENTS.md`, `model/README.md`, `tools/umpire`'s own README, `common/testing/testpilot/README.md`, `tests/testcore/testpilot/README.md`, `MILESTONES.md` and the open specs name only paths that exist. `.plans/lean` is under `.plans/archive`. Each archive root has a short README that says what it is, when it was archived and that nothing builds it. Errors: closed specs, `.turbo/plans` and `docs/superpowers` are history and stay as written.
 - **R14:** `.gitignore` matches the new layout: no rule names a path that no longer exists, and a full run of the model gate and `go test` of the live packages adds no generated or untracked drift relative to the authorized uncommitted starting state (no error surface beyond that check).
-- **R15:** At the closing task, the model gate, `make lint-scala`, `make lint-code`, `go test -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/...` and the live tests that ran before this spec pass. Errors: a live test that cannot run without an archived artifact is reported with the artifact named, and the owner decides whether the test or the artifact stays.
+- **R15:** At the closing task, the model gate, `make lint-model`, `make lint-code`, `go test -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/...` and the live tests that ran before this spec pass. Errors: a live test that cannot run without an archived artifact is reported with the artifact named, and the owner decides whether the test or the artifact stays.
 - **R16:** A recorded and independently reviewed module map covers the model, the Umpire tooling and Testpilot, in Go and Scala. For each module it states the job in one sentence, the public interface and the modules it may import. The conductor exercises the owner’s delegated decision authority, and independent review precedes any package split, merge or rename. Errors: a module whose job needs "and" to state is split or the map says why not; a deviation from the proposal in this spec is recorded with its reason.
 - **R17:** The import rules of the module map are enforced by a Go test over the import graph and by the Scala build: Testpilot imports nothing under `tools/umpire`, the model reader imports nothing of Testpilot, export follows the domain dependency rule in the map, and the DSL compiles without the Models. Model-owned exploration follows the explicit reader/lowering/runtime allowance. Errors: a violation fails the test with the importing file and the forbidden import named.
 - **R18:** Each module's exported surface is what the map lists. Errors: an exported Go declaration with no caller outside its package is unexported or deleted; a helper package that only forwards is merged into its caller.
@@ -135,7 +135,7 @@ Semantic values, Definition IDs, Behavior Fingerprints, ordering and Query outco
 - No behavior change in the interpreter, the checker, the lowering or Testpilot. Packages move, split, merge, get renamed and lose unused parts; what they compute stays the same (R2).
 - No rewrite of `tools/canary` or of Testpilot's execution and verification internals. They change import paths, take in helpers the audit finds live, and lose Lean-era dependencies.
 - No cleanup inside the archives. They are frozen as moved.
-- No change to what the Scala DSL offers or how a Model is written. Cleaning the Scala layer is fn-113, fn-112 and fn-114. This spec moves Scala folders, splits the lifter by concern and replaces the shell scripts.
+- No change to what the Scala DSL offers or how a Model is written. Cleaning the Scala layer is fn-113, fn-112 and fn-114. This spec moves Scala folders, splits the lifter by concern and replaces the shell scripts. Owner-approved sequencing exception: task7 first delivers fn113 Part A / R1 unused-code removal after relocation; the remaining Scala cleanup stays in fn113.
 - Closed flow specs, `.turbo/plans` and `docs/superpowers` keep their old paths.
 - Deleting the archives is a later decision.
 - Adding the JVM gate to CI is a later decision.
@@ -184,7 +184,7 @@ Before relocation:
 ```bash
 CC=/usr/bin/clang mise exec -- go test -tags test_dep ./model/scalav2/...
 GOFLAGS=-tags=test_dep CC=/usr/bin/clang mise exec -- make umpire-check-scala
-make lint-scala
+make lint-model
 ```
 
 The first task records the final command names; each move updates its affected commands immediately. Closing verification includes the model gate, deterministic generation comparison, both language linters, full Go build/vet, the live tooling/runtime/canary Go suites and the complete previously live Testpilot test selection. Gates run sequentially when they share build caches or local servers.

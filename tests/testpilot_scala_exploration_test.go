@@ -16,8 +16,8 @@ import (
 	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	"go.temporal.io/server/common/testing/testpilot/temporal/binding"
 	"go.temporal.io/server/common/testing/testpilot/temporal/provision"
-	"go.temporal.io/server/model/scalav2/explore"
-	"go.temporal.io/server/model/scalav2/goir"
+	"go.temporal.io/server/tools/umpire/explore"
+	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -35,7 +35,7 @@ func TestTestpilotScalaExplorationDiscoversUnpinnedExecution(t *testing.T) {
 	env := newTestpilotTestEnvironment(t)
 	modelRoot, err := filepath.Abs(filepath.Join("..", "model", "scalav2"))
 	require.NoError(t, err)
-	model, err := goir.Load(filepath.Join(modelRoot, "ir", "nexus-caller.json"))
+	model, err := umpiremodel.Load(filepath.Join(modelRoot, "ir", "nexus-caller.json"))
 	require.NoError(t, err)
 	plan, err := explore.New(model, "nexusDeadlines")
 	require.NoError(t, err)
@@ -46,7 +46,7 @@ func TestTestpilotScalaExplorationDiscoversUnpinnedExecution(t *testing.T) {
 	}
 	// An execution's action sequence, rather than its generated name, establishes novelty.
 	chosen := plan.Candidates[0]
-	realizer, err := goir.NewRealizer(model, goir.DefaultScope)
+	realizer, err := umpiremodel.NewRealizer(model, umpiremodel.DefaultScope)
 	require.NoError(t, err)
 	chosenKeys := []string{}
 	for _, a := range chosen.Actions {

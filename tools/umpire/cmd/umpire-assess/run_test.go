@@ -13,16 +13,16 @@ import (
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	"go.temporal.io/server/tools/umpire/evaluation"
-	"go.temporal.io/server/tools/umpire/internal/cli"
-	"go.temporal.io/server/tools/umpire/recordedrun"
+	"go.temporal.io/server/common/testing/testpilot/evaluation"
+	"go.temporal.io/server/common/testing/testpilot/publish"
+	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
 
 const (
 	controlCasePath = "../../../../tests/testcore/testpilot/testdata/nexusCallerControl-forgedCompletion-case.json"
-	controlRunPath  = "../../replay/testdata/nexusCallerControl-forgedCompletion-run.json"
+	controlRunPath  = "../../../../common/testing/testpilot/replay/testdata/nexusCallerControl-forgedCompletion-run.json"
 )
 
 // fixedCatalog is the catalog the control Run was recorded under, read from the record so that
@@ -43,7 +43,7 @@ func fixedCatalog() (string, error) {
 // compare equal.
 func resolvedTemp(t *testing.T) string {
 	t.Helper()
-	resolved, err := cli.Resolve(t.TempDir())
+	resolved, err := publish.Resolve(t.TempDir())
 	require.NoError(t, err)
 	return resolved
 }
@@ -94,7 +94,7 @@ func satisfy(run *testpilotspb.Run) {
 }
 
 func flags(casePath, runPath, root string) []string {
-	return []string{"run", "--case", casePath, "--run", runPath, "--profile", "local-ephemeral", "--receipt-root", root, "--model-root", "../../../../model/lean"}
+	return []string{"run", "--case", casePath, "--run", runPath, "--profile", "local-ephemeral", "--receipt-root", root, "--model-root", "../../../../model"}
 }
 
 func run(t *testing.T, arguments []string, env environment) (int, summary, string) {
@@ -134,7 +134,7 @@ func TestAssessDecidesAndPublishesOnce(t *testing.T) {
 			require.Equal(t, probe.code, code, stderr)
 			require.Equal(t, name, result.Status)
 			require.Equal(t, probe.reasons, result.Reasons)
-			require.Equal(t, cli.StatusPublished, result.Publication)
+			require.Equal(t, publish.StatusPublished, result.Publication)
 			require.Equal(t, filepath.Join(root, result.Receipt+".json"), result.Path)
 			published, err := os.ReadFile(result.Path)
 			require.NoError(t, err)
@@ -146,7 +146,7 @@ func TestAssessDecidesAndPublishesOnce(t *testing.T) {
 
 			code, again, _ := run(t, flags(casePath, runPath, root), environment{})
 			require.Equal(t, probe.code, code)
-			require.Equal(t, cli.StatusAlreadyPublished, again.Publication)
+			require.Equal(t, publish.StatusAlreadyPublished, again.Publication)
 			require.Equal(t, result.Receipt, again.Receipt)
 			listed, err := os.ReadDir(root)
 			require.NoError(t, err)
@@ -322,7 +322,7 @@ func TestAssessNamesAPublicationItCouldNotReport(t *testing.T) {
 	var result summary
 	require.NoError(t, json.Unmarshal(bytes.TrimSpace(stderr.Bytes()), &result), stderr.String())
 	require.Equal(t, statusPublicationUnreported, result.Status)
-	require.Equal(t, cli.StatusPublished, result.Publication)
+	require.Equal(t, publish.StatusPublished, result.Publication)
 	_, err := os.Stat(result.Path)
 	require.NoError(t, err, "the receipt stands")
 }
@@ -344,8 +344,8 @@ func TestAssessNamesTheSelfCheckAndPublicationFailures(t *testing.T) {
 		require.Empty(t, listed)
 	})
 	t.Run("a publication that fails", func(t *testing.T) {
-		failing := func(context.Context, string, string, []byte) (cli.Publication, error) {
-			return cli.Publication{}, errors.New("disk full")
+		failing := func(context.Context, string, string, []byte) (publish.Publication, error) {
+			return publish.Publication{}, errors.New("disk full")
 		}
 		code, result, _ := run(t, flags(casePath, runPath, resolvedTemp(t)), environment{Publish: failing})
 		require.Equal(t, exitFailed, code)

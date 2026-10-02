@@ -1,0 +1,2570 @@
+{
+  "version": 1,
+  "queries": [
+    {
+      "model": "activity-race.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "admissionResponseLoss",
+        "Name": "admissionResponseLoss.committed"
+      },
+      "standing": "lowered",
+      "file": "activity-race-admissionResponseLoss.committed-case.json",
+      "expected": {
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "committedDespiteLostResponse",
+            "status": "satisfied"
+          }
+        ]
+      }
+    },
+    {
+      "model": "activity-race.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "heldAdmission",
+        "Name": "heldAdmission.staleDelivery"
+      },
+      "standing": "lowered",
+      "file": "activity-race-heldAdmission.staleDelivery-case.json",
+      "expected": {
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "staleDeliveryRejected",
+            "status": "satisfied"
+          },
+          {
+            "id": "atMostOneActiveAttempt",
+            "status": "inconclusive",
+            "reason": "an execution that explains the evidence never reaches the claim's evaluation point"
+          },
+          {
+            "id": "terminalFinality",
+            "status": "satisfied"
+          }
+        ]
+      }
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone",
+        "Owner": "activityProtocol",
+        "Name": "competingTimers.scheduleToCloseFirst"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone",
+        "Owner": "activityProtocol",
+        "Name": "competingTimers.scheduleToStartFirst"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentAdmission",
+        "Name": "currentAdmission.admittedBeforePause"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentAdmission",
+        "Name": "currentAdmission.any.atMostOneActive"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentAdmission",
+        "Name": "currentAdmission.any.notAdmittedWhilePaused"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentAdmission",
+        "Name": "currentAdmission.any.terminalStays"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentAdmission",
+        "Name": "currentAdmission.duplicateDelivery"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentAdmission",
+        "Name": "currentAdmission.duplicateDelivery.monitored"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentAdmission",
+        "Name": "currentAdmission.product.pausedIsNotDispatched"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentAdmission",
+        "Name": "currentAdmission.scheduleToCloseFirst"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentAdmission",
+        "Name": "currentAdmission.scheduleToStartFirst"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentAdmission",
+        "Name": "currentAdmission.staleDelivery"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentAdmission",
+        "Name": "currentAdmission.startedAfterCompletion.monitored"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentOverLossyMatching",
+        "Name": "currentOverLossyMatching.admittedBeforePause"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentOverLossyMatching",
+        "Name": "currentOverLossyMatching.any.atMostOneActive"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentOverLossyMatching",
+        "Name": "currentOverLossyMatching.any.notAdmittedWhilePaused"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentOverLossyMatching",
+        "Name": "currentOverLossyMatching.any.terminalStays"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentOverLossyMatching",
+        "Name": "currentOverLossyMatching.crashAfterAdmissionCommit"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentOverLossyMatching",
+        "Name": "currentOverLossyMatching.deliveredAgainAfterLostAck"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentOverLossyMatching",
+        "Name": "currentOverLossyMatching.staleDelivery"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentOverMatching",
+        "Name": "currentOverMatching.admittedBeforePause"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentOverMatching",
+        "Name": "currentOverMatching.any.atMostOneActive"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentOverMatching",
+        "Name": "currentOverMatching.any.notAdmittedWhilePaused"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentOverMatching",
+        "Name": "currentOverMatching.any.terminalStays"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentOverMatching",
+        "Name": "currentOverMatching.crashAfterAdmissionCommit"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentOverMatching",
+        "Name": "currentOverMatching.deliveredAgainAfterLostAck"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentOverMatching",
+        "Name": "currentOverMatching.staleDelivery"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentOverQueue",
+        "Name": "currentOverQueue.admittedBeforePause"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentOverQueue",
+        "Name": "currentOverQueue.any.atMostOneActive"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentOverQueue",
+        "Name": "currentOverQueue.any.notAdmittedWhilePaused"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentOverQueue",
+        "Name": "currentOverQueue.any.terminalStays"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentOverQueue",
+        "Name": "currentOverQueue.duplicateDelivery"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentOverQueue",
+        "Name": "currentOverQueue.failedCommit"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "currentOverQueue",
+        "Name": "currentOverQueue.staleDelivery"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "forgetfulQueue",
+        "Name": "forgetfulQueue.any.committedStays"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "forgetfulQueue",
+        "Name": "forgetfulQueue.crashAfterAcknowledgment"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "forgetfulQueue",
+        "Name": "forgetfulQueue.crashAfterDelivery"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "forgetfulQueue",
+        "Name": "forgetfulQueue.crashAfterInvocation"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "forgetfulQueue",
+        "Name": "forgetfulQueue.crashAfterPersistence"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "forgetfulQueue",
+        "Name": "forgetfulQueue.crashAfterSyncMatch"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "lossyMatchingQueue",
+        "Name": "lossyMatchingQueue.any.committedStays"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "lossyMatchingQueue",
+        "Name": "lossyMatchingQueue.crashAfterAcknowledgment"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "lossyMatchingQueue",
+        "Name": "lossyMatchingQueue.crashAfterDelivery"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "lossyMatchingQueue",
+        "Name": "lossyMatchingQueue.crashAfterInvocation"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "lossyMatchingQueue",
+        "Name": "lossyMatchingQueue.crashAfterPersistence"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "lossyMatchingQueue",
+        "Name": "lossyMatchingQueue.crashAfterSyncMatch"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "lossyMatchingQueue",
+        "Name": "lossyMatchingQueue.storageLoss"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "matchingQueue",
+        "Name": "matchingQueue.any.committedStays"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "matchingQueue",
+        "Name": "matchingQueue.crashAfterAcknowledgment"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "matchingQueue",
+        "Name": "matchingQueue.crashAfterDelivery"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "matchingQueue",
+        "Name": "matchingQueue.crashAfterInvocation"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "matchingQueue",
+        "Name": "matchingQueue.crashAfterPersistence"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "matchingQueue",
+        "Name": "matchingQueue.crashAfterSyncMatch"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleAdmission",
+        "Name": "staleAdmission.admittedBeforePause"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleAdmission",
+        "Name": "staleAdmission.any.atMostOneActive"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleAdmission",
+        "Name": "staleAdmission.any.notAdmittedWhilePaused"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleAdmission",
+        "Name": "staleAdmission.any.terminalStays"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleAdmission",
+        "Name": "staleAdmission.duplicateDelivery"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleAdmission",
+        "Name": "staleAdmission.duplicateDelivery.monitored"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleAdmission",
+        "Name": "staleAdmission.product.pausedIsNotDispatched"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleAdmission",
+        "Name": "staleAdmission.scheduleToCloseFirst"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleAdmission",
+        "Name": "staleAdmission.scheduleToStartFirst"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleAdmission",
+        "Name": "staleAdmission.staleDelivery"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleAdmission",
+        "Name": "staleAdmission.startedAfterCompletion.monitored"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleOverMatching",
+        "Name": "staleOverMatching.admittedBeforePause"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleOverMatching",
+        "Name": "staleOverMatching.any.atMostOneActive"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleOverMatching",
+        "Name": "staleOverMatching.any.notAdmittedWhilePaused"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleOverMatching",
+        "Name": "staleOverMatching.any.terminalStays"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleOverMatching",
+        "Name": "staleOverMatching.crashAfterAdmissionCommit"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleOverMatching",
+        "Name": "staleOverMatching.deliveredAgainAfterLostAck"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleOverMatching",
+        "Name": "staleOverMatching.staleDelivery"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleOverQueue",
+        "Name": "staleOverQueue.admittedBeforePause"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleOverQueue",
+        "Name": "staleOverQueue.any.atMostOneActive"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleOverQueue",
+        "Name": "staleOverQueue.any.notAdmittedWhilePaused"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleOverQueue",
+        "Name": "staleOverQueue.any.terminalStays"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleOverQueue",
+        "Name": "staleOverQueue.duplicateDelivery"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleOverQueue",
+        "Name": "staleOverQueue.failedCommit"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "staleOverQueue",
+        "Name": "staleOverQueue.staleDelivery"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "volatileQueue",
+        "Name": "volatileQueue.any.committedStays"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "volatileQueue",
+        "Name": "volatileQueue.crashAfterAcknowledgment"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "volatileQueue",
+        "Name": "volatileQueue.crashAfterDelivery"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "volatileQueue",
+        "Name": "volatileQueue.crashAfterInvocation"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "volatileQueue",
+        "Name": "volatileQueue.crashAfterPersistence"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-system.json",
+      "query": {
+        "Family": "temporal.activity.standalone.system",
+        "Owner": "volatileQueue",
+        "Name": "volatileQueue.crashAfterSyncMatch"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity.json",
+      "query": {
+        "Family": "temporal.activity.standalone",
+        "Owner": "activityProtocol",
+        "Name": "cancel"
+      },
+      "standing": "unsupported",
+      "unsupported": [
+        {
+          "Construct": "attempt record that follows later evidence",
+          "ID": "temporal.activity.standalone.evidence.statusStarted",
+          "Position": "model/temporal/standaloneactivity/Realization.scala:114",
+          "Owner": "none: a recorded limit of the prototype",
+          "Why": "a Run records an attempt once it is answered, which on this path is after the Run records temporal.activity.standalone.evidence.statusCancelRequested, though the record confirms earlier steps"
+        }
+      ]
+    },
+    {
+      "model": "activity.json",
+      "query": {
+        "Family": "temporal.activity.standalone",
+        "Owner": "activityProtocol",
+        "Name": "cancelRequest"
+      },
+      "standing": "unsupported",
+      "unsupported": [
+        {
+          "Construct": "attempt record that follows later evidence",
+          "ID": "temporal.activity.standalone.evidence.statusStarted",
+          "Position": "model/temporal/standaloneactivity/Realization.scala:114",
+          "Owner": "none: a recorded limit of the prototype",
+          "Why": "a Run records an attempt once it is answered, which on this path is after the Run records temporal.activity.standalone.evidence.statusCancelRequested, though the record confirms earlier steps"
+        }
+      ]
+    },
+    {
+      "model": "activity.json",
+      "query": {
+        "Family": "temporal.activity.standalone",
+        "Owner": "activityProtocol",
+        "Name": "completion"
+      },
+      "standing": "lowered",
+      "file": "activity-completion-case.json",
+      "expected": {
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "completes",
+            "status": "satisfied"
+          }
+        ]
+      }
+    },
+    {
+      "model": "activity.json",
+      "query": {
+        "Family": "temporal.activity.standalone",
+        "Owner": "activityProtocol",
+        "Name": "nonRetryableFailure"
+      },
+      "standing": "lowered",
+      "file": "activity-nonRetryableFailure-case.json",
+      "expected": {
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "nonRetryableFails",
+            "status": "satisfied"
+          }
+        ]
+      }
+    },
+    {
+      "model": "activity.json",
+      "query": {
+        "Family": "temporal.activity.standalone",
+        "Owner": "activityProtocol",
+        "Name": "pauseHolds"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity.json",
+      "query": {
+        "Family": "temporal.activity.standalone",
+        "Owner": "activityProtocol",
+        "Name": "pauseResume"
+      },
+      "standing": "lowered",
+      "file": "activity-pauseResume-case.json",
+      "expected": {
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "completes",
+            "status": "satisfied"
+          }
+        ]
+      }
+    },
+    {
+      "model": "activity.json",
+      "query": {
+        "Family": "temporal.activity.standalone",
+        "Owner": "activityProtocol",
+        "Name": "retry"
+      },
+      "standing": "lowered",
+      "file": "activity-retry-case.json",
+      "expected": {
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "retryCompletes",
+            "status": "inconclusive",
+            "reason": "the executions that explain the evidence disagree"
+          }
+        ]
+      }
+    },
+    {
+      "model": "activity.json",
+      "query": {
+        "Family": "temporal.activity.standalone",
+        "Owner": "activityProtocol",
+        "Name": "scheduleToStartTimeout"
+      },
+      "standing": "lowered",
+      "file": "activity-scheduleToStartTimeout-case.json",
+      "expected": {
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "scheduleToStartFires",
+            "status": "inconclusive",
+            "reason": "an execution that explains the evidence never reaches the claim's evaluation point"
+          }
+        ]
+      }
+    },
+    {
+      "model": "activity.json",
+      "query": {
+        "Family": "temporal.activity.standalone",
+        "Owner": "activityProtocol",
+        "Name": "startToCloseTimeout"
+      },
+      "standing": "unsupported",
+      "unsupported": [
+        {
+          "Construct": "attempt that gives no answer",
+          "ID": "activity",
+          "Position": "model/temporal/standaloneactivity/Realization.scala:351",
+          "Owner": "none: a recorded limit of the prototype",
+          "Why": "the path starts 1 attempts of the activity and answers 0: an activity entrypoint's instructions are answers, and none waits out a deadline"
+        }
+      ]
+    },
+    {
+      "model": "activity.json",
+      "query": {
+        "Family": "temporal.activity.standalone",
+        "Owner": "standaloneActivity",
+        "Name": "stoppedWorkerStartsNothing"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity.json",
+      "query": {
+        "Family": "temporal.activity.standalone",
+        "Owner": "activityProtocol",
+        "Name": "terminalHolds"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity.json",
+      "query": {
+        "Family": "temporal.activity.standalone",
+        "Owner": "activityProtocol",
+        "Name": "terminate"
+      },
+      "standing": "lowered",
+      "file": "activity-terminate-case.json",
+      "expected": {
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "terminated",
+            "status": "inconclusive",
+            "reason": "the executions that explain the evidence disagree"
+          }
+        ]
+      }
+    },
+    {
+      "model": "nexus-caller.json",
+      "query": {
+        "Family": "temporal.nexus.caller",
+        "Owner": "nexusProtocol",
+        "Name": "asyncCompletion"
+      },
+      "standing": "lowered",
+      "file": "nexus-caller-asyncCompletion-case.json",
+      "expected": {
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "completionSucceeds",
+            "status": "inconclusive",
+            "reason": "the executions that explain the evidence disagree"
+          }
+        ]
+      }
+    },
+    {
+      "model": "nexus-caller.json",
+      "query": {
+        "Family": "temporal.nexus.caller",
+        "Owner": "nexusProtocol",
+        "Name": "asyncFailure"
+      },
+      "standing": "lowered",
+      "file": "nexus-caller-asyncFailure-case.json",
+      "expected": {
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "completionFails",
+            "status": "inconclusive",
+            "reason": "the executions that explain the evidence disagree"
+          }
+        ]
+      }
+    },
+    {
+      "model": "nexus-caller.json",
+      "query": {
+        "Family": "temporal.nexus.caller",
+        "Owner": "nexusProtocol",
+        "Name": "handlerError"
+      },
+      "standing": "lowered",
+      "file": "nexus-caller-handlerError-case.json",
+      "expected": {
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "handlerErrorFails",
+            "status": "inconclusive",
+            "reason": "an execution that explains the evidence never reaches the claim's evaluation point"
+          }
+        ]
+      }
+    },
+    {
+      "model": "nexus-caller.json",
+      "query": {
+        "Family": "temporal.nexus.caller",
+        "Owner": "nexusProtocol",
+        "Name": "retry"
+      },
+      "standing": "lowered",
+      "file": "nexus-caller-retry-case.json",
+      "expected": {
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "retrySucceeds",
+            "status": "inconclusive",
+            "reason": "the executions that explain the evidence disagree"
+          }
+        ]
+      }
+    },
+    {
+      "model": "nexus-caller.json",
+      "query": {
+        "Family": "temporal.nexus.caller",
+        "Owner": "nexusProtocol",
+        "Name": "scheduleToStartTimeout"
+      },
+      "standing": "lowered",
+      "file": "nexus-caller-scheduleToStartTimeout-case.json",
+      "expected": {
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "scheduleToStartFires",
+            "status": "inconclusive",
+            "reason": "an execution that explains the evidence never reaches the claim's evaluation point"
+          }
+        ]
+      }
+    },
+    {
+      "model": "nexus-caller.json",
+      "query": {
+        "Family": "temporal.nexus.caller",
+        "Owner": "nexusProtocol",
+        "Name": "startToCloseTimeout"
+      },
+      "standing": "lowered",
+      "file": "nexus-caller-startToCloseTimeout-case.json",
+      "expected": {
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "startToCloseFires",
+            "status": "inconclusive",
+            "reason": "an execution that explains the evidence never reaches the claim's evaluation point"
+          }
+        ]
+      }
+    },
+    {
+      "model": "nexus-caller.json",
+      "query": {
+        "Family": "temporal.nexus.caller",
+        "Owner": "nexusProtocol",
+        "Name": "syncCompletion"
+      },
+      "standing": "lowered",
+      "file": "nexus-caller-syncCompletion-case.json",
+      "expected": {
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "syncSucceeds",
+            "status": "satisfied"
+          }
+        ]
+      }
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.ackedThenReset"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.any.ackOnlyWhenKept"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.any.closedHistoryIsFrozen"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.any.handlerEffectIsIrreversible"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.any.knowledgeIsFinal"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.any.knownIsTheHandlersOutcome"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.any.outcomePreserved"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.asyncCompletion"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.asyncFailure"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.canceledAcrossReset"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.canceledIsKnown"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.closedThenFinished"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.detachedWorkProceeds"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.duplicateCompletion"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.effectWithoutKnowledge"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.intentWithoutReceipt"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.lostAfterReset"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.permanentRejectionAfterClose"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.receiptWithoutEffect"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.resetAfterRetention"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.resetBeforeRetention"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.resetBetweenCommitAndAcknowledgment"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.resetThenDelivered.ackOnlyWhenKept"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.resetThenDelivered.outcomePreserved"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginal",
+        "Name": "ackByOriginal.transientRejectionAfterClose"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginalWithDeadline",
+        "Name": "ackByOriginalWithDeadline.any.ackOnlyWhenKept"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginalWithDeadline",
+        "Name": "ackByOriginalWithDeadline.any.noUnnecessaryWait"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginalWithDeadline",
+        "Name": "ackByOriginalWithDeadline.any.outcomePreserved"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginalWithDeadline",
+        "Name": "ackByOriginalWithDeadline.closedThenFinished"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginalWithDeadline",
+        "Name": "ackByOriginalWithDeadline.expiredAfterClosedLoss"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginalWithDeadline",
+        "Name": "ackByOriginalWithDeadline.expiredAfterResetLoss"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginalWithDeadline",
+        "Name": "ackByOriginalWithDeadline.expiredWhileReported"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginalWithDeadline",
+        "Name": "ackByOriginalWithDeadline.lateCompletionIsDropped"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "ackByOriginalWithDeadline",
+        "Name": "ackByOriginalWithDeadline.resetThenDelivered.ackOnlyWhenKept"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.ackedThenReset"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.any.ackOnlyWhenKept"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.any.closedHistoryIsFrozen"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.any.handlerEffectIsIrreversible"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.any.knowledgeIsFinal"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.any.knownIsTheHandlersOutcome"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.any.outcomePreserved"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.asyncCompletion"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.asyncFailure"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.canceledAcrossReset"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.canceledIsKnown"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.closedThenFinished"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.detachedWorkProceeds"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.duplicateCompletion"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.effectWithoutKnowledge"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.intentWithoutReceipt"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.lostAfterReset"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.permanentRejectionAfterClose"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.receiptWithoutEffect"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.resetAfterRetention"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.resetBeforeRetention"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.resetBetweenCommitAndAcknowledgment"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.resetThenDelivered.ackOnlyWhenKept"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.resetThenDelivered.outcomePreserved"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "forgetsCancelOnReset",
+        "Name": "forgetsCancelOnReset.transientRejectionAfterClose"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.ackedThenReset"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.any.ackOnlyWhenKept"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.any.closedHistoryIsFrozen"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.any.handlerEffectIsIrreversible"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.any.knowledgeIsFinal"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.any.knownIsTheHandlersOutcome"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.any.outcomePreserved"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.asyncCompletion"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.asyncFailure"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.canceledAcrossReset"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.canceledIsKnown"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.closedThenFinished"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.detachedWorkProceeds"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.duplicateCompletion"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.effectWithoutKnowledge"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.intentWithoutReceipt"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.lostAfterReset"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.permanentRejectionAfterClose"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.receiptWithoutEffect"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.resetAfterRetention"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.resetBeforeRetention"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.resetBetweenCommitAndAcknowledgment"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.resetThenDelivered.ackOnlyWhenKept"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.resetThenDelivered.outcomePreserved"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterClose",
+        "Name": "rejectAfterClose.transientRejectionAfterClose"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterCloseWithDeadline",
+        "Name": "rejectAfterCloseWithDeadline.any.ackOnlyWhenKept"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterCloseWithDeadline",
+        "Name": "rejectAfterCloseWithDeadline.any.noUnnecessaryWait"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterCloseWithDeadline",
+        "Name": "rejectAfterCloseWithDeadline.any.outcomePreserved"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterCloseWithDeadline",
+        "Name": "rejectAfterCloseWithDeadline.closedThenFinished"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterCloseWithDeadline",
+        "Name": "rejectAfterCloseWithDeadline.expiredAfterClosedLoss"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterCloseWithDeadline",
+        "Name": "rejectAfterCloseWithDeadline.expiredAfterResetLoss"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterCloseWithDeadline",
+        "Name": "rejectAfterCloseWithDeadline.expiredWhileReported"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterCloseWithDeadline",
+        "Name": "rejectAfterCloseWithDeadline.lateCompletionIsDropped"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "rejectAfterCloseWithDeadline",
+        "Name": "rejectAfterCloseWithDeadline.resetThenDelivered.ackOnlyWhenKept"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.ackedThenReset"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.any.ackOnlyWhenKept"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.any.closedHistoryIsFrozen"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.any.handlerEffectIsIrreversible"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.any.knowledgeIsFinal"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.any.knownIsTheHandlersOutcome"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.any.outcomePreserved"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.asyncCompletion"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.asyncFailure"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.canceledAcrossReset"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.canceledIsKnown"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.closedThenFinished"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.detachedWorkProceeds"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.duplicateCompletion"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.effectWithoutKnowledge"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.intentWithoutReceipt"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.lostAfterReset"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.permanentRejectionAfterClose"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.receiptWithoutEffect"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.resetAfterRetention"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.resetBeforeRetention"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.resetBetweenCommitAndAcknowledgment"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.resetThenDelivered.ackOnlyWhenKept"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.resetThenDelivered.outcomePreserved"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRoute",
+        "Name": "retainAndRoute.transientRejectionAfterClose"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRouteBoundedRetry",
+        "Name": "retainAndRouteBoundedRetry.any.ackOnlyWhenKept"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRouteBoundedRetry",
+        "Name": "retainAndRouteBoundedRetry.any.outcomePreserved"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRouteBoundedRetry",
+        "Name": "retainAndRouteBoundedRetry.closedThenFinished"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRouteBoundedRetry",
+        "Name": "retainAndRouteBoundedRetry.resetThenDelivered.ackOnlyWhenKept"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRouteWithDeadline",
+        "Name": "retainAndRouteWithDeadline.any.ackOnlyWhenKept"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRouteWithDeadline",
+        "Name": "retainAndRouteWithDeadline.any.noUnnecessaryWait"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRouteWithDeadline",
+        "Name": "retainAndRouteWithDeadline.any.outcomePreserved"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRouteWithDeadline",
+        "Name": "retainAndRouteWithDeadline.closedThenFinished"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRouteWithDeadline",
+        "Name": "retainAndRouteWithDeadline.expiredAfterClosedLoss"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRouteWithDeadline",
+        "Name": "retainAndRouteWithDeadline.expiredAfterResetLoss"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRouteWithDeadline",
+        "Name": "retainAndRouteWithDeadline.expiredWhileReported"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRouteWithDeadline",
+        "Name": "retainAndRouteWithDeadline.lateCompletionIsDropped"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "retainAndRouteWithDeadline",
+        "Name": "retainAndRouteWithDeadline.resetThenDelivered.ackOnlyWhenKept"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.ackedThenReset"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.any.ackOnlyWhenKept"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.any.closedHistoryIsFrozen"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.any.handlerEffectIsIrreversible"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.any.knowledgeIsFinal"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.any.knownIsTheHandlersOutcome"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.any.outcomePreserved"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.asyncCompletion"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.asyncFailure"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.canceledAcrossReset"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.canceledIsKnown"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.closedThenFinished"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.detachedWorkProceeds"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.duplicateCompletion"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.effectWithoutKnowledge"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.intentWithoutReceipt"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.lostAfterReset"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.permanentRejectionAfterClose"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.receiptWithoutEffect"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.resetAfterRetention"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.resetBeforeRetention"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.resetBetweenCommitAndAcknowledgment"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.resetThenDelivered.ackOnlyWhenKept"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.resetThenDelivered.outcomePreserved"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-close.json",
+      "query": {
+        "Family": "temporal.nexus.caller.closepolicy",
+        "Owner": "truncatesOnReset",
+        "Name": "truncatesOnReset.transientRejectionAfterClose"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "nexus-control.json",
+      "query": {
+        "Family": "temporal.nexus.control",
+        "Owner": "forgedCompletion",
+        "Name": "forgedCompletion"
+      },
+      "standing": "lowered",
+      "file": "nexus-control-forgedCompletion-case.json",
+      "expected": {
+        "contract": "violated",
+        "conformance": "inconclusive",
+        "properties": [
+          {
+            "id": "forgedSuccess",
+            "status": "violated",
+            "reason": "every modeled execution that explains the evidence violates it"
+          }
+        ]
+      }
+    }
+  ]
+}

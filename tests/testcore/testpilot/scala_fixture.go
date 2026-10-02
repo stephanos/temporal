@@ -12,9 +12,9 @@ import (
 	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	"go.temporal.io/server/model/scalav2/goir"
-	"go.temporal.io/server/model/scalav2/goir/conformance"
-	goirtestpilot "go.temporal.io/server/model/scalav2/goir/testpilot"
+	"go.temporal.io/server/tools/umpire/conformance"
+	"go.temporal.io/server/tools/umpire/lower"
+	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
@@ -25,7 +25,7 @@ type ScalaCase struct {
 	Assessment testpilot.AssessmentFactory
 	// Property is the Query's Property: the claim a Run of the Case is assessed for.
 	Property string
-	Expected *goirtestpilot.ExpectedRun
+	Expected *lower.ExpectedRun
 	// Durable is the kinds of evidence the Case carries that its realization declares the record of a
 	// durable commit, by their names in the Case.
 	Durable []string
@@ -64,26 +64,26 @@ func (c *ScalaCase) WithoutDurableEvidence(run *testpilotspb.Run) (*testpilotspb
 	return out, nil
 }
 
-func LoadScalaCase(path string, query goir.ClaimKey, set string) (*ScalaCase, error) {
-	model, err := goir.Load(path)
+func LoadScalaCase(path string, query umpiremodel.ClaimKey, set string) (*ScalaCase, error) {
+	model, err := umpiremodel.Load(path)
 	if err != nil {
 		return nil, err
 	}
-	producer, err := goirtestpilot.NewProducer(model)
+	producer, err := lower.NewProducer(model)
 	if err != nil {
 		return nil, err
 	}
-	lowered, err := producer.Lower(query.Name, goirtestpilot.IdentityFor("temporal.case", set, query.Name))
+	lowered, err := producer.Lower(query.Name, lower.IdentityFor("temporal.case", set, query.Name))
 	if err != nil {
 		return nil, err
 	}
-	if lowered.Standing != goirtestpilot.Lowered {
+	if lowered.Standing != lower.Lowered {
 		return nil, fmt.Errorf("%s: %s: %v", query.Name, lowered.Standing, lowered.Unsupported)
 	}
 	return prepareScalaCase(model, query, lowered.Case)
 }
 
-func LoadGeneratedScalaCase(directory string, entry goirtestpilot.GeneratedCase) (*ScalaCase, error) {
+func LoadGeneratedScalaCase(directory string, entry lower.GeneratedCase) (*ScalaCase, error) {
 	encoded, err := os.ReadFile(filepath.Join(directory, entry.File))
 	if err != nil {
 		return nil, err
@@ -92,7 +92,7 @@ func LoadGeneratedScalaCase(directory string, entry goirtestpilot.GeneratedCase)
 	if err != nil {
 		return nil, err
 	}
-	model, err := goir.Load(filepath.Join(directory, "..", "ir", entry.Model))
+	model, err := umpiremodel.Load(filepath.Join(directory, "..", "ir", entry.Model))
 	if err != nil {
 		return nil, err
 	}
@@ -104,19 +104,19 @@ func LoadGeneratedScalaCase(directory string, entry goirtestpilot.GeneratedCase)
 	return fixture, nil
 }
 
-func ScalaManifest(directory string) ([]goirtestpilot.GeneratedCase, error) {
+func ScalaManifest(directory string) ([]lower.GeneratedCase, error) {
 	encoded, err := os.ReadFile(filepath.Join(directory, "manifest.json"))
 	if err != nil {
 		return nil, err
 	}
-	manifest, err := goirtestpilot.DecodeManifest(encoded)
+	manifest, err := lower.DecodeManifest(encoded)
 	if err != nil {
 		return nil, err
 	}
 	return manifest.Queries, nil
 }
 
-func prepareScalaCase(model *modelirspb.Model, query goir.ClaimKey, source *testpilotspb.Case) (*ScalaCase, error) {
+func prepareScalaCase(model *modelirspb.Model, query umpiremodel.ClaimKey, source *testpilotspb.Case) (*ScalaCase, error) {
 	assessment, err := conformance.Prepare(model, query, source, conformance.Limits{
 		MaxEvents: 2048, MaxProperties: 16, MaxDuration: time.Minute, MaxCandidates: 1 << 16, MaxWork: 1 << 22, MaxReadings: 1 << 22,
 	})

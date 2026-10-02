@@ -69,55 +69,6 @@ TEST_TAG_FLAG := -tags $(ALL_TEST_TAGS)
 # which causes the a job run to not produce any logs and hurts the debugging experience.
 TEST_TIMEOUT ?= 35m
 
-ifeq ($(shell uname -s),Darwin)
-LEAN_SDKROOT := $(shell xcrun --show-sdk-path)
-LEAN_CLANG := $(shell xcrun --find clang)
-LEAN_CLANG_DIR := $(dir $(LEAN_CLANG))
-export CC := $(LEAN_CLANG)
-export CXX := $(shell xcrun --find clang++)
-export SDKROOT := $(LEAN_SDKROOT)
-LEAN_LAKE := SDKROOT="$(LEAN_SDKROOT)" mise exec -- sh -c 'PATH="$(LEAN_CLANG_DIR):$$PATH"; exec lake "$$@"' lean-lake
-else
-LEAN_LAKE := mise exec -- lake
-endif
-
-UMPIRE_GEN_LEAN_API_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api
-UMPIRE_GOLDEN_DIRECTORIES := \
-	Umpire/Model/Tests/Compatibility/Fixtures \
-	Temporal/Feature/Nexus/Caller/Fixtures \
-	Umpire/Examples/Fixtures \
-	Umpire/Artifact/Tests/Fixtures
-UMPIRE_GEN_REGRESSION_VIEWS_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-regression-views
-UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-case-runtime-conformance
-UMPIRE_GEN_LEAN_DYNAMIC_CONFIG_CATALOG_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-dynamic-config-catalog
-UMPIRE_EXPORT_PROTO_DESCRIPTORS_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-export-proto-descriptors
-UMPIRE_REGRESSION_INSPECTOR := umpire-inspect
-# The inspector's stderr is its diagnostic channel: lake's replayed build logs stay out of it.
-UMPIRE_INSPECT := $(LEAN_LAKE) --log-level=error exe $(UMPIRE_REGRESSION_INSPECTOR)
-UMPIRE_TESTPILOT_RENDERER := umpire-case
-TESTPILOT_PROTOCOL_PROTOS := \
-	proto/internal/temporal/server/api/testpilot/v1/case.proto \
-	proto/internal/temporal/server/api/testpilot/v1/contract.proto \
-	proto/internal/temporal/server/api/testpilot/v1/correlated.proto \
-	proto/internal/temporal/server/api/testpilot/v1/event.proto \
-	proto/internal/temporal/server/api/testpilot/v1/expression.proto \
-	proto/internal/temporal/server/api/testpilot/v1/instruction.proto \
-	proto/internal/temporal/server/api/testpilot/v1/program.proto \
-	proto/internal/temporal/server/api/testpilot/v1/run.proto \
-	proto/internal/temporal/server/api/testpilot/v1/value.proto
-_UMPIRE_INVENTORY_DOCUMENT ?= model/lean/INVENTORY.md
-_UMPIRE_INVENTORY_RENDERER ?= cd model/lean && $(LEAN_LAKE) -q exe umpire-inventory
-UMPIRE_REGRESSION_FIXTURES := \
-	umpire.switch.query.exactAction:Umpire/Examples/testdata/switch-experiment-spec.json
-UMPIRE_GEN_LEAN_API_INPUT_ARGS = \
-	--descriptor $(UMPIRE_PUBLIC_BINPB) \
-	--descriptor $(API_BINPB) \
-	--descriptor $(INTERNAL_BINPB) \
-	--descriptor $(CHASM_BINPB) \
-	--skip-package temporal.server.api.testpilot.v1 \
-	--lean-root Temporal
-UMPIRE_GEN_LEAN_API_ARGS = $(UMPIRE_GEN_LEAN_API_INPUT_ARGS) --output-root model/lean
-
 # Number of retries for *-coverage targets.
 MAX_TEST_ATTEMPTS ?= 3
 TEST_RUNNER_TIMEOUT_ARG := $(if $(TEST_RUNNER_TIMEOUT),--total-timeout=$(TEST_RUNNER_TIMEOUT),)
@@ -166,20 +117,17 @@ CHASM_PROTO_FILES = $(shell find ./chasm/lib -name "*.proto")
 PROTO_DIRS = $(sort $(dir $(PROTO_FILES)))
 PROTOC ?= protoc
 API_BINPB := $(PROTO_ROOT)/api.binpb
-UMPIRE_PUBLIC_BINPB := $(PROTO_ROOT)/umpire-public.binpb
 # Note: If you change the value of INTERNAL_BINPB, you'll have to add logic to
 # develop/buf-breaking.sh to handle the old and new values at once.
 INTERNAL_BINPB := $(PROTO_ROOT)/image.bin
 CHASM_BINPB := $(PROTO_ROOT)/chasm.bin
-UMPIRE_API_FIXTURE_ROOT := tools/umpire/cmd/umpire-gen-lean-api/testdata/basic
-UMPIRE_API_FIXTURE_INPUT := $(UMPIRE_API_FIXTURE_ROOT)/input
-UMPIRE_API_FIXTURE_DESCRIPTOR := $(UMPIRE_API_FIXTURE_ROOT)/input.pb
-UMPIRE_API_FIXTURE_PROTOS := compat/protobuf/v1/options.proto shared/messaging/v1/types.proto public/messaging/v1/message.proto internal/messaging/v1/messaging_service.proto
 PROTO_OUT := api
 
-ALL_SRC         := $(shell find . -name "*.go" -print)
+NESTED_MODULE_DIRS := $(patsubst %/go.mod,%,$(shell git ls-files --cached --others --exclude-standard -- '*/go.mod'))
+SOURCE_FIND = find . -type d \( -name .git -o -name .flow -o -name .build $(foreach dir,$(NESTED_MODULE_DIRS),-o -path ./$(dir)) \) -prune -o
+ALL_SRC         := $(shell $(SOURCE_FIND) -name '*.go' -print)
 ALL_SRC         += go.mod
-ALL_SCRIPTS     := $(shell find . -name "*.sh" -print)
+ALL_SCRIPTS     := $(shell $(SOURCE_FIND) -name '*.sh' -print)
 
 MAIN_BRANCH    := main
 
@@ -390,13 +338,6 @@ $(API_BINPB): go.mod go.sum $(PROTO_FILES)
 	@printf $(COLOR) "Generating proto dependencies image..."
 	@./cmd/tools/getproto/run.sh --out $@
 
-$(UMPIRE_PUBLIC_BINPB): go.mod go.sum
-	@printf $(COLOR) "Generating registered public protobuf descriptors..."
-	@$(UMPIRE_EXPORT_PROTO_DESCRIPTORS_COMMAND) \
-		--package-pattern go.temporal.io/api/... \
-		--file-prefix temporal/api/ \
-		--output $@
-
 $(INTERNAL_BINPB): $(API_BINPB) $(PROTO_FILES)
 	@printf $(COLOR) "Generate proto image..."
 	@$(PROTOC) --descriptor_set_in=$(API_BINPB) -I=$(PROTO_ROOT)/internal $(PROTO_FILES) -o $@
@@ -474,175 +415,26 @@ temporal-server-debug: $(ALL_SRC)
 	CGO_ENABLED=$(CGO_ENABLED) go build $(BUILD_TAG_FLAG),TEMPORAL_DEBUG -o temporal-server-debug ./cmd/server
 
 ##### Checks #####
+TESTPILOT_PROTOCOL_PROTOS := \
+	proto/internal/temporal/server/api/testpilot/v1/case.proto \
+	proto/internal/temporal/server/api/testpilot/v1/contract.proto \
+	proto/internal/temporal/server/api/testpilot/v1/correlated.proto \
+	proto/internal/temporal/server/api/testpilot/v1/event.proto \
+	proto/internal/temporal/server/api/testpilot/v1/expression.proto \
+	proto/internal/temporal/server/api/testpilot/v1/instruction.proto \
+	proto/internal/temporal/server/api/testpilot/v1/program.proto \
+	proto/internal/temporal/server/api/testpilot/v1/run.proto \
+	proto/internal/temporal/server/api/testpilot/v1/value.proto
 
-umpire-build-model:
-	@printf $(COLOR) "Build Temporal Umpire Lean model..."
-	@cd model/lean && $(LEAN_LAKE) build
+.PHONY: canary-build umpire-check-testpilot-protocol umpire-run umpire-fuzz umpire-fuzz-run umpire-repeat umpire-repeat-run umpire-replay umpire-replay-run umpire-assess umpire-assess-run umpire-check-live-tests umpire-rerecord-pinned-runs umpire-ir-bridge umpire-gen-cases umpire-check-cases umpire-check-backends umpire-check-exploration-bridge umpire-check-replay-bridge fmt-model lint-model fix-model umpire-check-model umpire-gen-model
 
-umpire-inspect:
-	@test -n "$(SCENARIO)" || (echo "SCENARIO is required" >&2; exit 1)
-	@cd model/lean && $(UMPIRE_INSPECT) "$(SCENARIO)"
-
-umpire-list:
-	@cd model/lean && $(UMPIRE_INSPECT) list
-
-umpire-explain:
-	@test -n "$(QUERY)" || (echo "QUERY is required" >&2; exit 1)
-	@cd model/lean && $(UMPIRE_INSPECT) explain "$(QUERY)"
-
-umpire-gen-lean-api: PROTOC = mise exec -- protoc
-umpire-gen-lean-api: $(UMPIRE_PUBLIC_BINPB) $(API_BINPB) $(INTERNAL_BINPB) $(CHASM_BINPB)
-	@printf $(COLOR) "Generate Temporal API Lean modules..."
-	@$(UMPIRE_GEN_LEAN_API_COMMAND) $(UMPIRE_GEN_LEAN_API_ARGS)
-
-umpire-gen-lean-dynamic-config-catalog:
-	@printf $(COLOR) "Generate Temporal dynamic configuration Lean modules..."
-	@$(UMPIRE_GEN_LEAN_DYNAMIC_CONFIG_CATALOG_COMMAND) --output-root model/lean
-
-$(UMPIRE_API_FIXTURE_DESCRIPTOR): $(addprefix $(UMPIRE_API_FIXTURE_INPUT)/,$(UMPIRE_API_FIXTURE_PROTOS))
-	@mise exec -- protoc \
-		--proto_path=$(UMPIRE_API_FIXTURE_INPUT) \
-		--include_imports \
-		--descriptor_set_out=$@ \
-		$(UMPIRE_API_FIXTURE_PROTOS)
-
-tools/umpire/cmd/umpire-gen-lean-api/testdata/empty-service/input.pb: tools/umpire/cmd/umpire-gen-lean-api/testdata/empty-service/input.proto
-	@mise exec -- protoc --proto_path=$(dir $<) --include_imports --descriptor_set_out=$@ $(notdir $<)
-
-umpire-gen-lean-api-fixture: $(UMPIRE_API_FIXTURE_DESCRIPTOR) tools/umpire/cmd/umpire-gen-lean-api/testdata/empty-service/input.pb
-	@go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api -run '^Test(Basic|EmptyService)Fixture$$' -rewrite
-
-umpire-check-lean-api: PROTOC = mise exec -- protoc
-umpire-check-lean-api: $(UMPIRE_PUBLIC_BINPB) $(API_BINPB) $(INTERNAL_BINPB) $(CHASM_BINPB)
-	@printf $(COLOR) "Check generated Temporal API Lean modules..."
-	@set -eu; temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
-		temporary=$$(mktemp -d "$$temporary_root/umpire-lean-api.XXXXXX"); \
-		trap 'rm -rf "$$temporary"' EXIT HUP INT TERM; \
-		$(UMPIRE_GEN_LEAN_API_COMMAND) $(UMPIRE_GEN_LEAN_API_INPUT_ARGS) --output-root "$$temporary"; \
-		diff -u model/lean/Temporal/API.lean "$$temporary/Temporal/API.lean"; \
-		diff -ru model/lean/Temporal/API "$$temporary/Temporal/API"
-	@mise exec -- go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api
-	@cd model/lean && $(LEAN_LAKE) build Umpire.Operation.Tests Temporal.API
-	@cd model/lean && $(LEAN_LAKE) env sh ../../tools/umpire/cmd/umpire-gen-lean-api/check-fixtures.sh
-
-umpire-gen-regression-views:
-	@cd model/lean && $(LEAN_LAKE) build $(UMPIRE_REGRESSION_INSPECTOR) >/dev/null
-	@$(UMPIRE_GEN_REGRESSION_VIEWS_COMMAND) --repository-root . --output-root .
-
-umpire-check-regression-views:
-	@printf $(COLOR) "Check generated Umpire regression views..."
-	@cd model/lean && $(LEAN_LAKE) build $(UMPIRE_REGRESSION_INSPECTOR)
-	@set -eu; temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
-		temporary=$$(mktemp -d "$$temporary_root/umpire-regression.XXXXXX"); \
-		trap 'rm -rf "$$temporary"' EXIT; \
-		$(UMPIRE_GEN_REGRESSION_VIEWS_COMMAND) --repository-root . --output-root "$$temporary"; \
-		diff -u tools/umpire/regression/switch_generated_view_test.go \
-			"$$temporary/tools/umpire/regression/switch_generated_view_test.go"; \
-		diff -u model/lean/Umpire/Examples/Generated/Switch.md \
-			"$$temporary/model/lean/Umpire/Examples/Generated/Switch.md"; \
-		test ! -e model/lean/Temporal/Tool/Generated/Regressions.md; \
-		test ! -e "$$temporary/model/lean/Temporal/Tool/Generated/Regressions.md"
-	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
-		TMPDIR="$$temporary_root" go test -count=1 -tags test_dep \
-			./tools/umpire/cmd/umpire-gen-regression-views ./tools/umpire/regression
-
-umpire-gen-goldens:
-	@cd model/lean && $(LEAN_LAKE) build umpire-goldens $(UMPIRE_REGRESSION_INSPECTOR) >/dev/null
-	@cd model/lean && $(LEAN_LAKE) exe umpire-goldens --output-root .
-	@set -eu; cd model/lean; for scenario_fixture in $(UMPIRE_REGRESSION_FIXTURES); do \
-		scenario=$${scenario_fixture%%:*}; \
-		fixture=$${scenario_fixture#*:}; \
-		$(UMPIRE_INSPECT) "$$scenario" > "$$fixture"; \
-	done
-
-umpire-check-goldens:
-	@printf $(COLOR) "Check Umpire model goldens..."
-	@cd model/lean && $(LEAN_LAKE) build umpire-goldens
-	@set -eu; temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
-		temporary=$$(mktemp -d "$$temporary_root/umpire-goldens.XXXXXX"); \
-		trap 'rm -rf "$$temporary"' EXIT HUP INT TERM; \
-		( cd model/lean && $(LEAN_LAKE) exe umpire-goldens --output-root "$$temporary" ); \
-		for directory in $(UMPIRE_GOLDEN_DIRECTORIES); do \
-			diff -ru "model/lean/$$directory" "$$temporary/$$directory"; \
-		done
-
-# The rendered Evaluation Profiles, each group in the directory that embeds it: the local ones
-# umpire-assess embeds, the production canary's, and the canary harness's.
-_UMPIRE_EVALUATION_PROFILE_DIRS := local:tools/umpire/evaluation/profiles canary:tools/canary/assessment/profiles harness:tools/canary/testharness/profiles
-
-umpire-gen-evaluation-profiles:
-	@cd model/lean && $(LEAN_LAKE) build umpire-evaluation-profiles >/dev/null
-	@cd model/lean && $(LEAN_LAKE) exe umpire-evaluation-profiles \
-		--local-dir ../tools/umpire/evaluation/profiles \
-		--canary-dir ../tools/canary/assessment/profiles \
-		--harness-dir ../tools/canary/testharness/profiles
-
-umpire-check-evaluation-profiles:
-	@printf $(COLOR) "Check rendered Umpire Evaluation Profiles..."
-	@cd model/lean && $(LEAN_LAKE) build umpire-evaluation-profiles Umpire.Evaluation.Tests Temporal.Evaluation.LocalTests Temporal.Evaluation.CanaryTests
-	@set -eu; temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
-		temporary=$$(mktemp -d "$$temporary_root/umpire-evaluation-profiles.XXXXXX"); \
-		trap 'rm -rf "$$temporary"' EXIT HUP INT TERM; \
-		mkdir "$$temporary/local" "$$temporary/canary" "$$temporary/harness"; \
-		( cd model/lean && $(LEAN_LAKE) exe umpire-evaluation-profiles --local-dir "$$temporary/local" \
-			--canary-dir "$$temporary/canary" --harness-dir "$$temporary/harness" ); \
-		for group_dir in $(_UMPIRE_EVALUATION_PROFILE_DIRS); do \
-			diff -r "$${group_dir#*:}" "$$temporary/$${group_dir%%:*}"; \
-		done
-
-# The production canary's pinned Case: the Lean renderer's canonical output for the one admitted
-# canary Case the canary runs, which tools/canary/casebinding embeds.
-CANARY_CASE_ID := temporal.case.nexusCallerCanary.syncCompletion
-CANARY_CASE_FIXTURE := tools/canary/casebinding/testdata/nexusCallerCanary-syncCompletion-case.json
-
-canary-gen-case:
-	@cd model/lean && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) >/dev/null
-	@set -eu; mkdir -p $$(dirname $(CANARY_CASE_FIXTURE)); \
-		temporary=$$(mktemp "$$(dirname $(CANARY_CASE_FIXTURE))/.case.XXXXXX"); \
-		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
-		( cd model/lean && $(LEAN_LAKE) exe $(UMPIRE_TESTPILOT_RENDERER) --render-canary $(CANARY_CASE_ID) ) > "$$temporary"; \
-		chmod 0644 "$$temporary"; \
-		mv -f "$$temporary" $(CANARY_CASE_FIXTURE)
-
-canary-check-case:
-	@printf $(COLOR) "Check the production canary's pinned Case..."
-	@cd model/lean && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) >/dev/null
-	@set -eu; temporary=$$(mktemp); trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
-		( cd model/lean && $(LEAN_LAKE) exe $(UMPIRE_TESTPILOT_RENDERER) --render-canary $(CANARY_CASE_ID) ) > "$$temporary"; \
-		diff $(CANARY_CASE_FIXTURE) "$$temporary"
-
-# The production canary's one binary. The untagged build is the only one the protected workflow
-# runs; the harness build is the live tests' own.
 canary-build:
 	@printf $(COLOR) "Build the production canary..."
 	@mise exec -- go build -o ./.build/umpire-canary ./tools/canary/cmd/umpire-canary
 	@printf 'Built ./.build/umpire-canary\n'
 
-umpire-gen-case-runtime-conformance:
-	@cd model/lean && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) umpire-correlated-fixtures >/dev/null
-	@$(UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND) --repository-root . --output-root .
-	@$(UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND) --repository-root . --output-root . --mode functional
-
-umpire-check-case-runtime-conformance:
-	@printf $(COLOR) "Check generated Umpire Testpilot conformance fixtures..."
-	@cd model/lean && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) umpire-correlated-fixtures
-	@set -eu; temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
-		temporary=$$(mktemp -d "$$temporary_root/umpire-case-runtime-conformance.XXXXXX"); \
-		trap 'rm -rf "$$temporary"' EXIT HUP INT TERM; \
-		$(UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND) --repository-root . --output-root "$$temporary"; \
-		$(UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND) --repository-root . --output-root "$$temporary" --mode functional; \
-		diff -ru common/testing/testpilot/testdata/case-runtime-conformance \
-			"$$temporary/common/testing/testpilot/testdata/case-runtime-conformance"; \
-		diff -ru tests/testcore/testpilot/testdata \
-			"$$temporary/tests/testcore/testpilot/testdata"
-	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
-		TMPDIR="$$temporary_root" go test -count=1 -tags test_dep \
-			./tools/umpire/cmd/umpire-gen-case-runtime-conformance; \
-		TMPDIR="$$temporary_root" go test -count=1 -tags test_dep \
-		./common/testing/testpilot -run '^TestCaseRuntimePublicFacadeConformance$$'
-
-umpire-check-testpilot-protocol: $(TESTPILOT_PROTOCOL_PROTOS)
-	@printf $(COLOR) "Check generated Lean Testpilot protocol..."
+umpire-check-testpilot-protocol: $(API_BINPB) $(TESTPILOT_PROTOCOL_PROTOS)
+	@printf $(COLOR) "Check Testpilot protocol..."
 	@set -eu; protoc=$$(mise exec -- which protoc); \
 		test "$$($$protoc --version)" = "libprotoc 29.5"; \
 		temporary=$$(mktemp); \
@@ -651,51 +443,7 @@ umpire-check-testpilot-protocol: $(TESTPILOT_PROTOCOL_PROTOS)
 			--descriptor_set_out="$$temporary" $(TESTPILOT_PROTOCOL_PROTOS:proto/internal/%=%); \
 		TESTPILOT_PROTOCOL_DESCRIPTOR_SET="$$temporary" \
 			mise exec -- go test -count=1 -tags test_dep ./common/testing/testpilot \
-			-run '^TestProtocolMessagesCarryLeadingComments$$'; \
-		cd model/lean; \
-		PROTOC="$$protoc" $(LEAN_LAKE) env lean Testpilot/Protocol.lean; \
-		PROTOC="$$protoc" $(LEAN_LAKE) build Testpilot TestpilotTests
-
-umpire-check-testpilot-authoring:
-	@printf $(COLOR) "Check Lean Testpilot authoring and ProtoJSON..."
-	@set -eu; temporary=$$(mktemp); \
-		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
-		cd model/lean; \
-		$(LEAN_LAKE) build Testpilot TestpilotTests umpire-protojson-fixture; \
-		$(LEAN_LAKE) exe umpire-protojson-fixture > "$$temporary"; \
-		cd ../..; \
-		TESTPILOT_LEAN_AUTHORING_CASE="$$temporary" \
-			mise exec -- go test -count=1 -tags test_dep ./tests/testcore/testpilot \
-			-run '^TestLeanAuthoringProtoJSONStrictDecode$$'
-
-umpire-gen-inventory:
-	@set -eu; \
-		document="$(_UMPIRE_INVENTORY_DOCUMENT)"; \
-		directory=$$(dirname "$$document"); \
-		base=$$(basename "$$document"); \
-		temporary=$$(mktemp "$$directory/.$$base.XXXXXX"); \
-		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
-		( $(_UMPIRE_INVENTORY_RENDERER) ) > "$$temporary"; \
-		chmod 0644 "$$temporary"; \
-		mv -f "$$temporary" "$$document"; \
-		trap - EXIT HUP INT TERM
-
-umpire-check-inventory:
-	@set -eu; \
-		document="$(_UMPIRE_INVENTORY_DOCUMENT)"; \
-		directory=$$(dirname "$$document"); \
-		base=$$(basename "$$document"); \
-		temporary=$$(mktemp "$$directory/.$$base.XXXXXX"); \
-		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
-		( $(_UMPIRE_INVENTORY_RENDERER) ) > "$$temporary"; \
-		checked="$$document"; \
-		if [ ! -f "$$checked" ]; then checked=/dev/null; fi; \
-		diff -u --label "$$document (checked)" --label "$$document (generated)" \
-			"$$checked" "$$temporary"
-
-umpire-check-retired-vocabulary:
-	@printf $(COLOR) "Check active Umpire vocabulary..."
-	@mise exec -- go run ./tools/umpire/cmd/umpire-check-retired-vocabulary
+			-run '^TestProtocolMessagesCarryLeadingComments$$'
 
 umpire-run:
 	@printf $(COLOR) "Build the Umpire Case runner..."
@@ -717,7 +465,7 @@ umpire-fuzz-run:
 		eval "value=\$$$$required"; test -n "$$value" || { printf '%s is required\n' "$$required"; exit 3; }; \
 	done
 	@$(MAKE) --no-print-directory umpire-fuzz
-	@cd model/lean && $(LEAN_LAKE) -q build umpire-explore
+	@$(MAKE) --no-print-directory umpire-ir-bridge
 	@./.build/umpire-fuzz run --set "$(SET)" \
 		--grpc "$$UMPIRE_FUZZ_GRPC" --http "$$UMPIRE_FUZZ_HTTP" \
 		--namespace "$$UMPIRE_FUZZ_NAMESPACE" --task-queue "$$UMPIRE_FUZZ_TASK_QUEUE" \
@@ -733,15 +481,15 @@ umpire-repeat:
 # One reproduction loop over the live Testpilot tests: SELECT names the -test.run selection, COUNT
 # the iterations, MODE process (one process each) or in-process (one process with -test.count),
 # RECORD the record file (a new one under ./.build/umpire-repeat when empty), UMPIRE_REPEAT_FLAGS
-# any further flags such as --timeout. It builds the Lean helpers the gate builds and runs under the
-# physical temporary directory the gate uses; it is not part of umpire-check-regression. SELECT is
+# any further flags such as --timeout. It builds the IR bridge the gate uses and runs under the
+# physical temporary directory the gate uses; it is an explicit operator action. SELECT is
 # read unexpanded, so a trailing `$` anchor survives.
 umpire-repeat-run:
 	@test -n '$(value SELECT)' || { printf 'SELECT=<test regex> is required\n'; exit 3; }
 	@test -n "$(COUNT)" || { printf 'COUNT=<iterations> is required\n'; exit 3; }
 	@test -n "$(MODE)" || { printf 'MODE=process|in-process is required\n'; exit 3; }
 	@$(MAKE) --no-print-directory umpire-repeat
-	@cd model/lean && $(LEAN_LAKE) -q build umpire-explore umpire-replay-bridge
+	@$(MAKE) --no-print-directory umpire-ir-bridge
 	@set -eu; \
 		physical_tmpdir=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		record='$(RECORD)'; \
@@ -768,7 +516,7 @@ umpire-replay-run:
 		eval "value=\$$$$required"; test -n "$$value" || { printf '%s is required\n' "$$required"; exit 3; }; \
 	done
 	@$(MAKE) --no-print-directory umpire-replay
-	@cd model/lean && $(LEAN_LAKE) -q build umpire-replay-bridge
+	@$(MAKE) --no-print-directory umpire-ir-bridge
 	@./.build/umpire-replay run --case "$(CASE)" --run "$(RUN)" --set "$(SET)" \
 		$(if $(QUERY),--query "$(QUERY)") $(if $(TARGET),--target "$(TARGET)") \
 		--grpc "$$UMPIRE_REPLAY_GRPC" --http "$$UMPIRE_REPLAY_HTTP" \
@@ -792,41 +540,8 @@ umpire-assess-run:
 	@$(MAKE) --no-print-directory umpire-assess
 	@./.build/umpire-assess run --case "$(CASE)" --run "$(RUN)" --profile "$(PROFILE)" --receipt-root "$(RECEIPT_ROOT)"
 
-umpire-export-model-module-index:
-	@cd model/lean && $(LEAN_LAKE) -q exe temporal-model-module-index
-
-umpire-check-model-module-index:
-	@printf $(COLOR) "Check the model module impact index exporter..."
-	@cd model/lean && $(LEAN_LAKE) -q build temporal-model-module-index temporal-model-module-index-tests
-	@cd model/lean && $(LEAN_LAKE) -q exe temporal-model-module-index-tests
-	@set -eu; \
-		physical_tmpdir=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
-		stdout=$$(TMPDIR="$$physical_tmpdir" mktemp); \
-		stderr=$$(TMPDIR="$$physical_tmpdir" mktemp); \
-		trap 'rm -f "$$stdout" "$$stderr"' EXIT HUP INT TERM; \
-		status=0; \
-		$(MAKE) --no-print-directory umpire-export-model-module-index >"$$stdout" 2>"$$stderr" || status=$$?; \
-		if [ "$$status" -ne 0 ]; then cat "$$stderr" >&2; printf 'The Make export path exited %s.\n' "$$status"; exit 1; fi; \
-		if [ -s "$$stderr" ]; then cat "$$stderr" >&2; printf 'The Make export path wrote to stderr on success.\n'; exit 1; fi; \
-		head -c 43 "$$stdout" | grep -q '^{"format":"temporal-model-module-index/v1",' || { printf 'The Make export path did not start with the v1 document.\n'; exit 1; }; \
-		test "$$(tail -c 1 "$$stdout" | od -An -c | tr -d ' ')" = '\n' || { printf 'The Make export path did not end with one LF.\n'; exit 1; }; \
-		test "$$(wc -l < "$$stdout")" -eq 1 || { printf 'The Make export path wrote more than one line.\n'; exit 1; }; \
-		printf 'The Make export path wrote one %s-byte document and nothing else.\n' "$$(wc -c < "$$stdout" | tr -d ' ')"
-
-umpire-check-exploration-bridge:
-	@printf $(COLOR) "Check the exploration bridge..."
-	@cd model/lean && $(LEAN_LAKE) -q build umpire-explore umpire-explore-tests
-	@cd model/lean && $(LEAN_LAKE) -q exe umpire-explore-tests
-	@mise exec -- go test -count=1 -tags test_dep ./tests/testcore/testpilot -run '^TestExplorationBridge'
-
-umpire-check-replay-bridge:
-	@printf $(COLOR) "Check the replay bridge..."
-	@cd model/lean && $(LEAN_LAKE) -q build umpire-replay-bridge umpire-replay-bridge-tests
-	@cd model/lean && $(LEAN_LAKE) -q exe umpire-replay-bridge-tests
-	@mise exec -- go test -count=1 -tags test_dep ./tools/umpire/replay -run '^TestLiveReplayBridge'
-
 umpire-check-live-tests:
-	@cd model/lean && $(LEAN_LAKE) -q build umpire-explore umpire-replay-bridge
+	@$(MAKE) --no-print-directory umpire-ir-bridge
 	@set -eu; \
 		physical_tmpdir=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		temporary=$$(TMPDIR="$$physical_tmpdir" mktemp); \
@@ -859,7 +574,7 @@ umpire-check-live-tests:
 # it. A Testpilot protocol change moves the Driver catalog, and a Case change the Case identity;
 # either leaves the record stale or crossed until it is recorded again live.
 UMPIRE_PINNED_RUNS := \
-	TestTestpilotNexusControlForgedCompletionIsViolated:UMPIRE_CONTROL_RECORD:tools/umpire/replay/testdata/nexusCallerControl-forgedCompletion-run.json:./tools/umpire/replay:TestControlRecordPinsTheCorrelatedKey \
+	TestTestpilotNexusControlForgedCompletionIsViolated:UMPIRE_CONTROL_RECORD:common/testing/testpilot/replay/testdata/nexusCallerControl-forgedCompletion-run.json:./common/testing/testpilot/replay:TestControlRecordPinsTheCorrelatedKey \
 	TestTestpilotCanaryLifecycle:UMPIRE_CANARY_RECORD:tools/canary/assessment/testdata/nexusCallerCanary-syncCompletion-run.json:./tools/canary/assessment:TestAdmitRecordsAClosedRunAndAdmitsIt
 
 # Re-records every pinned Run its probe rejects as stale or crossed, leaves a current one alone, and
@@ -902,169 +617,76 @@ umpire-rerecord-pinned-runs:
 			temporary=; \
 		done; \
 		UMPIRE_RECEIPT_GOLDENS=write TMPDIR="$$physical_tmpdir" mise exec -- go test -count=1 -tags test_dep \
-			./tools/umpire/evaluation -run '^TestReceiptGoldens$$' > "$$log" 2>&1 || { cat "$$log"; exit 1; }
+			./common/testing/testpilot/evaluation -run '^TestReceiptGoldens$$' > "$$log" 2>&1 || { cat "$$log"; exit 1; }
 	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		TMPDIR="$$temporary_root" mise exec -- go test -count=1 -tags test_dep \
-			./tools/umpire/replay ./tools/umpire/evaluation ./tools/umpire/cmd/umpire-assess ./tools/canary/...
+			./common/testing/testpilot/replay ./common/testing/testpilot/evaluation ./tools/umpire/cmd/umpire-assess ./tools/canary/...
 
-# A shell function: `check_veil_manifest <manifest>` fails unless the manifest resolves the Veil
-# commit `model/lean/lakefile.lean` requires, and that commit is the one the `veil` search backend
-# reports (`Umpire.Search.Backend.Veil.commit`). A function rather than a sub-make, so `make -n`
-# lists the check instead of running it.
-_UMPIRE_CHECK_VEIL_MANIFEST = check_veil_manifest() { \
-		required=$$(sed -n 's/^  "https:\/\/github.com\/verse-lab\/veil.git"@"\([0-9a-f]\{40\}\)"$$/\1/p' model/lean/lakefile.lean); \
-		resolved=$$(awk '/"rev":/ {rev=$$2} /"name": "veil"/ {gsub(/[",]/, "", rev); print rev}' "$$1"); \
-		reported=$$(sed -n 's/^def commit : String := "\([0-9a-f]\{40\}\)"$$/\1/p' model/lean/Umpire/Search/Backend/Veil.lean); \
-		test -n "$$required" || { echo "model/lean/lakefile.lean requires no pinned Veil commit" >&2; return 1; }; \
-		test "$$resolved" = "$$required" || { echo "$$1 resolves Veil '$$resolved', model/lean/lakefile.lean requires $$required" >&2; return 1; }; \
-		test "$$reported" = "$$required" || { echo "Umpire.Search.Backend.Veil.commit is '$$reported', model/lean/lakefile.lean requires $$required" >&2; return 1; }; \
-	}
+umpire-ir-bridge:
+	@printf $(COLOR) "Build the Umpire IR bridge..."
+	@mise exec -- go build -o ./.build/umpire-ir-bridge ./tools/umpire/cmd/umpire-ir-bridge
 
-# Check the Veil pin, then plant a manifest that resolves another revision and require the check to
-# reject it with its diagnostic.
-umpire-check-veil-pin:
-	@printf $(COLOR) "Check the pinned Veil commit..."
-	@set -eu; $(_UMPIRE_CHECK_VEIL_MANIFEST); check_veil_manifest model/lean/lake-manifest.json
-	@set -eu; $(_UMPIRE_CHECK_VEIL_MANIFEST); \
-		planted=$$(mktemp); diagnostics=$$(mktemp); \
-		trap 'rm -f "$$planted" "$$diagnostics"' EXIT; \
-		required=$$(sed -n 's/^  "https:\/\/github.com\/verse-lab\/veil.git"@"\([0-9a-f]\{40\}\)"$$/\1/p' model/lean/lakefile.lean); \
-		other=0000000000000000000000000000000000000000; \
-		awk -v other="$$other" '/"rev":/ {line[++n]=$$0; rev=n; next} {line[++n]=$$0} /"name": "veil"/ {sub(/"rev": "[0-9a-f]*"/, "\"rev\": \"" other "\"", line[rev])} END {for (i = 1; i <= n; i++) print line[i]}' model/lean/lake-manifest.json >"$$planted"; \
-		status=0; \
-		check_veil_manifest "$$planted" 2>"$$diagnostics" || status=$$?; \
-		test "$$status" -ne 0 || { echo "check_veil_manifest accepted a manifest that resolves Veil $$other" >&2; exit 1; }; \
-		expected="$$planted resolves Veil '$$other', model/lean/lakefile.lean requires $$required"; \
-		grep -qxF "$$expected" "$$diagnostics" || { echo "unexpected diagnostic:" >&2; cat "$$diagnostics" >&2; exit 1; }
+umpire-gen-cases:
+	@mise exec -- go run ./tools/umpire/cmd/umpire-gen-cases --update
 
-umpire-check-regression: umpire-check-veil-pin umpire-check-lean-api umpire-check-goldens umpire-check-evaluation-profiles canary-check-case umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance umpire-check-inventory umpire-check-retired-vocabulary umpire-check-live-tests
-	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
-		TMPDIR="$$temporary_root" mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/... ./tools/canary/...
-	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
-		TMPDIR="$$temporary_root" mise exec -- go test -count=1 -tags 'test_dep canary_harness' ./tools/canary/testharness/
-	@set -eu; \
-		old_namespace='Temporal''[.](Experiment|Umpire)'; \
-		old_path='Temporal/''(Experiment|Umpire)'; \
-		old_targets='Experiment''Tests|temporal-experiment''-inspect|Temporal''UmpireTests|temporal-umpire''-inspect|Nexus''AutoClose'; \
-		old_experiment_tree=model/lean/Temporal/''Experiment; \
-		old_umpire_tree=model/lean/Temporal/''Umpire; \
-		old_temporal_tests=model/lean/Temporal''UmpireTests.lean; \
-		old_auto_close_root=model/lean/Temporal/Feature/Nexus/AutoClose.lean; \
-		old_caller_closure_root=model/lean/Temporal/Feature/Nexus/CallerClosure.lean; \
-		old_examples_tree=model/lean/Temporal/Feature/Nexus/Examples; \
-		test ! -e "$$old_experiment_tree"; \
-		test ! -e "$${old_experiment_tree}Tests.lean"; \
-		test ! -e "$$old_umpire_tree"; \
-		test ! -e "$$old_temporal_tests"; \
-		test ! -e "$$old_auto_close_root"; \
-		test ! -e "$$old_caller_closure_root"; \
-		test ! -e "$$old_examples_tree"; \
-		live_sources=$$(find model/lean/Umpire model/lean/Temporal -type f -name '*.lean' -print); \
-		test -n "$$live_sources"; \
-		if grep -nE "$$old_namespace|$$old_path" $$live_sources \
-			model/lean/Umpire.lean model/lean/UmpireTests.lean model/lean/Temporal.lean model/lean/TemporalModelTests.lean; then \
-			echo "found obsolete Temporal interface in live Lean sources" >&2; \
-			exit 1; \
-		else \
-			scan_status=$$?; \
-			test "$$scan_status" -eq 1; \
-		fi; \
-		if grep -nE "$$old_namespace|$$old_path|$$old_targets" Makefile model/lean/lakefile.lean model/lean/README.md; then \
-			echo "found obsolete Temporal interface in live build or model documentation" >&2; \
-			exit 1; \
-		else \
-			scan_status=$$?; \
-			test "$$scan_status" -eq 1; \
-		fi; \
-		if git grep -nE '^[[:space:]]*(import|namespace)[[:space:]]+(Temporal|Nexus)([.]|[[:space:]]|$$)|(^|[^[:alnum:]_-])(Temporal|Nexus)([.]|/)|(^|[^[:alnum:]_-])(nexus|workflow|workflow-nexus)[.]' -- \
-			model/lean/Umpire model/lean/Umpire.lean model/lean/UmpireTests.lean; then \
-			echo "found Temporal-owned dependency, namespace, or semantic prefix in reusable Umpire artifacts" >&2; \
-			exit 1; \
-		else \
-			scan_status=$$?; \
-			test "$$scan_status" -eq 1; \
-		fi; \
-		configuration_sources="model/lean/Temporal/System/Configuration.lean $$(find model/lean/Temporal/System/Configuration -type f -name '*.lean' ! -name '*Tests.lean' -print)"; \
-		if grep -nE '^[[:space:]]*import[[:space:]]+Temporal[.]System[.](Callback|Matching)([.]|[[:space:]]|$$)' $$configuration_sources; then \
-			echo "found forbidden shared Configuration dependency on Callback or Matching" >&2; \
-			exit 1; \
-		else \
-			scan_status=$$?; \
-			test "$$scan_status" -eq 1; \
-		fi; \
-		test -f model/lean/Umpire/Model/Check.lean || { \
-			echo "missing physical Umpire Model package" >&2; \
-			exit 1; \
-		}; \
-		grep -qx 'import Umpire.Model.Elab' model/lean/Umpire/Model.lean || { \
-			echo "Umpire Model facade does not expose its package" >&2; \
-			exit 1; \
-		}; \
-		for package in Property Scenario Query; do \
-			test -f "model/lean/Umpire/$$package/Check.lean" || { \
-				echo "missing physical Umpire $$package package" >&2; \
-				exit 1; \
-			}; \
-			grep -qx "import Umpire.$$package" "model/lean/Umpire/$$package/Check.lean" || { \
-				echo "Umpire $$package package does not build on its types module" >&2; \
-				exit 1; \
-			}; \
-		done; \
-		test -f model/lean/Umpire/Search/Branches.lean || { \
-			echo "missing physical Umpire Search package" >&2; \
-			exit 1; \
-		}; \
-		grep -qx 'import Umpire.Search' model/lean/Umpire/Search/Branches.lean || { \
-			echo "Umpire Search package does not build on its engine module" >&2; \
-			exit 1; \
-		}
-	@cd model/lean && $(LEAN_LAKE) build Temporal UmpireTests TemporalModelTests +Umpire.PromotionTests $(UMPIRE_REGRESSION_INSPECTOR) $(UMPIRE_TESTPILOT_RENDERER)
-	@set -eu; temporary=$$(mktemp -d); \
-		trap 'rm -rf "$$temporary"' EXIT; \
-		cd model/lean; \
-		$(UMPIRE_INSPECT) list > "$$temporary/list-first.json"; \
-		$(UMPIRE_INSPECT) list > "$$temporary/list-second.json"; \
-		cmp -s "$$temporary/list-first.json" "$$temporary/list-second.json"; \
-		$(UMPIRE_INSPECT) explain \
-			temporal.nexus.caller.query.asyncCompletion > "$$temporary/explain-first.json"; \
-		$(UMPIRE_INSPECT) explain \
-			temporal.nexus.caller.query.asyncCompletion > "$$temporary/explain-second.json"; \
-		cmp -s "$$temporary/explain-first.json" "$$temporary/explain-second.json"; \
-		for scenario_fixture in $(UMPIRE_REGRESSION_FIXTURES); do \
-			scenario=$${scenario_fixture%%:*}; \
-			fixture=$${scenario_fixture#*:}; \
-			$(UMPIRE_INSPECT) "$$scenario" > "$$temporary/first.json"; \
-			$(UMPIRE_INSPECT) "$$scenario" > "$$temporary/second.json"; \
-			cmp -s "$$temporary/first.json" "$$temporary/second.json"; \
-			cmp -s "$$fixture" "$$temporary/first.json"; \
-		done; \
-		if $(UMPIRE_INSPECT) missing-scenario \
-			> "$$temporary/negative.stdout" 2> "$$temporary/negative.stderr"; then \
-			echo "expected the inspector to reject an unknown scenario" >&2; \
-			exit 1; \
-		fi; \
-		test ! -s "$$temporary/negative.stdout"; \
-		printf '%s\n' '{"kind":"unknown-scenario","subject":"missing-scenario","context":"scenario registry"}' \
-			> "$$temporary/expected-negative.stderr"; \
-		cmp -s "$$temporary/expected-negative.stderr" "$$temporary/negative.stderr"; \
-		if $(UMPIRE_INSPECT) \
-			> "$$temporary/invalid.stdout" 2> "$$temporary/invalid.stderr"; then \
-			echo "expected the inspector to reject invalid arguments" >&2; \
-			exit 1; \
-		fi; \
-		test ! -s "$$temporary/invalid.stdout"; \
-		printf '%s\n' '{"kind":"invalid-arguments","subject":"inspect","context":"expected exactly one scenario identity"}' \
-			> "$$temporary/expected-invalid.stderr"; \
-		cmp -s "$$temporary/expected-invalid.stderr" "$$temporary/invalid.stderr"
+umpire-check-cases:
+	@mise exec -- go run ./tools/umpire/cmd/umpire-gen-cases
 
-.PHONY: umpire-check-lean-api umpire-build-model umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-evaluation-profiles umpire-check-evaluation-profiles canary-gen-case canary-check-case canary-build umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-export-model-module-index umpire-check-model-module-index umpire-check-exploration-bridge umpire-check-replay-bridge umpire-replay umpire-replay-run umpire-assess umpire-assess-run umpire-run umpire-fuzz umpire-fuzz-run umpire-repeat umpire-repeat-run umpire-check-live-tests umpire-rerecord-pinned-runs umpire-check-veil-pin umpire-check-regression
+umpire-check-backends:
+	@tools/umpire/export/run.sh $(UMPIRE_BACKEND_FLAGS)
+
+umpire-check-exploration-bridge:
+	@mise exec -- go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-ir-bridge -run '^TestIRBridgeProtocol$$/(campaign|sequence)$$'
+
+umpire-check-replay-bridge:
+	@mise exec -- go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-ir-bridge -run '^TestIRBridgeProtocol$$/replay$$'
+
+# Scala model tooling uses explicit source roots so authoring and the lifter stay separate projects.
+MODEL_ROOT := model
+MODEL_CLI := mise exec -- scala-cli
+MODEL_GATE_ARGS ?=
+MODEL_SCALAFIX = $(MODEL_CLI) --power fix --enable-built-in=false \
+	--scalafix-conf "$(CURDIR)/$(MODEL_ROOT)/.scalafix.conf" \
+	--scalac-option -Wunused:all --suppress-outdated-dependency-warning
+MODEL_SOURCES := $(MODEL_ROOT)/project.scala $(MODEL_ROOT)/umpire $(MODEL_ROOT)/temporal
+MODEL_SCALAFIX_FILES = $(foreach source,$(MODEL_SOURCES),--scalafix-arg=--files --scalafix-arg="$(CURDIR)/$(source)")
+MODEL_PROTO_JARS := $(MODEL_ROOT)/gen/ir-proto.jar
+
+$(MODEL_PROTO_JARS): proto/internal/temporal/server/api/modelir/v1/ir.proto $(MODEL_ROOT)/gen.sh
+	@printf $(COLOR) "Package model IR classes..."
+	@$(MODEL_ROOT)/gen.sh ir
+
+fmt-model:
+	@printf $(COLOR) "Formatting model files..."
+	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf $(MODEL_SOURCES) $(MODEL_ROOT)/lifter
+
+lint-model: $(MODEL_PROTO_JARS)
+	@printf $(COLOR) "Checking model formatting..."
+	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf --check $(MODEL_SOURCES) $(MODEL_ROOT)/lifter
+	@printf $(COLOR) "Linting model files..."
+	@$(MODEL_SCALAFIX) $(MODEL_SCALAFIX_FILES) --check $(MODEL_SOURCES)
+	@cd $(MODEL_ROOT)/lifter && $(MODEL_SCALAFIX) --check .
+
+# Applies the scalafix rewrites; findings without a rewrite (e.g. DisableSyntax) still fail.
+fix-model: $(MODEL_PROTO_JARS)
+	@printf $(COLOR) "Applying model lint fixes..."
+	@$(MODEL_SCALAFIX) $(MODEL_SCALAFIX_FILES) $(MODEL_SOURCES)
+	@cd $(MODEL_ROOT)/lifter && $(MODEL_SCALAFIX) .
+
+umpire-check-model: $(MODEL_PROTO_JARS)
+	@printf $(COLOR) "Check model IR..."
+	@$(MODEL_ROOT)/run.sh $(MODEL_GATE_ARGS)
+
+umpire-gen-model: $(MODEL_PROTO_JARS)
+	@printf $(COLOR) "Generate model IR..."
+	@$(MODEL_ROOT)/run.sh --update $(MODEL_GATE_ARGS)
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."
-	@UNGENERATED_FILES=$$(find . -type f -name '*.go' -print0 | xargs -0 grep -L -e "Code generated by .* DO NOT EDIT." || true) && \
+	@UNGENERATED_FILES=$$($(SOURCE_FIND) -type f -name '*.go' -print0 | xargs -0 grep -L -e "Code generated by .* DO NOT EDIT." || true) && \
 		$(GOIMPORTS) -w $$UNGENERATED_FILES
 
-lint: lint-code lint-model lint-actions lint-api lint-protos lint-yaml
+lint: lint-code lint-actions lint-api lint-protos lint-yaml
 	@printf $(COLOR) "Run linters..."
 
 lint-actions: $(ACTIONLINT)
@@ -1079,7 +701,7 @@ lint-code-fast:
 		printf $(RED) "GOLANGCI_LINT_BASE_REV=$(GOLANGCI_LINT_BASE_REV) is not a known commit; fetch it or override GOLANGCI_LINT_BASE_REV"; \
 		exit 1; \
 	fi
-	@base=$$(git merge-base HEAD "$(GOLANGCI_LINT_BASE_REV)"); \
+	@set -eu; base=$$(git merge-base HEAD "$(GOLANGCI_LINT_BASE_REV)"); \
 	excludes=$$(git ls-files --cached --others --exclude-standard -- '*/go.mod' \
 	  | sed 's|/go.mod$$|/**|; s|^|:(exclude,glob)|'); \
 	targets=$$({ \
@@ -1090,7 +712,15 @@ lint-code-fast:
 	if [ -z "$$targets" ]; then \
 		printf $(COLOR) "No changed Go packages to lint."; \
 	else \
-		$(MAKE) GOLANGCI_LINT_BASE_REV="$$base" LINT_CODE_TARGETS="$$targets" lint-code; \
+		patch=$$(mktemp); \
+		trap 'rm -f "$$patch"' EXIT HUP INT TERM; \
+		git diff --no-ext-diff --no-renames "$$base" -- '*.go' ':(exclude,glob)**/testdata/**' $$excludes > "$$patch"; \
+		git ls-files --others --exclude-standard -- '*.go' ':(exclude,glob)**/testdata/**' $$excludes | \
+			while IFS= read -r file; do \
+				status=0; git diff --no-ext-diff --no-index -- /dev/null "$$file" >> "$$patch" || status=$$?; \
+				[ "$$status" -le 1 ] || exit "$$status"; \
+			done; \
+		$(MAKE) GOLANGCI_LINT_BASE_REV="$$base" GOLANGCI_LINT_PATCH="$$patch" LINT_CODE_TARGETS="$$targets" lint-code; \
 	fi
 
 lint-code: $(GOLANGCI_LINT) $(ERRORTYPE)
@@ -1100,145 +730,14 @@ lint-code: $(GOLANGCI_LINT) $(ERRORTYPE)
 		--build-tags $(ALL_TEST_TAGS) \
 		--timeout 10m \
 		--fix=$(GOLANGCI_LINT_FIX) \
-		--new-from-rev=$(GOLANGCI_LINT_BASE_REV) \
+		$(if $(GOLANGCI_LINT_PATCH),--new-from-patch="$(GOLANGCI_LINT_PATCH)",--new-from-rev=$(GOLANGCI_LINT_BASE_REV)) \
 		--config=.github/.golangci.yml \
 		$(LINT_CODE_TARGETS)
 	@go vet -tags $(ALL_TEST_TAGS) -vettool="$(ERRORTYPE)" -style-check=false $(LINT_CODE_TARGETS)
 
-# Builtin linting rebuilds every module with linter options, and those options are part of each
-# module's build trace. Running it in model/lean/ would thrash model/lean/.lake against ordinary builds, so it
-# runs in a mirror of the sources with a build directory of its own that stays warm between runs.
-LINT_MODEL_DIR ?= $(CURDIR)/.build/lint-model
-# The default roots cover production and tool declarations without re-elaborating the test
-# aggregators; an empty command-line override retains Lake's exhaustive default-target lint.
-LINT_MODEL_MODULES ?= \
-	Shared \
-	Testpilot \
-	Temporal \
-	Umpire \
-	Temporal.Tool.Inspect \
-	Temporal.Tool.Testpilot
-
-.PHONY: lint-model lint-model-builtin
-lint-model: umpire-check-inventory
-	@printf $(COLOR) "Linting Lean model..."
-	@test -f model/lean/HANDWRITTEN_INVENTORY.md || { echo "model/lean/HANDWRITTEN_INVENTORY.md is an input of lint-model" >&2; exit 1; }
-	@cd model/lean && $(LEAN_LAKE) build umpire-lint-tests umpire-lint
-	@cd model/lean && $(LEAN_LAKE) exe umpire-lint-tests
-	@diagnostics=$$(mktemp); \
-		trap 'rm -f "$$diagnostics"' EXIT; \
-		status=0; \
-		cd model/lean && $(LEAN_LAKE) exe umpire-lint-tests --controlled-violation 2>"$$diagnostics" || status=$$?; \
-		test "$$status" -eq 1; \
-		expected='[model-import-graph/shared-independence] forbidden qualified import path: Shared.Root -> ModelLint.Bridge -> Umpire.Core'; \
-		test "$$(cat "$$diagnostics")" = "$$expected"
-	@diagnostics=$$(mktemp); \
-		trap 'rm -f "$$diagnostics"' EXIT; \
-		status=0; \
-		cd model/lean && $(LEAN_LAKE) exe umpire-lint-tests --controlled-authoring-violation 2>"$$diagnostics" || status=$$?; \
-		test "$$status" -eq 1; \
-		expected='[model-import-graph/authoring-path-isolation] forbidden direct import: Temporal.Feature.Planted -> Umpire.Model'; \
-		test "$$(cat "$$diagnostics")" = "$$expected"
-	@diagnostics=$$(mktemp); \
-		trap 'rm -f "$$diagnostics"' EXIT; \
-		status=0; \
-		cd model/lean && $(LEAN_LAKE) exe umpire-lint-tests --controlled-search-backend-violation 2>"$$diagnostics" || status=$$?; \
-		test "$$status" -eq 1; \
-		expected='[model-import-graph/search-backend-isolation] forbidden direct import: Umpire.Search -> Veil.Core.Tools.ModelChecker.Concrete.Checker'; \
-		test "$$(cat "$$diagnostics")" = "$$expected"
-	@diagnostics=$$(mktemp); \
-		trap 'rm -f "$$diagnostics"' EXIT; \
-		status=0; \
-		cd model/lean && $(LEAN_LAKE) exe umpire-lint-tests --controlled-unbuilt-violation 2>"$$diagnostics" || status=$$?; \
-		test "$$status" -eq 1; \
-		expected='[model-import-graph/unbuilt] Umpire.Planted is not reachable from any model/lean/lakefile.lean root'; \
-		test "$$(cat "$$diagnostics")" = "$$expected"
-	@diagnostics=$$(mktemp); \
-		trap 'rm -f "$$diagnostics"' EXIT; \
-		status=0; \
-		cd model/lean && $(LEAN_LAKE) exe umpire-lint-tests --controlled-entity-violation 2>"$$diagnostics" || status=$$?; \
-		test "$$status" -eq 1; \
-		expected='[model-entity/feature-entity-uniqueness] duplicate action serve: Temporal.Feature.Planted and Temporal.Feature.Worker.Model'; \
-		test "$$(cat "$$diagnostics")" = "$$expected"
-	@cd model/lean && $(LEAN_LAKE) exe umpire-lint
-	@$(MAKE) --no-print-directory lint-model-builtin
-
-# LINT_MODEL_MODULES narrows the builtin lints to the named modules (and what they import).
-lint-model-builtin:
-	@mkdir -p "$(LINT_MODEL_DIR)/model/.lake" "$(LINT_MODEL_DIR)/proto"
-	@rsync -a --delete --exclude /.lake/ model/lean/ "$(LINT_MODEL_DIR)/model/"
-	@rsync -a --delete proto/ "$(LINT_MODEL_DIR)/proto/"
-	@ln -sfn "$(CURDIR)/model/.lake/packages" "$(LINT_MODEL_DIR)/model/.lake/packages"
-	@cd "$(LINT_MODEL_DIR)/model" && $(LEAN_LAKE) --wfail lint --builtin-only --lint-only=.all,.extra,-.missingDocs $(LINT_MODEL_MODULES)
-
 lint-yaml: $(YAMLFMT)
 	@printf $(COLOR) "Checking YAML formatting..."
 	@$(YAMLFMT) -conf .github/.yamlfmt -lint .
-
-# Scala model tooling, run through scala-cli: scalafmt formats the whole tree (.scalafmt.conf) and
-# scalafix lints each scala-cli project, i.e. every directory with a project.scala (.scalafix.conf).
-# Scalafix compiles each project, so the IR jar the lifter links against is generated first.
-# Not part of `fmt`/`lint` yet: those run in CI, which has no JVM.
-.PHONY: fmt-scala lint-scala fix-scala umpire-check-scala umpire-gen-scala
-SCALA_ROOT := model/scalav2
-SCALA_CLI := mise exec -- scala-cli
-SCALA_PROJECTS = $(patsubst %/project.scala,%,$(wildcard $(SCALA_ROOT)/*/project.scala))
-SCALAFIX = $(SCALA_CLI) --power fix --enable-built-in=false \
-	--scalafix-conf "$(CURDIR)/$(SCALA_ROOT)/.scalafix.conf" \
-	--scalac-option -Wunused:all --suppress-outdated-dependency-warning
-
-SCALA_PROTO_JARS := $(SCALA_ROOT)/gen/ir-proto.jar
-
-$(SCALA_ROOT)/gen/ir-proto.jar: proto/internal/temporal/server/api/modelir/v1/ir.proto $(SCALA_ROOT)/gen.sh
-	@printf $(COLOR) "Package Scala model IR classes..."
-	@$(SCALA_ROOT)/gen.sh ir
-
-fmt-scala:
-	@printf $(COLOR) "Formatting Scala files..."
-	@cd $(SCALA_ROOT) && $(SCALA_CLI) fmt .
-
-lint-scala: $(SCALA_PROTO_JARS)
-	@printf $(COLOR) "Checking Scala formatting..."
-	@cd $(SCALA_ROOT) && $(SCALA_CLI) fmt --check .
-	@printf $(COLOR) "Linting Scala files..."
-	@for project in $(SCALA_PROJECTS); do \
-		(cd "$$project" && $(SCALAFIX) --check .) || exit 1; \
-	done
-
-# Applies the scalafix rewrites; findings without a rewrite (e.g. DisableSyntax) still fail.
-fix-scala: $(SCALA_PROTO_JARS)
-	@printf $(COLOR) "Applying Scala lint fixes..."
-	@for project in $(SCALA_PROJECTS); do \
-		(cd "$$project" && $(SCALAFIX) .) || exit 1; \
-	done
-
-# The model/scalav2 gate (see run.sh): compile and test the Scala Models, lift them to the IR, require
-# the checked-in IR to be current, and check the IR against the Lean Model in Go. umpire-gen-scala
-# rewrites the IR:
-#   ir/nexus-caller.json     the Nexus caller and worker machines
-#   ir/activity.json         the standalone activity Model, as model/go/standaloneactivity has it
-#   ir/activity-system.json  the standalone activity's system contract and its dispatch queue
-#   ir/nexus-close.json      the Nexus caller close and reset designs
-umpire-check-scala: $(SCALA_PROTO_JARS)
-	@printf $(COLOR) "Check Scala model IR..."
-	@$(SCALA_ROOT)/run.sh
-
-umpire-gen-scala: $(SCALA_PROTO_JARS)
-	@printf $(COLOR) "Generate Scala model IR..."
-	@$(SCALA_ROOT)/run.sh --update
-
-# Deletes what the Scala and model gates regenerate, all of it git-ignored: the generated jars and
-# lifted scratch under gen/, scala-cli's build and BSP directories, and the Go build and test caches,
-# which grow without bound over many gate runs. Every path is spelled out here, so nothing else can
-# be deleted by it.
-.PHONY: umpire-clean
-umpire-clean:
-	@printf $(COLOR) "Delete regenerable Umpire build output..."
-	@rm -rf model/scalav2/gen \
-		model/scalav2/scala/.scala-build model/scalav2/scala/.bsp \
-		model/scalav2/lifter/.scala-build model/scalav2/lifter/.bsp \
-		model/scala/.scala-build model/scala/.bsp
-	@mise exec -- go clean -cache -testcache
 
 # Nil-safety analysis. Override NILAWAY_SCOPE to widen coverage as more packages
 # are made nil-clean; every path below is derived from it. -include-pkgs restricts
@@ -1290,7 +789,7 @@ fmt-gofix:
 
 fmt-imports: $(GCI) # Don't get confused, there is a single linter called gci, which is a part of the mega linter we use is called golangci-lint.
 	@printf $(COLOR) "Formatting imports..."
-	@find . -type f -name '*.go' -print0 | \
+	@$(SOURCE_FIND) -type f -name '*.go' -print0 | \
 		xargs -0 $(GCI) write --skip-generated -s standard -s default
 
 parallelize-tests:

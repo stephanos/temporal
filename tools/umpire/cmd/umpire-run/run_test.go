@@ -18,9 +18,9 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/umpire/internal/cli"
-	"go.temporal.io/server/tools/umpire/replay"
 )
 
 const fixtureRoot = "../../../../tests/testcore/testpilot/testdata"
@@ -108,12 +108,12 @@ func TestRunRecordsTheClosedRunWhenAsked(t *testing.T) {
 	require.Equal(t, exitViolated, code, stderr.String())
 	recorded, err := os.ReadFile(path)
 	require.NoError(t, err)
-	decoded, err := replay.DecodeRecordedRun(recorded)
+	decoded, err := recordedrun.Decode(recorded)
 	require.NoError(t, err)
 	require.Equal(t, identity, decoded.Driver)
 	fixture, err := os.ReadFile(fixturePath(t, "nexusCallerTests-asyncCompletion-case.json"))
 	require.NoError(t, err)
-	caseIdentity, err := replay.CaseIdentity(fixture)
+	caseIdentity, err := recordedrun.CaseIdentity(fixture)
 	require.NoError(t, err)
 	require.Equal(t, caseIdentity, decoded.Case, "the record names the fixture's canonical Case")
 	run := decoded.Run
@@ -532,7 +532,7 @@ func TestRunRefusesARecordOfANoncanonicalFixtureBeforeRunning(t *testing.T) {
 }
 
 func TestRunSkipsMissingDeliveryCapabilityBeforeOpening(t *testing.T) {
-	arguments := []string{"--case", "../../../../model/scalav2/cases/activity-race-heldAdmission.staleDelivery-case.json", "--grpc", "localhost:1", "--http", "localhost:2", "--namespace", "ns", "--task-queue", "q"}
+	arguments := []string{"--case", "../../../../model/cases/activity-race-heldAdmission.staleDelivery-case.json", "--grpc", "localhost:1", "--http", "localhost:2", "--namespace", "ns", "--task-queue", "q"}
 	var stdout, stderr bytes.Buffer
 	opened := false
 	code := Run(arguments, &stdout, &stderr, func(context.Context, config, *testpilotspb.Case) (*session, error) {

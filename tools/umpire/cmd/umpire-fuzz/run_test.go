@@ -18,8 +18,8 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	"go.temporal.io/server/tools/umpire/campaign"
-	"go.temporal.io/server/tools/umpire/replay"
+	"go.temporal.io/server/common/testing/testpilot/campaign"
+	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -465,10 +465,10 @@ func TestRunRecordsEachCounterexampleUnderTheRecordRoot(t *testing.T) {
 	require.Equal(t, string(sampleCandidates()[1].Case)+"\n", string(caseBytes), "the Case as the bridge handed it out, compact, one newline")
 	recorded, err := os.ReadFile(filepath.Join(root, names[1]))
 	require.NoError(t, err)
-	decoded, err := replay.DecodeRecordedRun(recorded)
+	decoded, err := recordedrun.Decode(recorded)
 	require.NoError(t, err)
 	require.Equal(t, binder.Identity(), decoded.Driver)
-	caseIdentity, err := replay.CaseIdentity(caseBytes)
+	caseIdentity, err := recordedrun.CaseIdentity(caseBytes)
 	require.NoError(t, err)
 	require.Equal(t, caseIdentity, decoded.Case, "the record names the Case written beside it")
 	require.Equal(t, "temporal.case.set.2", decoded.Run.GetCaseId())
@@ -835,7 +835,7 @@ func TestParseConfigDerivesTheBridgeFromTheModelRoot(t *testing.T) {
 	root, err := filepath.Abs("elsewhere")
 	require.NoError(t, err)
 	require.Equal(t, root, configuration.ModelRoot)
-	require.Equal(t, filepath.Join(root, ".lake", "build", "bin", "umpire-explore"), configuration.Bridge)
+	require.Equal(t, filepath.Clean(filepath.Join(root, "../.build/umpire-ir-bridge")), configuration.Bridge)
 	require.Equal(t, "fuzz-queue", configuration.Deployment.TaskQueue)
 	require.Equal(t, defaultRunTimeout, configuration.Caps.RunTimeout)
 	configuration, err = parseConfig(requiredFlags("--bridge", "explore"), &stderr)
@@ -850,6 +850,7 @@ func TestParseConfigDerivesTheBridgeFromTheModelRoot(t *testing.T) {
 // not from inside `model`.
 func TestOpenCampaignFindsTheDefaultBridgeFromTheInvokingDirectory(t *testing.T) {
 	invokedIn := t.TempDir()
+	require.NoError(t, os.Mkdir(filepath.Join(invokedIn, defaultModelRoot), 0755))
 	bridgeDir := filepath.Join(invokedIn, defaultModelRoot, filepath.FromSlash(filepath.Dir(bridgeRelativePath)))
 	require.NoError(t, os.MkdirAll(bridgeDir, 0o755))
 	require.NoError(t, os.WriteFile(filepath.Join(bridgeDir, filepath.Base(bridgeRelativePath)), []byte(`#!/bin/sh

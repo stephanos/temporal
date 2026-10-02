@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/tools/umpire/campaign"
-	"go.temporal.io/server/tools/umpire/replay"
+	"go.temporal.io/server/common/testing/testpilot/campaign"
+	"go.temporal.io/server/common/testing/testpilot/replay"
 )
 
 func deploymentFlags() []string {

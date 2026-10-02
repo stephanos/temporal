@@ -12,17 +12,17 @@ import (
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	"go.temporal.io/server/tools/umpire/binding"
-	"go.temporal.io/server/tools/umpire/campaign"
+	"go.temporal.io/server/common/testing/testpilot/campaign"
+	"go.temporal.io/server/common/testing/testpilot/replay"
+	"go.temporal.io/server/common/testing/testpilot/temporal/binding"
 	"go.temporal.io/server/tools/umpire/internal/cli"
-	"go.temporal.io/server/tools/umpire/replay"
 )
 
 const (
 	defaultTimeout   = 30 * time.Minute
-	defaultModelRoot = "model/lean"
+	defaultModelRoot = "model"
 	// The bridge the model package builds, relative to the model root.
-	bridgeRelativePath = ".lake/build/bin/umpire-replay-bridge"
+	bridgeRelativePath = "../.build/umpire-ir-bridge"
 )
 
 // config is what the caller names: the subject's files, the set and the Query or target the bridge

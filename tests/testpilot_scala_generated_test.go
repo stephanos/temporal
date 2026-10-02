@@ -19,11 +19,11 @@ import (
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
-	"go.temporal.io/server/model/scalav2/explore"
-	"go.temporal.io/server/model/scalav2/goir"
-	goirtestpilot "go.temporal.io/server/model/scalav2/goir/testpilot"
 	"go.temporal.io/server/tests/testcore"
 	testpilotcore "go.temporal.io/server/tests/testcore/testpilot"
+	"go.temporal.io/server/tools/umpire/explore"
+	"go.temporal.io/server/tools/umpire/lower"
+	umpiremodel "go.temporal.io/server/tools/umpire/model"
 )
 
 var scalaCaseDirectory = filepath.Join("..", "model", "scalav2", "cases")
@@ -155,7 +155,7 @@ func TestTestpilotScalaGeneratedCases(t *testing.T) {
 			options = append(options, testcore.WithDynamicConfig(dynamicconfig.EnableChasm, true))
 			env := newTestpilotTestEnvironment(t, options...)
 			for _, entry := range entries {
-				if entry.Standing != goirtestpilot.Lowered {
+				if entry.Standing != lower.Lowered {
 					continue
 				}
 				t.Run(entry.File, func(t *testing.T) {
@@ -209,7 +209,7 @@ func TestTestpilotScalaGeneratedCases(t *testing.T) {
 						for i, result := range runScalaCases(t, env, fixture, lives) {
 							requireScalaAssessment(t, fixture, lives[i], result)
 							if round == 0 && i == 0 && os.Getenv("UMPIRE_EXPLORATION_DIR") != "" {
-								model, err := goir.Load(filepath.Join(scalaCaseDirectory, "..", "ir", entry.Model))
+								model, err := umpiremodel.Load(filepath.Join(scalaCaseDirectory, "..", "ir", entry.Model))
 								require.NoError(t, err)
 								identity, err := recordedrun.CaseIdentity(fixture.Bytes)
 								require.NoError(t, err)
