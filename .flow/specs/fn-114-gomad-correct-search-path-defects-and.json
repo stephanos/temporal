@@ -14,7 +14,8 @@
     "fn-114-gomad-correct-search-path-defects-and.3": 0,
     "fn-114-gomad-correct-search-path-defects-and.4": 0,
     "fn-114-gomad-correct-search-path-defects-and.6": 0,
-    "fn-114-gomad-correct-search-path-defects-and.7": 0
+    "fn-114-gomad-correct-search-path-defects-and.7": 0,
+    "fn-114-gomad-correct-search-path-defects-and.8": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -500,6 +501,66 @@
       "task": "fn-114-gomad-correct-search-path-defects-and.6",
       "timestamp": "2026-10-02T16:44:53.521158Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "9cfe558baaa5d17711705e894f87a8255c6274fe050756c359f2279fd65297ba",
+      "backend": "claude",
+      "base_sha": "619891e5c2c1af29276b9bc45c8ab1333789dfe9",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-21a2bbdd4f6f24667d7ef74bd7f6cf4c",
+            "classification": "introduced",
+            "findingId": "finding-21a2bbdd4f6f24667d7ef74bd7f6cf4c",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-0f36323705a260c8599fb78c17cfc870",
+            "classification": "introduced",
+            "findingId": "finding-0f36323705a260c8599fb78c17cfc870",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-0c68ecb46c5f2d1c3cfe54786209d2a5",
+            "classification": "pre_existing",
+            "findingId": "finding-0c68ecb46c5f2d1c3cfe54786209d2a5",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fd24d8264e951f3594697275fc097dc0d97f7be1",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 5334,
+      "output_sha256": "05fbf404d16c22ba0e9f3fa659ddc6e71de1637ad8da9f1d649bfead868e88cf",
+      "reservation_id": "0900b041897b4b97ab5fef8c2b2db4b9",
+      "round_consumed": true,
+      "scope": "impl:fn-114-gomad-correct-search-path-defects-and.8",
+      "superseded_by": null,
+      "task": "fn-114-gomad-correct-search-path-defects-and.8",
+      "timestamp": "2026-10-02T17:04:13.493239Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -509,6 +570,7 @@
     "impl:fn-114-gomad-correct-search-path-defects-and.4": 1,
     "impl:fn-114-gomad-correct-search-path-defects-and.6": 1,
     "impl:fn-114-gomad-correct-search-path-defects-and.7": 1,
+    "impl:fn-114-gomad-correct-search-path-defects-and.8": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -521,6 +583,7 @@
     "impl:fn-114-gomad-correct-search-path-defects-and.4": 0,
     "impl:fn-114-gomad-correct-search-path-defects-and.6": 0,
     "impl:fn-114-gomad-correct-search-path-defects-and.7": 0,
+    "impl:fn-114-gomad-correct-search-path-defects-and.8": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-114-gomad-correct-search-path-defects-and.md",
@@ -537,5 +600,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T16:44:53.524006Z"
+  "updated_at": "2026-10-02T17:04:13.498248Z"
 }

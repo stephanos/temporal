@@ -1,0 +1,94 @@
+{
+  "base": "619891e5c2c1af29276b9bc45c8ab1333789dfe9",
+  "effort": "high",
+  "findings": {
+    "backend": "claude",
+    "baseSha": "619891e5c2c1af29276b9bc45c8ab1333789dfe9",
+    "headSha": "fd24d8264e951f3594697275fc097dc0d97f7be1",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "619891e5c2c1af29276b9bc45c8ab1333789dfe9",
+          "headSha": "fd24d8264e951f3594697275fc097dc0d97f7be1",
+          "path": "tools/gomad3/runner/minimize_operation.go",
+          "side": "head",
+          "startLine": 307
+        },
+        "body": "`Binding.ToolchainBuildKey` is taken from the parent manifest. `ParentRecordHash` already covers that value, and `preflight` rejects a pinned toolchain whose build key differs before `OpenWorkspace` runs. The build-key branch in `Workspace.load` is therefore unreachable through `Minimize`; only the workspace-level test exercises it. The acceptance criterion is met, but the binding adds no protection beyond the parent hash.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-ee54705c97f7492891276e6e5a1ff90f0ef8ea175368229eff252367186cbfd8",
+        "id": "finding-21a2bbdd4f6f24667d7ef74bd7f6cf4c",
+        "lastSeenReceiptId": "review-ee54705c97f7492891276e6e5a1ff90f0ef8ea175368229eff252367186cbfd8",
+        "ordinal": 1,
+        "rIds": [
+          "R11"
+        ],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Bind the build key that `target.ReadToolchainIdentity(config.ToolchainRoot)` reports, so the field is an independent check. Otherwise leave it as defence in depth; no change is needed to ship.",
+        "title": "`Binding"
+      },
+      {
+        "anchor": {
+          "baseSha": "619891e5c2c1af29276b9bc45c8ab1333789dfe9",
+          "headSha": "fd24d8264e951f3594697275fc097dc0d97f7be1",
+          "path": "tools/gomad3/runner/minimize_operation.go",
+          "side": "head",
+          "startLine": 182
+        },
+        "body": "No test covers a kill after the final `PublishArtifact` and before `RecordPublication`. Correctness there depends on the republished record being byte-identical. A later change that puts anything non-deterministic into `minimizationEvidence` or `acceptedInput` would silently produce a second publication. `final-gates.json` lists this gap as not run.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-ee54705c97f7492891276e6e5a1ff90f0ef8ea175368229eff252367186cbfd8",
+        "id": "finding-0f36323705a260c8599fb78c17cfc870",
+        "lastSeenReceiptId": "review-ee54705c97f7492891276e6e5a1ff90f0ef8ea175368229eff252367186cbfd8",
+        "ordinal": 2,
+        "rIds": [
+          "R11"
+        ],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Add a test that runs to completion in one root, restores a pre-publication checkpoint (or injects a failure into `RecordPublication`), resumes, and asserts exactly one `sha256-*` entry with the same record hash.",
+        "title": "No test covers a kill after the final `PublishArtifact` and before `RecordPublication`"
+      },
+      {
+        "anchor": {
+          "baseSha": "619891e5c2c1af29276b9bc45c8ab1333789dfe9",
+          "headSha": "fd24d8264e951f3594697275fc097dc0d97f7be1",
+          "path": "tools/gomad3/artifact/store.go",
+          "side": "head",
+          "startLine": 91
+        },
+        "body": "a process killed mid-publication leaves a `.publish-*` staging directory in the output root. Nothing in the minimize path removes it, although `pruneAccepted` does clean the accepted store.",
+        "classification": "pre_existing",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-ee54705c97f7492891276e6e5a1ff90f0ef8ea175368229eff252367186cbfd8",
+        "id": "finding-0c68ecb46c5f2d1c3cfe54786209d2a5",
+        "lastSeenReceiptId": "review-ee54705c97f7492891276e6e5a1ff90f0ef8ea175368229eff252367186cbfd8",
+        "ordinal": 3,
+        "rIds": [],
+        "severity": "P3",
+        "status": "open",
+        "title": "a process killed mid-publication leaves a `"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-ee54705c97f7492891276e6e5a1ff90f0ef8ea175368229eff252367186cbfd8"
+  },
+  "id": "fn-114-gomad-correct-search-path-defects-and.8",
+  "introduced_count": 2,
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "pre_existing_count": 1,
+  "review": "## Review: fn-114.8 \u2014 persist minimizer state and add `minimize --resume`\n\nNo blocking findings. I could not run anything in this session (no shell), so this verdict rests on reading the diff and the surrounding code, plus the recorded gate evidence in `final-gates.json`.\n\nWhat I traced:\n\n- **Write order:** `retainAccepted` publishes the accepted artifact before `Workspace.Commit` writes the state, and `Commit` refuses a reference whose directory is absent. An artifact retained for an uncommitted attempt is pruned on the next load.\n- **Lock:** `hostfs.Try` takes the flock before the checkpoint is inspected or loaded. It is released only in `session.close()`, after publication, replay validation and `Complete`. The error path closes the workspace twice, which is safe because `Lock.Release` tolerates nil.\n- **Kill between final publication and `RecordPublication`:** resume republishes from the same retained bytes and the same sealed state, so the record hash is identical. `Store.PublishArtifact` then hits `ErrExist`, finds the same identity and returns the existing artifact. There is no collision and no second directory.\n- **Kill after `RecordPublication`:** resume reopens the published artifact by record hash and only replays it. This is tested.\n- **`Complete` ordering:** the checkpoint is removed before its directory, and a later initial run discards a state directory with no checkpoint.\n- **`Changed`:** it is derived from `checkpoint.Accepted`, so a resume with zero further acceptances still reports a change.\n- **`cloneState`:** `slices.Clone` keeps an empty `Evaluated` list as `[]` rather than `null`, which the state seal depends on after a JSON round trip.\n\n## Findings\n\n- **Severity**: P3\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: `tools/gomad3/runner/minimize_operation.go:307`\n- **R-IDs**: [R11]\n- **Problem**: `Binding.ToolchainBuildKey` is taken from the parent manifest. `ParentRecordHash` already covers that value, and `preflight` rejects a pinned toolchain whose build key differs before `OpenWorkspace` runs. The build-key branch in `Workspace.load` is therefore unreachable through `Minimize`; only the workspace-level test exercises it. The acceptance criterion is met, but the binding adds no protection beyond the parent hash.\n- **Suggestion**: Bind the build key that `target.ReadToolchainIdentity(config.ToolchainRoot)` reports, so the field is an independent check. Otherwise leave it as defence in depth; no change is needed to ship.\n\n- **Severity**: P3\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: `tools/gomad3/runner/minimize_operation.go:182`\n- **R-IDs**: [R11]\n- **Problem**: No test covers a kill after the final `PublishArtifact` and before `RecordPublication`. Correctness there depends on the republished record being byte-identical. A later change that puts anything non-deterministic into `minimizationEvidence` or `acceptedInput` would silently produce a second publication. `final-gates.json` lists this gap as not run.\n- **Suggestion**: Add a test that runs to completion in one root, restores a pre-publication checkpoint (or injects a failure into `RecordPublication`), resumes, and asserts exactly one `sha256-*` entry with the same record hash.\n\n## FYI (not blocking)\n\n- `Workspace` stores a `context.Context` in the struct for `write` and `Complete`. Passing it per call would be more idiomatic, though it matches how `artifact.Store` carries its context.\n- `readRetainedMinimizationPayload` re-implements the lookup that `artifact.listedFile` already does. An exported size lookup would remove the duplicate.\n- A failed `--resume` on an existing directory with no state leaves an empty `.minimize.lock` behind, because `hostfs.Try` creates the file. Harmless.\n- The spec's stock-go quick command was not run; `final-gates.json` records it as red before this task with the Homebrew go and substitutes `make test-host`, which covers both package sets. linux/amd64 was not run.\n\n## Pre-existing issues (not blocking this verdict)\n\n- [P3, confidence 75, introduced=false] `tools/gomad3/artifact/store.go:91` \u2014 a process killed mid-publication leaves a `.publish-*` staging directory in the output root. Nothing in the minimize path removes it, although `pruneAccepted` does clean the accepted store.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R11 | met | `TestMinimizeResumeContinuesAfterAcceptedReductionWithoutRepeatingAttempts` asserts the resumed outcome equals the uninterrupted one, counts executor calls, and checks `Changed`. `TestMinimizeResumeRejectsStateOfAnotherRun` and `TestWorkspaceResumeRejectsStateOfAnotherRun` cover parent, budget, implementation and build key. `TestMinimizeResumeFailsClosedOnDamagedAcceptedArtifact` covers a missing and a corrupt accepted artifact. `TestMinimizeExcludesConcurrentRunsOnOneOutputRoot` covers concurrent initial runs and concurrent resumes. `TestWorkspaceLockOfKilledProcessDoesNotBlockResume` covers the killed lock holder. `TestMinimizeResumeAfterFinalPublicationValidatesWithoutPublishingAgain` covers the kill before validation. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 2 introduced, 1 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":2,\"pre_existing\":1},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>",
+  "review_reservation_id": "0900b041897b4b97ab5fef8c2b2db4b9",
+  "session_id": "5ae4d3d6-a4f7-4fce-a5c2-7332fcf1ee57",
+  "spec": "claude:claude-fable-5-1:high",
+  "timestamp": "2026-10-02T17:04:13.489700Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}
