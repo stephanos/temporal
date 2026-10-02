@@ -1,0 +1,9 @@
+--- PASS: TestOpenMergedCampaignOpensARecordWrittenBeforeEvidenceNamedItsTarget (0.00s)
+    merge_capacity_test.go:355: OpenMergedCampaign() error = <nil>, want validate merged executions: campaign artifact capacity is invalid
+--- FAIL: TestOpenMergedCampaignChecksItsOtherLimitsWhenExecutionsReportMoreSuccessBytes (0.67s)
+    --- FAIL: TestOpenMergedCampaignChecksItsOtherLimitsWhenExecutionsReportMoreSuccessBytes/total_bytes_that_are_not_the_sum_of_the_byte_limits (0.00s)
+    --- PASS: TestOpenMergedCampaignChecksItsOtherLimitsWhenExecutionsReportMoreSuccessBytes/fewer_success_artifacts_than_the_executions_retained (0.00s)
+    --- PASS: TestOpenMergedCampaignChecksItsOtherLimitsWhenExecutionsReportMoreSuccessBytes/no_transcript_bytes (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/campaign	0.882s
+FAIL

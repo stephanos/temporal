@@ -1,0 +1,30 @@
+[
+ {
+  "file": "tools/gomad3/runner/internal/campaign/merge.go",
+  "mutation": "validateMergedCampaign bounds the execution success bytes again (passes executionSuccessBytesBounded)",
+  "tests": ["TestMergeCountsTheTargetOfItsSuccessEvidenceOnce", "TestOpenMergedCampaignChecksItsOtherLimitsWhenExecutionsReportMoreSuccessBytes"],
+  "exit": 1,
+  "failed": ["--- FAIL: TestMergeCountsTheTargetOfItsSuccessEvidenceOnce", "--- FAIL: TestOpenMergedCampaignChecksItsOtherLimitsWhenExecutionsReportMoreSuccessBytes: OpenMergedCampaign() rejected the record before any limit was changed: validate merged executions: campaign artifact capacity is invalid"]
+ },
+ {
+  "file": "tools/gomad3/runner/internal/campaign/merge.go",
+  "mutation": "merged evidence that names no target is rejected (the TargetSHA256 != \"\" guard removed)",
+  "tests": ["TestOpenMergedCampaignOpensARecordWrittenBeforeEvidenceNamedItsTarget"],
+  "exit": 1,
+  "failed": ["--- FAIL: TestOpenMergedCampaignOpensARecordWrittenBeforeEvidenceNamedItsTarget: OpenMergedCampaign() rejected the retained record: merged evidence identity is invalid"]
+ },
+ {
+  "file": "tools/gomad3/artifact/retained_bytes.go",
+  "mutation": "an artifact that names no shared target is charged half its stored bytes",
+  "tests": ["TestOpenMergedCampaignOpensARecordWrittenBeforeEvidenceNamedItsTarget"],
+  "exit": 1,
+  "failed": ["--- FAIL: TestOpenMergedCampaignOpensARecordWrittenBeforeEvidenceNamedItsTarget: OpenMergedCampaign() rejected the retained record: merged evidence byte summary is inconsistent"]
+ },
+ {
+  "file": "tools/gomad3/runner/retention.go",
+  "mutation": "a later success is charged without its shared target (the store is offered the target's 106496 bytes back)",
+  "tests": ["TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit"],
+  "exit": 1,
+  "failed": ["--- FAIL: TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit: both successes kept, no capacity failure"]
+ }
+]
