@@ -1,0 +1,134 @@
+{
+ "host": "darwin/arm64",
+ "baseline": {
+  "result": "green via handoff",
+  "source": "verified at 46083d3d by fn-112.14; only .flow evidence commits before f41905298"
+ },
+ "base_commit": "f419052989df4424b9a73293ca9f390352108924",
+ "code_commit": "cd3a6fd34ded809eb44963f6260165f5b36c7d45",
+ "red_before_change": {
+  "file": "red-before-change.txt",
+  "revision": "f41905298 plus the new tests and the behavior-preserving reduce/publishAccepted split",
+  "command": ".toolchain/bin/go test -tags test_dep -count=1 -run TestMinimize ./runner/",
+  "exit_code": 1,
+  "note": "the per-parent tests fail on the shared state and shared lock; TestMinimizeResumeAfterUnrecordedFinalPublicationDoesNotPublishAgain passes there because it pins behavior task 8 already had, and mutation M6 shows it can fail"
+ },
+ "full_gate": {
+  "revision": "cd3a6fd34ded809eb44963f6260165f5b36c7d45",
+  "command": "GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host",
+  "exit_code": 0,
+  "elapsed_seconds": 194,
+  "packages_ok": 45,
+  "packages_failed": 0,
+  "packages": "test-host-packages.txt",
+  "path_note": "run once, with the pinned stock go1.27.1 first on PATH"
+ },
+ "validate": {
+  "revision": "cd3a6fd34",
+  "command": "make -C tools/gomad3 validate",
+  "exit_code": 0
+ },
+ "focused": {
+  "revision": "working tree equal to cd3a6fd34",
+  "commands": [
+   {
+    "command": ".toolchain/bin/go test -tags test_dep -count=1 ./runner/internal/minimizer/ ./cmd/gomad/...",
+    "exit_code": 0
+   },
+   {
+    "command": ".toolchain/bin/go test -tags test_dep -count=1 -run TestMinimize ./runner/",
+    "exit_code": 0
+   },
+   {
+    "command": ".toolchain/bin/go test -tags test_dep -count=1 -run TestPackageArchitecture .",
+    "exit_code": 0
+   },
+   {
+    "command": ".toolchain/bin/go vet -tags test_dep ./runner/ ./runner/internal/minimizer/ ./cmd/gomad/...",
+    "exit_code": 0
+   },
+   {
+    "command": ".toolchain/bin/go test -tags test_dep -count=1 -race -run 'TestMinimize|TestWorkspace' ./runner/ ./runner/internal/minimizer/",
+    "exit_code": 0
+   }
+  ]
+ },
+ "mutation_checks": {
+  "note": "each mutation was applied to the working tree, the command run, and the file restored from a byte copy before the commit",
+  "command": ".toolchain/bin/go test -tags test_dep -count=1 -run 'TestMinimize|TestWorkspace' ./runner/ ./runner/internal/minimizer/",
+  "results": [
+   {
+    "mutation": "M1 one shared state directory and lock for every parent",
+    "file": "runner/internal/minimizer/workspace.go",
+    "exit_code": 1,
+    "failed_tests": [
+     "TestMinimizeExcludesConcurrentRunsOfOneParentOnOneOutputRoot",
+     "TestMinimizeKeepsStatePerParentArtifactInOneOutputRoot",
+     "TestMinimizeResumeRejectsStateOfAnotherRun",
+     "TestWorkspaceKeepsStatePerParentArtifact",
+     "TestWorkspaceResumeRejectsStateMovedFromAnotherParent",
+     "TestWorkspaceResumeRejectsStateOfAnotherRun"
+    ],
+    "build_failed": false
+   },
+   {
+    "mutation": "M2 per-parent state but one shared lock",
+    "file": "runner/internal/minimizer/workspace.go",
+    "exit_code": 1,
+    "failed_tests": [
+     "TestMinimizeExcludesConcurrentRunsOfOneParentOnOneOutputRoot",
+     "TestWorkspaceKeepsStatePerParentArtifact",
+     "TestWorkspaceLockOfKilledProcessDoesNotBlockResume"
+    ],
+    "build_failed": false
+   },
+   {
+    "mutation": "M3 no lock contention for the same parent",
+    "file": "runner/internal/minimizer/workspace.go",
+    "exit_code": 1,
+    "failed_tests": [
+     "TestMinimizeExcludesConcurrentRunsOfOneParentOnOneOutputRoot",
+     "TestWorkspaceKeepsStatePerParentArtifact",
+     "TestWorkspaceLockOfKilledProcessDoesNotBlockResume"
+    ],
+    "build_failed": false
+   },
+   {
+    "mutation": "M4 state root not required to be a real directory",
+    "file": "runner/internal/minimizer/workspace.go",
+    "exit_code": 1,
+    "failed_tests": [
+     "TestWorkspaceRejectsSymbolicLinkStateRoot"
+    ],
+    "build_failed": false
+   },
+   {
+    "mutation": "M5 resume does not check the parent binding",
+    "file": "runner/internal/minimizer/workspace.go",
+    "exit_code": 1,
+    "failed_tests": [
+     "TestWorkspaceResumeRejectsStateMovedFromAnotherParent"
+    ],
+    "build_failed": false
+   },
+   {
+    "mutation": "M6 a resumed run republishes a different record",
+    "file": "runner/minimize_operation.go",
+    "exit_code": 1,
+    "failed_tests": [
+     "TestMinimizeExcludesConcurrentRunsOfOneParentOnOneOutputRoot",
+     "TestMinimizeKeepsStatePerParentArtifactInOneOutputRoot",
+     "TestMinimizeResumeAfterUnrecordedFinalPublicationDoesNotPublishAgain",
+     "TestMinimizeResumeContinuesAfterAcceptedReductionWithoutRepeatingAttempts"
+    ],
+    "build_failed": false
+   }
+  ]
+ },
+ "not_run": [
+  "linux/amd64 (no native host)",
+  "root make lint-code-fast (cannot typecheck the nested tools/gomad3 module; task 8 recorded it inconclusive)",
+  "go -C tools/gomad3 test ... (the spec's literal Quick command with the default PATH go; test-host covers the same packages)",
+  "core, smoke, and representative qualification sets (task 14 owns them; no toolchain or record change here)"
+ ]
+}

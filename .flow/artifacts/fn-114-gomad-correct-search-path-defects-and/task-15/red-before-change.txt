@@ -1,0 +1,10 @@
+--- FAIL: TestMinimizeKeepsStatePerParentArtifactInOneOutputRoot (2.52s)
+    minimize_operation_test.go:218: Minimize() of another parent beside interrupted state: minimize output directory already holds minimizer state; resume it or remove TMP/TestMinimizeKeepsStatePerParentArtifactInOneOutputRoot1672916885/005/.minimize
+--- FAIL: TestMinimizeResumeRejectsStateOfAnotherRun (2.98s)
+        minimize_operation_test.go:264: Minimize() error = minimizer state belongs to a different parent artifact, want "minimize output directory holds no minimizer state to resume"
+--- FAIL: TestMinimizeResumeFailsClosedOnDamagedAcceptedArtifact (3.62s)
+        minimize_operation_test.go:294: accepted artifacts = [], <nil>
+        minimize_operation_test.go:294: accepted artifacts = [], <nil>
+--- FAIL: TestMinimizeExcludesConcurrentRunsOfOneParentOnOneOutputRoot (3.13s)
+        minimize_operation_test.go:347: concurrent Minimize() of another parent: minimize output directory is already in use: lock is already held
+        minimize_operation_test.go:347: concurrent Minimize() of another parent: minimize output directory is already in use: lock is already held
