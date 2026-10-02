@@ -1,0 +1,51 @@
+ok  	go.temporal.io/server/tools/gomad3	1.689s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad	65.900s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	3.133s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	0.823s
+--- FAIL: TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy (58.73s)
+        retention_characterization_test.go:490: retention = runner.retentionObservation{Reason:"success_artifact_publication", Cause:"sync artifact store: context deadline exceeded", Counts:[5]uint64{0x0, 0x0, 0x0, 0x0, 0x0}, Runs:[]string(nil)}, want runner.retentionObservation{Reason:"", Cause:"", Counts:[5]uint64{0x3, 0x3, 0x
+--- FAIL: TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy (25.14s)
+        retention_characterization_test.go:553: measured summary = runner.CampaignResult{CampaignPath:"/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategybyte2943898173/002/v1/campaign-20261002T172205.665432000Z-9ad1b0dc2043aabb8d6bb466aa04f76d", SelectionCount:0x3, Attemp
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner	276.279s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/campaign	39.105s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/corpus	1.693s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/execution	189.150s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration	0.639s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice	0.748s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation	0.558s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord	0.643s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/minimizer	1.595s
+ok  	go.temporal.io/server/tools/gomad3/qualification	1.506s
+ok  	go.temporal.io/server/tools/gomad3/qualification/analysis	36.752s
+ok  	go.temporal.io/server/tools/gomad3/qualification/comparison	0.480s
+ok  	go.temporal.io/server/tools/gomad3/qualification/set	3.568s
+ok  	go.temporal.io/server/tools/gomad3/qualification/set/manifestgen	2.150s
+ok  	go.temporal.io/server/tools/gomad3/qualification/workload	0.457s
+ok  	go.temporal.io/server/tools/gomad3/target	43.561s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/build	0.252s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/capabilityreview	0.473s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/livecap	11.350s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/provenance	0.222s
+ok  	go.temporal.io/server/tools/gomad3/record	0.209s
+ok  	go.temporal.io/server/tools/gomad3/artifact	1.503s
+ok  	go.temporal.io/server/tools/gomad3/choice	0.232s
+ok  	go.temporal.io/server/tools/gomad3/choice/internal/wire	0.185s
+ok  	go.temporal.io/server/tools/gomad3/deterministicio	118.596s
+ok  	go.temporal.io/server/tools/gomad3/deterministicio/internal/wire	1.012s
+ok  	go.temporal.io/server/tools/gomad3/deterministicio/readonlymount	0.481s
+ok  	go.temporal.io/server/tools/gomad3/world	0.640s
+ok  	go.temporal.io/server/tools/gomad3/world/mailbox	2.195s
+ok  	go.temporal.io/server/tools/gomad3/world/process	2.345s
+ok  	go.temporal.io/server/tools/gomad3/toolchain/version	3.589s
+ok  	go.temporal.io/server/tools/gomad3/upgrade	1.207s
+ok  	go.temporal.io/server/tools/gomad3/internal/canonicaljson	0.221s
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack	1.364s
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring	0.789s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	48.394s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/boundary	5.420s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/protocol	1.527s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/validation	0.224s
+ok  	go.temporal.io/server/tools/gomad3/internal/hostexec	0.540s
+ok  	go.temporal.io/server/tools/gomad3/internal/hostfs	0.269s
+FAIL
