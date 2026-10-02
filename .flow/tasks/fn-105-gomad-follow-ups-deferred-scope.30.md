@@ -1,0 +1,17 @@
+---
+satisfies: [R17]
+---
+# fn-105-gomad-follow-ups-deferred-scope.30 D17: deliver explicit target environment and enable the two-cluster Nexus test
+
+## Description
+Apply recommended option A from the D17 investigation. Keep runtime-filtered environment entries for Runner-managed deterministic I/O targets; preserve TZ-only scrubbing for direct seeded runs. Add conformance covering init/main visibility, empty environment, hidden controls, host isolation, and exact replay. Deliver the two-slot setting through the qualification manifest and remove the skip only after qualification.
+
+## Acceptance
+Regression fails before fix and passes afterward; direct seeded and disabled behavior preserved; rebuilt runtime and affected gates pass; Nexus leaf creates two clusters on seeds 11 and 17, suite passes seeds 1-17 and exact replay on seeds 11/17; tracked configuration validates and qualifies without skip; retain one-slot reproducer; record native Linux evidence or outstanding Linux acceptance.
+
+## Done summary
+Applied the recommended D17 environment correction. Authenticated Runner I/O targets retain the runtime-filtered environment before package initialization; control variables remain hidden, direct seeded launches remain TZ-only, and disabled behavior is unchanged. Added real-process init/main, host-isolation, empty-value, direct-mode, and exact-replay regressions; explicit environment failed before the fix and all controls pass afterward. Regenerated the runtime patch and choice identities and built darwin toolchain 4412b5b2. Nexus receives TEMPORAL_TEST_DEDICATED_CLUSTERS=2 and its skip is removed. Both leaf seeds create two clusters; all four suite subtests pass seeds 1-17; traced seeds 11/17 replay exactly; the final tracked entry and native suite pass. The no-setting control still times out at the same single-slot receive. Full make test, including runtime and upstream conformance, passes. Independent static review found no correctness issues. Source-bound reports and full gate log retained under fn105-d17-correction-*. Native Linux qualification remains required for the overall milestones and does not gate this Darwin-qualified skip removal. No commits; user owns commits.
+## Evidence
+- Commits:
+- Tests: go -C tools/gomad3 test -tags test_dep ./runner -run ^TestRunnerDeliversExplicitEnvironmentBeforeInitAndReplays$ -count=1 (red before fix), go -C tools/gomad3 test -tags test_dep ./runner -run ^Test(RunnerDeliversExplicitEnvironmentBeforeInitAndReplays|DirectTargetEnvironmentPreservesSeededScrubbingAndDisabledBehavior)$ -count=1 (green), PATH=<go1.27.1 bin>:$PATH make gomad3, gomad doctor --json: available true, build 4412b5b2, make -C tools/gomad3 validate, TEMPORAL_TEST_DEDICATED_CLUSTERS=2 go test -tags test_dep ./tests -run ^TestNexusOTELSuite$ -count=1 -p 2, Nexus leaf seeds 11,17: pass, two CLUSTEREVENT entries each, Nexus suite seeds 1-17: four passing subtests per seed, gomad qualify-set D17 traced seeds 11,17: exact replay matches, gomad qualify-set final tracked Nexus entry: qualified seeds 11,17, No-env seed 11 with -test.timeout=2m: expected target failure at test_cluster_pool.go:109, PATH=<go1.27.1 bin>:$PATH GOMAD3_STOCK_GO=<go1.27.1>/bin/go make -C tools/gomad3 test: all black-box tiers passed, git diff --check
+- PRs:

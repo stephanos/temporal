@@ -3,7 +3,7 @@
 ## Goal & Context
 <!-- scope: business -->
 
-Milestone F4 of `.plans/GOMAD_MILESTONES.md`. On linux/amd64 the closure of `./tests` under the
+Milestone F4 of `MILESTONES.md`. On linux/amd64 the closure of `./tests` under the
 `gomad` build tag reports zero blockers. The acceptance is stated for darwin/arm64, where the
 darwin packs pin a stale profile digest and cannot be regenerated from Linux, and the darwin
 prepared source-set pins of the fx, SDK, and otel adapters were computed rather than observed.

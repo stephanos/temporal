@@ -384,7 +384,7 @@ exact unsupported analyses (the amd64 xxhash assembly), because the packs that
 admit their facts are scoped to darwin/arm64, and the thirteen tier 3 workloads
 are expected `intermittent`: the twelve `./tests` suites cite the linux replay
 divergence recorded in the
-[milestones](../../.plans/GOMAD_MILESTONES.md#open-findings), and the probe
+[milestones](../../MILESTONES.md#open-findings), and the probe
 cites its own finding, one linux run whose seed 17 did not reproduce its
 evidence. Every
 qualified workload runs two
@@ -688,6 +688,11 @@ the toolchain follows the upstream runtime paths. Activation forces the initial
 runtime choice paths. Seed `0` is valid; empty, malformed, and overflowing
 direct seed values fail before user initialization.
 
+Runner-managed targets see `TZ=UTC` and explicitly supplied environment entries
+from package initialization onward. Runtime control variables remain hidden.
+Direct seeded launches expose only `TZ=UTC`, preserving isolation from the
+caller's inherited environment.
+
 Enabled targets start at midnight UTC on 2000-01-01. Standard `time.Now`,
 monotonic elapsed time, sleeps, timers, tickers, callbacks, and context
 deadlines use the process virtual clock. When no goroutine is runnable, the
@@ -715,7 +720,7 @@ value, as by `Round(0)`, serialization, or parsing, is compared against a
 fresh ticked `time.Now` instead. Consecutive readings differ at
 nanosecond resolution only; timestamps truncated to a coarser unit can still
 tie. Repeatability and exact replay remain workload qualification
-claims; the [milestones](../../.plans/GOMAD_MILESTONES.md#open-findings) record
+claims; the [milestones](../../MILESTONES.md#open-findings) record
 remaining divergence. Runtime-internal clock reads do not tick. The
 policy reaches the target as `GOMAD3_CLOCK_TICK=forward`, which is part of the
 recorded environment and therefore of Campaign, Artifact, plan, and evidence

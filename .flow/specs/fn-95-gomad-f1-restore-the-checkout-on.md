@@ -3,7 +3,7 @@
 ## Goal & Context
 <!-- scope: business -->
 
-Milestone F1 of `.plans/GOMAD_MILESTONES.md`. A developer on a clean `darwin/arm64` checkout builds
+Milestone F1 of `MILESTONES.md`. A developer on a clean `darwin/arm64` checkout builds
 the patched toolchain and runs every Gomad v3 gate, and the integration contract tests pass. All F1
 repairs (regenerated outputs, fixture corpus, qualification-set schema, root wrappers, `tagged`
 fixture) landed and were verified on linux/amd64; darwin/arm64 has not been run since the Linux

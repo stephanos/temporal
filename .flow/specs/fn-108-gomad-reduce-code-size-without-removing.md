@@ -139,7 +139,7 @@ artifacts bound to another Runner build.
 - Keep World, simulation backends, network/volume/fault models, guided corpus,
   target provenance, caches, and both sibling packages. Their implementation
   may shrink only through behavior-preserving reuse.
-- Follow the [milestone constraints](../../.plans/GOMAD_MILESTONES.md#constraints).
+- Follow the [milestone constraints](../../MILESTONES.md#constraints).
   Add no dependencies. Use no worktrees. Leave commits to the user.
 - Existing Linux/Darwin replay findings remain separately owned. Preserve their
   current dispositions and baseline evidence; do not relax a gate or suppress

@@ -10,7 +10,7 @@ Full set on darwin; infrastructure_errors 0, failed 0; update F6 status.
 - report clean, F6 status updated
 
 ## Done summary
-`make gomad3-qualification` now completes on darwin/arm64 in one uninterrupted run: 28 of 28 workloads supported, 0 failed, 0 infrastructure errors, expectations met, and the darwin CI jq assertion true. F6 is recorded as done on darwin/arm64 in `.plans/GOMAD_MILESTONES.md` (Status and Work tracking).
+`make gomad3-qualification` now completes on darwin/arm64 in one uninterrupted run: 28 of 28 workloads supported, 0 failed, 0 infrastructure errors, expectations met, and the darwin CI jq assertion true. F6 is recorded as done on darwin/arm64 in `MILESTONES.md` (Status and Work tracking).
 
 **Why the run now fits on disk.** The set report carries no artifact paths. Its per-seed evidence (choice coverage, artifact and trace bytes, replay result) is projected from the retained Campaigns right after each seed's `gomad qualify`, and that command has already replayed every success. After that point the Campaigns are not needed. `qualify-set --prune-qualified-artifacts` (Makefile: `GOMAD3_QUALIFICATION_PRUNE=0|1`, default 0, any other value rejected) deletes a seed's Campaigns only when all of these hold:
 - the seed is `qualified`

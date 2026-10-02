@@ -22,14 +22,14 @@ Stage 0 of the fn-108 delivery order. Record the implementation baseline before 
    The script takes no arguments, is deterministic, and prints a table that can be diffed. State the exact classification rule in `baseline.md`.
 3. Run it and store the output as the baseline table.
 4. Capture the public surface for R8: `go doc -all` for each public package of `tools/gomad3` (`runner`, `target`, `record`, `artifact`, `choice`, `deterministicio`, `world`, `qualification/...`, `toolchain`, `upgrade`, `simulation/...`), `go doc -all ./tools/gomad3sim` from the repo root, and `--help` output of the `gomad` and `gomadtool` commands and their subcommands, into `api-baseline/`.
-5. Record baseline dispositions (pass / fail with reason / not run) for: `make -C tools/gomad3 validate`, `make -C tools/gomad3 test-harness`, `make -C tools/gomad3 test-host`, `make -C tools/gomad3 world-test`, `go test -tags test_dep ./tools/gomad3sim/...` (repo root), `make gomad3-integration-test`. Record known Linux/Darwin replay findings (D12/D14 in `.plans/GOMAD_MILESTONES.md` "Open findings") as pre-existing, with their owners.
+5. Record baseline dispositions (pass / fail with reason / not run) for: `make -C tools/gomad3 validate`, `make -C tools/gomad3 test-harness`, `make -C tools/gomad3 test-host`, `make -C tools/gomad3 world-test`, `go test -tags test_dep ./tools/gomad3sim/...` (repo root), `make gomad3-integration-test`. Record known Linux/Darwin replay findings (D12/D14 in `MILESTONES.md` "Open findings") as pre-existing, with their owners.
 
 ### Investigation targets
 
 **Required:**
 - `tools/gomad3/Makefile:127-174` — the gate recipes and the exact environment they use
 - `Makefile:165-225` — root `gomad3-*` targets
-- `.plans/GOMAD_MILESTONES.md` — "Open findings", "Constraints", "Code-size cleanup (fn-108)"
+- `MILESTONES.md` — "Open findings", "Constraints", "Code-size cleanup (fn-108)"
 
 ### Quick commands
 
@@ -74,7 +74,7 @@ Gates on darwin/arm64, go1.27.1 on PATH, toolchain key `8d28bd44…`, all exit 0
 
 Pre-existing findings recorded with owners: D12 linux replay divergence (open, fn-105.12); D14 darwin Chasm divergence (fixed in the baseline, fn-105.14); stale linux pack `modernc-libc-xsys-v047-linux-amd64` (open, recorded by fn-105.26, no open task owns it, needs a linux/amd64 host).
 
-Integrity: `SHA256SUMS` digest `a64ac192433c03e4c7813027dd8a9832790a6fd34af0217468231ab6a1a64327` covers 74 files; `baseline.md` digest `54e10ab35ba98f2b67ac4f178f36f3fd0deecdca294358e1d62fcef26715190c`. Round 4 reviewed `baseline.md` at `b3a8c0dd…`; the one change since names `task1-review.md` as outside the manifest and is applied and unreviewed. `flowctl gate classify` reports FULL (uncommitted `.plans/GOMAD_MILESTONES.md` from earlier tasks); the six gates ran in full and no gate receipt was written.
+Integrity: `SHA256SUMS` digest `a64ac192433c03e4c7813027dd8a9832790a6fd34af0217468231ab6a1a64327` covers 74 files; `baseline.md` digest `54e10ab35ba98f2b67ac4f178f36f3fd0deecdca294358e1d62fcef26715190c`. Round 4 reviewed `baseline.md` at `b3a8c0dd…`; the one change since names `task1-review.md` as outside the manifest and is applied and unreviewed. `flowctl gate classify` reports FULL (uncommitted `MILESTONES.md` from earlier tasks); the six gates ran in full and no gate receipt was written.
 
 Session restart: the scratchpad was cleared mid-task. The six gate runs had finished before it (`gate-logs/results.txt` ends with ALL_DONE) and no gate was in flight, so none was re-run. The go/scanner cross-check program, the fixture repositories, the extra capture runs and the round-1 and round-2 review files are gone from disk; `baseline.md` reports the check results and `task1-review.md` reconstructs those two rounds.
 

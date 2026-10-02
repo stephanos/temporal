@@ -7,7 +7,7 @@
 
 Gomad v3 qualifies the Temporal functional package today: an in-process one-box cluster with
 SQLite in the in-memory filesystem and loopback gRPC, built from the server's own module
-(`.plans/GOMAD_MILESTONES.md`, F5–F7). The next consumer is a downstream Go module that embeds
+(`MILESTONES.md`, F5–F7). The next consumer is a downstream Go module that embeds
 the Temporal server as a library and adds its own services around it: a replicated storage layer
 on an embedded key-value engine, a control plane that uses gossip membership, a replication
 sidecar that talks to a blob store, and an integration harness that boots all of it together with
@@ -134,7 +134,7 @@ the race detector. The qualification path is the `gomad` CLI or a manifest, neve
 ## Edge Cases & Constraints
 <!-- scope: technical -->
 
-- The constraints of `.plans/GOMAD_MILESTONES.md` apply unchanged: no policy widening, no source
+- The constraints of `MILESTONES.md` apply unchanged: no policy widening, no source
   translation or test rewriting, fail-closed stays, evidence over narration, per-platform
   qualification, bounded server source changes. A downstream seam is the downstream
   repository's change; this spec provides the convention and the analysis that names the sites.
@@ -272,7 +272,7 @@ works, as the store requires non-symlinked roots.
   capability blocker, unmodeled operation, watchdog, or evidence divergence, with the finding
   recorded. This is the measurement that closes the spec; it is run from the downstream checkout
   against this branch's toolchain and is reported here, not committed there.
-- **R6:** `.plans/GOMAD_MILESTONES.md` work tracking lists this spec; README and ARCHITECTURE
+- **R6:** `MILESTONES.md` work tracking lists this spec; README and ARCHITECTURE
   record downstream-module support as a supported target shape with its limits.
 
 ## Boundaries

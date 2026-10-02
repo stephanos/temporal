@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-02T03:34:04.125607Z",
+  "depends_on": [],
+  "id": "fn-108-gomad-reduce-code-size-without-removing.8",
+  "priority": null,
+  "spec": "fn-108-gomad-reduce-code-size-without-removing",
+  "spec_path": ".flow/tasks/fn-108-gomad-reduce-code-size-without-removing.8.md",
+  "status": "todo",
+  "title": "Run the linux/amd64 gates for the code-size cleanup",
+  "updated_at": "2026-10-02T03:34:04.125607Z"
+}

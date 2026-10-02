@@ -468,7 +468,7 @@ func TestLoadManifestRequiresFindingOnFailureExpectations(t *testing.T) {
 		expectation map[string]any
 		wantErr     string
 	}{
-		"intermittent with finding":    {expectation: map[string]any{"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"}},
+		"intermittent with finding":    {expectation: map[string]any{"classification": "intermittent", "finding": "MILESTONES.md#f6-a-package-level-functional-slice"}},
 		"intermittent without finding": {expectation: map[string]any{"classification": "intermittent"}, wantErr: "intermittent expectation requires a finding identity"},
 		"target failure blank finding": {expectation: map[string]any{"classification": "target_failure", "finding": " "}, wantErr: "target_failure expectation requires a finding identity"},
 		"qualified with finding":       {expectation: map[string]any{"classification": "qualified", "finding": "F6"}, wantErr: "qualified expectation cannot include an unsupported boundary or finding"},

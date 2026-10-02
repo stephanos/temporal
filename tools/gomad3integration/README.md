@@ -25,7 +25,7 @@ capability mode), the tier 3 `user-timers-workflow` functional suite
 with the schema directory mounted read-only), the tier 3
 `activity-batch-cancel-boundary` functional suite (`./tests`,
 `TestActivityAPIBatchCancelClientTestSuite`, built and mounted the same way),
-the ten tier 3 `functional-*` suites of the GOMAD_MILESTONES.md F6 slice
+the ten tier 3 `functional-*` suites of the MILESTONES.md F6 slice
 (`./tests` activity, cancel, child workflow, continue-as-new, cron, query,
 CHASM signal, timer, update, and workflow suites, built and mounted the same
 way), and two fixed seeds. Gomad analyzes
@@ -45,7 +45,7 @@ re-execute with ASLR disabled, both seeds reproduce their evidence across
 repetitions and replay with exact choice replay.
 The user-timers and activity batch cancel suites' darwin/arm64 expectation is
 `qualified`: since the runtime greys the scheduler structures at mark start
-(GOMAD_MILESTONES.md F5), both seeds reproduce their evidence across
+(MILESTONES.md F5), both seeds reproduce their evidence across
 repetitions and replay with exact choice replay, and all 28 darwin workloads
 are supported. Their linux/amd64 expectation is `qualified` too: fork run
 36493869196 qualified both seeds with exact replay, as had the four linux runs
@@ -137,7 +137,7 @@ changes to Gomad, the functional tests, and the server packages their closure
 reaches, and requires `unsupported`, `failed`, and `infrastructure_errors` to
 be zero with every suite qualified and replayed exactly. It runs seed 11 only:
 seed 17 has diverged on replay intermittently on linux since the FIPS DRBG and
-mark-start greying runtime changes (GOMAD_MILESTONES.md F7), a different suite
+mark-start greying runtime changes (MILESTONES.md F7), a different suite
 each run, and a required gate must not flake; the representative set still
 exercises seed 17. Making it a required
 check is a branch-protection setting. Run it locally with:
@@ -197,4 +197,4 @@ linknames, and procfs reads that stay. On darwin/arm64,
 `temporal-functional-tests-darwin-arm64` admits the Prometheus client's darwin
 process-collector `syscall` and `golang.org/x/sys/unix` imports. The manifest's tier 2 suites keep their
 untagged expectations because their darwin/arm64 counterparts have not been
-observed; GOMAD_MILESTONES.md F4 records the tagged linux results per suite.
+observed; MILESTONES.md F4 records the tagged linux results per suite.

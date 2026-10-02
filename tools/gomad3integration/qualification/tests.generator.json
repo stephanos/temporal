@@ -96,33 +96,11 @@
     "TestDescribeTestSuite": {
       "clock_tick": "forward"
     },
-    "TestFairnessAutoEnableSuite": {
-      "skip_subtests": {
-        "Test_Activity_Basic": {
-          "owner": "stephanos",
-          "date": "2026-09-28",
-          "reason": "Measures dispatch fairness over a backlog it assumes is fully written before activity polling starts; under virtual time server work takes no time, so polling begins while later workflows' activity tasks are still in transfer and the first 40-66 dispatched tasks come from 3-4 of 15 workflows (TestFairnessSuite unfairness 1.03-1.04 on seeds 11 and 17, TestFairnessAutoEnableSuite 1.27 on seed 11, against 0.45 under stock go test; threshold 1.0, priority_fairness_test.go:603)."
-        }
-      }
-    },
-    "TestFairnessSuite": {
-      "skip_subtests": {
-        "Test_Activity_Basic": {
-          "owner": "stephanos",
-          "date": "2026-09-28",
-          "reason": "Measures dispatch fairness over a backlog it assumes is fully written before activity polling starts; under virtual time server work takes no time, so polling begins while later workflows' activity tasks are still in transfer and the first 40-66 dispatched tasks come from 3-4 of 15 workflows (TestFairnessSuite unfairness 1.03-1.04 on seeds 11 and 17, TestFairnessAutoEnableSuite 1.27 on seed 11, against 0.45 under stock go test; threshold 1.0, priority_fairness_test.go:603)."
-        }
-      }
-    },
     "TestNexusOTELSuite": {
       "clock_tick": "forward",
-      "skip_subtests": {
-        "TestOperation": {
-          "owner": "gomad3",
-          "date": "2026-09-30",
-          "reason": "Needs two dedicated clusters at once (nexus_otel_test.go:142-143). testcore sizes its dedicated pool from GOMAXPROCS, which Gomad pins to 1; with TEMPORAL_TEST_DEDICATED_CLUSTERS=2 the test runs, but same-seed runs of the suite diverge (seed 17 nondeterministic; a seed 11 replay differed in stderr and wrote no terminal frame, darwin/arm64 2026-09-30), so two clusters in one process are not yet deterministic."
-        }
-      }
+      "environment": [
+        "TEMPORAL_TEST_DEDICATED_CLUSTERS=2"
+      ]
     },
     "TestNexusStandaloneTestSuite": {
       "clock_tick": "forward"
@@ -165,22 +143,7 @@
       "overall_timeout": "90m"
     },
     "TestWorkerCommandsTaskSuite": {
-      "skip_subtests": {
-        "TestDispatchCancelOnWorkflowTimeout": {
-          "owner": "stephanos",
-          "date": "2026-09-30",
-          "reason": "On seed 11 the cancel command does not reach the worker control queue before the test's 90s default context runs down below the 2s long-poll minimum; every later PollNexusTaskQueue is then refused with 'Context timeout is too short' (common.ValidateLongPollContextTimeout), so the test's 120s Awaitf, longer than its own context, can never succeed (worker_commands_task_test.go:459). Seed 17 delivers the command early and the suite qualifies (darwin/arm64 2026-09-30)."
-        }
-      }
-    },
-    "TestWorkflowTaskTestSuite": {
-      "skip_subtests": {
-        "TestWorkflowTaskHeartbeatingWithEmptyResult": {
-          "owner": "stephanos",
-          "date": "2026-09-29",
-          "reason": "Counts workflow task timeouts over twelve 1s sleeps and expects two; the second timeout only fires because each RespondWorkflowTaskCompleted round trip adds wall time, and under virtual time the twelve sleeps span exactly 12s and one timeout fires (workflow_task_test.go:110)."
-        }
-      }
+      "clock_tick": "forward"
     },
     "TestWorkflowTestSuite": {
       "required_probes": [
@@ -207,7 +170,7 @@
       "platform_expectations": {
         "linux/amd64": {
           "classification": "intermittent",
-          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+          "finding": "MILESTONES.md#f7-any-functional-test-and-ci"
         }
       },
       "choice_bytes": 67108864,

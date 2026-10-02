@@ -3,7 +3,7 @@
 ## Goal & Context
 <!-- scope: business -->
 
-Milestone F6 of `.plans/GOMAD_MILESTONES.md`. Ten `./tests` suites covering activities, signals,
+Milestone F6 of `MILESTONES.md`. Ten `./tests` suites covering activities, signals,
 queries, updates, child workflows, continue-as-new, cron, workflow, cancel, and timers run through
 `qualify-set`, each qualified or classified with an exact blocker. On linux/amd64 six of twenty
 seed runs qualified; the environment-filtering fix needs requalification; the six seed runs that

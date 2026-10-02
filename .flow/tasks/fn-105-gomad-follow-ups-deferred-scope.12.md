@@ -8,6 +8,11 @@ Origin: fn-106.1 (2026-09-30). Identify and fix the linux/amd64 replay channel: 
 
 Decision on 2026-09-30: this must be fixed. Remove the previous host-availability/rate-rise deferral. Obtain a native linux/amd64 host, reproduce under load, and use buffered per-event runtime logging to identify the first divergent event. Fix the cause and retain a regression reproducer. Keep this task open if the investigation only diagnoses or classifies the cause, or if the host is unavailable.
 
+Candidates from the 2026-10-01 quality assessment (`MILESTONES.md#determinism-gaps`), both from source reading and untested:
+- Q3: the patch calls `gomadAwaitHostSyscallExit` once in `suspendG`, before the suspend loop. A goroutine that enters a host syscall in that window can be scanned inside the syscall, which shifts scan work. Candidate correction: wait inside the loop's `_Gsyscall` case.
+- Q4: linux ASLR and `runtime.NumCPU` are uncontrolled. Rerun the reproducer under `setarch -R` before changing code.
+The divergence localiser that replaces per-event logging is owned by fn-112 R4.
+
 ## Acceptance
 - Identify the first divergent event and its causal runtime path on native linux/amd64.
 - Fix the cause without widening the deterministic boundary or suppressing divergence evidence. A retained regression reproducer demonstrates the original failure and passes with the fix.

@@ -1,0 +1,18 @@
+name=current-strict-1-16 seeds=1-16 tick=strict pattern=^TestWorkerCommandsTaskSuite$/^TestDispatchCancelOnWorkflowTimeout$ exit=1 wall=29s output=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/d18-leaf-sweep/out/current-strict-1-16
+gomad: classification=target_failure attempted=16 succeeded=7 failures=9 watchdogs=0 replay-divergences=0 distinct=9 retained-successes=7 retained-success-bytes=1083093579 stop=seeds_exhausted
+seed=1 failures first_timer_task=ActivityTimeoutTask worker_commands_tasks=0 :: --- FAIL: TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout (120.00s)
+seed=2 successes first_timer_task=WorkflowRunTimeoutTask worker_commands_tasks=1 :: --- PASS: TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout (3.00s)
+seed=3 failures first_timer_task=ActivityTimeoutTask worker_commands_tasks=0 :: --- FAIL: TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout (120.00s)
+seed=4 failures first_timer_task=ActivityTimeoutTask worker_commands_tasks=0 :: --- FAIL: TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout (120.00s)
+seed=5 failures first_timer_task=ActivityTimeoutTask worker_commands_tasks=0 :: --- FAIL: TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout (120.00s)
+seed=6 successes first_timer_task=WorkflowRunTimeoutTask worker_commands_tasks=1 :: --- PASS: TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout (3.00s)
+seed=7 failures first_timer_task=ActivityTimeoutTask worker_commands_tasks=0 :: --- FAIL: TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout (120.00s)
+seed=8 successes first_timer_task=WorkflowRunTimeoutTask worker_commands_tasks=1 :: --- PASS: TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout (3.00s)
+seed=9 failures first_timer_task=ActivityTimeoutTask worker_commands_tasks=0 :: --- FAIL: TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout (120.00s)
+seed=10 successes first_timer_task=WorkflowRunTimeoutTask worker_commands_tasks=1 :: --- PASS: TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout (3.00s)
+seed=11 successes first_timer_task=WorkflowRunTimeoutTask worker_commands_tasks=1 :: --- PASS: TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout (3.00s)
+seed=12 failures first_timer_task=ActivityTimeoutTask worker_commands_tasks=0 :: --- FAIL: TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout (120.00s)
+seed=13 failures first_timer_task=ActivityTimeoutTask worker_commands_tasks=0 :: --- FAIL: TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout (120.00s)
+seed=14 failures first_timer_task=ActivityTimeoutTask worker_commands_tasks=0 :: --- FAIL: TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout (120.00s)
+seed=15 successes first_timer_task=WorkflowRunTimeoutTask worker_commands_tasks=1 :: --- PASS: TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout (3.00s)
+seed=16 successes first_timer_task=WorkflowRunTimeoutTask worker_commands_tasks=1 :: --- PASS: TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout (3.00s)

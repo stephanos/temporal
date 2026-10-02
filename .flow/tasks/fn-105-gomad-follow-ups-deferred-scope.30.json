@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-02T02:16:47.872679Z",
+  "depends_on": [],
+  "id": "fn-105-gomad-follow-ups-deferred-scope.30",
+  "priority": null,
+  "spec": "fn-105-gomad-follow-ups-deferred-scope",
+  "spec_path": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.30.md",
+  "status": "todo",
+  "title": "D17: deliver explicit target environment and enable the two-cluster Nexus test",
+  "updated_at": "2026-10-02T02:16:47.872679Z"
+}

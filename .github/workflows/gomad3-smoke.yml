@@ -1,6 +1,6 @@
 name: Gomad v3 functional smoke
 
-# The required functional-test gate (GOMAD_MILESTONES.md F7). It qualifies a
+# The required functional-test gate (MILESTONES.md F7). It qualifies a
 # small, named selection of ./tests suites on linux/amd64 so that a change to the
 # server, the functional test harness, or Gomad itself cannot silently break
 # deterministic execution. The full ./tests set is not run in CI; it stays the
@@ -80,7 +80,7 @@ jobs:
       # Every smoke suite runs to success on seed 11 with zero unsupported and
       # infrastructure errors, read separately per COMPAT-2. A suite may be
       # nondeterministic or diverge on replay under the open linux replay
-      # finding (GOMAD_MILESTONES.md "Open findings"); a qualified suite must
+      # finding (MILESTONES.md "Open findings"); a qualified suite must
       # replay exactly, and any target failure fails the gate.
       - name: Verify functional smoke evidence
         run: >-
@@ -106,7 +106,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-  # The darwin/arm64 counterpart of the Linux job (GOMAD_MILESTONES.md F10 D7):
+  # The darwin/arm64 counterpart of the Linux job (MILESTONES.md F10 D7):
   # the same triggers, the same manifest check, and the same smoke selection on
   # a standard GitHub-hosted macOS runner.
   functional-smoke-darwin:
@@ -126,7 +126,7 @@ jobs:
       - name: Check the ./tests qualification manifest is current
         run: make -C tools/gomad3 validate-qualification
 
-      # Routine full-suite qualification runs untraced (GOMAD_MILESTONES.md F10
+      # Routine full-suite qualification runs untraced (MILESTONES.md F10
       # D13), so this representative replay gate states its tracing itself: a
       # suite without a choice trace and replayed successes could only show seed
       # repeatability, which the evidence check below does not accept.
@@ -145,7 +145,7 @@ jobs:
       # extend to darwin, so every smoke suite must be `qualified` on seed 11
       # with verified exact choice-tape replay. A nondeterministic or
       # replay-diverged suite fails the gate here and stays required work under
-      # GOMAD_MILESTONES.md F10 D12/D14.
+      # MILESTONES.md F10 D12/D14.
       - name: Verify functional smoke evidence
         run: >-
           jq -e '

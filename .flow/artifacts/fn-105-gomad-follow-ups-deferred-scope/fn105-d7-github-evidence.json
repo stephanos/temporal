@@ -1,0 +1,75 @@
+{
+  "run": {
+    "conclusion": "failure",
+    "event": "workflow_dispatch",
+    "headSha": "38957053f1ce342a8797af1803f5f8f6bb53fcad",
+    "url": "https://github.com/stephanos/temporal/actions/runs/36945812832"
+  },
+  "job": {
+    "completed_at": "2026-10-02T00:33:29Z",
+    "conclusion": "success",
+    "html_url": "https://github.com/stephanos/temporal/actions/runs/36945812832/job/110647570973",
+    "id": 110647570973,
+    "labels": [
+      "macos-15"
+    ],
+    "started_at": "2026-10-02T00:24:25Z",
+    "steps": [
+      {
+        "conclusion": "success",
+        "name": "Set up job"
+      },
+      {
+        "conclusion": "success",
+        "name": "Run actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10"
+      },
+      {
+        "conclusion": "success",
+        "name": "Run actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c"
+      },
+      {
+        "conclusion": "success",
+        "name": "Verify qualified host"
+      },
+      {
+        "conclusion": "success",
+        "name": "Check the ./tests qualification manifest is current"
+      },
+      {
+        "conclusion": "success",
+        "name": "Check the smoke selection is explicitly traced"
+      },
+      {
+        "conclusion": "success",
+        "name": "Qualify the functional smoke selection"
+      },
+      {
+        "conclusion": "success",
+        "name": "Verify functional smoke evidence"
+      },
+      {
+        "conclusion": "success",
+        "name": "Upload functional smoke evidence"
+      },
+      {
+        "conclusion": "success",
+        "name": "Post Run actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c"
+      },
+      {
+        "conclusion": "success",
+        "name": "Post Run actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10"
+      },
+      {
+        "conclusion": "success",
+        "name": "Complete job"
+      }
+    ]
+  },
+  "report": "fn105-d7-github-smoke-report.json",
+  "report_sha256": "dffffdb0ead175560e38c00710a4ed22da28c24f3de4d062962631612dfc6efc",
+  "unchanged_since_ci": {
+    ".github/workflows/gomad3-smoke.yml": "faa2ed5fc1c89ceb258b9d12a5309f6003c50e23caa93eb36716ce56e483460f",
+    "tools/gomad3integration/qualification/smoke.json": "cc676039897d7dcc61d9592a9beed9116d272b41884041c0f1f804b4437c18c1"
+  },
+  "scope": "The macOS smoke job passed; the overall workflow failed in Linux jobs, which remain separate required work."
+}

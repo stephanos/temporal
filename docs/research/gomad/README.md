@@ -13,8 +13,13 @@ and experimental proposals. They do not define current support or task state.
 | [D17 Nexus operation test with two clusters](GOMAD_D17_NEXUS_OTEL_TWO_CLUSTERS.md) | 2026-10-01 | Why do same-seed runs of the two-cluster Nexus tracing test differ, and who owns the correction? |
 | [D19 activity fairness backlog readiness](GOMAD_D19_FAIRNESS_BACKLOG_READINESS.md) | 2026-10-01 | Why does the activity fairness test measure a partial backlog under Gomad, is matching unfair, and who owns the correction? |
 | [D20 heartbeat timeout counting](GOMAD_D20_HEARTBEAT_TIMEOUT_COUNTING.md) | 2026-10-01 | Why does the workflow task heartbeat test count one timeout instead of two under virtual time, and who owns the correction? |
+| [What is next for Gomad](2026-10-01-gomad-vision.md) | 2026-10-01 | Which GOMAD_CMP.md ideas are feasible, what new ideas exist, and what direction follows? |
+| [Feasibility: schedule search](2026-10-01-feasibility-schedule-search.md) | 2026-10-01 | What do the runtime, choice records, and explorers offer search policies today? |
+| [Feasibility: workload, feedback, diagnosis](2026-10-01-feasibility-workload-diagnosis.md) | 2026-10-01 | What exists for inputs, guidance, oracles, minimization, and failure inspection? |
+| [Industry simulation-testing practice](2026-10-01-industry-dst-practice.md) | 2026-10-01 | Which mechanisms from other teams' deterministic simulation testing transfer? |
+| [Academic concurrency-testing survey](2026-10-01-academic-concurrency-testing.md) | 2026-10-01 | Which search algorithms and feedback signals fit Gomad's controller? |
 
 Use the [capability roadmap](../../../.plans/GOMAD_NEXT.md) for remaining
-candidates and [milestones](../../../.plans/GOMAD_MILESTONES.md) for delivery order.
+candidates and [milestones](../../../MILESTONES.md) for delivery order.
 Current contracts live in the [specification](../../../tools/gomad3/SPEC.md) and
 [architecture](../../../tools/gomad3/ARCHITECTURE.md).

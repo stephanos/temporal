@@ -3,7 +3,7 @@
 ## Goal & Context
 <!-- scope: business -->
 
-Milestone F7 of `.plans/GOMAD_MILESTONES.md`. The whole `./tests` package is enumerated in the
+Milestone F7 of `MILESTONES.md`. The whole `./tests` package is enumerated in the
 qualification set, every test has a disposition, the unsupported count is zero on darwin/arm64
 and linux/amd64, and the Temporal qualification becomes a required CI check.
 

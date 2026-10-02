@@ -7,8 +7,8 @@ satisfies: [R1, R8, R9]
 Stage 4 (R1, R8, R9): prove the result. Compare final size against the recorded baseline with the same script, show the public surface is unchanged, run the final gates once, and write the evidence. No refactoring happens here; a gap found is reported (and, if it is a regression introduced by fn-108 tasks, fixed in the file that introduced it).
 
 **Size:** M
-**Files:** `.flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/final.md` and captured outputs; `.plans/GOMAD_MILESTONES.md` (the fn-108 "Status" line and work-tracking row only)
-**Touches:** [.flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/**, .plans/GOMAD_MILESTONES.md]
+**Files:** `.flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/final.md` and captured outputs; `MILESTONES.md` (the fn-108 "Status" line and work-tracking row only)
+**Touches:** [.flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/**, MILESTONES.md]
 
 ### Approach
 
@@ -25,7 +25,7 @@ Stage 4 (R1, R8, R9): prove the result. Compare final size against the recorded 
 5. **Fixed-input regression evidence.** Reference the characterization tests from the assessment and retention tasks and state which paths they exercise: ordinary seed, guided, choice exploration, simulation exploration, retention, interruption/resume, minimization (`runner/minimize_operation_test.go`). Name any path with no fixed-input evidence as a gap.
 6. **Dispositions.** Any failure is compared with the baseline: pre-existing (name the owner, for example D12/D14 replay findings), or new (unexplained new failure = incomplete acceptance). Do not relax an expectation or skip a gate to obtain a pass.
 7. **Not runnable here:** every linux/amd64 gate (`make -C tools/gomad3 test`, validate, qualification on that platform). Record them as "not run (no linux/amd64 host)" and state that R9's both-platform requirement is therefore incomplete until CI or a Linux host runs them; give the exact commands for that run.
-8. Update the fn-108 "Status" paragraph and the work-tracking row in `.plans/GOMAD_MILESTONES.md` to the measured outcome, including what remains incomplete. Edit only those lines.
+8. Update the fn-108 "Status" paragraph and the work-tracking row in `MILESTONES.md` to the measured outcome, including what remains incomplete. Edit only those lines.
 9. In the completion report, list the fn-105.1 (D1) and fn-105.2 (D2) evidence paths for the conductor to link when closing those obligations.
 
 ### Investigation targets
@@ -33,7 +33,7 @@ Stage 4 (R1, R8, R9): prove the result. Compare final size against the recorded 
 **Required:**
 - `.flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/baseline.md`, `size-count.sh`, `api-baseline/`
 - `tools/gomad3/Makefile:127-176`, root `Makefile:165-225`
-- `.plans/GOMAD_MILESTONES.md:21-36`, `:242-278`
+- `MILESTONES.md:21-36`, `:242-278`
 
 ### Quick commands
 
@@ -67,7 +67,7 @@ make gomad3-smoke-qualification
 - [ ] Each darwin/arm64 gate has a recorded command, result and disposition against the baseline; no expectation was weakened; any new failure is reported as incomplete acceptance.
 - [ ] linux/amd64 gates are listed as not run with the commands to run them, and R9 is stated as incomplete on that axis rather than passed.
 - [ ] Fixed-input evidence is named for seed, guided, choice exploration, simulation exploration, retention, interruption/resume and minimization paths, with gaps listed.
-- [ ] `.plans/GOMAD_MILESTONES.md` fn-108 status reflects the measured outcome; D1/D2 evidence paths are listed for the conductor; nothing staged or committed.
+- [ ] `MILESTONES.md` fn-108 status reflects the measured outcome; D1/D2 evidence paths are listed for the conductor; nothing staged or committed.
 
 
 ## Done summary
@@ -81,7 +81,7 @@ fn-108 is measured and gated on darwin/arm64: authored production Go fell from 5
 - Fixed-input evidence: the 31 retention projections and the 3 completion record inputs logged on the final tree are byte-identical to the captures taken before the extractions. Gaps named in `final.md`: minimization has no before-and-after projection and rests on its two existing tests plus the direct test of `executionArtifactInput`; simulation exploration has no built-CLI run; `recover` has existing tests only.
 - Not run: every linux/amd64 gate. `final.md` lists the commands. The linux `validate` is expected to fail on the stale pack `modernc-libc-xsys-v047-linux-amd64`, a finding that predates fn-108.
 - Host load: another session ran unrelated test suites on the machine during the gates (load 4 to 32). No gate reported a watchdog timeout, so none was rerun.
-- Milestones: `.plans/GOMAD_MILESTONES.md` carries the measured fn-108 status and tracking row; the D1 and D2 rows are removed, the F10 count reads sixteen, and the Purpose paragraph lists D1 and D2 as completed. The sentence "D1-D5 and D8-D10 are delivered through fn-108, fn-109, and fn-107" in the F10 status paragraph is outside this task's permitted lines and still names D1 and D2.
+- Milestones: `MILESTONES.md` carries the measured fn-108 status and tracking row; the D1 and D2 rows are removed, the F10 count reads sixteen, and the Purpose paragraph lists D1 and D2 as completed. The sentence "D1-D5 and D8-D10 are delivered through fn-108, fn-109, and fn-107" in the F10 status paragraph is outside this task's permitted lines and still names D1 and D2.
 - D1/D2 evidence for fn-105.1 and fn-105.2: `task5-evidence.md`, `task5.diff`, `task5-review.md` and `task6-evidence.md`, `task6.diff`, `task6-review.md` in the artifact directory, plus `final.md`.
 - For fn-110: `tools/gomad3/.toolchain/fn-110/baseline/` holds `identity.json` (HEAD, toolchain key `8d28bd44…`, Runner build `sha256:f8b0a8d4…`) and the three set reports, named `*-set-report.json` so `clean-qualifications` leaves them. Evidence digests cover the Runner build, so they change with any Runner rebuild.
 - Follow-ups recorded for their owners: hostfs fault injection for close, sync and cleanup failures; the misnamed `TestStateStopsAtAttemptBudgetAndRoundTrips`; the seed-strategy N+1 journal observation; `ARCHITECTURE.md` does not name `completion.go` and `retention.go` (fn-109 R9); the unusable `go build ./...` Quick command; the missing `main` ref for lint.

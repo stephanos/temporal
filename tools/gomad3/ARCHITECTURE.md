@@ -18,7 +18,7 @@ The complete Runner and deterministic-I/O contract is qualified on
 `darwin/arm64` and `linux/amd64`; artifacts replay only on their recorded
 platform. Qualification applies to declared workloads, rather than proving
 arbitrary Go programs deterministic. The
-[milestones](../../.plans/GOMAD_MILESTONES.md#open-findings) record remaining
+[milestones](../../MILESTONES.md#open-findings) record remaining
 functional-suite replay divergences and known host-clock escapes, including
 `MemStats.LastGC`. Garbage-collector timing is not fully controlled.
 

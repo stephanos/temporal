@@ -1226,9 +1226,6 @@
       "success_artifact_limit": 0,
       "success_bytes_limit": 0,
       "overall_timeout": "20m",
-      "skip": [
-        "Test_Activity_Basic"
-      ],
       "test_parallel": 8,
       "expectation": {
         "classification": "qualified"
@@ -1258,9 +1255,6 @@
       "success_artifact_limit": 0,
       "success_bytes_limit": 0,
       "overall_timeout": "20m",
-      "skip": [
-        "Test_Activity_Basic"
-      ],
       "test_parallel": 8,
       "expectation": {
         "classification": "qualified"
@@ -1830,6 +1824,9 @@
         "test_dep"
       ],
       "capability_mode": "closure",
+      "environment": [
+        "TEMPORAL_TEST_DEDICATED_CLUSTERS=2"
+      ],
       "read_only_mounts": [
         {
           "source": "./schema",
@@ -1842,9 +1839,6 @@
       "success_artifact_limit": 0,
       "success_bytes_limit": 0,
       "overall_timeout": "20m",
-      "skip": [
-        "TestOperation"
-      ],
       "test_parallel": 8,
       "expectation": {
         "classification": "qualified"
@@ -3076,7 +3070,7 @@
       "platform_expectations": {
         "linux/amd64": {
           "classification": "intermittent",
-          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+          "finding": "MILESTONES.md#f7-any-functional-test-and-ci"
         }
       }
     },
@@ -3692,13 +3686,11 @@
         }
       ],
       "choice_bytes": 0,
+      "clock_tick": "forward",
       "replay_successes": false,
       "success_artifact_limit": 0,
       "success_bytes_limit": 0,
       "overall_timeout": "20m",
-      "skip": [
-        "TestDispatchCancelOnWorkflowTimeout"
-      ],
       "test_parallel": 8,
       "expectation": {
         "classification": "qualified"
@@ -4194,9 +4186,6 @@
       "success_artifact_limit": 0,
       "success_bytes_limit": 0,
       "overall_timeout": "20m",
-      "skip": [
-        "TestWorkflowTaskHeartbeatingWithEmptyResult"
-      ],
       "test_parallel": 8,
       "expectation": {
         "classification": "qualified"

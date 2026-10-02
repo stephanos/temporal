@@ -106,7 +106,7 @@ jobs:
           retention-days: 90
 
       # The functional test package's capability closure is closed on Linux under
-      # the gomad build tag (GOMAD_MILESTONES.md F4): build seams cut the server's
+      # the gomad build tag (MILESTONES.md F4): build seams cut the server's
       # host-only providers and the fx, SDK, otel, and gRPC adapters remove the
       # remaining forbidden imports, so closure mode reports zero blockers.
       - name: Close the functional test capability closure
@@ -128,7 +128,7 @@ jobs:
       # both seeds. The tier 3 probe runs to a successful exit under guarded
       # mode, but one run's seed 17 did not reproduce its evidence, so
       # temporal.json states its linux/amd64 expectation as `intermittent` until
-      # GOMAD_MILESTONES.md F3 closes it. Since the FIPS DRBG and mark-start
+      # MILESTONES.md F3 closes it. Since the FIPS DRBG and mark-start
       # greying runtime changes, seed 17 of one functional suite per run has
       # diverged on replay, a different suite each time, so the F5 and F6
       # suites are `intermittent` on linux under the F7 finding too.
@@ -208,7 +208,7 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
-      # The darwin/arm64 counterpart of the Linux closure step (GOMAD_MILESTONES.md
+      # The darwin/arm64 counterpart of the Linux closure step (MILESTONES.md
       # F4 states its acceptance on darwin/arm64): the arm64 assembly and the
       # Prometheus client's darwin process-collector imports are admitted by
       # the darwin packs, so closure mode reports zero blockers.
@@ -252,7 +252,7 @@ jobs:
       # qualifies (nine under the gomad tag, through the temporal-leaf packs),
       # and the tier 3 user-timers and activity batch cancel suites are
       # `qualified` with exact replay on both seeds since the mark-start
-      # greying fix GOMAD_MILESTONES.md F5 records, as are the ten
+      # greying fix MILESTONES.md F5 records, as are the ten
       # `functional-*` suites of the F6 slice, so all 28 are supported.
       - name: Verify portable Temporal qualification evidence
         if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}

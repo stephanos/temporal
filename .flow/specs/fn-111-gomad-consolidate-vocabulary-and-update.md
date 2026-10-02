@@ -200,4 +200,4 @@ required only if executable code changes under a separately authorized scope.
 - `tools/gomad3sim/types.go`, `spec.go`, and `cluster.go`.
 - `tools/gomad3/toolchain/version/version.json` and
   `tools/gomad3/deterministicio/boundary/manifest.json`.
-- `.plans/GOMAD_MILESTONES.md`, fn-105 D5/D12/D13/D14/D15, and fn-109 R9.
+- `MILESTONES.md`, fn-105 D5/D12/D13/D14/D15, and fn-109 R9.

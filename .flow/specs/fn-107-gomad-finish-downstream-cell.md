@@ -163,7 +163,7 @@ remain visible failures and cannot satisfy a `qualified` expectation.
 
 ## Edge Cases & Constraints
 
-- Apply the [milestone constraints](../../.plans/GOMAD_MILESTONES.md#constraints)
+- Apply the [milestone constraints](../../MILESTONES.md#constraints)
   and current Gomad [specification](../../tools/gomad3/SPEC.md). Keep the
   boundary fail-closed. Generic `syscall`, `x/sys`, subprocess, signal, or host
   I/O grants are excluded.

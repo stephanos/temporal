@@ -3,7 +3,7 @@
 ## Goal & Context
 <!-- scope: business -->
 
-Milestone F2 of `.plans/GOMAD_MILESTONES.md`. The toolchain is ported to go1.27.1 and every tier
+Milestone F2 of `MILESTONES.md`. The toolchain is ported to go1.27.1 and every tier
 passes on linux/amd64. Left open: the macOS `upgrade-dossier` run, the DTrace clock audit, the
 approval digest for the go1.26.4-v2 to go1.27.1-v1 boundary diff, and the Temporal corpus
 acceptance on darwin/arm64.

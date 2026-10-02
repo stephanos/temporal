@@ -871,7 +871,7 @@ index 58161de..c4f1bb0 100644
  		}
  	}
 diff --git a/src/syscall/env_unix.go b/src/syscall/env_unix.go
-index e1d7e21..47f7864 100644
+index e1d7e21..2502ebf 100644
 --- a/src/syscall/env_unix.go
 +++ b/src/syscall/env_unix.go
 @@ -11,6 +11,7 @@ package syscall
@@ -882,16 +882,19 @@ index e1d7e21..47f7864 100644
  )
  
  var (
-@@ -28,8 +29,14 @@ var (
+@@ -28,8 +29,17 @@ var (
  
  func runtime_envs() []string // in package runtime
  
 +//go:linkname gomadDeterministicEnabled runtime.gomadDeterministicEnabled
 +func gomadDeterministicEnabled() bool
 +
++//go:linkname gomadIOProfileEnabled runtime.gomadIOProfileEnabled
++func gomadIOProfileEnabled() bool
++
  var copyenv = sync.OnceFunc(func() {
  	env = make(map[string]int)
-+	if gomadDeterministicEnabled() {
++	if gomadDeterministicEnabled() && !gomadIOProfileEnabled() {
 +		envs = []string{"TZ=UTC"}
 +	}
  	for i, s := range envs {

@@ -44,7 +44,7 @@
       "overall_timeout": "20m",
       "expectation": {
         "classification": "intermittent",
-        "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"
+        "finding": "MILESTONES.md#f6-a-package-level-functional-slice"
       },
       "platform_expectations": {
         "darwin/arm64": {
@@ -52,7 +52,7 @@
         },
         "linux/amd64": {
           "classification": "intermittent",
-          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+          "finding": "MILESTONES.md#f7-any-functional-test-and-ci"
         }
       }
     },
@@ -87,7 +87,7 @@
       "overall_timeout": "20m",
       "expectation": {
         "classification": "intermittent",
-        "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"
+        "finding": "MILESTONES.md#f6-a-package-level-functional-slice"
       },
       "platform_expectations": {
         "darwin/arm64": {
@@ -95,7 +95,7 @@
         },
         "linux/amd64": {
           "classification": "intermittent",
-          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+          "finding": "MILESTONES.md#f7-any-functional-test-and-ci"
         }
       }
     },
@@ -130,7 +130,7 @@
       "overall_timeout": "20m",
       "expectation": {
         "classification": "intermittent",
-        "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"
+        "finding": "MILESTONES.md#f6-a-package-level-functional-slice"
       },
       "platform_expectations": {
         "darwin/arm64": {
@@ -138,7 +138,7 @@
         },
         "linux/amd64": {
           "classification": "intermittent",
-          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+          "finding": "MILESTONES.md#f7-any-functional-test-and-ci"
         }
       }
     },
@@ -169,7 +169,7 @@
       "overall_timeout": "20m",
       "expectation": {
         "classification": "intermittent",
-        "finding": "GOMAD_MILESTONES.md#f5-one-workflow-executing-functional-test-deterministic"
+        "finding": "MILESTONES.md#f5-one-workflow-executing-functional-test-deterministic"
       },
       "platform_expectations": {
         "darwin/arm64": {
@@ -177,7 +177,7 @@
         },
         "linux/amd64": {
           "classification": "intermittent",
-          "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+          "finding": "MILESTONES.md#f7-any-functional-test-and-ci"
         }
       }
     }

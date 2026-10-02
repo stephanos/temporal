@@ -99,7 +99,7 @@ The resource-limit patch suppresses the host query and limit change in both enab
 
 ## Changes that need to remain
 
-The smaller patch should retain the effects of the hooks below. Their justification is visible in the [current patch](../../../tools/gomad3/toolchain/runtime/go1.27.1.patch), the overlay implementation, and the [milestone constraints and open findings](../../../.plans/GOMAD_MILESTONES.md).
+The smaller patch should retain the effects of the hooks below. Their justification is visible in the [current patch](../../../tools/gomad3/toolchain/runtime/go1.27.1.patch), the overlay implementation, and the [milestone constraints and open findings](../../../MILESTONES.md).
 
 - Runtime activation must happen before random initialization, and seeded scheduling must retain one P, disabled host preemption, separate host and target random streams, and recorded local/global run-queue decisions.
 - Keep `snapshotAllp`, mark-worker gating, and runtime-structure greying. A Linux bisect that still diverged after reverting greying does not prove that greying serves no other workload. The collector, allocator, and platform-file prohibitions still apply.
@@ -308,7 +308,7 @@ Report digests: smoke `b25ac128…dfa964433d`, core `e82a5afe…bca27f0be`, Temp
 
 ### D12 and D14 dispositions
 
-D12 is open and D14 is fixed in this baseline. [GOMAD_MILESTONES.md](../../../.plans/GOMAD_MILESTONES.md) states them as follows.
+D12 is open and D14 is fixed in this baseline. [MILESTONES.md](../../../MILESTONES.md) states them as follows.
 
 > **Intermittent suites.** The F5/F6 suites and `TestSignalWorkflowTestSuiteChasm` on linux (F10 D12). The darwin divergence of `TestSignalWorkflowTestSuiteChasm` is fixed (F10 D14, 2026-09-30): the generated manifest expects it `qualified` on darwin/arm64 and `intermittent` on linux/amd64. The linux `intermittent` expectation for the F5/F6 suites is stated in the representative and smoke manifests (`temporal.json`, `smoke.json`); the generated manifest still expects those suites `qualified` on linux, where the full set is not run as a gate.
 
@@ -325,10 +325,10 @@ Manifest expectations, verbatim. `temporal.json` has SHA-256 `31d17baf…c39433a
 The `functional-signal-chasm` suite (`TestSignalWorkflowTestSuiteChasm`) in `temporal.json`:
 
 ```json
-"expectation": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f6-a-package-level-functional-slice"},
+"expectation": {"classification": "intermittent", "finding": "MILESTONES.md#f6-a-package-level-functional-slice"},
 "platform_expectations": {
   "darwin/arm64": {"classification": "qualified"},
-  "linux/amd64": {"classification": "intermittent", "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"}
+  "linux/amd64": {"classification": "intermittent", "finding": "MILESTONES.md#f7-any-functional-test-and-ci"}
 }
 ```
 
@@ -341,7 +341,7 @@ The same test in the generated `tests.json`:
 "platform_expectations": {
   "linux/amd64": {
     "classification": "intermittent",
-    "finding": "GOMAD_MILESTONES.md#f7-any-functional-test-and-ci"
+    "finding": "MILESTONES.md#f7-any-functional-test-and-ci"
   }
 }
 ```

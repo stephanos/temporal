@@ -7,8 +7,8 @@ satisfies: [R7, R8, R6]
 Qualify the integrated final candidate on this host, publish the final measurements and build identity, and update milestone status and maintainer regeneration guidance. No toolchain input changes here: a failure is reported against the task that introduced it, not patched over.
 
 **Size:** M
-**Files:** `docs/research/gomad/GOMAD_PATCH_SIZE.md`, `.plans/GOMAD_MILESTONES.md`, `tools/gomad3/README.md`, `tools/gomad3/CLI.md`
-**Touches:** [docs/research/gomad/GOMAD_PATCH_SIZE.md, .plans/GOMAD_MILESTONES.md, tools/gomad3/README.md, tools/gomad3/CLI.md]
+**Files:** `docs/research/gomad/GOMAD_PATCH_SIZE.md`, `MILESTONES.md`, `tools/gomad3/README.md`, `tools/gomad3/CLI.md`
+**Touches:** [docs/research/gomad/GOMAD_PATCH_SIZE.md, MILESTONES.md, tools/gomad3/README.md, tools/gomad3/CLI.md]
 
 ### Approach
 - **Identity** — confirm `make -C tools/gomad3 generate validate` is clean, then record the final build key from `tools/gomad3/.toolchain/build-key` next to the baseline key from task 1. Explain that patch and overlay bytes changed the identity, that baseline artifacts keep their original toolchain binding, and that all evidence below was recorded fresh under the final key.
@@ -22,7 +22,7 @@ Qualify the integrated final candidate on this host, publish the final measureme
 - Compare outcome by outcome. An existing `intermittent` D14 expectation stays as written; a new divergence, watchdog, capacity failure, or weakened expectation leaves acceptance incomplete and is reported, not reclassified. The DTrace clock audit needs root and is CI-supplied; record it as not run.
 - **Linux** — `linux/amd64` gates (`.github/workflows/gomad3.yml` jobs `host-tools-linux`, `core-linux`, and `gomad3-smoke.yml`) run only after the user pushes. Record R7's Linux gate and R4's Linux equivalence as incomplete, with the exact jobs that would close them.
 - **Final measurements** in `GOMAD_PATCH_SIZE.md`: baseline `-U3`, final extracted `-U3`, final canonical `-U1` (bytes, lines, SHA-256), edited upstream files (20 → 19), added/deleted source lines, and overlay bytes/lines before and after, so moved code is visible. State both reductions independently and compare with the 27,845 / 20,352-byte prototypes as guidance, not a quota.
-- **Milestones** — update the fn-110 row at `.plans/GOMAD_MILESTONES.md:33` and the Status line of "Runtime patch minimization (fn-110)" (`:320-356`) with what is done and what is incomplete. Leave the Open findings and the D12/D14 rows unchanged.
+- **Milestones** — update the fn-110 row at `MILESTONES.md:33` and the Status line of "Runtime patch minimization (fn-110)" (`:320-356`) with what is done and what is incomplete. Leave the Open findings and the D12/D14 rows unchanged.
 - **Regeneration guidance** — `tools/gomad3/README.md:571-578` and `tools/gomad3/CLI.md:466-474`: the canonical patch has one context line and comes only from `patch-regenerate`; overlay additions require the descriptor allowlist and `make generate`; the pinned check follows the descriptor. Edit only the sentences concerned. If the generated upgrade guide (`descriptor.go:287`) needs the same note, change the generator and run `make -C tools/gomad3 generate` rather than editing generated output.
 - Superseded intermediate build directories from tasks 2-4 may be removed now if disk is tight, per the constraints below; list what was removed.
 
@@ -30,7 +30,7 @@ Qualify the integrated final candidate on this host, publish the final measureme
 **Required:**
 - `Makefile:165-225`, `tools/gomad3/Makefile:55-175` — native entrypoints
 - `.github/workflows/gomad3.yml`, `.github/workflows/gomad3-smoke.yml` — the Linux gates
-- `.plans/GOMAD_MILESTONES.md:93-110,131-157,320-356`
+- `MILESTONES.md:93-110,131-157,320-356`
 - `tools/gomad3/README.md:540-580`, `tools/gomad3/CLI.md:450-475`
 - `docs/research/gomad/GOMAD_PATCH_SIZE.md` — baseline and intermediate sections written by tasks 1-4
 

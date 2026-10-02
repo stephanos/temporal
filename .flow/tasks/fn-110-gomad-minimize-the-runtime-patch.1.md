@@ -16,7 +16,7 @@ Record the comparable baseline that every later size and equivalence claim is me
 - Record the source-set inventory: `patch_allowlist` and `overlay_allowlist` from `tools/gomad3/toolchain/version/version.json`, and confirm `make -C tools/gomad3 validate` passes.
 - Bring the active toolchain up to date with `make -C tools/gomad3 toolchain` and record the baseline build key from `tools/gomad3/.toolchain/build-key`. At planning time that file (key `1803c664…`, written 2026-09-29) was older than the patch file's modification time, so a rebuild may occur; check disk first.
 - Record the "before" outcomes that task 5 compares against, on this host: `make -C tools/gomad3 test`, the process-simulation test (`TestRootProcessSimulationUsesRunnerTransport`, `integration` tag, in `tools/gomad3/runner/internal/execution`), `make gomad3-integration-test`, `make gomad3-smoke-qualification`, and `make gomad3-qualification` (seeds 11 and 17 in `tools/gomad3integration/qualification/temporal.json`). Keep the JSON reports under `tools/gomad3/.toolchain/fn-110/baseline/`.
-- Record current D12/D14 dispositions as stated in `.plans/GOMAD_MILESTONES.md` (Open findings, D12/D14 rows) and the expectations in the qualification manifests, verbatim.
+- Record current D12/D14 dispositions as stated in `MILESTONES.md` (Open findings, D12/D14 rows) and the expectations in the qualification manifests, verbatim.
 - State plainly that the Linux baseline was not run locally and what would supply it (`.github/workflows/gomad3.yml`, `gomad3-smoke.yml`).
 
 ### Investigation targets
@@ -25,7 +25,7 @@ Record the comparable baseline that every later size and equivalence claim is me
 - `tools/gomad3/toolchain/version/version.json`
 - `tools/gomad3/Makefile:140-175` — validate and test tiers
 - `Makefile:165-225` — `gomad3*` qualification targets
-- `.plans/GOMAD_MILESTONES.md:93-110,185-187` — D12/D14
+- `MILESTONES.md:93-110,185-187` — D12/D14
 
 ### Quick commands
 ```bash

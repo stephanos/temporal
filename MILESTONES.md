@@ -7,10 +7,11 @@
 This document is the delivery ladder for running Temporal's functional tests (`./tests`, built on
 the `testcore` one-box cluster with in-memory SQLite and loopback gRPC) under Gomad v3 so that the
 same seed produces the same run and a retained artifact replays byte-exactly.
-[GOMAD_NEXT.md](GOMAD_NEXT.md) remains the capability roadmap across all four tracks.
+[GOMAD_NEXT.md](.plans/GOMAD_NEXT.md) remains the capability roadmap across all four tracks.
 
 Initial functional-test delivery is complete: milestones F0–F9 (removed on 2026-09-30; see revision `3e4303807`
-of this file, which manifest findings citing `GOMAD_MILESTONES.md#f3-…` through `#f7-…` refer to),
+of this file, named `GOMAD_MILESTONES.md` until 2026-10-01, which manifest findings citing
+`MILESTONES.md#f3-…` through `#f7-…` refer to),
 the clock-tick spec `fn-103`, and the gap spec `fn-106` (see revision `3a7deb99d` for their
 outcomes). The F10 items D1, D2, D13, D14, and D21–D25 are complete as well and were removed by 2026-10-01;
 their outcomes are in the done summaries of the fn-105 tasks under `.flow/tasks/`. What remains
@@ -18,7 +19,9 @@ is the F10 backlog, the downstream implementation and qualification
 in fn-107, feature-preserving code-size reduction in fn-108, deep modules and tool
 interfaces in fn-109, runtime patch minimization in fn-110, the open findings, the
 remaining test dispositions, and the rules that still apply. Vocabulary consolidation
-and documentation acceptance are tracked in fn-111.
+and documentation acceptance are tracked in fn-111. The 2026-10-01
+[quality assessment](#quality-assessment-2026-10-01) defines determinism-assurance and
+test-strategy work, tracked in fn-112.
 
 ## Work tracking
 
@@ -28,12 +31,13 @@ changes, change the spec and summarize the change here.
 
 | Milestone | Spec | State |
 | --- | --- | --- |
-| F10 | `fn-105-gomad-follow-ups-deferred-scope` | required D7 CI job and D12 fix, the corrections proposed by the D16–D20 investigations, and deferred follow-ups ([decisions and scope](#f10-follow-ups-deferred-scope)) |
-| Downstream cell | [fn-107](../.flow/specs/fn-107-gomad-finish-downstream-cell.md) | open; consumer implementation and exact replay on both platforms, including D8/D9/D10 |
-| Code-size cleanup | [fn-108](../.flow/specs/fn-108-gomad-reduce-code-size-without-removing.md) | implemented and verified on darwin/arm64: production Go down 286 code lines, D1/D2 delivered; R9 stays incomplete until the linux/amd64 gates run ([status](#code-size-cleanup-fn-108)) |
-| Deep modules and tool interfaces | [fn-109](../.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) | open; all sixteen architecture findings, reusing D1/D2 and reviving D3/D4/D5 ([delivery order](#deep-modules-and-tool-interfaces-fn-109)) |
-| Runtime patch minimization | [fn-110](../.flow/specs/fn-110-gomad-minimize-the-runtime-patch.md) | open; overlay extraction and canonical one-context-line regeneration, with both-platform qualification ([delivery order](#runtime-patch-minimization-fn-110)) |
-| Vocabulary and documentation | [fn-111](../.flow/specs/fn-111-gomad-consolidate-vocabulary-and-update.md) | open; glossary merged into SPEC, guides reconciled with parsers and source, and acceptance evidence retained; spec completion review pending ([scope](#vocabulary-and-documentation-fn-111)) |
+| F10 | `fn-105-gomad-follow-ups-deferred-scope` | required D12 fix, the D16 clock correction, and deferred follow-ups ([decisions and scope](#f10-follow-ups-deferred-scope)) |
+| Downstream cell | [fn-107](.flow/specs/fn-107-gomad-finish-downstream-cell.md) | open; consumer implementation and exact replay on both platforms, including D8/D9/D10 |
+| Code-size cleanup | [fn-108](.flow/specs/fn-108-gomad-reduce-code-size-without-removing.md) | implemented and verified on darwin/arm64: production Go down 286 code lines, D1/D2 delivered; R9 stays incomplete until the linux/amd64 gates run ([status](#code-size-cleanup-fn-108)) |
+| Deep modules and tool interfaces | [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) | open; all sixteen architecture findings, reusing D1/D2 and reviving D3/D4/D5 ([delivery order](#deep-modules-and-tool-interfaces-fn-109)) |
+| Runtime patch minimization | [fn-110](.flow/specs/fn-110-gomad-minimize-the-runtime-patch.md) | open; overlay extraction and canonical one-context-line regeneration, with both-platform qualification ([delivery order](#runtime-patch-minimization-fn-110)) |
+| Vocabulary and documentation | [fn-111](.flow/specs/fn-111-gomad-consolidate-vocabulary-and-update.md) | open; glossary merged into SPEC, guides reconciled with parsers and source, and acceptance evidence retained; spec completion review pending ([scope](#vocabulary-and-documentation-fn-111)) |
+| Determinism assurance and test strategy | [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md) | open; divergence localiser, stream isolation, soak gate, channel fixtures, and suite reshaping from the 2026-10-01 assessment; no tasks or implementation yet ([findings and proposed order](#quality-assessment-2026-10-01)) |
 
 Work a spec with `/flow-next:work <spec>`; list what is ready with `flowctl ready`.
 
@@ -69,46 +73,10 @@ excluded. What still keeps the package short of "every functional test replays e
     three leads, which use up the 1 s empty-response budget, so the client's 3 s deadline fires
     first (seeds 5, 12, 20, 21, 24 of 1 to 24 on toolchain `8d28bd44`; seed 11 now passes with
     about 20 ms to spare). The
-    [D16](../.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.16.md) investigation
-    ([report](../docs/research/gomad/GOMAD_D16_FORWARD_CLOCK_POLL_DEADLINE.md)) assigns the
+    [D16](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.16.md) investigation
+    ([report](docs/research/gomad/GOMAD_D16_FORWARD_CLOCK_POLL_DEADLINE.md)) assigns the
     correction to the Gomad forward clock. The correction is proposed and not implemented, and
     the skip stays.
-  - `TestNexusOTELSuite/TestOperation`: the test needs two dedicated cluster slots and the pool
-    has one under Gomad. `TEMPORAL_TEST_DEDICATED_CLUSTERS=2` is recorded but never reaches the
-    test, because the patched runtime shows Go code an environment of `TZ=UTC` only. The test
-    waits on itself with no virtual deadline until the wall watchdog kills the target, and the
-    host-timed kill is what was recorded as nondeterminism. With the pool forced to two slots in
-    a throwaway copy the suite qualifies on seeds 11 and 17 with exact choice-tape replay. The
-    [D17](../.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.17.md) investigation
-    ([report](../docs/research/gomad/GOMAD_D17_NEXUS_OTEL_TWO_CLUSTERS.md)) assigns the
-    correction to the Gomad runtime patch and Runner. The correction is proposed and not
-    implemented, and the skip stays.
-  - `TestWorkerCommandsTaskSuite/TestDispatchCancelOnWorkflowTimeout`: under the strict tick the
-    activity's capped deadline equals the workflow run expiration, and when the activity's timer
-    task runs first the server never creates the cancel command (9 of 16 seeds; no timeout budget
-    is involved). [D18](../.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.18.md) identified the
-    cause in its [report](../docs/research/gomad/GOMAD_D18_WORKER_CANCEL_DELIVERY.md) and proposes
-    `clock_tick: forward` for the suite; the correction is undecided and the skip stays.
-  - `TestFairness{,AutoEnable}Suite/Test_Activity_Basic`: the test measures dispatch fairness without
-    waiting for its 225 activity tasks to reach matching. In the whole suite the shard transfer
-    readers exhaust their 20-token rate-limiter burst in the first virtual instant, the next read
-    waits on a 50 ms timer, and the test drains a partial backlog first (7 of 17 seeds fail under
-    either tick; with a complete backlog the metric is the ideal 0.45 in every run). The auto-enable
-    suite also fails in `triggerAutoEnable` when the queue reload ends its single poll empty (3 of 17
-    seeds under the strict tick). [D19](../.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.19.md)
-    identified both causes in its
-    [report](../docs/research/gomad/GOMAD_D19_FAIRNESS_BACKLOG_READINESS.md) and proposes a test
-    precondition and a repeated trigger poll; no matcher fairness defect was found, the correction is
-    undecided, and both skips stay.
-  - `TestWorkflowTaskTestSuite/TestWorkflowTaskHeartbeatingWithEmptyResult`: the test sends a
-    heartbeat every second against a 5 s heartbeat timeout, and the server rejects a heartbeat only
-    strictly after the deadline. Natively the heartbeat due at 5 s is 10 to 92 ms late and is
-    rejected; under the strict tick it arrives at exactly 5 s and is accepted, so the test counts
-    one rejection instead of two on every seed tried. No server or runtime defect was found.
-    [D20](../.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.20.md) identified the cause in its
-    [report](../docs/research/gomad/GOMAD_D20_HEARTBEAT_TIMEOUT_COUNTING.md) and proposes a test
-    correction that sends the two rejected heartbeats explicitly past the deadline; the correction
-    is undecided and the skip stays.
 - **Intermittent suites.** The F5/F6 suites and `TestSignalWorkflowTestSuiteChasm` on linux
   (F10 D12). The darwin divergence of `TestSignalWorkflowTestSuiteChasm` is fixed (F10 D14,
   2026-09-30): the generated manifest expects it `qualified` on darwin/arm64 and `intermittent`
@@ -127,14 +95,19 @@ excluded. What still keeps the package short of "every functional test replays e
   suites are `intermittent` on linux, and both the dispatch-only linux gate and the required smoke
   gate accept `nondeterministic` and `replay_divergence` for them while failing on target
   failures, unsupported targets, and infrastructure errors. The darwin representative set stays
-  fully qualified.
+  fully qualified. The 2026-10-01 assessment adds two untested candidates and the missing
+  localisation tooling ([determinism gaps](#determinism-gaps)).
+- **CI is red.** Of the last 40 `gomad3.yml` runs on `stephanos/temporal` (read 2026-10-01), 4
+  succeeded, 33 failed, and 3 were cancelled; all 16 pull-request runs failed or were cancelled
+  within about 6 minutes. The latest run failed in `make validate`, the host tier, and the linux
+  smoke job. No gate result counts as evidence until the workflow is green again.
 - **Host-clock escapes** recorded by the static inventory (`toolchain/clock_inventory_test.go`):
   `gcMarkTermination` stamps `MemStats.LastGC` and `MemStats.PauseEnd` with host wall time (also
   visible through `debug.GCStats`, the text heap profile, `expvar`, and the Prometheus
   `go_memstats_last_gc_time_seconds` gauge), the FIPS entropy source's `monoTime` (host time on
   linux/amd64 only), and the execution tracer's clock snapshot; on linux also
   `syscall.Gettimeofday` behind the `syscall` pack gate. Investigated, not fixed
-  ([D21 report](../docs/research/gomad/GOMAD_HOST_CLOCK_ESCAPES.md), darwin/arm64 2026-09-30;
+  ([D21 report](docs/research/gomad/GOMAD_HOST_CLOCK_ESCAPES.md), darwin/arm64 2026-09-30;
   linux/amd64 by source reasoning only): none of these is read by runtime control flow; each
   hands a host value to the target as reporting state, trace output, FIPS entropy input, or the
   result of a pack-gated call, so a target that prints or branches on one is not repeatable. A
@@ -151,7 +124,7 @@ excluded. What still keeps the package short of "every functional test replays e
 - **DTrace clock audit** on darwin needs a root run; CI supplies it on the macOS runner.
 - **Downstream cell.** Gomad-side work for a module that embeds the server is complete; its
   in-process cluster test classifies as a capability blocker until the downstream cuts its own
-  seams and injects its filesystem and membership transport ([GOMAD_CLOUD.md](GOMAD_CLOUD.md)).
+  seams and injects its filesystem and membership transport ([GOMAD_CLOUD.md](.plans/GOMAD_CLOUD.md)).
 
 ## Constraints
 
@@ -165,7 +138,7 @@ excluded. What still keeps the package short of "every functional test replays e
 - **Fail-closed stays.** An unmodeled boundary operation terminates the process. Work that needs
   a new modeled operation adds it with a semantic contract, a resource bound, transcript
   coverage, exact replay, and a negative test, per COMPAT-5 in
-  [the compatibility roadmap](GOMAD_NEXT.md#compat-5-targeted-deterministic-adapters-and-io-models).
+  [the compatibility roadmap](.plans/GOMAD_NEXT.md#compat-5-targeted-deterministic-adapters-and-io-models).
 - **Evidence over narration.** Work is done when its command produces the stated report on a
   clean checkout. A passing local run that depends on untracked state does not count.
 - **Platform.** The boundary manifest qualifies `darwin/arm64` and `linux/amd64`. Each platform
@@ -183,7 +156,7 @@ excluded. What still keeps the package short of "every functional test replays e
 
 ## F10: follow-ups (deferred scope)
 
-**Spec.** [fn-105-gomad-follow-ups-deferred-scope](../.flow/specs/fn-105-gomad-follow-ups-deferred-scope.md)
+**Spec.** [fn-105-gomad-follow-ups-deferred-scope](.flow/specs/fn-105-gomad-follow-ups-deferred-scope.md)
 owns tasks and acceptance criteria.
 
 **Outcome.** Fix work explicitly selected during the issue walkthrough must meet its
@@ -191,11 +164,11 @@ acceptance criteria. Other items retain their original deferral reasons and revi
 triggers from the 2026-09-29 scope cut. A trigger must be recorded here before a
 deferred item is implemented; deferred items may remain open or close as won't-do.
 
-**Status.** Sixteen open items. D7 is required CI work: its darwin job is written and its
-commands pass locally on darwin/arm64, and it stays open until a GitHub Actions run passes.
+**Status.** Eleven open items. D7's macOS smoke job passed in GitHub Actions;
+its report and source-bound job evidence are retained with the task.
 D12 is a required fix that needs a linux/amd64 host; the D14 lock-profile fix is an unverified
-candidate for it. D16-D20 are investigated; each row records a proposed correction that is not
-applied and awaits a decision, and the skips stay until a correction is verified.
+candidate for it. D17–D20's recommended corrections are applied and qualified on darwin/arm64.
+D16 retains its proposed correction and skip.
 D3-D5 and D8-D10 are delivered through fn-109 and fn-107. D6 clock policies and D15
 larger traces remain explicitly deferred, and D11 dynamic Linux clock auditing stays deferred
 on the D21 findings.
@@ -204,13 +177,13 @@ on the D21 findings.
 
 | Item | Scope and origin | Decision |
 | --- | --- | --- |
-| D7 | Add a darwin/arm64 job for the existing functional smoke selection (`fn-101.4`) | Required CI addition approved 2026-09-30. R7 in fn-105 requires a standard macOS runner, preserved Linux coverage, platform-specific reports/artifacts, zero unsupported/failed/infrastructure errors, explicitly traced exact replay, and passing GitHub Actions evidence. |
+| D7 | Add a darwin/arm64 job for the existing functional smoke selection (`fn-101.4`) | Complete: the [macOS smoke job](https://github.com/stephanos/temporal/actions/runs/36945812832/job/110647570973) passed on `macos-15` at `38957053f`. All four workloads qualified on seed 11 with exact replay and zero unsupported, failed, infrastructure-error, or replay-diverged outcomes. The workflow and smoke manifest match the current checkout. [Retained evidence](.flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d7-github-evidence.json) binds the job, report, and source hashes. The overall workflow failed in Linux jobs, which remain separate required work. |
 | D12 | Identify and fix the linux/amd64 replay-divergence channel (`fn-106.1`); about one tier-3 seed-run in 26 diverged, and the recorded evidence points to host timing under load | Must be fixed, decided 2026-09-30. Native Linux instrumentation is an execution prerequisite. R12 in fn-105 requires a regression reproducer, repeated exact replay on both seeds under load, and restoration of strict CI expectations; diagnosis alone cannot close the task. |
 | D16 | Investigate TestStandaloneActivityTestSuite/TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch; the client times out before an empty poll response under the forward clock | Investigated on darwin/arm64 (2026-10-01, toolchain key `8d28bd44`); nothing is fixed and the skip stays. Cause: the forward offset is cumulative and unbounded (`gomadTimeNow` adds 1 to 1024 ns per read and never subtracts), so `time.Now` led the timer clock by about 0.33 s when the subtest polled. `context.WithTimeout` arms its timer for `time.Until(time.Now()+d)`, which is `d` plus the lead, and each gRPC hop re-derives the deadline from `grpc-timeout` and adds the lead again. The frontend hop, the matching hop, and matching's `WithDeadlineBuffer` child add three leads; above 1 s in total the client deadline fires before the empty response. On the unmodified tree seeds 5, 12, 20, 21, 24 of 1 to 24 fail with the same error, and a rerun of each reproduced its stdout and stderr digests; seeds 11 and 17 pass (seed 11 by about 20 ms). Under `strict` the subtest passes on all seven of those seeds with the child deadline 1 s before the client's, and natively 999.8 ms before. A standard-library fixture reproduces the timeout on seeds 11 and 17 after 700,000 reads. gRPC, the 1 s budget, and the test behave as they do natively; the owner is the Gomad runtime clock. Proposed for a decision, not built or verified: add the draws to the virtual clock itself so `time.Now` and timers share one clock, as fn-103 specified; this first needs the simulation time transport failure that made fn-103 move to a separate offset reproduced and resolved, and its feasibility is not established. Partial fallbacks with stated residuals (offset-aware `time.Since`/`time.Until`; absorbing the offset on idle advances) and an accepted-limitation alternative are in the report. The correction, its conformance fixture, removal of the skip, and requalification of the seven forward suites remain open work in fn-105. linux/amd64 was not run. Report: `docs/research/gomad/GOMAD_D16_FORWARD_CLOCK_POLL_DEADLINE.md`; evidence: `.flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d16-evidence.json`. |
-| D17 | Investigate TestNexusOTELSuite/TestOperation with two clusters; the two-slot pool setting never reached the test, which still waits on itself | Investigated on darwin/arm64 (2026-10-01, toolchain key `8d28bd44`, which contains the D14 fix); nothing is fixed and the skip stays. Cause: the Runner records a supplied `--env` entry and passes it to the process, and the patched `syscall.copyenv` then replaces the environment Go code reads with `TZ=UTC` in deterministic mode, so `TEMPORAL_TEST_DEDICATED_CLUSTERS=2` has no effect and the dedicated pool keeps the one slot it derives from `GOMAXPROCS`. The test takes that slot and waits for a second on a channel receive with no deadline (`test_cluster_pool.go:109`, from `nexus_otel_test.go:143`), the held cluster's timers keep virtual time advancing, and the wall watchdog kills the target at a host-timed virtual instant. The first evidence field that differs between repetitions is then `virtual_time_elapsed_nanos`, and the workload is reported `nondeterministic`. A killed target writes no terminal choice frame, so its artifact is replayed without tracing, and the seed-11 replay's stderr differs from the traced recording in one `%p` address; a fresh untraced run equals the replay. No evidence of a cause shared with D14 was found, and its fix does not change the outcome: stderr is byte-identical across repetitions up to the kill, and with a virtual `-test.timeout` the failing run repeats byte for byte. The killed runs keep no Choice Trace, and D12 is unassessed because no linux run exists. With the pool forced to two slots in a throwaway copy the suite with the skip lifted is `qualified` on seeds 11 and 17 with exact choice-tape replay (12 executions) and passes on seeds 1 to 17; natively it passes with eight and with two slots and waits the same way with one. Proposed for a decision, not built or verified: deliver supplied environment entries to the target (Gomad runtime patch and Runner), or reject the flag and size the pool under the `gomad` build tag in `tests/testcore`. The correction, its conformance fixture, and removal of the skip remain open work in fn-105. linux/amd64 was not run. Report: `docs/research/gomad/GOMAD_D17_NEXUS_OTEL_TWO_CLUSTERS.md`; evidence: `.flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d17-evidence.json`. |
-| D18 | Investigate worker cancellation delivery and inconsistent test timeout budgets | Investigated 2026-09-30 on darwin/arm64 ([report](../docs/research/gomad/GOMAD_D18_WORKER_CANCEL_DELIVERY.md)). Cause: a strict-tick timestamp tie between the workflow run-timeout timer and the activity's capped ScheduleToClose timer; when the activity timer task runs first, no cancel command is generated, and no test budget or delivery step is at fault. Proposed correction, owned by the Gomad qualification configuration: `clock_tick: forward` for the suite, which qualified seeds 11 and 17 with the skip lifted in scratch manifests. The correction is open work pending a decision; nothing is fixed and the skip stays until verified. |
-| D19 | Investigate activity fairness backlog readiness in both fairness suites | Investigated 2026-10-01 ([report](../docs/research/gomad/GOMAD_D19_FAIRNESS_BACKLOG_READINESS.md)); nothing is fixed and both skips stay. Cause: setup bias. The test polls before its 225 activity tasks reach matching; under Gomad the shard transfer readers' rate limiter (20 per second, burst 20) cannot refill while the test keeps the process busy, so a partial backlog is drained first. A complete backlog gives the ideal metric in every run, and no matcher fairness defect was found. The auto-enable suite also fails when its trigger poll returns empty during the queue reload. Proposed correction, owned by the test's owner: wait for the full backlog through the existing `DescribeTaskQueuePartition` count and repeat the trigger poll; it passes seeds 1 to 17, `qualify-set` on seeds 11 and 17 with the skips lifted, and natively. The correction is undecided open work under R19. |
-| D20 | Investigate heartbeat timeout counting under virtual time | Investigated 2026-10-01 on darwin/arm64 ([report](../docs/research/gomad/GOMAD_D20_HEARTBEAT_TIMEOUT_COUNTING.md)); nothing is fixed and the skip stays. Cause: the test's timing arithmetic. Five 1 s sleeps put a heartbeat exactly on the 5 s heartbeat deadline of each chain, and the server rejects only strictly after it (`Now().After(OriginalScheduledTime + timeout)`). Natively both expected rejections rest on 10 to 92 ms of round-trip latency and sleep overshoot (a native run with 995 ms sleeps fails 2 of 3 times); under the strict tick the heartbeat is accepted at exactly 5 s, the rejection comes one heartbeat later, and the loop ends with one rejection on every leaf seed tried (1 to 17). Under `forward` the test passes on the tick offset, 1.4 ms at the smallest. No server or runtime defect was found. Proposed correction, owned by the test's owner: send the two heartbeats that must be rejected 100 ms after a deadline the test computes and assert every heartbeat's outcome, which removes the need for latency in the rejections and keeps the existing latency ceiling of about 0.93 s for the accepted heartbeats; in a throwaway copy it passes strict leaf seeds 1 to 64, `qualify-set` on seeds 11 and 17 with the skip lifted under both ticks with exact replay, and natively, with the expected history unchanged. Alternatives: `clock_tick: forward` for the suite (Gomad qualification configuration) and an inclusive server comparison (history service, production review). The correction is undecided open work under R20. linux/amd64 was not run. |
+| D17 | Deliver explicit environment entries and enable the two-cluster Nexus operation | The [investigation](docs/research/gomad/GOMAD_D17_NEXUS_OTEL_TWO_CLUSTERS.md) found that the runtime discarded the supplied pool-size setting, causing the test to wait on its own single cluster slot. Runner-managed targets now retain explicit environment values before package initialization; controls stay hidden, direct seeded launches retain their TZ-only environment, and disabled behavior is preserved. The suite receives `TEMPORAL_TEST_DEDICATED_CLUSTERS=2`, and its skip is removed. On darwin/arm64, the new regression passes after reproducing the defect; both leaf seeds create two clusters, all four suite subtests pass on seeds 1–17, and seeds 11/17 qualify with exact replay. The tracked manifest and native suite pass; the one-slot control still times out at the same pool receive. The full `make -C tools/gomad3 test` gate passes, including runtime and upstream conformance. [Correction task](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.30.md) and [evidence](.flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d17-correction-evidence.json) record source and build identities. linux/amd64 was not run. |
+| D18 | Correct worker cancellation qualification after the timeout investigation | The [investigation](docs/research/gomad/GOMAD_D18_WORKER_CANCEL_DELIVERY.md) found a strict-tick timer tie, not a delivery or budget defect. The recommended `clock_tick: forward` is applied to `TestWorkerCommandsTaskSuite` and the skip is removed. On darwin/arm64, the tracked suite qualifies on seeds 11 and 17; traced exact replay matches on both seeds; the leaf passes on seeds 1–64, while the strict reproducer still fails on 9 of 16. The native suite passes. [Correction task](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.27.md) and its retained evidence record the checks. linux/amd64 was not run. |
+| D19 | Correct fairness backlog readiness and auto-enable trigger polling | The [investigation](docs/research/gomad/GOMAD_D19_FAIRNESS_BACKLOG_READINESS.md) found test setup bias and a normal empty poll during queue reload, with no matcher fairness defect. The test now waits for all 225 activity tasks before measuring and retries an empty trigger poll; both skips are removed. On darwin/arm64 both tracked suites qualify on seeds 11 and 17, exact choice-tape replay matches for all four results, and strict-tick seeds 1–17 pass for each suite at unfairness 0.45. The native suites pass once; a 30-run auto-enable leaf check had two failures at the previously observed workflow-task wait, unrelated to the new readiness check. [Correction task](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.28.md) and [evidence](.flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d19-correction-sweep.json) record the checks. linux/amd64 was not run. |
+| D20 | Correct heartbeat timeout counting under virtual time | The [investigation](docs/research/gomad/GOMAD_D20_HEARTBEAT_TIMEOUT_COUNTING.md) found that the test relied on incidental latency to cross a strict heartbeat deadline. The test now pins the 5 s timeout, sends both rejected heartbeats at least 100 ms past a local upper bound on each chain deadline, and asserts every heartbeat outcome; the expected 47-event history and both timeout/recovery cycles are preserved. The skip is removed. On darwin/arm64 the leaf passes seeds 1–64 under strict and forward clocks and 20 native repetitions; after strengthening the new assertion to Require, the native suite and tracked qualification pass, with separate traced exact replay on seeds 11 and 17. [Correction task](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.29.md) and [source-bound evidence](.flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d20-correction-evidence.json) record the verification scope. linux/amd64 was not run. |
 
 ### Architecture consolidation
 
@@ -221,15 +194,15 @@ on the D21 findings.
 | D5 | Architecture/platform/determinism documentation reconciliation (`fn-102` R6) | Revived by the 2026-09-30 architecture request; fn-109 R9 owns delivery |
 
 These were deferred as maintenance without a waiting consumer or behavior change.
-The [architecture assessment](../.flow/artifacts/fn-102-gomad-architecture-consolidate/architecture-assessment.md)
+The [architecture assessment](.flow/artifacts/fn-102-gomad-architecture-consolidate/architecture-assessment.md)
 retains the evidence. Preserve CLI behavior, schemas, canonical bytes, failure
 classification and precedence, and replay compatibility when reviving them.
 
 The 2026-09-30 request for feature-preserving code-size reduction revives D1/D2
-under [fn-108](../.flow/specs/fn-108-gomad-reduce-code-size-without-removing.md).
+under [fn-108](.flow/specs/fn-108-gomad-reduce-code-size-without-removing.md).
 Reuse or transfer the existing obligations during task breakdown. The subsequent
 request to address every architecture finding creates
-[fn-109](../.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md),
+[fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md),
 which reuses fn-108 for D1/D2 and revives D3/D4/D5 through R5/R8/R9. The current
 coordinator option loss and reviewed interface/ownership gaps supply the revival
 evidence. Public migrations remain outside fn-108 and follow its shared policy
@@ -244,22 +217,22 @@ no implementation.
 | D8 | Downstream closure-mode adapter for the signal-handling metrics library (`fn-104` C3/R2) | Revived by fn-107 R7/R9 under fn-105 R8 | Final downstream target and closure evidence as specified by fn-107 |
 | D9 | linux/amd64 downstream packs and qualification (`fn-104`) | Revived by fn-107 R8/R10 under fn-105 R9 | D8 and the final downstream target; qualify both actual hosts |
 | D10 | Downstream seam guide (`fn-104` R4) | Revived by fn-107 R12 under fn-105 R10 | D9's retained qualification and pack evidence |
-| D11 | Dynamic Linux clock audit with disabled vDSO, seccomp denial, and positive control (`fn-101.3`, pre-amendment R5) | Stays deferred: D21 (2026-09-30) found no evidence that requires it, and it is not implemented. The static inventory remains the linux escape gate | A selected fix removes or guards a linux clock read (the `proc.go` overwrite does not), D12 attributes a divergent event to a host-clock read, an upgrade adds an unclassifiable reference, or a pack admits a raw clock syscall. Feasible scope is in the [D21 report](../docs/research/gomad/GOMAD_HOST_CLOCK_ESCAPES.md#d11-determination) |
+| D11 | Dynamic Linux clock audit with disabled vDSO, seccomp denial, and positive control (`fn-101.3`, pre-amendment R5) | Stays deferred: D21 (2026-09-30) found no evidence that requires it, and it is not implemented. The static inventory remains the linux escape gate | A selected fix removes or guards a linux clock read (the `proc.go` overwrite does not), D12 attributes a divergent event to a host-clock read, an upgrade adds an unclassifiable reference, or a pack admits a raw clock syscall. Feasible scope is in the [D21 report](docs/research/gomad/GOMAD_HOST_CLOCK_ESCAPES.md#d11-determination) |
 | D15 | Larger choice traces (`fn-106.3`, split from D13 on 2026-09-30) | Routine qualification uses seed repeatability; the opt-in policy does not require larger tapes | A named workload needs a retained decision tape beyond 64 MiB for debugging, replay verification, exploration, or minimization |
 
 The [constraints](#constraints) apply throughout.
 New tick policies carry execution identity and the
-[COMPAT-5 evidence set](GOMAD_NEXT.md#compat-5-targeted-deterministic-adapters-and-io-models).
+[COMPAT-5 evidence set](.plans/GOMAD_NEXT.md#compat-5-targeted-deterministic-adapters-and-io-models).
 Downstream packs/adapters bind exact versions; dependency drift reopens their
 qualification. On revival, use the origin spec's requirement text as acceptance.
 
 ## Code-size cleanup (fn-108)
 
-**Spec.** [fn-108](../.flow/specs/fn-108-gomad-reduce-code-size-without-removing.md)
+**Spec.** [fn-108](.flow/specs/fn-108-gomad-reduce-code-size-without-removing.md)
 owns the requirements. Its seven tasks are done; the delivery order and preservation contract
 were removed from this document on 2026-10-01 and remain in the spec. Measurements, the comment
 audit, and gate reports are in
-[final.md](../.flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/final.md).
+[final.md](.flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/final.md).
 
 **Status.** Implemented on 2026-10-01 in the working tree; nothing is committed. Authored
 production Go across `tools/gomad3`, `tools/gomad3sim`, and `tools/gomad3integration` fell from
@@ -275,13 +248,13 @@ exact replays) passed, and all 1140 baseline tests keep their result. R9 is inco
 linux/amd64 gate ran because no host was available. `make lint-code-fast` exits 2 as it did
 before fn-108 and cannot analyse the nested module. Minimization has no before-and-after
 projection and rests on its existing tests. Evidence and the linux commands are in
-[final.md](../.flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/final.md).
+[final.md](.flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/final.md).
 
 ## Deep modules and tool interfaces (fn-109)
 
-**Spec.** [fn-109](../.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md)
+**Spec.** [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md)
 owns all eleven ranked findings and five secondary opportunities from the
-[architecture assessment](../.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/architecture-assessment.md).
+[architecture assessment](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/architecture-assessment.md).
 Its twenty acceptance criteria cover campaign options, common execution policy,
 complete preparation, public construction, protocols, simulation progress,
 backend handles, Artifact lifetime, installation knowledge, controller completion
@@ -320,9 +293,9 @@ regressions leave affected acceptance incomplete.
 
 ## Runtime patch minimization (fn-110)
 
-**Spec.** [fn-110](../.flow/specs/fn-110-gomad-minimize-the-runtime-patch.md)
+**Spec.** [fn-110](.flow/specs/fn-110-gomad-minimize-the-runtime-patch.md)
 owns both approaches from the
-[patch-size investigation](../docs/research/gomad/GOMAD_PATCH_SIZE.md).
+[patch-size investigation](docs/research/gomad/GOMAD_PATCH_SIZE.md).
 Move existing Gomad-only implementation into additive overlays and emit the canonical
 Go 1.27.1 patch with one context line. This work reduces the upstream patch; fn-108
 separately owns net production-code reduction.
@@ -358,7 +331,7 @@ to obtain a passing gate.
 
 ## Vocabulary and documentation (fn-111)
 
-**Spec.** [fn-111](../.flow/specs/fn-111-gomad-consolidate-vocabulary-and-update.md)
+**Spec.** [fn-111](.flow/specs/fn-111-gomad-consolidate-vocabulary-and-update.md)
 captures the vocabulary update plan and its assessment of all 25 original glossary
 terms. SPEC becomes the canonical vocabulary source; GLOSSARY.md is deleted.
 CLI, ARCHITECTURE, TUTORIAL, and README use those definitions and describe
@@ -388,18 +361,129 @@ guide reconciliation evidence is retained under
 file hashes of an uncommitted working tree, so it must be regenerated after the
 edits are committed. Spec completion review remains pending.
 
+## Quality assessment (2026-10-01)
+
+**Scope.** A read-only assessment of determinism soundness, the test suite, and maintenance
+cost. Three audits read the source, manifests, workflows, and CI history. Nothing was built or
+run, so every runtime finding below comes from source reading and is unverified by execution
+unless it cites an existing report.
+
+**Spec.** [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md) owns Q1, Q2, Q6,
+Q7, Q8, the suite defects, and the test layers, with acceptance criteria R1 to R11. Q3 and Q4 are
+recorded as candidates on the fn-105 D12 task, and Q5 stays with D16. fn-112 has no task
+breakdown yet; run `/flow-next:plan fn-112-gomad-determinism-assurance-and-test` to create it.
+
+**Verdict.** Determinism rests on point fixes found after each divergence. No invariant states
+that host timing cannot reach the seeded stream or the heap, and no tool locates where two
+same-seed runs first differ. The suite has about 1,270 tests in 42k lines against 57k production
+lines, and most of that mass covers Runner bookkeeping. "Never fails" is not provable for a design
+that keeps the collector, the allocator, and real threads inside the boundary. The achievable
+target is a checked invariant plus a measured bound, such as zero divergences in 10,000 loaded
+seed-runs per platform.
+
+### Determinism gaps
+
+| # | Gap | Evidence | Proposed direction |
+| --- | --- | --- | --- |
+| Q1 | No divergence localiser | Choice records carry kind, site, alternatives, and identities, with no stream position, allocation count, or GC cycle. Replay reports a diverging ordinal; two fresh runs report only the differing evidence field name. D12 surfaces at ordinals 8 to ~85k, far from its cause | Add a state digest to each choice record (draw counters, malloc count, GC cycle and phase, virtual time) and a differ for two fresh traces |
+| Q2 | No structural barrier against host timing | Any M holding the P draws from the one process stream. Four host-timed draw sites were rerouted after incidents; the remaining sites are unaudited | Per-purpose random streams, and a runtime assertion that host-timed paths never draw from the seeded stream |
+| Q3 | D12 candidate: one-shot syscall wait in `suspendG` | The patch waits for a host syscall to exit once, before the suspend loop. A goroutine that enters a syscall in that window can be scanned mid-syscall, which shifts scan work. Inferred from source, not reproduced | Wait inside the loop's `_Gsyscall` case, then measure D12 on a native linux host |
+| Q4 | D12 candidate: linux ASLR and `runtime.NumCPU` | Neither is controlled on linux/amd64. Impact is inferred low because the binary is non-PIE | Rerun the D12 reproducer under `setarch -R` before any code change |
+| Q5 | Forward clock runs `time.Now` and timers on different clocks | D16: the offset only grows, so derived deadlines fire late and the subtest fails 5 of 24 seeds. Eight generated workloads use `forward` | Decide D16: one shared clock as fn-103 specified, or retire `forward` |
+| Q6 | Qualification has too little statistical power | `qualify` repeats twice. Exact replay forces run-queue and select choices, which masks perturbations that would split two fresh runs. A 1-in-26 defect passes most two-repetition checks | A scheduled soak of N fresh repetitions under CPU load with a strict zero-divergence gate |
+| Q7 | Channels with no fixture | netpoll, SIGPROF, block and mutex profilers on linux, `NumCPU`, timer-tie and run-queue shuffle draws (seeded, never taped) | One seeded fixture with a positive control per channel |
+| Q8 | Closure mode compiles no guards | `-gomadguard` is added only in guarded mode; pack admissions of `syscall` are per package, so admitted code runs live | State the limit in the contract, or sample guarded mode in the soak |
+
+Q1 comes first because it turns D12 and every later divergence from a search into a lookup. Q3
+and Q4 are candidates for D12 and stay under fn-105 R12 acceptance if they are pursued.
+
+### Testing strategy
+
+The suite should have four layers. New tests belong to one of them.
+
+| Layer | Purpose | State on 2026-10-01 |
+| --- | --- | --- |
+| 1. Runtime conformance fixtures | One seeded black-box fixture per nondeterminism channel, each with a positive control | Strong: 44 fixture directories; 10 fixtures run 100 times on 3 seeds, 32 seeds must diverge for 6 fixtures and 20 map families. Missing the Q7 channels |
+| 2. Determinism soak | N fresh repetitions of real workloads under host load, strict gate | Missing. Qualification runs two repetitions |
+| 3. Model conformance | Generated operation sequences compared between the in-memory filesystem or TCP model and the host OS | Missing. Expected results are hand-coded, no test file imports `math/rand` or `testing/quick`, and the 3 fuzz functions are panic-only decoder fuzzers |
+| 4. End-to-end CLI | `explore`, `replay`, and kill-then-resume through real processes | Thin. `explore` and `replay` are never driven end to end, and no test kills a coordinator and compares the resumed campaign with an uninterrupted one |
+
+Defects in the current suite, to correct before adding tests:
+
+- The tagged `tools/gomad3sim/*_toolchain_test.go` files (about 60 tests) are named by no
+  Makefile target, manifest, or workflow. Their only executor runs 11 of them behind the
+  `integration` tag, which no target passes.
+- `overlay-test` omits `internal/gomadio`, `internal/gomadsim`, `internal/gomadmodelwire`, `os`,
+  and `cmd/internal/gomadcap`, so their overlay tests never run.
+- The `choice_replay` conformance fixture is built and never executed.
+- `./toolchain` runs in three tiers (`test-toolchain`, `test-builder`, `test-host`).
+
+Candidates to shrink into table-driven or generated form, because they detect change more than
+defects:
+
+- `cmd/gomad/internal/cli`: 53 of 62 tests assert fields forwarded to injected dependency structs.
+- `runner`: 62 of 166 tests drive a fake executor.
+- `deterministicio`: 25 pinned-string or digest tests and 55 rejection tables; eight adapter test
+  files share one template, and two of them differ in 9 of 191 lines.
+- `architecture_test.go`: the import and export rules have value; the deleted-file list, banned
+  words, and required filenames pin past refactors.
+
+Thin coverage of shipped behavior: the minimizer (4 unit tests, no real-subprocess run), corpus
+replacement and eviction, merge with more than two shards, and `world/process` `Open`, `Finish`,
+and `FinishError`.
+
+### Maintenance cost
+
+Recurring costs are exact-version pins. Upstream `go.mod` changed in 73 commits over six months,
+including 4 `go` directive bumps.
+
+| Pin | Size | Repair |
+| --- | --- | --- |
+| Runtime patch and overlay | 1010 patch lines in 20 files; 57 overlay files, 17,105 lines | Manual rebase, `make generate`, `make upgrade-dossier` |
+| Interception fingerprints and boundary manifest | 131 intercepts, 132 fingerprinted entries | Generated; a diff needs an approved SHA |
+| Dependency adapters | 15 adapters, 129 SHA-256 anchors; 6 target modules absent from the root `go.mod` (downstream cell, fn-107) | Manual; no regenerate command |
+| Compatibility packs | 12 packs, 54 rules, 19 module-version pins | Four commands with a review approval |
+
+About 20k production lines have no caller in a workflow, Makefile, or qualification manifest:
+
+| Feature | Production lines (approx.) |
+| --- | --- |
+| `tools/gomad3sim` and simulation exploration | 11,100 |
+| `plan`, `execute-shard`, `merge`, `resume`, `recover` | 3,200 |
+| `--guide` corpus, choice-exploration strategy, `minimize` | 3,900 |
+| `compare-support` | 500 |
+
+Removing or freezing any of these conflicts with fn-108's rule of reducing size without removing
+features and with fn-109's simulation requirements (R11, R12). It needs an explicit owner
+decision and is not proposed as work here. A one-command adapter regeneration would cut the
+second-largest recurring cost without removing anything.
+
+### Proposed order
+
+1. Restore a green `gomad3.yml`, starting with `make validate`.
+2. Correct the four suite defects above so existing tests run.
+3. Build Q1, then use it with Q3 and Q4 on a native linux host to close D12 and restore strict
+   linux expectations.
+4. Add the soak gate (Q6) and the Q7 fixtures.
+5. Decide Q5 with D16.
+6. Decide the fate of the uncalled features, then add layer 3 and layer 4 tests for what stays.
+
 ## Out of scope
 
 - New fault injection, partition, crash-restart, and multi-node capabilities through
   `tools/gomad3sim`. Those are the simulation track and cannot host `testcore`.
 - Multi-P scheduling, deterministic GC, DPOR, and preemption bounding. These are BUG-7 research
   items.
-- Revival of gomad1 or gomad2. [GOMAD_CMP.md](GOMAD_CMP.md) records why.
+- Revival of gomad1 or gomad2. [GOMAD_CMP.md](.plans/GOMAD_CMP.md) records why.
 
 ## Open risks
 
 - **GC timing** is not controlled and shares the seeded runtime stream. Allocation-heavy suites
   may diverge between repetitions; the open linux and darwin replay findings may be such cases.
+- **Latent divergence passes qualification.** The evidence digest excludes heap layout, GC count,
+  and stream position, and exact replay forces only run-queue and select choices, so two runs
+  can differ internally until a target emits the difference
+  ([Q1, Q6](#determinism-gaps)).
 - **Spin loops** anywhere in the cluster stall virtual time. Pollers with backoff are fine, but a
   single `for {}` with a non-blocking select is fatal under this runtime.
 - **Upstream Go releases** invalidate the patch and the boundary manifest each time; every Go bump

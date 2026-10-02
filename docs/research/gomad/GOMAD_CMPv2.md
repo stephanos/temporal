@@ -2,7 +2,7 @@
 
 > Dated research snapshot. Local capability and support statements describe the
 > assessment below. Use the [current README](../../../tools/gomad3/README.md) and
-> [active milestones](../../../.plans/GOMAD_MILESTONES.md) for present behavior and delivery order.
+> [active milestones](../../../MILESTONES.md) for present behavior and delivery order.
 
 Assessment date: 2026-09-27. Local basis: working tree at `5285983bb9`, including
 in-progress changes. This is a source-based assessment, not a new qualification
@@ -15,7 +15,7 @@ recognize incorrect behavior. Gomad already implements much of the execution
 machinery. Its next gains should come from better semantic oracles, recovery
 tests, workload distributions, and measured search policies.
 
-Follow [GOMAD_MILESTONES.md](../../../.plans/GOMAD_MILESTONES.md) for current delivery order. Investigating
+Follow [MILESTONES.md](../../../MILESTONES.md) for current delivery order. Investigating
 these ideas must not turn an unsupported or divergent functional test into a
 passing expectation. The Flow-Next specs remain authoritative.
 

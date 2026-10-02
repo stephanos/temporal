@@ -243,7 +243,7 @@ func TestSpecOverridesAndExclusionsApplyByName(t *testing.T) {
 	if err := run(root, false); err != nil {
 		t.Fatal(err)
 	}
-	intermittent := set.WorkloadExpectation{Classification: "intermittent", Finding: "GOMAD_MILESTONES.md#f7"}
+	intermittent := set.WorkloadExpectation{Classification: "intermittent", Finding: "MILESTONES.md#f7"}
 	noChoices, noReplay := uint64(0), false
 	spec.Tests = map[string]TestOverride{
 		"TestAlphaSuite": {
@@ -550,7 +550,7 @@ func TestCheckedInTestsManifestTracesOnlyByOverride(t *testing.T) {
 			t.Errorf("%s is traced without an override that opts it in", workload.Test)
 		}
 	}
-	// Its open finding (GOMAD_MILESTONES.md F10 D14) is a replay divergence,
+	// Its open finding (MILESTONES.md F10 D14) is a replay divergence,
 	// which an untraced run cannot observe.
 	if chasm, _ := workloadFor(manifest, "TestSignalWorkflowTestSuiteChasm"); chasm.ChoiceBytes == 0 || !chasm.ReplaySuccesses {
 		t.Errorf("TestSignalWorkflowTestSuiteChasm must stay traced with success replay, traced tests = %v", traced)

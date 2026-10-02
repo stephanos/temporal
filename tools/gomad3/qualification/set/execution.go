@@ -121,7 +121,7 @@ var unrepeatableClassifications = map[string]bool{"nondeterministic": true, "rep
 // intermittentClassifications are the outcomes an "intermittent" expectation
 // accepts: the workload runs to success and its same-seed evidence reproduces
 // in some runs but not in all of them, because a known divergence channel
-// (today the collector's view of live memory, GOMAD_MILESTONES.md F5) only
+// (today the collector's view of live memory, MILESTONES.md F5) only
 // crosses a scheduling boundary on some seeds and repetitions. A manifest
 // states it so the report records the outcome each run produced while that
 // channel is being closed, without a fully repeatable run counting as a
