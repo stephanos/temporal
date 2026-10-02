@@ -2,6 +2,7 @@ package gomadfs_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"io"
 	"slices"
@@ -694,4 +695,124 @@ func equalCrashContents(left, right map[string][]byte) bool {
 		}
 	}
 	return true
+}
+
+func TestFilesystemSelfRenamePreservesSource(t *testing.T) {
+	filesystem := New()
+	if err := filesystem.Mkdir("/directory", 0700); err != nil {
+		t.Fatal(err)
+	}
+	file, err := filesystem.Open("/directory/file", OpenFlags{Read: true, Write: true, Create: true}, 0600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := file.Write([]byte("retained")); err != nil {
+		t.Fatal(err)
+	}
+	for _, path := range []string{"/directory/file", "/directory"} {
+		before, err := filesystem.Stat(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := filesystem.Rename(path, path); err != nil {
+			t.Fatalf("self rename %s: %v", path, err)
+		}
+		after, err := filesystem.Stat(path)
+		if err != nil {
+			t.Fatalf("self rename lost %s: %v", path, err)
+		}
+		if before.Name != after.Name || before.Mode != after.Mode || before.Kind != after.Kind || before.ModTime != after.ModTime || !bytes.Equal(before.Data, after.Data) {
+			t.Fatalf("self rename modified %s: before=%+v after=%+v", path, before, after)
+		}
+	}
+	if err := filesystem.Rename("/missing", "/missing"); !errors.Is(err, syscall.ENOENT) {
+		t.Fatalf("missing self rename=%v", err)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestFilesystemClosedHandlePreservesErrnoAndDistinguishesAccessMode(t *testing.T) {
+	filesystem := New()
+	file, err := filesystem.Open("/file", OpenFlags{Read: true, Create: true}, 0600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := file.Write([]byte("wrong mode")); !errors.Is(err, syscall.EBADF) || errors.Unwrap(err) != nil {
+		t.Fatalf("wrong-access error=%v", err)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatal(err)
+	}
+	for _, call := range []func() error{func() error { return file.Close() }, func() error { _, err := file.Read(make([]byte, 1)); return err }, func() error { _, err := file.Write([]byte("closed")); return err }, func() error { _, err := file.Stat(); return err }} {
+		err := call()
+		if !errors.Is(err, syscall.EBADF) || errors.Unwrap(err) != syscall.EBADF {
+			t.Fatalf("closed error did not preserve a distinct EBADF marker: %T %v", err, err)
+		}
+	}
+}
+
+func TestFilesystemClosedProcessHandlePreservesErrno(t *testing.T) {
+	file := ClosedProcessHandleForTest()
+	for _, call := range []func() error{
+		func() error { _, err := file.Read(make([]byte, 1)); return err },
+		func() error { _, err := file.ReadAt(make([]byte, 1), 0); return err },
+		func() error { _, err := file.Write([]byte("x")); return err },
+		func() error { _, err := file.WriteAt([]byte("x"), 0); return err },
+		func() error { _, err := file.Stat(); return err },
+		file.Close,
+	} {
+		err := call()
+		if !errors.Is(err, syscall.EBADF) || errors.Unwrap(err) != syscall.EBADF {
+			t.Fatalf("closed process error=%T %v", err, err)
+		}
+	}
+}
+
+func TestFilesystemReadOnlySelfRenameRemainsDenied(t *testing.T) {
+	filesystem := New()
+	filesystem.SetLoader(func(string) (LoadEntry, MountStatus, error) {
+		return LoadEntry{Kind: KindFile, Mode: 0600, Data: []byte("mounted")}, MountOK, nil
+	})
+	if err := filesystem.Rename("/mounted", "/mounted"); !errors.Is(err, syscall.EXDEV) {
+		t.Fatalf("read-only self rename=%v", err)
+	}
+	entry, err := filesystem.Stat("/mounted")
+	if err != nil || string(entry.Data) != "mounted" {
+		t.Fatalf("mounted source=%+v error=%v", entry, err)
+	}
+}
+
+func TestFilesystemVolumeSelfRenameRetainsDurabilityState(t *testing.T) {
+	filesystem := newTestVolumeFilesystem(t)
+	if err := filesystem.Rename("/data", "/data"); !errors.Is(err, syscall.EXDEV) {
+		t.Fatalf("mount root self rename=%v", err)
+	}
+	file, err := filesystem.Open("/data/file", OpenFlags{Read: true, Write: true, Create: true}, 0600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := file.Write([]byte("durable")); err != nil {
+		t.Fatal(err)
+	}
+	before := filesystem.VolumeSnapshots()
+	if err := filesystem.Rename("/data/file", "/data/file"); err != nil {
+		t.Fatal(err)
+	}
+	after := filesystem.VolumeSnapshots()
+	beforeBytes, err := json.Marshal(before)
+	if err != nil {
+		t.Fatal(err)
+	}
+	afterBytes, err := json.Marshal(after)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(beforeBytes, afterBytes) {
+		t.Fatalf("self rename changed volume state: before=%s after=%s", beforeBytes, afterBytes)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatal(err)
+	}
 }

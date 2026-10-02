@@ -31,12 +31,12 @@ func SupervisorMain() (retErr error) {
 	requestFile := os.NewFile(requestFD, "supervisor-request")
 	worldRecord := os.NewFile(worldRecordFD, "target-world-record")
 	identity := os.NewFile(targetIdentityFD, "target-identity")
-	var ioTranscript, ioTerminal, ioExpected, ioROMountRequest, ioROMountResponse, choiceTrace, choiceTerminal, choiceReplayPlan, simulationRequest, simulationResponse, simulationBootstrap, simulationControl, simulationModelRequest, simulationModelResponse, simulationTimeRequest, simulationTimeResponse *os.File
+	var ioTranscript, ioTerminal, ioExpected, ioROMountRequest, ioROMountResponse, choiceTrace, choiceTerminal, choiceReplayPlan, diagnosticTrace, simulationRequest, simulationResponse, simulationBootstrap, simulationControl, simulationModelRequest, simulationModelResponse, simulationTimeRequest, simulationTimeResponse *os.File
 	if control == nil || report == nil || stdout == nil || stderr == nil || requestFile == nil || worldRecord == nil || identity == nil {
 		return fmt.Errorf("supervisor file descriptors are unavailable")
 	}
 	defer func() {
-		retErr = errors.Join(retErr, closeOpenFile(&control), closeOpenFile(&report), closeOpenFile(&stdout), closeOpenFile(&stderr), closeOpenFile(&requestFile), closeOpenFile(&worldRecord), closeOpenFile(&identity), closeOpenFile(&ioTranscript), closeOpenFile(&ioTerminal), closeOpenFile(&ioExpected), closeOpenFile(&ioROMountRequest), closeOpenFile(&ioROMountResponse), closeOpenFile(&choiceTrace), closeOpenFile(&choiceTerminal), closeOpenFile(&choiceReplayPlan), closeOpenFile(&simulationRequest), closeOpenFile(&simulationResponse), closeOpenFile(&simulationBootstrap), closeOpenFile(&simulationControl), closeOpenFile(&simulationModelRequest), closeOpenFile(&simulationModelResponse), closeOpenFile(&simulationTimeRequest), closeOpenFile(&simulationTimeResponse))
+		retErr = errors.Join(retErr, closeOpenFile(&control), closeOpenFile(&report), closeOpenFile(&stdout), closeOpenFile(&stderr), closeOpenFile(&requestFile), closeOpenFile(&worldRecord), closeOpenFile(&identity), closeOpenFile(&ioTranscript), closeOpenFile(&ioTerminal), closeOpenFile(&ioExpected), closeOpenFile(&ioROMountRequest), closeOpenFile(&ioROMountResponse), closeOpenFile(&choiceTrace), closeOpenFile(&choiceTerminal), closeOpenFile(&choiceReplayPlan), closeOpenFile(&diagnosticTrace), closeOpenFile(&simulationRequest), closeOpenFile(&simulationResponse), closeOpenFile(&simulationBootstrap), closeOpenFile(&simulationControl), closeOpenFile(&simulationModelRequest), closeOpenFile(&simulationModelResponse), closeOpenFile(&simulationTimeRequest), closeOpenFile(&simulationTimeResponse))
 	}()
 
 	var request supervisorRequest
@@ -62,7 +62,7 @@ func SupervisorMain() (retErr error) {
 		}
 	}
 	if request.ChoiceTrace {
-		capabilities := launchCapabilities{ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: true, choiceReplayPlan: request.ChoiceTapeBytes != 0, simulation: request.Simulation, simulationBootstrap: request.SimulationBootstrap, simulationCoordinator: request.Simulation && !request.SimulationBootstrap}
+		capabilities := launchCapabilities{diagnostics: request.Diagnostics, ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: true, choiceReplayPlan: request.ChoiceTapeBytes != 0, simulation: request.Simulation, simulationBootstrap: request.SimulationBootstrap, simulationCoordinator: request.Simulation && !request.SimulationBootstrap}
 		choiceTrace = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, choiceTraceResource)), "target-choice-trace")
 		choiceTerminal = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, choiceTerminalResource)), "target-choice-terminal")
 		if request.ChoiceTapeBytes != 0 {
@@ -75,8 +75,18 @@ func SupervisorMain() (retErr error) {
 			return errors.New("choice controller mode and tape are inconsistent")
 		}
 	}
+	if request.Diagnostics {
+		if !request.ChoiceTrace || request.ChoiceMode != choice.ModeRecord {
+			return errors.New("diagnostics require choice record mode")
+		}
+		capabilities := launchCapabilities{diagnostics: true, ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: true, simulation: request.Simulation, simulationBootstrap: request.SimulationBootstrap, simulationCoordinator: request.Simulation && !request.SimulationBootstrap}
+		diagnosticTrace = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, diagnosticTraceResource)), "target-diagnostic-trace")
+		if diagnosticTrace == nil {
+			return errors.New("diagnostic trace descriptor unavailable")
+		}
+	}
 	if request.Simulation {
-		capabilities := launchCapabilities{ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: choiceTrace != nil, choiceReplayPlan: choiceReplayPlan != nil, simulation: true, simulationBootstrap: request.SimulationBootstrap, simulationCoordinator: !request.SimulationBootstrap}
+		capabilities := launchCapabilities{diagnostics: request.Diagnostics, ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: choiceTrace != nil, choiceReplayPlan: choiceReplayPlan != nil, simulation: true, simulationBootstrap: request.SimulationBootstrap, simulationCoordinator: !request.SimulationBootstrap}
 		simulationRequest = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, simulationRequestResource)), "simulation-request")
 		simulationResponse = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, simulationResponseResource)), "simulation-response")
 		if request.SimulationBootstrap {
@@ -110,7 +120,7 @@ func SupervisorMain() (retErr error) {
 	target.Env = append(os.Environ(), "GOMAD3_TARGET_BOOTSTRAP=1")
 	target.Stdout = stdout
 	target.Stderr = stderr
-	capabilities := launchCapabilities{ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: choiceTrace != nil, choiceReplayPlan: choiceReplayPlan != nil, simulation: simulationRequest != nil, simulationBootstrap: simulationBootstrap != nil, simulationCoordinator: simulationBootstrap == nil && simulationModelRequest != nil}
+	capabilities := launchCapabilities{diagnostics: request.Diagnostics, ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: choiceTrace != nil, choiceReplayPlan: choiceReplayPlan != nil, simulation: simulationRequest != nil, simulationBootstrap: simulationBootstrap != nil, simulationCoordinator: simulationBootstrap == nil && simulationModelRequest != nil}
 	resources := newLaunchResources(capabilities)
 	defer func() { retErr = errors.Join(retErr, resources.close()) }()
 	bootstrapWrite, err := resources.createPipe(bootstrapRequestResource, inheritRead, "target bootstrap request")
@@ -156,6 +166,9 @@ func SupervisorMain() (retErr error) {
 			resources.bind(choiceTapeResource, &choiceReplayPlan)
 		}
 	}
+	if diagnosticTrace != nil {
+		resources.bind(diagnosticTraceResource, &diagnosticTrace)
+	}
 	if simulationRequest != nil {
 		resources.bind(simulationRequestResource, &simulationRequest)
 		resources.bind(simulationResponseResource, &simulationResponse)
@@ -188,7 +201,7 @@ func SupervisorMain() (retErr error) {
 	if closeErr := resources.closeInherited(bootstrapStage); closeErr != nil {
 		return errors.Join(fmt.Errorf("close inherited target bootstrap pipe ends: %w", closeErr), bootstrapWrite.Close(), activationWrite.Close(), readinessRead.Close(), configWrite.Close(), killReapTarget(target, targetPGID, deadline))
 	}
-	bootstrapRequest := targetBootstrapRequest{Command: request.Command, Args: request.Args, Argv0: request.Argv0, Dir: request.Dir, Env: request.Env, IOConfig: request.IOConfig, IOTranscriptLimit: request.IOTranscriptLimit, IOReplay: request.IOReplay, IOROMounts: request.IOROMounts, ChoiceTrace: request.ChoiceTrace, ChoiceTraceLimit: request.ChoiceTraceLimit, ChoiceMode: request.ChoiceMode, ChoiceTapeBytes: request.ChoiceTapeBytes, Simulation: request.Simulation, SimulationBootstrap: request.SimulationBootstrap}
+	bootstrapRequest := targetBootstrapRequest{Diagnostics: request.Diagnostics, Command: request.Command, Args: request.Args, Argv0: request.Argv0, Dir: request.Dir, Env: request.Env, IOConfig: request.IOConfig, IOTranscriptLimit: request.IOTranscriptLimit, IOReplay: request.IOReplay, IOROMounts: request.IOROMounts, ChoiceTrace: request.ChoiceTrace, ChoiceTraceLimit: request.ChoiceTraceLimit, ChoiceMode: request.ChoiceMode, ChoiceTapeBytes: request.ChoiceTapeBytes, Simulation: request.Simulation, SimulationBootstrap: request.SimulationBootstrap}
 	if err := json.NewEncoder(bootstrapWrite).Encode(bootstrapRequest); err != nil {
 		return errors.Join(fmt.Errorf("write target bootstrap request: %w", err), bootstrapWrite.Close(), activationWrite.Close(), readinessRead.Close(), configWrite.Close(), killReapTarget(target, targetPGID, deadline))
 	}

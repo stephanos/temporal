@@ -1,0 +1,306 @@
+diff --git a/tools/gomad3/Makefile b/tools/gomad3/Makefile
+index d94b7f0a6..8d8a827df 100644
+--- a/tools/gomad3/Makefile
++++ b/tools/gomad3/Makefile
+@@ -129,23 +129,23 @@ test-host: toolchain
+ 		. ./cmd/... ./runner/... ./qualification/... ./target/... ./record/... ./artifact/... ./choice/... \
+ 		./deterministicio/... ./world/... ./toolchain/version ./upgrade/... ./internal/...
+ 
+-# internal/gomadsim is absent because its tests do not build: an in-package
+-# test file imports testing, which reaches the package again through os.
++# internal/gomadsim keeps its tests external because testing reaches the
++# package through os.
+ overlay-test: toolchain
+ 	.toolchain/bin/go test -tags test_dep internal/gomadfs internal/gomadwire internal/gomadchoicewire internal/gomadmodelwire \
+-		internal/gomadio internal/gomadio/mount os cmd/internal/gomadcap
++		internal/gomadsim internal/gomadio internal/gomadio/mount os cmd/internal/gomadcap
+ 
+ # The gomad3_toolchain tests of the root module's tools/gomad3sim need a seeded
+ # runtime, so they run through the exec wrapper. The tests that need the
+ # Runner's simulation transport skip there; the integration-tagged Runner test
+-# is their executor. Its TestProcessBackend subtests start node processes and
+-# fail intermittently, so only the subtests that start none are selected.
++# is their executor. The node-clock delay test has a recorded watchdog failure
++# and remains a finding; every other subtest runs here.
+ test-simulation: toolchain
+ 	cd $(CURDIR)/../.. && env -u GOMADSEED CGO_ENABLED=0 GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 \
+ 		$(CURDIR)/.toolchain/bin/go test -exec $(CURDIR)/internal/gomadtool/conformance/scripts/exec.sh \
+ 		-count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim
+ 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration \
+-		-run '^TestRootProcessSimulationUsesRunnerTransport$$/^Test(Scenario|ProcessExploration)' ./runner/internal/execution
++		-run '^TestRootProcessSimulationUsesRunnerTransport$$/^Test(Scenario|ProcessExploration|ProcessAndInProcess|ProcessBackend(Resets|Routes|Preserves|Crash|Model))' ./runner/internal/execution
+ 
+ world-test:
+ 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go test -race -tags test_dep ./world/...
+diff --git a/tools/gomad3/runner/internal/execution/process_test.go b/tools/gomad3/runner/internal/execution/process_test.go
+index 81faf15e1..4610054b1 100644
+--- a/tools/gomad3/runner/internal/execution/process_test.go
++++ b/tools/gomad3/runner/internal/execution/process_test.go
+@@ -78,6 +78,47 @@ func TestRunTransportsSimulationExplorationPlanAndRecords(t *testing.T) {
+ 	}
+ }
+ 
++func TestRunKeepsNodeModelTransportAliveDuringGracefulStop(t *testing.T) {
++	ctx, cancel := context.WithCancel(context.Background())
++	defer cancel()
++	var cleanupContext context.Context
++	result, err := Run(ctx, Spec{
++		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
++		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
++		Command:           os.Args[0], Args: targetHelperArgs("simulation-coordinator"), Argv0: "gomad3-target", Dir: t.TempDir(),
++		Env: []string{"GOMAD3_SIMULATION_CASE=stop-model"}, ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
++		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
++		Simulation: &SimulationCapability{
++			Role: SimulationRoleNode, Bootstrap: []byte("node-bootstrap"), hardCrash: make(chan struct{}),
++			time: func(_ context.Context, request simulationTimeRequest) (simulationTimeResponse, error) {
++				return simulationTimeResponse{Generation: request.Generation, Kind: simulationTimeAdvance, Time: request.Current}, nil
++			},
++			handler: func(transportCtx context.Context, frame simulationFrame) (simulationFrame, error) {
++				if frame.Kind == simulationFrameActivated {
++					cancel()
++				}
++				if frame.Kind == simulationFrameModel {
++					cleanupContext = transportCtx
++					if err := transportCtx.Err(); err != nil {
++						return simulationFrame{}, err
++					}
++					return simulationFrame{Payload: []byte("cleanup-complete")}, nil
++				}
++				return simulationFrame{}, nil
++			},
++		},
++	})
++	if err != nil {
++		t.Fatal(err)
++	}
++	if result.Termination != TerminationExit || result.ExitCode != 0 || !result.GroupGone || result.WatchdogTimeout {
++		t.Fatalf("graceful-stop result = %#v", result)
++	}
++	if cleanupContext == nil || !errors.Is(cleanupContext.Err(), context.Canceled) {
++		t.Fatal("node transport remained active after process exit")
++	}
++}
++
+ func TestRunInstallsBoundedIOConfigurationDescriptor(t *testing.T) {
+ 	result, err := Run(context.Background(), Spec{
+ 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
+@@ -1140,6 +1181,30 @@ func runSimulationProcessHelper() {
+ 			if _, readErr := readSimulationFrame(response); readErr != nil {
+ 				os.Exit(47)
+ 			}
++			if frame.Kind == simulationFrameActivated && os.Getenv("GOMAD3_SIMULATION_CASE") == "stop-model" {
++				controlDescriptor, controlErr := strconv.Atoi(os.Getenv(simulationControlFDEnvironmentName))
++				if controlErr != nil {
++					os.Exit(55)
++				}
++				var stop [1]byte
++				if _, readErr := io.ReadFull(os.NewFile(uintptr(controlDescriptor), "simulation-control"), stop[:]); readErr != nil || stop[0] != 1 {
++					os.Exit(56)
++				}
++				requestDescriptor, requestErr := strconv.Atoi(os.Getenv(simulationModelRequestFDEnvironmentName))
++				responseDescriptor, responseErr := strconv.Atoi(os.Getenv(simulationModelResponseFDEnvironmentName))
++				if requestErr != nil || responseErr != nil {
++					os.Exit(57)
++				}
++				modelRequest := os.NewFile(uintptr(requestDescriptor), "simulation-model-request")
++				modelResponse := os.NewFile(uintptr(responseDescriptor), "simulation-model-response")
++				if writeErr := writeSimulationModelTransportFrame(modelRequest, simulationFrame{Kind: simulationFrameModel, Request: 1, Node: "node", Incarnation: 1, Payload: []byte("cleanup")}); writeErr != nil {
++					os.Exit(58)
++				}
++				answer, readErr := readSimulationModelTransportFrame(modelResponse)
++				if readErr != nil || answer.Error != "" || string(answer.Payload) != "cleanup-complete" {
++					os.Exit(59)
++				}
++			}
+ 		}
+ 		if os.Getenv("GOMAD3_SIMULATION_CASE") == "crash" {
+ 			select {}
+diff --git a/tools/gomad3/runner/internal/execution/process_unix.go b/tools/gomad3/runner/internal/execution/process_unix.go
+index 06c89eba6..2f2844b2d 100644
+--- a/tools/gomad3/runner/internal/execution/process_unix.go
++++ b/tools/gomad3/runner/internal/execution/process_unix.go
+@@ -369,19 +369,23 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
+ 	var simulationModelsServed <-chan error
+ 	var simulationTimeServed <-chan error
+ 	var simulationBootstrapWritten <-chan error
+-	simulationTimeCtx := ctx
+-	cancelSimulationTime := func() {}
++	simulationTransportCtx := ctx
++	cancelSimulationTransport := func() {}
+ 	if request.Simulation != nil {
+-		simulationTimeCtx, cancelSimulationTime = context.WithCancel(ctx)
+-		defer cancelSimulationTime()
++		if request.Simulation.Role == SimulationRoleNode {
++			// Graceful node cleanup still needs model and time replies until exit.
++			simulationTransportCtx = context.WithoutCancel(ctx)
++		}
++		simulationTransportCtx, cancelSimulationTransport = context.WithCancel(simulationTransportCtx)
++		defer cancelSimulationTransport()
+ 		served := make(chan error, 1)
+ 		go func() {
+-			served <- serveSimulation(ctx, simulationRequestRead, simulationResponseWrite, request.Simulation.handler, request.Simulation.accepting, request.Simulation.delivering, request.Simulation.responded, request.Simulation.arrived)
++			served <- serveSimulation(simulationTransportCtx, simulationRequestRead, simulationResponseWrite, request.Simulation.handler, request.Simulation.accepting, request.Simulation.delivering, request.Simulation.responded, request.Simulation.arrived)
+ 		}()
+ 		simulationServed = served
+ 		timeServed := make(chan error, 1)
+ 		go func() {
+-			timeServed <- serveSimulationTime(simulationTimeCtx, simulationTimeRequestRead, simulationTimeResponseWrite, request.Simulation.time)
++			timeServed <- serveSimulationTime(simulationTransportCtx, simulationTimeRequestRead, simulationTimeResponseWrite, request.Simulation.time)
+ 		}()
+ 		simulationTimeServed = timeServed
+ 		if simulationBootstrapWrite != nil {
+@@ -397,7 +401,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
+ 			simulationBootstrapWritten = written
+ 			modelsServed := make(chan error, 1)
+ 			go func() {
+-				modelsServed <- serveSimulationModels(ctx, simulationModelRequestHost, simulationModelResponseHost, request.Simulation.handler, request.Simulation.delivering, request.Simulation.responded)
++				modelsServed <- serveSimulationModels(simulationTransportCtx, simulationModelRequestHost, simulationModelResponseHost, request.Simulation.handler, request.Simulation.delivering, request.Simulation.responded)
+ 			}()
+ 			simulationModelsServed = modelsServed
+ 		}
+@@ -529,7 +533,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
+ 		}
+ 	}
+ 	close(contextDone)
+-	cancelSimulationTime()
++	cancelSimulationTransport()
+ 	signalSupervisor(0)
+ 	identity := <-identities
+ 	decodedReports := <-reports
+diff --git a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_model_test.go b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_model_test.go
+index 933c2196b..531e0f97d 100644
+--- a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_model_test.go
++++ b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_model_test.go
+@@ -1,17 +1,24 @@
+ package gomadsim_test
+ 
+ import (
++	"context"
+ 	"encoding/binary"
+ 	"errors"
+ 	"io"
+ 	"os"
+-	"strconv"
++	"os/exec"
++	"strings"
+ 	"testing"
++	"time"
+ 
+ 	"internal/gomadsim"
+ )
+ 
+ func TestProcessModelExchangeCorrelatesConcurrentResponses(t *testing.T) {
++	if os.Getenv("GOMAD_TEST_PROCESS_MODEL_CHILD") == "1" {
++		testProcessModelExchangeResponses(t)
++		return
++	}
+ 	requestRead, requestWrite, err := os.Pipe()
+ 	if err != nil {
+ 		t.Fatal(err)
+@@ -27,9 +34,17 @@ func TestProcessModelExchangeCorrelatesConcurrentResponses(t *testing.T) {
+ 			}
+ 		}
+ 	})
+-	t.Setenv("GOMAD3_SIMULATION_ROLE", "node")
+-	t.Setenv("GOMAD3_SIMULATION_MODEL_REQUEST_FD", strconv.FormatUint(uint64(requestWrite.Fd()), 10))
+-	t.Setenv("GOMAD3_SIMULATION_MODEL_RESPONSE_FD", strconv.FormatUint(uint64(responseRead.Fd()), 10))
++	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
++	defer cancel()
++	command := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestProcessModelExchangeCorrelatesConcurrentResponses$")
++	for _, entry := range os.Environ() {
++		if strings.HasPrefix(entry, "GOMAD3_SIMULATION_") || strings.HasPrefix(entry, "GOMADSEED=") || strings.HasPrefix(entry, "GOMAD_TEST_PROCESS_MODEL_CHILD=") {
++			continue
++		}
++		command.Env = append(command.Env, entry)
++	}
++	command.Env = append(command.Env, "GOMAD_TEST_PROCESS_MODEL_CHILD=1", "GOMAD3_SIMULATION_ROLE=node", "GOMAD3_SIMULATION_MODEL_REQUEST_FD=3", "GOMAD3_SIMULATION_MODEL_RESPONSE_FD=4")
++	command.ExtraFiles = []*os.File{requestWrite, responseRead}
+ 
+ 	served := make(chan error, 1)
+ 	go func() {
+@@ -58,9 +73,20 @@ func TestProcessModelExchangeCorrelatesConcurrentResponses(t *testing.T) {
+ 			served <- err
+ 			return
+ 		}
+-		third.Response, third.Error = true, "host model failure"
++		third.Response, third.Payload, third.Error = true, nil, "host model failure"
+ 		served <- writeProcessModelTestFrame(responseWrite, third)
+ 	}()
++	output, runErr := command.CombinedOutput()
++	if runErr != nil {
++		t.Fatalf("process model child: %v: %s", runErr, output)
++	}
++	if err := <-served; err != nil {
++		t.Fatal(err)
++	}
++}
++
++func testProcessModelExchangeResponses(t *testing.T) {
++	t.Helper()
+ 	results := make(chan string, 2)
+ 	for _, node := range []string{"first", "second"} {
+ 		go func(node string) {
+@@ -80,9 +106,6 @@ func TestProcessModelExchangeCorrelatesConcurrentResponses(t *testing.T) {
+ 	if !ok || remoteErr != "host model failure" || response != nil {
+ 		t.Fatalf("remote error response = %q, %q, %t", response, remoteErr, ok)
+ 	}
+-	if err := <-served; err != nil {
+-		t.Fatal(err)
+-	}
+ }
+ 
+ func readProcessModelTestFrame(source io.Reader) (gomadsim.ModelTransportFrame, error) {
+diff --git a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_time_test.go b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_time_test.go
+index 488ed0c92..30cbc1706 100644
+--- a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_time_test.go
++++ b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_time_test.go
+@@ -2,9 +2,13 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-package gomadsim
++package gomadsim_test
+ 
+-import "testing"
++import (
++	"testing"
++
++	"internal/gomadsim"
++)
+ 
+ func TestProcessRequestBlocksSimulationTime(t *testing.T) {
+ 	tests := map[string]struct {
+@@ -17,7 +21,7 @@ func TestProcessRequestBlocksSimulationTime(t *testing.T) {
+ 	}
+ 	for name, test := range tests {
+ 		t.Run(name, func(t *testing.T) {
+-			if got := processRequestBlocksSimulationTime(test.request); got != test.want {
++			if got := gomadsim.ProcessRequestBlocksSimulationTime(test.request); got != test.want {
+ 				t.Fatalf("processRequestBlocksSimulationTime() = %t, want %t", got, test.want)
+ 			}
+ 		})
+diff --git a/tools/gomad3/toolchain/version/version.json b/tools/gomad3/toolchain/version/version.json
+index d6fe504fd..8d1a4b228 100644
+--- a/tools/gomad3/toolchain/version/version.json
++++ b/tools/gomad3/toolchain/version/version.json
+@@ -148,6 +148,7 @@
+     "src/internal/gomadio/transcript.go",
+     "src/internal/gomadmodelwire/wire_generated.go",
+     "src/internal/gomadmodelwire/wire_generated_test.go",
++    "src/internal/gomadsim/export_test.go",
+     "src/internal/gomadsim/model_transport_generated.go",
+     "src/internal/gomadsim/process.go",
+     "src/internal/gomadsim/process_model.go",
+diff --git a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/export_test.go b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/export_test.go
+new file mode 100644
+index 000000000..0336f3c68
+--- /dev/null
++++ b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/export_test.go
+@@ -0,0 +1,7 @@
++// Copyright 2026 The Go Authors. All rights reserved.
++// Use of this source code is governed by a BSD-style
++// license that can be found in the LICENSE file.
++
++package gomadsim
++
++var ProcessRequestBlocksSimulationTime = processRequestBlocksSimulationTime

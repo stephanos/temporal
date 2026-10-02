@@ -1,0 +1,12 @@
+{
+  "full_patch_sha256": "1d129f823963139c160ce11a85340afaa0061d3fdcc01c16ff709c90c2380b95",
+  "incremental_patch_sha256": "543120210b3fa3f5de20c839df3d8f6356b0f84306d01a3dcf8d885754e49aa8",
+  "sources": {
+    "tools/gomad3/cmd/gomad/e2e_test.go": "5feb92383f46acf7d698e33d047e100dc1c15c42dd7667a6858610f630b61b53",
+    "tools/gomad3/cmd/gomad/testdata/campaign/main.go": "1d91a27154a10401d2585e251b7fee87ea9580bd8917f9c88a87a5c39bcfbd4c",
+    ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md": "4776678bd80edd1acd406060925f3780ef8cde38df6ded6ecf8a1278c556bc65"
+  },
+  "protected_source_count": 60,
+  "result": "pass",
+  "method": "Both full and incremental patches reconstruct exact final source from retained original inputs in scratch non-worktree directories."
+}

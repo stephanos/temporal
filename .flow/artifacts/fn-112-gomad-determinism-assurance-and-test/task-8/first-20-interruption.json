@@ -1,0 +1,34 @@
+{
+  "reason": "preserve actual failed repetitions and correct physical-byte comparison after parent approval",
+  "signal_to_test_driver": "SIGINT after SIGSTOP snapshot; SIGCONT to deliver interrupt",
+  "owned_snapshot": [
+    {
+      "pid": 83671,
+      "ppid": 83654,
+      "pgid": 83644,
+      "state": "S",
+      "args": "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/go-build2163126957/b001/gomad.test -test.paniconexit0 -test.timeout=10m0s -test.run=^TestCLI -test.count=20 -test.v=true"
+    },
+    {
+      "pid": 85447,
+      "ppid": 83671,
+      "pgid": 83644,
+      "state": "S",
+      "args": "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-cli-e2e-2796427624/gomad replay --toolchain-root /Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain /var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/TestCLIExploreReplay3344427297/001/v1/campaign-20261002T115402.748737000Z-ceb927ecd0cbd645dfd428de4889a998/successes/sha256-b3998e44d6679207c0011a728782d25f"
+    },
+    {
+      "pid": 85454,
+      "ppid": 85447,
+      "pgid": 83644,
+      "state": "S",
+      "args": "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-cli-e2e-2796427624/gomad __supervisor"
+    },
+    {
+      "pid": 85455,
+      "ppid": 85454,
+      "pgid": 85455,
+      "state": "S",
+      "args": "gomad3-target"
+    }
+  ]
+}

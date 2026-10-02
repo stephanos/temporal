@@ -1,0 +1,4 @@
+=== RUN   TestCLIWatchdogDiagnosticReplay
+--- PASS: TestCLIWatchdogDiagnosticReplay (4.44s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad	5.666s

@@ -1,0 +1,144 @@
+{
+  "task": "fn-112-gomad-determinism-assurance-and-test.6",
+  "commits": [],
+  "prs": [],
+  "tests": [
+    "make -C tools/gomad3 test-runtime (PASS darwin/arm64; GOFLAGS=-tags=test_dep, stock Go1.27.1 driver)",
+    "tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -count=1 -tags=test_dep ./internal/gomadtool/conformance (PASS)",
+    "tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -count=1 -tags=test_dep -run ^TestConformanceRuntimeIsGroupedByBehavior$ . (PASS)",
+    "tools/gomad3/.toolchain/bin/go -C tools/gomad3 vet -tags=test_dep ./internal/gomadtool/conformance (PASS)",
+    "gofmt -l changed Go files (PASS, empty output)",
+    "git diff --check scoped changed tracked files (PASS)",
+    "make lint-code-fast (ATTEMPTED, exit2; nested-module package discovery failure; underlying linter exit7)",
+    "channel-probe.py (PASS; 124 raw observations,32 distinct orders perfixture)"
+  ],
+  "platform": "darwin/arm64",
+  "linux_status": "unverified: no native linux/amd64 host",
+  "toolchain_build_key": "6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee",
+  "source_manifest_sha256": "89a8741c93de3da9b303e3279e3189e72771a59f8678e340333c34d5b769ad48",
+  "task_only_patch_sha256": "eea020b2f3253a542c1a4b8378086783fadcd9b2b7f2e9554f898af7b3c4f71e",
+  "source_files": {
+    "tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go": "991d338c8bfc310ca91a8a3367730126b3a66fe7bf6ad5709bf2764e6078fef9",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_repeatability.go": "833989fd248cd1526395e5be90d954aa24fe4108adbcad406a7d6384cc1ab549",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_load.go": "39ebf79d4634d17dc023eb8548545d796a6b2533bec29fc5c6f8298f536ee9f7",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_test.go": "ad2728735f71b71c910a0626c303f1bf334c7a5950a891f80996e623d15017b0",
+    "tools/gomad3/internal/gomadtool/conformance/testdata/README.md": "ba1896ec703a693a06052ea098c2e79b058580e261b8e600a2886829b0c42881",
+    "tools/gomad3/internal/gomadtool/conformance/testdata/timer_ties/main.go": "f0311fafe54d25a54b15a17bcebcafa5eb83559fb741a9a105d2e57e15e1b746",
+    "tools/gomad3/internal/gomadtool/conformance/testdata/runq_shuffle/main.go": "7ecd1def61e9b8bf465ee33d756cd6cabe8430d5a696872e998c8954ce35dd25"
+  },
+  "gates": {
+    "make-test-runtime": {
+      "command": [
+        "make",
+        "-C",
+        "tools/gomad3",
+        "test-runtime"
+      ],
+      "exit": 0,
+      "log_sha256": "518a3ee046875ed040b118d0c8f8bc8ccd55a27cde0ebe341e24b67abd3ed0f3",
+      "record_sha256": "5b25d896b40b87323caefc7f48719f90b1953b0760e0c76ae7fd86b94d8831f2"
+    },
+    "conformance": {
+      "command": [
+        "tools/gomad3/.toolchain/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-count=1",
+        "-tags=test_dep",
+        "./internal/gomadtool/conformance"
+      ],
+      "exit": 0,
+      "log_sha256": "a53fd89e464633a4cdd498681f52bf162f521fabac0d222ab3e055ec7a899b54",
+      "record_sha256": "9783e25d1c66368fe10ad009c4b65e078811b6b9f073680ebf740111d79baa47"
+    },
+    "grouping": {
+      "command": [
+        "tools/gomad3/.toolchain/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-count=1",
+        "-tags=test_dep",
+        "-run",
+        "^TestConformanceRuntimeIsGroupedByBehavior$",
+        "."
+      ],
+      "exit": 0,
+      "log_sha256": "89c17c0d9b7f85f58f514eb8010a16f4d6b7efa770fbf0a31bf87380ab10aa0d",
+      "record_sha256": "2ef9aeb60ac41a172f7092c77fdc3e9fba1b215c968145a93a4ffea25e8272e3"
+    },
+    "vet": {
+      "command": [
+        "tools/gomad3/.toolchain/bin/go",
+        "-C",
+        "tools/gomad3",
+        "vet",
+        "-tags=test_dep",
+        "./internal/gomadtool/conformance"
+      ],
+      "exit": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "record_sha256": "e4c3b2449a174fe07c0cdc01f2f621c0410b0bc47b69d86ba6ddf0f94a12906d"
+    },
+    "root-lint": {
+      "command": [
+        "make",
+        "lint-code-fast"
+      ],
+      "exit": 2,
+      "log_sha256": "b86c74d4f7ef41b89a70731e83fd581934bb940296b477e0a55f28265fa7dbbd",
+      "record_sha256": "12c80261604ba61d219c58ae28fe5cbb4dd0d42107de783d2c4882189093da87"
+    },
+    "formatting": {
+      "command": [
+        "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/gofmt",
+        "-l",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_repeatability.go",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_load.go",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_test.go",
+        "tools/gomad3/internal/gomadtool/conformance/testdata/timer_ties/main.go",
+        "tools/gomad3/internal/gomadtool/conformance/testdata/runq_shuffle/main.go"
+      ],
+      "exit": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "record_sha256": "58cdd3e4134b74308a60d63ebc8ca0e54255ad8515b663e3a4dbfbc0ee0e90f8"
+    },
+    "whitespace": {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_repeatability.go",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_load.go",
+        "tools/gomad3/internal/gomadtool/conformance/runtime_test.go",
+        "tools/gomad3/internal/gomadtool/conformance/testdata/README.md"
+      ],
+      "exit": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "record_sha256": "9cb2a2ee1c6076f864ca5b24fe35260bf9a21f99060b8d9a707ea20cb937d91b"
+    },
+    "positive-control-probe": {
+      "command": [
+        "python3",
+        ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-6/channel-probe.py"
+      ],
+      "exit": 0,
+      "log_sha256": "05f6a0a16689339f32102f610a4c6ce91a1e4af1c3f1ed650a84db22e615715c",
+      "record_sha256": "98eb0a13bf647b5dac3a0abdcea0b5bf386331124b6b7c4a70f0aa450a305110"
+    }
+  },
+  "classification_sha256": "74c1c49035fc222c2d5a0fdd76509521b48ae863da85af86007fb46c33313762",
+  "reanchor_bindings_sha256": "97157978d168d8ac68a100babf328d7ba6142b9fa8bee8e5ac5c0a514f43e838",
+  "reanchor_excerpts_sha256": "537b634956760c3ef571b87c4f3852994706592eba1b8ace94efb0cc31f44eed",
+  "positive_controls_sha256": "effc95c2f0028b42e378a46bce4488b351c26da497f154f0af1d0a040447dbdb",
+  "test_first_sha256": "cb7d4ef4e8c32d14c0c44f20651baf84468262536a86a37e76b99a89c9132e4a",
+  "handover_summary_sha256": "c2cb7f874856aec7033688eba97b89b78423ad73a973baa35c8ee91b34e743a3",
+  "parent_evidence_validation_sha256": "81d4510e07d16597fd31c8254ea5bf33f102a8857e5ec64d1b0c190a0875b3bd",
+  "review": "pending conductor mandatory implementation review",
+  "flow_tracking": "owned by conductor; worker made no tracking mutations",
+  "final_sources_verified": "2026-10-02T10:00:43.862296+00:00"
+}

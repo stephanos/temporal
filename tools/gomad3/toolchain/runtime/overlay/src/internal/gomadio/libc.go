@@ -283,6 +283,9 @@ func libcErrno(err error) syscall.Errno {
 	if err == nil {
 		return 0
 	}
+	if errors.Is(err, os.ErrClosed) {
+		return syscall.EBADF
+	}
 	var pathError *os.PathError
 	if errors.As(err, &pathError) {
 		err = pathError.Err

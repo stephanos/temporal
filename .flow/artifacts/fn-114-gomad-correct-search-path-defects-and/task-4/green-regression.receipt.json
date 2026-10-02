@@ -1,0 +1,36 @@
+{
+  "command": "env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off GOMAD3_STOCK_GO=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -tags test_dep -count=1 ./runner -run '^TestRunChoiceExplorationDivergingPrefixRetainsCompletedRound$'",
+  "exit_code": 1,
+  "seconds": 1.653777837753296,
+  "source_before": {
+    "tools/gomad3/choice/tape.go": "c15a068c63352d11287a5a61d0a574c3d5a2045f0b19b6c7d3d59b5b8ef3767c",
+    "tools/gomad3/runner/choice_exploration_campaign.go": "783d711f78998d1ef63ffffd0eaf9e68c073ba2ed2216d68d6370f8e3c44f441",
+    "tools/gomad3/runner/internal/exploration/choice/engine.go": "6f82bd463051337e04e9a2b6cb4f66fb7c070431d3a041cb8089b0d2e4fb8d28",
+    "tools/gomad3/runner/internal/campaign/choice_exploration_journal.go": "f13b01b463d359c08be7fa16f36d6759cac74921a02e6c2c41a46cbe8511c3c1",
+    "tools/gomad3/runner/internal/campaign/campaign_journal.go": "bd49a4261b9f218a08c38e211f7797b74b1f70287ae0d6c3408bb9c5b0327413",
+    "tools/gomad3/runner/internal/campaign/open_campaign.go": "3071dfaee261f136cbc0a7c890a2e0ffd8a0fe1aa48febf1c83a908e515f8da3",
+    "tools/gomad3/runner/internal/campaign/resume_journal.go": "2b21ff70d4ec88120966430d6b8a27dd5725ef58e6d911e05153cc02918508d3",
+    "tools/gomad3/runner/runner_test.go": "bacebf4d30abcfa05e8c91661da8056638dff06ea1be27ee4e65a1a047112c67",
+    "tools/gomad3/runner/resume.go": "5df2664371aabc80b169e33beb3f751b882cbb793134012ecb1bb518847f63df",
+    "tools/gomad3/runner/inspect.go": "944a8cfbef5fa48e86b8d60b69f51751bc0c65be1fd5765831e11b7257b3df48",
+    "tools/gomad3/cmd/gomad/internal/cli/explore_output.go": "9e57c635f9f39bc1fda21e7e519d50c99bf15409b8c525a4865aeef0ce36d5c2",
+    "tools/gomad3/cmd/gomad/internal/cli/cli.go": "4451743a192b5506204f7f60e7e4d329e5ba7463a67e415e659618a0be720c13",
+    "tools/gomad3/cmd/gomad/internal/cli/resume.go": "313841d85b02775602aed43d4a3646cef13732e0f86a4ab6f0db05059dc5fded"
+  },
+  "source_after": {
+    "tools/gomad3/choice/tape.go": "c15a068c63352d11287a5a61d0a574c3d5a2045f0b19b6c7d3d59b5b8ef3767c",
+    "tools/gomad3/runner/choice_exploration_campaign.go": "783d711f78998d1ef63ffffd0eaf9e68c073ba2ed2216d68d6370f8e3c44f441",
+    "tools/gomad3/runner/internal/exploration/choice/engine.go": "6f82bd463051337e04e9a2b6cb4f66fb7c070431d3a041cb8089b0d2e4fb8d28",
+    "tools/gomad3/runner/internal/campaign/choice_exploration_journal.go": "f13b01b463d359c08be7fa16f36d6759cac74921a02e6c2c41a46cbe8511c3c1",
+    "tools/gomad3/runner/internal/campaign/campaign_journal.go": "bd49a4261b9f218a08c38e211f7797b74b1f70287ae0d6c3408bb9c5b0327413",
+    "tools/gomad3/runner/internal/campaign/open_campaign.go": "3071dfaee261f136cbc0a7c890a2e0ffd8a0fe1aa48febf1c83a908e515f8da3",
+    "tools/gomad3/runner/internal/campaign/resume_journal.go": "2b21ff70d4ec88120966430d6b8a27dd5725ef58e6d911e05153cc02918508d3",
+    "tools/gomad3/runner/runner_test.go": "bacebf4d30abcfa05e8c91661da8056638dff06ea1be27ee4e65a1a047112c67",
+    "tools/gomad3/runner/resume.go": "5df2664371aabc80b169e33beb3f751b882cbb793134012ecb1bb518847f63df",
+    "tools/gomad3/runner/inspect.go": "944a8cfbef5fa48e86b8d60b69f51751bc0c65be1fd5765831e11b7257b3df48",
+    "tools/gomad3/cmd/gomad/internal/cli/explore_output.go": "9e57c635f9f39bc1fda21e7e519d50c99bf15409b8c525a4865aeef0ce36d5c2",
+    "tools/gomad3/cmd/gomad/internal/cli/cli.go": "4451743a192b5506204f7f60e7e4d329e5ba7463a67e415e659618a0be720c13",
+    "tools/gomad3/cmd/gomad/internal/cli/resume.go": "313841d85b02775602aed43d4a3646cef13732e0f86a4ab6f0db05059dc5fded"
+  },
+  "log_sha256": "1b161be7c1418f49cb82260132a37ef49c075f9db4bcd5bf033e691cbebfd72e"
+}

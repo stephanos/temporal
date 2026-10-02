@@ -1,0 +1,5 @@
+- [ ] Retained built-CLI diagnostic replay failure is reproduced before edits with exact source/artifact/command bindings.
+- [ ] A supported watchdog artifact without a complete I/O transcript can be re-executed diagnostically from its retained target and captured inputs; a matching observation returns documented status 1 and never claims exact replay.
+- [ ] Exact replay still requires complete evidence; corrupt/malformed evidence, unavailable captured inputs and unsupported diagnostic cases fail explicitly without substituting live host input.
+- [ ] Focused negative regressions and real CLI explore/inspect/verify/replay pass, along with existing watchdog/recovery tests and the complete Darwin host gate.
+- [ ] Immutable source-bound handover, patch, Linux/lint limitations and an independent SHIP review are retained.

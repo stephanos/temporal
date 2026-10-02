@@ -1,0 +1,122 @@
+=== RUN   TestRootProcessSimulationUsesRunnerTransport
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay
+--- PASS: TestRootProcessSimulationUsesRunnerTransport (2.69s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines (0.76s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay (0.22s)
+=== RUN   TestRootProcessSimulationUsesRunnerTransport
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay
+--- PASS: TestRootProcessSimulationUsesRunnerTransport (1.34s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines (0.57s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay (0.13s)
+=== RUN   TestRootProcessSimulationUsesRunnerTransport
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay
+--- PASS: TestRootProcessSimulationUsesRunnerTransport (1.23s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines (0.53s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay (0.10s)
+=== RUN   TestRootProcessSimulationUsesRunnerTransport
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay
+--- PASS: TestRootProcessSimulationUsesRunnerTransport (1.27s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines (0.55s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay (0.12s)
+=== RUN   TestRootProcessSimulationUsesRunnerTransport
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay
+--- PASS: TestRootProcessSimulationUsesRunnerTransport (1.23s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines (0.48s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay (0.11s)
+=== RUN   TestRootProcessSimulationUsesRunnerTransport
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay
+--- PASS: TestRootProcessSimulationUsesRunnerTransport (1.32s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines (0.57s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay (0.13s)
+=== RUN   TestRootProcessSimulationUsesRunnerTransport
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay
+--- PASS: TestRootProcessSimulationUsesRunnerTransport (1.32s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines (0.59s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay (0.12s)
+=== RUN   TestRootProcessSimulationUsesRunnerTransport
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay
+--- PASS: TestRootProcessSimulationUsesRunnerTransport (1.45s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines (0.73s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay (0.16s)
+=== RUN   TestRootProcessSimulationUsesRunnerTransport
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay
+--- PASS: TestRootProcessSimulationUsesRunnerTransport (1.26s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines (0.55s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay (0.12s)
+=== RUN   TestRootProcessSimulationUsesRunnerTransport
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay
+--- PASS: TestRootProcessSimulationUsesRunnerTransport (1.47s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines (0.65s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay (0.22s)
+=== RUN   TestRootProcessSimulationUsesRunnerTransport
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay
+--- PASS: TestRootProcessSimulationUsesRunnerTransport (1.90s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines (0.87s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay (0.20s)
+=== RUN   TestRootProcessSimulationUsesRunnerTransport
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay
+--- PASS: TestRootProcessSimulationUsesRunnerTransport (1.42s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines (0.53s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay (0.19s)
+=== RUN   TestRootProcessSimulationUsesRunnerTransport
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay
+--- PASS: TestRootProcessSimulationUsesRunnerTransport (1.72s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines (0.57s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay (0.22s)
+=== RUN   TestRootProcessSimulationUsesRunnerTransport
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay
+--- PASS: TestRootProcessSimulationUsesRunnerTransport (1.44s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines (0.65s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay (0.18s)
+=== RUN   TestRootProcessSimulationUsesRunnerTransport
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay
+--- PASS: TestRootProcessSimulationUsesRunnerTransport (1.73s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines (0.73s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay (0.23s)
+=== RUN   TestRootProcessSimulationUsesRunnerTransport
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay
+--- PASS: TestRootProcessSimulationUsesRunnerTransport (2.01s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines (0.59s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay (0.18s)
+=== RUN   TestRootProcessSimulationUsesRunnerTransport
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay
+--- PASS: TestRootProcessSimulationUsesRunnerTransport (1.85s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines (0.58s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay (0.15s)
+=== RUN   TestRootProcessSimulationUsesRunnerTransport
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay
+--- PASS: TestRootProcessSimulationUsesRunnerTransport (1.59s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines (0.61s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay (0.15s)
+=== RUN   TestRootProcessSimulationUsesRunnerTransport
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay
+--- PASS: TestRootProcessSimulationUsesRunnerTransport (1.94s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines (0.58s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay (0.16s)
+=== RUN   TestRootProcessSimulationUsesRunnerTransport
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines
+=== RUN   TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay
+--- PASS: TestRootProcessSimulationUsesRunnerTransport (1.88s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendResetsGlobalsDescriptorsAndGoroutines (0.69s)
+    --- PASS: TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay (0.17s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/execution	32.350s

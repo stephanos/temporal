@@ -1,0 +1,4 @@
+=== RUN   TestCapturedLibcDescriptorKeepsClosedErrno
+--- PASS: TestCapturedLibcDescriptorKeepsClosedErrno (0.00s)
+PASS
+ok  	internal/gomadio	0.293s

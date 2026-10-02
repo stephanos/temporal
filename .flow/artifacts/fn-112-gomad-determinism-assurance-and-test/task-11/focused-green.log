@@ -1,0 +1,46 @@
+=== RUN   TestSessionCollectTerminal
+=== RUN   TestSessionCollectTerminal/absent
+=== RUN   TestSessionCollectTerminal/truncated
+=== RUN   TestSessionCollectTerminal/malformed
+=== RUN   TestSessionCollectTerminal/checksum
+=== RUN   TestSessionCollectTerminal/digest
+=== RUN   TestSessionCollectTerminal/overflow
+=== RUN   TestSessionCollectTerminal/capacity
+=== RUN   TestSessionCollectTerminal/complete
+=== RUN   TestSessionCollectTerminal/replay_divergence
+--- PASS: TestSessionCollectTerminal (0.01s)
+    --- PASS: TestSessionCollectTerminal/absent (0.00s)
+    --- PASS: TestSessionCollectTerminal/truncated (0.00s)
+    --- PASS: TestSessionCollectTerminal/malformed (0.00s)
+    --- PASS: TestSessionCollectTerminal/checksum (0.00s)
+    --- PASS: TestSessionCollectTerminal/digest (0.00s)
+    --- PASS: TestSessionCollectTerminal/overflow (0.00s)
+    --- PASS: TestSessionCollectTerminal/capacity (0.00s)
+    --- PASS: TestSessionCollectTerminal/complete (0.00s)
+    --- PASS: TestSessionCollectTerminal/replay_divergence (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/deterministicio	0.568s
+=== RUN   TestRunIOTerminalAfterTermination
+=== RUN   TestRunIOTerminalAfterTermination/watchdog_absent
+=== RUN   TestRunIOTerminalAfterTermination/cancelled_absent
+=== RUN   TestRunIOTerminalAfterTermination/success_absent
+=== RUN   TestRunIOTerminalAfterTermination/nonzero_absent
+=== RUN   TestRunIOTerminalAfterTermination/unverified_signal_absent
+=== RUN   TestRunIOTerminalAfterTermination/watchdog_truncated
+=== RUN   TestRunIOTerminalAfterTermination/cancelled_truncated
+=== RUN   TestRunIOTerminalAfterTermination/watchdog_checksum
+=== RUN   TestRunIOTerminalAfterTermination/cancelled_checksum
+=== RUN   TestRunIOTerminalAfterTermination/success_complete
+--- PASS: TestRunIOTerminalAfterTermination (5.90s)
+    --- PASS: TestRunIOTerminalAfterTermination/watchdog_absent (1.81s)
+    --- PASS: TestRunIOTerminalAfterTermination/cancelled_absent (0.14s)
+    --- PASS: TestRunIOTerminalAfterTermination/success_absent (0.02s)
+    --- PASS: TestRunIOTerminalAfterTermination/nonzero_absent (0.02s)
+    --- PASS: TestRunIOTerminalAfterTermination/unverified_signal_absent (0.02s)
+    --- PASS: TestRunIOTerminalAfterTermination/watchdog_truncated (1.81s)
+    --- PASS: TestRunIOTerminalAfterTermination/cancelled_truncated (0.12s)
+    --- PASS: TestRunIOTerminalAfterTermination/watchdog_checksum (1.81s)
+    --- PASS: TestRunIOTerminalAfterTermination/cancelled_checksum (0.14s)
+    --- PASS: TestRunIOTerminalAfterTermination/success_complete (0.02s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/execution	6.199s

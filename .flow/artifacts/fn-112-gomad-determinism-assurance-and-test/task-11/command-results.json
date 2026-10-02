@@ -1,0 +1,369 @@
+{
+  "verify-only-green": {
+    "argv": [
+      "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/gomad-green",
+      "replay",
+      "--toolchain-root",
+      "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain",
+      "--verify-only",
+      "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/green-artifacts/v1/campaign-20261002T130355.897669000Z-c944ad40e49880052cfb2de5519b5112/failures/sha256-657f21b3bb7995be2b34dbc7737e7ed1"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "exit": 0,
+    "elapsed_seconds": 0.1868438720703125,
+    "log_sha256": "61f101a9ee6d844f0ad62bceecdcc9338a639f36a5fcb10a72a95faa8eaecae8"
+  },
+  "build-green": {
+    "argv": [
+      "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go",
+      "build",
+      "-trimpath",
+      "-o",
+      "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/gomad-green",
+      "./cmd/gomad"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "exit": 0,
+    "elapsed_seconds": 3.4628689289093018,
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "cli-red": {
+    "argv": [
+      "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/gomad-red",
+      "explore",
+      "--json",
+      "--toolchain-root",
+      "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain",
+      "--artifacts",
+      "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/red-artifacts",
+      "--seeds",
+      "1-3",
+      "--parallel",
+      "1",
+      "--on-failure",
+      "all",
+      "--execution-timeout",
+      "2s",
+      "--overall-timeout",
+      "1m",
+      "--terminate-grace",
+      "100ms",
+      "--keep-successes",
+      "all",
+      "--success-limit",
+      "3",
+      "--success-bytes",
+      "64MiB",
+      "go-run",
+      "./cmd/gomad/testdata/watchdog",
+      "--",
+      "watchdog"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "exit": 3,
+    "elapsed_seconds": 3.9388911724090576,
+    "log_sha256": "e6f5490fa8b2bfb815e4d8ff9e735819c48e9fb2c60da07fb7b9c10b60c351d8"
+  },
+  "lint-head": {
+    "argv": [
+      "make",
+      "lint-code-fast",
+      "GOLANGCI_LINT_FIX=false",
+      "GOLANGCI_LINT_BASE_REV=HEAD"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad",
+    "exit": 2,
+    "elapsed_seconds": 4.298587083816528,
+    "log_sha256": "e548a26387234d76c00e163724f6b782a772e4c28129a6180ee83d7003e5f3d0"
+  },
+  "diagnostic-replay-green": {
+    "argv": [
+      "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/gomad-green",
+      "replay",
+      "--toolchain-root",
+      "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain",
+      "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/green-artifacts/v1/campaign-20261002T130355.897669000Z-c944ad40e49880052cfb2de5519b5112/failures/sha256-657f21b3bb7995be2b34dbc7737e7ed1"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "exit": 3,
+    "elapsed_seconds": 0.2544581890106201,
+    "log_sha256": "d5616430310589ccbd2d464b02a44b43122b66c7c6cc4b87c193a63efe74b034"
+  },
+  "cli-final": {
+    "argv": [
+      "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go",
+      "test",
+      "-tags",
+      "test_dep",
+      "-count=1",
+      "./cmd/gomad",
+      "-run",
+      "TestCLI",
+      "-v"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "exit": 0,
+    "elapsed_seconds": 24.579108953475952,
+    "log_sha256": "ed7307ad648d86cb02c83613893899c3f8da708ad7f3a17398014f90c75129a9"
+  },
+  "inspect-campaign-green": {
+    "argv": [
+      "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/gomad-green",
+      "inspect",
+      "--json",
+      "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/green-artifacts/v1/campaign-20261002T130355.897669000Z-c944ad40e49880052cfb2de5519b5112"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "exit": 0,
+    "elapsed_seconds": 0.08426189422607422,
+    "log_sha256": "fccb1ac3394caed473c821babb47726148b5d90d477d009b038c880c6b6da88d"
+  },
+  "format-final": {
+    "argv": [
+      "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/gofmt",
+      "-d",
+      "tools/gomad3/deterministicio/session.go",
+      "tools/gomad3/runner/internal/execution/process_unix.go",
+      "tools/gomad3/deterministicio/session_test.go",
+      "tools/gomad3/runner/internal/execution/watchdog_io_test.go",
+      "tools/gomad3/cmd/gomad/watchdog_e2e_test.go",
+      "tools/gomad3/cmd/gomad/testdata/watchdog/main.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad",
+    "exit": 0,
+    "elapsed_seconds": 0.04121804237365723,
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "cli-test-red": {
+    "argv": [
+      "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go",
+      "test",
+      "-tags",
+      "test_dep",
+      "-count=1",
+      "./cmd/gomad",
+      "-run",
+      "TestCLIWatchdogRetainsIncompleteEvidence/none",
+      "-v"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "exit": 1,
+    "elapsed_seconds": 7.072828054428101,
+    "log_sha256": "ff1d0bc66b49f801f56a9ad952a3a51d812daeb9a95cb7b51fb8b6f27cc56945"
+  },
+  "inspect-artifact-green": {
+    "argv": [
+      "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/gomad-green",
+      "inspect",
+      "--json",
+      "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/green-artifacts/v1/campaign-20261002T130355.897669000Z-c944ad40e49880052cfb2de5519b5112/failures/sha256-657f21b3bb7995be2b34dbc7737e7ed1"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "exit": 0,
+    "elapsed_seconds": 0.06973791122436523,
+    "log_sha256": "7188f4a9cfd4ab72d94c5073948c21bb6d20d89c17eceb8a38054e3715445205"
+  },
+  "focused-final": {
+    "argv": [
+      "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go",
+      "test",
+      "-tags",
+      "test_dep",
+      "-count=1",
+      "./deterministicio",
+      "./runner/internal/execution",
+      "-run",
+      "TestSessionCollectTerminal|TestRunIOTerminalAfterTermination|TestProfileEntropyIsIndependentOfScheduleSeed|TestRunRejects.*Choice|TestRunReturnsValidatedOverflowChoiceTrace|TestRunBoundsUnresponsiveSupervisor",
+      "-v"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "exit": 0,
+    "elapsed_seconds": 9.14120602607727,
+    "log_sha256": "0bb316d155e1b4031afa0bc0a026c1d17d0c3ed436f33a8e7b59429c4a350e9a"
+  },
+  "build-red": {
+    "argv": [
+      "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go",
+      "build",
+      "-trimpath",
+      "-o",
+      "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/gomad-red",
+      "./cmd/gomad"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "exit": 0,
+    "elapsed_seconds": 2.0012528896331787,
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "lint-default": {
+    "argv": [
+      "make",
+      "lint-code-fast",
+      "GOLANGCI_LINT_FIX=false"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad",
+    "exit": 2,
+    "elapsed_seconds": 1.7410616874694824,
+    "log_sha256": "4a229d95b641928fde380a270b031f2428d29853bba5b947dbb38a2d711596a5"
+  },
+  "cli-test-green-corrected": {
+    "argv": [
+      "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go",
+      "test",
+      "-tags",
+      "test_dep",
+      "-count=1",
+      "./cmd/gomad",
+      "-run",
+      "TestCLIWatchdogRetainsIncompleteEvidence",
+      "-v"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "exit": 0,
+    "elapsed_seconds": 12.917495965957642,
+    "log_sha256": "549681550b58f4cacbcd664e449ab849391d5b39f4b449e4e72690f27e0d61ec"
+  },
+  "focused-green": {
+    "argv": [
+      "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go",
+      "test",
+      "-tags",
+      "test_dep",
+      "-count=1",
+      "./deterministicio",
+      "./runner/internal/execution",
+      "-run",
+      "TestSessionCollectTerminal|TestRunIOTerminalAfterTermination",
+      "-v"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "exit": 0,
+    "elapsed_seconds": 8.16337513923645,
+    "log_sha256": "d537c2ed910bcff259927a16b76abe3b02096efb7a39d34af99b829b8ab91cd1"
+  },
+  "whitespace-final": {
+    "argv": [
+      "git",
+      "diff",
+      "--check",
+      "--",
+      "tools/gomad3/deterministicio/session.go",
+      "tools/gomad3/runner/internal/execution/process_unix.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad",
+    "exit": 0,
+    "elapsed_seconds": 0.047702789306640625,
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "host-final-pinned": {
+    "argv": [
+      "make",
+      "-C",
+      "tools/gomad3",
+      "test-host"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad",
+    "exit": 0,
+    "elapsed_seconds": 132.55347180366516,
+    "log_sha256": "32bd4563ef806e143046c4aa8c201d41cca1d12d45cb4947bf6895183b3c46b1"
+  },
+  "host-final": {
+    "argv": [
+      "make",
+      "-C",
+      "tools/gomad3",
+      "test-host"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad",
+    "exit": 2,
+    "elapsed_seconds": 4.113794803619385,
+    "log_sha256": "c14183cd20a5a49b20ec5f23205ccb6c78d597cc8b3ad84a94af481f23684cc3"
+  },
+  "vet-final": {
+    "argv": [
+      "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go",
+      "vet",
+      "-tags",
+      "test_dep",
+      "./deterministicio",
+      "./runner/internal/execution",
+      "./cmd/gomad"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "exit": 0,
+    "elapsed_seconds": 0.8034763336181641,
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "cli-test-green": {
+    "argv": [
+      "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go",
+      "test",
+      "-tags",
+      "test_dep",
+      "-count=1",
+      "./cmd/gomad",
+      "-run",
+      "TestCLIWatchdogRetainsIncompleteEvidence",
+      "-v"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "exit": 1,
+    "elapsed_seconds": 13.923228025436401,
+    "log_sha256": "a4e4b6ffabbf9deb88b4ecda8a7db3d10f0c3189ccdc1c393b7aa23ebda05191"
+  },
+  "focused-red": {
+    "argv": [
+      "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go",
+      "test",
+      "-tags",
+      "test_dep",
+      "-count=1",
+      "./deterministicio",
+      "./runner/internal/execution",
+      "-run",
+      "TestSessionCollectTerminal|TestRunIOTerminalAfterTermination",
+      "-v"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "exit": 1,
+    "elapsed_seconds": 9.32590103149414,
+    "log_sha256": "ea4b168913dee4acea968799ef50ebc86c48a9bef770de3a990a3d1156eca26a"
+  },
+  "cli-green": {
+    "argv": [
+      "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/gomad-green",
+      "explore",
+      "--json",
+      "--toolchain-root",
+      "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain",
+      "--artifacts",
+      "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/green-artifacts",
+      "--seeds",
+      "1-3",
+      "--parallel",
+      "1",
+      "--on-failure",
+      "all",
+      "--execution-timeout",
+      "2s",
+      "--overall-timeout",
+      "1m",
+      "--terminate-grace",
+      "100ms",
+      "--keep-successes",
+      "all",
+      "--success-limit",
+      "3",
+      "--success-bytes",
+      "64MiB",
+      "go-run",
+      "./cmd/gomad/testdata/watchdog",
+      "--",
+      "watchdog"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "exit": 1,
+    "elapsed_seconds": 7.205742120742798,
+    "log_sha256": "1c748444959499f45d6f8120b20ef45463aa467c4ee3eaaa694f516056f1faa3"
+  }
+}

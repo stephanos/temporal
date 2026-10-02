@@ -1,0 +1,12 @@
+{
+  "inspection_head": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+  "tested_ci_head": "8789deab055d1b72ac6bc86711d74f3fd7313fa2",
+  "sources": {
+    "tools/gomad3/internal/compatibilitypack/requests/modernc-libc-xsys-v047-linux-amd64.json": "c0a036b4a9516d902d8e52e6a4b0a4694e6dbcfce3ce357d27ee802fdc761c2d",
+    "tools/gomad3/internal/compatibilitypack/packs/modernc-libc-xsys-v047-linux-amd64.json": "6f678afc4d0d8e6ac56b9adc58b3d6a45c44811d34ff8790e995802187c8d45b",
+    "tools/gomad3/runner/retention_characterization_test.go": "c04190608c348023b8c8100672df7cfd6ed3b20f8385afb00c77179c90fa9bbf",
+    ".github/workflows/gomad3.yml": "ad565c0577a0b027a539e9e9be88f2d3b154c1a083f18bb087647c5704e4a58f",
+    ".github/workflows/gomad3-smoke.yml": "409749e7c5710f1d4e387757e42adb4fb5a1f125623c08f4f41c7bd87722b49d",
+    "tools/gomad3/Makefile": "2e5abd679ebff961cc74333e7e008e7183dcecb4ee65b2c0fe294ca9da27583d"
+  }
+}

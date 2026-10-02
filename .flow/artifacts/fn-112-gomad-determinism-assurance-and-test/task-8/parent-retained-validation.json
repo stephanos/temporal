@@ -1,0 +1,27 @@
+{
+  "commands_matching_expected_status": 12,
+  "artifacts": [
+    {
+      "seed": "2",
+      "selection_ordinal": "1",
+      "outcome": "target",
+      "payloads_verified": 7,
+      "manifest_sha256": "8e728f2bf8eb8fafbd7f8dcf19ab97728946460a37000450084555e7514522a4"
+    },
+    {
+      "seed": "1",
+      "selection_ordinal": "0",
+      "outcome": "success",
+      "payloads_verified": 7,
+      "manifest_sha256": "3997660520e87a9d2aeb38dba912f7e5960b530fb163e2a51df165ab7b29228e"
+    },
+    {
+      "seed": "3",
+      "selection_ordinal": "2",
+      "outcome": "success",
+      "payloads_verified": 7,
+      "manifest_sha256": "5e6827b34d46ae92620cc1604a991f20b803ff6e6aa1523eaa5feaf9754aa40b"
+    }
+  ],
+  "result": "pass"
+}

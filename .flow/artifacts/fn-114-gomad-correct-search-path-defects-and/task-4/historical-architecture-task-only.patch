@@ -1,0 +1,1644 @@
+--- a/tools/gomad3/runner/choice_exploration_campaign.go
++++ b/tools/gomad3/runner/choice_exploration_campaign.go
+@@ -196,7 +196,7 @@
+ 	summary.StopReason = StopReason(explorationSummary.StopReason)
+ 	if err := journal.Publish(campaign.CampaignSummary{
+ 		Attempted: summary.Attempted, Succeeded: summary.Succeeded, Failures: summary.Failures, Watchdogs: summary.Watchdogs,
+-		Cancelled: summary.Cancelled, DistinctFailures: summary.DistinctFailures, RetainedSuccesses: summary.RetainedSuccesses,
++		ReplayDivergences: summary.ReplayDivergences, Cancelled: summary.Cancelled, DistinctFailures: summary.DistinctFailures, RetainedSuccesses: summary.RetainedSuccesses,
+ 		RetainedSuccessBytes: summary.RetainedSuccessBytes, StopReason: string(summary.StopReason), FailureSignatures: failureSignatures,
+ 		ChoiceExploration: &explorationSummary, ChoiceExplorationImplementationSHA256: choiceengine.ImplementationSHA256(), ChoiceExplorationChainSHA256: explorationJournal.ChainSHA256(), RecoveryExecutions: summary.RecoveryExecutions,
+ 	}); err != nil {
+@@ -276,8 +276,8 @@
+ 	if progressErr != nil {
+ 		return nil, &HostError{Reason: "progress_output", Err: progressErr}
+ 	}
+-	for _, completion := range completions {
+-		if completion.err != nil {
++	for index, completion := range completions {
++		if completion.err != nil && !isCandidateReplayDivergence(completion, round.Candidates[index], state.Config.Execution) {
+ 			return nil, &HostError{Reason: supervisionFailureReason(completion.err), Err: completion.err}
+ 		}
+ 		if completion.result.Cancelled {
+@@ -312,6 +312,33 @@
+ 		return explorationRoundResult{}, &HostError{Reason: "prepared_target_integrity", Err: err}
+ 	}
+ 	candidate := round.Candidates[index]
++	if isCandidateReplayDivergence(completion, candidate, state.Config.Execution) {
++		var divergence *execution.ChoiceReplayDivergenceError
++		errors.As(completion.err, &divergence)
++		evidence := choice.ProjectDivergenceEvidence(divergence.Divergence)
++		roundValue := record.Uint64String(round.Index)
++		depthValue := record.Uint64String(candidate.ForcedDepth)
++		run := campaign.ExecutionRecord{
++			Strategy: string(StrategyChoiceExploration), Round: &roundValue, CandidateSHA256: candidate.SHA256,
++			ParentCandidateSHA256: candidate.ParentSHA256, PrefixSHA256: candidate.PrefixSHA256, ForcedDepth: &depthValue,
++			SelectionOrdinal: record.Uint64String(completion.job.ordinal), Seed: record.Uint64String(completion.job.seed),
++			Domain: "runner", Reason: "replay_divergence", Termination: "none", Divergence: &evidence,
++			ElapsedNanos: elapsedNanos(completion.startedAt, completion.finishedAt),
++		}
++		if err := completion.journal.Transition(campaign.ExecutionCaptured); err != nil {
++			return explorationRoundResult{}, &HostError{Reason: "partial_write", Err: err}
++		}
++		if err := completion.journal.Transition(campaign.ExecutionClassified); err != nil {
++			return explorationRoundResult{}, &HostError{Reason: "partial_write", Err: err}
++		}
++		if err := completion.journal.Complete(); err != nil {
++			return explorationRoundResult{}, &HostError{Reason: "partial_cleanup", Err: err}
++		}
++		summary.Attempted++
++		summary.Failures++
++		summary.ReplayDivergences++
++		return explorationRoundResult{completion: completion, result: choiceengine.Result{CandidateSHA256: candidate.SHA256, Divergence: &divergence.Divergence}, run: run}, nil
++	}
+ 	worldBundle, err := assessWorld(completion.result, completion.job.seed, config.WorldTransitionLimit)
+ 	if err != nil {
+ 		return explorationRoundResult{}, &HostError{Reason: "world_record", Err: err}
+@@ -445,6 +472,26 @@
+ 		explorationResult.FailureSHA256 = *run.FailureSignature
+ 	}
+ 	return explorationRoundResult{completion: completion, result: explorationResult, run: run}, nil
++}
++
++func isCandidateReplayDivergence(completion runCompletion, candidate choiceengine.Candidate, identity choice.ExecutionIdentity) bool {
++	if completion.result.Cancelled || completion.result.WatchdogTimeout || completion.job.choiceMode != choice.ModePrefix {
++		return false
++	}
++	for err := completion.err; err != nil; {
++		if joined, ok := err.(interface{ Unwrap() []error }); ok {
++			if len(joined.Unwrap()) != 1 {
++				return false
++			}
++			err = joined.Unwrap()[0]
++		} else if wrapped, ok := err.(interface{ Unwrap() error }); ok {
++			err = wrapped.Unwrap()
++		} else {
++			break
++		}
++	}
++	var divergence *execution.ChoiceReplayDivergenceError
++	return errors.As(completion.err, &divergence) && divergence != nil && choiceengine.ValidateCandidateDivergence(candidate, identity, divergence.Divergence) == nil
+ }
+ 
+ func reconcileExplorationExecutions(journal *campaign.CampaignJournal, projected, committed []campaign.ExecutionRecord) error {
+--- a/tools/gomad3/runner/internal/exploration/choice/engine.go
++++ b/tools/gomad3/runner/internal/exploration/choice/engine.go
+@@ -16,9 +16,9 @@
+ const (
+ 	candidateDomain    = "gomad3-choice-exploration-candidate/v1"
+ 	stateDomain        = "gomad3-choice-exploration-state/v1"
+-	roundSegmentDomain = "gomad3-choice-exploration-round-segment/v1"
+-	RoundSegmentSchema = "gomad3.choice-exploration-round/v1"
+-	controllerIdentity = "deterministic-rounds/breadth-first-rank-prefix/v1"
++	roundSegmentDomain = "gomad3-choice-exploration-round-segment/v2"
++	RoundSegmentSchema = "gomad3.choice-exploration-round/v2"
++	controllerIdentity = "deterministic-rounds/breadth-first-rank-prefix/v2"
+ )
+ 
+ func ImplementationSHA256() record.SHA256 {
+@@ -70,6 +70,7 @@
+ 	OutcomeSHA256   record.SHA256
+ 	Failed          bool
+ 	FailureSHA256   record.SHA256
++	Divergence      *choice.Divergence
+ 	Trace           *choice.ReplayPlan
+ }
+ 
+@@ -95,13 +96,14 @@
+ }
+ 
+ type SegmentResult struct {
+-	CandidateSHA256   record.SHA256 `json:"candidate_sha256"`
+-	OutcomeSHA256     record.SHA256 `json:"outcome_sha256"`
+-	Failed            bool          `json:"failed"`
+-	FailureSHA256     record.SHA256 `json:"failure_sha256,omitempty"`
+-	TraceSHA256       record.SHA256 `json:"trace_sha256,omitempty"`
+-	TraceSourceSHA256 record.SHA256 `json:"trace_source_sha256,omitempty"`
+-	TraceBytes        []byte        `json:"trace_bytes,omitempty"`
++	CandidateSHA256   record.SHA256              `json:"candidate_sha256"`
++	OutcomeSHA256     record.SHA256              `json:"outcome_sha256,omitempty"`
++	Failed            bool                       `json:"failed"`
++	FailureSHA256     record.SHA256              `json:"failure_sha256,omitempty"`
++	Divergence        *choice.DivergenceEvidence `json:"divergence,omitempty"`
++	TraceSHA256       record.SHA256              `json:"trace_sha256,omitempty"`
++	TraceSourceSHA256 record.SHA256              `json:"trace_source_sha256,omitempty"`
++	TraceBytes        []byte                     `json:"trace_bytes,omitempty"`
+ }
+ 
+ type RoundSegment struct {
+@@ -223,6 +225,21 @@
+ 		if result.CandidateSHA256 != candidate.SHA256 {
+ 			return State{}, RoundSegment{}, fmt.Errorf("choice exploration result %d does not match candidate", index)
+ 		}
++		if result.Divergence != nil {
++			if result.OutcomeSHA256 != "" || result.Failed || result.FailureSHA256 != "" || result.Trace != nil {
++				return State{}, RoundSegment{}, fmt.Errorf("choice exploration result %d divergence contains outcome evidence", index)
++			}
++			if err := ValidateCandidateDivergence(candidate, state.Config.Execution, *result.Divergence); err != nil {
++				return State{}, RoundSegment{}, fmt.Errorf("choice exploration result %d divergence: %w", index, err)
++			}
++			divergence := choice.ProjectDivergenceEvidence(*result.Divergence)
++			segmentResults[index] = SegmentResult{CandidateSHA256: candidate.SHA256, Divergence: &divergence}
++			if next.Config.FailurePolicy == PolicyFirst {
++				next.StopReason = StopFirstFailure
++				policyStopped = true
++			}
++			continue
++		}
+ 		if _, err := result.OutcomeSHA256.Bytes(); err != nil {
+ 			return State{}, RoundSegment{}, fmt.Errorf("choice exploration result %d outcome: %w", index, err)
+ 		}
+@@ -298,6 +315,9 @@
+ }
+ 
+ func ReplaySegment(state State, segment RoundSegment) (State, error) {
++	if segment.Schema != RoundSegmentSchema {
++		return State{}, fmt.Errorf("choice exploration segment schema %q is incompatible with %q", segment.Schema, RoundSegmentSchema)
++	}
+ 	identity, err := segmentIdentity(segment)
+ 	if err != nil || identity != segment.SHA256 {
+ 		return State{}, errors.Join(errors.New("choice exploration segment identity does not match"), err)
+@@ -313,6 +333,10 @@
+ 	results := make([]Result, len(segment.Results))
+ 	for index, stored := range segment.Results {
+ 		result := Result{CandidateSHA256: stored.CandidateSHA256, OutcomeSHA256: stored.OutcomeSHA256, Failed: stored.Failed, FailureSHA256: stored.FailureSHA256}
++		if stored.Divergence != nil {
++			divergence := stored.Divergence.Divergence()
++			result.Divergence = &divergence
++		}
+ 		if len(stored.TraceBytes) != 0 {
+ 			digest, decodeErr := stored.TraceSHA256.Bytes()
+ 			if decodeErr != nil {
+@@ -344,6 +368,22 @@
+ 		return State{}, errors.Join(errors.New("choice exploration segment replay changed its canonical result"), err)
+ 	}
+ 	return next, nil
++}
++
++func ValidateCandidateDivergence(candidate Candidate, identity choice.ExecutionIdentity, divergence choice.Divergence) error {
++	if candidate.ForcedDepth == 0 {
++		return errors.New("choice divergence requires a forced-prefix candidate")
++	}
++	switch divergence.Reason {
++	case choice.DivergenceKind, choice.DivergenceSite, choice.DivergenceAlternatives, choice.DivergenceSelected, choice.DivergenceAlternativeSet, choice.DivergenceTapeUnconsumed, choice.DivergenceObservation:
++	default:
++		return errors.New("choice divergence is not a forced-prefix mismatch")
++	}
++	prefix, err := candidate.PrefixReplayPlan(identity)
++	if err != nil {
++		return err
++	}
++	return choice.ValidatePrefixReplayDivergence(prefix, divergence)
+ }
+ 
+ func expandCandidate(state *State, parent Candidate, trace choice.ReplayPlan, children map[record.SHA256]Candidate) error {
+--- a/tools/gomad3/runner/internal/campaign/choice_exploration_journal.go
++++ b/tools/gomad3/runner/internal/campaign/choice_exploration_journal.go
+@@ -740,6 +740,10 @@
+ 		if err := validateExplorationExecutionSummary(run, candidates); err != nil {
+ 			return err
+ 		}
++		equal, err := canonicalEqual(run.Divergence, result.Divergence)
++		if err != nil || !equal {
++			return errors.Join(fmt.Errorf("exploration execution %d divergence does not match its segment", index), err)
++		}
+ 		if result.Failed != (run.Domain == "target" || run.Domain == "watchdog") || result.Failed && (run.FailureSignature == nil || *run.FailureSignature != result.FailureSHA256) {
+ 			return fmt.Errorf("exploration execution %d outcome does not match its segment", index)
+ 		}
+--- a/tools/gomad3/runner/internal/campaign/campaign_journal.go
++++ b/tools/gomad3/runner/internal/campaign/campaign_journal.go
+@@ -9,6 +9,7 @@
+ 	"sort"
+ 	"sync"
+ 
++	"go.temporal.io/server/tools/gomad3/choice"
+ 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+ 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
+ 	"go.temporal.io/server/tools/gomad3/record"
+@@ -33,6 +34,7 @@
+ 	Attempted                                 uint64
+ 	Succeeded                                 uint64
+ 	Failures                                  uint64
++	ReplayDivergences                         uint64
+ 	Watchdogs                                 uint64
+ 	Cancelled                                 uint64
+ 	DistinctFailures                          uint64
+@@ -50,35 +52,36 @@
+ }
+ 
+ type ExecutionRecord struct {
+-	Strategy                    string               `json:"strategy,omitempty"`
+-	Round                       *record.Uint64String `json:"round,omitempty"`
+-	CandidateSHA256             record.SHA256        `json:"candidate_sha256,omitempty"`
+-	ParentCandidateSHA256       record.SHA256        `json:"parent_candidate_sha256,omitempty"`
+-	PrefixSHA256                record.SHA256        `json:"prefix_sha256,omitempty"`
+-	ForcedDepth                 *record.Uint64String `json:"forced_depth,omitempty"`
+-	OutcomeSHA256               record.SHA256        `json:"outcome_sha256,omitempty"`
+-	SelectionOrdinal            record.Uint64String  `json:"selection_ordinal"`
+-	Seed                        record.Uint64String  `json:"seed"`
+-	Domain                      string               `json:"domain"`
+-	Reason                      string               `json:"reason"`
+-	Termination                 string               `json:"termination"`
+-	FailureSignature            *record.SHA256       `json:"failure_signature"`
+-	Artifact                    *string              `json:"artifact"`
+-	ElapsedNanos                record.Uint64String  `json:"elapsed_nanos"`
+-	IOTranscriptSHA256          *record.SHA256       `json:"io_transcript_sha256"`
+-	IOTranscriptRecords         *record.Uint64String `json:"io_transcript_records"`
+-	ChoiceTraceSHA256           *record.SHA256       `json:"choice_trace_sha256,omitempty"`
+-	ChoiceTraceRecords          *record.Uint64String `json:"choice_trace_records,omitempty"`
+-	ChoiceTraceBranchingRecords *record.Uint64String `json:"choice_trace_branching_records,omitempty"`
+-	ChoiceTraceTerminalState    *string              `json:"choice_trace_terminal_state,omitempty"`
+-	ChoiceTapeSHA256            *record.SHA256       `json:"choice_tape_sha256,omitempty"`
+-	ChoiceDecisions             *record.Uint64String `json:"choice_decisions,omitempty"`
+-	SemanticProbes              []string             `json:"semantic_probes,omitempty"`
+-	ChoiceFeatures              []string             `json:"choice_features,omitempty"`
+-	SuccessArtifact             *string              `json:"success_artifact,omitempty"`
+-	SuccessArtifactBytes        *record.Uint64String `json:"success_artifact_bytes,omitempty"`
+-	NovelSemanticProbes         []string             `json:"novel_semantic_probes,omitempty"`
+-	NovelChoiceFeatures         []string             `json:"novel_choice_features,omitempty"`
++	Strategy                    string                     `json:"strategy,omitempty"`
++	Round                       *record.Uint64String       `json:"round,omitempty"`
++	CandidateSHA256             record.SHA256              `json:"candidate_sha256,omitempty"`
++	ParentCandidateSHA256       record.SHA256              `json:"parent_candidate_sha256,omitempty"`
++	PrefixSHA256                record.SHA256              `json:"prefix_sha256,omitempty"`
++	ForcedDepth                 *record.Uint64String       `json:"forced_depth,omitempty"`
++	OutcomeSHA256               record.SHA256              `json:"outcome_sha256,omitempty"`
++	Divergence                  *choice.DivergenceEvidence `json:"divergence,omitempty"`
++	SelectionOrdinal            record.Uint64String        `json:"selection_ordinal"`
++	Seed                        record.Uint64String        `json:"seed"`
++	Domain                      string                     `json:"domain"`
++	Reason                      string                     `json:"reason"`
++	Termination                 string                     `json:"termination"`
++	FailureSignature            *record.SHA256             `json:"failure_signature"`
++	Artifact                    *string                    `json:"artifact"`
++	ElapsedNanos                record.Uint64String        `json:"elapsed_nanos"`
++	IOTranscriptSHA256          *record.SHA256             `json:"io_transcript_sha256"`
++	IOTranscriptRecords         *record.Uint64String       `json:"io_transcript_records"`
++	ChoiceTraceSHA256           *record.SHA256             `json:"choice_trace_sha256,omitempty"`
++	ChoiceTraceRecords          *record.Uint64String       `json:"choice_trace_records,omitempty"`
++	ChoiceTraceBranchingRecords *record.Uint64String       `json:"choice_trace_branching_records,omitempty"`
++	ChoiceTraceTerminalState    *string                    `json:"choice_trace_terminal_state,omitempty"`
++	ChoiceTapeSHA256            *record.SHA256             `json:"choice_tape_sha256,omitempty"`
++	ChoiceDecisions             *record.Uint64String       `json:"choice_decisions,omitempty"`
++	SemanticProbes              []string                   `json:"semantic_probes,omitempty"`
++	ChoiceFeatures              []string                   `json:"choice_features,omitempty"`
++	SuccessArtifact             *string                    `json:"success_artifact,omitempty"`
++	SuccessArtifactBytes        *record.Uint64String       `json:"success_artifact_bytes,omitempty"`
++	NovelSemanticProbes         []string                   `json:"novel_semantic_probes,omitempty"`
++	NovelChoiceFeatures         []string                   `json:"novel_choice_features,omitempty"`
+ }
+ 
+ type CampaignJournal struct {
+@@ -126,6 +129,7 @@
+ 	Attempted                                 record.Uint64String        `json:"attempted"`
+ 	Succeeded                                 record.Uint64String        `json:"succeeded"`
+ 	Failures                                  record.Uint64String        `json:"failures"`
++	ReplayDivergences                         record.Uint64String        `json:"replay_divergences,omitempty"`
+ 	Watchdogs                                 record.Uint64String        `json:"watchdogs"`
+ 	Cancelled                                 record.Uint64String        `json:"cancelled"`
+ 	DistinctFailures                          record.Uint64String        `json:"distinct_failures"`
+@@ -360,7 +364,7 @@
+ 		SchemaVersion: record.SchemaVersion, Schema: "gomad3.campaign/v1", CampaignID: journal.config.CampaignID, Strategy: journal.config.Strategy, Selection: journal.config.Selection,
+ 		PlanSHA256: journal.config.PlanSHA256, Shard: cloneCampaignShard(journal.config.Shard),
+ 		SelectionCount: record.Uint64String(journal.config.SelectionCount), Attempted: record.Uint64String(summary.Attempted), Succeeded: record.Uint64String(summary.Succeeded),
+-		Failures: record.Uint64String(summary.Failures), Watchdogs: record.Uint64String(summary.Watchdogs), Cancelled: record.Uint64String(summary.Cancelled),
++		Failures: record.Uint64String(summary.Failures), ReplayDivergences: record.Uint64String(summary.ReplayDivergences), Watchdogs: record.Uint64String(summary.Watchdogs), Cancelled: record.Uint64String(summary.Cancelled),
+ 		DistinctFailures: record.Uint64String(summary.DistinctFailures), StopReason: summary.StopReason,
+ 		RetainedSuccesses: record.Uint64String(summary.RetainedSuccesses), RetainedSuccessBytes: record.Uint64String(summary.RetainedSuccessBytes),
+ 		Journal: journalReference, Artifacts: journal.artifactPlan, FailureSignatures: failureSignatures,
+--- a/tools/gomad3/runner/internal/campaign/open_campaign.go
++++ b/tools/gomad3/runner/internal/campaign/open_campaign.go
+@@ -126,6 +126,9 @@
+ 		batch.Strategy == "simulation-exploration" && (batch.SimulationExploration == nil || batch.SimulationExplorationImplementationSHA256 != simulationengine.ImplementationSHA256() || !validRecordSHA256(batch.SimulationExplorationChainSHA256) || choiceEvidence) {
+ 		return fmt.Errorf("campaign strategy evidence is invalid")
+ 	}
++	if batch.ReplayDivergences != 0 && batch.Strategy != "choice-exploration" {
++		return errors.New("campaign replay divergence count requires choice exploration")
++	}
+ 	if uint64(batch.Attempted) != uint64(len(runs)) || uint64(batch.Succeeded)+uint64(batch.Failures)+uint64(batch.Cancelled) != uint64(batch.Attempted) || batch.Watchdogs > batch.Failures || batch.RetainedSuccesses > batch.Succeeded || batch.RetainedSuccesses == 0 && batch.RetainedSuccessBytes != 0 {
+ 		return fmt.Errorf("campaign summary counts are inconsistent")
+ 	}
+@@ -143,7 +146,7 @@
+ 	ordinals := make(map[uint64]struct{}, len(runs))
+ 	candidates := make(map[record.SHA256]struct{}, len(runs))
+ 	failures := make(map[record.SHA256]struct{})
+-	var succeeded, failed, watchdogs, cancelled, retainedSuccesses, retainedSuccessBytes uint64
++	var succeeded, failed, watchdogs, cancelled, retainedSuccesses, retainedSuccessBytes, replayDivergences uint64
+ 	for index, run := range runs {
+ 		ordinal := uint64(run.SelectionOrdinal)
+ 		ordinalLimit := uint64(batch.SelectionCount)
+@@ -175,7 +178,7 @@
+ 			if err := validateSimulationExplorationExecutionSummary(run, candidates); err != nil {
+ 				return fmt.Errorf("campaign simulation exploration execution %d: %w", index+1, err)
+ 			}
+-		} else if run.Strategy != "" {
++		} else if run.Strategy != "" || run.Divergence != nil {
+ 			return fmt.Errorf("seed campaign execution %d contains strategy evidence", index+1)
+ 		}
+ 		ordinals[ordinal] = struct{}{}
+@@ -223,6 +226,9 @@
+ 			}
+ 		case "target", "watchdog":
+ 			failed++
++			if run.Reason == "world_replay_divergence" && batch.Strategy == "choice-exploration" {
++				replayDivergences++
++			}
+ 			if run.Domain == "watchdog" {
+ 				watchdogs++
+ 			}
+@@ -234,6 +240,11 @@
+ 				return fmt.Errorf("failed campaign execution %d has retained successful execution evidence", index+1)
+ 			}
+ 		case "runner":
++			if run.Strategy == "choice-exploration" && run.Divergence != nil {
++				failed++
++				replayDivergences++
++				continue
++			}
+ 			cancelled++
+ 			if run.Reason != "runner_cancelled" || run.Termination != "none" || run.FailureSignature != nil || run.Artifact != nil {
+ 				return fmt.Errorf("cancelled campaign execution %d is invalid", index+1)
+@@ -244,6 +255,9 @@
+ 		default:
+ 			return fmt.Errorf("campaign execution %d domain is invalid: %s", index+1, run.Domain)
+ 		}
++	}
++	if replayDivergences != uint64(batch.ReplayDivergences) {
++		return errors.New("campaign replay divergence count does not match its executions")
+ 	}
+ 	if succeeded != uint64(batch.Succeeded) || failed != uint64(batch.Failures) || watchdogs != uint64(batch.Watchdogs) || cancelled != uint64(batch.Cancelled) {
+ 		return fmt.Errorf("campaign execution counts do not match the summary")
+@@ -307,7 +321,7 @@
+ }
+ 
+ func validateExplorationExecutionSummary(run ExecutionRecord, candidates map[record.SHA256]struct{}) error {
+-	if run.Strategy != "choice-exploration" || run.Round == nil || run.ForcedDepth == nil || !validRecordSHA256(run.CandidateSHA256) || !validRecordSHA256(run.OutcomeSHA256) {
++	if run.Strategy != "choice-exploration" || run.Round == nil || run.ForcedDepth == nil || !validRecordSHA256(run.CandidateSHA256) {
+ 		return errors.New("exploration identity is incomplete")
+ 	}
+ 	if _, found := candidates[run.CandidateSHA256]; found {
+@@ -321,11 +335,18 @@
+ 	} else if !validRecordSHA256(run.ParentCandidateSHA256) || !validRecordSHA256(run.PrefixSHA256) {
+ 		return errors.New("forced candidate provenance is invalid")
+ 	}
++	if run.Divergence != nil {
++		if *run.ForcedDepth == 0 || run.Domain != "runner" || run.Reason != "replay_divergence" || run.Termination != "none" || run.OutcomeSHA256 != "" || run.FailureSignature != nil || run.Artifact != nil || run.SuccessArtifact != nil || run.SuccessArtifactBytes != nil || run.IOTranscriptSHA256 != nil || run.IOTranscriptRecords != nil || run.ChoiceTraceSHA256 != nil || run.ChoiceTraceRecords != nil || run.ChoiceTraceBranchingRecords != nil || run.ChoiceTraceTerminalState != nil || run.ChoiceTapeSHA256 != nil || run.ChoiceDecisions != nil || len(run.SemanticProbes) != 0 || len(run.ChoiceFeatures) != 0 || len(run.NovelSemanticProbes) != 0 || len(run.NovelChoiceFeatures) != 0 {
++			return errors.New("exploration divergence contains invalid outcome evidence")
++		}
++	} else if !validRecordSHA256(run.OutcomeSHA256) || run.Reason == "replay_divergence" {
++		return errors.New("exploration outcome identity is incomplete")
++	}
+ 	return nil
+ }
+ 
+ func validateSimulationExplorationExecutionSummary(run ExecutionRecord, candidates map[record.SHA256]struct{}) error {
+-	if run.Strategy != "simulation-exploration" || run.Round == nil || run.ForcedDepth == nil || !validRecordSHA256(run.CandidateSHA256) || !validRecordSHA256(run.OutcomeSHA256) || run.PrefixSHA256 != "" {
++	if run.Divergence != nil || run.Strategy != "simulation-exploration" || run.Round == nil || run.ForcedDepth == nil || !validRecordSHA256(run.CandidateSHA256) || !validRecordSHA256(run.OutcomeSHA256) || run.PrefixSHA256 != "" {
+ 		return errors.New("simulation exploration identity is incomplete")
+ 	}
+ 	if _, found := candidates[run.CandidateSHA256]; found {
+--- a/tools/gomad3/runner/internal/campaign/resume_journal.go
++++ b/tools/gomad3/runner/internal/campaign/resume_journal.go
+@@ -167,7 +167,7 @@
+ 			if err := validateSimulationExplorationExecutionSummary(run, candidates); err != nil {
+ 				return nil, fmt.Errorf("resumable simulation exploration execution %d: %w", index+1, err)
+ 			}
+-		} else if run.Strategy != "" {
++		} else if run.Strategy != "" || run.Divergence != nil {
+ 			return nil, fmt.Errorf("resumable seed execution %d contains strategy evidence", index+1)
+ 		}
+ 		if _, duplicate := ordinals[ordinal]; duplicate {
+@@ -242,6 +242,10 @@
+ 			}
+ 			retained = append(retained, run)
+ 		case "runner":
++			if strategy == "choice-exploration" && run.Divergence != nil {
++				retained = append(retained, run)
++				continue
++			}
+ 			if run.Artifact != nil || run.FailureSignature != nil {
+ 				artifact, err := validateResumeArtifact(batchPath, plan, run)
+ 				if err != nil {
+--- a/tools/gomad3/runner/runner_test.go
++++ b/tools/gomad3/runner/runner_test.go
+@@ -1096,7 +1096,7 @@
+ 	}
+ }
+ 
+-func TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound(t *testing.T) {
++func TestRunChoiceExplorationDivergingPrefixRetainsCompletedRound(t *testing.T) {
+ 	preparer := newFakePreparer(t)
+ 	limit := choiceTraceLimit(t, 1)
+ 	executor := &explorationDivergenceExecutor{
+@@ -1110,75 +1110,34 @@
+ 	config.MaxChoiceDepth = 4
+ 	config.MaxExplorationBytes = 1 << 20
+ 
+-	partial, err := Explore(context.Background(), config)
+-	var hostErr *HostError
+-	var divergence *execution.ChoiceReplayDivergenceError
+-	if !errors.As(err, &hostErr) || hostErr.Reason != "target_supervision" || !errors.As(err, &divergence) || !errors.Is(err, execution.ErrChoiceReplayDivergence) {
+-		t.Fatalf("diverging exploration error = %v", err)
+-	}
+-	if divergence.Divergence.Ordinal != 0 || divergence.Divergence.Reason != choice.DivergenceAlternativeSet || divergence.Divergence.Expected == nil || divergence.Divergence.Observed == nil {
+-		t.Fatalf("injected divergence = %#v", divergence.Divergence)
+-	}
+-	if partial.Attempted != 1 || partial.Succeeded != 1 || partial.Failures != 0 || partial.ReplayDivergences != 0 || partial.ChoiceExploration == nil || partial.ChoiceExploration.CommittedRounds != 1 {
+-		t.Fatalf("diverging exploration committed sibling results: %#v", partial)
+-	}
+-	if len(partial.Artifacts) != 0 || len(partial.SuccessArtifacts) != 0 {
+-		t.Fatalf("diverging exploration retained candidate artifacts: %#v", partial)
+-	}
+-	lifecycle, err := campaign.InspectCampaignLifecycle(partial.CampaignPath)
+-	if err != nil {
+-		t.Fatal(err)
+-	}
+-	if lifecycle.Published || !lifecycle.Resumable || lifecycle.Reason != "target_supervision" {
+-		t.Fatalf("diverging campaign lifecycle = %#v", lifecycle)
+-	}
+-	rounds, err := os.ReadDir(filepath.Join(partial.CampaignPath, "choice-exploration", "rounds"))
+-	if err != nil {
+-		t.Fatal(err)
+-	}
+-	if len(rounds) != 1 || rounds[0].Name() != "00000000000000000000" {
+-		t.Fatalf("committed rounds = %v, want only the root", rounds)
+-	}
+-	staged := filepath.Join(partial.CampaignPath, ".partial", "choice-exploration", "00000000000000000001")
+-	for _, name := range []string{"segment.json", "executions"} {
+-		if _, err := os.Stat(filepath.Join(staged, name)); !errors.Is(err, os.ErrNotExist) {
+-			t.Fatalf("uncommitted round retained %s: %v", name, err)
+-		}
+-	}
+-	executor.exploration.mu.Lock()
+-	requests := append([]execution.Spec(nil), executor.exploration.requests...)
+-	executor.exploration.mu.Unlock()
+-	if len(requests) != 4 {
+-		t.Fatalf("executions = %d, want the root and all three prefix candidates", len(requests))
+-	}
+-	for _, request := range requests[1:] {
+-		rank := request.Choice.ReplayPlan.Decisions[0].Selected
+-		data, err := os.ReadFile(filepath.Join(filepath.Dir(request.Dir), "partial.json"))
+-		if err != nil {
+-			t.Fatal(err)
+-		}
+-		var state struct {
+-			State campaign.ExecutionState `json:"state"`
+-		}
+-		if err := json.Unmarshal(data, &state); err != nil {
+-			t.Fatal(err)
+-		}
+-		want := campaign.ExecutionCaptured
+-		if rank == executor.ranks[0] {
+-			want = campaign.ExecutionExited
+-		}
+-		if state.State != want {
+-			t.Fatalf("prefix rank %d state = %q, want %q", rank, state.State, want)
+-		}
+-		files, err := os.ReadDir(filepath.Dir(request.Dir))
+-		if err != nil {
+-			t.Fatal(err)
+-		}
+-		for _, file := range files {
+-			if !slices.Contains([]string{"partial.json", "stdout.head", "stderr.head", "work"}, file.Name()) {
+-				t.Fatalf("prefix rank %d retained candidate evidence %q", rank, file.Name())
++	summary, err := Explore(context.Background(), config)
++	if err != nil {
++		t.Fatalf("diverging exploration discarded its completed round: %v", err)
++	}
++	if summary.Attempted != 4 || summary.Succeeded != 3 || summary.Failures != 1 || summary.ReplayDivergences != 1 || summary.DistinctFailures != 0 || summary.ChoiceExploration == nil || summary.ChoiceExploration.CommittedRounds != 2 {
++		t.Fatalf("diverging exploration = %#v", summary)
++	}
++	if len(summary.Artifacts) != 0 || len(summary.SuccessArtifacts) != 0 {
++		t.Fatalf("diverging exploration retained candidate artifacts: %#v", summary)
++	}
++	batch, err := campaign.OpenCampaign(summary.CampaignPath)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if len(batch.Executions) != 4 {
++		t.Fatalf("committed executions = %d", len(batch.Executions))
++	}
++	var divergences int
++	for _, run := range batch.Executions {
++		if run.Reason == "replay_divergence" {
++			divergences++
++			if run.Domain != "runner" || run.OutcomeSHA256 != "" || run.FailureSignature != nil || run.Artifact != nil || run.ChoiceTraceSHA256 != nil || run.CandidateSHA256 == "" || run.ForcedDepth == nil || *run.ForcedDepth != 1 {
++				t.Fatalf("divergent execution = %#v", run)
+ 			}
+ 		}
++	}
++	if divergences != 1 {
++		t.Fatalf("retained divergences = %d", divergences)
+ 	}
+ }
+ 
+@@ -2152,10 +2111,11 @@
+ 			return execution.Result{}, ctx.Err()
+ 		}
+ 		defer close(executor.afterDivergence)
+-		observed := expected
+-		observed.AlternativeSetDigest = sha256.Sum256([]byte("changed alternatives"))
++		observed := result.ChoiceTrace.Trace.Records[0]
++		observedDecision := choice.Decision{Ordinal: observed.Ordinal, Kind: observed.Kind, SiteOffset: observed.SiteOffset, Alternatives: observed.Alternatives, Selected: observed.Selected, Data: observed.Data, SelectedIdentity: observed.SelectedIdentity, AlternativeSetDigest: observed.AlternativeSetDigest}
++		observedDecision.AlternativeSetDigest = sha256.Sum256([]byte("changed alternatives"))
+ 		return processResult(125, "", ""), &execution.ChoiceReplayDivergenceError{Divergence: choice.Divergence{
+-			Ordinal: 0, Reason: choice.DivergenceAlternativeSet, Expected: &expected, Observed: &observed, TapeRecords: 1,
++			Ordinal: 0, Reason: choice.DivergenceAlternativeSet, Expected: &expected, Observed: &observedDecision, TapeRecords: 1,
+ 		}}
+ 	case executor.ranks[1]:
+ 		defer close(executor.beforeDivergence)
+@@ -2205,9 +2165,19 @@
+ 		selected = request.Choice.ReplayPlan.Decisions[len(request.Choice.ReplayPlan.Decisions)-1].Selected
+ 	}
+ 	result := processResult(executor.exitCode, "", "")
+-	result.ChoiceTrace = completeChoiceTrace(executor.t, executor.buildKey, executor.limit, []choice.Record{{
++	choiceRecord := validTestChoiceRecord(executor.t, choice.Record{
+ 		Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, Alternatives: max(executor.alternatives, 2), Selected: selected,
+-	}})
++	})
++	if request.Choice != nil && request.Choice.Mode == choice.ModePrefix {
++		identities := make([][sha256.Size]byte, choiceRecord.Alternatives)
++		for index := range identities {
++			identities[index] = sha256.Sum256([]byte(fmt.Sprintf("choice/0/alternative/%d", index)))
++		}
++		slices.SortFunc(identities, func(left, right [sha256.Size]byte) int { return bytes.Compare(left[:], right[:]) })
++		choiceRecord.Selected = selected
++		choiceRecord.SelectedIdentity = identities[selected]
++	}
++	result.ChoiceTrace = completeChoiceTrace(executor.t, executor.buildKey, executor.limit, []choice.Record{choiceRecord})
+ 	return result, nil
+ }
+ 
+--- a/tools/gomad3/runner/resume.go
++++ b/tools/gomad3/runner/resume.go
+@@ -218,6 +218,12 @@
+ 				state.distinct[*run.FailureSignature] = path
+ 				state.summary.Artifacts = append(state.summary.Artifacts, path)
+ 			}
++		case "runner":
++			if run.Strategy != string(StrategyChoiceExploration) || run.Reason != "replay_divergence" || run.Divergence == nil {
++				return resumeSummaryState{}, fmt.Errorf("resumable execution %d runner result cannot be reused", index+1)
++			}
++			state.summary.Failures++
++			state.summary.ReplayDivergences++
+ 		default:
+ 			return resumeSummaryState{}, fmt.Errorf("resumable execution %d domain %q cannot be reused", index+1, run.Domain)
+ 		}
+--- a/tools/gomad3/runner/inspect.go
++++ b/tools/gomad3/runner/inspect.go
+@@ -266,6 +266,7 @@
+ 	Attempted                                 uint64                         `json:"attempted"`
+ 	Succeeded                                 uint64                         `json:"succeeded"`
+ 	Failures                                  uint64                         `json:"failures"`
++	ReplayDivergences                         uint64                         `json:"replay_divergences,omitempty"`
+ 	Watchdogs                                 uint64                         `json:"watchdogs"`
+ 	Cancelled                                 uint64                         `json:"cancelled"`
+ 	DistinctFailures                          uint64                         `json:"distinct_failures"`
+@@ -296,31 +297,32 @@
+ }
+ 
+ type ExecutionInspection struct {
+-	Strategy                    string         `json:"strategy,omitempty"`
+-	Round                       *uint64        `json:"round,omitempty"`
+-	CandidateSHA256             record.SHA256  `json:"candidate_sha256,omitempty"`
+-	ParentCandidateSHA256       record.SHA256  `json:"parent_candidate_sha256,omitempty"`
+-	PrefixSHA256                record.SHA256  `json:"prefix_sha256,omitempty"`
+-	ForcedDepth                 *uint64        `json:"forced_depth,omitempty"`
+-	OutcomeSHA256               record.SHA256  `json:"outcome_sha256,omitempty"`
+-	SelectionOrdinal            uint64         `json:"selection_ordinal"`
+-	Seed                        uint64         `json:"seed"`
+-	Domain                      string         `json:"domain"`
+-	Reason                      string         `json:"reason"`
+-	Termination                 string         `json:"termination"`
+-	ElapsedNanos                uint64         `json:"elapsed_nanos"`
+-	FailureSignature            *record.SHA256 `json:"failure_signature,omitempty"`
+-	Artifact                    *string        `json:"artifact,omitempty"`
+-	SuccessArtifact             *string        `json:"success_artifact,omitempty"`
+-	SuccessArtifactBytes        *uint64        `json:"success_artifact_bytes,omitempty"`
+-	SemanticProbes              []string       `json:"semantic_probes,omitempty"`
+-	NovelSemanticProbes         []string       `json:"novel_semantic_probes,omitempty"`
+-	TranscriptSHA256            *record.SHA256 `json:"transcript_sha256,omitempty"`
+-	TranscriptRecords           *uint64        `json:"transcript_records,omitempty"`
+-	ChoiceTraceSHA256           *record.SHA256 `json:"choice_trace_sha256,omitempty"`
+-	ChoiceTraceRecords          *uint64        `json:"choice_trace_records,omitempty"`
+-	ChoiceTraceBranchingRecords *uint64        `json:"choice_trace_branching_records,omitempty"`
+-	ChoiceTraceTerminalState    *string        `json:"choice_trace_terminal_state,omitempty"`
++	Strategy                    string                     `json:"strategy,omitempty"`
++	Round                       *uint64                    `json:"round,omitempty"`
++	CandidateSHA256             record.SHA256              `json:"candidate_sha256,omitempty"`
++	ParentCandidateSHA256       record.SHA256              `json:"parent_candidate_sha256,omitempty"`
++	PrefixSHA256                record.SHA256              `json:"prefix_sha256,omitempty"`
++	ForcedDepth                 *uint64                    `json:"forced_depth,omitempty"`
++	OutcomeSHA256               record.SHA256              `json:"outcome_sha256,omitempty"`
++	Divergence                  *choice.DivergenceEvidence `json:"divergence,omitempty"`
++	SelectionOrdinal            uint64                     `json:"selection_ordinal"`
++	Seed                        uint64                     `json:"seed"`
++	Domain                      string                     `json:"domain"`
++	Reason                      string                     `json:"reason"`
++	Termination                 string                     `json:"termination"`
++	ElapsedNanos                uint64                     `json:"elapsed_nanos"`
++	FailureSignature            *record.SHA256             `json:"failure_signature,omitempty"`
++	Artifact                    *string                    `json:"artifact,omitempty"`
++	SuccessArtifact             *string                    `json:"success_artifact,omitempty"`
++	SuccessArtifactBytes        *uint64                    `json:"success_artifact_bytes,omitempty"`
++	SemanticProbes              []string                   `json:"semantic_probes,omitempty"`
++	NovelSemanticProbes         []string                   `json:"novel_semantic_probes,omitempty"`
++	TranscriptSHA256            *record.SHA256             `json:"transcript_sha256,omitempty"`
++	TranscriptRecords           *uint64                    `json:"transcript_records,omitempty"`
++	ChoiceTraceSHA256           *record.SHA256             `json:"choice_trace_sha256,omitempty"`
++	ChoiceTraceRecords          *uint64                    `json:"choice_trace_records,omitempty"`
++	ChoiceTraceBranchingRecords *uint64                    `json:"choice_trace_branching_records,omitempty"`
++	ChoiceTraceTerminalState    *string                    `json:"choice_trace_terminal_state,omitempty"`
+ }
+ 
+ type FailureArtifact struct {
+@@ -703,7 +705,7 @@
+ 	batch := opened.Record
+ 	result := CampaignInspection{
+ 		CampaignID: batch.CampaignID, PlanSHA256: batch.PlanSHA256, Shard: runnerCampaignShardPointer(batch.Shard), Strategy: batch.Strategy, Selection: batch.Selection, SelectionCount: uint64(batch.SelectionCount), Attempted: uint64(batch.Attempted),
+-		Succeeded: uint64(batch.Succeeded), Failures: uint64(batch.Failures), Watchdogs: uint64(batch.Watchdogs), Cancelled: uint64(batch.Cancelled),
++		Succeeded: uint64(batch.Succeeded), Failures: uint64(batch.Failures), ReplayDivergences: uint64(batch.ReplayDivergences), Watchdogs: uint64(batch.Watchdogs), Cancelled: uint64(batch.Cancelled),
+ 		DistinctFailures: uint64(batch.DistinctFailures), StopReason: batch.StopReason,
+ 		RetainedSuccesses: uint64(batch.RetainedSuccesses), RetainedSuccessBytes: uint64(batch.RetainedSuccessBytes),
+ 		ChoiceExploration: projectChoiceExplorationSummaryPointer(batch.ChoiceExploration), ChoiceExplorationImplementationSHA256: batch.ChoiceExplorationImplementationSHA256, ChoiceExplorationChainSHA256: batch.ChoiceExplorationChainSHA256, RecoveryExecutions: uint64(batch.RecoveryExecutions),
+@@ -723,7 +725,7 @@
+ 	seenArtifacts := make(map[string]struct{})
+ 	for _, run := range opened.Executions {
+ 		projected := ExecutionInspection{
+-			Strategy: run.Strategy, CandidateSHA256: run.CandidateSHA256, ParentCandidateSHA256: run.ParentCandidateSHA256, PrefixSHA256: run.PrefixSHA256, OutcomeSHA256: run.OutcomeSHA256,
++			Divergence: run.Divergence, Strategy: run.Strategy, CandidateSHA256: run.CandidateSHA256, ParentCandidateSHA256: run.ParentCandidateSHA256, PrefixSHA256: run.PrefixSHA256, OutcomeSHA256: run.OutcomeSHA256,
+ 			SelectionOrdinal: uint64(run.SelectionOrdinal), Seed: uint64(run.Seed), Domain: run.Domain, Reason: run.Reason,
+ 			Termination: run.Termination, ElapsedNanos: uint64(run.ElapsedNanos), FailureSignature: run.FailureSignature, Artifact: run.Artifact,
+ 			TranscriptSHA256:  run.IOTranscriptSHA256,
+--- a/tools/gomad3/cmd/gomad/internal/cli/explore_output.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/explore_output.go
+@@ -208,10 +208,10 @@
+ }
+ 
+ func classifyExploreSummary(summary runner.CampaignResult) string {
+-	if summary.Failures == 0 {
++	if summary.Failures == 0 && summary.ReplayDivergences == 0 {
+ 		return "success"
+ 	}
+-	if summary.ReplayDivergences == summary.Failures {
++	if summary.ReplayDivergences != 0 && (summary.Failures == 0 || summary.ReplayDivergences == summary.Failures) {
+ 		return "replay_divergence"
+ 	}
+ 	if summary.Watchdogs == summary.Failures {
+@@ -222,3 +222,13 @@
+ 	}
+ 	return "target_failure"
+ }
++
++func exploreSummaryStatus(summary runner.CampaignResult) int {
++	if summary.ChoiceExploration != nil && summary.ReplayDivergences != 0 {
++		return 3
++	}
++	if summary.Failures != 0 {
++		return 1
++	}
++	return 0
++}
+--- a/tools/gomad3/cmd/gomad/internal/cli/cli.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/cli.go
+@@ -15,6 +15,7 @@
+ 	"strings"
+ 	"time"
+ 
++	"go.temporal.io/server/tools/gomad3/choice"
+ 	"go.temporal.io/server/tools/gomad3/deterministicio"
+ 	"go.temporal.io/server/tools/gomad3/record"
+ 	"go.temporal.io/server/tools/gomad3/runner"
+@@ -319,6 +320,9 @@
+ 			exploration = fmt.Sprintf(" round=%d candidate=%s parent=%s prefix=%s depth=%d outcome=%s", optionalUint64(run.Round), run.CandidateSHA256, run.ParentCandidateSHA256, run.PrefixSHA256, optionalUint64(run.ForcedDepth), run.OutcomeSHA256)
+ 		} else if run.Strategy == string(runner.StrategySimulationExploration) {
+ 			exploration = fmt.Sprintf(" round=%d candidate=%s parent=%s depth=%d outcome=%s", optionalUint64(run.Round), run.CandidateSHA256, run.ParentCandidateSHA256, optionalUint64(run.ForcedDepth), run.OutcomeSHA256)
++		}
++		if run.Divergence != nil {
++			exploration += fmt.Sprintf(" divergence-ordinal=%d divergence-reason=%s", run.Divergence.Ordinal, choice.DivergenceReasonName(run.Divergence.Reason))
+ 		}
+ 		printer.printf("execution: ordinal=%d seed=%d domain=%s reason=%s termination=%s elapsed=%dns transcript=%s choices=%s%s\n", run.SelectionOrdinal, run.Seed, run.Domain, run.Reason, run.Termination, run.ElapsedNanos, transcript, choices, exploration)
+ 	}
+@@ -687,10 +691,7 @@
+ 		fmt.Fprintln(stderr, err)
+ 		return 3
+ 	}
+-	if summary.Failures != 0 {
+-		return 1
+-	}
+-	return 0
++	return exploreSummaryStatus(summary)
+ }
+ 
+ func runPlan(arguments []string, stdout, stderr io.Writer) int {
+--- a/tools/gomad3/cmd/gomad/internal/cli/resume.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/resume.go
+@@ -69,10 +69,7 @@
+ 		fmt.Fprintln(stderr, err)
+ 		return 3
+ 	}
+-	if summary.Failures != 0 {
+-		return 1
+-	}
+-	return 0
++	return exploreSummaryStatus(summary)
+ }
+ 
+ func classifyResumeError(err error) string {
+--- /dev/null
++++ b/tools/gomad3/runner/internal/exploration/choice/engine_divergence_test.go
+@@ -0,0 +1,145 @@
++package choice
++
++import (
++	"crypto/sha256"
++	"reflect"
++	"strings"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/choice"
++	"go.temporal.io/server/tools/gomad3/record"
++)
++
++func divergenceRound(t *testing.T, policy FailurePolicy) (State, Round, choice.Divergence) {
++	t.Helper()
++	config := testConfig()
++	config.Parallel, config.FailurePolicy = 3, policy
++	if policy == PolicyBudget {
++		config.FailureBudget = 2
++	}
++	state, err := New(config)
++	if err != nil {
++		t.Fatal(err)
++	}
++	root, _ := state.NextRound()
++	trace := testTape(t, config.Execution, testDecision(t, 0, choice.KindRunnable, 5, 0))
++	state, _, err = CommitRound(state, root, []Result{testResult(root.Candidates[0], trace, "root")})
++	if err != nil {
++		t.Fatal(err)
++	}
++	round, _ := state.NextRound()
++	prefix, err := round.Candidates[0].PrefixReplayPlan(config.Execution)
++	if err != nil {
++		t.Fatal(err)
++	}
++	expected := prefix.Decisions[0]
++	observed := testDecision(t, 0, choice.KindRunnable, 5, expected.Selected)
++	observed.AlternativeSetDigest = sha256.Sum256([]byte("changed alternatives"))
++	return state, round, choice.Divergence{Ordinal: 0, Reason: choice.DivergenceAlternativeSet, Expected: &expected, Observed: &observed, TapeRecords: 1}
++}
++
++func TestExplorationCommitsDivergenceAndSiblingsUnderEveryPolicy(t *testing.T) {
++	for _, policy := range []FailurePolicy{PolicyFirst, PolicyBudget, PolicyAll} {
++		t.Run(string(policy), func(t *testing.T) {
++			state, round, divergence := divergenceRound(t, policy)
++			failure := record.HashBytes([]byte("failure"))
++			results := []Result{
++				{CandidateSHA256: round.Candidates[0].SHA256, Divergence: &divergence},
++				{CandidateSHA256: round.Candidates[1].SHA256, OutcomeSHA256: record.HashBytes([]byte("target failure")), Failed: true, FailureSHA256: failure},
++				{CandidateSHA256: round.Candidates[2].SHA256, OutcomeSHA256: record.HashBytes([]byte("success"))},
++			}
++			next, segment, err := CommitRound(state, round, results)
++			if err != nil {
++				t.Fatal(err)
++			}
++			if next.LogicalExecutions != 4 || next.CommittedRounds != 2 || len(next.Outcomes) != 3 || !reflect.DeepEqual(next.FailureSignatures, []record.SHA256{failure}) || len(next.Queue) != 1 || len(next.Seen) != 5 {
++				t.Fatalf("committed divergence = %#v", next)
++			}
++			if got := segment.Results[0]; got.OutcomeSHA256 != "" || got.Failed || got.FailureSHA256 != "" || len(got.TraceBytes) != 0 || !reflect.DeepEqual(got.Divergence.Divergence(), divergence) {
++				t.Fatalf("divergent result = %#v", got)
++			}
++			_, available := next.NextRound()
++			if policy == PolicyFirst && (available || next.StopReason != StopFirstFailure) || policy != PolicyFirst && (!available || next.StopReason != "") {
++				t.Fatalf("policy %s: %#v", policy, next)
++			}
++			replayed, err := ReplaySegment(state, segment)
++			if err != nil {
++				t.Fatal(err)
++			}
++			if !reflect.DeepEqual(replayed, next) {
++				t.Fatalf("replay = %#v, want %#v", replayed, next)
++			}
++			divergence.Observed.Alternatives++
++			if segment.Results[0].Divergence.Observed.Alternatives != 5 {
++				t.Fatal("segment aliases executor divergence")
++			}
++		})
++	}
++}
++
++func TestExplorationRejectsInvalidCandidateDivergence(t *testing.T) {
++	for _, test := range []struct {
++		name   string
++		change func(*Result)
++	}{
++		{"outcome", func(r *Result) { r.OutcomeSHA256 = record.HashBytes([]byte("outcome")) }},
++		{"failed", func(r *Result) { r.Failed = true }},
++		{"signature", func(r *Result) { r.FailureSHA256 = record.HashBytes([]byte("signature")) }},
++		{"trace", func(r *Result) { r.Trace = &choice.ReplayPlan{} }},
++		{"expected", func(r *Result) { r.Divergence.Expected.Selected++ }},
++		{"ordinal", func(r *Result) { r.Divergence.Ordinal++ }},
++		{"tape count", func(r *Result) { r.Divergence.TapeRecords++ }},
++		{"reason", func(r *Result) { r.Divergence.Reason = choice.DivergenceSite }},
++		{"missing expected", func(r *Result) { r.Divergence.Expected = nil }},
++		{"missing observed", func(r *Result) { r.Divergence.Observed = nil }},
++		{"observed ordinal", func(r *Result) { r.Divergence.Observed.Ordinal++ }},
++		{"rank override", func(r *Result) { r.Divergence.Observed.RankOverride = true }},
++		{"observed kind", func(r *Result) { r.Divergence.Observed.Kind = 0 }},
++		{"observed count", func(r *Result) { r.Divergence.Observed.Alternatives = 0 }},
++		{"observed selection", func(r *Result) { r.Divergence.Observed.Selected = r.Divergence.Observed.Alternatives }},
++		{"observed identity", func(r *Result) { r.Divergence.Observed.SelectedIdentity = [32]byte{} }},
++		{"observed digest", func(r *Result) { r.Divergence.Observed.AlternativeSetDigest = [32]byte{} }},
++		{"observed site", func(r *Result) { r.Divergence.Observed.SiteMissing = true; r.Divergence.Observed.SiteOffset = 1 }},
++		{"expected kind", func(r *Result) { r.Divergence.Expected.Kind = 0 }},
++		{"expected count", func(r *Result) { r.Divergence.Expected.Alternatives = 0 }},
++		{"expected rank override", func(r *Result) { r.Divergence.Expected.RankOverride = false }},
++		{"missing identity", func(r *Result) { r.Divergence.Reason = choice.DivergenceIdentityMissing; r.Divergence.Observed = nil }},
++		{"duplicate identity", func(r *Result) { r.Divergence.Reason = choice.DivergenceIdentityDuplicate; r.Divergence.Observed = nil }},
++		{"alternative capacity", func(r *Result) {
++			r.Divergence.Reason = choice.DivergenceAlternativeCapacity
++			r.Divergence.Observed = nil
++		}},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			state, round, divergence := divergenceRound(t, PolicyAll)
++			result := Result{CandidateSHA256: round.Candidates[0].SHA256, Divergence: &divergence}
++			test.change(&result)
++			results := []Result{result, {CandidateSHA256: round.Candidates[1].SHA256, OutcomeSHA256: record.HashBytes([]byte("success"))}, {CandidateSHA256: round.Candidates[2].SHA256, OutcomeSHA256: record.HashBytes([]byte("success"))}}
++			if _, _, err := CommitRound(state, round, results); err == nil {
++				t.Fatal("accepted invalid divergence")
++			}
++		})
++	}
++	state, _, divergence := divergenceRound(t, PolicyAll)
++	initial, err := New(state.Config)
++	if err != nil {
++		t.Fatal(err)
++	}
++	root, _ := initial.NextRound()
++	if _, _, err := CommitRound(initial, root, []Result{{CandidateSHA256: root.Candidates[0].SHA256, Divergence: &divergence}}); err == nil {
++		t.Fatal("accepted root divergence")
++	}
++}
++
++func TestExplorationRejectsPreviousSegmentSchemaVisibly(t *testing.T) {
++	state, round, divergence := divergenceRound(t, PolicyAll)
++	results := []Result{{CandidateSHA256: round.Candidates[0].SHA256, Divergence: &divergence}, {CandidateSHA256: round.Candidates[1].SHA256, OutcomeSHA256: record.HashBytes([]byte("success"))}, {CandidateSHA256: round.Candidates[2].SHA256, OutcomeSHA256: record.HashBytes([]byte("success"))}}
++	_, segment, err := CommitRound(state, round, results)
++	if err != nil {
++		t.Fatal(err)
++	}
++	segment.Schema = "gomad3.choice-exploration-round/v1"
++	if _, err := ReplaySegment(state, segment); err == nil || !strings.Contains(err.Error(), "schema") {
++		t.Fatalf("old schema error = %v", err)
++	}
++}
+--- /dev/null
++++ b/tools/gomad3/runner/choice_exploration_divergence_test.go
+@@ -0,0 +1,261 @@
++package runner
++
++import (
++	"context"
++	"crypto/sha256"
++	"errors"
++	"reflect"
++	"sync"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/choice"
++	"go.temporal.io/server/tools/gomad3/record"
++	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
++	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
++	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
++)
++
++type candidateDivergenceExecutor struct {
++	base     *explorationExecutor
++	mu       sync.Mutex
++	diverged bool
++	change   func(*execution.Result, *choice.Divergence) error
++}
++
++func (e *candidateDivergenceExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
++	result, err := e.base.Run(ctx, request)
++	if err != nil || request.Choice.Mode != choice.ModePrefix {
++		return result, err
++	}
++	e.mu.Lock()
++	first := !e.diverged
++	e.diverged = true
++	e.mu.Unlock()
++	if !first {
++		return result, nil
++	}
++	expected := request.Choice.ReplayPlan.Decisions[0]
++	tape, err := choice.ProjectReplayPlan(result.ChoiceTrace.Trace, request.Choice.ReplayPlan.Identity)
++	if err != nil {
++		return result, err
++	}
++	observed := tape.Decisions[0]
++	observed.AlternativeSetDigest = sha256.Sum256([]byte("changed alternatives"))
++	divergence := choice.Divergence{Ordinal: 0, Reason: choice.DivergenceAlternativeSet, Expected: &expected, Observed: &observed, TapeRecords: 1}
++	if e.change != nil {
++		return result, e.change(&result, &divergence)
++	}
++	return result, &execution.ChoiceReplayDivergenceError{Divergence: divergence}
++}
++
++func divergenceCampaignConfig(t *testing.T, policy FailurePolicy, parallel int) CampaignSpec {
++	t.Helper()
++	preparer := newFakePreparer(t)
++	limit := choiceTraceLimit(t, 1)
++	executor := &candidateDivergenceExecutor{base: &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, alternatives: 4}}
++	config := testConfig(t, preparer, executor, "7", policy, parallel)
++	config.Strategy = StrategyChoiceExploration
++	config.ChoiceTraceLimit = limit
++	config.MaxExecutions = 8
++	config.MaxChoiceDepth = 4
++	config.MaxExplorationBytes = 1 << 20
++	return config
++}
++
++func TestRunChoiceExplorationDivergencePoliciesAndInspection(t *testing.T) {
++	for _, policy := range []FailurePolicy{PolicyFirst, PolicyBudget, PolicyAll} {
++		t.Run(string(policy), func(t *testing.T) {
++			config := divergenceCampaignConfig(t, policy, 1)
++			summary, err := Explore(t.Context(), config)
++			if err != nil {
++				t.Fatal(err)
++			}
++			wantRuns := uint64(4)
++			wantStop := StopExplorationExhausted
++			if policy == PolicyFirst {
++				wantRuns = 2
++				wantStop = StopFirstFailure
++			}
++			if summary.Attempted != wantRuns || summary.Succeeded != wantRuns-1 || summary.Failures != 1 || summary.ReplayDivergences != 1 || summary.DistinctFailures != 0 || summary.StopReason != wantStop {
++				t.Fatalf("summary = %#v", summary)
++			}
++			inspected, err := Inspect(summary.CampaignPath, InspectOptions{})
++			if err != nil {
++				t.Fatal(err)
++			}
++			if inspected.Campaign.ReplayDivergences != 1 || len(inspected.Campaign.Executions) != int(wantRuns) || len(inspected.Campaign.FailureArtifacts) != 0 {
++				t.Fatalf("inspection = %#v", inspected.Campaign)
++			}
++			run := inspected.Campaign.Executions[1]
++			if run.Reason != "replay_divergence" || run.Domain != "runner" || run.Divergence == nil || run.Divergence.Ordinal != 0 || run.Divergence.Reason != choice.DivergenceAlternativeSet || run.Divergence.Expected == nil || run.Divergence.Observed == nil || run.OutcomeSHA256 != "" {
++				t.Fatalf("divergent inspection = %#v", run)
++			}
++		})
++	}
++}
++
++func TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors(t *testing.T) {
++	typed := func(d choice.Divergence) error { return &execution.ChoiceReplayDivergenceError{Divergence: d} }
++	for _, test := range []struct {
++		name, reason string
++		change       func(*execution.Result, *choice.Divergence) error
++	}{
++		{"normal error", "target_supervision", func(_ *execution.Result, _ *choice.Divergence) error { return errors.New("executor failed") }},
++		{"cancelled", "runner_cancelled", func(r *execution.Result, _ *choice.Divergence) error { r.Cancelled = true; return nil }},
++		{"typed cancelled", "target_supervision", func(r *execution.Result, d *choice.Divergence) error { r.Cancelled = true; return typed(*d) }},
++		{"overflow", "choice_trace_overflow", func(_ *execution.Result, _ *choice.Divergence) error { return execution.ErrChoiceTraceOverflow }},
++		{"malformed trace", "choice_trace_malformed", func(_ *execution.Result, _ *choice.Divergence) error { return execution.ErrChoiceTraceMalformed }},
++		{"unterminated trace", "choice_trace_unterminated", func(_ *execution.Result, _ *choice.Divergence) error { return execution.ErrChoiceTraceUnterminated }},
++		{"missing identity", "target_supervision", func(_ *execution.Result, d *choice.Divergence) error {
++			d.Reason = choice.DivergenceIdentityMissing
++			d.Observed = nil
++			return typed(*d)
++		}},
++		{"duplicate identity", "target_supervision", func(_ *execution.Result, d *choice.Divergence) error {
++			d.Reason = choice.DivergenceIdentityDuplicate
++			d.Observed = nil
++			return typed(*d)
++		}},
++		{"alternative capacity", "target_supervision", func(_ *execution.Result, d *choice.Divergence) error {
++			d.Reason = choice.DivergenceAlternativeCapacity
++			d.Observed = nil
++			return typed(*d)
++		}},
++		{"tape exhaustion", "target_supervision", func(_ *execution.Result, d *choice.Divergence) error {
++			d.Reason = choice.DivergenceTapeExhausted
++			d.Ordinal = 1
++			d.Expected = nil
++			return typed(*d)
++		}},
++		{"typed watchdog", "target_supervision", func(r *execution.Result, d *choice.Divergence) error { r.WatchdogTimeout = true; return typed(*d) }},
++		{"wrong prefix", "target_supervision", func(_ *execution.Result, d *choice.Divergence) error { d.Expected.SiteOffset++; return typed(*d) }},
++		{"malformed observed", "target_supervision", func(_ *execution.Result, d *choice.Divergence) error {
++			d.Observed.SelectedIdentity = [32]byte{}
++			return typed(*d)
++		}},
++		{"joined failure", "target_supervision", func(_ *execution.Result, d *choice.Divergence) error {
++			return errors.Join(typed(*d), errors.New("output close failed"))
++		}},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			config := divergenceCampaignConfig(t, PolicyAll, 1)
++			config.Executor.(*candidateDivergenceExecutor).change = test.change
++			summary, err := Explore(t.Context(), config)
++			var host *HostError
++			if !errors.As(err, &host) || host.Reason != test.reason {
++				t.Fatalf("error = %v, want %s", err, test.reason)
++			}
++			if summary.Attempted != 1 || summary.ReplayDivergences != 0 || summary.ChoiceExploration.CommittedRounds != 1 {
++				t.Fatalf("host failure committed candidate: %#v", summary)
++			}
++		})
++	}
++}
++
++func TestProcessExplorationCompletionKeepsRunnerDomainFallback(t *testing.T) {
++	config := divergenceCampaignConfig(t, PolicyAll, 1)
++	prepared := config.Preparer.(*fakePreparer).prepared
++	implementation, err := choice.ImplementationIdentity(prepared.BuildKey)
++	if err != nil {
++		t.Fatal(err)
++	}
++	identity, err := choiceExecutionIdentity(prepared, implementation)
++	if err != nil {
++		t.Fatal(err)
++	}
++	state, err := choiceengine.New(choiceengine.Config{Execution: identity, ControllerSHA256: choiceengine.ImplementationSHA256(), BaseSeed: 7, Parallel: 1, MaxExecutions: 8, MaxChoiceDepth: 4, MaxExplorationBytes: 1 << 20, FailurePolicy: choiceengine.PolicyAll, FailureBudget: 1})
++	if err != nil {
++		t.Fatal(err)
++	}
++	round, _ := state.NextRound()
++	result := processResult(0, "", "")
++	result.Cancelled = true
++	_, err = processExplorationCompletion(t.Context(), config, prepared, nil, nil, "", "", nil, state, round, 0, runCompletion{job: runJob{seed: 7}, result: result}, &CampaignResult{}, nil, nil, nil)
++	var host *HostError
++	if !errors.As(err, &host) || host.Reason != "runner_cancelled" {
++		t.Fatalf("runner-domain fallback = %v", err)
++	}
++}
++
++func TestRunChoiceExplorationResumePreservesDivergenceIdentity(t *testing.T) {
++	config := divergenceCampaignConfig(t, PolicyAll, 1)
++	ctx, cancel := context.WithCancel(t.Context())
++	config.Progress = func(progress CampaignEvent) error {
++		if progress.ChoiceExploration != nil && progress.ChoiceExploration.CommittedRounds == 2 {
++			cancel()
++		}
++		return nil
++	}
++	partial, err := Explore(ctx, config)
++	var host *HostError
++	if !errors.As(err, &host) || partial.Attempted != 2 || partial.ReplayDivergences != 1 {
++		t.Fatalf("partial = %#v, err=%v", partial, err)
++	}
++	executor := config.Executor.(*candidateDivergenceExecutor)
++	resumed, err := Explore(t.Context(), CampaignSpec{ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: executor.base})
++	if err != nil {
++		t.Fatal(err)
++	}
++	uninterruptedConfig := divergenceCampaignConfig(t, PolicyAll, 1)
++	uninterrupted, err := Explore(t.Context(), uninterruptedConfig)
++	if err != nil {
++		t.Fatal(err)
++	}
++	resumedBatch, err := campaign.OpenCampaign(resumed.CampaignPath)
++	if err != nil {
++		t.Fatal(err)
++	}
++	uninterruptedBatch, err := campaign.OpenCampaign(uninterrupted.CampaignPath)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if !reflect.DeepEqual(resumed.ChoiceExploration, uninterrupted.ChoiceExploration) || resumedBatch.Record.ChoiceExplorationChainSHA256 != uninterruptedBatch.Record.ChoiceExplorationChainSHA256 || resumed.ReplayDivergences != 1 || resumed.DistinctFailures != 0 {
++		t.Fatalf("resumed = %#v, uninterrupted = %#v", resumed, uninterrupted)
++	}
++	for i, run := range resumedBatch.Executions {
++		run.ElapsedNanos = record.Uint64String(0)
++		other := uninterruptedBatch.Executions[i]
++		other.ElapsedNanos = 0
++		if !reflect.DeepEqual(run, other) {
++			t.Fatalf("run %d changed across resume: %#v, %#v", i, run, other)
++		}
++	}
++}
++
++func TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons(t *testing.T) {
++	for _, reason := range []choice.DivergenceReason{choice.DivergenceKind, choice.DivergenceSite, choice.DivergenceAlternatives, choice.DivergenceSelected, choice.DivergenceAlternativeSet, choice.DivergenceTapeUnconsumed, choice.DivergenceObservation} {
++		t.Run(choice.DivergenceReasonName(reason), func(t *testing.T) {
++			config := divergenceCampaignConfig(t, PolicyAll, 1)
++			config.Executor.(*candidateDivergenceExecutor).change = func(_ *execution.Result, d *choice.Divergence) error {
++				d.Reason = reason
++				if reason != choice.DivergenceAlternativeSet {
++					d.Observed.AlternativeSetDigest = d.Expected.AlternativeSetDigest
++				}
++				switch reason {
++				case choice.DivergenceKind:
++					d.Observed.Kind = choice.KindSelectPoll
++				case choice.DivergenceSite:
++					d.Observed.SiteOffset++
++				case choice.DivergenceAlternatives:
++					d.Observed.Alternatives++
++				case choice.DivergenceSelected:
++					d.Observed.Selected = (d.Expected.Selected + 1) % d.Expected.Alternatives
++				case choice.DivergenceTapeUnconsumed:
++					d.Observed = nil
++				}
++				return &execution.ChoiceReplayDivergenceError{Divergence: *d}
++			}
++			summary, err := Explore(t.Context(), config)
++			if err != nil {
++				t.Fatal(err)
++			}
++			batch, err := campaign.OpenCampaign(summary.CampaignPath)
++			if err != nil {
++				t.Fatal(err)
++			}
++			if summary.ReplayDivergences != 1 || batch.Executions[1].Divergence.Reason != reason {
++				t.Fatalf("reason %d was not retained", reason)
++			}
++		})
++	}
++}
+--- /dev/null
++++ b/tools/gomad3/runner/choice_exploration_divergence_unix_test.go
+@@ -0,0 +1,143 @@
++//go:build unix
++
++package runner
++
++import (
++	"bufio"
++	"bytes"
++	"context"
++	"errors"
++	"fmt"
++	"io"
++	"os"
++	"os/exec"
++	"path/filepath"
++	"reflect"
++	"strings"
++	"syscall"
++	"testing"
++	"time"
++
++	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
++)
++
++func TestChoiceExplorationDivergenceCrashHelper(t *testing.T) {
++	root := os.Getenv("GOMAD3_DIVERGENCE_CRASH_ARTIFACTS")
++	if root == "" {
++		return
++	}
++	config := divergenceCampaignConfig(t, PolicyAll, 1)
++	config.Artifacts = root
++	config.Progress = func(event CampaignEvent) error {
++		if event.ChoiceExploration != nil && event.ChoiceExploration.CommittedRounds == 2 {
++			if _, err := fmt.Fprintln(os.Stdout, "COMMITTED_DIVERGENCE "+event.CampaignPath); err != nil {
++				return err
++			}
++			_, err := io.ReadFull(os.Stdin, make([]byte, 1))
++			return err
++		}
++		return nil
++	}
++	if _, err := Explore(t.Context(), config); err != nil {
++		t.Fatal(err)
++	}
++	t.Fatal("crash helper escaped the committed-round barrier")
++}
++
++func TestRunChoiceExplorationKilledAfterDivergenceResumesSameState(t *testing.T) {
++	ctx, cancel := context.WithTimeout(t.Context(), 45*time.Second)
++	defer cancel()
++	command := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestChoiceExplorationDivergenceCrashHelper$")
++	command.Env = append(os.Environ(), "GOMAD3_DIVERGENCE_CRASH_ARTIFACTS="+t.TempDir())
++	output, err := command.StdoutPipe()
++	if err != nil {
++		t.Fatal(err)
++	}
++	input, err := command.StdinPipe()
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer input.Close()
++	var stderr bytes.Buffer
++	command.Stderr = &stderr
++	if err := command.Start(); err != nil {
++		t.Fatal(err)
++	}
++	waited := make(chan error, 1)
++	reaped := false
++	go func() { waited <- command.Wait() }()
++	t.Cleanup(func() {
++		if !reaped {
++			if err := command.Process.Kill(); err != nil && !errors.Is(err, os.ErrProcessDone) {
++				t.Error(err)
++			}
++			<-waited
++			reaped = true
++		}
++	})
++	ready := make(chan string, 1)
++	go func() {
++		scanner := bufio.NewScanner(output)
++		for scanner.Scan() {
++			if path, ok := strings.CutPrefix(scanner.Text(), "COMMITTED_DIVERGENCE "); ok {
++				ready <- path
++				return
++			}
++		}
++		ready <- ""
++	}()
++	var path string
++	select {
++	case path = <-ready:
++	case <-ctx.Done():
++		t.Fatal("committed-round barrier timed out")
++	}
++	if path == "" {
++		select {
++		case waitErr := <-waited:
++			reaped = true
++			t.Fatalf("crash helper failed: %v: %s", waitErr, stderr.String())
++		case <-ctx.Done():
++			t.Fatal("crash helper did not exit after closing stdout")
++		}
++	}
++	committedPath := filepath.Join(path, "choice-exploration", "rounds", "00000000000000000001", "segment.json")
++	if _, err := os.Stat(committedPath); err != nil {
++		t.Fatal(err)
++	}
++	if err := syscall.Kill(command.Process.Pid, syscall.SIGKILL); err != nil {
++		t.Fatal(err)
++	}
++	select {
++	case err := <-waited:
++		reaped = true
++		var exited *exec.ExitError
++		if !errors.As(err, &exited) || exited.Sys().(syscall.WaitStatus).Signal() != syscall.SIGKILL {
++			t.Fatalf("helper kill = %v", err)
++		}
++	case <-ctx.Done():
++		t.Fatal("killed helper did not exit")
++	}
++	config := divergenceCampaignConfig(t, PolicyAll, 1)
++	base := config.Executor.(*candidateDivergenceExecutor).base
++	resumed, err := Explore(t.Context(), CampaignSpec{ResumeCampaign: path, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: base})
++	if err != nil {
++		t.Fatal(err)
++	}
++	uninterrupted, err := Explore(t.Context(), config)
++	if err != nil {
++		t.Fatal(err)
++	}
++	resumedBatch, err := campaign.OpenCampaign(path)
++	if err != nil {
++		t.Fatal(err)
++	}
++	uninterruptedBatch, err := campaign.OpenCampaign(uninterrupted.CampaignPath)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if !reflect.DeepEqual(resumed.ChoiceExploration, uninterrupted.ChoiceExploration) || resumed.ReplayDivergences != 1 || resumed.Attempted != 4 || resumed.RecoveryExecutions != 0 || resumedBatch.Record.ChoiceExplorationChainSHA256 != uninterruptedBatch.Record.ChoiceExplorationChainSHA256 {
++		t.Fatalf("crash/resume differs: %#v, %#v", resumed, uninterrupted)
++	}
++	t.Logf("SIGKILL pid=%d after committed divergent round1; resumed canonical chain=%s equals uninterrupted", command.Process.Pid, resumedBatch.Record.ChoiceExplorationChainSHA256)
++}
+--- /dev/null
++++ b/tools/gomad3/runner/internal/campaign/choice_exploration_divergence_test.go
+@@ -0,0 +1,178 @@
++package campaign
++
++import (
++	"context"
++	"crypto/sha256"
++	"os"
++	"path/filepath"
++	"reflect"
++	"strings"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/choice"
++	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
++	"go.temporal.io/server/tools/gomad3/record"
++	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
++)
++
++func journalDivergence(t *testing.T) (string, choiceengine.State, *ExplorationJournal, choiceengine.RoundSegment) {
++	t.Helper()
++	path := privateDirectory(t)
++	initial := testExplorationState(t)
++	journal, err := NewExplorationJournal(context.Background(), path, initial, 1<<20)
++	if err != nil {
++		t.Fatal(err)
++	}
++	identities := [][32]byte{sha256.Sum256([]byte("first")), sha256.Sum256([]byte("second"))}
++	decision, err := choice.CanonicalDecision(0, choice.KindRunnable, 1, false, identities, identities[0], 0)
++	if err != nil {
++		t.Fatal(err)
++	}
++	trace, err := choice.BuildTrace([]choice.Record{decision.Record()}, choice.TerminalComplete)
++	if err != nil {
++		t.Fatal(err)
++	}
++	tape, err := choice.ProjectReplayPlan(trace, initial.Config.Execution)
++	if err != nil {
++		t.Fatal(err)
++	}
++	root, _ := initial.NextRound()
++	staged, err := journal.StageRound(root)
++	if err != nil {
++		t.Fatal(err)
++	}
++	outcome := record.HashBytes([]byte("root"))
++	roundValue, depth := record.Uint64String(0), record.Uint64String(0)
++	if err := staged.RecordExecution(0, ExecutionRecord{Strategy: "choice-exploration", Round: &roundValue, CandidateSHA256: root.Candidates[0].SHA256, ForcedDepth: &depth, OutcomeSHA256: outcome, Seed: 7, Domain: "success", Reason: "success", Termination: "exit"}); err != nil {
++		t.Fatal(err)
++	}
++	state, segment, err := choiceengine.CommitRound(initial, root, []choiceengine.Result{{CandidateSHA256: root.Candidates[0].SHA256, OutcomeSHA256: outcome, Trace: &tape}})
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := journal.CommitRound(staged, segment); err != nil {
++		t.Fatal(err)
++	}
++	round, _ := state.NextRound()
++	candidate := round.Candidates[0]
++	prefix, err := candidate.PrefixReplayPlan(state.Config.Execution)
++	if err != nil {
++		t.Fatal(err)
++	}
++	expected := prefix.Decisions[0]
++	observed := decision
++	observed.AlternativeSetDigest = sha256.Sum256([]byte("changed"))
++	divergence := &choice.Divergence{Ordinal: 0, Reason: choice.DivergenceAlternativeSet, Expected: &expected, Observed: &observed, TapeRecords: 1}
++	evidence := choice.ProjectDivergenceEvidence(*divergence)
++	staged, err = journal.StageRound(round)
++	if err != nil {
++		t.Fatal(err)
++	}
++	childRoundValue, childDepth := record.Uint64String(1), record.Uint64String(1)
++	if err := staged.RecordExecution(0, ExecutionRecord{Strategy: "choice-exploration", Round: &childRoundValue, CandidateSHA256: candidate.SHA256, ParentCandidateSHA256: candidate.ParentSHA256, PrefixSHA256: candidate.PrefixSHA256, ForcedDepth: &childDepth, SelectionOrdinal: 1, Seed: 7, Domain: "runner", Reason: "replay_divergence", Termination: "none", Divergence: &evidence}); err != nil {
++		t.Fatal(err)
++	}
++	final, segment, err := choiceengine.CommitRound(state, round, []choiceengine.Result{{CandidateSHA256: candidate.SHA256, Divergence: divergence}})
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := journal.CommitRound(staged, segment); err != nil {
++		t.Fatal(err)
++	}
++	return path, final, journal, segment
++}
++
++func TestResumeExplorationJournalRetainsDivergenceAndRejectsCorruption(t *testing.T) {
++	for _, change := range []string{"none", "old schema", "run divergence"} {
++		t.Run(change, func(t *testing.T) {
++			path, final, journal, segment := journalDivergence(t)
++			roundPath := filepath.Join(path, "choice-exploration", "rounds", "00000000000000000001")
++			switch change {
++			case "old schema":
++				segment.Schema = "gomad3.choice-exploration-round/v1"
++				data, err := canonicaljson.CanonicalJSON(segment)
++				if err != nil {
++					t.Fatal(err)
++				}
++				if err := os.WriteFile(filepath.Join(roundPath, "segment.json"), data, 0o600); err != nil {
++					t.Fatal(err)
++				}
++			case "run divergence":
++				run := journal.CommittedExecutions()[1]
++				run.Divergence.Ordinal++
++				data, err := canonicaljson.CanonicalJSON(run)
++				if err != nil {
++					t.Fatal(err)
++				}
++				if err := os.WriteFile(filepath.Join(roundPath, "executions", "00000000000000000000.json"), data, 0o600); err != nil {
++					t.Fatal(err)
++				}
++			}
++			resumed, state, recovery, err := ResumeExplorationJournal(t.Context(), path, final.Config, 1<<20)
++			if change != "none" {
++				if err == nil || change == "old schema" && !strings.Contains(err.Error(), "schema") {
++					t.Fatalf("corruption error = %v", err)
++				}
++				return
++			}
++			if err != nil {
++				t.Fatal(err)
++			}
++			if !reflect.DeepEqual(state, final) {
++				t.Fatal("resume changed divergent state")
++			}
++			if recovery != 0 {
++				t.Fatalf("recovery executions = %d", recovery)
++			}
++			if !reflect.DeepEqual(resumed.CommittedExecutions(), journal.CommittedExecutions()) {
++				t.Fatal("resume changed execution records")
++			}
++		})
++	}
++}
++
++func TestDivergenceFieldsAreAbsentFromOrdinaryJSON(t *testing.T) {
++	for _, value := range []any{ExecutionRecord{}, CampaignRecord{}, choiceengine.SegmentResult{}} {
++		data, err := canonicaljson.CanonicalJSON(value)
++		if err != nil {
++			t.Fatal(err)
++		}
++		if strings.Contains(string(data), "divergence") {
++			t.Fatalf("ordinary JSON gained divergence fields: %s", data)
++		}
++	}
++}
++
++func TestExplorationDivergenceEvidenceCannotBeUsedAsTargetOutcome(t *testing.T) {
++	_, _, journal, _ := journalDivergence(t)
++	for _, test := range []struct {
++		name   string
++		change func(*ExecutionRecord)
++	}{
++		{"outcome", func(r *ExecutionRecord) { r.OutcomeSHA256 = record.HashBytes([]byte("outcome")) }},
++		{"target", func(r *ExecutionRecord) { r.Domain = "target" }},
++		{"signature", func(r *ExecutionRecord) { v := record.HashBytes([]byte("signature")); r.FailureSignature = &v }},
++		{"artifact", func(r *ExecutionRecord) { v := "failures/x"; r.Artifact = &v }},
++		{"trace", func(r *ExecutionRecord) { v := record.HashBytes([]byte("trace")); r.ChoiceTraceSHA256 = &v }},
++		{"success", func(r *ExecutionRecord) { v := "successes/x"; r.SuccessArtifact = &v }},
++		{"root", func(r *ExecutionRecord) {
++			v := record.Uint64String(0)
++			r.ForcedDepth = &v
++			r.ParentCandidateSHA256 = ""
++			r.PrefixSHA256 = ""
++		}},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			run := journal.CommittedExecutions()[1]
++			test.change(&run)
++			if err := validateExplorationExecutionSummary(run, map[record.SHA256]struct{}{}); err == nil {
++				t.Fatal("accepted invalid divergence record")
++			}
++		})
++	}
++	run := journal.CommittedExecutions()[1]
++	run.Strategy = "simulation-exploration"
++	if err := validateSimulationExplorationExecutionSummary(run, map[record.SHA256]struct{}{}); err == nil {
++		t.Fatal("accepted divergence for simulation strategy")
++	}
++}
+--- /dev/null
++++ b/tools/gomad3/cmd/gomad/internal/cli/exploration_divergence_test.go
+@@ -0,0 +1,77 @@
++package cli
++
++import (
++	"bytes"
++	"context"
++	"encoding/json"
++	"strings"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/choice"
++	"go.temporal.io/server/tools/gomad3/runner"
++)
++
++func TestChoiceExplorationDivergenceClassificationAndStatus(t *testing.T) {
++	for _, test := range []struct {
++		name           string
++		summary        runner.CampaignResult
++		classification string
++		status         int
++	}{
++		{"choice confidence failure", runner.CampaignResult{Failures: 1, ReplayDivergences: 1, ChoiceExploration: &runner.ChoiceExplorationSummary{}}, "replay_divergence", 3},
++		{"choice mixed failure", runner.CampaignResult{Failures: 2, ReplayDivergences: 1, ChoiceExploration: &runner.ChoiceExplorationSummary{}}, "mixed_failure", 3},
++		{"confidence counter without target failure", runner.CampaignResult{ReplayDivergences: 1, ChoiceExploration: &runner.ChoiceExplorationSummary{}}, "replay_divergence", 3},
++		{"world replay divergence", runner.CampaignResult{Failures: 1, ReplayDivergences: 1}, "replay_divergence", 1},
++		{"target failure", runner.CampaignResult{Failures: 1}, "target_failure", 1},
++		{"success", runner.CampaignResult{}, "success", 0},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			if got := classifyExploreSummary(test.summary); got != test.classification {
++				t.Fatalf("classification = %s", got)
++			}
++			if got := exploreSummaryStatus(test.summary); got != test.status {
++				t.Fatalf("status = %d", got)
++			}
++			var stdout, stderr bytes.Buffer
++			status := runResumeWith([]string{"--json", "campaign"}, &stdout, &stderr, resumeDependencies{
++				identity: func(string) (string, string, string, error) { return "toolchain", "gomad", "runner", nil },
++				run:      func(context.Context, runner.ResumeSpec) (runner.CampaignResult, error) { return test.summary, nil },
++			})
++			if status != test.status {
++				t.Fatalf("resume status=%d output=%s stderr=%s", status, stdout.String(), stderr.String())
++			}
++			var result exploreEvent
++			if err := json.Unmarshal(stdout.Bytes(), &result); err != nil {
++				t.Fatal(err)
++			}
++			if result.Classification != test.classification {
++				t.Fatalf("reported classification=%s", result.Classification)
++			}
++		})
++	}
++}
++
++func TestInspectReportsCandidateReplayDivergence(t *testing.T) {
++	candidate := runner.ExecutionInspection{Strategy: string(runner.StrategyChoiceExploration), Domain: "runner", Reason: "replay_divergence", Divergence: &choice.DivergenceEvidence{Ordinal: 7, Reason: choice.DivergenceAlternativeSet}}
++	inspected := runner.CampaignInspection{ReplayDivergences: 1, Executions: []runner.ExecutionInspection{candidate}}
++	var output bytes.Buffer
++	printer := &inspectionPrinter{output: &output}
++	printCampaignInspection(printer, &inspected)
++	if printer.err != nil {
++		t.Fatal(printer.err)
++	}
++	for _, expected := range []string{"reason=replay_divergence", "divergence-ordinal=7", "divergence-reason=alternative_set"} {
++		if !strings.Contains(output.String(), expected) {
++			t.Fatalf("inspect missing %s: %s", expected, output.String())
++		}
++	}
++	encoded, err := json.Marshal(inspected)
++	if err != nil {
++		t.Fatal(err)
++	}
++	for _, expected := range []string{"\"divergence\"", "\"ordinal\":7", "\"reason\":5", "\"replay_divergences\":1"} {
++		if !bytes.Contains(encoded, []byte(expected)) {
++			t.Fatalf("inspect JSON missing %s: %s", expected, encoded)
++		}
++	}
++}
+--- /dev/null
++++ b/tools/gomad3/choice/divergence.go
+@@ -0,0 +1,75 @@
++package choice
++
++import (
++	"crypto/sha256"
++	"errors"
++	"fmt"
++)
++
++type DivergenceEvidence struct {
++	Ordinal     uint64            `json:"ordinal"`
++	Reason      DivergenceReason  `json:"reason"`
++	Expected    *DecisionEvidence `json:"expected,omitempty"`
++	Observed    *DecisionEvidence `json:"observed,omitempty"`
++	TapeRecords uint64            `json:"tape_records"`
++}
++
++type DecisionEvidence struct {
++	Ordinal              uint64            `json:"ordinal"`
++	Kind                 Kind              `json:"kind"`
++	SiteOffset           uint64            `json:"site_offset"`
++	SiteMissing          bool              `json:"site_missing"`
++	RankOverride         bool              `json:"rank_override"`
++	Alternatives         uint32            `json:"alternatives"`
++	Selected             uint32            `json:"selected"`
++	Data                 uint32            `json:"data"`
++	SelectedIdentity     [sha256.Size]byte `json:"selected_identity"`
++	AlternativeSetDigest [sha256.Size]byte `json:"alternative_set_digest"`
++}
++
++func ProjectDivergenceEvidence(divergence Divergence) DivergenceEvidence {
++	evidence := DivergenceEvidence{Ordinal: divergence.Ordinal, Reason: divergence.Reason, TapeRecords: divergence.TapeRecords}
++	if divergence.Expected != nil {
++		expected := DecisionEvidence(*divergence.Expected)
++		evidence.Expected = &expected
++	}
++	if divergence.Observed != nil {
++		observed := DecisionEvidence(*divergence.Observed)
++		evidence.Observed = &observed
++	}
++	return evidence
++}
++
++func (evidence DivergenceEvidence) Divergence() Divergence {
++	divergence := Divergence{Ordinal: evidence.Ordinal, Reason: evidence.Reason, TapeRecords: evidence.TapeRecords}
++	if evidence.Expected != nil {
++		expected := Decision(*evidence.Expected)
++		divergence.Expected = &expected
++	}
++	if evidence.Observed != nil {
++		observed := Decision(*evidence.Observed)
++		divergence.Observed = &observed
++	}
++	return divergence
++}
++
++func ValidatePrefixReplayDivergence(tape ReplayPlan, divergence Divergence) error {
++	terminal := terminal{State: TerminalDiverged, DivergentOrdinal: divergence.Ordinal, DivergenceReason: divergence.Reason, TapeRecords: divergence.TapeRecords}
++	if divergence.Expected != nil {
++		if _, err := encodeRecord(divergence.Expected.Record()); err != nil {
++			return fmt.Errorf("choice divergence expected decision: %w", err)
++		}
++		terminal.ExpectedPresent, terminal.Expected = true, divergence.Expected.Record()
++	}
++	if divergence.Observed != nil {
++		if divergence.Observed.Ordinal != divergence.Ordinal || divergence.Observed.RankOverride {
++			return errors.New("choice divergence observed decision is invalid")
++		}
++		if _, err := encodeRecord(divergence.Observed.Record()); err != nil {
++			return fmt.Errorf("choice divergence observed decision: %w", err)
++		}
++		terminal.ObservedPresent, terminal.Observed = true, divergence.Observed.Record()
++	}
++	_, err := validateDivergenceTerminal(tape, ModePrefix, terminal)
++	return err
++}

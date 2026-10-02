@@ -1,0 +1,8 @@
+--- FAIL: TestExplorationRejectsInvalidCandidateDivergence (0.03s)
+    --- FAIL: TestExplorationRejectsInvalidCandidateDivergence/observation_beyond_prefix_boundary (0.00s)
+        engine_divergence_test.go:131: accepted invalid divergence
+    --- FAIL: TestExplorationRejectsInvalidCandidateDivergence/observation_at_prefix_boundary (0.00s)
+        engine_divergence_test.go:131: accepted invalid divergence
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice	0.309s
+FAIL

@@ -1,0 +1,5 @@
+# go.temporal.io/server/tools/gomad3/qualification [go.temporal.io/server/tools/gomad3/qualification.test]
+qualification/diagnostics_test.go:34:117: report.DiagnosticDivergence.BaselineIteration undefined (type *"go.temporal.io/server/tools/gomad3/choice".DiagnosticDivergence has no field or method BaselineIteration)
+qualification/diagnostics_test.go:34:169: report.DiagnosticDivergence.Iteration undefined (type *"go.temporal.io/server/tools/gomad3/choice".DiagnosticDivergence has no field or method Iteration)
+FAIL	go.temporal.io/server/tools/gomad3/qualification [build failed]
+FAIL

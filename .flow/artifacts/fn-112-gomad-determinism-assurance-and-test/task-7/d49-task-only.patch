@@ -1,0 +1,1367 @@
+diff --git a/tools/gomad3/runner/internal/execution/model_conformance_test.go b/tools/gomad3/runner/internal/execution/model_conformance_test.go
+new file mode 100644
+--- /dev/null
++++ b/tools/gomad3/runner/internal/execution/model_conformance_test.go
+@@ -0,0 +1,298 @@
++package execution_test
++
++import (
++	"bytes"
++	"context"
++	"encoding/json"
++	"fmt"
++	"io"
++	"os"
++	"os/exec"
++	"path/filepath"
++	"runtime"
++	"strconv"
++	"strings"
++	"testing"
++	"time"
++
++	"go.temporal.io/server/tools/gomad3/deterministicio"
++	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
++	"go.temporal.io/server/tools/gomad3/target"
++	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
++)
++
++type modelOperationResult struct {
++	Operation string `json:"operation"`
++	Result    string `json:"result"`
++	Error     string `json:"error"`
++}
++
++type modelDifference struct {
++	Name      string
++	Reason    string
++	Normalize func(modelOperationResult) (modelOperationResult, error)
++}
++
++// Directory allocation sizes belong to the host filesystem, not file contents.
++// All other metadata, including regular-file sizes, remains comparable.
++var modelDeclaredDifferences = map[string][]modelDifference{
++	"darwin/arm64": {{"directory-size", "Native directories occupy filesystem allocation bytes; Gomad directories have no data bytes.", normalizeModelDirectorySize}},
++	"linux/amd64":  {{"directory-size", "Native directories occupy filesystem allocation bytes; Gomad directories have no data bytes.", normalizeModelDirectorySize}},
++}
++
++func normalizeModelDirectorySize(row modelOperationResult) (modelOperationResult, error) {
++	if row.Operation != "stat-dir workspace/dir" || row.Error != "ok" {
++		return row, nil
++	}
++	var info struct {
++		Name      *string `json:"name"`
++		Directory *bool   `json:"directory"`
++		Size      *int64  `json:"size"`
++		Mode      *uint32 `json:"mode"`
++	}
++	decoder := json.NewDecoder(strings.NewReader(row.Result))
++	decoder.DisallowUnknownFields()
++	if err := decoder.Decode(&info); err != nil {
++		return row, err
++	}
++	if err := decoder.Decode(new(any)); err != io.EOF {
++		return row, fmt.Errorf("trailing directory metadata")
++	}
++	if info.Name == nil || info.Directory == nil || info.Size == nil || info.Mode == nil || !*info.Directory || *info.Name != "dir" || *info.Size < 0 {
++		return row, fmt.Errorf("invalid directory metadata: %s", row.Result)
++	}
++	*info.Size = 0
++	data, err := json.Marshal(info)
++	row.Result = string(data)
++	return row, err
++}
++
++func compareModelLogs(platform string, model, native []modelOperationResult) error {
++	differences, ok := modelDeclaredDifferences[platform]
++	if !ok {
++		return fmt.Errorf("undeclared platform %s", platform)
++	}
++	if len(model) != len(native) {
++		return fmt.Errorf("operation count: model=%d native=%d", len(model), len(native))
++	}
++	for index := range model {
++		left, right := model[index], native[index]
++		for _, difference := range differences {
++			var err error
++			left, err = difference.Normalize(left)
++			if err != nil {
++				return fmt.Errorf("model operation %d: %w", index+1, err)
++			}
++			right, err = difference.Normalize(right)
++			if err != nil {
++				return fmt.Errorf("native operation %d: %w", index+1, err)
++			}
++		}
++		if left != right {
++			return fmt.Errorf("operation %d: model=%+v native=%+v", index+1, model[index], native[index])
++		}
++	}
++	return nil
++}
++
++// Prefix outcomes need not be monotonic: closing a handle can hide an earlier
++// difference. Re-execute every prefix in order instead of binary searching.
++func shortestModelDivergence(length int, compare func(int) error) (int, error) {
++	for prefix := 1; prefix <= length; prefix++ {
++		if err := compare(prefix); err != nil {
++			return prefix, err
++		}
++	}
++	return 0, nil
++}
++
++func TestModelConformanceFilesystem(t *testing.T) { runModelConformance(t, "model_fs") }
++func TestModelConformanceTCP(t *testing.T)        { runModelConformance(t, "model_net") }
++
++func runModelConformance(t *testing.T, fixture string) {
++	t.Helper()
++	platform := runtime.GOOS + "/" + runtime.GOARCH
++	if _, ok := modelDeclaredDifferences[platform]; !ok {
++		t.Skipf("model conformance unsupported on %s", platform)
++	}
++	toolchainRoot, err := filepath.Abs(filepath.Join("..", "..", "..", ".toolchain"))
++	if err != nil {
++		t.Fatal(err)
++	}
++	working, err := filepath.Abs(filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"))
++	if err != nil {
++		t.Fatal(err)
++	}
++	prepared, err := target.Prepare(context.Background(), target.Spec{Kind: target.KindGoRun, Source: "./" + fixture, WorkingDir: working, PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot})
++	if err != nil {
++		t.Fatal(err)
++	}
++	stock := modelStockGo(t, toolchainRoot)
++	nativePath := filepath.Join(t.TempDir(), fixture)
++	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
++	defer cancel()
++	command := exec.CommandContext(ctx, stock, "build", "-tags=test_dep", "-o", nativePath, "./"+fixture)
++	command.Dir = working
++	command.Env = modelBuildEnvironment()
++	if output, err := command.CombinedOutput(); err != nil {
++		t.Fatalf("stock build: %v: %s", err, output)
++	}
++	profile := deterministicio.Default()
++	const length = 64
++	for _, seed := range []uint64{0, 1, 7, 42, 89} {
++		t.Run(strconv.FormatUint(seed, 10), func(t *testing.T) {
++			run := func(prefix int) ([]modelOperationResult, []modelOperationResult, error) {
++				args := []string{strconv.FormatUint(seed, 10), strconv.Itoa(prefix)}
++				frame, err := profile.BootstrapFrame(prepared, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", seed)
++				if err != nil {
++					return nil, nil, err
++				}
++				result, err := execution.Run(context.Background(), execution.Spec{
++					SupervisorCommand: []string{os.Args[0], "-test.run=TestEntropySupervisorHelper"}, BootstrapCommand: []string{os.Args[0], "-test.run=TestEntropyBootstrapHelper"},
++					Command: prepared.Path, Args: args, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=" + args[0], "TZ=UTC"},
++					ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
++					World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: seed}, IO: &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}},
++				})
++				if err != nil || result.Termination != execution.TerminationExit || result.ExitCode != 0 {
++					return nil, nil, fmt.Errorf("model run: %v termination=%s/%d stdout=%q stderr=%q", err, result.Termination, result.ExitCode, result.Stdout.Bytes, result.Stderr.Bytes)
++				}
++				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
++				defer cancel()
++				command := exec.CommandContext(ctx, nativePath, args...)
++				command.Dir = t.TempDir()
++				command.Env = []string{"TZ=UTC"}
++				var stdout, stderr bytes.Buffer
++				command.Stdout = &stdout
++				command.Stderr = &stderr
++				if err := command.Run(); err != nil {
++					return nil, nil, fmt.Errorf("native run: %v stdout=%q stderr=%q", err, stdout.String(), stderr.String())
++				}
++				model, err := decodeModelLog(result.Stdout.Bytes, prefix)
++				if err != nil {
++					return nil, nil, err
++				}
++				native, err := decodeModelLog(stdout.Bytes(), prefix)
++				if err != nil {
++					return nil, nil, err
++				}
++				return model, native, nil
++			}
++			model, native, err := run(length)
++			if err == nil {
++				for name, rows := range map[string][]modelOperationResult{"model": model, "native": native} {
++					data, err := json.Marshal(rows)
++					if err != nil {
++						t.Fatal(err)
++					}
++					t.Logf("fixture=%s seed=%d operations=%d %s log=%s", fixture, seed, length, name, data)
++				}
++			}
++			if err == nil {
++				err = compareModelLogs(platform, model, native)
++			}
++			if err != nil {
++				original := err
++				prefix, divergence := shortestModelDivergence(length, func(prefix int) error {
++					model, native, err := run(prefix)
++					if err != nil {
++						return err
++					}
++					return compareModelLogs(platform, model, native)
++				})
++				if prefix == 0 {
++					t.Fatalf("fixture=%s seed=%d length=%d non-reproducing divergence: %v", fixture, seed, length, original)
++				}
++				t.Fatalf("fixture=%s seed=%d shortest diverging prefix=%d; reproduce argv=%d %d: %v", fixture, seed, prefix, seed, prefix, divergence)
++			}
++			for _, prefix := range []int{1, 3, 4, 14, 15, 16, 30, 31, 51, 52, 54, 55, 57, 59, 60, 63} {
++				prefixModel, prefixNative, err := run(prefix)
++				if err != nil {
++					t.Fatalf("fixture=%s seed=%d prefix=%d: %v", fixture, seed, prefix, err)
++				}
++				for _, pair := range [][2][]modelOperationResult{{model[:prefix], prefixModel}, {native[:prefix], prefixNative}} {
++					if err := compareModelLogs(platform, pair[0], pair[1]); err != nil {
++						t.Fatalf("fixture=%s seed=%d generation changed prefix=%d: %v", fixture, seed, prefix, err)
++					}
++				}
++			}
++		})
++	}
++}
++
++func decodeModelLog(data []byte, length int) ([]modelOperationResult, error) {
++	lines := bytes.Split(bytes.TrimSuffix(data, []byte("\n")), []byte("\n"))
++	if len(lines) != length {
++		return nil, fmt.Errorf("log has %d operations, want %d: %q", len(lines), length, data)
++	}
++	rows := make([]modelOperationResult, length)
++	for index, line := range lines {
++		decoder := json.NewDecoder(bytes.NewReader(line))
++		decoder.DisallowUnknownFields()
++		if err := decoder.Decode(&rows[index]); err != nil {
++			return nil, err
++		}
++		if err := decoder.Decode(new(any)); err != io.EOF {
++			return nil, fmt.Errorf("trailing operation data at %d", index+1)
++		}
++		if rows[index].Operation == "" || rows[index].Error == "" {
++			return nil, fmt.Errorf("incomplete operation %d", index+1)
++		}
++	}
++	return rows, nil
++}
++
++func modelBuildEnvironment() []string {
++	var env []string
++	for _, entry := range os.Environ() {
++		key, _, _ := strings.Cut(entry, "=")
++		switch key {
++		case "GOROOT", "GOMADSEED", "GOMAD3_CHILD_SEED", "GOFLAGS", "GOTOOLCHAIN", "GOWORK", "CGO_ENABLED", "GOENV":
++			continue
++		}
++		env = append(env, entry)
++	}
++	return append(env, "GOFLAGS=", "GOTOOLCHAIN=local", "GOWORK=off", "CGO_ENABLED=0", "GOENV=off")
++}
++
++func modelStockGo(t *testing.T, toolchainRoot string) string {
++	t.Helper()
++	stock := os.Getenv("GOMAD3_STOCK_GO")
++	if stock == "" {
++		command := exec.Command("go", "env", "GOROOT")
++		command.Env = modelBuildEnvironment()
++		for index, entry := range command.Env {
++			if strings.HasPrefix(entry, "GOTOOLCHAIN=") {
++				command.Env[index] = "GOTOOLCHAIN=" + gomadversion.GoVersion
++			}
++		}
++		output, err := command.Output()
++		if err != nil {
++			t.Fatalf("resolve stock Go (or set GOMAD3_STOCK_GO): %v", err)
++		}
++		stock = filepath.Join(strings.TrimSpace(string(output)), "bin", "go")
++	}
++	command := exec.Command(stock, "version")
++	command.Env = modelBuildEnvironment()
++	output, err := command.CombinedOutput()
++	if err != nil || !strings.HasPrefix(string(output), "go version "+gomadversion.GoVersion+" ") {
++		t.Fatalf("stock Go must be %s: %v %s", gomadversion.GoVersion, err, output)
++	}
++	command = exec.Command(stock, "env", "GOROOT")
++	command.Env = modelBuildEnvironment()
++	output, err = command.Output()
++	if err != nil {
++		t.Fatal(err)
++	}
++	stockRoot, err := filepath.EvalSymlinks(strings.TrimSpace(string(output)))
++	if err != nil {
++		t.Fatal(err)
++	}
++	customRoot, err := filepath.EvalSymlinks(toolchainRoot)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if stockRoot == customRoot || strings.HasPrefix(stockRoot, customRoot+string(filepath.Separator)) {
++		t.Fatal("stock Go resolves to Gomad toolchain")
++	}
++	return stock
++}
+diff --git a/tools/gomad3/runner/internal/execution/model_conformance_compare_test.go b/tools/gomad3/runner/internal/execution/model_conformance_compare_test.go
+new file mode 100644
+--- /dev/null
++++ b/tools/gomad3/runner/internal/execution/model_conformance_compare_test.go
+@@ -0,0 +1,85 @@
++package execution_test
++
++import (
++	"errors"
++	"reflect"
++	"testing"
++)
++
++func TestModelDeclaredDifferencesAreNarrow(t *testing.T) {
++	for platform, differences := range modelDeclaredDifferences {
++		t.Run(platform, func(t *testing.T) {
++			for _, difference := range differences {
++				t.Run(difference.Name, func(t *testing.T) {
++					if difference.Reason == "" {
++						t.Fatal("declared difference requires a reason")
++					}
++					model := modelOperationResult{"stat-dir workspace/dir", `{"name":"dir","directory":true,"size":0,"mode":448}`, "ok"}
++					native := modelOperationResult{"stat-dir workspace/dir", `{"name":"dir","directory":true,"size":96,"mode":448}`, "ok"}
++					if err := compareModelLogs(platform, []modelOperationResult{model}, []modelOperationResult{native}); err != nil {
++						t.Fatal(err)
++					}
++					cases := []struct {
++						name          string
++						model, native modelOperationResult
++					}{
++						{"directory-mode", model, modelOperationResult{native.Operation, `{"name":"dir","directory":true,"size":96,"mode":493}`, "ok"}},
++						{"directory-kind", model, modelOperationResult{native.Operation, `{"name":"dir","directory":false,"size":96,"mode":448}`, "ok"}},
++						{"directory-name", model, modelOperationResult{native.Operation, `{"name":"other","directory":true,"size":96,"mode":448}`, "ok"}},
++						{"error-class", model, modelOperationResult{native.Operation, native.Result, "permission"}},
++						{"operation", model, modelOperationResult{"stat workspace/file", native.Result, "ok"}},
++						{"regular-file-size", modelOperationResult{"stat workspace/file", `{"name":"file","directory":false,"size":0,"mode":384}`, "ok"}, modelOperationResult{"stat workspace/file", `{"name":"file","directory":false,"size":96,"mode":384}`, "ok"}},
++						{"other-directory-size", modelOperationResult{"stat-dir workspace/other", model.Result, "ok"}, modelOperationResult{"stat-dir workspace/other", native.Result, "ok"}},
++						{"payload", modelOperationResult{"read-full client 3", "3:616263", "ok"}, modelOperationResult{"read-full client 3", "3:616264", "ok"}},
++						{"byte-count", modelOperationResult{"read-full client 3", "2:6162", "ok"}, modelOperationResult{"read-full client 3", "3:616263", "ok"}},
++						{"unknown-metadata", model, modelOperationResult{native.Operation, `{"name":"dir","directory":true,"size":96,"mode":448,"extra":1}`, "ok"}},
++						{"negative-size", model, modelOperationResult{native.Operation, `{"name":"dir","directory":true,"size":-1,"mode":448}`, "ok"}},
++						{"missing-size", model, modelOperationResult{native.Operation, `{"name":"dir","directory":true,"mode":448}`, "ok"}},
++						{"trailing-directory-data", model, modelOperationResult{native.Operation, native.Result + " {}", "ok"}},
++					}
++					for _, tc := range cases {
++						t.Run(tc.name, func(t *testing.T) {
++							if err := compareModelLogs(platform, []modelOperationResult{tc.model}, []modelOperationResult{tc.native}); err == nil {
++								t.Fatal("semantic difference was hidden")
++							}
++						})
++					}
++				})
++			}
++		})
++	}
++	if err := compareModelLogs("unqualified/platform", nil, nil); err == nil {
++		t.Fatal("unknown platform was accepted")
++	}
++	if err := compareModelLogs("darwin/arm64", nil, []modelOperationResult{{"close", "", "ok"}}); err == nil {
++		t.Fatal("missing operation was hidden")
++	}
++}
++
++func TestModelShortestDivergenceChecksEveryEarlierPrefix(t *testing.T) {
++	failure := errors.New("payload differs")
++	var checked []int
++	prefix, err := shortestModelDivergence(8, func(length int) error {
++		checked = append(checked, length)
++		if length == 3 || length == 8 {
++			return failure
++		}
++		return nil
++	})
++	if prefix != 3 || !errors.Is(err, failure) || !reflect.DeepEqual(checked, []int{1, 2, 3}) {
++		t.Fatalf("prefix=%d err=%v checked=%v", prefix, err, checked)
++	}
++	checked = nil
++	prefix, err = shortestModelDivergence(4, func(length int) error { checked = append(checked, length); return nil })
++	if prefix != 0 || err != nil || !reflect.DeepEqual(checked, []int{1, 2, 3, 4}) {
++		t.Fatalf("non-reproducing result: prefix=%d err=%v checked=%v", prefix, err, checked)
++	}
++}
++
++func TestModelLogRejectsIncompleteOrMalformedOperations(t *testing.T) {
++	for _, data := range []string{"", `{"operation":"read","result":"","error":"ok","extra":1}`, `{"operation":"read","result":""}`, `{"operation":"read","result":"","error":"ok"} {"extra":1}`} {
++		if _, err := decodeModelLog([]byte(data), 1); err == nil {
++			t.Fatalf("accepted malformed log %q", data)
++		}
++	}
++}
+diff --git a/tools/gomad3/internal/gomadtool/conformance/testdata/model_fs/main.go b/tools/gomad3/internal/gomadtool/conformance/testdata/model_fs/main.go
+new file mode 100644
+--- /dev/null
++++ b/tools/gomad3/internal/gomadtool/conformance/testdata/model_fs/main.go
+@@ -0,0 +1,182 @@
++package main
++
++import (
++	"encoding/json"
++	"errors"
++	"fmt"
++	"io"
++	"math/rand"
++	"os"
++	"strconv"
++)
++
++type operation struct {
++	name string
++	call func() (string, error)
++}
++type result struct {
++	Operation string `json:"operation"`
++	Result    string `json:"result"`
++	Error     string `json:"error"`
++}
++
++func main() {
++	if err := run(); err != nil {
++		fmt.Fprintln(os.Stderr, err)
++		os.Exit(1)
++	}
++}
++
++func run() error {
++	if len(os.Args) != 3 {
++		return fmt.Errorf("usage: model_fs seed prefix-length")
++	}
++	seed, err := strconv.ParseInt(os.Args[1], 10, 64)
++	if err != nil {
++		return err
++	}
++	length, err := strconv.Atoi(os.Args[2])
++	if err != nil {
++		return err
++	}
++	if length < 1 || length > 64 {
++		return fmt.Errorf("prefix length must be 1..64")
++	}
++	rng := rand.New(rand.NewSource(seed))
++	var file *os.File
++	var closed bool
++	steps := []operation{
++		{"mkdir workspace", func() (string, error) { return "", os.Mkdir("workspace", 0700) }},
++		{"mkdir workspace/dir", func() (string, error) { return "", os.Mkdir("workspace/dir", 0700) }},
++		{"stat-dir workspace/dir", func() (string, error) { info, err := os.Stat("workspace/dir"); return statResult(info, err) }},
++		{"open workspace/handle rw-create-exclusive", func() (string, error) {
++			var err error
++			file, err = os.OpenFile("workspace/handle", os.O_RDWR|os.O_CREATE|os.O_EXCL, 0600)
++			return "", err
++		}},
++		{"write handle 616263646566", func() (string, error) { n, err := file.Write([]byte("abcdef")); return strconv.Itoa(n), err }},
++		{"seek handle 0 start", func() (string, error) { n, err := file.Seek(0, io.SeekStart); return strconv.FormatInt(n, 10), err }},
++		{"read handle 9", func() (string, error) {
++			data := make([]byte, 9)
++			n, err := file.Read(data)
++			return fmt.Sprintf("%d:%x", n, data[:n]), err
++		}},
++		{"read handle 1", func() (string, error) {
++			data := make([]byte, 1)
++			n, err := file.Read(data)
++			return fmt.Sprintf("%d:%x", n, data[:n]), err
++		}},
++		{"write-at handle 2 5859", func() (string, error) { n, err := file.WriteAt([]byte("XY"), 2); return strconv.Itoa(n), err }},
++		{"read-at handle 1 8", func() (string, error) {
++			data := make([]byte, 8)
++			n, err := file.ReadAt(data, 1)
++			return fmt.Sprintf("%d:%x", n, data[:n]), err
++		}},
++		{"truncate handle 3", func() (string, error) { return "", file.Truncate(3) }},
++		{"stat handle", func() (string, error) { info, err := file.Stat(); return statResult(info, err) }},
++		{"sync handle", func() (string, error) { return "", file.Sync() }},
++		{"close handle", func() (string, error) { closed = true; return "", file.Close() }},
++		{"close handle again", func() (string, error) { return "", file.Close() }},
++		{"read closed handle 1", func() (string, error) {
++			data := make([]byte, 1)
++			n, err := file.Read(data)
++			return fmt.Sprintf("%d:%x", n, data[:n]), err
++		}},
++	}
++	for len(steps) < 64 {
++		path := fmt.Sprintf("workspace/f%d", rng.Intn(4))
++		other := fmt.Sprintf("workspace/f%d", rng.Intn(4))
++		data := []byte{byte(rng.Intn(256)), byte(rng.Intn(256)), byte(rng.Intn(256))}
++		size := int64(rng.Intn(10))
++		switch rng.Intn(12) {
++		case 0:
++			steps = append(steps, operation{fmt.Sprintf("write-file %s %x", path, data), func() (string, error) { return "", os.WriteFile(path, data, 0600) }})
++		case 1:
++			steps = append(steps, operation{"read-file " + path, func() (string, error) { data, err := os.ReadFile(path); return fmt.Sprintf("%x", data), err }})
++		case 2:
++			steps = append(steps, operation{"stat " + path, func() (string, error) { info, err := os.Stat(path); return statResult(info, err) }})
++		case 3:
++			steps = append(steps, operation{"remove " + path, func() (string, error) { return "", os.Remove(path) }})
++		case 4:
++			steps = append(steps, operation{"rename " + path + " " + other, func() (string, error) { return "", os.Rename(path, other) }})
++		case 5:
++			steps = append(steps, operation{fmt.Sprintf("truncate %s %d", path, size), func() (string, error) { return "", os.Truncate(path, size) }})
++		case 6:
++			steps = append(steps, operation{"read-dir workspace", func() (string, error) {
++				entries, err := os.ReadDir("workspace")
++				if err != nil {
++					return "", err
++				}
++				names := make([]string, 0, len(entries))
++				for _, entry := range entries {
++					names = append(names, fmt.Sprintf("%s:%t", entry.Name(), entry.IsDir()))
++				}
++				return marshal(names), nil
++			}})
++		case 7:
++			steps = append(steps, operation{"chmod " + path + " 0600", func() (string, error) { return "", os.Chmod(path, 0600) }})
++		case 8:
++			steps = append(steps, operation{"mkdir workspace/dir", func() (string, error) { return "", os.Mkdir("workspace/dir", 0700) }})
++		case 9:
++			steps = append(steps, operation{"mkdir-all workspace/dir/nested", func() (string, error) { return "", os.MkdirAll("workspace/dir/nested", 0700) }})
++		case 10:
++			steps = append(steps, operation{"remove workspace/dir", func() (string, error) { return "", os.Remove("workspace/dir") }})
++		case 11:
++			steps = append(steps, operation{"remove-all workspace/dir/nested", func() (string, error) { return "", os.RemoveAll("workspace/dir/nested") }})
++		}
++	}
++	encoder := json.NewEncoder(os.Stdout)
++	for _, step := range steps[:length] {
++		value, err := step.call()
++		if err := encoder.Encode(result{step.name, value, errorClass(err)}); err != nil {
++			return err
++		}
++		if file == nil && step.name == "open workspace/handle rw-create-exclusive" {
++			return fmt.Errorf("handle setup failed: %v", err)
++		}
++	}
++	if file != nil && !closed {
++		if err := file.Close(); err != nil {
++			return err
++		}
++	}
++	return nil
++}
++
++func statResult(info os.FileInfo, err error) (string, error) {
++	if err != nil {
++		return "", err
++	}
++	return marshal(struct {
++		Name      string `json:"name"`
++		Directory bool   `json:"directory"`
++		Size      int64  `json:"size"`
++		Mode      uint32 `json:"mode"`
++	}{info.Name(), info.IsDir(), info.Size(), uint32(info.Mode().Perm())}), nil
++}
++
++func marshal(value any) string {
++	data, err := json.Marshal(value)
++	if err != nil {
++		panic(err)
++	}
++	return string(data)
++}
++
++func errorClass(err error) string {
++	if err == nil {
++		return "ok"
++	}
++	for _, entry := range []struct {
++		err   error
++		class string
++	}{{io.EOF, "eof"}, {os.ErrClosed, "closed"}, {os.ErrNotExist, "not-exist"}, {os.ErrExist, "exist"}, {os.ErrPermission, "permission"}, {os.ErrInvalid, "invalid"}} {
++		if errors.Is(err, entry.err) {
++			return entry.class
++		}
++	}
++	for errors.Unwrap(err) != nil {
++		err = errors.Unwrap(err)
++	}
++	return fmt.Sprintf("unclassified:%T:%v", err, err)
++}
+diff --git a/tools/gomad3/internal/gomadtool/conformance/testdata/model_net/main.go b/tools/gomad3/internal/gomadtool/conformance/testdata/model_net/main.go
+new file mode 100644
+--- /dev/null
++++ b/tools/gomad3/internal/gomadtool/conformance/testdata/model_net/main.go
+@@ -0,0 +1,179 @@
++package main
++
++import (
++	"encoding/json"
++	"errors"
++	"fmt"
++	"io"
++	"math/rand"
++	"net"
++	"os"
++	"strconv"
++	"time"
++)
++
++type operation struct {
++	name string
++	call func() (string, error)
++}
++type result struct {
++	Operation string `json:"operation"`
++	Result    string `json:"result"`
++	Error     string `json:"error"`
++}
++
++func main() {
++	if err := run(); err != nil {
++		fmt.Fprintln(os.Stderr, err)
++		os.Exit(1)
++	}
++}
++
++func run() error {
++	if len(os.Args) != 3 {
++		return fmt.Errorf("usage: model_net seed prefix-length")
++	}
++	seed, err := strconv.ParseInt(os.Args[1], 10, 64)
++	if err != nil {
++		return err
++	}
++	length, err := strconv.Atoi(os.Args[2])
++	if err != nil {
++		return err
++	}
++	if length < 1 || length > 64 {
++		return fmt.Errorf("prefix length must be 1..64")
++	}
++	rng := rand.New(rand.NewSource(seed))
++	listener, err := net.ListenTCP("tcp4", &net.TCPAddr{IP: net.IPv4(127, 0, 0, 1)})
++	if err != nil {
++		return err
++	}
++	if err := listener.SetDeadline(time.Now().Add(2 * time.Second)); err != nil {
++		return err
++	}
++	dialer := net.Dialer{Timeout: 2 * time.Second}
++	dialed, err := dialer.Dial("tcp4", listener.Addr().String())
++	if err != nil {
++		return err
++	}
++	client := dialed.(*net.TCPConn)
++	server, err := listener.AcceptTCP()
++	if err != nil {
++		return err
++	}
++	deadline := time.Now().Add(2 * time.Second)
++	if err := client.SetDeadline(deadline); err != nil {
++		return err
++	}
++	if err := server.SetDeadline(deadline); err != nil {
++		return err
++	}
++	var clientClosed, serverClosed, listenerClosed bool
++	steps := []operation{{"addresses", func() (string, error) {
++		return fmt.Sprintf("%t:%t:%s:%s", client.LocalAddr().String() == server.RemoteAddr().String(), client.RemoteAddr().String() == server.LocalAddr().String(), client.LocalAddr().Network(), client.RemoteAddr().Network()), nil
++	}}}
++	for len(steps) < 52 {
++		side := rng.Intn(2)
++		from, to := client, server
++		name := "client"
++		if side == 1 {
++			from, to = server, client
++			name = "server"
++		}
++		var generated []operation
++		switch rng.Intn(4) {
++		case 0, 1:
++			data := make([]byte, 1+rng.Intn(32))
++			for index := range data {
++				data[index] = byte(rng.Intn(256))
++			}
++			generated = append(generated, operation{fmt.Sprintf("write %s %x", name, data), func() (string, error) { n, err := from.Write(data); return strconv.Itoa(n), err }}, operation{fmt.Sprintf("read-full peer-of-%s %d", name, len(data)), func() (string, error) {
++				buffer := make([]byte, len(data))
++				n, err := io.ReadFull(to, buffer)
++				return fmt.Sprintf("%d:%x", n, buffer[:n]), err
++			}})
++		case 2:
++			generated = append(generated, operation{"read-deadline-expired " + name, func() (string, error) { return "", from.SetReadDeadline(time.Unix(1, 0)) }}, operation{"read-timeout " + name, func() (string, error) {
++				buffer := make([]byte, 1)
++				n, err := from.Read(buffer)
++				return fmt.Sprintf("%d:%x", n, buffer[:n]), err
++			}}, operation{"read-deadline-reset " + name, func() (string, error) { return "", from.SetReadDeadline(time.Now().Add(2 * time.Second)) }})
++		case 3:
++			enabled := rng.Intn(2) == 1
++			generated = append(generated, operation{fmt.Sprintf("no-delay %s %t", name, enabled), func() (string, error) { return "", from.SetNoDelay(enabled) }})
++		}
++		if len(steps)+len(generated) > 52 {
++			steps = append(steps, operation{"no-delay client true", func() (string, error) { return "", client.SetNoDelay(true) }})
++		} else {
++			steps = append(steps, generated...)
++		}
++
++	}
++	// Keep the terminal sequence at a fixed position, independent of prefix length.
++	// A generated write must retain its matching read before half-closing.
++	steps = append(steps,
++		operation{"deadline-reset client", func() (string, error) { return "", client.SetDeadline(time.Now().Add(2 * time.Second)) }},
++		operation{"deadline-reset server", func() (string, error) { return "", server.SetDeadline(time.Now().Add(2 * time.Second)) }},
++		operation{"close-write client", func() (string, error) { return "", client.CloseWrite() }},
++		operation{"read-eof server", func() (string, error) {
++			buffer := make([]byte, 1)
++			n, err := server.Read(buffer)
++			return fmt.Sprintf("%d:%x", n, buffer[:n]), err
++		}},
++		operation{"write server 66696e", func() (string, error) { n, err := server.Write([]byte("fin")); return strconv.Itoa(n), err }},
++		operation{"read-full client 3", func() (string, error) {
++			buffer := make([]byte, 3)
++			n, err := io.ReadFull(client, buffer)
++			return fmt.Sprintf("%d:%x", n, buffer[:n]), err
++		}},
++		operation{"close client", func() (string, error) { clientClosed = true; return "", client.Close() }},
++		operation{"read closed client", func() (string, error) {
++			buffer := make([]byte, 1)
++			n, err := client.Read(buffer)
++			return fmt.Sprintf("%d:%x", n, buffer[:n]), err
++		}},
++		operation{"close server", func() (string, error) { serverClosed = true; return "", server.Close() }},
++		operation{"close listener", func() (string, error) { listenerClosed = true; return "", listener.Close() }},
++		operation{"accept closed listener", func() (string, error) { _, err := listener.AcceptTCP(); return "", err }},
++		operation{"close listener again", func() (string, error) { return "", listener.Close() }},
++	)
++	encoder := json.NewEncoder(os.Stdout)
++	for _, step := range steps[:length] {
++		value, err := step.call()
++		if err := encoder.Encode(result{step.name, value, errorClass(err)}); err != nil {
++			return err
++		}
++	}
++	if !clientClosed {
++		if err := client.Close(); err != nil {
++			return err
++		}
++	}
++	if !serverClosed {
++		if err := server.Close(); err != nil {
++			return err
++		}
++	}
++	if !listenerClosed {
++		if err := listener.Close(); err != nil {
++			return err
++		}
++	}
++	return nil
++}
++
++func errorClass(err error) string {
++	if err == nil {
++		return "ok"
++	}
++	for _, entry := range []struct {
++		err   error
++		class string
++	}{{io.EOF, "eof"}, {io.ErrUnexpectedEOF, "unexpected-eof"}, {net.ErrClosed, "closed"}, {os.ErrDeadlineExceeded, "timeout"}} {
++		if errors.Is(err, entry.err) {
++			return entry.class
++		}
++	}
++	return fmt.Sprintf("unclassified:%T:%v", err, err)
++}
+diff --git a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs.go b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs.go
+--- a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs.go
++++ b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs.go
+@@ -14,6 +14,13 @@
+ 	"internal/gomadmodelwire"
+ 	"internal/gomadwire"
+ )
++
++var ErrClosed error = closedHandleError{}
++
++type closedHandleError struct{}
++
++func (closedHandleError) Error() string { return syscall.EBADF.Error() }
++func (closedHandleError) Unwrap() error { return syscall.EBADF }
+ 
+ type Kind = gomadwire.MountKind
+ 
+@@ -482,7 +489,7 @@
+ 	if parent.kind != KindDirectory {
+ 		return syscall.ENOTDIR
+ 	}
+-	if n.kind == KindDirectory && (newPath == oldPath || strings.HasPrefix(newPath, oldPath+"/")) {
++	if n.kind == KindDirectory && strings.HasPrefix(newPath, oldPath+"/") {
+ 		return syscall.EINVAL
+ 	}
+ 	existing, lookupErr := fs.lookupLocked(newPath)
+@@ -501,6 +508,9 @@
+ 				return syscall.EXDEV
+ 			}
+ 		}
++	}
++	if oldPath == newPath {
++		return nil
+ 	}
+ 	if existing != nil && existing.kind == KindDirectory {
+ 		return syscall.EEXIST
+@@ -1378,7 +1388,7 @@
+ 		return syscall.ESTALE
+ 	}
+ 	if handle.closed {
+-		return syscall.EBADF
++		return ErrClosed
+ 	}
+ 	return nil
+ }
+diff --git a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_volume.go b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_volume.go
+--- a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_volume.go
++++ b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_volume.go
+@@ -94,7 +94,7 @@
+ 
+ func processHandleRead(handle *Handle, destination []byte, offset int64, at bool) (int, error) {
+ 	if handle.closed {
+-		return 0, syscall.EINVAL
++		return 0, ErrClosed
+ 	}
+ 	operation := gomadmodelwire.VolumeHandleRead
+ 	if at {
+@@ -110,7 +110,7 @@
+ 
+ func processHandleWrite(handle *Handle, source []byte, offset int64, at bool) (int, error) {
+ 	if handle.closed {
+-		return 0, syscall.EINVAL
++		return 0, ErrClosed
+ 	}
+ 	operation := gomadmodelwire.VolumeHandleWrite
+ 	if at {
+@@ -125,7 +125,7 @@
+ 
+ func processHandleOperation(handle *Handle, operation gomadmodelwire.Operation, first, second int64, unsigned uint64) (gomadmodelwire.Response, error) {
+ 	if handle.closed {
+-		return gomadmodelwire.Response{}, syscall.EINVAL
++		return gomadmodelwire.Response{}, ErrClosed
+ 	}
+ 	return exchangeProcessVolume(gomadmodelwire.Request{Model: gomadmodelwire.ModelVolume, Operation: operation, Handle: handle.processHandle, Int1: first, Int2: second, Uint1: unsigned})
+ }
+diff --git a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs_test.go b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs_test.go
+--- a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs_test.go
++++ b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs_test.go
+@@ -2,6 +2,7 @@
+ 
+ import (
+ 	"bytes"
++	"encoding/json"
+ 	"errors"
+ 	"io"
+ 	"slices"
+@@ -695,3 +696,123 @@
+ 	}
+ 	return true
+ }
++
++func TestFilesystemSelfRenamePreservesSource(t *testing.T) {
++	filesystem := New()
++	if err := filesystem.Mkdir("/directory", 0700); err != nil {
++		t.Fatal(err)
++	}
++	file, err := filesystem.Open("/directory/file", OpenFlags{Read: true, Write: true, Create: true}, 0600)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if _, err := file.Write([]byte("retained")); err != nil {
++		t.Fatal(err)
++	}
++	for _, path := range []string{"/directory/file", "/directory"} {
++		before, err := filesystem.Stat(path)
++		if err != nil {
++			t.Fatal(err)
++		}
++		if err := filesystem.Rename(path, path); err != nil {
++			t.Fatalf("self rename %s: %v", path, err)
++		}
++		after, err := filesystem.Stat(path)
++		if err != nil {
++			t.Fatalf("self rename lost %s: %v", path, err)
++		}
++		if before.Name != after.Name || before.Mode != after.Mode || before.Kind != after.Kind || before.ModTime != after.ModTime || !bytes.Equal(before.Data, after.Data) {
++			t.Fatalf("self rename modified %s: before=%+v after=%+v", path, before, after)
++		}
++	}
++	if err := filesystem.Rename("/missing", "/missing"); !errors.Is(err, syscall.ENOENT) {
++		t.Fatalf("missing self rename=%v", err)
++	}
++	if err := file.Close(); err != nil {
++		t.Fatal(err)
++	}
++}
++
++func TestFilesystemClosedHandlePreservesErrnoAndDistinguishesAccessMode(t *testing.T) {
++	filesystem := New()
++	file, err := filesystem.Open("/file", OpenFlags{Read: true, Create: true}, 0600)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if _, err := file.Write([]byte("wrong mode")); !errors.Is(err, syscall.EBADF) || errors.Unwrap(err) != nil {
++		t.Fatalf("wrong-access error=%v", err)
++	}
++	if err := file.Close(); err != nil {
++		t.Fatal(err)
++	}
++	for _, call := range []func() error{func() error { return file.Close() }, func() error { _, err := file.Read(make([]byte, 1)); return err }, func() error { _, err := file.Write([]byte("closed")); return err }, func() error { _, err := file.Stat(); return err }} {
++		err := call()
++		if !errors.Is(err, syscall.EBADF) || errors.Unwrap(err) != syscall.EBADF {
++			t.Fatalf("closed error did not preserve a distinct EBADF marker: %T %v", err, err)
++		}
++	}
++}
++
++func TestFilesystemClosedProcessHandlePreservesErrno(t *testing.T) {
++	file := ClosedProcessHandleForTest()
++	for _, call := range []func() error{
++		func() error { _, err := file.Read(make([]byte, 1)); return err },
++		func() error { _, err := file.ReadAt(make([]byte, 1), 0); return err },
++		func() error { _, err := file.Write([]byte("x")); return err },
++		func() error { _, err := file.WriteAt([]byte("x"), 0); return err },
++		func() error { _, err := file.Stat(); return err },
++		file.Close,
++	} {
++		err := call()
++		if !errors.Is(err, syscall.EBADF) || errors.Unwrap(err) != syscall.EBADF {
++			t.Fatalf("closed process error=%T %v", err, err)
++		}
++	}
++}
++
++func TestFilesystemReadOnlySelfRenameRemainsDenied(t *testing.T) {
++	filesystem := New()
++	filesystem.SetLoader(func(string) (LoadEntry, MountStatus, error) {
++		return LoadEntry{Kind: KindFile, Mode: 0600, Data: []byte("mounted")}, MountOK, nil
++	})
++	if err := filesystem.Rename("/mounted", "/mounted"); !errors.Is(err, syscall.EXDEV) {
++		t.Fatalf("read-only self rename=%v", err)
++	}
++	entry, err := filesystem.Stat("/mounted")
++	if err != nil || string(entry.Data) != "mounted" {
++		t.Fatalf("mounted source=%+v error=%v", entry, err)
++	}
++}
++
++func TestFilesystemVolumeSelfRenameRetainsDurabilityState(t *testing.T) {
++	filesystem := newTestVolumeFilesystem(t)
++	if err := filesystem.Rename("/data", "/data"); !errors.Is(err, syscall.EXDEV) {
++		t.Fatalf("mount root self rename=%v", err)
++	}
++	file, err := filesystem.Open("/data/file", OpenFlags{Read: true, Write: true, Create: true}, 0600)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if _, err := file.Write([]byte("durable")); err != nil {
++		t.Fatal(err)
++	}
++	before := filesystem.VolumeSnapshots()
++	if err := filesystem.Rename("/data/file", "/data/file"); err != nil {
++		t.Fatal(err)
++	}
++	after := filesystem.VolumeSnapshots()
++	beforeBytes, err := json.Marshal(before)
++	if err != nil {
++		t.Fatal(err)
++	}
++	afterBytes, err := json.Marshal(after)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if !bytes.Equal(beforeBytes, afterBytes) {
++		t.Fatalf("self rename changed volume state: before=%s after=%s", beforeBytes, afterBytes)
++	}
++	if err := file.Close(); err != nil {
++		t.Fatal(err)
++	}
++}
+diff --git a/tools/gomad3/toolchain/runtime/overlay/src/os/gomad.go b/tools/gomad3/toolchain/runtime/overlay/src/os/gomad.go
+--- a/tools/gomad3/toolchain/runtime/overlay/src/os/gomad.go
++++ b/tools/gomad3/toolchain/runtime/overlay/src/os/gomad.go
+@@ -762,6 +762,13 @@
+ 	return mapping, contents, nil
+ }
+ 
++func gomadFileError(err error) error {
++	if errors.Is(err, gomadfs.ErrClosed) {
++		return ErrClosed
++	}
++	return err
++}
++
+ func gomadFileRead(file *File, destination []byte) (int, error, bool) {
+ 	handle := gomadHandle(file)
+ 	if handle == nil {
+@@ -769,7 +776,7 @@
+ 	}
+ 	read, err := handle.Read(destination)
+ 	gomadRecordFile("os.read", handle.Path(), nil, destination[:read], uint64(read), err)
+-	return read, err, true
++	return read, gomadFileError(err), true
+ }
+ 
+ func gomadInterceptFileRead(file *File, destination []byte) (int, error, bool) {
+@@ -799,7 +806,7 @@
+ 	}
+ 	read, err := handle.ReadAt(destination, offset)
+ 	gomadRecordFile("os.readat", handle.Path(), gomadInt64Argument(offset), destination[:read], uint64(read), err)
+-	return read, err, true
++	return read, gomadFileError(err), true
+ }
+ 
+ func gomadFileSeek(file *File, offset int64, whence int) (int64, error, bool) {
+@@ -809,7 +816,7 @@
+ 	}
+ 	next, err := handle.Seek(offset, whence)
+ 	gomadRecordFile("os.seek", handle.Path(), gomadTwoInt64Arguments(offset, int64(whence)), nil, uint64(next), err)
+-	return next, err, true
++	return next, gomadFileError(err), true
+ }
+ 
+ func gomadFileWrite(file *File, source []byte) (int, error, bool) {
+@@ -819,7 +826,7 @@
+ 	}
+ 	written, err := handle.Write(source)
+ 	gomadRecordFile("os.write", handle.Path(), nil, source[:written], uint64(written), err)
+-	return written, err, true
++	return written, gomadFileError(err), true
+ }
+ 
+ func gomadFileWriteAt(file *File, source []byte, offset int64) (int, error, bool) {
+@@ -829,7 +836,7 @@
+ 	}
+ 	written, err := handle.WriteAt(source, offset)
+ 	gomadRecordFile("os.writeat", handle.Path(), gomadInt64Argument(offset), source[:written], uint64(written), err)
+-	return written, err, true
++	return written, gomadFileError(err), true
+ }
+ 
+ func gomadFileTruncate(file *File, size int64) (bool, error) {
+@@ -839,7 +846,7 @@
+ 	}
+ 	err := handle.Truncate(size)
+ 	gomadRecordFile("os.truncate", handle.Path(), gomadInt64Argument(size), nil, 0, err)
+-	return true, err
++	return true, gomadFileError(err)
+ }
+ 
+ func gomadTruncate(name string, size int64) error {
+@@ -886,7 +893,7 @@
+ 	}
+ 	err := handle.Chmod(uint32(mode))
+ 	gomadRecordFile("os.chmod", handle.Path(), gomadInt64Argument(int64(mode)), nil, 0, err)
+-	return true, err
++	return true, gomadFileError(err)
+ }
+ 
+ func gomadFileChdir(file *File) (bool, error) {
+@@ -896,7 +903,7 @@
+ 	}
+ 	err := handle.Chdir()
+ 	gomadRecordFile("os.chdir", handle.Path(), nil, nil, 0, err)
+-	return true, err
++	return true, gomadFileError(err)
+ }
+ 
+ func gomadFileUnsupported(file *File) bool {
+@@ -910,7 +917,7 @@
+ 	}
+ 	err := handle.Sync()
+ 	gomadRecordFile("os.sync", handle.Path(), nil, nil, 0, err)
+-	return true, err
++	return true, gomadFileError(err)
+ }
+ 
+ func gomadFileClose(file *File) (bool, error) {
+@@ -921,7 +928,7 @@
+ 	path := handle.Path()
+ 	err := handle.Close()
+ 	gomadRecordFile("os.close", path, nil, nil, 0, err)
+-	return true, err
++	return true, gomadFileError(err)
+ }
+ 
+ func gomadInterceptFileClose(file *File) (error, bool) {
+@@ -987,7 +994,7 @@
+ 	entry, err := handle.Stat()
+ 	if err != nil {
+ 		gomadRecordFile("os.fstat", handle.Path(), nil, nil, 0, err)
+-		return nil, true, err
++		return nil, true, gomadFileError(err)
+ 	}
+ 	info := gomadFileInfoForEntry(entry)
+ 	gomadRecordFile("os.fstat", handle.Path(), nil, nil, uint64(len(entry.Data)), nil)
+@@ -1002,7 +1009,7 @@
+ 	entries, err := handle.ReadDir(count)
+ 	if err != nil {
+ 		gomadRecordFile("os.readdir", handle.Path(), gomadInt64Argument(int64(count)), nil, 0, err)
+-		return nil, nil, nil, err, true
++		return nil, nil, nil, gomadFileError(err), true
+ 	}
+ 	gomadRecordFile("os.readdir", handle.Path(), gomadInt64Argument(int64(count)), nil, uint64(len(entries)), nil)
+ 	switch mode {
+diff --git a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network.go b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network.go
+--- a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network.go
++++ b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network.go
+@@ -14,11 +14,12 @@
+ 
+ 	"internal/gomadmodelwire"
+ 	"internal/gomadsim"
++	"internal/poll"
+ )
+ 
+ var (
+ 	ErrAddressInUse      = errors.New("address already in use")
+-	ErrClosed            = errors.New("use of closed network connection")
++	ErrClosed            = poll.ErrNetClosing
+ 	ErrConnectionRefused = errors.New("connection refused")
+ 	ErrResourceExhausted = errors.New("network resources exhausted")
+ 	ErrUnsupported       = errors.New("unsupported Gomad network operation")
+diff --git a/tools/gomad3/toolchain/runtime/overlay/src/os/gomad_model_conformance_test.go b/tools/gomad3/toolchain/runtime/overlay/src/os/gomad_model_conformance_test.go
+new file mode 100644
+--- /dev/null
++++ b/tools/gomad3/toolchain/runtime/overlay/src/os/gomad_model_conformance_test.go
+@@ -0,0 +1,92 @@
++package os_test
++
++import (
++	"errors"
++	"io"
++	"os"
++	"syscall"
++	"testing"
++)
++
++func TestGomadClosedFileHasPublicSentinel(t *testing.T) {
++	file, err := os.OpenFile(t.TempDir()+"/file", os.O_RDWR|os.O_CREATE, 0600)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := file.Close(); err != nil {
++		t.Fatal(err)
++	}
++	calls := []struct {
++		name string
++		call func() error
++	}{
++		{"close", file.Close},
++		{"read", func() error { _, err := file.Read(make([]byte, 1)); return err }},
++		{"read-at", func() error { _, err := file.ReadAt(make([]byte, 1), 0); return err }},
++		{"write", func() error { _, err := file.Write([]byte("x")); return err }},
++		{"write-at", func() error { _, err := file.WriteAt([]byte("x"), 0); return err }},
++		{"seek", func() error { _, err := file.Seek(0, io.SeekStart); return err }},
++		{"truncate", func() error { return file.Truncate(0) }},
++		{"chmod", func() error { return file.Chmod(0600) }},
++		{"sync", file.Sync},
++		{"stat", func() error { _, err := file.Stat(); return err }},
++	}
++	for _, call := range calls {
++		t.Run(call.name, func(t *testing.T) {
++			err := call.call()
++			if !errors.Is(err, os.ErrClosed) || errors.Is(err, syscall.EBADF) {
++				t.Fatalf("public closed error=%T %v", err, err)
++			}
++		})
++	}
++}
++
++func TestGomadWrongFileAccessModeIsNotClosed(t *testing.T) {
++	path := t.TempDir() + "/file"
++	if err := os.WriteFile(path, []byte("data"), 0600); err != nil {
++		t.Fatal(err)
++	}
++	for _, mode := range []int{os.O_RDONLY, os.O_WRONLY} {
++		file, err := os.OpenFile(path, mode, 0600)
++		if err != nil {
++			t.Fatal(err)
++		}
++		if mode == os.O_RDONLY {
++			_, err = file.Write([]byte("x"))
++		} else {
++			_, err = file.Read(make([]byte, 1))
++		}
++		if !errors.Is(err, syscall.EBADF) || errors.Is(err, os.ErrClosed) {
++			t.Fatalf("mode %d error=%T %v", mode, err, err)
++		}
++		if err := file.Close(); err != nil {
++			t.Fatal(err)
++		}
++	}
++}
++
++func TestGomadClosedDirectoryHasPublicSentinel(t *testing.T) {
++	directory, err := os.Open(t.TempDir())
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := directory.Close(); err != nil {
++		t.Fatal(err)
++	}
++	for _, call := range []struct {
++		name string
++		call func() error
++	}{
++		{"chdir", directory.Chdir},
++		{"read-dir", func() error { _, err := directory.ReadDir(-1); return err }},
++		{"readdir", func() error { _, err := directory.Readdir(-1); return err }},
++		{"readdirnames", func() error { _, err := directory.Readdirnames(-1); return err }},
++	} {
++		t.Run(call.name, func(t *testing.T) {
++			err := call.call()
++			if !errors.Is(err, os.ErrClosed) || errors.Is(err, syscall.EBADF) {
++				t.Fatalf("public closed directory error=%T %v", err, err)
++			}
++		})
++	}
++}
+diff --git a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/export_test.go b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/export_test.go
+new file mode 100644
+--- /dev/null
++++ b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/export_test.go
+@@ -0,0 +1,5 @@
++package gomadfs
++
++func ClosedProcessHandleForTest() *Handle {
++	return &Handle{fs: processFilesystem, closed: true}
++}
+diff --git a/tools/gomad3/toolchain/version/version.json b/tools/gomad3/toolchain/version/version.json
+--- a/tools/gomad3/toolchain/version/version.json
++++ b/tools/gomad3/toolchain/version/version.json
+@@ -127,6 +127,7 @@
+     "src/internal/gomadchoicewire/hash_test.go",
+     "src/internal/gomadchoicewire/wire_generated.go",
+     "src/internal/gomadchoicewire/wire_generated_test.go",
++    "src/internal/gomadfs/export_test.go",
+     "src/internal/gomadfs/fs.go",
+     "src/internal/gomadfs/fs_test.go",
+     "src/internal/gomadfs/process_volume.go",
+@@ -162,6 +163,7 @@
+     "src/net/gomad.go",
+     "src/net/gomad_unsupported_generated.go",
+     "src/os/gomad.go",
++    "src/os/gomad_model_conformance_test.go",
+     "src/os/gomad_simulation_test.go",
+     "src/os/signal/gomad.go",
+     "src/os/user/gomad.go",
+diff --git a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/libc.go b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/libc.go
+--- a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/libc.go
++++ b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/libc.go
+@@ -283,6 +283,9 @@
+ 	if err == nil {
+ 		return 0
+ 	}
++	if errors.Is(err, os.ErrClosed) {
++		return syscall.EBADF
++	}
+ 	var pathError *os.PathError
+ 	if errors.As(err, &pathError) {
+ 		err = pathError.Err
+diff --git a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/anonymous_test.go b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/anonymous_test.go
+--- a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/anonymous_test.go
++++ b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/anonymous_test.go
+@@ -5,6 +5,9 @@
+ package gomadio
+ 
+ import (
++	"errors"
++	"os"
++	"syscall"
+ 	"testing"
+ 	"unsafe"
+ )
+@@ -86,3 +89,28 @@
+ 		t.Fatal("second release() = false")
+ 	}
+ }
++
++func TestCapturedLibcDescriptorKeepsClosedErrno(t *testing.T) {
++	descriptor, errno := LibcOpen(t.TempDir()+"/captured", os.O_RDWR|os.O_CREATE, 0600)
++	if errno != 0 {
++		t.Fatal(errno)
++	}
++	state, found := libcFile(descriptor)
++	if !found {
++		t.Fatal("descriptor missing")
++	}
++	if errno := LibcClose(descriptor); errno != 0 {
++		t.Fatal(errno)
++	}
++	_, err := state.file.Read(make([]byte, 1))
++	if errno := libcErrno(err); errno != syscall.EBADF {
++		t.Fatalf("captured descriptor error=%v libc errno=%v, want EBADF", err, errno)
++	}
++	var pathError *os.PathError
++	if !errors.As(err, &pathError) {
++		t.Fatalf("captured descriptor error=%T %v", err, err)
++	}
++	if count, errno := LibcRead(descriptor, 0, 0, 0, false); count != -1 || errno != syscall.EBADF {
++		t.Fatalf("removed descriptor read=(%d,%v)", count, errno)
++	}
++}
+diff --git a/.flow/tasks/fn-112-gomad-determinism-assurance-and-test.7.md b/.flow/tasks/fn-112-gomad-determinism-assurance-and-test.7.md
+--- a/.flow/tasks/fn-112-gomad-determinism-assurance-and-test.7.md
++++ b/.flow/tasks/fn-112-gomad-determinism-assurance-and-test.7.md
+@@ -8,7 +8,7 @@
+ 
+ **Size:** M
+ **Files:** new fixture programs `testdata/model_fs` and `testdata/model_net` under `tools/gomad3/internal/gomadtool/conformance/`, new `model_conformance_*_test.go` files under `tools/gomad3/runner/internal/execution/`
+-**Touches:** [tools/gomad3/runner/internal/execution/model_conformance_*_test.go, tools/gomad3/internal/gomadtool/conformance/testdata/model_fs/**, tools/gomad3/internal/gomadtool/conformance/testdata/model_net/**]
++**Touches:** [tools/gomad3/runner/internal/execution/model_conformance*_test.go, tools/gomad3/internal/gomadtool/conformance/testdata/model_fs/**, tools/gomad3/internal/gomadtool/conformance/testdata/model_net/**, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_volume.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/*_test.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/libc.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/anonymous_test.go, tools/gomad3/toolchain/runtime/overlay/src/os/gomad.go, tools/gomad3/toolchain/runtime/overlay/src/os/*_test.go, tools/gomad3/toolchain/version/version.json, tools/gomad3/toolchain/version/generated.go, tools/gomad3/version_generated.mk, tools/gomad3/deterministicio/boundary/upgrade-go1.27.1.md]
+ 
+ ### Approach
+ - One fixture program per model takes a generator seed, performs a bounded sequence of standard-library `os` or `net` operations, and prints a canonical result log (operation, result, error class).
+@@ -16,6 +16,46 @@
+ - Generator: the standard library's seeded source with fixed seeds and bounded lengths; no new dependency.
+ - Generate only operations the model declares supported. Error results compare by class, since darwin and linux errnos differ; declared differences are per platform, live in one Go table in the test source, and each has a test. Task 10 references that table from the docs.
+ - An undeclared difference is a model defect to record, or a new declared difference with a reason.
++
++### Reproduced model corrections (2026-10-02)
++
++The generated comparisons exposed three defects on baseline build
++`6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee`:
++closed modeled files lose `os.ErrClosed`, closed modeled TCP connections lose
++`net.ErrClosed`, and renaming a file to itself deletes it. Retain baseline logs
++under task-7 artifacts and fix these defects without treating them as declared
++differences. This is the task's existing model-defect correction acceptance.
++
++- Give closed filesystem handles a distinct internal marker that preserves backend
++  `EBADF` handling. Translate it to `os.ErrClosed` at the os adapter after recording
++  raw transcript results; preserve wrong-access `EBADF` and cover process handles.
++- Reuse the standard network closed sentinel, preserving error text and transcript
++  classification while restoring `errors.Is(err, net.ErrClosed)`.
++- Make valid self-renames a no-op, preserving source-existence, read-only, mount,
++  parent, data and metadata invariants. Do not widen capability admissions.
++- Preserve comments and baseline sources/evidence. The conductor serializes these
++  overlay edits; no other runtime task runs concurrently. No patch hunks or schemas
++  change. The overlay allowlist gains exactly two test-only entries:
++  `src/os/gomad_model_conformance_test.go` and
++  `src/internal/gomadfs/export_test.go`, with required generated version consumers.
++  The external os tests avoid the testing/os import cycle; the internal test-only
++  export constructs a closed process handle without starting a process backend.
++- Check at least 8 GiB free before rebuilding and preserve the baseline and active
++  builds. Record each new identity; never relabel old artifacts. The initial
++  corrected build `d15ad896e542b9f64381c2f184567355bac8ffd62ae2347501fe8fcdd96f6eba`
++  exposed a libc consumer regression in a captured-descriptor close/read probe:
++  public `os.ErrClosed` was converted to `EIO`. Translate that sentinel to `EBADF`
++  in `gomadio.libcErrno`, preserve all other errno extraction, and retain the
++  deterministic captured-descriptor regression in `gomadio/anonymous_test.go`.
++  This reproduced regression requires a second rebuild and refreshed final gates;
++  the first corrected identity is intermediate evidence, not final qualification.
++  The second rebuild may start with at least 6 GiB free: the first build measured
++  about 1.5 GiB peak additional use and more than 7 GiB remains. Record fresh disk
++  evidence after the prior gate drains; this measured exception avoids deleting
++  any baseline, active build, or shared cache.
++- After focused regressions, run `make -C tools/gomad3 generate validate`, rebuild
++  the toolchain, then `test-host test-runtime overlay-test` with `test_dep` enabled.
++  Root lint and focused vet remain required; native Linux remains unverified here.
+ 
+ ### Investigation targets
+ **Required** (read before coding):
+@@ -36,7 +76,9 @@
+ - [ ] Declared differences are listed in one Go table, per platform, each with a test
+ - [ ] A failing seed prints the seed and the shortest diverging prefix found
+ - [ ] Undeclared differences found are fixed or recorded as findings
+-- [ ] `make -C tools/gomad3 test-host` passes; linux status recorded
++- [ ] Closed-file and closed-network public sentinel identities match stock Go; wrong-access filesystem errors retain `EBADF` without `os.ErrClosed`; process handles and backend errno consumers, including libc captured-descriptor close/read, remain covered
++- [ ] File/directory self-renames preserve contents and metadata, while source-existence and read-only/mount checks remain enforced
++- [ ] Baseline failure evidence is retained; the corrected overlay rebuilds under a new identity and `generate validate test-host test-runtime overlay-test` pass with `test_dep`; linux status recorded
+ ## Done summary
+ TBD
+ 

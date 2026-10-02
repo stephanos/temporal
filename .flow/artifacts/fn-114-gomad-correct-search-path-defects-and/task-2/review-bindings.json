@@ -1,0 +1,126 @@
+{
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-2/task-only.patch": {
+    "bytes": 37587,
+    "sha256": "1052e7e321f4c2872ac1fbc526c80cb69e984e7d2288cdcf15e44dccaff44057"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-2/source-bindings-before.json": {
+    "bytes": 1181,
+    "sha256": "c1dfb57db7cdb3312891c6b9f23e0510142e10338dbe190df64b98a9d0c4b882"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-2/source-bindings-frozen.json": {
+    "bytes": 1389,
+    "sha256": "893e6cd298661176fc699adffb9d2164dc6e2ae6b3801cdd31a3e3f2315a1d35"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-2/tracking-bindings.json": {
+    "bytes": 501,
+    "sha256": "d9a1047295d611c8a9e47f0bf2d997e35f7835d9097008bb66b6bff31218cee4"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-2/protected-source-check.json": {
+    "bytes": 744,
+    "sha256": "1c827a827a0eed0481ba579032c082411844cc5e8829a0c1abf1bd4c936b5877"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-2/gate-results.json": {
+    "bytes": 3498,
+    "sha256": "221ab4acb07b4236458fa4af122ca2cff082a5b5f2d2b9812fa5a88d92d35dad"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-2/completion-summary.md": {
+    "bytes": 2854,
+    "sha256": "f93fe38354106fb1385eba79305454ac9f0561190f7bd8d4def080f085c63415"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-2/completion-evidence.json": {
+    "bytes": 2447,
+    "sha256": "c136771d0817ecbc11a22d9ebec69e13011a94a44fc87d42fa565ab40f04b655"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-2/parent-evidence-validation.json": {
+    "bytes": 740,
+    "sha256": "9d79dec9b84848b2edee857ef58a4012e08b232ac544884f8eb9d59822d59f21"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-2/proposed-c2-annotations.md": {
+    "bytes": 3003,
+    "sha256": "8f9c1566a5dea7c9eb631bb01ab6e84807d383c120ba93b88980f3f6d4cd7d73"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-2/proposed-spec.md": {
+    "bytes": 27647,
+    "sha256": "64cd43f865367a4ddb48025ed28c81904793cd7ab81736ba2e1338a352ab93a8"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-2/proposed-task5.md": {
+    "bytes": 6074,
+    "sha256": "152bfddeabd00b6b84c65580f238e2f51bbd4501713eefac4a7d231d0804b97b"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/README.md": {
+    "bytes": 6213,
+    "sha256": "cd4d228bd5360df371daaf192f67401da0a8e09d3e079acd218947107b43ed7f"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/attempts.json": {
+    "bytes": 852,
+    "sha256": "95de4872c6fafee519f9fa9fde1bb178ced509dab0d44873e6fe0b6875602ae7"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/compressed-traces.json": {
+    "bytes": 2888626,
+    "sha256": "90292ca8433de7a725d13bd1d91b954d849e31fcdc63182910f02f08743d9cb8"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/toolchain-build-key.txt": {
+    "bytes": 65,
+    "sha256": "3523e7db04205666d531c02cf2dd0d1e689c172e2df674f94cd5c6bd2c5773a5"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/platform.json": {
+    "bytes": 209,
+    "sha256": "a1b961a6ff144459bc32c0472ae7d486471e7cee46a2542a65d1220061a8a68f"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/final-approved/search-reproduction.json": {
+    "bytes": 24162,
+    "sha256": "982cb764ebbae47659f329508e8e6d2fa5b77664242fb12a5e42857fa7d04891"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/final-approved/commands.json": {
+    "bytes": 1031547,
+    "sha256": "5153dc1928ca285340a003bfc528c53b7259037cfb414d104d8c99bb9c7c7449"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/final-approved/cases.json": {
+    "bytes": 226753,
+    "sha256": "879077221f8c35a051c3b3f5bf6abe88a03abbc588ee29479fa409a083f65324"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/final-approved/c2-associations.json": {
+    "bytes": 4346,
+    "sha256": "837587858f7e565accd3d66fd462835ae0194b98ca9ce16288f16908f47a340a"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/final-approved/binary-identities.json": {
+    "bytes": 190,
+    "sha256": "bcc9f5e0f3cfdf59d5ad2a6c031fee2e5ee4c23903489828227d4150b400b8ad"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-2/baseline.log": {
+    "bytes": 78,
+    "sha256": "fc923d3c2977e4214e42995b33821639509656666d9cb81f4ab417891fbee4de"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-2/conformance-approved.log": {
+    "bytes": 4029,
+    "sha256": "130bd01d8e1595cf02bfbce1e3076e21d01edafda91c963173c985e4217d8d2e"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-2/runtime-overlay-final.log": {
+    "bytes": 2126,
+    "sha256": "dffd0f7d93f3757319301170b4d106bd38adc0d0c82581c76957a325bdca4b69"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-2/runtime-overlay-frozen.log": {
+    "bytes": 2142,
+    "sha256": "9b800c967dd37de62db1549325636d1282db9c111c127ef7e6cedcba977e6fd2"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-2/focused-vet-frozen.log": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-2/architecture-final.log": {
+    "bytes": 47,
+    "sha256": "aadde47c58b1fbf9e3de07e667cfa1767bea895b8a85157f6a9e0794de40cdea"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-2/format-final.log": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-2/root-lint-default.log": {
+    "bytes": 141,
+    "sha256": "4a229d95b641928fde380a270b031f2428d29853bba5b947dbb38a2d711596a5"
+  },
+  ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-2/root-lint-head.log": {
+    "bytes": 5731,
+    "sha256": "ec973eac2c54d7ed47477c234d0e9201abca7e1601ce56a083a678c7a2432e61"
+  }
+}

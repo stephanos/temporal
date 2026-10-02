@@ -1,0 +1,72 @@
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool patch-validate --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 patch and overlay inputs are valid
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool script-validate --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 script ownership is valid
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache GOTOOLCHAIN=local GOWORK=off \
+		go run ./cmd/gomadtool toolchain-build --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 toolchain is ready (darwin/arm64, key 6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee)
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep \
+		. ./cmd/... ./runner/... ./qualification/... ./target/... ./record/... ./artifact/... ./choice/... \
+		./deterministicio/... ./world/... ./toolchain/version ./upgrade/... ./internal/...
+--- FAIL: TestPublicPackagesDoNotExportTypeAliases (0.04s)
+    architecture_test.go:105: public package choice exports forwarding alias DiagnosticRecord
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3	1.295s
+?   	go.temporal.io/server/tools/gomad3/cmd/gomad	[no test files]
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	4.272s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	0.737s
+--- FAIL: TestCoordinatorTransportCoversEveryCampaignSpecField (0.00s)
+    coordinator_transport_test.go:67: CampaignSpec.Diagnostics is neither transported to the coordinator nor listed as local-only
+--- FAIL: TestCoordinatorTransportRoundTripsEveryTransportedField (0.00s)
+    --- FAIL: TestCoordinatorTransportRoundTripsEveryTransportedField/distinct_nonzero_values (0.00s)
+        coordinator_transport_test.go:112: coordinator transport changed [Diagnostics]:
+             got runner.CampaignSpec{ResumeCampaign:"ResumeCampaign-101", PlanSHA256:"PlanSHA256-102", Shard:runner.CampaignShard{Index:0x68, Count:0x69}, Strategy:"Strategy-106", Seeds:"Seeds-107", Parallel:108, ExecutionTimeout:109, OverallTimeout:987654321, TerminateGrace:111, OnFailure:"OnFailure-112", FailureBudget:0x71, OutputLimit:0x72, WorldTransitionLimit:0x73, Diagnostics:false, ChoiceTraceLimit:0x75, IOTranscriptLimit:0x76, ClockTick:"ClockTick-119", MaxExecutions:0x78, MaxChoiceDepth:0x79, MaxForcedDecisions:0x7a, MaxExplorationBytes:0x7b, MaxExplorationResultBytes:0x7c, SimulationDimensionLimits:runner.SimulationDimensionLimits{Runtime:0x7e, Scenario:0x7f, Network:0x80, Storage:0x81, Fault:0x82, Crash:0x83}, Artifacts:"Artifacts-132", Environment:[]string{"Environment[0]-134", "Environment[1]-135"}, IOROMounts:[]string{"IOROMounts[0]-137", "IOROMounts[1]-138"}, IOROMountLimits:readonlymount.Limits{PathBytes:0x8c, Requests:0x8d, Files:0x8e, DirectoryEntries:0x8f, SingleFileBytes:0x90, TotalBytes:0x91}, Target:target.Spec{Kind:"Target.Kind-147", Source:"Target.Source-148", Provenance:"Target.Provenance-149", Args:[]string{"Target.Args[0]-151", "Target.Args[1]-152"}, BuildTags:[]string{"Target.BuildTags[0]-154", "Target.BuildTags[1]-155"}, WorkingDir:"Target.WorkingDir-156", PreparationRoot:"Target.PreparationRoot-157", ToolchainRoot:"Target.ToolchainRoot-158", BuildOverlay:"Target.BuildOverlay-159", BuildModFile:"Target.BuildModFile-160", AdapterReplacements:[]target.AdapterReplacement{target.AdapterReplacement{Original:target.ModuleIdentity{Path:"Target.AdapterReplacements[0].Original.Path-164", Version:"Target.AdapterReplacements[0].Original.Version-165", Sum:"Target.AdapterReplacements[0].Original.Sum-166"}, ReplacementPath:"Target.AdapterReplacements[0].ReplacementPath-167", PreparedPackage:"Target.AdapterReplacements[0].PreparedPackage-168", ProfileName:"Target.AdapterReplacements[0].ProfileName-169", ProfileImplementationSHA256:"Target.AdapterReplacements[0].ProfileImplementationSHA256-170", Adapter:target.ModuleIdentity{Path:"Target.AdapterReplacements[0].Adapter.Path-172", Version:"Target.AdapterReplacements[0].Adapter.Version-173", Sum:"Target.AdapterReplacements[0].Adapter.Sum-174"}, OriginalSourceInventorySHA256:"Target.AdapterReplacements[0].OriginalSourceInventorySHA256-175", ReplacementSourceInventorySHA256:"Target.AdapterReplacements[0].ReplacementSourceInventorySHA256-176", PreparedSourceSetSHA256:"Target.AdapterReplacements[0].PreparedSourceSetSHA256-177"}, target.AdapterReplacement{Original:target.ModuleIdentity{Path:"Target.AdapterReplacements[1].Original.Path-180", Version:"Target.AdapterReplacements[1].Original.Version-181", Sum:"Target.AdapterReplacements[1].Original.Sum-182"}, ReplacementPath:"Target.AdapterReplacements[1].ReplacementPath-183", PreparedPackage:"Target.AdapterReplacements[1].PreparedPackage-184", ProfileName:"Target.AdapterReplacements[1].ProfileName-185", ProfileImplementationSHA256:"Target.AdapterReplacements[1].ProfileImplementationSHA256-186", Adapter:target.ModuleIdentity{Path:"Target.AdapterReplacements[1].Adapter.Path-188", Version:"Target.AdapterReplacements[1].Adapter.Version-189", Sum:"Target.AdapterReplacements[1].Adapter.Sum-190"}, OriginalSourceInventorySHA256:"Target.AdapterReplacements[1].OriginalSourceInventorySHA256-191", ReplacementSourceInventorySHA256:"Target.AdapterReplacements[1].ReplacementSourceInventorySHA256-192", PreparedSourceSetSHA256:"Target.AdapterReplacements[1].PreparedSourceSetSHA256-193"}}, CapabilityMode:"Target.CapabilityMode-194"}, SupervisorCommand:[]string{"SupervisorCommand[0]-196", "SupervisorCommand[1]-197"}, CoordinatorCommand:[]string(nil), RunnerBuild:"RunnerBuild-198", Coverage:"Coverage-199", RequiredSemanticProbes:[]string{"RequiredSemanticProbes[0]-201", "RequiredSemanticProbes[1]-202"}, CollectExecutionEvidence:true, KeepSuccesses:"KeepSuccesses-204", SuccessArtifactLimit:0xcd, SuccessBytesLimit:0xce, Guide:true, Corpus:"Corpus-208", GuideSnapshotSHA256:"GuideSnapshotSHA256-209", Progress:(runner.CampaignEventFunc)(nil), ProgressInterval:210, Preparer:runner.Preparer(nil), Executor:runner.Executor(nil), Replayer:runner.ArtifactReplayer(nil), resumePreflight:(*campaign.ResumePreflight)(nil), failureArtifactLimit:0x0, failureBytesLimit:0x0}
+            want runner.CampaignSpec{ResumeCampaign:"ResumeCampaign-101", PlanSHA256:"PlanSHA256-102", Shard:runner.CampaignShard{Index:0x68, Count:0x69}, Strategy:"Strategy-106", Seeds:"Seeds-107", Parallel:108, ExecutionTimeout:109, OverallTimeout:987654321, TerminateGrace:111, OnFailure:"OnFailure-112", FailureBudget:0x71, OutputLimit:0x72, WorldTransitionLimit:0x73, Diagnostics:true, ChoiceTraceLimit:0x75, IOTranscriptLimit:0x76, ClockTick:"ClockTick-119", MaxExecutions:0x78, MaxChoiceDepth:0x79, MaxForcedDecisions:0x7a, MaxExplorationBytes:0x7b, MaxExplorationResultBytes:0x7c, SimulationDimensionLimits:runner.SimulationDimensionLimits{Runtime:0x7e, Scenario:0x7f, Network:0x80, Storage:0x81, Fault:0x82, Crash:0x83}, Artifacts:"Artifacts-132", Environment:[]string{"Environment[0]-134", "Environment[1]-135"}, IOROMounts:[]string{"IOROMounts[0]-137", "IOROMounts[1]-138"}, IOROMountLimits:readonlymount.Limits{PathBytes:0x8c, Requests:0x8d, Files:0x8e, DirectoryEntries:0x8f, SingleFileBytes:0x90, TotalBytes:0x91}, Target:target.Spec{Kind:"Target.Kind-147", Source:"Target.Source-148", Provenance:"Target.Provenance-149", Args:[]string{"Target.Args[0]-151", "Target.Args[1]-152"}, BuildTags:[]string{"Target.BuildTags[0]-154", "Target.BuildTags[1]-155"}, WorkingDir:"Target.WorkingDir-156", PreparationRoot:"Target.PreparationRoot-157", ToolchainRoot:"Target.ToolchainRoot-158", BuildOverlay:"Target.BuildOverlay-159", BuildModFile:"Target.BuildModFile-160", AdapterReplacements:[]target.AdapterReplacement{target.AdapterReplacement{Original:target.ModuleIdentity{Path:"Target.AdapterReplacements[0].Original.Path-164", Version:"Target.AdapterReplacements[0].Original.Version-165", Sum:"Target.AdapterReplacements[0].Original.Sum-166"}, ReplacementPath:"Target.AdapterReplacements[0].ReplacementPath-167", PreparedPackage:"Target.AdapterReplacements[0].PreparedPackage-168", ProfileName:"Target.AdapterReplacements[0].ProfileName-169", ProfileImplementationSHA256:"Target.AdapterReplacements[0].ProfileImplementationSHA256-170", Adapter:target.ModuleIdentity{Path:"Target.AdapterReplacements[0].Adapter.Path-172", Version:"Target.AdapterReplacements[0].Adapter.Version-173", Sum:"Target.AdapterReplacements[0].Adapter.Sum-174"}, OriginalSourceInventorySHA256:"Target.AdapterReplacements[0].OriginalSourceInventorySHA256-175", ReplacementSourceInventorySHA256:"Target.AdapterReplacements[0].ReplacementSourceInventorySHA256-176", PreparedSourceSetSHA256:"Target.AdapterReplacements[0].PreparedSourceSetSHA256-177"}, target.AdapterReplacement{Original:target.ModuleIdentity{Path:"Target.AdapterReplacements[1].Original.Path-180", Version:"Target.AdapterReplacements[1].Original.Version-181", Sum:"Target.AdapterReplacements[1].Original.Sum-182"}, ReplacementPath:"Target.AdapterReplacements[1].ReplacementPath-183", PreparedPackage:"Target.AdapterReplacements[1].PreparedPackage-184", ProfileName:"Target.AdapterReplacements[1].ProfileName-185", ProfileImplementationSHA256:"Target.AdapterReplacements[1].ProfileImplementationSHA256-186", Adapter:target.ModuleIdentity{Path:"Target.AdapterReplacements[1].Adapter.Path-188", Version:"Target.AdapterReplacements[1].Adapter.Version-189", Sum:"Target.AdapterReplacements[1].Adapter.Sum-190"}, OriginalSourceInventorySHA256:"Target.AdapterReplacements[1].OriginalSourceInventorySHA256-191", ReplacementSourceInventorySHA256:"Target.AdapterReplacements[1].ReplacementSourceInventorySHA256-192", PreparedSourceSetSHA256:"Target.AdapterReplacements[1].PreparedSourceSetSHA256-193"}}, CapabilityMode:"Target.CapabilityMode-194"}, SupervisorCommand:[]string{"SupervisorCommand[0]-196", "SupervisorCommand[1]-197"}, CoordinatorCommand:[]string(nil), RunnerBuild:"RunnerBuild-198", Coverage:"Coverage-199", RequiredSemanticProbes:[]string{"RequiredSemanticProbes[0]-201", "RequiredSemanticProbes[1]-202"}, CollectExecutionEvidence:true, KeepSuccesses:"KeepSuccesses-204", SuccessArtifactLimit:0xcd, SuccessBytesLimit:0xce, Guide:true, Corpus:"Corpus-208", GuideSnapshotSHA256:"GuideSnapshotSHA256-209", Progress:(runner.CampaignEventFunc)(nil), ProgressInterval:210, Preparer:runner.Preparer(nil), Executor:runner.Executor(nil), Replayer:runner.ArtifactReplayer(nil), resumePreflight:(*campaign.ResumePreflight)(nil), failureArtifactLimit:0x0, failureBytesLimit:0x0}
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner	117.448s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/campaign	29.816s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/corpus	1.338s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/execution	77.508s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration	1.199s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice	1.399s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation	1.568s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord	0.820s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/minimizer	1.016s
+ok  	go.temporal.io/server/tools/gomad3/qualification	1.305s
+ok  	go.temporal.io/server/tools/gomad3/qualification/analysis	22.612s
+ok  	go.temporal.io/server/tools/gomad3/qualification/comparison	1.212s
+ok  	go.temporal.io/server/tools/gomad3/qualification/set	4.488s
+ok  	go.temporal.io/server/tools/gomad3/qualification/set/manifestgen	2.883s
+ok  	go.temporal.io/server/tools/gomad3/qualification/workload	0.825s
+ok  	go.temporal.io/server/tools/gomad3/target	34.588s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/build	0.545s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/capabilityreview	0.974s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/livecap	12.981s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/provenance	0.508s
+ok  	go.temporal.io/server/tools/gomad3/record	0.585s
+ok  	go.temporal.io/server/tools/gomad3/artifact	2.186s
+ok  	go.temporal.io/server/tools/gomad3/choice	0.614s
+ok  	go.temporal.io/server/tools/gomad3/choice/internal/wire	0.377s
+ok  	go.temporal.io/server/tools/gomad3/deterministicio	83.070s
+ok  	go.temporal.io/server/tools/gomad3/deterministicio/internal/wire	0.617s
+ok  	go.temporal.io/server/tools/gomad3/deterministicio/readonlymount	1.006s
+ok  	go.temporal.io/server/tools/gomad3/world	0.585s
+ok  	go.temporal.io/server/tools/gomad3/world/mailbox	0.252s
+ok  	go.temporal.io/server/tools/gomad3/world/process	0.400s
+ok  	go.temporal.io/server/tools/gomad3/toolchain/version	2.137s
+ok  	go.temporal.io/server/tools/gomad3/upgrade	0.927s
+ok  	go.temporal.io/server/tools/gomad3/internal/canonicaljson	0.284s
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack	1.095s
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring	0.691s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	0.433s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/boundary	5.225s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/protocol	1.805s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/validation	0.283s
+ok  	go.temporal.io/server/tools/gomad3/internal/hostexec	0.779s
+ok  	go.temporal.io/server/tools/gomad3/internal/hostfs	0.282s
+FAIL
+make: *** [test-host] Error 1

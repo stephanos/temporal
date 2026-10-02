@@ -196,7 +196,7 @@ func runChoiceExplorationLocal(
 	summary.StopReason = StopReason(explorationSummary.StopReason)
 	if err := journal.Publish(campaign.CampaignSummary{
 		Attempted: summary.Attempted, Succeeded: summary.Succeeded, Failures: summary.Failures, Watchdogs: summary.Watchdogs,
-		Cancelled: summary.Cancelled, DistinctFailures: summary.DistinctFailures, RetainedSuccesses: summary.RetainedSuccesses,
+		ReplayDivergences: summary.ReplayDivergences, Cancelled: summary.Cancelled, DistinctFailures: summary.DistinctFailures, RetainedSuccesses: summary.RetainedSuccesses,
 		RetainedSuccessBytes: summary.RetainedSuccessBytes, StopReason: string(summary.StopReason), FailureSignatures: failureSignatures,
 		ChoiceExploration: &explorationSummary, ChoiceExplorationImplementationSHA256: choiceengine.ImplementationSHA256(), ChoiceExplorationChainSHA256: explorationJournal.ChainSHA256(), RecoveryExecutions: summary.RecoveryExecutions,
 	}); err != nil {
@@ -276,8 +276,8 @@ func executeExplorationRound(
 	if progressErr != nil {
 		return nil, &HostError{Reason: "progress_output", Err: progressErr}
 	}
-	for _, completion := range completions {
-		if completion.err != nil {
+	for index, completion := range completions {
+		if completion.err != nil && !isCandidateReplayDivergence(completion, round.Candidates[index], state.Config.Execution) {
 			return nil, &HostError{Reason: supervisionFailureReason(completion.err), Err: completion.err}
 		}
 		if completion.result.Cancelled {
@@ -312,6 +312,33 @@ func processExplorationCompletion(
 		return explorationRoundResult{}, &HostError{Reason: "prepared_target_integrity", Err: err}
 	}
 	candidate := round.Candidates[index]
+	if isCandidateReplayDivergence(completion, candidate, state.Config.Execution) {
+		var divergence *execution.ChoiceReplayDivergenceError
+		errors.As(completion.err, &divergence)
+		evidence := choice.ProjectDivergenceEvidence(divergence.Divergence)
+		roundValue := record.Uint64String(round.Index)
+		depthValue := record.Uint64String(candidate.ForcedDepth)
+		run := campaign.ExecutionRecord{
+			Strategy: string(StrategyChoiceExploration), Round: &roundValue, CandidateSHA256: candidate.SHA256,
+			ParentCandidateSHA256: candidate.ParentSHA256, PrefixSHA256: candidate.PrefixSHA256, ForcedDepth: &depthValue,
+			SelectionOrdinal: record.Uint64String(completion.job.ordinal), Seed: record.Uint64String(completion.job.seed),
+			Domain: "runner", Reason: "replay_divergence", Termination: "none", Divergence: &evidence,
+			ElapsedNanos: elapsedNanos(completion.startedAt, completion.finishedAt),
+		}
+		if err := completion.journal.Transition(campaign.ExecutionCaptured); err != nil {
+			return explorationRoundResult{}, &HostError{Reason: "partial_write", Err: err}
+		}
+		if err := completion.journal.Transition(campaign.ExecutionClassified); err != nil {
+			return explorationRoundResult{}, &HostError{Reason: "partial_write", Err: err}
+		}
+		if err := completion.journal.Complete(); err != nil {
+			return explorationRoundResult{}, &HostError{Reason: "partial_cleanup", Err: err}
+		}
+		summary.Attempted++
+		summary.Failures++
+		summary.ReplayDivergences++
+		return explorationRoundResult{completion: completion, result: choiceengine.Result{CandidateSHA256: candidate.SHA256, Divergence: &divergence.Divergence}, run: run}, nil
+	}
 	worldBundle, err := assessWorld(completion.result, completion.job.seed, config.WorldTransitionLimit)
 	if err != nil {
 		return explorationRoundResult{}, &HostError{Reason: "world_record", Err: err}
@@ -445,6 +472,26 @@ func processExplorationCompletion(
 		explorationResult.FailureSHA256 = *run.FailureSignature
 	}
 	return explorationRoundResult{completion: completion, result: explorationResult, run: run}, nil
+}
+
+func isCandidateReplayDivergence(completion runCompletion, candidate choiceengine.Candidate, identity choice.ExecutionIdentity) bool {
+	if completion.result.Cancelled || completion.result.WatchdogTimeout || completion.job.choiceMode != choice.ModePrefix {
+		return false
+	}
+	for err := completion.err; err != nil; {
+		if joined, ok := err.(interface{ Unwrap() []error }); ok {
+			if len(joined.Unwrap()) != 1 {
+				return false
+			}
+			err = joined.Unwrap()[0]
+		} else if wrapped, ok := err.(interface{ Unwrap() error }); ok {
+			err = wrapped.Unwrap()
+		} else {
+			break
+		}
+	}
+	var divergence *execution.ChoiceReplayDivergenceError
+	return errors.As(completion.err, &divergence) && divergence != nil && choiceengine.ValidateCandidateDivergence(candidate, identity, divergence.Divergence) == nil
 }
 
 func reconcileExplorationExecutions(journal *campaign.CampaignJournal, projected, committed []campaign.ExecutionRecord) error {

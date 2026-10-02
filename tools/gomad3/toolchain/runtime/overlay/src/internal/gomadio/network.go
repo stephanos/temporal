@@ -14,11 +14,12 @@ import (
 
 	"internal/gomadmodelwire"
 	"internal/gomadsim"
+	"internal/poll"
 )
 
 var (
 	ErrAddressInUse      = errors.New("address already in use")
-	ErrClosed            = errors.New("use of closed network connection")
+	ErrClosed            = poll.ErrNetClosing
 	ErrConnectionRefused = errors.New("connection refused")
 	ErrResourceExhausted = errors.New("network resources exhausted")
 	ErrUnsupported       = errors.New("unsupported Gomad network operation")

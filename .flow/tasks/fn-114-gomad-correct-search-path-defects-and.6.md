@@ -4,7 +4,7 @@ satisfies: [R10]
 # fn-114-gomad-correct-search-path-defects-and.6 Add the choice-exploration start ordinal
 
 ## Description
-E5 (R10): choice exploration takes a start ordinal so `--max-choice-depth` is spent after bootstrap. Depends on task 4 because both edit the engine and the exploration campaign.
+E5 (R10): choice exploration takes a start ordinal so `--max-choice-depth` is spent after bootstrap. Depends on task 7 to serialize the shared CLI and campaign edits; task 4 is a transitive dependency. Guided seed deduplication comes first under the approved 2026-10-02 delivery order.
 
 **Size:** M
 **Files:** `tools/gomad3/cmd/gomad/internal/cli/cli.go`, `cli_test.go`, `tools/gomad3/runner/coordinator.go`, `choice_exploration_campaign.go`, `runner.go` (config validation), `tools/gomad3/runner/internal/exploration/choice/engine.go`, `engine_test.go`, `tools/gomad3/runner/campaign_plan.go`, `resume.go`, `tools/gomad3/runner/internal/campaign/resume_plan.go`, `choice_exploration_journal.go`, `tools/gomad3/runner/runner_test.go`

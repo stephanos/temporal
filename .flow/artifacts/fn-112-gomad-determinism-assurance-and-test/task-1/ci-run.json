@@ -1,0 +1,44 @@
+{
+  "conclusion": "success",
+  "headSha": "8789deab055d1b72ac6bc86711d74f3fd7313fa2",
+  "jobs": [
+    {
+      "name": "core",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/stephanos/temporal/actions/runs/36968858553/job/110718410461"
+    },
+    {
+      "name": "host-tools-linux",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/stephanos/temporal/actions/runs/36968858553/job/110718410630"
+    },
+    {
+      "name": "core-linux",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/stephanos/temporal/actions/runs/36968858553/job/110718410657"
+    },
+    {
+      "name": "functional-smoke / functional-smoke-darwin",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/stephanos/temporal/actions/runs/36968858553/job/110718410727"
+    },
+    {
+      "name": "functional-smoke / functional-smoke-linux",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/stephanos/temporal/actions/runs/36968858553/job/110718410756"
+    },
+    {
+      "name": "temporal-integration",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/stephanos/temporal/actions/runs/36968858553/job/110724516690"
+    }
+  ],
+  "status": "completed",
+  "url": "https://github.com/stephanos/temporal/actions/runs/36968858553"
+}

@@ -1,0 +1,9 @@
+{
+  "tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go": "991d338c8bfc310ca91a8a3367730126b3a66fe7bf6ad5709bf2764e6078fef9",
+  "tools/gomad3/internal/gomadtool/conformance/runtime_repeatability.go": "833989fd248cd1526395e5be90d954aa24fe4108adbcad406a7d6384cc1ab549",
+  "tools/gomad3/internal/gomadtool/conformance/runtime_load.go": "39ebf79d4634d17dc023eb8548545d796a6b2533bec29fc5c6f8298f536ee9f7",
+  "tools/gomad3/internal/gomadtool/conformance/runtime_test.go": "ad2728735f71b71c910a0626c303f1bf334c7a5950a891f80996e623d15017b0",
+  "tools/gomad3/internal/gomadtool/conformance/testdata/README.md": "ba1896ec703a693a06052ea098c2e79b058580e261b8e600a2886829b0c42881",
+  "tools/gomad3/internal/gomadtool/conformance/testdata/timer_ties/main.go": "f0311fafe54d25a54b15a17bcebcafa5eb83559fb741a9a105d2e57e15e1b746",
+  "tools/gomad3/internal/gomadtool/conformance/testdata/runq_shuffle/main.go": "7ecd1def61e9b8bf465ee33d756cd6cabe8430d5a696872e998c8954ce35dd25"
+}

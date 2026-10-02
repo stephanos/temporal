@@ -833,6 +833,9 @@ func validateDeterministicBuildInfo(info record.BuildInfo) error {
 	if settings["CGO_ENABLED"] != "0" {
 		return fmt.Errorf("exec provenance requires CGO_ENABLED=0")
 	}
+	if HasCoverageInstrumentation(info) {
+		return fmt.Errorf("exec provenance uses unsupported coverage instrumentation")
+	}
 	if settings["-race"] == "true" {
 		return fmt.Errorf("exec provenance uses the unsupported race detector")
 	}
@@ -847,6 +850,15 @@ func validateDeterministicBuildInfo(info record.BuildInfo) error {
 		return fmt.Errorf("exec provenance uses unsupported external or plugin linking")
 	}
 	return nil
+}
+
+func HasCoverageInstrumentation(info record.BuildInfo) bool {
+	for _, setting := range info.Settings {
+		if setting.Key == "-cover" && setting.Value == "true" {
+			return true
+		}
+	}
+	return false
 }
 
 func ProjectBuildInfo(info *debug.BuildInfo) record.BuildInfo {

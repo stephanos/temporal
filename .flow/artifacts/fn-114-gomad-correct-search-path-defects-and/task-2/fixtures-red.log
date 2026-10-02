@@ -1,0 +1,6 @@
+--- FAIL: TestRuntimeSearchFixtures (0.02s)
+    runtime_test.go:140: gomad3 fixture timer_callback_identity-build failed with status 1: stat /Users/stephan/Workspace/temporal/gomad/tools/gomad3/internal/gomadtool/conformance/testdata/timer_callback_identity: directory not found
+        
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	0.396s
+FAIL

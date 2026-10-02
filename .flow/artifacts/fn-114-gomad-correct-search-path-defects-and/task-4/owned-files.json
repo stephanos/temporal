@@ -1,0 +1,21 @@
+[
+  "tools/gomad3/choice/tape.go",
+  "tools/gomad3/runner/choice_exploration_campaign.go",
+  "tools/gomad3/runner/internal/exploration/choice/engine.go",
+  "tools/gomad3/runner/internal/campaign/choice_exploration_journal.go",
+  "tools/gomad3/runner/internal/campaign/campaign_journal.go",
+  "tools/gomad3/runner/internal/campaign/open_campaign.go",
+  "tools/gomad3/runner/internal/campaign/resume_journal.go",
+  "tools/gomad3/runner/runner_test.go",
+  "tools/gomad3/runner/resume.go",
+  "tools/gomad3/runner/inspect.go",
+  "tools/gomad3/cmd/gomad/internal/cli/explore_output.go",
+  "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+  "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+  "tools/gomad3/runner/internal/exploration/choice/engine_divergence_test.go",
+  "tools/gomad3/runner/choice_exploration_divergence_test.go",
+  "tools/gomad3/runner/choice_exploration_divergence_unix_test.go",
+  "tools/gomad3/runner/internal/campaign/choice_exploration_divergence_test.go",
+  "tools/gomad3/cmd/gomad/internal/cli/exploration_divergence_test.go",
+  "tools/gomad3/choice/divergence.go"
+]

@@ -16,9 +16,9 @@ import (
 const (
 	candidateDomain    = "gomad3-choice-exploration-candidate/v1"
 	stateDomain        = "gomad3-choice-exploration-state/v1"
-	roundSegmentDomain = "gomad3-choice-exploration-round-segment/v1"
-	RoundSegmentSchema = "gomad3.choice-exploration-round/v1"
-	controllerIdentity = "deterministic-rounds/breadth-first-rank-prefix/v1"
+	roundSegmentDomain = "gomad3-choice-exploration-round-segment/v2"
+	RoundSegmentSchema = "gomad3.choice-exploration-round/v2"
+	controllerIdentity = "deterministic-rounds/breadth-first-rank-prefix/v2"
 )
 
 func ImplementationSHA256() record.SHA256 {
@@ -70,6 +70,7 @@ type Result struct {
 	OutcomeSHA256   record.SHA256
 	Failed          bool
 	FailureSHA256   record.SHA256
+	Divergence      *choice.Divergence
 	Trace           *choice.ReplayPlan
 }
 
@@ -95,13 +96,14 @@ type Round struct {
 }
 
 type SegmentResult struct {
-	CandidateSHA256   record.SHA256 `json:"candidate_sha256"`
-	OutcomeSHA256     record.SHA256 `json:"outcome_sha256"`
-	Failed            bool          `json:"failed"`
-	FailureSHA256     record.SHA256 `json:"failure_sha256,omitempty"`
-	TraceSHA256       record.SHA256 `json:"trace_sha256,omitempty"`
-	TraceSourceSHA256 record.SHA256 `json:"trace_source_sha256,omitempty"`
-	TraceBytes        []byte        `json:"trace_bytes,omitempty"`
+	CandidateSHA256   record.SHA256              `json:"candidate_sha256"`
+	OutcomeSHA256     record.SHA256              `json:"outcome_sha256,omitempty"`
+	Failed            bool                       `json:"failed"`
+	FailureSHA256     record.SHA256              `json:"failure_sha256,omitempty"`
+	Divergence        *choice.DivergenceEvidence `json:"divergence,omitempty"`
+	TraceSHA256       record.SHA256              `json:"trace_sha256,omitempty"`
+	TraceSourceSHA256 record.SHA256              `json:"trace_source_sha256,omitempty"`
+	TraceBytes        []byte                     `json:"trace_bytes,omitempty"`
 }
 
 type RoundSegment struct {
@@ -223,6 +225,21 @@ func CommitRound(state State, round Round, results []Result) (State, RoundSegmen
 		if result.CandidateSHA256 != candidate.SHA256 {
 			return State{}, RoundSegment{}, fmt.Errorf("choice exploration result %d does not match candidate", index)
 		}
+		if result.Divergence != nil {
+			if result.OutcomeSHA256 != "" || result.Failed || result.FailureSHA256 != "" || result.Trace != nil {
+				return State{}, RoundSegment{}, fmt.Errorf("choice exploration result %d divergence contains outcome evidence", index)
+			}
+			if err := ValidateCandidateDivergence(candidate, state.Config.Execution, *result.Divergence); err != nil {
+				return State{}, RoundSegment{}, fmt.Errorf("choice exploration result %d divergence: %w", index, err)
+			}
+			divergence := choice.ProjectDivergenceEvidence(*result.Divergence)
+			segmentResults[index] = SegmentResult{CandidateSHA256: candidate.SHA256, Divergence: &divergence}
+			if next.Config.FailurePolicy == PolicyFirst {
+				next.StopReason = StopFirstFailure
+				policyStopped = true
+			}
+			continue
+		}
 		if _, err := result.OutcomeSHA256.Bytes(); err != nil {
 			return State{}, RoundSegment{}, fmt.Errorf("choice exploration result %d outcome: %w", index, err)
 		}
@@ -298,6 +315,9 @@ func CommitRound(state State, round Round, results []Result) (State, RoundSegmen
 }
 
 func ReplaySegment(state State, segment RoundSegment) (State, error) {
+	if segment.Schema != RoundSegmentSchema {
+		return State{}, fmt.Errorf("choice exploration segment schema %q is incompatible with %q", segment.Schema, RoundSegmentSchema)
+	}
 	identity, err := segmentIdentity(segment)
 	if err != nil || identity != segment.SHA256 {
 		return State{}, errors.Join(errors.New("choice exploration segment identity does not match"), err)
@@ -313,6 +333,10 @@ func ReplaySegment(state State, segment RoundSegment) (State, error) {
 	results := make([]Result, len(segment.Results))
 	for index, stored := range segment.Results {
 		result := Result{CandidateSHA256: stored.CandidateSHA256, OutcomeSHA256: stored.OutcomeSHA256, Failed: stored.Failed, FailureSHA256: stored.FailureSHA256}
+		if stored.Divergence != nil {
+			divergence := stored.Divergence.Divergence()
+			result.Divergence = &divergence
+		}
 		if len(stored.TraceBytes) != 0 {
 			digest, decodeErr := stored.TraceSHA256.Bytes()
 			if decodeErr != nil {
@@ -344,6 +368,25 @@ func ReplaySegment(state State, segment RoundSegment) (State, error) {
 		return State{}, errors.Join(errors.New("choice exploration segment replay changed its canonical result"), err)
 	}
 	return next, nil
+}
+
+func ValidateCandidateDivergence(candidate Candidate, identity choice.ExecutionIdentity, divergence choice.Divergence) error {
+	if candidate.ForcedDepth == 0 {
+		return errors.New("choice divergence requires a forced-prefix candidate")
+	}
+	if divergence.Ordinal >= candidate.ForcedDepth || divergence.Expected == nil {
+		return errors.New("choice divergence must reference its forced prefix")
+	}
+	switch divergence.Reason {
+	case choice.DivergenceKind, choice.DivergenceSite, choice.DivergenceAlternatives, choice.DivergenceSelected, choice.DivergenceAlternativeSet, choice.DivergenceTapeUnconsumed, choice.DivergenceObservation:
+	default:
+		return errors.New("choice divergence is not a forced-prefix mismatch")
+	}
+	prefix, err := candidate.PrefixReplayPlan(identity)
+	if err != nil {
+		return err
+	}
+	return choice.ValidatePrefixReplayDivergence(prefix, divergence)
 }
 
 func expandCandidate(state *State, parent Candidate, trace choice.ReplayPlan, children map[record.SHA256]Candidate) error {

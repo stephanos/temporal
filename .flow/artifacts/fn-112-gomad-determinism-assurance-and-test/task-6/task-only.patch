@@ -1,0 +1,168 @@
+--- a/tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go
++++ b/tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go
+@@ -296,6 +296,8 @@
+ 		{name: "channels", packageName: "./channels"},
+ 		{name: "sync", packageName: "./sync"},
+ 		{name: "runqueue", packageName: "./runqueue"},
++		{name: "runq-shuffle", packageName: "./runq_shuffle"},
++		{name: "timer-ties", packageName: "./timer_ties"},
+ 		{name: "choice-replay", packageName: "./choice_replay"},
+ 		{name: "automatic-gc", packageName: "./automatic_gc"},
+ 		{name: "activation", packageName: "./activation"},
+--- a/tools/gomad3/internal/gomadtool/conformance/runtime_repeatability.go
++++ b/tools/gomad3/internal/gomadtool/conformance/runtime_repeatability.go
+@@ -33,13 +33,13 @@
+ 		return errors.New("boundary seeds alias another pinned runtime random sequence")
+ 	}
+ 	for _, seed := range seeds {
+-		for _, packageName := range []string{"./random", "./scheduler_min", "./scheduler", "./select", "./maps", "./channels", "./sync", "./runqueue", "./automatic_gc", "./static_addresses"} {
++		for _, packageName := range []string{"./random", "./scheduler_min", "./scheduler", "./select", "./maps", "./channels", "./sync", "./runqueue", "./runq_shuffle", "./timer_ties", "./automatic_gc", "./static_addresses"} {
+ 			if err := campaign.requireRepeatable(packageName, seed, 100); err != nil {
+ 				return err
+ 			}
+ 		}
+ 	}
+-	for _, packageName := range []string{"./scheduler", "./select", "./channels", "./sync", "./runqueue", "./automatic_gc"} {
++	for _, packageName := range []string{"./scheduler", "./select", "./channels", "./sync", "./runqueue", "./runq_shuffle", "./timer_ties", "./automatic_gc"} {
+ 		if err := campaign.requireDiverse(packageName); err != nil {
+ 			return err
+ 		}
+--- a/tools/gomad3/internal/gomadtool/conformance/runtime_load.go
++++ b/tools/gomad3/internal/gomadtool/conformance/runtime_load.go
+@@ -61,6 +61,7 @@
+ 		{label: "scheduler", binary: binaries["scheduler"]}, {label: "maps", binary: binaries["maps"]},
+ 		{label: "select", binary: binaries["select"]}, {label: "channels", binary: binaries["channels"]},
+ 		{label: "sync", binary: binaries["sync"]}, {label: "runqueue", binary: binaries["runqueue"]},
++		{label: "runq-shuffle", binary: binaries["runq-shuffle"]}, {label: "timer-ties", binary: binaries["timer-ties"]},
+ 		{label: "automatic-gc", binary: binaries["automatic-gc"]},
+ 	}
+ 	expected := make([]string, len(fixtures))
+--- a/tools/gomad3/internal/gomadtool/conformance/runtime_test.go
++++ b/tools/gomad3/internal/gomadtool/conformance/runtime_test.go
+@@ -186,6 +186,36 @@
+ 	report.Passed = true
+ }
+ 
++func TestRuntimeChannelFixtures(t *testing.T) {
++	root, err := filepath.Abs("../../..")
++	if err != nil {
++		t.Fatal(err)
++	}
++	goCommand := filepath.Join(root, ".toolchain", "bin", "go")
++	if _, err := os.Stat(goCommand); errors.Is(err, os.ErrNotExist) {
++		t.Skip("patched toolchain is not installed")
++	} else if err != nil {
++		t.Fatal(err)
++	}
++	report := Report{Mode: "test-runtime-channel-fixtures"}
++	campaign := runtimeCampaign{
++		ctx: context.Background(), config: Config{Root: root, Go: goCommand},
++		testdata:    filepath.Join(root, "internal", "gomadtool", "conformance", "testdata"),
++		execWrapper: filepath.Join(root, "internal", "gomadtool", "conformance", "scripts", "exec.sh"),
++		workspace:   t.TempDir(), run: hostexec.Run, report: &report,
++	}
++	for _, packageName := range []string{"./timer_ties", "./runq_shuffle"} {
++		for _, seed := range []string{"0", "1", "18446744073709551615"} {
++			if err := campaign.requireRepeatable(packageName, seed, 10); err != nil {
++				t.Fatal(err)
++			}
++		}
++		if err := campaign.requireDiverse(packageName); err != nil {
++			t.Fatal(err)
++		}
++	}
++}
++
+ func TestTimerCallbackAssociationRejectsUnidentifiedHandoff(t *testing.T) {
+ 	input := append([]byte("gomad3-choice-goroutine-runtime/v1"), make([]byte, 8)...)
+ 	binary.BigEndian.PutUint64(input[len(input)-8:], 2)
+--- a/tools/gomad3/internal/gomadtool/conformance/testdata/README.md
++++ b/tools/gomad3/internal/gomadtool/conformance/testdata/README.md
+@@ -27,6 +27,18 @@
+ output across address perturbations; the `GOMAD3_ADDRESS` marker printed by
+ `internal/perturb` is the one exception and only appears when
+ `-gomad-address-padding` is given.
++
++`timer_ties` arms 24 native callbacks for one shared virtual deadline and prints
++their completion order after checking that every callback ran once at that
++deadline. `runq_shuffle` creates 1024 goroutines without blocking or yielding
++the creator. It disables automatic GC so an assist cannot drain the one-P
++local queue before it overflows its 256 slots; the pinned runtime's
++`runqputslow` and subsequent `runqputbatch` paths shuffle those batches through
++`gomadChoiceShuffleSeeded`. Its output contains only the completion permutation.
++Both fixtures repeat 100 times for each of three boundary seeds, require distinct
++orders across 32 seeds as their positive control, and repeat under host CPU load.
++These checks exercise seeded ordering without asserting a fixed permutation or
++claiming that timer-tie and shuffle draws are recorded in the Decision Tape.
+ 
+ `timer_callback_identity` starts two timer creators and arms both callbacks for
+ one virtual deadline before the process can quiesce. Each callback immediately
+--- /dev/null
++++ b/tools/gomad3/internal/gomadtool/conformance/testdata/timer_ties/main.go
+@@ -0,0 +1,32 @@
++package main
++
++import (
++	"fmt"
++	"time"
++)
++
++const timerCount = 24
++
++func main() {
++	completed := make(chan int, timerCount)
++	deadline := time.Now().Add(time.Second)
++	for id := range timerCount {
++		time.AfterFunc(time.Until(deadline), func() {
++			if !time.Now().Equal(deadline) {
++				panic("timer callback missed the shared virtual deadline")
++			}
++			completed <- id
++		})
++	}
++	order := make([]int, 0, timerCount)
++	seen := make([]bool, timerCount)
++	for range timerCount {
++		id := <-completed
++		if seen[id] {
++			panic("timer callback fired twice")
++		}
++		seen[id] = true
++		order = append(order, id)
++	}
++	fmt.Println(order)
++}
+--- /dev/null
++++ b/tools/gomad3/internal/gomadtool/conformance/testdata/runq_shuffle/main.go
+@@ -0,0 +1,31 @@
++package main
++
++import (
++	"fmt"
++	"runtime/debug"
++)
++
++const goroutineCount = 1024
++
++func main() {
++	// Keep the creator runnable until the one-P local queue overflows; GC
++	// assists must not schedule the children before the batch shuffle runs.
++	debug.SetGCPercent(-1)
++	completed := make(chan int, goroutineCount)
++	for id := range goroutineCount {
++		go func() {
++			completed <- id
++		}()
++	}
++	order := make([]int, 0, goroutineCount)
++	seen := make([]bool, goroutineCount)
++	for range goroutineCount {
++		id := <-completed
++		if seen[id] {
++			panic("goroutine completed twice")
++		}
++		seen[id] = true
++		order = append(order, id)
++	}
++	fmt.Println(order)
++}

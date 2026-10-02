@@ -1,0 +1,40 @@
+=== RUN   TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy
+=== RUN   TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/same_configuration_across_seeds
+=== RUN   TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/changed_environment
+    guidance_identity_test.go:62: changed configuration error = <nil>
+=== RUN   TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/strict_to_forward
+    guidance_identity_test.go:62: changed configuration error = <nil>
+=== RUN   TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/forward_to_strict
+    guidance_identity_test.go:62: changed configuration error = <nil>
+=== RUN   TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/same_configuration_across_seeds
+    guidance_identity_test.go:59: gomad3 Runner/host failure: guided_corpus: guided corpus identity does not match the prepared target and toolchain
+=== RUN   TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/changed_environment
+=== RUN   TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/strict_to_forward
+=== RUN   TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/forward_to_strict
+--- FAIL: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy (2.73s)
+    --- PASS: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/same_configuration_across_seeds (0.40s)
+    --- FAIL: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/changed_environment (0.44s)
+    --- FAIL: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/strict_to_forward (0.35s)
+    --- FAIL: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/forward_to_strict (0.48s)
+    --- FAIL: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/same_configuration_across_seeds (0.31s)
+    --- PASS: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/changed_environment (0.29s)
+    --- PASS: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/strict_to_forward (0.23s)
+    --- PASS: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/forward_to_strict (0.23s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner	3.402s
+=== RUN   TestPinnedCoverageBuildSettingsRejectInstrumentation
+=== RUN   TestPinnedCoverageBuildSettingsRejectInstrumentation/build
+    coverage_test.go:42: pinned build settings: []record.BuildSetting{record.BuildSetting{Key:"-buildmode", Value:"exe"}, record.BuildSetting{Key:"-compiler", Value:"gc"}, record.BuildSetting{Key:"-tags", Value:"test_dep"}, record.BuildSetting{Key:"CGO_ENABLED", Value:"0"}, record.BuildSetting{Key:"GOARCH", Value:"arm64"}, record.BuildSetting{Key:"GOARM64", Value:"v8.0"}, record.BuildSetting{Key:"GOEXPERIMENT", Value:"nogreenteagc"}, record.BuildSetting{Key:"GOOS", Value:"darwin"}}
+=== RUN   TestPinnedCoverageBuildSettingsRejectInstrumentation/build-cover
+    coverage_test.go:42: pinned build-cover settings: []record.BuildSetting{record.BuildSetting{Key:"-buildmode", Value:"exe"}, record.BuildSetting{Key:"-compiler", Value:"gc"}, record.BuildSetting{Key:"-cover", Value:"true"}, record.BuildSetting{Key:"-tags", Value:"test_dep"}, record.BuildSetting{Key:"CGO_ENABLED", Value:"0"}, record.BuildSetting{Key:"GOARCH", Value:"arm64"}, record.BuildSetting{Key:"GOARM64", Value:"v8.0"}, record.BuildSetting{Key:"GOEXPERIMENT", Value:"nogreenteagc"}, record.BuildSetting{Key:"GOOS", Value:"darwin"}}
+    coverage_test.go:55: coverage rejection = <nil>
+=== RUN   TestPinnedCoverageBuildSettingsRejectInstrumentation/test-cover
+    coverage_test.go:42: pinned test-cover settings: []record.BuildSetting{record.BuildSetting{Key:"-buildmode", Value:"exe"}, record.BuildSetting{Key:"-compiler", Value:"gc"}, record.BuildSetting{Key:"-cover", Value:"true"}, record.BuildSetting{Key:"-tags", Value:"test_dep"}, record.BuildSetting{Key:"CGO_ENABLED", Value:"0"}, record.BuildSetting{Key:"GOARCH", Value:"arm64"}, record.BuildSetting{Key:"GOARM64", Value:"v8.0"}, record.BuildSetting{Key:"GOEXPERIMENT", Value:"nogreenteagc"}, record.BuildSetting{Key:"GOOS", Value:"darwin"}}
+    coverage_test.go:55: coverage rejection = <nil>
+--- FAIL: TestPinnedCoverageBuildSettingsRejectInstrumentation (5.26s)
+    --- PASS: TestPinnedCoverageBuildSettingsRejectInstrumentation/build (1.68s)
+    --- FAIL: TestPinnedCoverageBuildSettingsRejectInstrumentation/build-cover (2.34s)
+    --- FAIL: TestPinnedCoverageBuildSettingsRejectInstrumentation/test-cover (1.24s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/target	5.648s
+FAIL

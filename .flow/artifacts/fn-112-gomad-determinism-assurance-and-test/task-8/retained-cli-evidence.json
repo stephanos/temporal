@@ -1,0 +1,265 @@
+{
+  "commands": [
+    {
+      "name": "retained-build",
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go",
+        "build",
+        "-trimpath",
+        "-o",
+        "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task8-retained-driver-6fsp6sob/gomad",
+        "./cmd/gomad"
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "elapsed_seconds": 2.302252875000704,
+      "log": "retained-build.log"
+    },
+    {
+      "name": "retained-driver-buildinfo",
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go",
+        "version",
+        "-m",
+        "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task8-retained-driver-6fsp6sob/gomad"
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "elapsed_seconds": 0.016735290999349672,
+      "log": "retained-driver-buildinfo.log"
+    },
+    {
+      "name": "retained-explore",
+      "argv": [
+        "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task8-retained-driver-6fsp6sob/gomad",
+        "explore",
+        "--json",
+        "--toolchain-root",
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain",
+        "--artifacts",
+        "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-8/retained-cli",
+        "--seeds",
+        "1-3",
+        "--parallel",
+        "1",
+        "--on-failure",
+        "all",
+        "--execution-timeout",
+        "30s",
+        "--overall-timeout",
+        "1m",
+        "--terminate-grace",
+        "100ms",
+        "--keep-successes",
+        "all",
+        "--success-limit",
+        "3",
+        "--success-bytes",
+        "64MiB",
+        "go-run",
+        "./cmd/gomad/testdata/campaign",
+        "--",
+        "work"
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "elapsed_seconds": 4.186042042001645,
+      "log": "retained-explore.log"
+    },
+    {
+      "name": "retained-inspect",
+      "argv": [
+        "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task8-retained-driver-6fsp6sob/gomad",
+        "inspect",
+        "--json",
+        "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-8/retained-cli/v1/campaign-20261002T120715.115087000Z-d80c04e54406f73efc3a12002a0f7beb"
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "elapsed_seconds": 0.044406459001038456,
+      "log": "retained-inspect.log"
+    },
+    {
+      "name": "retained-failure-inspect",
+      "argv": [
+        "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task8-retained-driver-6fsp6sob/gomad",
+        "inspect",
+        "--json",
+        "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-8/retained-cli/v1/campaign-20261002T120715.115087000Z-d80c04e54406f73efc3a12002a0f7beb/failures/sha256-38b2454afafe3fea58035b3875676994"
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "elapsed_seconds": 0.010210749998805113,
+      "log": "retained-failure-inspect.log"
+    },
+    {
+      "name": "retained-success-inspect",
+      "argv": [
+        "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task8-retained-driver-6fsp6sob/gomad",
+        "inspect",
+        "--json",
+        "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-8/retained-cli/v1/campaign-20261002T120715.115087000Z-d80c04e54406f73efc3a12002a0f7beb/successes/sha256-c3d115694765faf5e2ed75b317fed640"
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "elapsed_seconds": 0.010205582999333274,
+      "log": "retained-success-inspect.log"
+    },
+    {
+      "name": "retained-failure-verify",
+      "argv": [
+        "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task8-retained-driver-6fsp6sob/gomad",
+        "replay",
+        "--toolchain-root",
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain",
+        "--verify-only",
+        "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-8/retained-cli/v1/campaign-20261002T120715.115087000Z-d80c04e54406f73efc3a12002a0f7beb/failures/sha256-38b2454afafe3fea58035b3875676994"
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "elapsed_seconds": 0.0620331249992887,
+      "log": "retained-failure-verify.log"
+    },
+    {
+      "name": "retained-failure-replay",
+      "argv": [
+        "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task8-retained-driver-6fsp6sob/gomad",
+        "replay",
+        "--toolchain-root",
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain",
+        "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-8/retained-cli/v1/campaign-20261002T120715.115087000Z-d80c04e54406f73efc3a12002a0f7beb/failures/sha256-38b2454afafe3fea58035b3875676994"
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "elapsed_seconds": 1.1162940419999359,
+      "log": "retained-failure-replay.log"
+    },
+    {
+      "name": "retained-success-replay",
+      "argv": [
+        "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task8-retained-driver-6fsp6sob/gomad",
+        "replay",
+        "--toolchain-root",
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain",
+        "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-8/retained-cli/v1/campaign-20261002T120715.115087000Z-d80c04e54406f73efc3a12002a0f7beb/successes/sha256-c3d115694765faf5e2ed75b317fed640"
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "elapsed_seconds": 1.0777312499994878,
+      "log": "retained-success-replay.log"
+    },
+    {
+      "name": "retained-published-resume",
+      "argv": [
+        "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task8-retained-driver-6fsp6sob/gomad",
+        "resume",
+        "--json",
+        "--toolchain-root",
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain",
+        "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-8/retained-cli/v1/campaign-20261002T120715.115087000Z-d80c04e54406f73efc3a12002a0f7beb"
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "elapsed_seconds": 0.023804167001799215,
+      "log": "retained-published-resume.log"
+    },
+    {
+      "name": "retained-invalid-replay",
+      "argv": [
+        "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task8-retained-driver-6fsp6sob/gomad",
+        "replay",
+        "--toolchain-root",
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain",
+        "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-8/retained-cli/missing"
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "elapsed_seconds": 0.013662749999639345,
+      "log": "retained-invalid-replay.log"
+    },
+    {
+      "name": "retained-inspect-after-rejection",
+      "argv": [
+        "/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task8-retained-driver-6fsp6sob/gomad",
+        "inspect",
+        "--json",
+        "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-8/retained-cli/v1/campaign-20261002T120715.115087000Z-d80c04e54406f73efc3a12002a0f7beb"
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "elapsed_seconds": 0.033987165999860736,
+      "log": "retained-inspect-after-rejection.log"
+    }
+  ],
+  "environment_overrides": {
+    "removed": [
+      "GOROOT",
+      "GOMADSEED",
+      "GOMAD3_CHILD_SEED"
+    ],
+    "set": {
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOFLAGS": "-tags=test_dep",
+      "CGO_ENABLED": "0"
+    }
+  },
+  "built_cli_sha256": "39cc7b7b8cc2d1c4bc669690190a539939de7f90713ae0b3a4666c3aef0ebbf4",
+  "campaign_path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-8/retained-cli/v1/campaign-20261002T120715.115087000Z-d80c04e54406f73efc3a12002a0f7beb",
+  "manifest_evidence": [
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-8/retained-cli/v1/campaign-20261002T120715.115087000Z-d80c04e54406f73efc3a12002a0f7beb/failures/sha256-38b2454afafe3fea58035b3875676994/manifest.json",
+      "seed": "2",
+      "ordinal": "1",
+      "artifact_kind": "gomad3.target-failure/v1",
+      "execution_elapsed_nanos": "936917000",
+      "runner_build": "sha256:39cc7b7b8cc2d1c4bc669690190a539939de7f90713ae0b3a4666c3aef0ebbf4",
+      "toolchain_build_key": "56e4a2f0c5514d43b9a0682d030964588dd3d5a58978ba0b989459bb556843a3",
+      "stdout_full_sha256": "sha256:179ae291490433823b4156c9b9ae61a65be1876d15ec472364a94e157c47903c",
+      "io_transcript_sha256": "sha256:60c19bc51b2ce81ee7d4a53beca650d63f948674e95d10c8e51785c8a6c730e4",
+      "world_final_digest": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-8/retained-cli/v1/campaign-20261002T120715.115087000Z-d80c04e54406f73efc3a12002a0f7beb/successes/sha256-c3d115694765faf5e2ed75b317fed640/manifest.json",
+      "seed": "1",
+      "ordinal": "0",
+      "artifact_kind": "gomad3.success/v1",
+      "execution_elapsed_nanos": "1089359000",
+      "runner_build": "sha256:39cc7b7b8cc2d1c4bc669690190a539939de7f90713ae0b3a4666c3aef0ebbf4",
+      "toolchain_build_key": "56e4a2f0c5514d43b9a0682d030964588dd3d5a58978ba0b989459bb556843a3",
+      "stdout_full_sha256": "sha256:9d2151dc362c814bba2d29931441ae089764b9abfdad68e0ae00a423dd2cedf7",
+      "io_transcript_sha256": "sha256:0aaa499cda9cfbb5499e23e03d9ef1f9a2b8fe3aab84bb94d66061df1a9d415e",
+      "world_final_digest": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    {
+      "path": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-8/retained-cli/v1/campaign-20261002T120715.115087000Z-d80c04e54406f73efc3a12002a0f7beb/successes/sha256-dd9ee385f6bedfccd38436df942d3388/manifest.json",
+      "seed": "3",
+      "ordinal": "2",
+      "artifact_kind": "gomad3.success/v1",
+      "execution_elapsed_nanos": "1129337000",
+      "runner_build": "sha256:39cc7b7b8cc2d1c4bc669690190a539939de7f90713ae0b3a4666c3aef0ebbf4",
+      "toolchain_build_key": "56e4a2f0c5514d43b9a0682d030964588dd3d5a58978ba0b989459bb556843a3",
+      "stdout_full_sha256": "sha256:183b707a1c85466de8acfc7aa739474aa084a394aa87e5e45a4db55b12a06a68",
+      "io_transcript_sha256": "sha256:24c58641288e1709af4d05620a785559ad63cd0ee4a0f1767886a3902d29d0d3",
+      "world_final_digest": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    }
+  ],
+  "temporary_cli_removed_on_exit": true,
+  "source_freeze": {
+    "tools/gomad3/cmd/gomad/e2e_test.go": "265ed44eb99a86e99ce8deeb4c6c24acc99264d57da60c27040de9c2ae94c4dc",
+    "tools/gomad3/cmd/gomad/testdata/campaign/main.go": "1d91a27154a10401d2585e251b7fee87ea9580bd8917f9c88a87a5c39bcfbd4c",
+    ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md": "4776678bd80edd1acd406060925f3780ef8cde38df6ded6ecf8a1278c556bc65"
+  }
+}

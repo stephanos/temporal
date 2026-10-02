@@ -42,3 +42,18 @@ func Resolve(name string) (Mode, error) {
 	mode.Tiers = append([]string(nil), mode.Tiers...)
 	return mode, nil
 }
+
+var schedulingSearchFixtures = []struct{ name, packageName string }{
+	{name: "timer-callback-identity", packageName: "./timer_callback_identity"},
+	{name: "select-readiness", packageName: "./select_readiness"},
+}
+
+var selectReadinessShapes = []selectShape{
+	{name: "blocking-zero-ready", readyAtPoll: 0, outcomes: []string{"blocking-zero-ready first"}},
+	{name: "blocking-one-ready", readyAtPoll: 1, outcomes: []string{"blocking-one-ready first"}},
+	{name: "blocking-two-ready", readyAtPoll: 2, outcomes: []string{"blocking-two-ready first", "blocking-two-ready second"}},
+	{name: "nonblocking-default", readyAtPoll: 0, outcomes: []string{"nonblocking-default default"}},
+	{name: "timer-channel", readyAtPoll: 0, outcomes: []string{"timer-channel timer"}},
+	{name: "closed-channel", readyAtPoll: 1, outcomes: []string{"closed-channel closed"}},
+	{name: "nil-channel", readyAtPoll: 1, outcomes: []string{"nil-channel first"}},
+}

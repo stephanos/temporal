@@ -1,0 +1,49 @@
+{
+  "frozen_sources": {
+    "tools/gomad3/cmd/gomad/e2e_test.go": "5feb92383f46acf7d698e33d047e100dc1c15c42dd7667a6858610f630b61b53",
+    "tools/gomad3/cmd/gomad/testdata/campaign/main.go": "1d91a27154a10401d2585e251b7fee87ea9580bd8917f9c88a87a5c39bcfbd4c",
+    ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md": "4776678bd80edd1acd406060925f3780ef8cde38df6ded6ecf8a1278c556bc65"
+  },
+  "artifacts": {
+    "before-e2e_test.go": "265ed44eb99a86e99ce8deeb4c6c24acc99264d57da60c27040de9c2ae94c4dc",
+    "before-sources.json": "cbae0d549ff2e04b27607a3e21a5691d2046ba080679949a752c2ca17ddc3da8",
+    "cleanup-validation.json": "d0bd1ef73ab3f587404de6d0bded6f7ff31cbcbb471ab723e5353b59dd255d4d",
+    "commands.json": "3ca5e9f2526767b60296f2d6df5fdff6649232a3998ebeb378ee10286b1fcf69",
+    "comparison-contract.md": "a0722faec03884bfe25eae338b09ca1b2289497cda9a361107fddfe83e2060cf",
+    "consecutive-20-final.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "consecutive-20-final.log": "ad5296b9a0e8083b3ae9f195f9c49ec090c4ed1a319fa1011263061d4e9d4595",
+    "focused-green.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "focused-green.log": "4a73712c45cd7c6d337b7faf4f857ba054897aee4ccd47836eac563d353d33ef",
+    "format-final.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "format-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "handover-evidence.json": "61dc6ba7c9084f36387bdeb43a33581880947954f2b85766b355c5e753142c68",
+    "handover-summary.md": "ad55d165ab2d99935187e14d5dcde8204338c77935c73a410b0e80610f4bbf7b",
+    "incremental-from-round1.patch": "543120210b3fa3f5de20c839df3d8f6356b0f84306d01a3dcf8d885754e49aa8",
+    "negative-control-red-source.go": "4daa76dcfb914e2332e01ec2d6dbf9817b01b3fbafb5b46a8598e93fd6daadc4",
+    "negative-control-red-sources.json": "27dac9fcde3204cde6b8d7832db1983ecbc53536161a84c4f53817580ef87bf6",
+    "negative-control-red.exit": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+    "negative-control-red.log": "4f3573dc25a564117c02740cdd5c4488afdf00a604777e836b79cd53d5804cb6",
+    "parent-patch-validation.json": "aec9317d59e0cc86f6155d58069f0d2899d6139df79495e0ec69bc4eada68bb3",
+    "preservation-validation.json": "d1fb5d42fa09374085c2f7fb6c6f8e43feab0022651c80799e5419a36163aa5c",
+    "root-lint-default-final.exit": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3",
+    "root-lint-default-final.log": "4a229d95b641928fde380a270b031f2428d29853bba5b947dbb38a2d711596a5",
+    "root-lint-head-final.exit": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3",
+    "root-lint-head-final.log": "ede8103bbe13ba0010c772900f7a6940d4e1ff334062bc559c94b73e56a057a6",
+    "source-freeze.json": "86cc537ef6e7b38f235926332c5bcb5df52cb99b89bfa986c62868871ae39bd1",
+    "task-only.patch": "1d129f823963139c160ce11a85340afaa0061d3fdcc01c16ff709c90c2380b95",
+    "test-host-final.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "test-host-final.log": "0e060145a227f60d5e98d261b8c0f005e64d7fe30fce22da98d382c30e0d7aa1",
+    "twenty-run-validation.json": "a6d6d00f910d2df3861ea9b796102be5661e7c163706837eb7aabcb6c281b034",
+    "vet-final.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "vet-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "immutable_prior_round_references": {
+    "evidence-bindings.json": "317dc65b14869f05eb822f84cabef8797588a465eb962104bc353e3b81abfc53",
+    "source-freeze.json": "cbae0d549ff2e04b27607a3e21a5691d2046ba080679949a752c2ca17ddc3da8",
+    "task-only.patch": "03fd54853c3d212b1ff22dd03f518813a62e91b9904cae9fe922b0ca4ef02324",
+    "handover-evidence.json": "af8eeea9f708c76dad29a686b754b317d959e8a9fa53502ef70b2ce54a8225ae",
+    "retained-cli-evidence.json": "16d5ed0b9845b0e53348b15a8ccb3a036649886a08ea60c63455057d1ccc64ff",
+    "review-round1.md": "b22335a23ff9eec53e479a3e588d2ed18065e6bfcc60f83c339857d392506764",
+    "review-round1.json": "0c0840a9c4c8631722cdaa9bc46a681d675fcde08de26340466a2ab410fddfde"
+  }
+}

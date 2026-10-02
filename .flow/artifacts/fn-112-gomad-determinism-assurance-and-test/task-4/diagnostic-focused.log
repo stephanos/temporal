@@ -1,0 +1,7 @@
+ok  	go.temporal.io/server/tools/gomad3/choice	0.261s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	0.331s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	1.093s
+ok  	go.temporal.io/server/tools/gomad3/qualification	0.803s
+ok  	go.temporal.io/server/tools/gomad3/qualification/workload	0.532s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/runner	2.274s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/execution	1.677s

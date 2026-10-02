@@ -78,6 +78,47 @@ func TestRunTransportsSimulationExplorationPlanAndRecords(t *testing.T) {
 	}
 }
 
+func TestRunKeepsNodeModelTransportAliveDuringGracefulStop(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	var cleanupContext context.Context
+	result, err := Run(ctx, Spec{
+		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
+		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
+		Command:           os.Args[0], Args: targetHelperArgs("simulation-coordinator"), Argv0: "gomad3-target", Dir: t.TempDir(),
+		Env: []string{"GOMAD3_SIMULATION_CASE=stop-model"}, ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
+		Simulation: &SimulationCapability{
+			Role: SimulationRoleNode, Bootstrap: []byte("node-bootstrap"), hardCrash: make(chan struct{}),
+			time: func(_ context.Context, request simulationTimeRequest) (simulationTimeResponse, error) {
+				return simulationTimeResponse{Generation: request.Generation, Kind: simulationTimeAdvance, Time: request.Current}, nil
+			},
+			handler: func(transportCtx context.Context, frame simulationFrame) (simulationFrame, error) {
+				if frame.Kind == simulationFrameActivated {
+					cancel()
+				}
+				if frame.Kind == simulationFrameModel {
+					cleanupContext = transportCtx
+					if err := transportCtx.Err(); err != nil {
+						return simulationFrame{}, err
+					}
+					return simulationFrame{Payload: []byte("cleanup-complete")}, nil
+				}
+				return simulationFrame{}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Termination != TerminationExit || result.ExitCode != 0 || !result.GroupGone || result.WatchdogTimeout {
+		t.Fatalf("graceful-stop result = %#v", result)
+	}
+	if cleanupContext == nil || !errors.Is(cleanupContext.Err(), context.Canceled) {
+		t.Fatal("node transport remained active after process exit")
+	}
+}
+
 func TestRunInstallsBoundedIOConfigurationDescriptor(t *testing.T) {
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
@@ -1139,6 +1180,30 @@ func runSimulationProcessHelper() {
 			}
 			if _, readErr := readSimulationFrame(response); readErr != nil {
 				os.Exit(47)
+			}
+			if frame.Kind == simulationFrameActivated && os.Getenv("GOMAD3_SIMULATION_CASE") == "stop-model" {
+				controlDescriptor, controlErr := strconv.Atoi(os.Getenv(simulationControlFDEnvironmentName))
+				if controlErr != nil {
+					os.Exit(55)
+				}
+				var stop [1]byte
+				if _, readErr := io.ReadFull(os.NewFile(uintptr(controlDescriptor), "simulation-control"), stop[:]); readErr != nil || stop[0] != 1 {
+					os.Exit(56)
+				}
+				requestDescriptor, requestErr := strconv.Atoi(os.Getenv(simulationModelRequestFDEnvironmentName))
+				responseDescriptor, responseErr := strconv.Atoi(os.Getenv(simulationModelResponseFDEnvironmentName))
+				if requestErr != nil || responseErr != nil {
+					os.Exit(57)
+				}
+				modelRequest := os.NewFile(uintptr(requestDescriptor), "simulation-model-request")
+				modelResponse := os.NewFile(uintptr(responseDescriptor), "simulation-model-response")
+				if writeErr := writeSimulationModelTransportFrame(modelRequest, simulationFrame{Kind: simulationFrameModel, Request: 1, Node: "node", Incarnation: 1, Payload: []byte("cleanup")}); writeErr != nil {
+					os.Exit(58)
+				}
+				answer, readErr := readSimulationModelTransportFrame(modelResponse)
+				if readErr != nil || answer.Error != "" || string(answer.Payload) != "cleanup-complete" {
+					os.Exit(59)
+				}
 			}
 		}
 		if os.Getenv("GOMAD3_SIMULATION_CASE") == "crash" {

@@ -1,0 +1,53 @@
+{
+  "type": "impl_review",
+  "id": "branch",
+  "mode": "codex",
+  "base": "HEAD",
+  "verdict": "NEEDS_WORK",
+  "session_id": "01a0fd25-c019-7121-af47-bb64c0979f8d",
+  "model": "gpt-6-astra",
+  "effort": "high",
+  "spec": "codex:gpt-6-astra:high",
+  "timestamp": "2026-10-02T15:08:16.703678Z",
+  "review": "I\u2019ll review the frozen task-4 patch against its recorded baseline, trace the affected paths, and check the supplied evidence without rerunning broad tests.\n\nThe patch hash and all 19 frozen source hashes match. The new result path keeps divergence out of outcomes and failure signatures; I\u2019m now checking candidate binding, journal validation, and resume behavior for gaps.\n\nThe journal binds retained divergence evidence to its candidate and checks the same evidence during resume. I found a possible gap in the validator\u2019s `observation` case: it appears to accept evidence after the forced prefix ends. I\u2019m tracing that case through the executor and commit paths before deciding whether to flag it.\n\n- **Severity**: P2\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: `tools/gomad3/runner/internal/exploration/choice/engine.go:378`\n- **R-IDs**: [R4]\n- **Problem**: `DivergenceObservation` can bypass forced-prefix binding. For a one-decision prefix, evidence with `Ordinal=1`, `TapeRecords=1`, `Expected=nil`, and a valid observed decision at ordinal 1 passes validation. The delegated terminal validator allows ordinals beyond the tape in prefix mode and requires only an observed record for this reason. A custom executor returning that evidence therefore gets a committed divergence with no evidence matching the candidate\u2019s forced decision. Under `budget` or `all`, exploration continues instead of preserving the HostError boundary; resume accepts the same evidence.\n- **Suggestion**: Require retained divergence evidence to reference an ordinal within the forced prefix and include its matching expected decision. Add regression cases for observation divergence at and beyond the prefix boundary.\n\nThe patch SHA256 and all 19 frozen source hashes match. The supplied final host-test receipt binds those sources and its log matches the recorded hash. No tests were rerun.\n\n## Requirements coverage\n\nCoverage is limited to task 4\u2019s assigned requirement.\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R4 | partial | Sibling commits, divergence retention, failure policies, inspection, schema rejection, and SIGKILL/resume are implemented and covered by supplied tests. The observation-evidence binding gap remains. |\n\nUnaddressed R-IDs: [R4]\n\nClassification counts: 1 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":1,\"pre_existing\":0},\"unaddressed\":[\"R4\"]}\n```\n\n<verdict>NEEDS_WORK</verdict>",
+  "focus": "Review only fn-114-gomad-correct-search-path-defects-and.4 delta in .flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-4/task-only.patch SHA2564132956b3fa2c56fcc98db9b37818ed5df7126008bbdc2b49074be5752d6dde1. Shared dirty checkout includes previously reviewed tasks; ignore unrelated HEAD diff. Read task4/spec, handover-summary.md, handover-evidence.json, final-source-hashes.json, parent-patch-validation.json in artifact dir; actual-before copies define baseline. Scope18changedfiles19frozen; choice/tape.go restored unchanged because generator hashes it. New host-only choice/divergence.go reuses private terminal validation, validates direct custom-executor records, supplies tagged JSON evidence. Assess forced-prefix typed divergence retained with exact candidate binding and no outcome/signature/trace/children, siblings committed, first/budget/all policies, hosterror boundaries including joined errors and invalid/unforced/identity/capacity evidence; resume and inspect validation/counters, status3 choice confidence versus legacy world status1, schema/controller bump and oldschema rejection, ordinary serialized bytes unchanged. Real SIGKILL after committed divergence resumes same canonical chain. Final full make test-host45freshpackages PASS173.2s covers all Runner/CLI packages; focused architectureCLI PASS8s, validate PASS18.5s, vet/fmt/whitespace PASS. Prior broadsuite runs are historical; user explicitly instructed avoid duplicate overlapping broad gates. Rootlint known missingmain/nestedmodule discovery, Linux unverified. No runtime/wire/toolchain identity change or rebuild. Test cleanup synchronization fixed before finalfreeze. Read-only review, no git/Flow/source mutation or unnecessary tests. Return actionable introduced findings and independent verdict; review MILESTONES new verification instructions only for obvious contradiction if helpful, not task4 requirement.",
+  "introduced_count": 1,
+  "pre_existing_count": 0,
+  "unaddressed": [
+    "R4"
+  ],
+  "findings": {
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-def8398726107d74ce29ceed244467d928570f5f2edaeeebb731c858041fb96e",
+    "reviewKind": "implementation",
+    "backend": "codex",
+    "round": 1,
+    "baseSha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+    "headSha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+    "items": [
+      {
+        "id": "finding-897087344e84520988dc9a09622a62ae",
+        "ordinal": 1,
+        "severity": "P2",
+        "confidence": 75,
+        "classification": "introduced",
+        "status": "open",
+        "title": "`DivergenceObservation` can bypass forced-prefix binding",
+        "body": "`DivergenceObservation` can bypass forced-prefix binding. For a one-decision prefix, evidence with `Ordinal=1`, `TapeRecords=1`, `Expected=nil`, and a valid observed decision at ordinal 1 passes validation. The delegated terminal validator allows ordinals beyond the tape in prefix mode and requires only an observed record for this reason. A custom executor returning that evidence therefore gets a committed divergence with no evidence matching the candidate\u2019s forced decision. Under `budget` or `all`, exploration continues instead of preserving the HostError boundary; resume accepts the same evidence.",
+        "rIds": [
+          "R4"
+        ],
+        "anchor": {
+          "path": "tools/gomad3/runner/internal/exploration/choice/engine.go",
+          "side": "head",
+          "startLine": 378,
+          "baseSha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+          "headSha": "1d7272e654f268f9a45f3fe965918fe2522827c6"
+        },
+        "suggestion": "Require retained divergence evidence to reference an ordinal within the forced prefix and include its matching expected decision. Add regression cases for observation divergence at and beyond the prefix boundary.",
+        "firstSeenReceiptId": "review-def8398726107d74ce29ceed244467d928570f5f2edaeeebb731c858041fb96e",
+        "lastSeenReceiptId": "review-def8398726107d74ce29ceed244467d928570f5f2edaeeebb731c858041fb96e"
+      }
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+=== RUN   TestCapturedLibcDescriptorKeepsClosedErrno
+    anonymous_test.go:107: captured descriptor error=read /tmp/TestCapturedLibcDescriptorKeepsClosedErrno134781106/001/captured: file already closed libc errno=input/output error, want EBADF
+--- FAIL: TestCapturedLibcDescriptorKeepsClosedErrno (0.00s)
+FAIL
+FAIL	internal/gomadio	0.330s
+FAIL

@@ -1,0 +1,4 @@
+# go.temporal.io/server/tools/gomad3/runner/internal/execution [go.temporal.io/server/tools/gomad3/runner/internal/execution.test]
+runner/internal/execution/bootstrap_unix.go:21:51: undefined: request
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution [build failed]
+FAIL

@@ -1,0 +1,53 @@
+{
+  "commits": [],
+  "tests": [
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go test -tags test_dep -count=1 ./runner ./deterministicio ./runner/internal/execution -run 'Test.*(Replay|Watchdog|Cancellation|Transcript|Unterminated|Supervisor)' -v",
+    "make -C /Users/stephan/Workspace/temporal/gomad/tools/gomad3 test-host",
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go test -tags test_dep -count=1 ./cmd/gomad ./cmd/gomad/internal/cli",
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go vet -tags test_dep ./runner ./cmd/gomad ./cmd/gomad/internal/cli",
+    "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/gofmt -l /Users/stephan/Workspace/temporal/gomad/tools/gomad3/runner/replay_operation.go /Users/stephan/Workspace/temporal/gomad/tools/gomad3/runner/watchdog_replay_test.go /Users/stephan/Workspace/temporal/gomad/tools/gomad3/cmd/gomad/watchdog_replay_e2e_test.go",
+    "git diff --check -- /Users/stephan/Workspace/temporal/gomad/tools/gomad3/runner/replay_operation.go /Users/stephan/Workspace/temporal/gomad/tools/gomad3/runner/watchdog_replay_test.go /Users/stephan/Workspace/temporal/gomad/tools/gomad3/cmd/gomad/watchdog_replay_e2e_test.go"
+  ],
+  "prs": [],
+  "task": "fn-112-gomad-determinism-assurance-and-test.13",
+  "patch_sha256": "03745dc038716f309028a95d2c2d6e1816ee313dc14fd35914d89dfe82d65c55",
+  "sources": {
+    "tools/gomad3/runner/replay_operation.go": "2ab6c2b9305afe949bda6c1971b96b17582aa818d112c3c6965faed8c4aaff85",
+    "tools/gomad3/runner/watchdog_replay_test.go": "e15b05aaaffc7b546141f56077b4d10304cc11a0f6328f667b60fffe3174aa3a",
+    "tools/gomad3/cmd/gomad/watchdog_replay_e2e_test.go": "70d96ead2a252666db0a135e11be6fda38cd036ea2bcb50d8f5bab0c4c64f8f1"
+  },
+  "command_statuses": {
+    "focused-replay-green": 0,
+    "final-full-host": 0,
+    "final-cli-tests": 0,
+    "final-vet": 0,
+    "final-gofmt": 0,
+    "final-whitespace": 0,
+    "fresh-inspect-campaign-final": 0,
+    "fresh-inspect-artifact-final": 0,
+    "fresh-verify-only-final": 0,
+    "retained-inspect-final": 0,
+    "retained-verify-only-final": 0,
+    "build-final-cli": 0,
+    "fresh-explore-final": 1,
+    "fresh-replay-final": 1,
+    "retained-replay-final": 1,
+    "retained-replay-red": 3,
+    "cli-red": 1,
+    "unsupported-choice-red": 1,
+    "focused-red-valid-fixture": 1,
+    "root-lint-default": 2,
+    "root-lint-head": 2
+  },
+  "full_host_package_count": 45,
+  "artifact_paths": {
+    "campaign": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-13/final-artifacts/v1/campaign-20261002T133310.816240000Z-cce30779c007bc94e629df7a53721c79",
+    "artifact": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-13/final-artifacts/v1/campaign-20261002T133310.816240000Z-cce30779c007bc94e629df7a53721c79/failures/sha256-657f21b3bb7995be2b34dbc7737e7ed1"
+  },
+  "limitations": [
+    "Native linux/amd64 unverified",
+    "Root lint: missing main reference; HEAD override nested-module/testdata discovery",
+    "Diagnostic watchdog without I/O transcript and with complete choice evidence is explicitly unsupported"
+  ],
+  "independent_review": "parent pending"
+}

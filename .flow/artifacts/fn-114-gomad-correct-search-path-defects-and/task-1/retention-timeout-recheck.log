@@ -1,0 +1,6 @@
+=== RUN   TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs
+=== RUN   TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/discard
+--- PASS: TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs (5.51s)
+    --- PASS: TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/discard (5.27s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner	5.914s

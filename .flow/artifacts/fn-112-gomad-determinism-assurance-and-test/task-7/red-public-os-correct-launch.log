@@ -1,0 +1,37 @@
+=== RUN   TestGomadClosedFileHasPublicSentinel
+=== RUN   TestGomadClosedFileHasPublicSentinel/close
+    gomad_model_conformance_test.go:38: public closed error=*fs.PathError close /tmp/TestGomadClosedFileHasPublicSentinel674593473/001/file: bad file descriptor
+=== RUN   TestGomadClosedFileHasPublicSentinel/read
+    gomad_model_conformance_test.go:38: public closed error=*fs.PathError read /tmp/TestGomadClosedFileHasPublicSentinel674593473/001/file: bad file descriptor
+=== RUN   TestGomadClosedFileHasPublicSentinel/read-at
+    gomad_model_conformance_test.go:38: public closed error=*fs.PathError read /tmp/TestGomadClosedFileHasPublicSentinel674593473/001/file: bad file descriptor
+=== RUN   TestGomadClosedFileHasPublicSentinel/write
+    gomad_model_conformance_test.go:38: public closed error=*fs.PathError write /tmp/TestGomadClosedFileHasPublicSentinel674593473/001/file: bad file descriptor
+=== RUN   TestGomadClosedFileHasPublicSentinel/write-at
+    gomad_model_conformance_test.go:38: public closed error=*fs.PathError write /tmp/TestGomadClosedFileHasPublicSentinel674593473/001/file: bad file descriptor
+=== RUN   TestGomadClosedFileHasPublicSentinel/seek
+    gomad_model_conformance_test.go:38: public closed error=*fs.PathError seek /tmp/TestGomadClosedFileHasPublicSentinel674593473/001/file: bad file descriptor
+=== RUN   TestGomadClosedFileHasPublicSentinel/truncate
+    gomad_model_conformance_test.go:38: public closed error=*fs.PathError truncate /tmp/TestGomadClosedFileHasPublicSentinel674593473/001/file: bad file descriptor
+=== RUN   TestGomadClosedFileHasPublicSentinel/chmod
+    gomad_model_conformance_test.go:38: public closed error=*fs.PathError chmod /tmp/TestGomadClosedFileHasPublicSentinel674593473/001/file: bad file descriptor
+=== RUN   TestGomadClosedFileHasPublicSentinel/sync
+    gomad_model_conformance_test.go:38: public closed error=*fs.PathError sync /tmp/TestGomadClosedFileHasPublicSentinel674593473/001/file: bad file descriptor
+=== RUN   TestGomadClosedFileHasPublicSentinel/stat
+    gomad_model_conformance_test.go:38: public closed error=*fs.PathError stat /tmp/TestGomadClosedFileHasPublicSentinel674593473/001/file: bad file descriptor
+--- FAIL: TestGomadClosedFileHasPublicSentinel (0.00s)
+    --- FAIL: TestGomadClosedFileHasPublicSentinel/close (0.00s)
+    --- FAIL: TestGomadClosedFileHasPublicSentinel/read (0.00s)
+    --- FAIL: TestGomadClosedFileHasPublicSentinel/read-at (0.00s)
+    --- FAIL: TestGomadClosedFileHasPublicSentinel/write (0.00s)
+    --- FAIL: TestGomadClosedFileHasPublicSentinel/write-at (0.00s)
+    --- FAIL: TestGomadClosedFileHasPublicSentinel/seek (0.00s)
+    --- FAIL: TestGomadClosedFileHasPublicSentinel/truncate (0.00s)
+    --- FAIL: TestGomadClosedFileHasPublicSentinel/chmod (0.00s)
+    --- FAIL: TestGomadClosedFileHasPublicSentinel/sync (0.00s)
+    --- FAIL: TestGomadClosedFileHasPublicSentinel/stat (0.00s)
+=== RUN   TestGomadWrongFileAccessModeIsNotClosed
+--- PASS: TestGomadWrongFileAccessModeIsNotClosed (0.00s)
+FAIL
+FAIL	os	0.359s
+FAIL

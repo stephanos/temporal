@@ -23,6 +23,7 @@ type launchCapabilities struct {
 	readOnlyMount         bool
 	choiceTrace           bool
 	choiceReplayPlan      bool
+	diagnostics           bool
 	simulation            bool
 	simulationBootstrap   bool
 	simulationCoordinator bool
@@ -50,6 +51,7 @@ const (
 	ioROMountResponseResource       resourceName = "io-ro-mount-response"
 	choiceTraceResource             resourceName = "choice-trace"
 	choiceTerminalResource          resourceName = "choice-terminal"
+	diagnosticTraceResource         resourceName = "diagnostic-trace"
 	choiceTapeResource              resourceName = "choice-tape"
 	simulationRequestResource       resourceName = "simulation-request"
 	simulationResponseResource      resourceName = "simulation-response"
@@ -133,6 +135,7 @@ var launchDescriptorSpecs = []descriptorSpec{
 	{resource: ioROMountResponseResource, supervisorFD: ioROMountResponseFD, bootstrapFD: bootstrapIOROMountResponseFD, targetFD: targetIOROMountResponseFD, readOnlyMount: true, closeOnSupervisorStart: true, closeOnBootstrapStart: true},
 	{resource: choiceTraceResource, choiceTrace: true, closeOnBootstrapStart: true},
 	{resource: choiceTerminalResource, choiceTrace: true, closeOnSupervisorStart: true, closeOnBootstrapStart: true},
+	{resource: diagnosticTraceResource, closeOnBootstrapStart: true},
 	{resource: choiceTapeResource, choiceTrace: true, closeOnBootstrapStart: true},
 	{resource: simulationRequestResource, simulation: true, closeOnBootstrapStart: true},
 	{resource: simulationResponseResource, simulation: true, closeOnBootstrapStart: true},
@@ -150,7 +153,7 @@ func descriptorLayout(stage launchStage, capabilities launchCapabilities) []desc
 	}
 	bindings := make([]descriptorBinding, 0, len(launchDescriptorSpecs))
 	for _, spec := range launchDescriptorSpecs {
-		if spec.choiceTrace || spec.simulation {
+		if spec.choiceTrace || spec.simulation || spec.resource == diagnosticTraceResource {
 			continue
 		}
 		if spec.ioTranscript && !capabilities.ioTranscript || spec.readOnlyMount && !capabilities.readOnlyMount || spec.choiceTrace && !capabilities.choiceTrace {
@@ -206,6 +209,13 @@ func descriptorLayout(stage launchStage, capabilities launchCapabilities) []desc
 		if capabilities.choiceReplayPlan {
 			bindings = append(bindings, descriptorBinding{resource: choiceTapeResource, fd: next + 2})
 		}
+	}
+	if capabilities.diagnostics {
+		next := 3
+		if len(bindings) != 0 {
+			next = bindings[len(bindings)-1].fd + 1
+		}
+		bindings = append(bindings, descriptorBinding{resource: diagnosticTraceResource, fd: next})
 	}
 	return bindings
 }

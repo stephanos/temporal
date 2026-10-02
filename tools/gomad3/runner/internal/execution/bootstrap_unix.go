@@ -18,8 +18,8 @@ import (
 
 func BootstrapMain() (retErr error) {
 	defer func() {
-		capabilities := launchCapabilities{ioTranscript: true, readOnlyMount: true, choiceTrace: true, choiceReplayPlan: true, simulation: true, simulationBootstrap: true}
-		retErr = errors.Join(retErr, closeDescriptors(bootstrapIOTranscriptFD, bootstrapIOTerminalFD, bootstrapIOExpectedFD, bootstrapIOROMountRequestFD, bootstrapIOROMountResponseFD, descriptorFor(bootstrapStage, capabilities, simulationRequestResource), descriptorFor(bootstrapStage, capabilities, simulationResponseResource), descriptorFor(bootstrapStage, capabilities, simulationBootstrapResource), descriptorFor(bootstrapStage, capabilities, simulationControlResource), descriptorFor(bootstrapStage, capabilities, simulationModelRequestResource), descriptorFor(bootstrapStage, capabilities, simulationModelResponseResource), descriptorFor(bootstrapStage, capabilities, simulationTimeRequestResource), descriptorFor(bootstrapStage, capabilities, simulationTimeResponseResource), descriptorFor(bootstrapStage, capabilities, choiceTraceResource), descriptorFor(bootstrapStage, capabilities, choiceTerminalResource), descriptorFor(bootstrapStage, capabilities, choiceTapeResource)))
+		capabilities := launchCapabilities{diagnostics: true, ioTranscript: true, readOnlyMount: true, choiceTrace: true, choiceReplayPlan: true, simulation: true, simulationBootstrap: true}
+		retErr = errors.Join(retErr, closeDescriptors(bootstrapIOTranscriptFD, bootstrapIOTerminalFD, bootstrapIOExpectedFD, bootstrapIOROMountRequestFD, bootstrapIOROMountResponseFD, descriptorFor(bootstrapStage, capabilities, simulationRequestResource), descriptorFor(bootstrapStage, capabilities, simulationResponseResource), descriptorFor(bootstrapStage, capabilities, simulationBootstrapResource), descriptorFor(bootstrapStage, capabilities, simulationControlResource), descriptorFor(bootstrapStage, capabilities, simulationModelRequestResource), descriptorFor(bootstrapStage, capabilities, simulationModelResponseResource), descriptorFor(bootstrapStage, capabilities, simulationTimeRequestResource), descriptorFor(bootstrapStage, capabilities, simulationTimeResponseResource), descriptorFor(bootstrapStage, capabilities, choiceTraceResource), descriptorFor(bootstrapStage, capabilities, choiceTerminalResource), descriptorFor(bootstrapStage, capabilities, choiceTapeResource), descriptorFor(bootstrapStage, capabilities, diagnosticTraceResource)))
 	}()
 	signal.Reset(syscall.SIGTERM)
 	if err := reportTargetIdentity(); err != nil {
@@ -74,7 +74,7 @@ func BootstrapMain() (retErr error) {
 	if err := syscall.Close(bootstrapActivationFD); err != nil {
 		return errors.Join(fmt.Errorf("close target activation: %w", err), closeDescriptors(bootstrapWorldConfigFD, bootstrapWorldRecordFD))
 	}
-	capabilities := launchCapabilities{ioTranscript: request.IOTranscriptLimit != 0, readOnlyMount: request.IOROMounts, choiceTrace: request.ChoiceTrace, choiceReplayPlan: request.ChoiceTapeBytes != 0, simulation: request.Simulation, simulationBootstrap: request.SimulationBootstrap, simulationCoordinator: request.Simulation && !request.SimulationBootstrap}
+	capabilities := launchCapabilities{diagnostics: request.Diagnostics, ioTranscript: request.IOTranscriptLimit != 0, readOnlyMount: request.IOROMounts, choiceTrace: request.ChoiceTrace, choiceReplayPlan: request.ChoiceTapeBytes != 0, simulation: request.Simulation, simulationBootstrap: request.SimulationBootstrap, simulationCoordinator: request.Simulation && !request.SimulationBootstrap}
 	if err := installTargetStage(capabilities); err != nil {
 		return err
 	}
@@ -104,6 +104,16 @@ func BootstrapMain() (retErr error) {
 				fmt.Sprintf("%s=%d", choiceTapeBytesEnvironmentName, request.ChoiceTapeBytes),
 			)
 		}
+	}
+	if request.Diagnostics {
+		if !request.ChoiceTrace || request.ChoiceMode != choice.ModeRecord {
+			return errors.New("diagnostics require choice record mode")
+		}
+		limit, err := choice.DiagnosticLimit(request.ChoiceTraceLimit)
+		if err != nil {
+			return err
+		}
+		request.Env = append(request.Env, fmt.Sprintf("%s=%d", diagnosticTraceFDEnvironmentName, descriptorFor(targetStage, capabilities, diagnosticTraceResource)), fmt.Sprintf("%s=%d", diagnosticTraceBytesEnvironmentName, limit))
 	}
 	if request.IOROMounts {
 		request.Env = append(request.Env, ioReadOnlyMountsEnvironmentName+"=1")

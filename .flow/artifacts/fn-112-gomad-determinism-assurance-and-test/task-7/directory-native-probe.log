@@ -1,0 +1,4 @@
+{"closed":true,"ebadf":false,"leaf_message":"file already closed","leaf_type":"*errors.errorString","operation":"chdir","path_matches":true,"path_operation":"chdir","type":"*fs.PathError"}
+{"closed":false,"ebadf":false,"leaf_message":"use of closed file","leaf_type":"*errors.errorString","operation":"read-dir","path_matches":true,"path_operation":"","type":"*fs.PathError"}
+{"closed":false,"ebadf":false,"leaf_message":"use of closed file","leaf_type":"*errors.errorString","operation":"readdir","path_matches":true,"path_operation":"","type":"*fs.PathError"}
+{"closed":false,"ebadf":false,"leaf_message":"use of closed file","leaf_type":"*errors.errorString","operation":"readdirnames","path_matches":true,"path_operation":"","type":"*fs.PathError"}

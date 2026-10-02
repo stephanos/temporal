@@ -9,6 +9,7 @@ import (
 	"sort"
 	"sync"
 
+	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
@@ -33,6 +34,7 @@ type CampaignSummary struct {
 	Attempted                                 uint64
 	Succeeded                                 uint64
 	Failures                                  uint64
+	ReplayDivergences                         uint64
 	Watchdogs                                 uint64
 	Cancelled                                 uint64
 	DistinctFailures                          uint64
@@ -50,35 +52,36 @@ type CampaignSummary struct {
 }
 
 type ExecutionRecord struct {
-	Strategy                    string               `json:"strategy,omitempty"`
-	Round                       *record.Uint64String `json:"round,omitempty"`
-	CandidateSHA256             record.SHA256        `json:"candidate_sha256,omitempty"`
-	ParentCandidateSHA256       record.SHA256        `json:"parent_candidate_sha256,omitempty"`
-	PrefixSHA256                record.SHA256        `json:"prefix_sha256,omitempty"`
-	ForcedDepth                 *record.Uint64String `json:"forced_depth,omitempty"`
-	OutcomeSHA256               record.SHA256        `json:"outcome_sha256,omitempty"`
-	SelectionOrdinal            record.Uint64String  `json:"selection_ordinal"`
-	Seed                        record.Uint64String  `json:"seed"`
-	Domain                      string               `json:"domain"`
-	Reason                      string               `json:"reason"`
-	Termination                 string               `json:"termination"`
-	FailureSignature            *record.SHA256       `json:"failure_signature"`
-	Artifact                    *string              `json:"artifact"`
-	ElapsedNanos                record.Uint64String  `json:"elapsed_nanos"`
-	IOTranscriptSHA256          *record.SHA256       `json:"io_transcript_sha256"`
-	IOTranscriptRecords         *record.Uint64String `json:"io_transcript_records"`
-	ChoiceTraceSHA256           *record.SHA256       `json:"choice_trace_sha256,omitempty"`
-	ChoiceTraceRecords          *record.Uint64String `json:"choice_trace_records,omitempty"`
-	ChoiceTraceBranchingRecords *record.Uint64String `json:"choice_trace_branching_records,omitempty"`
-	ChoiceTraceTerminalState    *string              `json:"choice_trace_terminal_state,omitempty"`
-	ChoiceTapeSHA256            *record.SHA256       `json:"choice_tape_sha256,omitempty"`
-	ChoiceDecisions             *record.Uint64String `json:"choice_decisions,omitempty"`
-	SemanticProbes              []string             `json:"semantic_probes,omitempty"`
-	ChoiceFeatures              []string             `json:"choice_features,omitempty"`
-	SuccessArtifact             *string              `json:"success_artifact,omitempty"`
-	SuccessArtifactBytes        *record.Uint64String `json:"success_artifact_bytes,omitempty"`
-	NovelSemanticProbes         []string             `json:"novel_semantic_probes,omitempty"`
-	NovelChoiceFeatures         []string             `json:"novel_choice_features,omitempty"`
+	Strategy                    string                     `json:"strategy,omitempty"`
+	Round                       *record.Uint64String       `json:"round,omitempty"`
+	CandidateSHA256             record.SHA256              `json:"candidate_sha256,omitempty"`
+	ParentCandidateSHA256       record.SHA256              `json:"parent_candidate_sha256,omitempty"`
+	PrefixSHA256                record.SHA256              `json:"prefix_sha256,omitempty"`
+	ForcedDepth                 *record.Uint64String       `json:"forced_depth,omitempty"`
+	OutcomeSHA256               record.SHA256              `json:"outcome_sha256,omitempty"`
+	Divergence                  *choice.DivergenceEvidence `json:"divergence,omitempty"`
+	SelectionOrdinal            record.Uint64String        `json:"selection_ordinal"`
+	Seed                        record.Uint64String        `json:"seed"`
+	Domain                      string                     `json:"domain"`
+	Reason                      string                     `json:"reason"`
+	Termination                 string                     `json:"termination"`
+	FailureSignature            *record.SHA256             `json:"failure_signature"`
+	Artifact                    *string                    `json:"artifact"`
+	ElapsedNanos                record.Uint64String        `json:"elapsed_nanos"`
+	IOTranscriptSHA256          *record.SHA256             `json:"io_transcript_sha256"`
+	IOTranscriptRecords         *record.Uint64String       `json:"io_transcript_records"`
+	ChoiceTraceSHA256           *record.SHA256             `json:"choice_trace_sha256,omitempty"`
+	ChoiceTraceRecords          *record.Uint64String       `json:"choice_trace_records,omitempty"`
+	ChoiceTraceBranchingRecords *record.Uint64String       `json:"choice_trace_branching_records,omitempty"`
+	ChoiceTraceTerminalState    *string                    `json:"choice_trace_terminal_state,omitempty"`
+	ChoiceTapeSHA256            *record.SHA256             `json:"choice_tape_sha256,omitempty"`
+	ChoiceDecisions             *record.Uint64String       `json:"choice_decisions,omitempty"`
+	SemanticProbes              []string                   `json:"semantic_probes,omitempty"`
+	ChoiceFeatures              []string                   `json:"choice_features,omitempty"`
+	SuccessArtifact             *string                    `json:"success_artifact,omitempty"`
+	SuccessArtifactBytes        *record.Uint64String       `json:"success_artifact_bytes,omitempty"`
+	NovelSemanticProbes         []string                   `json:"novel_semantic_probes,omitempty"`
+	NovelChoiceFeatures         []string                   `json:"novel_choice_features,omitempty"`
 }
 
 type CampaignJournal struct {
@@ -126,6 +129,7 @@ type CampaignRecord struct {
 	Attempted                                 record.Uint64String        `json:"attempted"`
 	Succeeded                                 record.Uint64String        `json:"succeeded"`
 	Failures                                  record.Uint64String        `json:"failures"`
+	ReplayDivergences                         record.Uint64String        `json:"replay_divergences,omitempty"`
 	Watchdogs                                 record.Uint64String        `json:"watchdogs"`
 	Cancelled                                 record.Uint64String        `json:"cancelled"`
 	DistinctFailures                          record.Uint64String        `json:"distinct_failures"`
@@ -360,7 +364,7 @@ func (journal *CampaignJournal) Publish(summary CampaignSummary) error {
 		SchemaVersion: record.SchemaVersion, Schema: "gomad3.campaign/v1", CampaignID: journal.config.CampaignID, Strategy: journal.config.Strategy, Selection: journal.config.Selection,
 		PlanSHA256: journal.config.PlanSHA256, Shard: cloneCampaignShard(journal.config.Shard),
 		SelectionCount: record.Uint64String(journal.config.SelectionCount), Attempted: record.Uint64String(summary.Attempted), Succeeded: record.Uint64String(summary.Succeeded),
-		Failures: record.Uint64String(summary.Failures), Watchdogs: record.Uint64String(summary.Watchdogs), Cancelled: record.Uint64String(summary.Cancelled),
+		Failures: record.Uint64String(summary.Failures), ReplayDivergences: record.Uint64String(summary.ReplayDivergences), Watchdogs: record.Uint64String(summary.Watchdogs), Cancelled: record.Uint64String(summary.Cancelled),
 		DistinctFailures: record.Uint64String(summary.DistinctFailures), StopReason: summary.StopReason,
 		RetainedSuccesses: record.Uint64String(summary.RetainedSuccesses), RetainedSuccessBytes: record.Uint64String(summary.RetainedSuccessBytes),
 		Journal: journalReference, Artifacts: journal.artifactPlan, FailureSignatures: failureSignatures,

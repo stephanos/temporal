@@ -1,0 +1,52 @@
+{
+  "type": "impl_review",
+  "id": "branch",
+  "mode": "codex",
+  "base": "HEAD",
+  "verdict": "SHIP",
+  "session_id": "01a0fc88-8ceb-77a1-a106-4644b2c68f23",
+  "model": "gpt-6-astra",
+  "effort": "high",
+  "spec": "codex:gpt-6-astra:high",
+  "timestamp": "2026-10-02T12:35:11.648566Z",
+  "review": "Prior finding: fixed\n\nJournal normalization now preserves schema, record counts, and all capacity limits. Both journals are required, and copying prevents baseline mutation. The negative control fails under the prior normalization and passes with the fix.\n\nVerified both patch reconstructions and evidence hashes. Fresh retained logs confirm 20 complete CLI passes, 20 capacity controls, 40 exact-boundary kills, 120 record comparisons, and passing host/vet/format gates. No surviving findings.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R9 | met | Built CLI explore/replay and kill/resume comparisons now enforce journal capacity equality; bound final gates pass. |\n\nUnaddressed R-IDs: []\n\nNative Linux remains unverified. Previously recorded lint limitations and fn-112.11/.12 remain outside this repair.\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "focus": "Continue the same fn-112.8 review session and resolve round1 finding finding-a8971aec2cf3fa7b151be8f2155ab858 / P2 / R9 (journal capacity limits lost in normalization). Do not modify files, commit, rebuild the toolchain or broaden the exact task scope.\n\nEffective final inputs are now in .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-8/review-fix-1/: task-only.patch is the complete final task delta from original inputs; incremental-from-round1.patch is the narrow correction; source-freeze.json, handover-summary.md, handover-evidence.json, evidence-bindings.json and parent-patch-validation.json bind it. Both patches were independently applied in scratch and reconstructed current sources. Final e2e_test.go SHA256 is 5feb92383f46acf7d698e33d047e100dc1c15c42dd7667a6858610f630b61b53. Fixture and task contract are unchanged; 60 prior source/identity files remain protected.\n\nThe fix introduces a small pure campaign normalization helper that copies the inspected journal and clears only IndexSHA256, Segments and Bytes. Schema, Records, all Limits and future semantic fields remain in full-value comparison. Both real campaign journals must exist. A real CLI baseline is copied, only MaximumBytes is incremented, and the negative control must distinguish it. Verify the copied journal cannot mutate baseline state. The retained negative-control-red source/log shows this fails under the prior normalization; fresh final 20 repetition/full-host/vet/format evidence must pass on the corrected frozen source.\n\nAll round1 artifacts under task-8 remain immutable historical evidence. Their source manifests describe the earlier e2e_test.go, whose exact bytes remain in review-fix-1/before-e2e_test.go; do not treat those historical source hashes as assertions about current code. The 12-command retained CLI sample can be reused because CLI production sources and target fixture are unchanged; the new repeat/full-host gate covers changed test code. Read new repair evidence and original receipt as needed rather than grading old red logs as current failures.\n\nThe previous approved comparison exclusions and per-store inspect checks remain; this fix must preserve non-wall journal capacity equality. World is the valid None World, I/O transcript is nonempty. Native Linux remains unverified; root lint has recorded missing-main/nested-module discovery failures. Final host gate uses explicit pinned stock Go 1.27.1; inherited automatic stock-selection failure remains fn-112.12, watchdog missing-terminal failure remains fn-112.11. No production or runtime identity change is part of 8. Return an honest verdict with requirement coverage and findings.\n\nParent rechecked all 111 original artifacts, 31 repair artifacts, 3 current sources and 60 protected prior inputs. See review-fix-1/parent-review-bindings.json and parent-twenty-run-validation.json. Final 235.732s run has 20 explore/replay, 20 kill/resume, 20 capacity controls, 40 exact-boundary kills and 120 record comparisons. Full host is exit 0 with 45 passing package lines; latest format/vet are 0, root lint actual 2/2 failures retained.\n",
+  "introduced_count": 0,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "findings": {
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-fb3396d5f7a961d3f56c98eff80d28ca42a7cb782a3d16ad988cd9d89c897044",
+    "reviewKind": "implementation",
+    "backend": "codex",
+    "round": 2,
+    "baseSha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+    "headSha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+    "supersedesReceiptId": "review-38441e4a40de8b4cba0942ce9ca702f58fa566dcac5ae15f4b94ef0b2912502e",
+    "items": [
+      {
+        "id": "finding-a8971aec2cf3fa7b151be8f2155ab858",
+        "ordinal": 1,
+        "severity": "P2",
+        "confidence": 100,
+        "classification": "introduced",
+        "status": "fixed",
+        "title": "`left",
+        "body": "`left.Journal, right.Journal = nil, nil` excludes the journal\u2019s non-wall capacity limits along with its permitted storage differences. These limits are not compared elsewhere. Changing only `Journal.Limits.MaximumBytes` leaves the comparison equal; independent `inspect` validation checks each store\u2019s consistency, not equality between campaigns. This misses the explicit requirement to preserve non-wall resource bounds.",
+        "rIds": [
+          "R9"
+        ],
+        "anchor": {
+          "path": "tools/gomad3/cmd/gomad/e2e_test.go",
+          "side": "head",
+          "startLine": 357,
+          "baseSha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+          "headSha": "1d7272e654f268f9a45f3fe965918fe2522827c6"
+        },
+        "suggestion": "Assert both journals exist and compare their `Limits` before excluding journal storage metadata.",
+        "firstSeenReceiptId": "review-38441e4a40de8b4cba0942ce9ca702f58fa566dcac5ae15f4b94ef0b2912502e",
+        "lastSeenReceiptId": "review-fb3396d5f7a961d3f56c98eff80d28ca42a7cb782a3d16ad988cd9d89c897044"
+      }
+    ]
+  }
+}

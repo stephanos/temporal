@@ -1,0 +1,8 @@
+# go.temporal.io/server/tools/gomad3/choice [go.temporal.io/server/tools/gomad3/choice.test]
+choice/diagnostic_test.go:28:21: undefined: DiffDiagnostics
+choice/diagnostic_test.go:32:20: undefined: DiffDiagnostics
+choice/diagnostic_test.go:34:20: undefined: DiffDiagnostics
+choice/diagnostic_test.go:36:20: undefined: DiffDiagnostics
+choice/diagnostic_test.go:56:26: undefined: DiffDiagnostics
+FAIL	go.temporal.io/server/tools/gomad3/choice [build failed]
+FAIL

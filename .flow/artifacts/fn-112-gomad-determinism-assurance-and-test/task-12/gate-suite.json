@@ -1,0 +1,155 @@
+[
+  [
+    "stock-oracle",
+    {
+      "argv": [
+        "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go",
+        "version"
+      ],
+      "cwd": "tools/gomad3"
+    },
+    0
+  ],
+  [
+    "stock-oracle-root",
+    {
+      "argv": [
+        "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go",
+        "env",
+        "GOROOT"
+      ],
+      "cwd": "tools/gomad3"
+    },
+    0
+  ],
+  [
+    "make-explicit-stock",
+    {
+      "argv": [
+        "make",
+        "-C",
+        "tools/gomad3",
+        "test-host"
+      ],
+      "env": {
+        "GOFLAGS": "-tags=test_dep -run=^TestModelConformance -count=1",
+        "GOMAD3_STOCK_GO": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go"
+      }
+    },
+    0
+  ],
+  [
+    "make-empty-stock",
+    {
+      "argv": [
+        "make",
+        "-C",
+        "tools/gomad3",
+        "test-host"
+      ],
+      "env": {
+        "GOFLAGS": "-tags=test_dep -run=^TestModelConformance -count=1",
+        "GOMAD3_STOCK_GO": ""
+      }
+    },
+    0
+  ],
+  [
+    "make-patched-stock-rejected",
+    {
+      "argv": [
+        "make",
+        "-C",
+        "tools/gomad3",
+        "test-host"
+      ],
+      "env": {
+        "GOFLAGS": "-tags=test_dep -run=^TestModelConformance -count=1",
+        "GOMAD3_STOCK_GO": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go"
+      }
+    },
+    2
+  ],
+  [
+    "make-wrong-version-rejected",
+    {
+      "argv": [
+        "make",
+        "-C",
+        "tools/gomad3",
+        "test-host"
+      ],
+      "env": {
+        "GOFLAGS": "-tags=test_dep -run=^TestModelConformance -count=1",
+        "GOMAD3_STOCK_GO": "/opt/homebrew/bin/go"
+      }
+    },
+    2
+  ],
+  [
+    "direct-stock-no-override",
+    {
+      "argv": [
+        "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "-run",
+        "^TestModel",
+        "./runner/internal/execution"
+      ],
+      "cwd": "tools/gomad3"
+    },
+    0
+  ],
+  [
+    "focused-vet",
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go",
+        "vet",
+        "-tags",
+        "test_dep",
+        "./runner/internal/execution"
+      ],
+      "cwd": "tools/gomad3"
+    },
+    0
+  ],
+  [
+    "formatting",
+    {
+      "argv": [
+        "/usr/bin/diff",
+        "-u",
+        "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/beforecopies/tools/gomad3/runner/internal/execution/model_conformance_test.go",
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/runner/internal/execution/model_conformance_test.go"
+      ]
+    },
+    0
+  ],
+  [
+    "root-lint-default",
+    {
+      "argv": [
+        "make",
+        "lint-code-fast",
+        "GOLANGCI_LINT_FIX=false"
+      ]
+    },
+    2
+  ],
+  [
+    "root-lint-head",
+    {
+      "argv": [
+        "make",
+        "lint-code-fast",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT_BASE_REV=HEAD"
+      ]
+    },
+    2
+  ]
+]

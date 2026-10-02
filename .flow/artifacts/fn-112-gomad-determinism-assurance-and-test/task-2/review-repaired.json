@@ -1,0 +1,17 @@
+{
+  "type": "impl_review",
+  "id": "branch",
+  "mode": "codex",
+  "base": "8789deab0",
+  "verdict": "SHIP",
+  "session_id": "01a0fb5b-acf7-71e0-b136-f6a7cf5494c9",
+  "model": "gpt-6-astra",
+  "effort": "high",
+  "spec": "codex:gpt-6-astra:high",
+  "timestamp": "2026-10-02T07:05:32.217778Z",
+  "review": "Prior finding: fixed\n\nThe saved patch and all 14 source bindings match the current files. The selector restores all six omitted tests plus graceful-stop coverage; only the documented clock-delay watchdog case remains excluded. No new blocking regression found.\n\nRetained evidence shows the shutdown regression failing before the fix and passing ten repetitions afterward, alongside passing execution-package and overlay tests.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R2 | met | Ten transport cases selected; all five overlay packages included; replay assertions and toolchain ownership retained. Remaining watchdog failure is recorded under the permitted exception. |\n\nUnaddressed R-IDs: []\n\nThe current full `make test` run is still in progress. The parent must verify its result before marking the task complete; this verdict does not certify that pending run.\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "focus": "Re-review fn-112-gomad-determinism-assurance-and-test.2. The owner requires changes remain uncommitted. Review the exact current working-tree artifact /tmp/gomad-fn112-task2-working.patch and source bindings /tmp/gomad-fn112-task2-working-sources.json, inspecting those current source files rather than relying only on the committed range. The task and acceptance criteria are in .flow/tasks/fn-112-gomad-determinism-assurance-and-test.2.md. Prior P2 found six process backend tests unnecessarily excluded. The current changes restore them and the graceful-stop test, repair internal/gomadsim overlay tests, and fix transport lifetime during graceful node shutdown with a regression test. Only the recorded clock-delay watchdog remains excluded under the task allowance for recorded pre-existing failures. Full make test is running; the parent requires its result before completion. Check correctness, regressions, and acceptance criteria against this saved diff. Evidence is in .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-2/.",
+  "introduced_count": 0,
+  "pre_existing_count": 0,
+  "unaddressed": []
+}

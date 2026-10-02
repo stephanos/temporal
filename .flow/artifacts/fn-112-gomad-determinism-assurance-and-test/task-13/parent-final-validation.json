@@ -1,0 +1,27 @@
+{
+  "result": "pass",
+  "bound_files": 77,
+  "frozen_sources": {
+    "tools/gomad3/runner/replay_operation.go": "2ab6c2b9305afe949bda6c1971b96b17582aa818d112c3c6965faed8c4aaff85",
+    "tools/gomad3/runner/watchdog_replay_test.go": "e15b05aaaffc7b546141f56077b4d10304cc11a0f6328f667b60fffe3174aa3a",
+    "tools/gomad3/cmd/gomad/watchdog_replay_e2e_test.go": "70d96ead2a252666db0a135e11be6fda38cd036ea2bcb50d8f5bab0c4c64f8f1"
+  },
+  "evidence_bindings_sha256": "852298208f136c9788f11f3dadc6639a87f9717e958d4384bda14fcc0fe98c10",
+  "nested_binary_and_retained_payload_bindings": 10,
+  "binary_binding_metadata": {
+    "toolchain_build_key": "56e4a2f0c5514d43b9a0682d030964588dd3d5a58978ba0b989459bb556843a3",
+    "retained_toolchain_build_directories": [
+      "0e1a9041af147a5cf709fdf7613ab5091e9cab552264aa33d6d8e9767160ed8f",
+      "113ec00b3ce043867b034e8fec0fb28e6ecd4a36ca87dba2a5a26ab0a6ca9118",
+      "1c34ea0753ab3a38a18f69e9efb1f6593b54fb6c8adde6a4f8ec6790093f9179",
+      "4412b5b276ef89f37995a401bcebc83b842733c18f0c39f9b57e00e74df0ca95",
+      "56e4a2f0c5514d43b9a0682d030964588dd3d5a58978ba0b989459bb556843a3",
+      "6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee",
+      "8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc",
+      "d15ad896e542b9f64381c2f184567355bac8ffd62ae2347501fe8fcdd96f6eba",
+      "d49ef0309636e2301c46cfb36cda8a9b21323d87601c93c429260b3eefd4e37d",
+      "de7728ce162b470519f0e9de414216cb6ba5e132f4588955672cbe09edb7d678",
+      "f292ea6ac88dbffe5657d0a7dd4e7abe3c72e6b091b1494cfe315bdede03b088"
+    ]
+  }
+}

@@ -26,13 +26,13 @@ type guidanceCampaign struct {
 func openGuidance(ctx context.Context, config CampaignSpec, prepared target.Prepared, baseEnvironment []record.Environment, runID string) (*guidanceCampaign, error) {
 	targetRecord := prepared.RecordTarget()
 	boundaryVersion, boundarySHA256 := deterministicio.BoundaryManifestIdentity()
-	identity, err := guide.IdentityFor(targetRecord, prepared.RecordToolchain(), boundaryVersion, record.SHA256(boundarySHA256))
+	identity, err := guide.IdentityFor(targetRecord, prepared.RecordToolchain(), boundaryVersion, record.SHA256(boundarySHA256), environmentForSeed(baseEnvironment, 0))
 	if coverageHasChoice(config.Coverage) {
 		implementation, identityErr := choice.ImplementationIdentity(prepared.BuildKey)
 		if identityErr != nil {
 			return nil, identityErr
 		}
-		identity, err = guide.IdentityForChoice(targetRecord, prepared.RecordToolchain(), boundaryVersion, record.SHA256(boundarySHA256), guide.ChoiceProfileIdentity{
+		identity, err = guide.IdentityForChoice(targetRecord, prepared.RecordToolchain(), boundaryVersion, record.SHA256(boundarySHA256), environmentForSeed(baseEnvironment, 0), guide.ChoiceProfileIdentity{
 			Profile: choice.Profile, ImplementationSHA256: record.SHA256FromSum(implementation), Limit: record.Uint64String(config.ChoiceTraceLimit),
 		})
 	}

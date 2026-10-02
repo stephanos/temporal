@@ -3,6 +3,8 @@ package conformance
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -11,6 +13,7 @@ import (
 	"strings"
 	"testing"
 
+	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
 )
@@ -123,5 +126,116 @@ func TestRepeatabilityMismatchRetainsDivergentEvidence(t *testing.T) {
 	}
 	if report.Cases[0].Passed {
 		t.Fatal("divergent case remained passed")
+	}
+}
+
+func TestRuntimeSearchFixtures(t *testing.T) {
+	root, err := filepath.Abs("../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	goCommand := filepath.Join(root, ".toolchain", "bin", "go")
+	if _, err := os.Stat(goCommand); errors.Is(err, os.ErrNotExist) {
+		t.Skip("patched toolchain is not installed")
+	} else if err != nil {
+		t.Fatal(err)
+	}
+	workspace := t.TempDir()
+	if retained := os.Getenv("GOMAD3_RUNTIME_REPRODUCTION_DIR"); retained != "" {
+		workspace = retained
+		if err := os.MkdirAll(workspace, 0o700); err != nil {
+			t.Fatal(err)
+		}
+	}
+	report := Report{Mode: "test-runtime-search-reproduction"}
+	var commands []map[string]any
+	run := func(ctx context.Context, request hostexec.Request) (hostexec.Result, error) {
+		controls := []string{}
+		for _, value := range request.Env {
+			if strings.HasPrefix(value, "GOMADSEED=") || strings.HasPrefix(value, "GOMAD3_CHOICE_") {
+				controls = append(controls, value)
+			}
+		}
+		result, err := hostexec.Run(ctx, request)
+		commands = append(commands, map[string]any{"command": request.Command, "directory": request.Dir, "controls": controls, "timeout": request.Timeout.String(), "exit": result.ExitCode, "timed_out": result.WatchdogTimeout})
+		return result, err
+	}
+	campaign := runtimeCampaign{ctx: context.Background(), config: Config{Root: root, Go: goCommand}, testdata: filepath.Join(root, "internal", "gomadtool", "conformance", "testdata"), workspace: workspace, run: run, report: &report}
+	defer func() {
+		for name, value := range map[string]any{"cases.json": report, "commands.json": commands} {
+			data, err := json.MarshalIndent(value, "", "  ")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(workspace, name), append(data, '\n'), 0o600); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}()
+	binaries := map[string]string{}
+	for _, fixture := range schedulingSearchFixtures {
+		binary, err := campaign.build(fixture.name, fixture.packageName, false)
+		if err != nil {
+			t.Fatal(err)
+		}
+		binaries[fixture.name] = binary
+	}
+	if err := campaign.requireSearchReproduction(binaries); err != nil {
+		t.Fatal(err)
+	}
+	report.Passed = true
+}
+
+func TestRuntimeChannelFixtures(t *testing.T) {
+	root, err := filepath.Abs("../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	goCommand := filepath.Join(root, ".toolchain", "bin", "go")
+	if _, err := os.Stat(goCommand); errors.Is(err, os.ErrNotExist) {
+		t.Skip("patched toolchain is not installed")
+	} else if err != nil {
+		t.Fatal(err)
+	}
+	report := Report{Mode: "test-runtime-channel-fixtures"}
+	campaign := runtimeCampaign{
+		ctx: context.Background(), config: Config{Root: root, Go: goCommand},
+		testdata:    filepath.Join(root, "internal", "gomadtool", "conformance", "testdata"),
+		execWrapper: filepath.Join(root, "internal", "gomadtool", "conformance", "scripts", "exec.sh"),
+		workspace:   t.TempDir(), run: hostexec.Run, report: &report,
+	}
+	for _, packageName := range []string{"./timer_ties", "./runq_shuffle"} {
+		for _, seed := range []string{"0", "1", "18446744073709551615"} {
+			if err := campaign.requireRepeatable(packageName, seed, 10); err != nil {
+				t.Fatal(err)
+			}
+		}
+		if err := campaign.requireDiverse(packageName); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestTimerCallbackAssociationRejectsUnidentifiedHandoff(t *testing.T) {
+	input := append([]byte("gomad3-choice-goroutine-runtime/v1"), make([]byte, 8)...)
+	binary.BigEndian.PutUint64(input[len(input)-8:], 2)
+	identity := sha256.Sum256(input)
+	run := choiceRun{transcript: "A B", trace: choice.Trace{Records: []choice.Record{
+		{Kind: choice.KindRunnable, SelectedIdentity: identity},
+		{Kind: choice.KindSelectResult},
+		{Kind: choice.KindSelectPoll, SiteOffset: 1},
+		{Kind: choice.KindSelectResult},
+		{Kind: choice.KindSelectPoll, SiteOffset: 2},
+	}}}
+	association, err := timerCallbackAssociation("6", run)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(association.CallbackIdentities) != 0 {
+		t.Fatalf("unidentified callback handoff associated identities: %+v", association)
+	}
+	run.transcript = "A A"
+	if _, err := timerCallbackAssociation("6", run); err == nil {
+		t.Fatal("duplicate callback markers were accepted")
 	}
 }

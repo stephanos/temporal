@@ -1,0 +1,36 @@
+=== RUN   TestGomadClosedFileHasPublicSentinel
+=== RUN   TestGomadClosedFileHasPublicSentinel/close
+=== RUN   TestGomadClosedFileHasPublicSentinel/read
+=== RUN   TestGomadClosedFileHasPublicSentinel/read-at
+=== RUN   TestGomadClosedFileHasPublicSentinel/write
+=== RUN   TestGomadClosedFileHasPublicSentinel/write-at
+=== RUN   TestGomadClosedFileHasPublicSentinel/seek
+=== RUN   TestGomadClosedFileHasPublicSentinel/truncate
+=== RUN   TestGomadClosedFileHasPublicSentinel/chmod
+=== RUN   TestGomadClosedFileHasPublicSentinel/sync
+=== RUN   TestGomadClosedFileHasPublicSentinel/stat
+--- PASS: TestGomadClosedFileHasPublicSentinel (0.00s)
+    --- PASS: TestGomadClosedFileHasPublicSentinel/close (0.00s)
+    --- PASS: TestGomadClosedFileHasPublicSentinel/read (0.00s)
+    --- PASS: TestGomadClosedFileHasPublicSentinel/read-at (0.00s)
+    --- PASS: TestGomadClosedFileHasPublicSentinel/write (0.00s)
+    --- PASS: TestGomadClosedFileHasPublicSentinel/write-at (0.00s)
+    --- PASS: TestGomadClosedFileHasPublicSentinel/seek (0.00s)
+    --- PASS: TestGomadClosedFileHasPublicSentinel/truncate (0.00s)
+    --- PASS: TestGomadClosedFileHasPublicSentinel/chmod (0.00s)
+    --- PASS: TestGomadClosedFileHasPublicSentinel/sync (0.00s)
+    --- PASS: TestGomadClosedFileHasPublicSentinel/stat (0.00s)
+=== RUN   TestGomadWrongFileAccessModeIsNotClosed
+--- PASS: TestGomadWrongFileAccessModeIsNotClosed (0.00s)
+=== RUN   TestGomadClosedDirectoryMatchesNative
+=== RUN   TestGomadClosedDirectoryMatchesNative/chdir
+=== RUN   TestGomadClosedDirectoryMatchesNative/read-dir
+=== RUN   TestGomadClosedDirectoryMatchesNative/readdir
+=== RUN   TestGomadClosedDirectoryMatchesNative/readdirnames
+--- PASS: TestGomadClosedDirectoryMatchesNative (0.00s)
+    --- PASS: TestGomadClosedDirectoryMatchesNative/chdir (0.00s)
+    --- PASS: TestGomadClosedDirectoryMatchesNative/read-dir (0.00s)
+    --- PASS: TestGomadClosedDirectoryMatchesNative/readdir (0.00s)
+    --- PASS: TestGomadClosedDirectoryMatchesNative/readdirnames (0.00s)
+PASS
+ok  	os	0.288s

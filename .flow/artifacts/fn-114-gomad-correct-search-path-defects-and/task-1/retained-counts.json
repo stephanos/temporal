@@ -1,0 +1,47 @@
+[
+  {
+    "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d14-qualification-seed11.json",
+    "sha256": "e30347bdffc16269bc2e135d728ea07a0c3870df5eb3ac7455656daa33b59b78",
+    "toolchain_build_key": "8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc",
+    "fields": {
+      "decisions": "57801",
+      "runnable": "30936",
+      "select_poll": "26865",
+      "select_result": "28442",
+      "records": "86243",
+      "branching_records": "57801",
+      "peak_goroutines": "1945"
+    },
+    "decisions_from_kind_counts": 57801
+  },
+  {
+    "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d21-qualification-control-choices-11.json",
+    "sha256": "097c865f21bf2049c2e54d315b4afe3bc8db4731c609dc03393c7b3e9adb4b10",
+    "toolchain_build_key": "c0661e38b4e001c8d86912d4ce9e265eb0f33e5f3298015da27a4c97ac4019b9",
+    "fields": {
+      "decisions": "26",
+      "runnable": "26",
+      "select_poll": "0",
+      "select_result": "0",
+      "records": "26",
+      "branching_records": "26",
+      "peak_goroutines": "2"
+    },
+    "decisions_from_kind_counts": 26
+  },
+  {
+    "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d21-qualification-control-choices-17.json",
+    "sha256": "1faf351208c899c7623f0895789be8ccf6ab38c6f7e9c14f772e2bf4104a138f",
+    "toolchain_build_key": "c0661e38b4e001c8d86912d4ce9e265eb0f33e5f3298015da27a4c97ac4019b9",
+    "fields": {
+      "decisions": "29",
+      "runnable": "29",
+      "select_poll": "0",
+      "select_result": "0",
+      "records": "29",
+      "branching_records": "29",
+      "peak_goroutines": "2"
+    },
+    "decisions_from_kind_counts": 29
+  }
+]

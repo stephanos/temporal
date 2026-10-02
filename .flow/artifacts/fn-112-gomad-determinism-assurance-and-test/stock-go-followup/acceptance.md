@@ -1,0 +1,5 @@
+- [ ] The inherited no-override Make failure is reproduced and bound to the unmodified source and invoking environment.
+- [ ] Standard `make -C tools/gomad3 test-host` selects the pinned stock compiler for native model comparisons without GOMAD3_STOCK_GO when stock Go is available to the invoking environment, and the complete Darwin gate passes.
+- [ ] A valid explicit stock override works; a patched or wrong-version override still fails visibly. No comparisons are skipped and no developer-specific path is introduced.
+- [ ] Generated version authority and existing comments are preserved; source-bound focused/full-gate evidence, Linux status and root lint limitations are retained.
+- [ ] Independent implementation review returns SHIP.

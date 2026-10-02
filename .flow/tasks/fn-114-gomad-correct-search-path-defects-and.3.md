@@ -49,9 +49,23 @@ The two small identity corrections (R2 for C1, R5 for C4). They share no file an
 
 
 ## Done summary
-TBD
+Implemented fn-114 task 3 (R2/C1 and R5/C4) on darwin/arm64, leaving all changes uncommitted. Corpus schema is now `gomad3.guide-corpus/v2`. Both constructors and retained-case validation bind a canonical environment digest, excluding seed/I/O/choice entries while preserving user environment, UTC, tick policy, and diagnostic profile. Runner normalizes base environment with its existing `environmentForSeed` contract. Existing value equality fixes the reproduced same-configuration choice corpus reopen defect; `Identity` remains comparable. Previous/future schemas are rejected before typed canonical decoding, and current-schema malformed, noncanonical, unknown-field, and duplicate-key inputs still fail closed.
 
+Coverage-instrumented exec provenance and retained replay/minimization targets now fail with coverage-specific errors through one shared build-info predicate. Actual pinned `go build -cover` and `go test -c -cover` binaries both record `-cover=true`; the ordinary build omits the entry. All three binaries are retained, along with standalone covered artifacts and verify-only/minimization rejection receipts. No toolchain/runtime source changes, CLI/record contract changes, dependencies, commits, staging, pushes, cache deletion, or rebuilds were made. Documentation is owned by task 14.
+
+Final frozen verification passes: complete Runner/target suites (125.95s), `make -C tools/gomad3 validate`, standard host gate (45 fresh packages, 127.79s, without `GOMAD3_STOCK_GO` override), focused vet, formatting, and whitespace. The host gate includes the existing diagnostic/watchdog replay suites. Root lint remains unavailable: its default revision `main` is absent; the HEAD workaround exits through nested-module discovery, including the retained fixture module. Linux remains unverified.
+
+Meaningful red regressions are retained in `regression-red`, `additional-red`, and `actual-layout-schema-red`. `focused-extended` first failed on an unsorted admission fixture; `case-admission-green` despite its historical filename failed on a mistaken expectation that admission validates before replay. Both fixture expectations were corrected, with no production change for them. `retain-covered-artifact` first failed to compile its standalone evidence probe because it used the wrong record-hash field, then passed after that probe repair. The initial 115.91s Runner/target run overlapped schema source/test edits and is informational only; it does not support final acceptance. Original freeze/patch, overlap note, and logs are preserved.
+
+`task-only.patch` reconstructs all 11 owned files from actual before copies. The declared replay overlap adds only coverage validation to the prior diagnostic replay implementation; all other 69 protected source files are unchanged. Parent reconstruction receipt `parent-patch-validation.json` is bound below. Final sources remained unchanged throughout every final gate. Parent owns independent review and Flow completion; no work beyond task 3 is claimed.
+
+Independent implementation review: SHIP, gpt-6-astra high, session 01a0fcf7-4b05-7d83-b588-6920d3dc6af1, 2026-10-02T14:16:56.134866Z. R2 and R5 met; no introduced or pre-existing findings. Parent verified all 103 evidence bindings, 21 binary/artifact bindings, 11 frozen sources, and exact task-patch reconstruction.
+
+stage: impl-review - SHIP (codex:gpt-6-astra:high, round 1)
+stage: plan-sync - skipped(config: planSync.enabled != true)
+stage: wave - sequential(shared dirty checkout; user forbids worktrees)
+Tracker sync: n/a (bridge inactive). User retains commit ownership.
 ## Evidence
 - Commits:
-- Tests:
+- Tests: tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -tags test_dep -count=1 ./runner/... ./target/..., make -C tools/gomad3 validate, make -C tools/gomad3 test-host, tools/gomad3/.toolchain/bin/go -C tools/gomad3 vet -tags test_dep ./runner/... ./target/..., /Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/gofmt -l tools/gomad3/runner/internal/corpus/model.go tools/gomad3/runner/internal/corpus/corpus.go tools/gomad3/runner/internal/corpus/corpus_test.go tools/gomad3/runner/internal/corpus/guide_test.go tools/gomad3/runner/guidance.go tools/gomad3/target/target.go tools/gomad3/target/target_test.go tools/gomad3/runner/replay_operation.go tools/gomad3/runner/guidance_identity_test.go tools/gomad3/runner/coverage_replay_test.go tools/gomad3/target/coverage_test.go, git diff --check
 - PRs:

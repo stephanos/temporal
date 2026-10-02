@@ -1,0 +1,692 @@
+--- a/tools/gomad3/runner/internal/corpus/model.go
++++ b/tools/gomad3/runner/internal/corpus/model.go
+@@ -12,7 +12,7 @@
+ )
+ 
+ const (
+-	CorpusSchema          = "gomad3.guide-corpus/v1"
++	CorpusSchema          = "gomad3.guide-corpus/v2"
+ 	SemanticFeatureSchema = "gomad3.semantic-features/v1"
+ 	ChoiceFeatureSchema   = "gomad3.semantic-choice-features/v1"
+ 
+@@ -35,6 +35,7 @@
+ )
+ 
+ type Identity struct {
++	EnvironmentSHA256      record.SHA256          `json:"environment_sha256"`
+ 	TargetSHA256           record.SHA256          `json:"target_sha256"`
+ 	Toolchain              record.Toolchain       `json:"toolchain"`
+ 	BoundaryVersion        string                 `json:"boundary_version"`
+@@ -106,19 +107,19 @@
+ 	BuildInfo     record.BuildInfo           `json:"build_info"`
+ }
+ 
+-func IdentityFor(target record.Target, toolchain record.Toolchain, boundaryVersion string, boundarySHA256 record.SHA256) (Identity, error) {
+-	return identityFor(target, toolchain, boundaryVersion, boundarySHA256, nil)
+-}
+-
+-func IdentityForChoice(target record.Target, toolchain record.Toolchain, boundaryVersion string, boundarySHA256 record.SHA256, choiceProfile ChoiceProfileIdentity) (Identity, error) {
++func IdentityFor(target record.Target, toolchain record.Toolchain, boundaryVersion string, boundarySHA256 record.SHA256, environment []record.Environment) (Identity, error) {
++	return identityFor(target, toolchain, boundaryVersion, boundarySHA256, environment, nil)
++}
++
++func IdentityForChoice(target record.Target, toolchain record.Toolchain, boundaryVersion string, boundarySHA256 record.SHA256, environment []record.Environment, choiceProfile ChoiceProfileIdentity) (Identity, error) {
+ 	implementation, err := choice.ImplementationIdentity(toolchain.BuildKey)
+ 	if err != nil || choiceProfile.Profile != choice.Profile || choiceProfile.ImplementationSHA256 != record.SHA256FromSum(implementation) || choiceProfile.Limit < choice.MinimumTraceBytes || choiceProfile.Limit > choice.MaximumTraceBytes {
+ 		return Identity{}, errors.New("guided choice profile identity is invalid")
+ 	}
+-	return identityFor(target, toolchain, boundaryVersion, boundarySHA256, &choiceProfile)
+-}
+-
+-func identityFor(target record.Target, toolchain record.Toolchain, boundaryVersion string, boundarySHA256 record.SHA256, choice *ChoiceProfileIdentity) (Identity, error) {
++	return identityFor(target, toolchain, boundaryVersion, boundarySHA256, environment, &choiceProfile)
++}
++
++func identityFor(target record.Target, toolchain record.Toolchain, boundaryVersion string, boundarySHA256 record.SHA256, environment []record.Environment, choice *ChoiceProfileIdentity) (Identity, error) {
+ 	projected := targetProjection{
+ 		Kind: target.Kind, SHA256: target.SHA256, Size: target.Size, Argv: append([]string(nil), target.Argv...), BuildTags: append([]string(nil), target.BuildTags...),
+ 		Adapters: append([]record.TargetAdapter(nil), target.Adapters...), Compatibility: append([]record.CompatibilityPack(nil), target.Compatibility...), BuildInfo: target.BuildInfo,
+@@ -127,8 +128,22 @@
+ 	if err != nil {
+ 		return Identity{}, fmt.Errorf("encode guided target identity: %w", err)
+ 	}
++	baseEnvironment := make([]record.Environment, 0, len(environment))
++	for _, entry := range environment {
++		switch entry.Name {
++		case "GOMADSEED", "GOMAD3_IO_PROFILE", "GOMAD3_CHOICE_PROFILE":
++			continue
++		}
++		baseEnvironment = append(baseEnvironment, entry)
++	}
++	sort.Slice(baseEnvironment, func(i, j int) bool { return baseEnvironment[i].Name < baseEnvironment[j].Name })
++	environmentBytes, err := canonicaljson.CanonicalJSON(baseEnvironment)
++	if err != nil {
++		return Identity{}, fmt.Errorf("encode guided environment identity: %w", err)
++	}
+ 	result := Identity{
+-		TargetSHA256: record.DomainHash("gomad3-guide-target-v1", encoded), Toolchain: toolchain,
++		EnvironmentSHA256: record.DomainHash("gomad3-guide-environment-v1", environmentBytes),
++		TargetSHA256:      record.DomainHash("gomad3-guide-target-v1", encoded), Toolchain: toolchain,
+ 		BoundaryVersion: boundaryVersion, BoundarySHA256: boundarySHA256,
+ 		InstrumentationSchema: SemanticFeatureSchema, InstrumentationSHA256: semanticInstrumentationIdentity(),
+ 		ManifestSchemaVersion: record.SchemaVersion, ManifestRecordContract: record.RecordContract,
+--- a/tools/gomad3/runner/internal/corpus/corpus.go
++++ b/tools/gomad3/runner/internal/corpus/corpus.go
+@@ -3,6 +3,7 @@
+ import (
+ 	"bytes"
+ 	"context"
++	"encoding/json"
+ 	"errors"
+ 	"fmt"
+ 	"io"
+@@ -270,6 +271,15 @@
+ 	if err != nil {
+ 		return Snapshot{}, fmt.Errorf("read guided corpus snapshot: %w", err)
+ 	}
++	var header struct {
++		Schema string `json:"schema"`
++	}
++	if err := json.Unmarshal(contents, &header); err != nil {
++		return Snapshot{}, fmt.Errorf("decode guided corpus snapshot schema: %w", err)
++	}
++	if header.Schema != CorpusSchema {
++		return Snapshot{}, errors.New("guided corpus schema is invalid")
++	}
+ 	var snapshot Snapshot
+ 	if err := canonicaljson.DecodeCanonicalJSON(contents, &snapshot); err != nil {
+ 		return Snapshot{}, fmt.Errorf("decode guided corpus snapshot: %w", err)
+@@ -281,7 +291,7 @@
+ 	if finalized.SnapshotSHA256 != snapshot.SnapshotSHA256 || finalized.CoverageSHA256 != snapshot.CoverageSHA256 {
+ 		return Snapshot{}, errors.New("guided corpus snapshot identity mismatch")
+ 	}
+-	if snapshot.Identity != corpus.identity {
++	if !identitiesEqual(snapshot.Identity, corpus.identity) {
+ 		return Snapshot{}, errors.New("guided corpus identity does not match the prepared target and toolchain")
+ 	}
+ 	if len(snapshot.Entries) > maximumEntries {
+@@ -333,12 +343,12 @@
+ 	if !profile.MatchesRecorded(manifest.IOProfile.Name, string(manifest.IOProfile.ImplementationSHA256), string(manifest.IOProfile.InventorySHA256), manifest.IOProfile.Inventory) {
+ 		return errors.New("guided corpus case boundary identity does not match this Runner")
+ 	}
+-	targetIdentity, err := IdentityFor(manifest.Target, manifest.Toolchain, corpus.identity.BoundaryVersion, corpus.identity.BoundarySHA256)
++	targetIdentity, err := IdentityFor(manifest.Target, manifest.Toolchain, corpus.identity.BoundaryVersion, corpus.identity.BoundarySHA256, manifest.Environment)
+ 	if corpus.identity.ChoiceProfile != nil {
+ 		if manifest.ChoiceProfile == nil || manifest.ChoiceProfile.Name != corpus.identity.ChoiceProfile.Profile || manifest.ChoiceProfile.ImplementationSHA256 != corpus.identity.ChoiceProfile.ImplementationSHA256 || manifest.ChoiceProfile.Trace.Limit != corpus.identity.ChoiceProfile.Limit {
+ 			return errors.New("guided corpus case choice profile identity mismatch")
+ 		}
+-		targetIdentity, err = IdentityForChoice(manifest.Target, manifest.Toolchain, corpus.identity.BoundaryVersion, corpus.identity.BoundarySHA256, *corpus.identity.ChoiceProfile)
++		targetIdentity, err = IdentityForChoice(manifest.Target, manifest.Toolchain, corpus.identity.BoundaryVersion, corpus.identity.BoundarySHA256, manifest.Environment, *corpus.identity.ChoiceProfile)
+ 	}
+ 	if err != nil || !identitiesEqual(targetIdentity, corpus.identity) {
+ 		return errors.Join(errors.New("guided corpus case target identity mismatch"), err)
+@@ -483,6 +493,7 @@
+ 
+ func validateIdentity(identity Identity) error {
+ 	_, targetErr := record.ParseSHA256(string(identity.TargetSHA256))
++	_, environmentErr := record.ParseSHA256(string(identity.EnvironmentSHA256))
+ 	_, boundaryErr := record.ParseSHA256(string(identity.BoundarySHA256))
+ 	validInstrumentation := identity.ChoiceProfile == nil && identity.InstrumentationSchema == SemanticFeatureSchema && identity.InstrumentationSHA256 == semanticInstrumentationIdentity()
+ 	if identity.ChoiceProfile != nil {
+@@ -490,7 +501,7 @@
+ 		profileIdentity, profileErr := choiceInstrumentationIdentity(*identity.ChoiceProfile)
+ 		validInstrumentation = err == nil && profileErr == nil && identity.ChoiceProfile.Profile == choice.Profile && identity.ChoiceProfile.ImplementationSHA256 == record.SHA256FromSum(implementation) && identity.ChoiceProfile.Limit >= choice.MinimumTraceBytes && identity.ChoiceProfile.Limit <= choice.MaximumTraceBytes && identity.InstrumentationSchema == ChoiceFeatureSchema && identity.InstrumentationSHA256 == profileIdentity
+ 	}
+-	if targetErr != nil || identity.Toolchain.GoVersion == "" || identity.Toolchain.BuildKey == "" || identity.Toolchain.TargetGOOS == "" || identity.Toolchain.TargetGOARCH == "" || identity.BoundaryVersion == "" || boundaryErr != nil || !validInstrumentation || identity.ManifestSchemaVersion != record.SchemaVersion || identity.ManifestRecordContract != record.RecordContract {
++	if targetErr != nil || environmentErr != nil || identity.Toolchain.GoVersion == "" || identity.Toolchain.BuildKey == "" || identity.Toolchain.TargetGOOS == "" || identity.Toolchain.TargetGOARCH == "" || identity.BoundaryVersion == "" || boundaryErr != nil || !validInstrumentation || identity.ManifestSchemaVersion != record.SchemaVersion || identity.ManifestRecordContract != record.RecordContract {
+ 		return errors.New("guided corpus identity is invalid")
+ 	}
+ 	return nil
+--- a/tools/gomad3/runner/internal/corpus/corpus_test.go
++++ b/tools/gomad3/runner/internal/corpus/corpus_test.go
+@@ -2,13 +2,17 @@
+ 
+ import (
+ 	"context"
++	"encoding/json"
+ 	"os"
+ 	"path/filepath"
++	"sort"
+ 	"strconv"
++	"strings"
+ 	"testing"
+ 
+ 	"go.temporal.io/server/tools/gomad3/artifact"
+ 	"go.temporal.io/server/tools/gomad3/deterministicio"
++	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+ 	"go.temporal.io/server/tools/gomad3/record"
+ )
+ 
+@@ -227,9 +231,105 @@
+ func guideIdentity(t *testing.T, manifest record.ExecutionRecord) Identity {
+ 	t.Helper()
+ 	version, boundary := deterministicio.BoundaryManifestIdentity()
+-	identity, err := IdentityFor(manifest.Target, manifest.Toolchain, version, record.SHA256(boundary))
++	identity, err := IdentityFor(manifest.Target, manifest.Toolchain, version, record.SHA256(boundary), manifest.Environment)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	return identity
+ }
++
++func TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity(t *testing.T) {
++	input, _, _ := guideArtifactInput(t, 7)
++	identity := guideIdentity(t, input.Manifest)
++	for _, schema := range []string{"gomad3.guide-corpus/v1", "gomad3.guide-corpus/v999"} {
++		t.Run(schema, func(t *testing.T) {
++			root := t.TempDir()
++			snapshot, _, err := finalizeSnapshot(Snapshot{Schema: CorpusSchema, Identity: identity, Entries: []Entry{}})
++			if err != nil {
++				t.Fatal(err)
++			}
++			snapshot.Schema = schema
++			snapshot.Identity.TargetSHA256 = record.HashBytes([]byte("another target"))
++			encoded, err := canonicaljson.CanonicalJSON(snapshot)
++			if err != nil {
++				t.Fatal(err)
++			}
++			var wire map[string]any
++			if err := json.Unmarshal(encoded, &wire); err != nil {
++				t.Fatal(err)
++			}
++			if schema == "gomad3.guide-corpus/v1" {
++				delete(wire["identity"].(map[string]any), "environment_sha256")
++			} else {
++				wire["future_field"] = true
++			}
++			encoded, err = canonicaljson.CanonicalJSON(wire)
++			if err != nil {
++				t.Fatal(err)
++			}
++			if err := os.WriteFile(filepath.Join(root, "corpus.json"), encoded, 0o600); err != nil {
++				t.Fatal(err)
++			}
++			opened, err := Open(context.Background(), root, identity)
++			if opened != nil {
++				if closeErr := opened.Close(); closeErr != nil {
++					t.Fatal(closeErr)
++				}
++			}
++			if err == nil || !strings.Contains(err.Error(), "guided corpus schema is invalid") {
++				t.Fatalf("schema rejection = %v", err)
++			}
++		})
++	}
++}
++
++func TestCorpusRejectsCaseWithChangedEnvironment(t *testing.T) {
++	input, coverage, _ := guideArtifactInput(t, 7)
++	identity := guideIdentity(t, input.Manifest)
++	corpus, err := Open(context.Background(), t.TempDir(), identity)
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer corpus.Close()
++	input.Manifest.Environment = append(input.Manifest.Environment, record.Environment{Name: "MODE", Value: "changed"})
++	sort.Slice(input.Manifest.Environment, func(i, j int) bool { return input.Manifest.Environment[i].Name < input.Manifest.Environment[j].Name })
++	replayed := false
++	added, err := corpus.Admit(context.Background(), Candidate{Artifact: input, Coverage: coverage}, func(context.Context, string) (ReplayResult, error) {
++		replayed = true
++		return ReplayResult{Verified: true, Match: true}, nil
++	})
++	if err == nil || added || !replayed || len(corpus.Snapshot().Entries) != 0 || !strings.Contains(err.Error(), "guided corpus case target identity mismatch") {
++		t.Fatalf("changed case admission = %t, %v, replayed = %t", added, err, replayed)
++	}
++}
++
++func TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema(t *testing.T) {
++	input, _, _ := guideArtifactInput(t, 7)
++	identity := guideIdentity(t, input.Manifest)
++	_, encoded, err := finalizeSnapshot(Snapshot{Schema: CorpusSchema, Identity: identity, Entries: []Entry{}})
++	if err != nil {
++		t.Fatal(err)
++	}
++	for name, contents := range map[string][]byte{
++		"malformed":        []byte(`{"schema":`),
++		"noncanonical":     append([]byte(" "), encoded...),
++		"unknown field":    append([]byte(`{"future_field":true,`), encoded[1:]...),
++		"duplicate schema": []byte(strings.Replace(string(encoded), `"schema":`, `"schema":"`+CorpusSchema+`","schema":`, 1)),
++	} {
++		t.Run(name, func(t *testing.T) {
++			root := t.TempDir()
++			if err := os.WriteFile(filepath.Join(root, "corpus.json"), contents, 0o600); err != nil {
++				t.Fatal(err)
++			}
++			opened, err := Open(context.Background(), root, identity)
++			if opened != nil {
++				if closeErr := opened.Close(); closeErr != nil {
++					t.Fatal(closeErr)
++				}
++			}
++			if err == nil {
++				t.Fatal("Open accepted invalid current-schema snapshot")
++			}
++		})
++	}
++}
+--- a/tools/gomad3/runner/internal/corpus/guide_test.go
++++ b/tools/gomad3/runner/internal/corpus/guide_test.go
+@@ -20,12 +20,12 @@
+ 		BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
+ 	}
+ 	toolchain := record.Toolchain{GoVersion: "go1.26.4", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"}
+-	first, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")))
++	first, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), nil)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	target.Source = "/another/workspace"
+-	second, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")))
++	second, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), nil)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -33,7 +33,7 @@
+ 		t.Fatalf("diagnostic source changed identity: %#v, %#v", first, second)
+ 	}
+ 	target.Argv[1] = "second"
+-	third, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")))
++	third, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), nil)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -48,7 +48,7 @@
+ 		Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
+ 	}
+ 	toolchain := record.Toolchain{GoVersion: "go1.26.4", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"}
+-	identity, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")))
++	identity, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), nil)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -70,12 +70,12 @@
+ 	profile := ChoiceProfileIdentity{
+ 		Profile: choice.Profile, ImplementationSHA256: record.SHA256FromSum(implementation), Limit: choice.MinimumTraceBytes,
+ 	}
+-	first, err := IdentityForChoice(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), profile)
++	first, err := IdentityForChoice(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), nil, profile)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	profile.Limit++
+-	second, err := IdentityForChoice(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), profile)
++	second, err := IdentityForChoice(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), nil, profile)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -245,3 +245,40 @@
+ 	}
+ 	return bundle.Manifest, bundle.Payloads.Transitions
+ }
++
++func TestIdentityForProjectsCanonicalEnvironmentAcrossSeedsAndProfiles(t *testing.T) {
++	target := record.Target{Kind: "go-run", SHA256: record.HashBytes([]byte("target")), Argv: []string{"target"}}
++	toolchain := record.Toolchain{GoVersion: "go1.27.1", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64"}
++	implementation, err := choice.ImplementationIdentity(toolchain.BuildKey)
++	if err != nil {
++		t.Fatal(err)
++	}
++	profile := ChoiceProfileIdentity{Profile: choice.Profile, ImplementationSHA256: record.SHA256FromSum(implementation), Limit: choice.MinimumTraceBytes}
++	for _, withChoices := range []bool{false, true} {
++		constructor := func(environment []record.Environment) Identity {
++			identity, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), environment)
++			if withChoices {
++				identity, err = IdentityForChoice(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), environment, profile)
++			}
++			if err != nil {
++				t.Fatal(err)
++			}
++			return identity
++		}
++		base := []record.Environment{{Name: "TZ", Value: "UTC"}, {Name: "MODE", Value: "first"}}
++		first := constructor(base)
++		projected := []record.Environment{{Name: "MODE", Value: "first"}, {Name: "GOMADSEED", Value: "99"}, {Name: "GOMAD3_IO_PROFILE", Value: "profile"}, {Name: "GOMAD3_CHOICE_PROFILE", Value: "choices"}, {Name: "TZ", Value: "UTC"}}
++		if second := constructor(projected); !identitiesEqual(first, second) {
++			t.Fatalf("per-execution entries or order changed identity: %#v, %#v", first, second)
++		}
++		for _, entry := range []record.Environment{{Name: record.ClockTickEnvironment, Value: record.ClockTickForward}, {Name: choice.DiagnosticProfileEnvironment, Value: choice.DiagnosticProfile}, {Name: "EMPTY", Value: ""}} {
++			if changed := constructor(append(append([]record.Environment(nil), base...), entry)); identitiesEqual(first, changed) {
++				t.Fatalf("environment entry %q did not change identity", entry.Name)
++			}
++		}
++		base[1].Value = "second"
++		if changed := constructor(base); identitiesEqual(first, changed) {
++			t.Fatal("environment value did not change identity")
++		}
++	}
++}
+--- a/tools/gomad3/runner/guidance.go
++++ b/tools/gomad3/runner/guidance.go
+@@ -26,13 +26,13 @@
+ func openGuidance(ctx context.Context, config CampaignSpec, prepared target.Prepared, baseEnvironment []record.Environment, runID string) (*guidanceCampaign, error) {
+ 	targetRecord := prepared.RecordTarget()
+ 	boundaryVersion, boundarySHA256 := deterministicio.BoundaryManifestIdentity()
+-	identity, err := guide.IdentityFor(targetRecord, prepared.RecordToolchain(), boundaryVersion, record.SHA256(boundarySHA256))
++	identity, err := guide.IdentityFor(targetRecord, prepared.RecordToolchain(), boundaryVersion, record.SHA256(boundarySHA256), environmentForSeed(baseEnvironment, 0))
+ 	if coverageHasChoice(config.Coverage) {
+ 		implementation, identityErr := choice.ImplementationIdentity(prepared.BuildKey)
+ 		if identityErr != nil {
+ 			return nil, identityErr
+ 		}
+-		identity, err = guide.IdentityForChoice(targetRecord, prepared.RecordToolchain(), boundaryVersion, record.SHA256(boundarySHA256), guide.ChoiceProfileIdentity{
++		identity, err = guide.IdentityForChoice(targetRecord, prepared.RecordToolchain(), boundaryVersion, record.SHA256(boundarySHA256), environmentForSeed(baseEnvironment, 0), guide.ChoiceProfileIdentity{
+ 			Profile: choice.Profile, ImplementationSHA256: record.SHA256FromSum(implementation), Limit: record.Uint64String(config.ChoiceTraceLimit),
+ 		})
+ 	}
+--- a/tools/gomad3/target/target.go
++++ b/tools/gomad3/target/target.go
+@@ -833,6 +833,9 @@
+ 	if settings["CGO_ENABLED"] != "0" {
+ 		return fmt.Errorf("exec provenance requires CGO_ENABLED=0")
+ 	}
++	if HasCoverageInstrumentation(info) {
++		return fmt.Errorf("exec provenance uses unsupported coverage instrumentation")
++	}
+ 	if settings["-race"] == "true" {
+ 		return fmt.Errorf("exec provenance uses the unsupported race detector")
+ 	}
+@@ -847,6 +850,15 @@
+ 		return fmt.Errorf("exec provenance uses unsupported external or plugin linking")
+ 	}
+ 	return nil
++}
++
++func HasCoverageInstrumentation(info record.BuildInfo) bool {
++	for _, setting := range info.Settings {
++		if setting.Key == "-cover" && setting.Value == "true" {
++			return true
++		}
++	}
++	return false
+ }
+ 
+ func ProjectBuildInfo(info *debug.BuildInfo) record.BuildInfo {
+--- a/tools/gomad3/target/target_test.go
++++ b/tools/gomad3/target/target_test.go
+@@ -781,6 +781,7 @@
+ 	for name, setting := range map[string]record.BuildSetting{
+ 		"cgo":        {Key: "CGO_ENABLED", Value: "1"},
+ 		"race":       {Key: "-race", Value: "true"},
++		"coverage":   {Key: "-cover", Value: "true"},
+ 		"plugin":     {Key: "-buildmode", Value: "plugin"},
+ 		"linkshared": {Key: "-linkshared", Value: "true"},
+ 		"external":   {Key: "-ldflags", Value: "-linkmode=external"},
+@@ -800,6 +801,8 @@
+ 			}
+ 			if err := validateProvenance(candidate); err == nil {
+ 				t.Fatal("validateProvenance() succeeded")
++			} else if name == "coverage" && !strings.Contains(err.Error(), "coverage instrumentation") {
++				t.Fatalf("coverage rejection = %v", err)
+ 			}
+ 		})
+ 	}
+--- a/tools/gomad3/runner/replay_operation.go
++++ b/tools/gomad3/runner/replay_operation.go
+@@ -585,6 +585,9 @@
+ 
+ func validateBuildInfo(info *debug.BuildInfo, expected record.BuildInfo) error {
+ 	actual := target.ProjectBuildInfo(info)
++	if target.HasCoverageInstrumentation(actual) {
++		return errors.New("stored target uses unsupported coverage instrumentation")
++	}
+ 	expectedBytes, err := canonicaljson.CanonicalJSON(expected)
+ 	if err != nil {
+ 		return fmt.Errorf("encode recorded target build info: %w", err)
+--- /dev/null
++++ b/tools/gomad3/runner/guidance_identity_test.go
+@@ -0,0 +1,67 @@
++package runner
++
++import (
++	"context"
++	"path/filepath"
++	"strings"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/choice"
++	"go.temporal.io/server/tools/gomad3/record"
++	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
++)
++
++func TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy(t *testing.T) {
++	for _, coverage := range []CoverageMode{CoverageSemantic, CoverageChoice} {
++		for _, test := range []struct {
++			name, firstEnv, secondEnv, firstTick, secondTick string
++			match                                            bool
++		}{
++			{name: "same configuration across seeds", firstEnv: "MODE=first", secondEnv: "MODE=first", match: true},
++			{name: "changed environment", firstEnv: "MODE=first", secondEnv: "MODE=second"},
++			{name: "strict to forward", secondTick: record.ClockTickForward},
++			{name: "forward to strict", firstTick: record.ClockTickForward},
++		} {
++			t.Run(string(coverage)+"/"+test.name, func(t *testing.T) {
++				preparer := newFakePreparer(t)
++				limit := choiceTraceLimit(t, 1)
++				executor := &fakeExecutor{result: func(uint64) execution.Result {
++					result := processResult(0, "", "")
++					result.IOTranscript = completeEmptyTranscript()
++					if coverage == CoverageChoice {
++						result.ChoiceTrace = completeChoiceTrace(t, preparer.prepared.BuildKey, limit, []choice.Record{{Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, SiteOffset: 24, Alternatives: 2}})
++					}
++					return result
++				}}
++				corpus := filepath.Join(t.TempDir(), "corpus")
++				run := func(seed, env, tick string) error {
++					config := testConfig(t, preparer, executor, seed, PolicyAll, 1)
++					config.Coverage = coverage
++					config.Guide = true
++					config.Corpus = corpus
++					config.Replayer = &matchingReplayer{}
++					config.ClockTick = tick
++					if coverage == CoverageChoice {
++						config.ChoiceTraceLimit = limit
++					}
++					if env != "" {
++						config.Environment = []string{env}
++					}
++					_, err := Explore(context.Background(), config)
++					return err
++				}
++				if err := run("7", test.firstEnv, test.firstTick); err != nil {
++					t.Fatal(err)
++				}
++				err := run("8", test.secondEnv, test.secondTick)
++				if test.match {
++					if err != nil {
++						t.Fatal(err)
++					}
++				} else if err == nil || !strings.Contains(err.Error(), "guided corpus identity does not match") {
++					t.Fatalf("changed configuration error = %v", err)
++				}
++			})
++		}
++	}
++}
+--- /dev/null
++++ b/tools/gomad3/runner/coverage_replay_test.go
+@@ -0,0 +1,92 @@
++package runner
++
++import (
++	"context"
++	"debug/buildinfo"
++	"os"
++	"os/exec"
++	"path/filepath"
++	"runtime/debug"
++	"strings"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/artifact"
++	"go.temporal.io/server/tools/gomad3/record"
++	"go.temporal.io/server/tools/gomad3/target"
++)
++
++func TestReplayBuildInfoRejectsMatchingCoverageInstrumentation(t *testing.T) {
++	info := &debug.BuildInfo{GoVersion: "go1.27.1", Path: "example.com/target", Settings: []debug.BuildSetting{{Key: "-cover", Value: "true"}}}
++	err := validateBuildInfo(info, target.ProjectBuildInfo(info))
++	if err == nil || !strings.Contains(err.Error(), "coverage") {
++		t.Fatalf("matching coverage build-info rejection = %v", err)
++	}
++}
++
++func TestReplayAndMinimizeRejectRetainedCoverageBinary(t *testing.T) {
++	module := t.TempDir()
++	for name, contents := range map[string]string{"go.mod": "module example.com/coveragefixture\n\ngo 1.27.1\n", "main.go": "package main\nfunc main() {}\n"} {
++		if err := os.WriteFile(filepath.Join(module, name), []byte(contents), 0o600); err != nil {
++			t.Fatal(err)
++		}
++	}
++	binary := filepath.Join(t.TempDir(), "target")
++	command := exec.Command(filepath.Join(toolchainRoot(t), "bin", "go"), "build", "-tags=test_dep", "-cover", "-o", binary, ".")
++	command.Dir = module
++	for _, entry := range os.Environ() {
++		name, _, _ := strings.Cut(entry, "=")
++		switch name {
++		case "GOROOT", "GOMADSEED", "GOMAD3_CHILD_SEED", "GOFLAGS", "GOENV", "CGO_ENABLED", "GOEXPERIMENT", "GOTOOLCHAIN", "GOWORK":
++			continue
++		}
++		command.Env = append(command.Env, entry)
++	}
++	command.Env = append(command.Env, "GOFLAGS=", "GOENV=off", "CGO_ENABLED=0", "GOEXPERIMENT=nogreenteagc", "GOTOOLCHAIN=local", "GOWORK=off")
++	if output, err := command.CombinedOutput(); err != nil {
++		t.Fatalf("build covered target: %v\n%s", err, output)
++	}
++	contents, err := os.ReadFile(binary)
++	if err != nil {
++		t.Fatal(err)
++	}
++	build, err := buildinfo.ReadFile(binary)
++	if err != nil {
++		t.Fatal(err)
++	}
++	original, _ := replayArtifact(t)
++	opened, err := artifact.OpenArtifact(original)
++	if err != nil {
++		t.Fatal(err)
++	}
++	manifest := opened.Manifest
++	manifest.Target.SHA256 = record.HashBytes(contents)
++	manifest.Target.Size = record.Uint64String(len(contents))
++	manifest.Target.BuildInfo = target.ProjectBuildInfo(build)
++	stdout, err := artifact.ReadPayload(opened, manifest.Streams.Stdout.File, uint64(manifest.Streams.Stdout.RetainedBytes))
++	if err != nil {
++		t.Fatal(err)
++	}
++	stderr, err := artifact.ReadPayload(opened, manifest.Streams.Stderr.File, uint64(manifest.Streams.Stderr.RetainedBytes))
++	if err != nil {
++		t.Fatal(err)
++	}
++	world, err := readWorldPayloads(opened)
++	if err != nil {
++		t.Fatal(err)
++	}
++	published, err := artifact.PublishArtifact(artifact.Store{Root: t.TempDir()}, artifact.ArtifactInput{Manifest: manifest, TargetPath: binary, Stdout: stdout, Stderr: stderr, World: world})
++	if err != nil {
++		t.Fatal(err)
++	}
++	for _, verifyOnly := range []bool{false, true} {
++		executor := &fakeReplayExecutor{}
++		_, err := Replay(context.Background(), ReplaySpec{ArtifactPath: published.Path, VerifyOnly: verifyOnly, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor})
++		if err == nil || !strings.Contains(err.Error(), "stored target uses unsupported coverage instrumentation") || executor.calls != 0 {
++			t.Fatalf("covered replay: error = %v, calls = %d", err, executor.calls)
++		}
++	}
++	_, err = Minimize(context.Background(), MinimizeSpec{ArtifactPath: published.Path, OutputRoot: t.TempDir(), AttemptBudget: 1, ToolchainRoot: toolchainRoot(t)})
++	if err == nil || !strings.Contains(err.Error(), "stored target uses unsupported coverage instrumentation") {
++		t.Fatalf("covered minimization: error = %v", err)
++	}
++}
+--- /dev/null
++++ b/tools/gomad3/target/coverage_test.go
+@@ -0,0 +1,90 @@
++package target
++
++import (
++	"context"
++	"debug/buildinfo"
++	"os"
++	"os/exec"
++	"path/filepath"
++	"strings"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
++	"go.temporal.io/server/tools/gomad3/record"
++	targetbuild "go.temporal.io/server/tools/gomad3/target/internal/build"
++)
++
++func TestPinnedCoverageBuildSettingsRejectInstrumentation(t *testing.T) {
++	module := writeModule(t, map[string]string{
++		"go.mod":       "module example.com/coveragefixture\n\ngo 1.27.1\n",
++		"main.go":      "package main\nfunc main() {}\n",
++		"main_test.go": "package main\nimport \"testing\"\nfunc TestMainBody(t *testing.T) { main() }\n",
++	})
++	identity, err := ReadToolchainIdentity(toolchainRoot(t))
++	if err != nil {
++		t.Fatal(err)
++	}
++	for _, test := range []struct {
++		name    string
++		args    []string
++		covered bool
++	}{
++		{name: "build", args: []string{"build", "-tags=test_dep"}},
++		{name: "build-cover", args: []string{"build", "-tags=test_dep", "-cover"}, covered: true},
++		{name: "test-cover", args: []string{"test", "-tags=test_dep", "-c", "-cover"}, covered: true},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			binary := filepath.Join(t.TempDir(), "target")
++			args := append(append([]string(nil), test.args...), "-o", binary, ".")
++			command := exec.Command(filepath.Join(toolchainRoot(t), "bin", "go"), args...)
++			command.Dir = module
++			command.Env = targetbuild.Environment()
++			if output, err := command.CombinedOutput(); err != nil {
++				t.Fatalf("build: %v\n%s", err, output)
++			}
++			info, err := buildinfo.ReadFile(binary)
++			if err != nil {
++				t.Fatal(err)
++			}
++			projected := ProjectBuildInfo(info)
++			t.Logf("pinned %s settings: %#v", test.name, projected.Settings)
++			cover := ""
++			for _, setting := range projected.Settings {
++				if setting.Key == "-cover" {
++					cover = setting.Value
++				}
++			}
++			if test.covered && cover != "true" {
++				t.Fatalf("coverage build omitted -cover=true: %#v", projected.Settings)
++			}
++
++			contents, err := os.ReadFile(binary)
++			if err != nil {
++				t.Fatal(err)
++			}
++			wire := provenanceWire{Schema: provenanceSchema, SchemaVersion: 3, GoVersion: identity.GoVersion, BuildKey: identity.BuildKey, TargetGOOS: identity.TargetGOOS, TargetGOARCH: identity.TargetGOARCH, BinarySHA256: string(record.HashBytes(contents)), BinarySize: record.Uint64String(len(contents)), BuildInfo: projected, CapabilityClosure: validCapabilityClosure(), CapabilityMode: CapabilityModeClosure}
++			if test.covered {
++				encoded, err := canonicaljson.CanonicalJSON(wire)
++				if err != nil {
++					t.Fatal(err)
++				}
++				provenance := filepath.Join(t.TempDir(), "provenance.json")
++				if err := os.WriteFile(provenance, encoded, 0o600); err != nil {
++					t.Fatal(err)
++				}
++				_, err = Prepare(context.Background(), Spec{Kind: KindExec, Source: binary, Provenance: provenance, PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot(t)})
++				if err == nil || !strings.Contains(err.Error(), "exec provenance uses unsupported coverage instrumentation") {
++					t.Fatalf("exec coverage rejection = %v", err)
++				}
++			}
++			err = validateDeterministicBuildInfo(projected)
++			if test.covered {
++				if err == nil || !strings.Contains(err.Error(), "coverage") {
++					t.Fatalf("coverage rejection = %v", err)
++				}
++			} else if err != nil {
++				t.Fatal(err)
++			}
++		})
++	}
++}

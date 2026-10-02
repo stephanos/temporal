@@ -1,0 +1,12 @@
+{
+  "verified_at": "2026-10-02T09:56:14.648782+00:00",
+  "source_files_verified": 7,
+  "task_patch_reverse_check": true,
+  "positive_control_observations_verified": 124,
+  "raw_output_hashes_and_complete_permutations_verified": true,
+  "bindings": {
+    "source-bindings.json": "89a8741c93de3da9b303e3279e3189e72771a59f8678e340333c34d5b769ad48",
+    "task-only.patch": "eea020b2f3253a542c1a4b8378086783fadcd9b2b7f2e9554f898af7b3c4f71e",
+    "positive-controls.json": "effc95c2f0028b42e378a46bce4488b351c26da497f154f0af1d0a040447dbdb"
+  }
+}

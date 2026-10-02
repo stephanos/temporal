@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-02T11:57:38.075981Z",
+  "depends_on": [
+    "fn-112-gomad-determinism-assurance-and-test.8"
+  ],
+  "id": "fn-112-gomad-determinism-assurance-and-test.11",
+  "priority": null,
+  "spec": "fn-112-gomad-determinism-assurance-and-test",
+  "spec_path": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.11.md",
+  "status": "todo",
+  "title": "Preserve watchdog classification when a killed target has no I/O terminal",
+  "updated_at": "2026-10-02T11:57:38.075981Z"
+}

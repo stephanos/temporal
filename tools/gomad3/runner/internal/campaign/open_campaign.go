@@ -126,6 +126,9 @@ func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
 		batch.Strategy == "simulation-exploration" && (batch.SimulationExploration == nil || batch.SimulationExplorationImplementationSHA256 != simulationengine.ImplementationSHA256() || !validRecordSHA256(batch.SimulationExplorationChainSHA256) || choiceEvidence) {
 		return fmt.Errorf("campaign strategy evidence is invalid")
 	}
+	if batch.ReplayDivergences != 0 && batch.Strategy != "choice-exploration" {
+		return errors.New("campaign replay divergence count requires choice exploration")
+	}
 	if uint64(batch.Attempted) != uint64(len(runs)) || uint64(batch.Succeeded)+uint64(batch.Failures)+uint64(batch.Cancelled) != uint64(batch.Attempted) || batch.Watchdogs > batch.Failures || batch.RetainedSuccesses > batch.Succeeded || batch.RetainedSuccesses == 0 && batch.RetainedSuccessBytes != 0 {
 		return fmt.Errorf("campaign summary counts are inconsistent")
 	}
@@ -143,7 +146,7 @@ func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
 	ordinals := make(map[uint64]struct{}, len(runs))
 	candidates := make(map[record.SHA256]struct{}, len(runs))
 	failures := make(map[record.SHA256]struct{})
-	var succeeded, failed, watchdogs, cancelled, retainedSuccesses, retainedSuccessBytes uint64
+	var succeeded, failed, watchdogs, cancelled, retainedSuccesses, retainedSuccessBytes, replayDivergences uint64
 	for index, run := range runs {
 		ordinal := uint64(run.SelectionOrdinal)
 		ordinalLimit := uint64(batch.SelectionCount)
@@ -175,7 +178,7 @@ func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
 			if err := validateSimulationExplorationExecutionSummary(run, candidates); err != nil {
 				return fmt.Errorf("campaign simulation exploration execution %d: %w", index+1, err)
 			}
-		} else if run.Strategy != "" {
+		} else if run.Strategy != "" || run.Divergence != nil {
 			return fmt.Errorf("seed campaign execution %d contains strategy evidence", index+1)
 		}
 		ordinals[ordinal] = struct{}{}
@@ -223,6 +226,9 @@ func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
 			}
 		case "target", "watchdog":
 			failed++
+			if run.Reason == "world_replay_divergence" && batch.Strategy == "choice-exploration" {
+				replayDivergences++
+			}
 			if run.Domain == "watchdog" {
 				watchdogs++
 			}
@@ -234,6 +240,11 @@ func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
 				return fmt.Errorf("failed campaign execution %d has retained successful execution evidence", index+1)
 			}
 		case "runner":
+			if run.Strategy == "choice-exploration" && run.Divergence != nil {
+				failed++
+				replayDivergences++
+				continue
+			}
 			cancelled++
 			if run.Reason != "runner_cancelled" || run.Termination != "none" || run.FailureSignature != nil || run.Artifact != nil {
 				return fmt.Errorf("cancelled campaign execution %d is invalid", index+1)
@@ -244,6 +255,9 @@ func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
 		default:
 			return fmt.Errorf("campaign execution %d domain is invalid: %s", index+1, run.Domain)
 		}
+	}
+	if replayDivergences != uint64(batch.ReplayDivergences) {
+		return errors.New("campaign replay divergence count does not match its executions")
 	}
 	if succeeded != uint64(batch.Succeeded) || failed != uint64(batch.Failures) || watchdogs != uint64(batch.Watchdogs) || cancelled != uint64(batch.Cancelled) {
 		return fmt.Errorf("campaign execution counts do not match the summary")
@@ -307,7 +321,7 @@ func validatePublishedArtifactCapacity(batchPath string, batch CampaignRecord, r
 }
 
 func validateExplorationExecutionSummary(run ExecutionRecord, candidates map[record.SHA256]struct{}) error {
-	if run.Strategy != "choice-exploration" || run.Round == nil || run.ForcedDepth == nil || !validRecordSHA256(run.CandidateSHA256) || !validRecordSHA256(run.OutcomeSHA256) {
+	if run.Strategy != "choice-exploration" || run.Round == nil || run.ForcedDepth == nil || !validRecordSHA256(run.CandidateSHA256) {
 		return errors.New("exploration identity is incomplete")
 	}
 	if _, found := candidates[run.CandidateSHA256]; found {
@@ -321,11 +335,18 @@ func validateExplorationExecutionSummary(run ExecutionRecord, candidates map[rec
 	} else if !validRecordSHA256(run.ParentCandidateSHA256) || !validRecordSHA256(run.PrefixSHA256) {
 		return errors.New("forced candidate provenance is invalid")
 	}
+	if run.Divergence != nil {
+		if *run.ForcedDepth == 0 || run.Domain != "runner" || run.Reason != "replay_divergence" || run.Termination != "none" || run.OutcomeSHA256 != "" || run.FailureSignature != nil || run.Artifact != nil || run.SuccessArtifact != nil || run.SuccessArtifactBytes != nil || run.IOTranscriptSHA256 != nil || run.IOTranscriptRecords != nil || run.ChoiceTraceSHA256 != nil || run.ChoiceTraceRecords != nil || run.ChoiceTraceBranchingRecords != nil || run.ChoiceTraceTerminalState != nil || run.ChoiceTapeSHA256 != nil || run.ChoiceDecisions != nil || len(run.SemanticProbes) != 0 || len(run.ChoiceFeatures) != 0 || len(run.NovelSemanticProbes) != 0 || len(run.NovelChoiceFeatures) != 0 {
+			return errors.New("exploration divergence contains invalid outcome evidence")
+		}
+	} else if !validRecordSHA256(run.OutcomeSHA256) || run.Reason == "replay_divergence" {
+		return errors.New("exploration outcome identity is incomplete")
+	}
 	return nil
 }
 
 func validateSimulationExplorationExecutionSummary(run ExecutionRecord, candidates map[record.SHA256]struct{}) error {
-	if run.Strategy != "simulation-exploration" || run.Round == nil || run.ForcedDepth == nil || !validRecordSHA256(run.CandidateSHA256) || !validRecordSHA256(run.OutcomeSHA256) || run.PrefixSHA256 != "" {
+	if run.Divergence != nil || run.Strategy != "simulation-exploration" || run.Round == nil || run.ForcedDepth == nil || !validRecordSHA256(run.CandidateSHA256) || !validRecordSHA256(run.OutcomeSHA256) || run.PrefixSHA256 != "" {
 		return errors.New("simulation exploration identity is incomplete")
 	}
 	if _, found := candidates[run.CandidateSHA256]; found {

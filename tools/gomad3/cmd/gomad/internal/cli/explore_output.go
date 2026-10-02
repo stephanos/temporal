@@ -208,10 +208,10 @@ func exploreErrorStatus(classification string) int {
 }
 
 func classifyExploreSummary(summary runner.CampaignResult) string {
-	if summary.Failures == 0 {
+	if summary.Failures == 0 && summary.ReplayDivergences == 0 {
 		return "success"
 	}
-	if summary.ReplayDivergences == summary.Failures {
+	if summary.ReplayDivergences != 0 && (summary.Failures == 0 || summary.ReplayDivergences == summary.Failures) {
 		return "replay_divergence"
 	}
 	if summary.Watchdogs == summary.Failures {
@@ -221,4 +221,14 @@ func classifyExploreSummary(summary runner.CampaignResult) string {
 		return "mixed_failure"
 	}
 	return "target_failure"
+}
+
+func exploreSummaryStatus(summary runner.CampaignResult) int {
+	if summary.ChoiceExploration != nil && summary.ReplayDivergences != 0 {
+		return 3
+	}
+	if summary.Failures != 0 {
+		return 1
+	}
+	return 0
 }

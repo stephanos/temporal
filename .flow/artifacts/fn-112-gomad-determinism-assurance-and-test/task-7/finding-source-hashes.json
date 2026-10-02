@@ -1,0 +1,6 @@
+{
+  "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs.go": "69bc374b33681eef78c061fb396b1d0c1229eda8f15b51fa662bd280a231f8d4",
+  "tools/gomad3/toolchain/runtime/overlay/src/os/gomad.go": "b5ef9fddd4d0f303d91d8b132dc9e9b19a8d957e0c90eca1ecbc12ef93a53ee8",
+  "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network.go": "5a085a4d48be2f87edd8e8ba2e41de8ed04afa1fb5447ceae4706a9cdb70c0a6",
+  "tools/gomad3/toolchain/runtime/overlay/src/net/gomad.go": "61006dab8bcf333e1d5f4ddf1ef9731817540f180e755ce497d40ca023a07f28"
+}

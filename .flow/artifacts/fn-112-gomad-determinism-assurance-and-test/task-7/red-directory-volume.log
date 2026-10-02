@@ -1,0 +1,22 @@
+=== RUN   TestGomadClosedDirectoryHasPublicSentinel
+=== RUN   TestGomadClosedDirectoryHasPublicSentinel/chdir
+    gomad_model_conformance_test.go:88: public closed directory error=*fs.PathError chdir /tmp/TestGomadClosedDirectoryHasPublicSentinel674593473/001: bad file descriptor
+=== RUN   TestGomadClosedDirectoryHasPublicSentinel/read-dir
+    gomad_model_conformance_test.go:88: public closed directory error=syscall.Errno bad file descriptor
+=== RUN   TestGomadClosedDirectoryHasPublicSentinel/readdir
+    gomad_model_conformance_test.go:88: public closed directory error=syscall.Errno bad file descriptor
+=== RUN   TestGomadClosedDirectoryHasPublicSentinel/readdirnames
+    gomad_model_conformance_test.go:88: public closed directory error=syscall.Errno bad file descriptor
+--- FAIL: TestGomadClosedDirectoryHasPublicSentinel (0.00s)
+    --- FAIL: TestGomadClosedDirectoryHasPublicSentinel/chdir (0.00s)
+    --- FAIL: TestGomadClosedDirectoryHasPublicSentinel/read-dir (0.00s)
+    --- FAIL: TestGomadClosedDirectoryHasPublicSentinel/readdir (0.00s)
+    --- FAIL: TestGomadClosedDirectoryHasPublicSentinel/readdirnames (0.00s)
+FAIL
+FAIL	os	0.526s
+=== RUN   TestFilesystemVolumeSelfRenameRetainsDurabilityState
+    fs_test.go:813: self rename changed volume state: before=[{"ID":"data","Mount":"/data","CapacityBytes":1048576,"Persisted":[{"Path":"/","Mode":493,"Kind":"directory","ModTime":0,"Size":0,"DataSHA256":""}],"Volatile":[{"Path":"/","Mode":493,"Kind":"directory","ModTime":0,"Size":0,"DataSHA256":""},{"Path":"/file","Mode":384,"Kind":"file","ModTime":0,"Size":7,"DataSHA256":"sha256:54dab9eb6d3204a0b42800148196ed4785d258f980432579b62ef0d9db0207b8"}],"PendingOperations":4,"PendingSHA256":"sha256:c3522966aef1eeee71a0af7bd0a57ce889c9fc9dc3d3c90c9d6ed611f5a62ccb","NextOperation":5,"Identity":"sha256:5075fcdcab00eab831f03e114c6e5e6f5d26857809f99c4e50ad4d7af1f71a1d"}] after=[{"ID":"data","Mount":"/data","CapacityBytes":1048576,"Persisted":[{"Path":"/","Mode":493,"Kind":"directory","ModTime":0,"Size":0,"DataSHA256":""}],"Volatile":[{"Path":"/","Mode":493,"Kind":"directory","ModTime":0,"Size":0,"DataSHA256":""}],"PendingOperations":5,"PendingSHA256":"sha256:e2cdf0f4afb76223a7ccc302830aa6aeb984e7635c693298eb28633bca07ad93","NextOperation":6,"Identity":"sha256:313047db4b87349f0ae8deba7befda4b2dfa08ab40dd95937b6154893d57dbd6"}]
+--- FAIL: TestFilesystemVolumeSelfRenameRetainsDurabilityState (0.00s)
+FAIL
+FAIL	internal/gomadfs	0.274s
+FAIL

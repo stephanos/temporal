@@ -1,0 +1,17 @@
+{
+  "tools/gomad3/toolchain/runtime/go1.27.1.patch": {
+    "before": "bde66c455efabe9cafbf8736104ef84abc4afde0ca447ad1d9e7c529d59a9582",
+    "after": "bde66c455efabe9cafbf8736104ef84abc4afde0ca447ad1d9e7c529d59a9582",
+    "unchanged": true
+  },
+  "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go": {
+    "before": "d6c2651cc6b7f6adc2265d7a892bae079d4426ebfba6defe72d6b4c7b4ec9bc8",
+    "after": "d6c2651cc6b7f6adc2265d7a892bae079d4426ebfba6defe72d6b4c7b4ec9bc8",
+    "unchanged": true
+  },
+  "tools/gomad3/toolchain/version/version.json": {
+    "before": "b77093578ee76f4f25adec3258205f43e32cddbe5165eec146ce592feff507b0",
+    "after": "b77093578ee76f4f25adec3258205f43e32cddbe5165eec146ce592feff507b0",
+    "unchanged": true
+  }
+}

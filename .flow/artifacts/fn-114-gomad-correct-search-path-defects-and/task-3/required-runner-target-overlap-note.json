@@ -1,0 +1,5 @@
+{
+  "run": "required-runner-target",
+  "status": "informational-only",
+  "limitation": "Source/test edits for the real old-layout schema reproduction and repair overlapped the end of this gate. Before-command source hashes are retained; this gate does not support final acceptance."
+}

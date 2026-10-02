@@ -1,0 +1,21 @@
+{
+  "checked_at": "2026-10-02T13:13:16.894340+00:00",
+  "evidence_bindings_sha256": "f4f83b3265865503aa0fb79785e7823ec2be8c04b8cd7384e220e1a7fd08b28d",
+  "bound_files": 100,
+  "all_bound_hashes_match": true,
+  "all_frozen_sources_match": true,
+  "task_only_patch_sha256": "6747e29911b4e96c988e2b236b2f60e0be52077ddb95b359cc2e164fdffa4d2f",
+  "parent_patch_validation_sha256": "5ce9e7b691c6c40e8416eab9ee4830ba20e03fb4a99153165816055e6ecd5430",
+  "full_host_packages": 45,
+  "full_host_status": 0,
+  "vet_status": 0,
+  "gofmt_output_empty": true,
+  "whitespace_status": 0,
+  "root_lint_statuses": {
+    "lint-default": 2,
+    "lint-head": 2
+  },
+  "native_linux": "unverified",
+  "executable_watchdog_diagnostic_replay": "blocked; owned by fn-112.13",
+  "implementation_review": "parent owned; pending"
+}

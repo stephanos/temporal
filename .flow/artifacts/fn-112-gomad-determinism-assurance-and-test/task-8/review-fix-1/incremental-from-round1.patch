@@ -1,0 +1,60 @@
+diff --git a/tools/gomad3/cmd/gomad/e2e_test.go b/tools/gomad3/cmd/gomad/e2e_test.go
+index 2131bf0bf..883893c63 100644
+--- a/tools/gomad3/cmd/gomad/e2e_test.go
++++ b/tools/gomad3/cmd/gomad/e2e_test.go
+@@ -161,6 +161,18 @@ func TestCLIKillResume(t *testing.T) {
+ 	if baseline == nil || baseline.Attempted != 3 || baseline.Watchdogs != 0 || baseline.Succeeded != 2 || baseline.Failures != 1 {
+ 		t.Fatalf("baseline campaign = %#v", baseline)
+ 	}
++	t.Run("journal_capacity_negative_control", func(t *testing.T) {
++		if baseline.Journal == nil {
++			t.Fatal("baseline inspection omitted its execution journal")
++		}
++		changed := *baseline
++		journal := *baseline.Journal
++		changed.Journal = &journal
++		journal.Limits.MaximumBytes++
++		if reflect.DeepEqual(campaignSemantics(*baseline), campaignSemantics(changed)) {
++			t.Fatal("campaign comparison discarded a differing journal MaximumBytes")
++		}
++	})
+ 	for _, completed := range []int{2, 0} {
+ 		t.Run(fmt.Sprintf("completed_%d", completed), func(t *testing.T) {
+ 			path := killCampaign(t, completed)
+@@ -347,19 +359,28 @@ func killCampaign(t *testing.T, completed int) string {
+ 	return path
+ }
+ 
++func campaignSemantics(campaign runner.CampaignInspection) runner.CampaignInspection {
++	campaign.CampaignID = ""
++	journal := *campaign.Journal
++	journal.IndexSHA256, journal.Segments, journal.Bytes = "", 0, 0
++	campaign.Journal = &journal
++	// Stored byte counts include variable-length host timestamps and deadlines; inspect validates each store.
++	campaign.RetainedSuccessBytes = 0
++	campaign.FailureArtifacts = nil
++	campaign.SuccessArtifacts = nil
++	campaign.Executions = nil
++	return campaign
++}
++
+ func compareCampaigns(t *testing.T, baselinePath string, baseline *runner.CampaignInspection, resumedPath string, resumed *runner.CampaignInspection) {
+ 	t.Helper()
+ 	if resumed == nil {
+ 		t.Fatal("resume produced no campaign inspection")
+ 	}
+-	left, right := *baseline, *resumed
+-	left.CampaignID, right.CampaignID = "", ""
+-	left.Journal, right.Journal = nil, nil
+-	// Stored byte counts include variable-length host timestamps and deadlines; inspect validates each store.
+-	left.RetainedSuccessBytes, right.RetainedSuccessBytes = 0, 0
+-	left.FailureArtifacts, right.FailureArtifacts = nil, nil
+-	left.SuccessArtifacts, right.SuccessArtifacts = nil, nil
+-	left.Executions, right.Executions = nil, nil
++	if baseline.Journal == nil || resumed.Journal == nil {
++		t.Fatal("campaign inspection omitted its execution journal")
++	}
++	left, right := campaignSemantics(*baseline), campaignSemantics(*resumed)
+ 	if !reflect.DeepEqual(left, right) {
+ 		t.Fatalf("campaign semantics differ:\n baseline %#v\n resumed %#v", left, right)
+ 	}

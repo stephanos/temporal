@@ -1,0 +1,6 @@
+=== RUN   TestCaptureOffReportBaseline
+normal sha256:6f8f10d12c1e605c1b0e5c66bda697ace3dccce020f0f37f4f751309cca9978e
+failure sha256:3e8f1fda4a5755b9b0cf74e60e97e5f4ea953a712f20c6b89b1df8f362b12096
+--- PASS: TestCaptureOffReportBaseline (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/qualification	0.377s

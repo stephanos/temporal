@@ -1,0 +1,26 @@
+{
+  ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-13/gomad-final": "910d63c4e02194e99d16e09ab411c2afd84662074f97e93969ba5ee4b24212c1",
+  ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/gomad-green": "9b75aa12f4b5e1c7506c93c16478aae46020063b3500184976968ec0507014cc",
+  "tools/gomad3/.toolchain/bin/go": "edb8d347d3b269c7008ee78c529ca7f99456be321420fb18299a403f8970d570",
+  ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/green-artifacts/v1/campaign-20261002T130355.897669000Z-c944ad40e49880052cfb2de5519b5112/failures/sha256-657f21b3bb7995be2b34dbc7737e7ed1/stdout": "05fac0071a3ccd7c0762243b9d6dc6067a33e563657b8ce34de743dc31f5ce2a",
+  ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/green-artifacts/v1/campaign-20261002T130355.897669000Z-c944ad40e49880052cfb2de5519b5112/failures/sha256-657f21b3bb7995be2b34dbc7737e7ed1/stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/green-artifacts/v1/campaign-20261002T130355.897669000Z-c944ad40e49880052cfb2de5519b5112/failures/sha256-657f21b3bb7995be2b34dbc7737e7ed1/target": "97ed55bae180d8ceab62ab681ea3c317359d6b3e52165a1713cfa27414948b0e",
+  ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/green-artifacts/v1/campaign-20261002T130355.897669000Z-c944ad40e49880052cfb2de5519b5112/failures/sha256-657f21b3bb7995be2b34dbc7737e7ed1/manifest.json": "5731f9eedc7dcb5dd51215bd3242d7cb883913b1e7125b7d3d676040fcc0e082",
+  ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/green-artifacts/v1/campaign-20261002T130355.897669000Z-c944ad40e49880052cfb2de5519b5112/failures/sha256-657f21b3bb7995be2b34dbc7737e7ed1/world/snapshot.json": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+  ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/green-artifacts/v1/campaign-20261002T130355.897669000Z-c944ad40e49880052cfb2de5519b5112/failures/sha256-657f21b3bb7995be2b34dbc7737e7ed1/world/transitions.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/green-artifacts/v1/campaign-20261002T130355.897669000Z-c944ad40e49880052cfb2de5519b5112/failures/sha256-657f21b3bb7995be2b34dbc7737e7ed1/world/final-snapshot.json": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+  "toolchain_build_key": "56e4a2f0c5514d43b9a0682d030964588dd3d5a58978ba0b989459bb556843a3",
+  "retained_toolchain_build_directories": [
+    "0e1a9041af147a5cf709fdf7613ab5091e9cab552264aa33d6d8e9767160ed8f",
+    "113ec00b3ce043867b034e8fec0fb28e6ecd4a36ca87dba2a5a26ab0a6ca9118",
+    "1c34ea0753ab3a38a18f69e9efb1f6593b54fb6c8adde6a4f8ec6790093f9179",
+    "4412b5b276ef89f37995a401bcebc83b842733c18f0c39f9b57e00e74df0ca95",
+    "56e4a2f0c5514d43b9a0682d030964588dd3d5a58978ba0b989459bb556843a3",
+    "6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee",
+    "8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc",
+    "d15ad896e542b9f64381c2f184567355bac8ffd62ae2347501fe8fcdd96f6eba",
+    "d49ef0309636e2301c46cfb36cda8a9b21323d87601c93c429260b3eefd4e37d",
+    "de7728ce162b470519f0e9de414216cb6ba5e132f4588955672cbe09edb7d678",
+    "f292ea6ac88dbffe5657d0a7dd4e7abe3c72e6b091b1494cfe315bdede03b088"
+  ]
+}

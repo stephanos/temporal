@@ -1,0 +1,63 @@
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool patch-validate --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 patch and overlay inputs are valid
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool script-validate --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 script ownership is valid
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache GOTOOLCHAIN=local GOWORK=off \
+		go run ./cmd/gomadtool toolchain-build --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 toolchain is ready (darwin/arm64, key 56e4a2f0c5514d43b9a0682d030964588dd3d5a58978ba0b989459bb556843a3)
+ok  	go.temporal.io/server/tools/gomad3	0.199s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad	0.843s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	0.361s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	0.432s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/runner	0.612s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/campaign	0.710s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/corpus	0.868s [no tests to run]
+--- FAIL: TestModelConformanceFilesystem (0.92s)
+    model_conformance_test.go:109: stock Go resolves to Gomad toolchain
+--- FAIL: TestModelConformanceTCP (0.59s)
+    model_conformance_test.go:110: stock Go resolves to Gomad toolchain
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	2.538s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration	1.138s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice	1.226s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation	1.148s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord	1.204s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/minimizer	1.285s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/qualification	1.284s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/qualification/analysis	1.293s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/qualification/comparison	1.143s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/qualification/set	1.159s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/qualification/set/manifestgen	1.164s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/qualification/workload	1.002s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/target	1.070s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/target/internal/build	1.087s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/target/internal/capabilityreview	1.053s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/target/internal/livecap	1.057s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/target/internal/provenance	1.033s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/record	1.146s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/artifact	1.172s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/choice	1.161s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/choice/internal/wire	1.149s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/deterministicio	1.137s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/deterministicio/internal/wire	1.143s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/deterministicio/readonlymount	1.161s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/world	1.160s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/world/mailbox	1.160s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/world/process	1.170s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/toolchain/version	1.168s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/upgrade	1.175s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/internal/canonicaljson	1.176s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack	1.171s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring	1.175s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	1.174s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/boundary	1.167s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/protocol	1.195s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/validation	1.246s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/internal/hostexec	1.207s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad3/internal/hostfs	1.204s [no tests to run]
+FAIL
+make: *** [test-host] Error 1

@@ -1,0 +1,4 @@
+{"closed":true,"ebadf":false,"leaf_message":"file already closed","leaf_type":"*errors.errorString","operation":"chdir","path_matches":true,"path_operation":"chdir","type":"*fs.PathError"}
+{"closed":true,"ebadf":false,"operation":"read-dir","type":"*errors.errorString"}
+{"closed":true,"ebadf":false,"operation":"readdir","type":"*errors.errorString"}
+{"closed":true,"ebadf":false,"operation":"readdirnames","type":"*errors.errorString"}

@@ -34,6 +34,7 @@ type coordinatorConfig struct {
 	FailureBudget             uint64
 	OutputLimit               uint64
 	WorldTransitionLimit      uint64
+	Diagnostics               bool `json:",omitempty"`
 	ChoiceTraceLimit          uint64
 	ClockTick                 string
 	IOTranscriptLimit         uint64
@@ -98,7 +99,7 @@ func coordinatorConfigFromCampaignSpec(config CampaignSpec, childTimeout time.Du
 		ResumeCampaign: config.ResumeCampaign, PlanSHA256: config.PlanSHA256, Shard: config.Shard,
 		Strategy: config.Strategy, Seeds: config.Seeds, Parallel: config.Parallel, ExecutionTimeout: config.ExecutionTimeout, OverallTimeout: childTimeout,
 		TerminateGrace: config.TerminateGrace, OnFailure: config.OnFailure, FailureBudget: config.FailureBudget,
-		OutputLimit: config.OutputLimit, WorldTransitionLimit: config.WorldTransitionLimit, ChoiceTraceLimit: config.ChoiceTraceLimit, ClockTick: config.ClockTick, IOTranscriptLimit: config.IOTranscriptLimit,
+		OutputLimit: config.OutputLimit, WorldTransitionLimit: config.WorldTransitionLimit, Diagnostics: config.Diagnostics, ChoiceTraceLimit: config.ChoiceTraceLimit, ClockTick: config.ClockTick, IOTranscriptLimit: config.IOTranscriptLimit,
 		MaxExecutions: config.MaxExecutions, MaxChoiceDepth: config.MaxChoiceDepth, MaxForcedDecisions: config.MaxForcedDecisions,
 		MaxExplorationBytes: config.MaxExplorationBytes, MaxExplorationResultBytes: config.MaxExplorationResultBytes, SimulationDimensionLimits: config.SimulationDimensionLimits, Artifacts: config.Artifacts,
 		Environment: append([]string(nil), config.Environment...), Target: config.Target,
@@ -117,7 +118,7 @@ func campaignSpecFromCoordinatorConfig(wire coordinatorConfig) CampaignSpec {
 		ResumeCampaign: wire.ResumeCampaign, PlanSHA256: wire.PlanSHA256, Shard: wire.Shard,
 		Strategy: wire.Strategy, Seeds: wire.Seeds, Parallel: wire.Parallel, ExecutionTimeout: wire.ExecutionTimeout, OverallTimeout: wire.OverallTimeout,
 		TerminateGrace: wire.TerminateGrace, OnFailure: wire.OnFailure, FailureBudget: wire.FailureBudget,
-		OutputLimit: wire.OutputLimit, WorldTransitionLimit: wire.WorldTransitionLimit, ChoiceTraceLimit: wire.ChoiceTraceLimit, ClockTick: wire.ClockTick, IOTranscriptLimit: wire.IOTranscriptLimit,
+		OutputLimit: wire.OutputLimit, WorldTransitionLimit: wire.WorldTransitionLimit, Diagnostics: wire.Diagnostics, ChoiceTraceLimit: wire.ChoiceTraceLimit, ClockTick: wire.ClockTick, IOTranscriptLimit: wire.IOTranscriptLimit,
 		MaxExecutions: wire.MaxExecutions, MaxChoiceDepth: wire.MaxChoiceDepth, MaxForcedDecisions: wire.MaxForcedDecisions,
 		MaxExplorationBytes: wire.MaxExplorationBytes, MaxExplorationResultBytes: wire.MaxExplorationResultBytes, SimulationDimensionLimits: wire.SimulationDimensionLimits, Artifacts: wire.Artifacts,
 		Environment: wire.Environment, Target: wire.Target, SupervisorCommand: wire.SupervisorCommand, RunnerBuild: wire.RunnerBuild,

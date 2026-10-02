@@ -1,0 +1,7 @@
+--- FAIL: TestModelConformanceFilesystem (0.02s)
+    model_conformance_test.go:75: stat Go target package: stat /Users/stephan/Workspace/temporal/gomad/tools/gomad3/internal/gomadtool/conformance/testdata/model_fs: no such file or directory
+--- FAIL: TestModelConformanceTCP (0.02s)
+    model_conformance_test.go:76: stat Go target package: stat /Users/stephan/Workspace/temporal/gomad/tools/gomad3/internal/gomadtool/conformance/testdata/model_net: no such file or directory
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	0.428s
+FAIL

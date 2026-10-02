@@ -1,0 +1,19 @@
+{
+  "recorded_coordinator_count": 40,
+  "remaining_recorded_coordinator_pids": [],
+  "successful_owned_descendant_cleanup_receipts": 40,
+  "first_failed_gate_cleanup": {
+    "remaining_owned_processes": []
+  },
+  "retained_sample_temporary_driver_removed": true,
+  "prototype_driver": "/tmp/gomad-task8-cli retained; no preexisting-path deletion performed",
+  "preexisting_data_deleted": false,
+  "toolchain_rebuilt": false,
+  "git_operations": {
+    "staged": false,
+    "committed": false,
+    "pushed": false,
+    "stashed": false,
+    "worktree_created": false
+  }
+}

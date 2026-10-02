@@ -33,13 +33,13 @@ func (campaign *runtimeCampaign) requireRepeatability(binaries map[string]string
 		return errors.New("boundary seeds alias another pinned runtime random sequence")
 	}
 	for _, seed := range seeds {
-		for _, packageName := range []string{"./random", "./scheduler_min", "./scheduler", "./select", "./maps", "./channels", "./sync", "./runqueue", "./automatic_gc", "./static_addresses"} {
+		for _, packageName := range []string{"./random", "./scheduler_min", "./scheduler", "./select", "./maps", "./channels", "./sync", "./runqueue", "./runq_shuffle", "./timer_ties", "./automatic_gc", "./static_addresses"} {
 			if err := campaign.requireRepeatable(packageName, seed, 100); err != nil {
 				return err
 			}
 		}
 	}
-	for _, packageName := range []string{"./scheduler", "./select", "./channels", "./sync", "./runqueue", "./automatic_gc"} {
+	for _, packageName := range []string{"./scheduler", "./select", "./channels", "./sync", "./runqueue", "./runq_shuffle", "./timer_ties", "./automatic_gc"} {
 		if err := campaign.requireDiverse(packageName); err != nil {
 			return err
 		}

@@ -1,0 +1,16 @@
+{
+  "commits": [],
+  "tests": [
+    "make -C tools/gomad3 test (exit 0; darwin/arm64; make-test-repaired.log; toolchain key 6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee)",
+    "make -C tools/gomad3 overlay-test test-simulation (exit 0; overlay-simulation-repaired.log)",
+    "tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep ./runner/internal/execution (exit 0; execution-tests-repaired.log; cwd tools/gomad3)",
+    "tools/gomad3/.toolchain/bin/go test -count=10 -tags test_dep -run ^TestRunKeepsNodeModelTransportAliveDuringGracefulStop$ -v ./runner/internal/execution (exit 0 after fix; regression-graceful-stop-after.log; cwd tools/gomad3)",
+    "tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep -run ^TestRunKeepsNodeModelTransportAliveDuringGracefulStop$ -v ./runner/internal/execution (exit 1 before fix with SIGTERM, expected regression; regression-graceful-stop-before.log; cwd tools/gomad3)",
+    "tools/gomad3/.toolchain/bin/go test -count=20 -tags test_dep,integration -run ^TestRootProcessSimulationUsesRunnerTransport$/^TestProcessBackend(SynchronizesNodeClockWithModelDelay|ResetsGlobalsDescriptorsAndGoroutines)$ -v ./runner/internal/execution (exit 0; process-backend-repeated-after.log; cwd tools/gomad3)",
+    "tools/gomad3/.toolchain/bin/go vet -tags test_dep . ./runner/internal/execution ./toolchain/version internal/gomadsim (exit 0; focused-vet.log; cwd tools/gomad3)",
+    "gofmt -l changed Go files and git diff --check (exit 0; no output)",
+    "make lint-code-fast GOLANGCI_LINT_BASE_REV=8789deab0 (exit 2; nested-module package discovery; root-lint-repaired.log; executed by parent)",
+    "Seven source SHA-256 bindings and active toolchain build key match repair-sources.json after full gate exit"
+  ],
+  "prs": []
+}

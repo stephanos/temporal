@@ -1,0 +1,22 @@
+=== RUN   TestRunKeepsNodeModelTransportAliveDuringGracefulStop
+--- PASS: TestRunKeepsNodeModelTransportAliveDuringGracefulStop (0.02s)
+=== RUN   TestRunKeepsNodeModelTransportAliveDuringGracefulStop
+--- PASS: TestRunKeepsNodeModelTransportAliveDuringGracefulStop (0.02s)
+=== RUN   TestRunKeepsNodeModelTransportAliveDuringGracefulStop
+--- PASS: TestRunKeepsNodeModelTransportAliveDuringGracefulStop (0.01s)
+=== RUN   TestRunKeepsNodeModelTransportAliveDuringGracefulStop
+--- PASS: TestRunKeepsNodeModelTransportAliveDuringGracefulStop (0.01s)
+=== RUN   TestRunKeepsNodeModelTransportAliveDuringGracefulStop
+--- PASS: TestRunKeepsNodeModelTransportAliveDuringGracefulStop (0.01s)
+=== RUN   TestRunKeepsNodeModelTransportAliveDuringGracefulStop
+--- PASS: TestRunKeepsNodeModelTransportAliveDuringGracefulStop (0.01s)
+=== RUN   TestRunKeepsNodeModelTransportAliveDuringGracefulStop
+--- PASS: TestRunKeepsNodeModelTransportAliveDuringGracefulStop (0.01s)
+=== RUN   TestRunKeepsNodeModelTransportAliveDuringGracefulStop
+--- PASS: TestRunKeepsNodeModelTransportAliveDuringGracefulStop (0.01s)
+=== RUN   TestRunKeepsNodeModelTransportAliveDuringGracefulStop
+--- PASS: TestRunKeepsNodeModelTransportAliveDuringGracefulStop (0.01s)
+=== RUN   TestRunKeepsNodeModelTransportAliveDuringGracefulStop
+--- PASS: TestRunKeepsNodeModelTransportAliveDuringGracefulStop (0.01s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/execution	0.525s

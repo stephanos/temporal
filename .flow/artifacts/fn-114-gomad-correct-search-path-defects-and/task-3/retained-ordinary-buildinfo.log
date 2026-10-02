@@ -1,0 +1,15 @@
+.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-3/retained-ordinary-target: go1.27.1-X:nogreenteagc
+	path	example.com/coveragefixture
+	mod	example.com/coveragefixture	(devel)	
+	build	-buildmode=exe
+	build	-compiler=gc
+	build	-tags=test_dep
+	build	CGO_ENABLED=0
+	build	GOARCH=arm64
+	build	GOEXPERIMENT=nogreenteagc
+	build	GOOS=darwin
+	build	GOARM64=v8.0
+	build	vcs=git
+	build	vcs.revision=1d7272e654f268f9a45f3fe965918fe2522827c6
+	build	vcs.time=2026-10-02T06:38:18Z
+	build	vcs.modified=true

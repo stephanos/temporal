@@ -296,6 +296,8 @@ func (campaign *runtimeCampaign) execute() error {
 		{name: "channels", packageName: "./channels"},
 		{name: "sync", packageName: "./sync"},
 		{name: "runqueue", packageName: "./runqueue"},
+		{name: "runq-shuffle", packageName: "./runq_shuffle"},
+		{name: "timer-ties", packageName: "./timer_ties"},
 		{name: "choice-replay", packageName: "./choice_replay"},
 		{name: "automatic-gc", packageName: "./automatic_gc"},
 		{name: "activation", packageName: "./activation"},
@@ -308,6 +310,13 @@ func (campaign *runtimeCampaign) execute() error {
 		{name: "clock-tick", packageName: "./clock_tick"},
 	} {
 		binary, err := campaign.build(fixture.name, fixture.packageName, fixture.cgo)
+		if err != nil {
+			return err
+		}
+		binaries[fixture.name] = binary
+	}
+	for _, fixture := range schedulingSearchFixtures {
+		binary, err := campaign.build(fixture.name, fixture.packageName, false)
 		if err != nil {
 			return err
 		}

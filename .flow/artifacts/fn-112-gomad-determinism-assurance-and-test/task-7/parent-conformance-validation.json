@@ -1,0 +1,9 @@
+{
+  "frozen_files": 18,
+  "frozen_sources_match": true,
+  "full_model_native_comparisons": 30,
+  "operations_per_comparison": 64,
+  "normalization": "directory size only for successful stat-dir workspace/dir",
+  "log_sha256": "9d17c4f561b6fe48fabd12b79f682528d3b52cddbbb33a4419c90df90c9f82d4",
+  "toolchain_build_key": "d15ad896e542b9f64381c2f184567355bac8ffd62ae2347501fe8fcdd96f6eba"
+}

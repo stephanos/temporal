@@ -1,0 +1,8 @@
+--- FAIL: TestRunChoiceExplorationDivergingPrefixRetainsCompletedRound (0.41s)
+    runner_test.go:1115: diverging exploration discarded its completed round: gomad3 Runner/host failure: partial_cleanup: cannot complete execution journal in "exited" state
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner	8.199s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/campaign	2.069s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice	1.186s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	0.694s
+FAIL

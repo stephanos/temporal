@@ -167,7 +167,7 @@ func validateResumeExecutions(batchPath string, plan CampaignPlan, runs []Execut
 			if err := validateSimulationExplorationExecutionSummary(run, candidates); err != nil {
 				return nil, fmt.Errorf("resumable simulation exploration execution %d: %w", index+1, err)
 			}
-		} else if run.Strategy != "" {
+		} else if run.Strategy != "" || run.Divergence != nil {
 			return nil, fmt.Errorf("resumable seed execution %d contains strategy evidence", index+1)
 		}
 		if _, duplicate := ordinals[ordinal]; duplicate {
@@ -242,6 +242,10 @@ func validateResumeExecutions(batchPath string, plan CampaignPlan, runs []Execut
 			}
 			retained = append(retained, run)
 		case "runner":
+			if strategy == "choice-exploration" && run.Divergence != nil {
+				retained = append(retained, run)
+				continue
+			}
 			if run.Artifact != nil || run.FailureSignature != nil {
 				artifact, err := validateResumeArtifact(batchPath, plan, run)
 				if err != nil {

@@ -1,0 +1,26 @@
+{
+  "authoritative": "final-approved",
+  "superseded": [
+    "attempt-1",
+    "attempt-2",
+    "attempt-3",
+    "attempt-4",
+    "attempt-5",
+    "final",
+    "final-frozen",
+    "final-review"
+  ],
+  "invalid_for_identity_association": [
+    "attempt-1",
+    "attempt-2",
+    "attempt-3",
+    "attempt-4"
+  ],
+  "source_variants": {
+    "attempt-1": "timer-fixture-initial.go",
+    "attempt-2": "timer-fixture-initial.go",
+    "attempt-3": "timer-fixture-child-probe.go",
+    "attempt-4": "timer-fixture-child-probe.go"
+  },
+  "caveat": "Early fixtures yielded before their select markers, allowing unrecorded handoffs; their callback associations are exploratory and excluded from acceptance. Cross-seed divergence observations remain experiments, not supported replay failures. Later helper/case-report captures are superseded by final-approved."
+}

@@ -4,7 +4,7 @@
   "claimed_at": null,
   "created_at": "2026-10-02T04:33:05.224915Z",
   "depends_on": [
-    "fn-114-gomad-correct-search-path-defects-and.7"
+    "fn-114-gomad-correct-search-path-defects-and.6"
   ],
   "id": "fn-114-gomad-correct-search-path-defects-and.8",
   "priority": null,
@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.8.md",
   "status": "todo",
   "title": "Persist minimizer state and add minimize resume",
-  "updated_at": "2026-10-02T04:39:42.616258Z"
+  "updated_at": "2026-10-02T15:15:38.255728Z"
 }

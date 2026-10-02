@@ -266,6 +266,7 @@ type CampaignInspection struct {
 	Attempted                                 uint64                         `json:"attempted"`
 	Succeeded                                 uint64                         `json:"succeeded"`
 	Failures                                  uint64                         `json:"failures"`
+	ReplayDivergences                         uint64                         `json:"replay_divergences,omitempty"`
 	Watchdogs                                 uint64                         `json:"watchdogs"`
 	Cancelled                                 uint64                         `json:"cancelled"`
 	DistinctFailures                          uint64                         `json:"distinct_failures"`
@@ -296,31 +297,32 @@ type ExecutionJournalInspection struct {
 }
 
 type ExecutionInspection struct {
-	Strategy                    string         `json:"strategy,omitempty"`
-	Round                       *uint64        `json:"round,omitempty"`
-	CandidateSHA256             record.SHA256  `json:"candidate_sha256,omitempty"`
-	ParentCandidateSHA256       record.SHA256  `json:"parent_candidate_sha256,omitempty"`
-	PrefixSHA256                record.SHA256  `json:"prefix_sha256,omitempty"`
-	ForcedDepth                 *uint64        `json:"forced_depth,omitempty"`
-	OutcomeSHA256               record.SHA256  `json:"outcome_sha256,omitempty"`
-	SelectionOrdinal            uint64         `json:"selection_ordinal"`
-	Seed                        uint64         `json:"seed"`
-	Domain                      string         `json:"domain"`
-	Reason                      string         `json:"reason"`
-	Termination                 string         `json:"termination"`
-	ElapsedNanos                uint64         `json:"elapsed_nanos"`
-	FailureSignature            *record.SHA256 `json:"failure_signature,omitempty"`
-	Artifact                    *string        `json:"artifact,omitempty"`
-	SuccessArtifact             *string        `json:"success_artifact,omitempty"`
-	SuccessArtifactBytes        *uint64        `json:"success_artifact_bytes,omitempty"`
-	SemanticProbes              []string       `json:"semantic_probes,omitempty"`
-	NovelSemanticProbes         []string       `json:"novel_semantic_probes,omitempty"`
-	TranscriptSHA256            *record.SHA256 `json:"transcript_sha256,omitempty"`
-	TranscriptRecords           *uint64        `json:"transcript_records,omitempty"`
-	ChoiceTraceSHA256           *record.SHA256 `json:"choice_trace_sha256,omitempty"`
-	ChoiceTraceRecords          *uint64        `json:"choice_trace_records,omitempty"`
-	ChoiceTraceBranchingRecords *uint64        `json:"choice_trace_branching_records,omitempty"`
-	ChoiceTraceTerminalState    *string        `json:"choice_trace_terminal_state,omitempty"`
+	Strategy                    string                     `json:"strategy,omitempty"`
+	Round                       *uint64                    `json:"round,omitempty"`
+	CandidateSHA256             record.SHA256              `json:"candidate_sha256,omitempty"`
+	ParentCandidateSHA256       record.SHA256              `json:"parent_candidate_sha256,omitempty"`
+	PrefixSHA256                record.SHA256              `json:"prefix_sha256,omitempty"`
+	ForcedDepth                 *uint64                    `json:"forced_depth,omitempty"`
+	OutcomeSHA256               record.SHA256              `json:"outcome_sha256,omitempty"`
+	Divergence                  *choice.DivergenceEvidence `json:"divergence,omitempty"`
+	SelectionOrdinal            uint64                     `json:"selection_ordinal"`
+	Seed                        uint64                     `json:"seed"`
+	Domain                      string                     `json:"domain"`
+	Reason                      string                     `json:"reason"`
+	Termination                 string                     `json:"termination"`
+	ElapsedNanos                uint64                     `json:"elapsed_nanos"`
+	FailureSignature            *record.SHA256             `json:"failure_signature,omitempty"`
+	Artifact                    *string                    `json:"artifact,omitempty"`
+	SuccessArtifact             *string                    `json:"success_artifact,omitempty"`
+	SuccessArtifactBytes        *uint64                    `json:"success_artifact_bytes,omitempty"`
+	SemanticProbes              []string                   `json:"semantic_probes,omitempty"`
+	NovelSemanticProbes         []string                   `json:"novel_semantic_probes,omitempty"`
+	TranscriptSHA256            *record.SHA256             `json:"transcript_sha256,omitempty"`
+	TranscriptRecords           *uint64                    `json:"transcript_records,omitempty"`
+	ChoiceTraceSHA256           *record.SHA256             `json:"choice_trace_sha256,omitempty"`
+	ChoiceTraceRecords          *uint64                    `json:"choice_trace_records,omitempty"`
+	ChoiceTraceBranchingRecords *uint64                    `json:"choice_trace_branching_records,omitempty"`
+	ChoiceTraceTerminalState    *string                    `json:"choice_trace_terminal_state,omitempty"`
 }
 
 type FailureArtifact struct {
@@ -703,7 +705,7 @@ func projectCampaign(opened campaign.Campaign) (CampaignInspection, error) {
 	batch := opened.Record
 	result := CampaignInspection{
 		CampaignID: batch.CampaignID, PlanSHA256: batch.PlanSHA256, Shard: runnerCampaignShardPointer(batch.Shard), Strategy: batch.Strategy, Selection: batch.Selection, SelectionCount: uint64(batch.SelectionCount), Attempted: uint64(batch.Attempted),
-		Succeeded: uint64(batch.Succeeded), Failures: uint64(batch.Failures), Watchdogs: uint64(batch.Watchdogs), Cancelled: uint64(batch.Cancelled),
+		Succeeded: uint64(batch.Succeeded), Failures: uint64(batch.Failures), ReplayDivergences: uint64(batch.ReplayDivergences), Watchdogs: uint64(batch.Watchdogs), Cancelled: uint64(batch.Cancelled),
 		DistinctFailures: uint64(batch.DistinctFailures), StopReason: batch.StopReason,
 		RetainedSuccesses: uint64(batch.RetainedSuccesses), RetainedSuccessBytes: uint64(batch.RetainedSuccessBytes),
 		ChoiceExploration: projectChoiceExplorationSummaryPointer(batch.ChoiceExploration), ChoiceExplorationImplementationSHA256: batch.ChoiceExplorationImplementationSHA256, ChoiceExplorationChainSHA256: batch.ChoiceExplorationChainSHA256, RecoveryExecutions: uint64(batch.RecoveryExecutions),
@@ -723,7 +725,7 @@ func projectCampaign(opened campaign.Campaign) (CampaignInspection, error) {
 	seenArtifacts := make(map[string]struct{})
 	for _, run := range opened.Executions {
 		projected := ExecutionInspection{
-			Strategy: run.Strategy, CandidateSHA256: run.CandidateSHA256, ParentCandidateSHA256: run.ParentCandidateSHA256, PrefixSHA256: run.PrefixSHA256, OutcomeSHA256: run.OutcomeSHA256,
+			Divergence: run.Divergence, Strategy: run.Strategy, CandidateSHA256: run.CandidateSHA256, ParentCandidateSHA256: run.ParentCandidateSHA256, PrefixSHA256: run.PrefixSHA256, OutcomeSHA256: run.OutcomeSHA256,
 			SelectionOrdinal: uint64(run.SelectionOrdinal), Seed: uint64(run.Seed), Domain: run.Domain, Reason: run.Reason,
 			Termination: run.Termination, ElapsedNanos: uint64(run.ElapsedNanos), FailureSignature: run.FailureSignature, Artifact: run.Artifact,
 			TranscriptSHA256:  run.IOTranscriptSHA256,

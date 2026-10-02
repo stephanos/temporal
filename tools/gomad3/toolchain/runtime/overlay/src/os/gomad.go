@@ -8,6 +8,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"io"
+	"runtime"
 	"sync"
 	"syscall"
 	"time"
@@ -17,6 +18,7 @@ import (
 	"internal/gomadio/mount"
 	"internal/gomadsim"
 	"internal/gomadtrace"
+	"internal/poll"
 )
 
 //go:linkname gomadProfileEnabled runtime.gomadIOProfileEnabled
@@ -762,6 +764,13 @@ func gomadMapFile(file *File, offset int64, length uint64, writable bool) (*goma
 	return mapping, contents, nil
 }
 
+func gomadFileError(err error) error {
+	if errors.Is(err, gomadfs.ErrClosed) {
+		return ErrClosed
+	}
+	return err
+}
+
 func gomadFileRead(file *File, destination []byte) (int, error, bool) {
 	handle := gomadHandle(file)
 	if handle == nil {
@@ -769,7 +778,7 @@ func gomadFileRead(file *File, destination []byte) (int, error, bool) {
 	}
 	read, err := handle.Read(destination)
 	gomadRecordFile("os.read", handle.Path(), nil, destination[:read], uint64(read), err)
-	return read, err, true
+	return read, gomadFileError(err), true
 }
 
 func gomadInterceptFileRead(file *File, destination []byte) (int, error, bool) {
@@ -799,7 +808,7 @@ func gomadFileReadAt(file *File, destination []byte, offset int64) (int, error, 
 	}
 	read, err := handle.ReadAt(destination, offset)
 	gomadRecordFile("os.readat", handle.Path(), gomadInt64Argument(offset), destination[:read], uint64(read), err)
-	return read, err, true
+	return read, gomadFileError(err), true
 }
 
 func gomadFileSeek(file *File, offset int64, whence int) (int64, error, bool) {
@@ -809,7 +818,7 @@ func gomadFileSeek(file *File, offset int64, whence int) (int64, error, bool) {
 	}
 	next, err := handle.Seek(offset, whence)
 	gomadRecordFile("os.seek", handle.Path(), gomadTwoInt64Arguments(offset, int64(whence)), nil, uint64(next), err)
-	return next, err, true
+	return next, gomadFileError(err), true
 }
 
 func gomadFileWrite(file *File, source []byte) (int, error, bool) {
@@ -819,7 +828,7 @@ func gomadFileWrite(file *File, source []byte) (int, error, bool) {
 	}
 	written, err := handle.Write(source)
 	gomadRecordFile("os.write", handle.Path(), nil, source[:written], uint64(written), err)
-	return written, err, true
+	return written, gomadFileError(err), true
 }
 
 func gomadFileWriteAt(file *File, source []byte, offset int64) (int, error, bool) {
@@ -829,7 +838,7 @@ func gomadFileWriteAt(file *File, source []byte, offset int64) (int, error, bool
 	}
 	written, err := handle.WriteAt(source, offset)
 	gomadRecordFile("os.writeat", handle.Path(), gomadInt64Argument(offset), source[:written], uint64(written), err)
-	return written, err, true
+	return written, gomadFileError(err), true
 }
 
 func gomadFileTruncate(file *File, size int64) (bool, error) {
@@ -839,7 +848,7 @@ func gomadFileTruncate(file *File, size int64) (bool, error) {
 	}
 	err := handle.Truncate(size)
 	gomadRecordFile("os.truncate", handle.Path(), gomadInt64Argument(size), nil, 0, err)
-	return true, err
+	return true, gomadFileError(err)
 }
 
 func gomadTruncate(name string, size int64) error {
@@ -886,7 +895,7 @@ func gomadFileChmod(file *File, mode FileMode) (bool, error) {
 	}
 	err := handle.Chmod(uint32(mode))
 	gomadRecordFile("os.chmod", handle.Path(), gomadInt64Argument(int64(mode)), nil, 0, err)
-	return true, err
+	return true, gomadFileError(err)
 }
 
 func gomadFileChdir(file *File) (bool, error) {
@@ -896,7 +905,7 @@ func gomadFileChdir(file *File) (bool, error) {
 	}
 	err := handle.Chdir()
 	gomadRecordFile("os.chdir", handle.Path(), nil, nil, 0, err)
-	return true, err
+	return true, gomadFileError(err)
 }
 
 func gomadFileUnsupported(file *File) bool {
@@ -910,7 +919,7 @@ func gomadFileSync(file *File) (bool, error) {
 	}
 	err := handle.Sync()
 	gomadRecordFile("os.sync", handle.Path(), nil, nil, 0, err)
-	return true, err
+	return true, gomadFileError(err)
 }
 
 func gomadFileClose(file *File) (bool, error) {
@@ -921,7 +930,7 @@ func gomadFileClose(file *File) (bool, error) {
 	path := handle.Path()
 	err := handle.Close()
 	gomadRecordFile("os.close", path, nil, nil, 0, err)
-	return true, err
+	return true, gomadFileError(err)
 }
 
 func gomadInterceptFileClose(file *File) (error, bool) {
@@ -987,7 +996,7 @@ func gomadFileStat(file *File) (FileInfo, bool, error) {
 	entry, err := handle.Stat()
 	if err != nil {
 		gomadRecordFile("os.fstat", handle.Path(), nil, nil, 0, err)
-		return nil, true, err
+		return nil, true, gomadFileError(err)
 	}
 	info := gomadFileInfoForEntry(entry)
 	gomadRecordFile("os.fstat", handle.Path(), nil, nil, uint64(len(entry.Data)), nil)
@@ -1002,6 +1011,13 @@ func gomadFileReaddir(file *File, count int, mode readdirMode) ([]string, []DirE
 	entries, err := handle.ReadDir(count)
 	if err != nil {
 		gomadRecordFile("os.readdir", handle.Path(), gomadInt64Argument(int64(count)), nil, 0, err)
+		if errors.Is(err, gomadfs.ErrClosed) {
+			operation := "readdirent"
+			if runtime.GOOS == "darwin" {
+				operation = ""
+			}
+			err = &PathError{Op: operation, Path: file.name, Err: poll.ErrFileClosing}
+		}
 		return nil, nil, nil, err, true
 	}
 	gomadRecordFile("os.readdir", handle.Path(), gomadInt64Argument(int64(count)), nil, uint64(len(entries)), nil)

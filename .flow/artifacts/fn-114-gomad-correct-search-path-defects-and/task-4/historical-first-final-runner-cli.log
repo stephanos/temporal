@@ -1,0 +1,11 @@
+ok  	go.temporal.io/server/tools/gomad3/runner	108.971s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/campaign	24.866s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/corpus	1.382s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/execution	60.658s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration	1.348s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice	1.599s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation	2.071s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord	1.133s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/minimizer	1.389s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad	33.399s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	2.716s

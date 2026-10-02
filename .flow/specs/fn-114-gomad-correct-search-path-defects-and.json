@@ -8,7 +8,12 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-114-gomad-correct-search-path-defects-and",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-114-gomad-correct-search-path-defects-and.1": 0,
+    "fn-114-gomad-correct-search-path-defects-and.2": 0,
+    "fn-114-gomad-correct-search-path-defects-and.3": 0,
+    "fn-114-gomad-correct-search-path-defects-and.4": 1
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -198,15 +203,126 @@
       "task": null,
       "timestamp": "2026-10-02T04:41:51.848074Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "f3dca7c5a5421d58bb1666b07304ad5867181a1623a1624cb0b383977978c7ea",
+      "backend": "codex",
+      "counter_kind": "impl",
+      "failure_class": null,
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+      "head_sha_observed": false,
+      "kind": "impl",
+      "outcome": "verdict",
+      "output_bytes": 2128,
+      "output_sha256": "a4ccbd32fcbbaf75698c1fcf60f146aac62d59a64404a879ad5984bdc01ec155",
+      "reservation_id": "9a90479d2b914003b5b39f125f03292b",
+      "round_consumed": true,
+      "scope": "impl:fn-114-gomad-correct-search-path-defects-and.1",
+      "superseded_by": null,
+      "task": "fn-114-gomad-correct-search-path-defects-and.1",
+      "timestamp": "2026-10-02T08:44:46.521263Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "3039d1f476d8acfb480fe299f965f8688e48067ca218e02e2975786e3af92cd2",
+      "backend": "codex",
+      "counter_kind": "impl",
+      "failure_class": null,
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+      "head_sha_observed": false,
+      "kind": "impl",
+      "outcome": "verdict",
+      "output_bytes": 2440,
+      "output_sha256": "1c82411455234511036c906a1ec11fd14b632abcbc90d9a7425862fa26d343d6",
+      "reservation_id": "2ae59b7589834ae49f3a2cac9561e6ed",
+      "round_consumed": true,
+      "scope": "impl:fn-114-gomad-correct-search-path-defects-and.2",
+      "superseded_by": null,
+      "task": "fn-114-gomad-correct-search-path-defects-and.2",
+      "timestamp": "2026-10-02T09:41:41.715034Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "f51acf8dca22ca6d2bfb6b959cddc39c9dcaed8c45eea1a5686a40a02da26825",
+      "backend": "codex",
+      "counter_kind": "impl",
+      "failure_class": null,
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+      "head_sha_observed": false,
+      "kind": "impl",
+      "outcome": "verdict",
+      "output_bytes": 2038,
+      "output_sha256": "5f2644505282f533af0b0b04d6ca82b925daa7cad47c6f19cec90429a976f465",
+      "reservation_id": "58ff2793c77c421fbcbd2287c90df301",
+      "round_consumed": true,
+      "scope": "impl:fn-114-gomad-correct-search-path-defects-and.3",
+      "superseded_by": null,
+      "task": "fn-114-gomad-correct-search-path-defects-and.3",
+      "timestamp": "2026-10-02T14:17:56.180293Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "9801668fc154e2f2b9e1a937663f1393383b64ebf39a95483d569b06d08df8a9",
+      "backend": "codex",
+      "counter_kind": "impl",
+      "failure_class": null,
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+      "head_sha_observed": false,
+      "kind": "impl",
+      "outcome": "verdict",
+      "output_bytes": 2460,
+      "output_sha256": "412e47bb56ea175a4a96c0eb77e8789f74f81f72b3f6189ca3831b69520a597d",
+      "reservation_id": "6564e02994944c579a01aa14cba9e351",
+      "round_consumed": true,
+      "scope": "impl:fn-114-gomad-correct-search-path-defects-and.4",
+      "superseded_by": null,
+      "task": "fn-114-gomad-correct-search-path-defects-and.4",
+      "timestamp": "2026-10-02T15:13:44.781654Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-114-gomad-correct-search-path-defects-and.1": 1,
+    "impl:fn-114-gomad-correct-search-path-defects-and.2": 1,
+    "impl:fn-114-gomad-correct-search-path-defects-and.3": 1,
     "plan": 1,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-114-gomad-correct-search-path-defects-and.1": 0,
+    "impl:fn-114-gomad-correct-search-path-defects-and.2": 0,
+    "impl:fn-114-gomad-correct-search-path-defects-and.3": 0,
+    "impl:fn-114-gomad-correct-search-path-defects-and.4": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-114-gomad-correct-search-path-defects-and.md",
@@ -223,5 +339,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T04:41:51.909206Z"
+  "updated_at": "2026-10-02T15:13:44.798300Z"
 }

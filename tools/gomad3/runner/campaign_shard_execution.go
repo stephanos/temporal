@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
@@ -78,7 +79,7 @@ func RunCampaignShard(ctx context.Context, spec CampaignShardSpec) (CampaignResu
 		PlanSHA256: opened.identity, Shard: spec.Shard, Strategy: StrategySeed, Seeds: plan.Selection, Parallel: int(plan.Parallel),
 		ExecutionTimeout: time.Duration(plan.ExecutionTimeoutNanos), OverallTimeout: time.Duration(plan.OverallTimeoutNanos), TerminateGrace: time.Duration(plan.TerminateGraceNanos),
 		OnFailure: PolicyAll, FailureBudget: uint64(plan.FailureBudget), OutputLimit: uint64(plan.OutputBytes), WorldTransitionLimit: uint64(plan.WorldTransitionBytes),
-		ChoiceTraceLimit: campaignPlanChoiceLimit(plan.ChoiceProfile), ClockTick: clockTick, IOTranscriptLimit: uint64(plan.IOTranscriptBytes), Artifacts: spec.Artifacts, Environment: environment,
+		Diagnostics: campaignPlanDiagnostics(plan), ChoiceTraceLimit: campaignPlanChoiceLimit(plan.ChoiceProfile), ClockTick: clockTick, IOTranscriptLimit: uint64(plan.IOTranscriptBytes), Artifacts: spec.Artifacts, Environment: environment,
 		IOROMounts: campaignPlanRuntimeMountValues(mappings), IOROMountLimits: mountLimits,
 		Target: target.Spec{
 			Kind: target.Kind(targetRecord.Kind), Source: targetRecord.Source, Args: append([]string(nil), targetRecord.Argv[1:]...), BuildTags: append([]string(nil), targetRecord.BuildTags...),
@@ -117,6 +118,10 @@ func campaignPlanEnvironment(plan campaign.CampaignPlan) ([]string, string, erro
 				return nil, "", errors.New("campaign plan choice profile environment is invalid")
 			}
 			choiceProfile = true
+		case choice.DiagnosticProfileEnvironment:
+			if entry.Value != choice.DiagnosticProfile || plan.ChoiceProfile == nil {
+				return nil, "", errors.New("campaign plan diagnostic profile is invalid")
+			}
 		case record.ClockTickEnvironment:
 			if clockTick != "" || entry.Value != record.ClockTickForward {
 				return nil, "", errors.New("campaign plan clock tick environment is invalid")
@@ -174,4 +179,13 @@ func (preparer *campaignPlanPreparer) Prepare(_ context.Context, spec target.Spe
 		return target.Prepared{}, err
 	}
 	return prepared, nil
+}
+
+func campaignPlanDiagnostics(plan campaign.CampaignPlan) bool {
+	for _, entry := range plan.Environment {
+		if entry.Name == choice.DiagnosticProfileEnvironment {
+			return true
+		}
+	}
+	return false
 }

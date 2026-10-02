@@ -65,6 +65,7 @@ type ExecutionEvidence struct {
 	IOTranscriptRecords     record.Uint64String              `json:"io_transcript_records"`
 	IOTranscriptComplete    bool                             `json:"io_transcript_complete"`
 	VirtualTimeElapsedNanos record.Uint64String              `json:"virtual_time_elapsed_nanos"`
+	Diagnostics             *DiagnosticEvidence              `json:"diagnostics,omitempty"`
 	Choices                 *ChoiceEvidence                  `json:"choices,omitempty"`
 	World                   record.World                     `json:"world"`
 	ReadOnlyMountsSHA256    *record.SHA256                   `json:"read_only_mounts_sha256,omitempty"`
@@ -120,6 +121,10 @@ func executionEvidence(
 		VirtualTimeElapsedNanos: record.Uint64String(completion.result.VirtualTimeElapsedNanos),
 		World:                   cloneWorld(worldRecord),
 		SemanticCoverage:        coverage,
+	}
+	if config.Diagnostics && len(completion.result.DiagnosticTrace.Bytes) != 0 {
+		trace := completion.result.DiagnosticTrace
+		runRecord.Diagnostics = &DiagnosticEvidence{Profile: choice.DiagnosticProfile, SHA256: record.SHA256FromSum(trace.SHA256), Records: record.Uint64String(len(trace.Records))}
 	}
 	if config.ChoiceTraceLimit != 0 && completion.result.ChoiceTrace.Trace.Summary.Terminal == choice.TerminalComplete {
 		trace := completion.result.ChoiceTrace

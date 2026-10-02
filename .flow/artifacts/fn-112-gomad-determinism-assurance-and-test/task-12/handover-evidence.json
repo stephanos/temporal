@@ -1,0 +1,168 @@
+{
+  "commits": [],
+  "tests": [
+    "make -C tools/gomad3 test-host [see .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/baseline-make-focused.command.json for exact environment]",
+    "make -C tools/gomad3 test-host [see .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/make-focused-no-override.command.json for exact environment]",
+    "make -C tools/gomad3 test-host [see .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/make-explicit-stock.command.json for exact environment]",
+    "make -C tools/gomad3 test-host [see .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/make-empty-stock.command.json for exact environment]",
+    "make -C tools/gomad3 test-host [see .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/make-patched-stock-rejected.command.json for exact environment]",
+    "make -C tools/gomad3 test-host [see .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/make-wrong-version-rejected.command.json for exact environment]",
+    "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go test -tags test_dep -count=1 -run '^TestModel' ./runner/internal/execution [see .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/direct-stock-no-override.command.json for exact environment]",
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go vet -tags test_dep ./runner/internal/execution [see .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/focused-vet.command.json for exact environment]",
+    "/usr/bin/diff -u /Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/beforecopies/tools/gomad3/runner/internal/execution/model_conformance_test.go /Users/stephan/Workspace/temporal/gomad/tools/gomad3/runner/internal/execution/model_conformance_test.go [see .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/formatting.command.json for exact environment]",
+    "make lint-code-fast GOLANGCI_LINT_FIX=false [see .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/root-lint-default.command.json for exact environment]",
+    "make lint-code-fast GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=HEAD [see .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/root-lint-head.command.json for exact environment]",
+    "go test -tags test_dep -count=1 -v -run '^(TestModelDeclared|TestModelShortest|TestModelLog)' ./runner/internal/execution [see .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/semantic-controls.command.json for exact environment]",
+    "gofmt -l tools/gomad3/runner/internal/execution/model_conformance_test.go tools/gomad3/runner/internal/execution/model_conformance_compare_test.go [see .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/gofmt-check.command.json for exact environment]",
+    "git diff --check -- tools/gomad3/Makefile [see .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/whitespace-check.command.json for exact environment]",
+    "make -C tools/gomad3 test-host [see .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/test-host-final-no-override.command.json for exact environment]",
+    "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go version [see .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/stock-oracle.command.json for exact environment]",
+    "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go env GOROOT [see .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/stock-oracle-root.command.json for exact environment]"
+  ],
+  "prs": [],
+  "gates": [
+    {
+      "name": "baseline-make-focused",
+      "command_metadata": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/baseline-make-focused.command.json",
+      "exit": 2,
+      "wall_seconds": 15.377724207995925,
+      "log_sha256": "cd978821c4bfc9cd4d85784918bb19f22950249bb00fcf23b6e93110ca71fc10",
+      "expected_exit": 2
+    },
+    {
+      "name": "make-focused-no-override",
+      "command_metadata": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/make-focused-no-override.command.json",
+      "exit": 0,
+      "wall_seconds": 12.682058999998844,
+      "log_sha256": "7d7b3794fda1ce95bd8895e203a41018cd5148f49d80bfdb80033a99149c9b21",
+      "expected_exit": 0
+    },
+    {
+      "name": "make-explicit-stock",
+      "command_metadata": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/make-explicit-stock.command.json",
+      "exit": 0,
+      "wall_seconds": 11.365297292002651,
+      "log_sha256": "e471daf51403e0f88bd240ce5100197ec6fd299125a53cbb7259a3aa54ab369f",
+      "expected_exit": 0
+    },
+    {
+      "name": "make-empty-stock",
+      "command_metadata": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/make-empty-stock.command.json",
+      "exit": 0,
+      "wall_seconds": 11.317442999999912,
+      "log_sha256": "57f1eae243238e337550b5ec9d0cd4b4c8d78aa6dd6a9523c8d9bcaabdeed2f8",
+      "expected_exit": 0
+    },
+    {
+      "name": "make-patched-stock-rejected",
+      "command_metadata": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/make-patched-stock-rejected.command.json",
+      "exit": 2,
+      "wall_seconds": 9.014254333000281,
+      "log_sha256": "3a08884099f9a125276b4a420c0ffeb53e9fe905989beb71ce31ab0543d3c9a0",
+      "expected_exit": 2
+    },
+    {
+      "name": "make-wrong-version-rejected",
+      "command_metadata": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/make-wrong-version-rejected.command.json",
+      "exit": 2,
+      "wall_seconds": 8.931489916998544,
+      "log_sha256": "8814e0ea633b67e922a890332a4bd7a34eaa37e6d396afd016a45a1d7fd8f756",
+      "expected_exit": 2
+    },
+    {
+      "name": "direct-stock-no-override",
+      "command_metadata": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/direct-stock-no-override.command.json",
+      "exit": 0,
+      "wall_seconds": 6.560723374997906,
+      "log_sha256": "46dca0744bfae7df360e0d40ab142c07f4e3dbfca034d055ee7a8c13a5d5f204",
+      "expected_exit": 0
+    },
+    {
+      "name": "focused-vet",
+      "command_metadata": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/focused-vet.command.json",
+      "exit": 0,
+      "wall_seconds": 0.11787004199868534,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected_exit": 0
+    },
+    {
+      "name": "formatting",
+      "command_metadata": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/formatting.command.json",
+      "exit": 0,
+      "wall_seconds": 0.005145458002516534,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected_exit": 0
+    },
+    {
+      "name": "root-lint-default",
+      "command_metadata": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/root-lint-default.command.json",
+      "exit": 2,
+      "wall_seconds": 1.2901057080016471,
+      "log_sha256": "4a229d95b641928fde380a270b031f2428d29853bba5b947dbb38a2d711596a5",
+      "expected_exit": 2
+    },
+    {
+      "name": "root-lint-head",
+      "command_metadata": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/root-lint-head.command.json",
+      "exit": 2,
+      "wall_seconds": 3.011250209005084,
+      "log_sha256": "fdef6587c073050270c0e3832fa5f27ee853b6040ace4de8e055d1ec5602ad2a",
+      "expected_exit": 2
+    },
+    {
+      "name": "semantic-controls",
+      "command_metadata": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/semantic-controls.command.json",
+      "exit": 0,
+      "wall_seconds": 0.5029952919940115,
+      "log_sha256": "63f1689a53d610406cc21cbe665f17ef246e3222c7823a119b82970c9898be6a",
+      "expected_exit": 0
+    },
+    {
+      "name": "gofmt-check",
+      "command_metadata": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/gofmt-check.command.json",
+      "exit": 0,
+      "wall_seconds": 0.021367959001509007,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected_exit": 0
+    },
+    {
+      "name": "whitespace-check",
+      "command_metadata": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/whitespace-check.command.json",
+      "exit": 0,
+      "wall_seconds": 0.016305541998008266,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected_exit": 0
+    },
+    {
+      "name": "test-host-final-no-override",
+      "command_metadata": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/test-host-final-no-override.command.json",
+      "exit": 0,
+      "wall_seconds": 121.44305829200312,
+      "log_sha256": "536dd66166a39fb64c5127f1f05342ed0f0ad7d10e002354ee3196c6185812e1",
+      "expected_exit": 0
+    },
+    {
+      "name": "stock-oracle",
+      "command_metadata": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/stock-oracle.command.json",
+      "exit": 0,
+      "wall_seconds": 0.00679274999856716,
+      "log_sha256": "c528ba02b39880f1357f51dee70e41c1ef03e3a70c7a03055c080532b9635f58",
+      "expected_exit": 0
+    },
+    {
+      "name": "stock-oracle-root",
+      "command_metadata": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/stock-oracle-root.command.json",
+      "exit": 0,
+      "wall_seconds": 0.0069597080000676215,
+      "log_sha256": "148c7675e03d239e91457c394cd4842e0af35d7bf80da6c3f8d63e5d444a787e",
+      "expected_exit": 0
+    }
+  ],
+  "changed_source_files": [
+    "tools/gomad3/Makefile"
+  ],
+  "native_linux": "unverified",
+  "root_lint": "failed: missing main; with HEAD, nested module discovery",
+  "review": "pending parent independent review",
+  "source_manifest": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-12/frozen-source-hashes.json"
+}

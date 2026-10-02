@@ -1,0 +1,62 @@
+{
+  "commands": [
+    {
+      "command": "./.toolchain/bin/go test -count=1 -tags test_dep ./qualification -run 'TestDiagnostics(PreserveInterruptedQualificationEvidence|RejectCorruptedSavedReportBindings)'",
+      "cwd": "tools/gomad3",
+      "exit_code": 1,
+      "log": "review-repair-red.log",
+      "expected": "Regression failures before implementation"
+    },
+    {
+      "command": "./.toolchain/bin/go test -count=1 -tags test_dep ./qualification -run 'Diagnostic'",
+      "cwd": "tools/gomad3",
+      "exit_code": 0,
+      "log": "review-repair-green.log"
+    },
+    {
+      "command": "./.toolchain/bin/go test -count=1 -tags test_dep ./qualification/... ./cmd/gomad/internal/cli ./runner -run 'Diagnostic'",
+      "cwd": "tools/gomad3",
+      "exit_code": 0,
+      "log": "review-repair-focused.log"
+    },
+    {
+      "command": "./.toolchain/bin/go test -count=1 -tags test_dep -overlay=/tmp/gomad-task4-report-off-baseline/overlay.json ./qualification -run TestCaptureOffReportBaseline -v",
+      "cwd": "tools/gomad3",
+      "exit_code": 0,
+      "log": "report-off-baseline.log"
+    },
+    {
+      "command": "env -u GOROOT PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH make -C tools/gomad3 test-host",
+      "cwd": ".",
+      "exit_code": 0,
+      "log": "review-repair-test-host.log"
+    },
+    {
+      "command": "./.toolchain/bin/go vet -tags test_dep ./qualification/... ./cmd/gomad/internal/cli",
+      "cwd": "tools/gomad3",
+      "exit_code": 0,
+      "log": "review-repair-vet.log"
+    },
+    {
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED ./.toolchain/bin/go run ./cmd/gomad qualify --diagnostics --seed=7 --repeat=2 --json --toolchain-root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain --working-dir=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/internal/gomadtool/conformance/testdata --artifacts=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/diagnostic-task4-repair-smoke go-run ./diagnostic_fault",
+      "cwd": "tools/gomad3",
+      "exit_code": 0,
+      "log": "review-repair-live-qualify.log"
+    },
+    {
+      "command": "./.toolchain/bin/go run /tmp/gomad-task4-saved-report-repair-probe.go ../../.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-4/review-repair-live-qualified-report.json",
+      "cwd": "tools/gomad3",
+      "exit_code": 0,
+      "log": "saved-report-probe-after.log"
+    },
+    {
+      "command": "git diff --check",
+      "cwd": ".",
+      "exit_code": 0
+    }
+  ],
+  "platform": "darwin/arm64",
+  "linux": "not run",
+  "runtime": "No runtime/launcher paths changed in repair; prior full test-runtime exit0 retained in make-test-host-runtime.log",
+  "lint": "Prior root lint nested-module discovery failure retained in root-lint.log"
+}

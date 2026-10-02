@@ -740,6 +740,10 @@ func validateExplorationRoundExecutions(round choiceengine.Round, segment choice
 		if err := validateExplorationExecutionSummary(run, candidates); err != nil {
 			return err
 		}
+		equal, err := canonicalEqual(run.Divergence, result.Divergence)
+		if err != nil || !equal {
+			return errors.Join(fmt.Errorf("exploration execution %d divergence does not match its segment", index), err)
+		}
 		if result.Failed != (run.Domain == "target" || run.Domain == "watchdog") || result.Failed && (run.FailureSignature == nil || *run.FailureSignature != result.FailureSHA256) {
 			return fmt.Errorf("exploration execution %d outcome does not match its segment", index)
 		}

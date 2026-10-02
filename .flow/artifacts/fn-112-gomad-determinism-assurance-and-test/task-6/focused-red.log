@@ -1,0 +1,6 @@
+--- FAIL: TestRuntimeChannelFixtures (0.02s)
+    runtime_test.go:210: gomad3 fixture timer_ties-seed-0-repeatable-0 failed with status 1: stat /Users/stephan/Workspace/temporal/gomad/tools/gomad3/internal/gomadtool/conformance/testdata/timer_ties: directory not found
+        
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	0.284s
+FAIL

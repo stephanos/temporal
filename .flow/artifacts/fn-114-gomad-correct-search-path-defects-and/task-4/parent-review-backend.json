@@ -1,0 +1,8 @@
+{
+  "success": true,
+  "backend": "codex",
+  "spec": "codex:gpt-5.6-sol:high",
+  "source": "config",
+  "model": "gpt-5.6-sol",
+  "effort": "high"
+}

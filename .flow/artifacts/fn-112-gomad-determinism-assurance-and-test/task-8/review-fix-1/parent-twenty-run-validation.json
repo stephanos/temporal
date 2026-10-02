@@ -1,0 +1,18 @@
+{
+  "checks": {
+    "explore_replay_passes": 20,
+    "kill_resume_passes": 20,
+    "negative_controls": 20,
+    "killed_at_2": 20,
+    "killed_at_0": 20,
+    "semantic_records": 120,
+    "failures": 0
+  },
+  "log_sha256": "ad5296b9a0e8083b3ae9f195f9c49ec090c4ed1a319fa1011263061d4e9d4595",
+  "frozen_sources": {
+    "tools/gomad3/cmd/gomad/e2e_test.go": "5feb92383f46acf7d698e33d047e100dc1c15c42dd7667a6858610f630b61b53",
+    "tools/gomad3/cmd/gomad/testdata/campaign/main.go": "1d91a27154a10401d2585e251b7fee87ea9580bd8917f9c88a87a5c39bcfbd4c",
+    ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md": "4776678bd80edd1acd406060925f3780ef8cde38df6ded6ecf8a1278c556bc65"
+  },
+  "result": "pass"
+}

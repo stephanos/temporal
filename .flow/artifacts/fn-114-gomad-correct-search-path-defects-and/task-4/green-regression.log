@@ -1,0 +1,5 @@
+--- FAIL: TestRunChoiceExplorationDivergingPrefixRetainsCompletedRound (0.36s)
+    runner_test.go:1115: diverging exploration discarded its completed round: gomad3 Runner/host failure: choice_exploration_commit: validate choice exploration result 0 prefix: choice rank override diverged at decision 0
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner	0.697s
+FAIL

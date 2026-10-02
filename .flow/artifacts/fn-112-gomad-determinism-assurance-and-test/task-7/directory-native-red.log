@@ -1,0 +1,1 @@
+go: overlay contains a replacement for /Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/src/os/gomad_model_conformance_test.go. Files beneath GOMODCACHE (/Users/stephan/go/pkg/mod) must not be replaced.

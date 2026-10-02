@@ -124,28 +124,34 @@ upgrade-dossier: core-qualification
 	GOWORK=off go run ./cmd/gomadtool upgrade-dossier \
 		-baseline-ref="$(GOMAD3_BASELINE_REF)" -corpus-report=".toolchain/core-qualification-set.json" $(if $(GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256),-approve-boundary-diff="$(GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256)",)
 
+# Resolve stock Go before the patched test driver prepends its GOROOT/bin to PATH.
 test-host: toolchain
-	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep \
+	@stock_go="$${GOMAD3_STOCK_GO:-}"; \
+	if test -z "$$stock_go"; then \
+		stock_root="$$(env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOENV=off GOFLAGS= GOWORK=off GOTOOLCHAIN=$(GOMAD3_GO_VERSION) go env GOROOT)" || exit 1; \
+		stock_go="$$stock_root/bin/go"; \
+	fi; \
+	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOMAD3_STOCK_GO="$$stock_go" GOWORK=off .toolchain/bin/go test -tags test_dep \
 		. ./cmd/... ./runner/... ./qualification/... ./target/... ./record/... ./artifact/... ./choice/... \
 		./deterministicio/... ./world/... ./toolchain/version ./upgrade/... ./internal/...
 
-# internal/gomadsim is absent because its tests do not build: an in-package
-# test file imports testing, which reaches the package again through os.
+# internal/gomadsim keeps its tests external because testing reaches the
+# package through os.
 overlay-test: toolchain
 	.toolchain/bin/go test -tags test_dep internal/gomadfs internal/gomadwire internal/gomadchoicewire internal/gomadmodelwire \
-		internal/gomadio internal/gomadio/mount os cmd/internal/gomadcap
+		internal/gomadsim internal/gomadio internal/gomadio/mount os cmd/internal/gomadcap
 
 # The gomad3_toolchain tests of the root module's tools/gomad3sim need a seeded
 # runtime, so they run through the exec wrapper. The tests that need the
 # Runner's simulation transport skip there; the integration-tagged Runner test
-# is their executor. Its TestProcessBackend subtests start node processes and
-# fail intermittently, so only the subtests that start none are selected.
+# is their executor. The node-clock delay test has a recorded watchdog failure
+# and remains a finding; every other subtest runs here.
 test-simulation: toolchain
 	cd $(CURDIR)/../.. && env -u GOMADSEED CGO_ENABLED=0 GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 \
 		$(CURDIR)/.toolchain/bin/go test -exec $(CURDIR)/internal/gomadtool/conformance/scripts/exec.sh \
 		-count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration \
-		-run '^TestRootProcessSimulationUsesRunnerTransport$$/^Test(Scenario|ProcessExploration)' ./runner/internal/execution
+		-run '^TestRootProcessSimulationUsesRunnerTransport$$/^Test(Scenario|ProcessExploration|ProcessAndInProcess|ProcessBackend(Resets|Routes|Preserves|Crash|Model))' ./runner/internal/execution
 
 world-test:
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go test -race -tags test_dep ./world/...

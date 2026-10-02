@@ -61,6 +61,7 @@ func (campaign *runtimeCampaign) requireHostLoad(binaries map[string]string) (re
 		{label: "scheduler", binary: binaries["scheduler"]}, {label: "maps", binary: binaries["maps"]},
 		{label: "select", binary: binaries["select"]}, {label: "channels", binary: binaries["channels"]},
 		{label: "sync", binary: binaries["sync"]}, {label: "runqueue", binary: binaries["runqueue"]},
+		{label: "runq-shuffle", binary: binaries["runq-shuffle"]}, {label: "timer-ties", binary: binaries["timer-ties"]},
 		{label: "automatic-gc", binary: binaries["automatic-gc"]},
 	}
 	expected := make([]string, len(fixtures))

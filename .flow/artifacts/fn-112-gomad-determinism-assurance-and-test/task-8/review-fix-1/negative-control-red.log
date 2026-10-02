@@ -1,0 +1,8 @@
+=== RUN   TestCLIKillResume
+=== RUN   TestCLIKillResume/journal_capacity_negative_control
+    e2e_test.go:173: campaign comparison discarded a differing journal MaximumBytes
+--- FAIL: TestCLIKillResume (4.39s)
+    --- FAIL: TestCLIKillResume/journal_capacity_negative_control (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/cmd/gomad	6.667s
+FAIL

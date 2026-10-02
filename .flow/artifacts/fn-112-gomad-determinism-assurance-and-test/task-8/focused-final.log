@@ -1,0 +1,25 @@
+=== RUN   TestCLIExploreReplay
+--- PASS: TestCLIExploreReplay (1.91s)
+=== RUN   TestCLIKillResume
+=== RUN   TestCLIKillResume/completed_2
+    e2e_test.go:166: killed coordinator CLI output: {"schema":"gomad3.explore-event/v3","type":"progress","phase":"preparing","campaign_path":"/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/TestCLIKillResumecompleted_21968486526/001/v1/campaign-20261002T115149.570073000Z-c44f2ccb125eab2a16b76276b8ce3878","selected":3}
+        {"schema":"gomad3.explore-event/v3","type":"progress","phase":"running","campaign_path":"/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/TestCLIKillResumecompleted_21968486526/001/v1/campaign-20261002T115149.570073000Z-c44f2ccb125eab2a16b76276b8ce3878","selected":3}
+        {"schema":"gomad3.explore-event/v3","type":"progress","phase":"running","campaign_path":"/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/TestCLIKillResumecompleted_21968486526/001/v1/campaign-20261002T115149.570073000Z-c44f2ccb125eab2a16b76276b8ce3878","selected":3,"running":1}
+        {"schema":"gomad3.explore-event/v3","type":"error","classification":"runner_failure","message":"gomad3 Runner/host failure: coordinator_exit: signal: killed"}
+    e2e_test.go:166: SIGKILL coordinator pid=83514 pgid=83514 after 2 journaled executions; owned descendants exited
+    e2e_test.go:169: ordinal=0 seed=1 outcome=success/success stdout=sha256:9d2151dc362c814bba2d29931441ae089764b9abfdad68e0ae00a423dd2cedf7 transcript=sha256:0aaa499cda9cfbb5499e23e03d9ef1f9a2b8fe3aab84bb94d66061df1a9d415e world=sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b
+    e2e_test.go:169: ordinal=1 seed=2 outcome=target/nonzero_exit stdout=sha256:179ae291490433823b4156c9b9ae61a65be1876d15ec472364a94e157c47903c transcript=sha256:60c19bc51b2ce81ee7d4a53beca650d63f948674e95d10c8e51785c8a6c730e4 world=sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b
+    e2e_test.go:169: ordinal=2 seed=3 outcome=success/success stdout=sha256:183b707a1c85466de8acfc7aa739474aa084a394aa87e5e45a4db55b12a06a68 transcript=sha256:24c58641288e1709af4d05620a785559ad63cd0ee4a0f1767886a3902d29d0d3 world=sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b
+=== RUN   TestCLIKillResume/completed_0
+    e2e_test.go:166: killed coordinator CLI output: {"schema":"gomad3.explore-event/v3","type":"progress","phase":"preparing","campaign_path":"/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/TestCLIKillResumecompleted_02335701175/001/v1/campaign-20261002T115152.953718000Z-1e9ce5d35d3f152b7f56aa8f0972d2d2","selected":3}
+        {"schema":"gomad3.explore-event/v3","type":"progress","phase":"running","campaign_path":"/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/TestCLIKillResumecompleted_02335701175/001/v1/campaign-20261002T115152.953718000Z-1e9ce5d35d3f152b7f56aa8f0972d2d2","selected":3}
+        {"schema":"gomad3.explore-event/v3","type":"error","classification":"runner_failure","message":"gomad3 Runner/host failure: coordinator_decode: coordinator omitted its result"}
+    e2e_test.go:166: SIGKILL coordinator pid=83564 pgid=83564 after 0 journaled executions; owned descendants exited
+    e2e_test.go:169: ordinal=0 seed=1 outcome=success/success stdout=sha256:9d2151dc362c814bba2d29931441ae089764b9abfdad68e0ae00a423dd2cedf7 transcript=sha256:0aaa499cda9cfbb5499e23e03d9ef1f9a2b8fe3aab84bb94d66061df1a9d415e world=sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b
+    e2e_test.go:169: ordinal=1 seed=2 outcome=target/nonzero_exit stdout=sha256:179ae291490433823b4156c9b9ae61a65be1876d15ec472364a94e157c47903c transcript=sha256:60c19bc51b2ce81ee7d4a53beca650d63f948674e95d10c8e51785c8a6c730e4 world=sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b
+    e2e_test.go:169: ordinal=2 seed=3 outcome=success/success stdout=sha256:183b707a1c85466de8acfc7aa739474aa084a394aa87e5e45a4db55b12a06a68 transcript=sha256:24c58641288e1709af4d05620a785559ad63cd0ee4a0f1767886a3902d29d0d3 world=sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b
+--- PASS: TestCLIKillResume (9.87s)
+    --- PASS: TestCLIKillResume/completed_2 (3.38s)
+    --- PASS: TestCLIKillResume/completed_0 (3.36s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad	12.625s

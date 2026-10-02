@@ -25,16 +25,16 @@ GOMAD_CMP.md.
 
 | ID | Kind | Finding | Evidence | Status |
 | --- | --- | --- | --- | --- |
-| C1 | Correctness | The guided corpus identity omits the target environment and clock-tick policy. Once Runner-managed targets receive `--env` entries (fn-105 task 30), one corpus can hold cases recorded under different environments or tick policies | `runner/internal/corpus/model.go` `Identity` and `targetProjection` bind target, argv, tags, adapters, packs, toolchain, and boundary only | Verified in source |
-| C2 | Correctness | Goroutines created with no identified parent take a process-wide creation counter as identity. `time.AfterFunc` callbacks, including every context deadline, are created from the scheduler, so their identity depends on creation order and therefore on the schedule | `gomadChoiceAssignGoroutineIdentity` else-branch in the runtime overlay | Branch verified; reach from `AfterFunc` inferred |
-| C3 | Correctness | A forced prefix that diverges in a choice-exploration candidate ends the whole campaign as a `HostError` and retains no candidate evidence | `runner/choice_exploration_campaign.go` completion loop and `outcome.Domain == "runner"` branch | Code path verified; trigger inferred |
-| C4 | Correctness | `exec` provenance validation rejects `-race`, cgo, non-exe build modes, and external linking, and has no check for coverage instrumentation, so an unqualified instrumentation profile can pass | `validateDeterministicBuildInfo` in `target/target.go` | Verified in source |
-| E1 | Inefficiency | A guided campaign gives up to three quarters of its seeds to corpus cases. The corpus identity binds the exact target, so those seeds reproduce records the corpus already holds | `mixGuidedSelection` in `runner/seeds.go` | Selection verified; consequence inferred |
-| E2 | Inefficiency | Every artifact embeds the full target binary. `./tests` binaries are 155 to 179 MB, the representative qualification set retains about 11 GiB, and the 1 GiB corpus holds about six `./tests` cases | `artifact/publication.go` target payload; binary sizes in the assessment, total in the README | Verified |
-| E3 | Inefficiency | The select hook records one decision per poll-order step of every multi-case `select`, ready or not. In `TestSignalWorkflowTestSuiteChasm` seed 11, 26,865 of 57,801 decisions are select-poll. Poll order can change behavior only when at least two cases are ready | patch hunk in `selectgo`; retained D14 qualification report | Counts verified; no-op claim inferred |
-| E4 | Inefficiency | System goroutines are recorded and explorable alternatives. A probe with two user goroutines records 26 branching decisions | `gomadChoiceRunqIndex`; retained D21 control report | Counts verified; cause inferred |
-| E5 | Inefficiency | Choice exploration skips every decision past `--max-choice-depth` counted from ordinal 0. The boot-only cluster probe records 4,562 choice records, so on a functional suite the strategy permutes bootstrap only | `expandCandidate` in `runner/internal/exploration/choice/engine.go` | Verified |
-| E6 | Inefficiency | The minimizer holds its sealed, self-validating state in memory and works in a temporary directory that `close` deletes. An interrupted run repeats every attempt | `runner/minimize_operation.go` | Verified |
+| C1 | Correctness | The guided corpus identity omits the target environment and clock-tick policy. Once Runner-managed targets receive `--env` entries (fn-105 task 30), one corpus can hold cases recorded under different environments or tick policies | `runner/internal/corpus/model.go` `Identity` and `targetProjection` bind target, argv, tags, adapters, packs, toolchain, and boundary only | confirmed — environment and tick inputs still omitted |
+| C2 | Correctness | Goroutines created with no identified parent take a process-wide creation counter as identity. `time.AfterFunc` callbacks, including every context deadline, are created from the scheduler, so their identity depends on creation order and therefore on the schedule | `gomadChoiceAssignGoroutineIdentity` else-branch in the runtime overlay | changed — callback identities swap under schedule changes; valid same-seed swapped prefixes succeed |
+| C3 | Correctness | A forced prefix that diverges in a choice-exploration candidate ends the whole campaign as a `HostError` and publishes no candidate execution records or typed divergence evidence | `execution/process_unix.go` returns a typed choice divergence; `runner.go` preserves it and `choice_exploration_campaign.go` returns from completion-error handling before processing outcomes | changed — symptom reproduced; executor-error path, not runner-domain branch |
+| C4 | Correctness | `exec` provenance validation rejects `-race`, cgo, non-exe build modes, and external linking, and has no check for coverage instrumentation, so an unqualified instrumentation profile can pass | `validateDeterministicBuildInfo` in `target/target.go` | confirmed — no coverage-instrumentation rejection |
+| E1 | Inefficiency | A guided campaign gives up to three quarters of its seeds to corpus cases. The corpus identity binds the exact target, so those seeds reproduce records the corpus already holds | `mixGuidedSelection` in `runner/seeds.go` | confirmed — selection repeats corpus seeds; consequence remains source inference |
+| E2 | Inefficiency | Every artifact embeds the full target binary. `./tests` binaries are 155 to 179 MB, the representative qualification set retains about 11 GiB, and the 1 GiB corpus holds about six `./tests` cases | `artifact/publication.go` target payload; historical binary sizes in `.plans/GOMAD_CMP.md:85-86`, total in `tools/gomad3/README.md:334` | confirmed — full target payload; sizes and storage totals are historical |
+| E3 | Inefficiency | The select hook records one decision per poll-order step of every multi-case `select`, ready or not. In `TestSignalWorkflowTestSuiteChasm` seed 11, 26,865 of 57,801 decisions are select-poll. Poll order can change behavior only when at least two cases are ready | patch hunk in `selectgo`; retained D14 qualification report | confirmed — all seven fixture shapes emit poll decisions; unreduced outcomes retained, suppression soundness remains task 12 |
+| E4 | Inefficiency | System goroutines are recorded and explorable alternatives. The retained D21 control probe reports peak goroutines 2 and 26 branching decisions; its source does not deliberately start two user goroutines | `gomadChoiceRunqIndex`; retained D21 control report | changed — unfiltered alternatives and historical 26 confirmed; two-user premise unsupported |
+| E5 | Inefficiency | Choice exploration skips every decision past `--max-choice-depth` counted from ordinal 0. The boot-only cluster probe records 4,562 choice records, so on a functional suite the strategy permutes bootstrap only | `expandCandidate` in `runner/internal/exploration/choice/engine.go` | confirmed — absolute decision ordinal bounds expansion |
+| E6 | Inefficiency | The minimizer holds its sealed, self-validating state in memory and works in a temporary directory that `close` deletes. An interrupted run repeats every attempt | `runner/minimize_operation.go` | confirmed — state remains in memory and temporary workspace is deleted |
 
 ### Relationship to existing work
 
@@ -71,6 +71,17 @@ the callback start. Other parentless creations are inventoried and each is
 either given a schedule-independent derivation or listed as a declared
 exception with its reason. The changed derivation takes new versioned identity
 labels; the labels are the scheme version, and no separate constant exists.
+
+Task 2 reproduced callback identity swaps on the unchanged toolchain. Its seed-6
+parent maps A/B to parentless ordinals 3/2; valid same-seed prefixes at decision
+3/rank 2 and decision 4/rank 1 map them to 2/3 and succeed. All 16 one-decision
+alternatives of that recorded parent succeed. This narrows the predicted
+alternative-set-divergence failure: `BuildRankPrefix` truncates the suffix after
+the changed choice. A cross-seed full-prefix experiment diverges at a select site,
+but does not establish failure of supported seed-bound replay. Task 5 still owns
+stable identities; successful same-seed prefix execution is behavior to preserve.
+The retained [task 2 evidence](../artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/final-approved/search-reproduction.json)
+binds these observations to the pre-edit toolchain and fixture source.
 
 ### Diverging exploration candidates (C3)
 
@@ -272,7 +283,9 @@ repeats the check at its start commit and resolves the report paths.
 **Order.** Task 1 gates every other task. The work then runs as two serial
 chains that share no source file, and joins for the last three tasks:
 
-- Runner chain: tasks 3 (C1, C4), 4 (C3), 6 (E5), 7 (E1), 8 (E6), 9 and 10 (E2).
+- Runner chain: tasks 3 (C1, C4), 4 (C3), 7 (E1), 6 (E5), 8 (E6), 9 and 10 (E2).
+  The user approved promoting guided seed deduplication on 2026-10-02: task 3
+  supplies its identity prerequisite, while task 6 was only a shared-file ordering dependency.
 - Runtime chain: tasks 2 (C2 and E3 reproductions), 5 (C2), 11 (E3 recording).
 - Joined: tasks 12 (E3 rule), 13 (E4), 14 (qualification and docs).
 

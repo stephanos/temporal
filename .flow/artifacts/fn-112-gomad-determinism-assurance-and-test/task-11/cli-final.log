@@ -1,0 +1,37 @@
+=== RUN   TestCLIExploreReplay
+--- PASS: TestCLIExploreReplay (2.14s)
+=== RUN   TestCLIKillResume
+=== RUN   TestCLIKillResume/journal_capacity_negative_control
+=== RUN   TestCLIKillResume/completed_2
+    e2e_test.go:178: killed coordinator CLI output: {"schema":"gomad3.explore-event/v3","type":"progress","phase":"preparing","campaign_path":"/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/TestCLIKillResumecompleted_2737870717/001/v1/campaign-20261002T130635.025696000Z-788a7482a46c55938ca39091b3891a8c","selected":3}
+        {"schema":"gomad3.explore-event/v3","type":"progress","phase":"running","campaign_path":"/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/TestCLIKillResumecompleted_2737870717/001/v1/campaign-20261002T130635.025696000Z-788a7482a46c55938ca39091b3891a8c","selected":3}
+        {"schema":"gomad3.explore-event/v3","type":"progress","phase":"running","campaign_path":"/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/TestCLIKillResumecompleted_2737870717/001/v1/campaign-20261002T130635.025696000Z-788a7482a46c55938ca39091b3891a8c","selected":3,"running":1}
+        {"schema":"gomad3.explore-event/v3","type":"error","classification":"runner_failure","message":"gomad3 Runner/host failure: coordinator_decode: coordinator omitted its result"}
+    e2e_test.go:178: SIGKILL coordinator pid=36356 pgid=36356 after 2 journaled executions; owned descendants exited
+    e2e_test.go:181: ordinal=0 seed=1 outcome=success/success stdout=sha256:9d2151dc362c814bba2d29931441ae089764b9abfdad68e0ae00a423dd2cedf7 transcript=sha256:0aaa499cda9cfbb5499e23e03d9ef1f9a2b8fe3aab84bb94d66061df1a9d415e world=sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b
+    e2e_test.go:181: ordinal=1 seed=2 outcome=target/nonzero_exit stdout=sha256:179ae291490433823b4156c9b9ae61a65be1876d15ec472364a94e157c47903c transcript=sha256:60c19bc51b2ce81ee7d4a53beca650d63f948674e95d10c8e51785c8a6c730e4 world=sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b
+    e2e_test.go:181: ordinal=2 seed=3 outcome=success/success stdout=sha256:183b707a1c85466de8acfc7aa739474aa084a394aa87e5e45a4db55b12a06a68 transcript=sha256:24c58641288e1709af4d05620a785559ad63cd0ee4a0f1767886a3902d29d0d3 world=sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b
+=== RUN   TestCLIKillResume/completed_0
+    e2e_test.go:178: killed coordinator CLI output: {"schema":"gomad3.explore-event/v3","type":"progress","phase":"preparing","campaign_path":"/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/TestCLIKillResumecompleted_04260881908/001/v1/campaign-20261002T130638.531630000Z-ab237e99f448628dcf19b6c44f361b67","selected":3}
+        {"schema":"gomad3.explore-event/v3","type":"progress","phase":"running","campaign_path":"/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/TestCLIKillResumecompleted_04260881908/001/v1/campaign-20261002T130638.531630000Z-ab237e99f448628dcf19b6c44f361b67","selected":3}
+        {"schema":"gomad3.explore-event/v3","type":"error","classification":"runner_failure","message":"gomad3 Runner/host failure: coordinator_decode: coordinator omitted its result"}
+    e2e_test.go:178: SIGKILL coordinator pid=36408 pgid=36408 after 0 journaled executions; owned descendants exited
+    e2e_test.go:181: ordinal=0 seed=1 outcome=success/success stdout=sha256:9d2151dc362c814bba2d29931441ae089764b9abfdad68e0ae00a423dd2cedf7 transcript=sha256:0aaa499cda9cfbb5499e23e03d9ef1f9a2b8fe3aab84bb94d66061df1a9d415e world=sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b
+    e2e_test.go:181: ordinal=1 seed=2 outcome=target/nonzero_exit stdout=sha256:179ae291490433823b4156c9b9ae61a65be1876d15ec472364a94e157c47903c transcript=sha256:60c19bc51b2ce81ee7d4a53beca650d63f948674e95d10c8e51785c8a6c730e4 world=sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b
+    e2e_test.go:181: ordinal=2 seed=3 outcome=success/success stdout=sha256:183b707a1c85466de8acfc7aa739474aa084a394aa87e5e45a4db55b12a06a68 transcript=sha256:24c58641288e1709af4d05620a785559ad63cd0ee4a0f1767886a3902d29d0d3 world=sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b
+--- PASS: TestCLIKillResume (10.17s)
+    --- PASS: TestCLIKillResume/journal_capacity_negative_control (0.00s)
+    --- PASS: TestCLIKillResume/completed_2 (3.51s)
+    --- PASS: TestCLIKillResume/completed_0 (3.42s)
+=== RUN   TestCLIWatchdogRetainsIncompleteEvidence
+=== RUN   TestCLIWatchdogRetainsIncompleteEvidence/none
+=== RUN   TestCLIWatchdogRetainsIncompleteEvidence/semantic
+=== RUN   TestCLIWatchdogRetainsIncompleteEvidence/choice
+=== RUN   TestCLIWatchdogRetainsIncompleteEvidence/semantic+choice
+--- PASS: TestCLIWatchdogRetainsIncompleteEvidence (9.00s)
+    --- PASS: TestCLIWatchdogRetainsIncompleteEvidence/none (2.27s)
+    --- PASS: TestCLIWatchdogRetainsIncompleteEvidence/semantic (2.25s)
+    --- PASS: TestCLIWatchdogRetainsIncompleteEvidence/choice (2.24s)
+    --- PASS: TestCLIWatchdogRetainsIncompleteEvidence/semantic+choice (2.24s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad	23.062s

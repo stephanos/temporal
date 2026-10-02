@@ -1,0 +1,14 @@
+{
+  "result": "pass",
+  "patch_sha256": "03745dc038716f309028a95d2c2d6e1816ee313dc14fd35914d89dfe82d65c55",
+  "changed_sources": {
+    "tools/gomad3/runner/replay_operation.go": "2ab6c2b9305afe949bda6c1971b96b17582aa818d112c3c6965faed8c4aaff85",
+    "tools/gomad3/runner/watchdog_replay_test.go": "e15b05aaaffc7b546141f56077b4d10304cc11a0f6328f667b60fffe3174aa3a",
+    "tools/gomad3/cmd/gomad/watchdog_replay_e2e_test.go": "70d96ead2a252666db0a135e11be6fda38cd036ea2bcb50d8f5bab0c4c64f8f1"
+  },
+  "unchanged_protected_count": 67,
+  "owned_protected_overlap": [
+    "tools/gomad3/runner/replay_operation.go"
+  ],
+  "scratch_patch_reconstruction": "pass"
+}

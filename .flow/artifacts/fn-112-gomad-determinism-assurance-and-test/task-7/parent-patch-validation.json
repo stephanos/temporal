@@ -1,0 +1,7 @@
+{
+  "applies_to_before_copies": true,
+  "reconstructed_files_match_live_sources": true,
+  "changed_file_count": 15,
+  "patch_sha256": "8cdd3e89ecffa412d3e52cdbe3285528584833e352092beb248239a63ecef972",
+  "before_task_spec_sha256": "33c343b697f217530b0e6bab72ea82484aad3cde5f3894f12426e744f61449a0"
+}

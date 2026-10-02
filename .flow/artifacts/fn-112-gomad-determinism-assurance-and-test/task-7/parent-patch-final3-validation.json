@@ -1,0 +1,10 @@
+{
+  "applies_to_before_copies": true,
+  "reconstructed_files_match_live_sources": true,
+  "changed_file_count": 15,
+  "frozen_source_count": 20,
+  "protected_source_count": 41,
+  "all_source_hashes_match": true,
+  "patch_sha256": "6398267361c0932441b72285c815e7877cef6abffc3c1ce5587343a62df4284a",
+  "source_manifest_sha256": "0981339f69cf270cd03a204582b40f190221560fc2bc7527e3a28e0c9e1e869b"
+}

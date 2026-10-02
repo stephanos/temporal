@@ -1,0 +1,7 @@
+The initial fixture's runnable Gosched loop reached its 2s execution watchdog, but the CLI exited 3 (`target_supervision: invalid I/O terminal frame`) instead of retaining a watchdog outcome. This was observed on darwin/arm64 with patched Go 1.27.1 build 56e4a2f0c5514d43b9a0682d030964588dd3d5a58978ba0b989459bb556843a3. The original source is retained verbatim as watchdog-original-main.go; focused-first.log retains the exact subprocess argv and failure. The same first run also established that target-visible GOMADSEED is empty; final fixture uses a seeded rand/v2 draw instead.
+
+Reproduction: place watchdog-original-main.go alone in a new temporary fixture directory under this Go module; build the CLI with `.toolchain/bin/go build -trimpath -o /tmp/gomad-watchdog-cli ./cmd/gomad` from tools/gomad3; invoke the focused-first.log explore command with its go-run package replaced by that fixture directory and a fresh artifacts root. Clear inherited GOROOT/GOMADSEED/GOMAD3_CHILD_SEED; set GOWORK=off and GOFLAGS=-tags=test_dep. Preserve --execution-timeout=2s, --terminate-grace=100ms, --parallel=1, --on-failure=all and trailing `-- watchdog`. No production correction was attempted in task 8.
+
+Parent identified process_unix.go's unconditional collectedIO.err as a candidate cause; it is not a verified correction. No toolchain rebuild occurred.
+
+The parent created follow-up owner fn-112-gomad-determinism-assurance-and-test.11 (R3/R9, depends on task8) for this independently reproduced defect.

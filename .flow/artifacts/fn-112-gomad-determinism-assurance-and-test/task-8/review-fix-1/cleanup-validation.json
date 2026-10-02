@@ -1,0 +1,8 @@
+{
+  "coordinators_recorded": 40,
+  "remaining_coordinator_pids": [],
+  "owned_descendant_cleanup_receipts": 40,
+  "extra_retained_cli_driver_built": false,
+  "toolchain_rebuilt": false,
+  "git_mutations": false
+}

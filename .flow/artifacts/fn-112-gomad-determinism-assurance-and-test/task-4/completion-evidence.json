@@ -1,0 +1,54 @@
+{
+  "commits": [],
+  "tests": [
+    "./.toolchain/bin/go test -count=1 -tags test_dep . ./choice ./cmd/gomadtool ./cmd/gomad/internal/cli ./qualification ./runner -run 'Diagnostic|CoordinatorTransport|TestPublicPackagesDoNotExportTypeAliases' (exit 0; cwd tools/gomad3; diagnostic-focused-repaired.log)",
+    "env -u GOROOT PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH make -C tools/gomad3 test-host test-runtime (exit 0; cwd .; make-test-host-runtime.log)",
+    "./.toolchain/bin/go vet -tags test_dep ./choice ./runner/... ./qualification/... ./cmd/gomad/internal/cli ./cmd/gomadtool (exit 0; cwd tools/gomad3; focused-vet.log)",
+    "env -u GOROOT PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH make lint-code-fast GOLANGCI_LINT_BASE_REV=HEAD (exit 2; known nested-module discovery limitation, not a clean root lint gate; cwd .; root-lint.log)",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED ./.toolchain/bin/go run ./cmd/gomad qualify --diagnostics --seed=7 --repeat=2 --json --toolchain-root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain --working-dir=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/internal/gomadtool/conformance/testdata --artifacts=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/diagnostic-task4-smoke go-run ./diagnostic_fault (exit 0; cwd tools/gomad3; live-qualify.log)",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED ./.toolchain/bin/go run ./cmd/gomadtool diagnostic-diff --json ../../.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-4/live-fresh-1.bin ../../.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-4/live-fresh-2.bin (exit 0; cwd tools/gomad3; live-diff.log)",
+    "./.toolchain/bin/go test -count=1 -tags test_dep ./qualification -run 'TestDiagnostics(PreserveInterruptedQualificationEvidence|RejectCorruptedSavedReportBindings)' (exit 1; Regression failures before implementation; cwd tools/gomad3; review-repair-red.log)",
+    "./.toolchain/bin/go test -count=1 -tags test_dep ./qualification -run 'Diagnostic' (exit 0; cwd tools/gomad3; review-repair-green.log)",
+    "./.toolchain/bin/go test -count=1 -tags test_dep ./qualification/... ./cmd/gomad/internal/cli ./runner -run 'Diagnostic' (exit 0; cwd tools/gomad3; review-repair-focused.log)",
+    "./.toolchain/bin/go test -count=1 -tags test_dep -overlay=/tmp/gomad-task4-report-off-baseline/overlay.json ./qualification -run TestCaptureOffReportBaseline -v (exit 0; cwd tools/gomad3; report-off-baseline.log)",
+    "env -u GOROOT PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH make -C tools/gomad3 test-host (exit 0; cwd .; review-repair-test-host.log)",
+    "./.toolchain/bin/go vet -tags test_dep ./qualification/... ./cmd/gomad/internal/cli (exit 0; cwd tools/gomad3; review-repair-vet.log)",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED ./.toolchain/bin/go run ./cmd/gomad qualify --diagnostics --seed=7 --repeat=2 --json --toolchain-root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain --working-dir=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/internal/gomadtool/conformance/testdata --artifacts=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/diagnostic-task4-repair-smoke go-run ./diagnostic_fault (exit 0; cwd tools/gomad3; review-repair-live-qualify.log)",
+    "./.toolchain/bin/go run /tmp/gomad-task4-saved-report-repair-probe.go ../../.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-4/review-repair-live-qualified-report.json (exit 0; cwd tools/gomad3; saved-report-probe-after.log)",
+    "git diff --check (exit 0; cwd .)"
+  ],
+  "prs": [],
+  "platform": "darwin/arm64",
+  "linux": "not run",
+  "toolchain_build_key": "6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee",
+  "source_bindings": "worker-repair-source-bindings.json",
+  "runtime_gate_reuse": {
+    "status": "passed_before_report_repair",
+    "log": "make-test-host-runtime.log",
+    "reason": "Repair changed qualification.go and qualification/CLI regression tests only; runtime and launcher paths are unchanged. Full host gate was rerun successfully afterward."
+  },
+  "limitations": [
+    "Linux was not executed.",
+    "Root lint exits 2 because root-module discovery rejects nested Gomad package paths; root-lint.log retained. Focused vet passed."
+  ],
+  "task10_handover": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-4/task10-handover.md",
+  "stages": {
+    "plan-sync": {
+      "status": "skipped",
+      "reason": "config: planSync.enabled != true"
+    },
+    "impl-review": {
+      "status": "ran",
+      "round": 2,
+      "owner": "parent",
+      "model": "gpt-6-astra",
+      "session": "01a0fb96-3eff-7ae0-841f-fa6aa0df54a3",
+      "verdict": "SHIP",
+      "receipt": "review-round2.json",
+      "report": "review-round2.md",
+      "verdict_attempts": 2,
+      "refunds": 0,
+      "effort": "high"
+    }
+  }
+}

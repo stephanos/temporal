@@ -1,0 +1,43 @@
+{
+  "commands": [
+    {
+      "command": "./.toolchain/bin/go test -count=1 -tags test_dep . ./choice ./cmd/gomadtool ./cmd/gomad/internal/cli ./qualification ./runner -run 'Diagnostic|CoordinatorTransport|TestPublicPackagesDoNotExportTypeAliases'",
+      "cwd": "tools/gomad3",
+      "exit_code": 0,
+      "log": "diagnostic-focused-repaired.log"
+    },
+    {
+      "command": "env -u GOROOT PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH make -C tools/gomad3 test-host test-runtime",
+      "cwd": ".",
+      "exit_code": 0,
+      "log": "make-test-host-runtime.log"
+    },
+    {
+      "command": "./.toolchain/bin/go vet -tags test_dep ./choice ./runner/... ./qualification/... ./cmd/gomad/internal/cli ./cmd/gomadtool",
+      "cwd": "tools/gomad3",
+      "exit_code": 0,
+      "log": "focused-vet.log"
+    },
+    {
+      "command": "env -u GOROOT PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH make lint-code-fast GOLANGCI_LINT_BASE_REV=HEAD",
+      "cwd": ".",
+      "exit_code": 2,
+      "log": "root-lint.log",
+      "limitation": "Root module does not contain nested Gomad module packages; existing Error7, 0 issues, does not establish a nested-module lint pass."
+    },
+    {
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED ./.toolchain/bin/go run ./cmd/gomad qualify --diagnostics --seed=7 --repeat=2 --json --toolchain-root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain --working-dir=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/internal/gomadtool/conformance/testdata --artifacts=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/diagnostic-task4-smoke go-run ./diagnostic_fault",
+      "cwd": "tools/gomad3",
+      "exit_code": 0,
+      "log": "live-qualify.log"
+    },
+    {
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED ./.toolchain/bin/go run ./cmd/gomadtool diagnostic-diff --json ../../.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-4/live-fresh-1.bin ../../.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-4/live-fresh-2.bin",
+      "cwd": "tools/gomad3",
+      "exit_code": 0,
+      "log": "live-diff.log"
+    }
+  ],
+  "platform": "darwin/arm64",
+  "linux": "not run"
+}

@@ -1,0 +1,8 @@
+=== RUN   TestDiagnosticIdentityBaselineCapture
+=== RUN   TestDiagnosticIdentityBaselineCapture/plain
+=== RUN   TestDiagnosticIdentityBaselineCapture/choices
+--- PASS: TestDiagnosticIdentityBaselineCapture (0.47s)
+    --- PASS: TestDiagnosticIdentityBaselineCapture/plain (0.24s)
+    --- PASS: TestDiagnosticIdentityBaselineCapture/choices (0.23s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner	0.807s

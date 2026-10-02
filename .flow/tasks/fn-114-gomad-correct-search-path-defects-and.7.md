@@ -4,7 +4,7 @@ satisfies: [R6]
 # fn-114-gomad-correct-search-path-defects-and.7 Stop guided selection from re-running answered corpus seeds and add the regression mode
 
 ## Description
-E1 (R6): a guided campaign schedules no corpus seed whose retained record already answers the execution, and reports how many executions were new. Depends on task 3 (corpus identity and `guidance.go`) and task 6 (CLI parser and Campaign plan), which edit the same files.
+E1 (R6): a guided campaign schedules no corpus seed whose retained record already answers the execution, and reports how many executions were new. Depends on task 3 for corpus identity and `guidance.go`, and task 4 to serialize shared Runner and CLI edits. The approved 2026-10-02 order moves this task before task 6; start-ordinal support is not a functional prerequisite.
 
 **Size:** M
 **Files:** `tools/gomad3/runner/seeds.go`, `seeds_test.go`, `runner.go`, `guidance.go`, `runner_test.go`, `portable_plan.go`, `tools/gomad3/runner/internal/corpus/model.go`, `tools/gomad3/runner/campaign_plan.go`, `tools/gomad3/runner/internal/campaign/resume_plan.go`, `tools/gomad3/cmd/gomad/internal/cli/cli.go`, `explore_output.go`, `cli_test.go`
