@@ -34,6 +34,8 @@ type MinimizeSpec struct {
 	BootstrapCommand  []string
 	Executor          Executor
 	Replayer          ArtifactReplayer
+	// Resume continues from the state an interrupted run left under OutputRoot.
+	Resume bool
 }
 
 type MinimizeResult struct {
@@ -62,6 +64,7 @@ type minimizationSession struct {
 	executor        Executor
 	replayer        ArtifactReplayer
 	temporaryRoot   string
+	workspace       *minimizer.Workspace
 }
 
 type minimizationTrial struct {
@@ -71,7 +74,7 @@ type minimizationTrial struct {
 }
 
 func Minimize(ctx context.Context, config MinimizeSpec) (result MinimizeResult, retErr error) {
-	session, state, err := openMinimizationSession(ctx, config)
+	session, err := openMinimizationSession(ctx, config)
 	if err != nil {
 		return MinimizeResult{}, err
 	}
@@ -81,7 +84,7 @@ func Minimize(ctx context.Context, config MinimizeSpec) (result MinimizeResult, 
 			result = MinimizeResult{}
 		}
 	}()
-	var accepted *minimizationTrial
+	state := session.workspace.Checkpoint().State
 	for {
 		attempt, ok, err := minimizer.Next(state)
 		if err != nil {
@@ -98,52 +101,169 @@ func Minimize(ctx context.Context, config MinimizeSpec) (result MinimizeResult, 
 		if err != nil {
 			return MinimizeResult{}, err
 		}
+		var accepted *minimizer.AcceptedArtifact
 		if trial.accepted {
-			accepted = &trial
+			accepted, err = session.retainAccepted(ctx, trial)
+			if err != nil {
+				return MinimizeResult{}, err
+			}
+		}
+		if err := session.workspace.Commit(state, accepted); err != nil {
+			return MinimizeResult{}, err
 		}
 	}
+	checkpoint := session.workspace.Checkpoint()
 	result = MinimizeResult{
-		Artifact: session.opened.Detached(), Changed: accepted != nil, Attempts: state.Attempts,
+		Artifact: session.opened.Detached(), Changed: checkpoint.Accepted != nil, Attempts: state.Attempts,
 		AttemptBudget: state.AttemptBudget, Accepted: projectMinimizationReductions(state.Accepted), StopReason: string(state.StopReason),
 	}
-	if accepted == nil {
-		return result, nil
+	if checkpoint.Accepted != nil {
+		published, err := session.publishMinimized(ctx, checkpoint)
+		if err != nil {
+			return MinimizeResult{}, err
+		}
+		result.Artifact = published
 	}
-	accepted.input.Manifest.Minimization = minimizationEvidence(session.opened.Manifest, state, accepted.replay)
-	maximumBytes := config.MaximumBytes
+	if err := session.workspace.Complete(); err != nil {
+		return MinimizeResult{}, err
+	}
+	return result, nil
+}
+
+func (session *minimizationSession) retainAccepted(ctx context.Context, trial minimizationTrial) (*minimizer.AcceptedArtifact, error) {
+	retained, err := artifact.PublishArtifact(artifact.Store{
+		Root: session.workspace.AcceptedRoot(), Context: ctx, MaximumBytes: defaultMinimizedArtifactBytes(session.opened.StoredBytes), Key: artifact.StoreKeyRecord,
+	}, trial.input)
+	if err != nil {
+		return nil, fmt.Errorf("retain accepted minimization candidate: %w", err)
+	}
+	return &minimizer.AcceptedArtifact{
+		Directory: filepath.Base(retained.Path), RecordHash: retained.Manifest.RecordHash, ChoiceReplayStatus: trial.replay.ChoiceReplayStatus,
+	}, nil
+}
+
+func (session *minimizationSession) publishMinimized(ctx context.Context, checkpoint minimizer.Checkpoint) (artifact.Artifact, error) {
+	published, err := session.publishedArtifact(ctx, checkpoint)
+	if err != nil {
+		return artifact.Artifact{}, err
+	}
+	finalReplay, err := session.replay(ctx, published.Path)
+	if err != nil {
+		return artifact.Artifact{}, fmt.Errorf("replay minimized artifact: %w", err)
+	}
+	if err := validateMinimizationReplay(published.Manifest, finalReplay); err != nil {
+		return artifact.Artifact{}, err
+	}
+	if published.Manifest.Outcome.FailureSignature != session.opened.Manifest.Outcome.FailureSignature {
+		return artifact.Artifact{}, errors.New("minimized artifact changed the normalized failure signature")
+	}
+	return published, nil
+}
+
+// publishedArtifact publishes the final artifact once: a run that died after
+// publishing finds the publication in its checkpoint and reopens it.
+func (session *minimizationSession) publishedArtifact(ctx context.Context, checkpoint minimizer.Checkpoint) (artifact.Artifact, error) {
+	if reference := checkpoint.Published; reference != nil {
+		published, err := openRetainedMinimizationArtifact(filepath.Join(session.config.OutputRoot, reference.Directory), reference.RecordHash)
+		if err != nil {
+			return artifact.Artifact{}, fmt.Errorf("reopen published minimized artifact: %w", err)
+		}
+		return published.Detached(), published.Close()
+	}
+	input, err := session.acceptedInput(*checkpoint.Accepted)
+	if err != nil {
+		return artifact.Artifact{}, err
+	}
+	input.Manifest.Minimization = minimizationEvidence(session.opened.Manifest, checkpoint.State, checkpoint.Accepted.ChoiceReplayStatus)
+	maximumBytes := session.config.MaximumBytes
 	if maximumBytes == 0 {
 		maximumBytes = defaultMinimizedArtifactBytes(session.opened.StoredBytes)
 	}
 	published, err := artifact.PublishArtifact(artifact.Store{
-		Root: config.OutputRoot, Context: ctx, MaximumBytes: maximumBytes, Key: artifact.StoreKeyRecord,
-	}, accepted.input)
+		Root: session.config.OutputRoot, Context: ctx, MaximumBytes: maximumBytes, Key: artifact.StoreKeyRecord,
+	}, input)
 	if err != nil {
-		return MinimizeResult{}, fmt.Errorf("publish minimized artifact: %w", err)
+		return artifact.Artifact{}, fmt.Errorf("publish minimized artifact: %w", err)
 	}
-	finalReplay, err := session.replay(ctx, published.Path)
-	if err != nil {
-		return MinimizeResult{}, fmt.Errorf("replay minimized artifact: %w", err)
+	if err := session.workspace.RecordPublication(minimizer.PublishedArtifact{
+		Directory: filepath.Base(published.Path), RecordHash: published.Manifest.RecordHash,
+	}); err != nil {
+		return artifact.Artifact{}, err
 	}
-	if err := validateMinimizationReplay(published.Manifest, finalReplay); err != nil {
-		return MinimizeResult{}, err
-	}
-	if published.Manifest.Outcome.FailureSignature != session.opened.Manifest.Outcome.FailureSignature {
-		return MinimizeResult{}, errors.New("minimized artifact changed the normalized failure signature")
-	}
-	result.Artifact = published
-	return result, nil
+	return published, nil
 }
 
-func openMinimizationSession(ctx context.Context, config MinimizeSpec) (_ *minimizationSession, state minimizer.State, retErr error) {
+// acceptedInput rebuilds the publication input of the last accepted candidate
+// from its retained artifact, so an uninterrupted and a resumed run publish
+// from the same bytes.
+func (session *minimizationSession) acceptedInput(reference minimizer.AcceptedArtifact) (_ artifact.ArtifactInput, retErr error) {
+	accepted, err := openRetainedMinimizationArtifact(filepath.Join(session.workspace.AcceptedRoot(), reference.Directory), reference.RecordHash)
+	if err != nil {
+		return artifact.ArtifactInput{}, fmt.Errorf("open accepted minimization artifact: %w", err)
+	}
+	defer func() {
+		retErr = errors.Join(retErr, accepted.Close())
+	}()
+	manifest := accepted.Manifest
+	if manifest.Outcome.FailureSignature != session.opened.Manifest.Outcome.FailureSignature || manifest.SimulationProfile == nil {
+		return artifact.ArtifactInput{}, errors.New("accepted minimization artifact does not reproduce the parent failure")
+	}
+	input := artifact.ArtifactInput{Manifest: manifest, TargetPath: session.prepared.Path, ReadOnlyMounts: session.mountArtifact, Simulation: &artifact.SimulationPayloads{}}
+	payloads := map[string]*[]byte{
+		manifest.Streams.Stdout.File:           &input.Stdout,
+		manifest.Streams.Stderr.File:           &input.Stderr,
+		manifest.SimulationProfile.Plan.File:   &input.Simulation.Plan,
+		manifest.SimulationProfile.Record.File: &input.Simulation.Record,
+	}
+	if transcript := manifest.IOProfile.Transcript; transcript != nil {
+		payloads[transcript.File] = &input.IOTranscript
+	}
+	if choices := manifest.ChoiceProfile; choices != nil {
+		payloads[choices.Trace.File] = &input.ChoiceTrace
+	}
+	for file, destination := range payloads {
+		*destination, err = readRetainedMinimizationPayload(accepted, file)
+		if err != nil {
+			return artifact.ArtifactInput{}, fmt.Errorf("read accepted minimization artifact: %w", err)
+		}
+	}
+	input.World, err = readWorldPayloads(accepted)
+	if err != nil {
+		return artifact.ArtifactInput{}, fmt.Errorf("read accepted minimization artifact: %w", err)
+	}
+	return input, nil
+}
+
+func openRetainedMinimizationArtifact(path string, recordHash record.SHA256) (artifact.Artifact, error) {
+	opened, err := artifact.OpenArtifact(path)
+	if err != nil {
+		return artifact.Artifact{}, err
+	}
+	if opened.Manifest.RecordHash != recordHash {
+		return artifact.Artifact{}, errors.Join(errors.New("artifact record hash does not match the minimizer state"), opened.Close())
+	}
+	return opened, nil
+}
+
+func readRetainedMinimizationPayload(opened artifact.Artifact, file string) ([]byte, error) {
+	for _, listed := range opened.Manifest.Files {
+		if listed.Path == file {
+			return artifact.ReadPayload(opened, file, uint64(listed.Size))
+		}
+	}
+	return nil, fmt.Errorf("artifact payload %q is not listed", file)
+}
+
+func openMinimizationSession(ctx context.Context, config MinimizeSpec) (_ *minimizationSession, retErr error) {
 	if config.OutputRoot == "" {
-		return nil, minimizer.State{}, errors.New("minimized artifact output root is required")
+		return nil, errors.New("minimized artifact output root is required")
 	}
 	if config.AttemptBudget == 0 || config.AttemptBudget > maximumMinimizationAttempts {
-		return nil, minimizer.State{}, fmt.Errorf("minimization attempt budget must be between 1 and %d", maximumMinimizationAttempts)
+		return nil, fmt.Errorf("minimization attempt budget must be between 1 and %d", maximumMinimizationAttempts)
 	}
 	opened, err := preflight(ReplaySpec{ArtifactPath: config.ArtifactPath, ToolchainRoot: config.ToolchainRoot})
 	if err != nil {
-		return nil, minimizer.State{}, &ReplayPreflightError{Err: err}
+		return nil, &ReplayPreflightError{Err: err}
 	}
 	session := &minimizationSession{config: config, opened: opened, profile: deterministicio.Default()}
 	defer func() {
@@ -153,37 +273,48 @@ func openMinimizationSession(ctx context.Context, config MinimizeSpec) (_ *minim
 	}()
 	manifest := opened.Manifest
 	if manifest.ArtifactKind != record.ArtifactTargetFailure || manifest.ReplayMode != record.ReplayExact || manifest.SimulationProfile == nil || manifest.SimulationProfile.FailureSHA256 == "" {
-		return nil, minimizer.State{}, errors.New("minimization requires an exact simulation target-failure artifact")
+		return nil, errors.New("minimization requires an exact simulation target-failure artifact")
 	}
 	choiceCapability, unavailable, err := choiceCapabilityForArtifact(opened)
 	if err != nil {
-		return nil, minimizer.State{}, err
+		return nil, err
 	}
 	if unavailable {
-		return nil, minimizer.State{}, errors.New("minimization requires an exact retained choice tape")
+		return nil, errors.New("minimization requires an exact retained choice tape")
 	}
 	if choiceCapability == nil {
-		return nil, minimizer.State{}, errors.New("minimization requires an exact retained choice tape")
+		return nil, errors.New("minimization requires an exact retained choice tape")
 	}
 	session.choiceIdentity = choiceCapability.ExecutionIdentity
 	tape := *choiceCapability.ReplayPlan
 	session.exactChoiceTape = &tape
 	plan, err := artifact.ReadPayload(opened, manifest.SimulationProfile.Plan.File, uint64(manifest.SimulationProfile.Plan.Bytes))
 	if err != nil {
-		return nil, minimizer.State{}, fmt.Errorf("read minimization simulation plan: %w", err)
+		return nil, fmt.Errorf("read minimization simulation plan: %w", err)
 	}
 	explorationConfig, candidate, err := simulationrecord.CandidateForArtifact(*manifest.SimulationProfile, plan, session.exactChoiceTape)
 	if err != nil {
-		return nil, minimizer.State{}, fmt.Errorf("reconstruct minimization candidate: %w", err)
+		return nil, fmt.Errorf("reconstruct minimization candidate: %w", err)
 	}
-	state, err = minimizer.New(explorationConfig, candidate, config.AttemptBudget)
+	initial, err := minimizer.New(explorationConfig, candidate, config.AttemptBudget)
 	if err != nil {
-		return nil, minimizer.State{}, err
+		return nil, err
 	}
 	if err := session.prepareWorkspace(); err != nil {
-		return nil, minimizer.State{}, err
+		return nil, err
 	}
-	return session, state, nil
+	session.workspace, err = minimizer.OpenWorkspace(ctx, config.OutputRoot, minimizer.Binding{
+		ParentRecordHash: manifest.RecordHash, ImplementationSHA256: minimizer.ImplementationSHA256(), ToolchainBuildKey: manifest.Toolchain.BuildKey,
+	}, initial, config.Resume)
+	if err != nil {
+		return nil, err
+	}
+	if accepted := session.workspace.Checkpoint().Accepted; accepted != nil {
+		if _, err := session.acceptedInput(*accepted); err != nil {
+			return nil, err
+		}
+	}
+	return session, nil
 }
 
 func (session *minimizationSession) prepareWorkspace() error {
@@ -440,10 +571,10 @@ func sameReplayOutcome(left, right record.Outcome) bool {
 	return left.Domain == right.Domain && left.Reason == right.Reason && left.Termination == right.Termination
 }
 
-func minimizationEvidence(parent record.ExecutionRecord, state minimizer.State, replay ReplayResult) *record.Minimization {
+func minimizationEvidence(parent record.ExecutionRecord, state minimizer.State, acceptedChoiceReplayStatus string) *record.Minimization {
 	choiceReplay := "not_present"
 	if parent.ChoiceProfile != nil {
-		choiceReplay = replay.ChoiceReplayStatus
+		choiceReplay = acceptedChoiceReplayStatus
 	}
 	return &record.Minimization{
 		Schema: "gomad3.minimization/v1", ImplementationSHA256: minimizer.ImplementationSHA256(),
@@ -454,7 +585,7 @@ func minimizationEvidence(parent record.ExecutionRecord, state minimizer.State, 
 		Accepted: projectMinimizationReductions(state.Accepted),
 		Predicate: record.MinimizationPredicate{
 			FailureSignature: parent.Outcome.FailureSignature, Domain: parent.Outcome.Domain, Reason: parent.Outcome.Reason,
-			Termination: parent.Outcome.Termination, ReplayMatch: replay.Match,
+			Termination: parent.Outcome.Termination, ReplayMatch: true,
 			ChoiceReplay: choiceReplay, SimulationReplay: "exact",
 		},
 	}
@@ -494,5 +625,5 @@ func (session *minimizationSession) close() error {
 		err = errors.Join(err, os.RemoveAll(session.workDirectory))
 		session.workDirectory = ""
 	}
-	return err
+	return errors.Join(err, session.workspace.Close())
 }

@@ -1339,6 +1339,34 @@ func TestRunMinimizeUsesBoundedArtifactStoreAndCurrentInstallation(t *testing.T)
 	}
 }
 
+func TestRunMinimizeResumesOnlyOnRequest(t *testing.T) {
+	for _, test := range []struct {
+		name      string
+		arguments []string
+		want      bool
+	}{
+		{name: "initial run", arguments: []string{"/failure"}},
+		{name: "resume", arguments: []string{"--resume", "/failure"}, want: true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var observed runner.MinimizeSpec
+			dependencies := minimizeDependencies{
+				identity: func(string) (string, string, string, error) {
+					return "/toolchain", "/bin/gomad", "runner", nil
+				},
+				minimize: func(_ context.Context, config runner.MinimizeSpec) (runner.MinimizeResult, error) {
+					observed = config
+					return runner.MinimizeResult{}, nil
+				},
+			}
+			var stdout, stderr bytes.Buffer
+			if status := runMinimizeWith(test.arguments, &stdout, &stderr, dependencies); status != 0 || observed.Resume != test.want {
+				t.Fatalf("status=%d resume=%t stderr=%q", status, observed.Resume, stderr.String())
+			}
+		})
+	}
+}
+
 func TestRunQualifySetPassesShardToTheSet(t *testing.T) {
 	threeSuites := func(string) (qualificationset.Manifest, error) {
 		return qualificationset.Manifest{Schema: qualificationset.ManifestSchema, Name: "test-set", Suites: []qualificationset.Workload{{ID: "a"}, {ID: "b"}, {ID: "c"}}}, nil
