@@ -117,16 +117,24 @@ func (campaign *runtimeCampaign) runChoice(name, fixture, seed string, tape *cho
 }
 
 func (campaign *runtimeCampaign) runChoiceMode(name, fixture, seed string, tape *choice.ReplayPlan, mode choice.Mode, wantExit int, fixtureArgs ...string) (choiceRun, error) {
+	run, _, err := campaign.runChoiceAccepting(name, fixture, seed, tape, mode, wantExit, nil, fixtureArgs...)
+	return run, err
+}
+
+// runChoiceAccepting also passes the statuses in acceptExits and reports the
+// status observed, for an experiment whose outcome is evidence rather than a
+// requirement.
+func (campaign *runtimeCampaign) runChoiceAccepting(name, fixture, seed string, tape *choice.ReplayPlan, mode choice.Mode, wantExit int, acceptExits []int, fixtureArgs ...string) (choiceRun, int, error) {
 	directory := filepath.Join(campaign.workspace, name)
 	if err := os.Mkdir(directory, 0o700); err != nil {
-		return choiceRun{}, fmt.Errorf("create choice trace directory: %w", err)
+		return choiceRun{}, 0, fmt.Errorf("create choice trace directory: %w", err)
 	}
 	tracePath, terminalPath := filepath.Join(directory, "trace"), filepath.Join(directory, "terminal")
 	if err := os.WriteFile(tracePath, choiceTraceBacking(choiceTraceBytes), 0o600); err != nil {
-		return choiceRun{}, fmt.Errorf("write choice trace backing: %w", err)
+		return choiceRun{}, 0, fmt.Errorf("write choice trace backing: %w", err)
 	}
 	if err := os.Truncate(tracePath, choiceTraceBytes); err != nil {
-		return choiceRun{}, fmt.Errorf("size choice trace backing: %w", err)
+		return choiceRun{}, 0, fmt.Errorf("size choice trace backing: %w", err)
 	}
 	script, arguments := `exec "$0" 3<>"$1" 4>"$2"`, []string{fixture, tracePath, terminalPath}
 	values := []string{
@@ -136,7 +144,7 @@ func (campaign *runtimeCampaign) runChoiceMode(name, fixture, seed string, tape 
 	if tape != nil {
 		tapePath := filepath.Join(directory, "tape")
 		if err := os.WriteFile(tapePath, tape.Bytes, 0o400); err != nil {
-			return choiceRun{}, fmt.Errorf("write choice tape: %w", err)
+			return choiceRun{}, 0, fmt.Errorf("write choice tape: %w", err)
 		}
 		script, arguments = script+` 5<"$3"`, append(arguments, tapePath)
 		values = append(values, "GOMAD3_CHOICE_TAPE_FD=5", "GOMAD3_CHOICE_TAPE_BYTES="+strconv.Itoa(len(tape.Bytes)))
@@ -146,34 +154,34 @@ func (campaign *runtimeCampaign) runChoiceMode(name, fixture, seed string, tape 
 		script += fmt.Sprintf(` "${%d}"`, len(arguments)+index)
 	}
 	arguments = append(arguments, fixtureArgs...)
-	result, err := campaign.runCase(runtimeCase{name: name, wantExit: wantExit, request: campaign.request(
+	result, err := campaign.runCase(runtimeCase{name: name, wantExit: wantExit, acceptExits: acceptExits, request: campaign.request(
 		append([]string{"/bin/sh", "-c", script}, arguments...), campaign.testdata, 10*time.Second,
 		[]string{"GOMADSEED", "GOMAD3_IO_PROFILE", "GOMAD3_CHOICE_TRACE_FD", "GOMAD3_CHOICE_TERMINAL_FD", "GOMAD3_CHOICE_TRACE_BYTES", "GOMAD3_CHOICE_MODE", "GOMAD3_CHOICE_TAPE_FD", "GOMAD3_CHOICE_TAPE_BYTES"},
 		values...,
 	)})
 	if err != nil {
-		return choiceRun{}, err
+		return choiceRun{}, result.ExitCode, err
 	}
 	backing, err := os.ReadFile(tracePath)
 	if err != nil {
-		return choiceRun{}, fmt.Errorf("read choice trace backing: %w", err)
+		return choiceRun{}, result.ExitCode, fmt.Errorf("read choice trace backing: %w", err)
 	}
 	terminal, err := os.ReadFile(terminalPath)
 	if err != nil {
-		return choiceRun{}, fmt.Errorf("read choice terminal frame: %w", err)
+		return choiceRun{}, result.ExitCode, fmt.Errorf("read choice terminal frame: %w", err)
 	}
 	if len(backing) != choiceTraceBytes {
-		return choiceRun{}, fmt.Errorf("%s resized its choice trace backing to %d bytes", name, len(backing))
+		return choiceRun{}, result.ExitCode, fmt.Errorf("%s resized its choice trace backing to %d bytes", name, len(backing))
 	}
 	next := binary.BigEndian.Uint64(backing[choiceTraceNextOffset : choiceTraceNextOffset+8])
 	if next < choiceTraceHeaderBytes || next > choiceTraceBytes {
-		return choiceRun{}, fmt.Errorf("%s published choice trace offset %d", name, next)
+		return choiceRun{}, result.ExitCode, fmt.Errorf("%s published choice trace offset %d", name, next)
 	}
 	trace, err := choice.DecodeTrace(backing[choiceTraceHeaderBytes:next], terminal, choiceTraceBytes)
-	if err != nil && !(wantExit == 125 && errors.Is(err, choice.ErrDiverged)) {
-		return choiceRun{}, fmt.Errorf("decode %s choice trace: %w", name, err)
+	if err != nil && !(result.ExitCode == 125 && errors.Is(err, choice.ErrDiverged)) {
+		return choiceRun{}, result.ExitCode, fmt.Errorf("decode %s choice trace: %w", name, err)
 	}
-	return choiceRun{transcript: commandOutput(result), trace: trace, terminal: terminal}, nil
+	return choiceRun{transcript: commandOutput(result), trace: trace, terminal: terminal}, result.ExitCode, nil
 }
 
 // choiceTraceBacking builds the empty v2 trace header the runtime maps: the

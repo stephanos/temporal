@@ -24,6 +24,7 @@ type runtimeCase struct {
 	name        string
 	request     hostexec.Request
 	wantExit    int
+	acceptExits []int // further statuses that pass, for an experiment whose outcome is evidence
 	wantTimeout bool
 	oracle      func(hostexec.Result) error
 }
@@ -78,8 +79,9 @@ func (campaign *runtimeCampaign) finishCase(planned runtimeCase, result hostexec
 	if planned.wantTimeout {
 		caseResult.Passed = runErr == nil && result.WatchdogTimeout && !caseResult.Truncated
 	} else {
+		exitAccepted := result.ExitCode == planned.wantExit || slices.Contains(planned.acceptExits, result.ExitCode)
 		caseResult.Passed = runErr == nil && !result.WatchdogTimeout && !caseResult.Signaled &&
-			result.Termination == hostexec.TerminationExit && result.ExitCode == planned.wantExit && !caseResult.Truncated
+			result.Termination == hostexec.TerminationExit && exitAccepted && !caseResult.Truncated
 	}
 	if caseResult.Passed && planned.oracle != nil {
 		if oracleErr := planned.oracle(result); oracleErr != nil {

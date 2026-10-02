@@ -52,6 +52,17 @@ var gomadChoiceRunqRandom chacha8rand.State
 var gomadChoiceSchedulerRandom chacha8rand.State
 var gomadChoiceSelectRandom uint64
 
+// A timer function runs on the scheduler's stack, so a goroutine it starts has
+// no identified parent. The slot names the timer whose function is running on
+// this M, and a callback goroutine takes its identity from that timer's
+// creator through it. One P runs timers, so one slot suffices.
+var gomadChoiceTimerCallback gomadChoiceTimerIdentity
+
+type gomadChoiceTimerIdentity struct {
+	creator [32]byte
+	firing  uint64
+}
+
 var gomadDiagnosticEnabled bool
 var gomadDiagnosticMapping unsafe.Pointer
 var gomadDiagnosticMappingBytes uint64
@@ -880,11 +891,13 @@ func gomadChoicePublishTerminal(state, reason uint8, expected, observed *gomadCh
 
 func gomadChoiceRootIdentity(gp *g) {
 	gp.gomadChildOrdinal = 0
+	gp.gomadTimerOrdinal = 0
 	gp.gomadIdentity = gomadChoiceHash([]byte("gomad3-choice-goroutine-root/v1"))
 }
 
 func gomadChoiceAssignGoroutineIdentity(newg, parent *g, pc uintptr) {
 	newg.gomadChildOrdinal = 0
+	newg.gomadTimerOrdinal = 0
 	var hasher gomadChoiceHasher
 	hasher.init()
 	if parent != nil && !gomadChoiceZero(parent.gomadIdentity[:]) {
@@ -899,6 +912,12 @@ func gomadChoiceAssignGoroutineIdentity(newg, parent *g, pc uintptr) {
 		encoded[0] = flags
 		gomadChoicePut64(encoded[1:], site)
 		hasher.write(encoded[:])
+	} else if !gomadChoiceZero(gomadChoiceTimerCallback.creator[:]) {
+		hasher.write([]byte("gomad3-choice-goroutine-timer/v1"))
+		hasher.write(gomadChoiceTimerCallback.creator[:])
+		var firing [8]byte
+		gomadChoicePut64(firing[:], gomadChoiceTimerCallback.firing)
+		hasher.write(firing[:])
 	} else {
 		hasher.write([]byte("gomad3-choice-goroutine-runtime/v1"))
 		var ordinal [8]byte
@@ -909,6 +928,50 @@ func gomadChoiceAssignGoroutineIdentity(newg, parent *g, pc uintptr) {
 	if live := uint32(gcount(false)); live > gomadChoicePeakGoroutines {
 		gomadChoicePeakGoroutines = live
 	}
+}
+
+// gomadChoiceTimerCreated binds a timer to the goroutine creating it: that
+// goroutine's identity, a timer ordinal taken from it, and the creation site.
+// The timer ordinal is separate from the child ordinal, so creating a timer
+// leaves the identities of the creator's later children unchanged. A timer
+// created with no identified goroutine keeps a zero creator, and the
+// goroutines its callbacks start stay on the runtime ordinal path.
+func gomadChoiceTimerCreated(t *timer, pc uintptr) {
+	gp := getg()
+	if gomadChoiceZero(gp.gomadIdentity[:]) {
+		return
+	}
+	gp.gomadTimerOrdinal++
+	var hasher gomadChoiceHasher
+	hasher.init()
+	hasher.write([]byte("gomad3-choice-timer/v1"))
+	hasher.write(gp.gomadIdentity[:])
+	var ordinal [8]byte
+	gomadChoicePut64(ordinal[:], gp.gomadTimerOrdinal)
+	hasher.write(ordinal[:])
+	site, flags := gomadChoiceSite(pc)
+	var encoded [9]byte
+	encoded[0] = flags
+	gomadChoicePut64(encoded[1:], site)
+	hasher.write(encoded[:])
+	t.gomadCreator = hasher.sum()
+}
+
+// gomadChoiceTimerFire counts the firing while the caller holds t.mu and
+// publishes the timer for the goroutines its function starts; the firing
+// ordinal keeps the callbacks of a timer that is reset after firing apart.
+// It returns the slot's previous value for gomadChoiceTimerFired to restore.
+func gomadChoiceTimerFire(t *timer) gomadChoiceTimerIdentity {
+	previous := gomadChoiceTimerCallback
+	if gomadChoiceEnabled {
+		t.gomadFirings++
+		gomadChoiceTimerCallback = gomadChoiceTimerIdentity{creator: t.gomadCreator, firing: t.gomadFirings}
+	}
+	return previous
+}
+
+func gomadChoiceTimerFired(previous gomadChoiceTimerIdentity) {
+	gomadChoiceTimerCallback = previous
 }
 
 // The run-queue choice runs on the system stack, which Linux sizes at 16 KiB
