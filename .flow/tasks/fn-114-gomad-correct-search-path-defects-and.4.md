@@ -48,9 +48,14 @@ C3 (R4): a forced prefix that diverges becomes a typed candidate result that the
 - [ ] A journal with the previous segment schema is rejected visibly on resume
 - [ ] `go -C tools/gomad3 test -tags test_dep ./runner/... ./cmd/gomad/...` and `make -C tools/gomad3 validate` pass
 ## Done summary
-TBD
+Implemented fn-114.4 (R4): retain validated forced-prefix replay divergence, commit completed siblings, honor first/budget/all policies, preserve HostError boundaries, and validate retained evidence on inspection and resume. Divergence does not invent an outcome, failure signature, trace, or children. Schema/controller identity changed; older segments fail visibly.
 
+The 45-package full host gate passed on darwin/arm64 in 173.2 seconds, with validate, focused vet, architecture, formatting, and source whitespace checks. The independent review found an observation-boundary gap; two regressions reproduced it, and the fix plus divergence/architecture checks passed in 6.13 seconds. Details: handover-summary.md and review-fix-summary.md. Linux remains unverified; root lint has the documented missing-main/nested-module discovery limitations.
+
+Independent re-review: SHIP, gpt-6-astra high, 2026-10-02T15:17:40.806229Z, session 01a0fd25-c019-7121-af47-bb64c0979f8d. No remaining findings. Implementation commit: e153d05a76083b797525eca6bb685c78f5b623be.
+
+stage: implementation review complete; plan-sync skipped (disabled); tracker sync inactive; sequential shared checkout (worktrees prohibited).
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e153d05a76083b797525eca6bb685c78f5b623be
+- Tests: GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host (before two-file review fix; PASS 173.2s), make -C tools/gomad3 validate (PASS before review fix), review-fix-tests.json: focused divergence and architecture checks (PASS 6.13s), git diff --cached --check -- tools/gomad3 MILESTONES.md .flow/tasks .flow/specs (PASS)
 - PRs:

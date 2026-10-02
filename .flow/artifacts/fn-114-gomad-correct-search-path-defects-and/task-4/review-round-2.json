@@ -1,0 +1,45 @@
+{
+  "type": "impl_review",
+  "id": "branch",
+  "mode": "codex",
+  "base": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+  "verdict": "SHIP",
+  "session_id": "01a0fd25-c019-7121-af47-bb64c0979f8d",
+  "model": "gpt-6-astra",
+  "effort": "high",
+  "spec": "codex:gpt-6-astra:high",
+  "timestamp": "2026-10-02T15:17:40.806229Z",
+  "review": "Prior finding: fixed\n\n`ValidateCandidateDivergence` now requires an ordinal inside the forced prefix and non-nil expected evidence. Existing validation matches that evidence to the actual prefix. Runner classification, commit, and replay all use this validation.\n\nBoth boundary regressions failed before the fix. The supplied focused tests and architecture check passed afterward in 6.13 seconds. Current source hashes match the review-fix bindings. No tests were rerun.\n\nNo surviving findings or new blockers.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R4 | met | The prefix-binding gap is closed; previously reviewed retention, reporting, policy, and resume behavior remains covered. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "focus": "Re-review only the one actionable finding from the preceding task4 review. Committed fix requires divergence.Ordinal < candidate.ForcedDepth and nonnil Expected in ValidateCandidateDivergence; existing validator matches Expected to the actual prefix. Two regression cases at and beyond prefix boundary failed before and pass after. Read task-4/review-fix-summary.md, review-fix-tests.json and log, review-fix-source-hashes.json, review-fix-task.patch in .flow/artifacts/fn-114-gomad-correct-search-path-defects-and/. Previous full host gate remains evidence for unchanged paths; scoped fix tests and architecture PASS 6.13s. No unrelated HEAD-diff review, no broad tests, no writes. Prior artifact hashes deliberately remain historical; review-fix files bind final source. Confirm finding resolved and report actual verdict.",
+  "introduced_count": 0,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "findings": {
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-988aec8c3ed49f744f8d4c7351afc47adf05aa53ca229a480145399e11cae51e",
+    "reviewKind": "implementation",
+    "backend": "codex",
+    "round": 2,
+    "baseSha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+    "headSha": "e153d05a76083b797525eca6bb685c78f5b623be",
+    "supersedesReceiptId": "review-def8398726107d74ce29ceed244467d928570f5f2edaeeebb731c858041fb96e",
+    "items": [
+      {
+        "id": "finding-897087344e84520988dc9a09622a62ae",
+        "ordinal": 1,
+        "severity": "P2",
+        "confidence": 75,
+        "classification": "introduced",
+        "status": "fixed",
+        "title": "`DivergenceObservation` can bypass forced-prefix binding",
+        "body": "`DivergenceObservation` can bypass forced-prefix binding. For a one-decision prefix, evidence with `Ordinal=1`, `TapeRecords=1`, `Expected=nil`, and a valid observed decision at ordinal 1 passes validation. The delegated terminal validator allows ordinals beyond the tape in prefix mode and requires only an observed record for this reason. A custom executor returning that evidence therefore gets a committed divergence with no evidence matching the candidate\u2019s forced decision. Under `budget` or `all`, exploration continues instead of preserving the HostError boundary; resume accepts the same evidence.",
+        "rIds": [
+          "R4"
+        ],
+        "suggestion": "Require retained divergence evidence to reference an ordinal within the forced prefix and include its matching expected decision. Add regression cases for observation divergence at and beyond the prefix boundary.",
+        "firstSeenReceiptId": "review-def8398726107d74ce29ceed244467d928570f5f2edaeeebb731c858041fb96e",
+        "lastSeenReceiptId": "review-988aec8c3ed49f744f8d4c7351afc47adf05aa53ca229a480145399e11cae51e"
+      }
+    ]
+  }
+}
