@@ -13,12 +13,55 @@
   "focused_command": "runner.test -test.run '^TestWatchdogDiagnosticReplayUsesCapturedInputs$' -test.count=1 -test.v, run from tools/gomad3/runner; the binary is built once with .toolchain/bin/go test -tags test_dep -c ./runner",
   "load": "N `yes > /dev/null` processes started and stopped by the run script by recorded pid; none left afterwards (pgrep -x yes: 0)",
   "focused_runs": [
-    {"test": "old (f55cf10c7)", "load_processes": 0, "host_load_average": "13 to 20 from other sessions", "runs": 40, "failed": 0},
-    {"test": "old (f55cf10c7)", "load_processes": 16, "host_load_average": 32, "runs": 40, "failed": 1, "failure": "fixture, line 22, empty stdout"},
-    {"test": "old (f55cf10c7)", "load_processes": 64, "host_load_average": 63, "runs": 20, "failed": 1, "failure": "fixture, line 22, empty stdout"},
-    {"test": "new (25330890b)", "load_processes": 16, "host_load_average": "24 to 26", "runs": 100, "failed": 0, "repeated_under_a_longer_timeout": 0},
-    {"test": "new (25330890b)", "load_processes": 32, "host_load_average": "45 to 49", "runs": 100, "failed": 0, "repeated_under_a_longer_timeout": 4, "detail": "recovered-preemptions.txt"},
-    {"test": "new (25330890b)", "load_processes": 64, "host_load_average": 75, "runs": 20, "failed": 1, "repeated_under_a_longer_timeout": 4, "failure": "residual-64-load.txt: execution.Run returned 'supervisor protocol requires exactly started then final reports'"}
+    {
+      "test": "old (f55cf10c7)",
+      "load_processes": 0,
+      "host_load_average": "13 to 20 from other sessions",
+      "runs": 40,
+      "failed": 0
+    },
+    {
+      "test": "old (f55cf10c7)",
+      "load_processes": 16,
+      "host_load_average": 32,
+      "runs": 40,
+      "failed": 1,
+      "failure": "fixture, line 22, empty stdout"
+    },
+    {
+      "test": "old (f55cf10c7)",
+      "load_processes": 64,
+      "host_load_average": 63,
+      "runs": 20,
+      "failed": 1,
+      "failure": "fixture, line 22, empty stdout"
+    },
+    {
+      "test": "new (25330890b)",
+      "load_processes": 16,
+      "host_load_average": "24 to 26",
+      "runs": 100,
+      "failed": 0,
+      "repeated_under_a_longer_timeout": 0
+    },
+    {
+      "test": "new (25330890b)",
+      "load_processes": 32,
+      "host_load_average": "45 to 49",
+      "runs": 100,
+      "failed": 0,
+      "repeated_under_a_longer_timeout": 4,
+      "detail": "recovered-preemptions.txt"
+    },
+    {
+      "test": "new (25330890b)",
+      "load_processes": 64,
+      "host_load_average": 75,
+      "runs": 20,
+      "failed": 1,
+      "repeated_under_a_longer_timeout": 4,
+      "failure": "residual-64-load.txt: execution.Run returned 'supervisor protocol requires exactly started then final reports'"
+    }
   ],
   "forced_escalation": {
     "file": "forced-escalation.txt",
@@ -36,8 +79,14 @@
     "toolchain_build_key": "245141dc288328269b6fc164034c6d74b87c525e5d3c4756d3b82a3fcde40d52",
     "receipt": ".flow/tmp/green-receipts/25330890-unittest.json"
   },
-  "vet": {"command": ".toolchain/bin/go vet -tags test_dep ./runner", "exit_code": 0},
-  "gofmt": {"command": "gofmt -l runner/watchdog_replay_test.go", "files_listed": 0},
+  "vet": {
+    "command": ".toolchain/bin/go vet -tags test_dep ./runner",
+    "exit_code": 0
+  },
+  "gofmt": {
+    "command": "gofmt -l runner/watchdog_replay_test.go",
+    "files_listed": 0
+  },
   "residual": {
     "what": "At 64 load processes on 8 CPUs, 1 of 20 runs of the new test failed with a different signature: execution.Run returned an untyped error because the supervisor did not deliver its started and final reports inside the 1 s deadline. The old test makes the same call with the same deadline, so this is not introduced here; it was not seen in the old test's 100 runs. It did not occur in 200 runs at 16 and 32 load processes.",
     "why_not_handled": "The error carries no type, so the test could only repeat on any error or match its text, and either would hide a real execution failure. Separating 'the deadline passed before the supervisor finished' from other protocol failures is a product change in runner/internal/execution."
@@ -49,5 +98,19 @@
     "linux/amd64 (no native host)",
     "make -C tools/gomad3 validate as a separate command (test-host runs the generator and patch checks shown at the top of its log; only a test file changed)",
     "root make lint-code-fast (cannot typecheck the nested module, as recorded by task 8)"
-  ]
+  ],
+  "review": {
+    "verdict": "SHIP",
+    "round": 1,
+    "backend": "claude:claude-fable-5-1:high",
+    "family_note": "same model family as the writer; the reviewer had no shell and read the diff and this evidence",
+    "receipt": "impl-review-receipt.json",
+    "open_p3": [
+      "watchdog_replay_test.go: the fixture and the replay helper each carry their own escalation loop and empty-output predicate; the replay retry depends on replayDivergence reporting stdout.full_sha256 for an empty-output watchdog run"
+    ]
+  },
+  "verify": {
+    "classify": "FULL (tools/gomad3/runner/watchdog_replay_test.go)",
+    "full_gate": "the run recorded above at 25330890b; later commits change only .flow files, and `flowctl gate check` honors receipt 25330890 at HEAD"
+  }
 }

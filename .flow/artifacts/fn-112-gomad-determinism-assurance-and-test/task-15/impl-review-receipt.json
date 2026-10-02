@@ -1,0 +1,74 @@
+{
+  "base": "f55cf10c7a8c3ed38e42c03946feaa81ccd8fcfd",
+  "effort": "high",
+  "findings": {
+    "backend": "claude",
+    "baseSha": "f55cf10c7a8c3ed38e42c03946feaa81ccd8fcfd",
+    "headSha": "134369ef6e891ed89c2f1748997028598511e7fa",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "f55cf10c7a8c3ed38e42c03946feaa81ccd8fcfd",
+          "endLine": 263,
+          "headSha": "134369ef6e891ed89c2f1748997028598511e7fa",
+          "path": "tools/gomad3/runner/watchdog_replay_test.go",
+          "side": "head",
+          "startLine": 254
+        },
+        "body": "At 64 load processes on 8 CPUs, 1 of 20 runs failed with `execution.Run` returning the untyped error `supervisor protocol requires exactly started then final reports` (retained in `residual-64-load.txt`). The deadline-before-reports path in `runner/internal/execution` is not distinguishable from a real protocol failure, so neither this test nor any caller can handle it. This is on base and the artifact correctly explains why it is not retried here. Worth a follow-up task to give that failure a typed error.",
+        "classification": "pre_existing",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-87869f6650e6c4524d949bd30ddfe747a84e8365d4633b4b5ab4848bfc0ea70b",
+        "id": "finding-820e8dcc2cd5c33fbdd075523def980d",
+        "lastSeenReceiptId": "review-87869f6650e6c4524d949bd30ddfe747a84e8365d4633b4b5ab4848bfc0ea70b",
+        "ordinal": 2,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "title": "At 64 load processes on 8 CPUs, 1 of 20 runs failed with `execution"
+      },
+      {
+        "anchor": {
+          "baseSha": "f55cf10c7a8c3ed38e42c03946feaa81ccd8fcfd",
+          "endLine": 268,
+          "headSha": "134369ef6e891ed89c2f1748997028598511e7fa",
+          "path": "tools/gomad3/runner/watchdog_replay_test.go:186-205` and `",
+          "side": "head",
+          "startLine": 253
+        },
+        "body": "Duplicated Code. The fixture and the replay helper each implement the same escalation ladder with their own \"watchdog fired and stdout empty\" predicate (`observed.Stdout.TotalBytes != 0` in one, a file read of `ObservedDir/stdout` in the other) and their own log line. The two detection predicates can drift independently, and a future reorder of `replayDivergence` would silently disable the replay retry (it would return a different divergence string and the test would flake again rather than fail loudly).",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-87869f6650e6c4524d949bd30ddfe747a84e8365d4633b4b5ab4848bfc0ea70b",
+        "id": "finding-ea1ccc594149f28e3df22b1bf3381bc1",
+        "lastSeenReceiptId": "review-87869f6650e6c4524d949bd30ddfe747a84e8365d4633b4b5ab4848bfc0ea70b",
+        "ordinal": 1,
+        "rIds": [],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Extract one `forEachWatchdogTimeout(t, from time.Duration, run func(time.Duration) (empty bool, stop bool))`-style helper, or at minimum have the replay helper assert that an empty observed stdout coincides with `stdout.full_sha256` so a divergence-order change fails the test with a clear message instead of reintroducing flakiness.",
+        "title": "Duplicated Code"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-87869f6650e6c4524d949bd30ddfe747a84e8365d4633b4b5ab4848bfc0ea70b"
+  },
+  "id": "fn-112-gomad-determinism-assurance-and-test.15",
+  "introduced_count": 1,
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "pre_existing_count": 1,
+  "review": "**Summary**\n\nThe change addresses the task's stated cause: the fixture and both real-executor replays gave the target one second of host wall-clock measured from supervisor start, and under load the watchdog fired before the target had read or printed its input. The retained failing output (`red-failing-output.txt`: `WatchdogTimeout:true`, empty stdout, `IOROMounts Requests:0`) supports that diagnosis. The fix repeats a run whose watchdog fired before any output under a doubling ladder (1s to 32s) and records the timeout actually used in the manifest. No assertion on captured inputs was weakened; the final fixture check at `tools/gomad3/runner/watchdog_replay_test.go:269` and the subtest checks are unchanged.\n\nI traced the detection path in `replayWatchdogInput`: with a watchdog manifest, `replayDivergence` (`tools/gomad3/runner/replay_operation.go:605-628`) checks termination, exit code, signal, and reason before stdout, and an early-fired watchdog still classifies as `watchdog_timeout`, so an empty-output run surfaces exactly as `stdout.full_sha256`. Reading the observed stdout through the existing `ObservedDir` hook is the correct way to distinguish \"no output yet\" from a real content divergence. The `uncaptured input fails` path also works: if the watchdog fires before the mount read, there is no `ErrReplayDivergence`, the divergence is `stdout.full_sha256` with empty output, and the run is retried rather than misjudged. The replay ladder correctly skips timeouts shorter than the fixture's recorded one, so the replay never has less time than the recording. `input` is a value copy and `Manifest` is a value, so the mutation does not leak into the other subtests.\n\nEvidence: 100/100 at 16 load processes and 100/100 at 32 on darwin/arm64, full `test-host` exit 0. I could not run commands in this session, so the gate results are taken from the retained artifacts.\n\n## Findings\n\n- **Severity**: P3\n- **Confidence**: 75\n- **Classification**: introduced\n- **File:Line**: `tools/gomad3/runner/watchdog_replay_test.go:186-205` and `:253-268`\n- **R-IDs**: []\n- **Problem**: Duplicated Code. The fixture and the replay helper each implement the same escalation ladder with their own \"watchdog fired and stdout empty\" predicate (`observed.Stdout.TotalBytes != 0` in one, a file read of `ObservedDir/stdout` in the other) and their own log line. The two detection predicates can drift independently, and a future reorder of `replayDivergence` would silently disable the replay retry (it would return a different divergence string and the test would flake again rather than fail loudly).\n- **Suggestion**: Extract one `forEachWatchdogTimeout(t, from time.Duration, run func(time.Duration) (empty bool, stop bool))`-style helper, or at minimum have the replay helper assert that an empty observed stdout coincides with `stdout.full_sha256` so a divergence-order change fails the test with a clear message instead of reintroducing flakiness.\n\n## Pre-existing issues (not blocking this verdict)\n\n- [P2, confidence 75, introduced=false] `tools/gomad3/runner/watchdog_replay_test.go:254-263` \u2014 At 64 load processes on 8 CPUs, 1 of 20 runs failed with `execution.Run` returning the untyped error `supervisor protocol requires exactly started then final reports` (retained in `residual-64-load.txt`). The deadline-before-reports path in `runner/internal/execution` is not distinguishable from a real protocol failure, so neither this test nor any caller can handle it. This is on base and the artifact correctly explains why it is not retried here. Worth a follow-up task to give that failure a typed error.\n\n**FYI (not findings):**\n- The spec says \"do not just raise a timeout\". This fix is an adaptive escalation gated on an observable post-condition (the target wrote before the watchdog fired), not a flat bump, and since the deadline starts with the supervisor there is no condition the test can wait for before the deadline begins. I consider it compliant; flagging because it is a judgment call.\n- Worst case, if every ladder step is exhausted, the test can take roughly 1+2+...+32 seconds three times over (about 190s), on top of a runner package that already takes about 200s under `test-host`. Still inside the default 10 minute package timeout, but worth knowing if the package grows.\n- `gates.json` notes `cmd/gomad/watchdog_replay_e2e_test.go` carries the same assumption with a 2s margin. Out of this task's Touches; a candidate follow-up if it flakes.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|------|--------|----------|\n| R9 | partial | This task only makes an R9 end-to-end replay test reliable (100/100 at 16 and 32 load processes, `gates.json`). R9's CLI explore/replay and kill-then-resume delivery is owned by task .8, not this change. |\n\nUnaddressed R-IDs: []\n\nSuppressed findings: 2 (confidence 50: divergence-order coupling as a standalone finding, folded into the P3 above; worst-case duration growth).\n\nClassification counts: 1 introduced, 1 pre_existing.\n\n```json\n{\"suppressed_count\":{\"50\":2},\"classification_counts\":{\"introduced\":1,\"pre_existing\":1},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>",
+  "review_reservation_id": "45622b11a01b411c8a5e1a083ae30762",
+  "session_id": "8f84629f-8e4e-4bbc-9bbc-f7be65af4f2f",
+  "spec": "claude:claude-fable-5-1:high",
+  "suppressed_count": {
+    "50": 2
+  },
+  "timestamp": "2026-10-02T21:54:26.649311Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}
