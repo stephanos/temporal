@@ -1,0 +1,51 @@
+{
+  "artifact": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-3/retained-test-artifact/sha256-c8e0a14e48f5c76303ea8270c5181f10",
+  "binary": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-3/retained-test-cover-target",
+  "binary_sha256": "sha256:1d6654adec54ebbd09d4e89c878e584bfc1ff9898459079c2a1ee7bd23e775a5",
+  "minimize_error": "incompatible replay artifact: stored target uses unsupported coverage instrumentation",
+  "record_hash": "sha256:2a0507a57712b5af0dd77fa113a9a61d07438ae3934d45d39a6ce0341c090e26",
+  "settings": {
+    "go_version": "go1.27.1-X:nogreenteagc",
+    "path": "example.com/coveragefixture.test",
+    "main_module": "example.com/coveragefixture",
+    "settings": [
+      {
+        "key": "-buildmode",
+        "value": "exe"
+      },
+      {
+        "key": "-compiler",
+        "value": "gc"
+      },
+      {
+        "key": "-cover",
+        "value": "true"
+      },
+      {
+        "key": "-tags",
+        "value": "test_dep"
+      },
+      {
+        "key": "CGO_ENABLED",
+        "value": "0"
+      },
+      {
+        "key": "GOARCH",
+        "value": "arm64"
+      },
+      {
+        "key": "GOARM64",
+        "value": "v8.0"
+      },
+      {
+        "key": "GOEXPERIMENT",
+        "value": "nogreenteagc"
+      },
+      {
+        "key": "GOOS",
+        "value": "darwin"
+      }
+    ]
+  },
+  "verify_error": "incompatible replay artifact: stored target uses unsupported coverage instrumentation"
+}

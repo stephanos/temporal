@@ -1,0 +1,41 @@
+import datetime,hashlib,json,pathlib,shlex
+root=pathlib.Path('/Users/stephan/Workspace/temporal/gomad');out=root/'.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-13'
+sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+read=lambda n:json.loads((out/n).read_text())
+owned=read('owned-sources.json');frozen=read('final-sources.json');before=read('before-sources.json');protected=read('parent-protected-source-check.json')['sources']
+final={n:sha(root/n) for n in owned};assert final==frozen
+changed={n:sha(root/n) if (root/n).exists() else None for n,h in before.items() if not (root/n).exists() or sha(root/n)!=h};assert set(changed)=={'tools/gomad3/runner/replay_operation.go'}
+nonowned={n:sha(root/n)==h for n,h in protected.items() if n not in owned};assert all(nonowned.values())
+retained=read('retained-artifact-before.json');assert all(sha(root/n)==h for n,h in retained.items())
+binaries=read('binary-bindings.json');assert all(sha(root/n)==h for n,h in binaries.items() if n not in ['toolchain_build_key','retained_toolchain_build_directories'])
+builds=sorted(p.name for p in (root/'tools/gomad3/.toolchain/builds').iterdir() if p.is_dir());assert builds==binaries['retained_toolchain_build_directories']
+key=(root/'tools/gomad3/.toolchain/build-key').read_text().strip();assert key==binaries['toolchain_build_key']
+comments_before=[l for l in (out/'before'/owned[0]).read_text().splitlines() if l.strip().startswith('//')];comments_after=[l for l in (root/owned[0]).read_text().splitlines() if l.strip().startswith('//')];assert comments_before==comments_after
+whitespace={n:[i for i,l in enumerate((root/n).read_text().splitlines(),1) if l.rstrip()!=l] for n in owned};assert not any(whitespace.values())
+log=(out/'final-full-host.log').read_text();packages=[line.split()[1] for line in log.splitlines() if line.startswith('ok ')];assert len(packages)==45
+success=['focused-replay-green','final-full-host','final-cli-tests','final-vet','final-gofmt','final-whitespace','fresh-inspect-campaign-final','fresh-inspect-artifact-final','fresh-verify-only-final','retained-inspect-final','retained-verify-only-final','build-final-cli'];expected={n:0 for n in success};expected.update({'fresh-explore-final':1,'fresh-replay-final':1,'retained-replay-final':1,'retained-replay-red':3,'cli-red':1,'unsupported-choice-red':1,'focused-red-valid-fixture':1,'root-lint-default':2,'root-lint-head':2})
+for name,status in expected.items():assert read(name+'.json')['exit']==status
+for name in ['fresh-replay-final','retained-replay-final']:assert 'reproduced=true diagnostic=true result=watchdog_observation choice-replay=none' in (out/(name+'.log')).read_text()
+for name in ['final-full-host','final-cli-tests','final-vet','final-gofmt','final-whitespace','fresh-explore-final','fresh-replay-final','retained-replay-final']:
+ metadata=read(name+'.json');assert all(metadata['sources'][n]==h for n,h in frozen.items())
+integrity=dict(recorded_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),owned_sources=final,changed_existing_sources=changed,unchanged_nonowned_protected_sources=nonowned,declared_owned_overlap=[n for n in owned if n in protected],retained_task11_artifact_unchanged=retained,retained_binaries_unchanged=True,toolchain_build_key=key,retained_toolchain_build_directories=builds,existing_comments_preserved=comments_before,owned_source_whitespace=whitespace,full_host_packages=packages,expected_command_statuses=expected,linux_native_verified=False)
+(out/'final-integrity.json').write_text(json.dumps(integrity,indent=2)+'\n')
+summary='''Task 13 repairs actual watchdog diagnostic replay using the existing host execution capabilities. The retained task 11 CLI/artifact reproduced status 3 before edits; the final CLI re-executes both that retained artifact and a fresh watchdog artifact with status 1, `reproduced=true diagnostic=true result=watchdog_observation choice-replay=none`. The runner regression verifies `Verified=true`, `Diagnostic=true`, `Match=true`, and no exact choice claim.
+
+Only three files are owned: `runner/replay_operation.go`, new `runner/watchdog_replay_test.go`, and new `cmd/gomad/watchdog_replay_e2e_test.go`. Missing-transcript diagnostic watchdog execution records modeled I/O afresh and uses retained captured-input snapshots exclusively. Every mount capability receives a nonnil replay snapshot, including the empty snapshot without mounted inputs. Exact replay still requires a complete transcript; a retained transcript still enables its existing exact I/O enforcement. Existing comments and task 8/11 tests are unchanged.
+
+The supported missing-transcript envelope excludes complete recorded choice evidence, which fails explicitly before execution instead of dropping the evidence or claiming exact choice replay. Retained World plans continue their existing validation and replay enforcement; simulation exploration profiles require exact replay through existing record validation. Diagnostic reproduction compares watchdog outcome and stream hashes, and remains an observation match without complete I/O/choice evidence.
+
+Real mounted-input replay passes after deleting the original host source. An uncaptured lookup returns `ErrReplayDivergence`; corrupt and missing retained blobs, malformed descriptors, exact replay without a transcript, and the unsupported complete-choice combination fail before execution as applicable. Cancellation cannot match; changed stdout, stderr, and outcome report their divergent fields. Existing complete I/O, choice-tape, World and simulation replay regressions passed in the focused gate. `cli-red`, `focused-red-valid-fixture`, and `unsupported-choice-red` are the intended failing regressions. The earlier `focused-red` and `focused-red-verified` logs are retained fixture-setup failures (missing timeout deadline), not the validated red evidence.
+
+Final standard `make -C tools/gomad3 test-host` passed all 45 packages fresh on darwin/arm64 in 150.12 seconds with installed stock Go 1.27.1 on PATH, `GOFLAGS=-tags=test_dep -count=1`, and no `GOMAD3_STOCK_GO` override. The focused replay/collector/supervisor gate passed in 28.85 seconds; dedicated final CLI tests passed in 39.20 seconds; vet, gofmt and whitespace passed. Root lint remains blocked: default `main` is absent (Make status 2), and the HEAD override reaches nested-module/testdata discovery errors (Make status 2, linter status 7). Native Linux is unverified.
+
+Final sources were frozen before final gates. `task-only.patch` is based on actual dirty beforecopies, SHA-256 `03745dc038716f309028a95d2c2d6e1816ee313dc14fd35914d89dfe82d65c55`; the parent independently reconstructed all three sources. All 67 nonowned protected sources, retained task 11 artifact/binaries, and all 11 toolchain build directories remain unchanged; toolchain key remains `56e4a2f0c5514d43b9a0682d030964588dd3d5a58978ba0b989459bb556843a3`. Parent stock `go clean -cache` reclaimed disposable global build cache after source freeze; its immutable receipt is included. No staging, commit, push, stash or worktree was used. Parent owns independent review and task completion.
+'''
+(out/'handover-summary.md').write_text(summary)
+tests=[shlex.join(read(name+'.json')['argv']) for name in ['focused-replay-green','final-full-host','final-cli-tests','final-vet','final-gofmt','final-whitespace']]
+evidence=dict(commits=[],tests=tests,prs=[],task='fn-112-gomad-determinism-assurance-and-test.13',patch_sha256=sha(out/'task-only.patch'),sources=final,command_statuses=expected,full_host_package_count=len(packages),artifact_paths=read('fresh-artifact-paths.json'),limitations=['Native linux/amd64 unverified','Root lint: missing main reference; HEAD override nested-module/testdata discovery','Diagnostic watchdog without I/O transcript and with complete choice evidence is explicitly unsupported'],independent_review='parent pending')
+(out/'evidence.json').write_text(json.dumps(evidence,indent=2)+'\n')
+bindings={str(p.relative_to(root)):sha(p) for p in out.rglob('*') if p.is_file() and p.name!='evidence-bindings.json'}
+(out/'evidence-bindings.json').write_text(json.dumps(bindings,indent=2)+'\n')
+print('integrity passes; evidence bindings',len(bindings));print('patch',sha(out/'task-only.patch'));print('evidence manifest',sha(out/'evidence-bindings.json'))

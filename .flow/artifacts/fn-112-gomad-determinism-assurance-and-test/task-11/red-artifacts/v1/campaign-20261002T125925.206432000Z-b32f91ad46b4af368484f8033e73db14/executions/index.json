@@ -1,0 +1,1 @@
+{"bytes":"0","limits":{"capacity_outcome":"infrastructure_failure","maximum_bytes":"3145728","maximum_executions":"3","maximum_partial_executions":"1","maximum_segments":"3","segment_bytes":"1048576","segment_records":"1024"},"records":"0","schema":"gomad3.execution-journal/v1","segments":null}

@@ -1,0 +1,1 @@
+{"artifact":"failures/sha256-e9ecc5d139c6409e3e7ef70c6e7d475b","domain":"runner","elapsed_nanos":"1733847000","failure_signature":"sha256:e9ecc5d139c6409e3e7ef70c6e7d475b273f30ba3d57670471289926966134e4","io_transcript_records":null,"io_transcript_sha256":null,"reason":"target_supervision","seed":"1","selection_ordinal":"0","termination":"none"}
