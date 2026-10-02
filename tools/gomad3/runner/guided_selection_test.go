@@ -304,6 +304,20 @@ func TestFullyAnsweredGuidedPlanExecutesEmptyShardsAndMerges(t *testing.T) {
 	if merged.Attempted != 0 || merged.SelectionCount != 0 {
 		t.Fatalf("merged=%#v", merged)
 	}
+	opened, err := campaign.OpenMergedCampaign(merged.Path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(opened.Executions) != 0 || opened.Record.Attempted != 0 {
+		t.Fatalf("reopened=%#v", opened)
+	}
+	inspected, err := Inspect(merged.Path, InspectOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if inspected.Kind != "merged-campaign" || inspected.Merged == nil || inspected.Merged.Attempted != 0 {
+		t.Fatalf("inspection=%#v", inspected)
+	}
 }
 
 func TestRegressionGuidanceReservesRoundedUnguidedQuarter(t *testing.T) {

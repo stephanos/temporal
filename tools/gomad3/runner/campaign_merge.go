@@ -52,7 +52,7 @@ func MergeCampaignShards(ctx context.Context, spec CampaignMergeSpec) (CampaignM
 		return CampaignMergeResult{}, errors.New("campaign plan capacities are incomplete")
 	}
 	merged, err := campaign.MergeCampaigns(ctx, campaign.MergeSpec{
-		Output: spec.Output, PlanSHA256: opened.identity, Selection: opened.plan.Selection, SelectionCount: selection.Count(),
+		Output: spec.Output, Guidance: opened.plan.Guidance, PlanSHA256: opened.identity, Selection: opened.plan.Selection, SelectionCount: selection.Count(),
 		Journal: *opened.plan.Journal, Artifacts: *opened.plan.Artifacts, Partial: spec.Partial, ShardPaths: append([]string(nil), spec.Shards...), SeedAt: selection.SeedAt,
 	})
 	if err != nil {

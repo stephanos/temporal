@@ -27,6 +27,7 @@ type MergeSpec struct {
 	PlanSHA256     record.SHA256
 	Selection      string
 	SelectionCount uint64
+	Guidance       *GuidancePlan
 	Journal        ExecutionJournalPlan
 	Artifacts      ArtifactCapacityPlan
 	Partial        bool
@@ -65,6 +66,7 @@ type OrdinalRange struct {
 }
 
 type MergedCampaignRecord struct {
+	Guidance             *GuidancePlan             `json:"guidance,omitempty"`
 	Schema               string                    `json:"schema"`
 	SchemaVersion        uint32                    `json:"schema_version"`
 	PlanSHA256           record.SHA256             `json:"plan_sha256"`
@@ -97,7 +99,7 @@ func MergeCampaigns(ctx context.Context, spec MergeSpec) (_ MergedCampaign, retE
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	if spec.Output == "" || (spec.Selection == "") != (spec.SelectionCount == 0) || spec.SeedAt == nil || !validRecordSHA256(spec.PlanSHA256) || len(spec.ShardPaths) == 0 {
+	if spec.Output == "" || (spec.Selection == "") != (spec.SelectionCount == 0) || spec.SelectionCount == 0 && !isFullyAnsweredGuidance(spec.Guidance) || spec.SeedAt == nil || !validRecordSHA256(spec.PlanSHA256) || len(spec.ShardPaths) == 0 {
 		return MergedCampaign{}, errors.New("campaign merge input is incomplete")
 	}
 	limits := executionJournalLimitsFromPlan(spec.Journal)
@@ -156,7 +158,8 @@ func MergeCampaigns(ctx context.Context, spec MergeSpec) (_ MergedCampaign, retE
 		return MergedCampaign{}, fmt.Errorf("remove merged journal staging: %w", err)
 	}
 	record := MergedCampaignRecord{
-		Schema: MergedCampaignSchema, SchemaVersion: record.SchemaVersion, PlanSHA256: spec.PlanSHA256, Selection: spec.Selection, SelectionCount: record.Uint64String(spec.SelectionCount),
+		Guidance: spec.Guidance,
+		Schema:   MergedCampaignSchema, SchemaVersion: record.SchemaVersion, PlanSHA256: spec.PlanSHA256, Selection: spec.Selection, SelectionCount: record.Uint64String(spec.SelectionCount),
 		Partial: len(missing) != 0, Missing: missing, Attempted: record.Uint64String(len(runs)), Succeeded: record.Uint64String(summary.succeeded), Failures: record.Uint64String(summary.failures), Watchdogs: record.Uint64String(summary.watchdogs), Cancelled: record.Uint64String(summary.cancelled),
 		DistinctFailures: record.Uint64String(len(summary.failuresSeen)), RetainedSuccesses: record.Uint64String(summary.retainedSuccesses), RetainedSuccessBytes: record.Uint64String(summary.retainedSuccessBytes), RetainedEvidence: record.Uint64String(summary.retainedEvidence), EvidenceBytes: record.Uint64String(summary.evidenceBytes),
 		Journal: reference, Artifacts: spec.Artifacts, Shards: shards,
@@ -210,7 +213,7 @@ func collectMergedCampaign(spec MergeSpec) ([]MergedShard, []MergedExecution, me
 			return nil, nil, mergedSummary{}, err
 		}
 		batch := opened.Record
-		if batch.Schema != "gomad3.campaign/v1" || batch.PlanSHA256 != spec.PlanSHA256 || batch.Selection != spec.Selection || uint64(batch.SelectionCount) != spec.SelectionCount || batch.Shard == nil {
+		if batch.Schema != "gomad3.campaign/v1" || batch.PlanSHA256 != spec.PlanSHA256 || batch.Selection != spec.Selection || uint64(batch.SelectionCount) != spec.SelectionCount || batch.Shard == nil || !reflect.DeepEqual(batch.Guidance, spec.Guidance) {
 			return nil, nil, mergedSummary{}, fmt.Errorf("shard campaign %s does not match the campaign plan", path)
 		}
 		count := uint64(batch.Shard.Count)
@@ -516,6 +519,7 @@ func validateMergedCampaign(campaign MergedCampaignRecord, runs []MergedExecutio
 	}
 	sort.Slice(failureSignatures, func(i, j int) bool { return failureSignatures[i] < failureSignatures[j] })
 	validationRecord := CampaignRecord{
+		Guidance:      campaign.Guidance,
 		SchemaVersion: record.SchemaVersion, Schema: "gomad3.campaign/v1", CampaignID: "merged-validation", Strategy: "seed", Selection: campaign.Selection, SelectionCount: campaign.SelectionCount,
 		Attempted: campaign.Attempted, Succeeded: campaign.Succeeded, Failures: campaign.Failures, Watchdogs: campaign.Watchdogs, Cancelled: campaign.Cancelled, DistinctFailures: campaign.DistinctFailures,
 		RetainedSuccesses: campaign.RetainedSuccesses, RetainedSuccessBytes: campaign.RetainedSuccessBytes, StopReason: "seeds_exhausted", Journal: &campaign.Journal, Artifacts: &campaign.Artifacts, FailureSignatures: failureSignatures,
