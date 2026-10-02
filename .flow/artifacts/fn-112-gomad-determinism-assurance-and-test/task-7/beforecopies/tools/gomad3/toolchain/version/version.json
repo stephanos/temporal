@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "go_version": "go1.27.1",
+  "archive": {
+    "name": "go1.27.1.src.tar.gz",
+    "url": "https://go.dev/dl/go1.27.1.src.tar.gz",
+    "sha256": "4e408abae126d916b6164627193f2c54f0e3ca1312d693b86db45f862ab238b1"
+  },
+  "supported_platforms": [
+    "darwin/arm64",
+    "linux/amd64"
+  ],
+  "boundary_manifest_version": "go1.27.1-v1",
+  "patch": "toolchain/runtime/go1.27.1.patch",
+  "adapters": [
+    {
+      "module": "github.com/Masterminds/sprig/v3",
+      "version": "v3.3.0",
+      "sum": "h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs="
+    },
+    {
+      "module": "github.com/cactus/go-statsd-client/v5",
+      "version": "v5.1.0",
+      "sum": "h1:sbbdfIl9PgisjEoXzvXI1lwUKWElngsjJKaZeC021P4="
+    },
+    {
+      "module": "github.com/cockroachdb/pebble",
+      "version": "v0.0.0-20260703021901-41f35d3cb7df",
+      "sum": "h1:p7vkumDcPw0de7t8pYA95HPC4cYQZGDG6b57d4Om5cA="
+    },
+    {
+      "module": "github.com/getsentry/sentry-go",
+      "version": "v0.46.0",
+      "sum": "h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0="
+    },
+    {
+      "module": "github.com/go-playground/validator/v10",
+      "version": "v10.30.1",
+      "sum": "h1:f3zDSN/zOma+w6+1Wswgd9fLkdwy06ntQJp0BBvFG0w="
+    },
+    {
+      "module": "github.com/hashicorp/go-metrics",
+      "version": "v0.5.4",
+      "sum": "h1:8mmPiIJkTPPEbAiV97IxdAGNdRdaWwVap1BU6elejKY="
+    },
+    {
+      "module": "github.com/hashicorp/go-sockaddr",
+      "version": "v1.0.7",
+      "sum": "h1:G+pTkSO01HpR5qCxg7lxfsFEZaG+C0VssTy/9dbT+Fw="
+    },
+    {
+      "module": "github.com/hashicorp/memberlist",
+      "version": "v0.5.4",
+      "sum": "h1:40YY+3qq2tAUhZIMEK8kqusKZBBjdwJ3NUjvYkcxh74="
+    },
+    {
+      "module": "go.opentelemetry.io/otel/sdk",
+      "version": "v1.44.0",
+      "sum": "h1:nHYwb9lK+fJPU/dnT6s7W7Z8itMWyqrnVfbheVYrZ58="
+    },
+    {
+      "module": "go.temporal.io/sdk",
+      "version": "v1.48.0",
+      "sum": "h1:WDctKDVuh0Z8Nf7euAyqs/EwcPg1JTIIq1Fut8Tq118="
+    },
+    {
+      "module": "go.uber.org/fx",
+      "version": "v1.24.0",
+      "sum": "h1:wE8mruvpg2kiiL1Vqd0CC+tr0/24XIB10Iwp2lLWzkg="
+    },
+    {
+      "module": "golang.org/x/net",
+      "version": "v0.58.0",
+      "sum": "h1:ynWG7rqYi4ccpTEuPZ2QGWHktVEM9DMCj9yzDE0Q7To="
+    },
+    {
+      "module": "google.golang.org/grpc",
+      "version": "v1.83.2",
+      "sum": "h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU="
+    },
+    {
+      "module": "modernc.org/libc",
+      "version": "v1.72.3",
+      "sum": "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="
+    },
+    {
+      "module": "modernc.org/memory",
+      "version": "v1.11.0",
+      "sum": "h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI="
+    }
+  ],
+  "patch_allowlist": [
+    "src/cmd/compile/internal/gc/main.go",
+    "src/cmd/dist/buildtool.go",
+    "src/cmd/link/internal/ld/lib.go",
+    "src/crypto/rand/rand.go",
+    "src/runtime/lock_spinbit.go",
+    "src/runtime/panic.go",
+    "src/runtime/preempt.go",
+    "src/runtime/proc.go",
+    "src/runtime/rand.go",
+    "src/runtime/runtime2.go",
+    "src/runtime/select.go",
+    "src/runtime/sizeof_test.go",
+    "src/runtime/symtab.go",
+    "src/runtime/time.go",
+    "src/runtime/time_nofake.go",
+    "src/runtime/traceback.go",
+    "src/syscall/env_unix.go",
+    "src/syscall/rlimit.go",
+    "src/syscall/syscall_unix.go",
+    "src/testing/testing.go"
+  ],
+  "overlay_allowlist": [
+    "src/cmd/compile/internal/base/gomadcap.go",
+    "src/cmd/compile/internal/base/gomadguard.go",
+    "src/cmd/compile/internal/gomadguard/guard.go",
+    "src/cmd/compile/internal/gomadintercept/intercept.go",
+    "src/cmd/compile/internal/gomadintercept/simulation_specs.go",
+    "src/cmd/compile/internal/gomadintercept/spec_go127.go",
+    "src/cmd/internal/gomadcap/encode.go",
+    "src/cmd/internal/gomadcap/encode_test.go",
+    "src/cmd/internal/gomadcap/protocol_generated.go",
+    "src/cmd/link/internal/ld/gomadcap.go",
+    "src/internal/gomadchoicewire/diagnostic_runtime_test.go",
+    "src/internal/gomadchoicewire/hash.go",
+    "src/internal/gomadchoicewire/hash_test.go",
+    "src/internal/gomadchoicewire/wire_generated.go",
+    "src/internal/gomadchoicewire/wire_generated_test.go",
+    "src/internal/gomadfs/fs.go",
+    "src/internal/gomadfs/fs_test.go",
+    "src/internal/gomadfs/process_volume.go",
+    "src/internal/gomadfs/process_volume_host.go",
+    "src/internal/gomadfs/runtime.go",
+    "src/internal/gomadfs/simulation_volume.go",
+    "src/internal/gomadfs/simulation_volume_wire.go",
+    "src/internal/gomadfs/volume.go",
+    "src/internal/gomadio/anonymous.go",
+    "src/internal/gomadio/anonymous_test.go",
+    "src/internal/gomadio/gomadio.go",
+    "src/internal/gomadio/libc.go",
+    "src/internal/gomadio/mount/client.go",
+    "src/internal/gomadio/mount/client_test.go",
+    "src/internal/gomadio/network.go",
+    "src/internal/gomadio/process_network.go",
+    "src/internal/gomadio/simulation_network.go",
+    "src/internal/gomadio/simulation_wire.go",
+    "src/internal/gomadio/transcript.go",
+    "src/internal/gomadmodelwire/wire_generated.go",
+    "src/internal/gomadmodelwire/wire_generated_test.go",
+    "src/internal/gomadsim/export_test.go",
+    "src/internal/gomadsim/model_transport_generated.go",
+    "src/internal/gomadsim/process.go",
+    "src/internal/gomadsim/process_model.go",
+    "src/internal/gomadsim/process_model_test.go",
+    "src/internal/gomadsim/process_time_test.go",
+    "src/internal/gomadsim/simulation.go",
+    "src/internal/gomadsim/simulation_test.go",
+    "src/internal/gomadtrace/trace.go",
+    "src/internal/gomadwire/wire_generated.go",
+    "src/internal/gomadwire/wire_generated_test.go",
+    "src/net/gomad.go",
+    "src/net/gomad_unsupported_generated.go",
+    "src/os/gomad.go",
+    "src/os/gomad_simulation_test.go",
+    "src/os/signal/gomad.go",
+    "src/os/user/gomad.go",
+    "src/runtime/gomad.go",
+    "src/runtime/gomad_aslr_darwin.go",
+    "src/runtime/gomad_aslr_darwin_arm64.s",
+    "src/runtime/gomad_aslr_other.go",
+    "src/runtime/gomad_choicewire_generated.go",
+    "src/runtime/gomad_iowire_generated.go"
+  ]
+}

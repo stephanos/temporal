@@ -1,0 +1,98 @@
+[
+  {
+    "run": "timer-callback-seed-6",
+    "seed": "6",
+    "callback": "B",
+    "select_site": 766964,
+    "select_record_ordinal": 8,
+    "runnable_record_ordinal": 7,
+    "identity": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f",
+    "parentless_ordinal": 2,
+    "trace_sha256": "cb7db9d194eec8979eb0b1581642aeea87fcd7161cd54688ebd08dd4835966a4",
+    "trace": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/final-approved/timer-callback-seed-6/trace.gz"
+  },
+  {
+    "run": "timer-callback-seed-6",
+    "seed": "6",
+    "callback": "A",
+    "select_site": 767300,
+    "select_record_ordinal": 11,
+    "runnable_record_ordinal": 10,
+    "identity": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+    "parentless_ordinal": 3,
+    "trace_sha256": "cb7db9d194eec8979eb0b1581642aeea87fcd7161cd54688ebd08dd4835966a4",
+    "trace": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/final-approved/timer-callback-seed-6/trace.gz"
+  },
+  {
+    "run": "timer-callback-seed-16",
+    "seed": "16",
+    "callback": "A",
+    "select_site": 767300,
+    "select_record_ordinal": 10,
+    "runnable_record_ordinal": 9,
+    "identity": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f",
+    "parentless_ordinal": 2,
+    "trace_sha256": "db9c12be22fcecde4eb197980218e4a88d4510fa5ed4d519620de24eeaa4f53e",
+    "trace": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/final-approved/timer-callback-seed-16/trace.gz"
+  },
+  {
+    "run": "timer-callback-seed-16",
+    "seed": "16",
+    "callback": "B",
+    "select_site": 766964,
+    "select_record_ordinal": 13,
+    "runnable_record_ordinal": 12,
+    "identity": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+    "parentless_ordinal": 3,
+    "trace_sha256": "db9c12be22fcecde4eb197980218e4a88d4510fa5ed4d519620de24eeaa4f53e",
+    "trace": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/final-approved/timer-callback-seed-16/trace.gz"
+  },
+  {
+    "run": "timer-prefix-same-seed-6-decision-3-rank-2",
+    "seed": "6",
+    "callback": "A",
+    "select_site": 767300,
+    "select_record_ordinal": 8,
+    "runnable_record_ordinal": 7,
+    "identity": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f",
+    "parentless_ordinal": 2,
+    "trace_sha256": "fb1b0d58d8678c3fe36a86c3377c5b257b6f33f4000c29b403cd3f62d34cd6e6",
+    "trace": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/final-approved/timer-prefix-same-seed-6-decision-3-rank-2/trace.gz"
+  },
+  {
+    "run": "timer-prefix-same-seed-6-decision-3-rank-2",
+    "seed": "6",
+    "callback": "B",
+    "select_site": 766964,
+    "select_record_ordinal": 11,
+    "runnable_record_ordinal": 10,
+    "identity": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+    "parentless_ordinal": 3,
+    "trace_sha256": "fb1b0d58d8678c3fe36a86c3377c5b257b6f33f4000c29b403cd3f62d34cd6e6",
+    "trace": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/final-approved/timer-prefix-same-seed-6-decision-3-rank-2/trace.gz"
+  },
+  {
+    "run": "timer-prefix-same-seed-6-decision-4-rank-1",
+    "seed": "6",
+    "callback": "A",
+    "select_site": 767300,
+    "select_record_ordinal": 9,
+    "runnable_record_ordinal": 8,
+    "identity": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f",
+    "parentless_ordinal": 2,
+    "trace_sha256": "a5bd1baf88f5b8e2d1ed26bc979748a991dc27fd3131f2d1d8753dbdd12121c7",
+    "trace": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/final-approved/timer-prefix-same-seed-6-decision-4-rank-1/trace.gz"
+  },
+  {
+    "run": "timer-prefix-same-seed-6-decision-4-rank-1",
+    "seed": "6",
+    "callback": "B",
+    "select_site": 766964,
+    "select_record_ordinal": 12,
+    "runnable_record_ordinal": 11,
+    "identity": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+    "parentless_ordinal": 3,
+    "trace_sha256": "a5bd1baf88f5b8e2d1ed26bc979748a991dc27fd3131f2d1d8753dbdd12121c7",
+    "trace": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/final-approved/timer-prefix-same-seed-6-decision-4-rank-1/trace.gz"
+  }
+]

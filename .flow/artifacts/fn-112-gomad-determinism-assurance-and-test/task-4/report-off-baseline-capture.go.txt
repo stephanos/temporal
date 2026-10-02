@@ -1,0 +1,9 @@
+package qualification
+import("testing";"fmt";"go.temporal.io/server/tools/gomad3/record";"go.temporal.io/server/tools/gomad3/internal/canonicaljson")
+func TestCaptureOffReportBaseline(t *testing.T) {
+runs:=[]QualificationExecution{{CampaignPath:"/first",Evidence:successfulEvidence()},{CampaignPath:"/second",Evidence:successfulEvidence()}}
+report,err:=BuildQualificationReport(QualificationInput{Command:[]string{"gomad","qualify"},Executions:runs}); if err!=nil{t.Fatal(err)}
+data,err:=canonicaljson.CanonicalJSON(report);if err!=nil{t.Fatal(err)};fmt.Printf("normal %s\n",record.HashBytes(data))
+failure,err:=BuildQualificationFailure([]string{"gomad","qualify"},7,2,runs,QualificationFailure{Classification:"cancelled",Message:"interrupted",Iteration:2});if err!=nil{t.Fatal(err)}
+data,err=canonicaljson.CanonicalJSON(failure);if err!=nil{t.Fatal(err)};fmt.Printf("failure %s\n",record.HashBytes(data))
+}

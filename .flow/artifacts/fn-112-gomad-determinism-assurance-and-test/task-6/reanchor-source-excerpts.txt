@@ -1,0 +1,625 @@
+tools/gomad3/target/target.go:698-718 sha256:07ed67654a2bde66d347673481400f89b6bd2029c0997ffb6dc37692104dd3a5
+698: 		if reused {
+699: 			return finishGoTarget(spec, identity, targetPath, review, policy)
+700: 		}
+701: 	}
+702: 	arguments := []string{}
+703: 	if spec.Kind == KindGoRun {
+704: 		arguments = append(arguments, "build")
+705: 	} else {
+706: 		arguments = append(arguments, "test", "-c")
+707: 	}
+708: 	// VCS stamping would record repository state no prepared-target identity
+709: 	// binds, so a restored binary could carry another commit's build info.
+710: 	arguments = append(arguments, "-trimpath", "-buildvcs=false", "-o", targetPath)
+711: 	if spec.CapabilityMode != CapabilityModeClosure {
+712: 		gcflags := "-gcflags=all=-gomadcap"
+713: 		if spec.CapabilityMode == CapabilityModeGuarded {
+714: 			gcflags += " -gomadguard"
+715: 		}
+716: 		arguments = append(arguments, gcflags, "-ldflags=-linkmode=internal -gomadcap="+identity.BuildKey)
+717: 	}
+718: 	if spec.BuildOverlay != "" {
+
+tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go:110-136 sha256:d6c2651cc6b7f6adc2265d7a892bae079d4426ebfba6defe72d6b4c7b4ec9bc8
+110: 		var ok bool
+111: 		if present {
+112: 			seed, ok = gomadParseSeed(value)
+113: 		}
+114: 		if present && !ok {
+115: 			print("runtime: invalid GOMADSEED\n")
+116: 			exit(2)
+117: 		}
+118: 	}
+119: 	if iscgo || gomadExternal {
+120: 		print("runtime: GOMADSEED does not support cgo or external linking\n")
+121: 		exit(2)
+122: 	}
+123: 
+124: 	gomadClockTickInit(seed)
+125: 	gomadEnabled = true
+126: 	gomadSeed = seed
+127: 	gomadChoiceSeedRandom()
+128: 	faketime = gomadInitialTime
+129: 	gomadSimulationTimeInit()
+130: 	debug.asyncpreemptoff = 1
+131: 	haveSysmon = false
+132: 	randomizeScheduler = true
+133: }
+134: 
+135: // gomadClockForward advances what time.Now reports at every read so that two
+136: // reads never share an instant, the way a real clock moves between them. The
+
+tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go:488-504 sha256:d6c2651cc6b7f6adc2265d7a892bae079d4426ebfba6defe72d6b4c7b4ec9bc8
+488: 	gomadTimerRandom = uint32(gomadSeed) ^ 0x74696d65
+489: }
+490: 
+491: // gomadTimerRandom breaks ties between timers due at the same instant. It is
+492: // separate from cheaprand because the runtime also draws from cheaprand on
+493: // contended lock hand-offs, which happen at host-timed moments.
+494: var gomadTimerRandom uint32
+495: 
+496: //go:nosplit
+497: func gomadTimerRand() uint32 {
+498: 	gomadDiagnosticDraws.timer++
+499: 	gomadTimerRandom += 0xa0761d65
+500: 	value := uint64(gomadTimerRandom) * 0xe7037ed1a0b428db
+501: 	return uint32(value>>32) ^ uint32(value)
+502: }
+503: 
+504: // The runtime's rand and cheaprand streams are per M, and every M starts from
+
+tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go:581-602 sha256:d6c2651cc6b7f6adc2265d7a892bae079d4426ebfba6defe72d6b4c7b4ec9bc8
+581: 	gomadDiagnosticDraws.runq++
+582: 	return gomadChoiceRandom(&gomadChoiceRunqRandom, n)
+583: }
+584: 
+585: func gomadChoiceRunnextSeeded(n uint32) uint32 {
+586: 	if !gomadEnabled {
+587: 		return randn(n)
+588: 	}
+589: 	gomadDiagnosticDraws.scheduler++
+590: 	return gomadChoiceRandom(&gomadChoiceSchedulerRandom, n)
+591: }
+592: 
+593: func gomadChoiceShuffleSeeded(n uint32) uint32 {
+594: 	if !gomadEnabled {
+595: 		return cheaprandn(n)
+596: 	}
+597: 	gomadDiagnosticDraws.scheduler++
+598: 	return gomadChoiceRandom(&gomadChoiceSchedulerRandom, n)
+599: }
+600: 
+601: func gomadChoiceRandom(random *chacha8rand.State, n uint32) uint32 {
+602: 	for {
+
+tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/runtime/runtime2.go:806-815 sha256:ae991f0f6c08e65db3dd7190b98d58b901d7fc7fb90aae18a3c8b6844757aa7e
+806: 	goidcacheend uint64
+807: 
+808: 	// Queue of runnable goroutines. Accessed without lock.
+809: 	runqhead uint32
+810: 	runqtail uint32
+811: 	runq     [256]guintptr
+812: 	// runnext, if non-nil, is a runnable G that was ready'd by
+813: 	// the current G and should be run next instead of what's in
+814: 	// runq if there's time remaining in the running G's time
+815: 	// slice. It will inherit the time left in the current time
+
+tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/runtime/proc.go:7745-7820 sha256:035ff29cdf8aca2130fe2a57e9aade426a1b567ccec17b056dbdec5d0b9b167e
+7745: // Executed only by the owner P.
+7746: func runqputslow(pp *p, gp *g, h, t uint32) bool {
+7747: 	var batch [len(pp.runq)/2 + 1]*g
+7748: 
+7749: 	// First, grab a batch from local queue.
+7750: 	n := t - h
+7751: 	n = n / 2
+7752: 	if n != uint32(len(pp.runq)/2) {
+7753: 		throw("runqputslow: queue is not full")
+7754: 	}
+7755: 	for i := uint32(0); i < n; i++ {
+7756: 		batch[i] = pp.runq[(h+i)%uint32(len(pp.runq))].ptr()
+7757: 	}
+7758: 	if !atomic.CasRel(&pp.runqhead, h, h+n) { // cas-release, commits consume
+7759: 		return false
+7760: 	}
+7761: 	batch[n] = gp
+7762: 
+7763: 	if randomizeScheduler {
+7764: 		for i := uint32(1); i <= n; i++ {
+7765: 			j := gomadChoiceShuffleSeeded(i + 1)
+7766: 			batch[i], batch[j] = batch[j], batch[i]
+7767: 		}
+7768: 	}
+7769: 
+7770: 	// Link the goroutines.
+7771: 	for i := uint32(0); i < n; i++ {
+7772: 		batch[i].schedlink.set(batch[i+1])
+7773: 	}
+7774: 
+7775: 	q := gQueue{batch[0].guintptr(), batch[n].guintptr(), int32(n + 1)}
+7776: 
+7777: 	// Now put the batch on global queue.
+7778: 	lock(&sched.lock)
+7779: 	globrunqputbatch(&q)
+7780: 	unlock(&sched.lock)
+7781: 	return true
+7782: }
+7783: 
+7784: // runqputbatch tries to put all the G's on q on the local runnable queue.
+7785: // If the local runq is full the input queue still contains unqueued Gs.
+7786: // Executed only by the owner P.
+7787: func runqputbatch(pp *p, q *gQueue) {
+7788: 	if q.empty() {
+7789: 		return
+7790: 	}
+7791: 	h := atomic.LoadAcq(&pp.runqhead)
+7792: 	t := pp.runqtail
+7793: 	n := uint32(0)
+7794: 	for !q.empty() && t-h < uint32(len(pp.runq)) {
+7795: 		gp := q.pop()
+7796: 		pp.runq[t%uint32(len(pp.runq))].set(gp)
+7797: 		t++
+7798: 		n++
+7799: 	}
+7800: 
+7801: 	if randomizeScheduler {
+7802: 		off := func(o uint32) uint32 {
+7803: 			return (pp.runqtail + o) % uint32(len(pp.runq))
+7804: 		}
+7805: 		for i := uint32(1); i < n; i++ {
+7806: 			j := gomadChoiceShuffleSeeded(i + 1)
+7807: 			pp.runq[off(i)], pp.runq[off(j)] = pp.runq[off(j)], pp.runq[off(i)]
+7808: 		}
+7809: 	}
+7810: 
+7811: 	atomic.StoreRel(&pp.runqtail, t)
+7812: 
+7813: 	return
+7814: }
+7815: 
+7816: // Get g from local runnable queue.
+7817: // If inheritTime is true, gp should inherit the remaining time in the
+7818: // current time slice. Otherwise, it should start a new time slice.
+7819: // Executed only by the owner P.
+7820: func runqget(pp *p) (gp *g, inheritTime bool) {
+
+tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/runtime/proc.go:5865-5891 sha256:035ff29cdf8aca2130fe2a57e9aade426a1b567ccec17b056dbdec5d0b9b167e
+5865: // Called if we receive a SIGPROF signal.
+5866: // Called by the signal handler, may run during STW.
+5867: //
+5868: //go:nowritebarrierrec
+5869: func sigprof(pc, sp, lr uintptr, gp *g, mp *m) {
+5870: 	if prof.hz.Load() == 0 {
+5871: 		return
+5872: 	}
+5873: 
+5874: 	// If mp.profilehz is 0, then profiling is not enabled for this thread.
+5875: 	// We must check this to avoid a deadlock between setcpuprofilerate
+5876: 	// and the call to cpuprof.add, below.
+5877: 	if mp != nil && mp.profilehz == 0 {
+5878: 		return
+5879: 	}
+5880: 
+5881: 	// On mips{,le}/arm, 64bit atomics are emulated with spinlocks, in
+5882: 	// internal/runtime/atomic. If SIGPROF arrives while the program is inside
+5883: 	// the critical section, it creates a deadlock (when writing the sample).
+5884: 	// As a workaround, create a counter of SIGPROFs while in critical section
+5885: 	// to store the count, and pass it to sigprof.add() later when SIGPROF is
+5886: 	// received from somewhere else (with _LostSIGPROFDuringAtomic64 as pc).
+5887: 	if GOARCH == "mips" || GOARCH == "mipsle" || GOARCH == "arm" {
+5888: 		if f := findfunc(pc); f.valid() {
+5889: 			if stringslite.HasPrefix(funcname(f), "internal/runtime/atomic") {
+5890: 				cpuprof.lostAtomic++
+5891: 				return
+
+tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/runtime/time.go:170-190 sha256:fc72168314ad6264dcde32e9bc6d4a087c3f5c509cd6b3a8c7f5f35cdbcf2409
+170: 
+171: type timerWhen struct {
+172: 	timer *timer
+173: 	when  int64
+174: }
+175: 
+176: // less reports whether tw is less than other.
+177: func (tw timerWhen) less(other timerWhen) bool {
+178: 	switch {
+179: 	case tw.when < other.when:
+180: 		return true
+181: 	case tw.when > other.when:
+182: 		return false
+183: 	default:
+184: 		// When timers wake at the same time, use a per-timer random value to order them.
+185: 		// We only set the random value for timers using fake time, since there's
+186: 		// no practical way to schedule real-time timers for the same instant.
+187: 		return tw.timer.rand < other.timer.rand
+188: 	}
+189: }
+190: 
+
+tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/runtime/time.go:716-731 sha256:fc72168314ad6264dcde32e9bc6d4a087c3f5c509cd6b3a8c7f5f35cdbcf2409
+716: 	t.trace("maybeAdd")
+717: 	when := int64(0)
+718: 	wake := false
+719: 	if t.needsAdd() {
+720: 		if t.isFake || gomadEnabled {
+721: 			// Re-randomize timer order.
+722: 			// We could do this for all timers, but unbubbled timers are highly
+723: 			// unlikely to have the same when.
+724: 			// Gomad's unbubbled timers use virtual time, so equal deadlines are common.
+725: 			t.rand = gomadTimerRand()
+726: 		}
+727: 		t.state |= timerHeaped
+728: 		when = t.when
+729: 		wakeTime := ts.wakeTime()
+730: 		wake = wakeTime == 0 || when < wakeTime
+731: 		ts.addHeap(t)
+
+tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/runtime/debug.go:148-157 sha256:01d5f04213a154af89bee99c8acfafa16ff116b83765126ad970c55f4df1d222
+148: 
+149: // NumCPU returns the number of logical CPUs usable by the current process.
+150: //
+151: // The set of available CPUs is checked by querying the operating system
+152: // at process startup. Changes to operating system CPU allocation after
+153: // process startup are not reflected.
+154: func NumCPU() int {
+155: 	return int(numCPUStartup)
+156: }
+157: 
+
+tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/runtime/os_darwin.go:182-197 sha256:5fbeed78977bcae998e0b48dea235690be222cef8713c29397ae941cd1ea9685
+182: 
+183: func getCPUCount() int32 {
+184: 	// Use sysctl to fetch hw.ncpu.
+185: 	mib := [2]uint32{_CTL_HW, _HW_NCPU}
+186: 	out := uint32(0)
+187: 	nout := unsafe.Sizeof(out)
+188: 	ret := sysctl(&mib[0], 2, (*byte)(unsafe.Pointer(&out)), &nout, nil, 0)
+189: 	if ret >= 0 && int32(out) > 0 {
+190: 		return int32(out)
+191: 	}
+192: 	return 1
+193: }
+194: 
+195: func getPageSize() uintptr {
+196: 	// Use sysctl to fetch hw.pagesize.
+197: 	mib := [2]uint32{_CTL_HW, _HW_PAGESIZE}
+
+tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/runtime/os_linux.go:99-137 sha256:f211c96802c315ffa23343fc3a672f38713418f46658681da1f4d8187d9462a1
+99: }
+100: 
+101: func getCPUCount() int32 {
+102: 	// This buffer is huge (8 kB) but we are on the system stack
+103: 	// and there should be plenty of space (64 kB).
+104: 	// Also this is a leaf, so we're not holding up the memory for long.
+105: 	// See golang.org/issue/11823.
+106: 	// The suggested behavior here is to keep trying with ever-larger
+107: 	// buffers, but we don't have a dynamic memory allocator at the
+108: 	// moment, so that's a bit tricky and seems like overkill.
+109: 	const maxCPUs = 64 * 1024
+110: 	var buf [maxCPUs / 8]byte
+111: 	r := sched_getaffinity(0, unsafe.Sizeof(buf), &buf[0])
+112: 	if r < 0 {
+113: 		return 1
+114: 	}
+115: 	n := int32(0)
+116: 	for _, v := range buf[:r] {
+117: 		for v != 0 {
+118: 			n += int32(v & 1)
+119: 			v >>= 1
+120: 		}
+121: 	}
+122: 	if n == 0 {
+123: 		n = 1
+124: 	}
+125: 	return n
+126: }
+127: 
+128: // Clone, the Linux rfork.
+129: const (
+130: 	_CLONE_VM             = 0x100
+131: 	_CLONE_FS             = 0x200
+132: 	_CLONE_FILES          = 0x400
+133: 	_CLONE_SIGHAND        = 0x800
+134: 	_CLONE_PTRACE         = 0x2000
+135: 	_CLONE_VFORK          = 0x4000
+136: 	_CLONE_PARENT         = 0x8000
+137: 	_CLONE_THREAD         = 0x10000
+
+tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/runtime/mprof.go:500-518 sha256:aff7088637fe33bcf9827315f522933ed9651901decbc6dc9bbcf9f74508411c
+500: func blockevent(cycles int64, skip int) {
+501: 	if cycles <= 0 {
+502: 		cycles = 1
+503: 	}
+504: 
+505: 	rate := int64(atomic.Load64(&blockprofilerate))
+506: 	if blocksampled(cycles, rate) {
+507: 		saveblockevent(cycles, rate, skip+1, blockProfile)
+508: 	}
+509: }
+510: 
+511: // blocksampled returns true for all events where cycles >= rate. Shorter
+512: // events have a cycles/rate random chance of returning true.
+513: func blocksampled(cycles, rate int64) bool {
+514: 	if rate <= 0 || (rate > cycles && cheaprand64()%rate > cycles) {
+515: 		return false
+516: 	}
+517: 	return true
+518: }
+
+tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/runtime/mprof.go:527-572 sha256:aff7088637fe33bcf9827315f522933ed9651901decbc6dc9bbcf9f74508411c
+527: func saveblockevent(cycles, rate int64, skip int, which bucketType) {
+528: 	if debug.profstackdepth == 0 {
+529: 		// profstackdepth is set to 0 by the user, so mp.profStack is nil and we
+530: 		// can't record a stack trace.
+531: 		return
+532: 	}
+533: 	if skip > maxSkip {
+534: 		print("requested skip=", skip)
+535: 		throw("invalid skip value")
+536: 	}
+537: 	gp := getg()
+538: 	mp := acquirem() // we must not be preempted while accessing profstack
+539: 
+540: 	var nstk int
+541: 	if tracefpunwindoff() || gp.m.hasCgoOnStack() {
+542: 		if gp.m.curg == nil || gp.m.curg == gp {
+543: 			nstk = callers(skip, mp.profStack)
+544: 		} else {
+545: 			nstk = gcallers(gp.m.curg, skip, mp.profStack)
+546: 		}
+547: 	} else {
+548: 		if gp.m.curg == nil || gp.m.curg == gp {
+549: 			if skip > 0 {
+550: 				// We skip one fewer frame than the provided value for frame
+551: 				// pointer unwinding because the skip value includes the current
+552: 				// frame, whereas the saved frame pointer will give us the
+553: 				// caller's return address first (so, not including
+554: 				// saveblockevent)
+555: 				skip -= 1
+556: 			}
+557: 			nstk = fpTracebackPartialExpand(skip, unsafe.Pointer(getfp()), mp.profStack)
+558: 		} else {
+559: 			mp.profStack[0] = gp.m.curg.sched.pc
+560: 			nstk = 1 + fpTracebackPartialExpand(skip, unsafe.Pointer(gp.m.curg.sched.bp), mp.profStack[1:])
+561: 		}
+562: 	}
+563: 
+564: 	saveBlockEventStack(cycles, rate, mp.profStack[:nstk], which)
+565: 	releasem(mp)
+566: }
+567: 
+568: // fpTracebackPartialExpand records a call stack obtained starting from fp.
+569: // This function will skip the given number of frames, properly accounting for
+570: // inlining, and save remaining frames as "physical" return addresses. The
+571: // consumer should later use CallersFrames or similar to expand inline frames.
+572: func fpTracebackPartialExpand(skip int, fp unsafe.Pointer, pcBuf []uintptr) int {
+
+tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/runtime/mprof.go:828-837 sha256:aff7088637fe33bcf9827315f522933ed9651901decbc6dc9bbcf9f74508411c
+828: func mutexevent(cycles int64, skip int) {
+829: 	if cycles < 0 {
+830: 		cycles = 0
+831: 	}
+832: 	rate := int64(atomic.Load64(&mutexprofilerate))
+833: 	if rate > 0 && cheaprand64()%rate == 0 {
+834: 		saveblockevent(cycles, rate, skip+1, mutexProfile)
+835: 	}
+836: }
+837: 
+
+tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/runtime/sema.go:165-178 sha256:451de314f2db754e318c0ab7857ec3b808d604845e6306eed064a57b8b2cd52b
+165: 	t0 := int64(0)
+166: 	s.releasetime = 0
+167: 	s.acquiretime = 0
+168: 	s.ticket = 0
+169: 	if profile&semaBlockProfile != 0 && blockprofilerate > 0 {
+170: 		t0 = cputicks()
+171: 		s.releasetime = -1
+172: 	}
+173: 	if profile&semaMutexProfile != 0 && mutexprofilerate > 0 {
+174: 		if t0 == 0 {
+175: 			t0 = cputicks()
+176: 		}
+177: 		s.acquiretime = t0
+178: 	}
+
+tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/runtime/asm_amd64.s:1224-1242 sha256:71da1bf81ac9a5972ab4ddaccb0f2bab4c9272a888991a34721e520513f458bd
+1224: // func cputicks() int64
+1225: TEXT runtime·cputicks(SB),NOSPLIT,$0-0
+1226: 	CMPB	internal∕cpu·X86+const_offsetX86HasRDTSCP(SB), $1
+1227: 	JNE	fences
+1228: 	// Instruction stream serializing RDTSCP is supported.
+1229: 	// RDTSCP is supported by Intel Nehalem (2008) and
+1230: 	// AMD K8 Rev. F (2006) and newer.
+1231: 	RDTSCP
+1232: done:
+1233: 	SHLQ	$32, DX
+1234: 	ADDQ	DX, AX
+1235: 	MOVQ	AX, ret+0(FP)
+1236: 	RET
+1237: fences:
+1238: 	// MFENCE is instruction stream serializing and flushes the
+1239: 	// store buffers on AMD. The serialization semantics of LFENCE on AMD
+1240: 	// are dependent on MSR C001_1029 and CPU generation.
+1241: 	// LFENCE on Intel does wait for all previous instructions to have executed.
+1242: 	// Intel recommends MFENCE;LFENCE in its manuals before RDTSC to have all
+
+tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/runtime/netpoll_kqueue.go:90-121 sha256:7ea25693196718940e852554427d6b0d96d2964899e91e1bd3852d3f9267a072
+90: func netpoll(delay int64) (gList, int32) {
+91: 	if kq == -1 {
+92: 		return gList{}, 0
+93: 	}
+94: 	var tp *timespec
+95: 	var ts timespec
+96: 	if delay < 0 {
+97: 		tp = nil
+98: 	} else if delay == 0 {
+99: 		tp = &ts
+100: 	} else {
+101: 		ts.setNsec(delay)
+102: 		if ts.tv_sec > 1e6 {
+103: 			// Darwin returns EINVAL if the sleep time is too long.
+104: 			ts.tv_sec = 1e6
+105: 		}
+106: 		tp = &ts
+107: 	}
+108: 	var events [64]keventt
+109: retry:
+110: 	n := kevent(kq, nil, 0, &events[0], int32(len(events)), tp)
+111: 	if n < 0 {
+112: 		// Ignore the ETIMEDOUT error for now, but try to dive deep and
+113: 		// figure out what really happened with n == ETIMEOUT,
+114: 		// see https://go.dev/issue/59679 for details.
+115: 		if n != -_EINTR && n != -_ETIMEDOUT {
+116: 			println("runtime: kevent on fd", kq, "failed with", -n)
+117: 			throw("runtime: netpoll failed")
+118: 		}
+119: 		// If a timed sleep was interrupted, just return to
+120: 		// recalculate how long we should sleep now.
+121: 		if delay > 0 {
+
+tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/runtime/netpoll_epoll.go:99-140 sha256:cd94172ee133e4e522a8091818c6d82c9fdb94a9c263d5004feee114f76f9624
+99: func netpoll(delay int64) (gList, int32) {
+100: 	if epfd == -1 {
+101: 		return gList{}, 0
+102: 	}
+103: 	var waitms int32
+104: 	if delay < 0 {
+105: 		waitms = -1
+106: 	} else if delay == 0 {
+107: 		waitms = 0
+108: 	} else if delay < 1e6 {
+109: 		waitms = 1
+110: 	} else if delay < 1e15 {
+111: 		waitms = int32(delay / 1e6)
+112: 	} else {
+113: 		// An arbitrary cap on how long to wait for a timer.
+114: 		// 1e9 ms == ~11.5 days.
+115: 		waitms = 1e9
+116: 	}
+117: 	var events [128]linux.EpollEvent
+118: retry:
+119: 	n, errno := linux.EpollWait(epfd, events[:], int32(len(events)), waitms)
+120: 	if errno != 0 {
+121: 		if errno != _EINTR {
+122: 			println("runtime: epollwait on fd", epfd, "failed with", errno)
+123: 			throw("runtime: netpoll failed")
+124: 		}
+125: 		// If a timed sleep was interrupted, just return to
+126: 		// recalculate how long we should sleep now.
+127: 		if waitms > 0 {
+128: 			return gList{}, 0
+129: 		}
+130: 		goto retry
+131: 	}
+132: 	var toRun gList
+133: 	delta := int32(0)
+134: 	for i := int32(0); i < n; i++ {
+135: 		ev := events[i]
+136: 		if ev.Events == 0 {
+137: 			continue
+138: 		}
+139: 
+140: 		if *(**uintptr)(unsafe.Pointer(&ev.Data)) == &netpollEventFd {
+
+tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/runtime/cpuprof.go:61-100 sha256:d90aebaa1a719f339fde318cc8ec98e7312824ec2e2ad469a84fcbc6b5511c5e
+61: // SetCPUProfileRate sets the CPU profiling rate to hz samples per second.
+62: // If hz <= 0, SetCPUProfileRate turns off profiling.
+63: // If the profiler is on, the rate cannot be changed without first turning it off.
+64: //
+65: // Most clients should use the [runtime/pprof] package or
+66: // the [testing] package's -test.cpuprofile flag instead of calling
+67: // SetCPUProfileRate directly.
+68: func SetCPUProfileRate(hz int) {
+69: 	// Clamp hz to something reasonable.
+70: 	if hz < 0 {
+71: 		hz = 0
+72: 	}
+73: 	if hz > 1000000 {
+74: 		hz = 1000000
+75: 	}
+76: 
+77: 	lock(&cpuprof.lock)
+78: 	if hz > 0 {
+79: 		if cpuprof.on || cpuprof.log != nil {
+80: 			print("runtime: cannot set cpu profile rate until previous profile has finished.\n")
+81: 			unlock(&cpuprof.lock)
+82: 			return
+83: 		}
+84: 
+85: 		cpuprof.on = true
+86: 		cpuprof.log = newProfBuf(1, profBufWordCount, profBufTagCount)
+87: 		hdr := [1]uint64{uint64(hz)}
+88: 		cpuprof.log.write(nil, nanotime(), hdr[:], nil)
+89: 		setcpuprofilerate(int32(hz))
+90: 	} else if cpuprof.on {
+91: 		setcpuprofilerate(0)
+92: 		cpuprof.on = false
+93: 		cpuprof.addExtra()
+94: 		cpuprof.log.close()
+95: 	}
+96: 	unlock(&cpuprof.lock)
+97: }
+98: 
+99: // add adds the stack trace to the profile.
+100: // It is called from signal handlers and other limited environments
+
+tools/gomad3/README.md:772-802 sha256:7e2ab97cbcedb733511a157f6a5afbc0c60999ca3b080c57d0a3157c664e0e3c
+772: 
+773: Runtime decisions that only shape host-side scheduling draw from the M's own
+774: random stream rather than the process-wide seeded one: lock hand-off
+775: anti-starvation wakes, the wait-time sample an M takes before it sleeps on a
+776: contended runtime lock, work-steal order, and pcvalue-cache eviction all happen
+777: at host-timed moments (contended runtime locks, idle windows whose length the
+778: Runner decides, stack walks on whichever M holds the P), and drawing them from
+779: the seeded stream moved every later type-assertion-cache fill and semaphore
+780: ticket between same-seed runs. The wait-time sample was the last of these to
+781: move: an M that holds the P sleeps on the scheduler lock only when another M,
+782: parking or returning from a Runner syscall, keeps it past the spin, and that
+783: single draw shifted the stream, so a type-assertion cache grew at a different
+784: call site, two heap-span refills swapped order, and a few same-seed replays in
+785: a hundred of a functional suite diverged on darwin/arm64. A garbage-collector
+786: stack scan, and any other `suspendG`, first waits for a goroutine inside a
+787: plain host syscall (a pipe write, a read-only mount lookup) to return and
+788: queue itself as an arrival, so the collector's view of live memory does not
+789: depend on when the host answered; simulation transport reads are exempt
+790: because they block until the simulation advances.
+791: 
+792: At the start of every mark phase, while the world is still stopped, the
+793: runtime greys every M with its g0, gsignal and `self` handle, every P's `oldm`
+794: handle, and every goroutine, and an idle M does not keep the `allp` snapshot
+795: that `findRunnable` takes before dropping its P. Which M runs a goroutine after
+796: a syscall hand-off, and which Ms park through `findRunnable`, are host timing;
+797: the collector otherwise shaded those structures from the write barrier or from
+798: the parked M at host-timed points, and because the assist that ends a mark
+799: phase stops on a work boundary, the same-seed run-queue order of a
+800: cluster-sized target diverged from its first collection on darwin/arm64. The
+801: `oldm` handle is the 8-byte weak pointer `acquirep` copies from the M that took
+802: the P; scanning the P greyed whichever handle the last hand-off had left there,
+
+MILESTONES.md:407-414 sha256:69b27e29eacfffe7d001447792bee523e5f8f156b24ea2d3cf7306dd6f8bafb9
+407: | Q2 | No structural barrier against host timing | Any M holding the P draws from the one process stream. Four host-timed draw sites were rerouted after incidents; the remaining sites are unaudited | Per-purpose random streams, and a runtime assertion that host-timed paths never draw from the seeded stream |
+408: | Q3 | D12 candidate: one-shot syscall wait in `suspendG` | The patch waits for a host syscall to exit once, before the suspend loop. A goroutine that enters a syscall in that window can be scanned mid-syscall, which shifts scan work. Inferred from source, not reproduced | Wait inside the loop's `_Gsyscall` case, then measure D12 on a native linux host |
+409: | Q4 | D12 candidate: linux ASLR and `runtime.NumCPU` | Neither is controlled on linux/amd64. Impact is inferred low because the binary is non-PIE | Rerun the D12 reproducer under `setarch -R` before any code change |
+410: | Q5 | Forward clock runs `time.Now` and timers on different clocks | D16: the offset only grows, so derived deadlines fire late and the subtest fails 5 of 24 seeds. Eight generated workloads use `forward` | D26: one shared clock as fn-103 specified, feasibility-gated |
+411: | Q6 | Qualification has too little statistical power | `qualify` repeats twice. Exact replay forces run-queue and select choices, which masks perturbations that would split two fresh runs. A 1-in-26 defect passes most two-repetition checks | A scheduled soak of N fresh repetitions under CPU load with a strict zero-divergence gate |
+412: | Q7 | Channels with no fixture | netpoll, SIGPROF, block and mutex profilers on linux, `NumCPU`, timer-tie and run-queue shuffle draws (seeded, never taped) | One seeded fixture with a positive control per channel |
+413: | Q8 | Closure mode compiles no guards | `-gomadguard` is added only in guarded mode; pack admissions of `syscall` are per package, so admitted code runs live | State the limit in the contract, or sample guarded mode in the soak |
+414: 
+
+tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/runtime/proc.go:936-952
+936: 
+937: 	// mcommoninit runs before parsedebugvars, so init profstacks again.
+938: 	mProfStackInit(gp.m)
+939: 	defaultGOMAXPROCSInit()
+940: 
+941: 	lock(&sched.lock)
+942: 	sched.lastpoll.Store(nanotime())
+943: 	var procs int32
+944: 	if gomadEnabled {
+945: 		procs = 1
+946: 		sched.customGOMAXPROCS = true
+947: 	} else if n, err := strconv.ParseInt(gogetenv("GOMAXPROCS"), 10, 32); err == nil && n > 0 {
+948: 		procs = int32(n)
+949: 		sched.customGOMAXPROCS = true
+950: 	} else {
+951: 		// Use numCPUStartup for initial GOMAXPROCS for two reasons:
+952: 		//

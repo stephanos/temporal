@@ -1,0 +1,20 @@
+{
+  "kind": "read-only source preflight; no implementation or test claim",
+  "source_hashes": {
+    "tools/gomad3/runner/internal/corpus/model.go": "43f0f8c49808e2633866dc2c67699dc9e82836d5e5251e7bad0e493ed650fef2",
+    "tools/gomad3/runner/internal/corpus/corpus.go": "a1a4606d3e4c0c3d3400ace0431baf770578838cd8c17ace6f2c1343ef875766",
+    "tools/gomad3/runner/guidance.go": "dc1c7a0c17da4ea84829fa8bd3d4814fc829907b5dafaacfdcd11de9923ba440",
+    "tools/gomad3/target/target.go": "07ed67654a2bde66d347673481400f89b6bd2029c0997ffb6dc37692104dd3a5",
+    "tools/gomad3/runner/replay_operation.go": "07a00c35dd7ed09026fb0e6a60a1ca46fe8886711396e26a9aff5d041a87211c"
+  },
+  "observations": [
+    "Corpus identity lacks target environment. openGuidance already receives baseEnvironment but does not pass it to either constructor.",
+    "Target deterministic provenance validation rejects race but has no coverage setting check. Replay validateBuildInfo checks canonical equality only.",
+    "Additional candidate to verify during task3: Identity contains *ChoiceProfileIdentity, while readSnapshot compares full Identity with !=. A decoded pointer is distinct from the constructor pointer even if values match; test same-configuration choice-corpus reopen before editing, and distinguish this from new environment projection.",
+    "Pinned Go source cmd/go/internal/load/pkg.go around2483 appends -cover=true. Still build actual go build -cover and go test -cover examples as task3 acceptance requires."
+  ],
+  "limitations": [
+    "No tests or target builds run in this preflight.",
+    "Replay source may change under fn112.13 before task3; re-anchor."
+  ]
+}

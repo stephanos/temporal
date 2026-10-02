@@ -1,0 +1,929 @@
+{
+  "toolchain_build_key": "6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee",
+  "select_exploration_seed": "1",
+  "maximum_executions_per_shape": 2048,
+  "maximum_decisions_per_execution": 32,
+  "reduced": false,
+  "timer_callbacks": [
+    {
+      "seed": "1",
+      "transcript": "B A",
+      "callback_identities": {
+        "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+        "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "A": 3,
+        "B": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "2",
+      "transcript": "B A",
+      "callback_identities": {
+        "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "B": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "3",
+      "transcript": "A B",
+      "callback_identities": {
+        "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+        "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "A": 3,
+        "B": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "4",
+      "transcript": "B A",
+      "callback_identities": {
+        "A": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f",
+        "B": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb"
+      },
+      "parentless_ordinals": {
+        "A": 2,
+        "B": 3
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "5",
+      "transcript": "B A",
+      "callback_identities": {
+        "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "B": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "6",
+      "transcript": "B A",
+      "callback_identities": {
+        "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+        "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "A": 3,
+        "B": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "7",
+      "transcript": "B A",
+      "callback_identities": {
+        "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+        "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "A": 3,
+        "B": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "8",
+      "transcript": "B A",
+      "callback_identities": {
+        "A": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f",
+        "B": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb"
+      },
+      "parentless_ordinals": {
+        "A": 2,
+        "B": 3
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "9",
+      "transcript": "A B",
+      "callback_identities": {
+        "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+        "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "A": 3,
+        "B": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "10",
+      "transcript": "A B",
+      "callback_identities": {
+        "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+        "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "A": 3,
+        "B": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "11",
+      "transcript": "A B",
+      "callback_identities": {
+        "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+        "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "A": 3,
+        "B": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "12",
+      "transcript": "A B",
+      "callback_identities": {
+        "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+        "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "A": 3,
+        "B": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "13",
+      "transcript": "B A",
+      "callback_identities": {
+        "B": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb"
+      },
+      "parentless_ordinals": {
+        "B": 3
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "14",
+      "transcript": "A B",
+      "callback_identities": {
+        "A": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "A": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "15",
+      "transcript": "A B",
+      "callback_identities": {
+        "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+        "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "A": 3,
+        "B": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "16",
+      "transcript": "A B",
+      "callback_identities": {
+        "A": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f",
+        "B": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb"
+      },
+      "parentless_ordinals": {
+        "A": 2,
+        "B": 3
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "17",
+      "transcript": "A B",
+      "callback_identities": {
+        "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+        "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "A": 3,
+        "B": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "18",
+      "transcript": "B A",
+      "callback_identities": {
+        "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "B": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "19",
+      "transcript": "A B",
+      "callback_identities": {
+        "A": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "A": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "20",
+      "transcript": "A B",
+      "callback_identities": {
+        "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb"
+      },
+      "parentless_ordinals": {
+        "A": 3
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "21",
+      "transcript": "B A",
+      "callback_identities": {
+        "A": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f",
+        "B": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb"
+      },
+      "parentless_ordinals": {
+        "A": 2,
+        "B": 3
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "22",
+      "transcript": "B A",
+      "callback_identities": {
+        "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+        "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "A": 3,
+        "B": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "23",
+      "transcript": "B A",
+      "callback_identities": {
+        "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "B": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "24",
+      "transcript": "A B",
+      "callback_identities": {
+        "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+        "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "A": 3,
+        "B": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "25",
+      "transcript": "B A",
+      "callback_identities": {
+        "A": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f",
+        "B": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb"
+      },
+      "parentless_ordinals": {
+        "A": 2,
+        "B": 3
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "26",
+      "transcript": "B A",
+      "callback_identities": {
+        "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "B": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "27",
+      "transcript": "A B",
+      "callback_identities": {
+        "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+        "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "A": 3,
+        "B": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "28",
+      "transcript": "B A",
+      "callback_identities": {
+        "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+        "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "A": 3,
+        "B": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "29",
+      "transcript": "A B",
+      "callback_identities": {
+        "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+        "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "A": 3,
+        "B": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "30",
+      "transcript": "B A",
+      "callback_identities": {
+        "A": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f",
+        "B": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb"
+      },
+      "parentless_ordinals": {
+        "A": 2,
+        "B": 3
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "31",
+      "transcript": "B A",
+      "callback_identities": {
+        "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+      },
+      "parentless_ordinals": {
+        "B": 2
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    },
+    {
+      "seed": "32",
+      "transcript": "B A",
+      "callback_identities": {
+        "B": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb"
+      },
+      "parentless_ordinals": {
+        "B": 3
+      },
+      "callback_sites": {
+        "A": 767300,
+        "B": 766964
+      }
+    }
+  ],
+  "timer_prefixes": [
+    {
+      "decision_ordinal": 0,
+      "selected_rank": 0,
+      "prefix_sha256": "895bc16e628676ab30be2f2a22a19f8e956df6c1f6d13753ef9b68913a36b912",
+      "association": {
+        "seed": "6",
+        "transcript": "B A",
+        "callback_identities": {
+          "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+          "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+        },
+        "parentless_ordinals": {
+          "A": 3,
+          "B": 2
+        },
+        "callback_sites": {
+          "A": 767300,
+          "B": 766964
+        }
+      }
+    },
+    {
+      "decision_ordinal": 0,
+      "selected_rank": 2,
+      "prefix_sha256": "fcaa6b717a6070b0fbe3d579bbdd496bef9fd243c374f4026641680f37999818",
+      "association": {
+        "seed": "6",
+        "transcript": "B A",
+        "callback_identities": {
+          "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+          "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+        },
+        "parentless_ordinals": {
+          "A": 3,
+          "B": 2
+        },
+        "callback_sites": {
+          "A": 767300,
+          "B": 766964
+        }
+      }
+    },
+    {
+      "decision_ordinal": 1,
+      "selected_rank": 0,
+      "prefix_sha256": "934b9730de5cbf105aee556323d1dda18298ab55301f646541c7f423c161091f",
+      "association": {
+        "seed": "6",
+        "transcript": "B A",
+        "callback_identities": {
+          "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+          "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+        },
+        "parentless_ordinals": {
+          "A": 3,
+          "B": 2
+        },
+        "callback_sites": {
+          "A": 767300,
+          "B": 766964
+        }
+      }
+    },
+    {
+      "decision_ordinal": 2,
+      "selected_rank": 0,
+      "prefix_sha256": "ae66f2f176a861c2b6d1feac5be1e39c6c3cc4326e068d31a57d14a7db64b02c",
+      "association": {
+        "seed": "6",
+        "transcript": "B A",
+        "callback_identities": {
+          "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+          "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+        },
+        "parentless_ordinals": {
+          "A": 3,
+          "B": 2
+        },
+        "callback_sites": {
+          "A": 767300,
+          "B": 766964
+        }
+      }
+    },
+    {
+      "decision_ordinal": 3,
+      "selected_rank": 0,
+      "prefix_sha256": "975957a8f23365b47cce3f9a2a1ca8d0ab296addc5dd9f831c41d2210b348a97",
+      "association": {
+        "seed": "6",
+        "transcript": "B A",
+        "callback_identities": {
+          "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+          "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+        },
+        "parentless_ordinals": {
+          "A": 3,
+          "B": 2
+        },
+        "callback_sites": {
+          "A": 767300,
+          "B": 766964
+        }
+      }
+    },
+    {
+      "decision_ordinal": 3,
+      "selected_rank": 2,
+      "prefix_sha256": "9d04c740211fa811bdbfcf5686f268327c4a93a24112bdd2aad6a7c5852acd29",
+      "association": {
+        "seed": "6",
+        "transcript": "A B",
+        "callback_identities": {
+          "A": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f",
+          "B": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb"
+        },
+        "parentless_ordinals": {
+          "A": 2,
+          "B": 3
+        },
+        "callback_sites": {
+          "A": 767300,
+          "B": 766964
+        }
+      }
+    },
+    {
+      "decision_ordinal": 3,
+      "selected_rank": 3,
+      "prefix_sha256": "b7d610f02fe48e695beab33c0c4f87f68704d6899772c20a54939f84cca11679",
+      "association": {
+        "seed": "6",
+        "transcript": "B A",
+        "callback_identities": {
+          "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+          "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+        },
+        "parentless_ordinals": {
+          "A": 3,
+          "B": 2
+        },
+        "callback_sites": {
+          "A": 767300,
+          "B": 766964
+        }
+      }
+    },
+    {
+      "decision_ordinal": 4,
+      "selected_rank": 1,
+      "prefix_sha256": "a41aea12664884f6109967d0218be2e3f377102685531916270794ed373d5276",
+      "association": {
+        "seed": "6",
+        "transcript": "A B",
+        "callback_identities": {
+          "A": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f",
+          "B": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb"
+        },
+        "parentless_ordinals": {
+          "A": 2,
+          "B": 3
+        },
+        "callback_sites": {
+          "A": 767300,
+          "B": 766964
+        }
+      }
+    },
+    {
+      "decision_ordinal": 4,
+      "selected_rank": 2,
+      "prefix_sha256": "726d3341c5bfe360677075da43aa0f2a8f555434689e3e20d429f3ca61a8fa8b",
+      "association": {
+        "seed": "6",
+        "transcript": "B A",
+        "callback_identities": {
+          "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+          "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+        },
+        "parentless_ordinals": {
+          "A": 3,
+          "B": 2
+        },
+        "callback_sites": {
+          "A": 767300,
+          "B": 766964
+        }
+      }
+    },
+    {
+      "decision_ordinal": 5,
+      "selected_rank": 1,
+      "prefix_sha256": "183d049571b90a007cce5e9e87c29603ab1b10538df370b494b21870b10a35f7",
+      "association": {
+        "seed": "6",
+        "transcript": "B A",
+        "callback_identities": {
+          "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+          "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+        },
+        "parentless_ordinals": {
+          "A": 3,
+          "B": 2
+        },
+        "callback_sites": {
+          "A": 767300,
+          "B": 766964
+        }
+      }
+    },
+    {
+      "decision_ordinal": 5,
+      "selected_rank": 2,
+      "prefix_sha256": "57c1242e7e9ac43d458d80cfadac3a075b70ce2827d1b7783096325f09a922b1",
+      "association": {
+        "seed": "6",
+        "transcript": "B A",
+        "callback_identities": {
+          "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+          "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+        },
+        "parentless_ordinals": {
+          "A": 3,
+          "B": 2
+        },
+        "callback_sites": {
+          "A": 767300,
+          "B": 766964
+        }
+      }
+    },
+    {
+      "decision_ordinal": 6,
+      "selected_rank": 0,
+      "prefix_sha256": "8b90fff724ce9bf296976b490124a37c404edddb262be0822df460bc496a552e",
+      "association": {
+        "seed": "6",
+        "transcript": "B A",
+        "callback_identities": {
+          "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+          "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+        },
+        "parentless_ordinals": {
+          "A": 3,
+          "B": 2
+        },
+        "callback_sites": {
+          "A": 767300,
+          "B": 766964
+        }
+      }
+    },
+    {
+      "decision_ordinal": 7,
+      "selected_rank": 0,
+      "prefix_sha256": "c931e04d98cb8d96e840f2ebc1aba8b6e2af57e8890486ad327abb5eeac63245",
+      "association": {
+        "seed": "6",
+        "transcript": "A B",
+        "callback_identities": {
+          "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+          "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+        },
+        "parentless_ordinals": {
+          "A": 3,
+          "B": 2
+        },
+        "callback_sites": {
+          "A": 767300,
+          "B": 766964
+        }
+      }
+    },
+    {
+      "decision_ordinal": 8,
+      "selected_rank": 1,
+      "prefix_sha256": "2cffba58d361b095d4982d7532076bb449a3d6c6a4803b117c0caf5f3a48ee09",
+      "association": {
+        "seed": "6",
+        "transcript": "B A",
+        "callback_identities": {
+          "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+          "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+        },
+        "parentless_ordinals": {
+          "A": 3,
+          "B": 2
+        },
+        "callback_sites": {
+          "A": 767300,
+          "B": 766964
+        }
+      }
+    },
+    {
+      "decision_ordinal": 9,
+      "selected_rank": 0,
+      "prefix_sha256": "ee501c40049b6ba2497abbd78fcd127de08102b305c28b2ed0e76b2fe1fd35de",
+      "association": {
+        "seed": "6",
+        "transcript": "B A",
+        "callback_identities": {
+          "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+        },
+        "parentless_ordinals": {
+          "B": 2
+        },
+        "callback_sites": {
+          "A": 767300,
+          "B": 766964
+        }
+      }
+    },
+    {
+      "decision_ordinal": 10,
+      "selected_rank": 1,
+      "prefix_sha256": "b986d4cd937c26cb742e657ad0e6f3cc355c961f8667cac2e5b4fde35253d276",
+      "association": {
+        "seed": "6",
+        "transcript": "B A",
+        "callback_identities": {
+          "A": "8db55ff152da58f2056e9707dfcde9e69196d16444c483e679a55cf66d18a4fb",
+          "B": "ecea36d5b734a20f7d75ffdc609dd53df5fda8fe9b86f13ca10d3277330e4b5f"
+        },
+        "parentless_ordinals": {
+          "A": 3,
+          "B": 2
+        },
+        "callback_sites": {
+          "A": 767300,
+          "B": 766964
+        }
+      }
+    }
+  ],
+  "cross_seed_prefix": {
+    "recorded_seed": "6",
+    "executed_seed": "16",
+    "prefix_sha256": "7efe510bd8320a890a8b12dc1778a10eb05494ffa554f8bc5034c04d2697a31e",
+    "decision_ordinal": 8,
+    "reason": "site"
+  },
+  "select_shapes": [
+    {
+      "name": "blocking-zero-ready",
+      "ready_at_poll": 0,
+      "select_poll": 1,
+      "fewer_than_two_ready": 1,
+      "executions": 196,
+      "outcomes": [
+        "blocking-zero-ready first"
+      ],
+      "deadlocks": [],
+      "stop_reason": "frontier_exhausted"
+    },
+    {
+      "name": "blocking-one-ready",
+      "ready_at_poll": 1,
+      "select_poll": 1,
+      "fewer_than_two_ready": 1,
+      "executions": 68,
+      "outcomes": [
+        "blocking-one-ready first"
+      ],
+      "deadlocks": [],
+      "stop_reason": "frontier_exhausted"
+    },
+    {
+      "name": "blocking-two-ready",
+      "ready_at_poll": 2,
+      "select_poll": 1,
+      "fewer_than_two_ready": 0,
+      "executions": 68,
+      "outcomes": [
+        "blocking-two-ready first",
+        "blocking-two-ready second"
+      ],
+      "deadlocks": [],
+      "stop_reason": "frontier_exhausted"
+    },
+    {
+      "name": "nonblocking-default",
+      "ready_at_poll": 0,
+      "select_poll": 1,
+      "fewer_than_two_ready": 1,
+      "executions": 68,
+      "outcomes": [
+        "nonblocking-default default"
+      ],
+      "deadlocks": [],
+      "stop_reason": "frontier_exhausted"
+    },
+    {
+      "name": "timer-channel",
+      "ready_at_poll": 0,
+      "select_poll": 1,
+      "fewer_than_two_ready": 1,
+      "executions": 196,
+      "outcomes": [
+        "timer-channel timer"
+      ],
+      "deadlocks": [],
+      "stop_reason": "frontier_exhausted"
+    },
+    {
+      "name": "closed-channel",
+      "ready_at_poll": 1,
+      "select_poll": 1,
+      "fewer_than_two_ready": 1,
+      "executions": 68,
+      "outcomes": [
+        "closed-channel closed"
+      ],
+      "deadlocks": [],
+      "stop_reason": "frontier_exhausted"
+    },
+    {
+      "name": "nil-channel",
+      "ready_at_poll": 1,
+      "select_poll": 1,
+      "fewer_than_two_ready": 1,
+      "executions": 68,
+      "outcomes": [
+        "nil-channel first"
+      ],
+      "deadlocks": [],
+      "stop_reason": "frontier_exhausted"
+    }
+  ]
+}

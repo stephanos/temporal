@@ -1,0 +1,16 @@
+package main
+import("encoding/json";"bytes";"fmt";"os";"strings";"go.temporal.io/server/tools/gomad3/qualification";"go.temporal.io/server/tools/gomad3/record")
+func main(){
+ data,err:=os.ReadFile(os.Args[1]);if err!=nil{panic(err)}
+ for _,mode:=range []string{"missing","contradictory"}{
+  var document qualification.QualificationReport
+  if err:=json.Unmarshal(data,&document);err!=nil{panic(err)}
+  second:=&document.Executions[1]
+  if mode=="missing"{second.Diagnostics=nil}else{second.Diagnostics.SHA256="sha256:"+record.SHA256(strings.Repeat("0",64))}
+  directory,err:=os.MkdirTemp("","gomad-report-probe-");if err!=nil{panic(err)};defer os.RemoveAll(directory)
+  path,err:=qualification.WriteQualificationReport(directory,document);if err!=nil{fmt.Printf("%s: write rejected %v\n",mode,err);continue}
+  changed,err:=os.ReadFile(path);if err!=nil{panic(err)}
+  report,err:=qualification.DecodeQualificationReport(bytes.TrimSuffix(changed,[]byte("\n")))
+  fmt.Printf("%s: qualified=%v error=%v\n",mode,report.Qualified,err)
+ }
+}

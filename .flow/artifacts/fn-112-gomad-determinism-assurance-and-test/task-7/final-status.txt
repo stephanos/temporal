@@ -1,0 +1,102 @@
+ M .flow/.gitignore
+ M .flow/specs/fn-112-gomad-determinism-assurance-and-test.json
+ M .flow/specs/fn-114-gomad-correct-search-path-defects-and.json
+ M .flow/specs/fn-114-gomad-correct-search-path-defects-and.md
+ M .flow/tasks/fn-112-gomad-determinism-assurance-and-test.1.json
+ M .flow/tasks/fn-112-gomad-determinism-assurance-and-test.1.md
+ M .flow/tasks/fn-112-gomad-determinism-assurance-and-test.2.md
+ M .flow/tasks/fn-112-gomad-determinism-assurance-and-test.4.md
+ M .flow/tasks/fn-112-gomad-determinism-assurance-and-test.6.md
+ M .flow/tasks/fn-112-gomad-determinism-assurance-and-test.7.json
+ M .flow/tasks/fn-112-gomad-determinism-assurance-and-test.7.md
+ M .flow/tasks/fn-114-gomad-correct-search-path-defects-and.1.md
+ M .flow/tasks/fn-114-gomad-correct-search-path-defects-and.13.json
+ M .flow/tasks/fn-114-gomad-correct-search-path-defects-and.13.md
+ M .flow/tasks/fn-114-gomad-correct-search-path-defects-and.2.md
+ M .flow/tasks/fn-114-gomad-correct-search-path-defects-and.4.json
+ M .flow/tasks/fn-114-gomad-correct-search-path-defects-and.4.md
+ M .flow/tasks/fn-114-gomad-correct-search-path-defects-and.5.json
+ M .flow/tasks/fn-114-gomad-correct-search-path-defects-and.5.md
+ M MILESTONES.md
+ M tools/gomad3/Makefile
+ M tools/gomad3/cmd/gomad/internal/cli/cli.go
+ M tools/gomad3/cmd/gomad/internal/cli/qualify.go
+ M tools/gomad3/cmd/gomadtool/main.go
+ M tools/gomad3/internal/gomadtool/conformance/registry.go
+ M tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go
+ M tools/gomad3/internal/gomadtool/conformance/runtime_choice.go
+ M tools/gomad3/internal/gomadtool/conformance/runtime_load.go
+ M tools/gomad3/internal/gomadtool/conformance/runtime_repeatability.go
+ M tools/gomad3/internal/gomadtool/conformance/runtime_scheduling.go
+ M tools/gomad3/internal/gomadtool/conformance/runtime_test.go
+ M tools/gomad3/internal/gomadtool/conformance/testdata/README.md
+ M tools/gomad3/qualification/qualification.go
+ M tools/gomad3/qualification/workload/workload.go
+ M tools/gomad3/runner/campaign_shard_execution.go
+ M tools/gomad3/runner/coordinator.go
+ M tools/gomad3/runner/evidence.go
+ M tools/gomad3/runner/internal/execution/bootstrap_unix.go
+ M tools/gomad3/runner/internal/execution/launch_plan_unix.go
+ M tools/gomad3/runner/internal/execution/process.go
+ M tools/gomad3/runner/internal/execution/process_test.go
+ M tools/gomad3/runner/internal/execution/process_unix.go
+ M tools/gomad3/runner/internal/execution/supervisor_unix.go
+ M tools/gomad3/runner/replay_operation.go
+ M tools/gomad3/runner/resume.go
+ M tools/gomad3/runner/runner.go
+ M tools/gomad3/runner/runner_test.go
+ M tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs.go
+ M tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs_test.go
+ M tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_volume.go
+ M tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/anonymous_test.go
+ M tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/libc.go
+ M tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network.go
+ M tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_model_test.go
+ M tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_time_test.go
+ M tools/gomad3/toolchain/runtime/overlay/src/os/gomad.go
+ M tools/gomad3/toolchain/version/version.json
+?? .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-1/
+?? .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-2/completion-evidence.json
+?? .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-2/completion-summary.md
+?? .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-2/execution-tests-repaired.log
+?? .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-2/focused-vet.log
+?? .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-2/make-test-repaired.log
+?? .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-2/overlay-simulation-repaired.log
+?? .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-2/process-backend-repeated-after.log
+?? .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-2/regression-graceful-stop-after.log
+?? .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-2/regression-graceful-stop-before.log
+?? .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-2/repair-sources.json
+?? .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-2/repair.patch
+?? .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-2/review-before-repair.json
+?? .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-2/review-repaired.json
+?? .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-2/reviewed.patch
+?? .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-2/root-lint-repaired.log
+?? .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-2/source-bindings.json
+?? .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-4/
+?? .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-6/
+?? .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-7/
+?? .flow/artifacts/fn-114-gomad-correct-search-path-defects-and/
+?? tools/gomad3/choice/diagnostic.go
+?? tools/gomad3/choice/diagnostic_test.go
+?? tools/gomad3/cmd/gomad/internal/cli/diagnostics_test.go
+?? tools/gomad3/cmd/gomadtool/diagnostic.go
+?? tools/gomad3/cmd/gomadtool/diagnostic_test.go
+?? tools/gomad3/internal/gomadtool/conformance/testdata/diagnostic_fault/
+?? tools/gomad3/internal/gomadtool/conformance/testdata/model_fs/
+?? tools/gomad3/internal/gomadtool/conformance/testdata/model_net/
+?? tools/gomad3/internal/gomadtool/conformance/testdata/runq_shuffle/
+?? tools/gomad3/internal/gomadtool/conformance/testdata/select_readiness/
+?? tools/gomad3/internal/gomadtool/conformance/testdata/timer_callback_identity/
+?? tools/gomad3/internal/gomadtool/conformance/testdata/timer_ties/
+?? tools/gomad3/qualification/diagnostics_test.go
+?? tools/gomad3/runner/diagnostic_identity_test.go
+?? tools/gomad3/runner/diagnostics.go
+?? tools/gomad3/runner/diagnostics_test.go
+?? tools/gomad3/runner/internal/execution/diagnostics_toolchain_test.go
+?? tools/gomad3/runner/internal/execution/model_conformance_compare_test.go
+?? tools/gomad3/runner/internal/execution/model_conformance_test.go
+?? tools/gomad3/runner/testdata/diagnostic-identity-choices.json
+?? tools/gomad3/runner/testdata/diagnostic-identity-plain.json
+?? tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/export_test.go
+?? tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/export_test.go
+?? tools/gomad3/toolchain/runtime/overlay/src/os/gomad_model_conformance_test.go

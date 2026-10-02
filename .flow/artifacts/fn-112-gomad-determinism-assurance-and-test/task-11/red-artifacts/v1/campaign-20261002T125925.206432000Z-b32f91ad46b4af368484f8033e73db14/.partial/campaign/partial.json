@@ -1,0 +1,1 @@
+{"campaign_id":"campaign-20261002T125925.206432000Z-b32f91ad46b4af368484f8033e73db14","detail":"gomad3 Runner/host failure: target_supervision: invalid I/O terminal frame","last_stable_state":"running","reason":"target_supervision","schema":"gomad3.campaign-lifecycle/v1","schema_version":1,"state":"recoverable-failure"}

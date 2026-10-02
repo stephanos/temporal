@@ -1,0 +1,12 @@
+package main
+import("encoding/json";"errors";"fmt";"os";"syscall")
+func main(){
+ path,err:=os.MkdirTemp("","task7-directory-probe-");if err!=nil{panic(err)}
+ defer func(){if err:=os.RemoveAll(path);err!=nil{panic(err)}}()
+ directory,err:=os.Open(path);if err!=nil{panic(err)};if err:=directory.Close();err!=nil{panic(err)}
+ for _,call:=range []struct{name string;run func()error}{{"chdir",directory.Chdir},{"read-dir",func()error{_,err:=directory.ReadDir(-1);return err}},{"readdir",func()error{_,err:=directory.Readdir(-1);return err}},{"readdirnames",func()error{_,err:=directory.Readdirnames(-1);return err}}}{
+  err:=call.run();var pathError *os.PathError;fields:=map[string]any{"operation":call.name,"type":fmt.Sprintf("%T",err),"closed":errors.Is(err,os.ErrClosed),"ebadf":errors.Is(err,syscall.EBADF)}
+  if errors.As(err,&pathError){fields["path_operation"]=pathError.Op;fields["path_matches"]=pathError.Path==path;fields["leaf_type"]=fmt.Sprintf("%T",pathError.Err);fields["leaf_message"]=pathError.Err.Error()}
+  if err:=json.NewEncoder(os.Stdout).Encode(fields);err!=nil{panic(err)}
+ }
+}
