@@ -16,8 +16,7 @@ import (
 
 	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	cp "go.temporal.io/server/model/go/caseproducer"
-	"go.temporal.io/server/model/go/umpire"
+	cp "go.temporal.io/server/model/scalav2/goir/testpilot/internal/producer"
 	"go.temporal.io/server/model/scalav2/goir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -178,7 +177,7 @@ func standingOf(problems []error, gaps []Unsupported, realizable Standing) (Stan
 // declares no realization have that standing and no Case. One whose realization needs what Testpilot
 // cannot run lists every such declaration and has no Case: nothing is lowered around a gap. The
 // realization and the Query's path are checked whole before either is said.
-func (p *Producer) Lower(query string, identity cp.Identity) (*Lowering, error) {
+func (p *Producer) Lower(query string, identity Identity) (*Lowering, error) {
 	a, realizable, err := p.ask(query)
 	if err != nil {
 		return nil, err
@@ -722,7 +721,7 @@ type lowering struct {
 	mm          *goir.Machine
 	adapter     *adapter
 	realization *cp.Realization
-	query       *umpire.Query
+	query       *goir.Query
 	keys        []string
 	// confirmations is which kind of evidence confirms each step of the path, as the producer decides
 	// it: set once the producer has read the path whole and refused nothing.
@@ -738,7 +737,7 @@ func (p *Producer) source(q *modelirspb.Query) cp.Source {
 // witness, that the Property lowers to clauses, and, once the realization itself is sound, everything
 // the producer decides before it writes a Case. It reports every problem it finds, and the lowering
 // is ready to be produced when it finds none.
-func (p *Producer) check(a *asked, identity cp.Identity) (*lowering, []error) {
+func (p *Producer) check(a *asked, identity Identity) (*lowering, []error) {
 	at, name := a.q.GetPosition(), a.q.GetName()
 	mm := p.realizer.Machine(a.scenario.GetMachine())
 	if a.scenario.GetFree() || len(a.scenario.GetKeys()) > 0 || mm == nil {
@@ -1300,7 +1299,7 @@ func (a *accounting) controls() error {
 			for _, n := range e.GetInstructions() {
 				fault := n.GetInstruction().GetInjectFault()
 				if fault.GetRoleId() != c.GetRole() ||
-					fault.GetKind() != testpilotspb.FAULT_KIND_DELIVERY_HOLD && fault.GetKind() != testpilotspb.FAULT_KIND_DELIVERY_RELEASE {
+					fault.GetKind() != testpilotspb.FAULT_KIND_DELIVERY_HOLD && fault.GetKind() != testpilotspb.FAULT_KIND_DELIVERY_RELEASE && fault.GetKind() != testpilotspb.FAULT_KIND_ADMISSION_RESPONSE_LOSS {
 					continue
 				}
 				entry.Disposition = InCase
@@ -1438,3 +1437,8 @@ func (a *accounting) unaccounted() error {
 	}
 	return nil
 }
+
+// Identity names one Case and its executable and verification artifacts.
+type Identity = cp.Identity
+
+func IdentityFor(root, set, query string) Identity { return cp.IdentityFor(root, set, query) }

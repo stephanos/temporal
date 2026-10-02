@@ -41,6 +41,7 @@ func requiredFlags(t *testing.T, fixture string) []string {
 		"--http", "127.0.0.1:7243",
 		"--namespace", "umpire-run-namespace",
 		"--task-queue", "umpire-run-queue",
+		"--nexus-endpoint", "umpire-run-endpoint",
 	}
 }
 
@@ -528,4 +529,17 @@ func TestRunRefusesARecordOfANoncanonicalFixtureBeforeRunning(t *testing.T) {
 	stderr.Reset()
 	require.Equal(t, exitFailed, Run(flags, &stdout, &stderr, refusing))
 	require.True(t, opened, "without --record the fixture's form does not matter")
+}
+
+func TestRunSkipsMissingDeliveryCapabilityBeforeOpening(t *testing.T) {
+	arguments := []string{"--case", "../../../../model/scalav2/cases/activity-race-heldAdmission.staleDelivery-case.json", "--grpc", "localhost:1", "--http", "localhost:2", "--namespace", "ns", "--task-queue", "q"}
+	var stdout, stderr bytes.Buffer
+	opened := false
+	code := Run(arguments, &stdout, &stderr, func(context.Context, config, *testpilotspb.Case) (*session, error) {
+		opened = true
+		return nil, errors.New("opened before admission")
+	})
+	require.False(t, opened)
+	require.Equal(t, exitFailed, code)
+	require.Contains(t, stderr.String(), "skipped: prepare Case: unsupported at controller.hold-dispatch")
 }

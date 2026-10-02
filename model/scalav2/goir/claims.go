@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	modelirspb "go.temporal.io/server/api/modelir/v1"
-	"go.temporal.io/server/model/go/umpire"
+	umpire "go.temporal.io/server/model/scalav2/goir/internal/checker"
 )
 
 // binding is one interpretation of a Model as model/go's checker reads it: a table per machine and
@@ -26,8 +26,8 @@ type binding struct {
 	catalogs    map[string]map[string]Value
 	subjects    map[string]*subject
 	refined     map[string]*refined
-	properties  map[claim]*umpire.PropertyDecl
-	scenarios   map[scheduled]*umpire.ScenarioDecl
+	properties  map[claim]*PropertyDecl
+	scenarios   map[scheduled]*ScenarioDecl
 	// realizing is whether a machine's table also carries what a producer of Cases reads beside its
 	// rows: each state's fields and the machine's Abstraction Claims.
 	realizing bool
@@ -36,7 +36,7 @@ type binding struct {
 // scheduled keys a Scenario by the table it runs on: a Query that reads through a refinement the
 // machine's holes leave unknown runs its Scenario on the machine's rows alone.
 type scheduled struct {
-	table *umpire.Table
+	table *Table
 	name  string
 }
 
@@ -47,7 +47,7 @@ func bind(m *modelirspb.Model, scope Scope) *binding {
 	built := in.interpret(m)
 	b := &binding{model: m, scope: scope, in: in, machines: built.machines, failed: built.failed, unevaluated: built.unrefined,
 		actions: map[string]*modelirspb.Action{}, catalogs: map[string]map[string]Value{}, subjects: map[string]*subject{},
-		refined: map[string]*refined{}, properties: map[claim]*umpire.PropertyDecl{}, scenarios: map[scheduled]*umpire.ScenarioDecl{}}
+		refined: map[string]*refined{}, properties: map[claim]*PropertyDecl{}, scenarios: map[scheduled]*ScenarioDecl{}}
 	for _, a := range m.GetActions() {
 		b.actions[a.GetId()] = a
 	}
@@ -65,11 +65,11 @@ type subject struct {
 	machine *Machine
 	// monitored is whether the machine names monitors.
 	monitored bool
-	table     *umpire.Table
+	table     *Table
 	// err is why the subject has no table.
 	err error
 	// monitors watch every Query over the subject, and watchErr is why they cannot.
-	monitors []*umpire.Monitor
+	monitors []*Monitor
 	watched  []*watched
 	watchErr error
 	// unsupported is why no Query over the subject is checked, or empty.
@@ -77,7 +77,7 @@ type subject struct {
 	// state is the value of a state key, step the step record of a result, and key the key of a
 	// state value.
 	state func(key string) (Value, error)
-	step  func(res umpire.Result) (Value, error)
+	step  func(res Result) (Value, error)
 	key   func(state Value) (string, error)
 }
 
@@ -117,7 +117,7 @@ func (b *binding) machineSubject(mm *Machine) *subject {
 		return v, nil
 	}
 	s.key = func(state Value) (string, error) { return state.Key(), nil }
-	s.step = func(res umpire.Result) (Value, error) {
+	s.step = func(res Result) (Value, error) {
 		if step, ok := res.Step.(Value); ok {
 			return step, nil
 		}
@@ -138,14 +138,14 @@ func (b *binding) machineSubject(mm *Machine) *subject {
 // its step record, the machine's assumptions, the field that carries the state it refines, and, with
 // holes, its hole rows as unknown pairs. An empty list of steps stays an absent pair, and a hole row
 // is never one.
-func (b *binding) view(mm *Machine, holes bool) *umpire.Table {
+func (b *binding) view(mm *Machine, holes bool) *Table {
 	return umpire.NewTable(b.spec(mm, holes))
 }
 
 // claimed is the table a machine's claims are declared on: its view with its hole rows. For a
 // producer of Cases it also carries each state's fields and the machine's Abstraction Claims, which
 // are read off the IR here and nowhere else; a Model they cannot be read from has no such table.
-func (b *binding) claimed(mm *Machine) (*umpire.Table, error) {
+func (b *binding) claimed(mm *Machine) (*Table, error) {
 	spec := b.spec(mm, true)
 	if b.realizing {
 		var err error
@@ -177,7 +177,7 @@ func (b *binding) spec(mm *Machine, holes bool) umpire.TableSpec {
 	}
 	if holes {
 		for _, h := range mm.Holes {
-			spec.Unknown = append(spec.Unknown, umpire.UnknownPair{Row: h.Row, Source: h.Source, Action: h.Class, Cause: h.Hole})
+			spec.Unknown = append(spec.Unknown, UnknownPair{Row: h.Row, Source: h.Source, Action: h.Class, Cause: h.Hole})
 		}
 	}
 	return spec
@@ -195,8 +195,8 @@ func (b *binding) typeNamed(name string) *modelirspb.Type {
 // fieldValues is each state's fields as atoms, in the record's field order, followed by the refined
 // machine's state for a refining machine: what a Contract compares a state's fields by. A state type
 // that is no record has no fields.
-func (b *binding) fieldValues(mm *Machine) (map[string][]umpire.Atom, error) {
-	out, t, decl := map[string][]umpire.Atom{}, mm.Table, mm.Decl
+func (b *binding) fieldValues(mm *Machine) (map[string][]Atom, error) {
+	out, t, decl := map[string][]Atom{}, mm.Table, mm.Decl
 	record := b.typeNamed(decl.GetStateType()).GetRecord()
 	if record == nil {
 		return out, nil
@@ -207,16 +207,16 @@ func (b *binding) fieldValues(mm *Machine) (map[string][]umpire.Atom, error) {
 			return nil, errorAt(decl.GetPosition(), "%s: state %s has %d fields, and %s declares %d", decl.GetName(), key,
 				len(state.Fields), decl.GetStateType(), len(record.GetFields()))
 		}
-		var atoms []umpire.Atom
+		var atoms []Atom
 		for i, f := range record.GetFields() {
-			atoms = append(atoms, umpire.Atom{ID: t.Family.ID("state-field", t.OwnerName(), f.GetName()), Value: state.Fields[i].Key()})
+			atoms = append(atoms, Atom{ID: t.Family.ID("state-field", t.OwnerName(), f.GetName()), Value: state.Fields[i].Key()})
 		}
 		if refines := decl.GetRefines(); refines != nil {
 			refined, err := b.in.Call(refines.GetMap(), []Value{state}, decl.GetPosition())
 			if err != nil {
 				return nil, err
 			}
-			atoms = append(atoms, umpire.Atom{ID: t.Family.ID("state-field", t.OwnerName(), refines.GetProduct()), Value: refined.Key()})
+			atoms = append(atoms, Atom{ID: t.Family.ID("state-field", t.OwnerName(), refines.GetProduct()), Value: refined.Key()})
 		}
 		out[key] = atoms
 	}
@@ -225,9 +225,9 @@ func (b *binding) fieldValues(mm *Machine) (map[string][]umpire.Atom, error) {
 
 // abstractionClaims is the machine's Abstraction Claims: one per example of an action it binds, in the
 // order the actions' classes first appear and then in declaration order.
-func (b *binding) abstractionClaims(mm *Machine) ([]umpire.Claim, error) {
+func (b *binding) abstractionClaims(mm *Machine) ([]Claim, error) {
 	t := mm.Table
-	var out []umpire.Claim
+	var out []Claim
 	seen := map[string]bool{}
 	for _, class := range mm.Classes {
 		action := class.Action
@@ -242,7 +242,7 @@ func (b *binding) abstractionClaims(mm *Machine) ([]umpire.Claim, error) {
 				return nil, errorAt(action.GetPosition(), "%s gives an example that is of no class of a one-input action", action.GetId())
 			}
 			v := b.in.literal(ex.GetValue())
-			out = append(out, umpire.Claim{Member: t.Family.ID("action", t.OwnerName(), action.GetName()+"-"+v.Key()),
+			out = append(out, Claim{Member: t.Family.ID("action", t.OwnerName(), action.GetName()+"-"+v.Key()),
 				Action: string(t.Family) + ".action." + action.GetName(), Field: action.GetInputs()[0].GetName(),
 				ClassName: b.spelled(v), Example: ex.GetExample()})
 		}
@@ -312,7 +312,7 @@ func (r *Realizer) Declared(key ClaimKey) (*Declared, error) {
 
 // Find is the Query the Model declares under a key, as the generic search answers it, or why this
 // reader does not answer it.
-func (r *Realizer) Find(key ClaimKey) (*umpire.Query, error) {
+func (r *Realizer) Find(key ClaimKey) (*Query, error) {
 	declared, err := r.Declared(key)
 	if err != nil {
 		return nil, err
@@ -341,7 +341,7 @@ func (r *Realizer) Machine(name string) *Machine { return r.b.machines[name] }
 type Bound struct {
 	// Table is the machine's rows, each result with its step record, and its hole rows as unknown
 	// pairs.
-	Table    *umpire.Table
+	Table    *Table
 	Start    string
 	Property BoundProperty
 	Monitors []BoundMonitor
@@ -352,7 +352,7 @@ type Bound struct {
 type BoundProperty struct {
 	Name  string
 	About func(action string) bool
-	Holds func(before string, step umpire.Result) (bool, error)
+	Holds func(before string, step Result) (bool, error)
 }
 
 // BoundMonitor is one monitor of a Query's machine over its table's keys: Next turns its state, the
@@ -361,10 +361,10 @@ type BoundProperty struct {
 // step Read accepts.
 type BoundMonitor struct {
 	Name, Initial string
-	Next          func(state, before string, step umpire.Result) (string, error)
+	Next          func(state, before string, step Result) (string, error)
 	Violated      func(state string) (bool, error)
 	AtEnds        bool
-	Read          func(step umpire.Result) (bool, error)
+	Read          func(step Result) (bool, error)
 }
 
 // Bound is the Query the Model declares under a key, bound for a reader of recorded steps. It is given
@@ -393,7 +393,7 @@ func (r *Realizer) Bound(key ClaimKey) (*Bound, error) {
 	for _, w := range on.watched {
 		monitor := BoundMonitor{Name: w.name, Initial: w.initial, Next: w.next, Violated: w.violated, AtEnds: w.atEnds, Read: w.after}
 		if monitor.Read == nil {
-			monitor.Read = func(umpire.Result) (bool, error) { return !w.atEnds, nil }
+			monitor.Read = func(Result) (bool, error) { return !w.atEnds, nil }
 		}
 		out.Monitors = append(out.Monitors, monitor)
 	}
@@ -405,7 +405,7 @@ func boundProperty(p *modelirspb.Property, reading *reads) BoundProperty {
 	out := BoundProperty{Name: p.GetName(), About: func(action string) bool { return reading.about == nil || reading.about(action) },
 		Holds: reading.across}
 	if reading.across == nil {
-		out.Holds = func(_ string, step umpire.Result) (bool, error) { return reading.same(step) }
+		out.Holds = func(_ string, step Result) (bool, error) { return reading.same(step) }
 	}
 	return out
 }
@@ -415,8 +415,8 @@ func boundProperty(p *modelirspb.Property, reading *reads) BoundProperty {
 func Unknown(err error) bool { return reachesHole(err) }
 
 // assumption is an assumption as a table carries it: its name, fair for the actions it names.
-func (b *binding) assumption(a *modelirspb.Assumption) umpire.Assumption {
-	out := umpire.Assumption{Name: a.GetName()}
+func (b *binding) assumption(a *modelirspb.Assumption) Assumption {
+	out := Assumption{Name: a.GetName()}
 	for _, id := range a.GetFair() {
 		out.Fair = append(out.Fair, b.actions[id].GetName())
 	}
@@ -444,7 +444,7 @@ func (b *binding) catalog(t *modelirspb.TypeRef) (map[string]Value, error) {
 // keyedStep is a machine's step record from a result's keys alone. A Query that reads a Property
 // through a refinement gives the Property the refined machine's keys, a state by the map and an
 // outcome and facts by name, with no step record of that machine behind them.
-func (b *binding) keyedStep(s *subject, res umpire.Result) (Value, error) {
+func (b *binding) keyedStep(s *subject, res Result) (Value, error) {
 	decl := s.machine.Decl
 	state, err := s.state(res.State)
 	if err != nil {
@@ -503,12 +503,12 @@ func (e *unsupportedError) Error() string { return e.why }
 // checker's declaration and a reader of recorded steps both use.
 type watched struct {
 	name, initial string
-	next          func(state, before string, res umpire.Result) (string, error)
+	next          func(state, before string, res Result) (string, error)
 	violated      func(state string) (bool, error)
 	// atEnds says the verdict is read at the end of a path. Otherwise it is read after every step, or,
 	// with after, after the steps after accepts.
 	atEnds bool
-	after  func(res umpire.Result) (bool, error)
+	after  func(res Result) (bool, error)
 }
 
 // watch binds one of a machine's monitors over its table's keys. Its state after a step must be one of
@@ -530,7 +530,7 @@ func (b *binding) watch(s *subject, mo *modelirspb.Monitor) (*watched, error) {
 		return nil, errorAt(at, "%s: its initial state %s is outside its states", name, initial.Key())
 	}
 	w := &watched{name: mo.GetName(), initial: initial.Key()}
-	w.next = func(state, before string, res umpire.Result) (string, error) {
+	w.next = func(state, before string, res Result) (string, error) {
 		source, err := s.state(before)
 		if err != nil {
 			return "", err
@@ -556,7 +556,7 @@ func (b *binding) watch(s *subject, mo *modelirspb.Monitor) (*watched, error) {
 	case *modelirspb.Monitor_AtEnds:
 		w.atEnds = true
 	case *modelirspb.Monitor_After:
-		w.after = func(res umpire.Result) (bool, error) {
+		w.after = func(res Result) (bool, error) {
 			step, err := s.step(res)
 			if err != nil {
 				return false, err
@@ -570,7 +570,7 @@ func (b *binding) watch(s *subject, mo *modelirspb.Monitor) (*watched, error) {
 }
 
 // monitor declares a bound monitor to the checker.
-func (w *watched) monitor() *umpire.Monitor {
+func (w *watched) monitor() *Monitor {
 	read := umpire.EveryStep()
 	switch {
 	case w.atEnds:
@@ -588,8 +588,8 @@ func (w *watched) monitor() *umpire.Monitor {
 type reads struct {
 	about  func(action string) bool
 	label  string
-	same   func(res umpire.Result) (bool, error)
-	across func(before string, res umpire.Result) (bool, error)
+	same   func(res Result) (bool, error)
+	across func(before string, res Result) (bool, error)
 }
 
 // propertyReads binds a Property's function over the keys of the table it is declared on.
@@ -599,7 +599,7 @@ func (b *binding) propertyReads(s *subject, p *modelirspb.Property) (*reads, err
 		return nil, &unsupportedError{owner + " is a transition Property about some steps only, and a transition Property is about every step"}
 	}
 	if p.GetTransition() {
-		return &reads{across: func(before string, res umpire.Result) (bool, error) {
+		return &reads{across: func(before string, res Result) (bool, error) {
 			source, err := s.state(before)
 			if err != nil {
 				return false, err
@@ -611,7 +611,7 @@ func (b *binding) propertyReads(s *subject, p *modelirspb.Property) (*reads, err
 			return b.decide(p.GetHolds(), []Value{source, step}, at, owner, "for the step into", res.State)
 		}}, nil
 	}
-	r := &reads{same: func(res umpire.Result) (bool, error) {
+	r := &reads{same: func(res Result) (bool, error) {
 		step, err := s.step(res)
 		if err != nil {
 			return false, err
@@ -623,7 +623,7 @@ func (b *binding) propertyReads(s *subject, p *modelirspb.Property) (*reads, err
 }
 
 // property declares a Property on its machine's or composition's table, once.
-func (b *binding) property(p *modelirspb.Property) (*umpire.PropertyDecl, error) {
+func (b *binding) property(p *modelirspb.Property) (*PropertyDecl, error) {
 	key := claim{p.GetMachine(), p.GetName()}
 	if decl, ok := b.properties[key]; ok {
 		return decl, nil
@@ -636,7 +636,7 @@ func (b *binding) property(p *modelirspb.Property) (*umpire.PropertyDecl, error)
 	if err != nil {
 		return nil, err
 	}
-	var decl *umpire.PropertyDecl
+	var decl *PropertyDecl
 	if r.across != nil {
 		decl = umpire.KeyTransitionProperty(s.table, p.GetName(), r.across)
 	} else {
@@ -682,7 +682,7 @@ func classKey(in *Interpreter, actions map[string]*modelirspb.Action, c *modelir
 }
 
 // scenario declares a Scenario of a subject on the table it runs over, once.
-func (b *binding) scenario(sc *modelirspb.Scenario, on *subject, table *umpire.Table) (*umpire.ScenarioDecl, error) {
+func (b *binding) scenario(sc *modelirspb.Scenario, on *subject, table *Table) (*ScenarioDecl, error) {
 	key := scheduled{table, sc.GetName()}
 	if decl, ok := b.scenarios[key]; ok {
 		return decl, nil
@@ -699,7 +699,7 @@ func (b *binding) scenario(sc *modelirspb.Scenario, on *subject, table *umpire.T
 	if err != nil {
 		return nil, err
 	}
-	var decl *umpire.ScenarioDecl
+	var decl *ScenarioDecl
 	if sc.GetFree() {
 		decl = umpire.KeyFreeScenario(table, sc.GetName(), start)
 	} else {
@@ -717,12 +717,12 @@ func (b *binding) scenario(sc *modelirspb.Scenario, on *subject, table *umpire.T
 type refined struct {
 	// ref is the refinement a Query reads through, over source, and nil when the rows do not refine.
 	ref    *umpire.Refinement
-	source *umpire.Table
+	source *Table
 	// err is why the refinement is not established: rejected, or left unknown by a reachable hole.
 	err error
 	// incomplete is set when only reachable holes leave the refinement unknown: every row refines, so
 	// ref reads the machine's rows, over a table without its holes.
-	incomplete *umpire.RefinementError
+	incomplete *RefinementError
 	// unread is the holes that left what the refinement names visible unknown.
 	unread []*Hole
 }
@@ -731,7 +731,7 @@ type refined struct {
 // whose table, holes and assumptions a receipt reads.
 type unrefined struct {
 	source   *subject
-	rejected *umpire.RefinementError
+	rejected *RefinementError
 	// unread is the holes that left what the refinement names visible unknown for some fact or
 	// outcome, which the rejection does not rest on.
 	unread []*Hole
@@ -755,7 +755,7 @@ func (b *binding) refinement(s *subject) *refined {
 	}
 	spec, failed := b.reading(s, product)
 	r.ref, r.unread, r.err = b.refines(s, product, spec, failed)
-	var incomplete *umpire.RefinementError
+	var incomplete *RefinementError
 	if errors.As(r.err, &incomplete) && incomplete.Kind == umpire.RefinementIncomplete {
 		rows := b.view(s.machine, false)
 		if ref, err := umpire.RefineTables(rows, product.table, spec); err == nil {
@@ -788,7 +788,7 @@ func (e *unseen) Unwrap() []error { return holeErrors(e.holes) }
 func (b *binding) refines(s, product *subject, spec umpire.RefinementSpec, unread func() ([]*Hole, error)) (*umpire.Refinement, []*Hole, error) {
 	ref, err := umpire.RefineTables(s.table, product.table, spec)
 	holes, malformed := unread()
-	var rejected *umpire.RefinementError
+	var rejected *RefinementError
 	switch {
 	case malformed != nil:
 		return nil, nil, malformed
@@ -854,8 +854,8 @@ func (b *binding) reading(s, product *subject) (umpire.RefinementSpec, func() ([
 
 // boundQuery is a Query of the IR as the generic search answers it.
 type boundQuery struct {
-	q     *umpire.Query
-	table *umpire.Table
+	q     *Query
+	table *Table
 	// through is the refinement the Query reads its Property through, or nil.
 	through *refined
 }
@@ -909,9 +909,9 @@ func (b *binding) query(q *modelirspb.Query) (*boundQuery, error) {
 }
 
 // limits is the Limits a Query runs within: its own, with the scope's search limit where that is less.
-func (b *binding) limits(q *modelirspb.Query) umpire.Limits {
+func (b *binding) limits(q *modelirspb.Query) Limits {
 	l := q.GetLimits()
-	limits := umpire.Limits{Name: l.GetName(), Steps: int(l.GetSteps()), Actions: int(l.GetActions()), Search: int(l.GetSearch())}
+	limits := Limits{Name: l.GetName(), Steps: int(l.GetSteps()), Actions: int(l.GetActions()), Search: int(l.GetSearch())}
 	if b.scope.QuerySearch > 0 {
 		limits.Search = min(limits.Search, b.scope.QuerySearch)
 	}
@@ -952,7 +952,7 @@ func (b *binding) progress(p *modelirspb.Progress) (*umpire.Progress, *subject, 
 			return b.decide(function, []Value{state}, at, owner, "at", key)
 		}
 	}
-	var assumptions []umpire.Assumption
+	var assumptions []Assumption
 	for _, id := range p.GetAssumptions() {
 		for _, a := range b.model.GetAssumptions() {
 			if a.GetId() == id {

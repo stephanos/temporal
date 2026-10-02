@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	modelirspb "go.temporal.io/server/api/modelir/v1"
-	"go.temporal.io/server/model/go/umpire"
+	umpire "go.temporal.io/server/model/scalav2/goir/internal/checker"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -67,7 +67,7 @@ func holes(r Receipt) []HoleReach {
 }
 
 // taken is the action classes a witness takes, in order.
-func taken(w *umpire.Trace) []string {
+func taken(w *Trace) []string {
 	var out []string
 	for _, s := range w.Steps {
 		out = append(out, s.Action.Value)
@@ -163,7 +163,7 @@ func TestQueriesAreAnsweredByTheGenericSearch(t *testing.T) {
 	require.Equal(t, ClaimKey{Family: declared, Owner: "store", Name: "putStores"}, found.Property)
 	require.Equal(t, ClaimKey{Family: declared, Owner: "store", Name: "putOnce"}, found.Scenario)
 	require.Equal(t, []string{"nothing-put"}, found.Rows)
-	require.Equal(t, umpire.Limits{Name: "two", Steps: 2, Actions: 2, Search: 64}, found.Limits)
+	require.Equal(t, Limits{Name: "two", Steps: 2, Actions: 2, Search: 64}, found.Limits)
 	require.Equal(t, "fixture.declarations.target.store", found.Target)
 	require.NotEmpty(t, found.Position)
 
@@ -236,7 +236,7 @@ func TestMonitorHistoriesStayApart(t *testing.T) {
 	// without a skip, and 0..k after one.
 	require.Equal(t, k+2, unwatched.Explored)
 	require.Equal(t, 2*k+2, watched.Explored)
-	require.Equal(t, []umpire.MonitorVerdict{{Name: "sawSkip", Verdict: umpire.MonitorHeld}}, watched.Monitors)
+	require.Equal(t, []MonitorVerdict{{Name: "sawSkip", Verdict: umpire.MonitorHeld}}, watched.Monitors)
 }
 
 func TestAMonitorSuppressesNoBehavior(t *testing.T) {
@@ -256,7 +256,7 @@ func TestAMonitorSuppressesNoBehavior(t *testing.T) {
 	// A violated monitor is a counterexample of its own, and names itself.
 	violated := receiptOf(t, checked(t, counter{k: k, skip: true, monitor: true, violatedOnceSeen: true}.model()), "query counter counter.all")
 	require.Equal(t, []any{Counterexample, "sawSkip", []string{"0-skip"}}, []any{violated.Kind, violated.Monitor, violated.Rows})
-	require.Equal(t, []umpire.MonitorVerdict{{Name: "sawSkip", State: "true", Verdict: umpire.MonitorViolated}}, violated.Monitors)
+	require.Equal(t, []MonitorVerdict{{Name: "sawSkip", State: "true", Verdict: umpire.MonitorViolated}}, violated.Monitors)
 
 	// The machine's rows are the same watched and unwatched.
 	plain := bind(counter{k: k, skip: true}.model(), DefaultScope)
@@ -264,7 +264,7 @@ func TestAMonitorSuppressesNoBehavior(t *testing.T) {
 	require.Equal(t, rowsJSON(t, plain.subject("counter").table), rowsJSON(t, seen.subject("counter").table))
 }
 
-func rowsJSON(t *testing.T, table *umpire.Table) string {
+func rowsJSON(t *testing.T, table *Table) string {
 	t.Helper()
 	require.NotNil(t, table)
 	encoded, err := json.Marshal(table.Rows)
@@ -391,7 +391,7 @@ func TestTheCloseResetDesignsAreToldApart(t *testing.T) {
 	// N1′ and N2′: the corrected design retains at the close and reapplies at the reset, and routes a
 	// completion that arrives after the reset to the successor.
 	corrected := built(t, lifted(t, "closereset"))["retainAndRoute"]
-	for key, want := range map[string]umpire.Result{
+	for key, want := range map[string]Result{
 		"closed-false-done-succeeded-inFlight-succeeded-none-none-complete-succeeded": {Outcome: "retained",
 			State: "closed-false-done-succeeded-none-pending-succeeded-none", Facts: []string{}},
 		"closed-false-done-succeeded-none-pending-succeeded-none-reset": {Outcome: "accepted",
@@ -440,7 +440,7 @@ func TestAMembersHoleIsAnUnknownPairOfTheComposition(t *testing.T) {
 
 // ---- Compositions ---------------------------------------------------------------------------------
 
-func composedTable(t *testing.T, m *modelirspb.Model, name string) *umpire.Table {
+func composedTable(t *testing.T, m *modelirspb.Model, name string) *Table {
 	t.Helper()
 	b := bind(m, DefaultScope)
 	s := b.subject(name)
@@ -489,7 +489,7 @@ func TestAReplacingMemberKeepsEveryAssumptionItDeclares(t *testing.T) {
 		m.Scenarios = slicesDelete(m.GetScenarios(), func(s *modelirspb.Scenario) bool { return s.GetMachine() == "detailedPair" })
 		m.Queries = slicesDelete(m.GetQueries(), func(q *modelirspb.Query) bool { return q.GetName() == "bothPut" })
 	})
-	want := []umpire.Assumption{{Name: "storeOpaque", Fair: []string{"front_put", "back_put"}}, {Name: "flushEventuallyRuns", Fair: []string{"back_flush"}}}
+	want := []Assumption{{Name: "storeOpaque", Fair: []string{"front_put", "back_put"}}, {Name: "flushEventuallyRuns", Fair: []string{"back_flush"}}}
 	require.Equal(t, want, composedTable(t, m, "detailedPair").Assumptions)
 	require.Equal(t, []string{"storeOpaque", "flushEventuallyRuns"}, receiptOf(t, checked(t, m), "composition detailedPair").Assumptions)
 
@@ -528,7 +528,7 @@ func TestRefinementControls(t *testing.T) {
 	for name, c := range map[string]struct {
 		mutate  []func(m *modelirspb.Model)
 		kind    ReceiptKind
-		failure umpire.RefinementFailure
+		failure RefinementFailure
 		witness []string
 		holes   []HoleReach
 	}{
@@ -909,7 +909,7 @@ func TestFoldKeepsTheKindOfHighestPrecedenceAndEveryHoleAndWitness(t *testing.T)
 	require.Len(t, kinds, 13)
 	part := func(k ReceiptKind, n string) Receipt {
 		return Receipt{Kind: k, Explanation: n, Key: ClaimKey{Name: n}, Holes: []HoleReach{{Edge: RowHole, Name: n, Row: n}},
-			Witness: &umpire.Trace{Initial: umpire.Atom{Value: n}}}
+			Witness: &Trace{Initial: Atom{Value: n}}}
 	}
 	for _, first := range kinds {
 		for _, second := range kinds {
@@ -946,7 +946,7 @@ func TestFoldKeepsTheKindOfHighestPrecedenceAndEveryHoleAndWitness(t *testing.T)
 	alone := Receipt{Kind: Verified, Explanation: "as it was", Explored: 3}
 	require.Equal(t, alone, fold(alone))
 	// A part that only qualifies another shares its witness, which is then kept once.
-	witness := &umpire.Trace{Initial: umpire.Atom{Value: "w"}}
+	witness := &Trace{Initial: Atom{Value: "w"}}
 	failed := fold(Receipt{Kind: Counterexample, Witness: witness}, Receipt{Kind: ReplayFailed, Witness: witness, Explanation: "did not replay"})
 	require.Equal(t, Receipt{Kind: ReplayFailed, Witness: witness, Explanation: "did not replay"}, failed)
 	// Three results: the last is of the highest precedence, and the holes of all three are kept in order.
@@ -1030,10 +1030,10 @@ func TestARefinementsMapIsReadPastAVisibilityHole(t *testing.T) {
 
 // ---- Progress, assumptions and bounds --------------------------------------------------------------
 
-func progressParts(t *testing.T, r *Report) map[umpire.ProgressKind]ReceiptKind {
+func progressParts(t *testing.T, r *Report) map[ProgressKind]ReceiptKind {
 	t.Helper()
-	out := map[umpire.ProgressKind]ReceiptKind{}
-	for _, part := range []umpire.ProgressKind{umpire.DeadlockKind, umpire.CycleKind, umpire.DeadlineKind} {
+	out := map[ProgressKind]ReceiptKind{}
+	for _, part := range []ProgressKind{umpire.DeadlockKind, umpire.CycleKind, umpire.DeadlineKind} {
 		out[part] = receiptOf(t, r, "progress disk durableEventually "+string(part)).Kind
 	}
 	return out
@@ -1050,31 +1050,31 @@ func within(n int32) func(m *modelirspb.Model) {
 }
 
 func TestProgressViolationsAreReportedApart(t *testing.T) {
-	type parts = map[umpire.ProgressKind]ReceiptKind
+	type parts = map[ProgressKind]ReceiptKind
 	for name, c := range map[string]struct {
 		mutate  []func(m *modelirspb.Model)
 		want    parts
-		witness map[umpire.ProgressKind][]string
+		witness map[ProgressKind][]string
 		loop    int
 	}{
 		// A flushed disk has no step, and is not where the claim leads.
 		"deadlock": {[]func(m *modelirspb.Model){noCrash, neverThere},
 			parts{umpire.DeadlockKind: Counterexample, umpire.CycleKind: Verified, umpire.DeadlineKind: Verified},
-			map[umpire.ProgressKind][]string{umpire.DeadlockKind: {"put", "flush"}}, -1},
+			map[ProgressKind][]string{umpire.DeadlockKind: {"put", "flush"}}, -1},
 		// The one step from staged is already the whole deadline.
 		"deadline": {[]func(m *modelirspb.Model){noCrash, neverThere, within(1)},
 			parts{umpire.DeadlockKind: Counterexample, umpire.CycleKind: Verified, umpire.DeadlineKind: Counterexample},
-			map[umpire.ProgressKind][]string{umpire.DeadlineKind: {"put", "flush"}}, -1},
+			map[ProgressKind][]string{umpire.DeadlineKind: {"put", "flush"}}, -1},
 		// A flush that leaves the disk staged is taken forever, as its fairness asks: once to return to
 		// the staged disk, and once as the fair class the cycle must take.
 		"fair cycle": {[]func(m *modelirspb.Model){noCrash, flushTo("staged")},
 			parts{umpire.DeadlockKind: Verified, umpire.CycleKind: Counterexample, umpire.DeadlineKind: Counterexample},
-			map[umpire.ProgressKind][]string{umpire.CycleKind: {"put", "flush", "flush"}}, 1},
+			map[ProgressKind][]string{umpire.CycleKind: {"put", "flush", "flush"}}, 1},
 		// The same cycle beside the crash hole: the cycle takes the only fair class, so it stands, and
 		// what the hole may hide leaves the absence of a deadlock unknown.
 		"a cycle beside a hole": {[]func(m *modelirspb.Model){flushTo("staged")},
 			parts{umpire.DeadlockKind: Incomplete, umpire.CycleKind: Counterexample, umpire.DeadlineKind: Counterexample},
-			map[umpire.ProgressKind][]string{umpire.CycleKind: {"put", "flush", "flush"}}, 1},
+			map[ProgressKind][]string{umpire.CycleKind: {"put", "flush", "flush"}}, 1},
 		// A staged disk whose only pair is the crash hole is not deadlocked: it may have a step.
 		"a state whose only pair is a hole": {[]func(m *modelirspb.Model){func(m *modelirspb.Model) {
 			disk := admMachine(m, "disk")
@@ -1098,18 +1098,18 @@ func TestProgressViolationsAreReportedApart(t *testing.T) {
 
 func TestProgressBoundsAreNotVerdicts(t *testing.T) {
 	m := mutated(t, "declarations", noCrash)
-	all := func(kind ReceiptKind) map[umpire.ProgressKind]ReceiptKind {
-		return map[umpire.ProgressKind]ReceiptKind{umpire.DeadlockKind: kind, umpire.CycleKind: kind, umpire.DeadlineKind: kind}
+	all := func(kind ReceiptKind) map[ProgressKind]ReceiptKind {
+		return map[ProgressKind]ReceiptKind{umpire.DeadlockKind: kind, umpire.CycleKind: kind, umpire.DeadlineKind: kind}
 	}
 	// One step from the start leaves the staged disk's flush unexplored.
 	scope := DefaultScope
-	scope.Progress = umpire.Limits{Name: "one step", Steps: 1, Search: 1 << 10}
+	scope.Progress = Limits{Name: "one step", Steps: 1, Search: 1 << 10}
 	r := Check(m, scope)
 	require.Equal(t, all(Unresolved), progressParts(t, r))
 	require.Equal(t, scope.Progress, receiptOf(t, r, "progress disk durableEventually deadline").Limits)
 
 	// Two units of work explore empty and staged, and no more.
-	scope.Progress = umpire.Limits{Name: "two units", Steps: 1 << 10, Search: 2}
+	scope.Progress = Limits{Name: "two units", Steps: 1 << 10, Search: 2}
 	r = Check(m, scope)
 	require.Equal(t, all(LimitReached), progressParts(t, r))
 	require.Equal(t, 2, receiptOf(t, r, "progress disk durableEventually deadlock").Explored)
@@ -1329,7 +1329,7 @@ func TestAProgressPredicateHoleErasesNoViolation(t *testing.T) {
 			Then:      &modelirspb.Expr{Position: from.GetBody().GetPosition(), Kind: &modelirspb.Expr_Hole{Hole: crashHole}},
 			Else:      empty}}}
 	}))
-	require.Equal(t, map[umpire.ProgressKind]ReceiptKind{umpire.DeadlockKind: Counterexample, umpire.CycleKind: Incomplete,
+	require.Equal(t, map[ProgressKind]ReceiptKind{umpire.DeadlockKind: Counterexample, umpire.CycleKind: Incomplete,
 		umpire.DeadlineKind: Incomplete}, progressParts(t, r))
 	unread := []HoleReach{{Edge: ClaimHole, ID: crashHole, Name: "crashUnmodeled", Depth: 1}}
 	deadlock := receiptOf(t, r, "progress disk durableEventually deadlock")
@@ -1356,7 +1356,7 @@ func TestARejectedRefinementIsOneResultWhereverItIsMet(t *testing.T) {
 	require.Equal(t, len(built(t, lifted(t, "admission"))["staleAdmission"].Table.Rows), rejected.TableRows)
 	require.Zero(t, rejected.Explored, "the generic check does not say how many rows it read before the one it rejects")
 	through := receiptOf(t, r, "query staleAdmission staleAdmission.product.pausedIsNotDispatched")
-	require.Equal(t, umpire.Limits{Name: "three", Steps: 3, Actions: 3, Search: 4096}, through.Limits)
+	require.Equal(t, Limits{Name: "three", Steps: 3, Actions: 3, Search: 4096}, through.Limits)
 	require.Equal(t, ClaimKey{Family: "temporal.activity.standalone", Owner: "activityProduct", Name: "pausedIsNotDispatched"}, through.Property)
 	require.Equal(t, as(rejected, through), through)
 
@@ -1370,7 +1370,7 @@ func TestARejectedRefinementIsOneResultWhereverItIsMet(t *testing.T) {
 	replaced := receiptOf(t, r, "composition detailedPair")
 	require.Equal(t, as(rejected, replaced), replaced)
 	through = receiptOf(t, r, "query disk putStoresThroughDisk")
-	require.Equal(t, umpire.Limits{Name: "two", Steps: 2, Actions: 2, Search: 64}, through.Limits)
+	require.Equal(t, Limits{Name: "two", Steps: 2, Actions: 2, Search: 64}, through.Limits)
 	require.Equal(t, as(rejected, through), through)
 }
 
@@ -1460,8 +1460,8 @@ func TestAnInadmissibleModelIsOnlyAdmissionErrors(t *testing.T) {
 func counterScope(k int) Scope {
 	return Scope{
 		Ceilings:    Ceilings{Members: int64(k + 1), Evaluations: int64(k + 1)},
-		Compose:     umpire.ComposeCeiling{States: int64((k + 1) * (k + 1)), Evaluations: int64(2 * (k + 1) * (k + 1)), Results: int64(2 * k * (k + 1))},
-		Progress:    umpire.Limits{Name: "counter", Steps: k, Search: 3*k + 1},
+		Compose:     ComposeCeiling{States: int64((k + 1) * (k + 1)), Evaluations: int64(2 * (k + 1) * (k + 1)), Results: int64(2 * k * (k + 1))},
+		Progress:    Limits{Name: "counter", Steps: k, Search: 3*k + 1},
 		QuerySearch: (k + 1) * (k + 1),
 	}
 }
@@ -1568,7 +1568,7 @@ func TestCheckingChangesNoTableIDOrFingerprint(t *testing.T) {
 			checked(t, m)
 			b := bind(m, DefaultScope)
 			for machine, mm := range built(t, m) {
-				for _, table := range []*umpire.Table{mm.Table, b.subject(machine).table} {
+				for _, table := range []*Table{mm.Table, b.subject(machine).table} {
 					want := before[machine].Table
 					require.Equal(t, want.IDs(), table.IDs(), machine)
 					require.Equal(t, want.TargetFingerprint(), table.TargetFingerprint(), machine)

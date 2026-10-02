@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	modelirspb "go.temporal.io/server/api/modelir/v1"
-	"go.temporal.io/server/model/go/umpire"
+	umpire "go.temporal.io/server/model/scalav2/goir/internal/checker"
 )
 
 // composedState reads a composition's states. The composed state is the composition's state record,
@@ -48,7 +48,7 @@ func (c *composedState) key(state Value) string {
 // `<field>_<key>`.
 func (b *binding) compositionSubject(c *modelirspb.Composition) *subject {
 	s := &subject{name: c.GetName(), family: c.GetFamily(), at: c.GetPosition(), stateType: c.GetStateType()}
-	spec := umpire.ComposeSpec{Family: umpire.Family(c.GetFamily()), Name: c.GetName(), Ceiling: b.scope.Compose}
+	spec := umpire.ComposeSpec{Family: Family(c.GetFamily()), Name: c.GetName(), Ceiling: b.scope.Compose}
 	var state *composedState
 	if state, s.err = b.composedMembers(c, s, &spec); s.err != nil {
 		return s
@@ -76,7 +76,7 @@ func (b *binding) compositionSubject(c *modelirspb.Composition) *subject {
 		}
 		return state.value(parts)
 	}
-	s.step = func(res umpire.Result) (Value, error) {
+	s.step = func(res Result) (Value, error) {
 		step, ok := res.Step.(umpire.ComposedStep)
 		if !ok {
 			return Value{}, errorAt(s.at, "%s: the step into %s is no step of a composition", s.name, res.State)
@@ -214,12 +214,12 @@ func (b *binding) composedEnds(c *modelirspb.Composition, state *composedState, 
 // goroutines at once.
 type Composed struct {
 	Decl  *modelirspb.Composition
-	Table *umpire.Table
+	Table *Table
 	// State is the composition's state record a state key stands for, one member state per field, and
 	// Step the step record a claim reads of a result: that state, with the composed outcome and facts
 	// as strings.
 	State func(key string) (Value, error)
-	Step  func(res umpire.Result) (Value, error)
+	Step  func(res Result) (Value, error)
 	// Properties are the Properties the Model declares on the composition, in the Model's order, as
 	// Check declares them to the generic search.
 	Properties []BoundProperty
@@ -227,7 +227,7 @@ type Composed struct {
 
 // Composition is the composition the Model declares under a name, as Check builds it within the
 // Realizer's scope. A composition Check has no table for has none here, for the same reason: a
-// *umpire.ComposeLimitError past the scope's ceiling, a *umpire.RefinementError for a member that does
+// *ComposeLimitError past the scope's ceiling, a *RefinementError for a member that does
 // not refine what it replaces, and a member's own failure otherwise. A name that is no composition
 // names nothing.
 func (r *Realizer) Composition(name string) (*Composed, error) {

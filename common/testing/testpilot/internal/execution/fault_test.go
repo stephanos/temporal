@@ -86,8 +86,11 @@ func TestPrepareAdmitsFaultInjection(t *testing.T) {
 		{"delivery control the Profile lacks", func(c *testpilotspb.Case, _ *Profile) {
 			c.Program.Entrypoints[0].Instructions[1].Instruction.GetInjectFault().Kind = testpilotspb.FAULT_KIND_DELIVERY_RELEASE
 		}, ir.Unsupported},
+		{"response loss the Profile lacks", func(c *testpilotspb.Case, _ *Profile) {
+			c.Program.Entrypoints[0].Instructions[0].Instruction.GetInjectFault().Kind = testpilotspb.FAULT_KIND_ADMISSION_RESPONSE_LOSS
+		}, ir.Unsupported},
 		{"undeclared fault kind", func(c *testpilotspb.Case, _ *Profile) {
-			c.Program.Entrypoints[0].Instructions[0].Instruction.GetInjectFault().Kind = testpilotspb.FAULT_KIND_DELIVERY_RELEASE + 1
+			c.Program.Entrypoints[0].Instructions[0].Instruction.GetInjectFault().Kind = testpilotspb.FAULT_KIND_ADMISSION_RESPONSE_LOSS + 1
 		}, ir.Unknown},
 		{"missing opcode", func(_ *testpilotspb.Case, p *Profile) {
 			p.Opcodes = p.Opcodes[:len(p.Opcodes)-1]
@@ -243,6 +246,54 @@ func TestDeliveryAdmissionIsCarriedOnlyByASuccessfulRelease(t *testing.T) {
 				}
 			}
 			require.Equal(t, []testpilotspb.FaultKind{testpilotspb.FAULT_KIND_DELIVERY_HOLD, testpilotspb.FAULT_KIND_DELIVERY_RELEASE}, faults)
+		})
+	}
+}
+
+func TestAdmissionResponseLossRecordsOnlyCompletedFaults(t *testing.T) {
+	committed := &testpilotspb.DeliveryAdmission{ActivityId: "activity", ActivityRunId: "run", DeliveryId: "7", Attempt: 1,
+		Decision: testpilotspb.DELIVERY_ADMISSION_DECISION_ADMITTED}
+	for _, test := range []struct {
+		name    string
+		outcome *testpilotspb.InstructionOutcome
+		err     error
+		want    int
+	}{
+		{"committed", &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, DeliveryAdmission: committed}, nil, 1},
+		{"unrealized", &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE}, nil, 0},
+		{"cancelled", nil, context.Canceled, 0},
+		{"missing decision", &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}, nil, 0},
+		{"rejected", &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, DeliveryAdmission: &testpilotspb.DeliveryAdmission{
+			ActivityId: "activity", ActivityRunId: "run", DeliveryId: "7", Decision: testpilotspb.DELIVERY_ADMISSION_DECISION_REJECTED}}, nil, 0},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			c, catalog, policy := faultFixture(t)
+			policy.DeliveryControl = true
+			c.Program.Entrypoints[0].Instructions = []*testpilotspb.InstructionNode{faultNode("lose", "queue", testpilotspb.FAULT_KIND_ADMISSION_RESPONSE_LOSS)}
+			prepared, err := Prepare(c, catalog, policy)
+			require.NoError(t, err)
+			host := &testsupport.Session{OnInjectFault: func(context.Context, contract.Coordinate, string, testpilotspb.FaultKind) (contract.EffectHandle, error) {
+				return &testsupport.Effect{OnWait: func(context.Context) (contract.EffectResult, error) {
+					return contract.EffectResult{Outcome: test.outcome}, test.err
+				}}, nil
+			}}
+			s, err := newScheduler(prepared, "run", "case", host, schedulerMonitor{}, time.Now)
+			require.NoError(t, err)
+			executeErr := s.execute(t.Context())
+			s.waits.Wait()
+			if test.want != 0 {
+				require.NoError(t, executeErr)
+			}
+			var faults []*testpilotspb.FaultInjected
+			for _, event := range s.recorder.run.Events {
+				if event.GetKind() == testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED {
+					faults = append(faults, event.GetFaultInjected())
+				}
+			}
+			require.Len(t, faults, test.want)
+			if test.want != 0 {
+				protorequire.ProtoEqual(t, &testpilotspb.FaultInjected{RoleId: "queue", Kind: testpilotspb.FAULT_KIND_ADMISSION_RESPONSE_LOSS}, faults[0])
+			}
 		})
 	}
 }

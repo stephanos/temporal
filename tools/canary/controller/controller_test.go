@@ -16,6 +16,8 @@ import (
 	"go.temporal.io/api/serviceerror"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/evaluation"
+	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	"go.temporal.io/server/tools/canary/assessment"
 	"go.temporal.io/server/tools/canary/authority"
 	"go.temporal.io/server/tools/canary/casebinding"
@@ -23,8 +25,6 @@ import (
 	"go.temporal.io/server/tools/canary/preflight"
 	"go.temporal.io/server/tools/canary/publication"
 	"go.temporal.io/server/tools/canary/recovery"
-	"go.temporal.io/server/tools/umpire/evaluation"
-	"go.temporal.io/server/tools/umpire/recordedrun"
 	"google.golang.org/grpc/credentials/insecure"
 )
 

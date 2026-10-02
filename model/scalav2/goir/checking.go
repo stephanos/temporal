@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	modelirspb "go.temporal.io/server/api/modelir/v1"
-	"go.temporal.io/server/model/go/umpire"
+	umpire "go.temporal.io/server/model/scalav2/goir/internal/checker"
 )
 
 // Scope is the finite scope a check of a Model runs within. A receipt carries the bounds it ran
@@ -17,9 +17,9 @@ type Scope struct {
 	// Ceilings bound interpreting the Model's machines.
 	Ceilings Ceilings
 	// Compose bounds building each composition.
-	Compose umpire.ComposeCeiling
+	Compose ComposeCeiling
 	// Progress bounds each progress claim's check: the IR gives a claim only its `within`.
-	Progress umpire.Limits
+	Progress Limits
 	// QuerySearch, when above 0, is the most product states a Query's search may visit where its own
 	// Limits allow more.
 	QuerySearch int
@@ -28,8 +28,8 @@ type Scope struct {
 // DefaultScope is the scope Check runs within when a caller names none of its own.
 var DefaultScope = Scope{
 	Ceilings: DefaultCeilings,
-	Compose:  umpire.ComposeCeiling{States: 1 << 16, Evaluations: 1 << 20, Results: 1 << 20},
-	Progress: umpire.Limits{Name: "default", Steps: 1 << 10, Search: 1 << 20},
+	Compose:  ComposeCeiling{States: 1 << 16, Evaluations: 1 << 20, Results: 1 << 20},
+	Progress: Limits{Name: "default", Steps: 1 << 10, Search: 1 << 20},
 }
 
 // ReceiptKind is what a receipt says of the declaration it is about. The kinds are kept apart so that
@@ -96,7 +96,7 @@ const (
 
 // ClaimKey names a declaration by the family and the machine or composition it belongs to and its
 // own name there. Two machines of one family may each declare a claim of one name, which share a
-// Definition ID (`umpire.PropertyDecl.PropertyID`) and stay two keys.
+// Definition ID (`PropertyDecl.PropertyID`) and stay two keys.
 type ClaimKey struct {
 	Family string
 	Owner  string
@@ -126,7 +126,7 @@ type HoleReach struct {
 	Row      string
 	Position string
 	Depth    int
-	Prefix   *umpire.Trace
+	Prefix   *Trace
 }
 
 // ResourceBound is a ceiling some work needed more than.
@@ -142,7 +142,7 @@ type Receipt struct {
 	Subject Subject
 	Key     ClaimKey
 	// Part is the kind of violation a progress claim's receipt is about, which are reported apart.
-	Part        umpire.ProgressKind
+	Part        ProgressKind
 	Kind        ReceiptKind
 	Position    string
 	Explanation string
@@ -156,7 +156,7 @@ type Receipt struct {
 	Scenario ClaimKey
 
 	// Limits are the limits the check ran within, and Bound the ceiling that refused it.
-	Limits umpire.Limits
+	Limits Limits
 	Bound  *ResourceBound
 	// Assumptions names what the result relies on.
 	Assumptions []string
@@ -174,14 +174,14 @@ type Receipt struct {
 	// nothing from one with a witness.
 	Holes []HoleReach
 
-	Witness *umpire.Trace
+	Witness *Trace
 	Rows    []string
 	// Loop is the index of the state a lasso witness returns to, or -1.
 	Loop           int
-	ProductWitness *umpire.Trace
-	Failure        umpire.RefinementFailure
+	ProductWitness *Trace
+	Failure        RefinementFailure
 	Monitor        string
-	Monitors       []umpire.MonitorVerdict
+	Monitors       []MonitorVerdict
 	// Cause is the error a receipt that is no result reports.
 	Cause error
 	// Also holds the results folded into this one whose witnesses it does not carry itself.
@@ -347,13 +347,13 @@ type checker struct {
 	replay *modelirspb.Model
 	fresh  *binding
 	// prints holds each table's Behavior Fingerprint, and holes each declared hole's name by id.
-	prints map[*umpire.Table]string
+	prints map[*Table]string
 	holes  map[string]string
 }
 
 // newChecker interprets an admitted Model for checking.
 func newChecker(m *modelirspb.Model, scope Scope, replay *modelirspb.Model) *checker {
-	c := &checker{scope: scope, replay: replay, first: bind(m, scope), prints: map[*umpire.Table]string{}, holes: map[string]string{}}
+	c := &checker{scope: scope, replay: replay, first: bind(m, scope), prints: map[*Table]string{}, holes: map[string]string{}}
 	for _, h := range m.GetHoles() {
 		c.holes[h.GetId()] = h.GetName()
 	}
@@ -368,7 +368,7 @@ func (c *checker) again() *binding {
 }
 
 // reads names the table a receipt's check read, and the assumptions the table carries.
-func (c *checker) reads(r Receipt, t *umpire.Table) Receipt {
+func (c *checker) reads(r Receipt, t *Table) Receipt {
 	if _, ok := c.prints[t]; !ok {
 		c.prints[t] = t.TargetFingerprint()
 	}
@@ -387,7 +387,7 @@ func (c *checker) failed(r Receipt, err error) Receipt {
 	r.Cause, r.Explanation = err, err.Error()
 	var (
 		unsupported *unsupportedError
-		composition *umpire.ComposeLimitError
+		composition *ComposeLimitError
 		limit       *LimitError
 		refinement  *unrefined
 		accepted    *unseen
@@ -457,7 +457,7 @@ func (c *checker) unrefined(r Receipt, e *unrefined) Receipt {
 }
 
 // replays replays a witness against a subject's table of the second interpretation.
-func (c *checker) replays(name string, witness *umpire.Trace) error {
+func (c *checker) replays(name string, witness *Trace) error {
 	s := c.again().subject(name)
 	if s.err != nil {
 		return s.err
@@ -540,7 +540,7 @@ func (c *checker) reachableHoles(mm *Machine) []HoleReach {
 }
 
 // explored is the holes a search or a progress check read, with the path it took to each.
-func (c *checker) explored(unknown []umpire.UnknownReach) []HoleReach {
+func (c *checker) explored(unknown []UnknownReach) []HoleReach {
 	var out []HoleReach
 	for _, u := range unknown {
 		edge := RowHole
@@ -620,7 +620,7 @@ func (c *checker) refinement(decl *modelirspb.Machine) Receipt {
 	}
 }
 
-func sameRow(x, y umpire.RefinementRow) bool {
+func sameRow(x, y RefinementRow) bool {
 	if x.Key != y.Key || (x.Product == nil) != (y.Product == nil) {
 		return false
 	}
@@ -693,7 +693,7 @@ func (c *checker) query(q *modelirspb.Query) Receipt {
 
 // replayQuery replays an answer's witness, and the path to each hole it explored, against the same
 // Query declared over a second interpretation.
-func (c *checker) replayQuery(q *modelirspb.Query, a umpire.Answer) error {
+func (c *checker) replayQuery(q *modelirspb.Query, a Answer) error {
 	bound, err := c.again().query(q)
 	if err != nil {
 		return err
@@ -732,8 +732,8 @@ func (c *checker) progress(p *modelirspb.Progress) []Receipt {
 	paths := c.replayPaths(p, a.Unknown)
 	var out []Receipt
 	for _, part := range []struct {
-		kind    umpire.ProgressKind
-		verdict umpire.ProgressVerdict
+		kind    ProgressKind
+		verdict ProgressVerdict
 	}{{umpire.DeadlockKind, a.Deadlock}, {umpire.CycleKind, a.Cycle}, {umpire.DeadlineKind, a.Deadline}} {
 		x := r
 		x.Part, x.Explanation, x.Loop = part.kind, part.verdict.Explanation, part.verdict.Loop
@@ -756,7 +756,7 @@ func (c *checker) progress(p *modelirspb.Progress) []Receipt {
 
 // replayPaths replays the path a progress check took to each hole it read against the machine's table
 // of a second interpretation.
-func (c *checker) replayPaths(p *modelirspb.Progress, unknown []umpire.UnknownReach) error {
+func (c *checker) replayPaths(p *modelirspb.Progress, unknown []UnknownReach) error {
 	var err error
 	for _, u := range unknown {
 		err = errors.Join(err, c.replays(p.GetMachine(), u.Prefix))
@@ -766,7 +766,7 @@ func (c *checker) replayPaths(p *modelirspb.Progress, unknown []umpire.UnknownRe
 
 // replayProgress replays a violation's witness against the claim declared over a second
 // interpretation.
-func (c *checker) replayProgress(p *modelirspb.Progress, kind umpire.ProgressKind, verdict umpire.ProgressVerdict) error {
+func (c *checker) replayProgress(p *modelirspb.Progress, kind ProgressKind, verdict ProgressVerdict) error {
 	claim, s, err := c.again().progress(p)
 	if err != nil {
 		return err

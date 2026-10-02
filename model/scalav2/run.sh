@@ -76,6 +76,7 @@ refuses() {
 roots=('temporal.nexuscaller.Model$package$.nexusProduct' 'temporal.nexuscaller.Model$package$.nexusProtocol'
   'temporal.nexuscaller.Model$package$.handlerWorker' 'temporal.worker.Worker$package$.polling'
   'temporal.nexuscaller.Claims$package$.functionalQueries' 'temporal.nexuscaller.NexusRealization$.asyncNexus')
+control_roots=('temporal.nexuscaller.Control$.forgedCompletion' 'temporal.nexuscaller.NexusRealization$.forgedCompletion')
 
 # The standalone activity Model as model/go/standaloneactivity has it: ir/activity.json. Its
 # cross-entity Query, stoppedWorkerStartsNothing, carries the composition and its claim.
@@ -93,7 +94,9 @@ activity_system_roots=(currentQueries staleQueries competingTimers matchingQueue
 # The held race a server is run through, and the realization that runs it: ir/activity-race.json. It
 # is a Model of its own, so the system contract's Queries are the ones its checkers were given.
 activity_race_roots=('temporal.standaloneactivity.System$package$.heldStaleDelivery'
-  'temporal.standaloneactivity.ActivityRealization$.heldDelivery')
+  'temporal.standaloneactivity.ActivityRealization$.heldDelivery'
+  'temporal.standaloneactivity.System$package$.lostAdmissionResponseQuery'
+  'temporal.standaloneactivity.ActivityRealization$.lostAdmissionResponse')
 
 # The Nexus caller close and reset designs: ir/nexus-close.json. Each design's Queries are a root, and
 # so is each progress claim.
@@ -186,23 +189,24 @@ lift_into activity "$here/gen/model-scala.jar=$scala/" "${activity_roots[@]}" &
 lift_into activity-system "$here/gen/model-scala.jar=$scala/" \
   "${activity_system_roots[@]/#/temporal.standaloneactivity.System\$package\$.}" &
 lift_into activity-race "$here/gen/model-scala.jar=$scala/" "${activity_race_roots[@]}" &
+lift_into nexus-control "$here/gen/model-scala.jar=$scala/" "${control_roots[@]}" &
 lift_into nexus-close "$here/gen/model-scala.jar=$scala/" \
   "${nexus_close_roots[@]/#/temporal.nexuscaller.closepolicy.Claims\$package\$.}" &
 wait
-for name in presence channels declarations admission closereset realizations activity activity-system activity-race nexus-close; do
+for name in presence channels declarations admission closereset realizations activity activity-system activity-race nexus-close nexus-control; do
   [[ "$(cat "$here/gen/lifts/$name.status")" == 0 ]] \
     || { grep -v '^WARNING' "$here/gen/lifts/$name.log" >&2; echo "run.sh: the $name fixture did not lift" >&2; exit 1; }
 done
 grep '^lift:' "$here/gen/lifts/rejects.log" > "$here/gen/lifts/rejects.txt" || true
 [[ "$(cat "$here/gen/lifts/rejects.status")" != 0 && ! -f "$here/gen/lifts/rejects.json" ]] \
   || { echo "run.sh: the lifter wrote the rejected declarations' IR" >&2; exit 1; }
-for name in presence channels declarations admission closereset realizations rejects activity activity-system activity-race nexus-close; do
+for name in presence channels declarations admission closereset realizations rejects activity activity-system activity-race nexus-close nexus-control; do
   file="$name.json"
   [[ "$name" == rejects ]] && file=rejects.txt
   # The activity Models' IR and the Nexus close designs' are checked in beside the Nexus caller's; the
   # fixtures' beside their sources.
   expected="lifter/testdata/lifts/expected/$file"
-  [[ "$name" == activity* || "$name" == nexus-close ]] && expected="ir/$file"
+  [[ "$name" == activity* || "$name" == nexus-close || "$name" == nexus-control ]] && expected="ir/$file"
   if $update; then
     cp "$here/gen/lifts/$file" "$here/$expected"
   elif ! diff -q "$here/$expected" "$here/gen/lifts/$file" >/dev/null 2>&1; then
@@ -229,6 +233,11 @@ cmp -s "$here/gen/lifts/declarations.json" "$here/gen/lifts/shifted.json" \
 diff <(lines "$here/gen/lifts/declarations.json") <(lines "$here/gen/lifts/shifted.json") \
   || { echo "run.sh: moving the declarations down changed more than their lines" >&2; exit 1; }
 echo "moved down 3 lines: only the lines changed"
+
+echo "== generate or check every lowered Case and the Query manifest"
+case_args=()
+$update && case_args+=(--update)
+go run ./tools/umpire/cmd/umpire-gen-cases ${case_args[@]+"${case_args[@]}"}
 
 echo "== interpret the IR in Go and compare with Lean"
 go vet ./model/scalav2/...

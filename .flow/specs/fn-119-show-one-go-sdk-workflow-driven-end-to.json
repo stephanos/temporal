@@ -3,7 +3,8 @@
   "created_at": "2026-10-02T05:53:46.836065Z",
   "depends_on_epics": [
     "fn-114-state-every-scala-model-declaration-once",
-    "fn-118-declare-how-temporal-apis-behave-once"
+    "fn-118-declare-how-temporal-apis-behave-once",
+    "fn-120-adopt-what-quint-does-well-named"
   ],
   "id": "fn-119-show-one-go-sdk-workflow-driven-end-to",
   "next_task": 1,
@@ -23,5 +24,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T05:53:49.408389Z"
+  "updated_at": "2026-10-02T06:36:24.563173Z"
 }

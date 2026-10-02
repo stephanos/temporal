@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/tools/umpire/evaluation"
+	"go.temporal.io/server/common/testing/testpilot/evaluation"
 )
 
 // assessSummary is the part of umpire-assess's summary the live proof reads.

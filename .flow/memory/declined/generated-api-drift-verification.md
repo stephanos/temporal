@@ -6,6 +6,8 @@ The generator is intentionally generation-only for now. Its focused and golden t
 
 ## Prior requests
 
+- 2026-10-02 — Planning fn-115's layout and archive migration; preserve focused generation checks and repair the existing Umpire CI job as the spec requires, without adding broad generated Lean API drift verification or new CI coverage.
+
 - 2026-09-08 — Planned fn-70's scheduled local canary; retain focused Producer fixture/provenance checks without broad generated API drift verification or CI expansion.
 
 - 2026-09-08 — Planned typed operations and field-level Properties in fn-77; retain focused generator fixtures, schema-input invalidation, and compatibility checks without adding broad generated API drift verification or CI coverage.

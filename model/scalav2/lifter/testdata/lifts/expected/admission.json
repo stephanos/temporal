@@ -424,7 +424,7 @@
     "name": "activityProduct.property.pausedIsNotDispatched",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 27
+      "line": 28
     },
     "params": [{
       "name": "before",
@@ -440,27 +440,27 @@
     "body": {
       "position": {
         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-        "line": 28
+        "line": 29
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 28
+            "line": 29
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 28
+                "line": 29
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 28
+                    "line": 29
                   },
                   "var": "before"
                 },
@@ -470,7 +470,7 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 28
+                "line": 29
               },
               "literal": {
                 "enum": {
@@ -484,26 +484,26 @@
         "right": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 28
+            "line": 29
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 28
+                "line": 29
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 28
+                    "line": 29
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                        "line": 28
+                        "line": 29
                       },
                       "var": "after"
                     },
@@ -516,7 +516,7 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 28
+                "line": 29
               },
               "literal": {
                 "enum": {
@@ -5426,7 +5426,7 @@
     "name": "pausedIsNotDispatched",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 27
+      "line": 28
     },
     "holds": "activityProduct.property.pausedIsNotDispatched",
     "transition": true

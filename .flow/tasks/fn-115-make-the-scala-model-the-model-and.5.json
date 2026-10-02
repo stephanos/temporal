@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-02T10:35:34.762598Z",
+  "depends_on": [
+    "fn-115-make-the-scala-model-the-model-and.4"
+  ],
+  "id": "fn-115-make-the-scala-model-the-model-and.5",
+  "priority": null,
+  "spec": "fn-115-make-the-scala-model-the-model-and",
+  "spec_path": ".flow/tasks/fn-115-make-the-scala-model-the-model-and.5.md",
+  "status": "todo",
+  "title": "Encapsulate the checker behind the reader interface",
+  "updated_at": "2026-10-02T14:22:39.190868Z"
+}

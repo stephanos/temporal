@@ -19,6 +19,7 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/evaluation"
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/canary/assessment"
 	"go.temporal.io/server/tools/canary/authority"
@@ -26,7 +27,6 @@ import (
 	"go.temporal.io/server/tools/canary/policy"
 	"go.temporal.io/server/tools/canary/preflight"
 	"go.temporal.io/server/tools/canary/recovery"
-	"go.temporal.io/server/tools/umpire/evaluation"
 	"google.golang.org/protobuf/proto"
 )
 

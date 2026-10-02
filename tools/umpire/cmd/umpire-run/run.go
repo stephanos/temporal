@@ -79,6 +79,16 @@ func Run(arguments []string, stdout, stderr io.Writer, open opener) int {
 		}
 	}
 
+	if _, err := binding.Prepare(configuration.Deployment, binding.HandlerQueueFor(configuration.Deployment, source.GetProgram()), "umpire-run."+configuration.Deployment.Namespace, source); err != nil {
+		var rejection *testpilot.PreparationError
+		if errors.As(err, &rejection) && rejection.Category == testpilot.PreparationUnsupported {
+			cli.WriteLine(stderr, "skipped: %s", describeFailure(err))
+		} else {
+			cli.WriteLine(stderr, "%s", describeFailure(err))
+		}
+		return exitFailed
+	}
+
 	ctx, cancel := cli.Interruptible(context.Background(), configuration.Timeout)
 	defer cancel()
 

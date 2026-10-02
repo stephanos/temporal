@@ -23,7 +23,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	modelirspb "go.temporal.io/server/api/modelir/v1"
-	"go.temporal.io/server/model/go/umpire"
+	umpire "go.temporal.io/server/model/scalav2/goir/internal/checker"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -149,7 +149,7 @@ func closeQuery(t *testing.T, c *checkedModel, design, name string) Receipt {
 	return receiptOf(t, c.report, "query "+design+" "+design+"."+name)
 }
 
-func closeProgress(t *testing.T, r *Report, design, claim string, part umpire.ProgressKind) Receipt {
+func closeProgress(t *testing.T, r *Report, design, claim string, part ProgressKind) Receipt {
 	t.Helper()
 	return receiptOf(t, r, "progress "+design+" "+claim+" "+string(part))
 }
@@ -246,7 +246,7 @@ func TestNexusCloseResults(t *testing.T) {
 		closeBounded + " retainedReachesOwner":             "V V V",
 	} {
 		vs := verdicts(t, parts)
-		for i, part := range []umpire.ProgressKind{umpire.DeadlockKind, umpire.CycleKind, umpire.DeadlineKind} {
+		for i, part := range []ProgressKind{umpire.DeadlockKind, umpire.CycleKind, umpire.DeadlineKind} {
 			want["progress "+claim+" "+string(part)] = vs[i]
 		}
 	}
@@ -267,7 +267,7 @@ const (
 	closeLost = "resetOpen-none-done-succeeded-none-none-none"
 )
 
-func outcomes(w *umpire.Trace) []string {
+func outcomes(w *Trace) []string {
 	var out []string
 	for _, s := range w.Steps {
 		out = append(out, s.Outcome.Value)
@@ -305,7 +305,7 @@ func TestNexusCloseRejectionAfterCloseLosesTheOutcome(t *testing.T) {
 	// ackOnlyWhenKept holds of that step: the monitor is what reports the loss on the same path.
 	monitored := closeQuery(t, c, "rejectAfterClose", "any.ackOnlyWhenKept")
 	require.Equal(t, free.Witness, monitored.Witness)
-	require.Equal(t, []umpire.MonitorVerdict{
+	require.Equal(t, []MonitorVerdict{
 		{Name: "retainedOutcome", State: "true", Verdict: umpire.MonitorViolated},
 		{Name: "ownerAcknowledgment", State: "false", Verdict: umpire.MonitorHeld},
 		{Name: "singleOutcome", State: "none", Verdict: umpire.MonitorHeld},
@@ -357,7 +357,7 @@ func TestNexusCloseAcknowledgmentByTheOriginalRun(t *testing.T) {
 	require.Contains(t, closeStuck(c.built["ackByOriginal"].Table), "resetOpen-none-done-failed-none-none-none")
 	require.Equal(t, closeLost, c.built["ackByOriginal"].Table.Stuck)
 	// Both monitors read the acknowledgment the same way.
-	require.Equal(t, []umpire.MonitorVerdict{
+	require.Equal(t, []MonitorVerdict{
 		{Name: "retainedOutcome", State: "true", Verdict: umpire.MonitorViolated},
 		{Name: "ownerAcknowledgment", State: "true", Verdict: umpire.MonitorViolated},
 		{Name: "singleOutcome", State: "none", Verdict: umpire.MonitorHeld},
@@ -380,7 +380,7 @@ func TestNexusCloseCancellationAcrossReset(t *testing.T) {
 	require.Equal(t, path, taken(n3.Witness))
 	require.Equal(t, "resetOpen-requested-callerWorkflow-done-canceled-none-none-none", last(t, n3.Witness).State.Value)
 	for _, design := range []string{"rejectAfterClose", "ackByOriginal", "retainAndRoute"} {
-		require.Equal(t, []umpire.Result{{Outcome: "accepted", State: "resetOpen-requested-callerWorkflow-done-canceled-inFlight-canceled-none-none",
+		require.Equal(t, []Result{{Outcome: "accepted", State: "resetOpen-requested-callerWorkflow-done-canceled-inFlight-canceled-none-none",
 			Facts: []string{"workflowReset"}}},
 			plainResults(t, c.built[design].Table, "open-requested-callerWorkflow-done-canceled-inFlight-canceled-none-none-reset"), design)
 	}
@@ -422,7 +422,7 @@ func TestNexusClosePrincipalLossIsItsOwnAssessment(t *testing.T) {
 	n7 := closeQuery(t, c, "forgetsCancelOnReset", "canceledAcrossReset")
 	require.Equal(t, []string{"requestCancel-callerWorkflow", "deliverCancel", "handlerFinish-canceled", "reset"}, taken(n7.Witness))
 	require.Equal(t, "resetOpen-none-done-canceled-inFlight-canceled-none-none", last(t, n7.Witness).State.Value)
-	require.Equal(t, []umpire.MonitorVerdict{
+	require.Equal(t, []MonitorVerdict{
 		{Name: "retainedOutcome", State: "false", Verdict: umpire.MonitorHeld},
 		{Name: "ownerAcknowledgment", State: "false", Verdict: umpire.MonitorHeld},
 		{Name: "singleOutcome", State: "none", Verdict: umpire.MonitorHeld},
@@ -432,14 +432,14 @@ func TestNexusClosePrincipalLossIsItsOwnAssessment(t *testing.T) {
 	free := closeQuery(t, c, "forgetsCancelOnReset", "any.outcomePreserved")
 	require.Equal(t, []string{"requestCancel-callerWorkflow", "reset"}, taken(free.Witness))
 	// The successor then commits the canceled outcome with no request in its history.
-	require.Equal(t, []umpire.Result{{Outcome: "accepted", State: "resetOpen-none-done-canceled-none-none-successor-canceled",
+	require.Equal(t, []Result{{Outcome: "accepted", State: "resetOpen-none-done-canceled-none-none-successor-canceled",
 		Facts: []string{"nexusOperationCanceled"}}},
 		plainResults(t, c.built["forgetsCancelOnReset"].Table,
 			"resetOpen-none-done-canceled-inFlight-canceled-none-none-complete-canceled")[:1])
 	// Every design that keeps the request keeps its principal: the monitor holds over their whole search.
 	for _, design := range []string{"retainAndRoute", closeBounded, "retainAndRouteWithDeadline"} {
 		require.Contains(t, closeQuery(t, c, design, "any.outcomePreserved").Monitors,
-			umpire.MonitorVerdict{Name: "cancelPrincipal", Verdict: umpire.MonitorHeld}, design)
+			MonitorVerdict{Name: "cancelPrincipal", Verdict: umpire.MonitorHeld}, design)
 	}
 }
 
@@ -449,7 +449,7 @@ func TestNexusCloseResetAfterAcknowledgment(t *testing.T) {
 	c := closeModel(t)
 	for _, design := range []string{"rejectAfterClose", "ackByOriginal", "retainAndRoute"} {
 		require.True(t, closeQuery(t, c, design, "ackedThenReset").Exercised, design)
-		require.Equal(t, []umpire.Result{{Outcome: "accepted", State: "resetOpen-none-done-succeeded-none-none-successor-succeeded",
+		require.Equal(t, []Result{{Outcome: "accepted", State: "resetOpen-none-done-succeeded-none-none-successor-succeeded",
 			Facts: []string{"workflowReset", "outcomeReapplied", "nexusOperationCompleted"}}},
 			plainResults(t, c.built[design].Table, "open-none-done-succeeded-none-none-original-succeeded-reset"), design)
 	}
@@ -467,13 +467,13 @@ func TestNexusCloseDuplicateCompletion(t *testing.T) {
 	c := closeModel(t)
 	table := c.built["retainAndRoute"].Table
 	const lostAck = "the acknowledgment is lost"
-	require.Equal(t, []umpire.Result{
+	require.Equal(t, []Result{
 		{Outcome: "accepted", State: "open-none-done-succeeded-none-none-original-succeeded", Facts: []string{"nexusOperationCompleted"}},
 		{Outcome: "rejectedTransient", State: "open-none-done-succeeded-inFlight-succeeded-none-none", Facts: []string{}},
 		{Outcome: "accepted", State: "open-none-done-succeeded-inFlight-succeeded-none-original-succeeded",
 			Facts: []string{"nexusOperationCompleted"}, Because: lostAck},
 	}, plainResults(t, table, "open-none-done-succeeded-inFlight-succeeded-none-none-complete-succeeded"))
-	require.Equal(t, []umpire.Result{
+	require.Equal(t, []Result{
 		{Outcome: "accepted", State: "open-none-done-succeeded-none-none-original-succeeded", Facts: []string{}},
 		{Outcome: "rejectedTransient", State: "open-none-done-succeeded-inFlight-succeeded-none-original-succeeded", Facts: []string{}},
 		{Outcome: "accepted", State: "open-none-done-succeeded-inFlight-succeeded-none-original-succeeded", Facts: []string{},
@@ -488,7 +488,7 @@ func TestNexusCloseDuplicateCompletion(t *testing.T) {
 	}
 	// No run records two outcomes on anything the corrected design reaches.
 	require.Contains(t, closeQuery(t, c, "retainAndRoute", "any.knowledgeIsFinal").Monitors,
-		umpire.MonitorVerdict{Name: "singleOutcome", Verdict: umpire.MonitorHeld})
+		MonitorVerdict{Name: "singleOutcome", Verdict: umpire.MonitorHeld})
 }
 
 // A closed run's history is frozen while the handler's detached work goes on: no step of a closed
@@ -554,7 +554,7 @@ func TestNexusCloseTimeoutResolvesTheLostOutcome(t *testing.T) {
 		require.Equal(t, lost.state, last(t, expired.Witness).State.Value, design)
 		require.Equal(t, []string{"nexusOperationTimedOut"}, factsOf(last(t, expired.Witness)), design)
 		require.Empty(t, c.built[design].Table.Stuck, design)
-		for _, part := range []umpire.ProgressKind{umpire.DeadlockKind, umpire.CycleKind, umpire.DeadlineKind} {
+		for _, part := range []ProgressKind{umpire.DeadlockKind, umpire.CycleKind, umpire.DeadlineKind} {
 			r := closeProgress(t, c.report, design, "outcomeReachesOwner", part)
 			require.Equal(t, Verified, r.Kind, "%s %s", design, part)
 			require.Nil(t, r.Witness)
@@ -621,14 +621,14 @@ func TestNexusCloseDeadlockIsTheLostOutcome(t *testing.T) {
 	only.Machines = slicesDelete(only.GetMachines(), func(m *modelirspb.Machine) bool { return m.GetName() != "rejectAfterClose" })
 	only.Progress = slicesDelete(only.GetProgress(), func(p *modelirspb.Progress) bool { return p.GetMachine() != "rejectAfterClose" })
 	scope := DefaultScope
-	scope.Progress = umpire.Limits{Name: "the start", Steps: 0, Search: 1 << 20}
+	scope.Progress = Limits{Name: "the start", Steps: 0, Search: 1 << 20}
 	open := Check(only, scope)
-	for _, part := range []umpire.ProgressKind{umpire.DeadlockKind, umpire.CycleKind, umpire.DeadlineKind} {
+	for _, part := range []ProgressKind{umpire.DeadlockKind, umpire.CycleKind, umpire.DeadlineKind} {
 		r := closeProgress(t, open, "rejectAfterClose", "outcomeReachesOwner", part)
 		require.Equal(t, Unresolved, r.Kind, part)
 		require.Nil(t, r.Witness, part)
 	}
-	scope.Progress = umpire.Limits{Name: "three steps", Steps: 3, Search: 1 << 20}
+	scope.Progress = Limits{Name: "three steps", Steps: 3, Search: 1 << 20}
 	short := closeProgress(t, Check(only, scope), "rejectAfterClose", "outcomeReachesOwner", umpire.DeadlockKind)
 	require.Equal(t, Unresolved, short.Kind)
 	require.Nil(t, short.Witness)
@@ -636,7 +636,7 @@ func TestNexusCloseDeadlockIsTheLostOutcome(t *testing.T) {
 }
 
 // closeStuck is every state a table reaches that has no step and is no end.
-func closeStuck(table *umpire.Table) []string {
+func closeStuck(table *Table) []string {
 	var out []string
 	for _, s := range table.Reachable {
 		if len(table.RowsFrom(s)) == 0 && !slices.Contains(table.Ends, s) {
@@ -673,7 +673,7 @@ func TestNexusCloseFairNonProgressCycle(t *testing.T) {
 	require.NotContains(t, cycle.Assumptions, retry)
 	require.NoError(t, c.built["retainAndRoute"].Table.Replay(cycle.Witness))
 
-	for _, part := range []umpire.ProgressKind{umpire.DeadlockKind, umpire.CycleKind, umpire.DeadlineKind} {
+	for _, part := range []ProgressKind{umpire.DeadlockKind, umpire.CycleKind, umpire.DeadlineKind} {
 		r := closeProgress(t, c.report, closeBounded, "outcomeReachesOwner", part)
 		require.Equal(t, Verified, r.Kind, part)
 		require.Equal(t, []string{"retentionSurvivesCrash", retry, "handlerReportsUntilAckOrPermanent", delivery}, r.Assumptions, part)
@@ -681,7 +681,7 @@ func TestNexusCloseFairNonProgressCycle(t *testing.T) {
 	}
 	// The redelivery is spent once: a second transient rejection has no row result.
 	once := c.built[closeBounded].Table
-	require.Equal(t, []umpire.Result{{Outcome: "accepted", State: "open-none-done-succeeded-none-none-original-succeeded",
+	require.Equal(t, []Result{{Outcome: "accepted", State: "open-none-done-succeeded-none-none-original-succeeded",
 		Facts: []string{"nexusOperationCompleted"}}},
 		plainResults(t, once, "open-none-done-succeeded-retried-succeeded-none-none-complete-succeeded"))
 	require.Equal(t, "rejectedTransient",
@@ -710,7 +710,7 @@ func TestNexusCloseRetainedOutcomeNeedsRecovery(t *testing.T) {
 	require.Equal(t, Verified, closeQuery(t, c, "retainAndRoute", "any.outcomePreserved").Kind)
 	missed := closeProgress(t, c.report, "retainAndRoute", "retainedReachesOwner", umpire.DeadlineKind)
 	require.NotContains(t, taken(missed.Witness)[len(missed.Witness.Steps)-2:], "reset")
-	for _, part := range []umpire.ProgressKind{umpire.DeadlockKind, umpire.CycleKind, umpire.DeadlineKind} {
+	for _, part := range []ProgressKind{umpire.DeadlockKind, umpire.CycleKind, umpire.DeadlineKind} {
 		r := closeProgress(t, c.report, closeBounded, "retainedReachesOwner", part)
 		require.Contains(t, r.Assumptions, recovery, part)
 		require.True(t, r.Exercised, part)

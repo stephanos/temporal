@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	cp "go.temporal.io/server/model/go/caseproducer"
 	"go.temporal.io/server/model/scalav2/goir"
 	lowering "go.temporal.io/server/model/scalav2/goir/testpilot"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -184,7 +183,7 @@ func TestAGuardIsWellFormedForEveryReaderOrForNone(t *testing.T) {
 				p, err := lowering.NewProducer(m)
 				require.NoError(t, err)
 				var l *lowering.Lowering
-				if l, lowers = p.Lower("tally.opens", cp.IdentityFor("temporal.case", "fixture", "tally")); lowers == nil {
+				if l, lowers = p.Lower("tally.opens", lowering.IdentityFor("temporal.case", "fixture", "tally")); lowers == nil {
 					// Testpilot lifts no such source yet, so a well-formed one is a gap and no error.
 					require.Equal(t, lowering.NotSupported, l.Standing)
 				}

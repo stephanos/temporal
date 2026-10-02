@@ -235,7 +235,7 @@ final case class Command(
 )
 
 enum FaultKind:
-  case workerStop, workerResume
+  case workerStop, workerResume, admissionResponseLoss
 
 enum Cardinality:
   case one
@@ -347,3 +347,20 @@ enum ProtoValue:
   /** A role, where a field names the role a run resolves. */
   case RoleId(role: String)
   case Named(name: Name)
+
+/** The assessment a completed live Run must support, independently of the model-search answer. */
+final case class RunExpectation(
+    conformance: Conformance,
+    property: Outcome,
+    reason: String = "",
+    monitors: Vector[MonitorExpectation] = Vector.empty,
+    contract: Outcome = Outcome.satisfied
+)
+
+enum Conformance:
+  case conformant, nonconformant, inconclusive
+
+enum Outcome:
+  case satisfied, violated, inconclusive
+
+final case class MonitorExpectation(name: String, outcome: Outcome, reason: String = "")

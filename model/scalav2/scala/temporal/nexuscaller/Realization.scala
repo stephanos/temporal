@@ -334,7 +334,7 @@ object NexusRealization:
   // the handler publishes when a completion is on the path, performs the completion, waits for the
   // workflow to close, and only then reads history.
 
-  private val controller = Script(
+  private def controller(extra: Vector[Item]) = Script(
     "controller",
     Activation.Controller,
     Vector(
@@ -348,7 +348,8 @@ object NexusRealization:
         )
       ),
       Item(command = Some(startWorkflow)),
-      Item(command = Some(awaitScheduled)),
+      Item(command = Some(awaitScheduled))
+    ) ++ extra ++ Vector(
       Item(command = Some(pendingAttempts), when = Vector(handlerReply(Reply.handlerError(true)))),
       Item(
         command = Some(Command("await-completion-authority", AwaitLearned(completionAuthority))),
@@ -472,9 +473,13 @@ object NexusRealization:
    * One Nexus operation scheduled by a controller-started workflow and answered by a handler inside
    * the Case's own worker.
    */
-  val asyncNexus: Realization = Realization(
-    name = "asyncNexus",
-    machine = nexusProtocol,
+  private def realization(
+      name: String,
+      machine: Machine[ProtocolState, kernel.Outcome, ProtocolFact],
+      extra: Vector[Item]
+  ): Realization = Realization(
+    name = name,
+    machine = machine,
     producer = "temporal.nexus.caller.testpilot",
     producerVersion = "1",
     roles = Vector(
@@ -506,7 +511,7 @@ object NexusRealization:
       work = 1000000000,
       eventSize = 512
     ),
-    scripts = Vector(controller, workflowScript, handlerScript),
+    scripts = Vector(controller(extra), workflowScript, handlerScript),
     learned = Vector(Learned(completionAuthority, LearnedKind.handle)),
     observations = Vector(
       Observed(historyObservation, "temporal.api.history.v1.HistoryEvent"),
@@ -514,4 +519,21 @@ object NexusRealization:
     ),
     evidence = sources,
     cleanup = "cleanup"
+  )
+
+  val asyncNexus: Realization = realization("asyncNexus", nexusProtocol, Vector.empty)
+
+  val forgedCompletion: Realization = realization(
+    "forgedCompletion",
+    temporal.nexuscaller.Control.forged,
+    Vector(
+      Item(performs =
+        Vector(
+          Performance(
+            temporal.nexuscaller.Control.inspect,
+            rpc("inspect-workflow", describeMethod, pollAssignments, Vector.empty)
+          )
+        )
+      )
+    )
   )

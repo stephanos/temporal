@@ -1966,6 +1966,191 @@ func (this *Query) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type Exploration to the protobuf v3 wire format
+func (val *Exploration) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type Exploration from the protobuf v3 wire format
+func (val *Exploration) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *Exploration) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two Exploration values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *Exploration) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *Exploration
+	switch t := that.(type) {
+	case *Exploration:
+		that1 = t
+	case Exploration:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type Variation to the protobuf v3 wire format
+func (val *Variation) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type Variation from the protobuf v3 wire format
+func (val *Variation) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *Variation) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two Variation values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *Variation) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *Variation
+	switch t := that.(type) {
+	case *Variation:
+		that1 = t
+	case Variation:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type Alternative to the protobuf v3 wire format
+func (val *Alternative) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type Alternative from the protobuf v3 wire format
+func (val *Alternative) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *Alternative) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two Alternative values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *Alternative) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *Alternative
+	switch t := that.(type) {
+	case *Alternative:
+		that1 = t
+	case Alternative:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type RunExpectation to the protobuf v3 wire format
+func (val *RunExpectation) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type RunExpectation from the protobuf v3 wire format
+func (val *RunExpectation) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *RunExpectation) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two RunExpectation values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *RunExpectation) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *RunExpectation
+	switch t := that.(type) {
+	case *RunExpectation:
+		that1 = t
+	case RunExpectation:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type MonitorExpectation to the protobuf v3 wire format
+func (val *MonitorExpectation) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type MonitorExpectation from the protobuf v3 wire format
+func (val *MonitorExpectation) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *MonitorExpectation) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two MonitorExpectation values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *MonitorExpectation) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *MonitorExpectation
+	switch t := that.(type) {
+	case *MonitorExpectation:
+		that1 = t
+	case MonitorExpectation:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type Limits to the protobuf v3 wire format
 func (val *Limits) Marshal() ([]byte, error) {
 	return proto.Marshal(val)

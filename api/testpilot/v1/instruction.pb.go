@@ -109,6 +109,10 @@ const (
 	// outcome carries that decision as its delivery admission; an admission whose decision cannot be
 	// observed is no success.
 	FAULT_KIND_DELIVERY_RELEASE FaultKind = 4
+	// Releases a held dispatch and replaces one committed admission response with Unavailable.
+	// Succeeds only once a correlated retry proves the caller consumed the replacement; its outcome
+	// retains the original durable admission, not the retry's answer.
+	FAULT_KIND_ADMISSION_RESPONSE_LOSS FaultKind = 5
 )
 
 // Enum value maps for FaultKind.
@@ -119,13 +123,15 @@ var (
 		2: "FAULT_KIND_WORKER_RESUME",
 		3: "FAULT_KIND_DELIVERY_HOLD",
 		4: "FAULT_KIND_DELIVERY_RELEASE",
+		5: "FAULT_KIND_ADMISSION_RESPONSE_LOSS",
 	}
 	FaultKind_value = map[string]int32{
-		"FAULT_KIND_UNSPECIFIED":      0,
-		"FAULT_KIND_WORKER_STOP":      1,
-		"FAULT_KIND_WORKER_RESUME":    2,
-		"FAULT_KIND_DELIVERY_HOLD":    3,
-		"FAULT_KIND_DELIVERY_RELEASE": 4,
+		"FAULT_KIND_UNSPECIFIED":             0,
+		"FAULT_KIND_WORKER_STOP":             1,
+		"FAULT_KIND_WORKER_RESUME":           2,
+		"FAULT_KIND_DELIVERY_HOLD":           3,
+		"FAULT_KIND_DELIVERY_RELEASE":        4,
+		"FAULT_KIND_ADMISSION_RESPONSE_LOSS": 5,
 	}
 )
 
@@ -147,6 +153,8 @@ func (x FaultKind) String() string {
 		return "DeliveryHold"
 	case FAULT_KIND_DELIVERY_RELEASE:
 		return "DeliveryRelease"
+	case FAULT_KIND_ADMISSION_RESPONSE_LOSS:
+		return "AdmissionResponseLoss"
 	default:
 		return strconv.Itoa(int(x))
 	}
@@ -1693,13 +1701,14 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\x0fReadCardinality\x12 \n" +
 	"\x1cREAD_CARDINALITY_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14READ_CARDINALITY_ONE\x10\x01\x12\x1e\n" +
-	"\x1aREAD_CARDINALITY_EMIT_EACH\x10\x02*\xa0\x01\n" +
+	"\x1aREAD_CARDINALITY_EMIT_EACH\x10\x02*\xc8\x01\n" +
 	"\tFaultKind\x12\x1a\n" +
 	"\x16FAULT_KIND_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16FAULT_KIND_WORKER_STOP\x10\x01\x12\x1c\n" +
 	"\x18FAULT_KIND_WORKER_RESUME\x10\x02\x12\x1c\n" +
 	"\x18FAULT_KIND_DELIVERY_HOLD\x10\x03\x12\x1f\n" +
-	"\x1bFAULT_KIND_DELIVERY_RELEASE\x10\x04*\xa0\x02\n" +
+	"\x1bFAULT_KIND_DELIVERY_RELEASE\x10\x04\x12&\n" +
+	"\"FAULT_KIND_ADMISSION_RESPONSE_LOSS\x10\x05*\xa0\x02\n" +
 	"\x18InstructionOutcomeStatus\x12*\n" +
 	"&INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED\x10\x00\x12(\n" +
 	"$INSTRUCTION_OUTCOME_STATUS_SUCCEEDED\x10\x01\x12/\n" +

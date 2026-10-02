@@ -8,9 +8,9 @@ import (
 	"slices"
 
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/canary/policy"
-	"go.temporal.io/server/tools/umpire/recordedrun"
 )
 
 func BindHarness(canonical []byte, canary *policy.Policy, environment testpilotdriver.Environment, profile testpilot.ProfileSpec) (*Bound, error) {

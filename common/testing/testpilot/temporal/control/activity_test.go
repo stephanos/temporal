@@ -95,9 +95,9 @@ func TestReleaseReportsAdmissionsDecisionForTheHeldDelivery(t *testing.T) {
 			held, err := d.Hold("activity")
 			require.NoError(t, err)
 			dispatched := make(chan error, 1)
-			go func() { dispatched <- s.dispatch(t.Context(), testhooks.ActivityDelivery{Execution: key, Stamp: 7}) }()
 			_, arrived := held.Delivery()
 			require.False(t, arrived)
+			go func() { dispatched <- s.dispatch(t.Context(), testhooks.ActivityDelivery{Execution: key, Stamp: 7}) }()
 			require.NoError(t, held.Await(t.Context()))
 			delivery, arrived := held.Delivery()
 			require.True(t, arrived)
@@ -187,4 +187,82 @@ func TestUnheldDispatchPassesAndCloseCancelsAHeldOne(t *testing.T) {
 	_, err = d.Hold("next")
 	require.ErrorIs(t, err, ErrClosed)
 	require.ErrorIs(t, again.gate.Arrive(t.Context(), "activity"), ErrClosed)
+}
+
+func TestLostAdmissionResponseRequiresCorrelatedRetry(t *testing.T) {
+	for _, finish := range []string{"retry", "cancel before response", "cancel after response", "close after response", "refused"} {
+		t.Run(finish, func(t *testing.T) {
+			s, d := newServer(t)
+			held, err := d.Hold("activity")
+			require.NoError(t, err)
+			key := chasm.ExecutionKey{NamespaceID: string(scope), BusinessID: "activity", RunID: "run"}
+			go func() { _ = s.dispatch(t.Context(), testhooks.ActivityDelivery{Execution: key, Stamp: 7}) }()
+			require.NoError(t, held.Await(t.Context()))
+			respond, ok := testhooks.Get(s.hooks, testhooks.GRPCResponseFaultGeneratorByNamespaceID, scope)
+			require.True(t, ok)
+			ctx, cancel := context.WithCancel(t.Context())
+			defer cancel()
+			admission, err := held.LoseAdmissionResponse(ctx, func(polling context.Context) error {
+				request := started(t, key, 7)
+				request.RequestId = "request"
+				response := &historyservice.RecordActivityTaskStartedResponse{Attempt: 1}
+				for _, other := range []testhooks.ActivityDelivery{
+					{Execution: chasm.ExecutionKey{NamespaceID: string(scope), BusinessID: "activity", RunID: "other"}, Stamp: 7},
+					{Execution: key, Stamp: 8},
+				} {
+					request := started(t, other.Execution, other.Stamp)
+					request.RequestId = "request"
+					require.Nil(t, respond(polling, "", request, response, nil))
+				}
+				if finish == "cancel before response" {
+					cancel()
+				}
+				var answerError error
+				if finish == "refused" {
+					answerError = serviceerrors.NewObsoleteMatchingTask("refused")
+				}
+				outcome := respond(polling, "", request, response, answerError)
+				if finish == "cancel before response" || finish == "refused" {
+					require.Nil(t, outcome)
+					cancel()
+				} else {
+					require.NotNil(t, outcome)
+					require.Nil(t, outcome.Response)
+					require.Error(t, outcome.Error)
+					select {
+					case <-held.decided:
+						t.Fatal("replacement not consumed: no decision may be published yet")
+					default:
+					}
+					switch finish {
+					case "retry":
+						other := started(t, key, 7)
+						other.RequestId = "other"
+						require.Nil(t, respond(polling, "", other, response, nil))
+						select {
+						case <-held.decided:
+							t.Fatal("another request cannot confirm the lost response")
+						default:
+						}
+						require.Nil(t, respond(polling, "", request, nil, serviceerrors.NewObsoleteMatchingTask("retry")))
+					case "close after response":
+						held.Close()
+					default:
+						cancel()
+					}
+				}
+				<-polling.Done()
+				return polling.Err()
+			})
+			if finish != "retry" {
+				require.ErrorIs(t, err, context.Canceled)
+				require.Nil(t, admission)
+			} else {
+				require.NoError(t, err)
+				protorequire.ProtoEqual(t, &testpilotspb.DeliveryAdmission{ActivityId: "activity", ActivityRunId: "run", DeliveryId: "7", Attempt: 1, Decision: testpilotspb.DELIVERY_ADMISSION_DECISION_ADMITTED}, admission)
+			}
+			held.Close()
+			require.Nil(t, respond(t.Context(), "", started(t, key, 7), &historyservice.RecordActivityTaskStartedResponse{Attempt: 1}, nil))
+		})
+	}
 }

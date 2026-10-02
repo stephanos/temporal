@@ -19,6 +19,10 @@ testdata/
 !/tools/canary/**/testdata/**
 !/common/testing/testpilot/testdata/
 !/common/testing/testpilot/testdata/**
+!/common/testing/testpilot/evaluation/testdata/
+!/common/testing/testpilot/evaluation/testdata/**
+!/common/testing/testpilot/replay/testdata/
+!/common/testing/testpilot/replay/testdata/**
 !/tests/testcore/testpilot/testdata/
 !/tests/testcore/testpilot/testdata/**
 !/cmd/tools/genleanmodeldescriptors/testdata/
@@ -78,3 +82,10 @@ testdata/
 # Temp helper the Lean dynamic-config catalog generator writes beside its own source and deletes
 # (os.CreateTemp, so the name carries a random suffix); a run that overlaps a commit must not add it.
 tools/umpire/cmd/*/zz_*_helper_*.go
+
+!model/scalav2/goir/testdata/
+!model/scalav2/goir/testdata/migration/
+!model/scalav2/goir/testdata/migration/**
+!model/scalav2/goir/testpilot/testdata/
+!model/scalav2/goir/testpilot/testdata/migration/
+!model/scalav2/goir/testpilot/testdata/migration/**

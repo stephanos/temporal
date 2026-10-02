@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-02T10:35:34.762571Z",
+  "depends_on": [
+    "fn-115-make-the-scala-model-the-model-and.3"
+  ],
+  "id": "fn-115-make-the-scala-model-the-model-and.4",
+  "priority": null,
+  "spec": "fn-115-make-the-scala-model-the-model-and",
+  "spec_path": ".flow/tasks/fn-115-make-the-scala-model-the-model-and.4.md",
+  "status": "todo",
+  "title": "Promote producer-neutral runtime helpers and live orchestration",
+  "updated_at": "2026-10-02T13:32:07.699991Z"
+}

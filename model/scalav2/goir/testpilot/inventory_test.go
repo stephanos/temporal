@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	cp "go.temporal.io/server/model/go/caseproducer"
+	cp "go.temporal.io/server/model/scalav2/goir/testpilot/internal/producer"
 	"go.temporal.io/server/model/scalav2/goir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"

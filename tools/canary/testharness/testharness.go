@@ -15,10 +15,10 @@ import (
 	"strings"
 	"time"
 
+	"go.temporal.io/server/common/testing/testpilot/evaluation"
 	"go.temporal.io/server/tools/canary/authority"
 	"go.temporal.io/server/tools/canary/controller"
 	"go.temporal.io/server/tools/canary/policy"
-	"go.temporal.io/server/tools/umpire/evaluation"
 	"google.golang.org/grpc/credentials/insecure"
 )
 

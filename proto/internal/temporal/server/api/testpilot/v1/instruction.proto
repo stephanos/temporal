@@ -143,6 +143,10 @@ enum FaultKind {
   // outcome carries that decision as its delivery admission; an admission whose decision cannot be
   // observed is no success.
   FAULT_KIND_DELIVERY_RELEASE = 4;
+  // Releases a held dispatch and replaces one committed admission response with Unavailable.
+  // Succeeds only once a correlated retry proves the caller consumed the replacement; its outcome
+  // retains the original durable admission, not the retry's answer.
+  FAULT_KIND_ADMISSION_RESPONSE_LOSS = 5;
 }
 
 // WorkflowCommand issues one workflow command from a workflow entrypoint, carrying the command the

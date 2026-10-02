@@ -172,3 +172,11 @@ class StandaloneActivityPins extends munit.FunSuite:
 // Lean pins with no Scala counterpart: assert_axioms [activityProduct] and [activityProtocol]
 // (ActivityPins.lean:38, :89), kernel axiom inventories. The activity has no Stainless kernel, so
 // there is no nearer counterpart either.
+
+  test("one lost admission response consumes its budget for either durable outcome") {
+    val choices = loseAdmissionAnswer(responseLossInitial)
+    assertEquals(choices.map(_.state.record), admitted(scheduledIdle).map(_.state))
+    assertEquals(choices.map(_.state.lossAvailable), List(false, false))
+    assertEquals(choices.flatMap(s => loseAdmissionAnswer(s.state)), Nil)
+    assertEquals(choices.map(_.facts), List(List(AdmissionResponseFact.attemptAdmitted), Nil))
+  }

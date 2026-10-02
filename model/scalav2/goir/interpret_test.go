@@ -11,7 +11,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	modelirspb "go.temporal.io/server/api/modelir/v1"
-	"go.temporal.io/server/model/go/umpire"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -22,7 +21,7 @@ func built(t *testing.T, m *modelirspb.Model) map[string]*Machine {
 	return out
 }
 
-func row(t *testing.T, mm *Machine, key string) umpire.Row {
+func row(t *testing.T, mm *Machine, key string) Row {
 	t.Helper()
 	for _, r := range mm.Table.Rows {
 		if r.Key == key {
@@ -30,7 +29,7 @@ func row(t *testing.T, mm *Machine, key string) umpire.Row {
 		}
 	}
 	require.Failf(t, "no row", "%s has no row %s", mm.Decl.GetName(), key)
-	return umpire.Row{}
+	return Row{}
 }
 
 func hasRow(mm *Machine, key string) bool {
@@ -47,8 +46,8 @@ const again = "the channel delivers the message again"
 func TestChoiceKeepsEveryResultInOrder(t *testing.T) {
 	mm := built(t, lifted(t, "admission"))["currentAdmission"]
 	facts := []string{"statusStarted", "attemptAdmitted"}
-	require.Equal(t, umpire.Row{Key: "scheduled-queued-none-attemptStart", Source: "scheduled-queued-none", Action: "attemptStart",
-		Results: []umpire.Result{
+	require.Equal(t, Row{Key: "scheduled-queued-none-attemptStart", Source: "scheduled-queued-none", Action: "attemptStart",
+		Results: []Result{
 			{Outcome: "accepted", State: "started-empty-one", Facts: facts},
 			{Outcome: "accepted", State: "started-redelivery-one", Facts: facts, Because: "the channel may deliver the message again"},
 		}}, row(t, mm, "scheduled-queued-none-attemptStart"))
@@ -97,11 +96,11 @@ func TestPresenceIsAnOrdinaryEnum(t *testing.T) {
 	require.Len(t, mm.Table.States, 5*3*3*2)
 	require.Equal(t, []string{"unsent-None-0-0"}, mm.Table.Starts)
 	require.Len(t, mm.Table.Ends, 5*2*3*2)
-	require.Equal(t, []umpire.Result{{Outcome: "accepted", State: "sent-failed-false-Some-failed-0-0", Facts: []string{}}},
+	require.Equal(t, []Result{{Outcome: "accepted", State: "sent-failed-false-Some-failed-0-0", Facts: []string{}}},
 		row(t, mm, "sent-failed-false-None-0-0-keep").Results)
-	require.Equal(t, []umpire.Result{{Outcome: "ignored", State: "unsent-None-0-0", Facts: []string{}}},
+	require.Equal(t, []Result{{Outcome: "ignored", State: "unsent-None-0-0", Facts: []string{}}},
 		row(t, mm, "unsent-None-0-0-forget").Results)
-	require.Equal(t, []umpire.Result{{Outcome: "accepted", State: "unsent-None-0-0", Facts: []string{}}},
+	require.Equal(t, []Result{{Outcome: "accepted", State: "unsent-None-0-0", Facts: []string{}}},
 		row(t, mm, "unsent-Some-succeeded-0-0-forget").Results)
 	require.False(t, hasRow(mm, "sent-failed-true-None-0-0-send-failed"), "a retried send is disabled")
 	require.True(t, mm.Disabled("sent-failed-true-None-0-0", "send-failed"))
@@ -136,31 +135,31 @@ func TestChannelCatalogs(t *testing.T) {
 func TestChannelSendAndDelivery(t *testing.T) {
 	machines := built(t, lifted(t, "channels"))
 	relay := machines["relay"]
-	require.Equal(t, []umpire.Result{{Outcome: "accepted", State: "nothing-[ping-0]-[]", Facts: []string{}}},
+	require.Equal(t, []Result{{Outcome: "accepted", State: "nothing-[ping-0]-[]", Facts: []string{}}},
 		row(t, relay, "nothing-[]-[]-talk-ping").Results)
-	require.Equal(t, []umpire.Result{{Outcome: "accepted", State: "nothing-[ping-0,pong-0]-[]", Facts: []string{}}},
+	require.Equal(t, []Result{{Outcome: "accepted", State: "nothing-[ping-0,pong-0]-[]", Facts: []string{}}},
 		row(t, relay, "nothing-[ping-0]-[]-talk-pong").Results, "a FIFO send appends")
 	require.True(t, relay.Disabled("nothing-[ping-0,pong-0]-[]", "talk-ping"), "the step refuses a full channel")
 
 	// The receiver's step, and again with the message put back first, its acknowledgment lost.
-	require.Equal(t, []umpire.Result{
+	require.Equal(t, []Result{
 		{Outcome: "accepted", State: "note-[]-[]", Facts: []string{}},
 		{Outcome: "accepted", State: "note-[ping-1]-[]", Facts: []string{}, Because: again},
 	}, row(t, relay, "nothing-[ping-0]-[]-wireDelivery-ping").Results)
-	require.Equal(t, []umpire.Result{
+	require.Equal(t, []Result{
 		{Outcome: "accepted", State: "note-[pong-0]-[]", Facts: []string{}},
 		{Outcome: "accepted", State: "note-[ping-1,pong-0]-[]", Facts: []string{}, Because: again},
 	}, row(t, relay, "nothing-[ping-0,pong-0]-[]-wireDelivery-ping").Results)
-	require.Equal(t, []umpire.Result{{Outcome: "accepted", State: "note-[]-[]", Facts: []string{}}},
+	require.Equal(t, []Result{{Outcome: "accepted", State: "note-[]-[]", Facts: []string{}}},
 		row(t, relay, "nothing-[ping-1]-[]-wireDelivery-ping").Results, "a message delivered its duplicates times is not again")
 	require.True(t, relay.Disabled("nothing-[pong-0,ping-0]-[]", "wireDelivery-ping"), "a FIFO channel delivers its first message only")
 	require.True(t, relay.Disabled("nothing-[pong-0]-[]", "wireDelivery-pong"), "the receiver does not take pong")
 	require.True(t, relay.Disabled("nothing-[]-[]", "wireDelivery-ping"), "an empty channel delivers nothing")
 
-	require.Equal(t, []umpire.Result{{Outcome: "accepted", State: "signal-[]-[]", Facts: []string{}}},
+	require.Equal(t, []Result{{Outcome: "accepted", State: "signal-[]-[]", Facts: []string{}}},
 		row(t, relay, "nothing-[]-[up-0]-radioDelivery-up").Results)
 	require.True(t, relay.Disabled("nothing-[]-[up-0]", "radioDelivery-down"))
-	require.Equal(t, []umpire.Result{{Outcome: "dropped", State: "nothing-[]-[]", Facts: []string{}}},
+	require.Equal(t, []Result{{Outcome: "dropped", State: "nothing-[]-[]", Facts: []string{}}},
 		row(t, relay, "nothing-[]-[up-0]-radioLoss-up").Results)
 	require.True(t, relay.Disabled("nothing-[]-[up-0]", "radioLoss-down"))
 
@@ -168,7 +167,7 @@ func TestChannelSendAndDelivery(t *testing.T) {
 	require.Equal(t, []string{"nothing-[]", "nothing-[0-0]", "nothing-[1-0]", "nothing-[2-0]"}, tallying.Table.States[:4])
 	require.Equal(t, []string{"count", "tallyDelivery-0", "tallyDelivery-1", "tallyDelivery-2"}, tallying.Table.Actions)
 	require.Equal(t, []string{"nothing-[]", "nothing-[2-0]", "note-[]", "note-[2-0]"}, tallying.Table.Reachable)
-	require.Equal(t, []umpire.Result{{Outcome: "accepted", State: "note-[]", Facts: []string{}}},
+	require.Equal(t, []Result{{Outcome: "accepted", State: "note-[]", Facts: []string{}}},
 		row(t, tallying, "nothing-[2-0]-tallyDelivery-2").Results)
 }
 
@@ -280,7 +279,7 @@ func TestVisibleProjectionOfARefinement(t *testing.T) {
 	disk := built(t, lifted(t, "declarations"))["disk"]
 	require.NoError(t, disk.Rejected)
 	put := "put"
-	require.Equal(t, []umpire.RefinementRow{{Key: "empty-put", Product: &put}, {Key: "staged-flush"}}, disk.Refinement)
+	require.Equal(t, []RefinementRow{{Key: "empty-put", Product: &put}, {Key: "staged-flush"}}, disk.Refinement)
 
 	for name, visible := range map[string]string{
 		"a stutter records a fact the product sees":   "disk.visible",

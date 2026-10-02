@@ -59,7 +59,18 @@ func heldProgram(t *testing.T, mutate func(*testpilotspb.Case)) testpilot.Prepar
 // delivery, and names the instruction; a release with no hold before it is refused everywhere.
 func TestDeliveryControlIsRefusedWhereTheEnvironmentHasNone(t *testing.T) {
 	program := heldProgram(t, nil)
-	_, err := planDeliveries(program, false)
+	loss := heldProgram(t, func(c *testpilotspb.Case) {
+		for _, instruction := range c.GetProgram().GetEntrypoints()[0].GetInstructions() {
+			if fault := instruction.GetInstruction().GetInjectFault(); fault.GetKind() == testpilotspb.FAULT_KIND_DELIVERY_RELEASE {
+				fault.Kind = testpilotspb.FAULT_KIND_ADMISSION_RESPONSE_LOSS
+			}
+		}
+	})
+	_, err := planDeliveries(loss, false)
+	require.ErrorIs(t, err, ErrNoDeliveryControl)
+	_, err = planDeliveries(loss, true)
+	require.NoError(t, err)
+	_, err = planDeliveries(program, false)
 	require.ErrorIs(t, err, ErrNoDeliveryControl)
 	require.ErrorContains(t, err, "controller/stop-worker requests DeliveryHold")
 	plan, err := planDeliveries(program, true)

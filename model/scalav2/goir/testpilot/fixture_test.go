@@ -16,7 +16,7 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
-	cp "go.temporal.io/server/model/go/caseproducer"
+	cp "go.temporal.io/server/model/scalav2/goir/testpilot/internal/producer"
 	"go.temporal.io/server/model/scalav2/goir"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"

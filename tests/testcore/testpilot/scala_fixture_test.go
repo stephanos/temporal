@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
@@ -88,4 +89,17 @@ func TestTheHeldRaceIsLoadedWithItsClaimAndItsDurableKinds(t *testing.T) {
 		recorded.GetEvents()[0],
 		{Sequence: 2, Payload: &testpilotspb.RunEvent_Outcome{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}},
 	}}, stripped)
+}
+
+func TestDurableEvidenceIsScopedToTheSelectedRealization(t *testing.T) {
+	model := &modelirspb.Model{Realizations: []*modelirspb.Realization{
+		{Machine: "reported", Evidence: []*modelirspb.Evidence{{Id: "shared", Commitment: modelirspb.Evidence_COMMITMENT_REPORTED}}},
+		{Machine: "durable", Evidence: []*modelirspb.Evidence{{Id: "shared", Commitment: modelirspb.Evidence_COMMITMENT_DURABLE}}},
+	}}
+	source := &testpilotspb.Case{
+		Provenance: &testpilotspb.CaseProvenance{LocalNames: []*testpilotspb.LocalName{{DefinitionId: "shared", LocalName: "local"}}},
+		Program:    &testpilotspb.Program{Evidence: []*testpilotspb.EvidenceDeclaration{{EvidenceId: "local"}}},
+	}
+	require.Empty(t, durableEvidence(model, "reported", source))
+	require.Equal(t, []string{"local"}, durableEvidence(model, "durable", source))
 }

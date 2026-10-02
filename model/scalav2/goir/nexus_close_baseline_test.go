@@ -4,26 +4,20 @@ package goir
 // not. The baseline models one run and neither a close nor a reset, so the one behavior both have is
 // an open caller accepting an asynchronous completion: the baseline's `complete` rows of a started
 // operation. That is compared here, row by row and Query by Query. Everything else the designs claim
-// is an authored design promise with no baseline to agree with, and the inventories below fail on a
-// claim of either side that is neither compared nor listed as what it is.
+// is an authored design promise with no baseline to agree with. The immutable baseline records the
+// original claims; the source inventory below checks every current design declaration.
 
 import (
-	"go/ast"
-	"go/parser"
-	"go/token"
 	"maps"
 	"os"
 	"path/filepath"
 	"regexp"
 	"slices"
-	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	modelirspb "go.temporal.io/server/api/modelir/v1"
-	"go.temporal.io/server/model/go/nexuscaller"
-	"go.temporal.io/server/model/go/umpire"
 )
 
 // closeAccepted is the result of the first delivery of a completion to an open caller, as both sides
@@ -37,7 +31,7 @@ type closeAccepted struct {
 // baseline names, on every design: the policies differ only once the caller closed or was reset.
 func TestNexusCloseOpenCallerAcceptsACompletionAsTheGoModel(t *testing.T) {
 	c := closeModel(t)
-	product, protocol := goTable(t, nexuscaller.NexusProduct), goTable(t, nexuscaller.NexusProtocol)
+	product, protocol := frozenNexusTable(t, "nexusProduct"), frozenNexusTable(t, "nexusProtocol")
 	for resolution, from := range map[string]string{
 		"succeeded": "open-none-done-succeeded-inFlight-succeeded-none-none",
 		"failed":    "open-none-done-failed-inFlight-failed-none-none",
@@ -61,27 +55,40 @@ func TestNexusCloseOpenCallerAcceptsACompletionAsTheGoModel(t *testing.T) {
 // The designs deliver the baseline's own `complete` action: one declaration, by the handler, on the
 // operation, with the baseline's input and result domain.
 func TestNexusCloseCompleteIsTheBaselinesAction(t *testing.T) {
-	decl, ok := goTable(t, nexuscaller.NexusProduct).Decl("complete")
-	require.True(t, ok)
-	var lifted []actionSide
-	for _, a := range closeModel(t).model.GetActions() {
-		if a.GetName() != "complete" {
-			continue
+	var original, lifted *modelirspb.Action
+	for _, a := range frozenReaderModel(t, "nexus-caller").GetActions() {
+		if a.GetName() == "complete" {
+			original = a
 		}
-		side := actionSide{Name: a.GetName(), Party: a.GetParty(), On: a.GetOn(), Results: a.GetResults()}
-		for _, in := range a.GetInputs() {
-			side.Inputs = append(side.Inputs, in.GetName())
-		}
-		lifted = append(lifted, side)
 	}
-	require.Equal(t, []actionSide{{Name: decl.Name, Party: string(decl.Party), On: decl.On.Name, Results: decl.Results,
-		Inputs: decl.Inputs}}, lifted)
+	for _, a := range closeModel(t).model.GetActions() {
+		if a.GetName() == "complete" {
+			lifted = a
+		}
+	}
+	require.NotNil(t, original)
+	require.NotNil(t, lifted)
+	require.Equal(t, []string{original.GetName(), original.GetParty(), original.GetOn(), original.GetResults()},
+		[]string{lifted.GetName(), lifted.GetParty(), lifted.GetOn(), lifted.GetResults()})
+	var want, got []string
+	for _, p := range original.GetInputs() {
+		want = append(want, p.GetName())
+	}
+	for _, p := range lifted.GetInputs() {
+		got = append(got, p.GetName())
+	}
+	require.Equal(t, want, got)
 }
 
-// closeBaselineQueries is the baseline's Queries the designs also declare, by the design's name for it.
-var closeBaselineQueries = map[string]*umpire.Query{
-	"asyncCompletion": nexuscaller.AsyncCompletion,
-	"asyncFailure":    nexuscaller.AsyncFailure,
+func frozenNexusTable(t *testing.T, name string) *Table {
+	t.Helper()
+	for _, subject := range frozenReaderMeaning(t, "nexus-caller").Subjects {
+		if subject.Name == name {
+			return &Table{Rows: subject.Table.Table.Rows, Evidence: subject.Table.Evidence}
+		}
+	}
+	require.FailNow(t, "no frozen Nexus table", name)
+	return nil
 }
 
 // closeStep is a witness's last step without what differs by construction: the state, which each side
@@ -96,18 +103,21 @@ type closeStep struct {
 // handler reply first; a design's begins at a started operation, so only the delivery is compared.
 func TestNexusCloseCompletionClaimsEqualTheGoModel(t *testing.T) {
 	c := closeModel(t)
-	for name, q := range closeBaselineQueries {
-		answer, err := q.Answer()
-		require.NoError(t, err)
-		final := last(t, answer.Witness)
-		want := closeStep{q.Property.Name, string(answer.Outcome), final.Action.Value, final.Outcome.Value, factsOf(final)}
+	compared := 0
+	for _, q := range frozenReaderMeaning(t, "nexus-caller").Receipts {
+		if q.Subject != QuerySubject || (q.Key.Name != "asyncCompletion" && q.Key.Name != "asyncFailure") {
+			continue
+		}
+		compared++
+		final := last(t, q.Witness)
+		want := closeStep{q.Property.Name, string(q.Kind), final.Action.Value, final.Outcome.Value, factsOf(final)}
 		for _, design := range closeDesigns {
-			got := closeQuery(t, c, design, name)
+			got := closeQuery(t, c, design, q.Key.Name)
 			final := last(t, got.Witness)
-			require.Equal(t, want, closeStep{got.Property.Name, string(got.Kind), final.Action.Value, final.Outcome.Value,
-				factsOf(final)}, "%s %s", design, name)
+			require.Equal(t, want, closeStep{got.Property.Name, string(got.Kind), final.Action.Value, final.Outcome.Value, factsOf(final)}, "%s %s", design, q.Key.Name)
 		}
 	}
+	require.Equal(t, 2, compared)
 }
 
 // A difference to judge, pinned so it is not lost: the baseline answers a completion that arrives after
@@ -116,14 +126,14 @@ func TestNexusCloseCompletionClaimsEqualTheGoModel(t *testing.T) {
 // under their own answer.
 func TestNexusCloseLateCompletionDiffersFromTheGoModel(t *testing.T) {
 	c := closeModel(t)
-	baseline := plainResults(t, goTable(t, nexuscaller.NexusProduct), "succeeded-complete-succeeded")
-	require.Equal(t, []umpire.Result{{Outcome: "notFound", State: "succeeded", Facts: []string{}}}, baseline)
+	baseline := plainResults(t, frozenNexusTable(t, "nexusProduct"), "succeeded-complete-succeeded")
+	require.Equal(t, []Result{{Outcome: "notFound", State: "succeeded", Facts: []string{}}}, baseline)
 	duplicate := plainResults(t, c.built["retainAndRoute"].Table,
 		"open-none-done-succeeded-inFlight-succeeded-none-original-succeeded-complete-succeeded")
 	require.Equal(t, "accepted", duplicate[0].Outcome)
-	late := plainResults(t, goTable(t, nexuscaller.NexusProduct), "timedOut-complete-succeeded")
-	require.Equal(t, []umpire.Result{{Outcome: "notFound", State: "timedOut", Facts: []string{}}}, late)
-	require.Equal(t, []umpire.Result{{Outcome: "rejectedPermanent", State: "open-none-done-succeeded-none-none-expired",
+	late := plainResults(t, frozenNexusTable(t, "nexusProduct"), "timedOut-complete-succeeded")
+	require.Equal(t, []Result{{Outcome: "notFound", State: "timedOut", Facts: []string{}}}, late)
+	require.Equal(t, []Result{{Outcome: "rejectedPermanent", State: "open-none-done-succeeded-none-none-expired",
 		Facts: []string{"completionDropped"}}},
 		plainResults(t, c.built["retainAndRouteWithDeadline"].Table,
 			"open-none-done-succeeded-inFlight-succeeded-none-expired-complete-succeeded"))
@@ -132,92 +142,6 @@ func TestNexusCloseLateCompletionDiffersFromTheGoModel(t *testing.T) {
 // closeBaselineClaims is what the baseline declares and the designs are compared on.
 var closeBaselineClaims = []string{"property completionSucceeds", "property completionFails", "query asyncCompletion",
 	"query asyncFailure"}
-
-// closeExcluded is every other claim of the baseline, each with why no design is compared on it.
-var closeExcluded = map[string]string{
-	"scenario asyncThenSucceeded": "schedules and replies before the delivery; a design starts at a started operation, and the delivery is compared",
-	"scenario asyncThenFailed":    "schedules and replies before the delivery; a design starts at a started operation, and the delivery is compared",
-
-	"property terminalIsFinal": "about the phases of one run; a design's knowledge moves to the successor at a reset",
-	"query terminalHolds":      "asks terminalIsFinal",
-
-	"property syncSucceeds":         "the handler's reply to the start request, which no design models",
-	"property asyncStarts":          "the handler's reply to the start request, which no design models",
-	"property handlerErrorFails":    "the handler's reply to the start request, which no design models",
-	"property retrySucceeds":        "the start request's retry, which no design models",
-	"scenario syncReplied":          "the handler's reply to the start request, which no design models",
-	"scenario nonRetryableError":    "the handler's reply to the start request, which no design models",
-	"scenario retriedThenSucceeded": "the start request's retry, which no design models",
-	"query syncCompletion":          "the handler's reply to the start request, which no design models",
-	"query handlerError":            "the handler's reply to the start request, which no design models",
-	"query retry":                   "the start request's retry, which no design models",
-
-	"property scheduleToStartFires":   "a deadline of the start request; the designs' one deadline is schedule-to-close, which the baseline claims nothing of",
-	"property startToCloseFires":      "a deadline no design models",
-	"scenario scheduleToStartExpires": "a deadline of the start request",
-	"scenario startToCloseExpires":    "a deadline no design models",
-	"query scheduleToStartTimeout":    "a deadline of the start request",
-	"query startToCloseTimeout":       "a deadline no design models",
-
-	"property repliedByPollingWorker":   "about the handler's worker, which no design models",
-	"scenario repliedThenStopped":       "about the handler's worker, which no design models",
-	"query stoppedWorkerRepliesNothing": "about the handler's worker, which no design models",
-}
-
-// goClaims reads a Go Model's source for every Property, Scenario and Query it declares by a literal
-// name, as "<kind> <name>", and counts the declarations whose name is no literal.
-func goClaims(t *testing.T, dir string) (declared []string, indirect int) {
-	t.Helper()
-	files, err := filepath.Glob(filepath.Join(dir, "*.go"))
-	require.NoError(t, err)
-	kinds := map[string]string{"Property": "property", "Scenario": "scenario", "Find": "query", "Verify": "query",
-		"VerifyRefined": "query"}
-	for _, file := range files {
-		if strings.HasSuffix(file, "_test.go") {
-			continue
-		}
-		parsed, err := parser.ParseFile(token.NewFileSet(), file, nil, 0)
-		require.NoError(t, err)
-		ast.Inspect(parsed, func(n ast.Node) bool {
-			call, ok := n.(*ast.CallExpr)
-			if !ok || len(call.Args) == 0 {
-				return true
-			}
-			fn, ok := call.Fun.(*ast.SelectorExpr)
-			if !ok {
-				return true
-			}
-			kind, ok := kinds[fn.Sel.Name]
-			if !ok {
-				return true
-			}
-			if name, ok := call.Args[0].(*ast.BasicLit); ok && name.Kind == token.STRING {
-				unquoted, err := strconv.Unquote(name.Value)
-				require.NoError(t, err)
-				declared = append(declared, kind+" "+unquoted)
-			} else {
-				indirect++
-			}
-			return true
-		})
-	}
-	return declared, indirect
-}
-
-// Every Property, Scenario and Query the Go baseline declares is either compared above or excluded
-// by name with its reason. A claim added to the baseline fails here rather than passing unseen.
-func TestNexusCloseBaselineClaimsAreComparedOrExcluded(t *testing.T) {
-	declared, indirect := goClaims(t, filepath.Join("..", "..", "go", "nexuscaller"))
-	require.Zero(t, indirect, "a declaration this test cannot read by name")
-	accounted := slices.Concat(closeBaselineClaims, slices.Collect(maps.Keys(closeExcluded)))
-	require.ElementsMatch(t, declared, accounted)
-	require.Len(t, declared, len(closeBaselineClaims)+len(closeExcluded), "a claim is compared or excluded, not both")
-	for name, q := range closeBaselineQueries {
-		require.Contains(t, closeBaselineClaims, "query "+q.Name)
-		require.Equal(t, name, q.Name)
-		require.Contains(t, closeBaselineClaims, "property "+q.Property.Name)
-	}
-}
 
 // closePromises labels every Property the designs declare that the baseline does not: each is an
 // authored design promise, by the oracle of specimens/nexus.md it states.
@@ -359,7 +283,7 @@ func TestNexusCloseEvidenceNamesTheBaselinesEvents(t *testing.T) {
 	c := closeModel(t)
 	shared := 0
 	design := c.built["retainAndRouteWithDeadline"].Table.Evidence
-	for _, line := range goTable(t, nexuscaller.NexusProduct).Evidence {
+	for _, line := range frozenNexusTable(t, "nexusProduct").Evidence {
 		if slices.Contains([]string{"nexusOperationCompleted", "nexusOperationFailed", "nexusOperationCanceled",
 			"nexusOperationTimedOut"}, line[0]) {
 			shared++

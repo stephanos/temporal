@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	modelirspb "go.temporal.io/server/api/modelir/v1"
-	"go.temporal.io/server/model/go/umpire"
+	umpire "go.temporal.io/server/model/scalav2/goir/internal/checker"
 )
 
 // Members lists every value of a finite type in catalog order: an enum's cases in declaration order,
@@ -179,9 +179,9 @@ type Work struct {
 // machine's declarations.
 type Machine struct {
 	Decl        *modelirspb.Machine
-	Table       *umpire.Table
+	Table       *Table
 	states      map[string]Value
-	Refinement  []umpire.RefinementRow
+	Refinement  []RefinementRow
 	Rejected    error
 	Classes     []Class
 	Transitions []Transition
@@ -204,7 +204,7 @@ func (m *Machine) Disabled(state, class string) bool {
 		return false
 	}
 	key := state + "-" + class
-	return !slices.ContainsFunc(m.Table.RowsFrom(state), func(r umpire.Row) bool { return r.Key == key }) &&
+	return !slices.ContainsFunc(m.Table.RowsFrom(state), func(r Row) bool { return r.Key == key }) &&
 		!slices.ContainsFunc(m.Holes, func(h HoleRow) bool { return h.Row == key })
 }
 
@@ -328,7 +328,7 @@ func (in *Interpreter) machine(decl *modelirspb.Machine, actions map[string]*mod
 	if err != nil {
 		return nil, err
 	}
-	spec := umpire.TableSpec{Machine: decl.GetName(), Owner: decl.GetName(), Family: umpire.Family(decl.GetFamily()),
+	spec := umpire.TableSpec{Machine: decl.GetName(), Owner: decl.GetName(), Family: Family(decl.GetFamily()),
 		Entity: decl.GetEntity()}
 	mm := &Machine{Decl: decl, states: map[string]Value{}, Classes: classes,
 		Work: Work{States: len(states), Classes: len(classes), Evaluations: len(states) * len(classes)}}
@@ -499,7 +499,7 @@ func (in *Interpreter) rows(mm *Machine, states []Value, spec *umpire.TableSpec)
 			if len(steps) == 0 {
 				continue
 			}
-			row := umpire.Row{Key: key, Source: s.Key(), Action: c.Key}
+			row := Row{Key: key, Source: s.Key(), Action: c.Key}
 			for _, step := range steps {
 				res, err := in.result(mm, c, key, step)
 				if err != nil {
@@ -516,21 +516,21 @@ func (in *Interpreter) rows(mm *Machine, states []Value, spec *umpire.TableSpec)
 
 // result keys one step record of a row, rejecting a state outside the domain.
 // It also rejects an outcome or a fact not of the machine's types.
-func (in *Interpreter) result(m *Machine, c Class, row string, step Value) (umpire.Result, error) {
+func (in *Interpreter) result(m *Machine, c Class, row string, step Value) (Result, error) {
 	decl := m.Decl
 	if outcome := step.Fields[0]; !in.conforms(outcome, named(decl.GetOutcomeType())) {
-		return umpire.Result{}, errorAt(c.at, "%s: row %s has outcome %s, which is no %s", decl.GetName(), row, outcome.Key(), decl.GetOutcomeType())
+		return Result{}, errorAt(c.at, "%s: row %s has outcome %s, which is no %s", decl.GetName(), row, outcome.Key(), decl.GetOutcomeType())
 	}
 	for _, f := range step.Fields[2].Items {
 		if decl.GetFactType() == "" || !in.conforms(f, named(decl.GetFactType())) {
-			return umpire.Result{}, errorAt(c.at, "%s: row %s records %s, which is no %s", decl.GetName(), row, f.Key(), cmp.Or(decl.GetFactType(), "fact of it"))
+			return Result{}, errorAt(c.at, "%s: row %s records %s, which is no %s", decl.GetName(), row, f.Key(), cmp.Or(decl.GetFactType(), "fact of it"))
 		}
 	}
 	next := step.Fields[1].Key()
 	if v, ok := m.states[next]; !ok || !v.Equal(step.Fields[1]) {
-		return umpire.Result{}, errorAt(c.at, "%s: row %s lands in %s, which is outside the state domain", m.Decl.GetName(), row, next)
+		return Result{}, errorAt(c.at, "%s: row %s lands in %s, which is outside the state domain", m.Decl.GetName(), row, next)
 	}
-	res := umpire.Result{Outcome: step.Fields[0].Key(), State: next, Facts: []string{}, Because: step.Fields[3].Text}
+	res := Result{Outcome: step.Fields[0].Key(), State: next, Facts: []string{}, Because: step.Fields[3].Text}
 	for _, f := range step.Fields[2].Items {
 		res.Facts = append(res.Facts, f.Key())
 	}
@@ -693,7 +693,7 @@ func (in *Interpreter) refinement(mm, product *Machine) error {
 	if err := in.readsAs(mm, dst, where, mapKey); err != nil || mm.Rejected != nil {
 		return err
 	}
-	var rows []umpire.RefinementRow
+	var rows []RefinementRow
 	for i, row := range src.Rows {
 		from, err := mapKey(row.Source)
 		if err != nil {
@@ -709,13 +709,13 @@ func (in *Interpreter) refinement(mm, product *Machine) error {
 				return err
 			}
 			if carrier, ok := carrierOf(dst, row, res, from, to, seen); ok {
-				rows = append(rows, umpire.RefinementRow{Key: row.Key, Product: &carrier})
+				rows = append(rows, RefinementRow{Key: row.Key, Product: &carrier})
 				continue
 			}
 			if mm.Rejected = noStutter(mm.Decl.GetPosition(), where, dst.Machine, row, res, from, to, seen, seenOutcome); mm.Rejected != nil {
 				return nil
 			}
-			rows = append(rows, umpire.RefinementRow{Key: row.Key})
+			rows = append(rows, RefinementRow{Key: row.Key})
 		}
 	}
 	mm.Refinement = rows
@@ -724,7 +724,7 @@ func (in *Interpreter) refinement(mm, product *Machine) error {
 
 // readsAs checks that every outcome of the refining machine is a product outcome of the same name,
 // and that every start reads as a product start.
-func (in *Interpreter) readsAs(mm *Machine, dst *umpire.Table, where string, mapKey func(string) (string, error)) error {
+func (in *Interpreter) readsAs(mm *Machine, dst *Table, where string, mapKey func(string) (string, error)) error {
 	src := mm.Table
 	for _, o := range src.Outcomes {
 		if !slices.Contains(dst.Outcomes, o) {
@@ -749,7 +749,7 @@ func (in *Interpreter) readsAs(mm *Machine, dst *umpire.Table, where string, map
 
 // seen is what the product sees of a step: the product keys of the facts it records that the
 // refinement's `visible` accepts, and whether `visible_outcomes` accepts its outcome.
-func (in *Interpreter) seen(mm *Machine, dst *umpire.Table, step Value) ([]string, bool, error) {
+func (in *Interpreter) seen(mm *Machine, dst *Table, step Value) ([]string, bool, error) {
 	r := mm.Decl.GetRefines()
 	sees := func(function string, v Value) (bool, error) {
 		if function == "" {
@@ -780,7 +780,7 @@ func (in *Interpreter) seen(mm *Machine, dst *umpire.Table, step Value) ([]strin
 }
 
 // noStutter is why a result no product step carries is not a stutter either, or nil when it is one.
-func noStutter(at *modelirspb.Position, where, product string, row umpire.Row, res umpire.Result, from, to string,
+func noStutter(at *modelirspb.Position, where, product string, row Row, res Result, from, to string,
 	seen []string, seenOutcome bool) error {
 	switch {
 	case from != to:
@@ -800,7 +800,7 @@ func noStutter(at *modelirspb.Position, where, product string, row umpire.Row, r
 	}
 }
 
-func carrierOf(dst *umpire.Table, row umpire.Row, res umpire.Result, from, to string, seen []string) (string, bool) {
+func carrierOf(dst *Table, row Row, res Result, from, to string, seen []string) (string, bool) {
 	var facts []string
 	for _, f := range res.Facts {
 		if k, ok := sameNamedKey(dst.Facts, f); ok {
@@ -809,7 +809,7 @@ func carrierOf(dst *umpire.Table, row umpire.Row, res umpire.Result, from, to st
 	}
 	var carriers []string
 	for _, c := range dst.RowsFrom(from) {
-		if slices.ContainsFunc(c.Results, func(cr umpire.Result) bool {
+		if slices.ContainsFunc(c.Results, func(cr Result) bool {
 			return cr.State == to && cr.Outcome == res.Outcome && allIn(cr.Facts, facts) && allIn(seen, cr.Facts)
 		}) {
 			carriers = append(carriers, c.Action)

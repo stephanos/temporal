@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	modelirspb "go.temporal.io/server/api/modelir/v1"
-	"go.temporal.io/server/model/go/umpire"
 	"go.temporal.io/server/model/scalav2/goir"
 )
 
@@ -41,8 +40,8 @@ func (q *quint) compositions() (fields, views []string, err error) {
 		name := decl.GetName()
 		left := Receipt{Backend: quintBackend, Claim: TransitionAgreement, Subject: name, Kind: Unsupported}
 		c, err := q.s.bound.Composition(name)
-		var limit *umpire.ComposeLimitError
-		var rejected *umpire.RefinementError
+		var limit *goir.ComposeLimitError
+		var rejected *goir.RefinementError
 		switch {
 		case errors.As(err, &limit):
 			left.Kind = ResourceLimit

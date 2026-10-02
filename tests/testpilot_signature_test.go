@@ -13,9 +13,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	"go.temporal.io/server/tests/testcore"
-	testpilotcore "go.temporal.io/server/tests/testcore/testpilot"
-	"go.temporal.io/server/tools/umpire/replay"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -28,7 +27,7 @@ var capturedRunCount atomic.Int64
 // requireSigned runs check and, when check fails the test, logs the signature sign builds for
 // assertion, so one failing run tells its cause without a rerun. A test that had already failed is
 // not signed again: the first signature line is the one umpire-repeat counts.
-func requireSigned(t testing.TB, assertion string, sign func(assertion string) testpilotcore.Signature, check func()) {
+func requireSigned(t testing.TB, assertion string, sign func(assertion string) recordedrun.Signature, check func()) {
 	t.Helper()
 	failedBefore := t.Failed()
 	defer func() {
@@ -60,8 +59,8 @@ func (c liveRunCheck) require(assertion string, check func()) {
 	if c.label != "" {
 		assertion = c.label + ": " + assertion
 	}
-	requireSigned(c.t, assertion, func(assertion string) testpilotcore.Signature {
-		return testpilotcore.RunSignature(c.t.Name(), assertion, c.run, c.verdict)
+	requireSigned(c.t, assertion, func(assertion string) recordedrun.Signature {
+		return recordedrun.RunSignature(c.t.Name(), assertion, c.run, c.verdict)
 	}, check)
 }
 
@@ -103,7 +102,7 @@ func captureRun(t testing.TB, fixture string, live testpilotLiveCase, run *testp
 	caseBytes, err := os.ReadFile(filepath.Join("testcore", "testpilot", "testdata", fixture+"-case.json"))
 	require.NoError(t, err)
 	path := capturePath(t, dir)
-	require.NoError(t, replay.WriteRecordedRun(path, caseBytes, live.prepared.Identity(), run), "capture the Run to %s", path)
+	require.NoError(t, recordedrun.Write(path, caseBytes, live.prepared.Identity(), run), "capture the Run to %s", path)
 }
 
 // capturePath is a file name under dir that no other Run of this process or of another one takes:

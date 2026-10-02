@@ -6,7 +6,7 @@ package assessment
 import (
 	"embed"
 
-	"go.temporal.io/server/tools/umpire/evaluation"
+	"go.temporal.io/server/common/testing/testpilot/evaluation"
 )
 
 // The Lean-rendered canary Profile, `make umpire-gen-evaluation-profiles` writes it; the harness's

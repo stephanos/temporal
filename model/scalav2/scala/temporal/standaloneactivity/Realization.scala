@@ -465,27 +465,29 @@ object ActivityRealization:
 
   // The machine starts scheduled, so no step of a path is the start: every Case carries it. It sets
   // one deadline, a start-to-close no Case lives to see, so no deadline competes with the delivery.
+  private val heldStart = Item(command =
+    Some(
+      Command(
+        startActivity,
+        Rpc(
+          workflowServiceRole,
+          service + "StartActivityExecution",
+          named ++ Vector(
+            Assignment("activity_type.name", Literal(Named(activityType))),
+            Assignment("task_queue.name", Environment(taskQueueBinding)),
+            Assignment("request_id", Run),
+            Assignment("start_to_close_timeout.seconds", longSeconds)
+          )
+        )
+      )
+    )
+  )
+
   private val heldController = Script(
     "controller",
     Activation.Controller,
     Vector(
-      Item(command =
-        Some(
-          Command(
-            startActivity,
-            Rpc(
-              workflowServiceRole,
-              service + "StartActivityExecution",
-              named ++ Vector(
-                Assignment("activity_type.name", Literal(Named(activityType))),
-                Assignment("task_queue.name", Environment(taskQueueBinding)),
-                Assignment("request_id", Run),
-                Assignment("start_to_close_timeout.seconds", longSeconds)
-              )
-            )
-          )
-        )
-      ),
+      heldStart,
       Item(performs = Vector(Performance(dispatch, Command(holdCommand, Hold(holdDispatch))))),
       Item(performs =
         Vector(controlBinding(control(Control.pause), "pause-activity", "PauseActivityExecution"))
@@ -548,6 +550,96 @@ object ActivityRealization:
       status("statusPaused"),
       committed("admissionRejected", "REJECTED"),
       committed("attemptAdmitted", "ADMITTED", exhaustive = true)
+    ),
+    controls = Vector(
+      umpire.realize
+        .Control(holdDispatch, ControlKind.HoldDispatched(dispatch), role = taskQueueRole)
+    ),
+    cleanup = "cleanup"
+  )
+
+  /** One lost admission answer, with its durable decision observed before the response is replaced. */
+  val lostAdmissionResponse: Realization = Realization(
+    name = "lostAdmissionResponse",
+    machine = admissionResponseLoss,
+    producer = "temporal.activity.standalone.testpilot",
+    producerVersion = "1",
+    roles = Vector(
+      Role(workflowServiceRole, RoleKind.endpoint),
+      Role(
+        taskQueueRole,
+        RoleKind.taskQueue,
+        namespace = workerNamespaceBinding,
+        resource = taskQueueBinding
+      )
+    ),
+    correlation = Correlation(
+      projection = projectionID,
+      run = runFieldID,
+      operation = operationFieldID,
+      observation = correlatedObservation,
+      events = 32,
+      buffered = 16,
+      keys = 8,
+      support = 128,
+      work = 1000000000,
+      eventSize = 512
+    ),
+    scripts = Vector(
+      Script(
+        "controller",
+        Activation.Controller,
+        Vector(
+          heldStart,
+          Item(performs = Vector(Performance(dispatch, Command(holdCommand, Hold(holdDispatch))))),
+          Item(performs =
+            Vector(
+              Performance(
+                ackLoss,
+                Command(releaseCommand, Fault(taskQueueRole, FaultKind.admissionResponseLoss))
+              )
+            )
+          )
+        )
+      )
+    ),
+    observations = Vector(
+      Observed(correlatedObservation, "temporal.server.api.testpilot.v1.CorrelatedEvidence")
+    ),
+    evidence = Vector(
+      accepted("dispatchSent", "dispatchSent", holdCommand),
+      Evidence(
+        id = evidenceID("attemptAdmitted"),
+        records = "attemptAdmitted",
+        source = recordSource,
+        from = Recorded.RunEvent(
+          EventKind.instructionCompleted,
+          "controller",
+          releaseCommand,
+          key = Path(Projected, "delivery_admission.activity_id"),
+          guard = Some(
+            All(
+              succeeded,
+              Equal(
+                Path(Projected, "delivery_admission.decision"),
+                Literal(EnumName("DELIVERY_ADMISSION_DECISION_ADMITTED"))
+              ),
+              Greater(Path(Projected, "delivery_admission.attempt"), Literal(Number(0)))
+            )
+          )
+        ),
+        operation = "",
+        commitment = Commitment.durable,
+        fields = Vector(
+          EvidenceField(
+            "delivery",
+            "delivery_admission.delivery_id",
+            role = Some(FieldRole.delivery)
+          ),
+          EvidenceField("attempt", "delivery_admission.attempt", role = Some(FieldRole.attempt)),
+          EvidenceField("activityRun", "delivery_admission.activity_run_id")
+        )
+      )
     ),
     controls = Vector(
       umpire.realize

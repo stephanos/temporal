@@ -8,22 +8,20 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/protorequire"
-	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	"go.temporal.io/server/tools/canary/authority"
 	"go.temporal.io/server/tools/canary/casebinding"
 	"go.temporal.io/server/tools/canary/policy"
 	"go.temporal.io/server/tools/canary/preflight"
 	"go.temporal.io/server/tools/canary/testharness"
-	"go.temporal.io/server/tools/umpire/recordedrun"
 	"google.golang.org/protobuf/proto"
 )
 
 func TestTestpilotScalaActivitySharedWithCanary(t *testing.T) {
 	env := scalaActivityEnvironment(t)
-	functional := scalaActivityFixture(t, "completion")
-	canary := scalaActivityFixture(t, "completion")
+	functional := generatedScalaFixture(t, "activity-completion-case.json")
+	canary := generatedScalaFixture(t, "activity-completion-case.json")
 	require.Equal(t, functional.Bytes, canary.Bytes)
 	identity, err := recordedrun.CaseIdentity(functional.Bytes)
 	require.NoError(t, err)
@@ -68,15 +66,13 @@ func TestTestpilotScalaActivitySharedWithCanary(t *testing.T) {
 			require.Equal(t, want, got)
 		}
 	}
-	ids, learned := map[string]bool{}, map[string]bool{}
+	ids := map[string]bool{}
 	for range 2 {
 		results := runScalaCases(t, env, functional, lives)
 		for i, result := range results {
-			requireScalaAssessment(t, functional, lives[i], result, "completes", testpilot.PropertySatisfied)
-			activityRun := requireScalaActivity(t, env, lives[i], result, []testpilotspb.ActivityAttemptResponse{testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED})
+			requireScalaAssessment(t, functional, lives[i], result)
 			require.NotContains(t, ids, result.run.GetRunId())
-			require.NotContains(t, learned, activityRun)
-			ids[result.run.GetRunId()], learned[activityRun] = true, true
+			ids[result.run.GetRunId()] = true
 		}
 	}
 	require.Equal(t, pinned, casebinding.Case())

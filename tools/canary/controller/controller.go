@@ -11,14 +11,14 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/client"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/evaluation"
+	"go.temporal.io/server/common/testing/testpilot/publish"
 	"go.temporal.io/server/tools/canary/assessment"
 	"go.temporal.io/server/tools/canary/authority"
 	"go.temporal.io/server/tools/canary/policy"
 	"go.temporal.io/server/tools/canary/preflight"
 	"go.temporal.io/server/tools/canary/publication"
 	"go.temporal.io/server/tools/canary/recovery"
-	"go.temporal.io/server/tools/umpire/evaluation"
-	"go.temporal.io/server/tools/umpire/publish"
 	"google.golang.org/grpc"
 )
 

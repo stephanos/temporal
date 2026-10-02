@@ -18,8 +18,8 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/server/common/dynamicconfig"
 	"go.temporal.io/server/common/testing/await"
+	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	"go.temporal.io/server/tests/testcore"
-	testpilotcore "go.temporal.io/server/tests/testcore/testpilot"
 )
 
 // TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint is the vision's black-box mode on real
@@ -40,7 +40,7 @@ func TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint(t *testing.T) {
 	defer cancel()
 
 	arguments := []string{
-		"--case", filepath.Join("testcore", "testpilot", "testdata", "nexusCallerTests-asyncCompletion-case.json"),
+		"--case", filepath.Join("..", "model", "scalav2", "cases", "nexus-caller-asyncCompletion-case.json"),
 		"--grpc", env.FrontendGRPCAddress(),
 		"--http", env.HttpAPIAddress(),
 		"--namespace", namespaceName,
@@ -64,8 +64,8 @@ func TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint(t *testing.T) {
 	output := stdout.String() + stderr.String()
 	signed := func(assertion string, check func()) {
 		t.Helper()
-		requireSigned(t, assertion, func(assertion string) testpilotcore.Signature {
-			return testpilotcore.ReportSignature(t.Name(), assertion, stdout.String(), stderr.String())
+		requireSigned(t, assertion, func(assertion string) recordedrun.Signature {
+			return recordedrun.ReportSignature(t.Name(), assertion, stdout.String(), stderr.String())
 		}, check)
 	}
 
@@ -118,6 +118,7 @@ func TestTestpilotUmpireRunRejectsAnUnreachableEndpoint(t *testing.T) {
 		"--http", "127.0.0.1:1",
 		"--namespace", "umpire-run-unreachable",
 		"--task-queue", "umpire-run-unreachable-queue",
+		"--nexus-endpoint", "umpire-run-unreachable-endpoint",
 		"--create",
 		"--timeout", "20s",
 	)

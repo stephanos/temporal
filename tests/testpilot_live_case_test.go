@@ -18,10 +18,10 @@ import (
 	"go.temporal.io/sdk/client"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/common/testing/testpilot/temporal/provision"
 	"go.temporal.io/server/tests/testcore"
-	"go.temporal.io/server/tools/umpire/replay"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -120,7 +120,7 @@ func (live testpilotLiveCase) runRecording(t *testing.T, ctx context.Context, ca
 	require.NoError(t, err)
 	recorded, err := machineFreeRun(run)
 	require.NoError(t, err)
-	require.NoError(t, replay.WriteRecordedRun(path, caseBytes, live.prepared.Identity(), recorded))
+	require.NoError(t, recordedrun.Write(path, caseBytes, live.prepared.Identity(), recorded))
 	return run, verdict
 }
 

@@ -16,7 +16,7 @@ ir/*.json  (ProtoJSON of the IR schema; checked in)
       │    nexus-caller.json     the Nexus caller and worker machines, its functional Queries and their realization
       │    activity.json         the standalone activity Model, as model/go/standaloneactivity has it, and its realization
       │    activity-system.json  the standalone activity's system contract and its dispatch queue
-      │    activity-race.json    the held race a server is run through, and its realization
+      │    activity-race.json    the held race and one bounded admission response loss
       │    nexus-close.json      the Nexus caller close and reset designs
       │
 goir/  ── validate, interpret, derive tables → model/go's umpire.Table
@@ -49,7 +49,7 @@ scala-cli, the JDK and protoc come from the repository's `mise.toml`. After chan
 | `ir/nexus-caller.json` | The Nexus caller and worker Models, lifted with the functional Queries and the realization that runs them |
 | `ir/activity.json` | The standalone activity Model, lifted with the claims `model/go/standaloneactivity` declares and the realization that runs its find Queries |
 | `ir/activity-system.json` | The standalone activity's system contract, lifted: the admission designs, the dispatch queue's providers and their compositions |
-| `ir/activity-race.json` | The held race, lifted: the corrected admission design in the scope a Run of the race has, the Query that finds the stale delivery rejected, and the realization that holds the dispatch, pauses, releases it and reads what admission committed |
+| `ir/activity-race.json` | The held race and bounded admission response loss: Queries and realizations that hold a dispatch, observe durable admission, and test stale-delivery rejection or a lost committed answer |
 | `ir/nexus-close.json` | The Nexus caller close and reset designs, lifted with their monitors, Queries and progress claims |
 | `scala/` | The Scala authoring project: the `umpire` framework with the realization declarations in `umpire/realize`, the Temporal Models, and their munit tests |
 | `lifter/` | The TASTy lifter; `testdata/unsupported` is a Model it must refuse |
@@ -151,10 +151,12 @@ activity entrypoint waits. `cancel` and `cancelRequest` request the cancellation
 held, and a Run records an attempt once it is answered, so the attempt's record would reach the Run
 after the cancel request's answer, out of the path's order. What a worker reports of an activation
 is admitted as the record of a named attempt alone, and a Case that would run two activities is not
-lowered, since a Run's record of an attempt names no script. No lowered activity Case has run against
-a server: the six run live through Testpilot's executor against a Driver that plays their paths, and
-their Runs replay to the same Verdict and assessment (`goir/conformance/played_test.go`). The activity's system designs and the Nexus close designs declare no realization yet, so
-their find Queries have the standing `no-realization`; a verify Query realizes nothing.
+lowered, since a Run's record of an attempt names no script. The six lowered activity Cases run
+against the in-process server and replay to the same Verdict and assessment
+(`tests/testpilot_scala_generated_test.go`). Offline played-Driver coverage remains in
+`goir/conformance/played_test.go`. Apart from the held race and the bounded admission-response-loss slice, the activity's system designs and the
+Nexus close designs declare no realization yet, so their find Queries have the standing
+`no-realization`; a verify Query realizes nothing.
 
 Every Case of the Nexus caller carries the five history kinds, which its realization declares
 exhaustive, whatever its path records. `syncCompletion` therefore concludes on its witness Run: a
@@ -172,3 +174,99 @@ not exported, and no P module refinement is claimed ([backends/README.md](backen
 
 The specimens record the constructs they found outside the subset in `specimens/README.md` (findings
 F2, F5-F7).
+
+## Generated live Cases
+
+`make umpire-gen-scala` lifts the Models and writes `cases/*-case.json` plus the versioned
+`cases/manifest.json`. The manifest accounts for every checked-in IR Query: lowered,
+nothing-to-realize, no-realization, or unsupported with located reasons. The generator builds and
+validates a complete temporary tree before replacing it; `make umpire-check-scala` compares the
+whole inventory and fails on changed, missing, or obsolete files. Ordinary Go tests never rewrite it.
+
+A lowerable Query declares `.expect(RunExpectation(...))` in Scala: trace conformance, the Query
+Property's outcome and reason, and each additional monitor's outcome and reason. These are live
+assessment expectations, separate from the model-search answer and the Case Contract. Missing or
+malformed expectations fail admission/generation. The held race's admission Property is satisfied;
+its active-attempt monitor stays inconclusive because rejected admission never reaches that
+monitor's `readAfter(attemptAdmitted)` evaluation point.
+
+`TestTestpilotScalaGeneratedCases` discovers every lowered file, binds two independent namespaces
+and queues, runs them concurrently twice, and compares the Contract Verdict and declared assessment
+both live and replayed. It exercises both Nexus implementations and the in-process delivery control.
+The canary boundary test reads the same generated completion file. An unsupported capability is
+reported before provisioning Case resources. `umpire-run --case model/scalav2/cases/<file>` consumes
+these same Cases on external endpoints; a Case requiring delivery control is skipped with its
+located preparation reason before dialing or provisioning. As other preparation failures do, it
+returns exit code 3.
+
+The removed per-Query tests also asserted details the current Contracts do not fully express.
+Recorded gaps are exact returned activity payload equality (`done`), UUID spelling and unique
+attempt-delivery IDs, the complete SDK attempt/response sequence beyond correlated evidence,
+learned server-ID isolation by cross-namespace NotFound reads, raw Nexus scheduled endpoint/history
+attribute equality, and workflow-backed versus standalone activity parity. These are not claims of
+the generated runner. The Contract still checks the authored correlated evidence path (including
+pause before unpause before the completed attempt), terminal evidence, and its supporting events;
+the runner preserves independent resource bindings, unique Run IDs, every realized declared fault,
+and the generic removal-of-durable-evidence ambiguity control. Closing these gaps requires Scala
+observations/Contracts or a separate adapter parity test, not Query-specific Go assertions.
+
+The generated `activity-race-admissionResponseLoss.committed-case.json` realizes one
+`ADMISSION_RESPONSE_LOSS` after holding the Run's dispatch. Its Scala Model has a one-loss budget
+and permits a committed update or a failed update behind the missing answer. The successful control
+replaces one successful `RecordActivityTaskStarted` response with `Unavailable`, then waits for a
+retry with the same activity execution, delivery stamp, and request ID before reporting success.
+Its outcome preserves the first handler's durable admission, including the activity Run and attempt;
+the retry's answer never changes that decision. The generic runner checks the declared satisfied
+assessment, live/offline agreement, missing-durable-evidence ambiguity, independent concurrent Runs,
+cleanup, and exactly one loss event (plus the separately declared hold event).
+
+This cut supports the in-process history client's same-request retry path only. It does not claim
+physical task redelivery, failed-commit injection, persistence failure, or a remote/canary actuator.
+An unobserved retry, cancellation, refusal, or incomplete injection records no successful loss event.
+
+## Bounded discovery and replay
+
+A find Query can declare `.explore(Exploration(...))` with finite alternatives replacing named
+positions of its Scenario's prefix, integer priorities, a Run budget, and a bounded prefix-deletion
+sweep. These are IR declarations; `explore/` enumerates their Cartesian product and asks the same
+Go checker and Case producer to realize every candidate. `nexusDeadlines` varies the synchronous
+call's deadline classes. The highest priority candidate has a start-to-close deadline absent from
+pinned Scenarios. Enumerating three candidates is exact finite model coverage; running the first
+candidate is one sampled runtime execution. Neither implies an exhaustive server schedule search.
+
+Build `./tools/umpire/cmd/umpire-ir-bridge` and pass that executable to the existing `umpire-fuzz`
+or `umpire-replay` command with `--model-root model/scalav2`. The bridge implements their existing
+initialize/admit, next, observe and finish protocols. It exchanges whole checked Cases. The
+`nexusControl` exploration in `scala/temporal/nexuscaller/Control.scala` deliberately admits a
+forged success alongside the real failed callback. The runtime sends an actual asynchronous failed
+callback; this negative control is a demonstration of the mechanism, not a platform regression.
+
+Replay first requires two fresh Runs with the original failure key. The generic replay reducer
+then tries the declared prefix deletions in reverse order, re-answering and re-lowering the Query
+before every attempt and retaining an edit only after two Runs reproduce the same key. Removing
+required scheduling or learned callback authority is rejected by that checked path. An incomplete,
+indeterminate, or unreproduced failure produces no regression proposal. The deterministic proposal
+contains the original IR, source Query, selected alternative, accepted edits, and exact Case bytes
+and identities. `umpire-ir-bridge proposal <regression.json>` verifies the recipe and writes its
+Case, which can be passed to `umpire-run`. Physical namespaces and endpoints remain execution
+bindings. Proposals are written exclusively by the existing replay proposal writer.
+
+`TestTestpilotScalaExplorationDiscoversUnpinnedExecution` and
+`TestTestpilotNexusControlReplaysThroughTheCommand` run the discovery and reduction against an
+in-process server. Set `UMPIRE_EXPLORATION_DIR` to retain their Cases, recorded Runs, finite versus
+sampled coverage, reduction report, replayable proposal, and local HTML traces. Traces place the
+checked model witness and abstract product projection beside whole recorded Testpilot events,
+monitor state, evidence, fault decisions, holes, and source links. A predicted internal step is
+labelled as an expectation; the display does not claim unobserved server commitments occurred.
+
+The fn-107 authoring exercise added a 16-line feature file under
+`scala/temporal/nexuscaller`, declaring its own Scenario and using the existing Property and
+realization to explore two deadline alternatives. It changed no framework or Go code. A subsequent
+feature-only search-policy edit reversed the alternatives' priorities: the checked Go selection
+changed from `bounded` (20 versus 10) to `default` (30 versus 0). On the local warm Scala toolchain,
+a deliberately mistyped variation index was diagnosed at its source line in 0.598 seconds;
+correcting it compiled in 0.475 seconds, lifted in 2.409 seconds, and enumerated and lowered
+both candidates in Go in 3.081 seconds. This records an agent performing the Go-developer
+workflow, not a human usability study or a cold-build benchmark. The task evidence retains the
+invalid/valid and changed-policy source, exact commands, diagnostics and monotonic timings. The
+temporary exercise declaration is not a new production Query.

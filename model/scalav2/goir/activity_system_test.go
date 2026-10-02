@@ -17,7 +17,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	modelirspb "go.temporal.io/server/api/modelir/v1"
-	"go.temporal.io/server/model/go/umpire"
+	umpire "go.temporal.io/server/model/scalav2/goir/internal/checker"
 )
 
 const activitySystemIR = "../ir/activity-system.json"
@@ -45,7 +45,7 @@ func systemModel(t *testing.T) *checkedModel {
 }
 
 // last is the final step of a witness.
-func last(t *testing.T, w *umpire.Trace) umpire.TraceStep {
+func last(t *testing.T, w *Trace) TraceStep {
 	t.Helper()
 	require.NotNil(t, w)
 	require.NotEmpty(t, w.Steps)
@@ -53,7 +53,7 @@ func last(t *testing.T, w *umpire.Trace) umpire.TraceStep {
 }
 
 // depth is how many steps the farthest state a table reaches is from a start.
-func depth(table *umpire.Table) int {
+func depth(table *Table) int {
 	at := map[string]int{}
 	queue := slices.Clone(table.Starts)
 	for _, s := range queue {
@@ -77,7 +77,7 @@ func depth(table *umpire.Table) int {
 }
 
 // lastRow is the key of the row a witness's final step takes.
-func lastRow(t *testing.T, w *umpire.Trace) string {
+func lastRow(t *testing.T, w *Trace) string {
 	t.Helper()
 	from := w.Initial.Value
 	if n := len(w.Steps); n > 1 {
@@ -86,7 +86,7 @@ func lastRow(t *testing.T, w *umpire.Trace) string {
 	return from + "-" + last(t, w).Action.Value
 }
 
-func factsOf(s umpire.TraceStep) []string {
+func factsOf(s TraceStep) []string {
 	var out []string
 	for _, f := range s.Facts {
 		out = append(out, f.Value)
@@ -95,9 +95,9 @@ func factsOf(s umpire.TraceStep) []string {
 }
 
 // plainResults is a row's results without their typed steps.
-func plainResults(t *testing.T, table *umpire.Table, key string) []umpire.Result {
+func plainResults(t *testing.T, table *Table, key string) []Result {
 	t.Helper()
-	var out []umpire.Result
+	var out []Result
 	for _, res := range table.Rows[rowIndex(t, table, key)].Results {
 		res.Step = nil
 		out = append(out, res)
@@ -224,7 +224,7 @@ func TestActivityStaleDeliveryAfterPause(t *testing.T) {
 	require.Equal(t, []string{"dispatch", "activity_control-pause", "admit"}, taken(overQueue.Witness))
 
 	// The corrected design's step is a stutter that records nothing the product sees.
-	require.Equal(t, []umpire.Result{{Outcome: "accepted", State: "paused-none-owed", Facts: []string{"admissionRejected"}}},
+	require.Equal(t, []Result{{Outcome: "accepted", State: "paused-none-owed", Facts: []string{"admissionRejected"}}},
 		plainResults(t, c.built["currentAdmission"].Table, "paused-none-settled-attemptStart"))
 	kept := receiptOf(t, c.report, current+"staleDelivery")
 	require.True(t, kept.Exercised)
@@ -252,7 +252,7 @@ func TestActivityAdmittedBeforePause(t *testing.T) {
 		require.True(t, r.Exercised, key)
 	}
 	for _, design := range []string{"currentAdmission", "staleAdmission"} {
-		require.Equal(t, []umpire.Result{{Outcome: "accepted", State: "pausedWhileHeld-one-owed", Facts: []string{"statusPaused"}}},
+		require.Equal(t, []Result{{Outcome: "accepted", State: "pausedWhileHeld-one-owed", Facts: []string{"statusPaused"}}},
 			plainResults(t, c.built[design].Table, "started-one-owed-control-pause"), design)
 	}
 }
@@ -270,19 +270,19 @@ func TestActivityDuplicateDelivery(t *testing.T) {
 	monitored := receiptOf(t, c.report, stale+"duplicateDelivery.monitored")
 	require.Equal(t, "atMostOneActiveAttempt", monitored.Monitor)
 	require.Equal(t, []string{"dispatch", "attemptStart", "attemptStart"}, taken(monitored.Witness))
-	require.Equal(t, []umpire.MonitorVerdict{{Name: "atMostOneActiveAttempt", State: "two", Verdict: umpire.MonitorViolated},
+	require.Equal(t, []MonitorVerdict{{Name: "atMostOneActiveAttempt", State: "two", Verdict: umpire.MonitorViolated},
 		{Name: "terminalFinality", State: "open", Verdict: umpire.MonitorHeld}}, monitored.Monitors)
 	// Both monitors read the corrected design too, and hold on everything its free search reaches.
-	require.Equal(t, []umpire.MonitorVerdict{{Name: "atMostOneActiveAttempt", Verdict: umpire.MonitorHeld},
+	require.Equal(t, []MonitorVerdict{{Name: "atMostOneActiveAttempt", Verdict: umpire.MonitorHeld},
 		{Name: "terminalFinality", Verdict: umpire.MonitorHeld}}, receiptOf(t, c.report, current+"any.atMostOneActive").Monitors)
 
 	// The stale design's second admission reads as a stutter of the product that records a status the
 	// product sees, so the visible projection refuses it too.
-	require.Equal(t, []umpire.Result{
+	require.Equal(t, []Result{
 		{Outcome: "accepted", State: "started-two-owed", Facts: []string{"statusStarted", "attemptAdmitted"}},
 		{Outcome: "accepted", State: "started-one-owed", Facts: []string{"admissionCommitFailed"}, Because: commitFails},
 	}, plainResults(t, c.built["staleAdmission"].Table, "started-one-owed-attemptStart"))
-	require.Equal(t, []umpire.Result{{Outcome: "accepted", State: "started-one-owed", Facts: []string{"admissionRejected"}}},
+	require.Equal(t, []Result{{Outcome: "accepted", State: "started-one-owed", Facts: []string{"admissionRejected"}}},
 		plainResults(t, c.built["currentAdmission"].Table, "started-one-owed-attemptStart"))
 
 	// Over the queues the second delivery is the interface's own: a message not yet acknowledged.
@@ -302,7 +302,7 @@ func TestActivityDuplicateDelivery(t *testing.T) {
 
 	// The corrected design meets the redelivery with the attempt it committed, and admits no second.
 	matching := composedTable(t, c.model, "currentOverMatching")
-	require.Equal(t, []umpire.Result{{Outcome: "activity_accepted", State: "started-one-owed_persisted-true-twice",
+	require.Equal(t, []Result{{Outcome: "activity_accepted", State: "started-one-owed_persisted-true-twice",
 		Facts: []string{"activity_admissionRejected", "queue_delivered"}}},
 		plainResults(t, matching, "started-one-owed_persisted-false-once-admit"))
 	for _, key := range []string{"deliveredAgainAfterLostAck", "crashAfterAdmissionCommit"} {
@@ -318,7 +318,7 @@ func TestActivityTerminalFinality(t *testing.T) {
 	require.Equal(t, "terminalFinality", reopened.Monitor)
 	require.Equal(t, []string{"dispatch", "attemptStart", "attemptResult-completed", "attemptStart"}, taken(reopened.Witness))
 	require.Equal(t, "started-one-owed", last(t, reopened.Witness).State.Value)
-	require.Equal(t, []umpire.MonitorVerdict{{Name: "atMostOneActiveAttempt", State: "one", Verdict: umpire.MonitorHeld},
+	require.Equal(t, []MonitorVerdict{{Name: "atMostOneActiveAttempt", State: "one", Verdict: umpire.MonitorHeld},
 		{Name: "terminalFinality", State: "reopened", Verdict: umpire.MonitorViolated}}, reopened.Monitors)
 
 	// The free searches over a queue, which no monitor reads, end on the step that leaves the end.
@@ -366,7 +366,7 @@ func TestActivityCompetingTimers(t *testing.T) {
 // message with the queue. What sets it apart from the commit is the missing attemptAdmitted.
 func TestActivityFailedCommit(t *testing.T) {
 	c := systemModel(t)
-	require.Equal(t, []umpire.Result{
+	require.Equal(t, []Result{
 		{Outcome: "activity_accepted", State: "started-one-owed_deliveredOnce",
 			Facts: []string{"activity_statusStarted", "activity_attemptAdmitted", "queue_delivered"}},
 		{Outcome: "activity_accepted", State: "scheduled-none-settled_deliveredOnce",
@@ -415,7 +415,7 @@ func TestActivityCrashCuts(t *testing.T) {
 	}
 	require.True(t, c.built["matchingQueue"].Disabled("persisted-false-twice", "deliver"))
 	// After the acknowledgment nothing is outstanding, and a crash changes nothing.
-	require.Equal(t, []umpire.Result{{Outcome: "internal", State: "nowhere-false-never", Facts: []string{"crashed"}}},
+	require.Equal(t, []Result{{Outcome: "internal", State: "nowhere-false-never", Facts: []string{"crashed"}}},
 		plainResults(t, c.built["matchingQueue"].Table, "nowhere-false-never-crash"))
 
 	for provider, witness := range map[string][]string{
@@ -590,7 +590,7 @@ func TestActivitySystemExclusionsAreDisabled(t *testing.T) {
 // so it reads every step of every state the table reaches: the bound cuts nothing off.
 func TestActivityFreeSearchesReachEveryState(t *testing.T) {
 	c := systemModel(t)
-	tables := map[string]*umpire.Table{}
+	tables := map[string]*Table{}
 	for _, name := range []string{"currentAdmission", "matchingQueue"} {
 		tables[name] = c.built[name].Table
 	}

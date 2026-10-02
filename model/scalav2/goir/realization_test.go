@@ -10,7 +10,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	modelirspb "go.temporal.io/server/api/modelir/v1"
-	"go.temporal.io/server/model/go/umpire"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -701,11 +700,11 @@ func TestTheRealizersTableIsTheCheckTableWithFieldsAndClaims(t *testing.T) {
 	table, err := nexus.claimed(nexus.machines["nexusProtocol"])
 	require.NoError(t, err)
 	const field = "temporal.nexus.caller.state-field.nexusProtocol."
-	require.Equal(t, []umpire.Atom{{ID: field + "phase", Value: "succeeded"}, {ID: field + "attempts", Value: "1"},
+	require.Equal(t, []Atom{{ID: field + "phase", Value: "succeeded"}, {ID: field + "attempts", Value: "1"},
 		{ID: field + "scheduleToClose", Value: "unset"}, {ID: field + "scheduleToStart", Value: "unset"},
 		{ID: field + "startToClose", Value: "unset"}, {ID: field + "nexusProduct", Value: "succeeded"}},
 		table.FieldValues("succeeded-1-unset-unset-unset"))
-	require.Contains(t, table.Claims(), umpire.Claim{Member: "temporal.nexus.caller.action.nexusProtocol.handlerReply-handlerError-false",
+	require.Contains(t, table.Claims(), Claim{Member: "temporal.nexus.caller.action.nexusProtocol.handlerReply-handlerError-false",
 		Action: "temporal.nexus.caller.action.handlerReply", Field: "reply", ClassName: "handlerError (retryable := false)", Example: "BadRequest"})
 }
 
@@ -860,8 +859,13 @@ func TestTheRunsOwnRecordIsClosedByTheCommandItRecords(t *testing.T) {
 	race := func(t *testing.T) (*modelirspb.Model, *modelirspb.Realization) {
 		m, err := Load(filepath.Join("..", "ir", "activity-race.json"))
 		require.NoError(t, err)
-		require.Len(t, m.GetRealizations(), 1)
-		return m, m.GetRealizations()[0]
+		for _, r := range m.GetRealizations() {
+			if r.GetName() == "heldDelivery" {
+				return m, r
+			}
+		}
+		t.Fatal("heldDelivery realization missing")
+		return nil, nil
 	}
 	const admitted = "temporal.activity.standalone.evidence.attemptAdmitted"
 	m, r := race(t)

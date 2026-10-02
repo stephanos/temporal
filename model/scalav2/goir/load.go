@@ -1456,6 +1456,8 @@ func (v *validator) query(q *modelirspb.Query) {
 	if !known(modelirspb.Query_Form_name, int32(q.GetForm())) {
 		v.report(q.GetPosition(), "query %s has no known form", q.GetName())
 	}
+	v.expectedRun(q)
+	v.exploration(q)
 	p, s := q.GetProperty(), q.GetScenario()
 	hasProperty, hasScenario := v.properties[claim{p.GetMachine(), p.GetName()}], v.scenarios[claim{s.GetMachine(), s.GetName()}]
 	if !hasProperty {
@@ -1476,6 +1478,40 @@ func (v *validator) query(q *modelirspb.Query) {
 		if limit.bound < 0 {
 			v.report(q.GetPosition(), "query %s limits %s to %d, below 0", q.GetName(), limit.name, limit.bound)
 		}
+	}
+}
+
+func (v *validator) expectedRun(q *modelirspb.Query) {
+	expected := q.GetExpectedRun()
+	if expected == nil {
+		return
+	}
+	at := q.GetPosition()
+	if expected.GetContract() != modelirspb.RunExpectation_OUTCOME_UNSPECIFIED && expected.GetContract() != modelirspb.RunExpectation_OUTCOME_SATISFIED && expected.GetContract() != modelirspb.RunExpectation_OUTCOME_VIOLATED {
+		v.report(at, "query %s expected Run has no supported Contract verdict", q.GetName())
+	}
+	if !known(modelirspb.RunExpectation_Conformance_name, int32(expected.GetConformance())) {
+		v.report(at, "query %s expected Run has no known conformance", q.GetName())
+	}
+	outcome := func(status modelirspb.RunExpectation_Outcome, reason string) {
+		if !known(modelirspb.RunExpectation_Outcome_name, int32(status)) || (status == modelirspb.RunExpectation_OUTCOME_SATISFIED) != (reason == "") {
+			v.report(at, "query %s expected Run has an invalid outcome or reason", q.GetName())
+		}
+	}
+	outcome(expected.GetProperty(), expected.GetReason())
+	monitors := map[string]bool{}
+	for _, id := range v.machines[q.GetScenario().GetMachine()].GetMonitors() {
+		monitors[v.monitors[id].GetName()] = true
+	}
+	for _, monitor := range expected.GetMonitors() {
+		if !monitors[monitor.GetName()] {
+			v.report(at, "query %s expected Run names unknown or duplicate monitor %s", q.GetName(), monitor.GetName())
+		}
+		delete(monitors, monitor.GetName())
+		outcome(monitor.GetOutcome(), monitor.GetReason())
+	}
+	if len(monitors) != 0 {
+		v.report(at, "query %s expected Run omits monitored claims", q.GetName())
 	}
 }
 
@@ -1739,6 +1775,10 @@ func (a *realizing) declarations() {
 	for _, e := range a.r.GetEvidence() {
 		a.evidenceKind(e)
 	}
+	a.controlDeclarations()
+}
+
+func (a *realizing) controlDeclarations() {
 	for _, c := range a.r.GetControls() {
 		if a.declared(c.GetPosition(), "a control", "controls", c.GetId()) {
 			a.controls[c.GetId()] = true

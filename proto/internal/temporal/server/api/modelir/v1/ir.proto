@@ -557,6 +557,57 @@ message Query {
   // The Scenario's machine reads the Property through the refinement it declares.
   bool through = 6;
   Limits limits = 7;
+  RunExpectation expected_run = 8;
+  Exploration exploration = 9;
+}
+
+// Finite input domains over a Query's pinned prefix. Choices replace the indexed action;
+// the final action is retained. Higher total priority is tried first, ties by choice names.
+message Exploration {
+  string name = 1;
+  Position position = 2;
+  repeated Variation variations = 3;
+  int32 runs = 4;
+  int32 edits = 5;
+  bool drop_prefix = 6;
+}
+message Variation {
+  int32 index = 1;
+  repeated Alternative choices = 2;
+  Position position = 3;
+}
+message Alternative {
+  string name = 1;
+  int32 priority = 2;
+  repeated ActionClass actions = 3;
+  Position position = 4;
+}
+
+// Expected assessment of a completed live Run, separate from the Query's model-search answer.
+message RunExpectation {
+  enum Conformance {
+    CONFORMANCE_UNSPECIFIED = 0;
+    CONFORMANCE_CONFORMANT = 1;
+    CONFORMANCE_NONCONFORMANT = 2;
+    CONFORMANCE_INCONCLUSIVE = 3;
+  }
+  enum Outcome {
+    OUTCOME_UNSPECIFIED = 0;
+    OUTCOME_SATISFIED = 1;
+    OUTCOME_VIOLATED = 2;
+    OUTCOME_INCONCLUSIVE = 3;
+  }
+  Outcome property = 1;
+  string reason = 2;
+  Conformance conformance = 3;
+  repeated MonitorExpectation monitors = 4;
+  Outcome contract = 5;
+}
+
+message MonitorExpectation {
+  string name = 1;
+  RunExpectation.Outcome outcome = 2;
+  string reason = 3;
 }
 
 message Limits {
@@ -970,6 +1021,7 @@ message Fault {
     KIND_UNSPECIFIED = 0;
     KIND_WORKER_STOP = 1;
     KIND_WORKER_RESUME = 2;
+    KIND_ADMISSION_RESPONSE_LOSS = 3;
   }
   Kind kind = 2;
 }

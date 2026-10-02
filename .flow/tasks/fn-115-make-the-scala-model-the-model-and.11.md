@@ -1,0 +1,46 @@
+---
+satisfies: [R2, R7, R15, R22]
+---
+# fn-115-make-the-scala-model-the-model-and.11 Migrate live functional fixtures and the pinned canary Case to Scala production
+
+## Description
+Migrate live functional fixtures and the pinned canary Case to Scala production. Implements R2, R7, R15, R22 using the reviewed parent contracts.
+
+**Size:** M
+**Files:** tests/testcore/testpilot fixture generation/consumers; tools/canary/casebinding and policy; affected recorded-run compatibility tests
+**Touches:** [tests/testcore/testpilot/**, tests/testpilot*test.go, tools/canary/**, tools/umpire/**, model/temporal/**, model/cases/**, .plans/umpire-migration-*.json]
+
+### Approach
+- Execute the audited R22 replacement inventory through the existing checked lowering and transactional managed-tree writer. Bind every live fixture and the canary pin to a named Scala Query, or record the explicit unsupported primitive and retained-old-bytes exception.
+- Treat replacement Program/Contract/provenance/Case identities as an explicit consumer artifact change, separate from invariant interpreter goldens. Change policy and binding references atomically and run preflight/admission before target effects.
+- Retain historical recorded Runs unchanged; verify each still receives its established acceptance/rejection and record newly captured executions under their real identities. Do not rewrite recordings to match replacement Cases.
+- Preserve generic generated live runner behavior and functional/canary exact-byte sharing where required. Test capability rejection and concurrent independent bindings, then execute the affected live demonstrations.
+
+### Investigation targets
+**Required** (current paths at planning time; follow the recorded move map after relocation):
+- `tools/canary/casebinding/casebinding.go:26`
+- `tests/testpilot_scala_canary_test.go`
+- `tests/testcore/testpilot/scala_fixture.go:87`
+- `model/scalav2/goir/testpilot/generated.go:219`
+- `tools/canary/preflight`
+- `tests/testpilot_scala_generated_test.go`
+
+### Quick commands
+CC=/usr/bin/clang mise exec -- go test -tags 'test_dep canary_harness' ./tools/canary/... ./tests/testcore/testpilot/...; the renamed generated/canary Testpilot live tests with -tags 'test_dep integration canary_harness'; make lint-code-fast
+
+### Execution constraints
+Preserve the authorized uncommitted baseline and comments except the explicit R25 historical-attribution change. No staging, commits, worktrees or recursive deletion. Once task 2 exists, run the complete golden verification after every task. Resolve task-1 map choices before using projected destination names; capture any change in the map and downstream task briefs before work.
+
+## Acceptance
+- [ ] Each live fixture has a Scala producer/Query or the R22 exception names its missing primitive and continuing consumer.
+- [ ] Pinned canary, policy and binding identities agree; new Runs are recorded honestly and historical Runs remain byte-unchanged with established compatibility decisions.
+- [ ] Complete-tree generation is deterministic, capability rejection precedes I/O, and affected functional/canary live gates pass.
+- [ ] Semantic goldens remain unchanged except the separately recorded fixture migration.
+
+## Done summary
+TBD
+
+## Evidence
+- Commits:
+- Tests:
+- PRs:

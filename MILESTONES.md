@@ -3,7 +3,7 @@
 The current state of Umpire work: what is being built, what is left, and what is not being done.
 Flow (`.flow/`, `flowctl`) is the record for specs and tasks; this page is the overview across them.
 
-As of 2026-10-01.
+As of 2026-10-02.
 
 ## Keeping this page current
 
@@ -25,60 +25,38 @@ checkout, and the Lean-only specs are closed as won't-do. See [SCALA.md](.plans/
 The planned work below makes the repository match that direction: the layout first, then the Scala
 layer, then the Models.
 
-## Active
-
-### fn-107: Scala Umpire prototype for standalone activities and Nexus
-
-20 of 22 tasks done. The remaining tasks run in this order:
-
-| Task | Title | Status |
-| --- | --- | --- |
-| fn-107.22 | Generate lowered Case files and run them with one generic live runner | Todo, next |
-| fn-107.11 | Close the exploration, regression, and trace-inspection loop | Todo, after .22; closes the spec |
-
-Where the prototype stands:
-
-- Six of the nine standalone-activity Queries lower to Cases that Testpilot admits: `completion`,
-  `nonRetryableFailure`, `retry`, `pauseResume`, `terminate`, `scheduleToStartTimeout`.
-- Three Queries do not lower and have no owning task: `cancel` and `cancelRequest` (the attempt
-  record follows later evidence), and `startToCloseTimeout` (an attempt that gives no answer).
-- The held race (`ir/activity-race.json`) runs live: a dispatch is held, the activity paused, the
-  dispatch released, and the real server rejects it. No fault the Model's budget permits
-  (redelivery, failed commit, lost acknowledgment) is realized against a server, and no task owns
-  that.
-- The live tests of lowered Cases are hand-written Go tests per scenario
-  (`tests/testpilot_scala_{activity,activity_control,nexus}_test.go`). fn-107.22 replaces them with generated Case
-  files and one generic runner.
-- `pauseResume` uses 3.37M of the default 4M per-event Contract work budget. A Case with six
-  pieces of evidence of one operation will exceed the default ceilings.
-
 ## Planned
 
-None of the specs below has tasks yet. Each starts after the spec it waits for
-closes, and the dependencies are recorded in Flow.
+fn-115 has nine tasks remaining. The reviewed module map, ownership audit and immutable semantic
+goldens are recorded; legacy oracle comparisons now use those goldens and producer-neutral runtime
+helpers live in Testpilot. The checker and producer are being copied behind the reader interface.
+The later specs have no tasks yet.
+Each starts after the spec it waits for closes; Flow records the dependencies.
 
 | Order | Spec | In one line | Waits for |
 | --- | --- | --- | --- |
-| 1 | fn-115 | Restructure: `model/` is the Scala model, `tools/umpire/` its Go tooling, the rest archived | fn-107 |
+| 1 | fn-115 | Restructure: `model/` is the Scala model, `tools/umpire/` its Go tooling, the rest archived | — |
 | 2 | fn-113 | Shrink the Scala framework to a declaration DSL, port the lifter to ScalaPB | fn-115 |
 | 3 | fn-117 | Typed Temporal API in the Models, in place of proto names as strings | fn-113 |
 | 4 | fn-112 | Rewrite the standalone activity Model as the DSL showcase | fn-117 |
 | 5 | fn-114 | Roll the showcase's constructs out to every other Model | fn-112 |
 | after 4 | fn-118 | API behavior hints (eventual consistency, wait bounds) that the generated tests use | fn-112 |
-| last | fn-119 | Example: one Go SDK workflow driven end to end from the IRs, with no hand-written Go | fn-114, fn-118 |
+| after 5 | fn-120 | Named choices, a model linter, an explorer over the IR and ITF trace interchange | fn-114 |
+| last | fn-119 | Example: one Go SDK workflow driven end to end from the IRs, with no hand-written Go | fn-118, fn-120 |
 | any time after 1 | fn-116 | Spike: should the IR's expressions be CEL | fn-115 |
 
 ### fn-115: Make the Scala model the model and archive the Lean-era work
 
-Changes the layout to say what is true, after fn-107 closes.
+Changes the layout to say what is true.
 
 - `model/` becomes the Scala model (today `model/scalav2`) and holds no Go code.
 - `tools/umpire/` becomes the Go code that loads, checks, lowers and exports the IR (today
   `model/scalav2/goir`, `backends` and the parts of `model/go` they import).
 - `model/lean`, `leanv2`, `go`, `quint`, `scala` move to `model0/`, and today's `tools/umpire` moves
   to `tools/umpire0/`. Both leave the Go build, and no live code imports them.
-- A module map for the model, the Umpire tooling and Testpilot, in Go and Scala, is approved by the
-  owner before any package is split, merged or renamed. Import rules are enforced by a test.
+- A module map for the model, the Umpire tooling and Testpilot, in Go and Scala, is recorded and
+  independently reviewed before restructuring, under the owner's delegated decision authority.
+  Import rules are enforced by a test.
 - The parity tests against the hand-written Go models and the Lean dumps become checked-in goldens
   of what the reader derives. The later specs use those goldens as their baseline.
 - `run.sh`, `gen.sh` and `scala.sh` are replaced by one Scala program, and the lifter's fixture
@@ -89,9 +67,10 @@ Changes the layout to say what is true, after fn-107 closes.
 - `model/README.md` describes the whole system for a reader new to it: the layers, the two IRs,
   one worked example from a Scala declaration to a Verdict, and a Mermaid diagram.
 
-Open questions its first task answers: how much of `tools/canary` and of the old `evaluation`,
-`recordedrun`, `replay`, `publish` and `binding` packages is live, and how the Lean-rendered Case
-fixtures and the canary's pinned Case are regenerated from the Scala model.
+The [reviewed module map](.plans/UMPIRE_MODULES.md) records live helper ownership, public interfaces
+and the migration sequence. The fixture inventory covers 47 Cases: nine legacy execution fixtures
+have Scala Query replacements, 22 retain explicit compatibility exceptions, and 16 are already
+Scala-generated. The 1,411 semantic and artifact snapshots now provide the baseline for restructuring.
 
 ### fn-113: Clean up the Scala model layer around the IR
 
@@ -150,6 +129,16 @@ which error means "not yet". The hints travel through the IR, which is a schema 
 derives each Case's waiting from them, refuses a read after a write with no declared visibility, and
 the Go framework waits by condition within the declared bound. Further hints (repeatable calls,
 blocking reads, call cost) are candidates until an existing Case needs one.
+
+### fn-120: Adopt what Quint does well
+
+Decides on ten suggestions from a review of Quint and adopts four. A `choose` construct names the
+alternatives of a nondeterministic step and the IR records the names, which is a schema change. A
+lint command reports model-quality findings from the IR (an unreachable case, an action never
+enabled, a Property no Query names, a fact with no evidence) and the gate fails on a new one. An
+explorer steps through a machine from the IR and says why a class is disabled, at its Scala line.
+Umpire traces convert to and from ITF. Temporal operators, Scenario combinators and Queries answered
+by Quint, Apalache or TLC are recorded as later work with their own specs.
 
 ### fn-119: Show one Go SDK workflow driven end to end from the IRs
 

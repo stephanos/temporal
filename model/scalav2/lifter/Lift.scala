@@ -1796,6 +1796,22 @@ class Lifter(roots: Seq[String], prefixes: Map[String, String]) extends Inspecto
           case (Decl.QueryOn(name, form, p), Decl.Reading(through)) =>
             Decl.QueryIn(name, form, p, claimOf(fold(s, env), s), through)
           case (other, _) => fail(t, s"in gives a Query its Scenario, not $other")
+      case Apply(Select(q, "explore"), List(space)) =>
+        fold(q, env) match
+          case Decl.Declared(name) if queries.contains(name) =>
+            val value = ir.Exploration.newBuilder()
+            declaration(Bound(space, Map.empty), value)
+            queries(name) = queries(name).toBuilder.setExploration(value).build()
+            Decl.Declared(name)
+          case other => fail(t, s"explore declares a Query's finite variations, not $other")
+      case Apply(Select(q, "expect"), List(expected)) =>
+        fold(q, env) match
+          case Decl.Declared(name) if queries.contains(name) =>
+            val value = ir.RunExpectation.newBuilder()
+            declaration(Bound(expected, Map.empty), value)
+            queries(name) = queries(name).toBuilder.setExpectedRun(value).build()
+            Decl.Declared(name)
+          case other => fail(t, s"expect declares a Query's live assessment, not $other")
       case Apply(Select(q, "limits"), List(l)) =>
         fold(q, env) match
           case Decl.QueryIn(name, form, p, s, through) =>

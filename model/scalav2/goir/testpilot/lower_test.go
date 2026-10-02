@@ -1,6 +1,7 @@
 package testpilot
 
 import (
+	"encoding/json"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -12,9 +13,9 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
-	cp "go.temporal.io/server/model/go/caseproducer"
-	"go.temporal.io/server/model/go/nexuscaller"
+	cp "go.temporal.io/server/model/scalav2/goir/testpilot/internal/producer"
 	"go.temporal.io/server/model/scalav2/goir"
+	"go.temporal.io/server/model/scalav2/goir/internal/golden"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -271,32 +272,39 @@ func TestALoweredCaseIsTheComparativeGoModelsCase(t *testing.T) {
 	}
 	p, err := NewProducer(loaded(t, "nexus-caller"))
 	require.NoError(t, err)
-	comparative := nexuscaller.AsyncNexus("umpire.case.service", "complete")
-	exhaustive := nexuscaller.AsyncNexus("umpire.case.service", "complete")
-	exhaustive.Sources = nil
-	history := 0
-	for _, source := range comparative.Sources {
-		declared := *source
-		if declared.Recorded.HistoryAttributes != "" {
-			declared.Exhaustive = true
-			history++
-		}
-		exhaustive.Sources = append(exhaustive.Sources, &declared)
-	}
-	require.Equal(t, 5, history, "the five history kinds are the exhaustive ones")
-
+	baseline, err := golden.Read(filepath.Join("testdata", "migration"))
+	require.NoError(t, err)
+	original := new(modelirspb.Model)
+	require.NoError(t, protojson.Unmarshal(baseline["original/inputs/ir/nexus-caller.json"], original))
+	MigrationComparativeModel(t, original)
 	var compared []string
-	for _, q := range nexuscaller.FunctionalQueries {
-		compared = append(compared, q.Name)
-		t.Run(q.Name, func(t *testing.T) {
+	for _, query := range original.GetQueries() {
+		name := query.GetName()
+		compared = append(compared, name)
+		t.Run(name, func(t *testing.T) {
+			var source cp.Source
+			require.NoError(t, json.Unmarshal(baseline["oracles/nexus/"+name+"/typed/source.json"], &source))
+			q, comparative, err := MigrationFixture(original, name, nexusIdentity(name))
+			require.NoError(t, err)
+			_, exhaustive, err := MigrationFixture(original, name, nexusIdentity(name))
+			require.NoError(t, err)
+			history := 0
+			for _, e := range exhaustive.Sources {
+				if e.Recorded.HistoryAttributes != "" {
+					e.Exhaustive = true
+					history++
+				}
+			}
+			require.Equal(t, 5, history, "the five history kinds are the exhaustive ones")
+
 			got := lowered(t, p, q.Name)
-			want, err := cp.Produce(q, nexusIdentity(q.Name), exhaustive, nexuscaller.ModelSource)
+			want, err := cp.Produce(q, nexusIdentity(q.Name), exhaustive, source)
 			require.NoError(t, err)
 			require.Empty(t, cmp.Diff(rewritten(want), got, protocmp.Transform()))
 
 			// What the declaration adds to the comparative Model's own Case, and nothing else of the
 			// Contract: the kinds off the path, each with no meaning.
-			plain, err := cp.Produce(q, nexusIdentity(q.Name), comparative, nexuscaller.ModelSource)
+			plain, err := cp.Produce(q, nexusIdentity(q.Name), comparative, source)
 			require.NoError(t, err)
 			kinds := func(c *testpilotspb.Case, meaning testpilotspb.CorrelatedEvidenceMeaning) []string {
 				names := definitions(c)

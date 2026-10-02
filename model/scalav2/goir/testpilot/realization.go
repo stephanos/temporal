@@ -16,8 +16,7 @@ import (
 	nexuspb "go.temporal.io/api/nexus/v1"
 	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	cp "go.temporal.io/server/model/go/caseproducer"
-	"go.temporal.io/server/model/go/umpire"
+	cp "go.temporal.io/server/model/scalav2/goir/testpilot/internal/producer"
 	"go.temporal.io/server/model/scalav2/goir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -28,7 +27,7 @@ import (
 // one declaration that crosses a descriptor hides none after it.
 type adapter struct {
 	r *modelirspb.Realization
-	t *umpire.Table
+	t *goir.Table
 	// classKey is the key of one class of an action, as the Model's tables key it.
 	classKey func(*modelirspb.ActionClass) string
 	w        *writer
@@ -39,7 +38,7 @@ type adapter struct {
 	observed map[string]protoreflect.MessageDescriptor
 }
 
-func newAdapter(r *modelirspb.Realization, t *umpire.Table, classKey func(*modelirspb.ActionClass) string, fixture string) *adapter {
+func newAdapter(r *modelirspb.Realization, t *goir.Table, classKey func(*modelirspb.ActionClass) string, fixture string) *adapter {
 	a := &adapter{r: r, t: t, classKey: classKey, w: &writer{fixture: fixture},
 		evidence: map[string]*modelirspb.Evidence{}, element: map[string]protoreflect.MessageDescriptor{},
 		observed: map[string]protoreflect.MessageDescriptor{}}
@@ -47,6 +46,12 @@ func newAdapter(r *modelirspb.Realization, t *umpire.Table, classKey func(*model
 		a.evidence[e.GetId()] = e
 	}
 	return a
+}
+
+var faultKinds = map[modelirspb.Fault_Kind]testpilotspb.FaultKind{
+	modelirspb.Fault_KIND_WORKER_STOP:             testpilotspb.FAULT_KIND_WORKER_STOP,
+	modelirspb.Fault_KIND_WORKER_RESUME:           testpilotspb.FAULT_KIND_WORKER_RESUME,
+	modelirspb.Fault_KIND_ADMISSION_RESPONSE_LOSS: testpilotspb.FAULT_KIND_ADMISSION_RESPONSE_LOSS,
 }
 
 var roleKinds = map[modelirspb.Role_Kind]testpilotspb.RoleKind{
@@ -590,12 +595,9 @@ func (a *adapter) instruction(s *modelirspb.Script, c *modelirspb.Command) (*tes
 		}
 		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: result}}}, nil
 	case *modelirspb.Command_Fault:
-		kind := testpilotspb.FAULT_KIND_WORKER_STOP
-		if in.Fault.GetKind() == modelirspb.Fault_KIND_WORKER_RESUME {
-			kind = testpilotspb.FAULT_KIND_WORKER_RESUME
-		}
+
 		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InjectFault{InjectFault: &testpilotspb.InjectFault{
-			RoleId: in.Fault.GetRole(), Kind: kind}}}, nil
+			RoleId: in.Fault.GetRole(), Kind: faultKinds[in.Fault.GetKind()]}}}, nil
 	case *modelirspb.Command_WorkflowCommand:
 		command := &commandpb.Command{}
 		if err := a.w.into(in.WorkflowCommand.GetCommand(), command); err != nil {

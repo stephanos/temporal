@@ -13,9 +13,9 @@ import (
 	"syscall"
 	"time"
 
+	"go.temporal.io/server/common/testing/testpilot/publish"
 	"go.temporal.io/server/tools/canary/authority"
 	"go.temporal.io/server/tools/canary/controller"
-	"go.temporal.io/server/tools/umpire/publish"
 )
 
 // statusUsage is a command line the command refuses before reading anything.

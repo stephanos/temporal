@@ -18,7 +18,7 @@ import (
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
-	cp "go.temporal.io/server/model/go/caseproducer"
+	cp "go.temporal.io/server/model/scalav2/goir/testpilot/internal/producer"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )

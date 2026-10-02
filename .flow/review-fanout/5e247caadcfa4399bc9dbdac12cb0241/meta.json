@@ -1,0 +1,63 @@
+{
+  "type": "impl_review_fanout",
+  "focus": null,
+  "claim_token": null,
+  "id": "fn-89-one-contract-rule-per-entity.6",
+  "standalone": false,
+  "base_branch": "b6e479de181abc511209813bd3f4b5137a2760b1",
+  "reviewed_base_sha": "b6e479de181abc511209813bd3f4b5137a2760b1",
+  "reviewed_head_sha": "5a317db0e41b3e39af561f0765895142b20caed2",
+  "artifact_sha256": "f1d2ab36984eb967806d9cd0c299b9430b8ccdbfe65fa1023a32901c1fc5762d",
+  "reservation_id": "5e247caadcfa4399bc9dbdac12cb0241",
+  "rid": "5e247caadcfa4399bc9dbdac12cb0241",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "backend": "codex",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "session_id": "01a0e389-60a5-78b1-914c-8503fb344696",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-09-27T15:43:46.201942Z",
+      "finished_at": "2026-09-27T15:45:31.594456Z",
+      "review_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/5e247caadcfa4399bc9dbdac12cb0241/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/5e247caadcfa4399bc9dbdac12cb0241/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "backend": "codex",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "session_id": "01a0e389-609f-7a72-a109-1b012fcc9076",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-09-27T15:43:46.202032Z",
+      "finished_at": "2026-09-27T15:45:30.979280Z",
+      "review_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/5e247caadcfa4399bc9dbdac12cb0241/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/5e247caadcfa4399bc9dbdac12cb0241/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "backend": "codex",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "session_id": "01a0e389-60a6-76b2-9440-e72a28972286",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-09-27T15:43:46.202108Z",
+      "finished_at": "2026-09-27T15:45:27.740369Z",
+      "review_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/5e247caadcfa4399bc9dbdac12cb0241/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/5e247caadcfa4399bc9dbdac12cb0241/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-3684356e61f5-fn-89-one-contract-rule-per-entity.6.json",
+  "created_at": "2026-09-27T15:45:31.598598Z"
+}

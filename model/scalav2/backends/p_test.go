@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	modelirspb "go.temporal.io/server/api/modelir/v1"
-	"go.temporal.io/server/model/go/umpire"
+	"go.temporal.io/server/model/scalav2/goir"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -44,9 +44,9 @@ func TestPTracesCarryGoVerdicts(t *testing.T) {
 	// What the traces say of it is what goir's checker says: the path replays through a fresh
 	// interpretation, and the checker finds a monitor violated over its classes.
 	table := mm.Table
-	witness := &umpire.Trace{Initial: table.StateAtom(traces[i].steps[0].before.Key())}
+	witness := &goir.Trace{Initial: table.StateAtom(traces[i].steps[0].before.Key())}
 	for _, st := range traces[i].steps {
-		step := umpire.TraceStep{Action: table.ActionAtom(st.class), Outcome: table.OutcomeAtom(st.after.Fields[0].Key()),
+		step := goir.TraceStep{Action: table.ActionAtom(st.class), Outcome: table.OutcomeAtom(st.after.Fields[0].Key()),
 			State: table.StateAtom(st.after.Fields[1].Key())}
 		for _, f := range st.after.Fields[2].Items {
 			step.Facts = append(step.Facts, table.FactAtom(f.Key()))
@@ -56,7 +56,7 @@ func TestPTracesCarryGoVerdicts(t *testing.T) {
 	require.NoError(t, s.Replay("staleAdmission", "terminalFinality", witness))
 	// The same steps from where the attempt started, which is no start: the monitor is violated at their
 	// end too, and the path is still no witness.
-	suffix := &umpire.Trace{Initial: witness.Steps[1].State, Steps: witness.Steps[2:]}
+	suffix := &goir.Trace{Initial: witness.Steps[1].State, Steps: witness.Steps[2:]}
 	require.ErrorContains(t, s.Replay("staleAdmission", "terminalFinality", suffix), "which is no start")
 	asked := []Receipt{{Claim: MonitorAgreement, Subject: "staleAdmission", Kind: Agreed, Witnesses: []Witness{{Monitor: "terminalFinality", Trace: witness}}}}
 	require.NoError(t, s.confirm(asked, false))

@@ -10,7 +10,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	modelirspb "go.temporal.io/server/api/modelir/v1"
-	"go.temporal.io/server/model/go/umpire"
 )
 
 func TestAComposedReadingIsTheCompositionCheckReads(t *testing.T) {
@@ -31,7 +30,7 @@ func TestAComposedReadingIsTheCompositionCheckReads(t *testing.T) {
 				switch x.Kind {
 				case RefinementRejected:
 					// The composition has no table, for the reason its receipt gives.
-					var rejected *umpire.RefinementError
+					var rejected *RefinementError
 					require.ErrorAs(t, err, &rejected, owner)
 					require.Equal(t, x.Failure, rejected.Kind)
 					continue
@@ -106,7 +105,7 @@ func TestAComposedReadingDecodesStatesStepsAndProperties(t *testing.T) {
 	property := c.Properties[0]
 	state := counterexample.Witness.Initial.Value
 	for i, step := range counterexample.Witness.Steps {
-		var taken *umpire.Result
+		var taken *Result
 		for _, row := range c.Table.RowsFrom(state) {
 			for _, res := range row.Results {
 				if row.Action == step.Action.Value && res.State == step.State.Value && res.Outcome == step.Outcome.Value {
@@ -133,7 +132,7 @@ func TestAComposedReadingKeepsTheCeilingAndTheNames(t *testing.T) {
 	r, err := NewRealizer(m, scope)
 	require.NoError(t, err)
 	_, err = r.Composition("standaloneActivity")
-	var limit *umpire.ComposeLimitError
+	var limit *ComposeLimitError
 	require.ErrorAs(t, err, &limit)
 	require.Equal(t, "states", limit.Resource)
 

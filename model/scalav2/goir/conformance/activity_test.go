@@ -16,7 +16,6 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
-	cp "go.temporal.io/server/model/go/caseproducer"
 	"go.temporal.io/server/model/scalav2/goir"
 	goirtestpilot "go.temporal.io/server/model/scalav2/goir/testpilot"
 	"google.golang.org/protobuf/proto"
@@ -42,7 +41,7 @@ func loweredActivity(t testing.TB, m *modelirspb.Model, query string) *bound {
 	t.Helper()
 	producer, err := goirtestpilot.NewProducer(m)
 	require.NoError(t, err)
-	lowering, err := producer.Lower(query, cp.IdentityFor("temporal.case", "standaloneActivityTests", query))
+	lowering, err := producer.Lower(query, goirtestpilot.IdentityFor("temporal.case", "standaloneActivityTests", query))
 	require.NoError(t, err)
 	require.Equal(t, goirtestpilot.Lowered, lowering.Standing, "%v", lowering.Unsupported)
 	catalog, err := temporal.NewWorkflowServiceCatalog()

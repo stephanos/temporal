@@ -333,6 +333,14 @@ the held thing is held, and the release once what it let go was delivered and wh
 committed for it is observed, which the release's own record carries. A message a command writes out names its protobuf type and the fields it
 sets, and a field it does not name stays unset.
 
+`Fault(role, admissionResponseLoss)` releases a previously held activity dispatch and loses one
+committed admission response. The Driver waits for the same request's retry to confirm the response
+replacement was consumed, then reports the original durable admission. Its successful outcome is one
+`FAULT_INJECTED` event, with the instruction's causal coordinates; arming, refusal, cancellation and
+uncompleted loss are not successful faults. Scala supplies the budget, allowed uncertain outcomes,
+recorded evidence and expected assessment. Removing durable evidence does not turn a missing
+response into a rejected admission.
+
 An activity's script answers its attempts: its commands end an attempt with a result, fail it with a
 failure, or answer it as canceled, and the commands a path places in it are the activity's attempts
 in path order. The
@@ -636,3 +644,53 @@ Two narrowings came from the specimens' evidence in `specimens/README.md`:
   (finding F3) are read as before.
 - **Expressions, `match`.** A value no case matches is an undeclared hole, apart from the admission
   errors a reader rejects and from declared holes (finding F4).
+
+## Generated Case expectations
+
+A Query's optional `expected_run` is test metadata, not a transition, search assumption, refinement,
+or evidence filter. Every Query that generates a live Case must supply it. It declares the expected
+trace conformance and selected Property outcome; each monitor attached to the Scenario's machine
+must be named exactly once. Unknown statuses, missing monitor names, duplicate names, and missing
+reasons for inconclusive/violated outcomes are admission errors. Satisfied outcomes carry no reason.
+The live checker retains its own independent semantics; an expectation cannot change its result.
+Reasons compare after the assessment's machine/instance prefix, whose concrete identities vary.
+
+The version-1 Case manifest lists every Query and its lowering standing, names the canonical Case
+file of each lowered Query, and carries its declared expected assessment. Readers reject unknown
+versions/fields, trailing data, duplicate Queries or file names, unsafe paths, and incomplete or
+invalid expectation metadata. Checking regenerates the complete inventory in memory and under a
+temporary root before comparing it; publishing uses a lock and a complete staged directory, with
+rollback if its final rename fails. A crash between the directory renames leaves `.previous` and
+`.lock` for explicit recovery; subsequent publication refuses to overwrite that recovery state.
+
+## Exploration and legal reductions
+
+`Query.exploration` is optional metadata for a pinned, non-`through` find Query. Each variation
+replaces one distinct prefix position with one finite action sequence, possibly empty. The final
+Scenario action is preserved. Names are nonempty and unique within an axis and may not contain
+`+`, the separator of the candidate tuple. Admission rejects unknown classes, empty domains,
+invalid indexes, nonpositive Run budgets, negative edit budgets, and Cartesian products above
+4096 combinations. Axes are ordered by position; candidates by decreasing summed priority and then
+lexicographic tuple name. This exhaustively enumerates the declared finite domain, not arbitrary
+parameter values, runtime schedules, or undeclared scenarios. Lowering refusals remain explicit
+candidate rejections and are never counted as covered executions.
+
+A candidate is a cloned IR model with the authored Scenario edits, rechecked by `goir` and lowered
+through `goir/testpilot`. A deterministic protobuf digest identifies that edited model; the Case
+identity covers its exact canonical bytes. JSON protocol and proposal envelopes preserve those
+bytes, including literal protobuf field-path angle brackets. The Run budget limits actual candidate
+attempts. Runtime coverage reports selected, covered, violated, attempted, unrealizable and pending
+targets separately, and remains sampled even when every finite candidate has been attempted.
+
+`drop_prefix` permits a single reverse sweep of deletions before the final action, bounded by
+`edits`. Every deletion re-enters the original checked lowering path: a missing prerequisite,
+unsatisfied Query, invalid evidence mapping, dangling learned value, or broken script dependency
+rejects the edit before a Run. The existing replay algorithm requires two fresh Runs with the same
+failure key before retaining an edit. A proposal is emitted only after a complete uncapped sweep;
+its embedded model, target and descending edit recipe must regenerate the exact model digest,
+Case identity and Case bytes on read. This is bounded local minimization, with no global-minimality
+claim. No candidate from discovery alone is promoted.
+
+`RunExpectation.contract` defaults to satisfied; an explicitly violated expectation denotes a
+negative control whose live Run must stop at the Contract monitor. This changes test expectations,
+not machine transitions, evidence interpretation or runtime policy.

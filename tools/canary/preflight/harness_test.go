@@ -3,6 +3,7 @@
 package preflight
 
 import (
+	"fmt"
 	"path/filepath"
 	"slices"
 	"testing"
@@ -10,12 +11,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
-	"go.temporal.io/server/model/scalav2/goir"
 	testpilotcore "go.temporal.io/server/tests/testcore/testpilot"
 	"go.temporal.io/server/tools/canary/casebinding"
 	"go.temporal.io/server/tools/canary/policy"
-	"go.temporal.io/server/tools/umpire/recordedrun"
 )
 
 func TestHarnessBindingUsesTheFunctionalCaseAndLeavesProductionPinned(t *testing.T) {
@@ -64,8 +64,7 @@ func TestHarnessRejectsMissingCapabilityBeforeIO(t *testing.T) {
 // The same Case under the same coordinates is admitted once the environment supplies the control,
 // so the refusal is the capability's and nothing else's.
 func TestHarnessRejectsTheHoldDeliveryActuatorBeforeIO(t *testing.T) {
-	fixture, err := testpilotcore.LoadScalaCase(filepath.Join("..", "..", "..", "model", "scalav2", "ir", "activity-race.json"),
-		goir.ClaimKey{Family: "temporal.activity.standalone.system", Owner: "heldAdmission", Name: "heldAdmission.staleDelivery"}, "standaloneActivityRace")
+	fixture, err := generatedHarnessCase(t, "activity-race-heldAdmission.staleDelivery-case.json")
 	require.NoError(t, err)
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
@@ -129,8 +128,7 @@ func TestHarnessBindingRejectsMismatchedAuthorityAndResources(t *testing.T) {
 
 func harnessFixture(t *testing.T) (*testpilotcore.ScalaCase, testpilot.ProfileSpec, *policy.Policy) {
 	t.Helper()
-	fixture, err := testpilotcore.LoadScalaCase(filepath.Join("..", "..", "..", "model", "scalav2", "ir", "activity.json"),
-		goir.ClaimKey{Family: "temporal.activity.standalone", Owner: "activityProtocol", Name: "completion"}, "standaloneActivityTests")
+	fixture, err := generatedHarnessCase(t, "activity-completion-case.json")
 	require.NoError(t, err)
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
@@ -143,4 +141,19 @@ func harnessFixture(t *testing.T) (*testpilotcore.ScalaCase, testpilot.ProfileSp
 	profile, err := temporal.DeriveProfile(fixture.Source, catalog, environment)
 	require.NoError(t, err)
 	return fixture, profile, canary
+}
+
+func generatedHarnessCase(t *testing.T, file string) (*testpilotcore.ScalaCase, error) {
+	t.Helper()
+	directory := filepath.Join("..", "..", "..", "model", "scalav2", "cases")
+	entries, err := testpilotcore.ScalaManifest(directory)
+	if err != nil {
+		return nil, err
+	}
+	for _, entry := range entries {
+		if entry.File == file {
+			return testpilotcore.LoadGeneratedScalaCase(directory, entry)
+		}
+	}
+	return nil, fmt.Errorf("no generated Case %s", file)
 }

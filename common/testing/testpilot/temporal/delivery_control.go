@@ -27,10 +27,12 @@ type DeliveryControl func(activityID string) (HeldDelivery, error)
 // HeldDelivery is the hold on one activity's dispatches. Await is done once the server holds one.
 // Release lets it reach matching, runs deliver, which polls as a worker would so that admission is
 // asked, and returns what admission committed once that is observed, or the reason it was not. Close
-// cancels a delivery still held.
+// cancels a delivery still held. LoseAdmissionResponse loses one committed answer and waits for
+// its same-request retry before returning the original durable decision.
 type HeldDelivery interface {
 	Await(context.Context) error
 	Release(ctx context.Context, deliver func(context.Context) error) (*testpilotspb.DeliveryAdmission, error)
+	LoseAdmissionResponse(ctx context.Context, deliver func(context.Context) error) (*testpilotspb.DeliveryAdmission, error)
 	Close()
 }
 
@@ -40,7 +42,7 @@ type ActivityPoller func(context.Context, *workflowservice.PollActivityTaskQueue
 const startActivityMethod = "temporal.api.workflowservice.v1.WorkflowService.StartActivityExecution"
 
 func deliveryFault(kind testpilotspb.FaultKind) bool {
-	return kind == testpilotspb.FAULT_KIND_DELIVERY_HOLD || kind == testpilotspb.FAULT_KIND_DELIVERY_RELEASE
+	return kind == testpilotspb.FAULT_KIND_DELIVERY_HOLD || kind == testpilotspb.FAULT_KIND_DELIVERY_RELEASE || kind == testpilotspb.FAULT_KIND_ADMISSION_RESPONSE_LOSS
 }
 
 type deliveryQueue struct{ namespace, queue string }
@@ -157,7 +159,11 @@ func (s *deliverySession) inject(ctx context.Context, roleID string, kind testpi
 		}}, nil
 	}
 	return &deliveryEffect{work: func(ctx context.Context) (*testpilotspb.InstructionOutcome, error) {
-		admission, err := held.Release(ctx, func(ctx context.Context) error { return s.deliver(ctx, queue) })
+		release := held.Release
+		if kind == testpilotspb.FAULT_KIND_ADMISSION_RESPONSE_LOSS {
+			release = held.LoseAdmissionResponse
+		}
+		admission, err := release(ctx, func(ctx context.Context) error { return s.deliver(ctx, queue) })
 		return &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, DeliveryAdmission: admission}, err
 	}}, nil
 }

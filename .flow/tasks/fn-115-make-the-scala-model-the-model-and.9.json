@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-02T10:35:34.762701Z",
+  "depends_on": [
+    "fn-115-make-the-scala-model-the-model-and.7",
+    "fn-115-make-the-scala-model-the-model-and.8"
+  ],
+  "id": "fn-115-make-the-scala-model-the-model-and.9",
+  "priority": null,
+  "spec": "fn-115-make-the-scala-model-the-model-and",
+  "spec_path": ".flow/tasks/fn-115-make-the-scala-model-the-model-and.9.md",
+  "status": "todo",
+  "title": "Rename and regenerate the Umpire IR namespace",
+  "updated_at": "2026-10-02T10:35:34.762701Z"
+}

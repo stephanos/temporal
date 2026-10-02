@@ -6,7 +6,6 @@ import (
 
 	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	"go.temporal.io/server/model/go/umpire"
 	"go.temporal.io/server/model/scalav2/goir"
 )
 
@@ -175,7 +174,7 @@ func realizationOf(realizer *goir.Realizer, key goir.ClaimKey, declared *goir.De
 // result.
 type taken struct {
 	action, source string
-	result         umpire.Result
+	result         goir.Result
 }
 
 // index lays the bound table's rows and unknown pairs out by state, from the Query's start, and

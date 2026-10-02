@@ -4,8 +4,8 @@ package goir
 // sides. A Query over one of the baseline's paths reads a Property on the few steps of that path; a
 // predicate that differs on any other row would answer every such Query alike. Here each row is a
 // Scenario of its own, one step from the row's state by the row's class, and each Property is
-// verified over it: Go answers through umpire's search and the IR through Check, so neither side's
-// predicate is read by anything but the checker that owns it.
+// verified over it through Check. The expected answers and witnesses come from the immutable
+// row and refined-property snapshots, so an edited predicate cannot alter its own expectation.
 //
 // What one answer says of a row: whether the Property is about its step (the claim fired), and
 // whether it holds there (verified, or a counterexample that is the step). A product machine's
@@ -20,103 +20,68 @@ import (
 
 	"github.com/stretchr/testify/require"
 	modelirspb "go.temporal.io/server/api/modelir/v1"
-	"go.temporal.io/server/model/go/standaloneactivity"
-	"go.temporal.io/server/model/go/umpire"
+	umpire "go.temporal.io/server/model/scalav2/goir/internal/checker"
 	"google.golang.org/protobuf/proto"
 )
 
 // oneStep bounds a row's Scenario: its one step, and room for every result of the row.
-var oneStep = umpire.Limits{Name: "oneStep", Steps: 1, Actions: 1, Search: 64}
+var oneStep = Limits{Name: "oneStep", Steps: 1, Actions: 1, Search: 64}
 
 // rowSide is a Property's answer on one row.
 type rowSide struct {
-	Outcome umpire.Outcome
+	Outcome Outcome
 	// About is whether the Property is about the row's step.
 	About   bool
-	Witness *umpire.Trace
+	Witness *Trace
 }
 
 func rowKeyOf(property, machine, row string) string {
 	return fmt.Sprintf("%s on %s at %s", property, machine, row)
 }
 
-// goRowSides answers, for every row of a Go machine, the Queries `over` declares on the row's
-// one-step Scenario. Every row of the baseline has one result, so an answer over a row is an answer
-// about that result; a row with several would need a Scenario per result, and fails here.
-func goRowSides[S, O, F any](t *testing.T, m *umpire.Machine[S, O, F], over func(*umpire.Scenario[S]) []*umpire.Query) map[string]rowSide {
+func frozenPropertyRows(t *testing.T) map[string]rowSide {
 	t.Helper()
-	table := goTable(t, m)
-	return goTableRowSides(t, table, over, func(row umpire.Row, state S) *umpire.Scenario[S] {
-		class, ok := table.Class(row.Action)
-		require.True(t, ok, row.Key)
-		return m.Scenario("row." + row.Key).Starts(state).Actions(class)
-	})
-}
-
-// goComposedRowSides is goRowSides for a composition, whose row is scheduled by its composed class key.
-func goComposedRowSides[S any](t *testing.T, c *umpire.Composition[S], over func(*umpire.Scenario[S]) []*umpire.Query) map[string]rowSide {
-	t.Helper()
-	return goTableRowSides(t, goTable(t, c), over, func(row umpire.Row, state S) *umpire.Scenario[S] {
-		return c.Scenario("row." + row.Key).Starts(state).ActionKeys(row.Action)
-	})
-}
-
-func goTableRowSides[S any](t *testing.T, table *umpire.Table, over func(*umpire.Scenario[S]) []*umpire.Query,
-	oneRow func(row umpire.Row, state S) *umpire.Scenario[S]) map[string]rowSide {
-	t.Helper()
+	meaning := frozenReaderMeaning(t, "activity")
+	tables := map[string]*migrationTable{}
+	for _, subject := range meaning.Subjects {
+		tables[subject.Name] = subject.Table
+	}
 	out := map[string]rowSide{}
-	for _, row := range table.Rows {
-		require.Len(t, row.Results, 1, row.Key)
-		state, ok := table.StateValue(row.Source)
-		require.True(t, ok, row.Key)
-		typed, ok := state.(S)
-		require.True(t, ok, row.Key)
-		scenario := oneRow(row, typed)
-		for _, q := range over(scenario) {
-			answer, err := q.Answer()
-			require.NoError(t, err, "%s at %s", q.Property.Name, row.Key)
-			out[rowKeyOf(q.Property.Name, table.Machine, row.Key)] = rowSide{Outcome: answer.Outcome, About: answer.Exercised,
-				Witness: answer.Witness}
+	for _, property := range meaning.Properties {
+		require.Empty(t, property.Error)
+		table := tables[property.Owner].Table
+		rows := map[string]Row{}
+		for _, row := range table.Rows {
+			rows[row.Key] = row
+		}
+		atom := func(keys, ids []string, key string) Atom {
+			index := slices.Index(keys, key)
+			require.GreaterOrEqual(t, index, 0, key)
+			return Atom{ID: ids[index], Value: key}
+		}
+		for _, answer := range property.Rows {
+			require.Empty(t, answer.Error)
+			row := rows[answer.Row]
+			require.Len(t, row.Results, 1, row.Key)
+			side := rowSide{Outcome: umpire.VerifiedWithinLimits, About: answer.About}
+			if answer.About && !answer.Holds {
+				result := row.Results[answer.Result]
+				step := TraceStep{Action: atom(table.Actions, table.IDs.Actions, row.Action),
+					Outcome: atom(table.Outcomes, table.IDs.Outcomes, result.Outcome), State: atom(table.States, table.IDs.States, result.State)}
+				for _, fact := range result.Facts {
+					step.Facts = append(step.Facts, atom(table.Facts, table.IDs.Facts, fact))
+				}
+				side.Outcome = umpire.CounterexampleFound
+				side.Witness = &Trace{Initial: atom(table.States, table.IDs.States, row.Source), Steps: []TraceStep{step}}
+			}
+			out[rowKeyOf(property.Name, property.Owner, row.Key)] = side
 		}
 	}
-	return out
-}
-
-// goPropertyRows is every compared Property of the Go baseline on every row: the protocol machine's
-// own, the product machine's own, the product machine's read through the protocol's refinement, and
-// the composition's own.
-func goPropertyRows(t *testing.T) map[string]rowSide {
-	t.Helper()
-	via := standaloneactivity.ActivityProtocol.Via(standaloneactivity.ActivityProduct)
-	protocol := []*umpire.Property[standaloneactivity.ProtocolState]{standaloneactivity.Completes,
-		standaloneactivity.NonRetryableFails, standaloneactivity.RetryCompletes, standaloneactivity.CancelRequestedWhileStarted,
-		standaloneactivity.CanceledByWorker, standaloneactivity.TerminatedClaim, standaloneactivity.ScheduleToStartFires,
-		standaloneactivity.StartToCloseFires}
-	product := []*umpire.Property[standaloneactivity.ProductState]{standaloneactivity.TerminalIsFinal,
-		standaloneactivity.PausedIsNotDispatched}
-	out := goRowSides(t, standaloneactivity.ActivityProtocol, func(s *umpire.Scenario[standaloneactivity.ProtocolState]) []*umpire.Query {
-		var queries []*umpire.Query
-		for _, p := range protocol {
-			queries = append(queries, s.Verify("row", p, oneStep))
-		}
-		for _, p := range product {
-			queries = append(queries, s.VerifyRefined("row", p, via, oneStep))
-		}
-		return queries
-	})
-	for key, side := range goRowSides(t, standaloneactivity.ActivityProduct, func(s *umpire.Scenario[standaloneactivity.ProductState]) []*umpire.Query {
-		var queries []*umpire.Query
-		for _, p := range product {
-			queries = append(queries, s.Verify("row", p, oneStep))
-		}
-		return queries
-	}) {
-		out[key] = side
-	}
-	for key, side := range goComposedRowSides(t, standaloneactivity.StandaloneActivity, func(s *umpire.Scenario[standaloneactivity.StandaloneActivityState]) []*umpire.Query {
-		return []*umpire.Query{s.Verify("row", standaloneactivity.StartedByPollingWorker, oneStep)}
-	}) {
-		out[key] = side
+	var refined []migrationRefinedProperty
+	frozenReaderJSON(t, "refined-properties/ir/activity.json", &refined)
+	for _, row := range refined {
+		require.Empty(t, row.Error)
+		out[rowKeyOf(row.Name, row.Machine, row.Row)] = rowSide{Outcome: row.Outcome, About: row.About, Witness: row.Witness}
 	}
 	return out
 }
@@ -181,7 +146,7 @@ func irPropertyRows(t *testing.T, base *modelirspb.Model) map[string]rowSide {
 			m.Scenarios = append(m.Scenarios, scenario)
 		}
 	}
-	from := func(name string, at *modelirspb.Position, row umpire.Row, state Value) *modelirspb.Scenario {
+	from := func(name string, at *modelirspb.Position, row Row, state Value) *modelirspb.Scenario {
 		require.Len(t, row.Results, 1, row.Key)
 		return &modelirspb.Scenario{Machine: name, Name: "row." + row.Key, Position: at,
 			Start: &modelirspb.Expr{Position: at, Kind: &modelirspb.Expr_Literal{Literal: protoValue(state)}}}
@@ -230,7 +195,7 @@ func irPropertyRows(t *testing.T, base *modelirspb.Model) map[string]rowSide {
 			side.Outcome = umpire.CounterexampleFound
 		default:
 			// Any other kind is no answer about the row, and equals no answer of Go's.
-			side.Outcome = umpire.Outcome(r.Kind)
+			side.Outcome = Outcome(r.Kind)
 		}
 		out[key] = side
 	}
@@ -263,11 +228,11 @@ func rowDisagreements(want, got map[string]rowSide) []string {
 	return out
 }
 
-func sameTrace(a, b *umpire.Trace) bool {
+func sameTrace(a, b *Trace) bool {
 	if a == nil || b == nil {
 		return a == b
 	}
-	return a.Initial == b.Initial && slices.EqualFunc(a.Steps, b.Steps, func(x, y umpire.TraceStep) bool {
+	return a.Initial == b.Initial && slices.EqualFunc(a.Steps, b.Steps, func(x, y TraceStep) bool {
 		return x.Action == y.Action && x.Outcome == y.Outcome && x.State == y.State && slices.Equal(x.Facts, y.Facts)
 	})
 }
@@ -276,20 +241,26 @@ func sameTrace(a, b *umpire.Trace) bool {
 // the row's step, and whether it holds there. The Properties asked are exactly the compared ones, so
 // one added to the baseline is asked here or fails the inventory.
 func TestActivityPropertiesAgreeOnEveryRow(t *testing.T) {
-	want := goPropertyRows(t)
+	want := frozenPropertyRows(t)
 	got := irPropertyRows(t, activityModel(t))
 	require.Empty(t, rowDisagreements(want, got))
 
-	protocol, product := goTable(t, standaloneactivity.ActivityProtocol), goTable(t, standaloneactivity.ActivityProduct)
-	composed := goTable(t, standaloneactivity.StandaloneActivity)
+	machines := built(t, activityModel(t))
+	protocol, product := machines["activityProtocol"].Table, machines["activityProduct"].Table
+	composed := composedTable(t, activityModel(t), "standaloneActivity")
 	require.Len(t, want, 10*len(protocol.Rows)+2*len(product.Rows)+len(composed.Rows))
 
 	// The rows give every Property both answers to disagree about: steps it is not about, steps it
 	// holds on and, for the Properties about one class, steps it fails on. A Property is tallied over
 	// the rows of the table its compared Query runs on.
-	over := map[string]*umpire.Table{}
-	for _, q := range comparedQueries() {
-		over[q.Property.Name] = goTable(t, q.Scenario.Machine)
+	over := map[string]*Table{}
+	for _, q := range activityModel(t).GetQueries() {
+		owner := q.GetScenario().GetMachine()
+		table := composed
+		if mm := machines[owner]; mm != nil {
+			table = mm.Table
+		}
+		over[q.GetProperty().GetName()] = table
 	}
 	tally := map[string][3]int{}
 	for property, table := range over {
@@ -323,19 +294,20 @@ func TestActivityPropertiesAgreeOnEveryRow(t *testing.T) {
 	require.Equal(t, composed, over["startedByPollingWorker"])
 }
 
-// pathDisagreements is every compared Query whose answer through a lifted Model is not Go's: what
-// TestActivityClaimsEqualTheGoModel compares, as a list.
+// pathDisagreements is every compared Query whose answer through a lifted Model differs from its
+// frozen receipt, as a list.
 func pathDisagreements(t *testing.T, m *modelirspb.Model) []string {
 	t.Helper()
 	report := checked(t, m)
 	var out []string
-	for _, q := range comparedQueries() {
-		answer, err := q.Answer()
-		require.NoError(t, err)
-		got := receiptOf(t, report, queryReceipt(q))
-		if string(got.Kind) != string(answer.Outcome) || got.Explored != answer.Explored || got.Expanded != answer.Expanded ||
-			got.Exercised != answer.Exercised || !slices.Equal(got.Rows, answer.Rows) || !sameTrace(got.Witness, answer.Witness) {
-			out = append(out, q.Name)
+	for _, expected := range frozenReaderMeaning(t, "activity").Receipts {
+		if expected.Subject != QuerySubject {
+			continue
+		}
+		got := receiptOf(t, report, receiptKey(expected.Receipt))
+		if got.Kind != expected.Kind || got.Explored != expected.Explored || got.Expanded != expected.Expanded ||
+			got.Exercised != expected.Exercised || !slices.Equal(got.Rows, expected.Rows) || !sameTrace(got.Witness, expected.Witness) {
+			out = append(out, expected.Key.Name)
 		}
 	}
 	return out
@@ -365,7 +337,7 @@ func stateField(f *modelirspb.Function, param int, name string) *modelirspb.Expr
 // machine and through the refinement, and the composition's Property, by its predicate and by the
 // composed action it is about.
 func TestActivityPropertyRowsCatchWhatThePathsMiss(t *testing.T) {
-	want := goPropertyRows(t)
+	want := frozenPropertyRows(t)
 	for name, mutant := range map[string]struct {
 		mutate func(t *testing.T, m *modelirspb.Model)
 		rows   []string
@@ -448,5 +420,5 @@ func TestActivityCrossEntityClaimByClassAnswersAlike(t *testing.T) {
 		WhenClass: &modelirspb.ActionClass{Action: attemptStart}}
 	require.NoError(t, Validate(m))
 	require.Empty(t, pathDisagreements(t, m))
-	require.Empty(t, rowDisagreements(goPropertyRows(t), irPropertyRows(t, m)))
+	require.Empty(t, rowDisagreements(frozenPropertyRows(t), irPropertyRows(t, m)))
 }

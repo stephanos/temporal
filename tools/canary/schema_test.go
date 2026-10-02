@@ -8,11 +8,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/common/testing/testpilot/evaluation"
+	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	"go.temporal.io/server/tools/canary/assessment"
 	"go.temporal.io/server/tools/canary/policy"
 	"go.temporal.io/server/tools/canary/recovery"
-	"go.temporal.io/server/tools/umpire/evaluation"
-	"go.temporal.io/server/tools/umpire/recordedrun"
 )
 
 // versionField is a document's format version, compact or indented, and the space before its next

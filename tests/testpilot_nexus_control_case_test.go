@@ -15,9 +15,12 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/recordedrun"
+	"go.temporal.io/server/common/testing/testpilot/replay"
+	umpirebinding "go.temporal.io/server/common/testing/testpilot/temporal/binding"
 	"go.temporal.io/server/common/testing/testpilot/temporal/provision"
-	umpirebinding "go.temporal.io/server/tools/umpire/binding"
-	"go.temporal.io/server/tools/umpire/replay"
+	"go.temporal.io/server/model/scalav2/explore"
+	"go.temporal.io/server/model/scalav2/goir"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -110,19 +113,25 @@ func TestTestpilotNexusControlForgedCompletionIsViolated(t *testing.T) {
 // --record` records one Run against them, and `umpire-replay run` is invoked while they are still
 // held, with the same names and without `--create`, so the recorded identity is the one the replay
 // prepares under. The subject is admitted, replayed offline, reproduced on two fresh Runs, found
-// irreducible (its one prefix step is the schedule), and its proposal is compiled and written under
+// minimized by removing inspections while retaining the async handle dependency, and its proposal is compiled and written under
 // a scratch root -- proving the mechanism only, since the control's expected trace is the row the
-// platform never takes. The Lean replay bridge is required: without it the test fails.
+// platform never takes. The IR replay bridge re-answers the proposal before its Case is rerun.
 func TestTestpilotNexusControlReplaysThroughTheCommand(t *testing.T) {
-	modelRoot, err := filepath.Abs(filepath.Join("..", "model", "lean"))
+	modelRoot, err := filepath.Abs(filepath.Join("..", "model", "scalav2"))
 	require.NoError(t, err)
-	_, err = os.Stat(filepath.Join(modelRoot, ".lake", "build", "bin", "umpire-replay-bridge"))
-	require.NoError(t, err, "the replay bridge is not built; make umpire-check-live-tests builds it")
+	bridgeBinary := buildUmpireCommand(t, "umpire-ir-bridge")
 	runBinary := buildUmpireRun(t)
 	replayBinary := buildUmpireCommand(t, "umpire-replay")
 
-	name := "nexusCallerControl-forgedCompletion"
-	casePath := filepath.Join("testcore", "testpilot", "testdata", name+"-case.json")
+	model, err := goir.Load(filepath.Join(modelRoot, "ir", "nexus-control.json"))
+	require.NoError(t, err)
+	plan, err := explore.New(model, "nexusControl")
+	require.NoError(t, err)
+	candidate := plan.Candidates[0]
+	require.Equal(t, "twice", candidate.Key)
+	require.Empty(t, candidate.Rejection)
+	casePath := filepath.Join(t.TempDir(), "control-case.json")
+	require.NoError(t, os.WriteFile(casePath, candidate.Bytes, 0600))
 	env := newTestpilotTestEnvironment(t)
 	namespace, taskQueue, endpoint := "umpire-control-replay", "umpire-control-replay-queue", "umpire-control-replay-endpoint"
 	release, err := provision.Create(env.Context(), provision.Clients{
@@ -147,6 +156,10 @@ func TestTestpilotNexusControlReplaysThroughTheCommand(t *testing.T) {
 	runPath := filepath.Join(t.TempDir(), "run.json")
 	record := exec.CommandContext(ctx, runBinary, append([]string{"--case", casePath, "--record", runPath, "--timeout", "2m"}, deployment...)...)
 	output, err := record.CombinedOutput()
+	if bytes, readErr := os.ReadFile(runPath); readErr == nil {
+		writeExplorationArtifact(t, "control-run.json", bytes)
+	}
+	writeExplorationArtifact(t, "control-case.json", candidate.Bytes)
 	require.NotNil(t, record.ProcessState, "umpire-run did not start: %v", err)
 	require.Equal(t, 1, record.ProcessState.ExitCode(), "umpire-run records a violated Run: %v %s", err, output)
 	require.FileExists(t, runPath)
@@ -154,7 +167,7 @@ func TestTestpilotNexusControlReplaysThroughTheCommand(t *testing.T) {
 	root := filepath.Join(t.TempDir(), "proposals")
 	command := exec.CommandContext(ctx, replayBinary, append([]string{"run",
 		"--case", casePath, "--run", runPath,
-		"--set", "nexusCallerControl", "--query", "forgedCompletion",
+		"--set", "nexusControl", "--target", candidate.Key, "--bridge", bridgeBinary,
 		"--model-root", modelRoot, "--promotion-root", root, "--timeout", "5m",
 	}, deployment...)...)
 	var stdout, stderr bytes.Buffer
@@ -168,8 +181,51 @@ func TestTestpilotNexusControlReplaysThroughTheCommand(t *testing.T) {
 	require.Contains(t, report.Key, "temporal.nexus.control.property.forgedSuccess")
 	require.Len(t, report.Identity, 64)
 	require.Equal(t, replay.ClassReproduced, report.Reproduction.Class, "reruns: %+v", report.Reproduction.Reruns)
-	require.Equal(t, "irreducible", report.Reduction.Status)
+	require.Equal(t, "minimized", report.Reduction.Status)
 	require.Equal(t, replay.ProposalWritten, report.Proposal.Status, report.Proposal.Error)
 	require.FileExists(t, report.Proposal.Written)
 	require.Equal(t, replay.StatusReleased, report.Cleanup.Status)
+	proposal, err := os.ReadFile(report.Proposal.Written)
+	require.NoError(t, err)
+	retained, err := explore.ReadProposal(proposal)
+	require.NoError(t, err)
+	require.Less(t, len(retained.Actions), len(candidate.Actions))
+	recovered := exec.CommandContext(ctx, bridgeBinary, "proposal", report.Proposal.Written)
+	recoveredBytes, err := recovered.Output()
+	require.NoError(t, err)
+	require.Equal(t, append(bytes.Clone(retained.Bytes), '\n'), recoveredBytes)
+	retainedPath := filepath.Join(t.TempDir(), "retained-case.json")
+	require.NoError(t, os.WriteFile(retainedPath, retained.Bytes, 0600))
+	retainedRun := filepath.Join(t.TempDir(), "retained-run.json")
+	replayProposal := exec.CommandContext(ctx, runBinary, append([]string{"--case", retainedPath, "--record", retainedRun, "--timeout", "2m"}, deployment...)...)
+	output, err = replayProposal.CombinedOutput()
+	require.NotNil(t, replayProposal.ProcessState, "proposal did not start: %v", err)
+	require.Equal(t, 1, replayProposal.ProcessState.ExitCode(), "%v %s", err, output)
+	recorded, err := os.ReadFile(runPath)
+	require.NoError(t, err)
+	decoded, err := recordedrun.Decode(recorded)
+	require.NoError(t, err)
+	sourceRoot, err := filepath.Abs("..")
+	require.NoError(t, err)
+	trace, err := explore.RenderTrace(candidate, plan.Query, decoded.Run, nil, sourceRoot)
+	require.NoError(t, err)
+	writeExplorationArtifact(t, "control-case.json", candidate.Bytes)
+	writeExplorationArtifact(t, "control-run.json", recorded)
+	writeExplorationArtifact(t, "control-trace.html", trace)
+	writeExplorationArtifact(t, "reduction.json", stdout.Bytes())
+	writeExplorationArtifact(t, "regression.json", proposal)
+	writeExplorationArtifact(t, "retained-case.json", retained.Bytes)
+	recorded, err = os.ReadFile(retainedRun)
+	require.NoError(t, err)
+	writeExplorationArtifact(t, "retained-run.json", recorded)
+	resolved := umpirebinding.Deployment{GRPCAddress: env.FrontendGRPCAddress(), HTTPAddress: env.HttpAPIAddress(), Namespace: namespace, TaskQueue: taskQueue, NexusEndpoint: endpoint}
+	admitted, err := replay.Admit(ctx, retained.Bytes, recorded, func(identity string, source *testpilotpb.Case) (*testpilot.PreparedCase, error) {
+		prepared, err := umpirebinding.Prepare(resolved, taskQueue+"-handler", identity, source)
+		if err != nil {
+			return nil, err
+		}
+		return prepared.Case, nil
+	})
+	require.NoError(t, err)
+	require.Equal(t, report.Key, admitted.Key.String())
 }

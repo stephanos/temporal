@@ -5,30 +5,30 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/model/go/umpire"
+	umpire "go.temporal.io/server/model/scalav2/goir/internal/checker"
 )
 
 // walked is what reading a witness step by step through a bound Query gives: per step, whether the
 // Property is about it and holds on it, and each monitor's state and verdict where the walk stops.
 type walked struct {
 	about, held []bool
-	monitors    []umpire.MonitorVerdict
+	monitors    []MonitorVerdict
 }
 
 // walkWitness takes a witness through the bound Query's own table and evaluators, as a reader of recorded
 // steps does: nothing of the checker's search is used.
-func walkWitness(t *testing.T, b *Bound, w *umpire.Trace) walked {
+func walkWitness(t *testing.T, b *Bound, w *Trace) walked {
 	t.Helper()
 	var out walked
 	state := w.Initial.Value
 	require.Equal(t, b.Start, state, "the witness starts where the bound Query does")
 	states := make([]string, len(b.Monitors))
-	verdicts := make([]umpire.Verdict, len(b.Monitors))
+	verdicts := make([]Verdict, len(b.Monitors))
 	for i, mo := range b.Monitors {
 		states[i], verdicts[i] = mo.Initial, umpire.MonitorUnread
 	}
 	for _, step := range w.Steps {
-		var taken *umpire.Result
+		var taken *Result
 		for _, row := range b.Table.RowsFrom(state) {
 			for i, res := range row.Results {
 				if row.Action == step.Action.Value && res.State == step.State.Value && res.Outcome == step.Outcome.Value && len(res.Facts) == len(step.Facts) {
@@ -74,7 +74,7 @@ func walkWitness(t *testing.T, b *Bound, w *umpire.Trace) walked {
 				verdicts[i] = umpire.MonitorViolated
 			}
 		}
-		out.monitors = append(out.monitors, umpire.MonitorVerdict{Name: mo.Name, State: states[i], Verdict: verdicts[i]})
+		out.monitors = append(out.monitors, MonitorVerdict{Name: mo.Name, State: states[i], Verdict: verdicts[i]})
 	}
 	return out
 }
@@ -138,7 +138,7 @@ func TestABoundQueryReadsStepsAsCheckDoes(t *testing.T) {
 				require.Equal(t, -1, failed, "%s %s", name, receipt.Key.Name)
 			case receipt.Monitor != "":
 				require.Equal(t, -1, failed, "%s %s: the monitor is what fails", name, receipt.Key.Name)
-				require.Contains(t, read.monitors, umpire.MonitorVerdict{Name: receipt.Monitor, State: stateOf(receipt, receipt.Monitor), Verdict: umpire.MonitorViolated})
+				require.Contains(t, read.monitors, MonitorVerdict{Name: receipt.Monitor, State: stateOf(receipt, receipt.Monitor), Verdict: umpire.MonitorViolated})
 			default:
 				require.Equal(t, last, failed, "%s %s: the Property fails on the witness's last step and on none before", name, receipt.Key.Name)
 			}

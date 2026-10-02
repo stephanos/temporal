@@ -29,9 +29,26 @@ Owner's direction (2026-10-01): lowered Cases are generated files run by a gener
 
 
 ## Done summary
-TBD
+Implemented generated canonical Cases, Scala-declared Run expectations, and one generic live runner. The version-1 strict manifest accounts for all 260 Queries: 14 lowered, 148 verify-only, 95 without realization, and 3 unsupported. Generation checks deterministic bytes and publishes a fully staged managed tree with locking and rollback. Unknown manifest fields/versions, duplicate Queries/paths, invalid expectations, stale/missing/obsolete files, and symlink drift have focused rejection tests.
 
+The generic runner executes all 14 Cases (6 activity, 1 held-delivery, 7 Nexus) through both Nexus implementations, with two independent bindings and two concurrent rounds each. It checks Contract, cleanup, every Scala-declared assessment, recorded faults, replay equality, immutable source bytes, and declaration-driven missing-durable-evidence ambiguity. The two handwritten per-Query suites are removed. Canary seam tests and the separate umpire-run process consume generated files. CLI capability admission now precedes opening a target; the negative delivery-control test proves opener calls remain zero.
+
+The held race's selected Property remains satisfied. Its atMostOneActiveAttempt monitor expects inconclusive because its readAfter(attemptAdmitted) evaluation point is never reached on the rejected-admission path; this is declared in Scala with the evaluator's exact reason, not a Go exception.
+
+Verification: baseline green (all four Quick commands, baseline-0.log through baseline-3.log). Final generation/check, generated live suite (46.301s), focused unit packages, focused tests after lint helper extraction, canary preflight unit tests, and existing TestTestpilot compatibility tests (351.744s) passed. The compatibility invocation excludes Scala (separately verified) and exactly one legacy Lean replay command test requiring the absent model/lean/.lake/build/bin/umpire-replay-bridge. That test is unrun, not passed; .11 owns its Scala replacement. The existing external CLI success test now runs a generated Nexus Case; its unreachable-endpoint test supplies the required Nexus binding so it reaches the intended connection failure.
+
+Required default make lint-code-fast was run and leaves one inherited finding: realizing.declarations complexity 27 > 25. That function is byte-identical to the saved base (inherited-lint.txt). Task-scoped make lint-code-fast with integration and canary_harness tags passes with 0 issues; git diff --check passes. Initial final builds exhausted disk; after completion, cleaning reproducible Go cache allowed sequential reruns to pass. No evidence logs were removed.
+
+The removed tests' assertions beyond current Contracts are recorded in README.md: exact returned done payload, UUID spelling/unique delivery IDs, whole SDK response sequence, cross-namespace learned-ID rejection, raw Nexus endpoint/history attribute equality, and workflow-backed activity parity. Existing correlated path ordering, terminal/supporting evidence, both Nexus implementation switches, and generic ambiguity/fault controls remain covered. Model-budget live faults are .23 scope, not claimed here.
+
+Base: 8fff42d9a8f77a07e8f351f3871cc8030dfe1db6. Exact 48 task paths: .flow/tmp/fn107-22/changed-paths.json. Gate commands and logs: .flow/tmp/fn107-22-evidence.json. Changes are uncommitted by user instruction; no staging, commit, branch change, or worktree. Conductor verified the changed paths and test outputs before completion.
+
+Independent review: gpt-6.1-sol at high reviewed the exact uncommitted 48-file scope, then the lint helper extraction and external CLI fixture changes, returning SHIP both times with no Critical or Important finding. Full digest: .flow/tmp/fn107-22-review.md. Native worktree review replaces the commit-only wrapper because user instructions reserve commits for the owner. Its optional SyncCases admission-hardening suggestion is deferred: current production callers use checked generation.
+
+stage: impl-review - ran (native independent-context reviewer; SHIP, initial and incremental)
+stage: plan-sync - skipped(config: planSync.enabled=false)
+Tracker sync: n/a (bridge inactive)
 ## Evidence
 - Commits:
-- Tests:
+- Tests: PASS: GOFLAGS=-tags=test_dep make umpire-gen-scala (exit 0; .flow/tmp/fn107-22/generate-final.log), PASS: GOFLAGS=-tags=test_dep make umpire-check-scala (exit 0; .flow/tmp/fn107-22/check-final-2.log), PASS: cd tests && go test -tags 'test_dep integration canary_harness' -run '^TestTestpilotScala' -count=1 . (exit 0; .flow/tmp/fn107-22/live-retry.log), PASS: go test -tags test_dep ./model/scalav2/... ./tests/testcore/testpilot/... ./tools/umpire/... (exit 0; .flow/tmp/fn107-22/unit-final.log), PASS: go test -tags test_dep ./model/scalav2/goir ./model/scalav2/goir/testpilot (exit 0; .flow/tmp/fn107-22/unit-lint-fixes.log), INHERITED FAILURE: GOLANGCI_LINT_FIX=false make lint-code-fast (exit 2; .flow/tmp/fn107-22/lint-final.log), PASS: cd tests && go test -tags 'test_dep integration canary_harness' -run '^TestTestpilot' -skip '^TestTestpilot(Scala|NexusControlReplaysThroughTheCommand)' -count=1 . (exit 0; .flow/tmp/fn107-22/compatibility.log), PASS: go test -tags 'test_dep canary_harness' ./tools/canary/preflight (exit 0; .flow/tmp/fn107-22/canary-unit.log), PASS: GOLANGCI_LINT_BASE_REV=8fff42d9a8f77a07e8f351f3871cc8030dfe1db6 GOLANGCI_LINT_FIX=false TEST_TAG=integration,canary_harness make lint-code-fast (exit 0; .flow/tmp/fn107-22/lint-scoped.log), PASS: git diff --check, UNRUN: TestTestpilotNexusControlReplaysThroughTheCommand: model/lean/.lake/build/bin/umpire-replay-bridge is absent; replacement belongs to fn-107.11
 - PRs:

@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"sync"
 
+	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/server/api/historyservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/chasm"
@@ -78,7 +79,7 @@ func (d *Deliveries) Close() {
 	removes := d.removes
 	d.mu.Unlock()
 	for _, h := range holds {
-		h.gate.Close()
+		h.Close()
 	}
 	for _, remove := range removes {
 		if remove != nil {
@@ -102,7 +103,7 @@ func (d *Deliveries) dispatch(ctx context.Context, delivery testhooks.ActivityDe
 	return h.gate.Arrive(ctx, delivery.Execution.BusinessID)
 }
 
-func (d *Deliveries) answered(_ context.Context, _ string, request, response any, err error) *grpcfaults.Outcome {
+func (d *Deliveries) answered(ctx context.Context, _ string, request, response any, err error) *grpcfaults.Outcome {
 	started, ok := request.(*historyservice.RecordActivityTaskStartedRequest)
 	if !ok {
 		return nil
@@ -112,7 +113,7 @@ func (d *Deliveries) answered(_ context.Context, _ string, request, response any
 		return nil
 	}
 	if h := d.lookup(ref.BusinessID); h != nil {
-		h.answered(ref.ExecutionKey, started.GetStamp(), response, err)
+		return h.answered(ctx, ref.ExecutionKey, started.GetStamp(), started.GetRequestId(), response, err)
 	}
 	return nil
 }
@@ -124,9 +125,16 @@ type Held struct {
 	gate       *DeliveryGate[string]
 	decided    chan *testpilotspb.DeliveryAdmission
 
-	mu       sync.Mutex
-	first    *testhooks.ActivityDelivery
-	released bool
+	mu             sync.Mutex
+	first          *testhooks.ActivityDelivery
+	released       bool
+	closed         bool
+	loseResponse   bool
+	releaseContext context.Context
+	stop           context.CancelFunc
+	lost           *testpilotspb.DeliveryAdmission
+	lostRequest    string
+	completed      bool
 	// undecided says an answer for the run decided nothing that can be told, so the run may hold an
 	// admission no answer reported.
 	undecided bool
@@ -150,11 +158,14 @@ func (h *Held) arrived(delivery testhooks.ActivityDelivery) {
 // admission that committed and whose answer was lost. So a rejection is read only while every answer
 // for the run so far is accounted for: once one decided nothing that can be told, no later obsolete
 // answer is a rejection, and only an admission the server reports is still a decision.
-func (h *Held) answered(execution chasm.ExecutionKey, stamp int32, response any, err error) {
+func (h *Held) answered(ctx context.Context, execution chasm.ExecutionKey, stamp int32, requestID string, response any, err error) *grpcfaults.Outcome {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	if !h.released || h.first == nil || execution != h.first.Execution {
-		return
+	if h.closed || h.completed || !h.released || h.first == nil || execution != h.first.Execution {
+		return nil
+	}
+	if h.loseResponse {
+		return h.loseAnswered(ctx, execution, stamp, requestID, response, err)
 	}
 	admission := &testpilotspb.DeliveryAdmission{ActivityId: execution.BusinessID, ActivityRunId: execution.RunID, DeliveryId: strconv.FormatInt(int64(stamp), 10)}
 	var obsolete *serviceerrors.ObsoleteMatchingTask
@@ -163,17 +174,42 @@ func (h *Held) answered(execution chasm.ExecutionKey, stamp int32, response any,
 		admission.Decision, admission.Attempt = testpilotspb.DELIVERY_ADMISSION_DECISION_ADMITTED, started.GetAttempt()
 	case errors.As(err, &obsolete):
 		if stamp != h.first.Stamp || h.undecided {
-			return
+			return nil
 		}
 		admission.Decision = testpilotspb.DELIVERY_ADMISSION_DECISION_REJECTED
 	default:
 		h.undecided = true
-		return
+		return nil
 	}
+	h.completed = true
 	select {
 	case h.decided <- admission:
 	default:
 	}
+	return nil
+}
+
+// A retry of the same request proves the caller consumed the replacement. Publishing the
+// decision in the first callback would let Release cancel the poll before that happened.
+func (h *Held) loseAnswered(ctx context.Context, execution chasm.ExecutionKey, stamp int32, requestID string, response any, err error) *grpcfaults.Outcome {
+	if ctx.Err() != nil || h.releaseContext.Err() != nil || stamp != h.first.Stamp || requestID == "" {
+		return nil
+	}
+	if h.lost != nil {
+		if requestID == h.lostRequest {
+			h.completed = true
+			h.decided <- h.lost
+		}
+		return nil
+	}
+	started, ok := response.(*historyservice.RecordActivityTaskStartedResponse)
+	if err != nil || !ok || started == nil || started.GetAttempt() < 1 {
+		return nil
+	}
+	h.lost = &testpilotspb.DeliveryAdmission{ActivityId: execution.BusinessID, ActivityRunId: execution.RunID,
+		DeliveryId: strconv.FormatInt(int64(stamp), 10), Attempt: started.GetAttempt(), Decision: testpilotspb.DELIVERY_ADMISSION_DECISION_ADMITTED}
+	h.lostRequest = requestID
+	return &grpcfaults.Outcome{Error: serviceerror.NewUnavailable("testpilot lost committed admission response")}
 }
 
 // Await waits until the server holds a dispatch of the activity.
@@ -198,6 +234,16 @@ func (h *Held) Delivery() (testhooks.ActivityDelivery, bool) {
 // that admission is asked, and returns admission's decision once observed. deliver is canceled
 // when the decision is in, and its own failure before then is the release's.
 func (h *Held) Release(ctx context.Context, deliver func(context.Context) error) (*testpilotspb.DeliveryAdmission, error) {
+	return h.release(ctx, deliver, false)
+}
+
+// LoseAdmissionResponse releases the dispatch and loses one committed admission response. It
+// succeeds only after the same request is retried, retaining the original durable decision.
+func (h *Held) LoseAdmissionResponse(ctx context.Context, deliver func(context.Context) error) (*testpilotspb.DeliveryAdmission, error) {
+	return h.release(ctx, deliver, true)
+}
+
+func (h *Held) release(ctx context.Context, deliver func(context.Context) error, lose bool) (*testpilotspb.DeliveryAdmission, error) {
 	if h == nil || ctx == nil || deliver == nil {
 		return nil, ErrInvalid
 	}
@@ -206,13 +252,18 @@ func (h *Held) Release(ctx context.Context, deliver func(context.Context) error)
 		h.mu.Unlock()
 		return nil, ErrNotHeld
 	}
+	if h.closed || h.released {
+		h.mu.Unlock()
+		return nil, ErrClosed
+	}
+	polling, stop := context.WithCancel(ctx)
+	h.loseResponse, h.releaseContext, h.stop = lose, polling, stop
 	h.released = true
 	h.mu.Unlock()
+	defer stop()
 	if err := h.gate.Release(); err != nil {
 		return nil, err
 	}
-	polling, stop := context.WithCancel(ctx)
-	defer stop()
 	delivered := make(chan error, 1)
 	go func() { delivered <- deliver(polling) }()
 	select {
@@ -236,6 +287,12 @@ func (h *Held) Close() {
 	if h == nil {
 		return
 	}
+	h.mu.Lock()
+	h.closed = true
+	if h.stop != nil {
+		h.stop()
+	}
+	h.mu.Unlock()
 	h.gate.Close()
 	h.owner.mu.Lock()
 	if h.owner.holds[h.activityID] == h {

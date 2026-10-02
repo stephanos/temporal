@@ -112,3 +112,19 @@ func TestBuildRejectsAStepOutsideTheDomain(t *testing.T) {
 	require.ErrorContains(t, err, "nexusProtocol: row scheduled-2-unset-unset-unset-handlerReply-handlerError-true lands in "+
 		"backingOff-3-unset-unset-unset, which is outside the state domain")
 }
+
+func TestValidateRejectsInvalidRunExpectations(t *testing.T) {
+	for name, expected := range map[string]*modelirspb.RunExpectation{
+		"missing conformance":         {Property: modelirspb.RunExpectation_OUTCOME_SATISFIED},
+		"missing property":            {Conformance: modelirspb.RunExpectation_CONFORMANCE_CONFORMANT},
+		"inconclusive without reason": {Conformance: modelirspb.RunExpectation_CONFORMANCE_CONFORMANT, Property: modelirspb.RunExpectation_OUTCOME_INCONCLUSIVE},
+		"satisfied with reason":       {Conformance: modelirspb.RunExpectation_CONFORMANCE_CONFORMANT, Property: modelirspb.RunExpectation_OUTCOME_SATISFIED, Reason: "unknown"},
+		"unknown monitor":             {Conformance: modelirspb.RunExpectation_CONFORMANCE_CONFORMANT, Property: modelirspb.RunExpectation_OUTCOME_SATISFIED, Monitors: []*modelirspb.MonitorExpectation{{Name: "missing", Outcome: modelirspb.RunExpectation_OUTCOME_SATISFIED}}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			m := load(t)
+			m.Queries[0].ExpectedRun = expected
+			require.ErrorContains(t, Validate(m), "expected Run")
+		})
+	}
+}

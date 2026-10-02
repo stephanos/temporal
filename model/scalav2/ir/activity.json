@@ -504,7 +504,7 @@
     "name": "activityProduct.property.pausedIsNotDispatched",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 27
+      "line": 28
     },
     "params": [{
       "name": "before",
@@ -520,27 +520,27 @@
     "body": {
       "position": {
         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-        "line": 28
+        "line": 29
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 28
+            "line": 29
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 28
+                "line": 29
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 28
+                    "line": 29
                   },
                   "var": "before"
                 },
@@ -550,7 +550,7 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 28
+                "line": 29
               },
               "literal": {
                 "enum": {
@@ -564,26 +564,26 @@
         "right": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 28
+            "line": 29
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 28
+                "line": 29
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 28
+                    "line": 29
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                        "line": 28
+                        "line": 29
                       },
                       "var": "after"
                     },
@@ -596,7 +596,7 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 28
+                "line": 29
               },
               "literal": {
                 "enum": {
@@ -613,7 +613,7 @@
     "name": "activityProduct.property.terminalIsFinal",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 14
+      "line": 15
     },
     "params": [{
       "name": "before",
@@ -629,28 +629,28 @@
     "body": {
       "position": {
         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-        "line": 15
+        "line": 16
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 15
+            "line": 16
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 15
+                "line": 16
               },
               "call": {
                 "function": "temporal.standaloneactivity.Model$package$.productTerminal",
                 "args": [{
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 15
+                    "line": 16
                   },
                   "var": "before"
                 }]
@@ -661,26 +661,26 @@
         "right": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 15
+            "line": 16
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 15
+                "line": 16
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 15
+                    "line": 16
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                        "line": 15
+                        "line": 16
                       },
                       "var": "after"
                     },
@@ -693,13 +693,13 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 15
+                "line": 16
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 15
+                    "line": 16
                   },
                   "var": "before"
                 },
@@ -924,7 +924,7 @@
     "name": "activityProtocol.property.cancelRequestedWhileStarted",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 60
+      "line": 61
     },
     "params": [{
       "name": "s",
@@ -935,33 +935,33 @@
     "body": {
       "position": {
         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-        "line": 61
+        "line": 62
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 61
+            "line": 62
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 61
+                "line": 62
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 61
+                    "line": 62
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                        "line": 61
+                        "line": 62
                       },
                       "var": "s"
                     },
@@ -974,7 +974,7 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 61
+                "line": 62
               },
               "literal": {
                 "enum": {
@@ -988,14 +988,14 @@
         "right": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 61
+            "line": 62
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 61
+                "line": 62
               },
               "literal": {
                 "enum": {
@@ -1007,13 +1007,13 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 61
+                "line": 62
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 61
+                    "line": 62
                   },
                   "var": "s"
                 },
@@ -1028,7 +1028,7 @@
     "name": "activityProtocol.property.canceledByWorker",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 67
+      "line": 68
     },
     "params": [{
       "name": "s",
@@ -1039,33 +1039,33 @@
     "body": {
       "position": {
         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-        "line": 68
+        "line": 69
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 68
+            "line": 69
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 68
+                "line": 69
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 68
+                    "line": 69
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                        "line": 68
+                        "line": 69
                       },
                       "var": "s"
                     },
@@ -1078,7 +1078,7 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 68
+                "line": 69
               },
               "literal": {
                 "enum": {
@@ -1092,14 +1092,14 @@
         "right": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 68
+            "line": 69
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 68
+                "line": 69
               },
               "literal": {
                 "enum": {
@@ -1111,13 +1111,13 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 68
+                "line": 69
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 68
+                    "line": 69
                   },
                   "var": "s"
                 },
@@ -1132,7 +1132,7 @@
     "name": "activityProtocol.property.completes",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 33
+      "line": 34
     },
     "params": [{
       "name": "s",
@@ -1143,33 +1143,33 @@
     "body": {
       "position": {
         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-        "line": 34
+        "line": 35
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 34
+            "line": 35
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 34
+                "line": 35
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 34
+                    "line": 35
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                        "line": 34
+                        "line": 35
                       },
                       "var": "s"
                     },
@@ -1182,7 +1182,7 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 34
+                "line": 35
               },
               "literal": {
                 "enum": {
@@ -1196,14 +1196,14 @@
         "right": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 34
+            "line": 35
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 34
+                "line": 35
               },
               "literal": {
                 "enum": {
@@ -1215,13 +1215,13 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 34
+                "line": 35
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 34
+                    "line": 35
                   },
                   "var": "s"
                 },
@@ -1236,7 +1236,7 @@
     "name": "activityProtocol.property.nonRetryableFails",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 41
+      "line": 42
     },
     "params": [{
       "name": "s",
@@ -1247,33 +1247,33 @@
     "body": {
       "position": {
         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-        "line": 42
+        "line": 43
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 42
+            "line": 43
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 42
+                "line": 43
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 42
+                    "line": 43
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                        "line": 42
+                        "line": 43
                       },
                       "var": "s"
                     },
@@ -1286,7 +1286,7 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 42
+                "line": 43
               },
               "literal": {
                 "enum": {
@@ -1300,14 +1300,14 @@
         "right": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 42
+            "line": 43
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 42
+                "line": 43
               },
               "literal": {
                 "enum": {
@@ -1319,13 +1319,13 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 42
+                "line": 43
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 42
+                    "line": 43
                   },
                   "var": "s"
                 },
@@ -1340,7 +1340,7 @@
     "name": "activityProtocol.property.retryCompletes",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 52
+      "line": 53
     },
     "params": [{
       "name": "s",
@@ -1351,27 +1351,27 @@
     "body": {
       "position": {
         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-        "line": 53
+        "line": 54
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 53
+            "line": 54
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 53
+                "line": 54
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 53
+                    "line": 54
                   },
                   "var": "s"
                 },
@@ -1381,14 +1381,14 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 47
+                "line": 48
               },
               "construct": {
                 "type": "temporal.standaloneactivity.ProtocolState",
                 "args": [{
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 47
+                    "line": 48
                   },
                   "literal": {
                     "enum": {
@@ -1399,7 +1399,7 @@
                 }, {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 47
+                    "line": 48
                   },
                   "literal": {
                     "int": "2"
@@ -1407,7 +1407,7 @@
                 }, {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 47
+                    "line": 48
                   },
                   "literal": {
                     "enum": {
@@ -1418,7 +1418,7 @@
                 }, {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 47
+                    "line": 48
                   },
                   "literal": {
                     "enum": {
@@ -1429,7 +1429,7 @@
                 }, {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 47
+                    "line": 48
                   },
                   "literal": {
                     "enum": {
@@ -1445,14 +1445,14 @@
         "right": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 53
+            "line": 54
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 53
+                "line": 54
               },
               "literal": {
                 "enum": {
@@ -1464,13 +1464,13 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 53
+                "line": 54
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 53
+                    "line": 54
                   },
                   "var": "s"
                 },
@@ -1485,7 +1485,7 @@
     "name": "activityProtocol.property.scheduleToStartFires",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 82
+      "line": 83
     },
     "params": [{
       "name": "s",
@@ -1496,33 +1496,33 @@
     "body": {
       "position": {
         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-        "line": 83
+        "line": 84
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 83
+            "line": 84
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 83
+                "line": 84
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 83
+                    "line": 84
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                        "line": 83
+                        "line": 84
                       },
                       "var": "s"
                     },
@@ -1535,7 +1535,7 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 83
+                "line": 84
               },
               "literal": {
                 "enum": {
@@ -1549,14 +1549,14 @@
         "right": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 83
+            "line": 84
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 84
+                "line": 85
               },
               "construct": {
                 "type": "temporal.standaloneactivity.ProtocolFact",
@@ -1564,7 +1564,7 @@
                 "args": [{
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 84
+                    "line": 85
                   },
                   "literal": {
                     "enum": {
@@ -1578,13 +1578,13 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 83
+                "line": 84
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 83
+                    "line": 84
                   },
                   "var": "s"
                 },
@@ -1599,7 +1599,7 @@
     "name": "activityProtocol.property.startToCloseFires",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 90
+      "line": 91
     },
     "params": [{
       "name": "s",
@@ -1610,33 +1610,33 @@
     "body": {
       "position": {
         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-        "line": 91
+        "line": 92
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 91
+            "line": 92
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 91
+                "line": 92
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 91
+                    "line": 92
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                        "line": 91
+                        "line": 92
                       },
                       "var": "s"
                     },
@@ -1649,7 +1649,7 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 91
+                "line": 92
               },
               "literal": {
                 "enum": {
@@ -1663,14 +1663,14 @@
         "right": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 91
+            "line": 92
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 92
+                "line": 93
               },
               "construct": {
                 "type": "temporal.standaloneactivity.ProtocolFact",
@@ -1678,7 +1678,7 @@
                 "args": [{
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 92
+                    "line": 93
                   },
                   "literal": {
                     "enum": {
@@ -1692,13 +1692,13 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 91
+                "line": 92
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 91
+                    "line": 92
                   },
                   "var": "s"
                 },
@@ -1713,7 +1713,7 @@
     "name": "activityProtocol.property.terminated",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 73
+      "line": 74
     },
     "params": [{
       "name": "s",
@@ -1724,33 +1724,33 @@
     "body": {
       "position": {
         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-        "line": 74
+        "line": 75
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 74
+            "line": 75
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 74
+                "line": 75
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 74
+                    "line": 75
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                        "line": 74
+                        "line": 75
                       },
                       "var": "s"
                     },
@@ -1763,7 +1763,7 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 74
+                "line": 75
               },
               "literal": {
                 "enum": {
@@ -1777,14 +1777,14 @@
         "right": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 74
+            "line": 75
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 74
+                "line": 75
               },
               "literal": {
                 "enum": {
@@ -1796,13 +1796,13 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 74
+                "line": 75
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 74
+                    "line": 75
                   },
                   "var": "s"
                 },
@@ -1817,7 +1817,7 @@
     "name": "standaloneActivity.property.startedByPollingWorker",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 243
+      "line": 268
     },
     "params": [{
       "name": "_$1",
@@ -1828,32 +1828,32 @@
     "body": {
       "position": {
         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-        "line": 243
+        "line": 268
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 243
+            "line": 268
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 243
+                "line": 268
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                    "line": 243
+                    "line": 268
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                        "line": 243
+                        "line": 268
                       },
                       "var": "_$1"
                     },
@@ -1869,7 +1869,7 @@
         "right": {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 243
+            "line": 268
           },
           "literal": {
             "enum": {
@@ -7890,7 +7890,7 @@
     "name": "pausedIsNotDispatched",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 27
+      "line": 28
     },
     "holds": "activityProduct.property.pausedIsNotDispatched",
     "transition": true
@@ -7899,7 +7899,7 @@
     "name": "terminalIsFinal",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 14
+      "line": 15
     },
     "holds": "activityProduct.property.terminalIsFinal",
     "transition": true
@@ -7908,7 +7908,7 @@
     "name": "cancelRequestedWhileStarted",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 58
+      "line": 59
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.control",
@@ -7925,7 +7925,7 @@
     "name": "canceledByWorker",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 66
+      "line": 67
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.attemptResult",
@@ -7942,7 +7942,7 @@
     "name": "completes",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 33
+      "line": 34
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.attemptResult",
@@ -7959,7 +7959,7 @@
     "name": "nonRetryableFails",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 39
+      "line": 40
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.attemptResult",
@@ -7979,7 +7979,7 @@
     "name": "retryCompletes",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 51
+      "line": 52
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.attemptResult",
@@ -7996,7 +7996,7 @@
     "name": "scheduleToStartFires",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 82
+      "line": 83
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.scheduleToStart"
@@ -8007,7 +8007,7 @@
     "name": "startToCloseFires",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 90
+      "line": 91
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.startToClose"
@@ -8018,7 +8018,7 @@
     "name": "terminated",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 73
+      "line": 74
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.control",
@@ -8035,7 +8035,7 @@
     "name": "startedByPollingWorker",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 242
+      "line": 267
     },
     "whenAction": "attemptStart",
     "holds": "standaloneActivity.property.startedByPollingWorker"
@@ -8045,7 +8045,7 @@
     "name": "cancelRequestedThenCanceled",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 124
+      "line": 125
     },
     "start": {
       "position": {
@@ -8151,7 +8151,7 @@
     "name": "completed",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 101
+      "line": 102
     },
     "start": {
       "position": {
@@ -8249,7 +8249,7 @@
     "name": "nonRetryable",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 107
+      "line": 108
     },
     "start": {
       "position": {
@@ -8350,7 +8350,7 @@
     "name": "pausedThenCompleted",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 141
+      "line": 142
     },
     "start": {
       "position": {
@@ -8464,7 +8464,7 @@
     "name": "retriedThenCompleted",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 112
+      "line": 113
     },
     "start": {
       "position": {
@@ -8577,7 +8577,7 @@
     "name": "scheduleToStartExpires",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 153
+      "line": 154
     },
     "start": {
       "position": {
@@ -8669,7 +8669,7 @@
     "name": "startToCloseExpires",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 159
+      "line": 160
     },
     "start": {
       "position": {
@@ -8761,7 +8761,7 @@
     "name": "terminatedWhileScheduled",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 136
+      "line": 137
     },
     "start": {
       "position": {
@@ -8859,12 +8859,12 @@
     "name": "stoppedBeforeRetry",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 251
+      "line": 276
     },
     "start": {
       "position": {
         "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-        "line": 253
+        "line": 278
       },
       "construct": {
         "type": "temporal.standaloneactivity.StandaloneActivityState",
@@ -8932,14 +8932,14 @@
         }, {
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-            "line": 253
+            "line": 278
           },
           "construct": {
             "type": "temporal.worker.State",
             "args": [{
               "position": {
                 "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-                "line": 253
+                "line": 278
               },
               "literal": {
                 "enum": {
@@ -8958,7 +8958,7 @@
     "name": "cancel",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 177
+      "line": 187
     },
     "form": "FORM_FIND",
     "property": {
@@ -8979,7 +8979,7 @@
     "name": "cancelRequest",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 190
+      "line": 215
     },
     "form": "FORM_FIND",
     "property": {
@@ -9000,7 +9000,7 @@
     "name": "completion",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 173
+      "line": 174
     },
     "form": "FORM_FIND",
     "property": {
@@ -9016,12 +9016,16 @@
       "steps": 3,
       "actions": 3,
       "search": 4096
+    },
+    "expectedRun": {
+      "property": "OUTCOME_SATISFIED",
+      "conformance": "CONFORMANCE_CONFORMANT"
     }
   }, {
     "name": "nonRetryableFailure",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 175
+      "line": 177
     },
     "form": "FORM_FIND",
     "property": {
@@ -9037,12 +9041,16 @@
       "steps": 3,
       "actions": 3,
       "search": 4096
+    },
+    "expectedRun": {
+      "property": "OUTCOME_SATISFIED",
+      "conformance": "CONFORMANCE_CONFORMANT"
     }
   }, {
     "name": "pauseHolds",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 194
+      "line": 219
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -9064,7 +9072,7 @@
     "name": "pauseResume",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 179
+      "line": 196
     },
     "form": "FORM_FIND",
     "property": {
@@ -9080,12 +9088,16 @@
       "steps": 6,
       "actions": 6,
       "search": 262144
+    },
+    "expectedRun": {
+      "property": "OUTCOME_SATISFIED",
+      "conformance": "CONFORMANCE_CONFORMANT"
     }
   }, {
     "name": "retry",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 176
+      "line": 179
     },
     "form": "FORM_FIND",
     "property": {
@@ -9101,12 +9113,17 @@
       "steps": 6,
       "actions": 6,
       "search": 262144
+    },
+    "expectedRun": {
+      "property": "OUTCOME_INCONCLUSIVE",
+      "reason": "the executions that explain the evidence disagree",
+      "conformance": "CONFORMANCE_CONFORMANT"
     }
   }, {
     "name": "scheduleToStartTimeout",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 181
+      "line": 199
     },
     "form": "FORM_FIND",
     "property": {
@@ -9122,12 +9139,17 @@
       "steps": 3,
       "actions": 3,
       "search": 4096
+    },
+    "expectedRun": {
+      "property": "OUTCOME_INCONCLUSIVE",
+      "reason": "an execution that explains the evidence never reaches the claim\u0027s evaluation point",
+      "conformance": "CONFORMANCE_CONFORMANT"
     }
   }, {
     "name": "startToCloseTimeout",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 183
+      "line": 208
     },
     "form": "FORM_FIND",
     "property": {
@@ -9148,7 +9170,7 @@
     "name": "stoppedWorkerStartsNothing",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 265
+      "line": 290
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -9169,7 +9191,7 @@
     "name": "terminalHolds",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 192
+      "line": 217
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -9191,7 +9213,7 @@
     "name": "terminate",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
-      "line": 178
+      "line": 188
     },
     "form": "FORM_FIND",
     "property": {
@@ -9207,6 +9229,11 @@
       "steps": 3,
       "actions": 3,
       "search": 4096
+    },
+    "expectedRun": {
+      "property": "OUTCOME_INCONCLUSIVE",
+      "reason": "the executions that explain the evidence disagree",
+      "conformance": "CONFORMANCE_CONFORMANT"
     }
   }],
   "realizations": [{

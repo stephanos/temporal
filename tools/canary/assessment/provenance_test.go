@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	"go.temporal.io/server/tools/canary/policy"
-	"go.temporal.io/server/tools/umpire/recordedrun"
 )
 
 // The raw coordinates a sample provenance is made from; none may appear in its bytes.

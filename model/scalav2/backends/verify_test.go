@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/model/go/umpire"
+	"go.temporal.io/server/model/scalav2/goir"
 )
 
 func checkOf(t *testing.T, s *Slice, machine string) *QuintCheck {
@@ -17,7 +17,7 @@ func checkOf(t *testing.T, s *Slice, machine string) *QuintCheck {
 
 // counterexampleOf writes a path of a machine as the ITF trace a check module's counterexample is:
 // the first state's machine state, and the last state's steps.
-func counterexampleOf(t *testing.T, s *Slice, c *QuintCheck, trace *umpire.Trace) []byte {
+func counterexampleOf(t *testing.T, s *Slice, c *QuintCheck, trace *goir.Trace) []byte {
 	t.Helper()
 	x, mm := c.from, s.machines[c.Machine]
 	decl := mm.Decl
@@ -88,7 +88,7 @@ func TestVerifiedVerdictsAreHeldToGo(t *testing.T) {
 	require.Contains(t, missed.Differences[0], "Go finds terminalFinality violated")
 
 	// A path of the machine on which the monitor holds, reported as its violation.
-	held := &umpire.Trace{Initial: path.Initial, Steps: path.Steps[:len(path.Steps)-1]}
+	held := &goir.Trace{Initial: path.Initial, Steps: path.Steps[:len(path.Steps)-1]}
 	rejected := s.QuintVerified(stale, finality, QuintVerdict{Violated: true, Trace: counterexampleOf(t, s, stale, held)})
 	require.Equal(t, WitnessRejected, rejected.Kind)
 	require.Contains(t, rejected.Explanation, "is not violated on the last step")

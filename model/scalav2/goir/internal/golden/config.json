@@ -1,0 +1,140 @@
+{
+  "ir_inventory": [
+    "model/scalav2/ir/activity-race.json",
+    "model/scalav2/ir/activity-system.json",
+    "model/scalav2/ir/activity.json",
+    "model/scalav2/ir/nexus-caller.json",
+    "model/scalav2/ir/nexus-close.json",
+    "model/scalav2/ir/nexus-control.json",
+    "model/scalav2/lifter/testdata/lifts/expected/admission.json",
+    "model/scalav2/lifter/testdata/lifts/expected/channels.json",
+    "model/scalav2/lifter/testdata/lifts/expected/closereset.json",
+    "model/scalav2/lifter/testdata/lifts/expected/declarations.json",
+    "model/scalav2/lifter/testdata/lifts/expected/presence.json",
+    "model/scalav2/lifter/testdata/lifts/expected/realizations.json"
+  ],
+  "source_path_substitutions": [
+    {
+      "old": "model/scalav2/lifter/testdata/lifts/Admission.scala.fixture",
+      "new": "model/lifter/testdata/lifts/Admission.scala.fixture"
+    },
+    {
+      "old": "model/scalav2/lifter/testdata/lifts/Channels.scala.fixture",
+      "new": "model/lifter/testdata/lifts/Channels.scala.fixture"
+    },
+    {
+      "old": "model/scalav2/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "new": "model/lifter/testdata/lifts/CloseReset.scala.fixture"
+    },
+    {
+      "old": "model/scalav2/lifter/testdata/lifts/Declarations.scala.fixture",
+      "new": "model/lifter/testdata/lifts/Declarations.scala.fixture"
+    },
+    {
+      "old": "model/scalav2/lifter/testdata/lifts/Presence.scala.fixture",
+      "new": "model/lifter/testdata/lifts/Presence.scala.fixture"
+    },
+    {
+      "old": "model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture",
+      "new": "model/lifter/testdata/lifts/Realizations.scala.fixture"
+    },
+    {
+      "old": "model/scalav2/scala/temporal/nexuscaller/Claims.scala",
+      "new": "model/temporal/nexuscaller/Claims.scala"
+    },
+    {
+      "old": "model/scalav2/scala/temporal/nexuscaller/Control.scala",
+      "new": "model/temporal/nexuscaller/Control.scala"
+    },
+    {
+      "old": "model/scalav2/scala/temporal/nexuscaller/Model.scala",
+      "new": "model/temporal/nexuscaller/Model.scala"
+    },
+    {
+      "old": "model/scalav2/scala/temporal/nexuscaller/Realization.scala",
+      "new": "model/temporal/nexuscaller/Realization.scala"
+    },
+    {
+      "old": "model/scalav2/scala/temporal/nexuscaller/closepolicy/Claims.scala",
+      "new": "model/temporal/nexuscaller/closepolicy/Claims.scala"
+    },
+    {
+      "old": "model/scalav2/scala/temporal/nexuscaller/closepolicy/Model.scala",
+      "new": "model/temporal/nexuscaller/closepolicy/Model.scala"
+    },
+    {
+      "old": "model/scalav2/scala/temporal/nexuscaller/kernel/Nexus.scala",
+      "new": "model/temporal/nexuscaller/kernel/Nexus.scala"
+    },
+    {
+      "old": "model/scalav2/scala/temporal/standaloneactivity/Claims.scala",
+      "new": "model/temporal/standaloneactivity/Claims.scala"
+    },
+    {
+      "old": "model/scalav2/scala/temporal/standaloneactivity/Model.scala",
+      "new": "model/temporal/standaloneactivity/Model.scala"
+    },
+    {
+      "old": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+      "new": "model/temporal/standaloneactivity/Realization.scala"
+    },
+    {
+      "old": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+      "new": "model/temporal/standaloneactivity/System.scala"
+    },
+    {
+      "old": "model/scalav2/scala/temporal/worker/Worker.scala",
+      "new": "model/temporal/worker/Worker.scala"
+    }
+  ],
+  "source_label_substitutions": [
+    {
+      "old": "model/scalav2: fixture.channels.Channels$package$.relay, fixture.channels.Channels$package$.tallying",
+      "new": "model: fixture.channels.Channels$package$.relay, fixture.channels.Channels$package$.tallying"
+    },
+    {
+      "old": "model/scalav2: fixture.declarations.Declarations$package$.durableEventually, fixture.declarations.Declarations$package$.queries",
+      "new": "model: fixture.declarations.Declarations$package$.durableEventually, fixture.declarations.Declarations$package$.queries"
+    },
+    {
+      "old": "model/scalav2: fixture.presence.Presence$package$.presence",
+      "new": "model: fixture.presence.Presence$package$.presence"
+    },
+    {
+      "old": "model/scalav2: fixture.realizations.Realizations$package$.doorOpens, fixture.realizations.Realizations$package$.doorRealization, fixture.realizations.Realizations$package$.errandRealization, fixture.realizations.Realizations$package$.errandRetry, fixture.realizations.Realizations$package$.errandWithdrawn, fixture.realizations.Realizations$package$.learnedRun, fixture.realizations.Realizations$package$.pauseRace, fixture.realizations.Realizations$package$.pauseRaceQuery, fixture.realizations.Realizations$package$.tallyOpens, fixture.realizations.Realizations$package$.tallyRealization, temporal.nexuscaller.Claims$package$.syncCompletion",
+      "new": "model: fixture.realizations.Realizations$package$.doorOpens, fixture.realizations.Realizations$package$.doorRealization, fixture.realizations.Realizations$package$.errandRealization, fixture.realizations.Realizations$package$.errandRetry, fixture.realizations.Realizations$package$.errandWithdrawn, fixture.realizations.Realizations$package$.learnedRun, fixture.realizations.Realizations$package$.pauseRace, fixture.realizations.Realizations$package$.pauseRaceQuery, fixture.realizations.Realizations$package$.tallyOpens, fixture.realizations.Realizations$package$.tallyRealization, temporal.nexuscaller.Claims$package$.syncCompletion"
+    },
+    {
+      "old": "model/scalav2: fixture.specimens.admission.Admission$package$.currentQueries, fixture.specimens.admission.Admission$package$.staleQueries",
+      "new": "model: fixture.specimens.admission.Admission$package$.currentQueries, fixture.specimens.admission.Admission$package$.staleQueries"
+    },
+    {
+      "old": "model/scalav2: fixture.specimens.closereset.CloseReset$package$.ackByOriginalQueries, fixture.specimens.closereset.CloseReset$package$.rejectAfterCloseQueries, fixture.specimens.closereset.CloseReset$package$.retainAndRouteQueries",
+      "new": "model: fixture.specimens.closereset.CloseReset$package$.ackByOriginalQueries, fixture.specimens.closereset.CloseReset$package$.rejectAfterCloseQueries, fixture.specimens.closereset.CloseReset$package$.retainAndRouteQueries"
+    },
+    {
+      "old": "model/scalav2: temporal.nexuscaller.Claims$package$.functionalQueries, temporal.nexuscaller.Model$package$.handlerWorker, temporal.nexuscaller.Model$package$.nexusProduct, temporal.nexuscaller.Model$package$.nexusProtocol, temporal.nexuscaller.NexusRealization$.asyncNexus, temporal.worker.Worker$package$.polling",
+      "new": "model: temporal.nexuscaller.Claims$package$.functionalQueries, temporal.nexuscaller.Model$package$.handlerWorker, temporal.nexuscaller.Model$package$.nexusProduct, temporal.nexuscaller.Model$package$.nexusProtocol, temporal.nexuscaller.NexusRealization$.asyncNexus, temporal.worker.Worker$package$.polling"
+    },
+    {
+      "old": "model/scalav2: temporal.nexuscaller.Control$.forgedCompletion, temporal.nexuscaller.NexusRealization$.forgedCompletion",
+      "new": "model: temporal.nexuscaller.Control$.forgedCompletion, temporal.nexuscaller.NexusRealization$.forgedCompletion"
+    },
+    {
+      "old": "model/scalav2: temporal.nexuscaller.closepolicy.Claims$package$.ackByOriginalProgress, temporal.nexuscaller.closepolicy.Claims$package$.ackByOriginalQueries, temporal.nexuscaller.closepolicy.Claims$package$.ackByOriginalWithDeadlineProgress, temporal.nexuscaller.closepolicy.Claims$package$.ackByOriginalWithDeadlineQueries, temporal.nexuscaller.closepolicy.Claims$package$.forgetsCancelOnResetQueries, temporal.nexuscaller.closepolicy.Claims$package$.rejectAfterCloseProgress, temporal.nexuscaller.closepolicy.Claims$package$.rejectAfterCloseQueries, temporal.nexuscaller.closepolicy.Claims$package$.rejectAfterCloseWithDeadlineProgress, temporal.nexuscaller.closepolicy.Claims$package$.rejectAfterCloseWithDeadlineQueries, temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteBoundedRetryProgress, temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteBoundedRetryQueries, temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteProgress, temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteQueries, temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteWithDeadlineProgress, temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteWithDeadlineQueries, temporal.nexuscaller.closepolicy.Claims$package$.retainedReachesOwner, temporal.nexuscaller.closepolicy.Claims$package$.retainedReachesOwnerBoundedRetry, temporal.nexuscaller.closepolicy.Claims$package$.retainedWaitsWithoutRecovery, temporal.nexuscaller.closepolicy.Claims$package$.truncatesOnResetQueries",
+      "new": "model: temporal.nexuscaller.closepolicy.Claims$package$.ackByOriginalProgress, temporal.nexuscaller.closepolicy.Claims$package$.ackByOriginalQueries, temporal.nexuscaller.closepolicy.Claims$package$.ackByOriginalWithDeadlineProgress, temporal.nexuscaller.closepolicy.Claims$package$.ackByOriginalWithDeadlineQueries, temporal.nexuscaller.closepolicy.Claims$package$.forgetsCancelOnResetQueries, temporal.nexuscaller.closepolicy.Claims$package$.rejectAfterCloseProgress, temporal.nexuscaller.closepolicy.Claims$package$.rejectAfterCloseQueries, temporal.nexuscaller.closepolicy.Claims$package$.rejectAfterCloseWithDeadlineProgress, temporal.nexuscaller.closepolicy.Claims$package$.rejectAfterCloseWithDeadlineQueries, temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteBoundedRetryProgress, temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteBoundedRetryQueries, temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteProgress, temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteQueries, temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteWithDeadlineProgress, temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteWithDeadlineQueries, temporal.nexuscaller.closepolicy.Claims$package$.retainedReachesOwner, temporal.nexuscaller.closepolicy.Claims$package$.retainedReachesOwnerBoundedRetry, temporal.nexuscaller.closepolicy.Claims$package$.retainedWaitsWithoutRecovery, temporal.nexuscaller.closepolicy.Claims$package$.truncatesOnResetQueries"
+    },
+    {
+      "old": "model/scalav2: temporal.standaloneactivity.ActivityRealization$.heldDelivery, temporal.standaloneactivity.ActivityRealization$.lostAdmissionResponse, temporal.standaloneactivity.System$package$.heldStaleDelivery, temporal.standaloneactivity.System$package$.lostAdmissionResponseQuery",
+      "new": "model: temporal.standaloneactivity.ActivityRealization$.heldDelivery, temporal.standaloneactivity.ActivityRealization$.lostAdmissionResponse, temporal.standaloneactivity.System$package$.heldStaleDelivery, temporal.standaloneactivity.System$package$.lostAdmissionResponseQuery"
+    },
+    {
+      "old": "model/scalav2: temporal.standaloneactivity.ActivityRealization$.standalone, temporal.standaloneactivity.Claims$package$.cancelRequest, temporal.standaloneactivity.Claims$package$.functionalQueries, temporal.standaloneactivity.Claims$package$.pauseHolds, temporal.standaloneactivity.Claims$package$.stoppedWorkerStartsNothing, temporal.standaloneactivity.Claims$package$.terminalHolds, temporal.standaloneactivity.Model$package$.activityProduct, temporal.standaloneactivity.Model$package$.standaloneActivity",
+      "new": "model: temporal.standaloneactivity.ActivityRealization$.standalone, temporal.standaloneactivity.Claims$package$.cancelRequest, temporal.standaloneactivity.Claims$package$.functionalQueries, temporal.standaloneactivity.Claims$package$.pauseHolds, temporal.standaloneactivity.Claims$package$.stoppedWorkerStartsNothing, temporal.standaloneactivity.Claims$package$.terminalHolds, temporal.standaloneactivity.Model$package$.activityProduct, temporal.standaloneactivity.Model$package$.standaloneActivity"
+    },
+    {
+      "old": "model/scalav2: temporal.standaloneactivity.System$package$.competingTimers, temporal.standaloneactivity.System$package$.currentOverForgetful, temporal.standaloneactivity.System$package$.currentOverLossyMatchingQueries, temporal.standaloneactivity.System$package$.currentOverMatchingQueries, temporal.standaloneactivity.System$package$.currentOverQueueQueries, temporal.standaloneactivity.System$package$.currentOverVolatile, temporal.standaloneactivity.System$package$.currentQueries, temporal.standaloneactivity.System$package$.forgetfulQueueQueries, temporal.standaloneactivity.System$package$.lossyMatchingQueueQueries, temporal.standaloneactivity.System$package$.matchingQueueQueries, temporal.standaloneactivity.System$package$.staleOverMatchingQueries, temporal.standaloneactivity.System$package$.staleOverQueueQueries, temporal.standaloneactivity.System$package$.staleQueries, temporal.standaloneactivity.System$package$.storageLossQuery, temporal.standaloneactivity.System$package$.volatileQueueQueries",
+      "new": "model: temporal.standaloneactivity.System$package$.competingTimers, temporal.standaloneactivity.System$package$.currentOverForgetful, temporal.standaloneactivity.System$package$.currentOverLossyMatchingQueries, temporal.standaloneactivity.System$package$.currentOverMatchingQueries, temporal.standaloneactivity.System$package$.currentOverQueueQueries, temporal.standaloneactivity.System$package$.currentOverVolatile, temporal.standaloneactivity.System$package$.currentQueries, temporal.standaloneactivity.System$package$.forgetfulQueueQueries, temporal.standaloneactivity.System$package$.lossyMatchingQueueQueries, temporal.standaloneactivity.System$package$.matchingQueueQueries, temporal.standaloneactivity.System$package$.staleOverMatchingQueries, temporal.standaloneactivity.System$package$.staleOverQueueQueries, temporal.standaloneactivity.System$package$.staleQueries, temporal.standaloneactivity.System$package$.storageLossQuery, temporal.standaloneactivity.System$package$.volatileQueueQueries"
+    }
+  ]
+}

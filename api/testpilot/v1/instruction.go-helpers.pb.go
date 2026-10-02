@@ -694,11 +694,12 @@ func ReadCardinalityFromString(s string) (ReadCardinality, error) {
 
 var (
 	FaultKind_shorthandValue = map[string]int32{
-		"Unspecified":     0,
-		"WorkerStop":      1,
-		"WorkerResume":    2,
-		"DeliveryHold":    3,
-		"DeliveryRelease": 4,
+		"Unspecified":           0,
+		"WorkerStop":            1,
+		"WorkerResume":          2,
+		"DeliveryHold":          3,
+		"DeliveryRelease":       4,
+		"AdmissionResponseLoss": 5,
 	}
 )
 

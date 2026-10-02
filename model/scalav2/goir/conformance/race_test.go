@@ -22,7 +22,6 @@ import (
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
-	cp "go.temporal.io/server/model/go/caseproducer"
 	"go.temporal.io/server/model/scalav2/goir"
 	goirtestpilot "go.temporal.io/server/model/scalav2/goir/testpilot"
 	"google.golang.org/protobuf/proto"
@@ -51,7 +50,7 @@ func loweredRace(t testing.TB) *bound {
 	m := raceModel(t)
 	producer, err := goirtestpilot.NewProducer(m)
 	require.NoError(t, err)
-	lowering, err := producer.Lower(raceQuery, cp.IdentityFor("temporal.case", "standaloneActivityRace", raceQuery))
+	lowering, err := producer.Lower(raceQuery, goirtestpilot.IdentityFor("temporal.case", "standaloneActivityRace", raceQuery))
 	require.NoError(t, err)
 	require.Equal(t, goirtestpilot.Lowered, lowering.Standing, "%v", lowering.Unsupported)
 	catalog, err := temporal.NewWorkflowServiceCatalog()

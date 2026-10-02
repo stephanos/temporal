@@ -4383,7 +4383,7 @@
     "name": "nexusProtocol.property.syncSucceeds",
     "position": {
       "file": "model/scalav2/scala/temporal/nexuscaller/Claims.scala",
-      "line": 25
+      "line": 26
     },
     "params": [{
       "name": "s",
@@ -4394,33 +4394,33 @@
     "body": {
       "position": {
         "file": "model/scalav2/scala/temporal/nexuscaller/Claims.scala",
-        "line": 26
+        "line": 27
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/scalav2/scala/temporal/nexuscaller/Claims.scala",
-            "line": 26
+            "line": 27
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/nexuscaller/Claims.scala",
-                "line": 26
+                "line": 27
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/nexuscaller/Claims.scala",
-                    "line": 26
+                    "line": 27
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/scalav2/scala/temporal/nexuscaller/Claims.scala",
-                        "line": 26
+                        "line": 27
                       },
                       "var": "s"
                     },
@@ -4433,7 +4433,7 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/nexuscaller/Claims.scala",
-                "line": 26
+                "line": 27
               },
               "literal": {
                 "enum": {
@@ -4447,14 +4447,14 @@
         "right": {
           "position": {
             "file": "model/scalav2/scala/temporal/nexuscaller/Claims.scala",
-            "line": 26
+            "line": 27
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/scalav2/scala/temporal/nexuscaller/Claims.scala",
-                "line": 26
+                "line": 27
               },
               "literal": {
                 "enum": {
@@ -4466,13 +4466,13 @@
             "right": {
               "position": {
                 "file": "model/scalav2/scala/temporal/nexuscaller/Claims.scala",
-                "line": 26
+                "line": 27
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/scalav2/scala/temporal/nexuscaller/Claims.scala",
-                    "line": 26
+                    "line": 27
                   },
                   "var": "s"
                 },
@@ -11197,7 +11197,7 @@
     "name": "syncSucceeds",
     "position": {
       "file": "model/scalav2/scala/temporal/nexuscaller/Claims.scala",
-      "line": 25
+      "line": 26
     },
     "whenClass": {
       "action": "temporal.nexuscaller.Model$package$.handlerReply",
@@ -11339,7 +11339,7 @@
     "name": "syncReplied",
     "position": {
       "file": "model/scalav2/scala/temporal/nexuscaller/Claims.scala",
-      "line": 100
+      "line": 101
     },
     "start": {
       "position": {
@@ -11602,7 +11602,7 @@
     "name": "syncCompletion",
     "position": {
       "file": "model/scalav2/scala/temporal/nexuscaller/Claims.scala",
-      "line": 170
+      "line": 171
     },
     "form": "FORM_FIND",
     "property": {
@@ -11618,6 +11618,105 @@
       "steps": 2,
       "actions": 2,
       "search": 512
+    },
+    "expectedRun": {
+      "property": "OUTCOME_SATISFIED",
+      "conformance": "CONFORMANCE_CONFORMANT"
+    },
+    "exploration": {
+      "name": "nexusDeadlines",
+      "position": {
+        "file": "model/scalav2/scala/temporal/nexuscaller/Claims.scala",
+        "line": 174
+      },
+      "variations": [{
+        "choices": [{
+          "name": "startDeadline",
+          "priority": 30,
+          "actions": [{
+            "action": "temporal.nexuscaller.Model$package$.schedule",
+            "inputs": [{
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.Timeout",
+                "case": "unset"
+              }
+            }, {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.Timeout",
+                "case": "unset"
+              }
+            }, {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.Timeout",
+                "case": "expires"
+              }
+            }]
+          }],
+          "position": {
+            "file": "model/scalav2/scala/temporal/nexuscaller/Claims.scala",
+            "line": 180
+          }
+        }, {
+          "name": "scheduleDeadline",
+          "priority": 20,
+          "actions": [{
+            "action": "temporal.nexuscaller.Model$package$.schedule",
+            "inputs": [{
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.Timeout",
+                "case": "unset"
+              }
+            }, {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.Timeout",
+                "case": "expires"
+              }
+            }, {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.Timeout",
+                "case": "unset"
+              }
+            }]
+          }],
+          "position": {
+            "file": "model/scalav2/scala/temporal/nexuscaller/Claims.scala",
+            "line": 181
+          }
+        }, {
+          "name": "unbounded",
+          "priority": 10,
+          "actions": [{
+            "action": "temporal.nexuscaller.Model$package$.schedule",
+            "inputs": [{
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.Timeout",
+                "case": "unset"
+              }
+            }, {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.Timeout",
+                "case": "unset"
+              }
+            }, {
+              "enum": {
+                "type": "temporal.nexuscaller.kernel.Timeout",
+                "case": "unset"
+              }
+            }]
+          }],
+          "position": {
+            "file": "model/scalav2/scala/temporal/nexuscaller/Claims.scala",
+            "line": 182
+          }
+        }],
+        "position": {
+          "file": "model/scalav2/scala/temporal/nexuscaller/Claims.scala",
+          "line": 177
+        }
+      }],
+      "runs": 1,
+      "edits": 1,
+      "dropPrefix": true
     }
   }, {
     "name": "tally.opens",

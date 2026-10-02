@@ -1,0 +1,74 @@
+package goir
+
+import core "go.temporal.io/server/model/scalav2/goir/internal/checker"
+
+type (
+ Family = core.Family
+ Result = core.Result
+ Row = core.Row
+ Table = core.Table
+ UnknownPair = core.UnknownPair
+ Claim = core.Claim
+ IDs = core.IDs
+ Atom = core.Atom
+ TraceStep = core.TraceStep
+ Trace = core.Trace
+ Answer = core.Answer
+ Limits = core.Limits
+ Query = core.Query
+ QueryForm = core.QueryForm
+ Outcome = core.Outcome
+ PropertyDecl = core.PropertyDecl
+ ScenarioDecl = core.ScenarioDecl
+ Model = core.Model
+ ComposeCeiling = core.ComposeCeiling
+ ComposeLimitError = core.ComposeLimitError
+ RefinementRow = core.RefinementRow
+ RefinementError = core.RefinementError
+ RefinementFailure = core.RefinementFailure
+ MonitorVerdict = core.MonitorVerdict
+ Verdict = core.Verdict
+ ProgressKind = core.ProgressKind
+ ProgressVerdict = core.ProgressVerdict
+ ProgressAnswer = core.ProgressAnswer
+ Assumption = core.Assumption
+ Group = core.Group
+ Requirement = core.Requirement
+ RequirementKind = core.RequirementKind
+ UnknownReach = core.UnknownReach
+ UnknownKind = core.UnknownKind
+ Monitor = core.Monitor
+ ActionDecl = core.ActionDecl
+ Party = core.Party
+ Entity = core.Entity
+ ClassExample = core.ClassExample
+ TableClass = core.Class
+)
+
+const (
+ StateRequirement = core.StateRequirement
+ OutcomeRequirement = core.OutcomeRequirement
+ FactRequirement = core.FactRequirement
+ FindForm = core.FindForm
+ VerifyForm = core.VerifyForm
+ VerifiedWithinLimits = core.VerifiedWithinLimits
+ CounterexampleFound = core.CounterexampleFound
+ UnknownRow = core.UnknownRow
+ UnknownClaim = core.UnknownClaim
+ MonitorHeld = core.MonitorHeld
+ MonitorViolated = core.MonitorViolated
+ MonitorUnread = core.MonitorUnread
+ MonitorUnknown = core.MonitorUnknown
+ DeadlockKind = core.DeadlockKind
+ CycleKind = core.CycleKind
+ DeadlineKind = core.DeadlineKind
+ RefinementCatalog = core.RefinementCatalog
+ RefinementInitial = core.RefinementInitial
+ RefinementUnmatched = core.RefinementUnmatched
+ RefinementVisibleStutter = core.RefinementVisibleStutter
+ RefinementIncomplete = core.RefinementIncomplete
+)
+
+func Fingerprint(canonical string) string { return core.Fingerprint(canonical) }
+
+func Quote(value string) string { return core.Quote(value) }

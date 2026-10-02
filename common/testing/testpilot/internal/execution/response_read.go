@@ -120,7 +120,9 @@ func validateOutcome(w *valueWork, entryContext contract.EntrypointKind, n *node
 // validateDeliveryAdmission admits a delivery admission on the successful outcome of a delivery
 // release alone, and requires it there: the release succeeds only once the decision is observed.
 func validateDeliveryAdmission(n *node, outcome *testpilotspb.InstructionOutcome) error {
-	release := n.opcode == contract.InjectFault && n.source.GetInstruction().GetInjectFault().GetKind() == testpilotspb.FAULT_KIND_DELIVERY_RELEASE
+	kind := n.source.GetInstruction().GetInjectFault().GetKind()
+	lost := kind == testpilotspb.FAULT_KIND_ADMISSION_RESPONSE_LOSS
+	release := n.opcode == contract.InjectFault && (kind == testpilotspb.FAULT_KIND_DELIVERY_RELEASE || lost)
 	succeeded := outcome.GetStatus() == testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED
 	admission := outcome.GetDeliveryAdmission()
 	if admission == nil && (!release || !succeeded) {
@@ -130,6 +132,9 @@ func validateDeliveryAdmission(n *node, outcome *testpilotspb.InstructionOutcome
 		return ir.Invalid(ir.Malformed, "outcome", "a delivery admission is the outcome of a successful delivery release alone")
 	}
 	decision := admission.GetDecision()
+	if lost && (decision != testpilotspb.DELIVERY_ADMISSION_DECISION_ADMITTED || admission.GetAttempt() < 1 || admission.GetActivityRunId() == "") {
+		return ir.Invalid(ir.Malformed, "outcome", "a lost admission response requires its committed attempt and activity run")
+	}
 	if admission.GetActivityId() == "" || admission.GetDeliveryId() == "" ||
 		decision != testpilotspb.DELIVERY_ADMISSION_DECISION_ADMITTED && decision != testpilotspb.DELIVERY_ADMISSION_DECISION_REJECTED {
 		return ir.Invalid(ir.Malformed, "outcome", "a successful delivery release requires the admission decision it observed")

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-02T10:35:34.762652Z",
+  "depends_on": [
+    "fn-115-make-the-scala-model-the-model-and.6"
+  ],
+  "id": "fn-115-make-the-scala-model-the-model-and.7",
+  "priority": null,
+  "spec": "fn-115-make-the-scala-model-the-model-and",
+  "spec_path": ".flow/tasks/fn-115-make-the-scala-model-the-model-and.7.md",
+  "status": "todo",
+  "title": "Separate reader admission concerns and trim live checker and lowering surfaces",
+  "updated_at": "2026-10-02T10:44:12.380564Z"
+}

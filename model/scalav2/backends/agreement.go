@@ -7,7 +7,6 @@ import (
 	"slices"
 	"strings"
 
-	"go.temporal.io/server/model/go/umpire"
 	"go.temporal.io/server/model/scalav2/goir"
 )
 
@@ -40,7 +39,7 @@ func (s *Slice) QuintAgreement(x *QuintExport, itf []byte) ([]Receipt, error) {
 	var receipts []Receipt
 	// Every counterexample of one dump is replayed through one interpretation, made afresh for it.
 	var fresh *Slice
-	replay := func(machine, monitor string, trace *umpire.Trace) error {
+	replay := func(machine, monitor string, trace *goir.Trace) error {
 		if fresh == nil {
 			var err error
 			if fresh, err = Open(s.Model); err != nil {
@@ -72,7 +71,7 @@ func (s *Slice) QuintAgreement(x *QuintExport, itf []byte) ([]Receipt, error) {
 }
 
 // machineReceipts compares machine i's part of a dump with Go's reading of the machine.
-func (s *Slice) machineReceipts(x *QuintExport, i int, out map[string]any, replay func(machine, monitor string, trace *umpire.Trace) error) ([]Receipt, error) {
+func (s *Slice) machineReceipts(x *QuintExport, i int, out map[string]any, replay func(machine, monitor string, trace *goir.Trace) error) ([]Receipt, error) {
 	name := x.Machines[i]
 	part, ok := out[fmt.Sprintf("m%d", i)].(map[string]any)
 	if !ok {
@@ -215,7 +214,7 @@ func sets(d *differences, what string, ours, theirs []string) {
 // watched compares the product of a machine and its monitors, and replays Quint's counterexample
 // of every monitor it finds violated. A counterexample that does not replay is an error and stands
 // before any difference.
-func watched(mm *goir.Machine, ours, theirs *machineView, replay func(machine, monitor string, trace *umpire.Trace) error) Receipt {
+func watched(mm *goir.Machine, ours, theirs *machineView, replay func(machine, monitor string, trace *goir.Trace) error) Receipt {
 	name := mm.Decl.GetName()
 	r := Receipt{Backend: quintBackend, Claim: MonitorAgreement, Subject: name}
 	var d differences
@@ -350,7 +349,7 @@ type hop struct {
 // counterexample is a shortest path through a backend's product to a step on which the monitor at
 // index k is read and violated, as a trace of the machine, or nil when it has none. The path is the
 // backend's own: every state, class and result on it is read off its dump.
-func counterexample(t *umpire.Table, v *machineView, k int) *umpire.Trace {
+func counterexample(t *goir.Table, v *machineView, k int) *goir.Trace {
 	p := v.Product
 	parent := map[string]*hop{}
 	var queue []string
@@ -384,17 +383,17 @@ func counterexample(t *umpire.Table, v *machineView, k int) *umpire.Trace {
 }
 
 // pathTo is the trace that ends in one step of a product, by the step that first reached each state.
-func pathTo(t *umpire.Table, v *machineView, parent map[string]*hop, last hop) *umpire.Trace {
+func pathTo(t *goir.Table, v *machineView, parent map[string]*hop, last hop) *goir.Trace {
 	hops := []hop{last}
 	for h := parent[last.from]; h != nil; h = parent[h.from] {
 		hops = append(hops, *h)
 	}
 	slices.Reverse(hops)
 	states := v.Product.States
-	out := &umpire.Trace{Initial: t.StateAtom(states[hops[0].from].State)}
+	out := &goir.Trace{Initial: t.StateAtom(states[hops[0].from].State)}
 	for _, h := range hops {
 		res := v.Rows[states[h.from].State][h.class][h.result]
-		step := umpire.TraceStep{Action: t.ActionAtom(h.class), Outcome: t.OutcomeAtom(res.Outcome), State: t.StateAtom(res.State)}
+		step := goir.TraceStep{Action: t.ActionAtom(h.class), Outcome: t.OutcomeAtom(res.Outcome), State: t.StateAtom(res.State)}
 		for _, f := range res.Facts {
 			step.Facts = append(step.Facts, t.FactAtom(f))
 		}

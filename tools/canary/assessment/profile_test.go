@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/common/testing/testpilot/evaluation"
 	"go.temporal.io/server/tools/canary/policy"
-	"go.temporal.io/server/tools/umpire/evaluation"
 )
 
 // productionCanaryIdentity is the identity Temporal/Evaluation/CanaryTests.lean pins.

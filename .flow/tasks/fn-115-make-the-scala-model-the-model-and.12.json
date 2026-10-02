@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-02T10:35:34.762778Z",
+  "depends_on": [
+    "fn-115-make-the-scala-model-the-model-and.11"
+  ],
+  "id": "fn-115-make-the-scala-model-the-model-and.12",
+  "priority": null,
+  "spec": "fn-115-make-the-scala-model-the-model-and",
+  "spec_path": ".flow/tasks/fn-115-make-the-scala-model-the-model-and.12.md",
+  "status": "todo",
+  "title": "Enforce the final import graph and reconcile build, export and archive rules",
+  "updated_at": "2026-10-02T12:28:05.284421Z"
+}

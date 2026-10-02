@@ -12,8 +12,8 @@ import (
 	"github.com/google/uuid"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	"go.temporal.io/server/tools/canary/policy"
-	"go.temporal.io/server/tools/umpire/recordedrun"
 )
 
 // ProvenanceFormatVersion is the provenance format this package writes and reads.

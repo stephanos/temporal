@@ -1,0 +1,63 @@
+{
+  "type": "impl_review_fanout",
+  "focus": null,
+  "claim_token": null,
+  "id": "fn-88-veil-concrete-checker-as-the-umpire.9",
+  "standalone": false,
+  "base_branch": "68815ecfa3",
+  "reviewed_base_sha": "68815ecfa37fbc1717a98c9ecc3f4df420b6994f",
+  "reviewed_head_sha": "e37b7f9aba41cb8bf7e9d821f8fb72eba2ce5fb5",
+  "artifact_sha256": "c702ca45c0f363be82a883d9ccb84eb8ae6139a7baf6eceb4fdb0f27a494aef6",
+  "reservation_id": "9b0e5be306ee48faaf531761f501c15e",
+  "rid": "9b0e5be306ee48faaf531761f501c15e",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "backend": "codex",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "session_id": "01a0e4f8-6694-7ed1-b4c3-85c84dbbdbed",
+      "verdict": "NEEDS_WORK",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-09-27T22:24:38.919496Z",
+      "finished_at": "2026-09-27T22:27:44.623412Z",
+      "review_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/9b0e5be306ee48faaf531761f501c15e/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/9b0e5be306ee48faaf531761f501c15e/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "backend": "codex",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "session_id": "01a0e4f8-6694-7690-b7ee-bb3f308d6dbe",
+      "verdict": "NEEDS_WORK",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-09-27T22:24:38.919588Z",
+      "finished_at": "2026-09-27T22:27:15.464970Z",
+      "review_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/9b0e5be306ee48faaf531761f501c15e/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/9b0e5be306ee48faaf531761f501c15e/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "backend": "codex",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "session_id": "01a0e4f8-6694-7620-8797-1030b78f3344",
+      "verdict": "NEEDS_WORK",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-09-27T22:24:38.919663Z",
+      "finished_at": "2026-09-27T22:30:24.388134Z",
+      "review_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/9b0e5be306ee48faaf531761f501c15e/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/9b0e5be306ee48faaf531761f501c15e/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-3684356e61f5-fn-88-veil-concrete-checker-as-the-umpire.9.json",
+  "created_at": "2026-09-27T22:30:24.392995Z"
+}

@@ -191,8 +191,16 @@ final class Query private[umpire] (
     val property: PropertyDecl,
     val scenario: ScenarioDecl,
     val limits: Limits,
-    private[umpire] val refinement: Option[() => Checked[Refinement]]
+    private[umpire] val refinement: Option[() => Checked[Refinement]],
+    val expectedRun: Option[realize.RunExpectation] = None,
+    val exploration: Option[realize.Exploration] = None
 ):
+  def expect(expected: realize.RunExpectation): Query =
+    Query(name, form, property, scenario, limits, refinement, Some(expected), exploration)
+
+  def explore(space: realize.Exploration): Query =
+    Query(name, form, property, scenario, limits, refinement, expectedRun, Some(space))
+
   private[umpire] def decl: String = s"query $name"
   lazy val answer: Checked[Answer] = Search.answer(this)
   override def toString: String = name

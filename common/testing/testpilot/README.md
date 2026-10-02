@@ -37,13 +37,19 @@ records one `FAULT_INJECTED` event per realized outage, carrying the fault in it
 payload, which a Contract reads through a path. Nothing about a requested fault is evidence until
 that event exists.
 
-Two fault kinds are delivery controls, which reach inside the server: a hold, done once the server
-holds a dispatch of the activity the Run starts on the role's queue, and a release, which delivers the
+Delivery controls reach inside the server: a hold is done once the server
+holds a dispatch of the activity the Run starts on the role's queue, and a release delivers the
 held dispatch to the server's authoritative admission and is done once what admission committed for
 it is observed. A successful release's outcome carries that decision as its `delivery_admission`, and
-no other outcome carries one. Only an environment that runs the server can supply the control, so a
+the response-loss control below also carries its committed decision. Only an environment that runs the server can supply the control, so a
 Profile says whether its environment does (`ProfileSpec.DeliveryControl`), and a Case that holds a
 delivery is refused under a Profile that does not, at preparation, naming the instruction.
+
+`ADMISSION_RESPONSE_LOSS` releases a held dispatch and replaces one successful history admission
+response with `Unavailable`. It succeeds after a retry with the same execution, stamp and request ID
+confirms that replacement reached the caller. The outcome carries the original committed attempt;
+an obsolete retry never establishes a rejection. The environment must supply `HeldDelivery` loss
+control before any target I/O. Cleanup closes the hold and disables the response hook.
 
 A worker instruction may carry the Temporal API message the Driver realizes through its SDK
 (fn-85 R10): `WorkflowCommand` carries a `temporal.api.command.v1.Command`, `NexusHandlerReply` a

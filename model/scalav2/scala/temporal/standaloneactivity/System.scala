@@ -1102,7 +1102,96 @@ val staleDeliveryRejected: Property[AdmissionState] =
   )
 
 val heldStaleDelivery: Query =
-  query("heldAdmission.staleDelivery") find staleDeliveryRejected in heldAdmission
+  (query("heldAdmission.staleDelivery") find staleDeliveryRejected in heldAdmission
     .scenario("heldStaleDelivery")
     .starts(scheduledIdle)
-    .actions(dispatch, control(Control.pause), attemptStart) limits three
+    .actions(dispatch, control(Control.pause), attemptStart) limits three).expect(
+    umpire.realize.RunExpectation(
+      umpire.realize.Conformance.conformant,
+      umpire.realize.Outcome.satisfied,
+      monitors = Vector(
+        umpire.realize
+          .MonitorExpectation(
+            "atMostOneActiveAttempt",
+            umpire.realize.Outcome.inconclusive,
+            "an execution that explains the evidence never reaches the claim's evaluation point"
+          ),
+        umpire.realize.MonitorExpectation("terminalFinality", umpire.realize.Outcome.satisfied)
+      )
+    )
+  )
+
+// A bounded projection of admission and its lost answer. The one response-loss budget is consumed
+// whether the update committed or failed: the caller's missing answer alone distinguishes neither.
+// The in-process actuator supplies the durable decision separately and realizes the committed arm.
+final case class AdmissionResponseState(record: AdmissionState, lossAvailable: Boolean)
+    derives Finite
+
+enum AdmissionResponseFact derives Finite:
+  case dispatchSent, attemptAdmitted
+
+val responseLossInitial: AdmissionResponseState = AdmissionResponseState(scheduledIdle, true)
+
+def responseLossEvidence(f: AdmissionResponseFact): String = f match
+  case AdmissionResponseFact.dispatchSent    => "dispatchSent"
+  case AdmissionResponseFact.attemptAdmitted => "attemptAdmitted"
+
+def responseLossDispatch(
+    s: AdmissionResponseState
+): List[Step[AdmissionResponseState, Outcome, AdmissionResponseFact]] =
+  if !s.lossAvailable then Nil
+  else List(Step(Outcome.accepted, s, List(AdmissionResponseFact.dispatchSent)))
+
+def loseAdmissionAnswer(
+    s: AdmissionResponseState
+): List[Step[AdmissionResponseState, Outcome, AdmissionResponseFact]] =
+  if !s.lossAvailable then Nil
+  else
+    List(
+      Step(
+        Outcome.accepted,
+        AdmissionResponseState(
+          s.record.copy(
+            phase = AdmissionPhase.started,
+            active = oneMore(s.record.active),
+            answer = Answer.owed
+          ),
+          false
+        ),
+        List(AdmissionResponseFact.attemptAdmitted)
+      ),
+      Step(
+        Outcome.accepted,
+        s.copy(lossAvailable = false),
+        Nil,
+        "the durable update failed before its answer was lost"
+      )
+    )
+
+val admissionResponseLoss: Machine[AdmissionResponseState, Outcome, AdmissionResponseFact] =
+  machine[AdmissionResponseState, Outcome, AdmissionResponseFact](
+    SystemFamily,
+    "admissionResponseLoss"
+  ) {
+    forEntity(activity)
+    starts(responseLossInitial)
+    ends(s => !s.lossAvailable)
+    evidence(responseLossEvidence)
+    steps(dispatch ~> responseLossDispatch, ackLoss ~> loseAdmissionAnswer)
+  }
+
+val committedDespiteLostResponse: Property[AdmissionResponseState] =
+  admissionResponseLoss.property("committedDespiteLostResponse") when ackLoss holds (after =>
+    after.facts.contains(AdmissionResponseFact.attemptAdmitted)
+  )
+
+val lostAdmissionResponseQuery: Query =
+  (query(
+    "admissionResponseLoss.committed"
+  ) find committedDespiteLostResponse in admissionResponseLoss
+    .scenario("oneLostResponse")
+    .starts(responseLossInitial)
+    .actions(dispatch, ackLoss) limits three).expect(
+    umpire.realize
+      .RunExpectation(umpire.realize.Conformance.conformant, umpire.realize.Outcome.satisfied)
+  )

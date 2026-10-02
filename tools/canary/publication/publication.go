@@ -9,9 +9,9 @@ import (
 	"errors"
 	"fmt"
 
+	"go.temporal.io/server/common/testing/testpilot/evaluation"
+	"go.temporal.io/server/common/testing/testpilot/publish"
 	"go.temporal.io/server/tools/canary/assessment"
-	"go.temporal.io/server/tools/umpire/evaluation"
-	"go.temporal.io/server/tools/umpire/publish"
 )
 
 // ProvenanceSuffix ends every provenance's published name, after its identity.

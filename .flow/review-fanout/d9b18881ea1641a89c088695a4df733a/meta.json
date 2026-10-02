@@ -1,0 +1,78 @@
+{
+  "type": "impl_review_fanout",
+  "focus": null,
+  "claim_token": null,
+  "id": "fn-88-veil-concrete-checker-as-the-umpire.10",
+  "standalone": false,
+  "base_branch": "ace45a1002",
+  "reviewed_base_sha": "ace45a10028e63ceeb0f58c1d57c400384d80a47",
+  "reviewed_head_sha": "d157f623ef5e1b423c72191477438dc76e2f74e2",
+  "artifact_sha256": "68ae6f12a9ad20212d12f117fdfe378da2ae0a3b9ba369ca696ee1ef5dab427c",
+  "reservation_id": "d9b18881ea1641a89c088695a4df733a",
+  "rid": "d9b18881ea1641a89c088695a4df733a",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "session_id": "01a0e63a-dc25-7ae0-a562-c361c10248a5",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-09-28T04:16:51.448823Z",
+      "finished_at": "2026-09-28T04:20:27.760114Z",
+      "review_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/d9b18881ea1641a89c088695a4df733a/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/d9b18881ea1641a89c088695a4df733a/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "session_id": "01a0e63a-dc25-7090-8dce-a54c8bc125d8",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-09-28T04:16:51.448916Z",
+      "finished_at": "2026-09-28T04:20:33.935646Z",
+      "review_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/d9b18881ea1641a89c088695a4df733a/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/d9b18881ea1641a89c088695a4df733a/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "session_id": "01a0e63a-dc25-72c0-a324-7ece79177160",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-09-28T04:16:51.448980Z",
+      "finished_at": "2026-09-28T04:20:13.529088Z",
+      "review_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/d9b18881ea1641a89c088695a4df733a/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/d9b18881ea1641a89c088695a4df733a/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-3684356e61f5-fn-88-veil-concrete-checker-as-the-umpire.10.json",
+  "created_at": "2026-09-28T04:20:33.939396Z"
+}

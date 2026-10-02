@@ -15,7 +15,6 @@ import (
 	"strings"
 
 	modelirspb "go.temporal.io/server/api/modelir/v1"
-	"go.temporal.io/server/model/go/umpire"
 	"go.temporal.io/server/model/scalav2/goir"
 )
 
@@ -67,7 +66,7 @@ const (
 // Witness is a backend's counterexample of one monitor, as a path of the machine.
 type Witness struct {
 	Monitor string
-	Trace   *umpire.Trace
+	Trace   *goir.Trace
 }
 
 // Receipt is what one comparison of a backend with Go established, and over what.
@@ -313,7 +312,7 @@ func composedView(c *goir.Composed) (*machineView, error) {
 
 // composedReads reads a composition's Properties on one step, as goir's checker binds them. A
 // Property that is not about the step holds of it, and its function is not called there.
-func composedReads(properties []goir.BoundProperty, state, class string, step umpire.Result) ([]claimRead, error) {
+func composedReads(properties []goir.BoundProperty, state, class string, step goir.Result) ([]claimRead, error) {
 	reads := make([]claimRead, len(properties))
 	for i, p := range properties {
 		reads[i] = claimRead{Holds: true}
@@ -603,7 +602,7 @@ func depth(starts []string, successors func(string) []string) int {
 // Replay replays a backend's counterexample of a monitor through a fresh interpretation of the
 // Model: the trace must be a path of the machine's table, by its Definition IDs, from one of its
 // starts, and the monitor must be read and violated on its last step. Anything else is an error.
-func (s *Slice) Replay(machine, monitor string, trace *umpire.Trace) error {
+func (s *Slice) Replay(machine, monitor string, trace *goir.Trace) error {
 	fresh, err := Open(s.Model)
 	if err != nil {
 		return err
@@ -611,7 +610,7 @@ func (s *Slice) Replay(machine, monitor string, trace *umpire.Trace) error {
 	return fresh.replay(machine, monitor, trace)
 }
 
-func (s *Slice) replay(machine, monitor string, trace *umpire.Trace) error {
+func (s *Slice) replay(machine, monitor string, trace *goir.Trace) error {
 	mm := s.machines[machine]
 	if mm == nil {
 		return fmt.Errorf("the Model has no machine %s", machine)
@@ -644,7 +643,7 @@ func (s *Slice) replay(machine, monitor string, trace *umpire.Trace) error {
 		}
 		// Build lists a machine's transitions row for row with its table.
 		tr := mm.Transitions[j]
-		n := slices.IndexFunc(mm.Table.Rows[j].Results, func(r umpire.Result) bool {
+		n := slices.IndexFunc(mm.Table.Rows[j].Results, func(r goir.Result) bool {
 			return r.Outcome == step.Outcome.Value && r.State == step.State.Value && slices.Equal(r.Facts, atomValues(step.Facts))
 		})
 		if n < 0 {
@@ -662,7 +661,7 @@ func (s *Slice) replay(machine, monitor string, trace *umpire.Trace) error {
 	return nil
 }
 
-func atomValues(atoms []umpire.Atom) []string {
+func atomValues(atoms []goir.Atom) []string {
 	out := make([]string, len(atoms))
 	for i, a := range atoms {
 		out[i] = a.Value

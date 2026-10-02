@@ -271,7 +271,7 @@ func (a *admission) bindRPC(g *graph, i int, n *node) error {
 // carries no queue of its own.
 func (a *admission) bindFault(g *graph, n *node) error {
 	fault := n.source.Instruction.GetInjectFault()
-	if fault == nil || fault.Kind < testpilotspb.FAULT_KIND_WORKER_STOP || fault.Kind > testpilotspb.FAULT_KIND_DELIVERY_RELEASE {
+	if fault == nil || fault.Kind < testpilotspb.FAULT_KIND_WORKER_STOP || fault.Kind > testpilotspb.FAULT_KIND_ADMISSION_RESPONSE_LOSS {
 		return ir.Invalid(ir.Malformed, nodePath(g, n), "fault injection requires a known fault kind")
 	}
 	// The role check does not go through a.role: a fault aimed at the wrong role kind is a

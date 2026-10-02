@@ -2,6 +2,7 @@ package temporal
 package standaloneactivity
 
 import umpire.*
+import umpire.realize.{Conformance, Outcome, RunExpectation}
 import worker.{Phase as WorkerPhase, State as WorkerState}
 
 // ### What the machines promise
@@ -170,15 +171,39 @@ val six: Limits = Limits("six", steps = 6, actions = 6, search = 262144)
 /** A product Property read on the protocol machine goes through the declared refinement. */
 given Reads[ProtocolState, ProductState] = Reads.through(activityProtocol, activityProduct)
 
-val completion: Query = query("completion") find completes in completed limits three
+val completion: Query = (query("completion") find completes in completed limits three)
+  .expect(RunExpectation(Conformance.conformant, Outcome.satisfied))
 val nonRetryableFailure: Query =
-  query("nonRetryableFailure") find nonRetryableFails in nonRetryable limits three
-val retry: Query = query("retry") find retryCompletes in retriedThenCompleted limits six
+  (query("nonRetryableFailure") find nonRetryableFails in nonRetryable limits three)
+    .expect(RunExpectation(Conformance.conformant, Outcome.satisfied))
+val retry: Query = (query("retry") find retryCompletes in retriedThenCompleted limits six)
+  .expect(
+    RunExpectation(
+      Conformance.conformant,
+      Outcome.inconclusive,
+      "the executions that explain the evidence disagree"
+    )
+  )
 val cancel: Query = query("cancel") find canceledByWorker in cancelRequestedThenCanceled limits four
-val terminate: Query = query("terminate") find terminated in terminatedWhileScheduled limits three
-val pauseResume: Query = query("pauseResume") find completes in pausedThenCompleted limits six
+val terminate: Query = (query("terminate") find terminated in terminatedWhileScheduled limits three)
+  .expect(
+    RunExpectation(
+      Conformance.conformant,
+      Outcome.inconclusive,
+      "the executions that explain the evidence disagree"
+    )
+  )
+val pauseResume: Query = (query("pauseResume") find completes in pausedThenCompleted limits six)
+  .expect(RunExpectation(Conformance.conformant, Outcome.satisfied))
 val scheduleToStartTimeout: Query =
-  query("scheduleToStartTimeout") find scheduleToStartFires in scheduleToStartExpires limits three
+  (query("scheduleToStartTimeout") find scheduleToStartFires in scheduleToStartExpires limits three)
+    .expect(
+      RunExpectation(
+        Conformance.conformant,
+        Outcome.inconclusive,
+        "an execution that explains the evidence never reaches the claim's evaluation point"
+      )
+    )
 val startToCloseTimeout: Query =
   query("startToCloseTimeout") find startToCloseFires in startToCloseExpires limits three
 

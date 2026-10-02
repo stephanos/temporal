@@ -1,5 +1,5 @@
 {
-  "source": "model/scalav2: temporal.standaloneactivity.ActivityRealization$.heldDelivery, temporal.standaloneactivity.System$package$.heldStaleDelivery",
+  "source": "model/scalav2: temporal.standaloneactivity.ActivityRealization$.heldDelivery, temporal.standaloneactivity.ActivityRealization$.lostAdmissionResponse, temporal.standaloneactivity.System$package$.heldStaleDelivery, temporal.standaloneactivity.System$package$.lostAdmissionResponseQuery",
   "types": [{
     "name": "temporal.standaloneactivity.Active",
     "position": {
@@ -67,6 +67,39 @@
         "name": "completed"
       }, {
         "name": "timedOut"
+      }]
+    }
+  }, {
+    "name": "temporal.standaloneactivity.AdmissionResponseFact",
+    "position": {
+      "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+      "line": 1130
+    },
+    "enum": {
+      "cases": [{
+        "name": "dispatchSent"
+      }, {
+        "name": "attemptAdmitted"
+      }]
+    }
+  }, {
+    "name": "temporal.standaloneactivity.AdmissionResponseState",
+    "position": {
+      "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+      "line": 1127
+    },
+    "record": {
+      "fields": [{
+        "name": "record",
+        "type": {
+          "named": "temporal.standaloneactivity.AdmissionState"
+        }
+      }, {
+        "name": "lossAvailable",
+        "type": {
+          "bool": {
+          }
+        }
       }]
     }
   }, {
@@ -445,6 +478,83 @@
             }
           }
         }]
+      }
+    }
+  }, {
+    "name": "admissionResponseLoss.evidence",
+    "position": {
+      "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+      "line": 1179
+    },
+    "params": [{
+      "name": "f",
+      "type": {
+        "named": "temporal.standaloneactivity.AdmissionResponseFact"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+        "line": 1179
+      },
+      "call": {
+        "function": "temporal.standaloneactivity.System$package$.responseLossEvidence",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+            "line": 1179
+          },
+          "var": "f"
+        }]
+      }
+    }
+  }, {
+    "name": "admissionResponseLoss.property.committedDespiteLostResponse",
+    "position": {
+      "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+      "line": 1184
+    },
+    "params": [{
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+        "line": 1185
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+            "line": 1185
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.AdmissionResponseFact",
+              "case": "attemptAdmitted"
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+            "line": 1185
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                "line": 1185
+              },
+              "var": "after"
+            },
+            "field": "facts"
+          }
+        }
       }
     }
   }, {
@@ -3590,6 +3700,281 @@
       }
     }
   }, {
+    "name": "temporal.standaloneactivity.System$package$.loseAdmissionAnswer",
+    "position": {
+      "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+      "line": 1145
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "temporal.standaloneactivity.AdmissionResponseState"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+        "line": 1148
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+            "line": 1148
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                "line": 1148
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                    "line": 1148
+                  },
+                  "var": "s"
+                },
+                "field": "lossAvailable"
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+            "line": 1148
+          },
+          "list": {
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+            "line": 1150
+          },
+          "list": {
+            "items": [{
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                "line": 1151
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [{
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                    "line": 1152
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.standaloneactivity.Outcome",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                    "line": 1153
+                  },
+                  "construct": {
+                    "type": "temporal.standaloneactivity.AdmissionResponseState",
+                    "args": [{
+                      "position": {
+                        "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                        "line": 1154
+                      },
+                      "copy": {
+                        "base": {
+                          "position": {
+                            "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                            "line": 1154
+                          },
+                          "field": {
+                            "base": {
+                              "position": {
+                                "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                                "line": 1154
+                              },
+                              "var": "s"
+                            },
+                            "field": "record"
+                          }
+                        },
+                        "updates": [{
+                          "name": "phase",
+                          "value": {
+                            "position": {
+                              "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                              "line": 1155
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "temporal.standaloneactivity.AdmissionPhase",
+                                "case": "started"
+                              }
+                            }
+                          }
+                        }, {
+                          "name": "active",
+                          "value": {
+                            "position": {
+                              "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                              "line": 1156
+                            },
+                            "call": {
+                              "function": "temporal.standaloneactivity.System$package$.oneMore",
+                              "args": [{
+                                "position": {
+                                  "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                                  "line": 1156
+                                },
+                                "field": {
+                                  "base": {
+                                    "position": {
+                                      "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                                      "line": 1156
+                                    },
+                                    "field": {
+                                      "base": {
+                                        "position": {
+                                          "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                                          "line": 1156
+                                        },
+                                        "var": "s"
+                                      },
+                                      "field": "record"
+                                    }
+                                  },
+                                  "field": "active"
+                                }
+                              }]
+                            }
+                          }
+                        }, {
+                          "name": "answer",
+                          "value": {
+                            "position": {
+                              "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                              "line": 1157
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "temporal.standaloneactivity.Answer",
+                                "case": "owed"
+                              }
+                            }
+                          }
+                        }]
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                        "line": 1159
+                      },
+                      "literal": {
+                        "bool": false
+                      }
+                    }]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                    "line": 1161
+                  },
+                  "list": {
+                    "items": [{
+                      "position": {
+                        "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                        "line": 1161
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.AdmissionResponseFact",
+                          "case": "attemptAdmitted"
+                        }
+                      }
+                    }]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                    "line": 1151
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                }]
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                "line": 1163
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [{
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                    "line": 1164
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.standaloneactivity.Outcome",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                    "line": 1165
+                  },
+                  "copy": {
+                    "base": {
+                      "position": {
+                        "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                        "line": 1165
+                      },
+                      "var": "s"
+                    },
+                    "updates": [{
+                      "name": "lossAvailable",
+                      "value": {
+                        "position": {
+                          "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                          "line": 1165
+                        },
+                        "literal": {
+                          "bool": false
+                        }
+                      }
+                    }]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                    "line": 1166
+                  },
+                  "list": {
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                    "line": 1167
+                  },
+                  "literal": {
+                    "text": "the durable update failed before its answer was lost"
+                  }
+                }]
+              }
+            }]
+          }
+        }
+      }
+    }
+  }, {
     "name": "temporal.standaloneactivity.System$package$.oneLess",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
@@ -4327,6 +4712,185 @@
       }
     }
   }, {
+    "name": "temporal.standaloneactivity.System$package$.responseLossDispatch",
+    "position": {
+      "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+      "line": 1139
+    },
+    "params": [{
+      "name": "s",
+      "type": {
+        "named": "temporal.standaloneactivity.AdmissionResponseState"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+        "line": 1142
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+            "line": 1142
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                "line": 1142
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                    "line": 1142
+                  },
+                  "var": "s"
+                },
+                "field": "lossAvailable"
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+            "line": 1142
+          },
+          "list": {
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+            "line": 1143
+          },
+          "list": {
+            "items": [{
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                "line": 1143
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [{
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                    "line": 1143
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.standaloneactivity.Outcome",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                    "line": 1143
+                  },
+                  "var": "s"
+                }, {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                    "line": 1143
+                  },
+                  "list": {
+                    "items": [{
+                      "position": {
+                        "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                        "line": 1143
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.AdmissionResponseFact",
+                          "case": "dispatchSent"
+                        }
+                      }
+                    }]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                    "line": 1143
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                }]
+              }
+            }]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.standaloneactivity.System$package$.responseLossEvidence",
+    "position": {
+      "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+      "line": 1135
+    },
+    "params": [{
+      "name": "f",
+      "type": {
+        "named": "temporal.standaloneactivity.AdmissionResponseFact"
+      }
+    }],
+    "body": {
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+        "line": 1135
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+            "line": 1135
+          },
+          "var": "f"
+        },
+        "cases": [{
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.AdmissionResponseFact",
+                "case": "dispatchSent"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+              "line": 1136
+            },
+            "literal": {
+              "text": "dispatchSent"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.AdmissionResponseFact",
+                "case": "attemptAdmitted"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+              "line": 1137
+            },
+            "literal": {
+              "text": "attemptAdmitted"
+            }
+          }
+        }]
+      }
+    }
+  }, {
     "name": "temporal.standaloneactivity.System$package$.terminalFinality.next",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
@@ -4487,6 +5051,14 @@
     "party": "system",
     "timer": true
   }, {
+    "id": "temporal.standaloneactivity.System$package$.ackLoss",
+    "name": "ackLoss",
+    "position": {
+      "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+      "line": 517
+    },
+    "party": "fault"
+  }, {
     "id": "temporal.standaloneactivity.System$package$.answerDelivery",
     "name": "answerDelivery",
     "position": {
@@ -4612,6 +5184,132 @@
       }
     }],
     "evidence": "activityProduct.evidence"
+  }, {
+    "family": "temporal.activity.standalone.system",
+    "name": "admissionResponseLoss",
+    "position": {
+      "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+      "line": 1172
+    },
+    "entity": "activity",
+    "stateType": "temporal.standaloneactivity.AdmissionResponseState",
+    "outcomeType": "temporal.standaloneactivity.Outcome",
+    "factType": "temporal.standaloneactivity.AdmissionResponseFact",
+    "starts": [{
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+        "line": 1133
+      },
+      "construct": {
+        "type": "temporal.standaloneactivity.AdmissionResponseState",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+            "line": 67
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.AdmissionState",
+            "args": [{
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                "line": 67
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.AdmissionPhase",
+                  "case": "scheduled"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                "line": 67
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Active",
+                  "case": "none"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                "line": 67
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Answer",
+                  "case": "settled"
+                }
+              }
+            }]
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+            "line": 1133
+          },
+          "literal": {
+            "bool": true
+          }
+        }]
+      }
+    }],
+    "ends": {
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+        "line": 1178
+      },
+      "lambda": {
+        "params": [{
+          "name": "s",
+          "type": {
+            "named": "temporal.standaloneactivity.AdmissionResponseState"
+          }
+        }],
+        "body": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+            "line": 1178
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                "line": 1178
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                    "line": 1178
+                  },
+                  "var": "s"
+                },
+                "field": "lossAvailable"
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [{
+      "action": "temporal.standaloneactivity.System$package$.dispatch",
+      "function": "temporal.standaloneactivity.System$package$.responseLossDispatch",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+        "line": 1180
+      }
+    }, {
+      "action": "temporal.standaloneactivity.System$package$.ackLoss",
+      "function": "temporal.standaloneactivity.System$package$.loseAdmissionAnswer",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+        "line": 1180
+      }
+    }],
+    "evidence": "admissionResponseLoss.evidence"
   }, {
     "family": "temporal.activity.standalone.system",
     "name": "heldAdmission",
@@ -4786,6 +5484,17 @@
     }
   }],
   "properties": [{
+    "machine": "admissionResponseLoss",
+    "name": "committedDespiteLostResponse",
+    "position": {
+      "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+      "line": 1184
+    },
+    "whenClass": {
+      "action": "temporal.standaloneactivity.System$package$.ackLoss"
+    },
+    "holds": "admissionResponseLoss.property.committedDespiteLostResponse"
+  }, {
     "machine": "heldAdmission",
     "name": "staleDeliveryRejected",
     "position": {
@@ -4798,6 +5507,78 @@
     "holds": "heldAdmission.property.staleDeliveryRejected"
   }],
   "scenarios": [{
+    "machine": "admissionResponseLoss",
+    "name": "oneLostResponse",
+    "position": {
+      "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+      "line": 1191
+    },
+    "start": {
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+        "line": 1133
+      },
+      "construct": {
+        "type": "temporal.standaloneactivity.AdmissionResponseState",
+        "args": [{
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+            "line": 67
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.AdmissionState",
+            "args": [{
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                "line": 67
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.AdmissionPhase",
+                  "case": "scheduled"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                "line": 67
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Active",
+                  "case": "none"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+                "line": 67
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Answer",
+                  "case": "settled"
+                }
+              }
+            }]
+          }
+        }, {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+            "line": 1133
+          },
+          "literal": {
+            "bool": true
+          }
+        }]
+      }
+    },
+    "actions": [{
+      "action": "temporal.standaloneactivity.System$package$.dispatch"
+    }, {
+      "action": "temporal.standaloneactivity.System$package$.ackLoss"
+    }]
+  }, {
     "machine": "heldAdmission",
     "name": "heldStaleDelivery",
     "position": {
@@ -4862,6 +5643,31 @@
     }]
   }],
   "queries": [{
+    "name": "admissionResponseLoss.committed",
+    "position": {
+      "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
+      "line": 1189
+    },
+    "form": "FORM_FIND",
+    "property": {
+      "machine": "admissionResponseLoss",
+      "name": "committedDespiteLostResponse"
+    },
+    "scenario": {
+      "machine": "admissionResponseLoss",
+      "name": "oneLostResponse"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 4096
+    },
+    "expectedRun": {
+      "property": "OUTCOME_SATISFIED",
+      "conformance": "CONFORMANCE_CONFORMANT"
+    }
+  }, {
     "name": "heldAdmission.staleDelivery",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/System.scala",
@@ -4881,6 +5687,18 @@
       "steps": 3,
       "actions": 3,
       "search": 4096
+    },
+    "expectedRun": {
+      "property": "OUTCOME_SATISFIED",
+      "conformance": "CONFORMANCE_CONFORMANT",
+      "monitors": [{
+        "name": "atMostOneActiveAttempt",
+        "outcome": "OUTCOME_INCONCLUSIVE",
+        "reason": "an execution that explains the evidence never reaches the claim\u0027s evaluation point"
+      }, {
+        "name": "terminalFinality",
+        "outcome": "OUTCOME_SATISFIED"
+      }]
     }
   }],
   "realizations": [{
@@ -4888,7 +5706,7 @@
     "name": "heldDelivery",
     "position": {
       "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
-      "line": 516
+      "line": 518
     },
     "machine": "heldAdmission",
     "producer": "temporal.activity.standalone.testpilot",
@@ -4897,14 +5715,14 @@
       "id": "temporal.workflow-service",
       "position": {
         "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
-        "line": 522
+        "line": 524
       },
       "kind": "KIND_ENDPOINT"
     }, {
       "id": "temporal.task-queue",
       "position": {
         "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
-        "line": 523
+        "line": 525
       },
       "kind": "KIND_TASK_QUEUE",
       "namespace": "temporal.worker.namespace",
@@ -4914,7 +5732,7 @@
       "id": "correlated-evidence",
       "position": {
         "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
-        "line": 544
+        "line": 546
       },
       "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
     }],
@@ -5237,7 +6055,7 @@
     "correlation": {
       "position": {
         "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
-        "line": 530
+        "line": 532
       },
       "projection": "temporal.activity.standalone.projection",
       "run": "temporal.activity.standalone.scope.run",
@@ -5254,7 +6072,7 @@
       "id": "hold-dispatch",
       "position": {
         "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
-        "line": 553
+        "line": 555
       },
       "role": "temporal.task-queue",
       "holdDispatched": {
@@ -5267,20 +6085,20 @@
       "id": "controller",
       "position": {
         "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
-        "line": 468
+        "line": 486
       },
       "controller": {
       },
       "items": [{
         "position": {
           "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
-          "line": 472
+          "line": 468
         },
         "command": {
           "id": "start-activity",
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
-            "line": 474
+            "line": 470
           },
           "rpc": {
             "role": "temporal.workflow-service",
@@ -5309,7 +6127,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
-                  "line": 480
+                  "line": 476
                 },
                 "literal": {
                   "named": {
@@ -5324,7 +6142,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
-                  "line": 481
+                  "line": 477
                 },
                 "environment": "temporal.task-queue.resource"
               }
@@ -5333,7 +6151,7 @@
               "value": {
                 "position": {
                   "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
-                  "line": 482
+                  "line": 478
                 },
                 "run": {
                 }
@@ -5355,12 +6173,12 @@
       }, {
         "position": {
           "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
-          "line": 489
+          "line": 491
         },
         "performs": [{
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
-            "line": 489
+            "line": 491
           },
           "step": {
             "action": "temporal.standaloneactivity.System$package$.dispatch"
@@ -5369,7 +6187,7 @@
             "id": "hold-dispatch",
             "position": {
               "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
-              "line": 489
+              "line": 491
             },
             "hold": "hold-dispatch"
           }
@@ -5377,7 +6195,7 @@
       }, {
         "position": {
           "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
-          "line": 490
+          "line": 492
         },
         "performs": [{
           "position": {
@@ -5428,7 +6246,7 @@
       }, {
         "position": {
           "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
-          "line": 493
+          "line": 495
         },
         "command": {
           "id": "await-paused",
@@ -5508,12 +6326,12 @@
       }, {
         "position": {
           "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
-          "line": 500
+          "line": 502
         },
         "performs": [{
           "position": {
             "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
-            "line": 502
+            "line": 504
           },
           "step": {
             "action": "temporal.standaloneactivity.Model$package$.attemptStart"
@@ -5522,10 +6340,433 @@
             "id": "release-dispatch",
             "position": {
               "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
-              "line": 504
+              "line": 506
             },
             "release": "hold-dispatch",
             "closes": ["temporal.activity.standalone.evidence.attemptAdmitted"]
+          }
+        }]
+      }]
+    }],
+    "cleanup": "cleanup"
+  }, {
+    "id": "temporal.standaloneactivity.ActivityRealization$.lostAdmissionResponse",
+    "name": "lostAdmissionResponse",
+    "position": {
+      "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+      "line": 562
+    },
+    "machine": "admissionResponseLoss",
+    "producer": "temporal.activity.standalone.testpilot",
+    "producerVersion": "1",
+    "roles": [{
+      "id": "temporal.workflow-service",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 568
+      },
+      "kind": "KIND_ENDPOINT"
+    }, {
+      "id": "temporal.task-queue",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 569
+      },
+      "kind": "KIND_TASK_QUEUE",
+      "namespace": "temporal.worker.namespace",
+      "resource": "temporal.task-queue.resource"
+    }],
+    "observations": [{
+      "id": "correlated-evidence",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 607
+      },
+      "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+    }],
+    "evidence": [{
+      "id": "temporal.activity.standalone.evidence.dispatchSent",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 87
+      },
+      "records": "dispatchSent",
+      "source": "temporal.activity.standalone.source.record",
+      "commitment": "COMMITMENT_REPORTED",
+      "runEvent": {
+        "kind": "KIND_INSTRUCTION_COMPLETED",
+        "script": "controller",
+        "command": "hold-dispatch",
+        "key": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 95
+          },
+          "run": {
+          }
+        },
+        "guard": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 75
+          },
+          "equal": {
+            "left": {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                "line": 75
+              },
+              "path": {
+                "of": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 75
+                  },
+                  "projected": {
+                  }
+                },
+                "path": "status"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                "line": 75
+              },
+              "literal": {
+                "enumName": "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"
+              }
+            }
+          }
+        }
+      }
+    }, {
+      "id": "temporal.activity.standalone.evidence.attemptAdmitted",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 611
+      },
+      "records": "attemptAdmitted",
+      "source": "temporal.activity.standalone.source.record",
+      "commitment": "COMMITMENT_DURABLE",
+      "fields": [{
+        "id": "delivery",
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 634
+        },
+        "path": "delivery_admission.delivery_id",
+        "role": "ROLE_DELIVERY"
+      }, {
+        "id": "attempt",
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 639
+        },
+        "path": "delivery_admission.attempt",
+        "role": "ROLE_ATTEMPT"
+      }, {
+        "id": "activityRun",
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 640
+        },
+        "path": "delivery_admission.activity_run_id"
+      }],
+      "runEvent": {
+        "kind": "KIND_INSTRUCTION_COMPLETED",
+        "script": "controller",
+        "command": "release-dispatch",
+        "key": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 619
+          },
+          "path": {
+            "of": {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                "line": 619
+              },
+              "projected": {
+              }
+            },
+            "path": "delivery_admission.activity_id"
+          }
+        },
+        "guard": {
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 621
+          },
+          "all": {
+            "operands": [{
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                "line": 75
+              },
+              "equal": {
+                "left": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 75
+                  },
+                  "path": {
+                    "of": {
+                      "position": {
+                        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                        "line": 75
+                      },
+                      "projected": {
+                      }
+                    },
+                    "path": "status"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 75
+                  },
+                  "literal": {
+                    "enumName": "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"
+                  }
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                "line": 623
+              },
+              "equal": {
+                "left": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 624
+                  },
+                  "path": {
+                    "of": {
+                      "position": {
+                        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                        "line": 624
+                      },
+                      "projected": {
+                      }
+                    },
+                    "path": "delivery_admission.decision"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 625
+                  },
+                  "literal": {
+                    "enumName": "DELIVERY_ADMISSION_DECISION_ADMITTED"
+                  }
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                "line": 627
+              },
+              "greater": {
+                "left": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 627
+                  },
+                  "path": {
+                    "of": {
+                      "position": {
+                        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                        "line": 627
+                      },
+                      "projected": {
+                      }
+                    },
+                    "path": "delivery_admission.attempt"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                    "line": 627
+                  },
+                  "literal": {
+                    "number": "0"
+                  }
+                }
+              }
+            }]
+          }
+        }
+      }
+    }],
+    "correlation": {
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 576
+      },
+      "projection": "temporal.activity.standalone.projection",
+      "run": "temporal.activity.standalone.scope.run",
+      "operation": "temporal.activity.standalone.scope.activity",
+      "observation": "correlated-evidence",
+      "events": "32",
+      "buffered": "16",
+      "keys": "8",
+      "support": "128",
+      "work": "1000000000",
+      "eventSize": "512"
+    },
+    "controls": [{
+      "id": "hold-dispatch",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 645
+      },
+      "role": "temporal.task-queue",
+      "holdDispatched": {
+        "step": {
+          "action": "temporal.standaloneactivity.System$package$.dispatch"
+        }
+      }
+    }],
+    "scripts": [{
+      "id": "controller",
+      "position": {
+        "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+        "line": 589
+      },
+      "controller": {
+      },
+      "items": [{
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 468
+        },
+        "command": {
+          "id": "start-activity",
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 470
+          },
+          "rpc": {
+            "role": "temporal.workflow-service",
+            "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
+            "assign": [{
+              "target": "namespace",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                  "line": 177
+                },
+                "environment": "temporal.worker.namespace"
+              }
+            }, {
+              "target": "activity_id",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                  "line": 178
+                },
+                "run": {
+                }
+              }
+            }, {
+              "target": "activity_type.name",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                  "line": 476
+                },
+                "literal": {
+                  "named": {
+                    "prefix": "umpire-",
+                    "fixture": true,
+                    "suffix": "-activity"
+                  }
+                }
+              }
+            }, {
+              "target": "task_queue.name",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                  "line": 477
+                },
+                "environment": "temporal.task-queue.resource"
+              }
+            }, {
+              "target": "request_id",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                  "line": 478
+                },
+                "run": {
+                }
+              }
+            }, {
+              "target": "start_to_close_timeout.seconds",
+              "value": {
+                "position": {
+                  "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+                  "line": 188
+                },
+                "literal": {
+                  "number": "300"
+                }
+              }
+            }]
+          }
+        }
+      }, {
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 594
+        },
+        "performs": [{
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 594
+          },
+          "step": {
+            "action": "temporal.standaloneactivity.System$package$.dispatch"
+          },
+          "command": {
+            "id": "hold-dispatch",
+            "position": {
+              "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+              "line": 594
+            },
+            "hold": "hold-dispatch"
+          }
+        }]
+      }, {
+        "position": {
+          "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+          "line": 595
+        },
+        "performs": [{
+          "position": {
+            "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+            "line": 597
+          },
+          "step": {
+            "action": "temporal.standaloneactivity.System$package$.ackLoss"
+          },
+          "command": {
+            "id": "release-dispatch",
+            "position": {
+              "file": "model/scalav2/scala/temporal/standaloneactivity/Realization.scala",
+              "line": 599
+            },
+            "fault": {
+              "role": "temporal.task-queue",
+              "kind": "KIND_ADMISSION_RESPONSE_LOSS"
+            }
           }
         }]
       }]
