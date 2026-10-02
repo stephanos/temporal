@@ -140,6 +140,8 @@ tools/gomad3/.bin/gomad explore \
 
 `--choices` retains a Choice Trace, from which exact runtime Replay derives an identity-bound Decision Tape. Coverage is a separate summary of observed semantic events or runtime choices. Repeat `--require-probe=NAME` with `--coverage=semantic` or `--coverage=semantic+choice` when a known semantic boundary must be observed. Missing a required probe becomes a visible Campaign failure.
 
+`--diagnostics` on `explore` and `plan` records runtime-state diagnostics and implies `--choices`; it accepts only `--strategy=seed` and rejects forced-prefix exploration. Diagnostic traces support locating differences between fresh executions. They do not establish exact replay.
+
 Choice recording defaults to 8 MiB and accepts at most `--choice-bytes=64MiB`; overflow fails visibly. Output retention defaults to 8 MiB per stream, adjustable with `--output-limit`. Deterministic I/O transcript capacity defaults to 64 MiB and accepts `--io-transcript-bytes` from 64 MiB through 1 GiB in whole MiB increments. A larger transcript does not increase choice capacity.
 
 With the default `--clock-tick=strict` policy, virtual time stands still while work is runnable, so repeated `time.Now` reads can tie. A test that orders records by timestamp may fail on those ties. Add `--clock-tick=forward` to `explore` or `qualify` to add a cumulative seeded offset of 1 to 1024 nanoseconds per `time.Now` read. The native timer clock still advances only when work cannot proceed, and `time.Since` and `time.Until` read that clock for a reading that still carries its monotonic value: an elapsed time measured from such a reading can be short or negative, a deadline computed from it can expire later than a timer set for the same duration, and timestamps truncated above nanosecond resolution can still tie. A reading stripped of its monotonic value, as by serialization or parsing, is compared against a fresh ticked `time.Now` instead. The policy is part of the Campaign and Artifact identity, and replay restores it.
@@ -276,7 +278,7 @@ tools/gomad3/.bin/gomad qualify \
 
 Qualification prepares and executes independently for each repetition, compares canonical evidence, and retains its own report. Optional successful replay proves that a passing observation is reproducible, not merely equal by summary.
 
-The default is seed 1 with two repetitions; `--repeat` accepts 2 through 32. Qualification collects semantic coverage, and `--choices` adds choice coverage and runtime replay evidence. `--replay-successes` requires explicit count and byte bounds per repetition.
+The default is seed 1 with two repetitions; `--repeat` accepts 2 through 32. Qualification collects semantic coverage, and `--choices` adds choice coverage and runtime replay evidence. `qualify --diagnostics` records runtime-state diagnostics for its fresh repetitions and implies `--choices`. `--replay-successes` requires explicit count and byte bounds per repetition.
 
 The two flags are independent and opt-in, and the claim follows the flags. With neither, `qualified` means same-seed repeatability: fresh repetitions produced equal evidence, and nothing was replayed. With `--choices` the compared evidence includes the Choice Trace's tape digest, but a success keeps its Decision Tape only when it is retained. With `--replay-successes` alone each retained success is replayed from its seed and the result reports `choice-replay=none`. With both flags each retained success is replayed from its tape, and the result's `choice-replay=exact` is the verified choice-tape replay claim. A qualification-set workload states the same choice with `choice_bytes`, `replay_successes`, and its success limits, and there success replay requires a Choice Trace; an untraced workload's seeds report `replayed: false` and no `choice_replay_exact`.
 
@@ -420,9 +422,11 @@ Across user workflows, exit statuses preserve the same broad meaning:
 | Status | Meaning |
 |---:|---|
 | 0 | The requested operation completed and its success condition held. |
-| 1 | A target-level failure, mismatch, divergence, unavailable installation, or review-required result was retained. |
+| 1 | A target-level failure, mismatch, ordinary or World replay divergence, unavailable installation, or review-required result was retained. |
 | 2 | Input was invalid, unsupported, incompatible, or incomparable. |
-| 3 | Gomad infrastructure or output publication failed. |
+| 3 | Gomad infrastructure or output publication failed, or a Choice Exploration forced-prefix candidate diverged. |
+
+Choice Exploration returns status 3 for a forced-prefix candidate divergence, including mixed failures, because the search cannot trust that candidate. Ordinary seeded and World replay divergence retain status 1.
 
 Replay refines status 1 to mean that a retained failure reproduced or that replay diverged; inspect its result rather than interpreting status 1 as a generic command crash.
 
@@ -541,6 +545,14 @@ go -C tools/gomad3 run ./cmd/gomadtool test \
 
 The available tiers cover the builder, live capability semantics, runtime behavior, interception cases, and disabled upstream compatibility. The complete supported-platform claim requires the aggregate gate; a passing neutral builder tier alone is not runtime qualification.
 
+`diagnostic-diff` compares two complete runtime diagnostic traces and reports the first divergent ordinal and fields:
+
+```sh
+go -C tools/gomad3 run ./cmd/gomadtool diagnostic-diff --json EXPECTED_TRACE ACTUAL_TRACE
+```
+
+Flags precede both trace paths. Status 0 means equal, 1 means different, 2 means invalid arguments or an unreadable, malformed, or incomplete trace, and 3 means output failed. Both traces are fully validated before comparison; differences are diagnostic evidence, not a replay guarantee.
+
 `checked-run` is the small bounded process adapter beneath several scripted checks. It verifies an expected exit status and records stdout, stderr, status, timeout, and truncation separately:
 
 ```sh
@@ -615,5 +627,6 @@ If the reviewed boundary changed intentionally, review its reported digest and r
 | `compatibility-pack` | Discover, review, generate from exact approval, qualify, and check compatibility packs. |
 | `script-validate` | Enforce the reviewed script ownership and policy boundary. |
 | `checked-run` | Run and record one bounded external command with expected status. |
+| `diagnostic-diff` | Compare complete runtime diagnostic traces and locate the first divergence. |
 | `test` | Execute a selected conformance campaign. |
 | `upgrade-dossier` | Run upgrade gates and retain the complete acceptance evidence. |

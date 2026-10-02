@@ -1,0 +1,316 @@
+{
+  "baseline_revision": "29917069e089dc0739ec091b18e99161245b9bd5",
+  "consolidation_revision": "83d143293cace40287b1324bab04b3bc35889d68",
+  "head_revision": "67dbe02666afd68c064c6c3cb9197b03d4664687",
+  "baseline_sha256": {
+    "SPEC": "sha256:b0de9d8f13393886691526767456aa2ff363f69d959e7533b12b138160b6e790",
+    "GLOSSARY": "sha256:8cd1650efaf349831a251ac523bbe5cc379e288f015ece075a197adff3154ed5"
+  },
+  "baseline_blob": {
+    "SPEC": "d3fe907b42d8fae315353dca6466e136da934b16",
+    "GLOSSARY": "8e2e4f4f6847cb15453c5af6b52c97514f3ff6b8"
+  },
+  "working_tree_sha256": {
+    "SPEC": "sha256:cc96c283ff1131cba5e217ba4773cd4a8d196c90132ee6e47cce62cfe8da533d",
+    "README": "sha256:d3aa879db03cf21bbbe029213ea77556340f83b9978f3ecb03593e7dfbd744f6"
+  },
+  "head_sha256": {
+    "SPEC": "sha256:cc96c283ff1131cba5e217ba4773cd4a8d196c90132ee6e47cce62cfe8da533d",
+    "README": "sha256:7e2ab97cbcedb733511a157f6a5afbc0c60999ca3b080c57d0a3157c664e0e3c"
+  },
+  "original_language_entries": 25,
+  "assessments": 25,
+  "dispositions": [
+    {
+      "term": "Gomad Toolchain",
+      "disposition": "definition",
+      "owner": "Gomad Toolchain"
+    },
+    {
+      "term": "Runner",
+      "disposition": "definition",
+      "owner": "Runner"
+    },
+    {
+      "term": "Target",
+      "disposition": "definition",
+      "owner": "Target"
+    },
+    {
+      "term": "Campaign",
+      "disposition": "definition",
+      "owner": "Campaign"
+    },
+    {
+      "term": "Execution",
+      "disposition": "definition",
+      "owner": "Execution"
+    },
+    {
+      "term": "Seed",
+      "disposition": "definition",
+      "owner": "Seed"
+    },
+    {
+      "term": "Choice",
+      "disposition": "definition",
+      "owner": "Choice"
+    },
+    {
+      "term": "Choice Trace",
+      "disposition": "definition",
+      "owner": "Choice Trace"
+    },
+    {
+      "term": "Choice Replay Plan",
+      "disposition": "definition",
+      "owner": "Choice Replay Plan"
+    },
+    {
+      "term": "Deterministic I/O Contract",
+      "disposition": "definition",
+      "owner": "Deterministic I/O Contract"
+    },
+    {
+      "term": "Captured Read-Only Input",
+      "disposition": "definition",
+      "owner": "Captured Read-Only Input"
+    },
+    {
+      "term": "World Model",
+      "disposition": "alias",
+      "owner": "World"
+    },
+    {
+      "term": "Cluster",
+      "disposition": "definition",
+      "owner": "Cluster"
+    },
+    {
+      "term": "Node",
+      "disposition": "definition",
+      "owner": "Node"
+    },
+    {
+      "term": "Incarnation",
+      "disposition": "definition",
+      "owner": "Incarnation"
+    },
+    {
+      "term": "Boot Identity",
+      "disposition": "definition",
+      "owner": "Boot Identity"
+    },
+    {
+      "term": "Simulation Backend",
+      "disposition": "alias",
+      "owner": "Backend"
+    },
+    {
+      "term": "Simulation Model Fidelity",
+      "disposition": "alias",
+      "owner": "Model Fidelity"
+    },
+    {
+      "term": "Hard Isolation Fidelity",
+      "disposition": "alias",
+      "owner": "Hard Isolation"
+    },
+    {
+      "term": "Parity Case",
+      "disposition": "historical",
+      "owner": "README.md Simulation contract"
+    },
+    {
+      "term": "Execution Record",
+      "disposition": "alias",
+      "owner": "Record"
+    },
+    {
+      "term": "Artifact",
+      "disposition": "definition",
+      "owner": "Artifact"
+    },
+    {
+      "term": "Replay",
+      "disposition": "definition",
+      "owner": "Replay"
+    },
+    {
+      "term": "Corpus",
+      "disposition": "definition",
+      "owner": "Corpus"
+    },
+    {
+      "term": "Qualification Set",
+      "disposition": "definition",
+      "owner": "Qualification Set"
+    }
+  ],
+  "current_concepts": 24,
+  "vocabulary_definitions": 65,
+  "vocabulary_aliases": {
+    "Execution Record": "Record",
+    "World Model": "World",
+    "Simulation Backend": "Backend",
+    "Simulation Model Fidelity": "Model Fidelity",
+    "Hard Isolation Fidelity": "Hard Isolation"
+  },
+  "original_identifier_count": 123,
+  "current_identifier_count": 123,
+  "command_table_identifier_count": 28,
+  "identifiers_preserved_in_order": true,
+  "semantic_identifiers": [
+    "PRODUCT",
+    "PRODUCT.PURPOSE",
+    "PRODUCT.SCOPE",
+    "PRODUCT.VOCABULARY",
+    "PRODUCT.VOCABULARY.EXECUTION",
+    "PRODUCT.VOCABULARY.EVIDENCE",
+    "PRODUCT.VOCABULARY.MODELING",
+    "PRODUCT.VOCABULARY.DURABILITY",
+    "PRODUCT.VOCABULARY.SUPPORT",
+    "PRODUCT.VOCABULARY.FAILURE",
+    "PLATFORM",
+    "PLATFORM.SUPPORT",
+    "PLATFORM.TOOLCHAIN",
+    "PLATFORM.INSTALLATION",
+    "PLATFORM.IDENTITY",
+    "TARGET",
+    "TARGET.KINDS",
+    "TARGET.PREPARATION",
+    "TARGET.CAPABILITY",
+    "TARGET.PROVENANCE",
+    "RUNTIME",
+    "RUNTIME.ACTIVATION",
+    "RUNTIME.SCHEDULING",
+    "RUNTIME.TIME",
+    "RUNTIME.CHOICES",
+    "RUNTIME.ISOLATION",
+    "RUNTIME.TRUST",
+    "INTERACTION",
+    "INTERACTION.BOUNDARY",
+    "INTERACTION.ADAPTERS",
+    "INTERACTION.TRANSCRIPT",
+    "INTERACTION.ENTROPY",
+    "INTERACTION.MOUNTS",
+    "INTERACTION.FAIL.CLOSED",
+    "WORLD",
+    "WORLD.MODEL",
+    "WORLD.ORDERING",
+    "WORLD.LIFECYCLE",
+    "WORLD.QUIESCENCE",
+    "WORLD.REPLAY",
+    "SIMULATION",
+    "SIMULATION.HARNESS",
+    "SIMULATION.BACKENDS",
+    "SIMULATION.NETWORK",
+    "SIMULATION.STORAGE",
+    "SIMULATION.SCENARIOS",
+    "SIMULATION.ORACLES",
+    "SIMULATION.REPLAY",
+    "CAMPAIGN",
+    "CAMPAIGN.SELECTION",
+    "CAMPAIGN.EXECUTION",
+    "CAMPAIGN.FAILURE",
+    "CAMPAIGN.COVERAGE",
+    "CAMPAIGN.SUCCESS",
+    "CAMPAIGN.GUIDANCE",
+    "CAMPAIGN.CHOICE.FRONTIER",
+    "CAMPAIGN.COMBINED.FRONTIER",
+    "EVIDENCE",
+    "EVIDENCE.RECORD",
+    "EVIDENCE.ARTIFACT",
+    "EVIDENCE.INSPECTION",
+    "EVIDENCE.REPLAY",
+    "EVIDENCE.MINIMIZATION",
+    "DURABILITY",
+    "DURABILITY.LIFECYCLE",
+    "DURABILITY.JOURNAL",
+    "DURABILITY.RESUME",
+    "DURABILITY.RECOVERY",
+    "DURABILITY.COMPATIBILITY",
+    "DISTRIBUTION",
+    "DISTRIBUTION.PLAN",
+    "DISTRIBUTION.SHARD",
+    "DISTRIBUTION.MERGE",
+    "QUALIFICATION",
+    "QUALIFICATION.REPETITION",
+    "QUALIFICATION.SET",
+    "QUALIFICATION.COMPARISON",
+    "QUALIFICATION.CONFORMANCE",
+    "COMMAND",
+    "COMMAND.GOMAD",
+    "COMMAND.GOMAD.DOCTOR",
+    "COMMAND.GOMAD.ANALYZE",
+    "COMMAND.GOMAD.EXPLORE",
+    "COMMAND.GOMAD.QUALIFY",
+    "COMMAND.GOMAD.QUALIFY.SET",
+    "COMMAND.GOMAD.MERGE.SET",
+    "COMMAND.GOMAD.COMPARE.SUPPORT",
+    "COMMAND.GOMAD.PLAN",
+    "COMMAND.GOMAD.EXECUTE.SHARD",
+    "COMMAND.GOMAD.MERGE",
+    "COMMAND.GOMAD.INSPECT",
+    "COMMAND.GOMAD.REPLAY",
+    "COMMAND.GOMAD.MINIMIZE",
+    "COMMAND.GOMAD.RECOVER",
+    "COMMAND.GOMAD.RESUME",
+    "COMMAND.OUTPUT",
+    "COMMAND.STATUS",
+    "MAINTENANCE",
+    "MAINTENANCE.GOVERNANCE",
+    "MAINTENANCE.COMPATIBILITY",
+    "MAINTENANCE.UPGRADE",
+    "COMMAND.GOMADTOOL",
+    "COMMAND.GOMADTOOL.TOOLCHAIN.BUILD",
+    "COMMAND.GOMADTOOL.BUILD.KEY",
+    "COMMAND.GOMADTOOL.PATCH.MATERIALIZE",
+    "COMMAND.GOMADTOOL.PATCH.REGENERATE",
+    "COMMAND.GOMADTOOL.PATCH.VALIDATE",
+    "COMMAND.GOMADTOOL.VERSION.GENERATE",
+    "COMMAND.GOMADTOOL.BOUNDARY.GENERATE",
+    "COMMAND.GOMADTOOL.PROTOCOL.GENERATE",
+    "COMMAND.GOMADTOOL.COMPATIBILITY.PACK",
+    "COMMAND.GOMADTOOL.SCRIPT.VALIDATE",
+    "COMMAND.GOMADTOOL.CHECKED.RUN",
+    "COMMAND.GOMADTOOL.TEST",
+    "COMMAND.GOMADTOOL.UPGRADE.DOSSIER",
+    "FAILURE",
+    "FAILURE.CLASSIFICATION",
+    "FAILURE.BOUNDS",
+    "FAILURE.INTEGRITY",
+    "FAILURE.CANCELLATION",
+    "VERIFICATION",
+    "VERIFICATION.TRACEABILITY",
+    "VERIFICATION.CHANGE"
+  ],
+  "boundaries": {
+    "Target is the selection, Prepared Target the immutable executable": true,
+    "canonical Prepared Target is never written prepared Target": true,
+    "Campaign is an effort, not its plan": true,
+    "Choice Trace is observed evidence, not a control plan": true,
+    "Decision Tape holds branching Choices from a complete Choice Trace": true,
+    "implementation: tape omits observations and nonbranching records": true,
+    "exact replay uses a complete tape; exploration forces a finite prefix": true,
+    "implementation: exact and prefix plans validate separately": true,
+    "Backend is the mechanism": true,
+    "Fidelity is the claim, constrained by Backend": true,
+    "Model Fidelity claims no hard isolation": true,
+    "Hard Isolation is limited to the process Backend": true,
+    "implementation: hard isolation requires the process backend": true,
+    "World is separate from host I/O and application state": true
+  },
+  "whitespace_argv": [
+    "git",
+    "diff",
+    "--check",
+    "29917069e089dc0739ec091b18e99161245b9bd5",
+    "--",
+    "tools/gomad3/SPEC.md",
+    "tools/gomad3/README.md",
+    "tools/gomad3/GLOSSARY.md"
+  ],
+  "whitespace_status": 0,
+  "errors": []
+}

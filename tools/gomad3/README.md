@@ -449,10 +449,15 @@ capacity. Add `--json` to use the same stable campaign event stream as
 
 | Status | `explore` / `resume` | `qualify` | `replay` |
 | --- | --- | --- | --- |
-| 0 | All selected or remaining Executions succeeded. | Every repetition succeeded with identical evidence. | Verification-only succeeded, or a retained success replayed exactly. |
-| 1 | A target failure, watchdog observation, or replay divergence was retained. | Evidence diverged, a target failed, a required probe was absent, or replay diverged. | The stored observation reproduced exactly, or replay diverged; inspect `reproduced=true|false`. |
+| 0 | All selected or remaining Executions succeeded. | Every repetition succeeded with identical evidence. | Verification-only succeeded, or replay matched a retained success. |
+| 1 | A target failure, watchdog observation, or ordinary or World replay divergence was retained. | Evidence diverged, a target failed, a required probe was absent, or replay diverged. | Replay matched a retained failure or watchdog observation, or diverged; inspect `reproduced=true|false`. |
 | 2 | Input is invalid, the target is unsupported, or the resume journal is incompatible. | Input was invalid or the unsupported boundary was retained. | Input or artifact compatibility validation failed. |
-| 3 | Runner or host infrastructure failed. | Qualification or report infrastructure failed. | Replay infrastructure failed. |
+| 3 | Runner or host infrastructure failed, or a Choice Exploration forced-prefix candidate diverged. | Qualification or report infrastructure failed. | Replay infrastructure failed. |
+
+Choice Exploration forced-prefix candidate divergence returns status 3, including
+mixed failures; ordinary seeded and World replay divergence retain status 1.
+Read `choice-replay=exact` for a verified choice-tape replay claim; matching a
+seed-only replay or watchdog observation does not establish that claim.
 
 The Runner prepares one immutable target, launches every seed or forced-prefix candidate in a fresh
 contained process and work directory, enforces wall deadlines, computes full
@@ -976,7 +981,7 @@ make -C tools/gomad3 upgrade-dossier GOMAD3_BASELINE_REF=<previous-commit>
 ```
 
 `test` retains the full gate: the harness, toolchain, interception, host,
-overlay, and World tests, then the builder, live-capability, runtime, and
+overlay, simulation (`test-simulation`), and World tests, then the builder, live-capability, runtime, and
 upstream tiers
 in that order. The focused targets reproduce the corresponding portion without
 weakening the full gate.

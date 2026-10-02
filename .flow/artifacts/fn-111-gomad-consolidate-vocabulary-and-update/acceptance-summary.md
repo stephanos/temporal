@@ -1,5 +1,9 @@
 # fn-111 documentation acceptance summary
 
+Historical task-2 snapshot, bound to the revisions and hashes below. Its receipts
+are preserved unchanged; current acceptance is recorded in
+[task-3/acceptance-summary.md](task-3/acceptance-summary.md).
+
 Derived from `guide-audit.json` (sha256 `93e9b2aec946e90e35da04e3b746519792eb227d98b4a1b3a5153f2f94e96ff5`), `vocabulary-audit.json`, and `documentation-audit.json` in this directory. Regenerate after any edit: the hashes below bind an uncommitted working tree.
 
 ## Binding

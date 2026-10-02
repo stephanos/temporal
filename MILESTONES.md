@@ -36,7 +36,7 @@ changes, change the spec and summarize the change here.
 | Code-size cleanup | [fn-108](.flow/specs/fn-108-gomad-reduce-code-size-without-removing.md) | open; tasks 1–7 of 8 done and verified on darwin/arm64: production Go down 286 code lines, D1/D2 delivered; task 8 owns the outstanding linux/amd64 gates for R9 ([status](#code-size-cleanup-fn-108)) |
 | Deep modules and tool interfaces | [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) | open; tasks 1 and 22 of 22 done: isolated simulation bounds preserved and real simulation exploration repaired; twenty tasks remain for the architecture findings, reusing D1/D2 and reviving D3/D4/D5 ([delivery order](#deep-modules-and-tool-interfaces-fn-109)) |
 | Runtime patch minimization | [fn-110](.flow/specs/fn-110-gomad-minimize-the-runtime-patch.md) | open; task 1 of 5 done with a dated baseline; tasks 2–5 retain overlay extraction, canonical one-context-line regeneration, and both-platform qualification ([delivery order](#runtime-patch-minimization-fn-110)) |
-| Vocabulary and documentation | [fn-111](.flow/specs/fn-111-gomad-consolidate-vocabulary-and-update.md) | open; both tasks done: glossary merged into SPEC, guides reconciled with parsers and source, and acceptance evidence retained; spec completion review pending ([scope](#vocabulary-and-documentation-fn-111)) |
+| Vocabulary and documentation | [fn-111](.flow/specs/fn-111-gomad-consolidate-vocabulary-and-update.md) | open; tasks 1–2 done; task 3 refreshes guide and audit acceptance for subsequent diagnostics, simulation-gate, and divergence-status changes; current spec completion review pending ([scope](#vocabulary-and-documentation-fn-111)) |
 | Determinism assurance and test strategy | [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md) | open; tasks 1–4, 6–8, and 11–13 done; baseline CI green on `8789deab0`, simulation/replay gates repaired, diagnostics and timer/shuffle fixtures verified, generated filesystem/TCP conformance added with model fixes, and built-CLI recovery tests reviewed on darwin/arm64; watchdog classification and diagnostic replay repaired; stream isolation, soak gate, and suite reshaping remain ([findings and proposed order](#quality-assessment-2026-10-01)) |
 | Version-pin maintenance | [fn-113](.flow/specs/fn-113-gomad-reduce-version-pin-maintenance.md) | open; four tasks, plan reviewed; pin impact report, adapter regeneration, and pack refresh, with no pin loosened; implementation not started ([cost evidence](#maintenance-cost)) |
 | Search-path defects and wasted work | [fn-114](.flow/specs/fn-114-gomad-correct-search-path-defects-and.md) | open; tasks 1–4 done and reviewed; C3's error path, E4's historical probe premise, and C2's predicted prefix divergence corrected. Callback identities swap but valid same-seed prefixes succeed; all seven select shapes have an exhausted unreduced baseline. Corpus identity now binds environment and tick policy, and coverage-instrumented targets are rejected by provenance and replay validation ([task 3 evidence](.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-3/final-completion-summary.md)). Host gates pass on darwin/arm64; Linux remains unverified; forced-prefix divergences and completed siblings now survive commit/resume ([task 4 evidence](.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-4/final-completion-summary.md)); remaining fixes and qualification span ten tasks |
@@ -45,8 +45,8 @@ Work a spec with `/flow-next:work <spec>`; list what is ready with `flowctl read
 
 ## Immediate delivery order
 
-Approved on 2026-10-02: fn-114.4 is reviewed and complete; deliver its commit/push, then
-complete the fn-111 spec review (both implementation tasks are done). Next, deliver
+Approved on 2026-10-02: fn-114.4 is reviewed, complete, and pushed through `67dbe0266`.
+Finish fn-111.3 documentation acceptance repairs and the current spec review. Next, deliver
 fn-114.7 guided seed deduplication before fn-114.6 start-ordinal support, followed
 by fn-114.8. Task 7 removes repeated work directly and its corpus-identity prerequisite
 is complete; task 6 was only an ordering dependency for shared files. Flow dependencies
@@ -417,7 +417,7 @@ obligations. D12/D14 replay fixes and D15 trace capacity retain
 their separate owners and acceptance. Documentation reconciliation cannot close
 those items or widen qualification claims.
 
-**Status.** Open spec; both tasks are done. Vocabulary and
+**Status.** Open spec; tasks 1–2 are done, and task 3 refreshes current acceptance. Vocabulary and
 guide reconciliation evidence is retained under
 `.flow/artifacts/fn-111-gomad-consolidate-vocabulary-and-update/` and is bound to
 the recorded source hashes. Re-run affected acceptance checks when those contents change;

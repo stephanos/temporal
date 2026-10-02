@@ -261,7 +261,10 @@ identities and canonical alternative sets avoid treating physical run-queue
 order as replay identity. Replay validates a decision before applying it,
 requires complete tape consumption, and still compares the final Record.
 
-Choice Exploration uses forced prefixes from one base Seed. Its pure controller
+Choice Exploration uses forced prefixes from one base Seed. A forced-prefix
+candidate divergence invalidates search confidence and returns CLI status 3,
+including mixed failures. Ordinary seeded and World replay divergence retain
+status 1. Its pure controller
 orders candidates by prefix length and identity in bounded breadth-first
 rounds. Runner executes candidates in fresh processes and commits completed
 results in candidate order; host completion order cannot alter the frontier.

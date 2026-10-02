@@ -1,0 +1,9 @@
+Usage of gomad execute-shard:
+  -artifacts string
+    	artifact root (default ".gomad/artifacts")
+  -json
+    	emit stable JSON events
+  -shard string
+    	zero-based INDEX/COUNT shard assignment
+  -toolchain-root string
+    	absolute pinned toolchain root

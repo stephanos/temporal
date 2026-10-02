@@ -12,7 +12,9 @@ import subprocess
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]
-OUT = pathlib.Path(__file__).resolve().parent
+HERE = pathlib.Path(__file__).resolve().parent
+OUT = pathlib.Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else HERE
+OUT.mkdir(parents=True, exist_ok=True)
 BASE = '29917069e089dc0739ec091b18e99161245b9bd5'
 CONSOLIDATION = '83d143293c'
 GUIDES = ['SPEC', 'ARCHITECTURE', 'CLI', 'TUTORIAL', 'README']
@@ -52,7 +54,7 @@ old_glossary = git('show', f'{BASE}:tools/gomad3/GLOSSARY.md')
 # Source revisions and file hashes.
 consolidation_parent = git('rev-parse', f'{CONSOLIDATION}^').strip()
 check('baseline is the consolidation parent', consolidation_parent == BASE, parent=consolidation_parent)
-retained = {name: (OUT / f'baseline-{name}.md').read_text() for name in ['SPEC', 'GLOSSARY']}
+retained = {name: (HERE / f'baseline-{name}.md').read_text() for name in ['SPEC', 'GLOSSARY']}
 check('retained baseline SPEC matches revision', retained['SPEC'] == old_spec)
 check('retained baseline GLOSSARY matches revision', retained['GLOSSARY'] == old_glossary)
 glossary_in_head = subprocess.run(['git', 'cat-file', '-e', 'HEAD:tools/gomad3/GLOSSARY.md'], cwd=ROOT, capture_output=True)

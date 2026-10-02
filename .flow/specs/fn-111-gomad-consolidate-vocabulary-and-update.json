@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-111-gomad-consolidate-vocabulary-and-update",
   "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_reviewed_at": "2026-10-02T15:24:36.602946Z",
   "created_at": "2026-09-30T19:30:49.980509Z",
   "default_impl": null,
   "default_review": null,
@@ -69,12 +69,45 @@
       "task": null,
       "timestamp": "2026-10-01T00:40:53.810769Z",
       "verdict": null
+    },
+    {
+      "artifact_sha256": "cef233040373dadc623a1bc262998058031823b3c4bee0d01f01385ecd5647af",
+      "backend": "codex",
+      "base_sha": "67dbe02666afd68c064c6c3cb9197b03d4664687",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "67dbe02666afd68c064c6c3cb9197b03d4664687",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 141910,
+      "output_sha256": "6f313e746b454bb2e94d568f2cd98b135b8e4a9897eb734a2d962fc23f69293f",
+      "reservation_id": "e88a4838e75a46328b6ef47af9735349",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-02T15:23:46.129704Z",
+      "tool_calls": 6,
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "plan#completion": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "plan": 2
   },
   "spec_path": ".flow/specs/fn-111-gomad-consolidate-vocabulary-and-update.md",
@@ -91,5 +124,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-01T00:40:53.811205Z"
+  "updated_at": "2026-10-02T15:24:36.603076Z"
 }
