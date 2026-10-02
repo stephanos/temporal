@@ -32,12 +32,18 @@ const (
 
 // TargetPool is the pool of the directory that owns one: the artifacts root
 // that holds every campaign, a corpus, or a minimizer output root. It is never
-// below a store root, because a staged round's stores are renamed on commit.
+// below a store root that is staged and renamed on commit, because the rename
+// would carry the pool away from the stores that share it. A store that
+// publishes in place, as the minimizer's output root does, may hold its pool.
 func TargetPool(owner string) string {
 	return filepath.Join(owner, "targets")
 }
 
 var linkFile = os.Link
+
+// poolEntryAttempts bounds how often one publication creates its pool entry.
+// PruneTargetPool may remove an entry between its creation and the link.
+const poolEntryAttempts = 3
 
 // placeSharedPayload makes destination a hard link to the pool's copy of the
 // payload, creating that copy when the pool does not hold it yet. Concurrent
@@ -51,7 +57,7 @@ func placeSharedPayload(ctx context.Context, pool string, payload Payload, desti
 		return record.File{}, "", fmt.Errorf("make payload parent private %s: %w", payload.Path, err)
 	}
 	entry := filepath.Join(pool, poolEntryName(payload.SHA256))
-	for created := false; ; created = true {
+	for attempt := 0; ; attempt++ {
 		if err := ctx.Err(); err != nil {
 			return record.File{}, "", err
 		}
@@ -63,7 +69,7 @@ func placeSharedPayload(ctx context.Context, pool string, payload Payload, desti
 				return record.File{}, "", fmt.Errorf("shared target pool entry %s: %w", entry, err)
 			}
 			return file, TargetShared, nil
-		case errors.Is(err, os.ErrNotExist) && !created:
+		case errors.Is(err, os.ErrNotExist) && attempt < poolEntryAttempts:
 			if err := createPoolEntry(ctx, pool, entry, payload); err != nil {
 				return record.File{}, "", err
 			}
@@ -78,6 +84,87 @@ func placeSharedPayload(ctx context.Context, pool string, payload Payload, desti
 
 func poolEntryName(digest record.SHA256) string {
 	return "sha256-" + strings.TrimPrefix(string(digest), "sha256:")
+}
+
+func isPoolEntryName(name string) bool {
+	digest, found := strings.CutPrefix(name, "sha256-")
+	_, err := record.ParseSHA256("sha256:" + digest)
+	return found && err == nil
+}
+
+// PruneTargetPool removes the pool entries that no artifact shares. An entry is
+// shared while it has another link, wherever that link is, so pruning never
+// takes the target of a retained artifact and needs no list of them. Entries
+// whose link count the platform does not report are kept.
+//
+// exclusive says the caller is the pool owner's only writer. Staging
+// directories are then leftovers of a publisher that died and are removed too;
+// without it they may belong to a live publisher and stay.
+func PruneTargetPool(pool string, exclusive bool) (retErr error) {
+	poolInfo, err := os.Lstat(pool)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("open shared target pool: %w", err)
+	}
+	if !poolInfo.IsDir() {
+		return errors.New("shared target pool is not a directory")
+	}
+	root, err := os.OpenRoot(pool)
+	if err != nil {
+		return fmt.Errorf("pin shared target pool: %w", err)
+	}
+	defer func() {
+		retErr = errors.Join(retErr, root.Close())
+	}()
+	directory, err := root.Open(".")
+	if err != nil {
+		return fmt.Errorf("open shared target pool: %w", err)
+	}
+	defer func() {
+		retErr = errors.Join(retErr, directory.Close())
+	}()
+	if pinnedInfo, err := directory.Stat(); err != nil || !os.SameFile(poolInfo, pinnedInfo) {
+		return errors.Join(errors.New("shared target pool changed while opening"), err)
+	}
+	entries, err := directory.ReadDir(-1)
+	if err != nil {
+		return fmt.Errorf("list shared target pool: %w", err)
+	}
+	removed := false
+	for _, entry := range entries {
+		name := entry.Name()
+		info, err := root.Lstat(name)
+		if errors.Is(err, os.ErrNotExist) {
+			continue
+		}
+		if err != nil {
+			return fmt.Errorf("inspect shared target %s: %w", name, err)
+		}
+		switch {
+		case isPoolEntryName(name) && info.Mode().IsRegular():
+			if links, known := linkCount(info); !known || links != 1 {
+				continue
+			}
+			err = root.Remove(name)
+		case exclusive && strings.HasPrefix(name, ".publish-") && info.IsDir():
+			err = root.RemoveAll(name)
+		default:
+			continue
+		}
+		if err != nil && !errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("remove unshared target %s: %w", name, err)
+		}
+		removed = true
+	}
+	if !removed {
+		return nil
+	}
+	if err := directory.Sync(); err != nil {
+		return fmt.Errorf("sync shared target pool: %w", err)
+	}
+	return nil
 }
 
 func hardLinksUnavailable(err error) bool {
@@ -156,6 +243,29 @@ func sharesPoolEntry(pool, artifactPath string, manifest record.ExecutionRecord)
 	}
 	target, err := os.Lstat(filepath.Join(artifactPath, filepath.FromSlash(manifest.Target.File)))
 	return err == nil && os.SameFile(entry, target)
+}
+
+// TargetSharingOf reports how an open artifact holds its target on disk:
+// TargetShared when the file has other links, as a pool entry and the artifacts
+// linked to it do, and TargetPrivate when the artifact holds the only link. It
+// is empty where the platform does not report link counts.
+func TargetSharingOf(opened Artifact) (TargetSharing, error) {
+	if opened.root == nil {
+		return "", errors.New("artifact is not open")
+	}
+	info, err := opened.root.Lstat(filepath.FromSlash(opened.Manifest.Target.File))
+	if err != nil {
+		return "", fmt.Errorf("inspect artifact target: %w", err)
+	}
+	links, known := linkCount(info)
+	switch {
+	case !known:
+		return "", nil
+	case links > 1:
+		return TargetShared, nil
+	default:
+		return TargetPrivate, nil
+	}
 }
 
 // openSharedFile opens a regular file that may have other hard links. It is

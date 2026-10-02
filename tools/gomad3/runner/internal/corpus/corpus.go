@@ -97,6 +97,10 @@ func (corpus *Corpus) casesPath() string {
 	return filepath.Join(corpus.path, "cases")
 }
 
+func (corpus *Corpus) targetPool() string {
+	return artifact.TargetPool(corpus.path)
+}
+
 func (corpus *Corpus) Snapshot() Snapshot {
 	return cloneSnapshot(corpus.snapshot)
 }
@@ -149,11 +153,14 @@ func (corpus *Corpus) merge(published artifact.Artifact, coverage deterministici
 	if len(entry.NoveltyReasons) == 0 {
 		return false, corpus.removeUnreferencedCase(entry.Artifact)
 	}
-	if err := corpus.validateEntry(entry); err != nil {
+	if _, err := corpus.validateEntry(entry); err != nil {
 		return false, err
 	}
 	pool := append(cloneEntries(corpus.snapshot.Entries), entry)
-	selected := boundedEntries(pool)
+	selected, err := boundedEntries(pool)
+	if err != nil {
+		return false, err
+	}
 	if !containsRecordHash(selected, entry.RecordHash) {
 		return false, corpus.removeUnreferencedCase(entry.Artifact)
 	}
@@ -249,6 +256,7 @@ func (corpus *Corpus) entryFor(published artifact.Artifact, coverage determinist
 	entry := Entry{
 		Seed: manifest.Seed, RecordHash: manifest.RecordHash, Artifact: relative, StoredBytes: record.Uint64String(published.StoredBytes),
 		PayloadBytes: record.Uint64String(payloadBytes), Coverage: coverage, Features: features, Inputs: inputs, Replay: replay,
+		sharedTarget: artifact.PoolTarget(corpus.targetPool(), published.Path, manifest),
 	}
 	return entry, nil
 }
@@ -297,69 +305,73 @@ func (corpus *Corpus) readSnapshot() (Snapshot, error) {
 	if len(snapshot.Entries) > maximumEntries {
 		return Snapshot{}, errors.New("guided corpus entry capacity is exceeded")
 	}
-	var total uint64
-	for _, entry := range snapshot.Entries {
-		if err := corpus.validateEntry(entry); err != nil {
+	var retained artifact.RetainedBytes
+	for index, entry := range snapshot.Entries {
+		shared, err := corpus.validateEntry(entry)
+		if err != nil {
 			return Snapshot{}, err
 		}
-		if uint64(entry.StoredBytes) > maximumBytes-total {
-			return Snapshot{}, errors.New("guided corpus byte capacity is exceeded")
+		snapshot.Entries[index].sharedTarget = shared
+		if _, err := retained.Add(uint64(entry.StoredBytes), shared); err != nil || retained.Total() > maximumBytes {
+			return Snapshot{}, errors.Join(errors.New("guided corpus byte capacity is exceeded"), err)
 		}
-		total += uint64(entry.StoredBytes)
 	}
 	return snapshot, nil
 }
 
-func (corpus *Corpus) validateEntry(entry Entry) error {
+// validateEntry checks an entry against its case on disk and returns the
+// target that case shares with the corpus.
+func (corpus *Corpus) validateEntry(entry Entry) (artifact.SharedTarget, error) {
 	if _, err := record.ParseSHA256(string(entry.RecordHash)); err != nil || !validCaseReference(entry.Artifact) || entry.StoredBytes == 0 || entry.PayloadBytes == 0 || !entry.Replay.Verified || !entry.Replay.Match || entry.Replay.Divergence != "" {
-		return errors.New("guided corpus entry identity is invalid")
+		return artifact.SharedTarget{}, errors.New("guided corpus entry identity is invalid")
 	}
 	coverage, err := deterministicio.SummarizeSemanticProbes(entry.Coverage.Probes)
 	if err != nil || coverage.Schema != entry.Coverage.Schema || coverage.Digest != entry.Coverage.Digest || !slices.Equal(coverage.Probes, entry.Coverage.Probes) {
-		return errors.Join(errors.New("guided corpus semantic coverage is invalid"), err)
+		return artifact.SharedTarget{}, errors.Join(errors.New("guided corpus semantic coverage is invalid"), err)
 	}
 	if !featuresEqual(entry.Features, canonicalFeatures(entry.Features)) || len(entry.Features) == 0 || !featuresEqual(entry.NoveltyReasons, canonicalFeatures(entry.NoveltyReasons)) || len(entry.NoveltyReasons) == 0 {
-		return errors.New("guided corpus features or novelty reasons are invalid")
+		return artifact.SharedTarget{}, errors.New("guided corpus features or novelty reasons are invalid")
 	}
 	for _, reason := range entry.NoveltyReasons {
 		if reason.Kind != FeatureSmaller && !containsFeature(entry.Features, reason) {
-			return errors.New("guided corpus novelty reason was not observed")
+			return artifact.SharedTarget{}, errors.New("guided corpus novelty reason was not observed")
 		}
 	}
-	opened, err := artifact.OpenArtifact(filepath.Join(corpus.path, filepath.FromSlash(entry.Artifact)))
+	casePath := filepath.Join(corpus.path, filepath.FromSlash(entry.Artifact))
+	opened, err := artifact.OpenArtifact(casePath)
 	if err != nil {
-		return fmt.Errorf("open guided corpus case: %w", err)
+		return artifact.SharedTarget{}, fmt.Errorf("open guided corpus case: %w", err)
 	}
 	defer opened.Close()
 	manifest := opened.Manifest
 	if manifest.RecordHash != entry.RecordHash || manifest.Seed != entry.Seed || opened.StoredBytes != uint64(entry.StoredBytes) {
-		return errors.New("guided corpus case identity does not match its entry")
+		return artifact.SharedTarget{}, errors.New("guided corpus case identity does not match its entry")
 	}
 	payloadBytes, err := artifactPayloadBytes(manifest)
 	if err != nil || payloadBytes != uint64(entry.PayloadBytes) {
-		return errors.Join(errors.New("guided corpus payload size mismatch"), err)
+		return artifact.SharedTarget{}, errors.Join(errors.New("guided corpus payload size mismatch"), err)
 	}
 	profile := deterministicio.Default()
 	if !profile.MatchesRecorded(manifest.IOProfile.Name, string(manifest.IOProfile.ImplementationSHA256), string(manifest.IOProfile.InventorySHA256), manifest.IOProfile.Inventory) {
-		return errors.New("guided corpus case boundary identity does not match this Runner")
+		return artifact.SharedTarget{}, errors.New("guided corpus case boundary identity does not match this Runner")
 	}
 	targetIdentity, err := IdentityFor(manifest.Target, manifest.Toolchain, corpus.identity.BoundaryVersion, corpus.identity.BoundarySHA256, manifest.Environment)
 	if corpus.identity.ChoiceProfile != nil {
 		if manifest.ChoiceProfile == nil || manifest.ChoiceProfile.Name != corpus.identity.ChoiceProfile.Profile || manifest.ChoiceProfile.ImplementationSHA256 != corpus.identity.ChoiceProfile.ImplementationSHA256 || manifest.ChoiceProfile.Trace.Limit != corpus.identity.ChoiceProfile.Limit {
-			return errors.New("guided corpus case choice profile identity mismatch")
+			return artifact.SharedTarget{}, errors.New("guided corpus case choice profile identity mismatch")
 		}
 		targetIdentity, err = IdentityForChoice(manifest.Target, manifest.Toolchain, corpus.identity.BoundaryVersion, corpus.identity.BoundarySHA256, manifest.Environment, *corpus.identity.ChoiceProfile)
 	}
 	if err != nil || !identitiesEqual(targetIdentity, corpus.identity) {
-		return errors.Join(errors.New("guided corpus case target identity mismatch"), err)
+		return artifact.SharedTarget{}, errors.Join(errors.New("guided corpus case target identity mismatch"), err)
 	}
 	if manifest.IOProfile.Transcript == nil || manifest.IOProfile.Transcript.SHA256 != entry.Inputs.IOTranscriptSHA256 || manifest.IOProfile.Transcript.Records != entry.Inputs.IOTranscriptRecords || manifest.World.Transitions.TranscriptDigest != entry.Inputs.WorldTranscriptSHA256 || manifest.World.Transitions.Count != entry.Inputs.WorldTransitionRecords || manifest.World.Initial.SemanticDigest != entry.Inputs.WorldInitialSHA256 {
-		return errors.New("guided corpus captured input identity mismatch")
+		return artifact.SharedTarget{}, errors.New("guided corpus captured input identity mismatch")
 	}
 	if mounts := manifest.IOProfile.ReadOnlyMounts; mounts == nil && entry.Inputs.ReadOnlyMountsSHA256 != nil || mounts != nil && (entry.Inputs.ReadOnlyMountsSHA256 == nil || mounts.SHA256 != *entry.Inputs.ReadOnlyMountsSHA256) {
-		return errors.New("guided corpus read-only mount identity mismatch")
+		return artifact.SharedTarget{}, errors.New("guided corpus read-only mount identity mismatch")
 	}
-	return nil
+	return artifact.PoolTarget(corpus.targetPool(), casePath, manifest), nil
 }
 
 func finalizeSnapshot(snapshot Snapshot) (Snapshot, []byte, error) {
@@ -386,20 +398,29 @@ func finalizeSnapshot(snapshot Snapshot) (Snapshot, []byte, error) {
 	return snapshot, encoded, err
 }
 
-func boundedEntries(entries []Entry) []Entry {
+// boundedEntries keeps the entries of highest priority that fit the corpus
+// caps. The byte cap follows the stored-bytes rule: the target the cases share
+// counts once, and each case that shares it adds only its own files.
+func boundedEntries(entries []Entry) ([]Entry, error) {
 	frequencies := featureFrequencies(entries)
 	sort.Slice(entries, func(i, j int) bool { return entryLess(entries[i], entries[j], frequencies) })
 	selected := make([]Entry, 0, min(len(entries), maximumEntries))
-	var bytes uint64
+	var retained artifact.RetainedBytes
 	for _, entry := range entries {
-		if len(selected) == maximumEntries || uint64(entry.StoredBytes) > maximumBytes-bytes {
+		cost, err := retained.Cost(uint64(entry.StoredBytes), entry.sharedTarget)
+		if err != nil {
+			return nil, err
+		}
+		if len(selected) == maximumEntries || cost > maximumBytes-retained.Total() {
 			continue
 		}
+		if _, err := retained.Add(uint64(entry.StoredBytes), entry.sharedTarget); err != nil {
+			return nil, err
+		}
 		selected = append(selected, entry)
-		bytes += uint64(entry.StoredBytes)
 	}
 	sort.Slice(selected, func(i, j int) bool { return selected[i].RecordHash < selected[j].RecordHash })
-	return selected
+	return selected, nil
 }
 
 func featureFrequencies(entries []Entry) map[Feature]int {
@@ -533,7 +554,19 @@ func (corpus *Corpus) cleanupCases() error {
 			return fmt.Errorf("remove unreferenced guided case %s: %w", entry.Name(), err)
 		}
 	}
-	return syncDirectory(corpus.casesPath())
+	if err := syncDirectory(corpus.casesPath()); err != nil {
+		return err
+	}
+	return corpus.pruneTargets()
+}
+
+// pruneTargets drops the corpus target no remaining case shares. The corpus
+// lock makes this process the pool's only writer.
+func (corpus *Corpus) pruneTargets() error {
+	if err := artifact.PruneTargetPool(corpus.targetPool(), true); err != nil {
+		return fmt.Errorf("prune guided corpus targets: %w", err)
+	}
+	return nil
 }
 
 func (corpus *Corpus) removeUnreferencedCase(relative string) error {
@@ -545,7 +578,10 @@ func (corpus *Corpus) removeUnreferencedCase(relative string) error {
 	if err := os.RemoveAll(filepath.Join(corpus.path, filepath.FromSlash(relative))); err != nil {
 		return err
 	}
-	return syncDirectory(corpus.casesPath())
+	if err := syncDirectory(corpus.casesPath()); err != nil {
+		return err
+	}
+	return corpus.pruneTargets()
 }
 
 func writeAtomic(ctx context.Context, path string, contents []byte) (retErr error) {

@@ -144,6 +144,9 @@ type TargetReport struct {
 	BuildInfo          record.BuildInfo                 `json:"build_info"`
 	CapabilityMode     string                           `json:"capability_mode"`
 	CapabilityManifest *record.TargetCapabilityManifest `json:"capability_manifest,omitempty"`
+	// Sharing is "shared" when the inspected artifact's target file is one copy
+	// held with its store's pool and "private" when the artifact owns it.
+	Sharing string `json:"sharing,omitempty"`
 }
 
 type OutcomeReport struct {
@@ -395,6 +398,11 @@ func Inspect(path string, options InspectOptions) (Inspection, error) {
 		}
 		defer opened.Close()
 		projected := projectArtifact(opened.Manifest, absolute)
+		sharing, err := artifact.TargetSharingOf(opened)
+		if err != nil {
+			return Inspection{}, err
+		}
+		projected.Target.Sharing = string(sharing)
 		if options.Choices {
 			choices, projectErr := projectChoices(opened)
 			if projectErr != nil {

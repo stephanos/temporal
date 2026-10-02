@@ -51,8 +51,11 @@ type Publication struct {
 }
 
 type Artifact struct {
-	Path        string
-	Manifest    record.ExecutionRecord
+	Path     string
+	Manifest record.ExecutionRecord
+	// StoredBytes counts the manifest and every listed file, the target
+	// included, whether or not the store shares that target. RetainedBytes
+	// states the rule and sums artifacts that are kept together.
 	StoredBytes uint64
 	// TargetSharing is set by publication and is empty on an opened artifact.
 	TargetSharing TargetSharing

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/qualification"
 	capabilityanalysis "go.temporal.io/server/tools/gomad3/qualification/analysis"
@@ -36,6 +37,39 @@ func TestPruneQualifiedCampaignsRemovesOnlyReplayedCampaigns(t *testing.T) {
 		if _, err := os.Lstat(kept); err != nil {
 			t.Fatalf("pruning removed %s: %v", kept, err)
 		}
+	}
+}
+
+func TestPruneQualifiedCampaignsRemovesASharedTargetOnlyWithItsLastArtifact(t *testing.T) {
+	root := t.TempDir()
+	pool := artifact.TargetPool(root)
+	shared := filepath.Join(pool, "sha256-"+strings.Repeat("a", 64))
+	abandoned := filepath.Join(pool, "sha256-"+strings.Repeat("b", 64))
+	for _, entry := range []string{shared, abandoned} {
+		writeFile(t, entry)
+	}
+	first := retainedCampaign(t, root, "campaign-first")
+	second := retainedCampaign(t, root, "campaign-second")
+	for _, campaign := range []string{first, second} {
+		if err := os.Link(shared, filepath.Join(campaign, "successes", "sha256-x", "target")); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := pruneQualifiedCampaigns(root, qualifiedReport(first)); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Lstat(shared); err != nil {
+		t.Fatalf("pruning removed a target a retained Campaign shares: %v", err)
+	}
+	if _, err := os.Lstat(abandoned); !os.IsNotExist(err) {
+		t.Fatalf("a target no artifact shares survived pruning: %v", err)
+	}
+	if err := pruneQualifiedCampaigns(root, qualifiedReport(second)); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Lstat(shared); !os.IsNotExist(err) {
+		t.Fatalf("the target of the last pruned Campaign survived: %v", err)
 	}
 }
 

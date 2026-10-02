@@ -8,13 +8,15 @@ import (
 	"slices"
 	"strings"
 
+	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/qualification"
 )
 
 // pruneQualifiedCampaigns removes the Campaigns a qualified seed retained once
 // the set report has projected their evidence. The seed's qualification report
 // stays under the artifact root, and removal goes through an os.Root so a
-// recorded path can never delete anything outside that root.
+// recorded path can never delete anything outside that root. The root's shared
+// targets go with them once no retained artifact shares them.
 func pruneQualifiedCampaigns(artifactRoot string, report qualification.QualificationReport) error {
 	if !report.Qualified || len(report.Executions) == 0 {
 		return errors.New("only a qualified seed's retained Campaigns can be pruned")
@@ -58,7 +60,11 @@ func pruneQualifiedCampaigns(artifactRoot string, report qualification.Qualifica
 			return errors.Join(err, root.Close())
 		}
 	}
-	return root.Close()
+	if err := root.Close(); err != nil {
+		return err
+	}
+	// Another Campaign of this root may be publishing, so its staging stays.
+	return artifact.PruneTargetPool(artifact.TargetPool(artifactRoot), false)
 }
 
 func artifactRootRelative(artifactRoot, path string) (string, error) {

@@ -251,7 +251,11 @@ func printSimulationExplorationInspection(printer *inspectionPrinter, inspected 
 
 func printArtifactInspection(printer *inspectionPrinter, inspected *runner.ArtifactInspection, path string) {
 	printer.printf("identity: record=%s campaign=%s ordinal=%d seed=%d toolchain=%s runner=%s\n", inspected.RecordHash, inspected.CampaignID, inspected.SelectionOrdinal, inspected.Seed, inspected.Toolchain.BuildKey, inspected.Runner.RunnerBuild)
-	printer.printf("target: kind=%s source=%s sha256=%s size=%d argv=%q tags=%q\n", inspected.Target.Kind, inspected.Target.Source, inspected.Target.SHA256, inspected.Target.Size, inspected.Target.Argv, inspected.Target.BuildTags)
+	sharing := ""
+	if inspected.Target.Sharing != "" {
+		sharing = " sharing=" + inspected.Target.Sharing
+	}
+	printer.printf("target: kind=%s source=%s sha256=%s size=%d argv=%q tags=%q%s\n", inspected.Target.Kind, inspected.Target.Source, inspected.Target.SHA256, inspected.Target.Size, inspected.Target.Argv, inspected.Target.BuildTags, sharing)
 	printer.printf("outcome: domain=%s reason=%s termination=%s signature=%s replay-match=%s\n", inspected.Outcome.Domain, inspected.Outcome.Reason, inspected.Outcome.Termination, inspected.Outcome.FailureSignature, optionalBool(inspected.Outcome.ReplayMatch))
 	if inspected.FirstDivergence != "" {
 		printer.printf("first-divergence: %s\n", inspected.FirstDivergence)
