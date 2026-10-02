@@ -1,7 +1,7 @@
 // The activity specimen's reviewed supported block (model/scalav2/specimens/activity.md), lifted as
 // written, with the passive monitors its proposed E1 block states in the framework's `monitor`
 // declaration. Only the package, this header, the Monitors section and each design's `monitors` line
-// differ from the reviewed text. run.sh lifts both designs' Queries and compares the IR with
+// differ from the reviewed text. The lifter's tests lift both designs' Queries and compare the IR with
 // expected/admission.json.
 package fixture.specimens.admission
 

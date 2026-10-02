@@ -151,19 +151,6 @@ final class Machine[S, O, F] private[umpire] (
 
   lazy val table: Checked[Table] = build
 
-  /** The evidence lines, one per fact constructor in catalog order. */
-  lazy val evidenceLines: Vector[(String, String)] = evidenceOf match
-    case None    => Vector.empty
-    case Some(f) =>
-      ff.values.toVector.map(v => Keys.actionName(Keys.of(v)) -> f(v)).distinctBy(_._1)
-
-  /** The recorded name confirming a fact constructor, if one is declared. */
-  def evidenceFor(fact: String): Option[String] = evidenceLines.collectFirst { case (`fact`, e) =>
-    e
-  }
-
-  def isUnobservable(action: String): Boolean = unobservableNames(action)
-
   def hasRefinement: Boolean = refinement.isDefined
 
   /** The declared refinement, checked once. */
@@ -204,12 +191,6 @@ final class Machine[S, O, F] private[umpire] (
     for k <- startKeys if !stateValue.contains(k) do
       fail(name, s"start $k is outside the state domain")
     if startKeys.isEmpty then fail(name, "the machine declares no start")
-    val fieldValues = states.map { s =>
-      val own = Keys.fields(s).map((f, v) => Atom(family.id("state-field", name, f), v)).toVector
-      val refined =
-        refinement.map(r => Atom(family.id("state-field", name, r.product.name), r.mapKey(s)))
-      Keys.of(s) -> (own ++ refined)
-    }.toMap
     Table(
       machine = name,
       owner = name,
@@ -223,13 +204,8 @@ final class Machine[S, O, F] private[umpire] (
       rows = rows,
       stateFields = stateFields,
       refinedField = refinedField,
-      entity = entity.fold("")(_.name),
-      evidence = evidenceLines,
       stateValue = stateValue,
-      classes = bound.map((c, _) => c.key -> c).toMap,
-      decls = bindings.map(b => b.decl.name -> b.decl).toMap,
-      alter = alterer(stateValue),
-      fieldValueMap = fieldValues
+      classes = bound.map((c, _) => c.key -> c).toMap
     )
   }
 
@@ -293,25 +269,3 @@ final class Machine[S, O, F] private[umpire] (
           s"the row '${Table.rowKey(Keys.of(s), c.key)}' reaches the hole ${h.name}, which only the IR " +
             "interpreter reads: lift the machine and check its IR"
         )
-
-  private def alterer(stateValue: Map[String, Any]): Alterer =
-    val outcomeOf = fo.values.map(o => Keys.of(o) -> o).toMap
-    def rebuild(r: RowResult)(f: Step[S, O, F] => Step[S, O, F]): RowResult = r.step match
-      case step: Step[?, ?, ?] =>
-        val next = f(step.asInstanceOf[Step[S, O, F]]) // scalafix:ok DisableSyntax.asInstanceOf
-        RowResult(
-          Keys.of(next.outcome),
-          Keys.of(next.state),
-          next.facts.toVector.map(Keys.of),
-          next
-        )
-      case _ => r
-    Alterer(
-      state = (r, key) =>
-        rebuild(r)(s =>
-          stateValue.get(key).fold(s)(v => s.copy(state = v.asInstanceOf[S]))
-        ), // scalafix:ok DisableSyntax.asInstanceOf
-      outcome = (r, key) => rebuild(r)(s => outcomeOf.get(key).fold(s)(o => s.copy(outcome = o))),
-      without =
-        (r, key) => rebuild(r)(s => s.copy(facts = s.facts.filterNot(f => Keys.of(f) == key)))
-    )

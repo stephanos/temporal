@@ -624,7 +624,6 @@ func TestKeyLevelClaimNamesAreScopedPerTable(t *testing.T) {
 		umpire.KeyFreeScenario(first, "elsewhere", "s0"), four).Answer()
 	require.EqualError(t, err, "machine chain: scenario elsewhere is declared twice, and both declarations would share "+
 		"one Definition ID; rename one")
-	require.ErrorContains(t, umpire.Check(first.Model()), "property holds is declared twice")
 
 	_, err = umpire.KeyVerify("q", umpire.KeyTransitionProperty(first, "mine", always),
 		umpire.KeyFreeScenario(second, "theirs", "s0"), four).Answer()

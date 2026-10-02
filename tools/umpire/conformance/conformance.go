@@ -41,8 +41,8 @@ import (
 	"fmt"
 	"time"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
@@ -104,7 +104,7 @@ type Factory struct {
 // machine and claims are read whole, and the Case must carry the evidence observation of the
 // machine's one realization. A Query this reader does not assess, a claim that cannot be read and a
 // ceiling out of range are errors here, before any Run.
-func Prepare(m *modelirspb.Model, query umpiremodel.ClaimKey, source *testpilotspb.Case, limits Limits) (*Factory, error) {
+func Prepare(m *umpirespb.Model, query umpiremodel.ClaimKey, source *testpilotspb.Case, limits Limits) (*Factory, error) {
 	if m == nil || source == nil {
 		return nil, &umpiremodel.Error{Message: "a Model and a Case are required"}
 	}
@@ -148,7 +148,7 @@ func (f *Factory) New(context.Context) (testpilot.Assessor, error) { return newA
 
 // modelIdentity is a Model's content with every source position taken out, so that moving a
 // declaration in its file moves no identity.
-func modelIdentity(m *modelirspb.Model) (string, error) {
+func modelIdentity(m *umpirespb.Model) (string, error) {
 	bare := proto.CloneOf(m)
 	bare.Source = ""
 	clearPositions(bare.ProtoReflect())
@@ -160,7 +160,7 @@ func modelIdentity(m *modelirspb.Model) (string, error) {
 	return "goir.model/v1:sha256:" + hex.EncodeToString(digest[:]), nil
 }
 
-var positionName = (&modelirspb.Position{}).ProtoReflect().Descriptor().FullName()
+var positionName = (&umpirespb.Position{}).ProtoReflect().Descriptor().FullName()
 
 func clearPositions(m protoreflect.Message) {
 	m.Range(func(field protoreflect.FieldDescriptor, value protoreflect.Value) bool {

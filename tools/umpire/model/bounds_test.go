@@ -9,19 +9,19 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"google.golang.org/protobuf/proto"
 )
 
-func upTo(high int64) *modelirspb.TypeRef {
-	return &modelirspb.TypeRef{Ref: &modelirspb.TypeRef_IntRange{IntRange: &modelirspb.IntRange{High: high}}}
+func upTo(high int64) *umpirespb.TypeRef {
+	return &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_IntRange{IntRange: &umpirespb.IntRange{High: high}}}
 }
 
 // Two inputs of 0..59 each: every catalog is within a ceiling of 100, and their 3600 assignments are not.
 func TestAProductIsCountedBeforeItIsListed(t *testing.T) {
 	in := NewInterpreter(lifted(t, "presence"))
 	in.ceilings = Ceilings{Members: 100, Evaluations: 1 << 20}
-	_, err := in.product([]*modelirspb.Field{{Name: "x", Type: upTo(59)}, {Name: "y", Type: upTo(59)}})
+	_, err := in.product([]*umpirespb.Field{{Name: "x", Type: upTo(59)}, {Name: "y", Type: upTo(59)}})
 	var limit *LimitError
 	require.ErrorAs(t, err, &limit)
 	require.Equal(t, LimitError{Resource: "members", Ceiling: 100, Needed: 3600}, *limit)
@@ -30,11 +30,11 @@ func TestAProductIsCountedBeforeItIsListed(t *testing.T) {
 // presence with keep and forget given an input of 0..59: 123 classes, counted before any is listed by
 // whoever lists them, admission included.
 func TestClassesAreCountedTogetherBeforeTheyAreListed(t *testing.T) {
-	m := proto.Clone(lifted(t, "presence")).(*modelirspb.Model)
-	actions := map[string]*modelirspb.Action{}
+	m := proto.Clone(lifted(t, "presence")).(*umpirespb.Model)
+	actions := map[string]*umpirespb.Action{}
 	for _, a := range m.GetActions() {
 		if a.GetName() == "keep" || a.GetName() == "forget" {
-			a.Inputs = []*modelirspb.Param{{Name: "n", Type: upTo(59)}}
+			a.Inputs = []*umpirespb.Param{{Name: "n", Type: upTo(59)}}
 		}
 		actions[a.GetId()] = a
 	}
@@ -68,12 +68,12 @@ func TestAdmissionLeavesRowsPastTheCeilingToBuild(t *testing.T) {
 func TestComposedKeysAreCountedBeforeTheyAreListed(t *testing.T) {
 	m := compositionModel("a", "d", "both")
 	for _, a := range m.GetActions() {
-		a.Inputs = []*modelirspb.Param{{Name: "n", Type: upTo(9)}}
+		a.Inputs = []*umpirespb.Param{{Name: "n", Type: upTo(9)}}
 	}
 	for _, f := range m.GetFunctions() {
-		f.Params = append(f.Params, &modelirspb.Param{Name: "n", Type: upTo(9)})
+		f.Params = append(f.Params, &umpirespb.Param{Name: "n", Type: upTo(9)})
 	}
-	m.Scenarios = []*modelirspb.Scenario{{Machine: "p", Name: "each", Position: at(50), Keys: []string{"both-0-0"}}}
+	m.Scenarios = []*umpirespb.Scenario{{Machine: "p", Name: "each", Position: at(50), Keys: []string{"both-0-0"}}}
 	v := newValidator(m)
 	v.in.ceilings = Ceilings{Members: 50, Evaluations: 1 << 20}
 	v.schedules(m, v.composedClasses(m))
@@ -87,13 +87,13 @@ func TestComposedKeysAreCountedBeforeTheyAreListed(t *testing.T) {
 func TestComposedKeysAreCountedBeforeAPropertyReadsThem(t *testing.T) {
 	m := compositionModel("a", "d", "both")
 	for _, a := range m.GetActions() {
-		a.Inputs = []*modelirspb.Param{{Name: "n", Type: upTo(9)}}
+		a.Inputs = []*umpirespb.Param{{Name: "n", Type: upTo(9)}}
 	}
 	for _, f := range m.GetFunctions() {
-		f.Params = append(f.Params, &modelirspb.Param{Name: "n", Type: upTo(9)})
+		f.Params = append(f.Params, &umpirespb.Param{Name: "n", Type: upTo(9)})
 	}
-	m.Properties = []*modelirspb.Property{{Machine: "p", Name: "each", Position: at(50),
-		When: &modelirspb.Property_WhenAction{WhenAction: "both"}}}
+	m.Properties = []*umpirespb.Property{{Machine: "p", Name: "each", Position: at(50),
+		When: &umpirespb.Property_WhenAction{WhenAction: "both"}}}
 	v := newValidator(m)
 	v.in.ceilings = Ceilings{Members: 50, Evaluations: 1 << 20}
 	v.selectors(m, v.composedClasses(m))

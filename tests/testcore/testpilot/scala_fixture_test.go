@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
@@ -92,9 +92,9 @@ func TestTheHeldRaceIsLoadedWithItsClaimAndItsDurableKinds(t *testing.T) {
 }
 
 func TestDurableEvidenceIsScopedToTheSelectedRealization(t *testing.T) {
-	model := &modelirspb.Model{Realizations: []*modelirspb.Realization{
-		{Machine: "reported", Evidence: []*modelirspb.Evidence{{Id: "shared", Commitment: modelirspb.Evidence_COMMITMENT_REPORTED}}},
-		{Machine: "durable", Evidence: []*modelirspb.Evidence{{Id: "shared", Commitment: modelirspb.Evidence_COMMITMENT_DURABLE}}},
+	model := &umpirespb.Model{Realizations: []*umpirespb.Realization{
+		{Machine: "reported", Evidence: []*umpirespb.Evidence{{Id: "shared", Commitment: umpirespb.Evidence_COMMITMENT_REPORTED}}},
+		{Machine: "durable", Evidence: []*umpirespb.Evidence{{Id: "shared", Commitment: umpirespb.Evidence_COMMITMENT_DURABLE}}},
 	}}
 	source := &testpilotspb.Case{
 		Provenance: &testpilotspb.CaseProvenance{LocalNames: []*testpilotspb.LocalName{{DefinitionId: "shared", LocalName: "local"}}},

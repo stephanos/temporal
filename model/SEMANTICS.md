@@ -1,7 +1,7 @@
 # Semantics of the Umpire IR
 
 The IR's meaning is defined here, not by the lifter that writes it or the Go interpreter that reads
-it. `proto/internal/temporal/server/api/modelir/v1/ir.proto` is the schema; `goir/` is one evaluator of these rules, and the parity
+it. `proto/internal/temporal/server/api/umpire/v1/ir.proto` is the schema; `goir/` is one evaluator of these rules, and the parity
 tests check it against the Lean Model.
 
 ## Versions
@@ -585,7 +585,7 @@ activity entrypoint's instructions are answers, and none waits out a deadline. A
 attempt that a Run would record out of the path's order, which the Contract reads evidence in. And
 the record of an attempt in a Case that runs two activities: a Run records an attempt at the command
 that carries it, by its number and under no script's name, and the one carrier of a Case carries
-every activity the Case gives an instruction, so neither the Case's guard nor `Admits` can tell the
+every activity the Case gives an instruction, so neither the Case's guard nor `admits` can tell the
 attempts of the two apart. When a
 Run records a piece of evidence is read from declarations and never from the kind of event it is.
 What a worker reports of an activation is always declared the record of an attempt, so no such
@@ -622,7 +622,7 @@ reads the Run's evidence as [Realizations](#realizations) says. Beside the field
 gives a role, it reads the activity attempt a Run Event records with the evidence it carries, the
 Run protocol's typed data, as that evidence's attempt and delivery: where a field and the event name
 the same identity they must agree, and the evidence of one operation is of one activity run. Its
-`Admits` says whether a Run Event is an occurrence of the evidence a Run Event source declares, by
+`admits` says whether a Run Event is an occurrence of the evidence a Run Event source declares, by
 the event's kind, the command that recorded it, the number of the attempt the event records where
 the source is declared the record of one, and the source's guard, which it checks by the one reading
 above before it evaluates it. The script such a source names it cannot read off the event, which is

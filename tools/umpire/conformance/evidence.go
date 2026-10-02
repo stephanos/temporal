@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -17,7 +17,7 @@ import (
 //
 // The instance is the operation key under the Run's one scope, and the order is the evidence's
 // parents and source ordinals; both are text of the correlated evidence. Evidence of a kind that is
-// the Run's own record is read only from a Run Event the kind's source takes (Admits). The attempt and the delivery
+// the Run's own record is read only from a Run Event the kind's source takes (admits). The attempt and the delivery
 // are typed roles of an observation, filled from two places: a field the Case retains and the
 // realization gives that role, and the activity attempt a Run Event records beside the evidence it
 // carries, which is typed data of the Run protocol. Where both name an identity they must name the
@@ -32,12 +32,12 @@ type kind struct {
 	// fields is the fields the Case declares for the kind, and roles the identity each retained one
 	// names, by the Case's name for the field.
 	fields []*testpilotspb.CorrelatedFieldPolicy
-	roles  map[string]modelirspb.EvidenceField_Role
+	roles  map[string]umpirespb.EvidenceField_Role
 	// closing is the instruction whose read closes the kind's source, for a kind declared exhaustive.
 	closing *coordinate
 	// record is the Run Event source of a kind that is the Run's own record: the events its evidence
 	// is read from, and from no other.
-	record *modelirspb.RunEventSource
+	record *umpirespb.RunEventSource
 }
 
 // coordinate names one instruction of a Case's Program.
@@ -92,7 +92,7 @@ type reader struct {
 // that names an operation, and each kind the Case carries, which are the ones its correlated Contract
 // gives a meaning, with its source and its fields. A role the Case's evidence would need and neither
 // declares is a refusal here.
-func newReader(r *modelirspb.Realization, source *testpilotspb.Case) (*reader, error) {
+func newReader(r *umpirespb.Realization, source *testpilotspb.Case) (*reader, error) {
 	at := r.GetPosition()
 	contract := source.GetContract().GetCorrelated()
 	if contract == nil {
@@ -121,7 +121,7 @@ func newReader(r *modelirspb.Realization, source *testpilotspb.Case) (*reader, e
 		return nil, located(r.GetCorrelation().GetPosition(), "case %s keys operations by %s, and realization %s keys them by %s", source.GetCaseId(),
 			contract.GetOperationField(), r.GetName(), operation)
 	}
-	declared := map[string]*modelirspb.Evidence{}
+	declared := map[string]*umpirespb.Evidence{}
 	for _, e := range r.GetEvidence() {
 		declared[e.GetId()] = e
 	}
@@ -159,13 +159,13 @@ func newReader(r *modelirspb.Realization, source *testpilotspb.Case) (*reader, e
 // field. A retained field may be what tells two attempts or two deliveries of one operation apart, so
 // it is read only as what the realization says it is: one the realization does not declare for the
 // kind, or redacts, is refused.
-func rolesOf(r *modelirspb.Realization, source *testpilotspb.Case, e *modelirspb.Evidence, rule *testpilotspb.CorrelatedProjectionRule,
-	spelled func(string) string) (map[string]modelirspb.EvidenceField_Role, error) {
-	fields := map[string]*modelirspb.EvidenceField{}
+func rolesOf(r *umpirespb.Realization, source *testpilotspb.Case, e *umpirespb.Evidence, rule *testpilotspb.CorrelatedProjectionRule,
+	spelled func(string) string) (map[string]umpirespb.EvidenceField_Role, error) {
+	fields := map[string]*umpirespb.EvidenceField{}
 	for _, f := range e.GetFields() {
 		fields[spelled(f.GetId())] = f
 	}
-	roles := map[string]modelirspb.EvidenceField_Role{}
+	roles := map[string]umpirespb.EvidenceField_Role{}
 	for _, field := range rule.GetFields() {
 		f, declared := fields[field.GetFieldId()]
 		switch disposition := field.GetDisposition(); {
@@ -189,7 +189,7 @@ func rolesOf(r *modelirspb.Realization, source *testpilotspb.Case, e *modelirspb
 // its id, which are the entrypoint and the instruction of every Case that carries it. Admission lets
 // through no exhaustive kind without one. The command that closes its own record may perform a step,
 // and is then the instruction of the first step of its class a Case's path takes.
-func closingRead(r *modelirspb.Realization, evidence string) coordinate {
+func closingRead(r *umpirespb.Realization, evidence string) coordinate {
 	for _, s := range r.GetScripts() {
 		for _, item := range s.GetItems() {
 			if slices.Contains(item.GetCommand().GetCloses(), evidence) {
@@ -207,7 +207,7 @@ func closingRead(r *modelirspb.Realization, evidence string) coordinate {
 
 // closingOf is the instruction of the Case that is the closing read of an exhaustive kind, or nil
 // where the Case has none.
-func closingOf(r *modelirspb.Realization, source *testpilotspb.Case, evidence string) *coordinate {
+func closingOf(r *umpirespb.Realization, source *testpilotspb.Case, evidence string) *coordinate {
 	at := closingRead(r, evidence)
 	for _, entrypoint := range source.GetProgram().GetEntrypoints() {
 		if entrypoint.GetEntrypointId() != at.entrypoint {
@@ -274,7 +274,7 @@ func occurrence(declared *kind, event *testpilotspb.RunEvent) error {
 	if declared.record == nil {
 		return nil
 	}
-	admitted, err := Admits(declared.record, event)
+	admitted, err := admits(declared.record, event)
 	if err != nil {
 		return err
 	}
@@ -397,26 +397,26 @@ func (r *reader) observed(sequence int64, evidence *testpilotspb.CorrelatedEvide
 	found := &observation{identity: identityOf(id), scope: scope, instance: scope + evidence.GetOperation(), sequence: sequence, kind: declared,
 		source: id.GetEvidenceSource(), ordinal: id.GetOrdinal(), recorded: proto.CloneOf(evidence)}
 	// The identities the evidence's own fields name, and the ones the Run Event records as typed data.
-	fields, names := map[modelirspb.EvidenceField_Role]string{}, map[modelirspb.EvidenceField_Role]string{}
+	fields, names := map[umpirespb.EvidenceField_Role]string{}, map[umpirespb.EvidenceField_Role]string{}
 	for _, field := range evidence.GetFields() {
-		if role := declared.roles[field.GetFieldId()]; role != modelirspb.EvidenceField_ROLE_UNSPECIFIED {
+		if role := declared.roles[field.GetFieldId()]; role != umpirespb.EvidenceField_ROLE_UNSPECIFIED {
 			fields[role], _ = scalar(field.GetValue())
 			names[role] = field.GetFieldId()
 		}
 	}
-	if name, keyed := names[modelirspb.EvidenceField_ROLE_OPERATION]; keyed && fields[modelirspb.EvidenceField_ROLE_OPERATION] != evidence.GetOperation() {
+	if name, keyed := names[umpirespb.EvidenceField_ROLE_OPERATION]; keyed && fields[umpirespb.EvidenceField_ROLE_OPERATION] != evidence.GetOperation() {
 		return refused("evidence of kind %q for operation %q, whose field %s names operation %q", declared.local, evidence.GetOperation(), name,
-			fields[modelirspb.EvidenceField_ROLE_OPERATION])
+			fields[umpirespb.EvidenceField_ROLE_OPERATION])
 	}
 	delivered := ""
 	if attempt.GetSdkAttempt() > 0 {
 		delivered = strconv.FormatInt(int64(attempt.GetSdkAttempt()), 10)
 	}
 	var crossed string
-	if found.attempt, crossed = named("attempt", names[modelirspb.EvidenceField_ROLE_ATTEMPT], fields[modelirspb.EvidenceField_ROLE_ATTEMPT], delivered); crossed != "" {
+	if found.attempt, crossed = named("attempt", names[umpirespb.EvidenceField_ROLE_ATTEMPT], fields[umpirespb.EvidenceField_ROLE_ATTEMPT], delivered); crossed != "" {
 		return refused("%s", crossed)
 	}
-	if found.delivery, crossed = named("delivery", names[modelirspb.EvidenceField_ROLE_DELIVERY], fields[modelirspb.EvidenceField_ROLE_DELIVERY],
+	if found.delivery, crossed = named("delivery", names[umpirespb.EvidenceField_ROLE_DELIVERY], fields[umpirespb.EvidenceField_ROLE_DELIVERY],
 		attempt.GetDeliveryId()); crossed != "" {
 		return refused("%s", crossed)
 	}

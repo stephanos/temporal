@@ -9,8 +9,8 @@ import (
 	"slices"
 	"time"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/tools/umpire/conformance"
 	"go.temporal.io/server/tools/umpire/lower"
@@ -116,7 +116,7 @@ func ScalaManifest(directory string) ([]lower.GeneratedCase, error) {
 	return manifest.Queries, nil
 }
 
-func prepareScalaCase(model *modelirspb.Model, query umpiremodel.ClaimKey, source *testpilotspb.Case) (*ScalaCase, error) {
+func prepareScalaCase(model *umpirespb.Model, query umpiremodel.ClaimKey, source *testpilotspb.Case) (*ScalaCase, error) {
 	assessment, err := conformance.Prepare(model, query, source, conformance.Limits{
 		MaxEvents: 2048, MaxProperties: 16, MaxDuration: time.Minute, MaxCandidates: 1 << 16, MaxWork: 1 << 22, MaxReadings: 1 << 22,
 	})
@@ -140,7 +140,7 @@ func prepareScalaCase(model *modelirspb.Model, query umpiremodel.ClaimKey, sourc
 	return &ScalaCase{Source: source, Bytes: canonical.Bytes(), Assessment: assessment, Property: property, Durable: durableEvidence(model, query.Owner, source)}, nil
 }
 
-func durableEvidence(model *modelirspb.Model, owner string, source *testpilotspb.Case) []string {
+func durableEvidence(model *umpirespb.Model, owner string, source *testpilotspb.Case) []string {
 	local := map[string]string{}
 	for _, name := range source.GetProvenance().GetLocalNames() {
 		local[name.GetDefinitionId()] = name.GetLocalName()
@@ -155,7 +155,7 @@ func durableEvidence(model *modelirspb.Model, owner string, source *testpilotspb
 			continue
 		}
 		for _, e := range realization.GetEvidence() {
-			if name := local[e.GetId()]; e.GetCommitment() == modelirspb.Evidence_COMMITMENT_DURABLE && carried[name] {
+			if name := local[e.GetId()]; e.GetCommitment() == umpirespb.Evidence_COMMITMENT_DURABLE && carried[name] {
 				durable = append(durable, name)
 			}
 		}

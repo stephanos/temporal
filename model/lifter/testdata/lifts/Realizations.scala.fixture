@@ -7,8 +7,8 @@
 // instead of a Case. `errandRealization` runs a standalone activity whose first attempt fails and
 // whose retry completes, on a machine whose facts a listing reports. `tallyRealization` declares
 // evidence read from one message that keeps fields, one of them without its value, which no Case
-// carries, and the Run's own record as evidence. run.sh
-// lifts them and compares the IR with expected/realizations.json.
+// carries, and the Run's own record as evidence. The lifter's tests
+// lift them and compare the IR with expected/realizations.json.
 package fixture.realizations
 
 import fixture.specimens.admission.{AdmissionFact, Message as Dispatched, dispatch, scheduledEmpty, staleAdmission, three}

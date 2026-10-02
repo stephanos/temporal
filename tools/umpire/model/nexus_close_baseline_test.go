@@ -17,7 +17,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 )
 
 // closeAccepted is the result of the first delivery of a completion to an open caller, as both sides
@@ -55,7 +55,7 @@ func TestNexusCloseOpenCallerAcceptsACompletionAsTheGoModel(t *testing.T) {
 // The designs deliver the baseline's own `complete` action: one declaration, by the handler, on the
 // operation, with the baseline's input and result domain.
 func TestNexusCloseCompleteIsTheBaselinesAction(t *testing.T) {
-	var original, lifted *modelirspb.Action
+	var original, lifted *umpirespb.Action
 	for _, a := range frozenReaderModel(t, "nexus-caller").GetActions() {
 		if a.GetName() == "complete" {
 			original = a
@@ -198,7 +198,7 @@ func closeSource(t *testing.T) []string {
 }
 
 // closeLifted is every name the lifted Model declares, a Query by its name without its machine's.
-func closeLifted(m *modelirspb.Model) []string {
+func closeLifted(m *umpirespb.Model) []string {
 	found := map[string]bool{}
 	for _, x := range m.GetMachines() {
 		found["machine "+x.GetName()] = true

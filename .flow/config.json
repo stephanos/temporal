@@ -43,7 +43,7 @@
     "enabled": false
   },
   "review": {
-    "backend": "codex",
+    "backend": "claude:claude-fable-5-1:high",
     "maxIterations": 8
   },
   "scouts": {

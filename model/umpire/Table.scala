@@ -10,9 +10,6 @@ import scala.collection.mutable
 final case class Family(root: String):
   /** `<family>.<kind>.<owner>.<member>`, the shape `Umpire.Command.Origin.ownedId` builds. */
   def id(kind: String, owner: String, member: String): String = s"$root.$kind.$owner.$member"
-
-  /** The machine's own Definition ID. */
-  def target(machine: String): String = s"$root.target.$machine"
   override def toString: String = root
 
 /** A value on a trace with the Definition ID it belongs to, as Lean's `ModelValue`. */
@@ -33,47 +30,12 @@ final case class RowResult(
 /** One enabled state and action class. An absent pair is disabled. */
 final case class Row(key: String, source: String, action: String, results: Vector[RowResult])
 
-/** The Definition IDs a table owns, in catalog order. */
-final case class IDs(
-    target: String,
-    states: Vector[String],
-    stateFields: Vector[(String, String)],
-    actions: Vector[String],
-    outcomes: Vector[String],
-    facts: Vector[String]
-)
-
-/**
- * One Abstraction Claim the machine's actions make: the class member that realizes it, the action
- * declaration, the input field, the class spelled as Lean spells it, and the example.
- */
-final case class Claim(
-    member: String,
-    action: String,
-    field: String,
-    className: String,
-    example: String
-)
-
 final private[umpire] case class ClaimEntry(
     decl: ActionDecl,
     classKey: String,
     spelling: String,
     example: String
 )
-
-/**
- * Rebuilds a typed step with its state, outcome or one fact changed, so predicate lowering can ask
- * the Property about it.
- */
-final private[umpire] case class Alterer(
-    state: (RowResult, String) => RowResult,
-    outcome: (RowResult, String) => RowResult,
-    without: (RowResult, String) => RowResult
-)
-
-private[umpire] object Alterer:
-  val none: Alterer = Alterer((r, _) => r, (r, _) => r, (r, _) => r)
 
 /**
  * A machine's finite table in Lean's catalog and row order. States, actions, outcomes and facts are
@@ -92,15 +54,8 @@ final class Table private[umpire] (
     val rows: Vector[Row],
     val stateFields: Vector[String],
     private[umpire] val refinedField: Option[String],
-    /** The name of the entity the machine keeps state for. */
-    val entity: String,
-    /** The evidence lines in declaration order: a fact constructor and the recorded kind confirming it. */
-    val evidence: Vector[(String, String)],
     private[umpire] val stateValue: Map[String, Any],
-    private[umpire] val classes: Map[String, Class],
-    private[umpire] val decls: Map[String, ActionDecl],
-    private[umpire] val alter: Alterer,
-    private[umpire] val fieldValueMap: Map[String, Vector[Atom]]
+    private[umpire] val classes: Map[String, Class]
 ):
   private val rowsFromIndex: Map[String, Vector[Row]] = rows.groupBy(_.source)
   private val rowIndexOf: Map[String, Int] = rows.iterator.map(_.key).zipWithIndex.toMap
@@ -110,7 +65,6 @@ final class Table private[umpire] (
   def row(key: String): Option[Row] = rowIndexOf.get(key).map(rows)
   def stateValueOf(key: String): Option[Any] = stateValue.get(key)
   def classOf(action: String): Option[Class] = classes.get(action)
-  def declOf(name: String): Option[ActionDecl] = decls.get(name)
 
   /**
    * `Umpire.Command.reachableFrom`: sweep the rows in table order, appending each newly reached
@@ -133,23 +87,10 @@ final class Table private[umpire] (
     val endSet = ends.toSet
     reachable.find(s => !endSet(s) && rowsFrom(s).isEmpty)
 
-  /** A state's fields as atoms: each field's Definition ID and the spelling the state holds it at. */
-  def fieldValues(state: String): Vector[Atom] = fieldValueMap.getOrElse(state, Vector.empty)
-
   def stateAtom(key: String): Atom = Atom(family.id("state", owner, key), key)
   def actionAtom(key: String): Atom = Atom(family.id("action", owner, key), key)
   def outcomeAtom(key: String): Atom = Atom(family.id("outcome", owner, key), key)
   def factAtom(key: String): Atom = Atom(family.id("fact", owner, key), key)
-
-  /** Every Definition ID the machine owns. */
-  def ids: IDs = IDs(
-    family.target(owner),
-    states.map(family.id("state", owner, _)),
-    stateFields.map(f => f -> family.id("state-field", owner, f)),
-    actions.map(family.id("action", owner, _)),
-    outcomes.map(family.id("outcome", owner, _)),
-    facts.map(family.id("fact", owner, _))
-  )
 
   /**
    * The Abstraction Claims of the actions a machine binds, in the order the actions' classes first
@@ -169,26 +110,6 @@ final class Table private[umpire] (
           )
         )
     }
-
-  /** The machine's Abstraction Claims in claim order. */
-  def claims: Vector[Claim] = claimEntries.map(c =>
-    Claim(
-      family.id("action", owner, c.classKey),
-      s"${family.root}.action.${c.decl.name}",
-      c.decl.inputs.head,
-      c.spelling,
-      c.example
-    )
-  )
-
-  // Identities a declared machine owns besides its catalog members (`Umpire.Command.Authoring`).
-  def capabilityID: String = family.id("capability", owner, "transitions")
-  def providerID: String = family.id("provider", owner, "finite-table")
-  def lawID: String = family.id("law", owner, "canonical-table")
-  def kernelID: String = family.id("kernel", owner, "planner")
-
-  /** The operation role a Scenario's setup binds, named after the machine's entity. */
-  def roleID: String = family.id("role", owner, entity)
 
 object Table:
   private[umpire] def rowKey(state: String, action: String): String = s"$state-$action"

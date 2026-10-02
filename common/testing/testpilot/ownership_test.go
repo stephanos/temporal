@@ -17,7 +17,6 @@ func TestRuntimeHelpersDoNotImportModelTooling(t *testing.T) {
 		forbiddenImports := []string{
 			"go.temporal.io/server/tools/umpire",
 			"go.temporal.io/server/model",
-			"go.temporal.io/server/api/modelir",
 			"go.temporal.io/server/api/umpire",
 		}
 		if root == "." {

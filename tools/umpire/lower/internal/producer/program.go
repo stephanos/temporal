@@ -106,8 +106,6 @@ func (a *assembler) emitItem(item Item) ([]*testpilotspb.InstructionNode, error)
 		}
 		a.placed = append(a.placed, classes...)
 		return a.p.actionNodes(a.placement, a.bindings, classes)
-	case PerInstance:
-		return a.emit(it.Items)
 	default:
 		return nil, reject(fmt.Sprintf("%T", item), "realization.item-unknown")
 	}
@@ -128,7 +126,7 @@ func (p *production) actionNodes(placement Placement, bindings []ActionBinding, 
 		if i < 0 {
 			return nil, reject(action, "realization.action-unbound")
 		}
-		id := bindings[i].InstructionID + placement.Suffix()
+		id := bindings[i].InstructionID + placement.suffix()
 		if ordinal > 0 {
 			id += fmt.Sprintf("-%d", ordinal+1)
 		}
@@ -151,7 +149,7 @@ func (p *production) evidenceDeclarations(rules []EvidenceRule) []*testpilotspb.
 		d := &testpilotspb.EvidenceDeclaration{
 			EvidenceId:     s.KindID,
 			EvidenceSource: s.SourceID,
-			Scope:          []*testpilotspb.NamedValue{{FieldId: p.r.ScopeField, Value: text(p.identity.RunScope)}},
+			Scope:          []*testpilotspb.NamedValue{{FieldId: p.r.ScopeField, Value: Text(p.identity.RunScope)}},
 			Operation:      s.OperationKeyPath,
 		}
 		switch event := s.Recorded.RunEvent; {

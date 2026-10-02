@@ -1,10 +1,11 @@
+// Package checker evaluates claims over finite tables: the search, refinement, composition, monitor
+// and progress checks the model reader runs over a table's keys.
 package checker
 
 import (
 	"fmt"
 	"maps"
 	"slices"
-	"strings"
 )
 
 // Family is the root a model's Definition IDs hang off, such as "temporal.nexus.caller". Lean
@@ -72,9 +73,7 @@ type Table struct {
 	fieldValues map[string][]Atom
 	// keyClaims is the Abstraction Claims a table built from keys was given.
 	keyClaims   []Claim
-	stateValue  map[string]any   // state key to typed state
-	classes     map[string]Class // action key to class, for declared machines
-	decls       map[string]*ActionDecl
+	stateValue  map[string]any // state key to typed state
 	rowsFrom    map[string][]int
 	unknownFrom map[string][]int
 	parts       map[string][]string
@@ -91,8 +90,8 @@ type UnknownPair struct {
 	Cause  error
 }
 
-// UnknownFrom lists the unknown pairs at this state, in the order the table lists them.
-func (t *Table) UnknownFrom(state string) []UnknownPair {
+// unknownsFrom lists the unknown pairs at this state, in the order the table lists them.
+func (t *Table) unknownsFrom(state string) []UnknownPair {
 	idx := t.unknownFrom[state]
 	out := make([]UnknownPair, len(idx))
 	for i, j := range idx {
@@ -154,20 +153,10 @@ func (t *Table) steps(state string) pairStatus {
 // NewTable has no error to return, so every check of such a table reports this instead of reading it.
 func (t *Table) Err() error { return t.err }
 
-// Model is the table as a Model, which claims declared over its keys name as their machine. A table
-// has one Model, so a Property and a Scenario over one table name the same machine.
-func (t *Table) Model() Model { return t.model }
-
 // Parts is the member state keys a composed state's key stands for, in member order.
 func (t *Table) Parts(state string) ([]string, bool) {
 	parts, ok := t.parts[state]
 	return slices.Clone(parts), ok
-}
-
-// StateValue is the typed state a key stands for.
-func (t *Table) StateValue(key string) (any, bool) {
-	v, ok := t.stateValue[key]
-	return v, ok
 }
 
 // RowsFrom lists the rows whose source is this state, in table order.
@@ -202,11 +191,6 @@ func (t *Table) FactAtom(key string) Atom {
 // OwnerName is the name the table's Definition IDs hang off.
 func (t *Table) OwnerName() string { return t.owner() }
 
-// CapabilityID is the machine's capability; ProviderID and KernelID are its other own identities.
-func (t *Table) CapabilityID() string { return t.capabilityID() }
-func (t *Table) ProviderID() string   { return t.providerID() }
-func (t *Table) KernelID() string     { return t.kernelID() }
-
 // Claim is one Abstraction Claim the machine's actions make: the class member that realizes it, the
 // action declaration, the input field, the class spelled as Lean spells it, and the example.
 type Claim struct {
@@ -219,16 +203,7 @@ type Claim struct {
 
 // Claims lists the machine's Abstraction Claims in claim order.
 func (t *Table) Claims() []Claim {
-	if t.keyClaims != nil {
-		return slices.Clone(t.keyClaims)
-	}
-	var out []Claim
-	for _, c := range t.claims() {
-		out = append(out, Claim{Member: t.Family.ID("action", t.owner(), c.classKey),
-			Action: string(t.Family) + ".action." + c.decl.Name, Field: c.decl.Inputs[0],
-			ClassName: c.spelling, Example: c.example})
-	}
-	return out
+	return slices.Clone(t.keyClaims)
 }
 
 // IDs is the table's Definition IDs, in catalog order.
@@ -350,8 +325,6 @@ func errorf(decl, format string, args ...any) error {
 
 func rowKey(state, action string) string { return state + "-" + action }
 
-func joinKeys(parts []string, sep string) string { return strings.Join(parts, sep) }
-
 // TableSpec is a machine's table computed outside this package, such as by an interpreter of the
 // Umpire IR (model/scalav2/goir). It carries only what a table's keys say; a table built from it has
 // no typed values. It serves identities, reachability and fingerprints, and claims declared over its
@@ -396,7 +369,7 @@ func NewTable(spec TableSpec) *Table {
 	t := &Table{Machine: spec.Machine, Owner: spec.Owner, Family: spec.Family, States: spec.States,
 		Actions: spec.Actions, Outcomes: spec.Outcomes, Facts: spec.Facts, Starts: spec.Starts, Ends: spec.Ends,
 		Rows: spec.Rows, StateFields: spec.StateFields, Entity: spec.Entity, Evidence: spec.Evidence,
-		stateValue: map[string]any{}, classes: map[string]Class{}, decls: map[string]*ActionDecl{}}
+		stateValue: map[string]any{}}
 	t.Assumptions = spec.Assumptions
 	t.Unknown, t.refinedField = spec.Unknown, spec.RefinedField
 	t.alter, t.fieldValues, t.keyClaims = keyAlterer(), spec.FieldValues, spec.Claims

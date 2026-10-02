@@ -326,7 +326,7 @@ Use these anchors to understand the contract before designing an encoding:
 | --- | --- |
 | [Shared specification](UMPIRE4_SPEC.md) | Authority, explicit Limits, deterministic Artifacts, Evidence rules, and execution boundaries; pending amendments are marked. |
 | [IR semantics](../model/scalav2/SEMANTICS.md) | Values, evaluation order, catalogs, Steps, channels, monitors, assumptions, refinement, holes, and Claims. |
-| [IR schema](../proto/internal/temporal/server/api/modelir/v1/ir.proto) | Serialized declarations and source positions; schema presence alone does not establish evaluator support. |
+| [IR schema](../proto/internal/temporal/server/api/umpire/v1/ir.proto) | Serialized declarations and source positions; schema presence alone does not establish evaluator support. |
 | [IR admission](../model/scalav2/goir/load.go) and [row derivation](../model/scalav2/goir/machine.go) | Current validation and derivation of classes, results, channel behavior, holes, and refinement. |
 | [Go search](../model/go/umpire/search.go) and [monitors](../model/go/umpire/monitor.go) | Query state identity, trigger bookkeeping, evaluation points, and bounded search outcomes. |
 | [Go refinement](../model/go/umpire/refine.go) and [composition](../model/go/umpire/compose.go) | Visible-result projection, carried steps, stutters, member interleaving, and synchronized results. |

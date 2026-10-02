@@ -8,8 +8,8 @@ import (
 	"html/template"
 	"path/filepath"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -58,7 +58,7 @@ func RenderTrace(c *Candidate, query string, run *testpilotspb.Run, assessment *
 	if err := view.witness(c.Model, machine, receipt); err != nil {
 		return nil, err
 	}
-	add := func(name string, at *modelirspb.Position) {
+	add := func(name string, at *umpirespb.Position) {
 		if at == nil {
 			return
 		}
@@ -105,7 +105,7 @@ func RenderTrace(c *Candidate, query string, run *testpilotspb.Run, assessment *
 	return out.Bytes(), err
 }
 
-func (view *traceView) witness(model *modelirspb.Model, machine *umpiremodel.Machine, receipt *umpiremodel.Receipt) error {
+func (view *traceView) witness(model *umpirespb.Model, machine *umpiremodel.Machine, receipt *umpiremodel.Receipt) error {
 	before := receipt.Witness.Initial.Value
 	interpreter := umpiremodel.NewInterpreter(model)
 	for _, step := range receipt.Witness.Steps {

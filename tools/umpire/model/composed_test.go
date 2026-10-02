@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 )
 
 func TestAComposedReadingIsTheCompositionCheckReads(t *testing.T) {
@@ -52,7 +52,7 @@ func TestAComposedReadingIsTheCompositionCheckReads(t *testing.T) {
 	}
 }
 
-func isComposition(m *modelirspb.Model, name string) bool {
+func isComposition(m *umpirespb.Model, name string) bool {
 	for _, c := range m.GetCompositions() {
 		if c.GetName() == name {
 			return true
@@ -83,7 +83,7 @@ func TestAComposedReadingDecodesStatesStepsAndProperties(t *testing.T) {
 			require.NoError(t, err)
 			target, err := c.State(res.State)
 			require.NoError(t, err)
-			require.True(t, step.Fields[1].Equal(target), row.Key)
+			require.True(t, step.Fields[1].equal(target), row.Key)
 			require.Equal(t, Value{Kind: TextValue, Text: res.Outcome}, step.Fields[0])
 			require.Len(t, step.Fields[2].Items, len(res.Facts))
 		}

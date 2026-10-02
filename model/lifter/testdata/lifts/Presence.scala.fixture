@@ -1,6 +1,6 @@
 // Union and presence, lifted as the finite types they are: an enum whose cases carry their own
 // fields, an optional value, and a counter whose range is its own rather than the one every other Int
-// field of the state shares. run.sh lifts `presence` and compares the IR with expected/presence.json.
+// field of the state shares. The lifter's tests lift `presence` and compare the IR with expected/presence.json.
 package fixture.presence
 
 import umpire.*

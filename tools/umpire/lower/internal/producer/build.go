@@ -2,7 +2,6 @@ package producer
 
 import (
 	"strconv"
-	"strings"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 )
@@ -10,12 +9,10 @@ import (
 // Builders for the Program and Contract messages, mirroring model/lean/Testpilot/Authoring.lean and
 // model/lean/Temporal/Testpilot/CaseSupport.lean so a realization reads the same in both.
 
-func text(value string) *testpilotspb.Value {
+// Text is a text value.
+func Text(value string) *testpilotspb.Value {
 	return &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: value}}
 }
-
-// Text is a text value.
-func Text(value string) *testpilotspb.Value { return text(value) }
 
 // Bool is a boolean value.
 func Bool(value bool) *testpilotspb.Value {
@@ -32,12 +29,10 @@ func Enum(name string) *testpilotspb.Value {
 	return &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: name}}}
 }
 
-func literal(v *testpilotspb.Value) *testpilotspb.Expression {
+// Literal is a literal expression.
+func Literal(v *testpilotspb.Value) *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: v}}
 }
-
-// Literal is a literal expression.
-func Literal(v *testpilotspb.Value) *testpilotspb.Expression { return literal(v) }
 
 func reference(r *testpilotspb.Reference) *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: r}}
@@ -73,33 +68,10 @@ func Present(operand *testpilotspb.Expression) *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Present{Present: &testpilotspb.PresentExpression{Operand: operand}}}
 }
 
-func equal(left, right *testpilotspb.Expression) *testpilotspb.Expression {
+// Equal compares two operands for equality.
+func Equal(left, right *testpilotspb.Expression) *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{
 		Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL, Left: left, Right: right}}}
-}
-
-// Equal compares two operands for equality.
-func Equal(left, right *testpilotspb.Expression) *testpilotspb.Expression { return equal(left, right) }
-
-// Segment is one path segment, spelled as `Testpilot.Authoring.Path.Segment.render` spells it.
-type Segment string
-
-// Field is a plain protobuf field segment.
-func Field(name string) Segment { return Segment(name) }
-
-// Repeated fans out over every element of a repeated field.
-func Repeated(name string) Segment { return Segment(name + "[*]") }
-
-// OneofMember selects a oneof only when its active field has this name.
-func OneofMember(name, member string) Segment { return Segment(name + "<" + member + ">") }
-
-// MakePath spells segments as one field path.
-func MakePath(segments ...Segment) string {
-	parts := make([]string, len(segments))
-	for i, s := range segments {
-		parts[i] = string(s)
-	}
-	return strings.Join(parts, ".")
 }
 
 // Assign is one request assignment.

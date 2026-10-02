@@ -49,7 +49,7 @@ func (q *Query) searcher() (*searcher, error) {
 }
 
 func (q *Query) checkScenario(t *Table) error {
-	if _, ok := t.StateValue(q.Scenario.Start); !ok {
+	if _, ok := t.stateValue[q.Scenario.Start]; !ok {
 		return errorf(q.decl(), "%s starts at %s, which is not a state of %s",
 			q.Scenario.Name, q.Scenario.Start, t.Machine)
 	}
@@ -299,7 +299,7 @@ func (s *searcher) step(i int, row Row, res Result) (node, error) {
 	if err != nil {
 		return node{}, err
 	}
-	before, _ := s.t.StateValue(n.state)
+	before := s.t.stateValue[n.state]
 	mons := make([]monitorState, len(n.mons))
 	for k, m := range s.q.monitors {
 		ms, err := s.watch(k, m, n, before, res)
@@ -341,7 +341,7 @@ func (s *searcher) observe(n node, row Row, res Result) (monitor, error) {
 	switch {
 	case p.keyLevel():
 		return s.observeKeys(n, row, res)
-	case p.IsTransition():
+	case p.isTransition():
 		before, err := s.readState(n.state)
 		if err != nil {
 			return mon, err
@@ -352,7 +352,7 @@ func (s *searcher) observe(n node, row Row, res Result) (monitor, error) {
 		}
 		mon.fired, mon.held = true, mon.held && p.holds2(before, after)
 		s.exercised = true
-	case p.Triggers(row.Action):
+	case p.triggers(row.Action):
 		step, err := s.readStep(res)
 		if err != nil {
 			return mon, err
@@ -452,9 +452,9 @@ func (s *searcher) explored() []MonitorVerdict {
 // typed state through the refinement.
 func (s *searcher) readState(key string) (any, error) {
 	if s.ref != nil {
-		return s.ref.MapValue(key)
+		return s.ref.mapValue(key)
 	}
-	v, _ := s.t.StateValue(key)
+	v := s.t.stateValue[key]
 	return v, nil
 }
 
@@ -505,7 +505,7 @@ func indexOf(xs []string, x string) (int, bool) {
 // productStep reads a refining result as the refined machine's typed step: its state through the
 // map, and its outcome and facts by name, which is all a refined Property reads.
 func (r *Refinement) productStep(res Result) (any, error) {
-	v, err := r.MapValue(res.State)
+	v, err := r.mapValue(res.State)
 	if err != nil {
 		return nil, err
 	}

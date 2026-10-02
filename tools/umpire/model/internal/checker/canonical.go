@@ -21,8 +21,8 @@ func Fingerprint(canonical string) string {
 	return "sha256:" + hex.EncodeToString(sum[:])
 }
 
-// quote is Lean.Json.compress of a string: JSON escaping without HTML escaping.
-func quote(s string) string {
+// Quote is Lean.Json.compress of a string: JSON escaping without HTML escaping.
+func Quote(s string) string {
 	var b bytes.Buffer
 	enc := json.NewEncoder(&b)
 	enc.SetEscapeHTML(false)
@@ -35,7 +35,7 @@ func jsonArray(items []string) string { return "[" + strings.Join(items, ",") + 
 func quoted(items []string) []string {
 	out := make([]string, len(items))
 	for i, s := range items {
-		out[i] = quote(s)
+		out[i] = Quote(s)
 	}
 	return out
 }
@@ -53,8 +53,8 @@ func (t *Table) providerID() string   { return t.Family.ID("provider", t.owner()
 func (t *Table) lawID() string        { return t.Family.ID("law", t.owner(), "canonical-table") }
 func (t *Table) kernelID() string     { return t.Family.ID("kernel", t.owner(), "planner") }
 
-// RoleID is the operation role a Scenario's setup binds, named after the machine's entity.
-func (t *Table) RoleID() string { return t.Family.ID("role", t.owner(), t.Entity) }
+// roleID is the operation role a Scenario's setup binds, named after the machine's entity.
+func (t *Table) roleID() string { return t.Family.ID("role", t.owner(), t.Entity) }
 
 type declaration struct{ id, kind string }
 
@@ -94,13 +94,13 @@ func sortDeclarations(ds []declaration) []declaration {
 func meaningsJSON(ms []declaration) string {
 	items := make([]string, len(ms))
 	for i, m := range ms {
-		items[i] = `{"id":` + quote(m.id) + `,"kind":` + quote(m.kind) + `,"behaviorVersion":` + quote(m.id) + `}`
+		items[i] = `{"id":` + Quote(m.id) + `,"kind":` + Quote(m.kind) + `,"behaviorVersion":` + Quote(m.id) + `}`
 	}
 	return jsonArray(items)
 }
 
-// TargetSemantic is `Canonical.targetSemanticJson` for a declared machine.
-func (t *Table) TargetSemantic() string {
+// targetSemantic is `Canonical.targetSemanticJson` for a declared machine.
+func (t *Table) targetSemantic() string {
 	decls := append(t.meanings(),
 		declaration{t.Family.Target(t.owner()), "target"},
 		declaration{t.kernelID(), "machine"},
@@ -113,24 +113,24 @@ func (t *Table) TargetSemantic() string {
 	decls = sortDeclarations(decls)
 	declJSON := make([]string, len(decls))
 	for i, d := range decls {
-		declJSON[i] = `{"id":` + quote(d.id) + `,"kind":` + quote(d.kind) + `,"version":1,"behaviorVersion":` +
-			quote(d.id) + `}`
+		declJSON[i] = `{"id":` + Quote(d.id) + `,"kind":` + Quote(d.kind) + `,"version":1,"behaviorVersion":` +
+			Quote(d.id) + `}`
 	}
-	provider := `{"id":` + quote(t.providerID()) + `,"capabilityId":` + quote(t.capabilityID()) +
-		`,"capabilityVersion":1,"behaviorVersion":` + quote(t.capabilityID()) +
+	provider := `{"id":` + Quote(t.providerID()) + `,"capabilityId":` + Quote(t.capabilityID()) +
+		`,"capabilityVersion":1,"behaviorVersion":` + Quote(t.capabilityID()) +
 		`,"meanings":` + meaningsJSON(t.meanings()) +
-		`,"laws":[{"id":` + quote(t.lawID()) + `,"body":` + quote(t.lawID()) + `}]}`
-	return `{"id":` + quote(t.Family.Target(t.owner())) +
+		`,"laws":[{"id":` + Quote(t.lawID()) + `,"body":` + Quote(t.lawID()) + `}]}`
+	return `{"id":` + Quote(t.Family.Target(t.owner())) +
 		`,"declarations":` + jsonArray(declJSON) +
-		`,"requiredCapabilities":` + jsonArray([]string{quote(t.capabilityID())}) +
+		`,"requiredCapabilities":` + jsonArray([]string{Quote(t.capabilityID())}) +
 		`,"providers":` + jsonArray([]string{provider}) +
 		`,"connectors":[]` +
-		`,"kernel":{"id":` + quote(t.kernelID()) + `,"version":1}` +
+		`,"kernel":{"id":` + Quote(t.kernelID()) + `,"version":1}` +
 		`,"behavior":` + t.behaviorJSON() + `}`
 }
 
 // TargetFingerprint is the machine's Behavior Fingerprint.
-func (t *Table) TargetFingerprint() string { return Fingerprint(t.TargetSemantic()) }
+func (t *Table) TargetFingerprint() string { return Fingerprint(t.targetSemantic()) }
 
 type behaviorRow struct {
 	prior, action, outcome, state string
@@ -160,16 +160,16 @@ func (t *Table) behaviorJSON() string {
 	rows = slices.CompactFunc(rows, func(a, b behaviorRow) bool { return compareBehaviorRows(a, b) == 0 })
 	transitions := make([]string, len(rows))
 	for i, r := range rows {
-		transitions[i] = `{"priorState":` + quote(r.prior) + `,"action":` + quote(r.action) +
-			`,"outcome":` + quote(r.outcome) + `,"state":` + quote(r.state) +
+		transitions[i] = `{"priorState":` + Quote(r.prior) + `,"action":` + Quote(r.action) +
+			`,"outcome":` + Quote(r.outcome) + `,"state":` + Quote(r.state) +
 			`,"facts":` + jsonArray(quoted(r.facts)) + `}`
 	}
 	setup := t.SetupKey()
 	initial := make([]string, 0, len(t.Starts))
 	for _, s := range sortedUnique(t.Starts) {
-		initial = append(initial, `{"setup":`+quote(setup)+`,"state":`+quote(s)+`}`)
+		initial = append(initial, `{"setup":`+Quote(setup)+`,"state":`+Quote(s)+`}`)
 	}
-	return `{"domains":{"setups":` + jsonArray([]string{quote(setup)}) +
+	return `{"domains":{"setups":` + jsonArray([]string{Quote(setup)}) +
 		`,"states":` + jsonArray(quoted(sortedUnique(t.States))) +
 		`,"actions":` + jsonArray(quoted(sortedUnique(t.Actions))) +
 		`,"outcomes":` + jsonArray(quoted(sortedUnique(t.Outcomes))) +
@@ -198,25 +198,25 @@ func (s *ScenarioDecl) ScenarioSemantic(t *Table) string {
 	var occurrences, ordering, exactly []string
 	counts := map[string]int{}
 	for i, a := range s.Actions {
-		occurrences = append(occurrences, `{"id":`+quote(occurrence(i+1))+`,"action":`+quote(actionID(a))+`}`)
-		exactly = append(exactly, quote(actionID(a)))
+		occurrences = append(occurrences, `{"id":`+Quote(occurrence(i+1))+`,"action":`+Quote(actionID(a))+`}`)
+		exactly = append(exactly, Quote(actionID(a)))
 		counts[actionID(a)]++
 		if i > 0 {
-			ordering = append(ordering, `{"before":`+quote(occurrence(i))+`,"after":`+quote(occurrence(i+1))+`}`)
+			ordering = append(ordering, `{"before":`+Quote(occurrence(i))+`,"after":`+Quote(occurrence(i+1))+`}`)
 		}
 	}
 	var bounds []string
 	for _, a := range allowed {
 		n := strconv.Itoa(counts[a])
-		bounds = append(bounds, `{"action":`+quote(a)+`,"minimum":`+n+`,"maximum":`+n+`}`)
+		bounds = append(bounds, `{"action":`+Quote(a)+`,"minimum":`+n+`,"maximum":`+n+`}`)
 	}
 	start := s.Start
-	return `{"id":` + quote(s.ScenarioID(t)) +
-		`,"version":1,"requires":` + jsonArray([]string{quote(t.capabilityID())}) +
-		`,"roles":[{"id":` + quote(t.RoleID()) + `,"valueKind":"state"}]` +
-		`,"setup":[{"id":` + quote(t.Family.ID("setup", s.Name, t.Entity)) + `,"relation":"equal","left":{"role":` +
-		quote(t.RoleID()) + `},"right":{"value":{"identity":` + quote(t.Family.ID("state", t.owner(), start)) +
-		`,"value":` + quote(start) + `}}}]` +
+	return `{"id":` + Quote(s.ScenarioID(t)) +
+		`,"version":1,"requires":` + jsonArray([]string{Quote(t.capabilityID())}) +
+		`,"roles":[{"id":` + Quote(t.roleID()) + `,"valueKind":"state"}]` +
+		`,"setup":[{"id":` + Quote(t.Family.ID("setup", s.Name, t.Entity)) + `,"relation":"equal","left":{"role":` +
+		Quote(t.roleID()) + `},"right":{"value":{"identity":` + Quote(t.Family.ID("state", t.owner(), start)) +
+		`,"value":` + Quote(start) + `}}}]` +
 		`,"allowedActions":` + jsonArray(quoted(allowed)) +
 		`,"requiredOccurrences":` + jsonArray(occurrences) +
 		`,"forbiddenActions":[]` +
@@ -235,8 +235,8 @@ func (p *PropertyDecl) PropertyID(t *Table) string { return string(t.Family) + "
 
 // patternJSON is one clause pattern: a trace field, the value it references and the constraint.
 func patternJSON(field, reference, value string) string {
-	return `{"field":` + quote(field) + `,"reference":` + quote(reference) +
-		`,"constraint":{"kind":"equals","value":` + quote(value) + `}}`
+	return `{"field":` + Quote(field) + `,"reference":` + Quote(reference) +
+		`,"constraint":{"kind":"equals","value":` + Quote(value) + `}}`
 }
 
 // clauseJSON encodes one lowered same-step clause: a fact is an input-output clause, a state or an
@@ -246,13 +246,13 @@ func (t *Table) clauseJSON(propertyID, action string, r Requirement) string {
 	trigger := patternJSON("selected-action", t.Family.ID("action", t.owner(), action), action)
 	switch r.Kind {
 	case FactRequirement:
-		return `{"id":` + quote(id) + `,"kind":"input-output","input":` + trigger +
+		return `{"id":` + Quote(id) + `,"kind":"input-output","input":` + trigger +
 			`,"output":` + patternJSON("observation", t.Family.ID("fact", t.owner(), r.Value), r.Value) + `}`
 	case OutcomeRequirement:
-		return `{"id":` + quote(id) + `,"kind":"transition-contract","precondition":` + trigger +
+		return `{"id":` + Quote(id) + `,"kind":"transition-contract","precondition":` + trigger +
 			`,"postcondition":` + patternJSON("outcome", t.Family.ID("outcome", t.owner(), r.Value), r.Value) + `}`
 	default:
-		return `{"id":` + quote(id) + `,"kind":"transition-contract","precondition":` + trigger +
+		return `{"id":` + Quote(id) + `,"kind":"transition-contract","precondition":` + trigger +
 			`,"postcondition":` + patternJSON("resulting-state", t.Family.ID("state", t.owner(), r.Value), r.Value) + `}`
 	}
 }
@@ -276,17 +276,14 @@ func (t *Table) PropertySemantic(propertyID string, groups []Group) string {
 	return t.propertyHeader(propertyID) + `,"logicalTimeSource":null,"clauses":` + jsonArray(clauses) + `}`
 }
 
-// Quote is Lean.Json.compress of a string.
-func Quote(s string) string { return quote(s) }
-
 // PropertyHeaderJSON is a Property semantic string up to its meanings: the part every Property of
 // the machine shares.
 func (t *Table) PropertyHeaderJSON(propertyID string) string { return t.propertyHeader(propertyID) }
 
 func (t *Table) propertyHeader(propertyID string) string {
-	return `{"id":` + quote(propertyID) + `,"version":1,"requires":` + jsonArray([]string{quote(t.capabilityID())}) +
-		`,"capabilities":[{"id":` + quote(t.capabilityID()) + `,"version":1,"behaviorVersion":` +
-		quote(t.capabilityID()) + `}]` +
+	return `{"id":` + Quote(propertyID) + `,"version":1,"requires":` + jsonArray([]string{Quote(t.capabilityID())}) +
+		`,"capabilities":[{"id":` + Quote(t.capabilityID()) + `,"version":1,"behaviorVersion":` +
+		Quote(t.capabilityID()) + `}]` +
 		`,"meanings":` + meaningsJSON(t.meanings())
 }
 
@@ -298,27 +295,27 @@ func (q *Query) QueryCanonical(t *Table, propertyFingerprint string) string {
 		form = "verify"
 	}
 	start := q.Scenario.Start
-	role := `[[{"role":` + quote(t.RoleID()) + `,"value":{"definitionId":` +
-		quote(t.Family.ID("state", t.owner(), start)) + `,"value":` + quote(start) + `}}]]`
+	role := `[[{"role":` + Quote(t.roleID()) + `,"value":{"definitionId":` +
+		Quote(t.Family.ID("state", t.owner(), start)) + `,"value":` + Quote(start) + `}}]]`
 	var actions []string
 	for _, a := range t.Actions {
-		actions = append(actions, `{"definitionId":`+quote(t.Family.ID("action", t.owner(), a))+`,"value":`+quote(a)+`}`)
+		actions = append(actions, `{"definitionId":`+Quote(t.Family.ID("action", t.owner(), a))+`,"value":`+Quote(a)+`}`)
 	}
 	roleFP := Fingerprint("query-role-domain/v1\n" + role)
 	actionFP := Fingerprint("query-action-domain/v1\n" + jsonArray(actions))
 	limit := func(v int, unit string) string {
-		return `{"value":` + strconv.Itoa(v) + `,"unit":` + quote(unit) + `}`
+		return `{"value":` + strconv.Itoa(v) + `,"unit":` + Quote(unit) + `}`
 	}
-	return `{"id":` + quote(string(t.Family)+".query."+q.Name) + `,"version":1,"form":` + quote(form) +
-		`,"properties":[{"id":` + quote(q.Property.PropertyID(t)) + `,"behaviorFingerprint":` + quote(propertyFingerprint) + `}]` +
-		`,"behavior":{"id":` + quote(q.Scenario.ScenarioID(t)) + `,"behaviorFingerprint":` +
-		quote(Fingerprint(q.Scenario.ScenarioSemantic(t))) + `}` +
+	return `{"id":` + Quote(string(t.Family)+".query."+q.Name) + `,"version":1,"form":` + Quote(form) +
+		`,"properties":[{"id":` + Quote(q.Property.PropertyID(t)) + `,"behaviorFingerprint":` + Quote(propertyFingerprint) + `}]` +
+		`,"behavior":{"id":` + Quote(q.Scenario.ScenarioID(t)) + `,"behaviorFingerprint":` +
+		Quote(Fingerprint(q.Scenario.ScenarioSemantic(t))) + `}` +
 		`,"limits":{"steps":` + limit(q.Limits.Steps, "steps") + `,"actions":` + limit(q.Limits.Actions, "actions") +
 		`,"search":` + limit(q.Limits.Search, "search") + `}` +
 		`,"policy":{"strategy":"shortest","seed":17}` +
-		`,"target":{"id":` + quote(t.Family.Target(t.owner())) + `,"behaviorFingerprint":` + quote(t.TargetFingerprint()) +
-		`,"composition":[` + quote(t.capabilityID()) + `,` + quote(t.providerID()) + `],"kernel":{"id":` +
-		quote(t.kernelID()) + `}}` +
-		`,"finiteCompleteness":{"roleDomainFingerprint":` + quote(roleFP) + `,"actionDomainFingerprint":` +
-		quote(actionFP) + `}}`
+		`,"target":{"id":` + Quote(t.Family.Target(t.owner())) + `,"behaviorFingerprint":` + Quote(t.TargetFingerprint()) +
+		`,"composition":[` + Quote(t.capabilityID()) + `,` + Quote(t.providerID()) + `],"kernel":{"id":` +
+		Quote(t.kernelID()) + `}}` +
+		`,"finiteCompleteness":{"roleDomainFingerprint":` + Quote(roleFP) + `,"actionDomainFingerprint":` +
+		Quote(actionFP) + `}}`
 }

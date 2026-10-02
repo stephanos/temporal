@@ -315,7 +315,6 @@ func forbiddenTestpilotDependency(importPath string) bool {
 		"go.temporal.io/server/tools/canary",
 		"go.temporal.io/server/model",
 		"go.temporal.io/server/model0",
-		"go.temporal.io/server/api/modelir",
 		"go.temporal.io/server/api/umpire",
 	} {
 		if hasImportPrefix(importPath, prefix) {

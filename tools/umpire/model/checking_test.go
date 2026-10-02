@@ -11,19 +11,19 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
 	"google.golang.org/protobuf/proto"
 )
 
-func checked(t *testing.T, m *modelirspb.Model) *Report {
+func checked(t *testing.T, m *umpirespb.Model) *Report {
 	t.Helper()
 	return Check(m, DefaultScope)
 }
 
-func mutated(t *testing.T, fixture string, mutate ...func(m *modelirspb.Model)) *modelirspb.Model {
+func mutated(t *testing.T, fixture string, mutate ...func(m *umpirespb.Model)) *umpirespb.Model {
 	t.Helper()
-	m := proto.Clone(lifted(t, fixture)).(*modelirspb.Model)
+	m := proto.Clone(lifted(t, fixture)).(*umpirespb.Model)
 	for _, f := range mutate {
 		f(m)
 	}
@@ -81,20 +81,20 @@ const (
 )
 
 // noCrash unbinds disk's crash, the one step of the fixture that reaches a hole.
-func noCrash(m *modelirspb.Model) {
+func noCrash(m *umpirespb.Model) {
 	disk := admMachine(m, "disk")
-	disk.Steps = slicesDelete(disk.GetSteps(), func(b *modelirspb.StepBinding) bool { return strings.HasSuffix(b.GetAction(), ".crash") })
+	disk.Steps = slicesDelete(disk.GetSteps(), func(b *umpirespb.StepBinding) bool { return strings.HasSuffix(b.GetAction(), ".crash") })
 }
 
-func returning(name string, v *modelirspb.Value) func(m *modelirspb.Model) {
-	return func(m *modelirspb.Model) {
+func returning(name string, v *umpirespb.Value) func(m *umpirespb.Model) {
+	return func(m *umpirespb.Model) {
 		f := functionNamed(m, name)
 		f.Body = admLiteral(f.GetBody(), v)
 	}
 }
 
 // functionNamed is the function of exactly this name, where function takes the first of a suffix.
-func functionNamed(m *modelirspb.Model, name string) *modelirspb.Function {
+func functionNamed(m *umpirespb.Model, name string) *umpirespb.Function {
 	for _, f := range m.GetFunctions() {
 		if f.GetName() == name {
 			return f
@@ -103,15 +103,15 @@ func functionNamed(m *modelirspb.Model, name string) *modelirspb.Function {
 	return nil
 }
 
-func boolValue(b bool) *modelirspb.Value {
-	return &modelirspb.Value{Kind: &modelirspb.Value_Bool{Bool: b}}
+func boolValue(b bool) *umpirespb.Value {
+	return &umpirespb.Value{Kind: &umpirespb.Value_Bool{Bool: b}}
 }
 
-func stage(c string) *modelirspb.Value { return admEnum("fixture.declarations.Stage", c) }
+func stage(c string) *umpirespb.Value { return admEnum("fixture.declarations.Stage", c) }
 
 // flushTo makes disk's flush of a staged disk land in this stage.
-func flushTo(c string) func(m *modelirspb.Model) {
-	return func(m *modelirspb.Model) {
+func flushTo(c string) func(m *umpirespb.Model) {
+	return func(m *umpirespb.Model) {
 		step := function(m, "Declarations$package$.flushStep").GetBody().GetMatch().GetCases()[0].GetBody().GetList().GetItems()[0]
 		target := step.GetConstruct().GetArgs()[1].GetConstruct()
 		target.Args[0] = admLiteral(target.GetArgs()[0], stage(c))
@@ -119,23 +119,23 @@ func flushTo(c string) func(m *modelirspb.Model) {
 }
 
 // diskStarts makes disk start in this stage.
-func diskStarts(c string) func(m *modelirspb.Model) {
-	return func(m *modelirspb.Model) {
+func diskStarts(c string) func(m *umpirespb.Model) {
+	return func(m *umpirespb.Model) {
 		start := admMachine(m, "disk").GetStarts()[0].GetConstruct()
 		start.Args[0] = admLiteral(start.GetArgs()[0], stage(c))
 	}
 }
 
 // storeAlsoStartsHeld gives the opaque store a second start.
-func storeAlsoStartsHeld(m *modelirspb.Model) {
+func storeAlsoStartsHeld(m *umpirespb.Model) {
 	store := admMachine(m, "store")
-	held := proto.Clone(store.GetStarts()[0]).(*modelirspb.Expr)
+	held := proto.Clone(store.GetStarts()[0]).(*umpirespb.Expr)
 	held.GetConstruct().Args[0] = admLiteral(held.GetConstruct().GetArgs()[0], admEnum("fixture.declarations.Kept", "held"))
 	store.Starts = append(store.Starts, held)
 }
 
 // putRecordsStaged makes the store's Property claim that a put records staged, which none does.
-func putRecordsStaged(m *modelirspb.Model) {
+func putRecordsStaged(m *umpirespb.Model) {
 	contains := functionNamed(m, "store.property.putStores").GetBody().GetBinary()
 	contains.Left = admLiteral(contains.GetLeft(), admEnum("fixture.declarations.Fact", "staged"))
 }
@@ -183,7 +183,7 @@ func TestQueriesAreAnsweredByTheGenericSearch(t *testing.T) {
 	require.Equal(t, []any{Counterexample, []string{"empty-put"}}, []any{through.Kind, through.Rows})
 
 	// A disk whose put records nothing is no step of the store: there is no refinement to read through.
-	r = checked(t, mutated(t, "declarations", noCrash, func(m *modelirspb.Model) {
+	r = checked(t, mutated(t, "declarations", noCrash, func(m *umpirespb.Model) {
 		facts := function(m, "Declarations$package$.putStep").GetBody().GetMatch().GetCases()[0].GetBody().GetList().GetItems()[0].GetConstruct().GetArgs()[2]
 		facts.GetList().Items = nil
 	}))
@@ -273,9 +273,9 @@ func rowsJSON(t *testing.T, table *Table) string {
 }
 
 func TestUnsupportedDeclarationsAreListedAndNeverCounted(t *testing.T) {
-	m := mutated(t, "declarations", noCrash, func(m *modelirspb.Model) {
-		admQuery(m, "putStoresThroughDisk").Form = modelirspb.Query_FORM_FIND
-		admProperty(m, "disk", "durableStays").When = &modelirspb.Property_WhenAction{WhenAction: "put"}
+	m := mutated(t, "declarations", noCrash, func(m *umpirespb.Model) {
+		admQuery(m, "putStoresThroughDisk").Form = umpirespb.Query_FORM_FIND
+		admProperty(m, "disk", "durableStays").When = &umpirespb.Property_WhenAction{WhenAction: "put"}
 	})
 	r := checked(t, m)
 	var unsupported []string
@@ -407,17 +407,17 @@ func TestTheCloseResetDesignsAreToldApart(t *testing.T) {
 // staged disk is an unknown pair of the composition, which a search that explores it reads.
 func TestAMembersHoleIsAnUnknownPairOfTheComposition(t *testing.T) {
 	composed := func(steps int32) *Report {
-		return checked(t, mutated(t, "declarations", func(m *modelirspb.Model) {
+		return checked(t, mutated(t, "declarations", func(m *umpirespb.Model) {
 			admMachine(m, "disk").Monitors = nil
 			admComposition(m, "detailedPair").GetMembers()[1].Replaces = ""
 			both := admScenario(m, "detailedPair", "bothPut")
-			m.Scenarios = append(m.Scenarios, &modelirspb.Scenario{Machine: "detailedPair", Name: "any", Position: both.GetPosition(),
+			m.Scenarios = append(m.Scenarios, &umpirespb.Scenario{Machine: "detailedPair", Name: "any", Position: both.GetPosition(),
 				Start: both.GetStart(), Free: true})
-			limits := proto.Clone(admQuery(m, "bothPut").GetLimits()).(*modelirspb.Limits)
+			limits := proto.Clone(admQuery(m, "bothPut").GetLimits()).(*umpirespb.Limits)
 			limits.Steps = steps
-			m.Queries = append(m.Queries, &modelirspb.Query{Name: "frontStaysHeld", Position: both.GetPosition(), Form: modelirspb.Query_FORM_VERIFY,
-				Property: &modelirspb.ClaimRef{Machine: "detailedPair", Name: "frontHeld"},
-				Scenario: &modelirspb.ClaimRef{Machine: "detailedPair", Name: "any"}, Limits: limits})
+			m.Queries = append(m.Queries, &umpirespb.Query{Name: "frontStaysHeld", Position: both.GetPosition(), Form: umpirespb.Query_FORM_VERIFY,
+				Property: &umpirespb.ClaimRef{Machine: "detailedPair", Name: "frontHeld"},
+				Scenario: &umpirespb.ClaimRef{Machine: "detailedPair", Name: "any"}, Limits: limits})
 		}))
 	}
 	// Two steps: both put, then the search reads the pairs of a held store and a staged disk.
@@ -440,7 +440,7 @@ func TestAMembersHoleIsAnUnknownPairOfTheComposition(t *testing.T) {
 
 // ---- Compositions ---------------------------------------------------------------------------------
 
-func composedTable(t *testing.T, m *modelirspb.Model, name string) *Table {
+func composedTable(t *testing.T, m *umpirespb.Model, name string) *Table {
 	t.Helper()
 	b := bind(m, DefaultScope)
 	s := b.subject(name)
@@ -478,7 +478,7 @@ func TestAReplacementCoversEveryStartOfWhatItReplaces(t *testing.T) {
 // The disk declares storeOpaque itself, so it keeps it where it replaces a store that names it too:
 // the composition carries it for the front store's put and for the disk's.
 func TestAReplacingMemberKeepsEveryAssumptionItDeclares(t *testing.T) {
-	m := mutated(t, "declarations", noCrash, func(m *modelirspb.Model) {
+	m := mutated(t, "declarations", noCrash, func(m *umpirespb.Model) {
 		for _, a := range m.GetAssumptions() {
 			if a.GetName() == "storeOpaque" {
 				a.Fair = []string{admDeclaredPkg + "put"}
@@ -486,8 +486,8 @@ func TestAReplacingMemberKeepsEveryAssumptionItDeclares(t *testing.T) {
 		}
 		admMachine(m, "disk").Assumes = []string{admDeclaredPkg + "storeOpaque", admDeclaredPkg + "flushRuns"}
 		admComposition(m, "detailedPair").Syncs = nil
-		m.Scenarios = slicesDelete(m.GetScenarios(), func(s *modelirspb.Scenario) bool { return s.GetMachine() == "detailedPair" })
-		m.Queries = slicesDelete(m.GetQueries(), func(q *modelirspb.Query) bool { return q.GetName() == "bothPut" })
+		m.Scenarios = slicesDelete(m.GetScenarios(), func(s *umpirespb.Scenario) bool { return s.GetMachine() == "detailedPair" })
+		m.Queries = slicesDelete(m.GetQueries(), func(q *umpirespb.Query) bool { return q.GetName() == "bothPut" })
 	})
 	want := []Assumption{{Name: "storeOpaque", Fair: []string{"front_put", "back_put"}}, {Name: "flushEventuallyRuns", Fair: []string{"back_flush"}}}
 	require.Equal(t, want, composedTable(t, m, "detailedPair").Assumptions)
@@ -526,24 +526,24 @@ func TestAComposedStateIsKeyedInMemberOrderAndReadInFieldOrder(t *testing.T) {
 
 func TestRefinementControls(t *testing.T) {
 	for name, c := range map[string]struct {
-		mutate  []func(m *modelirspb.Model)
+		mutate  []func(m *umpirespb.Model)
 		kind    ReceiptKind
 		failure RefinementFailure
 		witness []string
 		holes   []HoleReach
 	}{
-		"an invisible provider step is a stutter": {mutate: []func(m *modelirspb.Model){noCrash}, kind: Verified},
-		"a start that reads as no start of the store": {mutate: []func(m *modelirspb.Model){noCrash, diskStarts("staged")},
+		"an invisible provider step is a stutter": {mutate: []func(m *umpirespb.Model){noCrash}, kind: Verified},
+		"a start that reads as no start of the store": {mutate: []func(m *umpirespb.Model){noCrash, diskStarts("staged")},
 			kind: RefinementRejected, failure: umpire.RefinementInitial},
 		"a stutter that records a fact the store sees": {
-			mutate: []func(m *modelirspb.Model){noCrash, returning("disk.visible", boolValue(true))},
+			mutate: []func(m *umpirespb.Model){noCrash, returning("disk.visible", boolValue(true))},
 			kind:   RefinementRejected, failure: umpire.RefinementVisibleStutter, witness: []string{"put", "flush"}},
 		"a stutter whose outcome the store sees": {
-			mutate: []func(m *modelirspb.Model){noCrash, returning("disk.visibleOutcomes", boolValue(true))},
+			mutate: []func(m *umpirespb.Model){noCrash, returning("disk.visibleOutcomes", boolValue(true))},
 			kind:   RefinementRejected, failure: umpire.RefinementVisibleStutter, witness: []string{"put", "flush"}},
 		"a reachable hole": {kind: Incomplete, witness: []string{"put"},
 			holes: []HoleReach{{Edge: RowHole, ID: crashHole, Name: "crashUnmodeled", Row: "staged-crash"}}},
-		"a reachable hole beside a rejection": {mutate: []func(m *modelirspb.Model){returning("disk.visible", boolValue(true))},
+		"a reachable hole beside a rejection": {mutate: []func(m *umpirespb.Model){returning("disk.visible", boolValue(true))},
 			kind: RefinementRejected, failure: umpire.RefinementVisibleStutter, witness: []string{"put", "flush"}},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -565,11 +565,11 @@ func TestRefinementControls(t *testing.T) {
 // Model's function fails on is kept and fails the refinement. Here visible is no Boolean for staged,
 // which no step of the disk records once its flush is unbound.
 func TestAVisibleFunctionThatCannotBeReadFailsTheRefinement(t *testing.T) {
-	m := mutated(t, "declarations", noCrash, func(m *modelirspb.Model) {
+	m := mutated(t, "declarations", noCrash, func(m *umpirespb.Model) {
 		disk := admMachine(m, "disk")
-		disk.Steps = slicesDelete(disk.GetSteps(), func(b *modelirspb.StepBinding) bool { return strings.HasSuffix(b.GetAction(), ".flush") })
+		disk.Steps = slicesDelete(disk.GetSteps(), func(b *umpirespb.StepBinding) bool { return strings.HasSuffix(b.GetAction(), ".flush") })
 		visible := functionNamed(m, "disk.visible")
-		visible.Body = &modelirspb.Expr{Position: visible.GetBody().GetPosition(), Kind: &modelirspb.Expr_If{If: &modelirspb.If{
+		visible.Body = &umpirespb.Expr{Position: visible.GetBody().GetPosition(), Kind: &umpirespb.Expr_If{If: &umpirespb.If{
 			Condition: visible.GetBody(), Then: admLiteral(visible.GetBody(), boolValue(true)), Else: admLiteral(visible.GetBody(), admIntValue(3))}}}
 	})
 	b := bind(m, DefaultScope)
@@ -590,14 +590,14 @@ func TestAVisibleFunctionThatCannotBeReadFailsTheRefinement(t *testing.T) {
 // many rows it read before a row it rejects.
 func TestARefinementReceiptCountsOnlyTheRowsItRead(t *testing.T) {
 	for name, c := range map[string]struct {
-		mutate   []func(m *modelirspb.Model)
+		mutate   []func(m *umpirespb.Model)
 		kind     ReceiptKind
 		explored int
 	}{
-		"held":                {[]func(m *modelirspb.Model){noCrash}, Verified, 2},
+		"held":                {[]func(m *umpirespb.Model){noCrash}, Verified, 2},
 		"left unknown":        {nil, Incomplete, 2},
-		"rejected at a start": {[]func(m *modelirspb.Model){noCrash, diskStarts("staged")}, RefinementRejected, 0},
-		"rejected at a row":   {[]func(m *modelirspb.Model){noCrash, returning("disk.visible", boolValue(true))}, RefinementRejected, 0},
+		"rejected at a start": {[]func(m *umpirespb.Model){noCrash, diskStarts("staged")}, RefinementRejected, 0},
+		"rejected at a row":   {[]func(m *umpirespb.Model){noCrash, returning("disk.visible", boolValue(true))}, RefinementRejected, 0},
 	} {
 		t.Run(name, func(t *testing.T) {
 			got := receiptOf(t, checked(t, mutated(t, "declarations", c.mutate...)), "refinement disk store")
@@ -608,12 +608,12 @@ func TestARefinementReceiptCountsOnlyTheRowsItRead(t *testing.T) {
 
 // visibleUnknownForStored makes the disk's refinement unable to say whether the store sees stored,
 // the fact its put records: the declared hole stands where the answer was.
-func visibleUnknownForStored(m *modelirspb.Model) {
+func visibleUnknownForStored(m *umpirespb.Model) {
 	visible := functionNamed(m, "disk.visible")
 	at := visible.GetBody()
-	visible.Body = &modelirspb.Expr{Position: at.GetPosition(), Kind: &modelirspb.Expr_If{If: &modelirspb.If{
+	visible.Body = &umpirespb.Expr{Position: at.GetPosition(), Kind: &umpirespb.Expr_If{If: &umpirespb.If{
 		Condition: at,
-		Then:      &modelirspb.Expr{Position: at.GetPosition(), Kind: &modelirspb.Expr_Hole{Hole: crashHole}},
+		Then:      &umpirespb.Expr{Position: at.GetPosition(), Kind: &umpirespb.Expr_Hole{Hole: crashHole}},
 		Else:      admLiteral(at, boolValue(false))}}}
 }
 
@@ -658,22 +658,22 @@ const secondHole = "generic.second"
 
 // choosing makes a function's body one value where its condition holds and another elsewhere, where a
 // value is a hole's id, to reach that hole, or a literal.
-func choosing(condition *modelirspb.Expr, then, otherwise any) *modelirspb.Expr {
-	value := func(v any) *modelirspb.Expr {
+func choosing(condition *umpirespb.Expr, then, otherwise any) *umpirespb.Expr {
+	value := func(v any) *umpirespb.Expr {
 		if id, ok := v.(string); ok {
-			return &modelirspb.Expr{Position: at(1), Kind: &modelirspb.Expr_Hole{Hole: id}}
+			return &umpirespb.Expr{Position: at(1), Kind: &umpirespb.Expr_Hole{Hole: id}}
 		}
 		return expr(v)
 	}
-	return expr(&modelirspb.If{Condition: condition, Then: value(then), Else: value(otherwise)})
+	return expr(&umpirespb.If{Condition: condition, Then: value(then), Else: value(otherwise)})
 }
 
-func declaringSecondHole(m *modelirspb.Model) {
-	m.Holes = append(m.Holes, &modelirspb.Hole{Id: secondHole, Name: "second", Position: at(1)})
+func declaringSecondHole(m *umpirespb.Model) {
+	m.Holes = append(m.Holes, &umpirespb.Hole{Id: secondHole, Name: "second", Position: at(1)})
 }
 
-func stageIs(variable, c string) *modelirspb.Expr {
-	return binary(modelirspb.Binary_OP_EQ, field(expr(variable), "stage"), expr(stage(c)))
+func stageIs(variable, c string) *umpirespb.Expr {
+	return binary(umpirespb.Binary_OP_EQ, field(expr(variable), "stage"), expr(stage(c)))
 }
 
 // A declaration read at several values, a hole at the first and something else at a later one: what
@@ -683,33 +683,33 @@ func TestAnEarlierHoleMasksNothingReadAfterIt(t *testing.T) {
 	three := admIntValue(3)
 	first := HoleReach{Edge: DeclarationHole, ID: crashHole, Name: "crashUnmodeled"}
 	second := HoleReach{Edge: DeclarationHole, ID: secondHole, Name: "second"}
-	frontHeld := func() *modelirspb.Expr {
-		return binary(modelirspb.Binary_OP_EQ, field(field(expr("p"), "front"), "kept"), expr(admEnum("fixture.declarations.Kept", "held")))
+	frontHeld := func() *umpirespb.Expr {
+		return binary(umpirespb.Binary_OP_EQ, field(field(expr("p"), "front"), "kept"), expr(admEnum("fixture.declarations.Kept", "held")))
 	}
 	for name, c := range map[string]struct {
 		// declare gives the declaration its body: the hole where the condition holds, and v elsewhere.
-		declare  func(m *modelirspb.Model, v any)
+		declare  func(m *umpirespb.Model, v any)
 		receipts []string
 		message  string
 	}{
 		// The put's stored, then the flush's staged.
-		"what a refinement names visible": {func(m *modelirspb.Model, v any) {
+		"what a refinement names visible": {func(m *umpirespb.Model, v any) {
 			visible := functionNamed(m, "disk.visible")
 			visible.Body = choosing(visible.GetBody(), crashHole, v)
 		}, []string{"refinement disk store", "composition detailedPair", "query disk putStoresThroughDisk"},
 			"disk: disk.visible is 3 for staged, not a Boolean"},
 		// The empty disk, then the staged one.
-		"a machine's ends": {func(m *modelirspb.Model, v any) {
+		"a machine's ends": {func(m *umpirespb.Model, v any) {
 			admMachine(m, "disk").GetEnds().GetLambda().Body = choosing(stageIs("d", "empty"), crashHole, v)
 		}, []string{"machine disk", "refinement disk store", "query disk durableStays", "progress disk durableEventually"},
 			"disk: ends is 3 at staged, not a Boolean"},
 		// Both stores holding, then neither.
-		"a composition's ends": {func(m *modelirspb.Model, v any) {
+		"a composition's ends": {func(m *umpirespb.Model, v any) {
 			admComposition(m, "pair").GetEnds().GetLambda().Body = choosing(frontHeld(), crashHole, v)
 		}, []string{"query pair keptTogether"}, "pair: ends is 3 at nothing_nothing, not a Boolean"},
 	} {
 		t.Run(name, func(t *testing.T) {
-			r := checked(t, mutated(t, "declarations", noCrash, func(m *modelirspb.Model) { c.declare(m, three) }))
+			r := checked(t, mutated(t, "declarations", noCrash, func(m *umpirespb.Model) { c.declare(m, three) }))
 			for _, key := range c.receipts {
 				got := receiptOf(t, r, key)
 				require.Equal(t, DeclarationError, got.Kind, key)
@@ -717,7 +717,7 @@ func TestAnEarlierHoleMasksNothingReadAfterIt(t *testing.T) {
 				require.ErrorAs(t, got.Cause, &located, key)
 				require.Equal(t, c.message, located.Message, key)
 			}
-			r = checked(t, mutated(t, "declarations", noCrash, declaringSecondHole, func(m *modelirspb.Model) { c.declare(m, secondHole) }))
+			r = checked(t, mutated(t, "declarations", noCrash, declaringSecondHole, func(m *umpirespb.Model) { c.declare(m, secondHole) }))
 			for _, key := range c.receipts {
 				got := receiptOf(t, r, key)
 				require.Equal(t, Incomplete, got.Kind, key)
@@ -731,12 +731,12 @@ func TestAnEarlierHoleMasksNothingReadAfterIt(t *testing.T) {
 // a hole leaves a step or a state unknown and the check goes on, so a value that is no Boolean down
 // another branch still fails it, and every hole it reads is listed.
 func TestAnEarlierClaimHoleMasksNothingReadAfterIt(t *testing.T) {
-	skipped := func() *modelirspb.Expr {
-		return binary(modelirspb.Binary_OP_EQ, field(expr("after"), "outcome"), expr(caseOf("O", "skipped")))
+	skipped := func() *umpirespb.Expr {
+		return binary(umpirespb.Binary_OP_EQ, field(expr("after"), "outcome"), expr(caseOf("O", "skipped")))
 	}
-	counting := func(v any) *modelirspb.Model {
+	counting := func(v any) *umpirespb.Model {
 		m := counter{k: 2, skip: true}.model()
-		m.Holes = []*modelirspb.Hole{{Id: crashHole, Name: "crashUnmodeled", Position: at(1)}, {Id: secondHole, Name: "second", Position: at(1)}}
+		m.Holes = []*umpirespb.Hole{{Id: crashHole, Name: "crashUnmodeled", Position: at(1)}, {Id: secondHole, Name: "second", Position: at(1)}}
 		// A skip, the first row of the start, is where the hole is; a tick is read after it.
 		functionNamed(m, "generic.always").Body = choosing(skipped(), crashHole, v)
 		return m
@@ -750,11 +750,11 @@ func TestAnEarlierClaimHoleMasksNothingReadAfterIt(t *testing.T) {
 		{Edge: ClaimHole, ID: secondHole, Name: "second", Row: "0-tick"}}, holes(got))
 
 	// The disk whose crash takes an empty disk to a durable one, read before the staged disk a put reaches.
-	progressing := func(v any) *modelirspb.Model {
-		return mutated(t, "declarations", declaringSecondHole, returning("disk.progress.durableEventually.to", boolValue(false)), func(m *modelirspb.Model) {
+	progressing := func(v any) *umpirespb.Model {
+		return mutated(t, "declarations", declaringSecondHole, returning("disk.progress.durableEventually.to", boolValue(false)), func(m *umpirespb.Model) {
 			crash := function(m, "Declarations$package$.crashStep").GetBody().GetIf()
 			crash.GetCondition().GetBinary().Right = admLiteral(crash.GetCondition(), stage("empty"))
-			crash.Then = proto.Clone(function(m, "Declarations$package$.flushStep").GetBody().GetMatch().GetCases()[0].GetBody()).(*modelirspb.Expr)
+			crash.Then = proto.Clone(function(m, "Declarations$package$.flushStep").GetBody().GetMatch().GetCases()[0].GetBody()).(*umpirespb.Expr)
 			functionNamed(m, "disk.progress.durableEventually.from").Body = choosing(stageIs("d", "durable"), crashHole,
 				choosing(stageIs("d", "staged"), v, boolValue(true)).GetIf())
 		})
@@ -771,22 +771,22 @@ func TestAnEarlierClaimHoleMasksNothingReadAfterIt(t *testing.T) {
 // withTape makes the detailed pair two detailed providers that each replace a store: the disk, whose
 // refinement its crash hole leaves unknown, and a tape, which is the disk with no crash and no
 // monitor and with whatever alter does to it.
-func withTape(members [2]string, alter func(m *modelirspb.Model, tape *modelirspb.Machine)) func(m *modelirspb.Model) {
-	return func(m *modelirspb.Model) {
-		tape := proto.Clone(admMachine(m, "disk")).(*modelirspb.Machine)
+func withTape(members [2]string, alter func(m *umpirespb.Model, tape *umpirespb.Machine)) func(m *umpirespb.Model) {
+	return func(m *umpirespb.Model) {
+		tape := proto.Clone(admMachine(m, "disk")).(*umpirespb.Machine)
 		tape.Name, tape.Monitors = "tape", nil
-		tape.Steps = slicesDelete(tape.GetSteps(), func(b *modelirspb.StepBinding) bool { return strings.HasSuffix(b.GetAction(), ".crash") })
+		tape.Steps = slicesDelete(tape.GetSteps(), func(b *umpirespb.StepBinding) bool { return strings.HasSuffix(b.GetAction(), ".crash") })
 		alter(m, tape)
 		m.Machines = append(m.Machines, tape)
 
 		admType(m, "fixture.declarations.DetailedPair").GetRecord().GetFields()[0].Type = named("fixture.declarations.Disk")
 		detailed := admComposition(m, "detailedPair")
 		detailed.Ends = nil
-		detailed.Members = []*modelirspb.Member{{Field: "front", Machine: members[0], Replaces: "store"},
+		detailed.Members = []*umpirespb.Member{{Field: "front", Machine: members[0], Replaces: "store"},
 			{Field: "back", Machine: members[1], Replaces: "store"}}
-		m.Properties = slicesDelete(m.GetProperties(), func(p *modelirspb.Property) bool { return p.GetMachine() == "detailedPair" })
-		m.Scenarios = slicesDelete(m.GetScenarios(), func(s *modelirspb.Scenario) bool { return s.GetMachine() == "detailedPair" })
-		m.Queries = slicesDelete(m.GetQueries(), func(q *modelirspb.Query) bool { return q.GetName() == "bothPut" })
+		m.Properties = slicesDelete(m.GetProperties(), func(p *umpirespb.Property) bool { return p.GetMachine() == "detailedPair" })
+		m.Scenarios = slicesDelete(m.GetScenarios(), func(s *umpirespb.Scenario) bool { return s.GetMachine() == "detailedPair" })
+		m.Queries = slicesDelete(m.GetQueries(), func(q *umpirespb.Query) bool { return q.GetName() == "bothPut" })
 	}
 }
 
@@ -797,7 +797,7 @@ var memberOrders = map[string][2]string{"the disk first": {"disk", "tape"}, "the
 func TestAMembersHoleErasesNoRejectionOfAnotherMember(t *testing.T) {
 	for name, members := range memberOrders {
 		t.Run(name, func(t *testing.T) {
-			r := checked(t, mutated(t, "declarations", withTape(members, func(_ *modelirspb.Model, tape *modelirspb.Machine) {
+			r := checked(t, mutated(t, "declarations", withTape(members, func(_ *umpirespb.Model, tape *umpirespb.Machine) {
 				start := tape.GetStarts()[0].GetConstruct()
 				start.Args[0] = admLiteral(start.GetArgs()[0], stage("staged"))
 			})))
@@ -814,23 +814,23 @@ func TestAMembersHoleErasesNoRejectionOfAnotherMember(t *testing.T) {
 // member's hole: a tape whose visible function is malformed is the composition's error, and a tape
 // whose map is a second hole has its hole listed beside the disk's.
 func TestAMembersHoleMasksNoOtherMembersErrorOrHole(t *testing.T) {
-	fact := []*modelirspb.Param{{Name: "f", Type: named("fixture.declarations.Fact")}}
-	state := []*modelirspb.Param{{Name: "d", Type: named("fixture.declarations.Disk")}}
+	fact := []*umpirespb.Param{{Name: "f", Type: named("fixture.declarations.Fact")}}
+	state := []*umpirespb.Param{{Name: "d", Type: named("fixture.declarations.Disk")}}
 	crash := HoleReach{Edge: RowHole, ID: crashHole, Name: "crashUnmodeled", Row: "staged-crash"}
 	second := HoleReach{Edge: DeclarationHole, ID: secondHole, Name: "second"}
 	for name, members := range memberOrders {
 		t.Run(name, func(t *testing.T) {
-			r := checked(t, mutated(t, "declarations", withTape(members, func(m *modelirspb.Model, tape *modelirspb.Machine) {
-				m.Functions = append(m.Functions, &modelirspb.Function{Name: "tape.visible", Position: at(1), Params: fact, Body: expr(admIntValue(3))})
+			r := checked(t, mutated(t, "declarations", withTape(members, func(m *umpirespb.Model, tape *umpirespb.Machine) {
+				m.Functions = append(m.Functions, &umpirespb.Function{Name: "tape.visible", Position: at(1), Params: fact, Body: expr(admIntValue(3))})
 				tape.GetRefines().Visible = "tape.visible"
 			})))
 			got := receiptOf(t, r, "composition detailedPair")
 			require.Equal(t, DeclarationError, got.Kind)
 			require.ErrorContains(t, got.Cause, "tape: tape.visible is 3 for stored, not a Boolean")
 
-			r = checked(t, mutated(t, "declarations", declaringSecondHole, withTape(members, func(m *modelirspb.Model, tape *modelirspb.Machine) {
-				m.Functions = append(m.Functions, &modelirspb.Function{Name: "tape.stored", Position: at(1), Params: state,
-					Body: &modelirspb.Expr{Position: at(1), Kind: &modelirspb.Expr_Hole{Hole: secondHole}}})
+			r = checked(t, mutated(t, "declarations", declaringSecondHole, withTape(members, func(m *umpirespb.Model, tape *umpirespb.Machine) {
+				m.Functions = append(m.Functions, &umpirespb.Function{Name: "tape.stored", Position: at(1), Params: state,
+					Body: &umpirespb.Expr{Position: at(1), Kind: &umpirespb.Expr_Hole{Hole: secondHole}}})
 				tape.GetRefines().Map = "tape.stored"
 			})))
 			got = receiptOf(t, r, "composition detailedPair")
@@ -848,21 +848,21 @@ func TestAMembersHoleMasksNoOtherMembersErrorOrHole(t *testing.T) {
 // The replay Model gives the tape a put that does nothing, so only the tape's path does not replay:
 // that is the composition's result, an error, whichever member the tape is.
 func TestAnyMembersReplayFailureIsTheCompositions(t *testing.T) {
-	holed := func(put func(m *modelirspb.Model, tape *modelirspb.Machine)) func(m *modelirspb.Model, tape *modelirspb.Machine) {
-		return func(m *modelirspb.Model, tape *modelirspb.Machine) {
+	holed := func(put func(m *umpirespb.Model, tape *umpirespb.Machine)) func(m *umpirespb.Model, tape *umpirespb.Machine) {
+		return func(m *umpirespb.Model, tape *umpirespb.Machine) {
 			tape.Steps = nil
 			for _, b := range admMachine(m, "disk").GetSteps() {
-				tape.Steps = append(tape.Steps, proto.Clone(b).(*modelirspb.StepBinding))
+				tape.Steps = append(tape.Steps, proto.Clone(b).(*umpirespb.StepBinding))
 			}
 			put(m, tape)
 		}
 	}
-	state := []*modelirspb.Param{{Name: "d", Type: named("fixture.declarations.Disk")}}
+	state := []*umpirespb.Param{{Name: "d", Type: named("fixture.declarations.Disk")}}
 	for name, members := range memberOrders {
 		t.Run(name, func(t *testing.T) {
-			m := mutated(t, "declarations", withTape(members, holed(func(*modelirspb.Model, *modelirspb.Machine) {})))
-			noTapePut := mutated(t, "declarations", withTape(members, holed(func(m *modelirspb.Model, tape *modelirspb.Machine) {
-				m.Functions = append(m.Functions, &modelirspb.Function{Name: "tape.putStep", Position: at(1), Params: state, Body: expr(&modelirspb.ListOf{})})
+			m := mutated(t, "declarations", withTape(members, holed(func(*umpirespb.Model, *umpirespb.Machine) {})))
+			noTapePut := mutated(t, "declarations", withTape(members, holed(func(m *umpirespb.Model, tape *umpirespb.Machine) {
+				m.Functions = append(m.Functions, &umpirespb.Function{Name: "tape.putStep", Position: at(1), Params: state, Body: expr(&umpirespb.ListOf{})})
 				tape.GetSteps()[0].Function = "tape.putStep"
 			})))
 			r := check(m, DefaultScope, noTapePut)
@@ -957,31 +957,31 @@ func TestFoldKeepsTheKindOfHighestPrecedenceAndEveryHoleAndWitness(t *testing.T)
 // A machine's start, its ends and its evidence are one reading of the machine: a hole in one hides
 // neither a hole nor an error of the Model in another.
 func TestAMachinesDeclarationsAreReadPastAHole(t *testing.T) {
-	hole := func(id string) *modelirspb.Expr {
-		return &modelirspb.Expr{Position: at(1), Kind: &modelirspb.Expr_Hole{Hole: id}}
+	hole := func(id string) *umpirespb.Expr {
+		return &umpirespb.Expr{Position: at(1), Kind: &umpirespb.Expr_Hole{Hole: id}}
 	}
-	unknownStart := func(m *modelirspb.Model) { admMachine(m, "disk").Starts[0] = hole(crashHole) }
+	unknownStart := func(m *umpirespb.Model) { admMachine(m, "disk").Starts[0] = hole(crashHole) }
 	first := HoleReach{Edge: DeclarationHole, ID: crashHole, Name: "crashUnmodeled"}
 	second := HoleReach{Edge: DeclarationHole, ID: secondHole, Name: "second"}
 	for name, c := range map[string]struct {
-		mutate func(m *modelirspb.Model)
+		mutate func(m *umpirespb.Model)
 		kind   ReceiptKind
 		holes  []HoleReach
 		cause  string
 	}{
-		"a start hole and the whole ends a hole": {func(m *modelirspb.Model) { admMachine(m, "disk").Ends = hole(secondHole) },
+		"a start hole and the whole ends a hole": {func(m *umpirespb.Model) { admMachine(m, "disk").Ends = hole(secondHole) },
 			Incomplete, []HoleReach{first, second}, ""},
-		"a start hole and an ends hole at a state": {func(m *modelirspb.Model) {
+		"a start hole and an ends hole at a state": {func(m *umpirespb.Model) {
 			admMachine(m, "disk").GetEnds().GetLambda().Body = choosing(stageIs("d", "staged"), secondHole, boolValue(true))
 		}, Incomplete, []HoleReach{first, second}, ""},
-		"a start hole and an evidence hole": {func(m *modelirspb.Model) {
+		"a start hole and an evidence hole": {func(m *umpirespb.Model) {
 			evidence := functionNamed(m, admMachine(m, "disk").GetEvidence())
 			evidence.Body = hole(secondHole)
 		}, Incomplete, []HoleReach{first, second}, ""},
-		"a start hole and ends that is no function": {func(m *modelirspb.Model) {
+		"a start hole and ends that is no function": {func(m *umpirespb.Model) {
 			admMachine(m, "disk").Ends = expr(boolValue(true))
 		}, DeclarationError, nil, "not a function"},
-		"a start hole and ends that is no Boolean": {func(m *modelirspb.Model) {
+		"a start hole and ends that is no Boolean": {func(m *umpirespb.Model) {
 			ends := admMachine(m, "disk").GetEnds().GetLambda()
 			ends.Body = admLiteral(ends.GetBody(), admIntValue(3))
 		}, DeclarationError, nil, "disk: ends is 3 at empty, not a Boolean"},
@@ -1002,16 +1002,16 @@ func TestAMachinesDeclarationsAreReadPastAHole(t *testing.T) {
 // neither a hole nor an error of the Model in the other.
 func TestARefinementsMapIsReadPastAVisibilityHole(t *testing.T) {
 	stored := admDeclaredPkg + "stored"
-	atDurable := func(v any) func(m *modelirspb.Model) {
-		return func(m *modelirspb.Model) {
+	atDurable := func(v any) func(m *umpirespb.Model) {
+		return func(m *umpirespb.Model) {
 			f := functionNamed(m, stored)
-			var then *modelirspb.Expr
+			var then *umpirespb.Expr
 			if id, ok := v.(string); ok {
-				then = &modelirspb.Expr{Position: at(1), Kind: &modelirspb.Expr_Hole{Hole: id}}
+				then = &umpirespb.Expr{Position: at(1), Kind: &umpirespb.Expr_Hole{Hole: id}}
 			} else {
 				then = expr("d")
 			}
-			f.Body = expr(&modelirspb.If{Condition: stageIs("d", "durable"), Then: then, Else: f.GetBody()})
+			f.Body = expr(&umpirespb.If{Condition: stageIs("d", "durable"), Then: then, Else: f.GetBody()})
 		}
 	}
 	// The put's stored is read on the first row, and the durable disk the flush reaches on the second.
@@ -1040,48 +1040,48 @@ func progressParts(t *testing.T, r *Report) map[ProgressKind]ReceiptKind {
 }
 
 // to made the empty stage, which nothing after a put reaches.
-var neverThere = func(m *modelirspb.Model) {
+var neverThere = func(m *umpirespb.Model) {
 	to := functionNamed(m, "disk.progress.durableEventually.to").GetBody().GetBinary()
 	to.Right = admLiteral(to.GetRight(), stage("empty"))
 }
 
-func within(n int32) func(m *modelirspb.Model) {
-	return func(m *modelirspb.Model) { m.GetProgress()[0].Within = n }
+func within(n int32) func(m *umpirespb.Model) {
+	return func(m *umpirespb.Model) { m.GetProgress()[0].Within = n }
 }
 
 func TestProgressViolationsAreReportedApart(t *testing.T) {
 	type parts = map[ProgressKind]ReceiptKind
 	for name, c := range map[string]struct {
-		mutate  []func(m *modelirspb.Model)
+		mutate  []func(m *umpirespb.Model)
 		want    parts
 		witness map[ProgressKind][]string
 		loop    int
 	}{
 		// A flushed disk has no step, and is not where the claim leads.
-		"deadlock": {[]func(m *modelirspb.Model){noCrash, neverThere},
+		"deadlock": {[]func(m *umpirespb.Model){noCrash, neverThere},
 			parts{umpire.DeadlockKind: Counterexample, umpire.CycleKind: Verified, umpire.DeadlineKind: Verified},
 			map[ProgressKind][]string{umpire.DeadlockKind: {"put", "flush"}}, -1},
 		// The one step from staged is already the whole deadline.
-		"deadline": {[]func(m *modelirspb.Model){noCrash, neverThere, within(1)},
+		"deadline": {[]func(m *umpirespb.Model){noCrash, neverThere, within(1)},
 			parts{umpire.DeadlockKind: Counterexample, umpire.CycleKind: Verified, umpire.DeadlineKind: Counterexample},
 			map[ProgressKind][]string{umpire.DeadlineKind: {"put", "flush"}}, -1},
 		// A flush that leaves the disk staged is taken forever, as its fairness asks: once to return to
 		// the staged disk, and once as the fair class the cycle must take.
-		"fair cycle": {[]func(m *modelirspb.Model){noCrash, flushTo("staged")},
+		"fair cycle": {[]func(m *umpirespb.Model){noCrash, flushTo("staged")},
 			parts{umpire.DeadlockKind: Verified, umpire.CycleKind: Counterexample, umpire.DeadlineKind: Counterexample},
 			map[ProgressKind][]string{umpire.CycleKind: {"put", "flush", "flush"}}, 1},
 		// The same cycle beside the crash hole: the cycle takes the only fair class, so it stands, and
 		// what the hole may hide leaves the absence of a deadlock unknown.
-		"a cycle beside a hole": {[]func(m *modelirspb.Model){flushTo("staged")},
+		"a cycle beside a hole": {[]func(m *umpirespb.Model){flushTo("staged")},
 			parts{umpire.DeadlockKind: Incomplete, umpire.CycleKind: Counterexample, umpire.DeadlineKind: Counterexample},
 			map[ProgressKind][]string{umpire.CycleKind: {"put", "flush", "flush"}}, 1},
 		// A staged disk whose only pair is the crash hole is not deadlocked: it may have a step.
-		"a state whose only pair is a hole": {[]func(m *modelirspb.Model){func(m *modelirspb.Model) {
+		"a state whose only pair is a hole": {[]func(m *umpirespb.Model){func(m *umpirespb.Model) {
 			disk := admMachine(m, "disk")
-			disk.Steps = slicesDelete(disk.GetSteps(), func(b *modelirspb.StepBinding) bool { return strings.HasSuffix(b.GetAction(), ".flush") })
+			disk.Steps = slicesDelete(disk.GetSteps(), func(b *umpirespb.StepBinding) bool { return strings.HasSuffix(b.GetAction(), ".flush") })
 			m.GetProgress()[0].Assumptions = nil
-			m.Scenarios = slicesDelete(m.GetScenarios(), func(s *modelirspb.Scenario) bool { return s.GetName() == "putThenFlush" })
-			m.Queries = slicesDelete(m.GetQueries(), func(q *modelirspb.Query) bool { return q.GetScenario().GetName() == "putThenFlush" })
+			m.Scenarios = slicesDelete(m.GetScenarios(), func(s *umpirespb.Scenario) bool { return s.GetName() == "putThenFlush" })
+			m.Queries = slicesDelete(m.GetQueries(), func(q *umpirespb.Query) bool { return q.GetScenario().GetName() == "putThenFlush" })
 		}}, parts{umpire.DeadlockKind: Incomplete, umpire.CycleKind: Incomplete, umpire.DeadlineKind: Incomplete}, nil, -1},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -1164,8 +1164,11 @@ func TestAHoleIsIncompleteEvidenceAndNeverDisabled(t *testing.T) {
 	require.JSONEq(t, `[{"key":"empty-put","source":"empty","action":"put","results":[{"outcome":"accepted","state":"staged","facts":["stored"]}]},`+
 		`{"key":"staged-flush","source":"staged","action":"flush","results":[{"outcome":"deferred","state":"durable","facts":["staged"]}]}]`,
 		rowsJSON(t, disk))
-	require.Empty(t, disk.UnknownFrom("empty"))
-	require.Empty(t, disk.UnknownFrom("durable"))
+	unknownFrom := func(state string) []UnknownPair {
+		return slices.DeleteFunc(slices.Clone(disk.Unknown), func(u UnknownPair) bool { return u.Source != state })
+	}
+	require.Empty(t, unknownFrom("empty"))
+	require.Empty(t, unknownFrom("durable"))
 
 	// The pinned Scenario schedules a flush of the staged disk, never a crash: the hole is unexplored.
 	require.Empty(t, receiptOf(t, r, "query disk putAccepted").Holes)
@@ -1183,7 +1186,7 @@ func TestAHoleIsIncompleteEvidenceAndNeverDisabled(t *testing.T) {
 	require.Equal(t, crash, holes(deadline))
 
 	// One step explores no successor of the staged disk: the hole is past the bound.
-	r = checked(t, mutated(t, "declarations", func(m *modelirspb.Model) { admQuery(m, "durableStays").GetLimits().Steps = 1 }))
+	r = checked(t, mutated(t, "declarations", func(m *umpirespb.Model) { admQuery(m, "durableStays").GetLimits().Steps = 1 }))
 	bounded := receiptOf(t, r, "query disk durableStays")
 	require.Equal(t, Verified, bounded.Kind)
 	require.Empty(t, bounded.Holes)
@@ -1198,10 +1201,10 @@ func TestAHoleIsIncompleteEvidenceAndNeverDisabled(t *testing.T) {
 
 // A hole inside a Property's function is a step the claim could not be read on: unknown, not false.
 func TestAHoleInsideAClaimFunctionIsUnknownEvidence(t *testing.T) {
-	reaches := func(function string) func(m *modelirspb.Model) {
-		return func(m *modelirspb.Model) {
+	reaches := func(function string) func(m *umpirespb.Model) {
+		return func(m *umpirespb.Model) {
 			f := functionNamed(m, function)
-			f.Body = &modelirspb.Expr{Position: f.GetBody().GetPosition(), Kind: &modelirspb.Expr_Hole{Hole: crashHole}}
+			f.Body = &umpirespb.Expr{Position: f.GetBody().GetPosition(), Kind: &umpirespb.Expr_Hole{Hole: crashHole}}
 		}
 	}
 	claim := func(row string) []HoleReach {
@@ -1235,12 +1238,12 @@ func TestAHoleInsideAClaimFunctionIsUnknownEvidence(t *testing.T) {
 // what depends on it is incomplete, and everything else is checked as before.
 func TestADeclarationHoleStaysWithWhatDependsOnIt(t *testing.T) {
 	outside := []HoleReach{{Edge: DeclarationHole, ID: crashHole, Name: "crashUnmodeled"}}
-	hole := func(at *modelirspb.Expr) *modelirspb.Expr {
-		return &modelirspb.Expr{Position: at.GetPosition(), Kind: &modelirspb.Expr_Hole{Hole: crashHole}}
+	hole := func(at *umpirespb.Expr) *umpirespb.Expr {
+		return &umpirespb.Expr{Position: at.GetPosition(), Kind: &umpirespb.Expr_Hole{Hole: crashHole}}
 	}
 
 	// The disk's ends: the disk has no table. The store, and the pair of two stores, do not read it.
-	r := checked(t, mutated(t, "declarations", noCrash, func(m *modelirspb.Model) {
+	r := checked(t, mutated(t, "declarations", noCrash, func(m *umpirespb.Model) {
 		ends := admMachine(m, "disk").GetEnds().GetLambda()
 		ends.Body = hole(ends.GetBody())
 	}))
@@ -1264,7 +1267,7 @@ func TestADeclarationHoleStaysWithWhatDependsOnIt(t *testing.T) {
 	}
 
 	// The map of the disk's refinement: the disk has its table, and its own claims are checked.
-	r = checked(t, mutated(t, "declarations", noCrash, func(m *modelirspb.Model) {
+	r = checked(t, mutated(t, "declarations", noCrash, func(m *umpirespb.Model) {
 		stored := functionNamed(m, admDeclaredPkg+"stored")
 		stored.Body = hole(stored.GetBody())
 	}))
@@ -1293,10 +1296,10 @@ func TestAnUnrelatedDeclarationHoleErasesNoViolation(t *testing.T) {
 	want := stale(checked(t, lifted(t, "admission")))
 	require.Len(t, want, 8)
 
-	r := checked(t, mutated(t, "admission", func(m *modelirspb.Model) {
-		m.Holes = append(m.Holes, &modelirspb.Hole{Id: "generic.unknownEnd", Name: "unknownEnd", Position: at(1)})
+	r := checked(t, mutated(t, "admission", func(m *umpirespb.Model) {
+		m.Holes = append(m.Holes, &umpirespb.Hole{Id: "generic.unknownEnd", Name: "unknownEnd", Position: at(1)})
 		current := admMachine(m, "currentAdmission")
-		current.Ends = &modelirspb.Expr{Position: current.GetEnds().GetPosition(), Kind: &modelirspb.Expr_Hole{Hole: "generic.unknownEnd"}}
+		current.Ends = &umpirespb.Expr{Position: current.GetEnds().GetPosition(), Kind: &umpirespb.Expr_Hole{Hole: "generic.unknownEnd"}}
 	}))
 	require.Equal(t, want, stale(r))
 	require.Equal(t, Counterexample, receiptOf(t, r, "query staleAdmission staleAdmission.staleDelivery").Kind)
@@ -1315,18 +1318,18 @@ func TestAnUnrelatedDeclarationHoleErasesNoViolation(t *testing.T) {
 // made to lead nowhere and to be unreadable at the staged disk the put reaches: the deadlock down one
 // branch stands beside the hole down the other, and each kind of violation has its own receipt.
 func TestAProgressPredicateHoleErasesNoViolation(t *testing.T) {
-	r := checked(t, mutated(t, "declarations", returning("disk.progress.durableEventually.to", boolValue(false)), func(m *modelirspb.Model) {
+	r := checked(t, mutated(t, "declarations", returning("disk.progress.durableEventually.to", boolValue(false)), func(m *umpirespb.Model) {
 		crash := function(m, "Declarations$package$.crashStep").GetBody().GetIf()
 		crash.GetCondition().GetBinary().Right = admLiteral(crash.GetCondition(), stage("empty"))
-		crash.Then = proto.Clone(function(m, "Declarations$package$.flushStep").GetBody().GetMatch().GetCases()[0].GetBody()).(*modelirspb.Expr)
+		crash.Then = proto.Clone(function(m, "Declarations$package$.flushStep").GetBody().GetMatch().GetCases()[0].GetBody()).(*umpirespb.Expr)
 
 		from := functionNamed(m, "disk.progress.durableEventually.from")
-		staged := proto.Clone(from.GetBody()).(*modelirspb.Expr)
-		empty := proto.Clone(from.GetBody()).(*modelirspb.Expr)
+		staged := proto.Clone(from.GetBody()).(*umpirespb.Expr)
+		empty := proto.Clone(from.GetBody()).(*umpirespb.Expr)
 		empty.GetBinary().Right = admLiteral(empty, stage("empty"))
-		from.Body = &modelirspb.Expr{Position: from.GetBody().GetPosition(), Kind: &modelirspb.Expr_If{If: &modelirspb.If{
+		from.Body = &umpirespb.Expr{Position: from.GetBody().GetPosition(), Kind: &umpirespb.Expr_If{If: &umpirespb.If{
 			Condition: staged,
-			Then:      &modelirspb.Expr{Position: from.GetBody().GetPosition(), Kind: &modelirspb.Expr_Hole{Hole: crashHole}},
+			Then:      &umpirespb.Expr{Position: from.GetBody().GetPosition(), Kind: &umpirespb.Expr_Hole{Hole: crashHole}},
 			Else:      empty}}}
 	}))
 	require.Equal(t, map[ProgressKind]ReceiptKind{umpire.DeadlockKind: Counterexample, umpire.CycleKind: Incomplete,
@@ -1361,7 +1364,7 @@ func TestARejectedRefinementIsOneResultWhereverItIsMet(t *testing.T) {
 	require.Equal(t, as(rejected, through), through)
 
 	// The disk is given an assumption, so the rejection carries one to compare.
-	r = checked(t, mutated(t, "declarations", noCrash, returning("disk.visible", boolValue(true)), func(m *modelirspb.Model) {
+	r = checked(t, mutated(t, "declarations", noCrash, returning("disk.visible", boolValue(true)), func(m *umpirespb.Model) {
 		admMachine(m, "disk").Assumes = []string{admDeclaredPkg + "flushRuns"}
 	}))
 	rejected = receiptOf(t, r, "refinement disk store")
@@ -1376,13 +1379,13 @@ func TestARejectedRefinementIsOneResultWhereverItIsMet(t *testing.T) {
 
 func TestMalformedDeclarationsAreLocatedErrors(t *testing.T) {
 	three := admIntValue(3)
-	kept := func(c string) *modelirspb.Value { return admEnum("fixture.declarations.Kept", c) }
+	kept := func(c string) *umpirespb.Value { return admEnum("fixture.declarations.Kept", c) }
 	for name, c := range map[string]struct {
-		mutate  func(m *modelirspb.Model)
+		mutate  func(m *umpirespb.Model)
 		receipt string
 		want    string
 	}{
-		"ends": {func(m *modelirspb.Model) {
+		"ends": {func(m *umpirespb.Model) {
 			ends := admMachine(m, "disk").GetEnds().GetLambda()
 			ends.Body = admLiteral(ends.GetBody(), three)
 		}, "machine disk", "disk: ends is 3 at empty, not a Boolean"},
@@ -1403,20 +1406,20 @@ func TestMalformedDeclarationsAreLocatedErrors(t *testing.T) {
 			"monitor storedOnce: " + admDeclaredPkg + "storedOnce.violated is 3 at once, not a Boolean"},
 		"a monitor's point": {returning(admDeclaredPkg+"stagedBeforeDurable.after", three), "query disk durableStays",
 			"monitor stagedBeforeDurable: " + admDeclaredPkg + "stagedBeforeDurable.after is 3 for the step into staged, not a Boolean"},
-		"a monitor's initial state": {func(m *modelirspb.Model) {
+		"a monitor's initial state": {func(m *umpirespb.Model) {
 			mo := admMonitor(m, "storedOnce")
 			mo.Initial = admLiteral(mo.GetInitial(), kept("held"))
 		}, "query disk durableStays", "monitor storedOnce: its initial state held is outside its states"},
 		// The map made the identity: it reads a disk as a disk, which is no state of the store.
-		"a refinement's map": {func(m *modelirspb.Model) {
+		"a refinement's map": {func(m *umpirespb.Model) {
 			stored := functionNamed(m, admDeclaredPkg+"stored")
-			stored.Body = &modelirspb.Expr{Position: stored.GetBody().GetPosition(), Kind: &modelirspb.Expr_Var{Var: "d"}}
+			stored.Body = &umpirespb.Expr{Position: stored.GetBody().GetPosition(), Kind: &umpirespb.Expr_Var{Var: "d"}}
 		}, "refinement disk store", "disk: " + admDeclaredPkg + "stored reads empty as empty, which is no state of store"},
 		"a progress claim's from": {returning("disk.progress.durableEventually.from", three), "progress disk durableEventually",
 			"disk.durableEventually: disk.progress.durableEventually.from is 3 at empty, not a Boolean"},
 		"a progress claim's to": {returning("disk.progress.durableEventually.to", three), "progress disk durableEventually",
 			"disk.durableEventually: disk.progress.durableEventually.to is 3 at empty, not a Boolean"},
-		"a composition's ends": {func(m *modelirspb.Model) {
+		"a composition's ends": {func(m *umpirespb.Model) {
 			ends := admComposition(m, "pair").GetEnds().GetLambda()
 			ends.Body = admLiteral(ends.GetBody(), three)
 		}, "query pair keptTogether", "pair: ends is 3 at held_held, not a Boolean"},
@@ -1436,7 +1439,7 @@ func TestMalformedDeclarationsAreLocatedErrors(t *testing.T) {
 }
 
 func TestAnInadmissibleModelIsOnlyAdmissionErrors(t *testing.T) {
-	r := checked(t, mutated(t, "declarations", func(m *modelirspb.Model) {
+	r := checked(t, mutated(t, "declarations", func(m *umpirespb.Model) {
 		m.Version = 2
 		admQuery(m, "putStores").GetLimits().Steps = -1
 	}))
@@ -1552,9 +1555,9 @@ func TestSiblingClaimsStayApart(t *testing.T) {
 	require.Equal(t, id("currentAdmission"), id("staleAdmission"))
 }
 
-func everyModel(t *testing.T) map[string]*modelirspb.Model {
+func everyModel(t *testing.T) map[string]*umpirespb.Model {
 	t.Helper()
-	out := map[string]*modelirspb.Model{"nexus": load(t)}
+	out := map[string]*umpirespb.Model{"nexus": load(t)}
 	for _, name := range []string{"admission", "channels", "closereset", "declarations", "presence"} {
 		out[name] = lifted(t, name)
 	}
@@ -1604,7 +1607,7 @@ func TestProvenanceChangesNoResult(t *testing.T) {
 			want := plain(checked(t, lifted(t, name)))
 			require.NotEmpty(t, want)
 
-			moved := mutated(t, name, func(m *modelirspb.Model) {
+			moved := mutated(t, name, func(m *umpirespb.Model) {
 				m.Source = "elsewhere"
 				for _, p := range positions(m) {
 					if p.GetFile() != "" {
@@ -1614,7 +1617,7 @@ func TestProvenanceChangesNoResult(t *testing.T) {
 			})
 			require.Equal(t, want, plain(checked(t, moved)), "repositioned and relocated")
 
-			reordered := mutated(t, name, func(m *modelirspb.Model) {
+			reordered := mutated(t, name, func(m *umpirespb.Model) {
 				m.Functions, m.Actions, m.Machines = reversed(m.GetFunctions()), reversed(m.GetActions()), reversed(m.GetMachines())
 				m.Monitors, m.Assumptions, m.Holes = reversed(m.GetMonitors()), reversed(m.GetAssumptions()), reversed(m.GetHoles())
 				m.Compositions, m.Properties, m.Scenarios = reversed(m.GetCompositions()), reversed(m.GetProperties()), reversed(m.GetScenarios())
@@ -1651,7 +1654,7 @@ func TestEveryWitnessReplaysThroughAFreshInterpretation(t *testing.T) {
 // The stale design's witnesses replayed against the corrected one, which does not take their last step.
 func TestARejectedWitnessIsAnError(t *testing.T) {
 	m := lifted(t, "admission")
-	corrected := mutated(t, "admission", func(m *modelirspb.Model) {
+	corrected := mutated(t, "admission", func(m *umpirespb.Model) {
 		admMachine(m, "staleAdmission").Steps = admMachine(m, "currentAdmission").GetSteps()
 	})
 	r := check(m, DefaultScope, corrected)
@@ -1665,9 +1668,9 @@ func TestARejectedWitnessIsAnError(t *testing.T) {
 	require.Equal(t, Verified, receiptOf(t, r, "query staleAdmission staleAdmission.admittedBeforePause").Kind)
 
 	// The path to a hole a check read is a witness too: here replayed against a disk that takes no put.
-	noPut := mutated(t, "declarations", func(m *modelirspb.Model) {
+	noPut := mutated(t, "declarations", func(m *umpirespb.Model) {
 		put := function(m, "Declarations$package$.putStep")
-		put.Body = admLiteral(put.GetBody(), &modelirspb.Value{Kind: &modelirspb.Value_List{List: &modelirspb.ListValue{}}})
+		put.Body = admLiteral(put.GetBody(), &umpirespb.Value{Kind: &umpirespb.Value_List{List: &umpirespb.ListValue{}}})
 	})
 	r = check(lifted(t, "declarations"), DefaultScope, noPut)
 	for _, key := range []string{"refinement disk store", "query disk durableStays", "progress disk durableEventually deadline"} {
@@ -1723,121 +1726,121 @@ type counter struct {
 	violatedOnceSeen bool
 }
 
-func expr(kind any) *modelirspb.Expr {
-	e := &modelirspb.Expr{Position: at(1)}
+func expr(kind any) *umpirespb.Expr {
+	e := &umpirespb.Expr{Position: at(1)}
 	switch k := kind.(type) {
-	case *modelirspb.Value:
-		e.Kind = &modelirspb.Expr_Literal{Literal: k}
+	case *umpirespb.Value:
+		e.Kind = &umpirespb.Expr_Literal{Literal: k}
 	case string:
-		e.Kind = &modelirspb.Expr_Var{Var: k}
-	case *modelirspb.FieldAccess:
-		e.Kind = &modelirspb.Expr_Field{Field: k}
-	case *modelirspb.Binary:
-		e.Kind = &modelirspb.Expr_Binary{Binary: k}
-	case *modelirspb.If:
-		e.Kind = &modelirspb.Expr_If{If: k}
-	case *modelirspb.Construct:
-		e.Kind = &modelirspb.Expr_Construct{Construct: k}
-	case *modelirspb.Copy:
-		e.Kind = &modelirspb.Expr_Copy{Copy: k}
-	case *modelirspb.ListOf:
-		e.Kind = &modelirspb.Expr_List{List: k}
+		e.Kind = &umpirespb.Expr_Var{Var: k}
+	case *umpirespb.FieldAccess:
+		e.Kind = &umpirespb.Expr_Field{Field: k}
+	case *umpirespb.Binary:
+		e.Kind = &umpirespb.Expr_Binary{Binary: k}
+	case *umpirespb.If:
+		e.Kind = &umpirespb.Expr_If{If: k}
+	case *umpirespb.Construct:
+		e.Kind = &umpirespb.Expr_Construct{Construct: k}
+	case *umpirespb.Copy:
+		e.Kind = &umpirespb.Expr_Copy{Copy: k}
+	case *umpirespb.ListOf:
+		e.Kind = &umpirespb.Expr_List{List: k}
 	default:
 		panic("no such expression")
 	}
 	return e
 }
 
-func field(base *modelirspb.Expr, name string) *modelirspb.Expr {
-	return expr(&modelirspb.FieldAccess{Base: base, Field: name})
+func field(base *umpirespb.Expr, name string) *umpirespb.Expr {
+	return expr(&umpirespb.FieldAccess{Base: base, Field: name})
 }
 
-func binary(op modelirspb.Binary_Op, left, right *modelirspb.Expr) *modelirspb.Expr {
-	return expr(&modelirspb.Binary{Op: op, Left: left, Right: right})
+func binary(op umpirespb.Binary_Op, left, right *umpirespb.Expr) *umpirespb.Expr {
+	return expr(&umpirespb.Binary{Op: op, Left: left, Right: right})
 }
 
-func (c counter) model() *modelirspb.Model {
+func (c counter) model() *umpirespb.Model {
 	const stepType = StepType
-	text := func(s string) *modelirspb.Expr { return expr(&modelirspb.Value{Kind: &modelirspb.Value_Text{Text: s}}) }
-	step := func(outcome string, state *modelirspb.Expr) *modelirspb.Expr {
-		return expr(&modelirspb.ListOf{Items: []*modelirspb.Expr{expr(&modelirspb.Construct{Type: stepType,
-			Args: []*modelirspb.Expr{expr(caseOf("O", outcome)), state, expr(&modelirspb.ListOf{}), text("")}})}})
+	text := func(s string) *umpirespb.Expr { return expr(&umpirespb.Value{Kind: &umpirespb.Value_Text{Text: s}}) }
+	step := func(outcome string, state *umpirespb.Expr) *umpirespb.Expr {
+		return expr(&umpirespb.ListOf{Items: []*umpirespb.Expr{expr(&umpirespb.Construct{Type: stepType,
+			Args: []*umpirespb.Expr{expr(caseOf("O", outcome)), state, expr(&umpirespb.ListOf{}), text("")}})}})
 	}
 	n := field(expr("s"), "n")
-	state := []*modelirspb.Param{{Name: "s", Type: named("Counter")}}
-	after := []*modelirspb.Param{{Name: "after", Type: named(stepType)}}
-	fn := func(name string, params []*modelirspb.Param, body *modelirspb.Expr) *modelirspb.Function {
-		return &modelirspb.Function{Name: name, Position: at(20), Params: params, Body: body}
+	state := []*umpirespb.Param{{Name: "s", Type: named("Counter")}}
+	after := []*umpirespb.Param{{Name: "after", Type: named(stepType)}}
+	fn := func(name string, params []*umpirespb.Param, body *umpirespb.Expr) *umpirespb.Function {
+		return &umpirespb.Function{Name: name, Position: at(20), Params: params, Body: body}
 	}
-	zero := &modelirspb.Value{Kind: &modelirspb.Value_Record{Record: &modelirspb.RecordValue{Type: "Counter", Fields: []*modelirspb.Value{admIntValue(0)}}}}
-	skipped := binary(modelirspb.Binary_OP_EQ, field(expr("after"), "outcome"), expr(caseOf("O", "skipped")))
+	zero := &umpirespb.Value{Kind: &umpirespb.Value_Record{Record: &umpirespb.RecordValue{Type: "Counter", Fields: []*umpirespb.Value{admIntValue(0)}}}}
+	skipped := binary(umpirespb.Binary_OP_EQ, field(expr("after"), "outcome"), expr(caseOf("O", "skipped")))
 
-	m := &modelirspb.Model{Source: "generic",
-		Types: []*modelirspb.Type{
-			{Name: "Counter", Position: at(1), Shape: &modelirspb.Type_Record{Record: &modelirspb.Record{Fields: []*modelirspb.Field{
+	m := &umpirespb.Model{Source: "generic",
+		Types: []*umpirespb.Type{
+			{Name: "Counter", Position: at(1), Shape: &umpirespb.Type_Record{Record: &umpirespb.Record{Fields: []*umpirespb.Field{
 				{Name: "n", Type: upTo(c.k)}}}}},
 			enumType("O", 2, "ok", "skipped"),
-			{Name: "Two", Position: at(3), Shape: &modelirspb.Type_Record{Record: &modelirspb.Record{Fields: []*modelirspb.Field{
+			{Name: "Two", Position: at(3), Shape: &umpirespb.Type_Record{Record: &umpirespb.Record{Fields: []*umpirespb.Field{
 				{Name: "left", Type: named("Counter")}, {Name: "right", Type: named("Counter")}}}}},
 		},
-		Actions: []*modelirspb.Action{{Id: "generic.tick", Name: "tick", Position: at(10), Party: "generic"}},
-		Functions: []*modelirspb.Function{
-			fn("generic.tickStep", state, expr(&modelirspb.If{
-				Condition: binary(modelirspb.Binary_OP_LT, n, expr(admIntValue(c.k))),
-				Then: step("ok", expr(&modelirspb.Copy{Base: expr("s"), Updates: []*modelirspb.NamedExpr{
-					{Name: "n", Value: binary(modelirspb.Binary_OP_ADD, n, expr(admIntValue(1)))}}})),
-				Else: expr(&modelirspb.ListOf{})})),
+		Actions: []*umpirespb.Action{{Id: "generic.tick", Name: "tick", Position: at(10), Party: "generic"}},
+		Functions: []*umpirespb.Function{
+			fn("generic.tickStep", state, expr(&umpirespb.If{
+				Condition: binary(umpirespb.Binary_OP_LT, n, expr(admIntValue(c.k))),
+				Then: step("ok", expr(&umpirespb.Copy{Base: expr("s"), Updates: []*umpirespb.NamedExpr{
+					{Name: "n", Value: binary(umpirespb.Binary_OP_ADD, n, expr(admIntValue(1)))}}})),
+				Else: expr(&umpirespb.ListOf{})})),
 			fn("generic.always", after, expr(boolValue(true))),
-			fn("generic.noSkip", after, binary(modelirspb.Binary_OP_NE, field(expr("after"), "outcome"), expr(caseOf("O", "skipped")))),
-			fn("generic.atZero", state, binary(modelirspb.Binary_OP_EQ, n, expr(admIntValue(0)))),
-			fn("generic.atTop", state, binary(modelirspb.Binary_OP_EQ, n, expr(admIntValue(c.k)))),
+			fn("generic.noSkip", after, binary(umpirespb.Binary_OP_NE, field(expr("after"), "outcome"), expr(caseOf("O", "skipped")))),
+			fn("generic.atZero", state, binary(umpirespb.Binary_OP_EQ, n, expr(admIntValue(0)))),
+			fn("generic.atTop", state, binary(umpirespb.Binary_OP_EQ, n, expr(admIntValue(c.k)))),
 		},
-		Machines: []*modelirspb.Machine{{Family: "generic", Name: "counter", Position: at(30), StateType: "Counter", OutcomeType: "O",
-			Starts: []*modelirspb.Expr{expr(zero)},
-			Steps:  []*modelirspb.StepBinding{{Action: "generic.tick", Function: "generic.tickStep", Position: at(31)}}}},
-		Compositions: []*modelirspb.Composition{{Family: "generic", Name: "two", Position: at(40), StateType: "Two",
-			Members: []*modelirspb.Member{{Field: "left", Machine: "counter"}, {Field: "right", Machine: "counter"}}}},
-		Properties: []*modelirspb.Property{
+		Machines: []*umpirespb.Machine{{Family: "generic", Name: "counter", Position: at(30), StateType: "Counter", OutcomeType: "O",
+			Starts: []*umpirespb.Expr{expr(zero)},
+			Steps:  []*umpirespb.StepBinding{{Action: "generic.tick", Function: "generic.tickStep", Position: at(31)}}}},
+		Compositions: []*umpirespb.Composition{{Family: "generic", Name: "two", Position: at(40), StateType: "Two",
+			Members: []*umpirespb.Member{{Field: "left", Machine: "counter"}, {Field: "right", Machine: "counter"}}}},
+		Properties: []*umpirespb.Property{
 			{Machine: "counter", Name: "always", Position: at(50), Holds: "generic.always"},
 			{Machine: "counter", Name: "noSkip", Position: at(51), Holds: "generic.noSkip"},
 			{Machine: "two", Name: "always", Position: at(52), Holds: "generic.always"},
 		},
-		Scenarios: []*modelirspb.Scenario{
+		Scenarios: []*umpirespb.Scenario{
 			{Machine: "counter", Name: "all", Position: at(60), Start: expr(zero), Free: true},
-			{Machine: "two", Name: "all", Position: at(61), Free: true, Start: expr(&modelirspb.Value{Kind: &modelirspb.Value_Record{
-				Record: &modelirspb.RecordValue{Type: "Two", Fields: []*modelirspb.Value{zero, zero}}}})},
+			{Machine: "two", Name: "all", Position: at(61), Free: true, Start: expr(&umpirespb.Value{Kind: &umpirespb.Value_Record{
+				Record: &umpirespb.RecordValue{Type: "Two", Fields: []*umpirespb.Value{zero, zero}}}})},
 		},
-		Queries: []*modelirspb.Query{
-			{Name: "counter.all", Position: at(70), Form: modelirspb.Query_FORM_VERIFY,
-				Property: &modelirspb.ClaimRef{Machine: "counter", Name: "always"}, Scenario: &modelirspb.ClaimRef{Machine: "counter", Name: "all"},
-				Limits: &modelirspb.Limits{Name: "wide", Steps: int32(4 * c.k), Search: 1 << 20}},
-			{Name: "two.all", Position: at(71), Form: modelirspb.Query_FORM_VERIFY,
-				Property: &modelirspb.ClaimRef{Machine: "two", Name: "always"}, Scenario: &modelirspb.ClaimRef{Machine: "two", Name: "all"},
-				Limits: &modelirspb.Limits{Name: "wide", Steps: int32(4 * c.k), Search: 1 << 20}},
+		Queries: []*umpirespb.Query{
+			{Name: "counter.all", Position: at(70), Form: umpirespb.Query_FORM_VERIFY,
+				Property: &umpirespb.ClaimRef{Machine: "counter", Name: "always"}, Scenario: &umpirespb.ClaimRef{Machine: "counter", Name: "all"},
+				Limits: &umpirespb.Limits{Name: "wide", Steps: int32(4 * c.k), Search: 1 << 20}},
+			{Name: "two.all", Position: at(71), Form: umpirespb.Query_FORM_VERIFY,
+				Property: &umpirespb.ClaimRef{Machine: "two", Name: "always"}, Scenario: &umpirespb.ClaimRef{Machine: "two", Name: "all"},
+				Limits: &umpirespb.Limits{Name: "wide", Steps: int32(4 * c.k), Search: 1 << 20}},
 		},
-		Progress: []*modelirspb.Progress{{Machine: "counter", Name: "reachesTop", Position: at(80),
+		Progress: []*umpirespb.Progress{{Machine: "counter", Name: "reachesTop", Position: at(80),
 			From: "generic.atZero", To: "generic.atTop", Within: int32(c.k)}},
 	}
 	if c.skip {
-		m.Actions = append(m.Actions, &modelirspb.Action{Id: "generic.skip", Name: "skip", Position: at(11), Party: "generic"})
+		m.Actions = append(m.Actions, &umpirespb.Action{Id: "generic.skip", Name: "skip", Position: at(11), Party: "generic"})
 		m.Functions = append(m.Functions, fn("generic.skipStep", state, step("skipped", expr("s"))))
-		m.Machines[0].Steps = append(m.Machines[0].Steps, &modelirspb.StepBinding{Action: "generic.skip", Function: "generic.skipStep", Position: at(32)})
+		m.Machines[0].Steps = append(m.Machines[0].Steps, &umpirespb.StepBinding{Action: "generic.skip", Function: "generic.skipStep", Position: at(32)})
 		// The composition and the progress claim are about the counter that only ticks.
 		m.Compositions, m.Progress = nil, nil
 		m.Properties, m.Scenarios, m.Queries = m.Properties[:2], m.Scenarios[:1], m.Queries[:1]
 	}
 	if c.monitor {
-		flag := &modelirspb.TypeRef{Ref: &modelirspb.TypeRef_Bool{Bool: &modelirspb.Empty{}}}
+		flag := &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Bool{Bool: &umpirespb.Empty{}}}
 		violated := expr(boolValue(false))
 		if c.violatedOnceSeen {
 			violated = expr("seen")
 		}
 		m.Functions = append(m.Functions,
-			fn("generic.sawSkip.next", []*modelirspb.Param{{Name: "seen", Type: flag}, {Name: "before", Type: named("Counter")},
-				{Name: "after", Type: named(stepType)}}, binary(modelirspb.Binary_OP_OR, expr("seen"), skipped)),
-			fn("generic.sawSkip.violated", []*modelirspb.Param{{Name: "seen", Type: flag}}, violated))
-		m.Monitors = []*modelirspb.Monitor{{Id: "generic.sawSkip", Name: "sawSkip", Position: at(90), State: flag, Initial: expr(boolValue(false)),
-			Next: "generic.sawSkip.next", Violated: "generic.sawSkip.violated", Evaluate: &modelirspb.Monitor_EveryStep{EveryStep: &modelirspb.Empty{}}}}
+			fn("generic.sawSkip.next", []*umpirespb.Param{{Name: "seen", Type: flag}, {Name: "before", Type: named("Counter")},
+				{Name: "after", Type: named(stepType)}}, binary(umpirespb.Binary_OP_OR, expr("seen"), skipped)),
+			fn("generic.sawSkip.violated", []*umpirespb.Param{{Name: "seen", Type: flag}}, violated))
+		m.Monitors = []*umpirespb.Monitor{{Id: "generic.sawSkip", Name: "sawSkip", Position: at(90), State: flag, Initial: expr(boolValue(false)),
+			Next: "generic.sawSkip.next", Violated: "generic.sawSkip.violated", Evaluate: &umpirespb.Monitor_EveryStep{EveryStep: &umpirespb.Empty{}}}}
 		m.Machines[0].Monitors = []string{"generic.sawSkip"}
 	}
 	return m

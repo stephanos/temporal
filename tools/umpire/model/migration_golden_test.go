@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/tools/umpire/internal/golden"
 	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -91,11 +91,24 @@ func migrationReceipts(receipts []Receipt) []migrationReceipt {
 	return out
 }
 
-func migrationMeaning(t *testing.T, m *modelirspb.Model) migrationSemantics {
+// migrationBinding is one interpretation of an admitted Model, as a producer of Cases reads it. The
+// helpers that read one Model's meaning, declarations and refined Properties share it within one
+// comparison, so the Model is interpreted once for them; each comparison binds its own.
+func migrationBinding(t *testing.T, m *umpirespb.Model) *binding {
 	t.Helper()
 	require.NoError(t, Validate(m))
 	b := bind(m, DefaultScope)
 	b.realizing = true
+	return b
+}
+
+func migrationMeaning(t *testing.T, m *umpirespb.Model) migrationSemantics {
+	t.Helper()
+	return migrationMeaningOf(migrationBinding(t, m))
+}
+
+func migrationMeaningOf(b *binding) migrationSemantics {
+	m := b.model
 	out := migrationSemantics{Receipts: migrationReceipts(Check(m, DefaultScope).Receipts)}
 	var subjects []string
 	for _, machine := range m.GetMachines() {
@@ -149,7 +162,7 @@ func migrationMeaning(t *testing.T, m *modelirspb.Model) migrationSemantics {
 
 func migrationKey(path string) string { return strings.TrimPrefix(path, "model/scalav2/") }
 
-func migrationFiles(t *testing.T, models map[string]*modelirspb.Model) map[string][]byte {
+func migrationFiles(t *testing.T, models map[string]*umpirespb.Model) map[string][]byte {
 	t.Helper()
 	files := map[string][]byte{}
 	for _, path := range slices.Sorted(maps.Keys(models)) {
@@ -157,20 +170,21 @@ func migrationFiles(t *testing.T, models map[string]*modelirspb.Model) map[strin
 		encoded, err := golden.Proto(models[path])
 		require.NoError(t, err)
 		files["inputs/"+key] = encoded
-		encoded, err = golden.JSON(migrationMeaning(t, models[path]))
+		b := migrationBinding(t, models[path])
+		encoded, err = golden.JSON(migrationMeaningOf(b))
 		require.NoError(t, err)
 		files["semantics/"+key] = encoded
-		encoded, err = golden.JSON(migrationDefinitions(t, models[path]))
+		encoded, err = golden.JSON(migrationDefinitionsOf(t, b))
 		require.NoError(t, err)
 		files["declarations/"+key] = encoded
-		encoded, err = golden.JSON(migrationRefinedProperties(t, models[path]))
+		encoded, err = golden.JSON(migrationRefinedPropertiesOf(b))
 		require.NoError(t, err)
 		files["refined-properties/"+key] = encoded
 	}
 	return files
 }
 
-func migrationInputs(t *testing.T) (golden.Config, map[string]*modelirspb.Model) {
+func migrationInputs(t *testing.T) (golden.Config, map[string]*umpirespb.Model) {
 	t.Helper()
 	cfg, err := golden.Configuration()
 	require.NoError(t, err)
@@ -197,7 +211,7 @@ func TestMigrationGoldens(t *testing.T) {
 	require.NoError(t, err)
 	cfg, models := migrationInputs(t)
 	for path, current := range models {
-		original := new(modelirspb.Model)
+		original := new(umpirespb.Model)
 		require.NoError(t, protojson.Unmarshal(expected["inputs/"+migrationKey(path)], original), path)
 		_, err := cfg.Match(original, current)
 		require.NoError(t, err, path)
@@ -243,28 +257,31 @@ func TestMigrationProjectionPreservesSemantics(t *testing.T) {
 	require.NoError(t, err)
 	for _, path := range slices.Sorted(maps.Keys(models)) {
 		t.Run(migrationKey(path), func(t *testing.T) {
-			original := new(modelirspb.Model)
+			original := new(umpirespb.Model)
 			require.NoError(t, protojson.Unmarshal(originals[migrationKey(path)], original))
 			mapped, err := cfg.Migrate(original)
 			require.NoError(t, err)
-			before := migrationMeaning(t, original)
-			after := migrationMeaning(t, mapped)
-			migrateSemanticLocations(&before, cfg)
+			// The original and the mapped Model are each interpreted once, and apart.
+			read, readMapped := migrationBinding(t, original), migrationBinding(t, mapped)
+			migrate := locationMigrator(cfg)
+			before := migrationMeaningOf(read)
+			after := migrationMeaningOf(readMapped)
+			migrateSemanticLocations(&before, migrate)
 			want, err := golden.JSON(before)
 			require.NoError(t, err)
 			got, err := golden.JSON(after)
 			require.NoError(t, err)
 			require.NoError(t, golden.Compare(map[string][]byte{path: want}, map[string][]byte{path: got}))
-			definitions := migrationDefinitions(t, original)
+			definitions := migrationDefinitionsOf(t, read)
 			for i := range definitions {
-				definitions[i].Error = migrateLocation(definitions[i].Error, cfg)
+				definitions[i].Error = migrate(definitions[i].Error)
 			}
-			require.Equal(t, definitions, migrationDefinitions(t, mapped))
-			refined := migrationRefinedProperties(t, original)
+			require.Equal(t, definitions, migrationDefinitionsOf(t, readMapped))
+			refined := migrationRefinedPropertiesOf(read)
 			for i := range refined {
-				refined[i].Error = migrateLocation(refined[i].Error, cfg)
+				refined[i].Error = migrate(refined[i].Error)
 			}
-			require.Equal(t, refined, migrationRefinedProperties(t, mapped))
+			require.Equal(t, refined, migrationRefinedPropertiesOf(readMapped))
 		})
 	}
 }
@@ -277,10 +294,15 @@ type migrationRefinedProperty struct {
 	Rows                             []string
 }
 
-func migrationRefinedProperties(t *testing.T, model *modelirspb.Model) []migrationRefinedProperty {
+func migrationRefinedProperties(t *testing.T, model *umpirespb.Model) []migrationRefinedProperty {
 	t.Helper()
 	b := bind(model, DefaultScope)
 	b.realizing = true
+	return migrationRefinedPropertiesOf(b)
+}
+
+func migrationRefinedPropertiesOf(b *binding) []migrationRefinedProperty {
+	model := b.model
 	var out []migrationRefinedProperty
 	for _, machine := range model.GetMachines() {
 		if machine.GetRefines() == nil {
@@ -349,16 +371,17 @@ func TestMigrationRefinedPropertiesCoverEveryProductPropertyRow(t *testing.T) {
 	require.Equal(t, expected, migrationRefinedProperties(t, activityModel(t)))
 }
 
-func migrateLocation(value string, cfg golden.Config) string {
+// locationMigrator maps the source paths a located error names. Its replacer is built once for all the
+// strings of a comparison.
+func locationMigrator(cfg golden.Config) func(string) string {
 	replacements := []string{}
 	for _, path := range cfg.Paths {
 		replacements = append(replacements, path.Old+":", path.New+":")
 	}
-	return strings.NewReplacer(replacements...).Replace(value)
+	return strings.NewReplacer(replacements...).Replace
 }
 
-func migrateSemanticLocations(s *migrationSemantics, cfg golden.Config) {
-	replace := func(value string) string { return migrateLocation(value, cfg) }
+func migrateSemanticLocations(s *migrationSemantics, replace func(string) string) {
 	for i := range s.Subjects {
 		subject := &s.Subjects[i]
 		subject.Error, subject.Rejected = replace(subject.Error), replace(subject.Rejected)
@@ -426,10 +449,16 @@ type migrationDefinition struct {
 	Kind, Owner, Name, ID, Canonical, Fingerprint, Error string
 }
 
-func migrationDefinitions(t *testing.T, model *modelirspb.Model) []migrationDefinition {
+func migrationDefinitions(t *testing.T, model *umpirespb.Model) []migrationDefinition {
 	t.Helper()
 	b := bind(model, DefaultScope)
 	b.realizing = true
+	return migrationDefinitionsOf(t, b)
+}
+
+func migrationDefinitionsOf(t *testing.T, b *binding) []migrationDefinition {
+	t.Helper()
+	model := b.model
 	var out []migrationDefinition
 	for _, p := range model.GetProperties() {
 		subject := b.subject(p.GetMachine())

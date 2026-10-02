@@ -8,18 +8,18 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"google.golang.org/protobuf/proto"
 )
 
-func load(t *testing.T) *modelirspb.Model {
+func load(t *testing.T) *umpirespb.Model {
 	t.Helper()
 	m, err := Load(irPath)
 	require.NoError(t, err)
 	return m
 }
 
-func function(m *modelirspb.Model, suffix string) *modelirspb.Function {
+func function(m *umpirespb.Model, suffix string) *umpirespb.Function {
 	for _, f := range m.GetFunctions() {
 		if strings.HasSuffix(f.GetName(), suffix) {
 			return f
@@ -29,38 +29,38 @@ func function(m *modelirspb.Model, suffix string) *modelirspb.Function {
 }
 
 // walk visits every expression under x.
-func walk(x *modelirspb.Expr, visit func(*modelirspb.Expr)) {
+func walk(x *umpirespb.Expr, visit func(*umpirespb.Expr)) {
 	if x == nil {
 		return
 	}
 	visit(x)
 	switch k := x.GetKind().(type) {
-	case *modelirspb.Expr_Call:
+	case *umpirespb.Expr_Call:
 		for _, a := range k.Call.GetArgs() {
 			walk(a, visit)
 		}
-	case *modelirspb.Expr_If:
+	case *umpirespb.Expr_If:
 		walk(k.If.GetCondition(), visit)
 		walk(k.If.GetThen(), visit)
 		walk(k.If.GetElse(), visit)
-	case *modelirspb.Expr_Match:
+	case *umpirespb.Expr_Match:
 		walk(k.Match.GetScrutinee(), visit)
 		for _, c := range k.Match.GetCases() {
 			walk(c.GetBody(), visit)
 		}
-	case *modelirspb.Expr_Construct:
+	case *umpirespb.Expr_Construct:
 		for _, a := range k.Construct.GetArgs() {
 			walk(a, visit)
 		}
-	case *modelirspb.Expr_Copy:
+	case *umpirespb.Expr_Copy:
 		walk(k.Copy.GetBase(), visit)
 		for _, u := range k.Copy.GetUpdates() {
 			walk(u.GetValue(), visit)
 		}
-	case *modelirspb.Expr_Let:
+	case *umpirespb.Expr_Let:
 		walk(k.Let.GetValue(), visit)
 		walk(k.Let.GetBody(), visit)
-	case *modelirspb.Expr_List:
+	case *umpirespb.Expr_List:
 		for _, i := range k.List.GetItems() {
 			walk(i, visit)
 		}
@@ -69,9 +69,9 @@ func walk(x *modelirspb.Expr, visit func(*modelirspb.Expr)) {
 }
 
 func TestValidateReportsEveryProblemAtItsScalaPosition(t *testing.T) {
-	m := proto.Clone(load(t)).(*modelirspb.Model)
+	m := proto.Clone(load(t)).(*umpirespb.Model)
 	// Rename the helper every protocol step calls, and drop a type a function constructs.
-	walk(function(m, "Protocol$.handlerReplyStep").GetBody(), func(x *modelirspb.Expr) {
+	walk(function(m, "Protocol$.handlerReplyStep").GetBody(), func(x *umpirespb.Expr) {
 		if c := x.GetCall(); c != nil && strings.HasSuffix(c.GetFunction(), "Protocol$.moves") {
 			c.Function = "temporal.nexuscaller.kernel.Protocol$.move"
 		}
@@ -86,7 +86,7 @@ func TestValidateReportsEveryProblemAtItsScalaPosition(t *testing.T) {
 }
 
 func TestValidateRejectsAStepWithTheWrongArity(t *testing.T) {
-	m := proto.Clone(load(t)).(*modelirspb.Model)
+	m := proto.Clone(load(t)).(*umpirespb.Model)
 	for _, mm := range m.GetMachines() {
 		for _, b := range mm.GetSteps() {
 			if strings.HasSuffix(b.GetFunction(), "Protocol$.handlerReplyStep") {
@@ -101,12 +101,12 @@ func TestValidateRejectsAStepWithTheWrongArity(t *testing.T) {
 // The saturating successor, rewritten as a plain increment: the IR stays well formed, and the
 // interpreter finds the row that leaves the domain.
 func TestBuildRejectsAStepOutsideTheDomain(t *testing.T) {
-	m := proto.Clone(load(t)).(*modelirspb.Model)
+	m := proto.Clone(load(t)).(*umpirespb.Model)
 	succ := function(m, "Protocol$.saturatingSucc")
 	at := succ.GetBody().GetPosition()
-	succ.Body = &modelirspb.Expr{Position: at, Kind: &modelirspb.Expr_Binary{Binary: &modelirspb.Binary{Op: modelirspb.Binary_OP_ADD,
-		Left:  &modelirspb.Expr{Position: at, Kind: &modelirspb.Expr_Var{Var: "a"}},
-		Right: &modelirspb.Expr{Position: at, Kind: &modelirspb.Expr_Literal{Literal: &modelirspb.Value{Kind: &modelirspb.Value_Int{Int: 1}}}}}}}
+	succ.Body = &umpirespb.Expr{Position: at, Kind: &umpirespb.Expr_Binary{Binary: &umpirespb.Binary{Op: umpirespb.Binary_OP_ADD,
+		Left:  &umpirespb.Expr{Position: at, Kind: &umpirespb.Expr_Var{Var: "a"}},
+		Right: &umpirespb.Expr{Position: at, Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{Kind: &umpirespb.Value_Int{Int: 1}}}}}}}
 	require.NoError(t, Validate(m))
 	_, err := Build(m)
 	require.ErrorContains(t, err, "nexusProtocol: row scheduled-2-unset-unset-unset-handlerReply-handlerError-true lands in "+
@@ -114,12 +114,12 @@ func TestBuildRejectsAStepOutsideTheDomain(t *testing.T) {
 }
 
 func TestValidateRejectsInvalidRunExpectations(t *testing.T) {
-	for name, expected := range map[string]*modelirspb.RunExpectation{
-		"missing conformance":         {Property: modelirspb.RunExpectation_OUTCOME_SATISFIED},
-		"missing property":            {Conformance: modelirspb.RunExpectation_CONFORMANCE_CONFORMANT},
-		"inconclusive without reason": {Conformance: modelirspb.RunExpectation_CONFORMANCE_CONFORMANT, Property: modelirspb.RunExpectation_OUTCOME_INCONCLUSIVE},
-		"satisfied with reason":       {Conformance: modelirspb.RunExpectation_CONFORMANCE_CONFORMANT, Property: modelirspb.RunExpectation_OUTCOME_SATISFIED, Reason: "unknown"},
-		"unknown monitor":             {Conformance: modelirspb.RunExpectation_CONFORMANCE_CONFORMANT, Property: modelirspb.RunExpectation_OUTCOME_SATISFIED, Monitors: []*modelirspb.MonitorExpectation{{Name: "missing", Outcome: modelirspb.RunExpectation_OUTCOME_SATISFIED}}},
+	for name, expected := range map[string]*umpirespb.RunExpectation{
+		"missing conformance":         {Property: umpirespb.RunExpectation_OUTCOME_SATISFIED},
+		"missing property":            {Conformance: umpirespb.RunExpectation_CONFORMANCE_CONFORMANT},
+		"inconclusive without reason": {Conformance: umpirespb.RunExpectation_CONFORMANCE_CONFORMANT, Property: umpirespb.RunExpectation_OUTCOME_INCONCLUSIVE},
+		"satisfied with reason":       {Conformance: umpirespb.RunExpectation_CONFORMANCE_CONFORMANT, Property: umpirespb.RunExpectation_OUTCOME_SATISFIED, Reason: "unknown"},
+		"unknown monitor":             {Conformance: umpirespb.RunExpectation_CONFORMANCE_CONFORMANT, Property: umpirespb.RunExpectation_OUTCOME_SATISFIED, Monitors: []*umpirespb.MonitorExpectation{{Name: "missing", Outcome: umpirespb.RunExpectation_OUTCOME_SATISFIED}}},
 	} {
 		t.Run(name, func(t *testing.T) {
 			m := load(t)

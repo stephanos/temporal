@@ -31,20 +31,20 @@ backends/  ── the same IR exported to Quint, and one monitor to P, each held
 ## Run
 
 ```sh
-model/scalav2/run.sh           # build and test scala/, lift, require every ir/*.json to be current, test
-model/scalav2/run.sh --update  # lift and rewrite ir/nexus-caller.json, ir/activity.json, ir/activity-system.json and ir/nexus-close.json
+make umpire-check-model       # the gate (gate/): build and test umpire/ and temporal/, lift, require every ir/*.json and case to be current, test
+make umpire-gen-model         # the gate with --update: lift and rewrite every ir/*.json, the lifter's expected IR and the Cases
 go test ./model/scalav2/...    # the Go side alone, from the checked-in IR, no JVM
 model/scalav2/backends/run.sh  # Quint and P against Go; needs the tools backends/README.md names
 ```
 
 scala-cli, the JDK and protoc come from the repository's `mise.toml`. After changing the schema, run
-`make protoc` to regenerate `api/modelir/v1`.
+`make protoc` to regenerate `api/umpire/v1`.
 
 ## Layout
 
 | Path | What it holds |
 | --- | --- |
-| `proto/internal/temporal/server/api/modelir/v1/ir.proto` | The IR schema, with the other internal protos: types and catalogs, functions as expression trees with `match`, actions, machines, source positions; its Go code is `api/modelir/v1`, from `make protoc` |
+| `proto/internal/temporal/server/api/umpire/v1/ir.proto` | The IR schema, with the other internal protos: types and catalogs, functions as expression trees with `match`, actions, machines, source positions; its Go code is `api/umpire/v1`, from `make protoc` |
 | `SEMANTICS.md` | The evaluation rules, which neither side defines |
 | `ir/nexus-caller.json` | The Nexus caller and worker Models, lifted with the functional Queries and the realization that runs them |
 | `ir/activity.json` | The standalone activity Model, lifted with the claims `model/go/standaloneactivity` declares and the realization that runs its find Queries |
@@ -56,8 +56,7 @@ scala-cli, the JDK and protoc come from the repository's `mise.toml`. After chan
 | `goir/` | Loader, validator and interpreter |
 | `goir/testpilot/` | Lowers a find Query's witness through the realization its machine declares into a Testpilot Case, and names what a realization declares that Testpilot cannot run yet |
 | [backends/](backends/README.md) | Exports every machine and composition of the four IR files to Quint and one monitor to P, runs both tools, and compares each with `goir`: transitions, monitors and Properties by Quint, bounded event traces by P. Its tool runs are skipped by `go test` and required by `backends/run.sh` |
-| `gen.sh` | Packages the IR's Java classes as `gen/ir-proto.jar` (gitignored) for the lifter |
-| `scala.sh` | scala-cli with an exit code that fails on any error it prints |
+| `gate/` | The gate, one Scala program run by `make umpire-check-model`: builds and tests the Models, packages the IR's Java classes as `gen/ir-proto.jar` (gitignored) for the lifter, runs the lifter's tests, lifts, holds `ir/` to what it lifted and runs the Go checks. Every tool is run through `Tools.scala`, where a scala-cli run that prints an error fails whatever it exits with |
 | [specimens/](specimens/README.md) | fn-107's two reviewed authoring sketches, standalone activity admission and Nexus close/reset, with their trace oracles, proposed extensions, Testpilot gaps and authoring measurements; hand-reviewed, and built by no gate |
 
 ## Independence from model/scala
@@ -65,7 +64,7 @@ scala-cli, the JDK and protoc come from the repository's `mise.toml`. After chan
 `scala/` began as a copy of model/scala's framework, Case producer, Nexus caller, worker and
 standalone activity Models and their tests; its views and Stainless proofs were not taken, and the
 Case producer has since been retired: Scala declares a realization and Go builds every Case. Nothing
-here reads model/scala, which stays an independent baseline: `run.sh`, `make lint-model` and the Go
+here reads model/scala, which stays an independent baseline: the gate, `make lint-model` and the Go
 tests build, lift and check without it. Source positions in the IR resolve inside model/scalav2, and
 `goir` rejects one that does not.
 

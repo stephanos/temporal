@@ -14,8 +14,8 @@ import (
 	commonpb "go.temporal.io/api/common/v1"
 	failurepb "go.temporal.io/api/failure/v1"
 	nexuspb "go.temporal.io/api/nexus/v1"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
@@ -26,21 +26,21 @@ import (
 // against the protobuf descriptors it names. It reads every declaration and reports every problem:
 // one declaration that crosses a descriptor hides none after it.
 type adapter struct {
-	r *modelirspb.Realization
+	r *umpirespb.Realization
 	t *umpiremodel.Table
 	// classKey is the key of one class of an action, as the Model's tables key it.
-	classKey func(*modelirspb.ActionClass) string
+	classKey func(*umpirespb.ActionClass) string
 	w        *writer
 	// evidence and element are each kind of evidence and the message its recorded data is; observed
 	// is each observation's message.
-	evidence map[string]*modelirspb.Evidence
+	evidence map[string]*umpirespb.Evidence
 	element  map[string]protoreflect.MessageDescriptor
 	observed map[string]protoreflect.MessageDescriptor
 }
 
-func newAdapter(r *modelirspb.Realization, t *umpiremodel.Table, classKey func(*modelirspb.ActionClass) string, fixture string) *adapter {
+func newAdapter(r *umpirespb.Realization, t *umpiremodel.Table, classKey func(*umpirespb.ActionClass) string, fixture string) *adapter {
 	a := &adapter{r: r, t: t, classKey: classKey, w: &writer{fixture: fixture},
-		evidence: map[string]*modelirspb.Evidence{}, element: map[string]protoreflect.MessageDescriptor{},
+		evidence: map[string]*umpirespb.Evidence{}, element: map[string]protoreflect.MessageDescriptor{},
 		observed: map[string]protoreflect.MessageDescriptor{}}
 	for _, e := range r.GetEvidence() {
 		a.evidence[e.GetId()] = e
@@ -48,17 +48,17 @@ func newAdapter(r *modelirspb.Realization, t *umpiremodel.Table, classKey func(*
 	return a
 }
 
-var faultKinds = map[modelirspb.Fault_Kind]testpilotspb.FaultKind{
-	modelirspb.Fault_KIND_WORKER_STOP:             testpilotspb.FAULT_KIND_WORKER_STOP,
-	modelirspb.Fault_KIND_WORKER_RESUME:           testpilotspb.FAULT_KIND_WORKER_RESUME,
-	modelirspb.Fault_KIND_ADMISSION_RESPONSE_LOSS: testpilotspb.FAULT_KIND_ADMISSION_RESPONSE_LOSS,
+var faultKinds = map[umpirespb.Fault_Kind]testpilotspb.FaultKind{
+	umpirespb.Fault_KIND_WORKER_STOP:             testpilotspb.FAULT_KIND_WORKER_STOP,
+	umpirespb.Fault_KIND_WORKER_RESUME:           testpilotspb.FAULT_KIND_WORKER_RESUME,
+	umpirespb.Fault_KIND_ADMISSION_RESPONSE_LOSS: testpilotspb.FAULT_KIND_ADMISSION_RESPONSE_LOSS,
 }
 
-var roleKinds = map[modelirspb.Role_Kind]testpilotspb.RoleKind{
-	modelirspb.Role_KIND_ENDPOINT:    testpilotspb.ROLE_KIND_ENDPOINT,
-	modelirspb.Role_KIND_WORKER:      testpilotspb.ROLE_KIND_WORKER,
-	modelirspb.Role_KIND_TASK_QUEUE:  testpilotspb.ROLE_KIND_TASK_QUEUE,
-	modelirspb.Role_KIND_PARTICIPANT: testpilotspb.ROLE_KIND_PARTICIPANT,
+var roleKinds = map[umpirespb.Role_Kind]testpilotspb.RoleKind{
+	umpirespb.Role_KIND_ENDPOINT:    testpilotspb.ROLE_KIND_ENDPOINT,
+	umpirespb.Role_KIND_WORKER:      testpilotspb.ROLE_KIND_WORKER,
+	umpirespb.Role_KIND_TASK_QUEUE:  testpilotspb.ROLE_KIND_TASK_QUEUE,
+	umpirespb.Role_KIND_PARTICIPANT: testpilotspb.ROLE_KIND_PARTICIPANT,
 }
 
 func (a *adapter) realization() (*cp.Realization, []error) {
@@ -73,7 +73,7 @@ func (a *adapter) realization() (*cp.Realization, []error) {
 		out.Plan.Roles = append(out.Plan.Roles, cp.Role(role.GetId(), roleKinds[role.GetKind()], role.GetNamespace(), role.GetResource()))
 	}
 	for _, l := range a.r.GetLearned() {
-		if l.GetKind() == modelirspb.Learned_KIND_HANDLE {
+		if l.GetKind() == umpirespb.Learned_KIND_HANDLE {
 			out.Plan.Slots = append(out.Plan.Slots, cp.HandleSlot(l.GetId()))
 			continue
 		}
@@ -110,27 +110,27 @@ func (a *adapter) realization() (*cp.Realization, []error) {
 	return out, problems
 }
 
-var runEventKinds = map[modelirspb.RunEventSource_Kind]testpilotspb.RunEventKind{
-	modelirspb.RunEventSource_KIND_INSTRUCTION_COMPLETED: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED,
-	modelirspb.RunEventSource_KIND_INSTRUCTION_TIMED_OUT: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT,
-	modelirspb.RunEventSource_KIND_DIAGNOSTIC:            testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC,
+var runEventKinds = map[umpirespb.RunEventSource_Kind]testpilotspb.RunEventKind{
+	umpirespb.RunEventSource_KIND_INSTRUCTION_COMPLETED: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED,
+	umpirespb.RunEventSource_KIND_INSTRUCTION_TIMED_OUT: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT,
+	umpirespb.RunEventSource_KIND_DIAGNOSTIC:            testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC,
 }
 
-var fieldRoles = map[modelirspb.EvidenceField_Role]string{
-	modelirspb.EvidenceField_ROLE_OPERATION: "operation",
-	modelirspb.EvidenceField_ROLE_ATTEMPT:   "attempt",
-	modelirspb.EvidenceField_ROLE_DELIVERY:  "delivery",
+var fieldRoles = map[umpirespb.EvidenceField_Role]string{
+	umpirespb.EvidenceField_ROLE_OPERATION: "operation",
+	umpirespb.EvidenceField_ROLE_ATTEMPT:   "attempt",
+	umpirespb.EvidenceField_ROLE_DELIVERY:  "delivery",
 }
 
 // source is one kind of evidence as a producer reads it, once its recorded message and the field
 // that keys its operation are found in the descriptors it names.
-func (a *adapter) source(e *modelirspb.Evidence) (*cp.EvidenceSource, error) {
+func (a *adapter) source(e *umpirespb.Evidence) (*cp.EvidenceSource, error) {
 	at := e.GetPosition()
 	out := &cp.EvidenceSource{EventKind: e.GetRecords(), OperationKeyPath: e.GetOperation(), KindID: e.GetId(), SourceID: e.GetSource(),
 		Exhaustive: e.GetExhaustive()}
 	var element protoreflect.MessageDescriptor
 	switch from := e.GetFrom().(type) {
-	case *modelirspb.Evidence_History:
+	case *umpirespb.Evidence_History:
 		event, err := messageNamed(at, historyEventMessage)
 		if err != nil {
 			return nil, err
@@ -139,19 +139,19 @@ func (a *adapter) source(e *modelirspb.Evidence) (*cp.EvidenceSource, error) {
 			return nil, errorAt(at, "evidence %s: a history event has no attributes %s", e.GetId(), from.History)
 		}
 		element, out.Recorded = event, cp.Recorded{HistoryAttributes: from.History}
-	case *modelirspb.Evidence_Read:
+	case *umpirespb.Evidence_Read:
 		read, err := readFrom(e, from.Read, true)
 		if err != nil {
 			return nil, err
 		}
 		element, out.Recorded = read, cp.Recorded{Method: from.Read.GetMethod(), Path: from.Read.GetPath()}
-	case *modelirspb.Evidence_Single:
+	case *umpirespb.Evidence_Single:
 		read, err := readFrom(e, from.Single, false)
 		if err != nil {
 			return nil, err
 		}
 		element, out.Recorded = read, cp.Recorded{Method: from.Single.GetMethod(), Path: from.Single.GetPath(), Single: true}
-	case *modelirspb.Evidence_RunEvent:
+	case *umpirespb.Evidence_RunEvent:
 		payload, err := a.payloadOf(e, from.RunEvent)
 		if err != nil {
 			return nil, err
@@ -195,7 +195,7 @@ func (a *adapter) source(e *modelirspb.Evidence) (*cp.EvidenceSource, error) {
 // instruction records, under the source's guard, keyed by the Run or by a path of the payload. A Run
 // records the events of a controller's instructions under their own coordinates and no other
 // script's, so the command is a controller's.
-func (a *adapter) runEvent(e *modelirspb.Evidence, source *modelirspb.RunEventSource, payload protoreflect.MessageDescriptor) (*cp.RunEvent, error) {
+func (a *adapter) runEvent(e *umpirespb.Evidence, source *umpirespb.RunEventSource, payload protoreflect.MessageDescriptor) (*cp.RunEvent, error) {
 	at := e.GetPosition()
 	kind, known := runEventKinds[source.GetKind()]
 	if !known {
@@ -223,7 +223,7 @@ const attemptNumber = "activity_attempt.sdk_attempt"
 // which attempt a record is of is then what the runtime selects the record by, and no guard a
 // realization writes can take another attempt's record for it. The source's own guard is read first: it
 // says the record is of an attempt at all.
-func (a *adapter) guardOf(e *modelirspb.Evidence, source *modelirspb.RunEventSource, payload protoreflect.MessageDescriptor) (*testpilotspb.Expression, error) {
+func (a *adapter) guardOf(e *umpirespb.Evidence, source *umpirespb.RunEventSource, payload protoreflect.MessageDescriptor) (*testpilotspb.Expression, error) {
 	at := e.GetPosition()
 	var guard *testpilotspb.Expression
 	if source.GetGuard() != nil {
@@ -249,7 +249,7 @@ func (a *adapter) guardOf(e *modelirspb.Evidence, source *modelirspb.RunEventSou
 
 // readFrom is the message a kind of evidence is read from at a path of a method's response: the
 // element of a repeated field, or the one message a single read names.
-func readFrom(e *modelirspb.Evidence, read *modelirspb.ReadSource, repeated bool) (protoreflect.MessageDescriptor, error) {
+func readFrom(e *umpirespb.Evidence, read *umpirespb.ReadSource, repeated bool) (protoreflect.MessageDescriptor, error) {
 	at := e.GetPosition()
 	method, err := methodNamed(at, read.GetMethod())
 	if err != nil {
@@ -271,7 +271,7 @@ func readFrom(e *modelirspb.Evidence, read *modelirspb.ReadSource, repeated bool
 
 // payloadOf is the payload of the Run Events a kind of evidence is: the instruction outcome, which
 // the source's guard, and its key where that is a path, are read against.
-func (a *adapter) payloadOf(e *modelirspb.Evidence, source *modelirspb.RunEventSource) (protoreflect.MessageDescriptor, error) {
+func (a *adapter) payloadOf(e *umpirespb.Evidence, source *umpirespb.RunEventSource) (protoreflect.MessageDescriptor, error) {
 	at := e.GetPosition()
 	payload, err := messageNamed(at, instructionOutcomeMessage)
 	if err != nil {
@@ -296,7 +296,7 @@ func (a *adapter) payloadOf(e *modelirspb.Evidence, source *modelirspb.RunEventS
 }
 
 // mistyped locates a type problem under what it is a problem of, and leaves any other error as it is.
-func mistyped(at *modelirspb.Position, err error, format string, args ...any) error {
+func mistyped(at *umpirespb.Position, err error, format string, args ...any) error {
 	var problem *umpiremodel.Mistype
 	if errors.As(err, &problem) {
 		return errorAt(at, format+" %s", append(args, problem.Says)...)
@@ -306,7 +306,7 @@ func mistyped(at *modelirspb.Position, err error, format string, args ...any) er
 
 // lifted types a path as Testpilot reads one where it lifts evidence: a field, each element of a
 // repeated field, or a member of a oneof, of the message the path is read from.
-func lifted(at *modelirspb.Position) umpiremodel.Paths {
+func lifted(at *umpirespb.Position) umpiremodel.Paths {
 	return func(of umpiremodel.Typed, path string) (umpiremodel.Typed, error) {
 		if of.Message == nil {
 			return umpiremodel.Typed{}, nil
@@ -342,7 +342,7 @@ func fieldValue(end reached) umpiremodel.Typed {
 
 // carriedField checks that a field of evidence reads what evidence can carry, one text, flag or
 // integer of the recorded message, and is the scalar evidence carries it as.
-func carriedField(e *modelirspb.Evidence, f *modelirspb.EvidenceField, element protoreflect.MessageDescriptor) (testpilotspb.ScalarKind, error) {
+func carriedField(e *umpirespb.Evidence, f *umpirespb.EvidenceField, element protoreflect.MessageDescriptor) (testpilotspb.ScalarKind, error) {
 	at := f.GetPosition()
 	if at.GetFile() == "" {
 		at = e.GetPosition()
@@ -400,7 +400,7 @@ func (b built) with(id string, rules []cp.EvidenceRule) *testpilotspb.Instructio
 	return node
 }
 
-func (a *adapter) script(s *modelirspb.Script) (cp.EntrypointPlan, []cp.ActionBinding, []error) {
+func (a *adapter) script(s *umpirespb.Script) (cp.EntrypointPlan, []cp.ActionBinding, []error) {
 	var plan cp.EntrypointPlan
 	var bindings []cp.ActionBinding
 	var problems []error
@@ -442,7 +442,7 @@ func (a *adapter) script(s *modelirspb.Script) (cp.EntrypointPlan, []cp.ActionBi
 }
 
 // placed is a command every Case carries, or one the Cases whose path takes one of its classes carry.
-func (a *adapter) placed(s *modelirspb.Script, item *modelirspb.Item) (cp.Item, error) {
+func (a *adapter) placed(s *umpirespb.Script, item *umpirespb.Item) (cp.Item, error) {
 	c := item.GetCommand()
 	b, err := a.command(s, c)
 	if err != nil {
@@ -462,25 +462,25 @@ func (a *adapter) placed(s *modelirspb.Script, item *modelirspb.Item) (cp.Item, 
 }
 
 // activation is who runs a script, as a fresh entrypoint for each Case that carries it.
-func (a *adapter) activation(s *modelirspb.Script) (func() *testpilotspb.Entrypoint, error) {
+func (a *adapter) activation(s *umpirespb.Script) (func() *testpilotspb.Entrypoint, error) {
 	switch act := s.GetActivation().(type) {
-	case *modelirspb.Script_Controller:
+	case *umpirespb.Script_Controller:
 		return func() *testpilotspb.Entrypoint {
 			return &testpilotspb.Entrypoint{Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}
 		}, nil
-	case *modelirspb.Script_Workflow:
+	case *umpirespb.Script_Workflow:
 		workflowType := a.w.name(act.Workflow.GetWorkflowType())
 		return func() *testpilotspb.Entrypoint {
 			return &testpilotspb.Entrypoint{Activation: &testpilotspb.Entrypoint_Workflow{Workflow: &testpilotspb.WorkflowActivation{
 				WorkflowType: workflowType, WorkerRoleId: act.Workflow.GetWorker(), TaskQueueRoleId: act.Workflow.GetTaskQueue()}}}
 		}, nil
-	case *modelirspb.Script_NexusHandler:
+	case *umpirespb.Script_NexusHandler:
 		return func() *testpilotspb.Entrypoint {
 			return &testpilotspb.Entrypoint{Activation: &testpilotspb.Entrypoint_NexusHandler{NexusHandler: &testpilotspb.NexusHandlerActivation{
 				Service: act.NexusHandler.GetService(), Operation: act.NexusHandler.GetOperation(),
 				WorkerRoleId: act.NexusHandler.GetWorker(), TaskQueueRoleId: act.NexusHandler.GetTaskQueue()}}}
 		}, nil
-	case *modelirspb.Script_Activity:
+	case *umpirespb.Script_Activity:
 		activityType := a.w.name(act.Activity.GetActivityType())
 		return func() *testpilotspb.Entrypoint {
 			return &testpilotspb.Entrypoint{Activation: &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{
@@ -491,7 +491,7 @@ func (a *adapter) activation(s *modelirspb.Script) (func() *testpilotspb.Entrypo
 	}
 }
 
-func (a *adapter) command(s *modelirspb.Script, c *modelirspb.Command) (built, error) {
+func (a *adapter) command(s *umpirespb.Script, c *umpirespb.Command) (built, error) {
 	// The commands of an activity's script are the answers to its attempts, and Testpilot admits no
 	// other instruction there.
 	if s.GetActivity() != nil && c.GetFinish() == nil && c.GetAttemptFailure() == nil && c.GetAttemptCanceled() == nil {
@@ -537,30 +537,30 @@ func slot(id string) *testpilotspb.Expression {
 }
 
 // learnedBy is the learned texts a command's operands read, each once, in the order it reads them.
-func learnedBy(c *modelirspb.Command) []string {
+func learnedBy(c *umpirespb.Command) []string {
 	var out []string
-	var read func(o *modelirspb.Operand)
-	read = func(o *modelirspb.Operand) {
+	var read func(o *umpirespb.Operand)
+	read = func(o *umpirespb.Operand) {
 		switch k := o.GetKind().(type) {
-		case *modelirspb.Operand_LearnedValue:
+		case *umpirespb.Operand_LearnedValue:
 			if !slices.Contains(out, k.LearnedValue) {
 				out = append(out, k.LearnedValue)
 			}
-		case *modelirspb.Operand_Path:
+		case *umpirespb.Operand_Path:
 			read(k.Path.GetOf())
-		case *modelirspb.Operand_Present:
+		case *umpirespb.Operand_Present:
 			read(k.Present.GetOf())
-		case *modelirspb.Operand_Equal:
+		case *umpirespb.Operand_Equal:
 			read(k.Equal.GetLeft())
 			read(k.Equal.GetRight())
-		case *modelirspb.Operand_All:
+		case *umpirespb.Operand_All:
 			for _, operand := range k.All.GetOperands() {
 				read(operand)
 			}
-		case *modelirspb.Operand_Greater:
+		case *umpirespb.Operand_Greater:
 			read(k.Greater.GetLeft())
 			read(k.Greater.GetRight())
-		case *modelirspb.Operand_Not:
+		case *umpirespb.Operand_Not:
 			read(k.Not.GetOf())
 		default:
 		}
@@ -576,35 +576,35 @@ func learnedBy(c *modelirspb.Command) []string {
 	return out
 }
 
-func (a *adapter) instruction(s *modelirspb.Script, c *modelirspb.Command) (*testpilotspb.Instruction, error) {
+func (a *adapter) instruction(s *umpirespb.Script, c *umpirespb.Command) (*testpilotspb.Instruction, error) {
 	at := c.GetPosition()
 	switch in := c.GetInstruction().(type) {
-	case *modelirspb.Command_Rpc:
+	case *umpirespb.Command_Rpc:
 		return a.rpc(c, in.Rpc)
-	case *modelirspb.Command_Poll:
+	case *umpirespb.Command_Poll:
 		return a.poll(c, in.Poll)
-	case *modelirspb.Command_AwaitLearned:
+	case *umpirespb.Command_AwaitLearned:
 		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitSlot{AwaitSlot: &testpilotspb.AwaitSlot{SlotId: in.AwaitLearned}}}, nil
-	case *modelirspb.Command_AwaitCommand:
+	case *umpirespb.Command_AwaitCommand:
 		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotspb.AwaitInstruction{
 			Instruction: &testpilotspb.InstructionReference{EntrypointId: s.GetId(), InstructionId: in.AwaitCommand}}}}, nil
-	case *modelirspb.Command_Finish:
+	case *umpirespb.Command_Finish:
 		result, err := a.operand(at, in.Finish.GetResult(), nil)
 		if err != nil {
 			return nil, err
 		}
 		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: result}}}, nil
-	case *modelirspb.Command_Fault:
+	case *umpirespb.Command_Fault:
 
 		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InjectFault{InjectFault: &testpilotspb.InjectFault{
 			RoleId: in.Fault.GetRole(), Kind: faultKinds[in.Fault.GetKind()]}}}, nil
-	case *modelirspb.Command_WorkflowCommand:
+	case *umpirespb.Command_WorkflowCommand:
 		command := &commandpb.Command{}
 		if err := a.w.into(in.WorkflowCommand.GetCommand(), command); err != nil {
 			return nil, err
 		}
 		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_WorkflowCommand{WorkflowCommand: &testpilotspb.WorkflowCommand{Command: command}}}, nil
-	case *modelirspb.Command_NexusReply:
+	case *umpirespb.Command_NexusReply:
 		reply := &testpilotspb.NexusHandlerReply{HandleSlotId: in.NexusReply.GetBinds()}
 		response, failed := &nexuspb.StartOperationResponse{}, &nexuspb.HandlerError{}
 		switch written := in.NexusReply.GetReply(); protoreflect.FullName(written.GetMessage()) {
@@ -622,9 +622,9 @@ func (a *adapter) instruction(s *modelirspb.Script, c *modelirspb.Command) (*tes
 			return nil, errorAt(at, "command %s answers with %s; a Nexus handler answers with a start response or a handler error", c.GetId(), written.GetMessage())
 		}
 		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_NexusHandlerReply{NexusHandlerReply: reply}}, nil
-	case *modelirspb.Command_NexusCompletion:
+	case *umpirespb.Command_NexusCompletion:
 		return a.nexusCompletion(c, in.NexusCompletion)
-	case *modelirspb.Command_Hold, *modelirspb.Command_Release:
+	case *umpirespb.Command_Hold, *umpirespb.Command_Release:
 		control := controlOf(a.r, c)
 		if !heldByDriver(control) {
 			// No instruction holds or releases a delivery, and a realization that declares one is reported
@@ -639,10 +639,10 @@ func (a *adapter) instruction(s *modelirspb.Script, c *modelirspb.Command) (*tes
 		}
 		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InjectFault{InjectFault: &testpilotspb.InjectFault{
 			RoleId: control.GetRole(), Kind: kind}}}, nil
-	case *modelirspb.Command_AttemptCanceled:
+	case *umpirespb.Command_AttemptCanceled:
 		return &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptCancellation{
 			ActivityAttemptCancellation: &testpilotspb.ActivityAttemptCancellation{}}}, nil
-	case *modelirspb.Command_AttemptFailure:
+	case *umpirespb.Command_AttemptFailure:
 		return a.attemptFailure(c, in.AttemptFailure)
 	default:
 		return nil, errorAt(at, "command %s is no instruction this reader lowers", c.GetId())
@@ -651,7 +651,7 @@ func (a *adapter) instruction(s *modelirspb.Script, c *modelirspb.Command) (*tes
 
 // nexusCompletion completes the Nexus operation a handle names, with the payload or the failure a
 // command writes out.
-func (a *adapter) nexusCompletion(c *modelirspb.Command, in *modelirspb.NexusCompletion) (*testpilotspb.Instruction, error) {
+func (a *adapter) nexusCompletion(c *umpirespb.Command, in *umpirespb.NexusCompletion) (*testpilotspb.Instruction, error) {
 	completion := &testpilotspb.NexusOperationCompletion{HandleSlotId: in.GetHandle()}
 	payload, failure := &commonpb.Payload{}, &failurepb.Failure{}
 	switch written := in.GetResult(); protoreflect.FullName(written.GetMessage()) {
@@ -673,7 +673,7 @@ func (a *adapter) nexusCompletion(c *modelirspb.Command, in *modelirspb.NexusCom
 
 // attemptFailure fails an activity's attempt with the failure a command writes out: what an activity
 // itself can return, which is what Testpilot offers the server and all it admits.
-func (a *adapter) attemptFailure(c *modelirspb.Command, in *modelirspb.AttemptFailure) (*testpilotspb.Instruction, error) {
+func (a *adapter) attemptFailure(c *umpirespb.Command, in *umpirespb.AttemptFailure) (*testpilotspb.Instruction, error) {
 	failure := &failurepb.Failure{}
 	if err := a.w.into(in.GetFailure(), failure); err != nil {
 		return nil, err
@@ -688,7 +688,7 @@ func (a *adapter) attemptFailure(c *modelirspb.Command, in *modelirspb.AttemptFa
 }
 
 // assignments builds a request's assignments, each a field of the request the value fits.
-func (a *adapter) assignments(c *modelirspb.Command, request protoreflect.MessageDescriptor, assign []*modelirspb.Assignment) ([]*testpilotspb.RequestAssignment, error) {
+func (a *adapter) assignments(c *umpirespb.Command, request protoreflect.MessageDescriptor, assign []*umpirespb.Assignment) ([]*testpilotspb.RequestAssignment, error) {
 	at := c.GetPosition()
 	var out []*testpilotspb.RequestAssignment
 	for _, as := range assign {
@@ -713,7 +713,7 @@ func (a *adapter) assignments(c *modelirspb.Command, request protoreflect.Messag
 
 // fits rejects a value written into a request field of another kind: a learned value, an environment
 // binding and the run id are texts, and a literal is of the kind it is written as.
-func fits(at *modelirspb.Position, command string, fd protoreflect.FieldDescriptor, o *modelirspb.Operand) error {
+func fits(at *umpirespb.Position, command string, fd protoreflect.FieldDescriptor, o *umpirespb.Operand) error {
 	crossed := func(written string) error {
 		return errorAt(at, "command %s assigns %s to %s, which is of kind %s", command, written, fd.FullName(), fd.Kind())
 	}
@@ -724,25 +724,25 @@ func fits(at *modelirspb.Position, command string, fd protoreflect.FieldDescript
 		return nil
 	}
 	switch k := o.GetKind().(type) {
-	case *modelirspb.Operand_LearnedValue:
+	case *umpirespb.Operand_LearnedValue:
 		return text("the learned text " + k.LearnedValue)
-	case *modelirspb.Operand_Environment:
+	case *umpirespb.Operand_Environment:
 		return text("the environment binding " + k.Environment)
-	case *modelirspb.Operand_Run:
+	case *umpirespb.Operand_Run:
 		return text("the run id")
-	case *modelirspb.Operand_Literal:
+	case *umpirespb.Operand_Literal:
 		switch v := k.Literal.GetKind().(type) {
-		case *modelirspb.ProtoValue_Text, *modelirspb.ProtoValue_Named:
+		case *umpirespb.ProtoValue_Text, *umpirespb.ProtoValue_Named:
 			return text("a text")
-		case *modelirspb.ProtoValue_Flag:
+		case *umpirespb.ProtoValue_Flag:
 			if fd.Kind() != protoreflect.BoolKind {
 				return crossed("a flag")
 			}
-		case *modelirspb.ProtoValue_Number:
+		case *umpirespb.ProtoValue_Number:
 			if _, err := number(at, fd, v.Number); err != nil {
 				return crossed("a number")
 			}
-		case *modelirspb.ProtoValue_EnumName:
+		case *umpirespb.ProtoValue_EnumName:
 			if fd.Kind() != protoreflect.EnumKind {
 				return crossed("an enum value")
 			}
@@ -756,7 +756,7 @@ func fits(at *modelirspb.Position, command string, fd protoreflect.FieldDescript
 	return nil
 }
 
-func (a *adapter) rpc(c *modelirspb.Command, rpc *modelirspb.Rpc) (*testpilotspb.Instruction, error) {
+func (a *adapter) rpc(c *umpirespb.Command, rpc *umpirespb.Rpc) (*testpilotspb.Instruction, error) {
 	at := c.GetPosition()
 	method, err := methodNamed(at, rpc.GetMethod())
 	if err != nil {
@@ -773,7 +773,7 @@ func (a *adapter) rpc(c *modelirspb.Command, rpc *modelirspb.Rpc) (*testpilotspb
 			return nil, err
 		}
 		cardinality := testpilotspb.READ_CARDINALITY_ONE
-		if read.GetCardinality() == modelirspb.ResponseRead_CARDINALITY_EACH {
+		if read.GetCardinality() == umpirespb.ResponseRead_CARDINALITY_EACH {
 			cardinality = testpilotspb.READ_CARDINALITY_EMIT_EACH
 			if !end.fanned && !end.field.IsList() {
 				return nil, errorAt(at, "command %s reads each element of %s, which is one value of %s", c.GetId(), read.GetPath(), method.Output().FullName())
@@ -794,22 +794,22 @@ func (a *adapter) rpc(c *modelirspb.Command, rpc *modelirspb.Rpc) (*testpilotspb
 
 // target is where a read value goes, which the value at the end of the read's path must fit: an
 // observation of its message, a learned text, or a lift of history events.
-func (a *adapter) target(c *modelirspb.Command, path string, end reached, target *modelirspb.Target) (*testpilotspb.ReadTarget, error) {
+func (a *adapter) target(c *umpirespb.Command, path string, end reached, target *umpirespb.Target) (*testpilotspb.ReadTarget, error) {
 	at := c.GetPosition()
 	switch tg := target.GetTarget().(type) {
-	case *modelirspb.Target_Observe:
+	case *umpirespb.Target_Observe:
 		// An observation whose own message the descriptors do not have was reported where it is declared.
 		if want := a.observed[tg.Observe]; want != nil && (end.message() == nil || end.message().FullName() != want.FullName()) {
 			return nil, errorAt(at, "command %s observes %s into %s, which is a %s, and the path reads %s", c.GetId(), path,
 				tg.Observe, want.FullName(), end.field.FullName())
 		}
 		return cp.ObservationTarget(tg.Observe), nil
-	case *modelirspb.Target_Bind:
+	case *umpirespb.Target_Bind:
 		if end.fanned || end.field.IsList() || end.field.Kind() != protoreflect.StringKind {
 			return nil, errorAt(at, "command %s binds the learned text %s from %s, which is no single text", c.GetId(), tg.Bind, path)
 		}
 		return &testpilotspb.ReadTarget{Target: &testpilotspb.ReadTarget_SlotId{SlotId: tg.Bind}}, nil
-	case *modelirspb.Target_Lift:
+	case *umpirespb.Target_Lift:
 		if end.message() == nil || end.message().FullName() != historyEventMessage {
 			return nil, errorAt(at, "command %s lifts evidence from %s, which reads no history event", c.GetId(), path)
 		}
@@ -820,7 +820,7 @@ func (a *adapter) target(c *modelirspb.Command, path string, end reached, target
 	}
 }
 
-func (a *adapter) poll(c *modelirspb.Command, poll *modelirspb.Poll) (*testpilotspb.Instruction, error) {
+func (a *adapter) poll(c *umpirespb.Command, poll *umpirespb.Poll) (*testpilotspb.Instruction, error) {
 	at := c.GetPosition()
 	e := a.evidence[poll.GetEvidence()]
 	read := e.GetRead()
@@ -854,17 +854,17 @@ func (a *adapter) poll(c *modelirspb.Command, poll *modelirspb.Poll) (*testpilot
 }
 
 // literal is a value an operand writes out, as the expression of it.
-func (a *adapter) literal(at *modelirspb.Position, written *modelirspb.ProtoValue) (*testpilotspb.Expression, error) {
+func (a *adapter) literal(at *umpirespb.Position, written *umpirespb.ProtoValue) (*testpilotspb.Expression, error) {
 	switch v := written.GetKind().(type) {
-	case *modelirspb.ProtoValue_Text:
+	case *umpirespb.ProtoValue_Text:
 		return cp.Literal(cp.Text(v.Text)), nil
-	case *modelirspb.ProtoValue_Named:
+	case *umpirespb.ProtoValue_Named:
 		return cp.Literal(cp.Text(a.w.name(v.Named))), nil
-	case *modelirspb.ProtoValue_Flag:
+	case *umpirespb.ProtoValue_Flag:
 		return cp.Literal(cp.Bool(v.Flag)), nil
-	case *modelirspb.ProtoValue_Number:
+	case *umpirespb.ProtoValue_Number:
 		return cp.Literal(cp.SignedInteger(v.Number)), nil
-	case *modelirspb.ProtoValue_EnumName:
+	case *umpirespb.ProtoValue_EnumName:
 		return cp.Literal(cp.Enum(v.EnumName)), nil
 	default:
 		return nil, errorAt(at, "a literal operand is a text, a flag, a number, an enum value or a name")
@@ -874,36 +874,36 @@ func (a *adapter) literal(at *modelirspb.Position, written *modelirspb.ProtoValu
 // outsideTheElement is what an operand reads beside the value a poll is looking at and what is
 // written out, or empty: Testpilot evaluates a poll's condition over one element of the response, where
 // neither the run, nor its environment, nor what it has learned is in reach.
-func outsideTheElement(o *modelirspb.Operand) string {
+func outsideTheElement(o *umpirespb.Operand) string {
 	switch k := o.GetKind().(type) {
-	case *modelirspb.Operand_Run:
+	case *umpirespb.Operand_Run:
 		return "the run's id"
-	case *modelirspb.Operand_Environment:
+	case *umpirespb.Operand_Environment:
 		return "the environment binding " + k.Environment
-	case *modelirspb.Operand_LearnedValue:
+	case *umpirespb.Operand_LearnedValue:
 		return "the learned value " + k.LearnedValue
-	case *modelirspb.Operand_Path:
+	case *umpirespb.Operand_Path:
 		return outsideTheElement(k.Path.GetOf())
-	case *modelirspb.Operand_Present:
+	case *umpirespb.Operand_Present:
 		return outsideTheElement(k.Present.GetOf())
-	case *modelirspb.Operand_Equal:
+	case *umpirespb.Operand_Equal:
 		if left := outsideTheElement(k.Equal.GetLeft()); left != "" {
 			return left
 		}
 		return outsideTheElement(k.Equal.GetRight())
-	case *modelirspb.Operand_All:
+	case *umpirespb.Operand_All:
 		for _, operand := range k.All.GetOperands() {
 			if outside := outsideTheElement(operand); outside != "" {
 				return outside
 			}
 		}
 		return ""
-	case *modelirspb.Operand_Greater:
+	case *umpirespb.Operand_Greater:
 		if left := outsideTheElement(k.Greater.GetLeft()); left != "" {
 			return left
 		}
 		return outsideTheElement(k.Greater.GetRight())
-	case *modelirspb.Operand_Not:
+	case *umpirespb.Operand_Not:
 		return outsideTheElement(k.Not.GetOf())
 	default:
 		return ""
@@ -912,22 +912,22 @@ func outsideTheElement(o *modelirspb.Operand) string {
 
 // operand is a value a command computes, as the expression that computes it. A path read out of the
 // value a poll is looking at is checked against that value's message, projected.
-func (a *adapter) operand(at *modelirspb.Position, o *modelirspb.Operand, projected protoreflect.MessageDescriptor) (*testpilotspb.Expression, error) {
+func (a *adapter) operand(at *umpirespb.Position, o *umpirespb.Operand, projected protoreflect.MessageDescriptor) (*testpilotspb.Expression, error) {
 	if o.GetPosition().GetFile() != "" {
 		at = o.GetPosition()
 	}
 	switch k := o.GetKind().(type) {
-	case *modelirspb.Operand_Literal:
+	case *umpirespb.Operand_Literal:
 		return a.literal(at, k.Literal)
-	case *modelirspb.Operand_Environment:
+	case *umpirespb.Operand_Environment:
 		return cp.Environment(k.Environment), nil
-	case *modelirspb.Operand_Run:
+	case *umpirespb.Operand_Run:
 		return cp.Run(), nil
-	case *modelirspb.Operand_LearnedValue:
+	case *umpirespb.Operand_LearnedValue:
 		return slot(k.LearnedValue), nil
-	case *modelirspb.Operand_Projected:
+	case *umpirespb.Operand_Projected:
 		return cp.ProjectedValue(), nil
-	case *modelirspb.Operand_Path:
+	case *umpirespb.Operand_Path:
 		if k.Path.GetOf().GetProjected() != nil && projected != nil {
 			if _, err := walk(at, projected, k.Path.GetPath()); err != nil {
 				return nil, err
@@ -938,19 +938,19 @@ func (a *adapter) operand(at *modelirspb.Position, o *modelirspb.Operand, projec
 			return nil, err
 		}
 		return cp.Path(of, k.Path.GetPath()), nil
-	case *modelirspb.Operand_Present:
+	case *umpirespb.Operand_Present:
 		of, err := a.operand(at, k.Present.GetOf(), projected)
 		if err != nil {
 			return nil, err
 		}
 		return cp.Present(of), nil
-	case *modelirspb.Operand_Equal:
+	case *umpirespb.Operand_Equal:
 		left, right, err := a.sides(at, k.Equal.GetLeft(), k.Equal.GetRight(), projected)
 		if err != nil {
 			return nil, err
 		}
 		return cp.Equal(left, right), nil
-	case *modelirspb.Operand_All:
+	case *umpirespb.Operand_All:
 		all := &testpilotspb.AllExpression{}
 		for _, operand := range k.All.GetOperands() {
 			lowered, err := a.operand(at, operand, projected)
@@ -960,14 +960,14 @@ func (a *adapter) operand(at *modelirspb.Position, o *modelirspb.Operand, projec
 			all.Operands = append(all.Operands, lowered)
 		}
 		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: all}}, nil
-	case *modelirspb.Operand_Greater:
+	case *umpirespb.Operand_Greater:
 		left, right, err := a.sides(at, k.Greater.GetLeft(), k.Greater.GetRight(), projected)
 		if err != nil {
 			return nil, err
 		}
 		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{
 			Operator: testpilotspb.COMPARISON_OPERATOR_GREATER_THAN, Left: left, Right: right}}}, nil
-	case *modelirspb.Operand_Not:
+	case *umpirespb.Operand_Not:
 		of, err := a.operand(at, k.Not.GetOf(), projected)
 		if err != nil {
 			return nil, err
@@ -979,7 +979,7 @@ func (a *adapter) operand(at *modelirspb.Position, o *modelirspb.Operand, projec
 }
 
 // sides is the two operands of a comparison, as the expressions that compute them.
-func (a *adapter) sides(at *modelirspb.Position, left, right *modelirspb.Operand, projected protoreflect.MessageDescriptor) (l, r *testpilotspb.Expression, err error) {
+func (a *adapter) sides(at *umpirespb.Position, left, right *umpirespb.Operand, projected protoreflect.MessageDescriptor) (l, r *testpilotspb.Expression, err error) {
 	if l, err = a.operand(at, left, projected); err != nil {
 		return nil, nil, err
 	}

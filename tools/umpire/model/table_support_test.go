@@ -9,16 +9,16 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/tools/umpire/internal/golden"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
 const activityIR = "../../../model/ir/activity.json"
 
-var activityBaseline = sync.OnceValues(func() (*modelirspb.Model, error) { return Load(activityIR) })
+var activityBaseline = sync.OnceValues(func() (*umpirespb.Model, error) { return Load(activityIR) })
 
-func activityModel(t *testing.T) *modelirspb.Model {
+func activityModel(t *testing.T) *umpirespb.Model {
 	t.Helper()
 	m, err := activityBaseline()
 	require.NoError(t, err)
@@ -99,11 +99,11 @@ func frozenReaderJSON(t *testing.T, path string, into any) {
 	require.NoError(t, json.Unmarshal(encoded, into), path)
 }
 
-func frozenReaderModel(t *testing.T, name string) *modelirspb.Model {
+func frozenReaderModel(t *testing.T, name string) *umpirespb.Model {
 	t.Helper()
 	files, err := readerBaseline()
 	require.NoError(t, err)
-	m := new(modelirspb.Model)
+	m := new(umpirespb.Model)
 	require.NoError(t, protojson.Unmarshal(files["inputs/ir/"+name+".json"], m))
 	return m
 }

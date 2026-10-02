@@ -6,7 +6,7 @@ import (
 	"slices"
 	"strings"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
 )
@@ -29,15 +29,15 @@ const (
 // rejected, which is an error and stands before any difference. Without everyPath only the
 // counterexamples are asked, for a caller that has one monitor's and not every monitor's verdict.
 func (s *Slice) confirm(receipts []Receipt, everyPath bool) error {
-	m, ok := proto.Clone(s.Model).(*modelirspb.Model)
+	m, ok := proto.Clone(s.Model).(*umpirespb.Model)
 	if !ok {
 		return errors.New("the Model is no Model")
 	}
 	// Only the Queries declared here are answered: the Model's own are checked where it is gated.
 	m.Queries, m.Progress = nil, nil
-	m.Functions = append(m.Functions, &modelirspb.Function{Name: anyStep,
-		Params: []*modelirspb.Param{{Name: "step", Type: named(umpiremodel.StepType)}},
-		Body:   &modelirspb.Expr{Kind: &modelirspb.Expr_Literal{Literal: &modelirspb.Value{Kind: &modelirspb.Value_Bool{Bool: true}}}}})
+	m.Functions = append(m.Functions, &umpirespb.Function{Name: anyStep,
+		Params: []*umpirespb.Param{{Name: "step", Type: named(umpiremodel.StepType)}},
+		Body:   &umpirespb.Expr{Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{Kind: &umpirespb.Value_Bool{Bool: true}}}}})
 	asked := func(r Receipt) bool { return r.Claim == MonitorAgreement && r.Kind != Unsupported }
 	for _, r := range receipts {
 		if asked(r) {
@@ -71,20 +71,20 @@ func (s *Slice) confirm(receipts []Receipt, everyPath bool) error {
 
 // ask declares the Queries that confirm one machine's receipt: every path from each start, and the
 // classes of each counterexample from its own start.
-func (s *Slice) ask(m *modelirspb.Model, r Receipt, everyPath bool) {
+func (s *Slice) ask(m *umpirespb.Model, r Receipt, everyPath bool) {
 	mm := s.machines[r.Subject]
 	starts := mm.Decl.GetStarts()
-	m.Properties = append(m.Properties, &modelirspb.Property{Machine: r.Subject, Name: anyStep, Holds: anyStep})
-	verify := func(name string, sc *modelirspb.Scenario, steps int) {
+	m.Properties = append(m.Properties, &umpirespb.Property{Machine: r.Subject, Name: anyStep, Holds: anyStep})
+	verify := func(name string, sc *umpirespb.Scenario, steps int) {
 		sc.Machine, sc.Name = r.Subject, name
 		m.Scenarios = append(m.Scenarios, sc)
-		m.Queries = append(m.Queries, &modelirspb.Query{Name: name, Form: modelirspb.Query_FORM_VERIFY,
-			Property: &modelirspb.ClaimRef{Machine: r.Subject, Name: anyStep}, Scenario: &modelirspb.ClaimRef{Machine: r.Subject, Name: name},
-			Limits: &modelirspb.Limits{Name: "backends", Steps: int32(steps), Actions: int32(steps), Search: 1 << 20}})
+		m.Queries = append(m.Queries, &umpirespb.Query{Name: name, Form: umpirespb.Query_FORM_VERIFY,
+			Property: &umpirespb.ClaimRef{Machine: r.Subject, Name: anyStep}, Scenario: &umpirespb.ClaimRef{Machine: r.Subject, Name: name},
+			Limits: &umpirespb.Limits{Name: "backends", Steps: int32(steps), Actions: int32(steps), Search: 1 << 20}})
 	}
 	if everyPath {
 		for k, start := range starts {
-			verify(fmt.Sprintf("%s.%s.%d", freeQuery, r.Subject, k), &modelirspb.Scenario{Start: start, Free: true}, r.ProductStates+1)
+			verify(fmt.Sprintf("%s.%s.%d", freeQuery, r.Subject, k), &umpirespb.Scenario{Start: start, Free: true}, r.ProductStates+1)
 		}
 	}
 	for _, w := range r.Witnesses {
@@ -94,7 +94,7 @@ func (s *Slice) ask(m *modelirspb.Model, r Receipt, everyPath bool) {
 		if k < 0 {
 			continue
 		}
-		sc := &modelirspb.Scenario{Start: starts[k]}
+		sc := &umpirespb.Scenario{Start: starts[k]}
 		for _, step := range w.Trace.Steps {
 			if c := slices.IndexFunc(mm.Classes, func(c umpiremodel.Class) bool { return c.Key == step.Action.Value }); c >= 0 {
 				sc.Actions = append(sc.Actions, classOf(mm.Classes[c]))
@@ -105,8 +105,8 @@ func (s *Slice) ask(m *modelirspb.Model, r Receipt, everyPath bool) {
 }
 
 // classOf writes a class as the IR names one: its action, and its inputs as literals.
-func classOf(c umpiremodel.Class) *modelirspb.ActionClass {
-	class := &modelirspb.ActionClass{Action: c.Action.GetId()}
+func classOf(c umpiremodel.Class) *umpirespb.ActionClass {
+	class := &umpirespb.ActionClass{Action: c.Action.GetId()}
 	for _, input := range c.Inputs {
 		class.Inputs = append(class.Inputs, literal(input))
 	}
@@ -161,9 +161,9 @@ func confirmed(r Receipt, starts int, answers map[string]umpiremodel.Receipt) Re
 }
 
 // literal writes a value as the IR writes one.
-func literal(v umpiremodel.Value) *modelirspb.Value {
-	values := func(vs []umpiremodel.Value) []*modelirspb.Value {
-		out := make([]*modelirspb.Value, len(vs))
+func literal(v umpiremodel.Value) *umpirespb.Value {
+	values := func(vs []umpiremodel.Value) []*umpirespb.Value {
+		out := make([]*umpirespb.Value, len(vs))
 		for i, f := range vs {
 			out[i] = literal(f)
 		}
@@ -171,16 +171,16 @@ func literal(v umpiremodel.Value) *modelirspb.Value {
 	}
 	switch v.Kind {
 	case umpiremodel.BoolValue:
-		return &modelirspb.Value{Kind: &modelirspb.Value_Bool{Bool: v.Bool}}
+		return &umpirespb.Value{Kind: &umpirespb.Value_Bool{Bool: v.Bool}}
 	case umpiremodel.IntValue:
-		return &modelirspb.Value{Kind: &modelirspb.Value_Int{Int: v.Int}}
+		return &umpirespb.Value{Kind: &umpirespb.Value_Int{Int: v.Int}}
 	case umpiremodel.TextValue:
-		return &modelirspb.Value{Kind: &modelirspb.Value_Text{Text: v.Text}}
+		return &umpirespb.Value{Kind: &umpirespb.Value_Text{Text: v.Text}}
 	case umpiremodel.EnumValue:
-		return &modelirspb.Value{Kind: &modelirspb.Value_Enum{Enum: &modelirspb.EnumValue{Type: v.Type, Case: v.Case, Fields: values(v.Fields)}}}
+		return &umpirespb.Value{Kind: &umpirespb.Value_Enum{Enum: &umpirespb.EnumValue{Type: v.Type, Case: v.Case, Fields: values(v.Fields)}}}
 	case umpiremodel.RecordValue:
-		return &modelirspb.Value{Kind: &modelirspb.Value_Record{Record: &modelirspb.RecordValue{Type: v.Type, Fields: values(v.Fields)}}}
+		return &umpirespb.Value{Kind: &umpirespb.Value_Record{Record: &umpirespb.RecordValue{Type: v.Type, Fields: values(v.Fields)}}}
 	default:
-		return &modelirspb.Value{Kind: &modelirspb.Value_List{List: &modelirspb.ListValue{Items: values(v.Items)}}}
+		return &umpirespb.Value{Kind: &umpirespb.Value_List{List: &umpirespb.ListValue{Items: values(v.Items)}}}
 	}
 }

@@ -16,14 +16,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
 )
 
 const activitySystemIR = "../../../model/ir/activity-system.json"
 
 type checkedModel struct {
-	model  *modelirspb.Model
+	model  *umpirespb.Model
 	report *Report
 	built  map[string]*Machine
 }

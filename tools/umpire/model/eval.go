@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 )
 
 // Kind is what a Value is.
@@ -36,7 +36,7 @@ type Value struct {
 	Case   string
 	Fields []Value
 	Items  []Value
-	lambda *modelirspb.Lambda
+	lambda *umpirespb.Lambda
 	env    *env
 }
 
@@ -95,19 +95,19 @@ func (v Value) spelled() string {
 	}
 }
 
-// Equal is structural equality.
-func (v Value) Equal(o Value) bool {
+// equal is structural equality.
+func (v Value) equal(o Value) bool {
 	if v.Kind != o.Kind || v.Bool != o.Bool || v.Int != o.Int || v.Text != o.Text || v.Type != o.Type ||
 		v.Case != o.Case || len(v.Fields) != len(o.Fields) || len(v.Items) != len(o.Items) {
 		return false
 	}
 	for i := range v.Fields {
-		if !v.Fields[i].Equal(o.Fields[i]) {
+		if !v.Fields[i].equal(o.Fields[i]) {
 			return false
 		}
 	}
 	for i := range v.Items {
-		if !v.Items[i].Equal(o.Items[i]) {
+		if !v.Items[i].equal(o.Items[i]) {
 			return false
 		}
 	}
@@ -120,9 +120,9 @@ const StepType = "umpire.Step"
 
 var stepFields = []string{"outcome", "state", "facts", "because"}
 
-// DeliveryType is the framework's delivery record, `{message, redeliveries}`: one message a channel
+// deliveryType is the framework's delivery record, `{message, redeliveries}`: one message a channel
 // holds, and how many more times than once it has been delivered.
-const DeliveryType = "umpire.Delivery"
+const deliveryType = "umpire.Delivery"
 
 var deliveryFields = []string{"message", "redeliveries"}
 
@@ -156,11 +156,11 @@ func (h *Hole) Error() string {
 	return h.Position + ": " + h.Message
 }
 
-func errorAt(p *modelirspb.Position, format string, args ...any) error {
+func errorAt(p *umpirespb.Position, format string, args ...any) error {
 	return &Error{Position: where(p), Message: fmt.Sprintf(format, args...)}
 }
 
-func where(p *modelirspb.Position) string {
+func where(p *umpirespb.Position) string {
 	if p.GetFile() == "" {
 		return ""
 	}
@@ -187,21 +187,21 @@ func (e *env) lookup(name string) (Value, bool) {
 // Interpreter evaluates a Model's expressions.
 // It also lists catalogs, within its ceilings.
 type Interpreter struct {
-	model     *modelirspb.Model
-	types     map[string]*modelirspb.Type
-	functions map[string]*modelirspb.Function
-	channels  map[string]*modelirspb.Channel
-	holes     map[string]*modelirspb.Hole
+	model     *umpirespb.Model
+	types     map[string]*umpirespb.Type
+	functions map[string]*umpirespb.Function
+	channels  map[string]*umpirespb.Channel
+	holes     map[string]*umpirespb.Hole
 	ceilings  Ceilings
 	// sizing holds the types and channels whose catalogs are being counted.
 	sizing map[string]bool
 }
 
 // NewInterpreter indexes a Model's declarations.
-// It interprets them within DefaultCeilings.
-func NewInterpreter(m *modelirspb.Model) *Interpreter {
-	in := &Interpreter{model: m, types: map[string]*modelirspb.Type{}, functions: map[string]*modelirspb.Function{},
-		channels: map[string]*modelirspb.Channel{}, holes: map[string]*modelirspb.Hole{}, ceilings: DefaultCeilings,
+// It interprets them within defaultCeilings.
+func NewInterpreter(m *umpirespb.Model) *Interpreter {
+	in := &Interpreter{model: m, types: map[string]*umpirespb.Type{}, functions: map[string]*umpirespb.Function{},
+		channels: map[string]*umpirespb.Channel{}, holes: map[string]*umpirespb.Hole{}, ceilings: defaultCeilings,
 		sizing: map[string]bool{}}
 	for _, t := range m.GetTypes() {
 		in.types[t.GetName()] = t
@@ -220,7 +220,7 @@ func NewInterpreter(m *modelirspb.Model) *Interpreter {
 
 // Call applies a function to arguments, checking its precondition first: a call outside it is a
 // Model error, not a value.
-func (in *Interpreter) Call(name string, args []Value, at *modelirspb.Position) (Value, error) {
+func (in *Interpreter) Call(name string, args []Value, at *umpirespb.Position) (Value, error) {
 	f, ok := in.functions[name]
 	if !ok {
 		return Value{}, errorAt(at, "no function %s", name)
@@ -244,8 +244,8 @@ func (in *Interpreter) Call(name string, args []Value, at *modelirspb.Position) 
 	return in.eval(f.GetBody(), e)
 }
 
-// Apply applies an anonymous function value.
-func (in *Interpreter) Apply(l Value, args []Value) (Value, error) {
+// apply applies an anonymous function value.
+func (in *Interpreter) apply(l Value, args []Value) (Value, error) {
 	if l.Kind != LambdaValue {
 		return Value{}, &Error{Message: "not a function"}
 	}
@@ -257,35 +257,35 @@ func (in *Interpreter) Apply(l Value, args []Value) (Value, error) {
 }
 
 // Eval evaluates a closed expression.
-func (in *Interpreter) Eval(x *modelirspb.Expr) (Value, error) { return in.eval(x, nil) }
+func (in *Interpreter) Eval(x *umpirespb.Expr) (Value, error) { return in.eval(x, nil) }
 
-func (in *Interpreter) eval(x *modelirspb.Expr, e *env) (Value, error) {
+func (in *Interpreter) eval(x *umpirespb.Expr, e *env) (Value, error) {
 	switch k := x.GetKind().(type) {
-	case *modelirspb.Expr_Literal:
+	case *umpirespb.Expr_Literal:
 		return in.literal(k.Literal), nil
-	case *modelirspb.Expr_Var:
+	case *umpirespb.Expr_Var:
 		v, ok := e.lookup(k.Var)
 		if !ok {
 			return Value{}, errorAt(x.GetPosition(), "unbound name %s", k.Var)
 		}
 		return v, nil
-	case *modelirspb.Expr_Field:
+	case *umpirespb.Expr_Field:
 		return in.field(x, k.Field, e)
-	case *modelirspb.Expr_Call:
+	case *umpirespb.Expr_Call:
 		args, err := in.evalAll(k.Call.GetArgs(), e)
 		if err != nil {
 			return Value{}, err
 		}
 		return in.Call(k.Call.GetFunction(), args, x.GetPosition())
-	case *modelirspb.Expr_Construct:
+	case *umpirespb.Expr_Construct:
 		return in.construct(x, k.Construct, e)
-	case *modelirspb.Expr_Copy:
+	case *umpirespb.Expr_Copy:
 		return in.copy(x, k.Copy, e)
-	case *modelirspb.Expr_Unary:
+	case *umpirespb.Expr_Unary:
 		return in.unary(x, k.Unary, e)
-	case *modelirspb.Expr_Binary:
+	case *umpirespb.Expr_Binary:
 		return in.binary(x, k.Binary, e)
-	case *modelirspb.Expr_If:
+	case *umpirespb.Expr_If:
 		c, err := in.eval(k.If.GetCondition(), e)
 		if err != nil {
 			return Value{}, err
@@ -294,36 +294,36 @@ func (in *Interpreter) eval(x *modelirspb.Expr, e *env) (Value, error) {
 			return in.eval(k.If.GetThen(), e)
 		}
 		return in.eval(k.If.GetElse(), e)
-	case *modelirspb.Expr_Match:
+	case *umpirespb.Expr_Match:
 		return in.match(x, k.Match, e)
-	case *modelirspb.Expr_Let:
+	case *umpirespb.Expr_Let:
 		v, err := in.eval(k.Let.GetValue(), e)
 		if err != nil {
 			return Value{}, err
 		}
 		return in.eval(k.Let.GetBody(), e.bind(k.Let.GetName(), v))
-	case *modelirspb.Expr_List:
+	case *umpirespb.Expr_List:
 		items, err := in.evalAll(k.List.GetItems(), e)
 		if err != nil {
 			return Value{}, err
 		}
 		return Value{Kind: ListValue, Items: items}, nil
-	case *modelirspb.Expr_Lambda:
+	case *umpirespb.Expr_Lambda:
 		return Value{Kind: LambdaValue, lambda: k.Lambda, env: e}, nil
-	case *modelirspb.Expr_Hole:
+	case *umpirespb.Expr_Hole:
 		name := k.Hole
 		if h, ok := in.holes[k.Hole]; ok {
 			name = h.GetName()
 		}
 		return Value{}, &Hole{ID: k.Hole, Position: where(x.GetPosition()), Message: "reaches the hole " + name}
-	case *modelirspb.Expr_Inbox:
+	case *umpirespb.Expr_Inbox:
 		return in.inbox(x, k.Inbox, e)
 	default:
 		return Value{}, errorAt(x.GetPosition(), "unknown expression %T", k)
 	}
 }
 
-func (in *Interpreter) evalAll(xs []*modelirspb.Expr, e *env) ([]Value, error) {
+func (in *Interpreter) evalAll(xs []*umpirespb.Expr, e *env) ([]Value, error) {
 	out := make([]Value, len(xs))
 	for i, x := range xs {
 		v, err := in.eval(x, e)
@@ -335,27 +335,27 @@ func (in *Interpreter) evalAll(xs []*modelirspb.Expr, e *env) ([]Value, error) {
 	return out, nil
 }
 
-func (in *Interpreter) literal(v *modelirspb.Value) Value {
+func (in *Interpreter) literal(v *umpirespb.Value) Value {
 	switch k := v.GetKind().(type) {
-	case *modelirspb.Value_Bool:
+	case *umpirespb.Value_Bool:
 		return Value{Kind: BoolValue, Bool: k.Bool}
-	case *modelirspb.Value_Int:
+	case *umpirespb.Value_Int:
 		return Value{Kind: IntValue, Int: k.Int}
-	case *modelirspb.Value_Text:
+	case *umpirespb.Value_Text:
 		return Value{Kind: TextValue, Text: k.Text}
-	case *modelirspb.Value_Enum:
+	case *umpirespb.Value_Enum:
 		out := Value{Kind: EnumValue, Type: k.Enum.GetType(), Case: k.Enum.GetCase()}
 		for _, f := range k.Enum.GetFields() {
 			out.Fields = append(out.Fields, in.literal(f))
 		}
 		return out
-	case *modelirspb.Value_Record:
+	case *umpirespb.Value_Record:
 		out := Value{Kind: RecordValue, Type: k.Record.GetType()}
 		for _, f := range k.Record.GetFields() {
 			out.Fields = append(out.Fields, in.literal(f))
 		}
 		return out
-	case *modelirspb.Value_List:
+	case *umpirespb.Value_List:
 		out := Value{Kind: ListValue}
 		for _, f := range k.List.GetItems() {
 			out.Items = append(out.Items, in.literal(f))
@@ -369,8 +369,8 @@ func (in *Interpreter) literal(v *modelirspb.Value) Value {
 // conforms is whether a value is of a type: of the kind the type admits, within a range's bounds, of a
 // declared type's own case with fields of theirs, and for a channel a list of its deliveries. It does
 // not ask whether a channel's contents are in its catalog: the state domain does.
-func (in *Interpreter) conforms(v Value, t *modelirspb.TypeRef) bool {
-	all := func(vs []Value, t *modelirspb.TypeRef) bool {
+func (in *Interpreter) conforms(v Value, t *umpirespb.TypeRef) bool {
+	all := func(vs []Value, t *umpirespb.TypeRef) bool {
 		for _, x := range vs {
 			if !in.conforms(x, t) {
 				return false
@@ -379,28 +379,28 @@ func (in *Interpreter) conforms(v Value, t *modelirspb.TypeRef) bool {
 		return true
 	}
 	switch r := t.GetRef().(type) {
-	case *modelirspb.TypeRef_Bool:
+	case *umpirespb.TypeRef_Bool:
 		return v.Kind == BoolValue
-	case *modelirspb.TypeRef_Int:
+	case *umpirespb.TypeRef_Int:
 		return v.Kind == IntValue
-	case *modelirspb.TypeRef_IntRange:
+	case *umpirespb.TypeRef_IntRange:
 		return v.Kind == IntValue && r.IntRange.GetLow() <= v.Int && v.Int <= r.IntRange.GetHigh()
-	case *modelirspb.TypeRef_List:
+	case *umpirespb.TypeRef_List:
 		return v.Kind == ListValue && all(v.Items, r.List)
-	case *modelirspb.TypeRef_Channel:
+	case *umpirespb.TypeRef_Channel:
 		c, ok := in.channels[r.Channel]
 		if !ok || v.Kind != ListValue {
 			return false
 		}
-		redeliveries := &modelirspb.TypeRef{Ref: &modelirspb.TypeRef_IntRange{IntRange: &modelirspb.IntRange{High: int64(c.GetDuplicates())}}}
+		redeliveries := &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_IntRange{IntRange: &umpirespb.IntRange{High: int64(c.GetDuplicates())}}}
 		for _, d := range v.Items {
-			if d.Kind != RecordValue || d.Type != DeliveryType || len(d.Fields) != len(deliveryFields) ||
+			if d.Kind != RecordValue || d.Type != deliveryType || len(d.Fields) != len(deliveryFields) ||
 				!in.conforms(d.Fields[0], c.GetMessage()) || !in.conforms(d.Fields[1], redeliveries) {
 				return false
 			}
 		}
 		return true
-	case *modelirspb.TypeRef_Named:
+	case *umpirespb.TypeRef_Named:
 		return in.conformsToDeclared(v, r.Named)
 	default:
 		return false
@@ -414,12 +414,12 @@ func (in *Interpreter) conformsToDeclared(v Value, name string) bool {
 	}
 	fields := decl.GetRecord().GetFields()
 	switch decl.GetShape().(type) {
-	case *modelirspb.Type_Record:
+	case *umpirespb.Type_Record:
 		if v.Kind != RecordValue {
 			return false
 		}
-	case *modelirspb.Type_Enum:
-		i := slices.IndexFunc(decl.GetEnum().GetCases(), func(c *modelirspb.Case) bool { return c.GetName() == v.Case })
+	case *umpirespb.Type_Enum:
+		i := slices.IndexFunc(decl.GetEnum().GetCases(), func(c *umpirespb.Case) bool { return c.GetName() == v.Case })
 		if v.Kind != EnumValue || i < 0 {
 			return false
 		}
@@ -443,7 +443,7 @@ func (in *Interpreter) fieldNames(typeName, caseName string) ([]string, bool) {
 	switch typeName {
 	case StepType:
 		return stepFields, true
-	case DeliveryType:
+	case deliveryType:
 		return deliveryFields, true
 	default:
 	}
@@ -451,11 +451,11 @@ func (in *Interpreter) fieldNames(typeName, caseName string) ([]string, bool) {
 	if !ok {
 		return nil, false
 	}
-	var fields []*modelirspb.Field
+	var fields []*umpirespb.Field
 	switch s := t.GetShape().(type) {
-	case *modelirspb.Type_Record:
+	case *umpirespb.Type_Record:
 		fields = s.Record.GetFields()
-	case *modelirspb.Type_Enum:
+	case *umpirespb.Type_Enum:
 		found := false
 		for _, c := range s.Enum.GetCases() {
 			if c.GetName() == caseName {
@@ -474,7 +474,7 @@ func (in *Interpreter) fieldNames(typeName, caseName string) ([]string, bool) {
 	return names, true
 }
 
-func (in *Interpreter) field(x *modelirspb.Expr, f *modelirspb.FieldAccess, e *env) (Value, error) {
+func (in *Interpreter) field(x *umpirespb.Expr, f *umpirespb.FieldAccess, e *env) (Value, error) {
 	base, err := in.eval(f.GetBase(), e)
 	if err != nil {
 		return Value{}, err
@@ -488,7 +488,7 @@ func (in *Interpreter) field(x *modelirspb.Expr, f *modelirspb.FieldAccess, e *e
 	return Value{}, errorAt(x.GetPosition(), "%s has no field %s", base.Type, f.GetField())
 }
 
-func (in *Interpreter) construct(x *modelirspb.Expr, c *modelirspb.Construct, e *env) (Value, error) {
+func (in *Interpreter) construct(x *umpirespb.Expr, c *umpirespb.Construct, e *env) (Value, error) {
 	args, err := in.evalAll(c.GetArgs(), e)
 	if err != nil {
 		return Value{}, err
@@ -506,7 +506,7 @@ func (in *Interpreter) construct(x *modelirspb.Expr, c *modelirspb.Construct, e 
 	return Value{Kind: RecordValue, Type: c.GetType(), Fields: args}, nil
 }
 
-func (in *Interpreter) copy(x *modelirspb.Expr, c *modelirspb.Copy, e *env) (Value, error) {
+func (in *Interpreter) copy(x *umpirespb.Expr, c *umpirespb.Copy, e *env) (Value, error) {
 	base, err := in.eval(c.GetBase(), e)
 	if err != nil {
 		return Value{}, err
@@ -528,34 +528,34 @@ func (in *Interpreter) copy(x *modelirspb.Expr, c *modelirspb.Copy, e *env) (Val
 	return out, nil
 }
 
-func (in *Interpreter) unary(x *modelirspb.Expr, u *modelirspb.Unary, e *env) (Value, error) {
+func (in *Interpreter) unary(x *umpirespb.Expr, u *umpirespb.Unary, e *env) (Value, error) {
 	v, err := in.eval(u.GetOperand(), e)
 	if err != nil {
 		return Value{}, err
 	}
 	switch u.GetOp() {
-	case modelirspb.Unary_OP_NOT:
+	case umpirespb.Unary_OP_NOT:
 		return Value{Kind: BoolValue, Bool: !v.Bool}, nil
-	case modelirspb.Unary_OP_NEG:
+	case umpirespb.Unary_OP_NEG:
 		return Value{Kind: IntValue, Int: -v.Int}, nil
 	default:
 		return Value{}, errorAt(x.GetPosition(), "unknown unary operator %v", u.GetOp())
 	}
 }
 
-func (in *Interpreter) binary(x *modelirspb.Expr, b *modelirspb.Binary, e *env) (Value, error) {
+func (in *Interpreter) binary(x *umpirespb.Expr, b *umpirespb.Binary, e *env) (Value, error) {
 	l, err := in.eval(b.GetLeft(), e)
 	if err != nil {
 		return Value{}, err
 	}
 	// And and Or do not evaluate the right operand when the left decides, as Scala does not.
 	switch b.GetOp() {
-	case modelirspb.Binary_OP_AND:
+	case umpirespb.Binary_OP_AND:
 		if !l.Bool {
 			return l, nil
 		}
 		return in.eval(b.GetRight(), e)
-	case modelirspb.Binary_OP_OR:
+	case umpirespb.Binary_OP_OR:
 		if l.Bool {
 			return l, nil
 		}
@@ -568,27 +568,27 @@ func (in *Interpreter) binary(x *modelirspb.Expr, b *modelirspb.Binary, e *env) 
 	}
 	boolean := func(v bool) (Value, error) { return Value{Kind: BoolValue, Bool: v}, nil }
 	switch b.GetOp() {
-	case modelirspb.Binary_OP_EQ:
-		return boolean(l.Equal(r))
-	case modelirspb.Binary_OP_NE:
-		return boolean(!l.Equal(r))
-	case modelirspb.Binary_OP_LT:
+	case umpirespb.Binary_OP_EQ:
+		return boolean(l.equal(r))
+	case umpirespb.Binary_OP_NE:
+		return boolean(!l.equal(r))
+	case umpirespb.Binary_OP_LT:
 		return boolean(l.Int < r.Int)
-	case modelirspb.Binary_OP_LE:
+	case umpirespb.Binary_OP_LE:
 		return boolean(l.Int <= r.Int)
-	case modelirspb.Binary_OP_GT:
+	case umpirespb.Binary_OP_GT:
 		return boolean(l.Int > r.Int)
-	case modelirspb.Binary_OP_GE:
+	case umpirespb.Binary_OP_GE:
 		return boolean(l.Int >= r.Int)
-	case modelirspb.Binary_OP_ADD:
+	case umpirespb.Binary_OP_ADD:
 		return Value{Kind: IntValue, Int: l.Int + r.Int}, nil
-	case modelirspb.Binary_OP_SUB:
+	case umpirespb.Binary_OP_SUB:
 		return Value{Kind: IntValue, Int: l.Int - r.Int}, nil
-	case modelirspb.Binary_OP_CONCAT:
+	case umpirespb.Binary_OP_CONCAT:
 		return Value{Kind: ListValue, Items: append(append([]Value{}, l.Items...), r.Items...)}, nil
-	case modelirspb.Binary_OP_CONTAINS:
+	case umpirespb.Binary_OP_CONTAINS:
 		for _, item := range r.Items {
-			if item.Equal(l) {
+			if item.equal(l) {
 				return boolean(true)
 			}
 		}
@@ -601,7 +601,7 @@ func (in *Interpreter) binary(x *modelirspb.Expr, b *modelirspb.Binary, e *env) 
 // match takes the first case whose pattern matches and whose guard holds. A value no case matches is
 // a hole in the Model.
 // That hole is an undeclared one: a Hole with no ID.
-func (in *Interpreter) match(x *modelirspb.Expr, m *modelirspb.Match, e *env) (Value, error) {
+func (in *Interpreter) match(x *umpirespb.Expr, m *umpirespb.Match, e *env) (Value, error) {
 	v, err := in.eval(m.GetScrutinee(), e)
 	if err != nil {
 		return Value{}, err
@@ -625,19 +625,19 @@ func (in *Interpreter) match(x *modelirspb.Expr, m *modelirspb.Match, e *env) (V
 	return Value{}, &Hole{Position: where(x.GetPosition()), Message: "no case matches " + v.Key()}
 }
 
-func (in *Interpreter) bindPattern(p *modelirspb.Pattern, v Value, e *env) (*env, bool) {
+func (in *Interpreter) bindPattern(p *umpirespb.Pattern, v Value, e *env) (*env, bool) {
 	switch k := p.GetKind().(type) {
-	case *modelirspb.Pattern_Wildcard:
+	case *umpirespb.Pattern_Wildcard:
 		return e, true
-	case *modelirspb.Pattern_Bind:
+	case *umpirespb.Pattern_Bind:
 		inner, ok := in.bindPattern(k.Bind.GetPattern(), v, e)
 		if !ok {
 			return nil, false
 		}
 		return inner.bind(k.Bind.GetName(), v), true
-	case *modelirspb.Pattern_Literal:
-		return e, in.literal(k.Literal).Equal(v)
-	case *modelirspb.Pattern_Case:
+	case *umpirespb.Pattern_Literal:
+		return e, in.literal(k.Literal).equal(v)
+	case *umpirespb.Pattern_Case:
 		if v.Kind != EnumValue || v.Type != k.Case.GetType() || v.Case != k.Case.GetCase() ||
 			len(v.Fields) != len(k.Case.GetFields()) {
 			return nil, false
@@ -649,7 +649,7 @@ func (in *Interpreter) bindPattern(p *modelirspb.Pattern, v Value, e *env) (*env
 			}
 		}
 		return e, true
-	case *modelirspb.Pattern_Alternatives:
+	case *umpirespb.Pattern_Alternatives:
 		for _, alt := range k.Alternatives.GetPatterns() {
 			if bound, ok := in.bindPattern(alt, v, e); ok {
 				return bound, true

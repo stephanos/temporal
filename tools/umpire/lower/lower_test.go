@@ -9,8 +9,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 	commandpb "go.temporal.io/api/command/v1"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/umpire/internal/golden"
@@ -28,7 +28,7 @@ const realizationAt = "model/temporal/nexuscaller/Realization.scala:"
 var functionalQueries = []string{"syncCompletion", "asyncCompletion", "asyncFailure", "handlerError", "retry",
 	"scheduleToStartTimeout", "startToCloseTimeout"}
 
-func loaded(t *testing.T, name string) *modelirspb.Model {
+func loaded(t *testing.T, name string) *umpirespb.Model {
 	t.Helper()
 	m, err := umpiremodel.Load(filepath.Join("..", "..", "..", "model", "ir", name+".json"))
 	require.NoError(t, err)
@@ -54,7 +54,7 @@ func lowered(t *testing.T, p *Producer, query string) *testpilotspb.Case {
 func TestTheFunctionalSetIsEveryFindQueryOfTheNexusCallerModel(t *testing.T) {
 	var declared []string
 	for _, q := range loaded(t, "nexus-caller").GetQueries() {
-		require.Equal(t, modelirspb.Query_FORM_FIND, q.GetForm())
+		require.Equal(t, umpirespb.Query_FORM_FIND, q.GetForm())
 		declared = append(declared, q.GetName())
 	}
 	require.ElementsMatch(t, functionalQueries, declared)
@@ -274,7 +274,7 @@ func TestALoweredCaseIsTheComparativeGoModelsCase(t *testing.T) {
 	require.NoError(t, err)
 	baseline, err := golden.Read(filepath.Join("testdata", "migration"))
 	require.NoError(t, err)
-	original := new(modelirspb.Model)
+	original := new(umpirespb.Model)
 	require.NoError(t, protojson.Unmarshal(baseline["original/inputs/ir/nexus-caller.json"], original))
 	MigrationComparativeModel(t, original)
 	var compared []string
@@ -333,7 +333,7 @@ func TestALoweredCaseIsTheComparativeGoModelsCase(t *testing.T) {
 // What a realization writes is checked against the protobuf descriptors it names, at the Scala line
 // that wrote it, before any Case exists.
 func TestADescriptorARealizationCrossesIsRejectedWhereItIsWritten(t *testing.T) {
-	script := func(r *modelirspb.Realization, id string) *modelirspb.Script {
+	script := func(r *umpirespb.Realization, id string) *umpirespb.Script {
 		for _, s := range r.GetScripts() {
 			if s.GetId() == id {
 				return s
@@ -341,7 +341,7 @@ func TestADescriptorARealizationCrossesIsRejectedWhereItIsWritten(t *testing.T) 
 		}
 		return nil
 	}
-	command := func(r *modelirspb.Realization, scriptID, id string) *modelirspb.Command {
+	command := func(r *umpirespb.Realization, scriptID, id string) *umpirespb.Command {
 		for _, item := range script(r, scriptID).GetItems() {
 			if item.GetCommand().GetId() == id {
 				return item.GetCommand()
@@ -354,65 +354,65 @@ func TestADescriptorARealizationCrossesIsRejectedWhereItIsWritten(t *testing.T) 
 		}
 		return nil
 	}
-	schedule := func(r *modelirspb.Realization) *modelirspb.Proto {
+	schedule := func(r *umpirespb.Realization) *umpirespb.Proto {
 		return command(r, "workflow", "start-nexus-operation").GetWorkflowCommand().GetCommand()
 	}
-	attributes := func(r *modelirspb.Realization) *modelirspb.Proto {
+	attributes := func(r *umpirespb.Realization) *umpirespb.Proto {
 		return schedule(r).GetFields()[1].GetValue().GetMessage()
 	}
-	text := func(s string) *modelirspb.Operand {
-		return &modelirspb.Operand{Kind: &modelirspb.Operand_Literal{Literal: &modelirspb.ProtoValue{Kind: &modelirspb.ProtoValue_Text{Text: s}}}}
+	text := func(s string) *umpirespb.Operand {
+		return &umpirespb.Operand{Kind: &umpirespb.Operand_Literal{Literal: &umpirespb.ProtoValue{Kind: &umpirespb.ProtoValue_Text{Text: s}}}}
 	}
 	cases := []struct {
 		name   string
-		mutate func(r *modelirspb.Realization)
+		mutate func(r *umpirespb.Realization)
 		want   string
 	}{
-		{"a message the descriptors do not have", func(r *modelirspb.Realization) { schedule(r).Message = "temporal.api.command.v1.Nope" },
+		{"a message the descriptors do not have", func(r *umpirespb.Realization) { schedule(r).Message = "temporal.api.command.v1.Nope" },
 			"no protobuf message temporal.api.command.v1.Nope"},
-		{"a message written where another belongs", func(r *modelirspb.Realization) { attributes(r).Message = "temporal.api.common.v1.Payload" },
+		{"a message written where another belongs", func(r *umpirespb.Realization) { attributes(r).Message = "temporal.api.common.v1.Payload" },
 			"temporal.api.common.v1.Payload is written where a temporal.api.command.v1.ScheduleNexusOperationCommandAttributes belongs"},
-		{"a field the message does not have", func(r *modelirspb.Realization) { attributes(r).GetFields()[0].Name = "endpont" },
+		{"a field the message does not have", func(r *umpirespb.Realization) { attributes(r).GetFields()[0].Name = "endpont" },
 			"temporal.api.command.v1.ScheduleNexusOperationCommandAttributes has no field endpont"},
-		{"a value of another kind than the field", func(r *modelirspb.Realization) {
-			attributes(r).GetFields()[1].Value = &modelirspb.ProtoValue{Kind: &modelirspb.ProtoValue_Flag{Flag: true}}
+		{"a value of another kind than the field", func(r *umpirespb.Realization) {
+			attributes(r).GetFields()[1].Value = &umpirespb.ProtoValue{Kind: &umpirespb.ProtoValue_Flag{Flag: true}}
 		}, "temporal.api.command.v1.ScheduleNexusOperationCommandAttributes.service is of kind string, and a flag is written into it"},
-		{"an enum value the enum does not have", func(r *modelirspb.Realization) {
-			schedule(r).GetFields()[0].Value = &modelirspb.ProtoValue{Kind: &modelirspb.ProtoValue_EnumName{EnumName: "COMMAND_TYPE_NOPE"}}
+		{"an enum value the enum does not have", func(r *umpirespb.Realization) {
+			schedule(r).GetFields()[0].Value = &umpirespb.ProtoValue{Kind: &umpirespb.ProtoValue_EnumName{EnumName: "COMMAND_TYPE_NOPE"}}
 		}, "temporal.api.enums.v1.CommandType has no value COMMAND_TYPE_NOPE"},
-		{"one value written into a map", func(r *modelirspb.Realization) { attributes(r).GetFields()[1].Name = "nexus_header" },
+		{"one value written into a map", func(r *umpirespb.Realization) { attributes(r).GetFields()[1].Name = "nexus_header" },
 			"temporal.api.command.v1.ScheduleNexusOperationCommandAttributes.nexus_header holds several values, and one is written into it"},
-		{"a role written into a field that is no text", func(r *modelirspb.Realization) {
+		{"a role written into a field that is no text", func(r *umpirespb.Realization) {
 			attributes(r).GetFields()[0].Name = "schedule_to_close_timeout"
 		}, "temporal.api.command.v1.ScheduleNexusOperationCommandAttributes.schedule_to_close_timeout is of kind message, and a role is written into it"},
-		{"a history event kind the event does not have", func(r *modelirspb.Realization) {
-			r.Evidence[2].From = &modelirspb.Evidence_History{History: "nexus_operation_finished_event_attributes"}
+		{"a history event kind the event does not have", func(r *umpirespb.Realization) {
+			r.Evidence[2].From = &umpirespb.Evidence_History{History: "nexus_operation_finished_event_attributes"}
 		}, "evidence temporal.nexus.caller.evidence.completed: a history event has no attributes nexus_operation_finished_event_attributes"},
-		{"an operation key the recorded message does not have", func(r *modelirspb.Realization) { r.Evidence[0].Operation = "event_number" },
+		{"an operation key the recorded message does not have", func(r *umpirespb.Realization) { r.Evidence[0].Operation = "event_number" },
 			"temporal.api.history.v1.HistoryEvent has no field event_number"},
-		{"an operation key that is a message", func(r *modelirspb.Realization) { r.Evidence[0].Operation = "event_time" },
+		{"an operation key that is a message", func(r *umpirespb.Realization) { r.Evidence[0].Operation = "event_time" },
 			"evidence temporal.nexus.caller.evidence.scheduled keys its operation by event_time, which is no single scalar of temporal.api.history.v1.HistoryEvent"},
-		{"evidence read from one value", func(r *modelirspb.Realization) { r.Evidence[0].GetRead().Path = "history" },
+		{"evidence read from one value", func(r *umpirespb.Realization) { r.Evidence[0].GetRead().Path = "history" },
 			"evidence temporal.nexus.caller.evidence.scheduled is read from history, which is no repeated message"},
-		{"a method the service does not have", func(r *modelirspb.Realization) {
+		{"a method the service does not have", func(r *umpirespb.Realization) {
 			command(r, "controller", "start-workflow").GetRpc().Method = "/temporal.api.workflowservice.v1.WorkflowService/BeginWorkflowExecution"
 		}, "temporal.api.workflowservice.v1.WorkflowService has no method BeginWorkflowExecution"},
-		{"an observation of a message the descriptors do not have", func(r *modelirspb.Realization) {
+		{"an observation of a message the descriptors do not have", func(r *umpirespb.Realization) {
 			r.Observations[0].Message = "temporal.api.history.v1.HistoricEvent"
 		}, "no protobuf message temporal.api.history.v1.HistoricEvent"},
-		{"a value observed into an observation of another message", func(r *modelirspb.Realization) {
+		{"a value observed into an observation of another message", func(r *umpirespb.Realization) {
 			r.Observations[0].Message = "temporal.api.common.v1.Payload"
 		}, "command history observes history.events[*] into history-event, which is a temporal.api.common.v1.Payload, and the path reads temporal.api.history.v1.History.events"},
-		{"an assignment to a field the request does not have", func(r *modelirspb.Realization) {
+		{"an assignment to a field the request does not have", func(r *umpirespb.Realization) {
 			command(r, "controller", "start-workflow").GetRpc().GetAssign()[1].Target = "workflow_name"
 		}, "temporal.api.workflowservice.v1.StartWorkflowExecutionRequest has no field workflow_name"},
-		{"a text assigned to a number", func(r *modelirspb.Realization) {
+		{"a text assigned to a number", func(r *umpirespb.Realization) {
 			command(r, "controller", "await-close").GetRpc().GetAssign()[2].Value = text("many")
 		}, "command await-close assigns a text to temporal.api.workflowservice.v1.GetWorkflowExecutionHistoryRequest.maximum_page_size, which is of kind int32"},
-		{"a poll condition over a field the element does not have", func(r *modelirspb.Realization) {
+		{"a poll condition over a field the element does not have", func(r *umpirespb.Realization) {
 			command(r, "controller", "pending-attempts").GetPoll().GetUntil().GetEqual().GetLeft().GetPath().Path = "attempts"
 		}, "temporal.api.workflow.v1.PendingNexusOperationInfo has no field attempts"},
-		{"a reply that is no reply", func(r *modelirspb.Realization) {
+		{"a reply that is no reply", func(r *umpirespb.Realization) {
 			command(r, "handler", "respond-sync").GetNexusReply().GetReply().Message = "temporal.api.common.v1.Payload"
 		}, "command respond-sync answers with temporal.api.common.v1.Payload; a Nexus handler answers with a start response or a handler error"},
 	}
@@ -451,7 +451,7 @@ func TestEveryQueryHasAStanding(t *testing.T) {
 				l, err := p.Lower(q.GetName(), cp.IdentityFor("temporal.case", c.model, q.GetName()))
 				require.NoError(t, err)
 				want := NothingToRealize
-				if q.GetForm() == modelirspb.Query_FORM_FIND {
+				if q.GetForm() == umpirespb.Query_FORM_FIND {
 					want = NoRealization
 				}
 				require.Equal(t, &Lowering{Standing: want}, l, q.GetName())
@@ -497,7 +497,7 @@ func TestEveryDescriptorARealizationCrossesIsReported(t *testing.T) {
 	m := loaded(t, "nexus-caller")
 	r := m.GetRealizations()[0]
 	r.Observations[1].Message = "temporal.server.api.testpilot.v1.Nope"
-	r.Evidence[2].From = &modelirspb.Evidence_History{History: "nexus_operation_begun_event_attributes"}
+	r.Evidence[2].From = &umpirespb.Evidence_History{History: "nexus_operation_begun_event_attributes"}
 	for _, s := range r.GetScripts() {
 		for _, item := range s.GetItems() {
 			switch item.GetCommand().GetId() {

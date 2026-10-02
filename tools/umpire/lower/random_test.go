@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
@@ -119,8 +119,8 @@ func change(rng *rand.Rand, roots []protoreflect.Message) string {
 
 // changed is a Model with up to three random changes to what a realization and its lowering read:
 // the realizations, and with actions also the actions, whose examples lowering reads.
-func changed(rng *rand.Rand, base *modelirspb.Model, actions bool) (*modelirspb.Model, []string) {
-	m := proto.Clone(base).(*modelirspb.Model)
+func changed(rng *rand.Rand, base *umpirespb.Model, actions bool) (*umpirespb.Model, []string) {
+	m := proto.Clone(base).(*umpirespb.Model)
 	var done []string
 	for range 1 + rng.IntN(3) {
 		var roots []protoreflect.Message
@@ -138,10 +138,10 @@ func changed(rng *rand.Rand, base *modelirspb.Model, actions bool) (*modelirspb.
 }
 
 // finds is the find Queries of a Model.
-func finds(m *modelirspb.Model) []string {
+func finds(m *umpirespb.Model) []string {
 	var out []string
 	for _, q := range m.GetQueries() {
-		if q.GetForm() == modelirspb.Query_FORM_FIND {
+		if q.GetForm() == umpirespb.Query_FORM_FIND {
 			out = append(out, q.GetName())
 		}
 	}
@@ -168,8 +168,8 @@ func answered(t *testing.T, seed uint64, iteration int, done []string, run func(
 	run()
 }
 
-func randomModels(t *testing.T) map[string]*modelirspb.Model {
-	return map[string]*modelirspb.Model{"nexus-caller": loaded(t, "nexus-caller"), "realizations": liftedRealizations(t),
+func randomModels(t *testing.T) map[string]*umpirespb.Model {
+	return map[string]*umpirespb.Model{"nexus-caller": loaded(t, "nexus-caller"), "realizations": liftedRealizations(t),
 		"activity": loaded(t, "activity")}
 }
 

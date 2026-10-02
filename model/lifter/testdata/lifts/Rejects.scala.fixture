@@ -1,5 +1,5 @@
 // Declarations the lifter must refuse before any IR is written, each at the line that declares it.
-// run.sh lifts every root below, and one that names nothing, in one run, and compares the diagnostics
+// The lifter's tests lift every root below, and one that names nothing, in one run, and compare the diagnostics
 // with expected/rejects.txt.
 package fixture.rejects
 

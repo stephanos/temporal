@@ -36,9 +36,12 @@ Preserve the authorized uncommitted baseline and comments except the explicit R2
 - [ ] No later-spec ScalaPB, DSL or root-declaration changes are introduced.
 
 ## Done summary
-TBD
+Split the TASTy lifter (`model/lifter/Lift.scala`, 2,010 lines) into ten files around one typed `Context` that carries `Quotes`, the definition index with its symbol queries, source-prefix mapping and the declaration accumulators: `Context`, `Types`, `Constants`, `Expressions`, `Declarations`, `Realizations`, `Compositions`, `Claims`, `Lifting` and the entry point `Lift.scala`. Each concern is a trait mixed into one `Lifting(ctx)` class. It is a pure move: every original line and comment is present, and no file mixes concerns.
 
+All 6 checked-in IR files, 6 fixture IR files, 16 refusals and the CLI error paths are byte-identical to the unsplit lifter after every extraction stage and after the review moves. The full model gate with its Go checks (640 s) and `make lint-model` pass; `model/ir`, `model/cases` and `model/lifter/testdata` are unchanged.
+
+Independent review (Claude Fable, fresh context) returned SHIP in round 1; its P2/P3 pure moves are applied and verified with the scoped identity script and lint. Handover: .flow/tmp/fn115-8-summary.md; evidence: .flow/tmp/fn115-8-evidence.json; review: .flow/tmp/fn115-8-review/round1-review.md. No agent commits.
 ## Evidence
 - Commits:
-- Tests:
+- Tests: CC=/usr/bin/clang mise exec -- make umpire-check-model, mise exec -- make lint-model, .flow/tmp/fn115-8/verify.sh <stage>, Independent review round 1 SHIP (claude-fable-5-1); .flow/tmp/fn115-8-review/round1-review.md
 - PRs:

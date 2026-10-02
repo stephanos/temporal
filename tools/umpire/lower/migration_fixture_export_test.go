@@ -6,12 +6,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 )
 
-func MigrationFixture(m *modelirspb.Model, query string, identity cp.Identity) (*umpiremodel.Query, *cp.Realization, error) {
+func MigrationFixture(m *umpirespb.Model, query string, identity cp.Identity) (*umpiremodel.Query, *cp.Realization, error) {
 	p, err := NewProducer(m)
 	if err != nil {
 		return nil, nil, err
@@ -30,7 +30,7 @@ func MigrationFixture(m *modelirspb.Model, query string, identity cp.Identity) (
 	return l.query, l.realization, nil
 }
 
-func MigrationComparativeModel(t *testing.T, m *modelirspb.Model) {
+func MigrationComparativeModel(t *testing.T, m *umpirespb.Model) {
 	t.Helper()
 	expectedKinds := []string{"temporal.nexus.caller.evidence.started", "temporal.nexus.caller.evidence.completed", "temporal.nexus.caller.evidence.failed", "temporal.nexus.caller.evidence.canceled", "temporal.nexus.caller.evidence.timedOut"}
 	require.Len(t, m.GetRealizations(), 1)

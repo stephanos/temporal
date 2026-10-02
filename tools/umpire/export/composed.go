@@ -6,14 +6,14 @@ import (
 	"slices"
 	"strings"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 )
 
 // composedExport is one exported composition as its part of a dump is read back: its members in
 // member order, each with the index of its machine among the export's, and its syncs.
 type composedExport struct {
-	decl    *modelirspb.Composition
+	decl    *umpirespb.Composition
 	members []composedMember
 	syncs   []composedSync
 }
@@ -192,7 +192,7 @@ func (q *quint) composition(j int, c *umpiremodel.Composed) (string, error) {
 	view := fmt.Sprintf("starts: %s_starts, reach: %s_bfs.seen, closed: %s_bfs.frontier == Set(), ends: %s_bfs.seen.filter(s => %s_ends(s)), classes: %s_classes,\n"+
 		"    rows: %s_bfs.seen.map(s => {src: s, by: %s_classes.map(c => {cls: c, steps: %s_step(s, c)})})", p, p, p, p, p, p, p, p, p)
 	if properties := q.s.properties(decl.GetName()); len(properties) > 0 {
-		claimsType, err := q.claims(p, fmt.Sprintf("C%d", j), properties, state, func(pr *modelirspb.Property) (string, error) { return q.composedAbout(j, x, pr) })
+		claimsType, err := q.claims(p, fmt.Sprintf("C%d", j), properties, state, func(pr *umpirespb.Property) (string, error) { return q.composedAbout(j, x, pr) })
 		if err != nil {
 			return "", err
 		}
@@ -287,11 +287,11 @@ func (q *quint) composedStarts(x *composedExport) ([]string, error) {
 // composedAbout writes whether a Property of a composition is about the step of the class `c`:
 // every step, or the steps of every class whose key begins with one name, a sync's or
 // `<field>_<action>` for a member's own action.
-func (q *quint) composedAbout(j int, x *composedExport, p *modelirspb.Property) (string, error) {
+func (q *quint) composedAbout(j int, x *composedExport, p *umpirespb.Property) (string, error) {
 	switch w := p.GetWhen().(type) {
 	case nil:
 		return "true", nil
-	case *modelirspb.Property_WhenAction:
+	case *umpirespb.Property_WhenAction:
 		for n, sync := range x.syncs {
 			if sync.name == w.WhenAction {
 				return fmt.Sprintf("match c { | C%d_s%d(_) => true | _ => false }", j, n), nil
@@ -330,7 +330,7 @@ func (r reader) composedState(raw any) (string, error) {
 	fields := r.x.from.types[c.decl.GetStateType()].GetRecord().GetFields()
 	parts := make([]string, len(c.members))
 	for m, mb := range c.members {
-		k := slices.IndexFunc(fields, func(f *modelirspb.Field) bool { return f.GetName() == mb.field })
+		k := slices.IndexFunc(fields, func(f *umpirespb.Field) bool { return f.GetName() == mb.field })
 		if k < 0 {
 			return "", fmt.Errorf("no member fills the field %s", mb.field)
 		}

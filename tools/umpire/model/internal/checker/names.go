@@ -27,16 +27,6 @@ func (n *claimNames) declare(kind, name string) {
 	n.seen[key] = true
 }
 
-func (n *claimNames) duplicates(machine string) []error {
-	n.mu.Lock()
-	defer n.mu.Unlock()
-	var errs []error
-	for _, key := range n.twice {
-		errs = append(errs, declaredTwice(machine, key))
-	}
-	return errs
-}
-
 // duplicate is the error of one name a kind declares twice, or nil.
 func (n *claimNames) duplicate(machine, kind, name string) error {
 	n.mu.Lock()
@@ -51,11 +41,3 @@ func declaredTwice(machine, key string) error {
 	return errorf("machine "+machine,
 		"%s is declared twice, and both declarations would share one Definition ID; rename one", key)
 }
-
-type claimNamer interface {
-	claimNames() *claimNames
-}
-
-func (m *Machine[S, O, F]) claimNames() *claimNames { return &m.names }
-
-func (c *Composition[S]) claimNames() *claimNames { return &c.names }

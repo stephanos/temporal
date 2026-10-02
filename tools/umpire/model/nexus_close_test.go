@@ -22,7 +22,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
 	"google.golang.org/protobuf/proto"
 )
@@ -42,7 +42,7 @@ var nexusClose = sync.OnceValues(func() (*checkedModel, error) {
 // large catalogs is most of what a test costs. It is check's own sequence, receipt for receipt, and
 // TestCheckedOnceIsCheck holds it to Check. A machine that has no table, or whose refinement could not
 // be evaluated, is an error here as it is of Build.
-func checkedOnce(m *modelirspb.Model) (*checkedModel, error) {
+func checkedOnce(m *umpirespb.Model) (*checkedModel, error) {
 	if err := Validate(m); err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func checkedOnce(m *modelirspb.Model) (*checkedModel, error) {
 // The report checkedOnce keeps is Check's, whole, on Models with refinements, compositions, monitors,
 // Queries and progress claims, and the machines it keeps are Build's.
 func TestCheckedOnceIsCheck(t *testing.T) {
-	for name, m := range map[string]*modelirspb.Model{"admission": lifted(t, "admission"),
+	for name, m := range map[string]*umpirespb.Model{"admission": lifted(t, "admission"),
 		"declarations": mutated(t, "declarations", noCrash)} {
 		t.Run(name, func(t *testing.T) {
 			once, err := checkedOnce(m)
@@ -95,10 +95,10 @@ func TestCheckedOnceIsCheck(t *testing.T) {
 		})
 	}
 	// A machine with no table is Build's error, and no report.
-	unread := mutated(t, "admission", func(m *modelirspb.Model) {
-		m.Holes = append(m.Holes, &modelirspb.Hole{Id: "generic.unknownEnd", Name: "unknownEnd", Position: at(1)})
+	unread := mutated(t, "admission", func(m *umpirespb.Model) {
+		m.Holes = append(m.Holes, &umpirespb.Hole{Id: "generic.unknownEnd", Name: "unknownEnd", Position: at(1)})
 		current := admMachine(m, "currentAdmission")
-		current.Ends = &modelirspb.Expr{Position: current.GetEnds().GetPosition(), Kind: &modelirspb.Expr_Hole{Hole: "generic.unknownEnd"}}
+		current.Ends = &umpirespb.Expr{Position: current.GetEnds().GetPosition(), Kind: &umpirespb.Expr_Hole{Hole: "generic.unknownEnd"}}
 	})
 	_, want := Build(unread)
 	require.Error(t, want)
@@ -616,10 +616,10 @@ func TestNexusCloseDeadlockIsTheLostOutcome(t *testing.T) {
 	// A prefix that ends while the handler still runs proves nothing: explored no further than the
 	// start, every kind is unresolved, on a faulty design too. Explored three steps deep, one short of
 	// the stuck state, the deadlock is still unresolved and no hang is claimed.
-	only := proto.Clone(c.model).(*modelirspb.Model)
+	only := proto.Clone(c.model).(*umpirespb.Model)
 	only.Queries, only.Properties, only.Scenarios = nil, nil, nil
-	only.Machines = slicesDelete(only.GetMachines(), func(m *modelirspb.Machine) bool { return m.GetName() != "rejectAfterClose" })
-	only.Progress = slicesDelete(only.GetProgress(), func(p *modelirspb.Progress) bool { return p.GetMachine() != "rejectAfterClose" })
+	only.Machines = slicesDelete(only.GetMachines(), func(m *umpirespb.Machine) bool { return m.GetName() != "rejectAfterClose" })
+	only.Progress = slicesDelete(only.GetProgress(), func(p *umpirespb.Progress) bool { return p.GetMachine() != "rejectAfterClose" })
 	scope := DefaultScope
 	scope.Progress = Limits{Name: "the start", Steps: 0, Search: 1 << 20}
 	open := Check(only, scope)

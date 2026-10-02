@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/tools/umpire/internal/golden"
 	"go.temporal.io/server/tools/umpire/lower"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
@@ -16,7 +16,7 @@ import (
 func TestOriginalNexusFixturesThroughAdmittedIR(t *testing.T) {
 	files, err := golden.Read(filepath.Join("testdata", "migration"))
 	require.NoError(t, err)
-	m := new(modelirspb.Model)
+	m := new(umpirespb.Model)
 	require.NoError(t, protojson.Unmarshal(files["original/inputs/ir/nexus-caller.json"], m))
 	lower.MigrationComparativeModel(t, m)
 	actual := map[string][]byte{}

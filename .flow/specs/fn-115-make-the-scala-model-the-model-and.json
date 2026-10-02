@@ -12,11 +12,15 @@
   "id": "fn-115-make-the-scala-model-the-model-and",
   "impl_review_rounds": {
     "fn-115-make-the-scala-model-the-model-and.1": 0,
+    "fn-115-make-the-scala-model-the-model-and.10": 1,
     "fn-115-make-the-scala-model-the-model-and.2": 0,
     "fn-115-make-the-scala-model-the-model-and.3": 0,
     "fn-115-make-the-scala-model-the-model-and.4": 0,
     "fn-115-make-the-scala-model-the-model-and.5": 0,
-    "fn-115-make-the-scala-model-the-model-and.6": 0
+    "fn-115-make-the-scala-model-the-model-and.6": 0,
+    "fn-115-make-the-scala-model-the-model-and.7": 0,
+    "fn-115-make-the-scala-model-the-model-and.8": 0,
+    "fn-115-make-the-scala-model-the-model-and.9": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -365,6 +369,84 @@
       "task": "fn-115-make-the-scala-model-the-model-and.6",
       "timestamp": "2026-10-02T16:38:59.724338Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "249f324732faf70efba99f152eabf4957937b72437eb933f209b41f83176b20f",
+      "backend": "claude",
+      "counter_kind": "impl",
+      "failure_class": null,
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "48a77981e4c147462ea291321750a4d29e692af6",
+      "head_sha_observed": false,
+      "kind": "impl",
+      "outcome": "verdict",
+      "output_bytes": 7820,
+      "output_sha256": "21c203a1d8912d000e8bd3ccdf752f81849f58106ec7131663d36369aed18b36",
+      "reservation_id": "857e9a01a0664ea282b673b773e0ca8e",
+      "round_consumed": true,
+      "scope": "impl:fn-115-make-the-scala-model-the-model-and.7",
+      "superseded_by": null,
+      "task": "fn-115-make-the-scala-model-the-model-and.7",
+      "timestamp": "2026-10-02T17:53:02.023390Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "backend": "claude",
+      "counter_kind": "impl",
+      "failure_class": null,
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "48a77981e4c147462ea291321750a4d29e692af6",
+      "head_sha_observed": false,
+      "kind": "impl",
+      "outcome": "verdict",
+      "output_bytes": 6796,
+      "output_sha256": "9901e925974c4cc44fd002a38eebf452e01be213ca7b5964560633b237158eee",
+      "reservation_id": "643d3274123b48f792816c9a5ac92f16",
+      "round_consumed": true,
+      "scope": "impl:fn-115-make-the-scala-model-the-model-and.8",
+      "superseded_by": null,
+      "task": "fn-115-make-the-scala-model-the-model-and.8",
+      "timestamp": "2026-10-02T18:10:37.040353Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "aa641169a00a64e265d06a00ef0362ac105bc680e1f84262ac4e29f071aaa5d4",
+      "backend": "claude",
+      "counter_kind": "impl",
+      "failure_class": null,
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "48a77981e4c147462ea291321750a4d29e692af6",
+      "head_sha_observed": false,
+      "kind": "impl",
+      "outcome": "verdict",
+      "output_bytes": 6069,
+      "output_sha256": "58fb14c43620639ed2deb33a32d5f1d75f89e9e6f947a9e164c1e84dccdd742e",
+      "reservation_id": "c677079b2694446594adc58868fd7f17",
+      "round_consumed": true,
+      "scope": "impl:fn-115-make-the-scala-model-the-model-and.9",
+      "superseded_by": null,
+      "task": "fn-115-make-the-scala-model-the-model-and.9",
+      "timestamp": "2026-10-02T18:41:37.628342Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -374,11 +456,25 @@
     "impl:fn-115-make-the-scala-model-the-model-and.4": 1,
     "impl:fn-115-make-the-scala-model-the-model-and.5": 1,
     "impl:fn-115-make-the-scala-model-the-model-and.6": 1,
+    "impl:fn-115-make-the-scala-model-the-model-and.7": 1,
+    "impl:fn-115-make-the-scala-model-the-model-and.8": 1,
+    "impl:fn-115-make-the-scala-model-the-model-and.9": 1,
     "plan": 1,
     "plan#completion": 0
   },
-  "review_pending_rounds": {},
-  "review_reservations": {},
+  "review_pending_rounds": {
+    "impl:fn-115-make-the-scala-model-the-model-and.10": 1
+  },
+  "review_reservations": {
+    "62b8f1aeb8b34906917b24cda213d27b": {
+      "artifact_sha256": "8f24e5b230933e8b96414539431ef63b55fb311021c8f2f1a644ecde98059bc9",
+      "counter_scope": "impl:fn-115-make-the-scala-model-the-model-and.10",
+      "epoch": 0,
+      "exclusive": false,
+      "forced": false,
+      "review_type": "impl"
+    }
+  },
   "review_transport_failures": {
     "impl:fn-115-make-the-scala-model-the-model-and.1": 0,
     "impl:fn-115-make-the-scala-model-the-model-and.2": 0,
@@ -386,6 +482,9 @@
     "impl:fn-115-make-the-scala-model-the-model-and.4": 0,
     "impl:fn-115-make-the-scala-model-the-model-and.5": 0,
     "impl:fn-115-make-the-scala-model-the-model-and.6": 0,
+    "impl:fn-115-make-the-scala-model-the-model-and.7": 0,
+    "impl:fn-115-make-the-scala-model-the-model-and.8": 0,
+    "impl:fn-115-make-the-scala-model-the-model-and.9": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-115-make-the-scala-model-the-model-and.md",
@@ -402,5 +501,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T16:39:00.093970Z"
+  "updated_at": "2026-10-02T19:15:01.102160Z"
 }

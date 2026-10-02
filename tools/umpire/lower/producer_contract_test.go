@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/tools/umpire/internal/golden"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
@@ -19,7 +19,7 @@ func producerContractFixture(t *testing.T, name string) (*umpiremodel.Query, Ide
 	t.Helper()
 	files, err := golden.Read(filepath.Join("testdata", "migration"))
 	require.NoError(t, err)
-	model := new(modelirspb.Model)
+	model := new(umpirespb.Model)
 	require.NoError(t, protojson.Unmarshal(files["original/inputs/ir/nexus-caller.json"], model))
 	MigrationComparativeModel(t, model)
 	var identity Identity

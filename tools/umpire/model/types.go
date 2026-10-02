@@ -30,7 +30,6 @@ type (
 	Verdict           = core.Verdict
 	ProgressKind      = core.ProgressKind
 	ProgressVerdict   = core.ProgressVerdict
-	ProgressAnswer    = core.ProgressAnswer
 	Assumption        = core.Assumption
 	Group             = core.Group
 	Requirement       = core.Requirement
@@ -39,11 +38,6 @@ type (
 	UnknownKind       = core.UnknownKind
 	Monitor           = core.Monitor
 	Evaluation        = core.Evaluation
-	ActionDecl        = core.ActionDecl
-	Party             = core.Party
-	Entity            = core.Entity
-	ClassExample      = core.ClassExample
-	TableClass        = core.Class
 )
 
 const (

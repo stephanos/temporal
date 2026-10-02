@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 )
 
@@ -65,7 +65,7 @@ type PResult struct {
 // ptype is a type of the IR as P is given it.
 type ptype struct {
 	p    string
-	ref  *modelirspb.TypeRef
+	ref  *umpirespb.TypeRef
 	step bool
 }
 
@@ -83,7 +83,7 @@ type pfunction struct {
 	result ptype
 }
 
-func (w *pwriter) unsupported(at *modelirspb.Position, format string, args ...any) error {
+func (w *pwriter) unsupported(at *umpirespb.Position, format string, args ...any) error {
 	e := &UnsupportedError{Backend: pBackend, Construct: fmt.Sprintf(format, args...)}
 	if at != nil {
 		e.Position = at.GetFile() + ":" + strconv.Itoa(int(at.GetLine()))
@@ -94,16 +94,16 @@ func (w *pwriter) unsupported(at *modelirspb.Position, format string, args ...an
 // typeRef is a type as P holds it: a Boolean, an integer, an enum none of whose cases has fields, a
 // record of such, or a list of such. P has no enum whose cases carry values, so a type with one is
 // not exported.
-func (w *pwriter) typeRef(t *modelirspb.TypeRef) (ptype, error) {
+func (w *pwriter) typeRef(t *umpirespb.TypeRef) (ptype, error) {
 	switch r := t.GetRef().(type) {
-	case *modelirspb.TypeRef_Bool:
+	case *umpirespb.TypeRef_Bool:
 		return ptype{p: "bool", ref: t}, nil
-	case *modelirspb.TypeRef_IntRange, *modelirspb.TypeRef_Int:
+	case *umpirespb.TypeRef_IntRange, *umpirespb.TypeRef_Int:
 		return ptype{p: "int", ref: t}, nil
-	case *modelirspb.TypeRef_List:
+	case *umpirespb.TypeRef_List:
 		item, err := w.typeRef(r.List)
 		return ptype{p: "seq[" + item.p + "]", ref: t}, err
-	case *modelirspb.TypeRef_Named:
+	case *umpirespb.TypeRef_Named:
 		if r.Named == umpiremodel.StepType {
 			return w.step, nil
 		}
@@ -237,11 +237,11 @@ func (b *pbody) local(name string, t ptype) string {
 }
 
 // function writes a function of the IR as a P function, after the functions it calls.
-func (w *pwriter) function(name string, at *modelirspb.Position) (pfunction, error) {
+func (w *pwriter) function(name string, at *umpirespb.Position) (pfunction, error) {
 	if f, ok := w.functions[name]; ok {
 		return f, nil
 	}
-	i := slices.IndexFunc(w.s.Model.GetFunctions(), func(f *modelirspb.Function) bool { return f.GetName() == name })
+	i := slices.IndexFunc(w.s.Model.GetFunctions(), func(f *umpirespb.Function) bool { return f.GetName() == name })
 	if i < 0 {
 		return pfunction{}, w.unsupported(at, "a call of %s, which the Model does not declare", name)
 	}
@@ -273,9 +273,9 @@ func (w *pwriter) function(name string, at *modelirspb.Position) (pfunction, err
 // returns writes an expression as the statements that return its value. P has no conditional
 // expression, so a conditional and a match are written as branches that each return, which is where
 // the lifted functions have them; one inside another expression is not translated.
-func (w *pwriter) returns(x *modelirspb.Expr, sc pscope, body *pbody, indent string) (string, ptype, error) {
+func (w *pwriter) returns(x *umpirespb.Expr, sc pscope, body *pbody, indent string) (string, ptype, error) {
 	switch k := x.GetKind().(type) {
-	case *modelirspb.Expr_If:
+	case *umpirespb.Expr_If:
 		cond, _, err := w.expr(k.If.GetCondition(), sc)
 		if err != nil {
 			return "", ptype{}, err
@@ -289,7 +289,7 @@ func (w *pwriter) returns(x *modelirspb.Expr, sc pscope, body *pbody, indent str
 			return "", ptype{}, err
 		}
 		return fmt.Sprintf("%sif (%s) {\n%s%s} else {\n%s%s}\n", indent, cond, then, indent, otherwise, indent), t, nil
-	case *modelirspb.Expr_Let:
+	case *umpirespb.Expr_Let:
 		value, t, err := w.expr(k.Let.GetValue(), sc)
 		if err != nil {
 			return "", ptype{}, err
@@ -297,7 +297,7 @@ func (w *pwriter) returns(x *modelirspb.Expr, sc pscope, body *pbody, indent str
 		local := body.local(k.Let.GetName(), t)
 		rest, result, err := w.returns(k.Let.GetBody(), sc.with(k.Let.GetName(), pbound{local, t}), body, indent)
 		return fmt.Sprintf("%s%s = %s;\n%s", indent, local, value, rest), result, err
-	case *modelirspb.Expr_Match:
+	case *umpirespb.Expr_Match:
 		return w.match(k.Match, sc, body, indent)
 	default:
 		value, t, err := w.expr(x, sc)
@@ -306,7 +306,7 @@ func (w *pwriter) returns(x *modelirspb.Expr, sc pscope, body *pbody, indent str
 }
 
 // match writes a match as one branch per case, in order, each of which returns.
-func (w *pwriter) match(m *modelirspb.Match, sc pscope, body *pbody, indent string) (string, ptype, error) {
+func (w *pwriter) match(m *umpirespb.Match, sc pscope, body *pbody, indent string) (string, ptype, error) {
 	scrutinee, t, err := w.expr(m.GetScrutinee(), sc)
 	if err != nil {
 		return "", ptype{}, err
@@ -339,21 +339,21 @@ func (w *pwriter) match(m *modelirspb.Match, sc pscope, body *pbody, indent stri
 	return out.String(), result, nil
 }
 
-func (w *pwriter) pattern(p *modelirspb.Pattern, value pbound, sc pscope) (string, pscope, error) {
+func (w *pwriter) pattern(p *umpirespb.Pattern, value pbound, sc pscope) (string, pscope, error) {
 	switch k := p.GetKind().(type) {
-	case *modelirspb.Pattern_Wildcard:
+	case *umpirespb.Pattern_Wildcard:
 		return "true", sc, nil
-	case *modelirspb.Pattern_Bind:
+	case *umpirespb.Pattern_Bind:
 		return w.pattern(k.Bind.GetPattern(), value, sc.with(k.Bind.GetName(), value))
-	case *modelirspb.Pattern_Literal:
+	case *umpirespb.Pattern_Literal:
 		literal, err := w.value(w.s.literal(k.Literal), value.typ)
 		return fmt.Sprintf("(%s == %s)", value.name, literal), sc, err
-	case *modelirspb.Pattern_Case:
+	case *umpirespb.Pattern_Case:
 		if len(k.Case.GetFields()) > 0 {
 			return "", nil, w.unsupported(nil, "a pattern of the case %s with fields", k.Case.GetCase())
 		}
 		return fmt.Sprintf("(%s == %s)", value.name, element(k.Case.GetType(), k.Case.GetCase())), sc, nil
-	case *modelirspb.Pattern_Alternatives:
+	case *umpirespb.Pattern_Alternatives:
 		var conds []string
 		for _, alt := range k.Alternatives.GetPatterns() {
 			cond, bound, err := w.pattern(alt, value, sc)
@@ -372,35 +372,35 @@ func (w *pwriter) pattern(p *modelirspb.Pattern, value pbound, sc pscope) (strin
 }
 
 // literal is a literal of the IR as a value.
-func (s *Slice) literal(v *modelirspb.Value) umpiremodel.Value {
-	out, err := s.in.Eval(&modelirspb.Expr{Kind: &modelirspb.Expr_Literal{Literal: v}})
+func (s *Slice) literal(v *umpirespb.Value) umpiremodel.Value {
+	out, err := s.in.Eval(&umpirespb.Expr{Kind: &umpirespb.Expr_Literal{Literal: v}})
 	if err != nil {
 		return umpiremodel.Value{}
 	}
 	return out
 }
 
-var boolType = ptype{p: "bool", ref: &modelirspb.TypeRef{Ref: &modelirspb.TypeRef_Bool{Bool: &modelirspb.Empty{}}}}
+var boolType = ptype{p: "bool", ref: &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Bool{Bool: &umpirespb.Empty{}}}}
 
 // expr writes an expression as a P expression, with its type.
-func (w *pwriter) expr(x *modelirspb.Expr, sc pscope) (string, ptype, error) {
+func (w *pwriter) expr(x *umpirespb.Expr, sc pscope) (string, ptype, error) {
 	at := x.GetPosition()
 	switch k := x.GetKind().(type) {
-	case *modelirspb.Expr_Literal:
+	case *umpirespb.Expr_Literal:
 		return w.literal(k.Literal, at)
-	case *modelirspb.Expr_Var:
+	case *umpirespb.Expr_Var:
 		if b, ok := sc[k.Var]; ok {
 			return b.name, b.typ, nil
 		}
 		return "", ptype{}, w.unsupported(at, "the name %s, which nothing in scope binds", k.Var)
-	case *modelirspb.Expr_Field:
+	case *umpirespb.Expr_Field:
 		base, t, err := w.expr(k.Field.GetBase(), sc)
 		if err != nil {
 			return "", ptype{}, err
 		}
 		ft, err := w.field(t, k.Field.GetField(), at)
 		return base + ".f_" + plain(k.Field.GetField()), ft, err
-	case *modelirspb.Expr_Call:
+	case *umpirespb.Expr_Call:
 		f, err := w.function(k.Call.GetFunction(), at)
 		if err != nil {
 			return "", ptype{}, err
@@ -412,20 +412,20 @@ func (w *pwriter) expr(x *modelirspb.Expr, sc pscope) (string, ptype, error) {
 			}
 		}
 		return f.name + "(" + strings.Join(args, ", ") + ")", f.result, nil
-	case *modelirspb.Expr_Unary:
+	case *umpirespb.Expr_Unary:
 		operand, t, err := w.expr(k.Unary.GetOperand(), sc)
 		if err != nil {
 			return "", ptype{}, err
 		}
-		if k.Unary.GetOp() == modelirspb.Unary_OP_NOT {
+		if k.Unary.GetOp() == umpirespb.Unary_OP_NOT {
 			return "!(" + operand + ")", t, nil
 		}
 		return "(-" + operand + ")", t, nil
-	case *modelirspb.Expr_Binary:
+	case *umpirespb.Expr_Binary:
 		return w.binary(k.Binary, sc, at)
-	case *modelirspb.Expr_If, *modelirspb.Expr_Match, *modelirspb.Expr_Let:
+	case *umpirespb.Expr_If, *umpirespb.Expr_Match, *umpirespb.Expr_Let:
 		return "", ptype{}, w.unsupported(at, "a conditional, a match or a binding inside an expression: P has statements for them, and no expression")
-	case *modelirspb.Expr_Hole:
+	case *umpirespb.Expr_Hole:
 		return "", ptype{}, w.unsupported(at, "a hole: the monitor has no state for unknown behavior")
 	default:
 		return "", ptype{}, w.unsupported(at, "an expression P is not given: a construction, a copy, a list, an anonymous function or a channel operation")
@@ -433,7 +433,7 @@ func (w *pwriter) expr(x *modelirspb.Expr, sc pscope) (string, ptype, error) {
 }
 
 // literal writes a literal of the IR, with its type.
-func (w *pwriter) literal(l *modelirspb.Value, at *modelirspb.Position) (string, ptype, error) {
+func (w *pwriter) literal(l *umpirespb.Value, at *umpirespb.Position) (string, ptype, error) {
 	v := w.s.literal(l)
 	var t ptype
 	var err error
@@ -441,7 +441,7 @@ func (w *pwriter) literal(l *modelirspb.Value, at *modelirspb.Position) (string,
 	case umpiremodel.BoolValue:
 		t = boolType
 	case umpiremodel.IntValue:
-		t, err = w.typeRef(&modelirspb.TypeRef{Ref: &modelirspb.TypeRef_Int{Int: &modelirspb.Empty{}}})
+		t, err = w.typeRef(&umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Int{Int: &umpirespb.Empty{}}})
 	case umpiremodel.EnumValue, umpiremodel.RecordValue:
 		t, err = w.typeRef(named(v.Type))
 	default:
@@ -454,7 +454,7 @@ func (w *pwriter) literal(l *modelirspb.Value, at *modelirspb.Position) (string,
 	return written, t, err
 }
 
-func (w *pwriter) binary(b *modelirspb.Binary, sc pscope, at *modelirspb.Position) (string, ptype, error) {
+func (w *pwriter) binary(b *umpirespb.Binary, sc pscope, at *umpirespb.Position) (string, ptype, error) {
 	l, lt, err := w.expr(b.GetLeft(), sc)
 	if err != nil {
 		return "", ptype{}, err
@@ -463,19 +463,19 @@ func (w *pwriter) binary(b *modelirspb.Binary, sc pscope, at *modelirspb.Positio
 	if err != nil {
 		return "", ptype{}, err
 	}
-	infix := map[modelirspb.Binary_Op]string{
-		modelirspb.Binary_OP_EQ: "==", modelirspb.Binary_OP_NE: "!=", modelirspb.Binary_OP_AND: "&&", modelirspb.Binary_OP_OR: "||",
-		modelirspb.Binary_OP_LT: "<", modelirspb.Binary_OP_LE: "<=", modelirspb.Binary_OP_GT: ">", modelirspb.Binary_OP_GE: ">=",
+	infix := map[umpirespb.Binary_Op]string{
+		umpirespb.Binary_OP_EQ: "==", umpirespb.Binary_OP_NE: "!=", umpirespb.Binary_OP_AND: "&&", umpirespb.Binary_OP_OR: "||",
+		umpirespb.Binary_OP_LT: "<", umpirespb.Binary_OP_LE: "<=", umpirespb.Binary_OP_GT: ">", umpirespb.Binary_OP_GE: ">=",
 	}
 	if op, ok := infix[b.GetOp()]; ok {
 		return fmt.Sprintf("(%s %s %s)", l, op, r), boolType, nil
 	}
 	switch b.GetOp() {
-	case modelirspb.Binary_OP_ADD:
+	case umpirespb.Binary_OP_ADD:
 		return fmt.Sprintf("(%s + %s)", l, r), lt, nil
-	case modelirspb.Binary_OP_SUB:
+	case umpirespb.Binary_OP_SUB:
 		return fmt.Sprintf("(%s - %s)", l, r), lt, nil
-	case modelirspb.Binary_OP_CONTAINS:
+	case umpirespb.Binary_OP_CONTAINS:
 		return fmt.Sprintf("(%s in %s)", l, r), boolType, nil
 	default:
 		return "", ptype{}, w.unsupported(at, "the binary operator %s", b.GetOp())
@@ -483,7 +483,7 @@ func (w *pwriter) binary(b *modelirspb.Binary, sc pscope, at *modelirspb.Positio
 }
 
 // field is the type of a field of a record or of the step record.
-func (w *pwriter) field(t ptype, name string, at *modelirspb.Position) (ptype, error) {
+func (w *pwriter) field(t ptype, name string, at *umpirespb.Position) (ptype, error) {
 	if t.step {
 		switch name {
 		case "outcome":
@@ -593,7 +593,7 @@ type pmonitor struct {
 }
 
 // monitor translates a monitor's declarations and functions.
-func (w *pwriter) monitor(mo *modelirspb.Monitor) (pmonitor, error) {
+func (w *pwriter) monitor(mo *umpirespb.Monitor) (pmonitor, error) {
 	out := pmonitor{name: mo.GetName(), read: "true"}
 	var err error
 	if out.state, err = w.typeRef(named(w.mm.Decl.GetStateType())); err != nil {
@@ -627,8 +627,8 @@ func (w *pwriter) monitor(mo *modelirspb.Monitor) (pmonitor, error) {
 	}
 	out.next, out.violated = next.name, violated.name
 	switch e := mo.GetEvaluate().(type) {
-	case *modelirspb.Monitor_EveryStep:
-	case *modelirspb.Monitor_After:
+	case *umpirespb.Monitor_EveryStep:
+	case *umpirespb.Monitor_After:
 		after, err := w.function(e.After, mo.GetPosition())
 		if err != nil {
 			return out, err
@@ -686,7 +686,7 @@ func (s *Slice) PMonitor(machine, monitor string, depth int) (*PExport, error) {
 	if mm == nil {
 		return nil, fmt.Errorf("the Model has no machine %s", machine)
 	}
-	k := slices.IndexFunc(mm.Monitors, func(mo *modelirspb.Monitor) bool { return mo.GetName() == monitor })
+	k := slices.IndexFunc(mm.Monitors, func(mo *umpirespb.Monitor) bool { return mo.GetName() == monitor })
 	if k < 0 {
 		return nil, fmt.Errorf("%s names no monitor %s", machine, monitor)
 	}

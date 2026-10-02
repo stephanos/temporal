@@ -1,5 +1,5 @@
 // A Model the lifter must refuse: its step function loops over a mutable variable, which the IR has no
-// form for. run.sh lifts it and expects the refusal at the loop's line.
+// form for. The lifter's tests lift it and expect the refusal at the loop's line.
 package temporal.fixture
 
 import umpire.*

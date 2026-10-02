@@ -36,9 +36,12 @@ Preserve the authorized uncommitted baseline and comments except the explicit R2
 - [ ] Only the reviewed naming/path transformation affects artifacts; all semantic goldens and consumers pass, or the explicit R21 fallback is evidenced.
 
 ## Done summary
-TBD
+Renamed the Umpire IR namespace from `modelir` to `umpire/v1`: `ir.proto` moved to `proto/internal/temporal/server/api/umpire/v1` with only package, `go_package` and `java_package` changed; Go regenerated into `api/umpire/v1` with `make protoc`; the JVM jar rebuilt (463 classes, invalidated by the schema content hash). 87 Go files, 8 lifter files, `gen.sh`, `run.sh`, `Makefile` and the model docs follow. `api/modelir/v1` no longer exists.
 
+New `tools/umpire/model/schema_test.go` proves descriptor-structure and wire compatibility against frozen pre-rename data covering all 439 schema fields. No artifact byte changed: `model/ir`, `model/cases`, lifter fixtures and the 1,411 goldens are identical, and persisted identity strings are untouched, so R21's fallback does not apply.
+
+Model gate (check mode), the full Go run over tooling, Testpilot and canary (4,878 passed), fixture tests, functional compile, build, vet, `lint-model` and `lint-code-fast` pass. Independent review (Claude Fable, fresh context) returned SHIP in round 1 with P3 notes only. `make lint-api` fails on 57 findings in `ir.proto` that predate the rename. Handover: .flow/tmp/fn115-9-summary.md; evidence: .flow/tmp/fn115-9-evidence.json; review: .flow/tmp/fn115-9-review/round1-review.md. No agent commits.
 ## Evidence
 - Commits:
-- Tests:
+- Tests: go test -count=1 -json -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/..., make umpire-check-model, go test -tags test_dep ./tools/umpire/model -run '^TestSchemaRename', Independent review round 1 SHIP (claude-fable-5-1); .flow/tmp/fn115-9-review/round1-review.md
 - PRs:

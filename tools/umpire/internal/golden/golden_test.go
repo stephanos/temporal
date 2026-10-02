@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -22,18 +22,18 @@ func TestCaptureNeverReplacesAnExistingDestination(t *testing.T) {
 
 func TestClosedMigrationRejectsUnlistedSourceChanges(t *testing.T) {
 	cfg := Config{Paths: []Substitution{{Old: "old.scala", New: "new.scala"}}, Labels: []Substitution{{Old: "old model", New: "new model"}}}
-	original := &modelirspb.Model{Source: "old model", Machines: []*modelirspb.Machine{{Position: &modelirspb.Position{File: "old.scala", Line: 12}}}}
+	original := &umpirespb.Model{Source: "old model", Machines: []*umpirespb.Machine{{Position: &umpirespb.Position{File: "old.scala", Line: 12}}}}
 	mapped, err := cfg.Migrate(original)
 	require.NoError(t, err)
 	require.Equal(t, "old.scala", original.Machines[0].Position.File)
-	require.True(t, proto.Equal(&modelirspb.Position{File: "new.scala", Line: 12}, mapped.Machines[0].Position))
+	require.True(t, proto.Equal(&umpirespb.Position{File: "new.scala", Line: 12}, mapped.Machines[0].Position))
 	moved, err := cfg.Match(original, mapped)
 	require.NoError(t, err)
 	require.True(t, moved)
-	for _, change := range []func(*modelirspb.Model){
-		func(m *modelirspb.Model) { m.Machines[0].Position.File = "other.scala" },
-		func(m *modelirspb.Model) { m.Machines[0].Position.Line++ },
-		func(m *modelirspb.Model) { m.Source += " unexpected" },
+	for _, change := range []func(*umpirespb.Model){
+		func(m *umpirespb.Model) { m.Machines[0].Position.File = "other.scala" },
+		func(m *umpirespb.Model) { m.Machines[0].Position.Line++ },
+		func(m *umpirespb.Model) { m.Source += " unexpected" },
 	} {
 		changed := proto.CloneOf(mapped)
 		change(changed)

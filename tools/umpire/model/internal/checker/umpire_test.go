@@ -173,34 +173,11 @@ func TestAMachineWithoutAStartIsRejected(t *testing.T) {
 }
 
 func TestAnExampleOfTheWrongTypeIsRejected(t *testing.T) {
-	bad := umpire.NewAction1[hand]("wave", "person", "hand", umpire.Example("left", "Hello"))
+	bad := umpire.NewAction1[hand]("wave", "person", "hand", umpire.WithExample("left", "Hello"))
 	m := umpire.NewMachine[door, doorOutcome, doorFact]("test.door", "waving").
 		Starts(door{Phase: closed}).Step1(bad, func(door, hand) []doorStep { return nil })
 	_, err := m.Table()
 	require.ErrorContains(t, err, "example left is a string, not a checker_test.hand")
-}
-
-func TestCheckReportsAStuckStateAndAFactWithNoEvidence(t *testing.T) {
-	// No lock: a closed door that cannot be opened by the left hand is still enabled by the right,
-	// but an oiled open door can only be pushed shut, so remove push to leave open stuck.
-	m := umpire.NewMachine[door, doorOutcome, doorFact]("test.door", "stuck").
-		Starts(door{Phase: closed}).
-		Ends(func(d door) bool { return d.Phase == locked }).
-		Evidence("opened", "opened").
-		Step1(turn, turnStep)
-	err := umpire.Check(m)
-	require.ErrorContains(t, err, "machine stuck: the machine reaches 'open-false', does not end there")
-	require.ErrorContains(t, err, "row closed-false-turn-right-true records creaked-true, and no Evidence line names what confirms it")
-}
-
-func TestCheckRejectsAPropertyNameDeclaredTwice(t *testing.T) {
-	m := newDoor("named")
-	m.Property("opens").Holds(func(umpire.Step[door, doorOutcome, doorFact]) bool { return true })
-	m.Scenario("opens").Starts(door{Phase: closed}).Free()
-	require.NoError(t, umpire.Check(m), "a Property and a Scenario have separate Definition IDs")
-	m.Property("opens").Holds(func(umpire.Step[door, doorOutcome, doorFact]) bool { return false })
-	require.ErrorContains(t, umpire.Check(m),
-		"machine named: property opens is declared twice, and both declarations would share one Definition ID")
 }
 
 // A two-phase abstraction of the door: shut or open.
@@ -376,19 +353,6 @@ func TestAFindCannotRealizeATransitionClaim(t *testing.T) {
 	p := m.Property("p").HoldsAcross(func(door, doorStep) bool { return true })
 	_, err := m.Scenario("s").Starts(door{Phase: closed}).Actions(lock.With()).Find("q", p, two).Answer()
 	require.EqualError(t, err, "query q: find names p, a transition claim; a find realizes a same-step claim")
-}
-
-func TestCoverageTargetsAreCutAtTheBudget(t *testing.T) {
-	m := newDoor("door")
-	targets, err := umpire.CoverageTargets(m, []umpire.CoverageGoal{umpire.CoverRows, umpire.CoverResults},
-		umpire.Limits{Name: "b", Steps: 1, Search: 2})
-	require.NoError(t, err)
-	require.Equal(t, []umpire.CoverageTarget{
-		{Kind: "row", Key: "closed-false-lock", State: "test.door.state.door.closed-false",
-			Action: "test.door.action.door.lock", Results: []string{"test.door.outcome.door.ok"}},
-		{Kind: "row", Key: "closed-false-turn-right-true", State: "test.door.state.door.closed-false",
-			Action: "test.door.action.door.turn-right-true", Results: []string{"test.door.outcome.door.ok"}},
-	}, targets)
 }
 
 // A composition of the door with a keyholder who may lose the key.

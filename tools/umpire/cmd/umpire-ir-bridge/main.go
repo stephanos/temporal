@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	_ "go.temporal.io/api/workflowservice/v1"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/tools/umpire/explore"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 )
@@ -41,7 +41,7 @@ func run() error {
 	if len(paths) == 0 {
 		return errors.New("no IR Models in ir/")
 	}
-	var models []*modelirspb.Model
+	var models []*umpirespb.Model
 	for _, path := range paths {
 		m, err := umpiremodel.Load(path)
 		if err != nil {

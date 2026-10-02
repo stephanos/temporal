@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 )
 
@@ -76,7 +76,7 @@ type claim struct {
 // lost is a monitor state a hole left unknown. It is no position of a state.
 const lost int32 = -1
 
-func located(at *modelirspb.Position, format string, args ...any) error {
+func located(at *umpirespb.Position, format string, args ...any) error {
 	position := ""
 	if at.GetFile() != "" {
 		position = fmt.Sprintf("%s:%d", at.GetFile(), at.GetLine())
@@ -88,7 +88,7 @@ func located(at *modelirspb.Position, format string, args ...any) error {
 // of recorded steps: the table Check reads, and the Property and monitors as Check declares them.
 // Nothing of a claim is decided here. Reading the claims is work, counted against the readings
 // ceiling before each reading is made.
-func compile(m *modelirspb.Model, key umpiremodel.ClaimKey, source *testpilotspb.Case, limits Limits) (*plan, error) {
+func compile(m *umpirespb.Model, key umpiremodel.ClaimKey, source *testpilotspb.Case, limits Limits) (*plan, error) {
 	realizer, err := umpiremodel.NewRealizer(m, umpiremodel.DefaultScope)
 	if err != nil {
 		return nil, err
@@ -152,9 +152,9 @@ func compile(m *modelirspb.Model, key umpiremodel.ClaimKey, source *testpilotspb
 }
 
 // realizationOf is the one realization that says how the facts of a Query's machine are recorded.
-func realizationOf(realizer *umpiremodel.Realizer, key umpiremodel.ClaimKey, declared *umpiremodel.Declared) (*modelirspb.Realization, error) {
+func realizationOf(realizer *umpiremodel.Realizer, key umpiremodel.ClaimKey, declared *umpiremodel.Declared) (*umpirespb.Realization, error) {
 	at, machine := declared.Query.GetPosition(), declared.Scenario.GetMachine()
-	var realization *modelirspb.Realization
+	var realization *umpirespb.Realization
 	for _, r := range realizer.Realizations() {
 		if r.GetMachine() != machine {
 			continue
@@ -179,7 +179,7 @@ type taken struct {
 
 // index lays the bound table's rows and unknown pairs out by state, from the Query's start, and
 // returns every step in the order the claims' readings are indexed by.
-func (p *plan) index(bound *umpiremodel.Bound, at *modelirspb.Position) ([]taken, error) {
+func (p *plan) index(bound *umpiremodel.Bound, at *umpirespb.Position) ([]taken, error) {
 	table := bound.Table
 	index := make(map[string]int32, len(p.states))
 	for i, state := range p.states {
@@ -233,7 +233,7 @@ func (p *plan) index(bound *umpiremodel.Bound, at *modelirspb.Position) ([]taken
 type readings struct {
 	made, ceiling int
 	query         string
-	at            *modelirspb.Position
+	at            *umpirespb.Position
 }
 
 // charge counts one reading before it is made.

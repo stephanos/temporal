@@ -13,8 +13,8 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
 	"go.temporal.io/api/workflowservice/v1"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
@@ -31,7 +31,7 @@ const (
 	nexusEvidence = "temporal.nexus.caller.evidence."
 )
 
-func nexusModel(t testing.TB) *modelirspb.Model {
+func nexusModel(t testing.TB) *umpirespb.Model {
 	t.Helper()
 	m, err := umpiremodel.Load(filepath.Join("..", "..", "..", "model", "ir", "nexus-caller.json"))
 	require.NoError(t, err)
@@ -40,7 +40,7 @@ func nexusModel(t testing.TB) *modelirspb.Model {
 
 // loweredNexus is one functional Query of the Nexus caller Model lowered to its Case, prepared as a
 // black-box consumer prepares it, with the Query's assessment bound to it.
-func loweredNexus(t testing.TB, m *modelirspb.Model, query string, limits Limits) *bound {
+func loweredNexus(t testing.TB, m *umpirespb.Model, query string, limits Limits) *bound {
 	t.Helper()
 	producer, err := lower.NewProducer(m)
 	require.NoError(t, err)
@@ -490,7 +490,7 @@ func TestAnAssessmentIsReplayedOnlyUnderItsOwnBinding(t *testing.T) {
 	require.Equal(t, b.factory.Binding(), mustPrepare(t, moved, "retry", b.source, generous).Binding())
 }
 
-func mustPrepare(t testing.TB, m *modelirspb.Model, query string, source *testpilotspb.Case, limits Limits) *Factory {
+func mustPrepare(t testing.TB, m *umpirespb.Model, query string, source *testpilotspb.Case, limits Limits) *Factory {
 	t.Helper()
 	factory, err := Prepare(m, umpiremodel.ClaimKey{Family: nexusFamily, Owner: nexusMachine, Name: query}, source, limits)
 	require.NoError(t, err)

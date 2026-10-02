@@ -641,7 +641,7 @@ umpire-check-exploration-bridge:
 umpire-check-replay-bridge:
 	@mise exec -- go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-ir-bridge -run '^TestIRBridgeProtocol$$/replay$$'
 
-# Scala model tooling uses explicit source roots so authoring and the lifter stay separate projects.
+# Scala model tooling uses explicit source roots so authoring, the lifter and the gate stay separate projects.
 MODEL_ROOT := model
 MODEL_CLI := mise exec -- scala-cli
 MODEL_GATE_ARGS ?=
@@ -651,35 +651,40 @@ MODEL_SCALAFIX = $(MODEL_CLI) --power fix --enable-built-in=false \
 MODEL_SOURCES := $(MODEL_ROOT)/project.scala $(MODEL_ROOT)/umpire $(MODEL_ROOT)/temporal
 MODEL_SCALAFIX_FILES = $(foreach source,$(MODEL_SOURCES),--scalafix-arg=--files --scalafix-arg="$(CURDIR)/$(source)")
 MODEL_PROTO_JARS := $(MODEL_ROOT)/gen/ir-proto.jar
+# The gate is one Scala program; its own arguments follow.
+MODEL_GATE = $(MODEL_CLI) run --suppress-outdated-dependency-warning $(MODEL_ROOT)/gate --
 
-$(MODEL_PROTO_JARS): proto/internal/temporal/server/api/modelir/v1/ir.proto $(MODEL_ROOT)/gen.sh
+$(MODEL_PROTO_JARS): proto/internal/temporal/server/api/umpire/v1/ir.proto
 	@printf $(COLOR) "Package model IR classes..."
-	@$(MODEL_ROOT)/gen.sh ir
+	@$(MODEL_GATE) --generate-ir
 
 fmt-model:
 	@printf $(COLOR) "Formatting model files..."
-	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf $(MODEL_SOURCES) $(MODEL_ROOT)/lifter
+	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf $(MODEL_SOURCES) $(MODEL_ROOT)/lifter $(MODEL_ROOT)/gate
 
 lint-model: $(MODEL_PROTO_JARS)
 	@printf $(COLOR) "Checking model formatting..."
-	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf --check $(MODEL_SOURCES) $(MODEL_ROOT)/lifter
+	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf --check $(MODEL_SOURCES) $(MODEL_ROOT)/lifter $(MODEL_ROOT)/gate
 	@printf $(COLOR) "Linting model files..."
 	@$(MODEL_SCALAFIX) $(MODEL_SCALAFIX_FILES) --check $(MODEL_SOURCES)
 	@cd $(MODEL_ROOT)/lifter && $(MODEL_SCALAFIX) --check .
+	@cd $(MODEL_ROOT)/gate && $(MODEL_SCALAFIX) --check .
 
 # Applies the scalafix rewrites; findings without a rewrite (e.g. DisableSyntax) still fail.
 fix-model: $(MODEL_PROTO_JARS)
 	@printf $(COLOR) "Applying model lint fixes..."
 	@$(MODEL_SCALAFIX) $(MODEL_SCALAFIX_FILES) $(MODEL_SOURCES)
 	@cd $(MODEL_ROOT)/lifter && $(MODEL_SCALAFIX) .
+	@cd $(MODEL_ROOT)/gate && $(MODEL_SCALAFIX) .
 
-umpire-check-model: $(MODEL_PROTO_JARS)
+# The gate packages the IR classes itself when the schema changed.
+umpire-check-model:
 	@printf $(COLOR) "Check model IR..."
-	@$(MODEL_ROOT)/run.sh $(MODEL_GATE_ARGS)
+	@$(MODEL_GATE) $(MODEL_GATE_ARGS)
 
-umpire-gen-model: $(MODEL_PROTO_JARS)
+umpire-gen-model:
 	@printf $(COLOR) "Generate model IR..."
-	@$(MODEL_ROOT)/run.sh --update $(MODEL_GATE_ARGS)
+	@$(MODEL_GATE) --update $(MODEL_GATE_ARGS)
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."

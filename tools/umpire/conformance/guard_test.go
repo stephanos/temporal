@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	failurepb "go.temporal.io/api/failure/v1"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
 )
@@ -15,7 +15,7 @@ import (
 // activitySource is the Run Event source of one kind of evidence of the standalone activity Model's
 // realization, by the last part of the kind's id, as the lifter emitted it
 // (model/scalav2/ir/activity.json).
-func activitySource(t testing.TB, kind string) *modelirspb.RunEventSource {
+func activitySource(t testing.TB, kind string) *umpirespb.RunEventSource {
 	t.Helper()
 	m, err := umpiremodel.Load(filepath.Join("..", "..", "..", "model", "ir", "activity.json"))
 	require.NoError(t, err)
@@ -69,9 +69,9 @@ func TestOnlyADeliveredAttemptIsEvidenceOfAnAttemptStart(t *testing.T) {
 		"an attempt another command carries": {reported(diagnostic, "pause-activity", attemptOf(1, "token-1", testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED)), taken{}},
 	} {
 		t.Run(name, func(t *testing.T) {
-			first, err := Admits(activitySource(t, "statusStarted"), test.event)
+			first, err := admits(activitySource(t, "statusStarted"), test.event)
 			require.NoError(t, err)
-			second, err := Admits(activitySource(t, "attemptCount"), test.event)
+			second, err := admits(activitySource(t, "attemptCount"), test.event)
 			require.NoError(t, err)
 			require.Equal(t, test.want, taken{first, second})
 		})
@@ -82,8 +82,8 @@ func TestOnlyADeliveredAttemptIsEvidenceOfAnAttemptStart(t *testing.T) {
 // no other, whatever its guard: the number is read from the Run's typed record, and an outcome that
 // records no attempt is the record of none.
 func TestASourceDeclaredTheRecordOfAnAttemptTakesThatAttemptsRecord(t *testing.T) {
-	source := &modelirspb.RunEventSource{Kind: modelirspb.RunEventSource_KIND_DIAGNOSTIC, Script: "controller", Command: "start-activity",
-		Attempt: &modelirspb.AttemptOf{Script: "activity", Number: 2}}
+	source := &umpirespb.RunEventSource{Kind: umpirespb.RunEventSource_KIND_DIAGNOSTIC, Script: "controller", Command: "start-activity",
+		Attempt: &umpirespb.AttemptOf{Script: "activity", Number: 2}}
 	const diagnostic = testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC
 	for name, test := range map[string]struct {
 		outcome *testpilotspb.InstructionOutcome
@@ -95,7 +95,7 @@ func TestASourceDeclaredTheRecordOfAnAttemptTakesThatAttemptsRecord(t *testing.T
 		"an outcome of no attempt":   {&testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}, false},
 	} {
 		t.Run(name, func(t *testing.T) {
-			admitted, err := Admits(source, reported(diagnostic, "start-activity", test.outcome))
+			admitted, err := admits(source, reported(diagnostic, "start-activity", test.outcome))
 			require.NoError(t, err)
 			require.Equal(t, test.want, admitted)
 		})
@@ -128,65 +128,65 @@ func TestOnlyASucceededCallIsEvidenceOfItsAnswer(t *testing.T) {
 			Coordinates: &testpilotspb.RunEventCoordinates{EntrypointId: "controller", InstructionId: "start-activity"}}, false},
 	} {
 		t.Run(name, func(t *testing.T) {
-			admitted, err := Admits(activitySource(t, test.records), test.event)
+			admitted, err := admits(activitySource(t, test.records), test.event)
 			require.NoError(t, err)
 			require.Equal(t, test.want, admitted)
 		})
 	}
 }
 
-func guardLiteral(kind any) *modelirspb.Operand {
-	value := &modelirspb.ProtoValue{}
+func guardLiteral(kind any) *umpirespb.Operand {
+	value := &umpirespb.ProtoValue{}
 	switch k := kind.(type) {
 	case string:
-		value.Kind = &modelirspb.ProtoValue_Text{Text: k}
+		value.Kind = &umpirespb.ProtoValue_Text{Text: k}
 	case int:
-		value.Kind = &modelirspb.ProtoValue_Number{Number: int64(k)}
+		value.Kind = &umpirespb.ProtoValue_Number{Number: int64(k)}
 	case bool:
-		value.Kind = &modelirspb.ProtoValue_Flag{Flag: k}
+		value.Kind = &umpirespb.ProtoValue_Flag{Flag: k}
 	case protoName:
-		value.Kind = &modelirspb.ProtoValue_EnumName{EnumName: string(k)}
+		value.Kind = &umpirespb.ProtoValue_EnumName{EnumName: string(k)}
 	default:
 	}
-	return &modelirspb.Operand{Kind: &modelirspb.Operand_Literal{Literal: value}}
+	return &umpirespb.Operand{Kind: &umpirespb.Operand_Literal{Literal: value}}
 }
 
 // protoName is an enum value written out by its name.
 type protoName string
 
-func guardPath(path string) *modelirspb.Operand {
-	return &modelirspb.Operand{Kind: &modelirspb.Operand_Path{Path: &modelirspb.PathOf{Path: path,
-		Of: &modelirspb.Operand{Kind: &modelirspb.Operand_Projected{Projected: &modelirspb.Empty{}}}}}}
+func guardPath(path string) *umpirespb.Operand {
+	return &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: path,
+		Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}}}}}
 }
 
 // guardNested is a path of a path of the payload.
-func guardNested(outer, inner string) *modelirspb.Operand {
-	return &modelirspb.Operand{Kind: &modelirspb.Operand_Path{Path: &modelirspb.PathOf{Path: inner, Of: guardPath(outer)}}}
+func guardNested(outer, inner string) *umpirespb.Operand {
+	return &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: inner, Of: guardPath(outer)}}}
 }
 
-func guardEqual(left, right *modelirspb.Operand) *modelirspb.Operand {
-	return &modelirspb.Operand{Kind: &modelirspb.Operand_Equal{Equal: &modelirspb.Equal{Left: left, Right: right}}}
+func guardEqual(left, right *umpirespb.Operand) *umpirespb.Operand {
+	return &umpirespb.Operand{Kind: &umpirespb.Operand_Equal{Equal: &umpirespb.Equal{Left: left, Right: right}}}
 }
 
-func guardGreater(left, right *modelirspb.Operand) *modelirspb.Operand {
-	return &modelirspb.Operand{Kind: &modelirspb.Operand_Greater{Greater: &modelirspb.Greater{Left: left, Right: right}}}
+func guardGreater(left, right *umpirespb.Operand) *umpirespb.Operand {
+	return &umpirespb.Operand{Kind: &umpirespb.Operand_Greater{Greater: &umpirespb.Greater{Left: left, Right: right}}}
 }
 
-func guardNot(of *modelirspb.Operand) *modelirspb.Operand {
-	return &modelirspb.Operand{Kind: &modelirspb.Operand_Not{Not: &modelirspb.Not{Of: of}}}
+func guardNot(of *umpirespb.Operand) *umpirespb.Operand {
+	return &umpirespb.Operand{Kind: &umpirespb.Operand_Not{Not: &umpirespb.Not{Of: of}}}
 }
 
-func guardPresent(of *modelirspb.Operand) *modelirspb.Operand {
-	return &modelirspb.Operand{Kind: &modelirspb.Operand_Present{Present: &modelirspb.Present{Of: of}}}
+func guardPresent(of *umpirespb.Operand) *umpirespb.Operand {
+	return &umpirespb.Operand{Kind: &umpirespb.Operand_Present{Present: &umpirespb.Present{Of: of}}}
 }
 
-func guardAll(operands ...*modelirspb.Operand) *modelirspb.Operand {
-	return &modelirspb.Operand{Kind: &modelirspb.Operand_All{All: &modelirspb.All{Operands: operands}}}
+func guardAll(operands ...*umpirespb.Operand) *umpirespb.Operand {
+	return &umpirespb.Operand{Kind: &umpirespb.Operand_All{All: &umpirespb.All{Operands: operands}}}
 }
 
 // guarded is a source of the attempts a start call carries, under one guard.
-func guarded(guard *modelirspb.Operand) *modelirspb.RunEventSource {
-	return &modelirspb.RunEventSource{Kind: modelirspb.RunEventSource_KIND_DIAGNOSTIC, Script: "controller", Command: "start-activity", Guard: guard}
+func guarded(guard *umpirespb.Operand) *umpirespb.RunEventSource {
+	return &umpirespb.RunEventSource{Kind: umpirespb.RunEventSource_KIND_DIAGNOSTIC, Script: "controller", Command: "start-activity", Guard: guard}
 }
 
 // A guard is evaluated over typed values, read as the payload types them. Presence is of a message or
@@ -198,7 +198,7 @@ func TestAGuardIsEvaluatedOverTypedValues(t *testing.T) {
 	plain := reported(testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, "start-activity", &testpilotspb.InstructionOutcome{
 		Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}})
 	for name, test := range map[string]struct {
-		guard *modelirspb.Operand
+		guard *umpirespb.Operand
 		event *testpilotspb.RunEvent
 		want  bool
 	}{
@@ -224,7 +224,7 @@ func TestAGuardIsEvaluatedOverTypedValues(t *testing.T) {
 		"a conjunction that stops at once":  {guardAll(guardPresent(guardPath("activity_attempt")), guardGreater(guardPath("activity_attempt.sdk_attempt"), guardLiteral(0))), plain, false},
 	} {
 		t.Run(name, func(t *testing.T) {
-			admitted, err := Admits(guarded(test.guard), test.event)
+			admitted, err := admits(guarded(test.guard), test.event)
 			require.NoError(t, err)
 			require.Equal(t, test.want, admitted)
 		})
@@ -236,7 +236,7 @@ func TestAGuardIsEvaluatedOverTypedValues(t *testing.T) {
 	bare := &testpilotspb.RunEvent{Kind: testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC,
 		Coordinates: &testpilotspb.RunEventCoordinates{EntrypointId: "controller", InstructionId: "start-activity"}}
 	for _, event := range []*testpilotspb.RunEvent{elsewhere, bare} {
-		admitted, err := Admits(guarded(nil), event)
+		admitted, err := admits(guarded(nil), event)
 		require.NoError(t, err)
 		require.False(t, admitted)
 	}
@@ -249,9 +249,9 @@ func TestAGuardIsEvaluatedOverTypedValues(t *testing.T) {
 func TestAGuardThatCannotBeEvaluatedIsAnError(t *testing.T) {
 	delivered := reported(testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, "start-activity", attemptOf(1, "token-1", testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED))
 	plain := reported(testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, "start-activity", &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED})
-	run := &modelirspb.Operand{Kind: &modelirspb.Operand_Run{Run: &modelirspb.Empty{}}}
+	run := &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}
 	for name, test := range map[string]struct {
-		guard *modelirspb.Operand
+		guard *umpirespb.Operand
 		event *testpilotspb.RunEvent
 		says  string
 	}{
@@ -284,17 +284,17 @@ func TestAGuardThatCannotBeEvaluatedIsAnError(t *testing.T) {
 		"a field an unset message does not have":          {guardPresent(guardNested("activity_attempt", "nope")), plain, "reads nope, and temporal.server.api.testpilot.v1.ActivityAttempt has no field nope"},
 		"a field of a text that is absent":                {guardPresent(guardNested("activity_attempt.delivery_id", "x")), plain, "reads x of a text, which is no message"},
 		"a guard that reads the run":                      {guardEqual(run, guardLiteral("run")), delivered, "reads the run's id; a Run Event's guard reads the event's payload alone"},
-		"a guard of no kind":                              {&modelirspb.Operand{}, delivered, "has an operand of no known kind"},
-		"a literal that is no value of a guard":           {guardEqual(guardPath("detail"), &modelirspb.Operand{Kind: &modelirspb.Operand_Literal{Literal: &modelirspb.ProtoValue{}}}), delivered, "writes out a value that is no text, flag, number or enum value"},
+		"a guard of no kind":                              {&umpirespb.Operand{}, delivered, "has an operand of no known kind"},
+		"a literal that is no value of a guard":           {guardEqual(guardPath("detail"), &umpirespb.Operand{Kind: &umpirespb.Operand_Literal{Literal: &umpirespb.ProtoValue{}}}), delivered, "writes out a value that is no text, flag, number or enum value"},
 		"a field of a kind no guard reads":                {guardPresent(guardPath("value.bytes_value")), delivered, "reads temporal.server.api.testpilot.v1.Value.bytes_value, which is of kind bytes"},
 		"several values":                                  {guardPresent(guardPath("value.list_value.values")), delivered, "reads value.list_value.values, and temporal.server.api.testpilot.v1.ValueList.values holds several values"},
 		"an enum value its enum does not name": {guardEqual(guardPath("status"), guardLiteral(protoName("INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"))),
 			reported(testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, "start-activity", &testpilotspb.InstructionOutcome{Status: 99}),
 			"reads temporal.server.api.testpilot.v1.InstructionOutcome.status, whose value 99 its enum does not name"},
-		"a path of what is no message": {guardPresent(&modelirspb.Operand{Kind: &modelirspb.Operand_Path{Path: &modelirspb.PathOf{Path: "x", Of: guardLiteral("y")}}}), delivered, "reads x of a text, which is no message"},
+		"a path of what is no message": {guardPresent(&umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: "x", Of: guardLiteral("y")}}}), delivered, "reads x of a text, which is no message"},
 	} {
 		t.Run(name, func(t *testing.T) {
-			admitted, err := Admits(guarded(test.guard), test.event)
+			admitted, err := admits(guarded(test.guard), test.event)
 			require.False(t, admitted)
 			var refused *GuardError
 			require.ErrorAs(t, err, &refused)
@@ -303,7 +303,7 @@ func TestAGuardThatCannotBeEvaluatedIsAnError(t *testing.T) {
 	}
 
 	// A source of no known kind takes no event, and says so.
-	_, err := Admits(&modelirspb.RunEventSource{Script: "controller", Command: "start-activity"}, delivered)
+	_, err := admits(&umpirespb.RunEventSource{Script: "controller", Command: "start-activity"}, delivered)
 	require.EqualError(t, err, "run event 9: the guard is of a Run Event source of no known kind")
 }
 

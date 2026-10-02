@@ -6,18 +6,18 @@ import (
 	"strconv"
 	"strings"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 )
 
 // itf writes a value of an IR type as the export's module would hold it in an ITF trace.
-func (x *QuintExport) itf(v umpiremodel.Value, t *modelirspb.TypeRef) any {
+func (x *QuintExport) itf(v umpiremodel.Value, t *umpirespb.TypeRef) any {
 	switch r := t.GetRef().(type) {
-	case *modelirspb.TypeRef_Bool:
+	case *umpirespb.TypeRef_Bool:
 		return v.Bool
-	case *modelirspb.TypeRef_IntRange, *modelirspb.TypeRef_Int:
+	case *umpirespb.TypeRef_IntRange, *umpirespb.TypeRef_Int:
 		return map[string]any{"#bigint": strconv.FormatInt(v.Int, 10)}
-	case *modelirspb.TypeRef_List:
+	case *umpirespb.TypeRef_List:
 		out := []any{}
 		for _, item := range v.Items {
 			out = append(out, x.itf(item, r.List))
@@ -25,7 +25,7 @@ func (x *QuintExport) itf(v umpiremodel.Value, t *modelirspb.TypeRef) any {
 		return out
 	default:
 		decl := x.from.types[t.GetNamed()]
-		record := func(fields []*modelirspb.Field) any {
+		record := func(fields []*umpirespb.Field) any {
 			out := map[string]any{}
 			for i, f := range fields {
 				out["f_"+plain(f.GetName())] = x.itf(v.Fields[i], f.GetType())
@@ -52,7 +52,7 @@ func set(items []any) any { return map[string]any{"#set": items} }
 
 // classITF writes a class of machine i as the module holds it.
 func (x *QuintExport) classITF(i int, c umpiremodel.Class) any {
-	j := slices.IndexFunc(x.bindings[i], func(a *modelirspb.Action) bool { return a.GetId() == c.Action.GetId() })
+	j := slices.IndexFunc(x.bindings[i], func(a *umpirespb.Action) bool { return a.GetId() == c.Action.GetId() })
 	value := map[string]any{"#tup": []any{}}
 	if len(c.Inputs) > 0 {
 		value = map[string]any{}

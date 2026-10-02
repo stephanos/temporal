@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
@@ -19,18 +19,18 @@ import (
 
 // identityFields is what the admission evidence keeps: the attempt and the delivery the fact belongs
 // to, and the activity it is of, which repeats the operation key.
-func identityFields() []*modelirspb.EvidenceField {
-	return []*modelirspb.EvidenceField{
-		{Id: "attempt", Path: "attempt", Role: modelirspb.EvidenceField_ROLE_ATTEMPT},
-		{Id: "delivery", Path: "delivery", Role: modelirspb.EvidenceField_ROLE_DELIVERY},
-		{Id: "activity", Path: "activity", Role: modelirspb.EvidenceField_ROLE_OPERATION},
+func identityFields() []*umpirespb.EvidenceField {
+	return []*umpirespb.EvidenceField{
+		{Id: "attempt", Path: "attempt", Role: umpirespb.EvidenceField_ROLE_ATTEMPT},
+		{Id: "delivery", Path: "delivery", Role: umpirespb.EvidenceField_ROLE_DELIVERY},
+		{Id: "activity", Path: "activity", Role: umpirespb.EvidenceField_ROLE_OPERATION},
 		{Id: "worker", Path: "worker"},
 	}
 }
 
 // identified is the admission Model whose started status and admission commit name their attempt,
 // their delivery and their activity.
-func identified(t testing.TB) *modelirspb.Model {
+func identified(t testing.TB) *umpirespb.Model {
 	t.Helper()
 	more := map[string]declaring{"statusStarted": {fields: identityFields()}, "attemptAdmitted": {fields: identityFields()}}
 	return realizedWith(t, realizedWith(t, lifted(t, "admission"), stale, admissionKinds, more), current, admissionKinds, more)
@@ -38,7 +38,7 @@ func identified(t testing.TB) *modelirspb.Model {
 
 // closedAdmission is the admission Model whose admission commit is declared exhaustive: its source
 // reports every commit, once the closing read is done.
-func closedAdmission(t testing.TB) *modelirspb.Model {
+func closedAdmission(t testing.TB) *umpirespb.Model {
 	t.Helper()
 	more := map[string]declaring{"attemptAdmitted": {exhaustive: true}}
 	return realizedWith(t, realizedWith(t, lifted(t, "admission"), stale, admissionKinds, more), current, admissionKinds, more)
@@ -426,7 +426,7 @@ func TestPrepareBindsTheFieldsAndTheClosingReadsOfACase(t *testing.T) {
 	elsewhere := carrierWith(stale, localKinds, 1, nil, true)
 	elsewhere.GetProgram().GetEntrypoints()[0].EntrypointId = "another"
 	for name, test := range map[string]struct {
-		model  *modelirspb.Model
+		model  *umpirespb.Model
 		source *testpilotspb.Case
 		says   string
 	}{

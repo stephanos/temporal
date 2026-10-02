@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
@@ -18,7 +18,7 @@ import (
 // populated field of the realization, every populated field of its correlation, each element of a
 // repeated declaration by its id, and each command of a script, once per class that performs it. A
 // position says where a declaration was written and declares nothing.
-func declared(t *testing.T, m *modelirspb.Model, r *modelirspb.Realization) [][2]string {
+func declared(t *testing.T, m *umpirespb.Model, r *umpirespb.Realization) [][2]string {
 	t.Helper()
 	var out [][2]string
 	realizer, err := umpiremodel.NewRealizer(m, umpiremodel.DefaultScope)
@@ -95,17 +95,17 @@ func TestTheInventoryIsEveryDeclarationOfTheRealization(t *testing.T) {
 // Every field the IR gives a Realization, a Correlation and a kind of evidence has a place in the
 // inventory, so a field the schema gains fails here until it is accounted for.
 func TestEveryFieldOfARealizationHasAPlaceInTheInventory(t *testing.T) {
-	fields := (&modelirspb.Realization{}).ProtoReflect().Descriptor().Fields()
+	fields := (&umpirespb.Realization{}).ProtoReflect().Descriptor().Fields()
 	for i := range fields.Len() {
 		require.Contains(t, realizationFields, fields.Get(i).Name())
 	}
 	require.Len(t, realizationFields, fields.Len())
-	fields = (&modelirspb.Correlation{}).ProtoReflect().Descriptor().Fields()
+	fields = (&umpirespb.Correlation{}).ProtoReflect().Descriptor().Fields()
 	for i := range fields.Len() {
 		require.Contains(t, correlationFields, fields.Get(i).Name())
 	}
 	require.Len(t, correlationFields, fields.Len())
-	fields = (&modelirspb.Evidence{}).ProtoReflect().Descriptor().Fields()
+	fields = (&umpirespb.Evidence{}).ProtoReflect().Descriptor().Fields()
 	for i := range fields.Len() {
 		require.Contains(t, evidenceFields, fields.Get(i).Name())
 	}
@@ -201,7 +201,7 @@ func TestTheInventoryAgreesWithTheCase(t *testing.T) {
 
 // ready is a Query checked and its Case produced, for the inventory to be taken of a Case changed by
 // hand.
-func ready(t *testing.T, m *modelirspb.Model, query string) (*lowering, *testpilotspb.Case) {
+func ready(t *testing.T, m *umpirespb.Model, query string) (*lowering, *testpilotspb.Case) {
 	t.Helper()
 	p, err := NewProducer(m)
 	require.NoError(t, err)
@@ -289,23 +289,23 @@ func TestAnInventoryThatDoesNotCloseIsAnError(t *testing.T) {
 func TestAKindOfEvidenceTheCaseDoesNotCarryAsDeclaredDoesNotClose(t *testing.T) {
 	const completed = "evidence temporal.nexus.caller.evidence.completed"
 	for name, test := range map[string]struct {
-		change func(e *modelirspb.Evidence)
+		change func(e *umpirespb.Evidence)
 		want   string
 	}{
-		"a field": {func(e *modelirspb.Evidence) {
-			e.Fields = []*modelirspb.EvidenceField{{Id: "request", Path: "request_id"}}
+		"a field": {func(e *umpirespb.Evidence) {
+			e.Fields = []*umpirespb.EvidenceField{{Id: "request", Path: "request_id"}}
 		}, completed + " keeps field request at request_id, and the Case's program.evidence[completed] does not"},
-		"a read from one message": {func(e *modelirspb.Evidence) {
-			e.From = &modelirspb.Evidence_Single{Single: &modelirspb.ReadSource{Method: "/temporal.api.workflowservice.v1.WorkflowService/DescribeWorkflowExecution", Path: "workflow_execution_info"}}
+		"a read from one message": {func(e *umpirespb.Evidence) {
+			e.From = &umpirespb.Evidence_Single{Single: &umpirespb.ReadSource{Method: "/temporal.api.workflowservice.v1.WorkflowService/DescribeWorkflowExecution", Path: "workflow_execution_info"}}
 		}, completed + ` of realization asyncNexus is "single read /temporal.api.workflowservice.v1.WorkflowService/DescribeWorkflowExecution workflow_execution_info", ` +
 			`and the Case's program.evidence[completed] carries "history event nexus_operation_completed_event_attributes"`},
-		"the Run's own record": {func(e *modelirspb.Evidence) {
-			e.From = &modelirspb.Evidence_RunEvent{RunEvent: &modelirspb.RunEventSource{Kind: modelirspb.RunEventSource_KIND_INSTRUCTION_COMPLETED,
+		"the Run's own record": {func(e *umpirespb.Evidence) {
+			e.From = &umpirespb.Evidence_RunEvent{RunEvent: &umpirespb.RunEventSource{Kind: umpirespb.RunEventSource_KIND_INSTRUCTION_COMPLETED,
 				Script: "controller", Command: "start-workflow"}}
 		}, completed + ` of realization asyncNexus is "run event KIND_INSTRUCTION_COMPLETED of controller/start-workflow keyed by nothing", ` +
 			`and the Case's program.evidence[completed] carries "history event nexus_operation_completed_event_attributes"`},
-		"another history event": {func(e *modelirspb.Evidence) {
-			e.From = &modelirspb.Evidence_History{History: "nexus_operation_failed_event_attributes"}
+		"another history event": {func(e *umpirespb.Evidence) {
+			e.From = &umpirespb.Evidence_History{History: "nexus_operation_failed_event_attributes"}
 		}, completed + ` of realization asyncNexus is "history event nexus_operation_failed_event_attributes", ` +
 			`and the Case's program.evidence[completed] carries "history event nexus_operation_completed_event_attributes"`},
 	} {
@@ -326,21 +326,21 @@ func TestAKindOfEvidenceTheCaseDoesNotCarryAsDeclaredDoesNotClose(t *testing.T) 
 // The window a check keeps reaches the Case only in the fingerprint of its projection, and every bound
 // of it does: a Case lowered under another bound has another fingerprint.
 func TestEveryBoundOfTheWindowIsInTheProjectionFingerprint(t *testing.T) {
-	fingerprint := func(t *testing.T, change func(*modelirspb.Correlation)) string {
+	fingerprint := func(t *testing.T, change func(*umpirespb.Correlation)) string {
 		m := loaded(t, "nexus-caller")
 		change(m.GetRealizations()[0].GetCorrelation())
 		_, produced := ready(t, m, "syncCompletion")
 		return produced.GetContract().GetCorrelated().GetProjectionFingerprint()
 	}
-	declared := fingerprint(t, func(*modelirspb.Correlation) {})
+	declared := fingerprint(t, func(*umpirespb.Correlation) {})
 	require.NotEmpty(t, declared)
-	for name, change := range map[string]func(*modelirspb.Correlation){
-		"events":     func(c *modelirspb.Correlation) { c.Events++ },
-		"buffered":   func(c *modelirspb.Correlation) { c.Buffered++ },
-		"keys":       func(c *modelirspb.Correlation) { c.Keys++ },
-		"support":    func(c *modelirspb.Correlation) { c.Support++ },
-		"work":       func(c *modelirspb.Correlation) { c.Work++ },
-		"event_size": func(c *modelirspb.Correlation) { c.EventSize++ },
+	for name, change := range map[string]func(*umpirespb.Correlation){
+		"events":     func(c *umpirespb.Correlation) { c.Events++ },
+		"buffered":   func(c *umpirespb.Correlation) { c.Buffered++ },
+		"keys":       func(c *umpirespb.Correlation) { c.Keys++ },
+		"support":    func(c *umpirespb.Correlation) { c.Support++ },
+		"work":       func(c *umpirespb.Correlation) { c.Work++ },
+		"event_size": func(c *umpirespb.Correlation) { c.EventSize++ },
 	} {
 		t.Run(name, func(t *testing.T) {
 			require.NotEqual(t, declared, fingerprint(t, change))

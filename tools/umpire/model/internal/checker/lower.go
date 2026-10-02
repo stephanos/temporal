@@ -41,7 +41,7 @@ type Group struct {
 // keys. Such a predicate may fail to answer; a step it cannot be read on is not a step it rejects,
 // so the Property is then not lowered and the error is the predicate's.
 func (p *PropertyDecl) Lower() ([]Group, error) {
-	if p.IsTransition() {
+	if p.isTransition() {
 		return nil, errorf("property "+p.Name, "a transition claim is searched and verified, never realized")
 	}
 	t, err := p.Machine.Table()
@@ -54,7 +54,7 @@ func (p *PropertyDecl) Lower() ([]Group, error) {
 	ask := &asking{p: p}
 	var groups []Group
 	for _, action := range t.Actions {
-		if !p.Triggers(action) {
+		if !p.triggers(action) {
 			continue
 		}
 		var results []Result

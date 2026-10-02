@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -14,7 +14,7 @@ import (
 
 // counted is the store with a monitor over the largest catalog a Model is admitted with, 65,536
 // members: it counts steps from initial, saturating at the last member, and is violated at target.
-func counted(t testing.TB, initial, target int) *modelirspb.Model {
+func counted(t testing.TB, initial, target int) *umpirespb.Model {
 	t.Helper()
 	m := realized(t, lifted(t, "declarations"), store, []kindOf{{"stored", false}})
 	for name, body := range map[string]string{
@@ -24,16 +24,16 @@ func counted(t testing.TB, initial, target int) *modelirspb.Model {
 		"test.counter.violated": fmt.Sprintf(`{"params":[{"name":"m","type":{"int":{}}}],
 			"body":{"binary":{"op":"OP_EQ","left":{"var":"m"},"right":{"literal":{"int":"%d"}}}}}`, target),
 	} {
-		function := &modelirspb.Function{}
+		function := &umpirespb.Function{}
 		require.NoError(t, protojson.Unmarshal([]byte(body), function))
 		function.Name = name
 		m.Functions = append(m.Functions, function)
 	}
-	m.Monitors = append(m.Monitors, &modelirspb.Monitor{Id: "test.counter", Name: "counter",
-		State:   &modelirspb.TypeRef{Ref: &modelirspb.TypeRef_IntRange{IntRange: &modelirspb.IntRange{Low: 0, High: 65535}}},
-		Initial: &modelirspb.Expr{Kind: &modelirspb.Expr_Literal{Literal: &modelirspb.Value{Kind: &modelirspb.Value_Int{Int: int64(initial)}}}},
+	m.Monitors = append(m.Monitors, &umpirespb.Monitor{Id: "test.counter", Name: "counter",
+		State:   &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_IntRange{IntRange: &umpirespb.IntRange{Low: 0, High: 65535}}},
+		Initial: &umpirespb.Expr{Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{Kind: &umpirespb.Value_Int{Int: int64(initial)}}}},
 		Next:    "test.counter.next", Violated: "test.counter.violated",
-		Evaluate: &modelirspb.Monitor_EveryStep{EveryStep: &modelirspb.Empty{}}})
+		Evaluate: &umpirespb.Monitor_EveryStep{EveryStep: &umpirespb.Empty{}}})
 	for _, machine := range m.GetMachines() {
 		if machine.GetName() == store {
 			machine.Monitors = append(machine.Monitors, "test.counter")

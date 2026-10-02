@@ -14,8 +14,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	failurepb "go.temporal.io/api/failure/v1"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
@@ -30,7 +30,7 @@ const activityRealizationAt = "model/temporal/standaloneactivity/Realization.sca
 
 var errandIdentity = cp.IdentityFor("temporal.case", "fixture", "errand")
 
-func realizationNamed(t *testing.T, m *modelirspb.Model, name string) *modelirspb.Realization {
+func realizationNamed(t *testing.T, m *umpirespb.Model, name string) *umpirespb.Realization {
 	t.Helper()
 	for _, r := range m.GetRealizations() {
 		if r.GetName() == name {
@@ -41,7 +41,7 @@ func realizationNamed(t *testing.T, m *modelirspb.Model, name string) *modelirsp
 	return nil
 }
 
-func scriptNamed(t *testing.T, r *modelirspb.Realization, id string) *modelirspb.Script {
+func scriptNamed(t *testing.T, r *umpirespb.Realization, id string) *umpirespb.Script {
 	t.Helper()
 	for _, s := range r.GetScripts() {
 		if s.GetId() == id {
@@ -172,7 +172,7 @@ func TestTheInventoryNamesTheDeliveriesOfAnActivityScript(t *testing.T) {
 // an application failure or one that names no kind: what Testpilot would refuse is refused here, where
 // it was written. A delivery the script does not start with is a step nothing performs.
 func TestAnActivityScriptAnswersItsAttempts(t *testing.T) {
-	answer := func(t *testing.T, m *modelirspb.Model, id string) *modelirspb.Command {
+	answer := func(t *testing.T, m *umpirespb.Model, id string) *umpirespb.Command {
 		for _, p := range scriptNamed(t, realizationNamed(t, m, "errandRealization"), "errand").GetItems()[0].GetPerforms() {
 			if p.GetCommand().GetId() == id {
 				return p.GetCommand()
@@ -183,48 +183,48 @@ func TestAnActivityScriptAnswersItsAttempts(t *testing.T) {
 	}
 	for _, c := range []struct {
 		name   string
-		mutate func(t *testing.T, m *modelirspb.Model)
+		mutate func(t *testing.T, m *umpirespb.Model)
 		want   string
 	}{
-		{"a command that is no answer", func(t *testing.T, m *modelirspb.Model) {
-			answer(t, m, "complete-attempt").Instruction = &modelirspb.Command_Fault{Fault: &modelirspb.Fault{Role: "temporal.task-queue",
-				Kind: modelirspb.Fault_KIND_WORKER_STOP}}
+		{"a command that is no answer", func(t *testing.T, m *umpirespb.Model) {
+			answer(t, m, "complete-attempt").Instruction = &umpirespb.Command_Fault{Fault: &umpirespb.Fault{Role: "temporal.task-queue",
+				Kind: umpirespb.Fault_KIND_WORKER_STOP}}
 		}, "command complete-attempt of activity script errand is no answer to an attempt: an attempt ends with a result or a failure"},
-		{"a failure that is no failure", func(t *testing.T, m *modelirspb.Model) {
+		{"a failure that is no failure", func(t *testing.T, m *umpirespb.Model) {
 			answer(t, m, "fail-attempt").GetAttemptFailure().GetFailure().Message = "temporal.api.common.v1.Payload"
 		}, "temporal.api.common.v1.Payload is written where a temporal.api.failure.v1.Failure belongs"},
-		{"a failure of another kind than the application's", func(t *testing.T, m *modelirspb.Model) {
-			answer(t, m, "fail-attempt").GetAttemptFailure().GetFailure().GetFields()[1] = &modelirspb.ProtoField{Name: "timeout_failure_info",
-				Value: &modelirspb.ProtoValue{Kind: &modelirspb.ProtoValue_Message{Message: &modelirspb.Proto{Message: "temporal.api.failure.v1.TimeoutFailureInfo"}}}}
+		{"a failure of another kind than the application's", func(t *testing.T, m *umpirespb.Model) {
+			answer(t, m, "fail-attempt").GetAttemptFailure().GetFailure().GetFields()[1] = &umpirespb.ProtoField{Name: "timeout_failure_info",
+				Value: &umpirespb.ProtoValue{Kind: &umpirespb.ProtoValue_Message{Message: &umpirespb.Proto{Message: "temporal.api.failure.v1.TimeoutFailureInfo"}}}}
 		}, "command fail-attempt fails its attempt with a timeout_failure_info; an attempt fails with an application failure or one that names no kind"},
-		{"a delivery the script does not start with", func(t *testing.T, m *modelirspb.Model) {
+		{"a delivery the script does not start with", func(t *testing.T, m *umpirespb.Model) {
 			scriptNamed(t, realizationNamed(t, m, "errandRealization"), "errand").GetActivity().Starts = nil
 		}, "scenario retriedOnce takes deliver, a step of runner, and no script of realization errandRealization performs it"},
-		{"a poll whose condition reads the run", func(t *testing.T, m *modelirspb.Model) {
+		{"a poll whose condition reads the run", func(t *testing.T, m *umpirespb.Model) {
 			poll := scriptNamed(t, realizationNamed(t, m, "errandRealization"), "controller").GetItems()[2].GetCommand().GetPoll()
-			poll.GetUntil().GetEqual().Right = &modelirspb.Operand{Kind: &modelirspb.Operand_Run{Run: &modelirspb.Empty{}}}
+			poll.GetUntil().GetEqual().Right = &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}
 		}, "command await-closed polls until a condition that reads the run's id; a poll's condition reads only the value the poll is looking at"},
-		{"a poll whose condition orders an enum value", func(t *testing.T, m *modelirspb.Model) {
+		{"a poll whose condition orders an enum value", func(t *testing.T, m *umpirespb.Model) {
 			poll := scriptNamed(t, realizationNamed(t, m, "errandRealization"), "controller").GetItems()[2].GetCommand().GetPoll()
-			poll.Until = &modelirspb.Operand{Kind: &modelirspb.Operand_Greater{Greater: &modelirspb.Greater{Left: poll.GetUntil().GetEqual().GetLeft(),
-				Right: &modelirspb.Operand{Kind: &modelirspb.Operand_Literal{Literal: &modelirspb.ProtoValue{Kind: &modelirspb.ProtoValue_Number{Number: 0}}}}}}}
+			poll.Until = &umpirespb.Operand{Kind: &umpirespb.Operand_Greater{Greater: &umpirespb.Greater{Left: poll.GetUntil().GetEqual().GetLeft(),
+				Right: &umpirespb.Operand{Kind: &umpirespb.Operand_Literal{Literal: &umpirespb.ProtoValue{Kind: &umpirespb.ProtoValue_Number{Number: 0}}}}}}}
 		}, "command await-closed polls until a condition that orders an enum value, and only numbers are ordered"},
-		{"a poll whose condition reads a path of a path, the outer misspelled", func(t *testing.T, m *modelirspb.Model) {
+		{"a poll whose condition reads a path of a path, the outer misspelled", func(t *testing.T, m *umpirespb.Model) {
 			poll := scriptNamed(t, realizationNamed(t, m, "errandRealization"), "controller").GetItems()[2].GetCommand().GetPoll()
-			element := &modelirspb.Operand{Kind: &modelirspb.Operand_Projected{Projected: &modelirspb.Empty{}}}
-			poll.Until = &modelirspb.Operand{Kind: &modelirspb.Operand_Present{Present: &modelirspb.Present{Of: &modelirspb.Operand{Kind: &modelirspb.Operand_Path{
-				Path: &modelirspb.PathOf{Path: "secnods", Of: &modelirspb.Operand{Kind: &modelirspb.Operand_Path{Path: &modelirspb.PathOf{Path: "schedule_time", Of: element}}}}}}}}}
+			element := &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}}
+			poll.Until = &umpirespb.Operand{Kind: &umpirespb.Operand_Present{Present: &umpirespb.Present{Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Path{
+				Path: &umpirespb.PathOf{Path: "secnods", Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: "schedule_time", Of: element}}}}}}}}}
 		}, "google.protobuf.Timestamp has no field secnods"},
-		{"a poll whose condition reads a path of a text", func(t *testing.T, m *modelirspb.Model) {
+		{"a poll whose condition reads a path of a text", func(t *testing.T, m *umpirespb.Model) {
 			poll := scriptNamed(t, realizationNamed(t, m, "errandRealization"), "controller").GetItems()[2].GetCommand().GetPoll()
-			element := &modelirspb.Operand{Kind: &modelirspb.Operand_Projected{Projected: &modelirspb.Empty{}}}
-			poll.Until = &modelirspb.Operand{Kind: &modelirspb.Operand_Present{Present: &modelirspb.Present{Of: &modelirspb.Operand{Kind: &modelirspb.Operand_Path{
-				Path: &modelirspb.PathOf{Path: "length", Of: &modelirspb.Operand{Kind: &modelirspb.Operand_Path{Path: &modelirspb.PathOf{Path: "activity_id", Of: element}}}}}}}}}
+			element := &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}}
+			poll.Until = &umpirespb.Operand{Kind: &umpirespb.Operand_Present{Present: &umpirespb.Present{Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Path{
+				Path: &umpirespb.PathOf{Path: "length", Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: "activity_id", Of: element}}}}}}}}}
 		}, "command await-closed polls until a condition that reads length of a text, which is no message"},
-		{"a poll until a text of the element", func(t *testing.T, m *modelirspb.Model) {
+		{"a poll until a text of the element", func(t *testing.T, m *umpirespb.Model) {
 			poll := scriptNamed(t, realizationNamed(t, m, "errandRealization"), "controller").GetItems()[2].GetCommand().GetPoll()
-			poll.Until = &modelirspb.Operand{Kind: &modelirspb.Operand_Path{Path: &modelirspb.PathOf{Path: "activity_id",
-				Of: &modelirspb.Operand{Kind: &modelirspb.Operand_Projected{Projected: &modelirspb.Empty{}}}}}}
+			poll.Until = &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: "activity_id",
+				Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}}}}}
 		}, "command await-closed polls until a text, and a poll's condition is a condition"},
 	} {
 		t.Run(c.name, func(t *testing.T) {
@@ -326,94 +326,94 @@ func TestEvidenceReadFromOneMessageWithItsFieldsLowers(t *testing.T) {
 // recorded message, are errors at the declaration.
 func TestTheFieldsAndTheSingleReadOfEvidenceAreCheckedAgainstTheirDescriptors(t *testing.T) {
 	const opened = "evidence fixture.realizations.tally.evidence.opened"
-	payload := func(path string) *modelirspb.Operand {
-		return &modelirspb.Operand{Kind: &modelirspb.Operand_Path{Path: &modelirspb.PathOf{Path: path,
-			Of: &modelirspb.Operand{Kind: &modelirspb.Operand_Projected{Projected: &modelirspb.Empty{}}}}}}
+	payload := func(path string) *umpirespb.Operand {
+		return &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: path,
+			Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}}}}}
 	}
 	// enumName is an enum value written out by its name.
 	type enumName string
-	written := func(kind any) *modelirspb.Operand {
-		value := &modelirspb.ProtoValue{}
+	written := func(kind any) *umpirespb.Operand {
+		value := &umpirespb.ProtoValue{}
 		switch k := kind.(type) {
 		case string:
-			value.Kind = &modelirspb.ProtoValue_Text{Text: k}
+			value.Kind = &umpirespb.ProtoValue_Text{Text: k}
 		case int:
-			value.Kind = &modelirspb.ProtoValue_Number{Number: int64(k)}
+			value.Kind = &umpirespb.ProtoValue_Number{Number: int64(k)}
 		case enumName:
-			value.Kind = &modelirspb.ProtoValue_EnumName{EnumName: string(k)}
+			value.Kind = &umpirespb.ProtoValue_EnumName{EnumName: string(k)}
 		default:
 		}
-		return &modelirspb.Operand{Kind: &modelirspb.Operand_Literal{Literal: value}}
+		return &umpirespb.Operand{Kind: &umpirespb.Operand_Literal{Literal: value}}
 	}
 	const pushed, outcome = "evidence fixture.realizations.tally.evidence.pushed", "temporal.server.api.testpilot.v1.InstructionOutcome"
 	for _, c := range []struct {
 		name   string
-		mutate func(e *modelirspb.Evidence)
+		mutate func(e *umpirespb.Evidence)
 		want   string
 	}{
-		{"a Run Event's guard over a field its payload does not have", func(e *modelirspb.Evidence) {
+		{"a Run Event's guard over a field its payload does not have", func(e *umpirespb.Evidence) {
 			e.GetRunEvent().GetGuard().GetEqual().Left = payload("state")
 		}, "temporal.server.api.testpilot.v1.InstructionOutcome has no field state"},
-		{"a Run Event's key at a path its payload does not have", func(e *modelirspb.Evidence) {
+		{"a Run Event's key at a path its payload does not have", func(e *umpirespb.Evidence) {
 			e.GetRunEvent().Key = payload("activity_attempt.run_id")
 		}, "temporal.server.api.testpilot.v1.ActivityAttempt has no field run_id"},
-		{"a Run Event's guard over a path of a path, the inner misspelled", func(e *modelirspb.Evidence) {
-			e.GetRunEvent().GetGuard().GetEqual().Left = &modelirspb.Operand{Kind: &modelirspb.Operand_Path{Path: &modelirspb.PathOf{Path: "sdk_attempt", Of: payload("activity_attemtp")}}}
+		{"a Run Event's guard over a path of a path, the inner misspelled", func(e *umpirespb.Evidence) {
+			e.GetRunEvent().GetGuard().GetEqual().Left = &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: "sdk_attempt", Of: payload("activity_attemtp")}}}
 		}, pushed + ": its guard reads activity_attemtp, and temporal.server.api.testpilot.v1.InstructionOutcome has no field activity_attemtp"},
-		{"a Run Event's guard over a path of a path, the outer misspelled", func(e *modelirspb.Evidence) {
-			e.GetRunEvent().Guard = &modelirspb.Operand{Kind: &modelirspb.Operand_Present{Present: &modelirspb.Present{
-				Of: &modelirspb.Operand{Kind: &modelirspb.Operand_Path{Path: &modelirspb.PathOf{Path: "sdk_attemtp", Of: payload("activity_attempt")}}}}}}
+		{"a Run Event's guard over a path of a path, the outer misspelled", func(e *umpirespb.Evidence) {
+			e.GetRunEvent().Guard = &umpirespb.Operand{Kind: &umpirespb.Operand_Present{Present: &umpirespb.Present{
+				Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: "sdk_attemtp", Of: payload("activity_attempt")}}}}}}
 		}, pushed + ": its guard reads sdk_attemtp, and temporal.server.api.testpilot.v1.ActivityAttempt has no field sdk_attemtp"},
-		{"a Run Event's guard that is a number", func(e *modelirspb.Evidence) {
+		{"a Run Event's guard that is a number", func(e *umpirespb.Evidence) {
 			e.GetRunEvent().Guard = payload("activity_attempt.sdk_attempt")
 		}, pushed + ": its guard is a number, and a guard is a condition"},
-		{"a Run Event's guard that is a message", func(e *modelirspb.Evidence) {
+		{"a Run Event's guard that is a message", func(e *umpirespb.Evidence) {
 			e.GetRunEvent().Guard = payload("activity_attempt")
 		}, pushed + ": its guard is a message, and a guard is a condition"},
-		{"a Run Event's guard that orders a text", func(e *modelirspb.Evidence) {
-			e.GetRunEvent().Guard = &modelirspb.Operand{Kind: &modelirspb.Operand_Greater{Greater: &modelirspb.Greater{
+		{"a Run Event's guard that orders a text", func(e *umpirespb.Evidence) {
+			e.GetRunEvent().Guard = &umpirespb.Operand{Kind: &umpirespb.Operand_Greater{Greater: &umpirespb.Greater{
 				Left: payload("activity_attempt.delivery_id"), Right: written(0)}}}
 		}, pushed + ": its guard orders a text, and only numbers are ordered"},
-		{"a Run Event's guard that compares a number with a text", func(e *modelirspb.Evidence) {
+		{"a Run Event's guard that compares a number with a text", func(e *umpirespb.Evidence) {
 			e.GetRunEvent().GetGuard().GetEqual().Left, e.GetRunEvent().GetGuard().GetEqual().Right = payload("activity_attempt.sdk_attempt"), written("1")
 		}, pushed + ": its guard compares a number with a text"},
-		{"a Run Event's guard that compares an enum with a name it does not have", func(e *modelirspb.Evidence) {
-			e.GetRunEvent().GetGuard().GetEqual().GetRight().GetLiteral().Kind = &modelirspb.ProtoValue_EnumName{EnumName: "INSTRUCTION_OUTCOME_STATUS_NOPE"}
+		{"a Run Event's guard that compares an enum with a name it does not have", func(e *umpirespb.Evidence) {
+			e.GetRunEvent().GetGuard().GetEqual().GetRight().GetLiteral().Kind = &umpirespb.ProtoValue_EnumName{EnumName: "INSTRUCTION_OUTCOME_STATUS_NOPE"}
 		}, pushed + ": its guard compares a value of temporal.server.api.testpilot.v1.InstructionOutcomeStatus with INSTRUCTION_OUTCOME_STATUS_NOPE, which it does not have"},
-		{"a Run Event's guard that negates a number", func(e *modelirspb.Evidence) {
-			e.GetRunEvent().Guard = &modelirspb.Operand{Kind: &modelirspb.Operand_Not{Not: &modelirspb.Not{Of: payload("activity_attempt.sdk_attempt")}}}
+		{"a Run Event's guard that negates a number", func(e *umpirespb.Evidence) {
+			e.GetRunEvent().Guard = &umpirespb.Operand{Kind: &umpirespb.Operand_Not{Not: &umpirespb.Not{Of: payload("activity_attempt.sdk_attempt")}}}
 		}, pushed + ": its guard negates a number, and only a condition is negated"},
-		{"a Run Event's guard that compares values of two enums", func(e *modelirspb.Evidence) {
+		{"a Run Event's guard that compares values of two enums", func(e *umpirespb.Evidence) {
 			e.GetRunEvent().GetGuard().GetEqual().Right = payload("activity_attempt.response")
 		}, pushed + ": its guard compares a value of temporal.server.api.testpilot.v1.InstructionOutcomeStatus with one of temporal.server.api.testpilot.v1.ActivityAttemptResponse"},
-		{"a Run Event's guard that compares a name an enum does not have with it", func(e *modelirspb.Evidence) {
+		{"a Run Event's guard that compares a name an enum does not have with it", func(e *umpirespb.Evidence) {
 			e.GetRunEvent().GetGuard().GetEqual().Left, e.GetRunEvent().GetGuard().GetEqual().Right = written(enumName("INSTRUCTION_OUTCOME_STATUS_NOPE")), payload("status")
 		}, pushed + ": its guard compares a value of temporal.server.api.testpilot.v1.InstructionOutcomeStatus with INSTRUCTION_OUTCOME_STATUS_NOPE, which it does not have"},
-		{"a Run Event's guard that joins a text", func(e *modelirspb.Evidence) {
-			e.GetRunEvent().Guard = &modelirspb.Operand{Kind: &modelirspb.Operand_All{All: &modelirspb.All{
-				Operands: []*modelirspb.Operand{e.GetRunEvent().GetGuard(), payload("activity_attempt.delivery_id")}}}}
+		{"a Run Event's guard that joins a text", func(e *umpirespb.Evidence) {
+			e.GetRunEvent().Guard = &umpirespb.Operand{Kind: &umpirespb.Operand_All{All: &umpirespb.All{
+				Operands: []*umpirespb.Operand{e.GetRunEvent().GetGuard(), payload("activity_attempt.delivery_id")}}}}
 		}, pushed + ": its guard joins a text, and only conditions are joined"},
-		{"a Run Event's key that is each of several texts", func(e *modelirspb.Evidence) {
+		{"a Run Event's key that is each of several texts", func(e *umpirespb.Evidence) {
 			e.GetRunEvent().Key = payload("value.list_value.values[*].text_value")
 		}, pushed + ": its key reads value.list_value.values[*].text_value, which is no single text or integer of " + outcome},
-		{"a Run Event's key that is a message", func(e *modelirspb.Evidence) {
+		{"a Run Event's key that is a message", func(e *umpirespb.Evidence) {
 			e.GetRunEvent().Key = payload("activity_attempt")
 		}, pushed + ": its key reads activity_attempt, which is no single text or integer of " + outcome},
-		{"a Run Event's key that is an enum", func(e *modelirspb.Evidence) {
+		{"a Run Event's key that is an enum", func(e *umpirespb.Evidence) {
 			e.GetRunEvent().Key = payload("status")
 		}, pushed + ": its key reads status, which is no single text or integer of " + outcome},
-		{"a Run Event's field that is an enum", func(e *modelirspb.Evidence) {
-			e.Fields = []*modelirspb.EvidenceField{{Id: "offered", Path: "activity_attempt.response"}}
+		{"a Run Event's field that is an enum", func(e *umpirespb.Evidence) {
+			e.Fields = []*umpirespb.EvidenceField{{Id: "offered", Path: "activity_attempt.response"}}
 		}, "evidence fixture.realizations.tally.evidence.pushed: field offered reads activity_attempt.response, which is no single text, flag or integer of temporal.server.api.testpilot.v1.InstructionOutcome"},
-		{"a single read of a repeated field", func(e *modelirspb.Evidence) { e.GetSingle().Path = "callbacks" },
+		{"a single read of a repeated field", func(e *umpirespb.Evidence) { e.GetSingle().Path = "callbacks" },
 			opened + " is read from callbacks, which is no single message of temporal.api.workflowservice.v1.DescribeActivityExecutionResponse"},
-		{"a single read of a scalar", func(e *modelirspb.Evidence) { e.GetSingle().Path = "run_id" },
+		{"a single read of a scalar", func(e *umpirespb.Evidence) { e.GetSingle().Path = "run_id" },
 			opened + " is read from run_id, which is no single message of temporal.api.workflowservice.v1.DescribeActivityExecutionResponse"},
-		{"a field the recorded message does not have", func(e *modelirspb.Evidence) { e.GetFields()[1].Path = "attempts" },
+		{"a field the recorded message does not have", func(e *umpirespb.Evidence) { e.GetFields()[1].Path = "attempts" },
 			"temporal.api.activity.v1.ActivityExecutionInfo has no field attempts"},
-		{"a field that is a message", func(e *modelirspb.Evidence) { e.GetFields()[1].Path = "schedule_time" },
+		{"a field that is a message", func(e *umpirespb.Evidence) { e.GetFields()[1].Path = "schedule_time" },
 			opened + ": field attempt reads schedule_time, which is no single text, flag or integer of temporal.api.activity.v1.ActivityExecutionInfo"},
-		{"a field that is an enum", func(e *modelirspb.Evidence) { e.GetFields()[1].Path = "status" },
+		{"a field that is an enum", func(e *umpirespb.Evidence) { e.GetFields()[1].Path = "status" },
 			opened + ": field attempt reads status, which is no single text, flag or integer of temporal.api.activity.v1.ActivityExecutionInfo"},
 	} {
 		t.Run(c.name, func(t *testing.T) {
@@ -507,33 +507,33 @@ func TestTheActivityRealizationPollsNoTransientState(t *testing.T) {
 	// record the first attempt start; the second attempt's the failure the server retried and the second
 	// attempt start; and the release's answer the release, which schedules the activity as the start
 	// does.
-	projected := &modelirspb.Operand{Kind: &modelirspb.Operand_Projected{Projected: &modelirspb.Empty{}}}
-	path := func(p string) *modelirspb.Operand {
-		return &modelirspb.Operand{Kind: &modelirspb.Operand_Path{Path: &modelirspb.PathOf{Of: projected, Path: p}}}
+	projected := &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}}
+	path := func(p string) *umpirespb.Operand {
+		return &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Of: projected, Path: p}}}
 	}
-	present := func(p string) *modelirspb.Operand {
-		return &modelirspb.Operand{Kind: &modelirspb.Operand_Present{Present: &modelirspb.Present{Of: path(p)}}}
+	present := func(p string) *umpirespb.Operand {
+		return &umpirespb.Operand{Kind: &umpirespb.Operand_Present{Present: &umpirespb.Present{Of: path(p)}}}
 	}
-	run := &modelirspb.Operand{Kind: &modelirspb.Operand_Run{Run: &modelirspb.Empty{}}}
-	accepted := func(command string) *modelirspb.RunEventSource {
-		return &modelirspb.RunEventSource{Kind: modelirspb.RunEventSource_KIND_INSTRUCTION_COMPLETED, Script: "controller", Command: command, Key: run,
-			Guard: &modelirspb.Operand{Kind: &modelirspb.Operand_Equal{Equal: &modelirspb.Equal{Left: path("status"),
-				Right: &modelirspb.Operand{Kind: &modelirspb.Operand_Literal{Literal: &modelirspb.ProtoValue{
-					Kind: &modelirspb.ProtoValue_EnumName{EnumName: "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"}}}}}}}}
+	run := &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}
+	accepted := func(command string) *umpirespb.RunEventSource {
+		return &umpirespb.RunEventSource{Kind: umpirespb.RunEventSource_KIND_INSTRUCTION_COMPLETED, Script: "controller", Command: command, Key: run,
+			Guard: &umpirespb.Operand{Kind: &umpirespb.Operand_Equal{Equal: &umpirespb.Equal{Left: path("status"),
+				Right: &umpirespb.Operand{Kind: &umpirespb.Operand_Literal{Literal: &umpirespb.ProtoValue{
+					Kind: &umpirespb.ProtoValue_EnumName{EnumName: "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"}}}}}}}}
 	}
-	delivered := func(attempt int64) *modelirspb.RunEventSource {
-		return &modelirspb.RunEventSource{Kind: modelirspb.RunEventSource_KIND_DIAGNOSTIC, Script: "controller", Command: "start-activity", Key: run,
-			Attempt: &modelirspb.AttemptOf{Script: "activity", Number: attempt},
-			Guard: &modelirspb.Operand{Kind: &modelirspb.Operand_All{All: &modelirspb.All{Operands: []*modelirspb.Operand{
+	delivered := func(attempt int64) *umpirespb.RunEventSource {
+		return &umpirespb.RunEventSource{Kind: umpirespb.RunEventSource_KIND_DIAGNOSTIC, Script: "controller", Command: "start-activity", Key: run,
+			Attempt: &umpirespb.AttemptOf{Script: "activity", Number: attempt},
+			Guard: &umpirespb.Operand{Kind: &umpirespb.Operand_All{All: &umpirespb.All{Operands: []*umpirespb.Operand{
 				present("activity_attempt"),
-				{Kind: &modelirspb.Operand_Not{Not: &modelirspb.Not{Of: &modelirspb.Operand{Kind: &modelirspb.Operand_Equal{Equal: &modelirspb.Equal{
+				{Kind: &umpirespb.Operand_Not{Not: &umpirespb.Not{Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Equal{Equal: &umpirespb.Equal{
 					Left:  path("activity_attempt.delivery_id"),
-					Right: &modelirspb.Operand{Kind: &modelirspb.Operand_Literal{Literal: &modelirspb.ProtoValue{Kind: &modelirspb.ProtoValue_Text{}}}}}}}}}},
+					Right: &umpirespb.Operand{Kind: &umpirespb.Operand_Literal{Literal: &umpirespb.ProtoValue{Kind: &umpirespb.ProtoValue_Text{}}}}}}}}}},
 			}}}}}
 	}
-	identity := []*modelirspb.EvidenceField{
-		{Id: "attempt", Path: "activity_attempt.sdk_attempt", Role: modelirspb.EvidenceField_ROLE_ATTEMPT},
-		{Id: "delivery", Path: "activity_attempt.delivery_id", Role: modelirspb.EvidenceField_ROLE_DELIVERY},
+	identity := []*umpirespb.EvidenceField{
+		{Id: "attempt", Path: "activity_attempt.sdk_attempt", Role: umpirespb.EvidenceField_ROLE_ATTEMPT},
+		{Id: "delivery", Path: "activity_attempt.delivery_id", Role: umpirespb.EvidenceField_ROLE_DELIVERY},
 		{Id: "activityRun", Path: "activity_attempt.activity_run_id"},
 	}
 	type taking struct {
@@ -542,8 +542,8 @@ func TestTheActivityRealizationPollsNoTransientState(t *testing.T) {
 	}
 	type recordedKind struct {
 		records string
-		source  *modelirspb.RunEventSource
-		fields  []*modelirspb.EvidenceField
+		source  *umpirespb.RunEventSource
+		fields  []*umpirespb.EvidenceField
 		names   []taking
 	}
 	realizer, err := umpiremodel.NewRealizer(m, umpiremodel.DefaultScope)
@@ -595,7 +595,7 @@ func unpositioned(m protoreflect.Message) {
 	m.Range(func(field protoreflect.FieldDescriptor, value protoreflect.Value) bool {
 		switch {
 		case field.Message() == nil || field.IsMap():
-		case field.Message().FullName() == (&modelirspb.Position{}).ProtoReflect().Descriptor().FullName():
+		case field.Message().FullName() == (&umpirespb.Position{}).ProtoReflect().Descriptor().FullName():
 			m.Clear(field)
 		case field.IsList():
 			for i := range value.List().Len() {
@@ -619,7 +619,7 @@ func TestAnUnsupportedCommandBlocksOnlyTheQueriesWhosePathTakesIt(t *testing.T) 
 	race := realizationNamed(t, m, "pauseRace")
 	require.NotEmpty(t, race.GetControls(), "the held race declares a control")
 	errand.Controls = append(errand.Controls, proto.CloneOf(race.GetControls()[0]))
-	var canceled *modelirspb.ActionClass
+	var canceled *umpirespb.ActionClass
 	for _, performance := range scriptNamed(t, errand, "errand").GetItems()[0].GetPerforms() {
 		if performance.GetCommand().GetId() == "cancel-attempt" {
 			canceled = performance.GetStep()
@@ -627,9 +627,9 @@ func TestAnUnsupportedCommandBlocksOnlyTheQueriesWhosePathTakesIt(t *testing.T) 
 	}
 	require.NotNil(t, canceled)
 	controller := scriptNamed(t, errand, "controller")
-	controller.Items = append(controller.Items, &modelirspb.Item{Position: controller.GetItems()[0].GetPosition(), When: []*modelirspb.ActionClass{canceled},
-		Command: &modelirspb.Command{Id: "hold-it", Position: controller.GetItems()[0].GetPosition(),
-			Instruction: &modelirspb.Command_Hold{Hold: race.GetControls()[0].GetId()}}})
+	controller.Items = append(controller.Items, &umpirespb.Item{Position: controller.GetItems()[0].GetPosition(), When: []*umpirespb.ActionClass{canceled},
+		Command: &umpirespb.Command{Id: "hold-it", Position: controller.GetItems()[0].GetPosition(),
+			Instruction: &umpirespb.Command_Hold{Hold: race.GetControls()[0].GetId()}}})
 	p, err := NewProducer(m)
 	require.NoError(t, err)
 	type gap struct{ construct, id, owner string }
@@ -697,7 +697,7 @@ func TestACanceledAnswerLowersToItsInstruction(t *testing.T) {
 // such a path whole now, so the refusal is its own.
 func TestAPathThatEndsInAStepNothingConfirmsIsAnError(t *testing.T) {
 	m := loaded(t, "activity")
-	var stop *modelirspb.ActionClass
+	var stop *umpirespb.ActionClass
 	for _, s := range m.GetScenarios() {
 		if s.GetName() == "terminatedWhileScheduled" {
 			stop = s.GetActions()[1]

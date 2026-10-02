@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	lowering "go.temporal.io/server/tools/umpire/lower"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -26,16 +26,16 @@ const (
 )
 
 // guardIn is a path of any value.
-func guardIn(of *modelirspb.Operand, path string) *modelirspb.Operand {
-	return &modelirspb.Operand{Kind: &modelirspb.Operand_Path{Path: &modelirspb.PathOf{Path: path, Of: of}}}
+func guardIn(of *umpirespb.Operand, path string) *umpirespb.Operand {
+	return &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: path, Of: of}}}
 }
 
 // A guard of the Run's own record has three readers: admission, which reads no descriptor; the
-// lowering to a Case, which reads the payload's; and Admits, which evaluates the guard on a recorded
+// lowering to a Case, which reads the payload's; and admits, which evaluates the guard on a recorded
 // Run. The table below is every form the vocabulary gives a guard, well typed and not: each kind of
 // operand, a path nested to any depth, and each kind of written value. One declaration is fed to all
 // three. A guard that is well formed for one is well formed for all. One that is not is refused by
-// the first reader that can know, at the declaration, and Admits refuses it on every event, whatever
+// the first reader that can know, at the declaration, and admits refuses it on every event, whatever
 // the event holds, in the same words.
 func TestAGuardIsWellFormedForEveryReaderOrForNone(t *testing.T) {
 	const (
@@ -45,19 +45,19 @@ func TestAGuardIsWellFormedForEveryReaderOrForNone(t *testing.T) {
 		unknown = "writes out a value that is no text, flag, number or enum value"
 		v1      = "temporal.server.api.testpilot.v1."
 	)
-	projected := &modelirspb.Operand{Kind: &modelirspb.Operand_Projected{Projected: &modelirspb.Empty{}}}
-	run := &modelirspb.Operand{Kind: &modelirspb.Operand_Run{Run: &modelirspb.Empty{}}}
-	environment := &modelirspb.Operand{Kind: &modelirspb.Operand_Environment{Environment: "namespace"}}
-	learned := &modelirspb.Operand{Kind: &modelirspb.Operand_LearnedValue{LearnedValue: "handle"}}
+	projected := &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}}
+	run := &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}
+	environment := &umpirespb.Operand{Kind: &umpirespb.Operand_Environment{Environment: "namespace"}}
+	learned := &umpirespb.Operand{Kind: &umpirespb.Operand_LearnedValue{LearnedValue: "handle"}}
 	attempt, number, delivery := guardPath("activity_attempt"), guardPath("activity_attempt.sdk_attempt"), guardPath("activity_attempt.delivery_id")
 	status := guardPath("status")
 	succeeded := guardLiteral(protoName("INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"))
-	equalTo := func(value *modelirspb.ProtoValue) *modelirspb.Operand {
-		return guardEqual(guardPath("detail"), &modelirspb.Operand{Kind: &modelirspb.Operand_Literal{Literal: value}})
+	equalTo := func(value *umpirespb.ProtoValue) *umpirespb.Operand {
+		return guardEqual(guardPath("detail"), &umpirespb.Operand{Kind: &umpirespb.Operand_Literal{Literal: value}})
 	}
 
 	for name, test := range map[string]struct {
-		guard *modelirspb.Operand
+		guard *umpirespb.Operand
 		first firstReader
 		// says is what is wrong, for a guard some reader refuses.
 		says string
@@ -98,15 +98,15 @@ func TestAGuardIsWellFormedForEveryReaderOrForNone(t *testing.T) {
 		"the run's id":                      {guardEqual(run, guardLiteral("r")), byAdmission, "reads the run's id" + alone, false},
 		"an environment binding":            {guardEqual(environment, guardLiteral("n")), byAdmission, "reads the environment binding namespace" + alone, false},
 		"a learned value":                   {guardEqual(learned, guardLiteral("h")), byAdmission, "reads the learned value handle" + alone, false},
-		"an operand of no kind":             {&modelirspb.Operand{}, byAdmission, "has an operand of no known kind", false},
-		"an operand of no kind, deep":       {guardNot(guardAll(guardPresent(guardIn(&modelirspb.Operand{}, "x")))), byAdmission, "has an operand of no known kind", false},
+		"an operand of no kind":             {&umpirespb.Operand{}, byAdmission, "has an operand of no known kind", false},
+		"an operand of no kind, deep":       {guardNot(guardAll(guardPresent(guardIn(&umpirespb.Operand{}, "x")))), byAdmission, "has an operand of no known kind", false},
 		"a conjunction of nothing":          {guardAll(), byAdmission, "is a conjunction of no operand", false},
-		"a name a Case binds":               {equalTo(&modelirspb.ProtoValue{Kind: &modelirspb.ProtoValue_Named{Named: &modelirspb.Name{Prefix: "errand-", Fixture: true}}}), byAdmission, "writes out a name a Case binds" + alone, false},
-		"a written value of no kind":        {equalTo(&modelirspb.ProtoValue{}), byAdmission, unknown, false},
-		"written bytes":                     {equalTo(&modelirspb.ProtoValue{Kind: &modelirspb.ProtoValue_Utf8{Utf8: "x"}}), byAdmission, unknown, false},
-		"a written message":                 {equalTo(&modelirspb.ProtoValue{Kind: &modelirspb.ProtoValue_Message{Message: &modelirspb.Proto{}}}), byAdmission, unknown, false},
-		"a written map":                     {equalTo(&modelirspb.ProtoValue{Kind: &modelirspb.ProtoValue_Mapping{Mapping: &modelirspb.ProtoMap{}}}), byAdmission, unknown, false},
-		"a written role":                    {equalTo(&modelirspb.ProtoValue{Kind: &modelirspb.ProtoValue_RoleId{RoleId: "frontend"}}), byAdmission, unknown, false},
+		"a name a Case binds":               {equalTo(&umpirespb.ProtoValue{Kind: &umpirespb.ProtoValue_Named{Named: &umpirespb.Name{Prefix: "errand-", Fixture: true}}}), byAdmission, "writes out a name a Case binds" + alone, false},
+		"a written value of no kind":        {equalTo(&umpirespb.ProtoValue{}), byAdmission, unknown, false},
+		"written bytes":                     {equalTo(&umpirespb.ProtoValue{Kind: &umpirespb.ProtoValue_Utf8{Utf8: "x"}}), byAdmission, unknown, false},
+		"a written message":                 {equalTo(&umpirespb.ProtoValue{Kind: &umpirespb.ProtoValue_Message{Message: &umpirespb.Proto{}}}), byAdmission, unknown, false},
+		"a written map":                     {equalTo(&umpirespb.ProtoValue{Kind: &umpirespb.ProtoValue_Mapping{Mapping: &umpirespb.ProtoMap{}}}), byAdmission, unknown, false},
+		"a written role":                    {equalTo(&umpirespb.ProtoValue{Kind: &umpirespb.ProtoValue_RoleId{RoleId: "frontend"}}), byAdmission, unknown, false},
 		"a guard that is a number":          {guardLiteral(1), byAdmission, "is a number, and a guard is a condition", false},
 		"a guard that is a text":            {guardLiteral("yes"), byAdmission, "is a text, and a guard is a condition", false},
 		"a guard that is a name":            {succeeded, byAdmission, "is an enum value, and a guard is a condition", false},
@@ -156,9 +156,9 @@ func TestAGuardIsWellFormedForEveryReaderOrForNone(t *testing.T) {
 			// The declaration: the tally fixture's Run Event kind, under this guard.
 			encoded, err := os.ReadFile(filepath.Join("..", "..", "..", "model", "lifter", "testdata", "lifts", "expected", "realizations.json"))
 			require.NoError(t, err)
-			m := &modelirspb.Model{}
+			m := &umpirespb.Model{}
 			require.NoError(t, protojson.Unmarshal(encoded, m))
-			var source *modelirspb.RunEventSource
+			var source *umpirespb.RunEventSource
 			for _, r := range m.GetRealizations() {
 				if r.GetName() == "tallyRealization" {
 					source = r.GetEvidence()[1].GetRunEvent()
@@ -192,12 +192,12 @@ func TestAGuardIsWellFormedForEveryReaderOrForNone(t *testing.T) {
 			if test.first == byNone {
 				require.NoError(t, validated)
 				require.NoError(t, lowers)
-				held, err := Admits(source, event(full))
+				held, err := admits(source, event(full))
 				require.NoError(t, err)
 				require.Equal(t, test.holds, held)
 				// On an event that lacks a value the guard compares, the guard cannot be evaluated, and
-				// that is the one thing Admits can find wrong with a well-formed guard.
-				if _, err := Admits(source, event(bare)); err != nil {
+				// that is the one thing admits can find wrong with a well-formed guard.
+				if _, err := admits(source, event(bare)); err != nil {
 					require.ErrorContains(t, err, "an absent value")
 				}
 				return
@@ -212,7 +212,7 @@ func TestAGuardIsWellFormedForEveryReaderOrForNone(t *testing.T) {
 				require.ErrorContains(t, lowers, pushed+test.says)
 			}
 			for _, outcome := range []*testpilotspb.InstructionOutcome{full, bare} {
-				held, err := Admits(source, event(outcome))
+				held, err := admits(source, event(outcome))
 				require.False(t, held)
 				var refused *GuardError
 				require.ErrorAs(t, err, &refused)

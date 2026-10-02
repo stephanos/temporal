@@ -8,10 +8,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 )
 
-func lifted(t *testing.T, name string) *modelirspb.Model {
+func lifted(t *testing.T, name string) *umpirespb.Model {
 	t.Helper()
 	m, err := Load(filepath.Join("..", "..", "..", "model", "lifter", "testdata", "lifts", "expected", name+".json"))
 	require.NoError(t, err)

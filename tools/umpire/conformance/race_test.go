@@ -17,8 +17,8 @@ import (
 	activitypb "go.temporal.io/api/activity/v1"
 	enumspb "go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/workflowservice/v1"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
@@ -36,7 +36,7 @@ const (
 	raceProperty = "staleDeliveryRejected"
 )
 
-func raceModel(t testing.TB) *modelirspb.Model {
+func raceModel(t testing.TB) *umpirespb.Model {
 	t.Helper()
 	m, err := umpiremodel.Load(filepath.Join("..", "..", "..", "model", "ir", "activity-race.json"))
 	require.NoError(t, err)

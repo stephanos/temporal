@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
@@ -26,7 +26,7 @@ const (
 
 // admission is the activity specimen's two designs (the lifter's admission fixture) with the
 // realization the tests declare for each.
-func admission(t testing.TB) *modelirspb.Model {
+func admission(t testing.TB) *umpirespb.Model {
 	t.Helper()
 	return realized(t, realized(t, lifted(t, "admission"), stale, admissionKinds), current, admissionKinds)
 }
@@ -117,7 +117,7 @@ type row struct {
 	// design is the machine the Run is assessed against. model and query default to the admission
 	// Model and its Query of the design.
 	design  string
-	model   func(testing.TB) *modelirspb.Model
+	model   func(testing.TB) *umpirespb.Model
 	query   umpiremodel.ClaimKey
 	carried []string
 	script  []any
@@ -393,7 +393,7 @@ const (
 
 // declared is the lifter's declarations fixture with a realization for the opaque store and for the
 // disk that refines it, whose crash of staged data is a declared hole. Both record what they commit.
-func declared(t testing.TB) *modelirspb.Model {
+func declared(t testing.TB) *umpirespb.Model {
 	t.Helper()
 	return realized(t, realized(t, lifted(t, "declarations"), disk, []kindOf{{"stored", true}, {"staged", true}}), store, []kindOf{{"stored", true}})
 }

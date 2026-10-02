@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 )
 
@@ -337,18 +337,18 @@ func (r reader) flags(raw any) ([]bool, error) {
 }
 
 // value reads an ITF value back as a value of an IR type.
-func (x *QuintExport) value(raw any, t *modelirspb.TypeRef) (umpiremodel.Value, error) {
+func (x *QuintExport) value(raw any, t *umpirespb.TypeRef) (umpiremodel.Value, error) {
 	switch r := t.GetRef().(type) {
-	case *modelirspb.TypeRef_Bool:
+	case *umpirespb.TypeRef_Bool:
 		b, err := boolean(raw, fmt.Sprint(raw))
 		return umpiremodel.Value{Kind: umpiremodel.BoolValue, Bool: b}, err
-	case *modelirspb.TypeRef_IntRange, *modelirspb.TypeRef_Int:
+	case *umpirespb.TypeRef_IntRange, *umpirespb.TypeRef_Int:
 		n, err := integer(raw)
 		return umpiremodel.Value{Kind: umpiremodel.IntValue, Int: n}, err
-	case *modelirspb.TypeRef_List:
+	case *umpirespb.TypeRef_List:
 		items, err := each(raw, func(item any) (umpiremodel.Value, error) { return x.value(item, r.List) })
 		return umpiremodel.Value{Kind: umpiremodel.ListValue, Items: items}, err
-	case *modelirspb.TypeRef_Named:
+	case *umpirespb.TypeRef_Named:
 		return x.declared(raw, r.Named)
 	default:
 		return umpiremodel.Value{}, errors.New("a channel's contents are not exported")
@@ -393,7 +393,7 @@ func (x *QuintExport) declared(raw any, name string) (umpiremodel.Value, error) 
 
 // fields reads a record's or a case's fields in declaration order. A case without fields has none to
 // read, whatever its variant carries.
-func (x *QuintExport) fields(decls []*modelirspb.Field, raw any, name string) ([]umpiremodel.Value, error) {
+func (x *QuintExport) fields(decls []*umpirespb.Field, raw any, name string) ([]umpiremodel.Value, error) {
 	if len(decls) == 0 {
 		return nil, nil
 	}

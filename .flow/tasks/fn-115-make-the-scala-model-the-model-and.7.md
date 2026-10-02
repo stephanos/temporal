@@ -39,9 +39,12 @@ Preserve the authorized uncommitted baseline and comments except the explicit R2
 - [ ] Before/after line counts and public interface inventory are recorded, and all goldens and affected callers pass.
 
 ## Done summary
-TBD
+Removed the unused Scala framework code (fn-113 Part A): `Canonical.scala`, `Lower.scala`, the `Alterer` plumbing and helpers left without a caller; `model/umpire` non-test went from 2,911 to 2,415 lines. Split `tools/umpire/model/load.go` into `load.go`, `validate.go`, `validate_keys.go`, `validate_realization.go`, `operand.go` and `payload.go` as a line-for-line move with focused tests. Trimmed the checker, reader and producer surfaces: `tools/umpire` production Go went from 27,799 to 25,890 lines, checker exports from 248 to 126. The typed checker declaration layer is test support now.
 
+Full `./tools/umpire/...` Go suite (1,916 passed), functional compile, `lint-code-fast`, `lint-model` and the model gate pass; goldens, checked-in IR and Cases are unchanged. Reader golden tests are faster (projection 63.8 s to 43.1 s, single samples).
+
+Independent review (Claude Fable, fresh context) returned SHIP in round 1; its P2 follow-ups are applied and verified with focused tests and lint. Open follow-up: production branches that only typed test fixtures reach remain in the checker (listed in the handover). `Table.Stuck` and the export package's 46 exports stay exported as recorded exceptions. Handover: .flow/tmp/fn115-7-summary.md; evidence: .flow/tmp/fn115-7-evidence.json; review: .flow/tmp/fn115-7-review/round1-review.md. No agent commits.
 ## Evidence
 - Commits:
-- Tests:
+- Tests: CC=/usr/bin/clang mise exec -- go test -count=1 -json -tags test_dep ./tools/umpire/... (exit 0, 282 s wall, 16 packages, 1916 passed, 12 opt-in skips; .flow/tmp/fn115-7/full-go.jsonl), CC=/usr/bin/clang mise exec -- go test -tags 'test_dep integration canary_harness' -run '^$' ./tests (exit 0; functional-compile.log), GOLANGCI_LINT_FIX=false CC=/usr/bin/clang mise exec -- make lint-code-fast (exit 0, 0 issues; lint-code-fast.log), CC=/usr/bin/clang mise exec -- make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks (exit 0 after the Scala removal and again after the last Go change; check-model.log, check-model-final.log), mise exec -- make lint-model (exit 0; lint-model.log), git diff --check (exit 0), review fix: CC=/usr/bin/clang mise exec -- go test -count=1 -json -tags test_dep ./tools/umpire/model/... ./tools/umpire/conformance/... (exit 0, 1284 passed; review-fix/focused-go.jsonl); make lint-code-fast (exit 0, 0 issues; review-fix/lint-code-fast.log), Independent review round 1 SHIP (claude-fable-5-1); .flow/tmp/fn115-7-review/round1-review.md
 - PRs:

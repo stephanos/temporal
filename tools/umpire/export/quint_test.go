@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
 )
@@ -18,14 +18,14 @@ import (
 // slices of the lifted IR the backends are gated on, by file.
 var irFiles = []string{"activity", "activity-system", "nexus-caller", "nexus-close"}
 
-func loadModel(t *testing.T, name string) *modelirspb.Model {
+func loadModel(t *testing.T, name string) *umpirespb.Model {
 	t.Helper()
 	m, err := umpiremodel.Load(filepath.Join("..", "..", "..", "model", "ir", name+".json"))
 	require.NoError(t, err)
 	return m
 }
 
-func openSlice(t *testing.T, m *modelirspb.Model) *Slice {
+func openSlice(t *testing.T, m *umpirespb.Model) *Slice {
 	t.Helper()
 	s, err := Open(m)
 	require.NoError(t, err)
@@ -101,6 +101,7 @@ func TestAgreementReadsAFaithfulDump(t *testing.T) {
 func TestAgreementRejectsATamperedDump(t *testing.T) {
 	s := openNamed(t, "activity-system")
 	x := exported(t, s)
+	parts := dumpPartsOf(t, s, x)
 	const machine = "staleAdmission"
 	cases := map[string]struct {
 		tamper func(d map[string]any)
@@ -175,7 +176,7 @@ func TestAgreementRejectsATamperedDump(t *testing.T) {
 	}
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
-			dump := encodeDump(t, s, x, func(m string, d map[string]any) {
+			dump := parts.encode(t, func(m string, d map[string]any) {
 				if m == machine {
 					c.tamper(d)
 				}
@@ -229,40 +230,40 @@ func TestADumpThatIsNoDumpIsAnError(t *testing.T) {
 // What the exporter does not translate it refuses by name: nothing is exported around it, and a hole
 // is never written as a disabled action.
 func TestQuintExportRejectsWhatItDoesNotTranslate(t *testing.T) {
-	hole := &modelirspb.Expr{Kind: &modelirspb.Expr_Hole{Hole: "h"}}
+	hole := &umpirespb.Expr{Kind: &umpirespb.Expr_Hole{Hole: "h"}}
 	cases := map[string]struct {
 		model string
-		edit  func(m *modelirspb.Model)
+		edit  func(m *umpirespb.Model)
 		says  string
 	}{
-		"a declared hole in a step": {"", func(m *modelirspb.Model) {
-			m.Holes = append(m.Holes, &modelirspb.Hole{Id: "h", Name: "unknownPolicy"})
+		"a declared hole in a step": {"", func(m *umpirespb.Model) {
+			m.Holes = append(m.Holes, &umpirespb.Hole{Id: "h", Name: "unknownPolicy"})
 			stepFunction(m, "activityWorker").Body = hole
 		}, "hole unknownPolicy"},
 		// A match with a case removed leaves a value no case matches: an undeclared hole, which Go reads
 		// as hole rows.
-		"a value no case matches": {"activity-system", func(m *modelirspb.Model) {
+		"a value no case matches": {"activity-system", func(m *umpirespb.Model) {
 			match := function(m, "temporal.standaloneactivity.System$package$.pauseStep").GetBody().GetMatch()
 			match.Cases = match.GetCases()[:1]
 		}, "an undeclared hole at the row"},
-		"a hole in a machine's ends": {"", func(m *modelirspb.Model) {
-			m.Holes = append(m.Holes, &modelirspb.Hole{Id: "h", Name: "unknownPolicy"})
+		"a hole in a machine's ends": {"", func(m *umpirespb.Model) {
+			m.Holes = append(m.Holes, &umpirespb.Hole{Id: "h", Name: "unknownPolicy"})
 			m.GetMachines()[0].GetEnds().GetLambda().Body = hole
 		}, "the hole unknownPolicy"},
-		"a channel": {"", func(m *modelirspb.Model) {
-			m.Channels = append(m.Channels, &modelirspb.Channel{Id: "c", Name: "tasks", Capacity: 1, Order: modelirspb.Channel_ORDER_FIFO,
-				Message: &modelirspb.TypeRef{Ref: &modelirspb.TypeRef_Bool{Bool: &modelirspb.Empty{}}}})
+		"a channel": {"", func(m *umpirespb.Model) {
+			m.Channels = append(m.Channels, &umpirespb.Channel{Id: "c", Name: "tasks", Capacity: 1, Order: umpirespb.Channel_ORDER_FIFO,
+				Message: &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Bool{Bool: &umpirespb.Empty{}}}})
 		}, "channel tasks"},
-		"an anonymous function as a value": {"", func(m *modelirspb.Model) {
+		"an anonymous function as a value": {"", func(m *umpirespb.Model) {
 			f := stepFunction(m, "activityWorker")
-			f.Body = &modelirspb.Expr{Kind: &modelirspb.Expr_Let{Let: &modelirspb.Let{Name: "f",
-				Value: &modelirspb.Expr{Kind: &modelirspb.Expr_Lambda{Lambda: &modelirspb.Lambda{Body: f.GetBody()}}},
+			f.Body = &umpirespb.Expr{Kind: &umpirespb.Expr_Let{Let: &umpirespb.Let{Name: "f",
+				Value: &umpirespb.Expr{Kind: &umpirespb.Expr_Lambda{Lambda: &umpirespb.Lambda{Body: f.GetBody()}}},
 				Body:  f.GetBody()}}}
 		}, "anonymous function"},
 	}
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
-			m := proto.Clone(loadModel(t, cmp.Or(c.model, "activity"))).(*modelirspb.Model)
+			m := proto.Clone(loadModel(t, cmp.Or(c.model, "activity"))).(*umpirespb.Model)
 			c.edit(m)
 			s, err := Open(m)
 			if err == nil {
@@ -275,8 +276,8 @@ func TestQuintExportRejectsWhatItDoesNotTranslate(t *testing.T) {
 	}
 }
 
-func function(m *modelirspb.Model, name string) *modelirspb.Function {
-	i := slices.IndexFunc(m.GetFunctions(), func(f *modelirspb.Function) bool { return f.GetName() == name })
+func function(m *umpirespb.Model, name string) *umpirespb.Function {
+	i := slices.IndexFunc(m.GetFunctions(), func(f *umpirespb.Function) bool { return f.GetName() == name })
 	if i < 0 {
 		panic("no function " + name)
 	}
@@ -284,7 +285,7 @@ func function(m *modelirspb.Model, name string) *modelirspb.Function {
 }
 
 // stepFunction is the function of a machine's first step binding.
-func stepFunction(m *modelirspb.Model, machine string) *modelirspb.Function {
+func stepFunction(m *umpirespb.Model, machine string) *umpirespb.Function {
 	for _, mm := range m.GetMachines() {
 		if mm.GetName() != machine {
 			continue
@@ -370,7 +371,8 @@ func TestGoMonitorVerdictsAreTheSpecimens(t *testing.T) {
 func TestExternalWitnessesReplayOrAreErrors(t *testing.T) {
 	s := openNamed(t, "activity-system")
 	x := exported(t, s)
-	receipts, err := s.QuintAgreement(x, encodeDump(t, s, x, nil))
+	parts := dumpPartsOf(t, s, x)
+	receipts, err := s.QuintAgreement(x, parts.encode(t, nil))
 	require.NoError(t, err)
 	r := only(t, receipts, MonitorAgreement, "staleAdmission")
 	require.Len(t, r.Witnesses, 2)
@@ -383,7 +385,7 @@ func TestExternalWitnessesReplayOrAreErrors(t *testing.T) {
 	}
 	// A dump whose product takes a step the Model does not: the witness through it is rejected, and the
 	// receipt is the error.
-	tampered := encodeDump(t, s, x, func(m string, d map[string]any) {
+	tampered := parts.encode(t, func(m string, d map[string]any) {
 		if m != "currentAdmission" {
 			return
 		}
@@ -406,32 +408,49 @@ func TestExternalWitnessesReplayOrAreErrors(t *testing.T) {
 // part tampered with.
 func encodeDump(t *testing.T, s *Slice, x *QuintExport, tamper func(machine string, d map[string]any)) []byte {
 	t.Helper()
-	out := map[string]any{}
-	for i, name := range x.Machines {
-		mm := s.machines[name]
-		d, err := s.dumpOf(x, i, mm)
+	return dumpPartsOf(t, s, x).encode(t, tamper)
+}
+
+// dumpParts is the dump of Go's own interpretation, each machine's and each composition's part
+// encoded apart. The parts are interpreted once and never changed: every encoding decodes them
+// afresh, so what one tampering changes no other encoding sees.
+type dumpParts struct {
+	keys, names []string
+	encoded     [][]byte
+}
+
+func dumpPartsOf(t *testing.T, s *Slice, x *QuintExport) *dumpParts {
+	t.Helper()
+	parts := &dumpParts{}
+	add := func(key, name string, d any, err error) {
 		require.NoError(t, err)
-		// A round trip gives the tamperers plain JSON values.
 		encoded, err := json.Marshal(d)
 		require.NoError(t, err)
-		var plain map[string]any
-		require.NoError(t, json.Unmarshal(encoded, &plain))
-		if tamper != nil {
-			tamper(name, plain)
-		}
-		out[fmt.Sprintf("m%d", i)] = plain
+		parts.keys, parts.names, parts.encoded = append(parts.keys, key), append(parts.names, name), append(parts.encoded, encoded)
+	}
+	for i, name := range x.Machines {
+		d, err := s.dumpOf(x, i, s.machines[name])
+		add(fmt.Sprintf("m%d", i), name, d, err)
 	}
 	for j, name := range x.Compositions {
 		d, err := s.dumpOfComposition(x, j)
-		require.NoError(t, err)
-		encoded, err := json.Marshal(d)
-		require.NoError(t, err)
+		add(fmt.Sprintf("c%d", j), name, d, err)
+	}
+	return parts
+}
+
+// encode writes the dump with each part tampered with.
+func (p *dumpParts) encode(t *testing.T, tamper func(machine string, d map[string]any)) []byte {
+	t.Helper()
+	out := map[string]any{}
+	for i, key := range p.keys {
+		// A round trip gives the tamperers plain JSON values.
 		var plain map[string]any
-		require.NoError(t, json.Unmarshal(encoded, &plain))
+		require.NoError(t, json.Unmarshal(p.encoded[i], &plain))
 		if tamper != nil {
-			tamper(name, plain)
+			tamper(p.names[i], plain)
 		}
-		out[fmt.Sprintf("c%d", j)] = plain
+		out[key] = plain
 	}
 	encoded, err := json.Marshal(map[string]any{"vars": []string{"out"}, "states": []any{map[string]any{"out": out}}})
 	require.NoError(t, err)
@@ -478,34 +497,34 @@ func TestQuintDisagreesOnAnotherModel(t *testing.T) {
 	needs(t, QuintTool)
 	cases := map[string]struct {
 		model   string
-		mutate  func(m *modelirspb.Model)
+		mutate  func(m *umpirespb.Model)
 		claim   Claim
 		subject string
 	}{
-		"a step's condition inverted": {"activity-system", func(m *modelirspb.Model) {
+		"a step's condition inverted": {"activity-system", func(m *umpirespb.Model) {
 			branch := function(m, "temporal.standaloneactivity.System$package$.dispatchStep").GetBody().GetIf()
 			branch.Then, branch.Else = branch.GetElse(), branch.GetThen()
 		}, TransitionAgreement, "currentAdmission"},
-		"a Property negated": {"activity-system", func(m *modelirspb.Model) {
+		"a Property negated": {"activity-system", func(m *umpirespb.Model) {
 			holds := function(m, "temporal.standaloneactivity.System$package$.atMostOneActive")
-			holds.Body = &modelirspb.Expr{Kind: &modelirspb.Expr_Unary{Unary: &modelirspb.Unary{Op: modelirspb.Unary_OP_NOT, Operand: holds.GetBody()}}}
+			holds.Body = &umpirespb.Expr{Kind: &umpirespb.Expr_Unary{Unary: &umpirespb.Unary{Op: umpirespb.Unary_OP_NOT, Operand: holds.GetBody()}}}
 		}, PropertyAgreement, "staleAdmission"},
-		"a step's condition inverted, in a composition": {"activity-system", func(m *modelirspb.Model) {
+		"a step's condition inverted, in a composition": {"activity-system", func(m *umpirespb.Model) {
 			branch := function(m, "temporal.standaloneactivity.System$package$.dispatchStep").GetBody().GetIf()
 			branch.Then, branch.Else = branch.GetElse(), branch.GetThen()
 		}, TransitionAgreement, "currentOverMatching"},
-		"a composition's Property negated": {"activity-system", func(m *modelirspb.Model) {
+		"a composition's Property negated": {"activity-system", func(m *umpirespb.Model) {
 			holds := function(m, "staleOverQueue.property.failedCommitKeepsTheMessage")
-			holds.Body = &modelirspb.Expr{Kind: &modelirspb.Expr_Unary{Unary: &modelirspb.Unary{Op: modelirspb.Unary_OP_NOT, Operand: holds.GetBody()}}}
+			holds.Body = &umpirespb.Expr{Kind: &umpirespb.Expr_Unary{Unary: &umpirespb.Unary{Op: umpirespb.Unary_OP_NOT, Operand: holds.GetBody()}}}
 		}, PropertyAgreement, "staleOverQueue"},
-		"a monitor's notion of over narrowed": {"activity-system", func(m *modelirspb.Model) {
-			function(m, "temporal.standaloneactivity.System$package$.admissionOver").GetBody().GetBinary().Op = modelirspb.Binary_OP_AND
+		"a monitor's notion of over narrowed": {"activity-system", func(m *umpirespb.Model) {
+			function(m, "temporal.standaloneactivity.System$package$.admissionOver").GetBody().GetBinary().Op = umpirespb.Binary_OP_AND
 		}, MonitorAgreement, "staleAdmission"},
 	}
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
 			reference := openNamed(t, c.model)
-			mutant := proto.Clone(reference.Model).(*modelirspb.Model)
+			mutant := proto.Clone(reference.Model).(*umpirespb.Model)
 			c.mutate(mutant)
 			x := exportedAsWritten(t, reference, mutant)
 			receipts, err := reference.QuintAgreement(x, quintDump(t, x))
@@ -519,7 +538,7 @@ func TestQuintDisagreesOnAnotherModel(t *testing.T) {
 
 // exportedAsWritten is the export of a Model that differs from a slice's in its functions alone. Go's
 // reading of the slice enters the module only in how many rounds of successors it takes.
-func exportedAsWritten(t *testing.T, reference *Slice, written *modelirspb.Model) *QuintExport {
+func exportedAsWritten(t *testing.T, reference *Slice, written *umpirespb.Model) *QuintExport {
 	t.Helper()
 	x, err := (&Slice{Model: written, machines: reference.machines, in: reference.in, bound: reference.bound, types: reference.types, actions: reference.actions}).Quint()
 	require.NoError(t, err)
@@ -531,8 +550,8 @@ func exportedAsWritten(t *testing.T, reference *Slice, written *modelirspb.Model
 func TestQuintStopsWhereTheModelHasNoValue(t *testing.T) {
 	found := needs(t, QuintTool)
 	reference := openNamed(t, "nexus-caller")
-	mutant := proto.Clone(reference.Model).(*modelirspb.Model)
-	function(mutant, "temporal.nexuscaller.kernel.Protocol$.saturatingSucc").GetBody().GetIf().GetCondition().GetBinary().Op = modelirspb.Binary_OP_LE
+	mutant := proto.Clone(reference.Model).(*umpirespb.Model)
+	function(mutant, "temporal.nexuscaller.kernel.Protocol$.saturatingSucc").GetBody().GetIf().GetCondition().GetBinary().Op = umpirespb.Binary_OP_LE
 	_, err := RunQuint(t.Context(), found, exportedAsWritten(t, reference, mutant), workDir(t))
 	require.ErrorContains(t, err, "Runtime error")
 }
@@ -641,17 +660,17 @@ func TestPropertiesAboutAnActionAreReadOnItsSteps(t *testing.T) {
 // class's action: no exported machine of the lifted slices declares a Property about an action.
 func aboutActions(t *testing.T) *Slice {
 	t.Helper()
-	m := proto.Clone(loadModel(t, "activity")).(*modelirspb.Model)
+	m := proto.Clone(loadModel(t, "activity")).(*umpirespb.Model)
 	names := map[string]string{}
 	for _, a := range m.GetActions() {
 		names[a.GetId()] = a.GetName()
 	}
 	for _, p := range m.GetProperties() {
 		// The composition's Properties are not exported, and admission reads theirs by composed keys.
-		if class := p.GetWhenClass(); class != nil && !slices.ContainsFunc(m.GetCompositions(), func(c *modelirspb.Composition) bool {
+		if class := p.GetWhenClass(); class != nil && !slices.ContainsFunc(m.GetCompositions(), func(c *umpirespb.Composition) bool {
 			return c.GetName() == p.GetMachine()
 		}) {
-			p.When = &modelirspb.Property_WhenAction{WhenAction: names[class.GetAction()]}
+			p.When = &umpirespb.Property_WhenAction{WhenAction: names[class.GetAction()]}
 		}
 	}
 	s := openSlice(t, m)
@@ -713,6 +732,7 @@ func TestACompositionPastTheCeilingIsAResourceLimit(t *testing.T) {
 func TestAgreementRejectsATamperedComposition(t *testing.T) {
 	s := openNamed(t, "activity-system")
 	x := exported(t, s)
+	parts := dumpPartsOf(t, s, x)
 	const composition = "staleOverQueue"
 	cases := map[string]struct {
 		tamper func(d map[string]any)
@@ -754,7 +774,7 @@ func TestAgreementRejectsATamperedComposition(t *testing.T) {
 	}
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
-			dump := encodeDump(t, s, x, func(m string, d map[string]any) {
+			dump := parts.encode(t, func(m string, d map[string]any) {
 				if m == composition {
 					c.tamper(d)
 				}

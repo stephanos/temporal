@@ -6,12 +6,12 @@ package model
 import (
 	"slices"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 )
 
 const redelivered = "the channel delivers the message again"
 
-func (in *Interpreter) channel(id string, at *modelirspb.Position) (*modelirspb.Channel, error) {
+func (in *Interpreter) channel(id string, at *umpirespb.Position) (*umpirespb.Channel, error) {
 	c, ok := in.channels[id]
 	if !ok {
 		return nil, errorAt(at, "no channel %s", id)
@@ -20,12 +20,12 @@ func (in *Interpreter) channel(id string, at *modelirspb.Position) (*modelirspb.
 }
 
 func delivery(message Value, redeliveries int64) Value {
-	return Value{Kind: RecordValue, Type: DeliveryType, Fields: []Value{message, {Kind: IntValue, Int: redeliveries}}}
+	return Value{Kind: RecordValue, Type: deliveryType, Fields: []Value{message, {Kind: IntValue, Int: redeliveries}}}
 }
 
 // entries lists every delivery a channel may hold, in catalog order: each message, and for each its
 // redeliveries 0 to the channel's duplicates.
-func (in *Interpreter) entries(c *modelirspb.Channel) ([]Value, error) {
+func (in *Interpreter) entries(c *umpirespb.Channel) ([]Value, error) {
 	messages, err := in.Members(c.GetMessage())
 	if err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func (in *Interpreter) entries(c *modelirspb.Channel) ([]Value, error) {
 // contents lists everything a channel may hold: the empty list, then every list of one entry, of two,
 // up to its capacity, the last entry varying fastest; an unordered channel only the lists whose
 // entries are in catalog order.
-func (in *Interpreter) contents(c *modelirspb.Channel) ([]Value, error) {
+func (in *Interpreter) contents(c *umpirespb.Channel) ([]Value, error) {
 	entries, err := in.entries(c)
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func (in *Interpreter) contents(c *modelirspb.Channel) ([]Value, error) {
 		var next [][]int
 		for _, prefix := range level {
 			for i := range entries {
-				if c.GetOrder() == modelirspb.Channel_ORDER_UNORDERED && len(prefix) > 0 && i < prefix[len(prefix)-1] {
+				if c.GetOrder() == umpirespb.Channel_ORDER_UNORDERED && len(prefix) > 0 && i < prefix[len(prefix)-1] {
 					continue
 				}
 				next = append(next, append(slices.Clone(prefix), i))
@@ -73,9 +73,9 @@ func (in *Interpreter) contents(c *modelirspb.Channel) ([]Value, error) {
 
 // put adds a delivery to what a channel holds: first or last for a FIFO channel, at its catalog
 // position for an unordered one.
-func (in *Interpreter) put(c *modelirspb.Channel, held []Value, d Value, first bool) ([]Value, error) {
+func (in *Interpreter) put(c *umpirespb.Channel, held []Value, d Value, first bool) ([]Value, error) {
 	out := slices.Clone(held)
-	if c.GetOrder() != modelirspb.Channel_ORDER_UNORDERED {
+	if c.GetOrder() != umpirespb.Channel_ORDER_UNORDERED {
 		if first {
 			return slices.Insert(out, 0, d), nil
 		}
@@ -85,7 +85,7 @@ func (in *Interpreter) put(c *modelirspb.Channel, held []Value, d Value, first b
 	if err != nil {
 		return nil, err
 	}
-	index := func(v Value) int { return slices.IndexFunc(entries, v.Equal) }
+	index := func(v Value) int { return slices.IndexFunc(entries, v.equal) }
 	at := slices.IndexFunc(out, func(h Value) bool { return index(h) > index(d) })
 	if at < 0 {
 		at = len(out)
@@ -93,7 +93,7 @@ func (in *Interpreter) put(c *modelirspb.Channel, held []Value, d Value, first b
 	return slices.Insert(out, at, d), nil
 }
 
-func (in *Interpreter) inbox(x *modelirspb.Expr, b *modelirspb.Inbox, e *env) (Value, error) {
+func (in *Interpreter) inbox(x *umpirespb.Expr, b *umpirespb.Inbox, e *env) (Value, error) {
 	c, err := in.channel(b.GetChannel(), x.GetPosition())
 	if err != nil {
 		return Value{}, err
@@ -103,11 +103,11 @@ func (in *Interpreter) inbox(x *modelirspb.Expr, b *modelirspb.Inbox, e *env) (V
 		return Value{}, err
 	}
 	switch b.GetOp() {
-	case modelirspb.Inbox_OP_IS_EMPTY:
+	case umpirespb.Inbox_OP_IS_EMPTY:
 		return Value{Kind: BoolValue, Bool: len(held.Items) == 0}, nil
-	case modelirspb.Inbox_OP_IS_FULL:
+	case umpirespb.Inbox_OP_IS_FULL:
 		return Value{Kind: BoolValue, Bool: len(held.Items) >= int(c.GetCapacity())}, nil
-	case modelirspb.Inbox_OP_SEND:
+	case umpirespb.Inbox_OP_SEND:
 		m, err := in.eval(b.GetMessage(), e)
 		if err != nil {
 			return Value{}, err
@@ -120,7 +120,7 @@ func (in *Interpreter) inbox(x *modelirspb.Expr, b *modelirspb.Inbox, e *env) (V
 }
 
 // bothRoles says that an action both delivers and loses a channel's messages, which no action does.
-func bothRoles(a *modelirspb.Action) string {
+func bothRoles(a *umpirespb.Action) string {
 	if a.GetDelivers() == a.GetLoses() {
 		return "both delivers and loses " + a.GetDelivers()
 	}
@@ -128,7 +128,7 @@ func bothRoles(a *modelirspb.Action) string {
 }
 
 // holding is the field of a machine's state that holds a channel.
-func (in *Interpreter) holding(decl *modelirspb.Machine, channel string, at *modelirspb.Position) (int, error) {
+func (in *Interpreter) holding(decl *umpirespb.Machine, channel string, at *umpirespb.Position) (int, error) {
 	for i, f := range in.types[decl.GetStateType()].GetRecord().GetFields() {
 		if f.GetType().GetChannel() == channel {
 			return i, nil
@@ -140,7 +140,7 @@ func (in *Interpreter) holding(decl *modelirspb.Machine, channel string, at *mod
 // transfer is the value of a channel's delivery or loss of message m at state s: the bound function's
 // steps at s with the entry taken out, and, for a delivery the channel may duplicate, those steps
 // again with the entry put back, its acknowledgment lost. No entry to take out disables the pair.
-func (in *Interpreter) transfer(decl *modelirspb.Machine, s Value, c Class) ([]Value, error) {
+func (in *Interpreter) transfer(decl *umpirespb.Machine, s Value, c Class) ([]Value, error) {
 	a := c.Action
 	if a.GetDelivers() != "" && a.GetLoses() != "" {
 		return nil, errorAt(c.at, "%s %s", a.GetName(), bothRoles(a))
@@ -162,8 +162,8 @@ func (in *Interpreter) transfer(decl *modelirspb.Machine, s Value, c Class) ([]V
 	}
 	m := c.Inputs[0]
 	held := s.Fields[f].Items
-	taken := slices.IndexFunc(held, func(d Value) bool { return d.Fields[0].Equal(m) })
-	if delivers && ch.GetOrder() != modelirspb.Channel_ORDER_UNORDERED && taken > 0 {
+	taken := slices.IndexFunc(held, func(d Value) bool { return d.Fields[0].equal(m) })
+	if delivers && ch.GetOrder() != umpirespb.Channel_ORDER_UNORDERED && taken > 0 {
 		taken = -1
 	}
 	if taken < 0 {

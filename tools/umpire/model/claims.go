@@ -5,7 +5,7 @@ import (
 	"slices"
 	"strings"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
 )
 
@@ -14,7 +14,7 @@ import (
 // tables' keys. A claim is declared once per table, since two declarations of one name on a table
 // would share a Definition ID.
 type binding struct {
-	model    *modelirspb.Model
+	model    *umpirespb.Model
 	scope    Scope
 	in       *Interpreter
 	machines map[string]*Machine
@@ -22,7 +22,7 @@ type binding struct {
 	// unevaluated is why Build has no refinement of a machine to compare a checked one with.
 	failed      map[string]error
 	unevaluated map[string]error
-	actions     map[string]*modelirspb.Action
+	actions     map[string]*umpirespb.Action
 	catalogs    map[string]map[string]Value
 	subjects    map[string]*subject
 	refined     map[string]*refined
@@ -41,12 +41,12 @@ type scheduled struct {
 }
 
 // bind interprets a Model's machines within the scope's ceilings, each on its own.
-func bind(m *modelirspb.Model, scope Scope) *binding {
+func bind(m *umpirespb.Model, scope Scope) *binding {
 	in := NewInterpreter(m)
 	in.ceilings = scope.Ceilings
 	built := in.interpret(m)
 	b := &binding{model: m, scope: scope, in: in, machines: built.machines, failed: built.failed, unevaluated: built.unrefined,
-		actions: map[string]*modelirspb.Action{}, catalogs: map[string]map[string]Value{}, subjects: map[string]*subject{},
+		actions: map[string]*umpirespb.Action{}, catalogs: map[string]map[string]Value{}, subjects: map[string]*subject{},
 		refined: map[string]*refined{}, properties: map[claim]*PropertyDecl{}, scenarios: map[scheduled]*ScenarioDecl{}}
 	for _, a := range m.GetActions() {
 		b.actions[a.GetId()] = a
@@ -59,7 +59,7 @@ func bind(m *modelirspb.Model, scope Scope) *binding {
 type subject struct {
 	name      string
 	family    string
-	at        *modelirspb.Position
+	at        *umpirespb.Position
 	stateType string
 	// machine is the machine, and nil for a composition and for a machine that has no table.
 	machine *Machine
@@ -183,7 +183,7 @@ func (b *binding) spec(mm *Machine, holes bool) umpire.TableSpec {
 	return spec
 }
 
-func (b *binding) typeNamed(name string) *modelirspb.Type {
+func (b *binding) typeNamed(name string) *umpirespb.Type {
 	for _, t := range b.model.GetTypes() {
 		if t.GetName() == name {
 			return t
@@ -277,7 +277,7 @@ func (b *binding) spelled(v Value) string {
 type Realizer struct{ b *binding }
 
 // NewRealizer admits a Model and binds it within a scope. A Model Validate rejects is not bound.
-func NewRealizer(m *modelirspb.Model, scope Scope) (*Realizer, error) {
+func NewRealizer(m *umpirespb.Model, scope Scope) (*Realizer, error) {
 	if err := Validate(m); err != nil {
 		return nil, err
 	}
@@ -288,9 +288,9 @@ func NewRealizer(m *modelirspb.Model, scope Scope) (*Realizer, error) {
 
 // Declared is one Query of the bound Model with the Property and the Scenario it names.
 type Declared struct {
-	Query    *modelirspb.Query
-	Property *modelirspb.Property
-	Scenario *modelirspb.Scenario
+	Query    *umpirespb.Query
+	Property *umpirespb.Property
+	Scenario *umpirespb.Scenario
 }
 
 // Declared is the Query the Model declares under a key: the family and the machine or composition its
@@ -325,10 +325,10 @@ func (r *Realizer) Find(key ClaimKey) (*Query, error) {
 }
 
 // Realizations is the realizations the Model declares.
-func (r *Realizer) Realizations() []*modelirspb.Realization { return r.b.model.GetRealizations() }
+func (r *Realizer) Realizations() []*umpirespb.Realization { return r.b.model.GetRealizations() }
 
 // ClassKey is the key of one class of an action, as the Model's tables key it.
-func (r *Realizer) ClassKey(c *modelirspb.ActionClass) string { return r.b.classKey(c) }
+func (r *Realizer) ClassKey(c *umpirespb.ActionClass) string { return r.b.classKey(c) }
 
 // Machine is an interpreted machine by name, or nil for one that could not be interpreted.
 func (r *Realizer) Machine(name string) *Machine { return r.b.machines[name] }
@@ -401,7 +401,7 @@ func (r *Realizer) Bound(key ClaimKey) (*Bound, error) {
 }
 
 // boundProperty is a Property's reading over its table's keys, as a reader of recorded steps takes it.
-func boundProperty(p *modelirspb.Property, reading *reads) BoundProperty {
+func boundProperty(p *umpirespb.Property, reading *reads) BoundProperty {
 	out := BoundProperty{Name: p.GetName(), About: func(action string) bool { return reading.about == nil || reading.about(action) },
 		Holds: reading.across}
 	if reading.across == nil {
@@ -410,12 +410,8 @@ func boundProperty(p *modelirspb.Property, reading *reads) BoundProperty {
 	return out
 }
 
-// Unknown reports whether an error of a bound function leaves what it read unknown, neither held nor
-// failed: the function reached a hole. Any other error is the declaration's.
-func Unknown(err error) bool { return reachesHole(err) }
-
 // assumption is an assumption as a table carries it: its name, fair for the actions it names.
-func (b *binding) assumption(a *modelirspb.Assumption) Assumption {
+func (b *binding) assumption(a *umpirespb.Assumption) Assumption {
 	out := Assumption{Name: a.GetName()}
 	for _, id := range a.GetFair() {
 		out.Fair = append(out.Fair, b.actions[id].GetName())
@@ -424,7 +420,7 @@ func (b *binding) assumption(a *modelirspb.Assumption) Assumption {
 }
 
 // catalog is a finite type's members by key.
-func (b *binding) catalog(t *modelirspb.TypeRef) (map[string]Value, error) {
+func (b *binding) catalog(t *umpirespb.TypeRef) (map[string]Value, error) {
 	name := spell(t)
 	if members, ok := b.catalogs[name]; ok {
 		return members, nil
@@ -476,7 +472,7 @@ func (b *binding) keyedStep(s *subject, res Result) (Value, error) {
 
 // decide calls a function of a claim that answers yes or no. A value that is no Boolean is an error
 // of the Model at the claim, never false: a claim that cannot be read neither holds nor fails.
-func (b *binding) decide(function string, args []Value, at *modelirspb.Position, owner, relation, read string) (bool, error) {
+func (b *binding) decide(function string, args []Value, at *umpirespb.Position, owner, relation, read string) (bool, error) {
 	v, err := b.in.Call(function, args, at)
 	if err != nil {
 		return false, err
@@ -487,9 +483,10 @@ func (b *binding) decide(function string, args []Value, at *modelirspb.Position,
 	return v.Bool, nil
 }
 
-// reachesHole says which errors of a claim's function leave a step unknown rather than fail the search:
-// the ones that reached a hole.
-func reachesHole(err error) bool {
+// Unknown reports whether an error of a bound function leaves what it read unknown, neither held nor
+// failed: the function reached a hole. Any other error is the declaration's.
+// It says which errors of a claim's function leave a step unknown rather than fail the search.
+func Unknown(err error) bool {
 	var hole *Hole
 	return errors.As(err, &hole)
 }
@@ -513,7 +510,7 @@ type watched struct {
 
 // watch binds one of a machine's monitors over its table's keys. Its state after a step must be one of
 // its state type's members.
-func (b *binding) watch(s *subject, mo *modelirspb.Monitor) (*watched, error) {
+func (b *binding) watch(s *subject, mo *umpirespb.Monitor) (*watched, error) {
 	at, name := mo.GetPosition(), "monitor "+mo.GetName()
 	states, err := b.catalog(mo.GetState())
 	if err != nil {
@@ -526,7 +523,7 @@ func (b *binding) watch(s *subject, mo *modelirspb.Monitor) (*watched, error) {
 	if err != nil {
 		return nil, err
 	}
-	if known, ok := states[initial.Key()]; !ok || !known.Equal(initial) {
+	if known, ok := states[initial.Key()]; !ok || !known.equal(initial) {
 		return nil, errorAt(at, "%s: its initial state %s is outside its states", name, initial.Key())
 	}
 	w := &watched{name: mo.GetName(), initial: initial.Key()}
@@ -543,7 +540,7 @@ func (b *binding) watch(s *subject, mo *modelirspb.Monitor) (*watched, error) {
 		if err != nil {
 			return "", err
 		}
-		if known, ok := states[v.Key()]; !ok || !known.Equal(v) {
+		if known, ok := states[v.Key()]; !ok || !known.equal(v) {
 			return "", errorAt(at, "%s: %s is %s after the step into %s, which is outside its states", name, mo.GetNext(), v.Key(), res.State)
 		}
 		return v.Key(), nil
@@ -552,10 +549,10 @@ func (b *binding) watch(s *subject, mo *modelirspb.Monitor) (*watched, error) {
 		return b.decide(mo.GetViolated(), []Value{states[state]}, at, name, "at", state)
 	}
 	switch e := mo.GetEvaluate().(type) {
-	case *modelirspb.Monitor_EveryStep:
-	case *modelirspb.Monitor_AtEnds:
+	case *umpirespb.Monitor_EveryStep:
+	case *umpirespb.Monitor_AtEnds:
 		w.atEnds = true
-	case *modelirspb.Monitor_After:
+	case *umpirespb.Monitor_After:
 		w.after = func(res Result) (bool, error) {
 			step, err := s.step(res)
 			if err != nil {
@@ -593,7 +590,7 @@ type reads struct {
 }
 
 // propertyReads binds a Property's function over the keys of the table it is declared on.
-func (b *binding) propertyReads(s *subject, p *modelirspb.Property) (*reads, error) {
+func (b *binding) propertyReads(s *subject, p *umpirespb.Property) (*reads, error) {
 	owner, at := p.GetMachine()+"."+p.GetName(), p.GetPosition()
 	if p.GetTransition() && p.GetWhen() != nil {
 		return nil, &unsupportedError{owner + " is a transition Property about some steps only, and a transition Property is about every step"}
@@ -623,7 +620,7 @@ func (b *binding) propertyReads(s *subject, p *modelirspb.Property) (*reads, err
 }
 
 // property declares a Property on its machine's or composition's table, once.
-func (b *binding) property(p *modelirspb.Property) (*PropertyDecl, error) {
+func (b *binding) property(p *umpirespb.Property) (*PropertyDecl, error) {
 	key := claim{p.GetMachine(), p.GetName()}
 	if decl, ok := b.properties[key]; ok {
 		return decl, nil
@@ -649,12 +646,12 @@ func (b *binding) property(p *modelirspb.Property) (*PropertyDecl, error) {
 // when is the steps a same-step Property is about, and how a diagnostic names them. It reads the class
 // keys of the table the Property is declared on, so a composition's Property is about composed
 // classes: admission has checked that it names some (validator.selectors).
-func (b *binding) when(p *modelirspb.Property) (func(action string) bool, string) {
+func (b *binding) when(p *umpirespb.Property) (func(action string) bool, string) {
 	switch w := p.GetWhen().(type) {
-	case *modelirspb.Property_WhenClass:
+	case *umpirespb.Property_WhenClass:
 		key := b.classKey(w.WhenClass)
 		return func(action string) bool { return action == key }, key
-	case *modelirspb.Property_WhenAction:
+	case *umpirespb.Property_WhenAction:
 		// A class key is its action's name and then its inputs, joined by "-". Reading the name off the
 		// key, as umpire's WhenAction does, also finds the action's classes on a machine that refines
 		// the Property's, which the Property is read on through the refinement.
@@ -671,9 +668,9 @@ func actionOf(key string) string {
 }
 
 // classKey is the key of one class of an action: its name, and the key of each input.
-func (b *binding) classKey(c *modelirspb.ActionClass) string { return classKey(b.in, b.actions, c) }
+func (b *binding) classKey(c *umpirespb.ActionClass) string { return classKey(b.in, b.actions, c) }
 
-func classKey(in *Interpreter, actions map[string]*modelirspb.Action, c *modelirspb.ActionClass) string {
+func classKey(in *Interpreter, actions map[string]*umpirespb.Action, c *umpirespb.ActionClass) string {
 	parts := []string{actions[c.GetAction()].GetName()}
 	for _, x := range c.GetInputs() {
 		parts = append(parts, in.literal(x).Key())
@@ -682,7 +679,7 @@ func classKey(in *Interpreter, actions map[string]*modelirspb.Action, c *modelir
 }
 
 // scenario declares a Scenario of a subject on the table it runs over, once.
-func (b *binding) scenario(sc *modelirspb.Scenario, on *subject, table *Table) (*ScenarioDecl, error) {
+func (b *binding) scenario(sc *umpirespb.Scenario, on *subject, table *Table) (*ScenarioDecl, error) {
 	key := scheduled{table, sc.GetName()}
 	if decl, ok := b.scenarios[key]; ok {
 		return decl, nil
@@ -794,7 +791,7 @@ func (b *binding) refines(s, product *subject, spec umpire.RefinementSpec, unrea
 		return nil, nil, malformed
 	case errors.As(err, &rejected):
 		return nil, holes, &unrefined{source: s, rejected: rejected, unread: holes}
-	case err != nil && len(holes) > 0 && reachesHole(err):
+	case err != nil && len(holes) > 0 && Unknown(err):
 		// The check stopped at another hole, as one in the map: the holes read before it are reported
 		// with it.
 		return nil, holes, errors.Join(append(holeErrors(holes), err)...)
@@ -843,7 +840,7 @@ func (b *binding) reading(s, product *subject) (umpire.RefinementSpec, func() ([
 			if err != nil {
 				return "", err
 			}
-			if known, err := product.state(v.Key()); err != nil || !known.Equal(v) {
+			if known, err := product.state(v.Key()); err != nil || !known.equal(v) {
 				return "", errorAt(at, "%s: %s reads %s as %s, which is no state of %s", s.name, r.GetMap(), key, v.Key(), product.name)
 			}
 			return v.Key(), nil
@@ -861,9 +858,9 @@ type boundQuery struct {
 }
 
 // query declares a Query over its Scenario's table, watched by every monitor of the machine.
-func (b *binding) query(q *modelirspb.Query) (*boundQuery, error) {
+func (b *binding) query(q *umpirespb.Query) (*boundQuery, error) {
 	on := b.subject(q.GetScenario().GetMachine())
-	find := q.GetForm() == modelirspb.Query_FORM_FIND
+	find := q.GetForm() == umpirespb.Query_FORM_FIND
 	switch {
 	case on.unsupported != "":
 		return nil, &unsupportedError{on.unsupported}
@@ -903,13 +900,13 @@ func (b *binding) query(q *modelirspb.Query) (*boundQuery, error) {
 	default:
 		out.q = umpire.KeyVerify(q.GetName(), p, s, limits)
 	}
-	out.q.Unknown = reachesHole
+	out.q.Unknown = Unknown
 	out.q.Watch(on.monitors...)
 	return out, nil
 }
 
 // limits is the Limits a Query runs within: its own, with the scope's search limit where that is less.
-func (b *binding) limits(q *modelirspb.Query) Limits {
+func (b *binding) limits(q *umpirespb.Query) Limits {
 	l := q.GetLimits()
 	limits := Limits{Name: l.GetName(), Steps: int(l.GetSteps()), Actions: int(l.GetActions()), Search: int(l.GetSearch())}
 	if b.scope.QuerySearch > 0 {
@@ -918,7 +915,7 @@ func (b *binding) limits(q *modelirspb.Query) Limits {
 	return limits
 }
 
-func (b *binding) declaredProperty(ref *modelirspb.ClaimRef) *modelirspb.Property {
+func (b *binding) declaredProperty(ref *umpirespb.ClaimRef) *umpirespb.Property {
 	for _, p := range b.model.GetProperties() {
 		if p.GetMachine() == ref.GetMachine() && p.GetName() == ref.GetName() {
 			return p
@@ -927,7 +924,7 @@ func (b *binding) declaredProperty(ref *modelirspb.ClaimRef) *modelirspb.Propert
 	return nil
 }
 
-func (b *binding) declaredScenario(ref *modelirspb.ClaimRef) *modelirspb.Scenario {
+func (b *binding) declaredScenario(ref *umpirespb.ClaimRef) *umpirespb.Scenario {
 	for _, s := range b.model.GetScenarios() {
 		if s.GetMachine() == ref.GetMachine() && s.GetName() == ref.GetName() {
 			return s
@@ -937,7 +934,7 @@ func (b *binding) declaredScenario(ref *modelirspb.ClaimRef) *modelirspb.Scenari
 }
 
 // progress declares a progress claim of a machine over its table's state keys.
-func (b *binding) progress(p *modelirspb.Progress) (*umpire.Progress, *subject, error) {
+func (b *binding) progress(p *umpirespb.Progress) (*umpire.Progress, *subject, error) {
 	s := b.subject(p.GetMachine())
 	if s.err != nil {
 		return nil, s, s.err
@@ -961,6 +958,6 @@ func (b *binding) progress(p *modelirspb.Progress) (*umpire.Progress, *subject, 
 		}
 	}
 	claim := umpire.KeyProgressFunc(p.GetName(), accepts(p.GetFrom()), accepts(p.GetTo()), int(p.GetWithin()), assumptions...)
-	claim.Unknown = reachesHole
+	claim.Unknown = Unknown
 	return claim, s, nil
 }

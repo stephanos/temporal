@@ -1,3 +1,6 @@
 /gen/
 .scala-build/
 .bsp/
+# scalafix writes the semantic database of a source one project takes from another, as the lifter takes
+# gate/Tools.scala for its tests, beside that source.
+*.semanticdb

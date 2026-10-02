@@ -14,8 +14,8 @@ import (
 	"slices"
 	"strings"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
@@ -92,11 +92,11 @@ type Producer struct {
 	// found is each Query's receipt by its name, which a Model gives one Query.
 	found map[string]umpiremodel.Receipt
 	// realizations is the realizations the Model declares.
-	realizations []*modelirspb.Realization
+	realizations []*umpirespb.Realization
 }
 
 // NewProducer admits a Model, binds it and answers its Queries once, for every Case lowered from it.
-func NewProducer(m *modelirspb.Model) (*Producer, error) {
+func NewProducer(m *umpirespb.Model) (*Producer, error) {
 	realizer, err := umpiremodel.NewRealizer(m, umpiremodel.DefaultScope)
 	if err != nil {
 		return nil, err
@@ -113,10 +113,10 @@ func NewProducer(m *modelirspb.Model) (*Producer, error) {
 // asked is one Query with the declarations it names.
 type asked struct {
 	key      umpiremodel.ClaimKey
-	q        *modelirspb.Query
-	property *modelirspb.Property
-	scenario *modelirspb.Scenario
-	r        *modelirspb.Realization
+	q        *umpirespb.Query
+	property *umpirespb.Property
+	scenario *umpirespb.Scenario
+	r        *umpirespb.Realization
 }
 
 // ask finds a Query and what it is before anything of it is checked: a verify Query, a find Query
@@ -136,10 +136,10 @@ func (p *Producer) ask(query string) (*asked, Standing, error) {
 		return nil, "", err
 	}
 	a := &asked{key: receipt.Key, q: declared.Query, property: declared.Property, scenario: declared.Scenario}
-	if a.q.GetForm() != modelirspb.Query_FORM_FIND {
+	if a.q.GetForm() != umpirespb.Query_FORM_FIND {
 		return a, NothingToRealize, nil
 	}
-	var realizations []*modelirspb.Realization
+	var realizations []*umpirespb.Realization
 	for _, r := range p.realizations {
 		if r.GetMachine() == a.scenario.GetMachine() {
 			realizations = append(realizations, r)
@@ -220,7 +220,7 @@ func (p *Producer) Lower(query string, identity Identity) (*Lowering, error) {
 // the Contract (goir/conformance). The record of an attempt stands in the way of the Queries whose Case runs two
 // activities: the Run's record names neither. A command stands in the way of the Queries whose Case would carry it,
 // which takes says, and is off the path of the others.
-func (p *Producer) gaps(r *modelirspb.Realization, takes func(*modelirspb.Item, *modelirspb.Performance) bool) (out, off []Unsupported) {
+func (p *Producer) gaps(r *umpirespb.Realization, takes func(*umpirespb.Item, *umpirespb.Performance) bool) (out, off []Unsupported) {
 	for _, e := range r.GetEvidence() {
 		out = append(out, evidenceGaps(e)...)
 	}
@@ -231,7 +231,7 @@ func (p *Producer) gaps(r *modelirspb.Realization, takes func(*modelirspb.Item, 
 				Why: "a Driver holds what a step dispatched to a task queue; none holds the deliveries of a channel"})
 		}
 	}
-	command := func(s *modelirspb.Script, item *modelirspb.Item, performance *modelirspb.Performance) {
+	command := func(s *umpirespb.Script, item *umpirespb.Item, performance *umpirespb.Performance) {
 		c := item.GetCommand()
 		if performance != nil {
 			c = performance.GetCommand()
@@ -262,15 +262,15 @@ func (p *Producer) gaps(r *modelirspb.Realization, takes func(*modelirspb.Item, 
 // runs two activities. A Run records an attempt at the command that carries it, and the one carrier of
 // a Case reserves every activity entrypoint the Case gives an instruction, so the records of all of
 // them are that command's, and none names its script.
-func indistinct(r *modelirspb.Realization, takes func(*modelirspb.Item, *modelirspb.Performance) bool) (out []Unsupported) {
+func indistinct(r *umpirespb.Realization, takes func(*umpirespb.Item, *umpirespb.Performance) bool) (out []Unsupported) {
 	var activities []string
 	for _, s := range r.GetScripts() {
 		if s.GetActivity() == nil {
 			continue
 		}
-		if slices.ContainsFunc(s.GetItems(), func(item *modelirspb.Item) bool {
+		if slices.ContainsFunc(s.GetItems(), func(item *umpirespb.Item) bool {
 			return item.GetCommand() != nil && takes(item, nil) ||
-				slices.ContainsFunc(item.GetPerforms(), func(performance *modelirspb.Performance) bool { return takes(item, performance) })
+				slices.ContainsFunc(item.GetPerforms(), func(performance *umpirespb.Performance) bool { return takes(item, performance) })
 		}) {
 			activities = append(activities, s.GetId())
 		}
@@ -296,14 +296,14 @@ func indistinct(r *modelirspb.Realization, takes func(*modelirspb.Item, *modelir
 
 // heldByDriver is whether a control is one a Driver realizes: the hold of what a step dispatched to
 // a task queue.
-func heldByDriver(c *modelirspb.Control) bool {
+func heldByDriver(c *umpirespb.Control) bool {
 	return c.GetHoldDispatched() != nil && c.GetRole() != ""
 }
 
 // controlOf is the control of a realization a hold or a release names, by id.
-func controlOf(r *modelirspb.Realization, c *modelirspb.Command) *modelirspb.Control {
+func controlOf(r *umpirespb.Realization, c *umpirespb.Command) *umpirespb.Control {
 	id := c.GetHold()
-	if _, releases := c.GetInstruction().(*modelirspb.Command_Release); releases {
+	if _, releases := c.GetInstruction().(*umpirespb.Command_Release); releases {
 		id = c.GetRelease()
 	}
 	for _, declared := range r.GetControls() {
@@ -316,9 +316,9 @@ func controlOf(r *modelirspb.Realization, c *modelirspb.Command) *modelirspb.Con
 
 // commandGap is what a Case has no instruction for in a command, if anything: the hold or the
 // release of a control no Driver realizes.
-func commandGap(r *modelirspb.Realization, s *modelirspb.Script, c *modelirspb.Command) (Unsupported, bool) {
+func commandGap(r *umpirespb.Realization, s *umpirespb.Script, c *umpirespb.Command) (Unsupported, bool) {
 	switch c.GetInstruction().(type) {
-	case *modelirspb.Command_Hold, *modelirspb.Command_Release:
+	case *umpirespb.Command_Hold, *umpirespb.Command_Release:
 		if heldByDriver(controlOf(r, c)) {
 			return Unsupported{}, false
 		}
@@ -330,10 +330,10 @@ func commandGap(r *modelirspb.Realization, s *modelirspb.Script, c *modelirspb.C
 }
 
 // evidenceGaps is what a Case cannot carry of one kind of evidence, in the order it is declared.
-func evidenceGaps(e *modelirspb.Evidence) (out []Unsupported) {
+func evidenceGaps(e *umpirespb.Evidence) (out []Unsupported) {
 	// A Run records a durable commit of the receiver only as the record of the instruction that
 	// observed it, a release that delivered to it: no RPC a caller makes and no history reports one.
-	if e.GetCommitment() == modelirspb.Evidence_COMMITMENT_DURABLE && e.GetRunEvent() == nil {
+	if e.GetCommitment() == umpirespb.Evidence_COMMITMENT_DURABLE && e.GetRunEvent() == nil {
 		out = append(out, Unsupported{Construct: "durable-commit observation", ID: e.GetId(), Position: locate(e.GetPosition()), Owner: ownerNone,
 			Why: "what an RPC returned and what history holds report no durable commit of the receiver: a Run records one only as the record of the release that observed it"})
 	}
@@ -353,7 +353,7 @@ func evidenceGaps(e *modelirspb.Evidence) (out []Unsupported) {
 
 // attemptClasses is the classes an activity's script starts an attempt with, and the classes its
 // commands answer one with, by key.
-func (l *lowering) attemptClasses(s *modelirspb.Script) (started, answered map[string]bool) {
+func (l *lowering) attemptClasses(s *umpirespb.Script) (started, answered map[string]bool) {
 	started, answered = map[string]bool{}, map[string]bool{}
 	for _, class := range s.GetActivity().GetStarts() {
 		started[l.adapter.classKey(class)] = true
@@ -485,7 +485,7 @@ func outOfOrder(kinds []published, answers map[string][]int) *misplaced {
 }
 
 // attemptOf is the attempt a kind of evidence is declared the record of, or nil.
-func (l *lowering) attemptOf(kind string) *modelirspb.AttemptOf {
+func (l *lowering) attemptOf(kind string) *umpirespb.AttemptOf {
 	return l.adapter.evidence[kind].GetRunEvent().GetAttempt()
 }
 
@@ -691,18 +691,18 @@ func (l *lowering) ordered(c *testpilotspb.Case) error {
 
 // takes is whether a Case of this Query's path would carry a command: one every Case carries, one
 // carried for a class the path takes, or the performance of a class the path takes.
-func (l *lowering) takes(item *modelirspb.Item, performance *modelirspb.Performance) bool {
+func (l *lowering) takes(item *umpirespb.Item, performance *umpirespb.Performance) bool {
 	if performance != nil {
 		return slices.Contains(l.keys, l.adapter.classKey(performance.GetStep()))
 	}
-	return len(item.GetWhen()) == 0 || slices.ContainsFunc(item.GetWhen(), func(class *modelirspb.ActionClass) bool {
+	return len(item.GetWhen()) == 0 || slices.ContainsFunc(item.GetWhen(), func(class *umpirespb.ActionClass) bool {
 		return slices.Contains(l.keys, l.adapter.classKey(class))
 	})
 }
 
 // commandsOf is every command a script declares, in declaration order.
-func commandsOf(s *modelirspb.Script) []*modelirspb.Command {
-	var out []*modelirspb.Command
+func commandsOf(s *umpirespb.Script) []*umpirespb.Command {
+	var out []*umpirespb.Command
 	for _, item := range s.GetItems() {
 		if item.GetCommand() != nil {
 			out = append(out, item.GetCommand())
@@ -728,7 +728,7 @@ type lowering struct {
 	confirmations []cp.Confirmation
 }
 
-func (p *Producer) source(q *modelirspb.Query) cp.Source {
+func (p *Producer) source(q *umpirespb.Query) cp.Source {
 	return cp.Source{Path: q.GetPosition().GetFile(), Provenance: "scala-model"}
 }
 
@@ -851,9 +851,9 @@ var realizationFields = map[protoreflect.Name]func(*accounting) error{
 	},
 }
 
-var correlationFields = map[protoreflect.Name]func(a *accounting, c *modelirspb.Correlation, contract *testpilotspb.CorrelatedContract) error{
-	"position": func(*accounting, *modelirspb.Correlation, *testpilotspb.CorrelatedContract) error { return nil },
-	"projection": func(a *accounting, c *modelirspb.Correlation, contract *testpilotspb.CorrelatedContract) error {
+var correlationFields = map[protoreflect.Name]func(a *accounting, c *umpirespb.Correlation, contract *testpilotspb.CorrelatedContract) error{
+	"position": func(*accounting, *umpirespb.Correlation, *testpilotspb.CorrelatedContract) error { return nil },
+	"projection": func(a *accounting, c *umpirespb.Correlation, contract *testpilotspb.CorrelatedContract) error {
 		for _, rule := range a.c.GetProvenance().GetCorrelatedRules() {
 			if rule.GetProjectionId() != c.GetProjection() {
 				return a.differs("correlation", "projection", c.GetProjection(), rule.GetProjectionId(), "provenance.correlated_rules")
@@ -861,7 +861,7 @@ var correlationFields = map[protoreflect.Name]func(a *accounting, c *modelirspb.
 		}
 		return a.field("correlation", "projection", a.named(c.GetProjection()), contract.GetProjectionId(), "contract.correlated.projection_id")
 	},
-	"run": func(a *accounting, c *modelirspb.Correlation, contract *testpilotspb.CorrelatedContract) error {
+	"run": func(a *accounting, c *umpirespb.Correlation, contract *testpilotspb.CorrelatedContract) error {
 		for _, e := range a.c.GetProgram().GetEvidence() {
 			if len(e.GetScope()) != 1 || e.GetScope()[0].GetFieldId() != a.named(c.GetRun()) {
 				return a.differs("correlation", "run", a.named(c.GetRun()), fmt.Sprint(e.GetScope()), "program.evidence["+e.GetEvidenceId()+"]")
@@ -869,10 +869,10 @@ var correlationFields = map[protoreflect.Name]func(a *accounting, c *modelirspb.
 		}
 		return a.field("correlation", "run", a.named(c.GetRun()), strings.Join(contract.GetScopeFields(), ","), "contract.correlated.scope_fields")
 	},
-	"operation": func(a *accounting, c *modelirspb.Correlation, contract *testpilotspb.CorrelatedContract) error {
+	"operation": func(a *accounting, c *umpirespb.Correlation, contract *testpilotspb.CorrelatedContract) error {
 		return a.field("correlation", "operation", a.named(c.GetOperation()), contract.GetOperationField(), "contract.correlated.operation_field")
 	},
-	"observation": func(a *accounting, c *modelirspb.Correlation, contract *testpilotspb.CorrelatedContract) error {
+	"observation": func(a *accounting, c *umpirespb.Correlation, contract *testpilotspb.CorrelatedContract) error {
 		return a.field("correlation", "observation", c.GetObservation(), contract.GetEvidenceObservationId(), "contract.correlated.evidence_observation_id")
 	},
 	"events":     (*accounting).window,
@@ -957,7 +957,7 @@ func (a *accounting) field(kind, id, declared, carried, part string) error {
 	return nil
 }
 
-func (a *accounting) own(kind, id string, at *modelirspb.Position, parts ...string) {
+func (a *accounting) own(kind, id string, at *umpirespb.Position, parts ...string) {
 	for _, part := range parts {
 		a.owned[part] = true
 	}
@@ -986,7 +986,7 @@ func (a *accounting) machine() error {
 }
 
 // carried records a declaration every Case carries under its own id.
-func (a *accounting) carried(kind, id string, at *modelirspb.Position, part string, has bool) error {
+func (a *accounting) carried(kind, id string, at *umpirespb.Position, part string, has bool) error {
 	if !has {
 		return errorAt(at, "%s %s of realization %s is in no part of the Case", kind, id, a.l.a.r.GetName())
 	}
@@ -1028,7 +1028,7 @@ func (a *accounting) observations() error {
 // with no entry of its own is part of what the Case's evidence declaration states. The inventory walks
 // the message's descriptor, so a field the IR gains is an error of every lowering until it is
 // accounted for here.
-var evidenceFields = map[protoreflect.Name]func(a *accounting, e *modelirspb.Evidence, d *testpilotspb.EvidenceDeclaration) ([]string, error){
+var evidenceFields = map[protoreflect.Name]func(a *accounting, e *umpirespb.Evidence, d *testpilotspb.EvidenceDeclaration) ([]string, error){
 	"id":         nil,
 	"position":   nil,
 	"records":    nil,
@@ -1046,15 +1046,15 @@ var evidenceFields = map[protoreflect.Name]func(a *accounting, e *modelirspb.Evi
 
 // recordedIn spells where a realization says a kind of evidence is recorded, and declaredIn where a
 // Case's declaration says it is, in the same words, so that the two are compared as one text.
-func recordedIn(e *modelirspb.Evidence) string {
+func recordedIn(e *umpirespb.Evidence) string {
 	switch from := e.GetFrom().(type) {
-	case *modelirspb.Evidence_History:
+	case *umpirespb.Evidence_History:
 		return "history event " + from.History
-	case *modelirspb.Evidence_Read:
+	case *umpirespb.Evidence_Read:
 		return "read " + from.Read.GetMethod() + " " + from.Read.GetPath()
-	case *modelirspb.Evidence_Single:
+	case *umpirespb.Evidence_Single:
 		return "single read " + from.Single.GetMethod() + " " + from.Single.GetPath()
-	case *modelirspb.Evidence_RunEvent:
+	case *umpirespb.Evidence_RunEvent:
 		keyed := "nothing"
 		switch key := from.RunEvent.GetKey(); {
 		case key.GetRun() != nil:
@@ -1063,7 +1063,7 @@ func recordedIn(e *modelirspb.Evidence) string {
 			keyed = key.GetPath().GetPath()
 		default:
 		}
-		return fmt.Sprintf("run event %s of %s/%s keyed by %s", modelirspb.RunEventSource_Kind_name[int32(from.RunEvent.GetKind())],
+		return fmt.Sprintf("run event %s of %s/%s keyed by %s", umpirespb.RunEventSource_Kind_name[int32(from.RunEvent.GetKind())],
 			from.RunEvent.GetScript(), from.RunEvent.GetCommand(), keyed)
 	default:
 		return "nowhere"
@@ -1080,7 +1080,7 @@ func declaredIn(d *testpilotspb.EvidenceDeclaration) string {
 		}
 		return "read " + from.Read.GetMethod() + " " + from.Read.GetPath()
 	case *testpilotspb.EvidenceDeclaration_RunEvent:
-		kind := modelirspb.RunEventSource_KIND_UNSPECIFIED
+		kind := umpirespb.RunEventSource_KIND_UNSPECIFIED
 		for declared, lowered := range runEventKinds {
 			if lowered == from.RunEvent.GetKind() {
 				kind = declared
@@ -1090,7 +1090,7 @@ func declaredIn(d *testpilotspb.EvidenceDeclaration) string {
 		if !from.RunEvent.GetRunKeyed() {
 			keyed = d.GetOperation()
 		}
-		return fmt.Sprintf("run event %s of %s/%s keyed by %s", modelirspb.RunEventSource_Kind_name[int32(kind)],
+		return fmt.Sprintf("run event %s of %s/%s keyed by %s", umpirespb.RunEventSource_Kind_name[int32(kind)],
 			from.RunEvent.GetInstruction().GetEntrypointId(), from.RunEvent.GetInstruction().GetInstructionId(), keyed)
 	default:
 		return "nowhere"
@@ -1100,7 +1100,7 @@ func declaredIn(d *testpilotspb.EvidenceDeclaration) string {
 // recorded checks that the Case declares a kind of evidence recorded where the realization says it
 // is. The Run's own record is an instruction's, which the Case must carry: the instruction is part of
 // what carries the kind.
-func (a *accounting) recorded(e *modelirspb.Evidence, d *testpilotspb.EvidenceDeclaration) ([]string, error) {
+func (a *accounting) recorded(e *umpirespb.Evidence, d *testpilotspb.EvidenceDeclaration) ([]string, error) {
 	part := "program.evidence[" + d.GetEvidenceId() + "]"
 	if declared, carried := recordedIn(e), declaredIn(d); declared != carried {
 		return nil, a.differs("evidence", e.GetId(), declared, carried, part)
@@ -1135,7 +1135,7 @@ func (a *accounting) recorded(e *modelirspb.Evidence, d *testpilotspb.EvidenceDe
 // kept checks that the Case keeps the fields a kind of evidence declares, each at its path in the
 // Program's declaration and retained by the Contract's rule for the kind, and no other. A redacted
 // field has no part of a Case.
-func (a *accounting) kept(e *modelirspb.Evidence, d *testpilotspb.EvidenceDeclaration) ([]string, error) {
+func (a *accounting) kept(e *umpirespb.Evidence, d *testpilotspb.EvidenceDeclaration) ([]string, error) {
 	part := "program.evidence[" + d.GetEvidenceId() + "]"
 	var rule *testpilotspb.CorrelatedProjectionRule
 	for _, r := range a.c.GetContract().GetCorrelated().GetProjectionRules() {
@@ -1166,7 +1166,7 @@ func (a *accounting) kept(e *modelirspb.Evidence, d *testpilotspb.EvidenceDeclar
 
 // confirmed checks that the Case's rule for a kind that names the steps it confirms confirms as many:
 // the kind is carried for all of them or for none.
-func (a *accounting) confirmed(e *modelirspb.Evidence, d *testpilotspb.EvidenceDeclaration) ([]string, error) {
+func (a *accounting) confirmed(e *umpirespb.Evidence, d *testpilotspb.EvidenceDeclaration) ([]string, error) {
 	for _, rule := range a.c.GetContract().GetCorrelated().GetProjectionRules() {
 		if rule.GetKind() != d.GetEvidenceId() {
 			continue
@@ -1174,7 +1174,7 @@ func (a *accounting) confirmed(e *modelirspb.Evidence, d *testpilotspb.EvidenceD
 		// A rule confirms the steps its kind names and the steps between them that record nothing.
 		named := 0
 		for _, output := range rule.GetOutputs() {
-			if slices.ContainsFunc(e.GetConfirms(), func(taking *modelirspb.Taking) bool {
+			if slices.ContainsFunc(e.GetConfirms(), func(taking *umpirespb.Taking) bool {
 				return a.l.adapter.classKey(taking.GetStep()) == output.GetAction().GetValue()
 			}) {
 				named++
@@ -1190,7 +1190,7 @@ func (a *accounting) confirmed(e *modelirspb.Evidence, d *testpilotspb.EvidenceD
 
 // closing is the instruction whose read closes an exhaustive kind of evidence the Case carries: the
 // command the realization names, which every Case carries.
-func (a *accounting) closing(e *modelirspb.Evidence, _ *testpilotspb.EvidenceDeclaration) ([]string, error) {
+func (a *accounting) closing(e *umpirespb.Evidence, _ *testpilotspb.EvidenceDeclaration) ([]string, error) {
 	for _, s := range a.l.a.r.GetScripts() {
 		for _, c := range commandsOf(s) {
 			if !slices.Contains(c.GetCloses(), e.GetId()) {
@@ -1277,7 +1277,7 @@ func (a *accounting) correlation() error {
 
 // window records one bound of the window a check keeps. The Case carries the window in the
 // fingerprint of its projection alone.
-func (a *accounting) window(*modelirspb.Correlation, *testpilotspb.CorrelatedContract) error {
+func (a *accounting) window(*umpirespb.Correlation, *testpilotspb.CorrelatedContract) error {
 	if a.c.GetContract().GetCorrelated().GetProjectionFingerprint() == "" {
 		return a.differs("correlation", "window", "a window", "", "contract.correlated.projection_fingerprint")
 	}
@@ -1322,7 +1322,7 @@ func (a *accounting) scripts() error {
 
 // script records a script and each of its commands: a plain command under its id where the Case
 // carries it, and a performance once per step of the path that takes its class.
-func (a *accounting) script(s *modelirspb.Script) error {
+func (a *accounting) script(s *umpirespb.Script) error {
 	var entrypoint *testpilotspb.Entrypoint
 	for _, e := range a.c.GetProgram().GetEntrypoints() {
 		if e.GetEntrypointId() == s.GetId() {
@@ -1365,7 +1365,7 @@ func (a *accounting) script(s *modelirspb.Script) error {
 
 // performance records the command of one class: once per step of the path that takes the class, a
 // class taken again under its ordinal after the command's id.
-func (a *accounting) performance(s *modelirspb.Script, performance *modelirspb.Performance, carries func(id string) bool,
+func (a *accounting) performance(s *umpirespb.Script, performance *umpirespb.Performance, carries func(id string) bool,
 	part func(id string) string) error {
 	cmd := performance.GetCommand()
 	key := a.l.adapter.classKey(performance.GetStep())

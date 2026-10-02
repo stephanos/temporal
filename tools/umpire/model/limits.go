@@ -5,7 +5,7 @@ import (
 	"math"
 	"math/big"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 )
 
 // Ceilings bound the work interpreting a Model may take, each checked against a count of the work
@@ -17,8 +17,8 @@ type Ceilings struct {
 	Evaluations int64
 }
 
-// DefaultCeilings are the ceilings Build and NewInterpreter interpret a Model within.
-var DefaultCeilings = Ceilings{Members: 1 << 16, Evaluations: 1 << 20}
+// defaultCeilings are the ceilings Build and NewInterpreter interpret a Model within.
+var defaultCeilings = Ceilings{Members: 1 << 16, Evaluations: 1 << 20}
 
 // LimitError is a ceiling some work would exceed, with the work it needs, counted before any of it is
 // done and saturating at math.MaxInt64. It says nothing about the Model but that it was not
@@ -46,13 +46,6 @@ func (e *LimitError) Error() string {
 		return fmt.Sprintf("%s needs more than %d %s, above the ceiling of %d", what, e.Needed, e.Resource, e.Ceiling)
 	}
 	return fmt.Sprintf("%s needs %d %s, above the ceiling of %d", what, e.Needed, e.Resource, e.Ceiling)
-}
-
-// BuildWithin is Build within explicit ceilings.
-func BuildWithin(m *modelirspb.Model, c Ceilings) (map[string]*Machine, error) {
-	in := NewInterpreter(m)
-	in.ceilings = c
-	return in.build(m)
 }
 
 // count is how many values a catalog, or how much work, has: exactly, or, past what an int64 holds,
@@ -99,23 +92,23 @@ func (in *Interpreter) within(resource string, ceiling int64, needed count) erro
 
 // size counts a finite type's catalog without listing it.
 // A type or channel whose catalog contains itself has none, and is refused rather than followed.
-func (in *Interpreter) size(t *modelirspb.TypeRef) (count, error) {
+func (in *Interpreter) size(t *umpirespb.TypeRef) (count, error) {
 	switch r := t.GetRef().(type) {
-	case *modelirspb.TypeRef_Bool:
+	case *umpirespb.TypeRef_Bool:
 		return count{n: 2}, nil
-	case *modelirspb.TypeRef_IntRange:
+	case *umpirespb.TypeRef_IntRange:
 		if r.IntRange.GetHigh() < r.IntRange.GetLow() {
 			return count{}, nil
 		}
 		return counted(new(big.Int).Add(new(big.Int).Sub(big.NewInt(r.IntRange.GetHigh()), big.NewInt(r.IntRange.GetLow())), big.NewInt(1))), nil
-	case *modelirspb.TypeRef_Named:
+	case *umpirespb.TypeRef_Named:
 		leave, err := in.enter("type " + r.Named)
 		if err != nil {
 			return count{}, err
 		}
 		defer leave()
 		return in.sizeOfDeclared(r.Named)
-	case *modelirspb.TypeRef_Channel:
+	case *umpirespb.TypeRef_Channel:
 		leave, err := in.enter("channel " + r.Channel)
 		if err != nil {
 			return count{}, err
@@ -130,7 +123,7 @@ func (in *Interpreter) size(t *modelirspb.TypeRef) (count, error) {
 			return count{}, err
 		}
 		entries := messages.times(count{n: int64(c.GetDuplicates()) + 1})
-		return channelSize(entries, int64(c.GetCapacity()), c.GetOrder() == modelirspb.Channel_ORDER_UNORDERED), nil
+		return channelSize(entries, int64(c.GetCapacity()), c.GetOrder() == umpirespb.Channel_ORDER_UNORDERED), nil
 	default:
 		return count{}, &Error{Message: "a finite type is a named type, the Booleans, an integer range, or a channel's contents"}
 	}
@@ -142,7 +135,7 @@ func (in *Interpreter) sizeOfDeclared(name string) (count, error) {
 		return count{}, &Error{Message: "no type " + name}
 	}
 	switch s := decl.GetShape().(type) {
-	case *modelirspb.Type_Enum:
+	case *umpirespb.Type_Enum:
 		var n count
 		for _, c := range s.Enum.GetCases() {
 			k, err := in.sizeOfProduct(c.GetFields())
@@ -152,7 +145,7 @@ func (in *Interpreter) sizeOfDeclared(name string) (count, error) {
 			n = n.plus(k)
 		}
 		return n, nil
-	case *modelirspb.Type_Record:
+	case *umpirespb.Type_Record:
 		return in.sizeOfProduct(s.Record.GetFields())
 	default:
 		return count{}, errorAt(decl.GetPosition(), "type %s has no shape", name)
@@ -189,7 +182,7 @@ func channelSize(e count, n int64, unordered bool) count {
 	}
 }
 
-func (in *Interpreter) sizeOfProduct(fields []*modelirspb.Field) (count, error) {
+func (in *Interpreter) sizeOfProduct(fields []*umpirespb.Field) (count, error) {
 	n := count{n: 1}
 	for _, f := range fields {
 		k, err := in.size(f.GetType())

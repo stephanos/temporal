@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"io"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot/campaign"
 	"go.temporal.io/server/common/testing/testpilot/replay"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -31,7 +31,7 @@ type request struct {
 }
 
 type server struct {
-	models               []*modelirspb.Model
+	models               []*umpirespb.Model
 	plan                 *Plan
 	mode, profile        string
 	seq, index, selected int
@@ -44,7 +44,7 @@ type server struct {
 }
 
 // Serve implements the existing campaign and replay protocols over checked IR declarations.
-func Serve(input io.Reader, output io.Writer, models []*modelirspb.Model) error {
+func Serve(input io.Reader, output io.Writer, models []*umpirespb.Model) error {
 	s := &server{models: models}
 	scanner := bufio.NewScanner(input)
 	scanner.Buffer(make([]byte, 4096), campaign.DefaultMaxFrameBytes)
@@ -327,8 +327,8 @@ func (s *server) finishCampaign(status string) map[string]any {
 	return map[string]any{"frame": "finished", "status": status, "summary": sum, "ledger": s.ledger, "counterexamples": []campaign.Counterexample{}}
 }
 
-func (s *server) model(name string) (*modelirspb.Model, error) {
-	var selected *modelirspb.Model
+func (s *server) model(name string) (*umpirespb.Model, error) {
+	var selected *umpirespb.Model
 	for _, m := range s.models {
 		for _, q := range m.GetQueries() {
 			if q.GetExploration().GetName() == name {

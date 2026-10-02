@@ -5,28 +5,28 @@ import (
 
 	"github.com/stretchr/testify/require"
 	_ "go.temporal.io/api/workflowservice/v1"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 )
 
 func TestFiniteVariationsArePrioritizedAndRelowered(t *testing.T) {
 	m, err := umpiremodel.Load("../../../model/ir/nexus-caller.json")
 	require.NoError(t, err)
-	var q *modelirspb.Query
+	var q *umpirespb.Query
 	for _, declared := range m.Queries {
 		if declared.Name == "syncCompletion" {
 			q = declared
 		}
 	}
 	require.NotNil(t, q)
-	var scenario *modelirspb.Scenario
+	var scenario *umpirespb.Scenario
 	for _, s := range m.Scenarios {
 		if s.Name == q.Scenario.Name && s.Machine == q.Scenario.Machine {
 			scenario = s
 		}
 	}
 	require.NotNil(t, scenario)
-	q.Exploration = &modelirspb.Exploration{Name: "deadlines", Runs: 1, Edits: 1, DropPrefix: true, Variations: []*modelirspb.Variation{{Index: 0, Choices: []*modelirspb.Alternative{
+	q.Exploration = &umpirespb.Exploration{Name: "deadlines", Runs: 1, Edits: 1, DropPrefix: true, Variations: []*umpirespb.Variation{{Index: 0, Choices: []*umpirespb.Alternative{
 		{Name: "default", Actions: scenario.Actions[:1]},
 		{Name: "preferred", Priority: 10, Actions: scenario.Actions[:1]},
 	}}}}
@@ -49,7 +49,7 @@ func TestAlternativeNamesCannotAliasAnotherTuple(t *testing.T) {
 	require.NoError(t, err)
 	for _, q := range m.Queries {
 		if q.Name == "syncCompletion" {
-			q.Exploration = &modelirspb.Exploration{Name: "ambiguous", Runs: 1, Variations: []*modelirspb.Variation{{Index: 0, Choices: []*modelirspb.Alternative{{Name: "a+b"}}}}}
+			q.Exploration = &umpirespb.Exploration{Name: "ambiguous", Runs: 1, Variations: []*umpirespb.Variation{{Index: 0, Choices: []*umpirespb.Alternative{{Name: "a+b"}}}}}
 		}
 	}
 	_, err = New(m, "ambiguous")

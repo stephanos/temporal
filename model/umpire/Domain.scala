@@ -114,12 +114,6 @@ object Keys:
     case p: Product            => p.productElementNames.toList
     case _                     => Nil
 
-  /** A state's fields as keys, beside their names. */
-  def fields(v: Any): List[(String, String)] = v match
-    case _: scala.reflect.Enum => Nil
-    case p: Product            => p.productElementNames.zip(p.productIterator.map(of)).toList
-    case _                     => Nil
-
   /**
    * A class spelled the way a Lean `examples:` line spells it: a parametrised case by its
    * constructor and named fields, `handlerError (retryable := true)`, anything else by its key.

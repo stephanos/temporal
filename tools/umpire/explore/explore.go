@@ -10,8 +10,8 @@ import (
 	"slices"
 	"strings"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	producer "go.temporal.io/server/tools/umpire/lower"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
@@ -20,16 +20,16 @@ import (
 )
 
 type Candidate struct {
-	Drops     []int                     `json:"drops,omitempty"`
-	Key       string                    `json:"key"`
-	Priority  int64                     `json:"priority"`
-	Digest    string                    `json:"digest"`
-	Identity  string                    `json:"identity,omitempty"`
-	Rejection string                    `json:"rejection,omitempty"`
-	Bytes     json.RawMessage           `json:"-"`
-	Model     *modelirspb.Model         `json:"-"`
-	Case      *testpilotspb.Case        `json:"-"`
-	Actions   []*modelirspb.ActionClass `json:"-"`
+	Drops     []int                    `json:"drops,omitempty"`
+	Key       string                   `json:"key"`
+	Priority  int64                    `json:"priority"`
+	Digest    string                   `json:"digest"`
+	Identity  string                   `json:"identity,omitempty"`
+	Rejection string                   `json:"rejection,omitempty"`
+	Bytes     json.RawMessage          `json:"-"`
+	Model     *umpirespb.Model         `json:"-"`
+	Case      *testpilotspb.Case       `json:"-"`
+	Actions   []*umpirespb.ActionClass `json:"-"`
 }
 
 type Plan struct {
@@ -38,12 +38,12 @@ type Plan struct {
 	Runs       int32        `json:"runs"`
 	Edits      int32        `json:"edits"`
 	Candidates []*Candidate `json:"candidates"`
-	base       *modelirspb.Model
-	query      *modelirspb.Query
-	scenario   *modelirspb.Scenario
+	base       *umpirespb.Model
+	query      *umpirespb.Query
+	scenario   *umpirespb.Scenario
 }
 
-func New(m *modelirspb.Model, name string) (*Plan, error) {
+func New(m *umpirespb.Model, name string) (*Plan, error) {
 	m = proto.CloneOf(m)
 	if err := umpiremodel.Validate(m); err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func New(m *modelirspb.Model, name string) (*Plan, error) {
 	}
 	p.Query, p.Runs, p.Edits = p.query.GetName(), p.query.GetExploration().GetRuns(), p.query.GetExploration().GetEdits()
 	axes := slices.Clone(p.query.GetExploration().GetVariations())
-	slices.SortFunc(axes, func(a, b *modelirspb.Variation) int { return int(a.GetIndex() - b.GetIndex()) })
+	slices.SortFunc(axes, func(a, b *umpirespb.Variation) int { return int(a.GetIndex() - b.GetIndex()) })
 	p.enumerate(axes)
 	slices.SortFunc(p.Candidates, func(a, b *Candidate) int {
 		if a.Priority > b.Priority {
@@ -91,7 +91,7 @@ func (p *Plan) Reduce(c *Candidate, index int) (*Candidate, error) {
 	return next, nil
 }
 
-func (p *Plan) lower(key string, priority int64, actions []*modelirspb.ActionClass) *Candidate {
+func (p *Plan) lower(key string, priority int64, actions []*umpirespb.ActionClass) *Candidate {
 	m := proto.CloneOf(p.base)
 	for _, q := range m.Queries {
 		q.Exploration = nil
@@ -144,9 +144,9 @@ func (p *Plan) lower(key string, priority int64, actions []*modelirspb.ActionCla
 	return c
 }
 
-func (p *Plan) enumerate(axes []*modelirspb.Variation) {
-	var expand func(int, []string, int64, map[int][]*modelirspb.ActionClass)
-	expand = func(i int, names []string, priority int64, replacements map[int][]*modelirspb.ActionClass) {
+func (p *Plan) enumerate(axes []*umpirespb.Variation) {
+	var expand func(int, []string, int64, map[int][]*umpirespb.ActionClass)
+	expand = func(i int, names []string, priority int64, replacements map[int][]*umpirespb.ActionClass) {
 		if i < len(axes) {
 			axis := axes[i]
 			for _, choice := range axis.GetChoices() {
@@ -155,7 +155,7 @@ func (p *Plan) enumerate(axes []*modelirspb.Variation) {
 			}
 			return
 		}
-		var actions []*modelirspb.ActionClass
+		var actions []*umpirespb.ActionClass
 		for index, a := range p.scenario.GetActions() {
 			if as, ok := replacements[index]; ok {
 				actions = append(actions, as...)
@@ -166,5 +166,5 @@ func (p *Plan) enumerate(axes []*modelirspb.Variation) {
 		c := p.lower(strings.Join(names, "+"), priority, actions)
 		p.Candidates = append(p.Candidates, c)
 	}
-	expand(0, nil, 0, map[int][]*modelirspb.ActionClass{})
+	expand(0, nil, 0, map[int][]*umpirespb.ActionClass{})
 }

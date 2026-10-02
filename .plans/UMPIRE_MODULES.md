@@ -75,6 +75,14 @@ private checker constants; do not merge the receipt/outcome types or add a synon
 
 `Row` is public data in the `Table.Rows` signature closure. `NewTable`, `TableSpec`, `KeyProperty`,
 `KeyScenario` and `KeyFind` remain private-checker operations, not public test-construction APIs.
+Since task 7 the typed declaration layer of the checker (machine, step, Property and Scenario
+builders, reflection domains and keys) is test support in `*_support_test.go`; `Set`, `Check` and
+coverage targets are deleted, and the reader no longer aliases typed class data (`ActionDecl`,
+`Party`, `Entity`, `ClassExample`, `TableClass`, `ProgressAnswer`). Recorded exceptions to the
+outside-caller rule: `export` keeps the surface listed in its row although no package imports it,
+and exported `Table` fields are unaudited (`Table.Stuck` is read by reader tests only). Production
+branches that only typed fixtures reach remain in the checker; fn-113 Part C lists their removal
+beside the native Scala evaluator's.
 
 Lowering exposes `Identity` and `IdentityFor` from its private producer so exploration and fixture
 callers have no direct `caseproducer` import. Move producer-specific white-box tests with that
@@ -159,12 +167,24 @@ rebound-Action-ID rejection assertions into the reader-owned replay tests over a
 and Nexus IR, with a nonvacuous expected Query inventory. This keeps checker tests independently
 scoped; `Query.Replay` already belongs to the public Query method closure.
 
-The reader's `load.go` retains file decoding; `validate.go` owns whole-IR admission; operand typing
+The reader's `load.go` retains file decoding; `validate.go` owns whole-IR admission, with key and
+identity admission in `validate_keys.go` and realization admission in `validate_realization.go`; operand typing
 and protobuf paths live in separate concern files, with focused tests. The lifter first gains one
 typed context carrying `Quotes`, definition/symbol indexes, source-prefix mapping and declaration
 accumulators. Extract types, expressions, declarations, realizations, compositions and claims into
 concern files around that context; the entry point only arranges inspection and output. This is
-structure work, not a second interpretation of the Model.
+structure work, not a second interpretation of the Model. Task 8 delivered it as ten files in
+`model/lifter`: `Context`, `Types`, `Constants` (values folded at lift time), `Expressions`,
+`Declarations`, `Realizations`, `Compositions`, `Claims`, `Lifting` (the class the concern traits mix
+into) and the entry point `Lift.scala`.
+
+Task 9 renamed the IR namespace to `umpire/v1` (Go alias `umpirespb`, JVM package
+`io.temporal.server.api.umpire.v1`); `modelir` is renamed, not kept. The migration manifest and
+audit JSON keep the old names as the captured baseline. `tools/umpire/model/schema_test.go` with
+`testdata/schema/before-rename` freezes the pre-rename descriptor and wire bytes and names the old
+package on purpose, so retired-name checks exempt them; its 14 `.gz` files are separate from the
+1,411 migration goldens. `make lint-api` reports 57 AIP findings in `ir.proto` that predate the
+rename.
 
 ## Immutable migration goldens
 
@@ -238,7 +258,8 @@ recursive Scala compile never merges the authoring, lifter and gate projects. Li
 visit these explicit roots. The native Scala evaluator (`Search`, `Table`, etc.) stays in the DSL until fn-113.
 Owner-approved early cleanup in task7, immediately after relocation, removes only the unused
 `Canonical.scala`, `Lower.scala` and `Alterer` plumbing from fn113 Part A / R1 after checking callers;
-this does not retire the evaluator.
+this does not retire the evaluator. Task 7 delivered it: the two files, `Alterer` and the helpers left without
+a caller are gone, and `model/umpire` outside tests is 2,415 lines.
 
 Checked IR, generated Cases, specimens, specs, README and SEMANTICS move directly under `model/`.
 Reserve `model/examples` for fn-119 authoring examples and `tools/umpire/explore` for fn-120 explorer

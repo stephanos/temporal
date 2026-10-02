@@ -14,7 +14,7 @@ breaking:
     # promise; its messages are renamed wholesale rather than versioned.
     - temporal/server/api/testpilot
     # The Umpire IR is likewise internal and unversioned while model/scalav2 is an experiment.
-    - temporal/server/api/modelir
+    - temporal/server/api/umpire
 lint:
   use:
     - DEFAULT

@@ -41,7 +41,7 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   bytes. *(drafted 2026-09-30; awaiting GOV-02 approval.)*
 - **Model IR.** The language-neutral form of a Model: its finite types, pure step functions as
   expression trees, actions and machines, with the source position of every node. Its schema is
-  `proto/internal/temporal/server/api/modelir/v1/ir.proto`, its evaluation rules are
+  `proto/internal/temporal/server/api/umpire/v1/ir.proto`, its evaluation rules are
   `model/scalav2/SEMANTICS.md`, and an interpreter derives every table, identity and fingerprint
   from it without running front end code. *(drafted 2026-09-30; awaiting GOV-02 approval.)*
 - **Model Definition.** A named, handwritten part of the Behavior Model, such as a state, Action,

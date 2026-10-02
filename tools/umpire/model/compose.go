@@ -6,7 +6,7 @@ import (
 	"slices"
 	"strings"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
 )
 
@@ -46,7 +46,7 @@ func (c *composedState) key(state Value) string {
 // A claim of a composition reads a composed step as model/go and the Scala front end do: its state is
 // the composition's state record, and its outcome and facts are strings, the composed keys
 // `<field>_<key>`.
-func (b *binding) compositionSubject(c *modelirspb.Composition) *subject {
+func (b *binding) compositionSubject(c *umpirespb.Composition) *subject {
 	s := &subject{name: c.GetName(), family: c.GetFamily(), at: c.GetPosition(), stateType: c.GetStateType()}
 	spec := umpire.ComposeSpec{Family: Family(c.GetFamily()), Name: c.GetName(), Ceiling: b.scope.Compose}
 	var state *composedState
@@ -104,7 +104,7 @@ func (b *binding) compositionSubject(c *modelirspb.Composition) *subject {
 // composedMembers resolves a composition's members into its spec, and says how its states read. It
 // also notes why a Query over the composition is not supported, which does not wait on whether the
 // composition builds.
-func (b *binding) composedMembers(c *modelirspb.Composition, s *subject, spec *umpire.ComposeSpec) (*composedState, error) {
+func (b *binding) composedMembers(c *umpirespb.Composition, s *subject, spec *umpire.ComposeSpec) (*composedState, error) {
 	fields := b.in.types[c.GetStateType()].GetRecord().GetFields()
 	state := &composedState{stateType: c.GetStateType(), filledBy: slices.Repeat([]int{-1}, len(fields))}
 	var unbuilt []error
@@ -114,7 +114,7 @@ func (b *binding) composedMembers(c *modelirspb.Composition, s *subject, spec *u
 			s.unsupported = fmt.Sprintf("the member %s of %s is %s, which names monitors, and whether a member's monitors "+
 				"watch a composition is undefined", mb.GetField(), s.name, mb.GetMachine())
 		}
-		k := slices.IndexFunc(fields, func(f *modelirspb.Field) bool { return f.GetName() == mb.GetField() })
+		k := slices.IndexFunc(fields, func(f *umpirespb.Field) bool { return f.GetName() == mb.GetField() })
 		var err error
 		switch {
 		case member.err != nil:
@@ -159,7 +159,7 @@ func (e *unbuiltMembers) Unwrap() []error { return e.errs }
 // it and read every start of it, which is checked here so that a refinement that fails is reported
 // with the machine it is of; the composition then relies on none of the replaced machine's
 // assumptions.
-func (b *binding) replacement(spec *umpire.ComposeSpec, mb *modelirspb.Member, member *subject) error {
+func (b *binding) replacement(spec *umpire.ComposeSpec, mb *umpirespb.Member, member *subject) error {
 	composed := umpire.ComposeMember{Field: mb.GetField(), Table: member.table}
 	if mb.GetReplaces() != "" {
 		replaced := b.subject(mb.GetReplaces())
@@ -181,7 +181,7 @@ func (b *binding) replacement(spec *umpire.ComposeSpec, mb *modelirspb.Member, m
 // A composed state it reaches a hole at is noted as unread and read as no end, so that the
 // composition's every state is read: with a hole noted, the table that comes of it is not the
 // composition's.
-func (b *binding) composedEnds(c *modelirspb.Composition, state *composedState, unread *unknowns) (
+func (b *binding) composedEnds(c *umpirespb.Composition, state *composedState, unread *unknowns) (
 	func(key string, parts []string) (bool, error), error) {
 	if c.GetEnds() == nil {
 		return nil, nil
@@ -195,7 +195,7 @@ func (b *binding) composedEnds(c *modelirspb.Composition, state *composedState, 
 		if err != nil {
 			return false, err
 		}
-		v, err := b.in.Apply(end, []Value{composed})
+		v, err := b.in.apply(end, []Value{composed})
 		if err != nil {
 			return false, unread.note(err)
 		}
@@ -213,7 +213,7 @@ func (b *binding) composedEnds(c *modelirspb.Composition, state *composedState, 
 // Composed is not changed after it is given, and its functions are not safe to call from two
 // goroutines at once.
 type Composed struct {
-	Decl  *modelirspb.Composition
+	Decl  *umpirespb.Composition
 	Table *Table
 	// State is the composition's state record a state key stands for, one member state per field, and
 	// Step the step record a claim reads of a result: that state, with the composed outcome and facts
@@ -231,7 +231,7 @@ type Composed struct {
 // not refine what it replaces, and a member's own failure otherwise. A name that is no composition
 // names nothing.
 func (r *Realizer) Composition(name string) (*Composed, error) {
-	i := slices.IndexFunc(r.b.model.GetCompositions(), func(c *modelirspb.Composition) bool { return c.GetName() == name })
+	i := slices.IndexFunc(r.b.model.GetCompositions(), func(c *umpirespb.Composition) bool { return c.GetName() == name })
 	if i < 0 {
 		return nil, &Error{Position: r.b.model.GetSource(), Message: "no composition " + name}
 	}

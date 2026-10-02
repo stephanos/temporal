@@ -14,7 +14,7 @@ import (
 	"slices"
 	"strings"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 )
 
@@ -134,20 +134,20 @@ func (e *UnsupportedError) Error() string {
 type Slice struct {
 	// Name is what the slice's receipts call it: the caller's name for the Model, such as its file's.
 	Name     string
-	Model    *modelirspb.Model
+	Model    *umpirespb.Model
 	machines map[string]*umpiremodel.Machine
 	in       *umpiremodel.Interpreter
 	// bound reads the Model's compositions as goir's checker builds them.
 	bound   *umpiremodel.Realizer
-	types   map[string]*modelirspb.Type
-	actions map[string]*modelirspb.Action
+	types   map[string]*umpirespb.Type
+	actions map[string]*umpirespb.Action
 }
 
 // Open admits a Model and interprets its machines, within goir's default scope.
-func Open(m *modelirspb.Model) (*Slice, error) { return OpenWithin(m, umpiremodel.DefaultScope) }
+func Open(m *umpirespb.Model) (*Slice, error) { return OpenWithin(m, umpiremodel.DefaultScope) }
 
 // OpenWithin is Open within a scope, whose ceilings bound the Model's compositions.
-func OpenWithin(m *modelirspb.Model, scope umpiremodel.Scope) (*Slice, error) {
+func OpenWithin(m *umpirespb.Model, scope umpiremodel.Scope) (*Slice, error) {
 	bound, err := umpiremodel.NewRealizer(m, scope)
 	if err != nil {
 		return nil, err
@@ -161,8 +161,8 @@ func OpenWithin(m *modelirspb.Model, scope umpiremodel.Scope) (*Slice, error) {
 	if err != nil {
 		return nil, err
 	}
-	s := &Slice{Model: m, machines: machines, in: umpiremodel.NewInterpreter(m), bound: bound, types: map[string]*modelirspb.Type{},
-		actions: map[string]*modelirspb.Action{}}
+	s := &Slice{Model: m, machines: machines, in: umpiremodel.NewInterpreter(m), bound: bound, types: map[string]*umpirespb.Type{},
+		actions: map[string]*umpirespb.Action{}}
 	for _, t := range m.GetTypes() {
 		s.types[t.GetName()] = t
 	}
@@ -172,7 +172,7 @@ func OpenWithin(m *modelirspb.Model, scope umpiremodel.Scope) (*Slice, error) {
 	return s, nil
 }
 
-func describeHole(m *modelirspb.Model, id string) string {
+func describeHole(m *umpirespb.Model, id string) string {
 	for _, h := range m.GetHoles() {
 		if h.GetId() == id {
 			return "the hole " + h.GetName()
@@ -329,8 +329,8 @@ func composedReads(properties []umpiremodel.BoundProperty, state, class string, 
 }
 
 // properties is the Properties a Model declares on a machine, in the Model's order.
-func (s *Slice) properties(machine string) []*modelirspb.Property {
-	var out []*modelirspb.Property
+func (s *Slice) properties(machine string) []*umpirespb.Property {
+	var out []*umpirespb.Property
 	for _, p := range s.Model.GetProperties() {
 		if p.GetMachine() == machine {
 			out = append(out, p)
@@ -341,15 +341,15 @@ func (s *Slice) properties(machine string) []*modelirspb.Property {
 
 // about is whether a Property is about the steps of a class: every step, the steps of one class, or
 // the steps of every class of one action.
-func (s *Slice) about(p *modelirspb.Property, class umpiremodel.Class) bool {
+func (s *Slice) about(p *umpirespb.Property, class umpiremodel.Class) bool {
 	switch w := p.GetWhen().(type) {
-	case *modelirspb.Property_WhenClass:
+	case *umpirespb.Property_WhenClass:
 		parts := []string{s.actions[w.WhenClass.GetAction()].GetName()}
 		for _, input := range w.WhenClass.GetInputs() {
 			parts = append(parts, s.literal(input).Key())
 		}
 		return class.Key == strings.Join(parts, "-")
-	case *modelirspb.Property_WhenAction:
+	case *umpirespb.Property_WhenAction:
 		return class.Action.GetName() == w.WhenAction
 	default:
 		return true
@@ -392,7 +392,7 @@ func (s *Slice) claims(mm *umpiremodel.Machine, v *machineView) error {
 
 // read reads one Property on one step of a row. A Property that is not about the step holds of it,
 // and its function is not called there.
-func (s *Slice) read(p *modelirspb.Property, tr umpiremodel.Transition, step umpiremodel.Value) (claimRead, error) {
+func (s *Slice) read(p *umpirespb.Property, tr umpiremodel.Transition, step umpiremodel.Value) (claimRead, error) {
 	if !s.about(p, tr.Class) {
 		return claimRead{Holds: true}, nil
 	}
@@ -430,7 +430,7 @@ type goProduct struct {
 // watching is a machine's monitors as the product steps them: each declaration, and the monitor
 // states by key.
 type watching struct {
-	decls  []*modelirspb.Monitor
+	decls  []*umpirespb.Monitor
 	ends   map[string]bool
 	states []map[string]umpiremodel.Value
 }
@@ -477,11 +477,11 @@ func (s *Slice) step(w *watching, mu []string, source umpiremodel.Value, step um
 		}
 		out.Mu[k] = next.Key()
 		switch e := mo.GetEvaluate().(type) {
-		case *modelirspb.Monitor_EveryStep:
+		case *umpirespb.Monitor_EveryStep:
 			out.Read[k] = true
-		case *modelirspb.Monitor_AtEnds:
+		case *umpirespb.Monitor_AtEnds:
 			out.Read[k] = w.ends[target]
-		case *modelirspb.Monitor_After:
+		case *umpirespb.Monitor_After:
 			if out.Read[k], err = s.decide(e.After, step, mo); err != nil {
 				return out, err
 			}
@@ -495,7 +495,7 @@ func (s *Slice) step(w *watching, mu []string, source umpiremodel.Value, step um
 	return out, nil
 }
 
-func (s *Slice) decide(function string, arg umpiremodel.Value, mo *modelirspb.Monitor) (bool, error) {
+func (s *Slice) decide(function string, arg umpiremodel.Value, mo *umpirespb.Monitor) (bool, error) {
 	v, err := s.in.Call(function, []umpiremodel.Value{arg}, mo.GetPosition())
 	if err != nil {
 		return false, err
@@ -628,7 +628,7 @@ func (s *Slice) replay(machine, monitor string, trace *umpiremodel.Trace) error 
 	if err != nil {
 		return err
 	}
-	k := slices.IndexFunc(mm.Monitors, func(mo *modelirspb.Monitor) bool { return mo.GetName() == monitor })
+	k := slices.IndexFunc(mm.Monitors, func(mo *umpirespb.Monitor) bool { return mo.GetName() == monitor })
 	if k < 0 {
 		return fmt.Errorf("%s names no monitor %s", machine, monitor)
 	}

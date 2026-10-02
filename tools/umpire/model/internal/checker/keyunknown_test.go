@@ -174,21 +174,6 @@ func TestAnUnknownMonitorDoesNotEraseAViolationOnItsStep(t *testing.T) {
 	require.NoError(t, find.Replay(a))
 }
 
-func TestCheckRejectsAVerifyThatExploredAnUnknown(t *testing.T) {
-	tb := forkedChain([2]string{"s1", "leap"})
-	q := umpire.KeyVerify("q", umpire.KeyTransitionProperty(tb, "holds", always), umpire.KeyFreeScenario(tb, "anything", "s0"), four)
-	a, err := q.Answer()
-	require.NoError(t, err)
-	require.Equal(t, umpire.VerifiedWithinLimits, a.Outcome)
-	require.True(t, a.Incomplete())
-	require.EqualError(t, umpire.Check(q), "query q: verified-within-limits after 3 product states is incomplete: "+
-		"the search explored 1 unknown, the first the row 's1-leap'")
-
-	whole := forkedChain()
-	require.NoError(t, umpire.Check(umpire.KeyVerify("q", umpire.KeyTransitionProperty(whole, "holds", always),
-		umpire.KeyFreeScenario(whole, "anything", "s0"), four)))
-}
-
 func TestAnUnknownPairIsKeyedAsItsRow(t *testing.T) {
 	spec := keyCopy(keyTable("chain", []string{"s0"}, [3]string{"s0", "go", "s1"}))
 	spec.Unknown = []umpire.UnknownPair{{Row: "bogus", Source: "s1", Action: "go"}}
@@ -381,17 +366,6 @@ func TestARowWithNoResultIsADisabledPair(t *testing.T) {
 		require.Empty(t, answer.Unknown)
 		leaps := pathOf(chain, "s0", [2]string{"go", "s1"}, [2]string{"leap", "s1"})
 		require.EqualError(t, chain.Replay(leaps), "chain: step 2 takes leap, which is not enabled at 's1'")
-	})
-	t.Run("an exploration has no target in it", func(t *testing.T) {
-		goals := []umpire.CoverageGoal{umpire.CoverRows}
-		budget := umpire.Limits{Name: "b", Steps: 3, Search: 100}
-		with, err := umpire.CoverageTargets(stalls.Model(), goals, budget)
-		require.NoError(t, err)
-		without, err := umpire.CoverageTargets(keyTable("stalls", []string{"waiting"},
-			[3]string{"waiting", "fail", "stuck"}, [3]string{"waiting", "finish", "done"}).Model(), goals, budget)
-		require.NoError(t, err)
-		require.Len(t, without, 2)
-		require.Equal(t, without, with)
 	})
 }
 

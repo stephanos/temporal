@@ -12,8 +12,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
@@ -27,7 +27,7 @@ const (
 	realizationsAt = liftsDir + "Realizations.scala.fixture"
 )
 
-func liftedRealizations(t *testing.T) *modelirspb.Model {
+func liftedRealizations(t *testing.T) *umpirespb.Model {
 	t.Helper()
 	m, err := umpiremodel.Load(filepath.Join("..", "..", "..", "model", "lifter", "testdata", "lifts", "expected", "realizations.json"))
 	require.NoError(t, err)
@@ -182,7 +182,7 @@ func TestAQueryWithNoWitnessIsRefused(t *testing.T) {
 	m := loaded(t, "nexus-caller")
 	for _, q := range m.GetQueries() {
 		if q.GetName() == "syncCompletion" {
-			q.Property = &modelirspb.ClaimRef{Machine: "nexusProtocol", Name: "completionFails"}
+			q.Property = &umpirespb.ClaimRef{Machine: "nexusProtocol", Name: "completionFails"}
 		}
 	}
 	p, err := NewProducer(m)
@@ -191,7 +191,7 @@ func TestAQueryWithNoWitnessIsRefused(t *testing.T) {
 	require.ErrorContains(t, err, "query syncCompletion has no witness to realize: its check is not-found")
 }
 
-func raceScript(t *testing.T, m *modelirspb.Model, id string) *modelirspb.Script {
+func raceScript(t *testing.T, m *umpirespb.Model, id string) *umpirespb.Script {
 	t.Helper()
 	for _, r := range m.GetRealizations() {
 		for _, s := range r.GetScripts() {
@@ -208,11 +208,11 @@ func raceScript(t *testing.T, m *modelirspb.Model, id string) *modelirspb.Script
 // of the path nothing performs are errors whatever Testpilot cannot run of it, each is reported, and
 // neither is lowered to `unsupported`.
 func TestAGapHidesNoError(t *testing.T) {
-	misnamed := func(t *testing.T, m *modelirspb.Model) {
+	misnamed := func(t *testing.T, m *umpirespb.Model) {
 		raceScript(t, m, "controller").GetItems()[1].GetCommand().GetRpc().Method =
 			"/temporal.api.workflowservice.v1.WorkflowService/BeginActivityExecution"
 	}
-	unperformed := func(t *testing.T, m *modelirspb.Model) {
+	unperformed := func(t *testing.T, m *umpirespb.Model) {
 		s := raceScript(t, m, "controller")
 		s.Items = append(s.GetItems()[:2], s.GetItems()[3:]...)
 	}
@@ -220,20 +220,20 @@ func TestAGapHidesNoError(t *testing.T) {
 	const noPerformer = "scenario heldRace takes control-pause, a step of caller, and no script of realization pauseRace performs it"
 	for _, c := range []struct {
 		name   string
-		mutate []func(*testing.T, *modelirspb.Model)
+		mutate []func(*testing.T, *umpirespb.Model)
 		want   []string
 	}{
-		{"a method the service does not have", []func(*testing.T, *modelirspb.Model){misnamed}, []string{noMethod}},
-		{"a step no script performs", []func(*testing.T, *modelirspb.Model){unperformed}, []string{noPerformer}},
-		{"both", []func(*testing.T, *modelirspb.Model){misnamed, unperformed}, []string{noMethod, noPerformer}},
-		{"a kind of evidence read from one value", []func(*testing.T, *modelirspb.Model){func(_ *testing.T, m *modelirspb.Model) {
+		{"a method the service does not have", []func(*testing.T, *umpirespb.Model){misnamed}, []string{noMethod}},
+		{"a step no script performs", []func(*testing.T, *umpirespb.Model){unperformed}, []string{noPerformer}},
+		{"both", []func(*testing.T, *umpirespb.Model){misnamed, unperformed}, []string{noMethod, noPerformer}},
+		{"a kind of evidence read from one value", []func(*testing.T, *umpirespb.Model){func(_ *testing.T, m *umpirespb.Model) {
 			for _, r := range m.GetRealizations() {
 				if r.GetName() == "pauseRace" {
 					r.GetEvidence()[0].GetRead().Path = "next_page_token"
 				}
 			}
 		}}, []string{"evidence fixture.realizations.race.evidence.statusPaused is read from next_page_token, which is no repeated message"}},
-		{"a fact of the path no kind of evidence records", []func(*testing.T, *modelirspb.Model){func(_ *testing.T, m *modelirspb.Model) {
+		{"a fact of the path no kind of evidence records", []func(*testing.T, *umpirespb.Model){func(_ *testing.T, m *umpirespb.Model) {
 			for _, r := range m.GetRealizations() {
 				if r.GetName() == "pauseRace" {
 					r.GetEvidence()[0].Records = "pausedElsewhere"
@@ -296,7 +296,7 @@ func TestAStandingIsAnErrorThenAGapThenWhatTheQueryIs(t *testing.T) {
 // reported.
 func TestAPropertyThatReachesAHoleIsNotLowered(t *testing.T) {
 	m := loaded(t, "nexus-caller")
-	m.Holes = append(m.Holes, &modelirspb.Hole{Id: "fixture.unknown", Name: "unknown"})
+	m.Holes = append(m.Holes, &umpirespb.Hole{Id: "fixture.unknown", Name: "unknown"})
 	var holds string
 	for _, p := range m.GetProperties() {
 		if p.GetName() == "syncSucceeds" {
@@ -305,7 +305,7 @@ func TestAPropertyThatReachesAHoleIsNotLowered(t *testing.T) {
 	}
 	for _, f := range m.GetFunctions() {
 		if f.GetName() == holds {
-			f.Body = &modelirspb.Expr{Position: f.GetPosition(), Kind: &modelirspb.Expr_Hole{Hole: "fixture.unknown"}}
+			f.Body = &umpirespb.Expr{Position: f.GetPosition(), Kind: &umpirespb.Expr_Hole{Hole: "fixture.unknown"}}
 		}
 	}
 	p, err := NewProducer(m)
@@ -324,7 +324,7 @@ func TestAPropertyThatReachesAHoleIsNotLowered(t *testing.T) {
 // lowering fixes the same step's fact. With another explanation in the Property the search finds
 // nothing, and nothing is lowered.
 func TestAPropertyIsLoweredOverTheStepItIsCheckedOn(t *testing.T) {
-	found := func(m *modelirspb.Model) umpiremodel.ReceiptKind {
+	found := func(m *umpirespb.Model) umpiremodel.ReceiptKind {
 		for _, r := range umpiremodel.Check(m, umpiremodel.DefaultScope).Receipts {
 			if r.Subject == umpiremodel.QuerySubject && r.Key.Name == "door.opens" {
 				return r.Kind
@@ -348,13 +348,13 @@ func TestAPropertyIsLoweredOverTheStepItIsCheckedOn(t *testing.T) {
 
 	m = liftedRealizations(t)
 	rewritten := 0
-	var rewrite func(x *modelirspb.Expr)
-	rewrite = func(x *modelirspb.Expr) {
+	var rewrite func(x *umpirespb.Expr)
+	rewrite = func(x *umpirespb.Expr) {
 		if x.GetLiteral().GetText() == "the latch gives" {
-			x.GetLiteral().Kind = &modelirspb.Value_Text{Text: "the hinge gives"}
+			x.GetLiteral().Kind = &umpirespb.Value_Text{Text: "the hinge gives"}
 			rewritten++
 		}
-		for _, operand := range []*modelirspb.Expr{x.GetBinary().GetLeft(), x.GetBinary().GetRight()} {
+		for _, operand := range []*umpirespb.Expr{x.GetBinary().GetLeft(), x.GetBinary().GetRight()} {
 			if operand != nil {
 				rewrite(operand)
 			}

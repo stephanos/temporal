@@ -53,14 +53,14 @@ layer, then the Models.
 
 ## Planned
 
-fn-115 has seven tasks remaining. The live model and Go tooling occupy their final directories;
+fn-115 has four tasks remaining. The live model and Go tooling occupy their final directories;
 archives are isolated, dependency checks are enforced, and Make/CI cleanup is complete. Immutable
-semantic goldens remain the baseline. Next is reader/lowering cleanup, including the approved early
-Scala dead-code removal and measured test-setup speedups. No next task has started.
+semantic goldens remain the baseline. The reader is split into loading and validation files, the
+checker and lowering surfaces are trimmed, and the unused Scala framework code of fn-113 Part A is
+removed. The lifter is ten files by concern around one typed context, and the IR namespace is
+`umpire/v1`. Replacing the model's shell scripts with a Scala gate is in progress.
 The later specs have no tasks yet.
-Each starts after the spec it waits for closes; Flow records the dependencies. The approved
-exception is fn-113 Part A: fn-115.7 removes its confirmed unused Scala code immediately after the
-directory migration. Dependency enforcement and obsolete build/CI cleanup accompany that migration.
+Each starts after the spec it waits for closes; Flow records the dependencies.
 
 | Order | Spec | In one line | Waits for |
 | --- | --- | --- | --- |
@@ -89,8 +89,7 @@ Changes the layout to say what is true.
   of what the reader derives. The later specs use those goldens as their baseline.
 - `run.sh`, `gen.sh` and `scala.sh` are replaced by one Scala program, and the lifter's fixture
   checks become tests of the lifter.
-- The IR's proto package is renamed from `modelir` to `umpire`, and `goir` and `scalav2` stop being
-  names.
+- The IR's proto package is `umpire`, and `goir` and `scalav2` stop being names.
 - Nothing inside `model/` mentions Lean any more, and the model gate fails on a new mention.
 - `model/README.md` describes the whole system for a reader new to it: the layers, the two IRs,
   one worked example from a Scala declaration to a Verdict, and a Mermaid diagram.
@@ -102,20 +101,19 @@ Scala-generated. The 1,411 semantic and artifact snapshots now provide the basel
 
 ### fn-113: Clean up the Scala model layer around the IR
 
-Scala declares, the lifter reads, Go evaluates. Four parts:
+Scala declares, the lifter reads, Go evaluates. Part A, the dead code, is done. Three parts remain:
 
-- **A. Dead code (pulled forward into fn-115.7).** Delete about 390 lines of the framework that have no caller: `Canonical.scala`,
-  `Lower.scala` and the `Alterer` plumbing.
 - **B. ScalaPB.** Replace the protobuf-java builders in the lifter with ScalaPB case classes. Which
   ScalaPB release fits Scala 3.9.0 and the pinned protoc is unverified and is the first step.
 - **C. One evaluator.** Retire the native Scala evaluator (tables, search, refinement, composition),
   after an audit covers each of the 32 munit tests on the IR in Go. `UmpireSet` and `Coverage`,
-  which have no IR form, go with it.
+  which have no IR form, go with it. The Go checker's typed test-fixture layer and the
+  production branches only it reaches go the same way.
 - **D. Lean and Stainless residue.** Fold the Nexus kernel into ordinary Scala and drop
   Lean-mirroring code and citations.
 
 It also stops the lifter from writing compiler-synthesized names such as `_$1` into the IR.
-Target: the framework at most 1,300 lines (2,873 today), an estimate from current file sizes.
+Target: the framework at most 1,300 lines (2,415 today), an estimate from current file sizes.
 
 ### fn-117: Type the Temporal API in the Models
 

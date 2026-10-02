@@ -180,13 +180,8 @@ final class Composition[S <: Product] @publicInBinary private[umpire] (
       rows = rows,
       stateFields = labelled.flatMap(composedFields),
       refinedField = None,
-      entity = "",
-      evidence = Vector.empty,
       stateValue = stateValue,
-      classes = Map.empty,
-      decls = Map.empty,
-      alter = Alterer.none,
-      fieldValueMap = Map.empty
+      classes = Map.empty
     )
   }
 

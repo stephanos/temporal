@@ -19,7 +19,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
 	"google.golang.org/protobuf/proto"
 )
@@ -87,9 +87,9 @@ func frozenPropertyRows(t *testing.T) map[string]rowSide {
 }
 
 // protoValue is a value as the IR writes one, for a Scenario that starts in it or takes it as input.
-func protoValue(v Value) *modelirspb.Value {
-	fields := func(vs []Value) []*modelirspb.Value {
-		var out []*modelirspb.Value
+func protoValue(v Value) *umpirespb.Value {
+	fields := func(vs []Value) []*umpirespb.Value {
+		var out []*umpirespb.Value
 		for _, f := range vs {
 			out = append(out, protoValue(f))
 		}
@@ -97,17 +97,17 @@ func protoValue(v Value) *modelirspb.Value {
 	}
 	switch v.Kind {
 	case BoolValue:
-		return &modelirspb.Value{Kind: &modelirspb.Value_Bool{Bool: v.Bool}}
+		return &umpirespb.Value{Kind: &umpirespb.Value_Bool{Bool: v.Bool}}
 	case IntValue:
-		return &modelirspb.Value{Kind: &modelirspb.Value_Int{Int: v.Int}}
+		return &umpirespb.Value{Kind: &umpirespb.Value_Int{Int: v.Int}}
 	case TextValue:
-		return &modelirspb.Value{Kind: &modelirspb.Value_Text{Text: v.Text}}
+		return &umpirespb.Value{Kind: &umpirespb.Value_Text{Text: v.Text}}
 	case EnumValue:
-		return &modelirspb.Value{Kind: &modelirspb.Value_Enum{Enum: &modelirspb.EnumValue{Type: v.Type, Case: v.Case, Fields: fields(v.Fields)}}}
+		return &umpirespb.Value{Kind: &umpirespb.Value_Enum{Enum: &umpirespb.EnumValue{Type: v.Type, Case: v.Case, Fields: fields(v.Fields)}}}
 	case RecordValue:
-		return &modelirspb.Value{Kind: &modelirspb.Value_Record{Record: &modelirspb.RecordValue{Type: v.Type, Fields: fields(v.Fields)}}}
+		return &umpirespb.Value{Kind: &umpirespb.Value_Record{Record: &umpirespb.RecordValue{Type: v.Type, Fields: fields(v.Fields)}}}
 	case ListValue:
-		return &modelirspb.Value{Kind: &modelirspb.Value_List{List: &modelirspb.ListValue{Items: fields(v.Items)}}}
+		return &umpirespb.Value{Kind: &umpirespb.Value_List{List: &umpirespb.ListValue{Items: fields(v.Items)}}}
 	case LambdaValue:
 		panic("a function is no state and no input")
 	default:
@@ -120,13 +120,13 @@ func protoValue(v Value) *modelirspb.Value {
 // Scenario, and a verify of each Property of the machine or composition and of each Property of the
 // machine it refines, read through that refinement. It names no machine and no Property: whatever the
 // Model declares is what is asked.
-func irPropertyRows(t *testing.T, base *modelirspb.Model) map[string]rowSide {
+func irPropertyRows(t *testing.T, base *umpirespb.Model) map[string]rowSide {
 	t.Helper()
-	m := proto.Clone(base).(*modelirspb.Model)
+	m := proto.Clone(base).(*umpirespb.Model)
 	properties := slices.Clone(m.GetProperties())
 	asked := map[string]string{}
 	// ask adds a row's Scenario of the machine or composition `name`, and the verifies over it.
-	ask := func(name, refined, row string, scenario *modelirspb.Scenario) {
+	ask := func(name, refined, row string, scenario *umpirespb.Scenario) {
 		declared := false
 		for _, p := range properties {
 			own := p.GetMachine() == name
@@ -136,20 +136,20 @@ func irPropertyRows(t *testing.T, base *modelirspb.Model) map[string]rowSide {
 			declared = true
 			key := rowKeyOf(p.GetName(), name, row)
 			asked["query "+name+" "+key] = key
-			m.Queries = append(m.Queries, &modelirspb.Query{Name: key, Position: scenario.GetPosition(), Form: modelirspb.Query_FORM_VERIFY,
-				Property: &modelirspb.ClaimRef{Machine: p.GetMachine(), Name: p.GetName()},
-				Scenario: &modelirspb.ClaimRef{Machine: name, Name: scenario.GetName()}, Through: !own,
-				Limits: &modelirspb.Limits{Name: oneStep.Name, Steps: int32(oneStep.Steps), Actions: int32(oneStep.Actions),
+			m.Queries = append(m.Queries, &umpirespb.Query{Name: key, Position: scenario.GetPosition(), Form: umpirespb.Query_FORM_VERIFY,
+				Property: &umpirespb.ClaimRef{Machine: p.GetMachine(), Name: p.GetName()},
+				Scenario: &umpirespb.ClaimRef{Machine: name, Name: scenario.GetName()}, Through: !own,
+				Limits: &umpirespb.Limits{Name: oneStep.Name, Steps: int32(oneStep.Steps), Actions: int32(oneStep.Actions),
 					Search: int32(oneStep.Search)}})
 		}
 		if declared {
 			m.Scenarios = append(m.Scenarios, scenario)
 		}
 	}
-	from := func(name string, at *modelirspb.Position, row Row, state Value) *modelirspb.Scenario {
+	from := func(name string, at *umpirespb.Position, row Row, state Value) *umpirespb.Scenario {
 		require.Len(t, row.Results, 1, row.Key)
-		return &modelirspb.Scenario{Machine: name, Name: "row." + row.Key, Position: at,
-			Start: &modelirspb.Expr{Position: at, Kind: &modelirspb.Expr_Literal{Literal: protoValue(state)}}}
+		return &umpirespb.Scenario{Machine: name, Name: "row." + row.Key, Position: at,
+			Start: &umpirespb.Expr{Position: at, Kind: &umpirespb.Expr_Literal{Literal: protoValue(state)}}}
 	}
 	for name, mm := range built(t, m) {
 		classes := map[string]Class{}
@@ -160,12 +160,12 @@ func irPropertyRows(t *testing.T, base *modelirspb.Model) map[string]rowSide {
 			state, ok := mm.State(row.Source)
 			require.True(t, ok, row.Key)
 			class := classes[row.Action]
-			step := &modelirspb.ActionClass{Action: class.Action.GetId()}
+			step := &umpirespb.ActionClass{Action: class.Action.GetId()}
 			for _, in := range class.Inputs {
 				step.Inputs = append(step.Inputs, protoValue(in))
 			}
 			scenario := from(name, mm.Decl.GetPosition(), row, state)
-			scenario.Actions = []*modelirspb.ActionClass{step}
+			scenario.Actions = []*umpirespb.ActionClass{step}
 			ask(name, mm.Decl.GetRefines().GetProduct(), row.Key, scenario)
 		}
 	}
@@ -296,7 +296,7 @@ func TestActivityPropertiesAgreeOnEveryRow(t *testing.T) {
 
 // pathDisagreements is every compared Query whose answer through a lifted Model differs from its
 // frozen receipt, as a list.
-func pathDisagreements(t *testing.T, m *modelirspb.Model) []string {
+func pathDisagreements(t *testing.T, m *umpirespb.Model) []string {
 	t.Helper()
 	report := checked(t, m)
 	var out []string
@@ -313,7 +313,7 @@ func pathDisagreements(t *testing.T, m *modelirspb.Model) []string {
 	return out
 }
 
-func activityFunction(t *testing.T, m *modelirspb.Model, name string) *modelirspb.Function {
+func activityFunction(t *testing.T, m *umpirespb.Model, name string) *umpirespb.Function {
 	t.Helper()
 	f := functionNamed(m, name)
 	require.NotNil(t, f, name)
@@ -321,13 +321,13 @@ func activityFunction(t *testing.T, m *modelirspb.Model, name string) *modelirsp
 }
 
 // narrowed is a predicate that also asks `extra`.
-func narrowed(f *modelirspb.Function, extra *modelirspb.Expr) {
-	f.Body = &modelirspb.Expr{Position: f.GetBody().GetPosition(),
-		Kind: &modelirspb.Expr_Binary{Binary: &modelirspb.Binary{Op: modelirspb.Binary_OP_AND, Left: f.GetBody(), Right: extra}}}
+func narrowed(f *umpirespb.Function, extra *umpirespb.Expr) {
+	f.Body = &umpirespb.Expr{Position: f.GetBody().GetPosition(),
+		Kind: &umpirespb.Expr_Binary{Binary: &umpirespb.Binary{Op: umpirespb.Binary_OP_AND, Left: f.GetBody(), Right: extra}}}
 }
 
 // stateField reads a field of the state of the step a predicate's parameter names.
-func stateField(f *modelirspb.Function, param int, name string) *modelirspb.Expr {
+func stateField(f *umpirespb.Function, param int, name string) *umpirespb.Expr {
 	return field(field(expr(f.GetParams()[param].GetName()), "state"), name)
 }
 
@@ -339,29 +339,29 @@ func stateField(f *modelirspb.Function, param int, name string) *modelirspb.Expr
 func TestActivityPropertyRowsCatchWhatThePathsMiss(t *testing.T) {
 	want := frozenPropertyRows(t)
 	for name, mutant := range map[string]struct {
-		mutate func(t *testing.T, m *modelirspb.Model)
+		mutate func(t *testing.T, m *umpirespb.Model)
 		rows   []string
 	}{
 		// The review's example: the cancel request of the baseline's path is taken at attempt 1.
 		"cancelRequestedWhileStarted also wants the first attempt": {
-			mutate: func(t *testing.T, m *modelirspb.Model) {
+			mutate: func(t *testing.T, m *umpirespb.Model) {
 				f := activityFunction(t, m, "activityProtocol.property.cancelRequestedWhileStarted")
-				narrowed(f, binary(modelirspb.Binary_OP_EQ, stateField(f, 0, "attempts"), expr(admIntValue(1))))
+				narrowed(f, binary(umpirespb.Binary_OP_EQ, stateField(f, 0, "attempts"), expr(admIntValue(1))))
 			},
 			rows: []string{"cancelRequestedWhileStarted on activityProtocol at scheduled-0-unset-unset-unset-control-requestCancel"},
 		},
 		// The one attempt result on the baseline's path to a canceled activity is the canceled answer.
 		"canceledByWorker is about every attempt result": {
-			mutate: func(_ *testing.T, m *modelirspb.Model) {
-				admProperty(m, "activityProtocol", "canceledByWorker").When = &modelirspb.Property_WhenAction{WhenAction: "attemptResult"}
+			mutate: func(_ *testing.T, m *umpirespb.Model) {
+				admProperty(m, "activityProtocol", "canceledByWorker").When = &umpirespb.Property_WhenAction{WhenAction: "attemptResult"}
 			},
 			rows: []string{"canceledByWorker on activityProtocol at started-1-unset-unset-unset-attemptResult-completed"},
 		},
 		// No path of the baseline that reads this Property terminates the activity.
 		"pausedIsNotDispatched also forbids a terminate": {
-			mutate: func(t *testing.T, m *modelirspb.Model) {
+			mutate: func(t *testing.T, m *umpirespb.Model) {
 				f := activityFunction(t, m, "activityProduct.property.pausedIsNotDispatched")
-				narrowed(f, binary(modelirspb.Binary_OP_NE, stateField(f, 1, "phase"),
+				narrowed(f, binary(umpirespb.Binary_OP_NE, stateField(f, 1, "phase"),
 					expr(admEnum("temporal.standaloneactivity.ProductPhase", "terminated"))))
 			},
 			rows: []string{
@@ -371,17 +371,17 @@ func TestActivityPropertyRowsCatchWhatThePathsMiss(t *testing.T) {
 		},
 		// The one attempt start on the cross-entity path is the first attempt's.
 		"startedByPollingWorker also wants the first attempt": {
-			mutate: func(t *testing.T, m *modelirspb.Model) {
+			mutate: func(t *testing.T, m *umpirespb.Model) {
 				f := activityFunction(t, m, "standaloneActivity.property.startedByPollingWorker")
-				narrowed(f, binary(modelirspb.Binary_OP_EQ, field(stateField(f, 0, "activity"), "attempts"), expr(admIntValue(1))))
+				narrowed(f, binary(umpirespb.Binary_OP_EQ, field(stateField(f, 0, "activity"), "attempts"), expr(admIntValue(1))))
 			},
 			rows: []string{"startedByPollingWorker on standaloneActivity at scheduled-1-unset-unset-unset_polling-attemptStart"},
 		},
 		// The backoff on the cross-entity path is taken while the worker polls, so a claim about the
 		// activity's own backoff holds there too, and is read on a step of the path.
 		"startedByPollingWorker is about the backoff": {
-			mutate: func(_ *testing.T, m *modelirspb.Model) {
-				admProperty(m, "standaloneActivity", "startedByPollingWorker").When = &modelirspb.Property_WhenAction{WhenAction: "activity_backoff"}
+			mutate: func(_ *testing.T, m *umpirespb.Model) {
+				admProperty(m, "standaloneActivity", "startedByPollingWorker").When = &umpirespb.Property_WhenAction{WhenAction: "activity_backoff"}
 			},
 			rows: []string{
 				"startedByPollingWorker on standaloneActivity at scheduled-0-unset-unset-unset_polling-attemptStart",
@@ -390,7 +390,7 @@ func TestActivityPropertyRowsCatchWhatThePathsMiss(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			m := proto.Clone(activityModel(t)).(*modelirspb.Model)
+			m := proto.Clone(activityModel(t)).(*umpirespb.Model)
 			mutant.mutate(t, m)
 			require.NoError(t, Validate(m))
 			require.Empty(t, pathDisagreements(t, m), "the path Queries tell the mutant apart on their own")
@@ -408,7 +408,7 @@ func TestActivityPropertyRowsCatchWhatThePathsMiss(t *testing.T) {
 // keyed as the composed step is. The cross-entity Property declared about that class answers every
 // row and every path as the one declared about the action does.
 func TestActivityCrossEntityClaimByClassAnswersAlike(t *testing.T) {
-	m := proto.Clone(activityModel(t)).(*modelirspb.Model)
+	m := proto.Clone(activityModel(t)).(*umpirespb.Model)
 	var attemptStart string
 	for _, a := range m.GetActions() {
 		if a.GetName() == "attemptStart" {
@@ -416,8 +416,8 @@ func TestActivityCrossEntityClaimByClassAnswersAlike(t *testing.T) {
 		}
 	}
 	require.NotEmpty(t, attemptStart)
-	admProperty(m, "standaloneActivity", "startedByPollingWorker").When = &modelirspb.Property_WhenClass{
-		WhenClass: &modelirspb.ActionClass{Action: attemptStart}}
+	admProperty(m, "standaloneActivity", "startedByPollingWorker").When = &umpirespb.Property_WhenClass{
+		WhenClass: &umpirespb.ActionClass{Action: attemptStart}}
 	require.NoError(t, Validate(m))
 	require.Empty(t, pathDisagreements(t, m))
 	require.Empty(t, rowDisagreements(frozenPropertyRows(t), irPropertyRows(t, m)))

@@ -11,7 +11,7 @@ import (
 	"regexp"
 	"strings"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -26,19 +26,19 @@ const (
 	instructionOutcomeMessage = "temporal.server.api.testpilot.v1.InstructionOutcome"
 )
 
-func locate(at *modelirspb.Position) string {
+func locate(at *umpirespb.Position) string {
 	if at.GetFile() == "" {
 		return ""
 	}
 	return fmt.Sprintf("%s:%d", at.GetFile(), at.GetLine())
 }
 
-func errorAt(at *modelirspb.Position, format string, args ...any) error {
+func errorAt(at *umpirespb.Position, format string, args ...any) error {
 	return &umpiremodel.Error{Position: locate(at), Message: fmt.Sprintf(format, args...)}
 }
 
 // messageNamed is the descriptor of a protobuf message linked into this binary, by its full name.
-func messageNamed(at *modelirspb.Position, name string) (protoreflect.MessageDescriptor, error) {
+func messageNamed(at *umpirespb.Position, name string) (protoreflect.MessageDescriptor, error) {
 	d, err := protoregistry.GlobalFiles.FindDescriptorByName(protoreflect.FullName(name))
 	if err != nil {
 		return nil, errorAt(at, "no protobuf message %s", name)
@@ -51,7 +51,7 @@ func messageNamed(at *modelirspb.Position, name string) (protoreflect.MessageDes
 }
 
 // methodNamed is the descriptor of a unary method, by its full name "/package.Service/Method".
-func methodNamed(at *modelirspb.Position, name string) (protoreflect.MethodDescriptor, error) {
+func methodNamed(at *umpirespb.Position, name string) (protoreflect.MethodDescriptor, error) {
 	service, method, ok := strings.Cut(strings.TrimPrefix(name, "/"), "/")
 	if !ok || !strings.HasPrefix(name, "/") {
 		return nil, errorAt(at, "%s is no method name of the form /package.Service/Method", name)
@@ -90,7 +90,7 @@ func (r reached) message() protoreflect.MessageDescriptor { return r.field.Messa
 // walk resolves a field path in a message: plain fields, `field[*]` over a repeated field, and
 // `oneof<member>` for one member of a oneof. Any other selector of the path grammar is refused
 // rather than read as something it is not.
-func walk(at *modelirspb.Position, md protoreflect.MessageDescriptor, path string) (reached, error) {
+func walk(at *umpirespb.Position, md protoreflect.MessageDescriptor, path string) (reached, error) {
 	var out reached
 	if path == "" {
 		return out, errorAt(at, "an empty path names no field of %s", md.FullName())
@@ -140,7 +140,7 @@ type writer struct {
 	fixture string
 }
 
-func (w *writer) name(n *modelirspb.Name) string {
+func (w *writer) name(n *umpirespb.Name) string {
 	if n.GetFixture() {
 		return n.GetPrefix() + w.fixture + n.GetSuffix()
 	}
@@ -148,7 +148,7 @@ func (w *writer) name(n *modelirspb.Name) string {
 }
 
 // into writes a message out as the concrete message dst, whose type it must name.
-func (w *writer) into(p *modelirspb.Proto, dst proto.Message) error {
+func (w *writer) into(p *umpirespb.Proto, dst proto.Message) error {
 	written, err := w.message(p, dst.ProtoReflect().Descriptor())
 	if err != nil {
 		return err
@@ -164,7 +164,7 @@ func (w *writer) into(p *modelirspb.Proto, dst proto.Message) error {
 }
 
 // message writes a message out. A field it does not name stays unset, so presence is the author's.
-func (w *writer) message(p *modelirspb.Proto, want protoreflect.MessageDescriptor) (*dynamicpb.Message, error) {
+func (w *writer) message(p *umpirespb.Proto, want protoreflect.MessageDescriptor) (*dynamicpb.Message, error) {
 	at := p.GetPosition()
 	md, err := messageNamed(at, p.GetMessage())
 	if err != nil {
@@ -179,7 +179,7 @@ func (w *writer) message(p *modelirspb.Proto, want protoreflect.MessageDescripto
 		if fd == nil {
 			return nil, errorAt(at, "%s has no field %s", md.FullName(), f.GetName())
 		}
-		if mapping, ok := f.GetValue().GetKind().(*modelirspb.ProtoValue_Mapping); ok {
+		if mapping, ok := f.GetValue().GetKind().(*umpirespb.ProtoValue_Mapping); ok {
 			if !fd.IsMap() || fd.MapKey().Kind() != protoreflect.StringKind {
 				return nil, errorAt(at, "%s is no map keyed by text, and a mapping is written into it", fd.FullName())
 			}
@@ -206,7 +206,7 @@ func (w *writer) message(p *modelirspb.Proto, want protoreflect.MessageDescripto
 }
 
 // value is one written value as the field's kind, which it must be of.
-func (w *writer) value(at *modelirspb.Position, fd protoreflect.FieldDescriptor, v *modelirspb.ProtoValue) (protoreflect.Value, error) {
+func (w *writer) value(at *umpirespb.Position, fd protoreflect.FieldDescriptor, v *umpirespb.ProtoValue) (protoreflect.Value, error) {
 	crossed := func(written string) (protoreflect.Value, error) {
 		return protoreflect.Value{}, errorAt(at, "%s is of kind %s, and %s is written into it", fd.FullName(), fd.Kind(), written)
 	}
@@ -217,23 +217,23 @@ func (w *writer) value(at *modelirspb.Position, fd protoreflect.FieldDescriptor,
 		return protoreflect.ValueOfString(s), nil
 	}
 	switch k := v.GetKind().(type) {
-	case *modelirspb.ProtoValue_Text:
+	case *umpirespb.ProtoValue_Text:
 		return text(k.Text, "a text")
-	case *modelirspb.ProtoValue_Named:
+	case *umpirespb.ProtoValue_Named:
 		return text(w.name(k.Named), "a name")
-	case *modelirspb.ProtoValue_RoleId:
+	case *umpirespb.ProtoValue_RoleId:
 		return text(k.RoleId, "a role")
-	case *modelirspb.ProtoValue_Flag:
+	case *umpirespb.ProtoValue_Flag:
 		if fd.Kind() != protoreflect.BoolKind {
 			return crossed("a flag")
 		}
 		return protoreflect.ValueOfBool(k.Flag), nil
-	case *modelirspb.ProtoValue_Utf8:
+	case *umpirespb.ProtoValue_Utf8:
 		if fd.Kind() != protoreflect.BytesKind {
 			return crossed("bytes")
 		}
 		return protoreflect.ValueOfBytes([]byte(k.Utf8)), nil
-	case *modelirspb.ProtoValue_EnumName:
+	case *umpirespb.ProtoValue_EnumName:
 		if fd.Kind() != protoreflect.EnumKind {
 			return crossed("an enum value")
 		}
@@ -242,9 +242,9 @@ func (w *writer) value(at *modelirspb.Position, fd protoreflect.FieldDescriptor,
 			return protoreflect.Value{}, errorAt(at, "%s has no value %s", fd.Enum().FullName(), k.EnumName)
 		}
 		return protoreflect.ValueOfEnum(value.Number()), nil
-	case *modelirspb.ProtoValue_Number:
+	case *umpirespb.ProtoValue_Number:
 		return number(at, fd, k.Number)
-	case *modelirspb.ProtoValue_Message:
+	case *umpirespb.ProtoValue_Message:
 		if fd.Message() == nil {
 			return crossed("a message")
 		}
@@ -258,7 +258,7 @@ func (w *writer) value(at *modelirspb.Position, fd protoreflect.FieldDescriptor,
 	}
 }
 
-func number(at *modelirspb.Position, fd protoreflect.FieldDescriptor, n int64) (protoreflect.Value, error) {
+func number(at *umpirespb.Position, fd protoreflect.FieldDescriptor, n int64) (protoreflect.Value, error) {
 	outside := func() (protoreflect.Value, error) {
 		return protoreflect.Value{}, errorAt(at, "%d is outside what %s of kind %s holds", n, fd.FullName(), fd.Kind())
 	}

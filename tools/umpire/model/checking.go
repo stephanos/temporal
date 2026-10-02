@@ -7,7 +7,7 @@ import (
 	"slices"
 	"strings"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
 )
 
@@ -27,7 +27,7 @@ type Scope struct {
 
 // DefaultScope is the scope Check runs within when a caller names none of its own.
 var DefaultScope = Scope{
-	Ceilings: DefaultCeilings,
+	Ceilings: defaultCeilings,
 	Compose:  ComposeCeiling{States: 1 << 16, Evaluations: 1 << 20, Results: 1 << 20},
 	Progress: Limits{Name: "default", Steps: 1 << 10, Search: 1 << 20},
 }
@@ -66,18 +66,6 @@ const (
 	// two readings disagree: an error, whatever the result said.
 	ReplayFailed ReceiptKind = "replay-failed"
 )
-
-// IsCheck reports whether a receipt of this kind is the answer of a check that ran: a result, one
-// left incomplete by a hole, or one a limit of its own cut. An unsupported declaration, an error and
-// work a ceiling refused are none.
-func (k ReceiptKind) IsCheck() bool {
-	switch k {
-	case Verified, Found, NotFound, Counterexample, RefinementRejected, Incomplete, LimitReached, Unresolved:
-		return true
-	default:
-		return false
-	}
-}
 
 // Subject is the kind of declaration a receipt is about.
 type Subject string
@@ -251,38 +239,16 @@ type Report struct {
 	Receipts []Receipt
 }
 
-// Checks lists the receipts that are answers of checks that ran.
-func (r *Report) Checks() []Receipt {
-	var out []Receipt
-	for _, x := range r.Receipts {
-		if x.Kind.IsCheck() {
-			out = append(out, x)
-		}
-	}
-	return out
-}
-
-// Unsupported lists the declarations this reader did not check.
-func (r *Report) Unsupported() []Receipt {
-	var out []Receipt
-	for _, x := range r.Receipts {
-		if x.Kind == Unsupported {
-			out = append(out, x)
-		}
-	}
-	return out
-}
-
 // Check admits a Model, interprets it within the scope, and checks every refinement, composition,
 // Query and progress claim it declares with model/go's `umpire` checker, whose algorithms it adds
 // nothing to. Every witness is replayed against a second interpretation before its receipt is given.
-func Check(m *modelirspb.Model, scope Scope) *Report {
+func Check(m *umpirespb.Model, scope Scope) *Report {
 	return check(m, scope, m)
 }
 
 // check is Check with the Model its witnesses are replayed against, which Check gives the Model
 // itself, interpreted afresh.
-func check(m *modelirspb.Model, scope Scope, replay *modelirspb.Model) *Report {
+func check(m *umpirespb.Model, scope Scope, replay *umpirespb.Model) *Report {
 	r := &Report{Scope: scope}
 	if err := Validate(m); err != nil {
 		for _, problem := range problems(err) {
@@ -335,7 +301,7 @@ func problems(err error) []error {
 	return []error{err}
 }
 
-func receipt(subject Subject, key ClaimKey, at *modelirspb.Position) Receipt {
+func receipt(subject Subject, key ClaimKey, at *umpirespb.Position) Receipt {
 	return Receipt{Subject: subject, Key: key, Position: where(at), Loop: -1}
 }
 
@@ -344,7 +310,7 @@ func receipt(subject Subject, key ClaimKey, at *modelirspb.Position) Receipt {
 type checker struct {
 	scope  Scope
 	first  *binding
-	replay *modelirspb.Model
+	replay *umpirespb.Model
 	fresh  *binding
 	// prints holds each table's Behavior Fingerprint, and holes each declared hole's name by id.
 	prints map[*Table]string
@@ -352,7 +318,7 @@ type checker struct {
 }
 
 // newChecker interprets an admitted Model for checking.
-func newChecker(m *modelirspb.Model, scope Scope, replay *modelirspb.Model) *checker {
+func newChecker(m *umpirespb.Model, scope Scope, replay *umpirespb.Model) *checker {
 	c := &checker{scope: scope, replay: replay, first: bind(m, scope), prints: map[*Table]string{}, holes: map[string]string{}}
 	for _, h := range m.GetHoles() {
 		c.holes[h.GetId()] = h.GetName()
@@ -531,7 +497,7 @@ func (c *checker) hole(edge HoleEdge, cause error) HoleReach {
 // reachableHoles is a machine's hole rows that its starts reach: what leaves its refinement unknown.
 func (c *checker) reachableHoles(mm *Machine) []HoleReach {
 	var out []HoleReach
-	for _, h := range mm.ReachableHoles() {
+	for _, h := range mm.reachableHoles() {
 		reach := c.hole(RowHole, h.Hole)
 		reach.Row = h.Row
 		out = append(out, reach)
@@ -589,7 +555,7 @@ func unknownBecause(holes []HoleReach) string {
 
 // refinement is the receipt of a refining machine's declared refinement, checked by RefineTables. It
 // must agree with the refinement Build derived, by its own reading of the same rule.
-func (c *checker) refinement(decl *modelirspb.Machine) Receipt {
+func (c *checker) refinement(decl *umpirespb.Machine) Receipt {
 	s := c.first.subject(decl.GetName())
 	r := receipt(RefinementSubject, ClaimKey{Family: s.family, Owner: s.name, Name: decl.GetRefines().GetProduct()}, s.at)
 	if s.err != nil {
@@ -630,20 +596,20 @@ func sameRow(x, y RefinementRow) bool {
 // composition is the receipt of a composition: why it could not be built, or, for one a member of
 // which replaces a machine, that every replacement holds. A composition that builds and replaces
 // nothing checks nothing, and has no receipt.
-func (c *checker) composition(decl *modelirspb.Composition) (Receipt, bool) {
+func (c *checker) composition(decl *umpirespb.Composition) (Receipt, bool) {
 	s := c.first.subject(decl.GetName())
 	r := receipt(CompositionSubject, ClaimKey{Family: s.family, Owner: s.name}, s.at)
 	if s.err != nil {
 		return c.failed(r, s.err), true
 	}
-	replaces := slices.ContainsFunc(decl.GetMembers(), func(m *modelirspb.Member) bool { return m.GetReplaces() != "" })
+	replaces := slices.ContainsFunc(decl.GetMembers(), func(m *umpirespb.Member) bool { return m.GetReplaces() != "" })
 	r = c.reads(r, s.table)
 	r.Kind, r.Explored = Verified, len(s.table.States)
 	return r, replaces
 }
 
 // query is a Query's receipt: the generic search's answer, with the holes it explored.
-func (c *checker) query(q *modelirspb.Query) Receipt {
+func (c *checker) query(q *umpirespb.Query) Receipt {
 	on := c.first.subject(q.GetScenario().GetMachine())
 	r := receipt(QuerySubject, ClaimKey{Family: on.family, Owner: q.GetScenario().GetMachine(), Name: q.GetName()}, q.GetPosition())
 	r.Property, r.Scenario, r.Limits = c.claim(q.GetProperty()), c.claim(q.GetScenario()), c.first.limits(q)
@@ -693,7 +659,7 @@ func (c *checker) query(q *modelirspb.Query) Receipt {
 
 // replayQuery replays an answer's witness, and the path to each hole it explored, against the same
 // Query declared over a second interpretation.
-func (c *checker) replayQuery(q *modelirspb.Query, a Answer) error {
+func (c *checker) replayQuery(q *umpirespb.Query, a Answer) error {
 	bound, err := c.again().query(q)
 	if err != nil {
 		return err
@@ -709,13 +675,13 @@ func (c *checker) replayQuery(q *modelirspb.Query, a Answer) error {
 
 // claim keys a Property or a Scenario by the family and name of the machine or composition it is
 // declared on, and its name there.
-func (c *checker) claim(ref *modelirspb.ClaimRef) ClaimKey {
+func (c *checker) claim(ref *umpirespb.ClaimRef) ClaimKey {
 	return ClaimKey{Family: c.first.subject(ref.GetMachine()).family, Owner: ref.GetMachine(), Name: ref.GetName()}
 }
 
 // progress is a progress claim's receipts: one for each kind of violation, which are reported apart,
 // or one for a claim that could not be checked.
-func (c *checker) progress(p *modelirspb.Progress) []Receipt {
+func (c *checker) progress(p *umpirespb.Progress) []Receipt {
 	s := c.first.subject(p.GetMachine())
 	r := receipt(ProgressSubject, ClaimKey{Family: s.family, Owner: p.GetMachine(), Name: p.GetName()}, p.GetPosition())
 	r.Limits = c.scope.Progress
@@ -756,7 +722,7 @@ func (c *checker) progress(p *modelirspb.Progress) []Receipt {
 
 // replayPaths replays the path a progress check took to each hole it read against the machine's table
 // of a second interpretation.
-func (c *checker) replayPaths(p *modelirspb.Progress, unknown []UnknownReach) error {
+func (c *checker) replayPaths(p *umpirespb.Progress, unknown []UnknownReach) error {
 	var err error
 	for _, u := range unknown {
 		err = errors.Join(err, c.replays(p.GetMachine(), u.Prefix))
@@ -766,7 +732,7 @@ func (c *checker) replayPaths(p *modelirspb.Progress, unknown []UnknownReach) er
 
 // replayProgress replays a violation's witness against the claim declared over a second
 // interpretation.
-func (c *checker) replayProgress(p *modelirspb.Progress, kind ProgressKind, verdict ProgressVerdict) error {
+func (c *checker) replayProgress(p *umpirespb.Progress, kind ProgressKind, verdict ProgressVerdict) error {
 	claim, s, err := c.again().progress(p)
 	if err != nil {
 		return err

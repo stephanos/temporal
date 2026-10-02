@@ -1,2 +1,2 @@
-# The repository ignores testdata/ directories; the lifter's fixtures are sources run.sh builds.
+# The repository ignores testdata/ directories; the lifter's fixtures are sources its tests build.
 !testdata/

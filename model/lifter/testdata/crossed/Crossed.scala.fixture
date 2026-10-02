@@ -1,5 +1,5 @@
 // Declarations whose types cross, which the framework's types refuse before anything is lifted:
-// run.sh builds this and expects a type error at each marked line.
+// The lifter's tests build this and expect a type error at each marked line.
 package fixture.crossed
 
 import umpire.*

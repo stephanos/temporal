@@ -18,7 +18,7 @@ import (
 	"slices"
 	"strings"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -59,7 +59,7 @@ func Root() (string, error) {
 	}
 }
 
-func (c Config) Inputs(root string) (map[string]*modelirspb.Model, error) {
+func (c Config) Inputs(root string) (map[string]*umpirespb.Model, error) {
 	base := "model/scalav2"
 	if _, err := os.Stat(filepath.Join(root, base)); errors.Is(err, fs.ErrNotExist) {
 		base = "model"
@@ -87,7 +87,7 @@ func (c Config) Inputs(root string) (map[string]*modelirspb.Model, error) {
 			found[rel] = true
 		}
 	}
-	out := map[string]*modelirspb.Model{}
+	out := map[string]*umpirespb.Model{}
 	for _, path := range slices.Sorted(maps.Keys(expected)) {
 		if !found[path] {
 			return nil, fmt.Errorf("missing IR inventory entry %s", path)
@@ -96,7 +96,7 @@ func (c Config) Inputs(root string) (map[string]*modelirspb.Model, error) {
 		if err != nil {
 			return nil, err
 		}
-		m := new(modelirspb.Model)
+		m := new(umpirespb.Model)
 		if err := protojson.Unmarshal(encoded, m); err != nil {
 			return nil, fmt.Errorf("%s: %w", path, err)
 		}
@@ -105,14 +105,14 @@ func (c Config) Inputs(root string) (map[string]*modelirspb.Model, error) {
 	return out, nil
 }
 
-func (c Config) Migrate(original *modelirspb.Model) (*modelirspb.Model, error) {
+func (c Config) Migrate(original *umpirespb.Model) (*umpirespb.Model, error) {
 	m := proto.CloneOf(original)
 	var err error
 	m.Source, err = substitute(m.GetSource(), c.Labels)
 	if err != nil {
 		return nil, err
 	}
-	err = Positions(m.ProtoReflect(), func(p protoreflect.Message) error {
+	err = positions(m.ProtoReflect(), func(p protoreflect.Message) error {
 		field := p.Descriptor().Fields().ByName("file")
 		mapped, err := substitute(p.Get(field).String(), c.Paths)
 		if err != nil {
@@ -133,8 +133,8 @@ func substitute(value string, substitutions []Substitution) (string, error) {
 	return "", fmt.Errorf("unlisted source %q", value)
 }
 
-func Positions(m protoreflect.Message, visit func(protoreflect.Message) error) error {
-	position := (&modelirspb.Position{}).ProtoReflect().Descriptor().FullName()
+func positions(m protoreflect.Message, visit func(protoreflect.Message) error) error {
+	position := (&umpirespb.Position{}).ProtoReflect().Descriptor().FullName()
 	var result error
 	m.Range(func(f protoreflect.FieldDescriptor, v protoreflect.Value) bool {
 		if f.Message() == nil || f.IsMap() {
@@ -144,7 +144,7 @@ func Positions(m protoreflect.Message, visit func(protoreflect.Message) error) e
 			if child.Descriptor().FullName() == position {
 				return visit(child)
 			}
-			return Positions(child, visit)
+			return positions(child, visit)
 		}
 		if f.IsList() {
 			for i := range v.List().Len() {
@@ -160,7 +160,7 @@ func Positions(m protoreflect.Message, visit func(protoreflect.Message) error) e
 	return result
 }
 
-func (c Config) Match(original, current *modelirspb.Model) (bool, error) {
+func (c Config) Match(original, current *umpirespb.Model) (bool, error) {
 	if proto.Equal(original, current) {
 		return false, nil
 	}

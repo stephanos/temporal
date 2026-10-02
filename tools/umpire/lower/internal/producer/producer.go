@@ -39,13 +39,6 @@ type Identity struct {
 	CaseID, Fixture, ProgramID, ContractID, RunScope string
 }
 
-// IdentityOf is the identity a fixture name derives under a Case ID root.
-func IdentityOf(root, fixture string) Identity {
-	id := root + "." + fixture
-	return Identity{CaseID: id, Fixture: fixture, ProgramID: id + ".program", ContractID: id + ".contract",
-		RunScope: fixture}
-}
-
 // IdentityFor is the identity the Lean `case` command gives a set's Query: the Case ID
 // `<root>.<set>.<query>`, and the fixture `<set>-<query>` every other identity derives from.
 func IdentityFor(root, set, query string) Identity {
@@ -61,8 +54,8 @@ type Placement struct {
 	Number, Count int
 }
 
-// Suffix is the suffix an instance's ids carry: none on a Case over one instance.
-func (p Placement) Suffix() string {
+// suffix is the suffix an instance's ids carry: none on a Case over one instance.
+func (p Placement) suffix() string {
 	if p.Count <= 1 {
 		return ""
 	}
@@ -172,13 +165,9 @@ type WhenOnPath struct {
 // Actions is where the path's actions of these classes land, in path order.
 type Actions struct{ Classes []string }
 
-// PerInstance is these items once per instance.
-type PerInstance struct{ Items []Item }
-
-func (Fixed) isItem()       {}
-func (WhenOnPath) isItem()  {}
-func (Actions) isItem()     {}
-func (PerInstance) isItem() {}
+func (Fixed) isItem()      {}
+func (WhenOnPath) isItem() {}
+func (Actions) isItem()    {}
 
 // EntrypointPlan is one entrypoint of a realization's Program: how it activates, and its items.
 type EntrypointPlan struct {

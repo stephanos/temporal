@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/campaign"
 	"go.temporal.io/server/common/testing/testpilot/replay"
@@ -22,11 +22,11 @@ func TestReplayBridgeRejectsCrossedIdentity(t *testing.T) {
 	require.NoError(t, err)
 	for _, q := range m.Queries {
 		if q.Name == "syncCompletion" {
-			q.Exploration = &modelirspb.Exploration{Name: "space", Runs: 1, Edits: 1, DropPrefix: true, Variations: []*modelirspb.Variation{{Index: 0, Choices: []*modelirspb.Alternative{{Name: "missing-schedule"}}}}}
+			q.Exploration = &umpirespb.Exploration{Name: "space", Runs: 1, Edits: 1, DropPrefix: true, Variations: []*umpirespb.Variation{{Index: 0, Choices: []*umpirespb.Alternative{{Name: "missing-schedule"}}}}}
 		}
 	}
 	var output bytes.Buffer
-	err = Serve(bytes.NewBufferString(`{"frame":"admit","seq":1,"set":"space","profile":"p","target":"missing-schedule","identity":"crossed"}`+"\n"), &output, []*modelirspb.Model{m})
+	err = Serve(bytes.NewBufferString(`{"frame":"admit","seq":1,"set":"space","profile":"p","target":"missing-schedule","identity":"crossed"}`+"\n"), &output, []*umpirespb.Model{m})
 	require.NoError(t, err)
 	var reply map[string]any
 	require.NoError(t, json.Unmarshal(bytes.TrimSpace(output.Bytes()), &reply))
@@ -45,7 +45,7 @@ func TestUnreproducedRuntimeFailureNeverProducesProposal(t *testing.T) {
 	replies, output := io.Pipe()
 	finished := make(chan error, 1)
 	go func() {
-		finished <- Serve(input, output, []*modelirspb.Model{m})
+		finished <- Serve(input, output, []*umpirespb.Model{m})
 		_ = output.Close()
 		_ = input.Close()
 	}()
@@ -101,7 +101,7 @@ func TestCampaignBridgePreservesExactCaseBytes(t *testing.T) {
 	require.NoError(t, err)
 	var output bytes.Buffer
 	input := `{"frame":"initialize","seq":1,"set":"nexusDeadlines","profile":"test"}` + "\n" + `{"frame":"next","seq":2,"set":"nexusDeadlines","profile":"test"}` + "\n"
-	require.NoError(t, Serve(bytes.NewBufferString(input), &output, []*modelirspb.Model{m}))
+	require.NoError(t, Serve(bytes.NewBufferString(input), &output, []*umpirespb.Model{m}))
 	decoder := json.NewDecoder(&output)
 	var initialized map[string]any
 	require.NoError(t, decoder.Decode(&initialized))

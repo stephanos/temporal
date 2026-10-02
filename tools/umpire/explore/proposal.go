@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	"go.temporal.io/server/common/testing/testpilot/replay"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -59,7 +59,7 @@ func ReadProposal(source []byte) (*Candidate, error) {
 	if p.Version != 1 {
 		return nil, errors.New("unsupported proposal version")
 	}
-	var model modelirspb.Model
+	var model umpirespb.Model
 	if err := protojson.Unmarshal(p.Model, &model); err != nil {
 		return nil, err
 	}

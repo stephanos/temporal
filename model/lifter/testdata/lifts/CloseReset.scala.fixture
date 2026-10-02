@@ -1,8 +1,8 @@
 // The Nexus specimen's reviewed supported block (model/scalav2/specimens/nexus.md), lifted as written,
 // with its outcome-retention and acknowledgment promises also stated as passive monitors, as its
 // proposed E1 block does, in the framework's `monitor` declaration. Only the package, this header,
-// the Monitors section and each design's `monitors` line differ from the reviewed text. run.sh lifts
-// the three designs' Queries and compares the IR with expected/closereset.json.
+// the Monitors section and each design's `monitors` line differ from the reviewed text. The lifter's tests lift
+// the three designs' Queries and compare the IR with expected/closereset.json.
 package fixture.specimens.closereset
 
 import temporal.nexuscaller.{Resolution, caller, complete, handler, operation, workflow}

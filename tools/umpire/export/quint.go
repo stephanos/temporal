@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 )
 
@@ -37,7 +37,7 @@ type QuintExport struct {
 	// tags reads a variant of the module back as the IR case it stands for.
 	tags map[string]variant
 	// bindings is, for each exported machine, the action of each of its class variants.
-	bindings [][]*modelirspb.Action
+	bindings [][]*umpirespb.Action
 	// composed is how each exported composition's part of a dump is read back.
 	composed []*composedExport
 	// definitions is the module's text before its state variable, and stateful what a check module
@@ -48,7 +48,7 @@ type QuintExport struct {
 
 type variant struct {
 	typ  string
-	enum *modelirspb.Case
+	enum *umpirespb.Case
 }
 
 // quint writes one Model as a Quint module.
@@ -140,7 +140,7 @@ func (s *Slice) quint(only string) (*QuintExport, error) {
 	return q.x, nil
 }
 
-func (q *quint) unsupported(at *modelirspb.Position, format string, args ...any) error {
+func (q *quint) unsupported(at *umpirespb.Position, format string, args ...any) error {
 	e := &UnsupportedError{Backend: quintBackend, Construct: fmt.Sprintf(format, args...)}
 	if at != nil {
 		e.Position = at.GetFile() + ":" + strconv.Itoa(int(at.GetLine()))
@@ -162,7 +162,7 @@ func plain(name string) string {
 	return b.String()
 }
 
-func (q *quint) typeDecl(t *modelirspb.Type) error {
+func (q *quint) typeDecl(t *umpirespb.Type) error {
 	name := q.typeNames[t.GetName()]
 	switch {
 	case t.GetEnum() != nil:
@@ -193,7 +193,7 @@ func (q *quint) typeDecl(t *modelirspb.Type) error {
 	return nil
 }
 
-func (q *quint) fields(fields []*modelirspb.Field) (string, error) {
+func (q *quint) fields(fields []*umpirespb.Field) (string, error) {
 	parts := make([]string, len(fields))
 	for i, f := range fields {
 		t, err := q.typeRef(f.GetType())
@@ -205,18 +205,18 @@ func (q *quint) fields(fields []*modelirspb.Field) (string, error) {
 	return "{" + strings.Join(parts, ", ") + "}", nil
 }
 
-func (q *quint) typeRef(t *modelirspb.TypeRef) (string, error) {
+func (q *quint) typeRef(t *umpirespb.TypeRef) (string, error) {
 	switch r := t.GetRef().(type) {
-	case *modelirspb.TypeRef_Named:
+	case *umpirespb.TypeRef_Named:
 		if name, ok := q.typeNames[r.Named]; ok {
 			return name, nil
 		}
 		return "", q.unsupported(nil, "the type %s in a state, an input or a monitor", r.Named)
-	case *modelirspb.TypeRef_Bool:
+	case *umpirespb.TypeRef_Bool:
 		return "bool", nil
-	case *modelirspb.TypeRef_IntRange, *modelirspb.TypeRef_Int:
+	case *umpirespb.TypeRef_IntRange, *umpirespb.TypeRef_Int:
 		return "int", nil
-	case *modelirspb.TypeRef_List:
+	case *umpirespb.TypeRef_List:
 		item, err := q.typeRef(r.List)
 		return "List[" + item + "]", err
 	default:
@@ -226,13 +226,13 @@ func (q *quint) typeRef(t *modelirspb.TypeRef) (string, error) {
 
 // membersOf is the set of a finite type's members, which the module computes itself: the classes of
 // an action are every assignment of its inputs.
-func (q *quint) membersOf(t *modelirspb.TypeRef) (string, error) {
+func (q *quint) membersOf(t *umpirespb.TypeRef) (string, error) {
 	switch r := t.GetRef().(type) {
-	case *modelirspb.TypeRef_Bool:
+	case *umpirespb.TypeRef_Bool:
 		return "Set(false, true)", nil
-	case *modelirspb.TypeRef_IntRange:
+	case *umpirespb.TypeRef_IntRange:
 		return fmt.Sprintf("%d.to(%d)", r.IntRange.GetLow(), r.IntRange.GetHigh()), nil
-	case *modelirspb.TypeRef_Named:
+	case *umpirespb.TypeRef_Named:
 		if name, ok := q.members[r.Named]; ok {
 			return name, nil
 		}
@@ -277,7 +277,7 @@ func (q *quint) membersOf(t *modelirspb.TypeRef) (string, error) {
 
 // product is every assignment of some fields as a set of records, each wrapped in a variant when one
 // is named.
-func (q *quint) product(fields []*modelirspb.Field, tag string) (string, error) {
+func (q *quint) product(fields []*umpirespb.Field, tag string) (string, error) {
 	sets, record := make([]string, len(fields)), make([]string, len(fields))
 	for i, f := range fields {
 		set, err := q.membersOf(f.GetType())
@@ -307,11 +307,11 @@ func (sc scope) with(name, expr string) scope {
 }
 
 // function writes a function of the IR, after the functions it calls, and gives its Quint name.
-func (q *quint) function(name string, at *modelirspb.Position) (string, error) {
+func (q *quint) function(name string, at *umpirespb.Position) (string, error) {
 	if written, ok := q.functions[name]; ok {
 		return written, nil
 	}
-	i := slices.IndexFunc(q.s.Model.GetFunctions(), func(f *modelirspb.Function) bool { return f.GetName() == name })
+	i := slices.IndexFunc(q.s.Model.GetFunctions(), func(f *umpirespb.Function) bool { return f.GetName() == name })
 	if i < 0 {
 		return "", q.unsupported(at, "a call of %s, which the Model does not declare", name)
 	}
@@ -347,7 +347,7 @@ func (q *quint) function(name string, at *modelirspb.Position) (string, error) {
 	return written, nil
 }
 
-func (q *quint) exprs(xs []*modelirspb.Expr, sc scope) ([]string, error) {
+func (q *quint) exprs(xs []*umpirespb.Expr, sc scope) ([]string, error) {
 	out := make([]string, len(xs))
 	for i, x := range xs {
 		var err error
@@ -358,20 +358,20 @@ func (q *quint) exprs(xs []*modelirspb.Expr, sc scope) ([]string, error) {
 	return out, nil
 }
 
-func (q *quint) expr(x *modelirspb.Expr, sc scope) (string, error) {
+func (q *quint) expr(x *umpirespb.Expr, sc scope) (string, error) {
 	at := x.GetPosition()
 	switch k := x.GetKind().(type) {
-	case *modelirspb.Expr_Literal:
+	case *umpirespb.Expr_Literal:
 		return q.literal(k.Literal, at)
-	case *modelirspb.Expr_Var:
+	case *umpirespb.Expr_Var:
 		if written, ok := sc[k.Var]; ok {
 			return written, nil
 		}
 		return "", q.unsupported(at, "the name %s, which nothing in scope binds", k.Var)
-	case *modelirspb.Expr_Field:
+	case *umpirespb.Expr_Field:
 		base, err := q.expr(k.Field.GetBase(), sc)
 		return base + ".f_" + plain(k.Field.GetField()), err
-	case *modelirspb.Expr_Call:
+	case *umpirespb.Expr_Call:
 		f, err := q.function(k.Call.GetFunction(), at)
 		if err != nil {
 			return "", err
@@ -381,27 +381,27 @@ func (q *quint) expr(x *modelirspb.Expr, sc scope) (string, error) {
 			return f, err
 		}
 		return f + "(" + strings.Join(args, ", ") + ")", nil
-	case *modelirspb.Expr_Construct:
+	case *umpirespb.Expr_Construct:
 		args, err := q.exprs(k.Construct.GetArgs(), sc)
 		if err != nil {
 			return "", err
 		}
 		return q.construct(k.Construct.GetType(), k.Construct.GetCase(), args, at)
-	case *modelirspb.Expr_Copy:
+	case *umpirespb.Expr_Copy:
 		return q.copied(k.Copy, sc)
-	case *modelirspb.Expr_Unary:
+	case *umpirespb.Expr_Unary:
 		return q.unary(k.Unary, sc, at)
-	case *modelirspb.Expr_Binary:
+	case *umpirespb.Expr_Binary:
 		return q.binary(k.Binary, sc, at)
-	case *modelirspb.Expr_If:
-		parts, err := q.exprs([]*modelirspb.Expr{k.If.GetCondition(), k.If.GetThen(), k.If.GetElse()}, sc)
+	case *umpirespb.Expr_If:
+		parts, err := q.exprs([]*umpirespb.Expr{k.If.GetCondition(), k.If.GetThen(), k.If.GetElse()}, sc)
 		if err != nil {
 			return "", err
 		}
 		return fmt.Sprintf("(if (%s) %s else %s)", parts[0], parts[1], parts[2]), nil
-	case *modelirspb.Expr_Match:
+	case *umpirespb.Expr_Match:
 		return q.match(k.Match, sc)
-	case *modelirspb.Expr_Let:
+	case *umpirespb.Expr_Let:
 		value, err := q.expr(k.Let.GetValue(), sc)
 		if err != nil {
 			return "", err
@@ -409,14 +409,14 @@ func (q *quint) expr(x *modelirspb.Expr, sc scope) (string, error) {
 		name := q.local(k.Let.GetName())
 		body, err := q.expr(k.Let.GetBody(), sc.with(k.Let.GetName(), name))
 		return fmt.Sprintf("{ pure val %s = %s\n      %s }", name, value, body), err
-	case *modelirspb.Expr_List:
+	case *umpirespb.Expr_List:
 		items, err := q.exprs(k.List.GetItems(), sc)
 		return "[" + strings.Join(items, ", ") + "]", err
-	case *modelirspb.Expr_Lambda:
+	case *umpirespb.Expr_Lambda:
 		return "", q.unsupported(at, "an anonymous function as a value")
-	case *modelirspb.Expr_Hole:
+	case *umpirespb.Expr_Hole:
 		return "", q.unsupported(at, "the hole %s: the module has no value for unknown behavior, and it is not written as a disabled action", q.holes[k.Hole])
-	case *modelirspb.Expr_Inbox:
+	case *umpirespb.Expr_Inbox:
 		return "", q.unsupported(at, "the channel operation %s", k.Inbox.GetOp())
 	default:
 		return "", q.unsupported(at, "an expression of no known kind")
@@ -424,7 +424,7 @@ func (q *quint) expr(x *modelirspb.Expr, sc scope) (string, error) {
 }
 
 // copied writes a record with some of its fields replaced.
-func (q *quint) copied(c *modelirspb.Copy, sc scope) (string, error) {
+func (q *quint) copied(c *umpirespb.Copy, sc scope) (string, error) {
 	base, err := q.expr(c.GetBase(), sc)
 	if err != nil {
 		return "", err
@@ -440,15 +440,15 @@ func (q *quint) copied(c *modelirspb.Copy, sc scope) (string, error) {
 	return "{" + strings.Join(parts, ", ") + "}", nil
 }
 
-func (q *quint) unary(u *modelirspb.Unary, sc scope, at *modelirspb.Position) (string, error) {
+func (q *quint) unary(u *umpirespb.Unary, sc scope, at *umpirespb.Position) (string, error) {
 	operand, err := q.expr(u.GetOperand(), sc)
 	if err != nil {
 		return "", err
 	}
 	switch u.GetOp() {
-	case modelirspb.Unary_OP_NOT:
+	case umpirespb.Unary_OP_NOT:
 		return "not(" + operand + ")", nil
-	case modelirspb.Unary_OP_NEG:
+	case umpirespb.Unary_OP_NEG:
 		return "(-" + operand + ")", nil
 	default:
 		return "", q.unsupported(at, "the unary operator %s", u.GetOp())
@@ -460,24 +460,24 @@ func (q *quint) local(name string) string {
 	return fmt.Sprintf("v%d_%s", q.fresh, plain(name))
 }
 
-func (q *quint) binary(b *modelirspb.Binary, sc scope, at *modelirspb.Position) (string, error) {
-	sides, err := q.exprs([]*modelirspb.Expr{b.GetLeft(), b.GetRight()}, sc)
+func (q *quint) binary(b *umpirespb.Binary, sc scope, at *umpirespb.Position) (string, error) {
+	sides, err := q.exprs([]*umpirespb.Expr{b.GetLeft(), b.GetRight()}, sc)
 	if err != nil {
 		return "", err
 	}
 	l, r := sides[0], sides[1]
-	infix := map[modelirspb.Binary_Op]string{
-		modelirspb.Binary_OP_EQ: "==", modelirspb.Binary_OP_NE: "!=", modelirspb.Binary_OP_AND: "and", modelirspb.Binary_OP_OR: "or",
-		modelirspb.Binary_OP_LT: "<", modelirspb.Binary_OP_LE: "<=", modelirspb.Binary_OP_GT: ">", modelirspb.Binary_OP_GE: ">=",
-		modelirspb.Binary_OP_ADD: "+", modelirspb.Binary_OP_SUB: "-",
+	infix := map[umpirespb.Binary_Op]string{
+		umpirespb.Binary_OP_EQ: "==", umpirespb.Binary_OP_NE: "!=", umpirespb.Binary_OP_AND: "and", umpirespb.Binary_OP_OR: "or",
+		umpirespb.Binary_OP_LT: "<", umpirespb.Binary_OP_LE: "<=", umpirespb.Binary_OP_GT: ">", umpirespb.Binary_OP_GE: ">=",
+		umpirespb.Binary_OP_ADD: "+", umpirespb.Binary_OP_SUB: "-",
 	}
 	if op, ok := infix[b.GetOp()]; ok {
 		return fmt.Sprintf("(%s %s %s)", l, op, r), nil
 	}
 	switch b.GetOp() {
-	case modelirspb.Binary_OP_CONCAT:
+	case umpirespb.Binary_OP_CONCAT:
 		return fmt.Sprintf("%s.concat(%s)", l, r), nil
-	case modelirspb.Binary_OP_CONTAINS:
+	case umpirespb.Binary_OP_CONTAINS:
 		name := q.local("item")
 		return fmt.Sprintf("(%s.select(%s => %s == %s).length() > 0)", r, name, name, l), nil
 	default:
@@ -485,8 +485,8 @@ func (q *quint) binary(b *modelirspb.Binary, sc scope, at *modelirspb.Position) 
 	}
 }
 
-func (q *quint) literal(v *modelirspb.Value, at *modelirspb.Position) (string, error) {
-	values := func(vs []*modelirspb.Value) ([]string, error) {
+func (q *quint) literal(v *umpirespb.Value, at *umpirespb.Position) (string, error) {
+	values := func(vs []*umpirespb.Value) ([]string, error) {
 		out := make([]string, len(vs))
 		for i, f := range vs {
 			var err error
@@ -497,25 +497,25 @@ func (q *quint) literal(v *modelirspb.Value, at *modelirspb.Position) (string, e
 		return out, nil
 	}
 	switch k := v.GetKind().(type) {
-	case *modelirspb.Value_Bool:
+	case *umpirespb.Value_Bool:
 		return strconv.FormatBool(k.Bool), nil
-	case *modelirspb.Value_Int:
+	case *umpirespb.Value_Int:
 		return strconv.FormatInt(k.Int, 10), nil
-	case *modelirspb.Value_Text:
+	case *umpirespb.Value_Text:
 		return strconv.Quote(k.Text), nil
-	case *modelirspb.Value_Enum:
+	case *umpirespb.Value_Enum:
 		fields, err := values(k.Enum.GetFields())
 		if err != nil {
 			return "", err
 		}
 		return q.construct(k.Enum.GetType(), k.Enum.GetCase(), fields, at)
-	case *modelirspb.Value_Record:
+	case *umpirespb.Value_Record:
 		fields, err := values(k.Record.GetFields())
 		if err != nil {
 			return "", err
 		}
 		return q.construct(k.Record.GetType(), "", fields, at)
-	case *modelirspb.Value_List:
+	case *umpirespb.Value_List:
 		items, err := values(k.List.GetItems())
 		return "[" + strings.Join(items, ", ") + "]", err
 	default:
@@ -526,7 +526,7 @@ func (q *quint) literal(v *modelirspb.Value, at *modelirspb.Position) (string, e
 var stepFields = []string{"outcome", "state", "facts", "because"}
 
 // construct writes a record, the step record, or an enum case from its arguments in field order.
-func (q *quint) construct(typ, name string, args []string, at *modelirspb.Position) (string, error) {
+func (q *quint) construct(typ, name string, args []string, at *umpirespb.Position) (string, error) {
 	record := func(names []string) (string, error) {
 		if len(names) != len(args) {
 			return "", q.unsupported(at, "%s built from %d values, and it has %d fields", typ, len(args), len(names))
@@ -561,7 +561,7 @@ func (q *quint) construct(typ, name string, args []string, at *modelirspb.Positi
 	return "", q.unsupported(at, "the case %s, which %s does not declare", name, typ)
 }
 
-func fieldNames(fields []*modelirspb.Field) []string {
+func fieldNames(fields []*umpirespb.Field) []string {
 	out := make([]string, len(fields))
 	for i, f := range fields {
 		out[i] = f.GetName()
@@ -574,7 +574,7 @@ func fieldNames(fields []*modelirspb.Field) []string {
 // it tests, and a name it binds as the expression that reads the value out. A value no case matches
 // is an undeclared hole: the chain ends in an expression the evaluator stops on, so that it is an
 // error of the run and never a result.
-func (q *quint) match(m *modelirspb.Match, sc scope) (string, error) {
+func (q *quint) match(m *umpirespb.Match, sc scope) (string, error) {
 	scrutinee, err := q.expr(m.GetScrutinee(), sc)
 	if err != nil {
 		return "", err
@@ -604,18 +604,18 @@ func (q *quint) match(m *modelirspb.Match, sc scope) (string, error) {
 }
 
 // pattern is the condition under which a value matches a pattern, and the scope its body reads.
-func (q *quint) pattern(p *modelirspb.Pattern, value string, sc scope) (string, scope, error) {
+func (q *quint) pattern(p *umpirespb.Pattern, value string, sc scope) (string, scope, error) {
 	switch k := p.GetKind().(type) {
-	case *modelirspb.Pattern_Wildcard:
+	case *umpirespb.Pattern_Wildcard:
 		return "true", sc, nil
-	case *modelirspb.Pattern_Bind:
+	case *umpirespb.Pattern_Bind:
 		return q.pattern(k.Bind.GetPattern(), value, sc.with(k.Bind.GetName(), value))
-	case *modelirspb.Pattern_Literal:
+	case *umpirespb.Pattern_Literal:
 		literal, err := q.literal(k.Literal, nil)
 		return fmt.Sprintf("(%s == %s)", value, literal), sc, err
-	case *modelirspb.Pattern_Case:
+	case *umpirespb.Pattern_Case:
 		decl := q.s.types[k.Case.GetType()]
-		i := slices.IndexFunc(decl.GetEnum().GetCases(), func(c *modelirspb.Case) bool { return c.GetName() == k.Case.GetCase() })
+		i := slices.IndexFunc(decl.GetEnum().GetCases(), func(c *umpirespb.Case) bool { return c.GetName() == k.Case.GetCase() })
 		if i < 0 {
 			return "", nil, q.unsupported(nil, "a pattern of the case %s, which %s does not declare", k.Case.GetCase(), k.Case.GetType())
 		}
@@ -640,7 +640,7 @@ func (q *quint) pattern(p *modelirspb.Pattern, value string, sc scope) (string, 
 			}
 		}
 		return "(" + strings.Join(conds, " and ") + ")", sc, nil
-	case *modelirspb.Pattern_Alternatives:
+	case *umpirespb.Pattern_Alternatives:
 		var conds []string
 		for _, alt := range k.Alternatives.GetPatterns() {
 			cond, bound, err := q.pattern(alt, value, sc)
@@ -660,7 +660,7 @@ func (q *quint) pattern(p *modelirspb.Pattern, value string, sc scope) (string, 
 
 // accessor writes, once, the test of a variant with fields and the reader of each of its fields.
 // A reader is called only under its test.
-func (q *quint) accessor(tag string, c *modelirspb.Case) {
+func (q *quint) accessor(tag string, c *umpirespb.Case) {
 	if q.accessors[tag] {
 		return
 	}
@@ -678,12 +678,12 @@ type binding struct {
 	variant string
 	classes string
 	arm     string
-	action  *modelirspb.Action
+	action  *umpirespb.Action
 }
 
 // binding writes step binding j of machine i. The classes of an action are every assignment of its
 // inputs, which the module computes from the inputs' types.
-func (q *quint) binding(i, j int, b *modelirspb.StepBinding) (binding, error) {
+func (q *quint) binding(i, j int, b *umpirespb.StepBinding) (binding, error) {
 	a, ok := q.s.actions[b.GetAction()]
 	if !ok {
 		return binding{}, q.unsupported(b.GetPosition(), "a step of the action %s, which the Model does not declare", b.GetAction())
@@ -723,7 +723,7 @@ func (q *quint) binding(i, j int, b *modelirspb.StepBinding) (binding, error) {
 
 // ends writes the body of a machine's or a composition's `ends` over the state `s`: a function of one
 // state written in place, or false for a declaration with none.
-func (q *quint) ends(e *modelirspb.Expr, owner string) (string, error) {
+func (q *quint) ends(e *umpirespb.Expr, owner string) (string, error) {
 	if e == nil {
 		return "false", nil
 	}
@@ -735,7 +735,7 @@ func (q *quint) ends(e *modelirspb.Expr, owner string) (string, error) {
 }
 
 // stepType is the Quint types of a machine's state and of its step record.
-func (q *quint) stepType(decl *modelirspb.Machine) (state, step string, err error) {
+func (q *quint) stepType(decl *umpirespb.Machine) (state, step string, err error) {
 	if state, err = q.typeRef(named(decl.GetStateType())); err != nil {
 		return "", "", err
 	}
@@ -763,7 +763,7 @@ func (q *quint) machine(i int, mm *umpiremodel.Machine) (string, error) {
 		return "", err
 	}
 	var variants, classes, arms []string
-	var actions []*modelirspb.Action
+	var actions []*umpirespb.Action
 	for j, b := range decl.GetSteps() {
 		bound, err := q.binding(i, j, b)
 		if err != nil {
@@ -825,7 +825,7 @@ func (q *quint) machine(i int, mm *umpiremodel.Machine) (string, error) {
 		view += fmt.Sprintf(",\n    product: %s_product", m)
 	}
 	if properties := q.s.properties(decl.GetName()); len(properties) > 0 {
-		claimsType, err := q.claims(m, fmt.Sprintf("K%d", i), properties, state, func(p *modelirspb.Property) (string, error) { return q.about(i, mm, p) })
+		claimsType, err := q.claims(m, fmt.Sprintf("K%d", i), properties, state, func(p *umpirespb.Property) (string, error) { return q.about(i, mm, p) })
 		if err != nil {
 			return "", err
 		}
@@ -836,8 +836,8 @@ func (q *quint) machine(i int, mm *umpiremodel.Machine) (string, error) {
 	return "{" + typ + "}", nil
 }
 
-func named(name string) *modelirspb.TypeRef {
-	return &modelirspb.TypeRef{Ref: &modelirspb.TypeRef_Named{Named: name}}
+func named(name string) *umpirespb.TypeRef {
+	return &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Named{Named: name}}
 }
 
 // reach writes the states a set of starts reaches by a successor function: as many rounds of
@@ -874,10 +874,10 @@ func (q *quint) monitors(i int, mm *umpiremodel.Machine, state, starts string) (
 		}
 		at := "true"
 		switch e := mo.GetEvaluate().(type) {
-		case *modelirspb.Monitor_EveryStep:
-		case *modelirspb.Monitor_AtEnds:
+		case *umpirespb.Monitor_EveryStep:
+		case *umpirespb.Monitor_AtEnds:
 			at = m + "_ends(r.f_state)"
-		case *modelirspb.Monitor_After:
+		case *umpirespb.Monitor_After:
 			after, err := q.function(e.After, mo.GetPosition())
 			if err != nil {
 				return "", err
@@ -928,7 +928,7 @@ func (q *quint) monitors(i int, mm *umpiremodel.Machine, state, starts string) (
 // claims writes what each Property of a machine says of one step: whether it is about the step, by
 // the step's class, and whether it holds of it, which is read only where it is about it. It gives
 // the type of the claims' dump.
-func (q *quint) claims(prefix, class string, properties []*modelirspb.Property, state string, about func(*modelirspb.Property) (string, error)) (string, error) {
+func (q *quint) claims(prefix, class string, properties []*umpirespb.Property, state string, about func(*umpirespb.Property) (string, error)) (string, error) {
 	var reads, fields []string
 	for n, p := range properties {
 		holds, err := q.function(p.GetHolds(), p.GetPosition())
@@ -953,18 +953,18 @@ func (q *quint) claims(prefix, class string, properties []*modelirspb.Property, 
 
 // about writes whether a Property is about the step of the class `c`: every step, the steps of one
 // class, by the action's id and its inputs, or the steps of every class of one action, by its name.
-func (q *quint) about(i int, mm *umpiremodel.Machine, p *modelirspb.Property) (string, error) {
+func (q *quint) about(i int, mm *umpiremodel.Machine, p *umpirespb.Property) (string, error) {
 	steps := mm.Decl.GetSteps()
-	variant := func(bound func(*modelirspb.Action) bool) (string, *modelirspb.Action, error) {
-		j := slices.IndexFunc(steps, func(b *modelirspb.StepBinding) bool { return bound(q.s.actions[b.GetAction()]) })
+	variant := func(bound func(*umpirespb.Action) bool) (string, *umpirespb.Action, error) {
+		j := slices.IndexFunc(steps, func(b *umpirespb.StepBinding) bool { return bound(q.s.actions[b.GetAction()]) })
 		if j < 0 {
 			return "", nil, q.unsupported(p.GetPosition(), "the Property %s, about an action %s does not bind", p.GetName(), mm.Decl.GetName())
 		}
 		return fmt.Sprintf("K%d_%d", i, j), q.s.actions[steps[j].GetAction()], nil
 	}
 	switch w := p.GetWhen().(type) {
-	case *modelirspb.Property_WhenClass:
-		tag, _, err := variant(func(a *modelirspb.Action) bool { return a.GetId() == w.WhenClass.GetAction() })
+	case *umpirespb.Property_WhenClass:
+		tag, _, err := variant(func(a *umpirespb.Action) bool { return a.GetId() == w.WhenClass.GetAction() })
 		if err != nil || len(w.WhenClass.GetInputs()) == 0 {
 			return fmt.Sprintf("(c == %s)", tag), err
 		}
@@ -977,8 +977,8 @@ func (q *quint) about(i int, mm *umpiremodel.Machine, p *modelirspb.Property) (s
 			record[k] = fmt.Sprintf("i%d: %s", k, written)
 		}
 		return fmt.Sprintf("(c == %s({%s}))", tag, strings.Join(record, ", ")), nil
-	case *modelirspb.Property_WhenAction:
-		tag, action, err := variant(func(a *modelirspb.Action) bool { return a.GetName() == w.WhenAction })
+	case *umpirespb.Property_WhenAction:
+		tag, action, err := variant(func(a *umpirespb.Action) bool { return a.GetName() == w.WhenAction })
 		if err != nil || len(action.GetInputs()) == 0 {
 			return fmt.Sprintf("(c == %s)", tag), err
 		}

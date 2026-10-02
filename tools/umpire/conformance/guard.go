@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -31,17 +31,17 @@ func (e *GuardError) Error() string {
 	return fmt.Sprintf("run event %d: the guard %s", e.Event, e.Message)
 }
 
-var eventKinds = map[modelirspb.RunEventSource_Kind]testpilotspb.RunEventKind{
-	modelirspb.RunEventSource_KIND_INSTRUCTION_COMPLETED: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED,
-	modelirspb.RunEventSource_KIND_INSTRUCTION_TIMED_OUT: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT,
-	modelirspb.RunEventSource_KIND_DIAGNOSTIC:            testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC,
+var eventKinds = map[umpirespb.RunEventSource_Kind]testpilotspb.RunEventKind{
+	umpirespb.RunEventSource_KIND_INSTRUCTION_COMPLETED: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED,
+	umpirespb.RunEventSource_KIND_INSTRUCTION_TIMED_OUT: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT,
+	umpirespb.RunEventSource_KIND_DIAGNOSTIC:            testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC,
 }
 
-// Admits reports whether a Run Event is an occurrence of the evidence a Run Event source declares: an
+// admits reports whether a Run Event is an occurrence of the evidence a Run Event source declares: an
 // event of the source's kind, recorded for the source's command, that carries an instruction outcome
 // the source's guard holds of, and, for a source that is the record of an attempt, the outcome of the
 // attempt of that number. A source with no guard takes every such event.
-func Admits(source *modelirspb.RunEventSource, event *testpilotspb.RunEvent) (bool, error) {
+func admits(source *umpirespb.RunEventSource, event *testpilotspb.RunEvent) (bool, error) {
 	refused := func(says string) (bool, error) {
 		return false, &GuardError{Event: event.GetSequence(), Message: says}
 	}
@@ -91,33 +91,33 @@ type value struct {
 }
 
 // evaluate computes an operand of a well-formed guard over a Run Event's payload.
-func evaluate(o *modelirspb.Operand, payload protoreflect.Message) (value, error) {
+func evaluate(o *umpirespb.Operand, payload protoreflect.Message) (value, error) {
 	switch k := o.GetKind().(type) {
-	case *modelirspb.Operand_Literal:
+	case *umpirespb.Operand_Literal:
 		return value{flag: k.Literal.GetFlag(), number: k.Literal.GetNumber(), text: k.Literal.GetText() + k.Literal.GetEnumName()}, nil
-	case *modelirspb.Operand_Projected:
+	case *umpirespb.Operand_Projected:
 		return value{message: payload}, nil
-	case *modelirspb.Operand_Path:
+	case *umpirespb.Operand_Path:
 		of, err := evaluate(k.Path.GetOf(), payload)
 		if err != nil || of.absent {
 			return of, err
 		}
 		return valueAt(of.message, k.Path.GetPath())
-	case *modelirspb.Operand_Present:
+	case *umpirespb.Operand_Present:
 		of, err := evaluate(k.Present.GetOf(), payload)
 		// A scalar the payload holds is present whatever its value: presence does not tell a zero or an
 		// empty text from one that was set. A guard that means a positive number says so.
 		return value{flag: !of.absent}, err
-	case *modelirspb.Operand_Equal:
+	case *umpirespb.Operand_Equal:
 		left, right, err := sides(k.Equal.GetLeft(), k.Equal.GetRight(), payload, "compares")
 		return value{flag: left.flag == right.flag && left.number == right.number && left.text == right.text}, err
-	case *modelirspb.Operand_Greater:
+	case *umpirespb.Operand_Greater:
 		left, right, err := sides(k.Greater.GetLeft(), k.Greater.GetRight(), payload, "orders")
 		return value{flag: left.number > right.number}, err
-	case *modelirspb.Operand_Not:
+	case *umpirespb.Operand_Not:
 		of, err := needed(k.Not.GetOf(), payload, "negates")
 		return value{flag: !of.flag}, err
-	case *modelirspb.Operand_All:
+	case *umpirespb.Operand_All:
 		for _, operand := range k.All.GetOperands() {
 			if joined, err := needed(operand, payload, "joins"); err != nil || !joined.flag {
 				return joined, err
@@ -131,7 +131,7 @@ func evaluate(o *modelirspb.Operand, payload protoreflect.Message) (value, error
 
 // needed evaluates an operand whose value another operand needs, which is an error where the payload
 // does not hold it.
-func needed(o *modelirspb.Operand, payload protoreflect.Message, verb string) (value, error) {
+func needed(o *umpirespb.Operand, payload protoreflect.Message, verb string) (value, error) {
 	of, err := evaluate(o, payload)
 	if err == nil && of.absent {
 		err = fmt.Errorf("%s an absent value", verb)
@@ -140,7 +140,7 @@ func needed(o *modelirspb.Operand, payload protoreflect.Message, verb string) (v
 }
 
 // sides evaluates the two operands of a comparison.
-func sides(left, right *modelirspb.Operand, payload protoreflect.Message, verb string) (l, r value, err error) {
+func sides(left, right *umpirespb.Operand, payload protoreflect.Message, verb string) (l, r value, err error) {
 	if l, err = needed(left, payload, verb); err != nil {
 		return l, r, err
 	}

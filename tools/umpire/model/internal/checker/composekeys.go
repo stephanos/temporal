@@ -153,9 +153,9 @@ func (b *composing) resolveTables(members []ComposeMember) error {
 				m.Field, m.Replaces.Machine, m.Table.Machine)
 		default:
 		}
-		member := compositionMember{field: m.Field, model: m.Table.Model()}
+		member := compositionMember{field: m.Field, model: m.Table.model}
 		if m.Replaces != nil {
-			member.replaces = m.Replaces.Model()
+			member.replaces = m.Replaces.model
 		}
 		t, err := member.model.Table()
 		if err != nil {
@@ -193,7 +193,6 @@ func (b *composing) checkStartProduct() error {
 func (b *composing) assembleKeys(starts [][]string, reached map[string]bool,
 	ends func(key string, parts []string) (bool, error)) (*Table, error) {
 	t := b.catalogs(reached)
-	t.classes, t.decls = map[string]Class{}, map[string]*ActionDecl{}
 	for _, s := range t.States {
 		t.stateValue[s] = s
 		t.Rows = append(t.Rows, b.keyRowsFrom(t, s)...)

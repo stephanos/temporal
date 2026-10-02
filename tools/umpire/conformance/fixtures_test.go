@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
@@ -38,7 +38,7 @@ const (
 	sourceMethod        = "/test.conformance.Source/Read"
 )
 
-func lifted(t testing.TB, name string) *modelirspb.Model {
+func lifted(t testing.TB, name string) *umpirespb.Model {
 	t.Helper()
 	m, err := umpiremodel.Load(filepath.Join("..", "..", "..", "model", "lifter", "testdata", "lifts", "expected", name+".json"))
 	require.NoError(t, err)
@@ -55,7 +55,7 @@ type kindOf struct {
 // declaring is what a test realization says of one kind beyond that: the fields it keeps, and whether
 // its source reports every occurrence.
 type declaring struct {
-	fields     []*modelirspb.EvidenceField
+	fields     []*umpirespb.EvidenceField
 	exhaustive bool
 }
 
@@ -81,43 +81,43 @@ func sourceID(machine, records string) string { return "test." + machine + ".sou
 // realized adds a realization of one machine to a Model: its kinds of evidence, each from a source
 // of its own, and the correlation that reads them. It declares no script: these Runs are driven by
 // the carrier Case.
-func realized(t testing.TB, m *modelirspb.Model, machine string, kinds []kindOf) *modelirspb.Model {
+func realized(t testing.TB, m *umpirespb.Model, machine string, kinds []kindOf) *umpirespb.Model {
 	t.Helper()
 	return realizedWith(t, m, machine, kinds, nil)
 }
 
 // realizedWith is realized with more declared of the kinds that record the named facts. The
 // exhaustive ones are closed by one read of a controller script.
-func realizedWith(t testing.TB, m *modelirspb.Model, machine string, kinds []kindOf, more map[string]declaring) *modelirspb.Model {
+func realizedWith(t testing.TB, m *umpirespb.Model, machine string, kinds []kindOf, more map[string]declaring) *umpirespb.Model {
 	t.Helper()
 	out := proto.CloneOf(m)
-	r := &modelirspb.Realization{Id: "test." + machine + ".realization", Name: machine + "Evidence", Machine: machine, Producer: "test.conformance",
+	r := &umpirespb.Realization{Id: "test." + machine + ".realization", Name: machine + "Evidence", Machine: machine, Producer: "test.conformance",
 		ProducerVersion: "1",
-		Observations:    []*modelirspb.Observed{{Id: evidenceObservation, Message: "temporal.server.api.testpilot.v1.CorrelatedEvidence"}},
-		Correlation: &modelirspb.Correlation{Projection: "test." + machine + ".projection", Run: "run", Operation: "operation",
+		Observations:    []*umpirespb.Observed{{Id: evidenceObservation, Message: "temporal.server.api.testpilot.v1.CorrelatedEvidence"}},
+		Correlation: &umpirespb.Correlation{Projection: "test." + machine + ".projection", Run: "run", Operation: "operation",
 			Observation: evidenceObservation, Events: 64, Buffered: 16, Keys: 8, Support: 128, Work: 1000000, EventSize: 512}}
 	for _, k := range kinds {
-		commitment := modelirspb.Evidence_COMMITMENT_REPORTED
+		commitment := umpirespb.Evidence_COMMITMENT_REPORTED
 		if k.durable {
-			commitment = modelirspb.Evidence_COMMITMENT_DURABLE
+			commitment = umpirespb.Evidence_COMMITMENT_DURABLE
 		}
-		r.Evidence = append(r.Evidence, &modelirspb.Evidence{Id: kindID(machine, k.records), Records: k.records, Source: sourceID(machine, k.records),
-			From:      &modelirspb.Evidence_History{History: "workflow_execution_started_event_attributes"},
+		r.Evidence = append(r.Evidence, &umpirespb.Evidence{Id: kindID(machine, k.records), Records: k.records, Source: sourceID(machine, k.records),
+			From:      &umpirespb.Evidence_History{History: "workflow_execution_started_event_attributes"},
 			Operation: "event_id", Commitment: commitment, Fields: more[k.records].fields, Exhaustive: more[k.records].exhaustive})
 	}
 	// The exhaustive kinds are closed by one read of the controller, which lifts them.
-	closing := &modelirspb.Command{Id: closingInstruction, Instruction: &modelirspb.Command_Rpc{Rpc: &modelirspb.Rpc{Role: sourceRole, Method: sourceMethod,
-		Reads: []*modelirspb.ResponseRead{{Path: "history.events[*]", Cardinality: modelirspb.ResponseRead_CARDINALITY_EACH,
-			Targets: []*modelirspb.Target{{Target: &modelirspb.Target_Lift{Lift: evidenceObservation}}}}}}}}
+	closing := &umpirespb.Command{Id: closingInstruction, Instruction: &umpirespb.Command_Rpc{Rpc: &umpirespb.Rpc{Role: sourceRole, Method: sourceMethod,
+		Reads: []*umpirespb.ResponseRead{{Path: "history.events[*]", Cardinality: umpirespb.ResponseRead_CARDINALITY_EACH,
+			Targets: []*umpirespb.Target{{Target: &umpirespb.Target_Lift{Lift: evidenceObservation}}}}}}}}
 	for _, k := range kinds {
 		if more[k.records].exhaustive {
 			closing.Closes = append(closing.Closes, kindID(machine, k.records))
 		}
 	}
 	if len(closing.GetCloses()) > 0 {
-		r.Roles = []*modelirspb.Role{{Id: sourceRole, Kind: modelirspb.Role_KIND_ENDPOINT}}
-		r.Scripts = []*modelirspb.Script{{Id: "controller", Activation: &modelirspb.Script_Controller{Controller: &modelirspb.Empty{}},
-			Items: []*modelirspb.Item{{Command: closing}}}}
+		r.Roles = []*umpirespb.Role{{Id: sourceRole, Kind: umpirespb.Role_KIND_ENDPOINT}}
+		r.Scripts = []*umpirespb.Script{{Id: "controller", Activation: &umpirespb.Script_Controller{Controller: &umpirespb.Empty{}},
+			Items: []*umpirespb.Item{{Command: closing}}}}
 	}
 	out.Realizations = append(out.Realizations, r)
 	require.NoError(t, umpiremodel.Validate(out))
@@ -393,7 +393,7 @@ type bound struct {
 	factory  *Factory
 }
 
-func bind(t testing.TB, m *modelirspb.Model, query umpiremodel.ClaimKey, source *testpilotspb.Case, limits Limits) *bound {
+func bind(t testing.TB, m *umpirespb.Model, query umpiremodel.ClaimKey, source *testpilotspb.Case, limits Limits) *bound {
 	t.Helper()
 	plain, err := testpilot.Prepare(source, carrierProfile(t))
 	require.NoError(t, err)

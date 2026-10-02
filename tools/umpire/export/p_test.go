@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
 )
@@ -34,7 +34,7 @@ func TestPTracesCarryGoVerdicts(t *testing.T) {
 	t.Logf("staleAdmission: %d traces, %d accepted, %d rejected; currentAdmission: %d traces", stale.Traces, stale.Accepted, stale.Rejected, current.Traces)
 	// The specimen's path is one of the rejected traces, at its fourth step.
 	mm := s.machines["staleAdmission"]
-	traces, err := s.traces(mm, slices.IndexFunc(mm.Monitors, func(mo *modelirspb.Monitor) bool { return mo.GetName() == "terminalFinality" }), pDepth)
+	traces, err := s.traces(mm, slices.IndexFunc(mm.Monitors, func(mo *umpirespb.Monitor) bool { return mo.GetName() == "terminalFinality" }), pDepth)
 	require.NoError(t, err)
 	a4 := []string{"dispatch", "attemptStart", "attemptResult-completed", "attemptStart"}
 	i := slices.IndexFunc(traces, func(tr ptrace) bool {
@@ -68,30 +68,30 @@ func TestPTracesCarryGoVerdicts(t *testing.T) {
 func TestPExportRejectsWhatItDoesNotTranslate(t *testing.T) {
 	cases := map[string]struct {
 		model, machine, monitor string
-		edit                    func(m *modelirspb.Model)
+		edit                    func(m *umpirespb.Model)
 		says                    string
 	}{
 		"a monitor that reads facts whose cases carry values": {"activity-system", "staleAdmission", "atMostOneActiveAttempt", nil, "carries values"},
-		"a monitor that reads a step's facts": {"activity-system", "staleAdmission", "terminalFinality", func(m *modelirspb.Model) {
+		"a monitor that reads a step's facts": {"activity-system", "staleAdmission", "terminalFinality", func(m *umpirespb.Model) {
 			next := function(m, "temporal.standaloneactivity.System$package$.terminalFinality.next")
-			facts := &modelirspb.Expr{Kind: &modelirspb.Expr_Field{Field: &modelirspb.FieldAccess{
-				Base: &modelirspb.Expr{Kind: &modelirspb.Expr_Var{Var: "after"}}, Field: "facts"}}}
-			next.Body = &modelirspb.Expr{Kind: &modelirspb.Expr_If{If: &modelirspb.If{
-				Condition: &modelirspb.Expr{Kind: &modelirspb.Expr_Binary{Binary: &modelirspb.Binary{Op: modelirspb.Binary_OP_EQ, Left: facts, Right: facts}}},
+			facts := &umpirespb.Expr{Kind: &umpirespb.Expr_Field{Field: &umpirespb.FieldAccess{
+				Base: &umpirespb.Expr{Kind: &umpirespb.Expr_Var{Var: "after"}}, Field: "facts"}}}
+			next.Body = &umpirespb.Expr{Kind: &umpirespb.Expr_If{If: &umpirespb.If{
+				Condition: &umpirespb.Expr{Kind: &umpirespb.Expr_Binary{Binary: &umpirespb.Binary{Op: umpirespb.Binary_OP_EQ, Left: facts, Right: facts}}},
 				Then:      next.GetBody(), Else: next.GetBody()}}}
 		}, "a step's facts"},
 		"a state whose cases carry values": {"nexus-close", "retainAndRoute", "retainedOutcome", nil, "carries values"},
-		"a monitor read at the ends": {"activity-system", "staleAdmission", "terminalFinality", func(m *modelirspb.Model) {
+		"a monitor read at the ends": {"activity-system", "staleAdmission", "terminalFinality", func(m *umpirespb.Model) {
 			for _, mo := range m.GetMonitors() {
 				if mo.GetName() == "terminalFinality" {
-					mo.Evaluate = &modelirspb.Monitor_AtEnds{AtEnds: &modelirspb.Empty{}}
+					mo.Evaluate = &umpirespb.Monitor_AtEnds{AtEnds: &umpirespb.Empty{}}
 				}
 			}
 		}, "read at the machine's ends"},
 	}
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
-			m := proto.Clone(loadModel(t, c.model)).(*modelirspb.Model)
+			m := proto.Clone(loadModel(t, c.model)).(*umpirespb.Model)
 			if c.edit != nil {
 				c.edit(m)
 			}
@@ -186,17 +186,17 @@ func TestPMonitorAgreesWithGo(t *testing.T) {
 func TestPDisagreesOnAnotherMonitor(t *testing.T) {
 	needs(t, PTool)
 	reference := openNamed(t, "activity-system")
-	cases := map[string]func(m *modelirspb.Model){
-		"over means completed and timed out at once": func(m *modelirspb.Model) {
-			function(m, "temporal.standaloneactivity.System$package$.admissionOver").GetBody().GetBinary().Op = modelirspb.Binary_OP_AND
+	cases := map[string]func(m *umpirespb.Model){
+		"over means completed and timed out at once": func(m *umpirespb.Model) {
+			function(m, "temporal.standaloneactivity.System$package$.admissionOver").GetBody().GetBinary().Op = umpirespb.Binary_OP_AND
 		},
-		"violated when closed": func(m *modelirspb.Model) {
+		"violated when closed": func(m *umpirespb.Model) {
 			function(m, "temporal.standaloneactivity.System$package$.terminalFinality.violated").GetBody().GetBinary().GetRight().GetLiteral().GetEnum().Case = "closed"
 		},
 	}
 	for name, mutate := range cases {
 		t.Run(name, func(t *testing.T) {
-			mutant := proto.Clone(reference.Model).(*modelirspb.Model)
+			mutant := proto.Clone(reference.Model).(*umpirespb.Model)
 			mutate(mutant)
 			written := &Slice{Model: mutant, machines: reference.machines, in: reference.in, bound: reference.bound, types: reference.types, actions: reference.actions}
 			r := only(t, pReceipts(t, pExported(t, written, "staleAdmission")), MonitorAgreement, "staleAdmission.terminalFinality")

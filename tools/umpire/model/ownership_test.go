@@ -184,7 +184,7 @@ func TestModelDependencyGraphRejectsCrossedOwners(t *testing.T) {
 		file, dependency string
 		allowed          bool
 	}{
-		{"tools/umpire/model/load.go", "api/modelir/v1", true},
+		{"tools/umpire/model/load.go", "api/umpire/v1", true},
 		{"tools/umpire/model/load.go", "api/testpilot/v1", false},
 		{"tools/umpire/model/load_test.go", "common/testing/testpilot", false},
 		{"tools/umpire/model/internal/checker/table.go", "tools/umpire/model", false},

@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/campaign"
 	"go.temporal.io/server/common/testing/testpilot/replay"
@@ -34,21 +34,21 @@ func TestIRBridgeProtocol(t *testing.T) {
 	require.NoError(t, err, "%s", output)
 	m, err := umpiremodel.Load(filepath.Join(root, "model", "ir", "nexus-caller.json"))
 	require.NoError(t, err)
-	var query *modelirspb.Query
+	var query *umpirespb.Query
 	for _, q := range m.Queries {
 		if q.Name == "syncCompletion" {
 			query = q
 		}
 	}
 	require.NotNil(t, query)
-	var scenario *modelirspb.Scenario
+	var scenario *umpirespb.Scenario
 	for _, s := range m.Scenarios {
 		if s.Name == query.Scenario.Name && s.Machine == query.Scenario.Machine {
 			scenario = s
 		}
 	}
 	require.NotNil(t, scenario)
-	query.Exploration = &modelirspb.Exploration{Name: "protocol", Runs: 2, Edits: 100, DropPrefix: true, Variations: []*modelirspb.Variation{{Index: 0, Choices: []*modelirspb.Alternative{
+	query.Exploration = &umpirespb.Exploration{Name: "protocol", Runs: 2, Edits: 100, DropPrefix: true, Variations: []*umpirespb.Variation{{Index: 0, Choices: []*umpirespb.Alternative{
 		{Name: "missing-schedule", Priority: 20}, {Name: "original", Priority: 10, Actions: scenario.Actions[:1]},
 	}}}}
 	plan, err := explore.New(m, "protocol")

@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/tools/umpire/internal/golden"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
@@ -45,7 +45,7 @@ func TestMigrationArtifactProjectionIsClosed(t *testing.T) {
 			migrateCaseSources(t, projected.ProtoReflect(), cfg)
 			if strings.Contains(name, "/explorations/") {
 				key := strings.TrimSuffix(name, "/case.json")
-				oldModel, newModel := new(modelirspb.Model), new(modelirspb.Model)
+				oldModel, newModel := new(umpirespb.Model), new(umpirespb.Model)
 				require.NoError(t, protojson.Unmarshal(before[key+"/model.json"], oldModel))
 				require.NoError(t, protojson.Unmarshal(after[key+"/model.json"], newModel))
 				projectedModel, err := cfg.Migrate(oldModel)

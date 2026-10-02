@@ -3,10 +3,10 @@ package model
 import (
 	"strings"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 )
 
-func (v *validator) exploration(q *modelirspb.Query) {
+func (v *validator) exploration(q *umpirespb.Query) {
 	e := q.GetExploration()
 	if e == nil {
 		return
@@ -16,13 +16,13 @@ func (v *validator) exploration(q *modelirspb.Query) {
 		at = q.GetPosition()
 	}
 	v.once(at, "explorations named", e.GetName())
-	var scenario *modelirspb.Scenario
+	var scenario *umpirespb.Scenario
 	for _, s := range v.in.model.GetScenarios() {
 		if s.GetMachine() == q.GetScenario().GetMachine() && s.GetName() == q.GetScenario().GetName() {
 			scenario = s
 		}
 	}
-	if q.GetForm() != modelirspb.Query_FORM_FIND || scenario == nil || scenario.GetFree() || len(scenario.GetActions()) < 2 || q.GetThrough() {
+	if q.GetForm() != umpirespb.Query_FORM_FIND || scenario == nil || scenario.GetFree() || len(scenario.GetActions()) < 2 || q.GetThrough() {
 		v.report(at, "exploration %s requires a find Query with a pinned action prefix", e.GetName())
 		return
 	}
@@ -45,7 +45,7 @@ func (v *validator) exploration(q *modelirspb.Query) {
 	}
 }
 
-func (v *validator) alternatives(e *modelirspb.Exploration, scenario *modelirspb.Scenario, axis *modelirspb.Variation, at *modelirspb.Position) {
+func (v *validator) alternatives(e *umpirespb.Exploration, scenario *umpirespb.Scenario, axis *umpirespb.Variation, at *umpirespb.Position) {
 	names := map[string]bool{}
 	for _, choice := range axis.GetChoices() {
 		if choice.GetName() == "" || strings.Contains(choice.GetName(), "+") || names[choice.GetName()] {

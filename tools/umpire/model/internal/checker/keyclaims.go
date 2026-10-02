@@ -19,8 +19,6 @@ func (m *tableModel) Table() (*Table, error) {
 	return m.table, nil
 }
 
-func (m *tableModel) claimNames() *claimNames { return &m.names }
-
 // KeyProperty declares a same-step Property over a table's keys: holds reads the step an action
 // class admitted by when produces, and a nil when admits every class. whenLabel names what when
 // admits in diagnostics. An error from holds is the search's to report: it is not a failed claim.
@@ -119,16 +117,10 @@ type UnknownReach struct {
 	Cause  error
 }
 
-// Incomplete reports that the answer found no witness and explored an unknown, so what it says is
-// absent may lie behind one. A found witness or counterexample stands whatever was unknown.
-func (a Answer) Incomplete() bool {
-	return (a.Outcome == VerifiedWithinLimits || a.Outcome == NotFound) && len(a.Unknown) > 0
-}
-
 // observeKeys advances a key-level Property's monitor over one step.
 func (s *searcher) observeKeys(n node, row Row, res Result) (monitor, error) {
 	p, mon := s.q.Property, n.mon
-	if !p.IsTransition() && !p.Triggers(row.Action) {
+	if !p.isTransition() && !p.triggers(row.Action) {
 		return mon, nil
 	}
 	held, err := s.holdsOnKeys(n.state, res)
@@ -149,13 +141,13 @@ func (s *searcher) holdsOnKeys(before string, res Result) (bool, error) {
 		if step, err = s.ref.keyStep(res); err != nil {
 			return false, err
 		}
-		if p.IsTransition() {
+		if p.isTransition() {
 			if before, err = s.ref.MapState(before); err != nil {
 				return false, err
 			}
 		}
 	}
-	if p.IsTransition() {
+	if p.isTransition() {
 		return p.keyHolds2(before, step)
 	}
 	return p.keyHolds(step)
@@ -175,7 +167,7 @@ func (r *Refinement) keyStep(res Result) (Result, error) {
 // noteUnknownRows records the unknown pairs at a node the Scenario schedules as its next step.
 func (s *searcher) noteUnknownRows(i int) {
 	n := s.nodes[i]
-	for _, u := range s.t.UnknownFrom(n.state) {
+	for _, u := range s.t.unknownsFrom(n.state) {
 		if s.admits(n, u.Action) {
 			s.noteUnknown(UnknownRow, i, u.Row, u.Action, u.Cause)
 		}

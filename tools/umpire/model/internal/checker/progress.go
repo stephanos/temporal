@@ -15,12 +15,6 @@ type Assumption struct {
 	Fair []string
 }
 
-// Assumes lists the assumptions every check of the machine relies on.
-func (m *Machine[S, O, F]) Assumes(assumptions ...Assumption) *Machine[S, O, F] {
-	m.assumptions = append(m.assumptions, assumptions...)
-	return m
-}
-
 // Progress is a bounded progress claim of a table, as the IR's `Progress`: from every reachable
 // state From accepts, a state To accepts follows within Within steps, on every path the table's and
 // the claim's assumptions admit. A To state at the From state itself discharges it, as TLA+'s `~>`
@@ -34,29 +28,6 @@ type Progress struct {
 	// state is reported, the check does not continue through it, and a kind of violation it rules out
 	// is incomplete. Nil lets every such error fail the check.
 	Unknown func(error) bool
-}
-
-// NewProgress declares a progress claim over a machine whose state type is S.
-func NewProgress[S any](name string, from, to func(S) bool, within int, assumptions ...Assumption) *Progress {
-	typed := func(f func(S) bool) func(*Table, string) (bool, error) {
-		return func(t *Table, key string) (bool, error) {
-			v, _ := t.StateValue(key)
-			s, ok := v.(S)
-			if !ok {
-				return false, errorf("progress "+name, "the state %s of %s is not a %T", key, t.Machine, s)
-			}
-			return f(s), nil
-		}
-	}
-	return &Progress{Name: name, Within: within, Assumptions: assumptions, from: typed(from), to: typed(to)}
-}
-
-// KeyProgress declares a progress claim over state keys, for a table with no typed values.
-func KeyProgress(name string, from, to func(state string) bool, within int, assumptions ...Assumption) *Progress {
-	keyed := func(f func(string) bool) func(*Table, string) (bool, error) {
-		return func(_ *Table, key string) (bool, error) { return f(key), nil }
-	}
-	return &Progress{Name: name, Within: within, Assumptions: assumptions, from: keyed(from), to: keyed(to)}
 }
 
 // KeyProgressFunc declares a progress claim over state keys whose from and to may fail, such as on
@@ -116,13 +87,6 @@ type ProgressAnswer struct {
 	// UnknownClaim with no row: the check explores no step from it, and it belongs to no path a
 	// violation is found on.
 	Unknown []UnknownReach
-}
-
-// Incomplete reports that some kind of violation was ruled out while the check read an unknown
-// pair, behind which one may lie. A violation found stands whatever was unknown.
-func (a ProgressAnswer) Incomplete() bool {
-	verified := func(v ProgressVerdict) bool { return v.Outcome == VerifiedWithinLimits }
-	return len(a.Unknown) > 0 && (verified(a.Deadlock) || verified(a.Cycle) || verified(a.Deadline))
 }
 
 // CheckProgress checks a progress claim of a table within limits. Steps bounds the depth explored
@@ -402,7 +366,7 @@ func (c *progressChecker) join(s string, via edgeFrom) {
 // noteUnknown records the unknown pairs at a state whose steps the check reads, each once, with the
 // shortest explored path from a start to the state.
 func (c *progressChecker) noteUnknown(s string) {
-	for _, u := range c.t.UnknownFrom(s) {
+	for _, u := range c.t.unknownsFrom(s) {
 		if c.noted[u.Row] {
 			continue
 		}

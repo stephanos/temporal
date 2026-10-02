@@ -12,7 +12,7 @@ import (
 	"slices"
 	"strings"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	runtime "go.temporal.io/server/common/testing/testpilot"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
@@ -61,7 +61,7 @@ func GenerateCases(irDirectory string) (map[string][]byte, error) {
 			return nil, err
 		}
 		queries := slices.Clone(model.GetQueries())
-		slices.SortFunc(queries, func(a, b *modelirspb.Query) int { return strings.Compare(a.GetName(), b.GetName()) })
+		slices.SortFunc(queries, func(a, b *umpirespb.Query) int { return strings.Compare(a.GetName(), b.GetName()) })
 		for _, query := range queries {
 			entry, encoded, err := generateCase(producer, filepath.Base(path), query)
 			if err != nil {
@@ -84,7 +84,7 @@ func GenerateCases(irDirectory string) (map[string][]byte, error) {
 	return files, nil
 }
 
-func generateCase(producer *Producer, model string, query *modelirspb.Query) (GeneratedCase, []byte, error) {
+func generateCase(producer *Producer, model string, query *umpirespb.Query) (GeneratedCase, []byte, error) {
 	name := strings.TrimSuffix(model, ".json") + "-" + query.GetName() + "-case.json"
 	if !bareJSON(name) {
 		return GeneratedCase{}, nil, fmt.Errorf("invalid Case filename %q", name)
@@ -106,7 +106,7 @@ func generateCase(producer *Producer, model string, query *modelirspb.Query) (Ge
 		Conformance: strings.ToLower(strings.TrimPrefix(string(expected.GetConformance().Descriptor().Values().ByNumber(expected.GetConformance().Number()).Name()), "CONFORMANCE_")),
 		Properties:  []ExpectedClaim{{ID: query.GetProperty().GetName(), Status: expectedOutcome(expected.GetProperty()), Reason: expected.GetReason()}},
 	}
-	if expected.GetContract() != modelirspb.RunExpectation_OUTCOME_UNSPECIFIED {
+	if expected.GetContract() != umpirespb.RunExpectation_OUTCOME_UNSPECIFIED {
 		entry.Expected.Contract = expectedOutcome(expected.GetContract())
 	}
 	for _, monitor := range expected.GetMonitors() {
@@ -123,7 +123,7 @@ func generateCase(producer *Producer, model string, query *modelirspb.Query) (Ge
 	return entry, append(canonical.Bytes(), '\n'), nil
 }
 
-func expectedOutcome(outcome modelirspb.RunExpectation_Outcome) string {
+func expectedOutcome(outcome umpirespb.RunExpectation_Outcome) string {
 	return strings.ToLower(strings.TrimPrefix(string(outcome.Descriptor().Values().ByNumber(outcome.Number()).Name()), "OUTCOME_"))
 }
 

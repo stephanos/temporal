@@ -2,7 +2,7 @@
 // disabled rows, assumptions, a monitor read at each evaluation point, the opaque machine a detailed
 // one refines under a visible projection, a progress claim, a composition in which the detailed
 // machine replaces the opaque one, and Properties, Scenarios and Queries on machines and compositions.
-// run.sh lifts `queries` and `durableEventually` and compares the IR with expected/declarations.json.
+// The lifter's tests lift `queries` and `durableEventually` and compare the IR with expected/declarations.json.
 package fixture.declarations
 
 import umpire.*

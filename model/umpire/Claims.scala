@@ -39,8 +39,6 @@ final class PropertyDecl private[umpire] (
 
   /** Whether a same-step Property is about the step of this action class. */
   def triggers(action: String): Boolean = when.forall(_(action))
-  private[umpire] def accepts(r: RowResult): Boolean = holds.exists(_(r.step))
-  def propertyID(t: Table): String = s"${t.family.root}.property.$name"
 
 /**
  * A Property over a machine whose state type is `S`. The type parameter is what lets the compiler
@@ -99,8 +97,7 @@ final class ScenarioDecl private[umpire] (
     /** The declared classes, for a realization that places them. */
     val classes: Vector[Class],
     val free: Boolean
-):
-  def scenarioID(t: Table): String = s"${t.family.root}.behavior.$name"
+)
 
 /** A Scenario over a machine whose state type is `S`. */
 final class Scenario[S] private[umpire] (val decl: ScenarioDecl):

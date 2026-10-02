@@ -1,6 +1,6 @@
 // Bounded channels, lifted with their declarations: a FIFO channel that may deliver a message once
-// more when its acknowledgment is lost, and an unordered one that may lose a message. run.sh lifts
-// `relay` and compares the IR with expected/channels.json.
+// more when its acknowledgment is lost, and an unordered one that may lose a message. The lifter's tests lift
+// `relay` and compare the IR with expected/channels.json.
 package fixture.channels
 
 import umpire.*

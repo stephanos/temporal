@@ -13,8 +13,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	failurepb "go.temporal.io/api/failure/v1"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
@@ -311,9 +311,9 @@ func TestAnAttemptRecordThatFollowsLaterEvidenceIsNamed(t *testing.T) {
 		scenario string
 		at       int
 	}
-	between := func(query, scenario string, steps ...taken) func(*modelirspb.Model) {
-		return func(m *modelirspb.Model) {
-			classes := map[string][]*modelirspb.ActionClass{}
+	between := func(query, scenario string, steps ...taken) func(*umpirespb.Model) {
+		return func(m *umpirespb.Model) {
+			classes := map[string][]*umpirespb.ActionClass{}
 			for _, s := range m.GetScenarios() {
 				classes[s.GetName()] = s.GetActions()
 			}
@@ -338,7 +338,7 @@ func TestAnAttemptRecordThatFollowsLaterEvidenceIsNamed(t *testing.T) {
 	pause, stop := taken{"pausedThenCompleted", 1}, taken{"terminatedWhileScheduled", 1}
 	for name, test := range map[string]struct {
 		query  string
-		change func(*modelirspb.Model)
+		change func(*umpirespb.Model)
 		want   []string
 	}{
 		"completion":             {"completion", nil, nil},
@@ -404,7 +404,7 @@ func TestAnAttemptIsUnansweredWhereThePathStartsMoreThanItAnswers(t *testing.T) 
 // steps it confirms.
 func TestTheInventoryOfAnActivityCaseDoesNotCloseOverAChangedDeclaration(t *testing.T) {
 	const started = activityEvidence + "statusStarted"
-	kind := func(r *modelirspb.Realization, id string) *modelirspb.Evidence {
+	kind := func(r *umpirespb.Realization, id string) *umpirespb.Evidence {
 		for _, e := range r.GetEvidence() {
 			if e.GetId() == id {
 				return e
@@ -413,28 +413,28 @@ func TestTheInventoryOfAnActivityCaseDoesNotCloseOverAChangedDeclaration(t *test
 		return nil
 	}
 	for name, test := range map[string]struct {
-		change func(e *modelirspb.Evidence)
+		change func(e *umpirespb.Evidence)
 		want   string
 	}{
-		"another command's record": {func(e *modelirspb.Evidence) { e.GetRunEvent().Command = "pause-activity" },
+		"another command's record": {func(e *umpirespb.Evidence) { e.GetRunEvent().Command = "pause-activity" },
 			`is "run event KIND_DIAGNOSTIC of controller/pause-activity keyed by the run"`},
-		"another guard": {func(e *modelirspb.Evidence) {
+		"another guard": {func(e *umpirespb.Evidence) {
 			e.GetRunEvent().GetGuard().GetAll().Operands = e.GetRunEvent().GetGuard().GetAll().GetOperands()[:1]
 		}, "evidence " + started + " is the Run's record under a guard, and the Case's program.evidence[evidence.statusStarted] declares it under another"},
-		"another attempt": {func(e *modelirspb.Evidence) { e.GetRunEvent().GetAttempt().Number = 2 },
+		"another attempt": {func(e *umpirespb.Evidence) { e.GetRunEvent().GetAttempt().Number = 2 },
 			"evidence " + started + " is the Run's record under a guard, and the Case's program.evidence[evidence.statusStarted] declares it under another"},
-		"no guard": {func(e *modelirspb.Evidence) { e.GetRunEvent().Guard = nil },
+		"no guard": {func(e *umpirespb.Evidence) { e.GetRunEvent().Guard = nil },
 			"evidence " + started + " is the Run's record under a guard, and the Case's program.evidence[evidence.statusStarted] declares it under another"},
-		"a field fewer than the Case keeps": {func(e *modelirspb.Evidence) { e.Fields = e.GetFields()[:2] },
+		"a field fewer than the Case keeps": {func(e *umpirespb.Evidence) { e.Fields = e.GetFields()[:2] },
 			"evidence " + started + " keeps 2 fields, and the Case's program.evidence[evidence.statusStarted] keeps 3"},
-		"a field carried without its value": {func(e *modelirspb.Evidence) { e.GetFields()[2].Redacted = true },
+		"a field carried without its value": {func(e *umpirespb.Evidence) { e.GetFields()[2].Redacted = true },
 			"field activityRun of evidence " + started + " of realization standalone is carried without its value, which is in no part of the Case"},
-		"a field the Case does not keep": {func(e *modelirspb.Evidence) {
-			e.Fields = append(e.Fields, &modelirspb.EvidenceField{Id: "offered", Path: "activity_attempt.activity_run_id"})
+		"a field the Case does not keep": {func(e *umpirespb.Evidence) {
+			e.Fields = append(e.Fields, &umpirespb.EvidenceField{Id: "offered", Path: "activity_attempt.activity_run_id"})
 		}, "evidence " + started + " keeps field offered at activity_attempt.activity_run_id, and the Case's program.evidence[evidence.statusStarted] does not"},
-		"a field at another path": {func(e *modelirspb.Evidence) { e.GetFields()[0].Path = "activity_attempt.delivery_id" },
+		"a field at another path": {func(e *umpirespb.Evidence) { e.GetFields()[0].Path = "activity_attempt.delivery_id" },
 			"evidence " + started + " keeps field attempt at activity_attempt.delivery_id, and the Case's program.evidence[evidence.statusStarted] does not"},
-		"a step it does not confirm": {func(e *modelirspb.Evidence) {
+		"a step it does not confirm": {func(e *umpirespb.Evidence) {
 			e.Confirms = append(e.Confirms, proto.CloneOf(e.GetConfirms()[0]))
 			e.GetConfirms()[1].Occurrence = 2
 		}, "evidence " + started + " confirms 2 steps, and the Case's rule for it confirms 1"},
@@ -465,7 +465,7 @@ func TestTheInventoryOfAnActivityCaseDoesNotCloseOverAChangedDeclaration(t *test
 func TestAFieldOfEvidenceIsCarriedAsTheScalarItsDescriptorMakesIt(t *testing.T) {
 	request, err := messageNamed(nil, "temporal.api.workflowservice.v1.GetWorkflowExecutionHistoryRequest")
 	require.NoError(t, err)
-	e := &modelirspb.Evidence{Id: "evidence", Position: &modelirspb.Position{File: "Realization.scala", Line: 1}}
+	e := &umpirespb.Evidence{Id: "evidence", Position: &umpirespb.Position{File: "Realization.scala", Line: 1}}
 	for path, want := range map[string]testpilotspb.ScalarKind{
 		"namespace":                 testpilotspb.SCALAR_KIND_TEXT,
 		"execution.workflow_id":     testpilotspb.SCALAR_KIND_TEXT,
@@ -476,7 +476,7 @@ func TestAFieldOfEvidenceIsCarriedAsTheScalarItsDescriptorMakesIt(t *testing.T) 
 		"execution":                 testpilotspb.SCALAR_KIND_UNSPECIFIED,
 	} {
 		t.Run(path, func(t *testing.T) {
-			kind, err := carriedField(e, &modelirspb.EvidenceField{Id: "field", Path: path}, request)
+			kind, err := carriedField(e, &umpirespb.EvidenceField{Id: "field", Path: path}, request)
 			if want == testpilotspb.SCALAR_KIND_UNSPECIFIED {
 				require.ErrorContains(t, err, "evidence evidence: field field reads "+path+", which is no single text, flag or integer of "+string(request.FullName()))
 				return
@@ -491,7 +491,7 @@ func TestAFieldOfEvidenceIsCarriedAsTheScalarItsDescriptorMakesIt(t *testing.T) 
 // lowered from a realization whose field names no attempt differs in that fingerprint and in nothing
 // else of its Program and its Contract.
 func TestTheIdentityAFieldNamesIsInTheProjectionFingerprint(t *testing.T) {
-	lower := func(change func(*modelirspb.Realization)) *testpilotspb.Case {
+	lower := func(change func(*umpirespb.Realization)) *testpilotspb.Case {
 		m := loaded(t, "activity")
 		change(m.GetRealizations()[0])
 		p, err := NewProducer(m)
@@ -501,12 +501,12 @@ func TestTheIdentityAFieldNamesIsInTheProjectionFingerprint(t *testing.T) {
 		require.Equal(t, Lowered, l.Standing)
 		return l.Case
 	}
-	declared := lower(func(*modelirspb.Realization) {})
-	unnamed := lower(func(r *modelirspb.Realization) {
+	declared := lower(func(*umpirespb.Realization) {})
+	unnamed := lower(func(r *umpirespb.Realization) {
 		for _, e := range r.GetEvidence() {
 			if e.GetId() == activityEvidence+"statusStarted" {
-				require.Equal(t, modelirspb.EvidenceField_ROLE_ATTEMPT, e.GetFields()[0].GetRole())
-				e.GetFields()[0].Role = modelirspb.EvidenceField_ROLE_UNSPECIFIED
+				require.Equal(t, umpirespb.EvidenceField_ROLE_ATTEMPT, e.GetFields()[0].GetRole())
+				e.GetFields()[0].Role = umpirespb.EvidenceField_ROLE_UNSPECIFIED
 			}
 		}
 	})
@@ -522,7 +522,7 @@ func TestTheIdentityAFieldNamesIsInTheProjectionFingerprint(t *testing.T) {
 // its payload, and not by the Run, lowers to a declaration that names that path as its operation key.
 func TestTheRunsRecordIsOfAControllersInstructionKeyedByTheRunOrByItsPayload(t *testing.T) {
 	const scheduled = activityEvidence + "statusScheduled"
-	changed := func(change func(*modelirspb.RunEventSource)) *Producer {
+	changed := func(change func(*umpirespb.RunEventSource)) *Producer {
 		m := loaded(t, "activity")
 		for _, e := range m.GetRealizations()[0].GetEvidence() {
 			if e.GetId() == scheduled {
@@ -534,7 +534,7 @@ func TestTheRunsRecordIsOfAControllersInstructionKeyedByTheRunOrByItsPayload(t *
 		return p
 	}
 
-	l, err := changed(func(source *modelirspb.RunEventSource) {
+	l, err := changed(func(source *umpirespb.RunEventSource) {
 		source.Script, source.Command = "activity", "complete-attempt"
 	}).
 		Lower("completion", activityIdentity("completion"))
@@ -542,9 +542,9 @@ func TestTheRunsRecordIsOfAControllersInstructionKeyedByTheRunOrByItsPayload(t *
 	require.ErrorContains(t, err, "evidence "+scheduled+" is the Run's record of a command of script activity, which no controller runs")
 	require.ErrorContains(t, err, activityRealizationAt)
 
-	l, err = changed(func(source *modelirspb.RunEventSource) {
-		source.Key = &modelirspb.Operand{Kind: &modelirspb.Operand_Path{Path: &modelirspb.PathOf{Path: "protocol_code",
-			Of: &modelirspb.Operand{Kind: &modelirspb.Operand_Projected{Projected: &modelirspb.Empty{}}}}}}
+	l, err = changed(func(source *umpirespb.RunEventSource) {
+		source.Key = &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: "protocol_code",
+			Of: &umpirespb.Operand{Kind: &umpirespb.Operand_Projected{Projected: &umpirespb.Empty{}}}}}}
 	}).Lower("completion", activityIdentity("completion"))
 	require.NoError(t, err)
 	require.Equal(t, Lowered, l.Standing, "%v", l.Unsupported)

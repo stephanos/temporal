@@ -64,7 +64,7 @@ func (c pattern) stepField() testpilotspb.CorrelatedStepField {
 // condition is the step condition a pattern lowers to: its step reference compared equal with the
 // text it requires.
 func (c pattern) condition() *testpilotspb.Expression {
-	return equal(correlatedStep(c.stepField(), c.reference), literal(text(c.value)))
+	return Equal(correlatedStep(c.stepField(), c.reference), Literal(Text(c.value)))
 }
 
 // scopedClauses places every lowered clause by the Scenario: its trigger is the operation's first

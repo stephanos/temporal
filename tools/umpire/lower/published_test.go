@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/protorequire"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
@@ -82,7 +82,7 @@ func TestARecordOfAnAttemptReachesARunWithTheAttemptsAnswer(t *testing.T) {
 	}
 }
 
-func evidenceOf(t *testing.T, m *modelirspb.Model, kind string) *modelirspb.Evidence {
+func evidenceOf(t *testing.T, m *umpirespb.Model, kind string) *umpirespb.Evidence {
 	t.Helper()
 	for _, e := range m.GetRealizations()[0].GetEvidence() {
 		if e.GetId() == activityEvidence+kind {
@@ -104,11 +104,11 @@ func TestARecordIsLateByTheAttemptItIsDeclaredOf(t *testing.T) {
 	require.Equal(t, int64(2), second.GetRunEvent().GetAttempt().GetNumber())
 	second.Confirms = second.GetConfirms()[:1]
 	r := m.GetRealizations()[0]
-	r.Evidence = append(r.Evidence, &modelirspb.Evidence{Id: activityEvidence + "startedAgain", Position: second.GetPosition(), Records: "statusStarted",
-		Source: "temporal.activity.standalone.source.again", Commitment: modelirspb.Evidence_COMMITMENT_REPORTED,
-		Confirms: []*modelirspb.Taking{{Step: evidenceOf(t, m, "statusStarted").GetConfirms()[0].GetStep(), Occurrence: 2}},
-		From: &modelirspb.Evidence_RunEvent{RunEvent: &modelirspb.RunEventSource{Kind: modelirspb.RunEventSource_KIND_INSTRUCTION_TIMED_OUT, Script: "controller",
-			Command: "start-activity", Key: &modelirspb.Operand{Kind: &modelirspb.Operand_Run{Run: &modelirspb.Empty{}}}}}})
+	r.Evidence = append(r.Evidence, &umpirespb.Evidence{Id: activityEvidence + "startedAgain", Position: second.GetPosition(), Records: "statusStarted",
+		Source: "temporal.activity.standalone.source.again", Commitment: umpirespb.Evidence_COMMITMENT_REPORTED,
+		Confirms: []*umpirespb.Taking{{Step: evidenceOf(t, m, "statusStarted").GetConfirms()[0].GetStep(), Occurrence: 2}},
+		From: &umpirespb.Evidence_RunEvent{RunEvent: &umpirespb.RunEventSource{Kind: umpirespb.RunEventSource_KIND_INSTRUCTION_TIMED_OUT, Script: "controller",
+			Command: "start-activity", Key: &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}}}})
 	p, err := NewProducer(m)
 	require.NoError(t, err)
 	l, err := p.Lower("retry", activityIdentity("retry"))
@@ -132,11 +132,11 @@ func TestARecordIsEarlyByTheAttemptItIsDeclaredOf(t *testing.T) {
 	second.Confirms = second.GetConfirms()[1:]
 	second.GetRunEvent().GetAttempt().Number = 1
 	r := m.GetRealizations()[0]
-	r.Evidence = append(r.Evidence, &modelirspb.Evidence{Id: activityEvidence + "failed", Position: second.GetPosition(), Records: second.GetRecords(),
-		Source: "temporal.activity.standalone.source.failed", Commitment: modelirspb.Evidence_COMMITMENT_REPORTED,
-		Confirms: []*modelirspb.Taking{failure},
-		From: &modelirspb.Evidence_RunEvent{RunEvent: &modelirspb.RunEventSource{Kind: modelirspb.RunEventSource_KIND_INSTRUCTION_TIMED_OUT, Script: "controller",
-			Command: "start-activity", Key: &modelirspb.Operand{Kind: &modelirspb.Operand_Run{Run: &modelirspb.Empty{}}}}}})
+	r.Evidence = append(r.Evidence, &umpirespb.Evidence{Id: activityEvidence + "failed", Position: second.GetPosition(), Records: second.GetRecords(),
+		Source: "temporal.activity.standalone.source.failed", Commitment: umpirespb.Evidence_COMMITMENT_REPORTED,
+		Confirms: []*umpirespb.Taking{failure},
+		From: &umpirespb.Evidence_RunEvent{RunEvent: &umpirespb.RunEventSource{Kind: umpirespb.RunEventSource_KIND_INSTRUCTION_TIMED_OUT, Script: "controller",
+			Command: "start-activity", Key: &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}}}})
 	p, err := NewProducer(m)
 	require.NoError(t, err)
 	l, err := p.Lower("retry", activityIdentity("retry"))
@@ -154,7 +154,7 @@ func TestARecordIsEarlyByTheAttemptItIsDeclaredOf(t *testing.T) {
 // the cancel path from a Case; the same step confirmed by the start call's own completion, which the
 // Run records as the controller makes the call, is in the path's order.
 func TestEvidenceTheControllerRecordsIsNotDeferred(t *testing.T) {
-	late := func(change func(*modelirspb.Model)) []string {
+	late := func(change func(*umpirespb.Model)) []string {
 		m := loaded(t, "activity")
 		change(m)
 		p, err := NewProducer(m)
@@ -169,10 +169,10 @@ func TestEvidenceTheControllerRecordsIsNotDeferred(t *testing.T) {
 		}
 		return out
 	}
-	require.Equal(t, []string{activityEvidence + "statusStarted"}, late(func(*modelirspb.Model) {}))
-	require.Empty(t, late(func(m *modelirspb.Model) {
+	require.Equal(t, []string{activityEvidence + "statusStarted"}, late(func(*umpirespb.Model) {}))
+	require.Empty(t, late(func(m *umpirespb.Model) {
 		source := evidenceOf(t, m, "statusStarted").GetRunEvent()
-		source.Kind, source.Attempt = modelirspb.RunEventSource_KIND_INSTRUCTION_COMPLETED, nil
+		source.Kind, source.Attempt = umpirespb.RunEventSource_KIND_INSTRUCTION_COMPLETED, nil
 	}))
 }
 
@@ -206,7 +206,7 @@ func TestTheAttemptsOfTwoActivitiesUnderOneCarrierAreNotToldApart(t *testing.T) 
 	for _, item := range first.GetItems() {
 		for i, performance := range item.GetPerforms() {
 			if performance.GetCommand().GetId() == "fail-attempt" {
-				other.Items = append(other.Items, &modelirspb.Item{Position: item.GetPosition(), When: item.GetWhen(), Performs: []*modelirspb.Performance{performance}})
+				other.Items = append(other.Items, &umpirespb.Item{Position: item.GetPosition(), When: item.GetWhen(), Performs: []*umpirespb.Performance{performance}})
 				item.Performs = append(item.GetPerforms()[:i:i], item.GetPerforms()[i+1:]...)
 				break
 			}
@@ -284,10 +284,10 @@ func TestARecordOfAnAttemptThePathNeverStartsIsAnError(t *testing.T) {
 // confirms a step by has an instruction of the Case that records it, and the instruction of a later
 // kind runs after the instruction of an earlier one.
 func TestTheControllersInstructionsRecordEvidenceInThePathsOrder(t *testing.T) {
-	controller := func(m *modelirspb.Model) *modelirspb.Script {
+	controller := func(m *umpirespb.Model) *umpirespb.Script {
 		return scriptNamed(t, m.GetRealizations()[0], "controller")
 	}
-	item := func(s *modelirspb.Script, command string) int {
+	item := func(s *umpirespb.Script, command string) int {
 		for i, it := range s.GetItems() {
 			if it.GetCommand().GetId() == command {
 				return i
@@ -297,17 +297,17 @@ func TestTheControllersInstructionsRecordEvidenceInThePathsOrder(t *testing.T) {
 		return -1
 	}
 	for name, test := range map[string]struct {
-		change func(m *modelirspb.Model)
+		change func(m *umpirespb.Model)
 		want   string
 	}{
-		"the read of the last status before the start": {func(m *modelirspb.Model) {
+		"the read of the last status before the start": {func(m *umpirespb.Model) {
 			s := controller(m)
 			at := item(s, "await-completed")
 			read := s.GetItems()[at]
-			s.Items = append([]*modelirspb.Item{read}, append(s.GetItems()[:at:at], s.GetItems()[at+1:]...)...)
+			s.Items = append([]*umpirespb.Item{read}, append(s.GetItems()[:at:at], s.GetItems()[at+1:]...)...)
 		}, "query completion: evidence " + activityEvidence + "statusCompleted is recorded by controller/await-completed, which the Case does not run after " +
 			"controller/start-activity, and the path records " + activityEvidence + "statusScheduled first"},
-		"a status the path records and no instruction of the Case reads": {func(m *modelirspb.Model) {
+		"a status the path records and no instruction of the Case reads": {func(m *umpirespb.Model) {
 			s := controller(m)
 			s.GetItems()[item(s, "await-completed")].When = s.GetItems()[item(s, "await-terminated")].GetWhen()
 		}, "query completion: no instruction of the Case records evidence " + activityEvidence + "statusCompleted, which confirms a step of the path"},

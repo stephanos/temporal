@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	runtime "go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	"go.temporal.io/server/tools/umpire/conformance"
@@ -66,7 +66,7 @@ func artifactError(err error) string {
 	return err.Error()
 }
 
-func artifactModel(t *testing.T, files map[string][]byte, key string, m *modelirspb.Model) {
+func artifactModel(t *testing.T, files map[string][]byte, key string, m *umpirespb.Model) {
 	t.Helper()
 	producer, err := lower.NewProducer(m)
 	require.NoError(t, err, key)
@@ -151,7 +151,7 @@ func artifactCandidate(t *testing.T, files map[string][]byte, key string, plan *
 	files[key+"/trace.html"] = trace
 }
 
-func assessmentIdentity(t *testing.T, model *modelirspb.Model) string {
+func assessmentIdentity(t *testing.T, model *umpirespb.Model) string {
 	t.Helper()
 	bare := proto.CloneOf(model)
 	bare.Source = ""
@@ -162,7 +162,7 @@ func assessmentIdentity(t *testing.T, model *modelirspb.Model) string {
 	return "goir.model/v1:sha256:" + golden.Digest(append([]byte("goir.model/v1"), encoded...))
 }
 
-func captureArtifacts(t *testing.T, cfg golden.Config, models map[string]*modelirspb.Model, project bool) map[string][]byte {
+func captureArtifacts(t *testing.T, cfg golden.Config, models map[string]*umpirespb.Model, project bool) map[string][]byte {
 	t.Helper()
 	files := map[string][]byte{}
 	generatedIR := t.TempDir()
@@ -189,7 +189,7 @@ func captureArtifacts(t *testing.T, cfg golden.Config, models map[string]*modeli
 	return files
 }
 
-func originalArtifactInputs(t *testing.T) (golden.Config, map[string]*modelirspb.Model) {
+func originalArtifactInputs(t *testing.T) (golden.Config, map[string]*umpirespb.Model) {
 	t.Helper()
 	cfg, err := golden.Configuration()
 	require.NoError(t, err)
@@ -227,7 +227,7 @@ func TestMigrationGoldens(t *testing.T) {
 	cfg, inputs := originalArtifactInputs(t)
 	selected := ""
 	for path, current := range inputs {
-		original := new(modelirspb.Model)
+		original := new(umpirespb.Model)
 		require.NoError(t, protojson.Unmarshal(expected["original/inputs/"+strings.TrimPrefix(path, "model/scalav2/")], original), path)
 		mapped, err := cfg.Match(original, current)
 		require.NoError(t, err, path)
@@ -353,7 +353,7 @@ func legacyArtifacts(t *testing.T) map[string][]byte {
 	files := map[string][]byte{}
 	baseline, err := golden.Read(filepath.Join("testdata", "migration"))
 	require.NoError(t, err)
-	model := new(modelirspb.Model)
+	model := new(umpirespb.Model)
 	require.NoError(t, protojson.Unmarshal(baseline["original/inputs/ir/nexus-caller.json"], model))
 	lower.MigrationComparativeModel(t, model)
 	require.Len(t, model.GetQueries(), 7)
@@ -418,7 +418,7 @@ func captureLegacyQuery(t *testing.T, files map[string][]byte, key string, q *um
 }
 
 func clearPositionFields(m protoreflect.Message) {
-	position := (&modelirspb.Position{}).ProtoReflect().Descriptor().FullName()
+	position := (&umpirespb.Position{}).ProtoReflect().Descriptor().FullName()
 	m.Range(func(f protoreflect.FieldDescriptor, value protoreflect.Value) bool {
 		if f.Message() == nil || f.IsMap() {
 			return true

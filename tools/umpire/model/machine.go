@@ -6,7 +6,7 @@ import (
 	"slices"
 	"strings"
 
-	modelirspb "go.temporal.io/server/api/modelir/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
 )
 
@@ -15,7 +15,7 @@ import (
 // last field varying fastest in both, which is the order the Lean `Finite` derivation produces.
 // A channel's contents are listed as its Channels section says. A catalog larger than the Members
 // ceiling is refused from its count, before any of it is listed.
-func (in *Interpreter) Members(t *modelirspb.TypeRef) ([]Value, error) {
+func (in *Interpreter) Members(t *umpirespb.TypeRef) ([]Value, error) {
 	n, err := in.size(t)
 	if err != nil {
 		return nil, err
@@ -24,9 +24,9 @@ func (in *Interpreter) Members(t *modelirspb.TypeRef) ([]Value, error) {
 		return nil, err
 	}
 	switch r := t.GetRef().(type) {
-	case *modelirspb.TypeRef_Bool:
+	case *umpirespb.TypeRef_Bool:
 		return []Value{{Kind: BoolValue, Bool: false}, {Kind: BoolValue, Bool: true}}, nil
-	case *modelirspb.TypeRef_IntRange:
+	case *umpirespb.TypeRef_IntRange:
 		var out []Value
 		for i := r.IntRange.GetLow(); i <= r.IntRange.GetHigh(); i++ {
 			out = append(out, Value{Kind: IntValue, Int: i})
@@ -36,13 +36,13 @@ func (in *Interpreter) Members(t *modelirspb.TypeRef) ([]Value, error) {
 			}
 		}
 		return out, nil
-	case *modelirspb.TypeRef_Named:
+	case *umpirespb.TypeRef_Named:
 		out, err := in.declaredMembers(r.Named)
 		if err != nil {
 			return nil, err
 		}
 		return out, distinctKeys(in.types[r.Named].GetPosition(), r.Named, out)
-	case *modelirspb.TypeRef_Channel:
+	case *umpirespb.TypeRef_Channel:
 		c, err := in.channel(r.Channel, nil)
 		if err != nil {
 			return nil, err
@@ -59,7 +59,7 @@ func (in *Interpreter) Members(t *modelirspb.TypeRef) ([]Value, error) {
 
 // distinctKeys refuses a catalog two of whose values share a key: tables, rows and Definition IDs name
 // a value by its key alone, so the two would be one.
-func distinctKeys(at *modelirspb.Position, catalog string, values []Value) error {
+func distinctKeys(at *umpirespb.Position, catalog string, values []Value) error {
 	seen := make(map[string]Value, len(values))
 	for _, v := range values {
 		if earlier, ok := seen[v.Key()]; ok {
@@ -77,7 +77,7 @@ func (in *Interpreter) declaredMembers(name string) ([]Value, error) {
 		return nil, &Error{Message: "no type " + name}
 	}
 	switch s := decl.GetShape().(type) {
-	case *modelirspb.Type_Enum:
+	case *umpirespb.Type_Enum:
 		var out []Value
 		for _, c := range s.Enum.GetCases() {
 			assignments, err := in.product(c.GetFields())
@@ -89,7 +89,7 @@ func (in *Interpreter) declaredMembers(name string) ([]Value, error) {
 			}
 		}
 		return out, nil
-	case *modelirspb.Type_Record:
+	case *umpirespb.Type_Record:
 		assignments, err := in.product(s.Record.GetFields())
 		if err != nil {
 			return nil, err
@@ -106,7 +106,7 @@ func (in *Interpreter) declaredMembers(name string) ([]Value, error) {
 
 // product lists every assignment of fields, the last varying fastest, once their count is within the
 // Members ceiling.
-func (in *Interpreter) product(fields []*modelirspb.Field) ([][]Value, error) {
+func (in *Interpreter) product(fields []*umpirespb.Field) ([][]Value, error) {
 	n, err := in.sizeOfProduct(fields)
 	if err != nil {
 		return nil, err
@@ -131,18 +131,18 @@ func (in *Interpreter) product(fields []*modelirspb.Field) ([][]Value, error) {
 	return out, nil
 }
 
-func named(name string) *modelirspb.TypeRef {
-	return &modelirspb.TypeRef{Ref: &modelirspb.TypeRef_Named{Named: name}}
+func named(name string) *umpirespb.TypeRef {
+	return &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Named{Named: name}}
 }
 
 // Class is what the checks that read a machine's classes are given:
 // class is one class of an action: the action and one assignment of its inputs.
 type Class struct {
 	Key    string
-	Action *modelirspb.Action
+	Action *umpirespb.Action
 	Inputs []Value
 	step   string
-	at     *modelirspb.Position
+	at     *umpirespb.Position
 }
 
 // Transition is one row of a machine's table as values: the state it leaves, its class, and its step
@@ -178,7 +178,7 @@ type Work struct {
 // assumption: a check that reads the table alone answers a question about the rows, not about the
 // machine's declarations.
 type Machine struct {
-	Decl        *modelirspb.Machine
+	Decl        *umpirespb.Machine
 	Table       *Table
 	states      map[string]Value
 	Refinement  []RefinementRow
@@ -186,8 +186,8 @@ type Machine struct {
 	Classes     []Class
 	Transitions []Transition
 	Holes       []HoleRow
-	Monitors    []*modelirspb.Monitor
-	Assumptions []*modelirspb.Assumption
+	Monitors    []*umpirespb.Monitor
+	Assumptions []*umpirespb.Assumption
 	Work        Work
 }
 
@@ -197,19 +197,8 @@ func (m *Machine) State(key string) (Value, bool) {
 	return v, ok
 }
 
-// Disabled is whether a state and class of the machine are a disabled pair: an empty list of steps,
-// neither a row nor a hole row.
-func (m *Machine) Disabled(state, class string) bool {
-	if _, ok := m.states[state]; !ok || !slices.ContainsFunc(m.Classes, func(c Class) bool { return c.Key == class }) {
-		return false
-	}
-	key := state + "-" + class
-	return !slices.ContainsFunc(m.Table.RowsFrom(state), func(r Row) bool { return r.Key == key }) &&
-		!slices.ContainsFunc(m.Holes, func(h HoleRow) bool { return h.Row == key })
-}
-
-// ReachableHoles is the hole rows whose state the table reaches.
-func (m *Machine) ReachableHoles() []HoleRow {
+// reachableHoles is the hole rows whose state the table reaches.
+func (m *Machine) reachableHoles() []HoleRow {
 	var out []HoleRow
 	for _, h := range m.Holes {
 		if slices.Contains(m.Table.Reachable, h.Source) {
@@ -221,13 +210,13 @@ func (m *Machine) ReachableHoles() []HoleRow {
 
 // Build interprets every machine of a Model. A refining machine's refinement is checked against the
 // machine it names, which must be in the Model.
-// It interprets them within DefaultCeilings, and a refinement that does not hold is the machine's
+// It interprets them within defaultCeilings, and a refinement that does not hold is the machine's
 // Rejected, not an error of the Model.
-func Build(m *modelirspb.Model) (map[string]*Machine, error) {
+func Build(m *umpirespb.Model) (map[string]*Machine, error) {
 	return NewInterpreter(m).build(m)
 }
 
-func (in *Interpreter) build(m *modelirspb.Model) (map[string]*Machine, error) {
+func (in *Interpreter) build(m *umpirespb.Model) (map[string]*Machine, error) {
 	out := in.interpret(m)
 	for _, failures := range []map[string]error{out.failed, out.unrefined} {
 		for _, decl := range m.GetMachines() {
@@ -248,8 +237,8 @@ type interpretation struct {
 	unrefined map[string]error
 }
 
-func (in *Interpreter) interpret(m *modelirspb.Model) interpretation {
-	actions := map[string]*modelirspb.Action{}
+func (in *Interpreter) interpret(m *umpirespb.Model) interpretation {
+	actions := map[string]*umpirespb.Action{}
 	for _, a := range m.GetActions() {
 		actions[a.GetId()] = a
 	}
@@ -288,16 +277,16 @@ func (in *Interpreter) interpret(m *modelirspb.Model) interpretation {
 }
 
 // declarations resolves the monitors and assumptions a machine names.
-func declarations(m *modelirspb.Model, mm *Machine) error {
+func declarations(m *umpirespb.Model, mm *Machine) error {
 	for _, id := range mm.Decl.GetMonitors() {
-		i := slices.IndexFunc(m.GetMonitors(), func(d *modelirspb.Monitor) bool { return d.GetId() == id })
+		i := slices.IndexFunc(m.GetMonitors(), func(d *umpirespb.Monitor) bool { return d.GetId() == id })
 		if i < 0 {
 			return errorAt(mm.Decl.GetPosition(), "%s: no monitor %s", mm.Decl.GetName(), id)
 		}
 		mm.Monitors = append(mm.Monitors, m.GetMonitors()[i])
 	}
 	for _, id := range mm.Decl.GetAssumes() {
-		i := slices.IndexFunc(m.GetAssumptions(), func(d *modelirspb.Assumption) bool { return d.GetId() == id })
+		i := slices.IndexFunc(m.GetAssumptions(), func(d *umpirespb.Assumption) bool { return d.GetId() == id })
 		if i < 0 {
 			return errorAt(mm.Decl.GetPosition(), "%s: no assumption %s", mm.Decl.GetName(), id)
 		}
@@ -306,7 +295,7 @@ func declarations(m *modelirspb.Model, mm *Machine) error {
 	return nil
 }
 
-func (in *Interpreter) machine(decl *modelirspb.Machine, actions map[string]*modelirspb.Action) (*Machine, error) {
+func (in *Interpreter) machine(decl *umpirespb.Machine, actions map[string]*umpirespb.Action) (*Machine, error) {
 	if err := in.preflight(decl, actions); err != nil {
 		return nil, err
 	}
@@ -373,7 +362,7 @@ func (in *Interpreter) machine(decl *modelirspb.Machine, actions map[string]*mod
 
 // preflight counts a machine's states, its classes of every bound action together, and their pairs,
 // and refuses work past a ceiling before any of it is listed.
-func (in *Interpreter) preflight(decl *modelirspb.Machine, actions map[string]*modelirspb.Action) error {
+func (in *Interpreter) preflight(decl *umpirespb.Machine, actions map[string]*umpirespb.Action) error {
 	states, err := in.size(named(decl.GetStateType()))
 	if err != nil {
 		return err
@@ -390,7 +379,7 @@ func (in *Interpreter) preflight(decl *modelirspb.Machine, actions map[string]*m
 
 // classCount counts a machine's classes of every bound action together, refusing them past the
 // Members ceiling, so no caller lists them first.
-func (in *Interpreter) classCount(decl *modelirspb.Machine, actions map[string]*modelirspb.Action) (count, error) {
+func (in *Interpreter) classCount(decl *umpirespb.Machine, actions map[string]*umpirespb.Action) (count, error) {
 	var classes count
 	for _, b := range decl.GetSteps() {
 		a, ok := actions[b.GetAction()]
@@ -406,16 +395,16 @@ func (in *Interpreter) classCount(decl *modelirspb.Machine, actions map[string]*
 	return classes, in.within("classes", in.ceilings.Members, classes)
 }
 
-func inputFields(a *modelirspb.Action) []*modelirspb.Field {
-	fields := make([]*modelirspb.Field, len(a.GetInputs()))
+func inputFields(a *umpirespb.Action) []*umpirespb.Field {
+	fields := make([]*umpirespb.Field, len(a.GetInputs()))
 	for i, p := range a.GetInputs() {
-		fields[i] = &modelirspb.Field{Name: p.GetName(), Type: p.GetType()}
+		fields[i] = &umpirespb.Field{Name: p.GetName(), Type: p.GetType()}
 	}
 	return fields
 }
 
 // classes lists every class of every bound action, sorted by key, and rejects a class two steps bind.
-func (in *Interpreter) classes(decl *modelirspb.Machine, actions map[string]*modelirspb.Action) ([]Class, error) {
+func (in *Interpreter) classes(decl *umpirespb.Machine, actions map[string]*umpirespb.Action) ([]Class, error) {
 	if _, err := in.classCount(decl, actions); err != nil {
 		return nil, err
 	}
@@ -442,7 +431,7 @@ func (in *Interpreter) classes(decl *modelirspb.Machine, actions map[string]*mod
 		x, y := out[i-1], out[i]
 		switch {
 		case x.Key != y.Key:
-		case x.Action.GetId() == y.Action.GetId() && slices.EqualFunc(x.Inputs, y.Inputs, Value.Equal):
+		case x.Action.GetId() == y.Action.GetId() && slices.EqualFunc(x.Inputs, y.Inputs, Value.equal):
 			return nil, errorAt(y.at, "%s: two steps bind the action class %q", decl.GetName(), y.Key)
 		default:
 			return nil, errorAt(y.at, "%s: the classes %s and %s share the key %q", decl.GetName(), x.spelled(), y.spelled(), y.Key)
@@ -460,7 +449,7 @@ func (c Class) spelled() string {
 
 // rowKeys refuses a machine two of whose state and class pairs share a row key, as a state and a
 // class whose keys hold a "-" can: rows, hole rows and disabled pairs are found by it.
-func rowKeys(decl *modelirspb.Machine, states []Value, classes []Class) error {
+func rowKeys(decl *umpirespb.Machine, states []Value, classes []Class) error {
 	seen := make(map[string][2]string, len(states)*len(classes))
 	for _, s := range states {
 		for _, c := range classes {
@@ -527,7 +516,7 @@ func (in *Interpreter) result(m *Machine, c Class, row string, step Value) (Resu
 		}
 	}
 	next := step.Fields[1].Key()
-	if v, ok := m.states[next]; !ok || !v.Equal(step.Fields[1]) {
+	if v, ok := m.states[next]; !ok || !v.equal(step.Fields[1]) {
 		return Result{}, errorAt(c.at, "%s: row %s lands in %s, which is outside the state domain", m.Decl.GetName(), row, next)
 	}
 	res := Result{Outcome: step.Fields[0].Key(), State: next, Facts: []string{}, Because: step.Fields[3].Text}
@@ -537,7 +526,7 @@ func (in *Interpreter) result(m *Machine, c Class, row string, step Value) (Resu
 	return res, nil
 }
 
-func (in *Interpreter) steps(decl *modelirspb.Machine, s Value, c Class) ([]Value, error) {
+func (in *Interpreter) steps(decl *umpirespb.Machine, s Value, c Class) ([]Value, error) {
 	if c.Action.GetDelivers() != "" || c.Action.GetLoses() != "" {
 		return in.transfer(decl, s, c)
 	}
@@ -552,7 +541,7 @@ func (in *Interpreter) steps(decl *modelirspb.Machine, s Value, c Class) ([]Valu
 // state of the machine's state type, a list of facts and an explanation; whether the state is in the
 // domain is result's to say. Anything else is an error of
 // the Model, never an empty list.
-func (in *Interpreter) stepList(decl *modelirspb.Machine, c Class, v Value) ([]Value, error) {
+func (in *Interpreter) stepList(decl *umpirespb.Machine, c Class, v Value) ([]Value, error) {
 	if v.Kind != ListValue {
 		return nil, errorAt(c.at, "%s returns %s, not a list of steps", c.step, v.Key())
 	}
@@ -608,7 +597,7 @@ func holeErrors(holes []*Hole) []error {
 
 // startsAndEnds reads a machine's starts and the states it may end in. A hole either reaches is noted
 // in unread and read past, and is no error here: the caller has no table for a machine with one.
-func (in *Interpreter) startsAndEnds(decl *modelirspb.Machine, states []Value, domain map[string]Value, unread *unknowns) (
+func (in *Interpreter) startsAndEnds(decl *umpirespb.Machine, states []Value, domain map[string]Value, unread *unknowns) (
 	starts, ends []string, err error) {
 	for _, x := range decl.GetStarts() {
 		v, err := in.Eval(x)
@@ -634,7 +623,7 @@ func (in *Interpreter) startsAndEnds(decl *modelirspb.Machine, states []Value, d
 		return starts, nil, unread.note(evalErr)
 	}
 	for _, s := range states {
-		v, err := in.Apply(end, []Value{s})
+		v, err := in.apply(end, []Value{s})
 		if err != nil {
 			if err = unread.note(err); err != nil {
 				return nil, nil, err
@@ -654,7 +643,7 @@ func (in *Interpreter) startsAndEnds(decl *modelirspb.Machine, states []Value, d
 // evidence is one line per fact constructor, in catalog order: the constructor, and the recorded
 // event or observation the evidence function names for it.
 // It notes a hole in unread and reads past it, as startsAndEnds does.
-func (in *Interpreter) evidence(decl *modelirspb.Machine, facts []Value, unread *unknowns) ([][2]string, error) {
+func (in *Interpreter) evidence(decl *umpirespb.Machine, facts []Value, unread *unknowns) ([][2]string, error) {
 	if decl.GetEvidence() == "" {
 		return nil, nil
 	}
@@ -780,7 +769,7 @@ func (in *Interpreter) seen(mm *Machine, dst *Table, step Value) ([]string, bool
 }
 
 // noStutter is why a result no product step carries is not a stutter either, or nil when it is one.
-func noStutter(at *modelirspb.Position, where, product string, row Row, res Result, from, to string,
+func noStutter(at *umpirespb.Position, where, product string, row Row, res Result, from, to string,
 	seen []string, seenOutcome bool) error {
 	switch {
 	case from != to:

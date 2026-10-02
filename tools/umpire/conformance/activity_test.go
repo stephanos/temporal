@@ -12,8 +12,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	modelirspb "go.temporal.io/server/api/modelir/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/umpire/lower"
@@ -28,7 +28,7 @@ const (
 	activityRunID    = testpilot.RunIDPrefix + "00000000-0000-4000-8000-000000000001"
 )
 
-func activityModel(t testing.TB) *modelirspb.Model {
+func activityModel(t testing.TB) *umpirespb.Model {
 	t.Helper()
 	m, err := umpiremodel.Load(filepath.Join("..", "..", "..", "model", "ir", "activity.json"))
 	require.NoError(t, err)
@@ -37,7 +37,7 @@ func activityModel(t testing.TB) *modelirspb.Model {
 
 // loweredActivity is one Query of the activity Model lowered to its Case, prepared as a black-box
 // consumer prepares it, with the Query's assessment bound to it.
-func loweredActivity(t testing.TB, m *modelirspb.Model, query string) *bound {
+func loweredActivity(t testing.TB, m *umpirespb.Model, query string) *bound {
 	t.Helper()
 	producer, err := lower.NewProducer(m)
 	require.NoError(t, err)
@@ -203,7 +203,7 @@ func TestEvidenceOfTheRunsRecordIsReadOnlyFromAnEventItsSourceTakes(t *testing.T
 		return "evidence of kind \"" + kind + "\" on a Run Event its source does not take: the Run's record of controller/start-activity under its guard"
 	}
 	for name, test := range map[string]struct {
-		model   func(*modelirspb.Model)
+		model   func(*umpirespb.Model)
 		carrier *testpilotspb.RunEvent
 		want    error
 	}{
@@ -223,10 +223,10 @@ func TestEvidenceOfTheRunsRecordIsReadOnlyFromAnEventItsSourceTakes(t *testing.T
 		// guard's first operand gone, the source compares the delivery of an outcome that holds no
 		// attempt, which is an error at that event, and not a guard that does not hold.
 		"a guard that cannot be evaluated on the event": {
-			model: func(m *modelirspb.Model) {
+			model: func(m *umpirespb.Model) {
 				for _, e := range m.GetRealizations()[0].GetEvidence() {
 					if e.GetId() == started {
-						e.GetRunEvent().Kind, e.GetRunEvent().Attempt = modelirspb.RunEventSource_KIND_INSTRUCTION_COMPLETED, nil
+						e.GetRunEvent().Kind, e.GetRunEvent().Attempt = umpirespb.RunEventSource_KIND_INSTRUCTION_COMPLETED, nil
 						all := e.GetRunEvent().GetGuard().GetAll()
 						all.Operands = all.GetOperands()[1:]
 					}
