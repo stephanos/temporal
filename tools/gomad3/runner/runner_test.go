@@ -323,6 +323,7 @@ func TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds(t *testing.T) {
 	secondConfig := testConfig(t, newFakePreparer(t), secondExecutor, "100-107", PolicyAll, 3)
 	secondConfig.Coverage = CoverageSemantic
 	secondConfig.Guide = true
+	secondConfig.GuideRegression = true
 	secondConfig.Corpus = corpus
 	secondConfig.Replayer = replayer
 	second, err := Explore(context.Background(), secondConfig)

@@ -106,7 +106,7 @@ func decodeExecutions(contents []byte) ([]ExecutionRecord, error) {
 }
 
 func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
-	if batch.SchemaVersion != record.SchemaVersion || batch.Schema != "gomad3.campaign/v1" || batch.CampaignID == "" || batch.Selection == "" || batch.SelectionCount == 0 {
+	if batch.SchemaVersion != record.SchemaVersion || batch.Schema != "gomad3.campaign/v1" || batch.CampaignID == "" || (batch.Selection == "") != (batch.SelectionCount == 0) || batch.SelectionCount == 0 && !isFullyAnsweredGuidance(batch.Guidance) {
 		return fmt.Errorf("campaign record identity is invalid")
 	}
 	if (batch.PlanSHA256 == "") != (batch.Shard == nil) {
@@ -135,7 +135,7 @@ func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
 	if limits := batch.Artifacts; limits != nil {
 		failureBytes := uint64(limits.FailureBytes)
 		successBytes := uint64(limits.SuccessBytes)
-		if limits.FailureOutcome != CapacityInfrastructureFailure || limits.SuccessOutcome != CapacityInfrastructureFailure || limits.FailureArtifacts == 0 || failureBytes == 0 || limits.TranscriptBytes == 0 || uint64(limits.TotalBytes) != failureBytes+successBytes || uint64(limits.TotalBytes) < failureBytes ||
+		if limits.FailureOutcome != CapacityInfrastructureFailure || limits.SuccessOutcome != CapacityInfrastructureFailure || ((limits.FailureArtifacts == 0 || failureBytes == 0) && !isFullyAnsweredGuidance(batch.Guidance)) || limits.TranscriptBytes == 0 || uint64(limits.TotalBytes) != failureBytes+successBytes || uint64(limits.TotalBytes) < failureBytes ||
 			batch.DistinctFailures > limits.FailureArtifacts || batch.RetainedSuccesses > limits.SuccessArtifacts || batch.RetainedSuccessBytes > limits.SuccessBytes {
 			return errors.New("campaign artifact capacity is invalid")
 		}

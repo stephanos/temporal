@@ -29,11 +29,12 @@ type ResumeSpec struct {
 	ProgressInterval   time.Duration
 	Executor           Executor
 	Replayer           ArtifactReplayer
+	GuideRegression    *bool
 }
 
 func Resume(ctx context.Context, spec ResumeSpec) (CampaignResult, error) {
 	return Explore(ctx, CampaignSpec{
-		ResumeCampaign: spec.CampaignPath, RunnerBuild: spec.RunnerBuild,
+		ResumeCampaign: spec.CampaignPath, RunnerBuild: spec.RunnerBuild, GuideRegressionOverride: spec.GuideRegression,
 		Target:            target.Spec{ToolchainRoot: spec.ToolchainRoot},
 		SupervisorCommand: append([]string(nil), spec.SupervisorCommand...), CoordinatorCommand: append([]string(nil), spec.CoordinatorCommand...),
 		Progress: spec.Progress, ProgressInterval: spec.ProgressInterval, Executor: spec.Executor, Replayer: spec.Replayer,
@@ -63,7 +64,10 @@ func resumeConfiguration(request CampaignSpec, plan campaign.CampaignPlan) (Camp
 	if !profile.Matches(plan.IOProfile) {
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded I/O profile identity does not match this Runner")
 	}
-	selection, err := ParseSeeds(plan.Selection)
+	if request.GuideRegressionOverride != nil && (plan.Guidance == nil || *request.GuideRegressionOverride != plan.Guidance.Regression) || request.GuideRegression && (plan.Guidance == nil || !plan.Guidance.Regression) || request.Guide && (plan.Guidance == nil || request.GuideRegression != plan.Guidance.Regression) {
+		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, errors.New("resume guidance regression mode does not match campaign plan")
+	}
+	selection, err := parseCampaignSelection(plan.Selection, uint64(plan.SelectionCount))
 	if err != nil || selection.Count() != uint64(plan.SelectionCount) {
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded seed selection is invalid: %w", err)
 	}
@@ -129,6 +133,8 @@ func resumeConfiguration(request CampaignSpec, plan campaign.CampaignPlan) (Camp
 	}
 	if plan.Guidance != nil {
 		config.Guide = true
+		config.GuideRegression = plan.Guidance.Regression
+		config.guidancePlan = plan.Guidance
 		config.Corpus = plan.Guidance.Corpus
 		config.GuideSnapshotSHA256 = plan.Guidance.SnapshotSHA256
 	}

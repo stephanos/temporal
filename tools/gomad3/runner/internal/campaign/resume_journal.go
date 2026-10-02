@@ -102,7 +102,7 @@ func resumeSegmentedCampaignJournal(ctx context.Context, path string, plan Campa
 		ctx: ctx,
 		config: CampaignConfig{
 			Root: filepath.Dir(filepath.Dir(path)), CampaignID: filepath.Base(path), PlanSHA256: plan.PlanSHA256, Shard: cloneCampaignShard(plan.Shard), Strategy: plan.Strategy,
-			Selection: plan.Selection, SelectionCount: uint64(plan.SelectionCount), MaxExecutions: uint64(plan.MaxExecutions), Parallel: uint64(plan.Parallel), Journal: limits,
+			Guidance: plan.Guidance, Selection: plan.Selection, SelectionCount: uint64(plan.SelectionCount), MaxExecutions: uint64(plan.MaxExecutions), Parallel: uint64(plan.Parallel), Journal: limits,
 		},
 		path: path, segmentedRuns: segmented, artifactPlan: &artifacts, resumeLock: lock,
 	}

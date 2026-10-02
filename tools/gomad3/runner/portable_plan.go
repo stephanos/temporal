@@ -73,8 +73,8 @@ func CreateCampaignPlan(ctx context.Context, spec CampaignPlanSpec) (_ CampaignP
 	if err != nil {
 		return CampaignPlanResult{}, err
 	}
-	if normalizedStrategy(config.Strategy) != StrategySeed || config.Guide || config.OnFailure != PolicyAll {
-		return CampaignPlanResult{}, errors.New("portable campaign plans require an unguided seed campaign with on-failure=all")
+	if normalizedStrategy(config.Strategy) != StrategySeed || config.OnFailure != PolicyAll {
+		return CampaignPlanResult{}, errors.New("portable campaign plans require a seed campaign with on-failure=all")
 	}
 	if config.Shard.Count != 0 || config.PlanSHA256 != "" || config.ResumeCampaign != "" {
 		return CampaignPlanResult{}, errors.New("portable campaign plan input cannot already be a shard or resume")
@@ -158,6 +158,24 @@ func CreateCampaignPlan(ctx context.Context, spec CampaignPlanSpec) (_ CampaignP
 	if err := materializeCampaignPlanMounts(bundle, capturedMounts); err != nil {
 		return CampaignPlanResult{}, fmt.Errorf("materialize campaign plan mounts: %w", err)
 	}
+	if config.Guide {
+		config.Corpus, err = guidedCorpusPath(config.Corpus)
+		if err != nil {
+			return CampaignPlanResult{}, err
+		}
+		guidance, err := openGuidance(ctx, config, prepared, environment, "plan")
+		if err != nil {
+			return CampaignPlanResult{}, err
+		}
+		snapshot := guidance.Snapshot()
+		selection, config.guidancePlan, err = selectGuidedSeeds(selection, snapshot, config.Corpus, config.GuideRegression)
+		err = errors.Join(err, guidance.Close())
+		if err != nil {
+			return CampaignPlanResult{}, err
+		}
+		config.Seeds = selection.String()
+		config.GuideSnapshotSHA256 = snapshot.SnapshotSHA256
+	}
 	journalPlan, err := campaign.DeriveExecutionJournalPlan(string(StrategySeed), selection.Count(), 0, uint64(config.Parallel))
 	if err != nil {
 		return CampaignPlanResult{}, fmt.Errorf("derive campaign journal capacity: %w", err)
@@ -216,7 +234,7 @@ func openCampaignPlan(path string) (_ openedCampaignPlan, retErr error) {
 	if err := canonicaljson.DecodeCanonicalJSON(contents, &document); err != nil {
 		return openedCampaignPlan{}, fmt.Errorf("decode campaign plan: %w", err)
 	}
-	if document.Schema != campaignPlanSchema || document.Mapping != campaignPlanMapping || document.Campaign.Strategy != string(StrategySeed) || document.Campaign.Guidance != nil || document.Campaign.OnFailure != string(PolicyAll) || document.Campaign.PlanSHA256 != "" || document.Campaign.Shard != nil {
+	if document.Schema != campaignPlanSchema || document.Mapping != campaignPlanMapping || document.Campaign.Strategy != string(StrategySeed) || document.Campaign.OnFailure != string(PolicyAll) || document.Campaign.PlanSHA256 != "" || document.Campaign.Shard != nil {
 		return openedCampaignPlan{}, errors.New("campaign plan protocol identity is invalid")
 	}
 	if err := campaign.ValidateCampaignPlan(document.Campaign); err != nil {

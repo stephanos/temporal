@@ -175,7 +175,7 @@ tools/gomad3/.bin/gomad explore \
   go-test ./path/to/package -- '-test.run=^TestName$'
 ```
 
-Guidance selects from one immutable corpus snapshot while reserving part of the Campaign for the originally requested seeds. The corpus advances only after a retained case replays exactly. Guidance reuses observed seeds and transcripts; it does not claim to mutate scenarios or enumerate schedules.
+Guidance excludes seeds answered by replay-verified, matching cases in one immutable corpus snapshot. It executes the requested selection minus those seeds, substitutes nothing, and reports requested, answered, guided, and new execution counts. With no unanswered corpus seed to prioritize, guidance selects none. A fully answered request executes zero seeds and exits 0. Add `--guide-regression` to re-run corpus cases; this mode reserves at least one quarter of the selection, rounded up, for the requested seed pool. Resume preserves the recorded selection and mode; an explicit conflicting `resume --guide-regression=true|false` is rejected.
 
 ### Move from sampling to Choice Exploration
 
@@ -353,7 +353,7 @@ tools/gomad3/.bin/gomad plan \
   go-test ./path/to/package -- '-test.run=^TestName$'
 ```
 
-`plan` packages the verified Prepared Target, complete selection, identities, bounds, environment, and captured read-only inputs. The current portable format accepts unguided seed Campaigns and fixes the failure policy to complete all planned work.
+`plan` packages the verified Prepared Target, complete selection, identities, bounds, environment, and captured read-only inputs. The portable format accepts seed Campaigns and fixes the failure policy to complete all planned work. Guided plans freeze the corpus snapshot, selection, and regression mode; shards execute that selection without opening or updating the live corpus.
 
 Workers must match the plan's platform and recorded toolchain, Runner, boundary, adapter, and compatibility-pack identities. Portability distributes work among compatible workers; it does not make a target binary portable across architectures or operating systems.
 

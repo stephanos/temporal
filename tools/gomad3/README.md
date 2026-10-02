@@ -199,16 +199,24 @@ tools/gomad3/.bin/gomad explore --coverage=semantic \
   --require-probe=stdlib.os.openfile --count 100 go-test ./path/to/package
 ```
 
-Use `--guide --corpus DIR` to feed replay-verified, semantically novel seeds
-back into later campaigns. Guidance enables semantic coverage by default; an
-explicit `--coverage` must select semantic or choice coverage, and
-`--coverage=none` is rejected. Each Campaign selects from one
-immutable corpus snapshot: at most three quarters of its seeds come from the
-corpus and at least one quarter remain in the requested seed set. Corpus cases
-are ranked by reproducible failures, invariant and terminal states, abstract
-World and I/O outcomes, operation and transition pairs, boundary probes, and
-smaller reproductions. World feature values omit seeds, internal identities,
-logical times, resource keys, and payloads.
+Use `--guide --corpus DIR` to exclude requested seeds already answered by
+replay-verified, matching corpus cases. Guidance enables semantic coverage by
+default; an explicit `--coverage` must select semantic or choice coverage, and
+`--coverage=none` is rejected. Each Campaign selects from one immutable corpus
+snapshot, executes the requested selection minus answered seeds, and substitutes
+nothing. When the corpus offers no unanswered seed to prioritize, guidance
+selects none. A fully answered request executes zero seeds and exits 0.
+
+Add `--guide-regression` to re-run corpus cases. This mode selects at most three
+quarters of its seeds from the corpus and reserves at least one quarter, rounded
+up, for the requested seed pool. Corpus cases are ranked by reproducible
+failures, invariant and terminal states, abstract World and I/O outcomes,
+operation and transition pairs, boundary probes, and smaller reproductions.
+World feature values omit seeds, internal identities, logical times, resource
+keys, and payloads. The Campaign plan freezes the selection, snapshot, and mode
+for resume and shards; shards neither reopen nor update the live corpus. An
+explicit conflicting resume mode is rejected. Human and JSON results report
+requested, answered, guided, and new execution counts.
 
 The corpus is private, single-writer, and bounded to 1,024 cases and 1 GiB. Its
 identity binds the prepared target and arguments, pinned toolchain, reviewed
@@ -221,7 +229,7 @@ corrupt case, divergent replay, symbolic-link corpus, concurrent writer, or
 capacity violation fails visibly. Human and JSON results report the corpus
 path, retained entry count, and additions made by the Campaign.
 
-Guidance currently reuses realized seeds and transcripts; it does not mutate
+Regression guidance reuses realized seeds and transcripts; it does not mutate
 World scenarios, faults, or inputs and never forces runtime choices. Those
 extensions require evidence that retained seeds cannot reproduce minimized
 failures. Code coverage remains separate from versioned semantic probes and is
@@ -404,7 +412,7 @@ diverged. The milestones record the remaining dispositions.
 
 An interrupted campaign retains a canonical `gomad3.campaign-plan/v1` beside
 its prepared target. A guided plan also records the selected corpus snapshot
-identity and the already-mixed seed selection, so resume never reselects seeds.
+identity, regression mode, and frozen seed selection, so resume never reselects seeds.
 The current plan records the seed or choice-exploration strategy, its controller
 identity, every search bound, immutable-segment limit, simultaneous partial
 Executions, and success, failure, transcript, and aggregate Artifact capacities.
@@ -415,7 +423,7 @@ private, zero-padded JSONL segment by record count, byte count, and SHA-256.
 private bundle containing the verified prepared target and complete bounded
 copies of configured read-only mount trees. Plan identity is independent of
 the plan output path and original mount source paths. The initial protocol
-accepts only unguided seed campaigns with `--on-failure=all`; dynamically
+accepts only seed campaigns with `--on-failure=all`; dynamically
 discovered choice-exploration prefixes require a later round coordinator.
 `gomad execute-shard --shard INDEX/COUNT` uses a zero-based ordinal-modulo
 partition, revalidates the entire bundle before execution, and records global

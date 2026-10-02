@@ -58,6 +58,8 @@ type coordinatorConfig struct {
 	SuccessArtifactLimit      uint64
 	SuccessBytesLimit         uint64
 	Guide                     bool
+	GuideRegression           bool
+	GuideRegressionOverride   *bool
 	Corpus                    string
 	GuideSnapshotSHA256       record.SHA256
 	ProgressInterval          time.Duration
@@ -108,7 +110,7 @@ func coordinatorConfigFromCampaignSpec(config CampaignSpec, childTimeout time.Du
 		Coverage: config.Coverage, RequiredSemanticProbes: append([]string(nil), config.RequiredSemanticProbes...),
 		CollectExecutionEvidence: config.CollectExecutionEvidence,
 		KeepSuccesses:            config.KeepSuccesses, SuccessArtifactLimit: config.SuccessArtifactLimit, SuccessBytesLimit: config.SuccessBytesLimit,
-		Guide: config.Guide, Corpus: config.Corpus, GuideSnapshotSHA256: config.GuideSnapshotSHA256,
+		Guide: config.Guide, GuideRegression: config.GuideRegression, GuideRegressionOverride: config.GuideRegressionOverride, Corpus: config.Corpus, GuideSnapshotSHA256: config.GuideSnapshotSHA256,
 		ProgressInterval: config.ProgressInterval,
 	}
 }
@@ -127,7 +129,7 @@ func campaignSpecFromCoordinatorConfig(wire coordinatorConfig) CampaignSpec {
 		Coverage:         wire.Coverage, RequiredSemanticProbes: wire.RequiredSemanticProbes,
 		CollectExecutionEvidence: wire.CollectExecutionEvidence,
 		KeepSuccesses:            wire.KeepSuccesses, SuccessArtifactLimit: wire.SuccessArtifactLimit, SuccessBytesLimit: wire.SuccessBytesLimit,
-		Guide: wire.Guide, Corpus: wire.Corpus, GuideSnapshotSHA256: wire.GuideSnapshotSHA256,
+		Guide: wire.Guide, GuideRegression: wire.GuideRegression, GuideRegressionOverride: wire.GuideRegressionOverride, Corpus: wire.Corpus, GuideSnapshotSHA256: wire.GuideSnapshotSHA256,
 	}
 }
 
