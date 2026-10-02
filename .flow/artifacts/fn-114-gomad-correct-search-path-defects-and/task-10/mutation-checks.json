@@ -1,0 +1,151 @@
+[
+ {
+  "file": "tools/gomad3/artifact/retained_bytes.go",
+  "mutation": "a shared target is charged to every artifact",
+  "test": "TestRetainedBytesCountsASharedTargetOnce",
+  "exit": 1,
+  "failed": [
+   "--- FAIL: TestRetainedBytesCountsASharedTargetOnce (0.00s)"
+  ],
+  "build_failed": false
+ },
+ {
+  "file": "tools/gomad3/artifact/retained_bytes.go",
+  "mutation": "a private copy beside a pool counts as shared",
+  "test": "TestPoolTargetIsTheTargetOnlyOfAnArtifactLinkedToThePool",
+  "exit": 1,
+  "failed": [
+   "--- FAIL: TestPoolTargetIsTheTargetOnlyOfAnArtifactLinkedToThePool (0.07s)"
+  ],
+  "build_failed": false
+ },
+ {
+  "file": "tools/gomad3/artifact/target_pool.go",
+  "mutation": "pruning removes an entry one artifact still shares",
+  "test": "TestPruneTargetPoolRemovesOnlyEntriesNothingShares",
+  "exit": 1,
+  "failed": [
+   "--- FAIL: TestPruneTargetPoolRemovesOnlyEntriesNothingShares (0.10s)"
+  ],
+  "build_failed": false
+ },
+ {
+  "file": "tools/gomad3/artifact/target_pool.go",
+  "mutation": "pruning removes staging without the single-writer claim",
+  "test": "TestPruneTargetPoolRemovesOnlyEntriesNothingShares",
+  "exit": 1,
+  "failed": [
+   "--- FAIL: TestPruneTargetPoolRemovesOnlyEntriesNothingShares (0.10s)"
+  ],
+  "build_failed": false
+ },
+ {
+  "file": "tools/gomad3/artifact/target_pool.go",
+  "mutation": "pruning follows a symbolic-link pool",
+  "test": "TestPruneTargetPoolRefusesAPoolThatIsNotADirectoryOfItsOwner",
+  "exit": 1,
+  "failed": [
+   "--- FAIL: TestPruneTargetPoolRefusesAPoolThatIsNotADirectoryOfItsOwner (0.00s)"
+  ],
+  "build_failed": false
+ },
+ {
+  "file": "tools/gomad3/artifact/target_pool.go",
+  "mutation": "a pruned entry is created once only",
+  "test": "TestPublishCreatesAgainAPoolEntryPrunedBeforeItsLink",
+  "exit": 1,
+  "failed": [
+   "--- FAIL: TestPublishCreatesAgainAPoolEntryPrunedBeforeItsLink (0.02s)"
+  ],
+  "build_failed": false
+ },
+ {
+  "file": "tools/gomad3/artifact/target_pool.go",
+  "mutation": "inspect reports a linked target as private",
+  "test": "TestRunInspectReportsWhetherTheTargetIsShared",
+  "exit": 1,
+  "failed": [
+   "--- FAIL: TestRunInspectReportsWhetherTheTargetIsShared (0.09s)",
+   "--- FAIL: TestRunInspectReportsWhetherTheTargetIsShared/store_with_a_target_pool (0.05s)"
+  ],
+  "build_failed": false
+ },
+ {
+  "file": "tools/gomad3/qualification/set/prune.go",
+  "mutation": "qualification pruning leaves the pool alone",
+  "test": "TestPruneQualifiedCampaignsRemovesASharedTargetOnlyWithItsLastArtifact",
+  "exit": 1,
+  "failed": [
+   "--- FAIL: TestPruneQualifiedCampaignsRemovesASharedTargetOnlyWithItsLastArtifact (0.01s)"
+  ],
+  "build_failed": false
+ },
+ {
+  "file": "tools/gomad3/runner/internal/corpus/corpus.go",
+  "mutation": "a discarded case leaves its target in the pool",
+  "test": "TestCorpusKeepsItsTargetUntilNoCaseSharesIt",
+  "exit": 1,
+  "failed": [
+   "--- FAIL: TestCorpusKeepsItsTargetUntilNoCaseSharesIt (0.06s)"
+  ],
+  "build_failed": false
+ },
+ {
+  "file": "tools/gomad3/runner/internal/corpus/corpus.go",
+  "mutation": "the corpus leaves a crashed publisher staging directory",
+  "test": "TestCorpusKeepsItsTargetUntilNoCaseSharesIt",
+  "exit": 1,
+  "failed": [
+   "--- FAIL: TestCorpusKeepsItsTargetUntilNoCaseSharesIt (0.16s)"
+  ],
+  "build_failed": false
+ },
+ {
+  "file": "tools/gomad3/runner/internal/corpus/corpus.go",
+  "mutation": "the corpus cap charges the target to every case",
+  "test": "TestCorpusByteCapCountsTheSharedTargetOnce",
+  "exit": 1,
+  "failed": [
+   "--- FAIL: TestCorpusByteCapCountsTheSharedTargetOnce (0.00s)",
+   "--- FAIL: TestCorpusByteCapCountsTheSharedTargetOnce/one_shared_target (0.00s)"
+  ],
+  "build_failed": false
+ },
+ {
+  "file": "tools/gomad3/runner/internal/campaign/merge.go",
+  "mutation": "merge charges the target to every artifact",
+  "test": "TestMergeCountsTheTargetOfItsSuccessEvidenceOnce|TestOpenMergedCampaignCountsEvidenceWithoutATargetInFull",
+  "exit": 1,
+  "failed": [
+   "--- FAIL: TestMergeCountsTheTargetOfItsSuccessEvidenceOnce (0.87s)",
+   "--- FAIL: TestMergeCountsTheTargetOfItsSuccessEvidenceOnce/shards_of_one_artifacts_root (0.43s)",
+   "--- FAIL: TestMergeCountsTheTargetOfItsSuccessEvidenceOnce/shards_of_two_artifacts_roots (0.43s)",
+   "--- FAIL: TestOpenMergedCampaignCountsEvidenceWithoutATargetInFull (0.00s)"
+  ],
+  "build_failed": false
+ },
+ {
+  "file": "tools/gomad3/runner/internal/campaign/merge.go",
+  "mutation": "a merged record whose executions exceed the success limit fails to open",
+  "test": "TestMergeCountsTheTargetOfItsSuccessEvidenceOnce",
+  "exit": 1,
+  "failed": [
+   "--- FAIL: TestMergeCountsTheTargetOfItsSuccessEvidenceOnce (0.89s)",
+   "--- FAIL: TestMergeCountsTheTargetOfItsSuccessEvidenceOnce/shards_of_two_artifacts_roots (0.41s)",
+   "--- FAIL: TestMergeCountsTheTargetOfItsSuccessEvidenceOnce/shards_of_one_artifacts_root (0.46s)"
+  ],
+  "build_failed": false
+ },
+ {
+  "file": "tools/gomad3/runner/inspect.go",
+  "mutation": "inspect omits the sharing state",
+  "test": "TestRunInspectReportsWhetherTheTargetIsShared",
+  "exit": 1,
+  "failed": [
+   "--- FAIL: TestRunInspectReportsWhetherTheTargetIsShared (0.10s)",
+   "--- FAIL: TestRunInspectReportsWhetherTheTargetIsShared/store_with_a_target_pool (0.06s)",
+   "--- FAIL: TestRunInspectReportsWhetherTheTargetIsShared/store_without_one (0.03s)"
+  ],
+  "build_failed": false
+ }
+]

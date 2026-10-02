@@ -1,0 +1,31 @@
+{
+  "host": "darwin/arm64",
+  "baseline": {"result": "green via handoff", "source": "full test-host verified at 577003f9 by fn-114.9; only .flow evidence commits since"},
+  "base_commit": "b5b498004b196d9b681bcb8d7a0b1a59dd2b2a41",
+  "full_gate": {"revision": "b12b15b1cb6a3fcd6557380652b88856d96a3965", "command": "GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host", "exit_code": 0, "elapsed_seconds": 186, "packages_ok": 45, "packages": "test-host-packages.txt", "path_note": "run with the pinned stock go1.27.1 first on PATH", "host_load_average": "8.3 at start, 7.9 at end", "toolchain_build_key": "245141dc288328269b6fc164034c6d74b87c525e5d3c4756d3b82a3fcde40d52", "receipt": ".flow/tmp/green-receipts/b12b15b1-unittest.json"},
+  "validate": {"revision": "working tree equal to b12b15b1c", "command": "make -C tools/gomad3 validate", "exit_code": 0},
+  "architecture": {"command": ".toolchain/bin/go test -tags test_dep -count=1 -run TestPackageArchitecture .", "exit_code": 0},
+  "focused": {"command": ".toolchain/bin/go test -tags test_dep -count=1 ./artifact/... ./runner/internal/corpus/... ./runner/internal/campaign/... ./qualification/set/... ./cmd/gomad/internal/cli/...", "exit_code": 0},
+  "vet": {"command": ".toolchain/bin/go vet -tags test_dep ./artifact/... ./runner/... ./cmd/... ./qualification/...", "exit_code": 0, "also": "GOOS=linux GOARCH=amd64 vet of ./artifact/..., ./runner/internal/corpus/..., ./runner/internal/campaign/..., ./qualification/set/..., ./cmd/gomad/internal/cli/... exit 0; GOOS=windows build of ./artifact/ with the stock go exit 0 (compile only; the patched toolchain's runtime does not build for windows)"},
+  "race": {"command": ".toolchain/bin/go test -tags test_dep -count=1 -race -run 'TestPrune|TestPublish|TestRetained|TestPoolTarget' ./artifact/", "exit_code": 0},
+  "representative_set": {"revision": "b12b15b1c", "command": "see ../retained-bytes.md", "exit_code": 0, "elapsed_minutes": 34, "result": "expectations-met=true supported=28 failed=0 infrastructure-errors=0 completed=28/28, unpruned", "retained": "../retained-bytes.md"},
+  "new_tests": {
+    "tools/gomad3/artifact/retained_bytes_test.go": ["TestRetainedBytesCountsASharedTargetOnce", "TestRetainedBytesRejectsATargetThatIsNotPartOfTheArtifact", "TestPoolTargetIsTheTargetOnlyOfAnArtifactLinkedToThePool"],
+    "tools/gomad3/artifact/target_pool_unix_test.go": ["TestPruneTargetPoolRemovesOnlyEntriesNothingShares", "TestPruneTargetPoolRefusesAPoolThatIsNotADirectoryOfItsOwner", "TestPublishCreatesAgainAPoolEntryPrunedBeforeItsLink"],
+    "tools/gomad3/qualification/set/prune_test.go": ["TestPruneQualifiedCampaignsRemovesASharedTargetOnlyWithItsLastArtifact"],
+    "tools/gomad3/runner/internal/corpus/corpus_test.go": ["TestCorpusKeepsItsTargetUntilNoCaseSharesIt", "TestCorpusByteCapCountsTheSharedTargetOnce"],
+    "tools/gomad3/runner/internal/campaign/merge_capacity_test.go": ["TestMergeCountsTheTargetOfItsSuccessEvidenceOnce", "TestOpenMergedCampaignCountsEvidenceWithoutATargetInFull"],
+    "tools/gomad3/cmd/gomad/internal/cli/inspect_target_sharing_test.go": ["TestRunInspectReportsWhetherTheTargetIsShared"]
+  },
+  "existing_tests_changed": "none",
+  "mutation_checks": "mutation-checks.json (14 single-change mutations, each red against its named test)",
+  "stock_go_quick_command": {"command": "go -C tools/gomad3 test -tags test_dep ./artifact/... ./runner/... ./qualification/...", "result": "not run", "note": "known red with an unpatched go (13 helper-target tests); test-host covers the three package sets"},
+  "not_run": [
+    "linux/amd64 (no native host): the link-count read through syscall.Stat_t is vetted for linux, not executed",
+    "a set run at a revision before targets were shared (it needs 11.4 GB plus the 2 GiB reserve; the host had 5 to 10 GiB free)",
+    "a pruned set run",
+    "a guided campaign filling a corpus with ./tests cases",
+    "root make lint-code-fast (cannot typecheck the nested module, as recorded by task 8)",
+    "a platform that reports no link count: there PruneTargetPool removes nothing and inspect omits the sharing field, by code reading only"
+  ]
+}
