@@ -135,8 +135,19 @@ func testChoiceExplorationCampaignPlan() CampaignPlan {
 
 func copyRetainedExplorationJournal(t *testing.T) string {
 	t.Helper()
+	batchPath := copyRetainedRecords(t, "pre-start-ordinal-journal")
+	if err := os.MkdirAll(filepath.Join(batchPath, ".partial", "choice-exploration"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	return batchPath
+}
+
+// copyRetainedRecords copies a testdata directory into a private directory with
+// the modes the Runner publishes records with, which a checkout does not keep.
+func copyRetainedRecords(t *testing.T, name string) string {
+	t.Helper()
 	batchPath := privateDirectory(t)
-	source := filepath.Join("testdata", "pre-start-ordinal-journal")
+	source := filepath.Join("testdata", name)
 	err := filepath.WalkDir(source, func(path string, entry os.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -156,9 +167,6 @@ func copyRetainedExplorationJournal(t *testing.T) string {
 		return os.WriteFile(destination, contents, 0o600)
 	})
 	if err != nil {
-		t.Fatal(err)
-	}
-	if err := os.MkdirAll(filepath.Join(batchPath, ".partial", "choice-exploration"), 0o700); err != nil {
 		t.Fatal(err)
 	}
 	return batchPath

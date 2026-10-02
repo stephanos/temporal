@@ -144,8 +144,10 @@ type TargetReport struct {
 	BuildInfo          record.BuildInfo                 `json:"build_info"`
 	CapabilityMode     string                           `json:"capability_mode"`
 	CapabilityManifest *record.TargetCapabilityManifest `json:"capability_manifest,omitempty"`
-	// Sharing is "shared" when the inspected artifact's target file is one copy
-	// held with its store's pool and "private" when the artifact owns it.
+	// Sharing is "shared" when the inspected artifact's target file has other
+	// hard links, as a target linked to a store's pool has, and "private" when
+	// the artifact holds the only link. It is read from the link count alone:
+	// the pool is not looked up, so a pooled store's fallback copy is "private".
 	Sharing string `json:"sharing,omitempty"`
 }
 
