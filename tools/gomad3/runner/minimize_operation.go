@@ -84,33 +84,9 @@ func Minimize(ctx context.Context, config MinimizeSpec) (result MinimizeResult, 
 			result = MinimizeResult{}
 		}
 	}()
-	state := session.workspace.Checkpoint().State
-	for {
-		attempt, ok, err := minimizer.Next(state)
-		if err != nil {
-			return MinimizeResult{}, err
-		}
-		if !ok {
-			break
-		}
-		trial, err := session.evaluate(ctx, state.Config, attempt.Candidate)
-		if err != nil {
-			return MinimizeResult{}, err
-		}
-		state, err = minimizer.Commit(state, attempt, trial.accepted)
-		if err != nil {
-			return MinimizeResult{}, err
-		}
-		var accepted *minimizer.AcceptedArtifact
-		if trial.accepted {
-			accepted, err = session.retainAccepted(ctx, trial)
-			if err != nil {
-				return MinimizeResult{}, err
-			}
-		}
-		if err := session.workspace.Commit(state, accepted); err != nil {
-			return MinimizeResult{}, err
-		}
+	state, err := session.reduce(ctx)
+	if err != nil {
+		return MinimizeResult{}, err
 	}
 	checkpoint := session.workspace.Checkpoint()
 	result = MinimizeResult{
@@ -128,6 +104,39 @@ func Minimize(ctx context.Context, config MinimizeSpec) (result MinimizeResult, 
 		return MinimizeResult{}, err
 	}
 	return result, nil
+}
+
+// reduce evaluates every attempt the persisted state has left and checkpoints
+// each one.
+func (session *minimizationSession) reduce(ctx context.Context) (minimizer.State, error) {
+	state := session.workspace.Checkpoint().State
+	for {
+		attempt, ok, err := minimizer.Next(state)
+		if err != nil {
+			return minimizer.State{}, err
+		}
+		if !ok {
+			return state, nil
+		}
+		trial, err := session.evaluate(ctx, state.Config, attempt.Candidate)
+		if err != nil {
+			return minimizer.State{}, err
+		}
+		state, err = minimizer.Commit(state, attempt, trial.accepted)
+		if err != nil {
+			return minimizer.State{}, err
+		}
+		var accepted *minimizer.AcceptedArtifact
+		if trial.accepted {
+			accepted, err = session.retainAccepted(ctx, trial)
+			if err != nil {
+				return minimizer.State{}, err
+			}
+		}
+		if err := session.workspace.Commit(state, accepted); err != nil {
+			return minimizer.State{}, err
+		}
+	}
 }
 
 func (session *minimizationSession) retainAccepted(ctx context.Context, trial minimizationTrial) (*minimizer.AcceptedArtifact, error) {
@@ -170,6 +179,22 @@ func (session *minimizationSession) publishedArtifact(ctx context.Context, check
 		}
 		return published.Detached(), published.Close()
 	}
+	published, err := session.publishAccepted(ctx, checkpoint)
+	if err != nil {
+		return artifact.Artifact{}, err
+	}
+	if err := session.workspace.RecordPublication(minimizer.PublishedArtifact{
+		Directory: filepath.Base(published.Path), RecordHash: published.Manifest.RecordHash,
+	}); err != nil {
+		return artifact.Artifact{}, err
+	}
+	return published, nil
+}
+
+// publishAccepted publishes the final artifact into the output root. A run
+// that died before recording the publication republishes the same record, and
+// the record-keyed store returns the artifact that is already there.
+func (session *minimizationSession) publishAccepted(ctx context.Context, checkpoint minimizer.Checkpoint) (artifact.Artifact, error) {
 	input, err := session.acceptedInput(*checkpoint.Accepted)
 	if err != nil {
 		return artifact.Artifact{}, err
@@ -184,11 +209,6 @@ func (session *minimizationSession) publishedArtifact(ctx context.Context, check
 	}, input)
 	if err != nil {
 		return artifact.Artifact{}, fmt.Errorf("publish minimized artifact: %w", err)
-	}
-	if err := session.workspace.RecordPublication(minimizer.PublishedArtifact{
-		Directory: filepath.Base(published.Path), RecordHash: published.Manifest.RecordHash,
-	}); err != nil {
-		return artifact.Artifact{}, err
 	}
 	return published, nil
 }

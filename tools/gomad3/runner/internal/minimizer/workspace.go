@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
@@ -16,18 +17,20 @@ import (
 const CheckpointSchema = "gomad3.minimizer-checkpoint/v1"
 
 const (
-	workspaceLockName       = ".minimize.lock"
-	workspaceStateDirectory = ".minimize"
+	workspaceStateRoot      = ".minimize"
+	workspaceLockSuffix     = ".lock"
 	workspaceCheckpointName = "state.json"
 	workspaceAcceptedName   = "accepted"
 	maximumCheckpointBytes  = 256 << 20
 )
 
-// ErrNoCheckpoint reports a resume of an output directory that holds no minimizer state.
-var ErrNoCheckpoint = errors.New("minimize output directory holds no minimizer state to resume")
+// ErrNoCheckpoint reports a resume of an output directory that holds no
+// minimizer state for the parent artifact.
+var ErrNoCheckpoint = errors.New("minimize output directory holds no minimizer state to resume for this parent artifact")
 
-// ErrCheckpointExists reports an initial run on an output directory that still holds minimizer state.
-var ErrCheckpointExists = errors.New("minimize output directory already holds minimizer state")
+// ErrCheckpointExists reports an initial run on an output directory that still
+// holds minimizer state for the parent artifact.
+var ErrCheckpointExists = errors.New("minimize output directory already holds minimizer state for this parent artifact")
 
 // Binding names the inputs a persisted state is only valid for.
 type Binding struct {
@@ -60,18 +63,21 @@ type Checkpoint struct {
 	SHA256    record.SHA256      `json:"sha256"`
 }
 
-// Workspace owns the minimizer state persisted under one output root. It holds
-// the root's exclusive lock from OpenWorkspace until Close.
+// Workspace owns the minimizer state persisted for one parent artifact under an
+// output root. It holds that parent's exclusive lock from OpenWorkspace until
+// Close, so runs for different parents share a root without sharing state.
 type Workspace struct {
 	ctx        context.Context
 	root       string
+	parent     string
 	lock       *hostfs.Lock
 	checkpoint Checkpoint
 	completed  bool
 }
 
-// OpenWorkspace locks root and either starts it from initial or, with resume,
-// loads the persisted state and checks that it belongs to binding and initial.
+// OpenWorkspace locks the state of binding's parent artifact under root and
+// either starts it from initial or, with resume, loads the persisted state and
+// checks that it belongs to binding and initial.
 func OpenWorkspace(ctx context.Context, root string, binding Binding, initial State, resume bool) (_ *Workspace, retErr error) {
 	if ctx == nil {
 		ctx = context.Background()
@@ -89,16 +95,21 @@ func OpenWorkspace(ctx context.Context, root string, binding Binding, initial St
 	if err := Validate(initial); err != nil {
 		return nil, fmt.Errorf("validate initial minimizer state: %w", err)
 	}
+	workspace := &Workspace{ctx: ctx, root: root, parent: parentDirectory(binding.ParentRecordHash)}
 	if !resume {
-		if err := os.MkdirAll(root, 0o700); err != nil {
-			return nil, fmt.Errorf("create minimize output directory: %w", err)
+		if err := os.MkdirAll(workspace.stateRoot(), 0o700); err != nil {
+			return nil, fmt.Errorf("create minimizer state root: %w", err)
 		}
 	}
-	lock, err := acquireWorkspaceLock(filepath.Join(root, workspaceLockName), resume)
+	if err := requireDirectory(workspace.stateRoot()); resume && errors.Is(err, os.ErrNotExist) {
+		return nil, ErrNoCheckpoint
+	} else if err != nil {
+		return nil, fmt.Errorf("inspect minimizer state root: %w", err)
+	}
+	workspace.lock, err = acquireWorkspaceLock(workspace.stateDirectory() + workspaceLockSuffix)
 	if err != nil {
 		return nil, err
 	}
-	workspace := &Workspace{ctx: ctx, root: root, lock: lock}
 	defer func() {
 		if retErr != nil {
 			retErr = errors.Join(retErr, workspace.Close())
@@ -110,17 +121,20 @@ func OpenWorkspace(ctx context.Context, root string, binding Binding, initial St
 	return workspace, workspace.create(binding, initial)
 }
 
-func acquireWorkspaceLock(path string, resume bool) (*hostfs.Lock, error) {
+// parentDirectory names one parent artifact's state under the state root.
+func parentDirectory(parent record.SHA256) string {
+	return "sha256-" + strings.TrimPrefix(string(parent), "sha256:")
+}
+
+func acquireWorkspaceLock(path string) (*hostfs.Lock, error) {
 	lock, err := hostfs.Try(path)
 	switch {
 	case errors.Is(err, hostfs.ErrSymbolicLink):
 		return nil, errors.New("minimize output lock is a symbolic link")
 	case errors.Is(err, hostfs.ErrContended):
-		return nil, fmt.Errorf("minimize output directory is already in use: %w", err)
+		return nil, fmt.Errorf("another minimize run of this parent artifact is using the output directory: %w", err)
 	case errors.Is(err, hostfs.ErrUnsupported):
 		return nil, errors.New("minimize is unsupported on this host")
-	case resume && errors.Is(err, os.ErrNotExist):
-		return nil, ErrNoCheckpoint
 	case err != nil:
 		return nil, fmt.Errorf("open minimize output lock: %w", err)
 	default:
@@ -144,8 +158,10 @@ func (workspace *Workspace) create(binding Binding, initial State) error {
 			return fmt.Errorf("create minimizer state directory: %w", err)
 		}
 	}
-	if err := syncDirectory(workspace.root); err != nil {
-		return fmt.Errorf("sync minimize output directory: %w", err)
+	for _, directory := range []string{workspace.stateRoot(), workspace.root} {
+		if err := syncDirectory(directory); err != nil {
+			return fmt.Errorf("sync minimize output directory: %w", err)
+		}
 	}
 	return workspace.write(Checkpoint{Schema: CheckpointSchema, Binding: binding, State: initial})
 }
@@ -287,8 +303,8 @@ func (workspace *Workspace) Complete() error {
 	if err := os.RemoveAll(workspace.stateDirectory()); err != nil {
 		return fmt.Errorf("remove minimizer state directory: %w", err)
 	}
-	if err := syncDirectory(workspace.root); err != nil {
-		return fmt.Errorf("sync minimize output directory: %w", err)
+	if err := syncDirectory(workspace.stateRoot()); err != nil {
+		return fmt.Errorf("sync minimizer state root: %w", err)
 	}
 	return nil
 }
@@ -303,8 +319,12 @@ func (workspace *Workspace) Close() error {
 	return lock.Release()
 }
 
+func (workspace *Workspace) stateRoot() string {
+	return filepath.Join(workspace.root, workspaceStateRoot)
+}
+
 func (workspace *Workspace) stateDirectory() string {
-	return filepath.Join(workspace.root, workspaceStateDirectory)
+	return filepath.Join(workspace.stateRoot(), workspace.parent)
 }
 
 func (workspace *Workspace) checkpointPath() string {

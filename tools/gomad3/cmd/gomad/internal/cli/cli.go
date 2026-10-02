@@ -958,7 +958,7 @@ func runMinimizeWith(arguments []string, stdout, stderr io.Writer, dependencies 
 	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact root")
 	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
 	attemptBudget := flags.Uint64("attempt-budget", 64, "maximum fresh-process minimization candidates")
-	resume := flags.Bool("resume", false, "continue an interrupted minimization from the state under the artifact root")
+	resume := flags.Bool("resume", false, "continue this artifact's interrupted minimization from its state under the artifact root")
 	maximumBytes := byteSize(0)
 	flags.Var(&maximumBytes, "max-bytes", "maximum minimized artifact bytes")
 	if err := flags.Parse(arguments); err != nil {
