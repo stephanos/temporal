@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"os"
@@ -164,22 +165,34 @@ type Transcript struct {
 }
 
 type Choices struct {
-	Schema               string        `json:"schema"`
-	Profile              string        `json:"profile"`
-	ImplementationSHA256 record.SHA256 `json:"implementation_sha256"`
-	Limit                uint64        `json:"limit"`
-	PayloadBytes         uint64        `json:"payload_bytes"`
-	SHA256               record.SHA256 `json:"sha256"`
-	Records              uint64        `json:"records"`
-	BranchingRecords     uint64        `json:"branching_records"`
-	TerminalState        string        `json:"terminal_state"`
-	TapeSHA256           record.SHA256 `json:"tape_sha256,omitempty"`
-	Decisions            uint64        `json:"decisions"`
-	ExactReplayAvailable bool          `json:"exact_replay_available"`
-	Runnable             uint64        `json:"runnable"`
-	SelectPoll           uint64        `json:"select_poll"`
-	SelectResult         uint64        `json:"select_result"`
-	Sites                []ChoiceSite  `json:"sites"`
+	Schema               string           `json:"schema"`
+	Profile              string           `json:"profile"`
+	ImplementationSHA256 record.SHA256    `json:"implementation_sha256"`
+	Limit                uint64           `json:"limit"`
+	PayloadBytes         uint64           `json:"payload_bytes"`
+	SHA256               record.SHA256    `json:"sha256"`
+	Records              uint64           `json:"records"`
+	BranchingRecords     uint64           `json:"branching_records"`
+	TerminalState        string           `json:"terminal_state"`
+	TapeSHA256           record.SHA256    `json:"tape_sha256,omitempty"`
+	Decisions            uint64           `json:"decisions"`
+	ExactReplayAvailable bool             `json:"exact_replay_available"`
+	Runnable             uint64           `json:"runnable"`
+	SelectPoll           uint64           `json:"select_poll"`
+	SelectResult         uint64           `json:"select_result"`
+	Sites                []ChoiceSite     `json:"sites"`
+	ReplayDecisions      []ChoiceDecision `json:"replay_decisions,omitempty"`
+}
+
+// ChoiceDecision is one decision of the exact replay plan. Its ordinal is the
+// numbering choice exploration uses for its start ordinal and forced depth.
+type ChoiceDecision struct {
+	Ordinal      uint64 `json:"ordinal"`
+	Kind         string `json:"kind"`
+	SiteOffset   uint64 `json:"site_offset"`
+	SiteMissing  bool   `json:"site_missing,omitempty"`
+	Alternatives uint32 `json:"alternatives"`
+	Selected     uint32 `json:"selected"`
 }
 
 type ChoiceSite struct {
@@ -560,13 +573,46 @@ func projectChoices(opened artifact.Artifact) (Choices, error) {
 	for index, site := range projected.Sites {
 		sites[index] = ChoiceSite{Fingerprint: site.Fingerprint, Kind: choiceKind(site.Kind), Count: site.Count, MaximumAlternatives: site.MaximumAlternatives}
 	}
+	exactReplay := profile.Name == choice.Profile && profile.Trace.TapeSHA256 != ""
+	var decisions []ChoiceDecision
+	if exactReplay {
+		decisions, err = projectReplayDecisions(opened.Manifest, trace, targetIdentity, profile.Trace.TapeSHA256)
+		if err != nil {
+			return Choices{}, err
+		}
+	}
 	return Choices{
-		Schema: "gomad3.choice-inspection/v2", Profile: projected.Profile, ImplementationSHA256: profile.ImplementationSHA256,
+		Schema: "gomad3.choice-inspection/v3", Profile: projected.Profile, ImplementationSHA256: profile.ImplementationSHA256,
 		Limit: projected.Limit, PayloadBytes: projected.PayloadBytes, SHA256: record.SHA256FromSum(projected.SHA256), Records: projected.Summary.Records,
 		BranchingRecords: projected.Summary.Branching, TerminalState: profile.Trace.TerminalState, Runnable: projected.Summary.Runnable,
-		TapeSHA256: profile.Trace.TapeSHA256, Decisions: uint64(profile.Trace.Decisions), ExactReplayAvailable: profile.Name == choice.Profile && profile.Trace.TapeSHA256 != "",
-		SelectPoll: projected.Summary.SelectPoll, SelectResult: projected.Summary.SelectResult, Sites: sites,
+		TapeSHA256: profile.Trace.TapeSHA256, Decisions: uint64(profile.Trace.Decisions), ExactReplayAvailable: exactReplay,
+		SelectPoll: projected.Summary.SelectPoll, SelectResult: projected.Summary.SelectResult, Sites: sites, ReplayDecisions: decisions,
 	}, nil
+}
+
+func projectReplayDecisions(manifest record.ExecutionRecord, trace choice.Trace, targetIdentity [sha256.Size]byte, tapeSHA256 record.SHA256) ([]ChoiceDecision, error) {
+	implementation, err := choice.ImplementationIdentity(manifest.Toolchain.BuildKey)
+	if err != nil {
+		return nil, fmt.Errorf("derive choice implementation identity: %w", err)
+	}
+	plan, err := choice.ProjectReplayPlan(trace, choice.ExecutionIdentity{
+		TargetSHA256: targetIdentity, ToolchainBuildKey: manifest.Toolchain.BuildKey,
+		GOOS: manifest.Toolchain.TargetGOOS, GOARCH: manifest.Toolchain.TargetGOARCH, ImplementationSHA256: implementation,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("project choice replay plan: %w", err)
+	}
+	if record.SHA256FromSum(plan.SHA256) != tapeSHA256 {
+		return nil, errors.New("choice replay plan does not match the recorded tape identity")
+	}
+	decisions := make([]ChoiceDecision, len(plan.Decisions))
+	for index, decision := range plan.Decisions {
+		decisions[index] = ChoiceDecision{
+			Ordinal: decision.Ordinal, Kind: choiceKind(decision.Kind), SiteOffset: decision.SiteOffset, SiteMissing: decision.SiteMissing,
+			Alternatives: decision.Alternatives, Selected: decision.Selected,
+		}
+	}
+	return decisions, nil
 }
 
 func choiceKind(kind choice.Kind) string {

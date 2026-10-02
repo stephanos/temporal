@@ -105,7 +105,7 @@ func resumeConfiguration(request CampaignSpec, plan campaign.CampaignPlan) (Camp
 		ResumeCampaign: request.ResumeCampaign, PlanSHA256: plan.PlanSHA256, Shard: runnerCampaignShard(plan.Shard),
 		Strategy: Strategy(plan.Strategy), Seeds: plan.Selection, Parallel: int(plan.Parallel), ExecutionTimeout: time.Duration(plan.ExecutionTimeoutNanos), OverallTimeout: time.Duration(plan.OverallTimeoutNanos), TerminateGrace: time.Duration(plan.TerminateGraceNanos),
 		OnFailure: FailurePolicy(plan.OnFailure), FailureBudget: uint64(plan.FailureBudget), OutputLimit: uint64(plan.OutputBytes), WorldTransitionLimit: uint64(plan.WorldTransitionBytes),
-		MaxExecutions: uint64(plan.MaxExecutions), MaxChoiceDepth: uint64(plan.MaxChoiceDepth), MaxForcedDecisions: uint64(plan.MaxForcedDecisions),
+		MaxExecutions: uint64(plan.MaxExecutions), MaxChoiceDepth: uint64(plan.MaxChoiceDepth), ChoiceStartOrdinal: uint64(plan.ChoiceStartOrdinal), MaxForcedDecisions: uint64(plan.MaxForcedDecisions),
 		MaxExplorationBytes: uint64(plan.MaxExplorationBytes), MaxExplorationResultBytes: uint64(plan.MaxExplorationResultBytes), SimulationDimensionLimits: SimulationDimensionLimits(plan.SimulationDimensionLimits),
 		Artifacts: filepath.Dir(filepath.Dir(request.ResumeCampaign)), IOROMounts: append([]string(nil), plan.IOROMounts...), IOROMountLimits: mountLimits,
 		Target: target.Spec{ToolchainRoot: request.Target.ToolchainRoot}, SupervisorCommand: append([]string(nil), request.SupervisorCommand...), RunnerBuild: request.RunnerBuild,

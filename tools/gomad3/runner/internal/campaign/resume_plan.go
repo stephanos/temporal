@@ -59,6 +59,7 @@ type CampaignPlan struct {
 	Artifacts                                 *ArtifactCapacityPlan            `json:"artifacts,omitempty"`
 	MaxExecutions                             record.Uint64String              `json:"max_executions,omitempty"`
 	MaxChoiceDepth                            record.Uint64String              `json:"max_choice_depth,omitempty"`
+	ChoiceStartOrdinal                        record.Uint64String              `json:"choice_start_ordinal,omitempty"`
 	MaxForcedDecisions                        record.Uint64String              `json:"max_forced_decisions,omitempty"`
 	MaxExplorationBytes                       record.Uint64String              `json:"max_exploration_bytes,omitempty"`
 	MaxExplorationResultBytes                 record.Uint64String              `json:"max_exploration_result_bytes,omitempty"`
@@ -241,7 +242,7 @@ func validateCampaignPlan(plan CampaignPlan) error {
 			return fmt.Errorf("choice-exploration campaign plan is invalid")
 		}
 	case "simulation-exploration":
-		if plan.SelectionCount != 1 || plan.MaxExecutions == 0 || plan.MaxChoiceDepth != 0 || plan.MaxForcedDecisions == 0 || plan.MaxExplorationBytes == 0 || plan.MaxExplorationResultBytes == 0 || plan.Guidance != nil || plan.ChoiceProfile == nil || plan.ChoiceExplorationImplementationSHA256 != "" || plan.SimulationExplorationImplementationSHA256 != simulationengine.ImplementationSHA256() || !validSimulationDimensionLimits(plan.SimulationDimensionLimits) {
+		if plan.SelectionCount != 1 || plan.MaxExecutions == 0 || plan.MaxChoiceDepth != 0 || plan.ChoiceStartOrdinal != 0 || plan.MaxForcedDecisions == 0 || plan.MaxExplorationBytes == 0 || plan.MaxExplorationResultBytes == 0 || plan.Guidance != nil || plan.ChoiceProfile == nil || plan.ChoiceExplorationImplementationSHA256 != "" || plan.SimulationExplorationImplementationSHA256 != simulationengine.ImplementationSHA256() || !validSimulationDimensionLimits(plan.SimulationDimensionLimits) {
 			return fmt.Errorf("simulation-exploration campaign plan is invalid")
 		}
 	default:
@@ -343,7 +344,7 @@ func validateCampaignPlan(plan CampaignPlan) error {
 }
 
 func hasCampaignPlanExplorationFields(plan CampaignPlan) bool {
-	return plan.MaxExecutions != 0 || plan.MaxChoiceDepth != 0 || plan.MaxForcedDecisions != 0 || plan.MaxExplorationBytes != 0 || plan.MaxExplorationResultBytes != 0 || plan.SimulationDimensionLimits != (simulationengine.DimensionLimits{}) || plan.ChoiceExplorationImplementationSHA256 != "" || plan.SimulationExplorationImplementationSHA256 != ""
+	return plan.MaxExecutions != 0 || plan.MaxChoiceDepth != 0 || plan.ChoiceStartOrdinal != 0 || plan.MaxForcedDecisions != 0 || plan.MaxExplorationBytes != 0 || plan.MaxExplorationResultBytes != 0 || plan.SimulationDimensionLimits != (simulationengine.DimensionLimits{}) || plan.ChoiceExplorationImplementationSHA256 != "" || plan.SimulationExplorationImplementationSHA256 != ""
 }
 
 func validSimulationDimensionLimits(limits simulationengine.DimensionLimits) bool {

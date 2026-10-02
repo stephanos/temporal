@@ -53,7 +53,7 @@ func runChoiceExplorationLocal(
 	}
 	explorationConfig := choiceengine.Config{
 		Execution: executionIdentity, ControllerSHA256: choiceengine.ImplementationSHA256(), BaseSeed: baseSeed, Parallel: config.Parallel,
-		MaxExecutions: config.MaxExecutions, MaxChoiceDepth: config.MaxChoiceDepth, MaxExplorationBytes: config.MaxExplorationBytes,
+		MaxExecutions: config.MaxExecutions, MaxChoiceDepth: config.MaxChoiceDepth, StartOrdinal: config.ChoiceStartOrdinal, MaxExplorationBytes: config.MaxExplorationBytes,
 		FailurePolicy: choiceengine.FailurePolicy(config.OnFailure), FailureBudget: config.FailureBudget,
 	}
 	state, err := choiceengine.New(explorationConfig)

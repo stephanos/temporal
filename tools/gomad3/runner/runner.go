@@ -74,6 +74,7 @@ const (
 	StopDimensionDepthComplete  StopReason = "dimension_depth_complete"
 	StopMaxExecutions           StopReason = "max_executions"
 	StopExplorationCapacity     StopReason = "exploration_capacity"
+	StopChoiceStartUnreached    StopReason = "choice_start_unreached"
 )
 
 type CampaignPhase string
@@ -147,6 +148,7 @@ type CampaignSpec struct {
 	ClockTick                 string
 	MaxExecutions             uint64
 	MaxChoiceDepth            uint64
+	ChoiceStartOrdinal        uint64
 	MaxForcedDecisions        uint64
 	MaxExplorationBytes       uint64
 	MaxExplorationResultBytes uint64
@@ -231,6 +233,7 @@ type ChoiceExplorationSummary struct {
 	Parallel                int    `json:"parallel"`
 	MaxExecutions           uint64 `json:"max_executions"`
 	MaxChoiceDepth          uint64 `json:"max_choice_depth"`
+	StartOrdinal            uint64 `json:"start_ordinal,omitempty"`
 	MaxExplorationBytes     uint64 `json:"max_exploration_bytes"`
 	LogicalExecutions       uint64 `json:"logical_executions"`
 	CommittedRounds         uint64 `json:"committed_rounds"`
@@ -1199,7 +1202,7 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e
 	}
 	switch strategy {
 	case StrategySeed:
-		if config.MaxExecutions != 0 || config.MaxChoiceDepth != 0 || config.MaxForcedDecisions != 0 || config.MaxExplorationBytes != 0 || config.MaxExplorationResultBytes != 0 || config.SimulationDimensionLimits != (SimulationDimensionLimits{}) {
+		if config.MaxExecutions != 0 || config.MaxChoiceDepth != 0 || config.ChoiceStartOrdinal != 0 || config.MaxForcedDecisions != 0 || config.MaxExplorationBytes != 0 || config.MaxExplorationResultBytes != 0 || config.SimulationDimensionLimits != (SimulationDimensionLimits{}) {
 			return SeedSelection{}, nil, errors.New("exploration bounds require the choice-exploration strategy")
 		}
 	case StrategyChoiceExploration:
@@ -1237,8 +1240,8 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e
 		if config.MaxExecutions == 0 {
 			return SeedSelection{}, nil, errors.New("simulation-exploration max executions must be positive")
 		}
-		if config.MaxChoiceDepth != 0 {
-			return SeedSelection{}, nil, errors.New("choice depth requires the choice-exploration strategy")
+		if config.MaxChoiceDepth != 0 || config.ChoiceStartOrdinal != 0 {
+			return SeedSelection{}, nil, errors.New("choice depth and start ordinal require the choice-exploration strategy")
 		}
 		if config.MaxForcedDecisions == 0 {
 			return SeedSelection{}, nil, errors.New("simulation-exploration forced decisions must be positive")
@@ -1800,7 +1803,7 @@ func cloneSimulationExplorationSummary(summary *SimulationExplorationSummary) *S
 
 func projectChoiceExplorationSummary(summary choiceengine.Summary) ChoiceExplorationSummary {
 	return ChoiceExplorationSummary{
-		Parallel: summary.Parallel, MaxExecutions: summary.MaxExecutions, MaxChoiceDepth: summary.MaxChoiceDepth,
+		Parallel: summary.Parallel, MaxExecutions: summary.MaxExecutions, MaxChoiceDepth: summary.MaxChoiceDepth, StartOrdinal: summary.StartOrdinal,
 		MaxExplorationBytes: summary.MaxExplorationBytes, LogicalExecutions: summary.LogicalExecutions,
 		CommittedRounds: summary.CommittedRounds, Pending: summary.Pending, PendingBytes: summary.PendingBytes,
 		SeenPrefixes: summary.SeenPrefixes, DeduplicatedOutcomes: summary.DeduplicatedOutcomes, DeepestPrefix: summary.DeepestPrefix,

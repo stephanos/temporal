@@ -519,6 +519,7 @@ func TestValidateConfigRequiresBoundedSingleSeedSimulationExploration(t *testing
 		{name: "missing exploration bound", configure: func(config *CampaignSpec) { config.MaxExplorationBytes = 0 }, want: "exploration bytes"},
 		{name: "missing result bound", configure: func(config *CampaignSpec) { config.MaxExplorationResultBytes = 0 }, want: "result bytes"},
 		{name: "missing dimension bound", configure: func(config *CampaignSpec) { config.SimulationDimensionLimits.Network = 0 }, want: "network dimension"},
+		{name: "choice start ordinal", configure: func(config *CampaignSpec) { config.ChoiceStartOrdinal = 1 }, want: "start ordinal require the choice-exploration strategy"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			config := valid
@@ -534,6 +535,7 @@ func TestValidateConfigRejectsExplorationBoundsForSeedStrategy(t *testing.T) {
 	for _, configure := range []func(*CampaignSpec){
 		func(config *CampaignSpec) { config.MaxExecutions = 1 },
 		func(config *CampaignSpec) { config.MaxChoiceDepth = 1 },
+		func(config *CampaignSpec) { config.ChoiceStartOrdinal = 1 },
 		func(config *CampaignSpec) { config.MaxExplorationBytes = 1 },
 	} {
 		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
@@ -1094,6 +1096,73 @@ func TestRunChoiceExplorationResumeRerunsTheWholeIncompleteRound(t *testing.T) {
 	}
 	if len(batch.Executions) != 2 || batch.Record.RecoveryExecutions != 1 {
 		t.Fatalf("resumed exploration batch = %#v", batch)
+	}
+}
+
+func TestRunChoiceExplorationResumesWithItsStartAndReportsItUnreached(t *testing.T) {
+	preparer := newFakePreparer(t)
+	limit := choiceTraceLimit(t, 1)
+	config := testConfig(t, preparer, explorationRootInterruptExecutor{}, "7", PolicyAll, 1)
+	config.Strategy = StrategyChoiceExploration
+	config.ChoiceTraceLimit = limit
+	config.MaxExecutions = 8
+	config.MaxChoiceDepth = 4
+	config.ChoiceStartOrdinal = 1
+	config.MaxExplorationBytes = 1 << 20
+
+	partial, err := Explore(context.Background(), config)
+	var hostErr *HostError
+	if !errors.As(err, &hostErr) || partial.ChoiceExploration == nil || partial.ChoiceExploration.CommittedRounds != 0 || partial.ChoiceExploration.StartOrdinal != 1 {
+		t.Fatalf("partial exploration = %#v, error = %v", partial, err)
+	}
+	resumed, err := Explore(context.Background(), CampaignSpec{
+		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"},
+		Executor: &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resumed.Attempted != 1 || resumed.StopReason != StopChoiceStartUnreached || resumed.ChoiceExploration == nil || resumed.ChoiceExploration.StartOrdinal != 1 || resumed.ChoiceExploration.BoundedComplete || resumed.ChoiceExploration.Pending != 0 {
+		t.Fatalf("resumed exploration = %#v", resumed)
+	}
+	batch, err := campaign.OpenCampaign(resumed.CampaignPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if batch.Record.StopReason != string(StopChoiceStartUnreached) || batch.Record.ChoiceExploration == nil || batch.Record.ChoiceExploration.StartOrdinal != 1 {
+		t.Fatalf("published exploration = %#v", batch.Record)
+	}
+}
+
+func TestInspectChoicesListsReplayPlanDecisionOrdinals(t *testing.T) {
+	limit := choiceTraceLimit(t, 4)
+	preparer := newFakePreparer(t)
+	executor := &fakeExecutor{result: func(uint64) execution.Result {
+		result := processResult(1, "failure", "")
+		result.ChoiceTrace = completeChoiceTrace(t, preparer.prepared.BuildKey, limit, []choice.Record{
+			{Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, SiteOffset: 0x10, Alternatives: 1},
+			{Ordinal: 1, Kind: choice.KindRunnable, Flags: choice.FlagDecision, SiteOffset: 0x20, Alternatives: 2, Selected: 1},
+			{Ordinal: 2, Kind: choice.KindSelectPoll, Flags: choice.FlagDecision, SiteOffset: 0x30, Alternatives: 3, Selected: 2},
+			{Ordinal: 3, Kind: choice.KindSelectResult, Flags: choice.FlagObservation, SiteOffset: 0x30, Alternatives: 3, Selected: 1},
+		})
+		return result
+	}}
+	config := testConfig(t, preparer, executor, "1", PolicyAll, 1)
+	config.ChoiceTraceLimit = limit
+	summary, err := Explore(context.Background(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	report, err := Inspect(summary.Artifacts[0], InspectOptions{Choices: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []ChoiceDecision{
+		{Ordinal: 0, Kind: "runnable", SiteOffset: 0x20, Alternatives: 2, Selected: 0},
+		{Ordinal: 1, Kind: "select-poll", SiteOffset: 0x30, Alternatives: 3, Selected: 2},
+	}
+	if report.Artifact == nil || report.Artifact.Choices == nil || !slices.Equal(report.Artifact.Choices.ReplayDecisions, want) {
+		t.Fatalf("choice inspection = %#v", report.Artifact.Choices)
 	}
 }
 
@@ -2135,6 +2204,12 @@ func (executor *explorationDivergenceExecutor) Run(ctx context.Context, request 
 
 type simulationExplorationInterruptExecutor struct {
 	exploration *simulationExplorationExecutor
+}
+
+type explorationRootInterruptExecutor struct{}
+
+func (explorationRootInterruptExecutor) Run(context.Context, execution.Spec) (execution.Result, error) {
+	return execution.Result{}, errors.New("simulated exploration interruption")
 }
 
 func (executor explorationInterruptExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {

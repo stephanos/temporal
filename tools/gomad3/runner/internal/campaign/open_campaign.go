@@ -140,7 +140,7 @@ func validateCampaign(batch CampaignRecord, runs []ExecutionRecord) error {
 			return errors.New("campaign artifact capacity is invalid")
 		}
 	}
-	if batch.StopReason != "seeds_exhausted" && batch.StopReason != "first_failure" && batch.StopReason != "failure_budget" && batch.StopReason != "exploration_exhausted" && batch.StopReason != "choice_depth_complete" && batch.StopReason != "simulation_depth_complete" && batch.StopReason != "dimension_depth_complete" && batch.StopReason != "max_executions" && batch.StopReason != "exploration_capacity" {
+	if batch.StopReason != "seeds_exhausted" && batch.StopReason != "first_failure" && batch.StopReason != "failure_budget" && batch.StopReason != "exploration_exhausted" && batch.StopReason != "choice_depth_complete" && batch.StopReason != "simulation_depth_complete" && batch.StopReason != "dimension_depth_complete" && batch.StopReason != "max_executions" && batch.StopReason != "exploration_capacity" && batch.StopReason != "choice_start_unreached" {
 		return fmt.Errorf("campaign stop reason is invalid: %s", batch.StopReason)
 	}
 	ordinals := make(map[uint64]struct{}, len(runs))

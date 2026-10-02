@@ -1,0 +1,9 @@
+{
+  "source_revision": "49bada28ef652cc44f00c00b0a9f64af7bc4ba6f",
+  "generator": "temporary campaign-package test (journal from testExplorationState plus one committed root round; choice-exploration CampaignPlan from testBatchPlan)",
+  "initial_state_sha256": "sha256:32e05cff3064bd1c6d2f76b178b48eb596076514ddea276dd1dd31825316845a",
+  "after_root_state_sha256": "sha256:8b6c07658014d8a18b855e7ba34d6b8e530dadb2a2af4cc3c8ee3727ed652f1e",
+  "root_segment_sha256": "sha256:455ca2963191e70fdc20fb8e034c1798ef2cdd6cbaa092df5c979c8c0af9487a",
+  "campaign_plan_canonical_sha256": "sha256:a59870db6176bca22c6f4c4cfe2d67779e9e25b3a8b2c6bc8958cee8e37a4ea0",
+  "retained_journal": "tools/gomad3/runner/internal/campaign/testdata/pre-start-ordinal-journal"
+}
