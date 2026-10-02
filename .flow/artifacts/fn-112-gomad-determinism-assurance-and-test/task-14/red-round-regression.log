@@ -1,0 +1,16 @@
+# extraction commit (collector shared, defect kept), darwin/arm64: go test -tags test_dep -count=1 -run 'TestRound' -v ./runner ; exit 1
+    exploration_round_test.go:68: round = 1 completions and <nil>, want none and gomad3 Runner/host failure: cancelled: context canceled
+    exploration_round_test.go:68: round = 1 completions and <nil>, want none and gomad3 Runner/host failure: overall_timeout: context deadline exceeded
+--- FAIL: TestRoundClassifiesAParentEndIndependentOfReceiveOrder (0.00s)
+    --- FAIL: TestRoundClassifiesAParentEndIndependentOfReceiveOrder/cancelled/final_completion_first (0.00s)
+    --- PASS: TestRoundClassifiesAParentEndIndependentOfReceiveOrder/cancelled/parent_end_first (0.00s)
+    --- FAIL: TestRoundClassifiesAParentEndIndependentOfReceiveOrder/overall_timeout/final_completion_first (0.00s)
+    --- PASS: TestRoundClassifiesAParentEndIndependentOfReceiveOrder/overall_timeout/parent_end_first (0.00s)
+--- PASS: TestRoundKeepsCandidateOutcomesUnderALiveParent (0.00s)
+    --- PASS: TestRoundKeepsCandidateOutcomesUnderALiveParent/supervision_failure (0.00s)
+    --- PASS: TestRoundKeepsCandidateOutcomesUnderALiveParent/ordinal_before_the_round (0.00s)
+    --- PASS: TestRoundKeepsCandidateOutcomesUnderALiveParent/ordinal_after_the_round (0.00s)
+    --- PASS: TestRoundKeepsCandidateOutcomesUnderALiveParent/repeated_ordinal (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner	0.348s
+FAIL

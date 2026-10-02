@@ -1,0 +1,10 @@
+# base dbdba9858, darwin/arm64, go1.27.1: tools/gomad3/.toolchain/bin/go test -tags test_dep -run 'TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/cancellation' -cpu 1 -count 30 ./runner ; exit 1
+# failing repetitions per strategy:
+  11     --- FAIL: TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/cancellation/choice-exploration
+  10     --- FAIL: TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/cancellation/simulation-exploration
+# observed classifications over all failing subtests (observed vs wanted appear once each per failure):
+  21 Reason:"cancelled", Cause:"context canceled"
+  21 Reason:"target_supervision", Cause:"context canceled"
+FAIL	go.temporal.io/server/tools/gomad3/runner	44.072s
+FAIL
+.toolchain/bin/go test -tags test_dep -run  -cpu 1 -count 30 ./runner  8.22s user 4.11s system 27% cpu 44.897 total
