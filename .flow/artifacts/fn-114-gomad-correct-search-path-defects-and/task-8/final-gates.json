@@ -1,0 +1,23 @@
+{
+  "host": "darwin/arm64",
+  "baseline": {"result": "green via handoff", "source": "verified at baef81f6 by fn-114.6; only a test assertion in runner/internal/campaign and .flow files changed before 619891e5c"},
+  "base_commit": "619891e5c2c1af29276b9bc45c8ab1333789dfe9",
+  "full_gate": {"revision": "0b5eb20f8fbf9d2ef36b367e3fa3afd2d505bcb7", "command": "GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host", "exit_code": 0, "elapsed_seconds": 169, "packages_ok": 45, "packages": "test-host-packages.txt", "path_note": "run with the pinned stock go1.27.1 first on PATH"},
+  "full_gate_first_attempt": {"revision": "0b5eb20f8fbf9d2ef36b367e3fa3afd2d505bcb7", "exit_code": 2, "elapsed_seconds": 2, "result": "inconclusive", "note": "environment, not code: the default PATH go resolved to go1.26.5 under GOTOOLCHAIN=local and the toolchain target stopped before any test ran"},
+  "validate": {"revision": "working tree equal to 0b5eb20f8", "command": "make -C tools/gomad3 validate", "exit_code": 0},
+  "architecture": {"command": ".toolchain/bin/go test -tags test_dep -count=1 -run TestPackageArchitecture .", "exit_code": 0},
+  "vet": {"command": ".toolchain/bin/go vet -tags test_dep ./runner/ ./runner/internal/minimizer/ ./cmd/gomad/...", "exit_code": 0},
+  "race": {"command": ".toolchain/bin/go test -tags test_dep -count=1 -race -run TestMinimize ./runner/", "exit_code": 0},
+  "root_lint": {"command": "GOLANGCI_LINT_BASE_REV=619891e5c make lint-code-fast", "exit_code": 2, "result": "inconclusive", "note": "golangci-lint reports 0 issues but cannot typecheck the nested module (main module does not contain package tools/gomad3/...); with the default GOLANGCI_LINT_BASE_REV=main it stops earlier because main is not a known commit"},
+  "stock_go_quick_command": {"command": "go -C tools/gomad3 test -tags test_dep ./runner/... ./cmd/gomad/...", "result": "not run", "note": "known red before this task with the Homebrew go; test-host covers both package sets"},
+  "mutation_checks": {
+    "note": "each mutation was applied to the working tree, the focused tests run, and the file restored byte-identically before the commit",
+    "changed_from_in_run_acceptance_only": "TestMinimizeResumeContinuesAfterAcceptedReductionWithoutRepeatingAttempts and TestMinimizeResumeAfterFinalPublicationValidatesWithoutPublishingAgain fail on Changed=false",
+    "rejected_attempts_not_checkpointed": "every Minimize test fails: minimizer state does not follow the persisted state",
+    "accepted_artifact_not_verified_on_resume": "TestMinimizeResumeFailsClosedOnDamagedAcceptedArtifact/corrupt_payload fails: damaged resume evaluated 1 candidates",
+    "published_checkpoint_ignored": "TestMinimizeResumeAfterFinalPublicationValidatesWithoutPublishingAgain fails: minimizer state is already published",
+    "no_workspace_lock": "TestMinimizeExcludesConcurrentRunsOnOneOutputRoot (both rows) and TestWorkspaceLockOfKilledProcessDoesNotBlockResume fail",
+    "clone_state_drops_empty_evaluated_list": "observed red before the fix: the existing TestMinimizePublishesLinkedExactScheduleAndFaultReduction failed with 'minimizer state identity changed'"
+  },
+  "not_run": ["linux/amd64 (no native host)", "a kill between the final publication and the checkpoint that records it (no seam; relies on the record-keyed store returning the existing artifact)"]
+}
