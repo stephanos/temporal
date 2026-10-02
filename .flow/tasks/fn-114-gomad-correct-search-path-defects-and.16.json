@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-02T20:35:50.672535Z",
+  "depends_on": [
+    "fn-114-gomad-correct-search-path-defects-and.10"
+  ],
+  "id": "fn-114-gomad-correct-search-path-defects-and.16",
+  "priority": null,
+  "spec": "fn-114-gomad-correct-search-path-defects-and",
+  "spec_path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.16.md",
+  "status": "todo",
+  "title": "Finish shared-target byte accounting inside a campaign and in merged-record validation",
+  "updated_at": "2026-10-02T20:35:51.368407Z"
+}
