@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-111-gomad-consolidate-vocabulary-and-update",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": "2026-10-02T15:24:36.602946Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-02T15:39:27.915214Z",
   "created_at": "2026-09-30T19:30:49.980509Z",
   "default_impl": null,
   "default_review": null,
@@ -99,10 +99,45 @@
       "timestamp": "2026-10-02T15:23:46.129704Z",
       "tool_calls": 6,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "9c5759e114f9cb0c53f207f885c28fcfd343d08b0231274e8b86124c9045430a",
+      "backend": "codex",
+      "base_sha": "67dbe02666afd68c064c6c3cb9197b03d4664687",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "4bc2a2201501b7eba55d3491d7fc6a1c460d7674",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 4615,
+      "output_sha256": "f702d7d4e77bbb60c0fcdbae773a869ca82140823e2bd8ee0602f07a512eab2f",
+      "reservation_id": "9d2dc5e477c14a589da287d31f1a026f",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-02T15:39:27.911187Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "plan#completion": 1
+    "plan#completion": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -111,7 +146,7 @@
     "plan": 2
   },
   "spec_path": ".flow/specs/fn-111-gomad-consolidate-vocabulary-and-update.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: consolidate vocabulary and update documentation",
   "tracker": {
     "baseHashFlow": null,
@@ -124,5 +159,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T15:24:36.603076Z"
+  "updated_at": "2026-10-02T15:40:09.064989Z"
 }
