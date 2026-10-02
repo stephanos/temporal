@@ -76,3 +76,14 @@ func TestGuideRegressionRequiresGuidance(t *testing.T) {
 		t.Fatalf("status=%d stdout=%s stderr=%s", status, &stdout, &stderr)
 	}
 }
+
+func TestEmptyShardDoesNotReportPartiallyAnsweredPlanAsFullyAnswered(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	summary := runner.CampaignResult{SelectionCount: 0, StopReason: runner.StopSeedsExhausted, Guidance: &runner.GuidanceSummary{Requested: 2, Answered: 1}}
+	if err := newExploreReporter(false, &stdout, &stderr).Result(summary); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(stdout.String(), "all requested seeds are answered") || !strings.Contains(stdout.String(), "requested=2 answered=1") || !strings.Contains(stdout.String(), "guidance selected no corpus seeds") {
+		t.Fatalf("empty shard output=%s", &stdout)
+	}
+}

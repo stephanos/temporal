@@ -129,7 +129,7 @@ func (reporter *exploreReporter) Result(summary runner.CampaignResult) error {
 		if _, err := fmt.Fprintf(reporter.stdout, "gomad: guidance regression=%t requested=%d answered=%d guided=%d new-executions=%d\n", guidance.Regression, guidance.Requested, guidance.Answered, guidance.Guided, guidance.NewExecutions); err != nil {
 			return err
 		}
-		if !guidance.Regression && summary.SelectionCount == 0 {
+		if !guidance.Regression && guidance.Requested != 0 && guidance.Answered == guidance.Requested {
 			if _, err := fmt.Fprintln(reporter.stdout, "gomad: all requested seeds are answered; --guide-regression re-runs corpus cases (exit 0)"); err != nil {
 				return err
 			}

@@ -47,6 +47,7 @@ var coordinatorLocalOnlyFields = map[string]string{
 	"Executor":             "injected execution is rejected for isolated campaigns",
 	"Replayer":             "injected replay is rejected for isolated campaigns",
 	"resumePreflight":      "the child opens its own resume preflight",
+	"guidancePlan":         "selected locally after target preparation; resume restores it from the recorded plan",
 	"failureArtifactLimit": "the child derives it from the campaign plan",
 	"failureBytesLimit":    "the child derives it from the campaign plan",
 }
@@ -86,12 +87,16 @@ func TestCoordinatorTransportCoversEveryCampaignSpecField(t *testing.T) {
 func TestCoordinatorTransportRoundTripsEveryTransportedField(t *testing.T) {
 	const childTimeout = 987654321 * time.Nanosecond
 	distinct := distinctCampaignSpec(t)
+	falseOverride := false
+	explicitFalse := distinct
+	explicitFalse.GuideRegressionOverride = &falseOverride
 	for _, test := range []struct {
 		name string
 		spec CampaignSpec
 	}{
 		{name: "distinct nonzero values", spec: distinct},
 		{name: "zero values", spec: CampaignSpec{}},
+		{name: "explicit false regression override", spec: explicitFalse},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			encoded, err := json.Marshal(coordinatorConfigFromCampaignSpec(test.spec, childTimeout))
@@ -145,6 +150,9 @@ func fillDistinct(t *testing.T, path string, value reflect.Value, next *uint64) 
 		value.SetUint(*next)
 	case reflect.Bool:
 		value.SetBool(true)
+	case reflect.Pointer:
+		value.Set(reflect.New(value.Type().Elem()))
+		fillDistinct(t, path+"*", value.Elem(), next)
 	case reflect.Slice:
 		value.Set(reflect.MakeSlice(value.Type(), 2, 2))
 		for index := range value.Len() {

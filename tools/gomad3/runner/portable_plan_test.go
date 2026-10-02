@@ -74,6 +74,7 @@ func TestCreateCampaignPlanRejectsDynamicallyDiscoveredOrEarlyStopWork(t *testin
 			config.Guide = true
 			config.Corpus = t.TempDir()
 			config.Coverage = CoverageSemantic
+			config.OnFailure = PolicyFirst
 		},
 		func(config *CampaignSpec) {
 			config.Strategy = StrategyChoiceExploration
