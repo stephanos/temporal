@@ -1,0 +1,761 @@
+diff --git a/tools/gomad3/internal/gomadtool/conformance/registry.go b/tools/gomad3/internal/gomadtool/conformance/registry.go
+--- a/tools/gomad3/internal/gomadtool/conformance/registry.go
++++ b/tools/gomad3/internal/gomadtool/conformance/registry.go
+@@ -42,3 +42,18 @@
+ 	mode.Tiers = append([]string(nil), mode.Tiers...)
+ 	return mode, nil
+ }
++
++var schedulingSearchFixtures = []struct{ name, packageName string }{
++	{name: "timer-callback-identity", packageName: "./timer_callback_identity"},
++	{name: "select-readiness", packageName: "./select_readiness"},
++}
++
++var selectReadinessShapes = []selectShape{
++	{name: "blocking-zero-ready", readyAtPoll: 0, outcomes: []string{"blocking-zero-ready first"}},
++	{name: "blocking-one-ready", readyAtPoll: 1, outcomes: []string{"blocking-one-ready first"}},
++	{name: "blocking-two-ready", readyAtPoll: 2, outcomes: []string{"blocking-two-ready first", "blocking-two-ready second"}},
++	{name: "nonblocking-default", readyAtPoll: 0, outcomes: []string{"nonblocking-default default"}},
++	{name: "timer-channel", readyAtPoll: 0, outcomes: []string{"timer-channel timer"}},
++	{name: "closed-channel", readyAtPoll: 1, outcomes: []string{"closed-channel closed"}},
++	{name: "nil-channel", readyAtPoll: 1, outcomes: []string{"nil-channel first"}},
++}
+diff --git a/tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go b/tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go
+--- a/tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go
++++ b/tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go
+@@ -313,6 +313,13 @@
+ 		}
+ 		binaries[fixture.name] = binary
+ 	}
++	for _, fixture := range schedulingSearchFixtures {
++		binary, err := campaign.build(fixture.name, fixture.packageName, false)
++		if err != nil {
++			return err
++		}
++		binaries[fixture.name] = binary
++	}
+ 	if err := campaign.requireClockTickBehavior(binaries["clock-tick"]); err != nil {
+ 		return err
+ 	}
+diff --git a/tools/gomad3/internal/gomadtool/conformance/runtime_choice.go b/tools/gomad3/internal/gomadtool/conformance/runtime_choice.go
+--- a/tools/gomad3/internal/gomadtool/conformance/runtime_choice.go
++++ b/tools/gomad3/internal/gomadtool/conformance/runtime_choice.go
+@@ -29,6 +29,7 @@
+ type choiceRun struct {
+ 	transcript string
+ 	trace      choice.Trace
++	terminal   []byte
+ }
+ 
+ // requireChoiceReplay records the fixture's Choice Trace under one seed and
+@@ -108,6 +109,14 @@
+ // opens the trace backing, the terminal frame, and the tape and replaces
+ // itself with the fixture.
+ func (campaign *runtimeCampaign) runChoice(name, fixture, seed string, tape *choice.ReplayPlan) (choiceRun, error) {
++	mode := choice.ModeRecord
++	if tape != nil {
++		mode = choice.ModeReplay
++	}
++	return campaign.runChoiceMode(name, fixture, seed, tape, mode, 0)
++}
++
++func (campaign *runtimeCampaign) runChoiceMode(name, fixture, seed string, tape *choice.ReplayPlan, mode choice.Mode, wantExit int, fixtureArgs ...string) (choiceRun, error) {
+ 	directory := filepath.Join(campaign.workspace, name)
+ 	if err := os.Mkdir(directory, 0o700); err != nil {
+ 		return choiceRun{}, fmt.Errorf("create choice trace directory: %w", err)
+@@ -119,7 +128,7 @@
+ 	if err := os.Truncate(tracePath, choiceTraceBytes); err != nil {
+ 		return choiceRun{}, fmt.Errorf("size choice trace backing: %w", err)
+ 	}
+-	script, arguments, mode := `exec "$0" 3<>"$1" 4>"$2"`, []string{fixture, tracePath, terminalPath}, choice.ModeRecord
++	script, arguments := `exec "$0" 3<>"$1" 4>"$2"`, []string{fixture, tracePath, terminalPath}
+ 	values := []string{
+ 		"GOMADSEED=" + seed, "GOMAD3_CHOICE_TRACE_FD=3", "GOMAD3_CHOICE_TERMINAL_FD=4",
+ 		"GOMAD3_CHOICE_TRACE_BYTES=" + strconv.Itoa(choiceTraceBytes),
+@@ -129,15 +138,19 @@
+ 		if err := os.WriteFile(tapePath, tape.Bytes, 0o400); err != nil {
+ 			return choiceRun{}, fmt.Errorf("write choice tape: %w", err)
+ 		}
+-		script, arguments, mode = script+` 5<"$3"`, append(arguments, tapePath), choice.ModeReplay
++		script, arguments = script+` 5<"$3"`, append(arguments, tapePath)
+ 		values = append(values, "GOMAD3_CHOICE_TAPE_FD=5", "GOMAD3_CHOICE_TAPE_BYTES="+strconv.Itoa(len(tape.Bytes)))
+ 	}
+ 	values = append(values, "GOMAD3_CHOICE_MODE="+strconv.Itoa(int(mode)))
+-	result, err := campaign.command(
+-		name, append([]string{"/bin/sh", "-c", script}, arguments...), campaign.testdata, 10*time.Second,
++	for index := range fixtureArgs {
++		script += fmt.Sprintf(` "${%d}"`, len(arguments)+index)
++	}
++	arguments = append(arguments, fixtureArgs...)
++	result, err := campaign.runCase(runtimeCase{name: name, wantExit: wantExit, request: campaign.request(
++		append([]string{"/bin/sh", "-c", script}, arguments...), campaign.testdata, 10*time.Second,
+ 		[]string{"GOMADSEED", "GOMAD3_IO_PROFILE", "GOMAD3_CHOICE_TRACE_FD", "GOMAD3_CHOICE_TERMINAL_FD", "GOMAD3_CHOICE_TRACE_BYTES", "GOMAD3_CHOICE_MODE", "GOMAD3_CHOICE_TAPE_FD", "GOMAD3_CHOICE_TAPE_BYTES"},
+ 		values...,
+-	)
++	)})
+ 	if err != nil {
+ 		return choiceRun{}, err
+ 	}
+@@ -157,10 +170,10 @@
+ 		return choiceRun{}, fmt.Errorf("%s published choice trace offset %d", name, next)
+ 	}
+ 	trace, err := choice.DecodeTrace(backing[choiceTraceHeaderBytes:next], terminal, choiceTraceBytes)
+-	if err != nil {
++	if err != nil && !(wantExit == 125 && errors.Is(err, choice.ErrDiverged)) {
+ 		return choiceRun{}, fmt.Errorf("decode %s choice trace: %w", name, err)
+ 	}
+-	return choiceRun{transcript: commandOutput(result), trace: trace}, nil
++	return choiceRun{transcript: commandOutput(result), trace: trace, terminal: terminal}, nil
+ }
+ 
+ // choiceTraceBacking builds the empty v2 trace header the runtime maps: the
+diff --git a/tools/gomad3/internal/gomadtool/conformance/runtime_scheduling.go b/tools/gomad3/internal/gomadtool/conformance/runtime_scheduling.go
+--- a/tools/gomad3/internal/gomadtool/conformance/runtime_scheduling.go
++++ b/tools/gomad3/internal/gomadtool/conformance/runtime_scheduling.go
+@@ -1,15 +1,26 @@
+ package conformance
+ 
+ import (
++	"crypto/sha256"
++	"encoding/binary"
++	"encoding/json"
+ 	"errors"
+ 	"fmt"
++	"os"
++	"path/filepath"
++	"slices"
++	"strconv"
+ 	"strings"
+ 	"time"
+ 
++	"go.temporal.io/server/tools/gomad3/choice"
+ 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
+ )
+ 
+ func (campaign *runtimeCampaign) requireSchedulingBehavior(binaries map[string]string) error {
++	if err := campaign.requireSearchReproduction(binaries); err != nil {
++		return err
++	}
+ 	for _, padding := range []string{"", "invalid", "4194305"} {
+ 		if err := campaign.expectedExit(
+ 			"layout-invalid-padding-"+padding, []string{binaries["scheduler"], "-gomad-address-padding=" + padding}, campaign.testdata, 10*time.Second, 2,
+@@ -136,3 +147,287 @@
+ 	}
+ 	return nil
+ }
++
++type selectShape struct {
++	name        string
++	readyAtPoll int
++	outcomes    []string
++}
++
++type selectShapeEvidence struct {
++	Name              string   `json:"name"`
++	ReadyAtPoll       int      `json:"ready_at_poll"`
++	SelectPoll        uint64   `json:"select_poll"`
++	FewerThanTwoReady uint64   `json:"fewer_than_two_ready"`
++	Executions        int      `json:"executions"`
++	Outcomes          []string `json:"outcomes"`
++	Deadlocks         []string `json:"deadlocks"`
++	StopReason        string   `json:"stop_reason"`
++}
++
++type timerCallbackEvidence struct {
++	Seed               string            `json:"seed"`
++	Transcript         string            `json:"transcript"`
++	CallbackIdentities map[string]string `json:"callback_identities"`
++	ParentlessOrdinals map[string]uint64 `json:"parentless_ordinals"`
++	CallbackSites      map[string]uint64 `json:"callback_sites"`
++}
++
++type searchReproduction struct {
++	ToolchainBuildKey            string                  `json:"toolchain_build_key"`
++	Seed                         string                  `json:"select_exploration_seed"`
++	MaximumExecutionsPerShape    int                     `json:"maximum_executions_per_shape"`
++	MaximumDecisionsPerExecution int                     `json:"maximum_decisions_per_execution"`
++	Reduced                      bool                    `json:"reduced"`
++	TimerCallbacks               []timerCallbackEvidence `json:"timer_callbacks"`
++	TimerPrefixes                []timerPrefixEvidence   `json:"timer_prefixes"`
++	CrossSeedPrefix              timerDivergenceEvidence `json:"cross_seed_prefix"`
++	SelectShapes                 []selectShapeEvidence   `json:"select_shapes"`
++}
++
++func (campaign *runtimeCampaign) requireSearchReproduction(binaries map[string]string) error {
++	identity, err := campaign.choiceIdentity(binaries["timer-callback-identity"])
++	if err != nil {
++		return err
++	}
++	evidence := searchReproduction{ToolchainBuildKey: identity.ToolchainBuildKey, Seed: "1", MaximumExecutionsPerShape: 2048, MaximumDecisionsPerExecution: 32}
++	var timerBase choiceRun
++	for seed := 1; seed <= 32; seed++ {
++		value := strconv.Itoa(seed)
++		run, err := campaign.runChoice("timer-callback-seed-"+value, binaries["timer-callback-identity"], value, nil)
++		if err != nil {
++			return err
++		}
++		if seed == 6 {
++			timerBase = run
++		}
++		association, err := timerCallbackAssociation(value, run)
++		if err != nil {
++			return err
++		}
++		if len(association.CallbackIdentities) != 0 {
++			evidence.TimerCallbacks = append(evidence.TimerCallbacks, association)
++		}
++	}
++	if !oppositeTimerCallbackIdentities(evidence.TimerCallbacks) {
++		return errors.New("timer callbacks did not change parentless identity under opposite firing orders")
++	}
++	prefixes, divergence, err := campaign.requireTimerPrefixes(binaries["timer-callback-identity"], timerBase, identity)
++	if err != nil {
++		return err
++	}
++	evidence.TimerPrefixes, evidence.CrossSeedPrefix = prefixes, divergence
++	for _, shape := range selectReadinessShapes {
++		result, err := campaign.exploreSelectShape(binaries["select-readiness"], shape)
++		if err != nil {
++			return err
++		}
++		evidence.SelectShapes = append(evidence.SelectShapes, result)
++	}
++	data, err := json.MarshalIndent(evidence, "", "  ")
++	if err != nil {
++		return err
++	}
++	return os.WriteFile(filepath.Join(campaign.workspace, "search-reproduction.json"), append(data, '\n'), 0o600)
++}
++
++func timerCallbackAssociation(seed string, run choiceRun) (timerCallbackEvidence, error) {
++	labels := strings.Fields(run.transcript)
++	if len(labels) != 2 || labels[0] == labels[1] || !slices.Contains(labels, "A") || !slices.Contains(labels, "B") {
++		return timerCallbackEvidence{}, fmt.Errorf("timer callback output = %q", run.transcript)
++	}
++	evidence := timerCallbackEvidence{Seed: seed, Transcript: run.transcript, CallbackIdentities: map[string]string{}, ParentlessOrdinals: map[string]uint64{}, CallbackSites: map[string]uint64{}}
++	ordinals := map[[sha256.Size]byte]uint64{}
++	index := 0
++	for recordIndex, record := range run.trace.Records {
++		if record.Kind != choice.KindSelectPoll {
++			continue
++		}
++		if index >= len(labels) {
++			return evidence, errors.New("timer callbacks emitted more than two select polls")
++		}
++		label := labels[index]
++		index++
++		evidence.CallbackSites[label] = record.SiteOffset
++		if recordIndex == 0 || run.trace.Records[recordIndex-1].Kind != choice.KindRunnable {
++			continue
++		}
++		runnable := run.trace.Records[recordIndex-1]
++		if index == 1 && runnable.Alternatives == 2 {
++			// The virtual clock advanced only after all goroutines blocked. These
++			// two alternatives are the callbacks just created by the two due timers.
++			for ordinal := uint64(1); ordinal < 64; ordinal++ {
++				first, second := timerParentlessIdentity(ordinal), timerParentlessIdentity(ordinal+1)
++				digest, err := choice.AlternativeSetDigest([][sha256.Size]byte{first, second})
++				if err != nil {
++					return evidence, err
++				}
++				if digest == runnable.AlternativeSetDigest {
++					ordinals[first], ordinals[second] = ordinal, ordinal+1
++					break
++				}
++			}
++		}
++		if ordinal, ok := ordinals[runnable.SelectedIdentity]; ok {
++			evidence.CallbackIdentities[label] = fmt.Sprintf("%x", runnable.SelectedIdentity)
++			evidence.ParentlessOrdinals[label] = ordinal
++		}
++	}
++
++	if index != 2 || evidence.CallbackSites["A"] == evidence.CallbackSites["B"] {
++		return evidence, errors.New("timer callbacks did not expose two distinct select sites")
++	}
++	return evidence, nil
++}
++
++func timerParentlessIdentity(ordinal uint64) [sha256.Size]byte {
++	input := append([]byte("gomad3-choice-goroutine-runtime/v1"), make([]byte, 8)...)
++	binary.BigEndian.PutUint64(input[len(input)-8:], ordinal)
++	return sha256.Sum256(input)
++}
++
++func oppositeTimerCallbackIdentities(runs []timerCallbackEvidence) bool {
++	for _, first := range runs {
++		for _, second := range runs {
++			if len(first.ParentlessOrdinals) == 2 && len(second.ParentlessOrdinals) == 2 && first.ParentlessOrdinals["A"] != first.ParentlessOrdinals["B"] && first.ParentlessOrdinals["A"] == second.ParentlessOrdinals["B"] && first.ParentlessOrdinals["B"] == second.ParentlessOrdinals["A"] {
++				return true
++			}
++		}
++	}
++	return false
++}
++
++func (campaign *runtimeCampaign) exploreSelectShape(fixture string, shape selectShape) (selectShapeEvidence, error) {
++	identity, err := campaign.choiceIdentity(fixture)
++	if err != nil {
++		return selectShapeEvidence{}, err
++	}
++	evidence := selectShapeEvidence{Name: shape.name, ReadyAtPoll: shape.readyAtPoll, Outcomes: []string{}, Deadlocks: []string{}}
++	frontier := []*choice.ReplayPlan{nil}
++	seen := map[[sha256.Size]byte]bool{}
++	outcomes := map[string]bool{}
++	for len(frontier) != 0 {
++		if evidence.Executions == 2048 {
++			return evidence, fmt.Errorf("select shape %s exceeded the 2048-execution bound before exhaustion", shape.name)
++		}
++		prefix := frontier[0]
++		frontier = frontier[1:]
++		mode := choice.ModeRecord
++		if prefix != nil {
++			mode = choice.ModePrefix
++		}
++		name := fmt.Sprintf("select-%s-execution-%04d", shape.name, evidence.Executions)
++		run, err := campaign.runChoiceMode(name, fixture, "1", prefix, mode, 0, shape.name)
++		if err != nil {
++			return evidence, err
++		}
++		evidence.Executions++
++		if run.trace.Summary.SelectPoll != 1 || run.trace.Summary.SelectResult != 1 {
++			return evidence, fmt.Errorf("select shape %s recorded poll/result counts %+v, want one each", shape.name, run.trace.Summary)
++		}
++		if evidence.Executions == 1 {
++			evidence.SelectPoll = run.trace.Summary.SelectPoll
++			if shape.readyAtPoll < 2 {
++				evidence.FewerThanTwoReady = evidence.SelectPoll
++			}
++		}
++		if !slices.Contains(shape.outcomes, run.transcript) {
++			return evidence, fmt.Errorf("select shape %s outcome = %q", shape.name, run.transcript)
++		}
++		outcomes[run.transcript] = true
++		plan, err := choice.ProjectReplayPlan(run.trace, identity)
++		if err != nil {
++			return evidence, err
++		}
++		if len(plan.Decisions) > 32 {
++			return evidence, fmt.Errorf("select shape %s exceeded the 32-decision bound", shape.name)
++		}
++		for ordinal, decision := range plan.Decisions {
++			for rank := uint32(0); rank < decision.Alternatives; rank++ {
++				if rank == decision.Selected {
++					continue
++				}
++				candidate, err := choice.BuildRankPrefix(plan, uint64(ordinal), rank)
++				if err != nil {
++					return evidence, err
++				}
++				if !seen[candidate.SHA256] {
++					seen[candidate.SHA256] = true
++					frontier = append(frontier, &candidate)
++				}
++			}
++		}
++	}
++	for outcome := range outcomes {
++		evidence.Outcomes = append(evidence.Outcomes, outcome)
++	}
++	slices.Sort(evidence.Outcomes)
++	if !slices.Equal(evidence.Outcomes, shape.outcomes) {
++		return evidence, fmt.Errorf("select shape %s outcomes = %v, want %v", shape.name, evidence.Outcomes, shape.outcomes)
++	}
++	evidence.StopReason = "frontier_exhausted"
++	return evidence, nil
++}
++
++type timerPrefixEvidence struct {
++	DecisionOrdinal uint64                `json:"decision_ordinal"`
++	SelectedRank    uint32                `json:"selected_rank"`
++	PrefixSHA256    string                `json:"prefix_sha256"`
++	Association     timerCallbackEvidence `json:"association"`
++}
++
++type timerDivergenceEvidence struct {
++	RecordedSeed    string `json:"recorded_seed"`
++	ExecutedSeed    string `json:"executed_seed"`
++	PrefixSHA256    string `json:"prefix_sha256"`
++	DecisionOrdinal uint64 `json:"decision_ordinal"`
++	Reason          string `json:"reason"`
++}
++
++func (campaign *runtimeCampaign) requireTimerPrefixes(fixture string, base choiceRun, identity choice.ExecutionIdentity) ([]timerPrefixEvidence, timerDivergenceEvidence, error) {
++	plan, err := choice.ProjectReplayPlan(base.trace, identity)
++	if err != nil {
++		return nil, timerDivergenceEvidence{}, err
++	}
++	prefixes := []timerPrefixEvidence{}
++	baseAssociation, err := timerCallbackAssociation("6", base)
++	if err != nil {
++		return nil, timerDivergenceEvidence{}, err
++	}
++	associations := []timerCallbackEvidence{baseAssociation}
++	for ordinal, decision := range plan.Decisions {
++		for rank := uint32(0); rank < decision.Alternatives; rank++ {
++			if rank == decision.Selected {
++				continue
++			}
++			prefix, err := choice.BuildRankPrefix(plan, uint64(ordinal), rank)
++			if err != nil {
++				return prefixes, timerDivergenceEvidence{}, err
++			}
++			name := fmt.Sprintf("timer-prefix-same-seed-6-decision-%d-rank-%d", ordinal, rank)
++			run, err := campaign.runChoiceMode(name, fixture, "6", &prefix, choice.ModePrefix, 0)
++			if err != nil {
++				return prefixes, timerDivergenceEvidence{}, err
++			}
++			association, err := timerCallbackAssociation("6", run)
++			if err != nil {
++				return prefixes, timerDivergenceEvidence{}, err
++			}
++			associations = append(associations, association)
++			prefixes = append(prefixes, timerPrefixEvidence{DecisionOrdinal: uint64(ordinal), SelectedRank: rank, PrefixSHA256: fmt.Sprintf("%x", prefix.SHA256), Association: association})
++		}
++	}
++	if !oppositeTimerCallbackIdentities(associations) {
++		return prefixes, timerDivergenceEvidence{}, errors.New("same-seed timer prefixes did not swap callback identities")
++	}
++	run, err := campaign.runChoiceMode("timer-prefix-cross-seed-6-to-16", fixture, "16", &plan, choice.ModePrefix, 125)
++	if err != nil {
++		return prefixes, timerDivergenceEvidence{}, err
++	}
++	reason := choice.DivergenceReason(run.terminal[13])
++	if reason != choice.DivergenceSite {
++		return prefixes, timerDivergenceEvidence{}, fmt.Errorf("cross-seed timer prefix reason = %s, want site", choice.DivergenceReasonName(reason))
++	}
++	divergence := timerDivergenceEvidence{RecordedSeed: "6", ExecutedSeed: "16", PrefixSHA256: fmt.Sprintf("%x", plan.SHA256), DecisionOrdinal: binary.BigEndian.Uint64(run.terminal[72:80]), Reason: choice.DivergenceReasonName(reason)}
++	return prefixes, divergence, nil
++}
+diff --git a/tools/gomad3/internal/gomadtool/conformance/runtime_test.go b/tools/gomad3/internal/gomadtool/conformance/runtime_test.go
+--- a/tools/gomad3/internal/gomadtool/conformance/runtime_test.go
++++ b/tools/gomad3/internal/gomadtool/conformance/runtime_test.go
+@@ -3,6 +3,8 @@
+ import (
+ 	"context"
+ 	"crypto/sha256"
++	"encoding/binary"
++	"encoding/json"
+ 	"errors"
+ 	"fmt"
+ 	"os"
+@@ -11,6 +13,7 @@
+ 	"strings"
+ 	"testing"
+ 
++	"go.temporal.io/server/tools/gomad3/choice"
+ 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
+ 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+ )
+@@ -125,3 +128,84 @@
+ 		t.Fatal("divergent case remained passed")
+ 	}
+ }
++
++func TestRuntimeSearchFixtures(t *testing.T) {
++	root, err := filepath.Abs("../../..")
++	if err != nil {
++		t.Fatal(err)
++	}
++	goCommand := filepath.Join(root, ".toolchain", "bin", "go")
++	if _, err := os.Stat(goCommand); errors.Is(err, os.ErrNotExist) {
++		t.Skip("patched toolchain is not installed")
++	} else if err != nil {
++		t.Fatal(err)
++	}
++	workspace := t.TempDir()
++	if retained := os.Getenv("GOMAD3_RUNTIME_REPRODUCTION_DIR"); retained != "" {
++		workspace = retained
++		if err := os.MkdirAll(workspace, 0o700); err != nil {
++			t.Fatal(err)
++		}
++	}
++	report := Report{Mode: "test-runtime-search-reproduction"}
++	var commands []map[string]any
++	run := func(ctx context.Context, request hostexec.Request) (hostexec.Result, error) {
++		controls := []string{}
++		for _, value := range request.Env {
++			if strings.HasPrefix(value, "GOMADSEED=") || strings.HasPrefix(value, "GOMAD3_CHOICE_") {
++				controls = append(controls, value)
++			}
++		}
++		result, err := hostexec.Run(ctx, request)
++		commands = append(commands, map[string]any{"command": request.Command, "directory": request.Dir, "controls": controls, "timeout": request.Timeout.String(), "exit": result.ExitCode, "timed_out": result.WatchdogTimeout})
++		return result, err
++	}
++	campaign := runtimeCampaign{ctx: context.Background(), config: Config{Root: root, Go: goCommand}, testdata: filepath.Join(root, "internal", "gomadtool", "conformance", "testdata"), workspace: workspace, run: run, report: &report}
++	defer func() {
++		for name, value := range map[string]any{"cases.json": report, "commands.json": commands} {
++			data, err := json.MarshalIndent(value, "", "  ")
++			if err != nil {
++				t.Fatal(err)
++			}
++			if err := os.WriteFile(filepath.Join(workspace, name), append(data, '\n'), 0o600); err != nil {
++				t.Fatal(err)
++			}
++		}
++	}()
++	binaries := map[string]string{}
++	for _, fixture := range schedulingSearchFixtures {
++		binary, err := campaign.build(fixture.name, fixture.packageName, false)
++		if err != nil {
++			t.Fatal(err)
++		}
++		binaries[fixture.name] = binary
++	}
++	if err := campaign.requireSearchReproduction(binaries); err != nil {
++		t.Fatal(err)
++	}
++	report.Passed = true
++}
++
++func TestTimerCallbackAssociationRejectsUnidentifiedHandoff(t *testing.T) {
++	input := append([]byte("gomad3-choice-goroutine-runtime/v1"), make([]byte, 8)...)
++	binary.BigEndian.PutUint64(input[len(input)-8:], 2)
++	identity := sha256.Sum256(input)
++	run := choiceRun{transcript: "A B", trace: choice.Trace{Records: []choice.Record{
++		{Kind: choice.KindRunnable, SelectedIdentity: identity},
++		{Kind: choice.KindSelectResult},
++		{Kind: choice.KindSelectPoll, SiteOffset: 1},
++		{Kind: choice.KindSelectResult},
++		{Kind: choice.KindSelectPoll, SiteOffset: 2},
++	}}}
++	association, err := timerCallbackAssociation("6", run)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if len(association.CallbackIdentities) != 0 {
++		t.Fatalf("unidentified callback handoff associated identities: %+v", association)
++	}
++	run.transcript = "A A"
++	if _, err := timerCallbackAssociation("6", run); err == nil {
++		t.Fatal("duplicate callback markers were accepted")
++	}
++}
+diff --git a/tools/gomad3/internal/gomadtool/conformance/testdata/README.md b/tools/gomad3/internal/gomadtool/conformance/testdata/README.md
+--- a/tools/gomad3/internal/gomadtool/conformance/testdata/README.md
++++ b/tools/gomad3/internal/gomadtool/conformance/testdata/README.md
+@@ -27,3 +27,36 @@
+ output across address perturbations; the `GOMAD3_ADDRESS` marker printed by
+ `internal/perturb` is the one exception and only appears when
+ `-gomad-address-padding` is given.
++
++`timer_callback_identity` starts two timer creators and arms both callbacks for
++one virtual deadline before the process can quiesce. Each callback immediately
++selects from its own two prefilled channels at a distinct site and sends its
++label through a buffered channel. It performs no allocation, yield, or blocking
++operation before that site. The driver correlates an immediately preceding
++Runnable selection with the callback marker and the current parentless `/v1`
++identity derivation. The first marker's observed two-alternative digest must match
++two consecutive parentless IDs. When virtual time advances, main is blocked
++and the timer-armers have exited or blocked; only the two due callbacks become
++runnable. A callback without a qualifying selection has no inferred ID.
++Seeds 6 and 16 and valid alternative prefixes under seed 6 expose opposite
++firing orders and swapped callback identities. The same-seed prefixes complete;
++a complete seed-6 prefix executed under seed 16 diverges at a select site. This
++cross-seed experiment does not establish a supported replay failure.
++
++`select_readiness` takes one stable shape name from the driver's registry:
++`blocking-zero-ready`, `blocking-one-ready`, `blocking-two-ready`,
++`nonblocking-default`, `timer-channel`, `closed-channel`, or `nil-channel`.
++The readiness count describes the initial poll, independently of the case that
++later completes. Buffered and closed channels are prepared before the select;
++the zero-ready and timer cases only become ready after a one-second virtual
++advance, which cannot happen while the polling goroutine is runnable. Nil
++channels are disabled. Each run records one poll decision, including the six
++shapes with fewer than two initially ready cases. The driver explores every
++recorded decision without reduction, including runtime-owned Runnable choices,
++until the prefix frontier is empty; the 2048-execution and 32-decision bounds
++fail the check if reached instead of standing in for exhaustion.
++
++`TestRuntimeSearchFixtures` runs these same checks directly when a patched
++toolchain is installed. Setting `GOMAD3_RUNTIME_REPRODUCTION_DIR` to a new
++absolute directory retains the fixture binaries, raw trace backings and terminal
++frames, forced prefixes, command/exit records, and `search-reproduction.json`.
+diff --git a/tools/gomad3/internal/gomadtool/conformance/testdata/timer_callback_identity/main.go b/tools/gomad3/internal/gomadtool/conformance/testdata/timer_callback_identity/main.go
+--- /dev/null
++++ b/tools/gomad3/internal/gomadtool/conformance/testdata/timer_callback_identity/main.go
+@@ -0,0 +1,39 @@
++package main
++
++import (
++	"fmt"
++	"time"
++)
++
++func callbackA(done chan string, left, right chan struct{}) {
++	select {
++	case <-left:
++	case <-right:
++	}
++	done <- "A"
++}
++
++func callbackB(done chan string, left, right chan struct{}) {
++	select {
++	case <-left:
++	case <-right:
++	}
++	done <- "B"
++}
++
++func main() {
++	armed := make(chan struct{}, 2)
++	done := make(chan string, 2)
++	leftA, rightA := make(chan struct{}, 1), make(chan struct{}, 1)
++	leftB, rightB := make(chan struct{}, 1), make(chan struct{}, 1)
++	leftA <- struct{}{}
++	rightA <- struct{}{}
++	leftB <- struct{}{}
++	rightB <- struct{}{}
++	go func() { time.AfterFunc(time.Second, func() { callbackA(done, leftA, rightA) }); armed <- struct{}{} }()
++	go func() { time.AfterFunc(time.Second, func() { callbackB(done, leftB, rightB) }); armed <- struct{}{} }()
++	<-armed
++	<-armed
++	// Both timers are armed before the virtual clock advances.
++	fmt.Println(<-done, <-done)
++}
+diff --git a/tools/gomad3/internal/gomadtool/conformance/testdata/select_readiness/main.go b/tools/gomad3/internal/gomadtool/conformance/testdata/select_readiness/main.go
+--- /dev/null
++++ b/tools/gomad3/internal/gomadtool/conformance/testdata/select_readiness/main.go
+@@ -0,0 +1,84 @@
++package main
++
++import (
++	"fmt"
++	"os"
++	"time"
++)
++
++func main() {
++	if len(os.Args) != 2 {
++		panic("select shape is required")
++	}
++	first, second := make(chan int, 1), make(chan int, 1)
++	outcome := ""
++	switch os.Args[1] {
++	case "blocking-zero-ready":
++		time.AfterFunc(time.Second, func() { first <- 1 })
++		select {
++		case <-first:
++			outcome = "first"
++		case <-second:
++			outcome = "second"
++		}
++	case "blocking-one-ready":
++		first <- 1
++		select {
++		case <-first:
++			outcome = "first"
++		case <-second:
++			outcome = "second"
++		}
++	case "blocking-two-ready":
++		first <- 1
++		second <- 2
++		select {
++		case <-first:
++			outcome = "first"
++		case <-second:
++			outcome = "second"
++		}
++	case "nonblocking-default":
++		select {
++		case <-first:
++			outcome = "first"
++		case <-second:
++			outcome = "second"
++		default:
++			outcome = "default"
++		}
++	case "timer-channel":
++		timer := time.NewTimer(time.Second)
++		select {
++		case <-timer.C:
++			outcome = "timer"
++		case <-second:
++			outcome = "second"
++		}
++	case "closed-channel":
++		close(first)
++		select {
++		case _, ok := <-first:
++			if ok {
++				panic("closed receive succeeded")
++			}
++			outcome = "closed"
++		case <-second:
++			outcome = "second"
++		}
++	case "nil-channel":
++		var disabled chan int
++		first <- 1
++		select {
++		case <-disabled:
++			outcome = "nil"
++		case <-first:
++			outcome = "first"
++		case <-second:
++			outcome = "second"
++		}
++	default:
++		panic("unknown select shape")
++	}
++	fmt.Println(os.Args[1], outcome)
++}
+diff --git a/.flow/specs/fn-114-gomad-correct-search-path-defects-and.md b/.flow/specs/fn-114-gomad-correct-search-path-defects-and.md
+--- a/.flow/specs/fn-114-gomad-correct-search-path-defects-and.md
++++ b/.flow/specs/fn-114-gomad-correct-search-path-defects-and.md
+@@ -26,12 +26,12 @@
+ | ID | Kind | Finding | Evidence | Status |
+ | --- | --- | --- | --- | --- |
+ | C1 | Correctness | The guided corpus identity omits the target environment and clock-tick policy. Once Runner-managed targets receive `--env` entries (fn-105 task 30), one corpus can hold cases recorded under different environments or tick policies | `runner/internal/corpus/model.go` `Identity` and `targetProjection` bind target, argv, tags, adapters, packs, toolchain, and boundary only | confirmed — environment and tick inputs still omitted |
+-| C2 | Correctness | Goroutines created with no identified parent take a process-wide creation counter as identity. `time.AfterFunc` callbacks, including every context deadline, are created from the scheduler, so their identity depends on creation order and therefore on the schedule | `gomadChoiceAssignGoroutineIdentity` else-branch in the runtime overlay | confirmed — parentless branch; callback reproduction remains task 2 |
++| C2 | Correctness | Goroutines created with no identified parent take a process-wide creation counter as identity. `time.AfterFunc` callbacks, including every context deadline, are created from the scheduler, so their identity depends on creation order and therefore on the schedule | `gomadChoiceAssignGoroutineIdentity` else-branch in the runtime overlay | changed — callback identities swap under schedule changes; valid same-seed swapped prefixes succeed |
+ | C3 | Correctness | A forced prefix that diverges in a choice-exploration candidate ends the whole campaign as a `HostError` and publishes no candidate execution records or typed divergence evidence | `execution/process_unix.go` returns a typed choice divergence; `runner.go` preserves it and `choice_exploration_campaign.go` returns from completion-error handling before processing outcomes | changed — symptom reproduced; executor-error path, not runner-domain branch |
+ | C4 | Correctness | `exec` provenance validation rejects `-race`, cgo, non-exe build modes, and external linking, and has no check for coverage instrumentation, so an unqualified instrumentation profile can pass | `validateDeterministicBuildInfo` in `target/target.go` | confirmed — no coverage-instrumentation rejection |
+ | E1 | Inefficiency | A guided campaign gives up to three quarters of its seeds to corpus cases. The corpus identity binds the exact target, so those seeds reproduce records the corpus already holds | `mixGuidedSelection` in `runner/seeds.go` | confirmed — selection repeats corpus seeds; consequence remains source inference |
+ | E2 | Inefficiency | Every artifact embeds the full target binary. `./tests` binaries are 155 to 179 MB, the representative qualification set retains about 11 GiB, and the 1 GiB corpus holds about six `./tests` cases | `artifact/publication.go` target payload; historical binary sizes in `.plans/GOMAD_CMP.md:85-86`, total in `tools/gomad3/README.md:334` | confirmed — full target payload; sizes and storage totals are historical |
+-| E3 | Inefficiency | The select hook records one decision per poll-order step of every multi-case `select`, ready or not. In `TestSignalWorkflowTestSuiteChasm` seed 11, 26,865 of 57,801 decisions are select-poll. Poll order can change behavior only when at least two cases are ready | patch hunk in `selectgo`; retained D14 qualification report | confirmed — pre-readiness poll hook; historical counts re-derived, soundness remains task 2/12 |
++| E3 | Inefficiency | The select hook records one decision per poll-order step of every multi-case `select`, ready or not. In `TestSignalWorkflowTestSuiteChasm` seed 11, 26,865 of 57,801 decisions are select-poll. Poll order can change behavior only when at least two cases are ready | patch hunk in `selectgo`; retained D14 qualification report | confirmed — all seven fixture shapes emit poll decisions; unreduced outcomes retained, suppression soundness remains task 12 |
+ | E4 | Inefficiency | System goroutines are recorded and explorable alternatives. The retained D21 control probe reports peak goroutines 2 and 26 branching decisions; its source does not deliberately start two user goroutines | `gomadChoiceRunqIndex`; retained D21 control report | changed — unfiltered alternatives and historical 26 confirmed; two-user premise unsupported |
+ | E5 | Inefficiency | Choice exploration skips every decision past `--max-choice-depth` counted from ordinal 0. The boot-only cluster probe records 4,562 choice records, so on a functional suite the strategy permutes bootstrap only | `expandCandidate` in `runner/internal/exploration/choice/engine.go` | confirmed — absolute decision ordinal bounds expansion |
+ | E6 | Inefficiency | The minimizer holds its sealed, self-validating state in memory and works in a temporary directory that `close` deletes. An interrupted run repeats every attempt | `runner/minimize_operation.go` | confirmed — state remains in memory and temporary workspace is deleted |
+@@ -71,6 +71,17 @@
+ either given a schedule-independent derivation or listed as a declared
+ exception with its reason. The changed derivation takes new versioned identity
+ labels; the labels are the scheme version, and no separate constant exists.
++
++Task 2 reproduced callback identity swaps on the unchanged toolchain. Its seed-6
++parent maps A/B to parentless ordinals 3/2; valid same-seed prefixes at decision
++3/rank 2 and decision 4/rank 1 map them to 2/3 and succeed. All 16 one-decision
++alternatives of that recorded parent succeed. This narrows the predicted
++alternative-set-divergence failure: `BuildRankPrefix` truncates the suffix after
++the changed choice. A cross-seed full-prefix experiment diverges at a select site,
++but does not establish failure of supported seed-bound replay. Task 5 still owns
++stable identities; successful same-seed prefix execution is behavior to preserve.
++The retained [task 2 evidence](../artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/final-approved/search-reproduction.json)
++binds these observations to the pre-edit toolchain and fixture source.
+ 
+ ### Diverging exploration candidates (C3)
+ 
+diff --git a/.flow/tasks/fn-114-gomad-correct-search-path-defects-and.5.md b/.flow/tasks/fn-114-gomad-correct-search-path-defects-and.5.md
+--- a/.flow/tasks/fn-114-gomad-correct-search-path-defects-and.5.md
++++ b/.flow/tasks/fn-114-gomad-correct-search-path-defects-and.5.md
+@@ -18,7 +18,7 @@
+ - Use new label strings for the changed derivation; the existing `/v1` labels are the scheme version.
+ - Inventory: every path that reaches the parentless branch (runtime-owned workers, collector workers started from whichever goroutine triggers a cycle, finalizer and cleanup goroutines, timers with no creator). Each entry is either given a schedule-independent derivation or listed as a declared exception with its reason.
+ - Check the inventory in and add a toolchain-tier test that fails when the pinned runtime source contains a creation site that is in neither list. Follow the clock inventory test.
+-- Update the task 2 fixture assertions: equal identities under both firing orders, and the swapped forced prefix replays with no alternative-set divergence.
++- Update task 2's characterization to require schedule-independent callback identities under the opposite firing schedules, including the valid same-seed prefixes that currently swap identities. Preserve those prefixes' successful execution; task 2 already established that all 16 alternatives of its seed-6 parent succeed. This preservation check does not fix a reproduced same-seed alternative-set divergence. Cross-seed experiments remain separate evidence.
+ - Regenerate the patch with the repository's patch tooling. Hunks must stay within the patch policy; a derivation that needs a prohibited collector file becomes a declared exception and goes to the patch-policy owner.
+ 
+ ### Investigation targets
+@@ -39,6 +39,7 @@
+ - fn-110 tasks 2 to 4 move scheduler code into the overlay and re-emit the patch; fn-112 tasks 3 and 5 and fn-109 task 13 edit the same overlay file. Check their state first and rebase onto whichever landed. Never run concurrently with another overlay or patch task.
+ - Any runtime edit changes the toolchain build key and the choice implementation identity, so every retained tape is rejected by identity. That is expected; retained artifacts are not rewritten.
+ - The callback goroutine is created on the scheduler's stack, which is why its parent has no identity today.
++- Task 2 confirmed schedule-dependent callback identities, but its valid same-seed swapped prefixes succeed. `BuildRankPrefix` truncates the suffix after the changed choice. A cross-seed full-prefix failure is not a supported seed-bound replay failure; the stable-ID requirement remains open, and the no-divergence requirement preserves existing behavior. See task 2's retained final fixture evidence and C2 correction.
+ 
+ ## Acceptance
+ - [ ] In the task 2 fixture each callback goroutine has the same identity under both firing orders

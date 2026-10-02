@@ -1,0 +1,22 @@
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/captured_input_after_host_removal
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/uncaptured_input_fails
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/exact_replay_requires_transcript
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/corrupt_retained_input_fails_before_execution
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/malformed_retained_descriptor_fails_before_execution
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/cancelled_replay_does_not_match
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/stdout_divergence
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/stderr_divergence
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/outcome_divergence
+--- PASS: TestWatchdogDiagnosticReplayUsesCapturedInputs (3.16s)
+    --- PASS: TestWatchdogDiagnosticReplayUsesCapturedInputs/captured_input_after_host_removal (0.84s)
+    --- PASS: TestWatchdogDiagnosticReplayUsesCapturedInputs/uncaptured_input_fails (0.83s)
+    --- PASS: TestWatchdogDiagnosticReplayUsesCapturedInputs/exact_replay_requires_transcript (0.12s)
+    --- PASS: TestWatchdogDiagnosticReplayUsesCapturedInputs/corrupt_retained_input_fails_before_execution (0.06s)
+    --- PASS: TestWatchdogDiagnosticReplayUsesCapturedInputs/malformed_retained_descriptor_fails_before_execution (0.06s)
+    --- PASS: TestWatchdogDiagnosticReplayUsesCapturedInputs/cancelled_replay_does_not_match (0.10s)
+    --- PASS: TestWatchdogDiagnosticReplayUsesCapturedInputs/stdout_divergence (0.11s)
+    --- PASS: TestWatchdogDiagnosticReplayUsesCapturedInputs/stderr_divergence (0.10s)
+    --- PASS: TestWatchdogDiagnosticReplayUsesCapturedInputs/outcome_divergence (0.12s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner	3.491s

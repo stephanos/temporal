@@ -1,0 +1,12 @@
+=== RUN   TestCLIWatchdogRetainsIncompleteEvidence
+=== RUN   TestCLIWatchdogRetainsIncompleteEvidence/none
+    watchdog_e2e_test.go:24: CLI [explore --json --toolchain-root /Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain --artifacts /var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/TestCLIWatchdogRetainsIncompleteEvidencenone672968132/001 --seeds 1 --parallel 1 --on-failure all --execution-timeout 2s --overall-timeout 1m --terminate-grace 100ms --coverage none go-run ./cmd/gomad/testdata/watchdog -- watchdog] status = 3, want 1
+        {"schema":"gomad3.explore-event/v3","type":"progress","phase":"preparing","campaign_path":"/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/TestCLIWatchdogRetainsIncompleteEvidencenone672968132/001/v1/campaign-20261002T130250.523789000Z-4e0bcb4a25c99b0bc52069eb46e8a0f8","selected":1}
+        {"schema":"gomad3.explore-event/v3","type":"progress","phase":"running","campaign_path":"/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/TestCLIWatchdogRetainsIncompleteEvidencenone672968132/001/v1/campaign-20261002T130250.523789000Z-4e0bcb4a25c99b0bc52069eb46e8a0f8","selected":1}
+        {"schema":"gomad3.explore-event/v3","type":"progress","phase":"running","campaign_path":"/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/TestCLIWatchdogRetainsIncompleteEvidencenone672968132/001/v1/campaign-20261002T130250.523789000Z-4e0bcb4a25c99b0bc52069eb46e8a0f8","selected":1,"running":1}
+        {"schema":"gomad3.explore-event/v3","type":"error","classification":"runner_failure","message":"gomad3 Runner/host failure: target_supervision: gomad3 Runner/host failure: target_supervision: invalid I/O terminal frame"}
+--- FAIL: TestCLIWatchdogRetainsIncompleteEvidence (2.60s)
+    --- FAIL: TestCLIWatchdogRetainsIncompleteEvidence/none (2.60s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/cmd/gomad	4.983s
+FAIL

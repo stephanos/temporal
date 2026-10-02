@@ -137,6 +137,7 @@ type CampaignSpec struct {
 	FailureBudget        uint64
 	OutputLimit          uint64
 	WorldTransitionLimit uint64
+	Diagnostics          bool
 	ChoiceTraceLimit     uint64
 	// IOTranscriptLimit bounds the I/O transcript; zero means
 	// deterministicio.DefaultTranscriptBytes.
@@ -194,6 +195,7 @@ type CampaignResult struct {
 	SemanticCoverage      *deterministicio.SemanticCoverage
 	ExecutionEvidence     *ExecutionEvidence `json:"execution_evidence"`
 	ExecutionElapsedNanos uint64
+	Diagnostics           *DiagnosticTraceReference `json:"diagnostics,omitempty"`
 	CorpusPath            string
 	CorpusEntries         uint64
 	CorpusAdded           uint64
@@ -864,6 +866,16 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 			continue
 		}
 		runCoverage, runChoiceFeatures, runChoiceProjection, outcome := assessed.coverage, assessed.choiceFeatures, assessed.choiceProjection, assessed.outcome
+		if config.Diagnostics && len(completion.result.DiagnosticTrace.Bytes) != 0 {
+			trace, err := retainDiagnosticTrace(journal.Path(), completion.job.ordinal, completion.result.DiagnosticTrace)
+			if err != nil {
+				hostFailure = &HostError{Reason: "diagnostic_write", Err: err}
+				controller.Stop()
+				activeCancel()
+				continue
+			}
+			summary.Diagnostics = trace
+		}
 		if config.CollectExecutionEvidence {
 			mountArtifact, evidenceErr := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
 			if evidenceErr != nil {
@@ -1229,6 +1241,9 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e
 	if config.OutputLimit == 0 || config.WorldTransitionLimit == 0 {
 		return SeedSelection{}, nil, errors.New("output and World transition limits must be positive")
 	}
+	if config.Diagnostics && (config.ChoiceTraceLimit == 0 || normalizedStrategy(config.Strategy) != StrategySeed) {
+		return SeedSelection{}, nil, errors.New("diagnostics require choice recording with the seed strategy")
+	}
 	if config.ChoiceTraceLimit != 0 && (config.ChoiceTraceLimit < execution.MinimumChoiceTraceBytes || config.ChoiceTraceLimit > execution.MaximumChoiceTraceBytes) {
 		return SeedSelection{}, nil, fmt.Errorf("choice trace capacity must be between %d bytes and 64 MiB", execution.MinimumChoiceTraceBytes)
 	}
@@ -1328,6 +1343,9 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e
 	if config.ChoiceTraceLimit != 0 {
 		environment = append(environment, record.Environment{Name: "GOMAD3_CHOICE_PROFILE", Value: choice.Profile})
 	}
+	if config.Diagnostics {
+		environment = append(environment, record.Environment{Name: choice.DiagnosticProfileEnvironment, Value: choice.DiagnosticProfile})
+	}
 	sort.Slice(environment, func(i, j int) bool { return environment[i].Name < environment[j].Name })
 	return selection, environment, nil
 }
@@ -1353,7 +1371,7 @@ func validateSimulationDimensionLimits(limits SimulationDimensionLimits) error {
 
 func parseEnvironment(entries []string) ([]record.Environment, error) {
 	reserved := map[string]struct{}{
-		"GOMADSEED": {}, "GOMAD3_CHILD_SEED": {}, "GOMAD3_IO_PROFILE": {}, record.ClockTickEnvironment: {}, "GOMAD3_CHOICE_PROFILE": {}, "GOMAD3_CHOICE_MODE": {}, "GOMAD3_CHOICE_TRACE_FD": {}, "GOMAD3_CHOICE_TERMINAL_FD": {}, "GOMAD3_CHOICE_TRACE_BYTES": {}, "GOMAD3_CHOICE_TAPE_FD": {}, "GOMAD3_CHOICE_TAPE_BYTES": {}, "GOMAD3_SIMULATION_ROLE": {}, "GOMAD3_SIMULATION_REQUEST_FD": {}, "GOMAD3_SIMULATION_RESPONSE_FD": {}, "GOMAD3_SIMULATION_BOOTSTRAP_FD": {}, "GOMAD3_SIMULATION_CONTROL_FD": {}, "TZ": {}, "CGO_ENABLED": {}, "GODEBUG": {}, "GOMAXPROCS": {}, "GOEXPERIMENT": {},
+		choice.DiagnosticProfileEnvironment: {}, "GOMAD3_DIAGNOSTIC_TRACE_FD": {}, "GOMAD3_DIAGNOSTIC_TRACE_BYTES": {}, "GOMAD3_DIAGNOSTIC_PERTURB_DRAW": {}, "GOMADSEED": {}, "GOMAD3_CHILD_SEED": {}, "GOMAD3_IO_PROFILE": {}, record.ClockTickEnvironment: {}, "GOMAD3_CHOICE_PROFILE": {}, "GOMAD3_CHOICE_MODE": {}, "GOMAD3_CHOICE_TRACE_FD": {}, "GOMAD3_CHOICE_TERMINAL_FD": {}, "GOMAD3_CHOICE_TRACE_BYTES": {}, "GOMAD3_CHOICE_TAPE_FD": {}, "GOMAD3_CHOICE_TAPE_BYTES": {}, "GOMAD3_SIMULATION_ROLE": {}, "GOMAD3_SIMULATION_REQUEST_FD": {}, "GOMAD3_SIMULATION_RESPONSE_FD": {}, "GOMAD3_SIMULATION_BOOTSTRAP_FD": {}, "GOMAD3_SIMULATION_CONTROL_FD": {}, "TZ": {}, "CGO_ENABLED": {}, "GODEBUG": {}, "GOMAXPROCS": {}, "GOEXPERIMENT": {},
 		"LD_LIBRARY_PATH": {}, "LD_PRELOAD": {}, "DYLD_LIBRARY_PATH": {}, "DYLD_INSERT_LIBRARIES": {}, "LIBPATH": {}, "SHLIB_PATH": {},
 	}
 	seen := make(map[string]struct{}, len(entries))
@@ -1437,6 +1455,7 @@ func runSeed(ctx context.Context, config CampaignSpec, executor Executor, prepar
 		}
 		request.Simulation = simulationCapability
 		request.Choice = choiceCapability
+		request.Diagnostics = config.Diagnostics
 		if len(config.SupervisorCommand) != 0 {
 			request.BootstrapCommand = []string{config.SupervisorCommand[0], "__target_bootstrap"}
 		}
@@ -1446,6 +1465,13 @@ func runSeed(ctx context.Context, config CampaignSpec, executor Executor, prepar
 		// missing frame, so the run is classified and retained as such.
 		if completion.err == nil && !completion.result.WatchdogTimeout && !completion.result.Cancelled {
 			completion.err = validateObservedChoiceTrace(config.ChoiceTraceLimit, choiceCapability, &completion.result.ChoiceTrace)
+			if completion.err == nil && config.Diagnostics {
+				trace, err := choice.DecodeDiagnosticTrace(completion.result.DiagnosticTrace.Bytes)
+				if err == nil && uint64(len(trace.Records)) != completion.result.ChoiceTrace.Trace.Summary.Records {
+					err = errors.New("diagnostic and choice record counts disagree")
+				}
+				completion.result.DiagnosticTrace, completion.err = trace, err
+			}
 		}
 	}
 	if partialErr := run.Transition(campaign.ExecutionExited); partialErr != nil {
@@ -1558,7 +1584,7 @@ func environmentForSeed(base []record.Environment, seed uint64) []record.Environ
 func environmentStrings(environment []record.Environment) []string {
 	result := make([]string, 0, len(environment))
 	for _, entry := range environment {
-		if entry.Name == "GOMAD3_CHOICE_PROFILE" {
+		if entry.Name == "GOMAD3_CHOICE_PROFILE" || entry.Name == choice.DiagnosticProfileEnvironment {
 			continue
 		}
 		result = append(result, entry.Name+"="+entry.Value)

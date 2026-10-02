@@ -1,0 +1,75 @@
+{
+  "task": "fn-112-gomad-determinism-assurance-and-test.8",
+  "status": "repair_ready_for_parent_rereview",
+  "addressed_finding": "finding-a8971aec2cf3fa7b151be8f2155ab858",
+  "review_session_parent_owned": "01a0fc88-8ceb-77a1-a106-4644b2c68f23",
+  "modified_code": [
+    "tools/gomad3/cmd/gomad/e2e_test.go"
+  ],
+  "frozen_sources": {
+    "tools/gomad3/cmd/gomad/e2e_test.go": "5feb92383f46acf7d698e33d047e100dc1c15c42dd7667a6858610f630b61b53",
+    "tools/gomad3/cmd/gomad/testdata/campaign/main.go": "1d91a27154a10401d2585e251b7fee87ea9580bd8917f9c88a87a5c39bcfbd4c",
+    ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md": "4776678bd80edd1acd406060925f3780ef8cde38df6ded6ecf8a1278c556bc65"
+  },
+  "task_patch_sha256": "1d129f823963139c160ce11a85340afaa0061d3fdcc01c16ff709c90c2380b95",
+  "incremental_patch_sha256": "543120210b3fa3f5de20c839df3d8f6356b0f84306d01a3dcf8d885754e49aa8",
+  "negative_control": {
+    "red_exit": 1,
+    "green_exit": 0,
+    "from_actual_inspected_cli_baseline": true,
+    "only_mutation": "copied Journal.Limits.MaximumBytes increment",
+    "real_baseline_unchanged": true,
+    "red_source": {
+      "tools/gomad3/cmd/gomad/e2e_test.go": "4daa76dcfb914e2332e01ec2d6dbf9817b01b3fbafb5b46a8598e93fd6daadc4",
+      "tools/gomad3/cmd/gomad/testdata/campaign/main.go": "1d91a27154a10401d2585e251b7fee87ea9580bd8917f9c88a87a5c39bcfbd4c",
+      ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md": "4776678bd80edd1acd406060925f3780ef8cde38df6ded6ecf8a1278c556bc65"
+    }
+  },
+  "final_twenty": {
+    "checks": {
+      "explore_replay": 20,
+      "kill_resume": 20,
+      "capacity_negative_controls": 20,
+      "kills_after_2": 20,
+      "kills_after_0": 20,
+      "semantic_record_comparisons": 120,
+      "failures": 0
+    },
+    "log_sha256": "ad5296b9a0e8083b3ae9f195f9c49ec090c4ed1a319fa1011263061d4e9d4595",
+    "sources": {
+      "tools/gomad3/cmd/gomad/e2e_test.go": "5feb92383f46acf7d698e33d047e100dc1c15c42dd7667a6858610f630b61b53",
+      "tools/gomad3/cmd/gomad/testdata/campaign/main.go": "1d91a27154a10401d2585e251b7fee87ea9580bd8917f9c88a87a5c39bcfbd4c",
+      ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md": "4776678bd80edd1acd406060925f3780ef8cde38df6ded6ecf8a1278c556bc65"
+    },
+    "elapsed_seconds": 235.732,
+    "exit": 0
+  },
+  "commands": "commands.json",
+  "full_host": {
+    "exit": 0,
+    "stock_go": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go",
+    "passing_package_lines": 45,
+    "platform": "darwin/arm64"
+  },
+  "limitations": [
+    "native linux/amd64 unverified",
+    "root lint missing-main/nested-module discovery failures",
+    "prior default-entrypoint stock lookup owner fn-112.12",
+    "prior watchdog terminal frame failure owner fn-112.11",
+    "fixture uses valid None World"
+  ],
+  "prior_round_artifact_references": {
+    "evidence-bindings.json": "317dc65b14869f05eb822f84cabef8797588a465eb962104bc353e3b81abfc53",
+    "source-freeze.json": "cbae0d549ff2e04b27607a3e21a5691d2046ba080679949a752c2ca17ddc3da8",
+    "task-only.patch": "03fd54853c3d212b1ff22dd03f518813a62e91b9904cae9fe922b0ca4ef02324",
+    "handover-evidence.json": "af8eeea9f708c76dad29a686b754b317d959e8a9fa53502ef70b2ce54a8225ae",
+    "retained-cli-evidence.json": "16d5ed0b9845b0e53348b15a8ccb3a036649886a08ea60c63455057d1ccc64ff",
+    "review-round1.md": "b22335a23ff9eec53e479a3e588d2ed18065e6bfcc60f83c339857d392506764",
+    "review-round1.json": "0c0840a9c4c8631722cdaa9bc46a681d675fcde08de26340466a2ab410fddfde"
+  },
+  "prior_sample_note": "Historical sample remains unchanged; production CLI/fixture identity unchanged; final-source gates are freshly rerun for changed e2e test.",
+  "parent_patch_receipt": "parent-patch-validation.json",
+  "preservation": "preservation-validation.json",
+  "cleanup": "cleanup-validation.json",
+  "git_changes": "No staging/commit/push/stash/worktree; parent owns all decisions; user owns commits."
+}

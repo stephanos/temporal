@@ -1,0 +1,1 @@
+{"schema":"gomad3.explore-event/v3","type":"error","classification":"invalid_input","message":"campaign lifecycle \"published\" is not resumable"}

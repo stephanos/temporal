@@ -1,0 +1,10 @@
+{
+  "commits": [
+    "8789deab055d1b72ac6bc86711d74f3fd7313fa2"
+  ],
+  "tests": [
+    "make -C tools/gomad3 validate",
+    "gh run view 36968858553 --repo stephanos/temporal --json status,conclusion,url,headSha,jobs"
+  ],
+  "prs": []
+}

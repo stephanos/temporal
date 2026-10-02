@@ -1,0 +1,5 @@
+- [ ] Reproduce and retain the real built-CLI watchdog failure with exact source, argv, toolchain identity and output before editing.
+- [ ] A verified watchdog returns the documented CLI watchdog classification/status and retains only evidence the record contract permits; it is not relabeled as success or an ordinary target failure.
+- [ ] Missing completion evidence after watchdog/cancellation is handled narrowly; corrupt/malformed terminals, unverified termination, ordinary incomplete exits, replay divergence and capacity errors keep their required failure behavior with focused negative coverage.
+- [ ] Existing kill/resume semantic and per-store integrity comparisons still pass, as do focused process/collector tests and the complete Darwin host gate.
+- [ ] Source-bound evidence, exact patch, lint limitations and Linux status are recorded; independent implementation review returns SHIP.

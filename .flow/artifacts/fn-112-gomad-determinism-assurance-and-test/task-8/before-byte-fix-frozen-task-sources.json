@@ -1,0 +1,12 @@
+{
+  "sources": {
+    "tools/gomad3/cmd/gomad/e2e_test.go": "62237110c243d0776afe88e468032be15df876fb4cba406ec5aaf4ede149b94b",
+    "tools/gomad3/cmd/gomad/testdata/campaign/main.go": "1d91a27154a10401d2585e251b7fee87ea9580bd8917f9c88a87a5c39bcfbd4c",
+    ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md": "18cf3efd4ec7ec9ec2b63881c63ba63d15b7d5fd62acf4baab49e174446355d0"
+  },
+  "patch_sha256": "63331713d707fe9e66e1f99d5d38a605733906ece53a7462650042c450f53804",
+  "toolchain_build_key": "56e4a2f0c5514d43b9a0682d030964588dd3d5a58978ba0b989459bb556843a3",
+  "branch": "stephanos/gomad",
+  "head": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+  "linux": "unverified: no native linux/amd64 host"
+}

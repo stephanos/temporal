@@ -29,6 +29,8 @@ func ValidateTranscriptLimit(limit uint64) error {
 	return nil
 }
 
+var ErrTranscriptUnterminated = errors.New("I/O transcript terminal is absent")
+
 type SessionSpec struct {
 	Limit    uint64
 	Replay   bool
@@ -175,6 +177,9 @@ func (session *Session) Close() error {
 }
 
 func (session *Session) collectFrame(frame []byte) (Transcript, error) {
+	if len(frame) == 0 {
+		return Transcript{}, ErrTranscriptUnterminated
+	}
 	completed, err := iowire.DecodeTerminal(frame)
 	if err != nil {
 		return Transcript{}, err

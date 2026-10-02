@@ -1,0 +1,5 @@
+--- FAIL: TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound (0.26s)
+    runner_test.go:1115: diverging exploration discarded its completed round: gomad3 Runner/host failure: target_supervision: choice replay divergence: ordinal=0 reason=alternative_set
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner	0.697s
+FAIL

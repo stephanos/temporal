@@ -5,6 +5,9 @@
 package gomadio
 
 import (
+	"errors"
+	"os"
+	"syscall"
 	"testing"
 	"unsafe"
 )
@@ -84,5 +87,30 @@ func TestAnonymousAllocatorEnforcesCumulativeBound(t *testing.T) {
 		t.Fatal("allocate() after release = 0")
 	} else if !allocator.release(second, 4096) {
 		t.Fatal("second release() = false")
+	}
+}
+
+func TestCapturedLibcDescriptorKeepsClosedErrno(t *testing.T) {
+	descriptor, errno := LibcOpen(t.TempDir()+"/captured", os.O_RDWR|os.O_CREATE, 0600)
+	if errno != 0 {
+		t.Fatal(errno)
+	}
+	state, found := libcFile(descriptor)
+	if !found {
+		t.Fatal("descriptor missing")
+	}
+	if errno := LibcClose(descriptor); errno != 0 {
+		t.Fatal(errno)
+	}
+	_, err := state.file.Read(make([]byte, 1))
+	if errno := libcErrno(err); errno != syscall.EBADF {
+		t.Fatalf("captured descriptor error=%v libc errno=%v, want EBADF", err, errno)
+	}
+	var pathError *os.PathError
+	if !errors.As(err, &pathError) {
+		t.Fatalf("captured descriptor error=%T %v", err, err)
+	}
+	if count, errno := LibcRead(descriptor, 0, 0, 0, false); count != -1 || errno != syscall.EBADF {
+		t.Fatalf("removed descriptor read=(%d,%v)", count, errno)
 	}
 }

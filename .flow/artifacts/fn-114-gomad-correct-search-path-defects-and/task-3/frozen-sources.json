@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-10-02T14:04:30.887511+00:00",
+  "sources": {
+    "tools/gomad3/runner/internal/corpus/model.go": "b8a120419a4476ca34f4296de2f9cc1884b3d806eeddfb3f3cfd9cb843703ca7",
+    "tools/gomad3/runner/internal/corpus/corpus.go": "f0052afcaac385cd2e68c1c20cfd630a00d74783529594fb6960f67a8a61e38a",
+    "tools/gomad3/runner/internal/corpus/corpus_test.go": "adfffff9e9c71a20917646f68bbeb23118501f4ec7849e6d2d5be3ec8521d076",
+    "tools/gomad3/runner/internal/corpus/guide_test.go": "5d17b93af57b747d3d920a952ccb594aec078261a23389d643c356d7e8e2ecab",
+    "tools/gomad3/runner/guidance.go": "8fb915212523ed4476ad15713cda6f4f4588a8631549d9219923697484f6bb55",
+    "tools/gomad3/target/target.go": "bca540560826cbb75daf20048d1faa9bf0f1980c5b83754b32da601d95f2026a",
+    "tools/gomad3/target/target_test.go": "16aef365cbc3d5f4456a1ce39113b732a6faceed662e544e633850125538853a",
+    "tools/gomad3/runner/replay_operation.go": "eb774c01b4bd574f36c7f1bb168791dd1e1b03ddbf4a6e2c350679561a935216",
+    "tools/gomad3/runner/guidance_identity_test.go": "b76ed42750b8ffae3fec12a23a36478e98065d84f06cd72604d3db638aaca0ef",
+    "tools/gomad3/runner/coverage_replay_test.go": "29a907521acc1b89ca2d51bd0dcdb0a17eee0870863133453f6daaf444b4c246",
+    "tools/gomad3/target/coverage_test.go": "5124e0acb0609ed4122b871d1116c5192d98865d4237dee375e9f046fa0ba276"
+  },
+  "patch_sha256": "b9561c8e754d720e17a284b802cb67b2ac704ebd4d531bf36632f4f75a607f9e"
+}

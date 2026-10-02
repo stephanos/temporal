@@ -1,0 +1,5 @@
+{
+  "tools/gomad3/cmd/gomad/e2e_test.go": "265ed44eb99a86e99ce8deeb4c6c24acc99264d57da60c27040de9c2ae94c4dc",
+  "tools/gomad3/cmd/gomad/testdata/campaign/main.go": "1d91a27154a10401d2585e251b7fee87ea9580bd8917f9c88a87a5c39bcfbd4c",
+  ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md": "4776678bd80edd1acd406060925f3780ef8cde38df6ded6ecf8a1278c556bc65"
+}

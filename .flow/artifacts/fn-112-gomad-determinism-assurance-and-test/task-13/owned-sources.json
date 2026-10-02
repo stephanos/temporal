@@ -1,0 +1,5 @@
+[
+  "tools/gomad3/runner/replay_operation.go",
+  "tools/gomad3/runner/watchdog_replay_test.go",
+  "tools/gomad3/cmd/gomad/watchdog_replay_e2e_test.go"
+]

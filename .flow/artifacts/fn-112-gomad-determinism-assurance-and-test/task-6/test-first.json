@@ -1,0 +1,30 @@
+{
+  "command": [
+    "env",
+    "-u",
+    "GOROOT",
+    "-u",
+    "GOMADSEED",
+    "-u",
+    "GOMAD3_CHILD_SEED",
+    "GOFLAGS=-tags=test_dep",
+    "tools/gomad3/.toolchain/bin/go",
+    "-C",
+    "tools/gomad3",
+    "test",
+    "-count=1",
+    "./internal/gomadtool/conformance",
+    "-run",
+    "^TestRuntimeChannelFixtures$"
+  ],
+  "red": {
+    "exit": 1,
+    "reason": "timer_ties fixture directory does not exist",
+    "log_sha256": "740340e45ed3e6ec26c93545e0fba82b2cc115b3548b1cca38fdb760f7037d2c"
+  },
+  "green": {
+    "exit": 0,
+    "log_sha256": "9cf28b64ddba527a97210a9ca5d77423ab8c7e253cb39ff8824377c11c82134f"
+  },
+  "scope": "pre-format test-first probe; final frozen package test separately passes in conformance.log"
+}

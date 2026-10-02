@@ -3,6 +3,7 @@ package corpus
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -270,6 +271,15 @@ func (corpus *Corpus) readSnapshot() (Snapshot, error) {
 	if err != nil {
 		return Snapshot{}, fmt.Errorf("read guided corpus snapshot: %w", err)
 	}
+	var header struct {
+		Schema string `json:"schema"`
+	}
+	if err := json.Unmarshal(contents, &header); err != nil {
+		return Snapshot{}, fmt.Errorf("decode guided corpus snapshot schema: %w", err)
+	}
+	if header.Schema != CorpusSchema {
+		return Snapshot{}, errors.New("guided corpus schema is invalid")
+	}
 	var snapshot Snapshot
 	if err := canonicaljson.DecodeCanonicalJSON(contents, &snapshot); err != nil {
 		return Snapshot{}, fmt.Errorf("decode guided corpus snapshot: %w", err)
@@ -281,7 +291,7 @@ func (corpus *Corpus) readSnapshot() (Snapshot, error) {
 	if finalized.SnapshotSHA256 != snapshot.SnapshotSHA256 || finalized.CoverageSHA256 != snapshot.CoverageSHA256 {
 		return Snapshot{}, errors.New("guided corpus snapshot identity mismatch")
 	}
-	if snapshot.Identity != corpus.identity {
+	if !identitiesEqual(snapshot.Identity, corpus.identity) {
 		return Snapshot{}, errors.New("guided corpus identity does not match the prepared target and toolchain")
 	}
 	if len(snapshot.Entries) > maximumEntries {
@@ -333,12 +343,12 @@ func (corpus *Corpus) validateEntry(entry Entry) error {
 	if !profile.MatchesRecorded(manifest.IOProfile.Name, string(manifest.IOProfile.ImplementationSHA256), string(manifest.IOProfile.InventorySHA256), manifest.IOProfile.Inventory) {
 		return errors.New("guided corpus case boundary identity does not match this Runner")
 	}
-	targetIdentity, err := IdentityFor(manifest.Target, manifest.Toolchain, corpus.identity.BoundaryVersion, corpus.identity.BoundarySHA256)
+	targetIdentity, err := IdentityFor(manifest.Target, manifest.Toolchain, corpus.identity.BoundaryVersion, corpus.identity.BoundarySHA256, manifest.Environment)
 	if corpus.identity.ChoiceProfile != nil {
 		if manifest.ChoiceProfile == nil || manifest.ChoiceProfile.Name != corpus.identity.ChoiceProfile.Profile || manifest.ChoiceProfile.ImplementationSHA256 != corpus.identity.ChoiceProfile.ImplementationSHA256 || manifest.ChoiceProfile.Trace.Limit != corpus.identity.ChoiceProfile.Limit {
 			return errors.New("guided corpus case choice profile identity mismatch")
 		}
-		targetIdentity, err = IdentityForChoice(manifest.Target, manifest.Toolchain, corpus.identity.BoundaryVersion, corpus.identity.BoundarySHA256, *corpus.identity.ChoiceProfile)
+		targetIdentity, err = IdentityForChoice(manifest.Target, manifest.Toolchain, corpus.identity.BoundaryVersion, corpus.identity.BoundarySHA256, manifest.Environment, *corpus.identity.ChoiceProfile)
 	}
 	if err != nil || !identitiesEqual(targetIdentity, corpus.identity) {
 		return errors.Join(errors.New("guided corpus case target identity mismatch"), err)
@@ -483,6 +493,7 @@ func artifactPayloadBytes(manifest record.ExecutionRecord) (uint64, error) {
 
 func validateIdentity(identity Identity) error {
 	_, targetErr := record.ParseSHA256(string(identity.TargetSHA256))
+	_, environmentErr := record.ParseSHA256(string(identity.EnvironmentSHA256))
 	_, boundaryErr := record.ParseSHA256(string(identity.BoundarySHA256))
 	validInstrumentation := identity.ChoiceProfile == nil && identity.InstrumentationSchema == SemanticFeatureSchema && identity.InstrumentationSHA256 == semanticInstrumentationIdentity()
 	if identity.ChoiceProfile != nil {
@@ -490,7 +501,7 @@ func validateIdentity(identity Identity) error {
 		profileIdentity, profileErr := choiceInstrumentationIdentity(*identity.ChoiceProfile)
 		validInstrumentation = err == nil && profileErr == nil && identity.ChoiceProfile.Profile == choice.Profile && identity.ChoiceProfile.ImplementationSHA256 == record.SHA256FromSum(implementation) && identity.ChoiceProfile.Limit >= choice.MinimumTraceBytes && identity.ChoiceProfile.Limit <= choice.MaximumTraceBytes && identity.InstrumentationSchema == ChoiceFeatureSchema && identity.InstrumentationSHA256 == profileIdentity
 	}
-	if targetErr != nil || identity.Toolchain.GoVersion == "" || identity.Toolchain.BuildKey == "" || identity.Toolchain.TargetGOOS == "" || identity.Toolchain.TargetGOARCH == "" || identity.BoundaryVersion == "" || boundaryErr != nil || !validInstrumentation || identity.ManifestSchemaVersion != record.SchemaVersion || identity.ManifestRecordContract != record.RecordContract {
+	if targetErr != nil || environmentErr != nil || identity.Toolchain.GoVersion == "" || identity.Toolchain.BuildKey == "" || identity.Toolchain.TargetGOOS == "" || identity.Toolchain.TargetGOARCH == "" || identity.BoundaryVersion == "" || boundaryErr != nil || !validInstrumentation || identity.ManifestSchemaVersion != record.SchemaVersion || identity.ManifestRecordContract != record.RecordContract {
 		return errors.New("guided corpus identity is invalid")
 	}
 	return nil

@@ -1,0 +1,16 @@
+/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-task8-retained-driver-6fsp6sob/gomad: go1.27.1
+	path	go.temporal.io/server/tools/gomad3/cmd/gomad
+	mod	go.temporal.io/server/tools/gomad3	v0.0.0-20261002063818-1d7272e654f2+dirty	
+	dep	golang.org/x/mod	v0.37.0	h1:vF1DjpVEshcIqoEaauuHebaLk1O1forxjxBaVn884JQ=
+	build	-buildmode=exe
+	build	-compiler=gc
+	build	-tags=test_dep
+	build	-trimpath=true
+	build	CGO_ENABLED=0
+	build	GOARCH=arm64
+	build	GOOS=darwin
+	build	GOARM64=v8.0
+	build	vcs=git
+	build	vcs.revision=1d7272e654f268f9a45f3fe965918fe2522827c6
+	build	vcs.time=2026-10-02T06:38:18Z
+	build	vcs.modified=true

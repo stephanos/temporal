@@ -1,0 +1,12 @@
+{
+  "patch_sha256": "03fd54853c3d212b1ff22dd03f518813a62e91b9904cae9fe922b0ca4ef02324",
+  "reconstructed_files": [
+    "tools/gomad3/cmd/gomad/e2e_test.go",
+    "tools/gomad3/cmd/gomad/testdata/campaign/main.go",
+    ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md"
+  ],
+  "frozen_source_count": 3,
+  "protected_source_count": 60,
+  "result": "pass",
+  "method": "Applied exact task patch to actual original task spec and absent source files in disposable non-worktree directory; compared all output hashes to frozen source and current tree."
+}

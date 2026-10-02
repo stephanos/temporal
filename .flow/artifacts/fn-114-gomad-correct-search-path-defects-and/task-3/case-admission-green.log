@@ -1,0 +1,6 @@
+=== RUN   TestCorpusRejectsCaseWithChangedEnvironment
+    corpus_test.go:288: changed case admission = false, guided corpus case target identity mismatch, replayed = true
+--- FAIL: TestCorpusRejectsCaseWithChangedEnvironment (0.05s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/corpus	0.416s
+FAIL

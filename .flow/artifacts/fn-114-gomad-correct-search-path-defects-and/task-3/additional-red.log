@@ -1,0 +1,15 @@
+=== RUN   TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity
+=== RUN   TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity/gomad3.guide-corpus/v1
+    corpus_test.go:265: schema rejection = guided corpus snapshot identity mismatch
+=== RUN   TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity/gomad3.guide-corpus/v999
+--- FAIL: TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity (0.00s)
+    --- FAIL: TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity/gomad3.guide-corpus/v1 (0.00s)
+    --- PASS: TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity/gomad3.guide-corpus/v999 (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/corpus	0.404s
+=== RUN   TestReplayBuildInfoRejectsMatchingCoverageInstrumentation
+    coverage_replay_test.go:15: matching coverage build-info rejection = <nil>
+--- FAIL: TestReplayBuildInfoRejectsMatchingCoverageInstrumentation (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner	0.320s
+FAIL

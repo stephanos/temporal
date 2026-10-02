@@ -1,0 +1,2427 @@
+diff --git a/tools/gomad3/choice/diagnostic.go b/tools/gomad3/choice/diagnostic.go
+--- /dev/null
++++ b/tools/gomad3/choice/diagnostic.go
+@@ -0,0 +1,202 @@
++package choice
++
++import (
++	"crypto/sha256"
++	"errors"
++	"fmt"
++	"io"
++	"os"
++
++	"go.temporal.io/server/tools/gomad3/choice/internal/wire"
++)
++
++const DiagnosticProfile = wire.DiagnosticProfile
++const DiagnosticProfileEnvironment = "GOMAD3_DIAGNOSTIC_PROFILE"
++const MaximumDiagnosticBytes = wire.DiagnosticMaximumBytes
++
++var ErrDiagnosticIncomplete = errors.New("diagnostic trace incomplete")
++
++type DiagnosticRecord wire.DiagnosticRecord
++
++type DiagnosticTrace struct {
++	Bytes    []byte
++	SHA256   [sha256.Size]byte
++	Records  []DiagnosticRecord
++	Capacity uint64
++}
++
++type DiagnosticDivergence struct {
++	Ordinal  uint64            `json:"ordinal"`
++	Fields   []string          `json:"fields"`
++	Expected *DiagnosticRecord `json:"expected,omitempty"`
++	Actual   *DiagnosticRecord `json:"actual,omitempty"`
++}
++
++type DiagnosticSession struct {
++	trace *os.File
++	limit uint64
++}
++
++func DiagnosticLimit(choiceLimit uint64) (uint64, error) {
++	if err := ValidateTraceLimit(choiceLimit); err != nil {
++		return 0, err
++	}
++	limit := uint64(wire.DiagnosticHeaderBytes) + (choiceLimit-traceHeaderBytes)/traceRecordBytes*wire.DiagnosticRecordBytes
++	if limit > MaximumDiagnosticBytes {
++		return 0, errors.New("diagnostic trace capacity exceeds 64 MiB")
++	}
++	return limit, nil
++}
++
++func NewDiagnosticSession(limit uint64) (_ *DiagnosticSession, retErr error) {
++	header := wire.EncodeDiagnosticHeader(limit)
++	if _, err := wire.DecodeDiagnosticHeader(header[:]); err != nil {
++		return nil, err
++	}
++	trace, err := os.CreateTemp("", "gomad3-diagnostic-trace-")
++	if err != nil {
++		return nil, fmt.Errorf("create diagnostic backing: %w", err)
++	}
++	defer func() {
++		if retErr != nil {
++			retErr = errors.Join(retErr, trace.Close())
++		}
++	}()
++	if err := os.Remove(trace.Name()); err != nil {
++		return nil, fmt.Errorf("unlink diagnostic backing: %w", err)
++	}
++	if err := trace.Truncate(int64(limit)); err != nil {
++		return nil, fmt.Errorf("size diagnostic backing: %w", err)
++	}
++	if _, err := trace.WriteAt(header[:], 0); err != nil {
++		return nil, fmt.Errorf("initialize diagnostic backing: %w", err)
++	}
++	return &DiagnosticSession{trace: trace, limit: limit}, nil
++}
++
++func (session *DiagnosticSession) File() *os.File { return session.trace }
++
++func (session *DiagnosticSession) Close() error {
++	if session == nil {
++		return nil
++	}
++	return closeSessionFile(&session.trace)
++}
++
++func (session *DiagnosticSession) Collect() (DiagnosticTrace, error) {
++	headerBytes := make([]byte, wire.DiagnosticHeaderBytes)
++	if _, err := session.trace.ReadAt(headerBytes, 0); err != nil {
++		return DiagnosticTrace{}, fmt.Errorf("read diagnostic header: %w", err)
++	}
++	header, err := wire.DecodeDiagnosticHeader(headerBytes)
++	if err != nil {
++		return DiagnosticTrace{}, err
++	}
++	if header.Capacity != session.limit {
++		return DiagnosticTrace{}, errors.New("diagnostic capacity changed")
++	}
++	if header.State != wire.DiagnosticComplete {
++		return DiagnosticTrace{}, ErrDiagnosticIncomplete
++	}
++	data := make([]byte, header.NextOffset)
++	if _, err := session.trace.ReadAt(data, 0); err != nil {
++		return DiagnosticTrace{}, fmt.Errorf("read diagnostic trace: %w", err)
++	}
++	return DecodeDiagnosticTrace(data)
++}
++
++func ReadDiagnosticTrace(path string) (DiagnosticTrace, error) {
++	file, err := os.Open(path)
++	if err != nil {
++		return DiagnosticTrace{}, err
++	}
++	data, readErr := io.ReadAll(io.LimitReader(file, MaximumDiagnosticBytes+1))
++	if err := errors.Join(readErr, file.Close()); err != nil {
++		return DiagnosticTrace{}, err
++	}
++	return DecodeDiagnosticTrace(data)
++}
++
++func DecodeDiagnosticTrace(data []byte) (DiagnosticTrace, error) {
++	if len(data) < wire.DiagnosticHeaderBytes || len(data) > MaximumDiagnosticBytes {
++		return DiagnosticTrace{}, errors.New("diagnostic trace size invalid")
++	}
++	header, err := wire.DecodeDiagnosticHeader(data[:wire.DiagnosticHeaderBytes])
++	if err != nil {
++		return DiagnosticTrace{}, err
++	}
++	if header.State != wire.DiagnosticComplete {
++		return DiagnosticTrace{}, ErrDiagnosticIncomplete
++	}
++	if uint64(len(data)) != header.NextOffset {
++		return DiagnosticTrace{}, errors.New("diagnostic trace length does not match header")
++	}
++	records := make([]DiagnosticRecord, header.RecordCount)
++	for index := range records {
++		offset := wire.DiagnosticHeaderBytes + index*wire.DiagnosticRecordBytes
++		decoded, err := wire.DecodeDiagnosticRecord(data[offset : offset+wire.DiagnosticRecordBytes])
++		if err != nil {
++			return DiagnosticTrace{}, fmt.Errorf("diagnostic record %d: %w", index, err)
++		}
++		record := DiagnosticRecord(decoded)
++		if record.Ordinal != uint64(index) {
++			return DiagnosticTrace{}, fmt.Errorf("diagnostic record %d ordinal invalid", index)
++		}
++		if index > 0 && diagnosticRegressed(records[index-1], record) {
++			return DiagnosticTrace{}, fmt.Errorf("diagnostic record %d counters moved backwards", index)
++		}
++		records[index] = record
++	}
++	return DiagnosticTrace{Bytes: append([]byte(nil), data...), SHA256: sha256.Sum256(data), Records: records, Capacity: header.Capacity}, nil
++}
++
++func diagnosticRegressed(previous, current DiagnosticRecord) bool {
++	return current.VirtualTime < previous.VirtualTime || current.Allocations < previous.Allocations || current.GCCycle < previous.GCCycle ||
++		current.RunqDraws < previous.RunqDraws || current.SchedulerDraws < previous.SchedulerDraws || current.SelectDraws < previous.SelectDraws ||
++		current.RuntimeRandDraws < previous.RuntimeRandDraws || current.RuntimeCheapRandDraws < previous.RuntimeCheapRandDraws || current.TimerDraws < previous.TimerDraws || current.ClockTickDraws < previous.ClockTickDraws
++}
++
++func DiffDiagnostics(expectedBytes, actualBytes []byte) (*DiagnosticDivergence, error) {
++	expected, err := DecodeDiagnosticTrace(expectedBytes)
++	if err != nil {
++		return nil, fmt.Errorf("expected diagnostic trace: %w", err)
++	}
++	actual, err := DecodeDiagnosticTrace(actualBytes)
++	if err != nil {
++		return nil, fmt.Errorf("actual diagnostic trace: %w", err)
++	}
++	for index := 0; index < max(len(expected.Records), len(actual.Records)); index++ {
++		difference := &DiagnosticDivergence{Ordinal: uint64(index)}
++		if index < len(expected.Records) {
++			value := expected.Records[index]
++			difference.Expected = &value
++		}
++		if index < len(actual.Records) {
++			value := actual.Records[index]
++			difference.Actual = &value
++		}
++		if difference.Expected == nil || difference.Actual == nil {
++			difference.Fields = []string{"record_presence"}
++			return difference, nil
++		}
++		left, right := *difference.Expected, *difference.Actual
++		for _, field := range []struct {
++			name  string
++			equal bool
++		}{
++			{"virtual_time", left.VirtualTime == right.VirtualTime}, {"allocations", left.Allocations == right.Allocations},
++			{"gc_cycle", left.GCCycle == right.GCCycle}, {"gc_phase", left.GCPhase == right.GCPhase}, {"run_queue_length", left.RunQueueLength == right.RunQueueLength},
++			{"runq_draws", left.RunqDraws == right.RunqDraws}, {"scheduler_draws", left.SchedulerDraws == right.SchedulerDraws}, {"select_draws", left.SelectDraws == right.SelectDraws},
++			{"runtime_rand_draws", left.RuntimeRandDraws == right.RuntimeRandDraws}, {"runtime_cheap_rand_draws", left.RuntimeCheapRandDraws == right.RuntimeCheapRandDraws},
++			{"timer_draws", left.TimerDraws == right.TimerDraws}, {"clock_tick_draws", left.ClockTickDraws == right.ClockTickDraws},
++		} {
++			if !field.equal {
++				difference.Fields = append(difference.Fields, field.name)
++			}
++		}
++		if len(difference.Fields) != 0 {
++			return difference, nil
++		}
++	}
++	return nil, nil
++}
+diff --git a/tools/gomad3/choice/diagnostic_test.go b/tools/gomad3/choice/diagnostic_test.go
+--- /dev/null
++++ b/tools/gomad3/choice/diagnostic_test.go
+@@ -0,0 +1,98 @@
++package choice
++
++import (
++	"encoding/binary"
++	"reflect"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/choice/internal/wire"
++)
++
++func diagnosticBytes(records ...wire.DiagnosticRecord) []byte {
++	header := wire.EncodeDiagnosticHeader(4096)
++	header[12] = byte(wire.DiagnosticComplete)
++	binary.BigEndian.PutUint64(header[24:32], uint64(64+96*len(records)))
++	binary.BigEndian.PutUint64(header[32:40], uint64(len(records)))
++	contents := append([]byte(nil), header[:]...)
++	for _, record := range records {
++		encoded := wire.EncodeDiagnosticRecord(record)
++		contents = append(contents, encoded[:]...)
++	}
++	return contents
++}
++
++func TestDiagnosticDiffFindsFirstOrdinalAndFields(t *testing.T) {
++	plain := []wire.DiagnosticRecord{{Ordinal: 0, Allocations: 2}, {Ordinal: 1, Allocations: 3, RuntimeCheapRandDraws: 2}}
++	changed := append([]wire.DiagnosticRecord(nil), plain...)
++	changed[1].RuntimeCheapRandDraws++
++	difference, err := DiffDiagnostics(diagnosticBytes(plain...), diagnosticBytes(changed...))
++	if err != nil {
++		t.Fatal(err)
++	}
++	if difference == nil || difference.Ordinal != 1 || !reflect.DeepEqual(difference.Fields, []string{"runtime_cheap_rand_draws"}) {
++		t.Fatalf("difference = %+v", difference)
++	}
++	changed[0].Allocations++
++	difference, err = DiffDiagnostics(diagnosticBytes(plain...), diagnosticBytes(changed...))
++	if err != nil || difference == nil || difference.Ordinal != 0 {
++		t.Fatalf("ordinal zero difference = %+v, %v", difference, err)
++	}
++	difference, err = DiffDiagnostics(diagnosticBytes(plain...), diagnosticBytes(plain[:1]...))
++	if err != nil || difference == nil || difference.Ordinal != 1 || !reflect.DeepEqual(difference.Fields, []string{"record_presence"}) {
++		t.Fatalf("length difference = %+v, %v", difference, err)
++	}
++	difference, err = DiffDiagnostics(diagnosticBytes(plain...), diagnosticBytes(plain...))
++	if err != nil || difference != nil {
++		t.Fatalf("equal traces = %+v, %v", difference, err)
++	}
++}
++
++func TestDiagnosticDiffValidatesEntireInputsBeforeReporting(t *testing.T) {
++	plain := diagnosticBytes(wire.DiagnosticRecord{Ordinal: 0}, wire.DiagnosticRecord{Ordinal: 1})
++	for name, mutate := range map[string]func([]byte) []byte{
++		"truncated header":   func(data []byte) []byte { return data[:63] },
++		"truncated record":   func(data []byte) []byte { return data[:len(data)-1] },
++		"extra bytes":        func(data []byte) []byte { return append(data, 0) },
++		"recording":          func(data []byte) []byte { data[12] = 0; return data },
++		"overflow":           func(data []byte) []byte { data[12] = 2; return data },
++		"ordinal":            func(data []byte) []byte { data[64+96+7] = 3; return data },
++		"reserved tail":      func(data []byte) []byte { data[64+96+29] = 1; return data },
++		"counter regression": func(data []byte) []byte { data[64+47] = 2; return data },
++	} {
++		t.Run(name, func(t *testing.T) {
++			broken := mutate(append([]byte(nil), plain...))
++			different := diagnosticBytes(wire.DiagnosticRecord{Ordinal: 0, Allocations: 1}, wire.DiagnosticRecord{Ordinal: 1, Allocations: 1})
++			if difference, err := DiffDiagnostics(different, broken); err == nil || difference != nil {
++				t.Fatalf("invalid input returned %+v, %v", difference, err)
++			}
++		})
++	}
++}
++
++func TestDiagnosticSessionCollectsOnlyCompleteBoundedTrace(t *testing.T) {
++	session, err := NewDiagnosticSession(4096)
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer session.Close()
++	if _, err := session.Collect(); err == nil {
++		t.Fatal("recording trace accepted")
++	}
++	data := diagnosticBytes(wire.DiagnosticRecord{Ordinal: 0, RuntimeRandDraws: 1})
++	if _, err := session.File().WriteAt(data, 0); err != nil {
++		t.Fatal(err)
++	}
++	trace, err := session.Collect()
++	if err != nil {
++		t.Fatal(err)
++	}
++	if len(trace.Bytes) != 160 || len(trace.Records) != 1 || trace.Records[0].RuntimeRandDraws != 1 {
++		t.Fatalf("trace %+v", trace)
++	}
++	if limit, err := DiagnosticLimit(MaximumTraceBytes); err != nil || limit > MaximumDiagnosticBytes || limit < 160 {
++		t.Fatalf("maximum bound %d: %v", limit, err)
++	}
++	if _, err := NewDiagnosticSession(MaximumDiagnosticBytes + 1); err == nil {
++		t.Fatal("oversized diagnostic capacity accepted")
++	}
++}
+diff --git a/tools/gomad3/cmd/gomad/internal/cli/cli.go b/tools/gomad3/cmd/gomad/internal/cli/cli.go
+--- a/tools/gomad3/cmd/gomad/internal/cli/cli.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/cli.go
+@@ -430,6 +430,7 @@
+ 	planOnly := flags.Bool("__plan", false, "create a campaign plan")
+ 	planOutput := flags.String("output", "", "campaign plan output")
+ 	choices := flags.Bool("choices", false, "record bounded runtime choices")
++	diagnostics := flags.Bool("diagnostics", false, "record runtime-state diagnostics; implies --choices")
+ 	coverage := flags.String("coverage", string(runner.CoverageNone), "none, semantic, choice, or semantic+choice")
+ 	guide := flags.Bool("guide", false, "guide selection from a bounded coverage corpus")
+ 	corpus := flags.String("corpus", "", "guided coverage corpus directory")
+@@ -524,7 +525,7 @@
+ 		}
+ 	})
+ 	resolvedStrategy, resolvedChoices, err := resolveExploreStrategy(exploreStrategyOptions{
+-		Value: *strategy, Seeds: *seeds, CountSet: countSet, Guide: *guide, Choices: *choices,
++		Value: *strategy, Seeds: *seeds, CountSet: countSet, Guide: *guide, Choices: *choices || *diagnostics,
+ 		MaxExecutions: *maxRuns, MaxChoiceDepth: *maxChoiceDepth, MaxForcedDecisions: *maxForcedDecisions,
+ 		MaxExplorationBytes: explorationLimit, MaxExplorationResultBytes: explorationResultLimit,
+ 		SimulationDimensionLimits: runner.SimulationDimensionLimits{
+@@ -567,6 +568,12 @@
+ 		}
+ 		return 2
+ 	}
++	if *diagnostics && resolvedStrategy != runner.StrategySeed {
++		if err := reporter.Error("invalid_input", errors.New("--diagnostics requires the seed strategy; forced-prefix exploration is unsupported")); err != nil {
++			return 3
++		}
++		return 2
++	}
+ 	resolvedChoiceLimit, err := resolveChoiceTrace(resolvedChoices, choiceLimit, choiceLimitSet)
+ 	if err != nil {
+ 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
+@@ -617,7 +624,7 @@
+ 	config := runner.CampaignSpec{
+ 		Strategy: resolvedStrategy, Seeds: resolvedSeeds, Parallel: *parallel, ExecutionTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
+ 		OnFailure: runner.FailurePolicy(*onFailure), FailureBudget: *failureBudget, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
+-		ChoiceTraceLimit: resolvedChoiceLimit, ClockTick: *clockTick, IOTranscriptLimit: uint64(transcriptLimit), MaxExecutions: *maxRuns, MaxChoiceDepth: *maxChoiceDepth, MaxForcedDecisions: *maxForcedDecisions,
++		Diagnostics: *diagnostics, ChoiceTraceLimit: resolvedChoiceLimit, ClockTick: *clockTick, IOTranscriptLimit: uint64(transcriptLimit), MaxExecutions: *maxRuns, MaxChoiceDepth: *maxChoiceDepth, MaxForcedDecisions: *maxForcedDecisions,
+ 		MaxExplorationBytes: uint64(explorationLimit), MaxExplorationResultBytes: uint64(explorationResultLimit),
+ 		SimulationDimensionLimits: runner.SimulationDimensionLimits{
+ 			Runtime: *maxRuntimeDecisions, Scenario: *maxScenarioDecisions, Network: *maxNetworkDecisions,
+diff --git a/tools/gomad3/cmd/gomad/internal/cli/diagnostics_test.go b/tools/gomad3/cmd/gomad/internal/cli/diagnostics_test.go
+--- /dev/null
++++ b/tools/gomad3/cmd/gomad/internal/cli/diagnostics_test.go
+@@ -0,0 +1,191 @@
++package cli
++
++import (
++	"bytes"
++	"context"
++	"encoding/binary"
++	"fmt"
++	"os"
++	"path/filepath"
++	"strings"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/choice"
++	"go.temporal.io/server/tools/gomad3/qualification"
++	"go.temporal.io/server/tools/gomad3/record"
++	"go.temporal.io/server/tools/gomad3/runner"
++)
++
++func TestQualifyDiagnosticsRetainsFreshPairAndReplaysSuccesses(t *testing.T) {
++	for _, replay := range []bool{false, true} {
++		t.Run(fmt.Sprint(replay), func(t *testing.T) {
++			directory := t.TempDir()
++			dependencies := qualificationDependencies(t)
++			calls, replayCalls := 0, 0
++			dependencies.run = func(_ context.Context, config runner.CampaignSpec) (runner.CampaignResult, error) {
++				if !config.Diagnostics || config.ChoiceTraceLimit != 8<<20 || config.Coverage != runner.CoverageSemanticChoice {
++					t.Fatalf("diagnostic config = %+v", config)
++				}
++				data := make([]byte, 160)
++				copy(data, []byte{'G', 'O', 'M', 'A', 'D', 'D', 'G', 1})
++				binary.BigEndian.PutUint32(data[8:12], 1)
++				data[12] = 1
++				binary.BigEndian.PutUint64(data[16:24], 160)
++				binary.BigEndian.PutUint64(data[24:32], 160)
++				binary.BigEndian.PutUint64(data[32:40], 1)
++				data[143] = byte(calls)
++				trace, err := choice.DecodeDiagnosticTrace(data)
++				if err != nil {
++					t.Fatal(err)
++				}
++				path := filepath.Join(directory, fmt.Sprintf("trace-%d.bin", calls))
++				if err := os.WriteFile(path, data, 0o600); err != nil {
++					t.Fatal(err)
++				}
++				evidence := qualificationEvidence(7)
++				evidence.Diagnostics = &runner.DiagnosticEvidence{Profile: choice.DiagnosticProfile, SHA256: record.SHA256FromSum(trace.SHA256), Records: 1}
++				summary := runner.CampaignResult{CampaignPath: fmt.Sprintf("/campaign-%d", calls), ExecutionEvidence: &evidence, Diagnostics: &runner.DiagnosticTraceReference{Path: path, DiagnosticEvidence: *evidence.Diagnostics}}
++				if replay {
++					summary.RetainedSuccesses = 1
++					summary.SuccessArtifacts = []string{fmt.Sprintf("/success-%d", calls)}
++				}
++				calls++
++				return summary, nil
++			}
++			dependencies.replay = func(context.Context, runner.ReplaySpec) (runner.ReplayResult, error) {
++				replayCalls++
++				return runner.ReplayResult{Match: true, ChoiceReplayStatus: runner.ChoiceReplayExact}, nil
++			}
++			dependencies.write = qualification.WriteQualificationReport
++			arguments := []string{"--diagnostics", "--seed=7", "--artifacts=" + directory, "go-run", "./fixture"}
++			if replay {
++				arguments = append([]string{"--replay-successes", "--success-limit=1", "--success-bytes=1MiB"}, arguments...)
++			}
++			var stdout, stderr bytes.Buffer
++			status := runQualifyWith(arguments, &stdout, &stderr, dependencies)
++			if status != 1 || !strings.Contains(stdout.String(), "diagnostic-first-ordinal=0 fields=runtime_cheap_rand_draws") {
++				t.Fatalf("status %d stdout %s stderr %s", status, stdout.String(), stderr.String())
++			}
++			if calls != 2 || replay && replayCalls != 2 || !replay && replayCalls != 0 {
++				t.Fatalf("calls %d replay calls %d", calls, replayCalls)
++			}
++			paths, err := filepath.Glob(filepath.Join(directory, "qualifications", "v1", "*.json"))
++			if err != nil || len(paths) != 1 {
++				t.Fatalf("reports %v: %v", paths, err)
++			}
++			report, err := qualification.OpenQualificationReport(paths[0])
++			if err != nil {
++				t.Fatal(err)
++			}
++			if report.Deterministic || report.FirstDivergence != "diagnostics" || report.DiagnosticDivergence == nil || len(report.Executions) != 2 {
++				t.Fatalf("report %+v", report)
++			}
++			for _, run := range report.Executions {
++				if run.Diagnostics == nil {
++					t.Fatal("trace reference missing")
++				}
++				if _, err := choice.ReadDiagnosticTrace(run.Diagnostics.Path); err != nil {
++					t.Fatal(err)
++				}
++			}
++		})
++	}
++}
++
++func TestExploreDiagnosticsRejectsForcedPrefixesBeforePreparation(t *testing.T) {
++	var stdout, stderr bytes.Buffer
++	status := runExplore([]string{"--diagnostics", "--strategy=choice-exploration", "--max-executions=2", "--max-choice-depth=1", "--max-exploration-bytes=1MiB", "go-run", "./fixture"}, &stdout, &stderr)
++	if status != 2 || !strings.Contains(stderr.String(), "forced-prefix exploration is unsupported") {
++		t.Fatalf("status %d: %s", status, stderr.String())
++	}
++}
++
++func TestQualifyDiagnosticsRetainsInterruptedReports(t *testing.T) {
++	for _, cancellation := range []bool{false, true} {
++		for _, interruptedFirst := range []bool{false, true} {
++			t.Run(fmt.Sprintf("cancel=%t/first=%t", cancellation, interruptedFirst), func(t *testing.T) {
++				directory := t.TempDir()
++				data := make([]byte, 160)
++				copy(data, []byte{'G', 'O', 'M', 'A', 'D', 'D', 'G', 1})
++				binary.BigEndian.PutUint32(data[8:12], 1)
++				data[12] = 1
++				binary.BigEndian.PutUint64(data[16:24], 160)
++				binary.BigEndian.PutUint64(data[24:32], 160)
++				binary.BigEndian.PutUint64(data[32:40], 1)
++				trace, err := choice.DecodeDiagnosticTrace(data)
++				if err != nil {
++					t.Fatal(err)
++				}
++				tracePath := filepath.Join(directory, "complete.bin")
++				if err := os.WriteFile(tracePath, data, 0o600); err != nil {
++					t.Fatal(err)
++				}
++				dependencies := qualificationDependencies(t)
++				calls := 0
++				dependencies.run = func(context.Context, runner.CampaignSpec) (runner.CampaignResult, error) {
++					evidence := qualificationEvidence(7)
++					evidence.Environment = append(evidence.Environment, record.Environment{Name: choice.DiagnosticProfileEnvironment, Value: choice.DiagnosticProfile})
++					interrupted := calls == 0 && interruptedFirst || calls == 1 && !interruptedFirst
++					summary := runner.CampaignResult{CampaignPath: fmt.Sprintf("/campaign-%d", calls), ExecutionEvidence: &evidence}
++					calls++
++					if interrupted {
++						summary.Artifacts = []string{"/failure"}
++						if cancellation {
++							evidence.Outcome = runner.OutcomeEvidence{Domain: "runner", Reason: "runner_cancelled", Termination: "none"}
++							return summary, &runner.HostError{Reason: "cancelled", Err: context.Canceled}
++						}
++						evidence.Outcome = runner.OutcomeEvidence{Domain: "watchdog", Reason: "watchdog_timeout", Termination: "timeout"}
++					} else {
++						evidence.Diagnostics = &runner.DiagnosticEvidence{Profile: choice.DiagnosticProfile, SHA256: record.SHA256FromSum(trace.SHA256), Records: 1}
++						summary.Diagnostics = &runner.DiagnosticTraceReference{Path: tracePath, DiagnosticEvidence: *evidence.Diagnostics}
++					}
++					return summary, nil
++				}
++				dependencies.replay = func(context.Context, runner.ReplaySpec) (runner.ReplayResult, error) {
++					return runner.ReplayResult{Match: true, Diagnostic: true}, nil
++				}
++				dependencies.write = qualification.WriteQualificationReport
++				var stdout, stderr bytes.Buffer
++				status := runQualifyWith([]string{"--diagnostics", "--seed=7", "--artifacts=" + directory, "go-run", "./fixture"}, &stdout, &stderr, dependencies)
++				wantStatus := 1
++				if cancellation {
++					wantStatus = 3
++				}
++				if status != wantStatus || !strings.Contains(stdout.String(), "qualification-") {
++					t.Fatalf("status %d stdout %s stderr %s", status, stdout.String(), stderr.String())
++				}
++				paths, err := filepath.Glob(filepath.Join(directory, "qualifications", "v1", "*.json"))
++				if err != nil || len(paths) != 1 {
++					t.Fatalf("reports %v: %v", paths, err)
++				}
++				report, err := qualification.OpenQualificationReport(paths[0])
++				if err != nil {
++					t.Fatal(err)
++				}
++				if report.Qualified || report.DiagnosticDivergence != nil || cancellation && (report.Failure == nil || report.Failure.Classification != "cancelled") {
++					t.Fatalf("report %+v", report)
++				}
++				available, unavailable := 0, 0
++				for _, run := range report.Executions {
++					switch run.DiagnosticStatus {
++					case qualification.DiagnosticComplete:
++						available++
++						if run.Diagnostics == nil || run.Diagnostics.Path != tracePath {
++							t.Fatalf("trace reference %+v", run.Diagnostics)
++						}
++					case qualification.DiagnosticUnavailable:
++						unavailable++
++						if run.Diagnostics != nil || run.ArtifactPath != "/failure" {
++							t.Fatalf("interrupted run %+v", run)
++						}
++					default:
++						t.Fatalf("status %q", run.DiagnosticStatus)
++					}
++				}
++				if unavailable != 1 || (!cancellation || !interruptedFirst) && available != 1 {
++					t.Fatalf("available %d unavailable %d", available, unavailable)
++				}
++			})
++		}
++	}
++}
+diff --git a/tools/gomad3/cmd/gomad/internal/cli/qualify.go b/tools/gomad3/cmd/gomad/internal/cli/qualify.go
+--- a/tools/gomad3/cmd/gomad/internal/cli/qualify.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/qualify.go
+@@ -8,6 +8,7 @@
+ 	"io"
+ 	"os"
+ 	"strconv"
++	"strings"
+ 	"time"
+ 
+ 	"go.temporal.io/server/tools/gomad3/qualification"
+@@ -53,6 +54,7 @@
+ 	capabilityMode := flags.String("capability-mode", string(target.CapabilityModeClosure), "closure, linked, or guarded capability assessment")
+ 	jsonOutput := flags.Bool("json", false, "emit stable JSON events")
+ 	choices := flags.Bool("choices", false, "record bounded runtime choices")
++	diagnostics := flags.Bool("diagnostics", false, "record runtime-state diagnostics for fresh runs; implies --choices")
+ 	replaySuccesses := flags.Bool("replay-successes", false, "retain and replay every successful repetition")
+ 	successLimit := flags.Uint64("success-limit", 0, "maximum retained successful executions per repetition")
+ 	outputLimit := byteSize(8 << 20)
+@@ -98,7 +100,7 @@
+ 			choiceLimitSet = true
+ 		}
+ 	})
+-	resolvedChoiceLimit, err := resolveChoiceTrace(*choices, choiceLimit, choiceLimitSet)
++	resolvedChoiceLimit, err := resolveChoiceTrace(*choices || *diagnostics, choiceLimit, choiceLimitSet)
+ 	if err != nil {
+ 		return reportQualifyInputError(reporter, stderr, err)
+ 	}
+@@ -112,7 +114,7 @@
+ 		return reportQualifyInputError(reporter, stderr, errors.New("--success-limit and --success-bytes require --replay-successes"))
+ 	}
+ 	coverage := runner.CoverageSemantic
+-	if *choices {
++	if *choices || *diagnostics {
+ 		coverage = runner.CoverageSemanticChoice
+ 	}
+ 	if _, err := resolveExploreCoverage(string(coverage), requiredSemanticProbes); err != nil {
+@@ -138,7 +140,7 @@
+ 	config := runner.CampaignSpec{
+ 		Seeds: strconv.FormatUint(*seed, 10), Parallel: 1, ExecutionTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
+ 		OnFailure: runner.PolicyAll, FailureBudget: 1, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
+-		ChoiceTraceLimit: resolvedChoiceLimit, ClockTick: *clockTick, IOTranscriptLimit: uint64(transcriptLimit),
++		Diagnostics: *diagnostics, ChoiceTraceLimit: resolvedChoiceLimit, ClockTick: *clockTick, IOTranscriptLimit: uint64(transcriptLimit),
+ 		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts,
+ 		SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
+ 		Coverage: coverage, RequiredSemanticProbes: requiredSemanticProbes, CollectExecutionEvidence: true,
+@@ -223,6 +225,20 @@
+ 		choices := report.Evidence.Choices
+ 		_, err = fmt.Fprintf(reporter.stdout, "gomad: choices profile=%s records=%d decisions=%d branching=%d runnable=%d select-poll=%d select-result=%d sha256=%s tape-sha256=%s terminal=%s\n", choices.Profile, choices.Records, choices.Decisions, choices.BranchingRecords, choices.Runnable, choices.SelectPoll, choices.SelectResult, choices.SHA256, choices.TapeSHA256, choices.TerminalState)
+ 	}
++	if err == nil && report.DiagnosticDivergence != nil {
++		difference := report.DiagnosticDivergence
++		_, err = fmt.Fprintf(reporter.stdout, "gomad: diagnostic-first-ordinal=%d fields=%s baseline-iteration=%d iteration=%d\n", difference.Ordinal, strings.Join(difference.Fields, ","), difference.BaselineIteration, difference.Iteration)
++	}
++	if err == nil {
++		for _, run := range report.Executions {
++			if run.Diagnostics != nil {
++				_, err = fmt.Fprintf(reporter.stdout, "gomad: diagnostic-trace=%s sha256=%s\n", run.Diagnostics.Path, run.Diagnostics.SHA256)
++				if err != nil {
++					break
++				}
++			}
++		}
++	}
+ 	if err == nil && report.FirstDivergence != "" {
+ 		_, err = fmt.Fprintf(reporter.stdout, "gomad: first-divergence=%s\n", report.FirstDivergence)
+ 	}
+diff --git a/tools/gomad3/cmd/gomadtool/diagnostic.go b/tools/gomad3/cmd/gomadtool/diagnostic.go
+--- /dev/null
++++ b/tools/gomad3/cmd/gomadtool/diagnostic.go
+@@ -0,0 +1,57 @@
++package main
++
++import (
++	"encoding/json"
++	"flag"
++	"fmt"
++	"io"
++	"strings"
++
++	"go.temporal.io/server/tools/gomad3/choice"
++)
++
++func runDiagnosticDiff(arguments []string, stdout, stderr io.Writer) int {
++	flags := flag.NewFlagSet("gomadtool diagnostic-diff", flag.ContinueOnError)
++	flags.SetOutput(stderr)
++	jsonOutput := flags.Bool("json", false, "emit the first divergent ordinal and fields as JSON")
++	if err := flags.Parse(arguments); err != nil {
++		return 2
++	}
++	if flags.NArg() != 2 {
++		fmt.Fprintln(stderr, "usage: gomadtool diagnostic-diff [--json] EXPECTED_TRACE ACTUAL_TRACE")
++		return 2
++	}
++	expected, err := choice.ReadDiagnosticTrace(flags.Arg(0))
++	if err != nil {
++		fmt.Fprintln(stderr, err)
++		return 2
++	}
++	actual, err := choice.ReadDiagnosticTrace(flags.Arg(1))
++	if err != nil {
++		fmt.Fprintln(stderr, err)
++		return 2
++	}
++	difference, err := choice.DiffDiagnostics(expected.Bytes, actual.Bytes)
++	if err != nil {
++		fmt.Fprintln(stderr, err)
++		return 2
++	}
++	if *jsonOutput {
++		err = json.NewEncoder(stdout).Encode(struct {
++			Equal      bool                         `json:"equal"`
++			Divergence *choice.DiagnosticDivergence `json:"divergence,omitempty"`
++		}{Equal: difference == nil, Divergence: difference})
++	} else if difference == nil {
++		_, err = fmt.Fprintln(stdout, "diagnostic traces match")
++	} else {
++		_, err = fmt.Fprintf(stdout, "first-divergent-ordinal=%d fields=%s\n", difference.Ordinal, strings.Join(difference.Fields, ","))
++	}
++	if err != nil {
++		fmt.Fprintln(stderr, err)
++		return 3
++	}
++	if difference != nil {
++		return 1
++	}
++	return 0
++}
+diff --git a/tools/gomad3/cmd/gomadtool/diagnostic_test.go b/tools/gomad3/cmd/gomadtool/diagnostic_test.go
+--- /dev/null
++++ b/tools/gomad3/cmd/gomadtool/diagnostic_test.go
+@@ -0,0 +1,70 @@
++package main
++
++import (
++	"bytes"
++	"encoding/binary"
++	"errors"
++	"io"
++	"os"
++	"path/filepath"
++	"strings"
++	"testing"
++)
++
++func toolDiagnosticBytes(draw byte) []byte {
++	data := make([]byte, 160)
++	copy(data, []byte{'G', 'O', 'M', 'A', 'D', 'D', 'G', 1})
++	binary.BigEndian.PutUint32(data[8:12], 1)
++	data[12] = 1
++	binary.BigEndian.PutUint64(data[16:24], 160)
++	binary.BigEndian.PutUint64(data[24:32], 160)
++	binary.BigEndian.PutUint64(data[32:40], 1)
++	data[143] = draw
++	return data
++}
++
++func TestDiagnosticDiffStatusesAndNoPartialInvalidResult(t *testing.T) {
++	directory := t.TempDir()
++	left := filepath.Join(directory, "left.bin")
++	right := filepath.Join(directory, "right.bin")
++	if err := os.WriteFile(left, toolDiagnosticBytes(0), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	for _, test := range []struct {
++		name      string
++		actual    []byte
++		arguments []string
++		status    int
++		want      string
++	}{
++		{"equal", toolDiagnosticBytes(0), nil, 0, "diagnostic traces match"},
++		{"different", toolDiagnosticBytes(1), nil, 1, "first-divergent-ordinal=0 fields=runtime_cheap_rand_draws"},
++		{"json", toolDiagnosticBytes(1), []string{"--json"}, 1, `"ordinal":0`},
++		{"truncated", toolDiagnosticBytes(1)[:159], nil, 2, ""},
++		{"recording", func() []byte { data := toolDiagnosticBytes(1); data[12] = 0; return data }(), nil, 2, ""},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			if err := os.WriteFile(right, test.actual, 0o600); err != nil {
++				t.Fatal(err)
++			}
++			var stdout, stderr bytes.Buffer
++			status := run(append([]string{"diagnostic-diff"}, append(test.arguments, left, right)...), &stdout, &stderr)
++			if status != test.status || !strings.Contains(stdout.String(), test.want) || status == 2 && stdout.Len() != 0 {
++				t.Fatalf("status %d stdout %s stderr %s", status, stdout.String(), stderr.String())
++			}
++		})
++	}
++	if err := os.WriteFile(right, toolDiagnosticBytes(1), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	if status := run([]string{"diagnostic-diff", left, right}, diagnosticBrokenWriter{}, io.Discard); status != 3 {
++		t.Fatalf("write failure status %d", status)
++	}
++	if status := run([]string{"diagnostic-diff", left}, io.Discard, io.Discard); status != 2 {
++		t.Fatalf("argument status %d", status)
++	}
++}
++
++type diagnosticBrokenWriter struct{}
++
++func (diagnosticBrokenWriter) Write([]byte) (int, error) { return 0, errors.New("closed output") }
+diff --git a/tools/gomad3/cmd/gomadtool/main.go b/tools/gomad3/cmd/gomadtool/main.go
+--- a/tools/gomad3/cmd/gomadtool/main.go
++++ b/tools/gomad3/cmd/gomadtool/main.go
+@@ -19,7 +19,7 @@
+ 	toolchainbuild "go.temporal.io/server/tools/gomad3/toolchain"
+ )
+ 
+-const usage = "usage: gomadtool boundary-generate|build-key|checked-run|compatibility-pack|patch-materialize|patch-regenerate|patch-validate|protocol-generate|qualification-manifest-generate|script-validate|test|toolchain-build|upgrade-dossier|version-generate [flags]"
++const usage = "usage: gomadtool boundary-generate|build-key|checked-run|compatibility-pack|diagnostic-diff|patch-materialize|patch-regenerate|patch-validate|protocol-generate|qualification-manifest-generate|script-validate|test|toolchain-build|upgrade-dossier|version-generate [flags]"
+ 
+ const canonicalBuildPath = "/usr/bin:/bin:/usr/sbin:/sbin:/usr/xpg4/bin:/opt/freeware/bin:/usr/local/bin:/opt/homebrew/bin:/opt/local/bin"
+ 
+@@ -41,6 +41,8 @@
+ 		return runChecked(arguments[1:], stdout, stderr)
+ 	case "compatibility-pack":
+ 		return runCompatibilityPack(arguments[1:], stdout, stderr)
++	case "diagnostic-diff":
++		return runDiagnosticDiff(arguments[1:], stdout, stderr)
+ 	case "patch-materialize":
+ 		return runPatchMaterialize(arguments[1:], stdout, stderr)
+ 	case "patch-regenerate":
+diff --git a/tools/gomad3/internal/gomadtool/conformance/testdata/diagnostic_fault/main.go b/tools/gomad3/internal/gomadtool/conformance/testdata/diagnostic_fault/main.go
+--- /dev/null
++++ b/tools/gomad3/internal/gomadtool/conformance/testdata/diagnostic_fault/main.go
+@@ -0,0 +1,37 @@
++package main
++
++import (
++	"fmt"
++	"runtime"
++	"sync"
++)
++
++func main() {
++	var group sync.WaitGroup
++	results := make(chan int, 32)
++	for worker := range 4 {
++		group.Add(1)
++		go func() {
++			defer group.Done()
++			for range 8 {
++				left, right := make(chan int, 1), make(chan int, 1)
++				left <- worker
++				right <- worker + 4
++				select {
++				case value := <-left:
++					results <- value
++				case value := <-right:
++					results <- value
++				}
++				runtime.Gosched()
++			}
++		}()
++	}
++	group.Wait()
++	close(results)
++	total := 0
++	for value := range results {
++		total += value
++	}
++	fmt.Println(total)
++}
+diff --git a/tools/gomad3/qualification/diagnostics_test.go b/tools/gomad3/qualification/diagnostics_test.go
+--- /dev/null
++++ b/tools/gomad3/qualification/diagnostics_test.go
+@@ -0,0 +1,309 @@
++package qualification
++
++import (
++	"bytes"
++	"encoding/binary"
++	"fmt"
++	"os"
++	"path/filepath"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
++
++	"go.temporal.io/server/tools/gomad3/choice"
++	"go.temporal.io/server/tools/gomad3/record"
++	"go.temporal.io/server/tools/gomad3/runner"
++)
++
++func qualificationDiagnostic(t *testing.T, draw byte) *runner.DiagnosticTraceReference {
++	t.Helper()
++	data := make([]byte, 160)
++	copy(data, []byte{'G', 'O', 'M', 'A', 'D', 'D', 'G', 1})
++	binary.BigEndian.PutUint32(data[8:12], 1)
++	data[12] = 1
++	binary.BigEndian.PutUint64(data[16:24], 160)
++	binary.BigEndian.PutUint64(data[24:32], 160)
++	binary.BigEndian.PutUint64(data[32:40], 1)
++	data[143] = draw
++	trace, err := choice.DecodeDiagnosticTrace(data)
++	if err != nil {
++		t.Fatal(err)
++	}
++	path := filepath.Join(t.TempDir(), "diagnostic.bin")
++	if err := os.WriteFile(path, data, 0o600); err != nil {
++		t.Fatal(err)
++	}
++	return &runner.DiagnosticTraceReference{Path: path, DiagnosticEvidence: runner.DiagnosticEvidence{Profile: choice.DiagnosticProfile, SHA256: record.SHA256FromSum(trace.SHA256), Records: 1}}
++}
++
++func TestDiagnosticsIdentifyFreshPairAfterEarlierOutputDivergence(t *testing.T) {
++	plain, changed := qualificationDiagnostic(t, 0), qualificationDiagnostic(t, 1)
++	baseline := successfulEvidence()
++	baseline.Diagnostics = &plain.DiagnosticEvidence
++	outputDifference := baseline
++	outputDifference.Stdout.FullSHA256 = record.HashBytes([]byte("different output"))
++	diagnosticDifference := baseline
++	diagnosticDifference.Diagnostics = &changed.DiagnosticEvidence
++	report, err := BuildQualificationReport(QualificationInput{Command: []string{"gomad", "qualify"}, Executions: []QualificationExecution{
++		{CampaignPath: "/first", Evidence: baseline, Diagnostics: plain},
++		{CampaignPath: "/second", Evidence: outputDifference, Diagnostics: plain},
++		{CampaignPath: "/third", Evidence: diagnosticDifference, Diagnostics: changed},
++	}})
++	if err != nil {
++		t.Fatal(err)
++	}
++	if report.FirstDivergence != "stdout.full_sha256" || report.DiagnosticDivergence == nil || report.DiagnosticDivergence.BaselineIteration != 1 || report.DiagnosticDivergence.Iteration != 3 || report.DiagnosticDivergence.Ordinal != 0 {
++		t.Fatalf("report %+v", report)
++	}
++	path, err := WriteQualificationReport(t.TempDir(), report)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if _, err := OpenQualificationReport(path); err != nil {
++		t.Fatal(err)
++	}
++}
++
++func TestQualificationRejectsChangedDiagnosticTraceAndEvidence(t *testing.T) {
++	for _, corruption := range []string{"file", "evidence", "second evidence", "missing"} {
++		t.Run(corruption, func(t *testing.T) {
++			reference := qualificationDiagnostic(t, 0)
++			evidence := successfulEvidence()
++			evidence.Diagnostics = &reference.DiagnosticEvidence
++			second := reference
++			secondEvidence := evidence
++			switch corruption {
++			case "file":
++				if err := os.WriteFile(reference.Path, []byte("truncated"), 0o600); err != nil {
++					t.Fatal(err)
++				}
++			case "evidence":
++				evidence.Diagnostics = &runner.DiagnosticEvidence{Profile: choice.DiagnosticProfile, SHA256: record.HashBytes([]byte("wrong")), Records: 1}
++			case "second evidence":
++				changed := qualificationDiagnostic(t, 1)
++				secondEvidence.Diagnostics = &changed.DiagnosticEvidence
++			case "missing":
++				second = nil
++			}
++			if _, err := BuildQualificationReport(QualificationInput{Command: []string{"gomad", "qualify"}, Executions: []QualificationExecution{{CampaignPath: "/first", Evidence: evidence, Diagnostics: reference}, {CampaignPath: "/second", Evidence: secondEvidence, Diagnostics: second}}}); err == nil {
++				t.Fatal("invalid diagnostic trace accepted")
++			}
++		})
++	}
++}
++
++func TestDiagnosticsPreserveInterruptedQualificationEvidence(t *testing.T) {
++	for _, outcome := range []runner.OutcomeEvidence{
++		{Domain: "watchdog", Reason: "watchdog_timeout", Termination: "timeout"},
++		{Domain: "runner", Reason: "runner_cancelled", Termination: "none"},
++	} {
++		for _, interruptedFirst := range []bool{false, true} {
++			t.Run(fmt.Sprintf("%s/first=%t", outcome.Reason, interruptedFirst), func(t *testing.T) {
++				reference := qualificationDiagnostic(t, 0)
++				complete := successfulEvidence()
++				complete.Environment = append(complete.Environment, record.Environment{Name: choice.DiagnosticProfileEnvironment, Value: choice.DiagnosticProfile})
++				complete.Diagnostics = &reference.DiagnosticEvidence
++				interrupted := complete
++				interrupted.Diagnostics = nil
++				interrupted.Outcome = outcome
++				runs := []QualificationExecution{{CampaignPath: "/complete", Evidence: complete, Diagnostics: reference}, {CampaignPath: "/interrupted", ArtifactPath: "/failure", Evidence: interrupted}}
++				if interruptedFirst {
++					runs[0], runs[1] = runs[1], runs[0]
++				}
++				report, err := BuildQualificationReport(QualificationInput{Command: []string{"gomad", "qualify"}, Executions: runs})
++				if err != nil {
++					t.Fatal(err)
++				}
++				if report.Qualified || report.Deterministic || report.TargetSuccess || report.DiagnosticDivergence != nil {
++					t.Fatalf("report %+v", report)
++				}
++				data, err := canonicaljson.CanonicalJSON(report)
++				if err != nil {
++					t.Fatal(err)
++				}
++				if !bytes.Contains(data, []byte(`"diagnostic_status":"unavailable"`)) {
++					t.Fatalf("unavailable diagnostics omitted: %s", data)
++				}
++				if _, err := DecodeQualificationReport(data); err != nil {
++					t.Fatal(err)
++				}
++				path, err := WriteQualificationReport(t.TempDir(), report)
++				if err != nil {
++					t.Fatal(err)
++				}
++				saved, err := OpenQualificationReport(path)
++				if err != nil {
++					t.Fatal(err)
++				}
++				if len(saved.Executions) != 2 || saved.Executions[boolIndex(interruptedFirst)].Diagnostics == nil {
++					t.Fatalf("retained traces missing: %+v", saved)
++				}
++				failure, err := BuildQualificationFailure([]string{"gomad", "qualify"}, 7, 2, runs, QualificationFailure{Classification: "cancelled", Message: "interrupted", Iteration: 2})
++				if err != nil {
++					t.Fatal(err)
++				}
++				if _, err := WriteQualificationReport(t.TempDir(), failure); err != nil {
++					t.Fatal(err)
++				}
++			})
++		}
++	}
++}
++
++func boolIndex(value bool) int {
++	if value {
++		return 1
++	}
++	return 0
++}
++
++func TestDiagnosticsRejectCorruptedSavedReportBindings(t *testing.T) {
++	for _, different := range []bool{false, true} {
++		for _, corruption := range []string{"missing", "contradictory", "evidence missing", "evidence altered", "status missing", "status contradictory", "baseline digest"} {
++			t.Run(fmt.Sprintf("different=%t/%s", different, corruption), func(t *testing.T) {
++				reference := qualificationDiagnostic(t, 0)
++				first := successfulEvidence()
++				first.Diagnostics = &reference.DiagnosticEvidence
++				second := first
++				secondReference := reference
++				if different {
++					secondReference = qualificationDiagnostic(t, 1)
++					second.Diagnostics = &secondReference.DiagnosticEvidence
++				}
++				report, err := BuildQualificationReport(QualificationInput{Command: []string{"gomad", "qualify"}, Executions: []QualificationExecution{{CampaignPath: "/first", Evidence: first, Diagnostics: reference}, {CampaignPath: "/second", Evidence: second, Diagnostics: secondReference}}})
++				if err != nil {
++					t.Fatal(err)
++				}
++				switch corruption {
++				case "missing":
++					report.Executions[1].Diagnostics = nil
++				case "contradictory":
++					report.Executions[1].Diagnostics.SHA256 = record.HashBytes([]byte("contradiction"))
++				case "evidence missing":
++					report.Executions[1].Evidence = nil
++				case "evidence altered":
++					report.Executions[1].Evidence.Stdout.FullSHA256 = record.HashBytes([]byte("contradiction"))
++				case "status missing":
++					report.Executions[1].DiagnosticStatus = ""
++				case "status contradictory":
++					report.Executions[1].DiagnosticStatus = DiagnosticUnavailable
++				case "baseline digest":
++					changed, err := cloneEvidence(*report.Executions[0].Evidence)
++					if err != nil {
++						t.Fatal(err)
++					}
++					changed.Stdout.FullSHA256 = record.HashBytes([]byte("contradiction"))
++					report.Executions[0].Evidence = &changed
++					report.Executions[0].EvidenceDigest, err = evidenceDigest(changed)
++					if err != nil {
++						t.Fatal(err)
++					}
++				}
++				data, err := canonicaljson.CanonicalJSON(report)
++				if err != nil {
++					t.Fatal(err)
++				}
++				if _, err := DecodeQualificationReport(data); err == nil {
++					t.Fatal("corrupt saved diagnostic binding accepted")
++				}
++			})
++		}
++	}
++}
++
++func TestDiagnosticsCompareAvailablePairsAfterInterruptedBaseline(t *testing.T) {
++	reference, different := qualificationDiagnostic(t, 0), qualificationDiagnostic(t, 1)
++	complete := successfulEvidence()
++	complete.Environment = append(complete.Environment, record.Environment{Name: choice.DiagnosticProfileEnvironment, Value: choice.DiagnosticProfile})
++	complete.Diagnostics = &reference.DiagnosticEvidence
++	interrupted := complete
++	interrupted.Diagnostics = nil
++	interrupted.Outcome = runner.OutcomeEvidence{Domain: "watchdog", Reason: "watchdog_timeout", Termination: "timeout"}
++	changed := complete
++	changed.Diagnostics = &different.DiagnosticEvidence
++	runs := []QualificationExecution{
++		{CampaignPath: "/interrupted", ArtifactPath: "/failure", Evidence: interrupted},
++		{CampaignPath: "/complete", Evidence: complete, Diagnostics: reference},
++		{CampaignPath: "/changed", Evidence: changed, Diagnostics: different},
++	}
++	report, err := BuildQualificationReport(QualificationInput{Command: []string{"gomad", "qualify"}, Executions: runs})
++	if err != nil {
++		t.Fatal(err)
++	}
++	if report.DiagnosticDivergence == nil || report.DiagnosticDivergence.BaselineIteration != 2 || report.DiagnosticDivergence.Iteration != 3 {
++		t.Fatalf("pair %+v", report.DiagnosticDivergence)
++	}
++	if _, err := WriteQualificationReport(t.TempDir(), report); err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(different.Path, []byte("truncated"), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	if _, err := BuildQualificationReport(QualificationInput{Command: []string{"gomad", "qualify"}, Executions: runs}); err == nil {
++		t.Fatal("corrupt trace after unavailable baseline accepted")
++	}
++}
++
++func TestDiagnosticsUnavailableForEveryInterruptedRun(t *testing.T) {
++	interrupted := successfulEvidence()
++	interrupted.Environment = append(interrupted.Environment, record.Environment{Name: choice.DiagnosticProfileEnvironment, Value: choice.DiagnosticProfile})
++	interrupted.Outcome = runner.OutcomeEvidence{Domain: "watchdog", Reason: "watchdog_timeout", Termination: "timeout"}
++	runs := []QualificationExecution{{CampaignPath: "/first", ArtifactPath: "/first-failure", Evidence: interrupted}, {CampaignPath: "/second", ArtifactPath: "/second-failure", Evidence: interrupted}}
++	report, err := BuildQualificationReport(QualificationInput{Command: []string{"gomad", "qualify"}, Executions: runs})
++	if err != nil {
++		t.Fatal(err)
++	}
++	if report.Qualified || !report.Deterministic || report.TargetSuccess || report.DiagnosticDivergence != nil {
++		t.Fatalf("report %+v", report)
++	}
++	for _, run := range report.Executions {
++		if run.DiagnosticStatus != DiagnosticUnavailable || run.Evidence == nil || run.Diagnostics != nil {
++			t.Fatalf("execution %+v", run)
++		}
++	}
++	path, err := WriteQualificationReport(t.TempDir(), report)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if _, err := OpenQualificationReport(path); err != nil {
++		t.Fatal(err)
++	}
++	interrupted.Outcome = successfulEvidence().Outcome
++	runs[1].Evidence = interrupted
++	if _, err := BuildQualificationReport(QualificationInput{Command: []string{"gomad", "qualify"}, Executions: runs}); err == nil {
++		t.Fatal("uninterrupted execution without diagnostics accepted")
++	}
++}
++
++func TestDiagnosticsOffReportFieldsRemainAbsent(t *testing.T) {
++	report, err := BuildQualificationReport(QualificationInput{Command: []string{"gomad", "qualify"}, Executions: []QualificationExecution{{CampaignPath: "/first", Evidence: successfulEvidence()}, {CampaignPath: "/second", Evidence: successfulEvidence()}}})
++	if err != nil {
++		t.Fatal(err)
++	}
++	for _, run := range report.Executions {
++		if run.Evidence != nil || run.DiagnosticStatus != "" || run.Diagnostics != nil {
++			t.Fatalf("off execution %+v", run)
++		}
++	}
++	data, err := canonicaljson.CanonicalJSON(report)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if got := record.HashBytes(data); got != "sha256:6f8f10d12c1e605c1b0e5c66bda697ace3dccce020f0f37f4f751309cca9978e" {
++		t.Fatalf("off report baseline changed: %s", got)
++	}
++	failure, err := BuildQualificationFailure([]string{"gomad", "qualify"}, 7, 2, []QualificationExecution{{CampaignPath: "/first", Evidence: successfulEvidence()}, {CampaignPath: "/second", Evidence: successfulEvidence()}}, QualificationFailure{Classification: "cancelled", Message: "interrupted", Iteration: 2})
++	if err != nil {
++		t.Fatal(err)
++	}
++	failureData, err := canonicaljson.CanonicalJSON(failure)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if got := record.HashBytes(failureData); got != "sha256:3e8f1fda4a5755b9b0cf74e60e97e5f4ea953a712f20c6b89b1df8f362b12096" {
++		t.Fatalf("off failure report baseline changed: %s", got)
++	}
++	if bytes.Contains(data, []byte(`"diagnostic_status"`)) || bytes.Count(data, []byte(`"evidence":`)) != 1 {
++		t.Fatalf("off report fields changed: %s", data)
++	}
++}
+diff --git a/tools/gomad3/qualification/qualification.go b/tools/gomad3/qualification/qualification.go
+--- a/tools/gomad3/qualification/qualification.go
++++ b/tools/gomad3/qualification/qualification.go
+@@ -10,6 +10,7 @@
+ 	"reflect"
+ 	"strings"
+ 
++	"go.temporal.io/server/tools/gomad3/choice"
+ 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+ 	"go.temporal.io/server/tools/gomad3/record"
+ 	"go.temporal.io/server/tools/gomad3/runner"
+@@ -21,6 +22,8 @@
+ 	ChoiceReplayExact         = "exact"
+ 	ChoiceReplayDiverged      = "diverged"
+ 	ChoiceReplayUnavailable   = "unavailable"
++	DiagnosticComplete        = "complete"
++	DiagnosticUnavailable     = "unavailable"
+ )
+ 
+ const maximumQualificationReportBytes = 16 << 20
+@@ -31,6 +34,7 @@
+ 	WallElapsedNanos uint64
+ 	Evidence         runner.ExecutionEvidence
+ 	Replay           *QualificationReplay
++	Diagnostics      *runner.DiagnosticTraceReference
+ }
+ 
+ type QualificationInput struct {
+@@ -56,26 +60,36 @@
+ }
+ 
+ type QualificationExecutionReport struct {
+-	CampaignPath     string               `json:"campaign_path"`
+-	ArtifactPath     string               `json:"artifact_path,omitempty"`
+-	EvidenceDigest   record.SHA256        `json:"evidence_digest"`
+-	WallElapsedNanos record.Uint64String  `json:"wall_elapsed_nanos"`
+-	Replay           *QualificationReplay `json:"replay,omitempty"`
++	Evidence         *runner.ExecutionEvidence        `json:"evidence,omitempty"`
++	DiagnosticStatus string                           `json:"diagnostic_status,omitempty"`
++	CampaignPath     string                           `json:"campaign_path"`
++	ArtifactPath     string                           `json:"artifact_path,omitempty"`
++	EvidenceDigest   record.SHA256                    `json:"evidence_digest"`
++	WallElapsedNanos record.Uint64String              `json:"wall_elapsed_nanos"`
++	Diagnostics      *runner.DiagnosticTraceReference `json:"diagnostics,omitempty"`
++	Replay           *QualificationReplay             `json:"replay,omitempty"`
++}
++
++type QualificationDiagnosticDivergence struct {
++	BaselineIteration record.Uint64String `json:"baseline_iteration"`
++	Iteration         record.Uint64String `json:"iteration"`
++	choice.DiagnosticDivergence
+ }
+ 
+ type QualificationReport struct {
+-	Schema          string                         `json:"schema"`
+-	Qualified       bool                           `json:"qualified"`
+-	Deterministic   bool                           `json:"deterministic"`
+-	TargetSuccess   bool                           `json:"target_success"`
+-	Seed            record.Uint64String            `json:"seed"`
+-	Repeat          record.Uint64String            `json:"repeat"`
+-	Command         []string                       `json:"command"`
+-	EvidenceDigest  record.SHA256                  `json:"evidence_digest,omitempty"`
+-	Evidence        *runner.ExecutionEvidence      `json:"evidence,omitempty"`
+-	Executions      []QualificationExecutionReport `json:"executions"`
+-	FirstDivergence string                         `json:"first_divergence,omitempty"`
+-	Failure         *QualificationFailure          `json:"failure,omitempty"`
++	Schema               string                             `json:"schema"`
++	Qualified            bool                               `json:"qualified"`
++	Deterministic        bool                               `json:"deterministic"`
++	TargetSuccess        bool                               `json:"target_success"`
++	Seed                 record.Uint64String                `json:"seed"`
++	Repeat               record.Uint64String                `json:"repeat"`
++	Command              []string                           `json:"command"`
++	EvidenceDigest       record.SHA256                      `json:"evidence_digest,omitempty"`
++	Evidence             *runner.ExecutionEvidence          `json:"evidence,omitempty"`
++	Executions           []QualificationExecutionReport     `json:"executions"`
++	DiagnosticDivergence *QualificationDiagnosticDivergence `json:"diagnostic_divergence,omitempty"`
++	FirstDivergence      string                             `json:"first_divergence,omitempty"`
++	Failure              *QualificationFailure              `json:"failure,omitempty"`
+ }
+ 
+ func BuildQualificationReport(input QualificationInput) (QualificationReport, error) {
+@@ -107,6 +121,12 @@
+ 		}
+ 		if run.Evidence.Seed != baseline.Seed {
+ 			return QualificationReport{}, fmt.Errorf("qualification execution %d has seed %d, want %d", index, run.Evidence.Seed, baseline.Seed)
++		}
++		if (run.Evidence.Diagnostics == nil) != (run.Diagnostics == nil) {
++			return QualificationReport{}, fmt.Errorf("qualification execution %d diagnostic evidence is incomplete", index)
++		}
++		if run.Diagnostics != nil && run.Diagnostics.DiagnosticEvidence != *run.Evidence.Diagnostics {
++			return QualificationReport{}, fmt.Errorf("qualification execution %d diagnostic evidence disagrees", index)
+ 		}
+ 		digest, digestErr := evidenceDigest(run.Evidence)
+ 		if digestErr != nil {
+@@ -133,7 +153,13 @@
+ 		if copiedReplay != nil && run.Evidence.Choices != nil && copiedReplay.Match && copiedReplay.ChoiceReplayStatus != ChoiceReplayExact {
+ 			return QualificationReport{}, fmt.Errorf("validate execution replay %d: exact choice replay evidence is required", index)
+ 		}
+-		report.Executions = append(report.Executions, QualificationExecutionReport{CampaignPath: run.CampaignPath, ArtifactPath: run.ArtifactPath, EvidenceDigest: digest, WallElapsedNanos: record.Uint64String(run.WallElapsedNanos), Replay: copiedReplay})
++		report.Executions = append(report.Executions, QualificationExecutionReport{CampaignPath: run.CampaignPath, ArtifactPath: run.ArtifactPath, EvidenceDigest: digest, WallElapsedNanos: record.Uint64String(run.WallElapsedNanos), Replay: copiedReplay, Diagnostics: cloneDiagnosticReference(run.Diagnostics)})
++	}
++	if err := bindDiagnosticEvidence(&report, input.Executions); err != nil {
++		return QualificationReport{}, err
++	}
++	if err := attachDiagnosticComparison(&report); err != nil {
++		return QualificationReport{}, err
+ 	}
+ 	report.Qualified = report.Deterministic && report.TargetSuccess && replayOK
+ 	return report, nil
+@@ -156,6 +182,12 @@
+ 	for index, run := range completed {
+ 		if run.CampaignPath == "" || run.Evidence.Schema != runner.ExecutionEvidenceSchema || uint64(run.Evidence.Seed) != seed {
+ 			return QualificationReport{}, fmt.Errorf("completed qualification execution %d is invalid", index)
++		}
++		if (run.Evidence.Diagnostics == nil) != (run.Diagnostics == nil) {
++			return QualificationReport{}, fmt.Errorf("completed qualification execution %d diagnostic evidence is incomplete", index)
++		}
++		if run.Diagnostics != nil && run.Diagnostics.DiagnosticEvidence != *run.Evidence.Diagnostics {
++			return QualificationReport{}, fmt.Errorf("completed qualification execution %d diagnostic evidence disagrees", index)
+ 		}
+ 		digest, err := evidenceDigest(run.Evidence)
+ 		if err != nil {
+@@ -178,7 +210,13 @@
+ 		if replayEvidence != nil && run.Evidence.Choices != nil && replayEvidence.Match && replayEvidence.ChoiceReplayStatus != ChoiceReplayExact {
+ 			return QualificationReport{}, fmt.Errorf("validate completed qualification replay %d: exact choice replay evidence is required", index)
+ 		}
+-		report.Executions = append(report.Executions, QualificationExecutionReport{CampaignPath: run.CampaignPath, ArtifactPath: run.ArtifactPath, EvidenceDigest: digest, WallElapsedNanos: record.Uint64String(run.WallElapsedNanos), Replay: replayEvidence})
++		report.Executions = append(report.Executions, QualificationExecutionReport{CampaignPath: run.CampaignPath, ArtifactPath: run.ArtifactPath, EvidenceDigest: digest, WallElapsedNanos: record.Uint64String(run.WallElapsedNanos), Replay: replayEvidence, Diagnostics: cloneDiagnosticReference(run.Diagnostics)})
++	}
++	if err := bindDiagnosticEvidence(&report, completed); err != nil {
++		return QualificationReport{}, err
++	}
++	if err := attachDiagnosticComparison(&report); err != nil {
++		return QualificationReport{}, err
+ 	}
+ 	return report, nil
+ }
+@@ -290,7 +328,7 @@
+ 			return fmt.Errorf("qualification failure result is inconsistent")
+ 		}
+ 		if len(report.Executions) == 0 {
+-			if report.Evidence != nil || report.EvidenceDigest != "" {
++			if report.Evidence != nil || report.EvidenceDigest != "" || report.DiagnosticDivergence != nil {
+ 				return fmt.Errorf("qualification failure has evidence without completed executions")
+ 			}
+ 			return nil
+@@ -308,11 +346,17 @@
+ 	}
+ 	if digest != report.EvidenceDigest {
+ 		return fmt.Errorf("qualification baseline evidence digest is invalid")
++	}
++	if err := validateDiagnosticEvidence(report); err != nil {
++		return err
+ 	}
+ 	deterministic := true
+ 	for index, run := range report.Executions {
+ 		if run.CampaignPath == "" || run.EvidenceDigest == "" {
+ 			return fmt.Errorf("qualification execution %d identity is invalid", index)
++		}
++		if run.Diagnostics != nil && (run.Diagnostics.Path == "" || run.Diagnostics.Profile != choice.DiagnosticProfile || !validDiagnosticReference(*run.Diagnostics)) {
++			return errors.New("qualification diagnostic trace reference is invalid")
+ 		}
+ 		if run.EvidenceDigest != report.EvidenceDigest {
+ 			deterministic = false
+@@ -416,6 +460,7 @@
+ 		{"io_transcript.complete", expected.IOTranscriptComplete, actual.IOTranscriptComplete},
+ 		{"virtual_time_elapsed_nanos", expected.VirtualTimeElapsedNanos, actual.VirtualTimeElapsedNanos},
+ 		{"choices", expected.Choices, actual.Choices},
++		{"diagnostics", expected.Diagnostics, actual.Diagnostics},
+ 		{"world", expected.World, actual.World},
+ 		{"read_only_mounts_sha256", expected.ReadOnlyMountsSHA256, actual.ReadOnlyMountsSHA256},
+ 		{"semantic_coverage", expected.SemanticCoverage, actual.SemanticCoverage},
+@@ -428,3 +473,147 @@
+ 	}
+ 	return "evidence"
+ }
++
++func cloneDiagnosticReference(reference *runner.DiagnosticTraceReference) *runner.DiagnosticTraceReference {
++	if reference == nil {
++		return nil
++	}
++	cloned := *reference
++	return &cloned
++}
++
++func diagnosticStatus(evidence runner.ExecutionEvidence) (string, error) {
++	if evidence.Diagnostics != nil {
++		return DiagnosticComplete, nil
++	}
++	enabled := false
++	for _, entry := range evidence.Environment {
++		if entry.Name == choice.DiagnosticProfileEnvironment {
++			if entry.Value != choice.DiagnosticProfile {
++				return "", errors.New("qualification diagnostic profile is invalid")
++			}
++			enabled = true
++		}
++	}
++	if !enabled {
++		return "", nil
++	}
++	if evidence.Outcome.Domain == "watchdog" && evidence.Outcome.Reason == "watchdog_timeout" || evidence.Outcome.Domain == "runner" && evidence.Outcome.Reason == "runner_cancelled" {
++		return DiagnosticUnavailable, nil
++	}
++	return "", errors.New("qualification diagnostic trace is unavailable for an uninterrupted execution")
++}
++
++func bindDiagnosticEvidence(report *QualificationReport, runs []QualificationExecution) error {
++	enabled := false
++	for _, run := range runs {
++		status, err := diagnosticStatus(run.Evidence)
++		if err != nil {
++			return err
++		}
++		enabled = enabled || status != ""
++	}
++	if !enabled {
++		return nil
++	}
++	for index, run := range runs {
++		status, err := diagnosticStatus(run.Evidence)
++		if err != nil {
++			return err
++		}
++		if status == "" {
++			return fmt.Errorf("qualification execution %d omitted diagnostic evidence", index)
++		}
++		evidence, err := cloneEvidence(run.Evidence)
++		if err != nil {
++			return err
++		}
++		report.Executions[index].Evidence = &evidence
++		report.Executions[index].DiagnosticStatus = status
++	}
++	return nil
++}
++
++func validateDiagnosticEvidence(report QualificationReport) error {
++	status, err := diagnosticStatus(*report.Evidence)
++	if err != nil {
++		return err
++	}
++	enabled := status != ""
++	for _, run := range report.Executions {
++		enabled = enabled || run.Diagnostics != nil || run.Evidence != nil || run.DiagnosticStatus != ""
++	}
++	if !enabled {
++		if report.DiagnosticDivergence != nil {
++			return errors.New("qualification diagnostic divergence has no diagnostic evidence")
++		}
++		return nil
++	}
++	for index, run := range report.Executions {
++		if run.Evidence == nil || run.Evidence.Schema != runner.ExecutionEvidenceSchema || run.Evidence.Seed != report.Seed {
++			return fmt.Errorf("qualification execution %d diagnostic evidence identity is invalid", index)
++		}
++		digest, err := evidenceDigest(*run.Evidence)
++		if err != nil || digest != run.EvidenceDigest || index == 0 && digest != report.EvidenceDigest {
++			return fmt.Errorf("qualification execution %d diagnostic evidence digest is invalid", index)
++		}
++		status, err := diagnosticStatus(*run.Evidence)
++		if err != nil {
++			return err
++		}
++		if status == "" || status != run.DiagnosticStatus {
++			return fmt.Errorf("qualification execution %d diagnostic status is inconsistent", index)
++		}
++		if (run.Evidence.Diagnostics == nil) != (run.Diagnostics == nil) || run.Diagnostics != nil && run.Diagnostics.DiagnosticEvidence != *run.Evidence.Diagnostics {
++			return fmt.Errorf("qualification execution %d diagnostic evidence disagrees", index)
++		}
++	}
++	if difference := report.DiagnosticDivergence; difference != nil {
++		if report.Deterministic || len(difference.Fields) == 0 || difference.BaselineIteration < 1 || difference.Iteration <= difference.BaselineIteration || uint64(difference.Iteration) > uint64(len(report.Executions)) {
++			return errors.New("qualification diagnostic divergence is inconsistent")
++		}
++		baseline := report.Executions[int(difference.BaselineIteration)-1]
++		actual := report.Executions[int(difference.Iteration)-1]
++		if baseline.Diagnostics == nil || actual.Diagnostics == nil || baseline.Diagnostics.SHA256 == actual.Diagnostics.SHA256 {
++			return errors.New("qualification diagnostic divergence pair is inconsistent")
++		}
++	}
++	return nil
++}
++
++func attachDiagnosticComparison(report *QualificationReport) error {
++	var baseline *choice.DiagnosticTrace
++	baselineIndex := 0
++	for index, run := range report.Executions {
++		if run.Diagnostics == nil {
++			continue
++		}
++		observed, err := choice.ReadDiagnosticTrace(run.Diagnostics.Path)
++		if err != nil {
++			return fmt.Errorf("qualification execution %d diagnostic trace: %w", index, err)
++		}
++		if run.Diagnostics.Profile != choice.DiagnosticProfile || run.Diagnostics.SHA256 != record.SHA256FromSum(observed.SHA256) || uint64(run.Diagnostics.Records) != uint64(len(observed.Records)) {
++			return errors.New("qualification diagnostic trace identity changed")
++		}
++		if baseline == nil {
++			baseline = &observed
++			baselineIndex = index
++			continue
++		}
++		if run.EvidenceDigest != report.Executions[baselineIndex].EvidenceDigest && report.DiagnosticDivergence == nil {
++			difference, err := choice.DiffDiagnostics(baseline.Bytes, observed.Bytes)
++			if err != nil {
++				return err
++			}
++			if difference != nil {
++				report.DiagnosticDivergence = &QualificationDiagnosticDivergence{BaselineIteration: record.Uint64String(baselineIndex + 1), Iteration: record.Uint64String(index + 1), DiagnosticDivergence: *difference}
++			}
++		}
++	}
++	return nil
++}
++
++func validDiagnosticReference(reference runner.DiagnosticTraceReference) bool {
++	_, err := record.ParseSHA256(string(reference.SHA256))
++	return err == nil && uint64(reference.Records) <= (choice.MaximumDiagnosticBytes-64)/96
++}
+diff --git a/tools/gomad3/qualification/workload/workload.go b/tools/gomad3/qualification/workload/workload.go
+--- a/tools/gomad3/qualification/workload/workload.go
++++ b/tools/gomad3/qualification/workload/workload.go
+@@ -124,7 +124,7 @@
+ }
+ 
+ func workloadExecution(summary runner.CampaignResult) qualification.QualificationExecution {
+-	run := qualification.QualificationExecution{CampaignPath: summary.CampaignPath, WallElapsedNanos: summary.ExecutionElapsedNanos, Evidence: *summary.ExecutionEvidence}
++	run := qualification.QualificationExecution{CampaignPath: summary.CampaignPath, WallElapsedNanos: summary.ExecutionElapsedNanos, Evidence: *summary.ExecutionEvidence, Diagnostics: summary.Diagnostics}
+ 	if summary.ExecutionEvidence.Outcome.Domain == "success" && len(summary.SuccessArtifacts) != 0 {
+ 		run.ArtifactPath = summary.SuccessArtifacts[0]
+ 	} else if len(summary.Artifacts) != 0 {
+diff --git a/tools/gomad3/runner/campaign_shard_execution.go b/tools/gomad3/runner/campaign_shard_execution.go
+--- a/tools/gomad3/runner/campaign_shard_execution.go
++++ b/tools/gomad3/runner/campaign_shard_execution.go
+@@ -9,6 +9,7 @@
+ 	"path/filepath"
+ 	"time"
+ 
++	"go.temporal.io/server/tools/gomad3/choice"
+ 	"go.temporal.io/server/tools/gomad3/deterministicio"
+ 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+ 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
+@@ -78,7 +79,7 @@
+ 		PlanSHA256: opened.identity, Shard: spec.Shard, Strategy: StrategySeed, Seeds: plan.Selection, Parallel: int(plan.Parallel),
+ 		ExecutionTimeout: time.Duration(plan.ExecutionTimeoutNanos), OverallTimeout: time.Duration(plan.OverallTimeoutNanos), TerminateGrace: time.Duration(plan.TerminateGraceNanos),
+ 		OnFailure: PolicyAll, FailureBudget: uint64(plan.FailureBudget), OutputLimit: uint64(plan.OutputBytes), WorldTransitionLimit: uint64(plan.WorldTransitionBytes),
+-		ChoiceTraceLimit: campaignPlanChoiceLimit(plan.ChoiceProfile), ClockTick: clockTick, IOTranscriptLimit: uint64(plan.IOTranscriptBytes), Artifacts: spec.Artifacts, Environment: environment,
++		Diagnostics: campaignPlanDiagnostics(plan), ChoiceTraceLimit: campaignPlanChoiceLimit(plan.ChoiceProfile), ClockTick: clockTick, IOTranscriptLimit: uint64(plan.IOTranscriptBytes), Artifacts: spec.Artifacts, Environment: environment,
+ 		IOROMounts: campaignPlanRuntimeMountValues(mappings), IOROMountLimits: mountLimits,
+ 		Target: target.Spec{
+ 			Kind: target.Kind(targetRecord.Kind), Source: targetRecord.Source, Args: append([]string(nil), targetRecord.Argv[1:]...), BuildTags: append([]string(nil), targetRecord.BuildTags...),
+@@ -117,6 +118,10 @@
+ 				return nil, "", errors.New("campaign plan choice profile environment is invalid")
+ 			}
+ 			choiceProfile = true
++		case choice.DiagnosticProfileEnvironment:
++			if entry.Value != choice.DiagnosticProfile || plan.ChoiceProfile == nil {
++				return nil, "", errors.New("campaign plan diagnostic profile is invalid")
++			}
+ 		case record.ClockTickEnvironment:
+ 			if clockTick != "" || entry.Value != record.ClockTickForward {
+ 				return nil, "", errors.New("campaign plan clock tick environment is invalid")
+@@ -175,3 +180,12 @@
+ 	}
+ 	return prepared, nil
+ }
++
++func campaignPlanDiagnostics(plan campaign.CampaignPlan) bool {
++	for _, entry := range plan.Environment {
++		if entry.Name == choice.DiagnosticProfileEnvironment {
++			return true
++		}
++	}
++	return false
++}
+diff --git a/tools/gomad3/runner/coordinator.go b/tools/gomad3/runner/coordinator.go
+--- a/tools/gomad3/runner/coordinator.go
++++ b/tools/gomad3/runner/coordinator.go
+@@ -34,6 +34,7 @@
+ 	FailureBudget             uint64
+ 	OutputLimit               uint64
+ 	WorldTransitionLimit      uint64
++	Diagnostics               bool `json:",omitempty"`
+ 	ChoiceTraceLimit          uint64
+ 	ClockTick                 string
+ 	IOTranscriptLimit         uint64
+@@ -98,7 +99,7 @@
+ 		ResumeCampaign: config.ResumeCampaign, PlanSHA256: config.PlanSHA256, Shard: config.Shard,
+ 		Strategy: config.Strategy, Seeds: config.Seeds, Parallel: config.Parallel, ExecutionTimeout: config.ExecutionTimeout, OverallTimeout: childTimeout,
+ 		TerminateGrace: config.TerminateGrace, OnFailure: config.OnFailure, FailureBudget: config.FailureBudget,
+-		OutputLimit: config.OutputLimit, WorldTransitionLimit: config.WorldTransitionLimit, ChoiceTraceLimit: config.ChoiceTraceLimit, ClockTick: config.ClockTick, IOTranscriptLimit: config.IOTranscriptLimit,
++		OutputLimit: config.OutputLimit, WorldTransitionLimit: config.WorldTransitionLimit, Diagnostics: config.Diagnostics, ChoiceTraceLimit: config.ChoiceTraceLimit, ClockTick: config.ClockTick, IOTranscriptLimit: config.IOTranscriptLimit,
+ 		MaxExecutions: config.MaxExecutions, MaxChoiceDepth: config.MaxChoiceDepth, MaxForcedDecisions: config.MaxForcedDecisions,
+ 		MaxExplorationBytes: config.MaxExplorationBytes, MaxExplorationResultBytes: config.MaxExplorationResultBytes, SimulationDimensionLimits: config.SimulationDimensionLimits, Artifacts: config.Artifacts,
+ 		Environment: append([]string(nil), config.Environment...), Target: config.Target,
+@@ -117,7 +118,7 @@
+ 		ResumeCampaign: wire.ResumeCampaign, PlanSHA256: wire.PlanSHA256, Shard: wire.Shard,
+ 		Strategy: wire.Strategy, Seeds: wire.Seeds, Parallel: wire.Parallel, ExecutionTimeout: wire.ExecutionTimeout, OverallTimeout: wire.OverallTimeout,
+ 		TerminateGrace: wire.TerminateGrace, OnFailure: wire.OnFailure, FailureBudget: wire.FailureBudget,
+-		OutputLimit: wire.OutputLimit, WorldTransitionLimit: wire.WorldTransitionLimit, ChoiceTraceLimit: wire.ChoiceTraceLimit, ClockTick: wire.ClockTick, IOTranscriptLimit: wire.IOTranscriptLimit,
++		OutputLimit: wire.OutputLimit, WorldTransitionLimit: wire.WorldTransitionLimit, Diagnostics: wire.Diagnostics, ChoiceTraceLimit: wire.ChoiceTraceLimit, ClockTick: wire.ClockTick, IOTranscriptLimit: wire.IOTranscriptLimit,
+ 		MaxExecutions: wire.MaxExecutions, MaxChoiceDepth: wire.MaxChoiceDepth, MaxForcedDecisions: wire.MaxForcedDecisions,
+ 		MaxExplorationBytes: wire.MaxExplorationBytes, MaxExplorationResultBytes: wire.MaxExplorationResultBytes, SimulationDimensionLimits: wire.SimulationDimensionLimits, Artifacts: wire.Artifacts,
+ 		Environment: wire.Environment, Target: wire.Target, SupervisorCommand: wire.SupervisorCommand, RunnerBuild: wire.RunnerBuild,
+diff --git a/tools/gomad3/runner/diagnostic_identity_test.go b/tools/gomad3/runner/diagnostic_identity_test.go
+--- /dev/null
++++ b/tools/gomad3/runner/diagnostic_identity_test.go
+@@ -0,0 +1,108 @@
++package runner
++
++import (
++	"bytes"
++	"context"
++	"encoding/json"
++	"fmt"
++	"os"
++	"path/filepath"
++	"runtime"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/artifact"
++	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
++	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
++)
++
++func TestDiagnosticsOffPreservesExistingCanonicalIdentities(t *testing.T) {
++	if runtime.GOOS != "darwin" || runtime.GOARCH != "arm64" {
++		t.Skip("retained baseline is darwin/arm64")
++	}
++	for _, traced := range []bool{false, true} {
++		name := "plain"
++		if traced {
++			name = "choices"
++		}
++		t.Run(name, func(t *testing.T) {
++			preparer := newFakePreparer(t)
++			var executor Executor = &fakeExecutor{result: func(uint64) execution.Result { return processResult(1, "baseline output", "baseline failure") }}
++			if traced {
++				executor = &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: 1 << 20, exitCode: 1}
++			}
++			capture := &diagnosticBaselineExecutor{delegate: executor}
++			config := testConfig(t, preparer, capture, "7", PolicyAll, 1)
++			capture.root = config.Artifacts
++			if traced {
++				config.ChoiceTraceLimit = 1 << 20
++			}
++			planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
++			planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath})
++			if err != nil {
++				t.Fatal(err)
++			}
++			planBytes, err := os.ReadFile(planPath)
++			if err != nil {
++				t.Fatal(err)
++			}
++			summary, err := Explore(context.Background(), config)
++			if err != nil {
++				t.Fatal(err)
++			}
++			if len(summary.Artifacts) != 1 {
++				t.Fatalf("artifacts: %v", summary.Artifacts)
++			}
++			campaignPlan := capture.plan
++			opened, err := artifact.OpenArtifact(summary.Artifacts[0])
++			if err != nil {
++				t.Fatal(err)
++			}
++			manifest := opened.Manifest
++			if err := opened.Close(); err != nil {
++				t.Fatal(err)
++			}
++			manifest.CampaignID = "fixed-campaign"
++			manifest.CreatedAt = "2026-10-02T00:00:00Z"
++			manifest.Host.StartedAt = "2026-10-02T00:00:00Z"
++			manifest.Host.FinishedAt = "2026-10-02T00:00:00Z"
++			manifest.Host.ElapsedNanos = 0
++			encoded, err := canonicaljson.CanonicalJSON(struct {
++				PortablePlan       json.RawMessage `json:"portable_plan"`
++				PortablePlanSHA256 string          `json:"portable_plan_sha256"`
++				CampaignPlan       json.RawMessage `json:"campaign_plan"`
++				Artifact           any             `json:"artifact"`
++			}{json.RawMessage(planBytes), string(planned.SHA256), json.RawMessage(campaignPlan), manifest})
++			if err != nil {
++				t.Fatal(err)
++			}
++			expected, err := os.ReadFile(filepath.Join("testdata", "diagnostic-identity-"+name+".json"))
++			if err != nil {
++				t.Fatal(err)
++			}
++			if !bytes.Equal(expected, encoded) {
++				t.Fatalf("diagnostics-off canonical identities changed (%s)", name)
++			}
++		})
++	}
++}
++
++type diagnosticBaselineExecutor struct {
++	delegate Executor
++	root     string
++	plan     []byte
++}
++
++func (e *diagnosticBaselineExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
++	paths, err := filepath.Glob(filepath.Join(e.root, "v1", "*", ".prepared", "plan.json"))
++	if err != nil {
++		return execution.Result{}, err
++	}
++	if len(paths) != 1 {
++		return execution.Result{}, fmt.Errorf("campaign plan paths: %v", paths)
++	}
++	e.plan, err = os.ReadFile(paths[0])
++	if err != nil {
++		return execution.Result{}, err
++	}
++	return e.delegate.Run(ctx, request)
++}
+diff --git a/tools/gomad3/runner/diagnostics.go b/tools/gomad3/runner/diagnostics.go
+--- /dev/null
++++ b/tools/gomad3/runner/diagnostics.go
+@@ -0,0 +1,65 @@
++package runner
++
++import (
++	"errors"
++	"fmt"
++	"os"
++	"path/filepath"
++
++	"go.temporal.io/server/tools/gomad3/choice"
++	"go.temporal.io/server/tools/gomad3/record"
++)
++
++type DiagnosticEvidence struct {
++	Profile string              `json:"profile"`
++	SHA256  record.SHA256       `json:"sha256"`
++	Records record.Uint64String `json:"records"`
++}
++
++type DiagnosticTraceReference struct {
++	Path string `json:"path"`
++	DiagnosticEvidence
++}
++
++func retainDiagnosticTrace(campaignPath string, ordinal uint64, observed choice.DiagnosticTrace) (_ *DiagnosticTraceReference, retErr error) {
++	trace, err := choice.DecodeDiagnosticTrace(observed.Bytes)
++	if err != nil {
++		return nil, err
++	}
++	directory := filepath.Join(campaignPath, "diagnostics")
++	if err := os.MkdirAll(directory, 0o700); err != nil {
++		return nil, err
++	}
++	if err := syncDirectory(campaignPath); err != nil {
++		return nil, err
++	}
++	file, err := os.CreateTemp(directory, ".diagnostic-*.partial")
++	if err != nil {
++		return nil, err
++	}
++	temporary := file.Name()
++	defer func() {
++		retErr = errors.Join(retErr, file.Close())
++		if err := os.Remove(temporary); err != nil && !os.IsNotExist(err) {
++			retErr = errors.Join(retErr, err)
++		}
++		retErr = errors.Join(retErr, syncDirectory(directory))
++	}()
++	if _, err := file.Write(trace.Bytes); err != nil {
++		return nil, err
++	}
++	if err := file.Sync(); err != nil {
++		return nil, err
++	}
++	path := filepath.Join(directory, fmt.Sprintf("%020d-%x.bin", ordinal, trace.SHA256))
++	if err := os.Link(temporary, path); err != nil {
++		if !os.IsExist(err) {
++			return nil, err
++		}
++		existing, readErr := choice.ReadDiagnosticTrace(path)
++		if readErr != nil || existing.SHA256 != trace.SHA256 {
++			return nil, errors.Join(errors.New("retained diagnostic trace identity changed"), readErr)
++		}
++	}
++	return &DiagnosticTraceReference{Path: path, DiagnosticEvidence: DiagnosticEvidence{Profile: choice.DiagnosticProfile, SHA256: record.SHA256FromSum(trace.SHA256), Records: record.Uint64String(len(trace.Records))}}, nil
++}
+diff --git a/tools/gomad3/runner/diagnostics_test.go b/tools/gomad3/runner/diagnostics_test.go
+--- /dev/null
++++ b/tools/gomad3/runner/diagnostics_test.go
+@@ -0,0 +1,180 @@
++package runner
++
++import (
++	"context"
++	"encoding/binary"
++	"fmt"
++	"os"
++	"path/filepath"
++	"strings"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/artifact"
++	"go.temporal.io/server/tools/gomad3/choice"
++	"go.temporal.io/server/tools/gomad3/record"
++	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
++	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
++)
++
++type diagnosticExecutor struct {
++	delegate *explorationExecutor
++	t        *testing.T
++}
++
++func (executor *diagnosticExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
++	executor.t.Helper()
++	if !request.Diagnostics {
++		executor.t.Fatal("diagnostics lost before execution")
++	}
++	result, err := executor.delegate.Run(ctx, request)
++	if err != nil {
++		return result, err
++	}
++	data := make([]byte, 160)
++	copy(data, []byte{'G', 'O', 'M', 'A', 'D', 'D', 'G', 1})
++	binary.BigEndian.PutUint32(data[8:12], 1)
++	data[12] = 1
++	limit, err := choice.DiagnosticLimit(request.Choice.Limit)
++	if err != nil {
++		return result, err
++	}
++	binary.BigEndian.PutUint64(data[16:24], limit)
++	binary.BigEndian.PutUint64(data[24:32], 160)
++	binary.BigEndian.PutUint64(data[32:40], 1)
++	result.DiagnosticTrace, err = choice.DecodeDiagnosticTrace(data)
++	result.IOTranscript = completeEmptyTranscript()
++	return result, err
++}
++
++func TestDiagnosticsRetainedWhenSuccessArtifactsAreDiscarded(t *testing.T) {
++	preparer := newFakePreparer(t)
++	executor := &diagnosticExecutor{t: t, delegate: &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: 1 << 20}}
++	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
++	config.Diagnostics = true
++	config.ChoiceTraceLimit = 1 << 20
++	config.CollectExecutionEvidence = true
++	config.Coverage = CoverageSemanticChoice
++	summary, err := Explore(context.Background(), config)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if summary.RetainedSuccesses != 0 || len(summary.SuccessArtifacts) != 0 || summary.Diagnostics == nil || summary.ExecutionEvidence.Diagnostics == nil {
++		t.Fatalf("summary %+v", summary)
++	}
++	trace, err := choice.ReadDiagnosticTrace(summary.Diagnostics.Path)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if summary.Diagnostics.SHA256 != record.SHA256FromSum(trace.SHA256) {
++		t.Fatal("retained identity changed")
++	}
++	info, err := os.Stat(summary.Diagnostics.Path)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if info.Mode().Perm() != 0o600 {
++		t.Fatalf("trace permissions %v", info.Mode())
++	}
++	batch, err := campaign.OpenCampaign(summary.CampaignPath)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if len(batch.Executions) != 1 || batch.Executions[0].SuccessArtifact != nil {
++		t.Fatal("success artifact was retained")
++	}
++}
++
++func TestDiagnosticsPlanShardAndGuidanceKeepTheProfile(t *testing.T) {
++	preparer := newFakePreparer(t)
++	executor := &diagnosticExecutor{t: t, delegate: &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: 1 << 20}}
++	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
++	config.Diagnostics = true
++	config.ChoiceTraceLimit = 1 << 20
++	config.Coverage = CoverageSemanticChoice
++	planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: filepath.Join(t.TempDir(), "plan.json")})
++	if err != nil {
++		t.Fatal(err)
++	}
++	summary, err := RunCampaignShard(context.Background(), CampaignShardSpec{PlanPath: planned.Path, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild, Executor: executor})
++	if err != nil || summary.Diagnostics == nil {
++		t.Fatalf("shard diagnostics %+v: %v", summary.Diagnostics, err)
++	}
++	config.Guide = true
++	config.Corpus = filepath.Join(t.TempDir(), "corpus")
++	config.Replayer = &matchingReplayer{}
++	summary, err = Explore(context.Background(), config)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if summary.CorpusAdded != 1 || summary.Diagnostics == nil {
++		t.Fatalf("guidance result %+v", summary)
++	}
++}
++
++func TestDiagnosticArtifactReplaysWithoutCollectingSidecar(t *testing.T) {
++	path, expected := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true, Environment: []record.Environment{{Name: choice.DiagnosticProfileEnvironment, Value: choice.DiagnosticProfile}}})
++	executor := &fakeReplayExecutor{result: expected}
++	replayed, err := Replay(context.Background(), ReplaySpec{ArtifactPath: path, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor})
++	if err != nil {
++		t.Fatal(err)
++	}
++	if !replayed.Match || executor.request.Diagnostics {
++		t.Fatalf("replay %+v", replayed)
++	}
++	for _, entry := range executor.request.Env {
++		if strings.HasPrefix(entry, "GOMAD3_DIAGNOSTIC_") {
++			t.Fatalf("diagnostic control leaked: %s", entry)
++		}
++	}
++	opened, err := artifact.OpenArtifact(path)
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer opened.Close()
++	found := false
++	for _, entry := range opened.Manifest.Environment {
++		found = found || entry.Name == choice.DiagnosticProfileEnvironment
++	}
++	if !found {
++		t.Fatal("replay rewrote diagnostic identity")
++	}
++}
++
++type diagnosticInterruptExecutor struct {
++	delegate *diagnosticExecutor
++	calls    int
++}
++
++func (executor *diagnosticInterruptExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
++	executor.calls++
++	if executor.calls == 2 {
++		return execution.Result{}, fmt.Errorf("fixture interruption")
++	}
++	return executor.delegate.Run(ctx, request)
++}
++
++func TestDiagnosticsResumeRestoresTheRecordedProfile(t *testing.T) {
++	preparer := newFakePreparer(t)
++	newExecutor := func() *diagnosticExecutor {
++		return &diagnosticExecutor{t: t, delegate: &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: 1 << 20}}
++	}
++	config := testConfig(t, preparer, &diagnosticInterruptExecutor{delegate: newExecutor()}, "7-8", PolicyAll, 1)
++	config.Diagnostics = true
++	config.ChoiceTraceLimit = 1 << 20
++	config.Coverage = CoverageSemanticChoice
++	partial, err := Explore(context.Background(), config)
++	if err == nil || partial.Diagnostics == nil {
++		t.Fatalf("interruption %+v: %v", partial, err)
++	}
++	originalPath := partial.Diagnostics.Path
++	resumed, err := Explore(context.Background(), CampaignSpec{ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: newExecutor()})
++	if err != nil {
++		t.Fatal(err)
++	}
++	if resumed.Succeeded != 2 || resumed.Diagnostics == nil {
++		t.Fatalf("resumed %+v", resumed)
++	}
++	if _, err := choice.ReadDiagnosticTrace(originalPath); err != nil {
++		t.Fatal(err)
++	}
++}
+diff --git a/tools/gomad3/runner/evidence.go b/tools/gomad3/runner/evidence.go
+--- a/tools/gomad3/runner/evidence.go
++++ b/tools/gomad3/runner/evidence.go
+@@ -65,6 +65,7 @@
+ 	IOTranscriptRecords     record.Uint64String              `json:"io_transcript_records"`
+ 	IOTranscriptComplete    bool                             `json:"io_transcript_complete"`
+ 	VirtualTimeElapsedNanos record.Uint64String              `json:"virtual_time_elapsed_nanos"`
++	Diagnostics             *DiagnosticEvidence              `json:"diagnostics,omitempty"`
+ 	Choices                 *ChoiceEvidence                  `json:"choices,omitempty"`
+ 	World                   record.World                     `json:"world"`
+ 	ReadOnlyMountsSHA256    *record.SHA256                   `json:"read_only_mounts_sha256,omitempty"`
+@@ -120,6 +121,10 @@
+ 		VirtualTimeElapsedNanos: record.Uint64String(completion.result.VirtualTimeElapsedNanos),
+ 		World:                   cloneWorld(worldRecord),
+ 		SemanticCoverage:        coverage,
++	}
++	if config.Diagnostics && len(completion.result.DiagnosticTrace.Bytes) != 0 {
++		trace := completion.result.DiagnosticTrace
++		runRecord.Diagnostics = &DiagnosticEvidence{Profile: choice.DiagnosticProfile, SHA256: record.SHA256FromSum(trace.SHA256), Records: record.Uint64String(len(trace.Records))}
+ 	}
+ 	if config.ChoiceTraceLimit != 0 && completion.result.ChoiceTrace.Trace.Summary.Terminal == choice.TerminalComplete {
+ 		trace := completion.result.ChoiceTrace
+diff --git a/tools/gomad3/runner/internal/execution/bootstrap_unix.go b/tools/gomad3/runner/internal/execution/bootstrap_unix.go
+--- a/tools/gomad3/runner/internal/execution/bootstrap_unix.go
++++ b/tools/gomad3/runner/internal/execution/bootstrap_unix.go
+@@ -18,8 +18,8 @@
+ 
+ func BootstrapMain() (retErr error) {
+ 	defer func() {
+-		capabilities := launchCapabilities{ioTranscript: true, readOnlyMount: true, choiceTrace: true, choiceReplayPlan: true, simulation: true, simulationBootstrap: true}
+-		retErr = errors.Join(retErr, closeDescriptors(bootstrapIOTranscriptFD, bootstrapIOTerminalFD, bootstrapIOExpectedFD, bootstrapIOROMountRequestFD, bootstrapIOROMountResponseFD, descriptorFor(bootstrapStage, capabilities, simulationRequestResource), descriptorFor(bootstrapStage, capabilities, simulationResponseResource), descriptorFor(bootstrapStage, capabilities, simulationBootstrapResource), descriptorFor(bootstrapStage, capabilities, simulationControlResource), descriptorFor(bootstrapStage, capabilities, simulationModelRequestResource), descriptorFor(bootstrapStage, capabilities, simulationModelResponseResource), descriptorFor(bootstrapStage, capabilities, simulationTimeRequestResource), descriptorFor(bootstrapStage, capabilities, simulationTimeResponseResource), descriptorFor(bootstrapStage, capabilities, choiceTraceResource), descriptorFor(bootstrapStage, capabilities, choiceTerminalResource), descriptorFor(bootstrapStage, capabilities, choiceTapeResource)))
++		capabilities := launchCapabilities{diagnostics: true, ioTranscript: true, readOnlyMount: true, choiceTrace: true, choiceReplayPlan: true, simulation: true, simulationBootstrap: true}
++		retErr = errors.Join(retErr, closeDescriptors(bootstrapIOTranscriptFD, bootstrapIOTerminalFD, bootstrapIOExpectedFD, bootstrapIOROMountRequestFD, bootstrapIOROMountResponseFD, descriptorFor(bootstrapStage, capabilities, simulationRequestResource), descriptorFor(bootstrapStage, capabilities, simulationResponseResource), descriptorFor(bootstrapStage, capabilities, simulationBootstrapResource), descriptorFor(bootstrapStage, capabilities, simulationControlResource), descriptorFor(bootstrapStage, capabilities, simulationModelRequestResource), descriptorFor(bootstrapStage, capabilities, simulationModelResponseResource), descriptorFor(bootstrapStage, capabilities, simulationTimeRequestResource), descriptorFor(bootstrapStage, capabilities, simulationTimeResponseResource), descriptorFor(bootstrapStage, capabilities, choiceTraceResource), descriptorFor(bootstrapStage, capabilities, choiceTerminalResource), descriptorFor(bootstrapStage, capabilities, choiceTapeResource), descriptorFor(bootstrapStage, capabilities, diagnosticTraceResource)))
+ 	}()
+ 	signal.Reset(syscall.SIGTERM)
+ 	if err := reportTargetIdentity(); err != nil {
+@@ -74,7 +74,7 @@
+ 	if err := syscall.Close(bootstrapActivationFD); err != nil {
+ 		return errors.Join(fmt.Errorf("close target activation: %w", err), closeDescriptors(bootstrapWorldConfigFD, bootstrapWorldRecordFD))
+ 	}
+-	capabilities := launchCapabilities{ioTranscript: request.IOTranscriptLimit != 0, readOnlyMount: request.IOROMounts, choiceTrace: request.ChoiceTrace, choiceReplayPlan: request.ChoiceTapeBytes != 0, simulation: request.Simulation, simulationBootstrap: request.SimulationBootstrap, simulationCoordinator: request.Simulation && !request.SimulationBootstrap}
++	capabilities := launchCapabilities{diagnostics: request.Diagnostics, ioTranscript: request.IOTranscriptLimit != 0, readOnlyMount: request.IOROMounts, choiceTrace: request.ChoiceTrace, choiceReplayPlan: request.ChoiceTapeBytes != 0, simulation: request.Simulation, simulationBootstrap: request.SimulationBootstrap, simulationCoordinator: request.Simulation && !request.SimulationBootstrap}
+ 	if err := installTargetStage(capabilities); err != nil {
+ 		return err
+ 	}
+@@ -105,6 +105,16 @@
+ 			)
+ 		}
+ 	}
++	if request.Diagnostics {
++		if !request.ChoiceTrace || request.ChoiceMode != choice.ModeRecord {
++			return errors.New("diagnostics require choice record mode")
++		}
++		limit, err := choice.DiagnosticLimit(request.ChoiceTraceLimit)
++		if err != nil {
++			return err
++		}
++		request.Env = append(request.Env, fmt.Sprintf("%s=%d", diagnosticTraceFDEnvironmentName, descriptorFor(targetStage, capabilities, diagnosticTraceResource)), fmt.Sprintf("%s=%d", diagnosticTraceBytesEnvironmentName, limit))
++	}
+ 	if request.IOROMounts {
+ 		request.Env = append(request.Env, ioReadOnlyMountsEnvironmentName+"=1")
+ 	}
+diff --git a/tools/gomad3/runner/internal/execution/diagnostics_toolchain_test.go b/tools/gomad3/runner/internal/execution/diagnostics_toolchain_test.go
+--- /dev/null
++++ b/tools/gomad3/runner/internal/execution/diagnostics_toolchain_test.go
+@@ -0,0 +1,67 @@
++package execution
++
++import (
++	"bytes"
++	"context"
++	"os"
++	"path/filepath"
++	"reflect"
++	"testing"
++	"time"
++
++	"go.temporal.io/server/tools/gomad3/choice"
++	"go.temporal.io/server/tools/gomad3/deterministicio"
++	"go.temporal.io/server/tools/gomad3/target"
++)
++
++func TestDiagnosticLauncherLocalizesInjectedDraw(t *testing.T) {
++	toolchainRoot, err := filepath.Abs(filepath.Join("..", "..", "..", ".toolchain"))
++	if err != nil {
++		t.Fatal(err)
++	}
++	prepared, err := target.Prepare(context.Background(), target.Spec{Kind: target.KindGoRun, Source: "./diagnostic_fault", WorkingDir: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"), PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot})
++	if err != nil {
++		t.Fatal(err)
++	}
++	implementation, err := choice.ImplementationIdentity(prepared.BuildKey)
++	if err != nil {
++		t.Fatal(err)
++	}
++	profile := deterministicio.Default()
++	frame, err := profile.BootstrapFrame(prepared, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 7)
++	if err != nil {
++		t.Fatal(err)
++	}
++	run := func(diagnostics bool, perturb bool) Result {
++		t.Helper()
++		environment := []string{"GOMADSEED=7", "TZ=UTC", "GOMAD3_IO_PROFILE=" + profile.Name()}
++		if perturb {
++			environment = append(environment, "GOMAD3_DIAGNOSTIC_PERTURB_DRAW=5")
++		}
++		result, err := Run(context.Background(), Spec{SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"}, BootstrapCommand: []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"}, Command: prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: environment, ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1024, World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7}, IO: &IOCapability{Config: frame, Transcript: &IOTranscriptCapability{Limit: 64 << 20}}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: implementation, Limit: 1 << 20}, Diagnostics: diagnostics})
++		if err != nil {
++			t.Fatal(err)
++		}
++		if result.ExitCode != 0 {
++			t.Fatalf("target status %d: %s", result.ExitCode, result.Stderr.Bytes)
++		}
++		return result
++	}
++	plain := run(true, false)
++	repeated := run(true, false)
++	if !bytes.Equal(plain.DiagnosticTrace.Bytes, repeated.DiagnosticTrace.Bytes) {
++		t.Fatal("same-seed diagnostic traces differ")
++	}
++	off := run(false, false)
++	if !bytes.Equal(off.ChoiceTrace.Trace.Bytes, plain.ChoiceTrace.Trace.Bytes) || !bytes.Equal(off.Stdout.Bytes, plain.Stdout.Bytes) || off.IOTranscript.SHA256 != plain.IOTranscript.SHA256 {
++		t.Fatal("diagnostics changed behavior")
++	}
++	perturbed := run(true, true)
++	difference, err := choice.DiffDiagnostics(plain.DiagnosticTrace.Bytes, perturbed.DiagnosticTrace.Bytes)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if difference == nil || difference.Ordinal != 5 || !reflect.DeepEqual(difference.Fields, []string{"runtime_cheap_rand_draws"}) {
++		t.Fatalf("injected draw difference = %+v", difference)
++	}
++}
+diff --git a/tools/gomad3/runner/internal/execution/launch_plan_unix.go b/tools/gomad3/runner/internal/execution/launch_plan_unix.go
+--- a/tools/gomad3/runner/internal/execution/launch_plan_unix.go
++++ b/tools/gomad3/runner/internal/execution/launch_plan_unix.go
+@@ -23,6 +23,7 @@
+ 	readOnlyMount         bool
+ 	choiceTrace           bool
+ 	choiceReplayPlan      bool
++	diagnostics           bool
+ 	simulation            bool
+ 	simulationBootstrap   bool
+ 	simulationCoordinator bool
+@@ -50,6 +51,7 @@
+ 	ioROMountResponseResource       resourceName = "io-ro-mount-response"
+ 	choiceTraceResource             resourceName = "choice-trace"
+ 	choiceTerminalResource          resourceName = "choice-terminal"
++	diagnosticTraceResource         resourceName = "diagnostic-trace"
+ 	choiceTapeResource              resourceName = "choice-tape"
+ 	simulationRequestResource       resourceName = "simulation-request"
+ 	simulationResponseResource      resourceName = "simulation-response"
+@@ -133,6 +135,7 @@
+ 	{resource: ioROMountResponseResource, supervisorFD: ioROMountResponseFD, bootstrapFD: bootstrapIOROMountResponseFD, targetFD: targetIOROMountResponseFD, readOnlyMount: true, closeOnSupervisorStart: true, closeOnBootstrapStart: true},
+ 	{resource: choiceTraceResource, choiceTrace: true, closeOnBootstrapStart: true},
+ 	{resource: choiceTerminalResource, choiceTrace: true, closeOnSupervisorStart: true, closeOnBootstrapStart: true},
++	{resource: diagnosticTraceResource, closeOnBootstrapStart: true},
+ 	{resource: choiceTapeResource, choiceTrace: true, closeOnBootstrapStart: true},
+ 	{resource: simulationRequestResource, simulation: true, closeOnBootstrapStart: true},
+ 	{resource: simulationResponseResource, simulation: true, closeOnBootstrapStart: true},
+@@ -150,7 +153,7 @@
+ 	}
+ 	bindings := make([]descriptorBinding, 0, len(launchDescriptorSpecs))
+ 	for _, spec := range launchDescriptorSpecs {
+-		if spec.choiceTrace || spec.simulation {
++		if spec.choiceTrace || spec.simulation || spec.resource == diagnosticTraceResource {
+ 			continue
+ 		}
+ 		if spec.ioTranscript && !capabilities.ioTranscript || spec.readOnlyMount && !capabilities.readOnlyMount || spec.choiceTrace && !capabilities.choiceTrace {
+@@ -207,6 +210,13 @@
+ 			bindings = append(bindings, descriptorBinding{resource: choiceTapeResource, fd: next + 2})
+ 		}
+ 	}
++	if capabilities.diagnostics {
++		next := 3
++		if len(bindings) != 0 {
++			next = bindings[len(bindings)-1].fd + 1
++		}
++		bindings = append(bindings, descriptorBinding{resource: diagnosticTraceResource, fd: next})
++	}
+ 	return bindings
+ }
+ 
+diff --git a/tools/gomad3/runner/internal/execution/process.go b/tools/gomad3/runner/internal/execution/process.go
+--- a/tools/gomad3/runner/internal/execution/process.go
++++ b/tools/gomad3/runner/internal/execution/process.go
+@@ -26,6 +26,9 @@
+ const choiceTraceBytesEnvironmentName = "GOMAD3_CHOICE_TRACE_BYTES"
+ const choiceTapeFDEnvironmentName = "GOMAD3_CHOICE_TAPE_FD"
+ const choiceTapeBytesEnvironmentName = "GOMAD3_CHOICE_TAPE_BYTES"
++const diagnosticTraceFDEnvironmentName = "GOMAD3_DIAGNOSTIC_TRACE_FD"
++const diagnosticTraceBytesEnvironmentName = "GOMAD3_DIAGNOSTIC_TRACE_BYTES"
++
+ const ioReadOnlyMountsEnvironmentName = "GOMAD3_IO_RO_MOUNTS"
+ 
+ const (
+@@ -48,6 +51,7 @@
+ 	StderrHead        io.Writer
+ 	World             WorldCapability
+ 	IO                *IOCapability
++	Diagnostics       bool
+ 	Choice            *ChoiceCapability
+ 	Simulation        *SimulationCapability
+ }
+@@ -102,6 +106,7 @@
+ 	WorldRecord       []byte
+ 	IOTranscript      deterministicio.Transcript
+ 	IOROMounts        romount.Snapshot
++	DiagnosticTrace   choice.DiagnosticTrace
+ 	ChoiceTrace       ChoiceTrace
+ 	SimulationRecords [][]byte
+ 	// VirtualTimeElapsedNanos is how far the simulation clock advanced past
+@@ -179,6 +184,9 @@
+ 			return errors.New("simulation exploration plan or limits are invalid")
+ 		}
+ 	}
++	if request.Diagnostics && (request.Choice == nil || request.Choice.Mode != choice.ModeRecord) {
++		return errors.New("diagnostics require choice record mode")
++	}
+ 	if choiceCapability := request.Choice; choiceCapability != nil {
+ 		if choiceCapability.Profile != choice.Profile {
+ 			return fmt.Errorf("unsupported choice trace profile %q", choiceCapability.Profile)
+@@ -258,7 +266,7 @@
+ func validateChoiceEnvironment(environment []string) error {
+ 	for _, entry := range environment {
+ 		name, _, _ := strings.Cut(entry, "=")
+-		if name == choiceProfileEnvironmentName || name == choiceModeEnvironmentName || name == choiceTraceFDEnvironmentName || name == choiceTerminalFDEnvironmentName || name == choiceTraceBytesEnvironmentName || name == choiceTapeFDEnvironmentName || name == choiceTapeBytesEnvironmentName || name == ioReadOnlyMountsEnvironmentName || name == simulationRoleEnvironmentName || name == simulationRequestFDEnvironmentName || name == simulationResponseFDEnvironmentName || name == simulationBootstrapFDEnvironmentName || name == simulationControlFDEnvironmentName || name == simulationModelRequestFDEnvironmentName || name == simulationModelResponseFDEnvironmentName {
++		if name == diagnosticTraceFDEnvironmentName || name == diagnosticTraceBytesEnvironmentName || name == choice.DiagnosticProfileEnvironment || name == choiceProfileEnvironmentName || name == choiceModeEnvironmentName || name == choiceTraceFDEnvironmentName || name == choiceTerminalFDEnvironmentName || name == choiceTraceBytesEnvironmentName || name == choiceTapeFDEnvironmentName || name == choiceTapeBytesEnvironmentName || name == ioReadOnlyMountsEnvironmentName || name == simulationRoleEnvironmentName || name == simulationRequestFDEnvironmentName || name == simulationResponseFDEnvironmentName || name == simulationBootstrapFDEnvironmentName || name == simulationControlFDEnvironmentName || name == simulationModelRequestFDEnvironmentName || name == simulationModelResponseFDEnvironmentName {
+ 			return fmt.Errorf("target environment name %q is reserved", name)
+ 		}
+ 	}
+diff --git a/tools/gomad3/runner/internal/execution/process_unix.go b/tools/gomad3/runner/internal/execution/process_unix.go
+--- a/tools/gomad3/runner/internal/execution/process_unix.go
++++ b/tools/gomad3/runner/internal/execution/process_unix.go
+@@ -26,6 +26,7 @@
+ }
+ 
+ type supervisorRequest struct {
++	Diagnostics          bool          `json:"diagnostics,omitempty"`
+ 	BootstrapCommand     []string      `json:"bootstrap_command"`
+ 	Command              string        `json:"command"`
+ 	Args                 []string      `json:"args"`
+@@ -51,6 +52,7 @@
+ }
+ 
+ type targetBootstrapRequest struct {
++	Diagnostics         bool        `json:"diagnostics,omitempty"`
+ 	Command             string      `json:"command"`
+ 	Args                []string    `json:"args"`
+ 	Argv0               string      `json:"argv0"`
+@@ -146,6 +148,20 @@
+ 		files := choiceSession.Files()
+ 		choiceTraceFile, choiceTerminalFile, choiceReplayPlanFile = files.Trace, files.Terminal, files.ReplayPlan
+ 	}
++	var diagnosticSession *choice.DiagnosticSession
++	var diagnosticTraceFile *os.File
++	if request.Diagnostics {
++		limit, err := choice.DiagnosticLimit(request.Choice.Limit)
++		if err != nil {
++			return Result{}, err
++		}
++		diagnosticSession, err = choice.NewDiagnosticSession(limit)
++		if err != nil {
++			return Result{}, err
++		}
++		defer func() { retErr = errors.Join(retErr, diagnosticSession.Close()) }()
++		diagnosticTraceFile = diagnosticSession.File()
++	}
+ 	var readOnlyMountBroker *romount.Broker
+ 	if ioCapability != nil && ioCapability.ReadOnlyMount != nil {
+ 		mounts := ioCapability.ReadOnlyMount
+@@ -159,7 +175,7 @@
+ 		}
+ 		defer func() { retErr = errors.Join(retErr, readOnlyMountBroker.Close()) }()
+ 	}
+-	capabilities := launchCapabilities{ioTranscript: ioSession != nil, readOnlyMount: readOnlyMountBroker != nil, choiceTrace: choiceSession != nil, choiceReplayPlan: choiceReplayPlanFile != nil, simulation: request.Simulation != nil, simulationBootstrap: request.Simulation != nil && request.Simulation.Role == SimulationRoleNode, simulationCoordinator: request.Simulation != nil && request.Simulation.Role == SimulationRoleCoordinator}
++	capabilities := launchCapabilities{diagnostics: request.Diagnostics, ioTranscript: ioSession != nil, readOnlyMount: readOnlyMountBroker != nil, choiceTrace: choiceSession != nil, choiceReplayPlan: choiceReplayPlanFile != nil, simulation: request.Simulation != nil, simulationBootstrap: request.Simulation != nil && request.Simulation.Role == SimulationRoleNode, simulationCoordinator: request.Simulation != nil && request.Simulation.Role == SimulationRoleCoordinator}
+ 	resources := newLaunchResources(capabilities)
+ 	defer func() { retErr = errors.Join(retErr, resources.close()) }()
+ 	var mountRequestRead, mountResponseWrite *os.File
+@@ -273,6 +289,9 @@
+ 		}
+ 	}
+ 
++	if diagnosticSession != nil {
++		resources.bind(diagnosticTraceResource, &diagnosticTraceFile)
++	}
+ 	command := exec.Command(request.SupervisorCommand[0], request.SupervisorCommand[1:]...)
+ 	command.Env = append(os.Environ(), "GOMAD3_PROCESS_SUPERVISOR=1")
+ 	command.ExtraFiles, err = resources.extraFiles(supervisorStage)
+@@ -320,6 +339,7 @@
+ 	wireTimeout := targetTimeout(remaining)
+ 
+ 	wireRequest := supervisorRequest{
++		Diagnostics:          request.Diagnostics,
+ 		BootstrapCommand:     append([]string(nil), request.BootstrapCommand...),
+ 		Command:              request.Command,
+ 		Args:                 request.Args,
+@@ -625,6 +645,16 @@
+ 		}
+ 		choiceErr = err
+ 	}
++	if diagnosticSession != nil {
++		trace, err := diagnosticSession.Collect()
++		if err != nil && !(errors.Is(err, choice.ErrDiagnosticIncomplete) && (result.WatchdogTimeout || result.Cancelled)) {
++			return result, fmt.Errorf("collect diagnostic trace: %w", err)
++		}
++		if err == nil && uint64(len(trace.Records)) != result.ChoiceTrace.Trace.Summary.Records {
++			return result, errors.New("diagnostic and choice record counts disagree")
++		}
++		result.DiagnosticTrace = trace
++	}
+ 	if ioSession != nil {
+ 		collected := <-collectedIO
+ 		if collected.err != nil {
+diff --git a/tools/gomad3/runner/internal/execution/supervisor_unix.go b/tools/gomad3/runner/internal/execution/supervisor_unix.go
+--- a/tools/gomad3/runner/internal/execution/supervisor_unix.go
++++ b/tools/gomad3/runner/internal/execution/supervisor_unix.go
+@@ -31,12 +31,12 @@
+ 	requestFile := os.NewFile(requestFD, "supervisor-request")
+ 	worldRecord := os.NewFile(worldRecordFD, "target-world-record")
+ 	identity := os.NewFile(targetIdentityFD, "target-identity")
+-	var ioTranscript, ioTerminal, ioExpected, ioROMountRequest, ioROMountResponse, choiceTrace, choiceTerminal, choiceReplayPlan, simulationRequest, simulationResponse, simulationBootstrap, simulationControl, simulationModelRequest, simulationModelResponse, simulationTimeRequest, simulationTimeResponse *os.File
++	var ioTranscript, ioTerminal, ioExpected, ioROMountRequest, ioROMountResponse, choiceTrace, choiceTerminal, choiceReplayPlan, diagnosticTrace, simulationRequest, simulationResponse, simulationBootstrap, simulationControl, simulationModelRequest, simulationModelResponse, simulationTimeRequest, simulationTimeResponse *os.File
+ 	if control == nil || report == nil || stdout == nil || stderr == nil || requestFile == nil || worldRecord == nil || identity == nil {
+ 		return fmt.Errorf("supervisor file descriptors are unavailable")
+ 	}
+ 	defer func() {
+-		retErr = errors.Join(retErr, closeOpenFile(&control), closeOpenFile(&report), closeOpenFile(&stdout), closeOpenFile(&stderr), closeOpenFile(&requestFile), closeOpenFile(&worldRecord), closeOpenFile(&identity), closeOpenFile(&ioTranscript), closeOpenFile(&ioTerminal), closeOpenFile(&ioExpected), closeOpenFile(&ioROMountRequest), closeOpenFile(&ioROMountResponse), closeOpenFile(&choiceTrace), closeOpenFile(&choiceTerminal), closeOpenFile(&choiceReplayPlan), closeOpenFile(&simulationRequest), closeOpenFile(&simulationResponse), closeOpenFile(&simulationBootstrap), closeOpenFile(&simulationControl), closeOpenFile(&simulationModelRequest), closeOpenFile(&simulationModelResponse), closeOpenFile(&simulationTimeRequest), closeOpenFile(&simulationTimeResponse))
++		retErr = errors.Join(retErr, closeOpenFile(&control), closeOpenFile(&report), closeOpenFile(&stdout), closeOpenFile(&stderr), closeOpenFile(&requestFile), closeOpenFile(&worldRecord), closeOpenFile(&identity), closeOpenFile(&ioTranscript), closeOpenFile(&ioTerminal), closeOpenFile(&ioExpected), closeOpenFile(&ioROMountRequest), closeOpenFile(&ioROMountResponse), closeOpenFile(&choiceTrace), closeOpenFile(&choiceTerminal), closeOpenFile(&choiceReplayPlan), closeOpenFile(&diagnosticTrace), closeOpenFile(&simulationRequest), closeOpenFile(&simulationResponse), closeOpenFile(&simulationBootstrap), closeOpenFile(&simulationControl), closeOpenFile(&simulationModelRequest), closeOpenFile(&simulationModelResponse), closeOpenFile(&simulationTimeRequest), closeOpenFile(&simulationTimeResponse))
+ 	}()
+ 
+ 	var request supervisorRequest
+@@ -62,7 +62,7 @@
+ 		}
+ 	}
+ 	if request.ChoiceTrace {
+-		capabilities := launchCapabilities{ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: true, choiceReplayPlan: request.ChoiceTapeBytes != 0, simulation: request.Simulation, simulationBootstrap: request.SimulationBootstrap, simulationCoordinator: request.Simulation && !request.SimulationBootstrap}
++		capabilities := launchCapabilities{diagnostics: request.Diagnostics, ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: true, choiceReplayPlan: request.ChoiceTapeBytes != 0, simulation: request.Simulation, simulationBootstrap: request.SimulationBootstrap, simulationCoordinator: request.Simulation && !request.SimulationBootstrap}
+ 		choiceTrace = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, choiceTraceResource)), "target-choice-trace")
+ 		choiceTerminal = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, choiceTerminalResource)), "target-choice-terminal")
+ 		if request.ChoiceTapeBytes != 0 {
+@@ -75,8 +75,18 @@
+ 			return errors.New("choice controller mode and tape are inconsistent")
+ 		}
+ 	}
++	if request.Diagnostics {
++		if !request.ChoiceTrace || request.ChoiceMode != choice.ModeRecord {
++			return errors.New("diagnostics require choice record mode")
++		}
++		capabilities := launchCapabilities{diagnostics: true, ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: true, simulation: request.Simulation, simulationBootstrap: request.SimulationBootstrap, simulationCoordinator: request.Simulation && !request.SimulationBootstrap}
++		diagnosticTrace = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, diagnosticTraceResource)), "target-diagnostic-trace")
++		if diagnosticTrace == nil {
++			return errors.New("diagnostic trace descriptor unavailable")
++		}
++	}
+ 	if request.Simulation {
+-		capabilities := launchCapabilities{ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: choiceTrace != nil, choiceReplayPlan: choiceReplayPlan != nil, simulation: true, simulationBootstrap: request.SimulationBootstrap, simulationCoordinator: !request.SimulationBootstrap}
++		capabilities := launchCapabilities{diagnostics: request.Diagnostics, ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: choiceTrace != nil, choiceReplayPlan: choiceReplayPlan != nil, simulation: true, simulationBootstrap: request.SimulationBootstrap, simulationCoordinator: !request.SimulationBootstrap}
+ 		simulationRequest = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, simulationRequestResource)), "simulation-request")
+ 		simulationResponse = os.NewFile(uintptr(descriptorFor(supervisorStage, capabilities, simulationResponseResource)), "simulation-response")
+ 		if request.SimulationBootstrap {
+@@ -110,7 +120,7 @@
+ 	target.Env = append(os.Environ(), "GOMAD3_TARGET_BOOTSTRAP=1")
+ 	target.Stdout = stdout
+ 	target.Stderr = stderr
+-	capabilities := launchCapabilities{ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: choiceTrace != nil, choiceReplayPlan: choiceReplayPlan != nil, simulation: simulationRequest != nil, simulationBootstrap: simulationBootstrap != nil, simulationCoordinator: simulationBootstrap == nil && simulationModelRequest != nil}
++	capabilities := launchCapabilities{diagnostics: request.Diagnostics, ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: choiceTrace != nil, choiceReplayPlan: choiceReplayPlan != nil, simulation: simulationRequest != nil, simulationBootstrap: simulationBootstrap != nil, simulationCoordinator: simulationBootstrap == nil && simulationModelRequest != nil}
+ 	resources := newLaunchResources(capabilities)
+ 	defer func() { retErr = errors.Join(retErr, resources.close()) }()
+ 	bootstrapWrite, err := resources.createPipe(bootstrapRequestResource, inheritRead, "target bootstrap request")
+@@ -156,6 +166,9 @@
+ 			resources.bind(choiceTapeResource, &choiceReplayPlan)
+ 		}
+ 	}
++	if diagnosticTrace != nil {
++		resources.bind(diagnosticTraceResource, &diagnosticTrace)
++	}
+ 	if simulationRequest != nil {
+ 		resources.bind(simulationRequestResource, &simulationRequest)
+ 		resources.bind(simulationResponseResource, &simulationResponse)
+@@ -188,7 +201,7 @@
+ 	if closeErr := resources.closeInherited(bootstrapStage); closeErr != nil {
+ 		return errors.Join(fmt.Errorf("close inherited target bootstrap pipe ends: %w", closeErr), bootstrapWrite.Close(), activationWrite.Close(), readinessRead.Close(), configWrite.Close(), killReapTarget(target, targetPGID, deadline))
+ 	}
+-	bootstrapRequest := targetBootstrapRequest{Command: request.Command, Args: request.Args, Argv0: request.Argv0, Dir: request.Dir, Env: request.Env, IOConfig: request.IOConfig, IOTranscriptLimit: request.IOTranscriptLimit, IOReplay: request.IOReplay, IOROMounts: request.IOROMounts, ChoiceTrace: request.ChoiceTrace, ChoiceTraceLimit: request.ChoiceTraceLimit, ChoiceMode: request.ChoiceMode, ChoiceTapeBytes: request.ChoiceTapeBytes, Simulation: request.Simulation, SimulationBootstrap: request.SimulationBootstrap}
++	bootstrapRequest := targetBootstrapRequest{Diagnostics: request.Diagnostics, Command: request.Command, Args: request.Args, Argv0: request.Argv0, Dir: request.Dir, Env: request.Env, IOConfig: request.IOConfig, IOTranscriptLimit: request.IOTranscriptLimit, IOReplay: request.IOReplay, IOROMounts: request.IOROMounts, ChoiceTrace: request.ChoiceTrace, ChoiceTraceLimit: request.ChoiceTraceLimit, ChoiceMode: request.ChoiceMode, ChoiceTapeBytes: request.ChoiceTapeBytes, Simulation: request.Simulation, SimulationBootstrap: request.SimulationBootstrap}
+ 	if err := json.NewEncoder(bootstrapWrite).Encode(bootstrapRequest); err != nil {
+ 		return errors.Join(fmt.Errorf("write target bootstrap request: %w", err), bootstrapWrite.Close(), activationWrite.Close(), readinessRead.Close(), configWrite.Close(), killReapTarget(target, targetPGID, deadline))
+ 	}
+diff --git a/tools/gomad3/runner/replay_operation.go b/tools/gomad3/runner/replay_operation.go
+--- a/tools/gomad3/runner/replay_operation.go
++++ b/tools/gomad3/runner/replay_operation.go
+@@ -403,7 +403,7 @@
+ func replayEnvironment(recorded []record.Environment) []string {
+ 	environment := make([]string, 0, len(recorded))
+ 	for _, entry := range recorded {
+-		if entry.Name == "GOMAD3_CHOICE_PROFILE" {
++		if entry.Name == "GOMAD3_CHOICE_PROFILE" || entry.Name == choice.DiagnosticProfileEnvironment {
+ 			continue
+ 		}
+ 		environment = append(environment, entry.Name+"="+entry.Value)
+diff --git a/tools/gomad3/runner/resume.go b/tools/gomad3/runner/resume.go
+--- a/tools/gomad3/runner/resume.go
++++ b/tools/gomad3/runner/resume.go
+@@ -10,6 +10,7 @@
+ 	"time"
+ 
+ 	"go.temporal.io/server/tools/gomad3/artifact"
++	"go.temporal.io/server/tools/gomad3/choice"
+ 	"go.temporal.io/server/tools/gomad3/deterministicio"
+ 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+ 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+@@ -116,6 +117,12 @@
+ 	}
+ 	config.IOTranscriptLimit = uint64(plan.IOTranscriptBytes)
+ 	for _, entry := range plan.Environment {
++		if entry.Name == choice.DiagnosticProfileEnvironment {
++			if entry.Value != choice.DiagnosticProfile || config.ChoiceTraceLimit == 0 || config.Strategy != StrategySeed {
++				return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, errors.New("recorded diagnostic profile is invalid")
++			}
++			config.Diagnostics = true
++		}
+ 		if entry.Name == record.ClockTickEnvironment {
+ 			config.ClockTick = entry.Value
+ 		}
+diff --git a/tools/gomad3/runner/runner.go b/tools/gomad3/runner/runner.go
+--- a/tools/gomad3/runner/runner.go
++++ b/tools/gomad3/runner/runner.go
+@@ -137,6 +137,7 @@
+ 	FailureBudget        uint64
+ 	OutputLimit          uint64
+ 	WorldTransitionLimit uint64
++	Diagnostics          bool
+ 	ChoiceTraceLimit     uint64
+ 	// IOTranscriptLimit bounds the I/O transcript; zero means
+ 	// deterministicio.DefaultTranscriptBytes.
+@@ -194,6 +195,7 @@
+ 	SemanticCoverage      *deterministicio.SemanticCoverage
+ 	ExecutionEvidence     *ExecutionEvidence `json:"execution_evidence"`
+ 	ExecutionElapsedNanos uint64
++	Diagnostics           *DiagnosticTraceReference `json:"diagnostics,omitempty"`
+ 	CorpusPath            string
+ 	CorpusEntries         uint64
+ 	CorpusAdded           uint64
+@@ -864,6 +866,16 @@
+ 			continue
+ 		}
+ 		runCoverage, runChoiceFeatures, runChoiceProjection, outcome := assessed.coverage, assessed.choiceFeatures, assessed.choiceProjection, assessed.outcome
++		if config.Diagnostics && len(completion.result.DiagnosticTrace.Bytes) != 0 {
++			trace, err := retainDiagnosticTrace(journal.Path(), completion.job.ordinal, completion.result.DiagnosticTrace)
++			if err != nil {
++				hostFailure = &HostError{Reason: "diagnostic_write", Err: err}
++				controller.Stop()
++				activeCancel()
++				continue
++			}
++			summary.Diagnostics = trace
++		}
+ 		if config.CollectExecutionEvidence {
+ 			mountArtifact, evidenceErr := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
+ 			if evidenceErr != nil {
+@@ -1229,6 +1241,9 @@
+ 	if config.OutputLimit == 0 || config.WorldTransitionLimit == 0 {
+ 		return SeedSelection{}, nil, errors.New("output and World transition limits must be positive")
+ 	}
++	if config.Diagnostics && (config.ChoiceTraceLimit == 0 || normalizedStrategy(config.Strategy) != StrategySeed) {
++		return SeedSelection{}, nil, errors.New("diagnostics require choice recording with the seed strategy")
++	}
+ 	if config.ChoiceTraceLimit != 0 && (config.ChoiceTraceLimit < execution.MinimumChoiceTraceBytes || config.ChoiceTraceLimit > execution.MaximumChoiceTraceBytes) {
+ 		return SeedSelection{}, nil, fmt.Errorf("choice trace capacity must be between %d bytes and 64 MiB", execution.MinimumChoiceTraceBytes)
+ 	}
+@@ -1327,6 +1342,9 @@
+ 	}
+ 	if config.ChoiceTraceLimit != 0 {
+ 		environment = append(environment, record.Environment{Name: "GOMAD3_CHOICE_PROFILE", Value: choice.Profile})
++	}
++	if config.Diagnostics {
++		environment = append(environment, record.Environment{Name: choice.DiagnosticProfileEnvironment, Value: choice.DiagnosticProfile})
+ 	}
+ 	sort.Slice(environment, func(i, j int) bool { return environment[i].Name < environment[j].Name })
+ 	return selection, environment, nil
+@@ -1353,7 +1371,7 @@
+ 
+ func parseEnvironment(entries []string) ([]record.Environment, error) {
+ 	reserved := map[string]struct{}{
+-		"GOMADSEED": {}, "GOMAD3_CHILD_SEED": {}, "GOMAD3_IO_PROFILE": {}, record.ClockTickEnvironment: {}, "GOMAD3_CHOICE_PROFILE": {}, "GOMAD3_CHOICE_MODE": {}, "GOMAD3_CHOICE_TRACE_FD": {}, "GOMAD3_CHOICE_TERMINAL_FD": {}, "GOMAD3_CHOICE_TRACE_BYTES": {}, "GOMAD3_CHOICE_TAPE_FD": {}, "GOMAD3_CHOICE_TAPE_BYTES": {}, "GOMAD3_SIMULATION_ROLE": {}, "GOMAD3_SIMULATION_REQUEST_FD": {}, "GOMAD3_SIMULATION_RESPONSE_FD": {}, "GOMAD3_SIMULATION_BOOTSTRAP_FD": {}, "GOMAD3_SIMULATION_CONTROL_FD": {}, "TZ": {}, "CGO_ENABLED": {}, "GODEBUG": {}, "GOMAXPROCS": {}, "GOEXPERIMENT": {},
++		choice.DiagnosticProfileEnvironment: {}, "GOMAD3_DIAGNOSTIC_TRACE_FD": {}, "GOMAD3_DIAGNOSTIC_TRACE_BYTES": {}, "GOMAD3_DIAGNOSTIC_PERTURB_DRAW": {}, "GOMADSEED": {}, "GOMAD3_CHILD_SEED": {}, "GOMAD3_IO_PROFILE": {}, record.ClockTickEnvironment: {}, "GOMAD3_CHOICE_PROFILE": {}, "GOMAD3_CHOICE_MODE": {}, "GOMAD3_CHOICE_TRACE_FD": {}, "GOMAD3_CHOICE_TERMINAL_FD": {}, "GOMAD3_CHOICE_TRACE_BYTES": {}, "GOMAD3_CHOICE_TAPE_FD": {}, "GOMAD3_CHOICE_TAPE_BYTES": {}, "GOMAD3_SIMULATION_ROLE": {}, "GOMAD3_SIMULATION_REQUEST_FD": {}, "GOMAD3_SIMULATION_RESPONSE_FD": {}, "GOMAD3_SIMULATION_BOOTSTRAP_FD": {}, "GOMAD3_SIMULATION_CONTROL_FD": {}, "TZ": {}, "CGO_ENABLED": {}, "GODEBUG": {}, "GOMAXPROCS": {}, "GOEXPERIMENT": {},
+ 		"LD_LIBRARY_PATH": {}, "LD_PRELOAD": {}, "DYLD_LIBRARY_PATH": {}, "DYLD_INSERT_LIBRARIES": {}, "LIBPATH": {}, "SHLIB_PATH": {},
+ 	}
+ 	seen := make(map[string]struct{}, len(entries))
+@@ -1437,6 +1455,7 @@
+ 		}
+ 		request.Simulation = simulationCapability
+ 		request.Choice = choiceCapability
++		request.Diagnostics = config.Diagnostics
+ 		if len(config.SupervisorCommand) != 0 {
+ 			request.BootstrapCommand = []string{config.SupervisorCommand[0], "__target_bootstrap"}
+ 		}
+@@ -1446,6 +1465,13 @@
+ 		// missing frame, so the run is classified and retained as such.
+ 		if completion.err == nil && !completion.result.WatchdogTimeout && !completion.result.Cancelled {
+ 			completion.err = validateObservedChoiceTrace(config.ChoiceTraceLimit, choiceCapability, &completion.result.ChoiceTrace)
++			if completion.err == nil && config.Diagnostics {
++				trace, err := choice.DecodeDiagnosticTrace(completion.result.DiagnosticTrace.Bytes)
++				if err == nil && uint64(len(trace.Records)) != completion.result.ChoiceTrace.Trace.Summary.Records {
++					err = errors.New("diagnostic and choice record counts disagree")
++				}
++				completion.result.DiagnosticTrace, completion.err = trace, err
++			}
+ 		}
+ 	}
+ 	if partialErr := run.Transition(campaign.ExecutionExited); partialErr != nil {
+@@ -1558,7 +1584,7 @@
+ func environmentStrings(environment []record.Environment) []string {
+ 	result := make([]string, 0, len(environment))
+ 	for _, entry := range environment {
+-		if entry.Name == "GOMAD3_CHOICE_PROFILE" {
++		if entry.Name == "GOMAD3_CHOICE_PROFILE" || entry.Name == choice.DiagnosticProfileEnvironment {
+ 			continue
+ 		}
+ 		result = append(result, entry.Name+"="+entry.Value)
+diff --git a/tools/gomad3/runner/testdata/diagnostic-identity-choices.json b/tools/gomad3/runner/testdata/diagnostic-identity-choices.json
+--- /dev/null
++++ b/tools/gomad3/runner/testdata/diagnostic-identity-choices.json
+@@ -0,0 +1 @@
++{"artifact":{"artifact_kind":"gomad3.target-failure/v1","campaign_id":"fixed-campaign","choice_profile":{"implementation_sha256":"sha256:9c96ce8fb77b14ae3b5a16450a193804edea1d3b7d3923a8390159eb311ad419","name":"gomad3-choice-trace/v2","trace":{"branching_records":"1","bytes":"96","decisions":"1","file":"choices.bin","limit":"1048576","records":"1","schema":"gomad3.choice-trace/v2","sha256":"sha256:46632e482bdde1a1cb09c70ee60b700e110a29a1a1399f4519a9613ecddbf894","tape_sha256":"sha256:bb557ee6310319948486debec9a88ae51e7083f0aa7c0005c1e098d9fbf56e4f","terminal_state":"complete"}},"created_at":"2026-10-02T00:00:00Z","environment":[{"name":"GOMAD3_CHOICE_PROFILE","value":"gomad3-choice-trace/v2"},{"name":"GOMAD3_IO_PROFILE","value":"gomad3-deterministic/v1"},{"name":"GOMADSEED","value":"7"},{"name":"MODE","value":"test"},{"name":"TZ","value":"UTC"}],"files":[{"mode":"0600","path":"choices.bin","sha256":"sha256:46632e482bdde1a1cb09c70ee60b700e110a29a1a1399f4519a9613ecddbf894","size":"96"},{"mode":"0600","path":"stderr","sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","size":"0"},{"mode":"0600","path":"stdout","sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","size":"0"},{"mode":"0700","path":"target","sha256":"sha256:cd613b764a4e634182274f0df5e7c860bac9eeb8e4b6e0be6f394c722400985c","size":"20"},{"mode":"0600","path":"world/final-snapshot.json","sha256":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b","size":"4"},{"mode":"0600","path":"world/snapshot.json","sha256":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b","size":"4"},{"mode":"0600","path":"world/transitions.jsonl","sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","size":"0"}],"host":{"elapsed_nanos":"0","finished_at":"2026-10-02T00:00:00Z","started_at":"2026-10-02T00:00:00Z"},"io_profile":{"implementation_sha256":"sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0","inventory":"{\"boundary_manifest_sha256\":\"sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0\",\"boundary_manifest_version\":\"go1.27.1-v1\",\"entries\":[{\"boundary\":\"crypto/rand\",\"disposition\":\"in-memory\",\"operations\":[\"Reader.Read\",\"Read\"]},{\"boundary\":\"filesystem\",\"disposition\":\"in-memory\",\"operations\":[\"open\",\"read\",\"write\",\"stat\",\"rename\",\"remove\",\"mkdir\",\"map\"]},{\"boundary\":\"io-transcript\",\"disposition\":\"shared-memory\",\"operations\":[\"expected-replay\",\"record\",\"terminal\"]},{\"boundary\":\"github.com/Masterminds/sprig/v3\",\"disposition\":\"target-adapter\",\"operations\":[\"host-dns-refusal\"]},{\"boundary\":\"github.com/cactus/go-statsd-client/v5\",\"disposition\":\"target-adapter\",\"operations\":[\"udp-sender-refusal\"]},{\"boundary\":\"github.com/cockroachdb/pebble\",\"disposition\":\"target-adapter\",\"operations\":[\"os-file-construction-refusal\",\"hard-link-refusal\"]},{\"boundary\":\"github.com/getsentry/sentry-go\",\"disposition\":\"target-adapter\",\"operations\":[\"optional-git-release-suppression\"]},{\"boundary\":\"github.com/go-playground/validator/v10\",\"disposition\":\"target-adapter\",\"operations\":[\"address-resolution-refusal\"]},{\"boundary\":\"github.com/hashicorp/go-metrics\",\"disposition\":\"target-adapter\",\"operations\":[\"signal-service-refusal\"]},{\"boundary\":\"github.com/hashicorp/go-sockaddr\",\"disposition\":\"target-adapter\",\"operations\":[\"route-command-denial\",\"interface-discovery-refusal\",\"literal-address-parsing\"]},{\"boundary\":\"github.com/hashicorp/memberlist\",\"disposition\":\"target-adapter\",\"operations\":[\"native-udp-transport-refusal\"]},{\"boundary\":\"go.opentelemetry.io/otel/sdk\",\"disposition\":\"target-adapter\",\"operations\":[\"process-owner-placeholder\",\"uname-placeholder\",\"host-command-denial\"]},{\"boundary\":\"go.temporal.io/sdk\",\"disposition\":\"target-adapter\",\"operations\":[\"interrupt-channel-suppression\"]},{\"boundary\":\"go.uber.org/fx\",\"disposition\":\"target-adapter\",\"operations\":[\"signal-relay-suppression\"]},{\"boundary\":\"golang.org/x/net\",\"disposition\":\"target-adapter\",\"operations\":[\"raw-socket-option-denial\"]},{\"boundary\":\"google.golang.org/grpc\",\"disposition\":\"target-adapter\",\"operations\":[\"virtual-tcp-keepalive-suppression\",\"portable-syscall-removal\",\"host-dns-refusal\"]},{\"boundary\":\"modernc.org/libc\",\"disposition\":\"target-adapter\",\"operations\":[\"filesystem\",\"entropy\",\"time\"]},{\"boundary\":\"modernc.org/memory\",\"disposition\":\"target-adapter\",\"operations\":[\"anonymous-memory\"]},{\"boundary\":\"net\",\"disposition\":\"in-memory\",\"operations\":[\"Dial\",\"DialTCP\",\"Dialer.DialContext\",\"Listen\",\"ListenConfig.Listen\",\"ListenTCP\",\"Resolver.LookupIPAddr(localhost)\"]},{\"boundary\":\"os.read-only-mount\",\"disposition\":\"lazy-in-memory\",\"operations\":[\"open\",\"read\",\"stat\",\"readdir\"]}],\"platform\":\"darwin/arm64\",\"profile\":\"gomad3-deterministic/v1\",\"reserved_fds\":[\"bootstrap\",\"expected-transcript\",\"io-config\",\"io-terminal\",\"stderr\",\"stdout\",\"transcript\",\"world-config\",\"world-record\",\"read-only-mount-request\",\"read-only-mount-response\"],\"schema\":\"gomad3.io-inventory/v1\"}","inventory_sha256":"sha256:0d34edfc0ab13c693b78d514ca1a72a9adc196fe61e2142dba108c0ff47358f7","name":"gomad3-deterministic/v1"},"limits":{"choice_trace_bytes":"1048576","execution_timeout_nanos":"1000000000","io_transcript_bytes":"67108864","output_bytes":"64","overall_timeout_nanos":"10000000000","terminate_grace_nanos":"100000000","world_transition_bytes":"64"},"outcome":{"deadline":null,"domain":"target","exit_code":"1","failure_signature":"sha256:1cd956459576e90f602515b92714575d9d6ddd81ac0558c6e7abb975f896f82b","reason":"nonzero_exit","replay_match":null,"signal":null,"termination":"exit"},"record_hash":"sha256:86971b04fa9d4e5cbf5f882c8aaa8ba2322e07a5d73ff72c1a0de60856fa72db","replay_mode":"exact","runner":{"host_arch":"arm64","host_os":"darwin","record_contract":"gomad3.execution-record/v1","runner_build":"sha256:0000000000000000000000000000000000000000000000000000000000000000"},"schema_version":1,"seed":"7","selection_ordinal":"0","streams":{"stderr":{"discarded_bytes":"0","file":"stderr","full_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","retained_bytes":"0","retained_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","total_bytes":"0","truncated":false},"stdout":{"discarded_bytes":"0","file":"stdout","full_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","retained_bytes":"0","retained_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","total_bytes":"0","truncated":false}},"target":{"adapters":[],"argv":["gomad3-target"],"build_info":{"go_version":"go1.27.1","main_module":"","path":"example.com/target","settings":null},"build_tags":[],"capability_mode":"closure","compatibility":[],"file":"target","kind":"go-run","sha256":"sha256:cd613b764a4e634182274f0df5e7c860bac9eeb8e4b6e0be6f394c722400985c","size":"20","source":"."},"toolchain":{"build_key":"cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e","go_version":"go1.27.1","target_goarch":"arm64","target_goos":"darwin"},"world":{"adapters":[],"final":{"file":"world/final-snapshot.json","raw_sha256":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b","schema":"gomad3.world.snapshot/none","semantic_digest":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"},"initial":{"file":"world/snapshot.json","raw_sha256":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b","schema":"gomad3.world.snapshot/none","semantic_digest":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"},"terminal":{"kind":"none"},"transitions":{"count":"0","file":"world/transitions.jsonl","raw_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","schema":"gomad3.world.transitions/none","transcript_digest":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}}},"campaign_plan":{"artifacts":{"failure_artifacts":"1","failure_bytes":"1146421480","failure_outcome":"infrastructure_failure","success_artifacts":"0","success_bytes":"0","success_outcome":"infrastructure_failure","total_bytes":"1146421480","transcript_bytes":"67108864"},"choice_profile":{"implementation_sha256":"sha256:9c96ce8fb77b14ae3b5a16450a193804edea1d3b7d3923a8390159eb311ad419","limit":"1048576","name":"gomad3-choice-trace/v2"},"coverage":"none","environment":[{"name":"GOMAD3_CHOICE_PROFILE","value":"gomad3-choice-trace/v2"},{"name":"GOMAD3_IO_PROFILE","value":"gomad3-deterministic/v1"},{"name":"MODE","value":"test"}],"execution_timeout_nanos":"1000000000","failure_budget":"1","io_profile":{"implementation_sha256":"sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0","inventory_sha256":"sha256:0d34edfc0ab13c693b78d514ca1a72a9adc196fe61e2142dba108c0ff47358f7","name":"gomad3-deterministic/v1"},"io_ro_mount_limits":{"directory_entries":"100000","files":"10000","path_bytes":"4096","requests":"100000","single_file_bytes":"16777216","total_bytes":"67108864"},"io_ro_mounts":[],"journal":{"capacity_outcome":"infrastructure_failure","maximum_bytes":"1048576","maximum_executions":"1","maximum_partial_executions":"1","maximum_segments":"1","segment_bytes":"1048576","segment_records":"1024"},"keep_successes":"none","on_failure":"all","output_bytes":"64","overall_timeout_nanos":"10000000000","parallel":"1","prepared":{"path":".prepared/target","target":{"adapters":[],"argv":["gomad3-target"],"build_info":{"go_version":"go1.27.1","main_module":"","path":"example.com/target","settings":null},"build_tags":[],"capability_mode":"closure","compatibility":[],"file":"","kind":"go-run","sha256":"sha256:cd613b764a4e634182274f0df5e7c860bac9eeb8e4b6e0be6f394c722400985c","size":"20","source":"."}},"required_semantic_probes":null,"runner_build":"sha256:0000000000000000000000000000000000000000000000000000000000000000","schema":"gomad3.campaign-plan/v1","selection":"7","selection_count":"1","simulation_dimension_limits":{"crash":0,"fault":0,"network":0,"runtime":0,"scenario":0,"storage":0},"strategy":"seed","success_artifact_limit":"0","success_bytes_limit":"0","terminate_grace_nanos":"100000000","toolchain":{"build_key":"cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e","go_version":"go1.27.1","target_goarch":"arm64","target_goos":"darwin"},"world_transition_bytes":"64"},"portable_plan":{"campaign":{"artifacts":{"failure_artifacts":"1","failure_bytes":"1146421480","failure_outcome":"infrastructure_failure","success_artifacts":"0","success_bytes":"0","success_outcome":"infrastructure_failure","total_bytes":"1146421480","transcript_bytes":"67108864"},"choice_profile":{"implementation_sha256":"sha256:9c96ce8fb77b14ae3b5a16450a193804edea1d3b7d3923a8390159eb311ad419","limit":"1048576","name":"gomad3-choice-trace/v2"},"coverage":"none","environment":[{"name":"GOMAD3_CHOICE_PROFILE","value":"gomad3-choice-trace/v2"},{"name":"GOMAD3_IO_PROFILE","value":"gomad3-deterministic/v1"},{"name":"MODE","value":"test"}],"execution_timeout_nanos":"1000000000","failure_budget":"1","io_profile":{"implementation_sha256":"sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0","inventory_sha256":"sha256:0d34edfc0ab13c693b78d514ca1a72a9adc196fe61e2142dba108c0ff47358f7","name":"gomad3-deterministic/v1"},"io_ro_mount_limits":{"directory_entries":"100000","files":"10000","path_bytes":"4096","requests":"100000","single_file_bytes":"16777216","total_bytes":"67108864"},"io_ro_mounts":[],"journal":{"capacity_outcome":"infrastructure_failure","maximum_bytes":"1048576","maximum_executions":"1","maximum_partial_executions":"1","maximum_segments":"1","segment_bytes":"1048576","segment_records":"1024"},"keep_successes":"none","on_failure":"all","output_bytes":"64","overall_timeout_nanos":"10000000000","parallel":"1","prepared":{"path":".prepared/target","target":{"adapters":[],"argv":["gomad3-target"],"build_info":{"go_version":"go1.27.1","main_module":"","path":"example.com/target","settings":null},"build_tags":[],"capability_mode":"closure","compatibility":[],"file":"","kind":"go-run","sha256":"sha256:cd613b764a4e634182274f0df5e7c860bac9eeb8e4b6e0be6f394c722400985c","size":"20","source":"."}},"required_semantic_probes":null,"runner_build":"sha256:0000000000000000000000000000000000000000000000000000000000000000","schema":"gomad3.campaign-plan/v1","selection":"7","selection_count":"1","simulation_dimension_limits":{"crash":0,"fault":0,"network":0,"runtime":0,"scenario":0,"storage":0},"strategy":"seed","success_artifact_limit":"0","success_bytes_limit":"0","terminate_grace_nanos":"100000000","toolchain":{"build_key":"cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e","go_version":"go1.27.1","target_goarch":"arm64","target_goos":"darwin"},"world_transition_bytes":"64"},"mapping":"ordinal-modulo/v1","schema":"gomad3.campaign-plan/v1"},"portable_plan_sha256":"sha256:c238c27ab6674680e40ea8ee1c1ef64bef37ec6b2243272fa98897ff131503a6"}
+\ No newline at end of file
+diff --git a/tools/gomad3/runner/testdata/diagnostic-identity-plain.json b/tools/gomad3/runner/testdata/diagnostic-identity-plain.json
+--- /dev/null
++++ b/tools/gomad3/runner/testdata/diagnostic-identity-plain.json
+@@ -0,0 +1 @@
++{"artifact":{"artifact_kind":"gomad3.target-failure/v1","campaign_id":"fixed-campaign","created_at":"2026-10-02T00:00:00Z","environment":[{"name":"GOMAD3_IO_PROFILE","value":"gomad3-deterministic/v1"},{"name":"GOMADSEED","value":"7"},{"name":"MODE","value":"test"},{"name":"TZ","value":"UTC"}],"files":[{"mode":"0600","path":"stderr","sha256":"sha256:d7970ebb96f19a3ed3c10d685f6e85542a634979f3c154c5f8636e8d02c76d9a","size":"16"},{"mode":"0600","path":"stdout","sha256":"sha256:605a42e8ad1d6314ceb5f9e9a3f04b65b4ce239d4676ccaf62a4e4840e55a4a0","size":"15"},{"mode":"0700","path":"target","sha256":"sha256:cd613b764a4e634182274f0df5e7c860bac9eeb8e4b6e0be6f394c722400985c","size":"20"},{"mode":"0600","path":"world/final-snapshot.json","sha256":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b","size":"4"},{"mode":"0600","path":"world/snapshot.json","sha256":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b","size":"4"},{"mode":"0600","path":"world/transitions.jsonl","sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","size":"0"}],"host":{"elapsed_nanos":"0","finished_at":"2026-10-02T00:00:00Z","started_at":"2026-10-02T00:00:00Z"},"io_profile":{"implementation_sha256":"sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0","inventory":"{\"boundary_manifest_sha256\":\"sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0\",\"boundary_manifest_version\":\"go1.27.1-v1\",\"entries\":[{\"boundary\":\"crypto/rand\",\"disposition\":\"in-memory\",\"operations\":[\"Reader.Read\",\"Read\"]},{\"boundary\":\"filesystem\",\"disposition\":\"in-memory\",\"operations\":[\"open\",\"read\",\"write\",\"stat\",\"rename\",\"remove\",\"mkdir\",\"map\"]},{\"boundary\":\"io-transcript\",\"disposition\":\"shared-memory\",\"operations\":[\"expected-replay\",\"record\",\"terminal\"]},{\"boundary\":\"github.com/Masterminds/sprig/v3\",\"disposition\":\"target-adapter\",\"operations\":[\"host-dns-refusal\"]},{\"boundary\":\"github.com/cactus/go-statsd-client/v5\",\"disposition\":\"target-adapter\",\"operations\":[\"udp-sender-refusal\"]},{\"boundary\":\"github.com/cockroachdb/pebble\",\"disposition\":\"target-adapter\",\"operations\":[\"os-file-construction-refusal\",\"hard-link-refusal\"]},{\"boundary\":\"github.com/getsentry/sentry-go\",\"disposition\":\"target-adapter\",\"operations\":[\"optional-git-release-suppression\"]},{\"boundary\":\"github.com/go-playground/validator/v10\",\"disposition\":\"target-adapter\",\"operations\":[\"address-resolution-refusal\"]},{\"boundary\":\"github.com/hashicorp/go-metrics\",\"disposition\":\"target-adapter\",\"operations\":[\"signal-service-refusal\"]},{\"boundary\":\"github.com/hashicorp/go-sockaddr\",\"disposition\":\"target-adapter\",\"operations\":[\"route-command-denial\",\"interface-discovery-refusal\",\"literal-address-parsing\"]},{\"boundary\":\"github.com/hashicorp/memberlist\",\"disposition\":\"target-adapter\",\"operations\":[\"native-udp-transport-refusal\"]},{\"boundary\":\"go.opentelemetry.io/otel/sdk\",\"disposition\":\"target-adapter\",\"operations\":[\"process-owner-placeholder\",\"uname-placeholder\",\"host-command-denial\"]},{\"boundary\":\"go.temporal.io/sdk\",\"disposition\":\"target-adapter\",\"operations\":[\"interrupt-channel-suppression\"]},{\"boundary\":\"go.uber.org/fx\",\"disposition\":\"target-adapter\",\"operations\":[\"signal-relay-suppression\"]},{\"boundary\":\"golang.org/x/net\",\"disposition\":\"target-adapter\",\"operations\":[\"raw-socket-option-denial\"]},{\"boundary\":\"google.golang.org/grpc\",\"disposition\":\"target-adapter\",\"operations\":[\"virtual-tcp-keepalive-suppression\",\"portable-syscall-removal\",\"host-dns-refusal\"]},{\"boundary\":\"modernc.org/libc\",\"disposition\":\"target-adapter\",\"operations\":[\"filesystem\",\"entropy\",\"time\"]},{\"boundary\":\"modernc.org/memory\",\"disposition\":\"target-adapter\",\"operations\":[\"anonymous-memory\"]},{\"boundary\":\"net\",\"disposition\":\"in-memory\",\"operations\":[\"Dial\",\"DialTCP\",\"Dialer.DialContext\",\"Listen\",\"ListenConfig.Listen\",\"ListenTCP\",\"Resolver.LookupIPAddr(localhost)\"]},{\"boundary\":\"os.read-only-mount\",\"disposition\":\"lazy-in-memory\",\"operations\":[\"open\",\"read\",\"stat\",\"readdir\"]}],\"platform\":\"darwin/arm64\",\"profile\":\"gomad3-deterministic/v1\",\"reserved_fds\":[\"bootstrap\",\"expected-transcript\",\"io-config\",\"io-terminal\",\"stderr\",\"stdout\",\"transcript\",\"world-config\",\"world-record\",\"read-only-mount-request\",\"read-only-mount-response\"],\"schema\":\"gomad3.io-inventory/v1\"}","inventory_sha256":"sha256:0d34edfc0ab13c693b78d514ca1a72a9adc196fe61e2142dba108c0ff47358f7","name":"gomad3-deterministic/v1"},"limits":{"execution_timeout_nanos":"1000000000","io_transcript_bytes":"67108864","output_bytes":"64","overall_timeout_nanos":"10000000000","terminate_grace_nanos":"100000000","world_transition_bytes":"64"},"outcome":{"deadline":null,"domain":"target","exit_code":"1","failure_signature":"sha256:3987945c5a0a7508ec9fe8a1819338a119f3bbe32b67f00f69d534a384f50863","reason":"nonzero_exit","replay_match":null,"signal":null,"termination":"exit"},"record_hash":"sha256:e04f3ca356431d0460b1c71feee9be557fee8eb48201e561a534e47390a0f3ce","replay_mode":"exact","runner":{"host_arch":"arm64","host_os":"darwin","record_contract":"gomad3.execution-record/v1","runner_build":"sha256:0000000000000000000000000000000000000000000000000000000000000000"},"schema_version":1,"seed":"7","selection_ordinal":"0","streams":{"stderr":{"discarded_bytes":"0","file":"stderr","full_sha256":"sha256:d7970ebb96f19a3ed3c10d685f6e85542a634979f3c154c5f8636e8d02c76d9a","retained_bytes":"16","retained_sha256":"sha256:d7970ebb96f19a3ed3c10d685f6e85542a634979f3c154c5f8636e8d02c76d9a","total_bytes":"16","truncated":false},"stdout":{"discarded_bytes":"0","file":"stdout","full_sha256":"sha256:605a42e8ad1d6314ceb5f9e9a3f04b65b4ce239d4676ccaf62a4e4840e55a4a0","retained_bytes":"15","retained_sha256":"sha256:605a42e8ad1d6314ceb5f9e9a3f04b65b4ce239d4676ccaf62a4e4840e55a4a0","total_bytes":"15","truncated":false}},"target":{"adapters":[],"argv":["gomad3-target"],"build_info":{"go_version":"go1.27.1","main_module":"","path":"example.com/target","settings":null},"build_tags":[],"capability_mode":"closure","compatibility":[],"file":"target","kind":"go-run","sha256":"sha256:cd613b764a4e634182274f0df5e7c860bac9eeb8e4b6e0be6f394c722400985c","size":"20","source":"."},"toolchain":{"build_key":"cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e","go_version":"go1.27.1","target_goarch":"arm64","target_goos":"darwin"},"world":{"adapters":[],"final":{"file":"world/final-snapshot.json","raw_sha256":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b","schema":"gomad3.world.snapshot/none","semantic_digest":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"},"initial":{"file":"world/snapshot.json","raw_sha256":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b","schema":"gomad3.world.snapshot/none","semantic_digest":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"},"terminal":{"kind":"none"},"transitions":{"count":"0","file":"world/transitions.jsonl","raw_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","schema":"gomad3.world.transitions/none","transcript_digest":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}}},"campaign_plan":{"artifacts":{"failure_artifacts":"1","failure_bytes":"1145372904","failure_outcome":"infrastructure_failure","success_artifacts":"0","success_bytes":"0","success_outcome":"infrastructure_failure","total_bytes":"1145372904","transcript_bytes":"67108864"},"coverage":"none","environment":[{"name":"GOMAD3_IO_PROFILE","value":"gomad3-deterministic/v1"},{"name":"MODE","value":"test"}],"execution_timeout_nanos":"1000000000","failure_budget":"1","io_profile":{"implementation_sha256":"sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0","inventory_sha256":"sha256:0d34edfc0ab13c693b78d514ca1a72a9adc196fe61e2142dba108c0ff47358f7","name":"gomad3-deterministic/v1"},"io_ro_mount_limits":{"directory_entries":"100000","files":"10000","path_bytes":"4096","requests":"100000","single_file_bytes":"16777216","total_bytes":"67108864"},"io_ro_mounts":[],"journal":{"capacity_outcome":"infrastructure_failure","maximum_bytes":"1048576","maximum_executions":"1","maximum_partial_executions":"1","maximum_segments":"1","segment_bytes":"1048576","segment_records":"1024"},"keep_successes":"none","on_failure":"all","output_bytes":"64","overall_timeout_nanos":"10000000000","parallel":"1","prepared":{"path":".prepared/target","target":{"adapters":[],"argv":["gomad3-target"],"build_info":{"go_version":"go1.27.1","main_module":"","path":"example.com/target","settings":null},"build_tags":[],"capability_mode":"closure","compatibility":[],"file":"","kind":"go-run","sha256":"sha256:cd613b764a4e634182274f0df5e7c860bac9eeb8e4b6e0be6f394c722400985c","size":"20","source":"."}},"required_semantic_probes":null,"runner_build":"sha256:0000000000000000000000000000000000000000000000000000000000000000","schema":"gomad3.campaign-plan/v1","selection":"7","selection_count":"1","simulation_dimension_limits":{"crash":0,"fault":0,"network":0,"runtime":0,"scenario":0,"storage":0},"strategy":"seed","success_artifact_limit":"0","success_bytes_limit":"0","terminate_grace_nanos":"100000000","toolchain":{"build_key":"cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e","go_version":"go1.27.1","target_goarch":"arm64","target_goos":"darwin"},"world_transition_bytes":"64"},"portable_plan":{"campaign":{"artifacts":{"failure_artifacts":"1","failure_bytes":"1145372904","failure_outcome":"infrastructure_failure","success_artifacts":"0","success_bytes":"0","success_outcome":"infrastructure_failure","total_bytes":"1145372904","transcript_bytes":"67108864"},"coverage":"none","environment":[{"name":"GOMAD3_IO_PROFILE","value":"gomad3-deterministic/v1"},{"name":"MODE","value":"test"}],"execution_timeout_nanos":"1000000000","failure_budget":"1","io_profile":{"implementation_sha256":"sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0","inventory_sha256":"sha256:0d34edfc0ab13c693b78d514ca1a72a9adc196fe61e2142dba108c0ff47358f7","name":"gomad3-deterministic/v1"},"io_ro_mount_limits":{"directory_entries":"100000","files":"10000","path_bytes":"4096","requests":"100000","single_file_bytes":"16777216","total_bytes":"67108864"},"io_ro_mounts":[],"journal":{"capacity_outcome":"infrastructure_failure","maximum_bytes":"1048576","maximum_executions":"1","maximum_partial_executions":"1","maximum_segments":"1","segment_bytes":"1048576","segment_records":"1024"},"keep_successes":"none","on_failure":"all","output_bytes":"64","overall_timeout_nanos":"10000000000","parallel":"1","prepared":{"path":".prepared/target","target":{"adapters":[],"argv":["gomad3-target"],"build_info":{"go_version":"go1.27.1","main_module":"","path":"example.com/target","settings":null},"build_tags":[],"capability_mode":"closure","compatibility":[],"file":"","kind":"go-run","sha256":"sha256:cd613b764a4e634182274f0df5e7c860bac9eeb8e4b6e0be6f394c722400985c","size":"20","source":"."}},"required_semantic_probes":null,"runner_build":"sha256:0000000000000000000000000000000000000000000000000000000000000000","schema":"gomad3.campaign-plan/v1","selection":"7","selection_count":"1","simulation_dimension_limits":{"crash":0,"fault":0,"network":0,"runtime":0,"scenario":0,"storage":0},"strategy":"seed","success_artifact_limit":"0","success_bytes_limit":"0","terminate_grace_nanos":"100000000","toolchain":{"build_key":"cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e","go_version":"go1.27.1","target_goarch":"arm64","target_goos":"darwin"},"world_transition_bytes":"64"},"mapping":"ordinal-modulo/v1","schema":"gomad3.campaign-plan/v1"},"portable_plan_sha256":"sha256:5316e73c5ca478312c3f00614bba9ce797afd3199cbd08826a0af93db1a85758"}
+\ No newline at end of file

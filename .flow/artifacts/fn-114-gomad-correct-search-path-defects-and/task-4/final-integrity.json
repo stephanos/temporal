@@ -1,0 +1,18 @@
+{
+  "sources_match_freeze": true,
+  "frozen_source_count": 19,
+  "protected_nonowned_count": 82,
+  "unexpected_changes": {},
+  "toolchain_build_key": "56e4a2f0c5514d43b9a0682d030964588dd3d5a58978ba0b989459bb556843a3",
+  "patch_sha256": "4132956b3fa2c56fcc98db9b37818ed5df7126008bbdc2b49074be5752d6dde1",
+  "freeze_sha256": "a713224465fcbf4d861a1fcfddeb4fd109e71fbdd66fe3d6d68086ce11eac043",
+  "final_receipts_match_frozen_sources": [
+    "architecture-cli-fix",
+    "architecture-validate",
+    "final-host",
+    "final-vet",
+    "final-format-whitespace",
+    "final-root-lint-default",
+    "final-root-lint-head"
+  ]
+}

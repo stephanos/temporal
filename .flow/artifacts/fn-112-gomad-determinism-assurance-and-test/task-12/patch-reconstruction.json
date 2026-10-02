@@ -1,0 +1,7 @@
+{
+  "result": "pass",
+  "patch_sha256": "5a10b78bb531156e5ddbc2a1bba5cd6a139a96fbb5b0130b2f076cbfd8938b8e",
+  "before_makefile_sha256": "5202f46cd32ea654a343243b741585406fda4267fedef3b5fafa1c5866a5feda",
+  "reconstructed_makefile_sha256": "9ce980d14554f0f4ef8658fc0841e6c6128ed26639c098ad1975fde070002b5b",
+  "patch_stdout": "patching file 'tools/gomad3/Makefile'\n"
+}

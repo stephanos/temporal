@@ -1,0 +1,16 @@
+{
+  "head": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+  "committed": false,
+  "platform": "darwin/arm64",
+  "toolchain_build_key": "6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee",
+  "patch_sha256": "19c72cb19928eddb108e25f0f22e8d29de787d245de1828c6770f96fbc1378ba",
+  "source_sha256": {
+    "tools/gomad3/Makefile": "5202f46cd32ea654a343243b741585406fda4267fedef3b5fafa1c5866a5feda",
+    "tools/gomad3/runner/internal/execution/process_test.go": "bd19fea90764a1c8e5118cab3f9940124e15b108be916ab03cb32b7b8ebb53e4",
+    "tools/gomad3/runner/internal/execution/process_unix.go": "edd19f1c0dc0ff877f0c0ec67f1214319567a9b0efc12dbc65bffb2e90aae1a9",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/export_test.go": "f3864bddb8c918707f65a42cb2dd968748ee42f956b46fb6783d75a48399dc62",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_model_test.go": "76533f2c57ab14fa154dbca4a6dab35c30cd5948dd064b76e2b605e0f8f7e04d",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_time_test.go": "60d6a19f7e4acfd7806c8dbfb1b253ce2360ef3799f5af7987145c46e3b257ba",
+    "tools/gomad3/toolchain/version/version.json": "b77093578ee76f4f25adec3258205f43e32cddbe5165eec146ce592feff507b0"
+  }
+}

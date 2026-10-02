@@ -1,0 +1,37 @@
+=== RUN   TestModelConformanceFilesystem
+=== RUN   TestModelConformanceFilesystem/0
+    model_conformance_test.go:192: fixture=model_fs seed=0 shortest diverging prefix=15; reproduce argv=0 15: operation 15: model={Operation:close handle again Result: Error:unclassified:syscall.Errno:bad file descriptor} native={Operation:close handle again Result: Error:closed}
+=== RUN   TestModelConformanceFilesystem/1
+    model_conformance_test.go:192: fixture=model_fs seed=1 shortest diverging prefix=15; reproduce argv=1 15: operation 15: model={Operation:close handle again Result: Error:unclassified:syscall.Errno:bad file descriptor} native={Operation:close handle again Result: Error:closed}
+=== RUN   TestModelConformanceFilesystem/7
+    model_conformance_test.go:192: fixture=model_fs seed=7 shortest diverging prefix=15; reproduce argv=7 15: operation 15: model={Operation:close handle again Result: Error:unclassified:syscall.Errno:bad file descriptor} native={Operation:close handle again Result: Error:closed}
+=== RUN   TestModelConformanceFilesystem/42
+    model_conformance_test.go:192: fixture=model_fs seed=42 shortest diverging prefix=15; reproduce argv=42 15: operation 15: model={Operation:close handle again Result: Error:unclassified:syscall.Errno:bad file descriptor} native={Operation:close handle again Result: Error:closed}
+=== RUN   TestModelConformanceFilesystem/89
+    model_conformance_test.go:192: fixture=model_fs seed=89 shortest diverging prefix=15; reproduce argv=89 15: operation 15: model={Operation:close handle again Result: Error:unclassified:syscall.Errno:bad file descriptor} native={Operation:close handle again Result: Error:closed}
+--- FAIL: TestModelConformanceFilesystem (3.48s)
+    --- FAIL: TestModelConformanceFilesystem/0 (0.86s)
+    --- FAIL: TestModelConformanceFilesystem/1 (0.30s)
+    --- FAIL: TestModelConformanceFilesystem/7 (0.31s)
+    --- FAIL: TestModelConformanceFilesystem/42 (0.30s)
+    --- FAIL: TestModelConformanceFilesystem/89 (0.31s)
+=== RUN   TestModelConformanceTCP
+=== RUN   TestModelConformanceTCP/0
+    model_conformance_test.go:192: fixture=model_net seed=0 shortest diverging prefix=60; reproduce argv=0 60: operation 60: model={Operation:read closed client Result:0: Error:unclassified:*net.OpError:read tcp 127.0.0.1:40000->127.0.0.1:20000: use of closed network connection} native={Operation:read closed client Result:0: Error:closed}
+=== RUN   TestModelConformanceTCP/1
+    model_conformance_test.go:192: fixture=model_net seed=1 shortest diverging prefix=60; reproduce argv=1 60: operation 60: model={Operation:read closed client Result:0: Error:unclassified:*net.OpError:read tcp 127.0.0.1:40000->127.0.0.1:20000: use of closed network connection} native={Operation:read closed client Result:0: Error:closed}
+=== RUN   TestModelConformanceTCP/7
+    model_conformance_test.go:192: fixture=model_net seed=7 shortest diverging prefix=60; reproduce argv=7 60: operation 60: model={Operation:read closed client Result:0: Error:unclassified:*net.OpError:read tcp 127.0.0.1:40000->127.0.0.1:20000: use of closed network connection} native={Operation:read closed client Result:0: Error:closed}
+=== RUN   TestModelConformanceTCP/42
+    model_conformance_test.go:192: fixture=model_net seed=42 shortest diverging prefix=60; reproduce argv=42 60: operation 60: model={Operation:read closed client Result:0: Error:unclassified:*net.OpError:read tcp 127.0.0.1:40000->127.0.0.1:20000: use of closed network connection} native={Operation:read closed client Result:0: Error:closed}
+=== RUN   TestModelConformanceTCP/89
+    model_conformance_test.go:192: fixture=model_net seed=89 shortest diverging prefix=60; reproduce argv=89 60: operation 60: model={Operation:read closed client Result:0: Error:unclassified:*net.OpError:read tcp 127.0.0.1:40000->127.0.0.1:20000: use of closed network connection} native={Operation:read closed client Result:0: Error:closed}
+--- FAIL: TestModelConformanceTCP (7.12s)
+    --- FAIL: TestModelConformanceTCP/0 (1.68s)
+    --- FAIL: TestModelConformanceTCP/1 (1.13s)
+    --- FAIL: TestModelConformanceTCP/7 (1.15s)
+    --- FAIL: TestModelConformanceTCP/42 (1.13s)
+    --- FAIL: TestModelConformanceTCP/89 (1.15s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	10.905s
+FAIL

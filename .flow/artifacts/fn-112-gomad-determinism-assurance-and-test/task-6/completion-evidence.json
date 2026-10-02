@@ -1,0 +1,16 @@
+{
+  "commits": [],
+  "tests": [
+    "make -C tools/gomad3 test-runtime (PASS darwin/arm64; GOFLAGS=-tags=test_dep, stock Go1.27.1 driver)",
+    "tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -count=1 -tags=test_dep ./internal/gomadtool/conformance (PASS)",
+    "tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -count=1 -tags=test_dep -run ^TestConformanceRuntimeIsGroupedByBehavior$ . (PASS)",
+    "tools/gomad3/.toolchain/bin/go -C tools/gomad3 vet -tags=test_dep ./internal/gomadtool/conformance (PASS)",
+    "gofmt -l changed Go files (PASS, empty output)",
+    "git diff --check scoped changed tracked files (PASS)",
+    "make lint-code-fast (ATTEMPTED, exit2; nested-module package discovery failure; underlying linter exit7)",
+    "channel-probe.py (PASS; 124 raw observations,32 distinct orders perfixture)",
+    "Independent implementation review: SHIP; task-6/review-round1.json; no findings",
+    "Parent verified 38 bound files unchanged after review, 124 output observations, and task-only patch reverse application"
+  ],
+  "prs": []
+}

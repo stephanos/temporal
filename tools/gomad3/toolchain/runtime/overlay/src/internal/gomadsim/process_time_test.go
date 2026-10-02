@@ -2,9 +2,13 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package gomadsim
+package gomadsim_test
 
-import "testing"
+import (
+	"testing"
+
+	"internal/gomadsim"
+)
 
 func TestProcessRequestBlocksSimulationTime(t *testing.T) {
 	tests := map[string]struct {
@@ -17,7 +21,7 @@ func TestProcessRequestBlocksSimulationTime(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			if got := processRequestBlocksSimulationTime(test.request); got != test.want {
+			if got := gomadsim.ProcessRequestBlocksSimulationTime(test.request); got != test.want {
 				t.Fatalf("processRequestBlocksSimulationTime() = %t, want %t", got, test.want)
 			}
 		})

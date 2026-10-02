@@ -781,6 +781,7 @@ func TestValidateProvenanceRejectsUnsupportedBuildModes(t *testing.T) {
 	for name, setting := range map[string]record.BuildSetting{
 		"cgo":        {Key: "CGO_ENABLED", Value: "1"},
 		"race":       {Key: "-race", Value: "true"},
+		"coverage":   {Key: "-cover", Value: "true"},
 		"plugin":     {Key: "-buildmode", Value: "plugin"},
 		"linkshared": {Key: "-linkshared", Value: "true"},
 		"external":   {Key: "-ldflags", Value: "-linkmode=external"},
@@ -800,6 +801,8 @@ func TestValidateProvenanceRejectsUnsupportedBuildModes(t *testing.T) {
 			}
 			if err := validateProvenance(candidate); err == nil {
 				t.Fatal("validateProvenance() succeeded")
+			} else if name == "coverage" && !strings.Contains(err.Error(), "coverage instrumentation") {
+				t.Fatalf("coverage rejection = %v", err)
 			}
 		})
 	}

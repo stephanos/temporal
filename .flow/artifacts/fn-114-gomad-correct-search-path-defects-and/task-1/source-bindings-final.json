@@ -1,0 +1,65 @@
+{
+  "head": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+  "host": "darwin/arm64",
+  "toolchain_build_key": "6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee",
+  "production_sha256": {
+    "tools/gomad3/runner/internal/corpus/model.go": "43f0f8c49808e2633866dc2c67699dc9e82836d5e5251e7bad0e493ed650fef2",
+    "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go": "d6c2651cc6b7f6adc2265d7a892bae079d4426ebfba6defe72d6b4c7b4ec9bc8",
+    "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_choicewire_generated.go": "2852f0f6f684483d8fce18c96d23d073f10c5b18148dbbb8f224c6170c0e69cf",
+    "tools/gomad3/toolchain/runtime/go1.27.1.patch": "bde66c455efabe9cafbf8736104ef84abc4afde0ca447ad1d9e7c529d59a9582",
+    "tools/gomad3/runner/choice_exploration_campaign.go": "7cd47b66ce94eb9d711c811641f3500e2a8c26fe2d13371ff835f53f86c8f4d9",
+    "tools/gomad3/target/target.go": "07ed67654a2bde66d347673481400f89b6bd2029c0997ffb6dc37692104dd3a5",
+    "tools/gomad3/runner/seeds.go": "9419d650ac920ec7fb1077748abf8ebbbffee30f53a4b3cb57aac18848b792c8",
+    "tools/gomad3/runner/internal/exploration/choice/engine.go": "bb62ec6c00ec6a7a7837986d040774c837de4a66cd4fe0ac521d414bd87a4f05",
+    "tools/gomad3/runner/minimize_operation.go": "c0d4b70b7132b4859b9dd3b2da9423b2d628993f5c184956ba8e70f7669f233c",
+    "tools/gomad3/artifact/publication.go": "44d9d007b0b09397654e62e24596f8321e14366a6797a6f31fc63ec1fb827671",
+    "tools/gomad3/runner/internal/execution/choicetrace.go": "95d3357c3cee068c002170326ac3ced53817fb332cca7a381725cd23913991d7",
+    "tools/gomad3/runner/internal/execution/process_unix.go": "8ffc8ce2028f161ce57b93bceb3a936fee2a43d4f6c915072383ecca33201543",
+    "tools/gomad3/runner/internal/execution/process.go": "b86a0493baac035cf932787853899a112469c9f3708746b29d6cc3af68e4e4a0",
+    "tools/gomad3/runner/internal/execution/outcome.go": "66b425019ca8925005fbce54aa3e1cce0a3b705d6e0469d4823449efe909b720",
+    "tools/gomad3/runner/runner.go": "afdae3a7ca56b67b450c561173f7a64b27da375fba3677a5aec4438a2b638d96",
+    "tools/gomad3/runner/completion.go": "c2affbd7be5a16e010a50b09f6bedf3541320aced1be020eb4c42825e88045d5",
+    "tools/gomad3/runner/internal/campaign/choice_exploration_journal.go": "1c924eabd53c42bfaf681104f0955e2fe58c184af6d0dba483e72a2429a5777b",
+    "tools/gomad3/runner/guidance.go": "dc1c7a0c17da4ea84829fa8bd3d4814fc829907b5dafaacfdcd11de9923ba440",
+    "tools/gomad3/choice/tape.go": "191bd5da73e4fe738d8f45e8ef3760148b834eef89eb7dcb03138d83bb129b48",
+    "tools/gomad3/choice/trace.go": "27bb4cfc95137750eb5a32dcfad1b212df301ea54ecde9d930fcf80e3e211eed",
+    "tools/gomad3/choice/wire.go": "fc34a80b57d5335ed552dfce4d04ea5c19c854ce59e548ab806531a4911eff02",
+    "tools/gomad3/choice/internal/wire/wire_generated.go": "182909929ff59c84e4c1a37fabf2b14632a07865c7fdc9eab7361e5dfbc8feca",
+    "tools/gomad3/runner/internal/campaign/campaign_journal.go": "82be33fb03187595241d0f1a5ce9fbf569aa23a5184ab2fc28197efc9079ea2f",
+    "tools/gomad3/runner/internal/campaign/open_campaign.go": "bb612fc0707f3ca8e2e47f4fb38ac3bedba74d5ae855a6b4149b08508f65b405",
+    "tools/gomad3/runner/internal/campaign/recovery.go": "4d40413df388c365688e91e907ef012898ec2cdd0fc1c589877f39f122460cb9",
+    "tools/gomad3/runner/internal/campaign/lifecycle.go": "83920733121a8cb23277e2498468c064572fb0c37d4535062e100a64b252cfc8"
+  },
+  "production_unchanged": true,
+  "retention_characterization_sha256": "c04190608c348023b8c8100672df7cfd6ed3b20f8385afb00c77179c90fa9bbf",
+  "retention_characterization_unchanged": true,
+  "runner_test_sha256": "d8ad804d1c72627ca6609472f1de34fb518f15fae195d4cc1aa9cb4b12eff1b9",
+  "reference_sha256": {
+    ".plans/GOMAD_CMP.md": "2702bbcc57f85045618e92fb564318bc4c28b163cc05482354dffed295baad31",
+    "tools/gomad3/README.md": "7e2ab97cbcedb733511a157f6a5afbc0c60999ca3b080c57d0a3157c664e0e3c",
+    "docs/research/gomad/2026-10-01-feasibility-schedule-search.md": "50e324f9b145a8f68a92d2a36447be7479557dafe0adfcba2a9eee6583ac567f",
+    ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d14-qualification-seed11.json": "e30347bdffc16269bc2e135d728ea07a0c3870df5eb3ac7455656daa33b59b78",
+    ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d21-qualification-control-choices-11.json": "097c865f21bf2049c2e54d315b4afe3bc8db4731c609dc03393c7b3e9adb4b10",
+    ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d21-qualification-control-choices-17.json": "1faf351208c899c7623f0895789be8ccf6ab38c6f7e9c14f772e2bf4104a138f",
+    ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d21-probe-control.go.txt": "5c1f9cf6f8de46cfcfe060822ff5c4850972a8640c0a0017e6973bd8542e6b66"
+  },
+  "built_source_sha256": {
+    "tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/time/sleep.go": "58489f2ea41f5032921eaa448c215d7ffffcb9fb0b43c1aad891c20bed342dc5",
+    "tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/runtime/time.go": "fc72168314ad6264dcde32e9bc6d4a087c3f5c509cd6b3a8c7f5f35cdbcf2409"
+  },
+  "artifact_sha256": {
+    ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/reanchor.md": "9121aab13c1098d947d9e8150c0cdbaefa5965dc9f0d3648aa6c21efadc06ca2",
+    ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/retained-counts.json": "79681220c8c8dddc026dc27ae8a7e29800b88848a89089abae971c1ca4c9b9c6",
+    ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/spec-plan-proposed.md": "eb840494111690e134b265b6e4507ec6b02cbabc234d7db0be6a6c23ced1b894",
+    ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/task-4-spec-proposed.md": "e7d1788a203e5f3e78ada68c03c0e5c5160b32978dab8c03f833947454a1bf36",
+    ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/task-13-spec-proposed.md": "28173209b301c1e3c2e335acb44052c9c42e24c24fff70f4b6ac3e223f0f0c95",
+    ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/completion-summary-draft.md": "a92906e14df1727d0f50d26aaa1386cd90bbf2ae6131eaaae0ab3570b141071e",
+    ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/command-results.json": "db1d97660e490e04312254db989c08f56abdbe67e539588b0cb4407fb7f07946",
+    ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/source-bindings-before.json": "02de4d3560218d998716a72cc87f44d9b40be123306d510ac388c0785c08f119"
+  },
+  "tracking_sha256": {
+    ".flow/specs/fn-114-gomad-correct-search-path-defects-and.md": "eb840494111690e134b265b6e4507ec6b02cbabc234d7db0be6a6c23ced1b894",
+    ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.4.md": "e7d1788a203e5f3e78ada68c03c0e5c5160b32978dab8c03f833947454a1bf36",
+    ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.13.md": "28173209b301c1e3c2e335acb44052c9c42e24c24fff70f4b6ac3e223f0f0c95"
+  }
+}

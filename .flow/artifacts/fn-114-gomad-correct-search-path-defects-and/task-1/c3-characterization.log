@@ -1,0 +1,22 @@
+=== RUN   TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound
+--- PASS: TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound (0.28s)
+=== RUN   TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound
+--- PASS: TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound (0.28s)
+=== RUN   TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound
+--- PASS: TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound (0.27s)
+=== RUN   TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound
+--- PASS: TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound (0.26s)
+=== RUN   TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound
+--- PASS: TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound (0.28s)
+=== RUN   TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound
+--- PASS: TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound (0.26s)
+=== RUN   TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound
+--- PASS: TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound (0.24s)
+=== RUN   TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound
+--- PASS: TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound (0.26s)
+=== RUN   TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound
+--- PASS: TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound (0.25s)
+=== RUN   TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound
+--- PASS: TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound (0.25s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner	2.973s

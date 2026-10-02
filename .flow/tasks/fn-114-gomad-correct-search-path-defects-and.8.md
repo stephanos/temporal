@@ -4,7 +4,7 @@ satisfies: [R11]
 # fn-114-gomad-correct-search-path-defects-and.8 Persist minimizer state and add minimize resume
 
 ## Description
-E6 (R11): `minimize` writes its sealed state and last accepted artifact under the output directory after each commit, and a resume option continues from them. Depends on task 7 only for the shared CLI files.
+E6 (R11): `minimize` writes its sealed state and last accepted artifact under the output directory after each commit, and a resume option continues from them. Depends on task 6 only for the shared CLI files; task 7 is a transitive dependency.
 
 **Size:** M
 **Files:** `tools/gomad3/runner/minimize_operation.go`, `minimize_operation_test.go`, `tools/gomad3/runner/internal/minimizer/minimizer.go`, `minimizer_test.go`, `tools/gomad3/cmd/gomad/internal/cli/cli.go`, `cli_test.go`

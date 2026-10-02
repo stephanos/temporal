@@ -1,0 +1,490 @@
+{
+  "commits": [],
+  "tests": [
+    "tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -tags test_dep -count=1 ./runner/... ./target/...",
+    "make -C tools/gomad3 validate",
+    "make -C tools/gomad3 test-host",
+    "tools/gomad3/.toolchain/bin/go -C tools/gomad3 vet -tags test_dep ./runner/... ./target/...",
+    "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/gofmt -l tools/gomad3/runner/internal/corpus/model.go tools/gomad3/runner/internal/corpus/corpus.go tools/gomad3/runner/internal/corpus/corpus_test.go tools/gomad3/runner/internal/corpus/guide_test.go tools/gomad3/runner/guidance.go tools/gomad3/target/target.go tools/gomad3/target/target_test.go tools/gomad3/runner/replay_operation.go tools/gomad3/runner/guidance_identity_test.go tools/gomad3/runner/coverage_replay_test.go tools/gomad3/target/coverage_test.go",
+    "git diff --check"
+  ],
+  "prs": [],
+  "task": "fn-114-gomad-correct-search-path-defects-and.3",
+  "requirements": [
+    "R2",
+    "R5"
+  ],
+  "platform": "darwin/arm64",
+  "linux_verified": false,
+  "scope_sources": {
+    "tools/gomad3/runner/internal/corpus/model.go": "b8a120419a4476ca34f4296de2f9cc1884b3d806eeddfb3f3cfd9cb843703ca7",
+    "tools/gomad3/runner/internal/corpus/corpus.go": "f0052afcaac385cd2e68c1c20cfd630a00d74783529594fb6960f67a8a61e38a",
+    "tools/gomad3/runner/internal/corpus/corpus_test.go": "adfffff9e9c71a20917646f68bbeb23118501f4ec7849e6d2d5be3ec8521d076",
+    "tools/gomad3/runner/internal/corpus/guide_test.go": "5d17b93af57b747d3d920a952ccb594aec078261a23389d643c356d7e8e2ecab",
+    "tools/gomad3/runner/guidance.go": "8fb915212523ed4476ad15713cda6f4f4588a8631549d9219923697484f6bb55",
+    "tools/gomad3/target/target.go": "bca540560826cbb75daf20048d1faa9bf0f1980c5b83754b32da601d95f2026a",
+    "tools/gomad3/target/target_test.go": "16aef365cbc3d5f4456a1ce39113b732a6faceed662e544e633850125538853a",
+    "tools/gomad3/runner/replay_operation.go": "eb774c01b4bd574f36c7f1bb168791dd1e1b03ddbf4a6e2c350679561a935216",
+    "tools/gomad3/runner/guidance_identity_test.go": "b76ed42750b8ffae3fec12a23a36478e98065d84f06cd72604d3db638aaca0ef",
+    "tools/gomad3/runner/coverage_replay_test.go": "29a907521acc1b89ca2d51bd0dcdb0a17eee0870863133453f6daaf444b4c246",
+    "tools/gomad3/target/coverage_test.go": "5124e0acb0609ed4122b871d1116c5192d98865d4237dee375e9f046fa0ba276"
+  },
+  "final_runs": {
+    "required-runner-target-final": {
+      "source_after": {
+        "tools/gomad3/runner/internal/corpus/model.go": "b8a120419a4476ca34f4296de2f9cc1884b3d806eeddfb3f3cfd9cb843703ca7",
+        "tools/gomad3/runner/internal/corpus/corpus.go": "f0052afcaac385cd2e68c1c20cfd630a00d74783529594fb6960f67a8a61e38a",
+        "tools/gomad3/runner/internal/corpus/corpus_test.go": "adfffff9e9c71a20917646f68bbeb23118501f4ec7849e6d2d5be3ec8521d076",
+        "tools/gomad3/runner/internal/corpus/guide_test.go": "5d17b93af57b747d3d920a952ccb594aec078261a23389d643c356d7e8e2ecab",
+        "tools/gomad3/runner/guidance.go": "8fb915212523ed4476ad15713cda6f4f4588a8631549d9219923697484f6bb55",
+        "tools/gomad3/target/target.go": "bca540560826cbb75daf20048d1faa9bf0f1980c5b83754b32da601d95f2026a",
+        "tools/gomad3/target/target_test.go": "16aef365cbc3d5f4456a1ce39113b732a6faceed662e544e633850125538853a",
+        "tools/gomad3/runner/replay_operation.go": "eb774c01b4bd574f36c7f1bb168791dd1e1b03ddbf4a6e2c350679561a935216",
+        "tools/gomad3/runner/guidance_identity_test.go": "b76ed42750b8ffae3fec12a23a36478e98065d84f06cd72604d3db638aaca0ef",
+        "tools/gomad3/runner/coverage_replay_test.go": "29a907521acc1b89ca2d51bd0dcdb0a17eee0870863133453f6daaf444b4c246",
+        "tools/gomad3/target/coverage_test.go": "5124e0acb0609ed4122b871d1116c5192d98865d4237dee375e9f046fa0ba276"
+      },
+      "sources_unchanged_during_command": true,
+      "argv": [
+        "tools/gomad3/.toolchain/bin/go",
+        "-C",
+        "tools/gomad3",
+        "test",
+        "-tags",
+        "test_dep",
+        "-count=1",
+        "./runner/...",
+        "./target/..."
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad",
+      "environment": {
+        "GOWORK": "off",
+        "GOMAD3_STOCK_GO": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go",
+        "PATH": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:/Users/stephan/.codex/packages/app-server-daemon/releases/0.160.0-aarch64-apple-darwin/codex-path:/Users/stephan/.local/bin:/Users/stephan/.local/share/mise/installs/github-cli/2.92.0/gh_2.92.0_macOS_arm64/bin:/Users/stephan/.local/share/mise/installs/node/24.14.1/bin:/Users/stephan/.local/share/mise/installs/uv/0.9.18/uv-aarch64-apple-darwin:/Users/stephan/Workspace/dotfiles/skills/my-skills/reviewd:/Users/stephan/.elan/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/usr/local/MacGPG2/bin:/Users/stephan/Workspace/dotfiles/skills/my-skills/reviewd:/Users/stephan/.elan/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/stephan/.cargo/bin:/Users/stephan/Library/Application Support/JetBrains/Toolbox/scripts:/Users/stephan/Library/Application Support/JetBrains/Toolbox/scripts:/Users/stephan/.codex/tmp/arg0/codex-arg0nLP23Z:/Users/stephan/.codex/packages/app-server-daemon/releases/0.160.0-aarch64-apple-darwin/codex-path:/Users/stephan/.codex/tmp/arg0/codex-arg0E6kkvg:/Users/stephan/.local/share/mise/installs/node/24.14.1/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/stephan/.local/bin",
+        "GOFLAGS": null,
+        "GOROOT": null,
+        "GOMADSEED": null,
+        "GOMAD3_CHILD_SEED": null
+      },
+      "started": "2026-10-02T14:04:43.053354+00:00",
+      "elapsed_seconds": 125.95097208023071,
+      "exit_code": 0,
+      "sources": {
+        "tools/gomad3/runner/internal/corpus/model.go": "b8a120419a4476ca34f4296de2f9cc1884b3d806eeddfb3f3cfd9cb843703ca7",
+        "tools/gomad3/runner/internal/corpus/corpus.go": "f0052afcaac385cd2e68c1c20cfd630a00d74783529594fb6960f67a8a61e38a",
+        "tools/gomad3/runner/internal/corpus/corpus_test.go": "adfffff9e9c71a20917646f68bbeb23118501f4ec7849e6d2d5be3ec8521d076",
+        "tools/gomad3/runner/internal/corpus/guide_test.go": "5d17b93af57b747d3d920a952ccb594aec078261a23389d643c356d7e8e2ecab",
+        "tools/gomad3/runner/guidance.go": "8fb915212523ed4476ad15713cda6f4f4588a8631549d9219923697484f6bb55",
+        "tools/gomad3/target/target.go": "bca540560826cbb75daf20048d1faa9bf0f1980c5b83754b32da601d95f2026a",
+        "tools/gomad3/target/target_test.go": "16aef365cbc3d5f4456a1ce39113b732a6faceed662e544e633850125538853a",
+        "tools/gomad3/runner/replay_operation.go": "eb774c01b4bd574f36c7f1bb168791dd1e1b03ddbf4a6e2c350679561a935216",
+        "tools/gomad3/runner/guidance_identity_test.go": "b76ed42750b8ffae3fec12a23a36478e98065d84f06cd72604d3db638aaca0ef",
+        "tools/gomad3/runner/coverage_replay_test.go": "29a907521acc1b89ca2d51bd0dcdb0a17eee0870863133453f6daaf444b4c246",
+        "tools/gomad3/target/coverage_test.go": "5124e0acb0609ed4122b871d1116c5192d98865d4237dee375e9f046fa0ba276"
+      },
+      "log_sha256": "566ed610bc44ceda82b0c74857e627804a4fde6190685c2c76bcfb981e85ab5e"
+    },
+    "make-validate": {
+      "source_after": {
+        "tools/gomad3/runner/internal/corpus/model.go": "b8a120419a4476ca34f4296de2f9cc1884b3d806eeddfb3f3cfd9cb843703ca7",
+        "tools/gomad3/runner/internal/corpus/corpus.go": "f0052afcaac385cd2e68c1c20cfd630a00d74783529594fb6960f67a8a61e38a",
+        "tools/gomad3/runner/internal/corpus/corpus_test.go": "adfffff9e9c71a20917646f68bbeb23118501f4ec7849e6d2d5be3ec8521d076",
+        "tools/gomad3/runner/internal/corpus/guide_test.go": "5d17b93af57b747d3d920a952ccb594aec078261a23389d643c356d7e8e2ecab",
+        "tools/gomad3/runner/guidance.go": "8fb915212523ed4476ad15713cda6f4f4588a8631549d9219923697484f6bb55",
+        "tools/gomad3/target/target.go": "bca540560826cbb75daf20048d1faa9bf0f1980c5b83754b32da601d95f2026a",
+        "tools/gomad3/target/target_test.go": "16aef365cbc3d5f4456a1ce39113b732a6faceed662e544e633850125538853a",
+        "tools/gomad3/runner/replay_operation.go": "eb774c01b4bd574f36c7f1bb168791dd1e1b03ddbf4a6e2c350679561a935216",
+        "tools/gomad3/runner/guidance_identity_test.go": "b76ed42750b8ffae3fec12a23a36478e98065d84f06cd72604d3db638aaca0ef",
+        "tools/gomad3/runner/coverage_replay_test.go": "29a907521acc1b89ca2d51bd0dcdb0a17eee0870863133453f6daaf444b4c246",
+        "tools/gomad3/target/coverage_test.go": "5124e0acb0609ed4122b871d1116c5192d98865d4237dee375e9f046fa0ba276"
+      },
+      "sources_unchanged_during_command": true,
+      "argv": [
+        "make",
+        "-C",
+        "tools/gomad3",
+        "validate"
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad",
+      "environment": {
+        "GOWORK": "off",
+        "GOMAD3_STOCK_GO": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go",
+        "PATH": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:/Users/stephan/.codex/packages/app-server-daemon/releases/0.160.0-aarch64-apple-darwin/codex-path:/Users/stephan/.local/bin:/Users/stephan/.local/share/mise/installs/github-cli/2.92.0/gh_2.92.0_macOS_arm64/bin:/Users/stephan/.local/share/mise/installs/node/24.14.1/bin:/Users/stephan/.local/share/mise/installs/uv/0.9.18/uv-aarch64-apple-darwin:/Users/stephan/Workspace/dotfiles/skills/my-skills/reviewd:/Users/stephan/.elan/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/usr/local/MacGPG2/bin:/Users/stephan/Workspace/dotfiles/skills/my-skills/reviewd:/Users/stephan/.elan/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/stephan/.cargo/bin:/Users/stephan/Library/Application Support/JetBrains/Toolbox/scripts:/Users/stephan/Library/Application Support/JetBrains/Toolbox/scripts:/Users/stephan/.codex/tmp/arg0/codex-arg0nLP23Z:/Users/stephan/.codex/packages/app-server-daemon/releases/0.160.0-aarch64-apple-darwin/codex-path:/Users/stephan/.codex/tmp/arg0/codex-arg0E6kkvg:/Users/stephan/.local/share/mise/installs/node/24.14.1/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/stephan/.local/bin",
+        "GOFLAGS": "-tags=test_dep -count=1",
+        "GOROOT": null,
+        "GOMADSEED": null,
+        "GOMAD3_CHILD_SEED": null
+      },
+      "started": "2026-10-02T14:04:31.061518+00:00",
+      "elapsed_seconds": 7.195991039276123,
+      "exit_code": 0,
+      "sources": {
+        "tools/gomad3/runner/internal/corpus/model.go": "b8a120419a4476ca34f4296de2f9cc1884b3d806eeddfb3f3cfd9cb843703ca7",
+        "tools/gomad3/runner/internal/corpus/corpus.go": "f0052afcaac385cd2e68c1c20cfd630a00d74783529594fb6960f67a8a61e38a",
+        "tools/gomad3/runner/internal/corpus/corpus_test.go": "adfffff9e9c71a20917646f68bbeb23118501f4ec7849e6d2d5be3ec8521d076",
+        "tools/gomad3/runner/internal/corpus/guide_test.go": "5d17b93af57b747d3d920a952ccb594aec078261a23389d643c356d7e8e2ecab",
+        "tools/gomad3/runner/guidance.go": "8fb915212523ed4476ad15713cda6f4f4588a8631549d9219923697484f6bb55",
+        "tools/gomad3/target/target.go": "bca540560826cbb75daf20048d1faa9bf0f1980c5b83754b32da601d95f2026a",
+        "tools/gomad3/target/target_test.go": "16aef365cbc3d5f4456a1ce39113b732a6faceed662e544e633850125538853a",
+        "tools/gomad3/runner/replay_operation.go": "eb774c01b4bd574f36c7f1bb168791dd1e1b03ddbf4a6e2c350679561a935216",
+        "tools/gomad3/runner/guidance_identity_test.go": "b76ed42750b8ffae3fec12a23a36478e98065d84f06cd72604d3db638aaca0ef",
+        "tools/gomad3/runner/coverage_replay_test.go": "29a907521acc1b89ca2d51bd0dcdb0a17eee0870863133453f6daaf444b4c246",
+        "tools/gomad3/target/coverage_test.go": "5124e0acb0609ed4122b871d1116c5192d98865d4237dee375e9f046fa0ba276"
+      },
+      "log_sha256": "e8e2f1cb1de6add21d35450be990dc82c1d0e1b5471d2119403abedd87cd3b64"
+    },
+    "make-test-host": {
+      "source_after": {
+        "tools/gomad3/runner/internal/corpus/model.go": "b8a120419a4476ca34f4296de2f9cc1884b3d806eeddfb3f3cfd9cb843703ca7",
+        "tools/gomad3/runner/internal/corpus/corpus.go": "f0052afcaac385cd2e68c1c20cfd630a00d74783529594fb6960f67a8a61e38a",
+        "tools/gomad3/runner/internal/corpus/corpus_test.go": "adfffff9e9c71a20917646f68bbeb23118501f4ec7849e6d2d5be3ec8521d076",
+        "tools/gomad3/runner/internal/corpus/guide_test.go": "5d17b93af57b747d3d920a952ccb594aec078261a23389d643c356d7e8e2ecab",
+        "tools/gomad3/runner/guidance.go": "8fb915212523ed4476ad15713cda6f4f4588a8631549d9219923697484f6bb55",
+        "tools/gomad3/target/target.go": "bca540560826cbb75daf20048d1faa9bf0f1980c5b83754b32da601d95f2026a",
+        "tools/gomad3/target/target_test.go": "16aef365cbc3d5f4456a1ce39113b732a6faceed662e544e633850125538853a",
+        "tools/gomad3/runner/replay_operation.go": "eb774c01b4bd574f36c7f1bb168791dd1e1b03ddbf4a6e2c350679561a935216",
+        "tools/gomad3/runner/guidance_identity_test.go": "b76ed42750b8ffae3fec12a23a36478e98065d84f06cd72604d3db638aaca0ef",
+        "tools/gomad3/runner/coverage_replay_test.go": "29a907521acc1b89ca2d51bd0dcdb0a17eee0870863133453f6daaf444b4c246",
+        "tools/gomad3/target/coverage_test.go": "5124e0acb0609ed4122b871d1116c5192d98865d4237dee375e9f046fa0ba276"
+      },
+      "sources_unchanged_during_command": true,
+      "argv": [
+        "make",
+        "-C",
+        "tools/gomad3",
+        "test-host"
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad",
+      "environment": {
+        "GOWORK": "off",
+        "GOMAD3_STOCK_GO": null,
+        "PATH": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:/Users/stephan/.codex/packages/app-server-daemon/releases/0.160.0-aarch64-apple-darwin/codex-path:/Users/stephan/.local/bin:/Users/stephan/.local/share/mise/installs/github-cli/2.92.0/gh_2.92.0_macOS_arm64/bin:/Users/stephan/.local/share/mise/installs/node/24.14.1/bin:/Users/stephan/.local/share/mise/installs/uv/0.9.18/uv-aarch64-apple-darwin:/Users/stephan/Workspace/dotfiles/skills/my-skills/reviewd:/Users/stephan/.elan/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/usr/local/MacGPG2/bin:/Users/stephan/Workspace/dotfiles/skills/my-skills/reviewd:/Users/stephan/.elan/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/stephan/.cargo/bin:/Users/stephan/Library/Application Support/JetBrains/Toolbox/scripts:/Users/stephan/Library/Application Support/JetBrains/Toolbox/scripts:/Users/stephan/.codex/tmp/arg0/codex-arg0nLP23Z:/Users/stephan/.codex/packages/app-server-daemon/releases/0.160.0-aarch64-apple-darwin/codex-path:/Users/stephan/.codex/tmp/arg0/codex-arg0E6kkvg:/Users/stephan/.local/share/mise/installs/node/24.14.1/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/stephan/.local/bin",
+        "GOFLAGS": "-tags=test_dep -count=1",
+        "GOROOT": null,
+        "GOMADSEED": null,
+        "GOMAD3_CHILD_SEED": null
+      },
+      "started": "2026-10-02T14:06:53.763651+00:00",
+      "elapsed_seconds": 127.79130482673645,
+      "exit_code": 0,
+      "sources": {
+        "tools/gomad3/runner/internal/corpus/model.go": "b8a120419a4476ca34f4296de2f9cc1884b3d806eeddfb3f3cfd9cb843703ca7",
+        "tools/gomad3/runner/internal/corpus/corpus.go": "f0052afcaac385cd2e68c1c20cfd630a00d74783529594fb6960f67a8a61e38a",
+        "tools/gomad3/runner/internal/corpus/corpus_test.go": "adfffff9e9c71a20917646f68bbeb23118501f4ec7849e6d2d5be3ec8521d076",
+        "tools/gomad3/runner/internal/corpus/guide_test.go": "5d17b93af57b747d3d920a952ccb594aec078261a23389d643c356d7e8e2ecab",
+        "tools/gomad3/runner/guidance.go": "8fb915212523ed4476ad15713cda6f4f4588a8631549d9219923697484f6bb55",
+        "tools/gomad3/target/target.go": "bca540560826cbb75daf20048d1faa9bf0f1980c5b83754b32da601d95f2026a",
+        "tools/gomad3/target/target_test.go": "16aef365cbc3d5f4456a1ce39113b732a6faceed662e544e633850125538853a",
+        "tools/gomad3/runner/replay_operation.go": "eb774c01b4bd574f36c7f1bb168791dd1e1b03ddbf4a6e2c350679561a935216",
+        "tools/gomad3/runner/guidance_identity_test.go": "b76ed42750b8ffae3fec12a23a36478e98065d84f06cd72604d3db638aaca0ef",
+        "tools/gomad3/runner/coverage_replay_test.go": "29a907521acc1b89ca2d51bd0dcdb0a17eee0870863133453f6daaf444b4c246",
+        "tools/gomad3/target/coverage_test.go": "5124e0acb0609ed4122b871d1116c5192d98865d4237dee375e9f046fa0ba276"
+      },
+      "log_sha256": "f62616ea68ca9528d15714e2532615739b8f108228282093f35258b768905315"
+    },
+    "focused-vet": {
+      "source_after": {
+        "tools/gomad3/runner/internal/corpus/model.go": "b8a120419a4476ca34f4296de2f9cc1884b3d806eeddfb3f3cfd9cb843703ca7",
+        "tools/gomad3/runner/internal/corpus/corpus.go": "f0052afcaac385cd2e68c1c20cfd630a00d74783529594fb6960f67a8a61e38a",
+        "tools/gomad3/runner/internal/corpus/corpus_test.go": "adfffff9e9c71a20917646f68bbeb23118501f4ec7849e6d2d5be3ec8521d076",
+        "tools/gomad3/runner/internal/corpus/guide_test.go": "5d17b93af57b747d3d920a952ccb594aec078261a23389d643c356d7e8e2ecab",
+        "tools/gomad3/runner/guidance.go": "8fb915212523ed4476ad15713cda6f4f4588a8631549d9219923697484f6bb55",
+        "tools/gomad3/target/target.go": "bca540560826cbb75daf20048d1faa9bf0f1980c5b83754b32da601d95f2026a",
+        "tools/gomad3/target/target_test.go": "16aef365cbc3d5f4456a1ce39113b732a6faceed662e544e633850125538853a",
+        "tools/gomad3/runner/replay_operation.go": "eb774c01b4bd574f36c7f1bb168791dd1e1b03ddbf4a6e2c350679561a935216",
+        "tools/gomad3/runner/guidance_identity_test.go": "b76ed42750b8ffae3fec12a23a36478e98065d84f06cd72604d3db638aaca0ef",
+        "tools/gomad3/runner/coverage_replay_test.go": "29a907521acc1b89ca2d51bd0dcdb0a17eee0870863133453f6daaf444b4c246",
+        "tools/gomad3/target/coverage_test.go": "5124e0acb0609ed4122b871d1116c5192d98865d4237dee375e9f046fa0ba276"
+      },
+      "sources_unchanged_during_command": true,
+      "argv": [
+        "tools/gomad3/.toolchain/bin/go",
+        "-C",
+        "tools/gomad3",
+        "vet",
+        "-tags",
+        "test_dep",
+        "./runner/...",
+        "./target/..."
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad",
+      "environment": {
+        "GOWORK": "off",
+        "GOMAD3_STOCK_GO": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go",
+        "PATH": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:/Users/stephan/.codex/packages/app-server-daemon/releases/0.160.0-aarch64-apple-darwin/codex-path:/Users/stephan/.local/bin:/Users/stephan/.local/share/mise/installs/github-cli/2.92.0/gh_2.92.0_macOS_arm64/bin:/Users/stephan/.local/share/mise/installs/node/24.14.1/bin:/Users/stephan/.local/share/mise/installs/uv/0.9.18/uv-aarch64-apple-darwin:/Users/stephan/Workspace/dotfiles/skills/my-skills/reviewd:/Users/stephan/.elan/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/usr/local/MacGPG2/bin:/Users/stephan/Workspace/dotfiles/skills/my-skills/reviewd:/Users/stephan/.elan/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/stephan/.cargo/bin:/Users/stephan/Library/Application Support/JetBrains/Toolbox/scripts:/Users/stephan/Library/Application Support/JetBrains/Toolbox/scripts:/Users/stephan/.codex/tmp/arg0/codex-arg0nLP23Z:/Users/stephan/.codex/packages/app-server-daemon/releases/0.160.0-aarch64-apple-darwin/codex-path:/Users/stephan/.codex/tmp/arg0/codex-arg0E6kkvg:/Users/stephan/.local/share/mise/installs/node/24.14.1/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/stephan/.local/bin",
+        "GOFLAGS": null,
+        "GOROOT": null,
+        "GOMADSEED": null,
+        "GOMAD3_CHILD_SEED": null
+      },
+      "started": "2026-10-02T14:09:10.487126+00:00",
+      "elapsed_seconds": 0.43558812141418457,
+      "exit_code": 0,
+      "sources": {
+        "tools/gomad3/runner/internal/corpus/model.go": "b8a120419a4476ca34f4296de2f9cc1884b3d806eeddfb3f3cfd9cb843703ca7",
+        "tools/gomad3/runner/internal/corpus/corpus.go": "f0052afcaac385cd2e68c1c20cfd630a00d74783529594fb6960f67a8a61e38a",
+        "tools/gomad3/runner/internal/corpus/corpus_test.go": "adfffff9e9c71a20917646f68bbeb23118501f4ec7849e6d2d5be3ec8521d076",
+        "tools/gomad3/runner/internal/corpus/guide_test.go": "5d17b93af57b747d3d920a952ccb594aec078261a23389d643c356d7e8e2ecab",
+        "tools/gomad3/runner/guidance.go": "8fb915212523ed4476ad15713cda6f4f4588a8631549d9219923697484f6bb55",
+        "tools/gomad3/target/target.go": "bca540560826cbb75daf20048d1faa9bf0f1980c5b83754b32da601d95f2026a",
+        "tools/gomad3/target/target_test.go": "16aef365cbc3d5f4456a1ce39113b732a6faceed662e544e633850125538853a",
+        "tools/gomad3/runner/replay_operation.go": "eb774c01b4bd574f36c7f1bb168791dd1e1b03ddbf4a6e2c350679561a935216",
+        "tools/gomad3/runner/guidance_identity_test.go": "b76ed42750b8ffae3fec12a23a36478e98065d84f06cd72604d3db638aaca0ef",
+        "tools/gomad3/runner/coverage_replay_test.go": "29a907521acc1b89ca2d51bd0dcdb0a17eee0870863133453f6daaf444b4c246",
+        "tools/gomad3/target/coverage_test.go": "5124e0acb0609ed4122b871d1116c5192d98865d4237dee375e9f046fa0ba276"
+      },
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "gofmt-final": {
+      "source_after": {
+        "tools/gomad3/runner/internal/corpus/model.go": "b8a120419a4476ca34f4296de2f9cc1884b3d806eeddfb3f3cfd9cb843703ca7",
+        "tools/gomad3/runner/internal/corpus/corpus.go": "f0052afcaac385cd2e68c1c20cfd630a00d74783529594fb6960f67a8a61e38a",
+        "tools/gomad3/runner/internal/corpus/corpus_test.go": "adfffff9e9c71a20917646f68bbeb23118501f4ec7849e6d2d5be3ec8521d076",
+        "tools/gomad3/runner/internal/corpus/guide_test.go": "5d17b93af57b747d3d920a952ccb594aec078261a23389d643c356d7e8e2ecab",
+        "tools/gomad3/runner/guidance.go": "8fb915212523ed4476ad15713cda6f4f4588a8631549d9219923697484f6bb55",
+        "tools/gomad3/target/target.go": "bca540560826cbb75daf20048d1faa9bf0f1980c5b83754b32da601d95f2026a",
+        "tools/gomad3/target/target_test.go": "16aef365cbc3d5f4456a1ce39113b732a6faceed662e544e633850125538853a",
+        "tools/gomad3/runner/replay_operation.go": "eb774c01b4bd574f36c7f1bb168791dd1e1b03ddbf4a6e2c350679561a935216",
+        "tools/gomad3/runner/guidance_identity_test.go": "b76ed42750b8ffae3fec12a23a36478e98065d84f06cd72604d3db638aaca0ef",
+        "tools/gomad3/runner/coverage_replay_test.go": "29a907521acc1b89ca2d51bd0dcdb0a17eee0870863133453f6daaf444b4c246",
+        "tools/gomad3/target/coverage_test.go": "5124e0acb0609ed4122b871d1116c5192d98865d4237dee375e9f046fa0ba276"
+      },
+      "sources_unchanged_during_command": true,
+      "argv": [
+        "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/gofmt",
+        "-l",
+        "tools/gomad3/runner/internal/corpus/model.go",
+        "tools/gomad3/runner/internal/corpus/corpus.go",
+        "tools/gomad3/runner/internal/corpus/corpus_test.go",
+        "tools/gomad3/runner/internal/corpus/guide_test.go",
+        "tools/gomad3/runner/guidance.go",
+        "tools/gomad3/target/target.go",
+        "tools/gomad3/target/target_test.go",
+        "tools/gomad3/runner/replay_operation.go",
+        "tools/gomad3/runner/guidance_identity_test.go",
+        "tools/gomad3/runner/coverage_replay_test.go",
+        "tools/gomad3/target/coverage_test.go"
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad",
+      "environment": {
+        "GOWORK": "off",
+        "GOMAD3_STOCK_GO": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go",
+        "PATH": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:/Users/stephan/.codex/packages/app-server-daemon/releases/0.160.0-aarch64-apple-darwin/codex-path:/Users/stephan/.local/bin:/Users/stephan/.local/share/mise/installs/github-cli/2.92.0/gh_2.92.0_macOS_arm64/bin:/Users/stephan/.local/share/mise/installs/node/24.14.1/bin:/Users/stephan/.local/share/mise/installs/uv/0.9.18/uv-aarch64-apple-darwin:/Users/stephan/Workspace/dotfiles/skills/my-skills/reviewd:/Users/stephan/.elan/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/usr/local/MacGPG2/bin:/Users/stephan/Workspace/dotfiles/skills/my-skills/reviewd:/Users/stephan/.elan/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/stephan/.cargo/bin:/Users/stephan/Library/Application Support/JetBrains/Toolbox/scripts:/Users/stephan/Library/Application Support/JetBrains/Toolbox/scripts:/Users/stephan/.codex/tmp/arg0/codex-arg0nLP23Z:/Users/stephan/.codex/packages/app-server-daemon/releases/0.160.0-aarch64-apple-darwin/codex-path:/Users/stephan/.codex/tmp/arg0/codex-arg0E6kkvg:/Users/stephan/.local/share/mise/installs/node/24.14.1/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/stephan/.local/bin",
+        "GOFLAGS": null,
+        "GOROOT": null,
+        "GOMADSEED": null,
+        "GOMAD3_CHILD_SEED": null
+      },
+      "started": "2026-10-02T14:10:58.606296+00:00",
+      "elapsed_seconds": 0.016878128051757812,
+      "exit_code": 0,
+      "sources": {
+        "tools/gomad3/runner/internal/corpus/model.go": "b8a120419a4476ca34f4296de2f9cc1884b3d806eeddfb3f3cfd9cb843703ca7",
+        "tools/gomad3/runner/internal/corpus/corpus.go": "f0052afcaac385cd2e68c1c20cfd630a00d74783529594fb6960f67a8a61e38a",
+        "tools/gomad3/runner/internal/corpus/corpus_test.go": "adfffff9e9c71a20917646f68bbeb23118501f4ec7849e6d2d5be3ec8521d076",
+        "tools/gomad3/runner/internal/corpus/guide_test.go": "5d17b93af57b747d3d920a952ccb594aec078261a23389d643c356d7e8e2ecab",
+        "tools/gomad3/runner/guidance.go": "8fb915212523ed4476ad15713cda6f4f4588a8631549d9219923697484f6bb55",
+        "tools/gomad3/target/target.go": "bca540560826cbb75daf20048d1faa9bf0f1980c5b83754b32da601d95f2026a",
+        "tools/gomad3/target/target_test.go": "16aef365cbc3d5f4456a1ce39113b732a6faceed662e544e633850125538853a",
+        "tools/gomad3/runner/replay_operation.go": "eb774c01b4bd574f36c7f1bb168791dd1e1b03ddbf4a6e2c350679561a935216",
+        "tools/gomad3/runner/guidance_identity_test.go": "b76ed42750b8ffae3fec12a23a36478e98065d84f06cd72604d3db638aaca0ef",
+        "tools/gomad3/runner/coverage_replay_test.go": "29a907521acc1b89ca2d51bd0dcdb0a17eee0870863133453f6daaf444b4c246",
+        "tools/gomad3/target/coverage_test.go": "5124e0acb0609ed4122b871d1116c5192d98865d4237dee375e9f046fa0ba276"
+      },
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "whitespace-final": {
+      "source_after": {
+        "tools/gomad3/runner/internal/corpus/model.go": "b8a120419a4476ca34f4296de2f9cc1884b3d806eeddfb3f3cfd9cb843703ca7",
+        "tools/gomad3/runner/internal/corpus/corpus.go": "f0052afcaac385cd2e68c1c20cfd630a00d74783529594fb6960f67a8a61e38a",
+        "tools/gomad3/runner/internal/corpus/corpus_test.go": "adfffff9e9c71a20917646f68bbeb23118501f4ec7849e6d2d5be3ec8521d076",
+        "tools/gomad3/runner/internal/corpus/guide_test.go": "5d17b93af57b747d3d920a952ccb594aec078261a23389d643c356d7e8e2ecab",
+        "tools/gomad3/runner/guidance.go": "8fb915212523ed4476ad15713cda6f4f4588a8631549d9219923697484f6bb55",
+        "tools/gomad3/target/target.go": "bca540560826cbb75daf20048d1faa9bf0f1980c5b83754b32da601d95f2026a",
+        "tools/gomad3/target/target_test.go": "16aef365cbc3d5f4456a1ce39113b732a6faceed662e544e633850125538853a",
+        "tools/gomad3/runner/replay_operation.go": "eb774c01b4bd574f36c7f1bb168791dd1e1b03ddbf4a6e2c350679561a935216",
+        "tools/gomad3/runner/guidance_identity_test.go": "b76ed42750b8ffae3fec12a23a36478e98065d84f06cd72604d3db638aaca0ef",
+        "tools/gomad3/runner/coverage_replay_test.go": "29a907521acc1b89ca2d51bd0dcdb0a17eee0870863133453f6daaf444b4c246",
+        "tools/gomad3/target/coverage_test.go": "5124e0acb0609ed4122b871d1116c5192d98865d4237dee375e9f046fa0ba276"
+      },
+      "sources_unchanged_during_command": true,
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad",
+      "environment": {
+        "GOWORK": "off",
+        "GOMAD3_STOCK_GO": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go",
+        "PATH": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:/Users/stephan/.codex/packages/app-server-daemon/releases/0.160.0-aarch64-apple-darwin/codex-path:/Users/stephan/.local/bin:/Users/stephan/.local/share/mise/installs/github-cli/2.92.0/gh_2.92.0_macOS_arm64/bin:/Users/stephan/.local/share/mise/installs/node/24.14.1/bin:/Users/stephan/.local/share/mise/installs/uv/0.9.18/uv-aarch64-apple-darwin:/Users/stephan/Workspace/dotfiles/skills/my-skills/reviewd:/Users/stephan/.elan/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/usr/local/MacGPG2/bin:/Users/stephan/Workspace/dotfiles/skills/my-skills/reviewd:/Users/stephan/.elan/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/stephan/.cargo/bin:/Users/stephan/Library/Application Support/JetBrains/Toolbox/scripts:/Users/stephan/Library/Application Support/JetBrains/Toolbox/scripts:/Users/stephan/.codex/tmp/arg0/codex-arg0nLP23Z:/Users/stephan/.codex/packages/app-server-daemon/releases/0.160.0-aarch64-apple-darwin/codex-path:/Users/stephan/.codex/tmp/arg0/codex-arg0E6kkvg:/Users/stephan/.local/share/mise/installs/node/24.14.1/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/stephan/.local/bin",
+        "GOFLAGS": null,
+        "GOROOT": null,
+        "GOMADSEED": null,
+        "GOMAD3_CHILD_SEED": null
+      },
+      "started": "2026-10-02T14:10:58.688671+00:00",
+      "elapsed_seconds": 0.0334320068359375,
+      "exit_code": 0,
+      "sources": {
+        "tools/gomad3/runner/internal/corpus/model.go": "b8a120419a4476ca34f4296de2f9cc1884b3d806eeddfb3f3cfd9cb843703ca7",
+        "tools/gomad3/runner/internal/corpus/corpus.go": "f0052afcaac385cd2e68c1c20cfd630a00d74783529594fb6960f67a8a61e38a",
+        "tools/gomad3/runner/internal/corpus/corpus_test.go": "adfffff9e9c71a20917646f68bbeb23118501f4ec7849e6d2d5be3ec8521d076",
+        "tools/gomad3/runner/internal/corpus/guide_test.go": "5d17b93af57b747d3d920a952ccb594aec078261a23389d643c356d7e8e2ecab",
+        "tools/gomad3/runner/guidance.go": "8fb915212523ed4476ad15713cda6f4f4588a8631549d9219923697484f6bb55",
+        "tools/gomad3/target/target.go": "bca540560826cbb75daf20048d1faa9bf0f1980c5b83754b32da601d95f2026a",
+        "tools/gomad3/target/target_test.go": "16aef365cbc3d5f4456a1ce39113b732a6faceed662e544e633850125538853a",
+        "tools/gomad3/runner/replay_operation.go": "eb774c01b4bd574f36c7f1bb168791dd1e1b03ddbf4a6e2c350679561a935216",
+        "tools/gomad3/runner/guidance_identity_test.go": "b76ed42750b8ffae3fec12a23a36478e98065d84f06cd72604d3db638aaca0ef",
+        "tools/gomad3/runner/coverage_replay_test.go": "29a907521acc1b89ca2d51bd0dcdb0a17eee0870863133453f6daaf444b4c246",
+        "tools/gomad3/target/coverage_test.go": "5124e0acb0609ed4122b871d1116c5192d98865d4237dee375e9f046fa0ba276"
+      },
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "acceptance": {
+    "changed_environment": "semantic and choice guided campaigns reject changed MODE; changed-case admission rejects without corpus commit",
+    "changed_tick_policy": "strict-to-forward and forward-to-strict rejected in both guidance modes",
+    "seed_equivalence": "same configuration reopens across seed 7/8; canonical constructor projection excludes per-execution seed/I/O/choice and preserves diagnostic/profile-independent fields",
+    "schema": "real v1 missing environment_sha256 and unknown future schema with extra field rejected by schema; current malformed/noncanonical/unknown/duplicate inputs rejected",
+    "coverage_provenance": "existing synthetic negative table and actual pinned build-cover/test-cover exec preparation reject coverage",
+    "ordinary_build": "actual noncoverage build info omits -cover, validation passes; existing matching exec-provenance suite passes",
+    "retained_binary": "replay, verify-only, and Minimize reject real covered target before execution; retained standalone artifact receipts bind payloads",
+    "required_gates": "fresh frozen Runner/target and make validate pass; standard full host, vet/format/whitespace pass"
+  },
+  "limitations": {
+    "root_lint_default": {
+      "source_after": {
+        "tools/gomad3/runner/internal/corpus/model.go": "b8a120419a4476ca34f4296de2f9cc1884b3d806eeddfb3f3cfd9cb843703ca7",
+        "tools/gomad3/runner/internal/corpus/corpus.go": "f0052afcaac385cd2e68c1c20cfd630a00d74783529594fb6960f67a8a61e38a",
+        "tools/gomad3/runner/internal/corpus/corpus_test.go": "adfffff9e9c71a20917646f68bbeb23118501f4ec7849e6d2d5be3ec8521d076",
+        "tools/gomad3/runner/internal/corpus/guide_test.go": "5d17b93af57b747d3d920a952ccb594aec078261a23389d643c356d7e8e2ecab",
+        "tools/gomad3/runner/guidance.go": "8fb915212523ed4476ad15713cda6f4f4588a8631549d9219923697484f6bb55",
+        "tools/gomad3/target/target.go": "bca540560826cbb75daf20048d1faa9bf0f1980c5b83754b32da601d95f2026a",
+        "tools/gomad3/target/target_test.go": "16aef365cbc3d5f4456a1ce39113b732a6faceed662e544e633850125538853a",
+        "tools/gomad3/runner/replay_operation.go": "eb774c01b4bd574f36c7f1bb168791dd1e1b03ddbf4a6e2c350679561a935216",
+        "tools/gomad3/runner/guidance_identity_test.go": "b76ed42750b8ffae3fec12a23a36478e98065d84f06cd72604d3db638aaca0ef",
+        "tools/gomad3/runner/coverage_replay_test.go": "29a907521acc1b89ca2d51bd0dcdb0a17eee0870863133453f6daaf444b4c246",
+        "tools/gomad3/target/coverage_test.go": "5124e0acb0609ed4122b871d1116c5192d98865d4237dee375e9f046fa0ba276"
+      },
+      "sources_unchanged_during_command": true,
+      "argv": [
+        "env",
+        "GOLANGCI_LINT_FIX=false",
+        "make",
+        "lint-code-fast"
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad",
+      "environment": {
+        "GOWORK": "off",
+        "GOMAD3_STOCK_GO": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go",
+        "PATH": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:/Users/stephan/.codex/packages/app-server-daemon/releases/0.160.0-aarch64-apple-darwin/codex-path:/Users/stephan/.local/bin:/Users/stephan/.local/share/mise/installs/github-cli/2.92.0/gh_2.92.0_macOS_arm64/bin:/Users/stephan/.local/share/mise/installs/node/24.14.1/bin:/Users/stephan/.local/share/mise/installs/uv/0.9.18/uv-aarch64-apple-darwin:/Users/stephan/Workspace/dotfiles/skills/my-skills/reviewd:/Users/stephan/.elan/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/usr/local/MacGPG2/bin:/Users/stephan/Workspace/dotfiles/skills/my-skills/reviewd:/Users/stephan/.elan/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/stephan/.cargo/bin:/Users/stephan/Library/Application Support/JetBrains/Toolbox/scripts:/Users/stephan/Library/Application Support/JetBrains/Toolbox/scripts:/Users/stephan/.codex/tmp/arg0/codex-arg0nLP23Z:/Users/stephan/.codex/packages/app-server-daemon/releases/0.160.0-aarch64-apple-darwin/codex-path:/Users/stephan/.codex/tmp/arg0/codex-arg0E6kkvg:/Users/stephan/.local/share/mise/installs/node/24.14.1/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/stephan/.local/bin",
+        "GOFLAGS": null,
+        "GOROOT": null,
+        "GOMADSEED": null,
+        "GOMAD3_CHILD_SEED": null
+      },
+      "started": "2026-10-02T14:09:15.336992+00:00",
+      "elapsed_seconds": 0.9972879886627197,
+      "exit_code": 2,
+      "sources": {
+        "tools/gomad3/runner/internal/corpus/model.go": "b8a120419a4476ca34f4296de2f9cc1884b3d806eeddfb3f3cfd9cb843703ca7",
+        "tools/gomad3/runner/internal/corpus/corpus.go": "f0052afcaac385cd2e68c1c20cfd630a00d74783529594fb6960f67a8a61e38a",
+        "tools/gomad3/runner/internal/corpus/corpus_test.go": "adfffff9e9c71a20917646f68bbeb23118501f4ec7849e6d2d5be3ec8521d076",
+        "tools/gomad3/runner/internal/corpus/guide_test.go": "5d17b93af57b747d3d920a952ccb594aec078261a23389d643c356d7e8e2ecab",
+        "tools/gomad3/runner/guidance.go": "8fb915212523ed4476ad15713cda6f4f4588a8631549d9219923697484f6bb55",
+        "tools/gomad3/target/target.go": "bca540560826cbb75daf20048d1faa9bf0f1980c5b83754b32da601d95f2026a",
+        "tools/gomad3/target/target_test.go": "16aef365cbc3d5f4456a1ce39113b732a6faceed662e544e633850125538853a",
+        "tools/gomad3/runner/replay_operation.go": "eb774c01b4bd574f36c7f1bb168791dd1e1b03ddbf4a6e2c350679561a935216",
+        "tools/gomad3/runner/guidance_identity_test.go": "b76ed42750b8ffae3fec12a23a36478e98065d84f06cd72604d3db638aaca0ef",
+        "tools/gomad3/runner/coverage_replay_test.go": "29a907521acc1b89ca2d51bd0dcdb0a17eee0870863133453f6daaf444b4c246",
+        "tools/gomad3/target/coverage_test.go": "5124e0acb0609ed4122b871d1116c5192d98865d4237dee375e9f046fa0ba276"
+      },
+      "log_sha256": "4a229d95b641928fde380a270b031f2428d29853bba5b947dbb38a2d711596a5"
+    },
+    "root_lint_head": {
+      "source_after": {
+        "tools/gomad3/runner/internal/corpus/model.go": "b8a120419a4476ca34f4296de2f9cc1884b3d806eeddfb3f3cfd9cb843703ca7",
+        "tools/gomad3/runner/internal/corpus/corpus.go": "f0052afcaac385cd2e68c1c20cfd630a00d74783529594fb6960f67a8a61e38a",
+        "tools/gomad3/runner/internal/corpus/corpus_test.go": "adfffff9e9c71a20917646f68bbeb23118501f4ec7849e6d2d5be3ec8521d076",
+        "tools/gomad3/runner/internal/corpus/guide_test.go": "5d17b93af57b747d3d920a952ccb594aec078261a23389d643c356d7e8e2ecab",
+        "tools/gomad3/runner/guidance.go": "8fb915212523ed4476ad15713cda6f4f4588a8631549d9219923697484f6bb55",
+        "tools/gomad3/target/target.go": "bca540560826cbb75daf20048d1faa9bf0f1980c5b83754b32da601d95f2026a",
+        "tools/gomad3/target/target_test.go": "16aef365cbc3d5f4456a1ce39113b732a6faceed662e544e633850125538853a",
+        "tools/gomad3/runner/replay_operation.go": "eb774c01b4bd574f36c7f1bb168791dd1e1b03ddbf4a6e2c350679561a935216",
+        "tools/gomad3/runner/guidance_identity_test.go": "b76ed42750b8ffae3fec12a23a36478e98065d84f06cd72604d3db638aaca0ef",
+        "tools/gomad3/runner/coverage_replay_test.go": "29a907521acc1b89ca2d51bd0dcdb0a17eee0870863133453f6daaf444b4c246",
+        "tools/gomad3/target/coverage_test.go": "5124e0acb0609ed4122b871d1116c5192d98865d4237dee375e9f046fa0ba276"
+      },
+      "sources_unchanged_during_command": true,
+      "argv": [
+        "env",
+        "GOLANGCI_LINT_FIX=false",
+        "GOLANGCI_LINT_BASE_REV=HEAD",
+        "make",
+        "lint-code-fast"
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad",
+      "environment": {
+        "GOWORK": "off",
+        "GOMAD3_STOCK_GO": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go",
+        "PATH": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:/Users/stephan/.codex/packages/app-server-daemon/releases/0.160.0-aarch64-apple-darwin/codex-path:/Users/stephan/.local/bin:/Users/stephan/.local/share/mise/installs/github-cli/2.92.0/gh_2.92.0_macOS_arm64/bin:/Users/stephan/.local/share/mise/installs/node/24.14.1/bin:/Users/stephan/.local/share/mise/installs/uv/0.9.18/uv-aarch64-apple-darwin:/Users/stephan/Workspace/dotfiles/skills/my-skills/reviewd:/Users/stephan/.elan/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/usr/local/MacGPG2/bin:/Users/stephan/Workspace/dotfiles/skills/my-skills/reviewd:/Users/stephan/.elan/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/stephan/.cargo/bin:/Users/stephan/Library/Application Support/JetBrains/Toolbox/scripts:/Users/stephan/Library/Application Support/JetBrains/Toolbox/scripts:/Users/stephan/.codex/tmp/arg0/codex-arg0nLP23Z:/Users/stephan/.codex/packages/app-server-daemon/releases/0.160.0-aarch64-apple-darwin/codex-path:/Users/stephan/.codex/tmp/arg0/codex-arg0E6kkvg:/Users/stephan/.local/share/mise/installs/node/24.14.1/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/stephan/.local/bin",
+        "GOFLAGS": null,
+        "GOROOT": null,
+        "GOMADSEED": null,
+        "GOMAD3_CHILD_SEED": null
+      },
+      "started": "2026-10-02T14:09:22.708790+00:00",
+      "elapsed_seconds": 3.2411770820617676,
+      "exit_code": 2,
+      "sources": {
+        "tools/gomad3/runner/internal/corpus/model.go": "b8a120419a4476ca34f4296de2f9cc1884b3d806eeddfb3f3cfd9cb843703ca7",
+        "tools/gomad3/runner/internal/corpus/corpus.go": "f0052afcaac385cd2e68c1c20cfd630a00d74783529594fb6960f67a8a61e38a",
+        "tools/gomad3/runner/internal/corpus/corpus_test.go": "adfffff9e9c71a20917646f68bbeb23118501f4ec7849e6d2d5be3ec8521d076",
+        "tools/gomad3/runner/internal/corpus/guide_test.go": "5d17b93af57b747d3d920a952ccb594aec078261a23389d643c356d7e8e2ecab",
+        "tools/gomad3/runner/guidance.go": "8fb915212523ed4476ad15713cda6f4f4588a8631549d9219923697484f6bb55",
+        "tools/gomad3/target/target.go": "bca540560826cbb75daf20048d1faa9bf0f1980c5b83754b32da601d95f2026a",
+        "tools/gomad3/target/target_test.go": "16aef365cbc3d5f4456a1ce39113b732a6faceed662e544e633850125538853a",
+        "tools/gomad3/runner/replay_operation.go": "eb774c01b4bd574f36c7f1bb168791dd1e1b03ddbf4a6e2c350679561a935216",
+        "tools/gomad3/runner/guidance_identity_test.go": "b76ed42750b8ffae3fec12a23a36478e98065d84f06cd72604d3db638aaca0ef",
+        "tools/gomad3/runner/coverage_replay_test.go": "29a907521acc1b89ca2d51bd0dcdb0a17eee0870863133453f6daaf444b4c246",
+        "tools/gomad3/target/coverage_test.go": "5124e0acb0609ed4122b871d1116c5192d98865d4237dee375e9f046fa0ba276"
+      },
+      "log_sha256": "41a72d967b54babb4db898ca70a351b618f8621ef1089567695f69fa644a3de1"
+    },
+    "native_linux": "unverified"
+  },
+  "historical_runs": {
+    "regression-red": "Meaningful C1 env/tick omissions, choice pointer-equality failure, and actual pinned coverage acceptance before production edits.",
+    "additional-red": "Meaningful previous-schema and shared replay-validator failures before production edits.",
+    "actual-layout-schema-red": "Meaningful actual v1 layout lacking new identity field and future-layout unknown field rejected at decode rather than schema.",
+    "focused-extended": "Fixture setup failure: changed environment entries were unsorted; other extended regressions passed.",
+    "case-admission-green": "Fixture assertion failure despite filename: existing admission performs replay before identity validation; case was rejected without publication.",
+    "retain-covered-artifact": "Evidence-probe setup compilation failure: record hash field was misnamed; repaired probe subsequently passed.",
+    "required-runner-target": "Informational source-overlap run; excluded from final acceptance."
+  },
+  "parent_reconstruction": {
+    "result": "pass",
+    "patch_sha256": "b9561c8e754d720e17a284b802cb67b2ac704ebd4d531bf36632f4f75a607f9e",
+    "changed_sources": {
+      "tools/gomad3/runner/internal/corpus/model.go": "b8a120419a4476ca34f4296de2f9cc1884b3d806eeddfb3f3cfd9cb843703ca7",
+      "tools/gomad3/runner/internal/corpus/corpus.go": "f0052afcaac385cd2e68c1c20cfd630a00d74783529594fb6960f67a8a61e38a",
+      "tools/gomad3/runner/internal/corpus/corpus_test.go": "adfffff9e9c71a20917646f68bbeb23118501f4ec7849e6d2d5be3ec8521d076",
+      "tools/gomad3/runner/internal/corpus/guide_test.go": "5d17b93af57b747d3d920a952ccb594aec078261a23389d643c356d7e8e2ecab",
+      "tools/gomad3/runner/guidance.go": "8fb915212523ed4476ad15713cda6f4f4588a8631549d9219923697484f6bb55",
+      "tools/gomad3/target/target.go": "bca540560826cbb75daf20048d1faa9bf0f1980c5b83754b32da601d95f2026a",
+      "tools/gomad3/target/target_test.go": "16aef365cbc3d5f4456a1ce39113b732a6faceed662e544e633850125538853a",
+      "tools/gomad3/runner/replay_operation.go": "eb774c01b4bd574f36c7f1bb168791dd1e1b03ddbf4a6e2c350679561a935216",
+      "tools/gomad3/runner/guidance_identity_test.go": "b76ed42750b8ffae3fec12a23a36478e98065d84f06cd72604d3db638aaca0ef",
+      "tools/gomad3/runner/coverage_replay_test.go": "29a907521acc1b89ca2d51bd0dcdb0a17eee0870863133453f6daaf444b4c246",
+      "tools/gomad3/target/coverage_test.go": "5124e0acb0609ed4122b871d1116c5192d98865d4237dee375e9f046fa0ba276"
+    },
+    "unchanged_protected_count": 69,
+    "owned_protected_overlap": [
+      "tools/gomad3/runner/replay_operation.go"
+    ],
+    "scratch_patch_reconstruction": "pass"
+  },
+  "toolchain_build_key": "56e4a2f0c5514d43b9a0682d030964588dd3d5a58978ba0b989459bb556843a3",
+  "host_package_count": 45
+}

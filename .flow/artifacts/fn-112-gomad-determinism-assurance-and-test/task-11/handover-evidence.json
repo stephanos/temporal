@@ -1,0 +1,14 @@
+{
+  "commits": [],
+  "tests": [
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go test -tags test_dep -count=1 ./deterministicio ./runner/internal/execution -run 'TestSessionCollectTerminal|TestRunIOTerminalAfterTermination|TestProfileEntropyIsIndependentOfScheduleSeed|TestRunRejects.*Choice|TestRunReturnsValidatedOverflowChoiceTrace|TestRunBoundsUnresponsiveSupervisor' -v",
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go test -tags test_dep -count=1 ./cmd/gomad -run TestCLI -v",
+    "make -C tools/gomad3 test-host",
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go vet -tags test_dep ./deterministicio ./runner/internal/execution ./cmd/gomad",
+    "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/gofmt -d tools/gomad3/deterministicio/session.go tools/gomad3/runner/internal/execution/process_unix.go tools/gomad3/deterministicio/session_test.go tools/gomad3/runner/internal/execution/watchdog_io_test.go tools/gomad3/cmd/gomad/watchdog_e2e_test.go tools/gomad3/cmd/gomad/testdata/watchdog/main.go",
+    "git diff --check -- tools/gomad3/deterministicio/session.go tools/gomad3/runner/internal/execution/process_unix.go",
+    "make lint-code-fast GOLANGCI_LINT_FIX=false",
+    "make lint-code-fast GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=HEAD"
+  ],
+  "prs": []
+}

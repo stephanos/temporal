@@ -1,0 +1,11 @@
+{
+  "head": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+  "sources": {
+    "/tmp/gomad-task4-report-off-baseline/qualification.go": "22ebfcd8bf6e9462a19a59bb9b6e3eec68f3399733968b046b450bb66ef078ce",
+    "/tmp/gomad-task4-report-off-baseline/capture_test.go": "f993cdd59124ddc6755df2bbb912123e5c4891916842d2bbfa82718b3e4d6ba0",
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/qualification/qualification_test.go": "f060358758b7ec382fc092afbffbd5ae3be576ada9deca05a2c9e913933afaff"
+  },
+  "qualification_source": "git show HEAD:tools/gomad3/qualification/qualification.go",
+  "normal_sha256": "6f8f10d12c1e605c1b0e5c66bda697ace3dccce020f0f37f4f751309cca9978e",
+  "failure_sha256": "3e8f1fda4a5755b9b0cf74e60e97e5f4ea953a712f20c6b89b1df8f362b12096"
+}

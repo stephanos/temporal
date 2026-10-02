@@ -1,0 +1,5 @@
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate -check
+generated choice wire codec is stale: choice/internal/wire/wire_generated.go
+exit status 1
+make: *** [validate-toolchain] Error 1

@@ -15,6 +15,13 @@ import (
 	"internal/gomadwire"
 )
 
+var ErrClosed error = closedHandleError{}
+
+type closedHandleError struct{}
+
+func (closedHandleError) Error() string { return syscall.EBADF.Error() }
+func (closedHandleError) Unwrap() error { return syscall.EBADF }
+
 type Kind = gomadwire.MountKind
 
 const (
@@ -482,7 +489,7 @@ func (fs *FS) Rename(oldName, newName string) error {
 	if parent.kind != KindDirectory {
 		return syscall.ENOTDIR
 	}
-	if n.kind == KindDirectory && (newPath == oldPath || strings.HasPrefix(newPath, oldPath+"/")) {
+	if n.kind == KindDirectory && strings.HasPrefix(newPath, oldPath+"/") {
 		return syscall.EINVAL
 	}
 	existing, lookupErr := fs.lookupLocked(newPath)
@@ -501,6 +508,9 @@ func (fs *FS) Rename(oldName, newName string) error {
 				return syscall.EXDEV
 			}
 		}
+	}
+	if oldPath == newPath {
+		return nil
 	}
 	if existing != nil && existing.kind == KindDirectory {
 		return syscall.EEXIST
@@ -1378,7 +1388,7 @@ func (handle *Handle) errorLocked() error {
 		return syscall.ESTALE
 	}
 	if handle.closed {
-		return syscall.EBADF
+		return ErrClosed
 	}
 	return nil
 }

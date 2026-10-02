@@ -1,0 +1,26 @@
+{
+  "command": [
+    "tools/gomad3/.toolchain/bin/go",
+    "-C",
+    "tools/gomad3",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    ".",
+    "./choice",
+    "./runner/internal/exploration/choice",
+    "./runner/internal/campaign",
+    "./runner",
+    "./cmd/gomad/internal/cli",
+    "-run",
+    "Test(PackageArchitecture|.*Divergence.*|ExplorationRejectsPreviousSegmentSchemaVisibly)$"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 6.13,
+  "scope": "Focused review fix; preceding full host gate remains evidence for unchanged behavior.",
+  "sources": {
+    "tools/gomad3/runner/internal/exploration/choice/engine.go": "7979c4b78a7b71c21255d2fcec190ef0764df797cde7868a3c617d7c1083fe88",
+    "tools/gomad3/runner/internal/exploration/choice/engine_divergence_test.go": "cfb629c2447687ec3176c3a1acc9070b351839ab3ae10c1f0c047353e7593366"
+  }
+}

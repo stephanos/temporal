@@ -1,0 +1,12 @@
+[
+  {
+    "path": "tools/gomad3/cmd/gomad/e2e_test.go",
+    "exists": false,
+    "sha256": null
+  },
+  {
+    "path": "tools/gomad3/cmd/gomad/testdata/campaign/main.go",
+    "exists": false,
+    "sha256": null
+  }
+]

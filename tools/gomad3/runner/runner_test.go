@@ -1096,6 +1096,51 @@ func TestRunChoiceExplorationResumeRerunsTheWholeIncompleteRound(t *testing.T) {
 	}
 }
 
+func TestRunChoiceExplorationDivergingPrefixRetainsCompletedRound(t *testing.T) {
+	preparer := newFakePreparer(t)
+	limit := choiceTraceLimit(t, 1)
+	executor := &explorationDivergenceExecutor{
+		exploration:      &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, alternatives: 4},
+		beforeDivergence: make(chan struct{}), afterDivergence: make(chan struct{}),
+	}
+	config := testConfig(t, preparer, executor, "7", PolicyAll, 3)
+	config.Strategy = StrategyChoiceExploration
+	config.ChoiceTraceLimit = limit
+	config.MaxExecutions = 8
+	config.MaxChoiceDepth = 4
+	config.MaxExplorationBytes = 1 << 20
+
+	summary, err := Explore(context.Background(), config)
+	if err != nil {
+		t.Fatalf("diverging exploration discarded its completed round: %v", err)
+	}
+	if summary.Attempted != 4 || summary.Succeeded != 3 || summary.Failures != 1 || summary.ReplayDivergences != 1 || summary.DistinctFailures != 0 || summary.ChoiceExploration == nil || summary.ChoiceExploration.CommittedRounds != 2 {
+		t.Fatalf("diverging exploration = %#v", summary)
+	}
+	if len(summary.Artifacts) != 0 || len(summary.SuccessArtifacts) != 0 {
+		t.Fatalf("diverging exploration retained candidate artifacts: %#v", summary)
+	}
+	batch, err := campaign.OpenCampaign(summary.CampaignPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(batch.Executions) != 4 {
+		t.Fatalf("committed executions = %d", len(batch.Executions))
+	}
+	var divergences int
+	for _, run := range batch.Executions {
+		if run.Reason == "replay_divergence" {
+			divergences++
+			if run.Domain != "runner" || run.OutcomeSHA256 != "" || run.FailureSignature != nil || run.Artifact != nil || run.ChoiceTraceSHA256 != nil || run.CandidateSHA256 == "" || run.ForcedDepth == nil || *run.ForcedDepth != 1 {
+				t.Fatalf("divergent execution = %#v", run)
+			}
+		}
+	}
+	if divergences != 1 {
+		t.Fatalf("retained divergences = %d", divergences)
+	}
+}
+
 func TestRunSimulationExplorationResumePreservesCommittedCandidates(t *testing.T) {
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)
@@ -2035,6 +2080,58 @@ type explorationInterruptExecutor struct {
 	exploration *explorationExecutor
 }
 
+type explorationDivergenceExecutor struct {
+	exploration      *explorationExecutor
+	beforeDivergence chan struct{}
+	afterDivergence  chan struct{}
+	ranks            [3]uint32
+}
+
+func (executor *explorationDivergenceExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
+	result, err := executor.exploration.Run(ctx, request)
+	if err != nil {
+		return result, err
+	}
+	if request.Choice.Mode != choice.ModePrefix {
+		index := 0
+		for rank := uint32(0); rank < 4; rank++ {
+			if rank != result.ChoiceTrace.Trace.Records[0].Selected {
+				executor.ranks[index] = rank
+				index++
+			}
+		}
+		return result, nil
+	}
+	expected := request.Choice.ReplayPlan.Decisions[0]
+	switch expected.Selected {
+	case executor.ranks[0]:
+		select {
+		case <-executor.beforeDivergence:
+		case <-ctx.Done():
+			return execution.Result{}, ctx.Err()
+		}
+		defer close(executor.afterDivergence)
+		observed := result.ChoiceTrace.Trace.Records[0]
+		observedDecision := choice.Decision{Ordinal: observed.Ordinal, Kind: observed.Kind, SiteOffset: observed.SiteOffset, Alternatives: observed.Alternatives, Selected: observed.Selected, Data: observed.Data, SelectedIdentity: observed.SelectedIdentity, AlternativeSetDigest: observed.AlternativeSetDigest}
+		observedDecision.AlternativeSetDigest = sha256.Sum256([]byte("changed alternatives"))
+		return processResult(125, "", ""), &execution.ChoiceReplayDivergenceError{Divergence: choice.Divergence{
+			Ordinal: 0, Reason: choice.DivergenceAlternativeSet, Expected: &expected, Observed: &observedDecision, TapeRecords: 1,
+		}}
+	case executor.ranks[1]:
+		defer close(executor.beforeDivergence)
+	case executor.ranks[2]:
+		select {
+		case <-executor.afterDivergence:
+		case <-ctx.Done():
+			return execution.Result{}, ctx.Err()
+		}
+		if err := ctx.Err(); err != nil {
+			return execution.Result{}, err
+		}
+	}
+	return result, nil
+}
+
 type simulationExplorationInterruptExecutor struct {
 	exploration *simulationExplorationExecutor
 }
@@ -2068,9 +2165,19 @@ func (executor *explorationExecutor) Run(_ context.Context, request execution.Sp
 		selected = request.Choice.ReplayPlan.Decisions[len(request.Choice.ReplayPlan.Decisions)-1].Selected
 	}
 	result := processResult(executor.exitCode, "", "")
-	result.ChoiceTrace = completeChoiceTrace(executor.t, executor.buildKey, executor.limit, []choice.Record{{
+	choiceRecord := validTestChoiceRecord(executor.t, choice.Record{
 		Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, Alternatives: max(executor.alternatives, 2), Selected: selected,
-	}})
+	})
+	if request.Choice != nil && request.Choice.Mode == choice.ModePrefix {
+		identities := make([][sha256.Size]byte, choiceRecord.Alternatives)
+		for index := range identities {
+			identities[index] = sha256.Sum256([]byte(fmt.Sprintf("choice/0/alternative/%d", index)))
+		}
+		slices.SortFunc(identities, func(left, right [sha256.Size]byte) int { return bytes.Compare(left[:], right[:]) })
+		choiceRecord.Selected = selected
+		choiceRecord.SelectedIdentity = identities[selected]
+	}
+	result.ChoiceTrace = completeChoiceTrace(executor.t, executor.buildKey, executor.limit, []choice.Record{choiceRecord})
 	return result, nil
 }
 

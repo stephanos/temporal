@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/qualification"
@@ -53,6 +54,7 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	capabilityMode := flags.String("capability-mode", string(target.CapabilityModeClosure), "closure, linked, or guarded capability assessment")
 	jsonOutput := flags.Bool("json", false, "emit stable JSON events")
 	choices := flags.Bool("choices", false, "record bounded runtime choices")
+	diagnostics := flags.Bool("diagnostics", false, "record runtime-state diagnostics for fresh runs; implies --choices")
 	replaySuccesses := flags.Bool("replay-successes", false, "retain and replay every successful repetition")
 	successLimit := flags.Uint64("success-limit", 0, "maximum retained successful executions per repetition")
 	outputLimit := byteSize(8 << 20)
@@ -98,7 +100,7 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 			choiceLimitSet = true
 		}
 	})
-	resolvedChoiceLimit, err := resolveChoiceTrace(*choices, choiceLimit, choiceLimitSet)
+	resolvedChoiceLimit, err := resolveChoiceTrace(*choices || *diagnostics, choiceLimit, choiceLimitSet)
 	if err != nil {
 		return reportQualifyInputError(reporter, stderr, err)
 	}
@@ -112,7 +114,7 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 		return reportQualifyInputError(reporter, stderr, errors.New("--success-limit and --success-bytes require --replay-successes"))
 	}
 	coverage := runner.CoverageSemantic
-	if *choices {
+	if *choices || *diagnostics {
 		coverage = runner.CoverageSemanticChoice
 	}
 	if _, err := resolveExploreCoverage(string(coverage), requiredSemanticProbes); err != nil {
@@ -138,7 +140,7 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	config := runner.CampaignSpec{
 		Seeds: strconv.FormatUint(*seed, 10), Parallel: 1, ExecutionTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
 		OnFailure: runner.PolicyAll, FailureBudget: 1, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
-		ChoiceTraceLimit: resolvedChoiceLimit, ClockTick: *clockTick, IOTranscriptLimit: uint64(transcriptLimit),
+		Diagnostics: *diagnostics, ChoiceTraceLimit: resolvedChoiceLimit, ClockTick: *clockTick, IOTranscriptLimit: uint64(transcriptLimit),
 		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts,
 		SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
 		Coverage: coverage, RequiredSemanticProbes: requiredSemanticProbes, CollectExecutionEvidence: true,
@@ -222,6 +224,20 @@ func (reporter *qualifyReporter) Result(report qualification.QualificationReport
 	if err == nil && report.Evidence != nil && report.Evidence.Choices != nil {
 		choices := report.Evidence.Choices
 		_, err = fmt.Fprintf(reporter.stdout, "gomad: choices profile=%s records=%d decisions=%d branching=%d runnable=%d select-poll=%d select-result=%d sha256=%s tape-sha256=%s terminal=%s\n", choices.Profile, choices.Records, choices.Decisions, choices.BranchingRecords, choices.Runnable, choices.SelectPoll, choices.SelectResult, choices.SHA256, choices.TapeSHA256, choices.TerminalState)
+	}
+	if err == nil && report.DiagnosticDivergence != nil {
+		difference := report.DiagnosticDivergence
+		_, err = fmt.Fprintf(reporter.stdout, "gomad: diagnostic-first-ordinal=%d fields=%s baseline-iteration=%d iteration=%d\n", difference.Ordinal, strings.Join(difference.Fields, ","), difference.BaselineIteration, difference.Iteration)
+	}
+	if err == nil {
+		for _, run := range report.Executions {
+			if run.Diagnostics != nil {
+				_, err = fmt.Fprintf(reporter.stdout, "gomad: diagnostic-trace=%s sha256=%s\n", run.Diagnostics.Path, run.Diagnostics.SHA256)
+				if err != nil {
+					break
+				}
+			}
+		}
 	}
 	if err == nil && report.FirstDivergence != "" {
 		_, err = fmt.Fprintf(reporter.stdout, "gomad: first-divergence=%s\n", report.FirstDivergence)

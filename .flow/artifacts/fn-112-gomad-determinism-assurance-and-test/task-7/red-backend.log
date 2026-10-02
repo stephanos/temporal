@@ -1,0 +1,9 @@
+=== RUN   TestFilesystemSelfRenamePreservesSource
+    fs_test.go:721: self rename lost /directory/file: no such file or directory
+--- FAIL: TestFilesystemSelfRenamePreservesSource (0.00s)
+=== RUN   TestFilesystemClosedHandlePreservesErrnoAndDistinguishesAccessMode
+    fs_test.go:750: closed error did not preserve a distinct EBADF marker: syscall.Errno bad file descriptor
+--- FAIL: TestFilesystemClosedHandlePreservesErrnoAndDistinguishesAccessMode (0.00s)
+FAIL
+FAIL	internal/gomadfs	0.349s
+FAIL

@@ -1,0 +1,35 @@
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool patch-validate --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 patch and overlay inputs are valid
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool script-validate --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 script ownership is valid
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache GOTOOLCHAIN=local GOWORK=off \
+		go run ./cmd/gomadtool toolchain-build --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 toolchain is ready (darwin/arm64, key d49ef0309636e2301c46cfb36cda8a9b21323d87601c93c429260b3eefd4e37d)
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \
+		--root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3 --mode=test-runtime --go=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go
+gomad3 runtime tier passed
+.toolchain/bin/go test -tags test_dep internal/gomadfs internal/gomadwire internal/gomadchoicewire internal/gomadmodelwire \
+		internal/gomadsim internal/gomadio internal/gomadio/mount os cmd/internal/gomadcap
+ok  	internal/gomadfs	0.524s
+ok  	internal/gomadwire	0.263s
+ok  	internal/gomadchoicewire	1.225s
+ok  	internal/gomadmodelwire	0.917s
+ok  	internal/gomadsim	0.908s
+ok  	internal/gomadio	0.679s
+ok  	internal/gomadio/mount	0.447s
+--- FAIL: TestGomadClosedDirectoryHasPublicSentinel (0.00s)
+    --- FAIL: TestGomadClosedDirectoryHasPublicSentinel/read-dir (0.00s)
+        gomad_model_conformance_test.go:88: public closed directory error=*fs.PathError  /var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/TestGomadClosedDirectoryHasPublicSentinel27572075/001: use of closed file
+    --- FAIL: TestGomadClosedDirectoryHasPublicSentinel/readdir (0.00s)
+        gomad_model_conformance_test.go:88: public closed directory error=*fs.PathError  /var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/TestGomadClosedDirectoryHasPublicSentinel27572075/001: use of closed file
+    --- FAIL: TestGomadClosedDirectoryHasPublicSentinel/readdirnames (0.00s)
+        gomad_model_conformance_test.go:88: public closed directory error=*fs.PathError  /var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/TestGomadClosedDirectoryHasPublicSentinel27572075/001: use of closed file
+FAIL
+FAIL	os	22.579s
+ok  	cmd/internal/gomadcap	1.364s
+FAIL
+make: *** [overlay-test] Error 1

@@ -1,0 +1,4 @@
+=== RUN   TestRuntimeSearchFixtures
+--- PASS: TestRuntimeSearchFixtures (8.75s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	9.102s

@@ -1,0 +1,6 @@
+=== RUN   TestFilesystemClosedProcessHandlePreservesErrno
+    fs_test.go:767: closed process error=syscall.Errno invalid argument
+--- FAIL: TestFilesystemClosedProcessHandlePreservesErrno (0.00s)
+FAIL
+FAIL	internal/gomadfs	0.282s
+FAIL

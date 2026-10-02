@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
@@ -116,6 +117,12 @@ func resumeConfiguration(request CampaignSpec, plan campaign.CampaignPlan) (Camp
 	}
 	config.IOTranscriptLimit = uint64(plan.IOTranscriptBytes)
 	for _, entry := range plan.Environment {
+		if entry.Name == choice.DiagnosticProfileEnvironment {
+			if entry.Value != choice.DiagnosticProfile || config.ChoiceTraceLimit == 0 || config.Strategy != StrategySeed {
+				return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, errors.New("recorded diagnostic profile is invalid")
+			}
+			config.Diagnostics = true
+		}
 		if entry.Name == record.ClockTickEnvironment {
 			config.ClockTick = entry.Value
 		}
@@ -211,6 +218,12 @@ func restoreResumeSummary(batchPath string, selection SeedSelection, runs []camp
 				state.distinct[*run.FailureSignature] = path
 				state.summary.Artifacts = append(state.summary.Artifacts, path)
 			}
+		case "runner":
+			if run.Strategy != string(StrategyChoiceExploration) || run.Reason != "replay_divergence" || run.Divergence == nil {
+				return resumeSummaryState{}, fmt.Errorf("resumable execution %d runner result cannot be reused", index+1)
+			}
+			state.summary.Failures++
+			state.summary.ReplayDivergences++
 		default:
 			return resumeSummaryState{}, fmt.Errorf("resumable execution %d domain %q cannot be reused", index+1, run.Domain)
 		}

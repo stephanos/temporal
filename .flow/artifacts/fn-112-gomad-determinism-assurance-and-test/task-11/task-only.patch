@@ -1,0 +1,343 @@
+--- a/tools/gomad3/deterministicio/session.go
++++ b/tools/gomad3/deterministicio/session.go
+@@ -29,6 +29,8 @@
+ 	return nil
+ }
+ 
++var ErrTranscriptUnterminated = errors.New("I/O transcript terminal is absent")
++
+ type SessionSpec struct {
+ 	Limit    uint64
+ 	Replay   bool
+@@ -175,6 +177,9 @@
+ }
+ 
+ func (session *Session) collectFrame(frame []byte) (Transcript, error) {
++	if len(frame) == 0 {
++		return Transcript{}, ErrTranscriptUnterminated
++	}
+ 	completed, err := iowire.DecodeTerminal(frame)
+ 	if err != nil {
+ 		return Transcript{}, err
+--- a/tools/gomad3/runner/internal/execution/process_unix.go
++++ b/tools/gomad3/runner/internal/execution/process_unix.go
+@@ -657,7 +657,7 @@
+ 	}
+ 	if ioSession != nil {
+ 		collected := <-collectedIO
+-		if collected.err != nil {
++		if collected.err != nil && !(errors.Is(collected.err, deterministicio.ErrTranscriptUnterminated) && (result.WatchdogTimeout || result.Cancelled)) {
+ 			return result, collected.err
+ 		}
+ 		result.IOTranscript = collected.transcript
+--- /dev/null
++++ b/tools/gomad3/deterministicio/session_test.go
+@@ -0,0 +1,90 @@
++package deterministicio
++
++import (
++	"crypto/sha256"
++	"errors"
++	"reflect"
++	"strings"
++	"testing"
++
++	iowire "go.temporal.io/server/tools/gomad3/deterministicio/internal/wire"
++)
++
++func TestSessionCollectTerminal(t *testing.T) {
++	complete := iowire.EncodeTerminal(iowire.Terminal{State: iowire.TerminalComplete, MappingBytes: iowire.TranscriptHeaderBytes, PayloadHash: sha256.Sum256(nil)})
++	checksum := complete
++	checksum[len(checksum)-1] ^= 1
++	digest := iowire.EncodeTerminal(iowire.Terminal{State: iowire.TerminalComplete, MappingBytes: iowire.TranscriptHeaderBytes, PayloadHash: sha256.Sum256([]byte("corrupt"))})
++	overflow := iowire.EncodeTerminal(iowire.Terminal{State: iowire.TerminalOverflow, MappingBytes: iowire.TranscriptHeaderBytes})
++	oversized := iowire.EncodeTerminal(iowire.Terminal{State: iowire.TerminalComplete, MappingBytes: iowire.TranscriptHeaderBytes + iowire.TranscriptRecordBytes, Records: 1})
++	diverged := iowire.EncodeTerminal(iowire.Terminal{State: iowire.TerminalReplayDivergence, MappingBytes: iowire.TranscriptHeaderBytes, PayloadHash: sha256.Sum256(nil), DivergentOrdinal: 3})
++	for _, test := range []struct {
++		name       string
++		frame      []byte
++		message    string
++		divergence bool
++	}{
++		{name: "absent", message: "I/O transcript terminal is absent"},
++		{name: "truncated", frame: complete[:len(complete)-1], message: "invalid I/O terminal frame"},
++		{name: "malformed", frame: make([]byte, len(complete)), message: "invalid I/O terminal frame"},
++		{name: "checksum", frame: checksum[:], message: "I/O terminal frame checksum mismatch"},
++		{name: "digest", frame: digest[:], message: "I/O transcript digest mismatch"},
++		{name: "overflow", frame: overflow[:], message: "I/O transcript did not complete"},
++		{name: "capacity", frame: oversized[:], message: "invalid I/O transcript length"},
++		{name: "complete", frame: complete[:]},
++		{name: "replay_divergence", frame: diverged[:], divergence: true},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			limit := uint64(iowire.TranscriptHeaderBytes)
++			if test.name == "absent" {
++				limit += iowire.TranscriptRecordBytes
++			}
++			session, err := NewSession(SessionSpec{Limit: limit})
++			if err != nil {
++				t.Fatal(err)
++			}
++			t.Cleanup(func() {
++				if err := session.Close(); err != nil {
++					t.Error(err)
++				}
++			})
++			if _, err := session.Files().Terminal.Write(test.frame); err != nil {
++				t.Fatal(err)
++			}
++			if err := session.Files().Terminal.Close(); err != nil {
++				t.Fatal(err)
++			}
++			if test.name == "absent" {
++				if _, err := session.Files().Transcript.WriteAt(make([]byte, iowire.TranscriptRecordBytes), iowire.TranscriptHeaderBytes); err != nil {
++					t.Fatal(err)
++				}
++			}
++			observed, err := session.Collect()
++			if errors.Is(err, ErrTranscriptUnterminated) != (test.name == "absent") {
++				t.Fatalf("unterminated classification = %v for %s", err, test.name)
++			}
++			if test.message != "" {
++				if err == nil || !strings.Contains(err.Error(), test.message) {
++					t.Fatalf("Collect error = %v, want %s", err, test.message)
++				}
++				if !reflect.DeepEqual(observed, Transcript{}) {
++					t.Fatalf("incomplete transcript = %#v", observed)
++				}
++				return
++			}
++			if err != nil {
++				t.Fatal(err)
++			}
++			if !observed.Complete || observed.Records != 0 || len(observed.Bytes) != 0 || observed.SHA256 != sha256.Sum256(nil) {
++				t.Fatalf("complete transcript = %#v", observed)
++			}
++			if test.divergence {
++				if observed.ReplayDivergence == nil || *observed.ReplayDivergence != 3 {
++					t.Fatalf("divergence = %v", observed.ReplayDivergence)
++				}
++			} else if observed.ReplayDivergence != nil {
++				t.Fatalf("unexpected divergence = %v", observed.ReplayDivergence)
++			}
++		})
++	}
++}
+--- /dev/null
++++ b/tools/gomad3/runner/internal/execution/watchdog_io_test.go
+@@ -0,0 +1,130 @@
++//go:build unix
++
++package execution
++
++import (
++	"bytes"
++	"context"
++	"crypto/sha256"
++	"encoding/hex"
++	"fmt"
++	"os"
++	"os/signal"
++	"reflect"
++	"strconv"
++	"strings"
++	"syscall"
++	"testing"
++	"time"
++
++	"go.temporal.io/server/tools/gomad3/deterministicio"
++)
++
++func TestRunIOTerminalAfterTermination(t *testing.T) {
++	var terminal bytes.Buffer
++	if err := deterministicio.WriteCompletion(&terminal, deterministicio.Transcript{Complete: true, SHA256: sha256.Sum256(nil)}); err != nil {
++		t.Fatal(err)
++	}
++	complete := terminal.Bytes()
++	checksum := append([]byte(nil), complete...)
++	checksum[len(checksum)-1] ^= 1
++	for _, test := range []struct {
++		name, mode string
++		frame      []byte
++		message    string
++	}{
++		{name: "watchdog_absent", mode: "watchdog"},
++		{name: "cancelled_absent", mode: "cancelled"},
++		{name: "success_absent", mode: "0", message: "I/O transcript terminal is absent"},
++		{name: "nonzero_absent", mode: "7", message: "I/O transcript terminal is absent"},
++		{name: "unverified_signal_absent", mode: "signal", message: "I/O transcript terminal is absent"},
++		{name: "watchdog_truncated", mode: "watchdog", frame: complete[:len(complete)-1], message: "invalid I/O terminal frame"},
++		{name: "cancelled_truncated", mode: "cancelled", frame: complete[:len(complete)-1], message: "invalid I/O terminal frame"},
++		{name: "watchdog_checksum", mode: "watchdog", frame: checksum, message: "I/O terminal frame checksum mismatch"},
++		{name: "cancelled_checksum", mode: "cancelled", frame: checksum, message: "I/O terminal frame checksum mismatch"},
++		{name: "success_complete", mode: "0", frame: complete},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			ctx, cancel := context.WithCancel(t.Context())
++			defer cancel()
++			request := Spec{
++				SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
++				BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
++				Command:           os.Args[0], Args: []string{"-test.run=^TestIOTerminalTargetHelper$", "--", test.mode, hex.EncodeToString(test.frame)}, Argv0: "gomad3-target", Dir: t.TempDir(),
++				ExecutionTimeout: 2 * time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64,
++				World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
++				IO:    &IOCapability{Config: []byte("profile-frame"), Transcript: &IOTranscriptCapability{Limit: 1 << 20}},
++			}
++			if test.mode == "cancelled" {
++				request.StdoutHead = cancelOnOutput{cancel}
++			}
++			result, err := Run(ctx, request)
++			if !result.GroupGone {
++				t.Fatalf("target group survived: %#v, error %v", result, err)
++			}
++			if test.mode == "watchdog" && !result.WatchdogTimeout || test.mode == "cancelled" && !result.Cancelled {
++				t.Fatalf("termination not verified: %#v, error %v", result, err)
++			}
++			if test.mode == "signal" && (result.WatchdogTimeout || result.Cancelled) {
++				t.Fatalf("unverified signal relabeled: %#v", result)
++			}
++			if test.message != "" {
++				if err == nil || !strings.Contains(err.Error(), test.message) {
++					t.Fatalf("Run error = %v, want %s", err, test.message)
++				}
++			} else if err != nil {
++				t.Fatal(err)
++			}
++			if test.name == "success_complete" {
++				if !result.IOTranscript.Complete {
++					t.Fatalf("complete transcript lost: %#v", result.IOTranscript)
++				}
++			} else if !reflect.DeepEqual(result.IOTranscript, deterministicio.Transcript{}) {
++				t.Fatalf("incomplete transcript retained: %#v", result.IOTranscript)
++			}
++		})
++	}
++}
++
++type cancelOnOutput struct{ cancel context.CancelFunc }
++
++func (writer cancelOnOutput) Write(data []byte) (int, error) { writer.cancel(); return len(data), nil }
++
++func TestIOTerminalTargetHelper(t *testing.T) {
++	if len(os.Args) < 4 || os.Args[len(os.Args)-3] != "--" {
++		t.Skip("I/O terminal subprocess only")
++	}
++	mode := os.Args[len(os.Args)-2]
++	frame, err := hex.DecodeString(os.Args[len(os.Args)-1])
++	if err != nil {
++		t.Fatal(err)
++	}
++	signal.Ignore(syscall.SIGTERM)
++	terminal := os.NewFile(uintptr(descriptorFor(targetStage, launchCapabilities{ioTranscript: true}, ioTerminalResource)), "io-terminal")
++	if terminal == nil {
++		t.Fatal("I/O terminal unavailable")
++	}
++	if _, err := terminal.Write(frame); err != nil {
++		t.Fatal(err)
++	}
++	if err := terminal.Close(); err != nil {
++		t.Fatal(err)
++	}
++	if mode == "watchdog" || mode == "cancelled" {
++		fmt.Fprintln(os.Stdout, "ready")
++		for {
++			<-time.After(time.Hour)
++		}
++	}
++	if mode == "signal" {
++		if err := syscall.Kill(os.Getpid(), syscall.SIGKILL); err != nil {
++			t.Fatal(err)
++		}
++		return
++	}
++	status, err := strconv.Atoi(mode)
++	if err != nil {
++		t.Fatal(err)
++	}
++	os.Exit(status)
++}
+--- /dev/null
++++ b/tools/gomad3/cmd/gomad/watchdog_e2e_test.go
+@@ -0,0 +1,50 @@
++//go:build unix
++
++package main
++
++import (
++	"bytes"
++	"os"
++	"path/filepath"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/record"
++)
++
++func TestCLIWatchdogRetainsIncompleteEvidence(t *testing.T) {
++	for _, coverage := range []string{"none", "semantic", "choice", "semantic+choice"} {
++		t.Run(coverage, func(t *testing.T) {
++			root := t.TempDir()
++			arguments := []string{"explore", "--json", "--toolchain-root", cliToolchainRoot, "--artifacts", root,
++				"--seeds", "1", "--parallel", "1", "--on-failure", "all", "--execution-timeout", "2s", "--overall-timeout", "1m", "--terminate-grace", "100ms", "--coverage", coverage}
++			if coverage == "choice" || coverage == "semantic+choice" {
++				arguments = append(arguments, "--choices", "--diagnostics")
++			}
++			arguments = append(arguments, "go-run", "./cmd/gomad/testdata/watchdog", "--", "watchdog")
++			runCLI(t, 1, arguments...)
++			campaign := inspectCLI(t, campaignPath(t, root)).Campaign
++			if campaign == nil || campaign.Attempted != 1 || campaign.Watchdogs != 1 || campaign.Failures != 1 || campaign.Succeeded != 0 || len(campaign.FailureArtifacts) != 1 {
++				t.Fatalf("watchdog campaign = %#v", campaign)
++			}
++			path := campaign.FailureArtifacts[0].Path
++			observed := inspectCLI(t, path).Artifact
++			if observed == nil || observed.Outcome.Domain != "watchdog" || observed.Outcome.Reason != "watchdog_timeout" || observed.Transcript != nil {
++				t.Fatalf("watchdog artifact = %#v", observed)
++			}
++			data, err := os.ReadFile(filepath.Join(path, "manifest.json"))
++			if err != nil {
++				t.Fatal(err)
++			}
++			manifest, err := record.DecodeExecutionRecord(data)
++			if err != nil {
++				t.Fatal(err)
++			}
++			if manifest.ArtifactKind != record.ArtifactWatchdogTimeout || manifest.ReplayMode != record.ReplayDiagnostic || manifest.IOProfile.Transcript != nil || manifest.ChoiceProfile != nil || !bytes.Contains(runCLI(t, 0, "replay", "--toolchain-root", cliToolchainRoot, "--verify-only", path), []byte("verified")) {
++				t.Fatalf("watchdog manifest = %#v", manifest)
++			}
++			if _, err := os.Stat(filepath.Join(path, "io", "transcript.bin")); !os.IsNotExist(err) {
++				t.Fatalf("incomplete transcript published: %v", err)
++			}
++		})
++	}
++}
+--- /dev/null
++++ b/tools/gomad3/cmd/gomad/testdata/watchdog/main.go
+@@ -0,0 +1,29 @@
++package main
++
++import (
++	"fmt"
++	"os"
++	"runtime"
++)
++
++func main() {
++	seed := os.Getenv("GOMADSEED")
++	payload := []byte("seed=" + seed)
++	if err := os.WriteFile("/campaign-fixture", payload, 0o600); err != nil {
++		panic(err)
++	}
++	observed, err := os.ReadFile("/campaign-fixture")
++	if err != nil {
++		panic(err)
++	}
++	fmt.Printf("%s\n", observed)
++	if len(os.Args) > 1 && os.Args[1] == "watchdog" {
++		for {
++			runtime.Gosched()
++		}
++	}
++	if seed == "2" {
++		fmt.Fprintln(os.Stderr, "known failing seed")
++		os.Exit(1)
++	}
++}

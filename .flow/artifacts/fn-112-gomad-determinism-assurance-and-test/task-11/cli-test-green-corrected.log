@@ -1,0 +1,12 @@
+=== RUN   TestCLIWatchdogRetainsIncompleteEvidence
+=== RUN   TestCLIWatchdogRetainsIncompleteEvidence/none
+=== RUN   TestCLIWatchdogRetainsIncompleteEvidence/semantic
+=== RUN   TestCLIWatchdogRetainsIncompleteEvidence/choice
+=== RUN   TestCLIWatchdogRetainsIncompleteEvidence/semantic+choice
+--- PASS: TestCLIWatchdogRetainsIncompleteEvidence (9.35s)
+    --- PASS: TestCLIWatchdogRetainsIncompleteEvidence/none (2.61s)
+    --- PASS: TestCLIWatchdogRetainsIncompleteEvidence/semantic (2.25s)
+    --- PASS: TestCLIWatchdogRetainsIncompleteEvidence/choice (2.23s)
+    --- PASS: TestCLIWatchdogRetainsIncompleteEvidence/semantic+choice (2.26s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad	11.309s

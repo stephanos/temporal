@@ -1,0 +1,10 @@
+{
+  ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/cli-green.json": "52972694f789b8b6a5c7ba42153b8d6904ff9dff2078eb7cefe99c1586b86582",
+  ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/cli-green.log": "1c748444959499f45d6f8120b20ef45463aa467c4ee3eaaa694f516056f1faa3",
+  ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/inspect-artifact-green.json": "8c9d93e023333c0f7e9ba3a8ec3999274eb25e6136ed85c06c1d2c49baae84e6",
+  ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/inspect-artifact-green.log": "7188f4a9cfd4ab72d94c5073948c21bb6d20d89c17eceb8a38054e3715445205",
+  ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/verify-only-green.json": "32690e907729dc132ad718399cee560511d577995fc443e11f016bba52045844",
+  ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/verify-only-green.log": "61f101a9ee6d844f0ad62bceecdcc9338a639f36a5fcb10a72a95faa8eaecae8",
+  ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/diagnostic-replay-green.json": "001fb9d5563afc049ec474e053176066bfd0aa53386b6b4865ad8990fdb94ff8",
+  ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/diagnostic-replay-green.log": "d5616430310589ccbd2d464b02a44b43122b66c7c6cc4b87c193a63efe74b034"
+}

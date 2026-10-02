@@ -1,0 +1,6 @@
+# go.temporal.io/server/tools/gomad3/runner [go.temporal.io/server/tools/gomad3/runner.test]
+runner/choice_exploration_divergence_test.go:122:32: undefined: CampaignProgress
+ok  	go.temporal.io/server/tools/gomad3/choice	0.354s
+FAIL	go.temporal.io/server/tools/gomad3/runner [build failed]
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice	0.490s
+FAIL

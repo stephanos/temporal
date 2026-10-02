@@ -320,6 +320,9 @@ func printCampaignInspection(printer *inspectionPrinter, campaign *runner.Campai
 		} else if run.Strategy == string(runner.StrategySimulationExploration) {
 			exploration = fmt.Sprintf(" round=%d candidate=%s parent=%s depth=%d outcome=%s", optionalUint64(run.Round), run.CandidateSHA256, run.ParentCandidateSHA256, optionalUint64(run.ForcedDepth), run.OutcomeSHA256)
 		}
+		if run.Divergence != nil {
+			exploration += fmt.Sprintf(" divergence-ordinal=%d divergence-reason=%s", run.Divergence.Ordinal, run.Divergence.ReasonName())
+		}
 		printer.printf("execution: ordinal=%d seed=%d domain=%s reason=%s termination=%s elapsed=%dns transcript=%s choices=%s%s\n", run.SelectionOrdinal, run.Seed, run.Domain, run.Reason, run.Termination, run.ElapsedNanos, transcript, choices, exploration)
 	}
 	for _, failure := range campaign.FailureArtifacts {
@@ -430,6 +433,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	planOnly := flags.Bool("__plan", false, "create a campaign plan")
 	planOutput := flags.String("output", "", "campaign plan output")
 	choices := flags.Bool("choices", false, "record bounded runtime choices")
+	diagnostics := flags.Bool("diagnostics", false, "record runtime-state diagnostics; implies --choices")
 	coverage := flags.String("coverage", string(runner.CoverageNone), "none, semantic, choice, or semantic+choice")
 	guide := flags.Bool("guide", false, "guide selection from a bounded coverage corpus")
 	corpus := flags.String("corpus", "", "guided coverage corpus directory")
@@ -524,7 +528,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		}
 	})
 	resolvedStrategy, resolvedChoices, err := resolveExploreStrategy(exploreStrategyOptions{
-		Value: *strategy, Seeds: *seeds, CountSet: countSet, Guide: *guide, Choices: *choices,
+		Value: *strategy, Seeds: *seeds, CountSet: countSet, Guide: *guide, Choices: *choices || *diagnostics,
 		MaxExecutions: *maxRuns, MaxChoiceDepth: *maxChoiceDepth, MaxForcedDecisions: *maxForcedDecisions,
 		MaxExplorationBytes: explorationLimit, MaxExplorationResultBytes: explorationResultLimit,
 		SimulationDimensionLimits: runner.SimulationDimensionLimits{
@@ -563,6 +567,12 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
+			return 3
+		}
+		return 2
+	}
+	if *diagnostics && resolvedStrategy != runner.StrategySeed {
+		if err := reporter.Error("invalid_input", errors.New("--diagnostics requires the seed strategy; forced-prefix exploration is unsupported")); err != nil {
 			return 3
 		}
 		return 2
@@ -617,7 +627,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 	config := runner.CampaignSpec{
 		Strategy: resolvedStrategy, Seeds: resolvedSeeds, Parallel: *parallel, ExecutionTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
 		OnFailure: runner.FailurePolicy(*onFailure), FailureBudget: *failureBudget, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
-		ChoiceTraceLimit: resolvedChoiceLimit, ClockTick: *clockTick, IOTranscriptLimit: uint64(transcriptLimit), MaxExecutions: *maxRuns, MaxChoiceDepth: *maxChoiceDepth, MaxForcedDecisions: *maxForcedDecisions,
+		Diagnostics: *diagnostics, ChoiceTraceLimit: resolvedChoiceLimit, ClockTick: *clockTick, IOTranscriptLimit: uint64(transcriptLimit), MaxExecutions: *maxRuns, MaxChoiceDepth: *maxChoiceDepth, MaxForcedDecisions: *maxForcedDecisions,
 		MaxExplorationBytes: uint64(explorationLimit), MaxExplorationResultBytes: uint64(explorationResultLimit),
 		SimulationDimensionLimits: runner.SimulationDimensionLimits{
 			Runtime: *maxRuntimeDecisions, Scenario: *maxScenarioDecisions, Network: *maxNetworkDecisions,
@@ -680,10 +690,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, err)
 		return 3
 	}
-	if summary.Failures != 0 {
-		return 1
-	}
-	return 0
+	return exploreSummaryStatus(summary)
 }
 
 func runPlan(arguments []string, stdout, stderr io.Writer) int {

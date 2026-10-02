@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-02T13:05:37.459334Z",
+  "depends_on": [
+    "fn-112-gomad-determinism-assurance-and-test.11"
+  ],
+  "id": "fn-112-gomad-determinism-assurance-and-test.13",
+  "priority": 1,
+  "spec": "fn-112-gomad-determinism-assurance-and-test",
+  "spec_path": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.13.md",
+  "status": "todo",
+  "title": "Execute watchdog diagnostic replay without requiring an exact I/O transcript",
+  "updated_at": "2026-10-02T13:05:37.459334Z"
+}

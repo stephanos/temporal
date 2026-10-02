@@ -20,12 +20,12 @@ func TestIdentityForTargetIgnoresDiagnosticSourceButBindsExecutionArguments(t *t
 		BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
 	}
 	toolchain := record.Toolchain{GoVersion: "go1.26.4", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"}
-	first, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")))
+	first, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	target.Source = "/another/workspace"
-	second, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")))
+	second, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,7 +33,7 @@ func TestIdentityForTargetIgnoresDiagnosticSourceButBindsExecutionArguments(t *t
 		t.Fatalf("diagnostic source changed identity: %#v, %#v", first, second)
 	}
 	target.Argv[1] = "second"
-	third, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")))
+	third, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,7 +48,7 @@ func TestIdentityForBindsFeatureAndProbeInstrumentation(t *testing.T) {
 		Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
 	}
 	toolchain := record.Toolchain{GoVersion: "go1.26.4", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"}
-	identity, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")))
+	identity, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -70,12 +70,12 @@ func TestIdentityForChoiceBindsTheExactExecutionProfile(t *testing.T) {
 	profile := ChoiceProfileIdentity{
 		Profile: choice.Profile, ImplementationSHA256: record.SHA256FromSum(implementation), Limit: choice.MinimumTraceBytes,
 	}
-	first, err := IdentityForChoice(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), profile)
+	first, err := IdentityForChoice(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), nil, profile)
 	if err != nil {
 		t.Fatal(err)
 	}
 	profile.Limit++
-	second, err := IdentityForChoice(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), profile)
+	second, err := IdentityForChoice(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), nil, profile)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -244,4 +244,41 @@ func semanticWorld(t *testing.T, seed uint64, key string, payload []byte, readyA
 		t.Fatal(err)
 	}
 	return bundle.Manifest, bundle.Payloads.Transitions
+}
+
+func TestIdentityForProjectsCanonicalEnvironmentAcrossSeedsAndProfiles(t *testing.T) {
+	target := record.Target{Kind: "go-run", SHA256: record.HashBytes([]byte("target")), Argv: []string{"target"}}
+	toolchain := record.Toolchain{GoVersion: "go1.27.1", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64"}
+	implementation, err := choice.ImplementationIdentity(toolchain.BuildKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	profile := ChoiceProfileIdentity{Profile: choice.Profile, ImplementationSHA256: record.SHA256FromSum(implementation), Limit: choice.MinimumTraceBytes}
+	for _, withChoices := range []bool{false, true} {
+		constructor := func(environment []record.Environment) Identity {
+			identity, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), environment)
+			if withChoices {
+				identity, err = IdentityForChoice(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), environment, profile)
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			return identity
+		}
+		base := []record.Environment{{Name: "TZ", Value: "UTC"}, {Name: "MODE", Value: "first"}}
+		first := constructor(base)
+		projected := []record.Environment{{Name: "MODE", Value: "first"}, {Name: "GOMADSEED", Value: "99"}, {Name: "GOMAD3_IO_PROFILE", Value: "profile"}, {Name: "GOMAD3_CHOICE_PROFILE", Value: "choices"}, {Name: "TZ", Value: "UTC"}}
+		if second := constructor(projected); !identitiesEqual(first, second) {
+			t.Fatalf("per-execution entries or order changed identity: %#v, %#v", first, second)
+		}
+		for _, entry := range []record.Environment{{Name: record.ClockTickEnvironment, Value: record.ClockTickForward}, {Name: choice.DiagnosticProfileEnvironment, Value: choice.DiagnosticProfile}, {Name: "EMPTY", Value: ""}} {
+			if changed := constructor(append(append([]record.Environment(nil), base...), entry)); identitiesEqual(first, changed) {
+				t.Fatalf("environment entry %q did not change identity", entry.Name)
+			}
+		}
+		base[1].Value = "second"
+		if changed := constructor(base); identitiesEqual(first, changed) {
+			t.Fatal("environment value did not change identity")
+		}
+	}
 }

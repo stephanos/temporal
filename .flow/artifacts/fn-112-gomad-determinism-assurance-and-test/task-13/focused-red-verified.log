@@ -1,0 +1,31 @@
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/captured_input_after_host_removal
+    watchdog_replay_test.go:27: finalize artifact manifest: timeout termination has incompatible fields
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/uncaptured_input_fails
+    watchdog_replay_test.go:44: finalize artifact manifest: timeout termination has incompatible fields
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/exact_replay_requires_transcript
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/corrupt_retained_input_fails_before_execution
+    watchdog_replay_test.go:66: finalize artifact manifest: timeout termination has incompatible fields
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/malformed_retained_descriptor_fails_before_execution
+    watchdog_replay_test.go:88: finalize artifact manifest: timeout termination has incompatible fields
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/cancelled_replay_does_not_match
+    watchdog_replay_test.go:97: finalize artifact manifest: timeout termination has incompatible fields
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/stdout_divergence
+    watchdog_replay_test.go:115: finalize artifact manifest: timeout termination has incompatible fields
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/stderr_divergence
+    watchdog_replay_test.go:115: finalize artifact manifest: timeout termination has incompatible fields
+=== RUN   TestWatchdogDiagnosticReplayUsesCapturedInputs/outcome_divergence
+    watchdog_replay_test.go:115: finalize artifact manifest: timeout termination has incompatible fields
+--- FAIL: TestWatchdogDiagnosticReplayUsesCapturedInputs (1.25s)
+    --- FAIL: TestWatchdogDiagnosticReplayUsesCapturedInputs/captured_input_after_host_removal (0.06s)
+    --- FAIL: TestWatchdogDiagnosticReplayUsesCapturedInputs/uncaptured_input_fails (0.04s)
+    --- PASS: TestWatchdogDiagnosticReplayUsesCapturedInputs/exact_replay_requires_transcript (0.09s)
+    --- FAIL: TestWatchdogDiagnosticReplayUsesCapturedInputs/corrupt_retained_input_fails_before_execution (0.04s)
+    --- FAIL: TestWatchdogDiagnosticReplayUsesCapturedInputs/malformed_retained_descriptor_fails_before_execution (0.04s)
+    --- FAIL: TestWatchdogDiagnosticReplayUsesCapturedInputs/cancelled_replay_does_not_match (0.04s)
+    --- FAIL: TestWatchdogDiagnosticReplayUsesCapturedInputs/stdout_divergence (0.04s)
+    --- FAIL: TestWatchdogDiagnosticReplayUsesCapturedInputs/stderr_divergence (0.04s)
+    --- FAIL: TestWatchdogDiagnosticReplayUsesCapturedInputs/outcome_divergence (0.04s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner	1.578s
+FAIL

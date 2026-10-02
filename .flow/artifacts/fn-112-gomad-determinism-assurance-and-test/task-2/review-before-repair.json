@@ -1,0 +1,53 @@
+{
+  "base": "8789deab0",
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "8789deab055d1b72ac6bc86711d74f3fd7313fa2",
+    "headSha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "8789deab055d1b72ac6bc86711d74f3fd7313fa2",
+          "headSha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+          "path": "tools/gomad3/Makefile",
+          "side": "head",
+          "startLine": 148
+        },
+        "body": "The new selector, `^Test(Scenario|ProcessExploration)`, excludes all eight node-process tests. The retained findings identify failures in only two; the other six pass in the retained logs. Those six also skip in the direct seeded invocation because it lacks Runner transport. Consequently, TCP routing, listener routing, volume persistence, crash draining, model equivalence, and completion-order independence remain outside the gate.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-d626089195869e8287d952367d06ecb1b09084b2531f2e1bcba332148c972754",
+        "id": "finding-ee74314be2841e2c9e1ceadaecffc686",
+        "lastSeenReceiptId": "review-d626089195869e8287d952367d06ecb1b09084b2531f2e1bcba332148c972754",
+        "ordinal": 1,
+        "rIds": [
+          "R2"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Include the six passing transport subtests. Limit exclusions to tests with recorded failures, or retain specific failure evidence justifying additional exclusions.",
+        "title": "The new selector, `^Test(Scenario|ProcessExploration)`, excludes all eight node-process tests"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-d626089195869e8287d952367d06ecb1b09084b2531f2e1bcba332148c972754"
+  },
+  "id": "fn-112-gomad-determinism-assurance-and-test.2",
+  "introduced_count": 1,
+  "mode": "codex",
+  "model": "gpt-6-astra",
+  "pre_existing_count": 0,
+  "review": "I\u2019ll read the task specification first, then inspect the diff and affected callers against its acceptance criteria.\nThe new gate records the known simulation failures, and the replay check compares against a seed that produces a different result without a tape. I\u2019m tracing the test selectors and diagnostic overflow handling to verify what the gate actually covers.\nThe selector excludes all eight tests that start node processes, but the retained failure evidence identifies only two as flaky. The other six pass in those logs and skip in the direct seeded run, leaving them outside the new gate. I\u2019m checking for another executor before finalizing that finding.\n- **Severity:** P2\n- **Confidence:** 100\n- **Classification:** introduced\n- **File:Line:** `tools/gomad3/Makefile:148`\n- **R-IDs:** [R2]\n- **Problem:** The new selector, `^Test(Scenario|ProcessExploration)`, excludes all eight node-process tests. The retained findings identify failures in only two; the other six pass in the retained logs. Those six also skip in the direct seeded invocation because it lacks Runner transport. Consequently, TCP routing, listener routing, volume persistence, crash draining, model equivalence, and completion-order independence remain outside the gate.\n- **Suggestion:** Include the six passing transport subtests. Limit exclusions to tests with recorded failures, or retain specific failure evidence justifying additional exclusions.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R2 | partial | Simulation and replay gates added; toolchain ownership corrected; overlay failure recorded. Six passing transport tests remain excluded. |\n\nUnaddressed R-IDs: [R2]\n\nReviewed the diff, callers, selectors, and retained evidence. Go tests were not rerun in this read-only sandbox.\n\nClassification counts: 1 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":1,\"pre_existing\":0},\"unaddressed\":[\"R2\"]}\n```\n\n<verdict>NEEDS_WORK</verdict>",
+  "review_reservation_id": "2d74f8ab6b0f49229c7895c5419cd9c2",
+  "session_id": "01a0fb5b-acf7-71e0-b136-f6a7cf5494c9",
+  "spec": "codex:gpt-6-astra:high",
+  "timestamp": "2026-10-02T06:48:37.006114Z",
+  "type": "impl_review",
+  "unaddressed": [
+    "R2"
+  ],
+  "verdict": "NEEDS_WORK"
+}

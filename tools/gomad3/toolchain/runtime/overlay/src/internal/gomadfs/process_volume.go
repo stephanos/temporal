@@ -94,7 +94,7 @@ func processGetwd() string {
 
 func processHandleRead(handle *Handle, destination []byte, offset int64, at bool) (int, error) {
 	if handle.closed {
-		return 0, syscall.EINVAL
+		return 0, ErrClosed
 	}
 	operation := gomadmodelwire.VolumeHandleRead
 	if at {
@@ -110,7 +110,7 @@ func processHandleRead(handle *Handle, destination []byte, offset int64, at bool
 
 func processHandleWrite(handle *Handle, source []byte, offset int64, at bool) (int, error) {
 	if handle.closed {
-		return 0, syscall.EINVAL
+		return 0, ErrClosed
 	}
 	operation := gomadmodelwire.VolumeHandleWrite
 	if at {
@@ -125,7 +125,7 @@ func processHandleWrite(handle *Handle, source []byte, offset int64, at bool) (i
 
 func processHandleOperation(handle *Handle, operation gomadmodelwire.Operation, first, second int64, unsigned uint64) (gomadmodelwire.Response, error) {
 	if handle.closed {
-		return gomadmodelwire.Response{}, syscall.EINVAL
+		return gomadmodelwire.Response{}, ErrClosed
 	}
 	return exchangeProcessVolume(gomadmodelwire.Request{Model: gomadmodelwire.ModelVolume, Operation: operation, Handle: handle.processHandle, Int1: first, Int2: second, Uint1: unsigned})
 }

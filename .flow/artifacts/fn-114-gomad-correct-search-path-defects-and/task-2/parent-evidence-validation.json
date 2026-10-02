@@ -1,0 +1,11 @@
+{
+  "verified_at": "2026-10-02T09:28:08.650493+00:00",
+  "source_files_verified": 8,
+  "final_trace_archives_verified": 781,
+  "original_trace_bytes_verified": 818937856,
+  "bindings": {
+    ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-2/source-bindings-frozen.json": "893e6cd298661176fc699adffb9d2164dc6e2ae6b3801cdd31a3e3f2315a1d35",
+    ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/compressed-traces.json": "90292ca8433de7a725d13bd1d91b954d849e31fcdc63182910f02f08743d9cb8",
+    ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/runtime-reproduction/final-approved/search-reproduction.json": "982cb764ebbae47659f329508e8e6d2fa5b77664242fb12a5e42857fa7d04891"
+  }
+}

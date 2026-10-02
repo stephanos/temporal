@@ -1,0 +1,29 @@
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool patch-validate --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 patch and overlay inputs are valid
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool script-validate --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 script ownership is valid
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache GOTOOLCHAIN=local GOWORK=off \
+		go run ./cmd/gomadtool toolchain-build --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 toolchain is ready (darwin/arm64, key 6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee)
+.toolchain/bin/go test -tags test_dep internal/gomadfs internal/gomadwire internal/gomadchoicewire internal/gomadmodelwire \
+		internal/gomadsim internal/gomadio internal/gomadio/mount os cmd/internal/gomadcap
+ok  	internal/gomadfs	0.334s
+ok  	internal/gomadwire	0.411s
+ok  	internal/gomadchoicewire	1.098s
+ok  	internal/gomadmodelwire	0.725s
+ok  	internal/gomadsim	0.760s
+ok  	internal/gomadio	0.506s
+ok  	internal/gomadio/mount	0.260s
+ok  	os	25.625s
+ok  	cmd/internal/gomadcap	0.823s
+cd /Users/stephan/Workspace/temporal/gomad/tools/gomad3/../.. && env -u GOMADSEED CGO_ENABLED=0 GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 \
+		/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go test -exec /Users/stephan/Workspace/temporal/gomad/tools/gomad3/internal/gomadtool/conformance/scripts/exec.sh \
+		-count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim
+ok  	go.temporal.io/server/tools/gomad3sim	0.387s
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration \
+		-run '^TestRootProcessSimulationUsesRunnerTransport$/^Test(Scenario|ProcessExploration|ProcessAndInProcess|ProcessBackend(Routes|Preserves|Crash|Model))' ./runner/internal/execution
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/execution	2.719s

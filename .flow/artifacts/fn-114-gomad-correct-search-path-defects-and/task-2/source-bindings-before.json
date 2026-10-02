@@ -1,0 +1,11 @@
+{
+  "tools/gomad3/internal/gomadtool/conformance/runtime_scheduling.go": "290f9653c407e5edb7a576ddce859f97c97778cb5236da21b633670887279d2d",
+  "tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go": "204c8e51748136627d2cc5750ab9e073e70f942af6769381e95452337430f85f",
+  "tools/gomad3/internal/gomadtool/conformance/runtime_choice.go": "d0f50e3dea8fee616e9fb73e61fefa4bc907d26d7336a8b70e529e419573ac1a",
+  "tools/gomad3/internal/gomadtool/conformance/registry.go": "e059c4bc4b1482ebfc7be0bd9e6cd6ed1fb1507822769ae5cd9d7a31edf1f09e",
+  "tools/gomad3/internal/gomadtool/conformance/runtime_test.go": "7eb62b9a4727fb2e045627ae7d76249b85c3ca97094aa526d77ed6439c648287",
+  "tools/gomad3/internal/gomadtool/conformance/testdata/README.md": "ba648687674fb523181e5274915a623cf50dad426e93ddc2c9459ab480591f4a",
+  "tools/gomad3/toolchain/runtime/go1.27.1.patch": "bde66c455efabe9cafbf8736104ef84abc4afde0ca447ad1d9e7c529d59a9582",
+  "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go": "d6c2651cc6b7f6adc2265d7a892bae079d4426ebfba6defe72d6b4c7b4ec9bc8",
+  "tools/gomad3/toolchain/version/version.json": "b77093578ee76f4f25adec3258205f43e32cddbe5165eec146ce592feff507b0"
+}

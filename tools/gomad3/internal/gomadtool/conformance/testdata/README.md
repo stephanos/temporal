@@ -27,3 +27,48 @@ map-iteration order must not print addresses, because the driver compares their
 output across address perturbations; the `GOMAD3_ADDRESS` marker printed by
 `internal/perturb` is the one exception and only appears when
 `-gomad-address-padding` is given.
+
+`timer_ties` arms 24 native callbacks for one shared virtual deadline and prints
+their completion order after checking that every callback ran once at that
+deadline. `runq_shuffle` creates 1024 goroutines without blocking or yielding
+the creator. It disables automatic GC so an assist cannot drain the one-P
+local queue before it overflows its 256 slots; the pinned runtime's
+`runqputslow` and subsequent `runqputbatch` paths shuffle those batches through
+`gomadChoiceShuffleSeeded`. Its output contains only the completion permutation.
+Both fixtures repeat 100 times for each of three boundary seeds, require distinct
+orders across 32 seeds as their positive control, and repeat under host CPU load.
+These checks exercise seeded ordering without asserting a fixed permutation or
+claiming that timer-tie and shuffle draws are recorded in the Decision Tape.
+
+`timer_callback_identity` starts two timer creators and arms both callbacks for
+one virtual deadline before the process can quiesce. Each callback immediately
+selects from its own two prefilled channels at a distinct site and sends its
+label through a buffered channel. It performs no allocation, yield, or blocking
+operation before that site. The driver correlates an immediately preceding
+Runnable selection with the callback marker and the current parentless `/v1`
+identity derivation. The first marker's observed two-alternative digest must match
+two consecutive parentless IDs. When virtual time advances, main is blocked
+and the timer-armers have exited or blocked; only the two due callbacks become
+runnable. A callback without a qualifying selection has no inferred ID.
+Seeds 6 and 16 and valid alternative prefixes under seed 6 expose opposite
+firing orders and swapped callback identities. The same-seed prefixes complete;
+a complete seed-6 prefix executed under seed 16 diverges at a select site. This
+cross-seed experiment does not establish a supported replay failure.
+
+`select_readiness` takes one stable shape name from the driver's registry:
+`blocking-zero-ready`, `blocking-one-ready`, `blocking-two-ready`,
+`nonblocking-default`, `timer-channel`, `closed-channel`, or `nil-channel`.
+The readiness count describes the initial poll, independently of the case that
+later completes. Buffered and closed channels are prepared before the select;
+the zero-ready and timer cases only become ready after a one-second virtual
+advance, which cannot happen while the polling goroutine is runnable. Nil
+channels are disabled. Each run records one poll decision, including the six
+shapes with fewer than two initially ready cases. The driver explores every
+recorded decision without reduction, including runtime-owned Runnable choices,
+until the prefix frontier is empty; the 2048-execution and 32-decision bounds
+fail the check if reached instead of standing in for exhaustion.
+
+`TestRuntimeSearchFixtures` runs these same checks directly when a patched
+toolchain is installed. Setting `GOMAD3_RUNTIME_REPRODUCTION_DIR` to a new
+absolute directory retains the fixture binaries, raw trace backings and terminal
+frames, forced prefixes, command/exit records, and `search-reproduction.json`.

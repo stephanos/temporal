@@ -1,0 +1,41 @@
+{
+  "reason": "Only1.44GiBfree before full gate; disposable Go build cache14.7GiB",
+  "argv": [
+    "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go",
+    "clean",
+    "-cache"
+  ],
+  "environment_overrides": {
+    "GOENV": "off",
+    "GOFLAGS": "",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOCACHE": "/Users/stephan/Library/Caches/go-build"
+  },
+  "unset_environment": [
+    "GOROOT",
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED"
+  ],
+  "exit": 0,
+  "elapsed_seconds": 22.434229373931885,
+  "stdout": "",
+  "stderr": "",
+  "disk_before": "Filesystem   1024-blocks      Used Available Capacity iused    ifree %iused  Mounted on\n/dev/disk3s5   239362496 204458812   1517112   100% 3593106 15171120   19%   /System/Volumes/Data\n",
+  "disk_after": "Filesystem   1024-blocks      Used Available Capacity iused     ifree %iused  Mounted on\n/dev/disk3s5   239362496 188897072  17078852    92% 3518554 170788520    2%   /System/Volumes/Data\n",
+  "unchanged_source_count": 70,
+  "unchanged_toolchain_build_directories": [
+    "0e1a9041af147a5cf709fdf7613ab5091e9cab552264aa33d6d8e9767160ed8f",
+    "113ec00b3ce043867b034e8fec0fb28e6ecd4a36ca87dba2a5a26ab0a6ca9118",
+    "1c34ea0753ab3a38a18f69e9efb1f6593b54fb6c8adde6a4f8ec6790093f9179",
+    "4412b5b276ef89f37995a401bcebc83b842733c18f0c39f9b57e00e74df0ca95",
+    "56e4a2f0c5514d43b9a0682d030964588dd3d5a58978ba0b989459bb556843a3",
+    "6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee",
+    "8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc",
+    "d15ad896e542b9f64381c2f184567355bac8ffd62ae2347501fe8fcdd96f6eba",
+    "d49ef0309636e2301c46cfb36cda8a9b21323d87601c93c429260b3eefd4e37d",
+    "de7728ce162b470519f0e9de414216cb6ba5e132f4588955672cbe09edb7d678",
+    "f292ea6ac88dbffe5657d0a7dd4e7abe3c72e6b091b1494cfe315bdede03b088"
+  ],
+  "scope": "Supported go clean -cache only; no package arguments, no modcache/fuzzcache flags, no retained toolchain or evidence deletion"
+}

@@ -1,0 +1,8 @@
+=== RUN   TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity
+=== RUN   TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity/gomad3.guide-corpus/v1
+=== RUN   TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity/gomad3.guide-corpus/v999
+--- PASS: TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity (0.00s)
+    --- PASS: TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity/gomad3.guide-corpus/v1 (0.00s)
+    --- PASS: TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity/gomad3.guide-corpus/v999 (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/corpus	0.311s

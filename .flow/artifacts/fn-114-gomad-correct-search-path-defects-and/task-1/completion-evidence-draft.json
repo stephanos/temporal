@@ -1,0 +1,23 @@
+{
+  "commits": [],
+  "tests": [
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -tags test_dep ./runner -run '^TestRunChoiceExploration' -count=1",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -tags test_dep ./runner -run '^TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound$' -count=10 -v",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -tags test_dep ./runner -run '^TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/discard$' -count=1 -v",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -tags test_dep ./runner/...",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT tools/gomad3/.toolchain/bin/go -C tools/gomad3 vet -tags test_dep ./runner/...",
+    "git diff --check -- tools/gomad3/runner/runner_test.go",
+    "env -u GOROOT /Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/gofmt -l tools/gomad3/runner/runner_test.go"
+  ],
+  "prs": [],
+  "head": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+  "source_bindings": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/source-bindings-final.json",
+  "command_results": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/command-results.json",
+  "limitations": [
+    "Root lint cannot discover nested Gomad packages",
+    "Initial full Runner retry retained; protected retention test deadline",
+    "Linux not executed",
+    "Uncommitted prior fn-112 work is hash-bound, not part of this task patch"
+  ],
+  "review": "conductor-owned; pending"
+}

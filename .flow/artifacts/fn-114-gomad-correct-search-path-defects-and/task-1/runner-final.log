@@ -1,0 +1,14 @@
+--- FAIL: TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs (14.72s)
+    --- FAIL: TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/discard (10.01s)
+        retention_characterization_test.go:927: bounded campaign = runner.bounded{Reason:"partial_write", Attempted:0x61, Retained:0x0, MaximumActive:2}, want runner.bounded{Reason:"", Attempted:0x64, Retained:0x0, MaximumActive:2}
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner	114.134s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/campaign	(cached)
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/corpus	(cached)
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/execution	77.884s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration	(cached)
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice	(cached)
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation	(cached)
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord	(cached)
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/minimizer	(cached)
+FAIL

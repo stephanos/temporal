@@ -2,13 +2,17 @@ package corpus
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
+	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -227,9 +231,105 @@ func guideArtifactInput(t *testing.T, seed uint64) (artifact.ArtifactInput, dete
 func guideIdentity(t *testing.T, manifest record.ExecutionRecord) Identity {
 	t.Helper()
 	version, boundary := deterministicio.BoundaryManifestIdentity()
-	identity, err := IdentityFor(manifest.Target, manifest.Toolchain, version, record.SHA256(boundary))
+	identity, err := IdentityFor(manifest.Target, manifest.Toolchain, version, record.SHA256(boundary), manifest.Environment)
 	if err != nil {
 		t.Fatal(err)
 	}
 	return identity
+}
+
+func TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity(t *testing.T) {
+	input, _, _ := guideArtifactInput(t, 7)
+	identity := guideIdentity(t, input.Manifest)
+	for _, schema := range []string{"gomad3.guide-corpus/v1", "gomad3.guide-corpus/v999"} {
+		t.Run(schema, func(t *testing.T) {
+			root := t.TempDir()
+			snapshot, _, err := finalizeSnapshot(Snapshot{Schema: CorpusSchema, Identity: identity, Entries: []Entry{}})
+			if err != nil {
+				t.Fatal(err)
+			}
+			snapshot.Schema = schema
+			snapshot.Identity.TargetSHA256 = record.HashBytes([]byte("another target"))
+			encoded, err := canonicaljson.CanonicalJSON(snapshot)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var wire map[string]any
+			if err := json.Unmarshal(encoded, &wire); err != nil {
+				t.Fatal(err)
+			}
+			if schema == "gomad3.guide-corpus/v1" {
+				delete(wire["identity"].(map[string]any), "environment_sha256")
+			} else {
+				wire["future_field"] = true
+			}
+			encoded, err = canonicaljson.CanonicalJSON(wire)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(root, "corpus.json"), encoded, 0o600); err != nil {
+				t.Fatal(err)
+			}
+			opened, err := Open(context.Background(), root, identity)
+			if opened != nil {
+				if closeErr := opened.Close(); closeErr != nil {
+					t.Fatal(closeErr)
+				}
+			}
+			if err == nil || !strings.Contains(err.Error(), "guided corpus schema is invalid") {
+				t.Fatalf("schema rejection = %v", err)
+			}
+		})
+	}
+}
+
+func TestCorpusRejectsCaseWithChangedEnvironment(t *testing.T) {
+	input, coverage, _ := guideArtifactInput(t, 7)
+	identity := guideIdentity(t, input.Manifest)
+	corpus, err := Open(context.Background(), t.TempDir(), identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer corpus.Close()
+	input.Manifest.Environment = append(input.Manifest.Environment, record.Environment{Name: "MODE", Value: "changed"})
+	sort.Slice(input.Manifest.Environment, func(i, j int) bool { return input.Manifest.Environment[i].Name < input.Manifest.Environment[j].Name })
+	replayed := false
+	added, err := corpus.Admit(context.Background(), Candidate{Artifact: input, Coverage: coverage}, func(context.Context, string) (ReplayResult, error) {
+		replayed = true
+		return ReplayResult{Verified: true, Match: true}, nil
+	})
+	if err == nil || added || !replayed || len(corpus.Snapshot().Entries) != 0 || !strings.Contains(err.Error(), "guided corpus case target identity mismatch") {
+		t.Fatalf("changed case admission = %t, %v, replayed = %t", added, err, replayed)
+	}
+}
+
+func TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema(t *testing.T) {
+	input, _, _ := guideArtifactInput(t, 7)
+	identity := guideIdentity(t, input.Manifest)
+	_, encoded, err := finalizeSnapshot(Snapshot{Schema: CorpusSchema, Identity: identity, Entries: []Entry{}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for name, contents := range map[string][]byte{
+		"malformed":        []byte(`{"schema":`),
+		"noncanonical":     append([]byte(" "), encoded...),
+		"unknown field":    append([]byte(`{"future_field":true,`), encoded[1:]...),
+		"duplicate schema": []byte(strings.Replace(string(encoded), `"schema":`, `"schema":"`+CorpusSchema+`","schema":`, 1)),
+	} {
+		t.Run(name, func(t *testing.T) {
+			root := t.TempDir()
+			if err := os.WriteFile(filepath.Join(root, "corpus.json"), contents, 0o600); err != nil {
+				t.Fatal(err)
+			}
+			opened, err := Open(context.Background(), root, identity)
+			if opened != nil {
+				if closeErr := opened.Close(); closeErr != nil {
+					t.Fatal(closeErr)
+				}
+			}
+			if err == nil {
+				t.Fatal("Open accepted invalid current-schema snapshot")
+			}
+		})
+	}
 }

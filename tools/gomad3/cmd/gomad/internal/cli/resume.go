@@ -69,10 +69,7 @@ func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies re
 		fmt.Fprintln(stderr, err)
 		return 3
 	}
-	if summary.Failures != 0 {
-		return 1
-	}
-	return 0
+	return exploreSummaryStatus(summary)
 }
 
 func classifyResumeError(err error) string {

@@ -1,0 +1,7 @@
+{
+  "tools/gomad3/deterministicio/session.go": "02404f89916e6373c06157fc5e724f5159ec5f429709b477a7bd52a0694543a1",
+  "tools/gomad3/runner/internal/execution/process_unix.go": "8ffc8ce2028f161ce57b93bceb3a936fee2a43d4f6c915072383ecca33201543",
+  "tools/gomad3/runner/internal/execution/process_test.go": "bd19fea90764a1c8e5118cab3f9940124e15b108be916ab03cb32b7b8ebb53e4",
+  "tools/gomad3/cmd/gomad/e2e_test.go": "5feb92383f46acf7d698e33d047e100dc1c15c42dd7667a6858610f630b61b53",
+  "tools/gomad3/cmd/gomad/testdata/campaign/main.go": "1d91a27154a10401d2585e251b7fee87ea9580bd8917f9c88a87a5c39bcfbd4c"
+}

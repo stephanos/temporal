@@ -1,0 +1,12 @@
+{
+  "tools/gomad3/internal/gomadtool/conformance/registry.go": "4cfb67fff08331da95a04b7c5d56f9f0677956a7cd0c16fd53278392f9bae7fc",
+  "tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go": "85c7fb48fb35d652eeede79ad73b62a195135e5377df0cf8b355db4e4d82ad5e",
+  "tools/gomad3/internal/gomadtool/conformance/runtime_choice.go": "6303a69d72db5a5e5c867e88b689be9454e3efa827b3273d4908a39cf7f6ade2",
+  "tools/gomad3/internal/gomadtool/conformance/runtime_scheduling.go": "01c541e9f8a0424bc4294b70877d84257ee820d0ab3d5eb5e9ac4311ac7ee957",
+  "tools/gomad3/internal/gomadtool/conformance/runtime_test.go": "32c6a626737c97770945c1de9fa31f4cbf25c5e3cef669145c3c3262b5e38093",
+  "tools/gomad3/internal/gomadtool/conformance/testdata/README.md": "24e12c9d4f397539c2f6a50b58e93209ee1d63d9f6b691bfea3ec67985c00c96",
+  "tools/gomad3/internal/gomadtool/conformance/testdata/timer_callback_identity/main.go": "74c8fab42230b3ecdc4cfbd8230a45e133a430aa07f530cacff450a1807f05f2",
+  "tools/gomad3/internal/gomadtool/conformance/testdata/select_readiness/main.go": "924c1f6a2eb9d2ace58dc8f8c44fecf2877127d5584c70148a808866a87d87be",
+  ".flow/specs/fn-114-gomad-correct-search-path-defects-and.md": "64cd43f865367a4ddb48025ed28c81904793cd7ab81736ba2e1338a352ab93a8",
+  ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.5.md": "152bfddeabd00b6b84c65580f238e2f51bbd4501713eefac4a7d231d0804b97b"
+}

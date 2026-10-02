@@ -1,0 +1,63 @@
+=== RUN   TestReplayBuildInfoRejectsMatchingCoverageInstrumentation
+--- PASS: TestReplayBuildInfoRejectsMatchingCoverageInstrumentation (0.00s)
+=== RUN   TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy
+=== RUN   TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/same_configuration_across_seeds
+=== RUN   TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/changed_environment
+=== RUN   TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/strict_to_forward
+=== RUN   TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/forward_to_strict
+=== RUN   TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/same_configuration_across_seeds
+=== RUN   TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/changed_environment
+=== RUN   TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/strict_to_forward
+=== RUN   TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/forward_to_strict
+--- PASS: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy (1.91s)
+    --- PASS: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/same_configuration_across_seeds (0.37s)
+    --- PASS: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/changed_environment (0.18s)
+    --- PASS: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/strict_to_forward (0.19s)
+    --- PASS: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/forward_to_strict (0.21s)
+    --- PASS: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/same_configuration_across_seeds (0.35s)
+    --- PASS: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/changed_environment (0.21s)
+    --- PASS: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/strict_to_forward (0.20s)
+    --- PASS: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/forward_to_strict (0.20s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner	2.325s
+=== RUN   TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity
+=== RUN   TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity/gomad3.guide-corpus/v1
+=== RUN   TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity/gomad3.guide-corpus/v999
+--- PASS: TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity (0.01s)
+    --- PASS: TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity/gomad3.guide-corpus/v1 (0.00s)
+    --- PASS: TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity/gomad3.guide-corpus/v999 (0.01s)
+=== RUN   TestIdentityForTargetIgnoresDiagnosticSourceButBindsExecutionArguments
+--- PASS: TestIdentityForTargetIgnoresDiagnosticSourceButBindsExecutionArguments (0.00s)
+=== RUN   TestIdentityForBindsFeatureAndProbeInstrumentation
+--- PASS: TestIdentityForBindsFeatureAndProbeInstrumentation (0.00s)
+=== RUN   TestIdentityForChoiceBindsTheExactExecutionProfile
+--- PASS: TestIdentityForChoiceBindsTheExactExecutionProfile (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/corpus	0.667s
+=== RUN   TestPinnedCoverageBuildSettingsRejectInstrumentation
+=== RUN   TestPinnedCoverageBuildSettingsRejectInstrumentation/build
+    coverage_test.go:42: pinned build settings: []record.BuildSetting{record.BuildSetting{Key:"-buildmode", Value:"exe"}, record.BuildSetting{Key:"-compiler", Value:"gc"}, record.BuildSetting{Key:"-tags", Value:"test_dep"}, record.BuildSetting{Key:"CGO_ENABLED", Value:"0"}, record.BuildSetting{Key:"GOARCH", Value:"arm64"}, record.BuildSetting{Key:"GOARM64", Value:"v8.0"}, record.BuildSetting{Key:"GOEXPERIMENT", Value:"nogreenteagc"}, record.BuildSetting{Key:"GOOS", Value:"darwin"}}
+=== RUN   TestPinnedCoverageBuildSettingsRejectInstrumentation/build-cover
+    coverage_test.go:42: pinned build-cover settings: []record.BuildSetting{record.BuildSetting{Key:"-buildmode", Value:"exe"}, record.BuildSetting{Key:"-compiler", Value:"gc"}, record.BuildSetting{Key:"-cover", Value:"true"}, record.BuildSetting{Key:"-tags", Value:"test_dep"}, record.BuildSetting{Key:"CGO_ENABLED", Value:"0"}, record.BuildSetting{Key:"GOARCH", Value:"arm64"}, record.BuildSetting{Key:"GOARM64", Value:"v8.0"}, record.BuildSetting{Key:"GOEXPERIMENT", Value:"nogreenteagc"}, record.BuildSetting{Key:"GOOS", Value:"darwin"}}
+=== RUN   TestPinnedCoverageBuildSettingsRejectInstrumentation/test-cover
+    coverage_test.go:42: pinned test-cover settings: []record.BuildSetting{record.BuildSetting{Key:"-buildmode", Value:"exe"}, record.BuildSetting{Key:"-compiler", Value:"gc"}, record.BuildSetting{Key:"-cover", Value:"true"}, record.BuildSetting{Key:"-tags", Value:"test_dep"}, record.BuildSetting{Key:"CGO_ENABLED", Value:"0"}, record.BuildSetting{Key:"GOARCH", Value:"arm64"}, record.BuildSetting{Key:"GOARM64", Value:"v8.0"}, record.BuildSetting{Key:"GOEXPERIMENT", Value:"nogreenteagc"}, record.BuildSetting{Key:"GOOS", Value:"darwin"}}
+--- PASS: TestPinnedCoverageBuildSettingsRejectInstrumentation (0.68s)
+    --- PASS: TestPinnedCoverageBuildSettingsRejectInstrumentation/build (0.13s)
+    --- PASS: TestPinnedCoverageBuildSettingsRejectInstrumentation/build-cover (0.20s)
+    --- PASS: TestPinnedCoverageBuildSettingsRejectInstrumentation/test-cover (0.35s)
+=== RUN   TestValidateProvenanceRejectsUnsupportedBuildModes
+=== RUN   TestValidateProvenanceRejectsUnsupportedBuildModes/cgo
+=== RUN   TestValidateProvenanceRejectsUnsupportedBuildModes/race
+=== RUN   TestValidateProvenanceRejectsUnsupportedBuildModes/coverage
+=== RUN   TestValidateProvenanceRejectsUnsupportedBuildModes/plugin
+=== RUN   TestValidateProvenanceRejectsUnsupportedBuildModes/linkshared
+=== RUN   TestValidateProvenanceRejectsUnsupportedBuildModes/external
+--- PASS: TestValidateProvenanceRejectsUnsupportedBuildModes (0.00s)
+    --- PASS: TestValidateProvenanceRejectsUnsupportedBuildModes/cgo (0.00s)
+    --- PASS: TestValidateProvenanceRejectsUnsupportedBuildModes/race (0.00s)
+    --- PASS: TestValidateProvenanceRejectsUnsupportedBuildModes/coverage (0.00s)
+    --- PASS: TestValidateProvenanceRejectsUnsupportedBuildModes/plugin (0.00s)
+    --- PASS: TestValidateProvenanceRejectsUnsupportedBuildModes/linkshared (0.00s)
+    --- PASS: TestValidateProvenanceRejectsUnsupportedBuildModes/external (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/target	1.578s

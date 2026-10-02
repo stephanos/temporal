@@ -1,0 +1,21 @@
+{
+  "base": "8789deab055d1b72ac6bc86711d74f3fd7313fa2",
+  "head": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+  "patch_sha256": "87a983fdfbf69f45da47f520893c4fa9f0f542a060f6abe56e93488ddecf14af",
+  "sources": {
+    ".github/workflows/gomad3.yml": "ad565c0577a0b027a539e9e9be88f2d3b154c1a083f18bb087647c5704e4a58f",
+    "tools/gomad3/Makefile": "5202f46cd32ea654a343243b741585406fda4267fedef3b5fafa1c5866a5feda",
+    "tools/gomad3/architecture_test.go": "35bf79cfab539739d85bd8ea38abebadfe30bd571768ff9e3301b1b15b37ebfe",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go": "204c8e51748136627d2cc5750ab9e073e70f942af6769381e95452337430f85f",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_choice.go": "d0f50e3dea8fee616e9fb73e61fefa4bc907d26d7336a8b70e529e419573ac1a",
+    "tools/gomad3sim/controller.go": "469c74e4f38aa9a0d0db51b037334ca9bc988211be94dbc7b9e57ff95b4f57c3",
+    "tools/gomad3sim/exploration_stock_test.go": "6744bbd1a133a4569102df251d45b656210fcf960d3d264b4ffb0184379bee51",
+    "tools/gomad3sim/exploration_test.go": "801cf5eb5a5c2b6d70303ff382dff11caf8d776d462444513058b18f214450dc",
+    "tools/gomad3/runner/internal/execution/process_test.go": "bd19fea90764a1c8e5118cab3f9940124e15b108be916ab03cb32b7b8ebb53e4",
+    "tools/gomad3/runner/internal/execution/process_unix.go": "edd19f1c0dc0ff877f0c0ec67f1214319567a9b0efc12dbc65bffb2e90aae1a9",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_model_test.go": "76533f2c57ab14fa154dbca4a6dab35c30cd5948dd064b76e2b605e0f8f7e04d",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_time_test.go": "60d6a19f7e4acfd7806c8dbfb1b253ce2360ef3799f5af7987145c46e3b257ba",
+    "tools/gomad3/toolchain/version/version.json": "b77093578ee76f4f25adec3258205f43e32cddbe5165eec146ce592feff507b0",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/export_test.go": "f3864bddb8c918707f65a42cb2dd968748ee42f956b46fb6783d75a48399dc62"
+  }
+}

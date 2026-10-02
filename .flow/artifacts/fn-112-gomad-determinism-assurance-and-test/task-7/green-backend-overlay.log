@@ -1,0 +1,10 @@
+=== RUN   TestFilesystemSelfRenamePreservesSource
+--- PASS: TestFilesystemSelfRenamePreservesSource (0.00s)
+=== RUN   TestFilesystemClosedHandlePreservesErrnoAndDistinguishesAccessMode
+--- PASS: TestFilesystemClosedHandlePreservesErrnoAndDistinguishesAccessMode (0.00s)
+=== RUN   TestFilesystemClosedProcessHandlePreservesErrno
+--- PASS: TestFilesystemClosedProcessHandlePreservesErrno (0.00s)
+=== RUN   TestFilesystemReadOnlySelfRenameRemainsDenied
+--- PASS: TestFilesystemReadOnlySelfRenameRemainsDenied (0.00s)
+PASS
+ok  	internal/gomadfs	0.263s

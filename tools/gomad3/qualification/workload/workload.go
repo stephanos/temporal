@@ -124,7 +124,7 @@ func normalizeWorkloadSpec(spec Spec) (Spec, error) {
 }
 
 func workloadExecution(summary runner.CampaignResult) qualification.QualificationExecution {
-	run := qualification.QualificationExecution{CampaignPath: summary.CampaignPath, WallElapsedNanos: summary.ExecutionElapsedNanos, Evidence: *summary.ExecutionEvidence}
+	run := qualification.QualificationExecution{CampaignPath: summary.CampaignPath, WallElapsedNanos: summary.ExecutionElapsedNanos, Evidence: *summary.ExecutionEvidence, Diagnostics: summary.Diagnostics}
 	if summary.ExecutionEvidence.Outcome.Domain == "success" && len(summary.SuccessArtifacts) != 0 {
 		run.ArtifactPath = summary.SuccessArtifacts[0]
 	} else if len(summary.Artifacts) != 0 {

@@ -177,7 +177,7 @@ func Replay(ctx context.Context, config ReplaySpec) (result ReplayResult, retErr
 	var expectedIOTranscript []byte
 	var readOnlyMounts []readonlymount.Mapping
 	var readOnlyMountLimits readonlymount.Limits
-	var readOnlyMountSnapshot *readonlymount.Snapshot
+	readOnlyMountSnapshot := &readonlymount.Snapshot{}
 	profile := deterministicio.Default()
 	ioConfig, err = profile.BootstrapFrame(target.Prepared{SHA256: string(manifest.Target.SHA256), Argv: append([]string(nil), manifest.Target.Argv...)}, manifest.Runner.RunnerBuild, uint64(manifest.Seed))
 	if err != nil {
@@ -185,7 +185,12 @@ func Replay(ctx context.Context, config ReplaySpec) (result ReplayResult, retErr
 	}
 	ioTranscriptLimit = uint64(manifest.Limits.IOTranscriptBytes)
 	if manifest.IOProfile.Transcript == nil {
-		return ReplayResult{}, errors.New("recorded I/O profile has no complete transcript")
+		if manifest.ReplayMode != record.ReplayDiagnostic {
+			return ReplayResult{}, errors.New("recorded I/O profile has no complete transcript")
+		}
+		if choiceCapability != nil {
+			return ReplayResult{}, errors.New("diagnostic replay without an I/O transcript cannot replay recorded choices")
+		}
 	}
 	readOnlyMountLimits = readonlymount.DefaultLimits()
 	if mounts := manifest.IOProfile.ReadOnlyMounts; mounts != nil {
@@ -202,13 +207,15 @@ func Replay(ctx context.Context, config ReplaySpec) (result ReplayResult, retErr
 		}
 		readOnlyMountSnapshot = &snapshot
 	}
-	expectedIOTranscript, err = artifact.ReadPayload(opened, manifest.IOProfile.Transcript.File, ioTranscriptLimit)
-	if err != nil {
-		return ReplayResult{}, fmt.Errorf("read expected I/O transcript: %w", err)
+	if transcript := manifest.IOProfile.Transcript; transcript != nil {
+		expectedIOTranscript, err = artifact.ReadPayload(opened, transcript.File, ioTranscriptLimit)
+		if err != nil {
+			return ReplayResult{}, fmt.Errorf("read expected I/O transcript: %w", err)
+		}
 	}
 	ioCapability := &execution.IOCapability{
 		Config:     ioConfig,
-		Transcript: &execution.IOTranscriptCapability{Limit: ioTranscriptLimit, Replay: true, Expected: expectedIOTranscript},
+		Transcript: &execution.IOTranscriptCapability{Limit: ioTranscriptLimit, Replay: manifest.IOProfile.Transcript != nil, Expected: expectedIOTranscript},
 		ReadOnlyMount: &execution.ReadOnlyMountCapability{
 			Mappings: readOnlyMounts, Limits: readOnlyMountLimits, Replay: readOnlyMountSnapshot,
 		},
@@ -403,7 +410,7 @@ func choiceCapabilityForArtifact(opened artifact.Artifact) (*execution.ChoiceCap
 func replayEnvironment(recorded []record.Environment) []string {
 	environment := make([]string, 0, len(recorded))
 	for _, entry := range recorded {
-		if entry.Name == "GOMAD3_CHOICE_PROFILE" {
+		if entry.Name == "GOMAD3_CHOICE_PROFILE" || entry.Name == choice.DiagnosticProfileEnvironment {
 			continue
 		}
 		environment = append(environment, entry.Name+"="+entry.Value)
@@ -578,6 +585,9 @@ func validateTargetBuildInfo(path string, expected record.BuildInfo) error {
 
 func validateBuildInfo(info *debug.BuildInfo, expected record.BuildInfo) error {
 	actual := target.ProjectBuildInfo(info)
+	if target.HasCoverageInstrumentation(actual) {
+		return errors.New("stored target uses unsupported coverage instrumentation")
+	}
 	expectedBytes, err := canonicaljson.CanonicalJSON(expected)
 	if err != nil {
 		return fmt.Errorf("encode recorded target build info: %w", err)

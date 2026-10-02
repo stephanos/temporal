@@ -1,0 +1,34 @@
+# fn-112-gomad-determinism-assurance-and-test.6 handover
+
+Added dedicated native timer-tie and overflowing run-queue shuffle fixtures, registered them in the existing runtime build, repeatability, diversity, and host-load tables, and added a focused real-toolchain conformance test. Both fixtures emit only their completion permutation and enforce once-only completion; timer callbacks also enforce the shared virtual deadline. Existing comments and dirty changes are preserved. No runtime overlay, patch, descriptor, schema, dependency, or build identity changed; no Git staging, commit, push, stash, or worktree operation ran.
+
+Q7 was **confirmed** before implementation: the dedicated channels were absent from the current build/repeatability/load registration tables. The final coverage adds timer_ties and runq_shuffle and uses the task's explicit excluded-channel option for host netpoll, SIGPROF, enabled block/mutex profile sampling, and unvirtualized NumCPU. Q8 remains **confirmed** at target.go:711–716: Closure skips the capability compiler/linker flag block; Guarded alone adds -gomadguard. classification.md and reanchor-source-excerpts.txt retain current source locations, reasoning, and hashes. The NumCPU finding also confirms the source-level Q4 candidate for fn-105 D12, without establishing D12's cause or completing its Linux acceptance.
+
+The shuffle creator remains runnable while it creates 1024 children on one P, with async preemption disabled by activation and GC disabled in this fixture to prevent assists from draining the queue. The pinned queue has 256 slots plus runnext, so creation reaches runqputslow's seeded shuffle; the global batches later reach runqputbatch's shuffle. No fixed draw count or output permutation is asserted. Both timer and queue completion order also depend on ordinary Runnable decisions; the tests exercise the named untaped paths and observable same-seed repeatability, and do not assert isolated-stream sensitivity or choice-tape coverage.
+
+The test-first focused check failed on the missing timer_ties directory, then passed after fixture creation (focused-red.log/focused-green.log; test-first.json). On the frozen final sources the complete conformance package, behavior-grouping test, focused vet, and gofmt check pass. The required `make -C tools/gomad3 test-runtime` gate passes on darwin/arm64 (exit 0); make-test-runtime.json/log retain its exact command, timestamps, exit, and unchanged toolchain cache-hit identity. Root make lint-code-fast was attempted with the pinned stock driver and GOLANGCI_LINT_BASE_REV=HEAD and exits 2: the root module cannot load nested tools/gomad3 packages (underlying golangci-lint exit 7). This is not a clean lint result. No native linux/amd64 host was available; Linux execution remains **unverified**.
+
+Positive-control evidence retains 124 fresh observations, 62 per fixture, raw stdout/stderr, validated complete permutations, exit codes, binary hashes, and every output hash. For each fixture seeds 0–31 produce **32 distinct completion orders**. Seeds 0 and 1 each have 11 observations with one stable stdout hash; max uint64 has 10 observations with one stable stdout hash. The passing full gate additionally executed 100 observations per boundary seed, 32-seed diversity, and eight repetitions under bounded CPU load. No nondeterministic observation was weakened or accepted. The parent independently validated these observations and frozen-source patch bindings in parent-evidence-validation.json; mandatory implementation review remains the conductor's responsibility.
+
+Exact proposed contract sentences for task 10 to insert in README and SPEC:
+
+> Closure capability mode performs dependency review without compiling `-gomadguard` guards; an exact compatibility-pack admission does not make host operations deterministic, and admitted code must stay within the declared deterministic boundaries.
+
+> Real-socket and descriptor readiness delivered by host netpoll is outside the determinism contract; supported modeled loopback TCP uses deterministic in-memory readiness instead.
+
+> SIGPROF delivery and CPU profiling are outside the determinism contract because signal arrival and CPU samples depend on host execution.
+
+> Enabling block or mutex profiling is outside the determinism guarantee: host-dependent contention timing and profile sampling can change random draws, profile allocations, and subsequent runtime state, especially on linux/amd64.
+
+> `runtime.NumCPU` is not virtualized and reports OS-detected CPU availability at process startup; workloads that use this value require the same host CPU configuration for repeatability, and cross-host CPU-count equivalence is outside the contract.
+
+The exclusion route avoids fabricated controls: changing GOMAXPROCS cannot vary NumCPU, and one Darwin host cannot qualify Linux profile sampling or host-signal/network behavior. The exclusions do not promise new fail-closed runtime behavior. README/SPEC insertion belongs to task 10; this handover does not prematurely claim their R7 documentation acceptance or a broad determinism guarantee.
+
+Frozen source manifest SHA-256: `89a8741c93de3da9b303e3279e3189e72771a59f8678e340333c34d5b769ad48`. Task-only patch SHA-256: `eea020b2f3253a542c1a4b8378086783fadcd9b2b7f2e9554f898af7b3c4f71e`. The seven-file manifest is source-bindings.json; actual dirty before-copies and before-bindings.json separate this task from prior uncommitted work. Toolchain key remains `6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee` on darwin/arm64. Initial gate metadata used a manifest generated immediately before formatting; the corrected final manifest hashes the sources actually used by those gates, and each affected record retains the old manifest hash and the correction reason.
+
+Independent implementation review returned SHIP with no findings and task-6 R3/R7 coverage met. Receipt: task-6/review-round1.json; session 01a0fc10-4c2b-7bb1-aa07-82d5f9431c52. The reviewer independently checked the seven-file patch, source/evidence bindings, all 124 observations, channel paths, and contract exclusions. All 38 parent-bound files remain unchanged after review. Work remains uncommitted at the user's instruction.
+
+stage: impl-review - ran (model: gpt-6-astra at high)
+stage: plan-sync - skipped(config: planSync.enabled=false; exact documentation wording retained for task 10)
+stage: wave-dispatch - skipped(policy: shared conformance files and no worktrees; sequential worker)
+Tracker sync: n/a (bridge inactive)

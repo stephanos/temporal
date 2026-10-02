@@ -26,6 +26,7 @@ type targetIdentity struct {
 }
 
 type supervisorRequest struct {
+	Diagnostics          bool          `json:"diagnostics,omitempty"`
 	BootstrapCommand     []string      `json:"bootstrap_command"`
 	Command              string        `json:"command"`
 	Args                 []string      `json:"args"`
@@ -51,6 +52,7 @@ type supervisorRequest struct {
 }
 
 type targetBootstrapRequest struct {
+	Diagnostics         bool        `json:"diagnostics,omitempty"`
 	Command             string      `json:"command"`
 	Args                []string    `json:"args"`
 	Argv0               string      `json:"argv0"`
@@ -146,6 +148,20 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		files := choiceSession.Files()
 		choiceTraceFile, choiceTerminalFile, choiceReplayPlanFile = files.Trace, files.Terminal, files.ReplayPlan
 	}
+	var diagnosticSession *choice.DiagnosticSession
+	var diagnosticTraceFile *os.File
+	if request.Diagnostics {
+		limit, err := choice.DiagnosticLimit(request.Choice.Limit)
+		if err != nil {
+			return Result{}, err
+		}
+		diagnosticSession, err = choice.NewDiagnosticSession(limit)
+		if err != nil {
+			return Result{}, err
+		}
+		defer func() { retErr = errors.Join(retErr, diagnosticSession.Close()) }()
+		diagnosticTraceFile = diagnosticSession.File()
+	}
 	var readOnlyMountBroker *romount.Broker
 	if ioCapability != nil && ioCapability.ReadOnlyMount != nil {
 		mounts := ioCapability.ReadOnlyMount
@@ -159,7 +175,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		}
 		defer func() { retErr = errors.Join(retErr, readOnlyMountBroker.Close()) }()
 	}
-	capabilities := launchCapabilities{ioTranscript: ioSession != nil, readOnlyMount: readOnlyMountBroker != nil, choiceTrace: choiceSession != nil, choiceReplayPlan: choiceReplayPlanFile != nil, simulation: request.Simulation != nil, simulationBootstrap: request.Simulation != nil && request.Simulation.Role == SimulationRoleNode, simulationCoordinator: request.Simulation != nil && request.Simulation.Role == SimulationRoleCoordinator}
+	capabilities := launchCapabilities{diagnostics: request.Diagnostics, ioTranscript: ioSession != nil, readOnlyMount: readOnlyMountBroker != nil, choiceTrace: choiceSession != nil, choiceReplayPlan: choiceReplayPlanFile != nil, simulation: request.Simulation != nil, simulationBootstrap: request.Simulation != nil && request.Simulation.Role == SimulationRoleNode, simulationCoordinator: request.Simulation != nil && request.Simulation.Role == SimulationRoleCoordinator}
 	resources := newLaunchResources(capabilities)
 	defer func() { retErr = errors.Join(retErr, resources.close()) }()
 	var mountRequestRead, mountResponseWrite *os.File
@@ -273,6 +289,9 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		}
 	}
 
+	if diagnosticSession != nil {
+		resources.bind(diagnosticTraceResource, &diagnosticTraceFile)
+	}
 	command := exec.Command(request.SupervisorCommand[0], request.SupervisorCommand[1:]...)
 	command.Env = append(os.Environ(), "GOMAD3_PROCESS_SUPERVISOR=1")
 	command.ExtraFiles, err = resources.extraFiles(supervisorStage)
@@ -320,6 +339,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 	wireTimeout := targetTimeout(remaining)
 
 	wireRequest := supervisorRequest{
+		Diagnostics:          request.Diagnostics,
 		BootstrapCommand:     append([]string(nil), request.BootstrapCommand...),
 		Command:              request.Command,
 		Args:                 request.Args,
@@ -369,19 +389,23 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 	var simulationModelsServed <-chan error
 	var simulationTimeServed <-chan error
 	var simulationBootstrapWritten <-chan error
-	simulationTimeCtx := ctx
-	cancelSimulationTime := func() {}
+	simulationTransportCtx := ctx
+	cancelSimulationTransport := func() {}
 	if request.Simulation != nil {
-		simulationTimeCtx, cancelSimulationTime = context.WithCancel(ctx)
-		defer cancelSimulationTime()
+		if request.Simulation.Role == SimulationRoleNode {
+			// Graceful node cleanup still needs model and time replies until exit.
+			simulationTransportCtx = context.WithoutCancel(ctx)
+		}
+		simulationTransportCtx, cancelSimulationTransport = context.WithCancel(simulationTransportCtx)
+		defer cancelSimulationTransport()
 		served := make(chan error, 1)
 		go func() {
-			served <- serveSimulation(ctx, simulationRequestRead, simulationResponseWrite, request.Simulation.handler, request.Simulation.accepting, request.Simulation.delivering, request.Simulation.responded, request.Simulation.arrived)
+			served <- serveSimulation(simulationTransportCtx, simulationRequestRead, simulationResponseWrite, request.Simulation.handler, request.Simulation.accepting, request.Simulation.delivering, request.Simulation.responded, request.Simulation.arrived)
 		}()
 		simulationServed = served
 		timeServed := make(chan error, 1)
 		go func() {
-			timeServed <- serveSimulationTime(simulationTimeCtx, simulationTimeRequestRead, simulationTimeResponseWrite, request.Simulation.time)
+			timeServed <- serveSimulationTime(simulationTransportCtx, simulationTimeRequestRead, simulationTimeResponseWrite, request.Simulation.time)
 		}()
 		simulationTimeServed = timeServed
 		if simulationBootstrapWrite != nil {
@@ -397,7 +421,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 			simulationBootstrapWritten = written
 			modelsServed := make(chan error, 1)
 			go func() {
-				modelsServed <- serveSimulationModels(ctx, simulationModelRequestHost, simulationModelResponseHost, request.Simulation.handler, request.Simulation.delivering, request.Simulation.responded)
+				modelsServed <- serveSimulationModels(simulationTransportCtx, simulationModelRequestHost, simulationModelResponseHost, request.Simulation.handler, request.Simulation.delivering, request.Simulation.responded)
 			}()
 			simulationModelsServed = modelsServed
 		}
@@ -529,7 +553,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		}
 	}
 	close(contextDone)
-	cancelSimulationTime()
+	cancelSimulationTransport()
 	signalSupervisor(0)
 	identity := <-identities
 	decodedReports := <-reports
@@ -621,9 +645,19 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		}
 		choiceErr = err
 	}
+	if diagnosticSession != nil {
+		trace, err := diagnosticSession.Collect()
+		if err != nil && !(errors.Is(err, choice.ErrDiagnosticIncomplete) && (result.WatchdogTimeout || result.Cancelled)) {
+			return result, fmt.Errorf("collect diagnostic trace: %w", err)
+		}
+		if err == nil && uint64(len(trace.Records)) != result.ChoiceTrace.Trace.Summary.Records {
+			return result, errors.New("diagnostic and choice record counts disagree")
+		}
+		result.DiagnosticTrace = trace
+	}
 	if ioSession != nil {
 		collected := <-collectedIO
-		if collected.err != nil {
+		if collected.err != nil && !(errors.Is(collected.err, deterministicio.ErrTranscriptUnterminated) && (result.WatchdogTimeout || result.Cancelled)) {
 			return result, collected.err
 		}
 		result.IOTranscript = collected.transcript

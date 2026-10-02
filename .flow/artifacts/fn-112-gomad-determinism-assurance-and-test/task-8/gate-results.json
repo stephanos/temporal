@@ -1,0 +1,276 @@
+[
+  {
+    "name": "initial calibration",
+    "command": "env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep ./cmd/gomad -run ^TestCLI -count=1 -v",
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "environment": {
+      "removed": [
+        "GOROOT",
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED"
+      ],
+      "set": {
+        "GOWORK": "off"
+      }
+    },
+    "exit": 1,
+    "log": "focused-first.log",
+    "log_sha256": "5cfc552066916a3c07c88f62053674a02c82b875ad24d94b7ca80c057042b0f2",
+    "note": "Earlier calibration/failure logs retain their before-byte-fix freeze or original watchdog fixture; only final twenty is the current final-source qualification.",
+    "source_binding": "retained calibration log; original watchdog source retained for first failure; not a final-source gate"
+  },
+  {
+    "name": "second calibration",
+    "command": "env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep ./cmd/gomad -run ^TestCLI -count=1 -v",
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "environment": {
+      "removed": [
+        "GOROOT",
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED"
+      ],
+      "set": {
+        "GOWORK": "off"
+      }
+    },
+    "exit": 1,
+    "log": "focused-second.log",
+    "log_sha256": "e6db063045db18ad67679ce54fa23eb4057d177708f949e59b8c3bf250ab575a",
+    "note": "Earlier calibration/failure logs retain their before-byte-fix freeze or original watchdog fixture; only final twenty is the current final-source qualification.",
+    "source_binding": "retained calibration log; original watchdog source retained for first failure; not a final-source gate"
+  },
+  {
+    "name": "bounded CPU focus",
+    "command": "env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep ./cmd/gomad -run ^TestCLI -count=1 -v",
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "environment": {
+      "removed": [
+        "GOROOT",
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED"
+      ],
+      "set": {
+        "GOWORK": "off"
+      }
+    },
+    "exit": 0,
+    "log": "focused-third.log",
+    "log_sha256": "6bcf3a3572186334566bca3200baf833339b5674dbf86e7bb9d269594df0addc",
+    "note": "Earlier calibration/failure logs retain their before-byte-fix freeze or original watchdog fixture; only final twenty is the current final-source qualification.",
+    "source_binding": "retained calibration log; original watchdog source retained for first failure; not a final-source gate"
+  },
+  {
+    "name": "pre-byte-exclusion focus",
+    "command": "env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep ./cmd/gomad -run ^TestCLI -count=1 -v",
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "environment": {
+      "removed": [
+        "GOROOT",
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED"
+      ],
+      "set": {
+        "GOWORK": "off"
+      }
+    },
+    "exit": 0,
+    "log": "focused-final.log",
+    "log_sha256": "c1dce5b9fdcfb82bdce25d8b56e1ef09e166fb22ea24b303045dd59b88e83c3d",
+    "source_freeze": {
+      "tools/gomad3/cmd/gomad/e2e_test.go": "62237110c243d0776afe88e468032be15df876fb4cba406ec5aaf4ede149b94b",
+      "tools/gomad3/cmd/gomad/testdata/campaign/main.go": "1d91a27154a10401d2585e251b7fee87ea9580bd8917f9c88a87a5c39bcfbd4c",
+      ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md": "18cf3efd4ec7ec9ec2b63881c63ba63d15b7d5fd62acf4baab49e174446355d0"
+    },
+    "note": "Earlier calibration/failure logs retain their before-byte-fix freeze or original watchdog fixture; only final twenty is the current final-source qualification."
+  },
+  {
+    "name": "failed repeated gate, interrupted",
+    "command": "env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep ./cmd/gomad -run ^TestCLI -count=20 -v",
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "environment": {
+      "removed": [
+        "GOROOT",
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED"
+      ],
+      "set": {
+        "GOWORK": "off"
+      }
+    },
+    "exit": 1,
+    "log": "consecutive-20.log",
+    "log_sha256": "a2e8378e01f20d18b9fb61e35965070f37bfa881e3b010ff509c4c859d8f115f",
+    "source_freeze": {
+      "tools/gomad3/cmd/gomad/e2e_test.go": "62237110c243d0776afe88e468032be15df876fb4cba406ec5aaf4ede149b94b",
+      "tools/gomad3/cmd/gomad/testdata/campaign/main.go": "1d91a27154a10401d2585e251b7fee87ea9580bd8917f9c88a87a5c39bcfbd4c",
+      ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md": "18cf3efd4ec7ec9ec2b63881c63ba63d15b7d5fd62acf4baab49e174446355d0"
+    },
+    "note": "Earlier calibration/failure logs retain their before-byte-fix freeze or original watchdog fixture; only final twenty is the current final-source qualification."
+  },
+  {
+    "name": "final twenty consecutive",
+    "command": "env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep ./cmd/gomad -run ^TestCLI -count=20 -v",
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "environment": {
+      "removed": [
+        "GOROOT",
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED"
+      ],
+      "set": {
+        "GOWORK": "off"
+      }
+    },
+    "exit": 0,
+    "log": "consecutive-20-final.log",
+    "log_sha256": "5e33b1dd96d616c8f059bcd14648912ca87cf1c297c9e9cd4aa520cea7d9eecb",
+    "source_freeze": {
+      "tools/gomad3/cmd/gomad/e2e_test.go": "265ed44eb99a86e99ce8deeb4c6c24acc99264d57da60c27040de9c2ae94c4dc",
+      "tools/gomad3/cmd/gomad/testdata/campaign/main.go": "1d91a27154a10401d2585e251b7fee87ea9580bd8917f9c88a87a5c39bcfbd4c",
+      ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md": "4776678bd80edd1acd406060925f3780ef8cde38df6ded6ecf8a1278c556bc65"
+    },
+    "note": "20 explore/replay,20 kill/resume,40 exact-boundary coordinator kills,120 semantic record comparisons; zero failures,239.661s."
+  },
+  {
+    "name": "full host default stock lookup",
+    "command": "make -C tools/gomad3 test-host",
+    "cwd": "/Users/stephan/Workspace/temporal/gomad",
+    "environment": {
+      "removed": [
+        "GOROOT",
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED"
+      ],
+      "set": {
+        "PATH_prefix": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin",
+        "GOTOOLCHAIN": "local",
+        "GOWORK": "off",
+        "GOFLAGS": "-tags=test_dep"
+      }
+    },
+    "exit": 2,
+    "log": "test-host-final.log",
+    "log_sha256": "661b4bd158bbbb742c29f262e234ab1a00178ab467b386aaf59dafed3c6240d2",
+    "source_freeze": {
+      "tools/gomad3/cmd/gomad/e2e_test.go": "265ed44eb99a86e99ce8deeb4c6c24acc99264d57da60c27040de9c2ae94c4dc",
+      "tools/gomad3/cmd/gomad/testdata/campaign/main.go": "1d91a27154a10401d2585e251b7fee87ea9580bd8917f9c88a87a5c39bcfbd4c",
+      ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md": "4776678bd80edd1acd406060925f3780ef8cde38df6ded6ecf8a1278c556bc65"
+    },
+    "note": "FAIL: model filesystem/TCP default stock lookup resolved patched Go; tracked by fn-112.12. cmd/gomad itself passed31.292s."
+  },
+  {
+    "name": "full host explicit stock",
+    "command": "make -C tools/gomad3 test-host",
+    "cwd": "/Users/stephan/Workspace/temporal/gomad",
+    "environment": {
+      "removed": [
+        "GOROOT",
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED"
+      ],
+      "set": {
+        "PATH_prefix": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin",
+        "GOTOOLCHAIN": "local",
+        "GOWORK": "off",
+        "GOFLAGS": "-tags=test_dep",
+        "GOMAD3_STOCK_GO": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go"
+      }
+    },
+    "exit": 0,
+    "log": "test-host-explicit-stock-final.log",
+    "log_sha256": "af815a4f87cd7624d8120c24daa0c0d54c801d3bde24e2084a150e8d892470de",
+    "source_freeze": {
+      "tools/gomad3/cmd/gomad/e2e_test.go": "265ed44eb99a86e99ce8deeb4c6c24acc99264d57da60c27040de9c2ae94c4dc",
+      "tools/gomad3/cmd/gomad/testdata/campaign/main.go": "1d91a27154a10401d2585e251b7fee87ea9580bd8917f9c88a87a5c39bcfbd4c",
+      ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md": "4776678bd80edd1acd406060925f3780ef8cde38df6ded6ecf8a1278c556bc65"
+    },
+    "note": "PASS with explicit stock Go pin; runner109.519s,execution73.543s; includes the new CLI suite."
+  },
+  {
+    "name": "focused vet",
+    "command": "env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go vet -tags test_dep ./cmd/gomad ./cmd/gomad/testdata/campaign",
+    "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+    "environment": {
+      "removed": [
+        "GOROOT",
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED"
+      ],
+      "set": {
+        "GOWORK": "off"
+      }
+    },
+    "exit": 0,
+    "log": "vet-final.log",
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_freeze": {
+      "tools/gomad3/cmd/gomad/e2e_test.go": "265ed44eb99a86e99ce8deeb4c6c24acc99264d57da60c27040de9c2ae94c4dc",
+      "tools/gomad3/cmd/gomad/testdata/campaign/main.go": "1d91a27154a10401d2585e251b7fee87ea9580bd8917f9c88a87a5c39bcfbd4c",
+      ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md": "4776678bd80edd1acd406060925f3780ef8cde38df6ded6ecf8a1278c556bc65"
+    },
+    "note": null
+  },
+  {
+    "name": "format",
+    "command": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/gofmt -l tools/gomad3/cmd/gomad/e2e_test.go tools/gomad3/cmd/gomad/testdata/campaign/main.go",
+    "cwd": "/Users/stephan/Workspace/temporal/gomad",
+    "environment": {},
+    "exit": 0,
+    "log": "format-final.log",
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_freeze": {
+      "tools/gomad3/cmd/gomad/e2e_test.go": "265ed44eb99a86e99ce8deeb4c6c24acc99264d57da60c27040de9c2ae94c4dc",
+      "tools/gomad3/cmd/gomad/testdata/campaign/main.go": "1d91a27154a10401d2585e251b7fee87ea9580bd8917f9c88a87a5c39bcfbd4c",
+      ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md": "4776678bd80edd1acd406060925f3780ef8cde38df6ded6ecf8a1278c556bc65"
+    },
+    "note": "Exit0 and no unformatted files."
+  },
+  {
+    "name": "root lint None",
+    "command": "make lint-code-fast GOLANGCI_LINT_FIX=false",
+    "cwd": "/Users/stephan/Workspace/temporal/gomad",
+    "environment": {
+      "removed": [
+        "GOROOT"
+      ],
+      "set": {
+        "PATH_prefix": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin",
+        "GOTOOLCHAIN": "local",
+        "GOWORK": "off"
+      }
+    },
+    "exit": 2,
+    "log": "root-lint-default-final.log",
+    "log_sha256": "4a229d95b641928fde380a270b031f2428d29853bba5b947dbb38a2d711596a5",
+    "source_freeze": {
+      "tools/gomad3/cmd/gomad/e2e_test.go": "265ed44eb99a86e99ce8deeb4c6c24acc99264d57da60c27040de9c2ae94c4dc",
+      "tools/gomad3/cmd/gomad/testdata/campaign/main.go": "1d91a27154a10401d2585e251b7fee87ea9580bd8917f9c88a87a5c39bcfbd4c",
+      ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md": "4776678bd80edd1acd406060925f3780ef8cde38df6ded6ecf8a1278c556bc65"
+    },
+    "note": "Blocked by missing main commit."
+  },
+  {
+    "name": "root lint HEAD",
+    "command": "make lint-code-fast GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=HEAD",
+    "cwd": "/Users/stephan/Workspace/temporal/gomad",
+    "environment": {
+      "removed": [
+        "GOROOT"
+      ],
+      "set": {
+        "PATH_prefix": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin",
+        "GOTOOLCHAIN": "local",
+        "GOWORK": "off"
+      }
+    },
+    "exit": 2,
+    "log": "root-lint-head-final.log",
+    "log_sha256": "69400261996ec41707b924b9379b094b67e800c564d4099a8c7f5762ad0de8a6",
+    "source_freeze": {
+      "tools/gomad3/cmd/gomad/e2e_test.go": "265ed44eb99a86e99ce8deeb4c6c24acc99264d57da60c27040de9c2ae94c4dc",
+      "tools/gomad3/cmd/gomad/testdata/campaign/main.go": "1d91a27154a10401d2585e251b7fee87ea9580bd8917f9c88a87a5c39bcfbd4c",
+      ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md": "4776678bd80edd1acd406060925f3780ef8cde38df6ded6ecf8a1278c556bc65"
+    },
+    "note": "Reaches golangci-lint; nested-module/testdata package discovery fails, linter exit7, make exit2. No claim of lint success; autofix disabled to preserve frozen sources."
+  }
+]

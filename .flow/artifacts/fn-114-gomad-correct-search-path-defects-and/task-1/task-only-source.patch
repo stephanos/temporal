@@ -1,0 +1,153 @@
+--- a/tools/gomad3/runner/runner_test.go
++++ b/tools/gomad3/runner/runner_test.go
+@@ -1093,6 +1093,92 @@
+ 	}
+ 	if len(batch.Executions) != 2 || batch.Record.RecoveryExecutions != 1 {
+ 		t.Fatalf("resumed exploration batch = %#v", batch)
++	}
++}
++
++func TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound(t *testing.T) {
++	preparer := newFakePreparer(t)
++	limit := choiceTraceLimit(t, 1)
++	executor := &explorationDivergenceExecutor{
++		exploration:      &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, alternatives: 4},
++		beforeDivergence: make(chan struct{}), afterDivergence: make(chan struct{}),
++	}
++	config := testConfig(t, preparer, executor, "7", PolicyAll, 3)
++	config.Strategy = StrategyChoiceExploration
++	config.ChoiceTraceLimit = limit
++	config.MaxExecutions = 8
++	config.MaxChoiceDepth = 4
++	config.MaxExplorationBytes = 1 << 20
++
++	partial, err := Explore(context.Background(), config)
++	var hostErr *HostError
++	var divergence *execution.ChoiceReplayDivergenceError
++	if !errors.As(err, &hostErr) || hostErr.Reason != "target_supervision" || !errors.As(err, &divergence) || !errors.Is(err, execution.ErrChoiceReplayDivergence) {
++		t.Fatalf("diverging exploration error = %v", err)
++	}
++	if divergence.Divergence.Ordinal != 0 || divergence.Divergence.Reason != choice.DivergenceAlternativeSet || divergence.Divergence.Expected == nil || divergence.Divergence.Observed == nil {
++		t.Fatalf("injected divergence = %#v", divergence.Divergence)
++	}
++	if partial.Attempted != 1 || partial.Succeeded != 1 || partial.Failures != 0 || partial.ReplayDivergences != 0 || partial.ChoiceExploration == nil || partial.ChoiceExploration.CommittedRounds != 1 {
++		t.Fatalf("diverging exploration committed sibling results: %#v", partial)
++	}
++	if len(partial.Artifacts) != 0 || len(partial.SuccessArtifacts) != 0 {
++		t.Fatalf("diverging exploration retained candidate artifacts: %#v", partial)
++	}
++	lifecycle, err := campaign.InspectCampaignLifecycle(partial.CampaignPath)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if lifecycle.Published || !lifecycle.Resumable || lifecycle.Reason != "target_supervision" {
++		t.Fatalf("diverging campaign lifecycle = %#v", lifecycle)
++	}
++	rounds, err := os.ReadDir(filepath.Join(partial.CampaignPath, "choice-exploration", "rounds"))
++	if err != nil {
++		t.Fatal(err)
++	}
++	if len(rounds) != 1 || rounds[0].Name() != "00000000000000000000" {
++		t.Fatalf("committed rounds = %v, want only the root", rounds)
++	}
++	staged := filepath.Join(partial.CampaignPath, ".partial", "choice-exploration", "00000000000000000001")
++	for _, name := range []string{"segment.json", "executions"} {
++		if _, err := os.Stat(filepath.Join(staged, name)); !errors.Is(err, os.ErrNotExist) {
++			t.Fatalf("uncommitted round retained %s: %v", name, err)
++		}
++	}
++	executor.exploration.mu.Lock()
++	requests := append([]execution.Spec(nil), executor.exploration.requests...)
++	executor.exploration.mu.Unlock()
++	if len(requests) != 4 {
++		t.Fatalf("executions = %d, want the root and all three prefix candidates", len(requests))
++	}
++	for _, request := range requests[1:] {
++		rank := request.Choice.ReplayPlan.Decisions[0].Selected
++		data, err := os.ReadFile(filepath.Join(filepath.Dir(request.Dir), "partial.json"))
++		if err != nil {
++			t.Fatal(err)
++		}
++		var state struct {
++			State campaign.ExecutionState `json:"state"`
++		}
++		if err := json.Unmarshal(data, &state); err != nil {
++			t.Fatal(err)
++		}
++		want := campaign.ExecutionCaptured
++		if rank == executor.ranks[0] {
++			want = campaign.ExecutionExited
++		}
++		if state.State != want {
++			t.Fatalf("prefix rank %d state = %q, want %q", rank, state.State, want)
++		}
++		files, err := os.ReadDir(filepath.Dir(request.Dir))
++		if err != nil {
++			t.Fatal(err)
++		}
++		for _, file := range files {
++			if !slices.Contains([]string{"partial.json", "stdout.head", "stderr.head", "work"}, file.Name()) {
++				t.Fatalf("prefix rank %d retained candidate evidence %q", rank, file.Name())
++			}
++		}
+ 	}
+ }
+ 
+@@ -2035,6 +2121,57 @@
+ 	exploration *explorationExecutor
+ }
+ 
++type explorationDivergenceExecutor struct {
++	exploration      *explorationExecutor
++	beforeDivergence chan struct{}
++	afterDivergence  chan struct{}
++	ranks            [3]uint32
++}
++
++func (executor *explorationDivergenceExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
++	result, err := executor.exploration.Run(ctx, request)
++	if err != nil {
++		return result, err
++	}
++	if request.Choice.Mode != choice.ModePrefix {
++		index := 0
++		for rank := uint32(0); rank < 4; rank++ {
++			if rank != result.ChoiceTrace.Trace.Records[0].Selected {
++				executor.ranks[index] = rank
++				index++
++			}
++		}
++		return result, nil
++	}
++	expected := request.Choice.ReplayPlan.Decisions[0]
++	switch expected.Selected {
++	case executor.ranks[0]:
++		select {
++		case <-executor.beforeDivergence:
++		case <-ctx.Done():
++			return execution.Result{}, ctx.Err()
++		}
++		defer close(executor.afterDivergence)
++		observed := expected
++		observed.AlternativeSetDigest = sha256.Sum256([]byte("changed alternatives"))
++		return processResult(125, "", ""), &execution.ChoiceReplayDivergenceError{Divergence: choice.Divergence{
++			Ordinal: 0, Reason: choice.DivergenceAlternativeSet, Expected: &expected, Observed: &observed, TapeRecords: 1,
++		}}
++	case executor.ranks[1]:
++		defer close(executor.beforeDivergence)
++	case executor.ranks[2]:
++		select {
++		case <-executor.afterDivergence:
++		case <-ctx.Done():
++			return execution.Result{}, ctx.Err()
++		}
++		if err := ctx.Err(); err != nil {
++			return execution.Result{}, err
++		}
++	}
++	return result, nil
++}
++
+ type simulationExplorationInterruptExecutor struct {
+ 	exploration *simulationExplorationExecutor
+ }

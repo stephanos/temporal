@@ -1,0 +1,25 @@
+=== RUN   TestReplayAndMinimizeRejectRetainedCoverageBinary
+--- PASS: TestReplayAndMinimizeRejectRetainedCoverageBinary (0.38s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner	1.032s
+=== RUN   TestCorpusRejectsCaseWithChangedEnvironment
+    corpus_test.go:286: changed case admission = false, publish guided corpus case: finalize artifact manifest: environment entries must be sorted and unique, replayed = false
+--- FAIL: TestCorpusRejectsCaseWithChangedEnvironment (0.05s)
+=== RUN   TestIdentityForProjectsCanonicalEnvironmentAcrossSeedsAndProfiles
+--- PASS: TestIdentityForProjectsCanonicalEnvironmentAcrossSeedsAndProfiles (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/corpus	0.426s
+=== RUN   TestPinnedCoverageBuildSettingsRejectInstrumentation
+=== RUN   TestPinnedCoverageBuildSettingsRejectInstrumentation/build
+    coverage_test.go:50: pinned build settings: []record.BuildSetting{record.BuildSetting{Key:"-buildmode", Value:"exe"}, record.BuildSetting{Key:"-compiler", Value:"gc"}, record.BuildSetting{Key:"-tags", Value:"test_dep"}, record.BuildSetting{Key:"CGO_ENABLED", Value:"0"}, record.BuildSetting{Key:"GOARCH", Value:"arm64"}, record.BuildSetting{Key:"GOARM64", Value:"v8.0"}, record.BuildSetting{Key:"GOEXPERIMENT", Value:"nogreenteagc"}, record.BuildSetting{Key:"GOOS", Value:"darwin"}}
+=== RUN   TestPinnedCoverageBuildSettingsRejectInstrumentation/build-cover
+    coverage_test.go:50: pinned build-cover settings: []record.BuildSetting{record.BuildSetting{Key:"-buildmode", Value:"exe"}, record.BuildSetting{Key:"-compiler", Value:"gc"}, record.BuildSetting{Key:"-cover", Value:"true"}, record.BuildSetting{Key:"-tags", Value:"test_dep"}, record.BuildSetting{Key:"CGO_ENABLED", Value:"0"}, record.BuildSetting{Key:"GOARCH", Value:"arm64"}, record.BuildSetting{Key:"GOARM64", Value:"v8.0"}, record.BuildSetting{Key:"GOEXPERIMENT", Value:"nogreenteagc"}, record.BuildSetting{Key:"GOOS", Value:"darwin"}}
+=== RUN   TestPinnedCoverageBuildSettingsRejectInstrumentation/test-cover
+    coverage_test.go:50: pinned test-cover settings: []record.BuildSetting{record.BuildSetting{Key:"-buildmode", Value:"exe"}, record.BuildSetting{Key:"-compiler", Value:"gc"}, record.BuildSetting{Key:"-cover", Value:"true"}, record.BuildSetting{Key:"-tags", Value:"test_dep"}, record.BuildSetting{Key:"CGO_ENABLED", Value:"0"}, record.BuildSetting{Key:"GOARCH", Value:"arm64"}, record.BuildSetting{Key:"GOARM64", Value:"v8.0"}, record.BuildSetting{Key:"GOEXPERIMENT", Value:"nogreenteagc"}, record.BuildSetting{Key:"GOOS", Value:"darwin"}}
+--- PASS: TestPinnedCoverageBuildSettingsRejectInstrumentation (0.60s)
+    --- PASS: TestPinnedCoverageBuildSettingsRejectInstrumentation/build (0.11s)
+    --- PASS: TestPinnedCoverageBuildSettingsRejectInstrumentation/build-cover (0.19s)
+    --- PASS: TestPinnedCoverageBuildSettingsRejectInstrumentation/test-cover (0.28s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/target	1.497s
+FAIL

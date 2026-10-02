@@ -1,0 +1,75 @@
+{
+  "type": "impl_review",
+  "id": "branch",
+  "mode": "codex",
+  "base": "HEAD",
+  "verdict": "SHIP",
+  "session_id": "01a0fb96-3eff-7ae0-841f-fa6aa0df54a3",
+  "model": "gpt-6-astra",
+  "effort": "high",
+  "spec": "codex:gpt-6-astra:high",
+  "timestamp": "2026-10-02T08:13:16.486748Z",
+  "review": "Prior finding #1: fixed\nPrior finding #2: fixed\n\nInterrupted executions now preserve reports with explicit unavailable diagnostics. Comparison validates available traces and identifies the actual baseline repetition.\n\nSaved-report decoding now verifies every execution\u2019s evidence digest, diagnostic status, and trace reference, including baseline consistency. Regression tests cover both prior findings.\n\nPatch/source hashes match; only the three declared repair files changed since round one. Reviewed logs show focused tests, host tests, and prior runtime tests passing. Off-mode identity baselines remain intact. Linux remains unverified; root lint\u2019s discovery limitation remains recorded.\n\nNo surviving findings or new blocking regressions.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R4 | met | Within task 4\u2019s scope: trace localisation and retention remain implemented; interrupted-run publication and saved-report bindings are repaired, with regression coverage and preserved off-mode identities. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "focus": "Re-review fn-112-gomad-determinism-assurance-and-test.4 R4 after the two introduced P2 findings in review-round1.md. No commits are authorized. The authoritative review surface is the exact dirty-tree task4-only.patch and review-source-bindings.json under .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-4/. The patch baseline is HEAD except completed task2 process_unix.go repair, explicitly bound in the bindings file; all other task2 changes are excluded. Read those saved artifacts, not merely the committed diff. This is the same task and reviewer session. First verify source hashes, then inspect all task4 changes and confirm the interrupted-run reporting and saved-report evidence-binding findings are fixed without regressions. Repairs affect only qualification/qualification.go, qualification/diagnostics_test.go, and cmd/gomad/internal/cli/diagnostics_test.go. New tests cover interrupted executions in both orders, all-unavailable runs, baseline iteration2/3, actual CLI publication, and corruption through public DecodeQualificationReport including independently rehashed baseline mismatch. Compare with preserved review-round1.patch and review-round1-source-bindings.json. Evidence: review-repair-red.log shows failures before fixes; review-repair-focused.log and review-repair-test-host.log show final green checks; review-repair-vet.log is clean; make-test-host-runtime.log is the prior full host/runtime green on the same runtime and launcher source; report-off-baseline-bindings.json and report-off-baseline.log bind report identity snapshots to actual HEAD qualification code. Runner plan/Campaign/Artifact off-mode baseline fixtures also pass. Linux remains unverified; root lint's nested-module discovery limitation is explicitly retained, not claimed green. Review only task4 and R4. Do not edit files, commit, spawn bridges, widen scope, or mutate Flow tracking. Return concrete introduced findings with file/line and R-ID or SHIP, with a requirements coverage table and machine-readable verdict marker.",
+  "introduced_count": 0,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "findings": {
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-69b80991b67ac1d901290f7d3f67386e0ad9b4776e81aeef30e3e82d77b7d25b",
+    "reviewKind": "implementation",
+    "backend": "codex",
+    "round": 2,
+    "baseSha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+    "headSha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+    "supersedesReceiptId": "review-3e2e0265682f5a4e9cf876591492a0657a0e12b42de222b24929cad0201352d5",
+    "items": [
+      {
+        "id": "finding-7173f08a439bb09a984216f46b1ab7e8",
+        "ordinal": 2,
+        "severity": "P2",
+        "confidence": 100,
+        "classification": "introduced",
+        "status": "fixed",
+        "title": "Saved-report validation does not enforce diagnostic bindings for subsequent repetitions",
+        "body": "Saved-report validation does not enforce diagnostic bindings for subsequent repetitions. Starting with a valid deterministic diagnostic report, remove the second execution\u2019s `diagnostics`, or change its SHA256 to another syntactically valid hash while retaining its baseline-equal evidence digest. `DecodeQualificationReport` accepts either contradiction and still reports `qualified=true`. Only the baseline reference is bound to evidence; later references receive optional syntax checks.",
+        "rIds": [
+          "R4"
+        ],
+        "anchor": {
+          "path": "tools/gomad3/qualification/qualification.go",
+          "side": "head",
+          "startLine": 351,
+          "baseSha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+          "headSha": "1d7272e654f268f9a45f3fe965918fe2522827c6"
+        },
+        "suggestion": "Require each baseline-equal execution to carry matching diagnostic evidence. Preserve enough per-execution evidence to validate differing repetitions\u2019 bindings too, and test corrupted reports through the public decoder.",
+        "firstSeenReceiptId": "review-3e2e0265682f5a4e9cf876591492a0657a0e12b42de222b24929cad0201352d5",
+        "lastSeenReceiptId": "review-69b80991b67ac1d901290f7d3f67386e0ad9b4776e81aeef30e3e82d77b7d25b"
+      },
+      {
+        "id": "finding-25ae998b18648edfbd218644169ed00a",
+        "ordinal": 1,
+        "severity": "P2",
+        "confidence": 75,
+        "classification": "introduced",
+        "status": "fixed",
+        "title": "A successful baseline followed by a watchdog timeout loses the qualification report",
+        "body": "A successful baseline followed by a watchdog timeout loses the qualification report. Execution deliberately permits an incomplete diagnostic trace for watchdog/cancellation outcomes, producing no diagnostic reference. Both report builders then call `attachDiagnosticComparison`, which rejects that missing reference. The CLI returns an unretained runner error instead of preserving the completed evidence and failure report. Reversing the repetition order behaves differently because a baseline without diagnostics bypasses comparison entirely.",
+        "rIds": [
+          "R4"
+        ],
+        "anchor": {
+          "path": "tools/gomad3/qualification/qualification.go",
+          "side": "head",
+          "startLine": 484,
+          "baseSha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+          "headSha": "1d7272e654f268f9a45f3fe965918fe2522827c6"
+        },
+        "suggestion": "Represent diagnostic unavailability for interrupted executions explicitly. Preserve the failure report and available traces, and compare only complete, validated pairs without claiming localisation for incomplete runs. Cover both repetition orders.",
+        "firstSeenReceiptId": "review-3e2e0265682f5a4e9cf876591492a0657a0e12b42de222b24929cad0201352d5",
+        "lastSeenReceiptId": "review-69b80991b67ac1d901290f7d3f67386e0ad9b4776e81aeef30e3e82d77b7d25b"
+      }
+    ]
+  }
+}

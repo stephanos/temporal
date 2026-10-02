@@ -1,0 +1,757 @@
+diff --git a/.github/workflows/gomad3.yml b/.github/workflows/gomad3.yml
+index cd67cdc3b..f90909451 100644
+--- a/.github/workflows/gomad3.yml
++++ b/.github/workflows/gomad3.yml
+@@ -9,6 +9,7 @@ on:
+       - "go.sum"
+       - "tools/gomad3/**"
+       - "tools/gomad3integration/**"
++      - "tools/gomad3sim/**"
+   push:
+     branches:
+       - main
+@@ -19,6 +20,7 @@ on:
+       - "go.sum"
+       - "tools/gomad3/**"
+       - "tools/gomad3integration/**"
++      - "tools/gomad3sim/**"
+   workflow_dispatch:
+   schedule:
+     - cron: "17 9 * * 1"
+@@ -52,7 +54,6 @@ jobs:
+           go test -count=1 -tags test_dep
+           ./internal/hostexec
+           ./internal/hostfs
+-          ./toolchain
+           ./internal/gomadtool/...
+           ./cmd/gomadtool
+ 
+@@ -72,7 +73,7 @@ jobs:
+ 
+       - name: Build the toolchain and run the conformance tiers qualified on Linux
+         run: >-
+-          make -C tools/gomad3 test-harness test-toolchain intercept-test overlay-test
++          make -C tools/gomad3 test-harness test-toolchain intercept-test overlay-test test-simulation
+           world-test test-builder test-live-capability test-upstream test-runtime
+ 
+       - name: Run the host tier
+@@ -184,6 +185,9 @@ jobs:
+           GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256: ${{ vars.GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256 }}
+         run: make -C tools/gomad3 upgrade-dossier
+ 
++      - name: Run the simulation tier
++        run: make -C tools/gomad3 test-simulation
++
+       - name: Verify portable core qualification evidence
+         run: >-
+           jq -e '
+diff --git a/tools/gomad3/Makefile b/tools/gomad3/Makefile
+index 5b215b825..8d8a827df 100644
+--- a/tools/gomad3/Makefile
++++ b/tools/gomad3/Makefile
+@@ -1,4 +1,4 @@
+-.PHONY: generate clean prune-cache clean-qualifications clock-audit compatibility-pack-qualification compiler-test-compiler core-qualification core-qualification-set intercept-test test-toolchain qualification-set qualification-set-merge runner test-host overlay-test world-test toolchain upgrade-dossier validate validate-toolchain validate-compatibility validate-qualification tests-qualification-generate test-harness test-builder test-live-capability test-runtime test-upstream test
++.PHONY: generate clean prune-cache clean-qualifications clock-audit compatibility-pack-qualification compiler-test-compiler core-qualification core-qualification-set intercept-test test-toolchain test-simulation qualification-set qualification-set-merge runner test-host overlay-test world-test toolchain upgrade-dossier validate validate-toolchain validate-compatibility validate-qualification tests-qualification-generate test-harness test-builder test-live-capability test-runtime test-upstream test
+ 
+ include version_generated.mk
+ 
+@@ -127,10 +127,25 @@ upgrade-dossier: core-qualification
+ test-host: toolchain
+ 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep \
+ 		. ./cmd/... ./runner/... ./qualification/... ./target/... ./record/... ./artifact/... ./choice/... \
+-		./deterministicio/... ./world/... ./toolchain ./toolchain/version ./upgrade/... ./internal/...
++		./deterministicio/... ./world/... ./toolchain/version ./upgrade/... ./internal/...
+ 
++# internal/gomadsim keeps its tests external because testing reaches the
++# package through os.
+ overlay-test: toolchain
+-	.toolchain/bin/go test -tags test_dep internal/gomadfs internal/gomadwire internal/gomadchoicewire internal/gomadio/mount
++	.toolchain/bin/go test -tags test_dep internal/gomadfs internal/gomadwire internal/gomadchoicewire internal/gomadmodelwire \
++		internal/gomadsim internal/gomadio internal/gomadio/mount os cmd/internal/gomadcap
++
++# The gomad3_toolchain tests of the root module's tools/gomad3sim need a seeded
++# runtime, so they run through the exec wrapper. The tests that need the
++# Runner's simulation transport skip there; the integration-tagged Runner test
++# is their executor. The node-clock delay test has a recorded watchdog failure
++# and remains a finding; every other subtest runs here.
++test-simulation: toolchain
++	cd $(CURDIR)/../.. && env -u GOMADSEED CGO_ENABLED=0 GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 \
++		$(CURDIR)/.toolchain/bin/go test -exec $(CURDIR)/internal/gomadtool/conformance/scripts/exec.sh \
++		-count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim
++	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration \
++		-run '^TestRootProcessSimulationUsesRunnerTransport$$/^Test(Scenario|ProcessExploration|ProcessAndInProcess|ProcessBackend(Resets|Routes|Preserves|Crash|Model))' ./runner/internal/execution
+ 
+ world-test:
+ 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go test -race -tags test_dep ./world/...
+@@ -172,5 +187,5 @@ test-upstream: toolchain
+ 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \
+ 		--root=$(CURDIR) --mode=test-upstream --go=$(CURDIR)/.toolchain/bin/go
+ 
+-test: test-harness test-toolchain intercept-test test-host overlay-test world-test test-builder test-live-capability test-runtime test-upstream
++test: test-harness test-toolchain intercept-test test-host overlay-test test-simulation world-test test-builder test-live-capability test-runtime test-upstream
+ 	@printf 'gomad3 all black-box tiers passed\n'
+diff --git a/tools/gomad3/architecture_test.go b/tools/gomad3/architecture_test.go
+index f1abf3d45..d85eb9f7f 100644
+--- a/tools/gomad3/architecture_test.go
++++ b/tools/gomad3/architecture_test.go
+@@ -9,6 +9,7 @@ import (
+ 	"os"
+ 	"os/exec"
+ 	"path/filepath"
++	"regexp"
+ 	"slices"
+ 	"strings"
+ 	"testing"
+@@ -141,7 +142,7 @@ func TestMakeTargetsMatchTheirOwnership(t *testing.T) {
+ 		t.Fatal(err)
+ 	}
+ 	makefile := string(contents)
+-	for _, target := range []string{"clean:", "prune-cache:", "clean-qualifications:", "test-toolchain:", "test-host:", "validate-toolchain:", "validate-compatibility:"} {
++	for _, target := range []string{"clean:", "prune-cache:", "clean-qualifications:", "test-toolchain:", "test-host:", "overlay-test:", "test-simulation:", "validate-toolchain:", "validate-compatibility:"} {
+ 		if !strings.Contains(makefile, "\n"+target) {
+ 			t.Errorf("Makefile is missing %s", target)
+ 		}
+@@ -151,6 +152,11 @@ func TestMakeTargetsMatchTheirOwnership(t *testing.T) {
+ 			t.Errorf("Makefile retains obsolete ownership %q", obsolete)
+ 		}
+ 	}
++	// test-builder runs ./toolchain under stock Go through gomadtool, so the
++	// Makefile names the package once, for the patched toolchain.
++	if recipes := regexp.MustCompile(`(?m)\s\./toolchain(\s|$)`).FindAllString(makefile, -1); len(recipes) != 1 {
++		t.Errorf("Makefile tests ./toolchain in %d recipes, want only test-toolchain", len(recipes))
++	}
+ }
+ 
+ func TestCanonicalJSONHasOnePrivateOwner(t *testing.T) {
+@@ -292,7 +298,7 @@ func TestConformanceRuntimeIsGroupedByBehavior(t *testing.T) {
+ 		t.Errorf("conformance runtime monolith still exists or cannot be checked: %v", err)
+ 	}
+ 	for _, path := range []string{
+-		"runtime_campaign.go", "runtime_clocks.go", "runtime_compatibility.go", "runtime_linking.go",
++		"runtime_campaign.go", "runtime_choice.go", "runtime_clocks.go", "runtime_compatibility.go", "runtime_linking.go",
+ 		"runtime_load.go", "runtime_repeatability.go", "runtime_scheduling.go",
+ 	} {
+ 		if _, err := os.Stat(filepath.Join("internal/gomadtool/conformance", path)); err != nil {
+@@ -443,7 +449,7 @@ func ownerMayImport(owner, importedOwner, importing, imported string) bool {
+ 	}
+ 	allowed := map[string][]string{
+ 		"cli":             {"runner", "qualification", "target", "record", "artifact", "deterministicio", "toolchain", "canonicaljson"},
+-		"developer":       {"compatibility", "qualification", "simulation", "toolchain", "upgrade", "hostexec", "hostfs"},
++		"developer":       {"choice", "compatibility", "qualification", "simulation", "toolchain", "upgrade", "hostexec", "hostfs"},
+ 		"runner":          {"target", "record", "artifact", "choice", "deterministicio", "world", "canonicaljson", "hostexec", "hostfs"},
+ 		"qualification":   {"runner", "target", "record", "artifact", "choice", "deterministicio", "canonicaljson", "hostexec", "hostfs"},
+ 		"target":          {"compatibility", "record", "toolchain", "canonicaljson", "hostexec", "hostfs"},
+diff --git a/tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go b/tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go
+index aa9f1588e..65ad11847 100644
+--- a/tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go
++++ b/tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go
+@@ -325,6 +325,9 @@ func (campaign *runtimeCampaign) execute() error {
+ 	if err := campaign.requireSchedulingBehavior(binaries); err != nil {
+ 		return err
+ 	}
++	if err := campaign.requireChoiceReplay(binaries["choice-replay"]); err != nil {
++		return err
++	}
+ 	return campaign.requireRepeatability(binaries)
+ }
+ 
+diff --git a/tools/gomad3/internal/gomadtool/conformance/runtime_choice.go b/tools/gomad3/internal/gomadtool/conformance/runtime_choice.go
+new file mode 100644
+index 000000000..f1dba6d2a
+--- /dev/null
++++ b/tools/gomad3/internal/gomadtool/conformance/runtime_choice.go
+@@ -0,0 +1,175 @@
++package conformance
++
++import (
++	"crypto/sha256"
++	"encoding/binary"
++	"errors"
++	"fmt"
++	"os"
++	"path/filepath"
++	"regexp"
++	"runtime"
++	"slices"
++	"strconv"
++	"strings"
++	"time"
++
++	"go.temporal.io/server/tools/gomad3/choice"
++)
++
++const (
++	choiceTraceBytes            = 1 << 20
++	choiceTraceHeaderBytes      = 64
++	choiceTraceNextOffset       = 24
++	choiceReplaySelectDecisions = 6
++)
++
++var choiceReplayTranscriptPattern = regexp.MustCompile(`^[LR]{6}$`)
++
++type choiceRun struct {
++	transcript string
++	trace      choice.Trace
++}
++
++// requireChoiceReplay records the fixture's Choice Trace under one seed and
++// replays the Decision Tape projected from it under a seed that selects
++// differently on its own, so an equal transcript can only come from the tape.
++func (campaign *runtimeCampaign) requireChoiceReplay(fixture string) error {
++	identity, err := campaign.choiceIdentity(fixture)
++	if err != nil {
++		return err
++	}
++	recorded, err := campaign.runChoice("choice-replay-record-seed-1", fixture, "1", nil)
++	if err != nil {
++		return err
++	}
++	if !choiceReplayTranscriptPattern.MatchString(recorded.transcript) {
++		return fmt.Errorf("choice replay fixture transcript is malformed: %q", recorded.transcript)
++	}
++	plan, err := choice.ProjectReplayPlan(recorded.trace, identity)
++	if err != nil {
++		return fmt.Errorf("project choice replay fixture tape: %w", err)
++	}
++	if len(plan.Decisions) < choiceReplaySelectDecisions {
++		return fmt.Errorf("choice replay fixture recorded %d branching decisions for %d two-way selects", len(plan.Decisions), choiceReplaySelectDecisions)
++	}
++	var control string
++	for seed := 2; seed <= 9 && control == ""; seed++ {
++		value := strconv.Itoa(seed)
++		unforced, err := campaign.runChoice("choice-replay-control-seed-"+value, fixture, value, nil)
++		if err != nil {
++			return err
++		}
++		if unforced.transcript != recorded.transcript {
++			control = value
++		}
++	}
++	if control == "" {
++		return errors.New("no control seed selected differently from the recorded choice replay fixture")
++	}
++	replayed, err := campaign.runChoice("choice-replay-tape-seed-"+control, fixture, control, &plan)
++	if err != nil {
++		return err
++	}
++	if replayed.transcript != recorded.transcript {
++		return campaign.repeatabilityMismatch("choice tape did not reproduce the recorded transcript under seed "+control, recorded.transcript, replayed.transcript)
++	}
++	observed, err := choice.ProjectReplayPlan(replayed.trace, identity)
++	if err != nil {
++		return fmt.Errorf("project replayed choice trace: %w", err)
++	}
++	if !slices.Equal(observed.Decisions, plan.Decisions) {
++		return fmt.Errorf("choice tape replay under seed %s recorded different decisions than the tape", control)
++	}
++	return nil
++}
++
++func (campaign *runtimeCampaign) choiceIdentity(fixture string) (choice.ExecutionIdentity, error) {
++	target, err := os.ReadFile(fixture)
++	if err != nil {
++		return choice.ExecutionIdentity{}, fmt.Errorf("read choice replay fixture: %w", err)
++	}
++	key, err := os.ReadFile(filepath.Join(campaign.config.Root, ".toolchain", "build-key"))
++	if err != nil {
++		return choice.ExecutionIdentity{}, fmt.Errorf("read gomad3 build key: %w", err)
++	}
++	identity := choice.ExecutionIdentity{
++		TargetSHA256: sha256.Sum256(target), ToolchainBuildKey: strings.TrimSpace(string(key)), GOOS: runtime.GOOS, GOARCH: runtime.GOARCH,
++	}
++	identity.ImplementationSHA256, err = choice.ImplementationIdentity(identity.ToolchainBuildKey)
++	if err != nil {
++		return choice.ExecutionIdentity{}, err
++	}
++	return identity, nil
++}
++
++// runChoice runs the fixture with a Choice Trace and, when a tape is given,
++// in exact replay mode. hostexec passes no extra descriptors, so the shell
++// opens the trace backing, the terminal frame, and the tape and replaces
++// itself with the fixture.
++func (campaign *runtimeCampaign) runChoice(name, fixture, seed string, tape *choice.ReplayPlan) (choiceRun, error) {
++	directory := filepath.Join(campaign.workspace, name)
++	if err := os.Mkdir(directory, 0o700); err != nil {
++		return choiceRun{}, fmt.Errorf("create choice trace directory: %w", err)
++	}
++	tracePath, terminalPath := filepath.Join(directory, "trace"), filepath.Join(directory, "terminal")
++	if err := os.WriteFile(tracePath, choiceTraceBacking(choiceTraceBytes), 0o600); err != nil {
++		return choiceRun{}, fmt.Errorf("write choice trace backing: %w", err)
++	}
++	if err := os.Truncate(tracePath, choiceTraceBytes); err != nil {
++		return choiceRun{}, fmt.Errorf("size choice trace backing: %w", err)
++	}
++	script, arguments, mode := `exec "$0" 3<>"$1" 4>"$2"`, []string{fixture, tracePath, terminalPath}, choice.ModeRecord
++	values := []string{
++		"GOMADSEED=" + seed, "GOMAD3_CHOICE_TRACE_FD=3", "GOMAD3_CHOICE_TERMINAL_FD=4",
++		"GOMAD3_CHOICE_TRACE_BYTES=" + strconv.Itoa(choiceTraceBytes),
++	}
++	if tape != nil {
++		tapePath := filepath.Join(directory, "tape")
++		if err := os.WriteFile(tapePath, tape.Bytes, 0o400); err != nil {
++			return choiceRun{}, fmt.Errorf("write choice tape: %w", err)
++		}
++		script, arguments, mode = script+` 5<"$3"`, append(arguments, tapePath), choice.ModeReplay
++		values = append(values, "GOMAD3_CHOICE_TAPE_FD=5", "GOMAD3_CHOICE_TAPE_BYTES="+strconv.Itoa(len(tape.Bytes)))
++	}
++	values = append(values, "GOMAD3_CHOICE_MODE="+strconv.Itoa(int(mode)))
++	result, err := campaign.command(
++		name, append([]string{"/bin/sh", "-c", script}, arguments...), campaign.testdata, 10*time.Second,
++		[]string{"GOMADSEED", "GOMAD3_IO_PROFILE", "GOMAD3_CHOICE_TRACE_FD", "GOMAD3_CHOICE_TERMINAL_FD", "GOMAD3_CHOICE_TRACE_BYTES", "GOMAD3_CHOICE_MODE", "GOMAD3_CHOICE_TAPE_FD", "GOMAD3_CHOICE_TAPE_BYTES"},
++		values...,
++	)
++	if err != nil {
++		return choiceRun{}, err
++	}
++	backing, err := os.ReadFile(tracePath)
++	if err != nil {
++		return choiceRun{}, fmt.Errorf("read choice trace backing: %w", err)
++	}
++	terminal, err := os.ReadFile(terminalPath)
++	if err != nil {
++		return choiceRun{}, fmt.Errorf("read choice terminal frame: %w", err)
++	}
++	if len(backing) != choiceTraceBytes {
++		return choiceRun{}, fmt.Errorf("%s resized its choice trace backing to %d bytes", name, len(backing))
++	}
++	next := binary.BigEndian.Uint64(backing[choiceTraceNextOffset : choiceTraceNextOffset+8])
++	if next < choiceTraceHeaderBytes || next > choiceTraceBytes {
++		return choiceRun{}, fmt.Errorf("%s published choice trace offset %d", name, next)
++	}
++	trace, err := choice.DecodeTrace(backing[choiceTraceHeaderBytes:next], terminal, choiceTraceBytes)
++	if err != nil {
++		return choiceRun{}, fmt.Errorf("decode %s choice trace: %w", name, err)
++	}
++	return choiceRun{transcript: commandOutput(result), trace: trace}, nil
++}
++
++// choiceTraceBacking builds the empty v2 trace header the runtime maps: the
++// magic, the wire version, the capacity, and a next offset just past the header.
++func choiceTraceBacking(capacity uint64) []byte {
++	header := make([]byte, choiceTraceHeaderBytes)
++	copy(header, "GOMADCH\x02")
++	binary.BigEndian.PutUint32(header[8:12], 2)
++	binary.BigEndian.PutUint64(header[16:24], capacity)
++	binary.BigEndian.PutUint64(header[choiceTraceNextOffset:choiceTraceNextOffset+8], choiceTraceHeaderBytes)
++	return header
++}
+diff --git a/tools/gomad3/runner/internal/execution/process_test.go b/tools/gomad3/runner/internal/execution/process_test.go
+index 81faf15e1..4610054b1 100644
+--- a/tools/gomad3/runner/internal/execution/process_test.go
++++ b/tools/gomad3/runner/internal/execution/process_test.go
+@@ -78,6 +78,47 @@ func TestRunTransportsSimulationExplorationPlanAndRecords(t *testing.T) {
+ 	}
+ }
+ 
++func TestRunKeepsNodeModelTransportAliveDuringGracefulStop(t *testing.T) {
++	ctx, cancel := context.WithCancel(context.Background())
++	defer cancel()
++	var cleanupContext context.Context
++	result, err := Run(ctx, Spec{
++		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
++		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
++		Command:           os.Args[0], Args: targetHelperArgs("simulation-coordinator"), Argv0: "gomad3-target", Dir: t.TempDir(),
++		Env: []string{"GOMAD3_SIMULATION_CASE=stop-model"}, ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
++		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
++		Simulation: &SimulationCapability{
++			Role: SimulationRoleNode, Bootstrap: []byte("node-bootstrap"), hardCrash: make(chan struct{}),
++			time: func(_ context.Context, request simulationTimeRequest) (simulationTimeResponse, error) {
++				return simulationTimeResponse{Generation: request.Generation, Kind: simulationTimeAdvance, Time: request.Current}, nil
++			},
++			handler: func(transportCtx context.Context, frame simulationFrame) (simulationFrame, error) {
++				if frame.Kind == simulationFrameActivated {
++					cancel()
++				}
++				if frame.Kind == simulationFrameModel {
++					cleanupContext = transportCtx
++					if err := transportCtx.Err(); err != nil {
++						return simulationFrame{}, err
++					}
++					return simulationFrame{Payload: []byte("cleanup-complete")}, nil
++				}
++				return simulationFrame{}, nil
++			},
++		},
++	})
++	if err != nil {
++		t.Fatal(err)
++	}
++	if result.Termination != TerminationExit || result.ExitCode != 0 || !result.GroupGone || result.WatchdogTimeout {
++		t.Fatalf("graceful-stop result = %#v", result)
++	}
++	if cleanupContext == nil || !errors.Is(cleanupContext.Err(), context.Canceled) {
++		t.Fatal("node transport remained active after process exit")
++	}
++}
++
+ func TestRunInstallsBoundedIOConfigurationDescriptor(t *testing.T) {
+ 	result, err := Run(context.Background(), Spec{
+ 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
+@@ -1140,6 +1181,30 @@ func runSimulationProcessHelper() {
+ 			if _, readErr := readSimulationFrame(response); readErr != nil {
+ 				os.Exit(47)
+ 			}
++			if frame.Kind == simulationFrameActivated && os.Getenv("GOMAD3_SIMULATION_CASE") == "stop-model" {
++				controlDescriptor, controlErr := strconv.Atoi(os.Getenv(simulationControlFDEnvironmentName))
++				if controlErr != nil {
++					os.Exit(55)
++				}
++				var stop [1]byte
++				if _, readErr := io.ReadFull(os.NewFile(uintptr(controlDescriptor), "simulation-control"), stop[:]); readErr != nil || stop[0] != 1 {
++					os.Exit(56)
++				}
++				requestDescriptor, requestErr := strconv.Atoi(os.Getenv(simulationModelRequestFDEnvironmentName))
++				responseDescriptor, responseErr := strconv.Atoi(os.Getenv(simulationModelResponseFDEnvironmentName))
++				if requestErr != nil || responseErr != nil {
++					os.Exit(57)
++				}
++				modelRequest := os.NewFile(uintptr(requestDescriptor), "simulation-model-request")
++				modelResponse := os.NewFile(uintptr(responseDescriptor), "simulation-model-response")
++				if writeErr := writeSimulationModelTransportFrame(modelRequest, simulationFrame{Kind: simulationFrameModel, Request: 1, Node: "node", Incarnation: 1, Payload: []byte("cleanup")}); writeErr != nil {
++					os.Exit(58)
++				}
++				answer, readErr := readSimulationModelTransportFrame(modelResponse)
++				if readErr != nil || answer.Error != "" || string(answer.Payload) != "cleanup-complete" {
++					os.Exit(59)
++				}
++			}
+ 		}
+ 		if os.Getenv("GOMAD3_SIMULATION_CASE") == "crash" {
+ 			select {}
+diff --git a/tools/gomad3/runner/internal/execution/process_unix.go b/tools/gomad3/runner/internal/execution/process_unix.go
+index 06c89eba6..2f2844b2d 100644
+--- a/tools/gomad3/runner/internal/execution/process_unix.go
++++ b/tools/gomad3/runner/internal/execution/process_unix.go
+@@ -369,19 +369,23 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
+ 	var simulationModelsServed <-chan error
+ 	var simulationTimeServed <-chan error
+ 	var simulationBootstrapWritten <-chan error
+-	simulationTimeCtx := ctx
+-	cancelSimulationTime := func() {}
++	simulationTransportCtx := ctx
++	cancelSimulationTransport := func() {}
+ 	if request.Simulation != nil {
+-		simulationTimeCtx, cancelSimulationTime = context.WithCancel(ctx)
+-		defer cancelSimulationTime()
++		if request.Simulation.Role == SimulationRoleNode {
++			// Graceful node cleanup still needs model and time replies until exit.
++			simulationTransportCtx = context.WithoutCancel(ctx)
++		}
++		simulationTransportCtx, cancelSimulationTransport = context.WithCancel(simulationTransportCtx)
++		defer cancelSimulationTransport()
+ 		served := make(chan error, 1)
+ 		go func() {
+-			served <- serveSimulation(ctx, simulationRequestRead, simulationResponseWrite, request.Simulation.handler, request.Simulation.accepting, request.Simulation.delivering, request.Simulation.responded, request.Simulation.arrived)
++			served <- serveSimulation(simulationTransportCtx, simulationRequestRead, simulationResponseWrite, request.Simulation.handler, request.Simulation.accepting, request.Simulation.delivering, request.Simulation.responded, request.Simulation.arrived)
+ 		}()
+ 		simulationServed = served
+ 		timeServed := make(chan error, 1)
+ 		go func() {
+-			timeServed <- serveSimulationTime(simulationTimeCtx, simulationTimeRequestRead, simulationTimeResponseWrite, request.Simulation.time)
++			timeServed <- serveSimulationTime(simulationTransportCtx, simulationTimeRequestRead, simulationTimeResponseWrite, request.Simulation.time)
+ 		}()
+ 		simulationTimeServed = timeServed
+ 		if simulationBootstrapWrite != nil {
+@@ -397,7 +401,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
+ 			simulationBootstrapWritten = written
+ 			modelsServed := make(chan error, 1)
+ 			go func() {
+-				modelsServed <- serveSimulationModels(ctx, simulationModelRequestHost, simulationModelResponseHost, request.Simulation.handler, request.Simulation.delivering, request.Simulation.responded)
++				modelsServed <- serveSimulationModels(simulationTransportCtx, simulationModelRequestHost, simulationModelResponseHost, request.Simulation.handler, request.Simulation.delivering, request.Simulation.responded)
+ 			}()
+ 			simulationModelsServed = modelsServed
+ 		}
+@@ -529,7 +533,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
+ 		}
+ 	}
+ 	close(contextDone)
+-	cancelSimulationTime()
++	cancelSimulationTransport()
+ 	signalSupervisor(0)
+ 	identity := <-identities
+ 	decodedReports := <-reports
+diff --git a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_model_test.go b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_model_test.go
+index 933c2196b..531e0f97d 100644
+--- a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_model_test.go
++++ b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_model_test.go
+@@ -1,17 +1,24 @@
+ package gomadsim_test
+ 
+ import (
++	"context"
+ 	"encoding/binary"
+ 	"errors"
+ 	"io"
+ 	"os"
+-	"strconv"
++	"os/exec"
++	"strings"
+ 	"testing"
++	"time"
+ 
+ 	"internal/gomadsim"
+ )
+ 
+ func TestProcessModelExchangeCorrelatesConcurrentResponses(t *testing.T) {
++	if os.Getenv("GOMAD_TEST_PROCESS_MODEL_CHILD") == "1" {
++		testProcessModelExchangeResponses(t)
++		return
++	}
+ 	requestRead, requestWrite, err := os.Pipe()
+ 	if err != nil {
+ 		t.Fatal(err)
+@@ -27,9 +34,17 @@ func TestProcessModelExchangeCorrelatesConcurrentResponses(t *testing.T) {
+ 			}
+ 		}
+ 	})
+-	t.Setenv("GOMAD3_SIMULATION_ROLE", "node")
+-	t.Setenv("GOMAD3_SIMULATION_MODEL_REQUEST_FD", strconv.FormatUint(uint64(requestWrite.Fd()), 10))
+-	t.Setenv("GOMAD3_SIMULATION_MODEL_RESPONSE_FD", strconv.FormatUint(uint64(responseRead.Fd()), 10))
++	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
++	defer cancel()
++	command := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestProcessModelExchangeCorrelatesConcurrentResponses$")
++	for _, entry := range os.Environ() {
++		if strings.HasPrefix(entry, "GOMAD3_SIMULATION_") || strings.HasPrefix(entry, "GOMADSEED=") || strings.HasPrefix(entry, "GOMAD_TEST_PROCESS_MODEL_CHILD=") {
++			continue
++		}
++		command.Env = append(command.Env, entry)
++	}
++	command.Env = append(command.Env, "GOMAD_TEST_PROCESS_MODEL_CHILD=1", "GOMAD3_SIMULATION_ROLE=node", "GOMAD3_SIMULATION_MODEL_REQUEST_FD=3", "GOMAD3_SIMULATION_MODEL_RESPONSE_FD=4")
++	command.ExtraFiles = []*os.File{requestWrite, responseRead}
+ 
+ 	served := make(chan error, 1)
+ 	go func() {
+@@ -58,9 +73,20 @@ func TestProcessModelExchangeCorrelatesConcurrentResponses(t *testing.T) {
+ 			served <- err
+ 			return
+ 		}
+-		third.Response, third.Error = true, "host model failure"
++		third.Response, third.Payload, third.Error = true, nil, "host model failure"
+ 		served <- writeProcessModelTestFrame(responseWrite, third)
+ 	}()
++	output, runErr := command.CombinedOutput()
++	if runErr != nil {
++		t.Fatalf("process model child: %v: %s", runErr, output)
++	}
++	if err := <-served; err != nil {
++		t.Fatal(err)
++	}
++}
++
++func testProcessModelExchangeResponses(t *testing.T) {
++	t.Helper()
+ 	results := make(chan string, 2)
+ 	for _, node := range []string{"first", "second"} {
+ 		go func(node string) {
+@@ -80,9 +106,6 @@ func TestProcessModelExchangeCorrelatesConcurrentResponses(t *testing.T) {
+ 	if !ok || remoteErr != "host model failure" || response != nil {
+ 		t.Fatalf("remote error response = %q, %q, %t", response, remoteErr, ok)
+ 	}
+-	if err := <-served; err != nil {
+-		t.Fatal(err)
+-	}
+ }
+ 
+ func readProcessModelTestFrame(source io.Reader) (gomadsim.ModelTransportFrame, error) {
+diff --git a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_time_test.go b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_time_test.go
+index 488ed0c92..30cbc1706 100644
+--- a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_time_test.go
++++ b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_time_test.go
+@@ -2,9 +2,13 @@
+ // Use of this source code is governed by a BSD-style
+ // license that can be found in the LICENSE file.
+ 
+-package gomadsim
++package gomadsim_test
+ 
+-import "testing"
++import (
++	"testing"
++
++	"internal/gomadsim"
++)
+ 
+ func TestProcessRequestBlocksSimulationTime(t *testing.T) {
+ 	tests := map[string]struct {
+@@ -17,7 +21,7 @@ func TestProcessRequestBlocksSimulationTime(t *testing.T) {
+ 	}
+ 	for name, test := range tests {
+ 		t.Run(name, func(t *testing.T) {
+-			if got := processRequestBlocksSimulationTime(test.request); got != test.want {
++			if got := gomadsim.ProcessRequestBlocksSimulationTime(test.request); got != test.want {
+ 				t.Fatalf("processRequestBlocksSimulationTime() = %t, want %t", got, test.want)
+ 			}
+ 		})
+diff --git a/tools/gomad3/toolchain/version/version.json b/tools/gomad3/toolchain/version/version.json
+index d6fe504fd..8d1a4b228 100644
+--- a/tools/gomad3/toolchain/version/version.json
++++ b/tools/gomad3/toolchain/version/version.json
+@@ -148,6 +148,7 @@
+     "src/internal/gomadio/transcript.go",
+     "src/internal/gomadmodelwire/wire_generated.go",
+     "src/internal/gomadmodelwire/wire_generated_test.go",
++    "src/internal/gomadsim/export_test.go",
+     "src/internal/gomadsim/model_transport_generated.go",
+     "src/internal/gomadsim/process.go",
+     "src/internal/gomadsim/process_model.go",
+diff --git a/tools/gomad3sim/controller.go b/tools/gomad3sim/controller.go
+index 2c51de738..03b958ed8 100644
+--- a/tools/gomad3sim/controller.go
++++ b/tools/gomad3sim/controller.go
+@@ -686,10 +686,12 @@ func (cluster *inProcessCluster) scenarioDivergenceLocked(ordinal uint64, expect
+ 	divergence := ReplayDivergence{Dimension: ReplayDimensionScenario, Ordinal: ordinal, ExpectedSHA256: expectedIdentity, ActualSHA256: actualIdentity}
+ 	if expected.ID != "" {
+ 		value := expected
++		value.Identity = expectedIdentity
+ 		divergence.ExpectedScenario = &value
+ 	}
+ 	if actual.ID != "" {
+ 		value := actual
++		value.Identity = actualIdentity
+ 		divergence.ActualScenario = &value
+ 	}
+ 	err := &ReplayDivergenceError{Divergence: divergence}
+diff --git a/tools/gomad3sim/exploration_stock_test.go b/tools/gomad3sim/exploration_stock_test.go
+new file mode 100644
+index 000000000..c303e402e
+--- /dev/null
++++ b/tools/gomad3sim/exploration_stock_test.go
+@@ -0,0 +1,59 @@
++//go:build !gomad3_toolchain
++
++package gomad3sim
++
++import (
++	"encoding/json"
++	"os"
++	"path/filepath"
++	"testing"
++
++	"github.com/stretchr/testify/require"
++)
++
++// The Runner issues exploration plans and reads back exploration decisions,
++// but lives in the nested tools/gomad3 module and shares no code with this
++// package. Its retained vector is the one place both sides are checked against
++// the same bytes. The tagged build runs under a seeded runtime, which replaces
++// the host filesystem, so the vector is read only in the untagged build.
++func TestExplorationIdentitiesMatchRunnerIssuedPlanVector(t *testing.T) {
++	encoded, err := os.ReadFile(filepath.Join("..", "gomad3", "runner", "testdata", "simulation_exploration_plan_vector.json"))
++	require.NoError(t, err)
++	var vector struct {
++		ExecutionSHA256  string              `json:"execution_sha256"`
++		ControllerSHA256 string              `json:"controller_sha256"`
++		BaseSeed         uint64              `json:"base_seed"`
++		Decision         ExplorationDecision `json:"decision"`
++		Forced           uint32              `json:"forced"`
++		RootPlan         string              `json:"root_plan"`
++		ForcedPlan       string              `json:"forced_plan"`
++	}
++	require.NoError(t, json.Unmarshal(encoded, &vector))
++
++	site, alternatives, err := scenarioExplorationIdentities("route", 1, []string{"alpha", "beta"})
++	require.NoError(t, err)
++	decision, err := newExplorationDecision(ExplorationScenario, 0, site, alternatives, 0)
++	require.NoError(t, err)
++	require.Equal(t, vector.Decision, decision)
++
++	root, err := NewExplorationPlan(vector.ExecutionSHA256, vector.ControllerSHA256, vector.BaseSeed, nil)
++	require.NoError(t, err)
++	override, err := NewExplorationOverride(ExplorationScenario, 0, site, alternatives, vector.Forced)
++	require.NoError(t, err)
++	forced, err := NewExplorationPlan(vector.ExecutionSHA256, vector.ControllerSHA256, vector.BaseSeed, []ExplorationOverride{override})
++	require.NoError(t, err)
++	for _, test := range []struct {
++		name   string
++		plan   ExplorationPlan
++		issued string
++	}{{name: "root", plan: root, issued: vector.RootPlan}, {name: "forced", plan: forced, issued: vector.ForcedPlan}} {
++		t.Run(test.name, func(t *testing.T) {
++			computed, err := EncodeExplorationPlan(test.plan)
++			require.NoError(t, err)
++			require.Equal(t, test.issued, string(computed))
++			decoded, err := DecodeExplorationPlan([]byte(test.issued))
++			require.NoError(t, err)
++			require.Equal(t, test.plan, decoded)
++		})
++	}
++}
+diff --git a/tools/gomad3sim/exploration_test.go b/tools/gomad3sim/exploration_test.go
+index 703a80672..fdfd5367e 100644
+--- a/tools/gomad3sim/exploration_test.go
++++ b/tools/gomad3sim/exploration_test.go
+@@ -1,60 +1,11 @@
+ package gomad3sim
+ 
+ import (
+-	"encoding/json"
+-	"os"
+-	"path/filepath"
+ 	"testing"
+ 
+ 	"github.com/stretchr/testify/require"
+ )
+ 
+-// The Runner issues exploration plans and reads back exploration decisions,
+-// but lives in the nested tools/gomad3 module and shares no code with this
+-// package. Its retained vector is the one place both sides are checked against
+-// the same bytes.
+-func TestExplorationIdentitiesMatchRunnerIssuedPlanVector(t *testing.T) {
+-	encoded, err := os.ReadFile(filepath.Join("..", "gomad3", "runner", "testdata", "simulation_exploration_plan_vector.json"))
+-	require.NoError(t, err)
+-	var vector struct {
+-		ExecutionSHA256  string              `json:"execution_sha256"`
+-		ControllerSHA256 string              `json:"controller_sha256"`
+-		BaseSeed         uint64              `json:"base_seed"`
+-		Decision         ExplorationDecision `json:"decision"`
+-		Forced           uint32              `json:"forced"`
+-		RootPlan         string              `json:"root_plan"`
+-		ForcedPlan       string              `json:"forced_plan"`
+-	}
+-	require.NoError(t, json.Unmarshal(encoded, &vector))
+-
+-	site, alternatives, err := scenarioExplorationIdentities("route", 1, []string{"alpha", "beta"})
+-	require.NoError(t, err)
+-	decision, err := newExplorationDecision(ExplorationScenario, 0, site, alternatives, 0)
+-	require.NoError(t, err)
+-	require.Equal(t, vector.Decision, decision)
+-
+-	root, err := NewExplorationPlan(vector.ExecutionSHA256, vector.ControllerSHA256, vector.BaseSeed, nil)
+-	require.NoError(t, err)
+-	override, err := NewExplorationOverride(ExplorationScenario, 0, site, alternatives, vector.Forced)
+-	require.NoError(t, err)
+-	forced, err := NewExplorationPlan(vector.ExecutionSHA256, vector.ControllerSHA256, vector.BaseSeed, []ExplorationOverride{override})
+-	require.NoError(t, err)
+-	for _, test := range []struct {
+-		name   string
+-		plan   ExplorationPlan
+-		issued string
+-	}{{name: "root", plan: root, issued: vector.RootPlan}, {name: "forced", plan: forced, issued: vector.ForcedPlan}} {
+-		t.Run(test.name, func(t *testing.T) {
+-			computed, err := EncodeExplorationPlan(test.plan)
+-			require.NoError(t, err)
+-			require.Equal(t, test.issued, string(computed))
+-			decoded, err := DecodeExplorationPlan([]byte(test.issued))
+-			require.NoError(t, err)
+-			require.Equal(t, test.plan, decoded)
+-		})
+-	}
+-}
+-
+ func TestExplorationPlanCanonicalRoundTripAndDetachedInput(t *testing.T) {
+ 	site, alternatives, err := scenarioExplorationIdentities("route", 1, []string{"alpha", "beta"})
+ 	require.NoError(t, err)
+diff --git a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/export_test.go b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/export_test.go
+new file mode 100644
+index 000000000..0336f3c68
+--- /dev/null
++++ b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/export_test.go
+@@ -0,0 +1,7 @@
++// Copyright 2026 The Go Authors. All rights reserved.
++// Use of this source code is governed by a BSD-style
++// license that can be found in the LICENSE file.
++
++package gomadsim
++
++var ProcessRequestBlocksSimulationTime = processRequestBlocksSimulationTime

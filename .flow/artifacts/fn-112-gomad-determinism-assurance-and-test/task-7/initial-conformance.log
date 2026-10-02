@@ -1,0 +1,9 @@
+=== RUN   TestModelConformanceFilesystem
+    model_conformance_test.go:105: unsupported target capability: package gomad3.test/model_fs imports syscall
+--- FAIL: TestModelConformanceFilesystem (0.22s)
+=== RUN   TestModelConformanceTCP
+    model_conformance_test.go:106: unsupported target capability: package gomad3.test/model_net imports syscall
+--- FAIL: TestModelConformanceTCP (0.22s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	0.993s
+FAIL

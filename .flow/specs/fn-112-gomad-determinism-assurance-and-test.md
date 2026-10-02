@@ -101,6 +101,17 @@ tables, and templated adapter tests are consolidated into table-driven or
 generated form. Consolidation keeps every asserted behavior and removes
 duplicated scaffolding.
 
+### CLI-discovered corrections
+
+The built-CLI layer exposed three existing defects, tracked as tasks 11–13.
+Task 12 repairs native compiler selection in the standard host-test entrypoint.
+Task 11 preserves a verified watchdog or cancellation when no I/O terminal was
+written, while corrupt or ordinary incomplete results still fail. Task 13
+repairs diagnostic replay of valid watchdog artifacts without claiming exact
+replay or substituting live host inputs. Their retained reproductions and
+acceptance criteria belong to the task records. These corrections advance R3
+and R9 (and the host/compiler gate advances R2 and R8).
+
 ## API Contracts
 
 CLI grammar and defaults, recorded formats, canonical bytes for fixed

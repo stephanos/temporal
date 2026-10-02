@@ -1,0 +1,153 @@
+{
+  "run_id": 36945812832,
+  "head_sha": "38957053f1ce342a8797af1803f5f8f6bb53fcad",
+  "platform": {
+    "goarch": "amd64",
+    "goos": "linux"
+  },
+  "expectations_met": false,
+  "supported": 0,
+  "unsupported": 4,
+  "blockers": [
+    {
+      "capability": "linkname:arith_decl.go",
+      "kind": "unapproved_linkname",
+      "source_name": "arith_decl.go",
+      "package": {
+        "import_path": "github.com/remyoudompheng/bigfft",
+        "name": "bigfft"
+      },
+      "policy_disposition": "denied"
+    },
+    {
+      "capability": "import:syscall",
+      "kind": "forbidden_import",
+      "source_name": null,
+      "package": {
+        "import_path": "golang.org/x/sys/unix",
+        "name": "unix"
+      },
+      "policy_disposition": "denied"
+    },
+    {
+      "capability": "foreign:assembly:asm_linux_amd64.s",
+      "kind": "foreign_source",
+      "source_name": "asm_linux_amd64.s",
+      "package": {
+        "import_path": "golang.org/x/sys/unix",
+        "name": "unix"
+      },
+      "policy_disposition": "denied"
+    },
+    {
+      "capability": "linkname:auxv.go",
+      "kind": "unapproved_linkname",
+      "source_name": "auxv.go",
+      "package": {
+        "import_path": "golang.org/x/sys/unix",
+        "name": "unix"
+      },
+      "policy_disposition": "denied"
+    },
+    {
+      "capability": "linkname:syscall_linux.go",
+      "kind": "unapproved_linkname",
+      "source_name": "syscall_linux.go",
+      "package": {
+        "import_path": "golang.org/x/sys/unix",
+        "name": "unix"
+      },
+      "policy_disposition": "denied"
+    },
+    {
+      "capability": "linkname:vgetrandom_linux.go",
+      "kind": "unapproved_linkname",
+      "source_name": "vgetrandom_linux.go",
+      "package": {
+        "import_path": "golang.org/x/sys/unix",
+        "name": "unix"
+      },
+      "policy_disposition": "denied"
+    },
+    {
+      "capability": "import:golang.org/x/sys/unix",
+      "kind": "forbidden_import",
+      "source_name": null,
+      "package": {
+        "import_path": "modernc.org/libc",
+        "name": "libc"
+      },
+      "policy_disposition": "denied"
+    },
+    {
+      "capability": "import:syscall",
+      "kind": "forbidden_import",
+      "source_name": null,
+      "package": {
+        "import_path": "modernc.org/libc",
+        "name": "libc"
+      },
+      "policy_disposition": "denied"
+    },
+    {
+      "capability": "foreign:assembly:abi0_linux_amd64.s",
+      "kind": "foreign_source",
+      "source_name": "abi0_linux_amd64.s",
+      "package": {
+        "import_path": "modernc.org/libc",
+        "name": "libc"
+      },
+      "policy_disposition": "denied"
+    },
+    {
+      "capability": "foreign:assembly:tls_linux_amd64.s",
+      "kind": "foreign_source",
+      "source_name": "tls_linux_amd64.s",
+      "package": {
+        "import_path": "modernc.org/libc",
+        "name": "libc"
+      },
+      "policy_disposition": "denied"
+    },
+    {
+      "capability": "linkname:gomad_linux.go",
+      "kind": "unapproved_linkname",
+      "source_name": "gomad_linux.go",
+      "package": {
+        "import_path": "modernc.org/libc",
+        "name": "libc"
+      },
+      "policy_disposition": "denied"
+    },
+    {
+      "capability": "import:golang.org/x/sys/unix",
+      "kind": "forbidden_import",
+      "source_name": null,
+      "package": {
+        "import_path": "modernc.org/memory",
+        "name": "memory"
+      },
+      "policy_disposition": "denied"
+    },
+    {
+      "capability": "linkname:mmap_unix.go",
+      "kind": "unapproved_linkname",
+      "source_name": "mmap_unix.go",
+      "package": {
+        "import_path": "modernc.org/memory",
+        "name": "memory"
+      },
+      "policy_disposition": "denied"
+    },
+    {
+      "capability": "import:golang.org/x/sys/unix",
+      "kind": "forbidden_import",
+      "source_name": null,
+      "package": {
+        "import_path": "modernc.org/sqlite",
+        "name": "sqlite"
+      },
+      "policy_disposition": "denied"
+    }
+  ]
+}

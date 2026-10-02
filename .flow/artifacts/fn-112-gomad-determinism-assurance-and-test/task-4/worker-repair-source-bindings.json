@@ -1,0 +1,40 @@
+{
+  "head": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+  "toolchain_build_key": "6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee",
+  "sources": {
+    "tools/gomad3/choice/diagnostic.go": "f9fb532dd99695d035e58e94c92ea352688d5df0fd5023513721e66b7317ac27",
+    "tools/gomad3/choice/diagnostic_test.go": "b2b86cd30586aa1d553b467d34931813538a1770acdf09c465c2df8706091a9e",
+    "tools/gomad3/cmd/gomad/internal/cli/cli.go": "ef7e7c0edefd63863930b3298e424c687a9ee1a1aadfa89483b13355d31df134",
+    "tools/gomad3/cmd/gomad/internal/cli/diagnostics_test.go": "548c4f83c84ef2879f38468aa53aa4f3ff0e0495130f04dd18944894c49632d7",
+    "tools/gomad3/cmd/gomad/internal/cli/qualify.go": "05e3a890b2b34bf98f0e7774cdcaa4befee188dc11b450388163c578c098d756",
+    "tools/gomad3/cmd/gomadtool/diagnostic.go": "05fda6be7d114465ff93c0a120a6655cbf0fe54d381d703e65d12970de090d48",
+    "tools/gomad3/cmd/gomadtool/diagnostic_test.go": "848eb9beb8e0c299c5d328131332e757c9c1f490b83201514415654ada740667",
+    "tools/gomad3/cmd/gomadtool/main.go": "4a918279c0145db37a34ac89e458b9d82a8a51e4022132eebc0cecee50745643",
+    "tools/gomad3/internal/gomadtool/conformance/testdata/diagnostic_fault/main.go": "5466b0b013cdd9816e38047ec94963301c13faea61be2c1be1c979fd0a092574",
+    "tools/gomad3/qualification/diagnostics_test.go": "5e9df2120eaad810dd1fd61d822e73c11fa88097b5c03818e3f39b40df330fb4",
+    "tools/gomad3/qualification/qualification.go": "c236bb54627fa0f97bb6087209bc090a26c7a580d8eecef3a0e7c255a43bd8e0",
+    "tools/gomad3/qualification/workload/workload.go": "7395519ce7867e8b7d45d83e409687b44ce58caaa3af77d904f59f4b2a6d381b",
+    "tools/gomad3/runner/campaign_shard_execution.go": "12a4b48478f21d514aa0345186e8720c60233315ec4801f101bce18635c7eb44",
+    "tools/gomad3/runner/coordinator.go": "9caf6acfae6564d4bffc338bc0c9eb5bdc461fd7b7b99fed2c83112a0910cdbe",
+    "tools/gomad3/runner/diagnostic_identity_test.go": "ee8b6f21065055dae0bfef1c31f4ca1c5d0ab65f06a5ba1a3cc330e8a8bd3d93",
+    "tools/gomad3/runner/diagnostics.go": "f07431ec3cdf4799c65d286b3fe72d93c0560885b734982ff3e05679722d0e29",
+    "tools/gomad3/runner/diagnostics_test.go": "ef874640a4414f6fcdd039286465de8890a1fc87a9bcde0ced267c69c64cd976",
+    "tools/gomad3/runner/evidence.go": "b3119b37e950381a43336fdaef020a06a5a664cafb7deaa4da61fd80da9d8ea9",
+    "tools/gomad3/runner/internal/execution/bootstrap_unix.go": "fd907dba3cbd3c75371b63c08225f12fceffdab288572c1f146f520f1324fb53",
+    "tools/gomad3/runner/internal/execution/diagnostics_toolchain_test.go": "7e06035ee913684df64107c9c2292918894ff1984255f103f1e5a98780f383ee",
+    "tools/gomad3/runner/internal/execution/launch_plan_unix.go": "b4ecb04475268ad39a5f08eb24bdb85788e5b79ba3353f30c055e8ff661a02c1",
+    "tools/gomad3/runner/internal/execution/process.go": "b86a0493baac035cf932787853899a112469c9f3708746b29d6cc3af68e4e4a0",
+    "tools/gomad3/runner/internal/execution/process_unix.go": "8ffc8ce2028f161ce57b93bceb3a936fee2a43d4f6c915072383ecca33201543",
+    "tools/gomad3/runner/internal/execution/supervisor_unix.go": "7f7155151a4fedb732891bb458f15bab9bd27b5857d5ad0f0aafd03825ebac70",
+    "tools/gomad3/runner/replay_operation.go": "07a00c35dd7ed09026fb0e6a60a1ca46fe8886711396e26a9aff5d041a87211c",
+    "tools/gomad3/runner/resume.go": "f7667b616441f45cadcc7ac61b8773c8b0eb067632e7b3b0ef151fba8ec36f77",
+    "tools/gomad3/runner/runner.go": "afdae3a7ca56b67b450c561173f7a64b27da375fba3677a5aec4438a2b638d96",
+    "tools/gomad3/runner/testdata/diagnostic-identity-choices.json": "ed2e54a1124dfa250180c59ad3abc4d0da31cdaef6db0f38e65d7f84531db3a9",
+    "tools/gomad3/runner/testdata/diagnostic-identity-plain.json": "7f79df4e3b9c7d655500adebbabb2bacc903986baa00ac506dd076455278bbfd"
+  },
+  "repair_sources": [
+    "tools/gomad3/qualification/qualification.go",
+    "tools/gomad3/qualification/diagnostics_test.go",
+    "tools/gomad3/cmd/gomad/internal/cli/diagnostics_test.go"
+  ]
+}

@@ -1,0 +1,108 @@
+package runner
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
+	"testing"
+
+	"go.temporal.io/server/tools/gomad3/artifact"
+	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+)
+
+func TestDiagnosticsOffPreservesExistingCanonicalIdentities(t *testing.T) {
+	if runtime.GOOS != "darwin" || runtime.GOARCH != "arm64" {
+		t.Skip("retained baseline is darwin/arm64")
+	}
+	for _, traced := range []bool{false, true} {
+		name := "plain"
+		if traced {
+			name = "choices"
+		}
+		t.Run(name, func(t *testing.T) {
+			preparer := newFakePreparer(t)
+			var executor Executor = &fakeExecutor{result: func(uint64) execution.Result { return processResult(1, "baseline output", "baseline failure") }}
+			if traced {
+				executor = &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: 1 << 20, exitCode: 1}
+			}
+			capture := &diagnosticBaselineExecutor{delegate: executor}
+			config := testConfig(t, preparer, capture, "7", PolicyAll, 1)
+			capture.root = config.Artifacts
+			if traced {
+				config.ChoiceTraceLimit = 1 << 20
+			}
+			planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
+			planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath})
+			if err != nil {
+				t.Fatal(err)
+			}
+			planBytes, err := os.ReadFile(planPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+			summary, err := Explore(context.Background(), config)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(summary.Artifacts) != 1 {
+				t.Fatalf("artifacts: %v", summary.Artifacts)
+			}
+			campaignPlan := capture.plan
+			opened, err := artifact.OpenArtifact(summary.Artifacts[0])
+			if err != nil {
+				t.Fatal(err)
+			}
+			manifest := opened.Manifest
+			if err := opened.Close(); err != nil {
+				t.Fatal(err)
+			}
+			manifest.CampaignID = "fixed-campaign"
+			manifest.CreatedAt = "2026-10-02T00:00:00Z"
+			manifest.Host.StartedAt = "2026-10-02T00:00:00Z"
+			manifest.Host.FinishedAt = "2026-10-02T00:00:00Z"
+			manifest.Host.ElapsedNanos = 0
+			encoded, err := canonicaljson.CanonicalJSON(struct {
+				PortablePlan       json.RawMessage `json:"portable_plan"`
+				PortablePlanSHA256 string          `json:"portable_plan_sha256"`
+				CampaignPlan       json.RawMessage `json:"campaign_plan"`
+				Artifact           any             `json:"artifact"`
+			}{json.RawMessage(planBytes), string(planned.SHA256), json.RawMessage(campaignPlan), manifest})
+			if err != nil {
+				t.Fatal(err)
+			}
+			expected, err := os.ReadFile(filepath.Join("testdata", "diagnostic-identity-"+name+".json"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !bytes.Equal(expected, encoded) {
+				t.Fatalf("diagnostics-off canonical identities changed (%s)", name)
+			}
+		})
+	}
+}
+
+type diagnosticBaselineExecutor struct {
+	delegate Executor
+	root     string
+	plan     []byte
+}
+
+func (e *diagnosticBaselineExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
+	paths, err := filepath.Glob(filepath.Join(e.root, "v1", "*", ".prepared", "plan.json"))
+	if err != nil {
+		return execution.Result{}, err
+	}
+	if len(paths) != 1 {
+		return execution.Result{}, fmt.Errorf("campaign plan paths: %v", paths)
+	}
+	e.plan, err = os.ReadFile(paths[0])
+	if err != nil {
+		return execution.Result{}, err
+	}
+	return e.delegate.Run(ctx, request)
+}

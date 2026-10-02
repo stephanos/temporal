@@ -1,0 +1,62 @@
+=== RUN   TestModelDeclaredDifferencesAreNarrow
+=== RUN   TestModelDeclaredDifferencesAreNarrow/darwin/arm64
+=== RUN   TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size
+=== RUN   TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size/directory-mode
+=== RUN   TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size/directory-kind
+=== RUN   TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size/directory-name
+=== RUN   TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size/error-class
+=== RUN   TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size/operation
+=== RUN   TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size/regular-file-size
+=== RUN   TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size/other-directory-size
+=== RUN   TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size/payload
+=== RUN   TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size/byte-count
+=== RUN   TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size/unknown-metadata
+=== RUN   TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size/negative-size
+=== RUN   TestModelDeclaredDifferencesAreNarrow/linux/amd64
+=== RUN   TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size
+=== RUN   TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size/directory-mode
+=== RUN   TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size/directory-kind
+=== RUN   TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size/directory-name
+=== RUN   TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size/error-class
+=== RUN   TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size/operation
+=== RUN   TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size/regular-file-size
+=== RUN   TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size/other-directory-size
+=== RUN   TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size/payload
+=== RUN   TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size/byte-count
+=== RUN   TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size/unknown-metadata
+=== RUN   TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size/negative-size
+--- PASS: TestModelDeclaredDifferencesAreNarrow (0.00s)
+    --- PASS: TestModelDeclaredDifferencesAreNarrow/darwin/arm64 (0.00s)
+        --- PASS: TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size (0.00s)
+            --- PASS: TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size/directory-mode (0.00s)
+            --- PASS: TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size/directory-kind (0.00s)
+            --- PASS: TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size/directory-name (0.00s)
+            --- PASS: TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size/error-class (0.00s)
+            --- PASS: TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size/operation (0.00s)
+            --- PASS: TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size/regular-file-size (0.00s)
+            --- PASS: TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size/other-directory-size (0.00s)
+            --- PASS: TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size/payload (0.00s)
+            --- PASS: TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size/byte-count (0.00s)
+            --- PASS: TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size/unknown-metadata (0.00s)
+            --- PASS: TestModelDeclaredDifferencesAreNarrow/darwin/arm64/directory-size/negative-size (0.00s)
+    --- PASS: TestModelDeclaredDifferencesAreNarrow/linux/amd64 (0.00s)
+        --- PASS: TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size (0.00s)
+            --- PASS: TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size/directory-mode (0.00s)
+            --- PASS: TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size/directory-kind (0.00s)
+            --- PASS: TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size/directory-name (0.00s)
+            --- PASS: TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size/error-class (0.00s)
+            --- PASS: TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size/operation (0.00s)
+            --- PASS: TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size/regular-file-size (0.00s)
+            --- PASS: TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size/other-directory-size (0.00s)
+            --- PASS: TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size/payload (0.00s)
+            --- PASS: TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size/byte-count (0.00s)
+            --- PASS: TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size/unknown-metadata (0.00s)
+            --- PASS: TestModelDeclaredDifferencesAreNarrow/linux/amd64/directory-size/negative-size (0.00s)
+=== RUN   TestModelShortestDivergenceChecksEveryEarlierPrefix
+--- PASS: TestModelShortestDivergenceChecksEveryEarlierPrefix (0.00s)
+=== RUN   TestModelLogRejectsIncompleteOrMalformedOperations
+    model_conformance_compare_test.go:80: accepted malformed log "{\"operation\":\"read\",\"result\":\"\",\"error\":\"ok\"} {\"extra\":1}"
+--- FAIL: TestModelLogRejectsIncompleteOrMalformedOperations (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	0.373s
+FAIL

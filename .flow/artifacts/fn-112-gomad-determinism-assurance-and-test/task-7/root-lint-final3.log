@@ -1,0 +1,2 @@
+[1;31mGOLANGCI_LINT_BASE_REV=main is not a known commit; fetch it or override GOLANGCI_LINT_BASE_REV[0m
+make: *** [lint-code-fast] Error 1

@@ -1,0 +1,71 @@
+{
+  "type": "impl_review",
+  "id": "branch",
+  "mode": "codex",
+  "base": "HEAD",
+  "verdict": "SHIP",
+  "session_id": "01a0fcc0-9497-7503-b650-66909a2602c7",
+  "model": "gpt-6-astra",
+  "effort": "high",
+  "spec": "codex:gpt-6-astra:high",
+  "timestamp": "2026-10-02T13:17:23.091135Z",
+  "review": "I\u2019ll review the task-only patch and its acceptance and evidence files, then trace the watchdog and cancellation paths. I\u2019ll keep this read-only and won\u2019t run heavy tests or builds.\n\nThe patch adds a distinct error for an empty terminal and exempts it only when validated supervisor results report a watchdog timeout or cancellation. I\u2019m checking the validation and publication paths, plus the evidence hashes, to confirm that corruption still fails and incomplete data is never published as a complete transcript.\n\nNo introduced findings. The absent-terminal exemption is narrow, preserves corruption and error precedence, and leaves incomplete transcripts zero-valued.\n\nIndependently reconstructed the exact six-file patch and verified all 100 evidence bindings and six current source hashes. Reviewed passing collector, process, CLI, and 45-package host logs; no tests or builds were rerun. Native Linux remains unverified.\n\n## Pre-existing issues (not blocking this verdict)\n\n[P2, confidence 75, introduced=false] `tools/gomad3/runner/replay_operation.go:187` \u2014 Diagnostic replay requires a complete transcript.\n\n- **Severity**: P2\n- **Confidence**: 75\n- **Classification**: pre_existing\n- **File:Line**: `tools/gomad3/runner/replay_operation.go:187`\n- **R-IDs**: [R9]\n- **Problem**: Actual replay rejects the valid watchdog artifact with status 3, although inspect and verify-only succeed. The replay source matches the pre-edit source.\n- **Suggestion**: Address through fn-112.13\u2019s explicitly scoped diagnostic replay work.\n\n## Requirements coverage\n\nCoverage is limited to task .11\u2019s assigned contribution.\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R3 | met | Source-bound pre-edit CLI reproduction confirms status 3; corrected execution reports status 1 and `watchdog_observation`. |\n| R9 | met | Four coverage-mode watchdog CLI regressions validate retained artifacts; unchanged explore/replay and kill/resume tests pass. Executable watchdog diagnostic replay remains assigned to fn-112.13. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 1 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":1},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>",
+  "focus": "Review ONLY fn-112-gomad-determinism-assurance-and-test.11: watchdog/cancellation classification when the killed target leaves no IO terminal. Shared dirty checkout has many prior reviewed changes; HEAD is NOT the task baseline. Exact six-file delta is .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-11/task-only.patch SHA256 6747e29911b4e96c988e2b236b2f60e0be52077ddb95b359cc2e164fdffa4d2f, independently reconstructed from actual dirty beforecopies. Read task acceptance and task11 handover-summary.md, handover-evidence.json, evidence-bindings.json, final-integrity.json, parent-final-validation.json and parent-patch-validation.json. Two production edits: absent-only IO terminal sentinel and its exemption only after independently validated supervisor watchdog/cancel report; incomplete transcript remains zero-valued. Corrupt/truncated/checksum/digest/capacity, ordinary incomplete exits, unverified signal and replay divergence must remain fail-closed with precedence preserved. Separate collector/process/real CLI regressions; task8 recovery source unchanged. Original built CLI status3 reproduced before edits; corrected status1 watchdog_observation with valid inspect and verify-only artifact. Actual diagnostic replay still rejects missing transcript status3: pre-existing separately reproduced gap owned by fn-112.13, not claimed fixed here. Final focused tests9.14s, all CLI tests24.58s, all45 fresh host packages132.55s, vet/format/whitespace pass on frozen source. Initial host attempt stopped before tests due old PATH Go; final used installed stock1.27.1 first PATH and no GOMAD3_STOCK_GO override. Known root lint missing-main/nested-module failures retained; native Linux unverified. Toolchain56e4a2f0 unchanged, no rebuild. Read-only review: no edits, git mutations, heavy tests or toolchain builds. Review narrow semantic safety, test adequacy, valid record/artifact publication. Distinguish introduced defects from pre-existing limitations and return independent verdict.",
+  "introduced_count": 0,
+  "pre_existing_count": 1,
+  "unaddressed": [],
+  "findings": {
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-182c477268d8904411de4fad44d42ae99d3af95ba3c4a1b441872602dbf1abe0",
+    "reviewKind": "implementation",
+    "backend": "codex",
+    "round": 1,
+    "baseSha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+    "headSha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+    "items": [
+      {
+        "id": "finding-0c147fc8c3f2e09fb890641b08ddefb9",
+        "ordinal": 1,
+        "severity": "P2",
+        "confidence": 75,
+        "classification": "pre_existing",
+        "status": "open",
+        "title": "Diagnostic replay requires a complete transcript",
+        "body": "Diagnostic replay requires a complete transcript.",
+        "rIds": [],
+        "anchor": {
+          "path": "tools/gomad3/runner/replay_operation.go",
+          "side": "head",
+          "startLine": 187,
+          "baseSha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+          "headSha": "1d7272e654f268f9a45f3fe965918fe2522827c6"
+        },
+        "firstSeenReceiptId": "review-182c477268d8904411de4fad44d42ae99d3af95ba3c4a1b441872602dbf1abe0",
+        "lastSeenReceiptId": "review-182c477268d8904411de4fad44d42ae99d3af95ba3c4a1b441872602dbf1abe0"
+      },
+      {
+        "id": "finding-573a99342d64b55922185f910a542623",
+        "ordinal": 2,
+        "severity": "P2",
+        "confidence": 75,
+        "classification": "pre_existing",
+        "status": "open",
+        "title": "Actual replay rejects the valid watchdog artifact with status 3, although inspect and verify-only succeed",
+        "body": "Actual replay rejects the valid watchdog artifact with status 3, although inspect and verify-only succeed. The replay source matches the pre-edit source.",
+        "rIds": [
+          "R9"
+        ],
+        "anchor": {
+          "path": "tools/gomad3/runner/replay_operation.go",
+          "side": "head",
+          "startLine": 187,
+          "baseSha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+          "headSha": "1d7272e654f268f9a45f3fe965918fe2522827c6"
+        },
+        "suggestion": "Address through fn-112.13\u2019s explicitly scoped diagnostic replay work.",
+        "firstSeenReceiptId": "review-182c477268d8904411de4fad44d42ae99d3af95ba3c4a1b441872602dbf1abe0",
+        "lastSeenReceiptId": "review-182c477268d8904411de4fad44d42ae99d3af95ba3c4a1b441872602dbf1abe0"
+      }
+    ]
+  }
+}

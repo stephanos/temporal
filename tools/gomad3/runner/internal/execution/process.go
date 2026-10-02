@@ -26,6 +26,9 @@ const choiceTerminalFDEnvironmentName = "GOMAD3_CHOICE_TERMINAL_FD"
 const choiceTraceBytesEnvironmentName = "GOMAD3_CHOICE_TRACE_BYTES"
 const choiceTapeFDEnvironmentName = "GOMAD3_CHOICE_TAPE_FD"
 const choiceTapeBytesEnvironmentName = "GOMAD3_CHOICE_TAPE_BYTES"
+const diagnosticTraceFDEnvironmentName = "GOMAD3_DIAGNOSTIC_TRACE_FD"
+const diagnosticTraceBytesEnvironmentName = "GOMAD3_DIAGNOSTIC_TRACE_BYTES"
+
 const ioReadOnlyMountsEnvironmentName = "GOMAD3_IO_RO_MOUNTS"
 
 const (
@@ -48,6 +51,7 @@ type Spec struct {
 	StderrHead        io.Writer
 	World             WorldCapability
 	IO                *IOCapability
+	Diagnostics       bool
 	Choice            *ChoiceCapability
 	Simulation        *SimulationCapability
 }
@@ -102,6 +106,7 @@ type Result struct {
 	WorldRecord       []byte
 	IOTranscript      deterministicio.Transcript
 	IOROMounts        romount.Snapshot
+	DiagnosticTrace   choice.DiagnosticTrace
 	ChoiceTrace       ChoiceTrace
 	SimulationRecords [][]byte
 	// VirtualTimeElapsedNanos is how far the simulation clock advanced past
@@ -178,6 +183,9 @@ func validateSpec(request Spec) error {
 		} else if len(simulation.ExplorationPlan) > maximumSimulationExplorationPlanBytes || simulation.ExplorationRecordLimit == 0 || simulation.ExplorationRecordLimit > maximumSimulationExplorationRecordBytes || simulation.ExplorationRecordCount == 0 || simulation.ExplorationRecordCount > maximumSimulationExplorationRecords {
 			return errors.New("simulation exploration plan or limits are invalid")
 		}
+	}
+	if request.Diagnostics && (request.Choice == nil || request.Choice.Mode != choice.ModeRecord) {
+		return errors.New("diagnostics require choice record mode")
 	}
 	if choiceCapability := request.Choice; choiceCapability != nil {
 		if choiceCapability.Profile != choice.Profile {
@@ -258,7 +266,7 @@ func validateChoiceReplayPlan(tape choice.ReplayPlan, identity choice.ExecutionI
 func validateChoiceEnvironment(environment []string) error {
 	for _, entry := range environment {
 		name, _, _ := strings.Cut(entry, "=")
-		if name == choiceProfileEnvironmentName || name == choiceModeEnvironmentName || name == choiceTraceFDEnvironmentName || name == choiceTerminalFDEnvironmentName || name == choiceTraceBytesEnvironmentName || name == choiceTapeFDEnvironmentName || name == choiceTapeBytesEnvironmentName || name == ioReadOnlyMountsEnvironmentName || name == simulationRoleEnvironmentName || name == simulationRequestFDEnvironmentName || name == simulationResponseFDEnvironmentName || name == simulationBootstrapFDEnvironmentName || name == simulationControlFDEnvironmentName || name == simulationModelRequestFDEnvironmentName || name == simulationModelResponseFDEnvironmentName {
+		if name == diagnosticTraceFDEnvironmentName || name == diagnosticTraceBytesEnvironmentName || name == choice.DiagnosticProfileEnvironment || name == choiceProfileEnvironmentName || name == choiceModeEnvironmentName || name == choiceTraceFDEnvironmentName || name == choiceTerminalFDEnvironmentName || name == choiceTraceBytesEnvironmentName || name == choiceTapeFDEnvironmentName || name == choiceTapeBytesEnvironmentName || name == ioReadOnlyMountsEnvironmentName || name == simulationRoleEnvironmentName || name == simulationRequestFDEnvironmentName || name == simulationResponseFDEnvironmentName || name == simulationBootstrapFDEnvironmentName || name == simulationControlFDEnvironmentName || name == simulationModelRequestFDEnvironmentName || name == simulationModelResponseFDEnvironmentName {
 			return fmt.Errorf("target environment name %q is reserved", name)
 		}
 	}

@@ -49,9 +49,20 @@ Gate for every other task (R1): re-anchor C1 to C4 and E1 to E6 at the start com
 - [ ] Each refuted or changed finding has its owning task annotated with the closure or the narrowed scope
 - [ ] `go -C tools/gomad3 test -tags test_dep ./runner/...` passes with no production file changed
 ## Done summary
-TBD
+Re-anchored all ten search findings against HEAD `1d7272e654f268f9a45f3fe965918fe2522827c6` and the bound uncommitted production files. Eight findings are confirmed. C3 is changed in trigger location with its lost-round symptom reproduced; E4 is changed in the historical two-user premise with its unfiltered alternatives and reported 26 branching decisions confirmed. No finding is refuted and no downstream owner closes on this evidence.
 
+`TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound` characterizes a typed forced-prefix executor divergence returning `HostError{Reason: "target_supervision"}` after all siblings finish. Only the root commits; the failed round has no segment or candidate execution records and publishes no typed divergence evidence. Raw partial output heads, state, candidate/prefix staging data, and work directories survive for recovery. Production code and the protected retention characterization test are unchanged.
+
+Corrected E2's binary-size reference to `.plans/GOMAD_CMP.md:85-86`, distinguished identity `/v1` domains from choice-wire version 2, and located D14/D21 reports. Re-derived D14's 30,936 runnable + 26,865 select-poll = 57,801 decisions and D21 seed 11's 26 branching Runnable decisions. These are historical report counters, not current-toolchain measurements; D21 seed 17 has 29 decisions and its control source starts no goroutine explicitly. Source and reference hashes are retained with `reanchor.md`.
+
+The pre-edit choice baseline, ten C3 repetitions, isolated existing retention case, final complete `./runner/...` gate, focused vet, formatting, and diff checks pass on darwin/arm64. The initial full Runner run hit the existing 100-job retention case's 10-second deadline at 97 executions; its isolated retry passed in 5.27 seconds and the final Runner package passed in 94.549 seconds. Both failure and recovery evidence remain. Root lint fails at default unavailable `main`, then at nested-module discovery with `GOLANGCI_LINT_BASE_REV=HEAD`; it is not reported clean. No runtime rebuild was performed and Linux remains unverified.
+
+The spec and task 4/task 13 annotations were applied through Flow. Implementation review returned SHIP with no findings and task-scoped R1 met; review-round1.json and review-round1.md retain the verdict, and parent-review-bindings.json binds the reviewed files. Runtime reproductions remain task 2. No commit, staging, push, worktree, or unrelated source modification was performed.
+
+stage: impl-review - ran (model: gpt-6-astra at high) - SHIP
+stage: plan-sync - skipped(config: planSync.enabled != true)
+Tracker sync: n/a (bridge inactive)
 ## Evidence
 - Commits:
-- Tests:
+- Tests: env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -tags test_dep ./runner -run '^TestRunChoiceExploration' -count=1, env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -tags test_dep ./runner -run '^TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound$' -count=10 -v, env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -tags test_dep ./runner -run '^TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/discard$' -count=1 -v, env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -tags test_dep ./runner/..., env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT tools/gomad3/.toolchain/bin/go -C tools/gomad3 vet -tags test_dep ./runner/..., git diff --check -- tools/gomad3/runner/runner_test.go, env -u GOROOT /Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/gofmt -l tools/gomad3/runner/runner_test.go
 - PRs:

@@ -1,0 +1,48 @@
+=== RUN   TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors
+=== RUN   TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/normal_error
+=== RUN   TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/cancelled
+=== RUN   TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/typed_cancelled
+=== RUN   TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/overflow
+=== RUN   TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/malformed_trace
+=== RUN   TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/unterminated_trace
+=== RUN   TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/missing_identity
+=== RUN   TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/duplicate_identity
+=== RUN   TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/alternative_capacity
+=== RUN   TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/tape_exhaustion
+=== RUN   TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/typed_watchdog
+=== RUN   TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/wrong_prefix
+=== RUN   TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/malformed_observed
+=== RUN   TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/joined_failure
+--- PASS: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors (2.68s)
+    --- PASS: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/normal_error (0.20s)
+    --- PASS: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/cancelled (0.19s)
+    --- PASS: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/typed_cancelled (0.20s)
+    --- PASS: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/overflow (0.19s)
+    --- PASS: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/malformed_trace (0.19s)
+    --- PASS: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/unterminated_trace (0.19s)
+    --- PASS: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/missing_identity (0.19s)
+    --- PASS: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/duplicate_identity (0.19s)
+    --- PASS: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/alternative_capacity (0.19s)
+    --- PASS: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/tape_exhaustion (0.19s)
+    --- PASS: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/typed_watchdog (0.19s)
+    --- PASS: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/wrong_prefix (0.18s)
+    --- PASS: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/malformed_observed (0.19s)
+    --- PASS: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/joined_failure (0.20s)
+=== RUN   TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons
+=== RUN   TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/kind
+=== RUN   TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/site
+=== RUN   TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/alternatives
+=== RUN   TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/selected
+=== RUN   TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/alternative_set
+=== RUN   TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/tape_unconsumed
+=== RUN   TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/observation
+--- PASS: TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons (3.26s)
+    --- PASS: TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/kind (0.52s)
+    --- PASS: TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/site (0.47s)
+    --- PASS: TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/alternatives (0.45s)
+    --- PASS: TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/selected (0.43s)
+    --- PASS: TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/alternative_set (0.45s)
+    --- PASS: TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/tape_unconsumed (0.48s)
+    --- PASS: TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/observation (0.46s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner	6.357s

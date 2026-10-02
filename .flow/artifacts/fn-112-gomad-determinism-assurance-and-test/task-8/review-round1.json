@@ -1,0 +1,53 @@
+{
+  "type": "impl_review",
+  "id": "branch",
+  "mode": "codex",
+  "base": "HEAD",
+  "verdict": "NEEDS_WORK",
+  "session_id": "01a0fc88-8ceb-77a1-a106-4644b2c68f23",
+  "model": "gpt-6-astra",
+  "effort": "high",
+  "spec": "codex:gpt-6-astra:high",
+  "timestamp": "2026-10-02T12:17:02.431273Z",
+  "review": "I\u2019ll review the exact task-8 patch, trace the final tests, and verify the retained evidence bindings without modifying files or rebuilding the toolchain.\n\nThe final tests assert CLI exit statuses, stop the identified coordinator, verify the journal count is exactly 2 or 0, and wait for owned descendants to exit before resuming. I\u2019m checking the comparison exclusions against the record types and independently hashing the evidence and frozen sources.\n\nAll 111 artifact hashes, three frozen sources, and 60 protected inputs match. The final log contains 20 complete passes, 40 exact-boundary kills, and 120 record comparisons; the host gate passed with the explicit stock compiler. I found a comparison gap: clearing the entire journal also removes its non-wall capacity limits, which the task contract requires to match. I\u2019m checking whether another assertion covers those limits.\n\n- **Severity:** P2\n- **Confidence:** 100\n- **Classification:** introduced\n- **File:Line:** `tools/gomad3/cmd/gomad/e2e_test.go:357`\n- **R-IDs:** [R9]\n- **Problem:** `left.Journal, right.Journal = nil, nil` excludes the journal\u2019s non-wall capacity limits along with its permitted storage differences. These limits are not compared elsewhere. Changing only `Journal.Limits.MaximumBytes` leaves the comparison equal; independent `inspect` validation checks each store\u2019s consistency, not equality between campaigns. This misses the explicit requirement to preserve non-wall resource bounds.\n- **Suggestion:** Assert both journals exist and compare their `Limits` before excluding journal storage metadata.\n\nIndependently verified the exact patch reconstruction, 111 artifact bindings, three frozen sources, 60 protected inputs, 12 retained command statuses, and 21 payload hashes. Retained final logs show 20 complete passes, 40 exact-boundary kills, 120 record comparisons, and a passing host gate with the explicit stock compiler. No files were modified or toolchains rebuilt.\n\nThe documented linux verification gap, root-lint limitations, and separately owned fn-112.11/.12 issues do not affect this verdict.\n\n## Requirements coverage\n\nCoverage is limited to task 8\u2019s assigned requirement.\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R9 | partial | Built CLI explore/replay, exact-count coordinator kills, cleanup, resume, manifest comparisons, and storage validation are covered. Journal capacity-limit equality remains unchecked. |\n\nUnaddressed R-IDs: [R9]\n\nClassification counts: 1 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":1,\"pre_existing\":0},\"unaddressed\":[\"R9\"]}\n```\n\n<verdict>NEEDS_WORK</verdict>",
+  "focus": "Review only fn-112-gomad-determinism-assurance-and-test.8 in this intentionally dirty shared checkout; user forbids commits/staging/worktrees. Writer is gpt-6.1-sol high; you are the independent reviewer tier. The exact review diff is .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-8/task-only.patch, not the whole git diff. It changes only new cmd/gomad/e2e_test.go, new cmd/gomad/testdata/campaign/main.go, and task8 contract clarifications. Original task metadata is before-task-spec.md and both source files were absent per before-sources.json. Parent applied this patch in scratch and verified all output hashes; inspect parent-patch-validation.json and source-freeze.json. Sixty protected prior inputs are bound by parent-protected-source-check.json. Earlier task source edits and other Flow changes are out of scope.\n\nRead current task8 and spec R9, handover-summary.md, handover-evidence.json, evidence-bindings.json, comparison-contract.md, and final raw gate logs under task-8. Verify evidence hash bindings and inspect the actual final source. Review real built CLI explore/replay status assertions, kill of the owned __coordinator (PID/PPID/argv/PGID), stopped exact journal counts 2/0, process cleanup before resume, bounded polling without sleeps, all decoded record and campaign comparisons, per-store actual inspect integrity, and published-campaign resume rejection. Check twenty consecutive complete final runs and full test-host pass on frozen sources. Test-only source changes need no toolchain rebuild; final active pinned build is 56e4a2f0c5514d43b9a0682d030964588dd3d5a58978ba0b989459bb556843a3.\n\nTask contract explicitly excludes Campaign IDs, artifact paths, wall timestamps/elapsed and remaining overall timeout, derived RecordHash, journal storage layout/hashes, and physical retained byte totals from cross-campaign equality. Physical bytes differ with variable-length host-time encodings; each store must independently validate them. All semantic counts, non-wall bounds, outcomes, streams, transcript, World, target/runner/toolchain/environment fields must still match. Confirm this is enforced and no unrelated differences are hidden. World here is the default World identity, not a new populated simulation fixture; I/O transcript is nonempty.\n\nKnown limitations are explicit: native linux/amd64 is unverified; root lint has the pre-existing missing-main/nested-module discovery limitations, while focused formatting/vet and host gates must pass. The initial Gosched watchdog attempt revealed a real supervision error and was replaced by a bounded deterministic fixture for the recovery test; exact red source/log retained and separately owned by fn-112.11, not claimed fixed by 8. Earlier red test iterations are retained, superseded only by bound final tests. Do not grade those red iterations as final source failures. No production source is changed by this task. Do not modify files, commit, run expensive rebuilds, or expand scope. Return your honest structured verdict/findings and unaddressed requirement IDs; distinguish any pre-existing nonblocking findings.\n\nThe first host gate used stock Go first on outer PATH but omitted GOMAD3_STOCK_GO; the new task7 native-oracle fallback resolved the patched go-test driver and correctly rejected it. This inherited standard-entrypoint integration gap is separately tracked as fn-112.12; do not call it a platform limitation or fixed by8. Task8 final full host gate must be green with the explicit pinned stock compiler, the same environment used for task7. Both attempts and exact environments are retained. Parent will execute12 next.\n\nParent additionally validated all111 worker artifact bindings,3 final sources,60 protected inputs, and12 retained command statuses/21 raw payload file hashes. See task-8/parent-review-bindings.json and parent-retained-validation.json. Read-only exact-task review only.",
+  "introduced_count": 1,
+  "pre_existing_count": 0,
+  "unaddressed": [
+    "R9"
+  ],
+  "findings": {
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-38441e4a40de8b4cba0942ce9ca702f58fa566dcac5ae15f4b94ef0b2912502e",
+    "reviewKind": "implementation",
+    "backend": "codex",
+    "round": 1,
+    "baseSha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+    "headSha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+    "items": [
+      {
+        "id": "finding-a8971aec2cf3fa7b151be8f2155ab858",
+        "ordinal": 1,
+        "severity": "P2",
+        "confidence": 100,
+        "classification": "introduced",
+        "status": "open",
+        "title": "`left",
+        "body": "`left.Journal, right.Journal = nil, nil` excludes the journal\u2019s non-wall capacity limits along with its permitted storage differences. These limits are not compared elsewhere. Changing only `Journal.Limits.MaximumBytes` leaves the comparison equal; independent `inspect` validation checks each store\u2019s consistency, not equality between campaigns. This misses the explicit requirement to preserve non-wall resource bounds.",
+        "rIds": [
+          "R9"
+        ],
+        "anchor": {
+          "path": "tools/gomad3/cmd/gomad/e2e_test.go",
+          "side": "head",
+          "startLine": 357,
+          "baseSha": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+          "headSha": "1d7272e654f268f9a45f3fe965918fe2522827c6"
+        },
+        "suggestion": "Assert both journals exist and compare their `Limits` before excluding journal storage metadata.",
+        "firstSeenReceiptId": "review-38441e4a40de8b4cba0942ce9ca702f58fa566dcac5ae15f4b94ef0b2912502e",
+        "lastSeenReceiptId": "review-38441e4a40de8b4cba0942ce9ca702f58fa566dcac5ae15f4b94ef0b2912502e"
+      }
+    ]
+  }
+}

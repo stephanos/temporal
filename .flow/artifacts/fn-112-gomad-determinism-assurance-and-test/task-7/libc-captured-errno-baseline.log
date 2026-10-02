@@ -1,0 +1,5 @@
+=== RUN   TestCapturedLibcDescriptorKeepsClosedErrno
+    anonymous_test.go:99: captured read error=read /tmp/task7-libc-captured: bad file descriptor publicClosed=false
+--- PASS: TestCapturedLibcDescriptorKeepsClosedErrno (0.00s)
+PASS
+ok  	internal/gomadio	0.310s

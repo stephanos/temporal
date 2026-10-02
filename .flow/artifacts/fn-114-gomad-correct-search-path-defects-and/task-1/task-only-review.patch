@@ -1,0 +1,622 @@
+--- a/tools/gomad3/runner/runner_test.go
++++ b/tools/gomad3/runner/runner_test.go
+@@ -1093,6 +1093,92 @@
+ 	}
+ 	if len(batch.Executions) != 2 || batch.Record.RecoveryExecutions != 1 {
+ 		t.Fatalf("resumed exploration batch = %#v", batch)
++	}
++}
++
++func TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound(t *testing.T) {
++	preparer := newFakePreparer(t)
++	limit := choiceTraceLimit(t, 1)
++	executor := &explorationDivergenceExecutor{
++		exploration:      &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, alternatives: 4},
++		beforeDivergence: make(chan struct{}), afterDivergence: make(chan struct{}),
++	}
++	config := testConfig(t, preparer, executor, "7", PolicyAll, 3)
++	config.Strategy = StrategyChoiceExploration
++	config.ChoiceTraceLimit = limit
++	config.MaxExecutions = 8
++	config.MaxChoiceDepth = 4
++	config.MaxExplorationBytes = 1 << 20
++
++	partial, err := Explore(context.Background(), config)
++	var hostErr *HostError
++	var divergence *execution.ChoiceReplayDivergenceError
++	if !errors.As(err, &hostErr) || hostErr.Reason != "target_supervision" || !errors.As(err, &divergence) || !errors.Is(err, execution.ErrChoiceReplayDivergence) {
++		t.Fatalf("diverging exploration error = %v", err)
++	}
++	if divergence.Divergence.Ordinal != 0 || divergence.Divergence.Reason != choice.DivergenceAlternativeSet || divergence.Divergence.Expected == nil || divergence.Divergence.Observed == nil {
++		t.Fatalf("injected divergence = %#v", divergence.Divergence)
++	}
++	if partial.Attempted != 1 || partial.Succeeded != 1 || partial.Failures != 0 || partial.ReplayDivergences != 0 || partial.ChoiceExploration == nil || partial.ChoiceExploration.CommittedRounds != 1 {
++		t.Fatalf("diverging exploration committed sibling results: %#v", partial)
++	}
++	if len(partial.Artifacts) != 0 || len(partial.SuccessArtifacts) != 0 {
++		t.Fatalf("diverging exploration retained candidate artifacts: %#v", partial)
++	}
++	lifecycle, err := campaign.InspectCampaignLifecycle(partial.CampaignPath)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if lifecycle.Published || !lifecycle.Resumable || lifecycle.Reason != "target_supervision" {
++		t.Fatalf("diverging campaign lifecycle = %#v", lifecycle)
++	}
++	rounds, err := os.ReadDir(filepath.Join(partial.CampaignPath, "choice-exploration", "rounds"))
++	if err != nil {
++		t.Fatal(err)
++	}
++	if len(rounds) != 1 || rounds[0].Name() != "00000000000000000000" {
++		t.Fatalf("committed rounds = %v, want only the root", rounds)
++	}
++	staged := filepath.Join(partial.CampaignPath, ".partial", "choice-exploration", "00000000000000000001")
++	for _, name := range []string{"segment.json", "executions"} {
++		if _, err := os.Stat(filepath.Join(staged, name)); !errors.Is(err, os.ErrNotExist) {
++			t.Fatalf("uncommitted round retained %s: %v", name, err)
++		}
++	}
++	executor.exploration.mu.Lock()
++	requests := append([]execution.Spec(nil), executor.exploration.requests...)
++	executor.exploration.mu.Unlock()
++	if len(requests) != 4 {
++		t.Fatalf("executions = %d, want the root and all three prefix candidates", len(requests))
++	}
++	for _, request := range requests[1:] {
++		rank := request.Choice.ReplayPlan.Decisions[0].Selected
++		data, err := os.ReadFile(filepath.Join(filepath.Dir(request.Dir), "partial.json"))
++		if err != nil {
++			t.Fatal(err)
++		}
++		var state struct {
++			State campaign.ExecutionState `json:"state"`
++		}
++		if err := json.Unmarshal(data, &state); err != nil {
++			t.Fatal(err)
++		}
++		want := campaign.ExecutionCaptured
++		if rank == executor.ranks[0] {
++			want = campaign.ExecutionExited
++		}
++		if state.State != want {
++			t.Fatalf("prefix rank %d state = %q, want %q", rank, state.State, want)
++		}
++		files, err := os.ReadDir(filepath.Dir(request.Dir))
++		if err != nil {
++			t.Fatal(err)
++		}
++		for _, file := range files {
++			if !slices.Contains([]string{"partial.json", "stdout.head", "stderr.head", "work"}, file.Name()) {
++				t.Fatalf("prefix rank %d retained candidate evidence %q", rank, file.Name())
++			}
++		}
+ 	}
+ }
+ 
+@@ -2035,6 +2121,57 @@
+ 	exploration *explorationExecutor
+ }
+ 
++type explorationDivergenceExecutor struct {
++	exploration      *explorationExecutor
++	beforeDivergence chan struct{}
++	afterDivergence  chan struct{}
++	ranks            [3]uint32
++}
++
++func (executor *explorationDivergenceExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
++	result, err := executor.exploration.Run(ctx, request)
++	if err != nil {
++		return result, err
++	}
++	if request.Choice.Mode != choice.ModePrefix {
++		index := 0
++		for rank := uint32(0); rank < 4; rank++ {
++			if rank != result.ChoiceTrace.Trace.Records[0].Selected {
++				executor.ranks[index] = rank
++				index++
++			}
++		}
++		return result, nil
++	}
++	expected := request.Choice.ReplayPlan.Decisions[0]
++	switch expected.Selected {
++	case executor.ranks[0]:
++		select {
++		case <-executor.beforeDivergence:
++		case <-ctx.Done():
++			return execution.Result{}, ctx.Err()
++		}
++		defer close(executor.afterDivergence)
++		observed := expected
++		observed.AlternativeSetDigest = sha256.Sum256([]byte("changed alternatives"))
++		return processResult(125, "", ""), &execution.ChoiceReplayDivergenceError{Divergence: choice.Divergence{
++			Ordinal: 0, Reason: choice.DivergenceAlternativeSet, Expected: &expected, Observed: &observed, TapeRecords: 1,
++		}}
++	case executor.ranks[1]:
++		defer close(executor.beforeDivergence)
++	case executor.ranks[2]:
++		select {
++		case <-executor.afterDivergence:
++		case <-ctx.Done():
++			return execution.Result{}, ctx.Err()
++		}
++		if err := ctx.Err(); err != nil {
++			return execution.Result{}, err
++		}
++	}
++	return result, nil
++}
++
+ type simulationExplorationInterruptExecutor struct {
+ 	exploration *simulationExplorationExecutor
+ }
+--- /dev/null
++++ b/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/reanchor.md
+@@ -0,0 +1,107 @@
++# Search-path findings re-anchor
++
++Re-anchored on 2026-10-02 at HEAD `1d7272e654f268f9a45f3fe965918fe2522827c6`
++on darwin/arm64. The working tree already contains completed, uncommitted fn-112
++changes. [Source bindings](task-1/source-bindings-before.json) record the SHA-256
++of each production file read, the retained references, and the protected retention
++test; HEAD alone does not identify this tree. This task adds a characterization
++test and evidence, with no production correction or toolchain rebuild.
++
++The existing patched toolchain key is
++`6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee`.
++Historical reports below have their own build keys and are not measurements of
++this toolchain. Linux execution remains unverified.
++
++| ID | Current source and line | Verdict | Evidence read and remaining limit |
++| --- | --- | --- | --- |
++| C1 | `tools/gomad3/runner/internal/corpus/model.go:37`, `:98`, `:121`; `tools/gomad3/runner/guidance.go:26`; `tools/gomad3/runner/runner.go:1328` | confirmed | `Identity` and `targetProjection` omit environment and tick policy. `openGuidance` builds identity without `baseEnvironment`, although it saves that environment for later runs. Runner already accepts explicit environment entries and inserts the forward-tick control into them. |
++| C2 | `tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go:881`, `:886`, `:902`; `tools/gomad3/toolchain/runtime/go1.27.1.patch:338` | confirmed | Identified parents bind a child ordinal and site; other creations hash the process-wide `gomadRuntimeGoroutineOrdinal.Add(1)`. The existing built Go source has `time.AfterFunc` using `goFunc`, which starts the callback with a `go` statement (`src/time/sleep.go:177-182`); timer dispatch calls that function (`src/runtime/time.go:1218`). Schedule-sensitive callback identity still needs task 2's runtime reproduction. |
++| C3 | `tools/gomad3/runner/internal/execution/process_unix.go:635`; `tools/gomad3/runner/runner.go:1462`, `:1714`; `tools/gomad3/runner/choice_exploration_campaign.go:250`, `:279`, `:324`; `tools/gomad3/runner/runner_test.go:1099` | changed | The loss symptom reproduces. A typed executor divergence reaches the completion-error branch and becomes `HostError` with reason `target_supervision`, before `processExplorationCompletion` and its runner-domain branch. The entire prefix round remains uncommitted, completed sibling results do not advance the campaign, and no candidate execution records or typed divergence evidence are published. Raw partial captures remain. |
++| C4 | `tools/gomad3/target/target.go:828` | confirmed | `validateDeterministicBuildInfo` rejects cgo, race, non-executable build modes, shared linking, and external/plugin linking, but has no coverage-instrumentation check. |
++| E1 | `tools/gomad3/runner/seeds.go:27`; `tools/gomad3/runner/internal/corpus/model.go:76`, `:98` | confirmed | Selection reserves `ceil(count/4)` requested seeds and fills up to the rest with prioritized corpus seeds. Entries retain seed and replay status; there is no answered-execution exclusion in selection. Repeating retained executions is a source inference, subject to C1's environment omission, rather than a new campaign measurement. |
++| E2 | `tools/gomad3/artifact/publication.go:44`, `:52`; `tools/gomad3/runner/internal/corpus/model.go:33` | confirmed | Publication always adds the full prepared target as the `target` source payload; corpus limits remain 1,024 entries and 1 GiB. The 155–179 MB binary range and roughly six-case estimate are historical assessment figures, while the README reports about 11 GiB for the representative set. No current disk-size measurement was performed. |
++| E3 | `tools/gomad3/toolchain/runtime/go1.27.1.patch:689`; `tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go:940`; `tools/gomad3/runner/internal/exploration/choice/engine.go:349` | confirmed | The poll-order hook runs before readiness is checked, and expansion treats every branching decision as eligible within bounds. The retained D14 report re-derives 26,865 select-poll of 57,801 decisions. The claim that fewer than two ready cases permits sound reduction remains an inference for tasks 2 and 12 to prove. |
++| E4 | `tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go:921`; `tools/gomad3/toolchain/runtime/go1.27.1.patch:583`; `.flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d21-probe-control.go.txt:17` | changed | Every local run-queue entry becomes an alternative, without a system-goroutine filter. The historical seed-11 control report has 26 branching Runnable decisions and peak goroutines 2. Its source starts no goroutine explicitly, so the peak does not establish the planned premise of two deliberately started user goroutines, or attribute each extra decision to runtime-owned alternatives. Task 13 keeps the explicit two-user fixture and cause check. |
++| E5 | `tools/gomad3/runner/internal/exploration/choice/engine.go:349`, `:357` | confirmed | Expansion counts `ordinal+1` from decision zero and omits deeper choices. There is no exploration start ordinal. The 4,562-record boot-only probe remains a historical assessment reference (`.plans/GOMAD_CMP.md:279`), not a newly reproduced measurement. |
++| E6 | `tools/gomad3/runner/minimize_operation.go:73`, `:97`, `:179`, `:189`, `:487` | confirmed | The session creates new minimizer state, commits attempts only into its local state, uses a temporary directory, and removes it on close. Publication happens only after the loop; interrupted execution cannot restore that in-memory progress. |
++
++## Evidence-reference corrections
++
++1. E2's binary-size range belongs to [GOMAD_CMP.md](../../../.plans/GOMAD_CMP.md)
++   lines 85–86. [README](../../../tools/gomad3/README.md) line 334 supports the
++   representative set's approximate total only. The corpus-size estimate is
++   approximate: traces and other artifact payloads also consume its cap.
++2. C2 has no separate goroutine-identity scheme version constant. Its domains are
++   `gomad3-choice-goroutine-root/v1`, `gomad3-choice-goroutine-child/v1`, and
++   `gomad3-choice-goroutine-runtime/v1` in the overlay at lines 883, 891, and 903.
++   `gomadChoiceWireVersion = 2` belongs to the generated choice-wire contract
++   (`gomad_choicewire_generated.go:6`), not a separate identity scheme version.
++3. D14 and D21 reports are retained under
++   `.flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/`. Their exact paths,
++   SHA-256 bindings, build keys, and extracted counters are in
++   [retained-counts.json](task-1/retained-counts.json).
++
++| Retained report | Re-derived counters | Historical toolchain |
++| --- | --- | --- |
++| [D14 seed 11](../fn-105-gomad-follow-ups-deferred-scope/fn105-d14-qualification-seed11.json) | `evidence.choices.runnable` 30,936 + `select_poll` 26,865 = `decisions` 57,801. With `select_result` 28,442, `records` = 86,243. `branching_records` = 57,801. | `8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc` |
++| [D21 control seed 11](../fn-105-gomad-follow-ups-deferred-scope/fn105-d21-qualification-control-choices-11.json) | `runnable` 26 + `select_poll` 0 = `decisions` 26 = `branching_records` 26; `peak_goroutines` = 2. | `c0661e38b4e001c8d86912d4ce9e265eb0f33e5f3298015da27a4c97ac4019b9` |
++| [D21 control seed 17](../fn-105-gomad-follow-ups-deferred-scope/fn105-d21-qualification-control-choices-17.json) | `runnable` 29 + `select_poll` 0 = `decisions` 29 = `branching_records` 29; `peak_goroutines` = 2. The count 26 is seed-specific. | `c0661e38b4e001c8d86912d4ce9e265eb0f33e5f3298015da27a4c97ac4019b9` |
++
++These counts are re-derived from retained report counters, not decoded again from
++the original trace payloads. The D21 [control source](../fn-105-gomad-follow-ups-deferred-scope/fn105-d21-probe-control.go.txt)
++performs collections and reads reporting state without a `go` statement. The
++runtime code confirms that queue identities are unfiltered; the reports alone
++cannot identify which goroutines formed their alternative sets.
++
++## C3 characterization
++
++`TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound` runs the real
++Explorer with an injected execution seam. Its successful root emits one four-way
++decision. The next round has three forced-prefix candidates: one executor call
++returns before the divergence, one returns a typed alternative-set divergence,
++and one waits for that divergence before returning with an uncancelled context.
++Both siblings reach `ExecutionCaptured`; the diverging candidate reaches
++`ExecutionExited`. Thus collection finishes before classifying the error and
++does not cancel its siblings on divergence.
++
++The campaign then returns `HostError{Reason: "target_supervision"}`, retaining
++the typed error in its error chain. Only the root is counted and committed:
++attempted 1, succeeded 1, committed rounds 1. The prefix round has neither
++`segment.json` nor candidate `executions` records. The campaign is resumable and
++unpublished, and returns no candidate artifacts. The staged `round.json` still
++identifies the candidates and prefixes, and each raw candidate partial contains
++`partial.json`, `stdout.head`, `stderr.head`, and `work`. These are recovery
++scaffolding, not committed outcomes or typed divergence evidence.
++
++Task 4 must preserve a forced-prefix candidate's typed executor error through
++collection and commit the divergence together with its sibling outcomes. Other
++executor errors and runner-domain fallback outcomes keep their host-error
++handling. The supplied task-4 annotation corrects this mechanism; task-13's
++annotation corrects the historical control premise without changing its intended
++two-user fixture or acceptance criteria. No finding is refuted, and no owner
++task closes on this evidence alone.
++
++## Verification scope
++
++Host tests use `tools/gomad3/.toolchain/bin/go` with `GOMADSEED`,
++`GOMAD3_CHILD_SEED`, and inherited `GOROOT` unset, always with `-tags test_dep`.
++The pre-edit choice-exploration baseline passed. The C3 test passed ten
++repetitions and focused Runner vet passed. The first full Runner run hit the
++existing protected 100-job retention case's 10-second overall deadline at 97
++executions; the same case passed in isolation in 5.27 seconds. Its SHA-256 is
++unchanged. The original failure is retained in [runner-final.log](task-1/runner-final.log).
++The full `go -C tools/gomad3 test -tags test_dep ./runner/...` rerun passed with
++exit 0, with the Runner package taking 94.549 seconds and the internal packages
++reusing passing cache entries. [Final Runner log](task-1/runner-final-recheck.log)
++retains the successful result. Formatting and the task source diff check passed.
++
++Root `make lint-code-fast` failed because its default `main` base is unavailable.
++With the existing HEAD used explicitly (`GOLANGCI_LINT_BASE_REV=HEAD`), it failed
++at root-module discovery of nested Gomad packages. The linter reports zero
++issues but exits with a typechecking/discovery error; this is not a clean lint
++result. [Root lint log](task-1/root-lint-head.log) and
++[focused vet log](task-1/focused-vet.log) retain those results.
++
++The task-only patch and final file hashes are separate from prior fn-112 changes.
++Full host/runtime gates were already run by fn-112 task 4; this test-only task
++does not rebuild or requalify the runtime. It makes no Linux claim.
+--- /dev/null
++++ b/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/retained-counts.json
+@@ -0,0 +1,47 @@
++[
++  {
++    "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d14-qualification-seed11.json",
++    "sha256": "e30347bdffc16269bc2e135d728ea07a0c3870df5eb3ac7455656daa33b59b78",
++    "toolchain_build_key": "8d28bd4486f0b6300e8d25efd4caf8cb6ccbf000e96dbd26b1d8f53bf5f251bc",
++    "fields": {
++      "decisions": "57801",
++      "runnable": "30936",
++      "select_poll": "26865",
++      "select_result": "28442",
++      "records": "86243",
++      "branching_records": "57801",
++      "peak_goroutines": "1945"
++    },
++    "decisions_from_kind_counts": 57801
++  },
++  {
++    "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d21-qualification-control-choices-11.json",
++    "sha256": "097c865f21bf2049c2e54d315b4afe3bc8db4731c609dc03393c7b3e9adb4b10",
++    "toolchain_build_key": "c0661e38b4e001c8d86912d4ce9e265eb0f33e5f3298015da27a4c97ac4019b9",
++    "fields": {
++      "decisions": "26",
++      "runnable": "26",
++      "select_poll": "0",
++      "select_result": "0",
++      "records": "26",
++      "branching_records": "26",
++      "peak_goroutines": "2"
++    },
++    "decisions_from_kind_counts": 26
++  },
++  {
++    "path": ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d21-qualification-control-choices-17.json",
++    "sha256": "1faf351208c899c7623f0895789be8ccf6ab38c6f7e9c14f772e2bf4104a138f",
++    "toolchain_build_key": "c0661e38b4e001c8d86912d4ce9e265eb0f33e5f3298015da27a4c97ac4019b9",
++    "fields": {
++      "decisions": "29",
++      "runnable": "29",
++      "select_poll": "0",
++      "select_result": "0",
++      "records": "29",
++      "branching_records": "29",
++      "peak_goroutines": "2"
++    },
++    "decisions_from_kind_counts": 29
++  }
++]
+--- /dev/null
++++ b/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/source-bindings-before.json
+@@ -0,0 +1,48 @@
++{
++  "head": "1d7272e654f268f9a45f3fe965918fe2522827c6",
++  "host": "darwin/arm64",
++  "toolchain_build_key": "6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee",
++  "production_sha256": {
++    "tools/gomad3/runner/internal/corpus/model.go": "43f0f8c49808e2633866dc2c67699dc9e82836d5e5251e7bad0e493ed650fef2",
++    "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go": "d6c2651cc6b7f6adc2265d7a892bae079d4426ebfba6defe72d6b4c7b4ec9bc8",
++    "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_choicewire_generated.go": "2852f0f6f684483d8fce18c96d23d073f10c5b18148dbbb8f224c6170c0e69cf",
++    "tools/gomad3/toolchain/runtime/go1.27.1.patch": "bde66c455efabe9cafbf8736104ef84abc4afde0ca447ad1d9e7c529d59a9582",
++    "tools/gomad3/runner/choice_exploration_campaign.go": "7cd47b66ce94eb9d711c811641f3500e2a8c26fe2d13371ff835f53f86c8f4d9",
++    "tools/gomad3/target/target.go": "07ed67654a2bde66d347673481400f89b6bd2029c0997ffb6dc37692104dd3a5",
++    "tools/gomad3/runner/seeds.go": "9419d650ac920ec7fb1077748abf8ebbbffee30f53a4b3cb57aac18848b792c8",
++    "tools/gomad3/runner/internal/exploration/choice/engine.go": "bb62ec6c00ec6a7a7837986d040774c837de4a66cd4fe0ac521d414bd87a4f05",
++    "tools/gomad3/runner/minimize_operation.go": "c0d4b70b7132b4859b9dd3b2da9423b2d628993f5c184956ba8e70f7669f233c",
++    "tools/gomad3/artifact/publication.go": "44d9d007b0b09397654e62e24596f8321e14366a6797a6f31fc63ec1fb827671",
++    "tools/gomad3/runner/internal/execution/choicetrace.go": "95d3357c3cee068c002170326ac3ced53817fb332cca7a381725cd23913991d7",
++    "tools/gomad3/runner/internal/execution/process_unix.go": "8ffc8ce2028f161ce57b93bceb3a936fee2a43d4f6c915072383ecca33201543",
++    "tools/gomad3/runner/internal/execution/process.go": "b86a0493baac035cf932787853899a112469c9f3708746b29d6cc3af68e4e4a0",
++    "tools/gomad3/runner/internal/execution/outcome.go": "66b425019ca8925005fbce54aa3e1cce0a3b705d6e0469d4823449efe909b720",
++    "tools/gomad3/runner/runner.go": "afdae3a7ca56b67b450c561173f7a64b27da375fba3677a5aec4438a2b638d96",
++    "tools/gomad3/runner/completion.go": "c2affbd7be5a16e010a50b09f6bedf3541320aced1be020eb4c42825e88045d5",
++    "tools/gomad3/runner/internal/campaign/choice_exploration_journal.go": "1c924eabd53c42bfaf681104f0955e2fe58c184af6d0dba483e72a2429a5777b",
++    "tools/gomad3/runner/guidance.go": "dc1c7a0c17da4ea84829fa8bd3d4814fc829907b5dafaacfdcd11de9923ba440",
++    "tools/gomad3/choice/tape.go": "191bd5da73e4fe738d8f45e8ef3760148b834eef89eb7dcb03138d83bb129b48",
++    "tools/gomad3/choice/trace.go": "27bb4cfc95137750eb5a32dcfad1b212df301ea54ecde9d930fcf80e3e211eed",
++    "tools/gomad3/choice/wire.go": "fc34a80b57d5335ed552dfce4d04ea5c19c854ce59e548ab806531a4911eff02",
++    "tools/gomad3/choice/internal/wire/wire_generated.go": "182909929ff59c84e4c1a37fabf2b14632a07865c7fdc9eab7361e5dfbc8feca",
++    "tools/gomad3/runner/internal/campaign/campaign_journal.go": "82be33fb03187595241d0f1a5ce9fbf569aa23a5184ab2fc28197efc9079ea2f",
++    "tools/gomad3/runner/internal/campaign/open_campaign.go": "bb612fc0707f3ca8e2e47f4fb38ac3bedba74d5ae855a6b4149b08508f65b405",
++    "tools/gomad3/runner/internal/campaign/recovery.go": "4d40413df388c365688e91e907ef012898ec2cdd0fc1c589877f39f122460cb9",
++    "tools/gomad3/runner/internal/campaign/lifecycle.go": "83920733121a8cb23277e2498468c064572fb0c37d4535062e100a64b252cfc8"
++  },
++  "test_before_sha256": "bdc46b929a30247c9217f548061346dd62743905d9262b50ddb3f90054f1a138",
++  "retention_characterization_sha256": "c04190608c348023b8c8100672df7cfd6ed3b20f8385afb00c77179c90fa9bbf",
++  "reference_sha256": {
++    ".plans/GOMAD_CMP.md": "2702bbcc57f85045618e92fb564318bc4c28b163cc05482354dffed295baad31",
++    "tools/gomad3/README.md": "7e2ab97cbcedb733511a157f6a5afbc0c60999ca3b080c57d0a3157c664e0e3c",
++    "docs/research/gomad/2026-10-01-feasibility-schedule-search.md": "50e324f9b145a8f68a92d2a36447be7479557dafe0adfcba2a9eee6583ac567f",
++    ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d14-qualification-seed11.json": "e30347bdffc16269bc2e135d728ea07a0c3870df5eb3ac7455656daa33b59b78",
++    ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d21-qualification-control-choices-11.json": "097c865f21bf2049c2e54d315b4afe3bc8db4731c609dc03393c7b3e9adb4b10",
++    ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d21-qualification-control-choices-17.json": "1faf351208c899c7623f0895789be8ccf6ab38c6f7e9c14f772e2bf4104a138f",
++    ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d21-probe-control.go.txt": "5c1f9cf6f8de46cfcfe060822ff5c4850972a8640c0a0017e6973bd8542e6b66"
++  },
++  "built_source_sha256": {
++    "tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/time/sleep.go": "58489f2ea41f5032921eaa448c215d7ffffcb9fb0b43c1aad891c20bed342dc5",
++    "tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/runtime/time.go": "fc72168314ad6264dcde32e9bc6d4a087c3f5c509cd6b3a8c7f5f35cdbcf2409"
++  }
++}
+--- /dev/null
++++ b/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/source-bindings-final.json
+@@ -0,0 +1,65 @@
++{
++  "head": "1d7272e654f268f9a45f3fe965918fe2522827c6",
++  "host": "darwin/arm64",
++  "toolchain_build_key": "6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee",
++  "production_sha256": {
++    "tools/gomad3/runner/internal/corpus/model.go": "43f0f8c49808e2633866dc2c67699dc9e82836d5e5251e7bad0e493ed650fef2",
++    "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go": "d6c2651cc6b7f6adc2265d7a892bae079d4426ebfba6defe72d6b4c7b4ec9bc8",
++    "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_choicewire_generated.go": "2852f0f6f684483d8fce18c96d23d073f10c5b18148dbbb8f224c6170c0e69cf",
++    "tools/gomad3/toolchain/runtime/go1.27.1.patch": "bde66c455efabe9cafbf8736104ef84abc4afde0ca447ad1d9e7c529d59a9582",
++    "tools/gomad3/runner/choice_exploration_campaign.go": "7cd47b66ce94eb9d711c811641f3500e2a8c26fe2d13371ff835f53f86c8f4d9",
++    "tools/gomad3/target/target.go": "07ed67654a2bde66d347673481400f89b6bd2029c0997ffb6dc37692104dd3a5",
++    "tools/gomad3/runner/seeds.go": "9419d650ac920ec7fb1077748abf8ebbbffee30f53a4b3cb57aac18848b792c8",
++    "tools/gomad3/runner/internal/exploration/choice/engine.go": "bb62ec6c00ec6a7a7837986d040774c837de4a66cd4fe0ac521d414bd87a4f05",
++    "tools/gomad3/runner/minimize_operation.go": "c0d4b70b7132b4859b9dd3b2da9423b2d628993f5c184956ba8e70f7669f233c",
++    "tools/gomad3/artifact/publication.go": "44d9d007b0b09397654e62e24596f8321e14366a6797a6f31fc63ec1fb827671",
++    "tools/gomad3/runner/internal/execution/choicetrace.go": "95d3357c3cee068c002170326ac3ced53817fb332cca7a381725cd23913991d7",
++    "tools/gomad3/runner/internal/execution/process_unix.go": "8ffc8ce2028f161ce57b93bceb3a936fee2a43d4f6c915072383ecca33201543",
++    "tools/gomad3/runner/internal/execution/process.go": "b86a0493baac035cf932787853899a112469c9f3708746b29d6cc3af68e4e4a0",
++    "tools/gomad3/runner/internal/execution/outcome.go": "66b425019ca8925005fbce54aa3e1cce0a3b705d6e0469d4823449efe909b720",
++    "tools/gomad3/runner/runner.go": "afdae3a7ca56b67b450c561173f7a64b27da375fba3677a5aec4438a2b638d96",
++    "tools/gomad3/runner/completion.go": "c2affbd7be5a16e010a50b09f6bedf3541320aced1be020eb4c42825e88045d5",
++    "tools/gomad3/runner/internal/campaign/choice_exploration_journal.go": "1c924eabd53c42bfaf681104f0955e2fe58c184af6d0dba483e72a2429a5777b",
++    "tools/gomad3/runner/guidance.go": "dc1c7a0c17da4ea84829fa8bd3d4814fc829907b5dafaacfdcd11de9923ba440",
++    "tools/gomad3/choice/tape.go": "191bd5da73e4fe738d8f45e8ef3760148b834eef89eb7dcb03138d83bb129b48",
++    "tools/gomad3/choice/trace.go": "27bb4cfc95137750eb5a32dcfad1b212df301ea54ecde9d930fcf80e3e211eed",
++    "tools/gomad3/choice/wire.go": "fc34a80b57d5335ed552dfce4d04ea5c19c854ce59e548ab806531a4911eff02",
++    "tools/gomad3/choice/internal/wire/wire_generated.go": "182909929ff59c84e4c1a37fabf2b14632a07865c7fdc9eab7361e5dfbc8feca",
++    "tools/gomad3/runner/internal/campaign/campaign_journal.go": "82be33fb03187595241d0f1a5ce9fbf569aa23a5184ab2fc28197efc9079ea2f",
++    "tools/gomad3/runner/internal/campaign/open_campaign.go": "bb612fc0707f3ca8e2e47f4fb38ac3bedba74d5ae855a6b4149b08508f65b405",
++    "tools/gomad3/runner/internal/campaign/recovery.go": "4d40413df388c365688e91e907ef012898ec2cdd0fc1c589877f39f122460cb9",
++    "tools/gomad3/runner/internal/campaign/lifecycle.go": "83920733121a8cb23277e2498468c064572fb0c37d4535062e100a64b252cfc8"
++  },
++  "production_unchanged": true,
++  "retention_characterization_sha256": "c04190608c348023b8c8100672df7cfd6ed3b20f8385afb00c77179c90fa9bbf",
++  "retention_characterization_unchanged": true,
++  "runner_test_sha256": "d8ad804d1c72627ca6609472f1de34fb518f15fae195d4cc1aa9cb4b12eff1b9",
++  "reference_sha256": {
++    ".plans/GOMAD_CMP.md": "2702bbcc57f85045618e92fb564318bc4c28b163cc05482354dffed295baad31",
++    "tools/gomad3/README.md": "7e2ab97cbcedb733511a157f6a5afbc0c60999ca3b080c57d0a3157c664e0e3c",
++    "docs/research/gomad/2026-10-01-feasibility-schedule-search.md": "50e324f9b145a8f68a92d2a36447be7479557dafe0adfcba2a9eee6583ac567f",
++    ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d14-qualification-seed11.json": "e30347bdffc16269bc2e135d728ea07a0c3870df5eb3ac7455656daa33b59b78",
++    ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d21-qualification-control-choices-11.json": "097c865f21bf2049c2e54d315b4afe3bc8db4731c609dc03393c7b3e9adb4b10",
++    ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d21-qualification-control-choices-17.json": "1faf351208c899c7623f0895789be8ccf6ab38c6f7e9c14f772e2bf4104a138f",
++    ".flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d21-probe-control.go.txt": "5c1f9cf6f8de46cfcfe060822ff5c4850972a8640c0a0017e6973bd8542e6b66"
++  },
++  "built_source_sha256": {
++    "tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/time/sleep.go": "58489f2ea41f5032921eaa448c215d7ffffcb9fb0b43c1aad891c20bed342dc5",
++    "tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/src/runtime/time.go": "fc72168314ad6264dcde32e9bc6d4a087c3f5c509cd6b3a8c7f5f35cdbcf2409"
++  },
++  "artifact_sha256": {
++    ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/reanchor.md": "9121aab13c1098d947d9e8150c0cdbaefa5965dc9f0d3648aa6c21efadc06ca2",
++    ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/retained-counts.json": "79681220c8c8dddc026dc27ae8a7e29800b88848a89089abae971c1ca4c9b9c6",
++    ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/spec-plan-proposed.md": "eb840494111690e134b265b6e4507ec6b02cbabc234d7db0be6a6c23ced1b894",
++    ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/task-4-spec-proposed.md": "e7d1788a203e5f3e78ada68c03c0e5c5160b32978dab8c03f833947454a1bf36",
++    ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/task-13-spec-proposed.md": "28173209b301c1e3c2e335acb44052c9c42e24c24fff70f4b6ac3e223f0f0c95",
++    ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/completion-summary-draft.md": "a92906e14df1727d0f50d26aaa1386cd90bbf2ae6131eaaae0ab3570b141071e",
++    ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/command-results.json": "db1d97660e490e04312254db989c08f56abdbe67e539588b0cb4407fb7f07946",
++    ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/source-bindings-before.json": "02de4d3560218d998716a72cc87f44d9b40be123306d510ac388c0785c08f119"
++  },
++  "tracking_sha256": {
++    ".flow/specs/fn-114-gomad-correct-search-path-defects-and.md": "eb840494111690e134b265b6e4507ec6b02cbabc234d7db0be6a6c23ced1b894",
++    ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.4.md": "e7d1788a203e5f3e78ada68c03c0e5c5160b32978dab8c03f833947454a1bf36",
++    ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.13.md": "28173209b301c1e3c2e335acb44052c9c42e24c24fff70f4b6ac3e223f0f0c95"
++  }
++}
+--- /dev/null
++++ b/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/command-results.json
+@@ -0,0 +1,68 @@
++[
++  {
++    "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -tags test_dep ./runner -run '^TestRunChoiceExploration' -count=1",
++    "exit_code": 0,
++    "log": "runner-baseline.log",
++    "scope": "pre-edit baseline",
++    "log_sha256": "a3f5f0f9ba88c37d36a44930d2da86039f9b1dde5e3a641714da388cafca327c"
++  },
++  {
++    "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -tags test_dep ./runner -run '^TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound$' -count=10 -v",
++    "exit_code": 0,
++    "log": "c3-characterization.log",
++    "scope": "new characterization, ten repetitions",
++    "log_sha256": "3b6250609f79b35617f57f17fac9264ce332b501ce3d24db1dbede9163010b68"
++  },
++  {
++    "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -tags test_dep ./runner/...",
++    "exit_code": 1,
++    "log": "runner-final.log",
++    "scope": "initial full run; existing retention100-job deadline at97",
++    "log_sha256": "a723f516e88167a9fa076c54d8556dde1c08444778bc61cd639b6dc9bf5e8777"
++  },
++  {
++    "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -tags test_dep ./runner -run '^TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/discard$' -count=1 -v",
++    "exit_code": 0,
++    "log": "retention-timeout-recheck.log",
++    "scope": "isolated existing-case retry",
++    "log_sha256": "d9ede83fdf902ada219b6079f4ef21bfeb1399c0f271c7edc47d6bbb02b90a6c"
++  },
++  {
++    "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -tags test_dep ./runner/...",
++    "exit_code": 0,
++    "log": "runner-final-recheck.log",
++    "scope": "final full run",
++    "log_sha256": "21ff5d30d20fa84d93886021fb7012390d99b86c3a2e3cc7125fff4963ae5443"
++  },
++  {
++    "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT tools/gomad3/.toolchain/bin/go -C tools/gomad3 vet -tags test_dep ./runner/...",
++    "exit_code": 0,
++    "log": "focused-vet.log",
++    "scope": "focused standards",
++    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
++  },
++  {
++    "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH make lint-code-fast",
++    "exit_code": 2,
++    "log": "root-lint.log",
++    "scope": "default main base unavailable",
++    "log_sha256": "4a229d95b641928fde380a270b031f2428d29853bba5b947dbb38a2d711596a5"
++  },
++  {
++    "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH make lint-code-fast GOLANGCI_LINT_BASE_REV=HEAD",
++    "exit_code": 2,
++    "log": "root-lint-head.log",
++    "scope": "root nested-module discovery error; zero issues does not mean clean lint",
++    "log_sha256": "f2a9904a7808978155937e45b0012535d675cfeaa6f96d003f1a2a5628dc6369"
++  },
++  {
++    "command": "git diff --check -- tools/gomad3/runner/runner_test.go",
++    "exit_code": 0,
++    "scope": "task-only diff whitespace"
++  },
++  {
++    "command": "env -u GOROOT /Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/gofmt -l tools/gomad3/runner/runner_test.go",
++    "exit_code": 0,
++    "scope": "formatting; no output"
++  }
++]
+--- /dev/null
++++ b/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/completion-summary-draft.md
+@@ -0,0 +1,11 @@
++# Task 1 completion draft
++
++Re-anchored all ten search findings against HEAD `1d7272e654f268f9a45f3fe965918fe2522827c6` and the bound uncommitted production files. Eight findings are confirmed. C3 is changed in trigger location with its lost-round symptom reproduced; E4 is changed in the historical two-user premise with its unfiltered alternatives and reported 26 branching decisions confirmed. No finding is refuted and no downstream owner closes on this evidence.
++
++`TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound` characterizes a typed forced-prefix executor divergence returning `HostError{Reason: "target_supervision"}` after all siblings finish. Only the root commits; the failed round has no segment or candidate execution records and publishes no typed divergence evidence. Raw partial output heads, state, candidate/prefix staging data, and work directories survive for recovery. Production code and the protected retention characterization test are unchanged.
++
++Corrected E2's binary-size reference to `.plans/GOMAD_CMP.md:85-86`, distinguished identity `/v1` domains from choice-wire version 2, and located D14/D21 reports. Re-derived D14's 30,936 runnable + 26,865 select-poll = 57,801 decisions and D21 seed 11's 26 branching Runnable decisions. These are historical report counters, not current-toolchain measurements; D21 seed 17 has 29 decisions and its control source starts no goroutine explicitly. Source and reference hashes are retained with `reanchor.md`.
++
++The pre-edit choice baseline, ten C3 repetitions, isolated existing retention case, final complete `./runner/...` gate, focused vet, formatting, and diff checks pass on darwin/arm64. The initial full Runner run hit the existing 100-job retention case's 10-second deadline at 97 executions; its isolated retry passed in 5.27 seconds and the final Runner package passed in 94.549 seconds. Both failure and recovery evidence remain. Root lint fails at default unavailable `main`, then at nested-module discovery with `GOLANGCI_LINT_BASE_REV=HEAD`; it is not reported clean. No runtime rebuild was performed and Linux remains unverified.
++
++Tracking drafts update the spec and annotate task 4's actual executor-error trigger and task 13's explicit two-user fixture prerequisite. The conductor applies these through Flow, owns implementation review, and verifies `flowctl done` before claiming task completion. No commit, staging, push, worktree, or unrelated source modification was performed.
+--- /dev/null
++++ b/.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/completion-evidence-draft.json
+@@ -0,0 +1,23 @@
++{
++  "commits": [],
++  "tests": [
++    "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -tags test_dep ./runner -run '^TestRunChoiceExploration' -count=1",
++    "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -tags test_dep ./runner -run '^TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound$' -count=10 -v",
++    "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -tags test_dep ./runner -run '^TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/discard$' -count=1 -v",
++    "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT tools/gomad3/.toolchain/bin/go -C tools/gomad3 test -tags test_dep ./runner/...",
++    "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOROOT tools/gomad3/.toolchain/bin/go -C tools/gomad3 vet -tags test_dep ./runner/...",
++    "git diff --check -- tools/gomad3/runner/runner_test.go",
++    "env -u GOROOT /Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/gofmt -l tools/gomad3/runner/runner_test.go"
++  ],
++  "prs": [],
++  "head": "1d7272e654f268f9a45f3fe965918fe2522827c6",
++  "source_bindings": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/source-bindings-final.json",
++  "command_results": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-1/command-results.json",
++  "limitations": [
++    "Root lint cannot discover nested Gomad packages",
++    "Initial full Runner retry retained; protected retention test deadline",
++    "Linux not executed",
++    "Uncommitted prior fn-112 work is hash-bound, not part of this task patch"
++  ],
++  "review": "conductor-owned; pending"
++}
+--- a/.flow/specs/fn-114-gomad-correct-search-path-defects-and.md
++++ b/.flow/specs/fn-114-gomad-correct-search-path-defects-and.md
+@@ -25,16 +25,16 @@
+ 
+ | ID | Kind | Finding | Evidence | Status |
+ | --- | --- | --- | --- | --- |
+-| C1 | Correctness | The guided corpus identity omits the target environment and clock-tick policy. Once Runner-managed targets receive `--env` entries (fn-105 task 30), one corpus can hold cases recorded under different environments or tick policies | `runner/internal/corpus/model.go` `Identity` and `targetProjection` bind target, argv, tags, adapters, packs, toolchain, and boundary only | Verified in source |
+-| C2 | Correctness | Goroutines created with no identified parent take a process-wide creation counter as identity. `time.AfterFunc` callbacks, including every context deadline, are created from the scheduler, so their identity depends on creation order and therefore on the schedule | `gomadChoiceAssignGoroutineIdentity` else-branch in the runtime overlay | Branch verified; reach from `AfterFunc` inferred |
+-| C3 | Correctness | A forced prefix that diverges in a choice-exploration candidate ends the whole campaign as a `HostError` and retains no candidate evidence | `runner/choice_exploration_campaign.go` completion loop and `outcome.Domain == "runner"` branch | Code path verified; trigger inferred |
+-| C4 | Correctness | `exec` provenance validation rejects `-race`, cgo, non-exe build modes, and external linking, and has no check for coverage instrumentation, so an unqualified instrumentation profile can pass | `validateDeterministicBuildInfo` in `target/target.go` | Verified in source |
+-| E1 | Inefficiency | A guided campaign gives up to three quarters of its seeds to corpus cases. The corpus identity binds the exact target, so those seeds reproduce records the corpus already holds | `mixGuidedSelection` in `runner/seeds.go` | Selection verified; consequence inferred |
+-| E2 | Inefficiency | Every artifact embeds the full target binary. `./tests` binaries are 155 to 179 MB, the representative qualification set retains about 11 GiB, and the 1 GiB corpus holds about six `./tests` cases | `artifact/publication.go` target payload; binary sizes in the assessment, total in the README | Verified |
+-| E3 | Inefficiency | The select hook records one decision per poll-order step of every multi-case `select`, ready or not. In `TestSignalWorkflowTestSuiteChasm` seed 11, 26,865 of 57,801 decisions are select-poll. Poll order can change behavior only when at least two cases are ready | patch hunk in `selectgo`; retained D14 qualification report | Counts verified; no-op claim inferred |
+-| E4 | Inefficiency | System goroutines are recorded and explorable alternatives. A probe with two user goroutines records 26 branching decisions | `gomadChoiceRunqIndex`; retained D21 control report | Counts verified; cause inferred |
+-| E5 | Inefficiency | Choice exploration skips every decision past `--max-choice-depth` counted from ordinal 0. The boot-only cluster probe records 4,562 choice records, so on a functional suite the strategy permutes bootstrap only | `expandCandidate` in `runner/internal/exploration/choice/engine.go` | Verified |
+-| E6 | Inefficiency | The minimizer holds its sealed, self-validating state in memory and works in a temporary directory that `close` deletes. An interrupted run repeats every attempt | `runner/minimize_operation.go` | Verified |
++| C1 | Correctness | The guided corpus identity omits the target environment and clock-tick policy. Once Runner-managed targets receive `--env` entries (fn-105 task 30), one corpus can hold cases recorded under different environments or tick policies | `runner/internal/corpus/model.go` `Identity` and `targetProjection` bind target, argv, tags, adapters, packs, toolchain, and boundary only | confirmed — environment and tick inputs still omitted |
++| C2 | Correctness | Goroutines created with no identified parent take a process-wide creation counter as identity. `time.AfterFunc` callbacks, including every context deadline, are created from the scheduler, so their identity depends on creation order and therefore on the schedule | `gomadChoiceAssignGoroutineIdentity` else-branch in the runtime overlay | confirmed — parentless branch; callback reproduction remains task 2 |
++| C3 | Correctness | A forced prefix that diverges in a choice-exploration candidate ends the whole campaign as a `HostError` and publishes no candidate execution records or typed divergence evidence | `execution/process_unix.go` returns a typed choice divergence; `runner.go` preserves it and `choice_exploration_campaign.go` returns from completion-error handling before processing outcomes | changed — symptom reproduced; executor-error path, not runner-domain branch |
++| C4 | Correctness | `exec` provenance validation rejects `-race`, cgo, non-exe build modes, and external linking, and has no check for coverage instrumentation, so an unqualified instrumentation profile can pass | `validateDeterministicBuildInfo` in `target/target.go` | confirmed — no coverage-instrumentation rejection |
++| E1 | Inefficiency | A guided campaign gives up to three quarters of its seeds to corpus cases. The corpus identity binds the exact target, so those seeds reproduce records the corpus already holds | `mixGuidedSelection` in `runner/seeds.go` | confirmed — selection repeats corpus seeds; consequence remains source inference |
++| E2 | Inefficiency | Every artifact embeds the full target binary. `./tests` binaries are 155 to 179 MB, the representative qualification set retains about 11 GiB, and the 1 GiB corpus holds about six `./tests` cases | `artifact/publication.go` target payload; historical binary sizes in `.plans/GOMAD_CMP.md:85-86`, total in `tools/gomad3/README.md:334` | confirmed — full target payload; sizes and storage totals are historical |
++| E3 | Inefficiency | The select hook records one decision per poll-order step of every multi-case `select`, ready or not. In `TestSignalWorkflowTestSuiteChasm` seed 11, 26,865 of 57,801 decisions are select-poll. Poll order can change behavior only when at least two cases are ready | patch hunk in `selectgo`; retained D14 qualification report | confirmed — pre-readiness poll hook; historical counts re-derived, soundness remains task 2/12 |
++| E4 | Inefficiency | System goroutines are recorded and explorable alternatives. The retained D21 control probe reports peak goroutines 2 and 26 branching decisions; its source does not deliberately start two user goroutines | `gomadChoiceRunqIndex`; retained D21 control report | changed — unfiltered alternatives and historical 26 confirmed; two-user premise unsupported |
++| E5 | Inefficiency | Choice exploration skips every decision past `--max-choice-depth` counted from ordinal 0. The boot-only cluster probe records 4,562 choice records, so on a functional suite the strategy permutes bootstrap only | `expandCandidate` in `runner/internal/exploration/choice/engine.go` | confirmed — absolute decision ordinal bounds expansion |
++| E6 | Inefficiency | The minimizer holds its sealed, self-validating state in memory and works in a temporary directory that `close` deletes. An interrupted run repeats every attempt | `runner/minimize_operation.go` | confirmed — state remains in memory and temporary workspace is deleted |
+ 
+ ### Relationship to existing work
+ 
+--- a/.flow/tasks/fn-114-gomad-correct-search-path-defects-and.4.md
++++ b/.flow/tasks/fn-114-gomad-correct-search-path-defects-and.4.md
+@@ -11,10 +11,10 @@
+ **Touches:** [tools/gomad3/runner/choice_exploration_campaign.go, tools/gomad3/runner/internal/exploration/choice/**, tools/gomad3/runner/internal/campaign/choice_exploration_journal.go, tools/gomad3/runner/internal/campaign/choice_exploration_journal_test.go, tools/gomad3/runner/runner_test.go, tools/gomad3/runner/resume.go, tools/gomad3/cmd/gomad/internal/cli/**, .flow/specs/fn-114-gomad-correct-search-path-defects-and.md]
+ 
+ ### Approach
+-- Start from the task 1 characterization test and invert it.
++- Start from task 1's `TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound` and invert its loss assertions. A real executor returns `ChoiceReplayDivergenceError`; `runSeed` preserves that error and `executeExplorationRound` currently returns `HostError{Reason: "target_supervision"}` before outcome processing. Preserve the typed divergence through collection and commit it as a candidate result. The runner-domain branch is not the reproduced trigger; retain its host-error fallback for other runner outcomes where reachable.
+ - Add a divergence form to the engine's candidate result: candidate identity, divergence ordinal and reason, and the expected and observed records from the terminal frame. `CommitRound` accepts it without an outcome digest.
+ - A divergence result adds nothing to the outcome set or the failure-signature set, has no trace, and yields no children.
+-- In the campaign, only a choice replay divergence of a forced-prefix candidate takes the new path. Every other runner-domain outcome (host failure, cancellation, trace capacity, missing identity) stays a `HostError`. List which reasons take which path in the code and test each side.
++- In the campaign, only a typed choice replay divergence of a forced-prefix candidate takes the new path, including the executor-error completion path. Keep all other execution errors and runner-domain fallback outcomes (host failure, cancellation, trace capacity, missing identity) as `HostError`. List which reasons take which path and test each side.
+ - The other candidates of the round have already completed when the divergence is classified; their results commit with the round.
+ - Report the divergence under the existing `replay_divergence` classification in the campaign result, `runs` output, and `inspect`. The campaign must not exit as a success and must not count the divergence as a target failure.
+ - Failure policy: a divergence stops the campaign under `first`, and under `budget` and `all` exploration continues. It does not consume the distinct-failure-signature budget. Record this choice in the spec's Decision Context.
+@@ -26,6 +26,7 @@
+ - `tools/gomad3/runner/internal/exploration/choice/engine.go:59-105`, `:202-290` — candidate, result, segment types and `CommitRound`
+ - `tools/gomad3/runner/internal/campaign/choice_exploration_journal.go:55`, `:175-200` — segment schema and plan check on resume
+ - `tools/gomad3/runner/internal/execution/choicetrace.go:19-42` — divergence error and its fields
++- `tools/gomad3/runner/internal/execution/process_unix.go:635-644`, `tools/gomad3/runner/runner.go:1462-1467`, `:1714-1725` — executor-error trigger, propagation, and current host-error reason
+ - `tools/gomad3/runner/internal/execution/outcome.go:23`, `:85-86` — runner-domain classification and reason names
+ 
+ **Optional** (reference as needed):
+@@ -34,6 +35,7 @@
+ - `tools/gomad3/cmd/gomad/internal/cli/explore_output.go:138` — summary rendering
+ 
+ ### Key context
++- Task 1 re-anchor (2026-10-02): C3 is changed in mechanism, with its loss symptom confirmed on HEAD `1d7272e654f268f9a45f3fe965918fe2522827c6` plus source hashes in `reanchor.md`. Completed siblings remain as raw `partial.json`, `stdout.head`, `stderr.head`, and workspace scaffolding, but no candidate execution record, round segment, artifact, or typed divergence evidence is retained. Narrow the fix to the actual typed executor-error path without weakening runner-domain failure handling; no production correction was made in task 1.
+ - A diverging prefix taken from a deterministic parent is a Gomad confidence failure. It is never a target outcome.
+ - fn-109 tasks 2 and 3 edit the Runner options and completion paths; rebase onto whichever landed.
+ ## Acceptance
+--- a/.flow/tasks/fn-114-gomad-correct-search-path-defects-and.13.md
++++ b/.flow/tasks/fn-114-gomad-correct-search-path-defects-and.13.md
+@@ -11,7 +11,7 @@
+ **Touches:** [tools/gomad3/toolchain/runtime/go1.27.1.patch, tools/gomad3/toolchain/runtime/overlay/src/**, tools/gomad3/toolchain/**, tools/gomad3/choice/**, tools/gomad3/internal/gomadtool/conformance/**, tools/gomad3/SPEC.md, .flow/artifacts/fn-114-gomad-correct-search-path-defects-and/control-probe.md]
+ 
+ ### Approach
+-- First step: confirm the inferred cause from task 1. On the control probe with two user goroutines, show that the extra branching decisions have runtime-owned goroutines among their alternatives. If they do not, record E4 as changed and stop.
++- First step: confirm the inferred cause on a fixture that deliberately starts two user goroutines. Show that the extra branching decisions have runtime-owned goroutines among their alternatives. The historical D21 control source starts no goroutine explicitly; its reported peak of 2 is not a substitute for this fixture. If the cause is absent, record the narrowed E4 finding with evidence and stop.
+ - Classify run-queue entries with the runtime's own system-goroutine test. Use the task 5 inventory as the list of runtime-owned kinds, and state how a finalizer or cleanup goroutine running user code is classified.
+ - The rule: state it once, for example runtime-owned goroutines run before user goroutines in queue order. It must be a function of the queue contents only, and must not starve either class.
+ - A queue with at most one user goroutine records no decision and still yields a deterministic pick. A queue with two or more user goroutines records one decision whose alternatives are the user goroutines only.
+@@ -34,6 +34,7 @@
+ - `tools/gomad3/choice/trace.go:100` — controller implementation identity
+ 
+ ### Key context
++- Task 1 re-anchor (2026-10-02): E4 is changed in its historical probe premise. `.flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d21-probe-control.go.txt` has no `go` statement. Its seed-11 report still records 26 branching Runnable decisions and peak goroutines 2 (seed 17 records 29). `gomadChoiceRunqIndex` still includes every local run-queue identity without a system-goroutine filter, but the reported peak does not establish two deliberately started user goroutines or attribute each extra decision. Keep the explicit two-user fixture, cause check, fairness, and before/after acceptance; no runtime correction was made in task 1.
+ - This changes schedules for every seed. It is a new choice-controller identity, and existing dispositions must not be weakened to obtain a pass in task 14.
+ - The run-queue choice runs on the system stack with fixed buffers. Classification must not allocate.
+ - fn-110 task 2 moves the scheduler implementations into the overlay; fn-112 tasks 3 and 5 edit the same file. Check their state first and rebase onto whichever landed.

@@ -1,0 +1,11 @@
+{
+  "protected_sources": 63,
+  "unchanged_nonowned_sources": 62,
+  "owned_overlap": {
+    "tools/gomad3/runner/internal/execution/process_unix.go": {
+      "before": "8ffc8ce2028f161ce57b93bceb3a936fee2a43d4f6c915072383ecca33201543",
+      "after": "edd93e2d813c79831c93a0e3de23a73b9e7a5644afd0474b78041ca56e0d546a"
+    }
+  },
+  "task8_tests_and_campaign_unchanged": true
+}

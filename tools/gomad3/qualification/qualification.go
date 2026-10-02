@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"strings"
 
+	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
@@ -21,6 +22,8 @@ const (
 	ChoiceReplayExact         = "exact"
 	ChoiceReplayDiverged      = "diverged"
 	ChoiceReplayUnavailable   = "unavailable"
+	DiagnosticComplete        = "complete"
+	DiagnosticUnavailable     = "unavailable"
 )
 
 const maximumQualificationReportBytes = 16 << 20
@@ -31,6 +34,7 @@ type QualificationExecution struct {
 	WallElapsedNanos uint64
 	Evidence         runner.ExecutionEvidence
 	Replay           *QualificationReplay
+	Diagnostics      *runner.DiagnosticTraceReference
 }
 
 type QualificationInput struct {
@@ -56,26 +60,36 @@ type QualificationFailure struct {
 }
 
 type QualificationExecutionReport struct {
-	CampaignPath     string               `json:"campaign_path"`
-	ArtifactPath     string               `json:"artifact_path,omitempty"`
-	EvidenceDigest   record.SHA256        `json:"evidence_digest"`
-	WallElapsedNanos record.Uint64String  `json:"wall_elapsed_nanos"`
-	Replay           *QualificationReplay `json:"replay,omitempty"`
+	Evidence         *runner.ExecutionEvidence        `json:"evidence,omitempty"`
+	DiagnosticStatus string                           `json:"diagnostic_status,omitempty"`
+	CampaignPath     string                           `json:"campaign_path"`
+	ArtifactPath     string                           `json:"artifact_path,omitempty"`
+	EvidenceDigest   record.SHA256                    `json:"evidence_digest"`
+	WallElapsedNanos record.Uint64String              `json:"wall_elapsed_nanos"`
+	Diagnostics      *runner.DiagnosticTraceReference `json:"diagnostics,omitempty"`
+	Replay           *QualificationReplay             `json:"replay,omitempty"`
+}
+
+type QualificationDiagnosticDivergence struct {
+	BaselineIteration record.Uint64String `json:"baseline_iteration"`
+	Iteration         record.Uint64String `json:"iteration"`
+	choice.DiagnosticDivergence
 }
 
 type QualificationReport struct {
-	Schema          string                         `json:"schema"`
-	Qualified       bool                           `json:"qualified"`
-	Deterministic   bool                           `json:"deterministic"`
-	TargetSuccess   bool                           `json:"target_success"`
-	Seed            record.Uint64String            `json:"seed"`
-	Repeat          record.Uint64String            `json:"repeat"`
-	Command         []string                       `json:"command"`
-	EvidenceDigest  record.SHA256                  `json:"evidence_digest,omitempty"`
-	Evidence        *runner.ExecutionEvidence      `json:"evidence,omitempty"`
-	Executions      []QualificationExecutionReport `json:"executions"`
-	FirstDivergence string                         `json:"first_divergence,omitempty"`
-	Failure         *QualificationFailure          `json:"failure,omitempty"`
+	Schema               string                             `json:"schema"`
+	Qualified            bool                               `json:"qualified"`
+	Deterministic        bool                               `json:"deterministic"`
+	TargetSuccess        bool                               `json:"target_success"`
+	Seed                 record.Uint64String                `json:"seed"`
+	Repeat               record.Uint64String                `json:"repeat"`
+	Command              []string                           `json:"command"`
+	EvidenceDigest       record.SHA256                      `json:"evidence_digest,omitempty"`
+	Evidence             *runner.ExecutionEvidence          `json:"evidence,omitempty"`
+	Executions           []QualificationExecutionReport     `json:"executions"`
+	DiagnosticDivergence *QualificationDiagnosticDivergence `json:"diagnostic_divergence,omitempty"`
+	FirstDivergence      string                             `json:"first_divergence,omitempty"`
+	Failure              *QualificationFailure              `json:"failure,omitempty"`
 }
 
 func BuildQualificationReport(input QualificationInput) (QualificationReport, error) {
@@ -108,6 +122,12 @@ func BuildQualificationReport(input QualificationInput) (QualificationReport, er
 		if run.Evidence.Seed != baseline.Seed {
 			return QualificationReport{}, fmt.Errorf("qualification execution %d has seed %d, want %d", index, run.Evidence.Seed, baseline.Seed)
 		}
+		if (run.Evidence.Diagnostics == nil) != (run.Diagnostics == nil) {
+			return QualificationReport{}, fmt.Errorf("qualification execution %d diagnostic evidence is incomplete", index)
+		}
+		if run.Diagnostics != nil && run.Diagnostics.DiagnosticEvidence != *run.Evidence.Diagnostics {
+			return QualificationReport{}, fmt.Errorf("qualification execution %d diagnostic evidence disagrees", index)
+		}
 		digest, digestErr := evidenceDigest(run.Evidence)
 		if digestErr != nil {
 			return QualificationReport{}, fmt.Errorf("hash execution evidence %d: %w", index, digestErr)
@@ -133,7 +153,13 @@ func BuildQualificationReport(input QualificationInput) (QualificationReport, er
 		if copiedReplay != nil && run.Evidence.Choices != nil && copiedReplay.Match && copiedReplay.ChoiceReplayStatus != ChoiceReplayExact {
 			return QualificationReport{}, fmt.Errorf("validate execution replay %d: exact choice replay evidence is required", index)
 		}
-		report.Executions = append(report.Executions, QualificationExecutionReport{CampaignPath: run.CampaignPath, ArtifactPath: run.ArtifactPath, EvidenceDigest: digest, WallElapsedNanos: record.Uint64String(run.WallElapsedNanos), Replay: copiedReplay})
+		report.Executions = append(report.Executions, QualificationExecutionReport{CampaignPath: run.CampaignPath, ArtifactPath: run.ArtifactPath, EvidenceDigest: digest, WallElapsedNanos: record.Uint64String(run.WallElapsedNanos), Replay: copiedReplay, Diagnostics: cloneDiagnosticReference(run.Diagnostics)})
+	}
+	if err := bindDiagnosticEvidence(&report, input.Executions); err != nil {
+		return QualificationReport{}, err
+	}
+	if err := attachDiagnosticComparison(&report); err != nil {
+		return QualificationReport{}, err
 	}
 	report.Qualified = report.Deterministic && report.TargetSuccess && replayOK
 	return report, nil
@@ -157,6 +183,12 @@ func BuildQualificationFailure(command []string, seed uint64, repeat uint64, com
 		if run.CampaignPath == "" || run.Evidence.Schema != runner.ExecutionEvidenceSchema || uint64(run.Evidence.Seed) != seed {
 			return QualificationReport{}, fmt.Errorf("completed qualification execution %d is invalid", index)
 		}
+		if (run.Evidence.Diagnostics == nil) != (run.Diagnostics == nil) {
+			return QualificationReport{}, fmt.Errorf("completed qualification execution %d diagnostic evidence is incomplete", index)
+		}
+		if run.Diagnostics != nil && run.Diagnostics.DiagnosticEvidence != *run.Evidence.Diagnostics {
+			return QualificationReport{}, fmt.Errorf("completed qualification execution %d diagnostic evidence disagrees", index)
+		}
 		digest, err := evidenceDigest(run.Evidence)
 		if err != nil {
 			return QualificationReport{}, fmt.Errorf("hash completed qualification execution %d: %w", index, err)
@@ -178,7 +210,13 @@ func BuildQualificationFailure(command []string, seed uint64, repeat uint64, com
 		if replayEvidence != nil && run.Evidence.Choices != nil && replayEvidence.Match && replayEvidence.ChoiceReplayStatus != ChoiceReplayExact {
 			return QualificationReport{}, fmt.Errorf("validate completed qualification replay %d: exact choice replay evidence is required", index)
 		}
-		report.Executions = append(report.Executions, QualificationExecutionReport{CampaignPath: run.CampaignPath, ArtifactPath: run.ArtifactPath, EvidenceDigest: digest, WallElapsedNanos: record.Uint64String(run.WallElapsedNanos), Replay: replayEvidence})
+		report.Executions = append(report.Executions, QualificationExecutionReport{CampaignPath: run.CampaignPath, ArtifactPath: run.ArtifactPath, EvidenceDigest: digest, WallElapsedNanos: record.Uint64String(run.WallElapsedNanos), Replay: replayEvidence, Diagnostics: cloneDiagnosticReference(run.Diagnostics)})
+	}
+	if err := bindDiagnosticEvidence(&report, completed); err != nil {
+		return QualificationReport{}, err
+	}
+	if err := attachDiagnosticComparison(&report); err != nil {
+		return QualificationReport{}, err
 	}
 	return report, nil
 }
@@ -290,7 +328,7 @@ func validateQualificationReport(report QualificationReport) error {
 			return fmt.Errorf("qualification failure result is inconsistent")
 		}
 		if len(report.Executions) == 0 {
-			if report.Evidence != nil || report.EvidenceDigest != "" {
+			if report.Evidence != nil || report.EvidenceDigest != "" || report.DiagnosticDivergence != nil {
 				return fmt.Errorf("qualification failure has evidence without completed executions")
 			}
 			return nil
@@ -309,10 +347,16 @@ func validateQualificationReport(report QualificationReport) error {
 	if digest != report.EvidenceDigest {
 		return fmt.Errorf("qualification baseline evidence digest is invalid")
 	}
+	if err := validateDiagnosticEvidence(report); err != nil {
+		return err
+	}
 	deterministic := true
 	for index, run := range report.Executions {
 		if run.CampaignPath == "" || run.EvidenceDigest == "" {
 			return fmt.Errorf("qualification execution %d identity is invalid", index)
+		}
+		if run.Diagnostics != nil && (run.Diagnostics.Path == "" || run.Diagnostics.Profile != choice.DiagnosticProfile || !validDiagnosticReference(*run.Diagnostics)) {
+			return errors.New("qualification diagnostic trace reference is invalid")
 		}
 		if run.EvidenceDigest != report.EvidenceDigest {
 			deterministic = false
@@ -416,6 +460,7 @@ func firstDivergence(expected, actual runner.ExecutionEvidence) string {
 		{"io_transcript.complete", expected.IOTranscriptComplete, actual.IOTranscriptComplete},
 		{"virtual_time_elapsed_nanos", expected.VirtualTimeElapsedNanos, actual.VirtualTimeElapsedNanos},
 		{"choices", expected.Choices, actual.Choices},
+		{"diagnostics", expected.Diagnostics, actual.Diagnostics},
 		{"world", expected.World, actual.World},
 		{"read_only_mounts_sha256", expected.ReadOnlyMountsSHA256, actual.ReadOnlyMountsSHA256},
 		{"semantic_coverage", expected.SemanticCoverage, actual.SemanticCoverage},
@@ -427,4 +472,148 @@ func firstDivergence(expected, actual runner.ExecutionEvidence) string {
 		}
 	}
 	return "evidence"
+}
+
+func cloneDiagnosticReference(reference *runner.DiagnosticTraceReference) *runner.DiagnosticTraceReference {
+	if reference == nil {
+		return nil
+	}
+	cloned := *reference
+	return &cloned
+}
+
+func diagnosticStatus(evidence runner.ExecutionEvidence) (string, error) {
+	if evidence.Diagnostics != nil {
+		return DiagnosticComplete, nil
+	}
+	enabled := false
+	for _, entry := range evidence.Environment {
+		if entry.Name == choice.DiagnosticProfileEnvironment {
+			if entry.Value != choice.DiagnosticProfile {
+				return "", errors.New("qualification diagnostic profile is invalid")
+			}
+			enabled = true
+		}
+	}
+	if !enabled {
+		return "", nil
+	}
+	if evidence.Outcome.Domain == "watchdog" && evidence.Outcome.Reason == "watchdog_timeout" || evidence.Outcome.Domain == "runner" && evidence.Outcome.Reason == "runner_cancelled" {
+		return DiagnosticUnavailable, nil
+	}
+	return "", errors.New("qualification diagnostic trace is unavailable for an uninterrupted execution")
+}
+
+func bindDiagnosticEvidence(report *QualificationReport, runs []QualificationExecution) error {
+	enabled := false
+	for _, run := range runs {
+		status, err := diagnosticStatus(run.Evidence)
+		if err != nil {
+			return err
+		}
+		enabled = enabled || status != ""
+	}
+	if !enabled {
+		return nil
+	}
+	for index, run := range runs {
+		status, err := diagnosticStatus(run.Evidence)
+		if err != nil {
+			return err
+		}
+		if status == "" {
+			return fmt.Errorf("qualification execution %d omitted diagnostic evidence", index)
+		}
+		evidence, err := cloneEvidence(run.Evidence)
+		if err != nil {
+			return err
+		}
+		report.Executions[index].Evidence = &evidence
+		report.Executions[index].DiagnosticStatus = status
+	}
+	return nil
+}
+
+func validateDiagnosticEvidence(report QualificationReport) error {
+	status, err := diagnosticStatus(*report.Evidence)
+	if err != nil {
+		return err
+	}
+	enabled := status != ""
+	for _, run := range report.Executions {
+		enabled = enabled || run.Diagnostics != nil || run.Evidence != nil || run.DiagnosticStatus != ""
+	}
+	if !enabled {
+		if report.DiagnosticDivergence != nil {
+			return errors.New("qualification diagnostic divergence has no diagnostic evidence")
+		}
+		return nil
+	}
+	for index, run := range report.Executions {
+		if run.Evidence == nil || run.Evidence.Schema != runner.ExecutionEvidenceSchema || run.Evidence.Seed != report.Seed {
+			return fmt.Errorf("qualification execution %d diagnostic evidence identity is invalid", index)
+		}
+		digest, err := evidenceDigest(*run.Evidence)
+		if err != nil || digest != run.EvidenceDigest || index == 0 && digest != report.EvidenceDigest {
+			return fmt.Errorf("qualification execution %d diagnostic evidence digest is invalid", index)
+		}
+		status, err := diagnosticStatus(*run.Evidence)
+		if err != nil {
+			return err
+		}
+		if status == "" || status != run.DiagnosticStatus {
+			return fmt.Errorf("qualification execution %d diagnostic status is inconsistent", index)
+		}
+		if (run.Evidence.Diagnostics == nil) != (run.Diagnostics == nil) || run.Diagnostics != nil && run.Diagnostics.DiagnosticEvidence != *run.Evidence.Diagnostics {
+			return fmt.Errorf("qualification execution %d diagnostic evidence disagrees", index)
+		}
+	}
+	if difference := report.DiagnosticDivergence; difference != nil {
+		if report.Deterministic || len(difference.Fields) == 0 || difference.BaselineIteration < 1 || difference.Iteration <= difference.BaselineIteration || uint64(difference.Iteration) > uint64(len(report.Executions)) {
+			return errors.New("qualification diagnostic divergence is inconsistent")
+		}
+		baseline := report.Executions[int(difference.BaselineIteration)-1]
+		actual := report.Executions[int(difference.Iteration)-1]
+		if baseline.Diagnostics == nil || actual.Diagnostics == nil || baseline.Diagnostics.SHA256 == actual.Diagnostics.SHA256 {
+			return errors.New("qualification diagnostic divergence pair is inconsistent")
+		}
+	}
+	return nil
+}
+
+func attachDiagnosticComparison(report *QualificationReport) error {
+	var baseline *choice.DiagnosticTrace
+	baselineIndex := 0
+	for index, run := range report.Executions {
+		if run.Diagnostics == nil {
+			continue
+		}
+		observed, err := choice.ReadDiagnosticTrace(run.Diagnostics.Path)
+		if err != nil {
+			return fmt.Errorf("qualification execution %d diagnostic trace: %w", index, err)
+		}
+		if run.Diagnostics.Profile != choice.DiagnosticProfile || run.Diagnostics.SHA256 != record.SHA256FromSum(observed.SHA256) || uint64(run.Diagnostics.Records) != uint64(len(observed.Records)) {
+			return errors.New("qualification diagnostic trace identity changed")
+		}
+		if baseline == nil {
+			baseline = &observed
+			baselineIndex = index
+			continue
+		}
+		if run.EvidenceDigest != report.Executions[baselineIndex].EvidenceDigest && report.DiagnosticDivergence == nil {
+			difference, err := choice.DiffDiagnostics(baseline.Bytes, observed.Bytes)
+			if err != nil {
+				return err
+			}
+			if difference != nil {
+				report.DiagnosticDivergence = &QualificationDiagnosticDivergence{BaselineIteration: record.Uint64String(baselineIndex + 1), Iteration: record.Uint64String(index + 1), DiagnosticDivergence: *difference}
+			}
+		}
+	}
+	return nil
+}
+
+func validDiagnosticReference(reference runner.DiagnosticTraceReference) bool {
+	_, err := record.ParseSHA256(string(reference.SHA256))
+	return err == nil && uint64(reference.Records) <= (choice.MaximumDiagnosticBytes-64)/96
 }

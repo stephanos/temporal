@@ -1,0 +1,72 @@
+=== RUN   TestSessionCollectTerminal
+=== RUN   TestSessionCollectTerminal/absent
+=== RUN   TestSessionCollectTerminal/truncated
+=== RUN   TestSessionCollectTerminal/malformed
+=== RUN   TestSessionCollectTerminal/checksum
+=== RUN   TestSessionCollectTerminal/digest
+=== RUN   TestSessionCollectTerminal/overflow
+=== RUN   TestSessionCollectTerminal/capacity
+=== RUN   TestSessionCollectTerminal/complete
+=== RUN   TestSessionCollectTerminal/replay_divergence
+--- PASS: TestSessionCollectTerminal (0.01s)
+    --- PASS: TestSessionCollectTerminal/absent (0.00s)
+    --- PASS: TestSessionCollectTerminal/truncated (0.00s)
+    --- PASS: TestSessionCollectTerminal/malformed (0.00s)
+    --- PASS: TestSessionCollectTerminal/checksum (0.00s)
+    --- PASS: TestSessionCollectTerminal/digest (0.00s)
+    --- PASS: TestSessionCollectTerminal/overflow (0.00s)
+    --- PASS: TestSessionCollectTerminal/capacity (0.00s)
+    --- PASS: TestSessionCollectTerminal/complete (0.00s)
+    --- PASS: TestSessionCollectTerminal/replay_divergence (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/deterministicio	0.373s
+=== RUN   TestRunReturnsValidatedOverflowChoiceTrace
+--- PASS: TestRunReturnsValidatedOverflowChoiceTrace (0.03s)
+=== RUN   TestRunRejectsExhaustedChoiceTapeBeforeTargetMarker
+--- PASS: TestRunRejectsExhaustedChoiceTapeBeforeTargetMarker (0.10s)
+=== RUN   TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker
+=== RUN   TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker/kind
+=== RUN   TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker/site
+=== RUN   TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker/alternatives
+=== RUN   TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker/selected
+=== RUN   TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker/alternative_set
+--- PASS: TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker (0.16s)
+    --- PASS: TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker/kind (0.03s)
+    --- PASS: TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker/site (0.02s)
+    --- PASS: TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker/alternatives (0.03s)
+    --- PASS: TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker/selected (0.03s)
+    --- PASS: TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker/alternative_set (0.03s)
+=== RUN   TestRunRejectsUnconsumedChoiceTape
+=== RUN   TestRunRejectsUnconsumedChoiceTape/2
+=== RUN   TestRunRejectsUnconsumedChoiceTape/3
+--- PASS: TestRunRejectsUnconsumedChoiceTape (0.08s)
+    --- PASS: TestRunRejectsUnconsumedChoiceTape/2 (0.03s)
+    --- PASS: TestRunRejectsUnconsumedChoiceTape/3 (0.02s)
+=== RUN   TestRunBoundsUnresponsiveSupervisor
+--- PASS: TestRunBoundsUnresponsiveSupervisor (0.23s)
+=== RUN   TestRunIOTerminalAfterTermination
+=== RUN   TestRunIOTerminalAfterTermination/watchdog_absent
+=== RUN   TestRunIOTerminalAfterTermination/cancelled_absent
+=== RUN   TestRunIOTerminalAfterTermination/success_absent
+=== RUN   TestRunIOTerminalAfterTermination/nonzero_absent
+=== RUN   TestRunIOTerminalAfterTermination/unverified_signal_absent
+=== RUN   TestRunIOTerminalAfterTermination/watchdog_truncated
+=== RUN   TestRunIOTerminalAfterTermination/cancelled_truncated
+=== RUN   TestRunIOTerminalAfterTermination/watchdog_checksum
+=== RUN   TestRunIOTerminalAfterTermination/cancelled_checksum
+=== RUN   TestRunIOTerminalAfterTermination/success_complete
+--- PASS: TestRunIOTerminalAfterTermination (5.89s)
+    --- PASS: TestRunIOTerminalAfterTermination/watchdog_absent (1.81s)
+    --- PASS: TestRunIOTerminalAfterTermination/cancelled_absent (0.13s)
+    --- PASS: TestRunIOTerminalAfterTermination/success_absent (0.02s)
+    --- PASS: TestRunIOTerminalAfterTermination/nonzero_absent (0.02s)
+    --- PASS: TestRunIOTerminalAfterTermination/unverified_signal_absent (0.02s)
+    --- PASS: TestRunIOTerminalAfterTermination/watchdog_truncated (1.81s)
+    --- PASS: TestRunIOTerminalAfterTermination/cancelled_truncated (0.13s)
+    --- PASS: TestRunIOTerminalAfterTermination/watchdog_checksum (1.81s)
+    --- PASS: TestRunIOTerminalAfterTermination/cancelled_checksum (0.12s)
+    --- PASS: TestRunIOTerminalAfterTermination/success_complete (0.01s)
+=== RUN   TestProfileEntropyIsIndependentOfScheduleSeed
+--- PASS: TestProfileEntropyIsIndependentOfScheduleSeed (0.78s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/execution	7.836s

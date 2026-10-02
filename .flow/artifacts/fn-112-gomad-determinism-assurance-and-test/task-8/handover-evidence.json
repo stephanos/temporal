@@ -1,0 +1,52 @@
+{
+  "task": "fn-112-gomad-determinism-assurance-and-test.8",
+  "status": "ready_for_parent_review",
+  "branch": "stephanos/gomad",
+  "head": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+  "task_code_paths": [
+    "tools/gomad3/cmd/gomad/e2e_test.go",
+    "tools/gomad3/cmd/gomad/testdata/campaign/main.go"
+  ],
+  "frozen_sources": {
+    "tools/gomad3/cmd/gomad/e2e_test.go": "265ed44eb99a86e99ce8deeb4c6c24acc99264d57da60c27040de9c2ae94c4dc",
+    "tools/gomad3/cmd/gomad/testdata/campaign/main.go": "1d91a27154a10401d2585e251b7fee87ea9580bd8917f9c88a87a5c39bcfbd4c",
+    ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md": "4776678bd80edd1acd406060925f3780ef8cde38df6ded6ecf8a1278c556bc65"
+  },
+  "task_patch": {
+    "path": "task-only.patch",
+    "sha256": "03fd54853c3d212b1ff22dd03f518813a62e91b9904cae9fe922b0ca4ef02324"
+  },
+  "gates": "gate-results.json",
+  "final_twenty": {
+    "explore_replay": 20,
+    "kill_resume": 20,
+    "boundary_2_kills": 20,
+    "boundary_0_kills": 20,
+    "semantic_execution_comparisons": 120,
+    "failures": 0,
+    "elapsed_seconds": 239.661,
+    "exit": 0
+  },
+  "full_host": {
+    "exit": 0,
+    "requires_GOMAD3_STOCK_GO": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go",
+    "platform": "darwin/arm64",
+    "log": "test-host-explicit-stock-final.log"
+  },
+  "limitations": [
+    "native linux/amd64 unavailable",
+    "root lint missing-main and nested-module discovery failures",
+    "default stock lookup gap owned by fn-112.12",
+    "watchdog invalid I/O terminal frame owned by fn-112.11",
+    "fixture compares valid None World rather than exercising nontrivial World transitions"
+  ],
+  "retained_cli_sample": "retained-cli-evidence.json",
+  "cleanup": "final-cleanup.json",
+  "protected_prior_sources": "worker-protected-final-check.json",
+  "parent_receipts": [
+    "parent-protected-source-check.json",
+    "parent-patch-validation.json",
+    "parent-twenty-run-validation.json"
+  ],
+  "completion_authority": "Parent must independently review frozen patch and complete Flow; no child commit/review dispatch."
+}

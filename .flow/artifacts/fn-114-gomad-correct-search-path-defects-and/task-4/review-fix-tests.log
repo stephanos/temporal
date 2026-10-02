@@ -1,0 +1,6 @@
+ok  	go.temporal.io/server/tools/gomad3	1.046s
+ok  	go.temporal.io/server/tools/gomad3/choice	0.258s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice	0.652s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/campaign	0.645s
+ok  	go.temporal.io/server/tools/gomad3/runner	4.117s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	0.618s

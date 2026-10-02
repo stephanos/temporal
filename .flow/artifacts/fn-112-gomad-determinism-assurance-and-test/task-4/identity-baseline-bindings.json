@@ -1,0 +1,18 @@
+{
+  "head": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+  "platform": "darwin/arm64",
+  "sources": {
+    "tools/gomad3/runner/runner.go": "0d4d5f8a62bcd81bf9e7a527069504fa3011f1df7551a9a8191f392942d7d547",
+    "tools/gomad3/runner/portable_plan.go": "60bc16d13e247f81f13ffee6290b8ae1f8527e9f0bc93eebf890a95cc006b483",
+    "tools/gomad3/runner/evidence.go": "d1ca12ddf09ac041b716d0648ca07c213debd1fa0a8c7dae5e4ec4bf52d278f6",
+    "tools/gomad3/runner/runner_test.go": "bdc46b929a30247c9217f548061346dd62743905d9262b50ddb3f90054f1a138",
+    "tools/gomad3/record/identity.go": "ae1bdb9414b07599332a84c2bc31209ebdbaeeca6c77f4603d71b5af7812cee2",
+    "tools/gomad3/record/types.go": "22f477411523ecbbeacd49f31ab5b5755512caf862ae410dfbf7d5472ef584f5",
+    "tools/gomad3/record/record.go": "856100c9ed8574b408fa548b851df3d79a840f7b63efd09826f6c1b9bf9d2c4f"
+  },
+  "snapshots": {
+    "plain.json": "7f79df4e3b9c7d655500adebbabb2bacc903986baa00ac506dd076455278bbfd",
+    "choices.json": "ed2e54a1124dfa250180c59ad3abc4d0da31cdaef6db0f38e65d7f84531db3a9",
+    "identity-capture-test.go.txt": "0e77d0ecc52112d93346f942f772c917b316b293aa04cdf44cc3e1d1393dda10"
+  }
+}

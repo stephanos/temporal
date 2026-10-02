@@ -1,0 +1,18 @@
+{
+  "6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee": {
+    "build_directory_exists": true,
+    "go_binary_exists": true
+  },
+  "d15ad896e542b9f64381c2f184567355bac8ffd62ae2347501fe8fcdd96f6eba": {
+    "build_directory_exists": true,
+    "go_binary_exists": true
+  },
+  "d49ef0309636e2301c46cfb36cda8a9b21323d87601c93c429260b3eefd4e37d": {
+    "build_directory_exists": true,
+    "go_binary_exists": true
+  },
+  "56e4a2f0c5514d43b9a0682d030964588dd3d5a58978ba0b989459bb556843a3": {
+    "build_directory_exists": true,
+    "go_binary_exists": true
+  }
+}

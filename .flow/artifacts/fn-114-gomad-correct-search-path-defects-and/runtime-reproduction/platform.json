@@ -1,0 +1,8 @@
+{
+  "goos": "darwin",
+  "goarch": "arm64",
+  "native": true,
+  "linux_amd64": "unverified",
+  "head": "1d7272e654f268f9a45f3fe965918fe2522827c6",
+  "source_identity": "../task-2/source-bindings-frozen.json"
+}

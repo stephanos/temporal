@@ -1,0 +1,1 @@
+Existing spec Decision Context matches task 4: **C3 failure policy.** A divergence stops the campaign under `first` and does not stop it under `budget` or `all`. It does not consume the distinct failure-signature budget, because it is not a target failure. No spec update is required.

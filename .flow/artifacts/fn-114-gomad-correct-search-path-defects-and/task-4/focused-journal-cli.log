@@ -1,0 +1,186 @@
+=== RUN   TestResumeExplorationJournalRetainsDivergenceAndRejectsCorruption
+=== RUN   TestResumeExplorationJournalRetainsDivergenceAndRejectsCorruption/none
+=== RUN   TestResumeExplorationJournalRetainsDivergenceAndRejectsCorruption/old_schema
+=== RUN   TestResumeExplorationJournalRetainsDivergenceAndRejectsCorruption/run_divergence
+--- PASS: TestResumeExplorationJournalRetainsDivergenceAndRejectsCorruption (0.21s)
+    --- PASS: TestResumeExplorationJournalRetainsDivergenceAndRejectsCorruption/none (0.09s)
+    --- PASS: TestResumeExplorationJournalRetainsDivergenceAndRejectsCorruption/old_schema (0.07s)
+    --- PASS: TestResumeExplorationJournalRetainsDivergenceAndRejectsCorruption/run_divergence (0.06s)
+=== RUN   TestDivergenceFieldsAreAbsentFromOrdinaryJSON
+--- PASS: TestDivergenceFieldsAreAbsentFromOrdinaryJSON (0.00s)
+=== RUN   TestExplorationDivergenceEvidenceCannotBeUsedAsTargetOutcome
+=== RUN   TestExplorationDivergenceEvidenceCannotBeUsedAsTargetOutcome/outcome
+=== RUN   TestExplorationDivergenceEvidenceCannotBeUsedAsTargetOutcome/target
+=== RUN   TestExplorationDivergenceEvidenceCannotBeUsedAsTargetOutcome/signature
+=== RUN   TestExplorationDivergenceEvidenceCannotBeUsedAsTargetOutcome/artifact
+=== RUN   TestExplorationDivergenceEvidenceCannotBeUsedAsTargetOutcome/trace
+=== RUN   TestExplorationDivergenceEvidenceCannotBeUsedAsTargetOutcome/success
+=== RUN   TestExplorationDivergenceEvidenceCannotBeUsedAsTargetOutcome/root
+--- PASS: TestExplorationDivergenceEvidenceCannotBeUsedAsTargetOutcome (0.05s)
+    --- PASS: TestExplorationDivergenceEvidenceCannotBeUsedAsTargetOutcome/outcome (0.00s)
+    --- PASS: TestExplorationDivergenceEvidenceCannotBeUsedAsTargetOutcome/target (0.00s)
+    --- PASS: TestExplorationDivergenceEvidenceCannotBeUsedAsTargetOutcome/signature (0.00s)
+    --- PASS: TestExplorationDivergenceEvidenceCannotBeUsedAsTargetOutcome/artifact (0.00s)
+    --- PASS: TestExplorationDivergenceEvidenceCannotBeUsedAsTargetOutcome/trace (0.00s)
+    --- PASS: TestExplorationDivergenceEvidenceCannotBeUsedAsTargetOutcome/success (0.00s)
+    --- PASS: TestExplorationDivergenceEvidenceCannotBeUsedAsTargetOutcome/root (0.00s)
+=== RUN   TestExplorationJournalCommitsAndReplaysWholeRounds
+--- PASS: TestExplorationJournalCommitsAndReplaysWholeRounds (0.03s)
+=== RUN   TestExplorationJournalRejectsChangedPlanAndOversizedSegment
+--- PASS: TestExplorationJournalRejectsChangedPlanAndOversizedSegment (0.01s)
+=== RUN   TestExplorationCommitMutationFaultsLeaveRoundRecoverable
+=== RUN   TestExplorationCommitMutationFaultsLeaveRoundRecoverable/000-create-atomic-temporary
+=== RUN   TestExplorationCommitMutationFaultsLeaveRoundRecoverable/001-file-sync-atomic-temporary
+=== RUN   TestExplorationCommitMutationFaultsLeaveRoundRecoverable/002-rename-atomic-publish
+=== RUN   TestExplorationCommitMutationFaultsLeaveRoundRecoverable/003-directory-sync-directory
+=== RUN   TestExplorationCommitMutationFaultsLeaveRoundRecoverable/004-delete-exploration-candidate-work
+=== RUN   TestExplorationCommitMutationFaultsLeaveRoundRecoverable/005-delete-exploration-attempts
+=== RUN   TestExplorationCommitMutationFaultsLeaveRoundRecoverable/006-directory-sync-directory
+=== RUN   TestExplorationCommitMutationFaultsLeaveRoundRecoverable/007-rename-exploration-publish
+=== RUN   TestExplorationCommitMutationFaultsLeaveRoundRecoverable/008-directory-sync-directory
+--- PASS: TestExplorationCommitMutationFaultsLeaveRoundRecoverable (0.25s)
+    --- PASS: TestExplorationCommitMutationFaultsLeaveRoundRecoverable/000-create-atomic-temporary (0.02s)
+    --- PASS: TestExplorationCommitMutationFaultsLeaveRoundRecoverable/001-file-sync-atomic-temporary (0.02s)
+    --- PASS: TestExplorationCommitMutationFaultsLeaveRoundRecoverable/002-rename-atomic-publish (0.02s)
+    --- PASS: TestExplorationCommitMutationFaultsLeaveRoundRecoverable/003-directory-sync-directory (0.02s)
+    --- PASS: TestExplorationCommitMutationFaultsLeaveRoundRecoverable/004-delete-exploration-candidate-work (0.02s)
+    --- PASS: TestExplorationCommitMutationFaultsLeaveRoundRecoverable/005-delete-exploration-attempts (0.03s)
+    --- PASS: TestExplorationCommitMutationFaultsLeaveRoundRecoverable/006-directory-sync-directory (0.03s)
+    --- PASS: TestExplorationCommitMutationFaultsLeaveRoundRecoverable/007-rename-exploration-publish (0.03s)
+    --- PASS: TestExplorationCommitMutationFaultsLeaveRoundRecoverable/008-directory-sync-directory (0.03s)
+=== RUN   TestExplorationCreationMutationFaultsLeaveJournalRetryable
+=== RUN   TestExplorationCreationMutationFaultsLeaveJournalRetryable/000-create-exploration-directory
+=== RUN   TestExplorationCreationMutationFaultsLeaveJournalRetryable/001-create-private-directory
+=== RUN   TestExplorationCreationMutationFaultsLeaveJournalRetryable/002-create-private-directory
+=== RUN   TestExplorationCreationMutationFaultsLeaveJournalRetryable/003-create-partial-exploration-directory
+=== RUN   TestExplorationCreationMutationFaultsLeaveJournalRetryable/004-create-atomic-temporary
+=== RUN   TestExplorationCreationMutationFaultsLeaveJournalRetryable/005-file-sync-atomic-temporary
+=== RUN   TestExplorationCreationMutationFaultsLeaveJournalRetryable/006-rename-atomic-publish
+=== RUN   TestExplorationCreationMutationFaultsLeaveJournalRetryable/007-directory-sync-directory
+=== RUN   TestExplorationCreationMutationFaultsLeaveJournalRetryable/008-directory-sync-directory
+--- PASS: TestExplorationCreationMutationFaultsLeaveJournalRetryable (0.14s)
+    --- PASS: TestExplorationCreationMutationFaultsLeaveJournalRetryable/000-create-exploration-directory (0.01s)
+    --- PASS: TestExplorationCreationMutationFaultsLeaveJournalRetryable/001-create-private-directory (0.01s)
+    --- PASS: TestExplorationCreationMutationFaultsLeaveJournalRetryable/002-create-private-directory (0.01s)
+    --- PASS: TestExplorationCreationMutationFaultsLeaveJournalRetryable/003-create-partial-exploration-directory (0.01s)
+    --- PASS: TestExplorationCreationMutationFaultsLeaveJournalRetryable/004-create-atomic-temporary (0.01s)
+    --- PASS: TestExplorationCreationMutationFaultsLeaveJournalRetryable/005-file-sync-atomic-temporary (0.02s)
+    --- PASS: TestExplorationCreationMutationFaultsLeaveJournalRetryable/006-rename-atomic-publish (0.02s)
+    --- PASS: TestExplorationCreationMutationFaultsLeaveJournalRetryable/007-directory-sync-directory (0.02s)
+    --- PASS: TestExplorationCreationMutationFaultsLeaveJournalRetryable/008-directory-sync-directory (0.02s)
+=== RUN   TestExplorationStageMutationFaultsLeaveRoundRetryable
+=== RUN   TestExplorationStageMutationFaultsLeaveRoundRetryable/000-create-exploration-round-directory
+=== RUN   TestExplorationStageMutationFaultsLeaveRoundRetryable/001-create-private-directory
+=== RUN   TestExplorationStageMutationFaultsLeaveRoundRetryable/002-create-private-directory
+=== RUN   TestExplorationStageMutationFaultsLeaveRoundRetryable/003-create-atomic-temporary
+=== RUN   TestExplorationStageMutationFaultsLeaveRoundRetryable/004-file-sync-atomic-temporary
+=== RUN   TestExplorationStageMutationFaultsLeaveRoundRetryable/005-rename-atomic-publish
+=== RUN   TestExplorationStageMutationFaultsLeaveRoundRetryable/006-directory-sync-directory
+=== RUN   TestExplorationStageMutationFaultsLeaveRoundRetryable/007-directory-sync-directory
+--- PASS: TestExplorationStageMutationFaultsLeaveRoundRetryable (0.19s)
+    --- PASS: TestExplorationStageMutationFaultsLeaveRoundRetryable/000-create-exploration-round-directory (0.02s)
+    --- PASS: TestExplorationStageMutationFaultsLeaveRoundRetryable/001-create-private-directory (0.02s)
+    --- PASS: TestExplorationStageMutationFaultsLeaveRoundRetryable/002-create-private-directory (0.02s)
+    --- PASS: TestExplorationStageMutationFaultsLeaveRoundRetryable/003-create-atomic-temporary (0.02s)
+    --- PASS: TestExplorationStageMutationFaultsLeaveRoundRetryable/004-file-sync-atomic-temporary (0.02s)
+    --- PASS: TestExplorationStageMutationFaultsLeaveRoundRetryable/005-rename-atomic-publish (0.02s)
+    --- PASS: TestExplorationStageMutationFaultsLeaveRoundRetryable/006-directory-sync-directory (0.02s)
+    --- PASS: TestExplorationStageMutationFaultsLeaveRoundRetryable/007-directory-sync-directory (0.03s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/campaign	1.249s
+=== RUN   TestExplorationCommitsDivergenceAndSiblingsUnderEveryPolicy
+=== RUN   TestExplorationCommitsDivergenceAndSiblingsUnderEveryPolicy/first
+=== RUN   TestExplorationCommitsDivergenceAndSiblingsUnderEveryPolicy/budget
+=== RUN   TestExplorationCommitsDivergenceAndSiblingsUnderEveryPolicy/all
+--- PASS: TestExplorationCommitsDivergenceAndSiblingsUnderEveryPolicy (0.01s)
+    --- PASS: TestExplorationCommitsDivergenceAndSiblingsUnderEveryPolicy/first (0.00s)
+    --- PASS: TestExplorationCommitsDivergenceAndSiblingsUnderEveryPolicy/budget (0.00s)
+    --- PASS: TestExplorationCommitsDivergenceAndSiblingsUnderEveryPolicy/all (0.00s)
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/outcome
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/failed
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/signature
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/trace
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/expected
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/ordinal
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/tape_count
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/reason
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/missing_expected
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/missing_observed
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/observed_ordinal
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/rank_override
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/observed_kind
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/observed_count
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/observed_selection
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/observed_identity
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/observed_digest
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/observed_site
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/expected_kind
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/expected_count
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/expected_rank_override
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/missing_identity
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/duplicate_identity
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/alternative_capacity
+--- PASS: TestExplorationRejectsInvalidCandidateDivergence (0.01s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/outcome (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/failed (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/signature (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/trace (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/expected (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/ordinal (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/tape_count (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/reason (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/missing_expected (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/missing_observed (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/observed_ordinal (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/rank_override (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/observed_kind (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/observed_count (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/observed_selection (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/observed_identity (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/observed_digest (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/observed_site (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/expected_kind (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/expected_count (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/expected_rank_override (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/missing_identity (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/duplicate_identity (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/alternative_capacity (0.00s)
+=== RUN   TestExplorationRejectsPreviousSegmentSchemaVisibly
+--- PASS: TestExplorationRejectsPreviousSegmentSchemaVisibly (0.00s)
+=== RUN   TestExplorationExpandsAllNonSelectedRanksBreadthFirst
+--- PASS: TestExplorationExpandsAllNonSelectedRanksBreadthFirst (0.00s)
+=== RUN   TestExplorationDeduplicatesPrefixesAndOutcomesWithoutPruning
+--- PASS: TestExplorationDeduplicatesPrefixesAndOutcomesWithoutPruning (0.00s)
+=== RUN   TestExplorationStopsAtExplicitRunDepthAndCapacityBounds
+=== RUN   TestExplorationStopsAtExplicitRunDepthAndCapacityBounds/executions
+=== RUN   TestExplorationStopsAtExplicitRunDepthAndCapacityBounds/depth
+=== RUN   TestExplorationStopsAtExplicitRunDepthAndCapacityBounds/capacity
+--- PASS: TestExplorationStopsAtExplicitRunDepthAndCapacityBounds (0.00s)
+    --- PASS: TestExplorationStopsAtExplicitRunDepthAndCapacityBounds/executions (0.00s)
+    --- PASS: TestExplorationStopsAtExplicitRunDepthAndCapacityBounds/depth (0.00s)
+    --- PASS: TestExplorationStopsAtExplicitRunDepthAndCapacityBounds/capacity (0.00s)
+=== RUN   TestExplorationRejectsIncompleteExecutionIdentity
+--- PASS: TestExplorationRejectsIncompleteExecutionIdentity (0.00s)
+=== RUN   TestExplorationRoundSegmentReplaysByteIdentically
+--- PASS: TestExplorationRoundSegmentReplaysByteIdentically (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice	0.619s
+=== RUN   TestChoiceExplorationDivergenceClassificationAndStatus
+=== RUN   TestChoiceExplorationDivergenceClassificationAndStatus/choice_confidence_failure
+=== RUN   TestChoiceExplorationDivergenceClassificationAndStatus/choice_mixed_failure
+=== RUN   TestChoiceExplorationDivergenceClassificationAndStatus/confidence_counter_without_target_failure
+=== RUN   TestChoiceExplorationDivergenceClassificationAndStatus/world_replay_divergence
+=== RUN   TestChoiceExplorationDivergenceClassificationAndStatus/target_failure
+=== RUN   TestChoiceExplorationDivergenceClassificationAndStatus/success
+--- PASS: TestChoiceExplorationDivergenceClassificationAndStatus (0.00s)
+    --- PASS: TestChoiceExplorationDivergenceClassificationAndStatus/choice_confidence_failure (0.00s)
+    --- PASS: TestChoiceExplorationDivergenceClassificationAndStatus/choice_mixed_failure (0.00s)
+    --- PASS: TestChoiceExplorationDivergenceClassificationAndStatus/confidence_counter_without_target_failure (0.00s)
+    --- PASS: TestChoiceExplorationDivergenceClassificationAndStatus/world_replay_divergence (0.00s)
+    --- PASS: TestChoiceExplorationDivergenceClassificationAndStatus/target_failure (0.00s)
+    --- PASS: TestChoiceExplorationDivergenceClassificationAndStatus/success (0.00s)
+=== RUN   TestInspectReportsCandidateReplayDivergence
+--- PASS: TestInspectReportsCandidateReplayDivergence (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	0.565s

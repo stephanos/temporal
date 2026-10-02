@@ -29,6 +29,7 @@ var choiceReplayTranscriptPattern = regexp.MustCompile(`^[LR]{6}$`)
 type choiceRun struct {
 	transcript string
 	trace      choice.Trace
+	terminal   []byte
 }
 
 // requireChoiceReplay records the fixture's Choice Trace under one seed and
@@ -108,6 +109,14 @@ func (campaign *runtimeCampaign) choiceIdentity(fixture string) (choice.Executio
 // opens the trace backing, the terminal frame, and the tape and replaces
 // itself with the fixture.
 func (campaign *runtimeCampaign) runChoice(name, fixture, seed string, tape *choice.ReplayPlan) (choiceRun, error) {
+	mode := choice.ModeRecord
+	if tape != nil {
+		mode = choice.ModeReplay
+	}
+	return campaign.runChoiceMode(name, fixture, seed, tape, mode, 0)
+}
+
+func (campaign *runtimeCampaign) runChoiceMode(name, fixture, seed string, tape *choice.ReplayPlan, mode choice.Mode, wantExit int, fixtureArgs ...string) (choiceRun, error) {
 	directory := filepath.Join(campaign.workspace, name)
 	if err := os.Mkdir(directory, 0o700); err != nil {
 		return choiceRun{}, fmt.Errorf("create choice trace directory: %w", err)
@@ -119,7 +128,7 @@ func (campaign *runtimeCampaign) runChoice(name, fixture, seed string, tape *cho
 	if err := os.Truncate(tracePath, choiceTraceBytes); err != nil {
 		return choiceRun{}, fmt.Errorf("size choice trace backing: %w", err)
 	}
-	script, arguments, mode := `exec "$0" 3<>"$1" 4>"$2"`, []string{fixture, tracePath, terminalPath}, choice.ModeRecord
+	script, arguments := `exec "$0" 3<>"$1" 4>"$2"`, []string{fixture, tracePath, terminalPath}
 	values := []string{
 		"GOMADSEED=" + seed, "GOMAD3_CHOICE_TRACE_FD=3", "GOMAD3_CHOICE_TERMINAL_FD=4",
 		"GOMAD3_CHOICE_TRACE_BYTES=" + strconv.Itoa(choiceTraceBytes),
@@ -129,15 +138,19 @@ func (campaign *runtimeCampaign) runChoice(name, fixture, seed string, tape *cho
 		if err := os.WriteFile(tapePath, tape.Bytes, 0o400); err != nil {
 			return choiceRun{}, fmt.Errorf("write choice tape: %w", err)
 		}
-		script, arguments, mode = script+` 5<"$3"`, append(arguments, tapePath), choice.ModeReplay
+		script, arguments = script+` 5<"$3"`, append(arguments, tapePath)
 		values = append(values, "GOMAD3_CHOICE_TAPE_FD=5", "GOMAD3_CHOICE_TAPE_BYTES="+strconv.Itoa(len(tape.Bytes)))
 	}
 	values = append(values, "GOMAD3_CHOICE_MODE="+strconv.Itoa(int(mode)))
-	result, err := campaign.command(
-		name, append([]string{"/bin/sh", "-c", script}, arguments...), campaign.testdata, 10*time.Second,
+	for index := range fixtureArgs {
+		script += fmt.Sprintf(` "${%d}"`, len(arguments)+index)
+	}
+	arguments = append(arguments, fixtureArgs...)
+	result, err := campaign.runCase(runtimeCase{name: name, wantExit: wantExit, request: campaign.request(
+		append([]string{"/bin/sh", "-c", script}, arguments...), campaign.testdata, 10*time.Second,
 		[]string{"GOMADSEED", "GOMAD3_IO_PROFILE", "GOMAD3_CHOICE_TRACE_FD", "GOMAD3_CHOICE_TERMINAL_FD", "GOMAD3_CHOICE_TRACE_BYTES", "GOMAD3_CHOICE_MODE", "GOMAD3_CHOICE_TAPE_FD", "GOMAD3_CHOICE_TAPE_BYTES"},
 		values...,
-	)
+	)})
 	if err != nil {
 		return choiceRun{}, err
 	}
@@ -157,10 +170,10 @@ func (campaign *runtimeCampaign) runChoice(name, fixture, seed string, tape *cho
 		return choiceRun{}, fmt.Errorf("%s published choice trace offset %d", name, next)
 	}
 	trace, err := choice.DecodeTrace(backing[choiceTraceHeaderBytes:next], terminal, choiceTraceBytes)
-	if err != nil {
+	if err != nil && !(wantExit == 125 && errors.Is(err, choice.ErrDiverged)) {
 		return choiceRun{}, fmt.Errorf("decode %s choice trace: %w", name, err)
 	}
-	return choiceRun{transcript: commandOutput(result), trace: trace}, nil
+	return choiceRun{transcript: commandOutput(result), trace: trace, terminal: terminal}, nil
 }
 
 // choiceTraceBacking builds the empty v2 trace header the runtime maps: the

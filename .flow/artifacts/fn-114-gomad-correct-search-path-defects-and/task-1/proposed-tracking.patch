@@ -1,0 +1,79 @@
+--- a/.flow/specs/fn-114-gomad-correct-search-path-defects-and.md
++++ b/.flow/specs/fn-114-gomad-correct-search-path-defects-and.md
+@@ -25,16 +25,16 @@
+ 
+ | ID | Kind | Finding | Evidence | Status |
+ | --- | --- | --- | --- | --- |
+-| C1 | Correctness | The guided corpus identity omits the target environment and clock-tick policy. Once Runner-managed targets receive `--env` entries (fn-105 task 30), one corpus can hold cases recorded under different environments or tick policies | `runner/internal/corpus/model.go` `Identity` and `targetProjection` bind target, argv, tags, adapters, packs, toolchain, and boundary only | Verified in source |
+-| C2 | Correctness | Goroutines created with no identified parent take a process-wide creation counter as identity. `time.AfterFunc` callbacks, including every context deadline, are created from the scheduler, so their identity depends on creation order and therefore on the schedule | `gomadChoiceAssignGoroutineIdentity` else-branch in the runtime overlay | Branch verified; reach from `AfterFunc` inferred |
+-| C3 | Correctness | A forced prefix that diverges in a choice-exploration candidate ends the whole campaign as a `HostError` and retains no candidate evidence | `runner/choice_exploration_campaign.go` completion loop and `outcome.Domain == "runner"` branch | Code path verified; trigger inferred |
+-| C4 | Correctness | `exec` provenance validation rejects `-race`, cgo, non-exe build modes, and external linking, and has no check for coverage instrumentation, so an unqualified instrumentation profile can pass | `validateDeterministicBuildInfo` in `target/target.go` | Verified in source |
+-| E1 | Inefficiency | A guided campaign gives up to three quarters of its seeds to corpus cases. The corpus identity binds the exact target, so those seeds reproduce records the corpus already holds | `mixGuidedSelection` in `runner/seeds.go` | Selection verified; consequence inferred |
+-| E2 | Inefficiency | Every artifact embeds the full target binary. `./tests` binaries are 155 to 179 MB, the representative qualification set retains about 11 GiB, and the 1 GiB corpus holds about six `./tests` cases | `artifact/publication.go` target payload; binary sizes in the assessment, total in the README | Verified |
+-| E3 | Inefficiency | The select hook records one decision per poll-order step of every multi-case `select`, ready or not. In `TestSignalWorkflowTestSuiteChasm` seed 11, 26,865 of 57,801 decisions are select-poll. Poll order can change behavior only when at least two cases are ready | patch hunk in `selectgo`; retained D14 qualification report | Counts verified; no-op claim inferred |
+-| E4 | Inefficiency | System goroutines are recorded and explorable alternatives. A probe with two user goroutines records 26 branching decisions | `gomadChoiceRunqIndex`; retained D21 control report | Counts verified; cause inferred |
+-| E5 | Inefficiency | Choice exploration skips every decision past `--max-choice-depth` counted from ordinal 0. The boot-only cluster probe records 4,562 choice records, so on a functional suite the strategy permutes bootstrap only | `expandCandidate` in `runner/internal/exploration/choice/engine.go` | Verified |
+-| E6 | Inefficiency | The minimizer holds its sealed, self-validating state in memory and works in a temporary directory that `close` deletes. An interrupted run repeats every attempt | `runner/minimize_operation.go` | Verified |
++| C1 | Correctness | The guided corpus identity omits the target environment and clock-tick policy. Once Runner-managed targets receive `--env` entries (fn-105 task 30), one corpus can hold cases recorded under different environments or tick policies | `runner/internal/corpus/model.go` `Identity` and `targetProjection` bind target, argv, tags, adapters, packs, toolchain, and boundary only | confirmed — environment and tick inputs still omitted |
++| C2 | Correctness | Goroutines created with no identified parent take a process-wide creation counter as identity. `time.AfterFunc` callbacks, including every context deadline, are created from the scheduler, so their identity depends on creation order and therefore on the schedule | `gomadChoiceAssignGoroutineIdentity` else-branch in the runtime overlay | confirmed — parentless branch; callback reproduction remains task 2 |
++| C3 | Correctness | A forced prefix that diverges in a choice-exploration candidate ends the whole campaign as a `HostError` and publishes no candidate execution records or typed divergence evidence | `execution/process_unix.go` returns a typed choice divergence; `runner.go` preserves it and `choice_exploration_campaign.go` returns from completion-error handling before processing outcomes | changed — symptom reproduced; executor-error path, not runner-domain branch |
++| C4 | Correctness | `exec` provenance validation rejects `-race`, cgo, non-exe build modes, and external linking, and has no check for coverage instrumentation, so an unqualified instrumentation profile can pass | `validateDeterministicBuildInfo` in `target/target.go` | confirmed — no coverage-instrumentation rejection |
++| E1 | Inefficiency | A guided campaign gives up to three quarters of its seeds to corpus cases. The corpus identity binds the exact target, so those seeds reproduce records the corpus already holds | `mixGuidedSelection` in `runner/seeds.go` | confirmed — selection repeats corpus seeds; consequence remains source inference |
++| E2 | Inefficiency | Every artifact embeds the full target binary. `./tests` binaries are 155 to 179 MB, the representative qualification set retains about 11 GiB, and the 1 GiB corpus holds about six `./tests` cases | `artifact/publication.go` target payload; historical binary sizes in `.plans/GOMAD_CMP.md:85-86`, total in `tools/gomad3/README.md:334` | confirmed — full target payload; sizes and storage totals are historical |
++| E3 | Inefficiency | The select hook records one decision per poll-order step of every multi-case `select`, ready or not. In `TestSignalWorkflowTestSuiteChasm` seed 11, 26,865 of 57,801 decisions are select-poll. Poll order can change behavior only when at least two cases are ready | patch hunk in `selectgo`; retained D14 qualification report | confirmed — pre-readiness poll hook; historical counts re-derived, soundness remains task 2/12 |
++| E4 | Inefficiency | System goroutines are recorded and explorable alternatives. The retained D21 control probe reports peak goroutines 2 and 26 branching decisions; its source does not deliberately start two user goroutines | `gomadChoiceRunqIndex`; retained D21 control report | changed — unfiltered alternatives and historical 26 confirmed; two-user premise unsupported |
++| E5 | Inefficiency | Choice exploration skips every decision past `--max-choice-depth` counted from ordinal 0. The boot-only cluster probe records 4,562 choice records, so on a functional suite the strategy permutes bootstrap only | `expandCandidate` in `runner/internal/exploration/choice/engine.go` | confirmed — absolute decision ordinal bounds expansion |
++| E6 | Inefficiency | The minimizer holds its sealed, self-validating state in memory and works in a temporary directory that `close` deletes. An interrupted run repeats every attempt | `runner/minimize_operation.go` | confirmed — state remains in memory and temporary workspace is deleted |
+ 
+ ### Relationship to existing work
+ 
+--- a/.flow/tasks/fn-114-gomad-correct-search-path-defects-and.4.md
++++ b/.flow/tasks/fn-114-gomad-correct-search-path-defects-and.4.md
+@@ -11,10 +11,10 @@
+ **Touches:** [tools/gomad3/runner/choice_exploration_campaign.go, tools/gomad3/runner/internal/exploration/choice/**, tools/gomad3/runner/internal/campaign/choice_exploration_journal.go, tools/gomad3/runner/internal/campaign/choice_exploration_journal_test.go, tools/gomad3/runner/runner_test.go, tools/gomad3/runner/resume.go, tools/gomad3/cmd/gomad/internal/cli/**, .flow/specs/fn-114-gomad-correct-search-path-defects-and.md]
+ 
+ ### Approach
+-- Start from the task 1 characterization test and invert it.
++- Start from task 1's `TestRunChoiceExplorationDivergingPrefixDiscardsCompletedRound` and invert its loss assertions. A real executor returns `ChoiceReplayDivergenceError`; `runSeed` preserves that error and `executeExplorationRound` currently returns `HostError{Reason: "target_supervision"}` before outcome processing. Preserve the typed divergence through collection and commit it as a candidate result. The runner-domain branch is not the reproduced trigger; retain its host-error fallback for other runner outcomes where reachable.
+ - Add a divergence form to the engine's candidate result: candidate identity, divergence ordinal and reason, and the expected and observed records from the terminal frame. `CommitRound` accepts it without an outcome digest.
+ - A divergence result adds nothing to the outcome set or the failure-signature set, has no trace, and yields no children.
+-- In the campaign, only a choice replay divergence of a forced-prefix candidate takes the new path. Every other runner-domain outcome (host failure, cancellation, trace capacity, missing identity) stays a `HostError`. List which reasons take which path in the code and test each side.
++- In the campaign, only a typed choice replay divergence of a forced-prefix candidate takes the new path, including the executor-error completion path. Keep all other execution errors and runner-domain fallback outcomes (host failure, cancellation, trace capacity, missing identity) as `HostError`. List which reasons take which path and test each side.
+ - The other candidates of the round have already completed when the divergence is classified; their results commit with the round.
+ - Report the divergence under the existing `replay_divergence` classification in the campaign result, `runs` output, and `inspect`. The campaign must not exit as a success and must not count the divergence as a target failure.
+ - Failure policy: a divergence stops the campaign under `first`, and under `budget` and `all` exploration continues. It does not consume the distinct-failure-signature budget. Record this choice in the spec's Decision Context.
+@@ -26,6 +26,7 @@
+ - `tools/gomad3/runner/internal/exploration/choice/engine.go:59-105`, `:202-290` — candidate, result, segment types and `CommitRound`
+ - `tools/gomad3/runner/internal/campaign/choice_exploration_journal.go:55`, `:175-200` — segment schema and plan check on resume
+ - `tools/gomad3/runner/internal/execution/choicetrace.go:19-42` — divergence error and its fields
++- `tools/gomad3/runner/internal/execution/process_unix.go:635-644`, `tools/gomad3/runner/runner.go:1462-1467`, `:1714-1725` — executor-error trigger, propagation, and current host-error reason
+ - `tools/gomad3/runner/internal/execution/outcome.go:23`, `:85-86` — runner-domain classification and reason names
+ 
+ **Optional** (reference as needed):
+@@ -34,6 +35,7 @@
+ - `tools/gomad3/cmd/gomad/internal/cli/explore_output.go:138` — summary rendering
+ 
+ ### Key context
++- Task 1 re-anchor (2026-10-02): C3 is changed in mechanism, with its loss symptom confirmed on HEAD `1d7272e654f268f9a45f3fe965918fe2522827c6` plus source hashes in `reanchor.md`. Completed siblings remain as raw `partial.json`, `stdout.head`, `stderr.head`, and workspace scaffolding, but no candidate execution record, round segment, artifact, or typed divergence evidence is retained. Narrow the fix to the actual typed executor-error path without weakening runner-domain failure handling; no production correction was made in task 1.
+ - A diverging prefix taken from a deterministic parent is a Gomad confidence failure. It is never a target outcome.
+ - fn-109 tasks 2 and 3 edit the Runner options and completion paths; rebase onto whichever landed.
+ ## Acceptance
+--- a/.flow/tasks/fn-114-gomad-correct-search-path-defects-and.13.md
++++ b/.flow/tasks/fn-114-gomad-correct-search-path-defects-and.13.md
+@@ -11,7 +11,7 @@
+ **Touches:** [tools/gomad3/toolchain/runtime/go1.27.1.patch, tools/gomad3/toolchain/runtime/overlay/src/**, tools/gomad3/toolchain/**, tools/gomad3/choice/**, tools/gomad3/internal/gomadtool/conformance/**, tools/gomad3/SPEC.md, .flow/artifacts/fn-114-gomad-correct-search-path-defects-and/control-probe.md]
+ 
+ ### Approach
+-- First step: confirm the inferred cause from task 1. On the control probe with two user goroutines, show that the extra branching decisions have runtime-owned goroutines among their alternatives. If they do not, record E4 as changed and stop.
++- First step: confirm the inferred cause on a fixture that deliberately starts two user goroutines. Show that the extra branching decisions have runtime-owned goroutines among their alternatives. The historical D21 control source starts no goroutine explicitly; its reported peak of 2 is not a substitute for this fixture. If the cause is absent, record the narrowed E4 finding with evidence and stop.
+ - Classify run-queue entries with the runtime's own system-goroutine test. Use the task 5 inventory as the list of runtime-owned kinds, and state how a finalizer or cleanup goroutine running user code is classified.
+ - The rule: state it once, for example runtime-owned goroutines run before user goroutines in queue order. It must be a function of the queue contents only, and must not starve either class.
+ - A queue with at most one user goroutine records no decision and still yields a deterministic pick. A queue with two or more user goroutines records one decision whose alternatives are the user goroutines only.
+@@ -34,6 +34,7 @@
+ - `tools/gomad3/choice/trace.go:100` — controller implementation identity
+ 
+ ### Key context
++- Task 1 re-anchor (2026-10-02): E4 is changed in its historical probe premise. `.flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/fn105-d21-probe-control.go.txt` has no `go` statement. Its seed-11 report still records 26 branching Runnable decisions and peak goroutines 2 (seed 17 records 29). `gomadChoiceRunqIndex` still includes every local run-queue identity without a system-goroutine filter, but the reported peak does not establish two deliberately started user goroutines or attribute each extra decision. Keep the explicit two-user fixture, cause check, fairness, and before/after acceptance; no runtime correction was made in task 1.
+ - This changes schedules for every seed. It is a new choice-controller identity, and existing dispositions must not be weakened to obtain a pass in task 14.
+ - The run-queue choice runs on the system stack with fixed buffers. Classification must not allocate.
+ - fn-110 task 2 moves the scheduler implementations into the overlay; fn-112 tasks 3 and 5 edit the same file. Check their state first and rebase onto whichever landed.

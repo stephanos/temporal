@@ -1,0 +1,22 @@
+{
+  "result": "pass",
+  "patch_sha256": "b15142183c864bfcf22aaba4d8d5aed2ead2c5ab19d9dd0ff746062b8f4e3787",
+  "changed_sources": {
+    "tools/gomad3/runner/internal/corpus/model.go": "b8a120419a4476ca34f4296de2f9cc1884b3d806eeddfb3f3cfd9cb843703ca7",
+    "tools/gomad3/runner/internal/corpus/corpus.go": "8a3b4057362102c8be73fb2c066bd6e360738b2d9ca3fb14b2c773bcda773820",
+    "tools/gomad3/runner/internal/corpus/corpus_test.go": "81c41ed246ce6dcc7d975973c8d5e78d05e281b1f7f43643f71b53e58ccb5f67",
+    "tools/gomad3/runner/internal/corpus/guide_test.go": "5d17b93af57b747d3d920a952ccb594aec078261a23389d643c356d7e8e2ecab",
+    "tools/gomad3/runner/guidance.go": "8fb915212523ed4476ad15713cda6f4f4588a8631549d9219923697484f6bb55",
+    "tools/gomad3/target/target.go": "bca540560826cbb75daf20048d1faa9bf0f1980c5b83754b32da601d95f2026a",
+    "tools/gomad3/target/target_test.go": "16aef365cbc3d5f4456a1ce39113b732a6faceed662e544e633850125538853a",
+    "tools/gomad3/runner/replay_operation.go": "eb774c01b4bd574f36c7f1bb168791dd1e1b03ddbf4a6e2c350679561a935216",
+    "tools/gomad3/runner/guidance_identity_test.go": "b76ed42750b8ffae3fec12a23a36478e98065d84f06cd72604d3db638aaca0ef",
+    "tools/gomad3/runner/coverage_replay_test.go": "29a907521acc1b89ca2d51bd0dcdb0a17eee0870863133453f6daaf444b4c246",
+    "tools/gomad3/target/coverage_test.go": "5124e0acb0609ed4122b871d1116c5192d98865d4237dee375e9f046fa0ba276"
+  },
+  "unchanged_protected_count": 69,
+  "owned_protected_overlap": [
+    "tools/gomad3/runner/replay_operation.go"
+  ],
+  "scratch_patch_reconstruction": "pass"
+}

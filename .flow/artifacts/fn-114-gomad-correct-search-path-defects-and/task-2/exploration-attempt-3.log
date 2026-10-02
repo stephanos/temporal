@@ -1,0 +1,5 @@
+=== RUN   TestRuntimeSearchFixtures
+    runtime_test.go:155: timer cross-seed prefix divergence reason=5 ordinal=8
+--- PASS: TestRuntimeSearchFixtures (19.94s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	20.208s

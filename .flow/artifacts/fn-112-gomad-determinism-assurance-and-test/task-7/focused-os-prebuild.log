@@ -1,0 +1,36 @@
+=== RUN   TestGomadClosedFileHasPublicSentinel
+=== RUN   TestGomadClosedFileHasPublicSentinel/close
+=== RUN   TestGomadClosedFileHasPublicSentinel/read
+=== RUN   TestGomadClosedFileHasPublicSentinel/read-at
+=== RUN   TestGomadClosedFileHasPublicSentinel/write
+=== RUN   TestGomadClosedFileHasPublicSentinel/write-at
+=== RUN   TestGomadClosedFileHasPublicSentinel/seek
+=== RUN   TestGomadClosedFileHasPublicSentinel/truncate
+=== RUN   TestGomadClosedFileHasPublicSentinel/chmod
+=== RUN   TestGomadClosedFileHasPublicSentinel/sync
+=== RUN   TestGomadClosedFileHasPublicSentinel/stat
+--- PASS: TestGomadClosedFileHasPublicSentinel (0.00s)
+    --- PASS: TestGomadClosedFileHasPublicSentinel/close (0.00s)
+    --- PASS: TestGomadClosedFileHasPublicSentinel/read (0.00s)
+    --- PASS: TestGomadClosedFileHasPublicSentinel/read-at (0.00s)
+    --- PASS: TestGomadClosedFileHasPublicSentinel/write (0.00s)
+    --- PASS: TestGomadClosedFileHasPublicSentinel/write-at (0.00s)
+    --- PASS: TestGomadClosedFileHasPublicSentinel/seek (0.00s)
+    --- PASS: TestGomadClosedFileHasPublicSentinel/truncate (0.00s)
+    --- PASS: TestGomadClosedFileHasPublicSentinel/chmod (0.00s)
+    --- PASS: TestGomadClosedFileHasPublicSentinel/sync (0.00s)
+    --- PASS: TestGomadClosedFileHasPublicSentinel/stat (0.00s)
+=== RUN   TestGomadWrongFileAccessModeIsNotClosed
+--- PASS: TestGomadWrongFileAccessModeIsNotClosed (0.00s)
+=== RUN   TestGomadClosedDirectoryHasPublicSentinel
+=== RUN   TestGomadClosedDirectoryHasPublicSentinel/chdir
+=== RUN   TestGomadClosedDirectoryHasPublicSentinel/read-dir
+=== RUN   TestGomadClosedDirectoryHasPublicSentinel/readdir
+=== RUN   TestGomadClosedDirectoryHasPublicSentinel/readdirnames
+--- PASS: TestGomadClosedDirectoryHasPublicSentinel (0.00s)
+    --- PASS: TestGomadClosedDirectoryHasPublicSentinel/chdir (0.00s)
+    --- PASS: TestGomadClosedDirectoryHasPublicSentinel/read-dir (0.00s)
+    --- PASS: TestGomadClosedDirectoryHasPublicSentinel/readdir (0.00s)
+    --- PASS: TestGomadClosedDirectoryHasPublicSentinel/readdirnames (0.00s)
+PASS
+ok  	os	0.376s
