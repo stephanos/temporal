@@ -8,7 +8,7 @@ import sys
 import urllib.parse
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]
-OUT = ROOT / '.flow/artifacts/fn-111-gomad-consolidate-vocabulary-and-update'
+OUT = pathlib.Path(sys.argv[2]).resolve() if len(sys.argv) > 2 else ROOT / '.flow/artifacts/fn-111-gomad-consolidate-vocabulary-and-update'
 BASE = '29917069e089dc0739ec091b18e99161245b9bd5'
 GUIDES = ['SPEC', 'ARCHITECTURE', 'CLI', 'TUTORIAL', 'README']
 BIN = pathlib.Path(sys.argv[1]).resolve()
@@ -47,8 +47,9 @@ def anchors(path):
 docs = {name: (ROOT / f'tools/gomad3/{name}.md').read_text() for name in GUIDES}
 old_spec = git('show', f'{BASE}:tools/gomad3/SPEC.md')
 old_glossary = git('show', f'{BASE}:tools/gomad3/GLOSSARY.md')
-(OUT / 'baseline-SPEC.md').write_text(old_spec)
-(OUT / 'baseline-GLOSSARY.md').write_text(old_glossary)
+if len(sys.argv) <= 2:
+    (OUT / 'baseline-SPEC.md').write_text(old_spec)
+    (OUT / 'baseline-GLOSSARY.md').write_text(old_glossary)
 ids = lambda text: re.findall(r'\[([A-Z][A-Z0-9]*(?:\.[A-Z0-9]+)*)\]', text)
 original, current = ids(old_spec), ids(docs['SPEC'])
 language = old_glossary.split('## Language', 1)[1].split('\n## ', 1)[0]

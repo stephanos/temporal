@@ -1,0 +1,82 @@
+{
+  "head_revision": "67dbe02666afd68c064c6c3cb9197b03d4664687",
+  "binary_sha256": {
+    "gomadtool": "5bd12512f7c22a4394e280fa2e067faf2f6999d0871fee39a2ab7f326aa7996a",
+    "gomad": "da3edfd6be81d22e1625dc3f1b734a41ba5a6afd67d774b0a9a4cc32be8b394c"
+  },
+  "checks": [
+    {
+      "name": "equal",
+      "argv": [
+        "/tmp/gomad-fn111-bin/gomadtool",
+        "diagnostic-diff",
+        "--json",
+        "/tmp/gomad-fn111-current-audit/expected.bin",
+        "/tmp/gomad-fn111-current-audit/equal.bin"
+      ],
+      "status": 0,
+      "expected_status": 0,
+      "stdout": "{\"equal\":true}\n",
+      "stderr": "",
+      "input_sha256": {
+        "/tmp/gomad-fn111-current-audit/expected.bin": "cd168ec93a9a9417c1f5b77b48e2cb4a6cb81ee0535e52abf634ea95955f6c63",
+        "/tmp/gomad-fn111-current-audit/equal.bin": "cd168ec93a9a9417c1f5b77b48e2cb4a6cb81ee0535e52abf634ea95955f6c63"
+      }
+    },
+    {
+      "name": "different",
+      "argv": [
+        "/tmp/gomad-fn111-bin/gomadtool",
+        "diagnostic-diff",
+        "--json",
+        "/tmp/gomad-fn111-current-audit/expected.bin",
+        "/tmp/gomad-fn111-current-audit/different.bin"
+      ],
+      "status": 1,
+      "expected_status": 1,
+      "stdout": "{\"equal\":false,\"divergence\":{\"ordinal\":0,\"fields\":[\"runtime_cheap_rand_draws\"],\"expected\":{\"Ordinal\":0,\"VirtualTime\":0,\"Allocations\":0,\"GCCycle\":0,\"GCPhase\":0,\"RunQueueLength\":0,\"RunqDraws\":0,\"SchedulerDraws\":0,\"SelectDraws\":0,\"RuntimeRandDraws\":0,\"RuntimeCheapRandDraws\":0,\"TimerDraws\":0,\"ClockTickDraws\":0},\"actual\":{\"Ordinal\":0,\"VirtualTime\":0,\"Allocations\":0,\"GCCycle\":0,\"GCPhase\":0,\"RunQueueLength\":0,\"RunqDraws\":0,\"SchedulerDraws\":0,\"SelectDraws\":0,\"RuntimeRandDraws\":0,\"RuntimeCheapRandDraws\":1,\"TimerDraws\":0,\"ClockTickDraws\":0}}}\n",
+      "stderr": "",
+      "input_sha256": {
+        "/tmp/gomad-fn111-current-audit/expected.bin": "cd168ec93a9a9417c1f5b77b48e2cb4a6cb81ee0535e52abf634ea95955f6c63",
+        "/tmp/gomad-fn111-current-audit/different.bin": "34dac2725fdb382fff5ae0d2c1bef4ce69dd0cb7619f47b5110cdc23248045be"
+      }
+    },
+    {
+      "name": "malformed",
+      "argv": [
+        "/tmp/gomad-fn111-bin/gomadtool",
+        "diagnostic-diff",
+        "--json",
+        "/tmp/gomad-fn111-current-audit/expected.bin",
+        "/tmp/gomad-fn111-current-audit/malformed.bin"
+      ],
+      "status": 2,
+      "expected_status": 2,
+      "stdout": "",
+      "stderr": "diagnostic trace size invalid\n",
+      "input_sha256": {
+        "/tmp/gomad-fn111-current-audit/expected.bin": "cd168ec93a9a9417c1f5b77b48e2cb4a6cb81ee0535e52abf634ea95955f6c63",
+        "/tmp/gomad-fn111-current-audit/malformed.bin": "2f05d4b689d270cafb02285f35f44866f7dc8a2d368a3f9d1124373eeab31fb1"
+      }
+    },
+    {
+      "name": "diagnostics rejects forced-prefix exploration",
+      "argv": [
+        "/tmp/gomad-fn111-bin/gomad",
+        "explore",
+        "--diagnostics",
+        "--strategy=choice-exploration",
+        "--seeds=7",
+        "--max-executions=2",
+        "--max-choice-depth=2",
+        "--max-exploration-bytes=1MiB",
+        "go-run",
+        "./unused-target"
+      ],
+      "status": 2,
+      "expected_status": 2,
+      "stdout": "",
+      "stderr": "gomad: invalid_input: --diagnostics requires the seed strategy; forced-prefix exploration is unsupported\n"
+    }
+  ]
+}

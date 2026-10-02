@@ -567,6 +567,10 @@ tools/gomad3/.bin/gomad explore \
   go-test ./path/to/package -- '-test.run=^TestSomethingConcurrent$'
 ```
 
+A forced-prefix candidate divergence returns status 3, including mixed failures,
+because the search cannot trust that candidate. Ordinary seeded and World replay
+divergence retain status 1.
+
 This strategy implies Choice recording and explores forced prefixes in
 breadth-first rounds. **Combined Exploration**, selected with
 `--strategy=simulation-exploration`, also follows declared Scenario, network,

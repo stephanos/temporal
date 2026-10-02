@@ -1,0 +1,46 @@
+{
+  "argv": [
+    "python3",
+    ".flow/artifacts/fn-111-gomad-consolidate-vocabulary-and-update/verify-guides.py",
+    "/tmp/gomad-fn111-bin",
+    "/Users/stephan/.codex/plugins/cache/flow-next-marketplace/flow-next/4.5.1/scripts/flowctl",
+    ".flow/artifacts/fn-111-gomad-consolidate-vocabulary-and-update/task-3"
+  ],
+  "status": 0,
+  "elapsed_seconds": 4.506,
+  "result": {
+    "head": "67dbe02666afd68c064c6c3cb9197b03d4664687",
+    "examples_checked": 137,
+    "example_errors": 0,
+    "make_targets_checked": 31,
+    "claim_rows": 98,
+    "claim_rows_passing": 98,
+    "links_checked": 89,
+    "fenced_blocks": {
+      "tools/gomad3/SPEC.md": 0,
+      "tools/gomad3/ARCHITECTURE.md": 1,
+      "tools/gomad3/CLI.md": 47,
+      "tools/gomad3/TUTORIAL.md": 17,
+      "tools/gomad3/README.md": 15,
+      "MILESTONES.md": 0
+    },
+    "clock_probe": "observed",
+    "whitespace": {
+      "baseline_to_current": 0,
+      "head_to_current": 0
+    },
+    "errors": []
+  },
+  "stderr": "",
+  "changed_paths": [
+    "tools/gomad3/README.md",
+    "tools/gomad3/CLI.md",
+    "tools/gomad3/ARCHITECTURE.md",
+    "tools/gomad3/TUTORIAL.md",
+    ".flow/artifacts/fn-111-gomad-consolidate-vocabulary-and-update/verify-guides.py",
+    ".flow/artifacts/fn-111-gomad-consolidate-vocabulary-and-update/verify-documentation.py",
+    ".flow/artifacts/fn-111-gomad-consolidate-vocabulary-and-update/verify-vocabulary.py",
+    ".flow/artifacts/fn-111-gomad-consolidate-vocabulary-and-update/acceptance-summary.md",
+    ".flow/artifacts/fn-111-gomad-consolidate-vocabulary-and-update/task-3"
+  ]
+}

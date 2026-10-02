@@ -1,0 +1,13 @@
+Usage of gomadtool toolchain-build:
+  -bootstrap-go string
+    	bootstrap Go executable
+  -build-bash string
+    	Bash executable for make.bash
+  -overlay string
+    	overlay root override
+  -patch string
+    	versioned patch override
+  -root string
+    	Gomad v3 module root
+  -toolchain-root string
+    	toolchain state root

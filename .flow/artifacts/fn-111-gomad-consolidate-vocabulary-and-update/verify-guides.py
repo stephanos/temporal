@@ -1,10 +1,11 @@
 """Guide reconciliation audit for fn-111 task 2 (R4-R8).
 
-Usage: verify-guides.py BIN_DIR FLOWCTL
+Usage: verify-guides.py BIN_DIR FLOWCTL [OUTPUT_DIR]
 
 BIN_DIR holds `gomad` and `gomadtool` built from the audited tree; FLOWCTL is
 the flowctl executable. The audit writes guide-audit.json beside this file and
-exits nonzero on any error.
+exits nonzero on any error. OUTPUT_DIR keeps a renewed receipt separate from
+historical evidence; when supplied, all companion receipts are written there.
 
 Each command example in the five guides is checked against its own command:
 flag registration and placement from the binary's -h output, then the value
@@ -33,11 +34,13 @@ import tempfile
 import urllib.parse
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]
-OUT = pathlib.Path(__file__).resolve().parent
+HERE = pathlib.Path(__file__).resolve().parent
+OUT = pathlib.Path(sys.argv[3]).resolve() if len(sys.argv) > 3 else HERE
+OUT.mkdir(parents=True, exist_ok=True)
 BASE = '29917069e089dc0739ec091b18e99161245b9bd5'
 GOMAD3 = ROOT / 'tools/gomad3'
 GUIDES = ['SPEC', 'ARCHITECTURE', 'CLI', 'TUTORIAL', 'README']
-MILESTONES = '.plans/GOMAD_MILESTONES.md'
+MILESTONES = 'MILESTONES.md'
 PATHS = [f'tools/gomad3/{name}.md' for name in GUIDES] + [MILESTONES]
 BIN = pathlib.Path(sys.argv[1]).resolve()
 FLOWCTL = pathlib.Path(sys.argv[2]).resolve()
@@ -350,15 +353,18 @@ def check_invocation(tool, tokens, origin, fenced):
         return used[flag][-1] if flag in used else default
 
     strategy, coverage = last('strategy', 'seed'), last('coverage', 'semantic' if 'guide' in used else 'none')
+    recording = 'choices' in used or 'diagnostics' in used
     exploring = strategy != 'seed'
     selected = seed_count(last('seeds', '1')) if not re.match(r'^[A-Z]', last('seeds', '1')) else 1
     explore = name in {'explore', 'plan'}
     rules = {  # each restates one validation in cli.go, qualify.go, or runner.validateConfig
-        'choice-bytes requires choices': 'choice-bytes' in used and 'choices' not in used and not exploring,
+        'choice-bytes requires choices': 'choice-bytes' in used and not recording and not exploring,
+        'diagnostics require seed strategy': name in {'explore', 'plan'} and 'diagnostics' in used and exploring,
+        'diagnostic-diff needs two traces': name == 'diagnostic-diff' and fenced and positional != 2,
         'count excludes seeds': 'count' in used and 'seeds' in used,
         'corpus requires guide and guide requires corpus': ('corpus' in used) != ('guide' in used),
         'guide requires semantic or choice coverage': 'guide' in used and coverage == 'none',
-        'choice coverage requires choices': explore and coverage in {'choice', 'semantic+choice'} and 'choices' not in used and not exploring,
+        'choice coverage requires choices': explore and coverage in {'choice', 'semantic+choice'} and not recording and not exploring,
         'require-probe requires semantic coverage': explore and 'require-probe' in used and coverage not in {'semantic', 'semantic+choice'},
         'novel retention requires coverage': explore and last('keep-successes') == 'novel' and coverage == 'none',
         'retention needs both bounds': explore and last('keep-successes', 'none') != 'none' and not {'success-limit', 'success-bytes'} <= set(used),
@@ -473,6 +479,7 @@ if unknown_flags:
 
 # Prose that attributes a flag to named commands, checked per command.
 ATTRIBUTED = {
+    'diagnostics': ['explore', 'plan', 'qualify'],
     'clock-tick': ['explore', 'plan', 'qualify'], 'io-transcript-bytes': ['explore', 'qualify'],
     'choices': ['explore', 'qualify', 'inspect'], 'working-dir': ['explore', 'plan', 'qualify', 'analyze', 'qualify-set'],
     'io-ro-mount': ['explore', 'qualify'], 'env': ['explore', 'qualify'], 'build-tag': ['explore', 'qualify', 'analyze'],
@@ -500,6 +507,16 @@ CLI_DIR = 'tools/gomad3/cmd/gomad/internal/cli/'
 RUNTIME = 'tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go'
 PATCH = 'tools/gomad3/toolchain/runtime/go1.27.1.patch'
 MATRIX = [
+    ('R5', 'diagnostics imply choices', 'CLI', r'records runtime-state diagnostics and implies `--choices`', CLI_GO, r'Choices: \*choices \|\| \*diagnostics'),
+    ('R5', 'diagnostics require seed strategy', 'CLI', r'accepts only `--strategy=seed` and rejects forced-prefix exploration', CLI_GO, r'if \*diagnostics && resolvedStrategy != runner\.StrategySeed'),
+    ('R5', 'qualify diagnostics imply choices', 'CLI', r'`qualify --diagnostics` records runtime-state diagnostics for its fresh repetitions and implies `--choices`', CLI_DIR + 'qualify.go', r'resolveChoiceTrace\(\*choices \|\| \*diagnostics'),
+    ('R5', 'choice divergence confidence status', 'CLI', r'Choice Exploration returns status 3 for a forced-prefix candidate divergence, including mixed failures', CLI_DIR + 'explore_output.go', r'if summary\.ChoiceExploration != nil && summary\.ReplayDivergences != 0 \{\s+return 3'),
+    ('R5', 'ordinary and World divergence status', 'CLI', r'Ordinary seeded and World replay divergence retain status 1', CLI_DIR + 'exploration_divergence_test.go', r'"world replay divergence"[^\n]+"replay_divergence", 1'),
+    ('R4', 'architecture confidence status', 'ARCHITECTURE', r'forced-prefix candidate divergence invalidates search confidence and returns CLI status 3, including mixed failures', CLI_DIR + 'explore_output.go', r'if summary\.ChoiceExploration != nil && summary\.ReplayDivergences != 0 \{\s+return 3'),
+    ('R6', 'tutorial confidence status', 'TUTORIAL', r'forced-prefix candidate divergence returns status 3, including mixed failures', CLI_DIR + 'exploration_divergence_test.go', r'"choice mixed failure"[^\n]+"mixed_failure", 3'),
+    ('R5', 'diagnostic-diff full validation', 'CLI', r'Both traces are fully validated before comparison', 'tools/gomad3/choice/diagnostic.go', r'actual, err := DecodeDiagnosticTrace\(actualBytes\)'),
+    ('R5', 'diagnostic-diff rejects incomplete traces', 'CLI', r'malformed, or incomplete trace', 'tools/gomad3/choice/diagnostic.go', r'header\.State != wire\.DiagnosticComplete'),
+    ('R5', 'diagnostic-diff statuses', 'CLI', r'Status 0 means equal, 1 means different, 2 means invalid arguments', 'tools/gomad3/cmd/gomadtool/diagnostic.go', r'if difference != nil \{\s+return 1\s+\}\s+return 0'),
     ('R5', 'explore default seed', 'CLI', r'`explore` uses seed 1', CLI_GO, r'flags\.String\("seeds", "1"'),
     ('R5', 'explore default parallelism', 'CLI', r'smaller of the host CPU count and 8', CLI_GO, r'"parallel", min\(runtime\.NumCPU\(\), 8\)'),
     ('R5', 'per-execution deadline', 'CLI', r'30 seconds per execution and 10 minutes overall', CLI_GO, r'"execution-timeout", 30\*time\.Second'),
@@ -550,7 +567,7 @@ MATRIX = [
     ('R5', 'inspect report schema', 'README', r'`gomad3\.inspect/v5`', 'tools/gomad3/runner/inspect.go', r'reportSchema = "gomad3\.inspect/v5"'),
     ('R5', 'conformance modes', 'CLI', r'--mode=test-builder', 'tools/gomad3/internal/gomadtool/conformance/registry.go', r'"test-builder": \{'),
     ('R5', 'full conformance gate tiers', 'README', r'then the builder, live-capability, runtime, and upstream tiers in that order', 'tools/gomad3/internal/gomadtool/conformance/registry.go', r'Tiers:\s+\[\]string\{"test-builder", "test-live-capability", "test-runtime", "test-upstream"\}'),
-    ('R5', 'full make gate order', 'README', r'the harness, toolchain, interception, host, overlay, and World tests', 'tools/gomad3/Makefile', r'^test: test-harness test-toolchain intercept-test test-host overlay-test world-test test-builder test-live-capability test-runtime test-upstream$'),
+    ('R5', 'full make gate order', 'README', r'the harness, toolchain, interception, host, overlay, simulation \(`test-simulation`\), and World tests', 'tools/gomad3/Makefile', r'^test: test-harness test-toolchain intercept-test test-host overlay-test test-simulation world-test test-builder test-live-capability test-runtime test-upstream$'),
     ('R5', 'dossier gates', 'CLI', r'validation, patch/compiler, Runner, World, probe, builder, runtime, disabled-upstream, host-clock, and cached-build gates', 'tools/gomad3/cmd/gomadtool/upgrade.go', r'"manifest-validation".*\n.*"toolchain-and-compiler".*\n.*"host-world-and-probes".*\n.*"builder".*\n.*"runtime".*\n.*"disabled-upstream".*\n.*"host-clock-escape".*\n.*"cached-toolchain-build"'),
     ('R5', 'checked-run output bound', 'README', r'retains at most 1 MiB from each child output stream', 'tools/gomad3/cmd/gomadtool/main.go', r'OutputLimit: 1 << 20'),
     ('R4', 'activation instant', 'ARCHITECTURE', r'midnight UTC on 2000-01-01', RUNTIME, r'gomadInitialTime = 946684800000000000'),
@@ -646,7 +663,19 @@ core, temporal, tests = (suites(path) for path in ['tools/gomad3/qualification/c
                                                    'tools/gomad3integration/qualification/tests.json'])
 tier2 = [suite for suite in temporal if suite['tier'] == 2]
 tier3 = [suite for suite in temporal if suite['tier'] == 3]
+generator = json.loads(read('tools/gomad3integration/qualification/tests.generator.json'))
 untraced = sorted(suite['test'] for suite in tests if suite.get('choice_bytes') == 0)
+capacity_exclusions = sorted(test for test, override in generator['tests'].items()
+                             if 'choice' in override.get('reason', '') and
+                             ('64 MiB bound' in override['reason'] or '64 MiB choice-trace maximum' in override['reason'])
+                             and override.get('choice_bytes') == 0)
+traced = sorted(suite['test'] for suite in tests if suite.get('choice_bytes', 0) > 0)
+if generator['workload']['choice_bytes'] != 0 or generator['workload']['replay_successes']:
+    errors.append({'error': 'routine untraced policy changed in the generator'})
+if traced != ['TestSignalWorkflowTestSuiteChasm'] or len(untraced) != len(tests) - len(traced):
+    errors.append({'error': 'routine tracing exception inventory changed', 'traced': traced})
+if len(capacity_exclusions) != 8 or any(test not in untraced for test in capacity_exclusions):
+    errors.append({'error': 'trace-capacity exclusions differ from the documented eight', 'tests': capacity_exclusions})
 inventory = {
     'core_workloads': len(core), 'temporal_workloads': len(temporal), 'temporal_tier2': len(tier2), 'temporal_tier3': len(tier3),
     'temporal_tier3_tests_suites': sum(suite['package'] == './tests' for suite in tier3),
@@ -655,6 +684,9 @@ inventory = {
     'temporal_linux_tier2': dict(collections.Counter(expectation(suite, 'linux/amd64') for suite in tier2)),
     'temporal_linux_tier3': dict(collections.Counter(expectation(suite, 'linux/amd64') for suite in tier3)),
     'tests_workloads': len(tests), 'tests_without_choice_trace': untraced,
+    'tests_trace_capacity_exclusions': capacity_exclusions, 'tests_traced_exceptions': traced,
+    'routine_policy': {'choice_bytes': generator['workload']['choice_bytes'],
+                       'replay_successes': generator['workload']['replay_successes']},
     'tests_raised_transcript': sorted(suite['test'] for suite in tests if suite.get('io_transcript_bytes')),
     'tests_not_qualified': {suite['test']: {platform: expectation(suite, platform) for platform in version_platforms}
                             for suite in tests if any(expectation(suite, platform) != 'qualified' for platform in version_platforms)},
@@ -672,13 +704,15 @@ expected_text = [
     ('README', f"{WORDS.get(inventory['temporal_linux_tier2'].get('qualified'))} package workloads qualify and {WORDS.get(inventory['temporal_linux_tier2'].get('unsupported_target'))} retain exact unsupported analyses"),
     ('README', f"the {WORDS.get(inventory['temporal_linux_tier3'].get('intermittent'))} tier 3 workloads are expected `intermittent`"),
     ('README', f"for the {len(temporal)}-workload Temporal manifest"),
-    ('MILESTONES', f"No exact replay for {WORDS.get(len(untraced))} suites"),
+    ('MILESTONES', 'Routine qualification is untraced (F10 D13)'),
+    ('MILESTONES', f"No exact replay available for {WORDS.get(len(capacity_exclusions))} suites"),
+    ('README', '`replayed` and `replay_match` false, `choice.available` false'),
 ]
 for where, text in expected_text:
     body = milestones if where == 'MILESTONES' else squashed[where]
     if text not in body:
         errors.append({'error': 'corpus statement disagrees with the manifests', 'where': where, 'expected': text})
-for test in untraced + list(inventory['tests_not_qualified']):
+for test in capacity_exclusions + traced + list(inventory['tests_not_qualified']):
     if f'`{test}`' not in milestones:
         errors.append({'error': 'milestones omit a non-default ./tests disposition', 'test': test})
 skips = [(suite['test'], subtest) for suite in tests for subtest in suite.get('skip') or []]
@@ -704,7 +738,7 @@ inventory['temporal_linux_tier3_findings'] = {finding: sorted(ids) for finding, 
 probe_finding = [finding for finding, ids in linux_findings.items() if ids == ['frontend-system-info']]
 suite_findings = [finding for finding, ids in linux_findings.items() if 'frontend-system-info' not in ids]
 attribution_text = ('the twelve `./tests` suites cite the linux replay divergence recorded in the '
-                    '[milestones](../../.plans/GOMAD_MILESTONES.md#open-findings), and the probe cites its own finding')
+                    '[milestones](../../MILESTONES.md#open-findings), and the probe cites its own finding')
 if len(probe_finding) != 1 or len(suite_findings) != 1 or len(linux_findings[suite_findings[0]]) != 12 or attribution_text not in squashed['README']:
     errors.append({'error': 'README attributes the linux tier 3 expectations differently from temporal.json', 'findings': inventory['temporal_linux_tier3_findings']})
 if len(inventory['temporal_linux_tier3']) != 1 or inventory['temporal_darwin_qualified'] != len(temporal):
@@ -732,7 +766,7 @@ EXPECTED = {
 if toolchain_go.exists():
     with tempfile.TemporaryDirectory() as directory:
         work = pathlib.Path(directory)
-        shutil.copy(OUT / 'clock-probe.go.txt', work / 'main.go')
+        shutil.copy(HERE / 'clock-probe.go.txt', work / 'main.go')
         (work / 'go.mod').write_text('module clockprobe\n\ngo 1.27\n')
         environment = {'PATH': '/usr/bin:/bin', 'HOME': directory, 'GOCACHE': str(work / 'cache'), 'CGO_ENABLED': '0',
                        'GOWORK': 'off', 'GOFLAGS': '', 'GOTOOLCHAIN': 'local', 'GOENV': 'off'}
@@ -772,10 +806,10 @@ for label, revision in [('baseline_to_current', BASE), ('head_to_current', 'HEAD
         errors.append({'error': 'whitespace check failed', 'range': label, 'output': result.stdout[-2000:]})
 
 companions = []
-for argv in [[sys.executable, str(OUT / 'verify-vocabulary.py')],
-             [sys.executable, str(OUT / 'verify-documentation.py'), str(BIN)],
-             ['git', 'diff', '--check', 'HEAD', '--', *PATHS, str(OUT.relative_to(ROOT))],
-             [str(FLOWCTL), 'validate', '--spec', OUT.name]]:
+for argv in [[sys.executable, str(HERE / 'verify-vocabulary.py'), str(OUT)],
+             [sys.executable, str(HERE / 'verify-documentation.py'), str(BIN), str(OUT)],
+             ['git', 'diff', '--check', 'HEAD', '--', *PATHS, str(HERE.relative_to(ROOT))],
+             [str(FLOWCTL), 'validate', '--spec', HERE.name]]:
     result = subprocess.run(argv, cwd=ROOT, capture_output=True, text=True, timeout=600)
     companions.append({'argv': argv, 'cwd': str(ROOT), 'status': result.returncode, 'output_tail': (result.stdout + result.stderr)[-600:]})
     if result.returncode:
@@ -783,6 +817,8 @@ for argv in [[sys.executable, str(OUT / 'verify-vocabulary.py')],
 
 # Bind every file the audit read. HEAD does not identify an uncommitted input, so each
 # input records its own hash and whether it differs from HEAD.
+inputs.update(str((HERE / name).relative_to(ROOT)) for name in
+              ['verify-guides.py', 'verify-vocabulary.py', 'verify-documentation.py', 'clock-probe.go.txt'])
 input_paths = sorted(inputs)
 dirty = {line[3:] for line in git('status', '--porcelain', '--', *input_paths).stdout.splitlines()}
 bound_inputs = {path: {'sha256': hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), 'differs_from_head': path in dirty}
@@ -790,7 +826,7 @@ bound_inputs = {path: {'sha256': hashlib.sha256((ROOT / path).read_bytes()).hexd
 build_key = GOMAD3 / '.toolchain/build-key'
 toolchain_binding = {'go_sha256': hashlib.sha256(toolchain_go.read_bytes()).hexdigest() if toolchain_go.exists() else None,
                      'build_key': build_key.read_text().strip() if build_key.exists() else None,
-                     'probe_source_sha256': hashlib.sha256((OUT / 'clock-probe.go.txt').read_bytes()).hexdigest()}
+                     'probe_source_sha256': hashlib.sha256((HERE / 'clock-probe.go.txt').read_bytes()).hexdigest()}
 
 report = {
     'schema': 'fn-111.guide-audit/v1',
@@ -820,12 +856,12 @@ report = {
         'reused': ['both supported platforms named consistently with version.json and the boundary manifest (platforms)',
                    'implemented choice replay and exploration and both backends described against source (claim_matrix R4 rows)',
                    'capability support, repeatability, exact replay, and expectation matching kept separate (corpus_inventory, README corpus statements)',
-                   'current residual findings recorded: the milestones name every tests.json suite that runs without a choice trace, every suite whose expectation is not qualified, and every skipped subtest (corpus_inventory); skip reasons and owners stay in tests.generator.json and are not compared'],
-        'not_covered': ['intentional Go interface changes from fn-109 R4-R7 and R11-R14, which are not implemented',
-                        'architecture fitness checks (fn-109 R8 / fn-105 D4)', 'any documentation of interfaces that fn-109 has yet to change'],
+                   'current residual findings recorded: the milestones distinguish routine untraced qualification and name each trace-capacity exclusion and traced exception, every suite whose expectation is not qualified, and every skipped subtest (corpus_inventory); skip reasons and owners stay in tests.generator.json and are not compared'],
+        'not_covered': ['verification of broader Go interface migrations from fn-109 R4-R7 and R11-R14, outside this audit scope',
+                        'architecture fitness checks (fn-109 R8 / fn-105 D4)', 'acceptance of broader interface documentation tracked by fn-109'],
         'owner': 'fn-109 R9 and fn-105 D5 stay open; this audit closes neither',
     },
-    'still_open': ['fn-105 D12 and D14 replay fixes', 'fn-105 D13 tracing policy and D15 trace capacity', 'fn-109 R9 interface documentation'],
+    'still_open': ['fn-105 D12 native Linux replay verification', 'fn-105 D15 trace capacity', 'fn-109 R9 interface documentation'],
     'limits': ['head_revision identifies the commit below an uncommitted tree; inputs and file_sha256 bind what was actually read, and inputs_differing_from_head lists the uncommitted ones.',
                'Statement patterns prove a sentence is present and its implementing line exists; the pairing of each row was judged by reading both.',
                'linux/amd64 behavior is taken from source, manifests, and the CI workflow; the probe and help text ran on the host recorded in clock_probe.',

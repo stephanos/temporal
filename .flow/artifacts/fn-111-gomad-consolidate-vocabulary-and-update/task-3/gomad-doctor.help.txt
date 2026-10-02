@@ -1,0 +1,7 @@
+Usage of gomad doctor:
+  -artifacts string
+    	artifact root to verify (default ".gomad/artifacts")
+  -json
+    	emit stable JSON
+  -toolchain-root string
+    	absolute pinned toolchain root
