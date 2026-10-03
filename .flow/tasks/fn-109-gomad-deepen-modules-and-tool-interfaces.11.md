@@ -55,8 +55,28 @@ make test-live-capability
 - [ ] Exact first-party simulation pins and the allowed bridge directives are unchanged; `make validate-compatibility` passes.
 
 ## Done summary
-TBD
+Blocked:
+Blocked: R17 is implemented and reviewed (SHIP). Only native darwin/arm64 and linux/amd64 gates remain, and they belong to task 21.
 
+Done (commits 58095d83a9 and c1cf9565fe on gomad-fn109, base 5d093b214d):
+- Collection (`target/capability_collection.go`) owns every host effect of a review: listing, overlay, sources, adapter replacement digests and compatibility pack loading.
+- Evaluation is pure. `target/internal/capabilitypolicy` makes the policy decisions through the existing `compatibility.SelectPacksForPlatform`, and the exact simulation bridge pins moved unchanged. `target/capability_evaluation.go` validates the evidence shape and projects the decisions.
+- Linked projection (`target/capability_linked.go`) reads and narrows the embedded record.
+- Callers use `reviewRecordedClosure` and `projectCapabilityReview` instead of sequencing the steps, and error order is unchanged.
+- Adapter inventory hashing moved to `internal/sourceinventory`, a new architectural owner that may import only hostfs, which target and deterministicio both use. `target.DigestAdapterSourceInventory` is removed, and the removal is recorded in go-interface-changes.md. The bounded reader moved to `hostfs.ReadBounded`.
+- `TestCapabilityEvaluationHasNoHostEffect` enforces evaluator purity, and `TestExactModuleEdges` enforces the inventory owner.
+
+Local evidence (linux/arm64, developmental only, with the uncommitted shim; details in task-11/local-evidence.json):
+- Golden canonical reviews were captured from the base implementation and are byte-identical after the change. Real-target canonical reviews are also identical before and after.
+- The inventory digest is pinned to the base value.
+- Quick commands: exit 1 at baseline (309s) and after (135s), with the identical set of 12 failures. Ten are shim-induced; two are pre-existing pin drift, see below.
+- Architecture tests: exit 0. `make validate`, which includes validate-compatibility: exit 0. `make test-live-capability`: exit 0. go vet and gofmt: clean.
+- Full `make test-host`: exit 2 (163s and 263s). Every failure reproduces on base sources, apart from three load-timing tests that pass on an isolated rerun.
+- golangci-lint: not run, because the repository binary is a darwin build.
+
+Pre-existing, not fixed by design: `TestBuiltInSimulationLinknamesPinCurrentFirstPartySources` and `TestClosureReviewSupportsSimulationFixtureAndRefusesHarnessTests` fail at base. `tools/gomad3sim/runtime_time_toolchain.go` gained a `gomadSimulationTimeCurrent` directive in ad90b462e0 without a pin update, and acceptance keeps the pins unchanged.
+
+Remaining native gates: on darwin/arm64 and linux/amd64 hosts (task 21), full `make -C tools/gomad3 test-host`, the task Quick commands, `make validate-compatibility`, `make test-live-capability` and scoped golangci-lint.
 ## Evidence
 - Commits:
 - Tests:
