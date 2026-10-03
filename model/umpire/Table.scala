@@ -30,13 +30,6 @@ final case class RowResult(
 /** One enabled state and action class. An absent pair is disabled. */
 final case class Row(key: String, source: String, action: String, results: Vector[RowResult])
 
-final private[umpire] case class ClaimEntry(
-    decl: ActionDecl,
-    classKey: String,
-    spelling: String,
-    example: String
-)
-
 /**
  * A machine's finite table in catalog and row order. States, actions, outcomes and facts are
  * keys; the typed values they stand for are kept for Properties and compositions.
@@ -91,25 +84,6 @@ final class Table private[umpire] (
   def actionAtom(key: String): Atom = Atom(family.id("action", owner, key), key)
   def outcomeAtom(key: String): Atom = Atom(family.id("outcome", owner, key), key)
   def factAtom(key: String): Atom = Atom(family.id("fact", owner, key), key)
-
-  /**
-   * The Abstraction Claims of the actions a machine binds, in the order the actions' classes first
-   * appear and then in declaration order.
-   */
-  private[umpire] lazy val claimEntries: Vector[ClaimEntry] =
-    val seen = mutable.Set.empty[ActionDecl]
-    actions.flatMap(classes.get).flatMap { c =>
-      if !seen.add(c.decl) then Nil
-      else
-        c.decl.examples.map(ex =>
-          ClaimEntry(
-            c.decl,
-            s"${c.decl.name}-${Keys.of(ex.value)}",
-            Keys.spelling(ex.value),
-            ex.example
-          )
-        )
-    }
 
 object Table:
   private[umpire] def rowKey(state: String, action: String): String = s"$state-$action"

@@ -1,12 +1,12 @@
 /* The Nexus caller-side Model: one workflow-scheduled Nexus operation, as the caller sees it. The
  * product machine says what an operation does, the protocol machine says how the server gets there
- * and refines it, and the functional set runs one Query per side effect that settles the operation,
- * once per value of the implementation switch. No cancellation (fn-79) and no concurrency-limit
+ * and refines it, and the functional Queries are one per side effect that settles the operation.
+ * No cancellation (fn-79) and no concurrency-limit
  * setup parameter.
  *
  * The domains and step functions are the kernel in temporal/nexuscaller/kernel/Nexus.scala, which Stainless proves
  * things about; this file declares the rest in ordinary Scala: vocabulary, the two machines, what
- * they promise, what the set asks.
+ * they promise, what the Queries ask.
  */
 package temporal
 package nexuscaller
@@ -197,8 +197,8 @@ val handlerWorker: Machine[WorkerState, worker.Outcome, worker.Fact] =
 // The protocol machine's worker stop is a stutter row: the operation cannot see its handler's
 // worker, so the schedule-to-start Scenario orders the stop before the request by convention.
 // Composed with the worker of the handler's task queue, the stop is the worker's own phase change
-// and every reply is the worker serving, so a reply has a row only while the worker polls. No set
-// names the composition; it is what the cross-entity claim is verified over.
+// and every reply is the worker serving, so a reply has a row only while the worker polls. No
+// functional Query reads the composition; it is what the cross-entity claim is verified over.
 
 final case class NexusCallerState(operation: ProtocolState, worker: WorkerState)
 

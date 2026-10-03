@@ -164,9 +164,9 @@ val four: Limits = Limits("four", steps = 4, actions = 4, search = 32768)
 // The design's seven: sync success, async reply then succeeded callback, async reply then failed
 // callback, non-retryable handler error, retryable handler error then sync success after one
 // backoff, schedule-to-start timeout with the handler's worker stopped, start-to-close timeout after
-// an asynchronous reply. Each finds its same-step claim on its path and is realized by the set below.
-// The product claim is verified over every trace of one path, outside the set, because a verify
-// Query realizes nothing.
+// an asynchronous reply. Each finds its same-step claim on its path and is realized as a Case.
+// The product claim is verified over every trace of one path, outside `functionalQueries`, because
+// a verify Query realizes nothing.
 
 val syncCompletion: Query = (query("syncCompletion") find syncSucceeds in syncReplied limits two)
   .expect(RunExpectation(Conformance.conformant, Outcome.satisfied))
@@ -245,7 +245,7 @@ val startToCloseTimeout: Query =
 val terminalHolds: Query =
   query("terminalHolds") verify terminalIsFinal in asyncThenSucceeded limits three
 
-/** The functional set's Queries in declaration order. */
+/** The functional Queries in declaration order. */
 val functionalQueries: Vector[Query] =
   Vector(
     syncCompletion,
@@ -256,59 +256,6 @@ val functionalQueries: Vector[Query] =
     scheduleToStartTimeout,
     startToCloseTimeout
   )
-
-private val drivenAll: Map[Party, Binding] =
-  Map(
-    caller -> Binding.driven,
-    handler -> Binding.driven,
-    network -> Binding.observed,
-    worker.party -> Binding.driven
-  )
-
-/**
- * The functional set. Every party but system is bound: the Case drives the caller, the handler and
- * the worker, and observes the network. The set repeats over the implementation switch, so each
- * Query's Case runs once under HSM and once under CHASM.
- */
-val nexusCallerTests: UmpireSet =
-  UmpireSet(
-    "nexusCallerTests",
-    Purpose.functional,
-    drivenAll,
-    repeat = "implementation",
-    queries = functionalQueries
-  )
-
-/**
- * The canary set. A canary runs a Query against a deployment that performs the handler's part
- * itself: the handler is observed, so the verifier reads which reply occurred and checks the
- * machine allows it. What admits a canary is that a deployment can close every gap its Case
- * carries, and every step of the sync and async completion paths records evidence; a path with a
- * silent step -- the backoff, the worker stop -- is a capability gap no deployment closes, so a
- * canary naming it is rejected.
- */
-val nexusCallerCanary: UmpireSet = UmpireSet(
-  "nexusCallerCanary",
-  Purpose.canary,
-  drivenAll.updated(handler, Binding.observed),
-  queries = Vector(syncCompletion, asyncCompletion)
-)
-
-/**
- * The exploratory set. An exploration covers the protocol machine rather than listing Queries. Its
- * targets are the rows an exploration within the budget's steps of a start can take, the results
- * those rows reach and the members of the classes their actions claim, each in the machine's
- * catalog order and cut at the budget's search count, so the enumeration is the same on every
- * reading.
- */
-val nexusCallerExploration: UmpireSet = UmpireSet(
-  "nexusCallerExploration",
-  Purpose.exploratory,
-  drivenAll,
-  machine = Some(nexusProtocol),
-  cover = Vector(CoverageGoal.rows, CoverageGoal.results, CoverageGoal.classMembers),
-  budget = Some(four)
-)
 
 // ### The cross-entity claim
 

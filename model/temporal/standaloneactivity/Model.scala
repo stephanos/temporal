@@ -1,7 +1,7 @@
 /* The standalone activity Model: one activity started directly through StartActivityExecution, with
  * no workflow around it. The product machine says what an activity does as
  * DescribeActivityExecution reports it, the protocol machine says how the server gets there and
- * refines it, and the functional set runs one Query per side effect that settles the activity.
+ * refines it, and the functional Queries are one per side effect that settles the activity.
  * Grounded in chasm/lib/activity/statemachine.go; reset is deferred, like cancellation in the Nexus
  * caller Model, and the heartbeat timeout is not modeled.
  *
@@ -12,7 +12,7 @@
  * Unlike the Nexus caller, the activity has no Stainless kernel: its domains, states and step
  * functions are declared here in ordinary Scala.
  * They come in this order: vocabulary, the two machines, what they promise,
- * what the set asks.
+ * what the Queries ask.
  */
 package temporal
 package standaloneactivity

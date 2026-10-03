@@ -209,51 +209,6 @@ class NexusCallerPins extends munit.FunSuite:
     )
   }
 
-  test("the sets") {
-    assertEquals(nexusCallerCanary.purpose, Purpose.canary)
-    assertEquals(
-      nexusCallerCanary.bindings,
-      Map(
-        caller -> Binding.driven,
-        handler -> Binding.observed,
-        network -> Binding.observed,
-        worker.party -> Binding.driven
-      )
-    )
-    assertEquals(check(nexusCallerCanary), Nil)
-    // A Query whose path takes a silent step carries a gap no deployment closes.
-    val canaryRetry = nexusCallerCanary.copy(name = "canaryRetry", queries = Vector(retry))
-    assertEquals(
-      check(canaryRetry).map(_.toString),
-      List("set canaryRetry: retry takes the silent step backoff, a gap no deployment closes")
-    )
-    // The exploration covers the protocol machine under four.
-    assertEquals(nexusCallerExploration.machine.map(_.name), Some("nexusProtocol"))
-    assertEquals(table(nexusProtocol).rows.size, 1152)
-    val targets = nexusCallerExploration.targets.fold(e => fail(e.toString), identity)
-    assertEquals(targets.size, 885 + 2 + 2)
-    assertEquals(targets.map(_.kind).distinct, Vector("row", "result", "classMember"))
-    assertEquals(targets.count(_.kind == "row"), 885)
-    assertEquals(
-      targets.filter(_.kind == "result").map(_.outcome),
-      Vector(
-        "temporal.nexus.caller.outcome.nexusProtocol.accepted",
-        "temporal.nexus.caller.outcome.nexusProtocol.notFound"
-      )
-    )
-    assertEquals(
-      targets(targets.size - 2),
-      CoverageTarget(
-        "classMember",
-        member = "temporal.nexus.caller.action.nexusProtocol.handlerReply-handlerError-false",
-        action = "temporal.nexus.caller.action.handlerReply",
-        field = "reply",
-        className = "handlerError (retryable := false)",
-        example = "BadRequest"
-      )
-    )
-  }
-
   test("the composition") {
     assertEquals(table(handlerWorker).actions, Vector("serve", "workerStop"))
     val t = table(nexusCaller)
@@ -304,9 +259,6 @@ class NexusCallerPins extends munit.FunSuite:
         nexusProtocol,
         handlerWorker,
         nexusCaller,
-        nexusCallerTests,
-        nexusCallerCanary,
-        nexusCallerExploration,
         terminalHolds,
         stoppedWorkerRepliesNothing
       ),

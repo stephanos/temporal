@@ -221,7 +221,7 @@ object ActivityRealization:
       )
     )
 
-  // The controller's sequence is the one order every path of the functional set makes its calls in:
+  // The controller's sequence is the one order every functional Query's path makes its calls in:
   // the worker stops before the start where the path says so, a pause is read back before its
   // release, a cancel request and a terminate follow, and the status the activity ends in is read
   // last.

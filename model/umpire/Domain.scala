@@ -114,15 +114,5 @@ object Keys:
     case p: Product            => p.productElementNames.toList
     case _                     => Nil
 
-  /**
-   * A class spelled the way an Abstraction Claim names it: a parametrised case by its
-   * constructor and named fields, `handlerError (retryable := true)`, anything else by its key.
-   */
-  def spelling(v: Any): String = v match
-    case e: scala.reflect.Enum if e.productArity > 0 =>
-      val named = e.productElementNames.zip(e.productIterator.map(of)).map((n, k) => s"$n := $k")
-      s"${e.productPrefix} (${named.mkString(", ")})"
-    case other => of(other)
-
   /** The action a class key belongs to: the key before its first "-". */
   def actionName(key: String): String = key.takeWhile(_ != '-')

@@ -141,8 +141,6 @@ class StandaloneActivityPins extends munit.FunSuite:
     assertEquals((stopped.outcome, stopped.exercised), (Verdict.verifiedWithinLimits, true))
   }
 
-  // Every declaration passes the framework's semantic checks, and the canary admits only paths
-  // whose every step records evidence.
   test("every declaration passes the framework's semantic checks") {
     assertEquals(
       check(
@@ -150,9 +148,6 @@ class StandaloneActivityPins extends munit.FunSuite:
         activityProtocol,
         activityWorker,
         standaloneActivity,
-        standaloneActivityTests,
-        standaloneActivityCanary,
-        standaloneActivityExploration,
         terminalHolds,
         pauseHolds,
         stoppedWorkerStartsNothing

@@ -208,8 +208,9 @@ val startToCloseTimeout: Query =
   query("startToCloseTimeout") find startToCloseFires in startToCloseExpires limits three
 
 /**
- * Asks the one Property no Query of the sets asks, over the path that takes a cancel request. It is
- * in no set: it is what carries the Property into the lifted Model, where it is compared with Go's.
+ * Asks the one Property no functional Query asks, over the path that takes a cancel request. It is
+ * not one of them: it is what carries the Property into the lifted Model, where it is compared with
+ * Go's.
  */
 val cancelRequest: Query =
   query("cancelRequest") find cancelRequestedWhileStarted in cancelRequestedThenCanceled limits four
@@ -218,7 +219,7 @@ val terminalHolds: Query = query("terminalHolds") verify terminalIsFinal in comp
 val pauseHolds: Query =
   query("pauseHolds") verify pausedIsNotDispatched in pausedThenCompleted limits six
 
-/** The functional set's Queries in declaration order. */
+/** The functional Queries in declaration order. */
 val functionalQueries: Vector[Query] = Vector(
   completion,
   nonRetryableFailure,
@@ -228,36 +229,6 @@ val functionalQueries: Vector[Query] = Vector(
   pauseResume,
   scheduleToStartTimeout,
   startToCloseTimeout
-)
-
-// ### The sets
-//
-// Standalone activities exist only under CHASM, so the functional set does not repeat over the
-// implementation switch.
-
-private val drivenAll: Map[Party, Binding] =
-  Map(caller -> Binding.driven, worker.party -> Binding.driven)
-
-/** The functional set. */
-val standaloneActivityTests: UmpireSet =
-  UmpireSet("standaloneActivityTests", Purpose.functional, drivenAll, queries = functionalQueries)
-
-/** The canary set: the worker is observed. */
-val standaloneActivityCanary: UmpireSet = UmpireSet(
-  "standaloneActivityCanary",
-  Purpose.canary,
-  drivenAll.updated(worker.party, Binding.observed),
-  queries = Vector(completion, cancel)
-)
-
-/** The exploratory set over the protocol machine. */
-val standaloneActivityExploration: UmpireSet = UmpireSet(
-  "standaloneActivityExploration",
-  Purpose.exploratory,
-  drivenAll,
-  machine = Some(activityProtocol),
-  cover = Vector(CoverageGoal.rows, CoverageGoal.results, CoverageGoal.classMembers),
-  budget = Some(four)
 )
 
 // ### The cross-entity claim
