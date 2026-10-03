@@ -1,0 +1,82 @@
+fn-109.5 Share plan and explore parsing directly and move semantic normalization to Runner -- evidence
+
+Host: linux/arm64 with the local development harness ON (adds linux/arm64 to version.json and the
+boundary manifest, shims syscall.Dup2). This is development evidence only, NOT darwin/arm64 or
+linux/amd64 evidence. TMPDIR=/tmp.
+Base revision: 9a90cedc7 (gomad-next-c, after fn-109.4 and its review fixes).
+Characterization commit (pre-refactor code, passing): 3e649dae3. Refactor commit: the commit that
+adds this file. Between the two commits, characterization_test.go and every pin in
+plan_characterization_test.go are unchanged except for two intended changes: the `-__plan` entry
+leaves help-explore.txt and help-plan.txt, and TestCharacterizeHiddenPlanFlag is rewritten from
+"accepted" to "rejected as an unknown flag".
+
+Design
+- cli.go: `parseCampaignRequest(operation, arguments, stdout, stderr, dependencies)` holds the
+  shared explore/plan grammar: flag definitions, presence-sensitive validation in the old order,
+  working-directory resolution, installation resolution (task 4's application `install` seam)
+  and CampaignSpec assembly. It returns a `campaignRequest{campaign, output, json, reporter}`.
+  `runExploreWith` calls dependencies.explore (runner.Explore) and `runPlanWith` calls
+  dependencies.plan (runner.CreateCampaignPlan). Each does only its own result reporting.
+  `runPlanWith` keeps "gomad plan requires --output FILE" after installation resolution, as before.
+- Plan's fixed failure policy: `flags.Set("on-failure", "all")` before Parse. This is the same as
+  the old prepended `--on-failure=all` argument: an explicit --on-failure still overrides it, and
+  the help default stays "first".
+- The hidden `--__plan` flag is gone, so `gomad explore --__plan` and `gomad plan --__plan` fail
+  with "flag provided but not defined: -__plan" (invalid_input, status 2, usage on stderr in text
+  mode) before the installation is resolved.
+- Semantic normalization: the CLI's own strategy reading (empty means seed, unknown is rejected)
+  and coverage-mode reading (only the four names; empty rejected) were copies of Runner rules.
+  They are now runner.ParseStrategy and runner.ParseCoverageMode. validateConfig also uses them
+  (unknown-strategy default branch; coverage switch). The CLI calls them at the point where it
+  used to apply its copies, so first-error precedence is unchanged. The CLI keeps flag-presence
+  checks and their flag-named messages (resolveExploreStrategy bounds, resolveExploreSeeds,
+  resolveExploreGuidance, --require-probe needs --coverage=semantic, resolveChoiceTrace,
+  --coverage=choice needs --choices, --diagnostics needs seed, --output only with plan).
+  Rules that already had one owner were left alone: on-failure, keep-successes and clock-tick are
+  passed through raw and checked only by Runner. Probe names are checked by
+  deterministicio.MissingRequiredSemanticProbes. Choice-trace bounds use runner's exported
+  constants.
+
+Intended grammar change (required by R6, "a hidden plan-only argument route fails acceptance")
+- `-__plan  create a campaign plan` leaves the explore and plan help output (both goldens).
+- `--__plan` on explore or plan was accepted and is now an unknown flag (status 2, not 3 or 0).
+- Nothing else changes. Plan's usage header still reads "Usage of gomad explore:", as before.
+
+Acceptance (linux/arm64 dev harness)
+- Plan and explore share one parse step and each calls its own Runner operation. No hidden
+  plan-only argument route remains. `--__plan` is rejected as unknown
+  (TestCharacterizeHiddenPlanFlag). MET.
+- Semantic normalization has one owner in Runner (ParseStrategy, ParseCoverageMode, validateConfig).
+  The CLI keeps presence-sensitive validation and reporting. MET.
+- Task 4 characterization (12 tests, 16 help goldens) plus the new plan characterization pass with
+  identical messages, classifications, stdout/stderr routing and exit statuses. The new tests are
+  TestCharacterizePlanRequestDefaults (whole-value default plan request, explore-only options
+  forwarded, argv after `--`), TestCharacterizePlanInputRejection (21 cases, including precedence
+  pairs, explicit-empty --strategy/--coverage and unknown probe), TestCharacterizePlanFlagErrors
+  (text usage and JSON), TestCharacterizePlanOperationErrors (classification, missing --output in
+  JSON, working-dir before --output) and TestCharacterizeExploreErrorWriteRouting (pins the
+  diagnostics branch's quirk of not echoing a JSON write failure). The only exceptions are the two
+  intended changes above. MET.
+- No default changes. Explicit zero and irrelevant flags are rejected exactly as before. The binary
+  capture (task-5/capture.sh, which extends task-4/capture.sh with 16 plan/explore invocations, 61 in
+  total; output retained as task-5/cli-capture.txt) differs from the pre-refactor binary only in the
+  `--__plan` lines and invocations (task-5/capture-before-after.diff). MET.
+
+Gates (linux/arm64, harness ON)
+- go test -tags test_dep ./cmd/gomad/internal/cli: only the baseline
+  TestCheckRejectsUnsupportedHostAndUnwritableArtifacts fails.
+- go test -tags test_dep ./runner -run 'ValidateConfig|CampaignPlan|PortablePlan|CampaignOptions|
+  Coordinator|ParseStrategy|NewCampaignRun|Characteriz': ok. The new
+  TestParseStrategyAndCoverageModeAreTheOneReading passes.
+- go test -tags test_dep ./cmd/... ./qualification/... (33 s): only the baseline
+  TestCheckRejectsUnsupportedHostAndUnwritableArtifacts and
+  TestPrepareCapabilityReviewSupportsTemporalBackoffWithGRPCAdapter fail. The cmd/gomad e2e tests pass.
+- go test -tags test_dep . -run TestPackageArchitecture: ok.
+- make validate: exit 0.
+- GOFLAGS='-tags=test_dep -count=1' make test-host (208 s): exit 2. The failing set is a subset of
+  BASELINE.md (TestRunTimesOutAndRemovesTermIgnoringProcessGroup and
+  TestCLIWatchdogRetainsIncompleteEvidence passed this run). runner ok, cmd/gomad ok. No new failure.
+
+Still owed (cannot run here): the same gates on darwin/arm64 and linux/amd64:
+  make -C tools/gomad3 validate; GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host;
+  go test -count=1 -tags test_dep ./cmd/... ./runner/... ./qualification/... (from tools/gomad3).

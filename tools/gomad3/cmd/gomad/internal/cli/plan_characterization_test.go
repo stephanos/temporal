@@ -217,26 +217,34 @@ func TestCharacterizeExploreErrorWriteRouting(t *testing.T) {
 	}
 }
 
-// TestCharacterizeHiddenPlanFlag pins the hidden --__plan route: explore
-// accepts it and then creates a plan instead of exploring.
+// TestCharacterizeHiddenPlanFlag pins that the hidden --__plan route is gone
+// (fn-109 R6): explore and plan reject --__plan as an unknown flag, before
+// resolving the installation, and never reach the plan operation.
 func TestCharacterizeHiddenPlanFlag(t *testing.T) {
 	t.Setenv("GOMAD3_TOOLCHAIN_DIR", "")
-	if got, want := runGomad("explore", "--toolchain-root=relative", "--__plan", "go-run", "./cmd"), (commandResult{status: 3, stderr: "gomad: runner_failure: resolve Gomad installation: CLI --toolchain-root toolchain root must be an absolute non-root clean path: \"relative\"\n"}); got != want {
-		t.Fatalf("explore --__plan = %s, want %s", got, want)
+	for _, command := range []string{"explore", "plan"} {
+		got := runGomad(command, "--toolchain-root=relative", "--__plan", "go-run", "./cmd")
+		if got.status != 2 || got.stdout != "" || !strings.HasPrefix(got.stderr, "gomad: invalid_input: flag provided but not defined: -__plan\nUsage of gomad explore:\n") || strings.Contains(got.stderr, "-__plan\n    \t") {
+			t.Fatalf("%s --__plan = %s", command, got)
+		}
 	}
-	var planned []runner.CampaignPlanSpec
-	dependencies := newFakeInstallation().exploreDependencies(nil, func(_ context.Context, spec runner.CampaignPlanSpec) (runner.CampaignPlanResult, error) {
-		planned = append(planned, spec)
-		return runner.CampaignPlanResult{Path: "/plan"}, nil
+	if got, want := runGomad("explore", "--json", "--toolchain-root=relative", "--__plan", "go-run", "./cmd"), (commandResult{status: 2, stdout: `{"schema":"gomad3.explore-event/v3","type":"error","classification":"invalid_input","message":"flag provided but not defined: -__plan"}` + "\n"}); got != want {
+		t.Fatalf("explore --json --__plan = %s, want %s", got, want)
+	}
+	dependencies := newFakeInstallation().exploreDependencies(nil, func(context.Context, runner.CampaignPlanSpec) (runner.CampaignPlanResult, error) {
+		t.Fatal("--__plan reached the plan operation")
+		return runner.CampaignPlanResult{}, nil
 	})
-	if got := runCommand(func(stdout, stderr *bytes.Buffer) int {
-		return runExploreWith([]string{"--__plan", "--output=/plan", "go-run", "./cmd"}, stdout, stderr, dependencies)
-	}); got.status != 0 || len(planned) != 1 || planned[0].Campaign.OnFailure != runner.PolicyFirst {
-		t.Fatalf("explore --__plan = %s, requests %#v", got, planned)
-	}
-	if got := runCommand(func(stdout, stderr *bytes.Buffer) int {
-		return runPlanWith([]string{"--__plan", "--output=/plan", "go-run", "./cmd"}, stdout, stderr, dependencies)
-	}); got.status != 0 || len(planned) != 2 {
-		t.Fatalf("plan --__plan = %s", got)
+	for _, command := range []func(stdout, stderr io.Writer) int{
+		func(stdout, stderr io.Writer) int {
+			return runExploreWith([]string{"--__plan", "--output=/plan", "go-run", "./cmd"}, stdout, stderr, dependencies)
+		},
+		func(stdout, stderr io.Writer) int {
+			return runPlanWith([]string{"--__plan", "--output=/plan", "go-run", "./cmd"}, stdout, stderr, dependencies)
+		},
+	} {
+		if got := runCommand(func(stdout, stderr *bytes.Buffer) int { return command(stdout, stderr) }); got.status != 2 || !strings.HasPrefix(got.stderr, "gomad: invalid_input: flag provided but not defined: -__plan\n") {
+			t.Fatalf("--__plan = %s", got)
+		}
 	}
 }

@@ -428,7 +428,101 @@ func (app application) runExplore(arguments []string, stdout, stderr io.Writer) 
 	return runExploreWith(arguments, stdout, stderr, app.exploreDependencies())
 }
 
+// runExploreWith parses the shared campaign grammar and explores the campaign.
 func runExploreWith(arguments []string, stdout, stderr io.Writer, dependencies exploreDependencies) int {
+	request, status, ok := parseCampaignRequest(exploreCampaign, arguments, stdout, stderr, dependencies)
+	if !ok {
+		return status
+	}
+	reporter := request.reporter
+	summary, err := dependencies.explore(context.Background(), request.campaign)
+	if err != nil {
+		if summary.ChoiceTrace != nil {
+			fmt.Fprintf(stderr, "gomad:%s\n", formatChoiceTrace(summary.ChoiceTrace))
+		}
+		classification := classifyExploreError(err)
+		if writeErr := reporter.Error(classification, err); writeErr != nil {
+			fmt.Fprintln(stderr, writeErr)
+			return 3
+		}
+		return exploreErrorStatus(classification)
+	}
+	if err := reporter.Result(summary); err != nil {
+		fmt.Fprintln(stderr, err)
+		return 3
+	}
+	return exploreSummaryStatus(summary)
+}
+
+func (app application) runPlan(arguments []string, stdout, stderr io.Writer) int {
+	return runPlanWith(arguments, stdout, stderr, app.exploreDependencies())
+}
+
+// runPlanWith parses the shared campaign grammar and freezes the campaign
+// into a portable plan at --output.
+func runPlanWith(arguments []string, stdout, stderr io.Writer, dependencies exploreDependencies) int {
+	request, status, ok := parseCampaignRequest(planCampaign, arguments, stdout, stderr, dependencies)
+	if !ok {
+		return status
+	}
+	reporter := request.reporter
+	if request.output == "" {
+		if writeErr := reporter.Error("invalid_input", errors.New("gomad plan requires --output FILE")); writeErr != nil {
+			fmt.Fprintln(stderr, writeErr)
+			return 3
+		}
+		return 2
+	}
+	planned, err := dependencies.plan(context.Background(), runner.CampaignPlanSpec{Campaign: request.campaign, Output: request.output})
+	if err != nil {
+		classification := classifyExploreError(err)
+		if writeErr := reporter.Error(classification, err); writeErr != nil {
+			fmt.Fprintln(stderr, writeErr)
+			return 3
+		}
+		return exploreErrorStatus(classification)
+	}
+	if request.json {
+		encoded, err := json.Marshal(planned)
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 3
+		}
+		if _, err := fmt.Fprintf(stdout, "%s\n", encoded); err != nil {
+			return 3
+		}
+	} else if _, err := fmt.Fprintf(stdout, "gomad plan: path=%s bundle=%s sha256=%s selected=%d target=%s\n", planned.Path, planned.BundlePath, planned.SHA256, planned.SelectionCount, planned.TargetSHA256); err != nil {
+		return 3
+	}
+	return 0
+}
+
+// campaignOperation is the operation a parsed campaign request is for.
+// gomad explore and gomad plan share one grammar; the operation decides only
+// plan's fixed failure policy and whether --output is accepted.
+type campaignOperation int
+
+const (
+	exploreCampaign campaignOperation = iota
+	planCampaign
+)
+
+// campaignRequest is one parsed and validated gomad explore or gomad plan
+// invocation: the campaign to run or freeze, plan's --output, and the
+// reporter that carries the operation's events and errors.
+type campaignRequest struct {
+	campaign runner.CampaignSpec
+	output   string
+	json     bool
+	reporter *exploreReporter
+}
+
+// parseCampaignRequest parses the grammar gomad explore and gomad plan share.
+// It keeps flag-presence validation and reporting; Runner owns the semantic
+// rules the flags map to. It resolves the working directory and the
+// installation only after the flags validate. When ok is false it has
+// already reported the failure and status is the exit status.
+func parseCampaignRequest(operation campaignOperation, arguments []string, stdout, stderr io.Writer, dependencies exploreDependencies) (request campaignRequest, status int, ok bool) {
 	flags := flag.NewFlagSet("gomad explore", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 	strategy := flags.String("strategy", string(runner.StrategySeed), "seed, choice-exploration, or simulation-exploration")
@@ -454,7 +548,6 @@ func runExploreWith(arguments []string, stdout, stderr io.Writer, dependencies e
 	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
 	capabilityMode := flags.String("capability-mode", string(target.CapabilityModeClosure), "closure, linked, or guarded capability assessment")
 	jsonOutput := flags.Bool("json", false, "emit stable JSON events")
-	planOnly := flags.Bool("__plan", false, "create a campaign plan")
 	planOutput := flags.String("output", "", "campaign plan output")
 	choices := flags.Bool("choices", false, "record bounded runtime choices")
 	diagnostics := flags.Bool("diagnostics", false, "record runtime-state diagnostics; implies --choices")
@@ -488,33 +581,39 @@ func runExploreWith(arguments []string, stdout, stderr io.Writer, dependencies e
 	flags.Var(&requiredSemanticProbes, "require-probe", "required semantic probe (requires --coverage=semantic)")
 	workingDir := flags.String("working-dir", "", "absolute target module root (default: the current directory)")
 	clockTick := flags.String("clock-tick", record.ClockTickStrict, "virtual-clock tick policy: strict or forward")
+	if operation == planCampaign {
+		// A portable plan completes all planned work. An explicit
+		// --on-failure still parses over this fixed policy, and the plan
+		// operation rejects any other.
+		_ = flags.Set("on-failure", string(runner.PolicyAll))
+	}
 	if err := flags.Parse(arguments); err != nil {
 		reporter := newExploreReporter(*jsonOutput, stdout, stderr)
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
-			return 3
+			return campaignRequest{}, 3, false
 		}
 		if !*jsonOutput {
 			flags.SetOutput(stderr)
 			flags.Usage()
 		}
-		return 2
+		return campaignRequest{}, 2, false
 	}
 	reporter := newExploreReporter(*jsonOutput, stdout, stderr)
-	if !*planOnly && *planOutput != "" {
+	if operation != planCampaign && *planOutput != "" {
 		if writeErr := reporter.Error("invalid_input", errors.New("--output is only valid with gomad plan")); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
-			return 3
+			return campaignRequest{}, 3, false
 		}
-		return 2
+		return campaignRequest{}, 2, false
 	}
 	resolvedCapabilityMode, err := parseCapabilityMode(*capabilityMode)
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
-			return 3
+			return campaignRequest{}, 3, false
 		}
-		return 2
+		return campaignRequest{}, 2, false
 	}
 	var seedsSet, countSet, coverageSet, choiceLimitSet, maxRunsSet, maxChoiceDepthSet, choiceStartOrdinalSet, maxForcedDecisionsSet, maxExplorationBytesSet, maxExplorationResultBytesSet bool
 	var runtimeLimitSet, scenarioLimitSet, networkLimitSet, storageLimitSet, faultLimitSet, crashLimitSet bool
@@ -570,71 +669,71 @@ func runExploreWith(arguments []string, stdout, stderr io.Writer, dependencies e
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
-			return 3
+			return campaignRequest{}, 3, false
 		}
-		return 2
+		return campaignRequest{}, 2, false
 	}
 	resolvedSeeds, err := resolveExploreSeeds(*seeds, *count, seedsSet, countSet)
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
-			return 3
+			return campaignRequest{}, 3, false
 		}
-		return 2
+		return campaignRequest{}, 2, false
 	}
 	if *guideRegression && !*guide {
 		if err := reporter.Error("invalid_input", errors.New("--guide-regression requires --guide")); err != nil {
 			fmt.Fprintln(stderr, err)
-			return 3
+			return campaignRequest{}, 3, false
 		}
-		return 2
+		return campaignRequest{}, 2, false
 	}
 	resolvedCoverage, err := resolveExploreGuidance(*guide, *corpus, *coverage, coverageSet)
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
-			return 3
+			return campaignRequest{}, 3, false
 		}
-		return 2
+		return campaignRequest{}, 2, false
 	}
 	coverageMode, err := resolveExploreCoverage(resolvedCoverage, requiredSemanticProbes)
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
-			return 3
+			return campaignRequest{}, 3, false
 		}
-		return 2
+		return campaignRequest{}, 2, false
 	}
 	if *diagnostics && resolvedStrategy != runner.StrategySeed {
 		if err := reporter.Error("invalid_input", errors.New("--diagnostics requires the seed strategy; forced-prefix exploration is unsupported")); err != nil {
-			return 3
+			return campaignRequest{}, 3, false
 		}
-		return 2
+		return campaignRequest{}, 2, false
 	}
 	resolvedChoiceLimit, err := resolveChoiceTrace(resolvedChoices, choiceLimit, choiceLimitSet)
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
-			return 3
+			return campaignRequest{}, 3, false
 		}
-		return 2
+		return campaignRequest{}, 2, false
 	}
 	if (coverageMode == runner.CoverageChoice || coverageMode == runner.CoverageSemanticChoice) && resolvedChoiceLimit == 0 {
 		if writeErr := reporter.Error("invalid_input", fmt.Errorf("--coverage=%s requires --choices", coverageMode)); writeErr != nil {
 			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
-				return 3
+				return campaignRequest{}, 3, false
 			}
-			return 3
+			return campaignRequest{}, 3, false
 		}
-		return 2
+		return campaignRequest{}, 2, false
 	}
 	parsedTarget, err := parseTarget(flags.Args())
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
-			return 3
+			return campaignRequest{}, 3, false
 		}
-		return 2
+		return campaignRequest{}, 2, false
 	}
 	workingDirectory, err := resolveWorkingDirectory(*workingDir, dependencies.workingDirectory)
 	if err != nil {
@@ -642,21 +741,21 @@ func runExploreWith(arguments []string, stdout, stderr io.Writer, dependencies e
 		if errors.As(err, &invalid) {
 			if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
 				fmt.Fprintln(stderr, writeErr)
-				return 3
+				return campaignRequest{}, 3, false
 			}
-			return 2
+			return campaignRequest{}, 2, false
 		}
 		if writeErr := reporter.Error("runner_failure", fmt.Errorf("resolve working directory: %w", err)); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
 		}
-		return 3
+		return campaignRequest{}, 3, false
 	}
 	installed, err := dependencies.install(*toolchainRoot)
 	if err != nil {
 		if writeErr := reporter.Error("runner_failure", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
 		}
-		return 3
+		return campaignRequest{}, 3, false
 	}
 	config := runner.CampaignSpec{
 		Strategy: resolvedStrategy, Seeds: resolvedSeeds, Parallel: *parallel, ExecutionTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
@@ -677,62 +776,7 @@ func runExploreWith(arguments []string, stdout, stderr io.Writer, dependencies e
 			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: installed.toolchainRoot, CapabilityMode: resolvedCapabilityMode,
 		},
 	}
-	if *planOnly {
-		if *planOutput == "" {
-			if writeErr := reporter.Error("invalid_input", errors.New("gomad plan requires --output FILE")); writeErr != nil {
-				fmt.Fprintln(stderr, writeErr)
-				return 3
-			}
-			return 2
-		}
-		planned, err := dependencies.plan(context.Background(), runner.CampaignPlanSpec{Campaign: config, Output: *planOutput})
-		if err != nil {
-			classification := classifyExploreError(err)
-			if writeErr := reporter.Error(classification, err); writeErr != nil {
-				fmt.Fprintln(stderr, writeErr)
-				return 3
-			}
-			return exploreErrorStatus(classification)
-		}
-		if *jsonOutput {
-			encoded, err := json.Marshal(planned)
-			if err != nil {
-				fmt.Fprintln(stderr, err)
-				return 3
-			}
-			if _, err := fmt.Fprintf(stdout, "%s\n", encoded); err != nil {
-				return 3
-			}
-		} else if _, err := fmt.Fprintf(stdout, "gomad plan: path=%s bundle=%s sha256=%s selected=%d target=%s\n", planned.Path, planned.BundlePath, planned.SHA256, planned.SelectionCount, planned.TargetSHA256); err != nil {
-			return 3
-		}
-		return 0
-	}
-	summary, err := dependencies.explore(context.Background(), config)
-	if err != nil {
-		if summary.ChoiceTrace != nil {
-			fmt.Fprintf(stderr, "gomad:%s\n", formatChoiceTrace(summary.ChoiceTrace))
-		}
-		classification := classifyExploreError(err)
-		if writeErr := reporter.Error(classification, err); writeErr != nil {
-			fmt.Fprintln(stderr, writeErr)
-			return 3
-		}
-		return exploreErrorStatus(classification)
-	}
-	if err := reporter.Result(summary); err != nil {
-		fmt.Fprintln(stderr, err)
-		return 3
-	}
-	return exploreSummaryStatus(summary)
-}
-
-func (app application) runPlan(arguments []string, stdout, stderr io.Writer) int {
-	return runPlanWith(arguments, stdout, stderr, app.exploreDependencies())
-}
-
-func runPlanWith(arguments []string, stdout, stderr io.Writer, dependencies exploreDependencies) int {
-	return runExploreWith(append([]string{"--__plan", "--on-failure=all"}, arguments...), stdout, stderr, dependencies)
+	return campaignRequest{campaign: config, output: *planOutput, json: *jsonOutput, reporter: reporter}, 0, true
 }
 
 type exploreStrategyOptions struct {
@@ -761,10 +805,13 @@ type exploreStrategyOptions struct {
 	CrashLimitSet                bool
 }
 
+// resolveExploreStrategy checks the exploration flags given for the strategy
+// Runner reads from --strategy, and reports whether the strategy records
+// choices.
 func resolveExploreStrategy(options exploreStrategyOptions) (runner.Strategy, bool, error) {
-	strategy := runner.Strategy(options.Value)
-	if strategy == "" {
-		strategy = runner.StrategySeed
+	strategy, err := runner.ParseStrategy(options.Value)
+	if err != nil {
+		return "", false, err
 	}
 	switch strategy {
 	case runner.StrategySeed:
@@ -847,7 +894,8 @@ func resolveExploreStrategy(options exploreStrategyOptions) (runner.Strategy, bo
 		}
 		return strategy, true, nil
 	default:
-		return "", false, fmt.Errorf("unknown exploration strategy %q", options.Value)
+		// Runner knows a strategy this command has no flags for.
+		return "", false, fmt.Errorf("gomad explore does not support strategy %q", strategy)
 	}
 }
 
@@ -890,8 +938,13 @@ func resolveExploreSeeds(seeds string, count uint64, seedsSet, countSet bool) (s
 	return "0-" + strconv.FormatUint(count-1, 10), nil
 }
 
+// resolveExploreCoverage reads --coverage through Runner and checks the
+// --require-probe flags given for it.
 func resolveExploreCoverage(value string, required []string) (runner.CoverageMode, error) {
-	mode := runner.CoverageMode(value)
+	mode, err := runner.ParseCoverageMode(value)
+	if err != nil {
+		return "", err
+	}
 	switch mode {
 	case runner.CoverageNone, runner.CoverageChoice:
 		if len(required) != 0 {
@@ -901,8 +954,6 @@ func resolveExploreCoverage(value string, required []string) (runner.CoverageMod
 		if _, err := deterministicio.MissingRequiredSemanticProbes(deterministicio.SemanticCoverage{}, required); err != nil {
 			return "", err
 		}
-	default:
-		return "", fmt.Errorf("unknown coverage mode %q", value)
 	}
 	return mode, nil
 }

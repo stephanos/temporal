@@ -58,3 +58,25 @@ Unexported changes inside `tools/gomad3/cmd/gomad/internal/cli`:
   New `exploreDependencies`, `replayDependencies` and `campaignShardDependencies` follow the same shape.
 - `runDoctor(arguments, stdout, stderr, executable)` became `application.runDoctor(arguments, stdout, stderr)`;
   doctor's `hashExecutable` became the shared `digestRunner`.
+
+## fn-109.5 shared plan and explore parsing
+
+**Exported changes: two additions in `runner`, no removals or signature changes.**
+
+- `func ParseStrategy(value string) (Strategy, error)`: the one reading of a strategy name. An
+  empty name is `StrategySeed` (as an omitted `CampaignSpec.Strategy` is); an unknown name fails
+  with `unknown exploration strategy %q`. `validateConfig` and the CLI's `--strategy` both use it.
+- `func ParseCoverageMode(value string) (CoverageMode, error)`: the one reading of a spelled
+  coverage mode. It accepts `none`, `semantic`, `choice` and `semantic+choice` and fails with
+  `unknown coverage mode %q` otherwise, including for an empty name: only an omitted
+  `CampaignSpec.Coverage` means none, which `validateConfig` normalizes before parsing. The CLI's
+  `--coverage` and `validateConfig` both use it.
+
+Both are additive; no consumer migration is needed. The error texts are the ones the CLI and
+`validateConfig` already produced.
+
+Unexported changes inside `tools/gomad3/cmd/gomad/internal/cli`: `runExploreWith` no longer
+branches on a hidden `--__plan` flag. A private `parseCampaignRequest(campaignOperation, ...)`
+parses the shared grammar into a `campaignRequest`; `runExploreWith` calls `runner.Explore` and
+`runPlanWith` calls `runner.CreateCampaignPlan`. Plan's fixed `--on-failure=all` is set on the
+flag set before parsing instead of being prepended to argv.

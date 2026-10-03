@@ -87,11 +87,35 @@ func campaignPlanRecord(config campaignRun, journalPlan campaign.ExecutionJourna
 	return plan, nil
 }
 
+// ParseStrategy is the one reading of a strategy name. An empty name is the
+// seed strategy, as an omitted CampaignSpec.Strategy is; any other name must
+// be a known strategy.
+func ParseStrategy(value string) (Strategy, error) {
+	switch strategy := normalizedStrategy(Strategy(value)); strategy {
+	case StrategySeed, StrategyChoiceExploration, StrategySimulationExploration:
+		return strategy, nil
+	default:
+		return "", fmt.Errorf("unknown exploration strategy %q", value)
+	}
+}
+
 func normalizedStrategy(strategy Strategy) Strategy {
 	if strategy == "" {
 		return StrategySeed
 	}
 	return strategy
+}
+
+// ParseCoverageMode is the one reading of a spelled coverage mode name. Only
+// an omitted CampaignSpec.Coverage means CoverageNone, so an empty name is
+// not a mode.
+func ParseCoverageMode(value string) (CoverageMode, error) {
+	switch mode := CoverageMode(value); mode {
+	case CoverageNone, CoverageSemantic, CoverageChoice, CoverageSemanticChoice:
+		return mode, nil
+	default:
+		return "", fmt.Errorf("unknown coverage mode %q", value)
+	}
 }
 
 func normalizedCoverage(mode CoverageMode) CoverageMode {

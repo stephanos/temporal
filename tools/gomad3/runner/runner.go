@@ -1267,7 +1267,8 @@ func validateConfig(config campaignRun) (SeedSelection, []record.Environment, er
 			return SeedSelection{}, nil, err
 		}
 	default:
-		return SeedSelection{}, nil, fmt.Errorf("unknown exploration strategy %q", config.Strategy)
+		_, err := ParseStrategy(string(strategy))
+		return SeedSelection{}, nil, err
 	}
 	if config.Parallel <= 0 {
 		return SeedSelection{}, nil, fmt.Errorf("parallelism must be positive")
@@ -1290,21 +1291,16 @@ func validateConfig(config campaignRun) (SeedSelection, []record.Environment, er
 	if config.Artifacts == "" || config.RunnerBuild == "" {
 		return SeedSelection{}, nil, errors.New("artifact root and Runner build identity are required")
 	}
-	switch config.Coverage {
-	case "", CoverageNone:
-		if len(config.RequiredSemanticProbes) != 0 {
-			return SeedSelection{}, nil, errors.New("required semantic probes require semantic coverage")
-		}
-	case CoverageSemantic, CoverageSemanticChoice:
+	coverage, err := ParseCoverageMode(string(normalizedCoverage(config.Coverage)))
+	if err != nil {
+		return SeedSelection{}, nil, err
+	}
+	if coverageHasSemantic(coverage) {
 		if _, err := deterministicio.MissingRequiredSemanticProbes(deterministicio.SemanticCoverage{}, config.RequiredSemanticProbes); err != nil {
 			return SeedSelection{}, nil, err
 		}
-	case CoverageChoice:
-		if len(config.RequiredSemanticProbes) != 0 {
-			return SeedSelection{}, nil, errors.New("required semantic probes require semantic coverage")
-		}
-	default:
-		return SeedSelection{}, nil, fmt.Errorf("unknown coverage mode %q", config.Coverage)
+	} else if len(config.RequiredSemanticProbes) != 0 {
+		return SeedSelection{}, nil, errors.New("required semantic probes require semantic coverage")
 	}
 	if coverageHasChoice(config.Coverage) && config.ChoiceTraceLimit == 0 {
 		return SeedSelection{}, nil, errors.New("choice coverage requires an enabled choice trace")

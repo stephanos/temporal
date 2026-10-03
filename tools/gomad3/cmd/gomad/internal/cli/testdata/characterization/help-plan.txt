@@ -3,8 +3,6 @@ status=2
 --- stderr
 gomad: invalid_input: flag: help requested
 Usage of gomad explore:
-  -__plan
-    	create a campaign plan
   -artifacts string
     	artifact root (default ".gomad/artifacts")
   -build-tag value

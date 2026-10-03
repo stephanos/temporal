@@ -3,6 +3,7 @@ package runner
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -69,5 +70,27 @@ func TestCoordinatorRequestCarriesTheNormalizedOptions(t *testing.T) {
 	}
 	if run.OverallTimeout == want.OverallTimeout {
 		t.Fatal("building the coordinator request changed the local deadline")
+	}
+}
+
+func TestParseStrategyAndCoverageModeAreTheOneReading(t *testing.T) {
+	for value, want := range map[string]Strategy{"": StrategySeed, "seed": StrategySeed, "choice-exploration": StrategyChoiceExploration, "simulation-exploration": StrategySimulationExploration} {
+		if got, err := ParseStrategy(value); err != nil || got != want {
+			t.Fatalf("ParseStrategy(%q) = %q, %v, want %q", value, got, err, want)
+		}
+	}
+	if _, err := ParseStrategy("random"); err == nil || err.Error() != `unknown exploration strategy "random"` {
+		t.Fatalf("ParseStrategy(random) error = %v", err)
+	}
+	for _, want := range []CoverageMode{CoverageNone, CoverageSemantic, CoverageChoice, CoverageSemanticChoice} {
+		if got, err := ParseCoverageMode(string(want)); err != nil || got != want {
+			t.Fatalf("ParseCoverageMode(%q) = %q, %v", want, got, err)
+		}
+	}
+	// Only an omitted CampaignSpec.Coverage means none; a spelled empty name is not a mode.
+	for _, value := range []string{"", "all"} {
+		if _, err := ParseCoverageMode(value); err == nil || err.Error() != fmt.Sprintf("unknown coverage mode %q", value) {
+			t.Fatalf("ParseCoverageMode(%q) error = %v", value, err)
+		}
 	}
 }
