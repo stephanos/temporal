@@ -8525,7 +8525,7 @@
         "named": "temporal.nexuscaller.closepolicy.Asked"
       }
     }, {
-      "name": "_$3",
+      "name": "closeResetState",
       "type": {
         "named": "temporal.nexuscaller.closepolicy.CloseResetState"
       }
@@ -13392,7 +13392,7 @@
         "bool": { }
       }
     }, {
-      "name": "_$1",
+      "name": "closeResetState",
       "type": {
         "named": "temporal.nexuscaller.closepolicy.CloseResetState"
       }
@@ -13704,7 +13704,7 @@
         "named": "temporal.nexuscaller.closepolicy.Outcomes"
       }
     }, {
-      "name": "_$2",
+      "name": "closeResetState",
       "type": {
         "named": "temporal.nexuscaller.closepolicy.CloseResetState"
       }

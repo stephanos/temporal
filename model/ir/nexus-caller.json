@@ -359,7 +359,7 @@
       "line": 127
     },
     "params": [ {
-      "name": "x$1",
+      "name": "productFact",
       "type": {
         "named": "temporal.nexuscaller.kernel.ProductFact"
       }
@@ -375,7 +375,7 @@
             "file": "model/temporal/nexuscaller/Model.scala",
             "line": 128
           },
-          "var": "x$1"
+          "var": "productFact"
         },
         "cases": [ {
           "pattern": {
@@ -596,7 +596,7 @@
       "line": 162
     },
     "params": [ {
-      "name": "x$1",
+      "name": "protocolFact",
       "type": {
         "named": "temporal.nexuscaller.kernel.ProtocolFact"
       }
@@ -612,7 +612,7 @@
             "file": "model/temporal/nexuscaller/Model.scala",
             "line": 163
           },
-          "var": "x$1"
+          "var": "protocolFact"
         },
         "cases": [ {
           "pattern": {
@@ -751,7 +751,7 @@
       "line": 48
     },
     "params": [ {
-      "name": "_$2",
+      "name": "step",
       "type": {
         "named": "umpire.Step"
       }
@@ -786,7 +786,7 @@
                 "file": "model/temporal/nexuscaller/Claims.scala",
                 "line": 48
               },
-              "var": "_$2"
+              "var": "step"
             },
             "field": "facts"
           }
@@ -800,7 +800,7 @@
       "line": 43
     },
     "params": [ {
-      "name": "_$1",
+      "name": "step",
       "type": {
         "named": "umpire.Step"
       }
@@ -835,7 +835,7 @@
                 "file": "model/temporal/nexuscaller/Claims.scala",
                 "line": 43
               },
-              "var": "_$1"
+              "var": "step"
             },
             "field": "facts"
           }
@@ -5742,7 +5742,7 @@
       },
       "lambda": {
         "params": [ {
-          "name": "_$1",
+          "name": "state",
           "type": {
             "named": "temporal.worker.State"
           }
@@ -6092,7 +6092,7 @@
       },
       "lambda": {
         "params": [ {
-          "name": "_$1",
+          "name": "state",
           "type": {
             "named": "temporal.worker.State"
           }

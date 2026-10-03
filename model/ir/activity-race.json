@@ -295,7 +295,7 @@
       "line": 221
     },
     "params": [ {
-      "name": "x$1",
+      "name": "productFact",
       "type": {
         "named": "temporal.standaloneactivity.ProductFact"
       }
@@ -311,7 +311,7 @@
             "file": "model/temporal/standaloneactivity/Model.scala",
             "line": 222
           },
-          "var": "x$1"
+          "var": "productFact"
         },
         "cases": [ {
           "pattern": {
@@ -3101,7 +3101,7 @@
         "named": "temporal.standaloneactivity.Active"
       }
     }, {
-      "name": "_$1",
+      "name": "admissionState",
       "type": {
         "named": "temporal.standaloneactivity.AdmissionState"
       }
@@ -3140,7 +3140,7 @@
       "line": 211
     },
     "params": [ {
-      "name": "_$2",
+      "name": "active",
       "type": {
         "named": "temporal.standaloneactivity.Active"
       }
@@ -3157,7 +3157,7 @@
             "file": "model/temporal/standaloneactivity/System.scala",
             "line": 211
           },
-          "var": "_$2"
+          "var": "active"
         },
         "right": {
           "position": {
@@ -4877,7 +4877,7 @@
         "named": "temporal.standaloneactivity.Finality"
       }
     }, {
-      "name": "_$3",
+      "name": "admissionState",
       "type": {
         "named": "temporal.standaloneactivity.AdmissionState"
       }
@@ -4916,7 +4916,7 @@
       "line": 227
     },
     "params": [ {
-      "name": "_$4",
+      "name": "finality",
       "type": {
         "named": "temporal.standaloneactivity.Finality"
       }
@@ -4933,7 +4933,7 @@
             "file": "model/temporal/standaloneactivity/System.scala",
             "line": 227
           },
-          "var": "_$4"
+          "var": "finality"
         },
         "right": {
           "position": {

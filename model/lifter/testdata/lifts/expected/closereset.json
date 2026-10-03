@@ -2811,7 +2811,7 @@
         "bool": { }
       }
     }, {
-      "name": "_$1",
+      "name": "closeResetState",
       "type": {
         "named": "fixture.specimens.closereset.CloseResetState"
       }

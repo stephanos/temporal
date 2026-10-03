@@ -560,7 +560,7 @@
       "line": 221
     },
     "params": [ {
-      "name": "x$1",
+      "name": "productFact",
       "type": {
         "named": "temporal.standaloneactivity.ProductFact"
       }
@@ -576,7 +576,7 @@
             "file": "model/temporal/standaloneactivity/Model.scala",
             "line": 222
           },
-          "var": "x$1"
+          "var": "productFact"
         },
         "cases": [ {
           "pattern": {
@@ -2626,7 +2626,7 @@
       "line": 197
     },
     "params": [ {
-      "name": "_$1",
+      "name": "active",
       "type": {
         "named": "fixture.specimens.admission.Active"
       }
@@ -2643,7 +2643,7 @@
             "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 197
           },
-          "var": "_$1"
+          "var": "active"
         },
         "right": {
           "position": {
@@ -4033,7 +4033,7 @@
       "line": 213
     },
     "params": [ {
-      "name": "_$2",
+      "name": "finality",
       "type": {
         "named": "fixture.specimens.admission.Finality"
       }
@@ -4050,7 +4050,7 @@
             "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 213
           },
-          "var": "_$2"
+          "var": "finality"
         },
         "right": {
           "position": {
@@ -4073,7 +4073,7 @@
       "line": 127
     },
     "params": [ {
-      "name": "x$1",
+      "name": "productFact",
       "type": {
         "named": "temporal.nexuscaller.kernel.ProductFact"
       }
@@ -4089,7 +4089,7 @@
             "file": "model/temporal/nexuscaller/Model.scala",
             "line": 128
           },
-          "var": "x$1"
+          "var": "productFact"
         },
         "cases": [ {
           "pattern": {
@@ -4209,7 +4209,7 @@
       "line": 162
     },
     "params": [ {
-      "name": "x$1",
+      "name": "protocolFact",
       "type": {
         "named": "temporal.nexuscaller.kernel.ProtocolFact"
       }
@@ -4225,7 +4225,7 @@
             "file": "model/temporal/nexuscaller/Model.scala",
             "line": 163
           },
-          "var": "x$1"
+          "var": "protocolFact"
         },
         "cases": [ {
           "pattern": {
@@ -4496,7 +4496,7 @@
       "line": 277
     },
     "params": [ {
-      "name": "_$1",
+      "name": "step",
       "type": {
         "named": "umpire.Step"
       }
@@ -4531,7 +4531,7 @@
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
                 "line": 277
               },
-              "var": "_$1"
+              "var": "step"
             },
             "field": "facts"
           }
@@ -4573,7 +4573,7 @@
       "line": 791
     },
     "params": [ {
-      "name": "_$4",
+      "name": "step",
       "type": {
         "named": "umpire.Step"
       }
@@ -4608,7 +4608,7 @@
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
                 "line": 791
               },
-              "var": "_$4"
+              "var": "step"
             },
             "field": "facts"
           }
@@ -10384,7 +10384,7 @@
       },
       "lambda": {
         "params": [ {
-          "name": "_$2",
+          "name": "doorState",
           "type": {
             "named": "fixture.realizations.DoorState"
           }
@@ -10401,7 +10401,7 @@
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
                 "line": 416
               },
-              "var": "_$2"
+              "var": "doorState"
             },
             "right": {
               "position": {
@@ -10983,7 +10983,7 @@
       },
       "lambda": {
         "params": [ {
-          "name": "_$3",
+          "name": "doorState",
           "type": {
             "named": "fixture.realizations.DoorState"
           }
@@ -11000,7 +11000,7 @@
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
                 "line": 785
               },
-              "var": "_$3"
+              "var": "doorState"
             },
             "right": {
               "position": {

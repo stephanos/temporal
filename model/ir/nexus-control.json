@@ -179,7 +179,7 @@
       "line": 29
     },
     "params": [ {
-      "name": "x$1",
+      "name": "protocolFact",
       "type": {
         "named": "temporal.nexuscaller.kernel.ProtocolFact"
       }
@@ -195,7 +195,7 @@
             "file": "model/temporal/nexuscaller/Control.scala",
             "line": 30
           },
-          "var": "x$1"
+          "var": "protocolFact"
         },
         "cases": [ {
           "pattern": {
@@ -334,7 +334,7 @@
       "line": 55
     },
     "params": [ {
-      "name": "_$1",
+      "name": "step",
       "type": {
         "named": "umpire.Step"
       }
@@ -369,7 +369,7 @@
                 "file": "model/temporal/nexuscaller/Control.scala",
                 "line": 55
               },
-              "var": "_$1"
+              "var": "step"
             },
             "field": "facts"
           }

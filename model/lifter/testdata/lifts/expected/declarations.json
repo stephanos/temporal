@@ -797,12 +797,12 @@
       "line": 88
     },
     "params": [ {
-      "name": "_$1",
+      "name": "boolean",
       "type": {
         "bool": { }
       }
     }, {
-      "name": "_$2",
+      "name": "disk",
       "type": {
         "named": "fixture.declarations.Disk"
       }
@@ -1302,7 +1302,7 @@
         "bool": { }
       }
     }, {
-      "name": "_$3",
+      "name": "disk",
       "type": {
         "named": "fixture.declarations.Disk"
       }

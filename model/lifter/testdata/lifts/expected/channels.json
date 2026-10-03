@@ -1122,7 +1122,7 @@
       },
       "lambda": {
         "params": [ {
-          "name": "_$1",
+          "name": "relay",
           "type": {
             "named": "fixture.channels.Relay"
           }
@@ -1219,7 +1219,7 @@
       },
       "lambda": {
         "params": [ {
-          "name": "_$2",
+          "name": "tally",
           "type": {
             "named": "fixture.channels.Tally"
           }

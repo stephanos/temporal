@@ -316,7 +316,7 @@
       "line": 221
     },
     "params": [ {
-      "name": "x$1",
+      "name": "productFact",
       "type": {
         "named": "temporal.standaloneactivity.ProductFact"
       }
@@ -332,7 +332,7 @@
             "file": "model/temporal/standaloneactivity/Model.scala",
             "line": 222
           },
-          "var": "x$1"
+          "var": "productFact"
         },
         "cases": [ {
           "pattern": {
@@ -716,7 +716,7 @@
       "line": 459
     },
     "params": [ {
-      "name": "x$1",
+      "name": "protocolFact",
       "type": {
         "named": "temporal.standaloneactivity.ProtocolFact"
       }
@@ -732,7 +732,7 @@
             "file": "model/temporal/standaloneactivity/Model.scala",
             "line": 460
           },
-          "var": "x$1"
+          "var": "protocolFact"
         },
         "cases": [ {
           "pattern": {
@@ -1818,7 +1818,7 @@
       "line": 239
     },
     "params": [ {
-      "name": "_$1",
+      "name": "step",
       "type": {
         "named": "umpire.Step"
       }
@@ -1853,7 +1853,7 @@
                         "file": "model/temporal/standaloneactivity/Claims.scala",
                         "line": 239
                       },
-                      "var": "_$1"
+                      "var": "step"
                     },
                     "field": "state"
                   }
@@ -7656,7 +7656,7 @@
       },
       "lambda": {
         "params": [ {
-          "name": "_$1",
+          "name": "state",
           "type": {
             "named": "temporal.worker.State"
           }
@@ -7725,7 +7725,7 @@
       },
       "lambda": {
         "params": [ {
-          "name": "_$1",
+          "name": "state",
           "type": {
             "named": "temporal.worker.State"
           }

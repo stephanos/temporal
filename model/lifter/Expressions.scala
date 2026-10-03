@@ -36,7 +36,68 @@ private[lift] trait Expressions:
   def text(s: String, at: Tree): ir.Expr = lit(ir.Value.Kind.Text(s), at)
   def binary(op: ir.Binary.Op, l: ir.Expr, r: ir.Expr, at: Tree): ir.Expr =
     expr(at)(E.Binary(ir.Binary(op = op, left = Some(l), right = Some(r))))
-  def param(p: ValDef): ir.Param = ir.Param(name = p.name, `type` = Some(typeRef(p.tpt.tpe, p)))
+  def param(p: ValDef): ir.Param =
+    ir.Param(name = nameOf(p.symbol), `type` = Some(typeRef(p.tpt.tpe, p)))
+
+  /**
+   * The parameters of a function or a lambda over `body`. A name the compiler made up, such as the
+   * `_$1` of a placeholder `_` or the `x$1` of a `{ case ... }` lambda, is numbered by the other
+   * placeholders of the source, so such a parameter is lifted with a name of its type instead: the
+   * type's simple name with a lower-case first letter (`step`, `admissionState`). It is the name of
+   * the outer type constructor (`tuple2`, `function1`, `list`), and `it` for a type with no plain
+   * name or whose name in lower case is a keyword. A name already taken in scope or in the body
+   * gets the first free numeric suffix from 2 (`step2`), so the parameter neither hides another
+   * name nor is hidden by one. References are lifted by symbol, so they read the new name through
+   * `nameOf`.
+   */
+  def parameters(ps: List[ValDef], body: Term): Seq[ir.Param] =
+    // `Flags.Synthetic` marks neither every placeholder `_$N` nor only compiler-named parameters.
+    val made = ps.filter(_.name.contains('$'))
+    if made.nonEmpty then
+      val own = made.map(_.symbol).toSet
+      val taken = inScope(made.head.symbol.owner, body).diff(own).map(nameOf)
+      made.foldLeft(taken): (taken, p) =>
+        val base = typeName(p.tpt.tpe)
+        val name = (base #:: LazyList.from(2).map(i => s"$base$i")).filterNot(taken).head
+        renamed(p.symbol) = name
+        taken + name
+    ps.map(param)
+
+  // A type whose name in lower case is a keyword, such as `Type`, gives `it`.
+  val keywords =
+    ("abstract case catch class def do else enum export extends false final finally for given if " +
+      "implicit import lazy match new null object override package private protected return sealed " +
+      "super then throw trait true try type val var while with yield").split(' ').toSet
+
+  def typeName(t: TypeRepr): String =
+    val n = t.widen.typeSymbol.name
+    val lower = n.take(1).toLowerCase + n.drop(1)
+    if n.matches("[A-Za-z][A-Za-z0-9]*") && !keywords(lower) then lower else "it"
+
+  /**
+   * The local names a parameter of `fn` must not take: those bound by `fn` and by the functions,
+   * lambdas and local values around it, and those bound or read in `body`. A lambda inlined from a
+   * top-level val avoids the names of its definition site, not of its use site, which is harmless:
+   * its body cannot read the use site's locals.
+   */
+  def inScope(fn: Symbol, body: Term): Set[Symbol] =
+    val around = Iterator
+      .iterate(fn)(_.maybeOwner)
+      .takeWhile(o => !o.isNoSymbol && (o.isDefDef || (o.isValDef && local(o))))
+      .toList
+    def names(t: Tree, keep: Symbol => Boolean): Set[Symbol] =
+      object collect extends TreeAccumulator[Set[Symbol]]:
+        def foldTree(found: Set[Symbol], tree: Tree)(owner: Symbol): Set[Symbol] =
+          val more = tree match
+            case d: ValDef if keep(d.symbol)                 => found + d.symbol
+            case b: Bind if keep(b.symbol)                   => found + b.symbol
+            case r: Ref if local(r.symbol) && keep(r.symbol) => found + r.symbol
+            case _                                           => found
+          foldOverTree(more, tree)(owner)
+      collect.foldTree(Set.empty, t)(Symbol.spliceOwner)
+    val outermost = around.lastOption.flatMap(defs.get).getOrElse(body)
+    names(outermost, s => around.contains(s.maybeOwner)) ++ names(body, _ => true)
+
   def varargs(t: Term): List[Term] = t match
     case Typed(Repeated(items, _), _) => items
     case Repeated(items, _)           => items
@@ -87,7 +148,7 @@ private[lift] trait Expressions:
     sym.fullName
 
   def function(name: String, params: List[ValDef], body: Term, at: Tree): ir.Function =
-    val ps = params.map(param)
+    val ps = parameters(params, body)
     val (requires, rest) = stripContracts(body)
     ir.Function(
       name = name,
@@ -273,7 +334,7 @@ private[lift] trait Expressions:
 
     case r: Ref if isEnumCase(r.symbol) => enumLiteral(r.symbol, t)
     // A parameter, a local `val` or a pattern-bound name: every name a function's own scope owns.
-    case r: Ref if local(r.symbol) => expr(t)(E.Var(r.symbol.name))
+    case r: Ref if local(r.symbol) => expr(t)(E.Var(nameOf(r.symbol)))
     // A string read off a declared value, such as an observation's name, is a constant.
     case Select(recv, _) if t.tpe.widen <:< defn.StringClass.typeRef && !local(recv.symbol) =>
       text(constString(t), t)
@@ -290,8 +351,8 @@ private[lift] trait Expressions:
           List(DefDef("$anonfun", List(TermParamClause(params)), _, Some(body))),
           _: Closure
         ) =>
-      val b = lift(body)
-      expr(lambda)(E.Lambda(ir.Lambda(params.map(param), Some(b))))
+      val ps = parameters(params, body)
+      expr(lambda)(E.Lambda(ir.Lambda(ps, Some(lift(body)))))
 
     case other => fail(other, s"outside the liftable subset: ${other.show}")
 

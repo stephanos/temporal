@@ -236,7 +236,7 @@
       "line": 221
     },
     "params": [ {
-      "name": "x$1",
+      "name": "productFact",
       "type": {
         "named": "temporal.standaloneactivity.ProductFact"
       }
@@ -252,7 +252,7 @@
             "file": "model/temporal/standaloneactivity/Model.scala",
             "line": 222
           },
-          "var": "x$1"
+          "var": "productFact"
         },
         "cases": [ {
           "pattern": {
@@ -1611,7 +1611,7 @@
       "line": 197
     },
     "params": [ {
-      "name": "_$1",
+      "name": "active",
       "type": {
         "named": "fixture.specimens.admission.Active"
       }
@@ -1628,7 +1628,7 @@
             "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 197
           },
-          "var": "_$1"
+          "var": "active"
         },
         "right": {
           "position": {
@@ -3127,7 +3127,7 @@
       "line": 213
     },
     "params": [ {
-      "name": "_$2",
+      "name": "finality",
       "type": {
         "named": "fixture.specimens.admission.Finality"
       }
@@ -3144,7 +3144,7 @@
             "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 213
           },
-          "var": "_$2"
+          "var": "finality"
         },
         "right": {
           "position": {

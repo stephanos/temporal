@@ -80,6 +80,9 @@ final private[lift] class Context(using val quotes: Quotes)(
   val folded = mutable.Map.empty[Symbol, Decl]
   // The functions whose bodies are being lifted, so a function that calls itself is refused.
   val lifting = mutable.Set.empty[String]
+  // The name each parameter with a compiler-synthesized name is lifted with, by its symbol.
+  val renamed = mutable.Map.empty[Symbol, String]
+  def nameOf(sym: Symbol): String = renamed.getOrElse(sym, sym.name)
   val stepType = "umpire.Step"
   val noneModule = Symbol.requiredModule("scala.None")
   val someModule = Symbol.requiredModule("scala.Some")
