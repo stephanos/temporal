@@ -1,0 +1,59 @@
+{
+  "schema": "gomad3.adapter-regeneration-handover/v1",
+  "task": "fn-113-gomad-reduce-version-pin-maintenance.2",
+  "source_frozen": true,
+  "no_root_adapted_dependency_moved": "root-adapter-versions.json",
+  "implementation": "One adapter-regenerate command supports all 15 current adapter families using existing exact-occurrence rewrite helpers and bespoke callbacks; review approval binds source/replacement bytes and anchors; staging runs make generate and validation in a source-only checkout; publication revalidates all input bytes under exclusive lock and records durable old/new transaction marker.",
+  "coverage": {
+    "moved_anchor": "TestRegenerateSourceRewriteRequiresExactlyOneAnchor/moved",
+    "double_anchor": "TestRegenerateSourceRewriteRequiresExactlyOneAnchor/duplicated",
+    "missing_rewritten_source": "TestRegenerateRewrittenModuleRejectsMissingSource",
+    "approval_binds_upstream_and_replacement": "TestAdapterApprovalBindsUpstreamSourceAndAnchors",
+    "wrong_approval_no_checkout_writes": "TestAdapterRegenerationDryRunLeavesCheckoutUntouched",
+    "dry_run_no_checkout_writes": "TestAdapterRegenerationDryRunLeavesCheckoutUntouched",
+    "missing_or_duplicate_old_pin": "TestEditAdapterPinsPreservesCommentsAndRequiresOldPin",
+    "generation_failure_no_publication": "TestAdapterGenerationFailureLeavesCheckoutUnchanged",
+    "interrupted_publication_recovers_source_and_generated_output": "TestAdapterPublicationRecoversInterruptedSet",
+    "checkout_changed_output": "TestAdapterPublicationRejectsCheckoutDrift",
+    "checkout_changed_unchanged_input": "TestAdapterPublicationRejectsUnchangedInputDrift",
+    "competing_applies": "TestAdapterPublicationSerializesCompetingApplies",
+    "stale_libc_bound_packs": "TestReportStaleLibcAdapterPacks",
+    "changed_version_real_fixture_transaction": "sprig-fixture-evidence.json",
+    "changed_version_patched_runtime_qualification": "fixture-qualification-evidence.json",
+    "new_staged_input_in_each_copied_tree": "TestAdapterPublicationRejectsNewStagedInput (adapter request, qualification, tests)",
+    "excluded_cache_drift_allows_publication": "TestAdapterPublicationAcceptsIgnoredCacheDrift"
+  },
+  "evidence": [
+    "sprig-fixture-dryrun.txt",
+    "sprig-fixture-evidence.json",
+    "fixture-qualification-evidence.json",
+    "fixture-qualification.log",
+    "fixture-qualification/",
+    "root-gates.json",
+    "root-validate.log",
+    "nested-focused-tests.log",
+    "nested-vet.log",
+    "nested-lint.log",
+    "fix-round-1-evidence.json",
+    "fix-round-1-red.log",
+    "fix-round-1-green.log",
+    "fix-round-1-focused-tests.log",
+    "fix-round-1-final-cmd-tests.log",
+    "fix-round-1-vet.log",
+    "fix-round-1-validate.log",
+    "fix-round-1-nested-lint.log",
+    "root-lint-retained.json",
+    "root-lint-retained.log"
+  ],
+  "limitations": [
+    "The root adapted dependency versions had not moved, so the controlled Sprig v3.3.0\u2192v3.2.3 fixture is the version-bump proof.",
+    "Nested golangci-lint returned failure from pre-existing package findings; it reported zero findings in changed adapter files.",
+    "Retained root lint-code-fast exited 2 on nested-module package loading from the root module; see root-lint-retained.json/log. Nested changed adapter files have zero scoped lint findings."
+  ],
+  "owner_actions": [
+    "Independent review",
+    "Flow task completion after review"
+  ],
+  "commits": [],
+  "round_1_fix": "fix-round-1-evidence.json"
+}

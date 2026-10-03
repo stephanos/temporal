@@ -1,0 +1,12 @@
+Adapter: github.com/Masterminds/sprig/v3@v3.2.3
+Module sum: h1:eL2fZNezLomi0uOLqjQoN6BfsDD+fyLtgbJMAj9n6YA=
+Original inventory: sha256:beffe56ed10da3b66fdbe00426aadbeca93e20566c15cdeb68f2d0df21c7fa19
+Replacement inventory: sha256:0a170bda545c818a375e92e2524dac284417d6dc9c7d748fdc2f7be771444bd1
+
+Source: network.go
+Old source: sha256:ffc5b88a9aa83cb4ac331cadd1792c2d493ad65629eec462241104c0afc225ca
+New source: sha256:ffc5b88a9aa83cb4ac331cadd1792c2d493ad65629eec462241104c0afc225ca
+New replacement: sha256:7783a960bbefa4e8bb28849af27de06c20e045bfb56c37dd9711f33030a4fc9e
+Prepared source set darwin/arm64: sha256:860c7a5ddda9239fd6068aabcc5099f4b92ad6c348023379504fdf33ec2093a0
+Prepared source set linux/amd64: sha256:860c7a5ddda9239fd6068aabcc5099f4b92ad6c348023379504fdf33ec2093a0
+Approval SHA-256: sha256:1a47941c061adf15f45843b757d5ba22c139271a661c1e2595d628abe517d5fd

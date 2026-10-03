@@ -157,6 +157,7 @@ func (store Store) PublishArtifact(publication Publication) (_ Artifact, retErr 
 		return Artifact{}, err
 	}
 	finalPath := filepath.Join(store.Root, identityDirectory(identity, false))
+	key := store.Key
 	for {
 		if err := ctx.Err(); err != nil {
 			return Artifact{}, err
@@ -170,11 +171,19 @@ func (store Store) PublishArtifact(publication Publication) (_ Artifact, retErr 
 		if openErr != nil {
 			return Artifact{}, fmt.Errorf("existing artifact %s failed validation: %w", finalPath, openErr)
 		}
-		existingIdentity, identityErr := storeIdentity(store.Key, existing.Manifest)
+		existingIdentity, identityErr := storeIdentity(key, existing.Manifest)
 		if identityErr != nil {
 			return Artifact{}, errors.Join(identityErr, existing.Close())
 		}
 		if existingIdentity == identity {
+			if key == StoreKeyFailureSignature && manifest.ArtifactKind == record.ArtifactSuccess && existing.Manifest.RecordHash != manifest.RecordHash {
+				if closeErr := existing.Close(); closeErr != nil {
+					return Artifact{}, fmt.Errorf("close colliding success artifact: %w", closeErr)
+				}
+				key, identity = StoreKeyRecord, manifest.RecordHash
+				finalPath = filepath.Join(store.Root, identityDirectory(identity, false))
+				continue
+			}
 			identity := Artifact{Path: existing.Path, Manifest: existing.Manifest, StoredBytes: existing.StoredBytes, TargetSharing: store.sharingOf(existing)}
 			if closeErr := existing.Close(); closeErr != nil {
 				return Artifact{}, fmt.Errorf("close existing artifact: %w", closeErr)

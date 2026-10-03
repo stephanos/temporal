@@ -1,0 +1,9 @@
+Usage of gomadtool adapter-regenerate:
+  -approve string
+    	approval digest printed by the dry run
+  -module string
+    	adapted module path
+  -root string
+    	Gomad v3 module root (default ".")
+  -version string
+    	new exact module version

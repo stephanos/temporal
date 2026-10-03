@@ -35,7 +35,7 @@ func TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy(t *testing.T) {
 				}}
 				corpus := filepath.Join(t.TempDir(), "corpus")
 				run := func(seed, env, tick string) error {
-					config := testConfig(t, preparer, executor, seed, PolicyAll, 1)
+					config, configDependencies := testConfig(t, preparer, executor, seed, PolicyAll, 1)
 					config.Coverage = coverage
 					config.Guide = true
 					config.Corpus = corpus
@@ -47,7 +47,7 @@ func TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy(t *testing.T) {
 					if env != "" {
 						config.Environment = []string{env}
 					}
-					_, err := Explore(context.Background(), config)
+					_, err := exploreWith(context.Background(), config, configDependencies)
 					return err
 				}
 				if err := run("7", test.firstEnv, test.firstTick); err != nil {

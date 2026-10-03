@@ -1,0 +1,26 @@
+{
+  "artifact": "working-tree.patch",
+  "sha256": "5d529358e13d460fddd881610c80713313d2945f0fb0414ec2c1eeb0c95882fe",
+  "files": [
+    "Makefile",
+    "tools/gomad3/Makefile",
+    "tools/gomad3/choice/internal/wire/wire_generated.go",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_test.go",
+    "tools/gomad3/runner/internal/execution/diagnostics_toolchain_test.go",
+    "tools/gomad3/runner/internal/execution/simulation_root_integration_test.go",
+    "tools/gomad3/target/internal/livecap/protocol_generated.go",
+    "tools/gomad3/target/internal/livecap/toolchain_test.go",
+    "tools/gomad3/toolchain/draw_inventory_test.go",
+    "tools/gomad3/toolchain/runtime/go1.27.1.patch",
+    "tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/diagnostic_runtime_test.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go",
+    "tools/gomad3/toolchain/version/version.json",
+    "tools/gomad3/runner/testdata/diagnostic-identity-choices.json",
+    "tools/gomad3/README.md"
+  ],
+  "excluded_receipt": "review-empty-committed-scope.json",
+  "reason": "the first task-scoped review assessed HEAD..HEAD only and explicitly did not assess uncommitted changes"
+}

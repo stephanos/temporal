@@ -1,0 +1,14 @@
+# go.temporal.io/server/tools/gomad3/runner [go.temporal.io/server/tools/gomad3/runner.test]
+runner/portable_plan_test.go:18:10: declared and not used: configDependencies
+runner/portable_plan_test.go:88:11: declared and not used: configDependencies
+runner/portable_plan_test.go:102:10: declared and not used: configDependencies
+runner/portable_plan_test.go:142:11: declared and not used: configDependencies
+runner/portable_plan_test.go:184:10: declared and not used: configDependencies
+runner/portable_plan_test.go:215:10: declared and not used: configDependencies
+runner/portable_plan_test.go:256:10: declared and not used: configDependencies
+runner/portable_plan_test.go:324:15: declared and not used: otherConfigDependencies
+runner/portable_plan_test.go:335:10: declared and not used: configDependencies
+runner/runner_test.go:49:52: multiple-value testConfig(t, preparer, executor, "1-6", PolicyAll, 2) (value of type (CampaignSpec, executionDependencies)) in single-value context
+runner/runner_test.go:49:52: too many errors
+FAIL	go.temporal.io/server/tools/gomad3/runner [build failed]
+FAIL

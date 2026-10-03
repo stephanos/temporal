@@ -1,0 +1,4 @@
+# go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli [go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli.test]
+cmd/gomad/internal/cli/cli_test.go:941:12: undefined: reportExploreFailure
+FAIL	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli [build failed]
+FAIL

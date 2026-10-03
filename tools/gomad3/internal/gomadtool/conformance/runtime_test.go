@@ -11,11 +11,25 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
 )
+
+func TestRuntimeCampaignCollectorProfile(t *testing.T) {
+	t.Setenv("GOEXPERIMENT", "greenteagc")
+	campaign := runtimeCampaign{config: Config{Go: "/gomad/go"}}
+	seeded := campaign.request([]string{"/gomad/go", "test", "-exec", "/gomad/wrapper", "./fixture"}, ".", time.Second, nil)
+	if !slices.Contains(seeded.Env, "GOEXPERIMENT=nogreenteagc") || slices.Contains(seeded.Env, "GOEXPERIMENT=greenteagc") {
+		t.Fatalf("seeded collector profile = %v", seeded.Env)
+	}
+	disabled := campaign.request([]string{"/gomad/go", "run", "./fixture"}, ".", time.Second, nil)
+	if !slices.Contains(disabled.Env, "GOEXPERIMENT=greenteagc") || slices.Contains(disabled.Env, "GOEXPERIMENT=nogreenteagc") {
+		t.Fatalf("disabled collector profile = %v", disabled.Env)
+	}
+}
 
 func TestRequireStockCompatibilitySelectsPinnedToolchain(t *testing.T) {
 	launcher := filepath.Join(t.TempDir(), "go")

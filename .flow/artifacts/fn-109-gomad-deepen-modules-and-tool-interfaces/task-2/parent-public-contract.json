@@ -1,0 +1,8 @@
+{
+  "public_campaign_spec_exact_source_unchanged": true,
+  "campaign_spec_sha256": "00271a0d64a930ee9937f2d9f62edb0a33acad8d902b52ab462053c45a9dfb21",
+  "original_historical_rows": 75,
+  "current_characterization_rows": 76,
+  "new_byte_fixture": "tools/gomad3/runner/testdata/campaign-options-request-after.json",
+  "historical_fixture_sha256": "f6b495b37beaa9b29fe8ed9b11d69c97f63527d550ac960e2ab1c1b711430d95"
+}

@@ -1,0 +1,9 @@
+{
+  "backend": "codex",
+  "source": "explicit --review=codex override",
+  "spec": "codex:gpt-6-sol:high",
+  "rp_eligible": 0,
+  "base": "HEAD",
+  "scope": "uncommitted task-4 documentation, measurements, final Darwin gates and architecture corrections; R6 Linux incomplete",
+  "no_triage": true
+}

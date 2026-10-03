@@ -1,0 +1,9 @@
+{
+  "flowctl": "/Users/stephan/.codex/plugins/cache/flow-next-marketplace/flow-next/4.5.1/scripts/flowctl",
+  "repo_root": "/Users/stephan/Workspace/temporal/gomad",
+  "rp_eligible": 0,
+  "backend": "codex",
+  "override": "--review=codex",
+  "spec": "codex:gpt-6-sol:high",
+  "review_backends_called": 0
+}

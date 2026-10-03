@@ -1,0 +1,4 @@
+- [x] Installation, executable identity, Runner build and private child-mode commands are resolved in exactly one construction path; no other CLI file calls `os.Executable` or `toolchain.ResolveInstallation`.
+- [x] Characterization tests cover documented grammar, explicit zero and irrelevant flags, environment/tags/argv, text and JSON output and exit statuses for every command, and pass unchanged before and after.
+- [x] Malformed input and stdout/stderr writer failures keep their classification and exit status; no flag default changes.
+- [x] No mutable package-global hook is introduced; existing dependency-struct seams remain the test entry points.

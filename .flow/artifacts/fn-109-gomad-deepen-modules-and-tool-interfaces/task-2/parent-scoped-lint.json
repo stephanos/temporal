@@ -1,0 +1,20 @@
+{
+  "command": [
+    "/Users/stephan/Workspace/temporal/gomad/.bin/golangci-lint-v2.13.0",
+    "run",
+    "--config",
+    "/Users/stephan/Workspace/temporal/gomad/.github/.golangci.yml",
+    "--build-tags",
+    "test_dep",
+    "--timeout",
+    "5m",
+    "--max-issues-per-linter",
+    "0",
+    "--max-same-issues",
+    "0",
+    "./runner/..."
+  ],
+  "exit_code": 1,
+  "elapsed_seconds": 9.577,
+  "log": "parent-scoped-lint.log"
+}

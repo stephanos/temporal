@@ -1,0 +1,6 @@
+{
+  "tools/gomad3/runner/internal/campaign/controller.go": "1192ea922a4686cfc3fd71dfe81a33f3c48d98d8f49331765e19d5f3e92d4134",
+  "tools/gomad3/runner/internal/campaign/controller_test.go": "c4fd06a469b27181928efb89c3ae047392b473fc0b3b6a05fbd70b8715124d63",
+  "tools/gomad3/runner/runner.go": "358a37dafa538e66b7b02baea2c0c8cff78268fee35f3a0c5cd75d653eee3e0f",
+  "tools/gomad3/runner/campaign_test.go": "89c2fe246c95e4658902c4c0df9924a6ba8ade91e6344ebb9470c2e425112ea2"
+}

@@ -45,9 +45,12 @@ Re-measure the pin baseline (R1) and add a `gomadtool` subcommand that reports e
 - [ ] `go -C tools/gomad3 test -tags test_dep ./cmd/gomadtool ./upgrade/...` and `make -C tools/gomad3 validate` pass
 
 ## Done summary
-TBD
+The retained rebased-source baseline measures1044 runtime patch lines in20 files,61 overlay files/18437 lines,15 adapters/135 SHA256 anchors,12 packs/54 rules/19 module-version pins,131 interceptions/132 fingerprints, and25 clock references. MILESTONES maintenance counts are corrected; baseline.json includes the historical fn-110 baseline, source hashes and per-bump commands/hand edits.
 
+The new gomadtool pin-impact command reads candidate go.mod/go.sum and the same adapter registry and validated pack descriptors as the build. Canonical path-free JSON and human output list adapters, source-set-bound pack rules, both-platform interception fingerprints and clock references. Exact immutable module version/sum identities need no resolution or downloads; missing sums are unknown. Removed/replaced modules, changed sums, indirect bumps, unselected pack variants, immutable inputs, status0/1/2/3 and output failure are tested. A sentry/reflect2 fixture invalidates exactly the adapter and pack the fail-closed build rejects.
+
+The final review fixed missing module-directive validation, retaining a CLI red status0 and green status2. Full cmd/gomadtool and upgrade tests and scoped vet pass after that three-line guard. The prior shared native45-package host gate and validate pass on unchanged runtime/generated inputs; see fn-114/task-13/integrated-source-hashes.json for the full-gate source snapshot plus supplemental fix hashes. Independent re-review returned SHIP at fn-114/task-13/integrated-review.json. Linux remains unverified; root lint cannot load nested-module paths. No implementation commits or pushes; the user owns commits. Adapter regeneration and pack refresh remain later tasks.
 ## Evidence
 - Commits:
-- Tests:
+- Tests: go -C tools/gomad3 test -tags test_dep -count=1 ./cmd/gomadtool ./upgrade/..., make -C tools/gomad3 validate, gomadtool pin-impact --format json on current rebased root, go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool ./upgrade/...
 - PRs:

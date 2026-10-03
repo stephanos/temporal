@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 	"slices"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
+	"go.temporal.io/server/tools/gomad3/internal/preparation"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -65,15 +65,19 @@ type openedCampaignPlan struct {
 }
 
 func CreateCampaignPlan(ctx context.Context, spec CampaignPlanSpec) (_ CampaignPlanResult, retErr error) {
+	return createCampaignPlanWith(ctx, spec, executionDependencies{})
+}
+
+func createCampaignPlanWith(ctx context.Context, spec CampaignPlanSpec, dependencies executionDependencies) (_ CampaignPlanResult, retErr error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	config := spec.Campaign
-	selection, environment, err := validateConfig(config)
+	config := campaignRequestFromSpecWith(spec.Campaign, dependencies)
+	selection, environment, err := validateCampaignRequest(config)
 	if err != nil {
 		return CampaignPlanResult{}, err
 	}
-	if normalizedStrategy(config.Strategy) != StrategySeed || config.OnFailure != PolicyAll {
+	if config.strategy() != StrategySeed || config.OnFailure != PolicyAll {
 		return CampaignPlanResult{}, errors.New("portable campaign plans require a seed campaign with on-failure=all")
 	}
 	if config.Shard.Count != 0 || config.PlanSHA256 != "" || config.ResumeCampaign != "" {
@@ -115,23 +119,11 @@ func CreateCampaignPlan(ctx context.Context, spec CampaignPlanSpec) (_ CampaignP
 	if err != nil {
 		return CampaignPlanResult{}, fmt.Errorf("capture campaign plan mount identity: %w", err)
 	}
-	profile := deterministicio.Default()
-	preparer := config.Preparer
-	selectedAdapters := []deterministicio.BuildAdapter{}
-	if preparer == nil {
-		config.Target, selectedAdapters, err = profile.PrepareTargetBuildAdapters(ctx, config.Target)
-		if err != nil {
-			return CampaignPlanResult{}, err
-		}
-		preparer = targetPreparer{}
-	}
 	config.Target.PreparationRoot = bundle
-	prepared, err := preparer.Prepare(ctx, config.Target)
+	prepared, err := preparation.Prepare(ctx, preparation.Request{
+		Target: config.Target, Environment: config.Environment, Preparer: config.Preparer,
+	})
 	if err != nil {
-		return CampaignPlanResult{}, err
-	}
-	prepared.Adapters = executionAdapters(selectedAdapters)
-	if err := profile.ValidatePreparedTarget(config.Target, prepared, config.Environment); err != nil {
 		return CampaignPlanResult{}, err
 	}
 	targetPath := filepath.Join(bundle, campaignPlanTargetFile)

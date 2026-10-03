@@ -11,11 +11,11 @@ import (
 )
 
 func TestRunEnforcesBatchModesIndependentOfUmask(t *testing.T) {
-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
+	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
 	oldUmask := syscall.Umask(0o777)
 	defer syscall.Umask(oldUmask)
 
-	summary, err := Explore(context.Background(), config)
+	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {
 		t.Fatal(err)
 	}

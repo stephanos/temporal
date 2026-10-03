@@ -274,3 +274,16 @@ func projectV2ModuleEvidence(module PackModule) ModuleEvidence {
 	}
 	return evidence
 }
+
+// PinEvidence reads the same validated packs used by target preparation.
+func PinEvidence() ([]PackEvidence, error) {
+	packs, err := loadPacksV2()
+	if err != nil {
+		return nil, err
+	}
+	evidence := make([]PackEvidence, len(packs))
+	for index, pack := range packs {
+		evidence[index] = projectPackEvidence(selectedPack{ValidatedPack: pack})
+	}
+	return evidence, nil
+}

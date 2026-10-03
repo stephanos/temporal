@@ -1,0 +1,11 @@
+--- FAIL: TestRunnerExecutionInjectionIsPrivate (0.01s)
+    architecture_test.go:130: runner exposes inaccessible execution interface Executor
+    architecture_test.go:139: runner.CampaignSpec exposes inaccessible execution field
+    architecture_test.go:139: runner.CampaignShardSpec exposes inaccessible execution field
+    architecture_test.go:130: runner exposes inaccessible execution interface ReplayExecutor
+    architecture_test.go:139: runner.ReplaySpec exposes inaccessible execution field
+    architecture_test.go:139: runner.MinimizeSpec exposes inaccessible execution field
+    architecture_test.go:139: runner.ResumeSpec exposes inaccessible execution field
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3	0.349s
+FAIL

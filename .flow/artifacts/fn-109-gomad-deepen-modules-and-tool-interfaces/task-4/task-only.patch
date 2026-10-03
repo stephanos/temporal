@@ -1,0 +1,792 @@
+--- a/tools/gomad3/cmd/gomad/internal/cli/analyze.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/analyze.go
+@@ -40,9 +40,13 @@
+ }
+ 
+ func runAnalyze(arguments []string, stdout, stderr io.Writer) int {
++	return runAnalyzeWithApplication(arguments, stdout, stderr, newApplication())
++}
++
++func runAnalyzeWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
+ 	return runAnalyzeWith(arguments, stdout, stderr, analyzeDependencies{
+ 		toolchain: func(explicit string) (string, error) {
+-			root, _, _, err := localIdentity(explicit)
++			root, _, _, err := app.identity(explicit)
+ 			return root, err
+ 		},
+ 		identity: target.ReadToolchainIdentity, workingDirectory: os.Getwd,
+--- a/tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go
+@@ -14,6 +14,10 @@
+ )
+ 
+ func runCampaignShard(arguments []string, stdout, stderr io.Writer) int {
++	return runCampaignShardWithApplication(arguments, stdout, stderr, newApplication())
++}
++
++func runCampaignShardWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
+ 	flags := flag.NewFlagSet("gomad execute-shard", flag.ContinueOnError)
+ 	flags.SetOutput(stderr)
+ 	shardValue := flags.String("shard", "", "zero-based INDEX/COUNT shard assignment")
+@@ -32,7 +36,7 @@
+ 		fmt.Fprintln(stderr, err)
+ 		return 2
+ 	}
+-	toolchain, executable, runnerBuild, err := localIdentity(*toolchainRoot)
++	toolchain, executable, runnerBuild, err := app.identity(*toolchainRoot)
+ 	if err != nil {
+ 		fmt.Fprintln(stderr, err)
+ 		return 3
+@@ -40,7 +44,7 @@
+ 	reporter := newExploreReporter(*jsonOutput, stdout, stderr)
+ 	result, err := runner.RunCampaignShard(context.Background(), runner.CampaignShardSpec{
+ 		PlanPath: flags.Arg(0), Shard: shard, Artifacts: *artifacts, ToolchainRoot: toolchain, RunnerBuild: runnerBuild,
+-		SupervisorCommand: []string{executable, "__supervisor"}, Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
++		SupervisorCommand: app.commands(executable).supervisor, Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
+ 	})
+ 	if err != nil {
+ 		classification := classifyExploreError(err)
+--- a/tools/gomad3/cmd/gomad/internal/cli/cli.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/cli.go
+@@ -2,7 +2,6 @@
+ 
+ import (
+ 	"context"
+-	"crypto/sha256"
+ 	"encoding/json"
+ 	"errors"
+ 	"flag"
+@@ -19,7 +18,6 @@
+ 	"go.temporal.io/server/tools/gomad3/record"
+ 	"go.temporal.io/server/tools/gomad3/runner"
+ 	"go.temporal.io/server/tools/gomad3/target"
+-	"go.temporal.io/server/tools/gomad3/toolchain"
+ )
+ 
+ const usage = `usage:
+@@ -97,46 +95,42 @@
+ 		fmt.Fprint(stderr, usage)
+ 		return 2
+ 	}
++	app := newApplication()
+ 	switch arguments[0] {
+ 	case "__coordinator", "__target_bootstrap", "__supervisor":
+-		if err := runner.DispatchPrivateMode(arguments[0], os.Stdin, os.Stdout); err != nil {
++		if err := app.dispatchPrivateMode(arguments[0]); err != nil {
+ 			fmt.Fprintln(stderr, err)
+ 			return 3
+ 		}
+ 		return 0
+ 	case "explore":
+-		return runExplore(arguments[1:], stdout, stderr)
++		return runExploreWithApplication(arguments[1:], stdout, stderr, app)
+ 	case "plan":
+-		return runPlan(arguments[1:], stdout, stderr)
++		return runPlanWithApplication(arguments[1:], stdout, stderr, app)
+ 	case "execute-shard":
+-		return runCampaignShard(arguments[1:], stdout, stderr)
++		return runCampaignShardWithApplication(arguments[1:], stdout, stderr, app)
+ 	case "merge":
+ 		return runMergeCampaigns(arguments[1:], stdout, stderr)
+ 	case "qualify":
+-		return runQualify(arguments[1:], stdout, stderr)
++		return runQualifyWithApplication(arguments[1:], stdout, stderr, app)
+ 	case "qualify-set":
+-		return runQualifySet(arguments[1:], stdout, stderr)
++		return runQualifySetWithApplication(arguments[1:], stdout, stderr, app)
+ 	case "merge-set":
+ 		return runMergeSet(arguments[1:], stdout, stderr)
+ 	case "compare-support":
+ 		return runCompareSupport(arguments[1:], stdout, stderr)
+ 	case "analyze":
+-		return runAnalyze(arguments[1:], stdout, stderr)
++		return runAnalyzeWithApplication(arguments[1:], stdout, stderr, app)
+ 	case "resume":
+-		return runResume(arguments[1:], stdout, stderr)
++		return runResumeWithApplication(arguments[1:], stdout, stderr, app)
+ 	case "recover":
+ 		return runRecover(arguments[1:], stdout, stderr)
+ 	case "replay":
+-		return runReplay(arguments[1:], stdout, stderr)
++		return runReplayWithApplication(arguments[1:], stdout, stderr, app)
+ 	case "minimize":
+-		return runMinimize(arguments[1:], stdout, stderr)
++		return runMinimizeWithApplication(arguments[1:], stdout, stderr, app)
+ 	case "doctor":
+-		executable, err := os.Executable()
+-		if err != nil {
+-			fmt.Fprintf(stderr, "resolve gomad executable: %v\n", err)
+-			return 3
+-		}
+-		return runDoctor(arguments[1:], stdout, stderr, executable)
++		return runDoctorWithApplication(arguments[1:], stdout, stderr, app)
+ 	case "inspect":
+ 		return runInspect(arguments[1:], stdout, stderr)
+ 	default:
+@@ -359,6 +353,10 @@
+ }
+ 
+ func runDoctor(arguments []string, stdout, stderr io.Writer, executable string) int {
++	return runDoctorWithApplication(arguments, stdout, stderr, applicationWithExecutable(executable))
++}
++
++func runDoctorWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
+ 	flags := flag.NewFlagSet("gomad doctor", flag.ContinueOnError)
+ 	flags.SetOutput(stderr)
+ 	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact root to verify")
+@@ -371,7 +369,11 @@
+ 		fmt.Fprint(stderr, usage)
+ 		return 2
+ 	}
+-	executable, err := filepath.Abs(executable)
++	executable, err := app.executable()
++	if err != nil {
++		return writeCommandError(stderr, 3, "resolve gomad executable: %v\n", err)
++	}
++	executable, err = filepath.Abs(executable)
+ 	if err != nil {
+ 		fmt.Fprintf(stderr, "resolve gomad executable path: %v\n", err)
+ 		return 3
+@@ -381,16 +383,14 @@
+ 		fmt.Fprintf(stderr, "resolve artifact directory: %v\n", err)
+ 		return 2
+ 	}
+-	resolved, err := toolchain.ResolveInstallation(toolchain.InstallationSpec{
+-		Executable: executable, ExplicitToolchainRoot: *toolchainRoot, EnvironmentToolchainRoot: os.Getenv("GOMAD3_TOOLCHAIN_DIR"),
+-	})
+-	if err != nil {
+-		if _, writeErr := fmt.Fprintf(stderr, "resolve Gomad installation: %v\n", err); writeErr != nil {
+-			return 3
+-		}
+-		return 2
+-	}
+-	report := Check(Config{
++	resolved, _, err := app.installation(*toolchainRoot)
++	if err != nil {
++		if _, writeErr := fmt.Fprintf(stderr, "%v\n", err); writeErr != nil {
++			return 3
++		}
++		return 2
++	}
++	report := app.check(Config{
+ 		ToolchainRoot: resolved.ToolchainRoot, InstallationSource: resolved.Source, RepairInstruction: resolved.RepairInstruction,
+ 		RunnerPath: executable, ArtifactRoot: artifactRoot, HostOS: runtime.GOOS, HostArch: runtime.GOARCH,
+ 	})
+@@ -417,6 +417,11 @@
+ }
+ 
+ func runExplore(arguments []string, stdout, stderr io.Writer) int {
++	return runExploreWithApplication(arguments, stdout, stderr, newApplication())
++}
++
++//nolint:revive // Keep established flag validation and error precedence intact.
++func runExploreWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
+ 	flags := flag.NewFlagSet("gomad explore", flag.ContinueOnError)
+ 	flags.SetOutput(io.Discard)
+ 	strategy := flags.String("strategy", string(runner.StrategySeed), "seed, choice-exploration, or simulation-exploration")
+@@ -639,13 +644,14 @@
+ 		}
+ 		return 3
+ 	}
+-	toolchain, executable, runnerBuild, err := localIdentity(*toolchainRoot)
++	toolchain, executable, runnerBuild, err := app.identity(*toolchainRoot)
+ 	if err != nil {
+ 		if writeErr := reporter.Error("runner_failure", err); writeErr != nil {
+ 			fmt.Fprintln(stderr, writeErr)
+ 		}
+ 		return 3
+ 	}
++	commands := app.commands(executable)
+ 	config := runner.CampaignSpec{
+ 		Strategy: resolvedStrategy, Seeds: resolvedSeeds, Parallel: *parallel, ExecutionTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
+ 		OnFailure: runner.FailurePolicy(*onFailure), FailureBudget: *failureBudget, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
+@@ -655,7 +661,7 @@
+ 			Runtime: *maxRuntimeDecisions, Scenario: *maxScenarioDecisions, Network: *maxNetworkDecisions,
+ 			Storage: *maxStorageDecisions, Fault: *maxFaultDecisions, Crash: *maxCrashDecisions,
+ 		},
+-		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts, SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
++		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts, SupervisorCommand: commands.supervisor, CoordinatorCommand: commands.coordinator, RunnerBuild: runnerBuild,
+ 		Coverage: coverageMode, RequiredSemanticProbes: requiredSemanticProbes,
+ 		KeepSuccesses: runner.KeepSuccesses(*keepSuccesses), SuccessArtifactLimit: *successLimit, SuccessBytesLimit: uint64(successBytes),
+ 		Guide: *guide, GuideRegression: *guideRegression, Corpus: *corpus,
+@@ -716,7 +722,11 @@
+ }
+ 
+ func runPlan(arguments []string, stdout, stderr io.Writer) int {
+-	return runExplore(append([]string{"--__plan", "--on-failure=all"}, arguments...), stdout, stderr)
++	return runPlanWithApplication(arguments, stdout, stderr, newApplication())
++}
++
++func runPlanWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
++	return runExploreWithApplication(append([]string{"--__plan", "--on-failure=all"}, arguments...), stdout, stderr, app)
+ }
+ 
+ type exploreStrategyOptions struct {
+@@ -905,6 +915,10 @@
+ }
+ 
+ func runReplay(arguments []string, stdout, stderr io.Writer) int {
++	return runReplayWithApplication(arguments, stdout, stderr, newApplication())
++}
++
++func runReplayWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
+ 	flags := flag.NewFlagSet("gomad replay", flag.ContinueOnError)
+ 	flags.SetOutput(stderr)
+ 	verifyOnly := flags.Bool("verify-only", false, "validate without executing the target")
+@@ -917,13 +931,13 @@
+ 		fmt.Fprint(stderr, usage)
+ 		return 2
+ 	}
+-	toolchain, executable, _, err := localIdentity(*toolchainRoot)
++	toolchain, executable, _, err := app.identity(*toolchainRoot)
+ 	if err != nil {
+ 		fmt.Fprintln(stderr, err)
+ 		return 3
+ 	}
+ 	result, err := runner.Replay(context.Background(), runner.ReplaySpec{
+-		ArtifactPath: flags.Arg(0), VerifyOnly: *verifyOnly, ToolchainRoot: toolchain, ObservedDir: *observedDir, SupervisorCommand: []string{executable, "__supervisor"},
++		ArtifactPath: flags.Arg(0), VerifyOnly: *verifyOnly, ToolchainRoot: toolchain, ObservedDir: *observedDir, SupervisorCommand: app.commands(executable).supervisor,
+ 	})
+ 	if err != nil {
+ 		var preflightError *runner.ReplayPreflightError
+@@ -948,11 +962,16 @@
+ 
+ type minimizeDependencies struct {
+ 	identity func(string) (string, string, string, error)
++	commands func(string) privateCommands
+ 	minimize func(context.Context, runner.MinimizeSpec) (runner.MinimizeResult, error)
+ }
+ 
+ func runMinimize(arguments []string, stdout, stderr io.Writer) int {
+-	return runMinimizeWith(arguments, stdout, stderr, minimizeDependencies{identity: localIdentity, minimize: runner.Minimize})
++	return runMinimizeWithApplication(arguments, stdout, stderr, newApplication())
++}
++
++func runMinimizeWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
++	return runMinimizeWith(arguments, stdout, stderr, minimizeDependencies{identity: app.identity, commands: app.commands, minimize: runner.Minimize})
+ }
+ 
+ func runMinimizeWith(arguments []string, stdout, stderr io.Writer, dependencies minimizeDependencies) int {
+@@ -979,10 +998,14 @@
+ 	if err != nil {
+ 		return writeCommandError(stderr, 3, "%v\n", err)
+ 	}
++	commandsFor := dependencies.commands
++	if commandsFor == nil {
++		commandsFor = privateCommandsFor
++	}
+ 	result, err := dependencies.minimize(context.Background(), runner.MinimizeSpec{
+ 		ArtifactPath: flags.Arg(0), OutputRoot: filepath.Join(artifactRoot, "minimized"),
+ 		AttemptBudget: *attemptBudget, MaximumBytes: uint64(maximumBytes), ToolchainRoot: resolvedToolchain,
+-		SupervisorCommand: []string{executable, "__supervisor"}, Resume: *resume,
++		SupervisorCommand: commandsFor(executable).supervisor, Resume: *resume,
+ 	})
+ 	if err != nil {
+ 		var preflight *runner.ReplayPreflightError
+@@ -1074,27 +1097,3 @@
+ 		return "", fmt.Errorf("unknown capability mode %q", value)
+ 	}
+ }
+-
+-func localIdentity(explicitToolchainRoot string) (toolchainRoot, executable, runnerBuild string, err error) {
+-	executable, err = os.Executable()
+-	if err != nil {
+-		return "", "", "", fmt.Errorf("resolve gomad executable: %w", err)
+-	}
+-	executable, err = filepath.Abs(executable)
+-	if err != nil {
+-		return "", "", "", fmt.Errorf("resolve gomad executable path: %w", err)
+-	}
+-	resolved, err := toolchain.ResolveInstallation(toolchain.InstallationSpec{
+-		Executable: executable, ExplicitToolchainRoot: explicitToolchainRoot, EnvironmentToolchainRoot: os.Getenv("GOMAD3_TOOLCHAIN_DIR"),
+-	})
+-	if err != nil {
+-		return "", "", "", fmt.Errorf("resolve Gomad installation: %w", err)
+-	}
+-	toolchainRoot = resolved.ToolchainRoot
+-	bytes, err := os.ReadFile(executable)
+-	if err != nil {
+-		return "", "", "", fmt.Errorf("hash gomad executable: %w", err)
+-	}
+-	digest := sha256.Sum256(bytes)
+-	return toolchainRoot, executable, fmt.Sprintf("sha256:%x", digest), nil
+-}
+--- a/tools/gomad3/cmd/gomad/internal/cli/doctor.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/doctor.go
+@@ -1,9 +1,7 @@
+ package cli
+ 
+ import (
+-	"crypto/sha256"
+ 	"fmt"
+-	"io"
+ 	"os"
+ 	"strings"
+ 
+@@ -23,6 +21,9 @@
+ 	ArtifactRoot       string
+ 	HostOS             string
+ 	HostArch           string
++	runnerDigest       record.SHA256
++	runnerDigestError  error
++	runnerDigestSet    bool
+ }
+ 
+ type Report struct {
+@@ -86,7 +87,10 @@
+ 		report.ToolchainBuild = identity.BuildKey
+ 		report.Checks = append(report.Checks, passedCheck("toolchain", identity.GoVersion+" build="+identity.BuildKey))
+ 	}
+-	runnerDigest, err := hashExecutable(config.RunnerPath)
++	runnerDigest, err := config.runnerDigest, config.runnerDigestError
++	if !config.runnerDigestSet {
++		runnerDigest, err = hashExecutable(config.RunnerPath)
++	}
+ 	if err != nil {
+ 		report.Checks = append(report.Checks, failedCheck("runner", err.Error()+"; reinstall the Gomad executable at "+config.RunnerPath))
+ 	} else {
+@@ -118,26 +122,6 @@
+ 		}
+ 	}
+ 	return failedCheck("host", host+" is unsupported; supported="+strings.Join(supported, ","))
+-}
+-
+-func hashExecutable(path string) (record.SHA256, error) {
+-	file, err := os.Open(path)
+-	if err != nil {
+-		return "", fmt.Errorf("open Runner: %w", err)
+-	}
+-	defer file.Close()
+-	info, err := file.Stat()
+-	if err != nil {
+-		return "", fmt.Errorf("stat Runner: %w", err)
+-	}
+-	if !info.Mode().IsRegular() || info.Mode()&0o111 == 0 {
+-		return "", fmt.Errorf("Runner is not a regular executable: %s", path)
+-	}
+-	hasher := sha256.New()
+-	if _, err := io.Copy(hasher, file); err != nil {
+-		return "", fmt.Errorf("hash Runner: %w", err)
+-	}
+-	return record.SHA256(fmt.Sprintf("sha256:%x", hasher.Sum(nil))), nil
+ }
+ 
+ func checkArtifactDirectory(path string) error {
+--- a/tools/gomad3/cmd/gomad/internal/cli/qualify.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/qualify.go
+@@ -22,6 +22,7 @@
+ 
+ type qualifyDependencies struct {
+ 	identity         func(string) (string, string, string, error)
++	commands         func(string) privateCommands
+ 	workingDirectory func() (string, error)
+ 	workload         func(context.Context, qualificationworkload.Spec) (qualificationworkload.Result, error)
+ 	run              func(context.Context, runner.CampaignSpec) (runner.CampaignResult, error)
+@@ -36,8 +37,12 @@
+ }
+ 
+ func runQualify(arguments []string, stdout, stderr io.Writer) int {
++	return runQualifyWithApplication(arguments, stdout, stderr, newApplication())
++}
++
++func runQualifyWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
+ 	return runQualifyWith(arguments, stdout, stderr, qualifyDependencies{
+-		identity: localIdentity, workingDirectory: os.Getwd, workload: qualificationworkload.Run,
++		identity: app.identity, commands: app.commands, workingDirectory: os.Getwd, workload: qualificationworkload.Run,
+ 	})
+ }
+ 
+@@ -137,12 +142,17 @@
+ 		return reportQualifyUnretainedError(reporter, stderr, "runner_failure", err, 3)
+ 	}
+ 	command := append([]string{"gomad", "qualify"}, arguments...)
++	commandsFor := dependencies.commands
++	if commandsFor == nil {
++		commandsFor = privateCommandsFor
++	}
++	commands := commandsFor(executable)
+ 	config := runner.CampaignSpec{
+ 		Seeds: strconv.FormatUint(*seed, 10), Parallel: 1, ExecutionTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
+ 		OnFailure: runner.PolicyAll, FailureBudget: 1, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
+ 		Diagnostics: *diagnostics, ChoiceTraceLimit: resolvedChoiceLimit, ClockTick: *clockTick, IOTranscriptLimit: uint64(transcriptLimit),
+ 		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts,
+-		SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
++		SupervisorCommand: commands.supervisor, CoordinatorCommand: commands.coordinator, RunnerBuild: runnerBuild,
+ 		Coverage: coverage, RequiredSemanticProbes: requiredSemanticProbes, CollectExecutionEvidence: true,
+ 		Target: target.Spec{
+ 			Kind: parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
+@@ -162,7 +172,7 @@
+ 	}
+ 	result, err := runWorkload(ctx, qualificationworkload.Spec{
+ 		Command: command, Seed: *seed, Repeat: *repeat, ArtifactRoot: *artifacts, Campaign: config,
+-		Replay:          runner.ReplaySpec{ToolchainRoot: toolchain, SupervisorCommand: []string{executable, "__supervisor"}},
++		Replay:          runner.ReplaySpec{ToolchainRoot: toolchain, SupervisorCommand: commands.supervisor},
+ 		ReplaySuccesses: *replaySuccesses,
+ 		Progress: func(event qualificationworkload.Progress) error {
+ 			return reporter.Progress(event.Iteration, event.Repeat)
+--- a/tools/gomad3/cmd/gomad/internal/cli/qualify_set.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/qualify_set.go
+@@ -6,7 +6,6 @@
+ 	"flag"
+ 	"fmt"
+ 	"io"
+-	"os"
+ 
+ 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+ 	qualificationset "go.temporal.io/server/tools/gomad3/qualification/set"
+@@ -19,8 +18,12 @@
+ }
+ 
+ func runQualifySet(arguments []string, stdout, stderr io.Writer) int {
++	return runQualifySetWithApplication(arguments, stdout, stderr, newApplication())
++}
++
++func runQualifySetWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
+ 	return runQualifySetWith(arguments, stdout, stderr, qualifySetDependencies{
+-		executable: os.Executable, load: qualificationset.LoadManifest, run: qualificationset.Run,
++		executable: app.executable, load: qualificationset.LoadManifest, run: qualificationset.Run,
+ 	})
+ }
+ 
+--- a/tools/gomad3/cmd/gomad/internal/cli/resume.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/resume.go
+@@ -13,11 +13,16 @@
+ 
+ type resumeDependencies struct {
+ 	identity func(string) (string, string, string, error)
++	commands func(string) privateCommands
+ 	run      func(context.Context, runner.ResumeSpec) (runner.CampaignResult, error)
+ }
+ 
+ func runResume(arguments []string, stdout, stderr io.Writer) int {
+-	return runResumeWith(arguments, stdout, stderr, resumeDependencies{identity: localIdentity, run: runner.Resume})
++	return runResumeWithApplication(arguments, stdout, stderr, newApplication())
++}
++
++func runResumeWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
++	return runResumeWith(arguments, stdout, stderr, resumeDependencies{identity: app.identity, commands: app.commands, run: runner.Resume})
+ }
+ 
+ func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies resumeDependencies) int {
+@@ -59,9 +64,14 @@
+ 			regressionOverride = guideRegression
+ 		}
+ 	})
++	commandsFor := dependencies.commands
++	if commandsFor == nil {
++		commandsFor = privateCommandsFor
++	}
++	commands := commandsFor(executable)
+ 	summary, err := dependencies.run(context.Background(), runner.ResumeSpec{
+ 		CampaignPath: flags.Arg(0), GuideRegression: regressionOverride, RunnerBuild: runnerBuild, ToolchainRoot: toolchain,
+-		SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"},
++		SupervisorCommand: commands.supervisor, CoordinatorCommand: commands.coordinator,
+ 		Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
+ 	})
+ 	if err != nil {
+--- /dev/null
++++ b/tools/gomad3/cmd/gomad/internal/cli/application.go
+@@ -0,0 +1,150 @@
++package cli
++
++import (
++	"crypto/sha256"
++	"fmt"
++	"io"
++	"os"
++	"path/filepath"
++
++	"go.temporal.io/server/tools/gomad3/record"
++	"go.temporal.io/server/tools/gomad3/runner"
++	"go.temporal.io/server/tools/gomad3/toolchain"
++)
++
++type application struct {
++	executablePath       string
++	executableSet        bool
++	resolvedInstallation toolchain.Installation
++	installationRootArg  string
++	installationPath     string
++	installationSet      bool
++	runnerBuild          string
++	runnerBuildSet       bool
++	privateCommands      privateCommands
++	privateCommandsSet   bool
++}
++
++type privateCommands struct {
++	supervisor  []string
++	coordinator []string
++}
++
++func newApplication() *application {
++	return &application{}
++}
++
++func applicationWithExecutable(executable string) *application {
++	return &application{executablePath: executable, executableSet: true}
++}
++
++func (app *application) executable() (string, error) {
++	if app.executableSet {
++		return app.executablePath, nil
++	}
++	executable, err := os.Executable()
++	if err != nil {
++		return "", err
++	}
++	app.executablePath = executable
++	app.executableSet = true
++	return executable, nil
++}
++
++func (app *application) installation(explicitToolchainRoot string) (toolchain.Installation, string, error) {
++	if app.installationSet && app.installationRootArg == explicitToolchainRoot {
++		return app.resolvedInstallation, app.installationPath, nil
++	}
++	executable, err := app.executable()
++	if err != nil {
++		return toolchain.Installation{}, "", fmt.Errorf("resolve gomad executable: %w", err)
++	}
++	executable, err = filepath.Abs(executable)
++	if err != nil {
++		return toolchain.Installation{}, "", fmt.Errorf("resolve gomad executable path: %w", err)
++	}
++	resolved, err := toolchain.ResolveInstallation(toolchain.InstallationSpec{
++		Executable: executable, ExplicitToolchainRoot: explicitToolchainRoot, EnvironmentToolchainRoot: os.Getenv("GOMAD3_TOOLCHAIN_DIR"),
++	})
++	if err != nil {
++		return toolchain.Installation{}, "", fmt.Errorf("resolve Gomad installation: %w", err)
++	}
++	app.resolvedInstallation = resolved
++	app.installationRootArg = explicitToolchainRoot
++	app.installationPath = executable
++	app.installationSet = true
++	return resolved, executable, nil
++}
++
++func (app *application) identity(explicitToolchainRoot string) (toolchainRoot, executable, runnerBuild string, err error) {
++	resolved, executable, err := app.installation(explicitToolchainRoot)
++	if err != nil {
++		return "", "", "", err
++	}
++	if !app.runnerBuildSet {
++		bytes, readErr := os.ReadFile(executable)
++		if readErr != nil {
++			return "", "", "", fmt.Errorf("hash gomad executable: %w", readErr)
++		}
++		digest := sha256.Sum256(bytes)
++		app.runnerBuild = fmt.Sprintf("sha256:%x", digest)
++		app.runnerBuildSet = true
++	}
++	app.commands(executable)
++	return resolved.ToolchainRoot, executable, app.runnerBuild, nil
++}
++
++func (app *application) commands(executable string) privateCommands {
++	if !app.privateCommandsSet {
++		app.privateCommands = privateCommandsFor(executable)
++		app.privateCommandsSet = true
++	}
++	return app.privateCommands
++}
++
++func privateCommandsFor(executable string) privateCommands {
++	return privateCommands{
++		supervisor: []string{executable, "__supervisor"}, coordinator: []string{executable, "__coordinator"},
++	}
++}
++
++func (app *application) dispatchPrivateMode(mode string) error {
++	return runner.DispatchPrivateMode(mode, os.Stdin, os.Stdout)
++}
++
++func (app *application) check(config Config) Report {
++	digest, err := hashExecutable(config.RunnerPath)
++	config.runnerDigest = digest
++	config.runnerDigestError = err
++	config.runnerDigestSet = true
++	if err == nil {
++		app.runnerBuild = string(digest)
++		app.runnerBuildSet = true
++	}
++	return Check(config)
++}
++
++func hashExecutable(path string) (digest record.SHA256, retErr error) {
++	file, err := os.Open(path)
++	if err != nil {
++		return "", fmt.Errorf("open Runner: %w", err)
++	}
++	defer func() {
++		if err := file.Close(); err != nil && retErr == nil {
++			retErr = fmt.Errorf("close Runner: %w", err)
++		}
++	}()
++	info, err := file.Stat()
++	if err != nil {
++		return "", fmt.Errorf("stat Runner: %w", err)
++	}
++	if !info.Mode().IsRegular() || info.Mode()&0o111 == 0 {
++		//nolint:staticcheck // Preserve the doctor report's existing repair message.
++		return "", fmt.Errorf("Runner is not a regular executable: %s", path)
++	}
++	hasher := sha256.New()
++	if _, err := io.Copy(hasher, file); err != nil {
++		return "", fmt.Errorf("hash Runner: %w", err)
++	}
++	return record.SHA256(fmt.Sprintf("sha256:%x", hasher.Sum(nil))), nil
++}
+--- /dev/null
++++ b/tools/gomad3/cmd/gomad/internal/cli/application_test.go
+@@ -0,0 +1,37 @@
++package cli
++
++import (
++	"os"
++	"path/filepath"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/record"
++)
++
++func TestApplicationRetainsInstallationIdentityAndPrivateCommands(t *testing.T) {
++	directory := t.TempDir()
++	executable := filepath.Join(directory, "gomad")
++	if err := os.WriteFile(executable, []byte("runner binary"), 0o755); err != nil {
++		t.Fatal(err)
++	}
++	root := filepath.Join(directory, "toolchain")
++	app := applicationWithExecutable(executable)
++	resolvedRoot, resolvedExecutable, build, err := app.identity(root)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if resolvedRoot != root || resolvedExecutable != executable || build != string(record.HashBytes([]byte("runner binary"))) {
++		t.Fatalf("identity = %q, %q, %q", resolvedRoot, resolvedExecutable, build)
++	}
++	commands := app.commands(executable)
++	if len(commands.supervisor) != 2 || commands.supervisor[0] != executable || commands.supervisor[1] != "__supervisor" || len(commands.coordinator) != 2 || commands.coordinator[0] != executable || commands.coordinator[1] != "__coordinator" {
++		t.Fatalf("private commands = %#v", commands)
++	}
++	if err := os.Remove(executable); err != nil {
++		t.Fatal(err)
++	}
++	secondRoot, secondExecutable, secondBuild, err := app.identity(root)
++	if err != nil || secondRoot != resolvedRoot || secondExecutable != resolvedExecutable || secondBuild != build {
++		t.Fatalf("cached identity = %q, %q, %q, %v", secondRoot, secondExecutable, secondBuild, err)
++	}
++}
+--- /dev/null
++++ b/tools/gomad3/cmd/gomad/internal/cli/application_characterization_test.go
+@@ -0,0 +1,110 @@
++package cli
++
++import (
++	"bytes"
++	"context"
++	"strings"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/qualification"
++	qualificationworkload "go.temporal.io/server/tools/gomad3/qualification/workload"
++)
++
++func TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation(t *testing.T) {
++	t.Setenv("GOMAD3_TOOLCHAIN_DIR", "relative-invalid-root")
++	for _, command := range []string{
++		"plan", "execute-shard", "merge", "explore", "qualify", "qualify-set",
++		"merge-set", "compare-support", "analyze", "resume", "recover", "replay",
++		"minimize", "doctor", "inspect",
++	} {
++		t.Run(command, func(t *testing.T) {
++			var stdout, stderr bytes.Buffer
++			arguments := []string{command}
++			if command == "doctor" {
++				arguments = append(arguments, "unexpected")
++			}
++			if status := Run(arguments, &stdout, &stderr); status != 2 {
++				t.Fatalf("Run(%q) status=%d stdout=%q stderr=%q", arguments, status, stdout.String(), stderr.String())
++			}
++			if strings.Contains(stdout.String()+stderr.String(), "relative-invalid-root") {
++				t.Fatalf("Run(%q) resolved installation before rejecting syntax: stdout=%q stderr=%q", arguments, stdout.String(), stderr.String())
++			}
++		})
++	}
++}
++
++func TestPublicCommandExplicitZeroAndIrrelevantFlagClassification(t *testing.T) {
++	for _, test := range []struct {
++		name      string
++		arguments []string
++		want      string
++	}{
++		{name: "explore count zero", arguments: []string{"explore", "--count=0", "go-run", "./pkg"}, want: "--count must be greater than zero"},
++		{name: "explore irrelevant choice bytes", arguments: []string{"explore", "--choice-bytes=8MiB", "go-run", "./pkg"}, want: "--choice-bytes requires --choices"},
++		{name: "plan missing output", arguments: []string{"plan", "go-run", "./pkg"}, want: "gomad plan requires --output"},
++		{name: "qualify repeat zero", arguments: []string{"qualify", "--repeat=0", "go-run", "./pkg"}, want: "--repeat must be between"},
++		{name: "analyze negative timeout", arguments: []string{"analyze", "--timeout=-1s", "go-run", "./pkg"}, want: "analysis timeout must be non-negative"},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			var stdout, stderr bytes.Buffer
++			if status := Run(test.arguments, &stdout, &stderr); status != 2 || !strings.Contains(stdout.String()+stderr.String(), test.want) {
++				t.Fatalf("Run(%q) status=%d stdout=%q stderr=%q; want %q", test.arguments, status, stdout.String(), stderr.String(), test.want)
++			}
++		})
++	}
++}
++
++func TestPublicCommandWriterFailuresPreserveStatus(t *testing.T) {
++	for _, arguments := range [][]string{
++		{"explore", "--json", "--count=0", "go-run", "./pkg"},
++		{"analyze", "--format=invalid", "go-run", "./pkg"},
++		{"inspect", "/missing/artifact"},
++	} {
++		var stdout, stderr bytes.Buffer
++		output := failingWriter{}
++		if arguments[0] == "inspect" || arguments[0] == "analyze" {
++			if status := Run(arguments, &stdout, output); status != 3 {
++				t.Fatalf("Run(%q) status=%d stdout=%q", arguments, status, stdout.String())
++			}
++		} else if status := Run(arguments, output, &stderr); status != 3 {
++			t.Fatalf("Run(%q) status=%d stderr=%q", arguments, status, stderr.String())
++		}
++	}
++}
++
++func TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments(t *testing.T) {
++	for _, jsonOutput := range []bool{false, true} {
++		var observed qualificationworkload.Spec
++		dependencies := qualifyDependencies{
++			identity:         func(string) (string, string, string, error) { return "/toolchain", "/bin/gomad", "sha256:runner", nil },
++			workingDirectory: func() (string, error) { return "/workspace", nil },
++			workload: func(_ context.Context, spec qualificationworkload.Spec) (qualificationworkload.Result, error) {
++				observed = spec
++				return qualificationworkload.Result{
++					Report:     qualification.QualificationReport{Qualified: true, Deterministic: true, TargetSuccess: true},
++					ReportPath: "/report.json",
++				}, nil
++			},
++		}
++		arguments := []string{"--env=FOO=bar", "--build-tag=gomad_fixture", "go-test", "./pkg", "--", "-test.run=Test Name", "literal;$value"}
++		if jsonOutput {
++			arguments = append([]string{"--json"}, arguments...)
++		}
++		var stdout, stderr bytes.Buffer
++		status := runQualifyWith(arguments, &stdout, &stderr, dependencies)
++		if status != 0 || stderr.Len() != 0 {
++			t.Fatalf("json=%t status=%d stdout=%q stderr=%q", jsonOutput, status, stdout.String(), stderr.String())
++		}
++		got := observed.Campaign
++		if len(got.Environment) != 1 || got.Environment[0] != "FOO=bar" || len(got.Target.BuildTags) != 1 || got.Target.BuildTags[0] != "gomad_fixture" || len(got.Target.Args) != 2 || got.Target.Args[0] != "-test.run=Test Name" || got.Target.Args[1] != "literal;$value" {
++			t.Fatalf("json=%t campaign=%#v", jsonOutput, got)
++		}
++		want := "gomad: qualification qualified=true"
++		if jsonOutput {
++			want = `"classification":"qualified"`
++		}
++		if !strings.Contains(stdout.String(), want) {
++			t.Fatalf("json=%t output=%q, want %q", jsonOutput, stdout.String(), want)
++		}
++	}
++}

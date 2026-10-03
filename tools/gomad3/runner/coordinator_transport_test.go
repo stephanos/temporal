@@ -44,12 +44,18 @@ var coordinatorLocalOnlyFields = map[string]string{
 	"CoordinatorCommand":   "selects the isolated path in the parent",
 	"Progress":             "replaced in the child by a callback that forwards events to the parent",
 	"Preparer":             "injected preparation is rejected for isolated campaigns",
-	"Executor":             "injected execution is rejected for isolated campaigns",
 	"Replayer":             "injected replay is rejected for isolated campaigns",
 	"resumePreflight":      "the child opens its own resume preflight",
 	"guidancePlan":         "selected locally after target preparation; resume restores it from the recorded plan",
 	"failureArtifactLimit": "the child derives it from the campaign plan",
 	"failureBytesLimit":    "the child derives it from the campaign plan",
+}
+
+func TestExploreRejectsPrivateExecutionForIsolatedCampaign(t *testing.T) {
+	_, err := exploreWith(context.Background(), CampaignSpec{CoordinatorCommand: []string{"unused"}}, executionDependencies{executor: &fakeExecutor{}})
+	if err == nil || !strings.Contains(err.Error(), "isolated Runner does not accept injected preparation or execution") {
+		t.Fatalf("isolated execution injection error = %v", err)
+	}
 }
 
 func TestCoordinatorTransportCoversEveryCampaignSpecField(t *testing.T) {
@@ -72,9 +78,12 @@ func TestCoordinatorTransportCoversEveryCampaignSpecField(t *testing.T) {
 			t.Errorf("CampaignSpec.%s has type %s but is transported as %s", field.Name, field.Type, wireField.Type)
 		}
 	}
-	for index := range wireType.NumField() {
-		if _, found := specType.FieldByName(wireType.Field(index).Name); !found {
-			t.Errorf("coordinator transport field %s has no CampaignSpec field", wireType.Field(index).Name)
+	for _, field := range reflect.VisibleFields(wireType) {
+		if field.PkgPath != "" {
+			continue
+		}
+		if _, found := specType.FieldByName(field.Name); !found {
+			t.Errorf("coordinator transport field %s has no CampaignSpec field", field.Name)
 		}
 	}
 	for name := range coordinatorLocalOnlyFields {
@@ -99,7 +108,7 @@ func TestCoordinatorTransportRoundTripsEveryTransportedField(t *testing.T) {
 		{name: "explicit false regression override", spec: explicitFalse},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			encoded, err := json.Marshal(coordinatorConfigFromCampaignSpec(test.spec, childTimeout))
+			encoded, err := json.Marshal(campaignRequestFromSpec(test.spec).coordinatorConfig(childTimeout))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -109,12 +118,12 @@ func TestCoordinatorTransportRoundTripsEveryTransportedField(t *testing.T) {
 			if err := decoder.Decode(&wire); err != nil {
 				t.Fatal(err)
 			}
-			got := campaignSpecFromCoordinatorConfig(wire)
-			want := test.spec
+			got := wire.campaignRequest()
+			want := campaignRequestFromSpec(test.spec)
 			want.OverallTimeout = childTimeout
-			want.CoordinatorCommand, want.Progress, want.Preparer, want.Executor, want.Replayer = nil, nil, nil, nil, nil
+			want.CoordinatorCommand, want.Progress, want.Preparer, want.executor, want.Replayer = nil, nil, nil, nil, nil
 			if !reflect.DeepEqual(got, want) {
-				t.Fatalf("coordinator transport changed %v:\n got %#v\nwant %#v", differingExportedFields(got, want), got, want)
+				t.Fatalf("coordinator transport changed:\n got %#v\nwant %#v", got, want)
 			}
 		})
 	}
@@ -540,7 +549,7 @@ func sortedEnvironment(environment []record.Environment) []record.Environment {
 // optionally dropping top-level members to model a request that omits them.
 func coordinatorRequest(t *testing.T, config CampaignSpec, omit ...string) []byte {
 	t.Helper()
-	encoded, err := json.Marshal(coordinatorConfigFromCampaignSpec(config, config.OverallTimeout))
+	encoded, err := json.Marshal(campaignRequestFromSpec(config).coordinatorConfig(config.OverallTimeout))
 	if err != nil {
 		t.Fatal(err)
 	}

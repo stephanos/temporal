@@ -1,0 +1,24 @@
+# fn-113 task 3: pack refresh and stale variant retirement
+
+Source bytes and the qualified Darwin toolchain key are bound in `source-binding.json`; pre-edit bytes and hashes are in `pre-edit-source.json`. No source commit, stage, or Flow lifecycle mutation was made by this worker.
+
+`compatibility-pack refresh --root=... --impact-report=...` consumes invalidated or unknown pack-rule IDs from the task 1 JSON report. `targets.tsv` is the one request-to-module mapping read by refresh and by the Makefile qualification target. Unmapped IDs are invalid input. The command discovers and renders a fresh review before changing a request or report. It keeps an approval only when it equals the newly discovered review digest; changed evidence clears approval. Existing `generate --approve-review` remains the sole approval path. Other-platform requests are reported and left unchanged. Per-request failures return status 1 while other requests continue; invalid input returns 2.
+
+The controlled real CLI fixture under `refresh-fixture/` copied two production requests with stale approvals, mapped `reflect2-go126` to the root module and `modernc-libc-xsys-v047` to the corpus module, and passed an invalidated request set. `real-refresh.log` records fresh digests for both. `real-refresh-state.json` records the root candidate `github.com/modern-go/reflect2@v1.0.3-0.20250322232337-35a7c28c31ee` and the corpus candidate `golang.org/x/sys@v0.47.0`. `real-partial-approval.log` records approval of only the v047 request through the existing generate command. `real-rerun.log` reports only reflect2. `real-other-platform.log` reports the Linux request as not evaluable; its final bytes equal the copied source request. `real-unmapped.log` records CLI status 2 (wrapped by `go run` as shell exit 1). Production upstream evidence was not approved or changed.
+
+Before retirement, `testdata/v041/go.mod` genuinely selected `golang.org/x/sys@v0.41.0`; the Makefile also qualified its pack, and `evidence_test.go` and `policy_test.go` loaded it. The active corpus at v0.47 already tests `NewTLS`, `CString`, `Xopen`, `Xwrite`, `Xlseek64`, `Xread`, and `Xclose`, plus `Xmkdir`. The exact-pack identity, evidence, capability, source-set, and near-miss assertions now target the v047 pack. The old pack, request, report, and fixture were removed together; the Makefile table contains no v041 entry. `selector-audit.json` scans 16 Go modules and finds no remaining v041 go.mod selector or task-source reference. Linux pack variants remain.
+
+Verification, all on darwin/arm64 with stock Go 1.27.1 for host commands and patched toolchain key `2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457` for qualification:
+
+- Pre-edit `go test -tags test_dep ./cmd/gomadtool ./internal/compatibilitypack/...`: exit 0, `baseline-focused.log`.
+- Shared-table baseline `make validate compatibility-pack-qualification`: exit 0, `table-baseline-qualification.log`.
+- Final `go test -tags test_dep -count=1 ./cmd/gomadtool ./internal/compatibilitypack/... ./upgrade`: exit 0, `focused-bound-final.log`.
+- `go vet -tags test_dep ./cmd/gomadtool ./internal/compatibilitypack/... ./upgrade`: exit 0, `vet-final.log`. Gofmt and `git diff --check` were clean.
+- `make validate compatibility-pack-qualification`: exit 0, `final-validate-qualification.log`; eight Darwin requests qualified. The old v041 request no longer runs.
+- Scoped `golangci-lint run --build-tags test_dep --max-issues-per-linter=0 ./cmd/gomadtool ./internal/compatibilitypack/... ./upgrade`: exit 1, `scoped-lint-bound.log`, with 17 existing findings in surrounding packages. No finding points to the new refresh source or tests. Three findings in the edited legacy `compatibility_pack.go` are on output calls outside task 3's changed lines. The unchanged root-lint nested-module discovery failure is retained under task 2 and was not repeated.
+
+Native linux/amd64 qualification was unavailable on this host; no cross-compile result is claimed as qualification. Task 4 owns full core/full-test and both-platform final gates.
+
+Parent verified all16 current path bindings and the review patch digest. Independent same-family codex:gpt-6-sol:high review returned SHIP with R4 met and no findings (working-tree-review.json). The user owns commits; no files staged or committed.
+stage: plan-sync - skipped(config: planSync.enabled != true)
+Tracker sync: n/a (sync active=false).

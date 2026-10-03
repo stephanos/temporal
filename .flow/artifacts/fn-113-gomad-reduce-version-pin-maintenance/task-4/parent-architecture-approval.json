@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    "-run",
+    "TestPackageArchitecture|TestExactModuleEdges|TestAdapterRegenerationDryRunLeavesCheckoutUntouched",
+    ".",
+    "./upgrade"
+  ],
+  "cwd": "tools/gomad3",
+  "exit_code": 0,
+  "elapsed_seconds": 2.047,
+  "log": "parent-architecture-approval.log"
+}

@@ -1,0 +1,211 @@
+{
+  "timestamp": "2026-10-03T14:31:57.620529+00:00",
+  "source_bindings": {
+    "tools/gomad3/architecture_test.go": true,
+    "tools/gomad3/cmd/gomad/internal/cli/analyze.go": true,
+    "tools/gomad3/cmd/gomad/internal/cli/cli_test.go": true,
+    "tools/gomad3/internal/preparation/preparation.go": true,
+    "tools/gomad3/qualification/analysis/prepared_review.go": true,
+    "tools/gomad3/internal/preparation/inspection.go": true,
+    "tools/gomad3/internal/preparation/inspection_test.go": true
+  },
+  "patch_binding": true,
+  "binaries": {
+    "baseline-gomad": true,
+    "after-gomad": true,
+    "baseline-gomadtool": true,
+    "after-gomadtool": true
+  },
+  "preimages": {
+    "tools/gomad3/internal/preparation/preparation.go": {
+      "matches": true,
+      "missing_comment_lines": []
+    },
+    "tools/gomad3/internal/preparation/preparation_test.go": {
+      "matches": true,
+      "missing_comment_lines": []
+    },
+    "tools/gomad3/qualification/analysis/analysis.go": {
+      "matches": true,
+      "missing_comment_lines": []
+    },
+    "tools/gomad3/qualification/analysis/prepared_review.go": {
+      "matches": true,
+      "missing_comment_lines": []
+    },
+    "tools/gomad3/qualification/analysis/prepared_review_test.go": {
+      "matches": true,
+      "missing_comment_lines": []
+    },
+    "tools/gomad3/cmd/gomad/internal/cli/analyze.go": {
+      "matches": true,
+      "missing_comment_lines": []
+    },
+    "tools/gomad3/cmd/gomad/internal/cli/cli_test.go": {
+      "matches": true,
+      "missing_comment_lines": []
+    },
+    "tools/gomad3/cmd/gomadtool/compatibility_pack.go": {
+      "matches": true,
+      "missing_comment_lines": []
+    },
+    "tools/gomad3/architecture_test.go": {
+      "matches": true,
+      "missing_comment_lines": []
+    }
+  },
+  "comparisons": {
+    "analyze-text": {
+      "exit_before": 0,
+      "exit_after": 0,
+      "stdout_identical": true,
+      "stderr_identical": true
+    },
+    "analyze-json": {
+      "exit_before": 0,
+      "exit_after": 0,
+      "stdout_identical": true,
+      "stderr_identical": true
+    },
+    "unsupported": {
+      "exit_before": 1,
+      "exit_after": 1,
+      "stdout_identical": true,
+      "stderr_identical": true
+    },
+    "invalid-sum": {
+      "exit_before": 2,
+      "exit_after": 2,
+      "stdout_identical": true,
+      "stderr_identical": true
+    },
+    "missing": {
+      "exit_before": 2,
+      "exit_after": 2,
+      "stdout_identical": true,
+      "stderr_identical": true
+    },
+    "compatibility-pack": {
+      "exit_before": 0,
+      "exit_after": 0,
+      "stdout_identical": true,
+      "stderr_identical": true
+    },
+    "compatibility-pack-old-overlay-binary": {
+      "argv_before": [
+        "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/baseline-gomadtool",
+        "compatibility-pack",
+        "qualify",
+        "--root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+        "--request=internal/compatibilitypack/requests/golang-x-sys-v047-darwin-arm64.json",
+        "--working-dir=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/internal/compatibilitypack/testdata/xsys"
+      ],
+      "argv_after": [
+        "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/after-gomadtool",
+        "compatibility-pack",
+        "qualify",
+        "--root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+        "--request=internal/compatibilitypack/requests/golang-x-sys-v047-darwin-arm64.json",
+        "--working-dir=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/internal/compatibilitypack/testdata/xsys"
+      ],
+      "exit_before": 0,
+      "exit_after": 0,
+      "stdout_identical": true,
+      "stderr_identical": true
+    }
+  },
+  "gate_results": [
+    {
+      "file": "build-new-gomadtool.json",
+      "exit": 0,
+      "duration_seconds": 0.8681882499950007,
+      "stdout_sha_matches": true,
+      "stderr_sha_matches": true
+    },
+    {
+      "file": "build-old-gomadtool-overlay.json",
+      "exit": 0,
+      "duration_seconds": 0.8713162499916507,
+      "stdout_sha_matches": true,
+      "stderr_sha_matches": true
+    },
+    {
+      "file": "final-architecture.json",
+      "exit": 0,
+      "duration_seconds": 1.6705252499959897,
+      "stdout_sha_matches": true,
+      "stderr_sha_matches": true
+    },
+    {
+      "file": "final-compatibility.json",
+      "exit": 0,
+      "duration_seconds": 4.3695218750071945,
+      "stdout_sha_matches": true,
+      "stderr_sha_matches": true
+    },
+    {
+      "file": "final-quick.json",
+      "exit": 0,
+      "duration_seconds": 38.049773791994085,
+      "stdout_sha_matches": true,
+      "stderr_sha_matches": true
+    },
+    {
+      "file": "final-task-lint.json",
+      "exit": 0,
+      "duration_seconds": 5.759235000004992,
+      "stdout_sha_matches": true,
+      "stderr_sha_matches": true
+    },
+    {
+      "file": "final-vet.json",
+      "exit": 0,
+      "duration_seconds": 0.7273539579909993,
+      "stdout_sha_matches": true,
+      "stderr_sha_matches": true
+    }
+  ],
+  "checks": [
+    {
+      "argv": [
+        "git",
+        "apply",
+        "--reverse",
+        "--check",
+        "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/task-only.patch"
+      ],
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "output": ""
+    }
+  ],
+  "full_host": {
+    "argv": [
+      "make",
+      "-C",
+      "tools/gomad3",
+      "test-host"
+    ],
+    "cwd": "/Users/stephan/Workspace/temporal/gomad",
+    "exit": 0,
+    "duration_seconds": 180.8847135410033,
+    "ok_package_count": 46,
+    "stdout_hash_matches": true,
+    "stderr_hash_matches": true,
+    "failure_lines": []
+  },
+  "installed_cli_verified": {
+    "sha256": "16da20e81277ec7214d1ea007ef45cee0664eede7ac9ac46b265de46c5cf36e6",
+    "build_exit": 0,
+    "smoke_exit": 0,
+    "smoke_bytes_match_baseline": true
+  }
+}

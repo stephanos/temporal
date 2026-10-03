@@ -1,0 +1,4 @@
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool compatibility-pack check --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+compatibility packs are current
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go test -count=1 -tags test_dep -run '^TestHostPacksBindCurrentProfile$' ./internal/compatibilitypack
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack	0.271s

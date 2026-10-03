@@ -1,0 +1,92 @@
+{
+  "type": "impl_review",
+  "id": "branch",
+  "mode": "codex",
+  "base": "HEAD",
+  "verdict": "SHIP",
+  "session_id": "01a101ba-33be-7f32-aa45-14071759ddb6",
+  "model": "gpt-6-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6-sol:high",
+  "timestamp": "2026-10-03T12:37:13.028379Z",
+  "review": "Prior finding #1: fixed\nPrior finding #2: not-fixed\n\nThe two exported error globals are replaced by typed errors. CLI callers use `errors.As` and preserve the original messages. Current source and patch hashes match the updated receipts; retained focused tests, canonical characterization, plan e2e, vet, architecture, lint, and rebuild results pass. No new blocker was found.\n\n## Pre-existing issues (not blocking this verdict)\n\n- [P2, confidence 100, introduced=false] `tools/gomad3/cmd/gomad/internal/cli/cli.go:402` \u2014 Doctor\u2019s JSON path still ignores stdout write errors. This remains outside task 5.\n\nThe previously noted **Long Method** smell in `func parseCampaignRequest(...)` remains unchanged and nonblocking.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n| --- | --- | --- |\n| R1\u2013R5 | deferred | Outside task 5. |\n| R6 | met | Shared parsing and Runner normalization preserved; typed errors remove the globals while retaining messages, classifications, and canonical bytes. |\n| R7\u2013R17 | deferred | Outside task 5. |\n| R18\u2013R20 | deferred | Full-spec completion and native Linux qualification remain separately owned. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 1 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":1},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "focus": "Re-review the CHANGED task5 artifact using the same receipt/session. Prior NEEDS_WORK is authentic in task-5/review-round-1.json, introduced finding finding-4189e1cf33afb15c6878741869fd0b7f (two exported mutable globals). Source now changes that issue: *NotSingleBaseSeedError and *SemanticCoverageRequiredError replace both variables in Runner options owner; CLI errors.As preserves messages. Inspect task-5/review-fix.patch and review-fix-preimage.json, then updated task-only.patch/final-source.json/handover.json. No package error globals remain. New wrapped-kind Runner and exact CLI presentation regressions pass. Focused tests include 76-row canonical CampaignOptionsCharacterization, ValidateConfig, Plan/PortablePlan and writer/hidden-route/precedence. Plan text/JSON e2e, architecture, vet, formatting, current task-only patch lint and CLI rebuild all exit0; actual receipts review-fix-*.json/log. Parent independent final typed-error+CLI+canonical tests exit0 in parent-review-fix-characterization.log and verifies final source hash/binary binding in parent-source-verification.json.\n\nKeep prior task-only scope: nine changed files for fn109.5, actual original task5 preimages, shared typed parse, separate Runner operations, hidden --__plan rejection, one Runner semantic owner with presence-aware CLI defaults and original first-error/messages/status/output grammar. Original full host exit0 157.019s source_changed=[] still bound to source-freeze.json/full-host-start.json. Subsequent delta is bounded reporting helper and typed errors plus their tests (four files), affected final checks above. No runtime/protocol/dependency/default/canonical bytes changes. Full host need not be rerun unchanged for this local review fix. Historical unfiltered lint 494 findings is NOT global cleanliness; task patch lint0. Prior rootlint nested module loading failure unchanged. Native Linux/full-spec R18/R19 remain task21; task4+5 span R6.\n\nREAD ONLY. Do not run Go, tests/build/vet/gofmt/generators/Makefile/git mutations/flow lifecycle or writable-cache subprocesses. Use actual source, snapshots, patch and retained logs. Do not re-grade unrelated dirty prior tasks. Preexisting doctor JSON writer P2 stays recorded outside scope. Check resolution and any introduced regressions, and return normal backend verdict. Same codex:gpt-6-sol:high backend/receipt, no commits by user instruction.",
+  "introduced_count": 0,
+  "pre_existing_count": 1,
+  "unaddressed": [],
+  "findings": {
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-389f38ff10e4035cb3dbf0e8e5863fc6c5b2bf249915aef4813ebf35a7af9c07",
+    "reviewKind": "implementation",
+    "backend": "codex",
+    "round": 2,
+    "baseSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+    "headSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+    "supersedesReceiptId": "review-0512f7e28dfb6a121717ca14d582a9ad115a30a241b2f9f14527db917150c2a6",
+    "items": [
+      {
+        "id": "finding-4189e1cf33afb15c6878741869fd0b7f",
+        "ordinal": 1,
+        "severity": "P2",
+        "confidence": 100,
+        "classification": "introduced",
+        "status": "fixed",
+        "title": "The patch adds two mutable package globals, `ErrNotSingleBaseSeed` and `ErrSemanticCoverageRequired`, despite task 5\u2019s explicit \u201cno new dependencies/globals\u201d constraint",
+        "body": "The patch adds two mutable package globals, `ErrNotSingleBaseSeed` and `ErrSemanticCoverageRequired`, despite task 5\u2019s explicit \u201cno new dependencies/globals\u201d constraint. Their exported values can also be reassigned by callers.",
+        "rIds": [
+          "R6"
+        ],
+        "anchor": {
+          "path": "tools/gomad3/runner/campaign_options.go",
+          "side": "head",
+          "startLine": 109,
+          "baseSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+          "headSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025"
+        },
+        "suggestion": "Use typed errors for the two conditions and match them with `errors.As`, without package variables.",
+        "firstSeenReceiptId": "review-0512f7e28dfb6a121717ca14d582a9ad115a30a241b2f9f14527db917150c2a6",
+        "lastSeenReceiptId": "review-389f38ff10e4035cb3dbf0e8e5863fc6c5b2bf249915aef4813ebf35a7af9c07"
+      },
+      {
+        "id": "finding-c2440d1688ddafbd796ec6aa2c5c81ef",
+        "ordinal": 2,
+        "severity": "P2",
+        "confidence": 100,
+        "classification": "pre_existing",
+        "status": "not_fixed",
+        "title": "Doctor\u2019s JSON path ignores the stdout write error and can return success after output fails",
+        "body": "Doctor\u2019s JSON path ignores the stdout write error and can return success after output fails. This was recorded in the task 4 review and is outside task 5.",
+        "rIds": [],
+        "anchor": {
+          "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+          "side": "head",
+          "startLine": 402,
+          "baseSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+          "headSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025"
+        },
+        "firstSeenReceiptId": "review-0512f7e28dfb6a121717ca14d582a9ad115a30a241b2f9f14527db917150c2a6",
+        "lastSeenReceiptId": "review-389f38ff10e4035cb3dbf0e8e5863fc6c5b2bf249915aef4813ebf35a7af9c07"
+      },
+      {
+        "id": "finding-686658ba1b298e2a0ec2b54b7690cf3c",
+        "ordinal": 3,
+        "severity": "P2",
+        "confidence": 100,
+        "classification": "pre_existing",
+        "status": "open",
+        "title": "Doctor\u2019s JSON path still ignores stdout write errors",
+        "body": "Doctor\u2019s JSON path still ignores stdout write errors. This remains outside task 5.",
+        "rIds": [],
+        "anchor": {
+          "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+          "side": "head",
+          "startLine": 402,
+          "baseSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+          "headSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025"
+        },
+        "firstSeenReceiptId": "review-389f38ff10e4035cb3dbf0e8e5863fc6c5b2bf249915aef4813ebf35a7af9c07",
+        "lastSeenReceiptId": "review-389f38ff10e4035cb3dbf0e8e5863fc6c5b2bf249915aef4813ebf35a7af9c07"
+      }
+    ]
+  }
+}

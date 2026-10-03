@@ -1,0 +1,15 @@
+The preparation owner's Inspect operation now selects adapters, owns the private root, returns complete review evidence and adapter identities, and exposes explicit Close. Production CLI analysis consumes that review directly; the public PreparedCapabilityReview wrapper delegates inspection and cleanup while preserving its exported fields and signature. Ordinary analysis and compatibility callers no longer create roots or select adapters. CLI/qualification architecture edges expand only for these consumers.
+
+All five task acceptance checks are satisfied. Tests cover closure with a build-rejecting Go shim and a target that would panic if launched, linked compilation with a manifest and absent launch sentinel, rejected caller roots, invalid sums, unsupported closure classification, malformed linked records, cleanup failure and primary-error preservation. The actual supported-report cleanup regression first failed because status remained0 after cleanup failed; successful analysis now returns3 on that failure. Existing primary nonzero statuses remain. The owner API red was a missing-symbol compile failure; a separate unsupported test failure was a corrected expected label, not a production regression.
+
+Actual pre-edit/current CLI text, JSON and real failure fixtures match bytes and exits (supported0, unsupported1, invalidsum2, missingpackage2), with no normalization. Compatibility qualify matches a binary rebuilt from captured original source overlay against the final binary. Five original modified Go files and two additions bind task-only.patch; seven frozen source hashes and original comments remain intact after gates and review.
+
+Darwin Quick/focused checks, architecture, validate-compatibility, scoped vet and task-only lint pass. The full host gate captured actual make exit0 in180.885s, with all46 packages ok and empty stderr. The rebuilt installed CLI SHA256 is 16da20e81277ec7214d1ea007ef45cee0664eede7ac9ac46b265de46c5cf36e6; its fixed JSON smoke bytes match baseline. Historical global/root lint failures are retained outside task-only lint0. All raw argv/env/exit/duration/log-hash receipts are referenced by the compact handover.
+
+Formal read-only review returned SHIP with zero introduced/pre-existing findings and no unaddressed requirements, covering R4 through task7+8 together. Writer/reviewer were gpt-6-sol high in fresh contexts (same-family limitation). Native linux/amd64 and full-spec R18/R19 qualification remain incomplete under task21; tasks9–11 retain host-command, installation and capability decomposition ownership. No git staging, commit, stash, push or worktree; commits=[] by user instruction.
+
+stage: impl-review - ran [2026-10-03T14:32:58.614524+00:00..2026-10-03T14:35:05.427771Z] (model: gpt-6-sol at high)
+stage: plan-sync - skipped(config: planSync.enabled != true)
+Tracker sync: n/a (bridge inactive).
+
+Evidence: handover.md/json, source-freeze.json, preimages.json, task-only.patch, snapshots.json, parent-source-verification.json, post-review-verification.json, working-tree-review.json and referenced original command receipts/logs.

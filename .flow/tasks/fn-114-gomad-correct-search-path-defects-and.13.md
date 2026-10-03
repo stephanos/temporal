@@ -14,7 +14,7 @@ E4 (R9): the run-queue choice offers only user goroutines; runtime-owned gorouti
 - First step: confirm the inferred cause on a fixture that deliberately starts two user goroutines. Show that the extra branching decisions have runtime-owned goroutines among their alternatives. The historical D21 control source starts no goroutine explicitly; its reported peak of 2 is not a substitute for this fixture. If the cause is absent, record the narrowed E4 finding with evidence and stop.
 - Classify run-queue entries with the runtime's own system-goroutine test. Use the task 5 inventory as the list of runtime-owned kinds, and state how a finalizer or cleanup goroutine running user code is classified.
 - The rule: state it once, for example runtime-owned goroutines run before user goroutines in queue order. It must be a function of the queue contents only, and must not starve either class.
-- A queue with at most one user goroutine records no decision and still yields a deterministic pick. A queue with two or more user goroutines records one decision whose alternatives are the user goroutines only.
+- A queue with at most one user goroutine records no decision and still yields a deterministic pick. A user dispatch with two or more user goroutines records one decision whose alternatives are the user goroutines only; a runtime-owned queue head runs deterministically without recording a decision.
 - Replay and forced prefixes apply the same rule; a tape recorded under the old rule is rejected by controller identity, never reinterpreted.
 - Collector workers are picked outside the run queue. State in the contract that the rule covers the local run queue and name what it leaves out.
 - Write the rule into `[RUNTIME.SCHEDULING]` in `SPEC.md`.
@@ -48,9 +48,12 @@ E4 (R9): the run-queue choice offers only user goroutines; runtime-owned gorouti
 - [ ] Control-probe decision counts before and after are retained in `control-probe.md` in the spec's artifacts directory
 - [ ] `make -C tools/gomad3 validate test-toolchain test-runtime overlay-test` pass on darwin/arm64; linux status recorded
 ## Done summary
-TBD
+Runtime-owned local-queue heads dispatch in queue order without a decision; user heads choose only user identities. The two-user cause probe confirms the old controller selected a runtime helper in31 branching decisions across32 seeds. A same-source comparison reduces2261 runnable decisions to2080 and runtime selections31 to0. Zero/one-user, all-alternative-set, busy-runtime mutual-progress, exact replay/prefix and legacy-controller rejection fixtures cover the rule. Finalizer/cleanup callback classification uses isSystemGoroutine; SPEC names the local-queue boundary and excluded channels.
 
+Native Darwin validate, test-toolchain, test-runtime and all nine overlay packages pass on build key4a6e5b695ea538f0a56eb70874ff945693223b53d0fcee56cc555f89e1a9ac0e. The final strengthened fixture has supplemental focused evidence. The integrated full host gate passes all45 packages. Runner fixture repairs preserve strict tape assertions, refresh only seven controller-derived hashes in the traced diagnostics baseline, and pin two-outcome search exhaustion in two executions. The100-job positive retention characterization has a one-minute bound after a retained96-of100 ten-second timeout under broad-suite contention; its correctness assertions are unchanged. See control-probe.md, runner-fixture-repair.md, source bindings and logs in this directory.
+
+Independent codex review returned SHIP after a pin-impact input guard outside this runtime task was corrected. Native Linux remains unverified. Root lint cannot load nested-module paths; scoped vet, gofmt and diff checks pass. No implementation commits or pushes were made; the user owns commits. Fn-114 task14 and R12 qualification remain open.
 ## Evidence
 - Commits:
-- Tests:
+- Tests: make -C tools/gomad3 validate test-toolchain test-runtime overlay-test, GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host, go -C tools/gomad3 vet -tags test_dep ./runner ./runner/internal/execution, TestRuntimeOwnedControlProbe and TestRuntimeOwnedRejectsPreviousController
 - PRs:

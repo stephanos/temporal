@@ -1,0 +1,6 @@
+=== RUN   TestRunIOTerminalAfterTermination
+=== RUN   TestRunIOTerminalAfterTermination/watchdog_truncated
+--- PASS: TestRunIOTerminalAfterTermination (1.81s)
+    --- PASS: TestRunIOTerminalAfterTermination/watchdog_truncated (1.81s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/execution	2.111s

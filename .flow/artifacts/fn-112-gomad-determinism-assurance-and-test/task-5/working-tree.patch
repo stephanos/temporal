@@ -1,0 +1,1309 @@
+diff --git a/Makefile b/Makefile
+index d5af39b7b0..93553fee5f 100644
+--- a/Makefile
++++ b/Makefile
+@@ -176,14 +176,14 @@ gomad3-run:
+ 	@test "$(origin GOMADSEED)" != undefined || { echo "GOMADSEED is required: make gomad3-run GOMADSEED=<uint64> GOMAD3_RUN=<package>" >&2; exit 1; }
+ 	@test -n "$(GOMAD3_RUN)" || { echo "GOMAD3_RUN is required: make gomad3-run GOMADSEED=<uint64> GOMAD3_RUN=<package>" >&2; exit 1; }
+ 	@$(MAKE) gomad3-go
+-	@env -u GOMADSEED CGO_ENABLED=0 TZ=UTC GOMAD3_CHILD_SEED="$(GOMADSEED)" \
++	@env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc TZ=UTC GOMAD3_CHILD_SEED="$(GOMADSEED)" \
+ 		$(GOMAD3_GO) run -exec "$(ROOT)/tools/gomad3/internal/gomadtool/conformance/scripts/exec.sh" $(GOMAD3_RUN) $(GOMAD3_ARGS)
+ 
+ gomad3-test:
+ 	@test "$(origin GOMADSEED)" != undefined || { echo "GOMADSEED is required: make gomad3-test GOMADSEED=<uint64> GOMAD3_PACKAGES=<packages>" >&2; exit 1; }
+ 	@test -n "$(GOMAD3_PACKAGES)" || { echo "GOMAD3_PACKAGES is required: make gomad3-test GOMADSEED=<uint64> GOMAD3_PACKAGES=<packages>" >&2; exit 1; }
+ 	@$(MAKE) gomad3-go
+-	@env -u GOMADSEED CGO_ENABLED=0 TZ=UTC GOMAD3_CHILD_SEED="$(GOMADSEED)" \
++	@env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc TZ=UTC GOMAD3_CHILD_SEED="$(GOMADSEED)" \
+ 		$(GOMAD3_GO) test -exec "$(ROOT)/tools/gomad3/internal/gomadtool/conformance/scripts/exec.sh" -count=1 -tags test_dep $(GOMAD3_PACKAGES) $(GOMAD3_ARGS)
+ 
+ gomad3-integration-test: gomad3-runner
+diff --git a/tools/gomad3/Makefile b/tools/gomad3/Makefile
+index 4f2fd75c4b..bfb031389c 100644
+--- a/tools/gomad3/Makefile
++++ b/tools/gomad3/Makefile
+@@ -131,7 +131,7 @@ test-host: toolchain
+ 		stock_root="$$(env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOENV=off GOFLAGS= GOWORK=off GOTOOLCHAIN=$(GOMAD3_GO_VERSION) go env GOROOT)" || exit 1; \
+ 		stock_go="$$stock_root/bin/go"; \
+ 	fi; \
+-	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOMAD3_STOCK_GO="$$stock_go" GOWORK=off .toolchain/bin/go test -tags test_dep \
++	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOMAD3_STOCK_GO="$$stock_go" GOEXPERIMENT=nogreenteagc GOWORK=off .toolchain/bin/go test -tags test_dep \
+ 		. ./cmd/... ./runner/... ./qualification/... ./target/... ./record/... ./artifact/... ./choice/... \
+ 		./deterministicio/... ./world/... ./toolchain/version ./upgrade/... ./internal/...
+ 
+@@ -147,7 +147,7 @@ overlay-test: toolchain
+ # is their executor. The node-clock delay test has a recorded watchdog failure
+ # and remains a finding; every other subtest runs here.
+ test-simulation: toolchain
+-	cd $(CURDIR)/../.. && env -u GOMADSEED CGO_ENABLED=0 GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 \
++	cd $(CURDIR)/../.. && env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 \
+ 		$(CURDIR)/.toolchain/bin/go test -exec $(CURDIR)/internal/gomadtool/conformance/scripts/exec.sh \
+ 		-count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim
+ 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration \
+diff --git a/tools/gomad3/README.md b/tools/gomad3/README.md
+index 7e3ea5dc8b..7470e1d0e9 100644
+--- a/tools/gomad3/README.md
++++ b/tools/gomad3/README.md
+@@ -37,8 +37,10 @@ GOMADSEED=1 make gomad3-test GOMAD3_PACKAGES=./path/to/package
+ 
+ Those wrappers remove `GOMADSEED` from the custom `go` process and use Go's
+ `-exec` hook to enable Gomad only in the resulting binary or generated test
+-binary. Direct execution of a prebuilt binary remains
+-`GOMADSEED=<seed> ./binary`.
++binary. They compile with `GOEXPERIMENT=nogreenteagc`, as Runner preparation
++does. Direct execution remains `GOMADSEED=<seed> ./binary`; the prebuilt binary
++must use that collector profile. Seeded activation of a Green Tea binary
++fails before user code runs. Unseeded binaries retain their compiled profile.
+ 
+ Check whether the complete Runner and deterministic-I/O contract is available
+ before starting a campaign:
+@@ -147,6 +149,14 @@ deterministic breadth-first rounds ordered by forced-prefix length and identity;
+ parallel completion timing cannot change the committed exploration. A target
+ failure remains expandable while the selected failure policy permits it.
+ 
++`--choice-start-ordinal=N` keeps decisions before replay-plan ordinal N in each
++forced prefix but expands alternatives only at N and later. The default is 0;
++use `inspect --choices` to find the replay-plan ordinals. This option is valid
++only for Choice Exploration and is frozen in the Campaign plan for resume.
++Select polls with fewer than two ready cases remain in the Choice Trace but
++do not create frontier branches. The result reports their omitted alternatives
++separately from execution, depth, and byte bounds.
++
+ Each completed round is an immutable, hash-linked transaction below the Campaign.
+ An interrupted round is archived and rerun in full on `gomad resume`; logical
+ and recovery execution counts are reported separately. `exploration_exhausted`
+@@ -160,8 +170,12 @@ fresh process under an explicit attempt bound. An accepted reduction must keep
+ the normalized failure and outcome, exact choice replay, and exact simulation
+ replay. The parent remains immutable; a changed result is published by record
+ identity with inspectable parent, reduction, budget, and predicate evidence.
+-Minimizer checkpoint/resume and target-declared scenario shrinking are not yet
+-implemented.
++Each parent has persisted minimizer state below the selected artifact root.
++After interruption, `minimize --resume` with the same parent, artifact root,
++and bounds continues the recorded attempt order and budget. The state binds
++the parent, implementation, accepted artifacts, and replay evidence; changed
++inputs, corrupt state, or a concurrent writer fail closed. Target-declared
++scenario shrinking is not yet implemented.
+ 
+ `gomad analyze` defaults to `--capability-mode=closure`, which reviews a
+ `go-run` or `go-test` target without compiling or executing it. Explicit
+@@ -219,7 +233,8 @@ explicit conflicting resume mode is rejected. Human and JSON results report
+ requested, answered, guided, and new execution counts.
+ 
+ The corpus is private, single-writer, and bounded to 1,024 cases and 1 GiB. Its
+-identity binds the prepared target and arguments, pinned toolchain, reviewed
++identity binds the prepared target and arguments, explicit environment and
++clock-tick policy, pinned toolchain, reviewed
+ boundary, semantic instrumentation, and record contract. Every entry retains
+ the exact-replay artifact, seed, captured I/O and World identities, semantic
+ coverage, novelty reasons, and matching replay result. A case is published and
+@@ -338,8 +353,12 @@ workload is invalid input, never a partial aggregate. A count larger than the
+ manifest is refused rather than run as an empty shard. `merge-set` returns the
+ same statuses as `qualify-set`.
+ 
+-By default every Campaign a set run produces stays under `--artifacts`, which
+-for the 28-workload Temporal manifest is about 11 GiB. `--prune-qualified-artifacts`
++By default every Campaign a set run produces stays under `--artifacts`.
++Campaign, corpus, and minimizer stores share each prepared binary through a
++content-addressed target pool and hard links. Retained-byte limits count that
++binary once per pool; artifact payloads and replay validation remain complete.
++When hard links are unavailable, publication uses private copies and counts
++each copy. `--prune-qualified-artifacts`
+ (`GOMAD3_QUALIFICATION_PRUNE=1` for the Make targets) bounds that to one seed:
+ once a seed is `qualified`, its successful repetitions were replayed exactly,
+ and the set report holds its evidence, the run deletes that seed's retained
+@@ -477,6 +496,10 @@ interface. Trusted repository tooling preparing an `exec` target must use
+ provenance for the exact binary. Runner revalidates its package policy, pinned
+ standard-library membership, module closure, build information, and binary
+ identity; arbitrary binaries are rejected.
++Coverage-instrumented targets are rejected during preparation, provenance
++validation, and replay: host coverage-counter flushing is outside the
++deterministic-I/O contract. Semantic and choice coverage use Gomad's bounded
++recorded probes and do not enable Go code coverage.
+ 
+ `gomad inspect` validates the Campaign journal or immutable failure/success Artifact before
+ printing its identity, outcome, transcripts, captured mounts, truncation,
+@@ -763,6 +786,16 @@ target exited; both are deterministic and compared between repetitions.
+ Qualification reports add each execution's `wall_elapsed_nanos`, which is
+ informational and outside the evidence digest.
+ 
++The local run queue preserves the head's goroutine class on each dispatch.
++A runtime-owned head runs deterministically; a user head chooses only among
++queued user goroutines and records a decision only when at least two exist.
++Both classes advance through the queue. Finalizer and cleanup goroutines
++executing user callbacks use the runtime's user classification. Run-next,
++the global queue, timer delivery, and collector workers picked outside the
++local queue retain their existing rules. This rule does not make a CPU loop
++that never yields progress, and tapes from the preceding controller identity
++are rejected.
++
+ Deterministic mode supports internally linked pure-Go targets on the qualified
+ `darwin/arm64` and `linux/amd64` hosts. Enabled cgo or externally linked binaries fail before package
+ initialization. Windows, plugins, foreign threads, the race detector, signals,
+diff --git a/tools/gomad3/choice/internal/wire/wire_generated.go b/tools/gomad3/choice/internal/wire/wire_generated.go
+index 59e314a3db..cd94610e62 100644
+--- a/tools/gomad3/choice/internal/wire/wire_generated.go
++++ b/tools/gomad3/choice/internal/wire/wire_generated.go
+@@ -28,7 +28,7 @@ var (
+ 	traceMagic                 = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'H', '\x03'}
+ 	tapeMagic                  = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'P', '\x03'}
+ 	terminalMagic              = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'T', '\x03'}
+-	ImplementationSourceSHA256 = [DigestBytes]byte{'ê', '`', '¶', 'x', '{', 'ë', '\x13', 'Ñ', '\u008a', '{', '©', 's', 'ý', '£', '#', '¬', '\u008d', '»', 'È', '\u0097', '£', 'Î', '\u009d', '\u009d', 'Õ', '1', '8', 'Þ', '×', 'N', '`', '\u0080'}
++	ImplementationSourceSHA256 = [DigestBytes]byte{'c', '@', '\u0096', '\u009e', 'ü', 'r', 'ë', '5', '\u008e', '¢', '\u009c', 'M', 'I', '\u0086', 'j', 'É', 'ó', 'Z', 'W', ',', 'J', 'm', 'É', ' ', 'Ú', 'Ü', '·', 'ð', 'ü', 'S', '¢', 'ù'}
+ )
+ 
+ type Kind uint8
+diff --git a/tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go b/tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go
+index 3b83c48113..83c62ddfea 100644
+--- a/tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go
++++ b/tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go
+@@ -100,6 +100,13 @@ func (campaign *runtimeCampaign) finishCase(planned runtimeCase, result hostexec
+ }
+ 
+ func (campaign *runtimeCampaign) request(command []string, dir string, timeout time.Duration, unset []string, values ...string) hostexec.Request {
++	for _, argument := range command {
++		if len(command) > 0 && command[0] == campaign.config.Go && strings.HasPrefix(argument, "-exec") {
++			unset = append(unset, "GOEXPERIMENT")
++			values = append(values, "GOEXPERIMENT=nogreenteagc")
++			break
++		}
++	}
+ 	return hostexec.Request{
+ 		Command: command, Dir: dir, Env: append(filterEnvironment(os.Environ(), unset...), values...), Timeout: timeout,
+ 		TerminateGrace: fixtureTerminationGrace, OutputLimit: fixtureOutputLimit,
+@@ -168,13 +175,13 @@ func (campaign *runtimeCampaign) build(name, packageName string, cgo bool, extra
+ 	command := []string{campaign.config.Go, "build"}
+ 	command = append(command, extra...)
+ 	command = append(command, "-o", output, packageName)
+-	values := []string{}
++	values := []string{"GOEXPERIMENT=nogreenteagc"}
+ 	if cgo {
+ 		values = append(values, "CGO_ENABLED=1")
+ 	} else if strings.HasPrefix(name, "clock") {
+ 		values = append(values, "CGO_ENABLED=0")
+ 	}
+-	_, err := campaign.command(name+"-build", command, campaign.testdata, time.Minute, []string{"GOMADSEED", "CGO_ENABLED"}, values...)
++	_, err := campaign.command(name+"-build", command, campaign.testdata, time.Minute, []string{"GOMADSEED", "CGO_ENABLED", "GOEXPERIMENT"}, values...)
+ 	return output, err
+ }
+ 
+@@ -281,6 +288,9 @@ func (campaign *runtimeCampaign) execute() error {
+ 	if err := requireOutput(disabled, "init GOMAXPROCS=2\nmain GOMAXPROCS=2", "disabled activation"); err != nil {
+ 		return err
+ 	}
++	if err := campaign.requireGreenTeaBoundary(); err != nil {
++		return err
++	}
+ 	if err := campaign.requireStockCompatibility(); err != nil {
+ 		return err
+ 	}
+@@ -294,6 +304,7 @@ func (campaign *runtimeCampaign) execute() error {
+ 		{name: "maps", packageName: "./maps"},
+ 		{name: "scheduler", packageName: "./scheduler"},
+ 		{name: "scheduler-min", packageName: "./scheduler_min"},
++		{name: "runtime-owned", packageName: "./runtime_owned"},
+ 		{name: "select", packageName: "./select"},
+ 		{name: "channels", packageName: "./channels"},
+ 		{name: "sync", packageName: "./sync"},
+@@ -342,6 +353,35 @@ func (campaign *runtimeCampaign) execute() error {
+ 	return campaign.requireRepeatability(binaries)
+ }
+ 
++func (campaign *runtimeCampaign) requireGreenTeaBoundary() error {
++	binary := filepath.Join(campaign.workspace, "activation-greentea")
++	if _, err := campaign.command(
++		"activation-greentea-build", []string{campaign.config.Go, "build", "-o", binary, "./activation"}, campaign.testdata, time.Minute,
++		[]string{"GOMADSEED", "GOEXPERIMENT"}, "GOEXPERIMENT=greenteagc",
++	); err != nil {
++		return err
++	}
++	disabled, err := campaign.command(
++		"activation-greentea-disabled", []string{binary}, campaign.testdata, 5*time.Second,
++		[]string{"GOMADSEED", "GOMAXPROCS"}, "GOMAXPROCS=2",
++	)
++	if err != nil {
++		return err
++	}
++	if err := requireOutput(disabled, "init GOMAXPROCS=2\nmain GOMAXPROCS=2", "GreenTea disabled activation"); err != nil {
++		return err
++	}
++	return campaign.expectedExit(
++		"activation-greentea-seeded-rejected", []string{binary}, campaign.testdata, 5*time.Second, 2,
++		func(result hostexec.Result) error {
++			if len(result.Stdout.Bytes) != 0 || commandErrorOutput(result) != "runtime: GOMADSEED requires GOEXPERIMENT=nogreenteagc" {
++				return fmt.Errorf("seeded GreenTea activation reached user code or emitted an unexpected diagnostic: %q %q", result.Stdout.Bytes, result.Stderr.Bytes)
++			}
++			return nil
++		}, []string{"GOMADSEED"}, "GOMADSEED=1",
++	)
++}
++
+ func requireOutput(result hostexec.Result, want, label string) error {
+ 	if actual := commandOutput(result); actual != want {
+ 		return fmt.Errorf("%s output = %q, want %q", label, actual, want)
+diff --git a/tools/gomad3/internal/gomadtool/conformance/runtime_test.go b/tools/gomad3/internal/gomadtool/conformance/runtime_test.go
+index 7363103ae3..0f1d171249 100644
+--- a/tools/gomad3/internal/gomadtool/conformance/runtime_test.go
++++ b/tools/gomad3/internal/gomadtool/conformance/runtime_test.go
+@@ -11,12 +11,26 @@ import (
+ 	"slices"
+ 	"strings"
+ 	"testing"
++	"time"
+ 
+ 	"go.temporal.io/server/tools/gomad3/choice"
+ 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
+ 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+ )
+ 
++func TestRuntimeCampaignCollectorProfile(t *testing.T) {
++	t.Setenv("GOEXPERIMENT", "greenteagc")
++	campaign := runtimeCampaign{config: Config{Go: "/gomad/go"}}
++	seeded := campaign.request([]string{"/gomad/go", "test", "-exec", "/gomad/wrapper", "./fixture"}, ".", time.Second, nil)
++	if !slices.Contains(seeded.Env, "GOEXPERIMENT=nogreenteagc") || slices.Contains(seeded.Env, "GOEXPERIMENT=greenteagc") {
++		t.Fatalf("seeded collector profile = %v", seeded.Env)
++	}
++	disabled := campaign.request([]string{"/gomad/go", "run", "./fixture"}, ".", time.Second, nil)
++	if !slices.Contains(disabled.Env, "GOEXPERIMENT=greenteagc") || slices.Contains(disabled.Env, "GOEXPERIMENT=nogreenteagc") {
++		t.Fatalf("disabled collector profile = %v", disabled.Env)
++	}
++}
++
+ func TestRequireStockCompatibilitySelectsPinnedToolchain(t *testing.T) {
+ 	launcher := filepath.Join(t.TempDir(), "go")
+ 	if err := os.WriteFile(launcher, []byte("fixture"), 0o700); err != nil {
+diff --git a/tools/gomad3/runner/internal/execution/diagnostics_toolchain_test.go b/tools/gomad3/runner/internal/execution/diagnostics_toolchain_test.go
+index e1bfcc94c2..6c4c7faf75 100644
+--- a/tools/gomad3/runner/internal/execution/diagnostics_toolchain_test.go
++++ b/tools/gomad3/runner/internal/execution/diagnostics_toolchain_test.go
+@@ -65,3 +65,27 @@ func TestDiagnosticLauncherLocalizesInjectedDraw(t *testing.T) {
+ 		t.Fatalf("injected draw difference = %+v", difference)
+ 	}
+ }
++
++func TestDiagnosticLauncherRejectsHostTimedSeededDraw(t *testing.T) {
++	toolchainRoot, err := filepath.Abs(filepath.Join("..", "..", "..", ".toolchain"))
++	if err != nil {
++		t.Fatal(err)
++	}
++	prepared, err := target.Prepare(context.Background(), target.Spec{Kind: target.KindGoRun, Source: "./diagnostic_fault", WorkingDir: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"), PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot})
++	if err != nil {
++		t.Fatal(err)
++	}
++	implementation, err := choice.ImplementationIdentity(prepared.BuildKey)
++	if err != nil {
++		t.Fatal(err)
++	}
++	profile := deterministicio.Default()
++	frame, err := profile.BootstrapFrame(prepared, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 7)
++	if err != nil {
++		t.Fatal(err)
++	}
++	result, err := Run(context.Background(), Spec{SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"}, BootstrapCommand: []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"}, Command: prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMADSEED=7", "TZ=UTC", "GOMAD3_IO_PROFILE=" + profile.Name(), "GOMAD3_DIAGNOSTIC_PERTURB_DRAW=host:5"}, ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1024, World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7}, IO: &IOCapability{Config: frame, Transcript: &IOTranscriptCapability{Limit: 64 << 20}}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: implementation, Limit: 1 << 20}, Diagnostics: true})
++	if err == nil || !bytes.Contains([]byte(err.Error()), []byte("diagnostic trace incomplete")) || result.ExitCode == 0 || !bytes.Contains(result.Stderr.Bytes, []byte("runtime: Gomad host-timed seeded draw")) {
++		t.Fatalf("host-timed draw status %d, error %v: %s", result.ExitCode, err, result.Stderr.Bytes)
++	}
++}
+diff --git a/tools/gomad3/runner/internal/execution/simulation_root_integration_test.go b/tools/gomad3/runner/internal/execution/simulation_root_integration_test.go
+index d572c87e88..f4c77bd979 100644
+--- a/tools/gomad3/runner/internal/execution/simulation_root_integration_test.go
++++ b/tools/gomad3/runner/internal/execution/simulation_root_integration_test.go
+@@ -25,7 +25,7 @@ func TestRootProcessSimulationUsesRunnerTransport(t *testing.T) {
+ 	target := filepath.Join(t.TempDir(), "gomad3sim.test")
+ 	command := exec.CommandContext(context.Background(), filepath.Join(toolchainRoot, "bin", "go"), "test", "-c", "-trimpath", "-tags", "test_dep,gomad3_toolchain", "-o", target, "./tools/gomad3sim")
+ 	command.Dir = root
+-	command.Env = append(filteredSimulationBuildEnvironment(os.Environ()), "CGO_ENABLED=0", "GOTOOLCHAIN=local", "GOWORK=off")
++	command.Env = append(filteredSimulationBuildEnvironment(os.Environ()), "CGO_ENABLED=0", "GOEXPERIMENT=nogreenteagc", "GOTOOLCHAIN=local", "GOWORK=off")
+ 	if output, buildErr := command.CombinedOutput(); buildErr != nil {
+ 		t.Fatalf("build root simulation target: %v: %s", buildErr, output)
+ 	}
+@@ -109,7 +109,7 @@ func filteredSimulationBuildEnvironment(environment []string) []string {
+ 			continue
+ 		}
+ 		switch name {
+-		case "CGO_ENABLED", "GOMADSEED", "GOMAD3_CHILD_SEED", "GOTOOLCHAIN", "GOWORK":
++		case "CGO_ENABLED", "GOEXPERIMENT", "GOMADSEED", "GOMAD3_CHILD_SEED", "GOTOOLCHAIN", "GOWORK":
+ 			continue
+ 		}
+ 		filtered = append(filtered, entry)
+diff --git a/tools/gomad3/runner/testdata/diagnostic-identity-choices.json b/tools/gomad3/runner/testdata/diagnostic-identity-choices.json
+index b406546a76..e045d08f67 100644
+--- a/tools/gomad3/runner/testdata/diagnostic-identity-choices.json
++++ b/tools/gomad3/runner/testdata/diagnostic-identity-choices.json
+@@ -1 +1 @@
+-{"artifact":{"artifact_kind":"gomad3.target-failure/v1","campaign_id":"fixed-campaign","choice_profile":{"implementation_sha256":"sha256:9f0269d403c2223461799303ccefcd1cf0ca7ebff499df9bf36e7244775ed153","name":"gomad3-choice-trace/v3","trace":{"branching_records":"1","bytes":"96","decisions":"1","file":"choices.bin","limit":"1048576","records":"1","schema":"gomad3.choice-trace/v3","sha256":"sha256:46632e482bdde1a1cb09c70ee60b700e110a29a1a1399f4519a9613ecddbf894","tape_sha256":"sha256:4ddebe2deb76de5bcc9600a201b7aede82f6d35957e110700268753e0e0533c7","terminal_state":"complete"}},"created_at":"2026-10-02T00:00:00Z","environment":[{"name":"GOMAD3_CHOICE_PROFILE","value":"gomad3-choice-trace/v3"},{"name":"GOMAD3_IO_PROFILE","value":"gomad3-deterministic/v1"},{"name":"GOMADSEED","value":"7"},{"name":"MODE","value":"test"},{"name":"TZ","value":"UTC"}],"files":[{"mode":"0600","path":"choices.bin","sha256":"sha256:46632e482bdde1a1cb09c70ee60b700e110a29a1a1399f4519a9613ecddbf894","size":"96"},{"mode":"0600","path":"stderr","sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","size":"0"},{"mode":"0600","path":"stdout","sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","size":"0"},{"mode":"0700","path":"target","sha256":"sha256:cd613b764a4e634182274f0df5e7c860bac9eeb8e4b6e0be6f394c722400985c","size":"20"},{"mode":"0600","path":"world/final-snapshot.json","sha256":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b","size":"4"},{"mode":"0600","path":"world/snapshot.json","sha256":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b","size":"4"},{"mode":"0600","path":"world/transitions.jsonl","sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","size":"0"}],"host":{"elapsed_nanos":"0","finished_at":"2026-10-02T00:00:00Z","started_at":"2026-10-02T00:00:00Z"},"io_profile":{"implementation_sha256":"sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0","inventory":"{\"boundary_manifest_sha256\":\"sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0\",\"boundary_manifest_version\":\"go1.27.1-v1\",\"entries\":[{\"boundary\":\"crypto/rand\",\"disposition\":\"in-memory\",\"operations\":[\"Reader.Read\",\"Read\"]},{\"boundary\":\"filesystem\",\"disposition\":\"in-memory\",\"operations\":[\"open\",\"read\",\"write\",\"stat\",\"rename\",\"remove\",\"mkdir\",\"map\"]},{\"boundary\":\"io-transcript\",\"disposition\":\"shared-memory\",\"operations\":[\"expected-replay\",\"record\",\"terminal\"]},{\"boundary\":\"github.com/Masterminds/sprig/v3\",\"disposition\":\"target-adapter\",\"operations\":[\"host-dns-refusal\"]},{\"boundary\":\"github.com/cactus/go-statsd-client/v5\",\"disposition\":\"target-adapter\",\"operations\":[\"udp-sender-refusal\"]},{\"boundary\":\"github.com/cockroachdb/pebble\",\"disposition\":\"target-adapter\",\"operations\":[\"os-file-construction-refusal\",\"hard-link-refusal\"]},{\"boundary\":\"github.com/getsentry/sentry-go\",\"disposition\":\"target-adapter\",\"operations\":[\"optional-git-release-suppression\"]},{\"boundary\":\"github.com/go-playground/validator/v10\",\"disposition\":\"target-adapter\",\"operations\":[\"address-resolution-refusal\"]},{\"boundary\":\"github.com/hashicorp/go-metrics\",\"disposition\":\"target-adapter\",\"operations\":[\"signal-service-refusal\"]},{\"boundary\":\"github.com/hashicorp/go-sockaddr\",\"disposition\":\"target-adapter\",\"operations\":[\"route-command-denial\",\"interface-discovery-refusal\",\"literal-address-parsing\"]},{\"boundary\":\"github.com/hashicorp/memberlist\",\"disposition\":\"target-adapter\",\"operations\":[\"native-udp-transport-refusal\"]},{\"boundary\":\"go.opentelemetry.io/otel/sdk\",\"disposition\":\"target-adapter\",\"operations\":[\"process-owner-placeholder\",\"uname-placeholder\",\"host-command-denial\"]},{\"boundary\":\"go.temporal.io/sdk\",\"disposition\":\"target-adapter\",\"operations\":[\"interrupt-channel-suppression\"]},{\"boundary\":\"go.uber.org/fx\",\"disposition\":\"target-adapter\",\"operations\":[\"signal-relay-suppression\"]},{\"boundary\":\"golang.org/x/net\",\"disposition\":\"target-adapter\",\"operations\":[\"raw-socket-option-denial\"]},{\"boundary\":\"google.golang.org/grpc\",\"disposition\":\"target-adapter\",\"operations\":[\"virtual-tcp-keepalive-suppression\",\"portable-syscall-removal\",\"host-dns-refusal\"]},{\"boundary\":\"modernc.org/libc\",\"disposition\":\"target-adapter\",\"operations\":[\"filesystem\",\"entropy\",\"time\"]},{\"boundary\":\"modernc.org/memory\",\"disposition\":\"target-adapter\",\"operations\":[\"anonymous-memory\"]},{\"boundary\":\"net\",\"disposition\":\"in-memory\",\"operations\":[\"Dial\",\"DialTCP\",\"Dialer.DialContext\",\"Listen\",\"ListenConfig.Listen\",\"ListenTCP\",\"Resolver.LookupIPAddr(localhost)\"]},{\"boundary\":\"os.read-only-mount\",\"disposition\":\"lazy-in-memory\",\"operations\":[\"open\",\"read\",\"stat\",\"readdir\"]}],\"platform\":\"darwin/arm64\",\"profile\":\"gomad3-deterministic/v1\",\"reserved_fds\":[\"bootstrap\",\"expected-transcript\",\"io-config\",\"io-terminal\",\"stderr\",\"stdout\",\"transcript\",\"world-config\",\"world-record\",\"read-only-mount-request\",\"read-only-mount-response\"],\"schema\":\"gomad3.io-inventory/v1\"}","inventory_sha256":"sha256:0d34edfc0ab13c693b78d514ca1a72a9adc196fe61e2142dba108c0ff47358f7","name":"gomad3-deterministic/v1"},"limits":{"choice_trace_bytes":"1048576","execution_timeout_nanos":"1000000000","io_transcript_bytes":"67108864","output_bytes":"64","overall_timeout_nanos":"10000000000","terminate_grace_nanos":"100000000","world_transition_bytes":"64"},"outcome":{"deadline":null,"domain":"target","exit_code":"1","failure_signature":"sha256:0aea146ae6a25d8a16990b54245209247807dbdbac9bf492c3e05001f60db796","reason":"nonzero_exit","replay_match":null,"signal":null,"termination":"exit"},"record_hash":"sha256:8e90ac8396d48ab9b0fb0af1fba264fe17a207a5bc77540b8f75e477f8620304","replay_mode":"exact","runner":{"host_arch":"arm64","host_os":"darwin","record_contract":"gomad3.execution-record/v1","runner_build":"sha256:0000000000000000000000000000000000000000000000000000000000000000"},"schema_version":1,"seed":"7","selection_ordinal":"0","streams":{"stderr":{"discarded_bytes":"0","file":"stderr","full_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","retained_bytes":"0","retained_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","total_bytes":"0","truncated":false},"stdout":{"discarded_bytes":"0","file":"stdout","full_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","retained_bytes":"0","retained_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","total_bytes":"0","truncated":false}},"target":{"adapters":[],"argv":["gomad3-target"],"build_info":{"go_version":"go1.27.1","main_module":"","path":"example.com/target","settings":null},"build_tags":[],"capability_mode":"closure","compatibility":[],"file":"target","kind":"go-run","sha256":"sha256:cd613b764a4e634182274f0df5e7c860bac9eeb8e4b6e0be6f394c722400985c","size":"20","source":"."},"toolchain":{"build_key":"cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e","go_version":"go1.27.1","target_goarch":"arm64","target_goos":"darwin"},"world":{"adapters":[],"final":{"file":"world/final-snapshot.json","raw_sha256":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b","schema":"gomad3.world.snapshot/none","semantic_digest":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"},"initial":{"file":"world/snapshot.json","raw_sha256":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b","schema":"gomad3.world.snapshot/none","semantic_digest":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"},"terminal":{"kind":"none"},"transitions":{"count":"0","file":"world/transitions.jsonl","raw_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","schema":"gomad3.world.transitions/none","transcript_digest":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}}},"campaign_plan":{"artifacts":{"failure_artifacts":"1","failure_bytes":"1146421480","failure_outcome":"infrastructure_failure","success_artifacts":"0","success_bytes":"0","success_outcome":"infrastructure_failure","total_bytes":"1146421480","transcript_bytes":"67108864"},"choice_profile":{"implementation_sha256":"sha256:9f0269d403c2223461799303ccefcd1cf0ca7ebff499df9bf36e7244775ed153","limit":"1048576","name":"gomad3-choice-trace/v3"},"coverage":"none","environment":[{"name":"GOMAD3_CHOICE_PROFILE","value":"gomad3-choice-trace/v3"},{"name":"GOMAD3_IO_PROFILE","value":"gomad3-deterministic/v1"},{"name":"MODE","value":"test"}],"execution_timeout_nanos":"1000000000","failure_budget":"1","io_profile":{"implementation_sha256":"sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0","inventory_sha256":"sha256:0d34edfc0ab13c693b78d514ca1a72a9adc196fe61e2142dba108c0ff47358f7","name":"gomad3-deterministic/v1"},"io_ro_mount_limits":{"directory_entries":"100000","files":"10000","path_bytes":"4096","requests":"100000","single_file_bytes":"16777216","total_bytes":"67108864"},"io_ro_mounts":[],"journal":{"capacity_outcome":"infrastructure_failure","maximum_bytes":"1048576","maximum_executions":"1","maximum_partial_executions":"1","maximum_segments":"1","segment_bytes":"1048576","segment_records":"1024"},"keep_successes":"none","on_failure":"all","output_bytes":"64","overall_timeout_nanos":"10000000000","parallel":"1","prepared":{"path":".prepared/target","target":{"adapters":[],"argv":["gomad3-target"],"build_info":{"go_version":"go1.27.1","main_module":"","path":"example.com/target","settings":null},"build_tags":[],"capability_mode":"closure","compatibility":[],"file":"","kind":"go-run","sha256":"sha256:cd613b764a4e634182274f0df5e7c860bac9eeb8e4b6e0be6f394c722400985c","size":"20","source":"."}},"required_semantic_probes":null,"runner_build":"sha256:0000000000000000000000000000000000000000000000000000000000000000","schema":"gomad3.campaign-plan/v1","selection":"7","selection_count":"1","simulation_dimension_limits":{"crash":0,"fault":0,"network":0,"runtime":0,"scenario":0,"storage":0},"strategy":"seed","success_artifact_limit":"0","success_bytes_limit":"0","terminate_grace_nanos":"100000000","toolchain":{"build_key":"cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e","go_version":"go1.27.1","target_goarch":"arm64","target_goos":"darwin"},"world_transition_bytes":"64"},"portable_plan":{"campaign":{"artifacts":{"failure_artifacts":"1","failure_bytes":"1146421480","failure_outcome":"infrastructure_failure","success_artifacts":"0","success_bytes":"0","success_outcome":"infrastructure_failure","total_bytes":"1146421480","transcript_bytes":"67108864"},"choice_profile":{"implementation_sha256":"sha256:9f0269d403c2223461799303ccefcd1cf0ca7ebff499df9bf36e7244775ed153","limit":"1048576","name":"gomad3-choice-trace/v3"},"coverage":"none","environment":[{"name":"GOMAD3_CHOICE_PROFILE","value":"gomad3-choice-trace/v3"},{"name":"GOMAD3_IO_PROFILE","value":"gomad3-deterministic/v1"},{"name":"MODE","value":"test"}],"execution_timeout_nanos":"1000000000","failure_budget":"1","io_profile":{"implementation_sha256":"sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0","inventory_sha256":"sha256:0d34edfc0ab13c693b78d514ca1a72a9adc196fe61e2142dba108c0ff47358f7","name":"gomad3-deterministic/v1"},"io_ro_mount_limits":{"directory_entries":"100000","files":"10000","path_bytes":"4096","requests":"100000","single_file_bytes":"16777216","total_bytes":"67108864"},"io_ro_mounts":[],"journal":{"capacity_outcome":"infrastructure_failure","maximum_bytes":"1048576","maximum_executions":"1","maximum_partial_executions":"1","maximum_segments":"1","segment_bytes":"1048576","segment_records":"1024"},"keep_successes":"none","on_failure":"all","output_bytes":"64","overall_timeout_nanos":"10000000000","parallel":"1","prepared":{"path":".prepared/target","target":{"adapters":[],"argv":["gomad3-target"],"build_info":{"go_version":"go1.27.1","main_module":"","path":"example.com/target","settings":null},"build_tags":[],"capability_mode":"closure","compatibility":[],"file":"","kind":"go-run","sha256":"sha256:cd613b764a4e634182274f0df5e7c860bac9eeb8e4b6e0be6f394c722400985c","size":"20","source":"."}},"required_semantic_probes":null,"runner_build":"sha256:0000000000000000000000000000000000000000000000000000000000000000","schema":"gomad3.campaign-plan/v1","selection":"7","selection_count":"1","simulation_dimension_limits":{"crash":0,"fault":0,"network":0,"runtime":0,"scenario":0,"storage":0},"strategy":"seed","success_artifact_limit":"0","success_bytes_limit":"0","terminate_grace_nanos":"100000000","toolchain":{"build_key":"cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e","go_version":"go1.27.1","target_goarch":"arm64","target_goos":"darwin"},"world_transition_bytes":"64"},"mapping":"ordinal-modulo/v1","schema":"gomad3.campaign-plan/v1"},"portable_plan_sha256":"sha256:349fb8eedaff395d7157643b0bd609bedec401ac81f31a0eaaee3b3a6deee5e6"}
+\ No newline at end of file
++{"artifact":{"artifact_kind":"gomad3.target-failure/v1","campaign_id":"fixed-campaign","choice_profile":{"implementation_sha256":"sha256:c5bd3f6abcf0ed320ef699d4b2120e217ddd49e96f3010eaed090bafb9b79ea4","name":"gomad3-choice-trace/v3","trace":{"branching_records":"1","bytes":"96","decisions":"1","file":"choices.bin","limit":"1048576","records":"1","schema":"gomad3.choice-trace/v3","sha256":"sha256:46632e482bdde1a1cb09c70ee60b700e110a29a1a1399f4519a9613ecddbf894","tape_sha256":"sha256:16a035229a88c07f4ffb76de2ffdbfa2ad83e78f5e52b0c26606683d8b09c51a","terminal_state":"complete"}},"created_at":"2026-10-02T00:00:00Z","environment":[{"name":"GOMAD3_CHOICE_PROFILE","value":"gomad3-choice-trace/v3"},{"name":"GOMAD3_IO_PROFILE","value":"gomad3-deterministic/v1"},{"name":"GOMADSEED","value":"7"},{"name":"MODE","value":"test"},{"name":"TZ","value":"UTC"}],"files":[{"mode":"0600","path":"choices.bin","sha256":"sha256:46632e482bdde1a1cb09c70ee60b700e110a29a1a1399f4519a9613ecddbf894","size":"96"},{"mode":"0600","path":"stderr","sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","size":"0"},{"mode":"0600","path":"stdout","sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","size":"0"},{"mode":"0700","path":"target","sha256":"sha256:cd613b764a4e634182274f0df5e7c860bac9eeb8e4b6e0be6f394c722400985c","size":"20"},{"mode":"0600","path":"world/final-snapshot.json","sha256":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b","size":"4"},{"mode":"0600","path":"world/snapshot.json","sha256":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b","size":"4"},{"mode":"0600","path":"world/transitions.jsonl","sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","size":"0"}],"host":{"elapsed_nanos":"0","finished_at":"2026-10-02T00:00:00Z","started_at":"2026-10-02T00:00:00Z"},"io_profile":{"implementation_sha256":"sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0","inventory":"{\"boundary_manifest_sha256\":\"sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0\",\"boundary_manifest_version\":\"go1.27.1-v1\",\"entries\":[{\"boundary\":\"crypto/rand\",\"disposition\":\"in-memory\",\"operations\":[\"Reader.Read\",\"Read\"]},{\"boundary\":\"filesystem\",\"disposition\":\"in-memory\",\"operations\":[\"open\",\"read\",\"write\",\"stat\",\"rename\",\"remove\",\"mkdir\",\"map\"]},{\"boundary\":\"io-transcript\",\"disposition\":\"shared-memory\",\"operations\":[\"expected-replay\",\"record\",\"terminal\"]},{\"boundary\":\"github.com/Masterminds/sprig/v3\",\"disposition\":\"target-adapter\",\"operations\":[\"host-dns-refusal\"]},{\"boundary\":\"github.com/cactus/go-statsd-client/v5\",\"disposition\":\"target-adapter\",\"operations\":[\"udp-sender-refusal\"]},{\"boundary\":\"github.com/cockroachdb/pebble\",\"disposition\":\"target-adapter\",\"operations\":[\"os-file-construction-refusal\",\"hard-link-refusal\"]},{\"boundary\":\"github.com/getsentry/sentry-go\",\"disposition\":\"target-adapter\",\"operations\":[\"optional-git-release-suppression\"]},{\"boundary\":\"github.com/go-playground/validator/v10\",\"disposition\":\"target-adapter\",\"operations\":[\"address-resolution-refusal\"]},{\"boundary\":\"github.com/hashicorp/go-metrics\",\"disposition\":\"target-adapter\",\"operations\":[\"signal-service-refusal\"]},{\"boundary\":\"github.com/hashicorp/go-sockaddr\",\"disposition\":\"target-adapter\",\"operations\":[\"route-command-denial\",\"interface-discovery-refusal\",\"literal-address-parsing\"]},{\"boundary\":\"github.com/hashicorp/memberlist\",\"disposition\":\"target-adapter\",\"operations\":[\"native-udp-transport-refusal\"]},{\"boundary\":\"go.opentelemetry.io/otel/sdk\",\"disposition\":\"target-adapter\",\"operations\":[\"process-owner-placeholder\",\"uname-placeholder\",\"host-command-denial\"]},{\"boundary\":\"go.temporal.io/sdk\",\"disposition\":\"target-adapter\",\"operations\":[\"interrupt-channel-suppression\"]},{\"boundary\":\"go.uber.org/fx\",\"disposition\":\"target-adapter\",\"operations\":[\"signal-relay-suppression\"]},{\"boundary\":\"golang.org/x/net\",\"disposition\":\"target-adapter\",\"operations\":[\"raw-socket-option-denial\"]},{\"boundary\":\"google.golang.org/grpc\",\"disposition\":\"target-adapter\",\"operations\":[\"virtual-tcp-keepalive-suppression\",\"portable-syscall-removal\",\"host-dns-refusal\"]},{\"boundary\":\"modernc.org/libc\",\"disposition\":\"target-adapter\",\"operations\":[\"filesystem\",\"entropy\",\"time\"]},{\"boundary\":\"modernc.org/memory\",\"disposition\":\"target-adapter\",\"operations\":[\"anonymous-memory\"]},{\"boundary\":\"net\",\"disposition\":\"in-memory\",\"operations\":[\"Dial\",\"DialTCP\",\"Dialer.DialContext\",\"Listen\",\"ListenConfig.Listen\",\"ListenTCP\",\"Resolver.LookupIPAddr(localhost)\"]},{\"boundary\":\"os.read-only-mount\",\"disposition\":\"lazy-in-memory\",\"operations\":[\"open\",\"read\",\"stat\",\"readdir\"]}],\"platform\":\"darwin/arm64\",\"profile\":\"gomad3-deterministic/v1\",\"reserved_fds\":[\"bootstrap\",\"expected-transcript\",\"io-config\",\"io-terminal\",\"stderr\",\"stdout\",\"transcript\",\"world-config\",\"world-record\",\"read-only-mount-request\",\"read-only-mount-response\"],\"schema\":\"gomad3.io-inventory/v1\"}","inventory_sha256":"sha256:0d34edfc0ab13c693b78d514ca1a72a9adc196fe61e2142dba108c0ff47358f7","name":"gomad3-deterministic/v1"},"limits":{"choice_trace_bytes":"1048576","execution_timeout_nanos":"1000000000","io_transcript_bytes":"67108864","output_bytes":"64","overall_timeout_nanos":"10000000000","terminate_grace_nanos":"100000000","world_transition_bytes":"64"},"outcome":{"deadline":null,"domain":"target","exit_code":"1","failure_signature":"sha256:2d458930b766d5e45fe83d9e86e2947b9aa006f702821cdb8c0b83419d8da4d4","reason":"nonzero_exit","replay_match":null,"signal":null,"termination":"exit"},"record_hash":"sha256:0f07763f8dd5f9ee14e3fc15e715c820b79edb399bea1b5177db47b2d23364ab","replay_mode":"exact","runner":{"host_arch":"arm64","host_os":"darwin","record_contract":"gomad3.execution-record/v1","runner_build":"sha256:0000000000000000000000000000000000000000000000000000000000000000"},"schema_version":1,"seed":"7","selection_ordinal":"0","streams":{"stderr":{"discarded_bytes":"0","file":"stderr","full_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","retained_bytes":"0","retained_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","total_bytes":"0","truncated":false},"stdout":{"discarded_bytes":"0","file":"stdout","full_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","retained_bytes":"0","retained_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","total_bytes":"0","truncated":false}},"target":{"adapters":[],"argv":["gomad3-target"],"build_info":{"go_version":"go1.27.1","main_module":"","path":"example.com/target","settings":null},"build_tags":[],"capability_mode":"closure","compatibility":[],"file":"target","kind":"go-run","sha256":"sha256:cd613b764a4e634182274f0df5e7c860bac9eeb8e4b6e0be6f394c722400985c","size":"20","source":"."},"toolchain":{"build_key":"cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e","go_version":"go1.27.1","target_goarch":"arm64","target_goos":"darwin"},"world":{"adapters":[],"final":{"file":"world/final-snapshot.json","raw_sha256":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b","schema":"gomad3.world.snapshot/none","semantic_digest":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"},"initial":{"file":"world/snapshot.json","raw_sha256":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b","schema":"gomad3.world.snapshot/none","semantic_digest":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"},"terminal":{"kind":"none"},"transitions":{"count":"0","file":"world/transitions.jsonl","raw_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","schema":"gomad3.world.transitions/none","transcript_digest":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}}},"campaign_plan":{"artifacts":{"failure_artifacts":"1","failure_bytes":"1146421480","failure_outcome":"infrastructure_failure","success_artifacts":"0","success_bytes":"0","success_outcome":"infrastructure_failure","total_bytes":"1146421480","transcript_bytes":"67108864"},"choice_profile":{"implementation_sha256":"sha256:c5bd3f6abcf0ed320ef699d4b2120e217ddd49e96f3010eaed090bafb9b79ea4","limit":"1048576","name":"gomad3-choice-trace/v3"},"coverage":"none","environment":[{"name":"GOMAD3_CHOICE_PROFILE","value":"gomad3-choice-trace/v3"},{"name":"GOMAD3_IO_PROFILE","value":"gomad3-deterministic/v1"},{"name":"MODE","value":"test"}],"execution_timeout_nanos":"1000000000","failure_budget":"1","io_profile":{"implementation_sha256":"sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0","inventory_sha256":"sha256:0d34edfc0ab13c693b78d514ca1a72a9adc196fe61e2142dba108c0ff47358f7","name":"gomad3-deterministic/v1"},"io_ro_mount_limits":{"directory_entries":"100000","files":"10000","path_bytes":"4096","requests":"100000","single_file_bytes":"16777216","total_bytes":"67108864"},"io_ro_mounts":[],"journal":{"capacity_outcome":"infrastructure_failure","maximum_bytes":"1048576","maximum_executions":"1","maximum_partial_executions":"1","maximum_segments":"1","segment_bytes":"1048576","segment_records":"1024"},"keep_successes":"none","on_failure":"all","output_bytes":"64","overall_timeout_nanos":"10000000000","parallel":"1","prepared":{"path":".prepared/target","target":{"adapters":[],"argv":["gomad3-target"],"build_info":{"go_version":"go1.27.1","main_module":"","path":"example.com/target","settings":null},"build_tags":[],"capability_mode":"closure","compatibility":[],"file":"","kind":"go-run","sha256":"sha256:cd613b764a4e634182274f0df5e7c860bac9eeb8e4b6e0be6f394c722400985c","size":"20","source":"."}},"required_semantic_probes":null,"runner_build":"sha256:0000000000000000000000000000000000000000000000000000000000000000","schema":"gomad3.campaign-plan/v1","selection":"7","selection_count":"1","simulation_dimension_limits":{"crash":0,"fault":0,"network":0,"runtime":0,"scenario":0,"storage":0},"strategy":"seed","success_artifact_limit":"0","success_bytes_limit":"0","terminate_grace_nanos":"100000000","toolchain":{"build_key":"cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e","go_version":"go1.27.1","target_goarch":"arm64","target_goos":"darwin"},"world_transition_bytes":"64"},"portable_plan":{"campaign":{"artifacts":{"failure_artifacts":"1","failure_bytes":"1146421480","failure_outcome":"infrastructure_failure","success_artifacts":"0","success_bytes":"0","success_outcome":"infrastructure_failure","total_bytes":"1146421480","transcript_bytes":"67108864"},"choice_profile":{"implementation_sha256":"sha256:c5bd3f6abcf0ed320ef699d4b2120e217ddd49e96f3010eaed090bafb9b79ea4","limit":"1048576","name":"gomad3-choice-trace/v3"},"coverage":"none","environment":[{"name":"GOMAD3_CHOICE_PROFILE","value":"gomad3-choice-trace/v3"},{"name":"GOMAD3_IO_PROFILE","value":"gomad3-deterministic/v1"},{"name":"MODE","value":"test"}],"execution_timeout_nanos":"1000000000","failure_budget":"1","io_profile":{"implementation_sha256":"sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0","inventory_sha256":"sha256:0d34edfc0ab13c693b78d514ca1a72a9adc196fe61e2142dba108c0ff47358f7","name":"gomad3-deterministic/v1"},"io_ro_mount_limits":{"directory_entries":"100000","files":"10000","path_bytes":"4096","requests":"100000","single_file_bytes":"16777216","total_bytes":"67108864"},"io_ro_mounts":[],"journal":{"capacity_outcome":"infrastructure_failure","maximum_bytes":"1048576","maximum_executions":"1","maximum_partial_executions":"1","maximum_segments":"1","segment_bytes":"1048576","segment_records":"1024"},"keep_successes":"none","on_failure":"all","output_bytes":"64","overall_timeout_nanos":"10000000000","parallel":"1","prepared":{"path":".prepared/target","target":{"adapters":[],"argv":["gomad3-target"],"build_info":{"go_version":"go1.27.1","main_module":"","path":"example.com/target","settings":null},"build_tags":[],"capability_mode":"closure","compatibility":[],"file":"","kind":"go-run","sha256":"sha256:cd613b764a4e634182274f0df5e7c860bac9eeb8e4b6e0be6f394c722400985c","size":"20","source":"."}},"required_semantic_probes":null,"runner_build":"sha256:0000000000000000000000000000000000000000000000000000000000000000","schema":"gomad3.campaign-plan/v1","selection":"7","selection_count":"1","simulation_dimension_limits":{"crash":0,"fault":0,"network":0,"runtime":0,"scenario":0,"storage":0},"strategy":"seed","success_artifact_limit":"0","success_bytes_limit":"0","terminate_grace_nanos":"100000000","toolchain":{"build_key":"cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e","go_version":"go1.27.1","target_goarch":"arm64","target_goos":"darwin"},"world_transition_bytes":"64"},"mapping":"ordinal-modulo/v1","schema":"gomad3.campaign-plan/v1"},"portable_plan_sha256":"sha256:55b49d9d1f911159d9753dba831dbfeb6af1b1a0ca7366f2195b98b1cded185e"}
+\ No newline at end of file
+diff --git a/tools/gomad3/target/internal/livecap/protocol_generated.go b/tools/gomad3/target/internal/livecap/protocol_generated.go
+index e71389a815..6d43b60890 100644
+--- a/tools/gomad3/target/internal/livecap/protocol_generated.go
++++ b/tools/gomad3/target/internal/livecap/protocol_generated.go
+@@ -31,8 +31,8 @@ const (
+ 	MaximumFacts                 = 100000
+ 	MaximumStringBytes           = 4096
+ 	MaximumOwnerFacts            = 4096
+-	ProducerImplementationSHA256 = "sha256:c1b1d13418e5b8a62557cb4baa6989458851b4cfa9bf529d6c7ad875bad994f2"
+-	GuardImplementationSHA256    = "sha256:c1b1d13418e5b8a62557cb4baa6989458851b4cfa9bf529d6c7ad875bad994f2"
++	ProducerImplementationSHA256 = "sha256:875ed4efa3ec3f654d62823955788f7bffbedb761b9c54c34cb9d53d341e1d0f"
++	GuardImplementationSHA256    = "sha256:875ed4efa3ec3f654d62823955788f7bffbedb761b9c54c34cb9d53d341e1d0f"
+ 	CapabilityUniverseSHA256     = "sha256:d919ef8e9695c3dfc0c4f46155c52ed9bfb5715cbefb1e37c586a3d69f8417dd"
+ 	BoundaryManifestSHA256       = "sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0"
+ )
+diff --git a/tools/gomad3/target/internal/livecap/toolchain_test.go b/tools/gomad3/target/internal/livecap/toolchain_test.go
+index c60e742d39..ff9e3799be 100644
+--- a/tools/gomad3/target/internal/livecap/toolchain_test.go
++++ b/tools/gomad3/target/internal/livecap/toolchain_test.go
+@@ -385,11 +385,11 @@ func runToolchainCommand(t *testing.T, directory, command string, arguments ...s
+ 	process.Dir = directory
+ 	process.Env = make([]string, 0, len(os.Environ())+3)
+ 	for _, entry := range os.Environ() {
+-		if !strings.HasPrefix(entry, "GOCACHE=") {
++		if !strings.HasPrefix(entry, "GOCACHE=") && !strings.HasPrefix(entry, "GOEXPERIMENT=") {
+ 			process.Env = append(process.Env, entry)
+ 		}
+ 	}
+-	process.Env = append(process.Env, "GOWORK=off", "CGO_ENABLED=0", "GOCACHE="+buildCache)
++	process.Env = append(process.Env, "GOWORK=off", "CGO_ENABLED=0", "GOEXPERIMENT=nogreenteagc", "GOCACHE="+buildCache)
+ 	output, err := process.CombinedOutput()
+ 	if err != nil {
+ 		t.Fatalf("%s %s: %v: %s", command, strings.Join(arguments, " "), err, output)
+diff --git a/tools/gomad3/toolchain/runtime/go1.27.1.patch b/tools/gomad3/toolchain/runtime/go1.27.1.patch
+index ef6e1090a6..e0c069d900 100644
+--- a/tools/gomad3/toolchain/runtime/go1.27.1.patch
++++ b/tools/gomad3/toolchain/runtime/go1.27.1.patch
+@@ -100,6 +100,19 @@ index 6f21c54..2e53160 100644
+  
+  	if haveStackLock {
+  		goto useStackLock
++diff --git a/src/runtime/os_linux.go b/src/runtime/os_linux.go
++index 0474e6c..73d5e83 100644
++--- a/src/runtime/os_linux.go
+++++ b/src/runtime/os_linux.go
++@@ -677,7 +677,7 @@ func setThreadCPUProfiler(hz int32) {
++ 	// activates may do a couple milliseconds of GC-related work and nothing
++ 	// else in the few seconds that the profiler observes.
++ 	spec := new(itimerspec)
++-	spec.it_value.setNsec(1 + int64(cheaprandn(uint32(1e9/hz))))
+++	spec.it_value.setNsec(1 + int64(gomadHostCheapRandN(uint32(1e9/hz))))
++ 	spec.it_interval.setNsec(1e9 / int64(hz))
++ 
++ 	var timerid int32
+ diff --git a/src/runtime/panic.go b/src/runtime/panic.go
+ index f28807d..d2fe134 100644
+ --- a/src/runtime/panic.go
+@@ -130,7 +143,7 @@ index 892f900..48e285b 100644
+  	stopped := false
+  	var asyncM *m
+ diff --git a/src/runtime/proc.go b/src/runtime/proc.go
+-index b8d4d15..c609a62 100644
++index b8d4d15..22aedd0 100644
+ --- a/src/runtime/proc.go
+ +++ b/src/runtime/proc.go
+ @@ -257,6 +257,10 @@ func main() {
+@@ -221,18 +234,20 @@ index b8d4d15..c609a62 100644
+  		lock(&sched.lock)
+  		gp := globrunqget()
+  		unlock(&sched.lock)
+-@@ -3491,6 +3515,11 @@ top:
++@@ -3491,7 +3515,12 @@ top:
+  		gp, q := globrunqgetbatch(int32(len(pp.runq)) / 2)
+  		unlock(&sched.lock)
+  		if gp != nil {
++-			if runqputbatch(pp, &q); !q.empty() {
+ +			if gomadEnabled {
+ +				q.push(gp)
+ +				gp, inheritTime := gomadAdmit(pp, &q)
+ +				return gp, inheritTime, false
+ +			}
+- 			if runqputbatch(pp, &q); !q.empty() {
+++			if runqputbatch(pp, &q, gomadBatchTarget); !q.empty() {
+  				throw("Couldn't put Gs into empty local runq")
+  			}
++ 			return gp, false, false
+ @@ -3556,7 +3585,7 @@ top:
+  	//
+  	// If we're in the GC mark phase, can safely scan and blacken objects,
+@@ -246,12 +261,13 @@ index b8d4d15..c609a62 100644
+  		if gp == nil {
+  			throw("global runq empty with non-zero runqsize")
+  		}
++-		if runqputbatch(pp, &q); !q.empty() {
+ +		if gomadEnabled {
+ +			q.push(gp)
+ +			gp, inheritTime := gomadAdmit(pp, &q)
+ +			return gp, inheritTime, false
+ +		}
+- 		if runqputbatch(pp, &q); !q.empty() {
+++		if runqputbatch(pp, &q, gomadBatchTarget); !q.empty() {
+  			throw("Couldn't put Gs into empty local runq")
+  		}
+  		return gp, false, false
+@@ -267,6 +283,15 @@ index b8d4d15..c609a62 100644
+  	if !mp.spinning && sched.needspinning.Load() == 1 {
+  		// See "Delicate dance" comment below.
+  		mp.becomeSpinning()
++@@ -3697,7 +3739,7 @@ top:
++ 				if gp == nil {
++ 					throw("global runq empty with non-zero runqsize")
++ 				}
++-				if runqputbatch(pp, &q); !q.empty() {
+++				if runqputbatch(pp, &q, gomadBatchHost); !q.empty() {
++ 					throw("Couldn't put Gs into empty local runq")
++ 				}
++ 				acquirep(pp)
+ @@ -3849,7 +3891,7 @@ func stealWork(now int64) (gp *g, inheritTime bool, rnow, pollUntil int64, newWo
+  	for i := 0; i < stealTries; i++ {
+  		stealTimersOrRunNextG := i == stealTries-1
+@@ -276,6 +301,15 @@ index b8d4d15..c609a62 100644
+  			if sched.gcwaiting.Load() {
+  				// GC work may be available.
+  				return nil, false, now, pollUntil, true
++@@ -4123,7 +4165,7 @@ func injectglist(glist *gList) {
++ 		startIdle(n)
++ 	}
++ 
++-	if runqputbatch(pp, &q); !q.empty() {
+++	if runqputbatch(pp, &q, gomadBatchHost); !q.empty() {
++ 		lock(&sched.lock)
++ 		globrunqputbatch(&q)
++ 		unlock(&sched.lock)
+ @@ -5081,7 +5123,7 @@ func exitsyscallTryGetP(oldp *p) *p {
+  	}
+  
+@@ -566,16 +600,39 @@ index b8d4d15..c609a62 100644
+  			batch[i], batch[j] = batch[j], batch[i]
+  		}
+  	}
+-@@ -7632,7 +7803,7 @@ func runqputbatch(pp *p, q *gQueue) {
++@@ -7613,7 +7784,7 @@ func runqputslow(pp *p, gp *g, h, t uint32) bool {
++ // runqputbatch tries to put all the G's on q on the local runnable queue.
++ // If the local runq is full the input queue still contains unqueued Gs.
++ // Executed only by the owner P.
++-func runqputbatch(pp *p, q *gQueue) {
+++func runqputbatch(pp *p, q *gQueue, origin gomadBatchOrigin) {
++ 	if q.empty() {
++ 		return
++ 	}
++@@ -7631,10 +7802,21 @@ func runqputbatch(pp *p, q *gQueue) {
++ 		off := func(o uint32) uint32 {
+  			return (pp.runqtail + o) % uint32(len(pp.runq))
+  		}
+++		mp := getg().m
+++		previousHostDrawScope := mp.gomadHostDrawScope
+++		if gomadDiagnosticEnabled && origin == gomadBatchHost {
+++			mp.gomadHostDrawScope = true
+++		}
+  		for i := uint32(1); i < n; i++ {
+ -			j := cheaprandn(i + 1)
+-+			j := gomadChoiceShuffleSeeded(i + 1)
+++			var j uint32
+++			if origin == gomadBatchHost {
+++				j = gomadHostCheapRandN(i + 1)
+++			} else {
+++				j = gomadChoiceShuffleSeeded(i + 1)
+++			}
+  			pp.runq[off(i)], pp.runq[off(j)] = pp.runq[off(j)], pp.runq[off(i)]
+  		}
+++		mp.gomadHostDrawScope = previousHostDrawScope
+  	}
+-@@ -7656,6 +7827,20 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
++ 
++ 	atomic.StoreRel(&pp.runqtail, t)
++@@ -7656,6 +7838,19 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
+  		return next.ptr(), true
+  	}
+  
+@@ -583,8 +640,7 @@ index b8d4d15..c609a62 100644
+ +		h := atomic.LoadAcq(&pp.runqhead)
+ +		t := pp.runqtail
+ +		if t-h > 1 {
+-+			offset := gomadChoiceRunqSeeded(t - h)
+-+			offset = gomadChoiceRunqIndex(pp, h, t, offset)
+++			offset := gomadChoiceRunqIndex(pp, h, t)
+ +			index := (h + offset) % uint32(len(pp.runq))
+ +			gp := pp.runq[index].ptr()
+ +			pp.runq[index] = pp.runq[h%uint32(len(pp.runq))]
+@@ -646,7 +702,7 @@ index d2ad7aa..6dd89d8 100644
+  	// Only the platform that supports 64-bit multiplication
+  	// natively should be allowed.
+ diff --git a/src/runtime/runtime2.go b/src/runtime/runtime2.go
+-index 9e0e0df..8200d38 100644
++index 9e0e0df..fb21d82 100644
+ --- a/src/runtime/runtime2.go
+ +++ b/src/runtime/runtime2.go
+ @@ -501,13 +501,18 @@ type g struct {
+@@ -675,6 +731,86 @@ index 9e0e0df..8200d38 100644
+  
+  	preempt       bool // preemption signal, duplicates stackguard0 = stackpreempt
+  	preemptStop   bool // transition to _Gpreempted on preemption; otherwise, just deschedule
++@@ -641,42 +646,43 @@ type m struct {
++ 	// from transitioning out of _Gsyscall if it intends to mutate p.
++ 	p puintptr
++ 
++-	nextp           puintptr // The next P to install before executing. Implies exclusive ownership of this P.
++-	oldp            puintptr // The P that was attached before executing a syscall.
++-	id              int64
++-	mallocing       int32
++-	throwing        throwType
++-	preemptoff      string // if != "", keep curg running on this m
++-	locks           int32
++-	dying           int32
++-	profilehz       int32
++-	spinning        bool // m is out of work and is actively looking for work
++-	blocked         bool // m is blocked on a note
++-	newSigstack     bool // minit on C thread called sigaltstack
++-	printlock       int8
++-	incgo           bool          // m is executing a cgo call
++-	isextra         bool          // m is an extra m
++-	isExtraInC      bool          // m is an extra m that does not have any Go frames
++-	isExtraInSig    bool          // m is an extra m in a signal handler
++-	freeWait        atomic.Uint32 // Whether it is safe to free g0 and delete m (one of freeMRef, freeMStack, freeMWait)
++-	needextram      bool
++-	g0StackAccurate bool // whether the g0 stack has accurate bounds
++-	traceback       uint8
++-	allpSnapshot    []*p          // Snapshot of allp for use after dropping P in findRunnable, nil otherwise.
++-	ncgocall        uint64        // number of cgo calls in total
++-	ncgo            int32         // number of cgo calls currently in progress
++-	cgoCallersUse   atomic.Uint32 // if non-zero, cgoCallers in use temporarily
++-	cgoCallers      *cgoCallers   // cgo traceback if crashing in cgo call
++-	park            note
++-	alllink         *m // on allm
++-	schedlink       muintptr
++-	idleNode        listNodeManual
++-	lockedg         guintptr
++-	createstack     [32]uintptr // stack that created this thread, it's used for StackRecord.Stack0, so it must align with it.
++-	lockedExt       uint32      // tracking for external LockOSThread
++-	lockedInt       uint32      // tracking for internal lockOSThread
++-	mWaitList       mWaitList   // list of runtime lock waiters
++-	ditEnabled      bool        // set if DIT is currently enabled on this M
+++	nextp              puintptr // The next P to install before executing. Implies exclusive ownership of this P.
+++	oldp               puintptr // The P that was attached before executing a syscall.
+++	id                 int64
+++	mallocing          int32
+++	throwing           throwType
+++	preemptoff         string // if != "", keep curg running on this m
+++	locks              int32
+++	dying              int32
+++	profilehz          int32
+++	spinning           bool // m is out of work and is actively looking for work
+++	gomadHostDrawScope bool
+++	blocked            bool // m is blocked on a note
+++	newSigstack        bool // minit on C thread called sigaltstack
+++	printlock          int8
+++	incgo              bool          // m is executing a cgo call
+++	isextra            bool          // m is an extra m
+++	isExtraInC         bool          // m is an extra m that does not have any Go frames
+++	isExtraInSig       bool          // m is an extra m in a signal handler
+++	freeWait           atomic.Uint32 // Whether it is safe to free g0 and delete m (one of freeMRef, freeMStack, freeMWait)
+++	needextram         bool
+++	g0StackAccurate    bool // whether the g0 stack has accurate bounds
+++	traceback          uint8
+++	allpSnapshot       []*p          // Snapshot of allp for use after dropping P in findRunnable, nil otherwise.
+++	ncgocall           uint64        // number of cgo calls in total
+++	ncgo               int32         // number of cgo calls currently in progress
+++	cgoCallersUse      atomic.Uint32 // if non-zero, cgoCallers in use temporarily
+++	cgoCallers         *cgoCallers   // cgo traceback if crashing in cgo call
+++	park               note
+++	alllink            *m // on allm
+++	schedlink          muintptr
+++	idleNode           listNodeManual
+++	lockedg            guintptr
+++	createstack        [32]uintptr // stack that created this thread, it's used for StackRecord.Stack0, so it must align with it.
+++	lockedExt          uint32      // tracking for external LockOSThread
+++	lockedInt          uint32      // tracking for internal lockOSThread
+++	mWaitList          mWaitList   // list of runtime lock waiters
+++	ditEnabled         bool        // set if DIT is currently enabled on this M
++ 
++ 	mLockProfile mLockProfile // fields relating to runtime.lock contention
++ 	profStack    []uintptr    // used for memory/block/mutex stack traces
+ diff --git a/src/runtime/select.go b/src/runtime/select.go
+ index 553f696..e0df123 100644
+ --- a/src/runtime/select.go
+diff --git a/tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go b/tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go
+index cf5feb9030..094626c4ec 100644
+--- a/tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go
++++ b/tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go
+@@ -31,8 +31,8 @@ const (
+ 	MaximumFacts                 = 100000
+ 	MaximumStringBytes           = 4096
+ 	MaximumOwnerFacts            = 4096
+-	ProducerImplementationSHA256 = "sha256:c1b1d13418e5b8a62557cb4baa6989458851b4cfa9bf529d6c7ad875bad994f2"
+-	GuardImplementationSHA256    = "sha256:c1b1d13418e5b8a62557cb4baa6989458851b4cfa9bf529d6c7ad875bad994f2"
++	ProducerImplementationSHA256 = "sha256:875ed4efa3ec3f654d62823955788f7bffbedb761b9c54c34cb9d53d341e1d0f"
++	GuardImplementationSHA256    = "sha256:875ed4efa3ec3f654d62823955788f7bffbedb761b9c54c34cb9d53d341e1d0f"
+ 	CapabilityUniverseSHA256     = "sha256:d919ef8e9695c3dfc0c4f46155c52ed9bfb5715cbefb1e37c586a3d69f8417dd"
+ 	BoundaryManifestSHA256       = "sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0"
+ )
+diff --git a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/diagnostic_runtime_test.go b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/diagnostic_runtime_test.go
+index f8ac6d845b..2eb657b6fd 100644
+--- a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/diagnostic_runtime_test.go
++++ b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/diagnostic_runtime_test.go
+@@ -117,7 +117,7 @@ func TestDiagnosticTrace(t *testing.T) {
+ 	binary := filepath.Join(directory, "fixture")
+ 	build := exec.Command(testenv.GoToolPath(t), "build", "-o", binary, source)
+ 	build.Dir = directory
+-	build.Env = append(os.Environ(), "CGO_ENABLED=0", "GOFLAGS=", "GOWORK=off")
++	build.Env = append(os.Environ(), "CGO_ENABLED=0", "GOEXPERIMENT=nogreenteagc", "GOFLAGS=", "GOWORK=off")
+ 	if output, err := build.CombinedOutput(); err != nil {
+ 		t.Fatalf("build fixture: %v\n%s", err, output)
+ 	}
+diff --git a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go
+index eefc869bc8..d55d373ca6 100644
+--- a/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go
++++ b/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go
+@@ -28,7 +28,7 @@ var (
+ 	traceMagic                 = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'H', '\x03'}
+ 	tapeMagic                  = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'P', '\x03'}
+ 	terminalMagic              = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'T', '\x03'}
+-	ImplementationSourceSHA256 = [DigestBytes]byte{'ê', '`', '¶', 'x', '{', 'ë', '\x13', 'Ñ', '\u008a', '{', '©', 's', 'ý', '£', '#', '¬', '\u008d', '»', 'È', '\u0097', '£', 'Î', '\u009d', '\u009d', 'Õ', '1', '8', 'Þ', '×', 'N', '`', '\u0080'}
++	ImplementationSourceSHA256 = [DigestBytes]byte{'c', '@', '\u0096', '\u009e', 'ü', 'r', 'ë', '5', '\u008e', '¢', '\u009c', 'M', 'I', '\u0086', 'j', 'É', 'ó', 'Z', 'W', ',', 'J', 'm', 'É', ' ', 'Ú', 'Ü', '·', 'ð', 'ü', 'S', '¢', 'ù'}
+ )
+ 
+ type Kind uint8
+diff --git a/tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go b/tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go
+index e9948191c2..1ef8b72b9d 100644
+--- a/tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go
++++ b/tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go
+@@ -9,6 +9,7 @@ import (
+ 
+ 	"internal/chacha8rand"
+ 	"internal/goarch"
++	"internal/goexperiment"
+ 	"internal/runtime/atomic"
+ 	"internal/runtime/exithook"
+ 	"math/bits"
+@@ -68,6 +69,22 @@ var gomadDiagnosticMapping unsafe.Pointer
+ var gomadDiagnosticMappingBytes uint64
+ var gomadDiagnosticPerturb bool
+ var gomadDiagnosticPerturbOrdinal uint64
++var gomadDiagnosticPerturbHost bool
++
++type gomadBatchOrigin uint8
++
++const (
++	gomadBatchTarget gomadBatchOrigin = iota
++	gomadBatchHost
++)
++
++//go:nosplit
++func gomadDiagnosticCheckSeededDraw(mp *m) {
++	if gomadDiagnosticEnabled && mp.gomadHostDrawScope {
++		print("runtime: Gomad host-timed seeded draw\n")
++		exit(2)
++	}
++}
+ 
+ // gomadDiagnosticDraws counts the draws taken from each seeded stream since
+ // the process started. The counts are kept whether or not a diagnostic trace
+@@ -131,6 +148,10 @@ func gomadInit() {
+ 		print("runtime: GOMADSEED does not support cgo or external linking\n")
+ 		exit(2)
+ 	}
++	if goexperiment.GreenTeaGC {
++		print("runtime: GOMADSEED requires GOEXPERIMENT=nogreenteagc\n")
++		exit(2)
++	}
+ 
+ 	gomadClockTickInit(seed)
+ 	gomadEnabled = true
+@@ -174,6 +195,7 @@ func gomadClockTickInit(seed uint64) {
+ }
+ 
+ func gomadClockTickDraw() int64 {
++	gomadDiagnosticCheckSeededDraw(getg().m)
+ 	gomadDiagnosticDraws.clockTick++
+ 	gomadClockTickState += 0x9e3779b97f4a7c15
+ 	value := gomadClockTickState
+@@ -334,6 +356,11 @@ func gomadDiagnosticInit() {
+ 	bytesValue, bytesPresent := gomadEnvEarly("GOMAD3_DIAGNOSTIC_TRACE_BYTES=")
+ 	descriptor, descriptorOK := gomadParseSeed(descriptorValue)
+ 	mappingBytes, bytesOK := gomadParseSeed(bytesValue)
++	perturbHost := false
++	if len(perturbValue) >= 5 && perturbValue[:5] == "host:" {
++		perturbHost = true
++		perturbValue = perturbValue[5:]
++	}
+ 	perturbOrdinal, perturbOK := gomadParseSeed(perturbValue)
+ 	if !enabled || !gomadChoiceEnabled || !bytesPresent || !descriptorOK || !bytesOK || perturbPresent && !perturbOK || descriptor > 1<<31-1 || mappingBytes < gomadDiagnosticHeaderBytes+gomadDiagnosticRecordBytes || mappingBytes > gomadDiagnosticMaximumBytes {
+ 		print("runtime: invalid Gomad diagnostic trace configuration\n")
+@@ -360,6 +387,7 @@ func gomadDiagnosticInit() {
+ 	gomadDiagnosticMappingBytes = mappingBytes
+ 	gomadDiagnosticPerturb = perturbPresent
+ 	gomadDiagnosticPerturbOrdinal = perturbOrdinal
++	gomadDiagnosticPerturbHost = perturbHost
+ }
+ 
+ // gomadDiagnosticAppend writes the digest for the choice record just appended
+@@ -373,7 +401,11 @@ func gomadDiagnosticAppend(ordinal uint64) {
+ 	// The perturbation stands in for a host-timed draw from the process-wide
+ 	// stream, so that a fixture can show the differ naming this ordinal.
+ 	if gomadDiagnosticPerturb && ordinal == gomadDiagnosticPerturbOrdinal {
++		if gomadDiagnosticPerturbHost {
++			getg().m.gomadHostDrawScope = true
++		}
+ 		gomadRuntimeCheapRand()
++		getg().m.gomadHostDrawScope = false
+ 	}
+ 	bytes := unsafe.Slice((*byte)(gomadDiagnosticMapping), int(gomadDiagnosticMappingBytes))
+ 	offset := gomadDiagnosticHeaderBytes + ordinal*gomadDiagnosticRecordBytes
+@@ -592,6 +624,7 @@ var gomadTimerRandom uint32
+ 
+ //go:nosplit
+ func gomadTimerRand() uint32 {
++	gomadDiagnosticCheckSeededDraw(getg().m)
+ 	gomadDiagnosticDraws.timer++
+ 	gomadTimerRandom += 0xa0761d65
+ 	value := uint64(gomadTimerRandom) * 0xe7037ed1a0b428db
+@@ -611,6 +644,7 @@ var gomadRuntimeCheapRandom uint32
+ 
+ //go:nosplit
+ func gomadRuntimeRand(mp *m) uint64 {
++	gomadDiagnosticCheckSeededDraw(mp)
+ 	gomadDiagnosticDraws.runtimeRand++
+ 	for {
+ 		x, ok := gomadRuntimeRandom.Next()
+@@ -625,6 +659,7 @@ func gomadRuntimeRand(mp *m) uint64 {
+ 
+ //go:nosplit
+ func gomadRuntimeCheapRand() uint32 {
++	gomadDiagnosticCheckSeededDraw(getg().m)
+ 	gomadDiagnosticDraws.runtimeCheapRand++
+ 	gomadRuntimeCheapRandom += 0x53c5ca59
+ 	hi, lo := bits.Mul32(gomadRuntimeCheapRandom, gomadRuntimeCheapRandom^0x74743c1b)
+@@ -675,6 +710,7 @@ func gomadChoiceRunqSeeded(n uint32) uint32 {
+ 	if !gomadEnabled {
+ 		return randn(n)
+ 	}
++	gomadDiagnosticCheckSeededDraw(getg().m)
+ 	gomadDiagnosticDraws.runq++
+ 	return gomadChoiceRandom(&gomadChoiceRunqRandom, n)
+ }
+@@ -683,6 +719,7 @@ func gomadChoiceRunnextSeeded(n uint32) uint32 {
+ 	if !gomadEnabled {
+ 		return randn(n)
+ 	}
++	gomadDiagnosticCheckSeededDraw(getg().m)
+ 	gomadDiagnosticDraws.scheduler++
+ 	return gomadChoiceRandom(&gomadChoiceSchedulerRandom, n)
+ }
+@@ -691,6 +728,7 @@ func gomadChoiceShuffleSeeded(n uint32) uint32 {
+ 	if !gomadEnabled {
+ 		return cheaprandn(n)
+ 	}
++	gomadDiagnosticCheckSeededDraw(getg().m)
+ 	gomadDiagnosticDraws.scheduler++
+ 	return gomadChoiceRandom(&gomadChoiceSchedulerRandom, n)
+ }
+@@ -709,6 +747,7 @@ func gomadChoiceSelectSeeded(n uint32) uint32 {
+ 	if !gomadEnabled {
+ 		return cheaprandn(n)
+ 	}
++	gomadDiagnosticCheckSeededDraw(getg().m)
+ 	gomadDiagnosticDraws.selectPoll++
+ 	gomadChoiceSelectRandom += 0xa0761d6478bd642f
+ 	if goarch.IsAmd64|goarch.IsArm64|goarch.IsPpc64|
+@@ -1083,24 +1122,38 @@ func gomadChoiceTimerFired(previous gomadChoiceTimerIdentity) {
+ // scheduler is the only user.
+ var gomadChoiceSchedulerAlternatives [gomadChoiceMaximumAlternatives][32]byte
+ var gomadChoiceSchedulerOrdered [gomadChoiceMaximumAlternatives][32]byte
++var gomadChoiceSchedulerOffsets [gomadChoiceMaximumAlternatives]uint32
+ 
+-func gomadChoiceRunqIndex(pp *p, head, tail, seeded uint32) uint32 {
+-	if !gomadChoiceEnabled {
+-		return seeded
+-	}
++func gomadChoiceRunqIndex(pp *p, head, tail uint32) uint32 {
+ 	count := tail - head
+ 	alternatives := &gomadChoiceSchedulerAlternatives
+ 	if count > uint32(len(alternatives)) {
+ 		gomadChoiceDivergeCurrent(gomadChoiceDivergenceAlternativeCapacity)
+ 	}
++	// Removing the queue head on every dispatch lets both classes advance:
++	// a yielding system goroutine rejoins behind the queued user work.
++	if isSystemGoroutine(pp.runq[head%uint32(len(pp.runq))].ptr(), false) {
++		return 0
++	}
++	users := uint32(0)
+ 	for offset := uint32(0); offset < count; offset++ {
+ 		gp := pp.runq[(head+offset)%uint32(len(pp.runq))].ptr()
+ 		if gp == nil {
+ 			gomadChoiceDivergeCurrent(gomadChoiceDivergenceIdentityMissing)
+ 		}
+-		alternatives[offset] = gp.gomadIdentity
++		if isSystemGoroutine(gp, false) {
++			continue
++		}
++		alternatives[users] = gp.gomadIdentity
++		gomadChoiceSchedulerOffsets[users] = offset
++		users++
++	}
++	if users <= 1 {
++		return 0
+ 	}
+-	return gomadChoiceDecision(gomadChoiceKindRunnable, gomadChoiceFlagDecision|gomadChoiceFlagSiteMissing, 0, alternatives[:count], &gomadChoiceSchedulerOrdered, seeded, 0)
++	seeded := gomadChoiceRunqSeeded(users)
++	selected := gomadChoiceDecision(gomadChoiceKindRunnable, gomadChoiceFlagDecision|gomadChoiceFlagSiteMissing, 0, alternatives[:users], &gomadChoiceSchedulerOrdered, seeded, 0)
++	return gomadChoiceSchedulerOffsets[selected]
+ }
+ 
+ func gomadChoiceSelectPollIndex(pollorder []uint16, norder, current, nsends int, site uint64, siteFlags uint8, seeded uint32) uint32 {
+@@ -1244,7 +1297,7 @@ var gomadArrivals gQueue
+ // the next one through the recorded run-queue choice, so goroutines that reach
+ // the scheduler through the global run queue never run unrecorded ahead of it.
+ func gomadAdmit(pp *p, queue *gQueue) (*g, bool) {
+-	if runqputbatch(pp, queue); !queue.empty() {
++	if runqputbatch(pp, queue, gomadBatchTarget); !queue.empty() {
+ 		throw("gomad: local run queue could not take the admitted goroutines")
+ 	}
+ 	gp, inheritTime := runqget(pp)
+diff --git a/tools/gomad3/toolchain/version/version.json b/tools/gomad3/toolchain/version/version.json
+index fd58e3372f..a656c28282 100644
+--- a/tools/gomad3/toolchain/version/version.json
++++ b/tools/gomad3/toolchain/version/version.json
+@@ -95,6 +95,7 @@
+     "src/cmd/link/internal/ld/lib.go",
+     "src/crypto/rand/rand.go",
+     "src/runtime/lock_spinbit.go",
++    "src/runtime/os_linux.go",
+     "src/runtime/panic.go",
+     "src/runtime/preempt.go",
+     "src/runtime/proc.go",
+diff --git a/tools/gomad3/toolchain/draw_inventory_test.go b/tools/gomad3/toolchain/draw_inventory_test.go
+new file mode 100644
+index 0000000000..1a8618a7e3
+--- /dev/null
++++ b/tools/gomad3/toolchain/draw_inventory_test.go
+@@ -0,0 +1,431 @@
++package toolchain
++
++import (
++	"fmt"
++	"go/ast"
++	"go/build"
++	"go/parser"
++	"go/token"
++	"io/fs"
++	"os"
++	"path/filepath"
++	"slices"
++	"strconv"
++	"strings"
++	"testing"
++
++	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
++)
++
++type drawReference struct {
++	platform, file, function, symbol, kind string
++	count                                  int
++	class, stream, reachability, reason    string
++}
++
++func (r drawReference) key() string {
++	return strings.Join([]string{r.platform, r.file, r.function, r.symbol, r.kind}, " ")
++}
++
++// Each row is platform|file|function|symbol|reference kind|count|ordering|stream|reachability|reason.
++// "both" expands to both qualified platforms; a platform-specific row uses its exact name.
++const reviewedDrawReferences = `
++both|hash/maphash/maphash.go|package|runtime_rand|linkname:runtime.rand|1|reference|wrapper|active|reviewed linkname binding and target
++both|hash/maphash/maphash.go|randUint64|runtime_rand|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|hash/maphash/maphash.go|runtime_rand|runtime_rand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|internal/runtime/maps/map.go|NewEmptyMap|rand|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|internal/runtime/maps/map.go|NewMap|rand|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|internal/runtime/maps/map.go|method.Clear|rand|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|internal/runtime/maps/map.go|method.Delete|rand|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|internal/runtime/maps/runtime.go|bootstrapRand|bootstrapRand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|internal/runtime/maps/runtime.go|package|rand|linkname|1|reference|wrapper|active|reviewed linkname binding and target
++both|internal/runtime/maps/runtime.go|rand|rand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|internal/runtime/maps/runtime_alg.go|AlgInit|bootstrapRand|call|1|host-timed|wrapper|disabled|bootstrap entropy is independent of GOMADSEED
++both|internal/runtime/maps/runtime_alg.go|initAlgAES|bootstrapRand|call|1|host-timed|wrapper|disabled|bootstrap entropy is independent of GOMADSEED
++both|internal/runtime/maps/table.go|method.Init|rand|call|2|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|internal/sync/hashtriemap.go|method.initSlow|runtime_rand|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|internal/sync/hashtriemap.go|package|runtime_rand|linkname:runtime.rand|1|reference|wrapper|active|reviewed linkname binding and target
++both|internal/sync/hashtriemap.go|runtime_rand|runtime_rand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|math/rand/rand.go|method.Int63|runtime_rand|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|math/rand/rand.go|method.Uint64|runtime_rand|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|math/rand/rand.go|package|runtime_rand|linkname:runtime.rand|1|reference|wrapper|active|reviewed linkname binding and target
++both|math/rand/rand.go|runtime_rand|runtime_rand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|math/rand/v2/rand.go|method.Uint64|runtime_rand|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|math/rand/v2/rand.go|package|runtime_rand|linkname:runtime.rand|1|reference|wrapper|active|reviewed linkname binding and target
++both|math/rand/v2/rand.go|runtime_rand|runtime_rand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|net/dnsclient.go|package|runtime_rand|linkname:runtime.rand|1|reference|wrapper|active|reviewed linkname binding and target
++both|net/dnsclient.go|randInt|runtime_rand|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|net/dnsclient.go|runtime_rand|runtime_rand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|os/tempfile.go|nextRandom|runtime_rand|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|os/tempfile.go|package|runtime_rand|linkname:runtime.rand|1|reference|wrapper|active|reviewed linkname binding and target
++both|os/tempfile.go|runtime_rand|runtime_rand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/alg.go|f32hash|rand|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|runtime/alg.go|f64hash|rand|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|runtime/gomad.go|gomadChoiceRandom|gomadChoiceRandom|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/gomad.go|gomadChoiceRunnextSeeded|gomadChoiceRandom|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|runtime/gomad.go|gomadChoiceRunnextSeeded|gomadChoiceRunnextSeeded|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/gomad.go|gomadChoiceRunnextSeeded|randn|call|1|target-ordered|wrapper|disabled|upstream fallback executes only when Gomad is off
++both|runtime/gomad.go|gomadChoiceRunqIndex|gomadChoiceRunqSeeded|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|runtime/gomad.go|gomadChoiceRunqSeeded|gomadChoiceRandom|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|runtime/gomad.go|gomadChoiceRunqSeeded|gomadChoiceRunqSeeded|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/gomad.go|gomadChoiceRunqSeeded|randn|call|1|target-ordered|wrapper|disabled|upstream fallback executes only when Gomad is off
++both|runtime/gomad.go|gomadChoiceSelectSeeded|cheaprandn|call|1|target-ordered|wrapper|disabled|upstream fallback executes only when Gomad is off
++both|runtime/gomad.go|gomadChoiceSelectSeeded|gomadChoiceSelectSeeded|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/gomad.go|gomadChoiceShuffleSeeded|cheaprandn|call|1|target-ordered|wrapper|disabled|upstream fallback executes only when Gomad is off
++both|runtime/gomad.go|gomadChoiceShuffleSeeded|gomadChoiceRandom|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|runtime/gomad.go|gomadChoiceShuffleSeeded|gomadChoiceShuffleSeeded|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/gomad.go|gomadClockTickDraw|gomadClockTickDraw|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/gomad.go|gomadDiagnosticAppend|gomadRuntimeCheapRand|call|1|host-timed|process-purpose|contract-excluded|numeric diagnostic fault injection; host prefix guard exits before mutation
++both|runtime/gomad.go|gomadHostCheapRand|cheaprand|value|3|reference|none|active|matching field or local value; no draw
++both|runtime/gomad.go|gomadHostCheapRand|gomadHostCheapRand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/gomad.go|gomadHostCheapRandN|gomadHostCheapRand|call|1|host-timed|M-local|active|host scheduling or profiling draw uses current M
++both|runtime/gomad.go|gomadHostCheapRandN|gomadHostCheapRandN|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/gomad.go|gomadLockProfileStart|gomadHostCheapRandN|call|1|host-timed|M-local|active|host scheduling or profiling draw uses current M
++both|runtime/gomad.go|gomadLockProfileStart|gomadLockProfileStart|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/gomad.go|gomadRuntimeCheapRand|gomadRuntimeCheapRand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/gomad.go|gomadRuntimeRand|gomadRuntimeRand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/gomad.go|gomadTimeNow|gomadClockTickDraw|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|runtime/gomad.go|gomadTimerRand|gomadTimerRand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/iface.go|interfaceSwitch|cheaprand|call|2|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|runtime/iface.go|typeAssert|cheaprand|call|2|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|runtime/lock_spinbit.go|lock2|gomadLockProfileStart|call|1|host-timed|M-local|active|host scheduling or profiling draw uses current M
++both|runtime/lock_spinbit.go|mutexSampleContention|cheaprandu64|call|1|host-timed|M-local|active|mutex sampling uses per-M 64-bit stream on qualified architectures
++both|runtime/lock_spinbit.go|unlock2Wake|gomadHostCheapRandN|call|1|host-timed|M-local|active|host scheduling or profiling draw uses current M
++both|runtime/malloc.go|fastexprand|cheaprandn|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|runtime/malloc.go|mallocinit|bootstrapRand|call|1|host-timed|wrapper|disabled|bootstrap entropy read precedes Gomad activation
++both|runtime/mbitmap.go|doubleCheckHeapType|cheaprand|call|2|target-ordered|wrapper|disabled|doubleCheckMalloc is false in qualified builds
++both|runtime/mgcmark_greenteagc.go|method.tryStealSpan|cheaprand|call|1|host-timed|process-purpose|contract-excluded|GreenTea collector is refused for seeded activation; collector edit prohibited
++both|runtime/mgcpacer.go|method.enlistWorker|cheaprandn|call|1|host-timed|process-purpose|blocked|classic GC worker enlistment is host timed; collector edit prohibited
++both|runtime/mprof.go|blocksampled|cheaprand64|call|1|host-timed|M-local|active|profile sampling uses per-M 64-bit stream on qualified architectures
++both|runtime/mprof.go|method.recordUnlock|cheaprandu64|call|2|host-timed|M-local|active|profile sampling uses per-M 64-bit stream on qualified architectures
++both|runtime/mprof.go|method.start|cheaprandn|call|1|host-timed|wrapper|disabled|only called from Gomad lock profile shim when Gomad is off
++both|runtime/mprof.go|mutexevent|cheaprand64|call|1|host-timed|M-local|active|profile sampling uses per-M 64-bit stream on qualified architectures
++linux/amd64|runtime/os_linux.go|setThreadCPUProfiler|gomadHostCheapRandN|call|1|host-timed|M-local|active|host scheduling or profiling draw uses current M
++both|runtime/proc.go|newproc1|cheaprand|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|runtime/proc.go|runqput|gomadChoiceRunnextSeeded|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|runtime/proc.go|runqputbatch|gomadChoiceShuffleSeeded|call|1|target-ordered|process-purpose|active|target batch origin retains seeded scheduler stream
++both|runtime/proc.go|runqputbatch|gomadHostCheapRandN|call|1|host-timed|M-local|active|host scheduling or profiling draw uses current M
++both|runtime/proc.go|runqputslow|gomadChoiceShuffleSeeded|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|runtime/proc.go|stealWork|gomadHostCheapRand|call|1|host-timed|M-local|active|host scheduling or profiling draw uses current M
++both|runtime/rand.go|bootstrapRand|bootstrapRand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/rand.go|cheaprand|cheaprand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/rand.go|cheaprand|cheaprand|value|3|reference|none|active|matching field or local value; no draw
++both|runtime/rand.go|cheaprand|cheaprand64|value|1|reference|none|active|matching field or local value; no draw
++both|runtime/rand.go|cheaprand|gomadRuntimeCheapRand|call|1|target-ordered|process-purpose|active|P-owned runtime cheap draw
++both|runtime/rand.go|cheaprand64|cheaprand64|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/rand.go|cheaprand64|cheaprandu64|call|1|host-timed|M-local|active|64-bit cheap stream is per-M on qualified architectures
++both|runtime/rand.go|cheaprandn|cheaprand|call|1|target-ordered|wrapper|active|runtime helper routes P draws to process stream and no-P draws to M
++both|runtime/rand.go|cheaprandn|cheaprandn|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/rand.go|cheaprandu64|cheaprand|call|2|host-timed|wrapper|disabled|Mul64 per-M branch always chosen on both qualified architectures
++both|runtime/rand.go|cheaprandu64|cheaprand64|value|3|reference|none|active|matching field or local value; no draw
++both|runtime/rand.go|cheaprandu64|cheaprandu64|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/rand.go|legacy_fastrand|legacy_fastrand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/rand.go|legacy_fastrand|rand|call|1|target-ordered|wrapper|active|runtime helper routes P draws to process stream and no-P draws to M
++both|runtime/rand.go|legacy_fastrand64|legacy_fastrand64|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/rand.go|legacy_fastrand64|rand|call|1|target-ordered|wrapper|active|runtime helper routes P draws to process stream and no-P draws to M
++both|runtime/rand.go|legacy_fastrandn|legacy_fastrandn|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/rand.go|legacy_fastrandn|randn|call|1|target-ordered|wrapper|active|runtime helper routes P draws to process stream and no-P draws to M
++both|runtime/rand.go|maps_rand|maps_rand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/rand.go|maps_rand|rand|call|1|target-ordered|wrapper|active|runtime helper routes P draws to process stream and no-P draws to M
++both|runtime/rand.go|mrandinit|bootstrapRand|call|1|host-timed|wrapper|disabled|gomadEnabled branch returns before bootstrap draws
++both|runtime/rand.go|mrandinit|cheaprand|value|2|reference|none|active|matching field or local value; no draw
++both|runtime/rand.go|mrandinit|cheaprand64|value|2|reference|none|active|matching field or local value; no draw
++both|runtime/rand.go|mrandinit|rand|call|2|host-timed|wrapper|disabled|gomadEnabled branch returns before bootstrap draws
++both|runtime/rand.go|package|cheaprand|linkname|1|reference|wrapper|active|reviewed linkname binding and target
++both|runtime/rand.go|package|cheaprand64|linkname|1|reference|wrapper|active|reviewed linkname binding and target
++both|runtime/rand.go|package|cheaprandn|linkname|1|reference|wrapper|active|reviewed linkname binding and target
++both|runtime/rand.go|package|legacy_fastrand|linkname:runtime.fastrand|1|reference|wrapper|active|reviewed linkname binding and target
++both|runtime/rand.go|package|legacy_fastrand64|linkname:runtime.fastrand64|1|reference|wrapper|active|reviewed linkname binding and target
++both|runtime/rand.go|package|legacy_fastrandn|linkname:runtime.fastrandn|1|reference|wrapper|active|reviewed linkname binding and target
++both|runtime/rand.go|package|maps_rand|linkname:internal/runtime/maps.rand|1|reference|wrapper|active|reviewed linkname binding and target
++both|runtime/rand.go|package|rand|linkname|1|reference|wrapper|active|reviewed linkname binding and target
++both|runtime/rand.go|package|randn|linkname|1|reference|wrapper|active|reviewed linkname binding and target
++both|runtime/rand.go|rand|gomadRuntimeRand|call|1|target-ordered|process-purpose|active|P-owned runtime rand draw
++both|runtime/rand.go|rand|rand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/rand.go|rand32|rand|call|1|target-ordered|wrapper|active|runtime helper routes P draws to process stream and no-P draws to M
++both|runtime/rand.go|rand32|rand32|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/rand.go|randn|rand|call|1|target-ordered|wrapper|active|runtime helper routes P draws to process stream and no-P draws to M
++both|runtime/rand.go|randn|randn|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|runtime/runtime2.go|package|cheaprand|value|1|reference|none|active|matching field or local value; no draw
++both|runtime/runtime2.go|package|cheaprand64|value|1|reference|none|active|matching field or local value; no draw
++both|runtime/select.go|selectgo|gomadChoiceSelectSeeded|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|runtime/sema.go|method.queue|cheaprand|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|runtime/symtab.go|pcvalue|gomadHostCheapRandN|call|1|host-timed|M-local|active|host scheduling or profiling draw uses current M
++both|runtime/time.go|method.adjust|gomadTimerRand|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|runtime/time.go|method.adjust|rand|value|1|reference|none|active|matching field or local value; no draw
++both|runtime/time.go|method.less|rand|value|2|reference|none|active|matching field or local value; no draw
++both|runtime/time.go|method.maybeAdd|gomadTimerRand|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|runtime/time.go|method.maybeAdd|rand|value|1|reference|none|active|matching field or local value; no draw
++both|runtime/time.go|method.updateHeap|gomadTimerRand|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|runtime/time.go|method.updateHeap|rand|value|1|reference|none|active|matching field or local value; no draw
++both|runtime/time.go|package|rand|value|1|reference|none|active|matching field or local value; no draw
++both|sync/pool.go|method.Put|runtime_randn|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|sync/pool.go|package|runtime_randn|linkname:runtime.randn|1|reference|wrapper|active|reviewed linkname binding and target
++both|sync/pool.go|runtime_randn|runtime_randn|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++both|unique/canonmap.go|newCanonMap|runtime_rand|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
++both|unique/canonmap.go|package|runtime_rand|linkname:runtime.rand|1|reference|wrapper|active|reviewed linkname binding and target
++both|unique/canonmap.go|runtime_rand|runtime_rand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
++`
++
++func parseReviewedDrawReferences(t *testing.T) map[string]drawReference {
++	t.Helper()
++	reviewed := make(map[string]drawReference)
++	for _, line := range strings.Split(strings.TrimSpace(reviewedDrawReferences), "\n") {
++		if line == "" {
++			continue
++		}
++		fields := strings.Split(line, "|")
++		if len(fields) != 10 {
++			t.Fatalf("invalid draw inventory row %q", line)
++		}
++		count, err := strconv.Atoi(fields[5])
++		if err != nil || count <= 0 {
++			t.Fatalf("invalid draw inventory count %q", line)
++		}
++		platforms := []string{fields[0]}
++		if fields[0] == "both" {
++			platforms = gomadversion.SupportedPlatforms[:]
++		}
++		for _, platform := range platforms {
++			ref := drawReference{platform, fields[1], fields[2], fields[3], fields[4], count, fields[6], fields[7], fields[8], fields[9]}
++			if _, duplicate := reviewed[ref.key()]; duplicate {
++				t.Fatalf("duplicate draw inventory row %s", ref.key())
++			}
++			if ref.class == "" || ref.stream == "" || ref.reachability == "" || ref.reason == "" {
++				t.Fatalf("incomplete draw inventory row %s", ref.key())
++			}
++			if !slices.Contains([]string{"target-ordered", "host-timed", "reference"}, ref.class) ||
++				!slices.Contains([]string{"process-purpose", "M-local", "wrapper", "none"}, ref.stream) ||
++				!slices.Contains([]string{"active", "disabled", "contract-excluded", "blocked"}, ref.reachability) {
++				t.Fatalf("invalid draw inventory classification %s", ref.key())
++			}
++			if ref.class == "host-timed" && ref.reachability == "active" && ref.stream != "M-local" {
++				t.Fatalf("active host-timed draw must use an M-local stream: %s", ref.key())
++			}
++			if ref.reachability == "blocked" && !strings.Contains(ref.reason, "collector edit prohibited") {
++				t.Fatalf("blocked draw needs its policy blocker: %s", ref.key())
++			}
++			reviewed[ref.key()] = ref
++		}
++	}
++	return reviewed
++}
++
++func TestPatchedRuntimeDrawReferencesAreReviewed(t *testing.T) {
++	got, err := runtimeDrawReferences(builtGOROOT(t))
++	if err != nil {
++		t.Fatal(err)
++	}
++	problems := drawInventoryProblems(got, parseReviewedDrawReferences(t))
++	if len(problems) != 0 {
++		t.Fatalf("patched runtime draw inventory drifted; review every reference:\n%s", strings.Join(problems, "\n"))
++	}
++}
++
++func TestDrawInventoryRejectsUnclassifiedReference(t *testing.T) {
++	root := t.TempDir()
++	directory := filepath.Join(root, "src", "runtime")
++	if err := os.MkdirAll(directory, 0o700); err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(filepath.Join(directory, "inventory_scratch.go"), []byte("package runtime\nfunc unreviewedDraw() { cheaprand() }\n"), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	aliasDirectory := filepath.Join(root, "src", "drawalias")
++	if err := os.MkdirAll(aliasDirectory, 0o700); err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(filepath.Join(aliasDirectory, "alias.go"), []byte("package drawalias\n//go:linkname renamedDraw runtime.rand\nfunc renamedDraw() uint64\n"), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(filepath.Join(aliasDirectory, "use.go"), []byte("package drawalias\nvar borrowedDraw = renamedDraw\nfunc useDraw() { renamedDraw() }\n"), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	got, err := runtimeDrawReferences(root)
++	if err != nil {
++		t.Fatal(err)
++	}
++	problems := drawInventoryProblems(got, map[string]drawReference{})
++	if !slices.ContainsFunc(problems, func(problem string) bool {
++		return strings.Contains(problem, "unreviewed draw reference: darwin/arm64 runtime/inventory_scratch.go unreviewedDraw cheaprand call")
++	}) {
++		t.Fatalf("scratch draw did not fail closed: %v", problems)
++	}
++	if !slices.ContainsFunc(problems, func(problem string) bool {
++		return strings.Contains(problem, "unreviewed draw reference: darwin/arm64 drawalias/use.go useDraw renamedDraw call")
++	}) {
++		t.Fatalf("aliased linkname draw did not fail closed: %v", problems)
++	}
++	if !slices.ContainsFunc(problems, func(problem string) bool {
++		return strings.Contains(problem, "unreviewed draw reference: darwin/arm64 drawalias/use.go package renamedDraw value")
++	}) {
++		t.Fatalf("aliased function value did not fail closed: %v", problems)
++	}
++}
++
++func drawInventoryProblems(got map[string]int, reviewed map[string]drawReference) []string {
++	var problems []string
++	for key, count := range got {
++		reference, found := reviewed[key]
++		if !found {
++			problems = append(problems, fmt.Sprintf("unreviewed draw reference: %s (%d)", key, count))
++		} else if reference.count != count {
++			problems = append(problems, fmt.Sprintf("draw reference count changed: %s = %d, reviewed %d", key, count, reference.count))
++		}
++	}
++	for key := range reviewed {
++		if _, found := got[key]; !found {
++			problems = append(problems, "reviewed draw reference disappeared: "+key)
++		}
++	}
++	slices.Sort(problems)
++	return problems
++}
++
++var drawSymbols = strings.Fields("bootstrapRand rand rand32 randn cheaprand cheaprand64 cheaprandu64 cheaprandn legacy_fastrand legacy_fastrand64 legacy_fastrandn gomadRuntimeRand gomadRuntimeCheapRand gomadHostCheapRand gomadHostCheapRandN gomadLockProfileStart gomadTimerRand gomadChoiceRunqSeeded gomadChoiceRunnextSeeded gomadChoiceShuffleSeeded gomadChoiceSelectSeeded gomadChoiceRandom gomadClockTickDraw runtime_rand runtime_randn")
++
++func runtimeDrawReferences(goRoot string) (map[string]int, error) {
++	references := map[string]int{}
++	sourceRoot := filepath.Join(goRoot, "src")
++	for _, platform := range gomadversion.SupportedPlatforms {
++		goos, goarch, _ := strings.Cut(platform, "/")
++		context := build.Default
++		context.GOROOT, context.GOOS, context.GOARCH, context.CgoEnabled = goRoot, goos, goarch, false
++		var tags []string
++		for _, tag := range context.ToolTags {
++			if tag != "goexperiment.greenteagc" {
++				tags = append(tags, tag)
++			}
++		}
++		context.ToolTags = tags
++		type sourceFile struct {
++			file       *ast.File
++			relative   string
++			packageKey string
++		}
++		var sources []sourceFile
++		aliasesByPackage := map[string]map[string]string{}
++		err := filepath.WalkDir(sourceRoot, func(path string, entry fs.DirEntry, err error) error {
++			if err != nil {
++				return err
++			}
++			name := entry.Name()
++			if entry.IsDir() {
++				if name == "testdata" || name == "vendor" || path == filepath.Join(sourceRoot, "cmd") {
++					return filepath.SkipDir
++				}
++				return nil
++			}
++			if !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
++				return nil
++			}
++			match, err := context.MatchFile(filepath.Dir(path), name)
++			if err != nil {
++				return err
++			}
++			if !match && !strings.Contains(name, "greenteagc") {
++				return nil
++			}
++			fileSet := token.NewFileSet()
++			file, err := parser.ParseFile(fileSet, path, nil, parser.ParseComments)
++			if err != nil {
++				return err
++			}
++			relative, err := filepath.Rel(sourceRoot, path)
++			if err != nil {
++				return err
++			}
++			rel := filepath.ToSlash(relative)
++			packageKey := filepath.Dir(path) + "\x00" + file.Name.Name
++			sources = append(sources, sourceFile{file: file, relative: rel, packageKey: packageKey})
++			aliases := aliasesByPackage[packageKey]
++			if aliases == nil {
++				aliases = map[string]string{}
++				aliasesByPackage[packageKey] = aliases
++			}
++			for _, group := range file.Comments {
++				for _, comment := range group.List {
++					fields := strings.Fields(comment.Text)
++					if len(fields) >= 3 && fields[0] == "//go:linkname" && seededLinknameTarget(fields[2]) {
++						aliases[fields[1]] = fields[2]
++					}
++				}
++			}
++			return nil
++		})
++		if err != nil {
++			return nil, err
++		}
++		for _, source := range sources {
++			file, rel := source.file, source.relative
++			aliases := aliasesByPackage[source.packageKey]
++			isDrawSymbol := func(symbol string) bool {
++				if _, linked := aliases[symbol]; linked {
++					return true
++				}
++				return slices.Contains(drawSymbols, symbol) && (strings.HasPrefix(rel, "runtime/") || strings.HasPrefix(rel, "internal/runtime/maps/") || symbol == "runtime_rand" || symbol == "runtime_randn")
++			}
++			add := func(function, symbol, kind string) {
++				if isDrawSymbol(symbol) {
++					key := drawReference{platform: platform, file: rel, function: function, symbol: symbol, kind: kind}.key()
++					references[key]++
++				}
++			}
++			for _, group := range file.Comments {
++				for _, comment := range group.List {
++					fields := strings.Fields(comment.Text)
++					if len(fields) >= 2 && fields[0] == "//go:linkname" {
++						kind := "linkname"
++						if len(fields) >= 3 {
++							kind += ":" + fields[2]
++						}
++						add("package", fields[1], kind)
++					}
++				}
++			}
++			for _, declaration := range file.Decls {
++				function := "package"
++				if fn, ok := declaration.(*ast.FuncDecl); ok {
++					function = fn.Name.Name
++					if fn.Recv != nil {
++						function = "method." + function
++					}
++					add(function, fn.Name.Name, "declaration")
++				}
++				calls := map[token.Pos]bool{}
++				ast.Inspect(declaration, func(node ast.Node) bool {
++					if call, ok := node.(*ast.CallExpr); ok {
++						if id, ok := call.Fun.(*ast.Ident); ok {
++							calls[id.Pos()] = true
++						}
++					}
++					return true
++				})
++				ast.Inspect(declaration, func(node ast.Node) bool {
++					id, ok := node.(*ast.Ident)
++					if !ok || !isDrawSymbol(id.Name) {
++						return true
++					}
++					if fn, ok := declaration.(*ast.FuncDecl); ok && id.Pos() == fn.Name.Pos() {
++						return true
++					}
++					kind := "value"
++					if calls[id.Pos()] {
++						kind = "call"
++					}
++					add(function, id.Name, kind)
++					return true
++				})
++			}
++		}
++	}
++	return references, nil
++}
++
++func seededLinknameTarget(target string) bool {
++	if target == "internal/runtime/maps.rand" {
++		return true
++	}
++	symbol, ok := strings.CutPrefix(target, "runtime.")
++	return ok && (slices.Contains(drawSymbols, symbol) || slices.Contains([]string{"fastrand", "fastrandn", "fastrand64"}, symbol))
++}

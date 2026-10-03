@@ -1,0 +1,15 @@
+{
+  "cmd": [
+    ".toolchain/bin/go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "./cmd/gomad",
+    "-run",
+    "TestPlanTextAndJSONPreserveCampaignIdentityAndTargetArguments",
+    "-v"
+  ],
+  "exit": 0,
+  "seconds": 2.761
+}

@@ -1,0 +1,14 @@
+{
+  "cmd": [
+    ".toolchain/bin/go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    ".",
+    "-run",
+    "TestPackageArchitecture"
+  ],
+  "exit": 0,
+  "seconds": 1.05
+}

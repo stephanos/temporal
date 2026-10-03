@@ -1,9 +1,7 @@
 package cli
 
 import (
-	"crypto/sha256"
 	"fmt"
-	"io"
 	"os"
 	"strings"
 
@@ -23,6 +21,9 @@ type Config struct {
 	ArtifactRoot       string
 	HostOS             string
 	HostArch           string
+	runnerDigest       record.SHA256
+	runnerDigestError  error
+	runnerDigestSet    bool
 }
 
 type Report struct {
@@ -86,7 +87,10 @@ func Check(config Config) Report {
 		report.ToolchainBuild = identity.BuildKey
 		report.Checks = append(report.Checks, passedCheck("toolchain", identity.GoVersion+" build="+identity.BuildKey))
 	}
-	runnerDigest, err := hashExecutable(config.RunnerPath)
+	runnerDigest, err := config.runnerDigest, config.runnerDigestError
+	if !config.runnerDigestSet {
+		runnerDigest, err = hashExecutable(config.RunnerPath)
+	}
 	if err != nil {
 		report.Checks = append(report.Checks, failedCheck("runner", err.Error()+"; reinstall the Gomad executable at "+config.RunnerPath))
 	} else {
@@ -118,26 +122,6 @@ func hostCheck(host string, supported []string) CheckResult {
 		}
 	}
 	return failedCheck("host", host+" is unsupported; supported="+strings.Join(supported, ","))
-}
-
-func hashExecutable(path string) (record.SHA256, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return "", fmt.Errorf("open Runner: %w", err)
-	}
-	defer file.Close()
-	info, err := file.Stat()
-	if err != nil {
-		return "", fmt.Errorf("stat Runner: %w", err)
-	}
-	if !info.Mode().IsRegular() || info.Mode()&0o111 == 0 {
-		return "", fmt.Errorf("Runner is not a regular executable: %s", path)
-	}
-	hasher := sha256.New()
-	if _, err := io.Copy(hasher, file); err != nil {
-		return "", fmt.Errorf("hash Runner: %w", err)
-	}
-	return record.SHA256(fmt.Sprintf("sha256:%x", hasher.Sum(nil))), nil
 }
 
 func checkArtifactDirectory(path string) error {

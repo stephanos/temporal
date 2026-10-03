@@ -1,0 +1,11 @@
+Usage of gomadtool upgrade-dossier:
+  -approve-boundary-diff string
+    	approve the exact canonical boundary diff SHA-256
+  -baseline-ref string
+    	Git revision containing the baseline boundary manifest
+  -corpus-report string
+    	retained-corpus qualification report
+  -output string
+    	qualification dossier output (default ".toolchain/upgrade-dossier.json")
+  -root string
+    	Gomad v3 module root (default ".")

@@ -209,6 +209,8 @@ Capability analysis must support source-closure review and linked-program review
 
 A prebuilt executable must carry trusted provenance that binds the binary, package policy, dependency closure, build information, and compatibility review. Runtime arguments must be bound separately into Campaign and Artifact identity. Arbitrary or changed binaries must be rejected.
 
+Coverage-instrumented binaries must be rejected during preparation, provenance validation, and replay; Go coverage-counter flushing is outside the deterministic-I/O contract.
+
 ## [RUNTIME] Deterministic Runtime
 
 ### [RUNTIME.ACTIVATION] Activation
@@ -218,6 +220,8 @@ Deterministic runtime behavior must activate only through an explicit direct see
 ### [RUNTIME.SCHEDULING] Scheduling
 
 For a fixed Target, toolchain, platform, deterministic inputs, and seed, supported runtime-controlled choices must repeat across fresh processes. These choices include supported goroutine scheduling, selection polling, map randomization, and equal-deadline timer ordering. Different seeds must be able to select different alternatives where alternatives exist.
+
+The local run queue uses the queue head's class for each dispatch. A runtime-owned head runs deterministically; a user head chooses only among queued user goroutines. The runtime's dynamic system-goroutine classification treats finalizer and cleanup goroutines executing user callbacks as user goroutines. A user dispatch with two or more user goroutines records one decision; zero or one user goroutine records none. Each dispatch removes the head, moving it to the selected user's former slot when needed. Runtime entries therefore advance to the head, and a yielding runtime entry rejoins behind queued user work, so neither class can starve the other through local queue selection. The rule depends only on queue contents and applies equally with recording disabled, exact replay, and forced prefixes. It excludes the run-next slot, global queue, timer delivery, and collector workers selected outside the local run queue; those paths retain their existing scheduling rules. A CPU loop that never yields remains outside this fairness claim. Tapes from the preceding controller identity must be rejected before execution.
 
 ### [RUNTIME.TIME] Virtual Time
 
@@ -339,9 +343,13 @@ Successful Executions must be discarded by default. A Campaign may retain all su
 
 Gomad may guide seed selection from a private bounded corpus of replay-verified, semantically novel Artifacts. Each Campaign must bind one immutable corpus snapshot, preserve a portion of unguided requested seeds, and publish corpus changes atomically only after exact replay succeeds.
 
+Ordinary guidance must exclude answered requested seeds without substituting others. Regression guidance may reuse corpus cases while reserving at least one quarter of its selection for requested seeds. Corpus identity must bind explicit environment and clock-tick policy; resume and shards must preserve the recorded mode and selection without reselecting from the live corpus.
+
 ### [CAMPAIGN.CHOICE.FRONTIER] Choice Exploration
 
 Choice Exploration must expand observed alternative runtime Choices in deterministic bounded rounds. It must preserve every distinct forced prefix within the declared depth, execution, and memory limits, even when Outcomes deduplicate to the same Evidence.
+
+The frozen plan may limit expansion to a start ordinal while retaining earlier decisions in each forced prefix. Select polls with fewer than two ready cases must remain trace evidence without expanding the Frontier, and omitted alternatives must be reported separately.
 
 ### [CAMPAIGN.COMBINED.FRONTIER] Combined Exploration
 
@@ -357,6 +365,8 @@ Every completed Execution must produce a canonical, versioned, bounded Record co
 
 Retained failures and retained successes must be published as immutable content-addressed Artifacts. Partial or interrupted publication must never appear complete, and existing content may be reused only after full validation.
 
+Stores may share a prepared binary through content-addressed hard links without changing payload manifests or replay validation. Retained-byte limits must count a shared binary once per pool and each private fallback copy separately.
+
 ### [EVIDENCE.INSPECTION] Inspection
 
 Inspection must validate a plan, Campaign, merged Campaign, or Artifact before reporting its identity, lifecycle, outcome, bounds, retained evidence, replayability, and exact replay command. Optional choice inspection must validate and summarize the retained logical choice trace.
@@ -368,6 +378,8 @@ Replay must validate every identity and required payload before starting the ret
 ### [EVIDENCE.MINIMIZATION] Failure Minimization
 
 Gomad must minimize supported combined-simulation target failures through fresh-process, bounded candidate attempts. An accepted reduction must preserve the normalized failure, outcome, exact runtime-choice replay, and exact simulation replay. The source Artifact must remain immutable and the minimized result must retain its parent and reduction evidence.
+
+Minimizer state must persist per parent under exclusive ownership. Resume must validate parent, implementation, bounds, accepted artifacts, and replay evidence, preserve attempt order and consumed budget, and reject changed or corrupt state before continuing.
 
 ## [DURABILITY] Campaign Durability
 
@@ -464,10 +476,12 @@ The release descriptor, runtime changes, source overlay, interaction inventory, 
 ### [MAINTENANCE.COMPATIBILITY] Compatibility Packs
 
 Compatibility-pack development must follow discovery, human review, exact approval, generation, validation, and qualification. A pack must bind an exact dependency version, source inventories, platform scope, governance, and any approved deterministic adapter replacement.
+An impact-driven refresh may batch discovery and review for invalidated requests, but only a freshly matching per-request approval may generate a pack. Requests scoped to another platform remain unchanged until that host evaluates them.
 
 ### [MAINTENANCE.UPGRADE] Upgrade Evidence
 
 A Go or product-boundary upgrade must produce a bounded dossier covering source and boundary differences, runtime changes, overlay collisions, generated evidence, mandatory probes, disabled upstream behavior, conformance, and platform qualification. The dossier must be retained even when a gate fails, and a boundary change must require approval of its exact identity.
+A dependency candidate must have a path-free impact report of affected or unknown exact pins. Adapter regeneration requires review of changed upstream source and proposed exact anchors, followed by approval of their digest before atomic publication. Unknown pins cannot be reported as unaffected; neither approval nor qualification on one platform implies approval or qualification on the other.
 
 ### [COMMAND.GOMADTOOL] Maintainer Command
 
@@ -481,9 +495,12 @@ The `gomadtool` command must expose the following maintainer workflows. Each row
 | `[COMMAND.GOMADTOOL.PATCH.REGENERATE]` | `patch-regenerate` | Recreate the canonical runtime patch from a reviewed candidate source tree. |
 | `[COMMAND.GOMADTOOL.PATCH.VALIDATE]` | `patch-validate` | Validate the runtime patch and overlay as complete governed inputs. |
 | `[COMMAND.GOMADTOOL.VERSION.GENERATE]` | `version-generate` | Generate or verify consumers of the canonical release descriptor. |
+| `[COMMAND.GOMADTOOL.PIN.IMPACT]` | `pin-impact` | Compare candidate and baseline module identities and report affected or unknown exact pins in human or canonical JSON form. |
+| `[COMMAND.GOMADTOOL.ADAPTER.REGENERATE]` | `adapter-regenerate` | Review changed source and proposed exact adapter anchors, then publish only with their matching approval digest. |
 | `[COMMAND.GOMADTOOL.BOUNDARY.GENERATE]` | `boundary-generate` | Discover, qualify, generate, refresh, or verify the reviewed host-capability boundary and its compiler conformance inputs. |
 | `[COMMAND.GOMADTOOL.PROTOCOL.GENERATE]` | `protocol-generate` | Generate or verify both endpoints of each declared cross-process protocol. |
 | `[COMMAND.GOMADTOOL.COMPATIBILITY.PACK]` | `compatibility-pack` | Discover, review, generate from exact approval, check, and qualify version-pinned compatibility packs. |
+| `[COMMAND.GOMADTOOL.COMPATIBILITY.PACK.REFRESH]` | `compatibility-pack refresh` | Discover and review affected mapped requests per platform; retain only fresh approvals and leave final generation to exact per-request approval. |
 | `[COMMAND.GOMADTOOL.SCRIPT.VALIDATE]` | `script-validate` | Enforce the approved ownership and policy boundary for repository scripts. |
 | `[COMMAND.GOMADTOOL.CHECKED.RUN]` | `checked-run` | Run a bounded external command, classify timeout and exit status, and retain bounded diagnostic output. |
 | `[COMMAND.GOMADTOOL.TEST]` | `test` | Execute a selected bounded conformance campaign and report the first failing evidence. |

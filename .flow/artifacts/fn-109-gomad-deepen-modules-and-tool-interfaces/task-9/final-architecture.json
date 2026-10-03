@@ -1,0 +1,16 @@
+{
+  "argv": [
+    ".toolchain/bin/go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    ".",
+    "-run",
+    "TestPackageArchitecture"
+  ],
+  "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+  "exit": 0,
+  "duration_seconds": 5.1561960830003954,
+  "log": "final-architecture.log"
+}

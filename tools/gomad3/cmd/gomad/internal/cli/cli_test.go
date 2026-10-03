@@ -279,6 +279,20 @@ func TestResolveExploreCoverageRequiresSemanticModeAndKnownProbes(t *testing.T) 
 	}
 }
 
+func TestResolveExploreTypedErrorPresentation(t *testing.T) {
+	for _, strategy := range []string{string(runner.StrategyChoiceExploration), string(runner.StrategySimulationExploration)} {
+		_, _, err := resolveExploreStrategy(exploreStrategyOptions{Value: strategy, Seeds: "7,8"})
+		want := "--strategy=" + strategy + " requires exactly one base seed"
+		if err == nil || err.Error() != want {
+			t.Fatalf("strategy %q error = %v, want %q", strategy, err, want)
+		}
+	}
+	_, err := resolveExploreCoverage("none", []string{"stdlib.os.openfile"})
+	if err == nil || err.Error() != "--require-probe requires --coverage=semantic" {
+		t.Fatalf("coverage error = %v", err)
+	}
+}
+
 func TestResolveExploreGuidanceEnablesSemanticCoverageAndRequiresCorpus(t *testing.T) {
 	for _, test := range []struct {
 		guide, coverageSet bool
@@ -512,6 +526,27 @@ func TestRunAnalyzePreservesClassificationWhenCleanupFails(t *testing.T) {
 	}
 	var stdout, stderr bytes.Buffer
 	if status := runAnalyzeWith([]string{"go-run", "./pkg"}, &stdout, &stderr, dependencies); status != 1 || !strings.Contains(stderr.String(), "cleanup failed") {
+		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+	}
+}
+
+func TestRunAnalyzeSurfacesCleanupFailureAfterSupportedReport(t *testing.T) {
+	dependencies := analyzeDependencies{
+		toolchain:        func(string) (string, error) { return "/toolchain", nil },
+		identity:         func(string) (target.ToolchainIdentity, error) { return target.ToolchainIdentity{}, nil },
+		workingDirectory: func() (string, error) { return "/workspace", nil },
+		prepare: func(_ context.Context, spec target.Spec) (target.Spec, []deterministicio.Adapter, func() error, error) {
+			return spec, nil, func() error { return errors.New("cleanup failed") }, nil
+		},
+		review: func(context.Context, target.Spec) (target.CapabilityReview, error) {
+			return target.CapabilityReview{}, nil
+		},
+		build: func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {
+			return capabilityanalysis.Report{Classification: capabilityanalysis.ClassificationSupported}, nil
+		},
+	}
+	var stdout, stderr bytes.Buffer
+	if status := runAnalyzeWith([]string{"go-run", "./pkg"}, &stdout, &stderr, dependencies); status != 3 || !strings.Contains(stderr.String(), "cleanup failed") {
 		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
 	}
 }
@@ -931,6 +966,16 @@ func TestRunExploreReportsFlagErrorsAsJSON(t *testing.T) {
 		if !strings.Contains(stdout.String(), value) {
 			t.Fatalf("explore output = %q, missing %q", stdout.String(), value)
 		}
+	}
+}
+
+func TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure(t *testing.T) {
+	var stdout bytes.Buffer
+	stderr := failingWriter{}
+	reporter := newExploreReporter(true, &stdout, stderr)
+	status := reportExploreFailure(runner.CampaignResult{ChoiceTrace: &runner.ChoiceTraceSummary{}}, errors.New("bad request"), reporter, stderr)
+	if status != 2 || !strings.Contains(stdout.String(), `"classification":"invalid_input"`) || !strings.Contains(stdout.String(), "bad request") {
+		t.Fatalf("status=%d stdout=%q", status, stdout.String())
 	}
 }
 

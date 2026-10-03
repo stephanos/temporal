@@ -1,0 +1,1 @@
+inspect .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-16/real-cli-fmt/v1/campaign-20261003T051204.989567000Z-7985185edc8cd6a5d3a26590283ef79e: validate published campaign lifecycle: validate published success artifact 2: retained success artifact does not match its campaign execution

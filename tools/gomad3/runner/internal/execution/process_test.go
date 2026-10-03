@@ -978,8 +978,10 @@ func TestTargetHelper(t *testing.T) {
 		}
 		os.Exit(0)
 	case "choice-trace":
+		runChoiceRunnableTarget()
 		os.Exit(0)
 	case "choice-marker":
+		runChoiceRunnableTarget()
 		fmt.Fprintln(os.Stdout, "post-choice-marker")
 		os.Exit(0)
 	case "choice-reorder":
@@ -1246,6 +1248,16 @@ func targetHelper() (string, []string) {
 		return arguments[0], arguments[1:]
 	}
 	return os.Getenv("GOMAD3_PROCESS_HELPER"), nil
+}
+
+func runChoiceRunnableTarget() {
+	done := make(chan struct{}, 4)
+	for range 4 {
+		go func() { done <- struct{}{} }()
+	}
+	for range 4 {
+		<-done
+	}
 }
 
 func runChoiceReorderTarget(arguments []string) {

@@ -1,0 +1,50 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.3",
+  "status": "in_progress",
+  "commits": [],
+  "summary": "SeedController.Complete now performs one pure transition per received completion, atomically updating attempted/active/classified counters and failure-policy stop. Runner uses explicit unclassified completion on early host/evidence exits, preserving the original attempted-without-classification result and direct Runner-failure distinct count. First policy still cancels active work; budget still only stops admission. Inactive completion retains the prior panic because it is a controller invariant and an error return would require changing Runner error precedence.",
+  "files_changed": [
+    "tools/gomad3/runner/internal/campaign/controller.go",
+    "tools/gomad3/runner/internal/campaign/controller_test.go",
+    "tools/gomad3/runner/runner.go",
+    "tools/gomad3/runner/campaign_test.go",
+    "tools/gomad3/runner/seed_completion_characterization_test.go"
+  ],
+  "preimages": "source-pre.json",
+  "postimages": "source-post.json",
+  "task_only_patch": "task-only.patch",
+  "post_host_controller_fix_patch": "post-host-controller-fix.patch",
+  "post_host_controller_preimage": "post-host-controller-preimage.go (reconstructed from applied controller edits; not an independent host-time snapshot)",
+  "early_return_audit": "early-return-audit.md",
+  "evidence": {
+    "baseline": [
+      "controller-baseline.log exit0",
+      "task-2/runner-post-lint-fix.log exit0 on exact runner.go task3 preimage SHA 358a37dafa538e66b7b02baea2c0c8cff78268fee35f3a0c5cd75d653eee3e0f",
+      "early-characterization-before.log exit0"
+    ],
+    "red": "controller-red.log exit1 because Complete API was absent",
+    "final_focused": [
+      "controller-final.log exit0 0.305s",
+      "focused-final.log exit0 8.341s",
+      "runner-TestRun-after.log exit0 45.838s on pre-lint valid-kind implementation"
+    ],
+    "full_host": "full-host.log exit2: all packages except runner/internal/execution pass; watchdog_truncated returned empty Result and missing started/final reports; Runner 169.878s and campaign 37.611s pass. This is not a full-host pass.",
+    "supplemental_execution": [
+      "watchdog-selector.log exit0 2.111s",
+      "watchdog-family.log exit0 6.201s (10 cases)",
+      "execution-package-retry.log exit0 68.311s for entire previously failing package; same source/environment",
+      "execution-import-crossings.log has zero Runner/controller imports in execution test dependency closure"
+    ],
+    "standards": [
+      "architecture-final.log exit0",
+      "runner-vet-final.log exit0",
+      "runner-build-final.log exit0",
+      "gofmt -l exit0 empty",
+      "git diff --check exit0",
+      "task-only.patch and post-host-controller-fix.patch reverse-check exit0"
+    ],
+    "lint": "runner-scoped-lint-final.log exit1, 430 global existing Runner findings; controller.go has the same two policy-switch revive and inactive-panic forbidigo findings as preimage, no diagnostics in new characterization or campaign_test. Root make lint-code-fast unchanged nested-module loading failure retained at fn-113 task-2; not rerun."
+  },
+  "open_verification": "Native linux/amd64 unavailable. Initial concurrent full host watchdog failure remains unexplained; isolated exact selector, full family, and entire failing package passed on retry. Review should decide whether combined gate evidence satisfies preservation contract.",
+  "prs": []
+}

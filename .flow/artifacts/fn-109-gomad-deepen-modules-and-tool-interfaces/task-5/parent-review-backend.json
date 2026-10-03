@@ -1,0 +1,12 @@
+{
+  "backend": "codex",
+  "spec": "codex:gpt-6-sol:high",
+  "source": "explicit override carried from active workflow",
+  "flowctl": "/Users/stephan/.codex/plugins/cache/flow-next-marketplace/flow-next/4.5.1/scripts/flowctl",
+  "repo": "/Users/stephan/Workspace/temporal/gomad",
+  "rp_eligible": 0,
+  "phase0_executed_once": true,
+  "same_family": true,
+  "scope": "uncommitted task5 patch; review only after green frozen source",
+  "timestamp": "2026-10-03T12:00:55.417261+00:00"
+}

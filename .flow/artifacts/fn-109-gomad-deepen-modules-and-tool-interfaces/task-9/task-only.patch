@@ -1,0 +1,839 @@
+--- a/tools/gomad3/target/target.go
++++ b/tools/gomad3/target/target.go
+@@ -10,7 +10,6 @@
+ 	"fmt"
+ 	"io"
+ 	"os"
+-	"os/exec"
+ 	"path/filepath"
+ 	"runtime"
+ 	"runtime/debug"
+@@ -22,6 +21,7 @@
+ 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
+ 	"go.temporal.io/server/tools/gomad3/record"
+ 	targetbuild "go.temporal.io/server/tools/gomad3/target/internal/build"
++	"go.temporal.io/server/tools/gomad3/target/internal/gocommand"
+ 	"go.temporal.io/server/tools/gomad3/target/internal/livecap"
+ 	targetprovenance "go.temporal.io/server/tools/gomad3/target/internal/provenance"
+ )
+@@ -45,6 +45,9 @@
+ const provenanceSchema = "gomad3.exec-provenance/v3"
+ 
+ const maximumProvenanceBytes = 16 << 20
++const maximumGoEnvironmentBytes = 64 << 10
++const maximumGoModuleDownloadBytes = 4 << 20
++const maximumGoBuildDiagnosticBytes = 4 << 20
+ 
+ type Spec struct {
+ 	Kind                Kind
+@@ -206,7 +209,11 @@
+ 	CapabilityManifest *CapabilityManifest `json:"capability_manifest,omitempty"`
+ }
+ 
+-func Prepare(ctx context.Context, spec Spec) (prepared Prepared, retErr error) {
++func Prepare(ctx context.Context, spec Spec) (Prepared, error) {
++	return prepareWith(ctx, spec, gocommand.Default())
++}
++
++func prepareWith(ctx context.Context, spec Spec, runner gocommand.Runner) (prepared Prepared, retErr error) {
+ 	tags, err := targetbuild.NormalizeTags(spec.BuildTags)
+ 	if err != nil {
+ 		return Prepared{}, err
+@@ -216,7 +223,7 @@
+ 		return Prepared{}, err
+ 	}
+ 	spec.CapabilityMode = mode
+-	identity, err := ReadToolchainIdentity(spec.ToolchainRoot)
++	identity, err := readToolchainIdentityWith(ctx, spec.ToolchainRoot, runner)
+ 	if err != nil {
+ 		return Prepared{}, err
+ 	}
+@@ -251,7 +258,7 @@
+ 	case KindExec:
+ 		preparedTarget, err = prepareExec(ctx, spec, identity, targetPath)
+ 	case KindGoRun, KindGoTest:
+-		preparedTarget, err = prepareGo(ctx, spec, tags, identity, targetPath)
++		preparedTarget, err = prepareGo(ctx, spec, tags, identity, targetPath, runner)
+ 	default:
+ 		err = fmt.Errorf("unsupported target kind %q", spec.Kind)
+ 	}
+@@ -349,6 +356,10 @@
+ }
+ 
+ func ReadToolchainIdentity(root string) (ToolchainIdentity, error) {
++	return readToolchainIdentityWith(context.Background(), root, gocommand.Default())
++}
++
++func readToolchainIdentityWith(ctx context.Context, root string, runner gocommand.Runner) (ToolchainIdentity, error) {
+ 	if root == "" {
+ 		return ToolchainIdentity{}, fmt.Errorf("toolchain root is required")
+ 	}
+@@ -376,12 +387,14 @@
+ 	if builtInfo, statErr := os.Stat(builtGo); statErr != nil || !builtInfo.Mode().IsRegular() || builtInfo.Mode()&0o111 == 0 {
+ 		return ToolchainIdentity{}, fmt.Errorf("toolchain build %s is missing or stale in %s; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation", buildKey, root)
+ 	}
+-	command := exec.Command(goCommand, "env", "GOVERSION", "GOOS", "GOARCH", "CGO_ENABLED")
+-	command.Env = targetbuild.Environment()
+-	output, err := command.Output()
++	result, err := runner.Structured(ctx, gocommand.Request{
++		Command: []string{goCommand, "env", "GOVERSION", "GOOS", "GOARCH", "CGO_ENABLED"},
++		Dir:     root, Env: targetbuild.Environment(), OutputLimit: maximumGoEnvironmentBytes,
++	})
+ 	if err != nil {
+ 		return ToolchainIdentity{}, fmt.Errorf("query pinned Go command: %w", err)
+ 	}
++	output := result.Stdout
+ 	fields := strings.Split(strings.TrimSuffix(string(output), "\n"), "\n")
+ 	if len(fields) != 4 || fields[0] == "" || fields[1] == "" || fields[2] == "" || fields[3] != "0" {
+ 		return ToolchainIdentity{}, fmt.Errorf("pinned Go command returned invalid identity %q", output)
+@@ -402,12 +415,14 @@
+ 	if err != nil {
+ 		return "", fmt.Errorf("resolve pinned Go command: %w", err)
+ 	}
+-	command := exec.CommandContext(ctx, goCommand, "env", "GOMODCACHE")
+-	command.Env = targetbuild.Environment()
+-	output, err := command.Output()
++	result, err := gocommand.Default().Structured(ctx, gocommand.Request{
++		Command: []string{goCommand, "env", "GOMODCACHE"},
++		Dir:     filepath.Dir(filepath.Dir(goCommand)), Env: targetbuild.Environment(), OutputLimit: maximumGoEnvironmentBytes,
++	})
+ 	if err != nil {
+ 		return "", fmt.Errorf("query pinned module cache: %w", err)
+ 	}
++	output := result.Stdout
+ 	path := strings.TrimSuffix(string(output), "\n")
+ 	if path == "" || strings.Contains(path, "\n") || !filepath.IsAbs(path) {
+ 		return "", fmt.Errorf("pinned Go command returned invalid module cache %q", output)
+@@ -439,24 +454,29 @@
+ 	}
+ 	defer func() { retErr = errors.Join(retErr, os.RemoveAll(outside)) }()
+ 	query := module.Path + "@" + module.Version
+-	command := exec.CommandContext(ctx, goCommand, "mod", "download", "-json", query)
+-	command.Dir = outside
+-	command.Env = targetbuild.Environment()
+-	var stderr strings.Builder
+-	command.Stderr = &stderr
+-	output, runErr := command.Output()
++	result, runErr := gocommand.Default().Structured(ctx, gocommand.Request{
++		Command: []string{goCommand, "mod", "download", "-json", query},
++		Dir:     outside, Env: targetbuild.Environment(), OutputLimit: maximumGoModuleDownloadBytes,
++	})
++	output, stderr := result.Stdout, result.Stderr
+ 	var downloaded struct {
+ 		Sum   string
+ 		Error string
+ 	}
++	if runErr != nil {
++		var overflow *gocommand.OverflowError
++		if errors.As(runErr, &overflow) || errors.Is(runErr, context.Canceled) || errors.Is(runErr, context.DeadlineExceeded) {
++			return fmt.Errorf("download pinned module %s: %w", query, runErr)
++		}
++	}
+ 	if err := json.Unmarshal(output, &downloaded); err != nil {
+-		return fmt.Errorf("download pinned module %s: %w: %s", query, errors.Join(runErr, err), strings.TrimSpace(stderr.String()))
++		return fmt.Errorf("download pinned module %s: %w: %s", query, errors.Join(runErr, err), strings.TrimSpace(string(stderr)))
+ 	}
+ 	if downloaded.Error != "" {
+ 		return fmt.Errorf("download pinned module %s: %s", query, downloaded.Error)
+ 	}
+ 	if runErr != nil {
+-		return fmt.Errorf("download pinned module %s: %w: %s", query, runErr, strings.TrimSpace(stderr.String()))
++		return fmt.Errorf("download pinned module %s: %w: %s", query, runErr, strings.TrimSpace(string(stderr)))
+ 	}
+ 	if downloaded.Sum != module.Sum {
+ 		return fmt.Errorf("pinned module %s checksum mismatch: got %q, want %q", query, downloaded.Sum, module.Sum)
+@@ -648,7 +668,7 @@
+ 	return true
+ }
+ 
+-func prepareGo(ctx context.Context, spec Spec, tags []string, identity ToolchainIdentity, targetPath string) (preparation, error) {
++func prepareGo(ctx context.Context, spec Spec, tags []string, identity ToolchainIdentity, targetPath string, runner gocommand.Runner) (preparation, error) {
+ 	if spec.Source == "" || spec.WorkingDir == "" {
+ 		return preparation{}, errors.New("go target source and working directory are required")
+ 	}
+@@ -663,7 +683,7 @@
+ 	if err != nil {
+ 		return preparation{}, err
+ 	}
+-	review, packages, err := reviewGoCapabilityPackages(ctx, goCommand, spec, buildContext.Tags, buildContext.Directory, buildContext.Package)
++	review, packages, err := reviewGoCapabilityPackagesWith(ctx, goCommand, spec, buildContext.Tags, buildContext.Directory, buildContext.Package, runner)
+ 	if err != nil {
+ 		return preparation{}, err
+ 	}
+@@ -671,7 +691,7 @@
+ 	if err != nil {
+ 		return preparation{}, err
+ 	}
+-	return buildGoTarget(ctx, spec, buildContext.Tags, identity, targetPath, goCommand, buildContext.Directory, buildContext.Package, review, rejectUnsupported, cache)
++	return buildGoTargetWith(ctx, spec, buildContext.Tags, identity, targetPath, goCommand, buildContext.Directory, buildContext.Package, review, rejectUnsupported, cache, runner)
+ }
+ 
+ func buildGoTarget(
+@@ -687,6 +707,14 @@
+ 	policy unsupportedPolicy,
+ 	cache *preparedTargetCache,
+ ) (preparation, error) {
++	return buildGoTargetWith(ctx, spec, tags, identity, targetPath, goCommand, commandDirectory, packageArgument, review, policy, cache, gocommand.Default())
++}
++
++func buildGoTargetWith(
++	ctx context.Context, spec Spec, tags []string, identity ToolchainIdentity, targetPath string,
++	goCommand, commandDirectory, packageArgument string, review CapabilityReview,
++	policy unsupportedPolicy, cache *preparedTargetCache, runner gocommand.Runner,
++) (preparation, error) {
+ 	if policy == rejectUnsupported && spec.CapabilityMode == CapabilityModeClosure && len(review.Findings) != 0 {
+ 		return preparation{}, unsupportedFinding(review.Findings[0])
+ 	}
+@@ -733,10 +761,11 @@
+ 	if err != nil {
+ 		return preparation{}, err
+ 	}
+-	command := exec.CommandContext(ctx, goCommand, arguments...)
+-	command.Dir = commandDirectory
+-	command.Env = append(targetbuild.Environment(), "GOCACHE="+buildCache)
+-	output, err := command.CombinedOutput()
++	result, err := runner.Diagnostic(ctx, gocommand.Request{
++		Command: append([]string{goCommand}, arguments...), Dir: commandDirectory,
++		Env: append(targetbuild.Environment(), "GOCACHE="+buildCache), OutputLimit: maximumGoBuildDiagnosticBytes,
++	})
++	output := result.Combined()
+ 	if releaseErr := cacheUse.Release(); releaseErr != nil {
+ 		return preparation{}, fmt.Errorf("release target build cache: %w", releaseErr)
+ 	}
+--- a/tools/gomad3/target/capability.go
++++ b/tools/gomad3/target/capability.go
+@@ -10,7 +10,6 @@
+ 	"io"
+ 	"io/fs"
+ 	"os"
+-	"os/exec"
+ 	"path/filepath"
+ 	"slices"
+ 	"sort"
+@@ -21,12 +20,14 @@
+ 	"go.temporal.io/server/tools/gomad3/record"
+ 	targetbuild "go.temporal.io/server/tools/gomad3/target/internal/build"
+ 	"go.temporal.io/server/tools/gomad3/target/internal/capabilityreview"
++	"go.temporal.io/server/tools/gomad3/target/internal/gocommand"
+ 	"go.temporal.io/server/tools/gomad3/target/internal/livecap"
+ )
+ 
+ const CapabilityClosureSchema = "gomad3.target-capability-closure/v3"
+ const CapabilityReviewSchema = "gomad3.target-capability-review/v4"
+ const maximumCapabilityReviewOutputBytes = 64 << 20
++const maximumStandardPackagesBytes = 4 << 20
+ const maximumCapabilityReviewPackages = 100000
+ const maximumCapabilitySourceBytes = 16 << 20
+ 
+@@ -253,11 +254,15 @@
+ // reviewGoCapabilityPackages also returns the listing the review projected,
+ // which preparation needs for the build inputs the closure does not review.
+ func reviewGoCapabilityPackages(ctx context.Context, goCommand string, spec Spec, tags []string, commandDirectory, packageArgument string) (CapabilityReview, []listedPackage, error) {
+-	packages, err := capabilityreview.List(ctx, capabilityreview.Request{
++	return reviewGoCapabilityPackagesWith(ctx, goCommand, spec, tags, commandDirectory, packageArgument, gocommand.Default())
++}
++
++func reviewGoCapabilityPackagesWith(ctx context.Context, goCommand string, spec Spec, tags []string, commandDirectory, packageArgument string, runner gocommand.Runner) (CapabilityReview, []listedPackage, error) {
++	packages, err := capabilityreview.ListWith(ctx, capabilityreview.Request{
+ 		GoCommand: goCommand, Directory: commandDirectory, Package: packageArgument, Tags: tags,
+ 		Overlay: spec.BuildOverlay, ModFile: spec.BuildModFile, Environment: targetbuild.Environment(), Test: spec.Kind == KindGoTest,
+ 		OutputLimit: maximumCapabilityReviewOutputBytes, PackageLimit: maximumCapabilityReviewPackages,
+-	})
++	}, runner)
+ 	if err != nil {
+ 		var commandError *capabilityreview.CommandError
+ 		if errors.As(err, &commandError) && commandError.InvalidInput {
+@@ -871,18 +876,15 @@
+ }
+ 
+ func validateExecStandardPackages(ctx context.Context, goCommand string, closure CapabilityClosure) error {
+-	command := exec.CommandContext(ctx, goCommand, "list", "std")
+-	command.Env = targetbuild.Environment()
+-	output, err := command.Output()
+-	if err != nil {
+-		var stderr []byte
+-		if exit, ok := err.(*exec.ExitError); ok {
+-			stderr = exit.Stderr
+-		}
+-		return fmt.Errorf("inspect pinned standard packages: %w: %s", err, stderr)
++	result, err := gocommand.Default().Structured(ctx, gocommand.Request{
++		Command: []string{goCommand, "list", "std"}, Dir: filepath.Dir(filepath.Dir(goCommand)),
++		Env: targetbuild.Environment(), OutputLimit: maximumStandardPackagesBytes,
++	})
++	if err != nil {
++		return fmt.Errorf("inspect pinned standard packages: %w: %s", err, result.Stderr)
+ 	}
+ 	standard := make(map[string]struct{})
+-	for _, importPath := range strings.Fields(string(output)) {
++	for _, importPath := range strings.Fields(string(result.Stdout)) {
+ 		standard[importPath] = struct{}{}
+ 	}
+ 	for _, pkg := range closure.Packages {
+--- a/tools/gomad3/target/internal/capabilityreview/list.go
++++ b/tools/gomad3/target/internal/capabilityreview/list.go
+@@ -7,8 +7,9 @@
+ 	"errors"
+ 	"fmt"
+ 	"io"
+-	"os/exec"
+ 	"strings"
++
++	"go.temporal.io/server/tools/gomad3/target/internal/gocommand"
+ )
+ 
+ type Request struct {
+@@ -84,6 +85,10 @@
+ }
+ 
+ func List(ctx context.Context, request Request) ([]Package, error) {
++	return ListWith(ctx, request, gocommand.Default())
++}
++
++func ListWith(ctx context.Context, request Request, runner gocommand.Runner) ([]Package, error) {
+ 	if request.GoCommand == "" || request.Directory == "" || request.Package == "" || request.OutputLimit == 0 || request.PackageLimit <= 0 {
+ 		return nil, errors.New("capability review request is incomplete")
+ 	}
+@@ -101,21 +106,21 @@
+ 		arguments = append(arguments, "-tags", strings.Join(request.Tags, ","))
+ 	}
+ 	arguments = append(arguments, request.Package)
+-	command := exec.CommandContext(ctx, request.GoCommand, arguments...)
+-	command.Dir = request.Directory
+-	command.Env = append([]string(nil), request.Environment...)
+-	stdout, stderr, err := runBounded(command, request.OutputLimit)
++	result, err := runner.Structured(ctx, gocommand.Request{
++		Command: append([]string{request.GoCommand}, arguments...), Dir: request.Directory,
++		Env: request.Environment, OutputLimit: request.OutputLimit,
++	})
+ 	if err != nil {
+ 		if ctx.Err() != nil {
+ 			return nil, ctx.Err()
+ 		}
+-		var exit *exec.ExitError
++		var exit *gocommand.ExitError
+ 		if errors.As(err, &exit) {
+-			return nil, &CommandError{Err: err, Stderr: stderr, InvalidInput: invalidDiagnostic(stderr)}
++			return nil, &CommandError{Err: err, Stderr: result.Stderr, InvalidInput: invalidDiagnostic(result.Stderr)}
+ 		}
+ 		return nil, err
+ 	}
+-	decoder := json.NewDecoder(bytes.NewReader(stdout))
++	decoder := json.NewDecoder(bytes.NewReader(result.Stdout))
+ 	packages := make([]Package, 0)
+ 	for {
+ 		var pkg Package
+@@ -146,48 +151,3 @@
+ 	}
+ 	return false
+ }
+-
+-func runBounded(command *exec.Cmd, limit uint64) ([]byte, []byte, error) {
+-	stdout, err := newBoundedBuffer(limit)
+-	if err != nil {
+-		return nil, nil, err
+-	}
+-	stderr, err := newBoundedBuffer(limit)
+-	if err != nil {
+-		return nil, nil, err
+-	}
+-	command.Stdout = stdout
+-	command.Stderr = stderr
+-	runErr := command.Run()
+-	if stdout.overflow || stderr.overflow {
+-		return nil, nil, fmt.Errorf("target capability closure output exceeds %d bytes", limit)
+-	}
+-	if runErr != nil {
+-		return nil, stderr.bytes, runErr
+-	}
+-	return stdout.bytes, stderr.bytes, nil
+-}
+-
+-type boundedBuffer struct {
+-	bytes    []byte
+-	limit    uint64
+-	overflow bool
+-}
+-
+-func newBoundedBuffer(limit uint64) (*boundedBuffer, error) {
+-	if limit == 0 || limit > uint64(^uint(0)>>1) {
+-		return nil, fmt.Errorf("invalid command output limit %d", limit)
+-	}
+-	return &boundedBuffer{bytes: make([]byte, 0, int(limit)), limit: limit}, nil
+-}
+-
+-func (buffer *boundedBuffer) Write(data []byte) (int, error) {
+-	remaining := buffer.limit - uint64(len(buffer.bytes))
+-	if uint64(len(data)) > remaining {
+-		buffer.bytes = append(buffer.bytes, data[:int(remaining)]...)
+-		buffer.overflow = true
+-		return len(data), nil
+-	}
+-	buffer.bytes = append(buffer.bytes, data...)
+-	return len(data), nil
+-}
+--- a/tools/gomad3/target/internal/capabilityreview/list_test.go
++++ b/tools/gomad3/target/internal/capabilityreview/list_test.go
+@@ -2,9 +2,14 @@
+ 
+ import (
+ 	"context"
++	"errors"
+ 	"os"
+ 	"path/filepath"
++	"strings"
+ 	"testing"
++	"time"
++
++	"go.temporal.io/server/tools/gomad3/target/internal/gocommand"
+ )
+ 
+ func TestListOwnsBoundedGoListTransport(t *testing.T) {
+@@ -21,3 +26,45 @@
+ 		t.Fatalf("List() = %#v", packages)
+ 	}
+ }
++
++func TestListRejectsOverflowBeforeDecodingValidPrefix(t *testing.T) {
++	command := listFixtureCommand(t, "printf '%s' '{\"ImportPath\":\"example.com/pkg\"}'; printf '%s' 'extra'")
++	_, err := List(context.Background(), Request{GoCommand: command, Directory: t.TempDir(), Package: ".", OutputLimit: 36, PackageLimit: 2})
++	var overflow *gocommand.OverflowError
++	if !errors.As(err, &overflow) || overflow.Stream != "stdout" {
++		t.Fatalf("List() error = %T %v, want stdout overflow", err, err)
++	}
++}
++
++func TestListDistinguishesMalformedListingAndInvalidInput(t *testing.T) {
++	malformed := listFixtureCommand(t, "printf '%s' '{bad json}'")
++	_, err := List(context.Background(), Request{GoCommand: malformed, Directory: t.TempDir(), Package: ".", OutputLimit: 1024, PackageLimit: 2})
++	if err == nil || !strings.Contains(err.Error(), "decode target capability closure") {
++		t.Fatalf("malformed List() error = %v", err)
++	}
++	invalid := listFixtureCommand(t, "printf '%s' 'no required module provides package' >&2; exit 1")
++	_, err = List(context.Background(), Request{GoCommand: invalid, Directory: t.TempDir(), Package: ".", OutputLimit: 1024, PackageLimit: 2})
++	var commandErr *CommandError
++	if !errors.As(err, &commandErr) || !commandErr.InvalidInput {
++		t.Fatalf("invalid List() error = %T %v", err, err)
++	}
++}
++
++func TestListPreservesDeadline(t *testing.T) {
++	command := listFixtureCommand(t, "sleep 1000")
++	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
++	defer cancel()
++	_, err := List(ctx, Request{GoCommand: command, Directory: t.TempDir(), Package: ".", OutputLimit: 1024, PackageLimit: 2})
++	if !errors.Is(err, context.DeadlineExceeded) {
++		t.Fatalf("List() error = %v, want deadline exceeded", err)
++	}
++}
++
++func listFixtureCommand(t *testing.T, body string) string {
++	t.Helper()
++	path := filepath.Join(t.TempDir(), "go")
++	if err := os.WriteFile(path, []byte("#!/bin/sh\n"+body+"\n"), 0o700); err != nil {
++		t.Fatal(err)
++	}
++	return path
++}
+--- /dev/null
++++ b/tools/gomad3/target/go_command_test.go
+@@ -0,0 +1,160 @@
++package target
++
++import (
++	"context"
++	"errors"
++	"os"
++	"path/filepath"
++	"reflect"
++	"runtime"
++	"strings"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/internal/hostexec"
++	"go.temporal.io/server/tools/gomad3/internal/hostfs"
++	targetbuild "go.temporal.io/server/tools/gomad3/target/internal/build"
++	"go.temporal.io/server/tools/gomad3/target/internal/gocommand"
++)
++
++func TestPrepareWithGoCommandAdapterPreservesFreshAndCachedTarget(t *testing.T) {
++	module := writeModule(t, map[string]string{
++		"go.mod":  "module example.com/task9\n\ngo 1.26.4\n",
++		"main.go": "package main\nfunc main() {}\n",
++	})
++	spec := Spec{Kind: KindGoRun, Source: ".", WorkingDir: module, PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot(t)}
++	actual, err := Prepare(context.Background(), spec)
++	if err != nil {
++		t.Fatal(err)
++	}
++	isolatePreparedTargetCache(t)
++	builds := 0
++	runner := gocommand.New(func(ctx context.Context, request hostexec.Request) (hostexec.Result, error) {
++		if len(request.Command) > 2 && request.Command[1] == "build" {
++			builds++
++			for i, arg := range request.Command {
++				if arg == "-o" && i+1 < len(request.Command) {
++					data, err := os.ReadFile(actual.Path)
++					if err != nil {
++						return hostexec.Result{}, err
++					}
++					if err := os.WriteFile(request.Command[i+1], data, 0o700); err != nil {
++						return hostexec.Result{}, err
++					}
++					return hostexec.Result{Termination: hostexec.TerminationExit}, nil
++				}
++			}
++			t.Fatal("build command has no output path")
++		}
++		return hostexec.Run(ctx, request)
++	})
++	fresh, err := prepareWith(context.Background(), spec, runner)
++	if err != nil {
++		t.Fatal(err)
++	}
++	cached, err := prepareWith(context.Background(), spec, runner)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if builds != 1 {
++		t.Fatalf("builds = %d, want one fresh build and one cache restore", builds)
++	}
++	actual.Path, fresh.Path, cached.Path = "", "", ""
++	if !reflect.DeepEqual(fresh, actual) || !reflect.DeepEqual(cached, actual) {
++		t.Fatalf("prepared targets differ: actual=%#v fresh=%#v cached=%#v", actual, fresh, cached)
++	}
++	if !reflect.DeepEqual(fresh.RecordTarget(), actual.RecordTarget()) || !reflect.DeepEqual(cached.RecordTarget(), actual.RecordTarget()) {
++		t.Fatal("recorded target provenance differs")
++	}
++}
++
++func TestBuildGoTargetReleasesCacheAfterCommandFailure(t *testing.T) {
++	identity, err := ReadToolchainIdentity(toolchainRoot(t))
++	if err != nil {
++		t.Fatal(err)
++	}
++	cache, err := targetbuild.PrepareCache(toolchainRoot(t), identity.BuildKey)
++	if err != nil {
++		t.Fatal(err)
++	}
++	for _, test := range []struct {
++		name   string
++		result hostexec.Result
++		want   error
++	}{
++		{name: "compiler exit", result: hostexec.Result{Termination: hostexec.TerminationExit, ExitCode: 1, Stderr: hostexec.Output{Bytes: []byte("compiler failed")}}},
++		{name: "cancellation", result: hostexec.Result{Cancelled: true}, want: context.Canceled},
++		{name: "watchdog", result: hostexec.Result{WatchdogTimeout: true}, want: context.DeadlineExceeded},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			runner := gocommand.New(func(context.Context, hostexec.Request) (hostexec.Result, error) { return test.result, nil })
++			_, err := buildGoTargetWith(context.Background(), Spec{Kind: KindGoRun, ToolchainRoot: toolchainRoot(t)}, nil, identity,
++				filepath.Join(t.TempDir(), "target"), filepath.Join(toolchainRoot(t), "bin", "go"), t.TempDir(), ".",
++				CapabilityReview{}, rejectUnsupported, nil, runner)
++			if err == nil || !strings.Contains(err.Error(), "prepare go-run target") || (test.want != nil && !errors.Is(err, test.want)) {
++				t.Fatalf("buildGoTargetWith() error = %v, want wrapped %v", err, test.want)
++			}
++			lock, err := hostfs.Try(filepath.Join(cache, "gomad-cache.lock"))
++			if err != nil {
++				t.Fatalf("build cache lock remained held: %v", err)
++			}
++			if err := lock.Release(); err != nil {
++				t.Fatal(err)
++			}
++		})
++	}
++}
++
++func TestReadToolchainIdentityRejectsMalformedAndOverflowedEnvironment(t *testing.T) {
++	root := t.TempDir()
++	key := strings.Repeat("0", 64)
++	for _, path := range []string{filepath.Join(root, "bin", "go"), filepath.Join(root, "builds", key, "bin", "go")} {
++		if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
++			t.Fatal(err)
++		}
++		if err := os.WriteFile(path, []byte("#!/bin/sh\n"), 0o700); err != nil {
++			t.Fatal(err)
++		}
++	}
++	if err := os.WriteFile(filepath.Join(root, "build-key"), []byte(key+"\n"), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	for _, test := range []struct {
++		name         string
++		output       hostexec.Output
++		wantOverflow bool
++	}{
++		{name: "malformed", output: hostexec.Output{RawBytes: []byte("invalid\n")}},
++		{name: "overflow", output: hostexec.Output{RawBytes: []byte("go1.27.1\n" + runtime.GOOS + "\n" + runtime.GOARCH + "\n0\n"), Truncated: true}, wantOverflow: true},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			runner := gocommand.New(func(context.Context, hostexec.Request) (hostexec.Result, error) {
++				return hostexec.Result{Termination: hostexec.TerminationExit, Stdout: test.output}, nil
++			})
++			_, err := readToolchainIdentityWith(context.Background(), root, runner)
++			var overflow *gocommand.OverflowError
++			if err == nil || !strings.Contains(err.Error(), map[bool]string{true: "query pinned Go command", false: "invalid identity"}[test.wantOverflow]) || errors.As(err, &overflow) != test.wantOverflow {
++				t.Fatalf("readToolchainIdentityWith() error = %v", err)
++			}
++		})
++	}
++}
++
++func TestGoCommandQueriesRejectMalformedData(t *testing.T) {
++	root := t.TempDir()
++	command := filepath.Join(root, "bin", "go")
++	if err := os.MkdirAll(filepath.Dir(command), 0o700); err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(command, []byte("#!/bin/sh\nprintf 'relative\\n'\n"), 0o700); err != nil {
++		t.Fatal(err)
++	}
++	if _, err := ReadModuleCache(context.Background(), root); err == nil || !strings.Contains(err.Error(), "invalid module cache") {
++		t.Fatalf("ReadModuleCache() error = %v", err)
++	}
++	if err := os.WriteFile(command, []byte("#!/bin/sh\nprintf '{bad json}'\n"), 0o700); err != nil {
++		t.Fatal(err)
++	}
++	if err := DownloadModule(context.Background(), root, ModuleIdentity{Path: "example.com/m", Version: "v1.0.0", Sum: "h1:abc"}); err == nil || !strings.Contains(err.Error(), "download pinned module example.com/m@v1.0.0") {
++		t.Fatalf("DownloadModule() error = %v", err)
++	}
++}
+--- /dev/null
++++ b/tools/gomad3/target/internal/gocommand/command.go
+@@ -0,0 +1,127 @@
++package gocommand
++
++import (
++	"context"
++	"fmt"
++	"time"
++
++	"go.temporal.io/server/tools/gomad3/internal/hostexec"
++)
++
++const defaultTimeout = 15 * time.Minute
++const terminationGrace = 100 * time.Millisecond
++
++type Request struct {
++	Command     []string
++	Dir         string
++	Env         []string
++	Timeout     time.Duration
++	OutputLimit uint64
++}
++
++type Runner struct {
++	run func(context.Context, hostexec.Request) (hostexec.Result, error)
++}
++
++func Default() Runner {
++	return New(hostexec.Run)
++}
++
++func New(run func(context.Context, hostexec.Request) (hostexec.Result, error)) Runner {
++	return Runner{run: run}
++}
++
++type StructuredResult struct {
++	Stdout []byte
++	Stderr []byte
++}
++
++type DiagnosticResult struct {
++	Stdout hostexec.Output
++	Stderr hostexec.Output
++}
++
++func (result DiagnosticResult) Combined() []byte {
++	combined := append([]byte(nil), result.Stdout.Bytes...)
++	return append(combined, result.Stderr.Bytes...)
++}
++
++type OverflowError struct {
++	Stream string
++	Limit  uint64
++}
++
++func (err *OverflowError) Error() string {
++	return fmt.Sprintf("%s output exceeds %d bytes", err.Stream, err.Limit)
++}
++
++type ExitError struct {
++	Code   int
++	Signal string
++}
++
++func (err *ExitError) Error() string {
++	if err.Signal != "" {
++		return "signal: " + err.Signal
++	}
++	return fmt.Sprintf("exit status %d", err.Code)
++}
++
++func (runner Runner) Structured(ctx context.Context, request Request) (StructuredResult, error) {
++	result, err := runner.execute(ctx, request)
++	if err != nil {
++		return StructuredResult{}, err
++	}
++	if result.Stdout.Truncated {
++		return StructuredResult{}, &OverflowError{Stream: "stdout", Limit: request.OutputLimit}
++	}
++	if result.Stderr.Truncated {
++		return StructuredResult{}, &OverflowError{Stream: "stderr", Limit: request.OutputLimit}
++	}
++	structured := StructuredResult{Stdout: result.Stdout.RawBytes, Stderr: result.Stderr.RawBytes}
++	return structured, exitError(result)
++}
++
++func (runner Runner) Diagnostic(ctx context.Context, request Request) (DiagnosticResult, error) {
++	result, err := runner.execute(ctx, request)
++	diagnostic := DiagnosticResult{Stdout: result.Stdout, Stderr: result.Stderr}
++	if err != nil {
++		return diagnostic, err
++	}
++	return diagnostic, exitError(result)
++}
++
++func (runner Runner) execute(ctx context.Context, request Request) (hostexec.Result, error) {
++	timeout := request.Timeout
++	if timeout == 0 {
++		// Go commands without a caller deadline still need a finite watchdog.
++		timeout = defaultTimeout
++	}
++	result, err := runner.run(ctx, hostexec.Request{
++		Command: request.Command, Dir: request.Dir, Env: request.Env,
++		Timeout: timeout, TerminateGrace: terminationGrace, OutputLimit: request.OutputLimit,
++	})
++	if err != nil {
++		return result, err
++	}
++	if err := ctx.Err(); err != nil {
++		return result, err
++	}
++	if result.Cancelled {
++		return result, context.Canceled
++	}
++	if result.WatchdogTimeout {
++		return result, context.DeadlineExceeded
++	}
++	return result, nil
++}
++
++func exitError(result hostexec.Result) error {
++	if result.Termination == hostexec.TerminationExit {
++		if result.ExitCode == 0 {
++			return nil
++		}
++		return &ExitError{Code: result.ExitCode}
++	}
++	return &ExitError{Signal: result.Signal}
++}
+--- /dev/null
++++ b/tools/gomad3/target/internal/gocommand/command_test.go
+@@ -0,0 +1,107 @@
++package gocommand
++
++import (
++	"context"
++	"crypto/sha256"
++	"errors"
++	"os"
++	"path/filepath"
++	"strconv"
++	"strings"
++	"syscall"
++	"testing"
++	"time"
++
++	"go.temporal.io/server/tools/gomad3/internal/hostexec"
++)
++
++func TestStructuredRejectsOverflowBeforeReturningData(t *testing.T) {
++	command := shell(t, "printf '{\"valid\":true}'; printf 'x' >&2")
++	_, err := Default().Structured(context.Background(), Request{Command: []string{command}, Dir: t.TempDir(), OutputLimit: 8})
++	var overflow *OverflowError
++	if !errors.As(err, &overflow) || overflow.Stream != "stdout" {
++		t.Fatalf("Structured() error = %T %v, want stdout overflow", err, err)
++	}
++}
++
++func TestDiagnosticBoundsLongOutputAndKeepsFullHashes(t *testing.T) {
++	command := shell(t, "printf 'head'; printf '%0200d' 0; printf 'tail' >&2; exit 1")
++	result, err := Default().Diagnostic(context.Background(), Request{Command: []string{command}, Dir: t.TempDir(), OutputLimit: 16})
++	var exit *ExitError
++	if !errors.As(err, &exit) || exit.Code != 1 {
++		t.Fatalf("Diagnostic() error = %T %v, want exit status 1", err, err)
++	}
++	if !result.Stdout.Truncated || result.Stdout.TotalBytes != 204 || result.Stdout.FullSHA256 != sha256.Sum256([]byte("head"+strings.Repeat("0", 200))) {
++		t.Fatalf("stdout capture = %#v", result.Stdout)
++	}
++	if result.Stderr.Truncated || string(result.Stderr.RawBytes) != "tail" {
++		t.Fatalf("stderr capture = %#v", result.Stderr)
++	}
++}
++
++func TestStructuredCancellationRemovesDescendant(t *testing.T) {
++	pidFile := filepath.Join(t.TempDir(), "child.pid")
++	command := shell(t, "sleep 1000 & child=$!; printf '%s' \"$child\" > \"$1\"; wait")
++	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
++	defer cancel()
++	go func() {
++		for {
++			if _, err := os.Stat(pidFile); err == nil {
++				cancel()
++				return
++			}
++			select {
++			case <-ctx.Done():
++				return
++			case <-time.After(time.Millisecond):
++			}
++		}
++	}()
++	_, err := Default().Structured(ctx, Request{Command: []string{command, pidFile}, Dir: t.TempDir(), OutputLimit: 1024})
++	if !errors.Is(err, context.Canceled) {
++		t.Fatalf("Structured() error = %v, want cancellation", err)
++	}
++	data, err := os.ReadFile(pidFile)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if processAlive(string(data)) {
++		t.Fatalf("descendant %s survived cancellation", data)
++	}
++}
++
++func TestDiagnosticRetainsOutputOnWatchdogAndPropagatesCleanupFailure(t *testing.T) {
++	request := Request{Command: []string{"go", "build"}, Dir: t.TempDir(), OutputLimit: 8}
++	watchdog := New(func(context.Context, hostexec.Request) (hostexec.Result, error) {
++		return hostexec.Result{WatchdogTimeout: true, Stdout: hostexec.Output{Bytes: []byte("partial")}}, nil
++	})
++	result, err := watchdog.Diagnostic(context.Background(), request)
++	if !errors.Is(err, context.DeadlineExceeded) || string(result.Stdout.Bytes) != "partial" {
++		t.Fatalf("Diagnostic() = %#v, %v", result, err)
++	}
++	cleanup := errors.New("process group cleanup failed")
++	broken := New(func(context.Context, hostexec.Request) (hostexec.Result, error) {
++		return hostexec.Result{}, cleanup
++	})
++	_, err = broken.Diagnostic(context.Background(), request)
++	if !errors.Is(err, cleanup) || errors.Is(err, context.DeadlineExceeded) {
++		t.Fatalf("Diagnostic() error = %v, want cleanup failure", err)
++	}
++}
++
++func shell(t *testing.T, body string) string {
++	t.Helper()
++	path := filepath.Join(t.TempDir(), "go")
++	if err := os.WriteFile(path, []byte("#!/bin/sh\n"+body+"\n"), 0o700); err != nil {
++		t.Fatal(err)
++	}
++	return path
++}
++
++func processAlive(text string) bool {
++	pid, err := strconv.Atoi(text)
++	if err != nil {
++		return true
++	}
++	return !errors.Is(syscall.Kill(pid, 0), syscall.ESRCH)
++}

@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "git",
+    "push",
+    "--force-with-lease=refs/heads/gomad:d5462716c387dd4b05fa72f1bbc8048f1806b95d",
+    "stephanos",
+    "HEAD:refs/heads/gomad"
+  ],
+  "head": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+  "expected_remote": "d5462716c387dd4b05fa72f1bbc8048f1806b95d",
+  "exit": 0,
+  "stdout": "",
+  "stderr": "To https://github.com/stephanos/temporal.git\n + d5462716c3...d635e23f00 HEAD -> gomad (forced update)\n",
+  "timestamp": "2026-10-03T15:06:12.593594+00:00",
+  "authorization": "User explicitly requested force push; no commit created and uncommitted work remains local."
+}

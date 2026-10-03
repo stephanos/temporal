@@ -1,0 +1,14 @@
+{
+  "root_adapters": 9,
+  "absent_adapters": [
+    "github.com/cockroachdb/pebble",
+    "github.com/getsentry/sentry-go",
+    "github.com/go-playground/validator/v10",
+    "github.com/hashicorp/go-metrics",
+    "github.com/hashicorp/go-sockaddr",
+    "github.com/hashicorp/memberlist"
+  ],
+  "moved_adapters": [],
+  "root_go_mod_sha256": "8f5c8b618955af605647a4a4cfc0f93a82f2c25423038166a3d9faafaba14b32",
+  "root_go_sum_sha256": "15dbb85a0134b17beba7707f6d9565eb55009ca05b05f0cd43ad5a6679f58849"
+}

@@ -100,6 +100,19 @@ index 6f21c54..2e53160 100644
  
  	if haveStackLock {
  		goto useStackLock
+diff --git a/src/runtime/os_linux.go b/src/runtime/os_linux.go
+index 0474e6c..73d5e83 100644
+--- a/src/runtime/os_linux.go
++++ b/src/runtime/os_linux.go
+@@ -677,7 +677,7 @@ func setThreadCPUProfiler(hz int32) {
+ 	// activates may do a couple milliseconds of GC-related work and nothing
+ 	// else in the few seconds that the profiler observes.
+ 	spec := new(itimerspec)
+-	spec.it_value.setNsec(1 + int64(cheaprandn(uint32(1e9/hz))))
++	spec.it_value.setNsec(1 + int64(gomadHostCheapRandN(uint32(1e9/hz))))
+ 	spec.it_interval.setNsec(1e9 / int64(hz))
+ 
+ 	var timerid int32
 diff --git a/src/runtime/panic.go b/src/runtime/panic.go
 index f28807d..d2fe134 100644
 --- a/src/runtime/panic.go
@@ -130,7 +143,7 @@ index 892f900..48e285b 100644
  	stopped := false
  	var asyncM *m
 diff --git a/src/runtime/proc.go b/src/runtime/proc.go
-index b8d4d15..c609a62 100644
+index b8d4d15..22aedd0 100644
 --- a/src/runtime/proc.go
 +++ b/src/runtime/proc.go
 @@ -257,6 +257,10 @@ func main() {
@@ -221,18 +234,20 @@ index b8d4d15..c609a62 100644
  		lock(&sched.lock)
  		gp := globrunqget()
  		unlock(&sched.lock)
-@@ -3491,6 +3515,11 @@ top:
+@@ -3491,7 +3515,12 @@ top:
  		gp, q := globrunqgetbatch(int32(len(pp.runq)) / 2)
  		unlock(&sched.lock)
  		if gp != nil {
+-			if runqputbatch(pp, &q); !q.empty() {
 +			if gomadEnabled {
 +				q.push(gp)
 +				gp, inheritTime := gomadAdmit(pp, &q)
 +				return gp, inheritTime, false
 +			}
- 			if runqputbatch(pp, &q); !q.empty() {
++			if runqputbatch(pp, &q, gomadBatchTarget); !q.empty() {
  				throw("Couldn't put Gs into empty local runq")
  			}
+ 			return gp, false, false
 @@ -3556,7 +3585,7 @@ top:
  	//
  	// If we're in the GC mark phase, can safely scan and blacken objects,
@@ -246,12 +261,13 @@ index b8d4d15..c609a62 100644
  		if gp == nil {
  			throw("global runq empty with non-zero runqsize")
  		}
+-		if runqputbatch(pp, &q); !q.empty() {
 +		if gomadEnabled {
 +			q.push(gp)
 +			gp, inheritTime := gomadAdmit(pp, &q)
 +			return gp, inheritTime, false
 +		}
- 		if runqputbatch(pp, &q); !q.empty() {
++		if runqputbatch(pp, &q, gomadBatchTarget); !q.empty() {
  			throw("Couldn't put Gs into empty local runq")
  		}
  		return gp, false, false
@@ -267,6 +283,15 @@ index b8d4d15..c609a62 100644
  	if !mp.spinning && sched.needspinning.Load() == 1 {
  		// See "Delicate dance" comment below.
  		mp.becomeSpinning()
+@@ -3697,7 +3739,7 @@ top:
+ 				if gp == nil {
+ 					throw("global runq empty with non-zero runqsize")
+ 				}
+-				if runqputbatch(pp, &q); !q.empty() {
++				if runqputbatch(pp, &q, gomadBatchHost); !q.empty() {
+ 					throw("Couldn't put Gs into empty local runq")
+ 				}
+ 				acquirep(pp)
 @@ -3849,7 +3891,7 @@ func stealWork(now int64) (gp *g, inheritTime bool, rnow, pollUntil int64, newWo
  	for i := 0; i < stealTries; i++ {
  		stealTimersOrRunNextG := i == stealTries-1
@@ -276,6 +301,15 @@ index b8d4d15..c609a62 100644
  			if sched.gcwaiting.Load() {
  				// GC work may be available.
  				return nil, false, now, pollUntil, true
+@@ -4123,7 +4165,7 @@ func injectglist(glist *gList) {
+ 		startIdle(n)
+ 	}
+ 
+-	if runqputbatch(pp, &q); !q.empty() {
++	if runqputbatch(pp, &q, gomadBatchHost); !q.empty() {
+ 		lock(&sched.lock)
+ 		globrunqputbatch(&q)
+ 		unlock(&sched.lock)
 @@ -5081,7 +5123,7 @@ func exitsyscallTryGetP(oldp *p) *p {
  	}
  
@@ -566,16 +600,39 @@ index b8d4d15..c609a62 100644
  			batch[i], batch[j] = batch[j], batch[i]
  		}
  	}
-@@ -7632,7 +7803,7 @@ func runqputbatch(pp *p, q *gQueue) {
+@@ -7613,7 +7784,7 @@ func runqputslow(pp *p, gp *g, h, t uint32) bool {
+ // runqputbatch tries to put all the G's on q on the local runnable queue.
+ // If the local runq is full the input queue still contains unqueued Gs.
+ // Executed only by the owner P.
+-func runqputbatch(pp *p, q *gQueue) {
++func runqputbatch(pp *p, q *gQueue, origin gomadBatchOrigin) {
+ 	if q.empty() {
+ 		return
+ 	}
+@@ -7631,10 +7802,21 @@ func runqputbatch(pp *p, q *gQueue) {
+ 		off := func(o uint32) uint32 {
  			return (pp.runqtail + o) % uint32(len(pp.runq))
  		}
++		mp := getg().m
++		previousHostDrawScope := mp.gomadHostDrawScope
++		if gomadDiagnosticEnabled && origin == gomadBatchHost {
++			mp.gomadHostDrawScope = true
++		}
  		for i := uint32(1); i < n; i++ {
 -			j := cheaprandn(i + 1)
-+			j := gomadChoiceShuffleSeeded(i + 1)
++			var j uint32
++			if origin == gomadBatchHost {
++				j = gomadHostCheapRandN(i + 1)
++			} else {
++				j = gomadChoiceShuffleSeeded(i + 1)
++			}
  			pp.runq[off(i)], pp.runq[off(j)] = pp.runq[off(j)], pp.runq[off(i)]
  		}
++		mp.gomadHostDrawScope = previousHostDrawScope
  	}
-@@ -7656,6 +7827,20 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
+ 
+ 	atomic.StoreRel(&pp.runqtail, t)
+@@ -7656,6 +7838,19 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
  		return next.ptr(), true
  	}
  
@@ -583,8 +640,7 @@ index b8d4d15..c609a62 100644
 +		h := atomic.LoadAcq(&pp.runqhead)
 +		t := pp.runqtail
 +		if t-h > 1 {
-+			offset := gomadChoiceRunqSeeded(t - h)
-+			offset = gomadChoiceRunqIndex(pp, h, t, offset)
++			offset := gomadChoiceRunqIndex(pp, h, t)
 +			index := (h + offset) % uint32(len(pp.runq))
 +			gp := pp.runq[index].ptr()
 +			pp.runq[index] = pp.runq[h%uint32(len(pp.runq))]
@@ -646,7 +702,7 @@ index d2ad7aa..6dd89d8 100644
  	// Only the platform that supports 64-bit multiplication
  	// natively should be allowed.
 diff --git a/src/runtime/runtime2.go b/src/runtime/runtime2.go
-index 9e0e0df..8200d38 100644
+index 9e0e0df..fb21d82 100644
 --- a/src/runtime/runtime2.go
 +++ b/src/runtime/runtime2.go
 @@ -501,13 +501,18 @@ type g struct {
@@ -675,6 +731,86 @@ index 9e0e0df..8200d38 100644
  
  	preempt       bool // preemption signal, duplicates stackguard0 = stackpreempt
  	preemptStop   bool // transition to _Gpreempted on preemption; otherwise, just deschedule
+@@ -641,42 +646,43 @@ type m struct {
+ 	// from transitioning out of _Gsyscall if it intends to mutate p.
+ 	p puintptr
+ 
+-	nextp           puintptr // The next P to install before executing. Implies exclusive ownership of this P.
+-	oldp            puintptr // The P that was attached before executing a syscall.
+-	id              int64
+-	mallocing       int32
+-	throwing        throwType
+-	preemptoff      string // if != "", keep curg running on this m
+-	locks           int32
+-	dying           int32
+-	profilehz       int32
+-	spinning        bool // m is out of work and is actively looking for work
+-	blocked         bool // m is blocked on a note
+-	newSigstack     bool // minit on C thread called sigaltstack
+-	printlock       int8
+-	incgo           bool          // m is executing a cgo call
+-	isextra         bool          // m is an extra m
+-	isExtraInC      bool          // m is an extra m that does not have any Go frames
+-	isExtraInSig    bool          // m is an extra m in a signal handler
+-	freeWait        atomic.Uint32 // Whether it is safe to free g0 and delete m (one of freeMRef, freeMStack, freeMWait)
+-	needextram      bool
+-	g0StackAccurate bool // whether the g0 stack has accurate bounds
+-	traceback       uint8
+-	allpSnapshot    []*p          // Snapshot of allp for use after dropping P in findRunnable, nil otherwise.
+-	ncgocall        uint64        // number of cgo calls in total
+-	ncgo            int32         // number of cgo calls currently in progress
+-	cgoCallersUse   atomic.Uint32 // if non-zero, cgoCallers in use temporarily
+-	cgoCallers      *cgoCallers   // cgo traceback if crashing in cgo call
+-	park            note
+-	alllink         *m // on allm
+-	schedlink       muintptr
+-	idleNode        listNodeManual
+-	lockedg         guintptr
+-	createstack     [32]uintptr // stack that created this thread, it's used for StackRecord.Stack0, so it must align with it.
+-	lockedExt       uint32      // tracking for external LockOSThread
+-	lockedInt       uint32      // tracking for internal lockOSThread
+-	mWaitList       mWaitList   // list of runtime lock waiters
+-	ditEnabled      bool        // set if DIT is currently enabled on this M
++	nextp              puintptr // The next P to install before executing. Implies exclusive ownership of this P.
++	oldp               puintptr // The P that was attached before executing a syscall.
++	id                 int64
++	mallocing          int32
++	throwing           throwType
++	preemptoff         string // if != "", keep curg running on this m
++	locks              int32
++	dying              int32
++	profilehz          int32
++	spinning           bool // m is out of work and is actively looking for work
++	gomadHostDrawScope bool
++	blocked            bool // m is blocked on a note
++	newSigstack        bool // minit on C thread called sigaltstack
++	printlock          int8
++	incgo              bool          // m is executing a cgo call
++	isextra            bool          // m is an extra m
++	isExtraInC         bool          // m is an extra m that does not have any Go frames
++	isExtraInSig       bool          // m is an extra m in a signal handler
++	freeWait           atomic.Uint32 // Whether it is safe to free g0 and delete m (one of freeMRef, freeMStack, freeMWait)
++	needextram         bool
++	g0StackAccurate    bool // whether the g0 stack has accurate bounds
++	traceback          uint8
++	allpSnapshot       []*p          // Snapshot of allp for use after dropping P in findRunnable, nil otherwise.
++	ncgocall           uint64        // number of cgo calls in total
++	ncgo               int32         // number of cgo calls currently in progress
++	cgoCallersUse      atomic.Uint32 // if non-zero, cgoCallers in use temporarily
++	cgoCallers         *cgoCallers   // cgo traceback if crashing in cgo call
++	park               note
++	alllink            *m // on allm
++	schedlink          muintptr
++	idleNode           listNodeManual
++	lockedg            guintptr
++	createstack        [32]uintptr // stack that created this thread, it's used for StackRecord.Stack0, so it must align with it.
++	lockedExt          uint32      // tracking for external LockOSThread
++	lockedInt          uint32      // tracking for internal lockOSThread
++	mWaitList          mWaitList   // list of runtime lock waiters
++	ditEnabled         bool        // set if DIT is currently enabled on this M
+ 
+ 	mLockProfile mLockProfile // fields relating to runtime.lock contention
+ 	profStack    []uintptr    // used for memory/block/mutex stack traces
 diff --git a/src/runtime/select.go b/src/runtime/select.go
 index 553f696..e0df123 100644
 --- a/src/runtime/select.go

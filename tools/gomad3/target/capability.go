@@ -10,7 +10,6 @@ import (
 	"io"
 	"io/fs"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"slices"
 	"sort"
@@ -21,12 +20,14 @@ import (
 	"go.temporal.io/server/tools/gomad3/record"
 	targetbuild "go.temporal.io/server/tools/gomad3/target/internal/build"
 	"go.temporal.io/server/tools/gomad3/target/internal/capabilityreview"
+	"go.temporal.io/server/tools/gomad3/target/internal/gocommand"
 	"go.temporal.io/server/tools/gomad3/target/internal/livecap"
 )
 
 const CapabilityClosureSchema = "gomad3.target-capability-closure/v3"
 const CapabilityReviewSchema = "gomad3.target-capability-review/v4"
 const maximumCapabilityReviewOutputBytes = 64 << 20
+const maximumStandardPackagesBytes = 4 << 20
 const maximumCapabilityReviewPackages = 100000
 const maximumCapabilitySourceBytes = 16 << 20
 
@@ -253,11 +254,15 @@ func reviewGoCapabilityReview(ctx context.Context, goCommand string, spec Spec, 
 // reviewGoCapabilityPackages also returns the listing the review projected,
 // which preparation needs for the build inputs the closure does not review.
 func reviewGoCapabilityPackages(ctx context.Context, goCommand string, spec Spec, tags []string, commandDirectory, packageArgument string) (CapabilityReview, []listedPackage, error) {
-	packages, err := capabilityreview.List(ctx, capabilityreview.Request{
+	return reviewGoCapabilityPackagesWith(ctx, goCommand, spec, tags, commandDirectory, packageArgument, gocommand.Default())
+}
+
+func reviewGoCapabilityPackagesWith(ctx context.Context, goCommand string, spec Spec, tags []string, commandDirectory, packageArgument string, runner gocommand.Runner) (CapabilityReview, []listedPackage, error) {
+	packages, err := capabilityreview.ListWith(ctx, capabilityreview.Request{
 		GoCommand: goCommand, Directory: commandDirectory, Package: packageArgument, Tags: tags,
 		Overlay: spec.BuildOverlay, ModFile: spec.BuildModFile, Environment: targetbuild.Environment(), Test: spec.Kind == KindGoTest,
 		OutputLimit: maximumCapabilityReviewOutputBytes, PackageLimit: maximumCapabilityReviewPackages,
-	})
+	}, runner)
 	if err != nil {
 		var commandError *capabilityreview.CommandError
 		if errors.As(err, &commandError) && commandError.InvalidInput {
@@ -871,18 +876,15 @@ func forbiddenImport(importPath string) bool {
 }
 
 func validateExecStandardPackages(ctx context.Context, goCommand string, closure CapabilityClosure) error {
-	command := exec.CommandContext(ctx, goCommand, "list", "std")
-	command.Env = targetbuild.Environment()
-	output, err := command.Output()
+	result, err := gocommand.Default().Structured(ctx, gocommand.Request{
+		Command: []string{goCommand, "list", "std"}, Dir: filepath.Dir(filepath.Dir(goCommand)),
+		Env: targetbuild.Environment(), OutputLimit: maximumStandardPackagesBytes,
+	})
 	if err != nil {
-		var stderr []byte
-		if exit, ok := err.(*exec.ExitError); ok {
-			stderr = exit.Stderr
-		}
-		return fmt.Errorf("inspect pinned standard packages: %w: %s", err, stderr)
+		return fmt.Errorf("inspect pinned standard packages: %w: %s", err, result.Stderr)
 	}
 	standard := make(map[string]struct{})
-	for _, importPath := range strings.Fields(string(output)) {
+	for _, importPath := range strings.Fields(string(result.Stdout)) {
 		standard[importPath] = struct{}{}
 	}
 	for _, pkg := range closure.Packages {

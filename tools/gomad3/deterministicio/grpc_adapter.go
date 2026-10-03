@@ -235,14 +235,18 @@ func rewriteGRPCLinuxSource(rewrite grpcLinuxRewrite, linuxSource, nonLinuxSourc
 	if digestBytes(linuxSource) != rewrite.linuxSHA256 || digestBytes(nonLinuxSource) != rewrite.nonLinuxSHA256 {
 		return nil, fmt.Errorf("pinned gRPC source identity mismatch for %s", rewrite.linuxPath)
 	}
-	if bytes.Count(nonLinuxSource, rewrite.constraint) != 1 {
-		return nil, fmt.Errorf("pinned gRPC build constraint anchor mismatch for %s", rewrite.nonLinuxPath)
+	rewritten, err := regenerateGRPCLinuxSource(rewrite, nonLinuxSource)
+	if err != nil {
+		return nil, err
 	}
-	rewritten := bytes.Replace(nonLinuxSource, rewrite.constraint, rewrite.replacement, 1)
 	if got := digestBytes(rewritten); got != rewrite.replacementSHA256 {
 		return nil, fmt.Errorf("gRPC replacement identity mismatch for %s: got %s, want %s", rewrite.linuxPath, got, rewrite.replacementSHA256)
 	}
 	return rewritten, nil
+}
+
+func regenerateGRPCLinuxSource(rewrite grpcLinuxRewrite, nonLinuxSource []byte) ([]byte, error) {
+	return regenerateSourceRewrite(grpcModulePath, sourceRewrite{path: rewrite.nonLinuxPath, rewrites: []anchorRewrite{{anchor: rewrite.constraint, replacement: rewrite.replacement}}}, nonLinuxSource)
 }
 
 func rewriteGRPCKeepalive(contents []byte) ([]byte, error) {

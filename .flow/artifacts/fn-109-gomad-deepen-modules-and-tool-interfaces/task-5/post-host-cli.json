@@ -1,0 +1,12 @@
+{
+  "cmd": [
+    ".toolchain/bin/go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "./cmd/gomad/..."
+  ],
+  "exit": 0,
+  "seconds": 30.898
+}

@@ -1,0 +1,9 @@
+Usage of gomadtool compatibility-pack generate:
+  -approve-review string
+    	exact canonical review SHA-256
+  -compatibility-root string
+    	absolute pack authoring root owned by another module (default: internal/compatibilitypack)
+  -request string
+    	compatibility-pack request path
+  -root string
+    	Gomad v3 module root

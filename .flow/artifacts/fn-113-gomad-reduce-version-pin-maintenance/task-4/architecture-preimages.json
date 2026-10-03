@@ -1,0 +1,7 @@
+{
+  "tools/gomad3/cmd/gomadtool/adapter_publication.go": "06f07225235011292968ec7d498872dff6d53f63debb378002787c6edbe74da2",
+  "tools/gomad3/cmd/gomadtool/adapter_regenerate.go": "e6d268a3b95375504e191fca25f8ef80ca4d1343dbb0aff4732b10faaa4a336f",
+  "tools/gomad3/cmd/gomadtool/adapter_regenerate_test.go": "fb54db61de6e5cfda0dc5c7a56c5838eb939b306c2c4ab3340dbaaff359ad6ed",
+  "tools/gomad3/cmd/gomadtool/main.go": "3bb89de6bfafee381f89d978dacf5877bbcb4d41a9d7eda21e72e3d04a82cefa",
+  "tools/gomad3/deterministicio/adapter_regenerate.go": "28f1c25e8a373a25fe61e7d5165ac7c414f3561f37d26f90c109ab6ff31a2edc"
+}

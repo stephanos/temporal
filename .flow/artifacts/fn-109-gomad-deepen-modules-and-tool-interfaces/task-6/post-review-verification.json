@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-10-03T13:24:35.788327+00:00",
+  "review_verdict": "SHIP",
+  "review_timestamp": "2026-10-03T13:23:49.288652Z",
+  "review_receipt_sha256": "c005c9603911aacba145084b3f58af5f0fe7ee0aaca885328488fafff8e46782",
+  "source_file_count": 31,
+  "source_mismatches": [],
+  "source_changes_after_review": false,
+  "working_tree_patch_sha256": "c2d1f412be6b644540a07b713c6548023f29668ee53893484a5688366ebe36c5",
+  "commits": []
+}

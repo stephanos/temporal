@@ -1,0 +1,8 @@
+=== RUN   TestRuntimeOwnedControlProbe
+    runtime_owned_test.go:34: busy selected 3 non-root goroutine identities, want the two user goroutines
+--- FAIL: TestRuntimeOwnedControlProbe (2.34s)
+=== RUN   TestRuntimeOwnedRejectsPreviousController
+--- PASS: TestRuntimeOwnedRejectsPreviousController (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	2.609s
+FAIL

@@ -385,11 +385,11 @@ func runToolchainCommand(t *testing.T, directory, command string, arguments ...s
 	process.Dir = directory
 	process.Env = make([]string, 0, len(os.Environ())+3)
 	for _, entry := range os.Environ() {
-		if !strings.HasPrefix(entry, "GOCACHE=") {
+		if !strings.HasPrefix(entry, "GOCACHE=") && !strings.HasPrefix(entry, "GOEXPERIMENT=") {
 			process.Env = append(process.Env, entry)
 		}
 	}
-	process.Env = append(process.Env, "GOWORK=off", "CGO_ENABLED=0", "GOCACHE="+buildCache)
+	process.Env = append(process.Env, "GOWORK=off", "CGO_ENABLED=0", "GOEXPERIMENT=nogreenteagc", "GOCACHE="+buildCache)
 	output, err := process.CombinedOutput()
 	if err != nil {
 		t.Fatalf("%s %s: %v: %s", command, strings.Join(arguments, " "), err, output)

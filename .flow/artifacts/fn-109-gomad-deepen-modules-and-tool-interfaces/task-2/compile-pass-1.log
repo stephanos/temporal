@@ -1,0 +1,10 @@
+# go.temporal.io/server/tools/gomad3/runner [go.temporal.io/server/tools/gomad3/runner.test]
+runner/minimize_operation.go:496:34: cannot use session.campaign (variable of struct type CampaignSpec) as campaignRequest value in argument to manifestForRun
+runner/choice_exploration_divergence_test.go:173:53: cannot use config (variable of struct type CampaignSpec) as campaignRequest value in argument to processExplorationCompletion
+runner/coordinator_transport_test.go:102:33: undefined: coordinatorConfigFromCampaignSpec
+runner/coordinator_transport_test.go:112:11: undefined: campaignSpecFromCoordinatorConfig
+runner/retention_test.go:67:50: cannot use config (variable of struct type CampaignSpec) as campaignRequest value in argument to decideSuccessRetention
+runner/runner_test.go:660:25: cannot use config (variable of struct type CampaignSpec) as campaignRequest value in argument to publishBoundedFailureArtifact
+runner/runner_test.go:1758:34: cannot use config (variable of struct type CampaignSpec) as campaignRequest value in argument to manifestForRun
+FAIL	go.temporal.io/server/tools/gomad3/runner [build failed]
+FAIL

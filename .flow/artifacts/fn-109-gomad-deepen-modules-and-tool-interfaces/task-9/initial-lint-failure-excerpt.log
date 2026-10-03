@@ -1,0 +1,7 @@
+Initial scoped-lint terminal excerpt (original raw log was overwritten by the passing rerun):
+../tools/gomad3/target/go_command_test.go:25:2: redefines-builtin-id: redefinition of the built-in function real (revive)
+    real, err := Prepare(context.Background(), spec)
+    ^
+1 issues:
+* revive: 1
+Observed driver exit: 1; duration: 3.55s. Renamed only the test local to actual.

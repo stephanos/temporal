@@ -1,0 +1,7 @@
+Initial affected-suite terminal excerpt (original raw log was overwritten by the passing rerun):
+--- FAIL: TestGoCommandQueriesRejectMalformedData (0.23s)
+    go_command_test.go:152: ReadModuleCache() error = resolve pinned module cache: lstat /relative: no such file or directory
+FAIL
+FAIL go.temporal.io/server/tools/gomad3/target 24.850s
+Command: .toolchain/bin/go test -count=1 -tags test_dep ./target/... ./internal/hostexec
+Observed driver exit: 1; duration: 25.39s. Corrected only the fixture path from /relative to relative.

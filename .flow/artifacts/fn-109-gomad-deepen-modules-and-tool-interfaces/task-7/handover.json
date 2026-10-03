@@ -1,0 +1,240 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.7",
+  "role": "source writer handover; parent owns review and Flow lifecycle",
+  "branch": "stephanos/gomad",
+  "host": "darwin/arm64",
+  "toolchain_key": "2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457",
+  "frozen_source_manifest": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/final-source.json",
+  "frozen_at_utc": "2026-10-03T13:50:34.069702+00:00",
+  "source_changed_after_gate": [],
+  "preimages_manifest": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/preimages.json",
+  "preimages_manifest_sha256": "69bd760e751ebf55938e60f424ca6f9bf6ead2341e6d1c86df33f46488403e36",
+  "task_only_patch": {
+    "path": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/task-only.patch",
+    "sha256": "8421c95c2d359130d14664b94181756ee1f8be4035a62eb41d8791c285613cb8",
+    "bytes": 24180
+  },
+  "comments_check": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/comments-preserved.json",
+  "equivalence": {
+    "simple_before": {
+      "path": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/equivalence/before/snapshot.json",
+      "sha256": "29195da5e9abda68ae04dc414b0c500d0be353c6da9343328668f2039d51b34f",
+      "bytes": 5161
+    },
+    "simple_after": {
+      "path": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/equivalence/after/snapshot.json",
+      "sha256": "29195da5e9abda68ae04dc414b0c500d0be353c6da9343328668f2039d51b34f",
+      "bytes": 5161
+    },
+    "adapter_before": {
+      "path": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/equivalence-adapter/before/snapshot.json",
+      "sha256": "f393401b100b6c311cf962f5dd7b3ffcda0355ce5d91050cd788b9c15a7c5aed",
+      "bytes": 5693
+    },
+    "adapter_after": {
+      "path": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/equivalence-adapter/after/snapshot.json",
+      "sha256": "f393401b100b6c311cf962f5dd7b3ffcda0355ce5d91050cd788b9c15a7c5aed",
+      "bytes": 5693
+    },
+    "comparison": "Exact byte equality for each before/after pair after normalizing only Prepared.Path. Both fresh/cache values and record projections equal; Sprig adapter identity is attached."
+  },
+  "portable_old_entrypoint_overlay": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/legacy-portable-overlay.json",
+  "cli_binary": {
+    "path": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomad",
+    "sha256": "54260b128cfdb82f04f057d99fb1df2e67a50fa107fd50da3c5c7309609409ff",
+    "bytes": 14343394
+  },
+  "full_host": {
+    "start_utc": "2026-10-03T13:51:17Z",
+    "last_log_write_utc": "2026-10-03T13:54:33.298898+00:00",
+    "session_id": 1177,
+    "shell_pid": 21592,
+    "wrapper_exit": 1,
+    "make_exit_captured": false,
+    "package_ok_count": 46,
+    "log": {
+      "path": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/full-host.log",
+      "sha256": "701b7e588c1a7584d58d75e57aa1c578b308cf2e9c547b85a2886e29494c9ad2",
+      "bytes": 4556
+    },
+    "terminal_tool_chunk": "6f81f5",
+    "terminal_tool_output": "46 package result lines reported ok; then zsh:4: read-only variable: status; tool exit_code 1",
+    "makefile_recipe": "tools/gomad3/Makefile:124-133: test-host depends on toolchain and its final recipe command is patched go test over host package set; there is no later recipe command.",
+    "wrapper_script": "date -u '+%Y-%m-%dT%H:%M:%SZ' > .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/full-host-start.txt\nprint -r -- $$ > .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/full-host-shell.pid\nenv -u GOROOT -u GOBIN -u GOMADSEED -u GOMAD3_CHILD_SEED PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH GOMAD3_STOCK_GO=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host 2>&1 | tee .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/full-host.log\nstatus=${pipestatus[1]}\nprint -r -- $status > .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/full-host-exit.txt\ndate -u '+%Y-%m-%dT%H:%M:%SZ' > .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/full-host-end.txt\nexit $status",
+    "wrapper_failure": "zsh reserves `status` as read-only; assignment failed after tee reached EOF, preventing exit/end metadata files. The captured wrapper exit is 1; make exit is unknown."
+  },
+  "commands": [
+    {
+      "name": "baseline_broad",
+      "observed_exit": 1,
+      "command": "cd tools/gomad3; env -u GOROOT -u GOBIN -u GOMADSEED -u GOMAD3_CHILD_SEED PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH GOMAD3_STOCK_GO=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep ./runner/... ./qualification/...",
+      "elapsed_wall_seconds": null,
+      "note": "Original raw terminal transcript: session 15260, final chunk fe3611. Raw file was not captured. All packages passed except execution watchdog_absent."
+    },
+    {
+      "name": "baseline_watchdog_selector",
+      "observed_exit": 0,
+      "command": "cd tools/gomad3; env -u GOROOT -u GOBIN -u GOMADSEED -u GOMAD3_CHILD_SEED PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH GOMAD3_STOCK_GO=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep ./runner/internal/execution -run '^TestRunIOTerminalAfterTermination/watchdog_absent$'",
+      "elapsed_wall_seconds": null,
+      "log": {
+        "path": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/baseline-watchdog-selector.log",
+        "sha256": "cb98f382c156d887c6134b392538f072023923eaf136bf916194a40122c0ee6b",
+        "bytes": 73
+      }
+    },
+    {
+      "name": "baseline_focused",
+      "observed_exit": 0,
+      "command": "cd tools/gomad3; env -u GOROOT -u GOBIN -u GOMADSEED -u GOMAD3_CHILD_SEED PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH GOMAD3_STOCK_GO=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep ./runner -run 'Preparation|PortablePlan|CampaignPlan|Shard'",
+      "elapsed_wall_seconds": null,
+      "log": {
+        "path": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/baseline-focused.log",
+        "sha256": "ade8d00ed79f932e609189628047df6849d7627a6ef4579d8d2a871c8e06be1f",
+        "bytes": 54
+      }
+    },
+    {
+      "name": "before_simple_snapshot",
+      "observed_exit": 0,
+      "command": "cd tools/gomad3; env -u GOROOT -u GOBIN -u GOMADSEED -u GOMAD3_CHILD_SEED PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH GOMAD3_STOCK_GO=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off GOMAD3_PREPARATION_SNAPSHOT=/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/equivalence/before/snapshot.json GOMAD3_PREPARATION_FIXTURE=/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/equivalence-fixture .toolchain/bin/go test -count=1 -tags test_dep ./runner -run '^TestLegacyPreparationFixedInputSnapshot$'",
+      "elapsed_wall_seconds": null,
+      "log": {
+        "path": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/equivalence/before/command.log",
+        "sha256": "36f0ff6450a6c37a53c7dae9754a6fadb4fcc140759182fe674337481cd2a871",
+        "bytes": 54
+      }
+    },
+    {
+      "name": "before_adapter_snapshot",
+      "observed_exit": 0,
+      "command": "cd tools/gomad3; env -u GOROOT -u GOBIN -u GOMADSEED -u GOMAD3_CHILD_SEED PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH GOMAD3_STOCK_GO=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off GOMAD3_PREPARATION_ADAPTER_SNAPSHOT=/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/equivalence-adapter/before/snapshot.json .toolchain/bin/go test -count=1 -tags test_dep ./runner -run '^TestLegacyAdapterPreparationFixedInputSnapshot$'",
+      "elapsed_wall_seconds": null,
+      "log": {
+        "path": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/equivalence-adapter/before/command.log",
+        "sha256": "1ca9d2ae0df5b90a4483c074621427e44ebca00ae7fa44e4ef2c73b61796ddae",
+        "bytes": 54
+      }
+    },
+    {
+      "name": "owner_red",
+      "observed_exit": 1,
+      "command": "cd tools/gomad3; env -u GOROOT -u GOBIN -u GOMADSEED -u GOMAD3_CHILD_SEED PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH GOMAD3_STOCK_GO=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep ./internal/preparation",
+      "elapsed_wall_seconds": null,
+      "log": {
+        "path": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/red-owner.log",
+        "sha256": "3a685d5249af64d3eb8f12158ea4de3c44aebaa584059051e653d0f4829f016a",
+        "bytes": 675
+      },
+      "note": "Expected missing owner symbols before implementation."
+    },
+    {
+      "name": "owner_focused",
+      "observed_exit": 0,
+      "command": "cd tools/gomad3; env -u GOROOT -u GOBIN -u GOMADSEED -u GOMAD3_CHILD_SEED PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH GOMAD3_STOCK_GO=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep ./internal/preparation",
+      "elapsed_wall_seconds": null,
+      "log": {
+        "path": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/owner-focused.log",
+        "sha256": "e989e15c167ca0b1c037d8886b2a7072790915f5dec85249385b9401c22b3f88",
+        "bytes": 68
+      }
+    },
+    {
+      "name": "focused_after",
+      "observed_exit": 0,
+      "command": "cd tools/gomad3; env -u GOROOT -u GOBIN -u GOMADSEED -u GOMAD3_CHILD_SEED PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH GOMAD3_STOCK_GO=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep ./internal/preparation ./runner -run 'TestPrepare|Preparation|PortablePlan|CampaignPlan|Shard'",
+      "elapsed_wall_seconds": null,
+      "log": {
+        "path": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/focused-after.log",
+        "sha256": "96e4f31e7debe0f80d8a4cab7c90611955db1432f57415fd1f30f7cadeef6f61",
+        "bytes": 122
+      }
+    },
+    {
+      "name": "failure_classification",
+      "observed_exit": 0,
+      "command": "cd tools/gomad3; env -u GOROOT -u GOBIN -u GOMADSEED -u GOMAD3_CHILD_SEED PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH GOMAD3_STOCK_GO=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep ./runner -run 'TestRunRejectsPreparedTargetMutationBeforeFailurePublication|TestRunPreparationCancellationIsClassifiedSeparately|TestRunPreparationOverallTimeoutIsClassifiedSeparately|TestRunPreparationFailureLeavesExplicitPartial|TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists'",
+      "elapsed_wall_seconds": null,
+      "log": {
+        "path": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/failure-classification.log",
+        "sha256": "55220f97fa82db213438e0d38ea5680825bd1b7e30ff22de4535133b440ff22e",
+        "bytes": 54
+      }
+    },
+    {
+      "name": "public_api_architecture",
+      "observed_exit": 0,
+      "command": "cd tools/gomad3; env -u GOROOT -u GOBIN -u GOMADSEED -u GOMAD3_CHILD_SEED PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH GOMAD3_STOCK_GO=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep . -run 'TestPackageArchitecture|TestExactModuleEdges|TestPublicPackagesDoNotExportTypeAliases|TestRunnerRequestsCompileInExternalModule'",
+      "elapsed_wall_seconds": null,
+      "log": {
+        "path": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/public-api-architecture.log",
+        "sha256": "a0208378e29d20767f752002887972b4fd19c7724cdf6b5a765f6c996b22f1b9",
+        "bytes": 47
+      }
+    },
+    {
+      "name": "legacy_portable_overlay",
+      "observed_exit": 1,
+      "command": "cd tools/gomad3; env -u GOROOT -u GOBIN -u GOMADSEED -u GOMAD3_CHILD_SEED PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH GOMAD3_STOCK_GO=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off .toolchain/bin/go test -overlay=/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/legacy-portable-overlay.json -count=1 -tags test_dep ./runner -run '^TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists$'",
+      "elapsed_wall_seconds": null,
+      "log": {
+        "path": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/legacy-portable-overlay.log",
+        "sha256": "fd2469af382847f719fcd3631305f2aa1e114e0612fd4cf9b3bf37970629f730",
+        "bytes": 250
+      },
+      "note": "Expected old caller failure: deterministic I/O build adapter requires module cache and preparation root."
+    },
+    {
+      "name": "vet",
+      "observed_exit": 0,
+      "command": "cd tools/gomad3; env -u GOROOT -u GOBIN -u GOMADSEED -u GOMAD3_CHILD_SEED PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH GOMAD3_STOCK_GO=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off .toolchain/bin/go vet -tags test_dep . ./internal/preparation/... ./runner/... ./qualification/...",
+      "elapsed_wall_seconds": null,
+      "log": {
+        "path": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/vet.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    {
+      "name": "lint",
+      "observed_exit": 0,
+      "command": "cd tools/gomad3; env -u GOROOT -u GOBIN -u GOMADSEED -u GOMAD3_CHILD_SEED PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH GOMAD3_STOCK_GO=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off ../../.bin/golangci-lint-v2.13.0 run --config ../../.github/.golangci.yml --build-tags test_dep --timeout 10m --new-from-patch=/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/task-only.patch . ./internal/preparation/... ./runner/... ./qualification/... ./cmd/gomad/...",
+      "elapsed_wall_seconds": null,
+      "log": {
+        "path": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/lint.log",
+        "sha256": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+        "bytes": 10
+      },
+      "note": "0 task issues; historical unfiltered scoped lint and root make lint-code-fast are outside this verification."
+    },
+    {
+      "name": "cli_build",
+      "observed_exit": 0,
+      "command": "cd tools/gomad3; env -u GOROOT -u GOBIN -u GOMADSEED -u GOMAD3_CHILD_SEED PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH GOMAD3_STOCK_GO=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off .toolchain/bin/go build -trimpath -o .bin/gomad ./cmd/gomad",
+      "elapsed_wall_seconds": null,
+      "log": {
+        "path": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/cli-build.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    {
+      "name": "full_host_wrapper",
+      "observed_exit": 1,
+      "command": "env -u GOROOT -u GOBIN -u GOMADSEED -u GOMAD3_CHILD_SEED PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH GOMAD3_STOCK_GO=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host",
+      "elapsed_wall_seconds": null,
+      "log": {
+        "path": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/full-host.log",
+        "sha256": "701b7e588c1a7584d58d75e57aa1c578b308cf2e9c547b85a2886e29494c9ad2",
+        "bytes": 4556
+      },
+      "note": "All 46 package result lines are ok, no FAIL or make error; wrapper exited 1 afterward because zsh variable `status` is read-only, so underlying make exit was not captured. Session 1177, shell PID 21592. No rerun."
+    }
+  ],
+  "limitations": [
+    "Original broad baseline raw output exists only in the tool transcript (session 15260, final chunk fe3611); no file log was captured.",
+    "Full host wrapper exit 1 is a post-gate zsh recording error; underlying make exit was not captured, while every package reported ok and no FAIL or make error appears in the retained raw log.",
+    "linux/amd64 native qualification was unavailable on this darwin/arm64 host.",
+    "Task 8 analysis/compatibility review and later host command/installation work are outside this task."
+  ],
+  "commit_status": "No staging, commit, push, checkout or worktree action performed."
+}

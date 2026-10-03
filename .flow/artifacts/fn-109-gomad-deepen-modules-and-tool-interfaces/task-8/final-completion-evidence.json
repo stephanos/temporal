@@ -1,0 +1,30 @@
+{
+  "commits": [],
+  "tests": [
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep ./internal/preparation/... ./qualification/analysis/... ./cmd/... => actual exit 0, 53.163s; baseline-quick.json + raw stdout/stderr",
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep . -run TestPackageArchitecture => actual exit 0, 2.061s; baseline-architecture.json + raw stdout/stderr",
+    "make validate-compatibility => actual exit 0, 4.04s; baseline-compatibility.json + raw stdout/stderr",
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep ./internal/preparation -run TestInspect => actual exit 1, 0.288s; red-owner.json + raw stdout/stderr",
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep ./cmd/gomad/internal/cli -run TestRunAnalyzeSurfacesCleanupFailureAfterSupportedReport => actual exit 1, 2.083s; red-cli-cleanup.json + raw stdout/stderr",
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep ./internal/preparation ./qualification/analysis => actual exit 0, 6.724s; focused-owner.json + raw stdout/stderr",
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep ./internal/preparation -run 'TestInspectPreserves|TestInspectRetains' => actual exit 1, 0.798s; focused-classification.json + raw stdout/stderr",
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep ./internal/preparation -run 'TestInspectPreserves|TestInspectRetains' => actual exit 0, 0.812s; focused-classification-fixed.json + raw stdout/stderr",
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep ./internal/preparation -run TestInspectLinkedRejectsMalformedBuildRecord => actual exit 0, 1.124s; focused-malformed.json + raw stdout/stderr",
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep ./cmd/gomad/internal/cli -run 'TestRunAnalyze|TestAnalyze' => actual exit 0, 1.628s; focused-cli.json + raw stdout/stderr",
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep ./internal/preparation/... ./qualification/analysis/... ./cmd/... => actual exit 0, 38.05s; final-quick.json + raw stdout/stderr",
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep . -run TestPackageArchitecture => actual exit 0, 1.671s; final-architecture.json + raw stdout/stderr",
+    "make validate-compatibility => actual exit 0, 4.37s; final-compatibility.json + raw stdout/stderr",
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go vet -tags test_dep ./internal/preparation/... ./qualification/analysis/... ./cmd/... => actual exit 0, 0.727s; final-vet.json + raw stdout/stderr",
+    "../../.bin/golangci-lint-v2.13.0 run --config ../../.github/.golangci.yml --build-tags test_dep --timeout 10m --new-from-patch=/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/task-only-lint.patch . ./internal/preparation/... ./qualification/analysis/... ./cmd/... => actual exit 0, 5.759s; final-task-lint.json + raw stdout/stderr",
+    "make -C tools/gomad3 test-host => actual exit 0, 180.885s; full-host.json + raw stdout/stderr",
+    "make runner => actual exit 0, 2.897s; final-cli-build.json + raw stdout/stderr",
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomad analyze --format=json --toolchain-root /Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain --working-dir /Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/fixture/analysis go-run . => actual exit 0, 1.135s; final-cli-smoke.json + raw stdout/stderr",
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go build -overlay=/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/old-gomadtool-overlay.json -o /Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/baseline-gomadtool ./cmd/gomadtool => actual exit 0, 0.871s; build-old-gomadtool-overlay.json + raw stdout/stderr",
+    "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/baseline-gomadtool compatibility-pack qualify --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3 --request=internal/compatibilitypack/requests/golang-x-sys-v047-darwin-arm64.json --working-dir=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/internal/compatibilitypack/testdata/xsys => actual exit 0, 0.964s; overlay-before-compatibility-pack.json + raw stdout/stderr",
+    "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-8/after-gomadtool compatibility-pack qualify --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3 --request=internal/compatibilitypack/requests/golang-x-sys-v047-darwin-arm64.json --working-dir=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/internal/compatibilitypack/testdata/xsys => actual exit 0, 1.28s; overlay-after-compatibility-pack.json + raw stdout/stderr",
+    "Actual old/current CLI output/status comparisons: no normalization, all byte identical; snapshots.json and parent-source-verification.json.",
+    "Parent independently verified frozen Go/preimage/patch/binary/log bindings, original comments, reverse task-patch apply and git diff --check; post-review source mismatch0.",
+    "Native linux/amd64 and final full-spec R18/R19 qualification incomplete under task21; historical global/root lint failures outside scoped task-only lint0."
+  ],
+  "prs": []
+}

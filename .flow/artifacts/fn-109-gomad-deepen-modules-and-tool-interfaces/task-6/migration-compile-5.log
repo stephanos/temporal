@@ -1,0 +1,4 @@
+# go.temporal.io/server/tools/gomad3/runner [go.temporal.io/server/tools/gomad3/runner.test]
+runner/watchdog_replay_test.go:198:49: undefined: configDependencies
+FAIL	go.temporal.io/server/tools/gomad3/runner [build failed]
+FAIL

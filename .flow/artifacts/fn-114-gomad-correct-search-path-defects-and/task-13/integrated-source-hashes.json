@@ -1,0 +1,42 @@
+{
+  "head": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+  "sources": {
+    "tools/gomad3/ARCHITECTURE.md": "847cc9f465da8e2436e8eb18aba30bc550de3e25db4fbf32c4281dc52487f9a8",
+    "tools/gomad3/CLI.md": "2eedd0b71560de77e714b8bc5119bde9c1fcd8e5eeba10984d6cc4bb279c423d",
+    "tools/gomad3/README.md": "17f536a0f704c6bd0fd57b9be7dbc7d0426481a3f458f65a57b465908597bbf2",
+    "tools/gomad3/SPEC.md": "43bd4d6c19670346bf6707d7e14aea8a9ed8382c59e4c30f0834e555e0da5fbe",
+    "tools/gomad3/architecture_test.go": "154fa61b7d23cff5b31f44728e3ff3aff89648593cacaa649439bc3195e52630",
+    "tools/gomad3/artifact/store.go": "d9b4b74fa9a78da5d34801c4bb6d4cfc85cc1ea88b0e951c195800b3a4b77c79",
+    "tools/gomad3/artifact/store_test.go": "0f5c447ed1f33592bddaaee6bd4fce4239c087d1d05d1c11d3ff4cbf487d317c",
+    "tools/gomad3/choice/internal/wire/wire_generated.go": "32a1ba20d61fd2c004688524ebab4849cbdc8ef84bf5dd2335604d0cc15d5360",
+    "tools/gomad3/cmd/gomad/retained_success_e2e_test.go": "fc83c4e8e39827a16ac7376fc8bcc73ea130abbd8da8b18f643ef1ca9685e76a",
+    "tools/gomad3/cmd/gomadtool/main.go": "04bbf7cbfb9fee698ea0af5a3643915ae689cc79ab5fbbe3a76fcb1842da7b0a",
+    "tools/gomad3/cmd/gomadtool/pin_impact.go": "02fd3ffca6c982b27b9a08c0aa7d068bc8c4e9a2d3c732e2c346162e356ae9c5",
+    "tools/gomad3/cmd/gomadtool/pin_impact_test.go": "4bbecfab7fbdbae5d8ff2b22d24318f50e00b652a31243789a1fdeb8a9aee2fa",
+    "tools/gomad3/internal/compatibilitypack/v2_selection.go": "bd8d0a88317ebb11e93f9be810771daf32ba91f87ef5ed3aa76bbfea9b84c14c",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go": "3dfe1d758ee18c407ccdbc8eb8825715144efb1db9b12e6edbf6168ab28c03d7",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_owned.go": "ed45d0f574ecb07e348cd8e57b5345abd243056344f29fceead2aa7918a317c8",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_owned_test.go": "4bbac67c89faabc87813ae46f56c97dec2000d72edc053035d98758132d4b188",
+    "tools/gomad3/internal/gomadtool/conformance/runtime_scheduling.go": "cace1d2abbc5ee11f746bd6c8eabd273aa4523e1f5135359c639b99fc900759e",
+    "tools/gomad3/internal/gomadtool/conformance/testdata/runtime_owned/main.go": "28d468b497307ae2ab4b93966f3790c591244a7dc29d715eca5eddd2816c69e0",
+    "tools/gomad3/internal/gomadtool/conformance/testdata/runtime_owned/previous-controller.json": "e8be095b8898e3f37652427ae75103247a38bff92d55376bc5cef443149836b4",
+    "tools/gomad3/runner/diagnostic_identity_test.go": "4d8e53c7d5400dde2d6a7ceeff28bd4de2342d08ae0609fc08b83ea2d2d62698",
+    "tools/gomad3/runner/internal/execution/process_test.go": "8c547e986209a431e5af36dd455882dd1399c512cc9053969e151c56c0fa46a8",
+    "tools/gomad3/runner/retention_test.go": "9505a4bd607df61dd34c63b651e5d154c347e3b49fb74721edb433d34cafe5f8",
+    "tools/gomad3/runner/runner_test.go": "1afc4bd5251b9c09e24e6fc64867ef926787f8956712371268f1e4be63e8461a",
+    "tools/gomad3/runner/testdata/diagnostic-identity-choices.json": "291cca2d697581347e4be9a034bfa76ed3f6565ac065e8e473211def4aff0171",
+    "tools/gomad3/target/internal/livecap/protocol_generated.go": "8fb759ddc470320b365acc5f9f53644536a67bfe26ecd16c38c3f97400a3729e",
+    "tools/gomad3/toolchain/runtime/go1.27.1.patch": "89bd466e3339e610f43151cbad7e453eb32cc3bc55b63dcb348c9c7a3227590a",
+    "tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go": "e5609d196894f8020e7f35b02d42e0e6d3140d156b044c3f1b8ae221c8d35092",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go": "ba044ef1d391300544f65479bf5ffacf8b71277af33a20ef977001345be7ae31",
+    "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go": "e8deb67818bcbc0c8c3ea7de1bbcf0b661d03bf0841f044911b52c768500b698",
+    "tools/gomad3/upgrade/pin_impact.go": "2ebd8272fb4fefa5ee89d3f71d6eb885e57d1a6e083d15538343f34ae654b615",
+    "tools/gomad3/upgrade/pin_impact_test.go": "6d6dcae70d56391c3f0dd7bfece54dc2a2ffd023fa2c389dea843d1182070752",
+    "tools/gomad3integration/qualification/tests.json": "813e021c7f6cfae606cf76884beb8a88806e6e46b6a9053067d11f116cdabf47",
+    "tools/gomad3/runner/retention_characterization_test.go": "24dbf99499e4c6a84c64ef6e3dd23cccb2c326604fe2c4f583e7c194462c4aef"
+  },
+  "supplemental_review_fix": {
+    "tools/gomad3/upgrade/pin_impact.go": "39feecf32c19e4c76c1a84bcc5fd53b0d2f53e6150ac3c3ee1c6bf22d6caab8e",
+    "tools/gomad3/cmd/gomadtool/pin_impact_test.go": "b5950bb7420e2bdfd391facffca6d185e66c5cfab6523841cb4aff48068a9f24"
+  }
+}

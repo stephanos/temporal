@@ -1,0 +1,21 @@
+{
+  "commits": [],
+  "tests": [
+    "make -C tools/gomad3 validate test-toolchain test-runtime (Darwin, exit 0; required-gates.log)",
+    "Final cross-file alias census: focused and full toolchain tests, stock Go1.27.1, -tags test_dep -count=1, exit0; scoped toolchain vet exit0",
+    "make -C tools/gomad3 -o toolchain test-toolchain (candidate patched driver, -tags test_dep -count=1; census-final.log)",
+    "Focused numeric diagnostic perturb, host:5 rejection, GreenTea seeded rejection/unseeded control, collector-profile unit control: exit0",
+    "make -C tools/gomad3 -o test-toolchain -o test-runtime test: harness/interception/45-package host/nine-overlay packages passed; simulation integration exposed a raw builder collector-profile gap",
+    "make -C tools/gomad3 -o test-harness -o test-toolchain -o intercept-test -o test-host -o overlay-test -o test-runtime test: exit0, 252.304s; simulation/World race/builder/live capability/upstream passed; unchanged green components reused explicitly",
+    "make -C tools/gomad3 core-qualification: exit0,192.040s,7/7 qualified and replayed on2ecdbd33",
+    "make gomad3-smoke-qualification: exit0,402.453s,4/4 qualified and replayed on2ecdbd33",
+    "Patched Go vet -tags test_dep ./toolchain ./internal/gomadtool/conformance ./runner/internal/execution ./runner ./target/internal/livecap: exit0",
+    "Patched Go vet -tags test_dep,integration ./runner/internal/execution: exit0",
+    "GOOS=linux GOARCH=amd64 GOEXPERIMENT=nogreenteagc CGO_ENABLED=0 patched Go build runtime: exit0; cross-compilation only",
+    "Pinned gofmt: no output; git diff --check: exit0; 16/16 source SHA256 bindings match",
+    "flowctl codex impl-review standalone working tree --base HEAD --spec codex:gpt-6-sol:high: SHIP; working-tree-review.json",
+    "NOT VERIFIED: native linux/amd64; representative qualification is still running under fn114.14",
+    "ROOT LINT UNAVAILABLE: root module cannot load nested module paths; reuse fn114/task-13/integrated-root-lint.log environment failure"
+  ],
+  "prs": []
+}

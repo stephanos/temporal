@@ -32,7 +32,6 @@ type MinimizeSpec struct {
 	ToolchainRoot     string
 	SupervisorCommand []string
 	BootstrapCommand  []string
-	Executor          Executor
 	Replayer          ArtifactReplayer
 	// Resume continues from the state an interrupted run left under OutputRoot.
 	Resume bool
@@ -49,6 +48,7 @@ type MinimizeResult struct {
 
 type minimizationSession struct {
 	config          MinimizeSpec
+	dependencies    executionDependencies
 	opened          artifact.Artifact
 	workDirectory   string
 	prepared        target.Prepared
@@ -61,7 +61,7 @@ type minimizationSession struct {
 	mountArtifact   *readonlymount.CapturedInputs
 	choiceIdentity  choice.ExecutionIdentity
 	exactChoiceTape *choice.ReplayPlan
-	executor        Executor
+	executor        executionRunner
 	replayer        ArtifactReplayer
 	temporaryRoot   string
 	workspace       *minimizer.Workspace
@@ -73,8 +73,12 @@ type minimizationTrial struct {
 	replay   ReplayResult
 }
 
-func Minimize(ctx context.Context, config MinimizeSpec) (result MinimizeResult, retErr error) {
-	session, err := openMinimizationSession(ctx, config)
+func Minimize(ctx context.Context, config MinimizeSpec) (MinimizeResult, error) {
+	return minimizeWith(ctx, config, executionDependencies{})
+}
+
+func minimizeWith(ctx context.Context, config MinimizeSpec, dependencies executionDependencies) (result MinimizeResult, retErr error) {
+	session, err := openMinimizationSession(ctx, config, dependencies)
 	if err != nil {
 		return MinimizeResult{}, err
 	}
@@ -276,7 +280,7 @@ func readRetainedMinimizationPayload(opened artifact.Artifact, file string) ([]b
 	return nil, fmt.Errorf("artifact payload %q is not listed", file)
 }
 
-func openMinimizationSession(ctx context.Context, config MinimizeSpec) (_ *minimizationSession, retErr error) {
+func openMinimizationSession(ctx context.Context, config MinimizeSpec, dependencies executionDependencies) (_ *minimizationSession, retErr error) {
 	if config.OutputRoot == "" {
 		return nil, errors.New("minimized artifact output root is required")
 	}
@@ -287,7 +291,7 @@ func openMinimizationSession(ctx context.Context, config MinimizeSpec) (_ *minim
 	if err != nil {
 		return nil, &ReplayPreflightError{Err: err}
 	}
-	session := &minimizationSession{config: config, opened: opened, profile: deterministicio.Default()}
+	session := &minimizationSession{config: config, dependencies: dependencies, opened: opened, profile: deterministicio.Default()}
 	defer func() {
 		if retErr != nil {
 			retErr = errors.Join(retErr, session.close())
@@ -405,7 +409,7 @@ func (session *minimizationSession) prepareWorkspace() error {
 		ChoiceTraceLimit: uint64(manifest.Limits.ChoiceTraceBytes), RunnerBuild: manifest.Runner.RunnerBuild,
 		IOROMountLimits: session.mountLimits, SupervisorCommand: append([]string(nil), session.config.SupervisorCommand...),
 	}
-	session.executor = session.config.Executor
+	session.executor = session.dependencies.executor
 	if session.executor == nil {
 		if len(session.config.SupervisorCommand) == 0 {
 			return errors.New("supervisor command is required")
@@ -413,9 +417,6 @@ func (session *minimizationSession) prepareWorkspace() error {
 		session.executor = processExecutor{}
 	}
 	session.replayer = session.config.Replayer
-	if session.replayer == nil {
-		session.replayer = artifactReplayer{}
-	}
 	return nil
 }
 
@@ -493,7 +494,7 @@ func (session *minimizationSession) evaluate(ctx context.Context, explorationCon
 	if err != nil {
 		return minimizationTrial{}, err
 	}
-	retained, err := manifestForRun(session.campaign, session.prepared, session.baseEnvironment, completion, outcome, manifest.CampaignID, worldBundle.Manifest, session.mountArtifact)
+	retained, err := manifestForRun(campaignRequestFromSpec(session.campaign), session.prepared, session.baseEnvironment, completion, outcome, manifest.CampaignID, worldBundle.Manifest, session.mountArtifact)
 	if err != nil {
 		return minimizationTrial{}, err
 	}
@@ -521,18 +522,15 @@ func (session *minimizationSession) evaluate(ctx context.Context, explorationCon
 }
 
 func (session *minimizationSession) replay(ctx context.Context, artifactPath string) (ReplayResult, error) {
-	return session.replayer.Replay(ctx, ReplaySpec{
+	config := ReplaySpec{
 		ArtifactPath: artifactPath, ToolchainRoot: session.config.ToolchainRoot,
 		SupervisorCommand: append([]string(nil), session.config.SupervisorCommand...),
-		BootstrapCommand:  append([]string(nil), session.config.BootstrapCommand...), Executor: replayExecutor(session.config.Executor),
-	})
-}
-
-func replayExecutor(executor Executor) ReplayExecutor {
-	if executor == nil {
-		return nil
+		BootstrapCommand:  append([]string(nil), session.config.BootstrapCommand...),
 	}
-	return executor
+	if session.replayer != nil {
+		return session.replayer.Replay(ctx, config)
+	}
+	return replayWith(ctx, config, session.dependencies)
 }
 
 func validateMinimizationReplay(manifest record.ExecutionRecord, replay ReplayResult) error {

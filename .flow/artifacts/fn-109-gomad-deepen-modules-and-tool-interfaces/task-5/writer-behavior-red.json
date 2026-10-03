@@ -1,0 +1,16 @@
+{
+  "cmd": [
+    ".toolchain/bin/go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-overlay=/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/writer-regression-overlay.json",
+    "./cmd/gomad/internal/cli",
+    "-run",
+    "TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure",
+    "-v"
+  ],
+  "exit": 1,
+  "seconds": 1.646
+}

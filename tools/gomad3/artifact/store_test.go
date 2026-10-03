@@ -2,6 +2,7 @@ package artifact
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -77,6 +78,15 @@ func TestPublishReusesOnlyCompletelyMatchingArtifact(t *testing.T) {
 	if first.Path != second.Path || first.Manifest.RecordHash != second.Manifest.RecordHash {
 		t.Fatalf("reused artifact = %#v, want %#v", second, first)
 	}
+	input.Record.Seed = 8
+	input.Record.Environment[1].Value = "8"
+	second, err = store.PublishArtifact(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if second.Path != first.Path || second.Manifest.RecordHash != first.Manifest.RecordHash {
+		t.Fatalf("failure signature deduplication changed: %#v, want %#v", second, first)
+	}
 	if err := os.Chmod(filepath.Join(first.Path, "stdout"), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -103,6 +113,48 @@ func TestPublishCanKeyCorpusCasesByRecordIdentity(t *testing.T) {
 	}
 	if first.Path == second.Path || first.Manifest.Outcome.FailureSignature != second.Manifest.Outcome.FailureSignature || first.Manifest.RecordHash == second.Manifest.RecordHash {
 		t.Fatalf("record-keyed artifacts = %#v and %#v", first, second)
+	}
+}
+
+func TestPublishKeepsSuccessesWithOneSignatureAsDistinctReplayArtifacts(t *testing.T) {
+	input := artifactInput(t)
+	input.Record.ArtifactKind = record.ArtifactSuccess
+	zero := record.Uint64String(0)
+	input.Record.Outcome = record.Outcome{Domain: "success", Reason: "success", Termination: "exit", ExitCode: &zero}
+	store := Store{Root: t.TempDir()}
+	first, err := store.PublishArtifact(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if filepath.Base(first.Path) != "sha256-8804bc935588b0e0ac9fd7f890e4da67" || first.Manifest.RecordHash != "sha256:27c9b74965e1b7cb30ef6f914b8f028eda0072216f5df3794bd84f8536db5f9d" || first.Manifest.Outcome.FailureSignature != "sha256:8804bc935588b0e0ac9fd7f890e4da6718d567133466c52672ce1b11e9b454be" {
+		t.Fatalf("noncolliding success identity changed: %#v", first)
+	}
+	paths := map[string]bool{first.Path: true}
+	for _, seed := range []record.Uint64String{8, 9} {
+		input.Record.Seed = seed
+		input.Record.Environment[1].Value = fmt.Sprint(seed)
+		published, err := store.PublishArtifact(input)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if paths[published.Path] || published.Manifest.Seed != seed || published.Manifest.Outcome.FailureSignature != first.Manifest.Outcome.FailureSignature {
+			t.Fatalf("success seed %d collapsed to %#v", seed, published)
+		}
+		paths[published.Path] = true
+		again, err := store.PublishArtifact(input)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if again.Path != published.Path || again.Manifest.RecordHash != published.Manifest.RecordHash {
+			t.Fatalf("republication changed the success identity: %#v, want %#v", again, published)
+		}
+	}
+	entries, err := os.ReadDir(store.Root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(entries) != 3 {
+		t.Fatalf("stored %d entries, want three successes", len(entries))
 	}
 }
 

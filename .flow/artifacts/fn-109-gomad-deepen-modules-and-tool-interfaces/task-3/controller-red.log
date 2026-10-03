@@ -1,0 +1,14 @@
+# go.temporal.io/server/tools/gomad3/runner/internal/campaign [go.temporal.io/server/tools/gomad3/runner/internal/campaign.test]
+runner/internal/campaign/controller_test.go:34:13: controller.Complete undefined (type *SeedController has no field or method Complete)
+runner/internal/campaign/controller_test.go:34:22: undefined: Completion
+runner/internal/campaign/controller_test.go:34:39: undefined: CompletionSuccess
+runner/internal/campaign/controller_test.go:39:13: controller.Complete undefined (type *SeedController has no field or method Complete)
+runner/internal/campaign/controller_test.go:39:22: undefined: Completion
+runner/internal/campaign/controller_test.go:39:39: undefined: CompletionFailure
+runner/internal/campaign/controller_test.go:40:13: controller.Complete undefined (type *SeedController has no field or method Complete)
+runner/internal/campaign/controller_test.go:40:22: undefined: Completion
+runner/internal/campaign/controller_test.go:40:39: undefined: CompletionCancelled
+runner/internal/campaign/controller_test.go:84:28: controller.Complete undefined (type *SeedController has no field or method Complete)
+runner/internal/campaign/controller_test.go:84:28: too many errors
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/campaign [build failed]
+FAIL

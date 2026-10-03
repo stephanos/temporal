@@ -1,0 +1,8 @@
+=== RUN   TestRuntimeOwnedControlProbe
+    runtime_owned_test.go:34: decode runtime-owned-busy-replay choice trace: choice replay divergence
+--- FAIL: TestRuntimeOwnedControlProbe (3.14s)
+=== RUN   TestRuntimeOwnedRejectsPreviousController
+--- PASS: TestRuntimeOwnedRejectsPreviousController (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	3.421s
+FAIL

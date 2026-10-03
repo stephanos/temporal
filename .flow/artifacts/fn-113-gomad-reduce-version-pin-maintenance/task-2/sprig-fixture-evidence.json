@@ -1,0 +1,61 @@
+{
+  "approval": "sha256:1a47941c061adf15f45843b757d5ba22c139271a661c1e2595d628abe517d5fd",
+  "baseline": "github.com/Masterminds/sprig/v3@v3.3.0",
+  "candidate": "github.com/Masterminds/sprig/v3@v3.2.3",
+  "commands": [
+    {
+      "command": "gomadtool adapter-regenerate --root=<fixture>/tools/gomad3 --module=github.com/Masterminds/sprig/v3 --version=v3.2.3",
+      "exit_code": 0,
+      "report": "sprig-fixture-dryrun.txt"
+    },
+    {
+      "command": "gomadtool adapter-regenerate --root=<fixture>/tools/gomad3 --module=github.com/Masterminds/sprig/v3 --version=v3.2.3 --approve=<approval>",
+      "exit_code": 0,
+      "output": "regenerated github.com/Masterminds/sprig/v3@v3.2.3 with approval sha256:1a47941c061adf15f45843b757d5ba22c139271a661c1e2595d628abe517d5fd"
+    },
+    {
+      "command": "make -C <fixture>/tools/gomad3 validate",
+      "exit_code": 0
+    },
+    {
+      "command": "go test -tags test_dep -count=1 -run ^TestSprigAdapterConsumer$ ./deterministicio (cwd=<fixture>/tools/gomad3)",
+      "exit_code": 0,
+      "output": "ok go.temporal.io/server/tools/gomad3/deterministicio 2.010s"
+    }
+  ],
+  "files": [
+    {
+      "baseline_sha256": "sha256:83a518072ae4d920712e2f90843ded4334a6061cbf63e76659733900b5ec9925",
+      "fixture_sha256": "sha256:be4d65dced016302d739b5bd6e57dba5c9bb3ca5d948f2775d5872f34812e8de",
+      "path": "tools/gomad3/deterministicio/sprig_adapter.go"
+    },
+    {
+      "baseline_sha256": "sha256:d5674986f7b5abd1ce4f73156b2cd172b641a58028058b6328d40788b7ffe87d",
+      "fixture_sha256": "sha256:c70c06a7f883a73bb9fb45c8b097bd6cc41590960eb68fd597773b78705fa980",
+      "path": "tools/gomad3/toolchain/version/version.json"
+    },
+    {
+      "baseline_sha256": "sha256:9b5941cb2c1ca074839f329ad013dbeaf3710d48a5e084b9e5402a83853f14ae",
+      "fixture_sha256": "sha256:442a6ed97317bba0098fd55e736f6866f9cfd7cb29c021f4a924aabb467df5f5",
+      "path": "tools/gomad3/toolchain/version/generated.go"
+    },
+    {
+      "baseline_sha256": "sha256:18985351ee04afbcca3e9a294da63639196301acd43720e3dc3dc46bb62b00c2",
+      "fixture_sha256": "sha256:71c69bf1e302b0500b14878ca60199d2778aef7114e0d443eca95a065f1d4efc",
+      "path": "tools/gomad3/deterministicio/testdata/sprig/go.mod"
+    },
+    {
+      "baseline_sha256": "sha256:382281b65945fdb907406e1f67287ef1e749c8e71025865897b8654bdb101a7f",
+      "fixture_sha256": "sha256:f04e76e74dcf36809a1ce62232d8a924c35081c1b10f81f8c56d6ac3e9b5414d",
+      "path": "tools/gomad3/deterministicio/testdata/sprig/go.sum"
+    },
+    {
+      "baseline_sha256": "sha256:813e021c7f6cfae606cf76884beb8a88806e6e46b6a9053067d11f116cdabf47",
+      "fixture_sha256": "sha256:813e021c7f6cfae606cf76884beb8a88806e6e46b6a9053067d11f116cdabf47",
+      "path": "tools/gomad3integration/qualification/tests.json"
+    }
+  ],
+  "fixture_root": "/tmp/gomad-adapter-fixture2.GfZ7br",
+  "schema": "gomad3.adapter-regeneration-task-evidence/v1",
+  "source_root": "/Users/stephan/Workspace/temporal/gomad"
+}

@@ -11,6 +11,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/preparation"
 	capabilityanalysis "go.temporal.io/server/tools/gomad3/qualification/analysis"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -23,6 +24,7 @@ type analyzeDependencies struct {
 	toolchain        func(string) (string, error)
 	identity         func(string) (target.ToolchainIdentity, error)
 	workingDirectory func() (string, error)
+	inspect          func(context.Context, target.Spec) (preparation.Inspection, error)
 	prepare          func(context.Context, target.Spec) (target.Spec, []deterministicio.Adapter, func() error, error)
 	analyze          func(context.Context, capabilityanalysis.Spec) (capabilityanalysis.Report, error)
 	review           func(context.Context, target.Spec) (target.CapabilityReview, error)
@@ -40,31 +42,18 @@ type analyzeArguments struct {
 }
 
 func runAnalyze(arguments []string, stdout, stderr io.Writer) int {
+	return runAnalyzeWithApplication(arguments, stdout, stderr, newApplication())
+}
+
+func runAnalyzeWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
 	return runAnalyzeWith(arguments, stdout, stderr, analyzeDependencies{
 		toolchain: func(explicit string) (string, error) {
-			root, _, _, err := localIdentity(explicit)
+			root, _, _, err := app.identity(explicit)
 			return root, err
 		},
 		identity: target.ReadToolchainIdentity, workingDirectory: os.Getwd,
-		prepare: prepareAnalysisTarget, analyze: capabilityanalysis.Analyze,
+		inspect: preparation.Inspect, build: capabilityanalysis.Build,
 	})
-}
-
-func prepareAnalysisTarget(ctx context.Context, spec target.Spec) (target.Spec, []deterministicio.Adapter, func() error, error) {
-	root, err := os.MkdirTemp("", "gomad3-analysis-")
-	if err != nil {
-		return target.Spec{}, nil, nil, fmt.Errorf("create analysis preparation directory: %w", err)
-	}
-	cleanup := func() error { return os.RemoveAll(root) }
-	if err := os.Chmod(root, 0o700); err != nil {
-		return target.Spec{}, nil, nil, errors.Join(fmt.Errorf("make analysis preparation directory private: %w", err), cleanup())
-	}
-	spec.PreparationRoot = root
-	prepared, adapters, err := deterministicio.Default().PrepareTargetBuildAdapters(ctx, spec)
-	if err != nil {
-		return target.Spec{}, nil, nil, errors.Join(err, cleanup())
-	}
-	return prepared, deterministicio.SelectedAdapters(adapters), cleanup, nil
 }
 
 func runAnalyzeWith(arguments []string, stdout, stderr io.Writer, dependencies analyzeDependencies) (status int) {
@@ -156,7 +145,27 @@ func resolveAnalyzeTarget(parsed analyzeArguments, stderr io.Writer, dependencie
 func executeAnalysis(ctx context.Context, stdout, stderr io.Writer, format string, spec target.Spec, identity target.ToolchainIdentity, dependencies analyzeDependencies) (status int) {
 	adapters := []deterministicio.Adapter{}
 	var err error
-	if dependencies.prepare != nil {
+	var reviewed target.CapabilityReview
+	if dependencies.inspect != nil {
+		inspected, inspectErr := dependencies.inspect(ctx, spec)
+		if inspectErr != nil {
+			if preparation.StageOf(inspectErr) == preparation.StageReview {
+				return reportAnalyzeError(stderr, inspectErr)
+			}
+			if deterministicio.IsInvalidBuildAdapterConfiguration(inspectErr) {
+				return writeCommandError(stderr, 2, "prepare capability analysis: %v\n", inspectErr)
+			}
+			return writeCommandError(stderr, 3, "prepare capability analysis: %v\n", inspectErr)
+		}
+		spec, reviewed, adapters = inspected.Spec, inspected.Review, inspected.Adapters
+		defer func() {
+			if cleanupErr := inspected.Close(); cleanupErr != nil {
+				if _, writeErr := fmt.Fprintf(stderr, "clean capability analysis preparation: %v\n", cleanupErr); writeErr != nil || status == 0 {
+					status = 3
+				}
+			}
+		}()
+	} else if dependencies.prepare != nil {
 		var cleanup func() error
 		spec, adapters, cleanup, err = dependencies.prepare(ctx, spec)
 		if err != nil {
@@ -168,7 +177,7 @@ func executeAnalysis(ctx context.Context, stdout, stderr io.Writer, format strin
 		if cleanup != nil {
 			defer func() {
 				if cleanupErr := cleanup(); cleanupErr != nil {
-					if _, writeErr := fmt.Fprintf(stderr, "clean capability analysis preparation: %v\n", cleanupErr); writeErr != nil {
+					if _, writeErr := fmt.Fprintf(stderr, "clean capability analysis preparation: %v\n", cleanupErr); writeErr != nil || status == 0 {
 						status = 3
 					}
 				}
@@ -176,7 +185,9 @@ func executeAnalysis(ctx context.Context, stdout, stderr io.Writer, format strin
 		}
 	}
 	var report capabilityanalysis.Report
-	if dependencies.analyze != nil {
+	if dependencies.inspect != nil {
+		report, err = dependencies.build(capabilityanalysis.Input{Spec: spec, Review: reviewed, Toolchain: identity, IOProfile: deterministicio.Default(), Adapters: adapters})
+	} else if dependencies.analyze != nil {
 		report, err = dependencies.analyze(ctx, capabilityanalysis.Spec{
 			Target: spec, Toolchain: identity, IOProfile: deterministicio.Default(), Adapters: adapters,
 		})

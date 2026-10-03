@@ -1,0 +1,22 @@
+--- a/tools/gomad3/runner/campaign_options.go
++++ b/tools/gomad3/runner/campaign_options.go
+@@ -160,7 +160,7 @@
+ 			failureArtifactLimit: spec.failureArtifactLimit, failureBytesLimit: spec.failureBytesLimit,
+ 		},
+ 	}
+-	request.campaignOptions.normalize()
++	request.normalize()
+ 	return request
+ }
+ 
+--- a/tools/gomad3/runner/coordinator.go
++++ b/tools/gomad3/runner/coordinator.go
+@@ -35,7 +35,7 @@
+ 		campaignOptions: wire.campaignOptions,
+ 		campaignRuntime: campaignRuntime{SupervisorCommand: wire.SupervisorCommand, RunnerBuild: wire.RunnerBuild},
+ 	}
+-	request.campaignOptions.normalize()
++	request.normalize()
+ 	return request
+ }
+ 

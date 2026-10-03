@@ -1,0 +1,37 @@
+{
+  "schema": "gomad3.adapter-regeneration-qualification-evidence/v1",
+  "fixture_root": "/tmp/gomad-adapter-fixture2.GfZ7br",
+  "candidate": "github.com/Masterminds/sprig/v3@v3.2.3",
+  "binary_build_command": "env -u GOROOT -u GOBIN CGO_ENABLED=0 GOTOOLCHAIN=local GOWORK=off GOFLAGS= TZ=UTC GOCACHE=<active-key-target-cache> .toolchain/bin/go build -trimpath -o .bin/gomad ./cmd/gomad",
+  "binary_build_exit_code": 0,
+  "binary_sha256": "sha256:3a41cbc8f48cab006d5ea74ce05766fb65cca41ec0f84615e02ff163f2743105",
+  "qualification_command": ".bin/gomad qualify --seed 7 --repeat 2 --choices --replay-successes --success-limit=1 --success-bytes=128MiB --working-dir=<fixture>/tools/gomad3/deterministicio/testdata/sprig --artifacts=<task-2>/fixture-qualification --json go-test . -- -test.run=TestHostLookupRefusesService|TestTemplateLookupReportsRefusal|TestOrdinaryTemplateFunctions",
+  "qualification_exit_code": 0,
+  "qualification_elapsed_seconds": 7,
+  "qualification_log": "fixture-qualification.log",
+  "report_path": "fixture-qualification/qualifications/v1/qualification-171348274.json",
+  "classification": "qualified",
+  "deterministic": true,
+  "target_success": true,
+  "evidence_digest": "sha256:be5f92062f4cc827ca7e967bf8262181671ba5b89bf69f1f3e9be51ab9a76b18",
+  "toolchain_build_key": "2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457",
+  "adapter": {
+    "module": "github.com/Masterminds/sprig/v3",
+    "version": "v3.2.3",
+    "sum": "h1:eL2fZNezLomi0uOLqjQoN6BfsDD+fyLtgbJMAj9n6YA="
+  },
+  "replays": [
+    {
+      "attempted": true,
+      "match": true,
+      "choice_replay_status": "exact"
+    },
+    {
+      "attempted": true,
+      "match": true,
+      "choice_replay_status": "exact"
+    }
+  ],
+  "fixture_descriptor_sha256": "sha256:c70c06a7f883a73bb9fb45c8b097bd6cc41590960eb68fd597773b78705fa980",
+  "fixture_adapter_source_sha256": "sha256:be4d65dced016302d739b5bd6e57dba5c9bb3ca5d948f2775d5872f34812e8de"
+}

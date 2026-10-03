@@ -64,7 +64,7 @@ func TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds(t *testing.T) {
 			config := CampaignSpec{KeepSuccesses: test.policy, SuccessArtifactLimit: 3, SuccessBytesLimit: 100}
 			assessed := completedExecution{coverage: deterministicio.SemanticCoverage{Probes: test.probes}, choiceFeatures: test.choices}
 			seenProbes, seenChoices := map[string]struct{}{"seen": {}, "seen probe": {}}, map[string]struct{}{"seen": {}, "seen choice": {}}
-			decision, hostError := decideSuccessRetention(config, assessed, !test.incomplete, seenProbes, seenChoices, test.retained, test.retainedBytes)
+			decision, hostError := decideSuccessRetention(campaignRequestFromSpec(config), assessed, !test.incomplete, seenProbes, seenChoices, test.retained, test.retainedBytes)
 			failure := ""
 			if hostError != nil {
 				failure = hostError.Reason + ": " + hostError.Err.Error()
@@ -98,7 +98,7 @@ func TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit(t *testing.T) {
 		prepared.SHA256, prepared.Size = fmt.Sprintf("sha256:%x", sha256.Sum256(targetBytes)), uint64(len(targetBytes))
 		// Successes of one outcome signature are stored as one artifact, so each
 		// execution prints its own output.
-		config := testConfig(t, preparer, &fakeExecutor{result: func(seed uint64) execution.Result {
+		config, configDependencies := testConfig(t, preparer, &fakeExecutor{result: func(seed uint64) execution.Result {
 			result := processResult(0, fmt.Sprint(seed), "")
 			result.IOTranscript = completeEmptyTranscript()
 			return result
@@ -106,7 +106,7 @@ func TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit(t *testing.T) {
 		config.KeepSuccesses = KeepSuccessesAll
 		config.SuccessArtifactLimit = 2
 		config.SuccessBytesLimit = limit
-		return Explore(context.Background(), config)
+		return exploreWith(context.Background(), config, configDependencies)
 	}
 	measured, err := run(64 << 20)
 	if err != nil || len(measured.SuccessArtifacts) != 2 || measured.SuccessArtifacts[0] == measured.SuccessArtifacts[1] {
@@ -125,6 +125,56 @@ func TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit(t *testing.T) {
 	var hostError *HostError
 	if !errors.As(err, &hostError) || hostError.Reason != "success_retention_capacity" || summary.RetainedSuccesses != 1 {
 		t.Fatalf("summary = %#v, error = %v, want a capacity failure at the second success", summary, err)
+	}
+}
+
+func TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts(t *testing.T) {
+	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
+		result := processResult(0, "same output", "")
+		result.IOTranscript = completeEmptyTranscript()
+		return result
+	}}, "1-2", PolicyAll, 1)
+	config.KeepSuccesses = KeepSuccessesAll
+	config.SuccessArtifactLimit = 2
+	config.SuccessBytesLimit = 64 << 20
+	summary, err := exploreWith(context.Background(), config, configDependencies)
+	if err != nil {
+		t.Fatal(err)
+	}
+	opened, err := campaign.OpenCampaign(summary.CampaignPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	entries, err := os.ReadDir(filepath.Join(summary.CampaignPath, "successes"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if summary.RetainedSuccesses != 2 || len(summary.SuccessArtifacts) != 2 || len(entries) != 2 || len(opened.Executions) != 2 || opened.Record.RetainedSuccesses != 2 {
+		t.Fatalf("summary=%#v, executions=%#v, stored=%d", summary, opened.Executions, len(entries))
+	}
+	var signature record.SHA256
+	var storedBytes uint64
+	for index, path := range summary.SuccessArtifacts {
+		retained, err := artifact.OpenArtifact(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		manifest := retained.Manifest
+		storedBytes += retained.StoredBytes
+		if err := retained.Close(); err != nil {
+			t.Fatal(err)
+		}
+		if manifest.Seed != record.Uint64String(index+1) || manifest.Streams.Stdout.FullSHA256 != record.HashBytes([]byte("same output")) {
+			t.Fatalf("retained success %d = %#v", index, manifest)
+		}
+		if index == 0 {
+			signature = manifest.Outcome.FailureSignature
+		} else if manifest.Outcome.FailureSignature != signature || summary.SuccessArtifacts[0] == path {
+			t.Fatalf("successes with one signature collapsed: %v", summary.SuccessArtifacts)
+		}
+	}
+	if storedBytes != summary.RetainedSuccessBytes || record.Uint64String(storedBytes) != opened.Record.RetainedSuccessBytes {
+		t.Fatalf("stored bytes=%d, summary=%d, record=%d", storedBytes, summary.RetainedSuccessBytes, opened.Record.RetainedSuccessBytes)
 	}
 }
 

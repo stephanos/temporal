@@ -1,0 +1,33 @@
+{
+  "before_edit_quick": {
+    "command": "env -u GOROOT -u GOBIN -u GOMADSEED -u GOMAD3_CHILD_SEED PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH GOMAD3_STOCK_GO=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep ./cmd/gomad/...",
+    "working_directory": "tools/gomad3",
+    "exit_code": 0,
+    "output": [
+      "ok  go.temporal.io/server/tools/gomad3/cmd/gomad 30.683s",
+      "ok  go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli 1.509s"
+    ]
+  },
+  "before_refactor_characterization": {
+    "command": "env -u GOROOT -u GOBIN -u GOMADSEED -u GOMAD3_CHILD_SEED PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH GOMAD3_STOCK_GO=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep -overlay ../../.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-4/baseline-overlay/overlay.json ./cmd/gomad/internal/cli -run 'TestPublicCommand|TestQualifyGrammar' -v",
+    "working_directory": "tools/gomad3",
+    "exit_code": 0,
+    "log": "baseline-overlay/characterization.log",
+    "source_bytes": "preimage-manifest.json",
+    "overlay": "baseline-overlay/overlay.json",
+    "note": "The overlay substitutes every captured original CLI Go file and hides new application.go/application_test.go. The new characterization test remains active."
+  },
+  "environment": {
+    "stock_go": "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go",
+    "patched_go": "tools/gomad3/.toolchain/bin/go",
+    "GOEXPERIMENT": "nogreenteagc",
+    "GOTOOLCHAIN": "local",
+    "GOWORK": "off",
+    "unset": [
+      "GOROOT",
+      "GOBIN",
+      "GOMADSEED",
+      "GOMAD3_CHILD_SEED"
+    ]
+  }
+}

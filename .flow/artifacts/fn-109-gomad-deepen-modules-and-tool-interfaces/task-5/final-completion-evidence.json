@@ -1,0 +1,53 @@
+{
+  "commits": [],
+  "tests": [
+    ".toolchain/bin/go test -count=1 -tags test_dep ./cmd/gomad/...; exit 0; baseline-cli.json; baseline-cli.log",
+    ".toolchain/bin/go test -count=1 -tags test_dep ./runner -run ValidateConfig|CampaignPlan|PortablePlan; exit 0; baseline-runner.json; baseline-runner.log",
+    ".toolchain/bin/go test -count=1 -tags test_dep ./cmd/gomad/internal/cli -run TestPlanValidationOrderAndJSONRouting -v; exit 0; pre-refactor-characterization.json; pre-refactor-characterization.log",
+    ".toolchain/bin/go test -count=1 -tags test_dep ./cmd/gomad -run TestPlanTextAndJSONPreserveCampaignIdentityAndTargetArguments -v; exit 0; pre-refactor-plan-output.json; pre-refactor-plan-output.log",
+    ".toolchain/bin/go test -count=1 -tags test_dep ./cmd/gomad/internal/cli -run TestPlanValidationOrderAndJSONRouting|TestCampaignOptionNormalizationAndValidation; exit 0; before-semantic-cli-precedence.json; before-semantic-cli-precedence.log",
+    ".toolchain/bin/go test -count=1 -tags test_dep ./runner -run TestParseSingleBaseSeedSharesRunnerStrategyRule|TestCampaignOptionNormalizationAndValidation|ValidateConfig|CampaignPlan|PortablePlan; exit 0; semantic-runner.json; semantic-runner.log",
+    ".toolchain/bin/go test -count=1 -tags test_dep ./cmd/gomad/internal/cli -run TestPlanAndExploreRejectHiddenPlanRoute|TestPlanValidationOrderAndJSONRouting|TestResolveExplore|TestResolveChoiceTrace|TestPublicCommandExplicitZeroAndIrrelevantFlagClassification; exit 0; semantic-cli.json; semantic-cli.log",
+    "make -C tools/gomad3 test-host; exit 0; full-host-result.json; full-host.log",
+    ".toolchain/bin/go test -count=1 -tags test_dep ./cmd/gomad/internal/cli -run TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure|TestPlanAndExploreRejectHiddenPlanRoute|TestPlanValidationOrderAndJSONRouting|TestPublicCommandWriterFailuresPreserveStatus; exit 0; writer-focused.json; writer-focused.log",
+    ".toolchain/bin/go test -count=1 -tags test_dep ./cmd/gomad/...; exit 0; post-host-cli.json; post-host-cli.log",
+    ".toolchain/bin/go test -count=1 -tags test_dep ./cmd/gomad/internal/cli ./runner -run TestResolveExploreTypedErrorPresentation|TestCampaignOptionErrorsPreserveKindThroughWrapping|TestCampaignOptionNormalizationAndValidation|TestParseSingleBaseSeedSharesRunnerStrategyRule|TestPlanAndExploreRejectHiddenPlanRoute|TestPlanValidationOrderAndJSONRouting|TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure|ValidateConfig|CampaignPlan|PortablePlan|CampaignOptionsCharacterization; exit 0; review-fix-focused.json; review-fix-focused.log",
+    ".toolchain/bin/go test -count=1 -tags test_dep ./cmd/gomad -run TestPlanTextAndJSONPreserveCampaignIdentityAndTargetArguments; exit 0; review-fix-plan-output.json; review-fix-plan-output.log",
+    ".toolchain/bin/go test -count=1 -tags test_dep . -run TestPackageArchitecture; exit 0; review-fix-architecture.json; review-fix-architecture.log",
+    ".toolchain/bin/go vet -tags test_dep ./cmd/gomad/... ./runner/...; exit 0; review-fix-vet.json; review-fix-vet.log",
+    "/Users/stephan/Workspace/temporal/gomad/.bin/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --new-from-patch=/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/task-only.patch ./cmd/gomad/... ./runner/...; exit 0; review-fix-lint.json; review-fix-lint.log",
+    "make -C tools/gomad3 runner; exit 0; review-fix-runner-build.json; review-fix-runner-build.log",
+    "Parent final CLI/Runner characterization exit0; parent-final-characterization.log (before typed-error fix), parent-review-fix-characterization.log (final source)",
+    "gofmt/diff checks and source/comment/patch validation; final-source.json, parent-source-verification.json; exit0",
+    "Expected behavioral red regressions: pre-refactor-red.log (--__plan), guided-default-red.log (Runner default), writer-behavior-red.log (premature return); final affected checks exit0"
+  ],
+  "prs": [],
+  "review": {
+    "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/working-tree-review.json",
+    "verdict": "SHIP",
+    "timestamp": "2026-10-03T12:37:13.028379Z",
+    "session_id": "01a101ba-33be-7f32-aa45-14071759ddb6",
+    "introduced_count": 0,
+    "pre_existing_count": 1,
+    "same_family": true
+  },
+  "source_sha256": {
+    "tools/gomad3/cmd/gomad/internal/cli/cli.go": "ee07b88915b198747dbc80eb27a439a1ba73476861ef71e1a54d0f58f7d99dac",
+    "tools/gomad3/cmd/gomad/internal/cli/cli_test.go": "0797fb0f755db4fcd3b47d1bf29868f3d967f93adca080b87963f306545c6d8c",
+    "tools/gomad3/cmd/gomad/internal/cli/application_characterization_test.go": "7241bd5dc23d161f21f3c0ca0bf0255639ca979288e54cb54396301fa7857686",
+    "tools/gomad3/runner/campaign_options.go": "0d645d15651f0caad56a48175ce59c72bd0d37bb04431c1415ec1fe69a8020fb",
+    "tools/gomad3/runner/runner.go": "139d10b1966e5bcefb08928e5424cde06a0301f67ec8d09b8905de7e347c3a78",
+    "tools/gomad3/cmd/gomad/e2e_test.go": "75f86e4cdf4a4e9621ffb8cdc6111b595c2bf1e910a465fd42d10f380703293a",
+    "tools/gomad3/runner/campaign_plan.go": "d070a376f86f0202b18b44fbe009f2a7294a52c697e161c593da5ec34fd448f3",
+    "tools/gomad3/runner/resume.go": "6dde547f4cd9f3f9439c812d143477ab3cdd47d232753b14bf75042385ae28e5",
+    "tools/gomad3/runner/campaign_options_cli_test.go": "b452e842616ee8719094c78ecb1c3ccd792222a53c63e2646187cabb295b6654"
+  },
+  "post_host_delta": [
+    "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+    "tools/gomad3/cmd/gomad/internal/cli/cli_test.go",
+    "tools/gomad3/runner/campaign_options.go",
+    "tools/gomad3/runner/campaign_options_cli_test.go"
+  ],
+  "native_linux": "not run on darwin/arm64; final spec gates remain task21",
+  "pre_existing_issue": "Doctor JSON stdout write error remains ignored as in original source; recorded P2, unchanged by task5."
+}

@@ -1,0 +1,13 @@
+{
+  "review": "working-tree-review.json",
+  "review_sha256": "cef19b6164304fcf6b548f1b1a72561404decc814b3366ff5c8d9e21cee3e8f1",
+  "twenty_reviewed_source_entries_still_match": true,
+  "binary_hashes_still_match": true,
+  "task_status": "done; verified via flowctl show",
+  "milestone_previous_sha256": "489c9dfbdd2a9714755edbc81255b44ff16d5b36d6cb53062606919bffc517f1",
+  "milestone_current_sha256": "71e507ae613321237eb4f152d8850102fcced4bfe581504199da6ab58dc8c4f5",
+  "post_review_changes": "Only Flow acceptance/completion receipts and MILESTONES task-2 delivery status; no code changes.",
+  "native_linux": "unverified; fn-109.21 required",
+  "flow_validation": "valid; historical task-1 orphaned commit warning retained",
+  "commits": []
+}

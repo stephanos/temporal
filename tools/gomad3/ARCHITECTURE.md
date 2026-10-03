@@ -273,6 +273,12 @@ an interrupted round and reruns it in full, keeping recovery attempts separate
 from completed logical work. Outcome deduplication affects retained evidence
 without pruning distinct prefixes.
 
+The plan's start ordinal limits expansion to later replay-plan decisions while
+preserving earlier decisions in forced prefixes. Select readiness is trace
+evidence: polls with fewer than two ready cases do not expand the frontier,
+and the controller counts their omitted alternatives separately. Resume keeps
+both decisions under the frozen plan and controller identity.
+
 Combined Exploration keeps runtime, scenario, network, storage, fault, and
 crash decisions in separate dimensions with explicit global and per-dimension
 bounds. A detached model digest cannot establish native-state
@@ -384,6 +390,12 @@ Interrupted work may leave explicit partial diagnostics but can never appear as
 a complete replayable artifact. Existing content-addressed artifacts are reused
 only after complete validation.
 
+Campaign, corpus, and minimizer stores keep a content-addressed target pool
+outside staged Campaign directories. Artifacts hard-link their prepared binary
+from the pool, retain ordinary payload manifests, and validate the same bytes
+on open and replay. Retained-byte accounting charges a shared target once per
+pool; a host that cannot hard-link uses and counts private copies.
+
 `runner/internal/campaign` owns the durable Campaign state machine: planned,
 prepared, running, committing, published, and recoverable-failure state;
 preparation and per-Execution partial directories; bounded immutable Execution
@@ -418,17 +430,26 @@ migrates a schema, or falls back to live host input. Exact replay compares the
 new semantic result with the artifact. Watchdog replay remains diagnostic
 because host elapsed time is not deterministic.
 
+Minimization persists one state per parent below its output root, binding
+attempt order, budget, implementation, and accepted artifacts. Resume validates
+that state and its replay evidence before continuing; it preserves consumed
+attempts and never mutates the parent. Exclusive ownership prevents concurrent
+minimizers from advancing the same parent.
+
 ### Guided semantic exploration
 
 Guide is a deep module around a private bounded corpus. Runner opens it only
 after preparing the target, then selects the complete Campaign from that one
 immutable snapshot. Rarity within higher-value semantic domains orders retained
-seeds; no more than three quarters of a Campaign may come from the corpus, leaving
-at least `ceil(count/4)` requested seeds unguided. The recorded Campaign plan binds
-the snapshot hash and final mixed selection. Resume uses that selection without
-consulting a later snapshot for scheduling.
+seeds. Ordinary guidance excludes answered requested seeds and substitutes
+nothing; a fully answered selection executes no seeds. Regression guidance
+reuses corpus cases for no more than three quarters of a Campaign, leaving at
+least `ceil(count/4)` requested seeds unguided. The recorded Campaign plan binds
+the mode, snapshot hash, and final selection. Resume and shards use that
+selection without consulting a later snapshot for scheduling.
 
-A corpus identity binds the execution-relevant target projection, toolchain,
+A corpus identity binds the execution-relevant target projection, explicit
+environment and clock-tick policy, toolchain,
 generated boundary manifest, semantic probe instrumentation, manifest schema,
 and record contract. Each entry binds its seed and record hash to the retained
 exact-replay artifact, payload size, I/O transcript, World inputs and
@@ -682,6 +703,21 @@ version, adapter versions, and exact patch/overlay source sets. Generation
 produces its Make, Go, and human-guide consumers; validation requires the
 allowlists to equal the actual patch and overlay tree rather than merely
 containing them.
+
+`pin-impact` compares complete candidate and baseline module identities
+against adapter, compatibility-pack, interception, and clock-inventory pins.
+It reports an unavailable identity as unknown and therefore invalidated.
+`adapter-regenerate` derives rewrites with exact-occurrence anchors in a
+private cache, binds the changed source and proposed anchors to a review digest,
+and publishes the descriptor, adapter, fixtures, and generated consumers only
+after matching approval. Publication checks the input snapshot under an
+exclusive lock and recovers an interrupted transaction before another apply.
+`compatibility-pack refresh` reads the same request-to-target table as the
+qualification Make target; it batches fresh discovery and review while leaving
+generation behind each request's exact approval. Other-platform requests remain
+untouched, and a changed review invalidates its former approval. Both supported
+hosts must run validation, pack qualification, core qualification, and the
+complete test gate for an accepted pin update.
 
 The runtime patch and transparent I/O overlays are pinned implementation costs.
 Every Go upgrade runs the typed `gomadtool upgrade-dossier` host command, which records the

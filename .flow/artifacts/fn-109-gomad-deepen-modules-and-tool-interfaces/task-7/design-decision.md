@@ -1,0 +1,11 @@
+# Complete preparation owner
+
+Task fn-109.7 implements the first half of R4 under the standing instruction to complete MILESTONES.md and choose grounded recommendations. The existing spec and task are the design and acceptance authority. Analysis and compatibility inspection move in task 8; host commands and installation descriptions retain their later owners.
+
+Use a root-internal composition package above target and deterministicio. It will run the complete existing protocol, attach adapter identities, validate the result, and own implementation workspace cleanup. Explore and portable planning supply their durable preparation destinations and custom preparers. Campaign journal transitions and existing error reasons stay at their current owner. Private injected dependencies may support isolated failure tests; no global hook or new public Runner seam is needed.
+
+Keeping separate caller helpers would leave the sequencing and cleanup duplicated, failing R4. Moving composition into target would create an import cycle because deterministicio already imports target. The root-internal owner therefore provides the required depth with the smallest viable directional boundary.
+
+Re-anchor the current error stages before implementation. Adapter selection and profile-validation errors currently pass through directly; preparer failures become target_preparation or a context reason in Explore and trigger FailPreparation. Preserve that distinction with a narrow typed internal error or equivalently explicit outcome, without giving ordinary callers the protocol steps. Preserve custom-preparer adapter behavior and the restored campaignPlanPreparer path. Report cleanup failures without changing the primary error's identity or precedence.
+
+Verify fixed-input Prepared and record projections against captured original bytes for a fresh build and cache hit, external modules with local replacement, custom preparers, and independent preparations. Cover adapter sums/replacement conflicts, changed binaries, cleanup failure, cancellation, and overall timeout. Register the new architectural owner and allowed edges. Use focused checks during migration and one frozen full host gate, retaining actual failures and narrowly verified corrections. Native Linux and final spec qualification remain incomplete until their own evidence exists.

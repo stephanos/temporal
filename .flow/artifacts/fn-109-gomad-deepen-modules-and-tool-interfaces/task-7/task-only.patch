@@ -1,0 +1,645 @@
+diff --git a/tools/gomad3/architecture_test.go b/tools/gomad3/architecture_test.go
+--- a/tools/gomad3/architecture_test.go
++++ b/tools/gomad3/architecture_test.go
+@@ -509,6 +509,8 @@
+ 		return "hostexec"
+ 	case relative == "internal/hostfs" || strings.HasPrefix(relative, "internal/hostfs/"):
+ 		return "hostfs"
++	case relative == "internal/preparation" || strings.HasPrefix(relative, "internal/preparation/"):
++		return "preparation"
+ 	default:
+ 		return ""
+ 	}
+@@ -521,13 +523,14 @@
+ 	allowed := map[string][]string{
+ 		"cli":             {"runner", "qualification", "target", "record", "artifact", "deterministicio", "toolchain", "canonicaljson"},
+ 		"developer":       {"choice", "compatibility", "qualification", "simulation", "toolchain", "upgrade", "hostexec", "hostfs"},
+-		"runner":          {"target", "record", "artifact", "choice", "deterministicio", "world", "canonicaljson", "hostexec", "hostfs"},
++		"runner":          {"target", "record", "artifact", "choice", "deterministicio", "preparation", "world", "canonicaljson", "hostexec", "hostfs"},
+ 		"qualification":   {"runner", "target", "record", "artifact", "choice", "deterministicio", "canonicaljson", "hostexec", "hostfs"},
+ 		"target":          {"compatibility", "record", "toolchain", "canonicaljson", "hostexec", "hostfs"},
+ 		"record":          {"canonicaljson"},
+ 		"artifact":        {"choice", "deterministicio", "target", "record", "hostfs"},
+ 		"compatibility":   {"target", "record", "canonicaljson", "hostfs"},
+ 		"deterministicio": {"target", "record", "toolchain", "canonicaljson", "hostfs"},
++		"preparation":     {"target", "deterministicio", "record"},
+ 		"world":           {"canonicaljson"},
+ 		"simulation":      {"record", "canonicaljson"},
+ 		"toolchain":       {"canonicaljson", "hostexec", "hostfs"},
+diff --git a/tools/gomad3/internal/preparation/preparation.go b/tools/gomad3/internal/preparation/preparation.go
+--- /dev/null
++++ b/tools/gomad3/internal/preparation/preparation.go
+@@ -0,0 +1,105 @@
++package preparation
++
++import (
++	"context"
++	"errors"
++	"fmt"
++	"os"
++
++	"go.temporal.io/server/tools/gomad3/deterministicio"
++	"go.temporal.io/server/tools/gomad3/record"
++	"go.temporal.io/server/tools/gomad3/target"
++)
++
++type Preparer interface {
++	Prepare(context.Context, target.Spec) (target.Prepared, error)
++}
++
++type Request struct {
++	Target      target.Spec
++	Environment []string
++	Preparer    Preparer
++}
++
++type Stage string
++
++const (
++	StageAdapters   Stage = "adapters"
++	StageTarget     Stage = "target"
++	StageValidation Stage = "validation"
++	StageCleanup    Stage = "cleanup"
++)
++
++type stageError struct {
++	stage Stage
++	err   error
++}
++
++func (failure *stageError) Error() string { return failure.err.Error() }
++func (failure *stageError) Unwrap() error { return failure.err }
++
++func StageOf(err error) Stage {
++	var failure *stageError
++	if errors.As(err, &failure) {
++		return failure.stage
++	}
++	return ""
++}
++
++func Prepare(ctx context.Context, request Request) (target.Prepared, error) {
++	return prepare(ctx, request, os.RemoveAll)
++}
++
++func prepare(ctx context.Context, request Request, remove func(string) error) (prepared target.Prepared, retErr error) {
++	profile := deterministicio.Default()
++	spec := request.Target
++	preparer := request.Preparer
++	selectedAdapters := []deterministicio.BuildAdapter{}
++	if preparer == nil {
++		if err := os.MkdirAll(spec.PreparationRoot, 0o700); err != nil {
++			return target.Prepared{}, &stageError{stage: StageAdapters, err: fmt.Errorf("create preparation root: %w", err)}
++		}
++		workspace, err := os.MkdirTemp(spec.PreparationRoot, ".adapter-work-")
++		if err != nil {
++			return target.Prepared{}, &stageError{stage: StageAdapters, err: fmt.Errorf("create deterministic I/O adapter workspace: %w", err)}
++		}
++		defer func() {
++			if cleanupErr := remove(workspace); cleanupErr != nil {
++				failure := &stageError{stage: StageCleanup, err: fmt.Errorf("remove deterministic I/O adapter workspace: %w", cleanupErr)}
++				retErr = errors.Join(retErr, failure)
++			}
++		}()
++		adapterSpec := spec
++		adapterSpec.PreparationRoot = workspace
++		spec, selectedAdapters, err = profile.PrepareTargetBuildAdapters(ctx, adapterSpec)
++		if err != nil {
++			return target.Prepared{}, &stageError{stage: StageAdapters, err: err}
++		}
++		spec.PreparationRoot = request.Target.PreparationRoot
++		preparer = targetPreparer{}
++	}
++	var err error
++	prepared, err = preparer.Prepare(ctx, spec)
++	if err != nil {
++		return target.Prepared{}, &stageError{stage: StageTarget, err: err}
++	}
++	prepared.Adapters = executionAdapters(selectedAdapters)
++	if err := profile.ValidatePreparedTarget(spec, prepared, request.Environment); err != nil {
++		return target.Prepared{}, &stageError{stage: StageValidation, err: err}
++	}
++	return prepared, nil
++}
++
++type targetPreparer struct{}
++
++func (targetPreparer) Prepare(ctx context.Context, spec target.Spec) (target.Prepared, error) {
++	return target.Prepare(ctx, spec)
++}
++
++func executionAdapters(adapters []deterministicio.BuildAdapter) []record.TargetAdapter {
++	result := make([]record.TargetAdapter, len(adapters))
++	for index, adapter := range adapters {
++		result[index] = record.TargetAdapter{Module: adapter.Module, Version: adapter.Version, Sum: adapter.Sum}
++	}
++	return result
++}
+diff --git a/tools/gomad3/internal/preparation/preparation_test.go b/tools/gomad3/internal/preparation/preparation_test.go
+--- /dev/null
++++ b/tools/gomad3/internal/preparation/preparation_test.go
+@@ -0,0 +1,214 @@
++package preparation
++
++import (
++	"context"
++	"errors"
++	"os"
++	"path/filepath"
++	"reflect"
++	"strings"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/deterministicio"
++	"go.temporal.io/server/tools/gomad3/record"
++	"go.temporal.io/server/tools/gomad3/target"
++)
++
++type testPreparer func(context.Context, target.Spec) (target.Prepared, error)
++
++func (prepare testPreparer) Prepare(ctx context.Context, spec target.Spec) (target.Prepared, error) {
++	return prepare(ctx, spec)
++}
++
++func validPrepared() target.Prepared {
++	contract := deterministicio.Default().TargetContract()
++	return target.Prepared{
++		Kind: target.KindGoRun, Source: ".", Argv: []string{"gomad3-target"},
++		GoVersion: contract.GoVersion, TargetGOOS: contract.GOOS, TargetGOARCH: contract.GOARCH,
++	}
++}
++
++func TestPrepareCustomPreparerSkipsAdaptersAndValidates(t *testing.T) {
++	want := validPrepared()
++	want.Adapters = []record.TargetAdapter{}
++	provided := want
++	provided.Adapters = []record.TargetAdapter{{Module: "unselected"}}
++	root := t.TempDir()
++	workspace := filepath.Join(root, ".io-adapter")
++	if err := os.Mkdir(workspace, 0o700); err != nil {
++		t.Fatal(err)
++	}
++	got, err := Prepare(t.Context(), Request{
++		Target:   target.Spec{Kind: target.KindGoRun, Source: ".", PreparationRoot: root},
++		Preparer: testPreparer(func(context.Context, target.Spec) (target.Prepared, error) { return provided, nil }),
++	})
++	if err != nil {
++		t.Fatal(err)
++	}
++	if !reflect.DeepEqual(got, want) {
++		t.Fatalf("prepared = %#v, want %#v", got, want)
++	}
++	if _, err := os.Stat(workspace); err != nil {
++		t.Fatalf("caller workspace was changed: %v", err)
++	}
++}
++
++func TestPrepareKeepsTargetFailureStageAndIdentity(t *testing.T) {
++	want := errors.New("preparer failed")
++	_, err := Prepare(t.Context(), Request{
++		Target:   target.Spec{Kind: target.KindGoRun, Source: ".", PreparationRoot: t.TempDir()},
++		Preparer: testPreparer(func(context.Context, target.Spec) (target.Prepared, error) { return target.Prepared{}, want }),
++	})
++	if !errors.Is(err, want) || StageOf(err) != StageTarget || err.Error() != want.Error() {
++		t.Fatalf("Prepare() error = %v, stage = %s", err, StageOf(err))
++	}
++}
++
++func testModuleRoot(t *testing.T) string {
++	t.Helper()
++	root, err := filepath.Abs(filepath.Join("..", ".."))
++	if err != nil {
++		t.Fatal(err)
++	}
++	return root
++}
++
++func writeTestFile(t *testing.T, path, contents string) {
++	t.Helper()
++	if err := os.WriteFile(path, []byte(contents), 0o600); err != nil {
++		t.Fatal(err)
++	}
++}
++
++func TestPrepareExternalModuleWithLocalReplacement(t *testing.T) {
++	module := t.TempDir()
++	root := testModuleRoot(t)
++	writeTestFile(t, filepath.Join(module, "go.mod"), "module example.com/external\n\ngo 1.27.1\n\nrequire go.temporal.io/server/tools/gomad3 v0.0.0\n\nreplace go.temporal.io/server/tools/gomad3 => "+root+"\n")
++	writeTestFile(t, filepath.Join(module, "main.go"), "package main\n\nimport _ \"go.temporal.io/server/tools/gomad3/record\"\n\nfunc main() {}\n")
++	prepared, err := Prepare(t.Context(), Request{Target: target.Spec{
++		Kind: target.KindGoRun, Source: ".", WorkingDir: module,
++		PreparationRoot: t.TempDir(), ToolchainRoot: filepath.Join(root, ".toolchain"),
++	}})
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := prepared.Verify(); err != nil {
++		t.Fatal(err)
++	}
++	if prepared.BuildInfo.MainModule != "example.com/external" || len(prepared.Adapters) != 0 {
++		t.Fatalf("prepared = %#v", prepared)
++	}
++}
++
++func TestPrepareIndependentAdapterTargetsHaveStableIdentityAndCleanWorkspaces(t *testing.T) {
++	root := testModuleRoot(t)
++	module := filepath.Join(root, "deterministicio", "testdata", "sprig")
++	var first target.Prepared
++	for index := 0; index < 2; index++ {
++		preparationRoot := t.TempDir()
++		prepared, err := Prepare(t.Context(), Request{Target: target.Spec{
++			Kind: target.KindGoTest, Source: ".", WorkingDir: module,
++			PreparationRoot: preparationRoot, ToolchainRoot: filepath.Join(root, ".toolchain"),
++		}})
++		if err != nil {
++			t.Fatal(err)
++		}
++		if err := prepared.Verify(); err != nil {
++			t.Fatal(err)
++		}
++		entries, err := os.ReadDir(preparationRoot)
++		if err != nil {
++			t.Fatal(err)
++		}
++		for _, entry := range entries {
++			if strings.HasPrefix(entry.Name(), ".adapter-work-") {
++				t.Fatalf("adapter workspace retained: %s", entry.Name())
++			}
++		}
++		if len(prepared.Adapters) != 1 || prepared.Adapters[0].Module != "github.com/Masterminds/sprig/v3" {
++			t.Fatalf("prepared adapters = %#v", prepared.Adapters)
++		}
++		prepared.Path = "<prepared-path>"
++		if index == 0 {
++			first = prepared
++		} else if !reflect.DeepEqual(prepared, first) || !reflect.DeepEqual(prepared.RecordTarget(), first.RecordTarget()) {
++			t.Fatalf("independent preparations differ: %#v %#v", first, prepared)
++		}
++	}
++}
++
++func TestPrepareRejectsAdapterSumsAndReplacementConflicts(t *testing.T) {
++	root := testModuleRoot(t)
++	fixture := filepath.Join(root, "deterministicio", "testdata", "sprig")
++	moduleFile, err := os.ReadFile(filepath.Join(fixture, "go.mod"))
++	if err != nil {
++		t.Fatal(err)
++	}
++	for _, test := range []struct {
++		name    string
++		modFile string
++	}{
++		{name: "missing sum", modFile: string(moduleFile)},
++		{name: "replacement conflict", modFile: string(moduleFile) + "\nreplace github.com/Masterminds/sprig/v3 => ./other\n"},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			module := t.TempDir()
++			writeTestFile(t, filepath.Join(module, "go.mod"), test.modFile)
++			if test.name == "replacement conflict" {
++				sums, err := os.ReadFile(filepath.Join(fixture, "go.sum"))
++				if err != nil {
++					t.Fatal(err)
++				}
++				writeTestFile(t, filepath.Join(module, "go.sum"), string(sums))
++			}
++			_, err := Prepare(t.Context(), Request{Target: target.Spec{
++				Kind: target.KindGoTest, Source: ".", WorkingDir: module,
++				PreparationRoot: t.TempDir(), ToolchainRoot: filepath.Join(root, ".toolchain"),
++			}})
++			if StageOf(err) != StageAdapters || !deterministicio.IsInvalidBuildAdapterConfiguration(err) {
++				t.Fatalf("Prepare() error = %v, stage = %s", err, StageOf(err))
++			}
++		})
++	}
++}
++
++func TestPrepareReportsCleanupFailureAndKeepsPrimaryFailure(t *testing.T) {
++	root := testModuleRoot(t)
++	fixture := filepath.Join(root, "deterministicio", "testdata", "sprig")
++	cleanupFailure := errors.New("cleanup failed")
++	for _, test := range []struct {
++		name  string
++		mode  target.CapabilityMode
++		stage Stage
++	}{
++		{name: "successful target", stage: StageCleanup},
++		{name: "failed target", mode: target.CapabilityMode("invalid"), stage: StageTarget},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			root := t.TempDir()
++			removed := false
++			prepared, err := prepare(t.Context(), Request{Target: target.Spec{
++				Kind: target.KindGoTest, Source: ".", CapabilityMode: test.mode, WorkingDir: fixture,
++				PreparationRoot: root, ToolchainRoot: filepath.Join(testModuleRoot(t), ".toolchain"),
++			}}, func(path string) error {
++				removed = true
++				if !strings.HasPrefix(filepath.Base(path), ".adapter-work-") || filepath.Dir(path) != root {
++					t.Fatalf("cleanup path = %s", path)
++				}
++				if err := os.RemoveAll(path); err != nil {
++					t.Fatal(err)
++				}
++				return cleanupFailure
++			})
++			if !removed || !errors.Is(err, cleanupFailure) || StageOf(err) != test.stage {
++				t.Fatalf("Prepare() error = %v, stage = %s, removed = %t", err, StageOf(err), removed)
++			}
++			if test.stage == StageCleanup && prepared.Kind != target.KindGoTest {
++				t.Fatalf("prepared = %#v", prepared)
++			}
++			if test.stage == StageTarget && !strings.Contains(err.Error(), "unsupported capability mode") {
++				t.Fatalf("primary target error lost: %v", err)
++			}
++		})
++	}
++}
+diff --git a/tools/gomad3/runner/deterministicio.go b/tools/gomad3/runner/deterministicio.go
+--- a/tools/gomad3/runner/deterministicio.go
++++ b/tools/gomad3/runner/deterministicio.go
+@@ -5,14 +5,6 @@
+ 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+ 	"go.temporal.io/server/tools/gomad3/record"
+ )
+-
+-func executionAdapters(adapters []deterministicio.BuildAdapter) []record.TargetAdapter {
+-	result := make([]record.TargetAdapter, len(adapters))
+-	for index, adapter := range adapters {
+-		result[index] = record.TargetAdapter{Module: adapter.Module, Version: adapter.Version, Sum: adapter.Sum}
+-	}
+-	return result
+-}
+ 
+ func deterministicAdapters(adapters []record.TargetAdapter) []deterministicio.Adapter {
+ 	result := make([]deterministicio.Adapter, len(adapters))
+diff --git a/tools/gomad3/runner/portable_plan.go b/tools/gomad3/runner/portable_plan.go
+--- a/tools/gomad3/runner/portable_plan.go
++++ b/tools/gomad3/runner/portable_plan.go
+@@ -9,10 +9,10 @@
+ 	"path/filepath"
+ 	"slices"
+ 
+-	"go.temporal.io/server/tools/gomad3/deterministicio"
+ 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+ 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+ 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
++	"go.temporal.io/server/tools/gomad3/internal/preparation"
+ 	"go.temporal.io/server/tools/gomad3/record"
+ 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
+ 	"go.temporal.io/server/tools/gomad3/target"
+@@ -119,23 +119,11 @@
+ 	if err != nil {
+ 		return CampaignPlanResult{}, fmt.Errorf("capture campaign plan mount identity: %w", err)
+ 	}
+-	profile := deterministicio.Default()
+-	preparer := config.Preparer
+-	selectedAdapters := []deterministicio.BuildAdapter{}
+-	if preparer == nil {
+-		config.Target, selectedAdapters, err = profile.PrepareTargetBuildAdapters(ctx, config.Target)
+-		if err != nil {
+-			return CampaignPlanResult{}, err
+-		}
+-		preparer = targetPreparer{}
+-	}
+ 	config.Target.PreparationRoot = bundle
+-	prepared, err := preparer.Prepare(ctx, config.Target)
+-	if err != nil {
+-		return CampaignPlanResult{}, err
+-	}
+-	prepared.Adapters = executionAdapters(selectedAdapters)
+-	if err := profile.ValidatePreparedTarget(config.Target, prepared, config.Environment); err != nil {
++	prepared, err := preparation.Prepare(ctx, preparation.Request{
++		Target: config.Target, Environment: config.Environment, Preparer: config.Preparer,
++	})
++	if err != nil {
+ 		return CampaignPlanResult{}, err
+ 	}
+ 	targetPath := filepath.Join(bundle, campaignPlanTargetFile)
+diff --git a/tools/gomad3/runner/preparation_equivalence_legacy_test.go b/tools/gomad3/runner/preparation_equivalence_legacy_test.go
+--- /dev/null
++++ b/tools/gomad3/runner/preparation_equivalence_legacy_test.go
+@@ -0,0 +1,126 @@
++package runner
++
++import (
++	"context"
++	"encoding/json"
++	"os"
++	"path/filepath"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/deterministicio"
++	"go.temporal.io/server/tools/gomad3/internal/preparation"
++	"go.temporal.io/server/tools/gomad3/record"
++	"go.temporal.io/server/tools/gomad3/target"
++)
++
++type preparationEquivalenceSnapshot struct {
++	Fresh           target.Prepared `json:"fresh"`
++	Cache           target.Prepared `json:"cache"`
++	FreshProjection record.Target   `json:"fresh_projection"`
++	CacheProjection record.Target   `json:"cache_projection"`
++}
++
++func legacyPreparationForEquivalence(ctx context.Context, spec target.Spec, environment []string) (target.Prepared, error) {
++	profile := deterministicio.Default()
++	preparedSpec, adapters, err := profile.PrepareTargetBuildAdapters(ctx, spec)
++	if err != nil {
++		return target.Prepared{}, err
++	}
++	prepared, err := target.Prepare(ctx, preparedSpec)
++	if err != nil {
++		return target.Prepared{}, err
++	}
++	prepared.Adapters = make([]record.TargetAdapter, len(adapters))
++	for index, adapter := range adapters {
++		prepared.Adapters[index] = record.TargetAdapter{Module: adapter.Module, Version: adapter.Version, Sum: adapter.Sum}
++	}
++	if err := profile.ValidatePreparedTarget(preparedSpec, prepared, environment); err != nil {
++		return target.Prepared{}, err
++	}
++	return prepared, nil
++}
++
++func preparationForEquivalence(ctx context.Context, spec target.Spec, environment []string) (target.Prepared, error) {
++	if os.Getenv("GOMAD3_PREPARATION_USE_OWNER") == "1" {
++		return preparation.Prepare(ctx, preparation.Request{Target: spec, Environment: environment})
++	}
++	return legacyPreparationForEquivalence(ctx, spec, environment)
++}
++
++func TestLegacyPreparationFixedInputSnapshot(t *testing.T) {
++	path := os.Getenv("GOMAD3_PREPARATION_SNAPSHOT")
++	if path == "" {
++		t.Skip("fixed-input snapshot requested separately")
++	}
++	fixture := os.Getenv("GOMAD3_PREPARATION_FIXTURE")
++	if fixture == "" {
++		t.Fatal("fixed-input fixture is required")
++	}
++	result := preparationEquivalenceSnapshot{}
++	for index, name := range []string{"fresh", "cache"} {
++		if err := os.MkdirAll(filepath.Join(filepath.Dir(path), name), 0o700); err != nil {
++			t.Fatal(err)
++		}
++		prepared, err := preparationForEquivalence(t.Context(), target.Spec{
++			Kind: target.KindGoRun, Source: ".", WorkingDir: fixture,
++			PreparationRoot: filepath.Join(filepath.Dir(path), name), ToolchainRoot: toolchainRoot(t),
++		}, nil)
++		if err != nil {
++			t.Fatal(err)
++		}
++		prepared.Path = "<prepared-path>"
++		if index == 0 {
++			result.Fresh = prepared
++			result.FreshProjection = prepared.RecordTarget()
++		} else {
++			result.Cache = prepared
++			result.CacheProjection = prepared.RecordTarget()
++		}
++	}
++	data, err := json.MarshalIndent(result, "", "  ")
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(path, append(data, '\n'), 0o600); err != nil {
++		t.Fatal(err)
++	}
++}
++
++func TestLegacyAdapterPreparationFixedInputSnapshot(t *testing.T) {
++	path := os.Getenv("GOMAD3_PREPARATION_ADAPTER_SNAPSHOT")
++	if path == "" {
++		t.Skip("fixed-input adapter snapshot requested separately")
++	}
++	fixture, err := filepath.Abs(filepath.Join("..", "deterministicio", "testdata", "sprig"))
++	if err != nil {
++		t.Fatal(err)
++	}
++	result := preparationEquivalenceSnapshot{}
++	for index, name := range []string{"fresh", "cache"} {
++		if err := os.MkdirAll(filepath.Join(filepath.Dir(path), name), 0o700); err != nil {
++			t.Fatal(err)
++		}
++		prepared, err := preparationForEquivalence(t.Context(), target.Spec{
++			Kind: target.KindGoTest, Source: ".", WorkingDir: fixture,
++			PreparationRoot: filepath.Join(filepath.Dir(path), name), ToolchainRoot: toolchainRoot(t),
++		}, nil)
++		if err != nil {
++			t.Fatal(err)
++		}
++		prepared.Path = "<prepared-path>"
++		if index == 0 {
++			result.Fresh = prepared
++			result.FreshProjection = prepared.RecordTarget()
++		} else {
++			result.Cache = prepared
++			result.CacheProjection = prepared.RecordTarget()
++		}
++	}
++	data, err := json.MarshalIndent(result, "", "  ")
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(path, append(data, '\n'), 0o600); err != nil {
++		t.Fatal(err)
++	}
++}
+diff --git a/tools/gomad3/runner/preparation_owner_test.go b/tools/gomad3/runner/preparation_owner_test.go
+--- /dev/null
++++ b/tools/gomad3/runner/preparation_owner_test.go
+@@ -0,0 +1,37 @@
++package runner
++
++import (
++	"path/filepath"
++	"strings"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/deterministicio"
++	"go.temporal.io/server/tools/gomad3/target"
++)
++
++func TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists(t *testing.T) {
++	config, dependencies := testConfig(t, nil, &fakeExecutor{}, "1", PolicyAll, 1)
++	module, err := filepath.Abs(filepath.Join("..", "deterministicio", "testdata", "sprig"))
++	if err != nil {
++		t.Fatal(err)
++	}
++	config.Target = target.Spec{
++		Kind: target.KindGoTest, Source: ".", WorkingDir: module,
++		ToolchainRoot: toolchainRoot(t),
++	}
++	_, _, err = deterministicio.Default().PrepareTargetBuildAdapters(t.Context(), config.Target)
++	if err == nil || !strings.Contains(err.Error(), "preparation root") {
++		t.Fatalf("pre-bundle adapter preparation error = %v", err)
++	}
++	path := filepath.Join(t.TempDir(), "campaign.plan.json")
++	if _, err := createCampaignPlanWith(t.Context(), CampaignPlanSpec{Campaign: config, Output: path}, dependencies); err != nil {
++		t.Fatal(err)
++	}
++	opened, err := openCampaignPlan(path)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if len(opened.prepared.Adapters) != 1 || opened.prepared.Adapters[0].Module != "github.com/Masterminds/sprig/v3" {
++		t.Fatalf("plan adapters = %#v", opened.prepared.Adapters)
++	}
++}
+diff --git a/tools/gomad3/runner/runner.go b/tools/gomad3/runner/runner.go
+--- a/tools/gomad3/runner/runner.go
++++ b/tools/gomad3/runner/runner.go
+@@ -20,6 +20,7 @@
+ 	"go.temporal.io/server/tools/gomad3/deterministicio"
+ 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+ 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
++	"go.temporal.io/server/tools/gomad3/internal/preparation"
+ 	"go.temporal.io/server/tools/gomad3/record"
+ 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
+ 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+@@ -541,32 +542,21 @@
+ 			return summary, &HostError{Reason: "target_preparation_setup", Err: err}
+ 		}
+ 		config.Target.PreparationRoot = journal.PreparedPath()
+-		preparer := config.Preparer
+-		selectedAdapters := []deterministicio.BuildAdapter{}
+-		if preparer == nil {
+-			var profileErr error
+-			config.Target, selectedAdapters, profileErr = selectedProfile.PrepareTargetBuildAdapters(overallCtx, config.Target)
+-			if profileErr != nil {
+-				return summary, profileErr
+-			}
+-		}
+-		if preparer == nil {
+-			preparer = targetPreparer{}
+-		}
+-		prepared, err = preparer.Prepare(overallCtx, config.Target)
++		prepared, err = preparation.Prepare(overallCtx, preparation.Request{
++			Target: config.Target, Environment: config.Environment, Preparer: config.Preparer,
++		})
+ 		if err != nil {
+-			reason := "target_preparation"
+-			if contextErr := overallCtx.Err(); contextErr != nil {
+-				reason = contextFailureReason(contextErr)
+-			}
+-			if partialErr := journal.FailPreparation(reason, err); partialErr != nil {
+-				err = errors.Join(err, partialErr)
+-			}
+-			return summary, &HostError{Reason: reason, Err: err}
+-		}
+-		prepared.Adapters = executionAdapters(selectedAdapters)
+-		if profileErr := selectedProfile.ValidatePreparedTarget(config.Target, prepared, config.Environment); profileErr != nil {
+-			return summary, profileErr
++			if preparation.StageOf(err) == preparation.StageTarget {
++				reason := "target_preparation"
++				if contextErr := overallCtx.Err(); contextErr != nil {
++					reason = contextFailureReason(contextErr)
++				}
++				if partialErr := journal.FailPreparation(reason, err); partialErr != nil {
++					err = errors.Join(err, partialErr)
++				}
++				return summary, &HostError{Reason: reason, Err: err}
++			}
++			return summary, err
+ 		}
+ 		if config.Guide && config.PlanSHA256 == "" {
+ 			guidance, err = openGuidance(overallCtx, config, prepared, baseEnvironment, runID)

@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "make",
+    "test-live-capability"
+  ],
+  "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+  "exit": 0,
+  "duration_seconds": 20.17303466699377,
+  "log": "final-live-capability.log"
+}

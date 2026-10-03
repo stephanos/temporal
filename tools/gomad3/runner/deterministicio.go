@@ -6,14 +6,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
-func executionAdapters(adapters []deterministicio.BuildAdapter) []record.TargetAdapter {
-	result := make([]record.TargetAdapter, len(adapters))
-	for index, adapter := range adapters {
-		result[index] = record.TargetAdapter{Module: adapter.Module, Version: adapter.Version, Sum: adapter.Sum}
-	}
-	return result
-}
-
 func deterministicAdapters(adapters []record.TargetAdapter) []deterministicio.Adapter {
 	result := make([]deterministicio.Adapter, len(adapters))
 	for index, adapter := range adapters {

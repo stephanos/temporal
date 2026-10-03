@@ -6,16 +6,16 @@ import (
 )
 
 func TestSelectionProjectsExactActivationAndAllowanceEvidence(t *testing.T) {
-	validated := loadGeneratedPackForTest(t, "modernc-libc-xsys-v041")
+	validated := loadGeneratedPackForTest(t, "modernc-libc-xsys-v047")
 	packages := generatedExactPackages(validated.pack)
-	selection, err := selectGeneratedPacksForTest(t, validated, packages)
+	selection, err := SelectPacksForPlatform([]ValidatedPack{validated}, packages, validated.pack.Governance.Platforms[0])
 	requireTestNoError(t, err)
 
 	evidence := selection.Evidence()
 	if len(evidence) != 1 {
 		t.Fatalf("evidence = %#v", evidence)
 	}
-	requireTestEqual(t, "modernc-libc-xsys-v041", evidence[0].ID)
+	requireTestEqual(t, "modernc-libc-xsys-v047", evidence[0].ID)
 	if evidence[0].SHA256 == "" {
 		t.Fatal("pack evidence has no SHA-256")
 	}
@@ -30,10 +30,10 @@ func TestSelectionProjectsExactActivationAndAllowanceEvidence(t *testing.T) {
 	if evidence[0].Activation[1].Adapter == nil || evidence[0].Activation[2].Adapter == nil {
 		t.Fatalf("activation evidence = %#v", evidence[0].Activation)
 	}
-	if len(evidence[0].Rules) != 5 {
+	if len(evidence[0].Rules) != 6 {
 		t.Fatalf("rule evidence = %#v", evidence[0].Rules)
 	}
-	requireTestEqual(t, []string{"github.com/mattn/go-isatty", "github.com/remyoudompheng/bigfft", "golang.org/x/sys/unix", "modernc.org/libc", "modernc.org/memory"}, []string{evidence[0].Rules[0].ImportPath, evidence[0].Rules[1].ImportPath, evidence[0].Rules[2].ImportPath, evidence[0].Rules[3].ImportPath, evidence[0].Rules[4].ImportPath})
+	requireTestEqual(t, []string{"github.com/mattn/go-isatty", "github.com/remyoudompheng/bigfft", "golang.org/x/sys/unix", "modernc.org/libc", "modernc.org/memory", "modernc.org/sqlite"}, []string{evidence[0].Rules[0].ImportPath, evidence[0].Rules[1].ImportPath, evidence[0].Rules[2].ImportPath, evidence[0].Rules[3].ImportPath, evidence[0].Rules[4].ImportPath, evidence[0].Rules[5].ImportPath})
 	if len(evidence[0].Rules[2].GoSources) == 0 || len(evidence[0].Rules[2].ForeignSources) == 0 || !contains(evidence[0].Rules[2].Capabilities, "import:syscall") || contains(evidence[0].Rules[3].Capabilities, "import:os/exec") {
 		t.Fatalf("rule evidence = %#v", evidence[0].Rules)
 	}
@@ -44,7 +44,7 @@ func TestSelectionProjectsExactActivationAndAllowanceEvidence(t *testing.T) {
 		t.Fatalf("decision = %#v", allowed)
 	}
 	requireTestEqual(t, DispositionAllowedExactPack, allowed.Disposition)
-	requireTestEqual(t, "modernc-libc-xsys-v041", allowed.PackID)
+	requireTestEqual(t, "modernc-libc-xsys-v047", allowed.PackID)
 
 	nearMiss := xsys
 	nearMiss.Module.Version = "v0.42.0"

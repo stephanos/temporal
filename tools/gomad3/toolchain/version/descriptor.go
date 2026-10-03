@@ -297,7 +297,13 @@ func renderUpgradeGuide(descriptor Descriptor) []byte {
 	for _, adapter := range descriptor.Adapters {
 		fmt.Fprintf(&output, "- adapter: `%s@%s` (`%s`)\n", adapter.Module, adapter.Version, adapter.Sum)
 	}
-	output.WriteString("\n## Qualification command\n\n")
+	output.WriteString("\n## Dependency pin update\n\n")
+	output.WriteString("Compare candidate and saved baseline `go.mod` files with adjacent `go.sum` files. From the repository root, status 1 means an invalidated or unknown pin; retain the JSON for the repair steps:\n\n")
+	output.WriteString("```sh\ngo -C tools/gomad3 run ./cmd/gomadtool pin-impact --root=. \\\n  --baseline=/absolute/baseline/go.mod --candidate=/absolute/candidate/go.mod \\\n  --format=json > pin-impact.json\n```\n\n")
+	output.WriteString("For each affected adapter, review the dry-run source changes and exact anchors before supplying the printed approval digest. Refresh affected packs from the same report on each supported host; refresh stops at per-request review and leaves the other platform unchanged:\n\n")
+	output.WriteString("```sh\ngo -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate --root=. \\\n  --module=<module-path> --version=<exact-version>\ngo -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate --root=. \\\n  --module=<module-path> --version=<exact-version> --approve=sha256:<reviewed-digest>\ngo -C tools/gomad3 run ./cmd/gomadtool compatibility-pack refresh --root=. \\\n  --impact-report=/absolute/path/to/pin-impact.json\n```\n\n")
+	output.WriteString("Review each changed pack report, then use `compatibility-pack generate --approve-review=<exact-review-sha256>` for that request. Validate generated outputs and qualify affected adapters, packs, the core set, and the complete test gate on both supported hosts. The [README](../../README.md#compatibility-pack-development) records the full procedure.\n\n")
+	output.WriteString("## Qualification command\n\n")
 	output.WriteString("Run from the Gomad source module root after updating `toolchain/version/version.json`, the boundary manifest, patch, and overlays:\n\n")
 	output.WriteString("```sh\nmake generate\nmake upgrade-dossier GOMAD3_BASELINE_REF=<previous-commit>\n```\n\n")
 	output.WriteString("The command publishes `.toolchain/upgrade-dossier.json`, even when a behavioral gate or boundary approval fails. The dossier contains the complete upstream patch diff, semantic boundary-manifest diff, expected and applied interception evidence, archive-based overlay collision results, disabled-mode upstream results, mandatory-probe gates, host-clock escape audit, retained core-corpus report, and platform qualification. If the dossier reports boundary changes, rerun only after reviewing and approving the complete diff:\n\n")

@@ -1,0 +1,107 @@
+[
+  {
+    "path": "tools/gomad3/cmd/gomad/internal/cli/analyze.go",
+    "sha256": "442b70a1cf5e059bd122c56b0ab8c190e445e1f48afd9823b6c9abbfb3d4af5b",
+    "bytes": 9524
+  },
+  {
+    "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+    "sha256": "de295c0b5557e9ab2229b2fb1efc88230d5023550a187e5753f8c0134c83c1b9",
+    "bytes": 5066
+  },
+  {
+    "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards_test.go",
+    "sha256": "d380cecbcfb99e10c1458eed3d6ca118b8d39033328496da8743daf57430da28",
+    "bytes": 881
+  },
+  {
+    "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+    "sha256": "e336ab6bc627fe51e536fbe97c49921612afbae04b64188093f36e3305ad4148",
+    "bytes": 53964
+  },
+  {
+    "path": "tools/gomad3/cmd/gomad/internal/cli/cli_test.go",
+    "sha256": "0914a9182dbe2faabf913538031c855317707dc9d95ae2820174407ed8c3db5f",
+    "bytes": 73577
+  },
+  {
+    "path": "tools/gomad3/cmd/gomad/internal/cli/compare_support.go",
+    "sha256": "a25f1d105e099c46eda0e16335efb67a335abd1e76c24d67824e68dc7cbd72df",
+    "bytes": 3117
+  },
+  {
+    "path": "tools/gomad3/cmd/gomad/internal/cli/diagnostics_test.go",
+    "sha256": "548c4f83c84ef2879f38468aa53aa4f3ff0e0495130f04dd18944894c49632d7",
+    "bytes": 8260
+  },
+  {
+    "path": "tools/gomad3/cmd/gomad/internal/cli/doctor.go",
+    "sha256": "38497993ba4461375794c02be49a4b7a09a24ff673bd220d54d852fa24273e79",
+    "bytes": 6255
+  },
+  {
+    "path": "tools/gomad3/cmd/gomad/internal/cli/doctor_test.go",
+    "sha256": "3243eebce07a40e2f9e49f2a6a0a8596c453a967c846945eb1bc791e9b8a3e3e",
+    "bytes": 4833
+  },
+  {
+    "path": "tools/gomad3/cmd/gomad/internal/cli/exploration_divergence_test.go",
+    "sha256": "27d360a5bd10760a4ba871aed8ba3911a7126cf5322f43d22e06139d21ccb2d6",
+    "bytes": 3313
+  },
+  {
+    "path": "tools/gomad3/cmd/gomad/internal/cli/explore_output.go",
+    "sha256": "3e92f3982e6bf7c3c8e7c1fee6d1bd8c0056d87d4c75fa0ab4232d569842b646",
+    "bytes": 14611
+  },
+  {
+    "path": "tools/gomad3/cmd/gomad/internal/cli/guidance_test.go",
+    "sha256": "36b3aa9c4e490b49b503979949045e87c0c1e3d9439287da6a92692dcc164682",
+    "bytes": 3832
+  },
+  {
+    "path": "tools/gomad3/cmd/gomad/internal/cli/inspect_target_sharing_test.go",
+    "sha256": "7dc5eec262377f73b17f2b4bde11dbb4e2db662fa32a27086909def4c69cf3b1",
+    "bytes": 3825
+  },
+  {
+    "path": "tools/gomad3/cmd/gomad/internal/cli/qualify.go",
+    "sha256": "05e3a890b2b34bf98f0e7774cdcaa4befee188dc11b450388163c578c098d756",
+    "bytes": 12423
+  },
+  {
+    "path": "tools/gomad3/cmd/gomad/internal/cli/qualify_set.go",
+    "sha256": "138b893add2c02e2bcef0329f177a379dcef9aa2df5db2e04d453bdb28f0b57d",
+    "bytes": 7671
+  },
+  {
+    "path": "tools/gomad3/cmd/gomad/internal/cli/quote.go",
+    "sha256": "da7729dd608389a0af4d09beb5d3ad7a1e7f0a88c7d230f6805da7da9d521039",
+    "bytes": 325
+  },
+  {
+    "path": "tools/gomad3/cmd/gomad/internal/cli/quote_test.go",
+    "sha256": "de6277d9e2a9c710b786c5c1f3aca9fedbef46384bde2e0d9974bb24f38f2b02",
+    "bytes": 414
+  },
+  {
+    "path": "tools/gomad3/cmd/gomad/internal/cli/recover.go",
+    "sha256": "8e2259bb41b0cbe4ff423aa04e2bc77b0b1d4183050f1145ace63208efac239f",
+    "bytes": 1829
+  },
+  {
+    "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+    "sha256": "6f36c46d707ae86aebb9d9a49c2259224c31d7210ec0c394984410e344f7e83b",
+    "bytes": 2877
+  },
+  {
+    "path": "tools/gomad3/cmd/gomad/internal/cli/working_directory.go",
+    "sha256": "120d733112f122f7658d0d5094e4763ba10b74c7fd689c08756500c50ea606bb",
+    "bytes": 954
+  },
+  {
+    "path": "tools/gomad3/cmd/gomad/internal/cli/working_directory_test.go",
+    "sha256": "a38d27b28eb109b3a97fa148bf4df2a9ac8f8b6c0b105d70c5bf5b6e1cc46f03",
+    "bytes": 1503
+  }
+]

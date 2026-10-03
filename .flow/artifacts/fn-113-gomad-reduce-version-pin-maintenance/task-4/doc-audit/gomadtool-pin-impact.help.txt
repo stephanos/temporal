@@ -1,0 +1,9 @@
+Usage of gomadtool pin-impact:
+  -baseline string
+    	baseline go.mod, default repository root module
+  -candidate string
+    	candidate go.mod, with adjacent go.sum
+  -format string
+    	human or json (default "human")
+  -root string
+    	Gomad v3 module root (default ".")

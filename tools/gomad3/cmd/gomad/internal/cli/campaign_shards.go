@@ -14,6 +14,10 @@ import (
 )
 
 func runCampaignShard(arguments []string, stdout, stderr io.Writer) int {
+	return runCampaignShardWithApplication(arguments, stdout, stderr, newApplication())
+}
+
+func runCampaignShardWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
 	flags := flag.NewFlagSet("gomad execute-shard", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	shardValue := flags.String("shard", "", "zero-based INDEX/COUNT shard assignment")
@@ -32,7 +36,7 @@ func runCampaignShard(arguments []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, err)
 		return 2
 	}
-	toolchain, executable, runnerBuild, err := localIdentity(*toolchainRoot)
+	toolchain, executable, runnerBuild, err := app.identity(*toolchainRoot)
 	if err != nil {
 		fmt.Fprintln(stderr, err)
 		return 3
@@ -40,7 +44,7 @@ func runCampaignShard(arguments []string, stdout, stderr io.Writer) int {
 	reporter := newExploreReporter(*jsonOutput, stdout, stderr)
 	result, err := runner.RunCampaignShard(context.Background(), runner.CampaignShardSpec{
 		PlanPath: flags.Arg(0), Shard: shard, Artifacts: *artifacts, ToolchainRoot: toolchain, RunnerBuild: runnerBuild,
-		SupervisorCommand: []string{executable, "__supervisor"}, Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
+		SupervisorCommand: app.commands(executable).supervisor, Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
 	})
 	if err != nil {
 		classification := classifyExploreError(err)

@@ -1,0 +1,14 @@
+{
+  "argv": [
+    ".toolchain/bin/go",
+    "vet",
+    "-tags",
+    "test_dep",
+    "./target/...",
+    "./internal/hostexec/..."
+  ],
+  "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+  "exit": 0,
+  "duration_seconds": 0.19078445799823385,
+  "log": "final-vet.log"
+}

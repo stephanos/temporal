@@ -1,0 +1,50 @@
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/plan
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/execute-shard
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/merge
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/explore
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/qualify
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/qualify-set
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/merge-set
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/compare-support
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/analyze
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/resume
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/recover
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/replay
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/minimize
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/doctor
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/inspect
+--- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/plan (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/execute-shard (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/merge (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/explore (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/qualify (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/qualify-set (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/merge-set (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/compare-support (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/analyze (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/resume (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/recover (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/replay (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/minimize (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/doctor (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/inspect (0.00s)
+=== RUN   TestPublicCommandExplicitZeroAndIrrelevantFlagClassification
+=== RUN   TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/explore_count_zero
+=== RUN   TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/explore_irrelevant_choice_bytes
+=== RUN   TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/plan_missing_output
+=== RUN   TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/qualify_repeat_zero
+=== RUN   TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/analyze_negative_timeout
+--- PASS: TestPublicCommandExplicitZeroAndIrrelevantFlagClassification (0.01s)
+    --- PASS: TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/explore_count_zero (0.00s)
+    --- PASS: TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/explore_irrelevant_choice_bytes (0.00s)
+    --- PASS: TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/plan_missing_output (0.01s)
+    --- PASS: TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/qualify_repeat_zero (0.00s)
+    --- PASS: TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/analyze_negative_timeout (0.00s)
+=== RUN   TestPublicCommandWriterFailuresPreserveStatus
+--- PASS: TestPublicCommandWriterFailuresPreserveStatus (0.00s)
+=== RUN   TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments
+--- PASS: TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	0.707s

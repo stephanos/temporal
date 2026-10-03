@@ -1,0 +1,479 @@
+diff --git a/tools/gomad3/architecture_test.go b/tools/gomad3/architecture_test.go
+--- a/tools/gomad3/architecture_test.go
++++ b/tools/gomad3/architecture_test.go
+@@ -521,10 +521,10 @@
+ 		return true
+ 	}
+ 	allowed := map[string][]string{
+-		"cli":             {"runner", "qualification", "target", "record", "artifact", "deterministicio", "toolchain", "canonicaljson"},
++		"cli":             {"runner", "qualification", "target", "record", "artifact", "deterministicio", "preparation", "toolchain", "canonicaljson"},
+ 		"developer":       {"choice", "compatibility", "qualification", "simulation", "toolchain", "upgrade", "hostexec", "hostfs"},
+ 		"runner":          {"target", "record", "artifact", "choice", "deterministicio", "preparation", "world", "canonicaljson", "hostexec", "hostfs"},
+-		"qualification":   {"runner", "target", "record", "artifact", "choice", "deterministicio", "canonicaljson", "hostexec", "hostfs"},
++		"qualification":   {"runner", "target", "record", "artifact", "choice", "deterministicio", "preparation", "canonicaljson", "hostexec", "hostfs"},
+ 		"target":          {"compatibility", "record", "toolchain", "canonicaljson", "hostexec", "hostfs"},
+ 		"record":          {"canonicaljson"},
+ 		"artifact":        {"choice", "deterministicio", "target", "record", "hostfs"},
+diff --git a/tools/gomad3/cmd/gomad/internal/cli/analyze.go b/tools/gomad3/cmd/gomad/internal/cli/analyze.go
+--- a/tools/gomad3/cmd/gomad/internal/cli/analyze.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/analyze.go
+@@ -11,6 +11,7 @@
+ 
+ 	"go.temporal.io/server/tools/gomad3/deterministicio"
+ 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
++	"go.temporal.io/server/tools/gomad3/internal/preparation"
+ 	capabilityanalysis "go.temporal.io/server/tools/gomad3/qualification/analysis"
+ 	"go.temporal.io/server/tools/gomad3/target"
+ )
+@@ -23,6 +24,7 @@
+ 	toolchain        func(string) (string, error)
+ 	identity         func(string) (target.ToolchainIdentity, error)
+ 	workingDirectory func() (string, error)
++	inspect          func(context.Context, target.Spec) (preparation.Inspection, error)
+ 	prepare          func(context.Context, target.Spec) (target.Spec, []deterministicio.Adapter, func() error, error)
+ 	analyze          func(context.Context, capabilityanalysis.Spec) (capabilityanalysis.Report, error)
+ 	review           func(context.Context, target.Spec) (target.CapabilityReview, error)
+@@ -50,25 +52,8 @@
+ 			return root, err
+ 		},
+ 		identity: target.ReadToolchainIdentity, workingDirectory: os.Getwd,
+-		prepare: prepareAnalysisTarget, analyze: capabilityanalysis.Analyze,
++		inspect: preparation.Inspect, build: capabilityanalysis.Build,
+ 	})
+-}
+-
+-func prepareAnalysisTarget(ctx context.Context, spec target.Spec) (target.Spec, []deterministicio.Adapter, func() error, error) {
+-	root, err := os.MkdirTemp("", "gomad3-analysis-")
+-	if err != nil {
+-		return target.Spec{}, nil, nil, fmt.Errorf("create analysis preparation directory: %w", err)
+-	}
+-	cleanup := func() error { return os.RemoveAll(root) }
+-	if err := os.Chmod(root, 0o700); err != nil {
+-		return target.Spec{}, nil, nil, errors.Join(fmt.Errorf("make analysis preparation directory private: %w", err), cleanup())
+-	}
+-	spec.PreparationRoot = root
+-	prepared, adapters, err := deterministicio.Default().PrepareTargetBuildAdapters(ctx, spec)
+-	if err != nil {
+-		return target.Spec{}, nil, nil, errors.Join(err, cleanup())
+-	}
+-	return prepared, deterministicio.SelectedAdapters(adapters), cleanup, nil
+ }
+ 
+ func runAnalyzeWith(arguments []string, stdout, stderr io.Writer, dependencies analyzeDependencies) (status int) {
+@@ -160,7 +145,27 @@
+ func executeAnalysis(ctx context.Context, stdout, stderr io.Writer, format string, spec target.Spec, identity target.ToolchainIdentity, dependencies analyzeDependencies) (status int) {
+ 	adapters := []deterministicio.Adapter{}
+ 	var err error
+-	if dependencies.prepare != nil {
++	var reviewed target.CapabilityReview
++	if dependencies.inspect != nil {
++		inspected, inspectErr := dependencies.inspect(ctx, spec)
++		if inspectErr != nil {
++			if preparation.StageOf(inspectErr) == preparation.StageReview {
++				return reportAnalyzeError(stderr, inspectErr)
++			}
++			if deterministicio.IsInvalidBuildAdapterConfiguration(inspectErr) {
++				return writeCommandError(stderr, 2, "prepare capability analysis: %v\n", inspectErr)
++			}
++			return writeCommandError(stderr, 3, "prepare capability analysis: %v\n", inspectErr)
++		}
++		spec, reviewed, adapters = inspected.Spec, inspected.Review, inspected.Adapters
++		defer func() {
++			if cleanupErr := inspected.Close(); cleanupErr != nil {
++				if _, writeErr := fmt.Fprintf(stderr, "clean capability analysis preparation: %v\n", cleanupErr); writeErr != nil || status == 0 {
++					status = 3
++				}
++			}
++		}()
++	} else if dependencies.prepare != nil {
+ 		var cleanup func() error
+ 		spec, adapters, cleanup, err = dependencies.prepare(ctx, spec)
+ 		if err != nil {
+@@ -172,7 +177,7 @@
+ 		if cleanup != nil {
+ 			defer func() {
+ 				if cleanupErr := cleanup(); cleanupErr != nil {
+-					if _, writeErr := fmt.Fprintf(stderr, "clean capability analysis preparation: %v\n", cleanupErr); writeErr != nil {
++					if _, writeErr := fmt.Fprintf(stderr, "clean capability analysis preparation: %v\n", cleanupErr); writeErr != nil || status == 0 {
+ 						status = 3
+ 					}
+ 				}
+@@ -180,7 +185,9 @@
+ 		}
+ 	}
+ 	var report capabilityanalysis.Report
+-	if dependencies.analyze != nil {
++	if dependencies.inspect != nil {
++		report, err = dependencies.build(capabilityanalysis.Input{Spec: spec, Review: reviewed, Toolchain: identity, IOProfile: deterministicio.Default(), Adapters: adapters})
++	} else if dependencies.analyze != nil {
+ 		report, err = dependencies.analyze(ctx, capabilityanalysis.Spec{
+ 			Target: spec, Toolchain: identity, IOProfile: deterministicio.Default(), Adapters: adapters,
+ 		})
+diff --git a/tools/gomad3/cmd/gomad/internal/cli/cli_test.go b/tools/gomad3/cmd/gomad/internal/cli/cli_test.go
+--- a/tools/gomad3/cmd/gomad/internal/cli/cli_test.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/cli_test.go
+@@ -526,6 +526,27 @@
+ 	}
+ 	var stdout, stderr bytes.Buffer
+ 	if status := runAnalyzeWith([]string{"go-run", "./pkg"}, &stdout, &stderr, dependencies); status != 1 || !strings.Contains(stderr.String(), "cleanup failed") {
++		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
++	}
++}
++
++func TestRunAnalyzeSurfacesCleanupFailureAfterSupportedReport(t *testing.T) {
++	dependencies := analyzeDependencies{
++		toolchain:        func(string) (string, error) { return "/toolchain", nil },
++		identity:         func(string) (target.ToolchainIdentity, error) { return target.ToolchainIdentity{}, nil },
++		workingDirectory: func() (string, error) { return "/workspace", nil },
++		prepare: func(_ context.Context, spec target.Spec) (target.Spec, []deterministicio.Adapter, func() error, error) {
++			return spec, nil, func() error { return errors.New("cleanup failed") }, nil
++		},
++		review: func(context.Context, target.Spec) (target.CapabilityReview, error) {
++			return target.CapabilityReview{}, nil
++		},
++		build: func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {
++			return capabilityanalysis.Report{Classification: capabilityanalysis.ClassificationSupported}, nil
++		},
++	}
++	var stdout, stderr bytes.Buffer
++	if status := runAnalyzeWith([]string{"go-run", "./pkg"}, &stdout, &stderr, dependencies); status != 3 || !strings.Contains(stderr.String(), "cleanup failed") {
+ 		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+ 	}
+ }
+diff --git a/tools/gomad3/internal/preparation/preparation.go b/tools/gomad3/internal/preparation/preparation.go
+--- a/tools/gomad3/internal/preparation/preparation.go
++++ b/tools/gomad3/internal/preparation/preparation.go
+@@ -27,6 +27,7 @@
+ 	StageAdapters   Stage = "adapters"
+ 	StageTarget     Stage = "target"
+ 	StageValidation Stage = "validation"
++	StageReview     Stage = "review"
+ 	StageCleanup    Stage = "cleanup"
+ )
+ 
+diff --git a/tools/gomad3/qualification/analysis/prepared_review.go b/tools/gomad3/qualification/analysis/prepared_review.go
+--- a/tools/gomad3/qualification/analysis/prepared_review.go
++++ b/tools/gomad3/qualification/analysis/prepared_review.go
+@@ -2,11 +2,9 @@
+ 
+ import (
+ 	"context"
+-	"errors"
+-	"fmt"
+-	"os"
+ 
+ 	"go.temporal.io/server/tools/gomad3/deterministicio"
++	"go.temporal.io/server/tools/gomad3/internal/preparation"
+ 	"go.temporal.io/server/tools/gomad3/target"
+ )
+ 
+@@ -15,47 +13,23 @@
+ 	Review        target.CapabilityReview
+ 	BuildAdapters []deterministicio.BuildAdapter
+ 	Adapters      []deterministicio.Adapter
+-	root          string
++	inspection    preparation.Inspection
+ }
+ 
+-func PrepareCapabilityReview(ctx context.Context, spec target.Spec) (_ PreparedCapabilityReview, retErr error) {
+-	if spec.PreparationRoot != "" {
+-		return PreparedCapabilityReview{}, errors.New("capability review preparation root must be owned by the review")
+-	}
+-	root, err := os.MkdirTemp("", "gomad3-compatibility-review-")
+-	if err != nil {
+-		return PreparedCapabilityReview{}, fmt.Errorf("create capability review preparation directory: %w", err)
+-	}
+-	keep := false
+-	defer func() {
+-		if !keep {
+-			retErr = errors.Join(retErr, os.RemoveAll(root))
+-		}
+-	}()
+-	if err := os.Chmod(root, 0o700); err != nil {
+-		return PreparedCapabilityReview{}, fmt.Errorf("make capability review preparation directory private: %w", err)
+-	}
+-	spec.PreparationRoot = root
+-	preparedSpec, adapters, err := deterministicio.Default().PrepareTargetBuildAdapters(ctx, spec)
++func PrepareCapabilityReview(ctx context.Context, spec target.Spec) (PreparedCapabilityReview, error) {
++	inspected, err := preparation.Inspect(ctx, spec)
+ 	if err != nil {
+ 		return PreparedCapabilityReview{}, err
+ 	}
+-	review, err := target.ReviewCapabilities(ctx, preparedSpec)
+-	if err != nil {
+-		return PreparedCapabilityReview{}, err
+-	}
+-	keep = true
+ 	return PreparedCapabilityReview{
+-		Spec: preparedSpec, Review: review, BuildAdapters: adapters,
+-		Adapters: deterministicio.SelectedAdapters(adapters), root: root,
++		Spec: inspected.Spec, Review: inspected.Review, BuildAdapters: inspected.BuildAdapters,
++		Adapters: inspected.Adapters, inspection: inspected,
+ 	}, nil
+ }
+ 
+ func (prepared *PreparedCapabilityReview) Close() error {
+-	if prepared == nil || prepared.root == "" {
++	if prepared == nil {
+ 		return nil
+ 	}
+-	root := prepared.root
+-	prepared.root = ""
+-	return os.RemoveAll(root)
++	return prepared.inspection.Close()
+ }
+diff --git a/tools/gomad3/internal/preparation/inspection.go b/tools/gomad3/internal/preparation/inspection.go
+--- /dev/null
++++ b/tools/gomad3/internal/preparation/inspection.go
+@@ -0,0 +1,73 @@
++package preparation
++
++import (
++	"context"
++	"errors"
++	"fmt"
++	"os"
++
++	"go.temporal.io/server/tools/gomad3/deterministicio"
++	"go.temporal.io/server/tools/gomad3/target"
++)
++
++type Inspection struct {
++	Spec          target.Spec
++	Review        target.CapabilityReview
++	BuildAdapters []deterministicio.BuildAdapter
++	Adapters      []deterministicio.Adapter
++	root          string
++	remove        func(string) error
++}
++
++func Inspect(ctx context.Context, spec target.Spec) (Inspection, error) {
++	return inspect(ctx, spec, os.RemoveAll)
++}
++
++func inspect(ctx context.Context, spec target.Spec, remove func(string) error) (_ Inspection, retErr error) {
++	if spec.PreparationRoot != "" {
++		return Inspection{}, errors.New("capability review preparation root must be owned by the review")
++	}
++	root, err := os.MkdirTemp("", "gomad3-compatibility-review-")
++	if err != nil {
++		return Inspection{}, &stageError{stage: StageAdapters, err: fmt.Errorf("create capability review preparation directory: %w", err)}
++	}
++	keep := false
++	defer func() {
++		if !keep {
++			retErr = errors.Join(retErr, removeInspectionRoot(root, remove))
++		}
++	}()
++	if err := os.Chmod(root, 0o700); err != nil {
++		return Inspection{}, &stageError{stage: StageAdapters, err: fmt.Errorf("make capability review preparation directory private: %w", err)}
++	}
++	spec.PreparationRoot = root
++	preparedSpec, adapters, err := deterministicio.Default().PrepareTargetBuildAdapters(ctx, spec)
++	if err != nil {
++		return Inspection{}, &stageError{stage: StageAdapters, err: err}
++	}
++	review, err := target.ReviewCapabilities(ctx, preparedSpec)
++	if err != nil {
++		return Inspection{}, &stageError{stage: StageReview, err: err}
++	}
++	keep = true
++	return Inspection{
++		Spec: preparedSpec, Review: review, BuildAdapters: adapters,
++		Adapters: deterministicio.SelectedAdapters(adapters), root: root, remove: remove,
++	}, nil
++}
++
++func (inspected *Inspection) Close() error {
++	if inspected == nil || inspected.root == "" {
++		return nil
++	}
++	root := inspected.root
++	inspected.root = ""
++	return removeInspectionRoot(root, inspected.remove)
++}
++
++func removeInspectionRoot(root string, remove func(string) error) error {
++	if err := remove(root); err != nil {
++		return &stageError{stage: StageCleanup, err: fmt.Errorf("remove capability review preparation directory: %w", err)}
++	}
++	return nil
++}
+diff --git a/tools/gomad3/internal/preparation/inspection_test.go b/tools/gomad3/internal/preparation/inspection_test.go
+--- /dev/null
++++ b/tools/gomad3/internal/preparation/inspection_test.go
+@@ -0,0 +1,174 @@
++package preparation
++
++import (
++	"context"
++	"errors"
++	"os"
++	"path/filepath"
++	"strconv"
++	"strings"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/deterministicio"
++	"go.temporal.io/server/tools/gomad3/target"
++)
++
++func inspectionFixture(t *testing.T, source string) target.Spec {
++	t.Helper()
++	module := t.TempDir()
++	writeTestFile(t, filepath.Join(module, "go.mod"), "module example.com/inspection\n\ngo 1.27.1\n")
++	writeTestFile(t, filepath.Join(module, "main.go"), source)
++	return target.Spec{Kind: target.KindGoRun, Source: ".", WorkingDir: module, ToolchainRoot: filepath.Join(testModuleRoot(t), ".toolchain")}
++}
++
++func TestInspectClosureDoesNotBuildOrLaunch(t *testing.T) {
++	spec := inspectionFixture(t, "package main\n\nfunc main() { panic(\"target launched\") }\n")
++	shimRoot := t.TempDir()
++	if err := os.Mkdir(filepath.Join(shimRoot, "bin"), 0o700); err != nil {
++		t.Fatal(err)
++	}
++	command := "#!/bin/sh\nif [ \"$1\" = build ] || [ \"$1\" = test ]; then echo unexpected-build >&2; exit 97; fi\nexec \"" + filepath.Join(spec.ToolchainRoot, "bin", "go") + "\" \"$@\"\n"
++	writeTestFile(t, filepath.Join(shimRoot, "bin", "go"), command)
++	if err := os.Chmod(filepath.Join(shimRoot, "bin", "go"), 0o700); err != nil {
++		t.Fatal(err)
++	}
++	spec.ToolchainRoot = shimRoot
++	inspected, err := Inspect(context.Background(), spec)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if inspected.Review.Schema != target.CapabilityReviewSchema || inspected.Spec.PreparationRoot == "" {
++		t.Fatalf("inspection = %#v", inspected)
++	}
++	if err := inspected.Close(); err != nil {
++		t.Fatal(err)
++	}
++}
++
++func TestInspectLinkedBuildDoesNotLaunchTarget(t *testing.T) {
++	sentinel := filepath.Join(t.TempDir(), "launched")
++	spec := inspectionFixture(t, "package main\n\nimport \"os\"\n\nfunc main() { if err := os.WriteFile("+strconv.Quote(sentinel)+", []byte(\"launched\"), 0600); err != nil { panic(err) } }\n")
++	spec.CapabilityMode = target.CapabilityModeLinked
++	inspected, err := Inspect(context.Background(), spec)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if inspected.Review.CapabilityManifest == nil || inspected.Review.CapabilityMode != target.CapabilityModeLinked {
++		t.Fatalf("linked review = %#v", inspected.Review)
++	}
++	if _, err := os.Stat(sentinel); !os.IsNotExist(err) {
++		t.Fatalf("target launched: %v", err)
++	}
++	if err := inspected.Close(); err != nil {
++		t.Fatal(err)
++	}
++}
++
++func TestInspectRejectsCallerRootAndPreservesReviewClassificationOnCleanupFailure(t *testing.T) {
++	spec := inspectionFixture(t, "package main\n\nfunc main() {}\n")
++	spec.PreparationRoot = t.TempDir()
++	if _, err := Inspect(context.Background(), spec); err == nil {
++		t.Fatal("caller-owned preparation root accepted")
++	}
++	spec.PreparationRoot = ""
++	spec.Source = "-invalid"
++	cleanupFailure := errors.New("cleanup failed")
++	_, err := inspect(context.Background(), spec, func(path string) error {
++		if !strings.Contains(filepath.Base(path), "gomad3-compatibility-review-") {
++			t.Fatalf("cleanup path = %q", path)
++		}
++		if removeErr := os.RemoveAll(path); removeErr != nil {
++			t.Fatal(removeErr)
++		}
++		return cleanupFailure
++	})
++	if !target.IsInvalidCapabilityReview(err) || !errors.Is(err, cleanupFailure) {
++		t.Fatalf("inspection error = %v", err)
++	}
++}
++
++func TestInspectCloseSurfacesCleanupFailure(t *testing.T) {
++	spec := inspectionFixture(t, "package main\n\nfunc main() {}\n")
++	cleanupFailure := errors.New("cleanup failed")
++	inspected, err := inspect(context.Background(), spec, func(path string) error {
++		if err := os.RemoveAll(path); err != nil {
++			t.Fatal(err)
++		}
++		return cleanupFailure
++	})
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := inspected.Close(); !errors.Is(err, cleanupFailure) {
++		t.Fatalf("Close() = %v", err)
++	}
++}
++
++func TestInspectPreservesInvalidAdapterSum(t *testing.T) {
++	spec := inspectionFixture(t, "package main\n\nfunc main() {}\n")
++	module, err := os.ReadFile(filepath.Join(testModuleRoot(t), "deterministicio", "testdata", "sprig", "go.mod"))
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(filepath.Join(spec.WorkingDir, "go.mod"), module, 0o600); err != nil {
++		t.Fatal(err)
++	}
++	_, err = Inspect(context.Background(), spec)
++	if !deterministicio.IsInvalidBuildAdapterConfiguration(err) || StageOf(err) != StageAdapters {
++		t.Fatalf("inspection error = %v, stage = %s", err, StageOf(err))
++	}
++}
++
++func TestInspectRetainsUnsupportedClosureClassification(t *testing.T) {
++	spec := inspectionFixture(t, "package main\n\nimport \"os/exec\"\n\nfunc main() { _ = exec.Command(\"true\") }\n")
++	inspected, err := Inspect(context.Background(), spec)
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer func() {
++		if err := inspected.Close(); err != nil {
++			t.Fatal(err)
++		}
++	}()
++	if len(inspected.Review.Findings) == 0 {
++		t.Fatal("unsupported closure has no finding")
++	}
++	_, err = target.ReviewCapabilityClosure(context.Background(), inspected.Spec)
++	var unsupported *target.UnsupportedCapabilityError
++	if !errors.As(err, &unsupported) || unsupported.Capability != "imports os/exec" {
++		t.Fatalf("unsupported closure error = %v", err)
++	}
++}
++
++func TestInspectLinkedRejectsMalformedBuildRecord(t *testing.T) {
++	spec := inspectionFixture(t, "package main\n\nfunc main() {}\n")
++	spec.CapabilityMode = target.CapabilityModeLinked
++	root := t.TempDir()
++	if err := os.Mkdir(filepath.Join(root, "bin"), 0o700); err != nil {
++		t.Fatal(err)
++	}
++	key, err := os.ReadFile(filepath.Join(spec.ToolchainRoot, "build-key"))
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(filepath.Join(root, "build-key"), key, 0o600); err != nil {
++		t.Fatal(err)
++	}
++	if err := os.Symlink(filepath.Join(spec.ToolchainRoot, "builds"), filepath.Join(root, "builds")); err != nil {
++		t.Fatal(err)
++	}
++	command := "#!/bin/sh\n" +
++		"if [ \"$1\" != build ]; then exec \"" + filepath.Join(spec.ToolchainRoot, "bin", "go") + "\" \"$@\"; fi\n" +
++		"\"" + filepath.Join(spec.ToolchainRoot, "bin", "go") + "\" \"$@\" || exit $?\n" +
++		"while [ $# -gt 0 ]; do if [ \"$1\" = -o ]; then shift; printf 'malformed linked record' > \"$1\"; exit 0; fi; shift; done\n" +
++		"exit 98\n"
++	writeTestFile(t, filepath.Join(root, "bin", "go"), command)
++	if err := os.Chmod(filepath.Join(root, "bin", "go"), 0o700); err != nil {
++		t.Fatal(err)
++	}
++	spec.ToolchainRoot = root
++	_, err = Inspect(context.Background(), spec)
++	if err == nil || !strings.Contains(err.Error(), "extract linked target capability manifest") || target.IsInvalidCapabilityReview(err) || target.IsUnsupportedCapability(err) || StageOf(err) != StageReview {
++		t.Fatalf("inspection error = %v, stage = %s", err, StageOf(err))
++	}
++}

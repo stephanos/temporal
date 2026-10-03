@@ -1,0 +1,5 @@
+# go.temporal.io/server/tools/gomad3/runner [go.temporal.io/server/tools/gomad3/runner.test]
+runner/coordinator_transport_test.go:118:64: want.execution undefined (type campaignRequest has no field or method execution)
+ok  	go.temporal.io/server/tools/gomad3	0.291s
+FAIL	go.temporal.io/server/tools/gomad3/runner [build failed]
+FAIL

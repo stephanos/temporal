@@ -1,0 +1,17 @@
+{
+  "schema": "gomad3.pin-maintenance-scratch-cleanup/v1",
+  "removed": [
+    {
+      "path": "/tmp/gomad-fn113-task4-sprig",
+      "regular_files": 975,
+      "regular_bytes": 12562954,
+      "go.mod_sha256": "21dd9f12684fcf4923c94ac10824b8875f5d8e35d85d87c49e7342c4e5dfb098",
+      "go.sum_sha256": "6b55b5b23450e664e3cced7d2b56086ca97f77c04ae8386af6d27390057de8f3"
+    },
+    {
+      "path": "/tmp/gomad-fn113-task4-controlled-bump",
+      "regular_files": 979,
+      "regular_bytes": 12704479
+    }
+  ]
+}

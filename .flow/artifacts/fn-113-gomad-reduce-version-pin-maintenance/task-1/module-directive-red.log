@@ -1,0 +1,6 @@
+--- FAIL: TestPinImpactExitStatuses (0.02s)
+    --- FAIL: TestPinImpactExitStatuses/missing_module (0.02s)
+        pin_impact_test.go:69: want status 2 got 0: 
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/cmd/gomadtool	0.511s
+FAIL

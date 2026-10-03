@@ -1,0 +1,14 @@
+{
+  "cmd": [
+    "/Users/stephan/Workspace/temporal/gomad/.bin/golangci-lint-v2.13.0",
+    "run",
+    "--config=../../.github/.golangci.yml",
+    "--build-tags=test_dep",
+    "--timeout=10m",
+    "--new-from-rev=HEAD",
+    "./cmd/gomad/...",
+    "./runner/..."
+  ],
+  "exit": 1,
+  "seconds": 0.811
+}

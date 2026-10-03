@@ -1,0 +1,19 @@
+{
+  "commits": [],
+  "tests": [
+    "tools/gomad3: .toolchain/bin/go test -count=1 -tags test_dep ./runner/... ./qualification/... ./cmd/gomad/... => exit 0; baseline-quick.log",
+    "tools/gomad3: .toolchain/bin/go test -count=1 -tags test_dep . -run 'TestRunnerExecutionInjectionIsPrivate' => exit 1; red-public-interface.log; expected red: two exported interfaces and five public executor fields",
+    "tools/gomad3: .toolchain/bin/go test -count=1 -tags test_dep . -run 'TestRunnerExecutionInjectionIsPrivate|TestRunnerRequestsCompileInExternalModule|TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases' => exit 0; external-architecture.log",
+    "tools/gomad3: .toolchain/bin/go test -count=1 -tags test_dep ./runner -run 'TestRunPreparesOnce|TestRunFirstFailure|TestRunCancellation|TestRunChoiceExplorationResume|TestRunSimulationExplorationResume|TestRunCampaignShard|TestMinimize|TestReplay|TestWatchdog|TestGuidedResume|TestRunEarlyCompletion|TestDiagnosticsPlanShard|TestCreateCampaignPlan' => exit 0; focused-runner.log",
+    "tools/gomad3: /Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go vet -tags test_dep . ./runner/... ./qualification/... ./cmd/... => exit 0; scoped-vet.log",
+    "tools/gomad3: .toolchain/bin/go test -count=1 -tags test_dep ./runner -run 'TestCoordinatorTransportCoversEveryCampaignSpecField|TestExploreRejectsPrivateExecutionForIsolatedCampaign|TestCoordinatorTransportRoundTripsEveryTransportedField' => exit 0; coordinator-delta.log",
+    "tools/gomad3: .bin/golangci-lint-v2.13.0 run --config ../../.github/.golangci.yml --build-tags test_dep --timeout 10m --new-from-patch ../../.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-6/task-only.patch . ./runner/... ./qualification/... ./cmd/... => exit 0; task-only-lint-post-delta.log; 0 task-only issues; unfiltered lint still has inherited/retained findings",
+    "tools/gomad3: .toolchain/bin/go test -count=1 -tags test_dep ./runner -run TestCampaignOptionsCharacterization|TestCoordinatorTransport|TestExploreRejectsPrivateExecutionForIsolatedCampaign => exit 0; parent-final-check-1.log",
+    "tools/gomad3: .toolchain/bin/go test -count=1 -tags test_dep . -run TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestRunnerExecutionInjectionIsPrivate|TestRunnerRequestsCompileInExternalModule => exit 0; parent-final-check-2.log",
+    "Frozen Darwin test-host => actual exit 2, one stale coordinator test field map; full-host.log/full-host-result.json. Only test file changed afterward; exact failed selector and parent canonical/architecture/external checks pass. Full host not rerun.",
+    "Parent verified 31 final-source hashes, actual byte preimages, original comments, task-only reverse apply, and git diff --check; no source changes after SHIP. post-review-verification.json.",
+    "Native linux/amd64 and full-spec R18/R19 qualification remain incomplete under task21.",
+    "Root make lint-code-fast known unchanged nested-module-loading exit2 retained; unfiltered scoped lint627 historical findings, task-only filtered lint0."
+  ],
+  "prs": []
+}

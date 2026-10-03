@@ -37,10 +37,11 @@ func TestMinimizePublishesLinkedExactScheduleAndFaultReduction(t *testing.T) {
 	executor := &minimizationExecutor{}
 	replayer := &minimizationReplayer{}
 
-	result, err := Minimize(context.Background(), MinimizeSpec{
+	result, err := minimizeWith(context.Background(), MinimizeSpec{
 		ArtifactPath: artifactPath, OutputRoot: t.TempDir(), AttemptBudget: 16,
-		ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor, Replayer: replayer,
-	})
+		ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Replayer: replayer,
+	}, executionDependencies{executor: executor},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,12 +75,13 @@ func TestMinimizePublishesLinkedExactScheduleAndFaultReduction(t *testing.T) {
 
 func TestMinimizeRejectsSimulationArtifactWithoutExactChoiceTape(t *testing.T) {
 	artifactPath, _ := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Simulation: true})
-	_, err := Minimize(context.Background(), MinimizeSpec{
+	_, err := minimizeWith(context.Background(), MinimizeSpec{
 		ArtifactPath: artifactPath, OutputRoot: t.TempDir(), AttemptBudget: 16,
-		ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: &minimizationExecutor{}, Replayer: &minimizationReplayer{},
-	})
+		ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Replayer: &minimizationReplayer{},
+	}, executionDependencies{executor: &minimizationExecutor{}},
+	)
 	if err == nil {
-		t.Fatal("Minimize() accepted an artifact without an exact choice tape")
+		t.Fatal("minimizeWith() accepted an artifact without an exact choice tape")
 	}
 }
 
@@ -118,17 +120,18 @@ func otherMinimizationParent(t *testing.T) string {
 	return minimizationParent(t, record.Environment{Name: "GOMAD_TEST_OTHER_PARENT", Value: "1"})
 }
 
-func minimizationSpec(t *testing.T, artifactPath, outputRoot string) MinimizeSpec {
+func minimizationSpec(t *testing.T, artifactPath, outputRoot string) (MinimizeSpec, executionDependencies) {
 	t.Helper()
 	return MinimizeSpec{
 		ArtifactPath: artifactPath, OutputRoot: outputRoot, AttemptBudget: 16,
-		ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: &minimizationExecutor{}, Replayer: &minimizationReplayer{},
-	}
+		ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Replayer: &minimizationReplayer{},
+	}, executionDependencies{executor: &minimizationExecutor{}}
 }
 
 func uninterruptedMinimization(t *testing.T, artifactPath string) minimizationOutcome {
 	t.Helper()
-	result, err := Minimize(context.Background(), minimizationSpec(t, artifactPath, t.TempDir()))
+	spec, dependencies := minimizationSpec(t, artifactPath, t.TempDir())
+	result, err := minimizeWith(context.Background(), spec, dependencies)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -149,10 +152,10 @@ func interruptAt(call int) func(int) error {
 func interruptedMinimization(t *testing.T, artifactPath string) string {
 	t.Helper()
 	outputRoot := t.TempDir()
-	spec := minimizationSpec(t, artifactPath, outputRoot)
-	spec.Executor = &minimizationExecutor{before: interruptAt(minimizationCallAfterAcceptedReduction)}
-	if _, err := Minimize(context.Background(), spec); !errors.Is(err, errMinimizationInterrupted) {
-		t.Fatalf("interrupted Minimize() error = %v", err)
+	spec, specDependencies := minimizationSpec(t, artifactPath, outputRoot)
+	specDependencies.executor = &minimizationExecutor{before: interruptAt(minimizationCallAfterAcceptedReduction)}
+	if _, err := minimizeWith(context.Background(), spec, specDependencies); !errors.Is(err, errMinimizationInterrupted) {
+		t.Fatalf("interrupted minimizeWith() error = %v", err)
 	}
 	return outputRoot
 }
@@ -177,20 +180,20 @@ func TestMinimizeResumeContinuesAfterAcceptedReductionWithoutRepeatingAttempts(t
 	uninterrupted := uninterruptedMinimization(t, artifactPath)
 	outputRoot := interruptedMinimization(t, artifactPath)
 
-	spec := minimizationSpec(t, artifactPath, outputRoot)
-	if _, err := Minimize(context.Background(), spec); !errors.Is(err, minimizer.ErrCheckpointExists) {
-		t.Fatalf("Minimize() over existing state error = %v", err)
+	spec, specDependencies := minimizationSpec(t, artifactPath, outputRoot)
+	if _, err := minimizeWith(context.Background(), spec, specDependencies); !errors.Is(err, minimizer.ErrCheckpointExists) {
+		t.Fatalf("minimizeWith() over existing state error = %v", err)
 	}
-	if calls := spec.Executor.(*minimizationExecutor).calls; calls != 0 {
+	if calls := specDependencies.executor.(*minimizationExecutor).calls; calls != 0 {
 		t.Fatalf("refused run evaluated %d candidates", calls)
 	}
 
 	spec.Resume = true
-	result, err := Minimize(context.Background(), spec)
+	result, err := minimizeWith(context.Background(), spec, specDependencies)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if calls := spec.Executor.(*minimizationExecutor).calls; calls != int(uninterrupted.Attempts)-minimizationCallAfterAcceptedReduction+1 {
+	if calls := specDependencies.executor.(*minimizationExecutor).calls; calls != int(uninterrupted.Attempts)-minimizationCallAfterAcceptedReduction+1 {
 		t.Fatalf("resumed run evaluated %d candidates of %d attempts", calls, uninterrupted.Attempts)
 	}
 	if resumed := minimizationOutcomeOf(result); !resumed.Changed || !reflect.DeepEqual(resumed, uninterrupted) {
@@ -200,8 +203,8 @@ func TestMinimizeResumeContinuesAfterAcceptedReductionWithoutRepeatingAttempts(t
 		t.Fatalf("published artifacts = %v, result = %s", published, result.Artifact.Path)
 	}
 	spec.Resume = false
-	if _, err := Minimize(context.Background(), spec); err != nil {
-		t.Fatalf("Minimize() after a completed run: %v", err)
+	if _, err := minimizeWith(context.Background(), spec, specDependencies); err != nil {
+		t.Fatalf("minimizeWith() after a completed run: %v", err)
 	}
 }
 
@@ -213,21 +216,22 @@ func TestMinimizeKeepsStatePerParentArtifactInOneOutputRoot(t *testing.T) {
 	}
 	outputRoot := interruptedMinimization(t, artifactPath)
 
-	otherResult, err := Minimize(context.Background(), minimizationSpec(t, otherPath, outputRoot))
+	otherSpec, otherDependencies := minimizationSpec(t, otherPath, outputRoot)
+	otherResult, err := minimizeWith(context.Background(), otherSpec, otherDependencies)
 	if err != nil {
-		t.Fatalf("Minimize() of another parent beside interrupted state: %v", err)
+		t.Fatalf("minimizeWith() of another parent beside interrupted state: %v", err)
 	}
 	if other := minimizationOutcomeOf(otherResult); !reflect.DeepEqual(other, otherUninterrupted) {
 		t.Fatalf("other parent outcome = %#v, want %#v", other, otherUninterrupted)
 	}
 
-	spec := minimizationSpec(t, artifactPath, outputRoot)
+	spec, specDependencies := minimizationSpec(t, artifactPath, outputRoot)
 	spec.Resume = true
-	result, err := Minimize(context.Background(), spec)
+	result, err := minimizeWith(context.Background(), spec, specDependencies)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if calls := spec.Executor.(*minimizationExecutor).calls; calls != int(uninterrupted.Attempts)-minimizationCallAfterAcceptedReduction+1 {
+	if calls := specDependencies.executor.(*minimizationExecutor).calls; calls != int(uninterrupted.Attempts)-minimizationCallAfterAcceptedReduction+1 {
 		t.Fatalf("resumed run evaluated %d candidates of %d attempts", calls, uninterrupted.Attempts)
 	}
 	if resumed := minimizationOutcomeOf(result); !reflect.DeepEqual(resumed, uninterrupted) {
@@ -256,14 +260,14 @@ func TestMinimizeResumeRejectsStateOfAnotherRun(t *testing.T) {
 		{name: "no output directory", change: func(spec *MinimizeSpec) { spec.OutputRoot = filepath.Join(t.TempDir(), "absent") }, want: minimizer.ErrNoCheckpoint.Error()},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			spec := minimizationSpec(t, artifactPath, outputRoot)
+			spec, specDependencies := minimizationSpec(t, artifactPath, outputRoot)
 			spec.Resume = true
 			test.change(&spec)
-			_, err := Minimize(context.Background(), spec)
+			_, err := minimizeWith(context.Background(), spec, specDependencies)
 			if err == nil || !strings.Contains(err.Error(), test.want) {
-				t.Fatalf("Minimize() error = %v, want %q", err, test.want)
+				t.Fatalf("minimizeWith() error = %v, want %q", err, test.want)
 			}
-			if calls := spec.Executor.(*minimizationExecutor).calls; calls != 0 {
+			if calls := specDependencies.executor.(*minimizationExecutor).calls; calls != 0 {
 				t.Fatalf("rejected resume evaluated %d candidates", calls)
 			}
 		})
@@ -294,12 +298,12 @@ func TestMinimizeResumeFailsClosedOnDamagedAcceptedArtifact(t *testing.T) {
 				t.Fatalf("accepted artifacts = %v, %v", accepted, err)
 			}
 			test.damage(t, accepted[0])
-			spec := minimizationSpec(t, artifactPath, outputRoot)
+			spec, specDependencies := minimizationSpec(t, artifactPath, outputRoot)
 			spec.Resume = true
-			if _, err := Minimize(context.Background(), spec); err == nil {
-				t.Fatal("Minimize() resumed from a damaged accepted artifact")
+			if _, err := minimizeWith(context.Background(), spec, specDependencies); err == nil {
+				t.Fatal("minimizeWith() resumed from a damaged accepted artifact")
 			}
-			if calls := spec.Executor.(*minimizationExecutor).calls; calls != 0 || len(publishedMinimizedArtifacts(t, outputRoot)) != 0 {
+			if calls := specDependencies.executor.(*minimizationExecutor).calls; calls != 0 || len(publishedMinimizedArtifacts(t, outputRoot)) != 0 {
 				t.Fatalf("damaged resume evaluated %d candidates, published %v", calls, publishedMinimizedArtifacts(t, outputRoot))
 			}
 		})
@@ -320,9 +324,9 @@ func TestMinimizeExcludesConcurrentRunsOfOneParentOnOneOutputRoot(t *testing.T) 
 			outputRoot := test.outputRoot(t)
 			evaluating := make(chan struct{})
 			release := make(chan struct{})
-			holder := minimizationSpec(t, artifactPath, outputRoot)
+			holder, holderDependencies := minimizationSpec(t, artifactPath, outputRoot)
 			holder.Resume = test.resume
-			holder.Executor = &minimizationExecutor{before: func(call int) error {
+			holderDependencies.executor = &minimizationExecutor{before: func(call int) error {
 				if call == 1 {
 					close(evaluating)
 					<-release
@@ -331,26 +335,27 @@ func TestMinimizeExcludesConcurrentRunsOfOneParentOnOneOutputRoot(t *testing.T) 
 			}}
 			held := make(chan error, 1)
 			go func() {
-				_, err := Minimize(context.Background(), holder)
+				_, err := minimizeWith(context.Background(), holder, holderDependencies)
 				held <- err
 			}()
 			<-evaluating
-			contender := minimizationSpec(t, artifactPath, outputRoot)
+			contender, contenderDependencies := minimizationSpec(t, artifactPath, outputRoot)
 			contender.Resume = test.resume
-			_, err := Minimize(context.Background(), contender)
-			_, otherErr := Minimize(context.Background(), minimizationSpec(t, otherPath, outputRoot))
+			_, err := minimizeWith(context.Background(), contender, contenderDependencies)
+			otherSpec, otherDependencies := minimizationSpec(t, otherPath, outputRoot)
+			_, otherErr := minimizeWith(context.Background(), otherSpec, otherDependencies)
 			close(release)
 			if !errors.Is(err, hostfs.ErrContended) {
-				t.Fatalf("concurrent Minimize() error = %v", err)
+				t.Fatalf("concurrent minimizeWith() error = %v", err)
 			}
 			if otherErr != nil {
-				t.Fatalf("concurrent Minimize() of another parent: %v", otherErr)
+				t.Fatalf("concurrent minimizeWith() of another parent: %v", otherErr)
 			}
-			if calls := contender.Executor.(*minimizationExecutor).calls; calls != 0 {
+			if calls := contenderDependencies.executor.(*minimizationExecutor).calls; calls != 0 {
 				t.Fatalf("rejected run evaluated %d candidates", calls)
 			}
 			if err := <-held; err != nil {
-				t.Fatalf("lock-holding Minimize() error = %v", err)
+				t.Fatalf("lock-holding minimizeWith() error = %v", err)
 			}
 		})
 	}
@@ -361,23 +366,23 @@ func TestMinimizeResumeAfterFinalPublicationValidatesWithoutPublishingAgain(t *t
 	uninterrupted := uninterruptedMinimization(t, artifactPath)
 	outputRoot := t.TempDir()
 	const finalValidationReplay = 2
-	interrupted := minimizationSpec(t, artifactPath, outputRoot)
+	interrupted, interruptedDependencies := minimizationSpec(t, artifactPath, outputRoot)
 	interrupted.Replayer = &minimizationReplayer{before: interruptAt(finalValidationReplay)}
-	if _, err := Minimize(context.Background(), interrupted); !errors.Is(err, errMinimizationInterrupted) {
-		t.Fatalf("interrupted Minimize() error = %v", err)
+	if _, err := minimizeWith(context.Background(), interrupted, interruptedDependencies); !errors.Is(err, errMinimizationInterrupted) {
+		t.Fatalf("interrupted minimizeWith() error = %v", err)
 	}
 	published := publishedMinimizedArtifacts(t, outputRoot)
 	if len(published) != 1 {
 		t.Fatalf("published artifacts before resume = %v", published)
 	}
 
-	spec := minimizationSpec(t, artifactPath, outputRoot)
+	spec, specDependencies := minimizationSpec(t, artifactPath, outputRoot)
 	spec.Resume = true
-	result, err := Minimize(context.Background(), spec)
+	result, err := minimizeWith(context.Background(), spec, specDependencies)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if executor, replayer := spec.Executor.(*minimizationExecutor), spec.Replayer.(*minimizationReplayer); executor.calls != 0 || replayer.calls != 1 {
+	if executor, replayer := specDependencies.executor.(*minimizationExecutor), spec.Replayer.(*minimizationReplayer); executor.calls != 0 || replayer.calls != 1 {
 		t.Fatalf("resume evaluated %d candidates and replayed %d artifacts", executor.calls, replayer.calls)
 	}
 	if resumed := minimizationOutcomeOf(result); !reflect.DeepEqual(resumed, uninterrupted) {
@@ -395,7 +400,8 @@ func TestMinimizeResumeAfterUnrecordedFinalPublicationDoesNotPublishAgain(t *tes
 
 	// A run killed between the final publication and the checkpoint that
 	// records it leaves the published artifact and a state without it.
-	session, err := openMinimizationSession(context.Background(), minimizationSpec(t, artifactPath, outputRoot))
+	spec, dependencies := minimizationSpec(t, artifactPath, outputRoot)
+	session, err := openMinimizationSession(context.Background(), spec, dependencies)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -417,13 +423,13 @@ func TestMinimizeResumeAfterUnrecordedFinalPublicationDoesNotPublishAgain(t *tes
 		t.Fatalf("published artifacts before resume = %v", published)
 	}
 
-	spec := minimizationSpec(t, artifactPath, outputRoot)
+	spec, specDependencies := minimizationSpec(t, artifactPath, outputRoot)
 	spec.Resume = true
-	result, err := Minimize(context.Background(), spec)
+	result, err := minimizeWith(context.Background(), spec, specDependencies)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if executor, replayer := spec.Executor.(*minimizationExecutor), spec.Replayer.(*minimizationReplayer); executor.calls != 0 || replayer.calls != 1 {
+	if executor, replayer := specDependencies.executor.(*minimizationExecutor), spec.Replayer.(*minimizationReplayer); executor.calls != 0 || replayer.calls != 1 {
 		t.Fatalf("resume evaluated %d candidates and replayed %d artifacts", executor.calls, replayer.calls)
 	}
 	if resumed := minimizationOutcomeOf(result); !reflect.DeepEqual(resumed, uninterrupted) {

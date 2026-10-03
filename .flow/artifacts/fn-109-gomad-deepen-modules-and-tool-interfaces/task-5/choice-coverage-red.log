@@ -1,0 +1,6 @@
+# go.temporal.io/server/tools/gomad3/runner [go.temporal.io/server/tools/gomad3/runner.test]
+runner/campaign_options_cli_test.go:67:12: undefined: ValidateChoiceCoverage
+runner/campaign_options_cli_test.go:70:12: undefined: ValidateChoiceCoverage
+runner/campaign_options_cli_test.go:73:12: undefined: ValidateChoiceCoverage
+FAIL	go.temporal.io/server/tools/gomad3/runner [build failed]
+FAIL

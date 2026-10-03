@@ -9,6 +9,7 @@ import (
 
 	"internal/chacha8rand"
 	"internal/goarch"
+	"internal/goexperiment"
 	"internal/runtime/atomic"
 	"internal/runtime/exithook"
 	"math/bits"
@@ -68,6 +69,22 @@ var gomadDiagnosticMapping unsafe.Pointer
 var gomadDiagnosticMappingBytes uint64
 var gomadDiagnosticPerturb bool
 var gomadDiagnosticPerturbOrdinal uint64
+var gomadDiagnosticPerturbHost bool
+
+type gomadBatchOrigin uint8
+
+const (
+	gomadBatchTarget gomadBatchOrigin = iota
+	gomadBatchHost
+)
+
+//go:nosplit
+func gomadDiagnosticCheckSeededDraw(mp *m) {
+	if gomadDiagnosticEnabled && mp.gomadHostDrawScope {
+		print("runtime: Gomad host-timed seeded draw\n")
+		exit(2)
+	}
+}
 
 // gomadDiagnosticDraws counts the draws taken from each seeded stream since
 // the process started. The counts are kept whether or not a diagnostic trace
@@ -131,6 +148,10 @@ func gomadInit() {
 		print("runtime: GOMADSEED does not support cgo or external linking\n")
 		exit(2)
 	}
+	if goexperiment.GreenTeaGC {
+		print("runtime: GOMADSEED requires GOEXPERIMENT=nogreenteagc\n")
+		exit(2)
+	}
 
 	gomadClockTickInit(seed)
 	gomadEnabled = true
@@ -174,6 +195,7 @@ func gomadClockTickInit(seed uint64) {
 }
 
 func gomadClockTickDraw() int64 {
+	gomadDiagnosticCheckSeededDraw(getg().m)
 	gomadDiagnosticDraws.clockTick++
 	gomadClockTickState += 0x9e3779b97f4a7c15
 	value := gomadClockTickState
@@ -334,6 +356,11 @@ func gomadDiagnosticInit() {
 	bytesValue, bytesPresent := gomadEnvEarly("GOMAD3_DIAGNOSTIC_TRACE_BYTES=")
 	descriptor, descriptorOK := gomadParseSeed(descriptorValue)
 	mappingBytes, bytesOK := gomadParseSeed(bytesValue)
+	perturbHost := false
+	if len(perturbValue) >= 5 && perturbValue[:5] == "host:" {
+		perturbHost = true
+		perturbValue = perturbValue[5:]
+	}
 	perturbOrdinal, perturbOK := gomadParseSeed(perturbValue)
 	if !enabled || !gomadChoiceEnabled || !bytesPresent || !descriptorOK || !bytesOK || perturbPresent && !perturbOK || descriptor > 1<<31-1 || mappingBytes < gomadDiagnosticHeaderBytes+gomadDiagnosticRecordBytes || mappingBytes > gomadDiagnosticMaximumBytes {
 		print("runtime: invalid Gomad diagnostic trace configuration\n")
@@ -360,6 +387,7 @@ func gomadDiagnosticInit() {
 	gomadDiagnosticMappingBytes = mappingBytes
 	gomadDiagnosticPerturb = perturbPresent
 	gomadDiagnosticPerturbOrdinal = perturbOrdinal
+	gomadDiagnosticPerturbHost = perturbHost
 }
 
 // gomadDiagnosticAppend writes the digest for the choice record just appended
@@ -373,7 +401,11 @@ func gomadDiagnosticAppend(ordinal uint64) {
 	// The perturbation stands in for a host-timed draw from the process-wide
 	// stream, so that a fixture can show the differ naming this ordinal.
 	if gomadDiagnosticPerturb && ordinal == gomadDiagnosticPerturbOrdinal {
+		if gomadDiagnosticPerturbHost {
+			getg().m.gomadHostDrawScope = true
+		}
 		gomadRuntimeCheapRand()
+		getg().m.gomadHostDrawScope = false
 	}
 	bytes := unsafe.Slice((*byte)(gomadDiagnosticMapping), int(gomadDiagnosticMappingBytes))
 	offset := gomadDiagnosticHeaderBytes + ordinal*gomadDiagnosticRecordBytes
@@ -592,6 +624,7 @@ var gomadTimerRandom uint32
 
 //go:nosplit
 func gomadTimerRand() uint32 {
+	gomadDiagnosticCheckSeededDraw(getg().m)
 	gomadDiagnosticDraws.timer++
 	gomadTimerRandom += 0xa0761d65
 	value := uint64(gomadTimerRandom) * 0xe7037ed1a0b428db
@@ -611,6 +644,7 @@ var gomadRuntimeCheapRandom uint32
 
 //go:nosplit
 func gomadRuntimeRand(mp *m) uint64 {
+	gomadDiagnosticCheckSeededDraw(mp)
 	gomadDiagnosticDraws.runtimeRand++
 	for {
 		x, ok := gomadRuntimeRandom.Next()
@@ -625,6 +659,7 @@ func gomadRuntimeRand(mp *m) uint64 {
 
 //go:nosplit
 func gomadRuntimeCheapRand() uint32 {
+	gomadDiagnosticCheckSeededDraw(getg().m)
 	gomadDiagnosticDraws.runtimeCheapRand++
 	gomadRuntimeCheapRandom += 0x53c5ca59
 	hi, lo := bits.Mul32(gomadRuntimeCheapRandom, gomadRuntimeCheapRandom^0x74743c1b)
@@ -675,6 +710,7 @@ func gomadChoiceRunqSeeded(n uint32) uint32 {
 	if !gomadEnabled {
 		return randn(n)
 	}
+	gomadDiagnosticCheckSeededDraw(getg().m)
 	gomadDiagnosticDraws.runq++
 	return gomadChoiceRandom(&gomadChoiceRunqRandom, n)
 }
@@ -683,6 +719,7 @@ func gomadChoiceRunnextSeeded(n uint32) uint32 {
 	if !gomadEnabled {
 		return randn(n)
 	}
+	gomadDiagnosticCheckSeededDraw(getg().m)
 	gomadDiagnosticDraws.scheduler++
 	return gomadChoiceRandom(&gomadChoiceSchedulerRandom, n)
 }
@@ -691,6 +728,7 @@ func gomadChoiceShuffleSeeded(n uint32) uint32 {
 	if !gomadEnabled {
 		return cheaprandn(n)
 	}
+	gomadDiagnosticCheckSeededDraw(getg().m)
 	gomadDiagnosticDraws.scheduler++
 	return gomadChoiceRandom(&gomadChoiceSchedulerRandom, n)
 }
@@ -709,6 +747,7 @@ func gomadChoiceSelectSeeded(n uint32) uint32 {
 	if !gomadEnabled {
 		return cheaprandn(n)
 	}
+	gomadDiagnosticCheckSeededDraw(getg().m)
 	gomadDiagnosticDraws.selectPoll++
 	gomadChoiceSelectRandom += 0xa0761d6478bd642f
 	if goarch.IsAmd64|goarch.IsArm64|goarch.IsPpc64|
@@ -1083,24 +1122,38 @@ func gomadChoiceTimerFired(previous gomadChoiceTimerIdentity) {
 // scheduler is the only user.
 var gomadChoiceSchedulerAlternatives [gomadChoiceMaximumAlternatives][32]byte
 var gomadChoiceSchedulerOrdered [gomadChoiceMaximumAlternatives][32]byte
+var gomadChoiceSchedulerOffsets [gomadChoiceMaximumAlternatives]uint32
 
-func gomadChoiceRunqIndex(pp *p, head, tail, seeded uint32) uint32 {
-	if !gomadChoiceEnabled {
-		return seeded
-	}
+func gomadChoiceRunqIndex(pp *p, head, tail uint32) uint32 {
 	count := tail - head
 	alternatives := &gomadChoiceSchedulerAlternatives
 	if count > uint32(len(alternatives)) {
 		gomadChoiceDivergeCurrent(gomadChoiceDivergenceAlternativeCapacity)
 	}
+	// Removing the queue head on every dispatch lets both classes advance:
+	// a yielding system goroutine rejoins behind the queued user work.
+	if isSystemGoroutine(pp.runq[head%uint32(len(pp.runq))].ptr(), false) {
+		return 0
+	}
+	users := uint32(0)
 	for offset := uint32(0); offset < count; offset++ {
 		gp := pp.runq[(head+offset)%uint32(len(pp.runq))].ptr()
 		if gp == nil {
 			gomadChoiceDivergeCurrent(gomadChoiceDivergenceIdentityMissing)
 		}
-		alternatives[offset] = gp.gomadIdentity
+		if isSystemGoroutine(gp, false) {
+			continue
+		}
+		alternatives[users] = gp.gomadIdentity
+		gomadChoiceSchedulerOffsets[users] = offset
+		users++
 	}
-	return gomadChoiceDecision(gomadChoiceKindRunnable, gomadChoiceFlagDecision|gomadChoiceFlagSiteMissing, 0, alternatives[:count], &gomadChoiceSchedulerOrdered, seeded, 0)
+	if users <= 1 {
+		return 0
+	}
+	seeded := gomadChoiceRunqSeeded(users)
+	selected := gomadChoiceDecision(gomadChoiceKindRunnable, gomadChoiceFlagDecision|gomadChoiceFlagSiteMissing, 0, alternatives[:users], &gomadChoiceSchedulerOrdered, seeded, 0)
+	return gomadChoiceSchedulerOffsets[selected]
 }
 
 func gomadChoiceSelectPollIndex(pollorder []uint16, norder, current, nsends int, site uint64, siteFlags uint8, seeded uint32) uint32 {
@@ -1244,7 +1297,7 @@ var gomadArrivals gQueue
 // the next one through the recorded run-queue choice, so goroutines that reach
 // the scheduler through the global run queue never run unrecorded ahead of it.
 func gomadAdmit(pp *p, queue *gQueue) (*g, bool) {
-	if runqputbatch(pp, queue); !queue.empty() {
+	if runqputbatch(pp, queue, gomadBatchTarget); !queue.empty() {
 		throw("gomad: local run queue could not take the admitted goroutines")
 	}
 	gp, inheritTime := runqget(pp)

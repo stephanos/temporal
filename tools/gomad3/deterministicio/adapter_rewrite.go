@@ -119,6 +119,17 @@ func rewriteAdapterSource(module string, rewrite sourceRewrite, contents []byte)
 	if digestBytes(contents) != rewrite.sourceSHA256 {
 		return nil, fmt.Errorf("pinned %s source identity mismatch for %s", module, rewrite.path)
 	}
+	result, err := regenerateSourceRewrite(module, rewrite, contents)
+	if err != nil {
+		return nil, err
+	}
+	if got := digestBytes(result); got != rewrite.replacementSHA256 {
+		return nil, fmt.Errorf("%s replacement identity mismatch for %s: got %s, want %s", module, rewrite.path, got, rewrite.replacementSHA256)
+	}
+	return result, nil
+}
+
+func regenerateSourceRewrite(module string, rewrite sourceRewrite, contents []byte) ([]byte, error) {
 	if len(rewrite.rewrites) == 0 {
 		return nil, errors.New("adapter source rewrite has no anchors")
 	}
@@ -128,9 +139,6 @@ func rewriteAdapterSource(module string, rewrite sourceRewrite, contents []byte)
 			return nil, fmt.Errorf("pinned %s rewrite anchor mismatch for %s: %q", module, rewrite.path, step.anchor)
 		}
 		result = bytes.Replace(result, step.anchor, step.replacement, 1)
-	}
-	if got := digestBytes(result); got != rewrite.replacementSHA256 {
-		return nil, fmt.Errorf("%s replacement identity mismatch for %s: got %s, want %s", module, rewrite.path, got, rewrite.replacementSHA256)
 	}
 	return result, nil
 }

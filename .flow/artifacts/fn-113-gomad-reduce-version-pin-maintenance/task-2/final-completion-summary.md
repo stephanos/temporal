@@ -1,0 +1,11 @@
+Delivered `gomadtool adapter-regenerate` for all 15 adapter families using the existing exact-occurrence rewrite engine. Dry run downloads into a private cache and prints readable upstream changes, proposed anchors, and their approval digest without checkout writes. Approved apply stages constants, descriptor, pinned fixtures and every generated output, including the root qualification manifest, and verifies them before publication.
+
+Publication uses an exclusive lock, exact old-byte checks and re-enumeration of the three copied input trees with the same traversal exclusions as staging. A durable old/new transaction marker recovers interrupted source and generated-output publication. Round-one review found newly added input files escaped drift validation; the regression reproduced that failure, and additions in all three trees now reject before marker/output writes. Cache-only additions still allow valid publication. Anchor zero/two matches, missing files, wrong approval, generation failure, interruptions, drift, competing applies and stale libc pack reporting have retained test evidence in `handover.json` and `fix-round-1-evidence.json`.
+
+No adapted root dependency had moved: nine selected versions/sums match, six adapters are absent (`root-adapter-versions.json`). The authorized controlled Sprig v3.3.0 to v3.2.3 fixture exercised the real command, complete staged apply and patched-runtime qualification with two exact replays (`sprig-fixture-evidence.json`, `fixture-qualification-evidence.json`). Production adapter pins were not changed.
+
+Focused command, deterministicio and compatibility-pack packages, validate, scoped vet, formatting and diff checks passed. Root lint exit2 is retained: its checker cannot load nested-module packages from the root. Nested lint reports pre-existing findings outside the changed adapter files and zero findings in those files; global lint is not claimed green. Independent same-family codex:gpt-6-sol:high re-review returned SHIP with R3 met and no findings; current nine source hashes and patch digest match the receipt scope. R4/R5/R6 and both-platform full qualification remain later tasks.
+
+No files staged or committed: the user owns commits.
+stage: plan-sync - skipped(config: planSync.enabled != true)
+Tracker sync: n/a (sync active=false).

@@ -1,0 +1,9 @@
+{
+  "command": "env -u GOROOT -u GOBIN -u GOMADSEED -u GOMAD3_CHILD_SEED PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH GOMAD3_STOCK_GO=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off GOFLAGS=-tags=test_dep\\ -count=1 make -C tools/gomad3 test-host",
+  "cwd": "/Users/stephan/Workspace/temporal/gomad",
+  "source_sha256": "42f196802d8c9f389cb91334bb6f71478e95475e277ddc05af1bc176e3726e27",
+  "start_utc": "2026-10-03T13:09:47Z",
+  "start_epoch": 1791032987,
+  "shell_pid": 94398,
+  "log": "full-host.log"
+}

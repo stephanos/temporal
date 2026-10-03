@@ -1,0 +1,188 @@
+[
+  {
+    "path": "tools/gomad3/runner/campaign_options.go",
+    "pre_sha256": "0d645d15651f0caad56a48175ce59c72bd0d37bb04431c1415ec1fe69a8020fb",
+    "post_sha256": "d44433d2d17754ba846a4c8d71964e44736b1da04ccc8d132d0b2e2851393aed",
+    "tracked": false
+  },
+  {
+    "path": "tools/gomad3/runner/campaign_shard_execution.go",
+    "pre_sha256": "ccab0448e04bdd7ea296b33a1fa862d4f1a1225e1f578d7d75e60eea5c022434",
+    "post_sha256": "afc4efe87e018e1de892d9851c3197a7dbe7d3e76dc85e8b0b60ac5def881a91",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/choice_exploration_campaign.go",
+    "pre_sha256": "97ccab042a548067377f3e751a82b8ccf4026f45d102b673e3224085e3af6958",
+    "post_sha256": "06c0c4a65c29927b52bd121099944454283040e610b8edab4b59612066bd5cd0",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/choice_exploration_divergence_test.go",
+    "pre_sha256": "741432e6aec336de45616880938749cd3c136a664824abe1740a2f251aaa5c6a",
+    "post_sha256": "877355a89f2abccf6a18947bdf904ebea62926b53841628d6eb4391ed7fe148d",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/choice_exploration_divergence_unix_test.go",
+    "pre_sha256": "5306e95fe3f6a28a9bb577496af959672b3490238561e18501d785a4cb860690",
+    "post_sha256": "2c8ae1c3db794af0388ee6c738e9d173830217f370d32d9adad839c0b3b7e406",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/clock_tick_test.go",
+    "pre_sha256": "86a5d832ccb421e9c0547c97914d94950408b77dc09f046bd86bb7e6f16a612e",
+    "post_sha256": "868a551e7abb2f41c68536cbd2226f8bd93540715743a6f4da29e14c1e096311",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/completion_characterization_test.go",
+    "pre_sha256": "16b5703ecb2b0372e0d769b1adcf88a564c613cc6cc0e8626cfe83e2363827f9",
+    "post_sha256": "bca667b02a4b0eea1d9d9c27eca26df2b662f81b9d2d7a9ed19aa8f0cae282bb",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/coordinator_transport_test.go",
+    "pre_sha256": "9a26fae76be28b3e08792f514d39297a20c777ac3d4a46463c297ea0bd6b3c64",
+    "post_sha256": "fb51e96767d823b97c10e06090b9fe543a7ce2ac236200936cbbe94f139d3159",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/coverage_replay_test.go",
+    "pre_sha256": "29a907521acc1b89ca2d51bd0dcdb0a17eee0870863133453f6daaf444b4c246",
+    "post_sha256": "560b6373bb9834a415dc6a7f672151d2fbbce8762dd18ae1a8928b51c0c29130",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/diagnostic_identity_test.go",
+    "pre_sha256": "4d8e53c7d5400dde2d6a7ceeff28bd4de2342d08ae0609fc08b83ea2d2d62698",
+    "post_sha256": "03974c0b521eb4273df8ebe96ebdef48a00f014643cb50b151972b77a14c6a5e",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/diagnostics_test.go",
+    "pre_sha256": "ef874640a4414f6fcdd039286465de8890a1fc87a9bcde0ced267c69c64cd976",
+    "post_sha256": "082fd45b94038d2fd98358e565805861edffac0f4c4aaa0e0047fbe7a42e4aa6",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/guidance_identity_test.go",
+    "pre_sha256": "b76ed42750b8ffae3fec12a23a36478e98065d84f06cd72604d3db638aaca0ef",
+    "post_sha256": "fcc4132a7f4dc7bf882348cd179c51cde1965b7d0aca3f598171d89ca74ee7e3",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/guided_selection_test.go",
+    "pre_sha256": "dcc1b118e3d4825f3111c331eefe4778a1bf7a25f41eed9c437a0a788cc633e1",
+    "post_sha256": "1962a29324fe388036fba6c2247b09acc5aafbe827fbc32e3243a18314155152",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/inspect_test.go",
+    "pre_sha256": "e5b502398e5f4287774ae21ee75a14079484b0329a9643bdafcd112876f4abea",
+    "post_sha256": "3e03ebe6af28cacc3b40bc5c89fd1d688aedb6b2d486814501360231f640834b",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/minimize_operation.go",
+    "pre_sha256": "967b6671bbb0f28ce21a1178b68fe0c9cc9743796dcdc302d6ea4ba4cdd827d6",
+    "post_sha256": "3fed653623b74ba3200fad87ae7e59efaf799f25d988bf52aab2938d1281fc63",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/minimize_operation_test.go",
+    "pre_sha256": "0bed2f53bbb09cedb0d9f5aa868f50845fdcd37d9c50c6ffe2c4d20c49ce7a29",
+    "post_sha256": "96c88047b386cf9a7fe4b23f8081940e6faef5695e059c71bf2f6b64ba07a535",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/portable_plan.go",
+    "pre_sha256": "b34f1216f8b11109bae496012b437eb3471d881b9a0e427094764a92bb90e7c2",
+    "post_sha256": "afd6c68a7346a006de85ecf17cb00d522ec7f4599f75fb7447981769502f32d0",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/portable_plan_test.go",
+    "pre_sha256": "5dfb87425c9c31245a296356686740f76c5added82134307de8820751fd9c185",
+    "post_sha256": "eaa8787da8a2f67ff01ee01ed468a6e2eb009fcce94a422bac2ff16b4bd5c626",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/replay_operation.go",
+    "pre_sha256": "eb774c01b4bd574f36c7f1bb168791dd1e1b03ddbf4a6e2c350679561a935216",
+    "post_sha256": "61517618a0241ae7aaebd03852b658642f5db2c295f6d2a249f73be0f0d9ce10",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/replay_operation_test.go",
+    "pre_sha256": "4ad38b00661b1ce2e6a8ea3ba6e094afc8be57ff506284a596516dc7f502fbb0",
+    "post_sha256": "8420451a516fa2c54c0d35fa0cfe3d61a749eda2aa50217c5bfd37da29a0c72b",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/resume.go",
+    "pre_sha256": "6dde547f4cd9f3f9439c812d143477ab3cdd47d232753b14bf75042385ae28e5",
+    "post_sha256": "7a1e6efb9e9389db376b0d08200f3ff733c30b9c46bf3839a3298ef5dba31d24",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/retention_characterization_test.go",
+    "pre_sha256": "24dbf99499e4c6a84c64ef6e3dd23cccb2c326604fe2c4f583e7c194462c4aef",
+    "post_sha256": "634131c89d393b2184490d99e56a1bfe07135eaa10623ef64ba42d18a9715446",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/retention_test.go",
+    "pre_sha256": "76e634f98998d8479c38daaa38249906bdc514451b6d4e205183bd470e7738a7",
+    "post_sha256": "e2ab9a7391de353f74d3f0dd1f9e764187bdb8a76b8c5fa9af803015619eab1d",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/runner.go",
+    "pre_sha256": "139d10b1966e5bcefb08928e5424cde06a0301f67ec8d09b8905de7e347c3a78",
+    "post_sha256": "38cc9fcb0a3b45b219c8f23f00896e5df5c0b988fce28ba3fed4ab6ddd41e214",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/runner_mode_unix_test.go",
+    "pre_sha256": "acf0533078a74b6d86f20347ededd0e71d8ed6962b51ea1d061ed2384f20c73b",
+    "post_sha256": "ebdc20609fd89c246bf345e0df40f3c126b09765d898770dabe4389518228168",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/runner_test.go",
+    "pre_sha256": "e66828ed56f98a0776ef5573660c57ec85157dbba7082dd4d34faecb7bfed519",
+    "post_sha256": "2e378909de0839968ddb0ba26748039cb449cddfcbd4ac66e4aef51e96cf8dc9",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/seed_completion_characterization_test.go",
+    "pre_sha256": "f6118cfcb23a456ac456e442ba1a7c86d6d23da247d0d4d8ff7d27a1a013ebed",
+    "post_sha256": "a6ecf083e4624fd7923db0a9501d93f09ac307d045f772563a07aaaf2bddb268",
+    "tracked": false
+  },
+  {
+    "path": "tools/gomad3/runner/simulation_exploration_campaign.go",
+    "pre_sha256": "c8b5234386bdb01a5059fd3afe06e158df50bc27a66404a59522fc5c5a30c6d7",
+    "post_sha256": "77a43221d2141bfe114a15570f918f9248b0b669f1c44c4921fb825eeb42140e",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/watchdog_replay_test.go",
+    "pre_sha256": "f7f99f33e21e45e35675c1a4eaa9e861c62e1fbe0c9649c9c8c41b4da7cd9c14",
+    "post_sha256": "f652c49cae7428fb056b76e383e55409d549f658bdb32280b9823b1770901da2",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/architecture_test.go",
+    "pre_sha256": "154fa61b7d23cff5b31f44728e3ff3aff89648593cacaa649439bc3195e52630",
+    "post_sha256": "2b32351b7388f23a53f74d08d3a3b919e08d49be7f1b48d4ddb390e059672a85",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/internal/gomadtool/conformance/testdata/runner_external/consumer.go",
+    "pre_sha256": null,
+    "post_sha256": "73e4c88f40797bc2a2438a8aeb091e441fa877aeefcffb95aad8870732dd4de1",
+    "tracked": false
+  }
+]

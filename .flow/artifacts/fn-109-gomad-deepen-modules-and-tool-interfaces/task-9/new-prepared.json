@@ -1,0 +1,127 @@
+{
+  "prepared": {
+    "Path": "",
+    "Kind": "go-run",
+    "Source": ".",
+    "SHA256": "sha256:8ef108bf6037f6cb4997abd258e8485572c30e785650551a98ce5e6070af5472",
+    "Size": 1853906,
+    "Argv": [
+      "gomad3-target"
+    ],
+    "BuildTags": [],
+    "Adapters": [],
+    "Compatibility": [],
+    "BuildInfo": {
+      "go_version": "go1.27.1-X:nogreenteagc",
+      "path": "example.com/task9",
+      "main_module": "example.com/task9",
+      "settings": [
+        {
+          "key": "-buildmode",
+          "value": "exe"
+        },
+        {
+          "key": "-compiler",
+          "value": "gc"
+        },
+        {
+          "key": "-trimpath",
+          "value": "true"
+        },
+        {
+          "key": "CGO_ENABLED",
+          "value": "0"
+        },
+        {
+          "key": "DefaultGODEBUG",
+          "value": "tracebacklabels=0,x509sslcertoverrideplatform=0"
+        },
+        {
+          "key": "GOARCH",
+          "value": "arm64"
+        },
+        {
+          "key": "GOARM64",
+          "value": "v8.0"
+        },
+        {
+          "key": "GOEXPERIMENT",
+          "value": "nogreenteagc"
+        },
+        {
+          "key": "GOOS",
+          "value": "darwin"
+        }
+      ]
+    },
+    "GoVersion": "go1.27.1",
+    "BuildKey": "2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457",
+    "TargetGOOS": "darwin",
+    "TargetGOARCH": "arm64",
+    "CapabilityMode": "closure",
+    "CapabilityManifest": null
+  },
+  "record": {
+    "kind": "go-run",
+    "source": ".",
+    "file": "",
+    "sha256": "sha256:8ef108bf6037f6cb4997abd258e8485572c30e785650551a98ce5e6070af5472",
+    "size": "1853906",
+    "argv": [
+      "gomad3-target"
+    ],
+    "build_tags": [],
+    "adapters": [],
+    "compatibility": [],
+    "build_info": {
+      "go_version": "go1.27.1-X:nogreenteagc",
+      "path": "example.com/task9",
+      "main_module": "example.com/task9",
+      "settings": [
+        {
+          "key": "-buildmode",
+          "value": "exe"
+        },
+        {
+          "key": "-compiler",
+          "value": "gc"
+        },
+        {
+          "key": "-trimpath",
+          "value": "true"
+        },
+        {
+          "key": "CGO_ENABLED",
+          "value": "0"
+        },
+        {
+          "key": "DefaultGODEBUG",
+          "value": "tracebacklabels=0,x509sslcertoverrideplatform=0"
+        },
+        {
+          "key": "GOARCH",
+          "value": "arm64"
+        },
+        {
+          "key": "GOARM64",
+          "value": "v8.0"
+        },
+        {
+          "key": "GOEXPERIMENT",
+          "value": "nogreenteagc"
+        },
+        {
+          "key": "GOOS",
+          "value": "darwin"
+        }
+      ]
+    },
+    "capability_mode": "closure"
+  },
+  "toolchain": {
+    "go_version": "go1.27.1",
+    "build_key": "2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457",
+    "target_goos": "darwin",
+    "target_goarch": "arm64"
+  }
+}

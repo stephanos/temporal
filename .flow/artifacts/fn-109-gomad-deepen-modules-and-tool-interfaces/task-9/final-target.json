@@ -1,0 +1,15 @@
+{
+  "argv": [
+    ".toolchain/bin/go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "./target/...",
+    "./internal/hostexec"
+  ],
+  "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+  "exit": 0,
+  "duration_seconds": 38.25929154100595,
+  "log": "final-target.log"
+}

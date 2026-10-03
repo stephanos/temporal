@@ -1,0 +1,12 @@
+{
+  "command": [
+    "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go",
+    "clean",
+    "-cache"
+  ],
+  "cache": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache",
+  "free_bytes_before": 3276201984,
+  "free_bytes_after": 5241823232,
+  "reason": "restore headroom above existing qualification free-space bound",
+  "preserved": "toolchains, prepared targets, campaigns, artifacts, and retained evidence"
+}

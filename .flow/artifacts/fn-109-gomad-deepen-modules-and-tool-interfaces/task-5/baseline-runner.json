@@ -1,0 +1,14 @@
+{
+  "cmd": [
+    ".toolchain/bin/go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "./runner",
+    "-run",
+    "ValidateConfig|CampaignPlan|PortablePlan"
+  ],
+  "exit": 0,
+  "seconds": 2.125
+}

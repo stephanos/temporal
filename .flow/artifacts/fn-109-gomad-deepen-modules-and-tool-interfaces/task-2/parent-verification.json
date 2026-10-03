@@ -1,0 +1,18 @@
+{
+  "source_files": 20,
+  "prehost_reconstructed_by_only_selector_fix": [
+    "tools/gomad3/runner/campaign_options.go",
+    "tools/gomad3/runner/coordinator.go"
+  ],
+  "final_source_manifest_sha256": "c5a28c4662a31482289e75d3abd4ba0184477d1b7a9396033fa9b9d539ff6be8",
+  "review_patch_sha256": "43f42cd3b0ae689da8f69b8560c6494088ffd6777e48cb4ed462ef551fc04967",
+  "binary_hash_manifest_sha256": "fbf4b460298b7a2cbc2e287a0ea2765c33c4b158c2e94338b8b9f02070851ec7",
+  "full_host_log_sha256": "f173eab2320406bfa15ca778a36de975c544544db593c03e8edaf3748444d8eb",
+  "final_runner_log_sha256": "974aafba303fa65751b25b7840981d0eb98e8844b0309417386415ac7c212f76",
+  "public_contract": "parent-public-contract.json",
+  "lint": "parent-scoped-lint-final.json",
+  "lint_clean": false,
+  "preexisting_lint_locations_preserved": "parent-lint-comparison.json",
+  "commits": [],
+  "task_status": "in_progress; pending independent review"
+}

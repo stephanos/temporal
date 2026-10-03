@@ -1,0 +1,14 @@
+{
+  "cmd": [
+    ".toolchain/bin/go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "./cmd/gomad/internal/cli",
+    "-run",
+    "TestPlanValidationOrderAndJSONRouting|TestCampaignOptionNormalizationAndValidation"
+  ],
+  "exit": 0,
+  "seconds": 2.053
+}

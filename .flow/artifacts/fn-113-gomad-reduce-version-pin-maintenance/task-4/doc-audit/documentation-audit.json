@@ -1,0 +1,1186 @@
+{
+  "baseline_revision": "29917069e089dc0739ec091b18e99161245b9bd5",
+  "head_revision": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+  "guide_sha256": {
+    "SPEC": "sha256:01748bc15d30a9078b305aff802be1851f9cde4c1d121f161915902a3ffbe3b7",
+    "ARCHITECTURE": "sha256:b4e9393feef65911442190b11a084db891d173e741bea4b4fcbda102320f200a",
+    "CLI": "sha256:179e3f10e54c737c4167e31c322aba8214506e797e9d697072d4b88b2abaf656",
+    "TUTORIAL": "sha256:068d62ff9285115fbb7c1b085cb1a5d11231d03333c5b4c4977171366e383cf0",
+    "README": "sha256:0f78be6d3828a83c9c6da132c496dbeb583867bb31f46b41b71b0c300e81cb95"
+  },
+  "original_semantic_identifiers": [
+    "PRODUCT",
+    "PRODUCT.PURPOSE",
+    "PRODUCT.SCOPE",
+    "PRODUCT.VOCABULARY",
+    "PRODUCT.VOCABULARY.EXECUTION",
+    "PRODUCT.VOCABULARY.EVIDENCE",
+    "PRODUCT.VOCABULARY.MODELING",
+    "PRODUCT.VOCABULARY.DURABILITY",
+    "PRODUCT.VOCABULARY.SUPPORT",
+    "PRODUCT.VOCABULARY.FAILURE",
+    "PLATFORM",
+    "PLATFORM.SUPPORT",
+    "PLATFORM.TOOLCHAIN",
+    "PLATFORM.INSTALLATION",
+    "PLATFORM.IDENTITY",
+    "TARGET",
+    "TARGET.KINDS",
+    "TARGET.PREPARATION",
+    "TARGET.CAPABILITY",
+    "TARGET.PROVENANCE",
+    "RUNTIME",
+    "RUNTIME.ACTIVATION",
+    "RUNTIME.SCHEDULING",
+    "RUNTIME.TIME",
+    "RUNTIME.CHOICES",
+    "RUNTIME.ISOLATION",
+    "RUNTIME.TRUST",
+    "INTERACTION",
+    "INTERACTION.BOUNDARY",
+    "INTERACTION.ADAPTERS",
+    "INTERACTION.TRANSCRIPT",
+    "INTERACTION.ENTROPY",
+    "INTERACTION.MOUNTS",
+    "INTERACTION.FAIL.CLOSED",
+    "WORLD",
+    "WORLD.MODEL",
+    "WORLD.ORDERING",
+    "WORLD.LIFECYCLE",
+    "WORLD.QUIESCENCE",
+    "WORLD.REPLAY",
+    "SIMULATION",
+    "SIMULATION.HARNESS",
+    "SIMULATION.BACKENDS",
+    "SIMULATION.NETWORK",
+    "SIMULATION.STORAGE",
+    "SIMULATION.SCENARIOS",
+    "SIMULATION.ORACLES",
+    "SIMULATION.REPLAY",
+    "CAMPAIGN",
+    "CAMPAIGN.SELECTION",
+    "CAMPAIGN.EXECUTION",
+    "CAMPAIGN.FAILURE",
+    "CAMPAIGN.COVERAGE",
+    "CAMPAIGN.SUCCESS",
+    "CAMPAIGN.GUIDANCE",
+    "CAMPAIGN.CHOICE.FRONTIER",
+    "CAMPAIGN.COMBINED.FRONTIER",
+    "EVIDENCE",
+    "EVIDENCE.RECORD",
+    "EVIDENCE.ARTIFACT",
+    "EVIDENCE.INSPECTION",
+    "EVIDENCE.REPLAY",
+    "EVIDENCE.MINIMIZATION",
+    "DURABILITY",
+    "DURABILITY.LIFECYCLE",
+    "DURABILITY.JOURNAL",
+    "DURABILITY.RESUME",
+    "DURABILITY.RECOVERY",
+    "DURABILITY.COMPATIBILITY",
+    "DISTRIBUTION",
+    "DISTRIBUTION.PLAN",
+    "DISTRIBUTION.SHARD",
+    "DISTRIBUTION.MERGE",
+    "QUALIFICATION",
+    "QUALIFICATION.REPETITION",
+    "QUALIFICATION.SET",
+    "QUALIFICATION.COMPARISON",
+    "QUALIFICATION.CONFORMANCE",
+    "COMMAND",
+    "COMMAND.GOMAD",
+    "COMMAND.GOMAD.DOCTOR",
+    "COMMAND.GOMAD.ANALYZE",
+    "COMMAND.GOMAD.EXPLORE",
+    "COMMAND.GOMAD.QUALIFY",
+    "COMMAND.GOMAD.QUALIFY.SET",
+    "COMMAND.GOMAD.MERGE.SET",
+    "COMMAND.GOMAD.COMPARE.SUPPORT",
+    "COMMAND.GOMAD.PLAN",
+    "COMMAND.GOMAD.EXECUTE.SHARD",
+    "COMMAND.GOMAD.MERGE",
+    "COMMAND.GOMAD.INSPECT",
+    "COMMAND.GOMAD.REPLAY",
+    "COMMAND.GOMAD.MINIMIZE",
+    "COMMAND.GOMAD.RECOVER",
+    "COMMAND.GOMAD.RESUME",
+    "COMMAND.OUTPUT",
+    "COMMAND.STATUS",
+    "MAINTENANCE",
+    "MAINTENANCE.GOVERNANCE",
+    "MAINTENANCE.COMPATIBILITY",
+    "MAINTENANCE.UPGRADE",
+    "COMMAND.GOMADTOOL",
+    "COMMAND.GOMADTOOL.TOOLCHAIN.BUILD",
+    "COMMAND.GOMADTOOL.BUILD.KEY",
+    "COMMAND.GOMADTOOL.PATCH.MATERIALIZE",
+    "COMMAND.GOMADTOOL.PATCH.REGENERATE",
+    "COMMAND.GOMADTOOL.PATCH.VALIDATE",
+    "COMMAND.GOMADTOOL.VERSION.GENERATE",
+    "COMMAND.GOMADTOOL.BOUNDARY.GENERATE",
+    "COMMAND.GOMADTOOL.PROTOCOL.GENERATE",
+    "COMMAND.GOMADTOOL.COMPATIBILITY.PACK",
+    "COMMAND.GOMADTOOL.SCRIPT.VALIDATE",
+    "COMMAND.GOMADTOOL.CHECKED.RUN",
+    "COMMAND.GOMADTOOL.TEST",
+    "COMMAND.GOMADTOOL.UPGRADE.DOSSIER",
+    "FAILURE",
+    "FAILURE.CLASSIFICATION",
+    "FAILURE.BOUNDS",
+    "FAILURE.INTEGRITY",
+    "FAILURE.CANCELLATION",
+    "VERIFICATION",
+    "VERIFICATION.TRACEABILITY",
+    "VERIFICATION.CHANGE"
+  ],
+  "current_semantic_identifiers": [
+    "PRODUCT",
+    "PRODUCT.PURPOSE",
+    "PRODUCT.SCOPE",
+    "PRODUCT.VOCABULARY",
+    "PRODUCT.VOCABULARY.EXECUTION",
+    "PRODUCT.VOCABULARY.EVIDENCE",
+    "PRODUCT.VOCABULARY.MODELING",
+    "PRODUCT.VOCABULARY.DURABILITY",
+    "PRODUCT.VOCABULARY.SUPPORT",
+    "PRODUCT.VOCABULARY.FAILURE",
+    "PLATFORM",
+    "PLATFORM.SUPPORT",
+    "PLATFORM.TOOLCHAIN",
+    "PLATFORM.INSTALLATION",
+    "PLATFORM.IDENTITY",
+    "TARGET",
+    "TARGET.KINDS",
+    "TARGET.PREPARATION",
+    "TARGET.CAPABILITY",
+    "TARGET.PROVENANCE",
+    "RUNTIME",
+    "RUNTIME.ACTIVATION",
+    "RUNTIME.SCHEDULING",
+    "RUNTIME.TIME",
+    "RUNTIME.CHOICES",
+    "RUNTIME.ISOLATION",
+    "RUNTIME.TRUST",
+    "INTERACTION",
+    "INTERACTION.BOUNDARY",
+    "INTERACTION.ADAPTERS",
+    "INTERACTION.TRANSCRIPT",
+    "INTERACTION.ENTROPY",
+    "INTERACTION.MOUNTS",
+    "INTERACTION.FAIL.CLOSED",
+    "WORLD",
+    "WORLD.MODEL",
+    "WORLD.ORDERING",
+    "WORLD.LIFECYCLE",
+    "WORLD.QUIESCENCE",
+    "WORLD.REPLAY",
+    "SIMULATION",
+    "SIMULATION.HARNESS",
+    "SIMULATION.BACKENDS",
+    "SIMULATION.NETWORK",
+    "SIMULATION.STORAGE",
+    "SIMULATION.SCENARIOS",
+    "SIMULATION.ORACLES",
+    "SIMULATION.REPLAY",
+    "CAMPAIGN",
+    "CAMPAIGN.SELECTION",
+    "CAMPAIGN.EXECUTION",
+    "CAMPAIGN.FAILURE",
+    "CAMPAIGN.COVERAGE",
+    "CAMPAIGN.SUCCESS",
+    "CAMPAIGN.GUIDANCE",
+    "CAMPAIGN.CHOICE.FRONTIER",
+    "CAMPAIGN.COMBINED.FRONTIER",
+    "EVIDENCE",
+    "EVIDENCE.RECORD",
+    "EVIDENCE.ARTIFACT",
+    "EVIDENCE.INSPECTION",
+    "EVIDENCE.REPLAY",
+    "EVIDENCE.MINIMIZATION",
+    "DURABILITY",
+    "DURABILITY.LIFECYCLE",
+    "DURABILITY.JOURNAL",
+    "DURABILITY.RESUME",
+    "DURABILITY.RECOVERY",
+    "DURABILITY.COMPATIBILITY",
+    "DISTRIBUTION",
+    "DISTRIBUTION.PLAN",
+    "DISTRIBUTION.SHARD",
+    "DISTRIBUTION.MERGE",
+    "QUALIFICATION",
+    "QUALIFICATION.REPETITION",
+    "QUALIFICATION.SET",
+    "QUALIFICATION.COMPARISON",
+    "QUALIFICATION.CONFORMANCE",
+    "COMMAND",
+    "COMMAND.GOMAD",
+    "COMMAND.GOMAD.DOCTOR",
+    "COMMAND.GOMAD.ANALYZE",
+    "COMMAND.GOMAD.EXPLORE",
+    "COMMAND.GOMAD.QUALIFY",
+    "COMMAND.GOMAD.QUALIFY.SET",
+    "COMMAND.GOMAD.MERGE.SET",
+    "COMMAND.GOMAD.COMPARE.SUPPORT",
+    "COMMAND.GOMAD.PLAN",
+    "COMMAND.GOMAD.EXECUTE.SHARD",
+    "COMMAND.GOMAD.MERGE",
+    "COMMAND.GOMAD.INSPECT",
+    "COMMAND.GOMAD.REPLAY",
+    "COMMAND.GOMAD.MINIMIZE",
+    "COMMAND.GOMAD.RECOVER",
+    "COMMAND.GOMAD.RESUME",
+    "COMMAND.OUTPUT",
+    "COMMAND.STATUS",
+    "MAINTENANCE",
+    "MAINTENANCE.GOVERNANCE",
+    "MAINTENANCE.COMPATIBILITY",
+    "MAINTENANCE.UPGRADE",
+    "COMMAND.GOMADTOOL",
+    "COMMAND.GOMADTOOL.TOOLCHAIN.BUILD",
+    "COMMAND.GOMADTOOL.BUILD.KEY",
+    "COMMAND.GOMADTOOL.PATCH.MATERIALIZE",
+    "COMMAND.GOMADTOOL.PATCH.REGENERATE",
+    "COMMAND.GOMADTOOL.PATCH.VALIDATE",
+    "COMMAND.GOMADTOOL.VERSION.GENERATE",
+    "COMMAND.GOMADTOOL.PIN.IMPACT",
+    "COMMAND.GOMADTOOL.ADAPTER.REGENERATE",
+    "COMMAND.GOMADTOOL.BOUNDARY.GENERATE",
+    "COMMAND.GOMADTOOL.PROTOCOL.GENERATE",
+    "COMMAND.GOMADTOOL.COMPATIBILITY.PACK",
+    "COMMAND.GOMADTOOL.COMPATIBILITY.PACK.REFRESH",
+    "COMMAND.GOMADTOOL.SCRIPT.VALIDATE",
+    "COMMAND.GOMADTOOL.CHECKED.RUN",
+    "COMMAND.GOMADTOOL.TEST",
+    "COMMAND.GOMADTOOL.UPGRADE.DOSSIER",
+    "FAILURE",
+    "FAILURE.CLASSIFICATION",
+    "FAILURE.BOUNDS",
+    "FAILURE.INTEGRITY",
+    "FAILURE.CANCELLATION",
+    "VERIFICATION",
+    "VERIFICATION.TRACEABILITY",
+    "VERIFICATION.CHANGE"
+  ],
+  "original_identifier_count": 123,
+  "current_identifier_count": 126,
+  "identifiers_preserved_in_order": true,
+  "original_glossary_terms": [
+    "Gomad Toolchain",
+    "Runner",
+    "Target",
+    "Campaign",
+    "Execution",
+    "Seed",
+    "Choice",
+    "Choice Trace",
+    "Choice Replay Plan",
+    "Deterministic I/O Contract",
+    "Captured Read-Only Input",
+    "World Model",
+    "Cluster",
+    "Node",
+    "Incarnation",
+    "Boot Identity",
+    "Simulation Backend",
+    "Simulation Model Fidelity",
+    "Hard Isolation Fidelity",
+    "Parity Case",
+    "Execution Record",
+    "Artifact",
+    "Replay",
+    "Corpus",
+    "Qualification Set"
+  ],
+  "current_terms_missing": [],
+  "navigation": [
+    {
+      "file": "tools/gomad3/ARCHITECTURE.md",
+      "destination": "SPEC.md",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/ARCHITECTURE.md",
+      "destination": "SPEC.md#productvocabulary-ubiquitous-language",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/ARCHITECTURE.md",
+      "destination": "README.md",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/ARCHITECTURE.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/CLI.md",
+      "destination": "SPEC.md",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/CLI.md",
+      "destination": "SPEC.md#productvocabulary-ubiquitous-language",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/CLI.md",
+      "destination": "README.md#compatibility-pack-development",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/TUTORIAL.md",
+      "destination": "CLI.md",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/TUTORIAL.md",
+      "destination": "../../MILESTONES.md",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/TUTORIAL.md",
+      "destination": "CLI.md",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/TUTORIAL.md",
+      "destination": "README.md",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/TUTORIAL.md",
+      "destination": "SPEC.md#productvocabulary-ubiquitous-language",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/TUTORIAL.md",
+      "destination": "ARCHITECTURE.md",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/TUTORIAL.md",
+      "destination": "../../.plans/GOMAD_NEXT.md",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/README.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/README.md",
+      "destination": "../../MILESTONES.md#open-findings",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/README.md",
+      "destination": "deterministicio/boundary/upgrade-go1.27.1.md",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/README.md",
+      "destination": "SPEC.md#productvocabulary-ubiquitous-language",
+      "exists": true
+    },
+    {
+      "file": "tools/gomad3/README.md",
+      "destination": "ARCHITECTURE.md",
+      "exists": true
+    }
+  ],
+  "commands": {
+    "gomad": [
+      "doctor",
+      "analyze",
+      "explore",
+      "inspect",
+      "replay",
+      "minimize",
+      "qualify",
+      "qualify-set",
+      "merge-set",
+      "compare-support",
+      "plan",
+      "execute-shard",
+      "merge",
+      "recover",
+      "resume"
+    ],
+    "gomadtool": [
+      "toolchain-build",
+      "build-key",
+      "patch-validate",
+      "patch-materialize",
+      "patch-regenerate",
+      "version-generate",
+      "pin-impact",
+      "adapter-regenerate",
+      "protocol-generate",
+      "qualification-manifest-generate",
+      "boundary-generate",
+      "compatibility-pack",
+      "compatibility-pack refresh",
+      "script-validate",
+      "checked-run",
+      "diagnostic-diff",
+      "test",
+      "upgrade-dossier"
+    ]
+  },
+  "actual_help": [
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomad",
+        "doctor",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "artifacts",
+        "json",
+        "toolchain-root"
+      ],
+      "output_file": "gomad-doctor.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomad",
+        "analyze",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "build-tag",
+        "capability-mode",
+        "format",
+        "timeout",
+        "toolchain-root",
+        "working-dir"
+      ],
+      "output_file": "gomad-analyze.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomad",
+        "explore",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "artifacts",
+        "build-tag",
+        "capability-mode",
+        "choice-bytes",
+        "choice-start-ordinal",
+        "choices",
+        "clock-tick",
+        "corpus",
+        "count",
+        "coverage",
+        "diagnostics",
+        "env",
+        "execution-timeout",
+        "failure-budget",
+        "guide",
+        "guide-regression",
+        "io-ro-mount",
+        "io-transcript-bytes",
+        "json",
+        "keep-successes",
+        "max-choice-depth",
+        "max-crash-decisions",
+        "max-executions",
+        "max-exploration-bytes",
+        "max-exploration-result-bytes",
+        "max-fault-decisions",
+        "max-forced-decisions",
+        "max-network-decisions",
+        "max-runtime-decisions",
+        "max-scenario-decisions",
+        "max-storage-decisions",
+        "on-failure",
+        "output",
+        "output-limit",
+        "overall-timeout",
+        "parallel",
+        "require-probe",
+        "seeds",
+        "strategy",
+        "success-bytes",
+        "success-limit",
+        "terminate-grace",
+        "toolchain-root",
+        "working-dir",
+        "world-transition-limit"
+      ],
+      "output_file": "gomad-explore.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomad",
+        "inspect",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "choices",
+        "json"
+      ],
+      "output_file": "gomad-inspect.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomad",
+        "replay",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "observed",
+        "toolchain-root",
+        "verify-only"
+      ],
+      "output_file": "gomad-replay.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomad",
+        "minimize",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "artifacts",
+        "attempt-budget",
+        "json",
+        "max-bytes",
+        "resume",
+        "toolchain-root"
+      ],
+      "output_file": "gomad-minimize.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomad",
+        "qualify",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "artifacts",
+        "build-tag",
+        "capability-mode",
+        "choice-bytes",
+        "choices",
+        "clock-tick",
+        "diagnostics",
+        "env",
+        "execution-timeout",
+        "io-ro-mount",
+        "io-transcript-bytes",
+        "json",
+        "output-limit",
+        "overall-timeout",
+        "repeat",
+        "replay-successes",
+        "require-probe",
+        "seed",
+        "success-bytes",
+        "success-limit",
+        "terminate-grace",
+        "toolchain-root",
+        "working-dir",
+        "world-transition-limit"
+      ],
+      "output_file": "gomad-qualify.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomad",
+        "qualify-set",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "artifacts",
+        "check",
+        "format",
+        "manifest",
+        "min-free-bytes",
+        "output",
+        "prune-qualified-artifacts",
+        "shard",
+        "working-dir"
+      ],
+      "output_file": "gomad-qualify-set.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomad",
+        "merge-set",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "format",
+        "manifest",
+        "output"
+      ],
+      "output_file": "gomad-merge-set.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomad",
+        "compare-support",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "approve-boundary-diff",
+        "baseline",
+        "candidate",
+        "format"
+      ],
+      "output_file": "gomad-compare-support.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomad",
+        "plan",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "artifacts",
+        "build-tag",
+        "capability-mode",
+        "choice-bytes",
+        "choice-start-ordinal",
+        "choices",
+        "clock-tick",
+        "corpus",
+        "count",
+        "coverage",
+        "diagnostics",
+        "env",
+        "execution-timeout",
+        "failure-budget",
+        "guide",
+        "guide-regression",
+        "io-ro-mount",
+        "io-transcript-bytes",
+        "json",
+        "keep-successes",
+        "max-choice-depth",
+        "max-crash-decisions",
+        "max-executions",
+        "max-exploration-bytes",
+        "max-exploration-result-bytes",
+        "max-fault-decisions",
+        "max-forced-decisions",
+        "max-network-decisions",
+        "max-runtime-decisions",
+        "max-scenario-decisions",
+        "max-storage-decisions",
+        "on-failure",
+        "output",
+        "output-limit",
+        "overall-timeout",
+        "parallel",
+        "require-probe",
+        "seeds",
+        "strategy",
+        "success-bytes",
+        "success-limit",
+        "terminate-grace",
+        "toolchain-root",
+        "working-dir",
+        "world-transition-limit"
+      ],
+      "output_file": "gomad-plan.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomad",
+        "execute-shard",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "artifacts",
+        "json",
+        "shard",
+        "toolchain-root"
+      ],
+      "output_file": "gomad-execute-shard.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomad",
+        "merge",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "json",
+        "output",
+        "partial"
+      ],
+      "output_file": "gomad-merge.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomad",
+        "recover",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "json"
+      ],
+      "output_file": "gomad-recover.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomad",
+        "resume",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "guide-regression",
+        "json",
+        "toolchain-root"
+      ],
+      "output_file": "gomad-resume.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomadtool",
+        "toolchain-build",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "bootstrap-go",
+        "build-bash",
+        "overlay",
+        "patch",
+        "root",
+        "toolchain-root"
+      ],
+      "output_file": "gomadtool-toolchain-build.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomadtool",
+        "build-key",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "archive-sha256",
+        "bash-path",
+        "bash-version",
+        "bootstrap-version",
+        "build-path",
+        "go-version",
+        "host-arch",
+        "host-os",
+        "overlay",
+        "patch",
+        "recipe-version"
+      ],
+      "output_file": "gomadtool-build-key.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomadtool",
+        "patch-validate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "overlay",
+        "patch",
+        "root"
+      ],
+      "output_file": "gomadtool-patch-validate.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomadtool",
+        "patch-materialize",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "overlay",
+        "patch",
+        "root",
+        "source-root"
+      ],
+      "output_file": "gomadtool-patch-materialize.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomadtool",
+        "patch-regenerate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "archive",
+        "bootstrap-go",
+        "candidate-root",
+        "gofmt",
+        "output",
+        "root",
+        "toolchain-root"
+      ],
+      "output_file": "gomadtool-patch-regenerate.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomadtool",
+        "version-generate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "check",
+        "root"
+      ],
+      "output_file": "gomadtool-version-generate.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomadtool",
+        "pin-impact",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "baseline",
+        "candidate",
+        "format",
+        "root"
+      ],
+      "output_file": "gomadtool-pin-impact.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomadtool",
+        "adapter-regenerate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "approve",
+        "module",
+        "root",
+        "version"
+      ],
+      "output_file": "gomadtool-adapter-regenerate.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomadtool",
+        "protocol-generate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "check",
+        "root"
+      ],
+      "output_file": "gomadtool-protocol-generate.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomadtool",
+        "qualification-manifest-generate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "check",
+        "output",
+        "root",
+        "spec"
+      ],
+      "output_file": "gomadtool-qualification-manifest-generate.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomadtool",
+        "boundary-generate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "check",
+        "check-compiler-tests",
+        "compiler-test-overlay",
+        "discover",
+        "goroot",
+        "qualify",
+        "refresh",
+        "root"
+      ],
+      "output_file": "gomadtool-boundary-generate.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomadtool",
+        "compatibility-pack",
+        "discover",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "compatibility-root",
+        "request",
+        "root",
+        "working-dir"
+      ],
+      "output_file": "gomadtool-compatibility-pack-discover.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomadtool",
+        "compatibility-pack",
+        "review",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "compatibility-root",
+        "output",
+        "request",
+        "root"
+      ],
+      "output_file": "gomadtool-compatibility-pack-review.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomadtool",
+        "compatibility-pack",
+        "generate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "approve-review",
+        "compatibility-root",
+        "request",
+        "root"
+      ],
+      "output_file": "gomadtool-compatibility-pack-generate.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomadtool",
+        "compatibility-pack",
+        "check",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "compatibility-root",
+        "root"
+      ],
+      "output_file": "gomadtool-compatibility-pack-check.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomadtool",
+        "compatibility-pack",
+        "qualify",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "compatibility-root",
+        "request",
+        "root",
+        "working-dir"
+      ],
+      "output_file": "gomadtool-compatibility-pack-qualify.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomadtool",
+        "compatibility-pack",
+        "refresh",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "impact-report",
+        "root"
+      ],
+      "output_file": "gomadtool-compatibility-pack-refresh.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomadtool",
+        "script-validate",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "root"
+      ],
+      "output_file": "gomadtool-script-validate.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomadtool",
+        "checked-run",
+        "-h"
+      ],
+      "status": 125,
+      "flags": [],
+      "output_file": "gomadtool-checked-run.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomadtool",
+        "diagnostic-diff",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "json"
+      ],
+      "output_file": "gomadtool-diagnostic-diff.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomadtool",
+        "test",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "compiler",
+        "go",
+        "mode",
+        "overlay",
+        "patch",
+        "root"
+      ],
+      "output_file": "gomadtool-test.help.txt"
+    },
+    {
+      "argv": [
+        "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.bin/gomadtool",
+        "upgrade-dossier",
+        "-h"
+      ],
+      "status": 2,
+      "flags": [
+        "approve-boundary-diff",
+        "baseline-ref",
+        "corpus-report",
+        "output",
+        "root"
+      ],
+      "output_file": "gomadtool-upgrade-dossier.help.txt"
+    }
+  ],
+  "documented_flags": [
+    "approve",
+    "approve-boundary-diff",
+    "approve-review",
+    "artifacts",
+    "attempt-budget",
+    "baseline",
+    "baseline-ref",
+    "build-tag",
+    "candidate",
+    "candidate-root",
+    "capability-mode",
+    "check",
+    "check-compiler-tests",
+    "choice-bytes",
+    "choice-start-ordinal",
+    "choices",
+    "clock-tick",
+    "compatibility-root",
+    "corpus",
+    "corpus-report",
+    "count",
+    "coverage",
+    "diagnostics",
+    "discover",
+    "execution-timeout",
+    "failure-budget",
+    "format",
+    "go",
+    "guide",
+    "guide-regression",
+    "impact-report",
+    "io-transcript-bytes",
+    "json",
+    "keep-successes",
+    "manifest",
+    "max-choice-depth",
+    "max-crash-decisions",
+    "max-executions",
+    "max-exploration-bytes",
+    "max-exploration-result-bytes",
+    "max-fault-decisions",
+    "max-forced-decisions",
+    "max-network-decisions",
+    "max-runtime-decisions",
+    "max-scenario-decisions",
+    "max-storage-decisions",
+    "mode",
+    "module",
+    "on-failure",
+    "output",
+    "output-limit",
+    "overall-timeout",
+    "parallel",
+    "partial",
+    "provenance",
+    "qualify",
+    "refresh",
+    "repeat",
+    "replay-successes",
+    "request",
+    "require-probe",
+    "resume",
+    "root",
+    "seed",
+    "seeds",
+    "shard",
+    "source-root",
+    "spec",
+    "strategy",
+    "success-bytes",
+    "success-limit",
+    "timeout",
+    "verify-only",
+    "version",
+    "working-dir"
+  ],
+  "unknown_documented_flags": [],
+  "whitespace_argv": [
+    "git",
+    "diff",
+    "--check",
+    "29917069e089dc0739ec091b18e99161245b9bd5",
+    "--",
+    "tools/gomad3/SPEC.md",
+    "tools/gomad3/ARCHITECTURE.md",
+    "tools/gomad3/CLI.md",
+    "tools/gomad3/TUTORIAL.md",
+    "tools/gomad3/README.md"
+  ],
+  "whitespace_status": 0,
+  "errors": []
+}

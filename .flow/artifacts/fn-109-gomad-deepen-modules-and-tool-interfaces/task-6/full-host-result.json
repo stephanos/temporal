@@ -1,0 +1,9 @@
+{
+  "exit": 2,
+  "duration_seconds": 179,
+  "end_utc": "2026-10-03T13:12:46Z",
+  "source_sha256": "42f196802d8c9f389cb91334bb6f71478e95475e277ddc05af1bc176e3726e27",
+  "source_changed_during_gate": [],
+  "log": "full-host.log",
+  "log_sha256": "a2712309a0554f7e1d620c9159da0e18c7f46656112622ebf0ffd5e92dc6c219"
+}

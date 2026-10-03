@@ -1,0 +1,4 @@
+- [x] Plan and explore share one parse step and each calls its own Runner operation; no hidden plan-only argument route remains, and `--__plan` is rejected as an unknown flag.
+- [x] Semantic normalization has one owner in Runner; the CLI keeps only presence-sensitive validation and reporting.
+- [x] The characterization tests from task 4 plus the plan cases pass with identical messages, classifications, stdout/stderr routing and exit statuses.
+- [x] No default changes; explicit zero and irrelevant flags are rejected exactly as before.

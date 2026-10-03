@@ -1,0 +1,17 @@
+{
+  "sources": {
+    "tools/gomad3/runner/retention_test.go": {
+      "preimage_sha256": "9505a4bd607df61dd34c63b651e5d154c347e3b49fb74721edb433d34cafe5f8",
+      "postimage_sha256": "76e634f98998d8479c38daaa38249906bdc514451b6d4e205183bd470e7738a7",
+      "preimage_path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/parent-verified-preimages/retention_test.go",
+      "matching_prior_manifest": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/integrated-source-hashes.json"
+    },
+    "tools/gomad3/runner/runner_test.go": {
+      "preimage_sha256": "1afc4bd5251b9c09e24e6fc64867ef926787f8956712371268f1e4be63e8461a",
+      "postimage_sha256": "e66828ed56f98a0776ef5573660c57ec85157dbba7082dd4d34faecb7bfed519",
+      "preimage_path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-2/parent-verified-preimages/runner_test.go",
+      "matching_prior_manifest": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/integrated-source-hashes.json"
+    }
+  },
+  "method": "Reverse only three campaignRequestFromSpec test call adaptations; exact bytes match prior independently retained integrated source hashes."
+}

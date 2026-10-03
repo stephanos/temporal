@@ -25,6 +25,29 @@ Generated from [`../../toolchain/version/version.json`](../../toolchain/version/
 - adapter: `modernc.org/libc@v1.72.3` (`h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`)
 - adapter: `modernc.org/memory@v1.11.0` (`h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`)
 
+## Dependency pin update
+
+Compare candidate and saved baseline `go.mod` files with adjacent `go.sum` files. From the repository root, status 1 means an invalidated or unknown pin; retain the JSON for the repair steps:
+
+```sh
+go -C tools/gomad3 run ./cmd/gomadtool pin-impact --root=. \
+  --baseline=/absolute/baseline/go.mod --candidate=/absolute/candidate/go.mod \
+  --format=json > pin-impact.json
+```
+
+For each affected adapter, review the dry-run source changes and exact anchors before supplying the printed approval digest. Refresh affected packs from the same report on each supported host; refresh stops at per-request review and leaves the other platform unchanged:
+
+```sh
+go -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate --root=. \
+  --module=<module-path> --version=<exact-version>
+go -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate --root=. \
+  --module=<module-path> --version=<exact-version> --approve=sha256:<reviewed-digest>
+go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack refresh --root=. \
+  --impact-report=/absolute/path/to/pin-impact.json
+```
+
+Review each changed pack report, then use `compatibility-pack generate --approve-review=<exact-review-sha256>` for that request. Validate generated outputs and qualify affected adapters, packs, the core set, and the complete test gate on both supported hosts. The [README](../../README.md#compatibility-pack-development) records the full procedure.
+
 ## Qualification command
 
 Run from the Gomad source module root after updating `toolchain/version/version.json`, the boundary manifest, patch, and overlays:

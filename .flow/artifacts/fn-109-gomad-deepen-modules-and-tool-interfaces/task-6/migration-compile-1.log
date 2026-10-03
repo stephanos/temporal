@@ -1,0 +1,14 @@
+# go.temporal.io/server/tools/gomad3/runner [go.temporal.io/server/tools/gomad3/runner.test]
+runner/choice_exploration_divergence_test.go:56:10: declared and not used: configDependencies
+runner/choice_exploration_divergence_test.go:69:53: undefined: configDependencies
+runner/choice_exploration_divergence_test.go:142:4: undefined: configDependencies
+runner/choice_exploration_divergence_test.go:143:53: undefined: configDependencies
+runner/choice_exploration_divergence_test.go:189:43: undefined: configDependencies
+runner/choice_exploration_divergence_test.go:194:14: undefined: configDependencies
+runner/choice_exploration_divergence_test.go:200:70: undefined: uninterruptedConfigDependencies
+runner/choice_exploration_divergence_test.go:229:4: undefined: configDependencies
+runner/choice_exploration_divergence_test.go:248:53: undefined: configDependencies
+runner/choice_exploration_divergence_unix_test.go:41:48: undefined: configDependencies
+runner/choice_exploration_divergence_unix_test.go:41:48: too many errors
+FAIL	go.temporal.io/server/tools/gomad3/runner [build failed]
+FAIL

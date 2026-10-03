@@ -1,0 +1,29 @@
+{
+  "commits": [],
+  "tests": [
+    "Pinned patched Go, stock helper compiler, classic GC, test_dep: final controller focused gate exit0 0.305s; parent independent final TestSeedController gate exit0 0.296s",
+    "Final focused Runner gate exit0 8.341s (focused-final.log); TestRun selector exit0 45.838s before valid-kind lint simplification",
+    "GOFLAGS=\"-tags=test_dep -count=1\" make -C tools/gomad3 test-host: exit2 retained, only unchanged execution watchdog test failed; Runner and other host packages passed",
+    "Same-source/environment go test -tags test_dep ./runner/internal/execution: exit0 68.311s; exact watchdog selector and complete family also pass",
+    "TestPackageArchitecture: exit0 1.375s (architecture-final.log); Runner vet and CLI build exit0",
+    "gofmt and git diff --check exit0; task-only patch reverse-check and final source hashes verified",
+    "Scoped Runner lint exit1: 430 existing findings retained, no introduced diagnostic identified; root lint limitation retained"
+  ],
+  "prs": [],
+  "review": {
+    "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-3/working-tree-review.json",
+    "verdict": "SHIP",
+    "timestamp": "2026-10-03T11:19:37.270978Z",
+    "introduced": 0,
+    "same_family": true
+  },
+  "source_sha256": {
+    "tools/gomad3/runner/internal/campaign/controller.go": "ddb9b33cab6e7ae0d571d502871872963c0da215c7e244c12b7131c13859aca4",
+    "tools/gomad3/runner/internal/campaign/controller_test.go": "77de1a00eb606ffd121894186280c07d5491388bb3b3027eeb9824819abffbf2",
+    "tools/gomad3/runner/runner.go": "157eb0abf82c8191253c46991bdecbcd073fd80fe3ab8ba9e141bd388c48fe1f",
+    "tools/gomad3/runner/campaign_test.go": "f34a5e236c0f880e4fb9e4e2339f985c5c98f054d523531a1ce136bc1743f885",
+    "tools/gomad3/runner/seed_completion_characterization_test.go": "f6118cfcb23a456ac456e442ba1a7c86d6d23da247d0d4d8ff7d27a1a013ebed"
+  },
+  "native_linux": "unavailable; required full-spec gates deferred to task 21",
+  "full_host_limitation": "Initial unchanged watchdog failure retained; combined package evidence accepted by independent review for task-level preservation."
+}

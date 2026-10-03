@@ -1,0 +1,3 @@
+refresh staged adapter fixture /var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/gomad-adapter-stage-1661456375/tools/gomad3/deterministicio/testdata/sprig: exit status 1
+go: go.mod requires go >= 1.27.1 (running go 1.26.5; GOTOOLCHAIN=local)
+

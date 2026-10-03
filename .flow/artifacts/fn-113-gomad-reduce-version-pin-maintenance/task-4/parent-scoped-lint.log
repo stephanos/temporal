@@ -1,0 +1,43 @@
+cmd/gomadtool/boundary.go:39:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stdout, candidate)
+			            ^
+cmd/gomadtool/boundary.go:52:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+cmd/gomadtool/compatibility_pack.go:60:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+cmd/gomadtool/compatibility_pack.go:178:13: Error return value of `fmt.Fprintf` is not checked (errcheck)
+	fmt.Fprintf(stdout, "generated compatibility pack %s\n", request.ID)
+	           ^
+cmd/gomadtool/compatibility_pack.go:243:13: Error return value of `fmt.Fprintf` is not checked (errcheck)
+	fmt.Fprintf(stdout, "qualified compatibility-pack request %s\n", request.ID)
+	           ^
+deterministicio/adapter_registry.go:385:20: Error return value of `os.RemoveAll` is not checked (errcheck)
+	defer os.RemoveAll(work)
+	                  ^
+upgrade/upgrade.go:217:15: Error return value of `fmt.Fprintf` is not checked (errcheck)
+			fmt.Fprintf(options.Writer, "gomad3 qualification gate: %s\n", gate.Name)
+			           ^
+upgrade/upgrade.go:459:20: Error return value of `zipper.Close` is not checked (errcheck)
+	defer zipper.Close()
+	                  ^
+upgrade/pin_impact.go:150:39: ST1005: error strings should not be capitalized (staticcheck)
+		return PinImpact{}, invalidPinInput(errors.New("Go directive changes require the upgrade dossier"))
+		                                    ^
+upgrade/pin_impact_test.go:75:41: S1016: should convert source (type go.temporal.io/server/tools/gomad3/internal/compatibilitypack.PackSource) to go.temporal.io/server/tools/gomad3/internal/compatibilitypack.Source instead of using struct literal (staticcheck)
+		pkg.GoSources = append(pkg.GoSources, compatibility.Source{Name: source.Name, SHA256: source.SHA256})
+		                                      ^
+upgrade/pin_impact_test.go:78:51: S1016: should convert source (type go.temporal.io/server/tools/gomad3/internal/compatibilitypack.PackForeignSource) to go.temporal.io/server/tools/gomad3/internal/compatibilitypack.ForeignSource instead of using struct literal (staticcheck)
+		pkg.ForeignSources = append(pkg.ForeignSources, compatibility.ForeignSource{Kind: source.Kind, Name: source.Name, SHA256: source.SHA256})
+		                                                ^
+upgrade/upgrade.go:470:59: SA1019: archive/tar.TypeRegA has been deprecated since Go 1.11 and an alternative has been available since Go 1.1: Use TypeReg instead. (staticcheck)
+		if header.Typeflag != tar.TypeReg && header.Typeflag != tar.TypeRegA {
+		                                                        ^
+deterministicio/bootstrap.go:13:7: const bootstrapFrameBytes is unused (unused)
+const bootstrapFrameBytes = iowire.BootstrapFrameBytes
+      ^
+13 issues:
+* errcheck: 8
+* staticcheck: 4
+* unused: 1

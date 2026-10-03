@@ -1,0 +1,28 @@
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool patch-validate --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 patch and overlay inputs are valid
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool script-validate --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 script ownership is valid
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache GOTOOLCHAIN=local GOWORK=off \
+		go run ./cmd/gomadtool toolchain-build --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 toolchain is ready (darwin/arm64, key 2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457)
+qualified compatibility-pack request reflect2-go126
+qualified compatibility-pack request modernc-libc-xsys-v041
+qualified compatibility-pack request modernc-libc-xsys-v047
+qualified compatibility-pack request modernc-libc-xsys-v047-isatty-v021
+qualified compatibility-pack request temporal-functional-compute-darwin-arm64
+qualified compatibility-pack request temporal-functional-tests-darwin-arm64
+qualified compatibility-pack request temporal-leaf-xsys-darwin-arm64
+qualified compatibility-pack request temporal-leaf-xxhash-darwin-arm64
+qualified compatibility-pack request golang-x-sys-v047-darwin-arm64
+env -u GOMADSEED -u GOMAD3_CHILD_SEED CGO_ENABLED=0 GOTOOLCHAIN=local TZ=UTC \
+		.toolchain/bin/go build -trimpath -o .bin/gomad ./cmd/gomad
+env -u GOMADSEED -u GOMAD3_CHILD_SEED .bin/gomad qualify-set \
+		--manifest="/Users/stephan/Workspace/temporal/gomad/tools/gomad3/qualification/core.json" --working-dir="/Users/stephan/Workspace/temporal/gomad/tools/gomad3/qualification/corpus" \
+		--artifacts="/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/core-qualification" --output="/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/core-qualification-set.json" \
+		 \
+		
+qualification set: name=gomad3-core expectations-met=true supported=7 unsupported=0 failed=0 infrastructure-errors=0 completed=7/7

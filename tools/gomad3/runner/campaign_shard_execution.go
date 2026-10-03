@@ -27,11 +27,14 @@ type CampaignShardSpec struct {
 	SupervisorCommand []string
 	Progress          CampaignEventFunc
 	ProgressInterval  time.Duration
-	Executor          Executor
 	Replayer          ArtifactReplayer
 }
 
 func RunCampaignShard(ctx context.Context, spec CampaignShardSpec) (CampaignResult, error) {
+	return runCampaignShardWith(ctx, spec, executionDependencies{})
+}
+
+func runCampaignShardWith(ctx context.Context, spec CampaignShardSpec, dependencies executionDependencies) (CampaignResult, error) {
 	if err := spec.Shard.Validate(); err != nil {
 		return CampaignResult{}, err
 	}
@@ -46,7 +49,7 @@ func RunCampaignShard(ctx context.Context, spec CampaignShardSpec) (CampaignResu
 	if !deterministicio.Default().Matches(plan.IOProfile) {
 		return CampaignResult{}, errors.New("campaign plan I/O profile identity does not match this Runner")
 	}
-	if spec.Executor == nil {
+	if dependencies.executor == nil {
 		identity, err := target.ReadToolchainIdentity(spec.ToolchainRoot)
 		if err != nil {
 			return CampaignResult{}, err
@@ -88,7 +91,7 @@ func RunCampaignShard(ctx context.Context, spec CampaignShardSpec) (CampaignResu
 		SupervisorCommand: append([]string(nil), spec.SupervisorCommand...), RunnerBuild: spec.RunnerBuild,
 		Coverage: CoverageMode(plan.Coverage), RequiredSemanticProbes: append([]string(nil), plan.RequiredSemanticProbes...),
 		KeepSuccesses: KeepSuccesses(plan.KeepSuccesses), SuccessArtifactLimit: uint64(plan.SuccessArtifactLimit), SuccessBytesLimit: uint64(plan.SuccessBytesLimit),
-		Progress: spec.Progress, ProgressInterval: spec.ProgressInterval, Executor: spec.Executor, Replayer: spec.Replayer,
+		Progress: spec.Progress, ProgressInterval: spec.ProgressInterval, Replayer: spec.Replayer,
 		Preparer: &campaignPlanPreparer{source: opened.prepared},
 	}
 	if plan.Guidance != nil {
@@ -98,7 +101,7 @@ func RunCampaignShard(ctx context.Context, spec CampaignShardSpec) (CampaignResu
 		config.GuideSnapshotSHA256 = plan.Guidance.SnapshotSHA256
 		config.guidancePlan = plan.Guidance
 	}
-	return runLocal(ctx, config)
+	return runLocal(ctx, campaignRequestFromSpecWith(config, dependencies))
 }
 
 func campaignPlanChoiceLimit(plan *campaign.ChoiceProfilePlan) uint64 {

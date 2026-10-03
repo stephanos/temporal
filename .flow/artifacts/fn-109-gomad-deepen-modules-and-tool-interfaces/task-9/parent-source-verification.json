@@ -1,0 +1,101 @@
+{
+  "timestamp": "2026-10-03T15:05:26.923171+00:00",
+  "source_mismatches": [],
+  "preimage_mismatches": [],
+  "removed_original_comments": {},
+  "prepared_projection_equal": true,
+  "installed_cli_sha256": "ee1dedd767dcc4f63fc860e782bbc2027e9b0e77de08d9fd0768e797c147c06b",
+  "task_patch_sha256": "f5a8a4f7a0a26221168da58eba6a09063bb5ba0cd19b0d5fe80b3c5bf2e31c83",
+  "gates": {
+    "adapter-red.json": {
+      "exit": 1,
+      "duration_seconds": 0.3910387080104556,
+      "log": "adapter-red.log"
+    },
+    "baseline-live-capability.json": {
+      "exit": 0,
+      "duration_seconds": 14.383449665998342,
+      "log": "baseline-live-capability.log"
+    },
+    "baseline-overlap.json": {
+      "exit": 0,
+      "duration_seconds": 159.2874312079948,
+      "log": "baseline-overlap.log"
+    },
+    "baseline-preparation.json": {
+      "exit": 0,
+      "duration_seconds": 14.375474250002299,
+      "log": "baseline-preparation.log"
+    },
+    "baseline-target.json": {
+      "exit": 0,
+      "duration_seconds": 23.553540208013146,
+      "log": "baseline-target.log"
+    },
+    "cli-build.json": {
+      "exit": 0,
+      "duration_seconds": 5.0763593330048025,
+      "log": "cli-build.log"
+    },
+    "cli-smoke.json": {
+      "exit": 0,
+      "duration_seconds": 0.8619126669946127,
+      "log": "cli-smoke.log"
+    },
+    "final-architecture.json": {
+      "exit": 0,
+      "duration_seconds": 1.2288009579933714,
+      "log": "final-architecture.log"
+    },
+    "final-full-host.json": {
+      "exit": 0,
+      "duration_seconds": 238.54255179200845,
+      "log": "final-full-host.log"
+    },
+    "final-lint.json": {
+      "exit": 0,
+      "duration_seconds": 1.8747192919981899,
+      "log": "final-lint.log"
+    },
+    "final-live-capability.json": {
+      "exit": 0,
+      "duration_seconds": 20.17303466699377,
+      "log": "final-live-capability.log"
+    },
+    "final-preparation.json": {
+      "exit": 0,
+      "duration_seconds": 15.100797999999486,
+      "log": "final-preparation.log"
+    },
+    "final-target.json": {
+      "exit": 0,
+      "duration_seconds": 38.25929154100595,
+      "log": "final-target.log"
+    },
+    "final-vet.json": {
+      "exit": 0,
+      "duration_seconds": 0.22937787500268314,
+      "log": "final-vet.log"
+    },
+    "new-prepared-receipt.json": {
+      "exit": 0,
+      "duration_seconds": 0.6766677080013324,
+      "log": null
+    },
+    "old-prepared-receipt.json": {
+      "exit": 0,
+      "duration_seconds": 1.6358015419973526,
+      "log": null
+    }
+  },
+  "reverse_task_patch_check": {
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "git_diff_check": {
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+}

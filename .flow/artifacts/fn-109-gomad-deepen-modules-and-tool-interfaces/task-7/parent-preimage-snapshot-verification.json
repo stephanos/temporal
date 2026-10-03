@@ -1,0 +1,43 @@
+{
+  "timestamp": "2026-10-03T14:08:18.878478+00:00",
+  "preimages": {
+    "tools/gomad3/runner/runner.go": {
+      "hash_matches": true,
+      "provenance": "actual task-7 pre-edit bytes; earlier milestone changes already present",
+      "missing_comment_lines": []
+    },
+    "tools/gomad3/runner/portable_plan.go": {
+      "hash_matches": true,
+      "provenance": "actual task-7 pre-edit bytes; earlier milestone changes already present",
+      "missing_comment_lines": []
+    },
+    "tools/gomad3/runner/deterministicio.go": {
+      "hash_matches": true,
+      "provenance": "actual task-7 pre-edit bytes; earlier milestone changes already present",
+      "missing_comment_lines": []
+    },
+    "tools/gomad3/architecture_test.go": {
+      "hash_matches": true,
+      "provenance": "actual task-7 pre-edit bytes; earlier milestone changes already present",
+      "missing_comment_lines": []
+    },
+    "tools/gomad3/runner/preparation_equivalence_legacy_test.go": {
+      "hash_matches": true,
+      "provenance": "task-7-created baseline probe, captured before later edits; not original Runner source"
+    },
+    "tools/gomad3/internal/preparation/preparation_test.go": {
+      "hash_matches": true,
+      "provenance": "task-7-created test initial RED version"
+    }
+  },
+  "snapshots": {
+    "equivalence": {
+      "identical": true,
+      "sha256": "29195da5e9abda68ae04dc414b0c500d0be353c6da9343328668f2039d51b34f"
+    },
+    "equivalence-adapter": {
+      "identical": true,
+      "sha256": "f393401b100b6c311cf962f5dd7b3ffcda0355ce5d91050cd788b9c15a7c5aed"
+    }
+  }
+}

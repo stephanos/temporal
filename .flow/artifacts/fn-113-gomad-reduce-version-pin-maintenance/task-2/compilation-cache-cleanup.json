@@ -1,0 +1,21 @@
+{
+  "action": "clear only active-key Go compilation cache after worker pause",
+  "cache": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/builds/2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457/target-cache",
+  "build_key": "2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457",
+  "command": [
+    "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go",
+    "clean",
+    "-cache"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 10.896,
+  "free_bytes_before": 2030964736,
+  "free_bytes_after": 6287425536,
+  "output": "",
+  "preserved": [
+    "prepared targets",
+    "retained artifacts",
+    "qualification evidence",
+    "toolchain sources and binaries"
+  ]
+}

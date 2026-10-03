@@ -45,15 +45,24 @@ env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
 ## Acceptance
-- [ ] Installation, executable identity, Runner build and private child-mode commands are resolved in exactly one construction path; no other CLI file calls `os.Executable` or `toolchain.ResolveInstallation`.
-- [ ] Characterization tests cover documented grammar, explicit zero and irrelevant flags, environment/tags/argv, text and JSON output and exit statuses for every command, and pass unchanged before and after.
-- [ ] Malformed input and stdout/stderr writer failures keep their classification and exit status; no flag default changes.
-- [ ] No mutable package-global hook is introduced; existing dependency-struct seams remain the test entry points.
-
+- [x] Installation, executable identity, Runner build and private child-mode commands are resolved in exactly one construction path; no other CLI file calls `os.Executable` or `toolchain.ResolveInstallation`.
+- [x] Characterization tests cover documented grammar, explicit zero and irrelevant flags, environment/tags/argv, text and JSON output and exit statuses for every command, and pass unchanged before and after.
+- [x] Malformed input and stdout/stderr writer failures keep their classification and exit status; no flag default changes.
+- [x] No mutable package-global hook is introduced; existing dependency-struct seams remain the test entry points.
 ## Done summary
-TBD
+CLI invocations now share one lazy private application value for executable discovery, installation/root resolution, Runner identity, private child commands and private-mode dispatch. Operations consume it after input validation. Existing dependency-struct seams remain usable; doctor retains its report and executable validation. Shared plan/explore parsing and semantic normalization remain task 5.
 
+Characterization covers all public commands' missing operands, explicit-zero/irrelevant flags, writer errors, environment/build tags/argv, and text/JSON output, alongside the unchanged command tests. The same characterization passes against captured original CLI bytes using a Go overlay and against final source. Parent independently runs both (0.707s original; 0.422s final including the application cache test) and verifies 21 original snapshots, ten final hashes, existing comments and the task-only patch.
+
+The frozen Darwin full host gate passes (Runner 154.831s; execution 95.231s), including cmd/qualification and root architecture packages. Final affected tests, vet, changed-line root-config lint, formatting/diff checks and CLI rebuild pass after small moved-code error-handling/lint fixes; the final comment-only rationale edit is rebuilt. Filtered lint zero does not mean full lint cleanliness: the unfiltered CLI run retains legacy findings, and root lint's known nested-module loading failure is unchanged. See handover.json for exact commands and logs.
+
+Independent codex:gpt-6-sol:high review returned SHIP at 2026-10-03T11:52:32.369780Z with zero introduced findings. It records one pre-existing P2: doctor's JSON stdout write ignores its error, preserving the old 0/1 status. The construction refactor preserves that behavior; this receipt does not claim a fix. R6 is partial until task 5; full-spec R18/R19 and native linux/amd64 qualification remain open in task 21. Review uses fresh context in the same model family.
+
+Nothing was staged, committed or pushed; the user owns commits.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
+Tracker sync: n/a (bridge inactive)
 ## Evidence
 - Commits:
-- Tests:
+- Tests: .toolchain/bin/go test -count=1 -tags test_dep ./cmd/gomad/...; before production edits; exit 0; baseline-evidence.json, .toolchain/bin/go test -count=1 -tags test_dep -overlay <captured-preimages> ./cmd/gomad/internal/cli -run "TestPublicCommand|TestQualifyGrammar" -v; before-refactor bytes with characterization; exit 0; baseline-overlay/characterization.log, .toolchain/bin/go test -count=1 -tags test_dep ./cmd/gomad/...; refactor source before lint-only fixes; exit 0; quick-cmd-gomad.log, GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host; frozen refactor source before lint-only fixes; exit 0; full-host.log, .toolchain/bin/go test -count=1 -tags test_dep ./cmd/gomad/internal/cli -run "TestApplication|TestRunDoctor|TestPublicCommand|TestQualifyGrammar"; final lint-only fixes; exit 0; post-lint-focused-test.log, .toolchain/bin/go vet -tags test_dep ./cmd/gomad/internal/cli; final; exit 0; scoped-vet.log, env -u GOROOT -u GOBIN -u GOMADSEED -u GOMAD3_CHILD_SEED PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH GOMAD3_STOCK_GO=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off /Users/stephan/Workspace/temporal/gomad/.bin/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --new-from-rev=HEAD ./cmd/gomad/internal/cli (working directory: tools/gomad3); final scoped delta; exit 0; scoped-lint-new.log, make -C tools/gomad3 runner; final; exit 0; runner-build.log, gofmt -l <ten changed Go files>; git diff --check -- tools/gomad3/cmd/gomad/internal/cli; final; exit 0; final-source-manifest.json
 - PRs:

@@ -91,6 +91,60 @@ func runCLI(t *testing.T, status int, arguments ...string) []byte {
 	return output
 }
 
+func TestPlanTextAndJSONPreserveCampaignIdentityAndTargetArguments(t *testing.T) {
+	var identity record.SHA256
+	for _, format := range []string{"text", "json"} {
+		t.Run(format, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "campaign.plan.json")
+			arguments := []string{"plan", "--toolchain-root", cliToolchainRoot, "--parallel=1", "--seeds=2", "--env=FOO=bar", "--build-tag=gomad_fixture"}
+			if format == "json" {
+				arguments = append(arguments, "--json")
+			}
+			arguments = append(arguments, "--output", path, "go-run", "./cmd/gomad/testdata/campaign", "--", "work", "literal;$value")
+			output := runCLI(t, 0, arguments...)
+			encoded, err := os.ReadFile(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var plan struct {
+				Campaign struct {
+					Selection   string                         `json:"selection"`
+					OnFailure   string                         `json:"on_failure"`
+					Environment []struct{ Name, Value string } `json:"environment"`
+					Prepared    struct {
+						Target struct {
+							Args      []string `json:"argv"`
+							BuildTags []string `json:"build_tags"`
+						} `json:"target"`
+					} `json:"prepared"`
+				} `json:"campaign"`
+			}
+			if err := json.Unmarshal(encoded, &plan); err != nil {
+				t.Fatal(err)
+			}
+			if plan.Campaign.Selection != "2" || plan.Campaign.OnFailure != "all" || !reflect.DeepEqual(plan.Campaign.Prepared.Target.Args, []string{"gomad3-target", "work", "literal;$value"}) || !reflect.DeepEqual(plan.Campaign.Prepared.Target.BuildTags, []string{"gomad_fixture"}) {
+				t.Fatalf("plan = %#v", plan)
+			}
+			if len(plan.Campaign.Environment) != 2 || plan.Campaign.Environment[0].Name != "FOO" || plan.Campaign.Environment[0].Value != "bar" {
+				t.Fatalf("environment = %#v", plan.Campaign.Environment)
+			}
+			digest := record.HashBytes(encoded)
+			if identity != "" && digest != identity {
+				t.Fatalf("plan identity = %s, want %s", digest, identity)
+			}
+			identity = digest
+			if format == "json" {
+				var result runner.CampaignPlanResult
+				if err := json.Unmarshal(output, &result); err != nil || result.SHA256 != digest || result.Path != path {
+					t.Fatalf("JSON result = %#v, %v, output=%q", result, err, output)
+				}
+			} else if !strings.Contains(string(output), "gomad plan: path="+path+" bundle="+path+".bundle sha256="+string(digest)+" selected=1 target=") {
+				t.Fatalf("text result = %q", output)
+			}
+		})
+	}
+}
+
 func exploreArguments(root, seeds string, work bool) []string {
 	arguments := []string{"explore", "--json", "--toolchain-root", cliToolchainRoot, "--artifacts", root,
 		"--seeds", seeds, "--parallel", "1", "--on-failure", "all", "--execution-timeout", "30s",

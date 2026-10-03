@@ -44,15 +44,24 @@ env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
 ## Acceptance
-- [ ] `SeedController` exposes one completion transition; the `FinishAttempt` plus `Record*` pairing no longer exists and `runner.go` calls the transition once per completed job.
-- [ ] Controller tests cover success, cancellation, watchdog, replay divergence, distinct and duplicate failures, resume-seeded counters and each failure policy (`all`, `first`, `budget`), comparing whole `CampaignStatistics` values.
-- [ ] Completion without active work is rejected as an invariant violation; no path leaves attempted and classified counters partially updated.
-- [ ] Ordinal scheduling, stop reasons and every counter reported by existing runner tests are unchanged.
-
+- [x] `SeedController` exposes one completion transition; the `FinishAttempt` plus `Record*` pairing no longer exists and `runner.go` calls the transition once per completed job.
+- [x] Controller tests cover success, cancellation, watchdog, replay divergence, distinct and duplicate failures, resume-seeded counters and each failure policy (`all`, `first`, `budget`), comparing whole `CampaignStatistics` values.
+- [x] Completion without active work is rejected as an invariant violation; no path leaves attempted and classified counters partially updated.
+- [x] Ordinal scheduling, stop reasons and every counter reported by existing runner tests are unchanged.
 ## Done summary
-TBD
+SeedController now exposes one pure `Complete` transition. Runner completes each received job once, including an explicit unclassified outcome on early host/evidence errors. Active, attempted, classified and failure-policy counters update together. Existing ordinal scheduling, comments, error precedence and stop semantics are preserved: first cancels active work; budget stops admission only. Inactive completion retains the existing invariant panic.
 
+Whole-statistics controller tests and the pre-refactor early-return characterization pass. Final focused Runner tests, architecture, vet, CLI build, formatting and diff checks pass on darwin/arm64. Parent independently verifies the original byte snapshots, final hashes, comments and patch, and runs final controller tests (0.296s).
+
+The initial full host gate exited 2 on an unchanged execution watchdog test; Runner and all other host packages passed. Its exact selector, test family and entire execution package subsequently passed on the same frozen source/environment. Dependency inspection excludes Runner/controller from that test closure. The initial failure and unknown trigger remain retained; this is combined package evidence, not a full-host pass. After a controller-only lint cleanup, the affected focused and boundary checks pass. Scoped lint remains red with 430 existing findings; root lint retains its documented nested-module loading failure.
+
+Independent codex:gpt-6-sol:high review returned SHIP at 2026-10-03T11:19:37.270978Z with zero introduced findings and R16 met. R18/R19 full-spec and native linux/amd64 qualification remain open in task 21. Review is same-family with fresh context. See `handover.json`, `task-only.patch`, `source-pre.json`, `source-post.json`, `parent-source-verification.json` and `working-tree-review.json` in this task directory.
+
+Nothing was staged, committed or pushed; the user owns commits.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
+Tracker sync: n/a (bridge inactive)
 ## Evidence
 - Commits:
-- Tests:
+- Tests: Pinned patched Go, stock helper compiler, classic GC, test_dep: final controller focused gate exit0 0.305s; parent independent final TestSeedController gate exit0 0.296s, Final focused Runner gate exit0 8.341s (focused-final.log); TestRun selector exit0 45.838s before valid-kind lint simplification, GOFLAGS="-tags=test_dep -count=1" make -C tools/gomad3 test-host: exit2 retained, only unchanged execution watchdog test failed; Runner and other host packages passed, Same-source/environment go test -tags test_dep ./runner/internal/execution: exit0 68.311s; exact watchdog selector and complete family also pass, TestPackageArchitecture: exit0 1.375s (architecture-final.log); Runner vet and CLI build exit0, gofmt and git diff --check exit0; task-only patch reverse-check and final source hashes verified, Scoped Runner lint exit1: 430 existing findings retained, no introduced diagnostic identified; root lint limitation retained
 - PRs:

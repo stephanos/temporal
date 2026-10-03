@@ -1,0 +1,11 @@
+{
+  "cmd": [
+    "make",
+    "-C",
+    "tools/gomad3",
+    "runner"
+  ],
+  "exit": 0,
+  "seconds": 6.183,
+  "binary_sha256": "2897ef0c3f1f892b8ff49f52923f2c2d8e48ab88539b428c774a52db9daba311"
+}

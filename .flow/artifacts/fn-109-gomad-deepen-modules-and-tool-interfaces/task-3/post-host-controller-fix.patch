@@ -1,0 +1,29 @@
+diff --git a/tools/gomad3/runner/internal/campaign/controller.go b/tools/gomad3/runner/internal/campaign/controller.go
+--- a/tools/gomad3/runner/internal/campaign/controller.go
++++ b/tools/gomad3/runner/internal/campaign/controller.go
+@@ -115,19 +115,17 @@
+ 	if controller.active == 0 {
+ 		panic("gomad3: completed an inactive campaign attempt")
+ 	}
+-	if completion.Kind > CompletionFailure {
+-		panic("gomad3: invalid campaign completion")
+-	}
+ 	controller.active--
+ 	controller.statistics.Attempted++
+-	switch completion.Kind {
+-	case CompletionUnclassified:
+-		return false
+-	case CompletionSuccess:
++	if completion.Kind == CompletionSuccess {
+ 		controller.statistics.Succeeded++
+ 		return false
+-	case CompletionCancelled:
++	}
++	if completion.Kind == CompletionCancelled {
+ 		controller.statistics.Cancelled++
++		return false
++	}
++	if completion.Kind != CompletionFailure {
+ 		return false
+ 	}
+ 	controller.statistics.Failures++

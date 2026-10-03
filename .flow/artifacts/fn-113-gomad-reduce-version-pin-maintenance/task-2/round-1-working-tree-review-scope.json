@@ -1,0 +1,20 @@
+{
+  "task": "fn-113-gomad-reduce-version-pin-maintenance.2",
+  "base_commit": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+  "scope": "uncommitted working tree; nine source-bound files, not HEAD..HEAD committed diff",
+  "source_binding": {
+    "tools/gomad3/cmd/gomadtool/main.go": "sha256:3bb89de6bfafee381f89d978dacf5877bbcb4d41a9d7eda21e72e3d04a82cefa",
+    "tools/gomad3/cmd/gomadtool/adapter_regenerate.go": "sha256:9f93e3e72bf3f4edfe394e026c3b98ee1b15f4f160dc6ad93520f9ab6ccc359f",
+    "tools/gomad3/cmd/gomadtool/adapter_publication.go": "sha256:442baae60e77f6440062ac390f0245050794f55e059b41ca99b0c5e5e7a3cf6f",
+    "tools/gomad3/cmd/gomadtool/adapter_regenerate_test.go": "sha256:90c7f315f82396a4231085d238a4ad020365615e3602a7ec374ad0f0cf6e8486",
+    "tools/gomad3/deterministicio/adapter_regenerate.go": "sha256:28f1c25e8a373a25fe61e7d5165ac7c414f3561f37d26f90c109ab6ff31a2edc",
+    "tools/gomad3/deterministicio/adapter_regenerate_test.go": "sha256:2318ef8541433e230b44b5d0d283df811bdc4e809661c0119ed5438a3b01431e",
+    "tools/gomad3/deterministicio/adapter_rewrite.go": "sha256:6846c1a5e7e60775d91d3903fbd985cec9a0eaf10f874d84362c4673505a5438",
+    "tools/gomad3/deterministicio/grpc_adapter.go": "sha256:b96173ff9fb9e7b34f7923c173431ca83559963739545706a21d8a2d59783800",
+    "tools/gomad3/deterministicio/libc_adapter.go": "sha256:303ac6214a67563331d865f74a3292083a4ee450b7b12ca398dc8d59cd7da7e4"
+  },
+  "patch_sha256": "70c728a7842a0f198c504f229876da418536b3da4b8ad7129c71aefda06ed637",
+  "patch_bytes": 69467,
+  "required_commands_green": true,
+  "lint_note": "scoped nested lint reports only pre-existing findings outside changed adapter files; root lint result unretained/unknown"
+}

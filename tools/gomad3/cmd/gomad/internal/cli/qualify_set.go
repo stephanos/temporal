@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"os"
 
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	qualificationset "go.temporal.io/server/tools/gomad3/qualification/set"
@@ -19,8 +18,12 @@ type qualifySetDependencies struct {
 }
 
 func runQualifySet(arguments []string, stdout, stderr io.Writer) int {
+	return runQualifySetWithApplication(arguments, stdout, stderr, newApplication())
+}
+
+func runQualifySetWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
 	return runQualifySetWith(arguments, stdout, stderr, qualifySetDependencies{
-		executable: os.Executable, load: qualificationset.LoadManifest, run: qualificationset.Run,
+		executable: app.executable, load: qualificationset.LoadManifest, run: qualificationset.Run,
 	})
 }
 

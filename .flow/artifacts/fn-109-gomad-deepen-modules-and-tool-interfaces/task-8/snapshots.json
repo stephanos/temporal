@@ -1,0 +1,42 @@
+{
+  "analyze-text": {
+    "stdout": true,
+    "stderr": true,
+    "before_exit": 0,
+    "after_exit": 0
+  },
+  "analyze-json": {
+    "stdout": true,
+    "stderr": true,
+    "before_exit": 0,
+    "after_exit": 0
+  },
+  "unsupported": {
+    "stdout": true,
+    "stderr": true,
+    "before_exit": 1,
+    "after_exit": 1
+  },
+  "invalid-sum": {
+    "stdout": true,
+    "stderr": true,
+    "before_exit": 2,
+    "after_exit": 2
+  },
+  "missing": {
+    "stdout": true,
+    "stderr": true,
+    "before_exit": 2,
+    "after_exit": 2
+  },
+  "compatibility-pack": {
+    "stdout": true,
+    "stderr": true,
+    "before_exit": 0,
+    "after_exit": 0
+  },
+  "overlay-compatibility-pack": {
+    "stdout": true,
+    "stderr": true
+  }
+}

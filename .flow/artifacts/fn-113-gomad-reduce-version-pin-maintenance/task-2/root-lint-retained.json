@@ -1,0 +1,13 @@
+{
+  "command": [
+    "make",
+    "lint-code-fast",
+    "GOLANGCI_LINT_BASE_REV=origin/main"
+  ],
+  "cwd": "/Users/stephan/Workspace/temporal/gomad",
+  "exit_code": 2,
+  "elapsed_seconds": 78.471,
+  "log": "root-lint-retained.log",
+  "scope_note": "Root Makefile excludes nested-module paths from the patch; separate nested lint/vet evidence covers this change.",
+  "reason_for_run": "Previous root lint terminal result was not retained; this invocation establishes its actual result."
+}

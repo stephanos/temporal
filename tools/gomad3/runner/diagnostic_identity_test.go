@@ -26,18 +26,18 @@ func TestDiagnosticsOffPreservesExistingCanonicalIdentities(t *testing.T) {
 		}
 		t.Run(name, func(t *testing.T) {
 			preparer := newFakePreparer(t)
-			var executor Executor = &fakeExecutor{result: func(uint64) execution.Result { return processResult(1, "baseline output", "baseline failure") }}
+			var executor executionRunner = &fakeExecutor{result: func(uint64) execution.Result { return processResult(1, "baseline output", "baseline failure") }}
 			if traced {
 				executor = &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: 1 << 20, exitCode: 1}
 			}
 			capture := &diagnosticBaselineExecutor{delegate: executor}
-			config := testConfig(t, preparer, capture, "7", PolicyAll, 1)
+			config, configDependencies := testConfig(t, preparer, capture, "7", PolicyAll, 1)
 			capture.root = config.Artifacts
 			if traced {
 				config.ChoiceTraceLimit = 1 << 20
 			}
 			planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
-			planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath})
+			planned, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath}, configDependencies)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -45,7 +45,7 @@ func TestDiagnosticsOffPreservesExistingCanonicalIdentities(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			summary, err := Explore(context.Background(), config)
+			summary, err := exploreWith(context.Background(), config, configDependencies)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -80,14 +80,14 @@ func TestDiagnosticsOffPreservesExistingCanonicalIdentities(t *testing.T) {
 				t.Fatal(err)
 			}
 			if !bytes.Equal(expected, encoded) {
-				t.Fatalf("diagnostics-off canonical identities changed (%s)", name)
+				t.Fatalf("diagnostics-off canonical identities changed (%s): %s", name, encoded)
 			}
 		})
 	}
 }
 
 type diagnosticBaselineExecutor struct {
-	delegate Executor
+	delegate executionRunner
 	root     string
 	plan     []byte
 }

@@ -1,0 +1,14 @@
+{
+  "cmd": [
+    ".toolchain/bin/go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "./cmd/gomad/internal/cli",
+    "-run",
+    "TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure"
+  ],
+  "exit": 1,
+  "seconds": 0.168
+}

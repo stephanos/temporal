@@ -25,7 +25,7 @@ func TestRootProcessSimulationUsesRunnerTransport(t *testing.T) {
 	target := filepath.Join(t.TempDir(), "gomad3sim.test")
 	command := exec.CommandContext(context.Background(), filepath.Join(toolchainRoot, "bin", "go"), "test", "-c", "-trimpath", "-tags", "test_dep,gomad3_toolchain", "-o", target, "./tools/gomad3sim")
 	command.Dir = root
-	command.Env = append(filteredSimulationBuildEnvironment(os.Environ()), "CGO_ENABLED=0", "GOTOOLCHAIN=local", "GOWORK=off")
+	command.Env = append(filteredSimulationBuildEnvironment(os.Environ()), "CGO_ENABLED=0", "GOEXPERIMENT=nogreenteagc", "GOTOOLCHAIN=local", "GOWORK=off")
 	if output, buildErr := command.CombinedOutput(); buildErr != nil {
 		t.Fatalf("build root simulation target: %v: %s", buildErr, output)
 	}
@@ -109,7 +109,7 @@ func filteredSimulationBuildEnvironment(environment []string) []string {
 			continue
 		}
 		switch name {
-		case "CGO_ENABLED", "GOMADSEED", "GOMAD3_CHILD_SEED", "GOTOOLCHAIN", "GOWORK":
+		case "CGO_ENABLED", "GOEXPERIMENT", "GOMADSEED", "GOMAD3_CHILD_SEED", "GOTOOLCHAIN", "GOWORK":
 			continue
 		}
 		filtered = append(filtered, entry)

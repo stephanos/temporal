@@ -1,0 +1,21 @@
+{
+  "reason": "representative qualification stopped below existing 2 GiB free-space bound",
+  "active_build_preserved": "2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457",
+  "removed_rebuildable_go_caches": [
+    "tools/gomad3/.toolchain/builds/1c34ea0753ab3a38a18f69e9efb1f6593b54fb6c8adde6a4f8ec6790093f9179/target-cache",
+    "tools/gomad3/.toolchain/builds/1c34ea0753ab3a38a18f69e9efb1f6593b54fb6c8adde6a4f8ec6790093f9179/target-test-cache",
+    "tools/gomad3/.toolchain/builds/4a6e5b695ea538f0a56eb70874ff945693223b53d0fcee56cc555f89e1a9ac0e/target-cache",
+    "tools/gomad3/.toolchain/builds/4a6e5b695ea538f0a56eb70874ff945693223b53d0fcee56cc555f89e1a9ac0e/target-test-cache",
+    "tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/target-cache",
+    "tools/gomad3/.toolchain/builds/6b775117cc6b13d04c2d00926818e102edb540f8c74ece2794b5e6f3cd2c19ee/target-test-cache",
+    "tools/gomad3/.toolchain/builds/d15ad896e542b9f64381c2f184567355bac8ffd62ae2347501fe8fcdd96f6eba/target-cache",
+    "tools/gomad3/.toolchain/builds/d15ad896e542b9f64381c2f184567355bac8ffd62ae2347501fe8fcdd96f6eba/target-test-cache",
+    "tools/gomad3/.toolchain/builds/d49ef0309636e2301c46cfb36cda8a9b21323d87601c93c429260b3eefd4e37d/target-cache",
+    "tools/gomad3/.toolchain/builds/d49ef0309636e2301c46cfb36cda8a9b21323d87601c93c429260b3eefd4e37d/target-test-cache",
+    "tools/gomad3/.toolchain/builds/de7728ce162b470519f0e9de414216cb6ba5e132f4588955672cbe09edb7d678/target-cache",
+    "tools/gomad3/.toolchain/builds/f292ea6ac88dbffe5657d0a7dd4e7abe3c72e6b091b1494cfe315bdede03b088/target-cache",
+    "tools/gomad3/.toolchain/builds/f292ea6ac88dbffe5657d0a7dd4e7abe3c72e6b091b1494cfe315bdede03b088/target-test-cache",
+    "tools/gomad3/.toolchain/builds/f776b2417c9f7e8bc4ed14804e2455d0ada4d82bc30200964713dca19fd57ee3/target-cache"
+  ],
+  "preserved": "toolchains, prepared targets, campaigns, artifacts, and retained evidence"
+}

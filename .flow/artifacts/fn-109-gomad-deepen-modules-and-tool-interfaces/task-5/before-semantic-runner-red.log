@@ -1,0 +1,8 @@
+# go.temporal.io/server/tools/gomad3/runner [go.temporal.io/server/tools/gomad3/runner.test]
+runner/campaign_options_cli_test.go:29:12: undefined: NormalizeStrategy
+runner/campaign_options_cli_test.go:32:12: undefined: NormalizeCoverage
+runner/campaign_options_cli_test.go:35:12: undefined: NormalizeCoverage
+runner/campaign_options_cli_test.go:49:13: undefined: ValidateCoverage
+runner/campaign_options_cli_test.go:63:13: undefined: ValidateChoiceTraceLimit
+FAIL	go.temporal.io/server/tools/gomad3/runner [build failed]
+FAIL

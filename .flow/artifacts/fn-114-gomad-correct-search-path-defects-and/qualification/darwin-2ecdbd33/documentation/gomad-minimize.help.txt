@@ -1,0 +1,13 @@
+Usage of gomad minimize:
+  -artifacts string
+    	artifact root (default ".gomad/artifacts")
+  -attempt-budget uint
+    	maximum fresh-process minimization candidates (default 64)
+  -json
+    	emit stable JSON
+  -max-bytes value
+    	maximum minimized artifact bytes
+  -resume
+    	continue this artifact's interrupted minimization from its state under the artifact root
+  -toolchain-root string
+    	absolute pinned toolchain root

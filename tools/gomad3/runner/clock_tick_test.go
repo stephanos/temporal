@@ -17,7 +17,7 @@ func TestValidateConfigRecordsOnlyTheForwardClockTick(t *testing.T) {
 		{clockTick: record.ClockTickStrict, want: false},
 		{clockTick: record.ClockTickForward, want: true},
 	} {
-		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
+		config, _ := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
 		config.ClockTick = test.clockTick
 		_, environment, err := validateConfig(config)
 		if err != nil {
@@ -32,13 +32,13 @@ func TestValidateConfigRecordsOnlyTheForwardClockTick(t *testing.T) {
 		}
 	}
 
-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
+	config, _ := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
 	config.ClockTick = "sometimes"
 	if _, _, err := validateConfig(config); err == nil || !strings.Contains(err.Error(), "must be strict or forward") {
 		t.Fatalf("validateConfig(ClockTick=sometimes) error = %v", err)
 	}
 
-	config = testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
+	config, _ = testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
 	config.Environment = append(config.Environment, record.ClockTickEnvironment+"=forward")
 	if _, _, err := validateConfig(config); err == nil {
 		t.Fatal("validateConfig() accepted the clock tick policy as a target --env entry")

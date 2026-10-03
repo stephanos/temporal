@@ -1,0 +1,13 @@
+GOCACHE=/private/tmp/gomad-fn113-task4-sprig/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check
+GOCACHE=/private/tmp/gomad-fn113-task4-sprig/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate -check
+GOCACHE=/private/tmp/gomad-fn113-task4-sprig/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check
+GOCACHE=/private/tmp/gomad-fn113-task4-sprig/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests
+GOCACHE=/private/tmp/gomad-fn113-task4-sprig/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool patch-validate --root=/private/tmp/gomad-fn113-task4-sprig/tools/gomad3
+gomad3 patch and overlay inputs are valid
+GOCACHE=/private/tmp/gomad-fn113-task4-sprig/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool script-validate --root=/private/tmp/gomad-fn113-task4-sprig/tools/gomad3
+gomad3 script ownership is valid
+GOCACHE=/private/tmp/gomad-fn113-task4-sprig/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool compatibility-pack check --root=/private/tmp/gomad-fn113-task4-sprig/tools/gomad3
+compatibility packs are current
+GOCACHE=/private/tmp/gomad-fn113-task4-sprig/tools/gomad3/.toolchain/generator-cache go test -count=1 -tags test_dep -run '^TestHostPacksBindCurrentProfile$' ./internal/compatibilitypack
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack	0.271s
+GOCACHE=/private/tmp/gomad-fn113-task4-sprig/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool qualification-manifest-generate --root=/private/tmp/gomad-fn113-task4-sprig/tools/gomad3/../.. --spec=tools/gomad3integration/qualification/tests.generator.json --output=tools/gomad3integration/qualification/tests.json -check

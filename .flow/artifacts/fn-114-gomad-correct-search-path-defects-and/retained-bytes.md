@@ -97,5 +97,20 @@ arithmetic through the corpus selection.
 - A pruned set run. That pruning removes a pool entry once no retained artifact
   links to it is covered by
   `TestPruneQualifiedCampaignsRemovesASharedTargetOnlyWithItsLastArtifact` only.
-- The complete after number on the qualified candidate is task 14's, which
-  runs the set again after the runtime changes.
+- Native Linux measurements on the combined candidate remain unavailable.
+
+## Combined candidate measurement (2026-10-03)
+
+Darwin candidate `2ecdbd33` passes the unchanged representative manifest: 28/28
+workloads and 56 exact replays, with 112 unpruned artifacts. It retains
+1,154,449,408 bytes on disk (`du -skc`, each hard link once), 1,150,939,707
+distinct-file bytes, and 11,372,320,431 bytes counted as private targets. The
+14 pool entries total 826,265,068 bytes. The report sums 11,351,420,566
+per-artifact stored bytes; that field remains distinct from disk usage.
+
+The first attempt hit the unchanged 2 GiB free-space bound. Its four campaigns
+remain preserved and are excluded from this measurement by the successful
+retry start time. The retry changed no manifest or disposition.
+[Measurement and reproducible script](qualification/darwin-2ecdbd33/retained-measurement.json)
+and [qualification report](qualification/darwin-2ecdbd33/representative-qualification-set.json)
+bind the complete build key and source hashes. Native Linux is still unverified.

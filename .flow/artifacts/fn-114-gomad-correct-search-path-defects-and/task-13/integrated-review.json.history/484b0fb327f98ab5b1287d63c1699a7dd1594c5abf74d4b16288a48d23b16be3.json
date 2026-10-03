@@ -1,0 +1,51 @@
+{
+  "base": "HEAD",
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+    "headSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+          "headSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+          "path": "tools/gomad3/upgrade/pin_impact.go",
+          "side": "head",
+          "startLine": 75
+        },
+        "body": "`modfile.Parse` accepts a file with `go 1.27.1` but no `module` directive. `ReadPinImpact` checks the Go directive but never checks `parsed.Module`, so `pin-impact` can report that malformed candidate as unaffected and exit 0 when it is also used as the baseline. The task requires invalid input to exit 2.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-01d5d930153bdb9598005a715b9bc43354ee7a3fcbaf1a1d6a13649869b0d1eb",
+        "id": "finding-cea738bfb2ad04b53882688cce8383ff",
+        "lastSeenReceiptId": "review-01d5d930153bdb9598005a715b9bc43354ee7a3fcbaf1a1d6a13649869b0d1eb",
+        "ordinal": 1,
+        "rIds": [
+          "R2"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Reject a parsed file without a module directive as `InvalidPinImpactInput`, and cover the CLI exit status with a test.",
+        "title": "`modfile"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-01d5d930153bdb9598005a715b9bc43354ee7a3fcbaf1a1d6a13649869b0d1eb"
+  },
+  "focus": "Review the complete uncommitted batch against fn-114 task13 R9, fn-112 task16 retention, and fn-113 task1 R1/R2. Explicitly read all untracked new implementations/tests under tools/gomad3 (runtime_owned control fixture, retained_success_e2e_test.go, pin_impact.go and tests) plus git diff HEAD; untracked .flow evidence contains handovers and source bindings, not production code. Read each task acceptance and current sources. Include prepared fn-114 task14 documentation changes and the upstream-rebased qualification test manifest regeneration; no expectations or dispositions were weakened. Native Darwin validate, full test-host (all45packages), test-toolchain, test-runtime, overlay-test and scoped vet pass; root make lint-code-fast cannot load nested-module paths and is recorded as unavailable, not green. Inspect .flow/artifacts/fn-114-gomad-correct-search-path-defects-and/control-probe.md, task-13/runner-fixture-repair.md and integrated-test-host-green.log for test baseline repairs and controller compatibility evidence. Linux is unverified and fn-114 task14 is not complete. Review correctness, fairness, compatibility-preserving success collision publication and pin report/build agreement; do not run broad tests or mutate files. No commits or pushes authorized.",
+  "id": "branch",
+  "introduced_count": 1,
+  "mode": "codex",
+  "model": "gpt-6-sol",
+  "pre_existing_count": 0,
+  "review": "I\u2019ll read the uncommitted diff, the new files under `tools/gomad3`, the three task requirements, and the named evidence artifacts. I\u2019ll keep the review read-only and use the verdict format you specified.\nThe change spans three implementation areas: runtime queue filtering, retained success publication, and pin impact reporting. I found the task criteria and the recorded host test result; I\u2019m tracing each implementation against its callers and tests now.\nThe retained-success collision path looks consistent with the campaign reader, and the runtime queue change preserves head-of-queue progress in the traced path. I found one concrete pin-report mismatch: a version-scoped `replace` for an unused version is treated as active. I\u2019m checking whether it warrants a blocking finding and looking for any other report/build disagreement.\n## Finding\n\n- **Severity:** P2\n- **Confidence:** 100\n- **Classification:** introduced\n- **File:Line:** `tools/gomad3/upgrade/pin_impact.go:75`\n- **R-IDs:** `[fn-113 R2]`\n- **Problem:** `modfile.Parse` accepts a file with `go 1.27.1` but no `module` directive. `ReadPinImpact` checks the Go directive but never checks `parsed.Module`, so `pin-impact` can report that malformed candidate as unaffected and exit 0 when it is also used as the baseline. The task requires invalid input to exit 2.\n- **Suggestion:** Reject a parsed file without a module directive as `InvalidPinImpactInput`, and cover the CLI exit status with a test.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n| --- | --- | --- |\n| fn-114 R9 | met | The two-user control probe, before/after counts, fairness fixture, replay checks, and scheduling contract are present. |\n| fn-114 R12 | deferred | Task 14 qualification is unfinished; native Linux remains unverified. |\n| fn-112 R9 | met | The built-CLI retained-success test explores, inspects, and replays both distinct artifacts; the earlier coordinator recovery work is outside this batch. |\n| fn-113 R1 | met | The retained baseline records pin counts and per-bump steps. |\n| fn-113 R2 | partial | The report covers the tested pin changes, but accepts a malformed `go.mod`. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 1 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":1,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>NEEDS_WORK</verdict>",
+  "session_id": "01a1004f-d2e9-7901-b991-ed3b3bd1c1d9",
+  "spec": "codex:gpt-6-sol:high",
+  "timestamp": "2026-10-03T05:55:26.690416Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "NEEDS_WORK"
+}

@@ -1,0 +1,11 @@
+{
+  ".plans/GOMAD_NEXT.md": "2b0d19eb13078151f31b666e95880039bd96b899ea3e8b329f751a5729021fbd",
+  "MILESTONES.md": "2ce3163adda71719b76dd7717c3fc23333f21a49df44314f63b8d6283c6cfcad",
+  "tools/gomad3/ARCHITECTURE.md": "847cc9f465da8e2436e8eb18aba30bc550de3e25db4fbf32c4281dc52487f9a8",
+  "tools/gomad3/CLI.md": "2eedd0b71560de77e714b8bc5119bde9c1fcd8e5eeba10984d6cc4bb279c423d",
+  "tools/gomad3/README.md": "258b83f544eaa21121bddfe02a63e242cbb6a0a5feb7342f468d84302007d571",
+  "tools/gomad3/SPEC.md": "43bd4d6c19670346bf6707d7e14aea8a9ed8382c59e4c30f0834e555e0da5fbe",
+  "tools/gomad3/deterministicio/boundary/upgrade-go1.27.1.md": "3d732433e7fdd1bf9c7350fe2655f5c33a7f1167e2b28260038cd3afe0f65f5a",
+  "tools/gomad3/toolchain/version/descriptor.go": "6ad4f3af73ee5903f1bf1e76645d008fbe10bc4ae5765dcf585628b4a53251f0",
+  "tools/gomad3/toolchain/version/descriptor_test.go": "e1fe658d1cdd439b20dbe074430b9e2ad8cd9e439f3b0f12f4fd53573abf413c"
+}

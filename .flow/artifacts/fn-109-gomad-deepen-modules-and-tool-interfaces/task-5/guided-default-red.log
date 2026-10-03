@@ -1,0 +1,5 @@
+--- FAIL: TestCampaignOptionNormalizationAndValidation (0.00s)
+    campaign_options_cli_test.go:39: Runner changed absent guided coverage to "semantic"
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner	0.425s
+FAIL

@@ -1,0 +1,6 @@
+=== RUN   TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure
+    cli_test.go:943: status=3 stdout=""
+--- FAIL: TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	0.451s
+FAIL

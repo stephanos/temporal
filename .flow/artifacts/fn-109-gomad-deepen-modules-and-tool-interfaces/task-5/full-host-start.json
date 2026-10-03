@@ -1,0 +1,12 @@
+{
+  "cmd": [
+    "make",
+    "-C",
+    "tools/gomad3",
+    "test-host"
+  ],
+  "pid": 66049,
+  "utc": "2026-10-03T12:17:04.163680+00:00",
+  "source_freeze_sha256": "c9a4b081cf7360d708685efc6d7e81b861fbce65f57bcb62c5a3b1d6ae5b823e",
+  "log": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/full-host.log"
+}

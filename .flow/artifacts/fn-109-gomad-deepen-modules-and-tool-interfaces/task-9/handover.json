@@ -1,0 +1,97 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.9",
+  "status": "frozen for parent review",
+  "commits": [],
+  "prs": [],
+  "source_freeze": "source-freeze.json",
+  "preimage": "preimage.json",
+  "patch": "task-only.patch",
+  "module_patch": "task-only-module.patch",
+  "prepared_fixture_sha256": "38a95c0b980a833394276d49caabec7e1f46b67fbcb6bb03902916461bc76994",
+  "old_new_prepared_equal": true,
+  "prepared_projection_sha256": "56047e5fc6978eb16f778020bd8a92aa4d2bb196790c8325cc0fb5866f2b6916",
+  "toolchain_build_key": "2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457",
+  "cli_sha256": "ee1dedd767dcc4f63fc860e782bbc2027e9b0e77de08d9fd0768e797c147c06b",
+  "full_host_ok_packages": 46,
+  "commands": {
+    "baseline-target": {
+      "exit": 0,
+      "duration_seconds": 23.553540208013146,
+      "log": "baseline-target.log"
+    },
+    "baseline-preparation": {
+      "exit": 0,
+      "duration_seconds": 14.375474250002299,
+      "log": "baseline-preparation.log"
+    },
+    "baseline-overlap": {
+      "exit": 0,
+      "duration_seconds": 159.2874312079948,
+      "log": "baseline-overlap.log"
+    },
+    "baseline-live-capability": {
+      "exit": 0,
+      "duration_seconds": 14.383449665998342,
+      "log": "baseline-live-capability.log"
+    },
+    "adapter-red": {
+      "exit": 1,
+      "duration_seconds": 0.3910387080104556,
+      "log": "adapter-red.log"
+    },
+    "old-prepared-receipt": {
+      "exit": 0,
+      "duration_seconds": 1.6358015419973526
+    },
+    "new-prepared-receipt": {
+      "exit": 0,
+      "duration_seconds": 0.6766677080013324
+    },
+    "final-target": {
+      "exit": 0,
+      "duration_seconds": 38.25929154100595,
+      "log": "final-target.log"
+    },
+    "final-preparation": {
+      "exit": 0,
+      "duration_seconds": 15.100797999999486,
+      "log": "final-preparation.log"
+    },
+    "final-architecture": {
+      "exit": 0,
+      "duration_seconds": 5.1561960830003954,
+      "log": "final-architecture.log"
+    },
+    "final-vet": {
+      "exit": 0,
+      "duration_seconds": 0.19078445799823385,
+      "log": "final-vet.log"
+    },
+    "final-lint": {
+      "exit": 0,
+      "duration_seconds": 1.8747192919981899,
+      "log": "final-lint.log"
+    },
+    "final-live-capability": {
+      "exit": 0,
+      "duration_seconds": 20.17303466699377,
+      "log": "final-live-capability.log"
+    },
+    "cli-build": {
+      "exit": 0,
+      "duration_seconds": 5.0763593330048025,
+      "log": "cli-build.log"
+    },
+    "cli-smoke": {
+      "exit": 0,
+      "duration_seconds": 0.8619126669946127,
+      "log": "cli-smoke.log"
+    },
+    "final-full-host": {
+      "exit": 0,
+      "duration_seconds": 238.54255179200845,
+      "log": "final-full-host.log"
+    }
+  },
+  "linux_native_gate": "not run on darwin/arm64; task21 remains incomplete"
+}

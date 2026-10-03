@@ -1,0 +1,13 @@
+fn-112-gomad-determinism-assurance-and-test.16 — implementation ready for integrated gates
+
+The finding is confirmed with the built CLI on native darwin/arm64. A target using fmt.Println("same output") and seeds 1–2 with --keep-successes=all reported two successes at one artifact path; inspect rejected its published campaign because the second execution's seed did not match that artifact. The retained baseline is real-cli-fmt; reachability-fmt.jsonl and inspect-before.txt capture the result. The initial println-only probe failed for absent I/O terminal and is separately retained without being used as collision evidence.
+
+Store publication now preserves the existing outcome-signature key for a noncolliding success. When another successful execution has that signature and a different full record hash, it falls back to the record-hash key. Existing artifacts are opened and closed before retrying the existing atomic no-replace publication loop. Repeated publication of either record returns its original artifact; failures continue deduplicating by their signature. No recorded format or hash projection changed. All existing comments are preserved.
+
+Changes: artifact/store.go; artifact/store_test.go; runner/retention_test.go; cmd/gomad/retained_success_e2e_test.go. The last file uses the existing built-CLI harness, which lives outside the task's literal internal/cli Touches declaration; the parent was informed and owns task-description reconciliation.
+
+red.log captures both regression failures before the fix. green.log and focused-final.log capture passing focused tests. Artifact tests pin the pre-change first artifact path sha256-8804bc935588b0e0ac9fd7f890e4da67, record hash sha256:27c9b74965e1b7cb30ef6f914b8f028eda0072216f5df3794bd84f8536db5f9d, and signature sha256:8804bc935588b0e0ac9fd7f890e4da6718d567133466c52672ce1b11e9b454be; three seeds with that signature retain three artifacts and retry idempotently. Runner tests check OpenCampaign, execution seeds, matching disk and journal counts, and byte totals. The built-CLI test explores and inspects a two-seed campaign then replays both successes.
+
+real-cli-fixed retains the repaired CLI run, reachability-fixed.jsonl its events, inspect-after.json the accepted campaign, cli-comparison.json the seed/hash comparison, and replay-seed-1.txt/replay-seed-2.txt the reproduced=true results. Both actual artifacts have one outcome signature and different execution-record hashes. The first artifact's signature path is unchanged from the original run.
+
+Task remains in_progress. No staging, commits, pushing, or done marking. Parent owns full test-host, validate, lint, independent review, and task completion on the frozen batch. Source is frozen pending those findings.

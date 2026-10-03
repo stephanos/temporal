@@ -193,6 +193,8 @@ tools/gomad3/.bin/gomad explore \
 
 The strategy requires one base seed and explicit positive bounds. It implies choice recording and does not combine with `--count` or guided exploration.
 
+`--choice-start-ordinal=N` expands only replay-plan decisions at ordinal N or later, while retaining earlier decisions in each forced prefix. The default is 0. Find the ordinals with `inspect --choices`; resume restores the recorded start ordinal. Using this flag with seed or Combined Exploration is invalid input. Select polls with fewer than two ready cases are recorded but do not expand the Frontier; results report their omitted alternatives separately.
+
 For a Gomad simulation target, Combined Exploration coordinates runtime, scenario, network, storage, fault, and crash-state alternatives through `--strategy=simulation-exploration`. Every dimension is explicit so “complete” always means complete within the declared bounds:
 
 ```sh
@@ -260,6 +262,8 @@ tools/gomad3/.bin/gomad minimize \
 ```
 
 `minimize` tries bounded candidates in fresh processes. It accepts a reduction only when the normalized failure, outcome, runtime choices, and simulation replay remain exact. The original Artifact stays immutable; the result records its parent and every accepted reduction. This command is currently specific to supported combined-simulation target failures, not a general-purpose test reducer.
+
+To continue an interrupted minimization, repeat the command with `--resume`, the same parent Artifact, `--artifacts` root, and bounds. The parent has its own persisted checkpoint under that root, including attempt order, consumed budget, accepted reductions, and replay evidence. Missing or corrupt state, changed identities or bounds, and concurrent writers are refused; resume does not reset the attempt budget.
 
 ## Step 5: turn a reproduction into a support claim
 
@@ -492,6 +496,36 @@ The ordinary repository entry point remains `make gomad3`; direct maintainer com
 
 A compatibility pack is not handwritten policy dropped into the tree. It moves through a reviewable workflow. Starting from a draft request below the compatibility directory, discover the exact source facts:
 
+For an exact dependency bump, first compare candidate and saved baseline
+`go.mod` files, each with an adjacent `go.sum`:
+
+```sh
+go -C tools/gomad3 run ./cmd/gomadtool pin-impact --root=. \
+  --baseline=/absolute/baseline/go.mod --candidate=/absolute/candidate/go.mod \
+  --format=json > pin-impact.json
+```
+
+Status 1 means an invalidated or unknown pin. Review the adapter and pack-rule
+entries before making changes. For each affected adapter, inspect the dry-run
+source diff and exact anchor proposal, then explicitly approve its digest:
+
+```sh
+go -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate --root=. \
+  --module=<module-path> --version=<exact-version>
+go -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate --root=. \
+  --module=<module-path> --version=<exact-version> --approve=sha256:<reviewed-digest>
+go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack refresh --root=. \
+  --impact-report=/absolute/path/to/pin-impact.json
+```
+
+Refresh discovers and renders fresh reviews for mapped affected requests on
+the current host. It stops before approval and reports other-platform requests
+without changing them. Review each changed report, then use the per-request
+`compatibility-pack generate --approve-review` command below. Repeat refresh
+and qualification on each supported host; a prior digest does not approve new
+evidence. The [README](README.md#compatibility-pack-development) gives the
+complete dependency-bump procedure.
+
 ```sh
 go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack discover \
   --root=. \
@@ -621,10 +655,13 @@ If the reviewed boundary changed intentionally, review its reported digest and r
 | `patch-materialize` | Apply the reviewed patch to a verified source tree. |
 | `patch-regenerate` | Recreate the patch from a reviewed candidate tree. |
 | `version-generate` | Generate or check release-descriptor consumers. |
+| `pin-impact` | Report invalidated or unknown exact pins for a dependency candidate. |
+| `adapter-regenerate` | Review and approve exact adapter anchors for a new module version. |
 | `protocol-generate` | Generate or check cross-process protocol endpoints and tests. |
 | `qualification-manifest-generate` | Generate or check qualification workloads from a package's top-level tests and declared dispositions. |
 | `boundary-generate` | Discover, qualify, generate, refresh, or check the capability boundary. |
 | `compatibility-pack` | Discover, review, generate from exact approval, qualify, and check compatibility packs. |
+| `compatibility-pack refresh` | Discover and review affected mapped requests without approving them. |
 | `script-validate` | Enforce the reviewed script ownership and policy boundary. |
 | `checked-run` | Run and record one bounded external command with expected status. |
 | `diagnostic-diff` | Compare complete runtime diagnostic traces and locate the first divergence. |

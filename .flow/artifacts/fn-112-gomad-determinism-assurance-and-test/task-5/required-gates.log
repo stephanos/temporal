@@ -1,0 +1,21 @@
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool patch-validate --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 patch and overlay inputs are valid
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool script-validate --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 script ownership is valid
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool compatibility-pack check --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+compatibility packs are current
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go test -count=1 -tags test_dep -run '^TestHostPacksBindCurrentProfile$' ./internal/compatibilitypack
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack	0.304s
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool qualification-manifest-generate --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/../.. --spec=tools/gomad3integration/qualification/tests.generator.json --output=tools/gomad3integration/qualification/tests.json -check
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache GOTOOLCHAIN=local GOWORK=off \
+		go run ./cmd/gomadtool toolchain-build --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 toolchain is ready (darwin/arm64, key 2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457)
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep ./toolchain
+ok  	go.temporal.io/server/tools/gomad3/toolchain	7.470s
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \
+		--root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3 --mode=test-runtime --go=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go
+gomad3 runtime tier passed

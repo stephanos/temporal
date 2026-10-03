@@ -1,0 +1,5 @@
+ok  	go.temporal.io/server/tools/gomad3/internal/preparation	8.160s
+ok  	go.temporal.io/server/tools/gomad3/qualification/analysis	14.615s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad	51.941s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	2.174s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	2.107s

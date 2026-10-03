@@ -22,6 +22,7 @@ const maximumQualificationRepeats = 32
 
 type qualifyDependencies struct {
 	identity         func(string) (string, string, string, error)
+	commands         func(string) privateCommands
 	workingDirectory func() (string, error)
 	workload         func(context.Context, qualificationworkload.Spec) (qualificationworkload.Result, error)
 	run              func(context.Context, runner.CampaignSpec) (runner.CampaignResult, error)
@@ -36,8 +37,12 @@ type qualifyReporter struct {
 }
 
 func runQualify(arguments []string, stdout, stderr io.Writer) int {
+	return runQualifyWithApplication(arguments, stdout, stderr, newApplication())
+}
+
+func runQualifyWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
 	return runQualifyWith(arguments, stdout, stderr, qualifyDependencies{
-		identity: localIdentity, workingDirectory: os.Getwd, workload: qualificationworkload.Run,
+		identity: app.identity, commands: app.commands, workingDirectory: os.Getwd, workload: qualificationworkload.Run,
 	})
 }
 
@@ -137,12 +142,17 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 		return reportQualifyUnretainedError(reporter, stderr, "runner_failure", err, 3)
 	}
 	command := append([]string{"gomad", "qualify"}, arguments...)
+	commandsFor := dependencies.commands
+	if commandsFor == nil {
+		commandsFor = privateCommandsFor
+	}
+	commands := commandsFor(executable)
 	config := runner.CampaignSpec{
 		Seeds: strconv.FormatUint(*seed, 10), Parallel: 1, ExecutionTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
 		OnFailure: runner.PolicyAll, FailureBudget: 1, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
 		Diagnostics: *diagnostics, ChoiceTraceLimit: resolvedChoiceLimit, ClockTick: *clockTick, IOTranscriptLimit: uint64(transcriptLimit),
 		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts,
-		SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
+		SupervisorCommand: commands.supervisor, CoordinatorCommand: commands.coordinator, RunnerBuild: runnerBuild,
 		Coverage: coverage, RequiredSemanticProbes: requiredSemanticProbes, CollectExecutionEvidence: true,
 		Target: target.Spec{
 			Kind: parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
@@ -162,7 +172,7 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	}
 	result, err := runWorkload(ctx, qualificationworkload.Spec{
 		Command: command, Seed: *seed, Repeat: *repeat, ArtifactRoot: *artifacts, Campaign: config,
-		Replay:          runner.ReplaySpec{ToolchainRoot: toolchain, SupervisorCommand: []string{executable, "__supervisor"}},
+		Replay:          runner.ReplaySpec{ToolchainRoot: toolchain, SupervisorCommand: commands.supervisor},
 		ReplaySuccesses: *replaySuccesses,
 		Progress: func(event qualificationworkload.Progress) error {
 			return reporter.Progress(event.Iteration, event.Repeat)

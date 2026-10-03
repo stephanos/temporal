@@ -1,0 +1,5 @@
+Usage of gomadtool compatibility-pack refresh:
+  -impact-report string
+    	pin-impact JSON report for the bumped checkout
+  -root string
+    	Gomad v3 module root

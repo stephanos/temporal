@@ -13,11 +13,16 @@ import (
 
 type resumeDependencies struct {
 	identity func(string) (string, string, string, error)
+	commands func(string) privateCommands
 	run      func(context.Context, runner.ResumeSpec) (runner.CampaignResult, error)
 }
 
 func runResume(arguments []string, stdout, stderr io.Writer) int {
-	return runResumeWith(arguments, stdout, stderr, resumeDependencies{identity: localIdentity, run: runner.Resume})
+	return runResumeWithApplication(arguments, stdout, stderr, newApplication())
+}
+
+func runResumeWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
+	return runResumeWith(arguments, stdout, stderr, resumeDependencies{identity: app.identity, commands: app.commands, run: runner.Resume})
 }
 
 func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies resumeDependencies) int {
@@ -59,9 +64,14 @@ func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies re
 			regressionOverride = guideRegression
 		}
 	})
+	commandsFor := dependencies.commands
+	if commandsFor == nil {
+		commandsFor = privateCommandsFor
+	}
+	commands := commandsFor(executable)
 	summary, err := dependencies.run(context.Background(), runner.ResumeSpec{
 		CampaignPath: flags.Arg(0), GuideRegression: regressionOverride, RunnerBuild: runnerBuild, ToolchainRoot: toolchain,
-		SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"},
+		SupervisorCommand: commands.supervisor, CoordinatorCommand: commands.coordinator,
 		Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
 	})
 	if err != nil {

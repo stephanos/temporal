@@ -1,0 +1,31 @@
+--- a/tools/gomad3/runner/retention_test.go
++++ b/tools/gomad3/runner/retention_test.go
+@@ -64,7 +64,7 @@
+ 			config := CampaignSpec{KeepSuccesses: test.policy, SuccessArtifactLimit: 3, SuccessBytesLimit: 100}
+ 			assessed := completedExecution{coverage: deterministicio.SemanticCoverage{Probes: test.probes}, choiceFeatures: test.choices}
+ 			seenProbes, seenChoices := map[string]struct{}{"seen": {}, "seen probe": {}}, map[string]struct{}{"seen": {}, "seen choice": {}}
+-			decision, hostError := decideSuccessRetention(config, assessed, !test.incomplete, seenProbes, seenChoices, test.retained, test.retainedBytes)
++			decision, hostError := decideSuccessRetention(campaignRequestFromSpec(config), assessed, !test.incomplete, seenProbes, seenChoices, test.retained, test.retainedBytes)
+ 			failure := ""
+ 			if hostError != nil {
+ 				failure = hostError.Reason + ": " + hostError.Err.Error()
+--- a/tools/gomad3/runner/runner_test.go
++++ b/tools/gomad3/runner/runner_test.go
+@@ -657,7 +657,7 @@
+ 	storedBytes := uint64(5)
+ 	storeRoot := t.TempDir()
+ 	_, err := publishBoundedFailureArtifact(
+-		context.Background(), config, storeRoot, record.HashBytes([]byte("new")), distinct, &storedBytes, artifact.ArtifactInput{},
++		context.Background(), campaignRequestFromSpec(config), storeRoot, record.HashBytes([]byte("new")), distinct, &storedBytes, artifact.ArtifactInput{},
+ 	)
+ 	var capacityErr *campaign.ArtifactCapacityError
+ 	if !errors.As(err, &capacityErr) || capacityErr.Limit != campaign.ArtifactLimitFailureCount || capacityErr.Outcome != campaign.CapacityInfrastructureFailure {
+@@ -1755,7 +1755,7 @@
+ func TestManifestForRunBindsIOProfileIdentity(t *testing.T) {
+ 	preparer := newFakePreparer(t)
+ 	config := testConfig(t, preparer, &fakeExecutor{}, "1", PolicyFirst, 1)
+-	manifest, err := manifestForRun(config, preparer.prepared, nil, runCompletion{
++	manifest, err := manifestForRun(campaignRequestFromSpec(config), preparer.prepared, nil, runCompletion{
+ 		job: runJob{seed: 1}, startedAt: time.Unix(1, 0), finishedAt: time.Unix(2, 0), result: processResult(1, "", ""),
+ 	}, execution.Classification{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact}, "run", record.World{}, nil)
+ 	if err != nil {

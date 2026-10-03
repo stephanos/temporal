@@ -1,0 +1,327 @@
+[
+  {
+    "path": "tools/gomad3/runner/campaign.go",
+    "sha256": "f76d2c59da4fc899587c5ef4f048cecdde608589cd332dd85d0ee149a93d83e9",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/campaign_merge.go",
+    "sha256": "aaf6e2a54680d5608a9c60e32e1c5fde0fa0f82df62522881f348159a97fc298",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/campaign_options.go",
+    "sha256": "0d645d15651f0caad56a48175ce59c72bd0d37bb04431c1415ec1fe69a8020fb",
+    "tracked": false
+  },
+  {
+    "path": "tools/gomad3/runner/campaign_options_characterization_test.go",
+    "sha256": "6d6e90c1c3cd22eabeaf6a92f6b1d90e38abd7d9ed8fb2005f9f2f287fd3b429",
+    "tracked": false
+  },
+  {
+    "path": "tools/gomad3/runner/campaign_options_cli_test.go",
+    "sha256": "b452e842616ee8719094c78ecb1c3ccd792222a53c63e2646187cabb295b6654",
+    "tracked": false
+  },
+  {
+    "path": "tools/gomad3/runner/campaign_plan.go",
+    "sha256": "d070a376f86f0202b18b44fbe009f2a7294a52c697e161c593da5ec34fd448f3",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/campaign_shard.go",
+    "sha256": "58145b86c54f67a721ed6a380cdb526b1672180926552c2e111ef6b5bd81d5b5",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/campaign_shard_execution.go",
+    "sha256": "ccab0448e04bdd7ea296b33a1fa862d4f1a1225e1f578d7d75e60eea5c022434",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/campaign_shard_test.go",
+    "sha256": "9a1f90864f5bc0b80f15b18cf7518c9c1979b8ae4bc863883940a2f358e4e393",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/campaign_test.go",
+    "sha256": "f34a5e236c0f880e4fb9e4e2339f985c5c98f054d523531a1ce136bc1743f885",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/choice_exploration_campaign.go",
+    "sha256": "97ccab042a548067377f3e751a82b8ccf4026f45d102b673e3224085e3af6958",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/choice_exploration_divergence_test.go",
+    "sha256": "741432e6aec336de45616880938749cd3c136a664824abe1740a2f251aaa5c6a",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/choice_exploration_divergence_unix_test.go",
+    "sha256": "5306e95fe3f6a28a9bb577496af959672b3490238561e18501d785a4cb860690",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/clock_tick_test.go",
+    "sha256": "86a5d832ccb421e9c0547c97914d94950408b77dc09f046bd86bb7e6f16a612e",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/completion.go",
+    "sha256": "c2affbd7be5a16e010a50b09f6bedf3541320aced1be020eb4c42825e88045d5",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/completion_characterization_test.go",
+    "sha256": "16b5703ecb2b0372e0d769b1adcf88a564c613cc6cc0e8626cfe83e2363827f9",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/completion_test.go",
+    "sha256": "eeda8706c88f8331d208f4e266d8b7e731d85357e467700a4b7f6d27c06fc63f",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/coordinator.go",
+    "sha256": "63628a21f6a6e40cad27aca3a969bc020b7bbad293bb6884d1c182f593582b2c",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/coordinator_process_other.go",
+    "sha256": "5c70ccb4f8b9470579f56762a46395933d645e6a6ba11dbee519edbccb38fc49",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/coordinator_process_unix.go",
+    "sha256": "679b0bfbfe0727bc8e7e5447c1df80eec874239a1033f37f88b22333dbeabddd",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/coordinator_process_unix_test.go",
+    "sha256": "0979499eb2595a6b034f8fd391486a5913a70d63a213a0e9028292429cea9e05",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/coordinator_test.go",
+    "sha256": "95813ebca2f7292b0960cfa99b86fe3da102dbc4c59150a8f0c86a3540c52101",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/coordinator_transport_test.go",
+    "sha256": "9a26fae76be28b3e08792f514d39297a20c777ac3d4a46463c297ea0bd6b3c64",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/coverage.go",
+    "sha256": "32bd0bf278377d8bb6d1c0586aea25c82bcbc4d9250db1e15d086af75c3b2202",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/coverage_replay_test.go",
+    "sha256": "29a907521acc1b89ca2d51bd0dcdb0a17eee0870863133453f6daaf444b4c246",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/coverage_watchdog_test.go",
+    "sha256": "883250548acca986514cb1cd0acd89d57a1f1e5bca66b0d518738ffc4510c99c",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/deterministicio.go",
+    "sha256": "740b9d19a36436a823289eb9c3b78283afe09ea4e4482bea050513478fbe6697",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/diagnostic_identity_test.go",
+    "sha256": "4d8e53c7d5400dde2d6a7ceeff28bd4de2342d08ae0609fc08b83ea2d2d62698",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/diagnostics.go",
+    "sha256": "f07431ec3cdf4799c65d286b3fe72d93c0560885b734982ff3e05679722d0e29",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/diagnostics_test.go",
+    "sha256": "ef874640a4414f6fcdd039286465de8890a1fc87a9bcde0ced267c69c64cd976",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/environment_integration_test.go",
+    "sha256": "955b585ea0acab4517ae5915435d4328edc98df587405eb863cdcfc1f8c6fb2b",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/errors.go",
+    "sha256": "fc97dee9f8f44551482f4f8a0d66d24224acd5538f28a17c4bca4d3c529eb243",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/errors_test.go",
+    "sha256": "86ca60e635b1e1d61119b35fb4775b687ff21ac653eb7275af0554a0073f3427",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/evidence.go",
+    "sha256": "05d6b71e29fe8eb3fba4100f74584a16241e6dbd7d4343dd4ce12366a53a3fe4",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/exploration_round.go",
+    "sha256": "92c49176f1a97eb8253eca0706953d925bb4cf921c92ea953d2887c9914845b0",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/exploration_round_test.go",
+    "sha256": "7e29e1ad2f822c6840dc601b9e4b250a498a2c5a5d60bbb568474ef12018fb73",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/guidance.go",
+    "sha256": "35394f9e810dd38a31cc24fac2086b83c5cf107aece7d70dd649208a6b5c081c",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/guidance_identity_test.go",
+    "sha256": "b76ed42750b8ffae3fec12a23a36478e98065d84f06cd72604d3db638aaca0ef",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/guided_selection_test.go",
+    "sha256": "dcc1b118e3d4825f3111c331eefe4778a1bf7a25f41eed9c437a0a788cc633e1",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/inspect.go",
+    "sha256": "9846f6a61acc2b605d28ca93286e81d3ddca3d23c4505b65b5be38d2e0b98043",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/inspect_test.go",
+    "sha256": "e5b502398e5f4287774ae21ee75a14079484b0329a9643bdafcd112876f4abea",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/minimize_operation.go",
+    "sha256": "967b6671bbb0f28ce21a1178b68fe0c9cc9743796dcdc302d6ea4ba4cdd827d6",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/minimize_operation_test.go",
+    "sha256": "0bed2f53bbb09cedb0d9f5aa868f50845fdcd37d9c50c6ffe2c4d20c49ce7a29",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/portable_plan.go",
+    "sha256": "b34f1216f8b11109bae496012b437eb3471d881b9a0e427094764a92bb90e7c2",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/portable_plan_mounts.go",
+    "sha256": "225b36fed673a8ce2a7ba3c09b8253c3bad26d2b59e09d9b2fe0614b05861cac",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/portable_plan_test.go",
+    "sha256": "5dfb87425c9c31245a296356686740f76c5added82134307de8820751fd9c185",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/private.go",
+    "sha256": "481a186f7210bbddd671f8460339424604cd80f86e7e4802f6a6a14faaa87f1b",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/recovery.go",
+    "sha256": "d1ecbbc4f87ff7dfe70ffb1ac6d86e4d7a9aa210545ade0201fcb9377316b52c",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/replay_io_integration_test.go",
+    "sha256": "6e139aaadfd9e061fad14314128b16e465bdedee74656d453cd683e535da29e9",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/replay_operation.go",
+    "sha256": "eb774c01b4bd574f36c7f1bb168791dd1e1b03ddbf4a6e2c350679561a935216",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/replay_operation_test.go",
+    "sha256": "4ad38b00661b1ce2e6a8ea3ba6e094afc8be57ff506284a596516dc7f502fbb0",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/resume.go",
+    "sha256": "6dde547f4cd9f3f9439c812d143477ab3cdd47d232753b14bf75042385ae28e5",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/retention.go",
+    "sha256": "3ed085af90aa61a0360c0c8147708a81b95a4e62a059f3102e0e547fdbbb1f6d",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/retention_characterization_test.go",
+    "sha256": "24dbf99499e4c6a84c64ef6e3dd23cccb2c326604fe2c4f583e7c194462c4aef",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/retention_test.go",
+    "sha256": "76e634f98998d8479c38daaa38249906bdc514451b6d4e205183bd470e7738a7",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/runner.go",
+    "sha256": "139d10b1966e5bcefb08928e5424cde06a0301f67ec8d09b8905de7e347c3a78",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/runner_mode_unix_test.go",
+    "sha256": "acf0533078a74b6d86f20347ededd0e71d8ed6962b51ea1d061ed2384f20c73b",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/runner_test.go",
+    "sha256": "e66828ed56f98a0776ef5573660c57ec85157dbba7082dd4d34faecb7bfed519",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/seed_completion_characterization_test.go",
+    "sha256": "f6118cfcb23a456ac456e442ba1a7c86d6d23da247d0d4d8ff7d27a1a013ebed",
+    "tracked": false
+  },
+  {
+    "path": "tools/gomad3/runner/seeds.go",
+    "sha256": "d50c3232253fb5a1471669df47d61d39ab96e26d74ca271b60abe69b78c15c79",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/seeds_test.go",
+    "sha256": "f76599719cad68745d1a414f5851e99e4ac0388ab230abab65b85fcd903a7ba4",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/simulation_exploration_campaign.go",
+    "sha256": "c8b5234386bdb01a5059fd3afe06e158df50bc27a66404a59522fc5c5a30c6d7",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/simulation_exploration_plan_test.go",
+    "sha256": "c9a2db776d1691b4d7cac85df80e67cc0dff5a4bdae4a99bba71bfab89a3efa0",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/runner/watchdog_replay_test.go",
+    "sha256": "f7f99f33e21e45e35675c1a4eaa9e861c62e1fbe0c9649c9c8c41b4da7cd9c14",
+    "tracked": true
+  },
+  {
+    "path": "tools/gomad3/architecture_test.go",
+    "sha256": "154fa61b7d23cff5b31f44728e3ff3aff89648593cacaa649439bc3195e52630",
+    "tracked": true
+  }
+]

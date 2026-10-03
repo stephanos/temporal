@@ -1,0 +1,11 @@
+darwin/arm64 reflect2-go126 ../..
+darwin/arm64 modernc-libc-xsys-v047 qualification/corpus
+darwin/arm64 modernc-libc-xsys-v047-isatty-v021 ../..
+darwin/arm64 temporal-functional-compute-darwin-arm64 ../..
+darwin/arm64 temporal-functional-tests-darwin-arm64 ../..
+darwin/arm64 temporal-leaf-xsys-darwin-arm64 ../..
+darwin/arm64 temporal-leaf-xxhash-darwin-arm64 ../..
+darwin/arm64 golang-x-sys-v047-darwin-arm64 internal/compatibilitypack/testdata/xsys
+linux/amd64 modernc-libc-xsys-v047-linux-amd64 qualification/corpus
+linux/amd64 temporal-functional-compute-linux-amd64 ../..
+linux/amd64 temporal-functional-tests-linux-amd64 ../..

@@ -1,0 +1,16 @@
+Makefile: OK
+tools/gomad3/Makefile: OK
+tools/gomad3/choice/internal/wire/wire_generated.go: OK
+tools/gomad3/internal/gomadtool/conformance/runtime_campaign.go: OK
+tools/gomad3/internal/gomadtool/conformance/runtime_test.go: OK
+tools/gomad3/runner/internal/execution/diagnostics_toolchain_test.go: OK
+tools/gomad3/runner/internal/execution/simulation_root_integration_test.go: OK
+tools/gomad3/target/internal/livecap/protocol_generated.go: OK
+tools/gomad3/target/internal/livecap/toolchain_test.go: OK
+tools/gomad3/toolchain/draw_inventory_test.go: OK
+tools/gomad3/toolchain/runtime/go1.27.1.patch: OK
+tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go: OK
+tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/diagnostic_runtime_test.go: OK
+tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go: OK
+tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go: OK
+tools/gomad3/toolchain/version/version.json: OK

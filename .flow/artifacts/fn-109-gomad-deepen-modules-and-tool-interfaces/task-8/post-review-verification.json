@@ -1,0 +1,7 @@
+{
+  "timestamp": "2026-10-03T14:37:35.477842+00:00",
+  "source_mismatches": [],
+  "installed_cli_hash_matches": true,
+  "receipt_sha256": "85a17754b187ee5527bb71d6e58acb03678139c4a3d883df18a855b464a0e1ad",
+  "verdict": "SHIP"
+}

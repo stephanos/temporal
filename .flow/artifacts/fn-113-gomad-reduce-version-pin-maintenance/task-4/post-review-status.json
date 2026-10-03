@@ -1,0 +1,21 @@
+{
+  "schema": "gomad3.post-review-status/v1",
+  "timestamp": "2026-10-03T10:06:52.040775+00:00",
+  "review": "working-tree-review.json",
+  "review_sha256": "1fe7414d7f29b8202643d37f221f359f6f09ea536bce5896468d7ecb2426b892",
+  "original_source_binding_sha256": "cececb21ce2630b413a6ab40152408a4f01b48faed0b3f7b1b74ca86850169a0",
+  "changed_sources": {
+    "MILESTONES.md": {
+      "reviewed_sha256": "8b0a81e4aefc388b4f8bb7c2ef1402684fa2941cf1fe941fc588bea4cd997a54",
+      "current_sha256": "489c9dfbdd2a9714755edbc81255b44ff16d5b36d6cb53062606919bffc517f1",
+      "reason": "Only milestone delivery status updated after SHIP; Darwin acceptance complete, native Linux outstanding."
+    }
+  },
+  "other_source_entries_still_match": 16,
+  "bound_artifacts_still_match": 12,
+  "bound_binaries_still_match": 2,
+  "partial_acceptance_sha256": "25000f36de69d0488b25bc098ff10f8ee607a91afdbb8cfbddc141d930b8e954",
+  "task_status": "in_progress",
+  "native_linux": "missing",
+  "commits": []
+}

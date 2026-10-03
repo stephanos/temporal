@@ -1,0 +1,4 @@
+# go.temporal.io/server/tools/gomad3/runner [go.temporal.io/server/tools/gomad3/runner.test]
+runner/campaign_options_cli_test.go:15:21: undefined: ParseSingleBaseSeed
+FAIL	go.temporal.io/server/tools/gomad3/runner [build failed]
+FAIL

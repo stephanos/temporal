@@ -1,0 +1,1 @@
+{"schema": "gomad3.pin-impact/v1", "pins": [{"class": "pack_rule", "id": "unmapped:example.com/pkg", "status": "invalidated", "reason": "version_changed"}]}

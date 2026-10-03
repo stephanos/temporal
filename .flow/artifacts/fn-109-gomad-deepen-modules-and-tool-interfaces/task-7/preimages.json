@@ -1,0 +1,38 @@
+{
+  "tools/gomad3/runner/runner.go": {
+    "sha256": "38cc9fcb0a3b45b219c8f23f00896e5df5c0b988fce28ba3fed4ab6ddd41e214",
+    "bytes": 80125,
+    "preimage": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/preimages/tools/gomad3/runner/runner.go",
+    "provenance": "actual task-7 pre-edit bytes; earlier milestone changes already present"
+  },
+  "tools/gomad3/runner/portable_plan.go": {
+    "sha256": "afd6c68a7346a006de85ecf17cb00d522ec7f4599f75fb7447981769502f32d0",
+    "bytes": 15901,
+    "preimage": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/preimages/tools/gomad3/runner/portable_plan.go",
+    "provenance": "actual task-7 pre-edit bytes; earlier milestone changes already present"
+  },
+  "tools/gomad3/runner/deterministicio.go": {
+    "sha256": "740b9d19a36436a823289eb9c3b78283afe09ea4e4482bea050513478fbe6697",
+    "bytes": 2560,
+    "preimage": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/preimages/tools/gomad3/runner/deterministicio.go",
+    "provenance": "actual task-7 pre-edit bytes; earlier milestone changes already present"
+  },
+  "tools/gomad3/architecture_test.go": {
+    "sha256": "2b32351b7388f23a53f74d08d3a3b919e08d49be7f1b48d4ddb390e059672a85",
+    "bytes": 22332,
+    "preimage": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/preimages/tools/gomad3/architecture_test.go",
+    "provenance": "actual task-7 pre-edit bytes; earlier milestone changes already present"
+  },
+  "tools/gomad3/runner/preparation_equivalence_legacy_test.go": {
+    "sha256": "328bfdec937d16d1771e746818231b33522c58ed9f19214d5978ea99ec61b17e",
+    "bytes": 2187,
+    "preimage": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/preimages/tools/gomad3/runner/preparation_equivalence_legacy_test.go",
+    "provenance": "task-7-created baseline probe, captured before later edits; not original Runner source"
+  },
+  "tools/gomad3/internal/preparation/preparation_test.go": {
+    "sha256": "34aecf8ee75b2d42886c1ba8feb0c875f23ad059c82ab8ad9f978b119669aaa2",
+    "bytes": 1846,
+    "preimage": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-7/preimages/tools/gomad3/internal/preparation/preparation_test.go",
+    "provenance": "task-7-created test initial RED version"
+  }
+}

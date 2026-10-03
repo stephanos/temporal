@@ -46,7 +46,7 @@ type completionObservation struct {
 // executor with one fixed fault applied to the captured result.
 type faultExecutor struct {
 	t     *testing.T
-	base  Executor
+	base  executionRunner
 	fault func(*execution.Result)
 	err   error
 	mu    *sync.Mutex
@@ -68,7 +68,7 @@ func (executor faultExecutor) Run(ctx context.Context, request execution.Spec) (
 	return result, executor.err
 }
 
-func completionCampaign(t *testing.T, strategy Strategy, coverage CoverageMode, fault func(*execution.Result), runErr error) (CampaignSpec, faultExecutor) {
+func completionCampaign(t *testing.T, strategy Strategy, coverage CoverageMode, fault func(*execution.Result), runErr error) (CampaignSpec, faultExecutor, executionDependencies) {
 	t.Helper()
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)
@@ -87,7 +87,7 @@ func completionCampaign(t *testing.T, strategy Strategy, coverage CoverageMode, 
 	case StrategySimulationExploration:
 		executor.base = &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
 	}
-	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
+	config, configDependencies := testConfig(t, preparer, executor, "7", PolicyAll, 1)
 	config.Strategy = strategy
 	config.Coverage = coverage
 	config.ChoiceTraceLimit = limit
@@ -104,7 +104,7 @@ func completionCampaign(t *testing.T, strategy Strategy, coverage CoverageMode, 
 		config.MaxExplorationResultBytes = 1 << 20
 		config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 2, Scenario: 2, Network: 2, Storage: 2, Fault: 2, Crash: 2}
 	}
-	return config, executor
+	return config, executor, configDependencies
 }
 
 func completionWorldRecord(t *testing.T, seed uint64) []byte {
@@ -130,7 +130,7 @@ func observeCompletion(t *testing.T, summary CampaignResult, err error) completi
 	if err != nil {
 		var hostError *HostError
 		if !errors.As(err, &hostError) {
-			t.Fatalf("Explore() error = %#v, want a host failure", err)
+			t.Fatalf("exploreWith() error = %#v, want a host failure", err)
 		}
 		observed.Reason = hostError.Reason
 		observed.Cause = hostError.Err.Error()
@@ -330,8 +330,8 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 						want.Cause = test.simulationCause
 					}
 				}
-				config, _ := completionCampaign(t, strategy, test.coverage, test.fault, test.err)
-				summary, err := Explore(context.Background(), config)
+				config, _, configDependencies := completionCampaign(t, strategy, test.coverage, test.fault, test.err)
+				summary, err := exploreWith(context.Background(), config, configDependencies)
 				if observed := observeCompletion(t, summary, err); !reflect.DeepEqual(observed, want) {
 					t.Fatalf("completion = %#v, want %#v", observed, want)
 				}
@@ -345,11 +345,11 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 func TestExplorationCancellationIsAHostFailure(t *testing.T) {
 	for _, strategy := range completionStrategies[1:] {
 		t.Run(string(strategy), func(t *testing.T) {
-			config, _ := completionCampaign(t, strategy, CoverageNone, nil, nil)
-			config.Executor = blockingExecutor{}
+			config, _, configDependencies := completionCampaign(t, strategy, CoverageNone, nil, nil)
+			configDependencies.executor = blockingExecutor{}
 			ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.Running == 1 })
 			config.TerminateGrace = 10 * time.Millisecond
-			summary, err := Explore(ctx, config)
+			summary, err := exploreWith(ctx, config, configDependencies)
 			observed := observeCompletion(t, summary, err)
 			// The round returns while its candidate is still exiting, so the
 			// candidate's partial state is not settled yet.
@@ -376,9 +376,9 @@ func TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy(t *testing.T)
 	for _, strategy := range completionStrategies {
 		t.Run(string(strategy), func(t *testing.T) {
 			recording := completionWorldRecord(t, 7)
-			config, executor := completionCampaign(t, strategy, CoverageSemanticChoice, func(result *execution.Result) { result.WorldRecord = recording }, nil)
+			config, executor, configDependencies := completionCampaign(t, strategy, CoverageSemanticChoice, func(result *execution.Result) { result.WorldRecord = recording }, nil)
 			config.CollectExecutionEvidence = true
-			summary, err := Explore(context.Background(), config)
+			summary, err := exploreWith(context.Background(), config, configDependencies)
 			if err != nil {
 				t.Fatal(err)
 			}

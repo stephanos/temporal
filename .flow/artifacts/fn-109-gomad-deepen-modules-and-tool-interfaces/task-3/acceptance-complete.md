@@ -1,0 +1,4 @@
+- [x] `SeedController` exposes one completion transition; the `FinishAttempt` plus `Record*` pairing no longer exists and `runner.go` calls the transition once per completed job.
+- [x] Controller tests cover success, cancellation, watchdog, replay divergence, distinct and duplicate failures, resume-seeded counters and each failure policy (`all`, `first`, `budget`), comparing whole `CampaignStatistics` values.
+- [x] Completion without active work is rejected as an invariant violation; no path leaves attempted and classified counters partially updated.
+- [x] Ordinal scheduling, stop reasons and every counter reported by existing runner tests are unchanged.

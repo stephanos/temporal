@@ -1,0 +1,8 @@
+{
+  "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go": "e8deb67818bcbc0c8c3ea7de1bbcf0b661d03bf0841f044911b52c768500b698",
+  "tools/gomad3/toolchain/runtime/go1.27.1.patch": "89bd466e3339e610f43151cbad7e453eb32cc3bc55b63dcb348c9c7a3227590a",
+  "tools/gomad3/internal/gomadtool/conformance/runtime_owned.go": "ed45d0f574ecb07e348cd8e57b5345abd243056344f29fceead2aa7918a317c8",
+  "tools/gomad3/internal/gomadtool/conformance/runtime_owned_test.go": "4bbac67c89faabc87813ae46f56c97dec2000d72edc053035d98758132d4b188",
+  "tools/gomad3/internal/gomadtool/conformance/testdata/runtime_owned/main.go": "28d468b497307ae2ab4b93966f3790c591244a7dc29d715eca5eddd2816c69e0",
+  "tools/gomad3/SPEC.md": "43bd4d6c19670346bf6707d7e14aea8a9ed8382c59e4c30f0834e555e0da5fbe"
+}

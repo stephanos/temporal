@@ -1,0 +1,15 @@
+{
+  "cmd": [
+    ".toolchain/bin/go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "./cmd/gomad/internal/cli",
+    "./runner",
+    "-run",
+    "TestResolveExploreTypedErrorPresentation|TestCampaignOptionErrorsPreserveKindThroughWrapping|TestCampaignOptionNormalizationAndValidation|TestParseSingleBaseSeedSharesRunnerStrategyRule|TestPlanAndExploreRejectHiddenPlanRoute|TestPlanValidationOrderAndJSONRouting|TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure|ValidateConfig|CampaignPlan|PortablePlan|CampaignOptionsCharacterization"
+  ],
+  "exit": 0,
+  "seconds": 2.999
+}

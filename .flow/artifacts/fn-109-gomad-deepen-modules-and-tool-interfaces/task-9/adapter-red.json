@@ -1,0 +1,13 @@
+{
+  "argv": [
+    ".toolchain/bin/go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "./target/internal/gocommand"
+  ],
+  "exit": 1,
+  "duration_seconds": 0.3910387080104556,
+  "log": "adapter-red.log"
+}

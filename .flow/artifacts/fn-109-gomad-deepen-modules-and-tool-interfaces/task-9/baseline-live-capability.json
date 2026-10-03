@@ -1,0 +1,11 @@
+{
+  "argv": [
+    "make",
+    "test-live-capability"
+  ],
+  "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+  "exit": 0,
+  "duration_seconds": 14.383449665998342,
+  "log": "baseline-live-capability.log",
+  "note": "New unreferenced adapter package exists; existing callsite source unchanged"
+}

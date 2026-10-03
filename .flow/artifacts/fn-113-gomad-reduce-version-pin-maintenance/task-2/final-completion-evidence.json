@@ -1,0 +1,14 @@
+{
+  "commits": [],
+  "tests": [
+    "make -C tools/gomad3 validate",
+    "go -C tools/gomad3 test -tags test_dep -count=1 ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/...",
+    "go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool ./deterministicio",
+    "go -C tools/gomad3 test -tags test_dep -count=1 -run ^TestAdapterPublication ./cmd/gomadtool",
+    "Sprig controlled fixture: adapter-regenerate dryrun/apply, make validate, Gomad qualification seed7 repeat2 choices and two exact success replays",
+    "codex impl-review round2: SHIP, working-tree patch/source binding verified",
+    "git diff --check; gofmt changed adapter files: clean",
+    "root lint-code-fast: exit2 nested-module loading limitation; nested lint: pre-existing findings, zero changed adapter findings"
+  ],
+  "prs": []
+}

@@ -1,0 +1,3 @@
+Usage of gomadtool script-validate:
+  -root string
+    	Gomad v3 module root

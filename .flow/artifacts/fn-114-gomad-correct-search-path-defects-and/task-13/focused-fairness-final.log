@@ -1,0 +1,6 @@
+=== RUN   TestRuntimeOwnedControlProbe
+--- PASS: TestRuntimeOwnedControlProbe (3.38s)
+=== RUN   TestRuntimeOwnedRejectsPreviousController
+--- PASS: TestRuntimeOwnedRejectsPreviousController (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	3.753s

@@ -1,0 +1,248 @@
+{
+  "fresh": {
+    "Path": "\u003cprepared-path\u003e",
+    "Kind": "go-test",
+    "Source": ".",
+    "SHA256": "sha256:09228410bd7c2614eea66a243c1cc20af3e47b66e40f9abf9ba689a6afa6d570",
+    "Size": 11391266,
+    "Argv": [
+      "gomad3-target"
+    ],
+    "BuildTags": [],
+    "Adapters": [
+      {
+        "module": "github.com/Masterminds/sprig/v3",
+        "version": "v3.3.0",
+        "sum": "h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs="
+      }
+    ],
+    "Compatibility": [],
+    "BuildInfo": {
+      "go_version": "go1.27.1-X:nogreenteagc",
+      "path": "gomad3.adapter.sprig.test",
+      "main_module": "gomad3.adapter.sprig",
+      "settings": [
+        {
+          "key": "-buildmode",
+          "value": "exe"
+        },
+        {
+          "key": "-compiler",
+          "value": "gc"
+        },
+        {
+          "key": "-trimpath",
+          "value": "true"
+        },
+        {
+          "key": "CGO_ENABLED",
+          "value": "0"
+        },
+        {
+          "key": "GOARCH",
+          "value": "arm64"
+        },
+        {
+          "key": "GOARM64",
+          "value": "v8.0"
+        },
+        {
+          "key": "GOEXPERIMENT",
+          "value": "nogreenteagc"
+        },
+        {
+          "key": "GOOS",
+          "value": "darwin"
+        }
+      ]
+    },
+    "GoVersion": "go1.27.1",
+    "BuildKey": "2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457",
+    "TargetGOOS": "darwin",
+    "TargetGOARCH": "arm64",
+    "CapabilityMode": "closure",
+    "CapabilityManifest": null
+  },
+  "cache": {
+    "Path": "\u003cprepared-path\u003e",
+    "Kind": "go-test",
+    "Source": ".",
+    "SHA256": "sha256:09228410bd7c2614eea66a243c1cc20af3e47b66e40f9abf9ba689a6afa6d570",
+    "Size": 11391266,
+    "Argv": [
+      "gomad3-target"
+    ],
+    "BuildTags": [],
+    "Adapters": [
+      {
+        "module": "github.com/Masterminds/sprig/v3",
+        "version": "v3.3.0",
+        "sum": "h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs="
+      }
+    ],
+    "Compatibility": [],
+    "BuildInfo": {
+      "go_version": "go1.27.1-X:nogreenteagc",
+      "path": "gomad3.adapter.sprig.test",
+      "main_module": "gomad3.adapter.sprig",
+      "settings": [
+        {
+          "key": "-buildmode",
+          "value": "exe"
+        },
+        {
+          "key": "-compiler",
+          "value": "gc"
+        },
+        {
+          "key": "-trimpath",
+          "value": "true"
+        },
+        {
+          "key": "CGO_ENABLED",
+          "value": "0"
+        },
+        {
+          "key": "GOARCH",
+          "value": "arm64"
+        },
+        {
+          "key": "GOARM64",
+          "value": "v8.0"
+        },
+        {
+          "key": "GOEXPERIMENT",
+          "value": "nogreenteagc"
+        },
+        {
+          "key": "GOOS",
+          "value": "darwin"
+        }
+      ]
+    },
+    "GoVersion": "go1.27.1",
+    "BuildKey": "2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457",
+    "TargetGOOS": "darwin",
+    "TargetGOARCH": "arm64",
+    "CapabilityMode": "closure",
+    "CapabilityManifest": null
+  },
+  "fresh_projection": {
+    "kind": "go-test",
+    "source": ".",
+    "file": "",
+    "sha256": "sha256:09228410bd7c2614eea66a243c1cc20af3e47b66e40f9abf9ba689a6afa6d570",
+    "size": "11391266",
+    "argv": [
+      "gomad3-target"
+    ],
+    "build_tags": [],
+    "adapters": [
+      {
+        "module": "github.com/Masterminds/sprig/v3",
+        "version": "v3.3.0",
+        "sum": "h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs="
+      }
+    ],
+    "compatibility": [],
+    "build_info": {
+      "go_version": "go1.27.1-X:nogreenteagc",
+      "path": "gomad3.adapter.sprig.test",
+      "main_module": "gomad3.adapter.sprig",
+      "settings": [
+        {
+          "key": "-buildmode",
+          "value": "exe"
+        },
+        {
+          "key": "-compiler",
+          "value": "gc"
+        },
+        {
+          "key": "-trimpath",
+          "value": "true"
+        },
+        {
+          "key": "CGO_ENABLED",
+          "value": "0"
+        },
+        {
+          "key": "GOARCH",
+          "value": "arm64"
+        },
+        {
+          "key": "GOARM64",
+          "value": "v8.0"
+        },
+        {
+          "key": "GOEXPERIMENT",
+          "value": "nogreenteagc"
+        },
+        {
+          "key": "GOOS",
+          "value": "darwin"
+        }
+      ]
+    },
+    "capability_mode": "closure"
+  },
+  "cache_projection": {
+    "kind": "go-test",
+    "source": ".",
+    "file": "",
+    "sha256": "sha256:09228410bd7c2614eea66a243c1cc20af3e47b66e40f9abf9ba689a6afa6d570",
+    "size": "11391266",
+    "argv": [
+      "gomad3-target"
+    ],
+    "build_tags": [],
+    "adapters": [
+      {
+        "module": "github.com/Masterminds/sprig/v3",
+        "version": "v3.3.0",
+        "sum": "h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs="
+      }
+    ],
+    "compatibility": [],
+    "build_info": {
+      "go_version": "go1.27.1-X:nogreenteagc",
+      "path": "gomad3.adapter.sprig.test",
+      "main_module": "gomad3.adapter.sprig",
+      "settings": [
+        {
+          "key": "-buildmode",
+          "value": "exe"
+        },
+        {
+          "key": "-compiler",
+          "value": "gc"
+        },
+        {
+          "key": "-trimpath",
+          "value": "true"
+        },
+        {
+          "key": "CGO_ENABLED",
+          "value": "0"
+        },
+        {
+          "key": "GOARCH",
+          "value": "arm64"
+        },
+        {
+          "key": "GOARM64",
+          "value": "v8.0"
+        },
+        {
+          "key": "GOEXPERIMENT",
+          "value": "nogreenteagc"
+        },
+        {
+          "key": "GOOS",
+          "value": "darwin"
+        }
+      ]
+    },
+    "capability_mode": "closure"
+  }
+}

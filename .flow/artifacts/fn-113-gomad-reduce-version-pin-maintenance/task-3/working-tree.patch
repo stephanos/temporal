@@ -1,0 +1,1159 @@
+diff --git a/tools/gomad3/Makefile b/tools/gomad3/Makefile
+index 4f2fd75c4b..9b95d52356 100644
+--- a/tools/gomad3/Makefile
++++ b/tools/gomad3/Makefile
+@@ -100,17 +100,13 @@ qualification-set-merge: runner
+ # Packs are scoped to one platform, so each host qualifies only the requests
+ # that name it.
+ GOMAD3_HOST_PLATFORM := $(shell go env GOHOSTOS)/$(shell go env GOHOSTARCH)
+-ifeq ($(GOMAD3_HOST_PLATFORM),linux/amd64)
+-COMPATIBILITY_PACK_QUALIFICATIONS := modernc-libc-xsys-v047-linux-amd64:$(CURDIR)/qualification/corpus temporal-functional-compute-linux-amd64:$(CURDIR)/../.. temporal-functional-tests-linux-amd64:$(CURDIR)/../..
+-else
+-COMPATIBILITY_PACK_QUALIFICATIONS := reflect2-go126:$(CURDIR)/../.. modernc-libc-xsys-v041:$(CURDIR)/internal/compatibilitypack/testdata/v041 modernc-libc-xsys-v047:$(CURDIR)/qualification/corpus modernc-libc-xsys-v047-isatty-v021:$(CURDIR)/../.. temporal-functional-compute-darwin-arm64:$(CURDIR)/../.. temporal-functional-tests-darwin-arm64:$(CURDIR)/../.. temporal-leaf-xsys-darwin-arm64:$(CURDIR)/../.. temporal-leaf-xxhash-darwin-arm64:$(CURDIR)/../.. golang-x-sys-v047-darwin-arm64:$(CURDIR)/internal/compatibilitypack/testdata/xsys
+-endif
++COMPATIBILITY_PACK_TARGETS := $(CURDIR)/internal/compatibilitypack/targets.tsv
+ 
+ compatibility-pack-qualification: toolchain
+-	@for entry in $(COMPATIBILITY_PACK_QUALIFICATIONS); do \
+-		request=$${entry%%:*}; working=$${entry#*:}; \
+-		env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=internal/compatibilitypack/requests/$$request.json --working-dir=$$working || exit 1; \
+-	done
++	@while read -r platform request working; do \
++		[ "$$platform" = "$(GOMAD3_HOST_PLATFORM)" ] || continue; \
++		env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=internal/compatibilitypack/requests/$$request.json --working-dir=$(CURDIR)/$$working || exit 1; \
++	done < $(COMPATIBILITY_PACK_TARGETS)
+ 
+ core-qualification-set: GOMAD3_QUALIFICATION_MANIFEST := $(CURDIR)/qualification/core.json
+ core-qualification-set: GOMAD3_QUALIFICATION_WORKDIR := $(CURDIR)/qualification/corpus
+@@ -131,7 +127,7 @@ test-host: toolchain
+ 		stock_root="$$(env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOENV=off GOFLAGS= GOWORK=off GOTOOLCHAIN=$(GOMAD3_GO_VERSION) go env GOROOT)" || exit 1; \
+ 		stock_go="$$stock_root/bin/go"; \
+ 	fi; \
+-	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOMAD3_STOCK_GO="$$stock_go" GOWORK=off .toolchain/bin/go test -tags test_dep \
++	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOMAD3_STOCK_GO="$$stock_go" GOEXPERIMENT=nogreenteagc GOWORK=off .toolchain/bin/go test -tags test_dep \
+ 		. ./cmd/... ./runner/... ./qualification/... ./target/... ./record/... ./artifact/... ./choice/... \
+ 		./deterministicio/... ./world/... ./toolchain/version ./upgrade/... ./internal/...
+ 
+@@ -147,7 +143,7 @@ overlay-test: toolchain
+ # is their executor. The node-clock delay test has a recorded watchdog failure
+ # and remains a finding; every other subtest runs here.
+ test-simulation: toolchain
+-	cd $(CURDIR)/../.. && env -u GOMADSEED CGO_ENABLED=0 GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 \
++	cd $(CURDIR)/../.. && env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 \
+ 		$(CURDIR)/.toolchain/bin/go test -exec $(CURDIR)/internal/gomadtool/conformance/scripts/exec.sh \
+ 		-count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim
+ 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration \
+diff --git a/tools/gomad3/cmd/gomadtool/compatibility_pack.go b/tools/gomad3/cmd/gomadtool/compatibility_pack.go
+index 25ec5f6f30..cb392f1831 100644
+--- a/tools/gomad3/cmd/gomadtool/compatibility_pack.go
++++ b/tools/gomad3/cmd/gomadtool/compatibility_pack.go
+@@ -19,7 +19,9 @@ const compatibilityPackTimeout = 2 * time.Minute
+ 
+ func runCompatibilityPack(arguments []string, stdout, stderr io.Writer) int {
+ 	if len(arguments) == 0 {
+-		fmt.Fprintln(stderr, "usage: gomadtool compatibility-pack discover|review|generate|check|qualify [flags]")
++		if _, err := fmt.Fprintln(stderr, "usage: gomadtool compatibility-pack discover|review|refresh|generate|check|qualify [flags]"); err != nil {
++			return 1
++		}
+ 		return 2
+ 	}
+ 	switch arguments[0] {
+@@ -27,6 +29,8 @@ func runCompatibilityPack(arguments []string, stdout, stderr io.Writer) int {
+ 		return runCompatibilityPackDiscover(arguments[1:], stdout, stderr)
+ 	case "review":
+ 		return runCompatibilityPackReview(arguments[1:], stdout, stderr)
++	case "refresh":
++		return runCompatibilityPackRefresh(arguments[1:], stdout, stderr)
+ 	case "generate":
+ 		return runCompatibilityPackGenerate(arguments[1:], stdout, stderr)
+ 	case "check":
+@@ -34,7 +38,9 @@ func runCompatibilityPack(arguments []string, stdout, stderr io.Writer) int {
+ 	case "qualify":
+ 		return runCompatibilityPackQualify(arguments[1:], stdout, stderr)
+ 	default:
+-		fmt.Fprintln(stderr, "usage: gomadtool compatibility-pack discover|review|generate|check|qualify [flags]")
++		if _, err := fmt.Fprintln(stderr, "usage: gomadtool compatibility-pack discover|review|refresh|generate|check|qualify [flags]"); err != nil {
++			return 1
++		}
+ 		return 2
+ 	}
+ }
+diff --git a/tools/gomad3/internal/compatibilitypack/evidence_test.go b/tools/gomad3/internal/compatibilitypack/evidence_test.go
+index ee97af7b6a..4ac65860b6 100644
+--- a/tools/gomad3/internal/compatibilitypack/evidence_test.go
++++ b/tools/gomad3/internal/compatibilitypack/evidence_test.go
+@@ -6,16 +6,16 @@ import (
+ )
+ 
+ func TestSelectionProjectsExactActivationAndAllowanceEvidence(t *testing.T) {
+-	validated := loadGeneratedPackForTest(t, "modernc-libc-xsys-v041")
++	validated := loadGeneratedPackForTest(t, "modernc-libc-xsys-v047")
+ 	packages := generatedExactPackages(validated.pack)
+-	selection, err := selectGeneratedPacksForTest(t, validated, packages)
++	selection, err := SelectPacksForPlatform([]ValidatedPack{validated}, packages, validated.pack.Governance.Platforms[0])
+ 	requireTestNoError(t, err)
+ 
+ 	evidence := selection.Evidence()
+ 	if len(evidence) != 1 {
+ 		t.Fatalf("evidence = %#v", evidence)
+ 	}
+-	requireTestEqual(t, "modernc-libc-xsys-v041", evidence[0].ID)
++	requireTestEqual(t, "modernc-libc-xsys-v047", evidence[0].ID)
+ 	if evidence[0].SHA256 == "" {
+ 		t.Fatal("pack evidence has no SHA-256")
+ 	}
+@@ -30,10 +30,10 @@ func TestSelectionProjectsExactActivationAndAllowanceEvidence(t *testing.T) {
+ 	if evidence[0].Activation[1].Adapter == nil || evidence[0].Activation[2].Adapter == nil {
+ 		t.Fatalf("activation evidence = %#v", evidence[0].Activation)
+ 	}
+-	if len(evidence[0].Rules) != 5 {
++	if len(evidence[0].Rules) != 6 {
+ 		t.Fatalf("rule evidence = %#v", evidence[0].Rules)
+ 	}
+-	requireTestEqual(t, []string{"github.com/mattn/go-isatty", "github.com/remyoudompheng/bigfft", "golang.org/x/sys/unix", "modernc.org/libc", "modernc.org/memory"}, []string{evidence[0].Rules[0].ImportPath, evidence[0].Rules[1].ImportPath, evidence[0].Rules[2].ImportPath, evidence[0].Rules[3].ImportPath, evidence[0].Rules[4].ImportPath})
++	requireTestEqual(t, []string{"github.com/mattn/go-isatty", "github.com/remyoudompheng/bigfft", "golang.org/x/sys/unix", "modernc.org/libc", "modernc.org/memory", "modernc.org/sqlite"}, []string{evidence[0].Rules[0].ImportPath, evidence[0].Rules[1].ImportPath, evidence[0].Rules[2].ImportPath, evidence[0].Rules[3].ImportPath, evidence[0].Rules[4].ImportPath, evidence[0].Rules[5].ImportPath})
+ 	if len(evidence[0].Rules[2].GoSources) == 0 || len(evidence[0].Rules[2].ForeignSources) == 0 || !contains(evidence[0].Rules[2].Capabilities, "import:syscall") || contains(evidence[0].Rules[3].Capabilities, "import:os/exec") {
+ 		t.Fatalf("rule evidence = %#v", evidence[0].Rules)
+ 	}
+@@ -44,7 +44,7 @@ func TestSelectionProjectsExactActivationAndAllowanceEvidence(t *testing.T) {
+ 		t.Fatalf("decision = %#v", allowed)
+ 	}
+ 	requireTestEqual(t, DispositionAllowedExactPack, allowed.Disposition)
+-	requireTestEqual(t, "modernc-libc-xsys-v041", allowed.PackID)
++	requireTestEqual(t, "modernc-libc-xsys-v047", allowed.PackID)
+ 
+ 	nearMiss := xsys
+ 	nearMiss.Module.Version = "v0.42.0"
+diff --git a/tools/gomad3/internal/compatibilitypack/generation.json b/tools/gomad3/internal/compatibilitypack/generation.json
+index 97253eafd7..3217924997 100644
+--- a/tools/gomad3/internal/compatibilitypack/generation.json
++++ b/tools/gomad3/internal/compatibilitypack/generation.json
+@@ -1 +1 @@
+-{"outputs":[{"path":"packs/golang-x-sys-v047-darwin-arm64.json","sha256":"sha256:ca263b36199b7159742f513e709d1d354171346c43d00d00410737a8f8221c99"},{"path":"packs/modernc-libc-xsys-v041.json","sha256":"sha256:406aef2d9c91955e1e0e63eace8133481e5115796d83374536b27a7159509b85"},{"path":"packs/modernc-libc-xsys-v047-isatty-v021.json","sha256":"sha256:1c7bfa786bb0b858f9a267753c6189a5d464dc531a3ac5ea9d38062ad28bd48f"},{"path":"packs/modernc-libc-xsys-v047-linux-amd64.json","sha256":"sha256:6f678afc4d0d8e6ac56b9adc58b3d6a45c44811d34ff8790e995802187c8d45b"},{"path":"packs/modernc-libc-xsys-v047.json","sha256":"sha256:bf61f5cc8ba86595922e001a6624cc98507d83837a8d8627a73639dc4081c36f"},{"path":"packs/reflect2-go126.json","sha256":"sha256:8df4d3135d4edc2903f0c5242397115ed5f1d5f39f9a46b1a6f2b8eeabad39ea"},{"path":"packs/temporal-functional-compute-darwin-arm64.json","sha256":"sha256:238575d9e6b642bccca180b780c4ec176d95b258d2dfdb22e23e99316b0d6d5b"},{"path":"packs/temporal-functional-compute-linux-amd64.json","sha256":"sha256:59c69afd0cdb2cd4a8deaaea3ce4ea8ae3910743bb474945759e2964839726e4"},{"path":"packs/temporal-functional-tests-darwin-arm64.json","sha256":"sha256:4e861bc1e1f7a60704bbf52dfe2df997e06aba349b07be7ddac8011bd437a365"},{"path":"packs/temporal-functional-tests-linux-amd64.json","sha256":"sha256:2a74ff01c7aeef8132db894e530f54dc74bf5104cf17b5dbe69e1145c1713d9e"},{"path":"packs/temporal-leaf-xsys-darwin-arm64.json","sha256":"sha256:1ebf73e8f3a3bb424e617b9294e89290de68c7837171d602b71ac5ec425c5b77"},{"path":"packs/temporal-leaf-xxhash-darwin-arm64.json","sha256":"sha256:9a9f167727dafc89651503836f18b7f5ee87674a9c2f9ecaee9a824a66bafc91"},{"path":"packs_generated_test.go","sha256":"sha256:58b685662777218d494be80058864a5442d494450fd9544272907ce2bb14eebe"},{"path":"reports/golang-x-sys-v047-darwin-arm64.md","sha256":"sha256:52807034133552c705d4617b9b23b1a49a1ba9166ede9a62ae3e293115fbb1f2"},{"path":"reports/modernc-libc-xsys-v041.md","sha256":"sha256:a83095bc7ffb68d1c79b6eb17260c08171003827d80e47789fa0e9be4cbf666e"},{"path":"reports/modernc-libc-xsys-v047-isatty-v021.md","sha256":"sha256:a83b895db469cb6c2c9f9ad0bb5a4d4ddfe64c51e244a462916457c4a2fa923c"},{"path":"reports/modernc-libc-xsys-v047-linux-amd64.md","sha256":"sha256:e9e9d896ef2699ba39865c68a872c02cc94100290a4ba38ed2180327d2f5871f"},{"path":"reports/modernc-libc-xsys-v047.md","sha256":"sha256:6bb71fc7a7433c01d419e5a83673b6ece42f9b074fedde11b783fe05a0c3d211"},{"path":"reports/reflect2-go126.md","sha256":"sha256:157db173c8e1a920a310cee9f7213c00a51733c9cc2689b8b5e49ef76b2ea222"},{"path":"reports/temporal-functional-compute-darwin-arm64.md","sha256":"sha256:9f591f234defcc33c31b23624e6ab5bb3440c64bb2b94cd7f1206434b862a5f3"},{"path":"reports/temporal-functional-compute-linux-amd64.md","sha256":"sha256:b6a85322c0e42c57ed0ce7a1783fa0791d6b9b82816854a78fd2fb986f13c678"},{"path":"reports/temporal-functional-tests-darwin-arm64.md","sha256":"sha256:eb7303e12698a3d13de6edcf563a02ef820bf25b4812f429136c9a97ddc8e088"},{"path":"reports/temporal-functional-tests-linux-amd64.md","sha256":"sha256:0c614d1519268386d7619c5e908c9b8b940a9cd89b3983b708c3265112649bcb"},{"path":"reports/temporal-leaf-xsys-darwin-arm64.md","sha256":"sha256:4349bb0baa5cef046f70ba44693499ed8b84e74e98229413ce9a2f1ceb6c9568"},{"path":"reports/temporal-leaf-xxhash-darwin-arm64.md","sha256":"sha256:ccfb86ed82eb87face40e4e4a154c4011aa2949f64cec9df9919f0369c2443ff"},{"path":"requests/golang-x-sys-v047-darwin-arm64.json","sha256":"sha256:b5e8f434c1984da18979e1ca27d95e1746e545980b060f2ebb9491e2a8d1cc3e"},{"path":"requests/modernc-libc-xsys-v041.json","sha256":"sha256:1fbbf22377644ba3aec9f1bf2612b207d23e9a4f6a91747d93a373808fbc40f4"},{"path":"requests/modernc-libc-xsys-v047-isatty-v021.json","sha256":"sha256:244ea33bea36c5b325b7eeb683185c25d93c3ce1f65c54120e34482f12966644"},{"path":"requests/modernc-libc-xsys-v047-linux-amd64.json","sha256":"sha256:c0a036b4a9516d902d8e52e6a4b0a4694e6dbcfce3ce357d27ee802fdc761c2d"},{"path":"requests/modernc-libc-xsys-v047.json","sha256":"sha256:a3f5405714b7076b790912292c7d7788bf88ce0aeb7eb73fc6ac384fd8373140"},{"path":"requests/reflect2-go126.json","sha256":"sha256:722786cf0840e46ad2b37e575971e1f93a38d6b01e8b5edcb6531ed11719580c"},{"path":"requests/temporal-functional-compute-darwin-arm64.json","sha256":"sha256:2ef726a3e9fee5b7a05f2f1fe7863e09ada11b8a42ab2eb53486f451fd5c90c3"},{"path":"requests/temporal-functional-compute-linux-amd64.json","sha256":"sha256:4cfb8ad8d37960731d2b8ddcec1fd6f6620b3af91e201c598e3614202dbb2868"},{"path":"requests/temporal-functional-tests-darwin-arm64.json","sha256":"sha256:1216d1da901e142dece801c42900eb511b147cb21acb2ab8c14290d1a4647d83"},{"path":"requests/temporal-functional-tests-linux-amd64.json","sha256":"sha256:0bbcae9ab48cb6af210c01c4eafb80a774a66818793efe1e50e2c482e2b2b7dd"},{"path":"requests/temporal-leaf-xsys-darwin-arm64.json","sha256":"sha256:730756144f5cc50ff828b6dd3afe0a8a68ada8adbb06f0eaea615c85ec354912"},{"path":"requests/temporal-leaf-xxhash-darwin-arm64.json","sha256":"sha256:c0729a4308a9ad876be3d3366042c6f727c9f5de6e33c4b4d28a32e759fd7475"}],"schema":"gomad3.compatibility-pack-generation/v1"}
++{"outputs":[{"path":"packs/golang-x-sys-v047-darwin-arm64.json","sha256":"sha256:ca263b36199b7159742f513e709d1d354171346c43d00d00410737a8f8221c99"},{"path":"packs/modernc-libc-xsys-v047-isatty-v021.json","sha256":"sha256:1c7bfa786bb0b858f9a267753c6189a5d464dc531a3ac5ea9d38062ad28bd48f"},{"path":"packs/modernc-libc-xsys-v047-linux-amd64.json","sha256":"sha256:6f678afc4d0d8e6ac56b9adc58b3d6a45c44811d34ff8790e995802187c8d45b"},{"path":"packs/modernc-libc-xsys-v047.json","sha256":"sha256:bf61f5cc8ba86595922e001a6624cc98507d83837a8d8627a73639dc4081c36f"},{"path":"packs/reflect2-go126.json","sha256":"sha256:8df4d3135d4edc2903f0c5242397115ed5f1d5f39f9a46b1a6f2b8eeabad39ea"},{"path":"packs/temporal-functional-compute-darwin-arm64.json","sha256":"sha256:238575d9e6b642bccca180b780c4ec176d95b258d2dfdb22e23e99316b0d6d5b"},{"path":"packs/temporal-functional-compute-linux-amd64.json","sha256":"sha256:59c69afd0cdb2cd4a8deaaea3ce4ea8ae3910743bb474945759e2964839726e4"},{"path":"packs/temporal-functional-tests-darwin-arm64.json","sha256":"sha256:4e861bc1e1f7a60704bbf52dfe2df997e06aba349b07be7ddac8011bd437a365"},{"path":"packs/temporal-functional-tests-linux-amd64.json","sha256":"sha256:2a74ff01c7aeef8132db894e530f54dc74bf5104cf17b5dbe69e1145c1713d9e"},{"path":"packs/temporal-leaf-xsys-darwin-arm64.json","sha256":"sha256:1ebf73e8f3a3bb424e617b9294e89290de68c7837171d602b71ac5ec425c5b77"},{"path":"packs/temporal-leaf-xxhash-darwin-arm64.json","sha256":"sha256:9a9f167727dafc89651503836f18b7f5ee87674a9c2f9ecaee9a824a66bafc91"},{"path":"packs_generated_test.go","sha256":"sha256:70297a5bbab77d08e5cd7196d88284ea977b040a1b6caf179eb5027695ad67aa"},{"path":"reports/golang-x-sys-v047-darwin-arm64.md","sha256":"sha256:52807034133552c705d4617b9b23b1a49a1ba9166ede9a62ae3e293115fbb1f2"},{"path":"reports/modernc-libc-xsys-v047-isatty-v021.md","sha256":"sha256:a83b895db469cb6c2c9f9ad0bb5a4d4ddfe64c51e244a462916457c4a2fa923c"},{"path":"reports/modernc-libc-xsys-v047-linux-amd64.md","sha256":"sha256:e9e9d896ef2699ba39865c68a872c02cc94100290a4ba38ed2180327d2f5871f"},{"path":"reports/modernc-libc-xsys-v047.md","sha256":"sha256:6bb71fc7a7433c01d419e5a83673b6ece42f9b074fedde11b783fe05a0c3d211"},{"path":"reports/reflect2-go126.md","sha256":"sha256:157db173c8e1a920a310cee9f7213c00a51733c9cc2689b8b5e49ef76b2ea222"},{"path":"reports/temporal-functional-compute-darwin-arm64.md","sha256":"sha256:9f591f234defcc33c31b23624e6ab5bb3440c64bb2b94cd7f1206434b862a5f3"},{"path":"reports/temporal-functional-compute-linux-amd64.md","sha256":"sha256:b6a85322c0e42c57ed0ce7a1783fa0791d6b9b82816854a78fd2fb986f13c678"},{"path":"reports/temporal-functional-tests-darwin-arm64.md","sha256":"sha256:eb7303e12698a3d13de6edcf563a02ef820bf25b4812f429136c9a97ddc8e088"},{"path":"reports/temporal-functional-tests-linux-amd64.md","sha256":"sha256:0c614d1519268386d7619c5e908c9b8b940a9cd89b3983b708c3265112649bcb"},{"path":"reports/temporal-leaf-xsys-darwin-arm64.md","sha256":"sha256:4349bb0baa5cef046f70ba44693499ed8b84e74e98229413ce9a2f1ceb6c9568"},{"path":"reports/temporal-leaf-xxhash-darwin-arm64.md","sha256":"sha256:ccfb86ed82eb87face40e4e4a154c4011aa2949f64cec9df9919f0369c2443ff"},{"path":"requests/golang-x-sys-v047-darwin-arm64.json","sha256":"sha256:b5e8f434c1984da18979e1ca27d95e1746e545980b060f2ebb9491e2a8d1cc3e"},{"path":"requests/modernc-libc-xsys-v047-isatty-v021.json","sha256":"sha256:244ea33bea36c5b325b7eeb683185c25d93c3ce1f65c54120e34482f12966644"},{"path":"requests/modernc-libc-xsys-v047-linux-amd64.json","sha256":"sha256:c0a036b4a9516d902d8e52e6a4b0a4694e6dbcfce3ce357d27ee802fdc761c2d"},{"path":"requests/modernc-libc-xsys-v047.json","sha256":"sha256:a3f5405714b7076b790912292c7d7788bf88ce0aeb7eb73fc6ac384fd8373140"},{"path":"requests/reflect2-go126.json","sha256":"sha256:722786cf0840e46ad2b37e575971e1f93a38d6b01e8b5edcb6531ed11719580c"},{"path":"requests/temporal-functional-compute-darwin-arm64.json","sha256":"sha256:2ef726a3e9fee5b7a05f2f1fe7863e09ada11b8a42ab2eb53486f451fd5c90c3"},{"path":"requests/temporal-functional-compute-linux-amd64.json","sha256":"sha256:4cfb8ad8d37960731d2b8ddcec1fd6f6620b3af91e201c598e3614202dbb2868"},{"path":"requests/temporal-functional-tests-darwin-arm64.json","sha256":"sha256:1216d1da901e142dece801c42900eb511b147cb21acb2ab8c14290d1a4647d83"},{"path":"requests/temporal-functional-tests-linux-amd64.json","sha256":"sha256:0bbcae9ab48cb6af210c01c4eafb80a774a66818793efe1e50e2c482e2b2b7dd"},{"path":"requests/temporal-leaf-xsys-darwin-arm64.json","sha256":"sha256:730756144f5cc50ff828b6dd3afe0a8a68ada8adbb06f0eaea615c85ec354912"},{"path":"requests/temporal-leaf-xxhash-darwin-arm64.json","sha256":"sha256:c0729a4308a9ad876be3d3366042c6f727c9f5de6e33c4b4d28a32e759fd7475"}],"schema":"gomad3.compatibility-pack-generation/v1"}
+diff --git a/tools/gomad3/internal/compatibilitypack/packs/modernc-libc-xsys-v041.json b/tools/gomad3/internal/compatibilitypack/packs/modernc-libc-xsys-v041.json
+deleted file mode 100644
+index 2d7fb1b568..0000000000
+--- a/tools/gomad3/internal/compatibilitypack/packs/modernc-libc-xsys-v041.json
++++ /dev/null
+@@ -1 +0,0 @@
+-{"activation":[{"path":"golang.org/x/sys","replacement":{"kind":"none"},"sum":"h1:Ivj+2Cp/ylzLiEU89QhWblYnOE9zerudt9Ftecq2C6k=","version":"v0.41.0"},{"path":"modernc.org/libc","replacement":{"adapter":{"module":"modernc.org/libc","original_source_inventory_sha256":"sha256:7455942bdfcf64ff4d46cd874f1f6e80a79e4ebe6f4d98a9c2d1ae6aaabb59da","prepared_source_set_sha256":"sha256:a28d47a51089e7cb3766f0997e472feb1e7cadfca43248a3e5b06f332df47935","profile_implementation_sha256":"sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0","profile_name":"gomad3-deterministic/v1","replacement_source_inventory_sha256":"sha256:94c69a969829324cfbcfe9382b5abe2ad73009fbbc94bd469f903d9ea0304681","sum":"h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=","version":"v1.72.3"},"kind":"adapter"},"sum":"h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=","version":"v1.72.3"},{"path":"modernc.org/memory","replacement":{"adapter":{"module":"modernc.org/memory","original_source_inventory_sha256":"sha256:f6d838c731cb22881e472d086c21895e431123e0a08fd190b41ff34be59f0264","prepared_source_set_sha256":"sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849","profile_implementation_sha256":"sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0","profile_name":"gomad3-deterministic/v1","replacement_source_inventory_sha256":"sha256:b947d0e7fbcc3f18b995e5710e5d26d8073bf921ba1f907ef2b3972f4257a535","sum":"h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=","version":"v1.11.0"},"kind":"adapter"},"sum":"h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=","version":"v1.11.0"}],"governance":{"approval_sha256":"sha256:0ea7c3348fb859e204f7cbfd36db3a735b99261597a3e33260e725b375fe8820","justification":"Preserves the exact registered modernc libc adapter boundary for the pinned x/sys v0.41 compatibility fixture.","owner":"temporal-server","platforms":["darwin/arm64"],"reviewed_at":"2026-08-15T00:00:00Z","workloads":["modernc-libc-xsys-v041-fixture"]},"id":"modernc-libc-xsys-v041","request_sha256":"sha256:c0d6832049cf2a22fb0ecbfa43b71544bc14175df6a37a095dc1f4c0dbe2b530","rules":[{"capabilities":["import:golang.org/x/sys/unix"],"foreign_sources":[],"go_sources":[{"name":"doc.go","sha256":"sha256:06182cb1a7113cae6fdef9be492893298610bfc63cf565a23f86203c3074a861"},{"name":"isatty_bsd.go","sha256":"sha256:b3df65aaddc2e985cc4b41be48e7a714eea17414cb8d09a04abcd2d35bf3f9e8"}],"import_path":"github.com/mattn/go-isatty","linknames":[],"module":{"path":"github.com/mattn/go-isatty","replacement":{"kind":"none"},"sum":"h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=","version":"v0.0.20"},"source_set_sha256":"sha256:14ddce13a7648dbac3bdbfd72449cbda6a22a4bbd343b2d94dba46f8c7b418b2"},{"capabilities":[],"foreign_sources":[],"go_sources":[{"name":"arith_decl.go","sha256":"sha256:652c090c62611633839e469d5ffb454e8a0afca61cef680f349778758921ca87"},{"name":"fermat.go","sha256":"sha256:25b1256c862303f46e796f1d8a9911da106b28e7bab29f75a59c2a96f964db13"},{"name":"fft.go","sha256":"sha256:bc123dfafd49301821768f73acd2d46a0fac28b582902bc982352752344be59a"},{"name":"scan.go","sha256":"sha256:b079e8e278ca3a14d0da9e3d719ab0fbd843047bc6020bfcce8626f8c27e3715"}],"import_path":"github.com/remyoudompheng/bigfft","linknames":[{"directives":["addVV math/big.addVV","subVV math/big.subVV","addVW math/big.addVW","subVW math/big.subVW","shlVU math/big.shlVU","mulAddVWW math/big.mulAddVWW","addMulVVW math/big.addMulVVW"],"sha256":"sha256:652c090c62611633839e469d5ffb454e8a0afca61cef680f349778758921ca87","source":"arith_decl.go"}],"module":{"path":"github.com/remyoudompheng/bigfft","replacement":{"kind":"none"},"sum":"h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=","version":"v0.0.0-20230129092748-24d4a6f8daec"},"source_set_sha256":"sha256:60700dfdb108b1900cde07a08b8af03f9a7562a0633267d75946a2129b8ea85c"},{"capabilities":["foreign:assembly:asm_bsd_arm64.s","foreign:assembly:zsyscall_darwin_arm64.s","import:syscall"],"foreign_sources":[{"kind":"assembly","name":"asm_bsd_arm64.s","sha256":"sha256:f7740a9d925eccd280e54e7971a36508a7d2856d9ef996a394ad5cfd80bec8c3"},{"kind":"assembly","name":"zsyscall_darwin_arm64.s","sha256":"sha256:5daa70eefd10942e6ba8da79d69152b330da1981874d6726d1d09cf8d8a0d30e"}],"go_sources":[{"name":"aliases.go","sha256":"sha256:53e7eeba0503ad62ec18cdf2ca51a1785249a8646354439c854148dc57c06fb5"},{"name":"auxv.go","sha256":"sha256:5e470a481610ff746d64cb22b3e7a981ffa527d6ca546e87df4296704d6c6de6"},{"name":"constants.go","sha256":"sha256:f3405abc7484992964143eac589b951132d8e3a90f8359fc1a6e9ddcc201aa8a"},{"name":"dev_darwin.go","sha256":"sha256:9a0bc8af77b4325bb10b651e00b8f7974cc972d0e5456a370f2c46a56181ada7"},{"name":"dirent.go","sha256":"sha256:03e3b15a8428e2f1520386291052fd30e5d74ecb4d78c724bae7953d71425be1"},{"name":"endian_little.go","sha256":"sha256:bc06276262c57cf21e35c13ff2f5fdc96c18feb32a055c6201edfa76e95c967f"},{"name":"env_unix.go","sha256":"sha256:bcb73ccfc5a8dae1f59e4debba69e0f600155b947f358c939bc753443a7a8007"},{"name":"fcntl_darwin.go","sha256":"sha256:fb6aa54ed72a392548bcd7c79a10ce16e9ed70da90492ef13346e2419fa52d3f"},{"name":"fdset.go","sha256":"sha256:8339dad44215930bdd253beaa1064c4d34ed2f81d54c4bd53d2be1f64fe35530"},{"name":"ioctl_unsigned.go","sha256":"sha256:991b152e32cde753f3b64d8ebc1d18e9078a3615006bc79c474b2bbbc653487a"},{"name":"mmap_nomremap.go","sha256":"sha256:f6166771a7d9a6c116617b6e21a15b020ddf709b39162c8596e0880cef3ce4be"},{"name":"pagesize_unix.go","sha256":"sha256:5fea300c32898efe55341abb39489aeac76f81ea9df513f68d1b2556be7b48a3"},{"name":"ptrace_darwin.go","sha256":"sha256:61eab9ab1e3d5d24b8e3545352e97afa0f76a77a578f75fb078026617444052c"},{"name":"race0.go","sha256":"sha256:8a78192af2b20cd177f78e3761e10d66567373cef3b7671aa3c7912d65de4c90"},{"name":"readdirent_getdirentries.go","sha256":"sha256:db3a5b0e169d6f2431e3a145d2a3cc4374330e29d40378cb3fb26ede4fcd813d"},{"name":"sockcmsg_unix.go","sha256":"sha256:7863093bfa7ec9e564c36992fbf2b7c97244c84d406e5fdc60b72c56a23af396"},{"name":"sockcmsg_unix_other.go","sha256":"sha256:73f23d4f0c002e24160530515a45f46bb6fbe8728cc79b135a8c6956d5c8458c"},{"name":"syscall.go","sha256":"sha256:41abaa37d079eee890fb7803dde876a19ba3acdbadf41f269ae8ed0d73ca0e37"},{"name":"syscall_bsd.go","sha256":"sha256:53d6db23c6307444ad18512ee160159c175608c0d424a86ec22dec6b28eeda65"},{"name":"syscall_darwin.go","sha256":"sha256:dc69b2117a3acb94c92d5bfddcd1d77b4812a8e67e1028def5b8c84ec5365756"},{"name":"syscall_darwin_arm64.go","sha256":"sha256:ca9f22a90e5e81a736c0ad500f015b139cbb05a23ffdbc39906c6feb6975244e"},{"name":"syscall_darwin_libSystem.go","sha256":"sha256:0c327ad9b9845e19b1e097dfb7b569bc9793b670874e24be4a87ac9bd4647557"},{"name":"syscall_unix.go","sha256":"sha256:d851dcf05549674486f35d58b0357bb5c1ea9378bd234b1646534a35dc4a6da5"},{"name":"syscall_unix_gc.go","sha256":"sha256:8b7592bca0fff629f9bb6f2c78c4ec8810f989e04b29d76ebd1ff81efd34db5b"},{"name":"sysvshm_unix.go","sha256":"sha256:e9e5031e048cf7c58692650ea14887158c3bedaaba506be63cbd8190cea2c066"},{"name":"sysvshm_unix_other.go","sha256":"sha256:b513c4e9cd077df2b1452bd645abcc3e252ec28ef44cf4e2a984d94bd5464fb3"},{"name":"timestruct.go","sha256":"sha256:d0d07c2481ce2692f4e5728d65ccab1d105ecf64f52ac6b9a923ef106088a249"},{"name":"vgetrandom_unsupported.go","sha256":"sha256:822c28801c556c34f31cd7a14ddbe4c3708e543de6fe81c4ad1fae9420268258"},{"name":"zerrors_darwin_arm64.go","sha256":"sha256:a4255cecfc6a5e82653d5bb96ee2ef6191a3fa664046de7a016ddeccbf2c9e5f"},{"name":"zsyscall_darwin_arm64.go","sha256":"sha256:630f26d7c5679ac8ac11dfe0e7e1861aec0c801e1ef7ca503030f8e8736469a3"},{"name":"zsysnum_darwin_arm64.go","sha256":"sha256:3153f86ca570545e32a352b93289a5e5353cb32902c8ba0e8135d2dc26a10312"},{"name":"ztypes_darwin_arm64.go","sha256":"sha256:b17d2e512a7bab550ef24d3d3ed9b0f3bed89de5a15ac003d7371058d6ea168e"}],"import_path":"golang.org/x/sys/unix","linknames":[{"directives":["runtime_getAuxv runtime.getAuxv"],"sha256":"sha256:5e470a481610ff746d64cb22b3e7a981ffa527d6ca546e87df4296704d6c6de6","source":"auxv.go"},{"directives":["syscall_syscall syscall.syscall","syscall_syscall6 syscall.syscall6","syscall_syscall6X syscall.syscall6X","syscall_syscall9 syscall.syscall9","syscall_rawSyscall syscall.rawSyscall","syscall_rawSyscall6 syscall.rawSyscall6","syscall_syscallPtr syscall.syscallPtr"],"sha256":"sha256:0c327ad9b9845e19b1e097dfb7b569bc9793b670874e24be4a87ac9bd4647557","source":"syscall_darwin_libSystem.go"}],"module":{"path":"golang.org/x/sys","replacement":{"kind":"none"},"sum":"h1:Ivj+2Cp/ylzLiEU89QhWblYnOE9zerudt9Ftecq2C6k=","version":"v0.41.0"},"source_set_sha256":"sha256:ac4fe27c6c1848f80d1ef3872e26d2c8e0d84c253e462279fa8cc0f779f1e22e"},{"capabilities":["import:golang.org/x/sys/unix","import:syscall"],"foreign_sources":[],"go_sources":[{"name":"builtin_all.go","sha256":"sha256:5b2c1479edaaba777d817dbccad1fb41ee26fed87c576f70a427cb3c505c8fea"},{"name":"capi_darwin_arm64.go","sha256":"sha256:bff4f0b98aef95bd0e53eb7e77ff5e5ecbc4ffddb1647db741e28b1cf8ecc48b"},{"name":"ccgo.go","sha256":"sha256:c49dacf7c917bbab19692914b4efa950b6f461117014f7364c818fb39069b92a"},{"name":"etc.go","sha256":"sha256:b48935972f453553e9a623cde5ccd6810e9036df2561c6f70edc3369703244cf"},{"name":"fsync.go","sha256":"sha256:5760bc90f3df02bbbe2a24dd08365a403b8bbe9a01f6ee9ee345249f7f698b62"},{"name":"gomad_darwin.go","sha256":"sha256:a9014a11afc7a01ae9bb2ca3dee617f29046ec012d7ea6867c3f0f47d9468a8f"},{"name":"int128.go","sha256":"sha256:fa4821cd943874028ba6a953e0ee48c480759f98ea1ade6e09d1cd64a8dd7cb4"},{"name":"ioutil_darwin.go","sha256":"sha256:a496b5553d12820e4a9a7adc62970a6b6a5481933b9a30679fd3d95aefd1e06c"},{"name":"libc.go","sha256":"sha256:e37b0c81c65de523307acd877a02c0ce372fbbec0aee47126cb169ff27d18224"},{"name":"libc64.go","sha256":"sha256:8890988534e74862883cd891f5755203837b10b3b6f59210f06f644f12f390a0"},{"name":"libc_all.go","sha256":"sha256:dcd4d1f818059ab5a5f9b430b3cacde4290a15907467ed4e396169d64b778c6c"},{"name":"libc_arm64.go","sha256":"sha256:e176bc579a8e7d8a7188c1ee6142fc1c17af50a777d693273155133dd384d327"},{"name":"libc_darwin.go","sha256":"sha256:9d9284dcb583fa47d941cf45e20179e726b195ac67b047642d37e123db4d02a8"},{"name":"libc_darwin_arm64.go","sha256":"sha256:dc9ff2436a24e90368bd0dae18a6f1bce7f031883ac4029b9436b721888f1ac7"},{"name":"libc_unix.go","sha256":"sha256:d50ea76e03a8c44f8e4fe708b451f1b49b01fa1ef71a85fe8173985e1cfd37b9"},{"name":"libc_unix1.go","sha256":"sha256:70ab4175ef2801300f3b2922a42b98bd8c7fd22be4f7b4d3d72c84b0acf5eb5d"},{"name":"libc_unix3.go","sha256":"sha256:d1c2fcf135c7664801573c5ea2723e0c742ba93d6457a91cf0d4a8bc25a14a3e"},{"name":"mem.go","sha256":"sha256:b6569a198852a035e300c345172db81098eb78ab55784c41e12decda45661746"},{"name":"musl_darwin_arm64.go","sha256":"sha256:00d8825713eb0d5b01c2d85ea5bb9b87d69f39ddae289bc495ce9fa506fc5785"},{"name":"nodmesg.go","sha256":"sha256:18232e1a56ef0cc8f9d588d7392b3890e37820047f352e8f24889ebd78a16bde"},{"name":"printf.go","sha256":"sha256:981767759c5f68e9ce2a24486583574f223d2300e78e57789a1f4f5cae92e8fa"},{"name":"probes.go","sha256":"sha256:7712b62c336e3e39d145c2824afe7271d989170873d552da9774c544fec1dc43"},{"name":"pthread.go","sha256":"sha256:48782a1eef6c465f28089f93d1b816d530d336720304f26a5c2c10c45fc8ad1a"},{"name":"pthread_all.go","sha256":"sha256:505569f6ba4684e9f9599bea2d2ec5b70c857a296ca3efda32bc867055b27006"},{"name":"scanf.go","sha256":"sha256:f93c2de58f1a23ade56bfecd1d19886cdfb79a651675eaa1f2452435962906c8"},{"name":"stdatomic.go","sha256":"sha256:d90c1342fc268f89020ebdb4f3886ee3572837d5cb30c02992c5153654614d6b"},{"name":"straceoff.go","sha256":"sha256:9b1d5deaa41eb28d23a89c0ac4fc06d827d3a46a57016559342e31bcd16a4b7f"},{"name":"sync.go","sha256":"sha256:a65152029198a7807eb16721dffe0ab9f7e2f8a3b746e8517347e8e6c7eeaa2a"},{"name":"watch.go","sha256":"sha256:d4ba707bdd7dddc533659a1ab47c80caf0a87d5df2c6844ac8fadbc60d7c4a25"}],"import_path":"modernc.org/libc","linknames":[{"directives":["gomadLibcEnabled internal/gomadio.Enabled","gomadLibcOpen internal/gomadio.LibcOpen","gomadLibcClose internal/gomadio.LibcClose","gomadLibcRead internal/gomadio.LibcRead","gomadLibcWrite internal/gomadio.LibcWrite","gomadLibcSeek internal/gomadio.LibcSeek","gomadLibcTruncate internal/gomadio.LibcTruncate","gomadLibcSync internal/gomadio.LibcSync","gomadLibcMmap internal/gomadio.LibcMmap","gomadLibcMunmap internal/gomadio.LibcMunmap","gomadLibcRemove internal/gomadio.LibcRemove","gomadLibcRename internal/gomadio.LibcRename","gomadLibcMkdir internal/gomadio.LibcMkdir","gomadLibcAccess internal/gomadio.LibcAccess","gomadLibcStat internal/gomadio.LibcStat","gomadLibcIsDescriptor internal/gomadio.LibcIsDescriptor","gomadLibcNow internal/gomadio.LibcNow"],"sha256":"sha256:a9014a11afc7a01ae9bb2ca3dee617f29046ec012d7ea6867c3f0f47d9468a8f","source":"gomad_darwin.go"}],"module":{"path":"modernc.org/libc","replacement":{"adapter":{"module":"modernc.org/libc","original_source_inventory_sha256":"sha256:7455942bdfcf64ff4d46cd874f1f6e80a79e4ebe6f4d98a9c2d1ae6aaabb59da","prepared_source_set_sha256":"sha256:a28d47a51089e7cb3766f0997e472feb1e7cadfca43248a3e5b06f332df47935","profile_implementation_sha256":"sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0","profile_name":"gomad3-deterministic/v1","replacement_source_inventory_sha256":"sha256:94c69a969829324cfbcfe9382b5abe2ad73009fbbc94bd469f903d9ea0304681","sum":"h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=","version":"v1.72.3"},"kind":"adapter"},"sum":"h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=","version":"v1.72.3"},"source_set_sha256":"sha256:a28d47a51089e7cb3766f0997e472feb1e7cadfca43248a3e5b06f332df47935"},{"capabilities":["import:golang.org/x/sys/unix"],"foreign_sources":[],"go_sources":[{"name":"memory.go","sha256":"sha256:3f5cee8943da57ffd3db70129f87abdf45c86e5299b81d09504ec2838dc31909"},{"name":"memory64.go","sha256":"sha256:1b91a327f3b95d6fc3f80f090175a9c5bc033083a2c675b7a56f009af8fa4813"},{"name":"mmap_unix.go","sha256":"sha256:c8a86dca80f526b39f0a855f59552d1085a352fb7fef47b86da827b854ab88ad"},{"name":"nocounters.go","sha256":"sha256:070021a593fc3c28988ad04bee02d83547ff56a9665e7703a80366392e30c18c"},{"name":"trace_disabled.go","sha256":"sha256:ecd151b29853826767c9fd0e2c9b48b4acd08bd211ce558016399afae693b950"}],"import_path":"modernc.org/memory","linknames":[{"directives":["gomadMemoryEnabled internal/gomadio.Enabled","gomadMemoryMap internal/gomadio.AnonymousMap","gomadMemoryUnmap internal/gomadio.AnonymousUnmap"],"sha256":"sha256:c8a86dca80f526b39f0a855f59552d1085a352fb7fef47b86da827b854ab88ad","source":"mmap_unix.go"}],"module":{"path":"modernc.org/memory","replacement":{"adapter":{"module":"modernc.org/memory","original_source_inventory_sha256":"sha256:f6d838c731cb22881e472d086c21895e431123e0a08fd190b41ff34be59f0264","prepared_source_set_sha256":"sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849","profile_implementation_sha256":"sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0","profile_name":"gomad3-deterministic/v1","replacement_source_inventory_sha256":"sha256:b947d0e7fbcc3f18b995e5710e5d26d8073bf921ba1f907ef2b3972f4257a535","sum":"h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=","version":"v1.11.0"},"kind":"adapter"},"sum":"h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=","version":"v1.11.0"},"source_set_sha256":"sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849"}],"schema":"gomad3.compatibility-pack/v2"}
+diff --git a/tools/gomad3/internal/compatibilitypack/packs_generated_test.go b/tools/gomad3/internal/compatibilitypack/packs_generated_test.go
+index b04c41dda8..ca0983d44c 100644
+--- a/tools/gomad3/internal/compatibilitypack/packs_generated_test.go
++++ b/tools/gomad3/internal/compatibilitypack/packs_generated_test.go
+@@ -20,27 +20,6 @@ var generatedPackMutationInventory = []struct{ PackID, Mutation string }{
+ 	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "review_time"},
+ 	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "source_set"},
+ 	{PackID: "golang-x-sys-v047-darwin-arm64", Mutation: "workload"},
+-	{PackID: "modernc-libc-xsys-v041", Mutation: "adapter_identity"},
+-	{PackID: "modernc-libc-xsys-v041", Mutation: "approval"},
+-	{PackID: "modernc-libc-xsys-v041", Mutation: "arbitrary_local_replacement"},
+-	{PackID: "modernc-libc-xsys-v041", Mutation: "availability"},
+-	{PackID: "modernc-libc-xsys-v041", Mutation: "directive"},
+-	{PackID: "modernc-libc-xsys-v041", Mutation: "foreign_source"},
+-	{PackID: "modernc-libc-xsys-v041", Mutation: "go_source"},
+-	{PackID: "modernc-libc-xsys-v041", Mutation: "justification"},
+-	{PackID: "modernc-libc-xsys-v041", Mutation: "module_sum"},
+-	{PackID: "modernc-libc-xsys-v041", Mutation: "module_version"},
+-	{PackID: "modernc-libc-xsys-v041", Mutation: "original_source_inventory"},
+-	{PackID: "modernc-libc-xsys-v041", Mutation: "owner"},
+-	{PackID: "modernc-libc-xsys-v041", Mutation: "pack_digest"},
+-	{PackID: "modernc-libc-xsys-v041", Mutation: "platform"},
+-	{PackID: "modernc-libc-xsys-v041", Mutation: "positive"},
+-	{PackID: "modernc-libc-xsys-v041", Mutation: "prepared_source_set"},
+-	{PackID: "modernc-libc-xsys-v041", Mutation: "replacement_source_inventory"},
+-	{PackID: "modernc-libc-xsys-v041", Mutation: "request_identity"},
+-	{PackID: "modernc-libc-xsys-v041", Mutation: "review_time"},
+-	{PackID: "modernc-libc-xsys-v041", Mutation: "source_set"},
+-	{PackID: "modernc-libc-xsys-v041", Mutation: "workload"},
+ 	{PackID: "modernc-libc-xsys-v047", Mutation: "adapter_identity"},
+ 	{PackID: "modernc-libc-xsys-v047", Mutation: "approval"},
+ 	{PackID: "modernc-libc-xsys-v047", Mutation: "arbitrary_local_replacement"},
+diff --git a/tools/gomad3/internal/compatibilitypack/policy_test.go b/tools/gomad3/internal/compatibilitypack/policy_test.go
+index 65df6b89d9..2a14e6d06b 100644
+--- a/tools/gomad3/internal/compatibilitypack/policy_test.go
++++ b/tools/gomad3/internal/compatibilitypack/policy_test.go
+@@ -150,14 +150,14 @@ func TestVerifyValidatedPackIdentitiesRejectsUnavailableOrModifiedPacks(t *testi
+ }
+ 
+ func TestSelectBindsExactPackIdentityAndCapabilities(t *testing.T) {
+-	validated := loadGeneratedPackForTest(t, "modernc-libc-xsys-v041")
++	validated := loadGeneratedPackForTest(t, "modernc-libc-xsys-v047")
+ 	packages := generatedExactPackages(validated.pack)
+-	selection, err := selectGeneratedPacksForTest(t, validated, packages)
++	selection, err := SelectPacksForPlatform([]ValidatedPack{validated}, packages, validated.pack.Governance.Platforms[0])
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	identities := selection.Identities()
+-	if len(identities) != 1 || identities[0].ID != "modernc-libc-xsys-v041" || identities[0].SHA256 == "" {
++	if len(identities) != 1 || identities[0].ID != "modernc-libc-xsys-v047" || identities[0].SHA256 == "" {
+ 		t.Fatalf("identities = %#v", identities)
+ 	}
+ 	xsys := generatedPackageForTest(t, packages, "golang.org/x/sys/unix")
+diff --git a/tools/gomad3/internal/compatibilitypack/reports/modernc-libc-xsys-v041.md b/tools/gomad3/internal/compatibilitypack/reports/modernc-libc-xsys-v041.md
+deleted file mode 100644
+index 0eaf2e0f57..0000000000
+--- a/tools/gomad3/internal/compatibilitypack/reports/modernc-libc-xsys-v041.md
++++ /dev/null
+@@ -1,227 +0,0 @@
+-# Compatibility Pack Review: modernc-libc-xsys-v041
+-
+-Review SHA-256: `sha256:0ea7c3348fb859e204f7cbfd36db3a735b99261597a3e33260e725b375fe8820`
+-
+-Owner: `temporal-server`
+-
+-Reviewed at: `2026-08-15T00:00:00Z`
+-
+-Justification: Preserves the exact registered modernc libc adapter boundary for the pinned x/sys v0.41 compatibility fixture.
+-
+-Target: `go-test .`
+-
+-Target module: `gomad3.compatibility.v041`
+-
+-Test arguments: `-test.run ^TestLibcCompatibilityClosure$`
+-
+-Build tags: `test_dep`
+-
+-Platform: `darwin/arm64`
+-
+-Workload: `modernc-libc-xsys-v041-fixture`
+-
+-## Activation
+-
+-- `golang.org/x/sys@v0.41.0` (`h1:Ivj+2Cp/ylzLiEU89QhWblYnOE9zerudt9Ftecq2C6k=`), replacement `none`
+-- `modernc.org/libc@v1.72.3` (`h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`), replacement `adapter`
+-  - profile `gomad3-deterministic/v1` / `sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0`
+-  - adapter `modernc.org/libc@v1.72.3` / `h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`
+-  - source inventories `sha256:7455942bdfcf64ff4d46cd874f1f6e80a79e4ebe6f4d98a9c2d1ae6aaabb59da` → `sha256:94c69a969829324cfbcfe9382b5abe2ad73009fbbc94bd469f903d9ea0304681`
+-  - prepared source set `sha256:a28d47a51089e7cb3766f0997e472feb1e7cadfca43248a3e5b06f332df47935`
+-- `modernc.org/memory@v1.11.0` (`h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`), replacement `adapter`
+-  - profile `gomad3-deterministic/v1` / `sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0`
+-  - adapter `modernc.org/memory@v1.11.0` / `h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`
+-  - source inventories `sha256:f6d838c731cb22881e472d086c21895e431123e0a08fd190b41ff34be59f0264` → `sha256:b947d0e7fbcc3f18b995e5710e5d26d8073bf921ba1f907ef2b3972f4257a535`
+-  - prepared source set `sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849`
+-
+-## Reviewed packages
+-
+-### `github.com/mattn/go-isatty`
+-
+-Module: `github.com/mattn/go-isatty@v0.0.20` (`h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=`), replacement `none`
+-
+-Source set: `sha256:14ddce13a7648dbac3bdbfd72449cbda6a22a4bbd343b2d94dba46f8c7b418b2`
+-
+-Go sources:
+-
+-- `doc.go`: `sha256:06182cb1a7113cae6fdef9be492893298610bfc63cf565a23f86203c3074a861`
+-- `isatty_bsd.go`: `sha256:b3df65aaddc2e985cc4b41be48e7a714eea17414cb8d09a04abcd2d35bf3f9e8`
+-
+-Requested facts:
+-
+-- `import:golang.org/x/sys/unix`: **allow** — **security-sensitive**
+-
+-### `github.com/remyoudompheng/bigfft`
+-
+-Module: `github.com/remyoudompheng/bigfft@v0.0.0-20230129092748-24d4a6f8daec` (`h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=`), replacement `none`
+-
+-Source set: `sha256:60700dfdb108b1900cde07a08b8af03f9a7562a0633267d75946a2129b8ea85c`
+-
+-Go sources:
+-
+-- `arith_decl.go`: `sha256:652c090c62611633839e469d5ffb454e8a0afca61cef680f349778758921ca87`
+-- `fermat.go`: `sha256:25b1256c862303f46e796f1d8a9911da106b28e7bab29f75a59c2a96f964db13`
+-- `fft.go`: `sha256:bc123dfafd49301821768f73acd2d46a0fac28b582902bc982352752344be59a`
+-- `scan.go`: `sha256:b079e8e278ca3a14d0da9e3d719ab0fbd843047bc6020bfcce8626f8c27e3715`
+-
+-Requested facts:
+-
+-- `linkname:arith_decl.go`: **allow** — **security-sensitive**
+-  - source `sha256:652c090c62611633839e469d5ffb454e8a0afca61cef680f349778758921ca87`
+-  - directive `addVV math/big.addVV`
+-  - directive `subVV math/big.subVV`
+-  - directive `addVW math/big.addVW`
+-  - directive `subVW math/big.subVW`
+-  - directive `shlVU math/big.shlVU`
+-  - directive `mulAddVWW math/big.mulAddVWW`
+-  - directive `addMulVVW math/big.addMulVVW`
+-
+-### `golang.org/x/sys/unix`
+-
+-Module: `golang.org/x/sys@v0.41.0` (`h1:Ivj+2Cp/ylzLiEU89QhWblYnOE9zerudt9Ftecq2C6k=`), replacement `none`
+-
+-Source set: `sha256:ac4fe27c6c1848f80d1ef3872e26d2c8e0d84c253e462279fa8cc0f779f1e22e`
+-
+-Go sources:
+-
+-- `aliases.go`: `sha256:53e7eeba0503ad62ec18cdf2ca51a1785249a8646354439c854148dc57c06fb5`
+-- `auxv.go`: `sha256:5e470a481610ff746d64cb22b3e7a981ffa527d6ca546e87df4296704d6c6de6`
+-- `constants.go`: `sha256:f3405abc7484992964143eac589b951132d8e3a90f8359fc1a6e9ddcc201aa8a`
+-- `dev_darwin.go`: `sha256:9a0bc8af77b4325bb10b651e00b8f7974cc972d0e5456a370f2c46a56181ada7`
+-- `dirent.go`: `sha256:03e3b15a8428e2f1520386291052fd30e5d74ecb4d78c724bae7953d71425be1`
+-- `endian_little.go`: `sha256:bc06276262c57cf21e35c13ff2f5fdc96c18feb32a055c6201edfa76e95c967f`
+-- `env_unix.go`: `sha256:bcb73ccfc5a8dae1f59e4debba69e0f600155b947f358c939bc753443a7a8007`
+-- `fcntl_darwin.go`: `sha256:fb6aa54ed72a392548bcd7c79a10ce16e9ed70da90492ef13346e2419fa52d3f`
+-- `fdset.go`: `sha256:8339dad44215930bdd253beaa1064c4d34ed2f81d54c4bd53d2be1f64fe35530`
+-- `ioctl_unsigned.go`: `sha256:991b152e32cde753f3b64d8ebc1d18e9078a3615006bc79c474b2bbbc653487a`
+-- `mmap_nomremap.go`: `sha256:f6166771a7d9a6c116617b6e21a15b020ddf709b39162c8596e0880cef3ce4be`
+-- `pagesize_unix.go`: `sha256:5fea300c32898efe55341abb39489aeac76f81ea9df513f68d1b2556be7b48a3`
+-- `ptrace_darwin.go`: `sha256:61eab9ab1e3d5d24b8e3545352e97afa0f76a77a578f75fb078026617444052c`
+-- `race0.go`: `sha256:8a78192af2b20cd177f78e3761e10d66567373cef3b7671aa3c7912d65de4c90`
+-- `readdirent_getdirentries.go`: `sha256:db3a5b0e169d6f2431e3a145d2a3cc4374330e29d40378cb3fb26ede4fcd813d`
+-- `sockcmsg_unix.go`: `sha256:7863093bfa7ec9e564c36992fbf2b7c97244c84d406e5fdc60b72c56a23af396`
+-- `sockcmsg_unix_other.go`: `sha256:73f23d4f0c002e24160530515a45f46bb6fbe8728cc79b135a8c6956d5c8458c`
+-- `syscall.go`: `sha256:41abaa37d079eee890fb7803dde876a19ba3acdbadf41f269ae8ed0d73ca0e37`
+-- `syscall_bsd.go`: `sha256:53d6db23c6307444ad18512ee160159c175608c0d424a86ec22dec6b28eeda65`
+-- `syscall_darwin.go`: `sha256:dc69b2117a3acb94c92d5bfddcd1d77b4812a8e67e1028def5b8c84ec5365756`
+-- `syscall_darwin_arm64.go`: `sha256:ca9f22a90e5e81a736c0ad500f015b139cbb05a23ffdbc39906c6feb6975244e`
+-- `syscall_darwin_libSystem.go`: `sha256:0c327ad9b9845e19b1e097dfb7b569bc9793b670874e24be4a87ac9bd4647557`
+-- `syscall_unix.go`: `sha256:d851dcf05549674486f35d58b0357bb5c1ea9378bd234b1646534a35dc4a6da5`
+-- `syscall_unix_gc.go`: `sha256:8b7592bca0fff629f9bb6f2c78c4ec8810f989e04b29d76ebd1ff81efd34db5b`
+-- `sysvshm_unix.go`: `sha256:e9e5031e048cf7c58692650ea14887158c3bedaaba506be63cbd8190cea2c066`
+-- `sysvshm_unix_other.go`: `sha256:b513c4e9cd077df2b1452bd645abcc3e252ec28ef44cf4e2a984d94bd5464fb3`
+-- `timestruct.go`: `sha256:d0d07c2481ce2692f4e5728d65ccab1d105ecf64f52ac6b9a923ef106088a249`
+-- `vgetrandom_unsupported.go`: `sha256:822c28801c556c34f31cd7a14ddbe4c3708e543de6fe81c4ad1fae9420268258`
+-- `zerrors_darwin_arm64.go`: `sha256:a4255cecfc6a5e82653d5bb96ee2ef6191a3fa664046de7a016ddeccbf2c9e5f`
+-- `zsyscall_darwin_arm64.go`: `sha256:630f26d7c5679ac8ac11dfe0e7e1861aec0c801e1ef7ca503030f8e8736469a3`
+-- `zsysnum_darwin_arm64.go`: `sha256:3153f86ca570545e32a352b93289a5e5353cb32902c8ba0e8135d2dc26a10312`
+-- `ztypes_darwin_arm64.go`: `sha256:b17d2e512a7bab550ef24d3d3ed9b0f3bed89de5a15ac003d7371058d6ea168e`
+-
+-Foreign sources:
+-
+-- `assembly:asm_bsd_arm64.s`: `sha256:f7740a9d925eccd280e54e7971a36508a7d2856d9ef996a394ad5cfd80bec8c3`
+-- `assembly:zsyscall_darwin_arm64.s`: `sha256:5daa70eefd10942e6ba8da79d69152b330da1981874d6726d1d09cf8d8a0d30e`
+-
+-Requested facts:
+-
+-- `foreign:assembly:asm_bsd_arm64.s`: **allow** — **security-sensitive**
+-- `foreign:assembly:zsyscall_darwin_arm64.s`: **allow** — **security-sensitive**
+-- `import:syscall`: **allow** — **security-sensitive**
+-- `linkname:auxv.go`: **allow** — **security-sensitive**
+-  - source `sha256:5e470a481610ff746d64cb22b3e7a981ffa527d6ca546e87df4296704d6c6de6`
+-  - directive `runtime_getAuxv runtime.getAuxv`
+-- `linkname:syscall_darwin_libSystem.go`: **allow** — **security-sensitive**
+-  - source `sha256:0c327ad9b9845e19b1e097dfb7b569bc9793b670874e24be4a87ac9bd4647557`
+-  - directive `syscall_syscall syscall.syscall`
+-  - directive `syscall_syscall6 syscall.syscall6`
+-  - directive `syscall_syscall6X syscall.syscall6X`
+-  - directive `syscall_syscall9 syscall.syscall9`
+-  - directive `syscall_rawSyscall syscall.rawSyscall`
+-  - directive `syscall_rawSyscall6 syscall.rawSyscall6`
+-  - directive `syscall_syscallPtr syscall.syscallPtr`
+-
+-### `modernc.org/libc`
+-
+-Module: `modernc.org/libc@v1.72.3` (`h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`), replacement `adapter`
+-
+-Source set: `sha256:a28d47a51089e7cb3766f0997e472feb1e7cadfca43248a3e5b06f332df47935`
+-
+-Go sources:
+-
+-- `builtin_all.go`: `sha256:5b2c1479edaaba777d817dbccad1fb41ee26fed87c576f70a427cb3c505c8fea`
+-- `capi_darwin_arm64.go`: `sha256:bff4f0b98aef95bd0e53eb7e77ff5e5ecbc4ffddb1647db741e28b1cf8ecc48b`
+-- `ccgo.go`: `sha256:c49dacf7c917bbab19692914b4efa950b6f461117014f7364c818fb39069b92a`
+-- `etc.go`: `sha256:b48935972f453553e9a623cde5ccd6810e9036df2561c6f70edc3369703244cf`
+-- `fsync.go`: `sha256:5760bc90f3df02bbbe2a24dd08365a403b8bbe9a01f6ee9ee345249f7f698b62`
+-- `gomad_darwin.go`: `sha256:a9014a11afc7a01ae9bb2ca3dee617f29046ec012d7ea6867c3f0f47d9468a8f`
+-- `int128.go`: `sha256:fa4821cd943874028ba6a953e0ee48c480759f98ea1ade6e09d1cd64a8dd7cb4`
+-- `ioutil_darwin.go`: `sha256:a496b5553d12820e4a9a7adc62970a6b6a5481933b9a30679fd3d95aefd1e06c`
+-- `libc.go`: `sha256:e37b0c81c65de523307acd877a02c0ce372fbbec0aee47126cb169ff27d18224`
+-- `libc64.go`: `sha256:8890988534e74862883cd891f5755203837b10b3b6f59210f06f644f12f390a0`
+-- `libc_all.go`: `sha256:dcd4d1f818059ab5a5f9b430b3cacde4290a15907467ed4e396169d64b778c6c`
+-- `libc_arm64.go`: `sha256:e176bc579a8e7d8a7188c1ee6142fc1c17af50a777d693273155133dd384d327`
+-- `libc_darwin.go`: `sha256:9d9284dcb583fa47d941cf45e20179e726b195ac67b047642d37e123db4d02a8`
+-- `libc_darwin_arm64.go`: `sha256:dc9ff2436a24e90368bd0dae18a6f1bce7f031883ac4029b9436b721888f1ac7`
+-- `libc_unix.go`: `sha256:d50ea76e03a8c44f8e4fe708b451f1b49b01fa1ef71a85fe8173985e1cfd37b9`
+-- `libc_unix1.go`: `sha256:70ab4175ef2801300f3b2922a42b98bd8c7fd22be4f7b4d3d72c84b0acf5eb5d`
+-- `libc_unix3.go`: `sha256:d1c2fcf135c7664801573c5ea2723e0c742ba93d6457a91cf0d4a8bc25a14a3e`
+-- `mem.go`: `sha256:b6569a198852a035e300c345172db81098eb78ab55784c41e12decda45661746`
+-- `musl_darwin_arm64.go`: `sha256:00d8825713eb0d5b01c2d85ea5bb9b87d69f39ddae289bc495ce9fa506fc5785`
+-- `nodmesg.go`: `sha256:18232e1a56ef0cc8f9d588d7392b3890e37820047f352e8f24889ebd78a16bde`
+-- `printf.go`: `sha256:981767759c5f68e9ce2a24486583574f223d2300e78e57789a1f4f5cae92e8fa`
+-- `probes.go`: `sha256:7712b62c336e3e39d145c2824afe7271d989170873d552da9774c544fec1dc43`
+-- `pthread.go`: `sha256:48782a1eef6c465f28089f93d1b816d530d336720304f26a5c2c10c45fc8ad1a`
+-- `pthread_all.go`: `sha256:505569f6ba4684e9f9599bea2d2ec5b70c857a296ca3efda32bc867055b27006`
+-- `scanf.go`: `sha256:f93c2de58f1a23ade56bfecd1d19886cdfb79a651675eaa1f2452435962906c8`
+-- `stdatomic.go`: `sha256:d90c1342fc268f89020ebdb4f3886ee3572837d5cb30c02992c5153654614d6b`
+-- `straceoff.go`: `sha256:9b1d5deaa41eb28d23a89c0ac4fc06d827d3a46a57016559342e31bcd16a4b7f`
+-- `sync.go`: `sha256:a65152029198a7807eb16721dffe0ab9f7e2f8a3b746e8517347e8e6c7eeaa2a`
+-- `watch.go`: `sha256:d4ba707bdd7dddc533659a1ab47c80caf0a87d5df2c6844ac8fadbc60d7c4a25`
+-
+-Requested facts:
+-
+-- `import:golang.org/x/sys/unix`: **allow** — **security-sensitive**
+-- `import:syscall`: **allow** — **security-sensitive**
+-- `linkname:gomad_darwin.go`: **allow** — **security-sensitive**
+-  - source `sha256:a9014a11afc7a01ae9bb2ca3dee617f29046ec012d7ea6867c3f0f47d9468a8f`
+-  - directive `gomadLibcEnabled internal/gomadio.Enabled`
+-  - directive `gomadLibcOpen internal/gomadio.LibcOpen`
+-  - directive `gomadLibcClose internal/gomadio.LibcClose`
+-  - directive `gomadLibcRead internal/gomadio.LibcRead`
+-  - directive `gomadLibcWrite internal/gomadio.LibcWrite`
+-  - directive `gomadLibcSeek internal/gomadio.LibcSeek`
+-  - directive `gomadLibcTruncate internal/gomadio.LibcTruncate`
+-  - directive `gomadLibcSync internal/gomadio.LibcSync`
+-  - directive `gomadLibcMmap internal/gomadio.LibcMmap`
+-  - directive `gomadLibcMunmap internal/gomadio.LibcMunmap`
+-  - directive `gomadLibcRemove internal/gomadio.LibcRemove`
+-  - directive `gomadLibcRename internal/gomadio.LibcRename`
+-  - directive `gomadLibcMkdir internal/gomadio.LibcMkdir`
+-  - directive `gomadLibcAccess internal/gomadio.LibcAccess`
+-  - directive `gomadLibcStat internal/gomadio.LibcStat`
+-  - directive `gomadLibcIsDescriptor internal/gomadio.LibcIsDescriptor`
+-  - directive `gomadLibcNow internal/gomadio.LibcNow`
+-
+-### `modernc.org/memory`
+-
+-Module: `modernc.org/memory@v1.11.0` (`h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`), replacement `adapter`
+-
+-Source set: `sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849`
+-
+-Go sources:
+-
+-- `memory.go`: `sha256:3f5cee8943da57ffd3db70129f87abdf45c86e5299b81d09504ec2838dc31909`
+-- `memory64.go`: `sha256:1b91a327f3b95d6fc3f80f090175a9c5bc033083a2c675b7a56f009af8fa4813`
+-- `mmap_unix.go`: `sha256:c8a86dca80f526b39f0a855f59552d1085a352fb7fef47b86da827b854ab88ad`
+-- `nocounters.go`: `sha256:070021a593fc3c28988ad04bee02d83547ff56a9665e7703a80366392e30c18c`
+-- `trace_disabled.go`: `sha256:ecd151b29853826767c9fd0e2c9b48b4acd08bd211ce558016399afae693b950`
+-
+-Requested facts:
+-
+-- `import:golang.org/x/sys/unix`: **allow** — **security-sensitive**
+-- `linkname:mmap_unix.go`: **allow** — **security-sensitive**
+-  - source `sha256:c8a86dca80f526b39f0a855f59552d1085a352fb7fef47b86da827b854ab88ad`
+-  - directive `gomadMemoryEnabled internal/gomadio.Enabled`
+-  - directive `gomadMemoryMap internal/gomadio.AnonymousMap`
+-  - directive `gomadMemoryUnmap internal/gomadio.AnonymousUnmap`
+-
+diff --git a/tools/gomad3/internal/compatibilitypack/requests/modernc-libc-xsys-v041.json b/tools/gomad3/internal/compatibilitypack/requests/modernc-libc-xsys-v041.json
+deleted file mode 100644
+index 6f81400e7d..0000000000
+--- a/tools/gomad3/internal/compatibilitypack/requests/modernc-libc-xsys-v041.json
++++ /dev/null
+@@ -1 +0,0 @@
+-{"activation":[{"evidence":{"path":"golang.org/x/sys","replacement":{"kind":"none"},"sum":"h1:Ivj+2Cp/ylzLiEU89QhWblYnOE9zerudt9Ftecq2C6k=","version":"v0.41.0"},"path":"golang.org/x/sys"},{"evidence":{"path":"modernc.org/libc","replacement":{"adapter":{"module":"modernc.org/libc","original_source_inventory_sha256":"sha256:7455942bdfcf64ff4d46cd874f1f6e80a79e4ebe6f4d98a9c2d1ae6aaabb59da","prepared_source_set_sha256":"sha256:a28d47a51089e7cb3766f0997e472feb1e7cadfca43248a3e5b06f332df47935","profile_implementation_sha256":"sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0","profile_name":"gomad3-deterministic/v1","replacement_source_inventory_sha256":"sha256:94c69a969829324cfbcfe9382b5abe2ad73009fbbc94bd469f903d9ea0304681","sum":"h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=","version":"v1.72.3"},"kind":"adapter"},"sum":"h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=","version":"v1.72.3"},"path":"modernc.org/libc"},{"evidence":{"path":"modernc.org/memory","replacement":{"adapter":{"module":"modernc.org/memory","original_source_inventory_sha256":"sha256:f6d838c731cb22881e472d086c21895e431123e0a08fd190b41ff34be59f0264","prepared_source_set_sha256":"sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849","profile_implementation_sha256":"sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0","profile_name":"gomad3-deterministic/v1","replacement_source_inventory_sha256":"sha256:b947d0e7fbcc3f18b995e5710e5d26d8073bf921ba1f907ef2b3972f4257a535","sum":"h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=","version":"v1.11.0"},"kind":"adapter"},"sum":"h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=","version":"v1.11.0"},"path":"modernc.org/memory"}],"approval_sha256":"sha256:0ea7c3348fb859e204f7cbfd36db3a735b99261597a3e33260e725b375fe8820","id":"modernc-libc-xsys-v041","justification":"Preserves the exact registered modernc libc adapter boundary for the pinned x/sys v0.41 compatibility fixture.","owner":"temporal-server","packages":[{"evidence":{"capabilities":[],"foreign_sources":[],"go_sources":[{"name":"doc.go","sha256":"sha256:06182cb1a7113cae6fdef9be492893298610bfc63cf565a23f86203c3074a861"},{"name":"isatty_bsd.go","sha256":"sha256:b3df65aaddc2e985cc4b41be48e7a714eea17414cb8d09a04abcd2d35bf3f9e8"}],"import_path":"github.com/mattn/go-isatty","linknames":[],"module":{"path":"github.com/mattn/go-isatty","replacement":{"kind":"none"},"sum":"h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=","version":"v0.0.20"},"source_set_sha256":"sha256:14ddce13a7648dbac3bdbfd72449cbda6a22a4bbd343b2d94dba46f8c7b418b2"},"facts":[{"capability":"import:golang.org/x/sys/unix","directives":[],"disposition":"allow","kind":"capability"}],"import_path":"github.com/mattn/go-isatty"},{"evidence":{"capabilities":[],"foreign_sources":[],"go_sources":[{"name":"arith_decl.go","sha256":"sha256:652c090c62611633839e469d5ffb454e8a0afca61cef680f349778758921ca87"},{"name":"fermat.go","sha256":"sha256:25b1256c862303f46e796f1d8a9911da106b28e7bab29f75a59c2a96f964db13"},{"name":"fft.go","sha256":"sha256:bc123dfafd49301821768f73acd2d46a0fac28b582902bc982352752344be59a"},{"name":"scan.go","sha256":"sha256:b079e8e278ca3a14d0da9e3d719ab0fbd843047bc6020bfcce8626f8c27e3715"}],"import_path":"github.com/remyoudompheng/bigfft","linknames":[],"module":{"path":"github.com/remyoudompheng/bigfft","replacement":{"kind":"none"},"sum":"h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=","version":"v0.0.0-20230129092748-24d4a6f8daec"},"source_set_sha256":"sha256:60700dfdb108b1900cde07a08b8af03f9a7562a0633267d75946a2129b8ea85c"},"facts":[{"directives":["addVV math/big.addVV","subVV math/big.subVV","addVW math/big.addVW","subVW math/big.subVW","shlVU math/big.shlVU","mulAddVWW math/big.mulAddVWW","addMulVVW math/big.addMulVVW"],"disposition":"allow","kind":"linkname","sha256":"sha256:652c090c62611633839e469d5ffb454e8a0afca61cef680f349778758921ca87","source":"arith_decl.go"}],"import_path":"github.com/remyoudompheng/bigfft"},{"evidence":{"capabilities":[],"foreign_sources":[{"kind":"assembly","name":"asm_bsd_arm64.s","sha256":"sha256:f7740a9d925eccd280e54e7971a36508a7d2856d9ef996a394ad5cfd80bec8c3"},{"kind":"assembly","name":"zsyscall_darwin_arm64.s","sha256":"sha256:5daa70eefd10942e6ba8da79d69152b330da1981874d6726d1d09cf8d8a0d30e"}],"go_sources":[{"name":"aliases.go","sha256":"sha256:53e7eeba0503ad62ec18cdf2ca51a1785249a8646354439c854148dc57c06fb5"},{"name":"auxv.go","sha256":"sha256:5e470a481610ff746d64cb22b3e7a981ffa527d6ca546e87df4296704d6c6de6"},{"name":"constants.go","sha256":"sha256:f3405abc7484992964143eac589b951132d8e3a90f8359fc1a6e9ddcc201aa8a"},{"name":"dev_darwin.go","sha256":"sha256:9a0bc8af77b4325bb10b651e00b8f7974cc972d0e5456a370f2c46a56181ada7"},{"name":"dirent.go","sha256":"sha256:03e3b15a8428e2f1520386291052fd30e5d74ecb4d78c724bae7953d71425be1"},{"name":"endian_little.go","sha256":"sha256:bc06276262c57cf21e35c13ff2f5fdc96c18feb32a055c6201edfa76e95c967f"},{"name":"env_unix.go","sha256":"sha256:bcb73ccfc5a8dae1f59e4debba69e0f600155b947f358c939bc753443a7a8007"},{"name":"fcntl_darwin.go","sha256":"sha256:fb6aa54ed72a392548bcd7c79a10ce16e9ed70da90492ef13346e2419fa52d3f"},{"name":"fdset.go","sha256":"sha256:8339dad44215930bdd253beaa1064c4d34ed2f81d54c4bd53d2be1f64fe35530"},{"name":"ioctl_unsigned.go","sha256":"sha256:991b152e32cde753f3b64d8ebc1d18e9078a3615006bc79c474b2bbbc653487a"},{"name":"mmap_nomremap.go","sha256":"sha256:f6166771a7d9a6c116617b6e21a15b020ddf709b39162c8596e0880cef3ce4be"},{"name":"pagesize_unix.go","sha256":"sha256:5fea300c32898efe55341abb39489aeac76f81ea9df513f68d1b2556be7b48a3"},{"name":"ptrace_darwin.go","sha256":"sha256:61eab9ab1e3d5d24b8e3545352e97afa0f76a77a578f75fb078026617444052c"},{"name":"race0.go","sha256":"sha256:8a78192af2b20cd177f78e3761e10d66567373cef3b7671aa3c7912d65de4c90"},{"name":"readdirent_getdirentries.go","sha256":"sha256:db3a5b0e169d6f2431e3a145d2a3cc4374330e29d40378cb3fb26ede4fcd813d"},{"name":"sockcmsg_unix.go","sha256":"sha256:7863093bfa7ec9e564c36992fbf2b7c97244c84d406e5fdc60b72c56a23af396"},{"name":"sockcmsg_unix_other.go","sha256":"sha256:73f23d4f0c002e24160530515a45f46bb6fbe8728cc79b135a8c6956d5c8458c"},{"name":"syscall.go","sha256":"sha256:41abaa37d079eee890fb7803dde876a19ba3acdbadf41f269ae8ed0d73ca0e37"},{"name":"syscall_bsd.go","sha256":"sha256:53d6db23c6307444ad18512ee160159c175608c0d424a86ec22dec6b28eeda65"},{"name":"syscall_darwin.go","sha256":"sha256:dc69b2117a3acb94c92d5bfddcd1d77b4812a8e67e1028def5b8c84ec5365756"},{"name":"syscall_darwin_arm64.go","sha256":"sha256:ca9f22a90e5e81a736c0ad500f015b139cbb05a23ffdbc39906c6feb6975244e"},{"name":"syscall_darwin_libSystem.go","sha256":"sha256:0c327ad9b9845e19b1e097dfb7b569bc9793b670874e24be4a87ac9bd4647557"},{"name":"syscall_unix.go","sha256":"sha256:d851dcf05549674486f35d58b0357bb5c1ea9378bd234b1646534a35dc4a6da5"},{"name":"syscall_unix_gc.go","sha256":"sha256:8b7592bca0fff629f9bb6f2c78c4ec8810f989e04b29d76ebd1ff81efd34db5b"},{"name":"sysvshm_unix.go","sha256":"sha256:e9e5031e048cf7c58692650ea14887158c3bedaaba506be63cbd8190cea2c066"},{"name":"sysvshm_unix_other.go","sha256":"sha256:b513c4e9cd077df2b1452bd645abcc3e252ec28ef44cf4e2a984d94bd5464fb3"},{"name":"timestruct.go","sha256":"sha256:d0d07c2481ce2692f4e5728d65ccab1d105ecf64f52ac6b9a923ef106088a249"},{"name":"vgetrandom_unsupported.go","sha256":"sha256:822c28801c556c34f31cd7a14ddbe4c3708e543de6fe81c4ad1fae9420268258"},{"name":"zerrors_darwin_arm64.go","sha256":"sha256:a4255cecfc6a5e82653d5bb96ee2ef6191a3fa664046de7a016ddeccbf2c9e5f"},{"name":"zsyscall_darwin_arm64.go","sha256":"sha256:630f26d7c5679ac8ac11dfe0e7e1861aec0c801e1ef7ca503030f8e8736469a3"},{"name":"zsysnum_darwin_arm64.go","sha256":"sha256:3153f86ca570545e32a352b93289a5e5353cb32902c8ba0e8135d2dc26a10312"},{"name":"ztypes_darwin_arm64.go","sha256":"sha256:b17d2e512a7bab550ef24d3d3ed9b0f3bed89de5a15ac003d7371058d6ea168e"}],"import_path":"golang.org/x/sys/unix","linknames":[],"module":{"path":"golang.org/x/sys","replacement":{"kind":"none"},"sum":"h1:Ivj+2Cp/ylzLiEU89QhWblYnOE9zerudt9Ftecq2C6k=","version":"v0.41.0"},"source_set_sha256":"sha256:ac4fe27c6c1848f80d1ef3872e26d2c8e0d84c253e462279fa8cc0f779f1e22e"},"facts":[{"capability":"foreign:assembly:asm_bsd_arm64.s","directives":[],"disposition":"allow","kind":"capability"},{"capability":"foreign:assembly:zsyscall_darwin_arm64.s","directives":[],"disposition":"allow","kind":"capability"},{"capability":"import:syscall","directives":[],"disposition":"allow","kind":"capability"},{"directives":["runtime_getAuxv runtime.getAuxv"],"disposition":"allow","kind":"linkname","sha256":"sha256:5e470a481610ff746d64cb22b3e7a981ffa527d6ca546e87df4296704d6c6de6","source":"auxv.go"},{"directives":["syscall_syscall syscall.syscall","syscall_syscall6 syscall.syscall6","syscall_syscall6X syscall.syscall6X","syscall_syscall9 syscall.syscall9","syscall_rawSyscall syscall.rawSyscall","syscall_rawSyscall6 syscall.rawSyscall6","syscall_syscallPtr syscall.syscallPtr"],"disposition":"allow","kind":"linkname","sha256":"sha256:0c327ad9b9845e19b1e097dfb7b569bc9793b670874e24be4a87ac9bd4647557","source":"syscall_darwin_libSystem.go"}],"import_path":"golang.org/x/sys/unix"},{"evidence":{"capabilities":[],"foreign_sources":[],"go_sources":[{"name":"builtin_all.go","sha256":"sha256:5b2c1479edaaba777d817dbccad1fb41ee26fed87c576f70a427cb3c505c8fea"},{"name":"capi_darwin_arm64.go","sha256":"sha256:bff4f0b98aef95bd0e53eb7e77ff5e5ecbc4ffddb1647db741e28b1cf8ecc48b"},{"name":"ccgo.go","sha256":"sha256:c49dacf7c917bbab19692914b4efa950b6f461117014f7364c818fb39069b92a"},{"name":"etc.go","sha256":"sha256:b48935972f453553e9a623cde5ccd6810e9036df2561c6f70edc3369703244cf"},{"name":"fsync.go","sha256":"sha256:5760bc90f3df02bbbe2a24dd08365a403b8bbe9a01f6ee9ee345249f7f698b62"},{"name":"gomad_darwin.go","sha256":"sha256:a9014a11afc7a01ae9bb2ca3dee617f29046ec012d7ea6867c3f0f47d9468a8f"},{"name":"int128.go","sha256":"sha256:fa4821cd943874028ba6a953e0ee48c480759f98ea1ade6e09d1cd64a8dd7cb4"},{"name":"ioutil_darwin.go","sha256":"sha256:a496b5553d12820e4a9a7adc62970a6b6a5481933b9a30679fd3d95aefd1e06c"},{"name":"libc.go","sha256":"sha256:e37b0c81c65de523307acd877a02c0ce372fbbec0aee47126cb169ff27d18224"},{"name":"libc64.go","sha256":"sha256:8890988534e74862883cd891f5755203837b10b3b6f59210f06f644f12f390a0"},{"name":"libc_all.go","sha256":"sha256:dcd4d1f818059ab5a5f9b430b3cacde4290a15907467ed4e396169d64b778c6c"},{"name":"libc_arm64.go","sha256":"sha256:e176bc579a8e7d8a7188c1ee6142fc1c17af50a777d693273155133dd384d327"},{"name":"libc_darwin.go","sha256":"sha256:9d9284dcb583fa47d941cf45e20179e726b195ac67b047642d37e123db4d02a8"},{"name":"libc_darwin_arm64.go","sha256":"sha256:dc9ff2436a24e90368bd0dae18a6f1bce7f031883ac4029b9436b721888f1ac7"},{"name":"libc_unix.go","sha256":"sha256:d50ea76e03a8c44f8e4fe708b451f1b49b01fa1ef71a85fe8173985e1cfd37b9"},{"name":"libc_unix1.go","sha256":"sha256:70ab4175ef2801300f3b2922a42b98bd8c7fd22be4f7b4d3d72c84b0acf5eb5d"},{"name":"libc_unix3.go","sha256":"sha256:d1c2fcf135c7664801573c5ea2723e0c742ba93d6457a91cf0d4a8bc25a14a3e"},{"name":"mem.go","sha256":"sha256:b6569a198852a035e300c345172db81098eb78ab55784c41e12decda45661746"},{"name":"musl_darwin_arm64.go","sha256":"sha256:00d8825713eb0d5b01c2d85ea5bb9b87d69f39ddae289bc495ce9fa506fc5785"},{"name":"nodmesg.go","sha256":"sha256:18232e1a56ef0cc8f9d588d7392b3890e37820047f352e8f24889ebd78a16bde"},{"name":"printf.go","sha256":"sha256:981767759c5f68e9ce2a24486583574f223d2300e78e57789a1f4f5cae92e8fa"},{"name":"probes.go","sha256":"sha256:7712b62c336e3e39d145c2824afe7271d989170873d552da9774c544fec1dc43"},{"name":"pthread.go","sha256":"sha256:48782a1eef6c465f28089f93d1b816d530d336720304f26a5c2c10c45fc8ad1a"},{"name":"pthread_all.go","sha256":"sha256:505569f6ba4684e9f9599bea2d2ec5b70c857a296ca3efda32bc867055b27006"},{"name":"scanf.go","sha256":"sha256:f93c2de58f1a23ade56bfecd1d19886cdfb79a651675eaa1f2452435962906c8"},{"name":"stdatomic.go","sha256":"sha256:d90c1342fc268f89020ebdb4f3886ee3572837d5cb30c02992c5153654614d6b"},{"name":"straceoff.go","sha256":"sha256:9b1d5deaa41eb28d23a89c0ac4fc06d827d3a46a57016559342e31bcd16a4b7f"},{"name":"sync.go","sha256":"sha256:a65152029198a7807eb16721dffe0ab9f7e2f8a3b746e8517347e8e6c7eeaa2a"},{"name":"watch.go","sha256":"sha256:d4ba707bdd7dddc533659a1ab47c80caf0a87d5df2c6844ac8fadbc60d7c4a25"}],"import_path":"modernc.org/libc","linknames":[],"module":{"path":"modernc.org/libc","replacement":{"adapter":{"module":"modernc.org/libc","original_source_inventory_sha256":"sha256:7455942bdfcf64ff4d46cd874f1f6e80a79e4ebe6f4d98a9c2d1ae6aaabb59da","prepared_source_set_sha256":"sha256:a28d47a51089e7cb3766f0997e472feb1e7cadfca43248a3e5b06f332df47935","profile_implementation_sha256":"sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0","profile_name":"gomad3-deterministic/v1","replacement_source_inventory_sha256":"sha256:94c69a969829324cfbcfe9382b5abe2ad73009fbbc94bd469f903d9ea0304681","sum":"h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=","version":"v1.72.3"},"kind":"adapter"},"sum":"h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=","version":"v1.72.3"},"source_set_sha256":"sha256:a28d47a51089e7cb3766f0997e472feb1e7cadfca43248a3e5b06f332df47935"},"facts":[{"capability":"import:golang.org/x/sys/unix","directives":[],"disposition":"allow","kind":"capability"},{"capability":"import:syscall","directives":[],"disposition":"allow","kind":"capability"},{"directives":["gomadLibcEnabled internal/gomadio.Enabled","gomadLibcOpen internal/gomadio.LibcOpen","gomadLibcClose internal/gomadio.LibcClose","gomadLibcRead internal/gomadio.LibcRead","gomadLibcWrite internal/gomadio.LibcWrite","gomadLibcSeek internal/gomadio.LibcSeek","gomadLibcTruncate internal/gomadio.LibcTruncate","gomadLibcSync internal/gomadio.LibcSync","gomadLibcMmap internal/gomadio.LibcMmap","gomadLibcMunmap internal/gomadio.LibcMunmap","gomadLibcRemove internal/gomadio.LibcRemove","gomadLibcRename internal/gomadio.LibcRename","gomadLibcMkdir internal/gomadio.LibcMkdir","gomadLibcAccess internal/gomadio.LibcAccess","gomadLibcStat internal/gomadio.LibcStat","gomadLibcIsDescriptor internal/gomadio.LibcIsDescriptor","gomadLibcNow internal/gomadio.LibcNow"],"disposition":"allow","kind":"linkname","sha256":"sha256:a9014a11afc7a01ae9bb2ca3dee617f29046ec012d7ea6867c3f0f47d9468a8f","source":"gomad_darwin.go"}],"import_path":"modernc.org/libc"},{"evidence":{"capabilities":[],"foreign_sources":[],"go_sources":[{"name":"memory.go","sha256":"sha256:3f5cee8943da57ffd3db70129f87abdf45c86e5299b81d09504ec2838dc31909"},{"name":"memory64.go","sha256":"sha256:1b91a327f3b95d6fc3f80f090175a9c5bc033083a2c675b7a56f009af8fa4813"},{"name":"mmap_unix.go","sha256":"sha256:c8a86dca80f526b39f0a855f59552d1085a352fb7fef47b86da827b854ab88ad"},{"name":"nocounters.go","sha256":"sha256:070021a593fc3c28988ad04bee02d83547ff56a9665e7703a80366392e30c18c"},{"name":"trace_disabled.go","sha256":"sha256:ecd151b29853826767c9fd0e2c9b48b4acd08bd211ce558016399afae693b950"}],"import_path":"modernc.org/memory","linknames":[],"module":{"path":"modernc.org/memory","replacement":{"adapter":{"module":"modernc.org/memory","original_source_inventory_sha256":"sha256:f6d838c731cb22881e472d086c21895e431123e0a08fd190b41ff34be59f0264","prepared_source_set_sha256":"sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849","profile_implementation_sha256":"sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0","profile_name":"gomad3-deterministic/v1","replacement_source_inventory_sha256":"sha256:b947d0e7fbcc3f18b995e5710e5d26d8073bf921ba1f907ef2b3972f4257a535","sum":"h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=","version":"v1.11.0"},"kind":"adapter"},"sum":"h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=","version":"v1.11.0"},"source_set_sha256":"sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849"},"facts":[{"capability":"import:golang.org/x/sys/unix","directives":[],"disposition":"allow","kind":"capability"},{"directives":["gomadMemoryEnabled internal/gomadio.Enabled","gomadMemoryMap internal/gomadio.AnonymousMap","gomadMemoryUnmap internal/gomadio.AnonymousUnmap"],"disposition":"allow","kind":"linkname","sha256":"sha256:c8a86dca80f526b39f0a855f59552d1085a352fb7fef47b86da827b854ab88ad","source":"mmap_unix.go"}],"import_path":"modernc.org/memory"}],"platforms":["darwin/arm64"],"reviewed_at":"2026-08-15T00:00:00Z","schema":"gomad3.compatibility-pack-request/v1","target":{"build_tags":["test_dep"],"expected_module":"gomad3.compatibility.v041","kind":"go-test","package":".","test_arguments":["-test.run","^TestLibcCompatibilityClosure$"]},"workloads":["modernc-libc-xsys-v041-fixture"]}
+diff --git a/tools/gomad3/internal/compatibilitypack/testdata/v041/go.mod b/tools/gomad3/internal/compatibilitypack/testdata/v041/go.mod
+deleted file mode 100644
+index c399fb6308..0000000000
+--- a/tools/gomad3/internal/compatibilitypack/testdata/v041/go.mod
++++ /dev/null
+@@ -1,16 +0,0 @@
+-module gomad3.compatibility.v041
+-
+-go 1.27.1
+-
+-require modernc.org/libc v1.72.3
+-
+-require (
+-	github.com/dustin/go-humanize v1.0.1 // indirect
+-	github.com/google/uuid v1.6.0 // indirect
+-	github.com/mattn/go-isatty v0.0.20 // indirect
+-	github.com/ncruces/go-strftime v1.0.0 // indirect
+-	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
+-	golang.org/x/sys v0.41.0 // indirect
+-	modernc.org/mathutil v1.7.1 // indirect
+-	modernc.org/memory v1.11.0 // indirect
+-)
+diff --git a/tools/gomad3/internal/compatibilitypack/testdata/v041/go.sum b/tools/gomad3/internal/compatibilitypack/testdata/v041/go.sum
+deleted file mode 100644
+index eca4531964..0000000000
+--- a/tools/gomad3/internal/compatibilitypack/testdata/v041/go.sum
++++ /dev/null
+@@ -1,47 +0,0 @@
+-github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=
+-github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
+-github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
+-github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+-github.com/hashicorp/golang-lru/v2 v2.0.7 h1:a+bsQ5rvGLjzHuww6tVxozPZFVghXaHOwFs4luLUK2k=
+-github.com/hashicorp/golang-lru/v2 v2.0.7/go.mod h1:QeFd9opnmA6QUJc5vARoKUSoFhyfM2/ZepoAG6RGpeM=
+-github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
+-github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
+-github.com/ncruces/go-strftime v1.0.0 h1:HMFp8mLCTPp341M/ZnA4qaf7ZlsbTc+miZjCLOFAw7w=
+-github.com/ncruces/go-strftime v1.0.0/go.mod h1:Fwc5htZGVVkseilnfgOVb9mKy6w1naJmn9CehxcKcls=
+-github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
+-github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
+-golang.org/x/mod v0.33.0 h1:tHFzIWbBifEmbwtGz65eaWyGiGZatSrT9prnU8DbVL8=
+-golang.org/x/mod v0.33.0/go.mod h1:swjeQEj+6r7fODbD2cqrnje9PnziFuw4bmLbBZFrQ5w=
+-golang.org/x/sync v0.20.0 h1:e0PTpb7pjO8GAtTs2dQ6jYa5BWYlMuX047Dco/pItO4=
+-golang.org/x/sync v0.20.0/go.mod h1:9xrNwdLfx4jkKbNva9FpL6vEN7evnE43NNNJQ2LF3+0=
+-golang.org/x/sys v0.6.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+-golang.org/x/sys v0.41.0 h1:Ivj+2Cp/ylzLiEU89QhWblYnOE9zerudt9Ftecq2C6k=
+-golang.org/x/sys v0.41.0/go.mod h1:OgkHotnGiDImocRcuBABYBEXf8A9a87e/uXjp9XT3ks=
+-golang.org/x/tools v0.42.0 h1:uNgphsn75Tdz5Ji2q36v/nsFSfR/9BRFvqhGBaJGd5k=
+-golang.org/x/tools v0.42.0/go.mod h1:Ma6lCIwGZvHK6XtgbswSoWroEkhugApmsXyrUmBhfr0=
+-modernc.org/cc/v4 v4.28.2 h1:3tQ0lf2ADtoby2EtSP+J7IE2SHwEJdP8ioR59wx7XpY=
+-modernc.org/cc/v4 v4.28.2/go.mod h1:OnovgIhbbMXMu1aISnJ0wvVD1KnW+cAUJkIrAWh+kVI=
+-modernc.org/ccgo/v4 v4.34.0 h1:yRLPFZieg532OT4rp4JFNIVcquwalMX26G95WQDqwCQ=
+-modernc.org/ccgo/v4 v4.34.0/go.mod h1:AS5WYMyBakQ+fhsHhtP8mWB82KTGPkNNJDGfGQCe0/A=
+-modernc.org/fileutil v1.4.0 h1:j6ZzNTftVS054gi281TyLjHPp6CPHr2KCxEXjEbD6SM=
+-modernc.org/fileutil v1.4.0/go.mod h1:EqdKFDxiByqxLk8ozOxObDSfcVOv/54xDs/DUHdvCUU=
+-modernc.org/gc/v2 v2.6.5 h1:nyqdV8q46KvTpZlsw66kWqwXRHdjIlJOhG6kxiV/9xI=
+-modernc.org/gc/v2 v2.6.5/go.mod h1:YgIahr1ypgfe7chRuJi2gD7DBQiKSLMPgBQe9oIiito=
+-modernc.org/gc/v3 v3.1.2 h1:ZtDCnhonXSZexk/AYsegNRV1lJGgaNZJuKjJSWKyEqo=
+-modernc.org/gc/v3 v3.1.2/go.mod h1:HFK/6AGESC7Ex+EZJhJ2Gni6cTaYpSMmU/cT9RmlfYY=
+-modernc.org/goabi0 v0.2.0 h1:HvEowk7LxcPd0eq6mVOAEMai46V+i7Jrj13t4AzuNks=
+-modernc.org/goabi0 v0.2.0/go.mod h1:CEFRnnJhKvWT1c1JTI3Avm+tgOWbkOu5oPA8eH8LnMI=
+-modernc.org/libc v1.72.3 h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=
+-modernc.org/libc v1.72.3/go.mod h1:dn0dZNnnn1clLyvRxLxYExxiKRZIRENOfqQ8XEeg4Qs=
+-modernc.org/mathutil v1.7.1 h1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=
+-modernc.org/mathutil v1.7.1/go.mod h1:4p5IwJITfppl0G4sUEDtCr4DthTaT47/N3aT6MhfgJg=
+-modernc.org/memory v1.11.0 h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=
+-modernc.org/memory v1.11.0/go.mod h1:/JP4VbVC+K5sU2wZi9bHoq2MAkCnrt2r98UGeSK7Mjw=
+-modernc.org/opt v0.2.0 h1:tGyef5ApycA7FSEOMraay9SaTk5zmbx7Tu+cJs4QKZg=
+-modernc.org/opt v0.2.0/go.mod h1:03fq9lsNfvkYSfxrfUhZCWPk1lm4cq4N+Bh//bEtgns=
+-modernc.org/sortutil v1.2.1 h1:+xyoGf15mM3NMlPDnFqrteY07klSFxLElE2PVuWIJ7w=
+-modernc.org/sortutil v1.2.1/go.mod h1:7ZI3a3REbai7gzCLcotuw9AC4VZVpYMjDzETGsSMqJE=
+-modernc.org/strutil v1.2.1 h1:UneZBkQA+DX2Rp35KcM69cSsNES9ly8mQWD71HKlOA0=
+-modernc.org/strutil v1.2.1/go.mod h1:EHkiggD70koQxjVdSBM3JKM7k6L0FbGE5eymy9i3B9A=
+-modernc.org/token v1.1.0 h1:Xl7Ap9dKaEs5kLoOQeQmPWevfnk/DM5qcLcYlA8ys6Y=
+-modernc.org/token v1.1.0/go.mod h1:UGzOrNV1mAFSEB63lOFHIpNRUVMvYTc6yu1SMY/XTDM=
+diff --git a/tools/gomad3/internal/compatibilitypack/testdata/v041/libc_test.go b/tools/gomad3/internal/compatibilitypack/testdata/v041/libc_test.go
+deleted file mode 100644
+index 914f3b10c4..0000000000
+--- a/tools/gomad3/internal/compatibilitypack/testdata/v041/libc_test.go
++++ /dev/null
+@@ -1,38 +0,0 @@
+-package compatibility
+-
+-import (
+-	"testing"
+-	"unsafe"
+-
+-	"modernc.org/libc"
+-	"modernc.org/libc/fcntl"
+-)
+-
+-func TestLibcCompatibilityClosure(t *testing.T) {
+-	tls := libc.NewTLS()
+-	defer tls.Close()
+-	path, err := libc.CString("state")
+-	if err != nil {
+-		t.Fatal(err)
+-	}
+-	defer libc.Xfree(tls, path)
+-	mode := uint64(0o640)
+-	descriptor := libc.Xopen(tls, path, fcntl.O_CREAT|fcntl.O_TRUNC|fcntl.O_RDWR, uintptr(unsafe.Pointer(&mode)))
+-	if descriptor < 0 {
+-		t.Fatalf("open = %d", descriptor)
+-	}
+-	contents := []byte("state")
+-	if written := libc.Xwrite(tls, descriptor, uintptr(unsafe.Pointer(&contents[0])), libc.Tsize_t(len(contents))); int64(written) != int64(len(contents)) {
+-		t.Fatalf("write = %d", written)
+-	}
+-	if offset := libc.Xlseek64(tls, descriptor, 0, fcntl.SEEK_SET); offset != 0 {
+-		t.Fatalf("seek = %d", offset)
+-	}
+-	read := make([]byte, len(contents))
+-	if count := libc.Xread(tls, descriptor, uintptr(unsafe.Pointer(&read[0])), libc.Tsize_t(len(read))); int64(count) != int64(len(read)) || string(read) != string(contents) {
+-		t.Fatalf("read = %d, %q", count, read)
+-	}
+-	if result := libc.Xclose(tls, descriptor); result != 0 {
+-		t.Fatalf("close = %d", result)
+-	}
+-}
+diff --git a/tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go b/tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go
+new file mode 100644
+index 0000000000..7bc8b0bd7b
+--- /dev/null
++++ b/tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go
+@@ -0,0 +1,195 @@
++package main
++
++import (
++	"bufio"
++	"bytes"
++	"context"
++	"encoding/json"
++	"errors"
++	"flag"
++	"fmt"
++	"io"
++	"os"
++	"path/filepath"
++	"reflect"
++	"runtime"
++	"sort"
++	"strings"
++
++	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring"
++	capabilityanalysis "go.temporal.io/server/tools/gomad3/qualification/analysis"
++	"go.temporal.io/server/tools/gomad3/upgrade"
++)
++
++type packTarget struct {
++	platform string
++	working  string
++}
++
++func runCompatibilityPackRefresh(arguments []string, stdout, stderr io.Writer) int {
++	flags := flag.NewFlagSet("gomadtool compatibility-pack refresh", flag.ContinueOnError)
++	flags.SetOutput(stderr)
++	root := flags.String("root", "", "Gomad v3 module root")
++	impactPath := flags.String("impact-report", "", "pin-impact JSON report for the bumped checkout")
++	if err := flags.Parse(arguments); err != nil || flags.NArg() != 0 || *root == "" || *impactPath == "" {
++		return 2
++	}
++	resolvedRoot, err := filepath.Abs(*root)
++	if err != nil {
++		return refreshInputError(stderr, err)
++	}
++	compatibilityRoot := filepath.Join(resolvedRoot, "internal", "compatibilitypack")
++	targets, err := readPackTargets(filepath.Join(compatibilityRoot, "targets.tsv"), resolvedRoot)
++	if err != nil {
++		return refreshInputError(stderr, err)
++	}
++	contents, err := readCompatibilityPackFile(*impactPath, 16<<20)
++	if err != nil {
++		return refreshInputError(stderr, err)
++	}
++	var impact upgrade.PinImpact
++	if err := json.Unmarshal(contents, &impact); err != nil || impact.Schema != "gomad3.pin-impact/v1" {
++		return refreshInputError(stderr, errors.New("invalid pin-impact report"))
++	}
++	ids, err := invalidatedPackRequests(impact, targets)
++	if err != nil {
++		return refreshInputError(stderr, err)
++	}
++	return refreshCompatibilityPacks(resolvedRoot, compatibilityRoot, runtime.GOOS+"/"+runtime.GOARCH, ids, targets, discoverPackRequest, stdout, stderr)
++}
++
++func refreshInputError(stderr io.Writer, err error) int {
++	if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
++		return 3
++	}
++	return 2
++}
++
++type packDiscover func(authoring.Request, string, string) (authoring.Request, string, error)
++
++func discoverPackRequest(request authoring.Request, working, toolchain string) (authoring.Request, string, error) {
++	ctx, cancel := context.WithTimeout(context.Background(), compatibilityPackTimeout)
++	defer cancel()
++	prepared, err := capabilityanalysis.PrepareCapabilityReview(ctx, request.ReviewSpec(working, toolchain))
++	if err != nil {
++		return authoring.Request{}, "", err
++	}
++	fresh, digest, err := authoring.Discover(request, prepared.Review)
++	return fresh, digest, errors.Join(err, prepared.Close())
++}
++
++func refreshCompatibilityPacks(root, compatibilityRoot, platform string, ids []string, targets map[string]packTarget, discover packDiscover, stdout, stderr io.Writer) int {
++	failed := false
++	for _, id := range ids {
++		target := targets[id]
++		requestPath := filepath.Join(compatibilityRoot, "requests", id+".json")
++		request, status := readReviewedCompatibilityPackRequest(requestPath, stderr)
++		if status != 0 || request.ID != id || len(request.Platforms) != 1 || request.Platforms[0] != target.platform {
++			if _, err := fmt.Fprintf(stderr, "%s: invalid mapped request\n", id); err != nil {
++				return 1
++			}
++			failed = true
++			continue
++		}
++		if target.platform != platform {
++			if _, err := fmt.Fprintf(stdout, "%s: not evaluable on %s; unchanged\n", id, platform); err != nil {
++				return 1
++			}
++			continue
++		}
++		fresh, digest, err := discover(request, target.working, filepath.Join(root, ".toolchain"))
++		if err != nil {
++			if _, writeErr := fmt.Fprintf(stderr, "%s: %v\n", id, err); writeErr != nil {
++				return 1
++			}
++			failed = true
++			continue
++		}
++		if request.ApprovalSHA256 == digest {
++			continue
++		}
++		_, reviewedDigest, err := authoring.RenderReview(fresh)
++		if err != nil || reviewedDigest != digest {
++			if err == nil {
++				err = errors.New("discovery and review digests differ")
++			}
++			if _, writeErr := fmt.Fprintf(stderr, "%s: fresh review failed: %v\n", id, err); writeErr != nil {
++				return 1
++			}
++			failed = true
++			continue
++		}
++		if !reflect.DeepEqual(request, fresh) {
++			if err := authoring.PublishRequest(requestPath, fresh); err != nil {
++				if _, writeErr := fmt.Fprintf(stderr, "%s: %v\n", id, err); writeErr != nil {
++					return 1
++				}
++				failed = true
++				continue
++			}
++		}
++		if _, err := authoring.PublishReview(filepath.Join(compatibilityRoot, "reports", id+".md"), fresh); err != nil {
++			if _, writeErr := fmt.Fprintf(stderr, "%s: %v\n", id, err); writeErr != nil {
++				return 1
++			}
++			failed = true
++			continue
++		}
++		if _, err := fmt.Fprintf(stdout, "%s: review %s\n", id, digest); err != nil {
++			return 1
++		}
++	}
++	if failed {
++		return 1
++	}
++	return 0
++}
++
++func readPackTargets(path, root string) (map[string]packTarget, error) {
++	contents, err := readCompatibilityPackFile(path, 64<<10)
++	if err != nil {
++		return nil, err
++	}
++	targets := make(map[string]packTarget)
++	scanner := bufio.NewScanner(bytes.NewReader(contents))
++	for scanner.Scan() {
++		fields := strings.Fields(scanner.Text())
++		if len(fields) != 3 || fields[1] == "" || strings.ContainsAny(fields[1], "/\\.") ||
++			fields[0] != "darwin/arm64" && fields[0] != "linux/amd64" ||
++			filepath.IsAbs(fields[2]) {
++			return nil, fmt.Errorf("invalid compatibility-pack target mapping: %q", scanner.Text())
++		}
++		if _, exists := targets[fields[1]]; exists {
++			return nil, fmt.Errorf("duplicate compatibility-pack target mapping: %s", fields[1])
++		}
++		working := filepath.Clean(filepath.Join(root, fields[2]))
++		if _, err := os.Stat(filepath.Join(working, "go.mod")); err != nil {
++			return nil, fmt.Errorf("compatibility-pack target %s has no module: %w", fields[1], err)
++		}
++		targets[fields[1]] = packTarget{platform: fields[0], working: working}
++	}
++	if err := scanner.Err(); err != nil {
++		return nil, err
++	}
++	return targets, nil
++}
++
++func invalidatedPackRequests(impact upgrade.PinImpact, targets map[string]packTarget) ([]string, error) {
++	set := make(map[string]bool)
++	for _, pin := range impact.Pins {
++		if pin.Class != "pack_rule" || pin.Status != "invalidated" && pin.Status != "unknown" {
++			continue
++		}
++		id, _, found := strings.Cut(pin.ID, ":")
++		if !found || targets[id].working == "" {
++			return nil, fmt.Errorf("invalidated compatibility-pack request %q has no target mapping", pin.ID)
++		}
++		set[id] = true
++	}
++	ids := make([]string, 0, len(set))
++	for id := range set {
++		ids = append(ids, id)
++	}
++	sort.Strings(ids)
++	return ids, nil
++}
+diff --git a/tools/gomad3/cmd/gomadtool/compatibility_pack_refresh_test.go b/tools/gomad3/cmd/gomadtool/compatibility_pack_refresh_test.go
+new file mode 100644
+index 0000000000..1d66660227
+--- /dev/null
++++ b/tools/gomad3/cmd/gomadtool/compatibility_pack_refresh_test.go
+@@ -0,0 +1,180 @@
++package main
++
++import (
++	"bytes"
++	"os"
++	"path/filepath"
++	"strings"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring"
++	"go.temporal.io/server/tools/gomad3/upgrade"
++	"golang.org/x/mod/modfile"
++)
++
++func TestCompatibilityPackRefreshUsesEachMappedModuleAndPreservesPartialApproval(t *testing.T) {
++	root := t.TempDir()
++	compatibilityRoot := filepath.Join(root, "internal", "compatibilitypack")
++	if err := os.MkdirAll(filepath.Join(compatibilityRoot, "requests"), 0o700); err != nil {
++		t.Fatal(err)
++	}
++	if err := os.MkdirAll(filepath.Join(compatibilityRoot, "reports"), 0o700); err != nil {
++		t.Fatal(err)
++	}
++	ids := []string{"modernc-libc-xsys-v047", "reflect2-go126"}
++	modules := []struct{ name, version string }{{"golang.org/x/sys", "v0.48.0"}, {"github.com/modern-go/reflect2", "v1.0.4"}}
++	for index, id := range ids {
++		original, err := os.ReadFile(filepath.Join("..", "..", "internal", "compatibilitypack", "requests", id+".json"))
++		if err != nil {
++			t.Fatal(err)
++		}
++		request, err := authoring.DecodeRequest(original)
++		if err != nil {
++			t.Fatal(err)
++		}
++		if err := authoring.PublishRequest(filepath.Join(compatibilityRoot, "requests", id+".json"), request); err != nil {
++			t.Fatal(err)
++		}
++		moduleDir := filepath.Join(root, id)
++		if err := os.Mkdir(moduleDir, 0o700); err != nil {
++			t.Fatal(err)
++		}
++		goMod := "module " + request.Target.ExpectedModule + "\n\ngo 1.27.1\n\nrequire " + modules[index].name + " " + modules[index].version + "\n"
++		if err := os.WriteFile(filepath.Join(moduleDir, "go.mod"), []byte(goMod), 0o600); err != nil {
++			t.Fatal(err)
++		}
++	}
++	table := "darwin/arm64 modernc-libc-xsys-v047 modernc-libc-xsys-v047\ndarwin/arm64 reflect2-go126 reflect2-go126\n"
++	if err := os.WriteFile(filepath.Join(compatibilityRoot, "targets.tsv"), []byte(table), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	targets, err := readPackTargets(filepath.Join(compatibilityRoot, "targets.tsv"), root)
++	if err != nil {
++		t.Fatal(err)
++	}
++	impact := upgrade.PinImpact{Schema: "gomad3.pin-impact/v1", Pins: []upgrade.PinResult{
++		{Class: "pack_rule", ID: ids[0] + ":golang.org/x/sys/unix", Status: "invalidated"},
++		{Class: "pack_rule", ID: ids[1] + ":github.com/modern-go/reflect2", Status: "invalidated"},
++	}}
++	invalidated, err := invalidatedPackRequests(impact, targets)
++	if err != nil {
++		t.Fatal(err)
++	}
++	discover := func(request authoring.Request, working, _ string) (authoring.Request, string, error) {
++		data, err := os.ReadFile(filepath.Join(working, "go.mod"))
++		if err != nil {
++			return authoring.Request{}, "", err
++		}
++		parsed, err := modfile.Parse("go.mod", data, nil)
++		if err != nil {
++			return authoring.Request{}, "", err
++		}
++		fresh := request
++		fresh.ApprovalSHA256 = ""
++		fresh.Activation = append([]authoring.Activation(nil), request.Activation...)
++		fresh.Packages = append([]authoring.Package(nil), request.Packages...)
++		for _, requirement := range parsed.Require {
++			for index := range fresh.Activation {
++				if fresh.Activation[index].Path == requirement.Mod.Path {
++					fresh.Activation[index].Evidence.Version = requirement.Mod.Version
++				}
++			}
++			for index := range fresh.Packages {
++				if fresh.Packages[index].Evidence.Module.Path == requirement.Mod.Path {
++					fresh.Packages[index].Evidence.Module.Version = requirement.Mod.Version
++				}
++			}
++		}
++		digest, err := authoring.ApprovalSHA256(fresh)
++		return fresh, digest, err
++	}
++	var stdout, stderr bytes.Buffer
++	if status := refreshCompatibilityPacks(root, compatibilityRoot, "darwin/arm64", invalidated, targets, discover, &stdout, &stderr); status != 0 {
++		t.Fatalf("refresh status %d: %s", status, stderr.String())
++	}
++	for index, id := range ids {
++		data, err := os.ReadFile(filepath.Join(compatibilityRoot, "requests", id+".json"))
++		if err != nil {
++			t.Fatal(err)
++		}
++		request, err := authoring.DecodeRequest(data)
++		if err != nil {
++			t.Fatal(err)
++		}
++		if request.ApprovalSHA256 != "" || !strings.Contains(stdout.String(), id+": review ") {
++			t.Fatalf("request %s retained stale approval or lost digest: %s", id, stdout.String())
++		}
++		selected := false
++		for _, activation := range request.Activation {
++			if activation.Path == modules[index].name {
++				selected = activation.Evidence.Version == modules[index].version
++			}
++		}
++		if !selected {
++			t.Fatalf("request %s did not use mapped module candidate %s", id, modules[index].version)
++		}
++	}
++	approvedPath := filepath.Join(compatibilityRoot, "requests", ids[0]+".json")
++	data, err := os.ReadFile(approvedPath)
++	if err != nil {
++		t.Fatal(err)
++	}
++	approved, err := authoring.DecodeRequest(data)
++	if err != nil {
++		t.Fatal(err)
++	}
++	approval, err := authoring.ApprovalSHA256(approved)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := authoring.Generate(compatibilityRoot, approved, approval); err != nil {
++		t.Fatal(err)
++	}
++	stdout.Reset()
++	stderr.Reset()
++	if status := refreshCompatibilityPacks(root, compatibilityRoot, "darwin/arm64", invalidated, targets, discover, &stdout, &stderr); status != 0 {
++		t.Fatalf("rerun status %d: %s", status, stderr.String())
++	}
++	if strings.Contains(stdout.String(), ids[0]) || !strings.Contains(stdout.String(), ids[1]+": review ") {
++		t.Fatalf("rerun did not preserve partial progress: %s", stdout.String())
++	}
++}
++
++func TestCompatibilityPackRefreshRejectsUnmappedRequest(t *testing.T) {
++	_, err := invalidatedPackRequests(upgrade.PinImpact{Pins: []upgrade.PinResult{{Class: "pack_rule", ID: "missing:example.com/pkg", Status: "invalidated"}}}, map[string]packTarget{})
++	if err == nil || !strings.Contains(err.Error(), "no target mapping") {
++		t.Fatalf("unmapped request error = %v", err)
++	}
++}
++
++func TestCompatibilityPackRefreshLeavesOtherPlatformUntouched(t *testing.T) {
++	root := t.TempDir()
++	compatibilityRoot := filepath.Join(root, "internal", "compatibilitypack")
++	requestPath := filepath.Join(compatibilityRoot, "requests", "modernc-libc-xsys-v047-linux-amd64.json")
++	if err := os.MkdirAll(filepath.Dir(requestPath), 0o700); err != nil {
++		t.Fatal(err)
++	}
++	original, err := os.ReadFile(filepath.Join("..", "..", "internal", "compatibilitypack", "requests", "modernc-libc-xsys-v047-linux-amd64.json"))
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(requestPath, original, 0o600); err != nil {
++		t.Fatal(err)
++	}
++	targets := map[string]packTarget{"modernc-libc-xsys-v047-linux-amd64": {platform: "linux/amd64", working: root}}
++	var stdout, stderr bytes.Buffer
++	discover := func(authoring.Request, string, string) (authoring.Request, string, error) {
++		t.Fatal("other-platform request was evaluated")
++		return authoring.Request{}, "", nil
++	}
++	if status := refreshCompatibilityPacks(root, compatibilityRoot, "darwin/arm64", []string{"modernc-libc-xsys-v047-linux-amd64"}, targets, discover, &stdout, &stderr); status != 0 {
++		t.Fatalf("refresh status %d: %s", status, stderr.String())
++	}
++	after, err := os.ReadFile(requestPath)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if !bytes.Equal(original, after) || !strings.Contains(stdout.String(), "not evaluable") {
++		t.Fatalf("other-platform request changed: %s", stdout.String())
++	}
++}
+diff --git a/tools/gomad3/internal/compatibilitypack/targets.tsv b/tools/gomad3/internal/compatibilitypack/targets.tsv
+new file mode 100644
+index 0000000000..9af28faeca
+--- /dev/null
++++ b/tools/gomad3/internal/compatibilitypack/targets.tsv
+@@ -0,0 +1,11 @@
++darwin/arm64 reflect2-go126 ../..
++darwin/arm64 modernc-libc-xsys-v047 qualification/corpus
++darwin/arm64 modernc-libc-xsys-v047-isatty-v021 ../..
++darwin/arm64 temporal-functional-compute-darwin-arm64 ../..
++darwin/arm64 temporal-functional-tests-darwin-arm64 ../..
++darwin/arm64 temporal-leaf-xsys-darwin-arm64 ../..
++darwin/arm64 temporal-leaf-xxhash-darwin-arm64 ../..
++darwin/arm64 golang-x-sys-v047-darwin-arm64 internal/compatibilitypack/testdata/xsys
++linux/amd64 modernc-libc-xsys-v047-linux-amd64 qualification/corpus
++linux/amd64 temporal-functional-compute-linux-amd64 ../..
++linux/amd64 temporal-functional-tests-linux-amd64 ../..
+diff --git a/tools/gomad3/upgrade/pin_impact_test.go b/tools/gomad3/upgrade/pin_impact_test.go
+new file mode 100644
+index 0000000000..d22899884a
+--- /dev/null
++++ b/tools/gomad3/upgrade/pin_impact_test.go
+@@ -0,0 +1,196 @@
++package upgrade
++
++import (
++	"bytes"
++	"os"
++	"path/filepath"
++	"reflect"
++	"strings"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/deterministicio"
++	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
++	"go.temporal.io/server/tools/gomad3/target"
++)
++
++const pinFixtureMod = "module example.com/pins\n\ngo 1.27.1\n\nrequire (\n github.com/getsentry/sentry-go v0.46.0\n github.com/modern-go/reflect2 v1.0.3-0.20250322232337-35a7c28c31ee // indirect\n)\n"
++const pinFixtureSum = "github.com/getsentry/sentry-go v0.46.0 h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0=\ngithub.com/modern-go/reflect2 v1.0.3-0.20250322232337-35a7c28c31ee h1:W5t00kpgFdJifH4BDsTlE89Zl93FEloxaWZfGcifgq8=\n"
++
++func writePinFixture(t *testing.T, module, sums string) string {
++	t.Helper()
++	directory := t.TempDir()
++	for name, contents := range map[string]string{"go.mod": module, "go.sum": sums} {
++		if err := os.WriteFile(filepath.Join(directory, name), []byte(contents), 0600); err != nil {
++			t.Fatal(err)
++		}
++	}
++	return filepath.Join(directory, "go.mod")
++}
++
++func changedPins(report PinImpact) []string {
++	result := []string{}
++	for _, pin := range report.Pins {
++		if pin.Status == "invalidated" || pin.Status == "unknown" {
++			result = append(result, pin.Class+":"+pin.ID+":"+pin.Status+":"+pin.Reason)
++		}
++	}
++	return result
++}
++
++func TestPinImpactMatchesAdapterAndPackRejection(t *testing.T) {
++	baseline := writePinFixture(t, pinFixtureMod, pinFixtureSum)
++	candidate := writePinFixture(t, strings.ReplaceAll(strings.ReplaceAll(pinFixtureMod, "v0.46.0", "v0.47.0"), "v1.0.3-0.20250322232337-35a7c28c31ee", "v1.0.4"), pinFixtureSum)
++	report, err := ReadPinImpact("..", candidate, baseline)
++	if err != nil {
++		t.Fatal(err)
++	}
++	want := []string{"adapter:github.com/getsentry/sentry-go:invalidated:version_changed", "pack_rule:reflect2-go126:github.com/modern-go/reflect2:invalidated:activation_version_changed"}
++	if got := changedPins(report); !reflect.DeepEqual(want, got) {
++		t.Fatalf("want %v got %v", want, got)
++	}
++	_, _, err = deterministicio.Default().PrepareBuildAdapters(target.Spec{Kind: target.KindGoTest, Source: ".", WorkingDir: filepath.Dir(candidate), PreparationRoot: t.TempDir()}, t.TempDir())
++	if !deterministicio.IsInvalidBuildAdapterConfiguration(err) || !strings.Contains(err.Error(), "unsupported github.com/getsentry/sentry-go version") {
++		t.Fatalf("build did not reject same adapter pin: %v", err)
++	}
++	contents, err := os.ReadFile("../internal/compatibilitypack/packs/reflect2-go126.json")
++	if err != nil {
++		t.Fatal(err)
++	}
++	pack, err := compatibility.LoadPack(contents)
++	if err != nil {
++		t.Fatal(err)
++	}
++	evidence, err := compatibility.PinEvidence()
++	if err != nil {
++		t.Fatal(err)
++	}
++	var rule compatibility.PackageRuleEvidence
++	for _, entry := range evidence {
++		if entry.ID == "reflect2-go126" {
++			rule = entry.Rules[0]
++		}
++	}
++	pkg := compatibility.Package{ImportPath: rule.ImportPath, Module: compatibility.Module{Path: rule.Module.Path, Version: rule.Module.Version, Sum: rule.Module.Sum}, SourceSetSHA256: rule.SourceSetSHA256}
++	for _, source := range rule.GoSources {
++		pkg.GoSources = append(pkg.GoSources, compatibility.Source{Name: source.Name, SHA256: source.SHA256})
++	}
++	for _, source := range rule.ForeignSources {
++		pkg.ForeignSources = append(pkg.ForeignSources, compatibility.ForeignSource{Kind: source.Kind, Name: source.Name, SHA256: source.SHA256})
++	}
++	selected, err := compatibility.SelectPacksForPlatform([]compatibility.ValidatedPack{pack}, []compatibility.Package{pkg}, "darwin/arm64")
++	if err != nil {
++		t.Fatal(err)
++	}
++	if len(selected.Identities()) != 1 {
++		t.Fatal("positive pack control was not selected")
++	}
++	pkg.Module.Version = "v1.0.4"
++	selected, err = compatibility.SelectPacksForPlatform([]compatibility.ValidatedPack{pack}, []compatibility.Package{pkg}, "darwin/arm64")
++	if err != nil {
++		t.Fatal(err)
++	}
++	if len(selected.Identities()) != 0 {
++		t.Fatal("build policy accepted the invalidated pack")
++	}
++}
++
++func TestPinImpactModuleChanges(t *testing.T) {
++	baseline := writePinFixture(t, pinFixtureMod, pinFixtureSum)
++	for _, test := range []struct {
++		name, module, sums string
++		want               []string
++	}{
++		{"unchanged", pinFixtureMod, pinFixtureSum, []string{}},
++		{"same-version sum", pinFixtureMod, strings.Replace(pinFixtureSum, "h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0=", "h1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa=", 1), []string{"adapter:github.com/getsentry/sentry-go:invalidated:sum_changed"}},
++		{"removed", strings.Replace(pinFixtureMod, " github.com/getsentry/sentry-go v0.46.0\n", "", 1), pinFixtureSum, []string{"adapter:github.com/getsentry/sentry-go:invalidated:module_removed"}},
++		{"replacement", pinFixtureMod + "replace github.com/getsentry/sentry-go => ./local\n", pinFixtureSum, []string{"adapter:github.com/getsentry/sentry-go:invalidated:module_replaced"}},
++		{"inactive replacement", pinFixtureMod + "replace github.com/getsentry/sentry-go v0.45.0 => ./local\n", pinFixtureSum, []string{"adapter:github.com/getsentry/sentry-go:invalidated:module_replaced"}},
++		{"indirect bump", strings.Replace(pinFixtureMod, "v1.0.3-0.20250322232337-35a7c28c31ee", "v1.0.4", 1), pinFixtureSum, []string{"pack_rule:reflect2-go126:github.com/modern-go/reflect2:invalidated:activation_version_changed"}},
++		{"unknown", pinFixtureMod, strings.Split(pinFixtureSum, "\n")[1] + "\n", []string{"adapter:github.com/getsentry/sentry-go:unknown:module_sum_missing"}},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			candidate := writePinFixture(t, test.module, test.sums)
++			report, err := ReadPinImpact("..", candidate, baseline)
++			if err != nil {
++				t.Fatal(err)
++			}
++			if got := changedPins(report); !reflect.DeepEqual(test.want, got) {
++				t.Fatalf("want %v got %v", test.want, got)
++			}
++			encoded, err := report.CanonicalJSON()
++			if err != nil {
++				t.Fatal(err)
++			}
++			repeated, err := ReadPinImpact("..", candidate, baseline)
++			if err != nil {
++				t.Fatal(err)
++			}
++			encodedAgain, err := repeated.CanonicalJSON()
++			if err != nil {
++				t.Fatal(err)
++			}
++			if !bytes.Equal(encoded, encodedAgain) || bytes.Contains(encoded, []byte(filepath.Dir(candidate))) {
++				t.Fatal("report is not stable and path-free")
++			}
++			contents, err := os.ReadFile(candidate)
++			if err != nil {
++				t.Fatal(err)
++			}
++			if string(contents) != test.module {
++				t.Fatal("module mutated")
++			}
++			contents, err = os.ReadFile(filepath.Join(filepath.Dir(candidate), "go.sum"))
++			if err != nil {
++				t.Fatal(err)
++			}
++			if string(contents) != test.sums {
++				t.Fatal("sums mutated")
++			}
++		})
++	}
++}
++
++func TestPinImpactRejectsGoAndToolchainChanges(t *testing.T) {
++	baseline := writePinFixture(t, pinFixtureMod, pinFixtureSum)
++	for _, module := range []string{strings.Replace(pinFixtureMod, "go 1.27.1", "go 1.28.0", 1), pinFixtureMod + "toolchain go1.28.0\n"} {
++		candidate := writePinFixture(t, module, pinFixtureSum)
++		_, err := ReadPinImpact("..", candidate, baseline)
++		if _, ok := err.(*InvalidPinImpactInput); !ok {
++			t.Fatalf("expected invalid input: %v", err)
++		}
++	}
++}
++
++func TestPinImpactIncludesOtherPlatformFingerprint(t *testing.T) {
++	baseline := writePinFixture(t, pinFixtureMod, pinFixtureSum)
++	report, err := ReadPinImpact("..", baseline, baseline)
++	if err != nil {
++		t.Fatal(err)
++	}
++	for _, pin := range report.Pins {
++		if pin.Class == "interception_fingerprint" && pin.ID == "os.Pipe@linux/amd64" {
++			if pin.SourceSetSHA256 != "sha256:1197aa5233e66c97086931807857c31b6ca7c590f932204cf822c8df73a0b27d" || !reflect.DeepEqual(pin.Platforms, []string{"linux/amd64"}) {
++				t.Fatalf("incorrect platform override: %+v", pin)
++			}
++			return
++		}
++	}
++	t.Fatal("report omitted the Linux os.Pipe declaration fingerprint")
++}
++
++func TestPinImpactSkipsUnselectedPackVariants(t *testing.T) {
++	module := "module example.com/pins\n\ngo 1.27.1\nrequire (\n golang.org/x/sys v0.47.0\n modernc.org/libc v1.72.3\n modernc.org/memory v1.11.0\n github.com/mattn/go-isatty v0.0.21\n)\n"
++	sums := "golang.org/x/sys v0.47.0 h1:dummy\nmodernc.org/libc v1.72.3 h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=\nmodernc.org/memory v1.11.0 h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=\ngithub.com/mattn/go-isatty v0.0.21 h1:dummy\n"
++	baseline := writePinFixture(t, module, sums)
++	report, err := ReadPinImpact("..", baseline, baseline)
++	if err != nil {
++		t.Fatal(err)
++	}
++	for _, pin := range report.Pins {
++		if pin.ID == "modernc-libc-xsys-v047:github.com/mattn/go-isatty" {
++			if pin.Status != "not_selected" {
++				t.Fatalf("unselected pack variant was reported affected: %+v", pin)
++			}
++		}
++	}
++}

@@ -1,0 +1,14 @@
+{
+  "cmd": [
+    ".toolchain/bin/go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "./cmd/gomad/internal/cli",
+    "-run",
+    "TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure|TestPlanAndExploreRejectHiddenPlanRoute|TestPlanValidationOrderAndJSONRouting|TestPublicCommandWriterFailuresPreserveStatus"
+  ],
+  "exit": 0,
+  "seconds": 1.053
+}

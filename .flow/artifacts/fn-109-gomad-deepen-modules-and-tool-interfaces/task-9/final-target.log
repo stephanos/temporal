@@ -1,0 +1,7 @@
+ok  	go.temporal.io/server/tools/gomad3/target	37.304s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/build	0.671s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/capabilityreview	3.260s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/gocommand	2.500s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/livecap	7.258s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/provenance	0.968s
+ok  	go.temporal.io/server/tools/gomad3/internal/hostexec	1.119s

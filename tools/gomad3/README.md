@@ -37,8 +37,10 @@ GOMADSEED=1 make gomad3-test GOMAD3_PACKAGES=./path/to/package
 
 Those wrappers remove `GOMADSEED` from the custom `go` process and use Go's
 `-exec` hook to enable Gomad only in the resulting binary or generated test
-binary. Direct execution of a prebuilt binary remains
-`GOMADSEED=<seed> ./binary`.
+binary. They compile with `GOEXPERIMENT=nogreenteagc`, as Runner preparation
+does. Direct execution remains `GOMADSEED=<seed> ./binary`; the prebuilt binary
+must use that collector profile. Seeded activation of a Green Tea binary
+fails before user code runs. Unseeded binaries retain their compiled profile.
 
 Check whether the complete Runner and deterministic-I/O contract is available
 before starting a campaign:
@@ -147,6 +149,14 @@ deterministic breadth-first rounds ordered by forced-prefix length and identity;
 parallel completion timing cannot change the committed exploration. A target
 failure remains expandable while the selected failure policy permits it.
 
+`--choice-start-ordinal=N` keeps decisions before replay-plan ordinal N in each
+forced prefix but expands alternatives only at N and later. The default is 0;
+use `inspect --choices` to find the replay-plan ordinals. This option is valid
+only for Choice Exploration and is frozen in the Campaign plan for resume.
+Select polls with fewer than two ready cases remain in the Choice Trace but
+do not create frontier branches. The result reports their omitted alternatives
+separately from execution, depth, and byte bounds.
+
 Each completed round is an immutable, hash-linked transaction below the Campaign.
 An interrupted round is archived and rerun in full on `gomad resume`; logical
 and recovery execution counts are reported separately. `exploration_exhausted`
@@ -160,8 +170,12 @@ fresh process under an explicit attempt bound. An accepted reduction must keep
 the normalized failure and outcome, exact choice replay, and exact simulation
 replay. The parent remains immutable; a changed result is published by record
 identity with inspectable parent, reduction, budget, and predicate evidence.
-Minimizer checkpoint/resume and target-declared scenario shrinking are not yet
-implemented.
+Each parent has persisted minimizer state below the selected artifact root.
+After interruption, `minimize --resume` with the same parent, artifact root,
+and bounds continues the recorded attempt order and budget. The state binds
+the parent, implementation, accepted artifacts, and replay evidence; changed
+inputs, corrupt state, or a concurrent writer fail closed. Target-declared
+scenario shrinking is not yet implemented.
 
 `gomad analyze` defaults to `--capability-mode=closure`, which reviews a
 `go-run` or `go-test` target without compiling or executing it. Explicit
@@ -219,7 +233,8 @@ explicit conflicting resume mode is rejected. Human and JSON results report
 requested, answered, guided, and new execution counts.
 
 The corpus is private, single-writer, and bounded to 1,024 cases and 1 GiB. Its
-identity binds the prepared target and arguments, pinned toolchain, reviewed
+identity binds the prepared target and arguments, explicit environment and
+clock-tick policy, pinned toolchain, reviewed
 boundary, semantic instrumentation, and record contract. Every entry retains
 the exact-replay artifact, seed, captured I/O and World identities, semantic
 coverage, novelty reasons, and matching replay result. A case is published and
@@ -338,8 +353,12 @@ workload is invalid input, never a partial aggregate. A count larger than the
 manifest is refused rather than run as an empty shard. `merge-set` returns the
 same statuses as `qualify-set`.
 
-By default every Campaign a set run produces stays under `--artifacts`, which
-for the 28-workload Temporal manifest is about 11 GiB. `--prune-qualified-artifacts`
+By default every Campaign a set run produces stays under `--artifacts`.
+Campaign, corpus, and minimizer stores share each prepared binary through a
+content-addressed target pool and hard links. Retained-byte limits count that
+binary once per pool; artifact payloads and replay validation remain complete.
+When hard links are unavailable, publication uses private copies and counts
+each copy. `--prune-qualified-artifacts`
 (`GOMAD3_QUALIFICATION_PRUNE=1` for the Make targets) bounds that to one seed:
 once a seed is `qualified`, its successful repetitions were replayed exactly,
 and the set report holds its evidence, the run deletes that seed's retained
@@ -477,6 +496,10 @@ interface. Trusted repository tooling preparing an `exec` target must use
 provenance for the exact binary. Runner revalidates its package policy, pinned
 standard-library membership, module closure, build information, and binary
 identity; arbitrary binaries are rejected.
+Coverage-instrumented targets are rejected during preparation, provenance
+validation, and replay: host coverage-counter flushing is outside the
+deterministic-I/O contract. Semantic and choice coverage use Gomad's bounded
+recorded probes and do not enable Go code coverage.
 
 `gomad inspect` validates the Campaign journal or immutable failure/success Artifact before
 printing its identity, outcome, transcripts, captured mounts, truncation,
@@ -763,6 +786,16 @@ target exited; both are deterministic and compared between repetitions.
 Qualification reports add each execution's `wall_elapsed_nanos`, which is
 informational and outside the evidence digest.
 
+The local run queue preserves the head's goroutine class on each dispatch.
+A runtime-owned head runs deterministically; a user head chooses only among
+queued user goroutines and records a decision only when at least two exist.
+Both classes advance through the queue. Finalizer and cleanup goroutines
+executing user callbacks use the runtime's user classification. Run-next,
+the global queue, timer delivery, and collector workers picked outside the
+local queue retain their existing rules. This rule does not make a CPU loop
+that never yields progress, and tapes from the preceding controller identity
+are rejected.
+
 Deterministic mode supports internally linked pure-Go targets on the qualified
 `darwin/arm64` and `linux/amd64` hosts. Enabled cgo or externally linked binaries fail before package
 initialization. Windows, plugins, foreign threads, the race detector, signals,
@@ -872,6 +905,47 @@ go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack generate \
   --approve-review=<exact-review-sha256>
 make -C tools/gomad3 validate compatibility-pack-qualification
 ```
+
+For a dependency bump, compare the candidate module with a saved baseline
+`go.mod` and adjacent `go.sum` before repairing pins:
+
+```sh
+go -C tools/gomad3 run ./cmd/gomadtool pin-impact \
+  --root=. --baseline=/absolute/baseline/go.mod \
+  --candidate=/absolute/candidate/go.mod --format=json > pin-impact.json
+```
+
+Status 1 means at least one pin is invalidated or unknown; 2 means invalid
+input, and 3 means the report could not be produced. The report includes
+adapter, pack-rule, interception, and clock-inventory pins. A missing sum or
+source identity remains unknown rather than being treated as unaffected.
+
+For each invalidated adapter, run `adapter-regenerate` once without approval
+to inspect the changed upstream source and proposed anchors, then repeat with
+the exact digest printed by that review:
+
+```sh
+go -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate \
+  --root=. --module=<exact-module-path> --version=<exact-version>
+go -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate \
+  --root=. --module=<exact-module-path> --version=<exact-version> \
+  --approve=sha256:<reviewed-digest>
+go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack refresh \
+  --root=. --impact-report=/absolute/path/to/pin-impact.json
+```
+
+The adapter command verifies exact rewrite occurrences and publishes the
+descriptor, anchors, fixtures, and generated consumers together only after
+approval. Refresh uses `internal/compatibilitypack/targets.tsv` to discover and
+render fresh reviews for affected requests on this host. It preserves an
+approval only when it matches the newly discovered evidence; it leaves requests
+for the other platform unchanged. Inspect each changed report and use the
+existing `compatibility-pack generate --approve-review=<exact-review-sha256>`
+for each approved request. Then run `make -C tools/gomad3 validate
+compatibility-pack-qualification core-qualification-set` and the full `test`
+gate on both supported hosts. A Darwin run does not qualify Linux packs or
+adapters. The generated [upgrade guide](deterministicio/boundary/upgrade-go1.27.1.md)
+covers the Go-release dossier as well as this dependency flow.
 
 A module outside this repository keeps packs for its own dependencies in its
 own tree, so they never have to be committed here. Every authoring command

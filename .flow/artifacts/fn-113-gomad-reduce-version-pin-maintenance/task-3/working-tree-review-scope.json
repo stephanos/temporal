@@ -1,0 +1,146 @@
+{
+  "task": "fn-113-gomad-reduce-version-pin-maintenance.3",
+  "base_commit": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+  "scope": "UNCOMMITTED working tree; listed16 path changes including deletions; HEAD..HEAD is empty and not the artifact",
+  "source_binding": "source-binding.json",
+  "files": {
+    "tools/gomad3/Makefile": {
+      "before": {
+        "sha256": "206cfb1a2920bc0aab970d1f7ef10ae78184d6872772ab4397a9e58d4fb40611",
+        "bytes": 13463
+      },
+      "after": {
+        "sha256": "8d24a9d37d8c3e0ee016649e047150b35abf8d6167fcf3c5fd8defedea206c46",
+        "bytes": 12780
+      }
+    },
+    "tools/gomad3/cmd/gomadtool/compatibility_pack.go": {
+      "before": {
+        "sha256": "bef05d6c48112de37476ba6f72c0b8683c5db87261a54ed08b5fcda914356897",
+        "bytes": 12123
+      },
+      "after": {
+        "sha256": "b2386dfb0a2c98787dd30e86bafe31aa3e0e5dffbc56a89671e53700a6d59de6",
+        "bytes": 12310
+      }
+    },
+    "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go": {
+      "before": null,
+      "after": {
+        "sha256": "23e64d646497bf6b0838429ad2ee7827a293653f533b9e5d1400f0bda57fd735",
+        "bytes": 6444
+      }
+    },
+    "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh_test.go": {
+      "before": null,
+      "after": {
+        "sha256": "aec3e11949fda1ad3e3d08a7d8e98f85c8d3d14c6f82fbc347f7ef1d5181cbac",
+        "bytes": 7052
+      }
+    },
+    "tools/gomad3/internal/compatibilitypack/targets.tsv": {
+      "before": null,
+      "after": {
+        "sha256": "d6258312ce9b0c585efbdf339248b0392f39f1ce0c59b16dd4848a96607a8689",
+        "bytes": 634
+      }
+    },
+    "tools/gomad3/internal/compatibilitypack/evidence_test.go": {
+      "before": {
+        "sha256": "55a1be088a701989e997e08a353709a22529f86697fd427c65e377bb53f0d68b",
+        "bytes": 4239
+      },
+      "after": {
+        "sha256": "c6029a3b830213a3811be3a2f90b72fba3a07f3fc26876e9a8c9279771007a58",
+        "bytes": 4343
+      }
+    },
+    "tools/gomad3/internal/compatibilitypack/policy_test.go": {
+      "before": {
+        "sha256": "f9b3ace4be1a303cc487124dfb4e1930bba4f195274d190811c3a866f3ab42b8",
+        "bytes": 10103
+      },
+      "after": {
+        "sha256": "040a7941860e04234695cf1389de158cf2661e8fffc8316f431c8a38d6fe0833",
+        "bytes": 10152
+      }
+    },
+    "tools/gomad3/internal/compatibilitypack/generation.json": {
+      "before": {
+        "sha256": "c1724200b05f2777002cc281ec91778216ed5650f2bcfe0ea494af917a13bf7e",
+        "bytes": 5157
+      },
+      "after": {
+        "sha256": "683f038aab921b3fee562963639660b507643948e907e7ff7a6d6c83798f91f1",
+        "bytes": 4770
+      }
+    },
+    "tools/gomad3/internal/compatibilitypack/packs_generated_test.go": {
+      "before": {
+        "sha256": "58b685662777218d494be80058864a5442d494450fd9544272907ce2bb14eebe",
+        "bytes": 15572
+      },
+      "after": {
+        "sha256": "70297a5bbab77d08e5cd7196d88284ea977b040a1b6caf179eb5027695ad67aa",
+        "bytes": 14220
+      }
+    },
+    "tools/gomad3/internal/compatibilitypack/packs/modernc-libc-xsys-v041.json": {
+      "before": {
+        "sha256": "406aef2d9c91955e1e0e63eace8133481e5115796d83374536b27a7159509b85",
+        "bytes": 15416
+      },
+      "after": null
+    },
+    "tools/gomad3/internal/compatibilitypack/requests/modernc-libc-xsys-v041.json": {
+      "before": {
+        "sha256": "1fbbf22377644ba3aec9f1bf2612b207d23e9a4f6a91747d93a373808fbc40f4",
+        "bytes": 16650
+      },
+      "after": null
+    },
+    "tools/gomad3/internal/compatibilitypack/reports/modernc-libc-xsys-v041.md": {
+      "before": {
+        "sha256": "a83095bc7ffb68d1c79b6eb17260c08171003827d80e47789fa0e9be4cbf666e",
+        "bytes": 13301
+      },
+      "after": null
+    },
+    "tools/gomad3/internal/compatibilitypack/testdata/v041/go.mod": {
+      "before": {
+        "sha256": "fede118011c2f4975aa514f01da3afce5d39bf730bfd6f512b419075b705dc17",
+        "bytes": 483
+      },
+      "after": null
+    },
+    "tools/gomad3/internal/compatibilitypack/testdata/v041/go.sum": {
+      "before": {
+        "sha256": "26ffc8384dc377da24be175a04fe821ccc977dc18c01a49cf64742216f5ebdc7",
+        "bytes": 3836
+      },
+      "after": null
+    },
+    "tools/gomad3/internal/compatibilitypack/testdata/v041/libc_test.go": {
+      "before": {
+        "sha256": "b22bc85f378d93ada9af6e900761706f23110db40c81f1ec78a1c1e3b60d59a6",
+        "bytes": 1172
+      },
+      "after": null
+    },
+    "tools/gomad3/upgrade/pin_impact_test.go": {
+      "before": {
+        "sha256": "6d6dcae70d56391c3f0dd7bfece54dc2a2ffd023fa2c389dea843d1182070752",
+        "bytes": 8601,
+        "reconstructed_from_single_task3_condition_edit": true
+      },
+      "after": {
+        "sha256": "dc66b586a0b6573855f3e44c2f7cbe859e199a60bb889a5fcdf6e10a10d089b3",
+        "bytes": 8545
+      }
+    }
+  },
+  "patch_sha256": "4b797ec877b8c25c364ef179b9d2efcda55a4ec764b9a69b96e65a36fe6b05b7",
+  "patch_bytes": 99333,
+  "prior_work_note": "Makefile and upgrade/pin_impact_test.go carried prior milestone work. Use pre-edit-source/source-binding before metadata to isolate task3; pin-impact test changed only obsolete v041 condition, prior bytes explicitly reconstructed. v2_selection.go is earlier completed work and outside task3.",
+  "gates": "focused cmd/compatibilitypack/upgrade tests, vet, validate and8 Darwin qualifications green; focused-bound-final.log verifies final skip predicate; nativeLinux unavailable; rootlint known nestedmodule limitation retainedtask2; scopedlint17 prior findings none newrefresh source/tests"
+}

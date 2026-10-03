@@ -1,0 +1,88 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.4",
+  "status": "implemented_pending_parent_review_and_flow_completion",
+  "commits": [],
+  "prs": [],
+  "source_files": [
+    "tools/gomad3/cmd/gomad/internal/cli/analyze.go",
+    "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+    "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+    "tools/gomad3/cmd/gomad/internal/cli/doctor.go",
+    "tools/gomad3/cmd/gomad/internal/cli/qualify.go",
+    "tools/gomad3/cmd/gomad/internal/cli/qualify_set.go",
+    "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+    "tools/gomad3/cmd/gomad/internal/cli/application.go",
+    "tools/gomad3/cmd/gomad/internal/cli/application_test.go",
+    "tools/gomad3/cmd/gomad/internal/cli/application_characterization_test.go"
+  ],
+  "evidence": {
+    "preimages": "preimage-manifest.json",
+    "baseline": "baseline-evidence.json",
+    "baseline_characterization": "baseline-overlay/characterization.log",
+    "task_patch": "task-only.patch",
+    "final_manifest": "final-source-manifest.json"
+  },
+  "verification": [
+    {
+      "command": ".toolchain/bin/go test -count=1 -tags test_dep ./cmd/gomad/...",
+      "phase": "before production edits",
+      "exit_code": 0,
+      "evidence": "baseline-evidence.json"
+    },
+    {
+      "command": ".toolchain/bin/go test -count=1 -tags test_dep -overlay <captured-preimages> ./cmd/gomad/internal/cli -run \"TestPublicCommand|TestQualifyGrammar\" -v",
+      "phase": "before-refactor bytes with characterization",
+      "exit_code": 0,
+      "evidence": "baseline-overlay/characterization.log"
+    },
+    {
+      "command": ".toolchain/bin/go test -count=1 -tags test_dep ./cmd/gomad/...",
+      "phase": "refactor source before lint-only fixes",
+      "exit_code": 0,
+      "evidence": "quick-cmd-gomad.log"
+    },
+    {
+      "command": "GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host",
+      "phase": "frozen refactor source before lint-only fixes",
+      "exit_code": 0,
+      "evidence": "full-host.log"
+    },
+    {
+      "command": ".toolchain/bin/go test -count=1 -tags test_dep ./cmd/gomad/internal/cli -run \"TestApplication|TestRunDoctor|TestPublicCommand|TestQualifyGrammar\"",
+      "phase": "final lint-only fixes",
+      "exit_code": 0,
+      "evidence": "post-lint-focused-test.log"
+    },
+    {
+      "command": ".toolchain/bin/go vet -tags test_dep ./cmd/gomad/internal/cli",
+      "phase": "final",
+      "exit_code": 0,
+      "evidence": "scoped-vet.log"
+    },
+    {
+      "command": "env -u GOROOT -u GOBIN -u GOMADSEED -u GOMAD3_CHILD_SEED PATH=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin:$PATH GOMAD3_STOCK_GO=/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off /Users/stephan/Workspace/temporal/gomad/.bin/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --new-from-rev=HEAD ./cmd/gomad/internal/cli (working directory: tools/gomad3)",
+      "phase": "final scoped delta",
+      "exit_code": 0,
+      "evidence": "scoped-lint-new.log"
+    },
+    {
+      "command": "make -C tools/gomad3 runner",
+      "phase": "final",
+      "exit_code": 0,
+      "evidence": "runner-build.log"
+    },
+    {
+      "command": "gofmt -l <ten changed Go files>; git diff --check -- tools/gomad3/cmd/gomad/internal/cli",
+      "phase": "final",
+      "exit_code": 0,
+      "evidence": "final-source-manifest.json"
+    }
+  ],
+  "limits": [
+    "Unfiltered nested-module lint reported 72 package issues before fixes; the two issues in newly moved code were fixed, and final changed-line lint reports 0 issues.",
+    "Root make lint-code-fast was not rerun; its previously retained nested-module loading failure belongs to fn-113 task 2.",
+    "Native linux/amd64 qualification was unavailable on this darwin/arm64 host and remains a later spec gate."
+  ],
+  "summary": "One lazy application value owns executable discovery, installation resolution, Runner digest, private command construction and private-mode dispatch. Commands consume that value after syntax validation; existing dependency-struct test seams remain. Doctor retains its report and Runner validation semantics; CLI grammar, flags, output and statuses are characterized on captured pre-refactor bytes and final source.",
+  "last_adjustment": "Changed only the new revive directive rationale to the stable CLI validation/error-precedence constraint; gofmt and diff checks passed; refreshed Runner build passed. No full suite rerun for comment-only edit."
+}

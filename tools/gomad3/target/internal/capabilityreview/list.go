@@ -7,8 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os/exec"
 	"strings"
+
+	"go.temporal.io/server/tools/gomad3/target/internal/gocommand"
 )
 
 type Request struct {
@@ -84,6 +85,10 @@ type Package struct {
 }
 
 func List(ctx context.Context, request Request) ([]Package, error) {
+	return ListWith(ctx, request, gocommand.Default())
+}
+
+func ListWith(ctx context.Context, request Request, runner gocommand.Runner) ([]Package, error) {
 	if request.GoCommand == "" || request.Directory == "" || request.Package == "" || request.OutputLimit == 0 || request.PackageLimit <= 0 {
 		return nil, errors.New("capability review request is incomplete")
 	}
@@ -101,21 +106,21 @@ func List(ctx context.Context, request Request) ([]Package, error) {
 		arguments = append(arguments, "-tags", strings.Join(request.Tags, ","))
 	}
 	arguments = append(arguments, request.Package)
-	command := exec.CommandContext(ctx, request.GoCommand, arguments...)
-	command.Dir = request.Directory
-	command.Env = append([]string(nil), request.Environment...)
-	stdout, stderr, err := runBounded(command, request.OutputLimit)
+	result, err := runner.Structured(ctx, gocommand.Request{
+		Command: append([]string{request.GoCommand}, arguments...), Dir: request.Directory,
+		Env: request.Environment, OutputLimit: request.OutputLimit,
+	})
 	if err != nil {
 		if ctx.Err() != nil {
 			return nil, ctx.Err()
 		}
-		var exit *exec.ExitError
+		var exit *gocommand.ExitError
 		if errors.As(err, &exit) {
-			return nil, &CommandError{Err: err, Stderr: stderr, InvalidInput: invalidDiagnostic(stderr)}
+			return nil, &CommandError{Err: err, Stderr: result.Stderr, InvalidInput: invalidDiagnostic(result.Stderr)}
 		}
 		return nil, err
 	}
-	decoder := json.NewDecoder(bytes.NewReader(stdout))
+	decoder := json.NewDecoder(bytes.NewReader(result.Stdout))
 	packages := make([]Package, 0)
 	for {
 		var pkg Package
@@ -145,49 +150,4 @@ func invalidDiagnostic(stderr []byte) bool {
 		}
 	}
 	return false
-}
-
-func runBounded(command *exec.Cmd, limit uint64) ([]byte, []byte, error) {
-	stdout, err := newBoundedBuffer(limit)
-	if err != nil {
-		return nil, nil, err
-	}
-	stderr, err := newBoundedBuffer(limit)
-	if err != nil {
-		return nil, nil, err
-	}
-	command.Stdout = stdout
-	command.Stderr = stderr
-	runErr := command.Run()
-	if stdout.overflow || stderr.overflow {
-		return nil, nil, fmt.Errorf("target capability closure output exceeds %d bytes", limit)
-	}
-	if runErr != nil {
-		return nil, stderr.bytes, runErr
-	}
-	return stdout.bytes, stderr.bytes, nil
-}
-
-type boundedBuffer struct {
-	bytes    []byte
-	limit    uint64
-	overflow bool
-}
-
-func newBoundedBuffer(limit uint64) (*boundedBuffer, error) {
-	if limit == 0 || limit > uint64(^uint(0)>>1) {
-		return nil, fmt.Errorf("invalid command output limit %d", limit)
-	}
-	return &boundedBuffer{bytes: make([]byte, 0, int(limit)), limit: limit}, nil
-}
-
-func (buffer *boundedBuffer) Write(data []byte) (int, error) {
-	remaining := buffer.limit - uint64(len(buffer.bytes))
-	if uint64(len(data)) > remaining {
-		buffer.bytes = append(buffer.bytes, data[:int(remaining)]...)
-		buffer.overflow = true
-		return len(data), nil
-	}
-	buffer.bytes = append(buffer.bytes, data...)
-	return len(data), nil
 }

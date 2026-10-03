@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/bin/go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "./runner",
+    "-run",
+    "^TestCampaignOptionsCharacterization$"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 0.881,
+  "source_manifest": "source-post-prehost.sha256",
+  "source_stable": true,
+  "capture_flags_unset": true,
+  "log": "parent-characterization.log"
+}

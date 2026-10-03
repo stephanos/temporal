@@ -1,0 +1,12 @@
+{
+  "argv": [
+    ".bin/gomad",
+    "doctor",
+    "--json",
+    "--toolchain-root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain"
+  ],
+  "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+  "exit": 0,
+  "duration_seconds": 0.8619126669946127,
+  "log": "cli-smoke.log"
+}

@@ -1,0 +1,2854 @@
+diff --git a/.plans/GOMAD_NEXT.md b/.plans/GOMAD_NEXT.md
+index 57944153d4..3bc7c46f6e 100644
+--- a/.plans/GOMAD_NEXT.md
++++ b/.plans/GOMAD_NEXT.md
+@@ -36,9 +36,10 @@ as the bounded diagnostic baseline until a richer policy demonstrates an improve
+ 
+ ### BUG-5: Failure minimization
+ 
+-Add crash-resumable minimizer state and typed scenario-input shrinkers to the
+-existing combined-simulation reducer. Checkpoint attempt order, budgets, accepted
+-reductions, and parent identity. Accepted candidates preserve the normalized
++Crash-resumable minimizer state is delivered through `gomad minimize --resume`,
++with persisted attempt order, budgets, accepted reductions, and parent identity.
++Add typed scenario-input shrinkers to the existing combined-simulation reducer.
++Accepted candidates preserve the normalized
+ failure, outcome, input validity, and exact choice/model replay; publish reductions
+ with lineage while keeping the parent immutable. Scenario owners supply validity
+ rules and shrinkers. Input shrinking does not establish causal minimality.
+@@ -103,6 +104,10 @@ pack/adapter identities, and an addressable qualified rollback bundle. Releases
+ require reviewed boundary differences and qualification; uncertainty and unavailable
+ audits remain unqualified.
+ 
++Fn-113 supplies dependency pin-impact reports, reviewed exact adapter
++regeneration, and per-request compatibility-pack refresh. Workload behavior
++diffs and qualified rollback bundles remain future COMPAT-8 work.
++
+ ## Productionization
+ 
+ ### PROD-3: Artifact lifecycle and data policy
+diff --git a/MILESTONES.md b/MILESTONES.md
+index 782cd8a057..32442949d9 100644
+--- a/MILESTONES.md
++++ b/MILESTONES.md
+@@ -37,9 +37,9 @@ changes, change the spec and summarize the change here.
+ | Deep modules and tool interfaces | [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) | open; tasks 1 and 22 of 22 done: isolated simulation bounds preserved and real simulation exploration repaired; twenty tasks remain for the architecture findings, reusing D1/D2 and reviving D3/D4/D5 ([delivery order](#deep-modules-and-tool-interfaces-fn-109)) |
+ | Runtime patch minimization | [fn-110](.flow/specs/fn-110-gomad-minimize-the-runtime-patch.md) | open; task 1 of 5 done with a dated baseline; tasks 2–5 retain overlay extraction, canonical one-context-line regeneration, and both-platform qualification ([delivery order](#runtime-patch-minimization-fn-110)) |
+ | Vocabulary and documentation | [fn-111](.flow/specs/fn-111-gomad-consolidate-vocabulary-and-update.md) | done; all three tasks and current spec completion review passed on 2026-10-02; canonical vocabulary and current guide/audit acceptance retained ([scope](#vocabulary-and-documentation-fn-111)) |
+-| Determinism assurance and test strategy | [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md) | open; tasks 1–4, 6–8, and 11–15 done; baseline CI green on `8789deab0`, simulation/replay gates repaired, diagnostics and timer/shuffle fixtures verified, generated filesystem/TCP conformance added with model fixes, and built-CLI recovery tests reviewed on darwin/arm64; watchdog classification and diagnostic replay repaired; exploration rounds keep the parent's cancellation classification (task 14, darwin only; its native Linux CI rerun is open) and the watchdog replay test no longer races its wall clock (task 15). Task 16 (two retained successes with one outcome signature) is queued; stream isolation, soak gate, and suite reshaping remain ([findings and proposed order](#quality-assessment-2026-10-01)) |
+-| Version-pin maintenance | [fn-113](.flow/specs/fn-113-gomad-reduce-version-pin-maintenance.md) | open; four tasks, plan reviewed; pin impact report, adapter regeneration, and pack refresh, with no pin loosened; implementation not started ([cost evidence](#maintenance-cost)) |
+-| Search-path defects and wasted work | [fn-114](.flow/specs/fn-114-gomad-correct-search-path-defects-and.md) | open; tasks 1–4 and 7 done and reviewed; guided selection now skips answered seeds, with frozen regression/resume/shard selection ([task 7 evidence](.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-7/final-completion-summary.md)); C3's error path, E4's historical probe premise, and C2's predicted prefix divergence corrected. Callback identities swap but valid same-seed prefixes succeed; all seven select shapes have an exhausted unreduced baseline. Corpus identity now binds environment and tick policy, and coverage-instrumented targets are rejected by provenance and replay validation ([task 3 evidence](.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-3/final-completion-summary.md)). Host gates pass on darwin/arm64; Linux remains unverified; forced-prefix divergences and completed siblings now survive commit/resume ([task 4 evidence](.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-4/final-completion-summary.md)). On 2026-10-02 tasks 5, 6, 8–12, 15, and 16 were also done and reviewed on darwin/arm64: schedule-independent timer-callback identities with a checked parentless-creation inventory, the choice-exploration start ordinal, persisted minimizer state with per-parent `minimize --resume`, one shared prepared target per store with count-once byte accounting (unpruned representative set 1.17 GB on disk versus 11.44 GB counted without sharing), and select readiness recorded in the Choice Trace with no-op select-poll decisions no longer expanded after a soundness check. The toolchain build key is now `2008ea81`. Linux remains unverified for all of them; task 13 and the qualification task 14 remain |
++| Determinism assurance and test strategy | [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md) | open; tasks 1–8 and 11–16 done; baseline CI green on `8789deab0`, simulation/replay gates repaired, diagnostics and timer/shuffle fixtures verified, generated filesystem/TCP conformance added with model fixes, and built-CLI recovery tests reviewed on darwin/arm64; watchdog classification and diagnostic replay repaired; exploration rounds keep the parent's cancellation classification (task 14, darwin only; its native Linux CI rerun is open) and the watchdog replay test no longer races its wall clock (task 15). Task 16 is done: real CLI runs confirm the same-signature success collision and both retained executions now inspect and replay as distinct artifacts; Task 5 is done and reviewed on 2026-10-03: 269 classified draw references, M-local host batch/profiler draws, diagnostic rejection, and classic-only seeded launchers; the collector-file blocker is recorded. Soak, suite reshaping, and final documentation remain ([findings and proposed order](#quality-assessment-2026-10-01)) |
++| Version-pin maintenance | [fn-113](.flow/specs/fn-113-gomad-reduce-version-pin-maintenance.md) | open; tasks 1–3 done and reviewed on darwin/arm64: pin impact, governed adapter regeneration with recoverable complete-output publication, and per-request pack refresh share the build checks. The controlled Sprig version fixture qualified with two exact replays; refresh uses one module mapping, preserves explicit partial approvals, and retires the obsolete v041 variant with retained selector and coverage evidence. Eight Darwin pack requests qualify. Documentation, measured maintenance steps, and both-platform final gates remain ([cost evidence](#maintenance-cost)) |
++| Search-path defects and wasted work | [fn-114](.flow/specs/fn-114-gomad-correct-search-path-defects-and.md) | open; tasks 1–4 and 7 done and reviewed; guided selection now skips answered seeds, with frozen regression/resume/shard selection ([task 7 evidence](.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-7/final-completion-summary.md)); C3's error path, E4's historical probe premise, and C2's predicted prefix divergence corrected. Callback identities swap but valid same-seed prefixes succeed; all seven select shapes have an exhausted unreduced baseline. Corpus identity now binds environment and tick policy, and coverage-instrumented targets are rejected by provenance and replay validation ([task 3 evidence](.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-3/final-completion-summary.md)). Host gates pass on darwin/arm64; Linux remains unverified; forced-prefix divergences and completed siblings now survive commit/resume ([task 4 evidence](.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-4/final-completion-summary.md)). On 2026-10-02 tasks 5, 6, 8–12, 15, and 16 were also done and reviewed on darwin/arm64: schedule-independent timer-callback identities with a checked parentless-creation inventory, the choice-exploration start ordinal, persisted minimizer state with per-parent `minimize --resume`, one shared prepared target per store with count-once byte accounting (unpruned representative set 1.17 GB on disk versus 11.44 GB counted without sharing), and select readiness recorded in the Choice Trace with no-op select-poll decisions no longer expanded after a soundness check. Task 13 is also done and reviewed on darwin/arm64: local queue heads fix the dispatch class and only user goroutines appear as alternatives; the explicit control drops from 2,261 to 2,080 decisions across 32 seeds ([task 13 evidence](.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/final-completion-summary.md)). Task 13 was reviewed on build key `4a6e5b69`. The combined candidate `2ecdbd33` passes Darwin full-test components and core/smoke/representative qualification (28/28 workloads, 56 exact replays); its unpruned representative artifacts retain 1.15 GB on disk versus 11.37 GB counted with private targets. Linux remains unverified; qualification task 14 and R12 remain open |
+ 
+ Work a spec with `/flow-next:work <spec>`; list what is ready with `flowctl ready`.
+ 
+@@ -48,12 +48,30 @@ Work a spec with `/flow-next:work <spec>`; list what is ready with `flowctl read
+ Approved on 2026-10-02: fn-114.4 is reviewed, complete, and pushed through `67dbe0266`.
+ Fn-111 documentation acceptance and completion review are also done. Later on 2026-10-02,
+ fn-114 tasks 5, 6, 8–12, 15, and 16 and fn-112 tasks 14 and 15 were completed and reviewed
+-on darwin/arm64. Milestone execution is paused again at the user's request after fn-114.12.
+-On resumption, fn-114.13 (runtime-owned goroutine ordering) precedes the fn-114.14
+-qualification, then fn-112.16. Every task completed on 2026-10-02 still needs a native Linux
+-run, which a push to the fork's CI provides. Reviews now use the `codex` backend
+-(gpt-6-astra, the same model as the implementer), so they are not cross-family
+-verdicts. Runtime extraction and pin maintenance retain their existing qualification requirements.
++on darwin/arm64. Milestone execution has resumed under the standing request to complete this
++delivery ladder. Fn-114.13, fn-112.16, and fn-113.1 have now passed the integrated Darwin
++host gate and independent implementation review, with a supplemental input-validation fix.
++The branch is rebased on `origin/main`; no implementation changes have been committed or pushed.
++Fn-112.5 is now complete and reviewed on 2026-10-03. The combined candidate `2ecdbd33`
++passes all Darwin full-test components, the core set (7/7), and smoke (4/4), with exact replay
++where required. Representative qualification passed on 2026-10-03: 28/28 workloads and
++56 exact replays, with zero failures, divergences, or infrastructure errors. Its 112 unpruned
++artifacts retain 1.15 GB on disk versus 11.37 GB counted with private targets. The unchanged
++2 GiB free-space bound stopped the first run; only rebuildable caches were cleared for the
++successful retry. Fn-114.14 and R12 remain open for native Linux qualification. Every
++task completed in this batch still needs a native Linux run. Reviews use the `codex` backend with the current `gpt-6-sol at high` pin;
++they are same-family verdicts. Runtime extraction and pin maintenance retain their existing
++qualification requirements. Fn-113.2 is complete and reviewed on 2026-10-03: adapter
++regeneration reuses the exact-occurrence rewrites, stages all generated outputs, and
++publishes recoverably behind an approval digest. Review found and fixed newly added
++input files escaping drift checks; publication now re-enumerates the staged trees under
++the lock. The controlled Sprig version fixture qualified with two exact replays. No adapted
++root dependency had moved, so production pins remain unchanged. Fn-113.3 is complete and
++reviewed: pack refresh shares a module mapping with Makefile qualification, preserves explicit
++partial approvals, and reports other-platform requests unchanged. The v041 pack and duplicate
++fixture were retired with retained selector and coverage evidence; eight Darwin requests qualify.
++Fn-113.4 is in progress: document and measure the bump procedure, then run the final gates.
++Its missing native Linux evidence remains required for completion.
+ 
+ On 2026-10-03 a session without a qualified host (linux/arm64 sandbox, no CI credentials)
+ implemented further tasks on unmerged side branches, each independently reviewed, with
+@@ -65,11 +83,23 @@ darwin/arm64 and linux/amd64 gates, and the branches need merging into `gomad`.
+   consolidation deferred until fn-109 lands).
+ - `gomad-next-c` (architecture): fn-109.2–6; fn-109.6 fulfils fn-105.3 (D3).
+ 
++Current-checkout verification on darwin/arm64 found none of those three branches locally or
++on the `stephanos` remote after `git fetch --all` and `git ls-remote`. Their reported work is
++not available for integration in this checkout and is not completion evidence. Execution
++therefore proceeds from the current sources and the open tasks' acceptance criteria.
++The latest fork CI run, [37027023410](https://github.com/stephanos/temporal/actions/runs/37027023410),
++tested `67dbe0266`: the Linux host tier failed at the simulation-exploration cancellation
++regression subsequently addressed by fn-112 task 14; the Darwin core, both smoke jobs,
++host-tools Linux, and Temporal integration passed. That run does not qualify later sources.
++
+ ## Verification instructions for agents
+ 
+ Apply this workflow to Gomad milestone work. Optimize elapsed time by choosing checks that
+ cover the changed behavior and reusing valid results from the same source revision.
+ 
++Be wary of overthinking: follow the existing acceptance criteria, choose a grounded
++recommendation, and move to implementation. Revisit a decision only when new evidence warrants it.
++
+ 1. **Check cheap boundaries first.** Run focused regressions during implementation. After
+    import or package-boundary changes, run `TestPackageArchitecture` in the nested module's
+    root package. Run `make -C tools/gomad3 validate` before broad tests when changing files
+@@ -100,6 +130,29 @@ On 2026-10-02, focused checks took roughly 2–15 seconds, Runner/CLI suites 111
+ and full host suites 128–150 seconds on darwin/arm64. Removing the overlapping broad suite
+ saves about two minutes per cycle. Use current command timings to guide further optimization.
+ 
++## Search-path findings (fn-114)
++
++| ID | State on darwin/arm64 | Delivered behavior |
++| --- | --- | --- |
++| C1 | Delivered | Corpus identity binds target environment and clock-tick policy; changed identities fail closed. |
++| C2 | Delivered; predicted same-seed prefix failure narrowed by counterexamples | Timer callbacks use creation-bound identities; the parentless inventory records exceptions. |
++| C3 | Delivered | Forced-prefix divergence and completed siblings survive round commit and resume as typed evidence. |
++| C4 | Delivered | Prepare, provenance validation, and replay reject coverage-instrumented binaries. |
++| E1 | Delivered | Ordinary guidance skips answered corpus seeds; regression mode and resume/shard selection are explicit and frozen. |
++| E2 | Delivered | Stores share prepared targets, count their bytes once, and retain a self-contained private-copy fallback. |
++| E3 | Delivered | Select readiness is recorded; fewer than two ready cases create no frontier alternatives, while replay validation retains their polls. |
++| E4 | Delivered; historical two-user premise refuted | Runtime-owned local queue heads follow a fixed class rule; only user goroutines are choice alternatives. |
++| E5 | Delivered | Choice exploration expands from the recorded start ordinal. |
++| E6 | Delivered | Per-parent minimizer state persists the accepted artifact and attempt budget; explicit resume validates them before continuing. |
++
++All implementation tasks in fn-114 are recorded done; task 14 and R12 remain open.
++The implementation review and Darwin host/runtime gates do not replace combined-candidate
++qualification or the missing native linux/amd64 evidence. Fn-112.5 stream isolation is now
++included in candidate `2ecdbd33`; its recorded collector-file blocker remains. Typed scenario shrinking remains open on the roadmap.
++
++The [assessment delivery update](.plans/GOMAD_CMP.md#delivery-update-2026-10-02)
++uses the same dispositions; the task records retain the individual acceptance evidence.
++
+ ## Remaining `./tests` dispositions
+ 
+ Every `./tests` test has a disposition in the generated manifest
+@@ -550,6 +603,13 @@ fail. All 45 fresh host packages and CLI regressions pass on Darwin; independent
+ [Task 13 evidence](.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-13/final-completion-summary.md)
+ binds the final sources, retained artifacts, negative controls and review.
+ 
++Task 16 confirms and repairs a real same-signature success collision. Two seed executions
++now retain distinct replay artifacts, while the first artifact's previous signature path and
++recorded identity remain unchanged. Built-CLI explore, inspect, and replay of both successes,
++the full Darwin host gate, and independent review pass.
++[Task 16 evidence](.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-16/final-completion-summary.md)
++retains the failing real run and the corrected campaign; native Linux remains unverified.
++
+ ### Testing strategy
+ 
+ The suite should have four layers. New tests belong to one of them.
+@@ -605,11 +665,48 @@ including 4 `go` directive bumps.
+ 
+ | Pin | Size | Repair |
+ | --- | --- | --- |
+-| Runtime patch and overlay | 1010 patch lines in 20 files; 57 overlay files, 17,105 lines | Manual rebase, `make generate`, `make upgrade-dossier` |
++| Runtime patch and overlay | 1044 patch lines in 20 files; 61 overlay files, 18,437 lines | Manual rebase, `make generate`, `make upgrade-dossier` |
+ | Interception fingerprints and boundary manifest | 131 intercepts, 132 fingerprinted entries | Generated; a diff needs an approved SHA |
+-| Dependency adapters | 15 adapters, 129 SHA-256 anchors; 6 target modules absent from the root `go.mod` (downstream cell, fn-107) | Manual; no regenerate command |
++| Dependency adapters | 15 adapters, 135 SHA-256 anchors; 6 target modules absent from the root `go.mod` (downstream cell, fn-107) | Manual; no regenerate command |
+ | Compatibility packs | 12 packs, 54 rules, 19 module-version pins | Four commands with a review approval |
+ 
++The [fn-113 task 1 baseline](.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/baseline.json)
++remeasures these counts on the rebased checkout and retains per-bump commands and manual edits.
++It also counts 25 reviewed clock references and preserves fn-110's historical baseline.
++After the fn-113 pin-tooling work, the checkout still has 15 exact dependency adapters and
++135 SHA-256 anchor literals. The active pack set has 11 packs, 49 rules, and 18 distinct
++module-version pins; the v0.41 libc fixture and pack were retired after their active v0.47
++equivalents took over the identity and near-miss tests. These are current counts, not a
++rewrite of the historical 12-pack baseline.
++
++The manual-step unit is one command invocation or one hand edit of a checked-in file;
++source and approval review by a person remains required. In the controlled Sprig
++v3.3.0 to v3.2.3 bump, the old repair would hand edit four specific files:
++`sprig_adapter.go`, `version.json`, and the Sprig fixture's `go.mod` and `go.sum`.
++Prepared source-set pins are in the same adapter file. It would then invoke
++`version-generate`, `validate`, and the Darwin consumer test: seven local units.
++The new repair ran `pin-impact`, a dry run, an exact-digest apply, `validate`, and
++the Darwin consumer test: five recurring local commands and no hand-edited repair
++files. The actual walk took seven commands because two apply attempts exposed
++scratch toolchain layout and stock-Go PATH setup errors; both failures are retained.
++The candidate root `go.mod` edit and module download are common preparation, and
++Linux qualification remains unrun.
++
++For one pack request, the old authoring sequence is `discover`, `review`,
++`generate`, `check`, and `qualify`: five commands, plus any request wording edit.
++The new steady path is `pin-impact`, `refresh`, approved `generate`, `check`, and
++`qualify`: also five commands. In a controlled x/sys v0.47 to v0.48 Darwin walk,
++review found a stale version in the request justification, so one hand edit and
++a second refresh were needed before approval. Two further refresh invocations
++verified that the approved request, report, and pack bytes remained unchanged.
++The observed walk therefore used eight CLI commands and one file edit, including
++those diagnostic reruns. With two affected requests on one host, the command
++formula is seven old (`3 × 2 + check`) versus five new (`pin-impact + refresh +
++2 generate + check`); that multi-request saving is a projection, not a measured
++two-request approval. The earlier two-request fixture proved partial approval,
++other-platform preservation, and unmapped-input rejection. The complete both-host
++acceptance gate remains open until native Linux evidence is retained.
++
+ About 20k production lines have no caller in a workflow, Makefile, or qualification manifest:
+ 
+ | Feature | Production lines (approx.) |
+diff --git a/tools/gomad3/ARCHITECTURE.md b/tools/gomad3/ARCHITECTURE.md
+index 544534ab2f..c4d8ef40a0 100644
+--- a/tools/gomad3/ARCHITECTURE.md
++++ b/tools/gomad3/ARCHITECTURE.md
+@@ -273,6 +273,12 @@ an interrupted round and reruns it in full, keeping recovery attempts separate
+ from completed logical work. Outcome deduplication affects retained evidence
+ without pruning distinct prefixes.
+ 
++The plan's start ordinal limits expansion to later replay-plan decisions while
++preserving earlier decisions in forced prefixes. Select readiness is trace
++evidence: polls with fewer than two ready cases do not expand the frontier,
++and the controller counts their omitted alternatives separately. Resume keeps
++both decisions under the frozen plan and controller identity.
++
+ Combined Exploration keeps runtime, scenario, network, storage, fault, and
+ crash decisions in separate dimensions with explicit global and per-dimension
+ bounds. A detached model digest cannot establish native-state
+@@ -384,6 +390,12 @@ Interrupted work may leave explicit partial diagnostics but can never appear as
+ a complete replayable artifact. Existing content-addressed artifacts are reused
+ only after complete validation.
+ 
++Campaign, corpus, and minimizer stores keep a content-addressed target pool
++outside staged Campaign directories. Artifacts hard-link their prepared binary
++from the pool, retain ordinary payload manifests, and validate the same bytes
++on open and replay. Retained-byte accounting charges a shared target once per
++pool; a host that cannot hard-link uses and counts private copies.
++
+ `runner/internal/campaign` owns the durable Campaign state machine: planned,
+ prepared, running, committing, published, and recoverable-failure state;
+ preparation and per-Execution partial directories; bounded immutable Execution
+@@ -418,17 +430,26 @@ migrates a schema, or falls back to live host input. Exact replay compares the
+ new semantic result with the artifact. Watchdog replay remains diagnostic
+ because host elapsed time is not deterministic.
+ 
++Minimization persists one state per parent below its output root, binding
++attempt order, budget, implementation, and accepted artifacts. Resume validates
++that state and its replay evidence before continuing; it preserves consumed
++attempts and never mutates the parent. Exclusive ownership prevents concurrent
++minimizers from advancing the same parent.
++
+ ### Guided semantic exploration
+ 
+ Guide is a deep module around a private bounded corpus. Runner opens it only
+ after preparing the target, then selects the complete Campaign from that one
+ immutable snapshot. Rarity within higher-value semantic domains orders retained
+-seeds; no more than three quarters of a Campaign may come from the corpus, leaving
+-at least `ceil(count/4)` requested seeds unguided. The recorded Campaign plan binds
+-the snapshot hash and final mixed selection. Resume uses that selection without
+-consulting a later snapshot for scheduling.
+-
+-A corpus identity binds the execution-relevant target projection, toolchain,
++seeds. Ordinary guidance excludes answered requested seeds and substitutes
++nothing; a fully answered selection executes no seeds. Regression guidance
++reuses corpus cases for no more than three quarters of a Campaign, leaving at
++least `ceil(count/4)` requested seeds unguided. The recorded Campaign plan binds
++the mode, snapshot hash, and final selection. Resume and shards use that
++selection without consulting a later snapshot for scheduling.
++
++A corpus identity binds the execution-relevant target projection, explicit
++environment and clock-tick policy, toolchain,
+ generated boundary manifest, semantic probe instrumentation, manifest schema,
+ and record contract. Each entry binds its seed and record hash to the retained
+ exact-replay artifact, payload size, I/O transcript, World inputs and
+@@ -683,6 +704,21 @@ produces its Make, Go, and human-guide consumers; validation requires the
+ allowlists to equal the actual patch and overlay tree rather than merely
+ containing them.
+ 
++`pin-impact` compares complete candidate and baseline module identities
++against adapter, compatibility-pack, interception, and clock-inventory pins.
++It reports an unavailable identity as unknown and therefore invalidated.
++`adapter-regenerate` derives rewrites with exact-occurrence anchors in a
++private cache, binds the changed source and proposed anchors to a review digest,
++and publishes the descriptor, adapter, fixtures, and generated consumers only
++after matching approval. Publication checks the input snapshot under an
++exclusive lock and recovers an interrupted transaction before another apply.
++`compatibility-pack refresh` reads the same request-to-target table as the
++qualification Make target; it batches fresh discovery and review while leaving
++generation behind each request's exact approval. Other-platform requests remain
++untouched, and a changed review invalidates its former approval. Both supported
++hosts must run validation, pack qualification, core qualification, and the
++complete test gate for an accepted pin update.
++
+ The runtime patch and transparent I/O overlays are pinned implementation costs.
+ Every Go upgrade runs the typed `gomadtool upgrade-dossier` host command, which records the
+ complete upstream patch, semantic boundary diff, interception evidence,
+diff --git a/tools/gomad3/CLI.md b/tools/gomad3/CLI.md
+index ce29197dfb..986c1c6d56 100644
+--- a/tools/gomad3/CLI.md
++++ b/tools/gomad3/CLI.md
+@@ -193,6 +193,8 @@ tools/gomad3/.bin/gomad explore \
+ 
+ The strategy requires one base seed and explicit positive bounds. It implies choice recording and does not combine with `--count` or guided exploration.
+ 
++`--choice-start-ordinal=N` expands only replay-plan decisions at ordinal N or later, while retaining earlier decisions in each forced prefix. The default is 0. Find the ordinals with `inspect --choices`; resume restores the recorded start ordinal. Using this flag with seed or Combined Exploration is invalid input. Select polls with fewer than two ready cases are recorded but do not expand the Frontier; results report their omitted alternatives separately.
++
+ For a Gomad simulation target, Combined Exploration coordinates runtime, scenario, network, storage, fault, and crash-state alternatives through `--strategy=simulation-exploration`. Every dimension is explicit so “complete” always means complete within the declared bounds:
+ 
+ ```sh
+@@ -261,6 +263,8 @@ tools/gomad3/.bin/gomad minimize \
+ 
+ `minimize` tries bounded candidates in fresh processes. It accepts a reduction only when the normalized failure, outcome, runtime choices, and simulation replay remain exact. The original Artifact stays immutable; the result records its parent and every accepted reduction. This command is currently specific to supported combined-simulation target failures, not a general-purpose test reducer.
+ 
++To continue an interrupted minimization, repeat the command with `--resume`, the same parent Artifact, `--artifacts` root, and bounds. The parent has its own persisted checkpoint under that root, including attempt order, consumed budget, accepted reductions, and replay evidence. Missing or corrupt state, changed identities or bounds, and concurrent writers are refused; resume does not reset the attempt budget.
++
+ ## Step 5: turn a reproduction into a support claim
+ 
+ One replay answers whether one observation repeats. `qualify` asks whether independent repetitions of the same seed produce equal bounded evidence:
+@@ -492,6 +496,36 @@ The ordinary repository entry point remains `make gomad3`; direct maintainer com
+ 
+ A compatibility pack is not handwritten policy dropped into the tree. It moves through a reviewable workflow. Starting from a draft request below the compatibility directory, discover the exact source facts:
+ 
++For an exact dependency bump, first compare candidate and saved baseline
++`go.mod` files, each with an adjacent `go.sum`:
++
++```sh
++go -C tools/gomad3 run ./cmd/gomadtool pin-impact --root=. \
++  --baseline=/absolute/baseline/go.mod --candidate=/absolute/candidate/go.mod \
++  --format=json > pin-impact.json
++```
++
++Status 1 means an invalidated or unknown pin. Review the adapter and pack-rule
++entries before making changes. For each affected adapter, inspect the dry-run
++source diff and exact anchor proposal, then explicitly approve its digest:
++
++```sh
++go -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate --root=. \
++  --module=<module-path> --version=<exact-version>
++go -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate --root=. \
++  --module=<module-path> --version=<exact-version> --approve=sha256:<reviewed-digest>
++go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack refresh --root=. \
++  --impact-report=/absolute/path/to/pin-impact.json
++```
++
++Refresh discovers and renders fresh reviews for mapped affected requests on
++the current host. It stops before approval and reports other-platform requests
++without changing them. Review each changed report, then use the per-request
++`compatibility-pack generate --approve-review` command below. Repeat refresh
++and qualification on each supported host; a prior digest does not approve new
++evidence. The [README](README.md#compatibility-pack-development) gives the
++complete dependency-bump procedure.
++
+ ```sh
+ go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack discover \
+   --root=. \
+@@ -621,10 +655,13 @@ If the reviewed boundary changed intentionally, review its reported digest and r
+ | `patch-materialize` | Apply the reviewed patch to a verified source tree. |
+ | `patch-regenerate` | Recreate the patch from a reviewed candidate tree. |
+ | `version-generate` | Generate or check release-descriptor consumers. |
++| `pin-impact` | Report invalidated or unknown exact pins for a dependency candidate. |
++| `adapter-regenerate` | Review and approve exact adapter anchors for a new module version. |
+ | `protocol-generate` | Generate or check cross-process protocol endpoints and tests. |
+ | `qualification-manifest-generate` | Generate or check qualification workloads from a package's top-level tests and declared dispositions. |
+ | `boundary-generate` | Discover, qualify, generate, refresh, or check the capability boundary. |
+ | `compatibility-pack` | Discover, review, generate from exact approval, qualify, and check compatibility packs. |
++| `compatibility-pack refresh` | Discover and review affected mapped requests without approving them. |
+ | `script-validate` | Enforce the reviewed script ownership and policy boundary. |
+ | `checked-run` | Run and record one bounded external command with expected status. |
+ | `diagnostic-diff` | Compare complete runtime diagnostic traces and locate the first divergence. |
+diff --git a/tools/gomad3/README.md b/tools/gomad3/README.md
+index 7e3ea5dc8b..79ed2e757f 100644
+--- a/tools/gomad3/README.md
++++ b/tools/gomad3/README.md
+@@ -37,8 +37,10 @@ GOMADSEED=1 make gomad3-test GOMAD3_PACKAGES=./path/to/package
+ 
+ Those wrappers remove `GOMADSEED` from the custom `go` process and use Go's
+ `-exec` hook to enable Gomad only in the resulting binary or generated test
+-binary. Direct execution of a prebuilt binary remains
+-`GOMADSEED=<seed> ./binary`.
++binary. They compile with `GOEXPERIMENT=nogreenteagc`, as Runner preparation
++does. Direct execution remains `GOMADSEED=<seed> ./binary`; the prebuilt binary
++must use that collector profile. Seeded activation of a Green Tea binary
++fails before user code runs. Unseeded binaries retain their compiled profile.
+ 
+ Check whether the complete Runner and deterministic-I/O contract is available
+ before starting a campaign:
+@@ -147,6 +149,14 @@ deterministic breadth-first rounds ordered by forced-prefix length and identity;
+ parallel completion timing cannot change the committed exploration. A target
+ failure remains expandable while the selected failure policy permits it.
+ 
++`--choice-start-ordinal=N` keeps decisions before replay-plan ordinal N in each
++forced prefix but expands alternatives only at N and later. The default is 0;
++use `inspect --choices` to find the replay-plan ordinals. This option is valid
++only for Choice Exploration and is frozen in the Campaign plan for resume.
++Select polls with fewer than two ready cases remain in the Choice Trace but
++do not create frontier branches. The result reports their omitted alternatives
++separately from execution, depth, and byte bounds.
++
+ Each completed round is an immutable, hash-linked transaction below the Campaign.
+ An interrupted round is archived and rerun in full on `gomad resume`; logical
+ and recovery execution counts are reported separately. `exploration_exhausted`
+@@ -160,8 +170,12 @@ fresh process under an explicit attempt bound. An accepted reduction must keep
+ the normalized failure and outcome, exact choice replay, and exact simulation
+ replay. The parent remains immutable; a changed result is published by record
+ identity with inspectable parent, reduction, budget, and predicate evidence.
+-Minimizer checkpoint/resume and target-declared scenario shrinking are not yet
+-implemented.
++Each parent has persisted minimizer state below the selected artifact root.
++After interruption, `minimize --resume` with the same parent, artifact root,
++and bounds continues the recorded attempt order and budget. The state binds
++the parent, implementation, accepted artifacts, and replay evidence; changed
++inputs, corrupt state, or a concurrent writer fail closed. Target-declared
++scenario shrinking is not yet implemented.
+ 
+ `gomad analyze` defaults to `--capability-mode=closure`, which reviews a
+ `go-run` or `go-test` target without compiling or executing it. Explicit
+@@ -219,7 +233,8 @@ explicit conflicting resume mode is rejected. Human and JSON results report
+ requested, answered, guided, and new execution counts.
+ 
+ The corpus is private, single-writer, and bounded to 1,024 cases and 1 GiB. Its
+-identity binds the prepared target and arguments, pinned toolchain, reviewed
++identity binds the prepared target and arguments, explicit environment and
++clock-tick policy, pinned toolchain, reviewed
+ boundary, semantic instrumentation, and record contract. Every entry retains
+ the exact-replay artifact, seed, captured I/O and World identities, semantic
+ coverage, novelty reasons, and matching replay result. A case is published and
+@@ -338,8 +353,12 @@ workload is invalid input, never a partial aggregate. A count larger than the
+ manifest is refused rather than run as an empty shard. `merge-set` returns the
+ same statuses as `qualify-set`.
+ 
+-By default every Campaign a set run produces stays under `--artifacts`, which
+-for the 28-workload Temporal manifest is about 11 GiB. `--prune-qualified-artifacts`
++By default every Campaign a set run produces stays under `--artifacts`.
++Campaign, corpus, and minimizer stores share each prepared binary through a
++content-addressed target pool and hard links. Retained-byte limits count that
++binary once per pool; artifact payloads and replay validation remain complete.
++When hard links are unavailable, publication uses private copies and counts
++each copy. `--prune-qualified-artifacts`
+ (`GOMAD3_QUALIFICATION_PRUNE=1` for the Make targets) bounds that to one seed:
+ once a seed is `qualified`, its successful repetitions were replayed exactly,
+ and the set report holds its evidence, the run deletes that seed's retained
+@@ -477,6 +496,10 @@ interface. Trusted repository tooling preparing an `exec` target must use
+ provenance for the exact binary. Runner revalidates its package policy, pinned
+ standard-library membership, module closure, build information, and binary
+ identity; arbitrary binaries are rejected.
++Coverage-instrumented targets are rejected during preparation, provenance
++validation, and replay: host coverage-counter flushing is outside the
++deterministic-I/O contract. Semantic and choice coverage use Gomad's bounded
++recorded probes and do not enable Go code coverage.
+ 
+ `gomad inspect` validates the Campaign journal or immutable failure/success Artifact before
+ printing its identity, outcome, transcripts, captured mounts, truncation,
+@@ -763,6 +786,16 @@ target exited; both are deterministic and compared between repetitions.
+ Qualification reports add each execution's `wall_elapsed_nanos`, which is
+ informational and outside the evidence digest.
+ 
++The local run queue preserves the head's goroutine class on each dispatch.
++A runtime-owned head runs deterministically; a user head chooses only among
++queued user goroutines and records a decision only when at least two exist.
++Both classes advance through the queue. Finalizer and cleanup goroutines
++executing user callbacks use the runtime's user classification. Run-next,
++the global queue, timer delivery, and collector workers picked outside the
++local queue retain their existing rules. This rule does not make a CPU loop
++that never yields progress, and tapes from the preceding controller identity
++are rejected.
++
+ Deterministic mode supports internally linked pure-Go targets on the qualified
+ `darwin/arm64` and `linux/amd64` hosts. Enabled cgo or externally linked binaries fail before package
+ initialization. Windows, plugins, foreign threads, the race detector, signals,
+@@ -873,6 +906,47 @@ go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack generate \
+ make -C tools/gomad3 validate compatibility-pack-qualification
+ ```
+ 
++For a dependency bump, compare the candidate module with a saved baseline
++`go.mod` and adjacent `go.sum` before repairing pins:
++
++```sh
++go -C tools/gomad3 run ./cmd/gomadtool pin-impact \
++  --root=. --baseline=/absolute/baseline/go.mod \
++  --candidate=/absolute/candidate/go.mod --format=json > pin-impact.json
++```
++
++Status 1 means at least one pin is invalidated or unknown; 2 means invalid
++input, and 3 means the report could not be produced. The report includes
++adapter, pack-rule, interception, and clock-inventory pins. A missing sum or
++source identity remains unknown rather than being treated as unaffected.
++
++For each invalidated adapter, run `adapter-regenerate` once without approval
++to inspect the changed upstream source and proposed anchors, then repeat with
++the exact digest printed by that review:
++
++```sh
++go -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate \
++  --root=. --module=<exact-module-path> --version=<exact-version>
++go -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate \
++  --root=. --module=<exact-module-path> --version=<exact-version> \
++  --approve=sha256:<reviewed-digest>
++go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack refresh \
++  --root=. --impact-report=/absolute/path/to/pin-impact.json
++```
++
++The adapter command verifies exact rewrite occurrences and publishes the
++descriptor, anchors, fixtures, and generated consumers together only after
++approval. Refresh uses `internal/compatibilitypack/targets.tsv` to discover and
++render fresh reviews for affected requests on this host. It preserves an
++approval only when it matches the newly discovered evidence; it leaves requests
++for the other platform unchanged. Inspect each changed report and use the
++existing `compatibility-pack generate --approve-review=<exact-review-sha256>`
++for each approved request. Then run `make -C tools/gomad3 validate
++compatibility-pack-qualification core-qualification-set` and the full `test`
++gate on both supported hosts. A Darwin run does not qualify Linux packs or
++adapters. The generated [upgrade guide](deterministicio/boundary/upgrade-go1.27.1.md)
++covers the Go-release dossier as well as this dependency flow.
++
+ A module outside this repository keeps packs for its own dependencies in its
+ own tree, so they never have to be committed here. Every authoring command
+ takes `--compatibility-root=/absolute/dir`, which holds that module's
+diff --git a/tools/gomad3/SPEC.md b/tools/gomad3/SPEC.md
+index 2e5e16b314..8f9cb29de1 100644
+--- a/tools/gomad3/SPEC.md
++++ b/tools/gomad3/SPEC.md
+@@ -209,6 +209,8 @@ Capability analysis must support source-closure review and linked-program review
+ 
+ A prebuilt executable must carry trusted provenance that binds the binary, package policy, dependency closure, build information, and compatibility review. Runtime arguments must be bound separately into Campaign and Artifact identity. Arbitrary or changed binaries must be rejected.
+ 
++Coverage-instrumented binaries must be rejected during preparation, provenance validation, and replay; Go coverage-counter flushing is outside the deterministic-I/O contract.
++
+ ## [RUNTIME] Deterministic Runtime
+ 
+ ### [RUNTIME.ACTIVATION] Activation
+@@ -219,6 +221,8 @@ Deterministic runtime behavior must activate only through an explicit direct see
+ 
+ For a fixed Target, toolchain, platform, deterministic inputs, and seed, supported runtime-controlled choices must repeat across fresh processes. These choices include supported goroutine scheduling, selection polling, map randomization, and equal-deadline timer ordering. Different seeds must be able to select different alternatives where alternatives exist.
+ 
++The local run queue uses the queue head's class for each dispatch. A runtime-owned head runs deterministically; a user head chooses only among queued user goroutines. The runtime's dynamic system-goroutine classification treats finalizer and cleanup goroutines executing user callbacks as user goroutines. A user dispatch with two or more user goroutines records one decision; zero or one user goroutine records none. Each dispatch removes the head, moving it to the selected user's former slot when needed. Runtime entries therefore advance to the head, and a yielding runtime entry rejoins behind queued user work, so neither class can starve the other through local queue selection. The rule depends only on queue contents and applies equally with recording disabled, exact replay, and forced prefixes. It excludes the run-next slot, global queue, timer delivery, and collector workers selected outside the local run queue; those paths retain their existing scheduling rules. A CPU loop that never yields remains outside this fairness claim. Tapes from the preceding controller identity must be rejected before execution.
++
+ ### [RUNTIME.TIME] Virtual Time
+ 
+ Enabled Targets must observe a process virtual clock with a fixed versioned epoch for supported time operations. When application work cannot proceed, time must advance to the next deterministic deadline without waiting for equivalent wall time. Runnable work must not be skipped merely to deliver a future timer.
+@@ -339,10 +343,14 @@ Successful Executions must be discarded by default. A Campaign may retain all su
+ 
+ Gomad may guide seed selection from a private bounded corpus of replay-verified, semantically novel Artifacts. Each Campaign must bind one immutable corpus snapshot, preserve a portion of unguided requested seeds, and publish corpus changes atomically only after exact replay succeeds.
+ 
++Ordinary guidance must exclude answered requested seeds without substituting others. Regression guidance may reuse corpus cases while reserving at least one quarter of its selection for requested seeds. Corpus identity must bind explicit environment and clock-tick policy; resume and shards must preserve the recorded mode and selection without reselecting from the live corpus.
++
+ ### [CAMPAIGN.CHOICE.FRONTIER] Choice Exploration
+ 
+ Choice Exploration must expand observed alternative runtime Choices in deterministic bounded rounds. It must preserve every distinct forced prefix within the declared depth, execution, and memory limits, even when Outcomes deduplicate to the same Evidence.
+ 
++The frozen plan may limit expansion to a start ordinal while retaining earlier decisions in each forced prefix. Select polls with fewer than two ready cases must remain trace evidence without expanding the Frontier, and omitted alternatives must be reported separately.
++
+ ### [CAMPAIGN.COMBINED.FRONTIER] Combined Exploration
+ 
+ Combined Exploration must coordinate bounded alternatives across runtime, scenario, network, storage, fault, and crash-state dimensions from one base Seed. It must preserve deterministic Frontier order, separate logical from recovery Executions, and retain enough Evidence to resume or minimize a failure.
+@@ -357,6 +365,8 @@ Every completed Execution must produce a canonical, versioned, bounded Record co
+ 
+ Retained failures and retained successes must be published as immutable content-addressed Artifacts. Partial or interrupted publication must never appear complete, and existing content may be reused only after full validation.
+ 
++Stores may share a prepared binary through content-addressed hard links without changing payload manifests or replay validation. Retained-byte limits must count a shared binary once per pool and each private fallback copy separately.
++
+ ### [EVIDENCE.INSPECTION] Inspection
+ 
+ Inspection must validate a plan, Campaign, merged Campaign, or Artifact before reporting its identity, lifecycle, outcome, bounds, retained evidence, replayability, and exact replay command. Optional choice inspection must validate and summarize the retained logical choice trace.
+@@ -369,6 +379,8 @@ Replay must validate every identity and required payload before starting the ret
+ 
+ Gomad must minimize supported combined-simulation target failures through fresh-process, bounded candidate attempts. An accepted reduction must preserve the normalized failure, outcome, exact runtime-choice replay, and exact simulation replay. The source Artifact must remain immutable and the minimized result must retain its parent and reduction evidence.
+ 
++Minimizer state must persist per parent under exclusive ownership. Resume must validate parent, implementation, bounds, accepted artifacts, and replay evidence, preserve attempt order and consumed budget, and reject changed or corrupt state before continuing.
++
+ ## [DURABILITY] Campaign Durability
+ 
+ ### [DURABILITY.LIFECYCLE] Lifecycle
+@@ -464,10 +476,12 @@ The release descriptor, runtime changes, source overlay, interaction inventory,
+ ### [MAINTENANCE.COMPATIBILITY] Compatibility Packs
+ 
+ Compatibility-pack development must follow discovery, human review, exact approval, generation, validation, and qualification. A pack must bind an exact dependency version, source inventories, platform scope, governance, and any approved deterministic adapter replacement.
++An impact-driven refresh may batch discovery and review for invalidated requests, but only a freshly matching per-request approval may generate a pack. Requests scoped to another platform remain unchanged until that host evaluates them.
+ 
+ ### [MAINTENANCE.UPGRADE] Upgrade Evidence
+ 
+ A Go or product-boundary upgrade must produce a bounded dossier covering source and boundary differences, runtime changes, overlay collisions, generated evidence, mandatory probes, disabled upstream behavior, conformance, and platform qualification. The dossier must be retained even when a gate fails, and a boundary change must require approval of its exact identity.
++A dependency candidate must have a path-free impact report of affected or unknown exact pins. Adapter regeneration requires review of changed upstream source and proposed exact anchors, followed by approval of their digest before atomic publication. Unknown pins cannot be reported as unaffected; neither approval nor qualification on one platform implies approval or qualification on the other.
+ 
+ ### [COMMAND.GOMADTOOL] Maintainer Command
+ 
+@@ -481,9 +495,12 @@ The `gomadtool` command must expose the following maintainer workflows. Each row
+ | `[COMMAND.GOMADTOOL.PATCH.REGENERATE]` | `patch-regenerate` | Recreate the canonical runtime patch from a reviewed candidate source tree. |
+ | `[COMMAND.GOMADTOOL.PATCH.VALIDATE]` | `patch-validate` | Validate the runtime patch and overlay as complete governed inputs. |
+ | `[COMMAND.GOMADTOOL.VERSION.GENERATE]` | `version-generate` | Generate or verify consumers of the canonical release descriptor. |
++| `[COMMAND.GOMADTOOL.PIN.IMPACT]` | `pin-impact` | Compare candidate and baseline module identities and report affected or unknown exact pins in human or canonical JSON form. |
++| `[COMMAND.GOMADTOOL.ADAPTER.REGENERATE]` | `adapter-regenerate` | Review changed source and proposed exact adapter anchors, then publish only with their matching approval digest. |
+ | `[COMMAND.GOMADTOOL.BOUNDARY.GENERATE]` | `boundary-generate` | Discover, qualify, generate, refresh, or verify the reviewed host-capability boundary and its compiler conformance inputs. |
+ | `[COMMAND.GOMADTOOL.PROTOCOL.GENERATE]` | `protocol-generate` | Generate or verify both endpoints of each declared cross-process protocol. |
+ | `[COMMAND.GOMADTOOL.COMPATIBILITY.PACK]` | `compatibility-pack` | Discover, review, generate from exact approval, check, and qualify version-pinned compatibility packs. |
++| `[COMMAND.GOMADTOOL.COMPATIBILITY.PACK.REFRESH]` | `compatibility-pack refresh` | Discover and review affected mapped requests per platform; retain only fresh approvals and leave final generation to exact per-request approval. |
+ | `[COMMAND.GOMADTOOL.SCRIPT.VALIDATE]` | `script-validate` | Enforce the approved ownership and policy boundary for repository scripts. |
+ | `[COMMAND.GOMADTOOL.CHECKED.RUN]` | `checked-run` | Run a bounded external command, classify timeout and exit status, and retain bounded diagnostic output. |
+ | `[COMMAND.GOMADTOOL.TEST]` | `test` | Execute a selected bounded conformance campaign and report the first failing evidence. |
+diff --git a/tools/gomad3/cmd/gomadtool/main.go b/tools/gomad3/cmd/gomadtool/main.go
+index aa7db3b747..d66834c5ca 100644
+--- a/tools/gomad3/cmd/gomadtool/main.go
++++ b/tools/gomad3/cmd/gomadtool/main.go
+@@ -19,7 +19,7 @@ import (
+ 	toolchainbuild "go.temporal.io/server/tools/gomad3/toolchain"
+ )
+ 
+-const usage = "usage: gomadtool boundary-generate|build-key|checked-run|compatibility-pack|diagnostic-diff|patch-materialize|patch-regenerate|patch-validate|protocol-generate|qualification-manifest-generate|script-validate|test|toolchain-build|upgrade-dossier|version-generate [flags]"
++const usage = "usage: gomadtool adapter-regenerate|boundary-generate|build-key|checked-run|compatibility-pack|diagnostic-diff|patch-materialize|patch-regenerate|patch-validate|pin-impact|protocol-generate|qualification-manifest-generate|script-validate|test|toolchain-build|upgrade-dossier|version-generate [flags]"
+ 
+ const canonicalBuildPath = "/usr/bin:/bin:/usr/sbin:/sbin:/usr/xpg4/bin:/opt/freeware/bin:/usr/local/bin:/opt/homebrew/bin:/opt/local/bin"
+ 
+@@ -33,6 +33,8 @@ func run(arguments []string, stdout, stderr io.Writer) int {
+ 		return 2
+ 	}
+ 	switch arguments[0] {
++	case "adapter-regenerate":
++		return runAdapterRegenerate(arguments[1:], stdout, stderr)
+ 	case "boundary-generate":
+ 		return runBoundaryGenerate(arguments[1:], stdout, stderr)
+ 	case "build-key":
+@@ -49,6 +51,8 @@ func run(arguments []string, stdout, stderr io.Writer) int {
+ 		return runPatchRegenerate(arguments[1:], stdout, stderr)
+ 	case "patch-validate":
+ 		return runPatchValidate(arguments[1:], stdout, stderr)
++	case "pin-impact":
++		return runPinImpact(arguments[1:], stdout, stderr)
+ 	case "protocol-generate":
+ 		return runProtocolGenerate(arguments[1:], stderr)
+ 	case "qualification-manifest-generate":
+diff --git a/tools/gomad3/deterministicio/boundary/upgrade-go1.27.1.md b/tools/gomad3/deterministicio/boundary/upgrade-go1.27.1.md
+index d012d3056e..40543a01f2 100644
+--- a/tools/gomad3/deterministicio/boundary/upgrade-go1.27.1.md
++++ b/tools/gomad3/deterministicio/boundary/upgrade-go1.27.1.md
+@@ -25,6 +25,29 @@ Generated from [`../../toolchain/version/version.json`](../../toolchain/version/
+ - adapter: `modernc.org/libc@v1.72.3` (`h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`)
+ - adapter: `modernc.org/memory@v1.11.0` (`h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`)
+ 
++## Dependency pin update
++
++Compare candidate and saved baseline `go.mod` files with adjacent `go.sum` files. From the repository root, status 1 means an invalidated or unknown pin; retain the JSON for the repair steps:
++
++```sh
++go -C tools/gomad3 run ./cmd/gomadtool pin-impact --root=. \
++  --baseline=/absolute/baseline/go.mod --candidate=/absolute/candidate/go.mod \
++  --format=json > pin-impact.json
++```
++
++For each affected adapter, review the dry-run source changes and exact anchors before supplying the printed approval digest. Refresh affected packs from the same report on each supported host; refresh stops at per-request review and leaves the other platform unchanged:
++
++```sh
++go -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate --root=. \
++  --module=<module-path> --version=<exact-version>
++go -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate --root=. \
++  --module=<module-path> --version=<exact-version> --approve=sha256:<reviewed-digest>
++go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack refresh --root=. \
++  --impact-report=/absolute/path/to/pin-impact.json
++```
++
++Review each changed pack report, then use `compatibility-pack generate --approve-review=<exact-review-sha256>` for that request. Validate generated outputs and qualify affected adapters, packs, the core set, and the complete test gate on both supported hosts. The [README](../../README.md#compatibility-pack-development) records the full procedure.
++
+ ## Qualification command
+ 
+ Run from the Gomad source module root after updating `toolchain/version/version.json`, the boundary manifest, patch, and overlays:
+diff --git a/tools/gomad3/toolchain/version/descriptor.go b/tools/gomad3/toolchain/version/descriptor.go
+index 3ede228abc..d2625f61f7 100644
+--- a/tools/gomad3/toolchain/version/descriptor.go
++++ b/tools/gomad3/toolchain/version/descriptor.go
+@@ -297,7 +297,13 @@ func renderUpgradeGuide(descriptor Descriptor) []byte {
+ 	for _, adapter := range descriptor.Adapters {
+ 		fmt.Fprintf(&output, "- adapter: `%s@%s` (`%s`)\n", adapter.Module, adapter.Version, adapter.Sum)
+ 	}
+-	output.WriteString("\n## Qualification command\n\n")
++	output.WriteString("\n## Dependency pin update\n\n")
++	output.WriteString("Compare candidate and saved baseline `go.mod` files with adjacent `go.sum` files. From the repository root, status 1 means an invalidated or unknown pin; retain the JSON for the repair steps:\n\n")
++	output.WriteString("```sh\ngo -C tools/gomad3 run ./cmd/gomadtool pin-impact --root=. \\\n  --baseline=/absolute/baseline/go.mod --candidate=/absolute/candidate/go.mod \\\n  --format=json > pin-impact.json\n```\n\n")
++	output.WriteString("For each affected adapter, review the dry-run source changes and exact anchors before supplying the printed approval digest. Refresh affected packs from the same report on each supported host; refresh stops at per-request review and leaves the other platform unchanged:\n\n")
++	output.WriteString("```sh\ngo -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate --root=. \\\n  --module=<module-path> --version=<exact-version>\ngo -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate --root=. \\\n  --module=<module-path> --version=<exact-version> --approve=sha256:<reviewed-digest>\ngo -C tools/gomad3 run ./cmd/gomadtool compatibility-pack refresh --root=. \\\n  --impact-report=/absolute/path/to/pin-impact.json\n```\n\n")
++	output.WriteString("Review each changed pack report, then use `compatibility-pack generate --approve-review=<exact-review-sha256>` for that request. Validate generated outputs and qualify affected adapters, packs, the core set, and the complete test gate on both supported hosts. The [README](../../README.md#compatibility-pack-development) records the full procedure.\n\n")
++	output.WriteString("## Qualification command\n\n")
+ 	output.WriteString("Run from the Gomad source module root after updating `toolchain/version/version.json`, the boundary manifest, patch, and overlays:\n\n")
+ 	output.WriteString("```sh\nmake generate\nmake upgrade-dossier GOMAD3_BASELINE_REF=<previous-commit>\n```\n\n")
+ 	output.WriteString("The command publishes `.toolchain/upgrade-dossier.json`, even when a behavioral gate or boundary approval fails. The dossier contains the complete upstream patch diff, semantic boundary-manifest diff, expected and applied interception evidence, archive-based overlay collision results, disabled-mode upstream results, mandatory-probe gates, host-clock escape audit, retained core-corpus report, and platform qualification. If the dossier reports boundary changes, rerun only after reviewing and approving the complete diff:\n\n")
+diff --git a/tools/gomad3/toolchain/version/descriptor_test.go b/tools/gomad3/toolchain/version/descriptor_test.go
+index 191eb63d2f..5eefe8d8a4 100644
+--- a/tools/gomad3/toolchain/version/descriptor_test.go
++++ b/tools/gomad3/toolchain/version/descriptor_test.go
+@@ -76,6 +76,11 @@ func TestGenerateRendersDescriptorConsumers(t *testing.T) {
+ 	if !strings.Contains(string(upgradeGuide), "GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256=<boundary_manifest_diff.sha256>") || !strings.Contains(string(upgradeGuide), "only after reviewing") {
+ 		t.Fatalf("generated upgrade guide omits explicit boundary approval: %s", upgradeGuide)
+ 	}
++	for _, expected := range []string{"pin-impact --root=.", "adapter-regenerate --root=.", "--approve=sha256:<reviewed-digest>", "compatibility-pack refresh --root=.", "--approve-review=<exact-review-sha256>", "both supported hosts"} {
++		if !strings.Contains(string(upgradeGuide), expected) {
++			t.Fatalf("generated upgrade guide omits %q: %s", expected, upgradeGuide)
++		}
++	}
+ 
+ 	if _, err := os.Stat(filepath.Join(root, "toolchain-version.sh")); !os.IsNotExist(err) {
+ 		t.Fatalf("generated shell descriptor exists: %v", err)
+diff --git a/tools/gomad3/cmd/gomadtool/adapter_regenerate.go b/tools/gomad3/cmd/gomadtool/adapter_regenerate.go
+new file mode 100644
+index 0000000000..58c0028e35
+--- /dev/null
++++ b/tools/gomad3/cmd/gomadtool/adapter_regenerate.go
+@@ -0,0 +1,35 @@
++package main
++
++import (
++	"errors"
++	"flag"
++	"fmt"
++	"io"
++
++	"go.temporal.io/server/tools/gomad3/upgrade"
++)
++
++func runAdapterRegenerate(arguments []string, stdout, stderr io.Writer) int {
++	flags := flag.NewFlagSet("gomadtool adapter-regenerate", flag.ContinueOnError)
++	flags.SetOutput(stderr)
++	root := flags.String("root", ".", "Gomad v3 module root")
++	module := flags.String("module", "", "adapted module path")
++	version := flags.String("version", "", "new exact module version")
++	approval := flags.String("approve", "", "approval digest printed by the dry run")
++	if err := flags.Parse(arguments); err != nil {
++		return 2
++	}
++	if flags.NArg() != 0 || *module == "" || *version == "" {
++		if _, err := fmt.Fprintln(stderr, errors.New("adapter-regenerate requires --module and --version")); err != nil {
++			return 1
++		}
++		return 2
++	}
++	status, err := upgrade.RegenerateAdapter(*root, *module, *version, *approval, stdout)
++	if err != nil {
++		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
++			return 1
++		}
++	}
++	return status
++}
+diff --git a/tools/gomad3/deterministicio/adapter_regenerate.go b/tools/gomad3/deterministicio/adapter_regenerate.go
+new file mode 100644
+index 0000000000..909b54da41
+--- /dev/null
++++ b/tools/gomad3/deterministicio/adapter_regenerate.go
+@@ -0,0 +1,262 @@
++package deterministicio
++
++import (
++	"errors"
++	"fmt"
++	"os"
++	"path/filepath"
++)
++
++type RegeneratedSource struct {
++	Path                 string `json:"path"`
++	OldSourceSHA256      string `json:"old_source_sha256"`
++	SourceSHA256         string `json:"source_sha256"`
++	OldReplacementSHA256 string `json:"old_replacement_sha256"`
++	ReplacementSHA256    string `json:"replacement_sha256"`
++	Source               []byte `json:"source"`
++	Replacement          []byte `json:"replacement"`
++}
++
++type AdapterRegeneration struct {
++	Module                        string              `json:"module"`
++	SourceFile                    string              `json:"source_file"`
++	Version                       string              `json:"version"`
++	Sum                           string              `json:"sum"`
++	OldOriginalInventorySHA256    string              `json:"old_original_inventory_sha256"`
++	OriginalInventorySHA256       string              `json:"original_inventory_sha256"`
++	OldReplacementInventorySHA256 string              `json:"old_replacement_inventory_sha256"`
++	ReplacementInventorySHA256    string              `json:"replacement_inventory_sha256"`
++	PreparedSourceSets            map[string]string   `json:"prepared_source_sets"`
++	Sources                       []RegeneratedSource `json:"sources"`
++	ReplacementRoot               string              `json:"-"`
++	PreparedPackage               string              `json:"-"`
++}
++
++func RegenerateAdapter(module, version, sum, moduleRoot, workRoot string) (AdapterRegeneration, error) {
++	if version == "" || sum == "" || moduleRoot == "" || workRoot == "" {
++		return AdapterRegeneration{}, errors.New("adapter regeneration requires an exact version, sum, module source, and work root")
++	}
++	var spec rewrittenModule
++	switch module {
++	case sprigModulePath:
++		spec = rewrittenModule{module: module, version: sprigVersion, sum: sprigSum, replacementDirectory: "sprig", originalInventorySHA256: sprigOriginalSourceInventorySHA256, replacementInventorySHA256: sprigReplacementSourceInventorySHA256, preparedPackage: sprigModulePath, rewrites: sprigRewrites}
++	case validatorModulePath:
++		spec = rewrittenModule{module: module, version: validatorVersion, sum: validatorSum, replacementDirectory: "validator", originalInventorySHA256: validatorOriginalSourceInventorySHA256, replacementInventorySHA256: validatorReplacementSourceInventorySHA256, preparedPackage: validatorModulePath, rewrites: validatorRewrites}
++	case pebbleModulePath:
++		spec = rewrittenModule{module: module, version: pebbleVersion, sum: pebbleSum, replacementDirectory: "pebble", originalInventorySHA256: pebbleOriginalSourceInventorySHA256, replacementInventorySHA256: pebbleReplacementSourceInventorySHA256, preparedPackage: pebbleModulePath + "/vfs", rewrites: pebbleRewrites}
++	case cactusStatsDModulePath:
++		spec = rewrittenModule{module: module, version: cactusStatsDVersion, sum: cactusStatsDSum, replacementDirectory: "cactus-statsd", originalInventorySHA256: cactusStatsDOriginalSourceInventorySHA256, replacementInventorySHA256: cactusStatsDReplacementSourceInventorySHA256, preparedPackage: cactusStatsDModulePath + "/statsd", rewrites: cactusStatsDRewrites}
++	case memberlistModulePath:
++		spec = rewrittenModule{module: module, version: memberlistVersion, sum: memberlistSum, replacementDirectory: "memberlist", originalInventorySHA256: memberlistOriginalSourceInventorySHA256, replacementInventorySHA256: memberlistReplacementSourceInventorySHA256, preparedPackage: memberlistModulePath, rewrites: memberlistRewrites}
++	case sentryModulePath:
++		spec = rewrittenModule{module: module, version: sentryVersion, sum: sentrySum, replacementDirectory: "sentry-go", originalInventorySHA256: sentryOriginalSourceInventorySHA256, replacementInventorySHA256: sentryReplacementSourceInventorySHA256, preparedPackage: sentryModulePath, rewrites: sentryRewrites}
++	case hashicorpMetricsModulePath:
++		spec = rewrittenModule{module: module, version: hashicorpMetricsVersion, sum: hashicorpMetricsSum, replacementDirectory: "hashicorp-go-metrics", originalInventorySHA256: hashicorpMetricsOriginalSourceInventorySHA256, replacementInventorySHA256: hashicorpMetricsReplacementSourceInventorySHA256, preparedPackage: hashicorpMetricsModulePath, rewrites: hashicorpMetricsRewrites}
++	case fxModulePath:
++		spec = rewrittenModule{module: module, version: fxVersion, sum: fxSum, replacementDirectory: "uber-fx", originalInventorySHA256: fxOriginalSourceInventorySHA256, replacementInventorySHA256: fxReplacementSourceInventorySHA256, preparedPackage: fxModulePath, rewrites: fxRewrites}
++	case temporalSDKModulePath:
++		spec = rewrittenModule{module: module, version: temporalSDKVersion, sum: temporalSDKSum, replacementDirectory: "temporal-sdk", originalInventorySHA256: temporalSDKOriginalSourceInventorySHA256, replacementInventorySHA256: temporalSDKReplacementSourceInventorySHA256, preparedPackage: temporalSDKModulePath + "/internal", rewrites: temporalSDKRewrites}
++	case otelSDKModulePath:
++		spec = rewrittenModule{module: module, version: otelSDKVersion, sum: otelSDKSum, replacementDirectory: "otel-sdk", originalInventorySHA256: otelSDKOriginalSourceInventorySHA256, replacementInventorySHA256: otelSDKReplacementSourceInventorySHA256, preparedPackage: otelSDKModulePath + "/resource", rewrites: otelSDKRewrites}
++	case sockaddrModulePath:
++		spec = rewrittenModule{module: module, version: sockaddrVersion, sum: sockaddrSum, replacementDirectory: "go-sockaddr", originalInventorySHA256: sockaddrOriginalSourceInventorySHA256, replacementInventorySHA256: sockaddrReplacementSourceInventorySHA256, preparedPackage: sockaddrModulePath, rewrites: sockaddrRewrites}
++	case memoryModulePath:
++		spec = rewrittenModule{module: module, version: memoryVersion, sum: memorySum, replacementDirectory: "modernc-memory", originalInventorySHA256: memoryOriginalSourceInventorySHA256, replacementInventorySHA256: memoryReplacementSourceInventorySHA256, preparedPackage: memoryModulePath, rewrites: memoryRewrites}
++	case grpcModulePath:
++		return regenerateGRPC(moduleRoot, workRoot, version, sum)
++	case xnetModulePath:
++		return regenerateXNet(moduleRoot, workRoot, version, sum)
++	case libcModulePath:
++		return regenerateLibc(moduleRoot, workRoot, version, sum)
++	default:
++		return AdapterRegeneration{}, fmt.Errorf("adapter %s is not registered", module)
++	}
++	result, err := regenerateRewrittenModule(moduleRoot, workRoot, spec)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	result.Version, result.Sum = version, sum
++	return result, nil
++}
++
++func regenerateRewrittenModule(moduleRoot, workRoot string, spec rewrittenModule) (AdapterRegeneration, error) {
++	result := AdapterRegeneration{Module: spec.module, SourceFile: adapterSourceFile(spec.module), OldOriginalInventorySHA256: spec.originalInventorySHA256, OldReplacementInventorySHA256: spec.replacementInventorySHA256}
++	var err error
++	result.OriginalInventorySHA256, err = digestAdapterSourceInventory(moduleRoot)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	replacements := make(map[string][]byte, len(spec.rewrites))
++	for _, rewrite := range spec.rewrites {
++		contents, err := readAdapterSource(spec.module, moduleRoot, rewrite.path)
++		if err != nil {
++			return AdapterRegeneration{}, err
++		}
++		rewritten, err := regenerateSourceRewrite(spec.module, rewrite, contents)
++		if err != nil {
++			return AdapterRegeneration{}, err
++		}
++		replacements[rewrite.path] = rewritten
++		result.Sources = append(result.Sources, RegeneratedSource{Path: rewrite.path, OldSourceSHA256: rewrite.sourceSHA256, SourceSHA256: digestBytes(contents), OldReplacementSHA256: rewrite.replacementSHA256, ReplacementSHA256: digestBytes(rewritten), Source: contents, Replacement: rewritten})
++	}
++	return finishAdapterRegeneration(moduleRoot, workRoot, spec, result, replacements)
++}
++
++func finishAdapterRegeneration(moduleRoot, workRoot string, spec rewrittenModule, result AdapterRegeneration, replacements map[string][]byte) (AdapterRegeneration, error) {
++	result.ReplacementRoot = filepath.Join(workRoot, spec.replacementDirectory)
++	if err := os.MkdirAll(workRoot, 0o700); err != nil {
++		return AdapterRegeneration{}, err
++	}
++	if err := copyAdapterModule(moduleRoot, result.ReplacementRoot, replacements, defaultAdapterCopyLimits); err != nil {
++		return AdapterRegeneration{}, err
++	}
++	var err error
++	result.ReplacementInventorySHA256, err = digestAdapterSourceInventory(result.ReplacementRoot)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	result.PreparedPackage = spec.preparedPackage
++	return result, nil
++}
++
++func adapterSourceFile(module string) string {
++	switch module {
++	case sprigModulePath:
++		return "sprig_adapter.go"
++	case validatorModulePath:
++		return "validator_adapter.go"
++	case pebbleModulePath:
++		return "pebble_adapter.go"
++	case cactusStatsDModulePath:
++		return "cactusstatsd_adapter.go"
++	case memberlistModulePath:
++		return "memberlist_adapter.go"
++	case sentryModulePath:
++		return "sentry_adapter.go"
++	case hashicorpMetricsModulePath:
++		return "hashicorpmetrics_adapter.go"
++	case fxModulePath:
++		return "fx_adapter.go"
++	case temporalSDKModulePath:
++		return "temporalsdk_adapter.go"
++	case otelSDKModulePath:
++		return "otelsdk_adapter.go"
++	case sockaddrModulePath:
++		return "sockaddr_adapter.go"
++	case memoryModulePath:
++		return "memory_adapter.go"
++	case grpcModulePath:
++		return "grpc_adapter.go"
++	case xnetModulePath:
++		return "xnet_adapter.go"
++	case libcModulePath:
++		return "libc_adapter.go"
++	default:
++		return ""
++	}
++}
++
++func addRegeneratedSource(result *AdapterRegeneration, path, oldSource, oldReplacement string, source, replacement []byte) {
++	result.Sources = append(result.Sources, RegeneratedSource{Path: path, OldSourceSHA256: oldSource, SourceSHA256: digestBytes(source), OldReplacementSHA256: oldReplacement, ReplacementSHA256: digestBytes(replacement), Source: source, Replacement: replacement})
++}
++
++func regenerateGRPC(moduleRoot, workRoot, version, sum string) (AdapterRegeneration, error) {
++	result := AdapterRegeneration{Module: grpcModulePath, SourceFile: adapterSourceFile(grpcModulePath), Version: version, Sum: sum, OldOriginalInventorySHA256: grpcOriginalSourceInventorySHA256, OldReplacementInventorySHA256: grpcReplacementSourceInventorySHA256}
++	var err error
++	result.OriginalInventorySHA256, err = digestAdapterSourceInventory(moduleRoot)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	replacements := map[string][]byte{}
++	keepalive, err := readAdapterSource(grpcModulePath, moduleRoot, grpcKeepalivePath)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	replacements[grpcKeepalivePath], err = rewriteGRPCKeepaliveSource(keepalive)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	addRegeneratedSource(&result, grpcKeepalivePath, grpcKeepaliveSourceSHA256, grpcKeepaliveReplacementSHA256, keepalive, replacements[grpcKeepalivePath])
++	for _, rewrite := range grpcLinuxRewrites {
++		linux, err := readAdapterSource(grpcModulePath, moduleRoot, rewrite.linuxPath)
++		if err != nil {
++			return AdapterRegeneration{}, err
++		}
++		nonLinux, err := readAdapterSource(grpcModulePath, moduleRoot, rewrite.nonLinuxPath)
++		if err != nil {
++			return AdapterRegeneration{}, err
++		}
++		replacements[rewrite.linuxPath], err = regenerateGRPCLinuxSource(rewrite, nonLinux)
++		if err != nil {
++			return AdapterRegeneration{}, err
++		}
++		addRegeneratedSource(&result, rewrite.linuxPath, rewrite.linuxSHA256, rewrite.replacementSHA256, linux, replacements[rewrite.linuxPath])
++		addRegeneratedSource(&result, rewrite.nonLinuxPath, rewrite.nonLinuxSHA256, "", nonLinux, nonLinux)
++	}
++	for _, rewrites := range [][]sourceRewrite{grpcSyscallRewrites, grpcDNSRewrites} {
++		for _, rewrite := range rewrites {
++			contents, err := readAdapterSource(grpcModulePath, moduleRoot, rewrite.path)
++			if err != nil {
++				return AdapterRegeneration{}, err
++			}
++			replacements[rewrite.path], err = regenerateSourceRewrite(grpcModulePath, rewrite, contents)
++			if err != nil {
++				return AdapterRegeneration{}, err
++			}
++			addRegeneratedSource(&result, rewrite.path, rewrite.sourceSHA256, rewrite.replacementSHA256, contents, replacements[rewrite.path])
++		}
++	}
++	return finishAdapterRegeneration(moduleRoot, workRoot, rewrittenModule{module: grpcModulePath, replacementDirectory: "google-grpc", preparedPackage: grpcModulePath + "/internal"}, result, replacements)
++}
++
++func regenerateXNet(moduleRoot, workRoot, version, sum string) (AdapterRegeneration, error) {
++	result := AdapterRegeneration{Module: xnetModulePath, SourceFile: adapterSourceFile(xnetModulePath), Version: version, Sum: sum, OldOriginalInventorySHA256: xnetOriginalSourceInventorySHA256, OldReplacementInventorySHA256: xnetReplacementSourceInventorySHA256}
++	var err error
++	result.OriginalInventorySHA256, err = digestAdapterSourceInventory(moduleRoot)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	socket, err := readAdapterSource(xnetModulePath, moduleRoot, xnetSocketPath)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	empty, err := readAdapterSource(xnetModulePath, moduleRoot, xnetEmptyPath)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	rewrittenSocket, err := rewriteXNetSocketSource(socket)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	rewrittenEmpty, err := replaceXNetAnchor(empty, []byte("//go:build darwin"), []byte("//go:build ignore"))
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	addRegeneratedSource(&result, xnetSocketPath, xnetSocketSourceSHA256, xnetSocketReplacementSHA256, socket, rewrittenSocket)
++	addRegeneratedSource(&result, xnetEmptyPath, xnetEmptySourceSHA256, xnetEmptyReplacementSHA256, empty, rewrittenEmpty)
++	return finishAdapterRegeneration(moduleRoot, workRoot, rewrittenModule{module: xnetModulePath, replacementDirectory: "golang-x-net", preparedPackage: xnetModulePath + "/internal/socket"}, result, map[string][]byte{xnetSocketPath: rewrittenSocket, xnetEmptyPath: rewrittenEmpty})
++}
++
++func regenerateLibc(moduleRoot, workRoot, version, sum string) (AdapterRegeneration, error) {
++	result := AdapterRegeneration{Module: libcModulePath, SourceFile: adapterSourceFile(libcModulePath), Version: version, Sum: sum}
++	var err error
++	result.OriginalInventorySHA256, err = digestAdapterSourceInventory(moduleRoot)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	replacements, _, err := rewriteLibcModuleUnpinned(moduleRoot)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	for _, pin := range []struct{ path, old string }{
++		{"libc_darwin.go", libcDarwinSHA256}, {"libc_darwin_arm64.go", libcDarwinArm64SHA256}, {"libc_unix.go", libcUnixSHA256},
++		{"syscall_musl.go", libcSyscallMuslSHA256}, {"libc_musl.go", libcMuslSHA256}, {"libc_musl_linux_amd64.go", libcMuslLinuxAmd64SHA256},
++	} {
++		contents, err := readAdapterSource(libcModulePath, moduleRoot, pin.path)
++		if err != nil {
++			return AdapterRegeneration{}, err
++		}
++		addRegeneratedSource(&result, pin.path, pin.old, "", contents, replacements[pin.path])
++	}
++	return finishAdapterRegeneration(moduleRoot, workRoot, rewrittenModule{module: libcModulePath, replacementDirectory: "modernc-libc", preparedPackage: libcModulePath}, result, replacements)
++}
+diff --git a/tools/gomad3/upgrade/adapter_publication.go b/tools/gomad3/upgrade/adapter_publication.go
+new file mode 100644
+index 0000000000..c76f6ac3cb
+--- /dev/null
++++ b/tools/gomad3/upgrade/adapter_publication.go
+@@ -0,0 +1,233 @@
++package upgrade
++
++import (
++	"bytes"
++	"encoding/json"
++	"errors"
++	"fmt"
++	"os"
++	"path/filepath"
++	"slices"
++	"strings"
++
++	"go.temporal.io/server/tools/gomad3/internal/hostfs"
++)
++
++type publicationContent struct {
++	Present bool   `json:"present"`
++	Bytes   []byte `json:"bytes,omitempty"`
++}
++
++type adapterPublicationFile struct {
++	Path string             `json:"path"`
++	Old  publicationContent `json:"old"`
++	New  publicationContent `json:"new"`
++}
++
++type adapterPublication struct {
++	Schema string                   `json:"schema"`
++	Files  []adapterPublicationFile `json:"files"`
++}
++
++var adapterRegenerationInputTrees = []string{
++	filepath.Join("tools", "gomad3"),
++	filepath.Join("tools", "gomad3integration", "qualification"),
++	"tests",
++}
++
++func adapterPublicationMarker(root string) string {
++	return filepath.Join(root, "tools", "gomad3", ".toolchain", "adapter-regenerate", "transaction.json")
++}
++
++func withAdapterPublicationLock(root string, operation func() error) (retErr error) {
++	lockPath := filepath.Join(root, "tools", "gomad3", ".toolchain", "adapter-regenerate.lock")
++	if err := os.MkdirAll(filepath.Dir(lockPath), 0o700); err != nil {
++		return err
++	}
++	lock, err := hostfs.Try(lockPath)
++	if err != nil {
++		return fmt.Errorf("lock adapter regeneration: %w", err)
++	}
++	defer func() { retErr = errors.Join(retErr, lock.Release()) }()
++	return operation()
++}
++
++func readPublicationFile(root, relative string) (publicationContent, error) {
++	if relative == "" || filepath.IsAbs(relative) || filepath.Clean(relative) != relative || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
++		return publicationContent{}, fmt.Errorf("invalid publication path %q", relative)
++	}
++	path := filepath.Join(root, relative)
++	info, err := os.Lstat(path)
++	if errors.Is(err, os.ErrNotExist) {
++		return publicationContent{}, nil
++	}
++	if err != nil {
++		return publicationContent{}, err
++	}
++	if !info.Mode().IsRegular() || info.Size() > 64<<20 {
++		return publicationContent{}, fmt.Errorf("publication path is not a bounded regular file: %s", relative)
++	}
++	contents, err := os.ReadFile(path)
++	if err != nil {
++		return publicationContent{}, err
++	}
++	return publicationContent{Present: true, Bytes: contents}, nil
++}
++
++func samePublicationContent(a, b publicationContent) bool {
++	return a.Present == b.Present && bytes.Equal(a.Bytes, b.Bytes)
++}
++
++func writePublicationFile(root, relative string, content publicationContent) error {
++	path := filepath.Join(root, relative)
++	if !content.Present {
++		if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
++			return err
++		}
++		return syncPublicationDirectory(filepath.Dir(path))
++	}
++	mode := os.FileMode(0o644)
++	if strings.Contains(relative, string(filepath.Separator)+"requests"+string(filepath.Separator)) {
++		mode = 0o600
++	}
++	return hostfs.Replace(path, content.Bytes, mode)
++}
++
++func syncPublicationDirectory(path string) error {
++	dir, err := os.Open(path)
++	if err != nil {
++		return err
++	}
++	return errors.Join(dir.Sync(), dir.Close())
++}
++
++func recordAdapterPublication(root string, files []adapterPublicationFile) error {
++	marker := adapterPublicationMarker(root)
++	if err := os.MkdirAll(filepath.Dir(marker), 0o700); err != nil {
++		return err
++	}
++	if _, err := os.Lstat(marker); !errors.Is(err, os.ErrNotExist) {
++		return errors.New("adapter regeneration transaction already exists")
++	}
++	encoded, err := json.Marshal(adapterPublication{Schema: "gomad3.adapter-regeneration-transaction/v1", Files: files})
++	if err != nil {
++		return err
++	}
++	return hostfs.Replace(marker, encoded, 0o600)
++}
++
++func clearAdapterPublication(root string) error {
++	marker := adapterPublicationMarker(root)
++	if err := os.Remove(marker); err != nil {
++		return err
++	}
++	return syncPublicationDirectory(filepath.Dir(marker))
++}
++
++func recoverAdapterPublication(root string) error {
++	marker := adapterPublicationMarker(root)
++	info, err := os.Lstat(marker)
++	if errors.Is(err, os.ErrNotExist) {
++		return nil
++	}
++	if err != nil {
++		return err
++	}
++	if !info.Mode().IsRegular() || info.Size() > 64<<20 {
++		return errors.New("adapter regeneration marker is invalid")
++	}
++	encoded, err := os.ReadFile(marker)
++	if err != nil {
++		return err
++	}
++	var pending adapterPublication
++	if err := json.Unmarshal(encoded, &pending); err != nil {
++		return err
++	}
++	if pending.Schema != "gomad3.adapter-regeneration-transaction/v1" || len(pending.Files) == 0 {
++		return errors.New("adapter regeneration marker has invalid schema or files")
++	}
++	seen := make(map[string]bool, len(pending.Files))
++	for _, file := range pending.Files {
++		if seen[file.Path] {
++			return errors.New("adapter regeneration marker has duplicate paths")
++		}
++		seen[file.Path] = true
++		current, err := readPublicationFile(root, file.Path)
++		if err != nil {
++			return err
++		}
++		if !samePublicationContent(current, file.Old) && !samePublicationContent(current, file.New) {
++			return fmt.Errorf("adapter regeneration interrupted checkout changed externally: %s", file.Path)
++		}
++	}
++	for _, file := range pending.Files {
++		if err := writePublicationFile(root, file.Path, file.Old); err != nil {
++			return fmt.Errorf("restore interrupted adapter regeneration %s: %w", file.Path, err)
++		}
++	}
++	return clearAdapterPublication(root)
++}
++
++func publishAdapterFiles(root string, files []adapterPublicationFile) error {
++	return publishAdapterFilesWithSnapshot(root, files, nil, nil)
++}
++
++func validateAdapterPublicationSnapshot(root string, files []adapterPublicationFile, snapshot map[string]publicationContent, inputTrees []string) error {
++	for path, old := range snapshot {
++		current, err := readPublicationFile(root, path)
++		if err != nil {
++			return err
++		}
++		if !samePublicationContent(current, old) {
++			return fmt.Errorf("checkout changed since staging: %s", path)
++		}
++	}
++	for _, file := range files {
++		current, err := readPublicationFile(root, file.Path)
++		if err != nil {
++			return err
++		}
++		if !samePublicationContent(current, file.Old) {
++			return fmt.Errorf("checkout changed since staging: %s", file.Path)
++		}
++	}
++	for _, tree := range inputTrees {
++		current, err := snapshotAdapterStageTree(filepath.Join(root, tree))
++		if err != nil {
++			return err
++		}
++		for relative, contents := range current {
++			path := filepath.Join(tree, relative)
++			old, found := snapshot[path]
++			if !found || !samePublicationContent(contents, old) {
++				return fmt.Errorf("checkout changed since staging: %s", path)
++			}
++		}
++	}
++	return nil
++}
++
++func publishAdapterFilesWithSnapshot(root string, files []adapterPublicationFile, snapshot map[string]publicationContent, inputTrees []string) error {
++	if len(files) == 0 {
++		return errors.New("adapter regeneration has no changed files")
++	}
++	slices.SortFunc(files, func(a, b adapterPublicationFile) int { return strings.Compare(a.Path, b.Path) })
++	return withAdapterPublicationLock(root, func() error {
++		if err := recoverAdapterPublication(root); err != nil {
++			return err
++		}
++		if err := validateAdapterPublicationSnapshot(root, files, snapshot, inputTrees); err != nil {
++			return err
++		}
++		if err := recordAdapterPublication(root, files); err != nil {
++			return err
++		}
++		for _, file := range files {
++			if err := writePublicationFile(root, file.Path, file.New); err != nil {
++				return errors.Join(fmt.Errorf("publish adapter regeneration %s: %w", file.Path, err), recoverAdapterPublication(root))
++			}
++		}
++		return clearAdapterPublication(root)
++	})
++}
+diff --git a/tools/gomad3/upgrade/adapter_regenerate.go b/tools/gomad3/upgrade/adapter_regenerate.go
+new file mode 100644
+index 0000000000..16fd57f1b3
+--- /dev/null
++++ b/tools/gomad3/upgrade/adapter_regenerate.go
+@@ -0,0 +1,623 @@
++package upgrade
++
++import (
++	"bytes"
++	"context"
++	"crypto/sha256"
++	"encoding/json"
++	"errors"
++	"fmt"
++	"go/ast"
++	"go/build"
++	"go/parser"
++	"go/token"
++	"io"
++	"io/fs"
++	"os"
++	"os/exec"
++	"path/filepath"
++	"slices"
++	"strconv"
++	"strings"
++
++	"go.temporal.io/server/tools/gomad3/deterministicio"
++	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
++	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
++	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
++)
++
++func RegenerateAdapter(root, module, version, approval string, stdout io.Writer) (int, error) {
++	absRoot, err := filepath.Abs(root)
++	if err != nil {
++		return 2, err
++	}
++	checkoutRoot := filepath.Clean(filepath.Join(absRoot, "..", ".."))
++	if _, err := os.Lstat(adapterPublicationMarker(checkoutRoot)); err == nil {
++		if err := withAdapterPublicationLock(checkoutRoot, func() error { return recoverAdapterPublication(checkoutRoot) }); err != nil {
++			return 1, err
++		}
++	} else if !errors.Is(err, os.ErrNotExist) {
++		return 1, err
++	}
++	descriptor, err := gomadversion.Load(absRoot)
++	if err != nil {
++		return 1, err
++	}
++	oldVersion, oldSum := "", ""
++	for _, adapter := range descriptor.Adapters {
++		if adapter.Module == module {
++			oldVersion, oldSum = adapter.Version, adapter.Sum
++			break
++		}
++	}
++	if oldVersion == "" {
++		return 2, fmt.Errorf("adapter %s is not in the version descriptor", module)
++	}
++	return runAdapterRegenerationForPin(absRoot, checkoutRoot, module, version, approval, oldVersion, oldSum, stdout)
++}
++
++func runAdapterRegenerationForPin(absRoot, checkoutRoot, module, version, approval, oldVersion, oldSum string, stdout io.Writer) (status int, retErr error) {
++	private, err := os.MkdirTemp("", "gomad-adapter-download-*")
++	if err != nil {
++		return 3, err
++	}
++	defer func() {
++		if err := removeAdapterPrivate(private); err != nil {
++			status, retErr = 1, errors.Join(retErr, err)
++		}
++	}()
++	oldRoot, oldDownloadedSum, oldGoModSum, err := downloadAdapterModule(module, oldVersion, private)
++	if err != nil {
++		return 3, err
++	}
++	if oldDownloadedSum != oldSum {
++		return 1, errors.New("pinned adapter module sum disagrees with the downloaded module")
++	}
++	newRoot, newSum, newGoModSum, err := downloadAdapterModule(module, version, private)
++	if err != nil {
++		return 3, err
++	}
++	result, err := deterministicio.RegenerateAdapter(module, version, newSum, newRoot, filepath.Join(private, "replacement"))
++	if err != nil {
++		return 1, err
++	}
++	result.PreparedSourceSets, err = preparedAdapterSourceSets(result)
++	if err != nil {
++		return 1, err
++	}
++	digest, err := adapterRegenerationApproval(result)
++	if err != nil {
++		return 1, err
++	}
++	if approval == "" {
++		if err := writeAdapterRegenerationReview(stdout, oldRoot, result, digest); err != nil {
++			return 1, err
++		}
++		return 0, nil
++	}
++	if approval != digest {
++		return 1, errors.New("adapter regeneration approval does not match changed upstream source and proposed anchors")
++	}
++	var staleReport bytes.Buffer
++	if err := reportStaleAdapterPacks(&staleReport, module, version); err != nil {
++		return 1, err
++	}
++	files, snapshot, err := stageAdapterRegeneration(absRoot, result, oldVersion, oldSum, oldGoModSum, newGoModSum, filepath.Join(private, "cache"))
++	if err != nil {
++		return 1, err
++	}
++	if err := publishAdapterFilesWithSnapshot(checkoutRoot, files, snapshot, adapterRegenerationInputTrees); err != nil {
++		return 1, err
++	}
++	if _, err := fmt.Fprintf(stdout, "regenerated %s@%s with approval %s\n", module, version, digest); err != nil {
++		return 1, err
++	}
++	if _, err := io.Copy(stdout, &staleReport); err != nil {
++		return 1, err
++	}
++	return 0, nil
++}
++
++func removeAdapterPrivate(root string) error {
++	if err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, visitErr error) error {
++		if visitErr != nil {
++			return visitErr
++		}
++		if entry.IsDir() {
++			return os.Chmod(path, 0o700)
++		}
++		return nil
++	}); err != nil {
++		return err
++	}
++	return os.RemoveAll(root)
++}
++
++func downloadAdapterModule(module, version, private string) (directory, moduleSum, goModSum string, retErr error) {
++	cache := filepath.Join(private, "cache")
++	if err := os.MkdirAll(cache, 0o700); err != nil {
++		return "", "", "", err
++	}
++	command := exec.CommandContext(context.Background(), "go", "mod", "download", "-json", module+"@"+version)
++	command.Dir = private
++	command.Env = append(os.Environ(), "GOMODCACHE="+cache, "GOWORK=off", "GOFLAGS=", "GOTOOLCHAIN=local")
++	output, err := command.CombinedOutput()
++	if err != nil {
++		return "", "", "", fmt.Errorf("download %s@%s: %w: %s", module, version, err, output)
++	}
++	var result struct{ Path, Version, Sum, GoModSum, Dir, Error string }
++	if err := json.Unmarshal(output, &result); err != nil {
++		return "", "", "", fmt.Errorf("decode module download: %w", err)
++	}
++	if result.Error != "" || result.Path != module || result.Version != version || result.Sum == "" || result.GoModSum == "" || result.Dir == "" {
++		return "", "", "", fmt.Errorf("module download identity mismatch or failure: %s", result.Error)
++	}
++	return result.Dir, result.Sum, result.GoModSum, nil
++}
++
++func preparedAdapterSourceSets(result deterministicio.AdapterRegeneration) (map[string]string, error) {
++	prepared := make(map[string]string, 2)
++	for _, platform := range []struct{ host, goos, goarch string }{{"darwin/arm64", "darwin", "arm64"}, {"linux/amd64", "linux", "amd64"}} {
++		context := build.Default
++		context.GOOS, context.GOARCH, context.CgoEnabled = platform.goos, platform.goarch, false
++		context.BuildTags = []string{"gomad", "hashicorpmetrics", "integration", "test_dep"}
++		packageDir := filepath.Join(result.ReplacementRoot, strings.TrimPrefix(result.PreparedPackage, result.Module))
++		pkg, err := context.ImportDir(packageDir, 0)
++		if err != nil {
++			return nil, fmt.Errorf("select %s source set on %s: %w", result.PreparedPackage, platform.host, err)
++		}
++		names := append([]string{}, pkg.GoFiles...)
++		names = append(names, pkg.CgoFiles...)
++		slices.Sort(names)
++		sources := make([]compatibility.Source, 0, len(names))
++		for _, name := range names {
++			contents, err := os.ReadFile(filepath.Join(packageDir, name))
++			if err != nil {
++				return nil, err
++			}
++			digest := sha256.Sum256(contents)
++			sources = append(sources, compatibility.Source{Name: name, SHA256: fmt.Sprintf("sha256:%x", digest)})
++		}
++		prepared[platform.host] = compatibility.DigestSources(sources)
++	}
++	return prepared, nil
++}
++
++func adapterRegenerationApproval(result deterministicio.AdapterRegeneration) (string, error) {
++	encoded, err := canonicaljson.CanonicalJSON(result)
++	if err != nil {
++		return "", err
++	}
++	hash := sha256.New()
++	_, _ = hash.Write([]byte("gomad3.adapter-regeneration-review/v1\x00"))
++	_, _ = hash.Write(encoded)
++	return fmt.Sprintf("sha256:%x", hash.Sum(nil)), nil
++}
++
++func writeAdapterRegenerationReview(output io.Writer, oldRoot string, result deterministicio.AdapterRegeneration, digest string) error {
++	if _, err := fmt.Fprintf(output, "Adapter: %s@%s\nModule sum: %s\nOriginal inventory: %s\nReplacement inventory: %s\n", result.Module, result.Version, result.Sum, result.OriginalInventorySHA256, result.ReplacementInventorySHA256); err != nil {
++		return err
++	}
++	for _, source := range result.Sources {
++		old, err := os.ReadFile(filepath.Join(oldRoot, filepath.FromSlash(source.Path)))
++		if err != nil && !errors.Is(err, os.ErrNotExist) {
++			return err
++		}
++		if _, err := fmt.Fprintf(output, "\nSource: %s\nOld source: %s\nNew source: %s\nNew replacement: %s\n", source.Path, source.OldSourceSHA256, source.SourceSHA256, source.ReplacementSHA256); err != nil {
++			return err
++		}
++		if !bytes.Equal(old, source.Source) {
++			if _, err := fmt.Fprintf(output, "Changed upstream source %s:\n%s\n", source.Path, source.Source); err != nil {
++				return err
++			}
++		}
++	}
++	for _, host := range []string{"darwin/arm64", "linux/amd64"} {
++		if _, err := fmt.Fprintf(output, "Prepared source set %s: %s\n", host, result.PreparedSourceSets[host]); err != nil {
++			return err
++		}
++	}
++	if _, err := fmt.Fprintf(output, "Approval SHA-256: %s\n", digest); err != nil {
++		return err
++	}
++	return reportStaleAdapterPacks(output, result.Module, result.Version)
++}
++
++func reportStaleAdapterPacks(output io.Writer, module, version string) error {
++	packs, err := compatibility.PinEvidence()
++	if err != nil {
++		return err
++	}
++	for _, pack := range packs {
++		stale := false
++		for _, item := range pack.Activation {
++			stale = stale || item.Path == module && item.Version != version || item.Adapter != nil && item.Adapter.Module == module && item.Adapter.Version != version
++		}
++		for _, rule := range pack.Rules {
++			item := rule.Module
++			stale = stale || item.Path == module && item.Version != version || item.Adapter != nil && item.Adapter.Module == module && item.Adapter.Version != version
++		}
++		if stale {
++			if _, err := fmt.Fprintf(output, "Stale adapter-bound pack: %s\n", pack.ID); err != nil {
++				return err
++			}
++		}
++	}
++	return nil
++}
++
++type goPinEdit struct {
++	start, end int
++	value      string
++}
++
++func editAdapterPins(contents []byte, result deterministicio.AdapterRegeneration, oldVersion, oldSum string) ([]byte, error) {
++	replacements, err := adapterPinReplacements(result, oldVersion, oldSum)
++	if err != nil {
++		return nil, err
++	}
++	edits, hits, hostHits, err := adapterPinEdits(contents, result.PreparedSourceSets, replacements)
++	if err != nil {
++		return nil, err
++	}
++	for old := range replacements {
++		libcVersionOrSum := result.Module == "modernc.org/libc" && (old == oldVersion || old == oldSum)
++		if hits[old] != 1 && (!libcVersionOrSum || hits[old] != 0) {
++			return nil, fmt.Errorf("missing pin or duplicate pin %s: %d", old, hits[old])
++		}
++	}
++	for host := range result.PreparedSourceSets {
++		if hostHits[host] != 1 {
++			return nil, fmt.Errorf("missing prepared source-set pin for %s: %d", host, hostHits[host])
++		}
++	}
++	slices.SortFunc(edits, func(a, b goPinEdit) int { return b.start - a.start })
++	updated := append([]byte{}, contents...)
++	for _, edit := range edits {
++		updated = append(append(append([]byte{}, updated[:edit.start]...), edit.value...), updated[edit.end:]...)
++	}
++	return updated, nil
++}
++
++func adapterPinReplacements(result deterministicio.AdapterRegeneration, oldVersion, oldSum string) (map[string]string, error) {
++	replacements := map[string]string{}
++	add := func(old, next string) error {
++		if old == "" || old == next {
++			return nil
++		}
++		if other, found := replacements[old]; found && other != next {
++			return fmt.Errorf("conflicting proposed pin for %s", old)
++		}
++		replacements[old] = next
++		return nil
++	}
++	for _, pair := range [][2]string{{result.OldOriginalInventorySHA256, result.OriginalInventorySHA256}, {result.OldReplacementInventorySHA256, result.ReplacementInventorySHA256}, {oldVersion, result.Version}, {oldSum, result.Sum}} {
++		if err := add(pair[0], pair[1]); err != nil {
++			return nil, err
++		}
++	}
++	for _, source := range result.Sources {
++		if err := add(source.OldSourceSHA256, source.SourceSHA256); err != nil {
++			return nil, err
++		}
++		if err := add(source.OldReplacementSHA256, source.ReplacementSHA256); err != nil {
++			return nil, err
++		}
++	}
++	return replacements, nil
++}
++
++func adapterPinEdits(contents []byte, prepared map[string]string, replacements map[string]string) (edits []goPinEdit, hits, hostHits map[string]int, retErr error) {
++	files := token.NewFileSet()
++	parsed, err := parser.ParseFile(files, "adapter.go", contents, parser.ParseComments)
++	if err != nil {
++		return nil, nil, nil, err
++	}
++	hits = map[string]int{}
++	hostHits = map[string]int{}
++	edits = []goPinEdit{}
++	ast.Inspect(parsed, func(node ast.Node) bool {
++		if field, ok := node.(*ast.KeyValueExpr); ok {
++			key, keyOK := field.Key.(*ast.BasicLit)
++			value, valueOK := field.Value.(*ast.BasicLit)
++			if keyOK && valueOK && key.Kind == token.STRING && value.Kind == token.STRING {
++				host, _ := strconv.Unquote(key.Value)
++				if next, found := prepared[host]; found {
++					hostHits[host]++
++					edits = append(edits, goPinEdit{start: files.Position(value.Pos()).Offset, end: files.Position(value.End()).Offset, value: strconv.Quote(next)})
++					return false
++				}
++			}
++		}
++		literal, ok := node.(*ast.BasicLit)
++		if !ok || literal.Kind != token.STRING {
++			return true
++		}
++		old, err := strconv.Unquote(literal.Value)
++		if err != nil {
++			return true
++		}
++		if next, found := replacements[old]; found {
++			hits[old]++
++			edits = append(edits, goPinEdit{start: files.Position(literal.Pos()).Offset, end: files.Position(literal.End()).Offset, value: strconv.Quote(next)})
++		}
++		return true
++	})
++	return edits, hits, hostHits, nil
++}
++
++func stageAdapterRegeneration(root string, result deterministicio.AdapterRegeneration, oldVersion, oldSum, oldGoModSum, newGoModSum, privateCache string) (files []adapterPublicationFile, snapshot map[string]publicationContent, retErr error) {
++	work, err := os.MkdirTemp("", "gomad-adapter-stage-*")
++	if err != nil {
++		return nil, nil, err
++	}
++	defer func() { retErr = errors.Join(retErr, os.RemoveAll(work)) }()
++	stage := filepath.Join(work, adapterRegenerationInputTrees[0])
++	checkoutRoot := filepath.Clean(filepath.Join(root, "..", ".."))
++	snapshot, err = copyAdapterStageInputs(root, checkoutRoot, work)
++	if err != nil {
++		return nil, nil, err
++	}
++	for _, name := range []string{"go.mod", "go.sum"} {
++		contents, err := os.ReadFile(filepath.Join(checkoutRoot, name))
++		if err != nil {
++			return nil, nil, err
++		}
++		if err := os.WriteFile(filepath.Join(work, name), contents, 0o600); err != nil {
++			return nil, nil, err
++		}
++		snapshot[name] = publicationContent{Present: true, Bytes: contents}
++	}
++	cacheDir := filepath.Join(stage, ".toolchain")
++	if err := os.MkdirAll(cacheDir, 0o700); err != nil {
++		return nil, nil, err
++	}
++	if err := os.Symlink(filepath.Join(root, ".toolchain", "generator-cache"), filepath.Join(cacheDir, "generator-cache")); err != nil {
++		return nil, nil, err
++	}
++	adapterFile := filepath.Join(stage, "deterministicio", result.SourceFile)
++	contents, err := os.ReadFile(adapterFile)
++	if err != nil {
++		return nil, nil, err
++	}
++	updated, err := editAdapterPins(contents, result, oldVersion, oldSum)
++	if err != nil {
++		return nil, nil, err
++	}
++	if err := os.WriteFile(adapterFile, updated, 0o644); err != nil {
++		return nil, nil, err
++	}
++	if err := editAdapterDescriptor(filepath.Join(stage, "toolchain", "version", "version.json"), result.Module, oldVersion, oldSum, result.Version, result.Sum); err != nil {
++		return nil, nil, err
++	}
++	if err := editAdapterFixtures(filepath.Join(stage, "deterministicio", "testdata"), result.Module, oldVersion, oldSum, oldGoModSum, result.Version, result.Sum, newGoModSum, privateCache); err != nil {
++		return nil, nil, err
++	}
++	generate := exec.CommandContext(context.Background(), "make", "-C", stage, "generate")
++	generate.Env = append(os.Environ(), "GOTOOLCHAIN=local", "GOWORK=off")
++	output, err := generate.CombinedOutput()
++	if err != nil {
++		return nil, nil, fmt.Errorf("generate staged adapter artifacts: %w\n%s", err, output)
++	}
++	validate := exec.CommandContext(context.Background(), "make", "-C", stage, "validate-toolchain", "validate-qualification")
++	validate.Env = append(os.Environ(), "GOTOOLCHAIN=local", "GOWORK=off")
++	output, err = validate.CombinedOutput()
++	if err != nil {
++		return nil, nil, fmt.Errorf("validate staged adapter artifacts: %w\n%s", err, output)
++	}
++	compile := exec.CommandContext(context.Background(), "go", "test", "-tags", "test_dep", "-run", "^$", "./deterministicio")
++	compile.Dir = stage
++	compile.Env = append(os.Environ(), "GOTOOLCHAIN=local", "GOWORK=off")
++	output, err = compile.CombinedOutput()
++	if err != nil {
++		return nil, nil, fmt.Errorf("compile staged adapter: %w\n%s", err, output)
++	}
++	files = []adapterPublicationFile{}
++	for _, subtree := range adapterRegenerationInputTrees[:2] {
++		err = collectAdapterStageChanges(filepath.Join(work, subtree), subtree, snapshot, &files)
++		if err != nil {
++			return nil, nil, err
++		}
++	}
++	return files, snapshot, nil
++}
++
++func copyAdapterStageInputs(root, checkoutRoot, work string) (map[string]publicationContent, error) {
++	snapshot := map[string]publicationContent{}
++	for _, tree := range adapterRegenerationInputTrees {
++		source := filepath.Join(checkoutRoot, tree)
++		if tree == adapterRegenerationInputTrees[0] {
++			source = root
++		}
++		copied, err := copyAdapterStageTree(source, filepath.Join(work, tree))
++		if err != nil {
++			return nil, err
++		}
++		for relative, content := range copied {
++			snapshot[filepath.Join(tree, relative)] = content
++		}
++	}
++	return snapshot, nil
++}
++
++func collectAdapterStageChanges(stage, prefix string, snapshot map[string]publicationContent, files *[]adapterPublicationFile) error {
++	err := filepath.WalkDir(stage, func(path string, entry fs.DirEntry, visitErr error) error {
++		if visitErr != nil {
++			return visitErr
++		}
++		if entry.IsDir() {
++			if filepath.Base(path) == ".toolchain" || filepath.Base(path) == ".bin" {
++				return filepath.SkipDir
++			}
++			return nil
++		}
++		if !entry.Type().IsRegular() {
++			return fmt.Errorf("staged adapter output is not a regular file: %s", path)
++		}
++		local, err := filepath.Rel(stage, path)
++		if err != nil {
++			return err
++		}
++		relative := filepath.Join(prefix, local)
++		contents, err := os.ReadFile(path)
++		if err != nil {
++			return err
++		}
++		newContent := publicationContent{Present: true, Bytes: contents}
++		old := snapshot[relative]
++		if !samePublicationContent(old, newContent) {
++			*files = append(*files, adapterPublicationFile{Path: relative, Old: old, New: newContent})
++		}
++		return nil
++	})
++	if err != nil {
++		return err
++	}
++	for relative, old := range snapshot {
++		if !strings.HasPrefix(relative, prefix+string(filepath.Separator)) {
++			continue
++		}
++		local := strings.TrimPrefix(relative, prefix+string(filepath.Separator))
++		if _, err := os.Stat(filepath.Join(stage, local)); errors.Is(err, os.ErrNotExist) {
++			*files = append(*files, adapterPublicationFile{Path: relative, Old: old})
++		} else if err != nil {
++			return err
++		}
++	}
++	return nil
++}
++
++func walkAdapterStageInputs(source string, visit func(path, relative string, entry fs.DirEntry) error) error {
++	return filepath.WalkDir(source, func(path string, entry fs.DirEntry, visitErr error) error {
++		if visitErr != nil {
++			return visitErr
++		}
++		relative, err := filepath.Rel(source, path)
++		if err != nil {
++			return err
++		}
++		if entry.IsDir() && (relative == ".toolchain" || relative == ".bin") {
++			return filepath.SkipDir
++		}
++		if !entry.IsDir() && !entry.Type().IsRegular() {
++			return fmt.Errorf("adapter stage input is not a regular file: %s", relative)
++		}
++		return visit(path, relative, entry)
++	})
++}
++
++func snapshotAdapterStageTree(source string) (map[string]publicationContent, error) {
++	snapshot := map[string]publicationContent{}
++	err := walkAdapterStageInputs(source, func(path, relative string, entry fs.DirEntry) error {
++		if entry.IsDir() {
++			return nil
++		}
++		contents, err := os.ReadFile(path)
++		if err != nil {
++			return err
++		}
++		snapshot[relative] = publicationContent{Present: true, Bytes: contents}
++		return nil
++	})
++	return snapshot, err
++}
++
++func copyAdapterStageTree(source, destination string) (map[string]publicationContent, error) {
++	snapshot := map[string]publicationContent{}
++	err := walkAdapterStageInputs(source, func(path, relative string, entry fs.DirEntry) error {
++		if entry.IsDir() {
++			return os.MkdirAll(filepath.Join(destination, relative), 0o700)
++		}
++		contents, err := os.ReadFile(path)
++		if err != nil {
++			return err
++		}
++		info, err := entry.Info()
++		if err != nil {
++			return err
++		}
++		if err := os.WriteFile(filepath.Join(destination, relative), contents, info.Mode().Perm()); err != nil {
++			return err
++		}
++		snapshot[relative] = publicationContent{Present: true, Bytes: contents}
++		return nil
++	})
++	return snapshot, err
++}
++
++func editAdapterDescriptor(path, module, oldVersion, oldSum, version, sum string) error {
++	contents, err := os.ReadFile(path)
++	if err != nil {
++		return err
++	}
++	var descriptor gomadversion.Descriptor
++	if err := json.Unmarshal(contents, &descriptor); err != nil {
++		return err
++	}
++	hits := 0
++	for index := range descriptor.Adapters {
++		adapter := &descriptor.Adapters[index]
++		if adapter.Module != module {
++			continue
++		}
++		if adapter.Version != oldVersion || adapter.Sum != oldSum {
++			return errors.New("adapter descriptor changed since planning")
++		}
++		adapter.Version, adapter.Sum = version, sum
++		hits++
++	}
++	if hits != 1 {
++		return fmt.Errorf("adapter descriptor has %d entries for %s", hits, module)
++	}
++	updated, err := json.MarshalIndent(descriptor, "", "  ")
++	if err != nil {
++		return err
++	}
++	return os.WriteFile(path, append(updated, '\n'), 0o644)
++}
++
++func editAdapterFixtures(root, module, oldVersion, oldSum, oldGoModSum, version, sum, newGoModSum, privateCache string) error {
++	var changedModules []string
++	err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, visitErr error) error {
++		if visitErr != nil {
++			return visitErr
++		}
++		if entry.IsDir() {
++			return nil
++		}
++		if entry.Name() != "go.mod" && entry.Name() != "go.sum" {
++			return nil
++		}
++		contents, err := os.ReadFile(path)
++		if err != nil {
++			return err
++		}
++		updated := string(contents)
++		if entry.Name() == "go.mod" {
++			updated = strings.ReplaceAll(updated, module+" "+oldVersion, module+" "+version)
++		} else {
++			updated = strings.ReplaceAll(updated, module+" "+oldVersion+" "+oldSum, module+" "+version+" "+sum)
++			updated = strings.ReplaceAll(updated, module+" "+oldVersion+"/go.mod "+oldGoModSum, module+" "+version+"/go.mod "+newGoModSum)
++		}
++		if updated == string(contents) {
++			return nil
++		}
++		if entry.Name() == "go.mod" {
++			changedModules = append(changedModules, filepath.Dir(path))
++		}
++		return os.WriteFile(path, []byte(updated), 0o644)
++	})
++	if err != nil {
++		return err
++	}
++	for _, directory := range changedModules {
++		command := exec.CommandContext(context.Background(), "go", "mod", "tidy")
++		command.Dir = directory
++		command.Env = append(os.Environ(), "GOMODCACHE="+privateCache, "GOWORK=off", "GOFLAGS=", "GOTOOLCHAIN=local")
++		output, err := command.CombinedOutput()
++		if err != nil {
++			return fmt.Errorf("refresh staged adapter fixture %s: %w\n%s", directory, err, output)
++		}
++	}
++	return nil
++}
+diff --git a/tools/gomad3/upgrade/adapter_regenerate_test.go b/tools/gomad3/upgrade/adapter_regenerate_test.go
+new file mode 100644
+index 0000000000..7dbb1953ca
+--- /dev/null
++++ b/tools/gomad3/upgrade/adapter_regenerate_test.go
+@@ -0,0 +1,400 @@
++package upgrade
++
++import (
++	"bytes"
++	"io/fs"
++	"maps"
++	"os"
++	"path/filepath"
++	"strings"
++	"sync"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/deterministicio"
++)
++
++func TestAdapterRegenerationDryRunLeavesCheckoutUntouched(t *testing.T) {
++	checkout := t.TempDir()
++	root := filepath.Join(checkout, "tools", "gomad3")
++	path := filepath.Join(root, "toolchain", "version", "version.json")
++	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
++		t.Fatal(err)
++	}
++	descriptor, err := os.ReadFile(filepath.Join("..", "toolchain", "version", "version.json"))
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(path, descriptor, 0o600); err != nil {
++		t.Fatal(err)
++	}
++	before := readAdapterCheckoutTree(t, checkout)
++	var stdout bytes.Buffer
++	status, err := RegenerateAdapter(root, "github.com/Masterminds/sprig/v3", "v3.2.3", "", &stdout)
++	if status != 0 || err != nil {
++		t.Fatalf("dry run status=%d: %v", status, err)
++	}
++	if !strings.Contains(stdout.String(), "Approval SHA-256:") {
++		t.Fatalf("dry run report = %s", stdout.String())
++	}
++	if !strings.Contains(stdout.String(), "Approval SHA-256: sha256:1a47941c061adf15f45843b757d5ba22c139271a661c1e2595d628abe517d5fd") {
++		t.Fatalf("dry run changed the reviewed Sprig digest: %s", stdout.String())
++	}
++	updated, err := os.ReadFile(path)
++	if err != nil || !bytes.Equal(updated, descriptor) {
++		t.Fatalf("dry run changed descriptor: %v", err)
++	}
++	if after := readAdapterCheckoutTree(t, checkout); !maps.Equal(after, before) {
++		t.Fatalf("dry run changed checkout tree: before=%v after=%v", before, after)
++	}
++	stdout.Reset()
++	status, err = RegenerateAdapter(root, "github.com/Masterminds/sprig/v3", "v3.2.3", "sha256:wrong", &stdout)
++	if status == 0 || err == nil || !strings.Contains(err.Error(), "approval does not match") {
++		t.Fatalf("wrong approval status=%d: %v", status, err)
++	}
++	if after := readAdapterCheckoutTree(t, checkout); !maps.Equal(after, before) {
++		t.Fatalf("wrong approval changed checkout tree: before=%v after=%v", before, after)
++	}
++}
++
++func readAdapterCheckoutTree(t *testing.T, root string) map[string]string {
++	t.Helper()
++	entries := map[string]string{}
++	err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, visitErr error) error {
++		if visitErr != nil {
++			return visitErr
++		}
++		relative, err := filepath.Rel(root, path)
++		if err != nil {
++			return err
++		}
++		if entry.IsDir() {
++			entries[relative] = "directory"
++			return nil
++		}
++		contents, err := os.ReadFile(path)
++		if err != nil {
++			return err
++		}
++		entries[relative] = string(contents)
++		return nil
++	})
++	if err != nil {
++		t.Fatal(err)
++	}
++	return entries
++}
++
++func TestAdapterApprovalBindsUpstreamSourceAndAnchors(t *testing.T) {
++	result := deterministicio.AdapterRegeneration{Module: "example.com/module", Version: "v1.2.3", Sum: "h1:example", Sources: []deterministicio.RegeneratedSource{{Path: "source.go", Source: []byte("original"), Replacement: []byte("adapted"), SourceSHA256: "sha256:source", ReplacementSHA256: "sha256:replacement"}}}
++	baseline, err := adapterRegenerationApproval(result)
++	if err != nil {
++		t.Fatal(err)
++	}
++	result.Sources[0].Source = []byte("changed upstream source")
++	changedSource, err := adapterRegenerationApproval(result)
++	if err != nil {
++		t.Fatal(err)
++	}
++	result.Sources[0].Source = []byte("original")
++	result.Sources[0].Replacement = []byte("changed replacement")
++	changedAnchor, err := adapterRegenerationApproval(result)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if baseline == changedSource || baseline == changedAnchor {
++		t.Fatalf("approval did not bind source and rewrite: %s, %s, %s", baseline, changedSource, changedAnchor)
++	}
++}
++
++func TestEditAdapterPinsPreservesCommentsAndRequiresOldPin(t *testing.T) {
++	source := []byte("package test\n\n// Preserve this comment.\nconst old = \"sha256:old\"\nvar prepared = map[string]string{\"darwin/arm64\": \"sha256:hostold\", \"linux/amd64\": \"sha256:hostold\"}\n")
++	regenerated := deterministicio.AdapterRegeneration{Sources: []deterministicio.RegeneratedSource{{OldSourceSHA256: "sha256:old", SourceSHA256: "sha256:new"}}, PreparedSourceSets: map[string]string{"darwin/arm64": "sha256:darwin", "linux/amd64": "sha256:linux"}}
++	result, err := editAdapterPins(source, regenerated, "", "")
++	if err != nil {
++		t.Fatal(err)
++	}
++	if !strings.Contains(string(result), "// Preserve this comment.") || !strings.Contains(string(result), "sha256:new") || !strings.Contains(string(result), "sha256:darwin") || !strings.Contains(string(result), "sha256:linux") {
++		t.Fatalf("edited source = %s", result)
++	}
++	regenerated.Sources[0].OldSourceSHA256 = "sha256:missing"
++	if _, err := editAdapterPins(source, regenerated, "", ""); err == nil || !strings.Contains(err.Error(), "missing pin") {
++		t.Fatalf("missing pin error = %v", err)
++	}
++	regenerated.Sources[0].OldSourceSHA256 = "sha256:old"
++	duplicate := append(append([]byte{}, source...), []byte("const second = \"sha256:old\"\n")...)
++	if _, err := editAdapterPins(duplicate, regenerated, "", ""); err == nil || !strings.Contains(err.Error(), "duplicate pin") {
++		t.Fatalf("duplicate pin error = %v", err)
++	}
++}
++
++func TestAdapterPublicationRejectsCheckoutDrift(t *testing.T) {
++	root := t.TempDir()
++	path := filepath.Join(root, "source.go")
++	if err := os.WriteFile(path, []byte("old"), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	before, err := readPublicationFile(root, "source.go")
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(path, []byte("other"), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	err = publishAdapterFiles(root, []adapterPublicationFile{{Path: "source.go", Old: before, New: publicationContent{Present: true, Bytes: []byte("new")}}})
++	if err == nil || !strings.Contains(err.Error(), "changed since staging") {
++		t.Fatalf("publishAdapterFiles() error = %v", err)
++	}
++	contents, err := os.ReadFile(path)
++	if err != nil || string(contents) != "other" {
++		t.Fatalf("checkout = %q, %v", contents, err)
++	}
++}
++
++func TestAdapterPublicationRejectsUnchangedInputDrift(t *testing.T) {
++	root := t.TempDir()
++	input := filepath.Join(root, "go.mod")
++	if err := os.WriteFile(input, []byte("old"), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	before, err := readPublicationFile(root, "go.mod")
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(input, []byte("changed"), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	err = publishAdapterFilesWithSnapshot(root, []adapterPublicationFile{{Path: "generated.go", New: publicationContent{Present: true, Bytes: []byte("generated")}}}, map[string]publicationContent{"go.mod": before}, nil)
++	if err == nil || !strings.Contains(err.Error(), "checkout changed since staging: go.mod") {
++		t.Fatalf("unchanged input drift error = %v", err)
++	}
++	if _, err := os.Stat(filepath.Join(root, "generated.go")); !os.IsNotExist(err) {
++		t.Fatalf("generated output unexpectedly published: %v", err)
++	}
++}
++
++func TestAdapterPublicationRejectsNewStagedInput(t *testing.T) {
++	for _, test := range []struct{ name, path string }{
++		{"adapter request", filepath.Join("tools", "gomad3", "internal", "compatibilitypack", "requests", "new.json")},
++		{"qualification", filepath.Join("tools", "gomad3integration", "qualification", "new.json")},
++		{"tests", filepath.Join("tests", "new_test.go")},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			testAdapterPublicationRejectsNewStagedInput(t, test.path)
++		})
++	}
++}
++
++func testAdapterPublicationRejectsNewStagedInput(t *testing.T, newInput string) {
++	t.Helper()
++	root := t.TempDir()
++	paths := map[string]string{
++		filepath.Join("tools", "gomad3", "deterministicio", "sprig_adapter.go"):                    "old adapter",
++		filepath.Join("tools", "gomad3", "toolchain", "version", "generated.go"):                   "old generated",
++		filepath.Join("tools", "gomad3", "internal", "compatibilitypack", "requests", "base.json"): "old request",
++		filepath.Join("tools", "gomad3integration", "qualification", "tests.json"):                 "old manifest",
++		filepath.Join("tests", "test.go"):                                                          "old test",
++		"go.mod":                                                                                   "old module",
++		"go.sum":                                                                                   "old sums",
++	}
++	snapshot := map[string]publicationContent{}
++	for path, contents := range paths {
++		full := filepath.Join(root, path)
++		if err := os.MkdirAll(filepath.Dir(full), 0o700); err != nil {
++			t.Fatal(err)
++		}
++		if err := os.WriteFile(full, []byte(contents), 0o600); err != nil {
++			t.Fatal(err)
++		}
++		snapshot[path] = publicationContent{Present: true, Bytes: []byte(contents)}
++	}
++	if err := os.WriteFile(filepath.Join(root, newInput), []byte("new input"), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	adapterPath := filepath.Join("tools", "gomad3", "deterministicio", "sprig_adapter.go")
++	generatedPath := filepath.Join("tools", "gomad3", "toolchain", "version", "generated.go")
++	files := []adapterPublicationFile{
++		{Path: adapterPath, Old: snapshot[adapterPath], New: publicationContent{Present: true, Bytes: []byte("new adapter")}},
++		{Path: generatedPath, Old: snapshot[generatedPath], New: publicationContent{Present: true, Bytes: []byte("new generated")}},
++	}
++	err := publishAdapterFilesWithSnapshot(root, files, snapshot, adapterRegenerationInputTrees)
++	if err == nil || !strings.Contains(err.Error(), "checkout changed since staging: "+newInput) {
++		t.Fatalf("new staged input error = %v", err)
++	}
++	contents, err := os.ReadFile(filepath.Join(root, adapterPath))
++	if err != nil || string(contents) != "old adapter" {
++		t.Fatalf("published adapter despite new input: %q, %v", contents, err)
++	}
++	contents, err = os.ReadFile(filepath.Join(root, generatedPath))
++	if err != nil || string(contents) != "old generated" {
++		t.Fatalf("published generated output despite new input: %q, %v", contents, err)
++	}
++	if _, err := os.Stat(adapterPublicationMarker(root)); !os.IsNotExist(err) {
++		t.Fatalf("publication marker unexpectedly exists: %v", err)
++	}
++}
++
++func TestAdapterPublicationAcceptsIgnoredCacheDrift(t *testing.T) {
++	root := t.TempDir()
++	snapshot := map[string]publicationContent{}
++	for path, contents := range map[string]string{
++		filepath.Join("tools", "gomad3", "deterministicio", "sprig_adapter.go"):    "old adapter",
++		filepath.Join("tools", "gomad3integration", "qualification", "tests.json"): "old manifest",
++		filepath.Join("tests", "test.go"):                                          "old test",
++		"go.mod":                                                                   "old module",
++		"go.sum":                                                                   "old sums",
++	} {
++		full := filepath.Join(root, path)
++		if err := os.MkdirAll(filepath.Dir(full), 0o700); err != nil {
++			t.Fatal(err)
++		}
++		if err := os.WriteFile(full, []byte(contents), 0o600); err != nil {
++			t.Fatal(err)
++		}
++		snapshot[path] = publicationContent{Present: true, Bytes: []byte(contents)}
++	}
++	for _, path := range []string{
++		filepath.Join("tools", "gomad3", ".toolchain", "generator-cache", "new"),
++		filepath.Join("tools", "gomad3", ".bin", "gomad"),
++	} {
++		full := filepath.Join(root, path)
++		if err := os.MkdirAll(filepath.Dir(full), 0o700); err != nil {
++			t.Fatal(err)
++		}
++		if err := os.WriteFile(full, []byte("cache"), 0o600); err != nil {
++			t.Fatal(err)
++		}
++	}
++	adapterPath := filepath.Join("tools", "gomad3", "deterministicio", "sprig_adapter.go")
++	files := []adapterPublicationFile{{Path: adapterPath, Old: snapshot[adapterPath], New: publicationContent{Present: true, Bytes: []byte("new adapter")}}}
++	if err := publishAdapterFilesWithSnapshot(root, files, snapshot, adapterRegenerationInputTrees); err != nil {
++		t.Fatal(err)
++	}
++	contents, err := os.ReadFile(filepath.Join(root, adapterPath))
++	if err != nil || string(contents) != "new adapter" {
++		t.Fatalf("published adapter = %q, %v", contents, err)
++	}
++	if _, err := os.Stat(adapterPublicationMarker(root)); !os.IsNotExist(err) {
++		t.Fatalf("publication marker remains: %v", err)
++	}
++}
++
++func TestAdapterPublicationRecoversInterruptedSet(t *testing.T) {
++	root := t.TempDir()
++	names := []string{filepath.Join("tools", "gomad3", "deterministicio", "sprig_adapter.go"), filepath.Join("tools", "gomad3integration", "qualification", "tests.json")}
++	for _, name := range names {
++		if err := os.MkdirAll(filepath.Dir(filepath.Join(root, name)), 0o700); err != nil {
++			t.Fatal(err)
++		}
++		if err := os.WriteFile(filepath.Join(root, name), []byte("old"), 0o600); err != nil {
++			t.Fatal(err)
++		}
++	}
++	files := []adapterPublicationFile{}
++	for _, name := range names {
++		files = append(files, adapterPublicationFile{Path: name, Old: publicationContent{Present: true, Bytes: []byte("old")}, New: publicationContent{Present: true, Bytes: []byte("new")}})
++	}
++	if err := recordAdapterPublication(root, files); err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(filepath.Join(root, names[0]), []byte("new"), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	if err := recoverAdapterPublication(root); err != nil {
++		t.Fatal(err)
++	}
++	for _, name := range names {
++		contents, err := os.ReadFile(filepath.Join(root, name))
++		if err != nil || string(contents) != "old" {
++			t.Fatalf("recovered %s = %q, %v", name, contents, err)
++		}
++	}
++	if _, err := os.Stat(adapterPublicationMarker(root)); !os.IsNotExist(err) {
++		t.Fatalf("recovery marker remains: %v", err)
++	}
++}
++
++func TestReportStaleLibcAdapterPacks(t *testing.T) {
++	var output bytes.Buffer
++	if err := reportStaleAdapterPacks(&output, "modernc.org/libc", "v1.72.4"); err != nil {
++		t.Fatal(err)
++	}
++	if !strings.Contains(output.String(), "Stale adapter-bound pack: modernc-libc") {
++		t.Fatalf("stale libc pack report = %s", output.String())
++	}
++}
++
++func TestAdapterPublicationSerializesCompetingApplies(t *testing.T) {
++	root := t.TempDir()
++	path := filepath.Join(root, "source.go")
++	if err := os.WriteFile(path, []byte("old"), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	start := make(chan struct{})
++	results := make(chan error, 2)
++	var workers sync.WaitGroup
++	for _, next := range []string{"first", "second"} {
++		workers.Add(1)
++		go func(next string) {
++			defer workers.Done()
++			<-start
++			results <- publishAdapterFiles(root, []adapterPublicationFile{{Path: "source.go", Old: publicationContent{Present: true, Bytes: []byte("old")}, New: publicationContent{Present: true, Bytes: []byte(next)}}})
++		}(next)
++	}
++	close(start)
++	workers.Wait()
++	close(results)
++	successes, failures := 0, 0
++	for err := range results {
++		if err == nil {
++			successes++
++		} else {
++			failures++
++		}
++	}
++	contents, err := os.ReadFile(path)
++	if err != nil || successes != 1 || failures != 1 || string(contents) != "first" && string(contents) != "second" {
++		t.Fatalf("competing publications: successes=%d failures=%d contents=%q error=%v", successes, failures, contents, err)
++	}
++}
++
++func TestAdapterGenerationFailureLeavesCheckoutUnchanged(t *testing.T) {
++	checkout := t.TempDir()
++	moduleRoot := filepath.Join(checkout, "tools", "gomad3")
++	for _, directory := range []string{filepath.Join(moduleRoot, "deterministicio", "testdata"), filepath.Join(moduleRoot, "toolchain", "version"), filepath.Join(checkout, "tools", "gomad3integration", "qualification"), filepath.Join(checkout, "tests")} {
++		if err := os.MkdirAll(directory, 0o700); err != nil {
++			t.Fatal(err)
++		}
++	}
++	write := func(path, contents string) {
++		t.Helper()
++		if err := os.WriteFile(path, []byte(contents), 0o600); err != nil {
++			t.Fatal(err)
++		}
++	}
++	write(filepath.Join(checkout, "go.mod"), "module example.com/root\n")
++	write(filepath.Join(checkout, "go.sum"), "")
++	write(filepath.Join(checkout, "tools", "gomad3integration", "qualification", "tests.json"), "old manifest")
++	write(filepath.Join(moduleRoot, "Makefile"), "generate:\n\tfalse\n")
++	adapter := filepath.Join(moduleRoot, "deterministicio", "sprig_adapter.go")
++	oldAdapter := "package deterministicio\nconst version = \"v3.3.0\"\nconst sum = \"h1:old\"\nvar pins = map[string]string{\"darwin/arm64\": \"sha256:old\", \"linux/amd64\": \"sha256:old\"}\n"
++	write(adapter, oldAdapter)
++	versionPath := filepath.Join(moduleRoot, "toolchain", "version", "version.json")
++	write(versionPath, "{\"adapters\":[{\"module\":\"github.com/Masterminds/sprig/v3\",\"version\":\"v3.3.0\",\"sum\":\"h1:old\"}]}")
++	before := readAdapterCheckoutTree(t, checkout)
++	result := deterministicio.AdapterRegeneration{Module: "github.com/Masterminds/sprig/v3", SourceFile: "sprig_adapter.go", Version: "v3.2.3", Sum: "h1:new", PreparedSourceSets: map[string]string{"darwin/arm64": "sha256:new", "linux/amd64": "sha256:new"}}
++	_, _, err := stageAdapterRegeneration(moduleRoot, result, "v3.3.0", "h1:old", "h1:oldmod", "h1:newmod", t.TempDir())
++	if err == nil || !strings.Contains(err.Error(), "generate staged adapter artifacts") {
++		t.Fatalf("stageAdapterRegeneration() error = %v", err)
++	}
++	contents, err := os.ReadFile(adapter)
++	if err != nil || string(contents) != oldAdapter {
++		t.Fatalf("checkout adapter = %q, %v", contents, err)
++	}
++	contents, err = os.ReadFile(versionPath)
++	if err != nil || !strings.Contains(string(contents), "v3.3.0") {
++		t.Fatalf("checkout descriptor = %q, %v", contents, err)
++	}
++	if after := readAdapterCheckoutTree(t, checkout); !maps.Equal(after, before) {
++		t.Fatalf("generation failure changed checkout tree: before=%v after=%v", before, after)
++	}
++}
+diff --git a/.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/measurement.json b/.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/measurement.json
+new file mode 100644
+index 0000000000..fb606a25d3
+--- /dev/null
++++ b/.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/measurement.json
+@@ -0,0 +1,130 @@
++{
++  "adapter_one_pin_both_hosts": {
++    "baseline_local_darwin_detail": "4 specific file edits + version-generate + validate + one Darwin consumer test",
++    "baseline_local_darwin_units": 7,
++    "baseline_repair_files": [
++      "tools/gomad3/deterministicio/sprig_adapter.go",
++      "tools/gomad3/toolchain/version/version.json",
++      "tools/gomad3/deterministicio/testdata/sprig/go.mod",
++      "tools/gomad3/deterministicio/testdata/sprig/go.sum"
++    ],
++    "common_candidate_preparation": [
++      "go mod edit in scratch candidate",
++      "go mod download exact Sprig version"
++    ],
++    "evidence": [
++      "task-4/sprig-impact.json",
++      "task-4/sprig-dryrun.log",
++      "task-4/sprig-apply.log",
++      "task-4/sprig-apply-final.log",
++      "task-4/sprig-apply-stock.log",
++      "task-4/sprig-validate.log",
++      "task-4/sprig-consumer-test.log",
++      "task-2/sprig-fixture-evidence.json"
++    ],
++    "human_source_review": "required; not counted as a command or file edit",
++    "linux": "not run",
++    "new_normalized_detail": "pin-impact + dry run + approved apply + validate + Darwin consumer test",
++    "new_normalized_local_darwin_units": 5,
++    "observed_command_sequence": [
++      "pin-impact (status 1 expected)",
++      "adapter-regenerate dry run (0)",
++      "approved apply with symlinked scratch .toolchain (1 setup failure)",
++      "approved apply with directory layout but stock Go 1.26.5 PATH (1 setup failure)",
++      "approved apply with stock Go 1.27.1 PATH (0)",
++      "make validate (0)",
++      "Darwin Sprig consumer go test (0)"
++    ],
++    "observed_local_darwin_commands": 7,
++    "prepared_hash_location": "sprig_adapter.go, already counted"
++  },
++  "baseline_counts": {
++    "clock_inventory": {
++      "references": 25
++    },
++    "compatibility_packs": {
++      "packs": 12,
++      "rules": 54,
++      "unique_module_version_pins": 19
++    },
++    "dependency_adapters": {
++      "modules": 15,
++      "sha256_anchor_literals": 135
++    },
++    "interception_fingerprints": {
++      "declarations_including_platform_overrides": 132,
++      "intercepts": 131
++    },
++    "runtime_overlay": {
++      "files": 61,
++      "lines": 18437
++    },
++    "runtime_patch": {
++      "bytes": 33886,
++      "files": 20,
++      "lines": 1044
++    }
++  },
++  "common_and_conditional": "Both-host full tests, pack and core qualification are acceptance gates and excluded from authoring savings; no native Linux acceptance evidence was generated. A second host adds a refresh when its mapped requests are invalidated. A Go-release change still needs patch/overlay review and the upgrade dossier. Human source and exact-digest approval review remains required.",
++  "current_counts": {
++    "compatibility_packs": {
++      "packs": 11,
++      "rules": 49,
++      "unique_module_version_pins": 18
++    },
++    "dependency_adapters": {
++      "modules": 15,
++      "sha256_anchor_literals": 135
++    }
++  },
++  "historical_baseline": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/baseline.json",
++  "pack_authoring_one_host": {
++    "baseline_detail": "discover + review + approved generate + check + qualify; request wording edits conditional",
++    "baseline_one_request_commands": 5,
++    "common_candidate_preparation": [
++      "go mod download -json exact x/sys v0.48.0 for availability",
++      "go mod edit scratch xsys module",
++      "go mod download x/sys to update go.sum"
++    ],
++    "evidence": [
++      "task-4/controlled-pin-impact.json",
++      "task-4/controlled-refresh.log",
++      "task-4/controlled-refresh-final.log",
++      "task-4/controlled-generate.log",
++      "task-4/controlled-check.log",
++      "task-4/controlled-qualify.log",
++      "task-4/controlled-approved-rerun.log",
++      "task-4/controlled-approved-rerun-bound.log",
++      "task-4/controlled-rerun-preimages.json",
++      "task-4/controlled-pack-state.json",
++      "task-3/real-partial-approval.log",
++      "task-3/real-other-platform.log",
++      "task-3/real-unmapped.log"
++    ],
++    "human_source_and_approval_review": "required; reviewed fact set unchanged and exact source hashes changed; fixture approval only",
++    "linux": "no Linux request invalidated by this xsys module candidate; production Linux qualification remains pending",
++    "new_normalized_detail": "pin-impact + refresh + approved generate + check + qualify; request wording edits conditional",
++    "new_normalized_one_request_commands": 5,
++    "observed_cli_commands": 8,
++    "observed_command_sequence": [
++      "pin-impact status 1 expected",
++      "refresh initial digest c0d2...",
++      "hand edit scratch request justification v0.47.0 to v0.48.0",
++      "refresh final digest 425e...",
++      "generate with 425e... approval",
++      "check",
++      "qualify Darwin target",
++      "post-approval refresh diagnostic (empty output)",
++      "post-approval refresh byte-bound diagnostic (empty output)"
++    ],
++    "observed_hand_edits": 1,
++    "two_request_one_host_formula": {
++      "baseline": "3 commands per request + one check = 7",
++      "claim": "projection only; no complete two-request approval walk executed",
++      "new": "pin-impact + one refresh + one generate per approved request + one check = 5",
++      "qualification": "per-request qualification is common and excluded from this authoring comparison"
++    }
++  },
++  "schema": "gomad3.pin-maintenance-post-tooling/v1",
++  "unit": "one command invocation or one hand edit of a checked-in file; person source and approval review required but outside this unit"
++}
+diff --git a/.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/walkthrough.json b/.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/walkthrough.json
+new file mode 100644
+index 0000000000..4062876145
+--- /dev/null
++++ b/.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/walkthrough.json
+@@ -0,0 +1,128 @@
++{
++  "host": "darwin/arm64",
++  "pack": {
++    "approval": "sha256:425eb4df602d36c474d21ba37455664b3f611362f81c7eec8c3692e3ba989c6f",
++    "candidate": "golang.org/x/sys@v0.48.0 in testdata/xsys",
++    "commands": [
++      {
++        "exit": 1,
++        "log": "controlled-pin-impact.json",
++        "name": "pin-impact"
++      },
++      {
++        "exit": 0,
++        "log": "controlled-refresh.log",
++        "name": "refresh first review"
++      },
++      {
++        "exit": 0,
++        "log": "controlled-refresh-final.log",
++        "name": "refresh after scratch request justification edit"
++      },
++      {
++        "exit": 0,
++        "log": "controlled-generate.log",
++        "name": "generate with exact fresh digest"
++      },
++      {
++        "exit": 0,
++        "log": "controlled-check.log",
++        "name": "check"
++      },
++      {
++        "exit": 0,
++        "log": "controlled-qualify.log",
++        "name": "qualify"
++      },
++      {
++        "exit": 0,
++        "log": "controlled-approved-rerun.log",
++        "name": "post-approval refresh diagnostic"
++      },
++      {
++        "exit": 0,
++        "log": "controlled-approved-rerun-bound.log",
++        "name": "byte-bound post-approval refresh diagnostic"
++      }
++    ],
++    "common_preparation": [
++      "go mod download -json exact v0.48.0 availability",
++      "go mod edit candidate xsys module",
++      "go mod download x/sys to write candidate go.sum"
++    ],
++    "facts": "Four package rules retained the same requested fact sets; source identities and activation version changed.",
++    "hand_edited_request_files": 1,
++    "justification_correction": "The first review still described x/sys v0.47.0. The scratch request was edited to say v0.48.0 before the second review and approval.",
++    "linux_qualification": "not covered by this Darwin-only request",
++    "post_approval_unchanged_sha256": {
++      "packs/golang-x-sys-v047-darwin-arm64.json": "1fd11b702af74056626f1f6ede79a7a0d9a09d029335bcee4744f0a7d3fb88f2",
++      "reports/golang-x-sys-v047-darwin-arm64.md": "7d7e0db3b11c4878945091137b487f9ab11e91c60ee059704df789e240b11a6c",
++      "requests/golang-x-sys-v047-darwin-arm64.json": "cf933721329a312590a583a662dad897ffe420d2c59bd1cf29b8af0d556bfda1"
++    },
++    "request": "golang-x-sys-v047-darwin-arm64"
++  },
++  "schema": "gomad3.pin-maintenance-walkthrough/v1",
++  "scope": "Scratch-only versions and approvals; no production descriptor, adapter, or compatibility pack pin changed. Person review and per-platform qualification remain requirements.",
++  "scratch_postimage_sha256": {
++    "sprig_adapter": "be4d65dced016302d739b5bd6e57dba5c9bb3ca5d948f2775d5872f34812e8de",
++    "sprig_candidate_go_mod": "21dd9f12684fcf4923c94ac10824b8875f5d8e35d85d87c49e7342c4e5dfb098",
++    "sprig_candidate_go_sum": "6b55b5b23450e664e3cced7d2b56086ca97f77c04ae8386af6d27390057de8f3",
++    "sprig_descriptor": "c70c06a7f883a73bb9fb45c8b097bd6cc41590960eb68fd597773b78705fa980",
++    "sprig_fixture_go_mod": "71c69bf1e302b0500b14878ca60199d2778aef7114e0d443eca95a065f1d4efc",
++    "sprig_fixture_go_sum": "f04e76e74dcf36809a1ce62232d8a924c35081c1b10f81f8c56d6ac3e9b5414d",
++    "sprig_generated": "442a6ed97317bba0098fd55e736f6866f9cfd7cb29c021f4a924aabb467df5f5",
++    "xsys_candidate_go_mod": "2628e649a383ec10b43e29e7a32a81c35801c339246c8a11cb2cb4021c1f32d3",
++    "xsys_candidate_go_sum": "32aa99df5555d18b789ca0ae104099c09aad15633d9149d0b175320f89ecd931",
++    "xsys_pack": "1fd11b702af74056626f1f6ede79a7a0d9a09d029335bcee4744f0a7d3fb88f2",
++    "xsys_report": "7d7e0db3b11c4878945091137b487f9ab11e91c60ee059704df789e240b11a6c",
++    "xsys_request": "cf933721329a312590a583a662dad897ffe420d2c59bd1cf29b8af0d556bfda1"
++  },
++  "sprig": {
++    "approval": "sha256:1a47941c061adf15f45843b757d5ba22c139271a661c1e2595d628abe517d5fd",
++    "candidate": "github.com/Masterminds/sprig/v3@v3.2.3",
++    "commands": [
++      {
++        "exit": 1,
++        "log": "sprig-impact.json",
++        "name": "pin-impact"
++      },
++      {
++        "exit": 0,
++        "log": "sprig-dryrun.log",
++        "name": "adapter-regenerate dry run"
++      },
++      {
++        "exit": 1,
++        "log": "sprig-apply.log",
++        "name": "adapter-regenerate approved apply, symlinked scratch toolchain"
++      },
++      {
++        "exit": 1,
++        "log": "sprig-apply-final.log",
++        "name": "adapter-regenerate approved apply, stock Go 1.26.5 PATH"
++      },
++      {
++        "exit": 0,
++        "log": "sprig-apply-stock.log",
++        "name": "adapter-regenerate approved apply, stock Go 1.27.1 PATH"
++      },
++      {
++        "exit": 0,
++        "log": "sprig-validate.log",
++        "name": "make validate"
++      },
++      {
++        "exit": 0,
++        "log": "sprig-consumer-test.log",
++        "name": "Darwin Sprig consumer go test"
++      }
++    ],
++    "common_preparation": [
++      "go mod edit root candidate",
++      "go mod download exact Sprig version"
++    ],
++    "linux_qualification": "pending",
++    "repair_files_hand_edited": 0
++  },
++  "tool_binary_sha256": "3ffcd4c9b65f23c49be463e43c024a325d5b6d349f6f7bfed3e7200d87db2217"
++}
+diff --git a/.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/verify-documentation.py b/.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/verify-documentation.py
+new file mode 100644
+index 0000000000..4cbf7307cc
+--- /dev/null
++++ b/.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/verify-documentation.py
+@@ -0,0 +1,138 @@
++import collections
++import hashlib
++import json
++import pathlib
++import re
++import subprocess
++import sys
++import urllib.parse
++
++ROOT = pathlib.Path.cwd()
++OUT = ROOT / '.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/doc-audit'
++BASE = '29917069e089dc0739ec091b18e99161245b9bd5'
++GUIDES = ['SPEC', 'ARCHITECTURE', 'CLI', 'TUTORIAL', 'README']
++BIN = pathlib.Path(sys.argv[1]).resolve()
++OUT.mkdir(parents=True, exist_ok=True)
++
++def git(*args):
++    return subprocess.check_output(['git', *args], cwd=ROOT, text=True)
++
++def unfenced(body):
++    lines, marker = [], None
++    for line in body.splitlines():
++        fence = re.match(r'^\s{0,3}(`{3,}|~{3,})', line)
++        if fence:
++            token = fence.group(1)
++            if marker is None:
++                marker = token
++            elif token[0] == marker[0] and len(token) >= len(marker):
++                marker = None
++            continue
++        if marker is None:
++            lines.append(line)
++    return '\n'.join(lines), marker
++
++def anchors(path):
++    body, _ = unfenced(path.read_text())
++    seen, result = collections.Counter(), set()
++    for title in re.findall(r'^#{1,6}\s+(.+?)\s*#*\s*$', body, re.M):
++        title = re.sub(r'\[([^]]+)\]\([^)]*\)', r'\1', title)
++        slug = re.sub(r'[^\w\- ]', '', title.lower()).replace(' ', '-')
++        index = seen[slug]
++        seen[slug] += 1
++        result.add(slug + (f'-{index}' if index else ''))
++    result.update(re.findall(r'<a\s+(?:id|name)=["\']([^"\']+)', body))
++    return result
++
++docs = {name: (ROOT / f'tools/gomad3/{name}.md').read_text() for name in GUIDES}
++old_spec = git('show', f'{BASE}:tools/gomad3/SPEC.md')
++old_glossary = git('show', f'{BASE}:tools/gomad3/GLOSSARY.md')
++(OUT / 'baseline-SPEC.md').write_text(old_spec)
++(OUT / 'baseline-GLOSSARY.md').write_text(old_glossary)
++ids = lambda text: re.findall(r'\[([A-Z][A-Z0-9]*(?:\.[A-Z0-9]+)*)\]', text)
++original, current = ids(old_spec), ids(docs['SPEC'])
++language = old_glossary.split('## Language', 1)[1].split('\n## ', 1)[0]
++terms = re.findall(r'^\*\*([^*]+)\*\*', language, re.M)
++vocabulary = docs['SPEC'].split('## [PRODUCT.VOCABULARY]', 1)[1].split('## [PLATFORM]', 1)[0]
++defined = set(re.findall(r'\*\*([^*]+)\*\*', vocabulary))
++missing_terms = [term for term in terms if term != 'Parity Case' and term not in defined]
++navigation, errors = [], []
++for name, body in docs.items():
++    path = ROOT / f'tools/gomad3/{name}.md'
++    prose, unclosed = unfenced(body)
++    if unclosed:
++        errors.append({'file': str(path.relative_to(ROOT)), 'error': 'unclosed code fence'})
++    for label, destination in re.findall(r'\[([^]]+)\]\(([^)\n]+)\)', prose):
++        if re.match(r'^[a-zA-Z][a-zA-Z0-9+.-]*:', destination):
++            continue
++        if '<' in destination or '>' in destination:
++            continue
++        destination = destination.split(' "', 1)[0]
++        target, _, fragment = destination.partition('#')
++        target_path = (path.parent / urllib.parse.unquote(target)).resolve() if target else path
++        item = {'file': str(path.relative_to(ROOT)), 'destination': destination, 'exists': target_path.exists()}
++        if not item['exists']:
++            errors.append(item)
++        elif fragment and target_path.suffix == '.md' and urllib.parse.unquote(fragment) not in anchors(target_path):
++            item['fragment_resolves'] = False
++            errors.append(item)
++        navigation.append(item)
++    for stale in ['GLOSSARY.md', 'Combined ChoiceExploration']:
++        if stale in body:
++            errors.append({'file': str(path.relative_to(ROOT)), 'error': 'active stale term', 'term': stale})
++
++index = docs['CLI'].split('## Command index', 1)[1]
++commands = {}
++for tool in ['gomad', 'gomadtool']:
++    block = index.split(f'### `{tool}`', 1)[1].split('\n### ', 1)[0]
++    commands[tool] = re.findall(r'^\| `([^`]+)` \|', block, re.M)
++help_entries, registered_flags = [], set()
++for tool, names in commands.items():
++    for name in names:
++        variants = ['discover', 'review', 'generate', 'check', 'qualify'] if name == 'compatibility-pack' else [None]
++        for action in variants:
++            argv = [str(BIN / tool), *name.split()] + ([action] if action else []) + ['-h']
++            result = subprocess.run(argv, capture_output=True, text=True, timeout=15)
++            output = result.stdout + result.stderr
++            key = f'{tool}-{name.replace(" ", "-")}' + (f'-{action}' if action else '')
++            (OUT / f'{key}.help.txt').write_text(output)
++            found = re.findall(r'^\s+-([a-z][a-z0-9-]*)(?:\s|$)', output, re.M)
++            registered_flags.update(found)
++            help_entries.append({'argv': argv, 'status': result.returncode, 'flags': found, 'output_file': f'{key}.help.txt'})
++            positional_usage = name == 'checked-run' and output.startswith('usage: gomadtool checked-run <seconds>') and result.returncode == 125
++            if 'unknown ' + tool + ' command' in output or not found and not positional_usage:
++                errors.append({'command': key, 'error': 'command help unavailable', 'status': result.returncode})
++documented_flags = sorted(set(re.findall(r'--([a-z][a-z0-9-]*)', docs['CLI'])))
++target_parser = (ROOT / 'tools/gomad3/cmd/gomad/internal/cli/cli.go').read_text()
++assert 'arguments[1] != "--provenance"' in target_parser
++registered_flags.add('provenance')
++unknown_flags = sorted(set(documented_flags) - registered_flags)
++paths = [f'tools/gomad3/{name}.md' for name in GUIDES]
++whitespace = subprocess.run(['git', 'diff', '--check', BASE, '--', *paths], cwd=ROOT, capture_output=True, text=True)
++added_ids = {'COMMAND.GOMADTOOL.PIN.IMPACT', 'COMMAND.GOMADTOOL.ADAPTER.REGENERATE', 'COMMAND.GOMADTOOL.COMPATIBILITY.PACK.REFRESH'}
++preserved = [identifier for identifier in current if identifier not in added_ids] == original
++if not preserved or set(current) - set(original) != added_ids:
++    errors.append({'error': 'semantic identifier order/set changed beyond the three new command IDs'})
++if missing_terms or len(terms) != 25:
++    errors.append({'error': 'original glossary term loss', 'missing': missing_terms, 'term_count': len(terms)})
++if (ROOT / 'tools/gomad3/GLOSSARY.md').exists():
++    errors.append({'error': 'duplicate glossary owner remains'})
++if unknown_flags:
++    errors.append({'error': 'documented flag absent from actual CLI help', 'flags': unknown_flags})
++if whitespace.returncode:
++    errors.append({'error': 'whitespace check', 'output': whitespace.stdout + whitespace.stderr})
++report = {'baseline_revision': BASE, 'head_revision': git('rev-parse', 'HEAD').strip(),
++          'guide_sha256': {name: 'sha256:' + hashlib.sha256(text.encode()).hexdigest() for name, text in docs.items()},
++          'original_semantic_identifiers': original, 'current_semantic_identifiers': current,
++          'original_identifier_count': len(original), 'current_identifier_count': len(current),
++          'identifiers_preserved_in_order': preserved,
++          'original_glossary_terms': terms, 'current_terms_missing': missing_terms,
++          'navigation': navigation, 'commands': commands, 'actual_help': help_entries,
++          'documented_flags': documented_flags, 'unknown_documented_flags': unknown_flags,
++          'whitespace_argv': ['git', 'diff', '--check', BASE, '--', *paths],
++          'whitespace_status': whitespace.returncode, 'errors': errors}
++(OUT / 'documentation-audit.json').write_text(json.dumps(report, indent=2) + '\n')
++print(json.dumps({'identifier_count': len(current), 'original_glossary_terms': len(terms),
++                  'commands': sum(map(len, commands.values())), 'documented_flags': len(documented_flags),
++                  'links_checked': len(navigation), 'errors': errors}, indent=2))
++sys.exit(bool(errors))
+diff --git a/.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/source-binding.json b/.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/source-binding.json
+new file mode 100644
+index 0000000000..3142323fc6
+--- /dev/null
++++ b/.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-4/source-binding.json
+@@ -0,0 +1,162 @@
++{
++  "artifact_sha256": {
++    "compatibility-pack-qualification.log": "3c1b045b09e5699253fc9913020180ac66986aea9352456c816e0f5f5d15b9f8",
++    "core-qualification-set.json": "df7d42d6b3d1773566fbd978ab1383f3d82bb43a4d9216ac473a1289a7422c51",
++    "core-qualification-set.log": "8a3e5ee90bc2bc7c6aedb337be5c06835a529ecab7da5041f5ad8173333ed07f",
++    "doc-audit-final.log": "0a6cb2db3ad61944cfb553ad3629170beff521daf8115d8f8fe0224481e04452",
++    "doc-audit/documentation-audit.json": "91669fe33310c50fe2194c11e8bc11e9ed3cc8b26f7dbe886268c2a5b847c411",
++    "full-test-final.log": "e797442f54334311ca9b2a45e39524505b7e3f10bd3def0a86811c7b334090ef",
++    "link-audit.json": "5169fa99a7641ecb78f098392e4b315b88fc6b1dd7bd62dc46fc09bfd4d6388e",
++    "measurement.json": "794a37a55c795b1e704153bb6eea88543dcc581d77a1d94e1f43305652b42147",
++    "runner-build.log": "308d007f356c883e45f7e9bf00bd8e299c45180d5a647af1b8543dfd02552a02",
++    "validate.log": "807b20b5620d36b22578201f3ee5301a7281e5c7706e06934b89c4ce46b6b1ff",
++    "verify-documentation.py": "9a9fe9ba3608d9958cfb5051368b83c9e5077665df0b4c440f9c3147fe8a2afe",
++    "walkthrough.json": "62371a14f1c2d8f8f94a8e6ae6b8a5de2039f1f7cb5131032936016321745ded"
++  },
++  "binary_sha256": {
++    "tools/gomad3/.bin/gomad": "5455228dc4946613c78c6d69c2afc6dbd681f6b5998c219624e18290fe26b07b",
++    "tools/gomad3/.bin/gomadtool": "3ffcd4c9b65f23c49be463e43c024a325d5b6d349f6f7bfed3e7200d87db2217"
++  },
++  "gates": {
++    ".bin/gomad qualify-set --manifest=qualification/core.json --working-dir=qualification/corpus --artifacts=task4/core-qualification-artifacts --output=task4/core-qualification-set.json": {
++      "exit": 0,
++      "expectations_met": true,
++      "log": "core-qualification-set.log",
++      "supported": 7
++    },
++    "git diff --check": {
++      "exit": 0
++    },
++    "make -C tools/gomad3 compatibility-pack-qualification": {
++      "darwin_requests": 8,
++      "exit": 0,
++      "log": "compatibility-pack-qualification.log"
++    },
++    "make -C tools/gomad3 runner": {
++      "exit": 0,
++      "log": "runner-build.log"
++    },
++    "make -C tools/gomad3 test": {
++      "exit": 0,
++      "log": "full-test-final.log"
++    },
++    "make -C tools/gomad3 validate": {
++      "exit": 0,
++      "log": "validate.log"
++    },
++    "python3 task4/verify-documentation.py tools/gomad3/.bin": {
++      "exit": 0,
++      "log": "doc-audit-final.log"
++    }
++  },
++  "historical_baseline_sha256": "19bc83d7546c9fc240675befe12231ae04e92d28991952f30fbb9d982942e408",
++  "host": "darwin/arm64",
++  "linux_status": "No native linux/amd64 execution evidence; task fn-113.4 and parent spec remain in progress.",
++  "schema": "gomad3.pin-maintenance-source-binding/v1",
++  "source_files": {
++    ".plans/GOMAD_NEXT.md": {
++      "introduced_in_task4": false,
++      "postimage_sha256": "6a16b0156e3d1d1e5dc8a4b027e6303a805dd91eddc7398fab175c3270dca791",
++      "postimage_state": "file",
++      "preimage_sha256": "2b0d19eb13078151f31b666e95880039bd96b899ea3e8b329f751a5729021fbd"
++    },
++    "MILESTONES.md": {
++      "introduced_in_task4": false,
++      "postimage_sha256": "8b0a81e4aefc388b4f8bb7c2ef1402684fa2941cf1fe941fc588bea4cd997a54",
++      "postimage_state": "file",
++      "preimage_sha256": "2ce3163adda71719b76dd7717c3fc23333f21a49df44314f63b8d6283c6cfcad"
++    },
++    "tools/gomad3/ARCHITECTURE.md": {
++      "introduced_in_task4": false,
++      "postimage_sha256": "b4e9393feef65911442190b11a084db891d173e741bea4b4fcbda102320f200a",
++      "postimage_state": "file",
++      "preimage_sha256": "847cc9f465da8e2436e8eb18aba30bc550de3e25db4fbf32c4281dc52487f9a8"
++    },
++    "tools/gomad3/CLI.md": {
++      "introduced_in_task4": false,
++      "postimage_sha256": "179e3f10e54c737c4167e31c322aba8214506e797e9d697072d4b88b2abaf656",
++      "postimage_state": "file",
++      "preimage_sha256": "2eedd0b71560de77e714b8bc5119bde9c1fcd8e5eeba10984d6cc4bb279c423d"
++    },
++    "tools/gomad3/README.md": {
++      "introduced_in_task4": false,
++      "postimage_sha256": "0f78be6d3828a83c9c6da132c496dbeb583867bb31f46b41b71b0c300e81cb95",
++      "postimage_state": "file",
++      "preimage_sha256": "258b83f544eaa21121bddfe02a63e242cbb6a0a5feb7342f468d84302007d571"
++    },
++    "tools/gomad3/SPEC.md": {
++      "introduced_in_task4": false,
++      "postimage_sha256": "01748bc15d30a9078b305aff802be1851f9cde4c1d121f161915902a3ffbe3b7",
++      "postimage_state": "file",
++      "preimage_sha256": "43bd4d6c19670346bf6707d7e14aea8a9ed8382c59e4c30f0834e555e0da5fbe"
++    },
++    "tools/gomad3/cmd/gomadtool/adapter_publication.go": {
++      "introduced_in_task4": false,
++      "postimage_sha256": null,
++      "postimage_state": "absent",
++      "preimage_sha256": "06f07225235011292968ec7d498872dff6d53f63debb378002787c6edbe74da2",
++      "task2_patch_preimage_verified": true
++    },
++    "tools/gomad3/cmd/gomadtool/adapter_regenerate.go": {
++      "introduced_in_task4": false,
++      "postimage_sha256": "2ec66623b406cb4fe20f465da41eff340d939390341ad9633c0bd1f51d4293b4",
++      "postimage_state": "file",
++      "preimage_sha256": "e6d268a3b95375504e191fca25f8ef80ca4d1343dbb0aff4732b10faaa4a336f"
++    },
++    "tools/gomad3/cmd/gomadtool/adapter_regenerate_test.go": {
++      "introduced_in_task4": false,
++      "postimage_sha256": null,
++      "postimage_state": "absent",
++      "preimage_sha256": "fb54db61de6e5cfda0dc5c7a56c5838eb939b306c2c4ab3340dbaaff359ad6ed",
++      "task2_patch_preimage_verified": true
++    },
++    "tools/gomad3/cmd/gomadtool/main.go": {
++      "introduced_in_task4": false,
++      "postimage_sha256": "3bb89de6bfafee381f89d978dacf5877bbcb4d41a9d7eda21e72e3d04a82cefa",
++      "postimage_state": "file",
++      "preimage_sha256": "3bb89de6bfafee381f89d978dacf5877bbcb4d41a9d7eda21e72e3d04a82cefa"
++    },
++    "tools/gomad3/deterministicio/adapter_regenerate.go": {
++      "introduced_in_task4": false,
++      "postimage_sha256": "b1a5fd372335665b3f6acdbe28e82823ef7ab4bf020d6136ad016353c836bef6",
++      "postimage_state": "file",
++      "preimage_sha256": "28f1c25e8a373a25fe61e7d5165ac7c414f3561f37d26f90c109ab6ff31a2edc"
++    },
++    "tools/gomad3/deterministicio/boundary/upgrade-go1.27.1.md": {
++      "introduced_in_task4": false,
++      "postimage_sha256": "07e6af87d60ddf0c958a233ebd9ebb4c6bbda5b878cb1126d49e0725fc52ac3c",
++      "postimage_state": "file",
++      "preimage_sha256": "3d732433e7fdd1bf9c7350fe2655f5c33a7f1167e2b28260038cd3afe0f65f5a"
++    },
++    "tools/gomad3/toolchain/version/descriptor.go": {
++      "introduced_in_task4": false,
++      "postimage_sha256": "0183605563d3ee44c5faab1077b474efe5379da93cc0815d84cbf7b4ff733aff",
++      "postimage_state": "file",
++      "preimage_sha256": "6ad4f3af73ee5903f1bf1e76645d008fbe10bc4ae5765dcf585628b4a53251f0"
++    },
++    "tools/gomad3/toolchain/version/descriptor_test.go": {
++      "introduced_in_task4": false,
++      "postimage_sha256": "7fcc84551bc79d0d3cabf4312e891e6e8f052167639ee772c1d4ee67402707fc",
++      "postimage_state": "file",
++      "preimage_sha256": "e1fe658d1cdd439b20dbe074430b9e2ad8cd9e439f3b0f12f4fd53573abf413c"
++    },
++    "tools/gomad3/upgrade/adapter_publication.go": {
++      "introduced_in_task4": true,
++      "postimage_sha256": "d815797ea130d58378985bbbecde566b820aca246c3a05a53c87e805112fa7c2",
++      "postimage_state": "file",
++      "preimage_sha256": null
++    },
++    "tools/gomad3/upgrade/adapter_regenerate.go": {
++      "introduced_in_task4": true,
++      "postimage_sha256": "f8629ec0f99f2efbe180f4a37bd60bf24dde3775ad11922467762d9c15121feb",
++      "postimage_state": "file",
++      "preimage_sha256": null
++    },
++    "tools/gomad3/upgrade/adapter_regenerate_test.go": {
++      "introduced_in_task4": true,
++      "postimage_sha256": "9f064317ce968a2fe24648ac1b13e48a8cf0b25d2d7d07167566550f408d8db4",
++      "postimage_state": "file",
++      "preimage_sha256": null
++    }
++  }
++}

@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-10-03T11:22:56.711665+00:00",
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.3",
+  "flow_status_verified": "done",
+  "review_sha256": "160564f1ff5bc3619b965d3354b4dcf0fceca34bcdd92e6188e26be5fe4474e1",
+  "review_verdict": "SHIP",
+  "source_hashes_still_match": true,
+  "source_sha256": {
+    "tools/gomad3/runner/internal/campaign/controller.go": "ddb9b33cab6e7ae0d571d502871872963c0da215c7e244c12b7131c13859aca4",
+    "tools/gomad3/runner/internal/campaign/controller_test.go": "77de1a00eb606ffd121894186280c07d5491388bb3b3027eeb9824819abffbf2",
+    "tools/gomad3/runner/runner.go": "157eb0abf82c8191253c46991bdecbcd073fd80fe3ab8ba9e141bd388c48fe1f",
+    "tools/gomad3/runner/campaign_test.go": "f34a5e236c0f880e4fb9e4e2339f985c5c98f054d523531a1ce136bc1743f885",
+    "tools/gomad3/runner/seed_completion_characterization_test.go": "f6118cfcb23a456ac456e442ba1a7c86d6d23da247d0d4d8ff7d27a1a013ebed"
+  },
+  "milestones_sha256": "ad08336fb67e9cb82c0615702fa72ee65c64d7b2865a14b231eb187eed99a7fc",
+  "cli_binary_sha256": "40f21b707e8f7ccf0fa6e96211ab8ab52d0ea22ffca777daf01d4880b5fade11",
+  "post_review_changes": "Flow completion metadata and milestone status only; no reviewed source edits",
+  "spec_validation": "valid; legacy task1 orphaned evidence-commit warning retained",
+  "native_linux": "not qualified; task21 remains open"
+}

@@ -1,0 +1,36 @@
+--- FAIL: TestRuntimeOwnedControlProbe (0.95s)
+    runtime_owned_test.go:58: seed 2 decision 1 selected runtime ordinal 1 from 3 alternatives
+    runtime_owned_test.go:58: seed 3 decision 2 selected runtime ordinal 1 from 2 alternatives
+    runtime_owned_test.go:58: seed 4 decision 2 selected runtime ordinal 1 from 2 alternatives
+    runtime_owned_test.go:58: seed 5 decision 2 selected runtime ordinal 1 from 2 alternatives
+    runtime_owned_test.go:58: seed 6 decision 2 selected runtime ordinal 1 from 2 alternatives
+    runtime_owned_test.go:58: seed 7 decision 2 selected runtime ordinal 1 from 2 alternatives
+    runtime_owned_test.go:58: seed 10 decision 2 selected runtime ordinal 1 from 2 alternatives
+    runtime_owned_test.go:58: seed 12 decision 2 selected runtime ordinal 1 from 2 alternatives
+    runtime_owned_test.go:58: seed 13 decision 1 selected runtime ordinal 1 from 3 alternatives
+    runtime_owned_test.go:58: seed 14 decision 1 selected runtime ordinal 1 from 3 alternatives
+    runtime_owned_test.go:58: seed 14 decision 3 selected runtime ordinal 1 from 2 alternatives
+    runtime_owned_test.go:58: seed 15 decision 2 selected runtime ordinal 1 from 2 alternatives
+    runtime_owned_test.go:58: seed 16 decision 1 selected runtime ordinal 1 from 3 alternatives
+    runtime_owned_test.go:58: seed 16 decision 3 selected runtime ordinal 1 from 2 alternatives
+    runtime_owned_test.go:58: seed 17 decision 1 selected runtime ordinal 1 from 3 alternatives
+    runtime_owned_test.go:58: seed 17 decision 3 selected runtime ordinal 1 from 2 alternatives
+    runtime_owned_test.go:58: seed 18 decision 2 selected runtime ordinal 1 from 2 alternatives
+    runtime_owned_test.go:58: seed 20 decision 1 selected runtime ordinal 1 from 3 alternatives
+    runtime_owned_test.go:58: seed 22 decision 1 selected runtime ordinal 1 from 3 alternatives
+    runtime_owned_test.go:58: seed 23 decision 1 selected runtime ordinal 1 from 3 alternatives
+    runtime_owned_test.go:58: seed 23 decision 3 selected runtime ordinal 1 from 2 alternatives
+    runtime_owned_test.go:58: seed 24 decision 2 selected runtime ordinal 1 from 2 alternatives
+    runtime_owned_test.go:58: seed 25 decision 2 selected runtime ordinal 1 from 2 alternatives
+    runtime_owned_test.go:58: seed 26 decision 2 selected runtime ordinal 1 from 2 alternatives
+    runtime_owned_test.go:58: seed 27 decision 2 selected runtime ordinal 1 from 2 alternatives
+    runtime_owned_test.go:58: seed 28 decision 1 selected runtime ordinal 1 from 3 alternatives
+    runtime_owned_test.go:58: seed 29 decision 1 selected runtime ordinal 1 from 3 alternatives
+    runtime_owned_test.go:58: seed 30 decision 1 selected runtime ordinal 1 from 3 alternatives
+    runtime_owned_test.go:58: seed 30 decision 3 selected runtime ordinal 1 from 2 alternatives
+    runtime_owned_test.go:58: seed 31 decision 2 selected runtime ordinal 1 from 2 alternatives
+    runtime_owned_test.go:58: seed 32 decision 2 selected runtime ordinal 1 from 2 alternatives
+    runtime_owned_test.go:73: runtime-owned goroutines selected in 31 branching decisions
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	1.247s
+FAIL

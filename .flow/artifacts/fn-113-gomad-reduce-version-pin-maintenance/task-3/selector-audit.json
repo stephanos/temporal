@@ -1,0 +1,94 @@
+{
+  "modules": [
+    {
+      "path": "go.mod",
+      "xsys_v041": false,
+      "xsys_v047": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/cactusstatsd/go.mod",
+      "xsys_v041": false,
+      "xsys_v047": false
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/hashicorpmetrics/go.mod",
+      "xsys_v041": false,
+      "xsys_v047": false
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/memberlist/go.mod",
+      "xsys_v041": false,
+      "xsys_v047": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/pebble/go.mod",
+      "xsys_v041": false,
+      "xsys_v047": true
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/sentry/go.mod",
+      "xsys_v041": false,
+      "xsys_v047": false
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/sockaddr/go.mod",
+      "xsys_v041": false,
+      "xsys_v047": false
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/sprig/go.mod",
+      "xsys_v041": false,
+      "xsys_v047": false
+    },
+    {
+      "path": "tools/gomad3/deterministicio/testdata/validator/go.mod",
+      "xsys_v041": false,
+      "xsys_v047": false
+    },
+    {
+      "path": "tools/gomad3/go.mod",
+      "xsys_v041": false,
+      "xsys_v047": false
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/testdata/xsys/go.mod",
+      "xsys_v041": false,
+      "xsys_v047": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/go.mod",
+      "xsys_v041": false,
+      "xsys_v047": false
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/libc_adapter/go.mod",
+      "xsys_v041": false,
+      "xsys_v047": true
+    },
+    {
+      "path": "tools/gomad3/internal/gomadtool/conformance/testdata/sqlite_adapter/go.mod",
+      "xsys_v041": false,
+      "xsys_v047": true
+    },
+    {
+      "path": "tools/gomad3/qualification/corpus/go.mod",
+      "xsys_v041": false,
+      "xsys_v047": true
+    },
+    {
+      "path": "tests/mixedbrain/go.mod",
+      "xsys_v041": false,
+      "xsys_v047": true
+    }
+  ],
+  "v041_selectors": [],
+  "remaining_v041_references": [],
+  "v041_artifacts_exist": {
+    "packs/modernc-libc-xsys-v041.json": false,
+    "requests/modernc-libc-xsys-v041.json": false,
+    "reports/modernc-libc-xsys-v041.md": false,
+    "testdata/v041": false
+  },
+  "active_corpus_libc_test_sha256": "f15f02fa075d5c9abb6d0af236c6fcdc4046c1c25afe300eb379eef8d5ea4055",
+  "targets_table_contains_v041": false
+}

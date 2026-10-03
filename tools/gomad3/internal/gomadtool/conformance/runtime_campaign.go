@@ -100,6 +100,13 @@ func (campaign *runtimeCampaign) finishCase(planned runtimeCase, result hostexec
 }
 
 func (campaign *runtimeCampaign) request(command []string, dir string, timeout time.Duration, unset []string, values ...string) hostexec.Request {
+	for _, argument := range command {
+		if len(command) > 0 && command[0] == campaign.config.Go && strings.HasPrefix(argument, "-exec") {
+			unset = append(unset, "GOEXPERIMENT")
+			values = append(values, "GOEXPERIMENT=nogreenteagc")
+			break
+		}
+	}
 	return hostexec.Request{
 		Command: command, Dir: dir, Env: append(filterEnvironment(os.Environ(), unset...), values...), Timeout: timeout,
 		TerminateGrace: fixtureTerminationGrace, OutputLimit: fixtureOutputLimit,
@@ -168,13 +175,13 @@ func (campaign *runtimeCampaign) build(name, packageName string, cgo bool, extra
 	command := []string{campaign.config.Go, "build"}
 	command = append(command, extra...)
 	command = append(command, "-o", output, packageName)
-	values := []string{}
+	values := []string{"GOEXPERIMENT=nogreenteagc"}
 	if cgo {
 		values = append(values, "CGO_ENABLED=1")
 	} else if strings.HasPrefix(name, "clock") {
 		values = append(values, "CGO_ENABLED=0")
 	}
-	_, err := campaign.command(name+"-build", command, campaign.testdata, time.Minute, []string{"GOMADSEED", "CGO_ENABLED"}, values...)
+	_, err := campaign.command(name+"-build", command, campaign.testdata, time.Minute, []string{"GOMADSEED", "CGO_ENABLED", "GOEXPERIMENT"}, values...)
 	return output, err
 }
 
@@ -281,6 +288,9 @@ func (campaign *runtimeCampaign) execute() error {
 	if err := requireOutput(disabled, "init GOMAXPROCS=2\nmain GOMAXPROCS=2", "disabled activation"); err != nil {
 		return err
 	}
+	if err := campaign.requireGreenTeaBoundary(); err != nil {
+		return err
+	}
 	if err := campaign.requireStockCompatibility(); err != nil {
 		return err
 	}
@@ -294,6 +304,7 @@ func (campaign *runtimeCampaign) execute() error {
 		{name: "maps", packageName: "./maps"},
 		{name: "scheduler", packageName: "./scheduler"},
 		{name: "scheduler-min", packageName: "./scheduler_min"},
+		{name: "runtime-owned", packageName: "./runtime_owned"},
 		{name: "select", packageName: "./select"},
 		{name: "channels", packageName: "./channels"},
 		{name: "sync", packageName: "./sync"},
@@ -340,6 +351,35 @@ func (campaign *runtimeCampaign) execute() error {
 		return err
 	}
 	return campaign.requireRepeatability(binaries)
+}
+
+func (campaign *runtimeCampaign) requireGreenTeaBoundary() error {
+	binary := filepath.Join(campaign.workspace, "activation-greentea")
+	if _, err := campaign.command(
+		"activation-greentea-build", []string{campaign.config.Go, "build", "-o", binary, "./activation"}, campaign.testdata, time.Minute,
+		[]string{"GOMADSEED", "GOEXPERIMENT"}, "GOEXPERIMENT=greenteagc",
+	); err != nil {
+		return err
+	}
+	disabled, err := campaign.command(
+		"activation-greentea-disabled", []string{binary}, campaign.testdata, 5*time.Second,
+		[]string{"GOMADSEED", "GOMAXPROCS"}, "GOMAXPROCS=2",
+	)
+	if err != nil {
+		return err
+	}
+	if err := requireOutput(disabled, "init GOMAXPROCS=2\nmain GOMAXPROCS=2", "GreenTea disabled activation"); err != nil {
+		return err
+	}
+	return campaign.expectedExit(
+		"activation-greentea-seeded-rejected", []string{binary}, campaign.testdata, 5*time.Second, 2,
+		func(result hostexec.Result) error {
+			if len(result.Stdout.Bytes) != 0 || commandErrorOutput(result) != "runtime: GOMADSEED requires GOEXPERIMENT=nogreenteagc" {
+				return fmt.Errorf("seeded GreenTea activation reached user code or emitted an unexpected diagnostic: %q %q", result.Stdout.Bytes, result.Stderr.Bytes)
+			}
+			return nil
+		}, []string{"GOMADSEED"}, "GOMADSEED=1",
+	)
 }
 
 func requireOutput(result hostexec.Result, want, label string) error {

@@ -1,0 +1,11 @@
+{
+  "tools/gomad3/internal/preparation/preparation.go": "c5ff22c09d7c4495b5a3035c47bd8dfde4a6ca5978c1df1b6d5414ed57d749aa",
+  "tools/gomad3/internal/preparation/preparation_test.go": "cf0ebe99a53f3e1a47e1835b9910fd39c4ca2aaa9dd43cb68d3f6b3b0da0b88f",
+  "tools/gomad3/qualification/analysis/analysis.go": "747f6be1d998a7831680c6d5f8f9f6ab5765f9693115f8ccc23886477a079852",
+  "tools/gomad3/qualification/analysis/prepared_review.go": "48a704d49df2d5cec66ea5cbaa39db1a1d8615afad343f8dac49b48bdc176e63",
+  "tools/gomad3/qualification/analysis/prepared_review_test.go": "b3ca39aabc7e409a3fb6be4e6afbbfb8619610ea37015c5822b13570ce25a3ce",
+  "tools/gomad3/cmd/gomad/internal/cli/analyze.go": "cb4f0c9892968176b6768a0e9c370ee3add229c694def4fc6fe1bff202330bc2",
+  "tools/gomad3/cmd/gomad/internal/cli/cli_test.go": "0797fb0f755db4fcd3b47d1bf29868f3d967f93adca080b87963f306545c6d8c",
+  "tools/gomad3/cmd/gomadtool/compatibility_pack.go": "b2386dfb0a2c98787dd30e86bafe31aa3e0e5dffbc56a89671e53700a6d59de6",
+  "tools/gomad3/architecture_test.go": "c02a298b6060dfdde7a77df85d83b3db0c6d112b26fbd5860e27d22658cfd176"
+}

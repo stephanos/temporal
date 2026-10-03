@@ -1,0 +1,10 @@
+# go.temporal.io/server/tools/gomad3/target/internal/gocommand [go.temporal.io/server/tools/gomad3/target/internal/gocommand.test]
+target/internal/gocommand/command_test.go:18:12: undefined: Default
+target/internal/gocommand/command_test.go:18:55: undefined: Request
+target/internal/gocommand/command_test.go:19:16: undefined: OverflowError
+target/internal/gocommand/command_test.go:27:17: undefined: Default
+target/internal/gocommand/command_test.go:27:60: undefined: Request
+target/internal/gocommand/command_test.go:57:12: undefined: Default
+target/internal/gocommand/command_test.go:57:38: undefined: Request
+FAIL	go.temporal.io/server/tools/gomad3/target/internal/gocommand [build failed]
+FAIL

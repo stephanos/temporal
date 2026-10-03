@@ -1,0 +1,16 @@
+{
+  "frozen_at_utc": "2026-10-03T13:50:34.069702+00:00",
+  "source": {
+    "tools/gomad3/architecture_test.go": "c02a298b6060dfdde7a77df85d83b3db0c6d112b26fbd5860e27d22658cfd176",
+    "tools/gomad3/internal/preparation/preparation.go": "c5ff22c09d7c4495b5a3035c47bd8dfde4a6ca5978c1df1b6d5414ed57d749aa",
+    "tools/gomad3/internal/preparation/preparation_test.go": "cf0ebe99a53f3e1a47e1835b9910fd39c4ca2aaa9dd43cb68d3f6b3b0da0b88f",
+    "tools/gomad3/runner/deterministicio.go": "f55f752c2611ae6da7519e25223a2c11144cd3495aea2d0fc9abe00e07d54425",
+    "tools/gomad3/runner/portable_plan.go": "95112a7c797ef8592c7af6b19fd187e3d55f4daef21cbb4b9720ab770d8bd3ee",
+    "tools/gomad3/runner/preparation_equivalence_legacy_test.go": "0db44bbf2f4c84617d75e8b77ad52df735a6834a02064a4dfc9896400b098404",
+    "tools/gomad3/runner/preparation_owner_test.go": "e8d0309b038a77217d0d4e011a9430838563468b087be105d6a93ad191a7b66c",
+    "tools/gomad3/runner/runner.go": "c257c5ee5f299e7b2dc1fec54a42918ec535291c8de67912e949bc6a0c94d2cf"
+  },
+  "task_only_patch_sha256": "8421c95c2d359130d14664b94181756ee1f8be4035a62eb41d8791c285613cb8",
+  "preimages_manifest_sha256": "69bd760e751ebf55938e60f424ca6f9bf6ead2341e6d1c86df33f46488403e36",
+  "toolchain_key": "2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457"
+}

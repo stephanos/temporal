@@ -1,0 +1,2 @@
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep ./toolchain
+ok  	go.temporal.io/server/tools/gomad3/toolchain	4.491s

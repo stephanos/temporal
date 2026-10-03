@@ -1,0 +1,291 @@
+{
+  "frozen_at": "2026-10-03T14:25:47.590388+00:00",
+  "verified_at": "2026-10-03T14:30:57.002073+00:00",
+  "source_sha256": {
+    "tools/gomad3/architecture_test.go": "0a73d30b0ddf8e0d8e40e096320a29c722bd4c1985bf195753c946006aba8470",
+    "tools/gomad3/cmd/gomad/internal/cli/analyze.go": "c55ac32805ccda0b0a0e1ea80e9d547d011d4c39d4e114fdea44c73a2c9f81c0",
+    "tools/gomad3/cmd/gomad/internal/cli/cli_test.go": "b383b8d20a6a9f3611d291a144a26a380ca23e0e499e721dd6b652f74897ee35",
+    "tools/gomad3/internal/preparation/preparation.go": "a4ef74ce1c76104fa7567d2a8c7b23019188b77c2bb06261166e8669037a07bc",
+    "tools/gomad3/qualification/analysis/prepared_review.go": "b1da4330d80b772912721de3e560f45cca0a39273cb568e1f31ba394324a4bfb",
+    "tools/gomad3/internal/preparation/inspection.go": "8c37578631b251b8fae704acb17d91029660af5ee3d23e3bd87bad29b0939556",
+    "tools/gomad3/internal/preparation/inspection_test.go": "51cf3a0529b562241be783c82bef39ff409748afe211081349ae57b77c807a21"
+  },
+  "original_preimages_sha256": {
+    "tools/gomad3/internal/preparation/preparation.go": "c5ff22c09d7c4495b5a3035c47bd8dfde4a6ca5978c1df1b6d5414ed57d749aa",
+    "tools/gomad3/internal/preparation/preparation_test.go": "cf0ebe99a53f3e1a47e1835b9910fd39c4ca2aaa9dd43cb68d3f6b3b0da0b88f",
+    "tools/gomad3/qualification/analysis/analysis.go": "747f6be1d998a7831680c6d5f8f9f6ab5765f9693115f8ccc23886477a079852",
+    "tools/gomad3/qualification/analysis/prepared_review.go": "48a704d49df2d5cec66ea5cbaa39db1a1d8615afad343f8dac49b48bdc176e63",
+    "tools/gomad3/qualification/analysis/prepared_review_test.go": "b3ca39aabc7e409a3fb6be4e6afbbfb8619610ea37015c5822b13570ce25a3ce",
+    "tools/gomad3/cmd/gomad/internal/cli/analyze.go": "cb4f0c9892968176b6768a0e9c370ee3add229c694def4fc6fe1bff202330bc2",
+    "tools/gomad3/cmd/gomad/internal/cli/cli_test.go": "0797fb0f755db4fcd3b47d1bf29868f3d967f93adca080b87963f306545c6d8c",
+    "tools/gomad3/cmd/gomadtool/compatibility_pack.go": "b2386dfb0a2c98787dd30e86bafe31aa3e0e5dffbc56a89671e53700a6d59de6",
+    "tools/gomad3/architecture_test.go": "c02a298b6060dfdde7a77df85d83b3db0c6d112b26fbd5860e27d22658cfd176"
+  },
+  "additions": [
+    "tools/gomad3/internal/preparation/inspection.go",
+    "tools/gomad3/internal/preparation/inspection_test.go"
+  ],
+  "task_only_patch": {
+    "path": "task-only.patch",
+    "sha256": "b8b51e55be68807d0a9b4f81601cfd02ecd3668c408f58dc7227f07ca667ae91"
+  },
+  "snapshots": {
+    "analyze-text": {
+      "stdout": true,
+      "stderr": true,
+      "before_exit": 0,
+      "after_exit": 0
+    },
+    "analyze-json": {
+      "stdout": true,
+      "stderr": true,
+      "before_exit": 0,
+      "after_exit": 0
+    },
+    "unsupported": {
+      "stdout": true,
+      "stderr": true,
+      "before_exit": 1,
+      "after_exit": 1
+    },
+    "invalid-sum": {
+      "stdout": true,
+      "stderr": true,
+      "before_exit": 2,
+      "after_exit": 2
+    },
+    "missing": {
+      "stdout": true,
+      "stderr": true,
+      "before_exit": 2,
+      "after_exit": 2
+    },
+    "compatibility-pack": {
+      "stdout": true,
+      "stderr": true,
+      "before_exit": 0,
+      "after_exit": 0
+    },
+    "overlay-compatibility-pack": {
+      "stdout": true,
+      "stderr": true
+    }
+  },
+  "receipts": {
+    "after-analyze-json": {
+      "receipt": "after-analyze-json.json",
+      "exit": 0,
+      "duration_seconds": 0.8343063750071451
+    },
+    "after-analyze-text": {
+      "receipt": "after-analyze-text.json",
+      "exit": 0,
+      "duration_seconds": 0.8349255420034751
+    },
+    "after-build-gomad": {
+      "receipt": "after-build-gomad.json",
+      "exit": 0,
+      "duration_seconds": 0.8197167909966083
+    },
+    "after-compatibility-pack": {
+      "receipt": "after-compatibility-pack.json",
+      "exit": 0,
+      "duration_seconds": 1.2890399169991724
+    },
+    "after-invalid-sum": {
+      "receipt": "after-invalid-sum.json",
+      "exit": 2,
+      "duration_seconds": 0.03974241600371897
+    },
+    "after-missing": {
+      "receipt": "after-missing.json",
+      "exit": 2,
+      "duration_seconds": 0.043652124993968755
+    },
+    "after-unsupported": {
+      "receipt": "after-unsupported.json",
+      "exit": 1,
+      "duration_seconds": 0.5199077079887502
+    },
+    "baseline-architecture": {
+      "receipt": "baseline-architecture.json",
+      "exit": 0,
+      "duration_seconds": 2.0607475000142585
+    },
+    "baseline-build-gomad": {
+      "receipt": "baseline-build-gomad.json",
+      "exit": 0,
+      "duration_seconds": 1.183210458009853
+    },
+    "baseline-compatibility": {
+      "receipt": "baseline-compatibility.json",
+      "exit": 0,
+      "duration_seconds": 4.039978457993129
+    },
+    "baseline-quick": {
+      "receipt": "baseline-quick.json",
+      "exit": 0,
+      "duration_seconds": 53.16299929100205
+    },
+    "before-analyze-json": {
+      "receipt": "before-analyze-json.json",
+      "exit": 0,
+      "duration_seconds": 0.9493925420101732
+    },
+    "before-analyze-text": {
+      "receipt": "before-analyze-text.json",
+      "exit": 0,
+      "duration_seconds": 0.9494203329959419
+    },
+    "before-compatibility-pack": {
+      "receipt": "before-compatibility-pack.json",
+      "exit": 0,
+      "duration_seconds": 1.4916237919969717
+    },
+    "before-invalid-sum": {
+      "receipt": "before-invalid-sum.json",
+      "exit": 2,
+      "duration_seconds": 0.046709207992535084
+    },
+    "before-missing": {
+      "receipt": "before-missing.json",
+      "exit": 2,
+      "duration_seconds": 0.03999570800806396
+    },
+    "before-unsupported": {
+      "receipt": "before-unsupported.json",
+      "exit": 1,
+      "duration_seconds": 0.529882084010751
+    },
+    "build-new-gomadtool": {
+      "receipt": "build-new-gomadtool.json",
+      "exit": 0,
+      "duration_seconds": 0.8681882499950007
+    },
+    "build-old-gomadtool-overlay": {
+      "receipt": "build-old-gomadtool-overlay.json",
+      "exit": 0,
+      "duration_seconds": 0.8713162499916507
+    },
+    "final-architecture": {
+      "receipt": "final-architecture.json",
+      "exit": 0,
+      "duration_seconds": 1.6705252499959897
+    },
+    "final-cli-build": {
+      "receipt": "final-cli-build.json",
+      "exit": 0,
+      "duration_seconds": 2.8970696659962414
+    },
+    "final-cli-smoke": {
+      "receipt": "final-cli-smoke.json",
+      "exit": 0,
+      "duration_seconds": 1.1346215840021614
+    },
+    "final-compatibility": {
+      "receipt": "final-compatibility.json",
+      "exit": 0,
+      "duration_seconds": 4.3695218750071945
+    },
+    "final-quick": {
+      "receipt": "final-quick.json",
+      "exit": 0,
+      "duration_seconds": 38.049773791994085
+    },
+    "final-task-lint": {
+      "receipt": "final-task-lint.json",
+      "exit": 0,
+      "duration_seconds": 5.759235000004992
+    },
+    "final-vet": {
+      "receipt": "final-vet.json",
+      "exit": 0,
+      "duration_seconds": 0.7273539579909993
+    },
+    "focused-architecture": {
+      "receipt": "focused-architecture.json",
+      "exit": 0,
+      "duration_seconds": 1.9176572079886682
+    },
+    "focused-classification-fixed": {
+      "receipt": "focused-classification-fixed.json",
+      "exit": 0,
+      "duration_seconds": 0.8118958749982994
+    },
+    "focused-classification": {
+      "receipt": "focused-classification.json",
+      "exit": 1,
+      "duration_seconds": 0.7980491659982363
+    },
+    "focused-cli": {
+      "receipt": "focused-cli.json",
+      "exit": 0,
+      "duration_seconds": 1.627959125005873
+    },
+    "focused-malformed": {
+      "receipt": "focused-malformed.json",
+      "exit": 0,
+      "duration_seconds": 1.1236598329996923
+    },
+    "focused-owner": {
+      "receipt": "focused-owner.json",
+      "exit": 0,
+      "duration_seconds": 6.724153917006333
+    },
+    "full-host": {
+      "receipt": "full-host.json",
+      "exit": 0,
+      "duration_seconds": 180.8847135410033
+    },
+    "green-owner": {
+      "receipt": "green-owner.json",
+      "exit": 0,
+      "duration_seconds": 1.7118869169935351
+    },
+    "overlay-after-compatibility-pack": {
+      "receipt": "overlay-after-compatibility-pack.json",
+      "exit": 0,
+      "duration_seconds": 1.2796111670031678
+    },
+    "overlay-before-compatibility-pack": {
+      "receipt": "overlay-before-compatibility-pack.json",
+      "exit": 0,
+      "duration_seconds": 0.963931499994942
+    },
+    "red-cli-cleanup": {
+      "receipt": "red-cli-cleanup.json",
+      "exit": 1,
+      "duration_seconds": 2.083375709000393
+    },
+    "red-owner": {
+      "receipt": "red-owner.json",
+      "exit": 1,
+      "duration_seconds": 0.2875341659964761
+    }
+  },
+  "full_host": {
+    "receipt": "full-host.json",
+    "source_sha256": {
+      "tools/gomad3/architecture_test.go": "0a73d30b0ddf8e0d8e40e096320a29c722bd4c1985bf195753c946006aba8470",
+      "tools/gomad3/cmd/gomad/internal/cli/analyze.go": "c55ac32805ccda0b0a0e1ea80e9d547d011d4c39d4e114fdea44c73a2c9f81c0",
+      "tools/gomad3/cmd/gomad/internal/cli/cli_test.go": "b383b8d20a6a9f3611d291a144a26a380ca23e0e499e721dd6b652f74897ee35",
+      "tools/gomad3/internal/preparation/preparation.go": "a4ef74ce1c76104fa7567d2a8c7b23019188b77c2bb06261166e8669037a07bc",
+      "tools/gomad3/qualification/analysis/prepared_review.go": "b1da4330d80b772912721de3e560f45cca0a39273cb568e1f31ba394324a4bfb",
+      "tools/gomad3/internal/preparation/inspection.go": "8c37578631b251b8fae704acb17d91029660af5ee3d23e3bd87bad29b0939556",
+      "tools/gomad3/internal/preparation/inspection_test.go": "51cf3a0529b562241be783c82bef39ff409748afe211081349ae57b77c807a21"
+    },
+    "toolchain_build_key": "2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457",
+    "packages_ok": 46
+  },
+  "installed_cli": {
+    "path": "tools/gomad3/.bin/gomad",
+    "sha256": "16da20e81277ec7214d1ea007ef45cee0664eede7ac9ac46b265de46c5cf36e6",
+    "receipt": "final-cli-build.json",
+    "smoke_receipt": "final-cli-smoke.json",
+    "smoke_matches_before_json": true
+  },
+  "limitations": [
+    "Native linux/amd64 qualification belongs to task 21 and was not run on this darwin/arm64 host."
+  ],
+  "receipt_details": "Each referenced JSON retains exact argv/cwd/environment/unsets/exit/duration/raw log hashes; stdout and stderr files alongside it are the original captured bytes."
+}

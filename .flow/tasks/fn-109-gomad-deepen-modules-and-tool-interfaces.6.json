@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.6.md",
   "status": "todo",
   "title": "Move public executor injection behind private dependencies (fulfils fn-105.3 D3)",
-  "updated_at": "2026-10-01T01:10:27.668643Z"
+  "updated_at": "2026-10-03T13:26:19.356826Z"
 }

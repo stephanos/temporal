@@ -1,0 +1,6 @@
+=== RUN   TestPlanAndExploreRejectHiddenPlanRoute
+    application_characterization_test.go:65: Run(["explore" "--__plan" "go-run" "./pkg"]) status=2 stdout="" stderr="gomad: invalid_input: gomad plan requires --output FILE\n"
+--- FAIL: TestPlanAndExploreRejectHiddenPlanRoute (0.01s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	0.276s
+FAIL

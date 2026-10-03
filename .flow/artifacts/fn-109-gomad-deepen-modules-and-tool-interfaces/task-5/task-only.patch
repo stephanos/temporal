@@ -1,0 +1,931 @@
+--- a/tools/gomad3/cmd/gomad/internal/cli/cli.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/cli.go
+@@ -14,7 +14,6 @@
+ 	"strings"
+ 	"time"
+ 
+-	"go.temporal.io/server/tools/gomad3/deterministicio"
+ 	"go.temporal.io/server/tools/gomad3/record"
+ 	"go.temporal.io/server/tools/gomad3/runner"
+ 	"go.temporal.io/server/tools/gomad3/target"
+@@ -420,8 +419,98 @@
+ 	return runExploreWithApplication(arguments, stdout, stderr, newApplication())
+ }
+ 
++type parsedCampaignRequest struct {
++	config     runner.CampaignSpec
++	reporter   *exploreReporter
++	jsonOutput bool
++	planOutput string
++}
++
++func runExploreWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
++	request, status := parseCampaignRequest(arguments, stdout, stderr, app, false)
++	if request == nil {
++		return status
++	}
++	summary, err := runner.Explore(context.Background(), request.config)
++	if err != nil {
++		return reportExploreFailure(summary, err, request.reporter, stderr)
++	}
++	if err := request.reporter.Result(summary); err != nil {
++		if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
++			return 3
++		}
++		return 3
++	}
++	return exploreSummaryStatus(summary)
++}
++
++func reportExploreFailure(summary runner.CampaignResult, err error, reporter *exploreReporter, stderr io.Writer) int {
++	var diagnosticWriteErr error
++	if summary.ChoiceTrace != nil {
++		_, diagnosticWriteErr = fmt.Fprintf(stderr, "gomad:%s\n", formatChoiceTrace(summary.ChoiceTrace))
++	}
++	classification := classifyExploreError(err)
++	if writeErr := reporter.Error(classification, err); writeErr != nil {
++		if _, printErr := fmt.Fprintln(stderr, errors.Join(writeErr, diagnosticWriteErr)); printErr != nil {
++			return 3
++		}
++		return 3
++	}
++	return exploreErrorStatus(classification)
++}
++
++func runPlan(arguments []string, stdout, stderr io.Writer) int {
++	return runPlanWithApplication(arguments, stdout, stderr, newApplication())
++}
++
++func runPlanWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
++	request, status := parseCampaignRequest(arguments, stdout, stderr, app, true)
++	if request == nil {
++		return status
++	}
++	if request.planOutput == "" {
++		if writeErr := request.reporter.Error("invalid_input", errors.New("gomad plan requires --output FILE")); writeErr != nil {
++			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
++				return 3
++			}
++			return 3
++		}
++		return 2
++	}
++	planned, err := runner.CreateCampaignPlan(context.Background(), runner.CampaignPlanSpec{Campaign: request.config, Output: request.planOutput})
++	if err != nil {
++		classification := classifyExploreError(err)
++		if writeErr := request.reporter.Error(classification, err); writeErr != nil {
++			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
++				return 3
++			}
++			return 3
++		}
++		return exploreErrorStatus(classification)
++	}
++	if request.jsonOutput {
++		encoded, err := json.Marshal(planned)
++		if err != nil {
++			if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
++				return 3
++			}
++			return 3
++		}
++		if _, err := fmt.Fprintf(stdout, "%s\n", encoded); err != nil {
++			return 3
++		}
++	} else if _, err := fmt.Fprintf(stdout, "gomad plan: path=%s bundle=%s sha256=%s selected=%d target=%s\n", planned.Path, planned.BundlePath, planned.SHA256, planned.SelectionCount, planned.TargetSHA256); err != nil {
++		return 3
++	}
++	return 0
++}
++
+ //nolint:revive // Keep established flag validation and error precedence intact.
+-func runExploreWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
++func parseCampaignRequest(arguments []string, stdout, stderr io.Writer, app *application, plan bool) (*parsedCampaignRequest, int) {
++	failurePolicyDefault := string(runner.PolicyFirst)
++	if plan {
++		failurePolicyDefault = string(runner.PolicyAll)
++	}
+ 	flags := flag.NewFlagSet("gomad explore", flag.ContinueOnError)
+ 	flags.SetOutput(io.Discard)
+ 	strategy := flags.String("strategy", string(runner.StrategySeed), "seed, choice-exploration, or simulation-exploration")
+@@ -441,13 +530,12 @@
+ 	runTimeout := flags.Duration("execution-timeout", 30*time.Second, "per-execution host deadline")
+ 	overallTimeout := flags.Duration("overall-timeout", 10*time.Minute, "complete exploration host deadline")
+ 	terminateGrace := flags.Duration("terminate-grace", 2*time.Second, "termination grace inside deadlines")
+-	onFailure := flags.String("on-failure", string(runner.PolicyFirst), "first, budget, or all")
++	onFailure := flags.String("on-failure", failurePolicyDefault, "first, budget, or all")
+ 	failureBudget := flags.Uint64("failure-budget", 1, "distinct failure signature threshold")
+ 	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact root")
+ 	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
+ 	capabilityMode := flags.String("capability-mode", string(target.CapabilityModeClosure), "closure, linked, or guarded capability assessment")
+ 	jsonOutput := flags.Bool("json", false, "emit stable JSON events")
+-	planOnly := flags.Bool("__plan", false, "create a campaign plan")
+ 	planOutput := flags.String("output", "", "campaign plan output")
+ 	choices := flags.Bool("choices", false, "record bounded runtime choices")
+ 	diagnostics := flags.Bool("diagnostics", false, "record runtime-state diagnostics; implies --choices")
+@@ -485,29 +573,29 @@
+ 		reporter := newExploreReporter(*jsonOutput, stdout, stderr)
+ 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
+ 			fmt.Fprintln(stderr, writeErr)
+-			return 3
++			return nil, 3
+ 		}
+ 		if !*jsonOutput {
+ 			flags.SetOutput(stderr)
+ 			flags.Usage()
+ 		}
+-		return 2
++		return nil, 2
+ 	}
+ 	reporter := newExploreReporter(*jsonOutput, stdout, stderr)
+-	if !*planOnly && *planOutput != "" {
++	if !plan && *planOutput != "" {
+ 		if writeErr := reporter.Error("invalid_input", errors.New("--output is only valid with gomad plan")); writeErr != nil {
+ 			fmt.Fprintln(stderr, writeErr)
+-			return 3
+-		}
+-		return 2
++			return nil, 3
++		}
++		return nil, 2
+ 	}
+ 	resolvedCapabilityMode, err := parseCapabilityMode(*capabilityMode)
+ 	if err != nil {
+ 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
+ 			fmt.Fprintln(stderr, writeErr)
+-			return 3
+-		}
+-		return 2
++			return nil, 3
++		}
++		return nil, 2
+ 	}
+ 	var seedsSet, countSet, coverageSet, choiceLimitSet, maxRunsSet, maxChoiceDepthSet, choiceStartOrdinalSet, maxForcedDecisionsSet, maxExplorationBytesSet, maxExplorationResultBytesSet bool
+ 	var runtimeLimitSet, scenarioLimitSet, networkLimitSet, storageLimitSet, faultLimitSet, crashLimitSet bool
+@@ -563,71 +651,71 @@
+ 	if err != nil {
+ 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
+ 			fmt.Fprintln(stderr, writeErr)
+-			return 3
+-		}
+-		return 2
++			return nil, 3
++		}
++		return nil, 2
+ 	}
+ 	resolvedSeeds, err := resolveExploreSeeds(*seeds, *count, seedsSet, countSet)
+ 	if err != nil {
+ 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
+ 			fmt.Fprintln(stderr, writeErr)
+-			return 3
+-		}
+-		return 2
++			return nil, 3
++		}
++		return nil, 2
+ 	}
+ 	if *guideRegression && !*guide {
+ 		if err := reporter.Error("invalid_input", errors.New("--guide-regression requires --guide")); err != nil {
+ 			fmt.Fprintln(stderr, err)
+-			return 3
+-		}
+-		return 2
++			return nil, 3
++		}
++		return nil, 2
+ 	}
+ 	resolvedCoverage, err := resolveExploreGuidance(*guide, *corpus, *coverage, coverageSet)
+ 	if err != nil {
+ 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
+ 			fmt.Fprintln(stderr, writeErr)
+-			return 3
+-		}
+-		return 2
++			return nil, 3
++		}
++		return nil, 2
+ 	}
+ 	coverageMode, err := resolveExploreCoverage(resolvedCoverage, requiredSemanticProbes)
+ 	if err != nil {
+ 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
+ 			fmt.Fprintln(stderr, writeErr)
+-			return 3
+-		}
+-		return 2
++			return nil, 3
++		}
++		return nil, 2
+ 	}
+ 	if *diagnostics && resolvedStrategy != runner.StrategySeed {
+ 		if err := reporter.Error("invalid_input", errors.New("--diagnostics requires the seed strategy; forced-prefix exploration is unsupported")); err != nil {
+-			return 3
+-		}
+-		return 2
++			return nil, 3
++		}
++		return nil, 2
+ 	}
+ 	resolvedChoiceLimit, err := resolveChoiceTrace(resolvedChoices, choiceLimit, choiceLimitSet)
+ 	if err != nil {
+ 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
+ 			fmt.Fprintln(stderr, writeErr)
+-			return 3
+-		}
+-		return 2
+-	}
+-	if (coverageMode == runner.CoverageChoice || coverageMode == runner.CoverageSemanticChoice) && resolvedChoiceLimit == 0 {
++			return nil, 3
++		}
++		return nil, 2
++	}
++	if runner.ValidateChoiceCoverage(coverageMode, resolvedChoiceLimit) != nil {
+ 		if writeErr := reporter.Error("invalid_input", fmt.Errorf("--coverage=%s requires --choices", coverageMode)); writeErr != nil {
+ 			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
+-				return 3
++				return nil, 3
+ 			}
+-			return 3
+-		}
+-		return 2
++			return nil, 3
++		}
++		return nil, 2
+ 	}
+ 	parsedTarget, err := parseTarget(flags.Args())
+ 	if err != nil {
+ 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
+ 			fmt.Fprintln(stderr, writeErr)
+-			return 3
+-		}
+-		return 2
++			return nil, 3
++		}
++		return nil, 2
+ 	}
+ 	workingDirectory, err := resolveWorkingDirectory(*workingDir, os.Getwd)
+ 	if err != nil {
+@@ -635,21 +723,21 @@
+ 		if errors.As(err, &invalid) {
+ 			if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
+ 				fmt.Fprintln(stderr, writeErr)
+-				return 3
++				return nil, 3
+ 			}
+-			return 2
++			return nil, 2
+ 		}
+ 		if writeErr := reporter.Error("runner_failure", fmt.Errorf("resolve working directory: %w", err)); writeErr != nil {
+ 			fmt.Fprintln(stderr, writeErr)
+ 		}
+-		return 3
++		return nil, 3
+ 	}
+ 	toolchain, executable, runnerBuild, err := app.identity(*toolchainRoot)
+ 	if err != nil {
+ 		if writeErr := reporter.Error("runner_failure", err); writeErr != nil {
+ 			fmt.Fprintln(stderr, writeErr)
+ 		}
+-		return 3
++		return nil, 3
+ 	}
+ 	commands := app.commands(executable)
+ 	config := runner.CampaignSpec{
+@@ -671,62 +759,7 @@
+ 			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: toolchain, CapabilityMode: resolvedCapabilityMode,
+ 		},
+ 	}
+-	if *planOnly {
+-		if *planOutput == "" {
+-			if writeErr := reporter.Error("invalid_input", errors.New("gomad plan requires --output FILE")); writeErr != nil {
+-				fmt.Fprintln(stderr, writeErr)
+-				return 3
+-			}
+-			return 2
+-		}
+-		planned, err := runner.CreateCampaignPlan(context.Background(), runner.CampaignPlanSpec{Campaign: config, Output: *planOutput})
+-		if err != nil {
+-			classification := classifyExploreError(err)
+-			if writeErr := reporter.Error(classification, err); writeErr != nil {
+-				fmt.Fprintln(stderr, writeErr)
+-				return 3
+-			}
+-			return exploreErrorStatus(classification)
+-		}
+-		if *jsonOutput {
+-			encoded, err := json.Marshal(planned)
+-			if err != nil {
+-				fmt.Fprintln(stderr, err)
+-				return 3
+-			}
+-			if _, err := fmt.Fprintf(stdout, "%s\n", encoded); err != nil {
+-				return 3
+-			}
+-		} else if _, err := fmt.Fprintf(stdout, "gomad plan: path=%s bundle=%s sha256=%s selected=%d target=%s\n", planned.Path, planned.BundlePath, planned.SHA256, planned.SelectionCount, planned.TargetSHA256); err != nil {
+-			return 3
+-		}
+-		return 0
+-	}
+-	summary, err := runner.Explore(context.Background(), config)
+-	if err != nil {
+-		if summary.ChoiceTrace != nil {
+-			fmt.Fprintf(stderr, "gomad:%s\n", formatChoiceTrace(summary.ChoiceTrace))
+-		}
+-		classification := classifyExploreError(err)
+-		if writeErr := reporter.Error(classification, err); writeErr != nil {
+-			fmt.Fprintln(stderr, writeErr)
+-			return 3
+-		}
+-		return exploreErrorStatus(classification)
+-	}
+-	if err := reporter.Result(summary); err != nil {
+-		fmt.Fprintln(stderr, err)
+-		return 3
+-	}
+-	return exploreSummaryStatus(summary)
+-}
+-
+-func runPlan(arguments []string, stdout, stderr io.Writer) int {
+-	return runPlanWithApplication(arguments, stdout, stderr, newApplication())
+-}
+-
+-func runPlanWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
+-	return runExploreWithApplication(append([]string{"--__plan", "--on-failure=all"}, arguments...), stdout, stderr, app)
++	return &parsedCampaignRequest{config: config, reporter: reporter, jsonOutput: *jsonOutput, planOutput: *planOutput}, 0
+ }
+ 
+ type exploreStrategyOptions struct {
+@@ -756,10 +789,7 @@
+ }
+ 
+ func resolveExploreStrategy(options exploreStrategyOptions) (runner.Strategy, bool, error) {
+-	strategy := runner.Strategy(options.Value)
+-	if strategy == "" {
+-		strategy = runner.StrategySeed
+-	}
++	strategy := runner.NormalizeStrategy(runner.Strategy(options.Value))
+ 	switch strategy {
+ 	case runner.StrategySeed:
+ 		if options.hasCombinedBounds() {
+@@ -779,12 +809,13 @@
+ 		if options.CountSet {
+ 			return "", false, errors.New("--strategy=choice-exploration does not accept --count")
+ 		}
+-		selection, err := runner.ParseSeeds(options.Seeds)
++		_, err := runner.ParseSingleBaseSeed(options.Seeds)
+ 		if err != nil {
++			var single *runner.NotSingleBaseSeedError
++			if errors.As(err, &single) {
++				return "", false, errors.New("--strategy=choice-exploration requires exactly one base seed")
++			}
+ 			return "", false, err
+-		}
+-		if selection.Count() != 1 {
+-			return "", false, errors.New("--strategy=choice-exploration requires exactly one base seed")
+ 		}
+ 		if options.Guide {
+ 			return "", false, errors.New("--strategy=choice-exploration does not support --guide")
+@@ -803,12 +834,13 @@
+ 		if options.CountSet {
+ 			return "", false, errors.New("--strategy=simulation-exploration does not accept --count")
+ 		}
+-		selection, err := runner.ParseSeeds(options.Seeds)
++		_, err := runner.ParseSingleBaseSeed(options.Seeds)
+ 		if err != nil {
++			var single *runner.NotSingleBaseSeedError
++			if errors.As(err, &single) {
++				return "", false, errors.New("--strategy=simulation-exploration requires exactly one base seed")
++			}
+ 			return "", false, err
+-		}
+-		if selection.Count() != 1 {
+-			return "", false, errors.New("--strategy=simulation-exploration requires exactly one base seed")
+ 		}
+ 		if options.Guide {
+ 			return "", false, errors.New("--strategy=simulation-exploration does not support --guide")
+@@ -863,7 +895,7 @@
+ 		return "", errors.New("--guide requires semantic or choice coverage")
+ 	}
+ 	if !coverageSet {
+-		return string(runner.CoverageSemantic), nil
++		return string(runner.NormalizeCoverage("", true)), nil
+ 	}
+ 	return coverage, nil
+ }
+@@ -886,17 +918,15 @@
+ 
+ func resolveExploreCoverage(value string, required []string) (runner.CoverageMode, error) {
+ 	mode := runner.CoverageMode(value)
+-	switch mode {
+-	case runner.CoverageNone, runner.CoverageChoice:
+-		if len(required) != 0 {
++	if mode == "" {
++		return "", fmt.Errorf("unknown coverage mode %q", value)
++	}
++	if err := runner.ValidateCoverage(mode, required); err != nil {
++		var semantic *runner.SemanticCoverageRequiredError
++		if errors.As(err, &semantic) {
+ 			return "", fmt.Errorf("--require-probe requires --coverage=semantic")
+ 		}
+-	case runner.CoverageSemantic, runner.CoverageSemanticChoice:
+-		if _, err := deterministicio.MissingRequiredSemanticProbes(deterministicio.SemanticCoverage{}, required); err != nil {
+-			return "", err
+-		}
+-	default:
+-		return "", fmt.Errorf("unknown coverage mode %q", value)
++		return "", err
+ 	}
+ 	return mode, nil
+ }
+@@ -908,7 +938,7 @@
+ 		}
+ 		return 0, nil
+ 	}
+-	if limit < runner.MinimumChoiceTraceBytes || limit > runner.MaximumChoiceTraceBytes {
++	if limit == 0 || runner.ValidateChoiceTraceLimit(uint64(limit)) != nil {
+ 		return 0, fmt.Errorf("--choice-bytes must be between %d bytes and 64MiB", runner.MinimumChoiceTraceBytes)
+ 	}
+ 	return uint64(limit), nil
+--- a/tools/gomad3/cmd/gomad/internal/cli/cli_test.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/cli_test.go
+@@ -276,6 +276,20 @@
+ 		if (err != nil) != test.wantError || got != test.want {
+ 			t.Fatalf("resolveExploreCoverage(%q, %v) = %q, %v", test.mode, test.required, got, err)
+ 		}
++	}
++}
++
++func TestResolveExploreTypedErrorPresentation(t *testing.T) {
++	for _, strategy := range []string{string(runner.StrategyChoiceExploration), string(runner.StrategySimulationExploration)} {
++		_, _, err := resolveExploreStrategy(exploreStrategyOptions{Value: strategy, Seeds: "7,8"})
++		want := "--strategy=" + strategy + " requires exactly one base seed"
++		if err == nil || err.Error() != want {
++			t.Fatalf("strategy %q error = %v, want %q", strategy, err, want)
++		}
++	}
++	_, err := resolveExploreCoverage("none", []string{"stdlib.os.openfile"})
++	if err == nil || err.Error() != "--require-probe requires --coverage=semantic" {
++		t.Fatalf("coverage error = %v", err)
+ 	}
+ }
+ 
+@@ -934,6 +948,16 @@
+ 	}
+ }
+ 
++func TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure(t *testing.T) {
++	var stdout bytes.Buffer
++	stderr := failingWriter{}
++	reporter := newExploreReporter(true, &stdout, stderr)
++	status := reportExploreFailure(runner.CampaignResult{ChoiceTrace: &runner.ChoiceTraceSummary{}}, errors.New("bad request"), reporter, stderr)
++	if status != 2 || !strings.Contains(stdout.String(), `"classification":"invalid_input"`) || !strings.Contains(stdout.String(), "bad request") {
++		t.Fatalf("status=%d stdout=%q", status, stdout.String())
++	}
++}
++
+ func TestRunQualifyRepeatsOneSeedAndRetainsJSONReport(t *testing.T) {
+ 	var calls int
+ 	var configs []runner.CampaignSpec
+--- a/tools/gomad3/cmd/gomad/internal/cli/application_characterization_test.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/application_characterization_test.go
+@@ -51,6 +51,41 @@
+ 				t.Fatalf("Run(%q) status=%d stdout=%q stderr=%q; want %q", test.arguments, status, stdout.String(), stderr.String(), test.want)
+ 			}
+ 		})
++	}
++}
++
++func TestPlanAndExploreRejectHiddenPlanRoute(t *testing.T) {
++	for _, arguments := range [][]string{
++		{"explore", "--__plan", "go-run", "./pkg"},
++		{"plan", "--__plan", "--output=plan.json", "go-run", "./pkg"},
++	} {
++		var stdout, stderr bytes.Buffer
++		status := Run(arguments, &stdout, &stderr)
++		if status != 2 || stdout.Len() != 0 || !strings.Contains(stderr.String(), "flag provided but not defined: -__plan") {
++			t.Fatalf("Run(%q) status=%d stdout=%q stderr=%q", arguments, status, stdout.String(), stderr.String())
++		}
++	}
++}
++
++func TestPlanValidationOrderAndJSONRouting(t *testing.T) {
++	for _, test := range []struct {
++		arguments []string
++		want      string
++	}{
++		{[]string{"plan", "--json", "--output=x", "--count=0", "go-run", "./pkg"}, "--count must be greater than zero"},
++		{[]string{"plan", "--json", "--output=x", "--choice-bytes=8MiB", "go-run", "./pkg"}, "--choice-bytes requires --choices"},
++		{[]string{"plan", "--json", "--output=x", "--strategy=choice-exploration", "--count=0", "go-run", "./pkg"}, "--strategy=choice-exploration does not accept --count"},
++		{[]string{"plan", "--json", "--output=x", "--coverage=choice", "go-run", "./pkg"}, "--coverage=choice requires --choices"},
++		{[]string{"plan", "--json", "--output=x", "--coverage=unknown", "--choice-bytes=1", "go-run", "./pkg"}, "unknown coverage mode"},
++		{[]string{"plan", "--json", "--output=x", "--coverage=semantic", "--require-probe=unknown.probe", "--choice-bytes=1", "go-run", "./pkg"}, "unknown.probe"},
++		{[]string{"plan", "--json", "--output=x", "--choices", "--choice-bytes=1", "invalid-target"}, "--choice-bytes must be between"},
++		{[]string{"plan", "--json", "--output=x", "--strategy=", "--max-executions=0", "invalid-target"}, "exploration bounds require --strategy=choice-exploration"},
++	} {
++		var stdout, stderr bytes.Buffer
++		status := Run(test.arguments, &stdout, &stderr)
++		if status != 2 || stderr.Len() != 0 || !strings.Contains(stdout.String(), `"classification":"invalid_input"`) || !strings.Contains(stdout.String(), test.want) {
++			t.Fatalf("Run(%q) status=%d stdout=%q stderr=%q; want %q", test.arguments, status, stdout.String(), stderr.String(), test.want)
++		}
+ 	}
+ }
+ 
+--- a/tools/gomad3/runner/campaign_options.go
++++ b/tools/gomad3/runner/campaign_options.go
+@@ -1,10 +1,12 @@
+ package runner
+ 
+ import (
++	"errors"
+ 	"fmt"
+ 	"path/filepath"
+ 	"time"
+ 
++	"go.temporal.io/server/tools/gomad3/deterministicio"
+ 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+ 	"go.temporal.io/server/tools/gomad3/record"
+ 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
+@@ -104,6 +106,90 @@
+ 	campaignRuntime
+ }
+ 
++type NotSingleBaseSeedError struct{}
++
++func (*NotSingleBaseSeedError) Error() string {
++	return "requires exactly one base seed"
++}
++
++type SemanticCoverageRequiredError struct{}
++
++func (*SemanticCoverageRequiredError) Error() string {
++	return "required semantic probes require semantic coverage"
++}
++
++func NormalizeStrategy(strategy Strategy) Strategy {
++	if strategy == "" {
++		return StrategySeed
++	}
++	return strategy
++}
++
++func NormalizeCoverage(mode CoverageMode, guided bool) CoverageMode {
++	if mode == "" {
++		if guided {
++			return CoverageSemantic
++		}
++		return CoverageNone
++	}
++	return mode
++}
++
++func normalizedKeepSuccesses(policy KeepSuccesses) KeepSuccesses {
++	if policy == "" {
++		return KeepSuccessesNone
++	}
++	return policy
++}
++
++func ValidateCoverage(mode CoverageMode, required []string) error {
++	switch mode {
++	case "", CoverageNone, CoverageChoice:
++		if len(required) != 0 {
++			return &SemanticCoverageRequiredError{}
++		}
++	case CoverageSemantic, CoverageSemanticChoice:
++		if _, err := deterministicio.MissingRequiredSemanticProbes(deterministicio.SemanticCoverage{}, required); err != nil {
++			return err
++		}
++	default:
++		return fmt.Errorf("unknown coverage mode %q", mode)
++	}
++	return nil
++}
++
++func ValidateChoiceTraceLimit(limit uint64) error {
++	if limit != 0 && (limit < MinimumChoiceTraceBytes || limit > MaximumChoiceTraceBytes) {
++		return fmt.Errorf("choice trace capacity must be between %d bytes and 64 MiB", MinimumChoiceTraceBytes)
++	}
++	return nil
++}
++
++func ValidateChoiceCoverage(mode CoverageMode, choiceTraceLimit uint64) error {
++	if coverageHasChoice(mode) && choiceTraceLimit == 0 {
++		return errors.New("choice coverage requires an enabled choice trace")
++	}
++	return nil
++}
++
++func ParseSingleBaseSeed(seeds string) (SeedSelection, error) {
++	selection, err := ParseSeeds(seeds)
++	if err != nil {
++		return SeedSelection{}, err
++	}
++	if err := requireSingleBaseSeed(selection); err != nil {
++		return SeedSelection{}, err
++	}
++	return selection, nil
++}
++
++func requireSingleBaseSeed(selection SeedSelection) error {
++	if selection.Count() != 1 {
++		return &NotSingleBaseSeedError{}
++	}
++	return nil
++}
++
+ func campaignRequestForExplore(spec CampaignSpec) (campaignRequest, error) {
+ 	if spec.ResumeCampaign != "" {
+ 		path, err := filepath.Abs(spec.ResumeCampaign)
+@@ -165,7 +251,7 @@
+ }
+ 
+ func (options *campaignOptions) normalize() {
+-	options.effectiveStrategy = normalizedStrategy(options.Strategy)
++	options.effectiveStrategy = NormalizeStrategy(options.Strategy)
+ 	options.effectiveShard = normalizedCampaignShard(options.Shard)
+ }
+ 
+--- a/tools/gomad3/runner/runner.go
++++ b/tools/gomad3/runner/runner.go
+@@ -1231,7 +1231,7 @@
+ 		if config.MaxForcedDecisions != 0 || config.MaxExplorationResultBytes != 0 || config.SimulationDimensionLimits != (SimulationDimensionLimits{}) {
+ 			return SeedSelection{}, nil, errors.New("simulation exploration bounds require the simulation-exploration strategy")
+ 		}
+-		if selection.Count() != 1 {
++		if err := requireSingleBaseSeed(selection); err != nil {
+ 			return SeedSelection{}, nil, errors.New("choice-exploration exploration requires exactly one base seed")
+ 		}
+ 		if config.Guide {
+@@ -1250,7 +1250,7 @@
+ 			return SeedSelection{}, nil, errors.New("choice-exploration exploration bytes must be positive")
+ 		}
+ 	case StrategySimulationExploration:
+-		if selection.Count() != 1 {
++		if err := requireSingleBaseSeed(selection); err != nil {
+ 			return SeedSelection{}, nil, errors.New("simulation-exploration exploration requires exactly one base seed")
+ 		}
+ 		if config.Guide {
+@@ -1298,30 +1298,17 @@
+ 	if config.Diagnostics && (config.ChoiceTraceLimit == 0 || config.strategy() != StrategySeed) {
+ 		return SeedSelection{}, nil, errors.New("diagnostics require choice recording with the seed strategy")
+ 	}
+-	if config.ChoiceTraceLimit != 0 && (config.ChoiceTraceLimit < execution.MinimumChoiceTraceBytes || config.ChoiceTraceLimit > execution.MaximumChoiceTraceBytes) {
+-		return SeedSelection{}, nil, fmt.Errorf("choice trace capacity must be between %d bytes and 64 MiB", execution.MinimumChoiceTraceBytes)
++	if err := ValidateChoiceTraceLimit(config.ChoiceTraceLimit); err != nil {
++		return SeedSelection{}, nil, err
+ 	}
+ 	if config.Artifacts == "" || config.RunnerBuild == "" {
+ 		return SeedSelection{}, nil, errors.New("artifact root and Runner build identity are required")
+ 	}
+-	switch config.Coverage {
+-	case "", CoverageNone:
+-		if len(config.RequiredSemanticProbes) != 0 {
+-			return SeedSelection{}, nil, errors.New("required semantic probes require semantic coverage")
+-		}
+-	case CoverageSemantic, CoverageSemanticChoice:
+-		if _, err := deterministicio.MissingRequiredSemanticProbes(deterministicio.SemanticCoverage{}, config.RequiredSemanticProbes); err != nil {
+-			return SeedSelection{}, nil, err
+-		}
+-	case CoverageChoice:
+-		if len(config.RequiredSemanticProbes) != 0 {
+-			return SeedSelection{}, nil, errors.New("required semantic probes require semantic coverage")
+-		}
+-	default:
+-		return SeedSelection{}, nil, fmt.Errorf("unknown coverage mode %q", config.Coverage)
+-	}
+-	if coverageHasChoice(config.Coverage) && config.ChoiceTraceLimit == 0 {
+-		return SeedSelection{}, nil, errors.New("choice coverage requires an enabled choice trace")
++	if err := ValidateCoverage(config.Coverage, config.RequiredSemanticProbes); err != nil {
++		return SeedSelection{}, nil, err
++	}
++	if err := ValidateChoiceCoverage(config.Coverage, config.ChoiceTraceLimit); err != nil {
++		return SeedSelection{}, nil, err
+ 	}
+ 	switch normalizedKeepSuccesses(config.KeepSuccesses) {
+ 	case KeepSuccessesNone:
+@@ -1329,7 +1316,7 @@
+ 			return SeedSelection{}, nil, errors.New("disabled success retention does not accept capacity limits")
+ 		}
+ 	case KeepSuccessesNovel:
+-		if normalizedCoverage(config.Coverage) == CoverageNone || config.SuccessArtifactLimit == 0 || config.SuccessBytesLimit == 0 {
++		if NormalizeCoverage(config.Coverage, false) == CoverageNone || config.SuccessArtifactLimit == 0 || config.SuccessBytesLimit == 0 {
+ 			return SeedSelection{}, nil, errors.New("novel success retention requires coverage and explicit count and byte limits")
+ 		}
+ 	case KeepSuccessesAll:
+@@ -1343,7 +1330,7 @@
+ 		return SeedSelection{}, nil, errors.New("execution evidence requires exactly one seed and semantic coverage")
+ 	}
+ 	if config.Guide {
+-		if config.Corpus == "" || normalizedCoverage(config.Coverage) == CoverageNone {
++		if config.Corpus == "" || NormalizeCoverage(config.Coverage, false) == CoverageNone {
+ 			return SeedSelection{}, nil, errors.New("guided exploration requires a corpus and coverage")
+ 		}
+ 	} else if config.GuideRegression || config.Corpus != "" || config.GuideSnapshotSHA256 != "" {
+--- a/tools/gomad3/cmd/gomad/e2e_test.go
++++ b/tools/gomad3/cmd/gomad/e2e_test.go
+@@ -91,6 +91,60 @@
+ 	return output
+ }
+ 
++func TestPlanTextAndJSONPreserveCampaignIdentityAndTargetArguments(t *testing.T) {
++	var identity record.SHA256
++	for _, format := range []string{"text", "json"} {
++		t.Run(format, func(t *testing.T) {
++			path := filepath.Join(t.TempDir(), "campaign.plan.json")
++			arguments := []string{"plan", "--toolchain-root", cliToolchainRoot, "--parallel=1", "--seeds=2", "--env=FOO=bar", "--build-tag=gomad_fixture"}
++			if format == "json" {
++				arguments = append(arguments, "--json")
++			}
++			arguments = append(arguments, "--output", path, "go-run", "./cmd/gomad/testdata/campaign", "--", "work", "literal;$value")
++			output := runCLI(t, 0, arguments...)
++			encoded, err := os.ReadFile(path)
++			if err != nil {
++				t.Fatal(err)
++			}
++			var plan struct {
++				Campaign struct {
++					Selection   string                         `json:"selection"`
++					OnFailure   string                         `json:"on_failure"`
++					Environment []struct{ Name, Value string } `json:"environment"`
++					Prepared    struct {
++						Target struct {
++							Args      []string `json:"argv"`
++							BuildTags []string `json:"build_tags"`
++						} `json:"target"`
++					} `json:"prepared"`
++				} `json:"campaign"`
++			}
++			if err := json.Unmarshal(encoded, &plan); err != nil {
++				t.Fatal(err)
++			}
++			if plan.Campaign.Selection != "2" || plan.Campaign.OnFailure != "all" || !reflect.DeepEqual(plan.Campaign.Prepared.Target.Args, []string{"gomad3-target", "work", "literal;$value"}) || !reflect.DeepEqual(plan.Campaign.Prepared.Target.BuildTags, []string{"gomad_fixture"}) {
++				t.Fatalf("plan = %#v", plan)
++			}
++			if len(plan.Campaign.Environment) != 2 || plan.Campaign.Environment[0].Name != "FOO" || plan.Campaign.Environment[0].Value != "bar" {
++				t.Fatalf("environment = %#v", plan.Campaign.Environment)
++			}
++			digest := record.HashBytes(encoded)
++			if identity != "" && digest != identity {
++				t.Fatalf("plan identity = %s, want %s", digest, identity)
++			}
++			identity = digest
++			if format == "json" {
++				var result runner.CampaignPlanResult
++				if err := json.Unmarshal(output, &result); err != nil || result.SHA256 != digest || result.Path != path {
++					t.Fatalf("JSON result = %#v, %v, output=%q", result, err, output)
++				}
++			} else if !strings.Contains(string(output), "gomad plan: path="+path+" bundle="+path+".bundle sha256="+string(digest)+" selected=1 target=") {
++				t.Fatalf("text result = %q", output)
++			}
++		})
++	}
++}
++
+ func exploreArguments(root, seeds string, work bool) []string {
+ 	arguments := []string{"explore", "--json", "--toolchain-root", cliToolchainRoot, "--artifacts", root,
+ 		"--seeds", seeds, "--parallel", "1", "--on-failure", "all", "--execution-timeout", "30s",
+--- a/tools/gomad3/runner/campaign_plan.go
++++ b/tools/gomad3/runner/campaign_plan.go
+@@ -55,7 +55,7 @@
+ 		},
+ 		IOProfile:   profile.Identity(),
+ 		Environment: append([]record.Environment(nil), environment...), IOROMounts: mountValues, IOROMountLimits: recordedCapturedInputLimits(readonlymount.CapturedInputLimitsOf(config.IOROMountLimits)),
+-		Coverage: string(normalizedCoverage(config.Coverage)), RequiredSemanticProbes: requiredProbes,
++		Coverage: string(NormalizeCoverage(config.Coverage, false)), RequiredSemanticProbes: requiredProbes,
+ 		KeepSuccesses: string(normalizedKeepSuccesses(config.KeepSuccesses)), SuccessArtifactLimit: record.Uint64String(config.SuccessArtifactLimit), SuccessBytesLimit: record.Uint64String(config.SuccessBytesLimit),
+ 	}
+ 	if config.strategy() == StrategyChoiceExploration {
+@@ -86,24 +86,3 @@
+ 	plan.Artifacts = &artifacts
+ 	return plan, nil
+ }
+-
+-func normalizedStrategy(strategy Strategy) Strategy {
+-	if strategy == "" {
+-		return StrategySeed
+-	}
+-	return strategy
+-}
+-
+-func normalizedCoverage(mode CoverageMode) CoverageMode {
+-	if mode == "" {
+-		return CoverageNone
+-	}
+-	return mode
+-}
+-
+-func normalizedKeepSuccesses(policy KeepSuccesses) KeepSuccesses {
+-	if policy == "" {
+-		return KeepSuccessesNone
+-	}
+-	return policy
+-}
+--- a/tools/gomad3/runner/resume.go
++++ b/tools/gomad3/runner/resume.go
+@@ -104,7 +104,7 @@
+ 	config.IOTranscriptLimit = uint64(plan.IOTranscriptBytes)
+ 	for _, entry := range plan.Environment {
+ 		if entry.Name == choice.DiagnosticProfileEnvironment {
+-			if entry.Value != choice.DiagnosticProfile || config.ChoiceTraceLimit == 0 || normalizedStrategy(config.Strategy) != StrategySeed {
++			if entry.Value != choice.DiagnosticProfile || config.ChoiceTraceLimit == 0 || NormalizeStrategy(config.Strategy) != StrategySeed {
+ 				return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, errors.New("recorded diagnostic profile is invalid")
+ 			}
+ 			config.Diagnostics = true
+--- /dev/null
++++ b/tools/gomad3/runner/campaign_options_cli_test.go
+@@ -0,0 +1,96 @@
++package runner
++
++import (
++	"errors"
++	"fmt"
++	"testing"
++)
++
++func TestParseSingleBaseSeedSharesRunnerStrategyRule(t *testing.T) {
++	for _, test := range []struct {
++		input string
++		want  string
++	}{
++		{input: "7", want: "7"},
++		{input: "7-7", want: "7"},
++		{input: "7,8"},
++		{input: "bad"},
++	} {
++		selection, err := ParseSingleBaseSeed(test.input)
++		if test.want == "" {
++			if err == nil {
++				t.Fatalf("ParseSingleBaseSeed(%q) = %q, want error", test.input, selection.String())
++			}
++			continue
++		}
++		if err != nil || selection.String() != test.want {
++			t.Fatalf("ParseSingleBaseSeed(%q) = %q, %v; want %q", test.input, selection.String(), err, test.want)
++		}
++	}
++}
++
++func TestCampaignOptionErrorsPreserveKindThroughWrapping(t *testing.T) {
++	_, singleErr := ParseSingleBaseSeed("7,8")
++	var single *NotSingleBaseSeedError
++	if !errors.As(fmt.Errorf("wrapped: %w", singleErr), &single) || singleErr.Error() != "requires exactly one base seed" {
++		t.Fatalf("single-base-seed error = %T %v", singleErr, singleErr)
++	}
++	coverageErr := ValidateCoverage(CoverageNone, []string{"stdlib.os.openfile"})
++	var required *SemanticCoverageRequiredError
++	if !errors.As(fmt.Errorf("wrapped: %w", coverageErr), &required) || coverageErr.Error() != "required semantic probes require semantic coverage" {
++		t.Fatalf("semantic-coverage error = %T %v", coverageErr, coverageErr)
++	}
++}
++
++func TestCampaignOptionNormalizationAndValidation(t *testing.T) {
++	if got := NormalizeStrategy(""); got != StrategySeed {
++		t.Fatalf("NormalizeStrategy(empty) = %q", got)
++	}
++	if got := NormalizeCoverage("", true); got != CoverageSemantic {
++		t.Fatalf("NormalizeCoverage(empty, guided) = %q", got)
++	}
++	if got := NormalizeCoverage("", false); got != CoverageNone {
++		t.Fatalf("NormalizeCoverage(empty, plain) = %q", got)
++	}
++	if got := campaignRequestFromSpec(CampaignSpec{Guide: true}).Coverage; got != "" {
++		t.Fatalf("Runner changed absent guided coverage to %q", got)
++	}
++	for _, test := range []struct {
++		mode     CoverageMode
++		required []string
++		valid    bool
++	}{
++		{mode: CoverageNone, valid: true},
++		{mode: CoverageSemantic, required: []string{"stdlib.os.openfile"}, valid: true},
++		{mode: CoverageNone, required: []string{"stdlib.os.openfile"}},
++		{mode: CoverageSemantic, required: []string{"unknown.probe"}},
++		{mode: "unknown"},
++	} {
++		if err := ValidateCoverage(test.mode, test.required); (err == nil) != test.valid {
++			t.Fatalf("ValidateCoverage(%q, %v) = %v; valid=%t", test.mode, test.required, err, test.valid)
++		}
++	}
++	for _, test := range []struct {
++		limit uint64
++		valid bool
++	}{
++		{limit: 0, valid: true},
++		{limit: MinimumChoiceTraceBytes, valid: true},
++		{limit: MaximumChoiceTraceBytes, valid: true},
++		{limit: 1},
++		{limit: MaximumChoiceTraceBytes + 1},
++	} {
++		if err := ValidateChoiceTraceLimit(test.limit); (err == nil) != test.valid {
++			t.Fatalf("ValidateChoiceTraceLimit(%d) = %v; valid=%t", test.limit, err, test.valid)
++		}
++	}
++	if err := ValidateChoiceCoverage(CoverageChoice, 0); err == nil {
++		t.Fatal("choice coverage without a trace succeeded")
++	}
++	if err := ValidateChoiceCoverage(CoverageChoice, MinimumChoiceTraceBytes); err != nil {
++		t.Fatal(err)
++	}
++	if err := ValidateChoiceCoverage(CoverageSemantic, 0); err != nil {
++		t.Fatal(err)
++	}
++}

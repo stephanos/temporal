@@ -1,0 +1,1747 @@
+diff --git a/tools/gomad3/cmd/gomadtool/main.go b/tools/gomad3/cmd/gomadtool/main.go
+index aa7db3b747..d66834c5ca 100644
+--- a/tools/gomad3/cmd/gomadtool/main.go
++++ b/tools/gomad3/cmd/gomadtool/main.go
+@@ -19,7 +19,7 @@ import (
+ 	toolchainbuild "go.temporal.io/server/tools/gomad3/toolchain"
+ )
+ 
+-const usage = "usage: gomadtool boundary-generate|build-key|checked-run|compatibility-pack|diagnostic-diff|patch-materialize|patch-regenerate|patch-validate|protocol-generate|qualification-manifest-generate|script-validate|test|toolchain-build|upgrade-dossier|version-generate [flags]"
++const usage = "usage: gomadtool adapter-regenerate|boundary-generate|build-key|checked-run|compatibility-pack|diagnostic-diff|patch-materialize|patch-regenerate|patch-validate|pin-impact|protocol-generate|qualification-manifest-generate|script-validate|test|toolchain-build|upgrade-dossier|version-generate [flags]"
+ 
+ const canonicalBuildPath = "/usr/bin:/bin:/usr/sbin:/sbin:/usr/xpg4/bin:/opt/freeware/bin:/usr/local/bin:/opt/homebrew/bin:/opt/local/bin"
+ 
+@@ -33,6 +33,8 @@ func run(arguments []string, stdout, stderr io.Writer) int {
+ 		return 2
+ 	}
+ 	switch arguments[0] {
++	case "adapter-regenerate":
++		return runAdapterRegenerate(arguments[1:], stdout, stderr)
+ 	case "boundary-generate":
+ 		return runBoundaryGenerate(arguments[1:], stdout, stderr)
+ 	case "build-key":
+@@ -49,6 +51,8 @@ func run(arguments []string, stdout, stderr io.Writer) int {
+ 		return runPatchRegenerate(arguments[1:], stdout, stderr)
+ 	case "patch-validate":
+ 		return runPatchValidate(arguments[1:], stdout, stderr)
++	case "pin-impact":
++		return runPinImpact(arguments[1:], stdout, stderr)
+ 	case "protocol-generate":
+ 		return runProtocolGenerate(arguments[1:], stderr)
+ 	case "qualification-manifest-generate":
+diff --git a/tools/gomad3/deterministicio/adapter_rewrite.go b/tools/gomad3/deterministicio/adapter_rewrite.go
+index 14b15f6994..a3be34f480 100644
+--- a/tools/gomad3/deterministicio/adapter_rewrite.go
++++ b/tools/gomad3/deterministicio/adapter_rewrite.go
+@@ -119,6 +119,17 @@ func rewriteAdapterSource(module string, rewrite sourceRewrite, contents []byte)
+ 	if digestBytes(contents) != rewrite.sourceSHA256 {
+ 		return nil, fmt.Errorf("pinned %s source identity mismatch for %s", module, rewrite.path)
+ 	}
++	result, err := regenerateSourceRewrite(module, rewrite, contents)
++	if err != nil {
++		return nil, err
++	}
++	if got := digestBytes(result); got != rewrite.replacementSHA256 {
++		return nil, fmt.Errorf("%s replacement identity mismatch for %s: got %s, want %s", module, rewrite.path, got, rewrite.replacementSHA256)
++	}
++	return result, nil
++}
++
++func regenerateSourceRewrite(module string, rewrite sourceRewrite, contents []byte) ([]byte, error) {
+ 	if len(rewrite.rewrites) == 0 {
+ 		return nil, errors.New("adapter source rewrite has no anchors")
+ 	}
+@@ -129,8 +140,5 @@ func rewriteAdapterSource(module string, rewrite sourceRewrite, contents []byte)
+ 		}
+ 		result = bytes.Replace(result, step.anchor, step.replacement, 1)
+ 	}
+-	if got := digestBytes(result); got != rewrite.replacementSHA256 {
+-		return nil, fmt.Errorf("%s replacement identity mismatch for %s: got %s, want %s", module, rewrite.path, got, rewrite.replacementSHA256)
+-	}
+ 	return result, nil
+ }
+diff --git a/tools/gomad3/deterministicio/grpc_adapter.go b/tools/gomad3/deterministicio/grpc_adapter.go
+index de69a4e2dc..d175ff2542 100644
+--- a/tools/gomad3/deterministicio/grpc_adapter.go
++++ b/tools/gomad3/deterministicio/grpc_adapter.go
+@@ -235,16 +235,20 @@ func rewriteGRPCLinuxSource(rewrite grpcLinuxRewrite, linuxSource, nonLinuxSourc
+ 	if digestBytes(linuxSource) != rewrite.linuxSHA256 || digestBytes(nonLinuxSource) != rewrite.nonLinuxSHA256 {
+ 		return nil, fmt.Errorf("pinned gRPC source identity mismatch for %s", rewrite.linuxPath)
+ 	}
+-	if bytes.Count(nonLinuxSource, rewrite.constraint) != 1 {
+-		return nil, fmt.Errorf("pinned gRPC build constraint anchor mismatch for %s", rewrite.nonLinuxPath)
++	rewritten, err := regenerateGRPCLinuxSource(rewrite, nonLinuxSource)
++	if err != nil {
++		return nil, err
+ 	}
+-	rewritten := bytes.Replace(nonLinuxSource, rewrite.constraint, rewrite.replacement, 1)
+ 	if got := digestBytes(rewritten); got != rewrite.replacementSHA256 {
+ 		return nil, fmt.Errorf("gRPC replacement identity mismatch for %s: got %s, want %s", rewrite.linuxPath, got, rewrite.replacementSHA256)
+ 	}
+ 	return rewritten, nil
+ }
+ 
++func regenerateGRPCLinuxSource(rewrite grpcLinuxRewrite, nonLinuxSource []byte) ([]byte, error) {
++	return regenerateSourceRewrite(grpcModulePath, sourceRewrite{path: rewrite.nonLinuxPath, rewrites: []anchorRewrite{{anchor: rewrite.constraint, replacement: rewrite.replacement}}}, nonLinuxSource)
++}
++
+ func rewriteGRPCKeepalive(contents []byte) ([]byte, error) {
+ 	if digestBytes(contents) != grpcKeepaliveSourceSHA256 {
+ 		return nil, errors.New("pinned gRPC keepalive source identity mismatch")
+diff --git a/tools/gomad3/deterministicio/libc_adapter.go b/tools/gomad3/deterministicio/libc_adapter.go
+index bea631f253..190d23be11 100644
+--- a/tools/gomad3/deterministicio/libc_adapter.go
++++ b/tools/gomad3/deterministicio/libc_adapter.go
+@@ -11,7 +11,6 @@ import (
+ 	"os"
+ 	"path/filepath"
+ 	"slices"
+-	"sort"
+ 	"strings"
+ 
+ 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+@@ -76,6 +75,14 @@ func prepareModerncLibc(moduleCache, root string, identity gomadversion.AdapterI
+ }
+ 
+ func rewriteLibcModule(moduleSource string) (map[string][]byte, string, error) {
++	return rewriteLibcModuleWithIdentity(moduleSource, true)
++}
++
++func rewriteLibcModuleUnpinned(moduleSource string) (map[string][]byte, string, error) {
++	return rewriteLibcModuleWithIdentity(moduleSource, false)
++}
++
++func rewriteLibcModuleWithIdentity(moduleSource string, verifyIdentity bool) (map[string][]byte, string, error) {
+ 	if digestBytes([]byte(gomadLibcAdapterSource)) != gomadLibcAdapterSHA256 || digestBytes([]byte(gomadLibcLinuxAdapterSource)) != gomadLibcLinuxAdapterSHA256 {
+ 		return nil, "", errors.New("modernc libc adapter template identity mismatch")
+ 	}
+@@ -98,7 +105,7 @@ func rewriteLibcModule(moduleSource string) (map[string][]byte, string, error) {
+ 		if err != nil {
+ 			return nil, "", fmt.Errorf("read pinned modernc libc source %q: %w", relative, err)
+ 		}
+-		if digestBytes(contents) != identity {
++		if verifyIdentity && digestBytes(contents) != identity {
+ 			return nil, "", fmt.Errorf("pinned modernc libc source %q identity mismatch", relative)
+ 		}
+ 		rewrites[relative] = contents
+@@ -215,7 +222,7 @@ func refuseLibcHostFunctions(contents []byte, refusal libcHostRefusal) ([]byte,
+ 			return nil, fmt.Errorf("function %s occurs %d times, want 1", name, matches)
+ 		}
+ 	}
+-	sort.Slice(edits, func(i, j int) bool { return edits[i].start < edits[j].start })
++	slices.SortFunc(edits, func(a, b edit) int { return a.start - b.start })
+ 	var result bytes.Buffer
+ 	previous := 0
+ 	for _, edit := range edits {
+diff --git a/tools/gomad3/cmd/gomadtool/adapter_regenerate.go b/tools/gomad3/cmd/gomadtool/adapter_regenerate.go
+new file mode 100644
+index 0000000000..167f775539
+--- /dev/null
++++ b/tools/gomad3/cmd/gomadtool/adapter_regenerate.go
+@@ -0,0 +1,607 @@
++package main
++
++import (
++	"bytes"
++	"context"
++	"encoding/json"
++	"errors"
++	"flag"
++	"fmt"
++	"go/ast"
++	"go/parser"
++	"go/token"
++	"io"
++	"io/fs"
++	"os"
++	"os/exec"
++	"path/filepath"
++	"slices"
++	"strconv"
++	"strings"
++
++	"go.temporal.io/server/tools/gomad3/deterministicio"
++	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
++	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
++	"go.temporal.io/server/tools/gomad3/record"
++	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
++)
++
++func adapterRegenerationFailure(output io.Writer, err error, status int) int {
++	if _, writeErr := fmt.Fprintln(output, err); writeErr != nil {
++		return 1
++	}
++	return status
++}
++
++func runAdapterRegenerate(arguments []string, stdout, stderr io.Writer) int {
++	flags := flag.NewFlagSet("gomadtool adapter-regenerate", flag.ContinueOnError)
++	flags.SetOutput(stderr)
++	root := flags.String("root", ".", "Gomad v3 module root")
++	module := flags.String("module", "", "adapted module path")
++	version := flags.String("version", "", "new exact module version")
++	approval := flags.String("approve", "", "approval digest printed by the dry run")
++	if err := flags.Parse(arguments); err != nil {
++		return 2
++	}
++	if flags.NArg() != 0 || *module == "" || *version == "" {
++		return adapterRegenerationFailure(stderr, errors.New("adapter-regenerate requires --module and --version"), 2)
++	}
++	absRoot, err := filepath.Abs(*root)
++	if err != nil {
++		return adapterRegenerationFailure(stderr, err, 2)
++	}
++	checkoutRoot := filepath.Clean(filepath.Join(absRoot, "..", ".."))
++	if _, err := os.Lstat(adapterPublicationMarker(checkoutRoot)); err == nil {
++		if err := withAdapterPublicationLock(checkoutRoot, func() error { return recoverAdapterPublication(checkoutRoot) }); err != nil {
++			return adapterRegenerationFailure(stderr, err, 1)
++		}
++	} else if !errors.Is(err, os.ErrNotExist) {
++		return adapterRegenerationFailure(stderr, err, 1)
++	}
++	descriptor, err := gomadversion.Load(absRoot)
++	if err != nil {
++		return adapterRegenerationFailure(stderr, err, 1)
++	}
++	oldVersion, oldSum := "", ""
++	for _, adapter := range descriptor.Adapters {
++		if adapter.Module == *module {
++			oldVersion, oldSum = adapter.Version, adapter.Sum
++			break
++		}
++	}
++	if oldVersion == "" {
++		return adapterRegenerationFailure(stderr, fmt.Errorf("adapter %s is not in the version descriptor", *module), 2)
++	}
++	return runAdapterRegenerationForPin(absRoot, checkoutRoot, *module, *version, *approval, oldVersion, oldSum, stdout, stderr)
++}
++
++func runAdapterRegenerationForPin(absRoot, checkoutRoot, module, version, approval, oldVersion, oldSum string, stdout, stderr io.Writer) (status int) {
++	private, err := os.MkdirTemp("", "gomad-adapter-download-*")
++	if err != nil {
++		return adapterRegenerationFailure(stderr, err, 3)
++	}
++	defer func() {
++		if err := removeAdapterPrivate(private); err != nil {
++			status = adapterRegenerationFailure(stderr, err, 1)
++		}
++	}()
++	oldRoot, oldDownloadedSum, oldGoModSum, err := downloadAdapterModule(module, oldVersion, private)
++	if err != nil {
++		return adapterRegenerationFailure(stderr, err, 3)
++	}
++	if oldDownloadedSum != oldSum {
++		return adapterRegenerationFailure(stderr, errors.New("pinned adapter module sum disagrees with the downloaded module"), 1)
++	}
++	newRoot, newSum, newGoModSum, err := downloadAdapterModule(module, version, private)
++	if err != nil {
++		return adapterRegenerationFailure(stderr, err, 3)
++	}
++	result, err := deterministicio.RegenerateAdapter(module, version, newSum, newRoot, filepath.Join(private, "replacement"))
++	if err != nil {
++		return adapterRegenerationFailure(stderr, err, 1)
++	}
++	digest, err := adapterRegenerationApproval(result)
++	if err != nil {
++		return adapterRegenerationFailure(stderr, err, 1)
++	}
++	if approval == "" {
++		if err := writeAdapterRegenerationReview(stdout, oldRoot, result, digest); err != nil {
++			return adapterRegenerationFailure(stderr, err, 1)
++		}
++		return 0
++	}
++	if approval != digest {
++		return adapterRegenerationFailure(stderr, errors.New("adapter regeneration approval does not match changed upstream source and proposed anchors"), 1)
++	}
++	var staleReport bytes.Buffer
++	if err := reportStaleAdapterPacks(&staleReport, module, version); err != nil {
++		return adapterRegenerationFailure(stderr, err, 1)
++	}
++	files, snapshot, err := stageAdapterRegeneration(absRoot, result, oldVersion, oldSum, oldGoModSum, newGoModSum, filepath.Join(private, "cache"))
++	if err != nil {
++		return adapterRegenerationFailure(stderr, err, 1)
++	}
++	if err := publishAdapterFilesWithSnapshot(checkoutRoot, files, snapshot, adapterRegenerationInputTrees); err != nil {
++		return adapterRegenerationFailure(stderr, err, 1)
++	}
++	if _, err := fmt.Fprintf(stdout, "regenerated %s@%s with approval %s\n", module, version, digest); err != nil {
++		return adapterRegenerationFailure(stderr, err, 1)
++	}
++	if _, err := io.Copy(stdout, &staleReport); err != nil {
++		return adapterRegenerationFailure(stderr, err, 1)
++	}
++	return 0
++}
++
++func removeAdapterPrivate(root string) error {
++	if err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, visitErr error) error {
++		if visitErr != nil {
++			return visitErr
++		}
++		if entry.IsDir() {
++			return os.Chmod(path, 0o700)
++		}
++		return nil
++	}); err != nil {
++		return err
++	}
++	return os.RemoveAll(root)
++}
++
++func downloadAdapterModule(module, version, private string) (directory, moduleSum, goModSum string, retErr error) {
++	cache := filepath.Join(private, "cache")
++	if err := os.MkdirAll(cache, 0o700); err != nil {
++		return "", "", "", err
++	}
++	command := exec.CommandContext(context.Background(), "go", "mod", "download", "-json", module+"@"+version)
++	command.Dir = private
++	command.Env = append(os.Environ(), "GOMODCACHE="+cache, "GOWORK=off", "GOFLAGS=", "GOTOOLCHAIN=local")
++	output, err := command.CombinedOutput()
++	if err != nil {
++		return "", "", "", fmt.Errorf("download %s@%s: %w: %s", module, version, err, output)
++	}
++	var result struct{ Path, Version, Sum, GoModSum, Dir, Error string }
++	if err := json.Unmarshal(output, &result); err != nil {
++		return "", "", "", fmt.Errorf("decode module download: %w", err)
++	}
++	if result.Error != "" || result.Path != module || result.Version != version || result.Sum == "" || result.GoModSum == "" || result.Dir == "" {
++		return "", "", "", fmt.Errorf("module download identity mismatch or failure: %s", result.Error)
++	}
++	return result.Dir, result.Sum, result.GoModSum, nil
++}
++
++func adapterRegenerationApproval(result deterministicio.AdapterRegeneration) (string, error) {
++	encoded, err := canonicaljson.CanonicalJSON(result)
++	if err != nil {
++		return "", err
++	}
++	return string(record.DomainHash("gomad3.adapter-regeneration-review/v1", encoded)), nil
++}
++
++func writeAdapterRegenerationReview(output io.Writer, oldRoot string, result deterministicio.AdapterRegeneration, digest string) error {
++	if _, err := fmt.Fprintf(output, "Adapter: %s@%s\nModule sum: %s\nOriginal inventory: %s\nReplacement inventory: %s\n", result.Module, result.Version, result.Sum, result.OriginalInventorySHA256, result.ReplacementInventorySHA256); err != nil {
++		return err
++	}
++	for _, source := range result.Sources {
++		old, err := os.ReadFile(filepath.Join(oldRoot, filepath.FromSlash(source.Path)))
++		if err != nil && !errors.Is(err, os.ErrNotExist) {
++			return err
++		}
++		if _, err := fmt.Fprintf(output, "\nSource: %s\nOld source: %s\nNew source: %s\nNew replacement: %s\n", source.Path, source.OldSourceSHA256, source.SourceSHA256, source.ReplacementSHA256); err != nil {
++			return err
++		}
++		if !bytes.Equal(old, source.Source) {
++			if _, err := fmt.Fprintf(output, "Changed upstream source %s:\n%s\n", source.Path, source.Source); err != nil {
++				return err
++			}
++		}
++	}
++	for _, host := range []string{"darwin/arm64", "linux/amd64"} {
++		if _, err := fmt.Fprintf(output, "Prepared source set %s: %s\n", host, result.PreparedSourceSets[host]); err != nil {
++			return err
++		}
++	}
++	if _, err := fmt.Fprintf(output, "Approval SHA-256: %s\n", digest); err != nil {
++		return err
++	}
++	return reportStaleAdapterPacks(output, result.Module, result.Version)
++}
++
++func reportStaleAdapterPacks(output io.Writer, module, version string) error {
++	packs, err := compatibility.PinEvidence()
++	if err != nil {
++		return err
++	}
++	for _, pack := range packs {
++		stale := false
++		for _, item := range pack.Activation {
++			stale = stale || item.Path == module && item.Version != version || item.Adapter != nil && item.Adapter.Module == module && item.Adapter.Version != version
++		}
++		for _, rule := range pack.Rules {
++			item := rule.Module
++			stale = stale || item.Path == module && item.Version != version || item.Adapter != nil && item.Adapter.Module == module && item.Adapter.Version != version
++		}
++		if stale {
++			if _, err := fmt.Fprintf(output, "Stale adapter-bound pack: %s\n", pack.ID); err != nil {
++				return err
++			}
++		}
++	}
++	return nil
++}
++
++type goPinEdit struct {
++	start, end int
++	value      string
++}
++
++func editAdapterPins(contents []byte, result deterministicio.AdapterRegeneration, oldVersion, oldSum string) ([]byte, error) {
++	replacements, err := adapterPinReplacements(result, oldVersion, oldSum)
++	if err != nil {
++		return nil, err
++	}
++	edits, hits, hostHits, err := adapterPinEdits(contents, result.PreparedSourceSets, replacements)
++	if err != nil {
++		return nil, err
++	}
++	for old := range replacements {
++		libcVersionOrSum := result.Module == "modernc.org/libc" && (old == oldVersion || old == oldSum)
++		if hits[old] != 1 && (!libcVersionOrSum || hits[old] != 0) {
++			return nil, fmt.Errorf("missing pin or duplicate pin %s: %d", old, hits[old])
++		}
++	}
++	for host := range result.PreparedSourceSets {
++		if hostHits[host] != 1 {
++			return nil, fmt.Errorf("missing prepared source-set pin for %s: %d", host, hostHits[host])
++		}
++	}
++	slices.SortFunc(edits, func(a, b goPinEdit) int { return b.start - a.start })
++	updated := append([]byte{}, contents...)
++	for _, edit := range edits {
++		updated = append(append(append([]byte{}, updated[:edit.start]...), edit.value...), updated[edit.end:]...)
++	}
++	return updated, nil
++}
++
++func adapterPinReplacements(result deterministicio.AdapterRegeneration, oldVersion, oldSum string) (map[string]string, error) {
++	replacements := map[string]string{}
++	add := func(old, next string) error {
++		if old == "" || old == next {
++			return nil
++		}
++		if other, found := replacements[old]; found && other != next {
++			return fmt.Errorf("conflicting proposed pin for %s", old)
++		}
++		replacements[old] = next
++		return nil
++	}
++	for _, pair := range [][2]string{{result.OldOriginalInventorySHA256, result.OriginalInventorySHA256}, {result.OldReplacementInventorySHA256, result.ReplacementInventorySHA256}, {oldVersion, result.Version}, {oldSum, result.Sum}} {
++		if err := add(pair[0], pair[1]); err != nil {
++			return nil, err
++		}
++	}
++	for _, source := range result.Sources {
++		if err := add(source.OldSourceSHA256, source.SourceSHA256); err != nil {
++			return nil, err
++		}
++		if err := add(source.OldReplacementSHA256, source.ReplacementSHA256); err != nil {
++			return nil, err
++		}
++	}
++	return replacements, nil
++}
++
++func adapterPinEdits(contents []byte, prepared map[string]string, replacements map[string]string) (edits []goPinEdit, hits, hostHits map[string]int, retErr error) {
++	files := token.NewFileSet()
++	parsed, err := parser.ParseFile(files, "adapter.go", contents, parser.ParseComments)
++	if err != nil {
++		return nil, nil, nil, err
++	}
++	hits = map[string]int{}
++	hostHits = map[string]int{}
++	edits = []goPinEdit{}
++	ast.Inspect(parsed, func(node ast.Node) bool {
++		if field, ok := node.(*ast.KeyValueExpr); ok {
++			key, keyOK := field.Key.(*ast.BasicLit)
++			value, valueOK := field.Value.(*ast.BasicLit)
++			if keyOK && valueOK && key.Kind == token.STRING && value.Kind == token.STRING {
++				host, _ := strconv.Unquote(key.Value)
++				if next, found := prepared[host]; found {
++					hostHits[host]++
++					edits = append(edits, goPinEdit{start: files.Position(value.Pos()).Offset, end: files.Position(value.End()).Offset, value: strconv.Quote(next)})
++					return false
++				}
++			}
++		}
++		literal, ok := node.(*ast.BasicLit)
++		if !ok || literal.Kind != token.STRING {
++			return true
++		}
++		old, err := strconv.Unquote(literal.Value)
++		if err != nil {
++			return true
++		}
++		if next, found := replacements[old]; found {
++			hits[old]++
++			edits = append(edits, goPinEdit{start: files.Position(literal.Pos()).Offset, end: files.Position(literal.End()).Offset, value: strconv.Quote(next)})
++		}
++		return true
++	})
++	return edits, hits, hostHits, nil
++}
++
++func stageAdapterRegeneration(root string, result deterministicio.AdapterRegeneration, oldVersion, oldSum, oldGoModSum, newGoModSum, privateCache string) (files []adapterPublicationFile, snapshot map[string]publicationContent, retErr error) {
++	work, err := os.MkdirTemp("", "gomad-adapter-stage-*")
++	if err != nil {
++		return nil, nil, err
++	}
++	defer func() { retErr = errors.Join(retErr, os.RemoveAll(work)) }()
++	stage := filepath.Join(work, adapterRegenerationInputTrees[0])
++	checkoutRoot := filepath.Clean(filepath.Join(root, "..", ".."))
++	snapshot, err = copyAdapterStageInputs(root, checkoutRoot, work)
++	if err != nil {
++		return nil, nil, err
++	}
++	for _, name := range []string{"go.mod", "go.sum"} {
++		contents, err := os.ReadFile(filepath.Join(checkoutRoot, name))
++		if err != nil {
++			return nil, nil, err
++		}
++		if err := os.WriteFile(filepath.Join(work, name), contents, 0o600); err != nil {
++			return nil, nil, err
++		}
++		snapshot[name] = publicationContent{Present: true, Bytes: contents}
++	}
++	cacheDir := filepath.Join(stage, ".toolchain")
++	if err := os.MkdirAll(cacheDir, 0o700); err != nil {
++		return nil, nil, err
++	}
++	if err := os.Symlink(filepath.Join(root, ".toolchain", "generator-cache"), filepath.Join(cacheDir, "generator-cache")); err != nil {
++		return nil, nil, err
++	}
++	adapterFile := filepath.Join(stage, "deterministicio", result.SourceFile)
++	contents, err := os.ReadFile(adapterFile)
++	if err != nil {
++		return nil, nil, err
++	}
++	updated, err := editAdapterPins(contents, result, oldVersion, oldSum)
++	if err != nil {
++		return nil, nil, err
++	}
++	if err := os.WriteFile(adapterFile, updated, 0o644); err != nil {
++		return nil, nil, err
++	}
++	if err := editAdapterDescriptor(filepath.Join(stage, "toolchain", "version", "version.json"), result.Module, oldVersion, oldSum, result.Version, result.Sum); err != nil {
++		return nil, nil, err
++	}
++	if err := editAdapterFixtures(filepath.Join(stage, "deterministicio", "testdata"), result.Module, oldVersion, oldSum, oldGoModSum, result.Version, result.Sum, newGoModSum, privateCache); err != nil {
++		return nil, nil, err
++	}
++	generate := exec.CommandContext(context.Background(), "make", "-C", stage, "generate")
++	generate.Env = append(os.Environ(), "GOTOOLCHAIN=local", "GOWORK=off")
++	output, err := generate.CombinedOutput()
++	if err != nil {
++		return nil, nil, fmt.Errorf("generate staged adapter artifacts: %w\n%s", err, output)
++	}
++	validate := exec.CommandContext(context.Background(), "make", "-C", stage, "validate-toolchain", "validate-qualification")
++	validate.Env = append(os.Environ(), "GOTOOLCHAIN=local", "GOWORK=off")
++	output, err = validate.CombinedOutput()
++	if err != nil {
++		return nil, nil, fmt.Errorf("validate staged adapter artifacts: %w\n%s", err, output)
++	}
++	compile := exec.CommandContext(context.Background(), "go", "test", "-tags", "test_dep", "-run", "^$", "./deterministicio")
++	compile.Dir = stage
++	compile.Env = append(os.Environ(), "GOTOOLCHAIN=local", "GOWORK=off")
++	output, err = compile.CombinedOutput()
++	if err != nil {
++		return nil, nil, fmt.Errorf("compile staged adapter: %w\n%s", err, output)
++	}
++	files = []adapterPublicationFile{}
++	for _, subtree := range adapterRegenerationInputTrees[:2] {
++		err = collectAdapterStageChanges(filepath.Join(work, subtree), subtree, snapshot, &files)
++		if err != nil {
++			return nil, nil, err
++		}
++	}
++	return files, snapshot, nil
++}
++
++func copyAdapterStageInputs(root, checkoutRoot, work string) (map[string]publicationContent, error) {
++	snapshot := map[string]publicationContent{}
++	for _, tree := range adapterRegenerationInputTrees {
++		source := filepath.Join(checkoutRoot, tree)
++		if tree == adapterRegenerationInputTrees[0] {
++			source = root
++		}
++		copied, err := copyAdapterStageTree(source, filepath.Join(work, tree))
++		if err != nil {
++			return nil, err
++		}
++		for relative, content := range copied {
++			snapshot[filepath.Join(tree, relative)] = content
++		}
++	}
++	return snapshot, nil
++}
++
++func collectAdapterStageChanges(stage, prefix string, snapshot map[string]publicationContent, files *[]adapterPublicationFile) error {
++	err := filepath.WalkDir(stage, func(path string, entry fs.DirEntry, visitErr error) error {
++		if visitErr != nil {
++			return visitErr
++		}
++		if entry.IsDir() {
++			if filepath.Base(path) == ".toolchain" || filepath.Base(path) == ".bin" {
++				return filepath.SkipDir
++			}
++			return nil
++		}
++		if !entry.Type().IsRegular() {
++			return fmt.Errorf("staged adapter output is not a regular file: %s", path)
++		}
++		local, err := filepath.Rel(stage, path)
++		if err != nil {
++			return err
++		}
++		relative := filepath.Join(prefix, local)
++		contents, err := os.ReadFile(path)
++		if err != nil {
++			return err
++		}
++		newContent := publicationContent{Present: true, Bytes: contents}
++		old := snapshot[relative]
++		if !samePublicationContent(old, newContent) {
++			*files = append(*files, adapterPublicationFile{Path: relative, Old: old, New: newContent})
++		}
++		return nil
++	})
++	if err != nil {
++		return err
++	}
++	for relative, old := range snapshot {
++		if !strings.HasPrefix(relative, prefix+string(filepath.Separator)) {
++			continue
++		}
++		local := strings.TrimPrefix(relative, prefix+string(filepath.Separator))
++		if _, err := os.Stat(filepath.Join(stage, local)); errors.Is(err, os.ErrNotExist) {
++			*files = append(*files, adapterPublicationFile{Path: relative, Old: old})
++		} else if err != nil {
++			return err
++		}
++	}
++	return nil
++}
++
++func walkAdapterStageInputs(source string, visit func(path, relative string, entry fs.DirEntry) error) error {
++	return filepath.WalkDir(source, func(path string, entry fs.DirEntry, visitErr error) error {
++		if visitErr != nil {
++			return visitErr
++		}
++		relative, err := filepath.Rel(source, path)
++		if err != nil {
++			return err
++		}
++		if entry.IsDir() && (relative == ".toolchain" || relative == ".bin") {
++			return filepath.SkipDir
++		}
++		if !entry.IsDir() && !entry.Type().IsRegular() {
++			return fmt.Errorf("adapter stage input is not a regular file: %s", relative)
++		}
++		return visit(path, relative, entry)
++	})
++}
++
++func snapshotAdapterStageTree(source string) (map[string]publicationContent, error) {
++	snapshot := map[string]publicationContent{}
++	err := walkAdapterStageInputs(source, func(path, relative string, entry fs.DirEntry) error {
++		if entry.IsDir() {
++			return nil
++		}
++		contents, err := os.ReadFile(path)
++		if err != nil {
++			return err
++		}
++		snapshot[relative] = publicationContent{Present: true, Bytes: contents}
++		return nil
++	})
++	return snapshot, err
++}
++
++func copyAdapterStageTree(source, destination string) (map[string]publicationContent, error) {
++	snapshot := map[string]publicationContent{}
++	err := walkAdapterStageInputs(source, func(path, relative string, entry fs.DirEntry) error {
++		if entry.IsDir() {
++			return os.MkdirAll(filepath.Join(destination, relative), 0o700)
++		}
++		contents, err := os.ReadFile(path)
++		if err != nil {
++			return err
++		}
++		info, err := entry.Info()
++		if err != nil {
++			return err
++		}
++		if err := os.WriteFile(filepath.Join(destination, relative), contents, info.Mode().Perm()); err != nil {
++			return err
++		}
++		snapshot[relative] = publicationContent{Present: true, Bytes: contents}
++		return nil
++	})
++	return snapshot, err
++}
++
++func editAdapterDescriptor(path, module, oldVersion, oldSum, version, sum string) error {
++	contents, err := os.ReadFile(path)
++	if err != nil {
++		return err
++	}
++	var descriptor gomadversion.Descriptor
++	if err := json.Unmarshal(contents, &descriptor); err != nil {
++		return err
++	}
++	hits := 0
++	for index := range descriptor.Adapters {
++		adapter := &descriptor.Adapters[index]
++		if adapter.Module != module {
++			continue
++		}
++		if adapter.Version != oldVersion || adapter.Sum != oldSum {
++			return errors.New("adapter descriptor changed since planning")
++		}
++		adapter.Version, adapter.Sum = version, sum
++		hits++
++	}
++	if hits != 1 {
++		return fmt.Errorf("adapter descriptor has %d entries for %s", hits, module)
++	}
++	updated, err := json.MarshalIndent(descriptor, "", "  ")
++	if err != nil {
++		return err
++	}
++	return os.WriteFile(path, append(updated, '\n'), 0o644)
++}
++
++func editAdapterFixtures(root, module, oldVersion, oldSum, oldGoModSum, version, sum, newGoModSum, privateCache string) error {
++	var changedModules []string
++	err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, visitErr error) error {
++		if visitErr != nil {
++			return visitErr
++		}
++		if entry.IsDir() {
++			return nil
++		}
++		if entry.Name() != "go.mod" && entry.Name() != "go.sum" {
++			return nil
++		}
++		contents, err := os.ReadFile(path)
++		if err != nil {
++			return err
++		}
++		updated := string(contents)
++		if entry.Name() == "go.mod" {
++			updated = strings.ReplaceAll(updated, module+" "+oldVersion, module+" "+version)
++		} else {
++			updated = strings.ReplaceAll(updated, module+" "+oldVersion+" "+oldSum, module+" "+version+" "+sum)
++			updated = strings.ReplaceAll(updated, module+" "+oldVersion+"/go.mod "+oldGoModSum, module+" "+version+"/go.mod "+newGoModSum)
++		}
++		if updated == string(contents) {
++			return nil
++		}
++		if entry.Name() == "go.mod" {
++			changedModules = append(changedModules, filepath.Dir(path))
++		}
++		return os.WriteFile(path, []byte(updated), 0o644)
++	})
++	if err != nil {
++		return err
++	}
++	for _, directory := range changedModules {
++		command := exec.CommandContext(context.Background(), "go", "mod", "tidy")
++		command.Dir = directory
++		command.Env = append(os.Environ(), "GOMODCACHE="+privateCache, "GOWORK=off", "GOFLAGS=", "GOTOOLCHAIN=local")
++		output, err := command.CombinedOutput()
++		if err != nil {
++			return fmt.Errorf("refresh staged adapter fixture %s: %w\n%s", directory, err, output)
++		}
++	}
++	return nil
++}
+diff --git a/tools/gomad3/cmd/gomadtool/adapter_publication.go b/tools/gomad3/cmd/gomadtool/adapter_publication.go
+new file mode 100644
+index 0000000000..92b4c1f3b2
+--- /dev/null
++++ b/tools/gomad3/cmd/gomadtool/adapter_publication.go
+@@ -0,0 +1,233 @@
++package main
++
++import (
++	"bytes"
++	"encoding/json"
++	"errors"
++	"fmt"
++	"os"
++	"path/filepath"
++	"slices"
++	"strings"
++
++	"go.temporal.io/server/tools/gomad3/internal/hostfs"
++)
++
++type publicationContent struct {
++	Present bool   `json:"present"`
++	Bytes   []byte `json:"bytes,omitempty"`
++}
++
++type adapterPublicationFile struct {
++	Path string             `json:"path"`
++	Old  publicationContent `json:"old"`
++	New  publicationContent `json:"new"`
++}
++
++type adapterPublication struct {
++	Schema string                   `json:"schema"`
++	Files  []adapterPublicationFile `json:"files"`
++}
++
++var adapterRegenerationInputTrees = []string{
++	filepath.Join("tools", "gomad3"),
++	filepath.Join("tools", "gomad3integration", "qualification"),
++	"tests",
++}
++
++func adapterPublicationMarker(root string) string {
++	return filepath.Join(root, "tools", "gomad3", ".toolchain", "adapter-regenerate", "transaction.json")
++}
++
++func withAdapterPublicationLock(root string, operation func() error) (retErr error) {
++	lockPath := filepath.Join(root, "tools", "gomad3", ".toolchain", "adapter-regenerate.lock")
++	if err := os.MkdirAll(filepath.Dir(lockPath), 0o700); err != nil {
++		return err
++	}
++	lock, err := hostfs.Try(lockPath)
++	if err != nil {
++		return fmt.Errorf("lock adapter regeneration: %w", err)
++	}
++	defer func() { retErr = errors.Join(retErr, lock.Release()) }()
++	return operation()
++}
++
++func readPublicationFile(root, relative string) (publicationContent, error) {
++	if relative == "" || filepath.IsAbs(relative) || filepath.Clean(relative) != relative || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
++		return publicationContent{}, fmt.Errorf("invalid publication path %q", relative)
++	}
++	path := filepath.Join(root, relative)
++	info, err := os.Lstat(path)
++	if errors.Is(err, os.ErrNotExist) {
++		return publicationContent{}, nil
++	}
++	if err != nil {
++		return publicationContent{}, err
++	}
++	if !info.Mode().IsRegular() || info.Size() > 64<<20 {
++		return publicationContent{}, fmt.Errorf("publication path is not a bounded regular file: %s", relative)
++	}
++	contents, err := os.ReadFile(path)
++	if err != nil {
++		return publicationContent{}, err
++	}
++	return publicationContent{Present: true, Bytes: contents}, nil
++}
++
++func samePublicationContent(a, b publicationContent) bool {
++	return a.Present == b.Present && bytes.Equal(a.Bytes, b.Bytes)
++}
++
++func writePublicationFile(root, relative string, content publicationContent) error {
++	path := filepath.Join(root, relative)
++	if !content.Present {
++		if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
++			return err
++		}
++		return syncPublicationDirectory(filepath.Dir(path))
++	}
++	mode := os.FileMode(0o644)
++	if strings.Contains(relative, string(filepath.Separator)+"requests"+string(filepath.Separator)) {
++		mode = 0o600
++	}
++	return hostfs.Replace(path, content.Bytes, mode)
++}
++
++func syncPublicationDirectory(path string) error {
++	dir, err := os.Open(path)
++	if err != nil {
++		return err
++	}
++	return errors.Join(dir.Sync(), dir.Close())
++}
++
++func recordAdapterPublication(root string, files []adapterPublicationFile) error {
++	marker := adapterPublicationMarker(root)
++	if err := os.MkdirAll(filepath.Dir(marker), 0o700); err != nil {
++		return err
++	}
++	if _, err := os.Lstat(marker); !errors.Is(err, os.ErrNotExist) {
++		return errors.New("adapter regeneration transaction already exists")
++	}
++	encoded, err := json.Marshal(adapterPublication{Schema: "gomad3.adapter-regeneration-transaction/v1", Files: files})
++	if err != nil {
++		return err
++	}
++	return hostfs.Replace(marker, encoded, 0o600)
++}
++
++func clearAdapterPublication(root string) error {
++	marker := adapterPublicationMarker(root)
++	if err := os.Remove(marker); err != nil {
++		return err
++	}
++	return syncPublicationDirectory(filepath.Dir(marker))
++}
++
++func recoverAdapterPublication(root string) error {
++	marker := adapterPublicationMarker(root)
++	info, err := os.Lstat(marker)
++	if errors.Is(err, os.ErrNotExist) {
++		return nil
++	}
++	if err != nil {
++		return err
++	}
++	if !info.Mode().IsRegular() || info.Size() > 64<<20 {
++		return errors.New("adapter regeneration marker is invalid")
++	}
++	encoded, err := os.ReadFile(marker)
++	if err != nil {
++		return err
++	}
++	var pending adapterPublication
++	if err := json.Unmarshal(encoded, &pending); err != nil {
++		return err
++	}
++	if pending.Schema != "gomad3.adapter-regeneration-transaction/v1" || len(pending.Files) == 0 {
++		return errors.New("adapter regeneration marker has invalid schema or files")
++	}
++	seen := make(map[string]bool, len(pending.Files))
++	for _, file := range pending.Files {
++		if seen[file.Path] {
++			return errors.New("adapter regeneration marker has duplicate paths")
++		}
++		seen[file.Path] = true
++		current, err := readPublicationFile(root, file.Path)
++		if err != nil {
++			return err
++		}
++		if !samePublicationContent(current, file.Old) && !samePublicationContent(current, file.New) {
++			return fmt.Errorf("adapter regeneration interrupted checkout changed externally: %s", file.Path)
++		}
++	}
++	for _, file := range pending.Files {
++		if err := writePublicationFile(root, file.Path, file.Old); err != nil {
++			return fmt.Errorf("restore interrupted adapter regeneration %s: %w", file.Path, err)
++		}
++	}
++	return clearAdapterPublication(root)
++}
++
++func publishAdapterFiles(root string, files []adapterPublicationFile) error {
++	return publishAdapterFilesWithSnapshot(root, files, nil, nil)
++}
++
++func validateAdapterPublicationSnapshot(root string, files []adapterPublicationFile, snapshot map[string]publicationContent, inputTrees []string) error {
++	for path, old := range snapshot {
++		current, err := readPublicationFile(root, path)
++		if err != nil {
++			return err
++		}
++		if !samePublicationContent(current, old) {
++			return fmt.Errorf("checkout changed since staging: %s", path)
++		}
++	}
++	for _, file := range files {
++		current, err := readPublicationFile(root, file.Path)
++		if err != nil {
++			return err
++		}
++		if !samePublicationContent(current, file.Old) {
++			return fmt.Errorf("checkout changed since staging: %s", file.Path)
++		}
++	}
++	for _, tree := range inputTrees {
++		current, err := snapshotAdapterStageTree(filepath.Join(root, tree))
++		if err != nil {
++			return err
++		}
++		for relative, contents := range current {
++			path := filepath.Join(tree, relative)
++			old, found := snapshot[path]
++			if !found || !samePublicationContent(contents, old) {
++				return fmt.Errorf("checkout changed since staging: %s", path)
++			}
++		}
++	}
++	return nil
++}
++
++func publishAdapterFilesWithSnapshot(root string, files []adapterPublicationFile, snapshot map[string]publicationContent, inputTrees []string) error {
++	if len(files) == 0 {
++		return errors.New("adapter regeneration has no changed files")
++	}
++	slices.SortFunc(files, func(a, b adapterPublicationFile) int { return strings.Compare(a.Path, b.Path) })
++	return withAdapterPublicationLock(root, func() error {
++		if err := recoverAdapterPublication(root); err != nil {
++			return err
++		}
++		if err := validateAdapterPublicationSnapshot(root, files, snapshot, inputTrees); err != nil {
++			return err
++		}
++		if err := recordAdapterPublication(root, files); err != nil {
++			return err
++		}
++		for _, file := range files {
++			if err := writePublicationFile(root, file.Path, file.New); err != nil {
++				return errors.Join(fmt.Errorf("publish adapter regeneration %s: %w", file.Path, err), recoverAdapterPublication(root))
++			}
++		}
++		return clearAdapterPublication(root)
++	})
++}
+diff --git a/tools/gomad3/cmd/gomadtool/adapter_regenerate_test.go b/tools/gomad3/cmd/gomadtool/adapter_regenerate_test.go
+new file mode 100644
+index 0000000000..b8f0f861f2
+--- /dev/null
++++ b/tools/gomad3/cmd/gomadtool/adapter_regenerate_test.go
+@@ -0,0 +1,398 @@
++package main
++
++import (
++	"bytes"
++	"io/fs"
++	"maps"
++	"os"
++	"path/filepath"
++	"strings"
++	"sync"
++	"testing"
++
++	"go.temporal.io/server/tools/gomad3/deterministicio"
++)
++
++func TestAdapterRegenerationDryRunLeavesCheckoutUntouched(t *testing.T) {
++	checkout := t.TempDir()
++	root := filepath.Join(checkout, "tools", "gomad3")
++	path := filepath.Join(root, "toolchain", "version", "version.json")
++	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
++		t.Fatal(err)
++	}
++	descriptor, err := os.ReadFile(filepath.Join("..", "..", "toolchain", "version", "version.json"))
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(path, descriptor, 0o600); err != nil {
++		t.Fatal(err)
++	}
++	before := readAdapterCheckoutTree(t, checkout)
++	var stdout, stderr bytes.Buffer
++	status := runAdapterRegenerate([]string{"--root=" + root, "--module=github.com/Masterminds/sprig/v3", "--version=v3.3.0"}, &stdout, &stderr)
++	if status != 0 {
++		t.Fatalf("dry run status=%d: %s", status, stderr.String())
++	}
++	if !strings.Contains(stdout.String(), "Approval SHA-256:") {
++		t.Fatalf("dry run report = %s", stdout.String())
++	}
++	updated, err := os.ReadFile(path)
++	if err != nil || !bytes.Equal(updated, descriptor) {
++		t.Fatalf("dry run changed descriptor: %v", err)
++	}
++	if after := readAdapterCheckoutTree(t, checkout); !maps.Equal(after, before) {
++		t.Fatalf("dry run changed checkout tree: before=%v after=%v", before, after)
++	}
++	stdout.Reset()
++	stderr.Reset()
++	status = runAdapterRegenerate([]string{"--root=" + root, "--module=github.com/Masterminds/sprig/v3", "--version=v3.3.0", "--approve=sha256:wrong"}, &stdout, &stderr)
++	if status == 0 || !strings.Contains(stderr.String(), "approval does not match") {
++		t.Fatalf("wrong approval status=%d: %s", status, stderr.String())
++	}
++	if after := readAdapterCheckoutTree(t, checkout); !maps.Equal(after, before) {
++		t.Fatalf("wrong approval changed checkout tree: before=%v after=%v", before, after)
++	}
++}
++
++func readAdapterCheckoutTree(t *testing.T, root string) map[string]string {
++	t.Helper()
++	entries := map[string]string{}
++	err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, visitErr error) error {
++		if visitErr != nil {
++			return visitErr
++		}
++		relative, err := filepath.Rel(root, path)
++		if err != nil {
++			return err
++		}
++		if entry.IsDir() {
++			entries[relative] = "directory"
++			return nil
++		}
++		contents, err := os.ReadFile(path)
++		if err != nil {
++			return err
++		}
++		entries[relative] = string(contents)
++		return nil
++	})
++	if err != nil {
++		t.Fatal(err)
++	}
++	return entries
++}
++
++func TestAdapterApprovalBindsUpstreamSourceAndAnchors(t *testing.T) {
++	result := deterministicio.AdapterRegeneration{Module: "example.com/module", Version: "v1.2.3", Sum: "h1:example", Sources: []deterministicio.RegeneratedSource{{Path: "source.go", Source: []byte("original"), Replacement: []byte("adapted"), SourceSHA256: "sha256:source", ReplacementSHA256: "sha256:replacement"}}}
++	baseline, err := adapterRegenerationApproval(result)
++	if err != nil {
++		t.Fatal(err)
++	}
++	result.Sources[0].Source = []byte("changed upstream source")
++	changedSource, err := adapterRegenerationApproval(result)
++	if err != nil {
++		t.Fatal(err)
++	}
++	result.Sources[0].Source = []byte("original")
++	result.Sources[0].Replacement = []byte("changed replacement")
++	changedAnchor, err := adapterRegenerationApproval(result)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if baseline == changedSource || baseline == changedAnchor {
++		t.Fatalf("approval did not bind source and rewrite: %s, %s, %s", baseline, changedSource, changedAnchor)
++	}
++}
++
++func TestEditAdapterPinsPreservesCommentsAndRequiresOldPin(t *testing.T) {
++	source := []byte("package test\n\n// Preserve this comment.\nconst old = \"sha256:old\"\nvar prepared = map[string]string{\"darwin/arm64\": \"sha256:hostold\", \"linux/amd64\": \"sha256:hostold\"}\n")
++	regenerated := deterministicio.AdapterRegeneration{Sources: []deterministicio.RegeneratedSource{{OldSourceSHA256: "sha256:old", SourceSHA256: "sha256:new"}}, PreparedSourceSets: map[string]string{"darwin/arm64": "sha256:darwin", "linux/amd64": "sha256:linux"}}
++	result, err := editAdapterPins(source, regenerated, "", "")
++	if err != nil {
++		t.Fatal(err)
++	}
++	if !strings.Contains(string(result), "// Preserve this comment.") || !strings.Contains(string(result), "sha256:new") || !strings.Contains(string(result), "sha256:darwin") || !strings.Contains(string(result), "sha256:linux") {
++		t.Fatalf("edited source = %s", result)
++	}
++	regenerated.Sources[0].OldSourceSHA256 = "sha256:missing"
++	if _, err := editAdapterPins(source, regenerated, "", ""); err == nil || !strings.Contains(err.Error(), "missing pin") {
++		t.Fatalf("missing pin error = %v", err)
++	}
++	regenerated.Sources[0].OldSourceSHA256 = "sha256:old"
++	duplicate := append(append([]byte{}, source...), []byte("const second = \"sha256:old\"\n")...)
++	if _, err := editAdapterPins(duplicate, regenerated, "", ""); err == nil || !strings.Contains(err.Error(), "duplicate pin") {
++		t.Fatalf("duplicate pin error = %v", err)
++	}
++}
++
++func TestAdapterPublicationRejectsCheckoutDrift(t *testing.T) {
++	root := t.TempDir()
++	path := filepath.Join(root, "source.go")
++	if err := os.WriteFile(path, []byte("old"), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	before, err := readPublicationFile(root, "source.go")
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(path, []byte("other"), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	err = publishAdapterFiles(root, []adapterPublicationFile{{Path: "source.go", Old: before, New: publicationContent{Present: true, Bytes: []byte("new")}}})
++	if err == nil || !strings.Contains(err.Error(), "changed since staging") {
++		t.Fatalf("publishAdapterFiles() error = %v", err)
++	}
++	contents, err := os.ReadFile(path)
++	if err != nil || string(contents) != "other" {
++		t.Fatalf("checkout = %q, %v", contents, err)
++	}
++}
++
++func TestAdapterPublicationRejectsUnchangedInputDrift(t *testing.T) {
++	root := t.TempDir()
++	input := filepath.Join(root, "go.mod")
++	if err := os.WriteFile(input, []byte("old"), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	before, err := readPublicationFile(root, "go.mod")
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(input, []byte("changed"), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	err = publishAdapterFilesWithSnapshot(root, []adapterPublicationFile{{Path: "generated.go", New: publicationContent{Present: true, Bytes: []byte("generated")}}}, map[string]publicationContent{"go.mod": before}, nil)
++	if err == nil || !strings.Contains(err.Error(), "checkout changed since staging: go.mod") {
++		t.Fatalf("unchanged input drift error = %v", err)
++	}
++	if _, err := os.Stat(filepath.Join(root, "generated.go")); !os.IsNotExist(err) {
++		t.Fatalf("generated output unexpectedly published: %v", err)
++	}
++}
++
++func TestAdapterPublicationRejectsNewStagedInput(t *testing.T) {
++	for _, test := range []struct{ name, path string }{
++		{"adapter request", filepath.Join("tools", "gomad3", "internal", "compatibilitypack", "requests", "new.json")},
++		{"qualification", filepath.Join("tools", "gomad3integration", "qualification", "new.json")},
++		{"tests", filepath.Join("tests", "new_test.go")},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			testAdapterPublicationRejectsNewStagedInput(t, test.path)
++		})
++	}
++}
++
++func testAdapterPublicationRejectsNewStagedInput(t *testing.T, newInput string) {
++	t.Helper()
++	root := t.TempDir()
++	paths := map[string]string{
++		filepath.Join("tools", "gomad3", "deterministicio", "sprig_adapter.go"):                    "old adapter",
++		filepath.Join("tools", "gomad3", "toolchain", "version", "generated.go"):                   "old generated",
++		filepath.Join("tools", "gomad3", "internal", "compatibilitypack", "requests", "base.json"): "old request",
++		filepath.Join("tools", "gomad3integration", "qualification", "tests.json"):                 "old manifest",
++		filepath.Join("tests", "test.go"):                                                          "old test",
++		"go.mod":                                                                                   "old module",
++		"go.sum":                                                                                   "old sums",
++	}
++	snapshot := map[string]publicationContent{}
++	for path, contents := range paths {
++		full := filepath.Join(root, path)
++		if err := os.MkdirAll(filepath.Dir(full), 0o700); err != nil {
++			t.Fatal(err)
++		}
++		if err := os.WriteFile(full, []byte(contents), 0o600); err != nil {
++			t.Fatal(err)
++		}
++		snapshot[path] = publicationContent{Present: true, Bytes: []byte(contents)}
++	}
++	if err := os.WriteFile(filepath.Join(root, newInput), []byte("new input"), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	adapterPath := filepath.Join("tools", "gomad3", "deterministicio", "sprig_adapter.go")
++	generatedPath := filepath.Join("tools", "gomad3", "toolchain", "version", "generated.go")
++	files := []adapterPublicationFile{
++		{Path: adapterPath, Old: snapshot[adapterPath], New: publicationContent{Present: true, Bytes: []byte("new adapter")}},
++		{Path: generatedPath, Old: snapshot[generatedPath], New: publicationContent{Present: true, Bytes: []byte("new generated")}},
++	}
++	err := publishAdapterFilesWithSnapshot(root, files, snapshot, adapterRegenerationInputTrees)
++	if err == nil || !strings.Contains(err.Error(), "checkout changed since staging: "+newInput) {
++		t.Fatalf("new staged input error = %v", err)
++	}
++	contents, err := os.ReadFile(filepath.Join(root, adapterPath))
++	if err != nil || string(contents) != "old adapter" {
++		t.Fatalf("published adapter despite new input: %q, %v", contents, err)
++	}
++	contents, err = os.ReadFile(filepath.Join(root, generatedPath))
++	if err != nil || string(contents) != "old generated" {
++		t.Fatalf("published generated output despite new input: %q, %v", contents, err)
++	}
++	if _, err := os.Stat(adapterPublicationMarker(root)); !os.IsNotExist(err) {
++		t.Fatalf("publication marker unexpectedly exists: %v", err)
++	}
++}
++
++func TestAdapterPublicationAcceptsIgnoredCacheDrift(t *testing.T) {
++	root := t.TempDir()
++	snapshot := map[string]publicationContent{}
++	for path, contents := range map[string]string{
++		filepath.Join("tools", "gomad3", "deterministicio", "sprig_adapter.go"):    "old adapter",
++		filepath.Join("tools", "gomad3integration", "qualification", "tests.json"): "old manifest",
++		filepath.Join("tests", "test.go"):                                          "old test",
++		"go.mod":                                                                   "old module",
++		"go.sum":                                                                   "old sums",
++	} {
++		full := filepath.Join(root, path)
++		if err := os.MkdirAll(filepath.Dir(full), 0o700); err != nil {
++			t.Fatal(err)
++		}
++		if err := os.WriteFile(full, []byte(contents), 0o600); err != nil {
++			t.Fatal(err)
++		}
++		snapshot[path] = publicationContent{Present: true, Bytes: []byte(contents)}
++	}
++	for _, path := range []string{
++		filepath.Join("tools", "gomad3", ".toolchain", "generator-cache", "new"),
++		filepath.Join("tools", "gomad3", ".bin", "gomad"),
++	} {
++		full := filepath.Join(root, path)
++		if err := os.MkdirAll(filepath.Dir(full), 0o700); err != nil {
++			t.Fatal(err)
++		}
++		if err := os.WriteFile(full, []byte("cache"), 0o600); err != nil {
++			t.Fatal(err)
++		}
++	}
++	adapterPath := filepath.Join("tools", "gomad3", "deterministicio", "sprig_adapter.go")
++	files := []adapterPublicationFile{{Path: adapterPath, Old: snapshot[adapterPath], New: publicationContent{Present: true, Bytes: []byte("new adapter")}}}
++	if err := publishAdapterFilesWithSnapshot(root, files, snapshot, adapterRegenerationInputTrees); err != nil {
++		t.Fatal(err)
++	}
++	contents, err := os.ReadFile(filepath.Join(root, adapterPath))
++	if err != nil || string(contents) != "new adapter" {
++		t.Fatalf("published adapter = %q, %v", contents, err)
++	}
++	if _, err := os.Stat(adapterPublicationMarker(root)); !os.IsNotExist(err) {
++		t.Fatalf("publication marker remains: %v", err)
++	}
++}
++
++func TestAdapterPublicationRecoversInterruptedSet(t *testing.T) {
++	root := t.TempDir()
++	names := []string{filepath.Join("tools", "gomad3", "deterministicio", "sprig_adapter.go"), filepath.Join("tools", "gomad3integration", "qualification", "tests.json")}
++	for _, name := range names {
++		if err := os.MkdirAll(filepath.Dir(filepath.Join(root, name)), 0o700); err != nil {
++			t.Fatal(err)
++		}
++		if err := os.WriteFile(filepath.Join(root, name), []byte("old"), 0o600); err != nil {
++			t.Fatal(err)
++		}
++	}
++	files := []adapterPublicationFile{}
++	for _, name := range names {
++		files = append(files, adapterPublicationFile{Path: name, Old: publicationContent{Present: true, Bytes: []byte("old")}, New: publicationContent{Present: true, Bytes: []byte("new")}})
++	}
++	if err := recordAdapterPublication(root, files); err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(filepath.Join(root, names[0]), []byte("new"), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	if err := recoverAdapterPublication(root); err != nil {
++		t.Fatal(err)
++	}
++	for _, name := range names {
++		contents, err := os.ReadFile(filepath.Join(root, name))
++		if err != nil || string(contents) != "old" {
++			t.Fatalf("recovered %s = %q, %v", name, contents, err)
++		}
++	}
++	if _, err := os.Stat(adapterPublicationMarker(root)); !os.IsNotExist(err) {
++		t.Fatalf("recovery marker remains: %v", err)
++	}
++}
++
++func TestReportStaleLibcAdapterPacks(t *testing.T) {
++	var output bytes.Buffer
++	if err := reportStaleAdapterPacks(&output, "modernc.org/libc", "v1.72.4"); err != nil {
++		t.Fatal(err)
++	}
++	if !strings.Contains(output.String(), "Stale adapter-bound pack: modernc-libc") {
++		t.Fatalf("stale libc pack report = %s", output.String())
++	}
++}
++
++func TestAdapterPublicationSerializesCompetingApplies(t *testing.T) {
++	root := t.TempDir()
++	path := filepath.Join(root, "source.go")
++	if err := os.WriteFile(path, []byte("old"), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	start := make(chan struct{})
++	results := make(chan error, 2)
++	var workers sync.WaitGroup
++	for _, next := range []string{"first", "second"} {
++		workers.Add(1)
++		go func(next string) {
++			defer workers.Done()
++			<-start
++			results <- publishAdapterFiles(root, []adapterPublicationFile{{Path: "source.go", Old: publicationContent{Present: true, Bytes: []byte("old")}, New: publicationContent{Present: true, Bytes: []byte(next)}}})
++		}(next)
++	}
++	close(start)
++	workers.Wait()
++	close(results)
++	successes, failures := 0, 0
++	for err := range results {
++		if err == nil {
++			successes++
++		} else {
++			failures++
++		}
++	}
++	contents, err := os.ReadFile(path)
++	if err != nil || successes != 1 || failures != 1 || string(contents) != "first" && string(contents) != "second" {
++		t.Fatalf("competing publications: successes=%d failures=%d contents=%q error=%v", successes, failures, contents, err)
++	}
++}
++
++func TestAdapterGenerationFailureLeavesCheckoutUnchanged(t *testing.T) {
++	checkout := t.TempDir()
++	moduleRoot := filepath.Join(checkout, "tools", "gomad3")
++	for _, directory := range []string{filepath.Join(moduleRoot, "deterministicio", "testdata"), filepath.Join(moduleRoot, "toolchain", "version"), filepath.Join(checkout, "tools", "gomad3integration", "qualification"), filepath.Join(checkout, "tests")} {
++		if err := os.MkdirAll(directory, 0o700); err != nil {
++			t.Fatal(err)
++		}
++	}
++	write := func(path, contents string) {
++		t.Helper()
++		if err := os.WriteFile(path, []byte(contents), 0o600); err != nil {
++			t.Fatal(err)
++		}
++	}
++	write(filepath.Join(checkout, "go.mod"), "module example.com/root\n")
++	write(filepath.Join(checkout, "go.sum"), "")
++	write(filepath.Join(checkout, "tools", "gomad3integration", "qualification", "tests.json"), "old manifest")
++	write(filepath.Join(moduleRoot, "Makefile"), "generate:\n\tfalse\n")
++	adapter := filepath.Join(moduleRoot, "deterministicio", "sprig_adapter.go")
++	oldAdapter := "package deterministicio\nconst version = \"v3.3.0\"\nconst sum = \"h1:old\"\nvar pins = map[string]string{\"darwin/arm64\": \"sha256:old\", \"linux/amd64\": \"sha256:old\"}\n"
++	write(adapter, oldAdapter)
++	versionPath := filepath.Join(moduleRoot, "toolchain", "version", "version.json")
++	write(versionPath, "{\"adapters\":[{\"module\":\"github.com/Masterminds/sprig/v3\",\"version\":\"v3.3.0\",\"sum\":\"h1:old\"}]}")
++	before := readAdapterCheckoutTree(t, checkout)
++	result := deterministicio.AdapterRegeneration{Module: "github.com/Masterminds/sprig/v3", SourceFile: "sprig_adapter.go", Version: "v3.2.3", Sum: "h1:new", PreparedSourceSets: map[string]string{"darwin/arm64": "sha256:new", "linux/amd64": "sha256:new"}}
++	_, _, err := stageAdapterRegeneration(moduleRoot, result, "v3.3.0", "h1:old", "h1:oldmod", "h1:newmod", t.TempDir())
++	if err == nil || !strings.Contains(err.Error(), "generate staged adapter artifacts") {
++		t.Fatalf("stageAdapterRegeneration() error = %v", err)
++	}
++	contents, err := os.ReadFile(adapter)
++	if err != nil || string(contents) != oldAdapter {
++		t.Fatalf("checkout adapter = %q, %v", contents, err)
++	}
++	contents, err = os.ReadFile(versionPath)
++	if err != nil || !strings.Contains(string(contents), "v3.3.0") {
++		t.Fatalf("checkout descriptor = %q, %v", contents, err)
++	}
++	if after := readAdapterCheckoutTree(t, checkout); !maps.Equal(after, before) {
++		t.Fatalf("generation failure changed checkout tree: before=%v after=%v", before, after)
++	}
++}
+diff --git a/tools/gomad3/deterministicio/adapter_regenerate.go b/tools/gomad3/deterministicio/adapter_regenerate.go
+new file mode 100644
+index 0000000000..e101a86bb2
+--- /dev/null
++++ b/tools/gomad3/deterministicio/adapter_regenerate.go
+@@ -0,0 +1,288 @@
++package deterministicio
++
++import (
++	"errors"
++	"fmt"
++	"go/build"
++	"os"
++	"path/filepath"
++	"slices"
++	"strings"
++
++	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
++)
++
++type RegeneratedSource struct {
++	Path                 string `json:"path"`
++	OldSourceSHA256      string `json:"old_source_sha256"`
++	SourceSHA256         string `json:"source_sha256"`
++	OldReplacementSHA256 string `json:"old_replacement_sha256"`
++	ReplacementSHA256    string `json:"replacement_sha256"`
++	Source               []byte `json:"source"`
++	Replacement          []byte `json:"replacement"`
++}
++
++type AdapterRegeneration struct {
++	Module                        string              `json:"module"`
++	SourceFile                    string              `json:"source_file"`
++	Version                       string              `json:"version"`
++	Sum                           string              `json:"sum"`
++	OldOriginalInventorySHA256    string              `json:"old_original_inventory_sha256"`
++	OriginalInventorySHA256       string              `json:"original_inventory_sha256"`
++	OldReplacementInventorySHA256 string              `json:"old_replacement_inventory_sha256"`
++	ReplacementInventorySHA256    string              `json:"replacement_inventory_sha256"`
++	PreparedSourceSets            map[string]string   `json:"prepared_source_sets"`
++	Sources                       []RegeneratedSource `json:"sources"`
++	ReplacementRoot               string              `json:"-"`
++}
++
++func RegenerateAdapter(module, version, sum, moduleRoot, workRoot string) (AdapterRegeneration, error) {
++	if version == "" || sum == "" || moduleRoot == "" || workRoot == "" {
++		return AdapterRegeneration{}, errors.New("adapter regeneration requires an exact version, sum, module source, and work root")
++	}
++	var spec rewrittenModule
++	switch module {
++	case sprigModulePath:
++		spec = rewrittenModule{module: module, version: sprigVersion, sum: sprigSum, replacementDirectory: "sprig", originalInventorySHA256: sprigOriginalSourceInventorySHA256, replacementInventorySHA256: sprigReplacementSourceInventorySHA256, preparedPackage: sprigModulePath, rewrites: sprigRewrites}
++	case validatorModulePath:
++		spec = rewrittenModule{module: module, version: validatorVersion, sum: validatorSum, replacementDirectory: "validator", originalInventorySHA256: validatorOriginalSourceInventorySHA256, replacementInventorySHA256: validatorReplacementSourceInventorySHA256, preparedPackage: validatorModulePath, rewrites: validatorRewrites}
++	case pebbleModulePath:
++		spec = rewrittenModule{module: module, version: pebbleVersion, sum: pebbleSum, replacementDirectory: "pebble", originalInventorySHA256: pebbleOriginalSourceInventorySHA256, replacementInventorySHA256: pebbleReplacementSourceInventorySHA256, preparedPackage: pebbleModulePath + "/vfs", rewrites: pebbleRewrites}
++	case cactusStatsDModulePath:
++		spec = rewrittenModule{module: module, version: cactusStatsDVersion, sum: cactusStatsDSum, replacementDirectory: "cactus-statsd", originalInventorySHA256: cactusStatsDOriginalSourceInventorySHA256, replacementInventorySHA256: cactusStatsDReplacementSourceInventorySHA256, preparedPackage: cactusStatsDModulePath + "/statsd", rewrites: cactusStatsDRewrites}
++	case memberlistModulePath:
++		spec = rewrittenModule{module: module, version: memberlistVersion, sum: memberlistSum, replacementDirectory: "memberlist", originalInventorySHA256: memberlistOriginalSourceInventorySHA256, replacementInventorySHA256: memberlistReplacementSourceInventorySHA256, preparedPackage: memberlistModulePath, rewrites: memberlistRewrites}
++	case sentryModulePath:
++		spec = rewrittenModule{module: module, version: sentryVersion, sum: sentrySum, replacementDirectory: "sentry-go", originalInventorySHA256: sentryOriginalSourceInventorySHA256, replacementInventorySHA256: sentryReplacementSourceInventorySHA256, preparedPackage: sentryModulePath, rewrites: sentryRewrites}
++	case hashicorpMetricsModulePath:
++		spec = rewrittenModule{module: module, version: hashicorpMetricsVersion, sum: hashicorpMetricsSum, replacementDirectory: "hashicorp-go-metrics", originalInventorySHA256: hashicorpMetricsOriginalSourceInventorySHA256, replacementInventorySHA256: hashicorpMetricsReplacementSourceInventorySHA256, preparedPackage: hashicorpMetricsModulePath, rewrites: hashicorpMetricsRewrites}
++	case fxModulePath:
++		spec = rewrittenModule{module: module, version: fxVersion, sum: fxSum, replacementDirectory: "uber-fx", originalInventorySHA256: fxOriginalSourceInventorySHA256, replacementInventorySHA256: fxReplacementSourceInventorySHA256, preparedPackage: fxModulePath, rewrites: fxRewrites}
++	case temporalSDKModulePath:
++		spec = rewrittenModule{module: module, version: temporalSDKVersion, sum: temporalSDKSum, replacementDirectory: "temporal-sdk", originalInventorySHA256: temporalSDKOriginalSourceInventorySHA256, replacementInventorySHA256: temporalSDKReplacementSourceInventorySHA256, preparedPackage: temporalSDKModulePath + "/internal", rewrites: temporalSDKRewrites}
++	case otelSDKModulePath:
++		spec = rewrittenModule{module: module, version: otelSDKVersion, sum: otelSDKSum, replacementDirectory: "otel-sdk", originalInventorySHA256: otelSDKOriginalSourceInventorySHA256, replacementInventorySHA256: otelSDKReplacementSourceInventorySHA256, preparedPackage: otelSDKModulePath + "/resource", rewrites: otelSDKRewrites}
++	case sockaddrModulePath:
++		spec = rewrittenModule{module: module, version: sockaddrVersion, sum: sockaddrSum, replacementDirectory: "go-sockaddr", originalInventorySHA256: sockaddrOriginalSourceInventorySHA256, replacementInventorySHA256: sockaddrReplacementSourceInventorySHA256, preparedPackage: sockaddrModulePath, rewrites: sockaddrRewrites}
++	case memoryModulePath:
++		spec = rewrittenModule{module: module, version: memoryVersion, sum: memorySum, replacementDirectory: "modernc-memory", originalInventorySHA256: memoryOriginalSourceInventorySHA256, replacementInventorySHA256: memoryReplacementSourceInventorySHA256, preparedPackage: memoryModulePath, rewrites: memoryRewrites}
++	case grpcModulePath:
++		return regenerateGRPC(moduleRoot, workRoot, version, sum)
++	case xnetModulePath:
++		return regenerateXNet(moduleRoot, workRoot, version, sum)
++	case libcModulePath:
++		return regenerateLibc(moduleRoot, workRoot, version, sum)
++	default:
++		return AdapterRegeneration{}, fmt.Errorf("adapter %s is not registered", module)
++	}
++	result, err := regenerateRewrittenModule(moduleRoot, workRoot, spec)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	result.Version, result.Sum = version, sum
++	return result, nil
++}
++
++func regenerateRewrittenModule(moduleRoot, workRoot string, spec rewrittenModule) (AdapterRegeneration, error) {
++	result := AdapterRegeneration{Module: spec.module, SourceFile: adapterSourceFile(spec.module), OldOriginalInventorySHA256: spec.originalInventorySHA256, OldReplacementInventorySHA256: spec.replacementInventorySHA256}
++	var err error
++	result.OriginalInventorySHA256, err = digestAdapterSourceInventory(moduleRoot)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	replacements := make(map[string][]byte, len(spec.rewrites))
++	for _, rewrite := range spec.rewrites {
++		contents, err := readAdapterSource(spec.module, moduleRoot, rewrite.path)
++		if err != nil {
++			return AdapterRegeneration{}, err
++		}
++		rewritten, err := regenerateSourceRewrite(spec.module, rewrite, contents)
++		if err != nil {
++			return AdapterRegeneration{}, err
++		}
++		replacements[rewrite.path] = rewritten
++		result.Sources = append(result.Sources, RegeneratedSource{Path: rewrite.path, OldSourceSHA256: rewrite.sourceSHA256, SourceSHA256: digestBytes(contents), OldReplacementSHA256: rewrite.replacementSHA256, ReplacementSHA256: digestBytes(rewritten), Source: contents, Replacement: rewritten})
++	}
++	return finishAdapterRegeneration(moduleRoot, workRoot, spec, result, replacements)
++}
++
++func finishAdapterRegeneration(moduleRoot, workRoot string, spec rewrittenModule, result AdapterRegeneration, replacements map[string][]byte) (AdapterRegeneration, error) {
++	result.ReplacementRoot = filepath.Join(workRoot, spec.replacementDirectory)
++	if err := os.MkdirAll(workRoot, 0o700); err != nil {
++		return AdapterRegeneration{}, err
++	}
++	if err := copyAdapterModule(moduleRoot, result.ReplacementRoot, replacements, defaultAdapterCopyLimits); err != nil {
++		return AdapterRegeneration{}, err
++	}
++	var err error
++	result.ReplacementInventorySHA256, err = digestAdapterSourceInventory(result.ReplacementRoot)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	result.PreparedSourceSets = map[string]string{}
++	for _, platform := range []struct{ host, goos, goarch string }{{"darwin/arm64", "darwin", "arm64"}, {"linux/amd64", "linux", "amd64"}} {
++		context := build.Default
++		context.GOOS, context.GOARCH, context.CgoEnabled = platform.goos, platform.goarch, false
++		context.BuildTags = []string{"gomad", "hashicorpmetrics", "integration", "test_dep"}
++		packageDir := filepath.Join(result.ReplacementRoot, strings.TrimPrefix(spec.preparedPackage, spec.module))
++		pkg, err := context.ImportDir(packageDir, 0)
++		if err != nil {
++			return AdapterRegeneration{}, fmt.Errorf("select %s source set on %s: %w", spec.preparedPackage, platform.host, err)
++		}
++		names := append([]string{}, pkg.GoFiles...)
++		names = append(names, pkg.CgoFiles...)
++		slices.Sort(names)
++		sources := make([]compatibility.Source, 0, len(names))
++		for _, name := range names {
++			contents, err := os.ReadFile(filepath.Join(packageDir, name))
++			if err != nil {
++				return AdapterRegeneration{}, err
++			}
++			sources = append(sources, compatibility.Source{Name: name, SHA256: digestBytes(contents)})
++		}
++		result.PreparedSourceSets[platform.host] = compatibility.DigestSources(sources)
++	}
++	return result, nil
++}
++
++func adapterSourceFile(module string) string {
++	switch module {
++	case sprigModulePath:
++		return "sprig_adapter.go"
++	case validatorModulePath:
++		return "validator_adapter.go"
++	case pebbleModulePath:
++		return "pebble_adapter.go"
++	case cactusStatsDModulePath:
++		return "cactusstatsd_adapter.go"
++	case memberlistModulePath:
++		return "memberlist_adapter.go"
++	case sentryModulePath:
++		return "sentry_adapter.go"
++	case hashicorpMetricsModulePath:
++		return "hashicorpmetrics_adapter.go"
++	case fxModulePath:
++		return "fx_adapter.go"
++	case temporalSDKModulePath:
++		return "temporalsdk_adapter.go"
++	case otelSDKModulePath:
++		return "otelsdk_adapter.go"
++	case sockaddrModulePath:
++		return "sockaddr_adapter.go"
++	case memoryModulePath:
++		return "memory_adapter.go"
++	case grpcModulePath:
++		return "grpc_adapter.go"
++	case xnetModulePath:
++		return "xnet_adapter.go"
++	case libcModulePath:
++		return "libc_adapter.go"
++	default:
++		return ""
++	}
++}
++
++func addRegeneratedSource(result *AdapterRegeneration, path, oldSource, oldReplacement string, source, replacement []byte) {
++	result.Sources = append(result.Sources, RegeneratedSource{Path: path, OldSourceSHA256: oldSource, SourceSHA256: digestBytes(source), OldReplacementSHA256: oldReplacement, ReplacementSHA256: digestBytes(replacement), Source: source, Replacement: replacement})
++}
++
++func regenerateGRPC(moduleRoot, workRoot, version, sum string) (AdapterRegeneration, error) {
++	result := AdapterRegeneration{Module: grpcModulePath, SourceFile: adapterSourceFile(grpcModulePath), Version: version, Sum: sum, OldOriginalInventorySHA256: grpcOriginalSourceInventorySHA256, OldReplacementInventorySHA256: grpcReplacementSourceInventorySHA256}
++	var err error
++	result.OriginalInventorySHA256, err = digestAdapterSourceInventory(moduleRoot)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	replacements := map[string][]byte{}
++	keepalive, err := readAdapterSource(grpcModulePath, moduleRoot, grpcKeepalivePath)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	replacements[grpcKeepalivePath], err = rewriteGRPCKeepaliveSource(keepalive)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	addRegeneratedSource(&result, grpcKeepalivePath, grpcKeepaliveSourceSHA256, grpcKeepaliveReplacementSHA256, keepalive, replacements[grpcKeepalivePath])
++	for _, rewrite := range grpcLinuxRewrites {
++		linux, err := readAdapterSource(grpcModulePath, moduleRoot, rewrite.linuxPath)
++		if err != nil {
++			return AdapterRegeneration{}, err
++		}
++		nonLinux, err := readAdapterSource(grpcModulePath, moduleRoot, rewrite.nonLinuxPath)
++		if err != nil {
++			return AdapterRegeneration{}, err
++		}
++		replacements[rewrite.linuxPath], err = regenerateGRPCLinuxSource(rewrite, nonLinux)
++		if err != nil {
++			return AdapterRegeneration{}, err
++		}
++		addRegeneratedSource(&result, rewrite.linuxPath, rewrite.linuxSHA256, rewrite.replacementSHA256, linux, replacements[rewrite.linuxPath])
++		addRegeneratedSource(&result, rewrite.nonLinuxPath, rewrite.nonLinuxSHA256, "", nonLinux, nonLinux)
++	}
++	for _, rewrites := range [][]sourceRewrite{grpcSyscallRewrites, grpcDNSRewrites} {
++		for _, rewrite := range rewrites {
++			contents, err := readAdapterSource(grpcModulePath, moduleRoot, rewrite.path)
++			if err != nil {
++				return AdapterRegeneration{}, err
++			}
++			replacements[rewrite.path], err = regenerateSourceRewrite(grpcModulePath, rewrite, contents)
++			if err != nil {
++				return AdapterRegeneration{}, err
++			}
++			addRegeneratedSource(&result, rewrite.path, rewrite.sourceSHA256, rewrite.replacementSHA256, contents, replacements[rewrite.path])
++		}
++	}
++	return finishAdapterRegeneration(moduleRoot, workRoot, rewrittenModule{module: grpcModulePath, replacementDirectory: "google-grpc", preparedPackage: grpcModulePath + "/internal"}, result, replacements)
++}
++
++func regenerateXNet(moduleRoot, workRoot, version, sum string) (AdapterRegeneration, error) {
++	result := AdapterRegeneration{Module: xnetModulePath, SourceFile: adapterSourceFile(xnetModulePath), Version: version, Sum: sum, OldOriginalInventorySHA256: xnetOriginalSourceInventorySHA256, OldReplacementInventorySHA256: xnetReplacementSourceInventorySHA256}
++	var err error
++	result.OriginalInventorySHA256, err = digestAdapterSourceInventory(moduleRoot)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	socket, err := readAdapterSource(xnetModulePath, moduleRoot, xnetSocketPath)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	empty, err := readAdapterSource(xnetModulePath, moduleRoot, xnetEmptyPath)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	rewrittenSocket, err := rewriteXNetSocketSource(socket)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	rewrittenEmpty, err := replaceXNetAnchor(empty, []byte("//go:build darwin"), []byte("//go:build ignore"))
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	addRegeneratedSource(&result, xnetSocketPath, xnetSocketSourceSHA256, xnetSocketReplacementSHA256, socket, rewrittenSocket)
++	addRegeneratedSource(&result, xnetEmptyPath, xnetEmptySourceSHA256, xnetEmptyReplacementSHA256, empty, rewrittenEmpty)
++	return finishAdapterRegeneration(moduleRoot, workRoot, rewrittenModule{module: xnetModulePath, replacementDirectory: "golang-x-net", preparedPackage: xnetModulePath + "/internal/socket"}, result, map[string][]byte{xnetSocketPath: rewrittenSocket, xnetEmptyPath: rewrittenEmpty})
++}
++
++func regenerateLibc(moduleRoot, workRoot, version, sum string) (AdapterRegeneration, error) {
++	result := AdapterRegeneration{Module: libcModulePath, SourceFile: adapterSourceFile(libcModulePath), Version: version, Sum: sum}
++	var err error
++	result.OriginalInventorySHA256, err = digestAdapterSourceInventory(moduleRoot)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	replacements, _, err := rewriteLibcModuleUnpinned(moduleRoot)
++	if err != nil {
++		return AdapterRegeneration{}, err
++	}
++	for _, pin := range []struct{ path, old string }{
++		{"libc_darwin.go", libcDarwinSHA256}, {"libc_darwin_arm64.go", libcDarwinArm64SHA256}, {"libc_unix.go", libcUnixSHA256},
++		{"syscall_musl.go", libcSyscallMuslSHA256}, {"libc_musl.go", libcMuslSHA256}, {"libc_musl_linux_amd64.go", libcMuslLinuxAmd64SHA256},
++	} {
++		contents, err := readAdapterSource(libcModulePath, moduleRoot, pin.path)
++		if err != nil {
++			return AdapterRegeneration{}, err
++		}
++		addRegeneratedSource(&result, pin.path, pin.old, "", contents, replacements[pin.path])
++	}
++	return finishAdapterRegeneration(moduleRoot, workRoot, rewrittenModule{module: libcModulePath, replacementDirectory: "modernc-libc", preparedPackage: libcModulePath}, result, replacements)
++}
+diff --git a/tools/gomad3/deterministicio/adapter_regenerate_test.go b/tools/gomad3/deterministicio/adapter_regenerate_test.go
+new file mode 100644
+index 0000000000..ee7aa53235
+--- /dev/null
++++ b/tools/gomad3/deterministicio/adapter_regenerate_test.go
+@@ -0,0 +1,56 @@
++package deterministicio
++
++import (
++	"os"
++	"path/filepath"
++	"strings"
++	"testing"
++)
++
++func TestRegenerateSourceRewriteRequiresExactlyOneAnchor(t *testing.T) {
++	rewrite := sourceRewrite{path: "source.go", rewrites: []anchorRewrite{{anchor: []byte("target"), replacement: []byte("replacement")}}}
++	for _, test := range []struct {
++		name, source, want string
++	}{
++		{name: "moved", source: "changed", want: "anchor mismatch"},
++		{name: "duplicated", source: "target target", want: "anchor mismatch"},
++	} {
++		t.Run(test.name, func(t *testing.T) {
++			_, err := regenerateSourceRewrite("example.com/module", rewrite, []byte(test.source))
++			if err == nil || !strings.Contains(err.Error(), test.want) {
++				t.Fatalf("regenerateSourceRewrite() error = %v, want %q", err, test.want)
++			}
++		})
++	}
++	contents, err := regenerateSourceRewrite("example.com/module", rewrite, []byte("a target b"))
++	if err != nil || string(contents) != "a replacement b" {
++		t.Fatalf("regenerateSourceRewrite() = %q, %v", contents, err)
++	}
++}
++
++func TestRegenerateRewrittenModuleRejectsMissingSource(t *testing.T) {
++	root := t.TempDir()
++	if err := os.WriteFile(filepath.Join(root, "other.go"), []byte("package example\n"), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	recipe := rewrittenModule{module: "example.com/module", replacementDirectory: "replacement", preparedPackage: "example.com/module", rewrites: []sourceRewrite{{path: "missing.go", rewrites: []anchorRewrite{{anchor: []byte("target")}}}}}
++	_, err := regenerateRewrittenModule(root, t.TempDir(), recipe)
++	if err == nil || !strings.Contains(err.Error(), "not a regular file") {
++		t.Fatalf("regenerateRewrittenModule() error = %v", err)
++	}
++	if _, err := os.Stat(filepath.Join(root, "missing.go")); !os.IsNotExist(err) {
++		t.Fatalf("unexpected source: %v", err)
++	}
++}
++
++func TestRegenerateRewrittenModuleBindsInventory(t *testing.T) {
++	root := t.TempDir()
++	if err := os.WriteFile(filepath.Join(root, "source.go"), []byte("package example\n\nconst target = 1\n"), 0o600); err != nil {
++		t.Fatal(err)
++	}
++	recipe := rewrittenModule{module: "example.com/module", replacementDirectory: "replacement", preparedPackage: "example.com/module", rewrites: []sourceRewrite{{path: "source.go", rewrites: []anchorRewrite{{anchor: []byte("target"), replacement: []byte("changed")}}}}}
++	result, err := regenerateRewrittenModule(root, t.TempDir(), recipe)
++	if err != nil || len(result.Sources) != 1 || !strings.HasPrefix(result.OriginalInventorySHA256, "sha256:") || !strings.HasPrefix(result.ReplacementInventorySHA256, "sha256:") || result.OriginalInventorySHA256 == result.ReplacementInventorySHA256 {
++		t.Fatalf("regenerateRewrittenModule() = %#v, %v", result, err)
++	}
++}

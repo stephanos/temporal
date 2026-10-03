@@ -11,7 +11,6 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
-	"sort"
 	"strings"
 
 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
@@ -76,6 +75,14 @@ func prepareModerncLibc(moduleCache, root string, identity gomadversion.AdapterI
 }
 
 func rewriteLibcModule(moduleSource string) (map[string][]byte, string, error) {
+	return rewriteLibcModuleWithIdentity(moduleSource, true)
+}
+
+func rewriteLibcModuleUnpinned(moduleSource string) (map[string][]byte, string, error) {
+	return rewriteLibcModuleWithIdentity(moduleSource, false)
+}
+
+func rewriteLibcModuleWithIdentity(moduleSource string, verifyIdentity bool) (map[string][]byte, string, error) {
 	if digestBytes([]byte(gomadLibcAdapterSource)) != gomadLibcAdapterSHA256 || digestBytes([]byte(gomadLibcLinuxAdapterSource)) != gomadLibcLinuxAdapterSHA256 {
 		return nil, "", errors.New("modernc libc adapter template identity mismatch")
 	}
@@ -98,7 +105,7 @@ func rewriteLibcModule(moduleSource string) (map[string][]byte, string, error) {
 		if err != nil {
 			return nil, "", fmt.Errorf("read pinned modernc libc source %q: %w", relative, err)
 		}
-		if digestBytes(contents) != identity {
+		if verifyIdentity && digestBytes(contents) != identity {
 			return nil, "", fmt.Errorf("pinned modernc libc source %q identity mismatch", relative)
 		}
 		rewrites[relative] = contents
@@ -215,7 +222,7 @@ func refuseLibcHostFunctions(contents []byte, refusal libcHostRefusal) ([]byte, 
 			return nil, fmt.Errorf("function %s occurs %d times, want 1", name, matches)
 		}
 	}
-	sort.Slice(edits, func(i, j int) bool { return edits[i].start < edits[j].start })
+	slices.SortFunc(edits, func(a, b edit) int { return a.start - b.start })
 	var result bytes.Buffer
 	previous := 0
 	for _, edit := range edits {

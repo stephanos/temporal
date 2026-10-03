@@ -1,0 +1,19 @@
+{
+  "commits": [],
+  "tests": [
+    "GOWORK=off .toolchain/bin/go test -tags test_dep -count=1 -v -run 'TestPublishKeepsSuccessesWithOneSignature|TestRunRetainsSameOutput' ./artifact ./runner \u2014 expected red before fix; red.log",
+    "GOWORK=off .toolchain/bin/go test -tags test_dep -count=1 -run 'TestPublish|TestRunRetainsSameOutput|TestRunCountsASharedTarget|TestCLIReplaysDistinctSeedsWithOneSuccessSignature' ./artifact ./runner ./cmd/gomad \u2014 PASS; focused-final.log",
+    "built CLI explore --seeds 1-2 --parallel 1 --keep-successes all --success-limit 2 --success-bytes 64MiB go-run . \u2014 reproduced before fix and passed after fix; retained real-cli-fmt and real-cli-fixed",
+    "built CLI inspect --json repaired Campaign \u2014 PASS; inspect-after.json",
+    "built CLI replay repaired retained successes of seeds 1 and 2 \u2014 PASS reproduced=true; replay-seed-1.txt/replay-seed-2.txt",
+    "git diff --check \u2014 PASS"
+  ],
+  "prs": [],
+  "artifacts": [
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-16/red.log",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-16/focused-final.log",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-16/cli-test.log",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-16/cli-comparison.json",
+    ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-16/handover-summary.md"
+  ]
+}

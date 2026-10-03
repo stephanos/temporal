@@ -100,17 +100,13 @@ qualification-set-merge: runner
 # Packs are scoped to one platform, so each host qualifies only the requests
 # that name it.
 GOMAD3_HOST_PLATFORM := $(shell go env GOHOSTOS)/$(shell go env GOHOSTARCH)
-ifeq ($(GOMAD3_HOST_PLATFORM),linux/amd64)
-COMPATIBILITY_PACK_QUALIFICATIONS := modernc-libc-xsys-v047-linux-amd64:$(CURDIR)/qualification/corpus temporal-functional-compute-linux-amd64:$(CURDIR)/../.. temporal-functional-tests-linux-amd64:$(CURDIR)/../..
-else
-COMPATIBILITY_PACK_QUALIFICATIONS := reflect2-go126:$(CURDIR)/../.. modernc-libc-xsys-v041:$(CURDIR)/internal/compatibilitypack/testdata/v041 modernc-libc-xsys-v047:$(CURDIR)/qualification/corpus modernc-libc-xsys-v047-isatty-v021:$(CURDIR)/../.. temporal-functional-compute-darwin-arm64:$(CURDIR)/../.. temporal-functional-tests-darwin-arm64:$(CURDIR)/../.. temporal-leaf-xsys-darwin-arm64:$(CURDIR)/../.. temporal-leaf-xxhash-darwin-arm64:$(CURDIR)/../.. golang-x-sys-v047-darwin-arm64:$(CURDIR)/internal/compatibilitypack/testdata/xsys
-endif
+COMPATIBILITY_PACK_TARGETS := $(CURDIR)/internal/compatibilitypack/targets.tsv
 
 compatibility-pack-qualification: toolchain
-	@for entry in $(COMPATIBILITY_PACK_QUALIFICATIONS); do \
-		request=$${entry%%:*}; working=$${entry#*:}; \
-		env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=internal/compatibilitypack/requests/$$request.json --working-dir=$$working || exit 1; \
-	done
+	@while read -r platform request working; do \
+		[ "$$platform" = "$(GOMAD3_HOST_PLATFORM)" ] || continue; \
+		env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=internal/compatibilitypack/requests/$$request.json --working-dir=$(CURDIR)/$$working || exit 1; \
+	done < $(COMPATIBILITY_PACK_TARGETS)
 
 core-qualification-set: GOMAD3_QUALIFICATION_MANIFEST := $(CURDIR)/qualification/core.json
 core-qualification-set: GOMAD3_QUALIFICATION_WORKDIR := $(CURDIR)/qualification/corpus
@@ -131,7 +127,7 @@ test-host: toolchain
 		stock_root="$$(env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOENV=off GOFLAGS= GOWORK=off GOTOOLCHAIN=$(GOMAD3_GO_VERSION) go env GOROOT)" || exit 1; \
 		stock_go="$$stock_root/bin/go"; \
 	fi; \
-	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOMAD3_STOCK_GO="$$stock_go" GOWORK=off .toolchain/bin/go test -tags test_dep \
+	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOMAD3_STOCK_GO="$$stock_go" GOEXPERIMENT=nogreenteagc GOWORK=off .toolchain/bin/go test -tags test_dep \
 		. ./cmd/... ./runner/... ./qualification/... ./target/... ./record/... ./artifact/... ./choice/... \
 		./deterministicio/... ./world/... ./toolchain/version ./upgrade/... ./internal/...
 
@@ -147,7 +143,7 @@ overlay-test: toolchain
 # is their executor. The node-clock delay test has a recorded watchdog failure
 # and remains a finding; every other subtest runs here.
 test-simulation: toolchain
-	cd $(CURDIR)/../.. && env -u GOMADSEED CGO_ENABLED=0 GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 \
+	cd $(CURDIR)/../.. && env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 \
 		$(CURDIR)/.toolchain/bin/go test -exec $(CURDIR)/internal/gomadtool/conformance/scripts/exec.sh \
 		-count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration \

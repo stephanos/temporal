@@ -1,0 +1,8 @@
+=== RUN   TestPlanTextAndJSONPreserveCampaignIdentityAndTargetArguments
+=== RUN   TestPlanTextAndJSONPreserveCampaignIdentityAndTargetArguments/text
+=== RUN   TestPlanTextAndJSONPreserveCampaignIdentityAndTargetArguments/json
+--- PASS: TestPlanTextAndJSONPreserveCampaignIdentityAndTargetArguments (1.37s)
+    --- PASS: TestPlanTextAndJSONPreserveCampaignIdentityAndTargetArguments/text (0.83s)
+    --- PASS: TestPlanTextAndJSONPreserveCampaignIdentityAndTargetArguments/json (0.54s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad	2.411s

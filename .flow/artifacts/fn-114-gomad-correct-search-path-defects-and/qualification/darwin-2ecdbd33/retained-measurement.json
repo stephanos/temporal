@@ -1,0 +1,28 @@
+{
+  "schema": "gomad3.retained-measurement/v1",
+  "platform": "darwin/arm64",
+  "build_key": "2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457",
+  "report_sha256": "dd1d801c9b7c6dac8139a92568501eb091711466c0b59afb52bcdf020244afd2",
+  "started_at": "2026-10-03T06:51:26Z",
+  "finished_at": "2026-10-03T07:20:24Z",
+  "artifact_root": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/fn114-2ecdbd33-temporal-qualification",
+  "selection": "112 campaigns and 56 qualification reports with filesystem mtimes at or after the successful retry start; all 14 shared target pool entries",
+  "campaigns": 112,
+  "excluded_earlier_campaigns": [
+    "campaign-20261003T064232.854228000Z-f3435b7ff6f0f7bd665eaee4432a9f67",
+    "campaign-20261003T064322.094065000Z-5a547ac4f1e4aae00681def1cc4a574d",
+    "campaign-20261003T064158.851745000Z-3077fb2d1a087b81dd249ab40bc13d5c",
+    "campaign-20261003T064300.253539000Z-7de1b19bd334c224a094b18f96e4c987"
+  ],
+  "artifacts": 112,
+  "qualified_workloads": 28,
+  "replayed": 56,
+  "on_disk_kib": 1127392,
+  "on_disk_bytes": 1154449408,
+  "distinct_file_bytes": 1150939707,
+  "every_path_bytes": 12198585499,
+  "pool_entries": 14,
+  "pool_bytes": 826265068,
+  "private_targets_comparison_bytes": 11372320431,
+  "sum_per_artifact_stored_bytes": 11351420566
+}

@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "/Users/stephan/Workspace/temporal/gomad/.bin/golangci-lint-v2.13.0",
+    "run",
+    "--build-tags",
+    "test_dep",
+    "--max-issues-per-linter=0",
+    "./cmd/gomadtool",
+    "./upgrade",
+    "./deterministicio",
+    "./toolchain/version"
+  ],
+  "cwd": "tools/gomad3",
+  "exit_code": 1,
+  "elapsed_seconds": 1.687,
+  "log": "parent-scoped-lint.log"
+}

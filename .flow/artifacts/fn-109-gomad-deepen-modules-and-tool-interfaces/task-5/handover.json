@@ -1,0 +1,215 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.5",
+  "status": "implementation-ready-for-parent-re-review",
+  "commits": [],
+  "source": "final-source.json",
+  "patch": "task-only.patch",
+  "preimages": "preimage-manifest.json",
+  "host_source": "source-freeze.json",
+  "post_host_delta": [
+    "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+    "tools/gomad3/cmd/gomad/internal/cli/cli_test.go",
+    "tools/gomad3/runner/campaign_options.go",
+    "tools/gomad3/runner/campaign_options_cli_test.go"
+  ],
+  "checks": {
+    "baseline-runner": {
+      "exit": 0,
+      "seconds": 2.125,
+      "receipt": "baseline-runner.json",
+      "log": "baseline-runner.log"
+    },
+    "baseline-cli": {
+      "exit": 0,
+      "seconds": 30.981,
+      "receipt": "baseline-cli.json",
+      "log": "baseline-cli.log"
+    },
+    "pre-refactor-characterization": {
+      "exit": 0,
+      "seconds": 0.995,
+      "receipt": "pre-refactor-characterization.json",
+      "log": "pre-refactor-characterization.log"
+    },
+    "pre-refactor-red": {
+      "exit": 1,
+      "seconds": 0.592,
+      "receipt": "pre-refactor-red.json",
+      "log": "pre-refactor-red.log"
+    },
+    "pre-refactor-plan-output": {
+      "exit": 0,
+      "seconds": 2.761,
+      "receipt": "pre-refactor-plan-output.json",
+      "log": "pre-refactor-plan-output.log"
+    },
+    "before-semantic-cli-precedence": {
+      "exit": 0,
+      "seconds": 2.053,
+      "receipt": "before-semantic-cli-precedence.json",
+      "log": "before-semantic-cli-precedence.log"
+    },
+    "before-semantic-runner-red": {
+      "exit": 1,
+      "seconds": 0.178,
+      "receipt": "before-semantic-runner-red.json",
+      "log": "before-semantic-runner-red.log"
+    },
+    "choice-coverage-red": {
+      "exit": 1,
+      "seconds": 0.171,
+      "receipt": "choice-coverage-red.json",
+      "log": "choice-coverage-red.log"
+    },
+    "guided-default-red": {
+      "exit": 1,
+      "seconds": 1.346,
+      "receipt": "guided-default-red.json",
+      "log": "guided-default-red.log"
+    },
+    "semantic-runner": {
+      "exit": 0,
+      "seconds": 1.811,
+      "receipt": "semantic-runner.json",
+      "log": "semantic-runner.log"
+    },
+    "semantic-cli": {
+      "exit": 0,
+      "seconds": 1.339,
+      "receipt": "semantic-cli.json",
+      "log": "semantic-cli.log"
+    },
+    "final-plan-output": {
+      "exit": 0,
+      "seconds": 4.322,
+      "receipt": "final-plan-output.json",
+      "log": "final-plan-output.log"
+    },
+    "architecture": {
+      "exit": 0,
+      "seconds": 1.05,
+      "receipt": "architecture.json",
+      "log": "architecture.log"
+    },
+    "vet": {
+      "exit": 0,
+      "seconds": 0.35,
+      "receipt": "vet.json",
+      "log": "vet.log"
+    },
+    "full-host-result": {
+      "exit": 0,
+      "seconds": 157.019,
+      "receipt": "full-host-result.json",
+      "log": "full-host.log"
+    },
+    "writer-red": {
+      "exit": 1,
+      "seconds": 0.168,
+      "receipt": "writer-red.json",
+      "log": "writer-red.log"
+    },
+    "writer-behavior-red": {
+      "exit": 1,
+      "seconds": 1.646,
+      "receipt": "writer-behavior-red.json",
+      "log": "writer-behavior-red.log"
+    },
+    "writer-focused": {
+      "exit": 0,
+      "seconds": 1.053,
+      "receipt": "writer-focused.json",
+      "log": "writer-focused.log"
+    },
+    "post-host-cli": {
+      "exit": 0,
+      "seconds": 30.898,
+      "receipt": "post-host-cli.json",
+      "log": "post-host-cli.log"
+    },
+    "runner-build": {
+      "exit": 0,
+      "seconds": 6.183,
+      "receipt": "runner-build.json",
+      "log": "runner-build.log"
+    },
+    "lint-task-patch": {
+      "exit": 0,
+      "seconds": 3.006,
+      "receipt": "lint-task-patch.json",
+      "log": "lint-task-patch.log"
+    },
+    "lint-final-unfiltered": {
+      "exit": 1,
+      "seconds": 0.441,
+      "receipt": "lint-final-unfiltered.json",
+      "log": "lint-final-unfiltered.log"
+    },
+    "review-fix-red": {
+      "exit": 1,
+      "seconds": 0.516,
+      "receipt": "review-fix-red.json",
+      "log": "review-fix-red.log"
+    },
+    "review-fix-focused": {
+      "exit": 0,
+      "seconds": 2.999,
+      "receipt": "review-fix-focused.json",
+      "log": "review-fix-focused.log"
+    },
+    "review-fix-plan-output": {
+      "exit": 0,
+      "seconds": 4.767,
+      "receipt": "review-fix-plan-output.json",
+      "log": "review-fix-plan-output.log"
+    },
+    "review-fix-architecture": {
+      "exit": 0,
+      "seconds": 1.086,
+      "receipt": "review-fix-architecture.json",
+      "log": "review-fix-architecture.log"
+    },
+    "review-fix-vet": {
+      "exit": 0,
+      "seconds": 0.38,
+      "receipt": "review-fix-vet.json",
+      "log": "review-fix-vet.log"
+    },
+    "review-fix-lint": {
+      "exit": 0,
+      "seconds": 7.346,
+      "receipt": "review-fix-lint.json",
+      "log": "review-fix-lint.log"
+    },
+    "review-fix-runner-build": {
+      "exit": 0,
+      "seconds": 4.223,
+      "receipt": "review-fix-runner-build.json",
+      "log": "review-fix-runner-build.log"
+    }
+  },
+  "lint": {
+    "task_patch_issues": 0,
+    "task_patch_receipt": "review-fix-lint.json",
+    "prior_unfiltered_issues": 494,
+    "classification": "Current task-only patch lint has zero issues; retained unfiltered package findings lie outside task-added lines. Full unfiltered lint was not repeated for this type-only fix."
+  },
+  "preservation": {
+    "original_comments_present": true,
+    "gofmt": true,
+    "diff_check": true,
+    "source_hashes_match": true,
+    "native_linux_amd64": "not run on darwin/arm64"
+  },
+  "review": "parent-owned",
+  "flow_done": "parent-owned",
+  "generated_at_utc": "2026-10-03T12:34:28.420891+00:00",
+  "review_fix": {
+    "finding": "replace two exported mutable error globals with typed errors",
+    "review_receipt": "working-tree-review.json",
+    "preimage": "review-fix-preimage.json",
+    "delta": "review-fix.patch",
+    "test": "TestCampaignOptionErrorsPreserveKindThroughWrapping; TestResolveExploreTypedErrorPresentation",
+    "doctor_finding": "pre-existing, unchanged"
+  }
+}

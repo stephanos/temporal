@@ -1,0 +1,15 @@
+{
+  "cmd": [
+    ".toolchain/bin/go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "./cmd/gomad/internal/cli",
+    "./runner",
+    "-run",
+    "TestPlanAndExploreRejectHiddenPlanRoute|TestPlanValidationOrderAndJSONRouting|TestPublicCommandWriterFailuresPreserveStatus|TestCampaignOptionNormalizationAndValidation|TestParseSingleBaseSeedSharesRunnerStrategyRule|ValidateConfig|CampaignPlan|PortablePlan"
+  ],
+  "exit": 0,
+  "seconds": 1.725
+}

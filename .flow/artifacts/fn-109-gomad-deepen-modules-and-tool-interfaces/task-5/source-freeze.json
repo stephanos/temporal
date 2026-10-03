@@ -1,0 +1,47 @@
+{
+  "utc": "2026-10-03T12:16:32.099618+00:00",
+  "head": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+  "files": {
+    "tools/gomad3/cmd/gomad/internal/cli/cli.go": {
+      "before_sha256": "c0e9c0ed61b77f0131e5d4590715cf69bb3acb893e2f2d37ffe70c34a116ba07",
+      "after_sha256": "fc66fb7b944d9ddf76010bd800ccbbdc963dabe8079429b342249a5e1b8d830d",
+      "bytes": 54970
+    },
+    "tools/gomad3/cmd/gomad/internal/cli/application_characterization_test.go": {
+      "before_sha256": "c8d4f4490dd87409ba25c7233654bba5fa5ebb71cb9583c5a2fcfecfeeee2d04",
+      "after_sha256": "7241bd5dc23d161f21f3c0ca0bf0255639ca979288e54cb54396301fa7857686",
+      "bytes": 7095
+    },
+    "tools/gomad3/runner/campaign_options.go": {
+      "before_sha256": "aa62b1252f33a4f64dd8eba0c1f553567c0faa2791c54aac48c4ec0487539d06",
+      "after_sha256": "013b9738cbfc4ff7f492b0a74271434b3678990f40c9e88960ebba18d241e599",
+      "bytes": 8218
+    },
+    "tools/gomad3/runner/runner.go": {
+      "before_sha256": "157eb0abf82c8191253c46991bdecbcd073fd80fe3ab8ba9e141bd388c48fe1f",
+      "after_sha256": "139d10b1966e5bcefb08928e5424cde06a0301f67ec8d09b8905de7e347c3a78",
+      "bytes": 79825
+    },
+    "tools/gomad3/cmd/gomad/e2e_test.go": {
+      "before_sha256": "5feb92383f46acf7d698e33d047e100dc1c15c42dd7667a6858610f630b61b53",
+      "after_sha256": "75f86e4cdf4a4e9621ffb8cdc6111b595c2bf1e910a465fd42d10f380703293a",
+      "bytes": 17056
+    },
+    "tools/gomad3/runner/campaign_plan.go": {
+      "before_sha256": "971ca267797585c025c37d241daf902ccae9bccf4592fac3e385ab15cd8ad82f",
+      "after_sha256": "d070a376f86f0202b18b44fbe009f2a7294a52c697e161c593da5ec34fd448f3",
+      "bytes": 5190
+    },
+    "tools/gomad3/runner/resume.go": {
+      "before_sha256": "4e0f4ec6b3faa8948d951b0862eeaa36dc0168d38e682b57cb34a1b8451d461d",
+      "after_sha256": "6dde547f4cd9f3f9439c812d143477ab3cdd47d232753b14bf75042385ae28e5",
+      "bytes": 12005
+    },
+    "tools/gomad3/runner/campaign_options_cli_test.go": {
+      "before_sha256": null,
+      "after_sha256": "0581f5efcb3dd59ebb67b67c2ecd23ac984f039564aa10678394c11469bb6184",
+      "bytes": 2519
+    }
+  },
+  "patch_sha256": "3634bae777e2e6a6a02c6686454f4cc134485ffdc6d189f851cfb84ef12aef26"
+}

@@ -1,0 +1,25 @@
+{
+  "frozen_at": "2026-10-03T14:25:47.590388+00:00",
+  "sources": {
+    "tools/gomad3/architecture_test.go": "0a73d30b0ddf8e0d8e40e096320a29c722bd4c1985bf195753c946006aba8470",
+    "tools/gomad3/cmd/gomad/internal/cli/analyze.go": "c55ac32805ccda0b0a0e1ea80e9d547d011d4c39d4e114fdea44c73a2c9f81c0",
+    "tools/gomad3/cmd/gomad/internal/cli/cli_test.go": "b383b8d20a6a9f3611d291a144a26a380ca23e0e499e721dd6b652f74897ee35",
+    "tools/gomad3/internal/preparation/preparation.go": "a4ef74ce1c76104fa7567d2a8c7b23019188b77c2bb06261166e8669037a07bc",
+    "tools/gomad3/qualification/analysis/prepared_review.go": "b1da4330d80b772912721de3e560f45cca0a39273cb568e1f31ba394324a4bfb",
+    "tools/gomad3/internal/preparation/inspection.go": "8c37578631b251b8fae704acb17d91029660af5ee3d23e3bd87bad29b0939556",
+    "tools/gomad3/internal/preparation/inspection_test.go": "51cf3a0529b562241be783c82bef39ff409748afe211081349ae57b77c807a21"
+  },
+  "additions": [
+    "tools/gomad3/internal/preparation/inspection.go",
+    "tools/gomad3/internal/preparation/inspection_test.go"
+  ],
+  "originals_manifest": "preimages.json",
+  "task_only_patch_sha256": "b8b51e55be68807d0a9b4f81601cfd02ecd3668c408f58dc7227f07ca667ae91",
+  "toolchain_build_key": "2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457",
+  "binaries": {
+    "baseline-gomad": "81d5fe425ccb5d6bca16fb07c1c238db500fde8a6dfedc02274a1f6a6e1c368f",
+    "after-gomad": "d0693ac7341c4b52638e02920093b3a604ca9d68335f24fe089978a0ec4a1170",
+    "baseline-gomadtool": "8639dd5e22f48ae6b1bb6c3b9f6404a63f1a9e7d3ea403731f3e13d76708c4fd",
+    "after-gomadtool": "039742c4710c3c33e328a347c5365c072dc924028cfa4d1d3f333e235256f28f"
+  }
+}

@@ -1,0 +1,5 @@
+--- FAIL: TestInspectRetainsUnsupportedClosureClassification (0.17s)
+    inspection_test.go:139: unsupported closure error = unsupported target capability: package example.com/inspection imports os/exec
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/preparation	0.549s
+FAIL

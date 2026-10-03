@@ -1,0 +1,35 @@
+{
+  "timestamp": "2026-10-03T11:49:12.315286+00:00",
+  "original_snapshots_verified": 21,
+  "final_source_sha256": {
+    "tools/gomad3/cmd/gomad/internal/cli/analyze.go": "cb4f0c9892968176b6768a0e9c370ee3add229c694def4fc6fe1bff202330bc2",
+    "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go": "dc1faa653e8e5aee018070fa5288da45f9941203b242ad2d9879611a630e8c7f",
+    "tools/gomad3/cmd/gomad/internal/cli/cli.go": "c0e9c0ed61b77f0131e5d4590715cf69bb3acb893e2f2d37ffe70c34a116ba07",
+    "tools/gomad3/cmd/gomad/internal/cli/doctor.go": "fa8ff8dbd397835c8b6ff655a06168ca3f11ec8004d7ed2591e848f1ff5f67b1",
+    "tools/gomad3/cmd/gomad/internal/cli/qualify.go": "78a2c31142ea7740d1e8a2db5727bfd0efaa70477e97a1d60d0f7bcd083e85e0",
+    "tools/gomad3/cmd/gomad/internal/cli/qualify_set.go": "38af1fbf8aa94284de1801d1cb6288f0cb62150e3d2429d2fbe87e6251fa5ae9",
+    "tools/gomad3/cmd/gomad/internal/cli/resume.go": "27984d6a5e33e92d235d508e6ccf82b85d0e4672202c91b6a574b0e5ff2ebd0a",
+    "tools/gomad3/cmd/gomad/internal/cli/application.go": "3c643b097aabadf015b3a827ff0b14bd8d64ad4b4b11af60768e005f27bd9ed1",
+    "tools/gomad3/cmd/gomad/internal/cli/application_test.go": "cc45df18a52118894b6601ed1c1a518b56611c4effb176a41cab247821c0ac8c",
+    "tools/gomad3/cmd/gomad/internal/cli/application_characterization_test.go": "c8d4f4490dd87409ba25c7233654bba5fa5ebb71cb9583c5a2fcfecfeeee2d04"
+  },
+  "existing_comments_preserved": true,
+  "task_patch_reverse_check": 0,
+  "task_patch_sha256": "81982cf10aa9cf0a6c52e4be5c9aa0ce173c5ccd2af636866beeedd5efe8288c",
+  "final_manifest_sha256": "5343b2e3947482602f6acff87ccb2a318d6052d7efda3ba69ea61969ca6bac22",
+  "characterization_test_sha256": "c8d4f4490dd87409ba25c7233654bba5fa5ebb71cb9583c5a2fcfecfeeee2d04",
+  "independent_original_characterization": {
+    "exit_code": 0,
+    "seconds": 0.707,
+    "log": "parent-original-characterization.log",
+    "source": "captured original CLI bytes through baseline overlay"
+  },
+  "independent_final_characterization_and_application_cache": {
+    "exit_code": 0,
+    "seconds": 0.422,
+    "log": "parent-final-characterization.log"
+  },
+  "final_cli_binary_sha256": "f5bd878d78d9947602fd974694f204277025a9dae14200c1a611600875a78f96",
+  "review": "pending",
+  "native_linux": "unavailable; task21 remains open"
+}

@@ -31,16 +31,13 @@ func TestSeedControllerSchedulesAndAggregatesDeterministically(t *testing.T) {
 	if ok {
 		t.Fatal("controller exceeded parallelism")
 	}
-	controller.FinishAttempt()
-	controller.RecordSuccess()
+	controller.Complete(Completion{Kind: CompletionSuccess})
 	_, ok = controller.Next()
 	if !ok {
 		t.Fatal("third job was not scheduled")
 	}
-	controller.FinishAttempt()
-	controller.RecordFailure("watchdog", "world_replay_divergence", 1)
-	controller.FinishAttempt()
-	controller.RecordCancelled()
+	controller.Complete(Completion{Kind: CompletionFailure, Domain: "watchdog", Reason: "world_replay_divergence", DistinctFailures: 1})
+	controller.Complete(Completion{Kind: CompletionCancelled})
 	_, ok = controller.Next()
 	if ok || !controller.Done() {
 		t.Fatal("controller did not exhaust")
@@ -66,6 +63,7 @@ func TestSeedControllerAppliesFailurePolicies(t *testing.T) {
 	}{
 		{name: "first", policy: FailurePolicyFirst, budget: 1, distinct: 1, wantReason: StopFirstFailure, wantCancel: true},
 		{name: "budget", policy: FailurePolicyBudget, budget: 2, distinct: 2, wantReason: StopFailureBudget},
+		{name: "all", policy: FailurePolicyAll, budget: 1, distinct: 1},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			controller, err := NewSeedController(SeedControllerConfig{
@@ -83,27 +81,77 @@ func TestSeedControllerAppliesFailurePolicies(t *testing.T) {
 			if !ok {
 				t.Fatal("second job was not scheduled")
 			}
-			controller.FinishAttempt()
-			if cancel := controller.RecordFailure("watchdog", "world_replay_divergence", test.distinct); cancel != test.wantCancel {
+			if cancel := controller.Complete(Completion{Kind: CompletionFailure, Domain: "watchdog", Reason: "world_replay_divergence", DistinctFailures: test.distinct}); cancel != test.wantCancel {
 				t.Fatalf("cancel = %t, want %t", cancel, test.wantCancel)
 			}
 			want := CampaignStatistics{
 				Attempted: 1, Failures: 1, Watchdogs: 1, ReplayDivergences: 1,
 				DistinctFailures: test.distinct, StopReason: test.wantReason,
 			}
-			if got := controller.Statistics(); !controller.Stopped() || got != want {
+			if got := controller.Statistics(); controller.Stopped() != (test.wantReason != "") || got != want || controller.Active() != 1 {
 				t.Fatalf("controller stopped = %t, statistics = %#v, want %#v", controller.Stopped(), got, want)
 			}
 			_, ok = controller.Next()
-			if ok {
+			if ok != (test.wantReason == "") {
 				t.Fatal("stopped controller scheduled another job")
 			}
-			controller.FinishAttempt()
+			if test.wantReason == "" {
+				controller.Complete(Completion{Kind: CompletionUnclassified})
+			}
+			controller.Complete(Completion{Kind: CompletionUnclassified})
+			if test.wantReason == "" {
+				controller.Stop()
+			}
 			if !controller.Done() {
 				t.Fatal("stopped controller did not drain")
 			}
 		})
 	}
+}
+
+func TestSeedControllerCompletesUnclassifiedAndDuplicateFailureAtomically(t *testing.T) {
+	initial := CampaignStatistics{Attempted: 4, Succeeded: 2, Failures: 2, DistinctFailures: 1}
+	controller, err := NewSeedController(SeedControllerConfig{
+		Next:     func() (SeedJob, bool) { return SeedJob{Ordinal: 4, Seed: 14}, true },
+		Parallel: 2, Policy: FailurePolicyBudget, FailureBudget: 2, Initial: initial,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	controller.Next()
+	controller.Next()
+	if cancel := controller.Complete(Completion{Kind: CompletionUnclassified}); cancel {
+		t.Fatal("unclassified completion cancelled active work")
+	}
+	want := CampaignStatistics{Attempted: 5, Succeeded: 2, Failures: 2, DistinctFailures: 1}
+	if got := controller.Statistics(); got != want || controller.Active() != 1 {
+		t.Fatalf("statistics = %#v, active = %d, want %#v and 1", got, controller.Active(), want)
+	}
+	if cancel := controller.Complete(Completion{Kind: CompletionFailure, Domain: "target", Reason: "exit_nonzero", DistinctFailures: 1}); cancel {
+		t.Fatal("duplicate failure cancelled active work")
+	}
+	want = CampaignStatistics{Attempted: 6, Succeeded: 2, Failures: 3, DistinctFailures: 1}
+	if got := controller.Statistics(); got != want || controller.Active() != 0 || controller.Stopped() {
+		t.Fatalf("statistics = %#v, active = %d, stopped = %t, want %#v", got, controller.Active(), controller.Stopped(), want)
+	}
+}
+
+func TestSeedControllerRejectsInactiveCompletionBeforeChangingStatistics(t *testing.T) {
+	controller, err := NewSeedController(SeedControllerConfig{
+		Next: func() (SeedJob, bool) { return SeedJob{}, false }, Parallel: 1, Policy: FailurePolicyAll,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if recovered := recover(); recovered != "gomad3: completed an inactive campaign attempt" {
+			t.Fatalf("panic = %#v", recovered)
+		}
+		if got := controller.Statistics(); got != (CampaignStatistics{}) {
+			t.Fatalf("statistics after rejected completion = %#v", got)
+		}
+	}()
+	controller.Complete(Completion{Kind: CompletionSuccess})
 }
 
 func TestSeedControllerRestoresSatisfiedPolicy(t *testing.T) {

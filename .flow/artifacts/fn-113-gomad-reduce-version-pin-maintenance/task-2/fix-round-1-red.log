@@ -1,0 +1,6 @@
+=== RUN   TestAdapterPublicationRejectsNewStagedInput
+    adapter_regenerate_test.go:201: new staged input error = <nil>
+--- FAIL: TestAdapterPublicationRejectsNewStagedInput (0.04s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/cmd/gomadtool	0.486s
+FAIL

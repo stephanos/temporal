@@ -1,0 +1,162 @@
+{
+  "artifact_sha256": {
+    "compatibility-pack-qualification.log": "3c1b045b09e5699253fc9913020180ac66986aea9352456c816e0f5f5d15b9f8",
+    "core-qualification-set.json": "df7d42d6b3d1773566fbd978ab1383f3d82bb43a4d9216ac473a1289a7422c51",
+    "core-qualification-set.log": "8a3e5ee90bc2bc7c6aedb337be5c06835a529ecab7da5041f5ad8173333ed07f",
+    "doc-audit-final.log": "0a6cb2db3ad61944cfb553ad3629170beff521daf8115d8f8fe0224481e04452",
+    "doc-audit/documentation-audit.json": "91669fe33310c50fe2194c11e8bc11e9ed3cc8b26f7dbe886268c2a5b847c411",
+    "full-test-final.log": "e797442f54334311ca9b2a45e39524505b7e3f10bd3def0a86811c7b334090ef",
+    "link-audit.json": "5169fa99a7641ecb78f098392e4b315b88fc6b1dd7bd62dc46fc09bfd4d6388e",
+    "measurement.json": "794a37a55c795b1e704153bb6eea88543dcc581d77a1d94e1f43305652b42147",
+    "runner-build.log": "308d007f356c883e45f7e9bf00bd8e299c45180d5a647af1b8543dfd02552a02",
+    "validate.log": "807b20b5620d36b22578201f3ee5301a7281e5c7706e06934b89c4ce46b6b1ff",
+    "verify-documentation.py": "9a9fe9ba3608d9958cfb5051368b83c9e5077665df0b4c440f9c3147fe8a2afe",
+    "walkthrough.json": "62371a14f1c2d8f8f94a8e6ae6b8a5de2039f1f7cb5131032936016321745ded"
+  },
+  "binary_sha256": {
+    "tools/gomad3/.bin/gomad": "5455228dc4946613c78c6d69c2afc6dbd681f6b5998c219624e18290fe26b07b",
+    "tools/gomad3/.bin/gomadtool": "3ffcd4c9b65f23c49be463e43c024a325d5b6d349f6f7bfed3e7200d87db2217"
+  },
+  "gates": {
+    ".bin/gomad qualify-set --manifest=qualification/core.json --working-dir=qualification/corpus --artifacts=task4/core-qualification-artifacts --output=task4/core-qualification-set.json": {
+      "exit": 0,
+      "expectations_met": true,
+      "log": "core-qualification-set.log",
+      "supported": 7
+    },
+    "git diff --check": {
+      "exit": 0
+    },
+    "make -C tools/gomad3 compatibility-pack-qualification": {
+      "darwin_requests": 8,
+      "exit": 0,
+      "log": "compatibility-pack-qualification.log"
+    },
+    "make -C tools/gomad3 runner": {
+      "exit": 0,
+      "log": "runner-build.log"
+    },
+    "make -C tools/gomad3 test": {
+      "exit": 0,
+      "log": "full-test-final.log"
+    },
+    "make -C tools/gomad3 validate": {
+      "exit": 0,
+      "log": "validate.log"
+    },
+    "python3 task4/verify-documentation.py tools/gomad3/.bin": {
+      "exit": 0,
+      "log": "doc-audit-final.log"
+    }
+  },
+  "historical_baseline_sha256": "19bc83d7546c9fc240675befe12231ae04e92d28991952f30fbb9d982942e408",
+  "host": "darwin/arm64",
+  "linux_status": "No native linux/amd64 execution evidence; task fn-113.4 and parent spec remain in progress.",
+  "schema": "gomad3.pin-maintenance-source-binding/v1",
+  "source_files": {
+    ".plans/GOMAD_NEXT.md": {
+      "introduced_in_task4": false,
+      "postimage_sha256": "6a16b0156e3d1d1e5dc8a4b027e6303a805dd91eddc7398fab175c3270dca791",
+      "postimage_state": "file",
+      "preimage_sha256": "2b0d19eb13078151f31b666e95880039bd96b899ea3e8b329f751a5729021fbd"
+    },
+    "MILESTONES.md": {
+      "introduced_in_task4": false,
+      "postimage_sha256": "8b0a81e4aefc388b4f8bb7c2ef1402684fa2941cf1fe941fc588bea4cd997a54",
+      "postimage_state": "file",
+      "preimage_sha256": "2ce3163adda71719b76dd7717c3fc23333f21a49df44314f63b8d6283c6cfcad"
+    },
+    "tools/gomad3/ARCHITECTURE.md": {
+      "introduced_in_task4": false,
+      "postimage_sha256": "b4e9393feef65911442190b11a084db891d173e741bea4b4fcbda102320f200a",
+      "postimage_state": "file",
+      "preimage_sha256": "847cc9f465da8e2436e8eb18aba30bc550de3e25db4fbf32c4281dc52487f9a8"
+    },
+    "tools/gomad3/CLI.md": {
+      "introduced_in_task4": false,
+      "postimage_sha256": "179e3f10e54c737c4167e31c322aba8214506e797e9d697072d4b88b2abaf656",
+      "postimage_state": "file",
+      "preimage_sha256": "2eedd0b71560de77e714b8bc5119bde9c1fcd8e5eeba10984d6cc4bb279c423d"
+    },
+    "tools/gomad3/README.md": {
+      "introduced_in_task4": false,
+      "postimage_sha256": "0f78be6d3828a83c9c6da132c496dbeb583867bb31f46b41b71b0c300e81cb95",
+      "postimage_state": "file",
+      "preimage_sha256": "258b83f544eaa21121bddfe02a63e242cbb6a0a5feb7342f468d84302007d571"
+    },
+    "tools/gomad3/SPEC.md": {
+      "introduced_in_task4": false,
+      "postimage_sha256": "01748bc15d30a9078b305aff802be1851f9cde4c1d121f161915902a3ffbe3b7",
+      "postimage_state": "file",
+      "preimage_sha256": "43bd4d6c19670346bf6707d7e14aea8a9ed8382c59e4c30f0834e555e0da5fbe"
+    },
+    "tools/gomad3/cmd/gomadtool/adapter_publication.go": {
+      "introduced_in_task4": false,
+      "postimage_sha256": null,
+      "postimage_state": "absent",
+      "preimage_sha256": "06f07225235011292968ec7d498872dff6d53f63debb378002787c6edbe74da2",
+      "task2_patch_preimage_verified": true
+    },
+    "tools/gomad3/cmd/gomadtool/adapter_regenerate.go": {
+      "introduced_in_task4": false,
+      "postimage_sha256": "2ec66623b406cb4fe20f465da41eff340d939390341ad9633c0bd1f51d4293b4",
+      "postimage_state": "file",
+      "preimage_sha256": "e6d268a3b95375504e191fca25f8ef80ca4d1343dbb0aff4732b10faaa4a336f"
+    },
+    "tools/gomad3/cmd/gomadtool/adapter_regenerate_test.go": {
+      "introduced_in_task4": false,
+      "postimage_sha256": null,
+      "postimage_state": "absent",
+      "preimage_sha256": "fb54db61de6e5cfda0dc5c7a56c5838eb939b306c2c4ab3340dbaaff359ad6ed",
+      "task2_patch_preimage_verified": true
+    },
+    "tools/gomad3/cmd/gomadtool/main.go": {
+      "introduced_in_task4": false,
+      "postimage_sha256": "3bb89de6bfafee381f89d978dacf5877bbcb4d41a9d7eda21e72e3d04a82cefa",
+      "postimage_state": "file",
+      "preimage_sha256": "3bb89de6bfafee381f89d978dacf5877bbcb4d41a9d7eda21e72e3d04a82cefa"
+    },
+    "tools/gomad3/deterministicio/adapter_regenerate.go": {
+      "introduced_in_task4": false,
+      "postimage_sha256": "b1a5fd372335665b3f6acdbe28e82823ef7ab4bf020d6136ad016353c836bef6",
+      "postimage_state": "file",
+      "preimage_sha256": "28f1c25e8a373a25fe61e7d5165ac7c414f3561f37d26f90c109ab6ff31a2edc"
+    },
+    "tools/gomad3/deterministicio/boundary/upgrade-go1.27.1.md": {
+      "introduced_in_task4": false,
+      "postimage_sha256": "07e6af87d60ddf0c958a233ebd9ebb4c6bbda5b878cb1126d49e0725fc52ac3c",
+      "postimage_state": "file",
+      "preimage_sha256": "3d732433e7fdd1bf9c7350fe2655f5c33a7f1167e2b28260038cd3afe0f65f5a"
+    },
+    "tools/gomad3/toolchain/version/descriptor.go": {
+      "introduced_in_task4": false,
+      "postimage_sha256": "0183605563d3ee44c5faab1077b474efe5379da93cc0815d84cbf7b4ff733aff",
+      "postimage_state": "file",
+      "preimage_sha256": "6ad4f3af73ee5903f1bf1e76645d008fbe10bc4ae5765dcf585628b4a53251f0"
+    },
+    "tools/gomad3/toolchain/version/descriptor_test.go": {
+      "introduced_in_task4": false,
+      "postimage_sha256": "7fcc84551bc79d0d3cabf4312e891e6e8f052167639ee772c1d4ee67402707fc",
+      "postimage_state": "file",
+      "preimage_sha256": "e1fe658d1cdd439b20dbe074430b9e2ad8cd9e439f3b0f12f4fd53573abf413c"
+    },
+    "tools/gomad3/upgrade/adapter_publication.go": {
+      "introduced_in_task4": true,
+      "postimage_sha256": "d815797ea130d58378985bbbecde566b820aca246c3a05a53c87e805112fa7c2",
+      "postimage_state": "file",
+      "preimage_sha256": null
+    },
+    "tools/gomad3/upgrade/adapter_regenerate.go": {
+      "introduced_in_task4": true,
+      "postimage_sha256": "f8629ec0f99f2efbe180f4a37bd60bf24dde3775ad11922467762d9c15121feb",
+      "postimage_state": "file",
+      "preimage_sha256": null
+    },
+    "tools/gomad3/upgrade/adapter_regenerate_test.go": {
+      "introduced_in_task4": true,
+      "postimage_sha256": "9f064317ce968a2fe24648ac1b13e48a8cf0b25d2d7d07167566550f408d8db4",
+      "postimage_state": "file",
+      "preimage_sha256": null
+    }
+  }
+}

@@ -1,0 +1,6 @@
+# go.temporal.io/server/tools/gomad3/internal/preparation [go.temporal.io/server/tools/gomad3/internal/preparation.test]
+internal/preparation/inspection_test.go:35:20: undefined: Inspect
+internal/preparation/inspection_test.go:51:20: undefined: Inspect
+internal/preparation/inspection_test.go:69:15: undefined: Inspect
+internal/preparation/inspection_test.go:75:12: undefined: inspect
+internal/preparation/inspection_test.go:92:20: undefined: inspect

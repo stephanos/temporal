@@ -1174,6 +1174,64 @@
       }
     },
     {
+      "id": "tests-eager-activity-falls-back-when-backlog-exists",
+      "name": "TestEagerActivityFallsBackWhenBacklogExists",
+      "tier": 3,
+      "invariant": "TestEagerActivityFallsBackWhenBacklogExists passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestEagerActivityFallsBackWhenBacklogExists",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
+      "overall_timeout": "20m",
+      "test_parallel": 8,
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-eager-activity-with-matching-grant-unversioned",
+      "name": "TestEagerActivityWithMatchingGrant_Unversioned",
+      "tier": 3,
+      "invariant": "TestEagerActivityWithMatchingGrant_Unversioned passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestEagerActivityWithMatchingGrant_Unversioned",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
+      "overall_timeout": "20m",
+      "test_parallel": 8,
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
       "id": "tests-eager-workflow-test-suite",
       "name": "TestEagerWorkflowTestSuite",
       "tier": 3,
@@ -2547,6 +2605,35 @@
       }
     },
     {
+      "id": "tests-schedule-chasm-suite",
+      "name": "TestScheduleCHASMSuite",
+      "tier": 3,
+      "invariant": "TestScheduleCHASMSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestScheduleCHASMSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
+      "overall_timeout": "20m",
+      "test_parallel": 8,
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
       "id": "tests-schedule-chasm-workflow-pause-interaction",
       "name": "TestScheduleCHASMWorkflowPauseInteraction",
       "tier": 3,
@@ -2872,35 +2959,6 @@
       "invariant": "TestScheduleMigrationV1ToV2NoDuplicateRecentActions passes through the one-box cluster under virtual time",
       "package": "./tests",
       "test": "TestScheduleMigrationV1ToV2NoDuplicateRecentActions",
-      "build_tags": [
-        "disable_grpc_modules",
-        "gomad",
-        "test_dep"
-      ],
-      "capability_mode": "closure",
-      "read_only_mounts": [
-        {
-          "source": "./schema",
-          "target": "/go.temporal.io/server/schema"
-        }
-      ],
-      "choice_bytes": 0,
-      "replay_successes": false,
-      "success_artifact_limit": 0,
-      "success_bytes_limit": 0,
-      "overall_timeout": "20m",
-      "test_parallel": 8,
-      "expectation": {
-        "classification": "qualified"
-      }
-    },
-    {
-      "id": "tests-schedule-next-action-time-visibility",
-      "name": "TestScheduleNextActionTimeVisibility",
-      "tier": 3,
-      "invariant": "TestScheduleNextActionTimeVisibility passes through the one-box cluster under virtual time",
-      "package": "./tests",
-      "test": "TestScheduleNextActionTimeVisibility",
       "build_tags": [
         "disable_grpc_modules",
         "gomad",

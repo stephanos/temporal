@@ -36,9 +36,10 @@ as the bounded diagnostic baseline until a richer policy demonstrates an improve
 
 ### BUG-5: Failure minimization
 
-Add crash-resumable minimizer state and typed scenario-input shrinkers to the
-existing combined-simulation reducer. Checkpoint attempt order, budgets, accepted
-reductions, and parent identity. Accepted candidates preserve the normalized
+Crash-resumable minimizer state is delivered through `gomad minimize --resume`,
+with persisted attempt order, budgets, accepted reductions, and parent identity.
+Add typed scenario-input shrinkers to the existing combined-simulation reducer.
+Accepted candidates preserve the normalized
 failure, outcome, input validity, and exact choice/model replay; publish reductions
 with lineage while keeping the parent immutable. Scenario owners supply validity
 rules and shrinkers. Input shrinking does not establish causal minimality.
@@ -102,6 +103,10 @@ Extend the upgrade dossier with workload support/behavior differences, changed
 pack/adapter identities, and an addressable qualified rollback bundle. Releases
 require reviewed boundary differences and qualification; uncertainty and unavailable
 audits remain unqualified.
+
+Fn-113 supplies dependency pin-impact reports, reviewed exact adapter
+regeneration, and per-request compatibility-pack refresh. Workload behavior
+diffs and qualified rollback bundles remain future COMPAT-8 work.
 
 ## Productionization
 

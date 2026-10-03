@@ -1,0 +1,128 @@
+{
+  "host": "darwin/arm64",
+  "pack": {
+    "approval": "sha256:425eb4df602d36c474d21ba37455664b3f611362f81c7eec8c3692e3ba989c6f",
+    "candidate": "golang.org/x/sys@v0.48.0 in testdata/xsys",
+    "commands": [
+      {
+        "exit": 1,
+        "log": "controlled-pin-impact.json",
+        "name": "pin-impact"
+      },
+      {
+        "exit": 0,
+        "log": "controlled-refresh.log",
+        "name": "refresh first review"
+      },
+      {
+        "exit": 0,
+        "log": "controlled-refresh-final.log",
+        "name": "refresh after scratch request justification edit"
+      },
+      {
+        "exit": 0,
+        "log": "controlled-generate.log",
+        "name": "generate with exact fresh digest"
+      },
+      {
+        "exit": 0,
+        "log": "controlled-check.log",
+        "name": "check"
+      },
+      {
+        "exit": 0,
+        "log": "controlled-qualify.log",
+        "name": "qualify"
+      },
+      {
+        "exit": 0,
+        "log": "controlled-approved-rerun.log",
+        "name": "post-approval refresh diagnostic"
+      },
+      {
+        "exit": 0,
+        "log": "controlled-approved-rerun-bound.log",
+        "name": "byte-bound post-approval refresh diagnostic"
+      }
+    ],
+    "common_preparation": [
+      "go mod download -json exact v0.48.0 availability",
+      "go mod edit candidate xsys module",
+      "go mod download x/sys to write candidate go.sum"
+    ],
+    "facts": "Four package rules retained the same requested fact sets; source identities and activation version changed.",
+    "hand_edited_request_files": 1,
+    "justification_correction": "The first review still described x/sys v0.47.0. The scratch request was edited to say v0.48.0 before the second review and approval.",
+    "linux_qualification": "not covered by this Darwin-only request",
+    "post_approval_unchanged_sha256": {
+      "packs/golang-x-sys-v047-darwin-arm64.json": "1fd11b702af74056626f1f6ede79a7a0d9a09d029335bcee4744f0a7d3fb88f2",
+      "reports/golang-x-sys-v047-darwin-arm64.md": "7d7e0db3b11c4878945091137b487f9ab11e91c60ee059704df789e240b11a6c",
+      "requests/golang-x-sys-v047-darwin-arm64.json": "cf933721329a312590a583a662dad897ffe420d2c59bd1cf29b8af0d556bfda1"
+    },
+    "request": "golang-x-sys-v047-darwin-arm64"
+  },
+  "schema": "gomad3.pin-maintenance-walkthrough/v1",
+  "scope": "Scratch-only versions and approvals; no production descriptor, adapter, or compatibility pack pin changed. Person review and per-platform qualification remain requirements.",
+  "scratch_postimage_sha256": {
+    "sprig_adapter": "be4d65dced016302d739b5bd6e57dba5c9bb3ca5d948f2775d5872f34812e8de",
+    "sprig_candidate_go_mod": "21dd9f12684fcf4923c94ac10824b8875f5d8e35d85d87c49e7342c4e5dfb098",
+    "sprig_candidate_go_sum": "6b55b5b23450e664e3cced7d2b56086ca97f77c04ae8386af6d27390057de8f3",
+    "sprig_descriptor": "c70c06a7f883a73bb9fb45c8b097bd6cc41590960eb68fd597773b78705fa980",
+    "sprig_fixture_go_mod": "71c69bf1e302b0500b14878ca60199d2778aef7114e0d443eca95a065f1d4efc",
+    "sprig_fixture_go_sum": "f04e76e74dcf36809a1ce62232d8a924c35081c1b10f81f8c56d6ac3e9b5414d",
+    "sprig_generated": "442a6ed97317bba0098fd55e736f6866f9cfd7cb29c021f4a924aabb467df5f5",
+    "xsys_candidate_go_mod": "2628e649a383ec10b43e29e7a32a81c35801c339246c8a11cb2cb4021c1f32d3",
+    "xsys_candidate_go_sum": "32aa99df5555d18b789ca0ae104099c09aad15633d9149d0b175320f89ecd931",
+    "xsys_pack": "1fd11b702af74056626f1f6ede79a7a0d9a09d029335bcee4744f0a7d3fb88f2",
+    "xsys_report": "7d7e0db3b11c4878945091137b487f9ab11e91c60ee059704df789e240b11a6c",
+    "xsys_request": "cf933721329a312590a583a662dad897ffe420d2c59bd1cf29b8af0d556bfda1"
+  },
+  "sprig": {
+    "approval": "sha256:1a47941c061adf15f45843b757d5ba22c139271a661c1e2595d628abe517d5fd",
+    "candidate": "github.com/Masterminds/sprig/v3@v3.2.3",
+    "commands": [
+      {
+        "exit": 1,
+        "log": "sprig-impact.json",
+        "name": "pin-impact"
+      },
+      {
+        "exit": 0,
+        "log": "sprig-dryrun.log",
+        "name": "adapter-regenerate dry run"
+      },
+      {
+        "exit": 1,
+        "log": "sprig-apply.log",
+        "name": "adapter-regenerate approved apply, symlinked scratch toolchain"
+      },
+      {
+        "exit": 1,
+        "log": "sprig-apply-final.log",
+        "name": "adapter-regenerate approved apply, stock Go 1.26.5 PATH"
+      },
+      {
+        "exit": 0,
+        "log": "sprig-apply-stock.log",
+        "name": "adapter-regenerate approved apply, stock Go 1.27.1 PATH"
+      },
+      {
+        "exit": 0,
+        "log": "sprig-validate.log",
+        "name": "make validate"
+      },
+      {
+        "exit": 0,
+        "log": "sprig-consumer-test.log",
+        "name": "Darwin Sprig consumer go test"
+      }
+    ],
+    "common_preparation": [
+      "go mod edit root candidate",
+      "go mod download exact Sprig version"
+    ],
+    "linux_qualification": "pending",
+    "repair_files_hand_edited": 0
+  },
+  "tool_binary_sha256": "3ffcd4c9b65f23c49be463e43c024a325d5b6d349f6f7bfed3e7200d87db2217"
+}

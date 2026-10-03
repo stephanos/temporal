@@ -1,0 +1,3600 @@
+--- a/tools/gomad3/runner/campaign_options.go
++++ b/tools/gomad3/runner/campaign_options.go
+@@ -93,7 +93,7 @@
+ 	RunnerBuild          string
+ 	Progress             CampaignEventFunc
+ 	Preparer             Preparer
+-	Executor             Executor
++	executor             executionRunner
+ 	Replayer             ArtifactReplayer
+ 	guidancePlan         *campaign.GuidancePlan
+ 	resumePreflight      *campaign.ResumePreflight
+@@ -190,7 +190,7 @@
+ 	return nil
+ }
+ 
+-func campaignRequestForExplore(spec CampaignSpec) (campaignRequest, error) {
++func campaignRequestForExplore(spec CampaignSpec, dependencies executionDependencies) (campaignRequest, error) {
+ 	if spec.ResumeCampaign != "" {
+ 		path, err := filepath.Abs(spec.ResumeCampaign)
+ 		if err != nil {
+@@ -204,7 +204,13 @@
+ 		spec.OverallTimeout = time.Duration(preflight.Plan.OverallTimeoutNanos)
+ 		spec.resumePreflight = &preflight
+ 	}
+-	return campaignRequestFromSpec(spec), nil
++	return campaignRequestFromSpecWith(spec, dependencies), nil
++}
++
++func campaignRequestFromSpecWith(spec CampaignSpec, dependencies executionDependencies) campaignRequest {
++	request := campaignRequestFromSpec(spec)
++	request.executor = dependencies.executor
++	return request
+ }
+ 
+ func campaignRequestFromSpec(spec CampaignSpec) campaignRequest {
+@@ -241,7 +247,7 @@
+ 		},
+ 		campaignRuntime: campaignRuntime{
+ 			SupervisorCommand: spec.SupervisorCommand, CoordinatorCommand: spec.CoordinatorCommand, RunnerBuild: spec.RunnerBuild,
+-			Progress: spec.Progress, Preparer: spec.Preparer, Executor: spec.Executor, Replayer: spec.Replayer,
++			Progress: spec.Progress, Preparer: spec.Preparer, Replayer: spec.Replayer,
+ 			guidancePlan: spec.guidancePlan, resumePreflight: spec.resumePreflight,
+ 			failureArtifactLimit: spec.failureArtifactLimit, failureBytesLimit: spec.failureBytesLimit,
+ 		},
+--- a/tools/gomad3/runner/campaign_shard_execution.go
++++ b/tools/gomad3/runner/campaign_shard_execution.go
+@@ -27,11 +27,14 @@
+ 	SupervisorCommand []string
+ 	Progress          CampaignEventFunc
+ 	ProgressInterval  time.Duration
+-	Executor          Executor
+ 	Replayer          ArtifactReplayer
+ }
+ 
+ func RunCampaignShard(ctx context.Context, spec CampaignShardSpec) (CampaignResult, error) {
++	return runCampaignShardWith(ctx, spec, executionDependencies{})
++}
++
++func runCampaignShardWith(ctx context.Context, spec CampaignShardSpec, dependencies executionDependencies) (CampaignResult, error) {
+ 	if err := spec.Shard.Validate(); err != nil {
+ 		return CampaignResult{}, err
+ 	}
+@@ -46,7 +49,7 @@
+ 	if !deterministicio.Default().Matches(plan.IOProfile) {
+ 		return CampaignResult{}, errors.New("campaign plan I/O profile identity does not match this Runner")
+ 	}
+-	if spec.Executor == nil {
++	if dependencies.executor == nil {
+ 		identity, err := target.ReadToolchainIdentity(spec.ToolchainRoot)
+ 		if err != nil {
+ 			return CampaignResult{}, err
+@@ -88,7 +91,7 @@
+ 		SupervisorCommand: append([]string(nil), spec.SupervisorCommand...), RunnerBuild: spec.RunnerBuild,
+ 		Coverage: CoverageMode(plan.Coverage), RequiredSemanticProbes: append([]string(nil), plan.RequiredSemanticProbes...),
+ 		KeepSuccesses: KeepSuccesses(plan.KeepSuccesses), SuccessArtifactLimit: uint64(plan.SuccessArtifactLimit), SuccessBytesLimit: uint64(plan.SuccessBytesLimit),
+-		Progress: spec.Progress, ProgressInterval: spec.ProgressInterval, Executor: spec.Executor, Replayer: spec.Replayer,
++		Progress: spec.Progress, ProgressInterval: spec.ProgressInterval, Replayer: spec.Replayer,
+ 		Preparer: &campaignPlanPreparer{source: opened.prepared},
+ 	}
+ 	if plan.Guidance != nil {
+@@ -98,7 +101,7 @@
+ 		config.GuideSnapshotSHA256 = plan.Guidance.SnapshotSHA256
+ 		config.guidancePlan = plan.Guidance
+ 	}
+-	return runLocal(ctx, campaignRequestFromSpec(config))
++	return runLocal(ctx, campaignRequestFromSpecWith(config, dependencies))
+ }
+ 
+ func campaignPlanChoiceLimit(plan *campaign.ChoiceProfilePlan) uint64 {
+--- a/tools/gomad3/runner/choice_exploration_campaign.go
++++ b/tools/gomad3/runner/choice_exploration_campaign.go
+@@ -105,7 +105,7 @@
+ 		semanticProbes = restored.probes
+ 		choiceFeatures = restored.choiceFeatures
+ 	}
+-	executor := config.Executor
++	executor := config.executor
+ 	if executor == nil {
+ 		executor = processExecutor{}
+ 	}
+@@ -211,7 +211,7 @@
+ func executeExplorationRound(
+ 	ctx context.Context,
+ 	config campaignRequest,
+-	executor Executor,
++	executor executionRunner,
+ 	prepared target.Prepared,
+ 	baseEnvironment []record.Environment,
+ 	profile deterministicio.Spec,
+--- a/tools/gomad3/runner/choice_exploration_divergence_test.go
++++ b/tools/gomad3/runner/choice_exploration_divergence_test.go
+@@ -48,25 +48,25 @@
+ 	return result, &execution.ChoiceReplayDivergenceError{Divergence: divergence}
+ }
+ 
+-func divergenceCampaignConfig(t *testing.T, policy FailurePolicy, parallel int) CampaignSpec {
++func divergenceCampaignConfig(t *testing.T, policy FailurePolicy, parallel int) (CampaignSpec, executionDependencies) {
+ 	t.Helper()
+ 	preparer := newFakePreparer(t)
+ 	limit := choiceTraceLimit(t, 1)
+ 	executor := &candidateDivergenceExecutor{base: &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, alternatives: 4}}
+-	config := testConfig(t, preparer, executor, "7", policy, parallel)
++	config, configDependencies := testConfig(t, preparer, executor, "7", policy, parallel)
+ 	config.Strategy = StrategyChoiceExploration
+ 	config.ChoiceTraceLimit = limit
+ 	config.MaxExecutions = 8
+ 	config.MaxChoiceDepth = 4
+ 	config.MaxExplorationBytes = 1 << 20
+-	return config
++	return config, configDependencies
+ }
+ 
+ func TestRunChoiceExplorationDivergencePoliciesAndInspection(t *testing.T) {
+ 	for _, policy := range []FailurePolicy{PolicyFirst, PolicyBudget, PolicyAll} {
+ 		t.Run(string(policy), func(t *testing.T) {
+-			config := divergenceCampaignConfig(t, policy, 1)
+-			summary, err := Explore(t.Context(), config)
++			config, configDependencies := divergenceCampaignConfig(t, policy, 1)
++			summary, err := exploreWith(t.Context(), config, configDependencies)
+ 			if err != nil {
+ 				t.Fatal(err)
+ 			}
+@@ -138,9 +138,9 @@
+ 		}},
+ 	} {
+ 		t.Run(test.name, func(t *testing.T) {
+-			config := divergenceCampaignConfig(t, PolicyAll, 1)
+-			config.Executor.(*candidateDivergenceExecutor).change = test.change
+-			summary, err := Explore(t.Context(), config)
++			config, configDependencies := divergenceCampaignConfig(t, PolicyAll, 1)
++			configDependencies.executor.(*candidateDivergenceExecutor).change = test.change
++			summary, err := exploreWith(t.Context(), config, configDependencies)
+ 			var host *HostError
+ 			if !errors.As(err, &host) || host.Reason != test.reason {
+ 				t.Fatalf("error = %v, want %s", err, test.reason)
+@@ -153,7 +153,7 @@
+ }
+ 
+ func TestProcessExplorationCompletionKeepsRunnerDomainFallback(t *testing.T) {
+-	config := divergenceCampaignConfig(t, PolicyAll, 1)
++	config, _ := divergenceCampaignConfig(t, PolicyAll, 1)
+ 	prepared := config.Preparer.(*fakePreparer).prepared
+ 	implementation, err := choice.ImplementationIdentity(prepared.BuildKey)
+ 	if err != nil {
+@@ -178,7 +178,7 @@
+ }
+ 
+ func TestRunChoiceExplorationResumePreservesDivergenceIdentity(t *testing.T) {
+-	config := divergenceCampaignConfig(t, PolicyAll, 1)
++	config, configDependencies := divergenceCampaignConfig(t, PolicyAll, 1)
+ 	ctx, cancel := context.WithCancel(t.Context())
+ 	config.Progress = func(progress CampaignEvent) error {
+ 		if progress.ChoiceExploration != nil && progress.ChoiceExploration.CommittedRounds == 2 {
+@@ -186,18 +186,18 @@
+ 		}
+ 		return nil
+ 	}
+-	partial, err := Explore(ctx, config)
++	partial, err := exploreWith(ctx, config, configDependencies)
+ 	var host *HostError
+ 	if !errors.As(err, &host) || partial.Attempted != 2 || partial.ReplayDivergences != 1 {
+ 		t.Fatalf("partial = %#v, err=%v", partial, err)
+ 	}
+-	executor := config.Executor.(*candidateDivergenceExecutor)
+-	resumed, err := Explore(t.Context(), CampaignSpec{ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: executor.base})
+-	if err != nil {
+-		t.Fatal(err)
+-	}
+-	uninterruptedConfig := divergenceCampaignConfig(t, PolicyAll, 1)
+-	uninterrupted, err := Explore(t.Context(), uninterruptedConfig)
++	executor := configDependencies.executor.(*candidateDivergenceExecutor)
++	resumed, err := exploreWith(t.Context(), CampaignSpec{ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}}, executionDependencies{executor: executor.base})
++	if err != nil {
++		t.Fatal(err)
++	}
++	uninterruptedConfig, uninterruptedConfigDependencies := divergenceCampaignConfig(t, PolicyAll, 1)
++	uninterrupted, err := exploreWith(t.Context(), uninterruptedConfig, uninterruptedConfigDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -225,8 +225,8 @@
+ func TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons(t *testing.T) {
+ 	for _, reason := range []choice.DivergenceReason{choice.DivergenceKind, choice.DivergenceSite, choice.DivergenceAlternatives, choice.DivergenceSelected, choice.DivergenceAlternativeSet, choice.DivergenceTapeUnconsumed, choice.DivergenceObservation} {
+ 		t.Run(choice.DivergenceReasonName(reason), func(t *testing.T) {
+-			config := divergenceCampaignConfig(t, PolicyAll, 1)
+-			config.Executor.(*candidateDivergenceExecutor).change = func(_ *execution.Result, d *choice.Divergence) error {
++			config, configDependencies := divergenceCampaignConfig(t, PolicyAll, 1)
++			configDependencies.executor.(*candidateDivergenceExecutor).change = func(_ *execution.Result, d *choice.Divergence) error {
+ 				d.Reason = reason
+ 				if reason != choice.DivergenceAlternativeSet {
+ 					d.Observed.AlternativeSetDigest = d.Expected.AlternativeSetDigest
+@@ -245,7 +245,7 @@
+ 				}
+ 				return &execution.ChoiceReplayDivergenceError{Divergence: *d}
+ 			}
+-			summary, err := Explore(t.Context(), config)
++			summary, err := exploreWith(t.Context(), config, configDependencies)
+ 			if err != nil {
+ 				t.Fatal(err)
+ 			}
+--- a/tools/gomad3/runner/choice_exploration_divergence_unix_test.go
++++ b/tools/gomad3/runner/choice_exploration_divergence_unix_test.go
+@@ -26,7 +26,7 @@
+ 	if root == "" {
+ 		return
+ 	}
+-	config := divergenceCampaignConfig(t, PolicyAll, 1)
++	config, configDependencies := divergenceCampaignConfig(t, PolicyAll, 1)
+ 	config.Artifacts = root
+ 	config.Progress = func(event CampaignEvent) error {
+ 		if event.ChoiceExploration != nil && event.ChoiceExploration.CommittedRounds == 2 {
+@@ -38,7 +38,7 @@
+ 		}
+ 		return nil
+ 	}
+-	if _, err := Explore(t.Context(), config); err != nil {
++	if _, err := exploreWith(t.Context(), config, configDependencies); err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	t.Fatal("crash helper escaped the committed-round barrier")
+@@ -118,13 +118,13 @@
+ 	case <-ctx.Done():
+ 		t.Fatal("killed helper did not exit")
+ 	}
+-	config := divergenceCampaignConfig(t, PolicyAll, 1)
+-	base := config.Executor.(*candidateDivergenceExecutor).base
+-	resumed, err := Explore(t.Context(), CampaignSpec{ResumeCampaign: path, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: base})
++	config, configDependencies := divergenceCampaignConfig(t, PolicyAll, 1)
++	base := configDependencies.executor.(*candidateDivergenceExecutor).base
++	resumed, err := exploreWith(t.Context(), CampaignSpec{ResumeCampaign: path, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}}, executionDependencies{executor: base})
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+-	uninterrupted, err := Explore(t.Context(), config)
++	uninterrupted, err := exploreWith(t.Context(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+--- a/tools/gomad3/runner/clock_tick_test.go
++++ b/tools/gomad3/runner/clock_tick_test.go
+@@ -17,7 +17,7 @@
+ 		{clockTick: record.ClockTickStrict, want: false},
+ 		{clockTick: record.ClockTickForward, want: true},
+ 	} {
+-		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
++		config, _ := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
+ 		config.ClockTick = test.clockTick
+ 		_, environment, err := validateConfig(config)
+ 		if err != nil {
+@@ -32,13 +32,13 @@
+ 		}
+ 	}
+ 
+-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
++	config, _ := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
+ 	config.ClockTick = "sometimes"
+ 	if _, _, err := validateConfig(config); err == nil || !strings.Contains(err.Error(), "must be strict or forward") {
+ 		t.Fatalf("validateConfig(ClockTick=sometimes) error = %v", err)
+ 	}
+ 
+-	config = testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
++	config, _ = testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
+ 	config.Environment = append(config.Environment, record.ClockTickEnvironment+"=forward")
+ 	if _, _, err := validateConfig(config); err == nil {
+ 		t.Fatal("validateConfig() accepted the clock tick policy as a target --env entry")
+--- a/tools/gomad3/runner/completion_characterization_test.go
++++ b/tools/gomad3/runner/completion_characterization_test.go
+@@ -46,7 +46,7 @@
+ // executor with one fixed fault applied to the captured result.
+ type faultExecutor struct {
+ 	t     *testing.T
+-	base  Executor
++	base  executionRunner
+ 	fault func(*execution.Result)
+ 	err   error
+ 	mu    *sync.Mutex
+@@ -68,7 +68,7 @@
+ 	return result, executor.err
+ }
+ 
+-func completionCampaign(t *testing.T, strategy Strategy, coverage CoverageMode, fault func(*execution.Result), runErr error) (CampaignSpec, faultExecutor) {
++func completionCampaign(t *testing.T, strategy Strategy, coverage CoverageMode, fault func(*execution.Result), runErr error) (CampaignSpec, faultExecutor, executionDependencies) {
+ 	t.Helper()
+ 	preparer := newFakePreparer(t)
+ 	limit := choiceTraceLimit(t, 1)
+@@ -87,7 +87,7 @@
+ 	case StrategySimulationExploration:
+ 		executor.base = &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+ 	}
+-	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
++	config, configDependencies := testConfig(t, preparer, executor, "7", PolicyAll, 1)
+ 	config.Strategy = strategy
+ 	config.Coverage = coverage
+ 	config.ChoiceTraceLimit = limit
+@@ -104,7 +104,7 @@
+ 		config.MaxExplorationResultBytes = 1 << 20
+ 		config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 2, Scenario: 2, Network: 2, Storage: 2, Fault: 2, Crash: 2}
+ 	}
+-	return config, executor
++	return config, executor, configDependencies
+ }
+ 
+ func completionWorldRecord(t *testing.T, seed uint64) []byte {
+@@ -130,7 +130,7 @@
+ 	if err != nil {
+ 		var hostError *HostError
+ 		if !errors.As(err, &hostError) {
+-			t.Fatalf("Explore() error = %#v, want a host failure", err)
++			t.Fatalf("exploreWith() error = %#v, want a host failure", err)
+ 		}
+ 		observed.Reason = hostError.Reason
+ 		observed.Cause = hostError.Err.Error()
+@@ -330,8 +330,8 @@
+ 						want.Cause = test.simulationCause
+ 					}
+ 				}
+-				config, _ := completionCampaign(t, strategy, test.coverage, test.fault, test.err)
+-				summary, err := Explore(context.Background(), config)
++				config, _, configDependencies := completionCampaign(t, strategy, test.coverage, test.fault, test.err)
++				summary, err := exploreWith(context.Background(), config, configDependencies)
+ 				if observed := observeCompletion(t, summary, err); !reflect.DeepEqual(observed, want) {
+ 					t.Fatalf("completion = %#v, want %#v", observed, want)
+ 				}
+@@ -345,11 +345,11 @@
+ func TestExplorationCancellationIsAHostFailure(t *testing.T) {
+ 	for _, strategy := range completionStrategies[1:] {
+ 		t.Run(string(strategy), func(t *testing.T) {
+-			config, _ := completionCampaign(t, strategy, CoverageNone, nil, nil)
+-			config.Executor = blockingExecutor{}
++			config, _, configDependencies := completionCampaign(t, strategy, CoverageNone, nil, nil)
++			configDependencies.executor = blockingExecutor{}
+ 			ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.Running == 1 })
+ 			config.TerminateGrace = 10 * time.Millisecond
+-			summary, err := Explore(ctx, config)
++			summary, err := exploreWith(ctx, config, configDependencies)
+ 			observed := observeCompletion(t, summary, err)
+ 			// The round returns while its candidate is still exiting, so the
+ 			// candidate's partial state is not settled yet.
+@@ -376,9 +376,9 @@
+ 	for _, strategy := range completionStrategies {
+ 		t.Run(string(strategy), func(t *testing.T) {
+ 			recording := completionWorldRecord(t, 7)
+-			config, executor := completionCampaign(t, strategy, CoverageSemanticChoice, func(result *execution.Result) { result.WorldRecord = recording }, nil)
++			config, executor, configDependencies := completionCampaign(t, strategy, CoverageSemanticChoice, func(result *execution.Result) { result.WorldRecord = recording }, nil)
+ 			config.CollectExecutionEvidence = true
+-			summary, err := Explore(context.Background(), config)
++			summary, err := exploreWith(context.Background(), config, configDependencies)
+ 			if err != nil {
+ 				t.Fatal(err)
+ 			}
+--- a/tools/gomad3/runner/coordinator_transport_test.go
++++ b/tools/gomad3/runner/coordinator_transport_test.go
+@@ -44,12 +44,18 @@
+ 	"CoordinatorCommand":   "selects the isolated path in the parent",
+ 	"Progress":             "replaced in the child by a callback that forwards events to the parent",
+ 	"Preparer":             "injected preparation is rejected for isolated campaigns",
+-	"Executor":             "injected execution is rejected for isolated campaigns",
+ 	"Replayer":             "injected replay is rejected for isolated campaigns",
+ 	"resumePreflight":      "the child opens its own resume preflight",
+ 	"guidancePlan":         "selected locally after target preparation; resume restores it from the recorded plan",
+ 	"failureArtifactLimit": "the child derives it from the campaign plan",
+ 	"failureBytesLimit":    "the child derives it from the campaign plan",
++}
++
++func TestExploreRejectsPrivateExecutionForIsolatedCampaign(t *testing.T) {
++	_, err := exploreWith(context.Background(), CampaignSpec{CoordinatorCommand: []string{"unused"}}, executionDependencies{executor: &fakeExecutor{}})
++	if err == nil || !strings.Contains(err.Error(), "isolated Runner does not accept injected preparation or execution") {
++		t.Fatalf("isolated execution injection error = %v", err)
++	}
+ }
+ 
+ func TestCoordinatorTransportCoversEveryCampaignSpecField(t *testing.T) {
+@@ -115,7 +121,7 @@
+ 			got := wire.campaignRequest()
+ 			want := campaignRequestFromSpec(test.spec)
+ 			want.OverallTimeout = childTimeout
+-			want.CoordinatorCommand, want.Progress, want.Preparer, want.Executor, want.Replayer = nil, nil, nil, nil, nil
++			want.CoordinatorCommand, want.Progress, want.Preparer, want.executor, want.Replayer = nil, nil, nil, nil, nil
+ 			if !reflect.DeepEqual(got, want) {
+ 				t.Fatalf("coordinator transport changed:\n got %#v\nwant %#v", got, want)
+ 			}
+--- a/tools/gomad3/runner/coverage_replay_test.go
++++ b/tools/gomad3/runner/coverage_replay_test.go
+@@ -80,12 +80,12 @@
+ 	}
+ 	for _, verifyOnly := range []bool{false, true} {
+ 		executor := &fakeReplayExecutor{}
+-		_, err := Replay(context.Background(), ReplaySpec{ArtifactPath: published.Path, VerifyOnly: verifyOnly, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor})
++		_, err := replayWith(context.Background(), ReplaySpec{ArtifactPath: published.Path, VerifyOnly: verifyOnly, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}}, executionDependencies{executor: executor})
+ 		if err == nil || !strings.Contains(err.Error(), "stored target uses unsupported coverage instrumentation") || executor.calls != 0 {
+ 			t.Fatalf("covered replay: error = %v, calls = %d", err, executor.calls)
+ 		}
+ 	}
+-	_, err = Minimize(context.Background(), MinimizeSpec{ArtifactPath: published.Path, OutputRoot: t.TempDir(), AttemptBudget: 1, ToolchainRoot: toolchainRoot(t)})
++	_, err = minimizeWith(context.Background(), MinimizeSpec{ArtifactPath: published.Path, OutputRoot: t.TempDir(), AttemptBudget: 1, ToolchainRoot: toolchainRoot(t)}, executionDependencies{})
+ 	if err == nil || !strings.Contains(err.Error(), "stored target uses unsupported coverage instrumentation") {
+ 		t.Fatalf("covered minimization: error = %v", err)
+ 	}
+--- a/tools/gomad3/runner/diagnostic_identity_test.go
++++ b/tools/gomad3/runner/diagnostic_identity_test.go
+@@ -26,18 +26,18 @@
+ 		}
+ 		t.Run(name, func(t *testing.T) {
+ 			preparer := newFakePreparer(t)
+-			var executor Executor = &fakeExecutor{result: func(uint64) execution.Result { return processResult(1, "baseline output", "baseline failure") }}
++			var executor executionRunner = &fakeExecutor{result: func(uint64) execution.Result { return processResult(1, "baseline output", "baseline failure") }}
+ 			if traced {
+ 				executor = &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: 1 << 20, exitCode: 1}
+ 			}
+ 			capture := &diagnosticBaselineExecutor{delegate: executor}
+-			config := testConfig(t, preparer, capture, "7", PolicyAll, 1)
++			config, configDependencies := testConfig(t, preparer, capture, "7", PolicyAll, 1)
+ 			capture.root = config.Artifacts
+ 			if traced {
+ 				config.ChoiceTraceLimit = 1 << 20
+ 			}
+ 			planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
+-			planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath})
++			planned, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath}, configDependencies)
+ 			if err != nil {
+ 				t.Fatal(err)
+ 			}
+@@ -45,7 +45,7 @@
+ 			if err != nil {
+ 				t.Fatal(err)
+ 			}
+-			summary, err := Explore(context.Background(), config)
++			summary, err := exploreWith(context.Background(), config, configDependencies)
+ 			if err != nil {
+ 				t.Fatal(err)
+ 			}
+@@ -87,7 +87,7 @@
+ }
+ 
+ type diagnosticBaselineExecutor struct {
+-	delegate Executor
++	delegate executionRunner
+ 	root     string
+ 	plan     []byte
+ }
+--- a/tools/gomad3/runner/diagnostics_test.go
++++ b/tools/gomad3/runner/diagnostics_test.go
+@@ -49,12 +49,12 @@
+ func TestDiagnosticsRetainedWhenSuccessArtifactsAreDiscarded(t *testing.T) {
+ 	preparer := newFakePreparer(t)
+ 	executor := &diagnosticExecutor{t: t, delegate: &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: 1 << 20}}
+-	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
++	config, configDependencies := testConfig(t, preparer, executor, "7", PolicyAll, 1)
+ 	config.Diagnostics = true
+ 	config.ChoiceTraceLimit = 1 << 20
+ 	config.CollectExecutionEvidence = true
+ 	config.Coverage = CoverageSemanticChoice
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -87,22 +87,22 @@
+ func TestDiagnosticsPlanShardAndGuidanceKeepTheProfile(t *testing.T) {
+ 	preparer := newFakePreparer(t)
+ 	executor := &diagnosticExecutor{t: t, delegate: &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: 1 << 20}}
+-	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
++	config, configDependencies := testConfig(t, preparer, executor, "7", PolicyAll, 1)
+ 	config.Diagnostics = true
+ 	config.ChoiceTraceLimit = 1 << 20
+ 	config.Coverage = CoverageSemanticChoice
+-	planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: filepath.Join(t.TempDir(), "plan.json")})
++	planned, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: filepath.Join(t.TempDir(), "plan.json")}, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+-	summary, err := RunCampaignShard(context.Background(), CampaignShardSpec{PlanPath: planned.Path, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild, Executor: executor})
++	summary, err := runCampaignShardWith(context.Background(), CampaignShardSpec{PlanPath: planned.Path, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild}, executionDependencies{executor: executor})
+ 	if err != nil || summary.Diagnostics == nil {
+ 		t.Fatalf("shard diagnostics %+v: %v", summary.Diagnostics, err)
+ 	}
+ 	config.Guide = true
+ 	config.Corpus = filepath.Join(t.TempDir(), "corpus")
+ 	config.Replayer = &matchingReplayer{}
+-	summary, err = Explore(context.Background(), config)
++	summary, err = exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -114,7 +114,7 @@
+ func TestDiagnosticArtifactReplaysWithoutCollectingSidecar(t *testing.T) {
+ 	path, expected := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true, Environment: []record.Environment{{Name: choice.DiagnosticProfileEnvironment, Value: choice.DiagnosticProfile}}})
+ 	executor := &fakeReplayExecutor{result: expected}
+-	replayed, err := Replay(context.Background(), ReplaySpec{ArtifactPath: path, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor})
++	replayed, err := replayWith(context.Background(), ReplaySpec{ArtifactPath: path, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}}, executionDependencies{executor: executor})
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -158,16 +158,16 @@
+ 	newExecutor := func() *diagnosticExecutor {
+ 		return &diagnosticExecutor{t: t, delegate: &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: 1 << 20}}
+ 	}
+-	config := testConfig(t, preparer, &diagnosticInterruptExecutor{delegate: newExecutor()}, "7-8", PolicyAll, 1)
++	config, configDependencies := testConfig(t, preparer, &diagnosticInterruptExecutor{delegate: newExecutor()}, "7-8", PolicyAll, 1)
+ 	config.Diagnostics = true
+ 	config.ChoiceTraceLimit = 1 << 20
+ 	config.Coverage = CoverageSemanticChoice
+-	partial, err := Explore(context.Background(), config)
++	partial, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err == nil || partial.Diagnostics == nil {
+ 		t.Fatalf("interruption %+v: %v", partial, err)
+ 	}
+ 	originalPath := partial.Diagnostics.Path
+-	resumed, err := Explore(context.Background(), CampaignSpec{ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: newExecutor()})
++	resumed, err := exploreWith(context.Background(), CampaignSpec{ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}}, executionDependencies{executor: newExecutor()})
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+--- a/tools/gomad3/runner/guidance_identity_test.go
++++ b/tools/gomad3/runner/guidance_identity_test.go
+@@ -35,7 +35,7 @@
+ 				}}
+ 				corpus := filepath.Join(t.TempDir(), "corpus")
+ 				run := func(seed, env, tick string) error {
+-					config := testConfig(t, preparer, executor, seed, PolicyAll, 1)
++					config, configDependencies := testConfig(t, preparer, executor, seed, PolicyAll, 1)
+ 					config.Coverage = coverage
+ 					config.Guide = true
+ 					config.Corpus = corpus
+@@ -47,7 +47,7 @@
+ 					if env != "" {
+ 						config.Environment = []string{env}
+ 					}
+-					_, err := Explore(context.Background(), config)
++					_, err := exploreWith(context.Background(), config, configDependencies)
+ 					return err
+ 				}
+ 				if err := run("7", test.firstEnv, test.firstTick); err != nil {
+--- a/tools/gomad3/runner/guided_selection_test.go
++++ b/tools/gomad3/runner/guided_selection_test.go
+@@ -59,21 +59,21 @@
+ 				r.IOTranscript = completeEmptyTranscript()
+ 				return r
+ 			}
+-			config := testConfig(t, newFakePreparer(t), &fakeExecutor{result: result}, "0", PolicyAll, 1)
++			config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: result}, "0", PolicyAll, 1)
+ 			config.Guide = true
+ 			config.Corpus = corpus
+ 			config.Coverage = CoverageSemantic
+ 			config.Replayer = &matchingReplayer{}
+-			if _, err := Explore(context.Background(), config); err != nil {
++			if _, err := exploreWith(context.Background(), config, configDependencies); err != nil {
+ 				t.Fatal(err)
+ 			}
+ 			executor := &fakeExecutor{result: result}
+-			config = testConfig(t, newFakePreparer(t), executor, test.seeds, PolicyAll, 1)
++			config, configDependencies = testConfig(t, newFakePreparer(t), executor, test.seeds, PolicyAll, 1)
+ 			config.Guide = true
+ 			config.Corpus = corpus
+ 			config.Coverage = CoverageSemantic
+ 			config.Replayer = &matchingReplayer{}
+-			summary, err := Explore(context.Background(), config)
++			summary, err := exploreWith(context.Background(), config, configDependencies)
+ 			if err != nil {
+ 				t.Fatal(err)
+ 			}
+@@ -102,19 +102,19 @@
+ 				r.IOTranscript = completeEmptyTranscript()
+ 				return r
+ 			}
+-			config := testConfig(t, newFakePreparer(t), &fakeExecutor{result: result}, "0", PolicyAll, 1)
++			config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: result}, "0", PolicyAll, 1)
+ 			config.Guide = true
+ 			config.Coverage = CoverageSemantic
+ 			config.Corpus = filepath.Join(t.TempDir(), "corpus")
+ 			config.Replayer = &matchingReplayer{}
+-			if _, err := Explore(context.Background(), config); err != nil {
++			if _, err := exploreWith(context.Background(), config, configDependencies); err != nil {
+ 				t.Fatal(err)
+ 			}
+ 			config.Preparer = newFakePreparer(t)
+ 			config.Seeds = "0-3"
+ 			config.GuideRegression = regression
+ 			planPath := filepath.Join(t.TempDir(), "plan.json")
+-			planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath})
++			planned, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath}, configDependencies)
+ 			if err != nil {
+ 				t.Fatal(err)
+ 			}
+@@ -136,7 +136,7 @@
+ 			var seeds []uint64
+ 			for index := uint64(0); index < 2; index++ {
+ 				executor := &fakeExecutor{result: result}
+-				summary, err := RunCampaignShard(context.Background(), CampaignShardSpec{PlanPath: planPath, Shard: CampaignShard{Index: index, Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: executor})
++				summary, err := runCampaignShardWith(context.Background(), CampaignShardSpec{PlanPath: planPath, Shard: CampaignShard{Index: index, Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}}, executionDependencies{executor: executor})
+ 				if err != nil {
+ 					t.Fatal(err)
+ 				}
+@@ -171,30 +171,30 @@
+ 		r.IOTranscript = completeEmptyTranscript()
+ 		return r
+ 	}
+-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{result: result}, "0", PolicyAll, 1)
++	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: result}, "0", PolicyAll, 1)
+ 	config.Guide = true
+ 	config.Coverage = CoverageSemantic
+ 	config.Corpus = filepath.Join(t.TempDir(), "corpus")
+ 	config.Replayer = &matchingReplayer{}
+-	if _, err := Explore(context.Background(), config); err != nil {
++	if _, err := exploreWith(context.Background(), config, configDependencies); err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	config.Preparer = newFakePreparer(t)
+-	config.Executor = &guidedInterruptExecutor{}
++	configDependencies.executor = &guidedInterruptExecutor{}
+ 	config.Seeds = "0-3"
+ 	config.GuideRegression = true
+ 	ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.Succeeded == 1 })
+-	partial, err := Explore(ctx, config)
++	partial, err := exploreWith(ctx, config, configDependencies)
+ 	if err == nil {
+ 		t.Fatal("campaign was not interrupted")
+ 	}
+ 	changed := false
+-	_, err = Resume(context.Background(), ResumeSpec{CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: &fakeExecutor{result: result}, GuideRegression: &changed})
++	_, err = resumeWith(context.Background(), ResumeSpec{CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, GuideRegression: &changed}, executionDependencies{executor: &fakeExecutor{result: result}})
+ 	if err == nil || !strings.Contains(err.Error(), "regression mode") {
+ 		t.Fatalf("changed mode error=%v", err)
+ 	}
+ 	executor := &fakeExecutor{result: result}
+-	resumed, err := Resume(context.Background(), ResumeSpec{CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: executor, Replayer: &matchingReplayer{}})
++	resumed, err := resumeWith(context.Background(), ResumeSpec{CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Replayer: &matchingReplayer{}}, executionDependencies{executor: executor})
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -212,12 +212,12 @@
+ 		r.IOTranscript = completeEmptyTranscript()
+ 		return r
+ 	}
+-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{result: result}, "0", PolicyAll, 1)
++	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: result}, "0", PolicyAll, 1)
+ 	config.Guide = true
+ 	config.Coverage = CoverageSemantic
+ 	config.Corpus = filepath.Join(t.TempDir(), "corpus")
+ 	config.Replayer = &matchingReplayer{}
+-	if _, err := Explore(context.Background(), config); err != nil {
++	if _, err := exploreWith(context.Background(), config, configDependencies); err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	executor := &fakeExecutor{result: func(seed uint64) execution.Result {
+@@ -226,11 +226,11 @@
+ 		return r
+ 	}}
+ 	config.Preparer = newFakePreparer(t)
+-	config.Executor = executor
++	configDependencies.executor = executor
+ 	config.Seeds = "10-13"
+ 	config.OnFailure = PolicyFirst
+ 	config.GuideRegression = true
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -268,17 +268,17 @@
+ 		r.IOTranscript = completeEmptyTranscript()
+ 		return r
+ 	}
+-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{result: result}, "0", PolicyAll, 1)
++	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: result}, "0", PolicyAll, 1)
+ 	config.Guide = true
+ 	config.Coverage = CoverageSemantic
+ 	config.Corpus = filepath.Join(t.TempDir(), "corpus")
+ 	config.Replayer = &matchingReplayer{}
+-	if _, err := Explore(context.Background(), config); err != nil {
++	if _, err := exploreWith(context.Background(), config, configDependencies); err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	config.Preparer = newFakePreparer(t)
+ 	path := filepath.Join(t.TempDir(), "plan.json")
+-	planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: path})
++	planned, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: path}, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -288,7 +288,7 @@
+ 	var shards []string
+ 	for index := uint64(0); index < 2; index++ {
+ 		executor := &fakeExecutor{result: result}
+-		summary, err := RunCampaignShard(context.Background(), CampaignShardSpec{PlanPath: path, Shard: CampaignShard{Index: index, Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: executor})
++		summary, err := runCampaignShardWith(context.Background(), CampaignShardSpec{PlanPath: path, Shard: CampaignShard{Index: index, Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}}, executionDependencies{executor: executor})
+ 		if err != nil {
+ 			t.Fatal(err)
+ 		}
+@@ -340,12 +340,12 @@
+ 		r.IOTranscript = completeEmptyTranscript()
+ 		return r
+ 	}
+-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{result: result}, "0", PolicyAll, 1)
++	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: result}, "0", PolicyAll, 1)
+ 	config.Guide = true
+ 	config.Coverage = CoverageSemantic
+ 	config.Corpus = filepath.Join(t.TempDir(), "corpus")
+ 	config.Replayer = &matchingReplayer{}
+-	if _, err := Explore(context.Background(), config); err != nil {
++	if _, err := exploreWith(context.Background(), config, configDependencies); err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	config.Seeds = "100"
+@@ -353,7 +353,7 @@
+ 	for _, regression := range []bool{false, true} {
+ 		config.Preparer = newFakePreparer(t)
+ 		config.GuideRegression = regression
+-		planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: filepath.Join(t.TempDir(), "plan.json")})
++		planned, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: filepath.Join(t.TempDir(), "plan.json")}, configDependencies)
+ 		if err != nil {
+ 			t.Fatal(err)
+ 		}
+--- a/tools/gomad3/runner/inspect_test.go
++++ b/tools/gomad3/runner/inspect_test.go
+@@ -45,7 +45,7 @@
+ 	preparer := newFakePreparer(t)
+ 	limit := choiceTraceLimit(t, 1)
+ 	executor := &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, fail: true}
+-	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
++	config, configDependencies := testConfig(t, preparer, executor, "7", PolicyAll, 1)
+ 	config.Strategy = StrategySimulationExploration
+ 	config.ChoiceTraceLimit = limit
+ 	config.MaxExecutions = 1
+@@ -54,7 +54,7 @@
+ 	config.MaxExplorationResultBytes = 1 << 20
+ 	config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1}
+ 
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -70,11 +70,12 @@
+ 
+ func TestOpenReportsMinimizationLineageAndBounds(t *testing.T) {
+ 	artifactPath, _ := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true, Simulation: true, ForcedSimulation: true})
+-	result, err := Minimize(context.Background(), MinimizeSpec{
++	result, err := minimizeWith(context.Background(), MinimizeSpec{
+ 		ArtifactPath: artifactPath, OutputRoot: t.TempDir(), AttemptBudget: 16,
+ 		ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+-		Executor: &minimizationExecutor{}, Replayer: &minimizationReplayer{},
+-	})
++		Replayer: &minimizationReplayer{},
++	}, executionDependencies{executor: &minimizationExecutor{}},
++	)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -142,7 +143,7 @@
+ 	preparer := newFakePreparer(t)
+ 	limit := choiceTraceLimit(t, 1)
+ 	executor := &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+-	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
++	config, configDependencies := testConfig(t, preparer, executor, "7", PolicyAll, 1)
+ 	config.Strategy = StrategySimulationExploration
+ 	config.ChoiceTraceLimit = limit
+ 	config.MaxExecutions = 4
+@@ -151,7 +152,7 @@
+ 	config.MaxExplorationResultBytes = 1 << 20
+ 	config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 2, Scenario: 1, Network: 2, Storage: 2, Fault: 2, Crash: 2}
+ 
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+--- a/tools/gomad3/runner/minimize_operation.go
++++ b/tools/gomad3/runner/minimize_operation.go
+@@ -32,7 +32,6 @@
+ 	ToolchainRoot     string
+ 	SupervisorCommand []string
+ 	BootstrapCommand  []string
+-	Executor          Executor
+ 	Replayer          ArtifactReplayer
+ 	// Resume continues from the state an interrupted run left under OutputRoot.
+ 	Resume bool
+@@ -49,6 +48,7 @@
+ 
+ type minimizationSession struct {
+ 	config          MinimizeSpec
++	dependencies    executionDependencies
+ 	opened          artifact.Artifact
+ 	workDirectory   string
+ 	prepared        target.Prepared
+@@ -61,7 +61,7 @@
+ 	mountArtifact   *readonlymount.CapturedInputs
+ 	choiceIdentity  choice.ExecutionIdentity
+ 	exactChoiceTape *choice.ReplayPlan
+-	executor        Executor
++	executor        executionRunner
+ 	replayer        ArtifactReplayer
+ 	temporaryRoot   string
+ 	workspace       *minimizer.Workspace
+@@ -73,8 +73,12 @@
+ 	replay   ReplayResult
+ }
+ 
+-func Minimize(ctx context.Context, config MinimizeSpec) (result MinimizeResult, retErr error) {
+-	session, err := openMinimizationSession(ctx, config)
++func Minimize(ctx context.Context, config MinimizeSpec) (MinimizeResult, error) {
++	return minimizeWith(ctx, config, executionDependencies{})
++}
++
++func minimizeWith(ctx context.Context, config MinimizeSpec, dependencies executionDependencies) (result MinimizeResult, retErr error) {
++	session, err := openMinimizationSession(ctx, config, dependencies)
+ 	if err != nil {
+ 		return MinimizeResult{}, err
+ 	}
+@@ -276,7 +280,7 @@
+ 	return nil, fmt.Errorf("artifact payload %q is not listed", file)
+ }
+ 
+-func openMinimizationSession(ctx context.Context, config MinimizeSpec) (_ *minimizationSession, retErr error) {
++func openMinimizationSession(ctx context.Context, config MinimizeSpec, dependencies executionDependencies) (_ *minimizationSession, retErr error) {
+ 	if config.OutputRoot == "" {
+ 		return nil, errors.New("minimized artifact output root is required")
+ 	}
+@@ -287,7 +291,7 @@
+ 	if err != nil {
+ 		return nil, &ReplayPreflightError{Err: err}
+ 	}
+-	session := &minimizationSession{config: config, opened: opened, profile: deterministicio.Default()}
++	session := &minimizationSession{config: config, dependencies: dependencies, opened: opened, profile: deterministicio.Default()}
+ 	defer func() {
+ 		if retErr != nil {
+ 			retErr = errors.Join(retErr, session.close())
+@@ -405,7 +409,7 @@
+ 		ChoiceTraceLimit: uint64(manifest.Limits.ChoiceTraceBytes), RunnerBuild: manifest.Runner.RunnerBuild,
+ 		IOROMountLimits: session.mountLimits, SupervisorCommand: append([]string(nil), session.config.SupervisorCommand...),
+ 	}
+-	session.executor = session.config.Executor
++	session.executor = session.dependencies.executor
+ 	if session.executor == nil {
+ 		if len(session.config.SupervisorCommand) == 0 {
+ 			return errors.New("supervisor command is required")
+@@ -413,9 +417,6 @@
+ 		session.executor = processExecutor{}
+ 	}
+ 	session.replayer = session.config.Replayer
+-	if session.replayer == nil {
+-		session.replayer = artifactReplayer{}
+-	}
+ 	return nil
+ }
+ 
+@@ -521,18 +522,15 @@
+ }
+ 
+ func (session *minimizationSession) replay(ctx context.Context, artifactPath string) (ReplayResult, error) {
+-	return session.replayer.Replay(ctx, ReplaySpec{
++	config := ReplaySpec{
+ 		ArtifactPath: artifactPath, ToolchainRoot: session.config.ToolchainRoot,
+ 		SupervisorCommand: append([]string(nil), session.config.SupervisorCommand...),
+-		BootstrapCommand:  append([]string(nil), session.config.BootstrapCommand...), Executor: replayExecutor(session.config.Executor),
+-	})
+-}
+-
+-func replayExecutor(executor Executor) ReplayExecutor {
+-	if executor == nil {
+-		return nil
+-	}
+-	return executor
++		BootstrapCommand:  append([]string(nil), session.config.BootstrapCommand...),
++	}
++	if session.replayer != nil {
++		return session.replayer.Replay(ctx, config)
++	}
++	return replayWith(ctx, config, session.dependencies)
+ }
+ 
+ func validateMinimizationReplay(manifest record.ExecutionRecord, replay ReplayResult) error {
+--- a/tools/gomad3/runner/minimize_operation_test.go
++++ b/tools/gomad3/runner/minimize_operation_test.go
+@@ -37,10 +37,11 @@
+ 	executor := &minimizationExecutor{}
+ 	replayer := &minimizationReplayer{}
+ 
+-	result, err := Minimize(context.Background(), MinimizeSpec{
++	result, err := minimizeWith(context.Background(), MinimizeSpec{
+ 		ArtifactPath: artifactPath, OutputRoot: t.TempDir(), AttemptBudget: 16,
+-		ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor, Replayer: replayer,
+-	})
++		ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Replayer: replayer,
++	}, executionDependencies{executor: executor},
++	)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -74,12 +75,13 @@
+ 
+ func TestMinimizeRejectsSimulationArtifactWithoutExactChoiceTape(t *testing.T) {
+ 	artifactPath, _ := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Simulation: true})
+-	_, err := Minimize(context.Background(), MinimizeSpec{
++	_, err := minimizeWith(context.Background(), MinimizeSpec{
+ 		ArtifactPath: artifactPath, OutputRoot: t.TempDir(), AttemptBudget: 16,
+-		ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: &minimizationExecutor{}, Replayer: &minimizationReplayer{},
+-	})
++		ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Replayer: &minimizationReplayer{},
++	}, executionDependencies{executor: &minimizationExecutor{}},
++	)
+ 	if err == nil {
+-		t.Fatal("Minimize() accepted an artifact without an exact choice tape")
++		t.Fatal("minimizeWith() accepted an artifact without an exact choice tape")
+ 	}
+ }
+ 
+@@ -118,17 +120,18 @@
+ 	return minimizationParent(t, record.Environment{Name: "GOMAD_TEST_OTHER_PARENT", Value: "1"})
+ }
+ 
+-func minimizationSpec(t *testing.T, artifactPath, outputRoot string) MinimizeSpec {
++func minimizationSpec(t *testing.T, artifactPath, outputRoot string) (MinimizeSpec, executionDependencies) {
+ 	t.Helper()
+ 	return MinimizeSpec{
+ 		ArtifactPath: artifactPath, OutputRoot: outputRoot, AttemptBudget: 16,
+-		ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: &minimizationExecutor{}, Replayer: &minimizationReplayer{},
+-	}
++		ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Replayer: &minimizationReplayer{},
++	}, executionDependencies{executor: &minimizationExecutor{}}
+ }
+ 
+ func uninterruptedMinimization(t *testing.T, artifactPath string) minimizationOutcome {
+ 	t.Helper()
+-	result, err := Minimize(context.Background(), minimizationSpec(t, artifactPath, t.TempDir()))
++	spec, dependencies := minimizationSpec(t, artifactPath, t.TempDir())
++	result, err := minimizeWith(context.Background(), spec, dependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -149,10 +152,10 @@
+ func interruptedMinimization(t *testing.T, artifactPath string) string {
+ 	t.Helper()
+ 	outputRoot := t.TempDir()
+-	spec := minimizationSpec(t, artifactPath, outputRoot)
+-	spec.Executor = &minimizationExecutor{before: interruptAt(minimizationCallAfterAcceptedReduction)}
+-	if _, err := Minimize(context.Background(), spec); !errors.Is(err, errMinimizationInterrupted) {
+-		t.Fatalf("interrupted Minimize() error = %v", err)
++	spec, specDependencies := minimizationSpec(t, artifactPath, outputRoot)
++	specDependencies.executor = &minimizationExecutor{before: interruptAt(minimizationCallAfterAcceptedReduction)}
++	if _, err := minimizeWith(context.Background(), spec, specDependencies); !errors.Is(err, errMinimizationInterrupted) {
++		t.Fatalf("interrupted minimizeWith() error = %v", err)
+ 	}
+ 	return outputRoot
+ }
+@@ -177,20 +180,20 @@
+ 	uninterrupted := uninterruptedMinimization(t, artifactPath)
+ 	outputRoot := interruptedMinimization(t, artifactPath)
+ 
+-	spec := minimizationSpec(t, artifactPath, outputRoot)
+-	if _, err := Minimize(context.Background(), spec); !errors.Is(err, minimizer.ErrCheckpointExists) {
+-		t.Fatalf("Minimize() over existing state error = %v", err)
+-	}
+-	if calls := spec.Executor.(*minimizationExecutor).calls; calls != 0 {
++	spec, specDependencies := minimizationSpec(t, artifactPath, outputRoot)
++	if _, err := minimizeWith(context.Background(), spec, specDependencies); !errors.Is(err, minimizer.ErrCheckpointExists) {
++		t.Fatalf("minimizeWith() over existing state error = %v", err)
++	}
++	if calls := specDependencies.executor.(*minimizationExecutor).calls; calls != 0 {
+ 		t.Fatalf("refused run evaluated %d candidates", calls)
+ 	}
+ 
+ 	spec.Resume = true
+-	result, err := Minimize(context.Background(), spec)
+-	if err != nil {
+-		t.Fatal(err)
+-	}
+-	if calls := spec.Executor.(*minimizationExecutor).calls; calls != int(uninterrupted.Attempts)-minimizationCallAfterAcceptedReduction+1 {
++	result, err := minimizeWith(context.Background(), spec, specDependencies)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if calls := specDependencies.executor.(*minimizationExecutor).calls; calls != int(uninterrupted.Attempts)-minimizationCallAfterAcceptedReduction+1 {
+ 		t.Fatalf("resumed run evaluated %d candidates of %d attempts", calls, uninterrupted.Attempts)
+ 	}
+ 	if resumed := minimizationOutcomeOf(result); !resumed.Changed || !reflect.DeepEqual(resumed, uninterrupted) {
+@@ -200,8 +203,8 @@
+ 		t.Fatalf("published artifacts = %v, result = %s", published, result.Artifact.Path)
+ 	}
+ 	spec.Resume = false
+-	if _, err := Minimize(context.Background(), spec); err != nil {
+-		t.Fatalf("Minimize() after a completed run: %v", err)
++	if _, err := minimizeWith(context.Background(), spec, specDependencies); err != nil {
++		t.Fatalf("minimizeWith() after a completed run: %v", err)
+ 	}
+ }
+ 
+@@ -213,21 +216,22 @@
+ 	}
+ 	outputRoot := interruptedMinimization(t, artifactPath)
+ 
+-	otherResult, err := Minimize(context.Background(), minimizationSpec(t, otherPath, outputRoot))
+-	if err != nil {
+-		t.Fatalf("Minimize() of another parent beside interrupted state: %v", err)
++	otherSpec, otherDependencies := minimizationSpec(t, otherPath, outputRoot)
++	otherResult, err := minimizeWith(context.Background(), otherSpec, otherDependencies)
++	if err != nil {
++		t.Fatalf("minimizeWith() of another parent beside interrupted state: %v", err)
+ 	}
+ 	if other := minimizationOutcomeOf(otherResult); !reflect.DeepEqual(other, otherUninterrupted) {
+ 		t.Fatalf("other parent outcome = %#v, want %#v", other, otherUninterrupted)
+ 	}
+ 
+-	spec := minimizationSpec(t, artifactPath, outputRoot)
++	spec, specDependencies := minimizationSpec(t, artifactPath, outputRoot)
+ 	spec.Resume = true
+-	result, err := Minimize(context.Background(), spec)
+-	if err != nil {
+-		t.Fatal(err)
+-	}
+-	if calls := spec.Executor.(*minimizationExecutor).calls; calls != int(uninterrupted.Attempts)-minimizationCallAfterAcceptedReduction+1 {
++	result, err := minimizeWith(context.Background(), spec, specDependencies)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if calls := specDependencies.executor.(*minimizationExecutor).calls; calls != int(uninterrupted.Attempts)-minimizationCallAfterAcceptedReduction+1 {
+ 		t.Fatalf("resumed run evaluated %d candidates of %d attempts", calls, uninterrupted.Attempts)
+ 	}
+ 	if resumed := minimizationOutcomeOf(result); !reflect.DeepEqual(resumed, uninterrupted) {
+@@ -256,14 +260,14 @@
+ 		{name: "no output directory", change: func(spec *MinimizeSpec) { spec.OutputRoot = filepath.Join(t.TempDir(), "absent") }, want: minimizer.ErrNoCheckpoint.Error()},
+ 	} {
+ 		t.Run(test.name, func(t *testing.T) {
+-			spec := minimizationSpec(t, artifactPath, outputRoot)
++			spec, specDependencies := minimizationSpec(t, artifactPath, outputRoot)
+ 			spec.Resume = true
+ 			test.change(&spec)
+-			_, err := Minimize(context.Background(), spec)
++			_, err := minimizeWith(context.Background(), spec, specDependencies)
+ 			if err == nil || !strings.Contains(err.Error(), test.want) {
+-				t.Fatalf("Minimize() error = %v, want %q", err, test.want)
+-			}
+-			if calls := spec.Executor.(*minimizationExecutor).calls; calls != 0 {
++				t.Fatalf("minimizeWith() error = %v, want %q", err, test.want)
++			}
++			if calls := specDependencies.executor.(*minimizationExecutor).calls; calls != 0 {
+ 				t.Fatalf("rejected resume evaluated %d candidates", calls)
+ 			}
+ 		})
+@@ -294,12 +298,12 @@
+ 				t.Fatalf("accepted artifacts = %v, %v", accepted, err)
+ 			}
+ 			test.damage(t, accepted[0])
+-			spec := minimizationSpec(t, artifactPath, outputRoot)
++			spec, specDependencies := minimizationSpec(t, artifactPath, outputRoot)
+ 			spec.Resume = true
+-			if _, err := Minimize(context.Background(), spec); err == nil {
+-				t.Fatal("Minimize() resumed from a damaged accepted artifact")
+-			}
+-			if calls := spec.Executor.(*minimizationExecutor).calls; calls != 0 || len(publishedMinimizedArtifacts(t, outputRoot)) != 0 {
++			if _, err := minimizeWith(context.Background(), spec, specDependencies); err == nil {
++				t.Fatal("minimizeWith() resumed from a damaged accepted artifact")
++			}
++			if calls := specDependencies.executor.(*minimizationExecutor).calls; calls != 0 || len(publishedMinimizedArtifacts(t, outputRoot)) != 0 {
+ 				t.Fatalf("damaged resume evaluated %d candidates, published %v", calls, publishedMinimizedArtifacts(t, outputRoot))
+ 			}
+ 		})
+@@ -320,9 +324,9 @@
+ 			outputRoot := test.outputRoot(t)
+ 			evaluating := make(chan struct{})
+ 			release := make(chan struct{})
+-			holder := minimizationSpec(t, artifactPath, outputRoot)
++			holder, holderDependencies := minimizationSpec(t, artifactPath, outputRoot)
+ 			holder.Resume = test.resume
+-			holder.Executor = &minimizationExecutor{before: func(call int) error {
++			holderDependencies.executor = &minimizationExecutor{before: func(call int) error {
+ 				if call == 1 {
+ 					close(evaluating)
+ 					<-release
+@@ -331,26 +335,27 @@
+ 			}}
+ 			held := make(chan error, 1)
+ 			go func() {
+-				_, err := Minimize(context.Background(), holder)
++				_, err := minimizeWith(context.Background(), holder, holderDependencies)
+ 				held <- err
+ 			}()
+ 			<-evaluating
+-			contender := minimizationSpec(t, artifactPath, outputRoot)
++			contender, contenderDependencies := minimizationSpec(t, artifactPath, outputRoot)
+ 			contender.Resume = test.resume
+-			_, err := Minimize(context.Background(), contender)
+-			_, otherErr := Minimize(context.Background(), minimizationSpec(t, otherPath, outputRoot))
++			_, err := minimizeWith(context.Background(), contender, contenderDependencies)
++			otherSpec, otherDependencies := minimizationSpec(t, otherPath, outputRoot)
++			_, otherErr := minimizeWith(context.Background(), otherSpec, otherDependencies)
+ 			close(release)
+ 			if !errors.Is(err, hostfs.ErrContended) {
+-				t.Fatalf("concurrent Minimize() error = %v", err)
++				t.Fatalf("concurrent minimizeWith() error = %v", err)
+ 			}
+ 			if otherErr != nil {
+-				t.Fatalf("concurrent Minimize() of another parent: %v", otherErr)
+-			}
+-			if calls := contender.Executor.(*minimizationExecutor).calls; calls != 0 {
++				t.Fatalf("concurrent minimizeWith() of another parent: %v", otherErr)
++			}
++			if calls := contenderDependencies.executor.(*minimizationExecutor).calls; calls != 0 {
+ 				t.Fatalf("rejected run evaluated %d candidates", calls)
+ 			}
+ 			if err := <-held; err != nil {
+-				t.Fatalf("lock-holding Minimize() error = %v", err)
++				t.Fatalf("lock-holding minimizeWith() error = %v", err)
+ 			}
+ 		})
+ 	}
+@@ -361,23 +366,23 @@
+ 	uninterrupted := uninterruptedMinimization(t, artifactPath)
+ 	outputRoot := t.TempDir()
+ 	const finalValidationReplay = 2
+-	interrupted := minimizationSpec(t, artifactPath, outputRoot)
++	interrupted, interruptedDependencies := minimizationSpec(t, artifactPath, outputRoot)
+ 	interrupted.Replayer = &minimizationReplayer{before: interruptAt(finalValidationReplay)}
+-	if _, err := Minimize(context.Background(), interrupted); !errors.Is(err, errMinimizationInterrupted) {
+-		t.Fatalf("interrupted Minimize() error = %v", err)
++	if _, err := minimizeWith(context.Background(), interrupted, interruptedDependencies); !errors.Is(err, errMinimizationInterrupted) {
++		t.Fatalf("interrupted minimizeWith() error = %v", err)
+ 	}
+ 	published := publishedMinimizedArtifacts(t, outputRoot)
+ 	if len(published) != 1 {
+ 		t.Fatalf("published artifacts before resume = %v", published)
+ 	}
+ 
+-	spec := minimizationSpec(t, artifactPath, outputRoot)
++	spec, specDependencies := minimizationSpec(t, artifactPath, outputRoot)
+ 	spec.Resume = true
+-	result, err := Minimize(context.Background(), spec)
+-	if err != nil {
+-		t.Fatal(err)
+-	}
+-	if executor, replayer := spec.Executor.(*minimizationExecutor), spec.Replayer.(*minimizationReplayer); executor.calls != 0 || replayer.calls != 1 {
++	result, err := minimizeWith(context.Background(), spec, specDependencies)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if executor, replayer := specDependencies.executor.(*minimizationExecutor), spec.Replayer.(*minimizationReplayer); executor.calls != 0 || replayer.calls != 1 {
+ 		t.Fatalf("resume evaluated %d candidates and replayed %d artifacts", executor.calls, replayer.calls)
+ 	}
+ 	if resumed := minimizationOutcomeOf(result); !reflect.DeepEqual(resumed, uninterrupted) {
+@@ -395,7 +400,8 @@
+ 
+ 	// A run killed between the final publication and the checkpoint that
+ 	// records it leaves the published artifact and a state without it.
+-	session, err := openMinimizationSession(context.Background(), minimizationSpec(t, artifactPath, outputRoot))
++	spec, dependencies := minimizationSpec(t, artifactPath, outputRoot)
++	session, err := openMinimizationSession(context.Background(), spec, dependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -417,13 +423,13 @@
+ 		t.Fatalf("published artifacts before resume = %v", published)
+ 	}
+ 
+-	spec := minimizationSpec(t, artifactPath, outputRoot)
++	spec, specDependencies := minimizationSpec(t, artifactPath, outputRoot)
+ 	spec.Resume = true
+-	result, err := Minimize(context.Background(), spec)
+-	if err != nil {
+-		t.Fatal(err)
+-	}
+-	if executor, replayer := spec.Executor.(*minimizationExecutor), spec.Replayer.(*minimizationReplayer); executor.calls != 0 || replayer.calls != 1 {
++	result, err := minimizeWith(context.Background(), spec, specDependencies)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if executor, replayer := specDependencies.executor.(*minimizationExecutor), spec.Replayer.(*minimizationReplayer); executor.calls != 0 || replayer.calls != 1 {
+ 		t.Fatalf("resume evaluated %d candidates and replayed %d artifacts", executor.calls, replayer.calls)
+ 	}
+ 	if resumed := minimizationOutcomeOf(result); !reflect.DeepEqual(resumed, uninterrupted) {
+--- a/tools/gomad3/runner/portable_plan.go
++++ b/tools/gomad3/runner/portable_plan.go
+@@ -65,10 +65,14 @@
+ }
+ 
+ func CreateCampaignPlan(ctx context.Context, spec CampaignPlanSpec) (_ CampaignPlanResult, retErr error) {
++	return createCampaignPlanWith(ctx, spec, executionDependencies{})
++}
++
++func createCampaignPlanWith(ctx context.Context, spec CampaignPlanSpec, dependencies executionDependencies) (_ CampaignPlanResult, retErr error) {
+ 	if ctx == nil {
+ 		ctx = context.Background()
+ 	}
+-	config := campaignRequestFromSpec(spec.Campaign)
++	config := campaignRequestFromSpecWith(spec.Campaign, dependencies)
+ 	selection, environment, err := validateCampaignRequest(config)
+ 	if err != nil {
+ 		return CampaignPlanResult{}, err
+--- a/tools/gomad3/runner/portable_plan_test.go
++++ b/tools/gomad3/runner/portable_plan_test.go
+@@ -15,14 +15,14 @@
+ 
+ func TestCreateCampaignPlanPublishesCanonicalPreparedTargetBundle(t *testing.T) {
+ 	preparer := newFakePreparer(t)
+-	config := testConfig(t, preparer, &fakeExecutor{}, "9-11,2", PolicyAll, 2)
++	config, configDependencies := testConfig(t, preparer, &fakeExecutor{}, "9-11,2", PolicyAll, 2)
+ 	firstPath := filepath.Join(t.TempDir(), "campaign.plan.json")
+-	first, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: firstPath})
++	first, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: firstPath}, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	secondPath := filepath.Join(t.TempDir(), "renamed.plan.json")
+-	second, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: secondPath})
++	second, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: secondPath}, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -85,9 +85,9 @@
+ 			config.MaxExplorationBytes = 1 << 20
+ 		},
+ 	} {
+-		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1-2", PolicyAll, 1)
++		config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1-2", PolicyAll, 1)
+ 		configure(&config)
+-		_, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: filepath.Join(t.TempDir(), "campaign.plan.json")})
++		_, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: filepath.Join(t.TempDir(), "campaign.plan.json")}, configDependencies)
+ 		if err == nil {
+ 			t.Fatal("CreateCampaignPlan() accepted a non-static campaign")
+ 		}
+@@ -99,11 +99,11 @@
+ 	if err := os.WriteFile(filepath.Join(mount, "value"), []byte("planned"), 0o600); err != nil {
+ 		t.Fatal(err)
+ 	}
+-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
++	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
+ 	config.Target.WorkingDir = t.TempDir()
+ 	config.IOROMounts = []string{mount + "=input"}
+ 	planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
+-	_, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath})
++	_, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath}, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -111,12 +111,13 @@
+ 		t.Fatal(err)
+ 	}
+ 	executor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(0, "", "") }}
+-	_, err = RunCampaignShard(context.Background(), CampaignShardSpec{
++	_, err = runCampaignShardWith(context.Background(), CampaignShardSpec{
+ 		PlanPath: planPath, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild,
+-		SupervisorCommand: []string{"unused"}, Executor: executor,
+-	})
++		SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: executor},
++	)
+ 	if err == nil {
+-		t.Fatal("RunCampaignShard() accepted a changed read-only mount")
++		t.Fatal("runCampaignShardWith() accepted a changed read-only mount")
+ 	}
+ 	if len(executor.requests) != 0 {
+ 		t.Fatal("executor started before mount preflight completed")
+@@ -138,11 +139,11 @@
+ 	secondSource := createSource()
+ 	runnerBuild := ""
+ 	create := func(source, output string) CampaignPlanResult {
+-		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
++		config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
+ 		runnerBuild = config.RunnerBuild
+ 		config.Target.WorkingDir = t.TempDir()
+ 		config.IOROMounts = []string{source + "=input"}
+-		result, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: output})
++		result, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: output}, configDependencies)
+ 		if err != nil {
+ 			t.Fatal(err)
+ 		}
+@@ -166,10 +167,11 @@
+ 		t.Fatal(err)
+ 	}
+ 	executor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(0, "", "") }}
+-	result, err := RunCampaignShard(context.Background(), CampaignShardSpec{
++	result, err := runCampaignShardWith(context.Background(), CampaignShardSpec{
+ 		PlanPath: firstPath, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: t.TempDir(), RunnerBuild: runnerBuild,
+-		SupervisorCommand: []string{"unused"}, Executor: executor,
+-	})
++		SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: executor},
++	)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -179,17 +181,18 @@
+ }
+ 
+ func TestRunCampaignShardExecutesOnlyItsGlobalOrdinalPartition(t *testing.T) {
+-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "9-11,2", PolicyAll, 2)
+-	planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
+-	planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath})
++	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "9-11,2", PolicyAll, 2)
++	planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
++	planned, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath}, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	executor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(0, "", "") }}
+-	result, err := RunCampaignShard(context.Background(), CampaignShardSpec{
++	result, err := runCampaignShardWith(context.Background(), CampaignShardSpec{
+ 		PlanPath: planPath, Shard: CampaignShard{Index: 1, Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild,
+-		SupervisorCommand: []string{"unused"}, Executor: executor,
+-	})
++		SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: executor},
++	)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -209,30 +212,31 @@
+ }
+ 
+ func TestRunCampaignShardResumePreservesItsPlanAndAssignment(t *testing.T) {
+-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7-10", PolicyAll, 1)
+-	planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
+-	planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath})
++	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7-10", PolicyAll, 1)
++	planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
++	planned, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath}, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	ctx, cancel := context.WithCancel(context.Background())
+ 	defer cancel()
+ 	interrupted := &resumeInterruptExecutor{}
+-	partial, err := RunCampaignShard(ctx, CampaignShardSpec{
++	partial, err := runCampaignShardWith(ctx, CampaignShardSpec{
+ 		PlanPath: planPath, Shard: CampaignShard{Index: 0, Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild,
+-		SupervisorCommand: []string{"unused"}, Executor: interrupted, ProgressInterval: time.Millisecond,
++		SupervisorCommand: []string{"unused"}, ProgressInterval: time.Millisecond,
+ 		Progress: func(event CampaignEvent) error {
+ 			if event.Succeeded == 1 {
+ 				cancel()
+ 			}
+ 			return nil
+ 		},
+-	})
++	}, executionDependencies{executor: interrupted},
++	)
+ 	if err == nil {
+-		t.Fatal("RunCampaignShard() was not interrupted")
++		t.Fatal("runCampaignShardWith() was not interrupted")
+ 	}
+ 	resumedExecutor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(0, "", "") }}
+-	resumed, err := Resume(context.Background(), ResumeSpec{CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor})
++	resumed, err := resumeWith(context.Background(), ResumeSpec{CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}}, executionDependencies{executor: resumedExecutor})
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -249,19 +253,20 @@
+ }
+ 
+ func TestMergeCampaignShardsIsOrderIndependentAndRequiresCompleteness(t *testing.T) {
+-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "9-11,2", PolicyAll, 2)
+-	planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
+-	_, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath})
++	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "9-11,2", PolicyAll, 2)
++	planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
++	_, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath}, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	executor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(0, "", "") }}
+ 	shards := make([]string, 2)
+ 	for index := range shards {
+-		result, err := RunCampaignShard(context.Background(), CampaignShardSpec{
++		result, err := runCampaignShardWith(context.Background(), CampaignShardSpec{
+ 			PlanPath: planPath, Shard: CampaignShard{Index: uint64(index), Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild,
+-			SupervisorCommand: []string{"unused"}, Executor: executor,
+-		})
++			SupervisorCommand: []string{"unused"},
++		}, executionDependencies{executor: executor},
++		)
+ 		if err != nil {
+ 			t.Fatal(err)
+ 		}
+@@ -316,9 +321,9 @@
+ 	if _, err := MergeCampaignShards(context.Background(), CampaignMergeSpec{PlanPath: planPath, Shards: []string{shards[0], shards[0]}, Output: filepath.Join(t.TempDir(), "duplicate"), Partial: true}); err == nil {
+ 		t.Fatal("merge accepted a duplicate shard")
+ 	}
+-	otherConfig := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "20-23", PolicyAll, 1)
++	otherConfig, otherConfigDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "20-23", PolicyAll, 1)
+ 	otherPlanPath := filepath.Join(t.TempDir(), "other.plan.json")
+-	if _, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: otherConfig, Output: otherPlanPath}); err != nil {
++	if _, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: otherConfig, Output: otherPlanPath}, otherConfigDependencies); err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	if _, err := MergeCampaignShards(context.Background(), CampaignMergeSpec{PlanPath: otherPlanPath, Shards: shards[:1], Output: filepath.Join(t.TempDir(), "wrong-plan"), Partial: true}); err == nil {
+@@ -327,19 +332,20 @@
+ }
+ 
+ func TestMergeCampaignShardsDeduplicatesSharedFailureEvidence(t *testing.T) {
+-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1-2", PolicyAll, 1)
+-	planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
+-	_, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath})
++	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1-2", PolicyAll, 1)
++	planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
++	_, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath}, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	executor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(7, "same failure", "") }}
+ 	shards := make([]string, 2)
+ 	for index := range shards {
+-		result, err := RunCampaignShard(context.Background(), CampaignShardSpec{
++		result, err := runCampaignShardWith(context.Background(), CampaignShardSpec{
+ 			PlanPath: planPath, Shard: CampaignShard{Index: uint64(index), Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild,
+-			SupervisorCommand: []string{"unused"}, Executor: executor,
+-		})
++			SupervisorCommand: []string{"unused"},
++		}, executionDependencies{executor: executor},
++		)
+ 		if err != nil {
+ 			t.Fatal(err)
+ 		}
+--- a/tools/gomad3/runner/replay_operation.go
++++ b/tools/gomad3/runner/replay_operation.go
+@@ -25,10 +25,6 @@
+ 	"go.temporal.io/server/tools/gomad3/world"
+ )
+ 
+-type ReplayExecutor interface {
+-	Run(context.Context, execution.Spec) (execution.Result, error)
+-}
+-
+ type ReplaySpec struct {
+ 	ArtifactPath  string
+ 	VerifyOnly    bool
+@@ -38,7 +34,6 @@
+ 	ObservedDir       string
+ 	SupervisorCommand []string
+ 	BootstrapCommand  []string
+-	Executor          ReplayExecutor
+ }
+ 
+ type ReplayResult struct {
+@@ -76,7 +71,11 @@
+ 	return execution.Run(ctx, request)
+ }
+ 
+-func Replay(ctx context.Context, config ReplaySpec) (result ReplayResult, retErr error) {
++func Replay(ctx context.Context, config ReplaySpec) (ReplayResult, error) {
++	return replayWith(ctx, config, executionDependencies{})
++}
++
++func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDependencies) (result ReplayResult, retErr error) {
+ 	opened, err := preflight(config)
+ 	if err != nil {
+ 		return ReplayResult{}, &ReplayPreflightError{Err: err}
+@@ -113,7 +112,7 @@
+ 	if config.VerifyOnly {
+ 		return result, nil
+ 	}
+-	executor := config.Executor
++	executor := dependencies.executor
+ 	if executor == nil {
+ 		if len(config.SupervisorCommand) == 0 {
+ 			return ReplayResult{}, fmt.Errorf("supervisor command is required")
+--- a/tools/gomad3/runner/replay_operation_test.go
++++ b/tools/gomad3/runner/replay_operation_test.go
+@@ -40,9 +40,10 @@
+ 		t.Fatal(err)
+ 	}
+ 	executor := &fakeReplayExecutor{result: expected}
+-	result, err := Replay(context.Background(), ReplaySpec{
+-		ArtifactPath: movedPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
+-	})
++	result, err := replayWith(context.Background(), ReplaySpec{
++		ArtifactPath: movedPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: executor},
++	)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -68,9 +69,10 @@
+ func TestReplayAutomaticallySuppliesExactChoiceTape(t *testing.T) {
+ 	artifactPath, expected := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true})
+ 	executor := &fakeReplayExecutor{result: expected}
+-	result, err := Replay(context.Background(), ReplaySpec{
+-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
+-	})
++	result, err := replayWith(context.Background(), ReplaySpec{
++		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: executor},
++	)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -100,9 +102,10 @@
+ 		t.Fatal(err)
+ 	}
+ 	executor := &fakeReplayExecutor{result: expected}
+-	result, err := Replay(context.Background(), ReplaySpec{
+-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
+-	})
++	result, err := replayWith(context.Background(), ReplaySpec{
++		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: executor},
++	)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -117,9 +120,10 @@
+ func TestReplayReportsChangedSimulationExplorationRecord(t *testing.T) {
+ 	artifactPath, observed := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true, Simulation: true})
+ 	observed.SimulationRecords = [][]byte{[]byte("changed simulation record")}
+-	result, err := Replay(context.Background(), ReplaySpec{
+-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: &fakeReplayExecutor{result: observed},
+-	})
++	result, err := replayWith(context.Background(), ReplaySpec{
++		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: &fakeReplayExecutor{result: observed}},
++	)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -131,9 +135,10 @@
+ func TestReplayReportsTypedChoiceDivergenceBeforeOrdinaryComparison(t *testing.T) {
+ 	artifactPath, _ := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true})
+ 	executor := &fakeReplayExecutor{err: &execution.ChoiceReplayDivergenceError{Divergence: choice.Divergence{Ordinal: 3, Reason: choice.DivergenceSite}}}
+-	result, err := Replay(context.Background(), ReplaySpec{
+-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
+-	})
++	result, err := replayWith(context.Background(), ReplaySpec{
++		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: executor},
++	)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -149,20 +154,22 @@
+ 		&execution.ChoiceReplayDivergenceError{Divergence: choice.Divergence{Ordinal: 3, Reason: choice.DivergenceSite}},
+ 		cleanupErr,
+ 	)}
+-	_, err := Replay(context.Background(), ReplaySpec{
+-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
+-	})
++	_, err := replayWith(context.Background(), ReplaySpec{
++		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: executor},
++	)
+ 	if !errors.Is(err, cleanupErr) {
+-		t.Fatalf("Replay() error = %v", err)
++		t.Fatalf("replayWith() error = %v", err)
+ 	}
+ }
+ 
+ func TestReplayVerifyOnlyDoesNotStartTarget(t *testing.T) {
+ 	artifactPath, _ := replayArtifact(t)
+ 	executor := &fakeReplayExecutor{}
+-	result, err := Replay(context.Background(), ReplaySpec{
+-		ArtifactPath: artifactPath, VerifyOnly: true, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
+-	})
++	result, err := replayWith(context.Background(), ReplaySpec{
++		ArtifactPath: artifactPath, VerifyOnly: true, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: executor},
++	)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -176,11 +183,12 @@
+ 		ID: "unknown-pack", SHA256: record.HashBytes([]byte("unknown pack")),
+ 	}})
+ 	executor := &fakeReplayExecutor{}
+-	_, err := Replay(context.Background(), ReplaySpec{
+-		ArtifactPath: artifactPath, VerifyOnly: true, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
+-	})
++	_, err := replayWith(context.Background(), ReplaySpec{
++		ArtifactPath: artifactPath, VerifyOnly: true, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: executor},
++	)
+ 	if err == nil || executor.calls != 0 {
+-		t.Fatalf("Replay() error = %v, calls = %d", err, executor.calls)
++		t.Fatalf("replayWith() error = %v, calls = %d", err, executor.calls)
+ 	}
+ }
+ 
+@@ -193,11 +201,12 @@
+ 		t.Fatal(err)
+ 	}
+ 	executor := &fakeReplayExecutor{}
+-	_, err := Replay(context.Background(), ReplaySpec{
+-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
+-	})
++	_, err := replayWith(context.Background(), ReplaySpec{
++		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: executor},
++	)
+ 	if err == nil || executor.calls != 0 {
+-		t.Fatalf("Replay() error = %v, calls = %d", err, executor.calls)
++		t.Fatalf("replayWith() error = %v, calls = %d", err, executor.calls)
+ 	}
+ }
+ 
+@@ -247,11 +256,12 @@
+ 				}
+ 				test.damage(t, artifactPath, entry)
+ 				executor := &fakeReplayExecutor{result: expected}
+-				_, err = Replay(context.Background(), ReplaySpec{
+-					ArtifactPath: artifactPath, VerifyOnly: verifyOnly, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
+-				})
++				_, err = replayWith(context.Background(), ReplaySpec{
++					ArtifactPath: artifactPath, VerifyOnly: verifyOnly, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
++				}, executionDependencies{executor: executor},
++				)
+ 				if err == nil || executor.calls != 0 {
+-					t.Fatalf("Replay() error = %v, calls = %d", err, executor.calls)
++					t.Fatalf("replayWith() error = %v, calls = %d", err, executor.calls)
+ 				}
+ 			})
+ 		}
+@@ -271,9 +281,10 @@
+ 		}
+ 	}
+ 	executor := &fakeReplayExecutor{result: expected}
+-	result, err := Replay(context.Background(), ReplaySpec{
+-		ArtifactPath: exported, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
+-	})
++	result, err := replayWith(context.Background(), ReplaySpec{
++		ArtifactPath: exported, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: executor},
++	)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -307,11 +318,11 @@
+ 		OutcomeReason: "world_replay_divergence",
+ 		IOTranscript:  recordReplayIOTranscript(t),
+ 	})
+-	result, err := Replay(context.Background(), ReplaySpec{
++	result, err := replayWith(context.Background(), ReplaySpec{
+ 		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t),
+ 		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
+ 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
+-	})
++	}, executionDependencies{})
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -341,11 +352,11 @@
+ 		OutcomeReason: "world_deadlock",
+ 		IOTranscript:  recordReplayIOTranscript(t),
+ 	})
+-	result, err := Replay(context.Background(), ReplaySpec{
++	result, err := replayWith(context.Background(), ReplaySpec{
+ 		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t),
+ 		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
+ 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
+-	})
++	}, executionDependencies{})
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -458,9 +469,10 @@
+ 	artifactPath, expected := replayArtifact(t)
+ 	expected.Stdout = replayOutput("different stdout")
+ 	executor := &fakeReplayExecutor{result: expected}
+-	result, err := Replay(context.Background(), ReplaySpec{
+-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
+-	})
++	result, err := replayWith(context.Background(), ReplaySpec{
++		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: executor},
++	)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -509,9 +521,10 @@
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+-	result, err := Replay(context.Background(), ReplaySpec{
+-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: &fakeReplayExecutor{result: expected},
+-	})
++	result, err := replayWith(context.Background(), ReplaySpec{
++		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: &fakeReplayExecutor{result: expected}},
++	)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -534,9 +547,10 @@
+ 		t.Fatal(err)
+ 	}
+ 	artifactPath, expected := publishReplayArtifact(t, &bundle)
+-	result, err := Replay(context.Background(), ReplaySpec{
+-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: &fakeReplayExecutor{result: expected},
+-	})
++	result, err := replayWith(context.Background(), ReplaySpec{
++		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: &fakeReplayExecutor{result: expected}},
++	)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -547,10 +561,11 @@
+ 	changed.Manifest.Final.SemanticDigest = record.HashBytes([]byte("changed semantic digest"))
+ 	changedPath, _ := publishReplayArtifact(t, &changed)
+ 	executor := &fakeReplayExecutor{}
+-	if _, err := Replay(context.Background(), ReplaySpec{
+-		ArtifactPath: changedPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
+-	}); err == nil || executor.calls != 0 {
+-		t.Fatalf("changed World Replay() error = %v, calls = %d", err, executor.calls)
++	if _, err := replayWith(context.Background(), ReplaySpec{
++		ArtifactPath: changedPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: executor},
++	); err == nil || executor.calls != 0 {
++		t.Fatalf("changed World replayWith() error = %v, calls = %d", err, executor.calls)
+ 	}
+ }
+ 
+--- a/tools/gomad3/runner/resume.go
++++ b/tools/gomad3/runner/resume.go
+@@ -27,18 +27,21 @@
+ 	CoordinatorCommand []string
+ 	Progress           CampaignEventFunc
+ 	ProgressInterval   time.Duration
+-	Executor           Executor
+ 	Replayer           ArtifactReplayer
+ 	GuideRegression    *bool
+ }
+ 
+ func Resume(ctx context.Context, spec ResumeSpec) (CampaignResult, error) {
+-	return Explore(ctx, CampaignSpec{
++	return resumeWith(ctx, spec, executionDependencies{})
++}
++
++func resumeWith(ctx context.Context, spec ResumeSpec, dependencies executionDependencies) (CampaignResult, error) {
++	return exploreWith(ctx, CampaignSpec{
+ 		ResumeCampaign: spec.CampaignPath, RunnerBuild: spec.RunnerBuild, GuideRegressionOverride: spec.GuideRegression,
+ 		Target:            target.Spec{ToolchainRoot: spec.ToolchainRoot},
+ 		SupervisorCommand: append([]string(nil), spec.SupervisorCommand...), CoordinatorCommand: append([]string(nil), spec.CoordinatorCommand...),
+-		Progress: spec.Progress, ProgressInterval: spec.ProgressInterval, Executor: spec.Executor, Replayer: spec.Replayer,
+-	})
++		Progress: spec.Progress, ProgressInterval: spec.ProgressInterval, Replayer: spec.Replayer,
++	}, dependencies)
+ }
+ 
+ func resumeConfiguration(request campaignRequest, plan campaign.CampaignPlan) (CampaignSpec, SeedSelection, []record.Environment, []readonlymount.Mapping, target.Prepared, error) {
+@@ -77,7 +80,7 @@
+ 	if err := deterministicio.Default().VerifyAdapters(deterministicAdapters(prepared.Adapters)); err != nil {
+ 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("verify recorded adapters: %w", err)
+ 	}
+-	if request.Executor == nil {
++	if request.executor == nil {
+ 		identity, err := target.ReadToolchainIdentity(request.Target.ToolchainRoot)
+ 		if err != nil {
+ 			return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
+@@ -96,7 +99,7 @@
+ 		Target: target.Spec{ToolchainRoot: request.Target.ToolchainRoot}, SupervisorCommand: append([]string(nil), request.SupervisorCommand...), RunnerBuild: request.RunnerBuild,
+ 		Coverage: CoverageMode(plan.Coverage), RequiredSemanticProbes: append([]string(nil), plan.RequiredSemanticProbes...),
+ 		KeepSuccesses: KeepSuccesses(plan.KeepSuccesses), SuccessArtifactLimit: uint64(plan.SuccessArtifactLimit), SuccessBytesLimit: uint64(plan.SuccessBytesLimit),
+-		Progress: request.Progress, ProgressInterval: request.ProgressInterval, Executor: request.Executor, Replayer: request.Replayer,
++		Progress: request.Progress, ProgressInterval: request.ProgressInterval, Replayer: request.Replayer,
+ 	}
+ 	if plan.ChoiceProfile != nil {
+ 		config.ChoiceTraceLimit = uint64(plan.ChoiceProfile.Limit)
+--- a/tools/gomad3/runner/retention_characterization_test.go
++++ b/tools/gomad3/runner/retention_characterization_test.go
+@@ -38,7 +38,7 @@
+ type retentionExecutor struct {
+ 	t        *testing.T
+ 	strategy Strategy
+-	base     Executor
++	base     executionRunner
+ 	// order maps the alternative an exploration candidate forces to its rank;
+ 	// an alternative it does not hold is its own rank.
+ 	order map[uint64]uint64
+@@ -140,11 +140,11 @@
+ // retentionCampaign is a three-execution campaign of the strategy. The seed
+ // strategy runs all three at once; the exploration strategies run the root and
+ // then, with parallel candidates, both remaining alternatives in one round.
+-func retentionCampaign(t *testing.T, strategy Strategy, parallel bool, fail bool) (CampaignSpec, *retentionExecutor) {
++func retentionCampaign(t *testing.T, strategy Strategy, parallel bool, fail bool) (CampaignSpec, *retentionExecutor, executionDependencies) {
+ 	t.Helper()
+-	config, executor := unorderedRetentionCampaign(t, strategy, parallel, fail)
++	config, executor, configDependencies := unorderedRetentionCampaign(t, strategy, parallel, fail)
+ 	executor.order = explorationRanks(t, strategy)
+-	return config, executor
++	return config, executor, configDependencies
+ }
+ 
+ var explorationRankCache sync.Map
+@@ -163,10 +163,10 @@
+ 		return cached.(map[uint64]uint64)
+ 	}
+ 	probes := []string{probeA, probeB, probeC}
+-	config, executor := unorderedRetentionCampaign(t, strategy, false, false)
++	config, executor, configDependencies := unorderedRetentionCampaign(t, strategy, false, false)
+ 	keepSuccesses(&config, KeepSuccessesNovel)
+ 	executor.shape = rankProbes(t, probes...)
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -184,7 +184,7 @@
+ 	return order
+ }
+ 
+-func unorderedRetentionCampaign(t *testing.T, strategy Strategy, parallel bool, fail bool) (CampaignSpec, *retentionExecutor) {
++func unorderedRetentionCampaign(t *testing.T, strategy Strategy, parallel bool, fail bool) (CampaignSpec, *retentionExecutor, executionDependencies) {
+ 	t.Helper()
+ 	preparer := newFakePreparer(t)
+ 	limit := choiceTraceLimit(t, 1)
+@@ -221,7 +221,7 @@
+ 			width = 2
+ 		}
+ 	}
+-	config := testConfig(t, preparer, executor, "7", PolicyAll, width)
++	config, configDependencies := testConfig(t, preparer, executor, "7", PolicyAll, width)
+ 	config.Strategy = strategy
+ 	config.Coverage = CoverageSemantic
+ 	config.ChoiceTraceLimit = limit
+@@ -240,7 +240,7 @@
+ 		config.MaxExplorationResultBytes = 1 << 20
+ 		config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 2, Scenario: 3, Network: 2, Storage: 2, Fault: 2, Crash: 2}
+ 	}
+-	return config, executor
++	return config, executor, configDependencies
+ }
+ 
+ // rankProbes gives each rank a complete I/O transcript observing its probe.
+@@ -269,11 +269,12 @@
+ 
+ func resumeRetentionCampaign(t *testing.T, interrupted CampaignSpec, campaignPath string, shape func(uint64, *execution.Result)) (CampaignResult, error) {
+ 	t.Helper()
+-	_, executor := retentionCampaign(t, interrupted.Strategy, interrupted.Parallel != 1, false)
++	_, executor, _ := retentionCampaign(t, interrupted.Strategy, interrupted.Parallel != 1, false)
+ 	executor.shape = shape
+-	return Explore(context.Background(), CampaignSpec{
+-		ResumeCampaign: campaignPath, RunnerBuild: interrupted.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: executor,
+-	})
++	return exploreWith(context.Background(), CampaignSpec{
++		ResumeCampaign: campaignPath, RunnerBuild: interrupted.RunnerBuild, SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: executor},
++	)
+ }
+ 
+ // retentionObservation is what one campaign leaves observable about retention:
+@@ -339,7 +340,7 @@
+ 	if err != nil {
+ 		var hostError *HostError
+ 		if !errors.As(err, &hostError) {
+-			t.Fatalf("Explore() error = %#v, want a host failure", err)
++			t.Fatalf("exploreWith() error = %#v, want a host failure", err)
+ 		}
+ 		observed.Reason = hostError.Reason
+ 		observed.Cause = hostError.Err.Error()
+@@ -477,14 +478,14 @@
+ 				}
+ 				var projections [][]byte
+ 				for _, order := range []map[uint64]uint64{nil, reverseRankOrder(strategy)} {
+-					config, executor := retentionCampaign(t, strategy, true, test.fail)
++					config, executor, configDependencies := retentionCampaign(t, strategy, true, test.fail)
+ 					keepSuccesses(&config, test.policy)
+ 					if test.coverage != "" {
+ 						config.Coverage = test.coverage
+ 					}
+ 					executor.shape = rankProbes(t, test.probes[:]...)
+ 					executor.after = order
+-					summary, err := Explore(context.Background(), config)
++					summary, err := exploreWith(context.Background(), config, configDependencies)
+ 					observed, projection := observeRetention(t, summary, err)
+ 					if !reflect.DeepEqual(observed, want) {
+ 						t.Fatalf("retention = %#v, want %#v", observed, want)
+@@ -509,14 +510,14 @@
+ 	for _, strategy := range completionStrategies {
+ 		run := func(t *testing.T, parallel bool, configure func(*CampaignSpec)) (CampaignResult, retentionObservation) {
+ 			t.Helper()
+-			config, executor := retentionCampaign(t, strategy, parallel, false)
++			config, executor, configDependencies := retentionCampaign(t, strategy, parallel, false)
+ 			keepSuccesses(&config, KeepSuccessesAll)
+ 			configure(&config)
+ 			executor.shape = rankProbes(t, probeA, probeA, probeB)
+ 			if parallel {
+ 				executor.after = reverseRankOrder(strategy)
+ 			}
+-			summary, err := Explore(context.Background(), config)
++			summary, err := exploreWith(context.Background(), config, configDependencies)
+ 			observed, _ := observeRetention(t, summary, err)
+ 			return summary, observed
+ 		}
+@@ -553,11 +554,11 @@
+ 				t.Fatalf("measured summary = %#v", measured)
+ 			}
+ 			limit := measured.RetainedSuccessBytes / 3
+-			config, executor := retentionCampaign(t, strategy, false, false)
++			config, executor, configDependencies := retentionCampaign(t, strategy, false, false)
+ 			keepSuccesses(&config, KeepSuccessesAll)
+ 			config.SuccessBytesLimit = limit
+ 			executor.shape = rankProbes(t, probeA, probeA, probeB)
+-			summary, err := Explore(context.Background(), config)
++			summary, err := exploreWith(context.Background(), config, configDependencies)
+ 			observed, _ := observeRetention(t, summary, err)
+ 			var capacity *artifact.CapacityError
+ 			switch {
+@@ -674,7 +675,7 @@
+ 	} {
+ 		for _, strategy := range completionStrategies {
+ 			t.Run(test.name+"/"+string(strategy), func(t *testing.T) {
+-				config, executor := retentionCampaign(t, strategy, test.parallel, false)
++				config, executor, configDependencies := retentionCampaign(t, strategy, test.parallel, false)
+ 				keepSuccesses(&config, test.policy)
+ 				shape := rankProbes(t, test.probes[:]...)
+ 				executor.shape = func(rank uint64, result *execution.Result) {
+@@ -706,7 +707,7 @@
+ 					executor.interrupt, executor.interruptAt = cancel, test.cancelled
+ 					config.TerminateGrace = 10 * time.Millisecond
+ 				}
+-				partial, err := Explore(ctx, config)
++				partial, err := exploreWith(ctx, config, configDependencies)
+ 				restore()
+ 				observed, _ := observeRetention(t, partial, err)
+ 				if test.blocked < 3 {
+@@ -787,12 +788,12 @@
+ 				result.IOTranscript.Complete = test.complete
+ 				return result
+ 			}}
+-			config := testConfig(t, newFakePreparer(t), executor, "1", PolicyAll, 1)
++			config, configDependencies := testConfig(t, newFakePreparer(t), executor, "1", PolicyAll, 1)
+ 			config.Coverage = CoverageSemantic
+ 			config.Guide = true
+ 			config.Corpus = replayer.corpus
+ 			config.Replayer = replayer
+-			summary, err := Explore(context.Background(), config)
++			summary, err := exploreWith(context.Background(), config, configDependencies)
+ 			observed := admission{Replays: replayer.calls, Added: summary.CorpusAdded, Entries: summary.CorpusEntries}
+ 			var hostError *HostError
+ 			if errors.As(err, &hostError) {
+@@ -880,10 +881,10 @@
+ 	run := func(t *testing.T, jobs uint64, configure func(*CampaignSpec)) (CampaignResult, bounded) {
+ 		t.Helper()
+ 		executor := &pairedExecutor{}
+-		config := testConfig(t, newFakePreparer(t), executor, fmt.Sprintf("1-%d", jobs), PolicyAll, 2)
++		config, configDependencies := testConfig(t, newFakePreparer(t), executor, fmt.Sprintf("1-%d", jobs), PolicyAll, 2)
+ 		config.OverallTimeout = time.Minute
+ 		configure(&config)
+-		summary, err := Explore(context.Background(), config)
++		summary, err := exploreWith(context.Background(), config, configDependencies)
+ 		observed := bounded{Attempted: summary.Attempted, Retained: summary.RetainedSuccesses, MaximumActive: executor.maximumActive}
+ 		var hostError *HostError
+ 		if errors.As(err, &hostError) {
+--- a/tools/gomad3/runner/retention_test.go
++++ b/tools/gomad3/runner/retention_test.go
+@@ -98,7 +98,7 @@
+ 		prepared.SHA256, prepared.Size = fmt.Sprintf("sha256:%x", sha256.Sum256(targetBytes)), uint64(len(targetBytes))
+ 		// Successes of one outcome signature are stored as one artifact, so each
+ 		// execution prints its own output.
+-		config := testConfig(t, preparer, &fakeExecutor{result: func(seed uint64) execution.Result {
++		config, configDependencies := testConfig(t, preparer, &fakeExecutor{result: func(seed uint64) execution.Result {
+ 			result := processResult(0, fmt.Sprint(seed), "")
+ 			result.IOTranscript = completeEmptyTranscript()
+ 			return result
+@@ -106,7 +106,7 @@
+ 		config.KeepSuccesses = KeepSuccessesAll
+ 		config.SuccessArtifactLimit = 2
+ 		config.SuccessBytesLimit = limit
+-		return Explore(context.Background(), config)
++		return exploreWith(context.Background(), config, configDependencies)
+ 	}
+ 	measured, err := run(64 << 20)
+ 	if err != nil || len(measured.SuccessArtifacts) != 2 || measured.SuccessArtifacts[0] == measured.SuccessArtifacts[1] {
+@@ -129,7 +129,7 @@
+ }
+ 
+ func TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts(t *testing.T) {
+-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
++	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
+ 		result := processResult(0, "same output", "")
+ 		result.IOTranscript = completeEmptyTranscript()
+ 		return result
+@@ -137,7 +137,7 @@
+ 	config.KeepSuccesses = KeepSuccessesAll
+ 	config.SuccessArtifactLimit = 2
+ 	config.SuccessBytesLimit = 64 << 20
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+--- a/tools/gomad3/runner/runner.go
++++ b/tools/gomad3/runner/runner.go
+@@ -117,8 +117,12 @@
+ 	Prepare(context.Context, target.Spec) (target.Prepared, error)
+ }
+ 
+-type Executor interface {
++type executionRunner interface {
+ 	Run(context.Context, execution.Spec) (execution.Result, error)
++}
++
++type executionDependencies struct {
++	executor executionRunner
+ }
+ 
+ type ArtifactReplayer interface {
+@@ -176,7 +180,6 @@
+ 	Progress                  CampaignEventFunc
+ 	ProgressInterval          time.Duration
+ 	Preparer                  Preparer
+-	Executor                  Executor
+ 	Replayer                  ArtifactReplayer
+ 	resumePreflight           *campaign.ResumePreflight
+ 	failureArtifactLimit      uint64
+@@ -371,12 +374,16 @@
+ var environmentName = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
+ 
+ func Explore(ctx context.Context, config CampaignSpec) (CampaignResult, error) {
+-	request, err := campaignRequestForExplore(config)
++	return exploreWith(ctx, config, executionDependencies{})
++}
++
++func exploreWith(ctx context.Context, config CampaignSpec, dependencies executionDependencies) (CampaignResult, error) {
++	request, err := campaignRequestForExplore(config, dependencies)
+ 	if err != nil {
+ 		return CampaignResult{}, err
+ 	}
+ 	if len(request.CoordinatorCommand) != 0 {
+-		if request.Preparer != nil || request.Executor != nil || request.Replayer != nil {
++		if request.Preparer != nil || request.executor != nil || request.Replayer != nil {
+ 			return CampaignResult{}, fmt.Errorf("isolated Runner does not accept injected preparation or execution")
+ 		}
+ 		return runIsolated(ctx, request)
+@@ -410,7 +417,7 @@
+ 			resumePlan = preflight.Plan
+ 			var resumed CampaignSpec
+ 			resumed, selection, baseEnvironment, readOnlyMounts, prepared, err = resumeConfiguration(config, resumePlan)
+-			config = campaignRequestFromSpec(resumed)
++			config = campaignRequestFromSpecWith(resumed, executionDependencies{executor: config.executor})
+ 			config.resumePreflight = preflight
+ 		}
+ 		if err != nil {
+@@ -610,7 +617,7 @@
+ 		summary.CorpusPath = guidance.corpus.Path()
+ 		summary.CorpusEntries = uint64(len(snapshot.Entries))
+ 	}
+-	executor := config.Executor
++	executor := config.executor
+ 	if executor == nil {
+ 		executor = processExecutor{}
+ 	}
+@@ -1191,7 +1198,7 @@
+ 		if config.RunnerBuild == "" {
+ 			return SeedSelection{}, nil, fmt.Errorf("Runner build identity is required for campaign resume")
+ 		}
+-		if config.Executor == nil && len(config.SupervisorCommand) == 0 {
++		if config.executor == nil && len(config.SupervisorCommand) == 0 {
+ 			return SeedSelection{}, nil, fmt.Errorf("supervisor command is required")
+ 		}
+ 		return SeedSelection{}, nil, nil
+@@ -1348,7 +1355,7 @@
+ 	default:
+ 		return SeedSelection{}, nil, fmt.Errorf("unknown failure policy %q", config.OnFailure)
+ 	}
+-	if config.Executor == nil && len(config.SupervisorCommand) == 0 {
++	if config.executor == nil && len(config.SupervisorCommand) == 0 {
+ 		return SeedSelection{}, nil, errors.New("supervisor command is required")
+ 	}
+ 	if len(config.IOROMounts) != 0 {
+@@ -1435,7 +1442,7 @@
+ 	return environment, nil
+ }
+ 
+-func runSeed(ctx context.Context, config campaignRequest, executor Executor, prepared target.Prepared, baseEnvironment []record.Environment, profile deterministicio.Spec, readOnlyMounts []readonlymount.Mapping, journal runJournalFactory, job runJob, readiness *runReadiness, completions chan<- runCompletion) {
++func runSeed(ctx context.Context, config campaignRequest, executor executionRunner, prepared target.Prepared, baseEnvironment []record.Environment, profile deterministicio.Spec, readOnlyMounts []readonlymount.Mapping, journal runJournalFactory, job runJob, readiness *runReadiness, completions chan<- runCompletion) {
+ 	defer readiness.signal()
+ 	startedAt := time.Now().UTC()
+ 	run, err := journal.BeginExecution(job.ordinal, job.seed)
+@@ -1535,7 +1542,7 @@
+ 	completions <- completion
+ }
+ 
+-func simulationCapabilityForJob(executor Executor, job runJob) (*execution.SimulationCapability, error) {
++func simulationCapabilityForJob(executor executionRunner, job runJob) (*execution.SimulationCapability, error) {
+ 	if job.simulationPlan == "" {
+ 		if job.simulationRecordLimit != 0 || job.simulationRecordCount != 0 {
+ 			return nil, errors.New("simulation exploration record bounds require a plan")
+--- a/tools/gomad3/runner/runner_mode_unix_test.go
++++ b/tools/gomad3/runner/runner_mode_unix_test.go
+@@ -11,11 +11,11 @@
+ )
+ 
+ func TestRunEnforcesBatchModesIndependentOfUmask(t *testing.T) {
+-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
++	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
+ 	oldUmask := syscall.Umask(0o777)
+ 	defer syscall.Umask(oldUmask)
+ 
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+--- a/tools/gomad3/runner/runner_test.go
++++ b/tools/gomad3/runner/runner_test.go
+@@ -46,7 +46,8 @@
+ 		}
+ 		return processResult(0, "success", "")
+ 	}}
+-	summary, err := Explore(context.Background(), testConfig(t, preparer, executor, "1-6", PolicyAll, 2))
++	config, dependencies := testConfig(t, preparer, executor, "1-6", PolicyAll, 2)
++	summary, err := exploreWith(context.Background(), config, dependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -93,7 +94,7 @@
+ }
+ 
+ func TestRunReportsPreparationProgressAndCompletedCounts(t *testing.T) {
+-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(seed uint64) execution.Result {
++	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(seed uint64) execution.Result {
+ 		if seed == 2 {
+ 			return processResult(2, "failure", "")
+ 		}
+@@ -104,7 +105,7 @@
+ 		progress = append(progress, update)
+ 		return nil
+ 	}
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -125,7 +126,7 @@
+ 
+ func TestRunReportsPeriodicProgressWhileTargetIsRunning(t *testing.T) {
+ 	executor := &progressGatedExecutor{started: make(chan struct{}), release: make(chan struct{})}
+-	config := testConfig(t, newFakePreparer(t), executor, "1", PolicyAll, 1)
++	config, configDependencies := testConfig(t, newFakePreparer(t), executor, "1", PolicyAll, 1)
+ 	config.ProgressInterval = time.Millisecond
+ 	updates := make(chan CampaignEvent, 16)
+ 	config.Progress = func(update CampaignEvent) error {
+@@ -137,7 +138,7 @@
+ 	}
+ 	completed := make(chan error, 1)
+ 	go func() {
+-		_, err := Explore(context.Background(), config)
++		_, err := exploreWith(context.Background(), config, configDependencies)
+ 		completed <- err
+ 	}()
+ 	<-executor.started
+@@ -165,9 +166,9 @@
+ 		result.IOTranscript = semanticTranscript(t, "stdlib.os.openfile")
+ 		return result
+ 	}}
+-	config := testConfig(t, newFakePreparer(t), executor, "1", PolicyAll, 1)
++	config, configDependencies := testConfig(t, newFakePreparer(t), executor, "1", PolicyAll, 1)
+ 	config.Coverage = CoverageSemantic
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -177,13 +178,13 @@
+ }
+ 
+ func TestRunFailsWhenRequiredSemanticProbeIsMissing(t *testing.T) {
+-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
++	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
+ 	config.Coverage = CoverageSemantic
+ 	config.RequiredSemanticProbes = []string{"stdlib.os.openfile"}
+-	_, err := Explore(context.Background(), config)
++	_, err := exploreWith(context.Background(), config, configDependencies)
+ 	var missing *deterministicio.MissingSemanticProbesError
+ 	if !errors.As(err, &missing) || len(missing.Probes) != 1 || missing.Probes[0] != "stdlib.os.openfile" {
+-		t.Fatalf("Explore() error = %v", err)
++		t.Fatalf("exploreWith() error = %v", err)
+ 	}
+ }
+ 
+@@ -197,12 +198,12 @@
+ 		result.IOTranscript = semanticTranscript(t, probe)
+ 		return result
+ 	}}
+-	config := testConfig(t, newFakePreparer(t), executor, "1-3", PolicyAll, 1)
++	config, configDependencies := testConfig(t, newFakePreparer(t), executor, "1-3", PolicyAll, 1)
+ 	config.Coverage = CoverageSemantic
+ 	config.KeepSuccesses = KeepSuccessesNovel
+ 	config.SuccessArtifactLimit = 2
+ 	config.SuccessBytesLimit = 64 << 20
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -245,13 +246,13 @@
+ 		}})
+ 		return result
+ 	}}
+-	config := testConfig(t, preparer, executor, "1-3", PolicyAll, 1)
++	config, configDependencies := testConfig(t, preparer, executor, "1-3", PolicyAll, 1)
+ 	config.Coverage = CoverageChoice
+ 	config.ChoiceTraceLimit = limit
+ 	config.KeepSuccesses = KeepSuccessesNovel
+ 	config.SuccessArtifactLimit = 2
+ 	config.SuccessBytesLimit = 64 << 20
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -274,12 +275,12 @@
+ 
+ func TestRunMergesParallelCompletionsInSelectionOrdinalOrder(t *testing.T) {
+ 	executor := newOutOfOrderExecutor(t)
+-	config := testConfig(t, newFakePreparer(t), executor, "1-3", PolicyAll, 3)
++	config, configDependencies := testConfig(t, newFakePreparer(t), executor, "1-3", PolicyAll, 3)
+ 	config.Coverage = CoverageSemantic
+ 	config.KeepSuccesses = KeepSuccessesNovel
+ 	config.SuccessArtifactLimit = 2
+ 	config.SuccessBytesLimit = 64 << 20
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -307,12 +308,12 @@
+ 		result.IOTranscript = semanticTranscript(t, probe)
+ 		return result
+ 	}}
+-	firstConfig := testConfig(t, newFakePreparer(t), firstExecutor, "0-7", PolicyAll, 3)
++	firstConfig, firstConfigDependencies := testConfig(t, newFakePreparer(t), firstExecutor, "0-7", PolicyAll, 3)
+ 	firstConfig.Coverage = CoverageSemantic
+ 	firstConfig.Guide = true
+ 	firstConfig.Corpus = corpus
+ 	firstConfig.Replayer = replayer
+-	first, err := Explore(context.Background(), firstConfig)
++	first, err := exploreWith(context.Background(), firstConfig, firstConfigDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -321,13 +322,13 @@
+ 	}
+ 
+ 	secondExecutor := &fakeExecutor{result: firstExecutor.result}
+-	secondConfig := testConfig(t, newFakePreparer(t), secondExecutor, "100-107", PolicyAll, 3)
++	secondConfig, secondConfigDependencies := testConfig(t, newFakePreparer(t), secondExecutor, "100-107", PolicyAll, 3)
+ 	secondConfig.Coverage = CoverageSemantic
+ 	secondConfig.Guide = true
+ 	secondConfig.GuideRegression = true
+ 	secondConfig.Corpus = corpus
+ 	secondConfig.Replayer = replayer
+-	second, err := Explore(context.Background(), secondConfig)
++	second, err := exploreWith(context.Background(), secondConfig, secondConfigDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -362,13 +363,13 @@
+ 		}})
+ 		return result
+ 	}}
+-	config := testConfig(t, preparer, executor, "1-2", PolicyAll, 1)
++	config, configDependencies := testConfig(t, preparer, executor, "1-2", PolicyAll, 1)
+ 	config.Coverage = CoverageChoice
+ 	config.ChoiceTraceLimit = limit
+ 	config.Guide = true
+ 	config.Corpus = filepath.Join(t.TempDir(), "corpus")
+ 	config.Replayer = replayer
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -382,19 +383,19 @@
+ 		func(config *CampaignSpec) { config.Corpus = "" },
+ 		func(config *CampaignSpec) { config.Coverage = CoverageNone },
+ 	} {
+-		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
++		config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
+ 		config.Guide = true
+ 		config.Corpus = t.TempDir()
+ 		config.Coverage = CoverageSemantic
+ 		configure(&config)
+-		if _, err := Explore(context.Background(), config); err == nil {
++		if _, err := exploreWith(context.Background(), config, configDependencies); err == nil {
+ 			t.Fatal("Run accepted invalid guided configuration")
+ 		}
+ 	}
+ }
+ 
+ func TestRunGuidanceWithoutReplayCapabilityFailsClosed(t *testing.T) {
+-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
++	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
+ 		result := processResult(0, "", "")
+ 		result.IOTranscript = semanticTranscript(t, "stdlib.os.openfile")
+ 		return result
+@@ -403,15 +404,15 @@
+ 	config.Guide = true
+ 	config.Corpus = filepath.Join(t.TempDir(), "corpus")
+ 	config.SupervisorCommand = nil
+-	_, err := Explore(context.Background(), config)
++	_, err := exploreWith(context.Background(), config, configDependencies)
+ 	var hostError *HostError
+ 	if !errors.As(err, &hostError) || hostError.Reason != "guided_corpus" {
+-		t.Fatalf("Explore() error = %v", err)
++		t.Fatalf("exploreWith() error = %v", err)
+ 	}
+ }
+ 
+ func TestRunFailsClosedWhenSuccessRetentionCountIsExhausted(t *testing.T) {
+-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
++	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
+ 		result := processResult(0, "", "")
+ 		result.IOTranscript = completeEmptyTranscript()
+ 		return result
+@@ -419,7 +420,7 @@
+ 	config.KeepSuccesses = KeepSuccessesAll
+ 	config.SuccessArtifactLimit = 1
+ 	config.SuccessBytesLimit = 64 << 20
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	var hostError *HostError
+ 	if !errors.As(err, &hostError) || hostError.Reason != "success_retention_capacity" || summary.RetainedSuccesses != 1 {
+ 		t.Fatalf("summary = %#v, error = %v", summary, err)
+@@ -432,29 +433,29 @@
+ 		func(config *CampaignSpec) { config.SuccessBytesLimit = 0 },
+ 		func(config *CampaignSpec) { config.KeepSuccesses = KeepSuccessesNovel; config.Coverage = CoverageNone },
+ 	} {
+-		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
++		config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
+ 		config.KeepSuccesses = KeepSuccessesAll
+ 		config.SuccessArtifactLimit = 1
+ 		config.SuccessBytesLimit = 1 << 20
+ 		configure(&config)
+-		if _, err := Explore(context.Background(), config); err == nil {
+-			t.Fatal("Explore() accepted invalid success retention configuration")
++		if _, err := exploreWith(context.Background(), config, configDependencies); err == nil {
++			t.Fatal("exploreWith() accepted invalid success retention configuration")
+ 		}
+ 	}
+ }
+ 
+ func TestRunRequiresBoundedChoiceTraceCapacity(t *testing.T) {
+ 	for _, limit := range []uint64{1, (64 << 20) + 1} {
+-		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
++		config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
+ 		config.ChoiceTraceLimit = limit
+-		if _, err := Explore(context.Background(), config); err == nil || !strings.Contains(err.Error(), "choice trace") {
+-			t.Fatalf("Explore() with choice limit %d error = %v", limit, err)
++		if _, err := exploreWith(context.Background(), config, configDependencies); err == nil || !strings.Contains(err.Error(), "choice trace") {
++			t.Fatalf("exploreWith() with choice limit %d error = %v", limit, err)
+ 		}
+ 	}
+ }
+ 
+ func TestValidateConfigRequiresBoundedSingleSeedChoiceExploration(t *testing.T) {
+-	valid := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
++	valid, _ := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
+ 	valid.Strategy = StrategyChoiceExploration
+ 	valid.ChoiceTraceLimit = execution.MinimumChoiceTraceBytes
+ 	valid.MaxExecutions = 8
+@@ -491,7 +492,7 @@
+ }
+ 
+ func TestValidateConfigRequiresBoundedSingleSeedSimulationExploration(t *testing.T) {
+-	valid := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
++	valid, _ := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
+ 	valid.Strategy = StrategySimulationExploration
+ 	valid.ChoiceTraceLimit = execution.MinimumChoiceTraceBytes
+ 	valid.MaxExecutions = 8
+@@ -539,7 +540,7 @@
+ 		func(config *CampaignSpec) { config.ChoiceStartOrdinal = 1 },
+ 		func(config *CampaignSpec) { config.MaxExplorationBytes = 1 },
+ 	} {
+-		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
++		config, _ := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
+ 		configure(&config)
+ 		if _, _, err := validateConfig(config); err == nil || !strings.Contains(err.Error(), "choice-exploration strategy") {
+ 			t.Fatalf("validateConfig() error = %v", err)
+@@ -548,14 +549,14 @@
+ }
+ 
+ func TestRunRejectsSuccessfulRetentionWithoutReplayTranscript(t *testing.T) {
+-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
++	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
+ 	config.KeepSuccesses = KeepSuccessesAll
+ 	config.SuccessArtifactLimit = 1
+ 	config.SuccessBytesLimit = 1 << 20
+-	_, err := Explore(context.Background(), config)
++	_, err := exploreWith(context.Background(), config, configDependencies)
+ 	var hostError *HostError
+ 	if !errors.As(err, &hostError) || hostError.Reason != "success_artifact_publication" || !strings.Contains(err.Error(), "complete I/O transcript") {
+-		t.Fatalf("Explore() error = %v", err)
++		t.Fatalf("exploreWith() error = %v", err)
+ 	}
+ }
+ 
+@@ -565,10 +566,10 @@
+ 		result.IOTranscript = semanticTranscript(t, "stdlib.os.openfile")
+ 		return result
+ 	}}
+-	config := testConfig(t, newFakePreparer(t), executor, "7", PolicyAll, 1)
++	config, configDependencies := testConfig(t, newFakePreparer(t), executor, "7", PolicyAll, 1)
+ 	config.Coverage = CoverageSemantic
+ 	config.CollectExecutionEvidence = true
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -582,12 +583,12 @@
+ 		func(config *CampaignSpec) { config.Seeds = "1-2" },
+ 		func(config *CampaignSpec) { config.Coverage = CoverageNone },
+ 	} {
+-		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
++		config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
+ 		config.Coverage = CoverageSemantic
+ 		config.CollectExecutionEvidence = true
+ 		configure(&config)
+-		if _, err := Explore(context.Background(), config); err == nil {
+-			t.Fatal("Explore() accepted invalid evidence configuration")
++		if _, err := exploreWith(context.Background(), config, configDependencies); err == nil {
++			t.Fatal("exploreWith() accepted invalid evidence configuration")
+ 		}
+ 	}
+ }
+@@ -595,11 +596,11 @@
+ func TestExecutionEvidenceIgnoresAggregateCoordinatorDeadlineAdjustment(t *testing.T) {
+ 	var runRecords []ExecutionEvidence
+ 	for _, overallTimeout := range []time.Duration{9 * time.Second, 10 * time.Second} {
+-		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
++		config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
+ 		config.Coverage = CoverageSemantic
+ 		config.CollectExecutionEvidence = true
+ 		config.OverallTimeout = overallTimeout
+-		summary, err := Explore(context.Background(), config)
++		summary, err := exploreWith(context.Background(), config, configDependencies)
+ 		if err != nil {
+ 			t.Fatal(err)
+ 		}
+@@ -634,9 +635,9 @@
+ 	})
+ 	preparer := newFakePreparer(t)
+ 	executor := &fakeExecutor{}
+-	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
++	config, configDependencies := testConfig(t, preparer, executor, "7", PolicyAll, 1)
+ 	config.Artifacts = "artifacts"
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -675,8 +676,8 @@
+ func TestRunFirstFailureCancelsActiveTargetsWithoutPublishingThem(t *testing.T) {
+ 	preparer := newFakePreparer(t)
+ 	executor := newFirstFailureExecutor(3)
+-	config := testConfig(t, preparer, executor, "1-10", PolicyFirst, 3)
+-	summary, err := Explore(context.Background(), config)
++	config, configDependencies := testConfig(t, preparer, executor, "1-10", PolicyFirst, 3)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -704,9 +705,9 @@
+ 		}
+ 		return processResult(1, output, "")
+ 	}}
+-	config := testConfig(t, preparer, executor, "1-10", PolicyBudget, 1)
++	config, configDependencies := testConfig(t, preparer, executor, "1-10", PolicyBudget, 1)
+ 	config.FailureBudget = 2
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -728,13 +729,13 @@
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
++	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
+ 		result := processResult(1, "failure", "")
+ 		result.WorldRecord = recording
+ 		return result
+ 	}}, "7", PolicyAll, 1)
+ 	config.WorldTransitionLimit = 1 << 20
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -763,13 +764,13 @@
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
++	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
+ 		result := processResult(0, "", "")
+ 		result.WorldRecord = recording
+ 		return result
+ 	}}, "7", PolicyAll, 1)
+ 	config.WorldTransitionLimit = 1 << 20
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -797,13 +798,13 @@
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
++	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
+ 		result := processResult(0, "", "")
+ 		result.WorldRecord = recording
+ 		return result
+ 	}}, "7", PolicyAll, 1)
+ 	config.WorldTransitionLimit = 1 << 20
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -823,16 +824,16 @@
+ 		t.Fatal(err)
+ 	}
+ 	recording[len(recording)-1] ^= 1
+-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
++	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
+ 		result := processResult(1, "failure", "")
+ 		result.WorldRecord = recording
+ 		return result
+ 	}}, "7", PolicyAll, 1)
+ 	config.WorldTransitionLimit = 1 << 20
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	var hostError *HostError
+ 	if !errors.As(err, &hostError) || hostError.Reason != "world_record" {
+-		t.Fatalf("Explore() error = %#v", err)
++		t.Fatalf("exploreWith() error = %#v", err)
+ 	}
+ 	if len(summary.Artifacts) != 1 {
+ 		t.Fatalf("Runner failure artifacts = %v, want 1", summary.Artifacts)
+@@ -847,11 +848,11 @@
+ }
+ 
+ func TestRunRejectsPreparedTargetMutationBeforeFailurePublication(t *testing.T) {
+-	config := testConfig(t, newFakePreparer(t), mutatingExecutor{}, "1", PolicyAll, 1)
+-	summary, err := Explore(context.Background(), config)
++	config, configDependencies := testConfig(t, newFakePreparer(t), mutatingExecutor{}, "1", PolicyAll, 1)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	var hostError *HostError
+ 	if !errors.As(err, &hostError) || hostError.Reason != "prepared_target_integrity" {
+-		t.Fatalf("Explore() error = %#v", err)
++		t.Fatalf("exploreWith() error = %#v", err)
+ 	}
+ 	if len(summary.Artifacts) != 0 {
+ 		t.Fatalf("target mutation published replayable artifacts: %v", summary.Artifacts)
+@@ -859,7 +860,7 @@
+ }
+ 
+ func TestValidateConfigAcceptsReadOnlyMountsWithoutProfile(t *testing.T) {
+-	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyFirst, 1)
++	config, _ := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyFirst, 1)
+ 	config.Environment = nil
+ 	config.IOROMounts = []string{t.TempDir() + "=schema"}
+ 	config.Target.WorkingDir = t.TempDir()
+@@ -871,7 +872,7 @@
+ func TestRunPassesCanonicalReadOnlyMountsToExecutor(t *testing.T) {
+ 	source := t.TempDir()
+ 	executor := &fakeExecutor{}
+-	config := testConfig(t, newFakePreparer(t), executor, "1", PolicyAll, 1)
++	config, configDependencies := testConfig(t, newFakePreparer(t), executor, "1", PolicyAll, 1)
+ 	config.Environment = nil
+ 	config.RunnerBuild = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+ 	config.IOROMounts = []string{source + "=schema"}
+@@ -879,7 +880,7 @@
+ 		Kind: target.KindGoTest, Source: "./pkg", Args: []string{"-test.run=^TestScenario$"}, WorkingDir: t.TempDir(),
+ 	}
+ 	config.Preparer = profileFakePreparer(t, "-test.run=^TestScenario$")
+-	if _, err := Explore(context.Background(), config); err != nil {
++	if _, err := exploreWith(context.Background(), config, configDependencies); err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	if len(executor.requests) != 1 || executor.requests[0].IO == nil || executor.requests[0].IO.ReadOnlyMount == nil || len(executor.requests[0].IO.ReadOnlyMount.Mappings) != 1 || executor.requests[0].IO.ReadOnlyMount.Mappings[0].Source != source || executor.requests[0].IO.ReadOnlyMount.Mappings[0].Target != "/schema" {
+@@ -899,9 +900,9 @@
+ 		result.ChoiceTrace = completeChoiceTrace(t, preparer.prepared.BuildKey, limit, nil)
+ 		return result
+ 	}}
+-	config := testConfig(t, preparer, executor, "1", PolicyAll, 1)
++	config, configDependencies := testConfig(t, preparer, executor, "1", PolicyAll, 1)
+ 	config.ChoiceTraceLimit = limit
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -945,14 +946,14 @@
+ 	preparer := newFakePreparer(t)
+ 	limit := choiceTraceLimit(t, 1)
+ 	executor := &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+-	config := testConfig(t, preparer, executor, "7", PolicyAll, 2)
++	config, configDependencies := testConfig(t, preparer, executor, "7", PolicyAll, 2)
+ 	config.Strategy = StrategyChoiceExploration
+ 	config.ChoiceTraceLimit = limit
+ 	config.MaxExecutions = 8
+ 	config.MaxChoiceDepth = 4
+ 	config.MaxExplorationBytes = 1 << 20
+ 
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -985,7 +986,7 @@
+ 	preparer := newFakePreparer(t)
+ 	limit := choiceTraceLimit(t, 1)
+ 	executor := &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+-	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
++	config, configDependencies := testConfig(t, preparer, executor, "7", PolicyAll, 1)
+ 	config.Strategy = StrategySimulationExploration
+ 	config.ChoiceTraceLimit = limit
+ 	config.MaxExecutions = 4
+@@ -994,7 +995,7 @@
+ 	config.MaxExplorationResultBytes = 1 << 20
+ 	config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 2, Scenario: 2, Network: 2, Storage: 2, Fault: 2, Crash: 2}
+ 
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -1020,7 +1021,7 @@
+ 	preparer := newFakePreparer(t)
+ 	limit := choiceTraceLimit(t, 1)
+ 	executor := &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, fail: true}
+-	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
++	config, configDependencies := testConfig(t, preparer, executor, "7", PolicyAll, 1)
+ 	config.Strategy = StrategySimulationExploration
+ 	config.ChoiceTraceLimit = limit
+ 	config.MaxExecutions = 4
+@@ -1029,7 +1030,7 @@
+ 	config.MaxExplorationResultBytes = 1 << 20
+ 	config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 2, Scenario: 2, Network: 2, Storage: 2, Fault: 2, Crash: 2}
+ 
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -1069,22 +1070,23 @@
+ 	preparer := newFakePreparer(t)
+ 	limit := choiceTraceLimit(t, 1)
+ 	baseExecutor := &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+-	config := testConfig(t, preparer, explorationInterruptExecutor{exploration: baseExecutor}, "7", PolicyAll, 2)
++	config, configDependencies := testConfig(t, preparer, explorationInterruptExecutor{exploration: baseExecutor}, "7", PolicyAll, 2)
+ 	config.Strategy = StrategyChoiceExploration
+ 	config.ChoiceTraceLimit = limit
+ 	config.MaxExecutions = 8
+ 	config.MaxChoiceDepth = 4
+ 	config.MaxExplorationBytes = 1 << 20
+ 
+-	partial, err := Explore(context.Background(), config)
++	partial, err := exploreWith(context.Background(), config, configDependencies)
+ 	var hostErr *HostError
+ 	if !errors.As(err, &hostErr) || partial.Attempted != 1 || partial.ChoiceExploration == nil || partial.ChoiceExploration.CommittedRounds != 1 {
+ 		t.Fatalf("partial exploration = %#v, error = %v", partial, err)
+ 	}
+ 	resumedExecutor := &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+-	resumed, err := Explore(context.Background(), CampaignSpec{
+-		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor,
+-	})
++	resumed, err := exploreWith(context.Background(), CampaignSpec{
++		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: resumedExecutor},
++	)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -1104,22 +1106,23 @@
+ 	preparer := newFakePreparer(t)
+ 	limit := choiceTraceLimit(t, 3)
+ 	baseExecutor := &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, noOpSelect: true}
+-	config := testConfig(t, preparer, explorationInterruptExecutor{exploration: baseExecutor}, "7", PolicyAll, 2)
++	config, configDependencies := testConfig(t, preparer, explorationInterruptExecutor{exploration: baseExecutor}, "7", PolicyAll, 2)
+ 	config.Strategy = StrategyChoiceExploration
+ 	config.ChoiceTraceLimit = limit
+ 	config.MaxExecutions = 8
+ 	config.MaxChoiceDepth = 4
+ 	config.MaxExplorationBytes = 1 << 20
+ 
+-	partial, err := Explore(context.Background(), config)
++	partial, err := exploreWith(context.Background(), config, configDependencies)
+ 	var hostErr *HostError
+ 	if !errors.As(err, &hostErr) || partial.ChoiceExploration == nil || partial.ChoiceExploration.CommittedRounds != 1 {
+ 		t.Fatalf("partial exploration = %#v, error = %v", partial, err)
+ 	}
+ 	resumedExecutor := &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, noOpSelect: true}
+-	resumed, err := Explore(context.Background(), CampaignSpec{
+-		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor,
+-	})
++	resumed, err := exploreWith(context.Background(), CampaignSpec{
++		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: resumedExecutor},
++	)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -1150,7 +1153,7 @@
+ func TestRunChoiceExplorationResumesWithItsStartAndReportsItUnreached(t *testing.T) {
+ 	preparer := newFakePreparer(t)
+ 	limit := choiceTraceLimit(t, 1)
+-	config := testConfig(t, preparer, explorationRootInterruptExecutor{}, "7", PolicyAll, 1)
++	config, configDependencies := testConfig(t, preparer, explorationRootInterruptExecutor{}, "7", PolicyAll, 1)
+ 	config.Strategy = StrategyChoiceExploration
+ 	config.ChoiceTraceLimit = limit
+ 	config.MaxExecutions = 8
+@@ -1158,15 +1161,15 @@
+ 	config.ChoiceStartOrdinal = 1
+ 	config.MaxExplorationBytes = 1 << 20
+ 
+-	partial, err := Explore(context.Background(), config)
++	partial, err := exploreWith(context.Background(), config, configDependencies)
+ 	var hostErr *HostError
+ 	if !errors.As(err, &hostErr) || partial.ChoiceExploration == nil || partial.ChoiceExploration.CommittedRounds != 0 || partial.ChoiceExploration.StartOrdinal != 1 {
+ 		t.Fatalf("partial exploration = %#v, error = %v", partial, err)
+ 	}
+-	resumed, err := Explore(context.Background(), CampaignSpec{
++	resumed, err := exploreWith(context.Background(), CampaignSpec{
+ 		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"},
+-		Executor: &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit},
+-	})
++	}, executionDependencies{executor: &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}},
++	)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -1195,9 +1198,9 @@
+ 		})
+ 		return result
+ 	}}
+-	config := testConfig(t, preparer, executor, "1", PolicyAll, 1)
++	config, configDependencies := testConfig(t, preparer, executor, "1", PolicyAll, 1)
+ 	config.ChoiceTraceLimit = limit
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -1221,14 +1224,14 @@
+ 		exploration:      &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, alternatives: 4},
+ 		beforeDivergence: make(chan struct{}), afterDivergence: make(chan struct{}),
+ 	}
+-	config := testConfig(t, preparer, executor, "7", PolicyAll, 3)
++	config, configDependencies := testConfig(t, preparer, executor, "7", PolicyAll, 3)
+ 	config.Strategy = StrategyChoiceExploration
+ 	config.ChoiceTraceLimit = limit
+ 	config.MaxExecutions = 8
+ 	config.MaxChoiceDepth = 4
+ 	config.MaxExplorationBytes = 1 << 20
+ 
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatalf("diverging exploration discarded its completed round: %v", err)
+ 	}
+@@ -1263,7 +1266,7 @@
+ 	preparer := newFakePreparer(t)
+ 	limit := choiceTraceLimit(t, 1)
+ 	baseExecutor := &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+-	config := testConfig(t, preparer, simulationExplorationInterruptExecutor{exploration: baseExecutor}, "7", PolicyAll, 1)
++	config, configDependencies := testConfig(t, preparer, simulationExplorationInterruptExecutor{exploration: baseExecutor}, "7", PolicyAll, 1)
+ 	config.Strategy = StrategySimulationExploration
+ 	config.ChoiceTraceLimit = limit
+ 	config.MaxExecutions = 4
+@@ -1272,15 +1275,16 @@
+ 	config.MaxExplorationResultBytes = 1 << 20
+ 	config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 2, Scenario: 2, Network: 2, Storage: 2, Fault: 2, Crash: 2}
+ 
+-	partial, err := Explore(context.Background(), config)
++	partial, err := exploreWith(context.Background(), config, configDependencies)
+ 	var hostErr *HostError
+ 	if !errors.As(err, &hostErr) || partial.Attempted != 1 || partial.SimulationExploration == nil || partial.SimulationExploration.CommittedRounds != 1 {
+ 		t.Fatalf("partial simulation exploration = %#v, error = %v", partial, err)
+ 	}
+ 	resumedExecutor := &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+-	resumed, err := Explore(context.Background(), CampaignSpec{
+-		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor,
+-	})
++	resumed, err := exploreWith(context.Background(), CampaignSpec{
++		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: resumedExecutor},
++	)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -1299,14 +1303,14 @@
+ 	preparer := newFakePreparer(t)
+ 	limit := choiceTraceLimit(t, 1)
+ 	executor := &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, exitCode: 2}
+-	config := testConfig(t, preparer, executor, "7", PolicyAll, 2)
++	config, configDependencies := testConfig(t, preparer, executor, "7", PolicyAll, 2)
+ 	config.Strategy = StrategyChoiceExploration
+ 	config.ChoiceTraceLimit = limit
+ 	config.MaxExecutions = 8
+ 	config.MaxChoiceDepth = 4
+ 	config.MaxExplorationBytes = 1 << 20
+ 
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -1404,12 +1408,12 @@
+ 		{name: "unterminated", err: execution.ErrChoiceTraceUnterminated, reason: "choice_trace_unterminated"},
+ 	} {
+ 		t.Run(test.name, func(t *testing.T) {
+-			config := testConfig(t, newFakePreparer(t), terminalErrorExecutor{err: test.err}, "1", PolicyAll, 1)
++			config, configDependencies := testConfig(t, newFakePreparer(t), terminalErrorExecutor{err: test.err}, "1", PolicyAll, 1)
+ 			config.ChoiceTraceLimit = execution.MinimumChoiceTraceBytes
+-			_, err := Explore(context.Background(), config)
++			_, err := exploreWith(context.Background(), config, configDependencies)
+ 			var hostError *HostError
+ 			if !errors.As(err, &hostError) || hostError.Reason != test.reason {
+-				t.Fatalf("Explore() error = %v", err)
++				t.Fatalf("exploreWith() error = %v", err)
+ 			}
+ 		})
+ 	}
+@@ -1433,15 +1437,15 @@
+ 		Profile: choice.Profile, ImplementationSHA256: implementation, Limit: limit,
+ 		Trace: trace,
+ 	}
+-	config := testConfig(t, preparer, terminalErrorExecutor{result: result, err: execution.ErrChoiceTraceOverflow}, "1", PolicyAll, 1)
++	config, configDependencies := testConfig(t, preparer, terminalErrorExecutor{result: result, err: execution.ErrChoiceTraceOverflow}, "1", PolicyAll, 1)
+ 	config.ChoiceTraceLimit = limit
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	var hostErr *HostError
+ 	if !errors.As(err, &hostErr) || hostErr.Reason != "choice_trace_overflow" {
+-		t.Fatalf("Explore() error = %#v", err)
++		t.Fatalf("exploreWith() error = %#v", err)
+ 	}
+ 	if len(summary.Artifacts) != 1 || summary.ChoiceTrace == nil || summary.ChoiceTrace.TerminalState != "overflow" {
+-		t.Fatalf("Explore() summary = %#v", summary)
++		t.Fatalf("exploreWith() summary = %#v", summary)
+ 	}
+ 	opened, err := artifact.OpenArtifact(summary.Artifacts[0])
+ 	if err != nil {
+@@ -1459,9 +1463,10 @@
+ 		result.ChoiceTrace = completeChoiceTrace(t, preparer.prepared.BuildKey, limit, nil)
+ 		return result
+ 	}}
+-	resumed, err := Explore(context.Background(), CampaignSpec{
+-		ResumeCampaign: summary.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor,
+-	})
++	resumed, err := exploreWith(context.Background(), CampaignSpec{
++		ResumeCampaign: summary.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: resumedExecutor},
++	)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -1480,23 +1485,23 @@
+ 		"nul":             {"A=value\x00tail"},
+ 	} {
+ 		t.Run(name, func(t *testing.T) {
+-			config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
++			config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
+ 			config.Environment = environment
+-			if _, err := Explore(context.Background(), config); err == nil {
+-				t.Fatal("Explore() succeeded")
++			if _, err := exploreWith(context.Background(), config, configDependencies); err == nil {
++				t.Fatal("exploreWith() succeeded")
+ 			}
+ 		})
+ 	}
+ }
+ 
+ func TestRunCancellationIsAHostFailure(t *testing.T) {
+-	config := testConfig(t, newFakePreparer(t), blockingExecutor{}, "1", PolicyAll, 1)
++	config, configDependencies := testConfig(t, newFakePreparer(t), blockingExecutor{}, "1", PolicyAll, 1)
+ 	ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.Running == 1 })
+ 	config.TerminateGrace = 10 * time.Millisecond
+-	summary, err := Explore(ctx, config)
++	summary, err := exploreWith(ctx, config, configDependencies)
+ 	var hostError *HostError
+ 	if !errors.As(err, &hostError) || hostError.Reason != "cancelled" || !errors.Is(err, context.Canceled) {
+-		t.Fatalf("Explore() error = %#v", err)
++		t.Fatalf("exploreWith() error = %#v", err)
+ 	}
+ 	if summary.Failures != 0 || len(summary.Artifacts) != 0 {
+ 		t.Fatalf("cancelled summary = %#v", summary)
+@@ -1523,22 +1528,23 @@
+ func TestRunResumesVerifiedBatchAndSkipsCompletedOrdinals(t *testing.T) {
+ 	preparer := newFakePreparer(t)
+ 	interrupted := &resumeInterruptExecutor{}
+-	config := testConfig(t, preparer, interrupted, "7-9", PolicyAll, 1)
++	config, configDependencies := testConfig(t, preparer, interrupted, "7-9", PolicyAll, 1)
+ 	ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.Succeeded == 1 })
+ 	config.TerminateGrace = 10 * time.Millisecond
+-	partial, err := Explore(ctx, config)
++	partial, err := exploreWith(ctx, config, configDependencies)
+ 	var hostError *HostError
+ 	if !errors.As(err, &hostError) || hostError.Reason != "cancelled" {
+-		t.Fatalf("interrupted Explore() error = %v", err)
++		t.Fatalf("interrupted exploreWith() error = %v", err)
+ 	}
+ 	if seeds := interrupted.seeds(); !slices.Equal(seeds, []uint64{7, 8}) {
+ 		t.Fatalf("interrupted seeds = %v", seeds)
+ 	}
+ 
+ 	resumedExecutor := &fakeExecutor{}
+-	resumed, err := Explore(context.Background(), CampaignSpec{
+-		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor,
+-	})
++	resumed, err := exploreWith(context.Background(), CampaignSpec{
++		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: resumedExecutor},
++	)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -1564,7 +1570,7 @@
+ 		Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, SiteOffset: 24, Alternatives: 2, Selected: 0,
+ 	}})
+ 	interrupted := &choiceResumeInterruptExecutor{trace: trace}
+-	config := testConfig(t, preparer, interrupted, "7-8", PolicyAll, 1)
++	config, configDependencies := testConfig(t, preparer, interrupted, "7-8", PolicyAll, 1)
+ 	ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.RetainedSuccesses == 1 })
+ 	config.TerminateGrace = 10 * time.Millisecond
+ 	config.Coverage = CoverageChoice
+@@ -1572,7 +1578,7 @@
+ 	config.KeepSuccesses = KeepSuccessesNovel
+ 	config.SuccessArtifactLimit = 2
+ 	config.SuccessBytesLimit = 64 << 20
+-	partial, err := Explore(ctx, config)
++	partial, err := exploreWith(ctx, config, configDependencies)
+ 	if err == nil || partial.RetainedSuccesses != 1 {
+ 		t.Fatalf("interrupted summary = %#v, error = %v", partial, err)
+ 	}
+@@ -1583,9 +1589,10 @@
+ 		result.ChoiceTrace = trace
+ 		return result
+ 	}}
+-	resumed, err := Explore(context.Background(), CampaignSpec{
+-		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor,
+-	})
++	resumed, err := exploreWith(context.Background(), CampaignSpec{
++		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: resumedExecutor},
++	)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -1605,14 +1612,14 @@
+ 	corpus := filepath.Join(t.TempDir(), "corpus")
+ 	replayer := &matchingReplayer{}
+ 	interrupted := &resumeInterruptExecutor{}
+-	config := testConfig(t, newFakePreparer(t), interrupted, "7-8", PolicyAll, 1)
++	config, configDependencies := testConfig(t, newFakePreparer(t), interrupted, "7-8", PolicyAll, 1)
+ 	ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.CorpusEntries == 1 })
+ 	config.TerminateGrace = 10 * time.Millisecond
+ 	config.Coverage = CoverageSemantic
+ 	config.Guide = true
+ 	config.Corpus = corpus
+ 	config.Replayer = replayer
+-	partial, err := Explore(ctx, config)
++	partial, err := exploreWith(ctx, config, configDependencies)
+ 	if err == nil || partial.CorpusEntries != 1 {
+ 		t.Fatalf("interrupted guided summary = %#v, error = %v", partial, err)
+ 	}
+@@ -1622,9 +1629,10 @@
+ 		result.IOTranscript = completeEmptyTranscript()
+ 		return result
+ 	}}
+-	resumed, err := Explore(context.Background(), CampaignSpec{
+-		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor, Replayer: replayer,
+-	})
++	resumed, err := exploreWith(context.Background(), CampaignSpec{
++		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Replayer: replayer,
++	}, executionDependencies{executor: resumedExecutor},
++	)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -1634,16 +1642,17 @@
+ }
+ 
+ func TestRunResumeRejectsChangedRunnerIdentity(t *testing.T) {
+-	config := testConfig(t, newFakePreparer(t), blockingExecutor{}, "1", PolicyAll, 1)
++	config, configDependencies := testConfig(t, newFakePreparer(t), blockingExecutor{}, "1", PolicyAll, 1)
+ 	ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.Running == 1 })
+ 	config.TerminateGrace = 10 * time.Millisecond
+-	partial, err := Explore(ctx, config)
++	partial, err := exploreWith(ctx, config, configDependencies)
+ 	if err == nil {
+-		t.Fatal("Explore() did not leave an interrupted batch")
+-	}
+-	_, err = Explore(context.Background(), CampaignSpec{
+-		ResumeCampaign: partial.CampaignPath, RunnerBuild: "sha256:changed", SupervisorCommand: []string{"unused"}, Executor: &fakeExecutor{},
+-	})
++		t.Fatal("exploreWith() did not leave an interrupted batch")
++	}
++	_, err = exploreWith(context.Background(), CampaignSpec{
++		ResumeCampaign: partial.CampaignPath, RunnerBuild: "sha256:changed", SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: &fakeExecutor{}},
++	)
+ 	if err == nil || !strings.Contains(err.Error(), "Runner build identity") {
+ 		t.Fatalf("resume error = %v", err)
+ 	}
+@@ -1651,33 +1660,34 @@
+ 
+ func TestRunResumeRejectsTamperedRetainedSuccessArtifact(t *testing.T) {
+ 	interrupted := &resumeInterruptExecutor{}
+-	config := testConfig(t, newFakePreparer(t), interrupted, "7-8", PolicyAll, 1)
++	config, configDependencies := testConfig(t, newFakePreparer(t), interrupted, "7-8", PolicyAll, 1)
+ 	ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.RetainedSuccesses == 1 })
+ 	config.TerminateGrace = 10 * time.Millisecond
+ 	config.KeepSuccesses = KeepSuccessesAll
+ 	config.SuccessArtifactLimit = 2
+ 	config.SuccessBytesLimit = 64 << 20
+-	partial, err := Explore(ctx, config)
++	partial, err := exploreWith(ctx, config, configDependencies)
+ 	if err == nil || len(partial.SuccessArtifacts) != 1 {
+ 		t.Fatalf("interrupted summary = %#v, error = %v", partial, err)
+ 	}
+ 	if err := os.WriteFile(filepath.Join(partial.SuccessArtifacts[0], "stdout"), []byte("tampered"), 0o600); err != nil {
+ 		t.Fatal(err)
+ 	}
+-	_, err = Explore(context.Background(), CampaignSpec{
+-		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: &fakeExecutor{},
+-	})
++	_, err = exploreWith(context.Background(), CampaignSpec{
++		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"},
++	}, executionDependencies{executor: &fakeExecutor{}},
++	)
+ 	if err == nil || !strings.Contains(err.Error(), "retained success") {
+ 		t.Fatalf("resume error = %v", err)
+ 	}
+ }
+ 
+ func TestRunPreparationFailureLeavesExplicitPartial(t *testing.T) {
+-	config := testConfig(t, errorPreparer{err: errors.New("build failed")}, &fakeExecutor{}, "1", PolicyAll, 1)
+-	summary, err := Explore(context.Background(), config)
++	config, configDependencies := testConfig(t, errorPreparer{err: errors.New("build failed")}, &fakeExecutor{}, "1", PolicyAll, 1)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	var hostError *HostError
+ 	if !errors.As(err, &hostError) || hostError.Reason != "target_preparation" {
+-		t.Fatalf("Explore() error = %#v", err)
++		t.Fatalf("exploreWith() error = %#v", err)
+ 	}
+ 	partial, readErr := os.ReadFile(filepath.Join(summary.CampaignPath, ".partial", "preparation", "partial.json"))
+ 	if readErr != nil {
+@@ -1696,12 +1706,12 @@
+ 		<-started
+ 		cancel()
+ 	}()
+-	config := testConfig(t, waitingPreparer{started: started}, &fakeExecutor{}, "1", PolicyAll, 1)
++	config, configDependencies := testConfig(t, waitingPreparer{started: started}, &fakeExecutor{}, "1", PolicyAll, 1)
+ 	config.TerminateGrace = 10 * time.Millisecond
+-	summary, err := Explore(ctx, config)
++	summary, err := exploreWith(ctx, config, configDependencies)
+ 	var hostError *HostError
+ 	if !errors.As(err, &hostError) || hostError.Reason != "cancelled" || !errors.Is(err, context.Canceled) {
+-		t.Fatalf("Explore() error = %#v", err)
++		t.Fatalf("exploreWith() error = %#v", err)
+ 	}
+ 	partial, readErr := os.ReadFile(filepath.Join(summary.CampaignPath, ".partial", "preparation", "partial.json"))
+ 	if readErr != nil {
+@@ -1719,13 +1729,13 @@
+ 		<-started
+ 		close(deadline.done)
+ 	}()
+-	config := testConfig(t, waitingPreparer{started: started}, &fakeExecutor{}, "1", PolicyAll, 1)
++	config, configDependencies := testConfig(t, waitingPreparer{started: started}, &fakeExecutor{}, "1", PolicyAll, 1)
+ 	config.OverallTimeout = time.Hour
+ 	config.TerminateGrace = 10 * time.Millisecond
+-	summary, err := Explore(deadline, config)
++	summary, err := exploreWith(deadline, config, configDependencies)
+ 	var hostError *HostError
+ 	if !errors.As(err, &hostError) || hostError.Reason != "overall_timeout" || !errors.Is(err, context.DeadlineExceeded) {
+-		t.Fatalf("Explore() error = %#v", err)
++		t.Fatalf("exploreWith() error = %#v", err)
+ 	}
+ 	partial, readErr := os.ReadFile(filepath.Join(summary.CampaignPath, ".partial", "preparation", "partial.json"))
+ 	if readErr != nil {
+@@ -1754,7 +1764,7 @@
+ 
+ func TestManifestForRunBindsIOProfileIdentity(t *testing.T) {
+ 	preparer := newFakePreparer(t)
+-	config := testConfig(t, preparer, &fakeExecutor{}, "1", PolicyFirst, 1)
++	config, _ := testConfig(t, preparer, &fakeExecutor{}, "1", PolicyFirst, 1)
+ 	manifest, err := manifestForRun(campaignRequestFromSpec(config), preparer.prepared, nil, runCompletion{
+ 		job: runJob{seed: 1}, startedAt: time.Unix(1, 0), finishedAt: time.Unix(2, 0), result: processResult(1, "", ""),
+ 	}, execution.Classification{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact}, "run", record.World{}, nil)
+@@ -1780,17 +1790,17 @@
+ }
+ 
+ func TestIsolatedRunnerKillsAStuckCoordinatorInsideOverallDeadline(t *testing.T) {
+-	config := testConfig(t, nil, nil, "1", PolicyFirst, 1)
++	config, configDependencies := testConfig(t, nil, nil, "1", PolicyFirst, 1)
+ 	config.OverallTimeout = 200 * time.Millisecond
+ 	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestBlockingCoordinatorHelper"}
+ 	started := time.Now()
+-	_, err := Explore(context.Background(), config)
++	_, err := exploreWith(context.Background(), config, configDependencies)
+ 	var hostError *HostError
+ 	if !errors.As(err, &hostError) || hostError.Reason != "overall_timeout" {
+-		t.Fatalf("Explore() error = %v", err)
++		t.Fatalf("exploreWith() error = %v", err)
+ 	}
+ 	if elapsed := time.Since(started); elapsed > 350*time.Millisecond {
+-		t.Fatalf("Explore() elapsed = %v", elapsed)
++		t.Fatalf("exploreWith() elapsed = %v", elapsed)
+ 	}
+ }
+ 
+@@ -1806,7 +1816,7 @@
+ 		t.Run(test.name, func(t *testing.T) {
+ 			marker := filepath.Join(t.TempDir(), "coordinator-exited")
+ 			t.Setenv("GOMAD3_COORDINATOR_EXIT_MARKER", marker)
+-			config := testConfig(t, nil, nil, "1", PolicyFirst, 1)
++			config, configDependencies := testConfig(t, nil, nil, "1", PolicyFirst, 1)
+ 			config.OverallTimeout = 250 * time.Millisecond
+ 			config.CoordinatorCommand = []string{os.Args[0], "-test.run=^TestExitedCoordinatorWithOpenStdoutHelper$"}
+ 			ctx := context.Background()
+@@ -1826,41 +1836,41 @@
+ 					}
+ 				}()
+ 			}
+-			_, err := Explore(ctx, config)
++			_, err := exploreWith(ctx, config, configDependencies)
+ 			var hostError *HostError
+ 			if !errors.As(err, &hostError) || hostError.Reason != test.wantReason {
+-				t.Fatalf("Explore() error = %v", err)
++				t.Fatalf("exploreWith() error = %v", err)
+ 			}
+ 		})
+ 	}
+ }
+ 
+ func TestIsolatedRunnerPreservesUnsupportedTargetError(t *testing.T) {
+-	config := testConfig(t, nil, nil, "1", PolicyFirst, 1)
++	config, configDependencies := testConfig(t, nil, nil, "1", PolicyFirst, 1)
+ 	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestUnsupportedTargetCoordinatorHelper"}
+-	_, err := Explore(context.Background(), config)
++	_, err := exploreWith(context.Background(), config, configDependencies)
+ 	var unsupported *target.UnsupportedCapabilityError
+ 	if !errors.As(err, &unsupported) || unsupported.ImportPath != "example.com/target" || unsupported.Capability != "imports os/exec" {
+-		t.Fatalf("Explore() error = %v", err)
++		t.Fatalf("exploreWith() error = %v", err)
+ 	}
+ }
+ 
+ func TestIsolatedRunnerPreservesMissingSemanticProbesError(t *testing.T) {
+-	config := testConfig(t, nil, nil, "1", PolicyFirst, 1)
++	config, configDependencies := testConfig(t, nil, nil, "1", PolicyFirst, 1)
+ 	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestMissingSemanticProbesCoordinatorHelper"}
+-	_, err := Explore(context.Background(), config)
++	_, err := exploreWith(context.Background(), config, configDependencies)
+ 	var missing *deterministicio.MissingSemanticProbesError
+ 	if !errors.As(err, &missing) || len(missing.Probes) != 1 || missing.Probes[0] != "stdlib.os.openfile" {
+-		t.Fatalf("Explore() error = %v", err)
++		t.Fatalf("exploreWith() error = %v", err)
+ 	}
+ }
+ 
+ func TestIsolatedRunnerPreservesBoundedExecutionEvidence(t *testing.T) {
+-	config := testConfig(t, nil, nil, "1", PolicyAll, 1)
++	config, configDependencies := testConfig(t, nil, nil, "1", PolicyAll, 1)
+ 	config.Coverage = CoverageSemantic
+ 	config.CollectExecutionEvidence = true
+ 	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestExecutionEvidenceCoordinatorHelper"}
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -1870,10 +1880,10 @@
+ }
+ 
+ func TestIsolatedRunnerTransportsChoiceTraceConfiguration(t *testing.T) {
+-	config := testConfig(t, nil, nil, "1", PolicyAll, 1)
++	config, configDependencies := testConfig(t, nil, nil, "1", PolicyAll, 1)
+ 	config.ChoiceTraceLimit = execution.MinimumChoiceTraceBytes
+ 	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestChoiceTraceCoordinatorHelper"}
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -1883,7 +1893,7 @@
+ }
+ 
+ func TestIsolatedRunnerDrainsFastCoordinatorBeforeWaitClosesOutput(t *testing.T) {
+-	config := testConfig(t, nil, nil, "1", PolicyAll, 1)
++	config, configDependencies := testConfig(t, nil, nil, "1", PolicyAll, 1)
+ 	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestFastCoordinatorHelper"}
+ 	config.Progress = func(CampaignEvent) error {
+ 		deadline := time.Now().Add(100 * time.Millisecond)
+@@ -1892,7 +1902,7 @@
+ 		}
+ 		return nil
+ 	}
+-	summary, err := Explore(context.Background(), config)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -2007,12 +2017,12 @@
+ }
+ 
+ func TestIsolatedRunnerBoundsCoordinatorOutput(t *testing.T) {
+-	config := testConfig(t, nil, nil, "1", PolicyFirst, 1)
++	config, configDependencies := testConfig(t, nil, nil, "1", PolicyFirst, 1)
+ 	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestOversizedCoordinatorHelper"}
+-	_, err := Explore(context.Background(), config)
++	_, err := exploreWith(context.Background(), config, configDependencies)
+ 	var hostError *HostError
+ 	if !errors.As(err, &hostError) || hostError.Reason != "coordinator_decode" {
+-		t.Fatalf("Explore() error = %v", err)
++		t.Fatalf("exploreWith() error = %v", err)
+ 	}
+ }
+ 
+@@ -2028,13 +2038,13 @@
+ func TestIsolatedRunnerRemovesCoordinatorProcessGroup(t *testing.T) {
+ 	marker := filepath.Join(t.TempDir(), "descendant-survived")
+ 	t.Setenv("GOMAD3_COORDINATOR_DESCENDANT_MARKER", marker)
+-	config := testConfig(t, nil, nil, "1", PolicyFirst, 1)
++	config, configDependencies := testConfig(t, nil, nil, "1", PolicyFirst, 1)
+ 	config.OverallTimeout = 250 * time.Millisecond
+ 	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestCoordinatorTreeHelper"}
+-	_, err := Explore(context.Background(), config)
++	_, err := exploreWith(context.Background(), config, configDependencies)
+ 	var hostError *HostError
+ 	if !errors.As(err, &hostError) || hostError.Reason != "overall_timeout" {
+-		t.Fatalf("Explore() error = %v", err)
++		t.Fatalf("exploreWith() error = %v", err)
+ 	}
+ 	deadline := time.Now().Add(500 * time.Millisecond)
+ 	for time.Now().Before(deadline) {
+@@ -2628,14 +2638,14 @@
+ 	return result, nil
+ }
+ 
+-func testConfig(t *testing.T, preparer Preparer, executor Executor, seeds string, policy FailurePolicy, parallel int) CampaignSpec {
++func testConfig(t *testing.T, preparer Preparer, executor executionRunner, seeds string, policy FailurePolicy, parallel int) (CampaignSpec, executionDependencies) {
+ 	t.Helper()
+ 	return CampaignSpec{
+ 		Seeds: seeds, Parallel: parallel, ExecutionTimeout: time.Second, OverallTimeout: 10 * time.Second, TerminateGrace: 100 * time.Millisecond,
+ 		OnFailure: policy, FailureBudget: 1, OutputLimit: 64, WorldTransitionLimit: 64, Artifacts: t.TempDir(),
+ 		Environment: []string{"MODE=test"}, Target: target.Spec{Kind: target.KindGoRun, Source: "."}, SupervisorCommand: []string{"unused"},
+-		RunnerBuild: "sha256:0000000000000000000000000000000000000000000000000000000000000000", Preparer: preparer, Executor: executor,
+-	}
++		RunnerBuild: "sha256:0000000000000000000000000000000000000000000000000000000000000000", Preparer: preparer,
++	}, executionDependencies{executor: executor}
+ }
+ 
+ func cancelOnProgress(t *testing.T, config *CampaignSpec, predicate func(CampaignEvent) bool) context.Context {
+@@ -2767,14 +2777,14 @@
+ 	result.Signal = "SIGKILL"
+ 	result.WatchdogTimeout = true
+ 	result.ChoiceTrace = execution.ChoiceTrace{Profile: choice.Profile, Limit: limit}
+-	config := testConfig(t, preparer, terminalErrorExecutor{result: result}, "1", PolicyAll, 1)
++	config, configDependencies := testConfig(t, preparer, terminalErrorExecutor{result: result}, "1", PolicyAll, 1)
+ 	config.ChoiceTraceLimit = limit
+-	summary, err := Explore(context.Background(), config)
+-	if err != nil {
+-		t.Fatalf("Explore() error = %v", err)
++	summary, err := exploreWith(context.Background(), config, configDependencies)
++	if err != nil {
++		t.Fatalf("exploreWith() error = %v", err)
+ 	}
+ 	if summary.Watchdogs != 1 || len(summary.Artifacts) != 1 {
+-		t.Fatalf("Explore() summary = %#v", summary)
++		t.Fatalf("exploreWith() summary = %#v", summary)
+ 	}
+ 	opened, err := artifact.OpenArtifact(summary.Artifacts[0])
+ 	if err != nil {
+@@ -2838,11 +2848,11 @@
+ 	published := 0
+ 	for _, strategy := range completionStrategies {
+ 		for _, fail := range []bool{false, true} {
+-			config, executor := retentionCampaign(t, strategy, false, fail)
++			config, executor, configDependencies := retentionCampaign(t, strategy, false, fail)
+ 			config.Artifacts = artifacts
+ 			keepSuccesses(&config, KeepSuccessesAll)
+ 			executor.shape = rankProbes(t, probeA, probeA, probeB)
+-			summary, err := Explore(context.Background(), config)
++			summary, err := exploreWith(context.Background(), config, configDependencies)
+ 			if err != nil {
+ 				t.Fatal(err)
+ 			}
+@@ -2914,19 +2924,19 @@
+ 	}
+ 	outputRoot := t.TempDir()
+ 	replayer := &sharedTargetReplayer{ArtifactReplayer: &minimizationReplayer{}}
+-	spec := minimizationSpec(t, artifactPath, outputRoot)
+-	spec.Executor = &minimizationExecutor{before: interruptAt(minimizationCallAfterAcceptedReduction)}
++	spec, specDependencies := minimizationSpec(t, artifactPath, outputRoot)
++	specDependencies.executor = &minimizationExecutor{before: interruptAt(minimizationCallAfterAcceptedReduction)}
+ 	spec.Replayer = replayer
+-	if _, err := Minimize(context.Background(), spec); !errors.Is(err, errMinimizationInterrupted) {
+-		t.Fatalf("interrupted Minimize() error = %v", err)
++	if _, err := minimizeWith(context.Background(), spec, specDependencies); !errors.Is(err, errMinimizationInterrupted) {
++		t.Fatalf("interrupted minimizeWith() error = %v", err)
+ 	}
+ 	paths, accepted := retainedTargets(t, outputRoot, target)
+ 	if accepted != 1 || len(paths) != 2 || distinctFiles(t, paths) != 1 {
+ 		t.Fatalf("interrupted run holds %d accepted artifacts in %v, want one sharing the pool entry", accepted, paths)
+ 	}
+-	spec.Executor = &minimizationExecutor{}
++	specDependencies.executor = &minimizationExecutor{}
+ 	spec.Resume = true
+-	result, err := Minimize(context.Background(), spec)
++	result, err := minimizeWith(context.Background(), spec, specDependencies)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+--- a/tools/gomad3/runner/seed_completion_characterization_test.go
++++ b/tools/gomad3/runner/seed_completion_characterization_test.go
+@@ -14,60 +14,61 @@
+ func TestRunEarlyCompletionCountersRemainUnclassified(t *testing.T) {
+ 	for _, test := range []struct {
+ 		name   string
+-		config func(*testing.T) CampaignSpec
++		config func(*testing.T) (CampaignSpec, executionDependencies)
+ 		reason string
+ 		want   campaign.CampaignStatistics
+ 	}{
+ 		{
+ 			name: "supervision failure",
+-			config: func(t *testing.T) CampaignSpec {
+-				config, _ := completionCampaign(t, StrategySeed, CoverageNone, nil, execution.ErrChoiceTraceMalformed)
+-				return config
++			config: func(t *testing.T) (CampaignSpec, executionDependencies) {
++				config, _, dependencies := completionCampaign(t, StrategySeed, CoverageNone, nil, execution.ErrChoiceTraceMalformed)
++				return config, dependencies
+ 			},
+ 			reason: "choice_trace_malformed", want: campaign.CampaignStatistics{Attempted: 1},
+ 		},
+ 		{
+ 			name: "prepared target integrity",
+-			config: func(t *testing.T) CampaignSpec {
++			config: func(t *testing.T) (CampaignSpec, executionDependencies) {
+ 				return testConfig(t, newFakePreparer(t), mutatingExecutor{}, "1", PolicyAll, 1)
+ 			},
+ 			reason: "prepared_target_integrity", want: campaign.CampaignStatistics{Attempted: 1},
+ 		},
+ 		{
+ 			name: "world evidence",
+-			config: func(t *testing.T) CampaignSpec {
+-				config, _ := completionCampaign(t, StrategySeed, CoverageNone, func(result *execution.Result) {
++			config: func(t *testing.T) (CampaignSpec, executionDependencies) {
++				config, _, dependencies := completionCampaign(t, StrategySeed, CoverageNone, func(result *execution.Result) {
+ 					result.WorldRecord = completionWorldRecord(t, 8)
+ 				}, nil)
+-				return config
++				return config, dependencies
+ 			},
+ 			reason: "world_record", want: campaign.CampaignStatistics{Attempted: 1, DistinctFailures: 1},
+ 		},
+ 		{
+ 			name: "coverage evidence",
+-			config: func(t *testing.T) CampaignSpec {
+-				config, _ := completionCampaign(t, StrategySeed, CoverageSemantic, func(result *execution.Result) {
++			config: func(t *testing.T) (CampaignSpec, executionDependencies) {
++				config, _, dependencies := completionCampaign(t, StrategySeed, CoverageSemantic, func(result *execution.Result) {
+ 					payload := []byte("not an I/O transcript")
+ 					result.IOTranscript = deterministicio.Transcript{Bytes: payload, SHA256: sha256.Sum256(payload), Records: 1, Complete: true}
+ 				}, nil)
+-				return config
++				return config, dependencies
+ 			},
+ 			reason: "semantic_coverage", want: campaign.CampaignStatistics{Attempted: 1},
+ 		},
+ 		{
+ 			name: "success publication",
+-			config: func(t *testing.T) CampaignSpec {
+-				config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
++			config: func(t *testing.T) (CampaignSpec, executionDependencies) {
++				config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
+ 				config.KeepSuccesses = KeepSuccessesAll
+ 				config.SuccessArtifactLimit = 1
+ 				config.SuccessBytesLimit = 1 << 20
+-				return config
++				return config, configDependencies
+ 			},
+ 			reason: "success_artifact_publication", want: campaign.CampaignStatistics{Attempted: 1},
+ 		},
+ 	} {
+ 		t.Run(test.name, func(t *testing.T) {
+-			summary, err := Explore(context.Background(), test.config(t))
++			config, dependencies := test.config(t)
++			summary, err := exploreWith(context.Background(), config, dependencies)
+ 			var hostError *HostError
+ 			if !errors.As(err, &hostError) || hostError.Reason != test.reason {
+ 				t.Fatalf("Explore() error = %v, want %q", err, test.reason)
+--- a/tools/gomad3/runner/simulation_exploration_campaign.go
++++ b/tools/gomad3/runner/simulation_exploration_campaign.go
+@@ -117,7 +117,7 @@
+ 		semanticProbes = restored.probes
+ 		choiceFeatures = restored.choiceFeatures
+ 	}
+-	executor := config.Executor
++	executor := config.executor
+ 	if executor == nil {
+ 		executor = processExecutor{}
+ 	}
+@@ -227,7 +227,7 @@
+ func executeSimulationExplorationRound(
+ 	ctx context.Context,
+ 	config campaignRequest,
+-	executor Executor,
++	executor executionRunner,
+ 	prepared target.Prepared,
+ 	baseEnvironment []record.Environment,
+ 	profile deterministicio.Spec,
+--- a/tools/gomad3/runner/watchdog_replay_test.go
++++ b/tools/gomad3/runner/watchdog_replay_test.go
+@@ -54,8 +54,9 @@
+ 		path := publishWatchdogReplayInput(t, exact)
+ 		executor := &fakeReplayExecutor{result: observed}
+ 		config := watchdogReplaySpec(t, path)
+-		config.Executor = executor
+-		_, err := Replay(t.Context(), config)
++		configDependencies := executionDependencies{}
++		configDependencies.executor = executor
++		_, err := replayWith(t.Context(), config, configDependencies)
+ 		if err == nil || !strings.Contains(err.Error(), "no complete transcript") || executor.calls != 0 {
+ 			t.Fatalf("exact replay error = %v, calls = %d", err, executor.calls)
+ 		}
+@@ -77,8 +78,9 @@
+ 			}
+ 			executor := &fakeReplayExecutor{result: observed}
+ 			config := watchdogReplaySpec(t, path)
+-			config.Executor = executor
+-			if _, err := Replay(t.Context(), config); err == nil || executor.calls != 0 {
++			configDependencies := executionDependencies{}
++			configDependencies.executor = executor
++			if _, err := replayWith(t.Context(), config, configDependencies); err == nil || executor.calls != 0 {
+ 				t.Fatalf("corrupt replay error = %v, calls = %d", err, executor.calls)
+ 			}
+ 		})
+@@ -94,8 +96,9 @@
+ 		path := publishWatchdogReplayInput(t, malformed)
+ 		executor := &fakeReplayExecutor{result: observed}
+ 		config := watchdogReplaySpec(t, path)
+-		config.Executor = executor
+-		if _, err := Replay(t.Context(), config); err == nil || executor.calls != 0 {
++		configDependencies := executionDependencies{}
++		configDependencies.executor = executor
++		if _, err := replayWith(t.Context(), config, configDependencies); err == nil || executor.calls != 0 {
+ 			t.Fatalf("malformed replay error = %v, calls = %d", err, executor.calls)
+ 		}
+ 	})
+@@ -122,8 +125,9 @@
+ 			changed := observed
+ 			test.change(&changed)
+ 			config := watchdogReplaySpec(t, path)
+-			config.Executor = &fakeReplayExecutor{result: changed}
+-			result, err := Replay(t.Context(), config)
++			configDependencies := executionDependencies{}
++			configDependencies.executor = &fakeReplayExecutor{result: changed}
++			result, err := replayWith(t.Context(), config, configDependencies)
+ 			if err != nil || result.Match || !result.Diagnostic || result.Divergence != test.divergence {
+ 				t.Fatalf("divergent diagnostic replay = %#v, %v", result, err)
+ 			}
+@@ -159,8 +163,9 @@
+ 	path = publishWatchdogReplayInput(t, artifact.ArtifactInput{Manifest: manifest, TargetPath: targetPath, Stdout: observed.Stdout.Bytes, Stderr: observed.Stderr.Bytes, ChoiceTrace: choices, World: payloads})
+ 	executor := &fakeReplayExecutor{result: observed}
+ 	config := watchdogReplaySpec(t, path)
+-	config.Executor = executor
+-	result, err := Replay(t.Context(), config)
++	configDependencies := executionDependencies{}
++	configDependencies.executor = executor
++	result, err := replayWith(t.Context(), config, configDependencies)
+ 	if err == nil || !strings.Contains(err.Error(), "diagnostic replay without an I/O transcript cannot replay recorded choices") || executor.calls != 0 || result.Match || result.ChoiceReplayStatus == ChoiceReplayExact {
+ 		t.Fatalf("unsupported diagnostic replay = %#v, %v, calls = %d", result, err, executor.calls)
+ 	}
+--- a/tools/gomad3/architecture_test.go
++++ b/tools/gomad3/architecture_test.go
+@@ -107,6 +107,77 @@
+ 				}
+ 			}
+ 		}
++	}
++}
++
++func TestRunnerExecutionInjectionIsPrivate(t *testing.T) {
++	for _, name := range []string{"runner.go", "campaign_shard_execution.go", "replay_operation.go", "minimize_operation.go", "resume.go"} {
++		file, err := parser.ParseFile(token.NewFileSet(), filepath.Join("runner", name), nil, 0)
++		if err != nil {
++			t.Fatalf("parse runner source %s: %v", name, err)
++		}
++		for _, declaration := range file.Decls {
++			general, ok := declaration.(*ast.GenDecl)
++			if !ok {
++				continue
++			}
++			for _, specification := range general.Specs {
++				typeSpec, ok := specification.(*ast.TypeSpec)
++				if !ok {
++					continue
++				}
++				if typeSpec.Name.Name == "Executor" || typeSpec.Name.Name == "ReplayExecutor" {
++					t.Errorf("runner exposes inaccessible execution interface %s", typeSpec.Name.Name)
++				}
++				structure, ok := typeSpec.Type.(*ast.StructType)
++				if !ok || !strings.HasSuffix(typeSpec.Name.Name, "Spec") {
++					continue
++				}
++				for _, field := range structure.Fields.List {
++					for _, fieldName := range field.Names {
++						if fieldName.IsExported() && fieldName.Name == "Executor" {
++							t.Errorf("runner.%s exposes inaccessible execution field", typeSpec.Name.Name)
++						}
++					}
++				}
++			}
++		}
++	}
++}
++
++func TestRunnerRequestsCompileInExternalModule(t *testing.T) {
++	root, err := os.Getwd()
++	if err != nil {
++		t.Fatalf("find Gomad module root: %v", err)
++	}
++	fixture, err := os.ReadFile("internal/gomadtool/conformance/testdata/runner_external/consumer.go")
++	if err != nil {
++		t.Fatalf("read external Runner fixture: %v", err)
++	}
++	directory := t.TempDir()
++	module := "module example.com/gomad-runner-consumer\n\ngo 1.27.1\n\nrequire go.temporal.io/server/tools/gomad3 v0.0.0\nreplace go.temporal.io/server/tools/gomad3 => " + root + "\n"
++	if err := os.WriteFile(filepath.Join(directory, "go.mod"), []byte(module), 0o600); err != nil {
++		t.Fatalf("write external module: %v", err)
++	}
++	if err := os.WriteFile(filepath.Join(directory, "consumer.go"), fixture, 0o600); err != nil {
++		t.Fatalf("write external Runner fixture: %v", err)
++	}
++	goExecutable := os.Getenv("GOMAD3_STOCK_GO")
++	if goExecutable == "" {
++		goExecutable = "go"
++	}
++	command := exec.Command(goExecutable, "test", "-mod=mod", "-tags", "test_dep", ".")
++	command.Dir = directory
++	for _, variable := range os.Environ() {
++		if strings.HasPrefix(variable, "GOROOT=") || strings.HasPrefix(variable, "GOBIN=") || strings.HasPrefix(variable, "GOMADSEED=") || strings.HasPrefix(variable, "GOMAD3_CHILD_SEED=") {
++			continue
++		}
++		command.Env = append(command.Env, variable)
++	}
++	command.Env = append(command.Env, "GOWORK=off", "GOTOOLCHAIN=local", "GOEXPERIMENT=nogreenteagc")
++	output, err := command.CombinedOutput()
++	if err != nil {
++		t.Fatalf("compile external Runner fixture: %v\n%s", err, output)
+ 	}
+ }
+ 
+--- /dev/null
++++ b/tools/gomad3/internal/gomadtool/conformance/testdata/runner_external/consumer.go
+@@ -0,0 +1,28 @@
++package consumer
++
++import (
++	"context"
++
++	"go.temporal.io/server/tools/gomad3/runner"
++	"go.temporal.io/server/tools/gomad3/target"
++)
++
++type preparer struct{}
++
++func (preparer) Prepare(context.Context, target.Spec) (target.Prepared, error) {
++	return target.Prepared{}, nil
++}
++
++type replayer struct{}
++
++func (replayer) Replay(context.Context, runner.ReplaySpec) (runner.ReplayResult, error) {
++	return runner.ReplayResult{}, nil
++}
++
++func ConstructRequests() {
++	_ = runner.CampaignSpec{Preparer: preparer{}, Replayer: replayer{}}
++	_ = runner.CampaignShardSpec{Replayer: replayer{}}
++	_ = runner.ReplaySpec{}
++	_ = runner.MinimizeSpec{Replayer: replayer{}}
++	_ = runner.ResumeSpec{Replayer: replayer{}}
++}

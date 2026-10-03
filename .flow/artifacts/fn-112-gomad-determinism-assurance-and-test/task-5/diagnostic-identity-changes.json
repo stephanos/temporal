@@ -1,0 +1,37 @@
+[
+  {
+    "path": "/artifact/choice_profile/implementation_sha256",
+    "old": "sha256:94c3e4d14a8f1a33f47af6edde2b5d1ecf5449f62bdc23444da84ba01c4c5810",
+    "new": "sha256:c5bd3f6abcf0ed320ef699d4b2120e217ddd49e96f3010eaed090bafb9b79ea4"
+  },
+  {
+    "path": "/artifact/choice_profile/trace/tape_sha256",
+    "old": "sha256:39e6a43035db0eb077199ad1cefb11dacab49e0db1ecd49f4d8f9d3a35fd9bea",
+    "new": "sha256:16a035229a88c07f4ffb76de2ffdbfa2ad83e78f5e52b0c26606683d8b09c51a"
+  },
+  {
+    "path": "/artifact/outcome/failure_signature",
+    "old": "sha256:366fd9d0e98f479f65103fd4de8e2d92bb117c26f31807234c60f2628badaed3",
+    "new": "sha256:2d458930b766d5e45fe83d9e86e2947b9aa006f702821cdb8c0b83419d8da4d4"
+  },
+  {
+    "path": "/artifact/record_hash",
+    "old": "sha256:04406b09ce2281cd5c8216aa784c43063a151ec5bcebe91d9550d77bd5e08dc0",
+    "new": "sha256:0f07763f8dd5f9ee14e3fc15e715c820b79edb399bea1b5177db47b2d23364ab"
+  },
+  {
+    "path": "/campaign_plan/choice_profile/implementation_sha256",
+    "old": "sha256:94c3e4d14a8f1a33f47af6edde2b5d1ecf5449f62bdc23444da84ba01c4c5810",
+    "new": "sha256:c5bd3f6abcf0ed320ef699d4b2120e217ddd49e96f3010eaed090bafb9b79ea4"
+  },
+  {
+    "path": "/portable_plan/campaign/choice_profile/implementation_sha256",
+    "old": "sha256:94c3e4d14a8f1a33f47af6edde2b5d1ecf5449f62bdc23444da84ba01c4c5810",
+    "new": "sha256:c5bd3f6abcf0ed320ef699d4b2120e217ddd49e96f3010eaed090bafb9b79ea4"
+  },
+  {
+    "path": "/portable_plan_sha256",
+    "old": "sha256:fe0a4b4954af9ed7df8d4bea5fb522a584d4b9905c6c1857103ada3391dcf75b",
+    "new": "sha256:55b49d9d1f911159d9753dba831dbfeb6af1b1a0ca7366f2195b98b1cded185e"
+  }
+]

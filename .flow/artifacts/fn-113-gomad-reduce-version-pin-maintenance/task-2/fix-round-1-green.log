@@ -1,0 +1,18 @@
+=== RUN   TestAdapterPublicationRejectsUnchangedInputDrift
+--- PASS: TestAdapterPublicationRejectsUnchangedInputDrift (0.00s)
+=== RUN   TestAdapterPublicationRejectsNewStagedInput
+=== RUN   TestAdapterPublicationRejectsNewStagedInput/adapter_request
+=== RUN   TestAdapterPublicationRejectsNewStagedInput/qualification
+=== RUN   TestAdapterPublicationRejectsNewStagedInput/tests
+--- PASS: TestAdapterPublicationRejectsNewStagedInput (0.01s)
+    --- PASS: TestAdapterPublicationRejectsNewStagedInput/adapter_request (0.00s)
+    --- PASS: TestAdapterPublicationRejectsNewStagedInput/qualification (0.00s)
+    --- PASS: TestAdapterPublicationRejectsNewStagedInput/tests (0.00s)
+=== RUN   TestAdapterPublicationAcceptsIgnoredCacheDrift
+--- PASS: TestAdapterPublicationAcceptsIgnoredCacheDrift (0.04s)
+=== RUN   TestAdapterPublicationRecoversInterruptedSet
+--- PASS: TestAdapterPublicationRecoversInterruptedSet (0.02s)
+=== RUN   TestAdapterPublicationSerializesCompetingApplies
+--- PASS: TestAdapterPublicationSerializesCompetingApplies (0.02s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	0.535s

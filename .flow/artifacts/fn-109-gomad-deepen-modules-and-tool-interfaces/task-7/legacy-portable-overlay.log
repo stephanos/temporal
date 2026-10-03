@@ -1,0 +1,5 @@
+--- FAIL: TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists (0.08s)
+    preparation_owner_test.go:28: deterministic I/O build adapter requires module cache and preparation root
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner	0.508s
+FAIL

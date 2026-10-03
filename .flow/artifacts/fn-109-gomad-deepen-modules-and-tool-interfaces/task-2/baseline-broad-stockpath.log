@@ -1,0 +1,50 @@
+--- FAIL: TestReplayRejectsFirstDivergentWorldTransitionBeforeTargetMutation (0.03s)
+    replay_operation_test.go:308: I/O transcript terminal is absent
+--- FAIL: TestReplayExecutesMatchingWorldPlanThroughChildTransport (0.03s)
+    replay_operation_test.go:342: I/O transcript terminal is absent
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner	142.334s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/campaign	30.103s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/corpus	2.459s
+--- FAIL: TestRunTransportsCompleteChoiceTrace (0.03s)
+    process_test.go:150: choice trace unterminated
+--- FAIL: TestRunReturnsValidatedOverflowChoiceTrace (0.03s)
+    process_test.go:176: Run() error = choice trace unterminated
+--- FAIL: TestRunReplaysCompleteChoiceTape (0.04s)
+    process_test.go:203: choice trace unterminated
+--- FAIL: TestRunReplaysLogicalChoiceAcrossPhysicalRunQueueOrder (0.04s)
+    process_test.go:241: choice trace unterminated
+--- FAIL: TestRunReplaysSelectPermutationAcrossSeededPhysicalOrder (0.03s)
+    process_test.go:277: choice trace unterminated
+--- FAIL: TestRunPreservesChoicePrefixRNGPosition (0.03s)
+    process_test.go:351: choice trace unterminated
+--- FAIL: TestRunForcesCanonicalRankAtFinalPrefixDecision (0.02s)
+    process_test.go:393: choice trace unterminated
+--- FAIL: TestRunTargetInheritsChoiceTapeReadOnly (0.03s)
+    process_test.go:459: choice trace unterminated
+--- FAIL: TestRunRejectsExhaustedChoiceTapeBeforeTargetMarker (0.03s)
+    process_test.go:482: choice trace unterminated
+--- FAIL: TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker (0.03s)
+    process_test.go:539: choice trace unterminated
+--- FAIL: TestRunRejectsUnconsumedChoiceTape (0.03s)
+    process_test.go:610: choice trace unterminated
+--- FAIL: TestModelConformanceFilesystem (0.55s)
+    model_conformance_test.go:109: stock Go resolves to Gomad toolchain
+--- FAIL: TestModelConformanceTCP (0.57s)
+    model_conformance_test.go:110: stock Go resolves to Gomad toolchain
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	68.101s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration	1.202s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice	1.079s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation	1.372s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord	1.479s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/minimizer	1.977s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad	40.806s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	1.966s
+ok  	go.temporal.io/server/tools/gomad3/qualification	1.410s
+ok  	go.temporal.io/server/tools/gomad3/qualification/analysis	24.350s
+ok  	go.temporal.io/server/tools/gomad3/qualification/comparison	0.459s
+ok  	go.temporal.io/server/tools/gomad3/qualification/set	4.036s
+ok  	go.temporal.io/server/tools/gomad3/qualification/set/manifestgen	2.319s
+ok  	go.temporal.io/server/tools/gomad3/qualification/workload	0.348s
+FAIL

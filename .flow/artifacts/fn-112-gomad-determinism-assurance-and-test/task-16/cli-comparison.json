@@ -1,0 +1,21 @@
+{
+  "platform": "darwin/arm64",
+  "campaign": "campaign-20261003T051554.074185000Z-d2cfcf690cbcce2f6fdd05e98ff8a377",
+  "retained_successes": 2,
+  "artifacts": [
+    {
+      "path": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-16/real-cli-fixed/v1/campaign-20261003T051554.074185000Z-d2cfcf690cbcce2f6fdd05e98ff8a377/successes/sha256-ca1b601cc1b6da941e032114905ad94c",
+      "seed": "1",
+      "record_hash": "sha256:0fa39d37d418225437352048eb1e1fa213b3036087d9e64caf6895243b771ccc",
+      "outcome_signature": "sha256:ca1b601cc1b6da941e032114905ad94cccba6cca608ee38fa476e2f52dac1195",
+      "stdout_sha256": "sha256:3876ca6b49d0739666f5f7be93c034639fdef4dac90986bb5ce0ed37a0c4dc49"
+    },
+    {
+      "path": "/Users/stephan/Workspace/temporal/gomad/.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-16/real-cli-fixed/v1/campaign-20261003T051554.074185000Z-d2cfcf690cbcce2f6fdd05e98ff8a377/successes/sha256-04919bd199b3d6223cef4c5a1abaaaad",
+      "seed": "2",
+      "record_hash": "sha256:04919bd199b3d6223cef4c5a1abaaaadd1dde5cc9092f86c84808c813509d60b",
+      "outcome_signature": "sha256:ca1b601cc1b6da941e032114905ad94cccba6cca608ee38fa476e2f52dac1195",
+      "stdout_sha256": "sha256:3876ca6b49d0739666f5f7be93c034639fdef4dac90986bb5ce0ed37a0c4dc49"
+    }
+  ]
+}

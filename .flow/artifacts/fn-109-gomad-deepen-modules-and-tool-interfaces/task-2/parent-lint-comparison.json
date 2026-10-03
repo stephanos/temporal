@@ -1,0 +1,10 @@
+{
+  "before_findings": 429,
+  "after_findings": 427,
+  "added_positions": [],
+  "removed_positions": [
+    "../tools/gomad3/runner/campaign_options.go:163:10",
+    "../tools/gomad3/runner/coordinator.go:38:10"
+  ],
+  "note": "Compare positions: revive can select different rule messages at the same location between runs. Global lint remains red."
+}

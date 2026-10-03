@@ -40,9 +40,10 @@ func TestReplayVerifiesThenRunsStoredTargetWithoutRebuilding(t *testing.T) {
 		t.Fatal(err)
 	}
 	executor := &fakeReplayExecutor{result: expected}
-	result, err := Replay(context.Background(), ReplaySpec{
-		ArtifactPath: movedPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
-	})
+	result, err := replayWith(context.Background(), ReplaySpec{
+		ArtifactPath: movedPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+	}, executionDependencies{executor: executor},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,9 +69,10 @@ func TestReplayEnvironmentExcludesChoiceControlVariables(t *testing.T) {
 func TestReplayAutomaticallySuppliesExactChoiceTape(t *testing.T) {
 	artifactPath, expected := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true})
 	executor := &fakeReplayExecutor{result: expected}
-	result, err := Replay(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
-	})
+	result, err := replayWith(context.Background(), ReplaySpec{
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+	}, executionDependencies{executor: executor},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -100,9 +102,10 @@ func TestReplayAutomaticallySuppliesExactSimulationExplorationTape(t *testing.T)
 		t.Fatal(err)
 	}
 	executor := &fakeReplayExecutor{result: expected}
-	result, err := Replay(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
-	})
+	result, err := replayWith(context.Background(), ReplaySpec{
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+	}, executionDependencies{executor: executor},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -117,9 +120,10 @@ func TestReplayAutomaticallySuppliesExactSimulationExplorationTape(t *testing.T)
 func TestReplayReportsChangedSimulationExplorationRecord(t *testing.T) {
 	artifactPath, observed := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true, Simulation: true})
 	observed.SimulationRecords = [][]byte{[]byte("changed simulation record")}
-	result, err := Replay(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: &fakeReplayExecutor{result: observed},
-	})
+	result, err := replayWith(context.Background(), ReplaySpec{
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+	}, executionDependencies{executor: &fakeReplayExecutor{result: observed}},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -131,9 +135,10 @@ func TestReplayReportsChangedSimulationExplorationRecord(t *testing.T) {
 func TestReplayReportsTypedChoiceDivergenceBeforeOrdinaryComparison(t *testing.T) {
 	artifactPath, _ := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true})
 	executor := &fakeReplayExecutor{err: &execution.ChoiceReplayDivergenceError{Divergence: choice.Divergence{Ordinal: 3, Reason: choice.DivergenceSite}}}
-	result, err := Replay(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
-	})
+	result, err := replayWith(context.Background(), ReplaySpec{
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+	}, executionDependencies{executor: executor},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -149,20 +154,22 @@ func TestReplayPreservesInfrastructureErrorJoinedWithChoiceDivergence(t *testing
 		&execution.ChoiceReplayDivergenceError{Divergence: choice.Divergence{Ordinal: 3, Reason: choice.DivergenceSite}},
 		cleanupErr,
 	)}
-	_, err := Replay(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
-	})
+	_, err := replayWith(context.Background(), ReplaySpec{
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+	}, executionDependencies{executor: executor},
+	)
 	if !errors.Is(err, cleanupErr) {
-		t.Fatalf("Replay() error = %v", err)
+		t.Fatalf("replayWith() error = %v", err)
 	}
 }
 
 func TestReplayVerifyOnlyDoesNotStartTarget(t *testing.T) {
 	artifactPath, _ := replayArtifact(t)
 	executor := &fakeReplayExecutor{}
-	result, err := Replay(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, VerifyOnly: true, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
-	})
+	result, err := replayWith(context.Background(), ReplaySpec{
+		ArtifactPath: artifactPath, VerifyOnly: true, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+	}, executionDependencies{executor: executor},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -176,11 +183,12 @@ func TestReplayRejectsUnavailableCompatibilityPackBeforeTargetStart(t *testing.T
 		ID: "unknown-pack", SHA256: record.HashBytes([]byte("unknown pack")),
 	}})
 	executor := &fakeReplayExecutor{}
-	_, err := Replay(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, VerifyOnly: true, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
-	})
+	_, err := replayWith(context.Background(), ReplaySpec{
+		ArtifactPath: artifactPath, VerifyOnly: true, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+	}, executionDependencies{executor: executor},
+	)
 	if err == nil || executor.calls != 0 {
-		t.Fatalf("Replay() error = %v, calls = %d", err, executor.calls)
+		t.Fatalf("replayWith() error = %v, calls = %d", err, executor.calls)
 	}
 }
 
@@ -193,11 +201,12 @@ func TestReplayRejectsChangedPayloadBeforeTargetStart(t *testing.T) {
 		t.Fatal(err)
 	}
 	executor := &fakeReplayExecutor{}
-	_, err := Replay(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
-	})
+	_, err := replayWith(context.Background(), ReplaySpec{
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+	}, executionDependencies{executor: executor},
+	)
 	if err == nil || executor.calls != 0 {
-		t.Fatalf("Replay() error = %v, calls = %d", err, executor.calls)
+		t.Fatalf("replayWith() error = %v, calls = %d", err, executor.calls)
 	}
 }
 
@@ -247,11 +256,12 @@ func TestReplayRejectsDamagedSharedTargetBeforeTargetStart(t *testing.T) {
 				}
 				test.damage(t, artifactPath, entry)
 				executor := &fakeReplayExecutor{result: expected}
-				_, err = Replay(context.Background(), ReplaySpec{
-					ArtifactPath: artifactPath, VerifyOnly: verifyOnly, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
-				})
+				_, err = replayWith(context.Background(), ReplaySpec{
+					ArtifactPath: artifactPath, VerifyOnly: verifyOnly, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+				}, executionDependencies{executor: executor},
+				)
 				if err == nil || executor.calls != 0 {
-					t.Fatalf("Replay() error = %v, calls = %d", err, executor.calls)
+					t.Fatalf("replayWith() error = %v, calls = %d", err, executor.calls)
 				}
 			})
 		}
@@ -271,9 +281,10 @@ func TestReplayRunsAnArtifactCopiedOutOfItsStore(t *testing.T) {
 		}
 	}
 	executor := &fakeReplayExecutor{result: expected}
-	result, err := Replay(context.Background(), ReplaySpec{
-		ArtifactPath: exported, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
-	})
+	result, err := replayWith(context.Background(), ReplaySpec{
+		ArtifactPath: exported, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+	}, executionDependencies{executor: executor},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -307,11 +318,11 @@ func TestReplayRejectsFirstDivergentWorldTransitionBeforeTargetMutation(t *testi
 		OutcomeReason: "world_replay_divergence",
 		IOTranscript:  recordReplayIOTranscript(t),
 	})
-	result, err := Replay(context.Background(), ReplaySpec{
+	result, err := replayWith(context.Background(), ReplaySpec{
 		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t),
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
-	})
+	}, executionDependencies{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -341,11 +352,11 @@ func TestReplayExecutesMatchingWorldPlanThroughChildTransport(t *testing.T) {
 		OutcomeReason: "world_deadlock",
 		IOTranscript:  recordReplayIOTranscript(t),
 	})
-	result, err := Replay(context.Background(), ReplaySpec{
+	result, err := replayWith(context.Background(), ReplaySpec{
 		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t),
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
-	})
+	}, executionDependencies{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -458,9 +469,10 @@ func TestReplayReportsFirstObservableDivergence(t *testing.T) {
 	artifactPath, expected := replayArtifact(t)
 	expected.Stdout = replayOutput("different stdout")
 	executor := &fakeReplayExecutor{result: expected}
-	result, err := Replay(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
-	})
+	result, err := replayWith(context.Background(), ReplaySpec{
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+	}, executionDependencies{executor: executor},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -509,9 +521,10 @@ func TestReplayRejectsUnexpectedWorldRecord(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	result, err := Replay(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: &fakeReplayExecutor{result: expected},
-	})
+	result, err := replayWith(context.Background(), ReplaySpec{
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+	}, executionDependencies{executor: &fakeReplayExecutor{result: expected}},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -534,9 +547,10 @@ func TestReplayPreflightValidatesConnectedWorldRecord(t *testing.T) {
 		t.Fatal(err)
 	}
 	artifactPath, expected := publishReplayArtifact(t, &bundle)
-	result, err := Replay(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: &fakeReplayExecutor{result: expected},
-	})
+	result, err := replayWith(context.Background(), ReplaySpec{
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+	}, executionDependencies{executor: &fakeReplayExecutor{result: expected}},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -547,10 +561,11 @@ func TestReplayPreflightValidatesConnectedWorldRecord(t *testing.T) {
 	changed.Manifest.Final.SemanticDigest = record.HashBytes([]byte("changed semantic digest"))
 	changedPath, _ := publishReplayArtifact(t, &changed)
 	executor := &fakeReplayExecutor{}
-	if _, err := Replay(context.Background(), ReplaySpec{
-		ArtifactPath: changedPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor,
-	}); err == nil || executor.calls != 0 {
-		t.Fatalf("changed World Replay() error = %v, calls = %d", err, executor.calls)
+	if _, err := replayWith(context.Background(), ReplaySpec{
+		ArtifactPath: changedPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+	}, executionDependencies{executor: executor},
+	); err == nil || executor.calls != 0 {
+		t.Fatalf("changed World replayWith() error = %v, calls = %d", err, executor.calls)
 	}
 }
 

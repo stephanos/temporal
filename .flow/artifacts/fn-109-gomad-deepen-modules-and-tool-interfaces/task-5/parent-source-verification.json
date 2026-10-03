@@ -1,0 +1,28 @@
+{
+  "original_snapshots_verified": 10,
+  "final_source_files_verified": 9,
+  "original_comments_preserved": true,
+  "patch_reverse_check": 0,
+  "post_host_delta_verified": [
+    "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+    "tools/gomad3/cmd/gomad/internal/cli/cli_test.go",
+    "tools/gomad3/runner/campaign_options.go",
+    "tools/gomad3/runner/campaign_options_cli_test.go"
+  ],
+  "parent_characterization_exit": 0,
+  "parent_characterization_log": "parent-final-characterization.log",
+  "source_sha256": {
+    "tools/gomad3/cmd/gomad/internal/cli/cli.go": "ee07b88915b198747dbc80eb27a439a1ba73476861ef71e1a54d0f58f7d99dac",
+    "tools/gomad3/cmd/gomad/internal/cli/cli_test.go": "0797fb0f755db4fcd3b47d1bf29868f3d967f93adca080b87963f306545c6d8c",
+    "tools/gomad3/cmd/gomad/internal/cli/application_characterization_test.go": "7241bd5dc23d161f21f3c0ca0bf0255639ca979288e54cb54396301fa7857686",
+    "tools/gomad3/runner/campaign_options.go": "0d645d15651f0caad56a48175ce59c72bd0d37bb04431c1415ec1fe69a8020fb",
+    "tools/gomad3/runner/runner.go": "139d10b1966e5bcefb08928e5424cde06a0301f67ec8d09b8905de7e347c3a78",
+    "tools/gomad3/cmd/gomad/e2e_test.go": "75f86e4cdf4a4e9621ffb8cdc6111b595c2bf1e910a465fd42d10f380703293a",
+    "tools/gomad3/runner/campaign_plan.go": "d070a376f86f0202b18b44fbe009f2a7294a52c697e161c593da5ec34fd448f3",
+    "tools/gomad3/runner/resume.go": "6dde547f4cd9f3f9439c812d143477ab3cdd47d232753b14bf75042385ae28e5",
+    "tools/gomad3/runner/campaign_options_cli_test.go": "b452e842616ee8719094c78ecb1c3ccd792222a53c63e2646187cabb295b6654"
+  },
+  "runner_binary_sha256": "ab19b01a4ab6c4f066a87496652509a35f4e4bf4eb413629d7a60571aaed8558",
+  "review_fix_patch_sha256": "a6509889521020edf1fe5c3a09f01bb3fc672361a1052a08ee1972145f1cb7f8",
+  "review_fix_source_bound": true
+}

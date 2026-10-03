@@ -1,0 +1,14 @@
+{
+  "cmd": [
+    ".toolchain/bin/go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "./runner",
+    "-run",
+    "TestParseSingleBaseSeedSharesRunnerStrategyRule"
+  ],
+  "exit": 1,
+  "seconds": 0.493
+}

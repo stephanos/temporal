@@ -1,0 +1,51 @@
+{
+  "base": "HEAD",
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+    "headSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+          "headSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+          "path": "tools/gomad3/cmd/gomadtool/adapter_publication.go",
+          "side": "head",
+          "startLine": 170
+        },
+        "body": "Publication rechecks only paths present in the staging snapshot or output list. If another process adds a new input file under a copied tree after staging\u2014for example, a compatibility-pack request\u2014validation misses it and can publish generated outputs based on the older file set. This breaks the required full read-input revalidation.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-f41a495e75ea91333c7714f6d9c8c98de72fdbf3898d54d81886bc82f8e105d0",
+        "id": "finding-b5d4e188202e160f7845ec33bef50da7",
+        "lastSeenReceiptId": "review-f41a495e75ea91333c7714f6d9c8c98de72fdbf3898d54d81886bc82f8e105d0",
+        "ordinal": 1,
+        "rIds": [
+          "R3"
+        ],
+        "severity": "P1",
+        "status": "open",
+        "suggestion": "Under the publication lock, re-enumerate the staged input trees and compare their path sets as well as file contents before recording the transaction.",
+        "title": "Publication rechecks only paths present in the staging snapshot or output list"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-f41a495e75ea91333c7714f6d9c8c98de72fdbf3898d54d81886bc82f8e105d0"
+  },
+  "focus": "Review fn-113-gomad-reduce-version-pin-maintenance.2 R3 UNCOMMITTED WORKING TREE. The committed HEAD..HEAD diff is empty and is NOT the artifact. Read .flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-2/working-tree.patch and working-tree-review-scope.json first; inspect the nine source-bound actual files. Read task/spec, handover.json, root-gates.json, root-adapter-versions.json, sprig-fixture-evidence.json and fixture-qualification-evidence.json plus their logs/reports. Assess every existing adapter family, sole exact-occurrence rewrite engine, readable dry run with no checkout writes, approval binding and wrong digest no writes, complete staged constants/descriptor/pinned testdata/all make generate outputs including root qualification manifest, exclusive publication lock plus full read-input revalidation and durable old/new recovery. Check moved/double/missing anchors, failed generation, interrupted generated outputs, checkout drift, concurrent applies and stale libc-bound pack reporting. Root has no moved adapted module so real controlled Sprig version fixture fallback is authorized; it passes Gomad qualification and two exact replays using existing runtime key2ecdbd33. Production pins were not changed. Required Quick packages and validate are green; scoped nested lint has pre-existing findings outside changed adapter files and zero changed-file findings; full root lint result was unretained, do not claim globally lint clean. Later task4 owns both-platform full qualification and docs. Do not mutate files or run writing generation/builds. Limit findings to concrete introduced defects or missing R3 acceptance evidence. Give explicit VERDICT and confirm working-tree artifact coverage.",
+  "id": "branch",
+  "introduced_count": 1,
+  "mode": "codex",
+  "model": "gpt-6-sol",
+  "pre_existing_count": 0,
+  "review": "I\u2019ll review the uncommitted patch and the recorded evidence, then trace the changed paths against the task requirements. I\u2019ll keep this read-only.\nThe scope manifest matches the nine source files by SHA-256, and the patch hash matches the recorded artifact. The spec assigns R3 to this task; R4\u2013R6 are later work. I\u2019m tracing the regeneration and publication paths now, including the failure cases covered by the fixtures.\nThe Sprig fixture evidence shows a successful dry run, apply, validation, qualification, and two exact replays. I found one publication gap to report: staging records the files it copied, but publication does not detect a new input file added to those directories before the lock is acquired. I\u2019m checking its impact and the exact line reference before the verdict.\n**Working-tree artifact coverage confirmed:** the patch hash matches `working-tree-review-scope.json`, and all nine source-bound files match its SHA-256 entries. I reviewed the uncommitted patch, task and spec, handover, gate logs, Sprig fixture, qualification reports, and the changed source. The fixture qualified with two exact replays; the required Quick tests and `validate` are green. The retained lint evidence does not establish a clean full root lint run.\n\n## Finding\n\n- **Severity:** P1\n- **Confidence:** 75\n- **Classification:** introduced\n- **File:Line:** `tools/gomad3/cmd/gomadtool/adapter_publication.go:170`\n- **R-IDs:** [R3]\n- **Problem:** Publication rechecks only paths present in the staging snapshot or output list. If another process adds a new input file under a copied tree after staging\u2014for example, a compatibility-pack request\u2014validation misses it and can publish generated outputs based on the older file set. This breaks the required full read-input revalidation.\n- **Suggestion:** Under the publication lock, re-enumerate the staged input trees and compare their path sets as well as file contents before recording the transaction.\n\n**Code-smell heuristic:** Long Method in `stageAdapterRegeneration`: the hunk from `generate := exec.CommandContext(..., \"generate\")` through `validate := exec.CommandContext(..., \"validate-toolchain\", \"validate-qualification\")` sits in a method that also copies inputs, edits pins, compiles, and collects outputs. This observation does not affect the verdict.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | deferred | Owned by task .1; outside this review. |\n| R2 | deferred | Owned by task .1; outside this review. |\n| R3 | partial | Anchor failures, approval binding, staged outputs, recovery, and Sprig qualification are evidenced; new-file checkout drift remains unchecked. |\n| R4 | deferred | Owned by task .3. |\n| R5 | deferred | Owned by task .4. |\n| R6 | deferred | Both-platform qualification is owned by task .4. |\n\nUnaddressed R-IDs: []\nClassification counts: 1 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":1,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>NEEDS_WORK</verdict>",
+  "session_id": "01a100d2-67ab-7383-85f0-8d8710c89b8d",
+  "spec": "codex:gpt-6-sol:high",
+  "timestamp": "2026-10-03T08:16:14.717464Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "NEEDS_WORK"
+}

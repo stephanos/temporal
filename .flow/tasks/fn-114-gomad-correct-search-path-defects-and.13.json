@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.13.md",
   "status": "todo",
   "title": "Order runtime-owned goroutines by a fixed rule and offer only user goroutines as alternatives",
-  "updated_at": "2026-10-02T08:37:10.414375Z"
+  "updated_at": "2026-10-03T05:25:32.846566Z"
 }

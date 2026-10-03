@@ -1,0 +1,72 @@
+{
+  "schema": "gomad3.adapter-regeneration-gates/v1",
+  "source_binding": {
+    "tools/gomad3/cmd/gomadtool/main.go": "sha256:3bb89de6bfafee381f89d978dacf5877bbcb4d41a9d7eda21e72e3d04a82cefa",
+    "tools/gomad3/cmd/gomadtool/adapter_regenerate.go": "sha256:e6d268a3b95375504e191fca25f8ef80ca4d1343dbb0aff4732b10faaa4a336f",
+    "tools/gomad3/cmd/gomadtool/adapter_publication.go": "sha256:06f07225235011292968ec7d498872dff6d53f63debb378002787c6edbe74da2",
+    "tools/gomad3/cmd/gomadtool/adapter_regenerate_test.go": "sha256:fb54db61de6e5cfda0dc5c7a56c5838eb939b306c2c4ab3340dbaaff359ad6ed",
+    "tools/gomad3/deterministicio/adapter_regenerate.go": "sha256:28f1c25e8a373a25fe61e7d5165ac7c414f3561f37d26f90c109ab6ff31a2edc",
+    "tools/gomad3/deterministicio/adapter_regenerate_test.go": "sha256:2318ef8541433e230b44b5d0d283df811bdc4e809661c0119ed5438a3b01431e",
+    "tools/gomad3/deterministicio/adapter_rewrite.go": "sha256:6846c1a5e7e60775d91d3903fbd985cec9a0eaf10f874d84362c4673505a5438",
+    "tools/gomad3/deterministicio/grpc_adapter.go": "sha256:b96173ff9fb9e7b34f7923c173431ca83559963739545706a21d8a2d59783800",
+    "tools/gomad3/deterministicio/libc_adapter.go": "sha256:303ac6214a67563331d865f74a3292083a4ee450b7b12ca398dc8d59cd7da7e4"
+  },
+  "commands": [
+    {
+      "command": "make -C tools/gomad3 validate",
+      "exit_code": 0,
+      "elapsed_seconds": 4,
+      "log": "root-validate.log"
+    },
+    {
+      "command": "go test -tags test_dep -count=1 ./cmd/gomadtool ./deterministicio ./internal/compatibilitypack/... (cwd=tools/gomad3)",
+      "exit_code": 0,
+      "elapsed_seconds": 35,
+      "log": "nested-focused-tests.log"
+    },
+    {
+      "command": "go vet -tags test_dep ./cmd/gomadtool ./deterministicio (cwd=tools/gomad3)",
+      "exit_code": 0,
+      "elapsed_seconds": 0,
+      "log": "nested-vet.log"
+    },
+    {
+      "command": "golangci-lint v2.13.0 run --build-tags test_dep --timeout 10m --fix=false --config=../../.github/.golangci.yml ./cmd/gomadtool ./deterministicio (cwd=tools/gomad3)",
+      "exit_code": 1,
+      "log": "nested-lint.log",
+      "changed_adapter_file_findings": [],
+      "scope_note": "Nested package lint reports pre-existing findings in other files; changed adapter files have none."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "gofmt -l <changed adapter Go files>",
+      "exit_code": 0,
+      "output": "empty"
+    },
+    {
+      "command": [
+        "make",
+        "lint-code-fast",
+        "GOLANGCI_LINT_BASE_REV=origin/main"
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad",
+      "exit_code": 2,
+      "elapsed_seconds": 78.471,
+      "log": "root-lint-retained.log",
+      "scope_note": "Root lint cannot typecheck four nested-module packages from the root module; existing environment limitation, not a changed-adapter lint finding.",
+      "reason_for_run": "Previous root lint terminal result was not retained; this invocation establishes its actual result."
+    }
+  ],
+  "root_lint_code_fast_observation": {
+    "earlier_pid": 66314,
+    "earlier_result": "terminal output unretained",
+    "retained_result": "root-lint-retained.json",
+    "retained_exit_code": 2,
+    "retained_log": "root-lint-retained.log",
+    "scope_limit": "Root Makefile cannot typecheck nested-module packages from the root; nested changed adapter files have zero scoped lint findings."
+  },
+  "round_1_fix": "fix-round-1-evidence.json"
+}

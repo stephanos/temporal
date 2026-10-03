@@ -1,0 +1,480 @@
+../tools/gomad3/cmd/gomadtool/boundary.go:39:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stdout, candidate)
+			            ^
+../tools/gomad3/cmd/gomadtool/boundary.go:45:3: max-control-nesting: control flow nesting exceeds 5 (revive)
+		if err == nil {
+			err = boundary.CheckCandidateCoverage(*root)
+		}
+../tools/gomad3/cmd/gomadtool/boundary.go:52:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:22:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "usage: gomadtool compatibility-pack discover|review|generate|check|qualify [flags]")
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:37:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "usage: gomadtool compatibility-pack discover|review|generate|check|qualify [flags]")
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:54:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:59:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:64:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:74:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:80:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:84:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "compatibility-pack request must be below internal/compatibilitypack")
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:88:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:91:14: Error return value of `fmt.Fprintln` is not checked (errcheck)
+	fmt.Fprintln(stdout, digest)
+	            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:107:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:112:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "compatibility-pack review output must be below internal/compatibilitypack")
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:121:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:124:14: Error return value of `fmt.Fprintln` is not checked (errcheck)
+	fmt.Fprintln(stdout, digest)
+	            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:141:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:146:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:150:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:153:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stdout, "generated compatibility packs")
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:161:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "compatibility-pack request must be below internal/compatibilitypack")
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:169:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:172:13: Error return value of `fmt.Fprintf` is not checked (errcheck)
+	fmt.Fprintf(stdout, "generated compatibility pack %s\n", request.ID)
+	           ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:186:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:191:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:195:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:198:14: Error return value of `fmt.Fprintln` is not checked (errcheck)
+	fmt.Fprintln(stdout, "compatibility packs are current")
+	            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:214:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "compatibility-pack request must be below internal/compatibilitypack")
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:228:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:234:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:237:13: Error return value of `fmt.Fprintf` is not checked (errcheck)
+	fmt.Fprintf(stdout, "qualified compatibility-pack request %s\n", request.ID)
+	           ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:241:77: confusing-results: unnamed results of the same type may be confusing, consider using named results (revive)
+func resolveCompatibilityPackPaths(root, override, request string) (string, string, string, error) {
+                                                                            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:315:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/compatibility_pack.go:320:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/diagnostic.go:21:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "usage: gomadtool diagnostic-diff [--json] EXPECTED_TRACE ACTUAL_TRACE")
+		            ^
+../tools/gomad3/cmd/gomadtool/diagnostic.go:26:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/diagnostic.go:31:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/diagnostic.go:36:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/diagnostic.go:50:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/main.go:32:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, usage)
+		            ^
+../tools/gomad3/cmd/gomadtool/main.go:71:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, usage)
+		            ^
+../tools/gomad3/cmd/gomadtool/main.go:78:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "usage: gomadtool checked-run <seconds> <expected-status> <label> <result-dir> -- <command> [args...]")
+		            ^
+../tools/gomad3/cmd/gomadtool/main.go:84:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "gomad3 checked runner requires a positive timeout and numeric expected status")
+		            ^
+../tools/gomad3/cmd/gomadtool/main.go:89:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stderr, "gomad3 checked runner result directory is invalid: %v\n", err)
+		           ^
+../tools/gomad3/cmd/gomadtool/main.go:93:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/main.go:98:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/main.go:112:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, runErr)
+		            ^
+../tools/gomad3/cmd/gomadtool/main.go:123:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+../tools/gomad3/cmd/gomadtool/main.go:129:15: Error return value of `fmt.Fprintf` is not checked (errcheck)
+			fmt.Fprintf(stderr, "gomad3 process failed: %s: status 124 was not a timeout\n", arguments[2])
+			           ^
+../tools/gomad3/cmd/gomadtool/main.go:134:13: Error return value of `fmt.Fprintf` is not checked (errcheck)
+	fmt.Fprintf(stderr, "gomad3 process failed: %s: status %d, want %d\n", arguments[2], actual, expected)
+	           ^
+../tools/gomad3/cmd/gomadtool/main.go:136:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stderr, "--- stdout ---\n%s", executed.Stdout.RawBytes)
+		           ^
+../tools/gomad3/cmd/gomadtool/main.go:139:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stderr, "--- stderr ---\n%s", executed.Stderr.RawBytes)
+		           ^
+../tools/gomad3/cmd/gomadtool/main.go:173:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/main.go:176:14: Error return value of `fmt.Fprintln` is not checked (errcheck)
+	fmt.Fprintln(stdout, "gomad3 patch and overlay inputs are valid")
+	            ^
+../tools/gomad3/cmd/gomadtool/main.go:188:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/main.go:191:14: Error return value of `fmt.Fprintln` is not checked (errcheck)
+	fmt.Fprintln(stdout, "gomad3 script ownership is valid")
+	            ^
+../tools/gomad3/cmd/gomadtool/main.go:201:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/main.go:204:14: Error return value of `fmt.Fprintln` is not checked (errcheck)
+	fmt.Fprintln(stdout, "gomad3 patch materialized")
+	            ^
+../tools/gomad3/cmd/gomadtool/main.go:227:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+../tools/gomad3/cmd/gomadtool/main.go:232:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/main.go:235:14: Error return value of `fmt.Fprintln` is not checked (errcheck)
+	fmt.Fprintln(stdout, "gomad3 patch regenerated")
+	            ^
+../tools/gomad3/cmd/gomadtool/main.go:309:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/main.go:316:14: Error return value of `fmt.Fprintln` is not checked (errcheck)
+	fmt.Fprintln(stdout, key)
+	            ^
+../tools/gomad3/cmd/gomadtool/main.go:335:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/main.go:340:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/main.go:344:17: Error return value of `fmt.Fprintf` is not checked (errcheck)
+					fmt.Fprintf(stderr, "--- stdout ---\n%s", result.Stdout)
+					           ^
+../tools/gomad3/cmd/gomadtool/main.go:347:17: Error return value of `fmt.Fprintf` is not checked (errcheck)
+					fmt.Fprintf(stderr, "--- stderr ---\n%s", result.Stderr)
+					           ^
+../tools/gomad3/cmd/gomadtool/main.go:355:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/main.go:358:14: Error return value of `fmt.Fprintln` is not checked (errcheck)
+	fmt.Fprintln(stdout, mode.Success)
+	            ^
+../tools/gomad3/cmd/gomadtool/main.go:379:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, "gomad3 requires an installed bootstrap Go; set GOMAD3_BOOTSTRAP_GO")
+			            ^
+../tools/gomad3/cmd/gomadtool/main.go:386:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, "gomad3 requires Bash to run upstream make.bash")
+			            ^
+../tools/gomad3/cmd/gomadtool/main.go:396:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/main.go:404:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stdout, "waiting for gomad3 build key %s\n", result.BuildKey)
+		           ^
+../tools/gomad3/cmd/gomadtool/main.go:406:13: Error return value of `fmt.Fprintf` is not checked (errcheck)
+	fmt.Fprintf(stdout, "gomad3 toolchain is ready (%s/%s, key %s)\n", result.HostOS, result.HostArch, result.BuildKey)
+	           ^
+../tools/gomad3/cmd/gomadtool/pin_impact.go:24:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "invalid pin-impact arguments")
+		            ^
+../tools/gomad3/cmd/gomadtool/pin_impact.go:35:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/pin_impact.go:45:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+../tools/gomad3/cmd/gomadtool/pin_impact.go:49:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+../tools/gomad3/cmd/gomadtool/pin_impact.go:55:17: Error return value of `fmt.Fprintln` is not checked (errcheck)
+				fmt.Fprintln(stderr, err)
+				            ^
+../tools/gomad3/cmd/gomadtool/protocol.go:20:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/qualification_manifest.go:22:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, "qualification-manifest-generate requires --spec and --output")
+		            ^
+../tools/gomad3/cmd/gomadtool/qualification_manifest.go:26:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/upgrade.go:29:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/upgrade.go:41:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+../tools/gomad3/cmd/gomadtool/upgrade.go:64:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/cmd/gomadtool/upgrade.go:67:13: Error return value of `fmt.Fprintf` is not checked (errcheck)
+	fmt.Fprintf(stdout, "gomad3 upgrade qualification dossier: %s\n", outputPath)
+	           ^
+../tools/gomad3/cmd/gomadtool/version.go:20:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+../tools/gomad3/deterministicio/adapter_copy.go:40:1: cognitive-complexity: function copyAdapterModule has cognitive complexity 37 (> max enabled 25) (revive)
+func copyAdapterModule(source, destination string, replacements map[string][]byte, limits adapterCopyLimits) error {
+	if limits.Files <= 0 || limits.Bytes <= 0 {
+		return errors.New("adapter copy limits must be positive")
+	}
+	if err := os.Mkdir(destination, 0o700); err != nil {
+		return fmt.Errorf("create deterministic I/O adapter module: %w", err)
+	}
+	pending := make(map[string][]byte, len(replacements))
+	for relative, contents := range replacements {
+		clean, err := validAdapterRelativePath(relative)
+		if err != nil {
+			return err
+		}
+		pending[clean] = contents
+	}
+	files := 0
+	bytesCopied := int64(0)
+	write := func(relative string, contents []byte) error {
+		files++
+		if files > limits.Files {
+			return &AdapterCapacityError{Resource: "files", Limit: uint64(limits.Files)}
+		}
+		bytesCopied += int64(len(contents))
+		if bytesCopied > limits.Bytes {
+			return &AdapterCapacityError{Resource: "bytes", Limit: uint64(limits.Bytes)}
+		}
+		targetPath := filepath.Join(destination, relative)
+		if err := os.MkdirAll(filepath.Dir(targetPath), 0o700); err != nil {
+			return fmt.Errorf("create deterministic I/O adapter directory: %w", err)
+		}
+		return writeExclusive(targetPath, contents)
+	}
+	err := filepath.WalkDir(source, func(path string, entry fs.DirEntry, visitErr error) error {
+		if visitErr != nil {
+			return visitErr
+		}
+		relative, err := filepath.Rel(source, path)
+		if err != nil {
+			return errors.New("invalid adapter module path")
+		}
+		if relative == "." {
+			return nil
+		}
+		relative, err = validAdapterRelativePath(relative)
+		if err != nil {
+			return err
+		}
+		targetPath := filepath.Join(destination, relative)
+		if entry.IsDir() {
+			return os.Mkdir(targetPath, 0o700)
+		}
+		if files >= limits.Files {
+			return &AdapterCapacityError{Resource: "files", Limit: uint64(limits.Files)}
+		}
+		info, err := entry.Info()
+		if err != nil || !info.Mode().IsRegular() {
+			return errors.New("adapter module contains a non-regular file")
+		}
+		contents, replaced := pending[relative]
+		if replaced {
+			delete(pending, relative)
+		} else {
+			contents, err = readAdapterFile(path, limits.Bytes-bytesCopied)
+			if err != nil {
+				return err
+			}
+		}
+		return write(relative, contents)
+	})
+	if err != nil {
+		return fmt.Errorf("copy deterministic I/O adapter module: %w", err)
+	}
+	additions := make([]string, 0, len(pending))
+	for relative := range pending {
+		additions = append(additions, relative)
+	}
+	sort.Strings(additions)
+	for _, relative := range additions {
+		if err := write(relative, pending[relative]); err != nil {
+			return fmt.Errorf("copy deterministic I/O adapter module: %w", err)
+		}
+	}
+	return nil
+}
+../tools/gomad3/deterministicio/adapter_copy.go:116:2: use-slices-sort: replace sort.Strings by slices.Sort (revive)
+	sort.Strings(additions)
+	^
+../tools/gomad3/deterministicio/adapter_registry.go:94:2: use-slices-sort: replace sort.Slice by slices.SortFunc (revive)
+	sort.Slice(definitions, func(i, j int) bool { return definitions[i].identity.Module < definitions[j].identity.Module })
+	^
+../tools/gomad3/deterministicio/adapter_registry.go:191:1: cognitive-complexity: function (adapterRegistry).prepare has cognitive complexity 27 (> max enabled 25) (revive)
+func (registry adapterRegistry) prepare(spec target.Spec, moduleCache string) (target.Spec, []BuildAdapter, error) {
+	if len(registry.definitions) == 0 {
+		return spec, []BuildAdapter{}, nil
+	}
+	workingDirectory, err := target.ModuleDirectory(spec)
+	if err != nil {
+		return target.Spec{}, nil, invalidBuildAdapterConfiguration(fmt.Errorf("resolve target module directory: %w", err))
+	}
+	selected, moduleFile, err := registry.selected(workingDirectory)
+	if err != nil {
+		return target.Spec{}, nil, err
+	}
+	if len(selected) == 0 {
+		return spec, []BuildAdapter{}, nil
+	}
+	if moduleCache == "" || spec.PreparationRoot == "" {
+		return target.Spec{}, nil, errors.New("deterministic I/O build adapter requires module cache and preparation root")
+	}
+	if spec.BuildModFile != "" {
+		return target.Spec{}, nil, invalidBuildAdapterConfiguration(errors.New("deterministic I/O build adapters cannot replace an existing build modfile"))
+	}
+	sumFile, err := requireAdapterSums(workingDirectory, selected)
+	if err != nil {
+		return target.Spec{}, nil, err
+	}
+	preparationRoot, err := filepath.Abs(spec.PreparationRoot)
+	if err != nil {
+		return target.Spec{}, nil, fmt.Errorf("resolve deterministic I/O preparation root: %w", err)
+	}
+	root := filepath.Join(preparationRoot, ".io-adapter")
+	if err := os.Mkdir(root, 0o700); err != nil {
+		return target.Spec{}, nil, fmt.Errorf("create deterministic I/O adapter directory: %w", err)
+	}
+	// The go command records a directory replacement's path in the binary's
+	// module information, so the replacement must live at a path that is the
+	// same for every preparation on this host or the target identity changes
+	// between repetitions. The toolchain root holds one copy per adapter
+	// identity and replacement inventory.
+	cacheRoot := root
+	if spec.ToolchainRoot != "" {
+		cacheRoot, err = filepath.Abs(filepath.Join(spec.ToolchainRoot, "adapters"))
+		if err != nil {
+			return target.Spec{}, nil, fmt.Errorf("resolve deterministic I/O adapter cache: %w", err)
+		}
+		if err := os.MkdirAll(cacheRoot, 0o700); err != nil {
+			return target.Spec{}, nil, fmt.Errorf("create deterministic I/O adapter cache: %w", err)
+		}
+	}
+	evidence := make([]BuildAdapter, 0, len(selected))
+	for _, definition := range selected {
+		var prepared adapterPreparation
+		var prepareErr error
+		if cacheRoot == root {
+			prepared, prepareErr = definition.implementation.prepare(moduleCache, root, definition.identity)
+			if prepareErr == nil && prepared.evidence.ReplacementRoot != prepared.replacement {
+				prepareErr = errors.New("deterministic I/O adapter replacement root mismatch")
+			}
+		} else {
+			prepared, prepareErr = prepareCachedAdapter(definition, moduleCache, cacheRoot)
+		}
+		if prepareErr != nil {
+			return target.Spec{}, nil, prepareErr
+		}
+		moduleFile = append(moduleFile, []byte("\nreplace "+definition.identity.Module+" "+definition.identity.Version+" => "+prepared.replacement+"\n")...)
+		evidence = append(evidence, prepared.evidence)
+	}
+	modFilePath := filepath.Join(root, "gomad.mod")
+	if err := writeExclusive(modFilePath, moduleFile); err != nil {
+		return target.Spec{}, nil, err
+	}
+	if err := writeExclusive(filepath.Join(root, "gomad.sum"), sumFile); err != nil {
+		return target.Spec{}, nil, err
+	}
+	for index := range evidence {
+		evidence[index].BuildModFile = modFilePath
+	}
+	spec.BuildModFile = modFilePath
+	return spec, evidence, nil
+}
+../tools/gomad3/deterministicio/adapter_registry.go:385:20: Error return value of `os.RemoveAll` is not checked (errcheck)
+	defer os.RemoveAll(work)
+	                  ^
+../tools/gomad3/deterministicio/profile.go:197:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic(fmt.Errorf("encode deterministic I/O inventory: %w", err))
+		^
+../tools/gomad3/deterministicio/profile.go:266:15: use-errors-new: replace fmt.Errorf by errors.New (revive)
+		return nil, fmt.Errorf("invalid I/O profile specification")
+		            ^
+../tools/gomad3/deterministicio/profile.go:285:10: use-errors-new: replace fmt.Errorf by errors.New (revive)
+		return fmt.Errorf("deterministic I/O target identity does not match its build specification")
+		       ^
+../tools/gomad3/deterministicio/profile.go:288:10: use-errors-new: replace fmt.Errorf by errors.New (revive)
+		return fmt.Errorf("deterministic I/O target arguments do not match their build specification")
+		       ^
+../tools/gomad3/deterministicio/requirements.go:67:2: use-slices-sort: replace sort.Strings by slices.Sort (revive)
+	sort.Strings(features)
+	^
+../tools/gomad3/deterministicio/requirements.go:74:3: use-slices-sort: replace sort.Slice by slices.SortFunc (revive)
+		sort.Slice(packages, func(i, j int) bool {
+			if packages[i].ImportPath != packages[j].ImportPath {
+				return packages[i].ImportPath < packages[j].ImportPath
+			}
+			if packages[i].ForTest != packages[j].ForTest {
+				return packages[i].ForTest < packages[j].ForTest
+			}
+			return packages[i].Name < packages[j].Name
+		})
+../tools/gomad3/deterministicio/semantic_coverage.go:77:2: use-slices-sort: replace sort.Strings by slices.Sort (revive)
+	sort.Strings(probes)
+	^
+../tools/gomad3/deterministicio/semantic_coverage.go:109:2: use-slices-sort: replace sort.Strings by slices.Sort (revive)
+	sort.Strings(missing)
+	^
+../tools/gomad3/deterministicio/xnet_adapter.go:106:64: confusing-results: unnamed results of the same type may be confusing, consider using named results (revive)
+func rewriteXNetSocket(sysSource, emptySource []byte) ([]byte, []byte, error) {
+                                                               ^
+../tools/gomad3/deterministicio/xnet_adapter_test.go:132:57: confusing-results: unnamed results of the same type may be confusing, consider using named results (revive)
+func readPinnedXNetSocketSources(t *testing.T) ([]byte, []byte) {
+                                                        ^
+103 issues:
+* errcheck: 87
+* forbidigo: 1
+* revive: 15

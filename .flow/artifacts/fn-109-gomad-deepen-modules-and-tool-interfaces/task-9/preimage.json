@@ -1,0 +1,18 @@
+{
+  "tools/gomad3/target/target.go": {
+    "sha256": "bca540560826cbb75daf20048d1faa9bf0f1980c5b83754b32da601d95f2026a",
+    "bytes": 36691
+  },
+  "tools/gomad3/target/capability.go": {
+    "sha256": "f955bf378ec635ad71db840f6a850cf72f1d55c640b0fea262405a00826141e1",
+    "bytes": 56530
+  },
+  "tools/gomad3/target/internal/capabilityreview/list.go": {
+    "sha256": "0a1ac904268425ec819fbaa8e81b56a52b69dd4c5dc11dd07e80a15cd8fc42a6",
+    "bytes": 5844
+  },
+  "tools/gomad3/target/internal/capabilityreview/list_test.go": {
+    "sha256": "1a29a95006f29c6666e860a549f8933fe618ff2fbc4ab2b82e72c1ed97f9dee7",
+    "bytes": 671
+  }
+}

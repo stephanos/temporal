@@ -1,0 +1,16 @@
+# go.temporal.io/server/tools/gomad3/runner [go.temporal.io/server/tools/gomad3/runner.test]
+runner/runner_test.go:458:9: declared and not used: validDependencies
+runner/runner_test.go:495:9: declared and not used: validDependencies
+runner/runner_test.go:543:11: declared and not used: configDependencies
+runner/runner_test.go:863:10: declared and not used: configDependencies
+runner/runner_test.go:1351:68: undefined: seedConfigDependencies
+runner/runner_test.go:1363:82: undefined: explorationConfigDependencies
+runner/runner_test.go:1767:10: declared and not used: configDependencies
+runner/runner_test.go:2851:24: assignment mismatch: 2 variables but retentionCampaign returns 3 values
+runner/runner_test.go:2855:62: undefined: configDependencies
+runner/watchdog_replay_test.go:109:34: not enough arguments in call to replayWith
+	have (context.Context, ReplaySpec)
+	want (context.Context, ReplaySpec, executionDependencies)
+runner/watchdog_replay_test.go:109:34: too many errors
+FAIL	go.temporal.io/server/tools/gomad3/runner [build failed]
+FAIL

@@ -1,0 +1,62 @@
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool patch-validate --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 patch and overlay inputs are valid
+GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool script-validate --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 script ownership is valid
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOCACHE=/Users/stephan/Workspace/temporal/gomad/tools/gomad3/.toolchain/generator-cache GOTOOLCHAIN=local GOWORK=off \
+		go run ./cmd/gomadtool toolchain-build --root=/Users/stephan/Workspace/temporal/gomad/tools/gomad3
+gomad3 toolchain is ready (darwin/arm64, key 2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457)
+ok  	go.temporal.io/server/tools/gomad3	2.202s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad	49.805s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	4.236s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	1.336s
+ok  	go.temporal.io/server/tools/gomad3/runner	169.878s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/campaign	37.611s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/corpus	2.609s
+--- FAIL: TestRunIOTerminalAfterTermination (6.14s)
+    --- FAIL: TestRunIOTerminalAfterTermination/watchdog_truncated (1.89s)
+        watchdog_io_test.go:63: target group survived: execution.Result{Captured:false, Termination:"", ExitCode:0, Signal:"", WatchdogTimeout:false, Cancelled:false, Stdout:hostexec.Output{Bytes:[]uint8(nil), RawBytes:[]uint8(nil), FullSHA256:[32]uint8{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}, RetainedSHA256:[32]uint8{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}, TotalBytes:0x0, RetainedBytes:0x0, DiscardedBytes:0x0, Truncated:false}, Stderr:hostexec.Output{Bytes:[]uint8(nil), RawBytes:[]uint8(nil), FullSHA256:[32]uint8{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}, RetainedSHA256:[32]uint8{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}, TotalBytes:0x0, RetainedBytes:0x0, DiscardedBytes:0x0, Truncated:false}, PID:0, PGID:0, GroupGone:false, WorldRecord:[]uint8(nil), IOTranscript:deterministicio.Transcript{Bytes:[]uint8(nil), SHA256:[32]uint8{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}, Records:0x0, Complete:false, ReplayDivergence:(*uint64)(nil)}, IOROMounts:readonlymount.Snapshot{Entries:[]readonlymount.Entry(nil), NotExist:[]string(nil), Requests:0x0, TotalBytes:0x0}, DiagnosticTrace:choice.DiagnosticTrace{Bytes:[]uint8(nil), SHA256:[32]uint8{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}, Records:[]choice.DiagnosticRecord(nil), Capacity:0x0}, ChoiceTrace:execution.ChoiceTrace{Profile:"", ImplementationSHA256:[32]uint8{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}, Limit:0x0, Trace:choice.Trace{Version:0, Bytes:[]uint8(nil), SHA256:[32]uint8{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}, Records:[]choice.Record(nil), Summary:choice.Summary{Records:0x0, Branching:0x0, Runnable:0x0, SelectPoll:0x0, SelectResult:0x0, Terminal:0x0, PeakGoroutines:0x0}}, TapeSHA256:[32]uint8{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}, Decisions:0x0}, SimulationRecords:[][]uint8(nil), VirtualTimeElapsedNanos:0x0}, error supervisor protocol requires exactly started then final reports
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	114.961s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration	1.130s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice	1.139s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation	0.785s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord	0.855s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/minimizer	2.139s
+ok  	go.temporal.io/server/tools/gomad3/qualification	1.886s
+ok  	go.temporal.io/server/tools/gomad3/qualification/analysis	32.494s
+ok  	go.temporal.io/server/tools/gomad3/qualification/comparison	0.592s
+ok  	go.temporal.io/server/tools/gomad3/qualification/set	3.788s
+ok  	go.temporal.io/server/tools/gomad3/qualification/set/manifestgen	2.555s
+ok  	go.temporal.io/server/tools/gomad3/qualification/workload	0.769s
+ok  	go.temporal.io/server/tools/gomad3/target	39.151s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/build	0.629s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/capabilityreview	1.107s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/livecap	11.614s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/provenance	0.264s
+ok  	go.temporal.io/server/tools/gomad3/record	0.260s
+ok  	go.temporal.io/server/tools/gomad3/artifact	7.428s
+ok  	go.temporal.io/server/tools/gomad3/choice	0.411s
+ok  	go.temporal.io/server/tools/gomad3/choice/internal/wire	0.467s
+ok  	go.temporal.io/server/tools/gomad3/deterministicio	89.842s
+ok  	go.temporal.io/server/tools/gomad3/deterministicio/internal/wire	0.358s
+ok  	go.temporal.io/server/tools/gomad3/deterministicio/readonlymount	0.713s
+ok  	go.temporal.io/server/tools/gomad3/world	0.692s
+ok  	go.temporal.io/server/tools/gomad3/world/mailbox	0.277s
+ok  	go.temporal.io/server/tools/gomad3/world/process	0.612s
+ok  	go.temporal.io/server/tools/gomad3/toolchain/version	2.048s
+ok  	go.temporal.io/server/tools/gomad3/upgrade	5.517s
+ok  	go.temporal.io/server/tools/gomad3/internal/canonicaljson	0.277s
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack	0.780s
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring	0.733s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	33.795s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/boundary	4.836s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/protocol	1.724s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/validation	0.281s
+ok  	go.temporal.io/server/tools/gomad3/internal/hostexec	0.584s
+ok  	go.temporal.io/server/tools/gomad3/internal/hostfs	0.429s
+FAIL
+make: *** [test-host] Error 1

@@ -24,6 +24,31 @@ The [vision note](../docs/research/gomad/2026-10-01-gomad-vision.md) orders the 
 No experiment ran for the extension. Statements marked *inferred* come from reading
 code and have no execution behind them.
 
+## Delivery update (2026-10-02)
+
+The historical findings below are now tracked by fn-114. Their implementation status is:
+
+| ID | State on darwin/arm64 | Delivered behavior |
+| --- | --- | --- |
+| C1 | Delivered | Corpus identity binds target environment and clock-tick policy; changed identities fail closed. |
+| C2 | Delivered; predicted same-seed prefix failure narrowed by counterexamples | Timer callbacks use creation-bound identities; the parentless inventory records exceptions. |
+| C3 | Delivered | Forced-prefix divergence and completed siblings survive round commit and resume as typed evidence. |
+| C4 | Delivered | Prepare, provenance validation, and replay reject coverage-instrumented binaries. |
+| E1 | Delivered | Ordinary guidance skips answered corpus seeds; regression mode and resume/shard selection are explicit and frozen. |
+| E2 | Delivered | Stores share prepared targets, count their bytes once, and retain a self-contained private-copy fallback. |
+| E3 | Delivered | Select readiness is recorded; fewer than two ready cases create no frontier alternatives, while replay validation retains their polls. |
+| E4 | Delivered; historical two-user premise refuted | Runtime-owned local queue heads follow a fixed class rule; only user goroutines are choice alternatives. |
+| E5 | Delivered | Choice exploration expands from the recorded start ordinal. |
+| E6 | Delivered | Per-parent minimizer state persists the accepted artifact and attempt budget; explicit resume validates them before continuing. |
+
+All implementation tasks in fn-114 are recorded done; task 14 and R12 remain open.
+The implementation review and Darwin host/runtime gates do not replace combined-candidate
+qualification or the missing native linux/amd64 evidence. Stream-isolation work in fn-112
+will be included before that qualification. Typed scenario shrinking remains open on the roadmap.
+
+[MILESTONES.md](../MILESTONES.md#search-path-findings-fn-114) retains the delivery order,
+platform limits, and links to the reviewed task evidence.
+
 ## Direction
 
 Gomad finds Temporal concurrency bugs, explains them, and proves it still can.

@@ -1,0 +1,21 @@
+{
+  "utc": "2026-10-03T12:31:18.551663+00:00",
+  "files": {
+    "tools/gomad3/cmd/gomad/internal/cli/cli.go": {
+      "sha256": "22c06ef97a5af40fb7c2b9c661bd2ee7933eed90dea9e06fbf01edea4f0c8cee",
+      "bytes": 55175
+    },
+    "tools/gomad3/cmd/gomad/internal/cli/cli_test.go": {
+      "sha256": "e409c771ea3edf3e2f53a003657da18118f881de40f7536eff0bd8f4bb43d8aa",
+      "bytes": 74130
+    },
+    "tools/gomad3/runner/campaign_options.go": {
+      "sha256": "013b9738cbfc4ff7f492b0a74271434b3678990f40c9e88960ebba18d241e599",
+      "bytes": 8218
+    },
+    "tools/gomad3/runner/campaign_options_cli_test.go": {
+      "sha256": "0581f5efcb3dd59ebb67b67c2ecd23ac984f039564aa10678394c11469bb6184",
+      "bytes": 2519
+    }
+  }
+}

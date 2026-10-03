@@ -19,6 +19,9 @@ import (
 )
 
 func (campaign *runtimeCampaign) requireSchedulingBehavior(binaries map[string]string) error {
+	if err := campaign.requireRuntimeOwned(binaries["runtime-owned"]); err != nil {
+		return err
+	}
 	if err := campaign.requireSearchReproduction(binaries); err != nil {
 		return err
 	}

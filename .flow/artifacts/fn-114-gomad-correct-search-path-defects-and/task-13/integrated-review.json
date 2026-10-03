@@ -1,0 +1,52 @@
+{
+  "type": "impl_review",
+  "id": "branch",
+  "mode": "codex",
+  "base": "HEAD",
+  "verdict": "SHIP",
+  "session_id": "01a1004f-d2e9-7901-b991-ed3b3bd1c1d9",
+  "model": "gpt-6-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6-sol:high",
+  "timestamp": "2026-10-03T05:58:00.288675Z",
+  "review": "Prior finding: fixed\n\nThe parser now rejects a missing or empty module directive as `InvalidPinImpactInput` before reading sums. The CLI maps that error to status 2. The retained regression shows status 0 before the fix; the supplemental log records passing `cmd/gomadtool` and `upgrade` tests. No surviving findings.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n| --- | --- | --- |\n| fn-114 R9 | met | Prior control-probe, fairness, compatibility, and contract evidence remains applicable. |\n| fn-114 R12 | deferred | Native Linux and task 14 qualification remain unverified. |\n| fn-112 R9 | met | Prior retained-success CLI and recovery evidence remains applicable. |\n| fn-113 R1 | met | Retained pin baseline and corrected milestone counts. |\n| fn-113 R2 | met | Prior pin tests plus the corrected malformed-input handling. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "focus": "Re-review the same complete uncommitted fn-114.13/fn-112.16/fn-113.1 batch after the one blocking finding. upgrade/pin_impact.go now rejects a nil or empty parsed module directive as InvalidPinImpactInput before reading sums. cmd/gomadtool/pin_impact_test.go TestPinImpactExitStatuses includes missing module (go 1.27.1 alone), with retained red status0 then green status2. Full cmd/gomadtool and upgrade package tests pass, scoped vet and diff check pass. This three-line parser guard changes no runtime/generated input; reuse the prior native45-package host and required runtime/overlay gates, with supplemental module-directive-green.log under fn-113/task-1. No other source changed after the initial review. Inspect these untracked files explicitly. Do not mutate sources or run broad tests. No commits or pushes authorized; Linux and fn-114.14 remain unverified. Confirm prior finding addressed and final batch verdict.",
+  "introduced_count": 0,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "findings": {
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-1afb4d5ba311dfb0c22fc55339091f0b21760bcd1881ce175baad60cd74dd6d3",
+    "reviewKind": "implementation",
+    "backend": "codex",
+    "round": 2,
+    "baseSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+    "headSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+    "supersedesReceiptId": "review-01d5d930153bdb9598005a715b9bc43354ee7a3fcbaf1a1d6a13649869b0d1eb",
+    "items": [
+      {
+        "id": "finding-cea738bfb2ad04b53882688cce8383ff",
+        "ordinal": 1,
+        "severity": "P2",
+        "confidence": 100,
+        "classification": "introduced",
+        "status": "fixed",
+        "title": "`modfile",
+        "body": "`modfile.Parse` accepts a file with `go 1.27.1` but no `module` directive. `ReadPinImpact` checks the Go directive but never checks `parsed.Module`, so `pin-impact` can report that malformed candidate as unaffected and exit 0 when it is also used as the baseline. The task requires invalid input to exit 2.",
+        "rIds": [
+          "R2"
+        ],
+        "anchor": {
+          "path": "tools/gomad3/upgrade/pin_impact.go",
+          "side": "head",
+          "startLine": 75,
+          "baseSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+          "headSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025"
+        },
+        "suggestion": "Reject a parsed file without a module directive as `InvalidPinImpactInput`, and cover the CLI exit status with a test.",
+        "firstSeenReceiptId": "review-01d5d930153bdb9598005a715b9bc43354ee7a3fcbaf1a1d6a13649869b0d1eb",
+        "lastSeenReceiptId": "review-1afb4d5ba311dfb0c22fc55339091f0b21760bcd1881ce175baad60cd74dd6d3"
+      }
+    ]
+  }
+}

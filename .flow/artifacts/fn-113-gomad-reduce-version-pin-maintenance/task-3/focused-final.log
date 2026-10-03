@@ -1,0 +1,4 @@
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	1.878s
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack	0.827s
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring	0.494s
+ok  	go.temporal.io/server/tools/gomad3/upgrade	1.120s

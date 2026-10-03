@@ -1,0 +1,82 @@
+[
+  {
+    "path": "tools/gomad3/runner/campaign_plan.go",
+    "sha256": "971ca267797585c025c37d241daf902ccae9bccf4592fac3e385ab15cd8ad82f"
+  },
+  {
+    "path": "tools/gomad3/runner/campaign_shard_execution.go",
+    "sha256": "ccab0448e04bdd7ea296b33a1fa862d4f1a1225e1f578d7d75e60eea5c022434"
+  },
+  {
+    "path": "tools/gomad3/runner/choice_exploration_campaign.go",
+    "sha256": "97ccab042a548067377f3e751a82b8ccf4026f45d102b673e3224085e3af6958"
+  },
+  {
+    "path": "tools/gomad3/runner/choice_exploration_divergence_test.go",
+    "sha256": "741432e6aec336de45616880938749cd3c136a664824abe1740a2f251aaa5c6a"
+  },
+  {
+    "path": "tools/gomad3/runner/coordinator.go",
+    "sha256": "63628a21f6a6e40cad27aca3a969bc020b7bbad293bb6884d1c182f593582b2c"
+  },
+  {
+    "path": "tools/gomad3/runner/coordinator_transport_test.go",
+    "sha256": "9a26fae76be28b3e08792f514d39297a20c777ac3d4a46463c297ea0bd6b3c64"
+  },
+  {
+    "path": "tools/gomad3/runner/evidence.go",
+    "sha256": "05d6b71e29fe8eb3fba4100f74584a16241e6dbd7d4343dd4ce12366a53a3fe4"
+  },
+  {
+    "path": "tools/gomad3/runner/guidance.go",
+    "sha256": "35394f9e810dd38a31cc24fac2086b83c5cf107aece7d70dd649208a6b5c081c"
+  },
+  {
+    "path": "tools/gomad3/runner/minimize_operation.go",
+    "sha256": "967b6671bbb0f28ce21a1178b68fe0c9cc9743796dcdc302d6ea4ba4cdd827d6"
+  },
+  {
+    "path": "tools/gomad3/runner/portable_plan.go",
+    "sha256": "b34f1216f8b11109bae496012b437eb3471d881b9a0e427094764a92bb90e7c2"
+  },
+  {
+    "path": "tools/gomad3/runner/resume.go",
+    "sha256": "4e0f4ec6b3faa8948d951b0862eeaa36dc0168d38e682b57cb34a1b8451d461d"
+  },
+  {
+    "path": "tools/gomad3/runner/retention.go",
+    "sha256": "3ed085af90aa61a0360c0c8147708a81b95a4e62a059f3102e0e547fdbbb1f6d"
+  },
+  {
+    "path": "tools/gomad3/runner/runner.go",
+    "sha256": "358a37dafa538e66b7b02baea2c0c8cff78268fee35f3a0c5cd75d653eee3e0f"
+  },
+  {
+    "path": "tools/gomad3/runner/simulation_exploration_campaign.go",
+    "sha256": "c8b5234386bdb01a5059fd3afe06e158df50bc27a66404a59522fc5c5a30c6d7"
+  },
+  {
+    "path": "tools/gomad3/runner/retention_test.go",
+    "sha256": "76e634f98998d8479c38daaa38249906bdc514451b6d4e205183bd470e7738a7"
+  },
+  {
+    "path": "tools/gomad3/runner/runner_test.go",
+    "sha256": "e66828ed56f98a0776ef5573660c57ec85157dbba7082dd4d34faecb7bfed519"
+  },
+  {
+    "path": "tools/gomad3/runner/campaign_options.go",
+    "sha256": "aa62b1252f33a4f64dd8eba0c1f553567c0faa2791c54aac48c4ec0487539d06"
+  },
+  {
+    "path": "tools/gomad3/runner/campaign_options_characterization_test.go",
+    "sha256": "6d6e90c1c3cd22eabeaf6a92f6b1d90e38abd7d9ed8fb2005f9f2f287fd3b429"
+  },
+  {
+    "path": "tools/gomad3/runner/testdata/campaign-options-before.json",
+    "sha256": "642ca4a6ca8db5a8b95ccde6bb551d0529ff71ea7ca60f5050e247d7f60560e6"
+  },
+  {
+    "path": "tools/gomad3/runner/testdata/campaign-options-request-after.json",
+    "sha256": "d4304f340aec4c2da604fc419b0cbfc5afa34e4a45a4247547a6a93bd80b6ce1"
+  }
+]

@@ -1,0 +1,49 @@
+{
+  "reflect2-go126": {
+    "approval_sha256": "",
+    "activation": [
+      {
+        "path": "github.com/modern-go/reflect2",
+        "version": "v1.0.3-0.20250322232337-35a7c28c31ee"
+      }
+    ],
+    "sha256": "4e8415f2b4c614a1672b025a736f1f07add729e652783e25fd52c426a2e44894"
+  },
+  "modernc-libc-xsys-v047": {
+    "approval_sha256": "sha256:9d656e14015df407eef5260bc52f50faf9800b711db4a6e83fdad08cded3069d",
+    "activation": [
+      {
+        "path": "golang.org/x/sys",
+        "version": "v0.47.0"
+      },
+      {
+        "path": "modernc.org/libc",
+        "version": "v1.72.3"
+      },
+      {
+        "path": "modernc.org/memory",
+        "version": "v1.11.0"
+      }
+    ],
+    "sha256": "a3f5405714b7076b790912292c7d7788bf88ce0aeb7eb73fc6ac384fd8373140"
+  },
+  "modernc-libc-xsys-v047-linux-amd64": {
+    "approval_sha256": "sha256:04b24975b4ea5da738c5e5339d682b9db64deb62c31e9673f824b7893b48c195",
+    "activation": [
+      {
+        "path": "golang.org/x/sys",
+        "version": "v0.47.0"
+      },
+      {
+        "path": "modernc.org/libc",
+        "version": "v1.72.3"
+      },
+      {
+        "path": "modernc.org/memory",
+        "version": "v1.11.0"
+      }
+    ],
+    "sha256": "c0a036b4a9516d902d8e52e6a4b0a4694e6dbcfce3ce357d27ee802fdc761c2d",
+    "unchanged_from_source": true
+  }
+}

@@ -1,0 +1,28 @@
+=== RUN   TestRunTransportsCompleteChoiceTrace
+--- PASS: TestRunTransportsCompleteChoiceTrace (0.02s)
+=== RUN   TestRunReturnsValidatedOverflowChoiceTrace
+--- PASS: TestRunReturnsValidatedOverflowChoiceTrace (0.02s)
+=== RUN   TestRunReplaysCompleteChoiceTape
+--- PASS: TestRunReplaysCompleteChoiceTape (0.05s)
+=== RUN   TestRunRejectsExhaustedChoiceTapeBeforeTargetMarker
+--- PASS: TestRunRejectsExhaustedChoiceTapeBeforeTargetMarker (0.07s)
+=== RUN   TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker
+=== RUN   TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker/kind
+=== RUN   TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker/site
+=== RUN   TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker/alternatives
+=== RUN   TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker/selected
+=== RUN   TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker/alternative_set
+--- PASS: TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker (0.21s)
+    --- PASS: TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker/kind (0.02s)
+    --- PASS: TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker/site (0.04s)
+    --- PASS: TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker/alternatives (0.06s)
+    --- PASS: TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker/selected (0.04s)
+    --- PASS: TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker/alternative_set (0.04s)
+=== RUN   TestRunRejectsUnconsumedChoiceTape
+=== RUN   TestRunRejectsUnconsumedChoiceTape/2
+=== RUN   TestRunRejectsUnconsumedChoiceTape/3
+--- PASS: TestRunRejectsUnconsumedChoiceTape (0.07s)
+    --- PASS: TestRunRejectsUnconsumedChoiceTape/2 (0.02s)
+    --- PASS: TestRunRejectsUnconsumedChoiceTape/3 (0.02s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/execution	0.797s

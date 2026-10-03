@@ -1,0 +1,14 @@
+{
+  "cmd": [
+    ".toolchain/bin/go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "./runner",
+    "-run",
+    "TestCampaignOptionNormalizationAndValidation"
+  ],
+  "exit": 1,
+  "seconds": 1.346
+}

@@ -1,0 +1,12 @@
+{
+  "cmd": [
+    ".toolchain/bin/go",
+    "vet",
+    "-tags",
+    "test_dep",
+    "./cmd/gomad/...",
+    "./runner/..."
+  ],
+  "exit": 0,
+  "seconds": 0.35
+}

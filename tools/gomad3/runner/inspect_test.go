@@ -45,7 +45,7 @@ func TestOpenReportsSimulationExplorationEvidence(t *testing.T) {
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)
 	executor := &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, fail: true}
-	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
+	config, configDependencies := testConfig(t, preparer, executor, "7", PolicyAll, 1)
 	config.Strategy = StrategySimulationExploration
 	config.ChoiceTraceLimit = limit
 	config.MaxExecutions = 1
@@ -54,7 +54,7 @@ func TestOpenReportsSimulationExplorationEvidence(t *testing.T) {
 	config.MaxExplorationResultBytes = 1 << 20
 	config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1}
 
-	summary, err := Explore(context.Background(), config)
+	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -70,11 +70,12 @@ func TestOpenReportsSimulationExplorationEvidence(t *testing.T) {
 
 func TestOpenReportsMinimizationLineageAndBounds(t *testing.T) {
 	artifactPath, _ := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true, Simulation: true, ForcedSimulation: true})
-	result, err := Minimize(context.Background(), MinimizeSpec{
+	result, err := minimizeWith(context.Background(), MinimizeSpec{
 		ArtifactPath: artifactPath, OutputRoot: t.TempDir(), AttemptBudget: 16,
 		ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
-		Executor: &minimizationExecutor{}, Replayer: &minimizationReplayer{},
-	})
+		Replayer: &minimizationReplayer{},
+	}, executionDependencies{executor: &minimizationExecutor{}},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -142,7 +143,7 @@ func TestOpenReportsSimulationExplorationBoundsAndRemainingWork(t *testing.T) {
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)
 	executor := &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
-	config := testConfig(t, preparer, executor, "7", PolicyAll, 1)
+	config, configDependencies := testConfig(t, preparer, executor, "7", PolicyAll, 1)
 	config.Strategy = StrategySimulationExploration
 	config.ChoiceTraceLimit = limit
 	config.MaxExecutions = 4
@@ -151,7 +152,7 @@ func TestOpenReportsSimulationExplorationBoundsAndRemainingWork(t *testing.T) {
 	config.MaxExplorationResultBytes = 1 << 20
 	config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 2, Scenario: 1, Network: 2, Storage: 2, Fault: 2, Crash: 2}
 
-	summary, err := Explore(context.Background(), config)
+	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {
 		t.Fatal(err)
 	}

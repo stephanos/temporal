@@ -1,0 +1,24 @@
+{
+  "schema": "gomad3.stock-compilation-cache-cleanup/v1",
+  "command": "GOCACHE=/Users/stephan/Library/Caches/go-build stock-go1.27.1 clean -cache",
+  "go_version": "go version go1.27.1 darwin/arm64",
+  "cwd": "/Users/stephan/Workspace/temporal/gomad",
+  "cache": "/Users/stephan/Library/Caches/go-build",
+  "worker_coordination": "pack_refresh confirmed baseline qualification exited0 and paused new Go commands; source edits can continue",
+  "exit_code": 0,
+  "elapsed_seconds": 42.165,
+  "before_free_bytes": 2198249472,
+  "after_free_bytes": 22164541440,
+  "scope": "Only standard global Go compilation cache; retained targets, toolchains, source, reports, traces and qualification artifacts untouched",
+  "output": "",
+  "retained_artifact_verification": {
+    "command": "python3 .flow/artifacts/fn-114-gomad-correct-search-path-defects-and/qualification/darwin-2ecdbd33/measure-retained.py",
+    "exit_code": 0,
+    "measurement_unchanged": true,
+    "campaigns": 112,
+    "artifacts": 112,
+    "qualified_workloads": 28,
+    "replayed": 56,
+    "on_disk_bytes": 1154449408
+  }
+}

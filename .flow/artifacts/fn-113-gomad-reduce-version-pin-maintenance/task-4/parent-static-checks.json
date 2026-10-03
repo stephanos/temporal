@@ -1,0 +1,45 @@
+{
+  "results": [
+    {
+      "argv": [
+        "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/gofmt",
+        "-l",
+        "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+        "tools/gomad3/deterministicio/adapter_regenerate.go",
+        "tools/gomad3/upgrade/adapter_regenerate.go",
+        "tools/gomad3/upgrade/adapter_publication.go",
+        "tools/gomad3/upgrade/adapter_regenerate_test.go",
+        "tools/gomad3/toolchain/version/descriptor.go"
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad",
+      "exit_code": 0,
+      "elapsed_seconds": 0.013,
+      "output": ""
+    },
+    {
+      "argv": [
+        "/Users/stephan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.darwin-arm64/bin/go",
+        "vet",
+        "-tags",
+        "test_dep",
+        "./cmd/gomadtool",
+        "./upgrade",
+        "./deterministicio",
+        "./toolchain/version"
+      ],
+      "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+      "exit_code": 0,
+      "elapsed_seconds": 0.495,
+      "output": ""
+    }
+  ],
+  "source_sha256": {
+    "tools/gomad3/cmd/gomadtool/adapter_regenerate.go": "2ec66623b406cb4fe20f465da41eff340d939390341ad9633c0bd1f51d4293b4",
+    "tools/gomad3/deterministicio/adapter_regenerate.go": "b1a5fd372335665b3f6acdbe28e82823ef7ab4bf020d6136ad016353c836bef6",
+    "tools/gomad3/upgrade/adapter_regenerate.go": "f8629ec0f99f2efbe180f4a37bd60bf24dde3775ad11922467762d9c15121feb",
+    "tools/gomad3/upgrade/adapter_publication.go": "d815797ea130d58378985bbbecde566b820aca246c3a05a53c87e805112fa7c2",
+    "tools/gomad3/upgrade/adapter_regenerate_test.go": "9f064317ce968a2fe24648ac1b13e48a8cf0b25d2d7d07167566550f408d8db4",
+    "tools/gomad3/toolchain/version/descriptor.go": "0183605563d3ee44c5faab1077b474efe5379da93cc0815d84cbf7b4ff733aff"
+  },
+  "source_stable": true
+}

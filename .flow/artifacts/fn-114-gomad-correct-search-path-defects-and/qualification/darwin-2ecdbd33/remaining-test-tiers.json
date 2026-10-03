@@ -1,0 +1,32 @@
+{
+  "command": [
+    "make",
+    "-C",
+    "tools/gomad3",
+    "-o",
+    "test-toolchain",
+    "-o",
+    "test-runtime",
+    "test"
+  ],
+  "cwd": "/Users/stephan/Workspace/temporal/gomad",
+  "platform": "Darwin/arm64",
+  "head": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+  "build_key": "2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457",
+  "source_sha256": {
+    "Makefile": "37b53df2fcf1bc8cb88c870e2209e375fab6d32402070c7294ea6f61cbd40609",
+    "go.mod": "8f5c8b618955af605647a4a4cfc0f93a82f2c25423038166a3d9faafaba14b32",
+    "go.sum": "15dbb85a0134b17beba7707f6d9565eb55009ca05b05f0cd43ad5a6679f58849",
+    "tools/gomad3/Makefile": "206cfb1a2920bc0aab970d1f7ef10ae78184d6872772ab4397a9e58d4fb40611",
+    "tools/gomad3/toolchain/version/version.json": "d5674986f7b5abd1ce4f73156b2cd172b641a58028058b6328d40788b7ffe87d",
+    "tools/gomad3/toolchain/runtime/go1.27.1.patch": "0d1294c1b6d3e77eb59e8dd9ec5e42e6620d898faa10b44e4da80a3d0c1a2787",
+    "tools/gomad3/qualification/core.json": "048222ebee3ab7b82d2a34be19d3f7c684a7e2cd9cf02a9ab1e7d9a94ef9a43a",
+    "tools/gomad3integration/qualification/smoke.json": "2f8457908e19988644766193fc1b180e9a8a7923811fdb145244512bdbd806c6",
+    "tools/gomad3integration/qualification/temporal.json": "549efd306c5af5aebce897c2be0c9d74c2dafcf4de7db44dbf2c5aefa04dc809"
+  },
+  "started_at": "2026-10-03T06:32:27Z",
+  "exit_code": 2,
+  "elapsed_seconds": 449.107,
+  "finished_at": "2026-10-03T06:39:56Z",
+  "final_build_key": "2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457"
+}

@@ -1,0 +1,14 @@
+{
+  "cmd": [
+    ".toolchain/bin/go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "./runner",
+    "-run",
+    "TestCampaignOptionErrorsPreserveKindThroughWrapping"
+  ],
+  "exit": 1,
+  "seconds": 0.516
+}

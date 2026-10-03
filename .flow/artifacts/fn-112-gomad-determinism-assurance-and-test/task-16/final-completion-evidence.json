@@ -1,0 +1,12 @@
+{
+  "commits": [],
+  "tests": [
+    "GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host",
+    "make -C tools/gomad3 validate",
+    "built CLI explore/inspect/replay of both same-signature successes"
+  ],
+  "prs": [],
+  "review_receipt": ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-13/integrated-review.json",
+  "platform": "darwin/arm64",
+  "linux": "unverified"
+}

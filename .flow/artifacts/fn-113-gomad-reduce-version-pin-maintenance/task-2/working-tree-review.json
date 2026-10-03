@@ -1,0 +1,52 @@
+{
+  "type": "impl_review",
+  "id": "branch",
+  "mode": "codex",
+  "base": "HEAD",
+  "verdict": "SHIP",
+  "session_id": "01a100d2-67ab-7383-85f0-8d8710c89b8d",
+  "model": "gpt-6-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6-sol:high",
+  "timestamp": "2026-10-03T08:34:14.142019Z",
+  "review": "Prior finding #1: fixed\n\nPublication now re-enumerates all three input trees under the exclusive lock, checking paths and bytes before recording the transaction. Staging and publication share the traversal and cache exclusions. The regression evidence shows the original failure and passing cases for each tree, preserving adapter and generated output on rejection.\n\n**Working-tree artifact coverage confirmed:** the refreshed patch matches the actual hunks, and all nine source hashes match the scope manifest. Retained Quick tests, final command tests, vet, and validate pass. The authorized Sprig fixture qualified with two exact replays. Root lint exited 2 on nested-module loading; scoped lint reports zero changed adapter findings.\n\nNo blocking findings survive. The prior Long Method observation remains FYI: `stageAdapterRegeneration` contains both `generate := exec.CommandContext(...)` and `validate := exec.CommandContext(...)` alongside staging and output collection.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | deferred | Task .1; outside this review. |\n| R2 | deferred | Task .1; outside this review. |\n| R3 | met | Approval binding, anchor negatives, complete staged outputs, locked revalidation, recovery, concurrency tests, stale libc reporting, and qualified Sprig fixture. |\n| R4 | deferred | Task .3. |\n| R5 | deferred | Task .4. |\n| R6 | deferred | Both-platform full qualification belongs to task .4. |\n\nUnaddressed R-IDs: []\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "focus": "Re-review fn-113-gomad-reduce-version-pin-maintenance.2 R3 UNCOMMITTED WORKING TREE after round1 NEEDS_WORK. HEAD..HEAD committed diff is empty and is NOT the artifact. Read refreshed task-2/working-tree.patch and working-tree-review-scope.json, verify their nine source bindings. Read round-1-working-tree-review.json and fix-round-1-evidence.json plus red/green and focused test logs. The introduced P1 new-input-path drift is now addressed under exclusive lock by re-enumerating the same three staged input trees through shared walkAdapterStageInputs and checking both current path set and bytes. Staging and publication share .toolchain/.bin exclusions. Root go.mod/go.sum remain exact-byte checked. Tests reject added adapter request, qualification input and test source before marker/publication, preserve adapter and generated output, and accept ignored cache changes. Focused Quick tests, final cmd tests, vet, validate and formatting pass. Root lint retained exit2 is known nested-module loading limitation; scoped nested lint reports zero changed adapter file findings with pre-existing findings elsewhere. Do not claim globally lint clean. Review actual fix and all R3 acceptance, existing readable no-write dryrun, approval binding, all15 adapter families and sole exact-occurrence engine, complete generated-output staging, recovery, failed-generation/drift/concurrent negatives, stale libc reporting. Existing controlled Sprig version fixture qualified with two exact replays using runtime2ecdbd33; root adapted pins have not moved so fallback authorized. Production pins unchanged. Later task4 owns docs and both-platform full qualification. Do not mutate or run writing generation/builds. Confirm working-tree artifact coverage and give explicit verdict based on concrete introduced defects or missing R3 acceptance evidence.",
+  "introduced_count": 0,
+  "pre_existing_count": 0,
+  "unaddressed": [],
+  "findings": {
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-ed9305581d47eb428b488ea6f690763007c19a6254c93e88cd2ef824434ea19f",
+    "reviewKind": "implementation",
+    "backend": "codex",
+    "round": 2,
+    "baseSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+    "headSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+    "supersedesReceiptId": "review-f41a495e75ea91333c7714f6d9c8c98de72fdbf3898d54d81886bc82f8e105d0",
+    "items": [
+      {
+        "id": "finding-b5d4e188202e160f7845ec33bef50da7",
+        "ordinal": 1,
+        "severity": "P1",
+        "confidence": 75,
+        "classification": "introduced",
+        "status": "fixed",
+        "title": "Publication rechecks only paths present in the staging snapshot or output list",
+        "body": "Publication rechecks only paths present in the staging snapshot or output list. If another process adds a new input file under a copied tree after staging\u2014for example, a compatibility-pack request\u2014validation misses it and can publish generated outputs based on the older file set. This breaks the required full read-input revalidation.",
+        "rIds": [
+          "R3"
+        ],
+        "anchor": {
+          "path": "tools/gomad3/cmd/gomadtool/adapter_publication.go",
+          "side": "head",
+          "startLine": 170,
+          "baseSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+          "headSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025"
+        },
+        "suggestion": "Under the publication lock, re-enumerate the staged input trees and compare their path sets as well as file contents before recording the transaction.",
+        "firstSeenReceiptId": "review-f41a495e75ea91333c7714f6d9c8c98de72fdbf3898d54d81886bc82f8e105d0",
+        "lastSeenReceiptId": "review-ed9305581d47eb428b488ea6f690763007c19a6254c93e88cd2ef824434ea19f"
+      }
+    ]
+  }
+}

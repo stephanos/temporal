@@ -1,0 +1,130 @@
+{
+  "adapter_one_pin_both_hosts": {
+    "baseline_local_darwin_detail": "4 specific file edits + version-generate + validate + one Darwin consumer test",
+    "baseline_local_darwin_units": 7,
+    "baseline_repair_files": [
+      "tools/gomad3/deterministicio/sprig_adapter.go",
+      "tools/gomad3/toolchain/version/version.json",
+      "tools/gomad3/deterministicio/testdata/sprig/go.mod",
+      "tools/gomad3/deterministicio/testdata/sprig/go.sum"
+    ],
+    "common_candidate_preparation": [
+      "go mod edit in scratch candidate",
+      "go mod download exact Sprig version"
+    ],
+    "evidence": [
+      "task-4/sprig-impact.json",
+      "task-4/sprig-dryrun.log",
+      "task-4/sprig-apply.log",
+      "task-4/sprig-apply-final.log",
+      "task-4/sprig-apply-stock.log",
+      "task-4/sprig-validate.log",
+      "task-4/sprig-consumer-test.log",
+      "task-2/sprig-fixture-evidence.json"
+    ],
+    "human_source_review": "required; not counted as a command or file edit",
+    "linux": "not run",
+    "new_normalized_detail": "pin-impact + dry run + approved apply + validate + Darwin consumer test",
+    "new_normalized_local_darwin_units": 5,
+    "observed_command_sequence": [
+      "pin-impact (status 1 expected)",
+      "adapter-regenerate dry run (0)",
+      "approved apply with symlinked scratch .toolchain (1 setup failure)",
+      "approved apply with directory layout but stock Go 1.26.5 PATH (1 setup failure)",
+      "approved apply with stock Go 1.27.1 PATH (0)",
+      "make validate (0)",
+      "Darwin Sprig consumer go test (0)"
+    ],
+    "observed_local_darwin_commands": 7,
+    "prepared_hash_location": "sprig_adapter.go, already counted"
+  },
+  "baseline_counts": {
+    "clock_inventory": {
+      "references": 25
+    },
+    "compatibility_packs": {
+      "packs": 12,
+      "rules": 54,
+      "unique_module_version_pins": 19
+    },
+    "dependency_adapters": {
+      "modules": 15,
+      "sha256_anchor_literals": 135
+    },
+    "interception_fingerprints": {
+      "declarations_including_platform_overrides": 132,
+      "intercepts": 131
+    },
+    "runtime_overlay": {
+      "files": 61,
+      "lines": 18437
+    },
+    "runtime_patch": {
+      "bytes": 33886,
+      "files": 20,
+      "lines": 1044
+    }
+  },
+  "common_and_conditional": "Both-host full tests, pack and core qualification are acceptance gates and excluded from authoring savings; no native Linux acceptance evidence was generated. A second host adds a refresh when its mapped requests are invalidated. A Go-release change still needs patch/overlay review and the upgrade dossier. Human source and exact-digest approval review remains required.",
+  "current_counts": {
+    "compatibility_packs": {
+      "packs": 11,
+      "rules": 49,
+      "unique_module_version_pins": 18
+    },
+    "dependency_adapters": {
+      "modules": 15,
+      "sha256_anchor_literals": 135
+    }
+  },
+  "historical_baseline": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/baseline.json",
+  "pack_authoring_one_host": {
+    "baseline_detail": "discover + review + approved generate + check + qualify; request wording edits conditional",
+    "baseline_one_request_commands": 5,
+    "common_candidate_preparation": [
+      "go mod download -json exact x/sys v0.48.0 for availability",
+      "go mod edit scratch xsys module",
+      "go mod download x/sys to update go.sum"
+    ],
+    "evidence": [
+      "task-4/controlled-pin-impact.json",
+      "task-4/controlled-refresh.log",
+      "task-4/controlled-refresh-final.log",
+      "task-4/controlled-generate.log",
+      "task-4/controlled-check.log",
+      "task-4/controlled-qualify.log",
+      "task-4/controlled-approved-rerun.log",
+      "task-4/controlled-approved-rerun-bound.log",
+      "task-4/controlled-rerun-preimages.json",
+      "task-4/controlled-pack-state.json",
+      "task-3/real-partial-approval.log",
+      "task-3/real-other-platform.log",
+      "task-3/real-unmapped.log"
+    ],
+    "human_source_and_approval_review": "required; reviewed fact set unchanged and exact source hashes changed; fixture approval only",
+    "linux": "no Linux request invalidated by this xsys module candidate; production Linux qualification remains pending",
+    "new_normalized_detail": "pin-impact + refresh + approved generate + check + qualify; request wording edits conditional",
+    "new_normalized_one_request_commands": 5,
+    "observed_cli_commands": 8,
+    "observed_command_sequence": [
+      "pin-impact status 1 expected",
+      "refresh initial digest c0d2...",
+      "hand edit scratch request justification v0.47.0 to v0.48.0",
+      "refresh final digest 425e...",
+      "generate with 425e... approval",
+      "check",
+      "qualify Darwin target",
+      "post-approval refresh diagnostic (empty output)",
+      "post-approval refresh byte-bound diagnostic (empty output)"
+    ],
+    "observed_hand_edits": 1,
+    "two_request_one_host_formula": {
+      "baseline": "3 commands per request + one check = 7",
+      "claim": "projection only; no complete two-request approval walk executed",
+      "new": "pin-impact + one refresh + one generate per approved request + one check = 5",
+      "qualification": "per-request qualification is common and excluded from this authoring comparison"
+    }
+  },
+  "schema": "gomad3.pin-maintenance-post-tooling/v1",
+  "unit": "one command invocation or one hand edit of a checked-in file; person source and approval review required but outside this unit"
+}

@@ -1,0 +1,36 @@
+warning: model 'gpt-6-sol' is not in flow-next's codex ranking; accepting as-is (the codex CLI is the availability authority).
+review-parse: suppressed_count via json
+review-parse: classification_counts via json
+review-parse: unaddressed via json
+Prior finding #1: fixed
+Prior finding #2: not-fixed
+
+The two exported error globals are replaced by typed errors. CLI callers use `errors.As` and preserve the original messages. Current source and patch hashes match the updated receipts; retained focused tests, canonical characterization, plan e2e, vet, architecture, lint, and rebuild results pass. No new blocker was found.
+
+## Pre-existing issues (not blocking this verdict)
+
+- [P2, confidence 100, introduced=false] `tools/gomad3/cmd/gomad/internal/cli/cli.go:402` — Doctor’s JSON path still ignores stdout write errors. This remains outside task 5.
+
+The previously noted **Long Method** smell in `func parseCampaignRequest(...)` remains unchanged and nonblocking.
+
+## Requirements coverage
+
+| R-ID | Status | Evidence |
+| --- | --- | --- |
+| R1–R5 | deferred | Outside task 5. |
+| R6 | met | Shared parsing and Runner normalization preserved; typed errors remove the globals while retaining messages, classifications, and canonical bytes. |
+| R7–R17 | deferred | Outside task 5. |
+| R18–R20 | deferred | Full-spec completion and native Linux qualification remain separately owned. |
+
+Unaddressed R-IDs: []
+
+Classification counts: 0 introduced, 1 pre_existing.
+
+```json
+{"classification_counts":{"introduced":0,"pre_existing":1},"unaddressed":[]}
+```
+
+<verdict>SHIP</verdict>
+
+
+VERDICT=SHIP

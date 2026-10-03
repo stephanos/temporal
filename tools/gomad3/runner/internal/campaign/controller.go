@@ -23,6 +23,22 @@ type SeedJob struct {
 	Seed    uint64
 }
 
+type CompletionKind uint8
+
+const (
+	CompletionUnclassified CompletionKind = iota
+	CompletionSuccess
+	CompletionCancelled
+	CompletionFailure
+)
+
+type Completion struct {
+	Kind             CompletionKind
+	Domain           string
+	Reason           string
+	DistinctFailures uint64
+}
+
 type CampaignStatistics struct {
 	Attempted         uint64
 	Succeeded         uint64
@@ -95,31 +111,31 @@ func (controller *SeedController) Next() (SeedJob, bool) {
 	return job, true
 }
 
-func (controller *SeedController) FinishAttempt() {
+func (controller *SeedController) Complete(completion Completion) bool {
 	if controller.active == 0 {
 		panic("gomad3: completed an inactive campaign attempt")
 	}
 	controller.active--
 	controller.statistics.Attempted++
-}
-
-func (controller *SeedController) RecordSuccess() {
-	controller.statistics.Succeeded++
-}
-
-func (controller *SeedController) RecordCancelled() {
-	controller.statistics.Cancelled++
-}
-
-func (controller *SeedController) RecordFailure(domain, reason string, distinct uint64) bool {
+	if completion.Kind == CompletionSuccess {
+		controller.statistics.Succeeded++
+		return false
+	}
+	if completion.Kind == CompletionCancelled {
+		controller.statistics.Cancelled++
+		return false
+	}
+	if completion.Kind != CompletionFailure {
+		return false
+	}
 	controller.statistics.Failures++
-	if domain == "watchdog" {
+	if completion.Domain == "watchdog" {
 		controller.statistics.Watchdogs++
 	}
-	if reason == "world_replay_divergence" {
+	if completion.Reason == "world_replay_divergence" {
 		controller.statistics.ReplayDivergences++
 	}
-	controller.statistics.DistinctFailures = distinct
+	controller.statistics.DistinctFailures = completion.DistinctFailures
 	if controller.stopped {
 		return false
 	}
@@ -129,7 +145,7 @@ func (controller *SeedController) RecordFailure(domain, reason string, distinct 
 		controller.stopped = true
 		return true
 	case FailurePolicyBudget:
-		if distinct >= controller.failureBudget {
+		if completion.DistinctFailures >= controller.failureBudget {
 			controller.statistics.StopReason = StopFailureBudget
 			controller.stopped = true
 		}

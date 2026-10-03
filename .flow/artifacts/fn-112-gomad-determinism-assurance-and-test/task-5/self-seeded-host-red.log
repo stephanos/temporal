@@ -1,0 +1,5 @@
+--- FAIL: TestRunTransportsCompleteChoiceTrace (0.04s)
+    process_test.go:150: choice trace unterminated
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	0.286s
+FAIL

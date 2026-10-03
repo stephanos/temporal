@@ -110,6 +110,77 @@ func TestPublicPackagesDoNotExportTypeAliases(t *testing.T) {
 	}
 }
 
+func TestRunnerExecutionInjectionIsPrivate(t *testing.T) {
+	for _, name := range []string{"runner.go", "campaign_shard_execution.go", "replay_operation.go", "minimize_operation.go", "resume.go"} {
+		file, err := parser.ParseFile(token.NewFileSet(), filepath.Join("runner", name), nil, 0)
+		if err != nil {
+			t.Fatalf("parse runner source %s: %v", name, err)
+		}
+		for _, declaration := range file.Decls {
+			general, ok := declaration.(*ast.GenDecl)
+			if !ok {
+				continue
+			}
+			for _, specification := range general.Specs {
+				typeSpec, ok := specification.(*ast.TypeSpec)
+				if !ok {
+					continue
+				}
+				if typeSpec.Name.Name == "Executor" || typeSpec.Name.Name == "ReplayExecutor" {
+					t.Errorf("runner exposes inaccessible execution interface %s", typeSpec.Name.Name)
+				}
+				structure, ok := typeSpec.Type.(*ast.StructType)
+				if !ok || !strings.HasSuffix(typeSpec.Name.Name, "Spec") {
+					continue
+				}
+				for _, field := range structure.Fields.List {
+					for _, fieldName := range field.Names {
+						if fieldName.IsExported() && fieldName.Name == "Executor" {
+							t.Errorf("runner.%s exposes inaccessible execution field", typeSpec.Name.Name)
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+func TestRunnerRequestsCompileInExternalModule(t *testing.T) {
+	root, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("find Gomad module root: %v", err)
+	}
+	fixture, err := os.ReadFile("internal/gomadtool/conformance/testdata/runner_external/consumer.go")
+	if err != nil {
+		t.Fatalf("read external Runner fixture: %v", err)
+	}
+	directory := t.TempDir()
+	module := "module example.com/gomad-runner-consumer\n\ngo 1.27.1\n\nrequire go.temporal.io/server/tools/gomad3 v0.0.0\nreplace go.temporal.io/server/tools/gomad3 => " + root + "\n"
+	if err := os.WriteFile(filepath.Join(directory, "go.mod"), []byte(module), 0o600); err != nil {
+		t.Fatalf("write external module: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(directory, "consumer.go"), fixture, 0o600); err != nil {
+		t.Fatalf("write external Runner fixture: %v", err)
+	}
+	goExecutable := os.Getenv("GOMAD3_STOCK_GO")
+	if goExecutable == "" {
+		goExecutable = "go"
+	}
+	command := exec.Command(goExecutable, "test", "-mod=mod", "-tags", "test_dep", ".")
+	command.Dir = directory
+	for _, variable := range os.Environ() {
+		if strings.HasPrefix(variable, "GOROOT=") || strings.HasPrefix(variable, "GOBIN=") || strings.HasPrefix(variable, "GOMADSEED=") || strings.HasPrefix(variable, "GOMAD3_CHILD_SEED=") {
+			continue
+		}
+		command.Env = append(command.Env, variable)
+	}
+	command.Env = append(command.Env, "GOWORK=off", "GOTOOLCHAIN=local", "GOEXPERIMENT=nogreenteagc")
+	output, err := command.CombinedOutput()
+	if err != nil {
+		t.Fatalf("compile external Runner fixture: %v\n%s", err, output)
+	}
+}
+
 func TestCurrentVocabularyHasNoLegacyCampaignBoundary(t *testing.T) {
 	for _, root := range []string{"cmd/gomad", "qualification", "runner"} {
 		err := filepath.WalkDir(root, func(path string, entry os.DirEntry, visitErr error) error {
@@ -438,6 +509,8 @@ func packageOwner(importPath string) string {
 		return "hostexec"
 	case relative == "internal/hostfs" || strings.HasPrefix(relative, "internal/hostfs/"):
 		return "hostfs"
+	case relative == "internal/preparation" || strings.HasPrefix(relative, "internal/preparation/"):
+		return "preparation"
 	default:
 		return ""
 	}
@@ -448,19 +521,20 @@ func ownerMayImport(owner, importedOwner, importing, imported string) bool {
 		return true
 	}
 	allowed := map[string][]string{
-		"cli":             {"runner", "qualification", "target", "record", "artifact", "deterministicio", "toolchain", "canonicaljson"},
+		"cli":             {"runner", "qualification", "target", "record", "artifact", "deterministicio", "preparation", "toolchain", "canonicaljson"},
 		"developer":       {"choice", "compatibility", "qualification", "simulation", "toolchain", "upgrade", "hostexec", "hostfs"},
-		"runner":          {"target", "record", "artifact", "choice", "deterministicio", "world", "canonicaljson", "hostexec", "hostfs"},
-		"qualification":   {"runner", "target", "record", "artifact", "choice", "deterministicio", "canonicaljson", "hostexec", "hostfs"},
+		"runner":          {"target", "record", "artifact", "choice", "deterministicio", "preparation", "world", "canonicaljson", "hostexec", "hostfs"},
+		"qualification":   {"runner", "target", "record", "artifact", "choice", "deterministicio", "preparation", "canonicaljson", "hostexec", "hostfs"},
 		"target":          {"compatibility", "record", "toolchain", "canonicaljson", "hostexec", "hostfs"},
 		"record":          {"canonicaljson"},
 		"artifact":        {"choice", "deterministicio", "target", "record", "hostfs"},
 		"compatibility":   {"target", "record", "canonicaljson", "hostfs"},
 		"deterministicio": {"target", "record", "toolchain", "canonicaljson", "hostfs"},
+		"preparation":     {"target", "deterministicio", "record"},
 		"world":           {"canonicaljson"},
 		"simulation":      {"record", "canonicaljson"},
 		"toolchain":       {"canonicaljson", "hostexec", "hostfs"},
-		"upgrade":         {"qualification", "toolchain", "hostexec", "hostfs"},
+		"upgrade":         {"qualification", "toolchain", "deterministicio", "compatibility", "canonicaljson", "hostexec", "hostfs"},
 	}
 	if !slices.Contains(allowed[owner], importedOwner) {
 		return false

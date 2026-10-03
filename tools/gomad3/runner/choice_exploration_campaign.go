@@ -28,7 +28,7 @@ type explorationRoundResult struct {
 
 func runChoiceExplorationLocal(
 	ctx context.Context,
-	config CampaignSpec,
+	config campaignRequest,
 	selection SeedSelection,
 	baseEnvironment []record.Environment,
 	readOnlyMounts []readonlymount.Mapping,
@@ -105,7 +105,7 @@ func runChoiceExplorationLocal(
 		semanticProbes = restored.probes
 		choiceFeatures = restored.choiceFeatures
 	}
-	executor := config.Executor
+	executor := config.executor
 	if executor == nil {
 		executor = processExecutor{}
 	}
@@ -210,8 +210,8 @@ func runChoiceExplorationLocal(
 
 func executeExplorationRound(
 	ctx context.Context,
-	config CampaignSpec,
-	executor Executor,
+	config campaignRequest,
+	executor executionRunner,
 	prepared target.Prepared,
 	baseEnvironment []record.Environment,
 	profile deterministicio.Spec,
@@ -265,7 +265,7 @@ func executeExplorationRound(
 
 func processExplorationCompletion(
 	ctx context.Context,
-	config CampaignSpec,
+	config campaignRequest,
 	prepared target.Prepared,
 	baseEnvironment []record.Environment,
 	readOnlyMounts []readonlymount.Mapping,
@@ -495,7 +495,7 @@ func reconcileExplorationExecutions(journal *campaign.CampaignJournal, projected
 	return nil
 }
 
-func explorationSegmentCapacity(config CampaignSpec) (uint64, error) {
+func explorationSegmentCapacity(config campaignRequest) (uint64, error) {
 	const maximum = uint64(1 << 30)
 	const overhead = uint64(4 << 20)
 	if config.MaxExplorationBytes > maximum-overhead {

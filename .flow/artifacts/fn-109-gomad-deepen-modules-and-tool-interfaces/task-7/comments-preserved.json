@@ -1,0 +1,18 @@
+{
+  "tools/gomad3/runner/runner.go": {
+    "original_comment_lines": 10,
+    "missing_original_comment_lines": []
+  },
+  "tools/gomad3/runner/portable_plan.go": {
+    "original_comment_lines": 0,
+    "missing_original_comment_lines": []
+  },
+  "tools/gomad3/runner/deterministicio.go": {
+    "original_comment_lines": 0,
+    "missing_original_comment_lines": []
+  },
+  "tools/gomad3/architecture_test.go": {
+    "original_comment_lines": 2,
+    "missing_original_comment_lines": []
+  }
+}

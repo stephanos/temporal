@@ -1,0 +1,5 @@
+--- FAIL: TestRunAnalyzeSurfacesCleanupFailureAfterSupportedReport (0.00s)
+    cli_test.go:548: status=0 stdout="compatibility: supported\ncapability-mode: \npackages: 0\n" stderr="clean capability analysis preparation: cleanup failed\n"
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	1.118s
+FAIL

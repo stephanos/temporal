@@ -1,0 +1,1 @@
+{"campaign_id":"campaign-20261003T051137.010852000Z-78fa8bfb84444197b7115fc5160a08a6","detail":"gomad3 Runner/host failure: target_supervision: I/O transcript terminal is absent","last_stable_state":"running","reason":"target_supervision","schema":"gomad3.campaign-lifecycle/v1","schema_version":1,"state":"recoverable-failure"}

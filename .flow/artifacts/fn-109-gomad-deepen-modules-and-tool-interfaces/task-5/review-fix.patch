@@ -1,0 +1,129 @@
+--- a/tools/gomad3/cmd/gomad/internal/cli/cli.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/cli.go
+@@ -811,7 +811,8 @@
+ 		}
+ 		_, err := runner.ParseSingleBaseSeed(options.Seeds)
+ 		if err != nil {
+-			if errors.Is(err, runner.ErrNotSingleBaseSeed) {
++			var single *runner.NotSingleBaseSeedError
++			if errors.As(err, &single) {
+ 				return "", false, errors.New("--strategy=choice-exploration requires exactly one base seed")
+ 			}
+ 			return "", false, err
+@@ -835,7 +836,8 @@
+ 		}
+ 		_, err := runner.ParseSingleBaseSeed(options.Seeds)
+ 		if err != nil {
+-			if errors.Is(err, runner.ErrNotSingleBaseSeed) {
++			var single *runner.NotSingleBaseSeedError
++			if errors.As(err, &single) {
+ 				return "", false, errors.New("--strategy=simulation-exploration requires exactly one base seed")
+ 			}
+ 			return "", false, err
+@@ -920,7 +922,8 @@
+ 		return "", fmt.Errorf("unknown coverage mode %q", value)
+ 	}
+ 	if err := runner.ValidateCoverage(mode, required); err != nil {
+-		if errors.Is(err, runner.ErrSemanticCoverageRequired) {
++		var semantic *runner.SemanticCoverageRequiredError
++		if errors.As(err, &semantic) {
+ 			return "", fmt.Errorf("--require-probe requires --coverage=semantic")
+ 		}
+ 		return "", err
+--- a/tools/gomad3/cmd/gomad/internal/cli/cli_test.go
++++ b/tools/gomad3/cmd/gomad/internal/cli/cli_test.go
+@@ -276,6 +276,20 @@
+ 		if (err != nil) != test.wantError || got != test.want {
+ 			t.Fatalf("resolveExploreCoverage(%q, %v) = %q, %v", test.mode, test.required, got, err)
+ 		}
++	}
++}
++
++func TestResolveExploreTypedErrorPresentation(t *testing.T) {
++	for _, strategy := range []string{string(runner.StrategyChoiceExploration), string(runner.StrategySimulationExploration)} {
++		_, _, err := resolveExploreStrategy(exploreStrategyOptions{Value: strategy, Seeds: "7,8"})
++		want := "--strategy=" + strategy + " requires exactly one base seed"
++		if err == nil || err.Error() != want {
++			t.Fatalf("strategy %q error = %v, want %q", strategy, err, want)
++		}
++	}
++	_, err := resolveExploreCoverage("none", []string{"stdlib.os.openfile"})
++	if err == nil || err.Error() != "--require-probe requires --coverage=semantic" {
++		t.Fatalf("coverage error = %v", err)
+ 	}
+ }
+ 
+--- a/tools/gomad3/runner/campaign_options.go
++++ b/tools/gomad3/runner/campaign_options.go
+@@ -106,8 +106,17 @@
+ 	campaignRuntime
+ }
+ 
+-var ErrNotSingleBaseSeed = errors.New("requires exactly one base seed")
+-var ErrSemanticCoverageRequired = errors.New("required semantic probes require semantic coverage")
++type NotSingleBaseSeedError struct{}
++
++func (*NotSingleBaseSeedError) Error() string {
++	return "requires exactly one base seed"
++}
++
++type SemanticCoverageRequiredError struct{}
++
++func (*SemanticCoverageRequiredError) Error() string {
++	return "required semantic probes require semantic coverage"
++}
+ 
+ func NormalizeStrategy(strategy Strategy) Strategy {
+ 	if strategy == "" {
+@@ -137,7 +146,7 @@
+ 	switch mode {
+ 	case "", CoverageNone, CoverageChoice:
+ 		if len(required) != 0 {
+-			return ErrSemanticCoverageRequired
++			return &SemanticCoverageRequiredError{}
+ 		}
+ 	case CoverageSemantic, CoverageSemanticChoice:
+ 		if _, err := deterministicio.MissingRequiredSemanticProbes(deterministicio.SemanticCoverage{}, required); err != nil {
+@@ -176,7 +185,7 @@
+ 
+ func requireSingleBaseSeed(selection SeedSelection) error {
+ 	if selection.Count() != 1 {
+-		return ErrNotSingleBaseSeed
++		return &NotSingleBaseSeedError{}
+ 	}
+ 	return nil
+ }
+--- a/tools/gomad3/runner/campaign_options_cli_test.go
++++ b/tools/gomad3/runner/campaign_options_cli_test.go
+@@ -1,6 +1,10 @@
+ package runner
+ 
+-import "testing"
++import (
++	"errors"
++	"fmt"
++	"testing"
++)
+ 
+ func TestParseSingleBaseSeedSharesRunnerStrategyRule(t *testing.T) {
+ 	for _, test := range []struct {
+@@ -22,6 +26,19 @@
+ 		if err != nil || selection.String() != test.want {
+ 			t.Fatalf("ParseSingleBaseSeed(%q) = %q, %v; want %q", test.input, selection.String(), err, test.want)
+ 		}
++	}
++}
++
++func TestCampaignOptionErrorsPreserveKindThroughWrapping(t *testing.T) {
++	_, singleErr := ParseSingleBaseSeed("7,8")
++	var single *NotSingleBaseSeedError
++	if !errors.As(fmt.Errorf("wrapped: %w", singleErr), &single) || singleErr.Error() != "requires exactly one base seed" {
++		t.Fatalf("single-base-seed error = %T %v", singleErr, singleErr)
++	}
++	coverageErr := ValidateCoverage(CoverageNone, []string{"stdlib.os.openfile"})
++	var required *SemanticCoverageRequiredError
++	if !errors.As(fmt.Errorf("wrapped: %w", coverageErr), &required) || coverageErr.Error() != "required semantic probes require semantic coverage" {
++		t.Fatalf("semantic-coverage error = %T %v", coverageErr, coverageErr)
+ 	}
+ }
+ 
