@@ -57,7 +57,9 @@ func TestGuidanceReportsNoCorpusSelectionAndNewExecutions(t *testing.T) {
 func TestResumeGuidanceModePreservesExplicitFalseAndTrue(t *testing.T) {
 	for _, value := range []string{"false", "true"} {
 		var got *bool
-		dependencies := resumeDependencies{identity: func(string) (string, string, string, error) { return "/toolchain", "/gomad", "runner", nil }, run: func(_ context.Context, spec runner.ResumeSpec) (runner.CampaignResult, error) {
+		dependencies := resumeDependencies{install: func(string) (installation, error) {
+			return installation{toolchainRoot: "/toolchain", executable: "/gomad", runnerBuild: "runner"}, nil
+		}, run: func(_ context.Context, spec runner.ResumeSpec) (runner.CampaignResult, error) {
 			got = spec.GuideRegression
 			return runner.CampaignResult{StopReason: runner.StopSeedsExhausted}, nil
 		}}
@@ -71,7 +73,7 @@ func TestResumeGuidanceModePreservesExplicitFalseAndTrue(t *testing.T) {
 
 func TestGuideRegressionRequiresGuidance(t *testing.T) {
 	var stdout, stderr bytes.Buffer
-	status := runExplore([]string{"--json", "--guide-regression", "go-run", "./fixture"}, &stdout, &stderr)
+	status := hostApplication().runExplore([]string{"--json", "--guide-regression", "go-run", "./fixture"}, &stdout, &stderr)
 	if status != 2 || !strings.Contains(stdout.String(), "--guide-regression requires --guide") {
 		t.Fatalf("status=%d stdout=%s stderr=%s", status, &stdout, &stderr)
 	}

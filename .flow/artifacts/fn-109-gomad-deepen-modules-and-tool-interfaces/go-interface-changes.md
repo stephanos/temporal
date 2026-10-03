@@ -41,3 +41,20 @@ Internal change: `SeedController.FinishAttempt`, `RecordSuccess`, `RecordCancell
 A `Completion` is built by `CompletedSuccess`, `CompletedCancelled`, `CompletedUnclassified` or
 `CompletedFailure(domain, reason, distinctFailures)`; its zero value is rejected. The only caller
 is the seed completion loop in `runner/runner.go`.
+
+## fn-109.4 one CLI application construction path
+
+**Exported changes: none.** `go doc -all ./cmd/gomad/internal/cli` is identical before and after;
+the package is internal to `cmd/gomad` in any case. No Runner, toolchain or other public package
+changed.
+
+Unexported changes inside `tools/gomad3/cmd/gomad/internal/cli`:
+
+- New private `application` (built once per invocation by `Run`) and `installation` values own
+  executable lookup, installation resolution, the Runner build digest and the child-mode commands.
+  Commands that need them became `application` methods.
+- The `identity func(string) (string, string, string, error)` field of `qualifyDependencies`,
+  `resumeDependencies` and `minimizeDependencies` became `install func(string) (installation, error)`.
+  New `exploreDependencies`, `replayDependencies` and `campaignShardDependencies` follow the same shape.
+- `runDoctor(arguments, stdout, stderr, executable)` became `application.runDoctor(arguments, stdout, stderr)`;
+  doctor's `hashExecutable` became the shared `digestRunner`.

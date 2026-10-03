@@ -14,12 +14,12 @@ import (
 )
 
 type campaignShardDependencies struct {
-	identity func(string) (string, string, string, error)
-	run      func(context.Context, runner.CampaignShardSpec) (runner.CampaignResult, error)
+	install func(string) (installation, error)
+	run     func(context.Context, runner.CampaignShardSpec) (runner.CampaignResult, error)
 }
 
-func runCampaignShard(arguments []string, stdout, stderr io.Writer) int {
-	return runCampaignShardWith(arguments, stdout, stderr, campaignShardDependencies{identity: localIdentity, run: runner.RunCampaignShard})
+func (app application) runCampaignShard(arguments []string, stdout, stderr io.Writer) int {
+	return runCampaignShardWith(arguments, stdout, stderr, campaignShardDependencies{install: app.install, run: runner.RunCampaignShard})
 }
 
 func runCampaignShardWith(arguments []string, stdout, stderr io.Writer, dependencies campaignShardDependencies) int {
@@ -41,15 +41,15 @@ func runCampaignShardWith(arguments []string, stdout, stderr io.Writer, dependen
 		fmt.Fprintln(stderr, err)
 		return 2
 	}
-	toolchain, executable, runnerBuild, err := dependencies.identity(*toolchainRoot)
+	installed, err := dependencies.install(*toolchainRoot)
 	if err != nil {
 		fmt.Fprintln(stderr, err)
 		return 3
 	}
 	reporter := newExploreReporter(*jsonOutput, stdout, stderr)
 	result, err := dependencies.run(context.Background(), runner.CampaignShardSpec{
-		PlanPath: flags.Arg(0), Shard: shard, Artifacts: *artifacts, ToolchainRoot: toolchain, RunnerBuild: runnerBuild,
-		SupervisorCommand: []string{executable, "__supervisor"}, Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
+		PlanPath: flags.Arg(0), Shard: shard, Artifacts: *artifacts, ToolchainRoot: installed.toolchainRoot, RunnerBuild: installed.runnerBuild,
+		SupervisorCommand: installed.supervisorCommand(), Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
 	})
 	if err != nil {
 		classification := classifyExploreError(err)

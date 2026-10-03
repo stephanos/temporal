@@ -21,7 +21,7 @@ import (
 const maximumQualificationRepeats = 32
 
 type qualifyDependencies struct {
-	identity         func(string) (string, string, string, error)
+	install          func(string) (installation, error)
 	workingDirectory func() (string, error)
 	workload         func(context.Context, qualificationworkload.Spec) (qualificationworkload.Result, error)
 	run              func(context.Context, runner.CampaignSpec) (runner.CampaignResult, error)
@@ -35,9 +35,9 @@ type qualifyReporter struct {
 	stderr io.Writer
 }
 
-func runQualify(arguments []string, stdout, stderr io.Writer) int {
+func (app application) runQualify(arguments []string, stdout, stderr io.Writer) int {
 	return runQualifyWith(arguments, stdout, stderr, qualifyDependencies{
-		identity: localIdentity, workingDirectory: os.Getwd, workload: qualificationworkload.Run,
+		install: app.install, workingDirectory: os.Getwd, workload: qualificationworkload.Run,
 	})
 }
 
@@ -132,7 +132,7 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 		}
 		return reportQualifyUnretainedError(reporter, stderr, "runner_failure", fmt.Errorf("resolve working directory: %w", err), 3)
 	}
-	toolchain, executable, runnerBuild, err := dependencies.identity(*toolchainRoot)
+	installed, err := dependencies.install(*toolchainRoot)
 	if err != nil {
 		return reportQualifyUnretainedError(reporter, stderr, "runner_failure", err, 3)
 	}
@@ -142,11 +142,11 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 		OnFailure: runner.PolicyAll, FailureBudget: 1, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
 		Diagnostics: *diagnostics, ChoiceTraceLimit: resolvedChoiceLimit, ClockTick: *clockTick, IOTranscriptLimit: uint64(transcriptLimit),
 		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts,
-		SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
+		SupervisorCommand: installed.supervisorCommand(), CoordinatorCommand: installed.coordinatorCommand(), RunnerBuild: installed.runnerBuild,
 		Coverage: coverage, RequiredSemanticProbes: requiredSemanticProbes, CollectExecutionEvidence: true,
 		Target: target.Spec{
 			Kind: parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
-			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: toolchain, CapabilityMode: resolvedCapabilityMode,
+			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: installed.toolchainRoot, CapabilityMode: resolvedCapabilityMode,
 		},
 	}
 	if *replaySuccesses {
@@ -162,7 +162,7 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	}
 	result, err := runWorkload(ctx, qualificationworkload.Spec{
 		Command: command, Seed: *seed, Repeat: *repeat, ArtifactRoot: *artifacts, Campaign: config,
-		Replay:          runner.ReplaySpec{ToolchainRoot: toolchain, SupervisorCommand: []string{executable, "__supervisor"}},
+		Replay:          runner.ReplaySpec{ToolchainRoot: installed.toolchainRoot, SupervisorCommand: installed.supervisorCommand()},
 		ReplaySuccesses: *replaySuccesses,
 		Progress: func(event qualificationworkload.Progress) error {
 			return reporter.Progress(event.Iteration, event.Repeat)

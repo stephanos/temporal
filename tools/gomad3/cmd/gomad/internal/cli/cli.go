@@ -2,7 +2,6 @@ package cli
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -19,7 +18,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
 	"go.temporal.io/server/tools/gomad3/target"
-	"go.temporal.io/server/tools/gomad3/toolchain"
 )
 
 const usage = `usage:
@@ -93,50 +91,46 @@ type targetInput struct {
 }
 
 func Run(arguments []string, stdout, stderr io.Writer) int {
+	return hostApplication().run(arguments, stdout, stderr)
+}
+
+func (app application) run(arguments []string, stdout, stderr io.Writer) int {
 	if len(arguments) == 0 {
 		fmt.Fprint(stderr, usage)
 		return 2
 	}
+	if isPrivateMode(arguments[0]) {
+		return app.runPrivateMode(arguments[0], stderr)
+	}
 	switch arguments[0] {
-	case "__coordinator", "__target_bootstrap", "__supervisor":
-		if err := runner.DispatchPrivateMode(arguments[0], os.Stdin, os.Stdout); err != nil {
-			fmt.Fprintln(stderr, err)
-			return 3
-		}
-		return 0
 	case "explore":
-		return runExplore(arguments[1:], stdout, stderr)
+		return app.runExplore(arguments[1:], stdout, stderr)
 	case "plan":
-		return runPlan(arguments[1:], stdout, stderr)
+		return app.runPlan(arguments[1:], stdout, stderr)
 	case "execute-shard":
-		return runCampaignShard(arguments[1:], stdout, stderr)
+		return app.runCampaignShard(arguments[1:], stdout, stderr)
 	case "merge":
 		return runMergeCampaigns(arguments[1:], stdout, stderr)
 	case "qualify":
-		return runQualify(arguments[1:], stdout, stderr)
+		return app.runQualify(arguments[1:], stdout, stderr)
 	case "qualify-set":
-		return runQualifySet(arguments[1:], stdout, stderr)
+		return app.runQualifySet(arguments[1:], stdout, stderr)
 	case "merge-set":
 		return runMergeSet(arguments[1:], stdout, stderr)
 	case "compare-support":
 		return runCompareSupport(arguments[1:], stdout, stderr)
 	case "analyze":
-		return runAnalyze(arguments[1:], stdout, stderr)
+		return app.runAnalyze(arguments[1:], stdout, stderr)
 	case "resume":
-		return runResume(arguments[1:], stdout, stderr)
+		return app.runResume(arguments[1:], stdout, stderr)
 	case "recover":
 		return runRecover(arguments[1:], stdout, stderr)
 	case "replay":
-		return runReplay(arguments[1:], stdout, stderr)
+		return app.runReplay(arguments[1:], stdout, stderr)
 	case "minimize":
-		return runMinimize(arguments[1:], stdout, stderr)
+		return app.runMinimize(arguments[1:], stdout, stderr)
 	case "doctor":
-		executable, err := os.Executable()
-		if err != nil {
-			fmt.Fprintf(stderr, "resolve gomad executable: %v\n", err)
-			return 3
-		}
-		return runDoctor(arguments[1:], stdout, stderr, executable)
+		return app.runDoctor(arguments[1:], stdout, stderr)
 	case "inspect":
 		return runInspect(arguments[1:], stdout, stderr)
 	default:
@@ -358,7 +352,12 @@ func optionalBool(value *bool) string {
 	return strconv.FormatBool(*value)
 }
 
-func runDoctor(arguments []string, stdout, stderr io.Writer, executable string) int {
+func (app application) runDoctor(arguments []string, stdout, stderr io.Writer) int {
+	executable, err := app.executablePath()
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return 3
+	}
 	flags := flag.NewFlagSet("gomad doctor", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact root to verify")
@@ -371,9 +370,9 @@ func runDoctor(arguments []string, stdout, stderr io.Writer, executable string) 
 		fmt.Fprint(stderr, usage)
 		return 2
 	}
-	executable, err := filepath.Abs(executable)
+	executable, err = absoluteExecutable(executable)
 	if err != nil {
-		fmt.Fprintf(stderr, "resolve gomad executable path: %v\n", err)
+		fmt.Fprintln(stderr, err)
 		return 3
 	}
 	artifactRoot, err := filepath.Abs(*artifacts)
@@ -381,9 +380,7 @@ func runDoctor(arguments []string, stdout, stderr io.Writer, executable string) 
 		fmt.Fprintf(stderr, "resolve artifact directory: %v\n", err)
 		return 2
 	}
-	resolved, err := toolchain.ResolveInstallation(toolchain.InstallationSpec{
-		Executable: executable, ExplicitToolchainRoot: *toolchainRoot, EnvironmentToolchainRoot: os.Getenv("GOMAD3_TOOLCHAIN_DIR"),
-	})
+	resolved, err := app.resolveInstallation(executable, *toolchainRoot)
 	if err != nil {
 		if _, writeErr := fmt.Fprintf(stderr, "resolve Gomad installation: %v\n", err); writeErr != nil {
 			return 3
@@ -417,16 +414,18 @@ func runDoctor(arguments []string, stdout, stderr io.Writer, executable string) 
 }
 
 type exploreDependencies struct {
-	identity         func(string) (string, string, string, error)
+	install          func(string) (installation, error)
 	workingDirectory func() (string, error)
 	explore          func(context.Context, runner.CampaignSpec) (runner.CampaignResult, error)
 	plan             func(context.Context, runner.CampaignPlanSpec) (runner.CampaignPlanResult, error)
 }
 
-func runExplore(arguments []string, stdout, stderr io.Writer) int {
-	return runExploreWith(arguments, stdout, stderr, exploreDependencies{
-		identity: localIdentity, workingDirectory: os.Getwd, explore: runner.Explore, plan: runner.CreateCampaignPlan,
-	})
+func (app application) exploreDependencies() exploreDependencies {
+	return exploreDependencies{install: app.install, workingDirectory: os.Getwd, explore: runner.Explore, plan: runner.CreateCampaignPlan}
+}
+
+func (app application) runExplore(arguments []string, stdout, stderr io.Writer) int {
+	return runExploreWith(arguments, stdout, stderr, app.exploreDependencies())
 }
 
 func runExploreWith(arguments []string, stdout, stderr io.Writer, dependencies exploreDependencies) int {
@@ -652,7 +651,7 @@ func runExploreWith(arguments []string, stdout, stderr io.Writer, dependencies e
 		}
 		return 3
 	}
-	toolchain, executable, runnerBuild, err := dependencies.identity(*toolchainRoot)
+	installed, err := dependencies.install(*toolchainRoot)
 	if err != nil {
 		if writeErr := reporter.Error("runner_failure", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
@@ -668,14 +667,14 @@ func runExploreWith(arguments []string, stdout, stderr io.Writer, dependencies e
 			Runtime: *maxRuntimeDecisions, Scenario: *maxScenarioDecisions, Network: *maxNetworkDecisions,
 			Storage: *maxStorageDecisions, Fault: *maxFaultDecisions, Crash: *maxCrashDecisions,
 		},
-		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts, SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"}, RunnerBuild: runnerBuild,
+		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts, SupervisorCommand: installed.supervisorCommand(), CoordinatorCommand: installed.coordinatorCommand(), RunnerBuild: installed.runnerBuild,
 		Coverage: coverageMode, RequiredSemanticProbes: requiredSemanticProbes,
 		KeepSuccesses: runner.KeepSuccesses(*keepSuccesses), SuccessArtifactLimit: *successLimit, SuccessBytesLimit: uint64(successBytes),
 		Guide: *guide, GuideRegression: *guideRegression, Corpus: *corpus,
 		Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
 		Target: target.Spec{
 			Kind: parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
-			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: toolchain, CapabilityMode: resolvedCapabilityMode,
+			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: installed.toolchainRoot, CapabilityMode: resolvedCapabilityMode,
 		},
 	}
 	if *planOnly {
@@ -728,10 +727,8 @@ func runExploreWith(arguments []string, stdout, stderr io.Writer, dependencies e
 	return exploreSummaryStatus(summary)
 }
 
-func runPlan(arguments []string, stdout, stderr io.Writer) int {
-	return runPlanWith(arguments, stdout, stderr, exploreDependencies{
-		identity: localIdentity, workingDirectory: os.Getwd, explore: runner.Explore, plan: runner.CreateCampaignPlan,
-	})
+func (app application) runPlan(arguments []string, stdout, stderr io.Writer) int {
+	return runPlanWith(arguments, stdout, stderr, app.exploreDependencies())
 }
 
 func runPlanWith(arguments []string, stdout, stderr io.Writer, dependencies exploreDependencies) int {
@@ -924,12 +921,12 @@ func resolveChoiceTrace(enabled bool, limit byteSize, limitSet bool) (uint64, er
 }
 
 type replayDependencies struct {
-	identity func(string) (string, string, string, error)
-	replay   func(context.Context, runner.ReplaySpec) (runner.ReplayResult, error)
+	install func(string) (installation, error)
+	replay  func(context.Context, runner.ReplaySpec) (runner.ReplayResult, error)
 }
 
-func runReplay(arguments []string, stdout, stderr io.Writer) int {
-	return runReplayWith(arguments, stdout, stderr, replayDependencies{identity: localIdentity, replay: runner.Replay})
+func (app application) runReplay(arguments []string, stdout, stderr io.Writer) int {
+	return runReplayWith(arguments, stdout, stderr, replayDependencies{install: app.install, replay: runner.Replay})
 }
 
 func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies replayDependencies) int {
@@ -945,13 +942,13 @@ func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies re
 		fmt.Fprint(stderr, usage)
 		return 2
 	}
-	toolchain, executable, _, err := dependencies.identity(*toolchainRoot)
+	installed, err := dependencies.install(*toolchainRoot)
 	if err != nil {
 		fmt.Fprintln(stderr, err)
 		return 3
 	}
 	result, err := dependencies.replay(context.Background(), runner.ReplaySpec{
-		ArtifactPath: flags.Arg(0), VerifyOnly: *verifyOnly, ToolchainRoot: toolchain, ObservedDir: *observedDir, SupervisorCommand: []string{executable, "__supervisor"},
+		ArtifactPath: flags.Arg(0), VerifyOnly: *verifyOnly, ToolchainRoot: installed.toolchainRoot, ObservedDir: *observedDir, SupervisorCommand: installed.supervisorCommand(),
 	})
 	if err != nil {
 		var preflightError *runner.ReplayPreflightError
@@ -975,12 +972,12 @@ func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies re
 }
 
 type minimizeDependencies struct {
-	identity func(string) (string, string, string, error)
+	install  func(string) (installation, error)
 	minimize func(context.Context, runner.MinimizeSpec) (runner.MinimizeResult, error)
 }
 
-func runMinimize(arguments []string, stdout, stderr io.Writer) int {
-	return runMinimizeWith(arguments, stdout, stderr, minimizeDependencies{identity: localIdentity, minimize: runner.Minimize})
+func (app application) runMinimize(arguments []string, stdout, stderr io.Writer) int {
+	return runMinimizeWith(arguments, stdout, stderr, minimizeDependencies{install: app.install, minimize: runner.Minimize})
 }
 
 func runMinimizeWith(arguments []string, stdout, stderr io.Writer, dependencies minimizeDependencies) int {
@@ -1003,14 +1000,14 @@ func runMinimizeWith(arguments []string, stdout, stderr io.Writer, dependencies 
 	if err != nil {
 		return writeCommandError(stderr, 2, "resolve artifact directory: %v\n", err)
 	}
-	resolvedToolchain, executable, _, err := dependencies.identity(*toolchainRoot)
+	installed, err := dependencies.install(*toolchainRoot)
 	if err != nil {
 		return writeCommandError(stderr, 3, "%v\n", err)
 	}
 	result, err := dependencies.minimize(context.Background(), runner.MinimizeSpec{
 		ArtifactPath: flags.Arg(0), OutputRoot: filepath.Join(artifactRoot, "minimized"),
-		AttemptBudget: *attemptBudget, MaximumBytes: uint64(maximumBytes), ToolchainRoot: resolvedToolchain,
-		SupervisorCommand: []string{executable, "__supervisor"}, Resume: *resume,
+		AttemptBudget: *attemptBudget, MaximumBytes: uint64(maximumBytes), ToolchainRoot: installed.toolchainRoot,
+		SupervisorCommand: installed.supervisorCommand(), Resume: *resume,
 	})
 	if err != nil {
 		var preflight *runner.ReplayPreflightError
@@ -1101,28 +1098,4 @@ func parseCapabilityMode(value string) (target.CapabilityMode, error) {
 	default:
 		return "", fmt.Errorf("unknown capability mode %q", value)
 	}
-}
-
-func localIdentity(explicitToolchainRoot string) (toolchainRoot, executable, runnerBuild string, err error) {
-	executable, err = os.Executable()
-	if err != nil {
-		return "", "", "", fmt.Errorf("resolve gomad executable: %w", err)
-	}
-	executable, err = filepath.Abs(executable)
-	if err != nil {
-		return "", "", "", fmt.Errorf("resolve gomad executable path: %w", err)
-	}
-	resolved, err := toolchain.ResolveInstallation(toolchain.InstallationSpec{
-		Executable: executable, ExplicitToolchainRoot: explicitToolchainRoot, EnvironmentToolchainRoot: os.Getenv("GOMAD3_TOOLCHAIN_DIR"),
-	})
-	if err != nil {
-		return "", "", "", fmt.Errorf("resolve Gomad installation: %w", err)
-	}
-	toolchainRoot = resolved.ToolchainRoot
-	bytes, err := os.ReadFile(executable)
-	if err != nil {
-		return "", "", "", fmt.Errorf("hash gomad executable: %w", err)
-	}
-	digest := sha256.Sum256(bytes)
-	return toolchainRoot, executable, fmt.Sprintf("sha256:%x", digest), nil
 }
