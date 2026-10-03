@@ -29,7 +29,7 @@ type simulationExplorationRoundResult struct {
 
 func runSimulationExplorationLocal(
 	ctx context.Context,
-	config CampaignSpec,
+	config campaignRun,
 	selection SeedSelection,
 	baseEnvironment []record.Environment,
 	readOnlyMounts []readonlymount.Mapping,
@@ -117,7 +117,7 @@ func runSimulationExplorationLocal(
 		semanticProbes = restored.probes
 		choiceFeatures = restored.choiceFeatures
 	}
-	executor := config.Executor
+	executor := config.executor
 	if executor == nil {
 		executor = processExecutor{}
 	}
@@ -226,8 +226,8 @@ func runSimulationExplorationLocal(
 
 func executeSimulationExplorationRound(
 	ctx context.Context,
-	config CampaignSpec,
-	executor Executor,
+	config campaignRun,
+	executor targetExecutor,
 	prepared target.Prepared,
 	baseEnvironment []record.Environment,
 	profile deterministicio.Spec,
@@ -280,7 +280,7 @@ func executeSimulationExplorationRound(
 
 func processSimulationExplorationCompletion(
 	ctx context.Context,
-	config CampaignSpec,
+	config campaignRun,
 	prepared target.Prepared,
 	baseEnvironment []record.Environment,
 	readOnlyMounts []readonlymount.Mapping,
@@ -457,7 +457,7 @@ func processSimulationExplorationCompletion(
 	return simulationExplorationRoundResult{result: explorationResult, run: run}, nil
 }
 
-func simulationExplorationExecutionIdentity(config CampaignSpec, prepared target.Prepared, profile deterministicio.Spec, choiceImplementation [32]byte) (record.SHA256, error) {
+func simulationExplorationExecutionIdentity(config campaignRun, prepared target.Prepared, profile deterministicio.Spec, choiceImplementation [32]byte) (record.SHA256, error) {
 	encoded, err := canonicaljson.CanonicalJSON(struct {
 		TargetSHA256         record.SHA256            `json:"target_sha256"`
 		ToolchainBuildKey    string                   `json:"toolchain_build_key"`
@@ -477,7 +477,7 @@ func simulationExplorationExecutionIdentity(config CampaignSpec, prepared target
 	return record.DomainHash("gomad3-simulation-exploration-execution/v1", encoded), nil
 }
 
-func simulationExplorationSegmentCapacity(config CampaignSpec) (uint64, error) {
+func simulationExplorationSegmentCapacity(config campaignRun) (uint64, error) {
 	const maximum = uint64(1 << 30)
 	const overhead = uint64(4 << 20)
 	if config.MaxExplorationBytes > maximum-overhead {

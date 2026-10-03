@@ -1,0 +1,1280 @@
+### gomad 
+status=2
+--- stdout
+--- stderr
+usage:
+  gomad plan [flags] --output FILE (exec --provenance FILE -- BINARY [ARG ...] | go-run PACKAGE -- [ARG ...] | go-test PACKAGE -- [TEST_BINARY_ARG ...])
+  gomad execute-shard [--json] [--artifacts DIR] [--toolchain-root DIR] --shard INDEX/COUNT CAMPAIGN_PLAN
+  gomad merge [--json] [--partial] --output DIR CAMPAIGN_PLAN SHARD_BATCH...
+  gomad explore [flags] exec --provenance FILE -- BINARY [ARG ...]
+  gomad explore [flags] go-run PACKAGE -- [ARG ...]
+  gomad explore [flags] go-test PACKAGE -- [TEST_BINARY_ARG ...]
+  gomad qualify [flags] exec --provenance FILE -- BINARY [ARG ...]
+  gomad qualify [flags] go-run PACKAGE -- [ARG ...]
+  gomad qualify [flags] go-test PACKAGE -- [TEST_BINARY_ARG ...]
+  gomad qualify-set --manifest FILE --working-dir DIR [--artifacts DIR] [--output FILE] [--shard INDEX/COUNT] [--min-free-bytes SIZE] [--format=text|json]
+  gomad merge-set --manifest FILE --output FILE [--format=text|json] SHARD_REPORT...
+  gomad compare-support --baseline FILE --candidate FILE [--approve-boundary-diff SHA256] [--format=text|json]
+  gomad analyze [--format=text|json] [--timeout DURATION] [--toolchain-root DIR] [--build-tag TAG ...] (go-run PACKAGE | go-test PACKAGE -- [TEST_BINARY_ARG ...])
+  gomad resume [--json] INTERRUPTED_BATCH
+  gomad recover [--json] INTERRUPTED_BATCH
+  gomad replay [--verify-only] [--observed DIR] ARTIFACT_DIR
+  gomad minimize [--json] [--resume] [--attempt-budget N] [--artifacts DIR] ARTIFACT_DIR
+  gomad doctor [--artifacts DIR] [--json]
+  gomad inspect [--json] [--choices] ARTIFACT_OR_BATCH
+### gomad unknown
+status=2
+--- stdout
+--- stderr
+unknown gomad command "unknown"
+usage:
+  gomad plan [flags] --output FILE (exec --provenance FILE -- BINARY [ARG ...] | go-run PACKAGE -- [ARG ...] | go-test PACKAGE -- [TEST_BINARY_ARG ...])
+  gomad execute-shard [--json] [--artifacts DIR] [--toolchain-root DIR] --shard INDEX/COUNT CAMPAIGN_PLAN
+  gomad merge [--json] [--partial] --output DIR CAMPAIGN_PLAN SHARD_BATCH...
+  gomad explore [flags] exec --provenance FILE -- BINARY [ARG ...]
+  gomad explore [flags] go-run PACKAGE -- [ARG ...]
+  gomad explore [flags] go-test PACKAGE -- [TEST_BINARY_ARG ...]
+  gomad qualify [flags] exec --provenance FILE -- BINARY [ARG ...]
+  gomad qualify [flags] go-run PACKAGE -- [ARG ...]
+  gomad qualify [flags] go-test PACKAGE -- [TEST_BINARY_ARG ...]
+  gomad qualify-set --manifest FILE --working-dir DIR [--artifacts DIR] [--output FILE] [--shard INDEX/COUNT] [--min-free-bytes SIZE] [--format=text|json]
+  gomad merge-set --manifest FILE --output FILE [--format=text|json] SHARD_REPORT...
+  gomad compare-support --baseline FILE --candidate FILE [--approve-boundary-diff SHA256] [--format=text|json]
+  gomad analyze [--format=text|json] [--timeout DURATION] [--toolchain-root DIR] [--build-tag TAG ...] (go-run PACKAGE | go-test PACKAGE -- [TEST_BINARY_ARG ...])
+  gomad resume [--json] INTERRUPTED_BATCH
+  gomad recover [--json] INTERRUPTED_BATCH
+  gomad replay [--verify-only] [--observed DIR] ARTIFACT_DIR
+  gomad minimize [--json] [--resume] [--attempt-budget N] [--artifacts DIR] ARTIFACT_DIR
+  gomad doctor [--artifacts DIR] [--json]
+  gomad inspect [--json] [--choices] ARTIFACT_OR_BATCH
+### gomad plan -h
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: flag: help requested
+Usage of gomad explore:
+  -artifacts string
+    	artifact root (default ".gomad/artifacts")
+  -build-tag value
+    	validated Go build tag
+  -capability-mode string
+    	closure, linked, or guarded capability assessment (default "closure")
+  -choice-bytes value
+    	runtime choice trace capacity (default 8388608)
+  -choice-start-ordinal uint
+    	first replay-plan decision ordinal choice exploration expands; inspect --choices lists ordinals
+  -choices
+    	record bounded runtime choices
+  -clock-tick string
+    	virtual-clock tick policy: strict or forward (default "strict")
+  -corpus string
+    	guided coverage corpus directory
+  -count uint
+    	explore seeds 0 through N-1
+  -coverage string
+    	none, semantic, choice, or semantic+choice (default "none")
+  -diagnostics
+    	record runtime-state diagnostics; implies --choices
+  -env value
+    	target NAME=VALUE
+  -execution-timeout duration
+    	per-execution host deadline (default 30s)
+  -failure-budget uint
+    	distinct failure signature threshold (default 1)
+  -guide
+    	exclude answered seeds using a bounded coverage corpus
+  -guide-regression
+    	re-run corpus seeds with --guide; fully answered default requests execute zero seeds and exit 0
+  -io-ro-mount value
+    	read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping
+  -io-transcript-bytes value
+    	I/O transcript capacity (64MiB to 1GiB, whole MiB) (default 67108864)
+  -json
+    	emit stable JSON events
+  -keep-successes string
+    	none, novel, or all (default "none")
+  -max-choice-depth uint
+    	maximum forced choice decisions
+  -max-crash-decisions uint
+    	maximum crash-state decision ordinal
+  -max-executions uint
+    	maximum exploration candidates
+  -max-exploration-bytes value
+    	maximum live choice-exploration bytes
+  -max-exploration-result-bytes value
+    	maximum combined result bytes per candidate
+  -max-fault-decisions uint
+    	maximum fault decision ordinal
+  -max-forced-decisions uint
+    	maximum combined forced decisions
+  -max-network-decisions uint
+    	maximum network decision ordinal
+  -max-runtime-decisions uint
+    	maximum runtime decision ordinal
+  -max-scenario-decisions uint
+    	maximum scenario decision ordinal
+  -max-storage-decisions uint
+    	maximum storage decision ordinal
+  -on-failure string
+    	first, budget, or all (default "first")
+  -output string
+    	campaign plan output
+  -output-limit value
+    	retained bytes per output stream (default 8388608)
+  -overall-timeout duration
+    	complete exploration host deadline (default 10m0s)
+  -parallel int
+    	maximum active targets (default 8)
+  -require-probe value
+    	required semantic probe (requires --coverage=semantic)
+  -seeds string
+    	seed set or inclusive ranges (default "1")
+  -strategy string
+    	seed, choice-exploration, or simulation-exploration (default "seed")
+  -success-bytes value
+    	total retained successful-execution bytes
+  -success-limit uint
+    	maximum retained successful executions
+  -terminate-grace duration
+    	termination grace inside deadlines (default 2s)
+  -toolchain-root string
+    	absolute pinned toolchain root
+  -working-dir string
+    	absolute target module root (default: the current directory)
+  -world-transition-limit value
+    	World transition capacity (default 67108864)
+### gomad plan --bogus
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: flag provided but not defined: -bogus
+Usage of gomad explore:
+  -artifacts string
+    	artifact root (default ".gomad/artifacts")
+  -build-tag value
+    	validated Go build tag
+  -capability-mode string
+    	closure, linked, or guarded capability assessment (default "closure")
+  -choice-bytes value
+    	runtime choice trace capacity (default 8388608)
+  -choice-start-ordinal uint
+    	first replay-plan decision ordinal choice exploration expands; inspect --choices lists ordinals
+  -choices
+    	record bounded runtime choices
+  -clock-tick string
+    	virtual-clock tick policy: strict or forward (default "strict")
+  -corpus string
+    	guided coverage corpus directory
+  -count uint
+    	explore seeds 0 through N-1
+  -coverage string
+    	none, semantic, choice, or semantic+choice (default "none")
+  -diagnostics
+    	record runtime-state diagnostics; implies --choices
+  -env value
+    	target NAME=VALUE
+  -execution-timeout duration
+    	per-execution host deadline (default 30s)
+  -failure-budget uint
+    	distinct failure signature threshold (default 1)
+  -guide
+    	exclude answered seeds using a bounded coverage corpus
+  -guide-regression
+    	re-run corpus seeds with --guide; fully answered default requests execute zero seeds and exit 0
+  -io-ro-mount value
+    	read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping
+  -io-transcript-bytes value
+    	I/O transcript capacity (64MiB to 1GiB, whole MiB) (default 67108864)
+  -json
+    	emit stable JSON events
+  -keep-successes string
+    	none, novel, or all (default "none")
+  -max-choice-depth uint
+    	maximum forced choice decisions
+  -max-crash-decisions uint
+    	maximum crash-state decision ordinal
+  -max-executions uint
+    	maximum exploration candidates
+  -max-exploration-bytes value
+    	maximum live choice-exploration bytes
+  -max-exploration-result-bytes value
+    	maximum combined result bytes per candidate
+  -max-fault-decisions uint
+    	maximum fault decision ordinal
+  -max-forced-decisions uint
+    	maximum combined forced decisions
+  -max-network-decisions uint
+    	maximum network decision ordinal
+  -max-runtime-decisions uint
+    	maximum runtime decision ordinal
+  -max-scenario-decisions uint
+    	maximum scenario decision ordinal
+  -max-storage-decisions uint
+    	maximum storage decision ordinal
+  -on-failure string
+    	first, budget, or all (default "first")
+  -output string
+    	campaign plan output
+  -output-limit value
+    	retained bytes per output stream (default 8388608)
+  -overall-timeout duration
+    	complete exploration host deadline (default 10m0s)
+  -parallel int
+    	maximum active targets (default 8)
+  -require-probe value
+    	required semantic probe (requires --coverage=semantic)
+  -seeds string
+    	seed set or inclusive ranges (default "1")
+  -strategy string
+    	seed, choice-exploration, or simulation-exploration (default "seed")
+  -success-bytes value
+    	total retained successful-execution bytes
+  -success-limit uint
+    	maximum retained successful executions
+  -terminate-grace duration
+    	termination grace inside deadlines (default 2s)
+  -toolchain-root string
+    	absolute pinned toolchain root
+  -working-dir string
+    	absolute target module root (default: the current directory)
+  -world-transition-limit value
+    	World transition capacity (default 67108864)
+### gomad execute-shard -h
+status=2
+--- stdout
+--- stderr
+Usage of gomad execute-shard:
+  -artifacts string
+    	artifact root (default ".gomad/artifacts")
+  -json
+    	emit stable JSON events
+  -shard string
+    	zero-based INDEX/COUNT shard assignment
+  -toolchain-root string
+    	absolute pinned toolchain root
+### gomad execute-shard --bogus
+status=2
+--- stdout
+--- stderr
+flag provided but not defined: -bogus
+Usage of gomad execute-shard:
+  -artifacts string
+    	artifact root (default ".gomad/artifacts")
+  -json
+    	emit stable JSON events
+  -shard string
+    	zero-based INDEX/COUNT shard assignment
+  -toolchain-root string
+    	absolute pinned toolchain root
+### gomad merge -h
+status=2
+--- stdout
+--- stderr
+Usage of gomad merge:
+  -json
+    	emit stable JSON
+  -output string
+    	merged campaign output directory
+  -partial
+    	publish an aggregate with explicit missing ordinals
+### gomad merge --bogus
+status=2
+--- stdout
+--- stderr
+flag provided but not defined: -bogus
+Usage of gomad merge:
+  -json
+    	emit stable JSON
+  -output string
+    	merged campaign output directory
+  -partial
+    	publish an aggregate with explicit missing ordinals
+### gomad explore -h
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: flag: help requested
+Usage of gomad explore:
+  -artifacts string
+    	artifact root (default ".gomad/artifacts")
+  -build-tag value
+    	validated Go build tag
+  -capability-mode string
+    	closure, linked, or guarded capability assessment (default "closure")
+  -choice-bytes value
+    	runtime choice trace capacity (default 8388608)
+  -choice-start-ordinal uint
+    	first replay-plan decision ordinal choice exploration expands; inspect --choices lists ordinals
+  -choices
+    	record bounded runtime choices
+  -clock-tick string
+    	virtual-clock tick policy: strict or forward (default "strict")
+  -corpus string
+    	guided coverage corpus directory
+  -count uint
+    	explore seeds 0 through N-1
+  -coverage string
+    	none, semantic, choice, or semantic+choice (default "none")
+  -diagnostics
+    	record runtime-state diagnostics; implies --choices
+  -env value
+    	target NAME=VALUE
+  -execution-timeout duration
+    	per-execution host deadline (default 30s)
+  -failure-budget uint
+    	distinct failure signature threshold (default 1)
+  -guide
+    	exclude answered seeds using a bounded coverage corpus
+  -guide-regression
+    	re-run corpus seeds with --guide; fully answered default requests execute zero seeds and exit 0
+  -io-ro-mount value
+    	read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping
+  -io-transcript-bytes value
+    	I/O transcript capacity (64MiB to 1GiB, whole MiB) (default 67108864)
+  -json
+    	emit stable JSON events
+  -keep-successes string
+    	none, novel, or all (default "none")
+  -max-choice-depth uint
+    	maximum forced choice decisions
+  -max-crash-decisions uint
+    	maximum crash-state decision ordinal
+  -max-executions uint
+    	maximum exploration candidates
+  -max-exploration-bytes value
+    	maximum live choice-exploration bytes
+  -max-exploration-result-bytes value
+    	maximum combined result bytes per candidate
+  -max-fault-decisions uint
+    	maximum fault decision ordinal
+  -max-forced-decisions uint
+    	maximum combined forced decisions
+  -max-network-decisions uint
+    	maximum network decision ordinal
+  -max-runtime-decisions uint
+    	maximum runtime decision ordinal
+  -max-scenario-decisions uint
+    	maximum scenario decision ordinal
+  -max-storage-decisions uint
+    	maximum storage decision ordinal
+  -on-failure string
+    	first, budget, or all (default "first")
+  -output string
+    	campaign plan output
+  -output-limit value
+    	retained bytes per output stream (default 8388608)
+  -overall-timeout duration
+    	complete exploration host deadline (default 10m0s)
+  -parallel int
+    	maximum active targets (default 8)
+  -require-probe value
+    	required semantic probe (requires --coverage=semantic)
+  -seeds string
+    	seed set or inclusive ranges (default "1")
+  -strategy string
+    	seed, choice-exploration, or simulation-exploration (default "seed")
+  -success-bytes value
+    	total retained successful-execution bytes
+  -success-limit uint
+    	maximum retained successful executions
+  -terminate-grace duration
+    	termination grace inside deadlines (default 2s)
+  -toolchain-root string
+    	absolute pinned toolchain root
+  -working-dir string
+    	absolute target module root (default: the current directory)
+  -world-transition-limit value
+    	World transition capacity (default 67108864)
+### gomad explore --bogus
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: flag provided but not defined: -bogus
+Usage of gomad explore:
+  -artifacts string
+    	artifact root (default ".gomad/artifacts")
+  -build-tag value
+    	validated Go build tag
+  -capability-mode string
+    	closure, linked, or guarded capability assessment (default "closure")
+  -choice-bytes value
+    	runtime choice trace capacity (default 8388608)
+  -choice-start-ordinal uint
+    	first replay-plan decision ordinal choice exploration expands; inspect --choices lists ordinals
+  -choices
+    	record bounded runtime choices
+  -clock-tick string
+    	virtual-clock tick policy: strict or forward (default "strict")
+  -corpus string
+    	guided coverage corpus directory
+  -count uint
+    	explore seeds 0 through N-1
+  -coverage string
+    	none, semantic, choice, or semantic+choice (default "none")
+  -diagnostics
+    	record runtime-state diagnostics; implies --choices
+  -env value
+    	target NAME=VALUE
+  -execution-timeout duration
+    	per-execution host deadline (default 30s)
+  -failure-budget uint
+    	distinct failure signature threshold (default 1)
+  -guide
+    	exclude answered seeds using a bounded coverage corpus
+  -guide-regression
+    	re-run corpus seeds with --guide; fully answered default requests execute zero seeds and exit 0
+  -io-ro-mount value
+    	read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping
+  -io-transcript-bytes value
+    	I/O transcript capacity (64MiB to 1GiB, whole MiB) (default 67108864)
+  -json
+    	emit stable JSON events
+  -keep-successes string
+    	none, novel, or all (default "none")
+  -max-choice-depth uint
+    	maximum forced choice decisions
+  -max-crash-decisions uint
+    	maximum crash-state decision ordinal
+  -max-executions uint
+    	maximum exploration candidates
+  -max-exploration-bytes value
+    	maximum live choice-exploration bytes
+  -max-exploration-result-bytes value
+    	maximum combined result bytes per candidate
+  -max-fault-decisions uint
+    	maximum fault decision ordinal
+  -max-forced-decisions uint
+    	maximum combined forced decisions
+  -max-network-decisions uint
+    	maximum network decision ordinal
+  -max-runtime-decisions uint
+    	maximum runtime decision ordinal
+  -max-scenario-decisions uint
+    	maximum scenario decision ordinal
+  -max-storage-decisions uint
+    	maximum storage decision ordinal
+  -on-failure string
+    	first, budget, or all (default "first")
+  -output string
+    	campaign plan output
+  -output-limit value
+    	retained bytes per output stream (default 8388608)
+  -overall-timeout duration
+    	complete exploration host deadline (default 10m0s)
+  -parallel int
+    	maximum active targets (default 8)
+  -require-probe value
+    	required semantic probe (requires --coverage=semantic)
+  -seeds string
+    	seed set or inclusive ranges (default "1")
+  -strategy string
+    	seed, choice-exploration, or simulation-exploration (default "seed")
+  -success-bytes value
+    	total retained successful-execution bytes
+  -success-limit uint
+    	maximum retained successful executions
+  -terminate-grace duration
+    	termination grace inside deadlines (default 2s)
+  -toolchain-root string
+    	absolute pinned toolchain root
+  -working-dir string
+    	absolute target module root (default: the current directory)
+  -world-transition-limit value
+    	World transition capacity (default 67108864)
+### gomad qualify -h
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: flag: help requested
+Usage of gomad qualify:
+  -artifacts string
+    	artifact and qualification report root (default ".gomad/artifacts")
+  -build-tag value
+    	validated Go build tag
+  -capability-mode string
+    	closure, linked, or guarded capability assessment (default "closure")
+  -choice-bytes value
+    	runtime choice trace capacity (default 8388608)
+  -choices
+    	record bounded runtime choices
+  -clock-tick string
+    	virtual-clock tick policy: strict or forward (default "strict")
+  -diagnostics
+    	record runtime-state diagnostics for fresh runs; implies --choices
+  -env value
+    	target NAME=VALUE
+  -execution-timeout duration
+    	per-execution host deadline (default 30s)
+  -io-ro-mount value
+    	read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping
+  -io-transcript-bytes value
+    	I/O transcript capacity (64MiB to 1GiB, whole MiB) (default 67108864)
+  -json
+    	emit stable JSON events
+  -output-limit value
+    	retained bytes per output stream (default 8388608)
+  -overall-timeout duration
+    	complete qualification host deadline (default 10m0s)
+  -repeat uint
+    	fresh same-seed repetitions (default 2)
+  -replay-successes
+    	retain and replay every successful repetition
+  -require-probe value
+    	required semantic probe
+  -seed uint
+    	schedule seed (default 1)
+  -success-bytes value
+    	retained successful-execution bytes per repetition
+  -success-limit uint
+    	maximum retained successful executions per repetition
+  -terminate-grace duration
+    	termination grace inside deadlines (default 2s)
+  -toolchain-root string
+    	absolute pinned toolchain root
+  -working-dir string
+    	absolute target module root (default: the current directory)
+  -world-transition-limit value
+    	World transition capacity (default 67108864)
+### gomad qualify --bogus
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: flag provided but not defined: -bogus
+Usage of gomad qualify:
+  -artifacts string
+    	artifact and qualification report root (default ".gomad/artifacts")
+  -build-tag value
+    	validated Go build tag
+  -capability-mode string
+    	closure, linked, or guarded capability assessment (default "closure")
+  -choice-bytes value
+    	runtime choice trace capacity (default 8388608)
+  -choices
+    	record bounded runtime choices
+  -clock-tick string
+    	virtual-clock tick policy: strict or forward (default "strict")
+  -diagnostics
+    	record runtime-state diagnostics for fresh runs; implies --choices
+  -env value
+    	target NAME=VALUE
+  -execution-timeout duration
+    	per-execution host deadline (default 30s)
+  -io-ro-mount value
+    	read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping
+  -io-transcript-bytes value
+    	I/O transcript capacity (64MiB to 1GiB, whole MiB) (default 67108864)
+  -json
+    	emit stable JSON events
+  -output-limit value
+    	retained bytes per output stream (default 8388608)
+  -overall-timeout duration
+    	complete qualification host deadline (default 10m0s)
+  -repeat uint
+    	fresh same-seed repetitions (default 2)
+  -replay-successes
+    	retain and replay every successful repetition
+  -require-probe value
+    	required semantic probe
+  -seed uint
+    	schedule seed (default 1)
+  -success-bytes value
+    	retained successful-execution bytes per repetition
+  -success-limit uint
+    	maximum retained successful executions per repetition
+  -terminate-grace duration
+    	termination grace inside deadlines (default 2s)
+  -toolchain-root string
+    	absolute pinned toolchain root
+  -working-dir string
+    	absolute target module root (default: the current directory)
+  -world-transition-limit value
+    	World transition capacity (default 67108864)
+### gomad qualify-set -h
+status=2
+--- stdout
+--- stderr
+Usage of gomad qualify-set:
+  -artifacts string
+    	qualification artifact root (default ".gomad/qualification")
+  -check
+    	validate the manifest without executing targets
+  -format string
+    	text or json (default "text")
+  -manifest string
+    	qualification manifest
+  -min-free-bytes value
+    	stop before a seed starts on an artifact volume with less free space (default 2147483648)
+  -output string
+    	qualification set report (default ".gomad/qualification-set.json")
+  -prune-qualified-artifacts
+    	delete each qualified seed's retained Campaigns once its evidence is final
+  -shard string
+    	zero-based INDEX/COUNT subset of the manifest's workloads, merged later with merge-set
+  -working-dir string
+    	target module directory
+### gomad qualify-set --bogus
+status=2
+--- stdout
+--- stderr
+flag provided but not defined: -bogus
+Usage of gomad qualify-set:
+  -artifacts string
+    	qualification artifact root (default ".gomad/qualification")
+  -check
+    	validate the manifest without executing targets
+  -format string
+    	text or json (default "text")
+  -manifest string
+    	qualification manifest
+  -min-free-bytes value
+    	stop before a seed starts on an artifact volume with less free space (default 2147483648)
+  -output string
+    	qualification set report (default ".gomad/qualification-set.json")
+  -prune-qualified-artifacts
+    	delete each qualified seed's retained Campaigns once its evidence is final
+  -shard string
+    	zero-based INDEX/COUNT subset of the manifest's workloads, merged later with merge-set
+  -working-dir string
+    	target module directory
+### gomad merge-set -h
+status=2
+--- stdout
+--- stderr
+Usage of gomad merge-set:
+  -format string
+    	text or json (default "text")
+  -manifest string
+    	qualification manifest the shards ran
+  -output string
+    	merged qualification set report (default ".gomad/qualification-set.json")
+### gomad merge-set --bogus
+status=2
+--- stdout
+--- stderr
+flag provided but not defined: -bogus
+Usage of gomad merge-set:
+  -format string
+    	text or json (default "text")
+  -manifest string
+    	qualification manifest the shards ran
+  -output string
+    	merged qualification set report (default ".gomad/qualification-set.json")
+### gomad compare-support -h
+status=2
+--- stdout
+--- stderr
+Usage of gomad compare-support:
+  -approve-boundary-diff string
+    	exact approved boundary diff SHA-256
+  -baseline string
+    	baseline qualification-set report
+  -candidate string
+    	candidate qualification-set report
+  -format string
+    	text or json (default "text")
+### gomad compare-support --bogus
+status=2
+--- stdout
+--- stderr
+flag provided but not defined: -bogus
+Usage of gomad compare-support:
+  -approve-boundary-diff string
+    	exact approved boundary diff SHA-256
+  -baseline string
+    	baseline qualification-set report
+  -candidate string
+    	candidate qualification-set report
+  -format string
+    	text or json (default "text")
+### gomad analyze -h
+status=2
+--- stdout
+--- stderr
+Usage of gomad analyze:
+  -build-tag value
+    	validated Go build tag
+  -capability-mode string
+    	closure, linked, or guarded capability assessment (default "closure")
+  -format string
+    	text or json (default "text")
+  -timeout duration
+    	analysis wall-time bound
+  -toolchain-root string
+    	absolute pinned toolchain root
+  -working-dir string
+    	absolute target module root (default: the current directory)
+### gomad analyze --bogus
+status=2
+--- stdout
+--- stderr
+flag provided but not defined: -bogus
+Usage of gomad analyze:
+  -build-tag value
+    	validated Go build tag
+  -capability-mode string
+    	closure, linked, or guarded capability assessment (default "closure")
+  -format string
+    	text or json (default "text")
+  -timeout duration
+    	analysis wall-time bound
+  -toolchain-root string
+    	absolute pinned toolchain root
+  -working-dir string
+    	absolute target module root (default: the current directory)
+### gomad resume -h
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: flag: help requested
+Usage of gomad resume:
+  -guide-regression
+    	require the recorded guidance regression mode
+  -json
+    	emit stable JSON events
+  -toolchain-root string
+    	absolute pinned toolchain root
+### gomad resume --bogus
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: flag provided but not defined: -bogus
+Usage of gomad resume:
+  -guide-regression
+    	require the recorded guidance regression mode
+  -json
+    	emit stable JSON events
+  -toolchain-root string
+    	absolute pinned toolchain root
+### gomad recover -h
+status=2
+--- stdout
+--- stderr
+Usage of gomad recover:
+  -json
+    	emit stable JSON
+### gomad recover --bogus
+status=2
+--- stdout
+--- stderr
+flag provided but not defined: -bogus
+Usage of gomad recover:
+  -json
+    	emit stable JSON
+### gomad replay -h
+status=2
+--- stdout
+--- stderr
+Usage of gomad replay:
+  -observed string
+    	directory that receives the replayed target's stdout and stderr
+  -toolchain-root string
+    	absolute pinned toolchain root
+  -verify-only
+    	validate without executing the target
+### gomad replay --bogus
+status=2
+--- stdout
+--- stderr
+flag provided but not defined: -bogus
+Usage of gomad replay:
+  -observed string
+    	directory that receives the replayed target's stdout and stderr
+  -toolchain-root string
+    	absolute pinned toolchain root
+  -verify-only
+    	validate without executing the target
+### gomad minimize -h
+status=2
+--- stdout
+--- stderr
+Usage of gomad minimize:
+  -artifacts string
+    	artifact root (default ".gomad/artifacts")
+  -attempt-budget uint
+    	maximum fresh-process minimization candidates (default 64)
+  -json
+    	emit stable JSON
+  -max-bytes value
+    	maximum minimized artifact bytes
+  -resume
+    	continue this artifact's interrupted minimization from its state under the artifact root
+  -toolchain-root string
+    	absolute pinned toolchain root
+### gomad minimize --bogus
+status=2
+--- stdout
+--- stderr
+flag provided but not defined: -bogus
+Usage of gomad minimize:
+  -artifacts string
+    	artifact root (default ".gomad/artifacts")
+  -attempt-budget uint
+    	maximum fresh-process minimization candidates (default 64)
+  -json
+    	emit stable JSON
+  -max-bytes value
+    	maximum minimized artifact bytes
+  -resume
+    	continue this artifact's interrupted minimization from its state under the artifact root
+  -toolchain-root string
+    	absolute pinned toolchain root
+### gomad doctor -h
+status=2
+--- stdout
+--- stderr
+Usage of gomad doctor:
+  -artifacts string
+    	artifact root to verify (default ".gomad/artifacts")
+  -json
+    	emit stable JSON
+  -toolchain-root string
+    	absolute pinned toolchain root
+### gomad doctor --bogus
+status=2
+--- stdout
+--- stderr
+flag provided but not defined: -bogus
+Usage of gomad doctor:
+  -artifacts string
+    	artifact root to verify (default ".gomad/artifacts")
+  -json
+    	emit stable JSON
+  -toolchain-root string
+    	absolute pinned toolchain root
+### gomad inspect -h
+status=2
+--- stdout
+--- stderr
+Usage of gomad inspect:
+  -choices
+    	project a validated runtime choice trace
+  -json
+    	emit stable JSON
+### gomad inspect --bogus
+status=2
+--- stdout
+--- stderr
+flag provided but not defined: -bogus
+Usage of gomad inspect:
+  -choices
+    	project a validated runtime choice trace
+  -json
+    	emit stable JSON
+### gomad __coordinator
+status=3
+--- stdout
+--- stderr
+decode coordinator request: EOF
+### gomad explore --toolchain-root relative go-run ./x
+status=3
+--- stdout
+--- stderr
+gomad: runner_failure: resolve Gomad installation: CLI --toolchain-root toolchain root must be an absolute non-root clean path: "relative"
+### gomad explore --json --toolchain-root relative go-run ./x
+status=3
+--- stdout
+{"schema":"gomad3.explore-event/v3","type":"error","classification":"runner_failure","message":"resolve Gomad installation: CLI --toolchain-root toolchain root must be an absolute non-root clean path: \"relative\""}
+--- stderr
+### gomad plan --output /tmp/p --toolchain-root relative go-run ./x
+status=3
+--- stdout
+--- stderr
+gomad: runner_failure: resolve Gomad installation: CLI --toolchain-root toolchain root must be an absolute non-root clean path: "relative"
+### gomad replay --toolchain-root relative /nonexistent
+status=3
+--- stdout
+--- stderr
+resolve Gomad installation: CLI --toolchain-root toolchain root must be an absolute non-root clean path: "relative"
+### gomad minimize --toolchain-root relative /nonexistent
+status=3
+--- stdout
+--- stderr
+resolve Gomad installation: CLI --toolchain-root toolchain root must be an absolute non-root clean path: "relative"
+### gomad resume --toolchain-root relative /nonexistent
+status=3
+--- stdout
+--- stderr
+gomad: runner_failure: resolve Gomad installation: CLI --toolchain-root toolchain root must be an absolute non-root clean path: "relative"
+### gomad execute-shard --shard 0/1 --toolchain-root relative /nonexistent
+status=3
+--- stdout
+--- stderr
+resolve Gomad installation: CLI --toolchain-root toolchain root must be an absolute non-root clean path: "relative"
+### gomad analyze --toolchain-root relative go-run ./x
+status=3
+--- stdout
+--- stderr
+resolve Gomad toolchain: resolve Gomad installation: CLI --toolchain-root toolchain root must be an absolute non-root clean path: "relative"
+### gomad doctor --toolchain-root relative
+status=2
+--- stdout
+--- stderr
+resolve Gomad installation: CLI --toolchain-root toolchain root must be an absolute non-root clean path: "relative"
+### gomad qualify --toolchain-root relative go-run ./x
+status=3
+--- stdout
+--- stderr
+gomad: runner_failure: resolve Gomad installation: CLI --toolchain-root toolchain root must be an absolute non-root clean path: "relative"
+### gomad explore --output x go-run ./x
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: --output is only valid with gomad plan
+### gomad explore --__plan go-run ./x
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: flag provided but not defined: -__plan
+Usage of gomad explore:
+  -artifacts string
+    	artifact root (default ".gomad/artifacts")
+  -build-tag value
+    	validated Go build tag
+  -capability-mode string
+    	closure, linked, or guarded capability assessment (default "closure")
+  -choice-bytes value
+    	runtime choice trace capacity (default 8388608)
+  -choice-start-ordinal uint
+    	first replay-plan decision ordinal choice exploration expands; inspect --choices lists ordinals
+  -choices
+    	record bounded runtime choices
+  -clock-tick string
+    	virtual-clock tick policy: strict or forward (default "strict")
+  -corpus string
+    	guided coverage corpus directory
+  -count uint
+    	explore seeds 0 through N-1
+  -coverage string
+    	none, semantic, choice, or semantic+choice (default "none")
+  -diagnostics
+    	record runtime-state diagnostics; implies --choices
+  -env value
+    	target NAME=VALUE
+  -execution-timeout duration
+    	per-execution host deadline (default 30s)
+  -failure-budget uint
+    	distinct failure signature threshold (default 1)
+  -guide
+    	exclude answered seeds using a bounded coverage corpus
+  -guide-regression
+    	re-run corpus seeds with --guide; fully answered default requests execute zero seeds and exit 0
+  -io-ro-mount value
+    	read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping
+  -io-transcript-bytes value
+    	I/O transcript capacity (64MiB to 1GiB, whole MiB) (default 67108864)
+  -json
+    	emit stable JSON events
+  -keep-successes string
+    	none, novel, or all (default "none")
+  -max-choice-depth uint
+    	maximum forced choice decisions
+  -max-crash-decisions uint
+    	maximum crash-state decision ordinal
+  -max-executions uint
+    	maximum exploration candidates
+  -max-exploration-bytes value
+    	maximum live choice-exploration bytes
+  -max-exploration-result-bytes value
+    	maximum combined result bytes per candidate
+  -max-fault-decisions uint
+    	maximum fault decision ordinal
+  -max-forced-decisions uint
+    	maximum combined forced decisions
+  -max-network-decisions uint
+    	maximum network decision ordinal
+  -max-runtime-decisions uint
+    	maximum runtime decision ordinal
+  -max-scenario-decisions uint
+    	maximum scenario decision ordinal
+  -max-storage-decisions uint
+    	maximum storage decision ordinal
+  -on-failure string
+    	first, budget, or all (default "first")
+  -output string
+    	campaign plan output
+  -output-limit value
+    	retained bytes per output stream (default 8388608)
+  -overall-timeout duration
+    	complete exploration host deadline (default 10m0s)
+  -parallel int
+    	maximum active targets (default 8)
+  -require-probe value
+    	required semantic probe (requires --coverage=semantic)
+  -seeds string
+    	seed set or inclusive ranges (default "1")
+  -strategy string
+    	seed, choice-exploration, or simulation-exploration (default "seed")
+  -success-bytes value
+    	total retained successful-execution bytes
+  -success-limit uint
+    	maximum retained successful executions
+  -terminate-grace duration
+    	termination grace inside deadlines (default 2s)
+  -toolchain-root string
+    	absolute pinned toolchain root
+  -working-dir string
+    	absolute target module root (default: the current directory)
+  -world-transition-limit value
+    	World transition capacity (default 67108864)
+### gomad plan --toolchain-root=relative go-run ./x
+status=3
+--- stdout
+--- stderr
+gomad: runner_failure: resolve Gomad installation: CLI --toolchain-root toolchain root must be an absolute non-root clean path: "relative"
+### gomad plan --toolchain-root=relative --output /tmp/p --strategy=random go-run ./x
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: unknown exploration strategy "random"
+### gomad plan --toolchain-root=relative --output /tmp/p --strategy= --count=0 go-run ./x
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: --count must be greater than zero
+### gomad plan --toolchain-root=relative --output /tmp/p --coverage= go-run ./x
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: unknown coverage mode ""
+### gomad plan --toolchain-root=relative --output /tmp/p --coverage=all go-run ./x
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: unknown coverage mode "all"
+### gomad plan --toolchain-root=relative --output /tmp/p --coverage=semantic --require-probe=unknown.probe go-run ./x
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: unknown required semantic probe "unknown.probe"
+### gomad plan --toolchain-root=relative --json --output /tmp/p --choices --choice-bytes=1 go-run ./x
+status=2
+--- stdout
+{"schema":"gomad3.explore-event/v3","type":"error","classification":"invalid_input","message":"--choice-bytes must be between 160 bytes and 64MiB"}
+--- stderr
+### gomad plan --toolchain-root=relative --output /tmp/p --on-failure=first go-run ./x
+status=3
+--- stdout
+--- stderr
+gomad: runner_failure: resolve Gomad installation: CLI --toolchain-root toolchain root must be an absolute non-root clean path: "relative"
+### gomad plan --toolchain-root=relative --output /tmp/p go-run ./x extra
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: go-run target arguments require -- separator
+### gomad plan --toolchain-root=relative --__plan --output /tmp/p go-run ./x
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: flag provided but not defined: -__plan
+Usage of gomad explore:
+  -artifacts string
+    	artifact root (default ".gomad/artifacts")
+  -build-tag value
+    	validated Go build tag
+  -capability-mode string
+    	closure, linked, or guarded capability assessment (default "closure")
+  -choice-bytes value
+    	runtime choice trace capacity (default 8388608)
+  -choice-start-ordinal uint
+    	first replay-plan decision ordinal choice exploration expands; inspect --choices lists ordinals
+  -choices
+    	record bounded runtime choices
+  -clock-tick string
+    	virtual-clock tick policy: strict or forward (default "strict")
+  -corpus string
+    	guided coverage corpus directory
+  -count uint
+    	explore seeds 0 through N-1
+  -coverage string
+    	none, semantic, choice, or semantic+choice (default "none")
+  -diagnostics
+    	record runtime-state diagnostics; implies --choices
+  -env value
+    	target NAME=VALUE
+  -execution-timeout duration
+    	per-execution host deadline (default 30s)
+  -failure-budget uint
+    	distinct failure signature threshold (default 1)
+  -guide
+    	exclude answered seeds using a bounded coverage corpus
+  -guide-regression
+    	re-run corpus seeds with --guide; fully answered default requests execute zero seeds and exit 0
+  -io-ro-mount value
+    	read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping
+  -io-transcript-bytes value
+    	I/O transcript capacity (64MiB to 1GiB, whole MiB) (default 67108864)
+  -json
+    	emit stable JSON events
+  -keep-successes string
+    	none, novel, or all (default "none")
+  -max-choice-depth uint
+    	maximum forced choice decisions
+  -max-crash-decisions uint
+    	maximum crash-state decision ordinal
+  -max-executions uint
+    	maximum exploration candidates
+  -max-exploration-bytes value
+    	maximum live choice-exploration bytes
+  -max-exploration-result-bytes value
+    	maximum combined result bytes per candidate
+  -max-fault-decisions uint
+    	maximum fault decision ordinal
+  -max-forced-decisions uint
+    	maximum combined forced decisions
+  -max-network-decisions uint
+    	maximum network decision ordinal
+  -max-runtime-decisions uint
+    	maximum runtime decision ordinal
+  -max-scenario-decisions uint
+    	maximum scenario decision ordinal
+  -max-storage-decisions uint
+    	maximum storage decision ordinal
+  -on-failure string
+    	first, budget, or all (default "first")
+  -output string
+    	campaign plan output
+  -output-limit value
+    	retained bytes per output stream (default 8388608)
+  -overall-timeout duration
+    	complete exploration host deadline (default 10m0s)
+  -parallel int
+    	maximum active targets (default 8)
+  -require-probe value
+    	required semantic probe (requires --coverage=semantic)
+  -seeds string
+    	seed set or inclusive ranges (default "1")
+  -strategy string
+    	seed, choice-exploration, or simulation-exploration (default "seed")
+  -success-bytes value
+    	total retained successful-execution bytes
+  -success-limit uint
+    	maximum retained successful executions
+  -terminate-grace duration
+    	termination grace inside deadlines (default 2s)
+  -toolchain-root string
+    	absolute pinned toolchain root
+  -working-dir string
+    	absolute target module root (default: the current directory)
+  -world-transition-limit value
+    	World transition capacity (default 67108864)
+### gomad explore --toolchain-root=relative --__plan go-run ./x
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: flag provided but not defined: -__plan
+Usage of gomad explore:
+  -artifacts string
+    	artifact root (default ".gomad/artifacts")
+  -build-tag value
+    	validated Go build tag
+  -capability-mode string
+    	closure, linked, or guarded capability assessment (default "closure")
+  -choice-bytes value
+    	runtime choice trace capacity (default 8388608)
+  -choice-start-ordinal uint
+    	first replay-plan decision ordinal choice exploration expands; inspect --choices lists ordinals
+  -choices
+    	record bounded runtime choices
+  -clock-tick string
+    	virtual-clock tick policy: strict or forward (default "strict")
+  -corpus string
+    	guided coverage corpus directory
+  -count uint
+    	explore seeds 0 through N-1
+  -coverage string
+    	none, semantic, choice, or semantic+choice (default "none")
+  -diagnostics
+    	record runtime-state diagnostics; implies --choices
+  -env value
+    	target NAME=VALUE
+  -execution-timeout duration
+    	per-execution host deadline (default 30s)
+  -failure-budget uint
+    	distinct failure signature threshold (default 1)
+  -guide
+    	exclude answered seeds using a bounded coverage corpus
+  -guide-regression
+    	re-run corpus seeds with --guide; fully answered default requests execute zero seeds and exit 0
+  -io-ro-mount value
+    	read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping
+  -io-transcript-bytes value
+    	I/O transcript capacity (64MiB to 1GiB, whole MiB) (default 67108864)
+  -json
+    	emit stable JSON events
+  -keep-successes string
+    	none, novel, or all (default "none")
+  -max-choice-depth uint
+    	maximum forced choice decisions
+  -max-crash-decisions uint
+    	maximum crash-state decision ordinal
+  -max-executions uint
+    	maximum exploration candidates
+  -max-exploration-bytes value
+    	maximum live choice-exploration bytes
+  -max-exploration-result-bytes value
+    	maximum combined result bytes per candidate
+  -max-fault-decisions uint
+    	maximum fault decision ordinal
+  -max-forced-decisions uint
+    	maximum combined forced decisions
+  -max-network-decisions uint
+    	maximum network decision ordinal
+  -max-runtime-decisions uint
+    	maximum runtime decision ordinal
+  -max-scenario-decisions uint
+    	maximum scenario decision ordinal
+  -max-storage-decisions uint
+    	maximum storage decision ordinal
+  -on-failure string
+    	first, budget, or all (default "first")
+  -output string
+    	campaign plan output
+  -output-limit value
+    	retained bytes per output stream (default 8388608)
+  -overall-timeout duration
+    	complete exploration host deadline (default 10m0s)
+  -parallel int
+    	maximum active targets (default 8)
+  -require-probe value
+    	required semantic probe (requires --coverage=semantic)
+  -seeds string
+    	seed set or inclusive ranges (default "1")
+  -strategy string
+    	seed, choice-exploration, or simulation-exploration (default "seed")
+  -success-bytes value
+    	total retained successful-execution bytes
+  -success-limit uint
+    	maximum retained successful executions
+  -terminate-grace duration
+    	termination grace inside deadlines (default 2s)
+  -toolchain-root string
+    	absolute pinned toolchain root
+  -working-dir string
+    	absolute target module root (default: the current directory)
+  -world-transition-limit value
+    	World transition capacity (default 67108864)
+### gomad explore --toolchain-root=relative --json --__plan go-run ./x
+status=2
+--- stdout
+{"schema":"gomad3.explore-event/v3","type":"error","classification":"invalid_input","message":"flag provided but not defined: -__plan"}
+--- stderr
+### gomad explore --toolchain-root=relative --strategy= go-run ./x
+status=3
+--- stdout
+--- stderr
+gomad: runner_failure: resolve Gomad installation: CLI --toolchain-root toolchain root must be an absolute non-root clean path: "relative"
+### gomad explore --toolchain-root=relative --coverage= go-run ./x
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: unknown coverage mode ""
+### gomad explore --toolchain-root=relative --strategy=bogus --coverage=bogus go-run ./x
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: unknown exploration strategy "bogus"
+### gomad explore --toolchain-root=relative --coverage=semantic --require-probe=unknown.probe go-run ./x
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: unknown required semantic probe "unknown.probe"

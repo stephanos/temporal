@@ -54,7 +54,7 @@ func TestDiagnosticsRetainedWhenSuccessArtifactsAreDiscarded(t *testing.T) {
 	config.ChoiceTraceLimit = 1 << 20
 	config.CollectExecutionEvidence = true
 	config.Coverage = CoverageSemanticChoice
-	summary, err := Explore(context.Background(), config)
+	summary, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,18 +91,18 @@ func TestDiagnosticsPlanShardAndGuidanceKeepTheProfile(t *testing.T) {
 	config.Diagnostics = true
 	config.ChoiceTraceLimit = 1 << 20
 	config.Coverage = CoverageSemanticChoice
-	planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: filepath.Join(t.TempDir(), "plan.json")})
+	planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config.CampaignSpec, Output: filepath.Join(t.TempDir(), "plan.json")})
 	if err != nil {
 		t.Fatal(err)
 	}
-	summary, err := RunCampaignShard(context.Background(), CampaignShardSpec{PlanPath: planned.Path, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild, Executor: executor})
+	summary, err := runCampaignShardWith(context.Background(), CampaignShardSpec{PlanPath: planned.Path, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild}, dependencies{executor: executor})
 	if err != nil || summary.Diagnostics == nil {
 		t.Fatalf("shard diagnostics %+v: %v", summary.Diagnostics, err)
 	}
 	config.Guide = true
 	config.Corpus = filepath.Join(t.TempDir(), "corpus")
 	config.Replayer = &matchingReplayer{}
-	summary, err = Explore(context.Background(), config)
+	summary, err = exploreWith(context.Background(), config.CampaignSpec, config.dependencies)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -114,7 +114,7 @@ func TestDiagnosticsPlanShardAndGuidanceKeepTheProfile(t *testing.T) {
 func TestDiagnosticArtifactReplaysWithoutCollectingSidecar(t *testing.T) {
 	path, expected := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true, Environment: []record.Environment{{Name: choice.DiagnosticProfileEnvironment, Value: choice.DiagnosticProfile}}})
 	executor := &fakeReplayExecutor{result: expected}
-	replayed, err := Replay(context.Background(), ReplaySpec{ArtifactPath: path, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor})
+	replayed, err := replayWith(context.Background(), ReplaySpec{ArtifactPath: path, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}}, dependencies{executor: executor})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -162,12 +162,12 @@ func TestDiagnosticsResumeRestoresTheRecordedProfile(t *testing.T) {
 	config.Diagnostics = true
 	config.ChoiceTraceLimit = 1 << 20
 	config.Coverage = CoverageSemanticChoice
-	partial, err := Explore(context.Background(), config)
+	partial, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies)
 	if err == nil || partial.Diagnostics == nil {
 		t.Fatalf("interruption %+v: %v", partial, err)
 	}
 	originalPath := partial.Diagnostics.Path
-	resumed, err := Explore(context.Background(), CampaignSpec{ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: newExecutor()})
+	resumed, err := exploreWith(context.Background(), CampaignSpec{ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}}, dependencies{executor: newExecutor()})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -54,8 +54,7 @@ func TestWatchdogDiagnosticReplayUsesCapturedInputs(t *testing.T) {
 		path := publishWatchdogReplayInput(t, exact)
 		executor := &fakeReplayExecutor{result: observed}
 		config := watchdogReplaySpec(t, path)
-		config.Executor = executor
-		_, err := Replay(t.Context(), config)
+		_, err := replayWith(t.Context(), config, dependencies{executor: executor})
 		if err == nil || !strings.Contains(err.Error(), "no complete transcript") || executor.calls != 0 {
 			t.Fatalf("exact replay error = %v, calls = %d", err, executor.calls)
 		}
@@ -77,8 +76,7 @@ func TestWatchdogDiagnosticReplayUsesCapturedInputs(t *testing.T) {
 			}
 			executor := &fakeReplayExecutor{result: observed}
 			config := watchdogReplaySpec(t, path)
-			config.Executor = executor
-			if _, err := Replay(t.Context(), config); err == nil || executor.calls != 0 {
+			if _, err := replayWith(t.Context(), config, dependencies{executor: executor}); err == nil || executor.calls != 0 {
 				t.Fatalf("corrupt replay error = %v, calls = %d", err, executor.calls)
 			}
 		})
@@ -94,8 +92,7 @@ func TestWatchdogDiagnosticReplayUsesCapturedInputs(t *testing.T) {
 		path := publishWatchdogReplayInput(t, malformed)
 		executor := &fakeReplayExecutor{result: observed}
 		config := watchdogReplaySpec(t, path)
-		config.Executor = executor
-		if _, err := Replay(t.Context(), config); err == nil || executor.calls != 0 {
+		if _, err := replayWith(t.Context(), config, dependencies{executor: executor}); err == nil || executor.calls != 0 {
 			t.Fatalf("malformed replay error = %v, calls = %d", err, executor.calls)
 		}
 	})
@@ -122,8 +119,7 @@ func TestWatchdogDiagnosticReplayUsesCapturedInputs(t *testing.T) {
 			changed := observed
 			test.change(&changed)
 			config := watchdogReplaySpec(t, path)
-			config.Executor = &fakeReplayExecutor{result: changed}
-			result, err := Replay(t.Context(), config)
+			result, err := replayWith(t.Context(), config, dependencies{executor: &fakeReplayExecutor{result: changed}})
 			if err != nil || result.Match || !result.Diagnostic || result.Divergence != test.divergence {
 				t.Fatalf("divergent diagnostic replay = %#v, %v", result, err)
 			}
@@ -159,8 +155,7 @@ func TestWatchdogDiagnosticReplayRejectsUnsupportedChoiceEvidence(t *testing.T) 
 	path = publishWatchdogReplayInput(t, artifact.ArtifactInput{Manifest: manifest, TargetPath: targetPath, Stdout: observed.Stdout.Bytes, Stderr: observed.Stderr.Bytes, ChoiceTrace: choices, World: payloads})
 	executor := &fakeReplayExecutor{result: observed}
 	config := watchdogReplaySpec(t, path)
-	config.Executor = executor
-	result, err := Replay(t.Context(), config)
+	result, err := replayWith(t.Context(), config, dependencies{executor: executor})
 	if err == nil || !strings.Contains(err.Error(), "diagnostic replay without an I/O transcript cannot replay recorded choices") || executor.calls != 0 || result.Match || result.ChoiceReplayStatus == ChoiceReplayExact {
 		t.Fatalf("unsupported diagnostic replay = %#v, %v, calls = %d", result, err, executor.calls)
 	}

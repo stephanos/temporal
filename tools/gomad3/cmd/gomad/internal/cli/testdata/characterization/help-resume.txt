@@ -1,0 +1,11 @@
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: flag: help requested
+Usage of gomad resume:
+  -guide-regression
+    	require the recorded guidance regression mode
+  -json
+    	emit stable JSON events
+  -toolchain-root string
+    	absolute pinned toolchain root

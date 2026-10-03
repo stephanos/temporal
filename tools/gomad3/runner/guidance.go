@@ -18,14 +18,14 @@ import (
 
 type guidanceCampaign struct {
 	corpus   *guide.Corpus
-	config   CampaignSpec
+	config   campaignRun
 	prepared target.Prepared
 	baseEnv  []record.Environment
 	runID    string
 	replayer ArtifactReplayer
 }
 
-func openGuidance(ctx context.Context, config CampaignSpec, prepared target.Prepared, baseEnvironment []record.Environment, runID string) (*guidanceCampaign, error) {
+func openGuidance(ctx context.Context, config campaignRun, prepared target.Prepared, baseEnvironment []record.Environment, runID string) (*guidanceCampaign, error) {
 	targetRecord := prepared.RecordTarget()
 	boundaryVersion, boundarySHA256 := deterministicio.BoundaryManifestIdentity()
 	identity, err := guide.IdentityFor(targetRecord, prepared.RecordToolchain(), boundaryVersion, record.SHA256(boundarySHA256), environmentForSeed(baseEnvironment, 0))

@@ -1,0 +1,23 @@
+status=2
+--- stdout
+--- stderr
+usage:
+  gomad plan [flags] --output FILE (exec --provenance FILE -- BINARY [ARG ...] | go-run PACKAGE -- [ARG ...] | go-test PACKAGE -- [TEST_BINARY_ARG ...])
+  gomad execute-shard [--json] [--artifacts DIR] [--toolchain-root DIR] --shard INDEX/COUNT CAMPAIGN_PLAN
+  gomad merge [--json] [--partial] --output DIR CAMPAIGN_PLAN SHARD_BATCH...
+  gomad explore [flags] exec --provenance FILE -- BINARY [ARG ...]
+  gomad explore [flags] go-run PACKAGE -- [ARG ...]
+  gomad explore [flags] go-test PACKAGE -- [TEST_BINARY_ARG ...]
+  gomad qualify [flags] exec --provenance FILE -- BINARY [ARG ...]
+  gomad qualify [flags] go-run PACKAGE -- [ARG ...]
+  gomad qualify [flags] go-test PACKAGE -- [TEST_BINARY_ARG ...]
+  gomad qualify-set --manifest FILE --working-dir DIR [--artifacts DIR] [--output FILE] [--shard INDEX/COUNT] [--min-free-bytes SIZE] [--format=text|json]
+  gomad merge-set --manifest FILE --output FILE [--format=text|json] SHARD_REPORT...
+  gomad compare-support --baseline FILE --candidate FILE [--approve-boundary-diff SHA256] [--format=text|json]
+  gomad analyze [--format=text|json] [--timeout DURATION] [--toolchain-root DIR] [--build-tag TAG ...] (go-run PACKAGE | go-test PACKAGE -- [TEST_BINARY_ARG ...])
+  gomad resume [--json] INTERRUPTED_BATCH
+  gomad recover [--json] INTERRUPTED_BATCH
+  gomad replay [--verify-only] [--observed DIR] ARTIFACT_DIR
+  gomad minimize [--json] [--resume] [--attempt-budget N] [--artifacts DIR] ARTIFACT_DIR
+  gomad doctor [--artifacts DIR] [--json]
+  gomad inspect [--json] [--choices] ARTIFACT_OR_BATCH

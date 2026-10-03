@@ -27,57 +27,60 @@ type ResumeSpec struct {
 	CoordinatorCommand []string
 	Progress           CampaignEventFunc
 	ProgressInterval   time.Duration
-	Executor           Executor
 	Replayer           ArtifactReplayer
 	GuideRegression    *bool
 }
 
 func Resume(ctx context.Context, spec ResumeSpec) (CampaignResult, error) {
-	return Explore(ctx, CampaignSpec{
+	return resumeWith(ctx, spec, dependencies{})
+}
+
+func resumeWith(ctx context.Context, spec ResumeSpec, dependency dependencies) (CampaignResult, error) {
+	return exploreWith(ctx, CampaignSpec{
 		ResumeCampaign: spec.CampaignPath, RunnerBuild: spec.RunnerBuild, GuideRegressionOverride: spec.GuideRegression,
 		Target:            target.Spec{ToolchainRoot: spec.ToolchainRoot},
 		SupervisorCommand: append([]string(nil), spec.SupervisorCommand...), CoordinatorCommand: append([]string(nil), spec.CoordinatorCommand...),
-		Progress: spec.Progress, ProgressInterval: spec.ProgressInterval, Executor: spec.Executor, Replayer: spec.Replayer,
-	})
+		Progress: spec.Progress, ProgressInterval: spec.ProgressInterval, Replayer: spec.Replayer,
+	}, dependency)
 }
 
-func resumeRequestDefaults(config CampaignSpec) (CampaignSpec, error) {
+func resumeRequestDefaults(config campaignRun) (campaignRun, error) {
 	path, err := filepath.Abs(config.ResumeCampaign)
 	if err != nil {
-		return CampaignSpec{}, fmt.Errorf("resolve resumable campaign path: %w", err)
+		return campaignRun{}, fmt.Errorf("resolve resumable campaign path: %w", err)
 	}
 	config.ResumeCampaign = path
 	preflight, err := campaign.PreflightResume(path)
 	if err != nil {
-		return CampaignSpec{}, err
+		return campaignRun{}, err
 	}
 	config.OverallTimeout = time.Duration(preflight.Plan.OverallTimeoutNanos)
 	config.resumePreflight = &preflight
 	return config, nil
 }
 
-func resumeConfiguration(request CampaignSpec, plan campaign.CampaignPlan) (CampaignSpec, SeedSelection, []record.Environment, []readonlymount.Mapping, target.Prepared, error) {
+func resumeConfiguration(request campaignRun, plan campaign.CampaignPlan) (campaignRun, SeedSelection, []record.Environment, []readonlymount.Mapping, target.Prepared, error) {
 	if plan.RunnerBuild != request.RunnerBuild {
-		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded Runner build identity %s does not match this Runner %s", plan.RunnerBuild, request.RunnerBuild)
+		return campaignRun{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded Runner build identity %s does not match this Runner %s", plan.RunnerBuild, request.RunnerBuild)
 	}
 	profile := deterministicio.Default()
 	if !profile.Matches(plan.IOProfile) {
-		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded I/O profile identity does not match this Runner")
+		return campaignRun{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded I/O profile identity does not match this Runner")
 	}
 	if request.GuideRegressionOverride != nil && (plan.Guidance == nil || *request.GuideRegressionOverride != plan.Guidance.Regression) || request.GuideRegression && (plan.Guidance == nil || !plan.Guidance.Regression) || request.Guide && (plan.Guidance == nil || request.GuideRegression != plan.Guidance.Regression) {
-		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, errors.New("resume guidance regression mode does not match campaign plan")
+		return campaignRun{}, SeedSelection{}, nil, nil, target.Prepared{}, errors.New("resume guidance regression mode does not match campaign plan")
 	}
 	selection, err := parseCampaignSelection(plan.Selection, uint64(plan.SelectionCount))
 	if err != nil || selection.Count() != uint64(plan.SelectionCount) {
-		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded seed selection is invalid: %w", err)
+		return campaignRun{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded seed selection is invalid: %w", err)
 	}
 	mountLimits, err := readonlymount.DecodeLimits(deterministicCapturedInputLimits(plan.IOROMountLimits))
 	if err != nil {
-		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
+		return campaignRun{}, SeedSelection{}, nil, nil, target.Prepared{}, err
 	}
 	mounts, err := readonlymount.ParseMappings(plan.IOROMounts, "")
 	if err != nil {
-		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
+		return campaignRun{}, SeedSelection{}, nil, nil, target.Prepared{}, err
 	}
 	prepared := target.Prepared{
 		Path: filepath.Join(request.ResumeCampaign, filepath.FromSlash(plan.Prepared.Path)), Kind: target.Kind(plan.Prepared.Target.Kind), Source: plan.Prepared.Target.Source,
@@ -87,21 +90,21 @@ func resumeConfiguration(request CampaignSpec, plan campaign.CampaignPlan) (Camp
 		CapabilityMode: target.CapabilityMode(plan.Prepared.Target.CapabilityMode), CapabilityManifest: target.CapabilityManifestFromRecord(plan.Prepared.Target.CapabilityManifest),
 	}
 	if err := prepared.Verify(); err != nil {
-		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
+		return campaignRun{}, SeedSelection{}, nil, nil, target.Prepared{}, err
 	}
 	if err := deterministicio.Default().VerifyAdapters(deterministicAdapters(prepared.Adapters)); err != nil {
-		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("verify recorded adapters: %w", err)
+		return campaignRun{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("verify recorded adapters: %w", err)
 	}
-	if request.Executor == nil {
+	if request.executor == nil {
 		identity, err := target.ReadToolchainIdentity(request.Target.ToolchainRoot)
 		if err != nil {
-			return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
+			return campaignRun{}, SeedSelection{}, nil, nil, target.Prepared{}, err
 		}
 		if identity.GoVersion != plan.Toolchain.GoVersion || identity.BuildKey != plan.Toolchain.BuildKey || identity.TargetGOOS != plan.Toolchain.TargetGOOS || identity.TargetGOARCH != plan.Toolchain.TargetGOARCH {
-			return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded toolchain identity does not match the pinned toolchain")
+			return campaignRun{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded toolchain identity does not match the pinned toolchain")
 		}
 	}
-	config := CampaignSpec{
+	config := newCampaignRun(CampaignSpec{
 		ResumeCampaign: request.ResumeCampaign, PlanSHA256: plan.PlanSHA256, Shard: runnerCampaignShard(plan.Shard),
 		Strategy: Strategy(plan.Strategy), Seeds: plan.Selection, Parallel: int(plan.Parallel), ExecutionTimeout: time.Duration(plan.ExecutionTimeoutNanos), OverallTimeout: time.Duration(plan.OverallTimeoutNanos), TerminateGrace: time.Duration(plan.TerminateGraceNanos),
 		OnFailure: FailurePolicy(plan.OnFailure), FailureBudget: uint64(plan.FailureBudget), OutputLimit: uint64(plan.OutputBytes), WorldTransitionLimit: uint64(plan.WorldTransitionBytes),
@@ -111,11 +114,9 @@ func resumeConfiguration(request CampaignSpec, plan campaign.CampaignPlan) (Camp
 		Target: target.Spec{ToolchainRoot: request.Target.ToolchainRoot}, SupervisorCommand: append([]string(nil), request.SupervisorCommand...), RunnerBuild: request.RunnerBuild,
 		Coverage: CoverageMode(plan.Coverage), RequiredSemanticProbes: append([]string(nil), plan.RequiredSemanticProbes...),
 		KeepSuccesses: KeepSuccesses(plan.KeepSuccesses), SuccessArtifactLimit: uint64(plan.SuccessArtifactLimit), SuccessBytesLimit: uint64(plan.SuccessBytesLimit),
-		Progress: request.Progress, ProgressInterval: request.ProgressInterval, Executor: request.Executor, Replayer: request.Replayer,
-	}
-	if config.Strategy == "" {
-		config.Strategy = StrategySeed
-	}
+		Progress: request.Progress, ProgressInterval: request.ProgressInterval, Replayer: request.Replayer,
+	})
+	config.dependencies = request.dependencies
 	if plan.ChoiceProfile != nil {
 		config.ChoiceTraceLimit = uint64(plan.ChoiceProfile.Limit)
 	}
@@ -123,7 +124,7 @@ func resumeConfiguration(request CampaignSpec, plan campaign.CampaignPlan) (Camp
 	for _, entry := range plan.Environment {
 		if entry.Name == choice.DiagnosticProfileEnvironment {
 			if entry.Value != choice.DiagnosticProfile || config.ChoiceTraceLimit == 0 || config.Strategy != StrategySeed {
-				return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, errors.New("recorded diagnostic profile is invalid")
+				return campaignRun{}, SeedSelection{}, nil, nil, target.Prepared{}, errors.New("recorded diagnostic profile is invalid")
 			}
 			config.Diagnostics = true
 		}

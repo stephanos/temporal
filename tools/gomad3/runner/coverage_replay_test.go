@@ -80,7 +80,7 @@ func TestReplayAndMinimizeRejectRetainedCoverageBinary(t *testing.T) {
 	}
 	for _, verifyOnly := range []bool{false, true} {
 		executor := &fakeReplayExecutor{}
-		_, err := Replay(context.Background(), ReplaySpec{ArtifactPath: published.Path, VerifyOnly: verifyOnly, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Executor: executor})
+		_, err := replayWith(context.Background(), ReplaySpec{ArtifactPath: published.Path, VerifyOnly: verifyOnly, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}}, dependencies{executor: executor})
 		if err == nil || !strings.Contains(err.Error(), "stored target uses unsupported coverage instrumentation") || executor.calls != 0 {
 			t.Fatalf("covered replay: error = %v, calls = %d", err, executor.calls)
 		}

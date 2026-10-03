@@ -1,0 +1,58 @@
+fn-109.2 Give local and isolated campaigns one normalized options owner -- evidence
+
+Host: linux/arm64 with the local development harness ON (adds linux/arm64 to version.json and
+the boundary manifest, shims syscall.Dup2). This is development evidence only; it is NOT
+darwin/arm64 or linux/amd64 evidence.
+Base revision: 7f2bd1ed8 (branch gomad-next-c). Characterization commit (pre-refactor code,
+table pinned and passing): 69ee4d063. Refactor commit: the commit that adds this file.
+
+Design
+- runner/campaign_options.go: private campaignOptions (embedded groups, JSON-nested as Target,
+  Search, Limits, Observation, Retention) and campaignRun (options + SupervisorCommand,
+  CoordinatorCommand, RunnerBuild, Progress, Preparer, Executor, Replayer, guidancePlan,
+  resumePreflight, failure capacity). newCampaignRun is the single CampaignSpec conversion;
+  campaignOptions.normalized() owns the strategy default (removed from validateConfig); a zero
+  shard stays zero (unsharded identity, recorded by omission). normalizeCampaign adds the resume
+  defaults (resumeRequestDefaults) for Explore.
+- coordinator.go: coordinatorConfig and both conversion functions removed. coordinatorRequest =
+  {Options campaignOptions, SupervisorCommand, RunnerBuild}; the child re-normalizes decoded options.
+- runLocal, runIsolated, validateConfig and all strategy/plan/retention/evidence helpers take
+  campaignRun. Campaign plan (campaignPlanRecord) and resume (resumeConfiguration) records keep
+  their schemas; resume, shard and minimization map their records through newCampaignRun.
+- Exported CampaignSpec fields unchanged; 4 unexported fields moved to campaignRun. See
+  ../go-interface-changes.md (no consumer migration; regrouping wish deferred to R5 owner).
+
+Characterization (runner/campaign_options_characterization_test.go, testdata/...json, 125 cases:
+each strategy, guided, sharded, frozen guidance, resume, isolated request checks, every
+validateConfig rejection, 9 simultaneous-fault precedence cases). Pinned per case: selection,
+base environment, validate error, isolated Explore error (13 cases, coordinator command that
+cannot start), local Explore error (resume), campaign plan record digest (20 accepted cases, full
+bytes for 5), coordinator request digest (full bytes for 5) and a legacy flat projection digest.
+- Before refactor: table generated and passing on 69ee4d063.
+- After refactor: selections, environments, all error texts/precedence, plan records and the
+  legacy flat projection are identical; only request_sha256/request changed (130 lines in the
+  JSON diff, nothing else), i.e. bytes changed only by field grouping. Strategy "" is projected as
+  "seed" in the legacy projection on both sides (documented normalization).
+
+Gates (linux/arm64, harness on unless noted)
+- Baseline Quick command 2 before edits: rc=1 179s; failures TestWatchdogDiagnosticReplayUsesCapturedInputs
+  (process-group reap, flaky here), TestModerncLibc..., TestProfileSQLite..., TestCheckRejectsUnsupportedHost...,
+  TestPrepareCapabilityReviewSupportsTemporalBackoffWithGRPCAdapter (all harness/baseline).
+- Quick 1 (Coordinator|IsolatedRunner|ValidateConfig|Resume|CampaignPlan|Shard|CampaignOptions|...): rc=0 69s.
+  -v IsolatedRunner: seed, choice and simulation (TestIsolatedRunnerCompletesSimulationStrategyWithSuppliedLimits 53.6s) PASS.
+- Quick 2 after (./runner/... ./cmd/gomad/... ./qualification/...): rc=1 304s; runner ok; failures only
+  TestRunIOTerminalAfterTermination, TestModerncLibc..., TestProfileSQLite..., TestCheckRejectsUnsupportedHost...,
+  TestPrepareCapabilityReview... -- all in BASELINE.md.
+- TestPackageArchitecture|TestExactModuleEdges: rc=0.
+- make -C tools/gomad3 validate: rc=0 164s (harness on). Harness off: fails only on undefined syscall.Dup2
+  (harness limitation, linux/arm64); no generator inputs changed by this task.
+- GOFLAGS='-tags=test_dep -count=1' make test-host: rc=2 520s, 19 failures, all listed in BASELINE.md, 0 new.
+- make test-simulation: tools/gomad3sim ok; TestRootProcessSimulationUsesRunnerTransport failed twice with
+  watchdog timeouts in different process-backend subtests (run 1: Resets/PreservesHostVolume/ModelDigests;
+  run 2: CrashDrains). runner/internal/execution does not depend on package runner (go list -deps: 0), so
+  this task cannot affect it; BASELINE.md records the same watchdog flake class on this host.
+- gofmt clean; go vet -tags test_dep ./runner clean.
+
+Owed (not runnable here): darwin/arm64 and linux/amd64 runs of
+  env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep ./runner/... ./cmd/gomad/... ./qualification/...
+  make -C tools/gomad3 validate; GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host; make -C tools/gomad3 test-simulation

@@ -1,6 +1,10 @@
 package runner
 
-import "testing"
+import (
+	"testing"
+
+	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
+)
 
 func TestShardedSeedControllerSchedulesPendingOrdinalsAndSynchronizesStatistics(t *testing.T) {
 	selection, err := ParseSeeds("10-14")
@@ -28,10 +32,8 @@ func TestShardedSeedControllerSchedulesPendingOrdinalsAndSynchronizesStatistics(
 		t.Fatal("controller exceeded parallelism")
 	}
 
-	controller.FinishAttempt()
-	controller.RecordSuccess()
-	controller.FinishAttempt()
-	controller.RecordCancelled()
+	controller.Complete(campaign.CompletedSuccess())
+	controller.Complete(campaign.CompletedCancelled())
 	_, ok = controller.Next()
 	if ok || !controller.Done() {
 		t.Fatal("controller did not exhaust")

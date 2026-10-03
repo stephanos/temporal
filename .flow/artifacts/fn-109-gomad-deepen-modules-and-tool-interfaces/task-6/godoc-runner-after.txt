@@ -1,0 +1,898 @@
+package runner // import "go.temporal.io/server/tools/gomad3/runner"
+
+
+CONSTANTS
+
+const (
+	MinimumChoiceTraceBytes = execution.MinimumChoiceTraceBytes
+	MaximumChoiceTraceBytes = execution.MaximumChoiceTraceBytes
+)
+const (
+	ChoiceReplayNone        = "none"
+	ChoiceReplayAvailable   = "available"
+	ChoiceReplayExact       = "exact"
+	ChoiceReplayDiverged    = "diverged"
+	ChoiceReplayUnavailable = "unavailable"
+)
+const ExecutionEvidenceSchema = "gomad3.execution-evidence/v1"
+const RecoverySchema = "gomad3.recovery/v1"
+
+FUNCTIONS
+
+func CoordinatorMain(input io.Reader, output io.Writer) error
+func DispatchPrivateMode(mode string, stdin io.Reader, stdout io.Writer) error
+func IsCapacityError(err error) bool
+func IsInvalidRecoveryError(err error) bool
+
+TYPES
+
+type ArtifactInspection struct {
+	ArtifactKind     string                  `json:"artifact_kind"`
+	RecordHash       record.SHA256           `json:"record_hash"`
+	CampaignID       string                  `json:"campaign_id"`
+	SelectionOrdinal uint64                  `json:"selection_ordinal"`
+	Seed             uint64                  `json:"seed"`
+	ReplayMode       string                  `json:"replay_mode"`
+	Runner           record.Runner           `json:"runner"`
+	Toolchain        record.Toolchain        `json:"toolchain"`
+	Target           TargetReport            `json:"target"`
+	Outcome          OutcomeReport           `json:"outcome"`
+	FirstDivergence  string                  `json:"first_divergence,omitempty"`
+	Transcript       *Transcript             `json:"transcript,omitempty"`
+	Choices          *Choices                `json:"choices,omitempty"`
+	Simulation       *SimulationInspection   `json:"simulation,omitempty"`
+	Minimization     *MinimizationInspection `json:"minimization,omitempty"`
+	CapturedMounts   *CapturedMounts         `json:"captured_mounts,omitempty"`
+	Stdout           StreamReport            `json:"stdout"`
+	Stderr           StreamReport            `json:"stderr"`
+}
+
+type ArtifactReplayer interface {
+	Replay(context.Context, ReplaySpec) (ReplayResult, error)
+}
+
+type CampaignEvent struct {
+	Phase                 CampaignPhase
+	CampaignPath          string `json:"campaign_path"`
+	Selected              uint64
+	Attempted             uint64
+	Running               uint64
+	Succeeded             uint64
+	Failures              uint64
+	Watchdogs             uint64
+	ReplayDivergences     uint64
+	Cancelled             uint64
+	DistinctFailures      uint64
+	Artifacts             []string
+	RetainedSuccesses     uint64
+	RetainedSuccessBytes  uint64
+	SuccessArtifacts      []string
+	CorpusPath            string
+	CorpusEntries         uint64
+	CorpusAdded           uint64
+	Guidance              *GuidanceSummary `json:"guidance,omitempty"`
+	ChoiceTrace           *ChoiceTraceSummary
+	ChoiceExploration     *ChoiceExplorationSummary
+	SimulationExploration *SimulationExplorationSummary
+	RecoveryExecutions    uint64
+}
+
+type CampaignEventFunc func(CampaignEvent) error
+
+type CampaignInspection struct {
+	CampaignID                                string                         `json:"campaign_id"`
+	PlanSHA256                                record.SHA256                  `json:"plan_sha256,omitempty"`
+	Shard                                     *CampaignShard                 `json:"shard,omitempty"`
+	Strategy                                  string                         `json:"strategy"`
+	Selection                                 string                         `json:"selection"`
+	SelectionCount                            uint64                         `json:"selection_count"`
+	Attempted                                 uint64                         `json:"attempted"`
+	Succeeded                                 uint64                         `json:"succeeded"`
+	Failures                                  uint64                         `json:"failures"`
+	ReplayDivergences                         uint64                         `json:"replay_divergences,omitempty"`
+	Watchdogs                                 uint64                         `json:"watchdogs"`
+	Cancelled                                 uint64                         `json:"cancelled"`
+	DistinctFailures                          uint64                         `json:"distinct_failures"`
+	RetainedSuccesses                         uint64                         `json:"retained_successes"`
+	RetainedSuccessBytes                      uint64                         `json:"retained_success_bytes"`
+	StopReason                                string                         `json:"stop_reason"`
+	Journal                                   *ExecutionJournalInspection    `json:"journal,omitempty"`
+	ArtifactCapacity                          *campaign.ArtifactCapacityPlan `json:"artifact_capacity,omitempty"`
+	Executions                                []ExecutionInspection          `json:"executions"`
+	FailureArtifacts                          []FailureArtifact              `json:"failure_artifacts"`
+	SuccessArtifacts                          []SuccessArtifact              `json:"success_artifacts"`
+	ChoiceExploration                         *ChoiceExplorationSummary      `json:"choice_exploration,omitempty"`
+	ChoiceExplorationImplementationSHA256     record.SHA256                  `json:"choice_exploration_implementation_sha256,omitempty"`
+	ChoiceExplorationChainSHA256              record.SHA256                  `json:"choice_exploration_chain_sha256,omitempty"`
+	SimulationExploration                     *SimulationExplorationSummary  `json:"simulation_exploration,omitempty"`
+	SimulationExplorationImplementationSHA256 record.SHA256                  `json:"simulation_exploration_implementation_sha256,omitempty"`
+	SimulationExplorationChainSHA256          record.SHA256                  `json:"simulation_exploration_chain_sha256,omitempty"`
+	RecoveryExecutions                        uint64                         `json:"recovery_executions,omitempty"`
+}
+
+type CampaignLifecycleInspection struct {
+	State           string `json:"state"`
+	LastStableState string `json:"last_stable_state"`
+	Reason          string `json:"reason,omitempty"`
+	Detail          string `json:"detail,omitempty"`
+	Published       bool   `json:"published"`
+	Resumable       bool   `json:"resumable"`
+	Repairable      bool   `json:"repairable"`
+	Action          string `json:"action,omitempty"`
+}
+
+type CampaignMergeResult struct {
+	Path             string                 `json:"path"`
+	PlanSHA256       record.SHA256          `json:"plan_sha256"`
+	Partial          bool                   `json:"partial"`
+	Missing          []CampaignOrdinalRange `json:"missing"`
+	Shards           uint64                 `json:"shards"`
+	Attempted        uint64                 `json:"attempted"`
+	Succeeded        uint64                 `json:"succeeded"`
+	Failures         uint64                 `json:"failures"`
+	Watchdogs        uint64                 `json:"watchdogs"`
+	Cancelled        uint64                 `json:"cancelled"`
+	DistinctFailures uint64                 `json:"distinct_failures"`
+	RetainedEvidence uint64                 `json:"retained_evidence"`
+	RetainedBytes    uint64                 `json:"retained_bytes"`
+	JournalBytes     uint64                 `json:"journal_bytes"`
+	JournalSegments  uint64                 `json:"journal_segments"`
+	SelectionCount   uint64                 `json:"selection_count"`
+}
+
+func MergeCampaignShards(ctx context.Context, spec CampaignMergeSpec) (CampaignMergeResult, error)
+
+type CampaignMergeSpec struct {
+	PlanPath string
+	Shards   []string
+	Output   string
+	Partial  bool
+}
+
+type CampaignOrdinalRange struct {
+	Start uint64 `json:"start"`
+	End   uint64 `json:"end"`
+}
+
+type CampaignPhase string
+
+const (
+	ProgressPreparing CampaignPhase = "preparing"
+	ProgressRunning   CampaignPhase = "running"
+	ProgressComplete  CampaignPhase = "complete"
+)
+type CampaignPlanInspection struct {
+	SHA256           record.SHA256                 `json:"sha256"`
+	BundlePath       string                        `json:"bundle_path"`
+	Mapping          string                        `json:"mapping"`
+	Strategy         string                        `json:"strategy"`
+	Selection        string                        `json:"selection"`
+	SelectionCount   uint64                        `json:"selection_count"`
+	Parallel         uint64                        `json:"parallel"`
+	RunnerBuild      string                        `json:"runner_build"`
+	Toolchain        record.Toolchain              `json:"toolchain"`
+	Target           TargetReport                  `json:"target"`
+	Environment      []record.Environment          `json:"environment"`
+	ReadOnlyMounts   []string                      `json:"io_ro_mounts"`
+	MountSHA256      record.SHA256                 `json:"mount_sha256,omitempty"`
+	Journal          campaign.ExecutionJournalPlan `json:"journal"`
+	ArtifactCapacity campaign.ArtifactCapacityPlan `json:"artifact_capacity"`
+}
+
+type CampaignPlanResult struct {
+	Path           string        `json:"path"`
+	BundlePath     string        `json:"bundle_path"`
+	SHA256         record.SHA256 `json:"sha256"`
+	SelectionCount uint64        `json:"selection_count"`
+	TargetSHA256   record.SHA256 `json:"target_sha256"`
+}
+
+func CreateCampaignPlan(ctx context.Context, spec CampaignPlanSpec) (_ CampaignPlanResult, retErr error)
+
+type CampaignPlanSpec struct {
+	Campaign CampaignSpec
+	Output   string
+}
+
+type CampaignResult struct {
+	CampaignPath          string `json:"campaign_path"`
+	SelectionCount        uint64
+	Attempted             uint64
+	Succeeded             uint64
+	Failures              uint64
+	Watchdogs             uint64
+	ReplayDivergences     uint64
+	Cancelled             uint64
+	DistinctFailures      uint64
+	StopReason            StopReason
+	Artifacts             []string
+	RetainedSuccesses     uint64
+	RetainedSuccessBytes  uint64
+	SuccessArtifacts      []string
+	SemanticCoverage      *deterministicio.SemanticCoverage
+	ExecutionEvidence     *ExecutionEvidence `json:"execution_evidence"`
+	ExecutionElapsedNanos uint64
+	Diagnostics           *DiagnosticTraceReference `json:"diagnostics,omitempty"`
+	CorpusPath            string
+	CorpusEntries         uint64
+	CorpusAdded           uint64
+	Guidance              *GuidanceSummary `json:"guidance,omitempty"`
+	ChoiceTrace           *ChoiceTraceSummary
+	ChoiceExploration     *ChoiceExplorationSummary
+	SimulationExploration *SimulationExplorationSummary
+	RecoveryExecutions    uint64
+	// Has unexported fields.
+}
+
+func Explore(ctx context.Context, spec CampaignSpec) (CampaignResult, error)
+
+func Resume(ctx context.Context, spec ResumeSpec) (CampaignResult, error)
+
+func RunCampaignShard(ctx context.Context, spec CampaignShardSpec) (CampaignResult, error)
+
+type CampaignShard struct {
+	Index uint64 `json:"index"`
+	Count uint64 `json:"count"`
+}
+    CampaignShard identifies one disjoint ordinal-modulo partition of a
+    campaign.
+
+func (shard CampaignShard) Owns(ordinal uint64) bool
+
+func (shard CampaignShard) SelectionCount(total uint64) uint64
+
+func (shard CampaignShard) Validate() error
+
+type CampaignShardSpec struct {
+	PlanPath          string
+	Shard             CampaignShard
+	Artifacts         string
+	ToolchainRoot     string
+	RunnerBuild       string
+	SupervisorCommand []string
+	Progress          CampaignEventFunc
+	ProgressInterval  time.Duration
+	Replayer          ArtifactReplayer
+}
+
+type CampaignSpec struct {
+	ResumeCampaign       string
+	PlanSHA256           record.SHA256
+	Shard                CampaignShard
+	Strategy             Strategy
+	Seeds                string
+	Parallel             int
+	ExecutionTimeout     time.Duration
+	OverallTimeout       time.Duration
+	TerminateGrace       time.Duration
+	OnFailure            FailurePolicy
+	FailureBudget        uint64
+	OutputLimit          uint64
+	WorldTransitionLimit uint64
+	Diagnostics          bool
+	ChoiceTraceLimit     uint64
+	// IOTranscriptLimit bounds the I/O transcript; zero means
+	// deterministicio.DefaultTranscriptBytes.
+	IOTranscriptLimit uint64
+	// ClockTick is the virtual-clock tick policy; empty means record.ClockTickStrict.
+	ClockTick                 string
+	MaxExecutions             uint64
+	MaxChoiceDepth            uint64
+	ChoiceStartOrdinal        uint64
+	MaxForcedDecisions        uint64
+	MaxExplorationBytes       uint64
+	MaxExplorationResultBytes uint64
+	SimulationDimensionLimits SimulationDimensionLimits
+	Artifacts                 string
+	Environment               []string
+	IOROMounts                []string
+	IOROMountLimits           readonlymount.Limits
+	Target                    target.Spec
+	SupervisorCommand         []string
+	CoordinatorCommand        []string
+	RunnerBuild               string
+	Coverage                  CoverageMode
+	RequiredSemanticProbes    []string
+	CollectExecutionEvidence  bool
+	KeepSuccesses             KeepSuccesses
+	SuccessArtifactLimit      uint64
+	SuccessBytesLimit         uint64
+	Guide                     bool
+	GuideRegression           bool
+	GuideRegressionOverride   *bool
+	Corpus                    string
+	GuideSnapshotSHA256       record.SHA256
+	Progress                  CampaignEventFunc
+	ProgressInterval          time.Duration
+	Preparer                  Preparer
+	Replayer                  ArtifactReplayer
+}
+
+type CapturedMounts struct {
+	Mappings   []string `json:"mappings"`
+	Entries    uint64   `json:"entries"`
+	NotExist   uint64   `json:"not_exist"`
+	TotalBytes uint64   `json:"total_bytes"`
+}
+
+type ChoiceDecision struct {
+	Ordinal      uint64 `json:"ordinal"`
+	Kind         string `json:"kind"`
+	SiteOffset   uint64 `json:"site_offset"`
+	SiteMissing  bool   `json:"site_missing,omitempty"`
+	Alternatives uint32 `json:"alternatives"`
+	Selected     uint32 `json:"selected"`
+}
+    ChoiceDecision is one decision of the exact replay plan. Its ordinal is the
+    numbering choice exploration uses for its start ordinal and forced depth.
+
+type ChoiceEvidence struct {
+	Profile                string              `json:"profile"`
+	ImplementationSHA256   record.SHA256       `json:"implementation_sha256"`
+	Limit                  record.Uint64String `json:"limit"`
+	SHA256                 record.SHA256       `json:"sha256"`
+	Records                record.Uint64String `json:"records"`
+	BranchingRecords       record.Uint64String `json:"branching_records"`
+	TerminalState          string              `json:"terminal_state"`
+	TapeSHA256             record.SHA256       `json:"tape_sha256"`
+	Decisions              record.Uint64String `json:"decisions"`
+	Runnable               record.Uint64String `json:"runnable"`
+	SelectPoll             record.Uint64String `json:"select_poll"`
+	SelectResult           record.Uint64String `json:"select_result"`
+	PeakGoroutines         record.Uint64String `json:"peak_goroutines"`
+	Features               []choice.Feature    `json:"features"`
+	AdjacentPairsObserved  record.Uint64String `json:"adjacent_pairs_observed"`
+	AdjacentPairsTruncated bool                `json:"adjacent_pairs_truncated"`
+}
+
+type ChoiceExplorationEvidence struct {
+	ImplementationSHA256 record.SHA256       `json:"implementation_sha256"`
+	Round                record.Uint64String `json:"round"`
+	CandidateSHA256      record.SHA256       `json:"candidate_sha256"`
+	ParentSHA256         record.SHA256       `json:"parent_sha256,omitempty"`
+	PrefixSHA256         record.SHA256       `json:"prefix_sha256,omitempty"`
+	ForcedDepth          record.Uint64String `json:"forced_depth"`
+	OutcomeSHA256        record.SHA256       `json:"outcome_sha256"`
+}
+
+type ChoiceExplorationSummary struct {
+	Parallel                 int    `json:"parallel"`
+	MaxExecutions            uint64 `json:"max_executions"`
+	MaxChoiceDepth           uint64 `json:"max_choice_depth"`
+	StartOrdinal             uint64 `json:"start_ordinal,omitempty"`
+	MaxExplorationBytes      uint64 `json:"max_exploration_bytes"`
+	LogicalExecutions        uint64 `json:"logical_executions"`
+	CommittedRounds          uint64 `json:"committed_rounds"`
+	Pending                  uint64 `json:"pending"`
+	PendingBytes             uint64 `json:"pending_bytes"`
+	SeenPrefixes             uint64 `json:"seen_prefixes"`
+	DeduplicatedOutcomes     uint64 `json:"deduplicated_outcomes"`
+	DeepestPrefix            uint64 `json:"deepest_prefix"`
+	OmittedByExecutionBound  uint64 `json:"omitted_by_execution_bound"`
+	OmittedByDepth           uint64 `json:"omitted_by_depth"`
+	OmittedByCapacity        uint64 `json:"omitted_by_capacity"`
+	OmittedBySelectReadiness uint64 `json:"omitted_by_select_readiness"`
+	StopReason               string `json:"stop_reason,omitempty"`
+	BoundedComplete          bool   `json:"bounded_complete"`
+}
+
+type ChoiceSite struct {
+	Fingerprint         string `json:"fingerprint"`
+	Kind                string `json:"kind"`
+	Count               uint64 `json:"count"`
+	MaximumAlternatives uint32 `json:"maximum_alternatives"`
+}
+
+type ChoiceTraceSummary struct {
+	Seed             uint64
+	Profile          string
+	Limit            uint64
+	SHA256           record.SHA256
+	Records          uint64
+	BranchingRecords uint64
+	Runnable         uint64
+	SelectPoll       uint64
+	SelectResult     uint64
+	TerminalState    string
+	TapeSHA256       record.SHA256
+	Decisions        uint64
+	PeakGoroutines   uint32
+}
+
+type Choices struct {
+	Schema               string           `json:"schema"`
+	Profile              string           `json:"profile"`
+	ImplementationSHA256 record.SHA256    `json:"implementation_sha256"`
+	Limit                uint64           `json:"limit"`
+	PayloadBytes         uint64           `json:"payload_bytes"`
+	SHA256               record.SHA256    `json:"sha256"`
+	Records              uint64           `json:"records"`
+	BranchingRecords     uint64           `json:"branching_records"`
+	TerminalState        string           `json:"terminal_state"`
+	TapeSHA256           record.SHA256    `json:"tape_sha256,omitempty"`
+	Decisions            uint64           `json:"decisions"`
+	ExactReplayAvailable bool             `json:"exact_replay_available"`
+	Runnable             uint64           `json:"runnable"`
+	SelectPoll           uint64           `json:"select_poll"`
+	SelectResult         uint64           `json:"select_result"`
+	Sites                []ChoiceSite     `json:"sites"`
+	ReplayDecisions      []ChoiceDecision `json:"replay_decisions,omitempty"`
+}
+
+type CoverageMode string
+
+const (
+	CoverageNone           CoverageMode = "none"
+	CoverageSemantic       CoverageMode = "semantic"
+	CoverageChoice         CoverageMode = "choice"
+	CoverageSemanticChoice CoverageMode = "semantic+choice"
+)
+func ParseCoverageMode(value string) (CoverageMode, error)
+    ParseCoverageMode is the one reading of a spelled coverage mode name.
+    Only an omitted CampaignSpec.Coverage means CoverageNone, so an empty name
+    is not a mode.
+
+type DiagnosticEvidence struct {
+	Profile string              `json:"profile"`
+	SHA256  record.SHA256       `json:"sha256"`
+	Records record.Uint64String `json:"records"`
+}
+
+type DiagnosticTraceReference struct {
+	Path string `json:"path"`
+	DiagnosticEvidence
+}
+
+type ExecutionEvidence struct {
+	Schema                  string                           `json:"schema"`
+	Seed                    record.Uint64String              `json:"seed"`
+	RunnerBuild             string                           `json:"runner_build"`
+	Toolchain               record.Toolchain                 `json:"toolchain"`
+	Target                  record.Target                    `json:"target"`
+	IOProfile               deterministicio.Contract         `json:"io_profile"`
+	Environment             []record.Environment             `json:"environment"`
+	Limits                  ExecutionLimitsEvidence          `json:"limits"`
+	Outcome                 OutcomeEvidence                  `json:"outcome"`
+	GroupGone               bool                             `json:"group_gone"`
+	Stdout                  record.Stream                    `json:"stdout"`
+	Stderr                  record.Stream                    `json:"stderr"`
+	IOTranscriptSHA256      record.SHA256                    `json:"io_transcript_sha256"`
+	IOTranscriptRecords     record.Uint64String              `json:"io_transcript_records"`
+	IOTranscriptComplete    bool                             `json:"io_transcript_complete"`
+	VirtualTimeElapsedNanos record.Uint64String              `json:"virtual_time_elapsed_nanos"`
+	Diagnostics             *DiagnosticEvidence              `json:"diagnostics,omitempty"`
+	Choices                 *ChoiceEvidence                  `json:"choices,omitempty"`
+	World                   record.World                     `json:"world"`
+	ReadOnlyMountsSHA256    *record.SHA256                   `json:"read_only_mounts_sha256,omitempty"`
+	SemanticCoverage        deterministicio.SemanticCoverage `json:"semantic_coverage"`
+	ChoiceExploration       *ChoiceExplorationEvidence       `json:"choice_exploration,omitempty"`
+}
+
+type ExecutionInspection struct {
+	Strategy                    string                     `json:"strategy,omitempty"`
+	Round                       *uint64                    `json:"round,omitempty"`
+	CandidateSHA256             record.SHA256              `json:"candidate_sha256,omitempty"`
+	ParentCandidateSHA256       record.SHA256              `json:"parent_candidate_sha256,omitempty"`
+	PrefixSHA256                record.SHA256              `json:"prefix_sha256,omitempty"`
+	ForcedDepth                 *uint64                    `json:"forced_depth,omitempty"`
+	OutcomeSHA256               record.SHA256              `json:"outcome_sha256,omitempty"`
+	Divergence                  *choice.DivergenceEvidence `json:"divergence,omitempty"`
+	SelectionOrdinal            uint64                     `json:"selection_ordinal"`
+	Seed                        uint64                     `json:"seed"`
+	Domain                      string                     `json:"domain"`
+	Reason                      string                     `json:"reason"`
+	Termination                 string                     `json:"termination"`
+	ElapsedNanos                uint64                     `json:"elapsed_nanos"`
+	FailureSignature            *record.SHA256             `json:"failure_signature,omitempty"`
+	Artifact                    *string                    `json:"artifact,omitempty"`
+	SuccessArtifact             *string                    `json:"success_artifact,omitempty"`
+	SuccessArtifactBytes        *uint64                    `json:"success_artifact_bytes,omitempty"`
+	SemanticProbes              []string                   `json:"semantic_probes,omitempty"`
+	NovelSemanticProbes         []string                   `json:"novel_semantic_probes,omitempty"`
+	TranscriptSHA256            *record.SHA256             `json:"transcript_sha256,omitempty"`
+	TranscriptRecords           *uint64                    `json:"transcript_records,omitempty"`
+	ChoiceTraceSHA256           *record.SHA256             `json:"choice_trace_sha256,omitempty"`
+	ChoiceTraceRecords          *uint64                    `json:"choice_trace_records,omitempty"`
+	ChoiceTraceBranchingRecords *uint64                    `json:"choice_trace_branching_records,omitempty"`
+	ChoiceTraceTerminalState    *string                    `json:"choice_trace_terminal_state,omitempty"`
+}
+
+type ExecutionJournalInspection struct {
+	Schema      string                        `json:"schema"`
+	IndexSHA256 record.SHA256                 `json:"index_sha256"`
+	Segments    uint64                        `json:"segments"`
+	Records     uint64                        `json:"records"`
+	Bytes       uint64                        `json:"bytes"`
+	Limits      campaign.ExecutionJournalPlan `json:"limits"`
+}
+
+type ExecutionLimitsEvidence struct {
+	ExecutionTimeoutNanos record.Uint64String `json:"execution_timeout_nanos"`
+	TerminateGraceNanos   record.Uint64String `json:"terminate_grace_nanos"`
+	OutputBytes           record.Uint64String `json:"output_bytes"`
+	WorldTransitionBytes  record.Uint64String `json:"world_transition_bytes"`
+	IOTranscriptBytes     record.Uint64String `json:"io_transcript_bytes"`
+	ChoiceTraceBytes      record.Uint64String `json:"choice_trace_bytes,omitempty"`
+}
+
+type FailureArtifact struct {
+	Signature record.SHA256 `json:"signature"`
+	Path      string        `json:"path"`
+}
+
+type FailurePolicy string
+
+const (
+	PolicyFirst  FailurePolicy = "first"
+	PolicyBudget FailurePolicy = "budget"
+	PolicyAll    FailurePolicy = "all"
+)
+type GuidanceSummary struct {
+	Regression    bool   `json:"regression"`
+	Requested     uint64 `json:"requested"`
+	Answered      uint64 `json:"answered"`
+	Guided        uint64 `json:"guided"`
+	NewExecutions uint64 `json:"new_executions"`
+}
+
+type HostError struct {
+	Reason string
+	Err    error
+}
+
+func (err *HostError) Error() string
+
+func (err *HostError) Unwrap() error
+
+type InspectOptions struct {
+	Choices bool
+}
+
+type Inspection struct {
+	Schema                string                           `json:"schema"`
+	Kind                  string                           `json:"kind"`
+	Path                  string                           `json:"path"`
+	Plan                  *CampaignPlanInspection          `json:"campaign_plan,omitempty"`
+	Artifact              *ArtifactInspection              `json:"artifact,omitempty"`
+	Campaign              *CampaignInspection              `json:"campaign,omitempty"`
+	Merged                *MergedCampaignInspection        `json:"merged_campaign,omitempty"`
+	Lifecycle             *CampaignLifecycleInspection     `json:"lifecycle,omitempty"`
+	SimulationExploration *SimulationExplorationInspection `json:"simulation_exploration,omitempty"`
+}
+
+func Inspect(path string, options InspectOptions) (Inspection, error)
+
+type KeepSuccesses string
+
+const (
+	KeepSuccessesNone  KeepSuccesses = "none"
+	KeepSuccessesNovel KeepSuccesses = "novel"
+	KeepSuccessesAll   KeepSuccesses = "all"
+)
+type MergedCampaignInspection struct {
+	PlanSHA256         record.SHA256          `json:"plan_sha256"`
+	Selection          string                 `json:"selection"`
+	SelectionCount     uint64                 `json:"selection_count"`
+	Partial            bool                   `json:"partial"`
+	Missing            []CampaignOrdinalRange `json:"missing"`
+	Shards             uint64                 `json:"shards"`
+	Attempted          uint64                 `json:"attempted"`
+	Succeeded          uint64                 `json:"succeeded"`
+	Failures           uint64                 `json:"failures"`
+	Watchdogs          uint64                 `json:"watchdogs"`
+	Cancelled          uint64                 `json:"cancelled"`
+	DistinctFailures   uint64                 `json:"distinct_failures"`
+	RetainedEvidence   uint64                 `json:"retained_evidence"`
+	EvidenceBytes      uint64                 `json:"evidence_bytes"`
+	JournalBytes       uint64                 `json:"journal_bytes"`
+	JournalSegments    uint64                 `json:"journal_segments"`
+	SourceCampaignIDs  []string               `json:"source_campaign_ids"`
+	EvidenceIdentities []record.SHA256        `json:"evidence_identities"`
+}
+
+type MinimizationDecisionInspection struct {
+	Dimension string        `json:"dimension"`
+	Ordinal   uint64        `json:"ordinal"`
+	Identity  record.SHA256 `json:"identity"`
+}
+
+type MinimizationInspection struct {
+	Schema                  string                            `json:"schema"`
+	ImplementationSHA256    record.SHA256                     `json:"implementation_sha256"`
+	ParentRecordHash        record.SHA256                     `json:"parent_record_hash"`
+	ParentFailureSignature  record.SHA256                     `json:"parent_failure_signature"`
+	OriginalCandidateSHA256 record.SHA256                     `json:"original_candidate_sha256"`
+	FinalCandidateSHA256    record.SHA256                     `json:"final_candidate_sha256"`
+	AttemptBudget           uint64                            `json:"attempt_budget"`
+	Attempts                uint64                            `json:"attempts"`
+	OriginalForcedDecisions uint64                            `json:"original_forced_decisions"`
+	FinalForcedDecisions    uint64                            `json:"final_forced_decisions"`
+	Accepted                []MinimizationReductionInspection `json:"accepted"`
+	Predicate               record.MinimizationPredicate      `json:"predicate"`
+}
+
+type MinimizationReductionInspection struct {
+	Kind         string                           `json:"kind"`
+	BeforeSHA256 record.SHA256                    `json:"before_sha256"`
+	AfterSHA256  record.SHA256                    `json:"after_sha256"`
+	Removed      []MinimizationDecisionInspection `json:"removed"`
+}
+
+type MinimizeResult struct {
+	Artifact      artifact.Artifact              `json:"artifact"`
+	Changed       bool                           `json:"changed"`
+	Attempts      uint64                         `json:"attempts"`
+	AttemptBudget uint64                         `json:"attempt_budget"`
+	Accepted      []record.MinimizationReduction `json:"accepted"`
+	StopReason    string                         `json:"stop_reason"`
+}
+
+func Minimize(ctx context.Context, config MinimizeSpec) (result MinimizeResult, retErr error)
+
+type MinimizeSpec struct {
+	ArtifactPath      string
+	OutputRoot        string
+	AttemptBudget     uint64
+	MaximumBytes      uint64
+	ToolchainRoot     string
+	SupervisorCommand []string
+	BootstrapCommand  []string
+	Replayer          ArtifactReplayer
+	// Resume continues from the state an interrupted run left under OutputRoot.
+	Resume bool
+}
+
+type OutcomeEvidence struct {
+	Domain      string               `json:"domain"`
+	Reason      string               `json:"reason"`
+	Termination string               `json:"termination"`
+	ExitCode    *record.Uint64String `json:"exit_code,omitempty"`
+	Signal      *string              `json:"signal,omitempty"`
+	Deadline    *string              `json:"deadline,omitempty"`
+}
+
+type OutcomeReport struct {
+	Domain           string        `json:"domain"`
+	Reason           string        `json:"reason"`
+	Termination      string        `json:"termination"`
+	ExitCode         *uint64       `json:"exit_code,omitempty"`
+	Signal           *string       `json:"signal,omitempty"`
+	Deadline         *string       `json:"deadline,omitempty"`
+	FailureSignature record.SHA256 `json:"failure_signature"`
+	ReplayMatch      *bool         `json:"replay_match,omitempty"`
+}
+
+type Preparer interface {
+	Prepare(context.Context, target.Spec) (target.Prepared, error)
+}
+
+type Recovery struct {
+	Schema  string                      `json:"schema"`
+	Path    string                      `json:"path"`
+	Action  string                      `json:"action,omitempty"`
+	Changed bool                        `json:"changed"`
+	Before  CampaignLifecycleInspection `json:"before"`
+	After   CampaignLifecycleInspection `json:"after"`
+}
+
+func Recover(ctx context.Context, path string) (Recovery, error)
+
+type ReplayPreflightError struct {
+	Err error
+}
+
+func (err *ReplayPreflightError) Error() string
+
+func (err *ReplayPreflightError) Unwrap() error
+
+type ReplayResult struct {
+	Artifact           artifact.Artifact
+	Verified           bool
+	Match              bool
+	Diagnostic         bool
+	Divergence         string
+	ChoiceReplayStatus string
+}
+
+func Replay(ctx context.Context, config ReplaySpec) (result ReplayResult, retErr error)
+
+type ReplaySpec struct {
+	ArtifactPath  string
+	VerifyOnly    bool
+	ToolchainRoot string
+	// ObservedDir, when set, receives the replayed target's stdout and stderr
+	// so a divergence can be diffed against the artifact's retained streams.
+	ObservedDir       string
+	SupervisorCommand []string
+	BootstrapCommand  []string
+}
+
+type ResumeSpec struct {
+	CampaignPath       string
+	ToolchainRoot      string
+	RunnerBuild        string
+	SupervisorCommand  []string
+	CoordinatorCommand []string
+	Progress           CampaignEventFunc
+	ProgressInterval   time.Duration
+	Replayer           ArtifactReplayer
+	GuideRegression    *bool
+}
+
+type SeedIterator struct {
+	// Has unexported fields.
+}
+
+func (iterator *SeedIterator) Next() (uint64, bool)
+
+type SeedSelection struct {
+	// Has unexported fields.
+}
+
+func ParseSeeds(input string) (SeedSelection, error)
+
+func (selection SeedSelection) Count() uint64
+
+func (selection SeedSelection) Iterator() *SeedIterator
+
+func (selection SeedSelection) SeedAt(ordinal uint64) (uint64, bool)
+
+func (selection SeedSelection) String() string
+
+type SimulationCandidateInspection struct {
+	SHA256       record.SHA256                  `json:"sha256"`
+	ParentSHA256 record.SHA256                  `json:"parent_sha256,omitempty"`
+	Overrides    []SimulationOverrideInspection `json:"overrides"`
+}
+
+type SimulationDimensionLimits struct {
+	Runtime  uint64 `json:"runtime"`
+	Scenario uint64 `json:"scenario"`
+	Network  uint64 `json:"network"`
+	Storage  uint64 `json:"storage"`
+	Fault    uint64 `json:"fault"`
+	Crash    uint64 `json:"crash"`
+}
+
+type SimulationExplorationInspection struct {
+	Schema               string                           `json:"schema"`
+	Summary              SimulationExplorationSummary     `json:"summary"`
+	ImplementationSHA256 record.SHA256                    `json:"implementation_sha256"`
+	ChainSHA256          record.SHA256                    `json:"chain_sha256"`
+	Pending              []SimulationCandidateInspection  `json:"pending"`
+	StagedRound          *SimulationStagedRoundInspection `json:"staged_round,omitempty"`
+}
+
+type SimulationExplorationSummary struct {
+	Parallel                int                       `json:"parallel"`
+	MaxExecutions           uint64                    `json:"max_executions"`
+	MaxForcedDecisions      uint64                    `json:"max_forced_decisions"`
+	MaxExplorationBytes     uint64                    `json:"max_exploration_bytes"`
+	MaxResultBytes          uint64                    `json:"max_result_bytes"`
+	FailureBudget           uint64                    `json:"failure_budget"`
+	Limits                  SimulationDimensionLimits `json:"dimension_limits"`
+	LogicalExecutions       uint64                    `json:"logical_executions"`
+	CommittedRounds         uint64                    `json:"committed_rounds"`
+	Pending                 uint64                    `json:"pending"`
+	PendingBytes            uint64                    `json:"pending_bytes"`
+	SeenCandidates          uint64                    `json:"seen_candidates"`
+	DeduplicatedOutcomes    uint64                    `json:"deduplicated_outcomes"`
+	DistinctFailures        uint64                    `json:"distinct_failures"`
+	DeepestOverride         uint64                    `json:"deepest_override"`
+	OmittedByExecutionBound uint64                    `json:"omitted_by_execution_bound"`
+	OmittedByDepth          uint64                    `json:"omitted_by_depth"`
+	OmittedByDimension      uint64                    `json:"omitted_by_dimension"`
+	OmittedByCapacity       uint64                    `json:"omitted_by_capacity"`
+	StopReason              string                    `json:"stop_reason,omitempty"`
+	BoundedComplete         bool                      `json:"bounded_complete"`
+}
+
+type SimulationInspection struct {
+	Profile          string                      `json:"profile"`
+	ControllerSHA256 record.SHA256               `json:"controller_sha256"`
+	ExecutionSHA256  record.SHA256               `json:"execution_sha256"`
+	CandidateSHA256  record.SHA256               `json:"candidate_sha256"`
+	OutcomeSHA256    record.SHA256               `json:"outcome_sha256"`
+	FailureSHA256    record.SHA256               `json:"failure_sha256,omitempty"`
+	Plan             SimulationPayloadInspection `json:"plan"`
+	Record           SimulationRecordInspection  `json:"record"`
+}
+
+type SimulationOverrideInspection struct {
+	Dimension            string        `json:"dimension"`
+	Ordinal              uint64        `json:"ordinal"`
+	SiteSHA256           record.SHA256 `json:"site_sha256"`
+	Alternatives         uint32        `json:"alternatives"`
+	AlternativeSetSHA256 record.SHA256 `json:"alternative_set_sha256"`
+	Selected             uint32        `json:"selected"`
+	SelectedSHA256       record.SHA256 `json:"selected_sha256"`
+	ControlBytes         uint64        `json:"control_bytes,omitempty"`
+	ControlSHA256        record.SHA256 `json:"control_sha256,omitempty"`
+	Identity             record.SHA256 `json:"identity"`
+}
+
+type SimulationPayloadInspection struct {
+	Schema string        `json:"schema"`
+	SHA256 record.SHA256 `json:"sha256"`
+	Bytes  uint64        `json:"bytes"`
+}
+
+type SimulationRecordInspection struct {
+	Schema string        `json:"schema"`
+	SHA256 record.SHA256 `json:"sha256"`
+	Bytes  uint64        `json:"bytes"`
+	Limit  uint64        `json:"limit"`
+}
+
+type SimulationStagedRoundInspection struct {
+	Index      uint64 `json:"index"`
+	Candidates uint64 `json:"candidates"`
+	Attempted  uint64 `json:"attempted"`
+}
+
+type StopReason string
+
+const (
+	StopSeedsExhausted          StopReason = "seeds_exhausted"
+	StopFirstFailure            StopReason = "first_failure"
+	StopFailureBudget           StopReason = "failure_budget"
+	StopExplorationExhausted    StopReason = "exploration_exhausted"
+	StopChoiceDepthComplete     StopReason = "choice_depth_complete"
+	StopSimulationDepthComplete StopReason = "simulation_depth_complete"
+	StopDimensionDepthComplete  StopReason = "dimension_depth_complete"
+	StopMaxExecutions           StopReason = "max_executions"
+	StopExplorationCapacity     StopReason = "exploration_capacity"
+	StopChoiceStartUnreached    StopReason = "choice_start_unreached"
+)
+type Strategy string
+
+const (
+	StrategySeed                  Strategy = "seed"
+	StrategyChoiceExploration     Strategy = "choice-exploration"
+	StrategySimulationExploration Strategy = "simulation-exploration"
+)
+func ParseStrategy(value string) (Strategy, error)
+    ParseStrategy is the one reading of a strategy name. An empty name is the
+    seed strategy, as an omitted CampaignSpec.Strategy is; any other name must
+    be a known strategy.
+
+type StreamReport struct {
+	FullSHA256     record.SHA256 `json:"full_sha256"`
+	TotalBytes     uint64        `json:"total_bytes"`
+	RetainedBytes  uint64        `json:"retained_bytes"`
+	DiscardedBytes uint64        `json:"discarded_bytes"`
+	Truncated      bool          `json:"truncated"`
+}
+
+type SuccessArtifact struct {
+	Path        string   `json:"path"`
+	StoredBytes uint64   `json:"stored_bytes"`
+	NovelProbes []string `json:"novel_probes,omitempty"`
+}
+
+type TargetReport struct {
+	Kind               string                           `json:"kind"`
+	Source             string                           `json:"source"`
+	SHA256             record.SHA256                    `json:"sha256"`
+	Size               uint64                           `json:"size"`
+	Argv               []string                         `json:"argv"`
+	BuildTags          []string                         `json:"build_tags"`
+	Adapters           []record.TargetAdapter           `json:"adapters"`
+	Compatibility      []record.CompatibilityPack       `json:"compatibility"`
+	BuildInfo          record.BuildInfo                 `json:"build_info"`
+	CapabilityMode     string                           `json:"capability_mode"`
+	CapabilityManifest *record.TargetCapabilityManifest `json:"capability_manifest,omitempty"`
+	// Sharing is "shared" when the inspected artifact's target file has other
+	// hard links, as a target linked to a store's pool has, and "private" when
+	// the artifact holds the only link. It is read from the link count alone:
+	// the pool is not looked up, so a pooled store's fallback copy is "private".
+	Sharing string `json:"sharing,omitempty"`
+}
+
+type Transcript struct {
+	Schema  string        `json:"schema"`
+	SHA256  record.SHA256 `json:"sha256"`
+	Bytes   uint64        `json:"bytes"`
+	Records uint64        `json:"records"`
+}
+

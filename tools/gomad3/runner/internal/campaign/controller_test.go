@@ -31,16 +31,13 @@ func TestSeedControllerSchedulesAndAggregatesDeterministically(t *testing.T) {
 	if ok {
 		t.Fatal("controller exceeded parallelism")
 	}
-	controller.FinishAttempt()
-	controller.RecordSuccess()
+	controller.Complete(CompletedSuccess())
 	_, ok = controller.Next()
 	if !ok {
 		t.Fatal("third job was not scheduled")
 	}
-	controller.FinishAttempt()
-	controller.RecordFailure("watchdog", "world_replay_divergence", 1)
-	controller.FinishAttempt()
-	controller.RecordCancelled()
+	controller.Complete(CompletedFailure("watchdog", "world_replay_divergence", 1))
+	controller.Complete(CompletedCancelled())
 	_, ok = controller.Next()
 	if ok || !controller.Done() {
 		t.Fatal("controller did not exhaust")
@@ -83,8 +80,7 @@ func TestSeedControllerAppliesFailurePolicies(t *testing.T) {
 			if !ok {
 				t.Fatal("second job was not scheduled")
 			}
-			controller.FinishAttempt()
-			if cancel := controller.RecordFailure("watchdog", "world_replay_divergence", test.distinct); cancel != test.wantCancel {
+			if cancel := controller.Complete(CompletedFailure("watchdog", "world_replay_divergence", test.distinct)); cancel != test.wantCancel {
 				t.Fatalf("cancel = %t, want %t", cancel, test.wantCancel)
 			}
 			want := CampaignStatistics{
@@ -98,7 +94,7 @@ func TestSeedControllerAppliesFailurePolicies(t *testing.T) {
 			if ok {
 				t.Fatal("stopped controller scheduled another job")
 			}
-			controller.FinishAttempt()
+			controller.Complete(CompletedUnclassified())
 			if !controller.Done() {
 				t.Fatal("stopped controller did not drain")
 			}

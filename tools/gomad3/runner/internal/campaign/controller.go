@@ -34,6 +34,42 @@ type CampaignStatistics struct {
 	StopReason        ControllerStopReason
 }
 
+// Completion is how one scheduled attempt ended. Its zero value is not a
+// completion; use one of the Completed constructors.
+type Completion struct {
+	kind             completionKind
+	domain           string
+	reason           string
+	distinctFailures uint64
+}
+
+type completionKind uint8
+
+const (
+	completionInvalid completionKind = iota
+	completionSuccess
+	completionCancelled
+	completionFailure
+	completionUnclassified
+)
+
+// CompletedSuccess is an attempt classified as a success.
+func CompletedSuccess() Completion { return Completion{kind: completionSuccess} }
+
+// CompletedCancelled is an attempt cancelled by a stopped campaign.
+func CompletedCancelled() Completion { return Completion{kind: completionCancelled} }
+
+// CompletedFailure is an attempt classified as a failure with its outcome
+// domain and reason. distinctFailures is the campaign's distinct failure
+// signature count including this failure; the failure budget compares it.
+func CompletedFailure(domain, reason string, distinctFailures uint64) Completion {
+	return Completion{kind: completionFailure, domain: domain, reason: reason, distinctFailures: distinctFailures}
+}
+
+// CompletedUnclassified is an attempt that ended before classification, such
+// as one whose evidence failed the host. It counts as attempted only.
+func CompletedUnclassified() Completion { return Completion{kind: completionUnclassified} }
+
 type SeedControllerConfig struct {
 	Next          func() (SeedJob, bool)
 	Parallel      int
@@ -95,31 +131,40 @@ func (controller *SeedController) Next() (SeedJob, bool) {
 	return job, true
 }
 
-func (controller *SeedController) FinishAttempt() {
+// Complete counts one scheduled attempt as completed: it releases the
+// attempt's slot, counts it as attempted and classified, and applies the
+// failure policy, all in one transition. It reports whether active work must
+// be cancelled. Completing without active work, or with the zero Completion,
+// is an invariant violation that leaves the controller unchanged.
+func (controller *SeedController) Complete(completion Completion) bool {
 	if controller.active == 0 {
 		panic("gomad3: completed an inactive campaign attempt")
 	}
+	if completion.kind == completionInvalid {
+		panic("gomad3: completed a campaign attempt without a classification")
+	}
 	controller.active--
 	controller.statistics.Attempted++
+	switch completion.kind {
+	case completionSuccess:
+		controller.statistics.Succeeded++
+	case completionCancelled:
+		controller.statistics.Cancelled++
+	case completionFailure:
+		return controller.recordFailure(completion)
+	}
+	return false
 }
 
-func (controller *SeedController) RecordSuccess() {
-	controller.statistics.Succeeded++
-}
-
-func (controller *SeedController) RecordCancelled() {
-	controller.statistics.Cancelled++
-}
-
-func (controller *SeedController) RecordFailure(domain, reason string, distinct uint64) bool {
+func (controller *SeedController) recordFailure(completion Completion) bool {
 	controller.statistics.Failures++
-	if domain == "watchdog" {
+	if completion.domain == "watchdog" {
 		controller.statistics.Watchdogs++
 	}
-	if reason == "world_replay_divergence" {
+	if completion.reason == "world_replay_divergence" {
 		controller.statistics.ReplayDivergences++
 	}
-	controller.statistics.DistinctFailures = distinct
+	controller.statistics.DistinctFailures = completion.distinctFailures
 	if controller.stopped {
 		return false
 	}
@@ -129,7 +174,7 @@ func (controller *SeedController) RecordFailure(domain, reason string, distinct 
 		controller.stopped = true
 		return true
 	case FailurePolicyBudget:
-		if distinct >= controller.failureBudget {
+		if completion.distinctFailures >= controller.failureBudget {
 			controller.statistics.StopReason = StopFailureBudget
 			controller.stopped = true
 		}

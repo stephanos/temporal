@@ -27,11 +27,14 @@ type CampaignShardSpec struct {
 	SupervisorCommand []string
 	Progress          CampaignEventFunc
 	ProgressInterval  time.Duration
-	Executor          Executor
 	Replayer          ArtifactReplayer
 }
 
 func RunCampaignShard(ctx context.Context, spec CampaignShardSpec) (CampaignResult, error) {
+	return runCampaignShardWith(ctx, spec, dependencies{})
+}
+
+func runCampaignShardWith(ctx context.Context, spec CampaignShardSpec, dependency dependencies) (CampaignResult, error) {
 	if err := spec.Shard.Validate(); err != nil {
 		return CampaignResult{}, err
 	}
@@ -46,7 +49,7 @@ func RunCampaignShard(ctx context.Context, spec CampaignShardSpec) (CampaignResu
 	if !deterministicio.Default().Matches(plan.IOProfile) {
 		return CampaignResult{}, errors.New("campaign plan I/O profile identity does not match this Runner")
 	}
-	if spec.Executor == nil {
+	if dependency.executor == nil {
 		identity, err := target.ReadToolchainIdentity(spec.ToolchainRoot)
 		if err != nil {
 			return CampaignResult{}, err
@@ -75,7 +78,7 @@ func RunCampaignShard(ctx context.Context, spec CampaignShardSpec) (CampaignResu
 		return CampaignResult{}, err
 	}
 	targetRecord := plan.Prepared.Target
-	config := CampaignSpec{
+	config := newCampaignRun(CampaignSpec{
 		PlanSHA256: opened.identity, Shard: spec.Shard, Strategy: StrategySeed, Seeds: plan.Selection, Parallel: int(plan.Parallel),
 		ExecutionTimeout: time.Duration(plan.ExecutionTimeoutNanos), OverallTimeout: time.Duration(plan.OverallTimeoutNanos), TerminateGrace: time.Duration(plan.TerminateGraceNanos),
 		OnFailure: PolicyAll, FailureBudget: uint64(plan.FailureBudget), OutputLimit: uint64(plan.OutputBytes), WorldTransitionLimit: uint64(plan.WorldTransitionBytes),
@@ -88,9 +91,9 @@ func RunCampaignShard(ctx context.Context, spec CampaignShardSpec) (CampaignResu
 		SupervisorCommand: append([]string(nil), spec.SupervisorCommand...), RunnerBuild: spec.RunnerBuild,
 		Coverage: CoverageMode(plan.Coverage), RequiredSemanticProbes: append([]string(nil), plan.RequiredSemanticProbes...),
 		KeepSuccesses: KeepSuccesses(plan.KeepSuccesses), SuccessArtifactLimit: uint64(plan.SuccessArtifactLimit), SuccessBytesLimit: uint64(plan.SuccessBytesLimit),
-		Progress: spec.Progress, ProgressInterval: spec.ProgressInterval, Executor: spec.Executor, Replayer: spec.Replayer,
+		Progress: spec.Progress, ProgressInterval: spec.ProgressInterval, Replayer: spec.Replayer,
 		Preparer: &campaignPlanPreparer{source: opened.prepared},
-	}
+	})
 	if plan.Guidance != nil {
 		config.Guide = true
 		config.GuideRegression = plan.Guidance.Regression
@@ -98,6 +101,7 @@ func RunCampaignShard(ctx context.Context, spec CampaignShardSpec) (CampaignResu
 		config.GuideSnapshotSHA256 = plan.Guidance.SnapshotSHA256
 		config.guidancePlan = plan.Guidance
 	}
+	config.dependencies = dependency
 	return runLocal(ctx, config)
 }
 

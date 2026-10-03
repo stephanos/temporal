@@ -117,8 +117,20 @@ type Preparer interface {
 	Prepare(context.Context, target.Spec) (target.Prepared, error)
 }
 
-type Executor interface {
+// targetExecutor runs one supervised target execution. Operations run their
+// executions through the supervisor process unless same-package tests
+// substitute one through dependencies.
+type targetExecutor interface {
 	Run(context.Context, execution.Spec) (execution.Result, error)
+}
+
+// dependencies are an operation's private substitutions. The zero value is
+// production: a nil executor runs each execution through the supervisor
+// process, and the checks that only apply to that process (a supervisor
+// command, the pinned toolchain identity, the coordinator simulation role)
+// key on it being nil.
+type dependencies struct {
+	executor targetExecutor
 }
 
 type ArtifactReplayer interface {
@@ -170,17 +182,12 @@ type CampaignSpec struct {
 	Guide                     bool
 	GuideRegression           bool
 	GuideRegressionOverride   *bool
-	guidancePlan              *campaign.GuidancePlan
 	Corpus                    string
 	GuideSnapshotSHA256       record.SHA256
 	Progress                  CampaignEventFunc
 	ProgressInterval          time.Duration
 	Preparer                  Preparer
-	Executor                  Executor
 	Replayer                  ArtifactReplayer
-	resumePreflight           *campaign.ResumePreflight
-	failureArtifactLimit      uint64
-	failureBytesLimit         uint64
 }
 
 type CampaignResult struct {
@@ -318,10 +325,14 @@ func (processExecutor) Run(ctx context.Context, request execution.Spec) (executi
 	return execution.Run(ctx, request)
 }
 
-type artifactReplayer struct{}
+// artifactReplayer is the default ArtifactReplayer. It replays through its
+// operation's dependencies, so a substituted executor also runs the replays.
+type artifactReplayer struct {
+	dependencies dependencies
+}
 
-func (artifactReplayer) Replay(ctx context.Context, config ReplaySpec) (ReplayResult, error) {
-	return Replay(ctx, config)
+func (replayer artifactReplayer) Replay(ctx context.Context, config ReplaySpec) (ReplayResult, error) {
+	return replayWith(ctx, config, replayer.dependencies)
 }
 
 type runJob struct {
@@ -370,16 +381,18 @@ type runJournalFactory interface {
 
 var environmentName = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 
-func Explore(ctx context.Context, config CampaignSpec) (CampaignResult, error) {
-	if config.ResumeCampaign != "" {
-		var err error
-		config, err = resumeRequestDefaults(config)
-		if err != nil {
-			return CampaignResult{}, err
-		}
+func Explore(ctx context.Context, spec CampaignSpec) (CampaignResult, error) {
+	return exploreWith(ctx, spec, dependencies{})
+}
+
+func exploreWith(ctx context.Context, spec CampaignSpec, dependency dependencies) (CampaignResult, error) {
+	config, err := normalizeCampaign(spec)
+	if err != nil {
+		return CampaignResult{}, err
 	}
+	config.dependencies = dependency
 	if len(config.CoordinatorCommand) != 0 {
-		if config.Preparer != nil || config.Executor != nil || config.Replayer != nil {
+		if config.Preparer != nil || config.executor != nil || config.Replayer != nil {
 			return CampaignResult{}, fmt.Errorf("isolated Runner does not accept injected preparation or execution")
 		}
 		return runIsolated(ctx, config)
@@ -387,7 +400,7 @@ func Explore(ctx context.Context, config CampaignSpec) (CampaignResult, error) {
 	return runLocal(ctx, config)
 }
 
-func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult, retErr error) {
+func runLocal(ctx context.Context, config campaignRun) (summary CampaignResult, retErr error) {
 	resuming := config.ResumeCampaign != ""
 	selection, baseEnvironment, err := validateConfig(config)
 	var readOnlyMounts []readonlymount.Mapping
@@ -478,7 +491,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 		summary = CampaignResult{CampaignPath: batchPath, SelectionCount: normalizedCampaignShard(config.Shard).SelectionCount(selection.Count())}
 		journal, err = campaign.NewCampaignJournal(overallCtx, campaign.CampaignConfig{
 			Root: config.Artifacts, CampaignID: runID, PlanSHA256: config.PlanSHA256, Shard: campaignStoreShard(config.Shard),
-			Strategy: string(normalizedStrategy(config.Strategy)), Guidance: config.guidancePlan, Selection: config.Seeds, SelectionCount: selection.Count(), MaxExecutions: config.MaxExecutions, Parallel: uint64(config.Parallel),
+			Strategy: string(config.Strategy), Guidance: config.guidancePlan, Selection: config.Seeds, SelectionCount: selection.Count(), MaxExecutions: config.MaxExecutions, Parallel: uint64(config.Parallel),
 		})
 		if err != nil {
 			return summary, &HostError{Reason: "artifact_setup", Err: err}
@@ -611,7 +624,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 		summary.CorpusPath = guidance.corpus.Path()
 		summary.CorpusEntries = uint64(len(snapshot.Entries))
 	}
-	executor := config.Executor
+	executor := config.executor
 	if executor == nil {
 		executor = processExecutor{}
 	}
@@ -625,14 +638,14 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 	if err := reportProgress(ProgressRunning, 0); err != nil {
 		return summary, &HostError{Reason: "progress_output", Err: err}
 	}
-	if normalizedStrategy(config.Strategy) == StrategyChoiceExploration {
+	if config.Strategy == StrategyChoiceExploration {
 		err := runChoiceExplorationLocal(overallCtx, config, selection, baseEnvironment, readOnlyMounts, prepared, selectedProfile, journal, runID, resuming, resumedRuns, &summary, reportProgress)
 		if err == nil {
 			batchComplete = true
 		}
 		return summary, err
 	}
-	if normalizedStrategy(config.Strategy) == StrategySimulationExploration {
+	if config.Strategy == StrategySimulationExploration {
 		err := runSimulationExplorationLocal(overallCtx, config, selection, baseEnvironment, readOnlyMounts, prepared, selectedProfile, journal, runID, resuming, resumedRuns, &summary, reportProgress)
 		if err == nil {
 			batchComplete = true
@@ -801,301 +814,318 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 			}
 			continue
 		}
-		controller.FinishAttempt()
-		synchronizeCampaignStatistics(&summary, controller.Statistics())
-		if overallCtx.Err() != nil {
-			if hostFailure == nil {
-				hostFailure = &HostError{Reason: contextFailureReason(overallCtx.Err()), Err: overallCtx.Err()}
+		// Each received completion is counted exactly once: where it is
+		// classified, or as unclassified when it ends before classification.
+		// An unclassified attempt that publishes a Runner failure is counted
+		// first: the publication sets the summary's distinct failure count,
+		// which a later synchronization with the controller would overwrite.
+		counted := false
+		complete := func(value campaign.Completion) bool {
+			if counted {
+				panic("gomad3: completed one campaign attempt twice")
 			}
-			controller.Stop()
-			activeCancel()
-			continue
-		}
-		if completion.err != nil {
-			reason := supervisionFailureReason(completion.err)
-			if completion.result.ChoiceTrace.Profile != "" && completion.result.ChoiceTrace.Trace.Summary.Terminal == choice.TerminalOverflow {
-				summary.ChoiceTrace = choiceTraceSummary(completion.job.seed, completion.result.ChoiceTrace)
-			}
-			if partialErr := preservePartial(completion.journal); partialErr != nil {
-				completion.err = errors.Join(completion.err, partialErr)
-			}
-			if publishErr := publishRunnerFailure(completion, reason); publishErr != nil {
-				completion.err = errors.Join(completion.err, publishErr)
-			}
-			if hostFailure == nil {
-				hostFailure = &HostError{Reason: reason, Err: completion.err}
-				controller.Stop()
-				activeCancel()
-			}
-			continue
-		}
-		if err := prepared.Verify(); err != nil {
-			if hostFailure == nil {
-				hostFailure = &HostError{Reason: "prepared_target_integrity", Err: err}
-				controller.Stop()
-				activeCancel()
-			}
-			continue
-		}
-		if config.ChoiceTraceLimit != 0 {
-			summary.ChoiceTrace = choiceTraceSummary(completion.job.seed, completion.result.ChoiceTrace)
-		}
-		if completion.result.Cancelled && controller.Stopped() {
-			controller.RecordCancelled()
+			counted = true
+			cancelActive := controller.Complete(value)
 			synchronizeCampaignStatistics(&summary, controller.Statistics())
-			if partialErr := preservePartial(completion.journal); partialErr != nil {
-				hostFailure = errors.Join(hostFailure, &HostError{Reason: "partial_write", Err: partialErr})
+			return cancelActive
+		}
+		func() {
+			if overallCtx.Err() != nil {
+				if hostFailure == nil {
+					hostFailure = &HostError{Reason: contextFailureReason(overallCtx.Err()), Err: overallCtx.Err()}
+				}
+				controller.Stop()
+				activeCancel()
+				return
 			}
-			if hostFailure != nil {
-				reason := "runner_failure"
-				var hostError *HostError
-				if errors.As(hostFailure, &hostError) {
-					reason = hostError.Reason
+			if completion.err != nil {
+				complete(campaign.CompletedUnclassified())
+				reason := supervisionFailureReason(completion.err)
+				if completion.result.ChoiceTrace.Profile != "" && completion.result.ChoiceTrace.Trace.Summary.Terminal == choice.TerminalOverflow {
+					summary.ChoiceTrace = choiceTraceSummary(completion.job.seed, completion.result.ChoiceTrace)
+				}
+				if partialErr := preservePartial(completion.journal); partialErr != nil {
+					completion.err = errors.Join(completion.err, partialErr)
 				}
 				if publishErr := publishRunnerFailure(completion, reason); publishErr != nil {
-					hostFailure = errors.Join(hostFailure, publishErr)
+					completion.err = errors.Join(completion.err, publishErr)
 				}
-				continue
-			}
-			run := campaign.ExecutionRecord{
-				SelectionOrdinal: record.Uint64String(completion.job.ordinal), Seed: record.Uint64String(completion.job.seed),
-				Domain: "runner", Reason: "runner_cancelled", Termination: "none", ElapsedNanos: elapsedNanos(completion.startedAt, completion.finishedAt),
-			}
-			if err := journal.AppendExecution(run); err != nil && hostFailure == nil {
-				hostFailure = &HostError{Reason: "runs_append", Err: err}
-				controller.Stop()
-				activeCancel()
-			}
-			continue
-		}
-		worldBundle, err := assessWorld(completion.result, completion.job.seed, config.WorldTransitionLimit)
-		if err != nil {
-			if publishErr := publishRunnerFailure(completion, "world_record"); publishErr != nil {
-				err = errors.Join(err, publishErr)
-			}
-			if hostFailure == nil {
-				hostFailure = &HostError{Reason: "world_record", Err: err}
-				controller.Stop()
-				activeCancel()
-			}
-			continue
-		}
-		assessed, assessErr := assessCompletion(completion.result, worldBundle.Manifest.Terminal, config.Coverage, prepared)
-		if assessErr != nil {
-			if partialErr := preservePartial(completion.journal); partialErr != nil {
-				assessErr.Err = errors.Join(assessErr.Err, partialErr)
-			}
-			if hostFailure == nil {
-				hostFailure = assessErr
-				controller.Stop()
-				activeCancel()
-			}
-			continue
-		}
-		runCoverage, runChoiceFeatures, runChoiceProjection, outcome := assessed.coverage, assessed.choiceFeatures, assessed.choiceProjection, assessed.outcome
-		if config.Diagnostics && len(completion.result.DiagnosticTrace.Bytes) != 0 {
-			trace, err := retainDiagnosticTrace(journal.Path(), completion.job.ordinal, completion.result.DiagnosticTrace)
-			if err != nil {
-				hostFailure = &HostError{Reason: "diagnostic_write", Err: err}
-				controller.Stop()
-				activeCancel()
-				continue
-			}
-			summary.Diagnostics = trace
-		}
-		if config.CollectExecutionEvidence {
-			mountArtifact, evidenceErr := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
-			if evidenceErr != nil {
 				if hostFailure == nil {
-					hostFailure = &HostError{Reason: "execution_evidence", Err: evidenceErr}
+					hostFailure = &HostError{Reason: reason, Err: completion.err}
 					controller.Stop()
 					activeCancel()
 				}
-				continue
+				return
 			}
-			runRecord := executionEvidence(config, prepared, baseEnvironment, completion, outcome, worldBundle.Manifest, mountArtifact, runCoverage, runChoiceProjection)
-			summary.ExecutionEvidence = &runRecord
-			summary.ExecutionElapsedNanos = uint64(elapsedNanos(completion.startedAt, completion.finishedAt))
-		}
-		if err := completion.journal.Transition(campaign.ExecutionClassified); err != nil {
-			if hostFailure == nil {
-				hostFailure = &HostError{Reason: "partial_write", Err: err}
-				controller.Stop()
-				activeCancel()
+			if err := prepared.Verify(); err != nil {
+				if hostFailure == nil {
+					hostFailure = &HostError{Reason: "prepared_target_integrity", Err: err}
+					controller.Stop()
+					activeCancel()
+				}
+				return
 			}
-			continue
-		}
-		if overallErr := overallCtx.Err(); overallErr != nil {
-			if hostFailure == nil {
-				hostFailure = &HostError{Reason: contextFailureReason(overallErr), Err: overallErr}
-				controller.Stop()
-				activeCancel()
+			if config.ChoiceTraceLimit != 0 {
+				summary.ChoiceTrace = choiceTraceSummary(completion.job.seed, completion.result.ChoiceTrace)
 			}
-			if partialErr := preservePartial(completion.journal); partialErr != nil {
-				hostFailure = errors.Join(hostFailure, &HostError{Reason: "partial_write", Err: partialErr})
+			if completion.result.Cancelled && controller.Stopped() {
+				complete(campaign.CompletedCancelled())
+				if partialErr := preservePartial(completion.journal); partialErr != nil {
+					hostFailure = errors.Join(hostFailure, &HostError{Reason: "partial_write", Err: partialErr})
+				}
+				if hostFailure != nil {
+					reason := "runner_failure"
+					var hostError *HostError
+					if errors.As(hostFailure, &hostError) {
+						reason = hostError.Reason
+					}
+					if publishErr := publishRunnerFailure(completion, reason); publishErr != nil {
+						hostFailure = errors.Join(hostFailure, publishErr)
+					}
+					return
+				}
+				run := campaign.ExecutionRecord{
+					SelectionOrdinal: record.Uint64String(completion.job.ordinal), Seed: record.Uint64String(completion.job.seed),
+					Domain: "runner", Reason: "runner_cancelled", Termination: "none", ElapsedNanos: elapsedNanos(completion.startedAt, completion.finishedAt),
+				}
+				if err := journal.AppendExecution(run); err != nil && hostFailure == nil {
+					hostFailure = &HostError{Reason: "runs_append", Err: err}
+					controller.Stop()
+					activeCancel()
+				}
+				return
 			}
-			continue
-		}
-		if outcome.Domain == "success" {
-			run := campaign.ExecutionRecord{
-				SelectionOrdinal: record.Uint64String(completion.job.ordinal), Seed: record.Uint64String(completion.job.seed),
-				Domain: "success", Reason: outcome.Reason, Termination: "exit", ElapsedNanos: elapsedNanos(completion.startedAt, completion.finishedAt),
+			worldBundle, err := assessWorld(completion.result, completion.job.seed, config.WorldTransitionLimit)
+			if err != nil {
+				complete(campaign.CompletedUnclassified())
+				if publishErr := publishRunnerFailure(completion, "world_record"); publishErr != nil {
+					err = errors.Join(err, publishErr)
+				}
+				if hostFailure == nil {
+					hostFailure = &HostError{Reason: "world_record", Err: err}
+					controller.Stop()
+					activeCancel()
+				}
+				return
 			}
-			setRunTranscript(&run, completion.result.IOTranscript)
-			setRunChoiceTrace(&run, completion.result.ChoiceTrace)
-			run.SemanticProbes = append([]string(nil), runCoverage.Probes...)
-			run.ChoiceFeatures = append([]string(nil), runChoiceFeatures...)
-			retention, retentionErr := decideSuccessRetention(config, assessed, completion.result.IOTranscript.Complete, semanticProbes, choiceFeatures, summary.RetainedSuccesses, summary.RetainedSuccessBytes)
-			if retentionErr != nil {
-				hostFailure = retentionErr
-				controller.Stop()
-				activeCancel()
-				continue
+			assessed, assessErr := assessCompletion(completion.result, worldBundle.Manifest.Terminal, config.Coverage, prepared)
+			if assessErr != nil {
+				if partialErr := preservePartial(completion.journal); partialErr != nil {
+					assessErr.Err = errors.Join(assessErr.Err, partialErr)
+				}
+				if hostFailure == nil {
+					hostFailure = assessErr
+					controller.Stop()
+					activeCancel()
+				}
+				return
 			}
-			if retention.retain {
-				mountArtifact, publishErr := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
-				if publishErr == nil {
-					var manifest record.ExecutionRecord
-					manifest, publishErr = manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest, mountArtifact)
+			runCoverage, runChoiceFeatures, runChoiceProjection, outcome := assessed.coverage, assessed.choiceFeatures, assessed.choiceProjection, assessed.outcome
+			if config.Diagnostics && len(completion.result.DiagnosticTrace.Bytes) != 0 {
+				trace, err := retainDiagnosticTrace(journal.Path(), completion.job.ordinal, completion.result.DiagnosticTrace)
+				if err != nil {
+					hostFailure = &HostError{Reason: "diagnostic_write", Err: err}
+					controller.Stop()
+					activeCancel()
+					return
+				}
+				summary.Diagnostics = trace
+			}
+			if config.CollectExecutionEvidence {
+				mountArtifact, evidenceErr := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
+				if evidenceErr != nil {
+					if hostFailure == nil {
+						hostFailure = &HostError{Reason: "execution_evidence", Err: evidenceErr}
+						controller.Stop()
+						activeCancel()
+					}
+					return
+				}
+				runRecord := executionEvidence(config, prepared, baseEnvironment, completion, outcome, worldBundle.Manifest, mountArtifact, runCoverage, runChoiceProjection)
+				summary.ExecutionEvidence = &runRecord
+				summary.ExecutionElapsedNanos = uint64(elapsedNanos(completion.startedAt, completion.finishedAt))
+			}
+			if err := completion.journal.Transition(campaign.ExecutionClassified); err != nil {
+				if hostFailure == nil {
+					hostFailure = &HostError{Reason: "partial_write", Err: err}
+					controller.Stop()
+					activeCancel()
+				}
+				return
+			}
+			if overallErr := overallCtx.Err(); overallErr != nil {
+				if hostFailure == nil {
+					hostFailure = &HostError{Reason: contextFailureReason(overallErr), Err: overallErr}
+					controller.Stop()
+					activeCancel()
+				}
+				if partialErr := preservePartial(completion.journal); partialErr != nil {
+					hostFailure = errors.Join(hostFailure, &HostError{Reason: "partial_write", Err: partialErr})
+				}
+				return
+			}
+			if outcome.Domain == "success" {
+				run := campaign.ExecutionRecord{
+					SelectionOrdinal: record.Uint64String(completion.job.ordinal), Seed: record.Uint64String(completion.job.seed),
+					Domain: "success", Reason: outcome.Reason, Termination: "exit", ElapsedNanos: elapsedNanos(completion.startedAt, completion.finishedAt),
+				}
+				setRunTranscript(&run, completion.result.IOTranscript)
+				setRunChoiceTrace(&run, completion.result.ChoiceTrace)
+				run.SemanticProbes = append([]string(nil), runCoverage.Probes...)
+				run.ChoiceFeatures = append([]string(nil), runChoiceFeatures...)
+				retention, retentionErr := decideSuccessRetention(config, assessed, completion.result.IOTranscript.Complete, semanticProbes, choiceFeatures, summary.RetainedSuccesses, summary.RetainedSuccessBytes)
+				if retentionErr != nil {
+					hostFailure = retentionErr
+					controller.Stop()
+					activeCancel()
+					return
+				}
+				if retention.retain {
+					mountArtifact, publishErr := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
 					if publishErr == nil {
-						var published artifact.Artifact
-						published, publishErr = artifact.PublishArtifact(artifact.Store{Root: journal.SuccessesPath(), Context: overallCtx, MaximumBytes: retention.maximumBytes, Key: artifact.StoreKeyExecution, TargetPool: artifact.TargetPool(config.Artifacts)}, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
+						var manifest record.ExecutionRecord
+						manifest, publishErr = manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest, mountArtifact)
 						if publishErr == nil {
-							relative, relErr := filepath.Rel(batchPath, published.Path)
-							if relErr != nil {
-								publishErr = relErr
-							} else {
-								retention.annotate(&run, relative, published.StoredBytes)
-								summary.SuccessArtifacts = append(summary.SuccessArtifacts, published.Path)
-								summary.RetainedSuccesses++
-								summary.RetainedSuccessBytes += published.StoredBytes
+							var published artifact.Artifact
+							published, publishErr = artifact.PublishArtifact(artifact.Store{Root: journal.SuccessesPath(), Context: overallCtx, MaximumBytes: retention.maximumBytes, Key: artifact.StoreKeyExecution, TargetPool: artifact.TargetPool(config.Artifacts)}, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
+							if publishErr == nil {
+								relative, relErr := filepath.Rel(batchPath, published.Path)
+								if relErr != nil {
+									publishErr = relErr
+								} else {
+									retention.annotate(&run, relative, published.StoredBytes)
+									summary.SuccessArtifacts = append(summary.SuccessArtifacts, published.Path)
+									summary.RetainedSuccesses++
+									summary.RetainedSuccessBytes += published.StoredBytes
+								}
 							}
 						}
 					}
+					if publishErr != nil {
+						hostFailure = successPublicationFailure(publishErr)
+						controller.Stop()
+						activeCancel()
+						return
+					}
 				}
-				if publishErr != nil {
-					hostFailure = successPublicationFailure(publishErr)
+				if guidance != nil {
+					mountArtifact, guideErr := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
+					var added bool
+					if guideErr == nil {
+						added, guideErr = guidance.MergeRun(overallCtx, completion, outcome, worldBundle, mountArtifact, runCoverage)
+					}
+					if guideErr != nil {
+						hostFailure = &HostError{Reason: "guided_corpus", Err: guideErr}
+						controller.Stop()
+						activeCancel()
+						return
+					}
+					if added {
+						summary.CorpusAdded++
+						summary.CorpusEntries = uint64(len(guidance.Snapshot().Entries))
+					}
+				}
+				if err := journal.AppendExecution(run); err != nil && hostFailure == nil {
+					hostFailure = &HostError{Reason: "runs_append", Err: err}
 					controller.Stop()
 					activeCancel()
-					continue
 				}
+				if hostFailure == nil {
+					complete(campaign.CompletedSuccess())
+					addStrings(semanticProbes, runCoverage.Probes)
+					addStrings(choiceFeatures, runChoiceFeatures)
+				}
+				completePartial(completion.journal)
+				return
+			}
+
+			mountArtifact, manifestErr := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
+			if manifestErr != nil {
+				if hostFailure == nil {
+					hostFailure = &HostError{Reason: "manifest", Err: manifestErr}
+					controller.Stop()
+					activeCancel()
+				}
+				return
+			}
+			manifest, manifestErr := manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest, mountArtifact)
+			if manifestErr != nil {
+				if hostFailure == nil {
+					hostFailure = &HostError{Reason: "manifest", Err: manifestErr}
+					controller.Stop()
+					activeCancel()
+				}
+				return
+			}
+			published, publishErr := publishBoundedFailureArtifact(overallCtx, config, journal.FailuresPath(), manifest.Outcome.FailureSignature, distinct, &failureArtifactBytes, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
+			if publishErr != nil {
+				if hostFailure == nil {
+					hostFailure = &HostError{Reason: "artifact_publication", Err: publishErr}
+					controller.Stop()
+					activeCancel()
+				}
+				return
+			}
+			if overallErr := overallCtx.Err(); overallErr != nil {
+				if hostFailure == nil {
+					hostFailure = &HostError{Reason: contextFailureReason(overallErr), Err: overallErr}
+					controller.Stop()
+					activeCancel()
+				}
+				return
 			}
 			if guidance != nil {
-				mountArtifact, guideErr := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
-				var added bool
-				if guideErr == nil {
-					added, guideErr = guidance.MergeRun(overallCtx, completion, outcome, worldBundle, mountArtifact, runCoverage)
-				}
+				added, guideErr := guidance.MergeRun(overallCtx, completion, outcome, worldBundle, mountArtifact, runCoverage)
 				if guideErr != nil {
 					hostFailure = &HostError{Reason: "guided_corpus", Err: guideErr}
 					controller.Stop()
 					activeCancel()
-					continue
+					return
 				}
 				if added {
 					summary.CorpusAdded++
 					summary.CorpusEntries = uint64(len(guidance.Snapshot().Entries))
 				}
 			}
+			signature := published.Manifest.Outcome.FailureSignature
+			if _, found := distinct[signature]; !found {
+				distinct[signature] = published.Path
+				summary.Artifacts = append(summary.Artifacts, published.Path)
+			}
+			cancelActive := complete(campaign.CompletedFailure(outcome.Domain, outcome.Reason, uint64(len(distinct))))
+			artifactRelative, relErr := filepath.Rel(batchPath, published.Path)
+			if relErr != nil {
+				hostFailure = &HostError{Reason: "artifact_path", Err: relErr}
+				controller.Stop()
+				activeCancel()
+				return
+			}
+			run := campaign.ExecutionRecord{
+				SelectionOrdinal: record.Uint64String(completion.job.ordinal), Seed: record.Uint64String(completion.job.seed),
+				Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination, FailureSignature: &signature,
+				Artifact: &artifactRelative, ElapsedNanos: elapsedNanos(completion.startedAt, completion.finishedAt),
+			}
+			setRunTranscript(&run, completion.result.IOTranscript)
+			setRunChoiceTrace(&run, completion.result.ChoiceTrace)
+			run.SemanticProbes = append([]string(nil), runCoverage.Probes...)
+			run.ChoiceFeatures = append([]string(nil), runChoiceFeatures...)
 			if err := journal.AppendExecution(run); err != nil && hostFailure == nil {
 				hostFailure = &HostError{Reason: "runs_append", Err: err}
 				controller.Stop()
 				activeCancel()
 			}
 			if hostFailure == nil {
-				controller.RecordSuccess()
-				synchronizeCampaignStatistics(&summary, controller.Statistics())
 				addStrings(semanticProbes, runCoverage.Probes)
 				addStrings(choiceFeatures, runChoiceFeatures)
 			}
 			completePartial(completion.journal)
-			continue
-		}
 
-		mountArtifact, manifestErr := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
-		if manifestErr != nil {
-			if hostFailure == nil {
-				hostFailure = &HostError{Reason: "manifest", Err: manifestErr}
-				controller.Stop()
+			if cancelActive {
 				activeCancel()
 			}
-			continue
-		}
-		manifest, manifestErr := manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest, mountArtifact)
-		if manifestErr != nil {
-			if hostFailure == nil {
-				hostFailure = &HostError{Reason: "manifest", Err: manifestErr}
-				controller.Stop()
-				activeCancel()
-			}
-			continue
-		}
-		published, publishErr := publishBoundedFailureArtifact(overallCtx, config, journal.FailuresPath(), manifest.Outcome.FailureSignature, distinct, &failureArtifactBytes, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
-		if publishErr != nil {
-			if hostFailure == nil {
-				hostFailure = &HostError{Reason: "artifact_publication", Err: publishErr}
-				controller.Stop()
-				activeCancel()
-			}
-			continue
-		}
-		if overallErr := overallCtx.Err(); overallErr != nil {
-			if hostFailure == nil {
-				hostFailure = &HostError{Reason: contextFailureReason(overallErr), Err: overallErr}
-				controller.Stop()
-				activeCancel()
-			}
-			continue
-		}
-		if guidance != nil {
-			added, guideErr := guidance.MergeRun(overallCtx, completion, outcome, worldBundle, mountArtifact, runCoverage)
-			if guideErr != nil {
-				hostFailure = &HostError{Reason: "guided_corpus", Err: guideErr}
-				controller.Stop()
-				activeCancel()
-				continue
-			}
-			if added {
-				summary.CorpusAdded++
-				summary.CorpusEntries = uint64(len(guidance.Snapshot().Entries))
-			}
-		}
-		signature := published.Manifest.Outcome.FailureSignature
-		if _, found := distinct[signature]; !found {
-			distinct[signature] = published.Path
-			summary.Artifacts = append(summary.Artifacts, published.Path)
-		}
-		cancelActive := controller.RecordFailure(outcome.Domain, outcome.Reason, uint64(len(distinct)))
-		synchronizeCampaignStatistics(&summary, controller.Statistics())
-		artifactRelative, relErr := filepath.Rel(batchPath, published.Path)
-		if relErr != nil {
-			hostFailure = &HostError{Reason: "artifact_path", Err: relErr}
-			controller.Stop()
-			activeCancel()
-			continue
-		}
-		run := campaign.ExecutionRecord{
-			SelectionOrdinal: record.Uint64String(completion.job.ordinal), Seed: record.Uint64String(completion.job.seed),
-			Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination, FailureSignature: &signature,
-			Artifact: &artifactRelative, ElapsedNanos: elapsedNanos(completion.startedAt, completion.finishedAt),
-		}
-		setRunTranscript(&run, completion.result.IOTranscript)
-		setRunChoiceTrace(&run, completion.result.ChoiceTrace)
-		run.SemanticProbes = append([]string(nil), runCoverage.Probes...)
-		run.ChoiceFeatures = append([]string(nil), runChoiceFeatures...)
-		if err := journal.AppendExecution(run); err != nil && hostFailure == nil {
-			hostFailure = &HostError{Reason: "runs_append", Err: err}
-			controller.Stop()
-			activeCancel()
-		}
-		if hostFailure == nil {
-			addStrings(semanticProbes, runCoverage.Probes)
-			addStrings(choiceFeatures, runChoiceFeatures)
-		}
-		completePartial(completion.journal)
-
-		if cancelActive {
-			activeCancel()
+		}()
+		if !counted {
+			complete(campaign.CompletedUnclassified())
 		}
 	}
 
@@ -1159,7 +1189,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 	return summary, nil
 }
 
-func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, error) {
+func validateConfig(config campaignRun) (SeedSelection, []record.Environment, error) {
 	if config.ResumeCampaign != "" {
 		if config.Preparer != nil {
 			return SeedSelection{}, nil, fmt.Errorf("campaign resume does not accept target preparation")
@@ -1167,7 +1197,7 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e
 		if config.RunnerBuild == "" {
 			return SeedSelection{}, nil, fmt.Errorf("Runner build identity is required for campaign resume")
 		}
-		if config.Executor == nil && len(config.SupervisorCommand) == 0 {
+		if config.executor == nil && len(config.SupervisorCommand) == 0 {
 			return SeedSelection{}, nil, fmt.Errorf("supervisor command is required")
 		}
 		return SeedSelection{}, nil, nil
@@ -1180,9 +1210,6 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e
 		return SeedSelection{}, nil, err
 	}
 	strategy := config.Strategy
-	if strategy == "" {
-		strategy = StrategySeed
-	}
 	shard := normalizedCampaignShard(config.Shard)
 	if err := shard.Validate(); err != nil {
 		return SeedSelection{}, nil, err
@@ -1260,7 +1287,10 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e
 			return SeedSelection{}, nil, err
 		}
 	default:
-		return SeedSelection{}, nil, fmt.Errorf("unknown exploration strategy %q", config.Strategy)
+		if _, err := ParseStrategy(string(strategy)); err != nil {
+			return SeedSelection{}, nil, err
+		}
+		return SeedSelection{}, nil, fmt.Errorf("strategy %q has no validation", strategy)
 	}
 	if config.Parallel <= 0 {
 		return SeedSelection{}, nil, fmt.Errorf("parallelism must be positive")
@@ -1274,7 +1304,7 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e
 	if config.OutputLimit == 0 || config.WorldTransitionLimit == 0 {
 		return SeedSelection{}, nil, errors.New("output and World transition limits must be positive")
 	}
-	if config.Diagnostics && (config.ChoiceTraceLimit == 0 || normalizedStrategy(config.Strategy) != StrategySeed) {
+	if config.Diagnostics && (config.ChoiceTraceLimit == 0 || config.Strategy != StrategySeed) {
 		return SeedSelection{}, nil, errors.New("diagnostics require choice recording with the seed strategy")
 	}
 	if config.ChoiceTraceLimit != 0 && (config.ChoiceTraceLimit < execution.MinimumChoiceTraceBytes || config.ChoiceTraceLimit > execution.MaximumChoiceTraceBytes) {
@@ -1283,21 +1313,16 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e
 	if config.Artifacts == "" || config.RunnerBuild == "" {
 		return SeedSelection{}, nil, errors.New("artifact root and Runner build identity are required")
 	}
-	switch config.Coverage {
-	case "", CoverageNone:
-		if len(config.RequiredSemanticProbes) != 0 {
-			return SeedSelection{}, nil, errors.New("required semantic probes require semantic coverage")
-		}
-	case CoverageSemantic, CoverageSemanticChoice:
+	coverage, err := ParseCoverageMode(string(normalizedCoverage(config.Coverage)))
+	if err != nil {
+		return SeedSelection{}, nil, err
+	}
+	if coverageHasSemantic(coverage) {
 		if _, err := deterministicio.MissingRequiredSemanticProbes(deterministicio.SemanticCoverage{}, config.RequiredSemanticProbes); err != nil {
 			return SeedSelection{}, nil, err
 		}
-	case CoverageChoice:
-		if len(config.RequiredSemanticProbes) != 0 {
-			return SeedSelection{}, nil, errors.New("required semantic probes require semantic coverage")
-		}
-	default:
-		return SeedSelection{}, nil, fmt.Errorf("unknown coverage mode %q", config.Coverage)
+	} else if len(config.RequiredSemanticProbes) != 0 {
+		return SeedSelection{}, nil, errors.New("required semantic probes require semantic coverage")
 	}
 	if coverageHasChoice(config.Coverage) && config.ChoiceTraceLimit == 0 {
 		return SeedSelection{}, nil, errors.New("choice coverage requires an enabled choice trace")
@@ -1340,7 +1365,7 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e
 	default:
 		return SeedSelection{}, nil, fmt.Errorf("unknown failure policy %q", config.OnFailure)
 	}
-	if config.Executor == nil && len(config.SupervisorCommand) == 0 {
+	if config.executor == nil && len(config.SupervisorCommand) == 0 {
 		return SeedSelection{}, nil, errors.New("supervisor command is required")
 	}
 	if len(config.IOROMounts) != 0 {
@@ -1427,7 +1452,7 @@ func parseEnvironment(entries []string) ([]record.Environment, error) {
 	return environment, nil
 }
 
-func runSeed(ctx context.Context, config CampaignSpec, executor Executor, prepared target.Prepared, baseEnvironment []record.Environment, profile deterministicio.Spec, readOnlyMounts []readonlymount.Mapping, journal runJournalFactory, job runJob, readiness *runReadiness, completions chan<- runCompletion) {
+func runSeed(ctx context.Context, config campaignRun, executor targetExecutor, prepared target.Prepared, baseEnvironment []record.Environment, profile deterministicio.Spec, readOnlyMounts []readonlymount.Mapping, journal runJournalFactory, job runJob, readiness *runReadiness, completions chan<- runCompletion) {
 	defer readiness.signal()
 	startedAt := time.Now().UTC()
 	run, err := journal.BeginExecution(job.ordinal, job.seed)
@@ -1527,7 +1552,7 @@ func runSeed(ctx context.Context, config CampaignSpec, executor Executor, prepar
 	completions <- completion
 }
 
-func simulationCapabilityForJob(executor Executor, job runJob) (*execution.SimulationCapability, error) {
+func simulationCapabilityForJob(executor targetExecutor, job runJob) (*execution.SimulationCapability, error) {
 	if job.simulationPlan == "" {
 		if job.simulationRecordLimit != 0 || job.simulationRecordCount != 0 {
 			return nil, errors.New("simulation exploration record bounds require a plan")
@@ -1546,7 +1571,7 @@ func simulationCapabilityForJob(executor Executor, job runJob) (*execution.Simul
 	}, nil
 }
 
-func choiceCapabilityForJob(config CampaignSpec, prepared target.Prepared, job runJob) (*execution.ChoiceCapability, error) {
+func choiceCapabilityForJob(config campaignRun, prepared target.Prepared, job runJob) (*execution.ChoiceCapability, error) {
 	if config.ChoiceTraceLimit == 0 {
 		return nil, nil
 	}
@@ -1625,7 +1650,7 @@ func environmentStrings(environment []record.Environment) []string {
 	return result
 }
 
-func manifestForRun(config CampaignSpec, prepared target.Prepared, baseEnvironment []record.Environment, completion runCompletion, outcome execution.Classification, runID string, recordedWorld record.World, mountArtifact *readonlymount.CapturedInputs) (record.ExecutionRecord, error) {
+func manifestForRun(config campaignRun, prepared target.Prepared, baseEnvironment []record.Environment, completion runCompletion, outcome execution.Classification, runID string, recordedWorld record.World, mountArtifact *readonlymount.CapturedInputs) (record.ExecutionRecord, error) {
 	profile := deterministicio.Default()
 	recordedProfile := recordedIOProfile(profile)
 	if completion.result.IOTranscript.Complete {
@@ -1855,7 +1880,7 @@ func preservePartial(run *campaign.ExecutionJournal) error {
 
 func publishBoundedFailureArtifact(
 	ctx context.Context,
-	config CampaignSpec,
+	config campaignRun,
 	root string,
 	signature record.SHA256,
 	distinct map[record.SHA256]string,
@@ -1930,7 +1955,7 @@ func newRunID() (string, error) {
 
 // ioTranscriptLimit is the campaign's I/O transcript bound, defaulting to
 // deterministicio.DefaultTranscriptBytes.
-func ioTranscriptLimit(config CampaignSpec) uint64 {
+func ioTranscriptLimit(config campaignRun) uint64 {
 	if config.IOTranscriptLimit == 0 {
 		return deterministicio.DefaultTranscriptBytes
 	}

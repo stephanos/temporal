@@ -64,7 +64,7 @@ func TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds(t *testing.T) {
 			config := CampaignSpec{KeepSuccesses: test.policy, SuccessArtifactLimit: 3, SuccessBytesLimit: 100}
 			assessed := completedExecution{coverage: deterministicio.SemanticCoverage{Probes: test.probes}, choiceFeatures: test.choices}
 			seenProbes, seenChoices := map[string]struct{}{"seen": {}, "seen probe": {}}, map[string]struct{}{"seen": {}, "seen choice": {}}
-			decision, hostError := decideSuccessRetention(config, assessed, !test.incomplete, seenProbes, seenChoices, test.retained, test.retainedBytes)
+			decision, hostError := decideSuccessRetention(newCampaignRun(config), assessed, !test.incomplete, seenProbes, seenChoices, test.retained, test.retainedBytes)
 			failure := ""
 			if hostError != nil {
 				failure = hostError.Reason + ": " + hostError.Err.Error()
@@ -104,7 +104,7 @@ func TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit(t *testing.T) {
 		config.KeepSuccesses = KeepSuccessesAll
 		config.SuccessArtifactLimit = 2
 		config.SuccessBytesLimit = limit
-		return Explore(context.Background(), config)
+		return exploreWith(context.Background(), config.CampaignSpec, config.dependencies)
 	}
 	measured, err := run(64 << 20)
 	if err != nil || len(measured.SuccessArtifacts) != 2 || measured.SuccessArtifacts[0] == measured.SuccessArtifacts[1] {
@@ -139,7 +139,7 @@ func TestRunKeepsTwoSuccessesOfOneOutcomeSignatureApart(t *testing.T) {
 	config.KeepSuccesses = KeepSuccessesAll
 	config.SuccessArtifactLimit = 2
 	config.SuccessBytesLimit = 64 << 20
-	summary, err := Explore(context.Background(), config)
+	summary, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies)
 	if err != nil || len(summary.SuccessArtifacts) != 2 || summary.SuccessArtifacts[0] == summary.SuccessArtifacts[1] {
 		t.Fatalf("summary = %#v, error = %v, want two success artifacts", summary, err)
 	}

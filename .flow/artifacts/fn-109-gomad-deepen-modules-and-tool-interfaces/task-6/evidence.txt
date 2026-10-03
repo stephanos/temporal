@@ -1,0 +1,71 @@
+fn-109.6 Move public executor injection behind private dependencies (fulfils fn-105.3 D3) -- evidence
+
+Host: linux/arm64 with the local development harness ON (adds linux/arm64 to version.json and the
+boundary manifest, shims syscall.Dup2). This is development evidence only, NOT darwin/arm64 or
+linux/amd64 evidence. TMPDIR=/tmp.
+Base revision: 8364bd6a0 (gomad-next-c, after fn-109.5 and its review fixes).
+Inventory and characterization commit: 9b5ae6b39 (go-interface-changes.md inventory written before
+any edit; executor_injection_characterization_test.go passing on the pre-change API).
+Implementation commit: the commit that adds this file.
+
+Design (details and consumer inventory in ../go-interface-changes.md, "fn-109.6")
+- Removed exported: runner.Executor, runner.ReplayExecutor, CampaignSpec.Executor,
+  ResumeSpec.Executor (missed by the task's inventory), CampaignShardSpec.Executor,
+  MinimizeSpec.Executor, ReplaySpec.Executor. Nothing added or changed.
+- Private replacement: targetExecutor interface + dependencies{executor} value; zero value is
+  production. Explore/Resume/RunCampaignShard/Replay/Minimize call exploreWith/resumeWith/
+  runCampaignShardWith/replayWith/minimizeWith with dependencies{}. campaignRun embeds dependencies,
+  so resume, shard and minimize delegation carry it. The default artifactReplayer carries its
+  operation's dependencies (minimize's candidate replays still use the substituted executor, as
+  ReplaySpec.Executor did). No package-level variable or hook.
+- Repository consumers outside runner/: none named the removed declarations (cmd/gomad/internal/cli
+  and qualification/workload inject whole operations as functions); tools/gomad3sim and
+  tools/gomad3integration do not import runner. No sibling-module go test is therefore owed.
+
+Characterization pins (9b5ae6b39, unchanged assertions after migration)
+- simulationCapabilityForJob: coordinator role only for processExecutor.
+- Replay: "supervisor command is required" only without an executor; verify-only needs neither;
+  a substituted replay gets no coordinator simulation role and needs no supervisor.
+- Minimize: same supervisor rule; the default replayer runs replays through the substituted
+  executor ("replay minimization candidate: execute replay target: ..." from the fake).
+- RunCampaignShard and Resume: the pinned toolchain identity (missing root -> os.ErrNotExist) and
+  the resume supervisor rule apply only without an executor.
+- Isolated Explore rejects an injected executor, preparer or replayer with the same message.
+- Found while pinning (pre-existing, unchanged): a substituted replay with neither supervisor nor
+  bootstrap command panics in replayBootstrapCommand. Previously reachable via the public field,
+  now only from same-package tests.
+
+Acceptance (linux/arm64 dev harness)
+- go-interface-changes.md lists every removed declaration, consumers, replacement and migration,
+  written before the edits and updated to the result. MET.
+- No exported Runner signature or field mentions runner/internal/execution; injection is private
+  only. go doc -all ./runner before/after differs in exactly the seven removals
+  (godoc-runner.diff). The exported constants MinimumChoiceTraceBytes/MaximumChoiceTraceBytes are
+  defined from execution constants (values, not signatures) and are unchanged. MET.
+- Preparer and ArtifactReplayer remain public; testdata/runnerconsumer builds as a separate module
+  outside the Runner subtree (TestRunnerExternalConsumerCompiles, in test-host). Checked by hand that
+  the same module fails with "use of internal package ... not allowed" when it implements an
+  executor and with "unknown field Executor" when it sets the removed field. MET.
+- Fake-executor failure, cancellation and watchdog tests pass through private entry points with
+  unchanged fakes and assertions (whole runner package passes). No global mutable hook. MET.
+- Default supervisor/coordinator behaviour and injection-versus-isolation rejections unchanged
+  (characterization pins; campaign_options characterization JSON byte-identical). MET.
+- fn-105.3 closed by reference to this task: for the orchestrator (no flowctl lifecycle here).
+
+Gates (harness ON unless noted)
+- go vet -tags test_dep ./runner/... ./qualification/... ./cmd/... . : pass.
+- Quick commands go test ./runner/... ./qualification/... ./cmd/gomad/... : before 211 s and after
+  289 s (quick-tests-before.log / quick-tests-after.log). runner passes; failures are all in
+  BASELINE.md (execution libc/sqlite, analysis gRPC adapter, cli unsupported-host, cmd/gomad
+  CLI watchdog before only, TestRunIOTerminalAfterTermination after only; both flaky per BASELINE).
+- TestPackageArchitecture, TestPublicPackagesDoNotExportTypeAliases,
+  TestRunnerExternalConsumerCompiles: pass.
+- make -C tools/gomad3 validate: pass (16 s).
+- GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host: exit 2 in 258 s; every failure
+  is in BASELINE.md (test-host-failures.log, a subset of the baseline list); root package and
+  runner pass.
+
+Owed on qualified platforms (not run here)
+- darwin/arm64 and linux/amd64: make -C tools/gomad3 validate; GOFLAGS='-tags=test_dep -count=1'
+  make -C tools/gomad3 test-host; env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off
+  .toolchain/bin/go test -count=1 -tags test_dep ./runner/... ./qualification/... ./cmd/gomad/...

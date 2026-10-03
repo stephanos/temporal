@@ -48,7 +48,7 @@ func (e *candidateDivergenceExecutor) Run(ctx context.Context, request execution
 	return result, &execution.ChoiceReplayDivergenceError{Divergence: divergence}
 }
 
-func divergenceCampaignConfig(t *testing.T, policy FailurePolicy, parallel int) CampaignSpec {
+func divergenceCampaignConfig(t *testing.T, policy FailurePolicy, parallel int) injectedCampaign {
 	t.Helper()
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)
@@ -66,7 +66,7 @@ func TestRunChoiceExplorationDivergencePoliciesAndInspection(t *testing.T) {
 	for _, policy := range []FailurePolicy{PolicyFirst, PolicyBudget, PolicyAll} {
 		t.Run(string(policy), func(t *testing.T) {
 			config := divergenceCampaignConfig(t, policy, 1)
-			summary, err := Explore(t.Context(), config)
+			summary, err := exploreWith(t.Context(), config.CampaignSpec, config.dependencies)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -139,8 +139,8 @@ func TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			config := divergenceCampaignConfig(t, PolicyAll, 1)
-			config.Executor.(*candidateDivergenceExecutor).change = test.change
-			summary, err := Explore(t.Context(), config)
+			config.executor.(*candidateDivergenceExecutor).change = test.change
+			summary, err := exploreWith(t.Context(), config.CampaignSpec, config.dependencies)
 			var host *HostError
 			if !errors.As(err, &host) || host.Reason != test.reason {
 				t.Fatalf("error = %v, want %s", err, test.reason)
@@ -170,7 +170,7 @@ func TestProcessExplorationCompletionKeepsRunnerDomainFallback(t *testing.T) {
 	round, _ := state.NextRound()
 	result := processResult(0, "", "")
 	result.Cancelled = true
-	_, err = processExplorationCompletion(t.Context(), config, prepared, nil, nil, "", "", nil, state, round, 0, runCompletion{job: runJob{seed: 7}, result: result}, &CampaignResult{}, nil, nil, nil)
+	_, err = processExplorationCompletion(t.Context(), config.run(), prepared, nil, nil, "", "", nil, state, round, 0, runCompletion{job: runJob{seed: 7}, result: result}, &CampaignResult{}, nil, nil, nil)
 	var host *HostError
 	if !errors.As(err, &host) || host.Reason != "runner_cancelled" {
 		t.Fatalf("runner-domain fallback = %v", err)
@@ -186,18 +186,18 @@ func TestRunChoiceExplorationResumePreservesDivergenceIdentity(t *testing.T) {
 		}
 		return nil
 	}
-	partial, err := Explore(ctx, config)
+	partial, err := exploreWith(ctx, config.CampaignSpec, config.dependencies)
 	var host *HostError
 	if !errors.As(err, &host) || partial.Attempted != 2 || partial.ReplayDivergences != 1 {
 		t.Fatalf("partial = %#v, err=%v", partial, err)
 	}
-	executor := config.Executor.(*candidateDivergenceExecutor)
-	resumed, err := Explore(t.Context(), CampaignSpec{ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: executor.base})
+	executor := config.executor.(*candidateDivergenceExecutor)
+	resumed, err := exploreWith(t.Context(), CampaignSpec{ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}}, dependencies{executor: executor.base})
 	if err != nil {
 		t.Fatal(err)
 	}
 	uninterruptedConfig := divergenceCampaignConfig(t, PolicyAll, 1)
-	uninterrupted, err := Explore(t.Context(), uninterruptedConfig)
+	uninterrupted, err := exploreWith(t.Context(), uninterruptedConfig.CampaignSpec, uninterruptedConfig.dependencies)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -226,7 +226,7 @@ func TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons(t *testing.T) {
 	for _, reason := range []choice.DivergenceReason{choice.DivergenceKind, choice.DivergenceSite, choice.DivergenceAlternatives, choice.DivergenceSelected, choice.DivergenceAlternativeSet, choice.DivergenceTapeUnconsumed, choice.DivergenceObservation} {
 		t.Run(choice.DivergenceReasonName(reason), func(t *testing.T) {
 			config := divergenceCampaignConfig(t, PolicyAll, 1)
-			config.Executor.(*candidateDivergenceExecutor).change = func(_ *execution.Result, d *choice.Divergence) error {
+			config.executor.(*candidateDivergenceExecutor).change = func(_ *execution.Result, d *choice.Divergence) error {
 				d.Reason = reason
 				if reason != choice.DivergenceAlternativeSet {
 					d.Observed.AlternativeSetDigest = d.Expected.AlternativeSetDigest
@@ -245,7 +245,7 @@ func TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons(t *testing.T) {
 				}
 				return &execution.ChoiceReplayDivergenceError{Divergence: *d}
 			}
-			summary, err := Explore(t.Context(), config)
+			summary, err := exploreWith(t.Context(), config.CampaignSpec, config.dependencies)
 			if err != nil {
 				t.Fatal(err)
 			}

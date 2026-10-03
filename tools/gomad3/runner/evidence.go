@@ -84,7 +84,7 @@ type ChoiceExplorationEvidence struct {
 }
 
 func executionEvidence(
-	config CampaignSpec,
+	config campaignRun,
 	prepared target.Prepared,
 	baseEnvironment []record.Environment,
 	completion runCompletion,

@@ -17,12 +17,12 @@ func TestCreateCampaignPlanPublishesCanonicalPreparedTargetBundle(t *testing.T) 
 	preparer := newFakePreparer(t)
 	config := testConfig(t, preparer, &fakeExecutor{}, "9-11,2", PolicyAll, 2)
 	firstPath := filepath.Join(t.TempDir(), "campaign.plan.json")
-	first, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: firstPath})
+	first, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config.CampaignSpec, Output: firstPath})
 	if err != nil {
 		t.Fatal(err)
 	}
 	secondPath := filepath.Join(t.TempDir(), "renamed.plan.json")
-	second, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: secondPath})
+	second, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config.CampaignSpec, Output: secondPath})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -86,8 +86,8 @@ func TestCreateCampaignPlanRejectsDynamicallyDiscoveredOrEarlyStopWork(t *testin
 		},
 	} {
 		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1-2", PolicyAll, 1)
-		configure(&config)
-		_, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: filepath.Join(t.TempDir(), "campaign.plan.json")})
+		configure(&config.CampaignSpec)
+		_, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config.CampaignSpec, Output: filepath.Join(t.TempDir(), "campaign.plan.json")})
 		if err == nil {
 			t.Fatal("CreateCampaignPlan() accepted a non-static campaign")
 		}
@@ -103,7 +103,7 @@ func TestRunCampaignShardRejectsChangedReadOnlyMountBeforeExecution(t *testing.T
 	config.Target.WorkingDir = t.TempDir()
 	config.IOROMounts = []string{mount + "=input"}
 	planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
-	_, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath})
+	_, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config.CampaignSpec, Output: planPath})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -111,10 +111,10 @@ func TestRunCampaignShardRejectsChangedReadOnlyMountBeforeExecution(t *testing.T
 		t.Fatal(err)
 	}
 	executor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(0, "", "") }}
-	_, err = RunCampaignShard(context.Background(), CampaignShardSpec{
+	_, err = runCampaignShardWith(context.Background(), CampaignShardSpec{
 		PlanPath: planPath, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild,
-		SupervisorCommand: []string{"unused"}, Executor: executor,
-	})
+		SupervisorCommand: []string{"unused"},
+	}, dependencies{executor: executor})
 	if err == nil {
 		t.Fatal("RunCampaignShard() accepted a changed read-only mount")
 	}
@@ -142,7 +142,7 @@ func TestCreateCampaignPlanReadOnlyMountsArePortableAndDetachedFromTheirSource(t
 		runnerBuild = config.RunnerBuild
 		config.Target.WorkingDir = t.TempDir()
 		config.IOROMounts = []string{source + "=input"}
-		result, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: output})
+		result, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config.CampaignSpec, Output: output})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -166,10 +166,10 @@ func TestCreateCampaignPlanReadOnlyMountsArePortableAndDetachedFromTheirSource(t
 		t.Fatal(err)
 	}
 	executor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(0, "", "") }}
-	result, err := RunCampaignShard(context.Background(), CampaignShardSpec{
+	result, err := runCampaignShardWith(context.Background(), CampaignShardSpec{
 		PlanPath: firstPath, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: t.TempDir(), RunnerBuild: runnerBuild,
-		SupervisorCommand: []string{"unused"}, Executor: executor,
-	})
+		SupervisorCommand: []string{"unused"},
+	}, dependencies{executor: executor})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -181,15 +181,15 @@ func TestCreateCampaignPlanReadOnlyMountsArePortableAndDetachedFromTheirSource(t
 func TestRunCampaignShardExecutesOnlyItsGlobalOrdinalPartition(t *testing.T) {
 	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "9-11,2", PolicyAll, 2)
 	planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
-	planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath})
+	planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config.CampaignSpec, Output: planPath})
 	if err != nil {
 		t.Fatal(err)
 	}
 	executor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(0, "", "") }}
-	result, err := RunCampaignShard(context.Background(), CampaignShardSpec{
+	result, err := runCampaignShardWith(context.Background(), CampaignShardSpec{
 		PlanPath: planPath, Shard: CampaignShard{Index: 1, Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild,
-		SupervisorCommand: []string{"unused"}, Executor: executor,
-	})
+		SupervisorCommand: []string{"unused"},
+	}, dependencies{executor: executor})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -211,28 +211,28 @@ func TestRunCampaignShardExecutesOnlyItsGlobalOrdinalPartition(t *testing.T) {
 func TestRunCampaignShardResumePreservesItsPlanAndAssignment(t *testing.T) {
 	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7-10", PolicyAll, 1)
 	planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
-	planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath})
+	planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config.CampaignSpec, Output: planPath})
 	if err != nil {
 		t.Fatal(err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	interrupted := &resumeInterruptExecutor{}
-	partial, err := RunCampaignShard(ctx, CampaignShardSpec{
+	partial, err := runCampaignShardWith(ctx, CampaignShardSpec{
 		PlanPath: planPath, Shard: CampaignShard{Index: 0, Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild,
-		SupervisorCommand: []string{"unused"}, Executor: interrupted, ProgressInterval: time.Millisecond,
+		SupervisorCommand: []string{"unused"}, ProgressInterval: time.Millisecond,
 		Progress: func(event CampaignEvent) error {
 			if event.Succeeded == 1 {
 				cancel()
 			}
 			return nil
 		},
-	})
+	}, dependencies{executor: interrupted})
 	if err == nil {
 		t.Fatal("RunCampaignShard() was not interrupted")
 	}
 	resumedExecutor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(0, "", "") }}
-	resumed, err := Resume(context.Background(), ResumeSpec{CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor})
+	resumed, err := resumeWith(context.Background(), ResumeSpec{CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}}, dependencies{executor: resumedExecutor})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -251,17 +251,17 @@ func TestRunCampaignShardResumePreservesItsPlanAndAssignment(t *testing.T) {
 func TestMergeCampaignShardsIsOrderIndependentAndRequiresCompleteness(t *testing.T) {
 	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "9-11,2", PolicyAll, 2)
 	planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
-	_, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath})
+	_, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config.CampaignSpec, Output: planPath})
 	if err != nil {
 		t.Fatal(err)
 	}
 	executor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(0, "", "") }}
 	shards := make([]string, 2)
 	for index := range shards {
-		result, err := RunCampaignShard(context.Background(), CampaignShardSpec{
+		result, err := runCampaignShardWith(context.Background(), CampaignShardSpec{
 			PlanPath: planPath, Shard: CampaignShard{Index: uint64(index), Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild,
-			SupervisorCommand: []string{"unused"}, Executor: executor,
-		})
+			SupervisorCommand: []string{"unused"},
+		}, dependencies{executor: executor})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -318,7 +318,7 @@ func TestMergeCampaignShardsIsOrderIndependentAndRequiresCompleteness(t *testing
 	}
 	otherConfig := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "20-23", PolicyAll, 1)
 	otherPlanPath := filepath.Join(t.TempDir(), "other.plan.json")
-	if _, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: otherConfig, Output: otherPlanPath}); err != nil {
+	if _, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: otherConfig.CampaignSpec, Output: otherPlanPath}); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := MergeCampaignShards(context.Background(), CampaignMergeSpec{PlanPath: otherPlanPath, Shards: shards[:1], Output: filepath.Join(t.TempDir(), "wrong-plan"), Partial: true}); err == nil {
@@ -329,17 +329,17 @@ func TestMergeCampaignShardsIsOrderIndependentAndRequiresCompleteness(t *testing
 func TestMergeCampaignShardsDeduplicatesSharedFailureEvidence(t *testing.T) {
 	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1-2", PolicyAll, 1)
 	planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
-	_, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath})
+	_, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config.CampaignSpec, Output: planPath})
 	if err != nil {
 		t.Fatal(err)
 	}
 	executor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(7, "same failure", "") }}
 	shards := make([]string, 2)
 	for index := range shards {
-		result, err := RunCampaignShard(context.Background(), CampaignShardSpec{
+		result, err := runCampaignShardWith(context.Background(), CampaignShardSpec{
 			PlanPath: planPath, Shard: CampaignShard{Index: uint64(index), Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild,
-			SupervisorCommand: []string{"unused"}, Executor: executor,
-		})
+			SupervisorCommand: []string{"unused"},
+		}, dependencies{executor: executor})
 		if err != nil {
 			t.Fatal(err)
 		}

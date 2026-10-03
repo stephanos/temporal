@@ -32,7 +32,6 @@ type MinimizeSpec struct {
 	ToolchainRoot     string
 	SupervisorCommand []string
 	BootstrapCommand  []string
-	Executor          Executor
 	Replayer          ArtifactReplayer
 	// Resume continues from the state an interrupted run left under OutputRoot.
 	Resume bool
@@ -52,7 +51,7 @@ type minimizationSession struct {
 	opened          artifact.Artifact
 	workDirectory   string
 	prepared        target.Prepared
-	campaign        CampaignSpec
+	campaign        campaignRun
 	baseEnvironment []record.Environment
 	profile         deterministicio.Spec
 	mappings        []readonlymount.Mapping
@@ -61,7 +60,8 @@ type minimizationSession struct {
 	mountArtifact   *readonlymount.CapturedInputs
 	choiceIdentity  choice.ExecutionIdentity
 	exactChoiceTape *choice.ReplayPlan
-	executor        Executor
+	dependencies    dependencies
+	executor        targetExecutor
 	replayer        ArtifactReplayer
 	temporaryRoot   string
 	workspace       *minimizer.Workspace
@@ -74,7 +74,11 @@ type minimizationTrial struct {
 }
 
 func Minimize(ctx context.Context, config MinimizeSpec) (result MinimizeResult, retErr error) {
-	session, err := openMinimizationSession(ctx, config)
+	return minimizeWith(ctx, config, dependencies{})
+}
+
+func minimizeWith(ctx context.Context, config MinimizeSpec, dependency dependencies) (result MinimizeResult, retErr error) {
+	session, err := openMinimizationSession(ctx, config, dependency)
 	if err != nil {
 		return MinimizeResult{}, err
 	}
@@ -276,7 +280,7 @@ func readRetainedMinimizationPayload(opened artifact.Artifact, file string) ([]b
 	return nil, fmt.Errorf("artifact payload %q is not listed", file)
 }
 
-func openMinimizationSession(ctx context.Context, config MinimizeSpec) (_ *minimizationSession, retErr error) {
+func openMinimizationSession(ctx context.Context, config MinimizeSpec, dependency dependencies) (_ *minimizationSession, retErr error) {
 	if config.OutputRoot == "" {
 		return nil, errors.New("minimized artifact output root is required")
 	}
@@ -287,7 +291,7 @@ func openMinimizationSession(ctx context.Context, config MinimizeSpec) (_ *minim
 	if err != nil {
 		return nil, &ReplayPreflightError{Err: err}
 	}
-	session := &minimizationSession{config: config, opened: opened, profile: deterministicio.Default()}
+	session := &minimizationSession{config: config, opened: opened, profile: deterministicio.Default(), dependencies: dependency}
 	defer func() {
 		if retErr != nil {
 			retErr = errors.Join(retErr, session.close())
@@ -399,13 +403,13 @@ func (session *minimizationSession) prepareWorkspace() error {
 		}
 		session.mappings, session.mountLimits, session.mountSnapshot, session.mountArtifact = mappings, limits, &snapshot, &captured
 	}
-	session.campaign = CampaignSpec{
+	session.campaign = newCampaignRun(CampaignSpec{
 		ExecutionTimeout: runTimeout, OverallTimeout: overallTimeout, TerminateGrace: terminateGrace,
 		OutputLimit: uint64(manifest.Limits.OutputBytes), WorldTransitionLimit: uint64(manifest.Limits.WorldTransitionBytes),
 		ChoiceTraceLimit: uint64(manifest.Limits.ChoiceTraceBytes), RunnerBuild: manifest.Runner.RunnerBuild,
 		IOROMountLimits: session.mountLimits, SupervisorCommand: append([]string(nil), session.config.SupervisorCommand...),
-	}
-	session.executor = session.config.Executor
+	})
+	session.executor = session.dependencies.executor
 	if session.executor == nil {
 		if len(session.config.SupervisorCommand) == 0 {
 			return errors.New("supervisor command is required")
@@ -414,7 +418,7 @@ func (session *minimizationSession) prepareWorkspace() error {
 	}
 	session.replayer = session.config.Replayer
 	if session.replayer == nil {
-		session.replayer = artifactReplayer{}
+		session.replayer = artifactReplayer{dependencies: session.dependencies}
 	}
 	return nil
 }
@@ -524,15 +528,8 @@ func (session *minimizationSession) replay(ctx context.Context, artifactPath str
 	return session.replayer.Replay(ctx, ReplaySpec{
 		ArtifactPath: artifactPath, ToolchainRoot: session.config.ToolchainRoot,
 		SupervisorCommand: append([]string(nil), session.config.SupervisorCommand...),
-		BootstrapCommand:  append([]string(nil), session.config.BootstrapCommand...), Executor: replayExecutor(session.config.Executor),
+		BootstrapCommand:  append([]string(nil), session.config.BootstrapCommand...),
 	})
-}
-
-func replayExecutor(executor Executor) ReplayExecutor {
-	if executor == nil {
-		return nil
-	}
-	return executor
 }
 
 func validateMinimizationReplay(manifest record.ExecutionRecord, replay ReplayResult) error {

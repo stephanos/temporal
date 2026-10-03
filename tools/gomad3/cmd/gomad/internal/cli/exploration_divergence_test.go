@@ -34,8 +34,10 @@ func TestChoiceExplorationDivergenceClassificationAndStatus(t *testing.T) {
 			}
 			var stdout, stderr bytes.Buffer
 			status := runResumeWith([]string{"--json", "campaign"}, &stdout, &stderr, resumeDependencies{
-				identity: func(string) (string, string, string, error) { return "toolchain", "gomad", "runner", nil },
-				run:      func(context.Context, runner.ResumeSpec) (runner.CampaignResult, error) { return test.summary, nil },
+				install: func(string) (installation, error) {
+					return installation{toolchainRoot: "toolchain", executable: "gomad", runnerBuild: "runner"}, nil
+				},
+				run: func(context.Context, runner.ResumeSpec) (runner.CampaignResult, error) { return test.summary, nil },
 			})
 			if status != test.status {
 				t.Fatalf("resume status=%d output=%s stderr=%s", status, stdout.String(), stderr.String())

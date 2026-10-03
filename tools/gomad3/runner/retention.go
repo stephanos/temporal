@@ -24,7 +24,7 @@ type successRetention struct {
 // decideSuccessRetention judges one assessed success against the novelty and
 // the retained count and bytes its strategy has committed. It reads that state
 // and advances none of it: the strategy does, at its own commit point.
-func decideSuccessRetention(config CampaignSpec, assessed completedExecution, transcriptComplete bool, seenProbes, seenChoices map[string]struct{}, retained, retainedBytes uint64) (successRetention, *HostError) {
+func decideSuccessRetention(config campaignRun, assessed completedExecution, transcriptComplete bool, seenProbes, seenChoices map[string]struct{}, retained, retainedBytes uint64) (successRetention, *HostError) {
 	decision := successRetention{retain: config.KeepSuccesses == KeepSuccessesAll}
 	if config.KeepSuccesses == KeepSuccessesNovel {
 		decision.novelProbes = novelStrings(assessed.coverage.Probes, seenProbes)
