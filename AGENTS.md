@@ -169,10 +169,13 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
      reviews are same-family again (`review.backend` is `claude`); the reviewer
      runs in a fresh context. Since 2026-10-03 every tier uses a Claude Opus
      model at the owner's request (`review.backend` is `claude:claude-opus-5-5`);
-     reviews are same-family and run in a fresh context. Name the model
+     reviews are same-family and run in a fresh context. Since 2026-10-03 the
+     reviewer and thinking scout use Claude Fable, so verdicts and design
+     decisions come from a different model than the Opus implementer
+     (`review.backend` is `claude:claude-fable-5-1:high`). Name the model
      explicitly when dispatching. -->
 
-reviewer: claude-opus-5-5 at high
+reviewer: claude-fable-5-1 at high
 
 <!-- implementer: <model> at <effort> - work handed to another harness (plan
      here, implement cheaper or faster there). Absent = the session model
@@ -196,7 +199,7 @@ fast scout: claude-opus-5-5 at low
      later as rework in implementation. Reviews stay on the cross-family
      reviewer above, never on this tier. -->
 
-thinking scout: claude-opus-5-5 at high
+thinking scout: claude-fable-5-1 at high
 
 <!-- Unset is the default and the doctrine: planning, capture, interview,
      requirement analysis, every verdict, and the worker run on the session
