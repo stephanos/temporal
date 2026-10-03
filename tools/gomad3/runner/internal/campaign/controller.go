@@ -134,8 +134,8 @@ func (controller *SeedController) Next() (SeedJob, bool) {
 // Complete counts one scheduled attempt as completed: it releases the
 // attempt's slot, counts it as attempted and classified, and applies the
 // failure policy, all in one transition. It reports whether active work must
-// be cancelled. Completing without active work, or with an unclassified zero
-// Completion, is an invariant violation that leaves the controller unchanged.
+// be cancelled. Completing without active work, or with the zero Completion,
+// is an invariant violation that leaves the controller unchanged.
 func (controller *SeedController) Complete(completion Completion) bool {
 	if controller.active == 0 {
 		panic("gomad3: completed an inactive campaign attempt")

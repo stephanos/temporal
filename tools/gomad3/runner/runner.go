@@ -801,6 +801,9 @@ func runLocal(ctx context.Context, config campaignRun) (summary CampaignResult, 
 		// which a later synchronization with the controller would overwrite.
 		counted := false
 		complete := func(value campaign.Completion) bool {
+			if counted {
+				panic("gomad3: completed one campaign attempt twice")
+			}
 			counted = true
 			cancelActive := controller.Complete(value)
 			synchronizeCampaignStatistics(&summary, controller.Statistics())
