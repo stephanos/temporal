@@ -5,6 +5,8 @@
 - Give developers a friendly API and beautiful, readable models that make a feature's promises clear.
 - Keep models small and easy to combine. Show how product promises relate to actual behavior
   and how detailed models relate to simpler ones.
+- State a behavioral promise that many Temporal features share once, as a reusable protocol, and
+  let each feature adopt it instead of restating it.
 - Work across distributed processes whose clocks may disagree.
 
 This vision includes goals not yet implemented. The [shared specification](UMPIRE4_SPEC.md)
@@ -241,6 +243,45 @@ allow reuse and reveal conflicts that testing each feature alone would miss.
 Reuse a shared dependency model (a provider) in two feature Models, and reject an incompatible provider.
 Run a regression with interacting features or concurrent operations. One operation's completion cannot
 satisfy another operation's requirement.
+
+### Reusable behavioral protocols (#PROTOCOLS)
+
+#### What
+
+Many Temporal entities offer the same operations: close, terminate, pause and unpause, cancel, describe,
+deadlines and retry. Each operation carries a family of promises, not just a request shape. After a
+terminate, for example, the entity is closed and stays closed, later changes are rejected, in-flight
+work is dropped, and describe and history report it. Umpire states such promises once, as a protocol,
+and each feature adopts it.
+
+An entity declares the capabilities it has, such as `Closable`, `Terminable`, `Pausable` or
+`Dispatchable`, and binds each capability's parameters: its status type, its closed states, the action
+that dispatches work, the error a rejected change returns. Each capability brings its laws, written
+with readable named patterns ("once closed, keeps its status", "never dispatched while paused").
+Interaction laws apply on their own when an entity has two capabilities together: an entity that is
+both `Pausable` and `Dispatchable` promises that nothing is dispatched while paused, without the author
+listing that law. Each law says what it does not promise. An entity that differs from a law opts out
+or overrides it with a recorded reason. Laws reach the same checks, Queries and generated Cases as
+hand-written Properties, and the protocol's realization helpers live in the shared Temporal kit.
+
+A law becomes part of a protocol only when at least two entities adopt it. What the entity does
+differently stays in the feature's own Model.
+
+#### Why
+
+Temporal features differ less than their Models do. Restating the same promises in each feature lets
+them drift apart, hides which promises are universal and which are feature-specific choices, and makes
+every new feature start from nothing. A shared protocol gives a new entity its checks and regression
+tests for free, makes deviations explicit, and lets reviewers read one definition of what "terminate"
+or "pause" means across the server.
+
+#### Acceptance Test
+
+Declare `Terminable` and `Pausable` for standalone activity and for a second entity. Both get the
+shared laws and their generated Cases without restating them, and the interaction law between pausing
+and dispatch applies to both without being listed. An entity whose rejection error differs overrides
+that law with a recorded reason. A Model that breaks a law is rejected with the law's name and the
+entity's binding.
 
 ### Select the level of detail (#ZOOM)
 
