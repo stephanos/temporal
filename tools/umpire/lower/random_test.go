@@ -179,6 +179,7 @@ func TestAdmissionOfAChangedModelNeverPanics(t *testing.T) {
 	iterations := sample(2000)
 	for name, base := range randomModels(t) {
 		t.Run(name, func(t *testing.T) {
+			t.Parallel() // each Model has its own fixture, generator and seed
 			rng := rand.New(rand.NewPCG(seed, 1))
 			admitted := 0
 			for i := range iterations {
@@ -203,6 +204,7 @@ func TestLoweringAChangedRealizationNeverPanics(t *testing.T) {
 	iterations := sample(2000)
 	for name, base := range randomModels(t) {
 		t.Run(name, func(t *testing.T) {
+			t.Parallel() // each Model has its own fixture, producer, generator and seed
 			bound, err := NewProducer(base)
 			require.NoError(t, err)
 			queries := finds(base)
