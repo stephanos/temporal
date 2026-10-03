@@ -889,6 +889,15 @@
     "legacy_request_sha256": "sha256:a7da7699b612ee931e87df24c355a351027332c817e82f56bfe825aebe781b61"
   },
   {
+    "name": "all retention without bytes",
+    "selection": "",
+    "selection_count": 0,
+    "environment": "",
+    "error": "success retention requires explicit count and byte limits",
+    "request_sha256": "sha256:2f59b1b2517edf27aefa516e9359203d1f37df47d164a0a1ebb0eb6604164b06",
+    "legacy_request_sha256": "sha256:585f948b1846061cc4dd2828e76c9afa9543d22ceb82adba13b023f57db23a66"
+  },
+  {
     "name": "unknown retention",
     "selection": "",
     "selection_count": 0,

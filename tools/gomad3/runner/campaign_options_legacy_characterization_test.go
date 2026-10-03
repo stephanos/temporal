@@ -371,6 +371,7 @@ func legacyCampaignOptionsCases(t *testing.T) []legacyCampaignOptionsCase {
 			spec.Coverage, spec.KeepSuccesses, spec.SuccessArtifactLimit = CoverageSemantic, KeepSuccessesNovel, 1
 		})},
 		{name: "all retention without count", spec: with(seed, func(spec *CampaignSpec) { spec.KeepSuccesses, spec.SuccessBytesLimit = KeepSuccessesAll, 1 })},
+		{name: "all retention without bytes", spec: with(seed, func(spec *CampaignSpec) { spec.KeepSuccesses, spec.SuccessArtifactLimit = KeepSuccessesAll, 1 })},
 		{name: "unknown retention", spec: with(seed, func(spec *CampaignSpec) { spec.KeepSuccesses = "bogus" })},
 		{name: "empty artifact root", spec: with(seed, func(spec *CampaignSpec) { spec.Artifacts = "" })},
 		{name: "empty Runner build", spec: with(seed, func(spec *CampaignSpec) { spec.RunnerBuild = "" })},

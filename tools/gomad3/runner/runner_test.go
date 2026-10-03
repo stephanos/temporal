@@ -378,22 +378,6 @@ func TestRunGuidesFromReplayVerifiedChoiceCoverage(t *testing.T) {
 	}
 }
 
-func TestRunGuidanceRequiresCorpusAndSemanticCoverage(t *testing.T) {
-	for _, configure := range []func(*CampaignSpec){
-		func(config *CampaignSpec) { config.Corpus = "" },
-		func(config *CampaignSpec) { config.Coverage = CoverageNone },
-	} {
-		config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
-		config.Guide = true
-		config.Corpus = t.TempDir()
-		config.Coverage = CoverageSemantic
-		configure(&config)
-		if _, err := exploreWith(context.Background(), config, configDependencies); err == nil {
-			t.Fatal("Run accepted invalid guided configuration")
-		}
-	}
-}
-
 func TestRunGuidanceWithoutReplayCapabilityFailsClosed(t *testing.T) {
 	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
 		result := processResult(0, "", "")
@@ -427,127 +411,6 @@ func TestRunFailsClosedWhenSuccessRetentionCountIsExhausted(t *testing.T) {
 	}
 }
 
-func TestRunRequiresExplicitSuccessRetentionBounds(t *testing.T) {
-	for _, configure := range []func(*CampaignSpec){
-		func(config *CampaignSpec) { config.SuccessArtifactLimit = 0 },
-		func(config *CampaignSpec) { config.SuccessBytesLimit = 0 },
-		func(config *CampaignSpec) { config.KeepSuccesses = KeepSuccessesNovel; config.Coverage = CoverageNone },
-	} {
-		config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
-		config.KeepSuccesses = KeepSuccessesAll
-		config.SuccessArtifactLimit = 1
-		config.SuccessBytesLimit = 1 << 20
-		configure(&config)
-		if _, err := exploreWith(context.Background(), config, configDependencies); err == nil {
-			t.Fatal("exploreWith() accepted invalid success retention configuration")
-		}
-	}
-}
-
-func TestRunRequiresBoundedChoiceTraceCapacity(t *testing.T) {
-	for _, limit := range []uint64{1, (64 << 20) + 1} {
-		config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
-		config.ChoiceTraceLimit = limit
-		if _, err := exploreWith(context.Background(), config, configDependencies); err == nil || !strings.Contains(err.Error(), "choice trace") {
-			t.Fatalf("exploreWith() with choice limit %d error = %v", limit, err)
-		}
-	}
-}
-
-func TestValidateConfigRequiresBoundedSingleSeedChoiceExploration(t *testing.T) {
-	valid, _ := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
-	valid.Strategy = StrategyChoiceExploration
-	valid.ChoiceTraceLimit = execution.MinimumChoiceTraceBytes
-	valid.MaxExecutions = 8
-	valid.MaxChoiceDepth = 4
-	valid.MaxExplorationBytes = 1 << 20
-	if _, _, err := validateConfig(valid); err != nil {
-		t.Fatal(err)
-	}
-
-	for _, test := range []struct {
-		name      string
-		configure func(*CampaignSpec)
-		want      string
-	}{
-		{name: "multiple seeds", configure: func(config *CampaignSpec) { config.Seeds = "7-8" }, want: "exactly one base seed"},
-		{name: "guidance", configure: func(config *CampaignSpec) {
-			config.Guide = true
-			config.Corpus = t.TempDir()
-			config.Coverage = CoverageSemantic
-		}, want: "does not support guided exploration"},
-		{name: "missing choice trace", configure: func(config *CampaignSpec) { config.ChoiceTraceLimit = 0 }, want: "requires an enabled choice trace"},
-		{name: "missing execution bound", configure: func(config *CampaignSpec) { config.MaxExecutions = 0 }, want: "max executions"},
-		{name: "missing depth bound", configure: func(config *CampaignSpec) { config.MaxChoiceDepth = 0 }, want: "choice depth"},
-		{name: "missing exploration bound", configure: func(config *CampaignSpec) { config.MaxExplorationBytes = 0 }, want: "exploration bytes"},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			config := valid
-			test.configure(&config)
-			if _, _, err := validateConfig(config); err == nil || !strings.Contains(err.Error(), test.want) {
-				t.Fatalf("validateConfig() error = %v, want %q", err, test.want)
-			}
-		})
-	}
-}
-
-func TestValidateConfigRequiresBoundedSingleSeedSimulationExploration(t *testing.T) {
-	valid, _ := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
-	valid.Strategy = StrategySimulationExploration
-	valid.ChoiceTraceLimit = execution.MinimumChoiceTraceBytes
-	valid.MaxExecutions = 8
-	valid.MaxForcedDecisions = 4
-	valid.MaxExplorationBytes = 1 << 20
-	valid.MaxExplorationResultBytes = 1 << 20
-	valid.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 4, Scenario: 4, Network: 4, Storage: 4, Fault: 4, Crash: 4}
-	if _, _, err := validateConfig(valid); err != nil {
-		t.Fatal(err)
-	}
-
-	for _, test := range []struct {
-		name      string
-		configure func(*CampaignSpec)
-		want      string
-	}{
-		{name: "multiple seeds", configure: func(config *CampaignSpec) { config.Seeds = "7-8" }, want: "exactly one base seed"},
-		{name: "guidance", configure: func(config *CampaignSpec) {
-			config.Guide = true
-			config.Corpus = t.TempDir()
-			config.Coverage = CoverageSemantic
-		}, want: "does not support guided exploration"},
-		{name: "missing choice trace", configure: func(config *CampaignSpec) { config.ChoiceTraceLimit = 0 }, want: "requires an enabled choice trace"},
-		{name: "missing execution bound", configure: func(config *CampaignSpec) { config.MaxExecutions = 0 }, want: "max executions"},
-		{name: "missing forced-decision bound", configure: func(config *CampaignSpec) { config.MaxForcedDecisions = 0 }, want: "forced decisions"},
-		{name: "missing exploration bound", configure: func(config *CampaignSpec) { config.MaxExplorationBytes = 0 }, want: "exploration bytes"},
-		{name: "missing result bound", configure: func(config *CampaignSpec) { config.MaxExplorationResultBytes = 0 }, want: "result bytes"},
-		{name: "missing dimension bound", configure: func(config *CampaignSpec) { config.SimulationDimensionLimits.Network = 0 }, want: "network dimension"},
-		{name: "choice start ordinal", configure: func(config *CampaignSpec) { config.ChoiceStartOrdinal = 1 }, want: "choice start ordinal requires the choice-exploration strategy"},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			config := valid
-			test.configure(&config)
-			if _, _, err := validateConfig(config); err == nil || !strings.Contains(err.Error(), test.want) {
-				t.Fatalf("validateConfig() error = %v, want %q", err, test.want)
-			}
-		})
-	}
-}
-
-func TestValidateConfigRejectsExplorationBoundsForSeedStrategy(t *testing.T) {
-	for _, configure := range []func(*CampaignSpec){
-		func(config *CampaignSpec) { config.MaxExecutions = 1 },
-		func(config *CampaignSpec) { config.MaxChoiceDepth = 1 },
-		func(config *CampaignSpec) { config.ChoiceStartOrdinal = 1 },
-		func(config *CampaignSpec) { config.MaxExplorationBytes = 1 },
-	} {
-		config, _ := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
-		configure(&config)
-		if _, _, err := validateConfig(config); err == nil || !strings.Contains(err.Error(), "choice-exploration strategy") {
-			t.Fatalf("validateConfig() error = %v", err)
-		}
-	}
-}
-
 func TestRunRejectsSuccessfulRetentionWithoutReplayTranscript(t *testing.T) {
 	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
 	config.KeepSuccesses = KeepSuccessesAll
@@ -575,21 +438,6 @@ func TestRunCollectsBoundedQualificationEvidenceForOneSeed(t *testing.T) {
 	}
 	if summary.ExecutionEvidence == nil || summary.ExecutionEvidence.Seed != 7 || summary.ExecutionEvidence.Target.SHA256 == "" || summary.ExecutionEvidence.Stdout.FullSHA256 != record.HashBytes([]byte("stdout")) || summary.ExecutionEvidence.Stderr.FullSHA256 != record.HashBytes([]byte("stderr")) || summary.ExecutionEvidence.IOTranscriptRecords != 1 || summary.ExecutionEvidence.SemanticCoverage.Digest == "" {
 		t.Fatalf("execution evidence = %#v", summary.ExecutionEvidence)
-	}
-}
-
-func TestExecutionEvidenceRequiresOneSeedAndSemanticCoverage(t *testing.T) {
-	for _, configure := range []func(*CampaignSpec){
-		func(config *CampaignSpec) { config.Seeds = "1-2" },
-		func(config *CampaignSpec) { config.Coverage = CoverageNone },
-	} {
-		config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
-		config.Coverage = CoverageSemantic
-		config.CollectExecutionEvidence = true
-		configure(&config)
-		if _, err := exploreWith(context.Background(), config, configDependencies); err == nil {
-			t.Fatal("exploreWith() accepted invalid evidence configuration")
-		}
 	}
 }
 
@@ -1398,27 +1246,6 @@ func distinctSuccessStdoutOutcomes(t *testing.T, paths []string) map[record.SHA2
 	return outcomes
 }
 
-func TestRunClassifiesInvalidChoiceTraceTerminalEvidence(t *testing.T) {
-	for _, test := range []struct {
-		name   string
-		err    error
-		reason string
-	}{
-		{name: "malformed", err: execution.ErrChoiceTraceMalformed, reason: "choice_trace_malformed"},
-		{name: "unterminated", err: execution.ErrChoiceTraceUnterminated, reason: "choice_trace_unterminated"},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			config, configDependencies := testConfig(t, newFakePreparer(t), terminalErrorExecutor{err: test.err}, "1", PolicyAll, 1)
-			config.ChoiceTraceLimit = execution.MinimumChoiceTraceBytes
-			_, err := exploreWith(context.Background(), config, configDependencies)
-			var hostError *HostError
-			if !errors.As(err, &hostError) || hostError.Reason != test.reason {
-				t.Fatalf("exploreWith() error = %v", err)
-			}
-		})
-	}
-}
-
 func TestRunPublishesValidatedChoiceTraceOverflowAsRunnerFailure(t *testing.T) {
 	preparer := newFakePreparer(t)
 	implementation, err := choice.ImplementationIdentity(preparer.prepared.BuildKey)
@@ -1491,37 +1318,6 @@ func TestRunRejectsReservedDuplicateAndInvalidEnvironment(t *testing.T) {
 				t.Fatal("exploreWith() succeeded")
 			}
 		})
-	}
-}
-
-func TestRunCancellationIsAHostFailure(t *testing.T) {
-	config, configDependencies := testConfig(t, newFakePreparer(t), blockingExecutor{}, "1", PolicyAll, 1)
-	ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.Running == 1 })
-	config.TerminateGrace = 10 * time.Millisecond
-	summary, err := exploreWith(ctx, config, configDependencies)
-	var hostError *HostError
-	if !errors.As(err, &hostError) || hostError.Reason != "cancelled" || !errors.Is(err, context.Canceled) {
-		t.Fatalf("exploreWith() error = %#v", err)
-	}
-	if summary.Failures != 0 || len(summary.Artifacts) != 0 {
-		t.Fatalf("cancelled summary = %#v", summary)
-	}
-	plan, planErr := campaign.ReadResumePlan(summary.CampaignPath)
-	if planErr != nil {
-		t.Fatal(planErr)
-	}
-	if plan.Selection != "1" || plan.RunnerBuild != config.RunnerBuild || plan.Prepared.Target.SHA256 == "" {
-		t.Fatalf("resume plan = %#v", plan)
-	}
-	partials, readErr := os.ReadDir(filepath.Join(summary.CampaignPath, ".partial"))
-	if readErr != nil {
-		t.Fatal(readErr)
-	}
-	if len(partials) != 3 {
-		t.Fatalf("cancelled partials = %v, want campaign, executions, and target", partials)
-	}
-	if _, err := os.Stat(filepath.Join(summary.CampaignPath, ".partial", "campaign", "partial.json")); err != nil {
-		t.Fatal(err)
 	}
 }
 
@@ -1641,108 +1437,135 @@ func TestRunResumesGuidedBatchWithoutReselectingSeeds(t *testing.T) {
 	}
 }
 
-func TestRunResumeRejectsChangedRunnerIdentity(t *testing.T) {
-	config, configDependencies := testConfig(t, newFakePreparer(t), blockingExecutor{}, "1", PolicyAll, 1)
-	ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.Running == 1 })
-	config.TerminateGrace = 10 * time.Millisecond
-	partial, err := exploreWith(ctx, config, configDependencies)
-	if err == nil {
-		t.Fatal("exploreWith() did not leave an interrupted batch")
-	}
-	_, err = exploreWith(context.Background(), CampaignSpec{
-		ResumeCampaign: partial.CampaignPath, RunnerBuild: "sha256:changed", SupervisorCommand: []string{"unused"},
-	}, executionDependencies{executor: &fakeExecutor{}},
-	)
-	if err == nil || !strings.Contains(err.Error(), "Runner build identity") {
-		t.Fatalf("resume error = %v", err)
-	}
-}
-
-func TestRunResumeRejectsTamperedRetainedSuccessArtifact(t *testing.T) {
-	interrupted := &resumeInterruptExecutor{}
-	config, configDependencies := testConfig(t, newFakePreparer(t), interrupted, "7-8", PolicyAll, 1)
-	ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.RetainedSuccesses == 1 })
-	config.TerminateGrace = 10 * time.Millisecond
-	config.KeepSuccesses = KeepSuccessesAll
-	config.SuccessArtifactLimit = 2
-	config.SuccessBytesLimit = 64 << 20
-	partial, err := exploreWith(ctx, config, configDependencies)
-	if err == nil || len(partial.SuccessArtifacts) != 1 {
-		t.Fatalf("interrupted summary = %#v, error = %v", partial, err)
-	}
-	if err := os.WriteFile(filepath.Join(partial.SuccessArtifacts[0], "stdout"), []byte("tampered"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	_, err = exploreWith(context.Background(), CampaignSpec{
-		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"},
-	}, executionDependencies{executor: &fakeExecutor{}},
-	)
-	if err == nil || !strings.Contains(err.Error(), "retained success") {
-		t.Fatalf("resume error = %v", err)
-	}
-}
-
-func TestRunPreparationFailureLeavesExplicitPartial(t *testing.T) {
-	config, configDependencies := testConfig(t, errorPreparer{err: errors.New("build failed")}, &fakeExecutor{}, "1", PolicyAll, 1)
-	summary, err := exploreWith(context.Background(), config, configDependencies)
-	var hostError *HostError
-	if !errors.As(err, &hostError) || hostError.Reason != "target_preparation" {
-		t.Fatalf("exploreWith() error = %#v", err)
-	}
-	partial, readErr := os.ReadFile(filepath.Join(summary.CampaignPath, ".partial", "preparation", "partial.json"))
-	if readErr != nil {
-		t.Fatal(readErr)
-	}
-	if !strings.Contains(string(partial), `"state":"failed"`) || !strings.Contains(string(partial), `"reason":"target_preparation"`) {
-		t.Fatalf("preparation partial = %s", partial)
-	}
-}
-
-func TestRunPreparationCancellationIsClassifiedSeparately(t *testing.T) {
-	started := make(chan struct{})
-	ctx, cancel := context.WithCancel(context.Background())
-	t.Cleanup(cancel)
-	go func() {
-		<-started
-		cancel()
-	}()
-	config, configDependencies := testConfig(t, waitingPreparer{started: started}, &fakeExecutor{}, "1", PolicyAll, 1)
-	config.TerminateGrace = 10 * time.Millisecond
-	summary, err := exploreWith(ctx, config, configDependencies)
-	var hostError *HostError
-	if !errors.As(err, &hostError) || hostError.Reason != "cancelled" || !errors.Is(err, context.Canceled) {
-		t.Fatalf("exploreWith() error = %#v", err)
-	}
-	partial, readErr := os.ReadFile(filepath.Join(summary.CampaignPath, ".partial", "preparation", "partial.json"))
-	if readErr != nil {
-		t.Fatal(readErr)
-	}
-	if !strings.Contains(string(partial), `"reason":"cancelled"`) {
-		t.Fatalf("preparation partial = %s", partial)
+// TestRunResumeRejectsChangedEvidence pins that resuming an interrupted
+// Campaign fails when the evidence it recorded no longer matches.
+func TestRunResumeRejectsChangedEvidence(t *testing.T) {
+	for _, test := range []struct {
+		name string
+		// interrupt starts the Campaign and returns once it is interrupted.
+		interrupt func(t *testing.T) (CampaignResult, CampaignSpec)
+		// change alters the interrupted Campaign or the resume request.
+		change  func(t *testing.T, partial CampaignResult, resume *CampaignSpec)
+		wantErr string
+	}{
+		{
+			name: "runner build",
+			interrupt: func(t *testing.T) (CampaignResult, CampaignSpec) {
+				config, configDependencies := testConfig(t, newFakePreparer(t), blockingExecutor{}, "1", PolicyAll, 1)
+				ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.Running == 1 })
+				config.TerminateGrace = 10 * time.Millisecond
+				partial, err := exploreWith(ctx, config, configDependencies)
+				if err == nil {
+					t.Fatal("exploreWith() did not leave an interrupted batch")
+				}
+				return partial, config
+			},
+			change:  func(_ *testing.T, _ CampaignResult, resume *CampaignSpec) { resume.RunnerBuild = "sha256:changed" },
+			wantErr: "Runner build identity",
+		},
+		{
+			name: "tampered retained success",
+			interrupt: func(t *testing.T) (CampaignResult, CampaignSpec) {
+				interrupted := &resumeInterruptExecutor{}
+				config, configDependencies := testConfig(t, newFakePreparer(t), interrupted, "7-8", PolicyAll, 1)
+				ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.RetainedSuccesses == 1 })
+				config.TerminateGrace = 10 * time.Millisecond
+				config.KeepSuccesses = KeepSuccessesAll
+				config.SuccessArtifactLimit = 2
+				config.SuccessBytesLimit = 64 << 20
+				partial, err := exploreWith(ctx, config, configDependencies)
+				if err == nil || len(partial.SuccessArtifacts) != 1 {
+					t.Fatalf("interrupted summary = %#v, error = %v", partial, err)
+				}
+				return partial, config
+			},
+			change: func(t *testing.T, partial CampaignResult, _ *CampaignSpec) {
+				if err := os.WriteFile(filepath.Join(partial.SuccessArtifacts[0], "stdout"), []byte("tampered"), 0o600); err != nil {
+					t.Fatal(err)
+				}
+			},
+			wantErr: "retained success",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			partial, config := test.interrupt(t)
+			resume := CampaignSpec{ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}}
+			test.change(t, partial, &resume)
+			_, err := exploreWith(context.Background(), resume, executionDependencies{executor: &fakeExecutor{}})
+			if err == nil || !strings.Contains(err.Error(), test.wantErr) {
+				t.Fatalf("resume error = %v, want %q", err, test.wantErr)
+			}
+		})
 	}
 }
 
-func TestRunPreparationOverallTimeoutIsClassifiedSeparately(t *testing.T) {
-	started := make(chan struct{})
-	deadline := &controlledDeadlineContext{Context: context.Background(), done: make(chan struct{})}
-	go func() {
-		<-started
-		close(deadline.done)
-	}()
-	config, configDependencies := testConfig(t, waitingPreparer{started: started}, &fakeExecutor{}, "1", PolicyAll, 1)
-	config.OverallTimeout = time.Hour
-	config.TerminateGrace = 10 * time.Millisecond
-	summary, err := exploreWith(deadline, config, configDependencies)
-	var hostError *HostError
-	if !errors.As(err, &hostError) || hostError.Reason != "overall_timeout" || !errors.Is(err, context.DeadlineExceeded) {
-		t.Fatalf("exploreWith() error = %#v", err)
-	}
-	partial, readErr := os.ReadFile(filepath.Join(summary.CampaignPath, ".partial", "preparation", "partial.json"))
-	if readErr != nil {
-		t.Fatal(readErr)
-	}
-	if !strings.Contains(string(partial), `"reason":"overall_timeout"`) {
-		t.Fatalf("preparation partial = %s", partial)
+// TestRunPreparationFailureLeavesClassifiedPartial pins the reason a target
+// preparation failure, cancellation or overall timeout reports, and the
+// explicit preparation partial each one leaves.
+func TestRunPreparationFailureLeavesClassifiedPartial(t *testing.T) {
+	for _, test := range []struct {
+		name string
+		// start returns the preparer and the context the Campaign runs with.
+		start       func(t *testing.T) (Preparer, context.Context)
+		wantReason  string
+		wantCause   error
+		wantPartial []string
+	}{
+		{
+			name: "build failure",
+			start: func(*testing.T) (Preparer, context.Context) {
+				return errorPreparer{err: errors.New("build failed")}, context.Background()
+			},
+			wantReason: "target_preparation", wantPartial: []string{`"state":"failed"`, `"reason":"target_preparation"`},
+		},
+		{
+			name: "cancelled",
+			start: func(t *testing.T) (Preparer, context.Context) {
+				started := make(chan struct{})
+				ctx, cancel := context.WithCancel(context.Background())
+				t.Cleanup(cancel)
+				go func() {
+					<-started
+					cancel()
+				}()
+				return waitingPreparer{started: started}, ctx
+			},
+			wantReason: "cancelled", wantCause: context.Canceled, wantPartial: []string{`"reason":"cancelled"`},
+		},
+		{
+			name: "overall timeout",
+			start: func(*testing.T) (Preparer, context.Context) {
+				started := make(chan struct{})
+				deadline := &controlledDeadlineContext{Context: context.Background(), done: make(chan struct{})}
+				go func() {
+					<-started
+					close(deadline.done)
+				}()
+				return waitingPreparer{started: started}, deadline
+			},
+			wantReason: "overall_timeout", wantCause: context.DeadlineExceeded, wantPartial: []string{`"reason":"overall_timeout"`},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			preparer, ctx := test.start(t)
+			config, configDependencies := testConfig(t, preparer, &fakeExecutor{}, "1", PolicyAll, 1)
+			config.OverallTimeout = time.Hour
+			config.TerminateGrace = 10 * time.Millisecond
+			summary, err := exploreWith(ctx, config, configDependencies)
+			var hostError *HostError
+			if !errors.As(err, &hostError) || hostError.Reason != test.wantReason || test.wantCause != nil && !errors.Is(err, test.wantCause) {
+				t.Fatalf("exploreWith() error = %#v", err)
+			}
+			partial, readErr := os.ReadFile(filepath.Join(summary.CampaignPath, ".partial", "preparation", "partial.json"))
+			if readErr != nil {
+				t.Fatal(readErr)
+			}
+			for _, want := range test.wantPartial {
+				if !strings.Contains(string(partial), want) {
+					t.Fatalf("preparation partial = %s, missing %s", partial, want)
+				}
+			}
+		})
 	}
 }
 
@@ -1845,56 +1668,96 @@ func TestIsolatedRunnerPreservesContextReasonAfterCoordinatorExit(t *testing.T) 
 	}
 }
 
-func TestIsolatedRunnerPreservesUnsupportedTargetError(t *testing.T) {
-	config, configDependencies := testConfig(t, nil, nil, "1", PolicyFirst, 1)
-	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestUnsupportedTargetCoordinatorHelper"}
-	_, err := exploreWith(context.Background(), config, configDependencies)
-	var unsupported *target.UnsupportedCapabilityError
-	if !errors.As(err, &unsupported) || unsupported.ImportPath != "example.com/target" || unsupported.Capability != "imports os/exec" {
-		t.Fatalf("exploreWith() error = %v", err)
+// TestIsolatedRunnerPreservesCoordinatorResponse pins what the isolated parent
+// makes of each canned coordinator response: typed preparation and coverage
+// errors, bounded evidence, the transported choice trace configuration, and
+// the bound on coordinator output.
+func TestIsolatedRunnerPreservesCoordinatorResponse(t *testing.T) {
+	for _, test := range []struct {
+		name      string
+		response  string
+		policy    FailurePolicy
+		configure func(*CampaignSpec)
+		check     func(t *testing.T, summary CampaignResult, err error)
+	}{
+		{
+			name: "unsupported target error", response: "unsupported", policy: PolicyFirst,
+			check: func(t *testing.T, _ CampaignResult, err error) {
+				var unsupported *target.UnsupportedCapabilityError
+				if !errors.As(err, &unsupported) || unsupported.ImportPath != "example.com/target" || unsupported.Capability != "imports os/exec" {
+					t.Fatalf("exploreWith() error = %v", err)
+				}
+			},
+		},
+		{
+			name: "missing semantic probes error", response: "missing-probes", policy: PolicyFirst,
+			check: func(t *testing.T, _ CampaignResult, err error) {
+				var missing *deterministicio.MissingSemanticProbesError
+				if !errors.As(err, &missing) || len(missing.Probes) != 1 || missing.Probes[0] != "stdlib.os.openfile" {
+					t.Fatalf("exploreWith() error = %v", err)
+				}
+			},
+		},
+		{
+			name: "bounded execution evidence", response: "evidence", policy: PolicyAll,
+			configure: func(config *CampaignSpec) {
+				config.Coverage = CoverageSemantic
+				config.CollectExecutionEvidence = true
+			},
+			check: func(t *testing.T, summary CampaignResult, err error) {
+				if err != nil {
+					t.Fatal(err)
+				}
+				if summary.ExecutionEvidence == nil || summary.ExecutionEvidence.Schema != ExecutionEvidenceSchema || summary.ExecutionEvidence.Seed != 1 || summary.ExecutionEvidence.Target.SHA256 != "sha256:target" {
+					t.Fatalf("summary = %#v", summary)
+				}
+			},
+		},
+		{
+			name: "choice trace configuration", response: "choice-trace", policy: PolicyAll,
+			configure: func(config *CampaignSpec) { config.ChoiceTraceLimit = execution.MinimumChoiceTraceBytes },
+			check: func(t *testing.T, summary CampaignResult, err error) {
+				if err != nil {
+					t.Fatal(err)
+				}
+				if summary.ChoiceTrace == nil || summary.ChoiceTrace.Limit != execution.MinimumChoiceTraceBytes {
+					t.Fatalf("summary = %#v", summary)
+				}
+			},
+		},
+		{
+			name: "bounded coordinator output", response: "oversized", policy: PolicyFirst,
+			check: func(t *testing.T, _ CampaignResult, err error) {
+				var hostError *HostError
+				if !errors.As(err, &hostError) || hostError.Reason != "coordinator_decode" {
+					t.Fatalf("exploreWith() error = %v", err)
+				}
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			config, configDependencies := cannedCoordinatorConfig(t, test.response, test.policy)
+			if test.configure != nil {
+				test.configure(&config)
+			}
+			summary, err := exploreWith(context.Background(), config, configDependencies)
+			test.check(t, summary, err)
+		})
 	}
 }
 
-func TestIsolatedRunnerPreservesMissingSemanticProbesError(t *testing.T) {
-	config, configDependencies := testConfig(t, nil, nil, "1", PolicyFirst, 1)
-	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestMissingSemanticProbesCoordinatorHelper"}
-	_, err := exploreWith(context.Background(), config, configDependencies)
-	var missing *deterministicio.MissingSemanticProbesError
-	if !errors.As(err, &missing) || len(missing.Probes) != 1 || missing.Probes[0] != "stdlib.os.openfile" {
-		t.Fatalf("exploreWith() error = %v", err)
-	}
-}
-
-func TestIsolatedRunnerPreservesBoundedExecutionEvidence(t *testing.T) {
-	config, configDependencies := testConfig(t, nil, nil, "1", PolicyAll, 1)
-	config.Coverage = CoverageSemantic
-	config.CollectExecutionEvidence = true
-	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestExecutionEvidenceCoordinatorHelper"}
-	summary, err := exploreWith(context.Background(), config, configDependencies)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if summary.ExecutionEvidence == nil || summary.ExecutionEvidence.Schema != ExecutionEvidenceSchema || summary.ExecutionEvidence.Seed != 1 || summary.ExecutionEvidence.Target.SHA256 != "sha256:target" {
-		t.Fatalf("summary = %#v", summary)
-	}
-}
-
-func TestIsolatedRunnerTransportsChoiceTraceConfiguration(t *testing.T) {
-	config, configDependencies := testConfig(t, nil, nil, "1", PolicyAll, 1)
-	config.ChoiceTraceLimit = execution.MinimumChoiceTraceBytes
-	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestChoiceTraceCoordinatorHelper"}
-	summary, err := exploreWith(context.Background(), config, configDependencies)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if summary.ChoiceTrace == nil || summary.ChoiceTrace.Limit != execution.MinimumChoiceTraceBytes {
-		t.Fatalf("summary = %#v", summary)
-	}
+// cannedCoordinatorConfig runs the isolated parent against
+// TestCannedCoordinatorHelper answering with response.
+func cannedCoordinatorConfig(t *testing.T, response string, policy FailurePolicy) (CampaignSpec, executionDependencies) {
+	t.Helper()
+	t.Setenv("GOMAD3_CANNED_COORDINATOR", response)
+	config, configDependencies := testConfig(t, nil, nil, "1", policy, 1)
+	config.CoordinatorCommand = []string{os.Args[0], "-test.run=^TestCannedCoordinatorHelper$"}
+	return config, configDependencies
 }
 
 func TestIsolatedRunnerDrainsFastCoordinatorBeforeWaitClosesOutput(t *testing.T) {
-	config, configDependencies := testConfig(t, nil, nil, "1", PolicyAll, 1)
-	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestFastCoordinatorHelper"}
+	config, configDependencies := cannedCoordinatorConfig(t, "fast", PolicyAll)
 	config.Progress = func(CampaignEvent) error {
 		deadline := time.Now().Add(100 * time.Millisecond)
 		for time.Now().Before(deadline) {
@@ -1911,76 +1774,53 @@ func TestIsolatedRunnerDrainsFastCoordinatorBeforeWaitClosesOutput(t *testing.T)
 	}
 }
 
-func TestFastCoordinatorHelper(t *testing.T) {
+// TestCannedCoordinatorHelper is a coordinator subprocess that answers with
+// the canned response GOMAD3_CANNED_COORDINATOR names.
+func TestCannedCoordinatorHelper(t *testing.T) {
 	if os.Getenv("GOMAD3_RUNNER_COORDINATOR") != "1" {
 		t.Skip("coordinator subprocess only")
 	}
 	encoder := json.NewEncoder(os.Stdout)
-	progress := CampaignEvent{Phase: ProgressRunning, Attempted: 1, Running: 1}
-	if err := encoder.Encode(coordinatorMessage{Type: "progress", Progress: &progress}); err != nil {
-		t.Fatal(err)
+	var response coordinatorResponse
+	switch os.Getenv("GOMAD3_CANNED_COORDINATOR") {
+	case "fast":
+		progress := CampaignEvent{Phase: ProgressRunning, Attempted: 1, Running: 1}
+		if err := encoder.Encode(coordinatorMessage{Type: "progress", Progress: &progress}); err != nil {
+			t.Fatal(err)
+		}
+		response = coordinatorResponse{CampaignResult: CampaignResult{Attempted: 1, Succeeded: 1}}
+	case "unsupported":
+		unsupported := &target.UnsupportedCapabilityError{ImportPath: "example.com/target", Capability: "imports os/exec"}
+		response = coordinatorResponse{
+			ErrorReason: "target_preparation", ErrorDetail: unsupported.Error(), UnsupportedTarget: unsupported,
+		}
+	case "missing-probes":
+		missing := &deterministicio.MissingSemanticProbesError{Probes: []string{"stdlib.os.openfile"}}
+		response = coordinatorResponse{
+			ErrorReason: "semantic_coverage", ErrorDetail: missing.Error(), MissingSemanticProbes: missing.Probes,
+		}
+	case "evidence":
+		response = coordinatorResponse{CampaignResult: CampaignResult{ExecutionEvidence: &ExecutionEvidence{
+			Schema: ExecutionEvidenceSchema, Seed: 1, Target: record.Target{SHA256: "sha256:target"},
+		}}}
+	case "choice-trace":
+		var wire coordinatorConfig
+		if err := json.NewDecoder(os.Stdin).Decode(&wire); err != nil {
+			t.Fatal(err)
+		}
+		response = coordinatorResponse{CampaignResult: CampaignResult{ChoiceTrace: &ChoiceTraceSummary{Limit: wire.ChoiceTraceLimit}}}
+	case "oversized":
+		if _, err := os.Stdout.Write(make([]byte, maximumCoordinatorMessageBytes+1)); err != nil {
+			t.Fatal(err)
+		}
+		return
+	default:
+		t.Fatalf("unknown canned coordinator response %q", os.Getenv("GOMAD3_CANNED_COORDINATOR"))
 	}
-	response := coordinatorResponse{CampaignResult: CampaignResult{Attempted: 1, Succeeded: 1}}
 	if err := encoder.Encode(coordinatorMessage{Type: "result", Response: &response}); err != nil {
 		t.Fatal(err)
 	}
 	os.Exit(0) //nolint:revive // This subprocess helper must exit before the parent test harness continues.
-}
-
-func TestUnsupportedTargetCoordinatorHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_RUNNER_COORDINATOR") != "1" {
-		t.Skip("coordinator subprocess only")
-	}
-	unsupported := &target.UnsupportedCapabilityError{ImportPath: "example.com/target", Capability: "imports os/exec"}
-	response := coordinatorResponse{
-		ErrorReason: "target_preparation", ErrorDetail: unsupported.Error(), UnsupportedTarget: unsupported,
-	}
-	if err := json.NewEncoder(os.Stdout).Encode(coordinatorMessage{Type: "result", Response: &response}); err != nil {
-		t.Fatal(err)
-	}
-	os.Exit(0)
-}
-
-func TestMissingSemanticProbesCoordinatorHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_RUNNER_COORDINATOR") != "1" {
-		t.Skip("coordinator subprocess only")
-	}
-	missing := &deterministicio.MissingSemanticProbesError{Probes: []string{"stdlib.os.openfile"}}
-	response := coordinatorResponse{
-		ErrorReason: "semantic_coverage", ErrorDetail: missing.Error(), MissingSemanticProbes: missing.Probes,
-	}
-	if err := json.NewEncoder(os.Stdout).Encode(coordinatorMessage{Type: "result", Response: &response}); err != nil {
-		t.Fatal(err)
-	}
-	os.Exit(0)
-}
-
-func TestExecutionEvidenceCoordinatorHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_RUNNER_COORDINATOR") != "1" {
-		t.Skip("coordinator subprocess only")
-	}
-	response := coordinatorResponse{CampaignResult: CampaignResult{ExecutionEvidence: &ExecutionEvidence{
-		Schema: ExecutionEvidenceSchema, Seed: 1, Target: record.Target{SHA256: "sha256:target"},
-	}}}
-	if err := json.NewEncoder(os.Stdout).Encode(coordinatorMessage{Type: "result", Response: &response}); err != nil {
-		t.Fatal(err)
-	}
-	os.Exit(0)
-}
-
-func TestChoiceTraceCoordinatorHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_RUNNER_COORDINATOR") != "1" {
-		t.Skip("coordinator subprocess only")
-	}
-	var wire coordinatorConfig
-	if err := json.NewDecoder(os.Stdin).Decode(&wire); err != nil {
-		t.Fatal(err)
-	}
-	response := coordinatorResponse{CampaignResult: CampaignResult{ChoiceTrace: &ChoiceTraceSummary{Limit: wire.ChoiceTraceLimit}}}
-	if err := json.NewEncoder(os.Stdout).Encode(coordinatorMessage{Type: "result", Response: &response}); err != nil {
-		t.Fatal(err)
-	}
-	os.Exit(0)
 }
 
 func TestBlockingCoordinatorHelper(t *testing.T) {
@@ -2014,25 +1854,6 @@ func TestCoordinatorStdoutDescendantHelper(t *testing.T) {
 		t.Skip("coordinator stdout descendant subprocess only")
 	}
 	<-time.After(10 * time.Second)
-}
-
-func TestIsolatedRunnerBoundsCoordinatorOutput(t *testing.T) {
-	config, configDependencies := testConfig(t, nil, nil, "1", PolicyFirst, 1)
-	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestOversizedCoordinatorHelper"}
-	_, err := exploreWith(context.Background(), config, configDependencies)
-	var hostError *HostError
-	if !errors.As(err, &hostError) || hostError.Reason != "coordinator_decode" {
-		t.Fatalf("exploreWith() error = %v", err)
-	}
-}
-
-func TestOversizedCoordinatorHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_RUNNER_COORDINATOR") != "1" {
-		t.Skip("coordinator subprocess only")
-	}
-	if _, err := os.Stdout.Write(make([]byte, maximumCoordinatorMessageBytes+1)); err != nil {
-		t.Fatal(err)
-	}
 }
 
 func TestIsolatedRunnerRemovesCoordinatorProcessGroup(t *testing.T) {

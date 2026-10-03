@@ -263,6 +263,11 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "choice trace malformed", Partials: []string{failedCampaign, "00000000000000000000 exited"}},
 		},
 		{
+			name: "unterminated choice trace rejected by supervision", err: execution.ErrChoiceTraceUnterminated,
+			seed:        completionObservation{Reason: "choice_trace_unterminated", Cause: "choice trace unterminated", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
+			exploration: completionObservation{Reason: "choice_trace_unterminated", Cause: "choice trace unterminated", Partials: []string{failedCampaign, "00000000000000000000 exited"}},
+		},
+		{
 			name: "missing terminal choice frame", fault: unterminated,
 			seed:        completionObservation{Reason: "choice_trace_unterminated", Cause: "choice trace unterminated", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
 			exploration: completionObservation{Reason: "choice_trace_unterminated", Cause: "choice trace unterminated", Partials: []string{failedCampaign, "00000000000000000000 exited"}},
@@ -340,22 +345,57 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 	}
 }
 
-// A context cancelled while exploration candidates run fails the round as a
-// cancellation, ahead of the cancelled results the candidates then report.
-func TestExplorationCancellationIsAHostFailure(t *testing.T) {
-	for _, strategy := range completionStrategies[1:] {
+// A context cancelled while executions run fails the Campaign as a
+// cancellation. A seed Campaign leaves a resumable plan and its partials; an
+// exploration round fails ahead of the cancelled results its candidates then
+// report.
+func TestCancellationIsAHostFailure(t *testing.T) {
+	for _, strategy := range completionStrategies {
 		t.Run(string(strategy), func(t *testing.T) {
-			config, _, configDependencies := completionCampaign(t, strategy, CoverageNone, nil, nil)
-			configDependencies.executor = blockingExecutor{}
+			var config CampaignSpec
+			var configDependencies executionDependencies
+			if strategy == StrategySeed {
+				config, configDependencies = testConfig(t, newFakePreparer(t), blockingExecutor{}, "1", PolicyAll, 1)
+			} else {
+				config, _, configDependencies = completionCampaign(t, strategy, CoverageNone, nil, nil)
+				configDependencies.executor = blockingExecutor{}
+			}
 			ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.Running == 1 })
 			config.TerminateGrace = 10 * time.Millisecond
 			summary, err := exploreWith(ctx, config, configDependencies)
-			observed := observeCompletion(t, summary, err)
-			// The round returns while its candidate is still exiting, so the
-			// candidate's partial state is not settled yet.
-			observed.Partials = nil
-			if want := (completionObservation{Reason: "cancelled", Cause: "context canceled"}); !reflect.DeepEqual(observed, want) {
-				t.Fatalf("completion = %#v, want %#v", observed, want)
+			if strategy != StrategySeed {
+				observed := observeCompletion(t, summary, err)
+				// The round returns while its candidate is still exiting, so the
+				// candidate's partial state is not settled yet.
+				observed.Partials = nil
+				if want := (completionObservation{Reason: "cancelled", Cause: "context canceled"}); !reflect.DeepEqual(observed, want) {
+					t.Fatalf("completion = %#v, want %#v", observed, want)
+				}
+				return
+			}
+			var hostError *HostError
+			if !errors.As(err, &hostError) || hostError.Reason != "cancelled" || !errors.Is(err, context.Canceled) {
+				t.Fatalf("exploreWith() error = %#v", err)
+			}
+			if summary.Failures != 0 || len(summary.Artifacts) != 0 {
+				t.Fatalf("cancelled summary = %#v", summary)
+			}
+			plan, planErr := campaign.ReadResumePlan(summary.CampaignPath)
+			if planErr != nil {
+				t.Fatal(planErr)
+			}
+			if plan.Selection != "1" || plan.RunnerBuild != config.RunnerBuild || plan.Prepared.Target.SHA256 == "" {
+				t.Fatalf("resume plan = %#v", plan)
+			}
+			partials, readErr := os.ReadDir(filepath.Join(summary.CampaignPath, ".partial"))
+			if readErr != nil {
+				t.Fatal(readErr)
+			}
+			if len(partials) != 3 {
+				t.Fatalf("cancelled partials = %v, want campaign, executions, and target", partials)
+			}
+			if _, err := os.Stat(filepath.Join(summary.CampaignPath, ".partial", "campaign", "partial.json")); err != nil {
+				t.Fatal(err)
 			}
 		})
 	}

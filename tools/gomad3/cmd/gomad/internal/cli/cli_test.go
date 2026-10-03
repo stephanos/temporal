@@ -5,8 +5,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strings"
 	"testing"
@@ -41,25 +43,6 @@ func TestByteSizeFlagParsesBinaryUnitsCanonically(t *testing.T) {
 		if err := value.Set(input); err == nil {
 			t.Fatalf("Set(%q) succeeded", input)
 		}
-	}
-}
-
-func TestRunQualifySetUsesCurrentExecutableAndPublicPaths(t *testing.T) {
-	var observed qualificationset.Spec
-	dependencies := qualifySetDependencies{
-		executable: func() (string, error) { return "/bin/gomad", nil },
-		load: func(string) (qualificationset.Manifest, error) {
-			return qualificationset.Manifest{Schema: qualificationset.ManifestSchema, Name: "test-set", Suites: []qualificationset.Workload{{}}}, nil
-		},
-		run: func(_ context.Context, config qualificationset.Spec) (qualificationset.Report, error) {
-			observed = config
-			return publicSetReport(), nil
-		},
-	}
-	var stdout, stderr bytes.Buffer
-	status := runQualifySetWith([]string{"--manifest", "/corpus.json", "--working-dir", "/repo", "--artifacts", "/artifacts", "--output", "/report.json", "--prune-qualified-artifacts", "--format", "json"}, &stdout, &stderr, dependencies)
-	if status != 0 || stderr.Len() != 0 || observed.GomadPath != "/bin/gomad" || observed.ManifestPath != "/corpus.json" || observed.WorkingDir != "/repo" || observed.ArtifactRoot != "/artifacts" || observed.OutputPath != "/report.json" || !observed.PruneQualifiedArtifacts || !strings.Contains(stdout.String(), `"schema":"gomad3.qualification-set-report/v1"`) {
-		t.Fatalf("status=%d config=%#v stdout=%q stderr=%q", status, observed, stdout.String(), stderr.String())
 	}
 }
 
@@ -358,30 +341,6 @@ func TestParseTargetPreservesArgumentVector(t *testing.T) {
 	}
 }
 
-func TestRunAnalyzeEmitsSupportedJSONWithoutExecutingTarget(t *testing.T) {
-	dependencies := analyzeDependencies{
-		toolchain: func(string) (string, error) { return "/toolchain", nil },
-		identity: func(string) (target.ToolchainIdentity, error) {
-			return target.ToolchainIdentity{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: runtime.GOOS, TargetGOARCH: runtime.GOARCH}, nil
-		},
-		workingDirectory: func() (string, error) { return "/workspace", nil },
-		review: func(_ context.Context, spec target.Spec) (target.CapabilityReview, error) {
-			if spec.Kind != target.KindGoTest || spec.Source != "./pkg" || len(spec.Args) != 1 || spec.Args[0] != "-test.run=TestScenario" || len(spec.BuildTags) != 1 || spec.CapabilityMode != target.CapabilityModeClosure {
-				t.Fatalf("analysis spec = %#v", spec)
-			}
-			return target.CapabilityReview{}, nil
-		},
-		build: func(input capabilityanalysis.Input) (capabilityanalysis.Report, error) {
-			return capabilityanalysis.Report{Schema: capabilityanalysis.AnalysisSchema, Classification: capabilityanalysis.ClassificationSupported, Packs: []target.CompatibilityPackEvidence{}, Requirements: []deterministicio.Requirement{}, Blockers: []capabilityanalysis.Blocker{}}, nil
-		},
-	}
-	var stdout, stderr bytes.Buffer
-	status := runAnalyzeWith([]string{"--format=json", "--build-tag", "gomad_fixture", "go-test", "./pkg", "--", "-test.run=TestScenario"}, &stdout, &stderr, dependencies)
-	if status != 0 || stderr.Len() != 0 || !strings.Contains(stdout.String(), `"schema":"gomad3.capability-analysis/v1"`) || !strings.Contains(stdout.String(), `"classification":"supported"`) {
-		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
-	}
-}
-
 func TestParseCapabilityModeUsesClosedVocabulary(t *testing.T) {
 	for _, value := range []string{"closure", "linked", "guarded"} {
 		mode, err := parseCapabilityMode(value)
@@ -435,45 +394,127 @@ func TestCapabilityAnalysisTimeoutAllowsLinkedBuild(t *testing.T) {
 	}
 }
 
-func TestRunAnalyzeMapsUnsupportedInvalidAndInfrastructureStatuses(t *testing.T) {
-	base := analyzeDependencies{
-		toolchain:        func(string) (string, error) { return "/toolchain", nil },
-		identity:         func(string) (target.ToolchainIdentity, error) { return target.ToolchainIdentity{}, nil },
-		workingDirectory: func() (string, error) { return "/workspace", nil },
-		review: func(context.Context, target.Spec) (target.CapabilityReview, error) {
-			return target.CapabilityReview{}, nil
-		},
-		build: func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {
-			return capabilityanalysis.Report{Classification: capabilityanalysis.ClassificationUnsupported, Blockers: []capabilityanalysis.Blocker{}}, nil
-		},
+// TestRunAnalyzeForwardsTargetAndClassifiesReport pins the target an analyze
+// request reviews and the status each review, report, cleanup and output
+// result maps to. Each row starts from dependencies that review the target
+// and report it unsupported.
+func TestRunAnalyzeForwardsTargetAndClassifiesReport(t *testing.T) {
+	report := func(classification capabilityanalysis.Classification) func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {
+		return func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {
+			return capabilityanalysis.Report{Classification: classification}, nil
+		}
+	}
+	cleanupFails := func(_ context.Context, spec target.Spec) (target.Spec, []deterministicio.Adapter, func() error, error) {
+		return spec, []deterministicio.Adapter{}, func() error { return errors.New("cleanup failed") }, nil
 	}
 	for _, test := range []struct {
-		name       string
-		arguments  []string
-		configure  func(*analyzeDependencies)
-		wantStatus int
+		name      string
+		arguments []string
+		// configure replaces dependencies; closures it installs report through
+		// the row's t.
+		configure     func(t *testing.T, dependencies *analyzeDependencies)
+		failingOutput bool
+		wantStatus    int
+		wantStdout    []string
+		// wantStderr is a substring of stderr; empty requires empty stderr.
+		wantStderr string
+		// anyStderr leaves stderr unchecked.
+		anyStderr bool
 	}{
-		{name: "unsupported", arguments: []string{"go-run", "./pkg"}, wantStatus: 1},
-		{name: "opaque executable", arguments: []string{"exec", "--provenance", "p.json", "--", "binary"}, wantStatus: 2},
-		{name: "invalid package", arguments: []string{"go-run", "./missing"}, configure: func(dependencies *analyzeDependencies) {
+		{
+			name: "emits supported JSON without executing target", arguments: []string{"--format=json", "--build-tag", "gomad_fixture", "go-test", "./pkg", "--", "-test.run=TestScenario"},
+			configure: func(t *testing.T, dependencies *analyzeDependencies) {
+				dependencies.identity = func(string) (target.ToolchainIdentity, error) {
+					return target.ToolchainIdentity{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: runtime.GOOS, TargetGOARCH: runtime.GOARCH}, nil
+				}
+				dependencies.review = func(_ context.Context, spec target.Spec) (target.CapabilityReview, error) {
+					if spec.Kind != target.KindGoTest || spec.Source != "./pkg" || len(spec.Args) != 1 || spec.Args[0] != "-test.run=TestScenario" || len(spec.BuildTags) != 1 || spec.CapabilityMode != target.CapabilityModeClosure {
+						t.Fatalf("analysis spec = %#v", spec)
+					}
+					return target.CapabilityReview{}, nil
+				}
+				dependencies.build = func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {
+					return capabilityanalysis.Report{Schema: capabilityanalysis.AnalysisSchema, Classification: capabilityanalysis.ClassificationSupported, Packs: []target.CompatibilityPackEvidence{}, Requirements: []deterministicio.Requirement{}, Blockers: []capabilityanalysis.Blocker{}}, nil
+				}
+			},
+			wantStdout: []string{`"schema":"gomad3.capability-analysis/v1"`, `"classification":"supported"`},
+		},
+		// Unsupported, invalid and infrastructure statuses.
+		{name: "unsupported", arguments: []string{"go-run", "./pkg"}, wantStatus: 1, anyStderr: true},
+		{name: "opaque executable", arguments: []string{"exec", "--provenance", "p.json", "--", "binary"}, wantStatus: 2, anyStderr: true},
+		{name: "invalid package", arguments: []string{"go-run", "./missing"}, configure: func(_ *testing.T, dependencies *analyzeDependencies) {
 			dependencies.review = func(context.Context, target.Spec) (target.CapabilityReview, error) {
 				return target.CapabilityReview{}, &target.InvalidCapabilityReviewError{Err: errors.New("missing package")}
 			}
-		}, wantStatus: 2},
-		{name: "infrastructure", arguments: []string{"go-run", "./pkg"}, configure: func(dependencies *analyzeDependencies) {
+		}, wantStatus: 2, anyStderr: true},
+		{name: "infrastructure", arguments: []string{"go-run", "./pkg"}, configure: func(_ *testing.T, dependencies *analyzeDependencies) {
 			dependencies.review = func(context.Context, target.Spec) (target.CapabilityReview, error) {
 				return target.CapabilityReview{}, errors.New("decode failed")
 			}
-		}, wantStatus: 3},
+		}, wantStatus: 3, anyStderr: true},
+		{name: "cleanup failure preserves classification", arguments: []string{"go-run", "./pkg"}, configure: func(_ *testing.T, dependencies *analyzeDependencies) {
+			dependencies.prepare = cleanupFails
+		}, wantStatus: 1, wantStderr: "cleanup failed"},
+		{name: "cleanup failure after supported report", arguments: []string{"go-run", "./pkg"}, configure: func(_ *testing.T, dependencies *analyzeDependencies) {
+			dependencies.prepare = func(ctx context.Context, spec target.Spec) (target.Spec, []deterministicio.Adapter, func() error, error) {
+				prepared, _, cleanup, err := cleanupFails(ctx, spec)
+				return prepared, nil, cleanup, err
+			}
+			dependencies.build = report(capabilityanalysis.ClassificationSupported)
+		}, wantStatus: 3, wantStderr: "cleanup failed"},
+		{name: "builds from prepared review", arguments: []string{"go-run", "./pkg"}, configure: func(t *testing.T, dependencies *analyzeDependencies) {
+			inspectCalls, buildCalls := 0, 0
+			dependencies.review = nil
+			dependencies.inspect = func(_ context.Context, spec target.Spec) (preparation.Inspection, error) {
+				inspectCalls++
+				return preparation.Inspection{Spec: spec, Review: target.CapabilityReview{Schema: target.CapabilityReviewSchema}}, nil
+			}
+			dependencies.build = func(input capabilityanalysis.Input) (capabilityanalysis.Report, error) {
+				buildCalls++
+				if input.Review.Schema != target.CapabilityReviewSchema || input.Spec.Source != "./pkg" {
+					t.Fatalf("prepared analysis input = %#v", input)
+				}
+				return capabilityanalysis.Report{Classification: capabilityanalysis.ClassificationSupported}, nil
+			}
+			t.Cleanup(func() {
+				if inspectCalls != 1 || buildCalls != 1 {
+					t.Errorf("inspect=%d build=%d, want one each", inspectCalls, buildCalls)
+				}
+			})
+		}},
+		{name: "output failure is infrastructure", arguments: []string{"go-run", "./pkg"}, configure: func(_ *testing.T, dependencies *analyzeDependencies) {
+			dependencies.build = report(capabilityanalysis.ClassificationSupported)
+		}, failingOutput: true, wantStatus: 3, wantStderr: "write capability analysis"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			dependencies := base
+			dependencies := analyzeDependencies{
+				toolchain:        func(string) (string, error) { return "/toolchain", nil },
+				identity:         func(string) (target.ToolchainIdentity, error) { return target.ToolchainIdentity{}, nil },
+				workingDirectory: func() (string, error) { return "/workspace", nil },
+				review: func(context.Context, target.Spec) (target.CapabilityReview, error) {
+					return target.CapabilityReview{}, nil
+				},
+				build: func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {
+					return capabilityanalysis.Report{Classification: capabilityanalysis.ClassificationUnsupported, Blockers: []capabilityanalysis.Blocker{}}, nil
+				},
+			}
 			if test.configure != nil {
-				test.configure(&dependencies)
+				test.configure(t, &dependencies)
 			}
 			var stdout, stderr bytes.Buffer
-			if status := runAnalyzeWith(test.arguments, &stdout, &stderr, dependencies); status != test.wantStatus {
+			var output io.Writer = &stdout
+			if test.failingOutput {
+				output = failingWriter{}
+			}
+			status := runAnalyzeWith(test.arguments, output, &stderr, dependencies)
+			stderrOK := test.anyStderr || strings.Contains(stderr.String(), test.wantStderr) && (test.wantStderr != "" || stderr.Len() == 0)
+			if status != test.wantStatus || !stderrOK {
 				t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+			}
+			for _, want := range test.wantStdout {
+				if !strings.Contains(stdout.String(), want) {
+					t.Fatalf("stdout = %q, missing %q", stdout.String(), want)
+				}
 			}
 		})
 	}
@@ -507,90 +548,6 @@ func TestRunAnalyzeClassifiesRealReadonlyModuleFailureAsInvalidInput(t *testing.
 	}
 	if _, statErr := os.Stat(filepath.Join(directory, "go.sum")); !os.IsNotExist(statErr) {
 		t.Fatalf("read-only analysis wrote go.sum: %v", statErr)
-	}
-}
-
-func TestRunAnalyzePreservesClassificationWhenCleanupFails(t *testing.T) {
-	dependencies := analyzeDependencies{
-		toolchain:        func(string) (string, error) { return "/toolchain", nil },
-		identity:         func(string) (target.ToolchainIdentity, error) { return target.ToolchainIdentity{}, nil },
-		workingDirectory: func() (string, error) { return "/workspace", nil },
-		prepare: func(_ context.Context, spec target.Spec) (target.Spec, []deterministicio.Adapter, func() error, error) {
-			return spec, []deterministicio.Adapter{}, func() error { return errors.New("cleanup failed") }, nil
-		},
-		review: func(context.Context, target.Spec) (target.CapabilityReview, error) {
-			return target.CapabilityReview{}, nil
-		},
-		build: func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {
-			return capabilityanalysis.Report{Classification: capabilityanalysis.ClassificationUnsupported}, nil
-		},
-	}
-	var stdout, stderr bytes.Buffer
-	if status := runAnalyzeWith([]string{"go-run", "./pkg"}, &stdout, &stderr, dependencies); status != 1 || !strings.Contains(stderr.String(), "cleanup failed") {
-		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
-	}
-}
-
-func TestRunAnalyzeSurfacesCleanupFailureAfterSupportedReport(t *testing.T) {
-	dependencies := analyzeDependencies{
-		toolchain:        func(string) (string, error) { return "/toolchain", nil },
-		identity:         func(string) (target.ToolchainIdentity, error) { return target.ToolchainIdentity{}, nil },
-		workingDirectory: func() (string, error) { return "/workspace", nil },
-		prepare: func(_ context.Context, spec target.Spec) (target.Spec, []deterministicio.Adapter, func() error, error) {
-			return spec, nil, func() error { return errors.New("cleanup failed") }, nil
-		},
-		review: func(context.Context, target.Spec) (target.CapabilityReview, error) {
-			return target.CapabilityReview{}, nil
-		},
-		build: func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {
-			return capabilityanalysis.Report{Classification: capabilityanalysis.ClassificationSupported}, nil
-		},
-	}
-	var stdout, stderr bytes.Buffer
-	if status := runAnalyzeWith([]string{"go-run", "./pkg"}, &stdout, &stderr, dependencies); status != 3 || !strings.Contains(stderr.String(), "cleanup failed") {
-		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
-	}
-}
-
-func TestRunAnalyzeBuildsFromPreparedReview(t *testing.T) {
-	inspectCalls, buildCalls := 0, 0
-	dependencies := analyzeDependencies{
-		toolchain:        func(string) (string, error) { return "/toolchain", nil },
-		identity:         func(string) (target.ToolchainIdentity, error) { return target.ToolchainIdentity{}, nil },
-		workingDirectory: func() (string, error) { return "/workspace", nil },
-		inspect: func(_ context.Context, spec target.Spec) (preparation.Inspection, error) {
-			inspectCalls++
-			return preparation.Inspection{Spec: spec, Review: target.CapabilityReview{Schema: target.CapabilityReviewSchema}}, nil
-		},
-		build: func(input capabilityanalysis.Input) (capabilityanalysis.Report, error) {
-			buildCalls++
-			if input.Review.Schema != target.CapabilityReviewSchema || input.Spec.Source != "./pkg" {
-				t.Fatalf("prepared analysis input = %#v", input)
-			}
-			return capabilityanalysis.Report{Classification: capabilityanalysis.ClassificationSupported}, nil
-		},
-	}
-	var stdout, stderr bytes.Buffer
-	if status := runAnalyzeWith([]string{"go-run", "./pkg"}, &stdout, &stderr, dependencies); status != 0 || inspectCalls != 1 || buildCalls != 1 || stderr.Len() != 0 {
-		t.Fatalf("status=%d inspect=%d build=%d stdout=%q stderr=%q", status, inspectCalls, buildCalls, stdout.String(), stderr.String())
-	}
-}
-
-func TestRunAnalyzeReportsOutputFailuresAsInfrastructure(t *testing.T) {
-	dependencies := analyzeDependencies{
-		toolchain:        func(string) (string, error) { return "/toolchain", nil },
-		identity:         func(string) (target.ToolchainIdentity, error) { return target.ToolchainIdentity{}, nil },
-		workingDirectory: func() (string, error) { return "/workspace", nil },
-		review: func(context.Context, target.Spec) (target.CapabilityReview, error) {
-			return target.CapabilityReview{}, nil
-		},
-		build: func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {
-			return capabilityanalysis.Report{Classification: capabilityanalysis.ClassificationSupported}, nil
-		},
-	}
-	var stderr bytes.Buffer
-	if status := runAnalyzeWith([]string{"go-run", "./pkg"}, failingWriter{}, &stderr, dependencies); status != 3 || !strings.Contains(stderr.String(), "write capability analysis") {
-		t.Fatalf("status=%d stderr=%q", status, stderr.String())
 	}
 }
 
@@ -1004,267 +961,230 @@ func TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure(t *
 	}
 }
 
-func TestRunQualifyRepeatsOneSeedAndRetainsJSONReport(t *testing.T) {
-	var calls int
-	var configs []runner.CampaignSpec
-	var retained qualification.QualificationReport
-	var resolvedToolchainRoot string
-	dependencies := qualifyDependencies{
-		install: func(explicitToolchainRoot string) (installation, error) {
-			resolvedToolchainRoot = explicitToolchainRoot
-			return installation{toolchainRoot: "/toolchain", executable: "/bin/gomad", runnerBuild: "sha256:runner"}, nil
-		},
-		workingDirectory: func() (string, error) { return "/workspace", nil },
-		run: func(_ context.Context, config runner.CampaignSpec) (runner.CampaignResult, error) {
-			calls++
-			configs = append(configs, config)
-			evidence := qualificationEvidence(7)
-			return runner.CampaignResult{CampaignPath: fmt.Sprintf("/artifacts/run-%d", calls), SelectionCount: 1, Attempted: 1, Succeeded: 1, ExecutionEvidence: &evidence}, nil
-		},
-		replay: func(context.Context, runner.ReplaySpec) (runner.ReplayResult, error) {
-			t.Fatal("unexpected replay")
-			return runner.ReplayResult{}, nil
-		},
-		write: func(_ string, report qualification.QualificationReport) (string, error) {
-			retained = report
-			return "/artifacts/qualifications/v1/report.json", nil
-		},
-	}
-	var stdout, stderr bytes.Buffer
-	status := runQualifyWith([]string{
-		"--json", "--seed", "7", "--repeat", "2", "--artifacts", "/artifacts", "--toolchain-root", "/bundle/toolchain", "--require-probe", "stdlib.os.openfile", "--choices", "--choice-bytes", "1MiB",
-		"go-test", "./pkg", "--", "-test.run=TestScenario",
-	}, &stdout, &stderr, dependencies)
-	if status != 0 || stderr.Len() != 0 || calls != 2 || !retained.Qualified || resolvedToolchainRoot != "/bundle/toolchain" {
-		t.Fatalf("status=%d calls=%d report=%#v stdout=%q stderr=%q", status, calls, retained, stdout.String(), stderr.String())
-	}
-	for _, config := range configs {
-		if config.Seeds != "7" || config.Parallel != 1 || config.OnFailure != runner.PolicyAll || config.Coverage != runner.CoverageSemanticChoice || !config.CollectExecutionEvidence || config.ChoiceTraceLimit != 1<<20 || config.Target.Source != "./pkg" || config.Target.WorkingDir != "/workspace" || len(config.RequiredSemanticProbes) != 1 {
-			t.Fatalf("config = %#v", config)
-		}
-	}
-	for _, want := range []string{`"schema":"gomad3.qualify-event/v1"`, `"type":"result"`, `"classification":"qualified"`, `"report_path":"/artifacts/qualifications/v1/report.json"`, `"qualified":true`} {
-		if !strings.Contains(stdout.String(), want) {
-			t.Fatalf("output = %q, missing %q", stdout.String(), want)
-		}
-	}
+// qualifyObservation is what one qualify request hands its dependencies: the
+// toolchain roots it resolved, every Campaign and replay request, and the
+// report it retained, if any.
+type qualifyObservation struct {
+	requested []string
+	runs      []runner.CampaignSpec
+	replays   []runner.ReplaySpec
+	written   bool
+	report    qualification.QualificationReport
 }
 
-func TestRunQualifyReportsNondeterministicEvidence(t *testing.T) {
-	var calls int
-	var retained qualification.QualificationReport
-	dependencies := qualificationDependencies(t)
-	dependencies.run = func(_ context.Context, _ runner.CampaignSpec) (runner.CampaignResult, error) {
-		calls++
-		runRecord := qualificationEvidence(7)
-		if calls == 2 {
-			runRecord.Stdout.FullSHA256 = record.HashBytes([]byte("different"))
-		}
-		return runner.CampaignResult{CampaignPath: fmt.Sprintf("/artifacts/run-%d", calls), SelectionCount: 1, Attempted: 1, Succeeded: 1, ExecutionEvidence: &runRecord}, nil
-	}
-	dependencies.write = func(_ string, report qualification.QualificationReport) (string, error) {
-		retained = report
-		return "/report.json", nil
-	}
-	var stdout, stderr bytes.Buffer
-	status := runQualifyWith([]string{"--json", "--seed", "7", "go-test", "./pkg"}, &stdout, &stderr, dependencies)
-	if status != 1 || retained.Deterministic || retained.FirstDivergence != "stdout.full_sha256" || stderr.Len() != 0 || !strings.Contains(stdout.String(), `"classification":"nondeterministic"`) {
-		t.Fatalf("status=%d report=%#v stdout=%q stderr=%q", status, retained, stdout.String(), stderr.String())
-	}
-}
-
-func TestRunQualifyReplaysRepeatedTargetFailure(t *testing.T) {
-	var calls, replayCalls int
-	var retained qualification.QualificationReport
-	dependencies := qualificationDependencies(t)
-	dependencies.run = func(_ context.Context, _ runner.CampaignSpec) (runner.CampaignResult, error) {
-		calls++
+// TestRunQualifyForwardsFlagsAndClassifiesOutcome pins, for each qualify
+// request, the Campaign and replay requests it forwards, the report it
+// retains, and the status and result event it reports.
+func TestRunQualifyForwardsFlagsAndClassifiesOutcome(t *testing.T) {
+	succeeded := func(call int, _ runner.CampaignSpec) (runner.CampaignResult, error) {
 		evidence := qualificationEvidence(7)
-		evidence.Outcome = runner.OutcomeEvidence{Domain: "target", Reason: "nonzero_exit", Termination: "exit"}
-		return runner.CampaignResult{CampaignPath: fmt.Sprintf("/artifacts/run-%d", calls), SelectionCount: 1, Attempted: 1, Failures: 1, Artifacts: []string{fmt.Sprintf("/artifacts/failure-%d", calls)}, ExecutionEvidence: &evidence}, nil
+		return runner.CampaignResult{CampaignPath: fmt.Sprintf("/artifacts/run-%d", call), SelectionCount: 1, Attempted: 1, Succeeded: 1, ExecutionEvidence: &evidence}, nil
 	}
-	dependencies.replay = func(_ context.Context, config runner.ReplaySpec) (runner.ReplayResult, error) {
-		replayCalls++
-		if config.ArtifactPath != fmt.Sprintf("/artifacts/failure-%d", replayCalls) {
-			t.Fatalf("replay config = %#v", config)
-		}
-		return runner.ReplayResult{Match: true}, nil
-	}
-	dependencies.write = func(_ string, report qualification.QualificationReport) (string, error) {
-		retained = report
-		return "/report.json", nil
-	}
-	var stdout, stderr bytes.Buffer
-	status := runQualifyWith([]string{"--json", "--seed", "7", "go-test", "./pkg"}, &stdout, &stderr, dependencies)
-	if status != 1 || calls != 2 || replayCalls != 2 || retained.Executions[0].Replay == nil || !retained.Executions[0].Replay.Match || retained.Executions[1].Replay == nil || !retained.Executions[1].Replay.Match || retained.TargetSuccess || !strings.Contains(stdout.String(), `"classification":"target_failure"`) {
-		t.Fatalf("status=%d calls=%d replay=%d report=%#v stdout=%q stderr=%q", status, calls, replayCalls, retained, stdout.String(), stderr.String())
-	}
-}
-
-func TestRunQualifyReplaysEveryRetainedSuccess(t *testing.T) {
-	var calls, replayCalls int
-	var retained qualification.QualificationReport
-	dependencies := qualificationDependencies(t)
-	dependencies.run = func(_ context.Context, config runner.CampaignSpec) (runner.CampaignResult, error) {
-		calls++
-		if config.KeepSuccesses != runner.KeepSuccessesAll || config.SuccessArtifactLimit != 1 || config.SuccessBytesLimit != 1<<20 {
-			t.Fatalf("config = %#v", config)
-		}
+	retainedSuccess := func(call int, _ runner.CampaignSpec) (runner.CampaignResult, error) {
 		evidence := qualificationEvidence(7)
 		return runner.CampaignResult{
-			CampaignPath: fmt.Sprintf("/artifacts/run-%d", calls), SelectionCount: 1, Attempted: 1, Succeeded: 1,
-			RetainedSuccesses: 1, SuccessArtifacts: []string{fmt.Sprintf("/artifacts/success-%d", calls)}, ExecutionEvidence: &evidence,
+			CampaignPath: fmt.Sprintf("/artifacts/run-%d", call), SelectionCount: 1, Attempted: 1, Succeeded: 1,
+			RetainedSuccesses: 1, SuccessArtifacts: []string{fmt.Sprintf("/artifacts/success-%d", call)}, ExecutionEvidence: &evidence,
 		}, nil
 	}
-	dependencies.replay = func(_ context.Context, config runner.ReplaySpec) (runner.ReplayResult, error) {
-		replayCalls++
-		if config.ArtifactPath != fmt.Sprintf("/artifacts/success-%d", replayCalls) {
-			t.Fatalf("replay config = %#v", config)
+	replayOf := func(kind string) func(*testing.T, int, runner.ReplaySpec) (runner.ReplayResult, error) {
+		return func(t *testing.T, call int, config runner.ReplaySpec) (runner.ReplayResult, error) {
+			if config.ArtifactPath != fmt.Sprintf("/artifacts/%s-%d", kind, call) {
+				t.Fatalf("replay config = %#v", config)
+			}
+			return runner.ReplayResult{Match: true}, nil
 		}
-		return runner.ReplayResult{Match: true}, nil
 	}
-	dependencies.write = func(_ string, report qualification.QualificationReport) (string, error) {
-		retained = report
-		return "/report.json", nil
-	}
-	var stdout, stderr bytes.Buffer
-	status := runQualifyWith([]string{"--json", "--seed", "7", "--replay-successes", "--success-limit", "1", "--success-bytes", "1MiB", "go-test", "./pkg"}, &stdout, &stderr, dependencies)
-	if status != 0 || calls != 2 || replayCalls != 2 || !retained.Qualified || retained.Executions[0].Replay == nil || !retained.Executions[0].Replay.Match || retained.Executions[1].Replay == nil || !retained.Executions[1].Replay.Match || stderr.Len() != 0 {
-		t.Fatalf("status=%d calls=%d replay=%d report=%#v stdout=%q stderr=%q", status, calls, replayCalls, retained, stdout.String(), stderr.String())
-	}
-}
-
-func TestRunQualifyRequiresExplicitSuccessfulReplayBounds(t *testing.T) {
-	dependencies := qualificationDependencies(t)
-	dependencies.run = func(context.Context, runner.CampaignSpec) (runner.CampaignResult, error) {
-		t.Fatal("unexpected run")
-		return runner.CampaignResult{}, nil
-	}
-	for _, arguments := range [][]string{
-		{"--json", "--replay-successes", "go-test", "./pkg"},
-		{"--json", "--success-limit", "1", "--success-bytes", "1MiB", "go-test", "./pkg"},
+	successReplay := []string{"--json", "--seed", "7", "--replay-successes", "--success-limit", "1", "--success-bytes", "1MiB", "go-test", "./pkg"}
+	for _, test := range []struct {
+		name      string
+		arguments []string
+		// run and replay answer the call-th request, counted from 1. A nil
+		// function fails the test when the command calls it.
+		run        func(call int, config runner.CampaignSpec) (runner.CampaignResult, error)
+		replay     func(t *testing.T, call int, config runner.ReplaySpec) (runner.ReplayResult, error)
+		wantStatus int
+		wantOutput []string
+		check      func(t *testing.T, observed qualifyObservation) bool
+	}{
+		{
+			name: "repeat one seed and retain the JSON report",
+			arguments: []string{
+				"--json", "--seed", "7", "--repeat", "2", "--artifacts", "/artifacts", "--toolchain-root", "/bundle/toolchain", "--require-probe", "stdlib.os.openfile", "--choices", "--choice-bytes", "1MiB",
+				"go-test", "./pkg", "--", "-test.run=TestScenario",
+			},
+			run:        succeeded,
+			wantOutput: []string{`"schema":"gomad3.qualify-event/v1"`, `"type":"result"`, `"classification":"qualified"`, `"report_path":"/artifacts/qualifications/v1/report.json"`, `"qualified":true`},
+			check: func(t *testing.T, observed qualifyObservation) bool {
+				for _, config := range observed.runs {
+					if config.Seeds != "7" || config.Parallel != 1 || config.OnFailure != runner.PolicyAll || config.Coverage != runner.CoverageSemanticChoice || !config.CollectExecutionEvidence || config.ChoiceTraceLimit != 1<<20 || config.Target.Source != "./pkg" || config.Target.WorkingDir != "/workspace" || len(config.RequiredSemanticProbes) != 1 {
+						t.Fatalf("config = %#v", config)
+					}
+				}
+				return len(observed.runs) == 2 && observed.report.Qualified && reflect.DeepEqual(observed.requested, []string{"/bundle/toolchain"})
+			},
+		},
+		{
+			name: "nondeterministic evidence", arguments: []string{"--json", "--seed", "7", "go-test", "./pkg"},
+			run: func(call int, _ runner.CampaignSpec) (runner.CampaignResult, error) {
+				runRecord := qualificationEvidence(7)
+				if call == 2 {
+					runRecord.Stdout.FullSHA256 = record.HashBytes([]byte("different"))
+				}
+				return runner.CampaignResult{CampaignPath: fmt.Sprintf("/artifacts/run-%d", call), SelectionCount: 1, Attempted: 1, Succeeded: 1, ExecutionEvidence: &runRecord}, nil
+			},
+			wantStatus: 1, wantOutput: []string{`"classification":"nondeterministic"`},
+			check: func(_ *testing.T, observed qualifyObservation) bool {
+				return !observed.report.Deterministic && observed.report.FirstDivergence == "stdout.full_sha256"
+			},
+		},
+		{
+			name: "replays repeated target failure", arguments: []string{"--json", "--seed", "7", "go-test", "./pkg"},
+			run: func(call int, _ runner.CampaignSpec) (runner.CampaignResult, error) {
+				evidence := qualificationEvidence(7)
+				evidence.Outcome = runner.OutcomeEvidence{Domain: "target", Reason: "nonzero_exit", Termination: "exit"}
+				return runner.CampaignResult{CampaignPath: fmt.Sprintf("/artifacts/run-%d", call), SelectionCount: 1, Attempted: 1, Failures: 1, Artifacts: []string{fmt.Sprintf("/artifacts/failure-%d", call)}, ExecutionEvidence: &evidence}, nil
+			},
+			replay:     replayOf("failure"),
+			wantStatus: 1, wantOutput: []string{`"classification":"target_failure"`},
+			check: func(_ *testing.T, observed qualifyObservation) bool {
+				executions := observed.report.Executions
+				return len(observed.runs) == 2 && len(observed.replays) == 2 && executions[0].Replay != nil && executions[0].Replay.Match && executions[1].Replay != nil && executions[1].Replay.Match && !observed.report.TargetSuccess
+			},
+		},
+		{
+			name: "replays every retained success", arguments: successReplay,
+			run: retainedSuccess, replay: replayOf("success"),
+			check: func(t *testing.T, observed qualifyObservation) bool {
+				for _, config := range observed.runs {
+					if config.KeepSuccesses != runner.KeepSuccessesAll || config.SuccessArtifactLimit != 1 || config.SuccessBytesLimit != 1<<20 {
+						t.Fatalf("config = %#v", config)
+					}
+				}
+				executions := observed.report.Executions
+				return len(observed.runs) == 2 && len(observed.replays) == 2 && observed.report.Qualified && executions[0].Replay != nil && executions[0].Replay.Match && executions[1].Replay != nil && executions[1].Replay.Match
+			},
+		},
+		// Successful replay needs both the request and explicit bounds.
+		{name: "successful replay requires bounds", arguments: []string{"--json", "--replay-successes", "go-test", "./pkg"}, wantStatus: 2, wantOutput: []string{`"classification":"invalid_input"`}},
+		{name: "success bounds require successful replay", arguments: []string{"--json", "--success-limit", "1", "--success-bytes", "1MiB", "go-test", "./pkg"}, wantStatus: 2, wantOutput: []string{`"classification":"invalid_input"`}},
+		{
+			name: "retains missing successful replay artifact", arguments: successReplay, run: succeeded, wantStatus: 3,
+			check: func(_ *testing.T, observed qualifyObservation) bool {
+				failure := observed.report.Failure
+				return failure != nil && failure.Classification == "runner_failure" && strings.Contains(failure.Message, "exactly one successful replay artifact")
+			},
+		},
+		{
+			name: "retains replay cancellation", arguments: successReplay, run: retainedSuccess,
+			replay: func(*testing.T, int, runner.ReplaySpec) (runner.ReplayResult, error) {
+				return runner.ReplayResult{}, context.Canceled
+			},
+			wantStatus: 3,
+			check: func(_ *testing.T, observed qualifyObservation) bool {
+				report := observed.report
+				return report.Failure != nil && report.Failure.Classification == "cancelled" && len(report.Executions) == 2 && report.Executions[0].Replay != nil && report.Executions[0].Replay.Divergence != ""
+			},
+		},
+		{
+			name: "retains unsupported boundary", arguments: []string{"--json", "--seed", "7", "go-test", "./pkg"},
+			run: func(int, runner.CampaignSpec) (runner.CampaignResult, error) {
+				unsupported := &target.UnsupportedCapabilityError{ImportPath: "example.com/target", Capability: "imports os/exec"}
+				return runner.CampaignResult{CampaignPath: "/artifacts/run-1"}, &runner.HostError{Reason: "target_preparation", Err: unsupported}
+			},
+			wantStatus: 2, wantOutput: []string{`"classification":"unsupported_target"`},
+			check: func(_ *testing.T, observed qualifyObservation) bool {
+				return observed.report.Failure != nil && observed.report.Failure.Capability == "imports os/exec"
+			},
+		},
+		{name: "rejects unbounded repeat", arguments: []string{"--json", "--repeat", "33", "go-test", "./pkg"}, wantStatus: 2, wantOutput: []string{`"classification":"invalid_input"`}},
 	} {
-		var stdout, stderr bytes.Buffer
-		status := runQualifyWith(arguments, &stdout, &stderr, dependencies)
-		if status != 2 || stderr.Len() != 0 || !strings.Contains(stdout.String(), `"classification":"invalid_input"`) {
-			t.Fatalf("arguments=%q status=%d stdout=%q stderr=%q", arguments, status, stdout.String(), stderr.String())
-		}
+		t.Run(test.name, func(t *testing.T) {
+			installation := newFakeInstallation()
+			var observed qualifyObservation
+			dependencies := installation.qualifyDependencies(func(_ context.Context, config runner.CampaignSpec) (runner.CampaignResult, error) {
+				if test.run == nil {
+					t.Fatal("unexpected run")
+				}
+				observed.runs = append(observed.runs, config)
+				return test.run(len(observed.runs), config)
+			}, func(_ context.Context, config runner.ReplaySpec) (runner.ReplayResult, error) {
+				if test.replay == nil {
+					t.Fatal("unexpected replay")
+				}
+				observed.replays = append(observed.replays, config)
+				return test.replay(t, len(observed.replays), config)
+			}, func(_ string, report qualification.QualificationReport) (string, error) {
+				if test.run == nil {
+					t.Fatal("unexpected report")
+				}
+				observed.written, observed.report = true, report
+				return "/artifacts/qualifications/v1/report.json", nil
+			})
+			var stdout, stderr bytes.Buffer
+			status := runQualifyWith(test.arguments, &stdout, &stderr, dependencies)
+			observed.requested = *installation.requested
+			if status != test.wantStatus || stderr.Len() != 0 || test.check != nil && !test.check(t, observed) {
+				t.Fatalf("status=%d observed=%#v stdout=%q stderr=%q", status, observed, stdout.String(), stderr.String())
+			}
+			for _, want := range test.wantOutput {
+				if !strings.Contains(stdout.String(), want) {
+					t.Fatalf("output = %q, missing %q", stdout.String(), want)
+				}
+			}
+		})
 	}
 }
 
-func TestRunQualifyRetainsMissingSuccessfulReplayArtifact(t *testing.T) {
-	var retained qualification.QualificationReport
-	dependencies := qualificationDependencies(t)
-	dependencies.run = func(_ context.Context, _ runner.CampaignSpec) (runner.CampaignResult, error) {
-		evidence := qualificationEvidence(7)
-		return runner.CampaignResult{CampaignPath: "/artifacts/run-1", SelectionCount: 1, Attempted: 1, Succeeded: 1, ExecutionEvidence: &evidence}, nil
-	}
-	dependencies.write = func(_ string, report qualification.QualificationReport) (string, error) {
-		retained = report
-		return "/report.json", nil
-	}
-	var stdout, stderr bytes.Buffer
-	status := runQualifyWith([]string{"--json", "--seed", "7", "--replay-successes", "--success-limit", "1", "--success-bytes", "1MiB", "go-test", "./pkg"}, &stdout, &stderr, dependencies)
-	if status != 3 || retained.Failure == nil || retained.Failure.Classification != "runner_failure" || !strings.Contains(retained.Failure.Message, "exactly one successful replay artifact") || stderr.Len() != 0 {
-		t.Fatalf("status=%d report=%#v stdout=%q stderr=%q", status, retained, stdout.String(), stderr.String())
-	}
-}
-
-func TestRunQualifyRetainsReplayCancellation(t *testing.T) {
-	var calls int
-	var retained qualification.QualificationReport
-	dependencies := qualificationDependencies(t)
-	dependencies.run = func(_ context.Context, _ runner.CampaignSpec) (runner.CampaignResult, error) {
-		calls++
-		evidence := qualificationEvidence(7)
-		return runner.CampaignResult{
-			CampaignPath: fmt.Sprintf("/artifacts/run-%d", calls), SelectionCount: 1, Attempted: 1, Succeeded: 1,
-			RetainedSuccesses: 1, SuccessArtifacts: []string{fmt.Sprintf("/artifacts/success-%d", calls)}, ExecutionEvidence: &evidence,
-		}, nil
-	}
-	dependencies.replay = func(context.Context, runner.ReplaySpec) (runner.ReplayResult, error) {
-		return runner.ReplayResult{}, context.Canceled
-	}
-	dependencies.write = func(_ string, report qualification.QualificationReport) (string, error) {
-		retained = report
-		return "/report.json", nil
-	}
-	var stdout, stderr bytes.Buffer
-	status := runQualifyWith([]string{"--json", "--seed", "7", "--replay-successes", "--success-limit", "1", "--success-bytes", "1MiB", "go-test", "./pkg"}, &stdout, &stderr, dependencies)
-	if status != 3 || retained.Failure == nil || retained.Failure.Classification != "cancelled" || len(retained.Executions) != 2 || retained.Executions[0].Replay == nil || retained.Executions[0].Replay.Divergence == "" || stderr.Len() != 0 {
-		t.Fatalf("status=%d report=%#v stdout=%q stderr=%q", status, retained, stdout.String(), stderr.String())
-	}
-}
-
-func TestRunQualifyRetainsUnsupportedBoundary(t *testing.T) {
-	var retained qualification.QualificationReport
-	dependencies := qualificationDependencies(t)
-	dependencies.run = func(_ context.Context, _ runner.CampaignSpec) (runner.CampaignResult, error) {
-		unsupported := &target.UnsupportedCapabilityError{ImportPath: "example.com/target", Capability: "imports os/exec"}
-		return runner.CampaignResult{CampaignPath: "/artifacts/run-1"}, &runner.HostError{Reason: "target_preparation", Err: unsupported}
-	}
-	dependencies.write = func(_ string, report qualification.QualificationReport) (string, error) {
-		retained = report
-		return "/report.json", nil
-	}
-	var stdout, stderr bytes.Buffer
-	status := runQualifyWith([]string{"--json", "--seed", "7", "go-test", "./pkg"}, &stdout, &stderr, dependencies)
-	if status != 2 || retained.Failure == nil || retained.Failure.Capability != "imports os/exec" || !strings.Contains(stdout.String(), `"classification":"unsupported_target"`) || stderr.Len() != 0 {
-		t.Fatalf("status=%d report=%#v stdout=%q stderr=%q", status, retained, stdout.String(), stderr.String())
-	}
-}
-
-func TestRunQualifyRejectsUnboundedRepeat(t *testing.T) {
-	dependencies := qualificationDependencies(t)
-	dependencies.run = func(context.Context, runner.CampaignSpec) (runner.CampaignResult, error) {
-		t.Fatal("unexpected run")
-		return runner.CampaignResult{}, nil
-	}
-	var stdout, stderr bytes.Buffer
-	status := runQualifyWith([]string{"--json", "--repeat", "33", "go-test", "./pkg"}, &stdout, &stderr, dependencies)
-	if status != 2 || stderr.Len() != 0 || !strings.Contains(stdout.String(), `"classification":"invalid_input"`) {
-		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
-	}
-}
-
-func TestRunResumeUsesStoredBatchAndReportsResult(t *testing.T) {
-	var got runner.ResumeSpec
-	var resolvedToolchainRoot string
-	dependencies := resumeDependencies{
-		install: func(explicitToolchainRoot string) (installation, error) {
-			resolvedToolchainRoot = explicitToolchainRoot
-			return installation{toolchainRoot: "/toolchain", executable: "/bin/gomad", runnerBuild: "sha256:runner"}, nil
+// TestRunResumeForwardsCampaignAndClassifiesResult pins the resume request
+// built from the stored Campaign and the installation, and how its result and
+// errors are reported.
+func TestRunResumeForwardsCampaignAndClassifiesResult(t *testing.T) {
+	for _, test := range []struct {
+		name          string
+		arguments     []string
+		result        runner.CampaignResult
+		err           error
+		want          runner.ResumeSpec
+		wantRequested []string
+		wantStatus    int
+		wantOutput    []string
+	}{
+		{
+			name: "stored campaign", arguments: []string{"--json", "--toolchain-root", "/bundle/toolchain", "/artifacts/v1/run-partial"},
+			result:        runner.CampaignResult{CampaignPath: "/artifacts/v1/run-partial", SelectionCount: 3, Attempted: 3, Succeeded: 3, StopReason: runner.StopSeedsExhausted},
+			wantRequested: []string{"/bundle/toolchain"},
+			wantOutput:    []string{`"schema":"gomad3.explore-event/v3"`, `"type":"result"`, `"classification":"success"`, `"campaign_path":"/artifacts/v1/run-partial"`},
 		},
-		run: func(_ context.Context, config runner.ResumeSpec) (runner.CampaignResult, error) {
-			got = config
-			return runner.CampaignResult{CampaignPath: "/artifacts/v1/run-partial", SelectionCount: 3, Attempted: 3, Succeeded: 3, StopReason: runner.StopSeedsExhausted}, nil
+		{
+			name: "invalid journal is an input error", arguments: []string{"--json", "/artifacts/v1/run-partial"},
+			err:           &runner.HostError{Reason: "resume_setup", Err: errors.New("batch plan changed")},
+			wantRequested: []string{""}, wantStatus: 2, wantOutput: []string{`"classification":"invalid_input"`},
 		},
-	}
-	var stdout, stderr bytes.Buffer
-	status := runResumeWith([]string{"--json", "--toolchain-root", "/bundle/toolchain", "/artifacts/v1/run-partial"}, &stdout, &stderr, dependencies)
-	if status != 0 || stderr.Len() != 0 || resolvedToolchainRoot != "/bundle/toolchain" || got.CampaignPath != "/artifacts/v1/run-partial" || got.RunnerBuild != "sha256:runner" || got.ToolchainRoot != "/toolchain" || len(got.CoordinatorCommand) != 2 {
-		t.Fatalf("status=%d config=%#v stdout=%q stderr=%q", status, got, stdout.String(), stderr.String())
-	}
-	for _, want := range []string{`"schema":"gomad3.explore-event/v3"`, `"type":"result"`, `"classification":"success"`, `"campaign_path":"/artifacts/v1/run-partial"`} {
-		if !strings.Contains(stdout.String(), want) {
-			t.Fatalf("output = %q, missing %q", stdout.String(), want)
-		}
-	}
-}
-
-func TestRunResumeClassifiesInvalidJournalAsInputError(t *testing.T) {
-	dependencies := resumeDependencies{
-		install: func(string) (installation, error) {
-			return installation{toolchainRoot: "/toolchain", executable: "/bin/gomad", runnerBuild: "sha256:runner"}, nil
-		},
-		run: func(context.Context, runner.ResumeSpec) (runner.CampaignResult, error) {
-			return runner.CampaignResult{}, &runner.HostError{Reason: "resume_setup", Err: errors.New("batch plan changed")}
-		},
-	}
-	var stdout, stderr bytes.Buffer
-	status := runResumeWith([]string{"--json", "/artifacts/v1/run-partial"}, &stdout, &stderr, dependencies)
-	if status != 2 || stderr.Len() != 0 || !strings.Contains(stdout.String(), `"classification":"invalid_input"`) {
-		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			installation := newFakeInstallation()
+			var observed []runner.ResumeSpec
+			dependencies := installation.resumeDependencies(func(_ context.Context, config runner.ResumeSpec) (runner.CampaignResult, error) {
+				config.Progress = nil
+				observed = append(observed, config)
+				return test.result, test.err
+			})
+			var stdout, stderr bytes.Buffer
+			status := runResumeWith(test.arguments, &stdout, &stderr, dependencies)
+			want := runner.ResumeSpec{
+				CampaignPath: "/artifacts/v1/run-partial", RunnerBuild: "sha256:runner", ToolchainRoot: "/toolchain",
+				SupervisorCommand: []string{"/bin/gomad", "__supervisor"}, CoordinatorCommand: []string{"/bin/gomad", "__coordinator"}, ProgressInterval: 5 * time.Second,
+			}
+			if status != test.wantStatus || stderr.Len() != 0 || len(observed) != 1 || !reflect.DeepEqual(observed[0], want) || !reflect.DeepEqual(*installation.requested, test.wantRequested) {
+				t.Fatalf("status=%d requests=%#v roots=%q stdout=%q stderr=%q", status, observed, *installation.requested, stdout.String(), stderr.String())
+			}
+			for _, want := range test.wantOutput {
+				if !strings.Contains(stdout.String(), want) {
+					t.Fatalf("output = %q, missing %q", stdout.String(), want)
+				}
+			}
+		})
 	}
 }
 
@@ -1392,92 +1312,110 @@ func TestReportReplayResultStatesWhetherFailureWasReproduced(t *testing.T) {
 	}
 }
 
-func TestRunMinimizeUsesBoundedArtifactStoreAndCurrentInstallation(t *testing.T) {
-	var observed runner.MinimizeSpec
-	dependencies := minimizeDependencies{
-		install: func(string) (installation, error) {
-			return installation{toolchainRoot: "/toolchain", executable: "/bin/gomad", runnerBuild: "runner"}, nil
-		},
-		minimize: func(_ context.Context, config runner.MinimizeSpec) (runner.MinimizeResult, error) {
-			observed = config
-			return runner.MinimizeResult{
+// TestRunMinimizeForwardsFlags pins the minimization request each flag set
+// forwards with the resolved installation, and the summary it reports.
+func TestRunMinimizeForwardsFlags(t *testing.T) {
+	defaultRoot, err := filepath.Abs(".gomad/artifacts")
+	if err != nil {
+		t.Fatal(err)
+	}
+	supervisor := []string{"/bin/gomad", "__supervisor"}
+	for _, test := range []struct {
+		name       string
+		arguments  []string
+		result     runner.MinimizeResult
+		want       runner.MinimizeSpec
+		wantOutput string
+	}{
+		{
+			name: "bounded store and installation", arguments: []string{"--artifacts", "/artifacts", "--attempt-budget", "16", "--max-bytes", "8MiB", "/failure"},
+			result: runner.MinimizeResult{
 				Artifact: artifact.Artifact{Path: "/artifacts/minimized/sha256-result"}, Changed: true,
 				Attempts: 7, AttemptBudget: 16, Accepted: []record.MinimizationReduction{{Kind: "fault_entries"}}, StopReason: "minimal",
-			}, nil
+			},
+			want:       runner.MinimizeSpec{ArtifactPath: "/failure", OutputRoot: "/artifacts/minimized", AttemptBudget: 16, MaximumBytes: 8 << 20, ToolchainRoot: "/toolchain", SupervisorCommand: supervisor},
+			wantOutput: "accepted=1",
 		},
-	}
-	var stdout, stderr bytes.Buffer
-	status := runMinimizeWith([]string{"--artifacts", "/artifacts", "--attempt-budget", "16", "--max-bytes", "8MiB", "/failure"}, &stdout, &stderr, dependencies)
-	if status != 0 || stderr.Len() != 0 || observed.ArtifactPath != "/failure" || observed.OutputRoot != "/artifacts/minimized" || observed.AttemptBudget != 16 || observed.MaximumBytes != 8<<20 || observed.ToolchainRoot != "/toolchain" || len(observed.SupervisorCommand) != 2 || !strings.Contains(stdout.String(), "accepted=1") {
-		t.Fatalf("status=%d config=%#v stdout=%q stderr=%q", status, observed, stdout.String(), stderr.String())
-	}
-}
-
-func TestRunMinimizeResumesOnlyOnRequest(t *testing.T) {
-	for _, test := range []struct {
-		name      string
-		arguments []string
-		want      bool
-	}{
-		{name: "initial run", arguments: []string{"/failure"}},
-		{name: "resume", arguments: []string{"--resume", "/failure"}, want: true},
+		// Minimization resumes only on request.
+		{name: "initial run", arguments: []string{"/failure"}, want: runner.MinimizeSpec{ArtifactPath: "/failure", OutputRoot: filepath.Join(defaultRoot, "minimized"), AttemptBudget: 64, ToolchainRoot: "/toolchain", SupervisorCommand: supervisor}},
+		{name: "resume", arguments: []string{"--resume", "/failure"}, want: runner.MinimizeSpec{ArtifactPath: "/failure", OutputRoot: filepath.Join(defaultRoot, "minimized"), AttemptBudget: 64, ToolchainRoot: "/toolchain", SupervisorCommand: supervisor, Resume: true}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			var observed runner.MinimizeSpec
-			dependencies := minimizeDependencies{
-				install: func(string) (installation, error) {
-					return installation{toolchainRoot: "/toolchain", executable: "/bin/gomad", runnerBuild: "runner"}, nil
-				},
-				minimize: func(_ context.Context, config runner.MinimizeSpec) (runner.MinimizeResult, error) {
-					observed = config
-					return runner.MinimizeResult{}, nil
-				},
-			}
+			var observed []runner.MinimizeSpec
+			dependencies := newFakeInstallation().minimizeDependencies(func(_ context.Context, spec runner.MinimizeSpec) (runner.MinimizeResult, error) {
+				observed = append(observed, spec)
+				return test.result, nil
+			})
 			var stdout, stderr bytes.Buffer
-			if status := runMinimizeWith(test.arguments, &stdout, &stderr, dependencies); status != 0 || observed.Resume != test.want {
-				t.Fatalf("status=%d resume=%t stderr=%q", status, observed.Resume, stderr.String())
+			status := runMinimizeWith(test.arguments, &stdout, &stderr, dependencies)
+			if status != 0 || stderr.Len() != 0 || len(observed) != 1 || !reflect.DeepEqual(observed[0], test.want) || !strings.Contains(stdout.String(), test.wantOutput) {
+				t.Fatalf("status=%d requests=%#v want %#v stdout=%q stderr=%q", status, observed, test.want, stdout.String(), stderr.String())
 			}
 		})
 	}
 }
 
-func TestRunQualifySetPassesShardToTheSet(t *testing.T) {
+// TestRunQualifySetForwardsFlags pins the qualification set request each
+// accepted flag set forwards with the current executable, and the shard
+// checks that reject a request before the set runs.
+func TestRunQualifySetForwardsFlags(t *testing.T) {
 	threeSuites := func(string) (qualificationset.Manifest, error) {
 		return qualificationset.Manifest{Schema: qualificationset.ManifestSchema, Name: "test-set", Suites: []qualificationset.Workload{{ID: "a"}, {ID: "b"}, {ID: "c"}}}, nil
+	}
+	defaults := qualificationset.Spec{
+		ManifestPath: "/corpus.json", GomadPath: "/bin/gomad", WorkingDir: "/repo", ArtifactRoot: ".gomad/qualification", OutputPath: ".gomad/qualification-set.json",
+		MinimumFreeBytes: qualificationset.DefaultMinimumFreeBytes,
+	}
+	with := func(configure func(*qualificationset.Spec)) *qualificationset.Spec {
+		spec := defaults
+		configure(&spec)
+		return &spec
 	}
 	for _, test := range []struct {
 		name       string
 		arguments  []string
 		wantStatus int
-		wantShard  qualificationset.Shard
-		wantRun    bool
+		// want is the forwarded request, or nil when the set must not run.
+		want       *qualificationset.Spec
 		wantOutput string
 		wantError  string
 	}{
-		{name: "runs one shard", arguments: []string{"--shard", "1/3", "--min-free-bytes", "3GiB"}, wantShard: qualificationset.Shard{Index: 1, Count: 3}, wantRun: true, wantOutput: "qualification set: name=test-set"},
+		{
+			name: "public paths and executable", arguments: []string{"--artifacts", "/artifacts", "--output", "/report.json", "--prune-qualified-artifacts", "--format", "json"},
+			want: with(func(spec *qualificationset.Spec) {
+				spec.ArtifactRoot, spec.OutputPath, spec.PruneQualifiedArtifacts = "/artifacts", "/report.json", true
+			}),
+			wantOutput: `"schema":"gomad3.qualification-set-report/v1"`,
+		},
+		{
+			name: "runs one shard", arguments: []string{"--shard", "1/3", "--min-free-bytes", "3GiB"},
+			want: with(func(spec *qualificationset.Spec) {
+				spec.Shard, spec.MinimumFreeBytes = qualificationset.Shard{Index: 1, Count: 3}, 3<<30
+			}),
+			wantOutput: "qualification set: name=test-set",
+		},
 		{name: "checks one shard", arguments: []string{"--shard", "1/2", "--check"}, wantOutput: "qualification manifest: name=test-set workloads=1\n"},
 		{name: "rejects index past count", arguments: []string{"--shard", "3/3"}, wantStatus: 2, wantError: "want zero-based INDEX/COUNT"},
 		{name: "rejects malformed shard", arguments: []string{"--shard", "1-3"}, wantStatus: 2, wantError: "want zero-based INDEX/COUNT"},
 		{name: "rejects count past manifest", arguments: []string{"--shard", "0/4"}, wantStatus: 2, wantError: "exceeds the manifest's 3 workloads"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			ran := false
-			var observed qualificationset.Spec
+			var observed []qualificationset.Spec
 			dependencies := qualifySetDependencies{
 				executable: func() (string, error) { return "/bin/gomad", nil },
 				load:       threeSuites,
 				run: func(_ context.Context, config qualificationset.Spec) (qualificationset.Report, error) {
-					ran, observed = true, config
+					observed = append(observed, config)
 					return publicSetReport(), nil
 				},
 			}
 			var stdout, stderr bytes.Buffer
 			status := runQualifySetWith(append([]string{"--manifest", "/corpus.json", "--working-dir", "/repo"}, test.arguments...), &stdout, &stderr, dependencies)
-			if ran && observed.MinimumFreeBytes != 3<<30 {
-				t.Fatalf("minimum free bytes = %d, want 3 GiB", observed.MinimumFreeBytes)
+			if (test.want == nil) != (len(observed) == 0) || test.want != nil && (len(observed) != 1 || !reflect.DeepEqual(observed[0], *test.want)) {
+				t.Fatalf("requests = %#v, want %#v", observed, test.want)
 			}
-			if status != test.wantStatus || ran != test.wantRun || observed.Shard != test.wantShard || !strings.Contains(stdout.String(), test.wantOutput) || !strings.Contains(stderr.String(), test.wantError) {
-				t.Fatalf("status=%d ran=%t shard=%#v stdout=%q stderr=%q", status, ran, observed.Shard, stdout.String(), stderr.String())
+			if status != test.wantStatus || !strings.Contains(stdout.String(), test.wantOutput) || !strings.Contains(stderr.String(), test.wantError) || test.wantError == "" && stderr.Len() != 0 {
+				t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
 			}
 		})
 	}

@@ -79,3 +79,71 @@ physical, 347 -> 341 files (`size-test-go.txt`). Top-level `func Test` count: 14
 Owed on darwin/arm64 and linux/amd64 (no harness): `make -C tools/gomad3 validate`,
 `GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host`, and
 `go -C tools/gomad3 test -tags test_dep -count=1 -run 'TestRewrittenModule|TestProfileRejectsAdapterConfigurationDrift' ./deterministicio`.
+
+## CLI and Runner part (2026-10-03)
+
+Host: **linux/arm64 with the development harness on** (shim regenerated locally, not committed).
+Development evidence only. Branch `gomad-fn112-9`, before = `59ca3d1739` (fn-109 tasks 2 to 12
+merged), after = the task commit. Pinned go1.27.1.
+
+### What changed
+
+- `cmd/gomad/internal/cli/cli_test.go`: one table per command, built on the merged
+  `fakeInstallation` seam. `TestRunQualifySetForwardsFlags` (2 tests), `TestRunMinimizeForwardsFlags`
+  (2), `TestRunResumeForwardsCampaignAndClassifiesResult` (2),
+  `TestRunQualifyForwardsFlagsAndClassifiesOutcome` (9) and
+  `TestRunAnalyzeForwardsTargetAndClassifiesReport` (6). Forwarded requests are now compared as
+  whole values where the old tests checked selected fields. fn-109's CLI characterization tests
+  are unchanged.
+- `runner`: `TestRunPreparationFailureLeavesClassifiedPartial` (3 tests),
+  `TestRunResumeRejectsChangedEvidence` (2), `TestIsolatedRunnerPreservesCoordinatorResponse` (5)
+  with one `TestCannedCoordinatorHelper` (6 helpers), `TestReplayDoesNotStartTarget` (4),
+  `TestCancellationIsAHostFailure` (seed plus the two exploration rows). The supervision-rejected
+  unterminated trace is a new `TestCompletionFaultsKeepReasonPrecedenceAndEvidence` row for every
+  strategy. Seven validation tests are removed because the golden
+  `TestCampaignOptionsLegacyCharacterization` rows pin their full error text. The table gains
+  `all retention without bytes` (126 rows). `mapping-check.py` checks each old wanted substring
+  against the golden error.
+- Error text pinned twice: `completion_test.go` drops the `malformed record` and `seed mismatch`
+  rows and the `cause` text of four coverage rows. Their reasons stay, and the precedence row
+  keeps its private pin. The text is pinned once, through `Explore`, by the characterization
+  table.
+- Not consolidated, with reasons in `deferred-cli-runner-mapping.md`: two seed publication tests,
+  the environment rejection test, the remaining fake-executor behavior tests, and the
+  `runner/internal/execution` simulation tests and `tools/gomad3sim`, which the D26 lane owns.
+  Runtime/model conformance and the built-CLI recovery tests (`cmd/gomad`) are untouched.
+
+### Behavior pin and mapping (R10)
+
+`go test -json` was run on `./cmd/gomad/internal/cli` and `./runner` before and after
+(`behaviors-*.tsv`, packages `cli` and `runner`). Results: cli 361 → 364 names, 107 → 91
+top-level; runner 679 → 654 names, 233 → 209 top-level. `mapping-check.py`, extended with the
+explicit CLI/Runner map and the golden check, regenerates `mapping.tsv` for all four packages
+with exit 0 and `problems: 0`. The deterministicio and root rows are byte-identical to the first
+part. No replacement has a worse status. Failures are the same before and after: cli
+`TestCheckRejectsUnsupportedHostAndUnwritableArtifacts`; runner
+`TestIsolatedRunnerCompletesSimulationStrategyWithSuppliedLimits`,
+`TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists`, and two replay tests that need the
+patched toolchain (`go test` with stock Go). Three mutations were checked: a changed canned
+evidence seed, a changed retention bound, and a changed inspection count. Each failed its table
+row.
+
+### Size and test count (fn-108 `size-count.sh`, unmodified, SHA-256 `9d3afaa0...`)
+
+This part: test-go 64394 → 64168 code lines (−226), 69244 → 69035 physical, 383 files on both
+sides (`size-test-go-cli-runner.txt`). Top-level `func Test` across the three directories:
+1605 → 1565 (−40); cli 107 → 91, runner 234 → 210. Both parts together: −1398 test code lines
+and −88 top-level tests against each part's own base.
+
+### Gates (linux/arm64, harness on)
+
+| Gate | Result |
+| --- | --- |
+| focused new tables (cli, runner), 3 repeats of the runner ones | pass |
+| `go vet -tags test_dep ./cmd/gomad/internal/cli ./runner`, gofmt | clean |
+| `make -C tools/gomad3 validate` | exit 0 (5 s) |
+| `GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host` | exit 2 (258 s), `test-host-cli-runner.txt`. cli and runner failures are the baseline ones above. The other failures are in packages this part does not touch (deterministicio, target, internal/preparation, qualification/analysis, runner/internal/execution, cmd/gomad watchdog), and the harness or host causes them. The execution failures `TestRunSupervisesSimulationNodeProcess` and `TestRunHardCrashesAndReapsSimulationNodeProcess` failed again on a focused rerun (simulation node exit 49) |
+
+golangci-lint: no linux binary on PATH, so it did not run. Still owed on darwin/arm64 and
+linux/amd64: `make -C tools/gomad3 validate` and
+`GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host`.
