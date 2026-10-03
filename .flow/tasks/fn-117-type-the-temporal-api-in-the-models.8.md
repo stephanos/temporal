@@ -32,8 +32,12 @@ Remove the migration bridge, enforce the final author contract and complete the 
 Full closure model gate coverage, mise exec -- make lint-model, Go tooling tests/vet with -tags test_dep and serial settings, GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=origin/main mise exec -- make lint-code-fast, make umpire-check-cases umpire-check-fixtures canary-check-case, git diff --check. Record which current-source passing evidence is reused.
 
 ### Execution constraints
-No commits/staging/push/worktrees. Preserve comments, no broad API drift/CI expansion, Go validation or IR schema change. No fn-112/114 showcase/deduplication or fn-118 behavior metadata. No simultaneous heavy suites/generation; no extra audits or caching framework. Conductor owns spec completion review and close.
+Owner approved scoped local fn-117 checkpoint commits on 2026-10-03; the conductor may stage and commit this task and its fixes. No push or worktrees. Preserve comments, no broad API drift/CI expansion, Go validation or IR schema change. No fn-112/114 showcase/deduplication or fn-118 behavior metadata. No simultaneous heavy suites/generation; no extra audits or caching framework. Conductor owns spec completion review and close.
 The final compiler-refusal matrix includes both wrong-request poll assignment and wrong-projected-value poll condition controls; ensure string evidence IDs cannot bypass the known typed link.
+
+### Review context
+The owner supplied checkpoint f3ed2083b8 after approving the local checkpoint. Review the committed fn-117 task-8 implementation relative to d72de724b8, including the pinned-Run/companion/test repair documented in `.flow/tmp/fn117-record-repair/evidence.md` and `.flow/tmp/fn117-8/summary.md`. The same commit also contains unrelated fn-112/114/118/119/120 planning, owner VISION/TLA/KNOWN_BUG edits and the requested test relocation; do not treat those as task-8 implementation. Passing current-source gates are recorded in `.flow/tmp/fn117-8/evidence.json`; no production Go validation or IR schema changed.
+
 ## Acceptance
 - [ ] All free-text proto author routes are removed, and the focused Model check rejects proto names while allowing Model IDs and data values; the complete positive/negative typing matrix passes.
 - [ ] Required full coverage, frozen goldens, lint and artifact checks pass with applicable reused evidence identified; no Go validation/schema/meaning change exists.
