@@ -460,7 +460,7 @@ func ownerMayImport(owner, importedOwner, importing, imported string) bool {
 		"world":           {"canonicaljson"},
 		"simulation":      {"record", "canonicaljson"},
 		"toolchain":       {"canonicaljson", "hostexec", "hostfs"},
-		"upgrade":         {"qualification", "toolchain", "hostexec", "hostfs"},
+		"upgrade":         {"qualification", "compatibility", "deterministicio", "toolchain", "canonicaljson", "hostexec", "hostfs"},
 	}
 	if !slices.Contains(allowed[owner], importedOwner) {
 		return false

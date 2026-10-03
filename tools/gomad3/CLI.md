@@ -567,6 +567,18 @@ go -C tools/gomad3 run ./cmd/gomadtool checked-run \
 go -C tools/gomad3 run ./cmd/gomadtool script-validate --root=.
 ```
 
+### Report the pins a dependency bump invalidates
+
+Before applying a dependency bump, report which exact-version pins it breaks:
+
+```sh
+go -C tools/gomad3 run ./cmd/gomadtool pin-impact \
+  --root=. \
+  --module=/absolute/path/to/candidate-module
+```
+
+The candidate is the `go.mod` and `go.sum` in `--module`, by default the repository root module. The baseline is the same module at `--baseline-ref` (default `HEAD`), or the module in `--baseline-module`. The report reads adapter identities from the adapter registry, rules from the compatibility-pack loader, and the boundary manifest and reviewed host-clock inventory from `--root`, and judges each pin by exact module identity, so it covers every platform's packs. It lists invalidated adapters, pack rules with their source-set digests, and interception fingerprints and clock references, which only a candidate requiring a newer Go than the pinned release leaves unknown. Module graphs resolve in a scratch copy with a private module cache under the exported proxy settings, so the candidate's files never change. `--json` writes the path-free canonical report to stdout and `--output=FILE` also writes it to a file. Status 0 means no pin is invalidated, 1 means at least one pin is invalidated or unknown, 2 means invalid input, and 3 means an infrastructure failure such as an unreachable module proxy. A pin whose module the candidate no longer requires is reported stale and does not change the status.
+
 ### Close the loop with `upgrade-dossier`
 
 When the Go release, patch, overlay, adapters, or reviewed boundary changes, run the complete upgrade workflow rather than choosing a few reassuring tests:
@@ -628,5 +640,6 @@ If the reviewed boundary changed intentionally, review its reported digest and r
 | `script-validate` | Enforce the reviewed script ownership and policy boundary. |
 | `checked-run` | Run and record one bounded external command with expected status. |
 | `diagnostic-diff` | Compare complete runtime diagnostic traces and locate the first divergence. |
+| `pin-impact` | Report every pin a candidate `go.mod` invalidates before the build rejects it. |
 | `test` | Execute a selected conformance campaign. |
 | `upgrade-dossier` | Run upgrade gates and retain the complete acceptance evidence. |

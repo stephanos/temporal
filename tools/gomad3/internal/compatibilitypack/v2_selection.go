@@ -30,6 +30,52 @@ func LoadPack(data []byte) (ValidatedPack, error) {
 	return ValidatedPack{pack: decoded, digest: fmt.Sprintf("sha256:%x", digest)}, nil
 }
 
+// LoadPacks returns the packs the build selects from: the embedded ones and
+// those ExternalPacksEnvironment names, under the same validation.
+func LoadPacks() ([]ValidatedPack, error) {
+	return loadPacksV2()
+}
+
+// Pack returns a copy of the validated pack's content.
+func (candidate ValidatedPack) Pack() Pack {
+	copied := candidate.pack
+	copied.Governance.Workloads = slices.Clone(copied.Governance.Workloads)
+	copied.Governance.Platforms = slices.Clone(copied.Governance.Platforms)
+	copied.Activation = make([]PackModule, len(candidate.pack.Activation))
+	for index, module := range candidate.pack.Activation {
+		copied.Activation[index] = clonePackModule(module)
+	}
+	copied.Rules = make([]PackRule, len(candidate.pack.Rules))
+	for index, rule := range candidate.pack.Rules {
+		rule.Module = clonePackModule(rule.Module)
+		rule.GoSources = slices.Clone(rule.GoSources)
+		rule.ForeignSources = slices.Clone(rule.ForeignSources)
+		rule.Capabilities = slices.Clone(rule.Capabilities)
+		linknames := make([]PackLinkname, len(rule.Linknames))
+		for linknameIndex, linkname := range rule.Linknames {
+			linkname.Directives = slices.Clone(linkname.Directives)
+			linknames[linknameIndex] = linkname
+		}
+		rule.Linknames = linknames
+		copied.Rules[index] = rule
+	}
+	return copied
+}
+
+// SHA256 returns the digest of the pack's encoded bytes, the identity a
+// selected pack contributes to the target identity.
+func (candidate ValidatedPack) SHA256() string {
+	return candidate.digest
+}
+
+func clonePackModule(module PackModule) PackModule {
+	if module.Replacement.Adapter != nil {
+		adapter := *module.Replacement.Adapter
+		module.Replacement.Adapter = &adapter
+	}
+	return module
+}
+
 // ExternalPacksEnvironment names a directory of reviewed packs that a module
 // outside this repository owns. Its packs are loaded next to the embedded ones
 // under the same validation; each selected pack's ID and digest enter the

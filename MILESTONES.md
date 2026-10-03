@@ -595,10 +595,15 @@ including 4 `go` directive bumps.
 
 | Pin | Size | Repair |
 | --- | --- | --- |
-| Runtime patch and overlay | 1010 patch lines in 20 files; 57 overlay files, 17,105 lines | Manual rebase, `make generate`, `make upgrade-dossier` |
+| Runtime patch and overlay | 1045 patch lines in 20 files; 61 overlay files, 18,423 lines | Manual rebase, `make generate`, `make upgrade-dossier` |
 | Interception fingerprints and boundary manifest | 131 intercepts, 132 fingerprinted entries | Generated; a diff needs an approved SHA |
-| Dependency adapters | 15 adapters, 129 SHA-256 anchors; 6 target modules absent from the root `go.mod` (downstream cell, fn-107) | Manual; no regenerate command |
+| Toolchain inventories | 25 host-clock references, 10 goroutine creation sites | Hand edits after `make test-toolchain` on each platform |
+| Dependency adapters | 15 adapters, 135 SHA-256 literals (125 distinct; 30 are per-platform prepared source sets); 6 target modules absent from the root `go.mod` (downstream cell, fn-107) | Manual; no regenerate command |
 | Compatibility packs | 12 packs, 54 rules, 19 module-version pins | Four commands with a review approval |
+
+Counts were re-measured at `6be0755fe` (fn-113 task 1); the patch and overlay grew after the
+2026-10-01 measure. `gomadtool pin-impact` reports which of these pins a candidate `go.mod`
+invalidates before the build rejects them.
 
 About 20k production lines have no caller in a workflow, Makefile, or qualification manifest:
 
