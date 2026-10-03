@@ -134,7 +134,8 @@ without the read-only candidate hint:
   waits), and a `GET` RPC whose response the Case does not read (`inspect-workflow`, `await-close`).
 - An RPC with neither binding is refused by the lowering. None exists today.
 
-The bindings, read from the linked `go.temporal.io/api` descriptors:
+The bindings, read from the linked `go.temporal.io/api` (`v1.63.6-0.20260909222256-20151aa90480`)
+descriptors with `proto.GetExtension(method.Options(), annotations.E_Http)`:
 
 | Method | Binding |
 | --- | --- |
@@ -210,7 +211,7 @@ cancellation heartbeat (at once, `activity.go:623-624`).
 
 ## Before-numbers (R8)
 
-Command, from the repository root (the totals row sums the per-Case rows with `jq -s`):
+Command, from the repository root:
 
 ```bash
 cat > /tmp/wait-budget.jq <<'JQ'
@@ -239,12 +240,17 @@ def isLongPoll: (.instruction.invokeRpc.requestAssignments // [])
     explicitMs: map(select(.kind == "finish" or .kind == "nexusHandlerReply") | .budget) | add // 0 }
 JQ
 jq -c -f /tmp/wait-budget.jq model/cases/*-case.json
+# The totals row:
+jq -c -f /tmp/wait-budget.jq model/cases/*-case.json | jq -s -c '{polls: map(.polls) | add,
+  maxPollCalls: map(.maxPollCalls) | add, waits: map(.waits) | add,
+  budgetMs: map(.budgetMs) | add, explicitMs: map(.explicitMs) | add}'
+# The Case set counted: 4fa0f35ab786b1e54c1f8de86cd12c551646ac1770cd66a0e8811dbf71a799cf
+sha256sum model/cases/*-case.json | sha256sum
 ```
 
 A wait is a `ReadEvidence` poll, an `AwaitSlot`, an `AwaitInstruction`, a `GetWorkflowExecutionHistory`
 long poll filtered to the close event, and any instruction that writes its own timeout. Its budget
-is the timeout it writes, or the Profile default of 10,000 ms. Results at `63462b09d4` (Case set
-SHA-256 `4fa0f35a...99cf`, the hash of the `sha256sum` lines of `model/cases/*-case.json`):
+is the timeout it writes, or the Profile default of 10,000 ms. Results at `63462b09d4`:
 
 | Case | Polls | Most poll RPCs | Waits | Budget (ms) | Of it, explicit 5,000 ms |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -426,7 +432,9 @@ message WaitHint {
 }
 ```
 
-On expiry the outcome's detail names the evidence kind and its `until` condition, the node's
+Preparation accepts `once` only with `poll_interval_milliseconds` 0, and a poll only with a
+positive interval no greater than its timeout, as today (`evidence.go:277-282`). On expiry the
+outcome's detail names the evidence kind and its `until` condition, the node's
 timeout, each hint with its source, and the Profile's scale factor when it is not 1.
 
 ### Lowering (task 4)
