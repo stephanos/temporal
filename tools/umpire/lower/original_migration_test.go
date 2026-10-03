@@ -101,15 +101,12 @@ func compareOriginalCases(expected, actual map[string][]byte, labels ...string) 
 	for key, encoded := range actual {
 		got[key] = golden.Located(encoded, labels...)
 	}
-	if err := golden.Compare(want, got); err != nil {
-		for _, key := range slices.Sorted(maps.Keys(want)) {
-			if g, ok := got[key]; ok && !bytes.Equal(want[key], g) {
-				return fmt.Errorf("%w: %s", err, golden.FirstDifference(want[key], g))
-			}
+	for _, key := range slices.Sorted(maps.Keys(want)) {
+		if g, ok := got[key]; ok && !bytes.Equal(want[key], g) {
+			return fmt.Errorf("%s differs from the original baseline: %s", key, golden.FirstDifference(want[key], g))
 		}
-		return err
 	}
-	return nil
+	return golden.Compare(want, got)
 }
 
 func sources(models map[string]*umpirespb.Model) []string {
