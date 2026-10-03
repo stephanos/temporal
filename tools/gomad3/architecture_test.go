@@ -468,10 +468,11 @@ func ownerMayImport(owner, importedOwner, importing, imported string) bool {
 	if (owner == "target" || owner == "deterministicio") && importedOwner == "toolchain" {
 		return imported == modulePath+"/toolchain/version"
 	}
-	// Only the pin-impact report reads the adapter registry and the
-	// compatibility-pack loader; the rest of upgrade stays on its original edges.
+	// Only the pin-impact report and adapter regeneration read the adapter
+	// registry and the compatibility-pack loader; the rest of upgrade stays on
+	// its original edges.
 	if owner == "upgrade" && (importedOwner == "compatibility" || importedOwner == "deterministicio" || importedOwner == "canonicaljson") {
-		return importing == modulePath+"/upgrade/pinimpact"
+		return importing == modulePath+"/upgrade/pinimpact" || importing == modulePath+"/upgrade/adapterregen"
 	}
 	return true
 }

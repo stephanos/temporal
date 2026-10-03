@@ -1,0 +1,173 @@
+--- a/deterministicio/adapter_registry_test.go
++++ b/deterministicio/adapter_registry_test.go
+@@ -112,7 +112,7 @@
+ 
+ func TestProfileVerifiesSelectedAdapterIdentities(t *testing.T) {
+ 	selected := []Adapter{
+-		{Module: "google.golang.org/grpc", Version: "v1.83.2", Sum: "h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU="},
++		{Module: "google.golang.org/grpc", Version: "v1.84.0", Sum: "h1:soMyaPJ8pAak5PIQ0DGBUir0XRo2fRoMqhNWMLlLxO0="},
+ 		{Module: "modernc.org/libc", Version: "v1.72.3", Sum: "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="},
+ 	}
+ 	if err := Default().VerifyAdapters(selected); err != nil {
+@@ -144,7 +144,7 @@
+ 
+ func TestPrepareTargetBuildAdaptersRejectsMissingSumBeforeDownloading(t *testing.T) {
+ 	workingDirectory := t.TempDir()
+-	moduleFile := []byte("module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.83.2\n")
++	moduleFile := []byte("module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.84.0\n")
+ 	if err := os.WriteFile(filepath.Join(workingDirectory, "go.mod"), moduleFile, 0o600); err != nil {
+ 		t.Fatal(err)
+ 	}
+--- a/deterministicio/boundary/upgrade-go1.27.1.md
++++ b/deterministicio/boundary/upgrade-go1.27.1.md
+@@ -21,7 +21,7 @@
+ - adapter: `go.temporal.io/sdk@v1.48.0` (`h1:WDctKDVuh0Z8Nf7euAyqs/EwcPg1JTIIq1Fut8Tq118=`)
+ - adapter: `go.uber.org/fx@v1.24.0` (`h1:wE8mruvpg2kiiL1Vqd0CC+tr0/24XIB10Iwp2lLWzkg=`)
+ - adapter: `golang.org/x/net@v0.58.0` (`h1:ynWG7rqYi4ccpTEuPZ2QGWHktVEM9DMCj9yzDE0Q7To=`)
+-- adapter: `google.golang.org/grpc@v1.83.2` (`h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU=`)
++- adapter: `google.golang.org/grpc@v1.84.0` (`h1:soMyaPJ8pAak5PIQ0DGBUir0XRo2fRoMqhNWMLlLxO0=`)
+ - adapter: `modernc.org/libc@v1.72.3` (`h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`)
+ - adapter: `modernc.org/memory@v1.11.0` (`h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`)
+ 
+--- a/deterministicio/grpc_adapter.go
++++ b/deterministicio/grpc_adapter.go
+@@ -8,12 +8,12 @@
+ 
+ const (
+ 	grpcModulePath                        = "google.golang.org/grpc"
+-	grpcVersion                           = "v1.83.2"
+-	grpcSum                               = "h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU="
+-	grpcOriginalSourceInventorySHA256     = "sha256:53960aeb3f1d34cfe2340c30365456689710cd7bf32b6faf6e39d6f5306fc9a9"
++	grpcVersion                           = "v1.84.0"
++	grpcSum                               = "h1:soMyaPJ8pAak5PIQ0DGBUir0XRo2fRoMqhNWMLlLxO0="
++	grpcOriginalSourceInventorySHA256     = "sha256:70fb408392c1bf8f770ff2299684b3035b365f21cd47ba2384e8ae4de15a344d"
+ 	grpcKeepaliveSourceSHA256             = "sha256:e8bfe03234b391d24006a3a274590111f0f8705fc5b25d9a78391bfdde3df32c"
+ 	grpcKeepaliveReplacementSHA256        = "sha256:8705566fa6ba58f69d8c8215227ddadad46794c333bca38fe6d5399d6be24e8c"
+-	grpcReplacementSourceInventorySHA256  = "sha256:9098668e7b66e1d82f5ecbb302556cf9723775b19aa2db68ede45aa1a166adbf"
++	grpcReplacementSourceInventorySHA256  = "sha256:b4a4d25a91c02e4109dbe9c19f0fdfac8aae3ee14458ba4c5903e1833228d2b9"
+ 	grpcKeepalivePath                     = "internal/tcp_keepalive_unix.go"
+ 	grpcChannelzLinuxPath                 = "internal/channelz/syscall_linux.go"
+ 	grpcChannelzNonLinuxPath              = "internal/channelz/syscall_nonlinux.go"
+@@ -134,8 +134,8 @@
+ }
+ 
+ var grpcPreparedInternalSourceSetSHA256ByHost = map[string]string{
+-	"darwin/arm64": "sha256:59a97baa8db98487dac40abe058ac89865e1ea2cf3d66c6d94cb622e7119d2a7",
+-	"linux/amd64":  "sha256:59a97baa8db98487dac40abe058ac89865e1ea2cf3d66c6d94cb622e7119d2a7",
++	"darwin/arm64": "sha256:ecfe2f6ae1c22e7d590bc1c82a37492527b38159a60019631863fd0eef275061",
++	"linux/amd64":  "sha256:ecfe2f6ae1c22e7d590bc1c82a37492527b38159a60019631863fd0eef275061",
+ }
+ 
+ var grpcPreparedInternalSourceSetSHA256 = hostPin(grpcPreparedInternalSourceSetSHA256ByHost)
+--- a/deterministicio/grpc_adapter_test.go
++++ b/deterministicio/grpc_adapter_test.go
+@@ -23,12 +23,12 @@
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+-	moduleRoot := filepath.Join(strings.TrimSpace(string(moduleCache)), "google.golang.org", "grpc@v1.83.2")
++	moduleRoot := filepath.Join(strings.TrimSpace(string(moduleCache)), "google.golang.org", "grpc@v1.84.0")
+ 	got, err := target.DigestAdapterSourceInventory(moduleRoot)
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+-	const want = "sha256:53960aeb3f1d34cfe2340c30365456689710cd7bf32b6faf6e39d6f5306fc9a9"
++	const want = "sha256:70fb408392c1bf8f770ff2299684b3035b365f21cd47ba2384e8ae4de15a344d"
+ 	if got != want {
+ 		t.Fatalf("gRPC module inventory = %q, want %q", got, want)
+ 	}
+@@ -115,7 +115,7 @@
+ func TestPrepareGRPCRecordsExactPrivateReplacement(t *testing.T) {
+ 	moduleCache := pinnedModuleCache(t)
+ 	root := t.TempDir()
+-	identity := gomadversion.AdapterIdentity{Module: "google.golang.org/grpc", Version: "v1.83.2", Sum: "h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU="}
++	identity := gomadversion.AdapterIdentity{Module: "google.golang.org/grpc", Version: "v1.84.0", Sum: "h1:soMyaPJ8pAak5PIQ0DGBUir0XRo2fRoMqhNWMLlLxO0="}
+ 	prepared, err := prepareGRPC(moduleCache, root, identity)
+ 	if err != nil {
+ 		t.Fatal(err)
+@@ -178,7 +178,7 @@
+ 
+ func TestProfileRejectsExistingGRPCReplacement(t *testing.T) {
+ 	workingDirectory := t.TempDir()
+-	moduleFile := "module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.83.2\n\nreplace google.golang.org/grpc => ./grpc\n"
++	moduleFile := "module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.84.0\n\nreplace google.golang.org/grpc => ./grpc\n"
+ 	if err := os.WriteFile(filepath.Join(workingDirectory, "go.mod"), []byte(moduleFile), 0o600); err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -190,7 +190,7 @@
+ 
+ func TestProfileRejectsExistingGRPCReplacementBlock(t *testing.T) {
+ 	workingDirectory := t.TempDir()
+-	moduleFile := "module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.83.2\n\nreplace (\n\tgoogle.golang.org/grpc => ./grpc\n)\n"
++	moduleFile := "module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.84.0\n\nreplace (\n\tgoogle.golang.org/grpc => ./grpc\n)\n"
+ 	if err := os.WriteFile(filepath.Join(workingDirectory, "go.mod"), []byte(moduleFile), 0o600); err != nil {
+ 		t.Fatal(err)
+ 	}
+@@ -202,10 +202,10 @@
+ 
+ func TestProfileRejectsChangedGRPCModuleSum(t *testing.T) {
+ 	workingDirectory := t.TempDir()
+-	if err := os.WriteFile(filepath.Join(workingDirectory, "go.mod"), []byte("module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.83.2\n"), 0o600); err != nil {
++	if err := os.WriteFile(filepath.Join(workingDirectory, "go.mod"), []byte("module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.84.0\n"), 0o600); err != nil {
+ 		t.Fatal(err)
+ 	}
+-	if err := os.WriteFile(filepath.Join(workingDirectory, "go.sum"), []byte("google.golang.org/grpc v1.83.2 h1:changed\n"), 0o600); err != nil {
++	if err := os.WriteFile(filepath.Join(workingDirectory, "go.sum"), []byte("google.golang.org/grpc v1.84.0 h1:changed\n"), 0o600); err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	_, _, err := Default().PrepareBuildAdapters(target.Spec{PreparationRoot: t.TempDir(), WorkingDir: workingDirectory}, pinnedModuleCache(t))
+@@ -216,7 +216,7 @@
+ 
+ func TestProfileRejectsBuildModFileWithGRPCAdapter(t *testing.T) {
+ 	workingDirectory := t.TempDir()
+-	if err := os.WriteFile(filepath.Join(workingDirectory, "go.mod"), []byte("module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.83.2\n"), 0o600); err != nil {
++	if err := os.WriteFile(filepath.Join(workingDirectory, "go.mod"), []byte("module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.84.0\n"), 0o600); err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	_, _, err := Default().PrepareBuildAdapters(target.Spec{
+@@ -239,7 +239,7 @@
+ 
+ func readPinnedGRPCKeepalive(t *testing.T) []byte {
+ 	t.Helper()
+-	contents, err := os.ReadFile(filepath.Join(pinnedModuleCache(t), "google.golang.org", "grpc@v1.83.2", "internal", "tcp_keepalive_unix.go"))
++	contents, err := os.ReadFile(filepath.Join(pinnedModuleCache(t), "google.golang.org", "grpc@v1.84.0", "internal", "tcp_keepalive_unix.go"))
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+--- a/deterministicio/requirements_test.go
++++ b/deterministicio/requirements_test.go
+@@ -12,11 +12,11 @@
+ 	closure := target.CapabilityClosure{Packages: []target.CapabilityPackage{
+ 		{ImportPath: "example.com/dependency", Name: "dependency", Imports: []string{"path/filepath"}},
+ 		{ImportPath: "example.com/target", Name: "main", Root: true, Imports: []string{"crypto/rand", "net", "os", "time"}},
+-		{ImportPath: "google.golang.org/grpc/internal", Name: "internal", Module: &target.CapabilityModule{Path: "google.golang.org/grpc", Version: "v1.83.2"}},
++		{ImportPath: "google.golang.org/grpc/internal", Name: "internal", Module: &target.CapabilityModule{Path: "google.golang.org/grpc", Version: "v1.84.0"}},
+ 		{ImportPath: "modernc.org/libc", Name: "libc", Module: &target.CapabilityModule{Path: "modernc.org/libc", Version: "v1.72.3"}},
+ 	}}
+ 	adapters := []Adapter{
+-		{Module: "google.golang.org/grpc", Version: "v1.83.2", Sum: "h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU="},
++		{Module: "google.golang.org/grpc", Version: "v1.84.0", Sum: "h1:soMyaPJ8pAak5PIQ0DGBUir0XRo2fRoMqhNWMLlLxO0="},
+ 		{Module: "modernc.org/libc", Version: "v1.72.3", Sum: "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="},
+ 	}
+ 
+--- a/toolchain/version/generated.go
++++ b/toolchain/version/generated.go
+@@ -15,4 +15,4 @@
+ 
+ var SupportedPlatforms = [...]string{"darwin/arm64", "linux/amd64", "linux/arm64"}
+ 
+-var Adapters = [...]AdapterIdentity{{Module: "github.com/Masterminds/sprig/v3", Version: "v3.3.0", Sum: "h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs="}, {Module: "github.com/cactus/go-statsd-client/v5", Version: "v5.1.0", Sum: "h1:sbbdfIl9PgisjEoXzvXI1lwUKWElngsjJKaZeC021P4="}, {Module: "github.com/cockroachdb/pebble", Version: "v0.0.0-20260703021901-41f35d3cb7df", Sum: "h1:p7vkumDcPw0de7t8pYA95HPC4cYQZGDG6b57d4Om5cA="}, {Module: "github.com/getsentry/sentry-go", Version: "v0.46.0", Sum: "h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0="}, {Module: "github.com/go-playground/validator/v10", Version: "v10.30.1", Sum: "h1:f3zDSN/zOma+w6+1Wswgd9fLkdwy06ntQJp0BBvFG0w="}, {Module: "github.com/hashicorp/go-metrics", Version: "v0.5.4", Sum: "h1:8mmPiIJkTPPEbAiV97IxdAGNdRdaWwVap1BU6elejKY="}, {Module: "github.com/hashicorp/go-sockaddr", Version: "v1.0.7", Sum: "h1:G+pTkSO01HpR5qCxg7lxfsFEZaG+C0VssTy/9dbT+Fw="}, {Module: "github.com/hashicorp/memberlist", Version: "v0.5.4", Sum: "h1:40YY+3qq2tAUhZIMEK8kqusKZBBjdwJ3NUjvYkcxh74="}, {Module: "go.opentelemetry.io/otel/sdk", Version: "v1.44.0", Sum: "h1:nHYwb9lK+fJPU/dnT6s7W7Z8itMWyqrnVfbheVYrZ58="}, {Module: "go.temporal.io/sdk", Version: "v1.48.0", Sum: "h1:WDctKDVuh0Z8Nf7euAyqs/EwcPg1JTIIq1Fut8Tq118="}, {Module: "go.uber.org/fx", Version: "v1.24.0", Sum: "h1:wE8mruvpg2kiiL1Vqd0CC+tr0/24XIB10Iwp2lLWzkg="}, {Module: "golang.org/x/net", Version: "v0.58.0", Sum: "h1:ynWG7rqYi4ccpTEuPZ2QGWHktVEM9DMCj9yzDE0Q7To="}, {Module: "google.golang.org/grpc", Version: "v1.83.2", Sum: "h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU="}, {Module: "modernc.org/libc", Version: "v1.72.3", Sum: "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="}, {Module: "modernc.org/memory", Version: "v1.11.0", Sum: "h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI="}}
++var Adapters = [...]AdapterIdentity{{Module: "github.com/Masterminds/sprig/v3", Version: "v3.3.0", Sum: "h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs="}, {Module: "github.com/cactus/go-statsd-client/v5", Version: "v5.1.0", Sum: "h1:sbbdfIl9PgisjEoXzvXI1lwUKWElngsjJKaZeC021P4="}, {Module: "github.com/cockroachdb/pebble", Version: "v0.0.0-20260703021901-41f35d3cb7df", Sum: "h1:p7vkumDcPw0de7t8pYA95HPC4cYQZGDG6b57d4Om5cA="}, {Module: "github.com/getsentry/sentry-go", Version: "v0.46.0", Sum: "h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0="}, {Module: "github.com/go-playground/validator/v10", Version: "v10.30.1", Sum: "h1:f3zDSN/zOma+w6+1Wswgd9fLkdwy06ntQJp0BBvFG0w="}, {Module: "github.com/hashicorp/go-metrics", Version: "v0.5.4", Sum: "h1:8mmPiIJkTPPEbAiV97IxdAGNdRdaWwVap1BU6elejKY="}, {Module: "github.com/hashicorp/go-sockaddr", Version: "v1.0.7", Sum: "h1:G+pTkSO01HpR5qCxg7lxfsFEZaG+C0VssTy/9dbT+Fw="}, {Module: "github.com/hashicorp/memberlist", Version: "v0.5.4", Sum: "h1:40YY+3qq2tAUhZIMEK8kqusKZBBjdwJ3NUjvYkcxh74="}, {Module: "go.opentelemetry.io/otel/sdk", Version: "v1.44.0", Sum: "h1:nHYwb9lK+fJPU/dnT6s7W7Z8itMWyqrnVfbheVYrZ58="}, {Module: "go.temporal.io/sdk", Version: "v1.48.0", Sum: "h1:WDctKDVuh0Z8Nf7euAyqs/EwcPg1JTIIq1Fut8Tq118="}, {Module: "go.uber.org/fx", Version: "v1.24.0", Sum: "h1:wE8mruvpg2kiiL1Vqd0CC+tr0/24XIB10Iwp2lLWzkg="}, {Module: "golang.org/x/net", Version: "v0.58.0", Sum: "h1:ynWG7rqYi4ccpTEuPZ2QGWHktVEM9DMCj9yzDE0Q7To="}, {Module: "google.golang.org/grpc", Version: "v1.84.0", Sum: "h1:soMyaPJ8pAak5PIQ0DGBUir0XRo2fRoMqhNWMLlLxO0="}, {Module: "modernc.org/libc", Version: "v1.72.3", Sum: "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="}, {Module: "modernc.org/memory", Version: "v1.11.0", Sum: "h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI="}}
+--- a/toolchain/version/version.json
++++ b/toolchain/version/version.json
+@@ -76,8 +76,8 @@
+     },
+     {
+       "module": "google.golang.org/grpc",
+-      "version": "v1.83.2",
+-      "sum": "h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU="
++      "version": "v1.84.0",
++      "sum": "h1:soMyaPJ8pAak5PIQ0DGBUir0XRo2fRoMqhNWMLlLxO0="
+     },
+     {
+       "module": "modernc.org/libc",

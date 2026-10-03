@@ -13,10 +13,12 @@ const (
 	memoryMmapPath                         = "mmap_unix.go"
 )
 
-var memoryPreparedSourceSetSHA256 = hostPin(map[string]string{
+var memoryPreparedSourceSetSHA256ByHost = map[string]string{
 	"darwin/arm64": "sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849",
 	"linux/amd64":  "sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849",
-})
+}
+
+var memoryPreparedSourceSetSHA256 = hostPin(memoryPreparedSourceSetSHA256ByHost)
 
 var memoryRewrites = []sourceRewrite{
 	{
@@ -38,15 +40,17 @@ var memoryRewrites = []sourceRewrite{
 	},
 }
 
+var memoryAdapter = rewrittenModule{
+	module: memoryModulePath, version: memoryVersion, sum: memorySum,
+	cacheElements:                 []string{"modernc.org", "memory@" + memoryVersion},
+	replacementDirectory:          "modernc-memory",
+	originalInventorySHA256:       memoryOriginalSourceInventorySHA256,
+	replacementInventorySHA256:    memoryReplacementSourceInventorySHA256,
+	preparedPackage:               memoryModulePath,
+	preparedSourceSetSHA256ByHost: memoryPreparedSourceSetSHA256ByHost,
+	rewrites:                      memoryRewrites,
+}
+
 func prepareModerncMemory(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
-	return prepareRewrittenModule(moduleCache, root, identity, rewrittenModule{
-		module: memoryModulePath, version: memoryVersion, sum: memorySum,
-		cacheElements:              []string{"modernc.org", "memory@" + memoryVersion},
-		replacementDirectory:       "modernc-memory",
-		originalInventorySHA256:    memoryOriginalSourceInventorySHA256,
-		replacementInventorySHA256: memoryReplacementSourceInventorySHA256,
-		preparedPackage:            memoryModulePath,
-		preparedSourceSetSHA256:    memoryPreparedSourceSetSHA256,
-		rewrites:                   memoryRewrites,
-	})
+	return prepareRewrittenModule(moduleCache, root, identity, memoryAdapter)
 }

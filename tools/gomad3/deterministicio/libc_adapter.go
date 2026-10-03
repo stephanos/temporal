@@ -34,10 +34,12 @@ const (
 
 // Both platforms' sources are rewritten in every copy; the prepared source set
 // differs because each platform compiles its own file set.
-var libcPreparedSourceSetSHA256 = hostPin(map[string]string{
+var libcPreparedSourceSetSHA256ByHost = map[string]string{
 	"darwin/arm64": "sha256:a28d47a51089e7cb3766f0997e472feb1e7cadfca43248a3e5b06f332df47935",
 	"linux/amd64":  "sha256:2fd5cdb4987b3319011b56c1244100a8479a51a65ad561357aaea93db4c9aa9b",
-})
+}
+
+var libcPreparedSourceSetSHA256 = hostPin(libcPreparedSourceSetSHA256ByHost)
 
 func prepareModerncLibc(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
 	moduleSource, err := filepath.EvalSymlinks(filepath.Join(moduleCache, "modernc.org", "libc@"+identity.Version))

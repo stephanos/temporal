@@ -10,10 +10,12 @@ const (
 	cactusStatsDReplacementSourceInventorySHA256 = "sha256:970b5cf407dcbbe2d9c3f8b3c95b0258ad95c86a216c7931407ed4a33f7ca8b7"
 )
 
-var cactusStatsDPreparedSourceSetSHA256 = hostPin(map[string]string{
+var cactusStatsDPreparedSourceSetSHA256ByHost = map[string]string{
 	"darwin/arm64": "sha256:efcbc2fafa3680f9d3d6d245aaad39956446159c25d97e28eee9f1a2b1e376d0",
 	"linux/amd64":  "sha256:efcbc2fafa3680f9d3d6d245aaad39956446159c25d97e28eee9f1a2b1e376d0",
-})
+}
+
+var cactusStatsDPreparedSourceSetSHA256 = hostPin(cactusStatsDPreparedSourceSetSHA256ByHost)
 
 // cactusStatsDRewrites refuse UDP senders before host resources while preserving
 // metric formatting and caller-supplied Sender implementations.
@@ -141,15 +143,17 @@ var cactusStatsDRewrites = []sourceRewrite{
 	},
 }
 
+var cactusStatsDAdapter = rewrittenModule{
+	module: cactusStatsDModulePath, version: cactusStatsDVersion, sum: cactusStatsDSum,
+	cacheElements:                 []string{"github.com", "cactus", "go-statsd-client", "v5@" + cactusStatsDVersion},
+	replacementDirectory:          "cactus-statsd",
+	originalInventorySHA256:       cactusStatsDOriginalSourceInventorySHA256,
+	replacementInventorySHA256:    cactusStatsDReplacementSourceInventorySHA256,
+	preparedPackage:               cactusStatsDModulePath + "/statsd",
+	preparedSourceSetSHA256ByHost: cactusStatsDPreparedSourceSetSHA256ByHost,
+	rewrites:                      cactusStatsDRewrites,
+}
+
 func prepareCactusStatsD(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
-	return prepareRewrittenModule(moduleCache, root, identity, rewrittenModule{
-		module: cactusStatsDModulePath, version: cactusStatsDVersion, sum: cactusStatsDSum,
-		cacheElements:              []string{"github.com", "cactus", "go-statsd-client", "v5@" + cactusStatsDVersion},
-		replacementDirectory:       "cactus-statsd",
-		originalInventorySHA256:    cactusStatsDOriginalSourceInventorySHA256,
-		replacementInventorySHA256: cactusStatsDReplacementSourceInventorySHA256,
-		preparedPackage:            cactusStatsDModulePath + "/statsd",
-		preparedSourceSetSHA256:    cactusStatsDPreparedSourceSetSHA256,
-		rewrites:                   cactusStatsDRewrites,
-	})
+	return prepareRewrittenModule(moduleCache, root, identity, cactusStatsDAdapter)
 }

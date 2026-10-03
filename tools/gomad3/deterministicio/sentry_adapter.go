@@ -13,10 +13,12 @@ const (
 	sentryUtilReplacementSHA256            = "sha256:21639baea4b81631670f430529d9461d91f79475a3f72844568b02f207d6cabe"
 )
 
-var sentryPreparedSourceSetSHA256 = hostPin(map[string]string{
+var sentryPreparedSourceSetSHA256ByHost = map[string]string{
 	"darwin/arm64": "sha256:fa2f95c22392afb742711ed26ce02fb79d80005c1af486f4ec71e5e4675c45cb",
 	"linux/amd64":  "sha256:fa2f95c22392afb742711ed26ce02fb79d80005c1af486f4ec71e5e4675c45cb",
-})
+}
+
+var sentryPreparedSourceSetSHA256 = hostPin(sentryPreparedSourceSetSHA256ByHost)
 
 // sentryRewrites leave optional release metadata unknown when discovering it
 // would require Git. Explicit, environment, and build-info releases survive.
@@ -54,15 +56,17 @@ var sentryRewrites = []sourceRewrite{
 	},
 }
 
+var sentryAdapter = rewrittenModule{
+	module: sentryModulePath, version: sentryVersion, sum: sentrySum,
+	cacheElements:                 []string{"github.com", "getsentry", "sentry-go@" + sentryVersion},
+	replacementDirectory:          "sentry-go",
+	originalInventorySHA256:       sentryOriginalSourceInventorySHA256,
+	replacementInventorySHA256:    sentryReplacementSourceInventorySHA256,
+	preparedPackage:               sentryModulePath,
+	preparedSourceSetSHA256ByHost: sentryPreparedSourceSetSHA256ByHost,
+	rewrites:                      sentryRewrites,
+}
+
 func prepareSentry(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
-	return prepareRewrittenModule(moduleCache, root, identity, rewrittenModule{
-		module: sentryModulePath, version: sentryVersion, sum: sentrySum,
-		cacheElements:              []string{"github.com", "getsentry", "sentry-go@" + sentryVersion},
-		replacementDirectory:       "sentry-go",
-		originalInventorySHA256:    sentryOriginalSourceInventorySHA256,
-		replacementInventorySHA256: sentryReplacementSourceInventorySHA256,
-		preparedPackage:            sentryModulePath,
-		preparedSourceSetSHA256:    sentryPreparedSourceSetSHA256,
-		rewrites:                   sentryRewrites,
-	})
+	return prepareRewrittenModule(moduleCache, root, identity, sentryAdapter)
 }

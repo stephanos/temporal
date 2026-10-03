@@ -36,7 +36,7 @@ func TestPinnedGRPCModuleInventory(t *testing.T) {
 
 func TestRewriteGRPCKeepalivePreservesDialerWithoutHostControl(t *testing.T) {
 	source := readPinnedGRPCKeepalive(t)
-	rewritten, err := rewriteGRPCKeepalive(source)
+	rewritten, err := rewriteAdapterSource(grpcModulePath, grpcKeepaliveRewrite, source)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,48 +62,44 @@ func TestRewriteGRPCKeepalivePreservesDialerWithoutHostControl(t *testing.T) {
 }
 
 func TestRewriteGRPCLinuxSourcesCompileTheNonLinuxImplementations(t *testing.T) {
-	moduleRoot := filepath.Join(pinnedModuleCache(t), "google.golang.org", "grpc@v1.83.2")
+	moduleRoot := filepath.Join(pinnedModuleCache(t), "google.golang.org", "grpc@"+grpcVersion)
 	for _, rewrite := range grpcLinuxRewrites {
-		linuxSource, err := readGRPCAdapterSource(moduleRoot, rewrite.linuxPath)
-		if err != nil {
-			t.Fatal(err)
-		}
-		nonLinuxSource, err := readGRPCAdapterSource(moduleRoot, rewrite.nonLinuxPath)
-		if err != nil {
-			t.Fatal(err)
-		}
-		rewritten, err := rewriteGRPCLinuxSource(rewrite, linuxSource, nonLinuxSource)
+		rewritten, err := rewriteModuleSource(grpcModulePath, moduleRoot, rewrite)
 		if err != nil {
 			t.Fatal(err)
 		}
 		if !strings.HasPrefix(string(rewritten), "//go:build linux\n") || strings.Contains(string(rewritten), "!linux") {
-			t.Fatalf("%s replacement constraint = %q", rewrite.linuxPath, strings.SplitN(string(rewritten), "\n", 2)[0])
+			t.Fatalf("%s replacement constraint = %q", rewrite.path, strings.SplitN(string(rewritten), "\n", 2)[0])
 		}
 		for _, removed := range []string{"\"golang.org/x/sys/unix\"", "SyscallConn", "rawConn.Control", "Getsockopt(int(fd)", "SetsockoptInt"} {
 			if strings.Contains(string(rewritten), removed) {
-				t.Fatalf("%s replacement retained %q", rewrite.linuxPath, removed)
+				t.Fatalf("%s replacement retained %q", rewrite.path, removed)
 			}
 		}
-		if _, err := rewriteGRPCLinuxSource(rewrite, append(linuxSource, '\n'), nonLinuxSource); err == nil {
-			t.Fatalf("rewriteGRPCLinuxSource() accepted a changed %s", rewrite.linuxPath)
+		changedLinux := rewrite
+		changedLinux.sourceSHA256 = rewrite.baseSHA256
+		if _, err := rewriteModuleSource(grpcModulePath, moduleRoot, changedLinux); err == nil {
+			t.Fatalf("rewriteModuleSource() accepted a changed %s", rewrite.path)
 		}
-		if _, err := rewriteGRPCLinuxSource(rewrite, linuxSource, append(nonLinuxSource, '\n')); err == nil {
-			t.Fatalf("rewriteGRPCLinuxSource() accepted a changed %s", rewrite.nonLinuxPath)
+		changedBase := rewrite
+		changedBase.baseSHA256 = rewrite.sourceSHA256
+		if _, err := rewriteModuleSource(grpcModulePath, moduleRoot, changedBase); err == nil {
+			t.Fatalf("rewriteModuleSource() accepted a changed %s", rewrite.base)
 		}
 	}
 }
 
 func TestRewriteGRPCKeepaliveRejectsSourceIdentityDrift(t *testing.T) {
 	source := append(readPinnedGRPCKeepalive(t), '\n')
-	if _, err := rewriteGRPCKeepalive(source); err == nil {
-		t.Fatal("rewriteGRPCKeepalive() accepted changed source")
+	if _, err := rewriteAdapterSource(grpcModulePath, grpcKeepaliveRewrite, source); err == nil {
+		t.Fatal("gRPC keepalive rewrite accepted changed source")
 	}
 }
 
 func TestRewriteGRPCKeepaliveSourceRejectsChangedAnchor(t *testing.T) {
 	source := strings.Replace(string(readPinnedGRPCKeepalive(t)), "Control: func", "Control:  func", 1)
-	if _, err := rewriteGRPCKeepaliveSource([]byte(source)); err == nil {
-		t.Fatal("rewriteGRPCKeepaliveSource() accepted a changed anchor")
+	if _, err := applyAdapterAnchors(grpcModulePath, grpcKeepalivePath, grpcKeepaliveRewrite.rewrites, []byte(source)); err == nil {
+		t.Fatal("gRPC keepalive anchors accepted a changed anchor")
 	}
 }
 
@@ -111,8 +107,8 @@ func TestRewriteGRPCKeepaliveSourceRejectsDuplicateAnchor(t *testing.T) {
 	source := readPinnedGRPCKeepalive(t)
 	anchor := []byte("\t\tControl: func(_, _ string, c syscall.RawConn) error {\n\t\t\treturn c.Control(func(fd uintptr) {\n\t\t\t\tunix.SetsockoptInt(int(fd), unix.SOL_SOCKET, unix.SO_KEEPALIVE, 1)\n\t\t\t})\n\t\t},\n")
 	source = append(source, anchor...)
-	if _, err := rewriteGRPCKeepaliveSource(source); err == nil {
-		t.Fatal("rewriteGRPCKeepaliveSource() accepted a duplicate anchor")
+	if _, err := applyAdapterAnchors(grpcModulePath, grpcKeepalivePath, grpcKeepaliveRewrite.rewrites, source); err == nil {
+		t.Fatal("gRPC keepalive anchors accepted a duplicate anchor")
 	}
 }
 
@@ -236,8 +232,8 @@ func TestVerifyGRPCModuleRejectsInventoryDrift(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(moduleRoot, "go.mod"), []byte("module google.golang.org/grpc\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := verifyGRPCModule(moduleRoot); err == nil {
-		t.Fatal("verifyGRPCModule() accepted changed module inventory")
+	if err := verifyAdapterModuleInventory(grpcModulePath, moduleRoot, grpcOriginalSourceInventorySHA256); err == nil {
+		t.Fatal("gRPC module inventory check accepted a changed module inventory")
 	}
 }
 

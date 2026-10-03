@@ -125,16 +125,9 @@ func TestPrepareModerncMemoryRejectsModuleDrift(t *testing.T) {
 
 func TestModerncMemoryRejectsChangedReplacementInventory(t *testing.T) {
 	identity := gomadversion.AdapterIdentity{Module: memoryModulePath, Version: memoryVersion, Sum: memorySum}
-	_, err := prepareRewrittenModule(pinnedModuleCache(t), t.TempDir(), identity, rewrittenModule{
-		module: memoryModulePath, version: memoryVersion, sum: memorySum,
-		cacheElements:              []string{"modernc.org", "memory@" + memoryVersion},
-		replacementDirectory:       "modernc-memory",
-		originalInventorySHA256:    memoryOriginalSourceInventorySHA256,
-		replacementInventorySHA256: memoryOriginalSourceInventorySHA256,
-		preparedPackage:            memoryModulePath,
-		preparedSourceSetSHA256:    memoryPreparedSourceSetSHA256,
-		rewrites:                   memoryRewrites,
-	})
+	changed := memoryAdapter
+	changed.replacementInventorySHA256 = memoryOriginalSourceInventorySHA256
+	_, err := prepareRewrittenModule(pinnedModuleCache(t), t.TempDir(), identity, changed)
 	if err == nil || !strings.Contains(err.Error(), "replacement inventory identity mismatch") {
 		t.Fatalf("changed modernc memory replacement inventory: %v", err)
 	}

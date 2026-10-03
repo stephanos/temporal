@@ -1,11 +1,7 @@
 package deterministicio
 
 import (
-	"bytes"
-	"errors"
-	"fmt"
-	"os"
-	"path/filepath"
+	"slices"
 
 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
 )
@@ -42,28 +38,36 @@ const (
 // non-blocking ready reader. The adapter replaces each with the module's own
 // non-Linux implementation under a Linux build constraint, so linux/amd64
 // targets take the path darwin already takes.
-var grpcLinuxRewrites = []grpcLinuxRewrite{
+var grpcLinuxRewrites = []sourceRewrite{
 	{
-		linuxPath: grpcReadyReaderLinuxPath, nonLinuxPath: grpcReadyReaderNonLinuxPath,
-		linuxSHA256: grpcReadyReaderLinuxSourceSHA256, nonLinuxSHA256: grpcReadyReaderNonLinuxSourceSHA256, replacementSHA256: grpcReadyReaderLinuxReplacementSHA256,
-		constraint: []byte("//go:build !linux\n"), replacement: []byte("//go:build linux\n"),
+		path: grpcReadyReaderLinuxPath, sourceSHA256: grpcReadyReaderLinuxSourceSHA256,
+		base: grpcReadyReaderNonLinuxPath, baseSHA256: grpcReadyReaderNonLinuxSourceSHA256,
+		replacementSHA256: grpcReadyReaderLinuxReplacementSHA256,
+		rewrites:          []anchorRewrite{{anchor: []byte("//go:build !linux\n"), replacement: []byte("//go:build linux\n")}},
 	},
 	{
-		linuxPath: grpcChannelzLinuxPath, nonLinuxPath: grpcChannelzNonLinuxPath,
-		linuxSHA256: grpcChannelzLinuxSourceSHA256, nonLinuxSHA256: grpcChannelzNonLinuxSourceSHA256, replacementSHA256: grpcChannelzLinuxReplacementSHA256,
-		constraint: []byte("//go:build !linux\n"), replacement: []byte("//go:build linux\n"),
+		path: grpcChannelzLinuxPath, sourceSHA256: grpcChannelzLinuxSourceSHA256,
+		base: grpcChannelzNonLinuxPath, baseSHA256: grpcChannelzNonLinuxSourceSHA256,
+		replacementSHA256: grpcChannelzLinuxReplacementSHA256,
+		rewrites:          []anchorRewrite{{anchor: []byte("//go:build !linux\n"), replacement: []byte("//go:build linux\n")}},
 	},
 	{
-		linuxPath: grpcSyscallLinuxPath, nonLinuxPath: grpcSyscallNonLinuxPath,
-		linuxSHA256: grpcSyscallLinuxSourceSHA256, nonLinuxSHA256: grpcSyscallNonLinuxSourceSHA256, replacementSHA256: grpcSyscallLinuxReplacementSHA256,
-		constraint: []byte("//go:build !linux\n// +build !linux\n"), replacement: []byte("//go:build linux\n// +build linux\n"),
+		path: grpcSyscallLinuxPath, sourceSHA256: grpcSyscallLinuxSourceSHA256,
+		base: grpcSyscallNonLinuxPath, baseSHA256: grpcSyscallNonLinuxSourceSHA256,
+		replacementSHA256: grpcSyscallLinuxReplacementSHA256,
+		rewrites:          []anchorRewrite{{anchor: []byte("//go:build !linux\n// +build !linux\n"), replacement: []byte("//go:build linux\n// +build linux\n")}},
 	},
 }
 
-type grpcLinuxRewrite struct {
-	linuxPath, nonLinuxPath                        string
-	linuxSHA256, nonLinuxSHA256, replacementSHA256 string
-	constraint, replacement                        []byte
+// grpcKeepaliveRewrite drops the dialer's host socket-option control, so the
+// virtual network's connections keep the module's keepalive defaults.
+var grpcKeepaliveRewrite = sourceRewrite{
+	path: grpcKeepalivePath, sourceSHA256: grpcKeepaliveSourceSHA256, replacementSHA256: grpcKeepaliveReplacementSHA256,
+	rewrites: []anchorRewrite{
+		{anchor: []byte("\t\"syscall\"\n")},
+		{anchor: []byte("\n\t\"golang.org/x/sys/unix\"\n"), replacement: []byte("\n")},
+		{anchor: []byte("\t\tControl: func(_, _ string, c syscall.RawConn) error {\n\t\t\treturn c.Control(func(fd uintptr) {\n\t\t\t\tunix.SetsockoptInt(int(fd), unix.SOL_SOCKET, unix.SO_KEEPALIVE, 1)\n\t\t\t})\n\t\t},\n")},
+	},
 }
 
 // grpcSyscallRewrites names the portable gRPC files that reach the syscall
@@ -129,151 +133,26 @@ var grpcDNSRewrites = []sourceRewrite{
 	},
 }
 
-var grpcPreparedInternalSourceSetSHA256 = hostPin(map[string]string{
+var grpcPreparedInternalSourceSetSHA256ByHost = map[string]string{
 	"darwin/arm64": "sha256:59a97baa8db98487dac40abe058ac89865e1ea2cf3d66c6d94cb622e7119d2a7",
 	"linux/amd64":  "sha256:59a97baa8db98487dac40abe058ac89865e1ea2cf3d66c6d94cb622e7119d2a7",
-})
+}
+
+var grpcPreparedInternalSourceSetSHA256 = hostPin(grpcPreparedInternalSourceSetSHA256ByHost)
+
+// grpcAdapter names the keepalive rewrite first: the build evidence records
+// it as the adapter's source.
+var grpcAdapter = rewrittenModule{
+	module: grpcModulePath, version: grpcVersion, sum: grpcSum,
+	cacheElements:                 []string{"google.golang.org", "grpc@" + grpcVersion},
+	replacementDirectory:          "google-grpc",
+	originalInventorySHA256:       grpcOriginalSourceInventorySHA256,
+	replacementInventorySHA256:    grpcReplacementSourceInventorySHA256,
+	preparedPackage:               grpcModulePath + "/internal",
+	preparedSourceSetSHA256ByHost: grpcPreparedInternalSourceSetSHA256ByHost,
+	rewrites:                      slices.Concat([]sourceRewrite{grpcKeepaliveRewrite}, grpcLinuxRewrites, grpcSyscallRewrites, grpcDNSRewrites),
+}
 
 func prepareGRPC(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
-	if identity.Module != grpcModulePath || identity.Version != grpcVersion || identity.Sum != grpcSum {
-		return adapterPreparation{}, errors.New("gRPC adapter identity mismatch")
-	}
-	moduleSource, err := filepath.EvalSymlinks(filepath.Join(moduleCache, "google.golang.org", "grpc@"+identity.Version))
-	if err != nil {
-		return adapterPreparation{}, fmt.Errorf("resolve pinned gRPC module: %w", err)
-	}
-	if err := verifyGRPCModule(moduleSource); err != nil {
-		return adapterPreparation{}, err
-	}
-	source := filepath.Join(moduleSource, filepath.FromSlash(grpcKeepalivePath))
-	contents, err := readGRPCAdapterSource(moduleSource, grpcKeepalivePath)
-	if err != nil {
-		return adapterPreparation{}, err
-	}
-	rewritten, err := rewriteGRPCKeepalive(contents)
-	if err != nil {
-		return adapterPreparation{}, err
-	}
-	replacements := map[string][]byte{grpcKeepalivePath: rewritten}
-	for _, rewrite := range grpcLinuxRewrites {
-		linuxSource, err := readGRPCAdapterSource(moduleSource, rewrite.linuxPath)
-		if err != nil {
-			return adapterPreparation{}, err
-		}
-		nonLinuxSource, err := readGRPCAdapterSource(moduleSource, rewrite.nonLinuxPath)
-		if err != nil {
-			return adapterPreparation{}, err
-		}
-		replacements[rewrite.linuxPath], err = rewriteGRPCLinuxSource(rewrite, linuxSource, nonLinuxSource)
-		if err != nil {
-			return adapterPreparation{}, err
-		}
-	}
-	for _, rewrites := range [][]sourceRewrite{grpcSyscallRewrites, grpcDNSRewrites} {
-		for _, rewrite := range rewrites {
-			portableSource, err := readGRPCAdapterSource(moduleSource, rewrite.path)
-			if err != nil {
-				return adapterPreparation{}, err
-			}
-			replacements[rewrite.path], err = rewriteAdapterSource(grpcModulePath, rewrite, portableSource)
-			if err != nil {
-				return adapterPreparation{}, err
-			}
-		}
-	}
-	moduleReplacement := filepath.Join(root, "google-grpc")
-	if err := copyAdapterModule(moduleSource, moduleReplacement, replacements, defaultAdapterCopyLimits); err != nil {
-		return adapterPreparation{}, fmt.Errorf("copy gRPC adapter module: %w", err)
-	}
-	replacementInventory, err := digestAdapterSourceInventory(moduleReplacement)
-	if err != nil {
-		return adapterPreparation{}, fmt.Errorf("hash gRPC replacement inventory: %w", err)
-	}
-	if replacementInventory != grpcReplacementSourceInventorySHA256 {
-		return adapterPreparation{}, fmt.Errorf("gRPC replacement inventory identity mismatch: got %s, want %s", replacementInventory, grpcReplacementSourceInventorySHA256)
-	}
-	return adapterPreparation{
-		replacement: moduleReplacement,
-		evidence: BuildAdapter{
-			Module: identity.Module, Version: identity.Version, Sum: identity.Sum,
-			Source: source, ReplacementRoot: moduleReplacement, Replacement: filepath.Join(moduleReplacement, filepath.FromSlash(grpcKeepalivePath)),
-			PreparedPackage:                  grpcModulePath + "/internal",
-			SourceSHA256:                     grpcKeepaliveSourceSHA256,
-			ReplacementSHA256:                grpcKeepaliveReplacementSHA256,
-			OriginalSourceInventorySHA256:    grpcOriginalSourceInventorySHA256,
-			ReplacementSourceInventorySHA256: replacementInventory,
-			PreparedSourceSetSHA256:          grpcPreparedInternalSourceSetSHA256,
-		},
-	}, nil
-}
-
-func verifyGRPCModule(moduleRoot string) error {
-	inventory, err := digestAdapterSourceInventory(moduleRoot)
-	if err != nil {
-		return fmt.Errorf("hash pinned gRPC source inventory: %w", err)
-	}
-	if inventory != grpcOriginalSourceInventorySHA256 {
-		return fmt.Errorf("pinned gRPC source inventory identity mismatch: got %s, want %s", inventory, grpcOriginalSourceInventorySHA256)
-	}
-	return nil
-}
-
-func readGRPCAdapterSource(moduleRoot, relative string) ([]byte, error) {
-	path := filepath.Join(moduleRoot, filepath.FromSlash(relative))
-	info, err := os.Lstat(path)
-	if err != nil || !info.Mode().IsRegular() {
-		return nil, fmt.Errorf("pinned gRPC source is not a regular file: %s", relative)
-	}
-	contents, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("read pinned gRPC source %s: %w", relative, err)
-	}
-	return contents, nil
-}
-
-func rewriteGRPCLinuxSource(rewrite grpcLinuxRewrite, linuxSource, nonLinuxSource []byte) ([]byte, error) {
-	if digestBytes(linuxSource) != rewrite.linuxSHA256 || digestBytes(nonLinuxSource) != rewrite.nonLinuxSHA256 {
-		return nil, fmt.Errorf("pinned gRPC source identity mismatch for %s", rewrite.linuxPath)
-	}
-	if bytes.Count(nonLinuxSource, rewrite.constraint) != 1 {
-		return nil, fmt.Errorf("pinned gRPC build constraint anchor mismatch for %s", rewrite.nonLinuxPath)
-	}
-	rewritten := bytes.Replace(nonLinuxSource, rewrite.constraint, rewrite.replacement, 1)
-	if got := digestBytes(rewritten); got != rewrite.replacementSHA256 {
-		return nil, fmt.Errorf("gRPC replacement identity mismatch for %s: got %s, want %s", rewrite.linuxPath, got, rewrite.replacementSHA256)
-	}
-	return rewritten, nil
-}
-
-func rewriteGRPCKeepalive(contents []byte) ([]byte, error) {
-	if digestBytes(contents) != grpcKeepaliveSourceSHA256 {
-		return nil, errors.New("pinned gRPC keepalive source identity mismatch")
-	}
-	rewritten, err := rewriteGRPCKeepaliveSource(contents)
-	if err != nil {
-		return nil, err
-	}
-	if digestBytes(rewritten) != grpcKeepaliveReplacementSHA256 {
-		return nil, errors.New("gRPC keepalive replacement identity mismatch")
-	}
-	return rewritten, nil
-}
-
-func rewriteGRPCKeepaliveSource(contents []byte) ([]byte, error) {
-	rewrites := []struct {
-		anchor      []byte
-		replacement []byte
-	}{
-		{anchor: []byte("\t\"syscall\"\n")},
-		{anchor: []byte("\n\t\"golang.org/x/sys/unix\"\n"), replacement: []byte("\n")},
-		{anchor: []byte("\t\tControl: func(_, _ string, c syscall.RawConn) error {\n\t\t\treturn c.Control(func(fd uintptr) {\n\t\t\t\tunix.SetsockoptInt(int(fd), unix.SOL_SOCKET, unix.SO_KEEPALIVE, 1)\n\t\t\t})\n\t\t},\n")},
-	}
-	result := append([]byte(nil), contents...)
-	for _, rewrite := range rewrites {
-		if bytes.Count(result, rewrite.anchor) != 1 {
-			return nil, fmt.Errorf("pinned gRPC keepalive rewrite anchor mismatch for %q", rewrite.anchor)
-		}
-		result = bytes.Replace(result, rewrite.anchor, rewrite.replacement, 1)
-	}
-	return result, nil
+	return prepareRewrittenModule(moduleCache, root, identity, grpcAdapter)
 }

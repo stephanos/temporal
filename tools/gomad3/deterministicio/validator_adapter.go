@@ -13,10 +13,12 @@ const (
 	validatorBakedInReplacementSHA256         = "sha256:1f3bd33bd351fa7822a5b1ddbf6a7e72b9dc486c343f80c51e926083f93363ea"
 )
 
-var validatorPreparedSourceSetSHA256 = hostPin(map[string]string{
+var validatorPreparedSourceSetSHA256ByHost = map[string]string{
 	"darwin/arm64": "sha256:c0ed49ccbbb194fc15427fea32759d496ba7112aba9dd8d9936883bba6fe6943",
 	"linux/amd64":  "sha256:c0ed49ccbbb194fc15427fea32759d496ba7112aba9dd8d9936883bba6fe6943",
-})
+}
+
+var validatorPreparedSourceSetSHA256 = hostPin(validatorPreparedSourceSetSHA256ByHost)
 
 var validatorRewrites = []sourceRewrite{
 	{
@@ -161,15 +163,17 @@ var validatorRewrites = []sourceRewrite{
 	},
 }
 
+var validatorAdapter = rewrittenModule{
+	module: validatorModulePath, version: validatorVersion, sum: validatorSum,
+	cacheElements:                 []string{"github.com", "go-playground", "validator", "v10@" + validatorVersion},
+	replacementDirectory:          "validator",
+	originalInventorySHA256:       validatorOriginalSourceInventorySHA256,
+	replacementInventorySHA256:    validatorReplacementSourceInventorySHA256,
+	preparedPackage:               validatorModulePath,
+	preparedSourceSetSHA256ByHost: validatorPreparedSourceSetSHA256ByHost,
+	rewrites:                      validatorRewrites,
+}
+
 func prepareValidator(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
-	return prepareRewrittenModule(moduleCache, root, identity, rewrittenModule{
-		module: validatorModulePath, version: validatorVersion, sum: validatorSum,
-		cacheElements:              []string{"github.com", "go-playground", "validator", "v10@" + validatorVersion},
-		replacementDirectory:       "validator",
-		originalInventorySHA256:    validatorOriginalSourceInventorySHA256,
-		replacementInventorySHA256: validatorReplacementSourceInventorySHA256,
-		preparedPackage:            validatorModulePath,
-		preparedSourceSetSHA256:    validatorPreparedSourceSetSHA256,
-		rewrites:                   validatorRewrites,
-	})
+	return prepareRewrittenModule(moduleCache, root, identity, validatorAdapter)
 }
