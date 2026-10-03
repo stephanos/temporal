@@ -160,6 +160,13 @@ type selectShape struct {
 	// the lock, the readiness count, and that pass, so the diagnostic trace
 	// must show no allocation and no seeded draw across them.
 	completesLocked bool
+	// noOp marks a shape the explorer lists as a no-op
+	// (runner/internal/exploration/choice/select_readiness.go): exploring the
+	// shape with its select-poll decisions left unexpanded must reach the
+	// outcomes and deadlocks of exploring it in full. A shape with two ready
+	// cases skips nothing, so the two explorations agree without proving
+	// anything.
+	noOp bool
 }
 
 type selectShapeEvidence struct {
@@ -172,6 +179,11 @@ type selectShapeEvidence struct {
 	Outcomes          []string               `json:"outcomes"`
 	Deadlocks         []string               `json:"deadlocks"`
 	StopReason        string                 `json:"stop_reason"`
+	// Reduced is the same exploration with every select-poll decision of a
+	// known ready count below two left unexpanded, and Sound whether it
+	// reached the outcomes and deadlocks above. The explorer may list a shape
+	// only when its check is sound.
+	Reduced selectReductionEvidence `json:"reduced"`
 	// RecordingAllocations and RecordingDraws are what the first execution's
 	// diagnostic trace counted between the select's last poll decision and
 	// its result: heap objects allocated and seeded draws taken. A blocking
@@ -179,6 +191,25 @@ type selectShapeEvidence struct {
 	// recording.
 	RecordingAllocations uint64 `json:"recording_allocations"`
 	RecordingDraws       uint64 `json:"recording_draws"`
+}
+
+type selectReductionEvidence struct {
+	Executions          int      `json:"executions"`
+	Outcomes            []string `json:"outcomes"`
+	Deadlocks           []string `json:"deadlocks"`
+	StopReason          string   `json:"stop_reason"`
+	SkippedAlternatives uint64   `json:"skipped_alternatives"`
+	Sound               bool     `json:"sound"`
+}
+
+// selectFrontier is one exhaustive exploration of a select shape: the
+// executions it took, the outcomes and deadlocks it reached, and, when
+// reduced, how many alternatives of no-op poll decisions it left unexpanded.
+type selectFrontier struct {
+	executions          int
+	outcomes            []string
+	deadlocks           []string
+	skippedAlternatives uint64
 }
 
 // goroutineHandoff is the two-way Runnable decision immediately before a
@@ -211,7 +242,6 @@ type searchReproduction struct {
 	Seed                         string                  `json:"select_exploration_seed"`
 	MaximumExecutionsPerShape    int                     `json:"maximum_executions_per_shape"`
 	MaximumDecisionsPerExecution int                     `json:"maximum_decisions_per_execution"`
-	Reduced                      bool                    `json:"reduced"`
 	TimerCallbacks               []timerCallbackEvidence `json:"timer_callbacks"`
 	TimerPrefixes                []timerPrefixEvidence   `json:"timer_prefixes"`
 	CrossSeedPrefix              timerCrossSeedEvidence  `json:"cross_seed_prefix"`
@@ -441,18 +471,61 @@ func (campaign *runtimeCampaign) requireTimerResetIdentities(fixture string) ([]
 	return runs, nil
 }
 
+// exploreSelectShape explores a shape to exhaustion twice, in full and with
+// the no-op poll decisions left unexpanded, and records whether the reduced
+// frontier reached the same outcomes and deadlocks. Only the full exploration
+// checks the recording cost, from its first execution's diagnostic trace.
 func (campaign *runtimeCampaign) exploreSelectShape(fixture string, shape selectShape) (selectShapeEvidence, error) {
+	evidence := selectShapeEvidence{Name: shape.name, ReadyAtPoll: int(shape.readiness.Ready), Readiness: shape.readiness, SelectPoll: 1}
+	if shape.readiness.Ready < 2 {
+		evidence.FewerThanTwoReady = evidence.SelectPoll
+	}
+	full, err := campaign.exploreSelectFrontier(fixture, shape, false, &evidence)
+	evidence.Executions, evidence.Outcomes, evidence.Deadlocks = full.executions, full.outcomes, full.deadlocks
+	if err != nil {
+		return evidence, err
+	}
+	if !slices.Equal(evidence.Outcomes, shape.outcomes) {
+		return evidence, fmt.Errorf("select shape %s outcomes = %v, want %v", shape.name, evidence.Outcomes, shape.outcomes)
+	}
+	evidence.StopReason = "frontier_exhausted"
+	reduced, err := campaign.exploreSelectFrontier(fixture, shape, true, nil)
+	evidence.Reduced = selectReductionEvidence{Executions: reduced.executions, Outcomes: reduced.outcomes, Deadlocks: reduced.deadlocks, SkippedAlternatives: reduced.skippedAlternatives}
+	if err != nil {
+		return evidence, err
+	}
+	evidence.Reduced.StopReason = "frontier_exhausted"
+	evidence.Reduced.Sound = slices.Equal(reduced.outcomes, full.outcomes) && slices.Equal(reduced.deadlocks, full.deadlocks)
+	if shape.noOp && !evidence.Reduced.Sound {
+		return evidence, fmt.Errorf("select shape %s is listed as a no-op but its reduced exploration reached %v, not %v", shape.name, reduced.outcomes, full.outcomes)
+	}
+	if shape.noOp && reduced.skippedAlternatives == 0 {
+		return evidence, fmt.Errorf("select shape %s is listed as a no-op but its reduced exploration skipped nothing", shape.name)
+	}
+	return evidence, nil
+}
+
+// exploreSelectFrontier runs the shape under seed 1 and every non-selected
+// rank of every decision it records, breadth first, until no unseen prefix is
+// left. When reduced, a select-poll decision whose select recorded fewer than
+// two ready cases is not expanded. Evidence, when given, receives the first
+// execution's recording cost and is checked against the shape.
+func (campaign *runtimeCampaign) exploreSelectFrontier(fixture string, shape selectShape, reduced bool, evidence *selectShapeEvidence) (selectFrontier, error) {
 	identity, err := campaign.choiceIdentity(fixture)
 	if err != nil {
-		return selectShapeEvidence{}, err
+		return selectFrontier{}, err
 	}
-	evidence := selectShapeEvidence{Name: shape.name, ReadyAtPoll: int(shape.readiness.Ready), Readiness: shape.readiness, Outcomes: []string{}, Deadlocks: []string{}}
+	result := selectFrontier{outcomes: []string{}, deadlocks: []string{}}
 	frontier := []*choice.ReplayPlan{nil}
 	seen := map[[sha256.Size]byte]bool{}
 	outcomes := map[string]bool{}
+	label := shape.name
+	if reduced {
+		label += "-reduced"
+	}
 	for len(frontier) != 0 {
-		if evidence.Executions == 2048 {
-			return evidence, fmt.Errorf("select shape %s exceeded the 2048-execution bound before exhaustion", shape.name)
+		if result.executions == 2048 {
+			return result, fmt.Errorf("select shape %s exceeded the 2048-execution bound before exhaustion", label)
 		}
 		prefix := frontier[0]
 		frontier = frontier[1:]
@@ -460,50 +533,50 @@ func (campaign *runtimeCampaign) exploreSelectShape(fixture string, shape select
 		if prefix != nil {
 			mode = choice.ModePrefix
 		}
-		name := fmt.Sprintf("select-%s-execution-%04d", shape.name, evidence.Executions)
-		run, _, err := campaign.runChoiceSpec(choiceRunSpec{name: name, fixture: fixture, seed: "1", tape: prefix, mode: mode, diagnostic: evidence.Executions == 0, args: []string{shape.name}})
+		name := fmt.Sprintf("select-%s-execution-%04d", label, result.executions)
+		run, _, err := campaign.runChoiceSpec(choiceRunSpec{name: name, fixture: fixture, seed: "1", tape: prefix, mode: mode, diagnostic: evidence != nil && result.executions == 0, args: []string{shape.name}})
 		if err != nil {
-			return evidence, err
+			return result, err
 		}
-		evidence.Executions++
+		result.executions++
 		if run.trace.Summary.SelectPoll != 1 || run.trace.Summary.SelectResult != 1 {
-			return evidence, fmt.Errorf("select shape %s recorded poll/result counts %+v, want one each", shape.name, run.trace.Summary)
+			return result, fmt.Errorf("select shape %s recorded poll/result counts %+v, want one each", label, run.trace.Summary)
 		}
-		if evidence.Executions == 1 {
-			evidence.SelectPoll = run.trace.Summary.SelectPoll
-			if shape.readiness.Ready < 2 {
-				evidence.FewerThanTwoReady = evidence.SelectPoll
-			}
+		if evidence != nil && result.executions == 1 {
 			evidence.RecordingAllocations, evidence.RecordingDraws, err = selectRecordingCost(run)
 			if err != nil {
-				return evidence, fmt.Errorf("select shape %s: %w", shape.name, err)
+				return result, fmt.Errorf("select shape %s: %w", label, err)
 			}
 			if shape.completesLocked && (evidence.RecordingAllocations != 0 || evidence.RecordingDraws != 0) {
-				return evidence, fmt.Errorf("select shape %s allocated %d objects and drew %d times between its last poll decision and its result", shape.name, evidence.RecordingAllocations, evidence.RecordingDraws)
+				return result, fmt.Errorf("select shape %s allocated %d objects and drew %d times between its last poll decision and its result", label, evidence.RecordingAllocations, evidence.RecordingDraws)
 			}
 		}
 		if !slices.Contains(shape.outcomes, run.transcript) {
-			return evidence, fmt.Errorf("select shape %s outcome = %q", shape.name, run.transcript)
+			return result, fmt.Errorf("select shape %s outcome = %q", label, run.transcript)
 		}
 		outcomes[run.transcript] = true
 		plan, err := choice.ProjectReplayPlan(run.trace, identity)
 		if err != nil {
-			return evidence, err
+			return result, err
 		}
 		if err := requireSelectReadiness(plan, shape.readiness); err != nil {
-			return evidence, fmt.Errorf("select shape %s execution %d: %w", shape.name, evidence.Executions-1, err)
+			return result, fmt.Errorf("select shape %s execution %d: %w", label, result.executions-1, err)
 		}
 		if len(plan.Decisions) > 32 {
-			return evidence, fmt.Errorf("select shape %s exceeded the 32-decision bound", shape.name)
+			return result, fmt.Errorf("select shape %s exceeded the 32-decision bound", label)
 		}
 		for ordinal, decision := range plan.Decisions {
+			if reduced && decision.Kind == choice.KindSelectPoll && plan.Readiness[ordinal].Known && plan.Readiness[ordinal].Ready < 2 {
+				result.skippedAlternatives += uint64(decision.Alternatives - 1)
+				continue
+			}
 			for rank := uint32(0); rank < decision.Alternatives; rank++ {
 				if rank == decision.Selected {
 					continue
 				}
 				candidate, err := choice.BuildRankPrefix(plan, uint64(ordinal), rank)
 				if err != nil {
-					return evidence, err
+					return result, err
 				}
 				if !seen[candidate.SHA256] {
 					seen[candidate.SHA256] = true
@@ -513,14 +586,10 @@ func (campaign *runtimeCampaign) exploreSelectShape(fixture string, shape select
 		}
 	}
 	for outcome := range outcomes {
-		evidence.Outcomes = append(evidence.Outcomes, outcome)
+		result.outcomes = append(result.outcomes, outcome)
 	}
-	slices.Sort(evidence.Outcomes)
-	if !slices.Equal(evidence.Outcomes, shape.outcomes) {
-		return evidence, fmt.Errorf("select shape %s outcomes = %v, want %v", shape.name, evidence.Outcomes, shape.outcomes)
-	}
-	evidence.StopReason = "frontier_exhausted"
-	return evidence, nil
+	slices.Sort(result.outcomes)
+	return result, nil
 }
 
 // requireSelectReadiness requires the projected plan to carry want on every

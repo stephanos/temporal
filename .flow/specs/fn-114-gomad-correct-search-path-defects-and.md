@@ -370,6 +370,30 @@ from an unproven one. Dropping no-op decisions from the
 trace would need a different recording point; task 12 decides on the measured
 numbers and implements nothing.
 
+**E3 reduction (task 12, 2026-10-02).** The explorer's no-op list holds the
+seven fixture shapes with fewer than two ready cases, each keyed on two polled
+cases and the recorded readiness. The reduced and full explorations of every
+shape reached the same outcomes with no deadlock (reduced 96/32/32/96/32/32/96
+executions against full 196/68/68/196/68/68/200), and the full counts equal
+task 2's baseline. The rule is the v3 controller identity, so a journal written
+under v2 is refused on resume. On `TestSignalWorkflowTestSuiteChasm` seed 11
+(build 2008ea81) the trace is 86,070 records and 8,262,720 bytes before and
+after; of its 57,696 decisions the explorer now expands 42,918: the 14,778
+select-poll decisions of listed shapes are 55% of the 26,797 select-poll
+decisions and 3.5% of the alternatives a full expansion of the trace would run.
+Another 6,574 select-poll decisions have a known ready count below two and an
+unproven shape (3,002 two-case selects with a nil-and-closed, timer-and-closed,
+or nil-and-timer flag combination; 3,572 steps of three- to six-case selects)
+and stay expanded. No-op decisions stay in the Choice Trace: their records are
+17% of its bytes (25% if every ready-below-two shape were proven), which does
+not evidently bring any D15 overflow suite under the 64 MiB cap, while dropping
+them needs the runtime to withhold poll records until the result is known and a
+replaying runtime to draw poll order from the seed before it can know whether
+the tape holds the select, a new choice-wire identity and replay rule, and
+loses the record that pins a forced prefix or a divergence to the exact poll
+step. No follow-up task. Evidence under the spec's `select-reduction/`
+artifacts.
+
 **E6 exclusion.** `minimize` holds an exclusive lock on its output workspace
 from before the state check to the end of final validation, the same host lock
 campaign resume uses.

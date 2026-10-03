@@ -233,6 +233,102 @@ func TestExplorationRejectsCandidateAlteringADecisionBeforeTheStart(t *testing.T
 	}
 }
 
+func TestExplorationSkipsNoOpSelectPollDecisions(t *testing.T) {
+	config := testConfig()
+	state, err := New(config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	round, _ := state.NextRound()
+	// A two-case select with one ready case between two runnable decisions.
+	trace := testTapeRecords(t, config.Execution,
+		testDecision(t, 0, choice.KindRunnable, 2, 0).Record(),
+		testSiteDecision(t, 1, choice.KindSelectPoll, 40, 2, 1).Record(),
+		testSelectResult(t, 2, 1, 40, 2, choice.SelectReadiness{Known: true, Ready: 1}),
+		testDecision(t, 3, choice.KindRunnable, 3, 0).Record(),
+	)
+	state, _, err = CommitRound(state, round, []Result{testResult(round.Candidates[0], trace, "root")})
+	if err != nil {
+		t.Fatal(err)
+	}
+	summary := state.Summary()
+	if summary.Pending != 3 || summary.OmittedBySelectReadiness != 1 || summary.OmittedByDepth != 0 || summary.StopReason != "" {
+		t.Fatalf("summary = %#v", summary)
+	}
+	for _, candidate := range state.Queue {
+		prefix, err := candidate.PrefixReplayPlan(config.Execution)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if overridden := prefix.Decisions[len(prefix.Decisions)-1]; overridden.Kind == choice.KindSelectPoll {
+			t.Fatalf("candidate %s overrides the no-op select-poll decision", candidate.SHA256)
+		}
+	}
+}
+
+func TestExplorationExpandsSelectPollDecisionsOutsideTheNoOpShapes(t *testing.T) {
+	oneReady := choice.SelectReadiness{Known: true, Ready: 1}
+	twoCasePoll := func(t *testing.T) []choice.Record {
+		return []choice.Record{testSiteDecision(t, 0, choice.KindSelectPoll, 40, 2, 1).Record()}
+	}
+	for _, test := range []struct {
+		name    string
+		records func(*testing.T) []choice.Record
+		pending uint64
+		omitted uint64
+	}{
+		{
+			name: "listed shape", pending: 0, omitted: 1,
+			records: func(t *testing.T) []choice.Record {
+				return append(twoCasePoll(t), testSelectResult(t, 1, 0, 40, 2, oneReady))
+			},
+		},
+		{
+			name: "unknown readiness", pending: 1,
+			records: twoCasePoll,
+		},
+		{
+			name: "unlisted shape with the same ready count", pending: 1,
+			records: func(t *testing.T) []choice.Record {
+				return append(twoCasePoll(t), testSelectResult(t, 1, 0, 40, 2, choice.SelectReadiness{Known: true, Ready: 1, RepeatedChannel: true}))
+			},
+		},
+		{
+			name: "two ready", pending: 1,
+			records: func(t *testing.T) []choice.Record {
+				return append(twoCasePoll(t), testSelectResult(t, 1, 0, 40, 2, choice.SelectReadiness{Known: true, Ready: 2}))
+			},
+		},
+		{
+			name: "three polled cases", pending: 3,
+			records: func(t *testing.T) []choice.Record {
+				return append(twoCasePoll(t), testSiteDecision(t, 1, choice.KindSelectPoll, 40, 3, 2).Record(), testSelectResult(t, 2, 0, 40, 3, oneReady))
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			config := testConfig()
+			state, err := New(config)
+			if err != nil {
+				t.Fatal(err)
+			}
+			round, _ := state.NextRound()
+			trace := testTapeRecords(t, config.Execution, test.records(t)...)
+			state, _, err = CommitRound(state, round, []Result{testResult(round.Candidates[0], trace, test.name)})
+			if err != nil {
+				t.Fatal(err)
+			}
+			summary := state.Summary()
+			if summary.Pending != test.pending || summary.OmittedBySelectReadiness != test.omitted {
+				t.Fatalf("summary = %#v, want %d pending and %d omitted", summary, test.pending, test.omitted)
+			}
+			if test.pending == 0 && (summary.StopReason != StopExhausted || !summary.BoundedComplete) {
+				t.Fatalf("summary = %#v, want exhaustion", summary)
+			}
+		})
+	}
+}
+
 func TestExplorationRejectsIncompleteExecutionIdentity(t *testing.T) {
 	config := testConfig()
 	config.Execution.TargetSHA256 = [sha256.Size]byte{}
@@ -248,7 +344,13 @@ func TestExplorationRoundSegmentReplaysByteIdentically(t *testing.T) {
 		t.Fatal(err)
 	}
 	round, _ := initial.NextRound()
-	trace := testTape(t, config.Execution, testDecision(t, 0, choice.KindRunnable, 3, 1))
+	// The no-op select keeps the replayed round under the rule it was
+	// committed with.
+	trace := testTapeRecords(t, config.Execution,
+		testDecision(t, 0, choice.KindRunnable, 3, 1).Record(),
+		testSiteDecision(t, 1, choice.KindSelectPoll, 40, 2, 0).Record(),
+		testSelectResult(t, 2, 1, 40, 2, choice.SelectReadiness{Known: true, Default: true}),
+	)
 	committed, segment, err := CommitRound(initial, round, []Result{testResult(round.Candidates[0], trace, "root")})
 	if err != nil {
 		t.Fatal(err)
@@ -256,6 +358,9 @@ func TestExplorationRoundSegmentReplaysByteIdentically(t *testing.T) {
 	replayed, err := ReplaySegment(initial, segment)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if replayed.OmittedBySelectReadiness != 1 || len(replayed.Queue) != 2 {
+		t.Fatalf("replayed state = %#v", replayed.Summary())
 	}
 	committedBytes, err := canonicaljson.CanonicalJSON(committed)
 	if err != nil {
@@ -288,15 +393,35 @@ func testConfig() Config {
 
 func testDecision(t *testing.T, ordinal uint64, kind choice.Kind, alternatives, selected uint32) choice.Decision {
 	t.Helper()
+	return testSiteDecision(t, ordinal, kind, ordinal+1, alternatives, selected)
+}
+
+func testSiteDecision(t *testing.T, ordinal uint64, kind choice.Kind, site uint64, alternatives, selected uint32) choice.Decision {
+	t.Helper()
 	identities := make([][sha256.Size]byte, alternatives)
 	for index := range identities {
 		identities[index] = sha256.Sum256([]byte{byte(ordinal), byte(index + 1)})
 	}
-	decision, err := choice.CanonicalDecision(ordinal, kind, ordinal+1, false, identities, identities[selected], 0)
+	decision, err := choice.CanonicalDecision(ordinal, kind, site, false, identities, identities[selected], 0)
 	if err != nil {
 		t.Fatal(err)
 	}
 	return decision
+}
+
+// testSelectResult is the observation a select records once it has locked
+// its channels; origin is the record ordinal of its first poll decision.
+func testSelectResult(t *testing.T, ordinal, origin, site uint64, polled uint32, readiness choice.SelectReadiness) choice.Record {
+	t.Helper()
+	word, err := readiness.Word()
+	if err != nil {
+		t.Fatal(err)
+	}
+	alternatives := polled
+	if readiness.Default {
+		alternatives++
+	}
+	return choice.Record{Ordinal: ordinal, Kind: choice.KindSelectResult, Flags: choice.FlagObservation, SiteOffset: site, Alternatives: alternatives, Data: polled, Readiness: word, Origin: origin}
 }
 
 func testTape(t *testing.T, identity choice.ExecutionIdentity, decisions ...choice.Decision) choice.ReplayPlan {
@@ -305,6 +430,11 @@ func testTape(t *testing.T, identity choice.ExecutionIdentity, decisions ...choi
 	for index, decision := range decisions {
 		records[index] = decision.Record()
 	}
+	return testTapeRecords(t, identity, records...)
+}
+
+func testTapeRecords(t *testing.T, identity choice.ExecutionIdentity, records ...choice.Record) choice.ReplayPlan {
+	t.Helper()
 	trace, err := choice.BuildTrace(records, choice.TerminalComplete)
 	if err != nil {
 		t.Fatal(err)

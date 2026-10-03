@@ -1,0 +1,27 @@
+{
+  "schema": "gomad3.explore-event/v3",
+  "type": "result",
+  "classification": "success",
+  "campaign_path": "(scratch, not retained)",
+  "selected": 1,
+  "attempted": 1,
+  "succeeded": 1,
+  "retained_successes": 1,
+  "retained_success_bytes": 163332413,
+  "stop_reason": "seeds_exhausted",
+  "choice_trace": {
+    "Seed": 11,
+    "Profile": "gomad3-choice-trace/v3",
+    "Limit": 67108864,
+    "SHA256": "sha256:571e9241d19d57ce6b970edaa5b702814dff6b12bac633b05da65a8e4a6fc3e1",
+    "Records": 86070,
+    "BranchingRecords": 57696,
+    "Runnable": 30899,
+    "SelectPoll": 26797,
+    "SelectResult": 28374,
+    "TerminalState": "complete",
+    "TapeSHA256": "sha256:16f17ab83a56117941afd72de5830bd778edbc166e47e31fe1f11db790fec363",
+    "Decisions": 57696,
+    "PeakGoroutines": 1944
+  }
+}
