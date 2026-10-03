@@ -49,7 +49,7 @@ func TestPackageArchitecture(t *testing.T) {
 			}
 		}
 	}
-	for _, owner := range []string{"cli", "developer", "runner", "qualification", "target", "record", "artifact", "choice", "deterministicio", "world", "toolchain", "upgrade", "compatibility", "canonicaljson", "hostexec", "hostfs"} {
+	for _, owner := range []string{"cli", "developer", "runner", "qualification", "target", "record", "artifact", "choice", "deterministicio", "world", "toolchain", "upgrade", "compatibility", "canonicaljson", "hostexec", "hostfs", "sourceinventory"} {
 		if !owners[owner] {
 			t.Errorf("architectural owner %s has no package", owner)
 		}
@@ -245,6 +245,136 @@ func TestExactModuleEdges(t *testing.T) {
 			t.Errorf("toolchain/installation imports module package %s", imported)
 		}
 	}
+	// One neutral owner digests adapter source inventories for capability
+	// review and adapter preparation; target no longer exports the digest.
+	for _, consumer := range []string{modulePath + "/target", modulePath + "/deterministicio"} {
+		if !slices.Contains(imports[consumer], modulePath+"/internal/sourceinventory") {
+			t.Errorf("%s does not digest adapter inventories through internal/sourceinventory", consumer)
+		}
+	}
+	for _, imported := range imports[modulePath+"/internal/sourceinventory"] {
+		if strings.HasPrefix(imported, modulePath+"/") && imported != modulePath+"/internal/hostfs" {
+			t.Errorf("internal/sourceinventory imports module package %s", imported)
+		}
+	}
+	if _, found := packageExports(t, "target")["DigestAdapterSourceInventory"]; found {
+		t.Error("target still owns adapter source-inventory hashing")
+	}
+}
+
+// TestCapabilityEvaluationHasNoHostEffect keeps capability policy evaluation
+// pure: collection loads the compatibility packs and reads sources, while the
+// evaluator and the review projection it feeds see only that evidence.
+func TestCapabilityEvaluationHasNoHostEffect(t *testing.T) {
+	policyPackage := modulePath + "/target/internal/capabilitypolicy"
+	compatibilityPackage := modulePath + "/internal/compatibilitypack"
+	found := false
+	for _, pkg := range listHostPackages(t) {
+		if pkg.ImportPath != policyPackage {
+			continue
+		}
+		found = true
+		for _, imported := range pkg.Imports {
+			if !slices.Contains([]string{"slices", "sort", "strings", compatibilityPackage}, imported) {
+				t.Errorf("%s imports %s", policyPackage, imported)
+			}
+		}
+	}
+	if !found {
+		t.Fatalf("%s is not listed", policyPackage)
+	}
+	entries, err := os.ReadDir(filepath.Join("target", "internal", "capabilitypolicy"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, entry := range entries {
+		if filepath.Ext(entry.Name()) != ".go" || strings.HasSuffix(entry.Name(), "_test.go") {
+			continue
+		}
+		checkPureFile(t, filepath.Join("target", "internal", "capabilitypolicy", entry.Name()), map[string][]string{
+			"slices": nil, "sort": nil, "strings": nil, compatibilityPackage: {"SelectPacksForPlatform"},
+		}, nil)
+	}
+	checkPureFile(t, filepath.Join("target", "capability_evaluation.go"), map[string][]string{
+		"errors": nil, "slices": nil, "sort": nil, "strings": nil, "fmt": {"Errorf"}, "path/filepath": {"Base"},
+		modulePath + "/record": {"ParseSHA256"}, compatibilityPackage: {"DigestSources", "Identity"}, policyPackage: {"Evaluate"},
+	}, packageFunctions(t, "target"))
+}
+
+// checkPureFile rejects an import outside allowed and a call or conversion
+// through an import that names an identifier outside its listed ones (nil
+// allows the whole package). With local, it also rejects calls to package-level functions
+// declared in another file of the package.
+func checkPureFile(t *testing.T, path string, allowed map[string][]string, local map[string]string) {
+	t.Helper()
+	file, err := parser.ParseFile(token.NewFileSet(), path, nil, 0)
+	if err != nil {
+		t.Fatalf("parse %s: %v", path, err)
+	}
+	importsByName := map[string]string{}
+	for _, specification := range file.Imports {
+		importPath := strings.Trim(specification.Path.Value, `"`)
+		if _, ok := allowed[importPath]; !ok {
+			t.Errorf("%s imports %s", path, importPath)
+			continue
+		}
+		name := filepath.Base(importPath)
+		if specification.Name != nil {
+			name = specification.Name.Name
+		} else if importPath == modulePath+"/internal/compatibilitypack" {
+			name = "compatibility"
+		}
+		importsByName[name] = importPath
+	}
+	ast.Inspect(file, func(node ast.Node) bool {
+		call, ok := node.(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+		switch function := call.Fun.(type) {
+		case *ast.SelectorExpr:
+			receiver, ok := function.X.(*ast.Ident)
+			if !ok {
+				return true
+			}
+			importPath, imported := importsByName[receiver.Name]
+			if imported && allowed[importPath] != nil && !slices.Contains(allowed[importPath], function.Sel.Name) {
+				t.Errorf("%s calls %s.%s", path, importPath, function.Sel.Name)
+			}
+		case *ast.Ident:
+			if declaredIn, declared := local[function.Name]; declared && declaredIn != filepath.Base(path) {
+				t.Errorf("%s calls %s from %s", path, function.Name, declaredIn)
+			}
+		default:
+		}
+		return true
+	})
+}
+
+// packageFunctions maps each package-level function of a package directory to
+// the file that declares it.
+func packageFunctions(t *testing.T, directory string) map[string]string {
+	t.Helper()
+	entries, err := os.ReadDir(directory)
+	if err != nil {
+		t.Fatalf("read package directory %s: %v", directory, err)
+	}
+	functions := map[string]string{}
+	for _, entry := range entries {
+		if entry.IsDir() || filepath.Ext(entry.Name()) != ".go" || strings.HasSuffix(entry.Name(), "_test.go") {
+			continue
+		}
+		file, err := parser.ParseFile(token.NewFileSet(), filepath.Join(directory, entry.Name()), nil, 0)
+		if err != nil {
+			t.Fatalf("parse %s/%s: %v", directory, entry.Name(), err)
+		}
+		for _, declaration := range file.Decls {
+			if function, ok := declaration.(*ast.FuncDecl); ok && function.Recv == nil {
+				functions[function.Name.Name] = entry.Name()
+			}
+		}
+	}
+	return functions
 }
 
 func TestDomainModulesDoNotExportWireFraming(t *testing.T) {
@@ -380,6 +510,8 @@ func packageOwner(importPath string) string {
 		return "hostfs"
 	case relative == "internal/preparation" || strings.HasPrefix(relative, "internal/preparation/"):
 		return "preparation"
+	case relative == "internal/sourceinventory" || strings.HasPrefix(relative, "internal/sourceinventory/"):
+		return "sourceinventory"
 	default:
 		return ""
 	}
@@ -394,16 +526,17 @@ func ownerMayImport(owner, importedOwner, importing, imported string) bool {
 		"developer":       {"choice", "compatibility", "qualification", "simulation", "toolchain", "upgrade", "hostexec", "hostfs"},
 		"runner":          {"target", "record", "artifact", "choice", "deterministicio", "preparation", "world", "canonicaljson", "hostexec", "hostfs"},
 		"qualification":   {"runner", "target", "record", "artifact", "choice", "deterministicio", "preparation", "canonicaljson", "hostexec", "hostfs"},
-		"target":          {"compatibility", "record", "toolchain", "canonicaljson", "hostexec", "hostfs"},
+		"target":          {"compatibility", "record", "toolchain", "canonicaljson", "hostexec", "hostfs", "sourceinventory"},
 		"record":          {"canonicaljson"},
 		"artifact":        {"choice", "deterministicio", "target", "record", "hostfs"},
 		"compatibility":   {"target", "record", "canonicaljson", "hostfs"},
-		"deterministicio": {"target", "record", "toolchain", "canonicaljson", "hostfs"},
+		"deterministicio": {"target", "record", "toolchain", "canonicaljson", "hostfs", "sourceinventory"},
 		"preparation":     {"target", "deterministicio", "record"},
 		"world":           {"canonicaljson"},
 		"simulation":      {"record", "canonicaljson"},
 		"toolchain":       {"canonicaljson", "hostexec", "hostfs"},
 		"upgrade":         {"qualification", "toolchain", "deterministicio", "compatibility", "canonicaljson", "hostexec", "hostfs"},
+		"sourceinventory": {"hostfs"},
 	}
 	if !slices.Contains(allowed[owner], importedOwner) {
 		return false

@@ -8,6 +8,8 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+
+	"go.temporal.io/server/tools/gomad3/target/internal/capabilitypolicy"
 )
 
 func TestValidateCapabilityClosureRejectsEscapeCapabilities(t *testing.T) {
@@ -38,23 +40,6 @@ func TestValidateCapabilityClosureRejectsEscapeCapabilities(t *testing.T) {
 	}
 }
 
-func TestBuiltInSimulationLinknamesRequireExactFirstPartySource(t *testing.T) {
-	want := builtInSimulationLinknames["runtime_domain.go"]
-	pkg := CapabilityPackage{ImportPath: "go.temporal.io/server/tools/gomad3sim", Module: &CapabilityModule{Path: "go.temporal.io/server", Main: true}}
-	if !builtInSimulationLinknameAllowed(pkg, want) {
-		t.Fatal("exact built-in simulation linkname source was rejected")
-	}
-	changed := want
-	changed.SHA256 = "sha256:" + strings.Repeat("0", 64)
-	if builtInSimulationLinknameAllowed(pkg, changed) {
-		t.Fatal("changed built-in simulation linkname source was accepted")
-	}
-	pkg.Module.Path = "example.com/lookalike"
-	if builtInSimulationLinknameAllowed(pkg, want) {
-		t.Fatal("lookalike simulation package was accepted")
-	}
-}
-
 // The pins are literals in this module while the sources they pin live in the
 // root module, so only a test that reads those sources can see them drift.
 func TestBuiltInSimulationLinknamesPinCurrentFirstPartySources(t *testing.T) {
@@ -77,18 +62,20 @@ func TestBuiltInSimulationLinknamesPinCurrentFirstPartySources(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if _, _, present := linknameFinding(source); !present {
+		if len(source.LinknameDirectives) == 0 && !source.MalformedLinkname {
 			continue
 		}
 		bridging[source.Name] = struct{}{}
-		if !builtInSimulationLinknameAllowed(pkg, source) {
-			t.Errorf("%s is %s with directives %q, pinned as %#v", source.Name, source.SHA256, source.LinknameDirectives, builtInSimulationLinknames[source.Name])
+		pkg.Sources = []CapabilitySource{source}
+		policyPackage := capabilityPolicyPackage(pkg)
+		if !capabilitypolicy.AllowsSimulationBridge(policyPackage, policyPackage.Sources[0]) {
+			t.Errorf("%s is %s with directives %q, which no pinned bridge source matches", source.Name, source.SHA256, source.LinknameDirectives)
 		}
 	}
 	if len(bridging) == 0 {
 		t.Fatalf("no first-party simulation source in %s carries a bridge directive", directory)
 	}
-	for name := range builtInSimulationLinknames {
+	for _, name := range capabilitypolicy.SimulationBridgeSources() {
 		if _, found := bridging[name]; !found {
 			t.Errorf("%s is pinned but no longer carries a bridge directive", name)
 		}
@@ -324,4 +311,31 @@ func TestValidateCapabilityReviewRejectsForgedGeneratedMain(t *testing.T) {
 	if err := validateCapabilityReview(closure); err == nil {
 		t.Fatal("validateCapabilityReview() succeeded")
 	}
+}
+
+func validateCapabilityClosure(packages []listedPackage) error {
+	review, err := projectCapabilityReview(packages, nil, nil)
+	if err != nil {
+		return err
+	}
+	return validateCapabilityReview(review.Closure)
+}
+
+func projectCapabilityClosure(packages []listedPackage, overlay map[string]string) (CapabilityClosure, error) {
+	review, err := projectCapabilityReview(packages, overlay, nil)
+	if err != nil {
+		return CapabilityClosure{}, err
+	}
+	return review.Closure, nil
+}
+
+func validateCapabilityReview(closure CapabilityClosure) error {
+	review, err := reviewRecordedClosure(closure, nil)
+	if err != nil {
+		return err
+	}
+	if len(review.Findings) != 0 {
+		return unsupportedFinding(review.Findings[0])
+	}
+	return nil
 }

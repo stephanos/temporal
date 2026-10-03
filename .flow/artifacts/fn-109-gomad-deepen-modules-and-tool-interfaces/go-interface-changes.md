@@ -272,3 +272,21 @@ No exported declaration is removed or changed. `target.Spec.ToolchainRoot`,
   description.
 - Architecture edge: `target` and `deterministicio` may import `toolchain/version` and
   `toolchain/installation` from the toolchain owner, nothing else (`ownerMayImport`).
+
+## R17 capability ownership and source inventory (task 11, 2026-10-03)
+
+One exported declaration is removed: `target.DigestAdapterSourceInventory(root string)
+(string, error)`. Its only consumers were `deterministicio/adapter_copy.go`, which wrapped it
+for every adapter, and `deterministicio/grpc_adapter_test.go`. Both now use the private
+`internal/sourceinventory.Digest`, which keeps the same algorithm, limits (5000 files,
+512 MiB) and error text. Searches of `tools/gomad3sim`, `tools/gomad3integration`,
+`tests/gomadfunctional` and the runner external-module fixture found no other use.
+`target.AdapterCapacityError` and `deterministicio.AdapterCapacityError` are unchanged, and
+each consumer maps `sourceinventory.CapacityError` to its own type.
+
+`ReviewCapabilities`, `ReviewCapabilityClosure`, `CapabilityReview`, `CapabilityFinding`,
+`UnsupportedCapabilityError`, `VerifyCompatibility` and the `Finding*` constants keep their
+signatures and values. The five closure finding kinds are now defined from
+`target/internal/capabilitypolicy` constants with the same strings. Everything else is private:
+the collection, evaluation and linked-projection functions in `target`, and the new internal
+packages `target/internal/capabilitypolicy` and `internal/sourceinventory`.

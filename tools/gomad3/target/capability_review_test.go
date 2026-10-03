@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
+	"go.temporal.io/server/tools/gomad3/internal/sourceinventory"
 	"go.temporal.io/server/tools/gomad3/target/internal/livecap"
 )
 
@@ -112,7 +113,7 @@ func TestProjectCapabilityReviewValidatesAdapterReplacementEvidence(t *testing.T
 	requireTestNoError(t, os.Mkdir(replacement, 0o700))
 	contents := []byte("package adapter\n")
 	requireTestNoError(t, os.WriteFile(filepath.Join(replacement, "main.go"), contents, 0o600))
-	replacementInventory, err := DigestAdapterSourceInventory(replacement)
+	replacementInventory, err := sourceinventory.Digest(replacement)
 	requireTestNoError(t, err)
 	moduleSum := "h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 	adapter := AdapterReplacement{
@@ -158,7 +159,7 @@ func TestProjectCapabilityReviewValidatesNestedAdapterPreparedPackage(t *testing
 	requireTestNoError(t, os.WriteFile(filepath.Join(packageDirectory, "internal.go"), contents, 0o600))
 	moduleSum := "h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 	sourceSHA256 := fmt.Sprintf("sha256:%x", sha256.Sum256(contents))
-	replacementInventory, err := DigestAdapterSourceInventory(replacement)
+	replacementInventory, err := sourceinventory.Digest(replacement)
 	requireTestNoError(t, err)
 	adapter := AdapterReplacement{
 		Original:        ModuleIdentity{Path: "example.com/adapter", Version: "v1.2.3", Sum: moduleSum},
@@ -202,27 +203,27 @@ func TestProjectCapabilityReviewValidatesNestedAdapterPreparedPackage(t *testing
 	}
 }
 
-func TestDigestAdapterSourceInventoryReturnsTypedCapacityError(t *testing.T) {
-	root := t.TempDir()
-	requireTestNoError(t, os.WriteFile(filepath.Join(root, "one.go"), []byte("1"), 0o600))
-	requireTestNoError(t, os.WriteFile(filepath.Join(root, "two.go"), []byte("2"), 0o600))
-
-	for _, test := range []struct {
-		name         string
-		maximumFiles int
-		maximumBytes uint64
-		resource     string
-	}{
-		{name: "files", maximumFiles: 1, maximumBytes: 2, resource: "files"},
-		{name: "bytes", maximumFiles: 2, maximumBytes: 1, resource: "bytes"},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			_, err := digestAdapterSourceInventory(root, test.maximumFiles, test.maximumBytes)
-			var capacity *AdapterCapacityError
-			if !errors.As(err, &capacity) || capacity.Resource != test.resource {
-				t.Fatalf("digestAdapterSourceInventory() error = %#v", err)
-			}
-		})
+// Capacity exhaustion while digesting an adapter replacement keeps the
+// target's typed capacity error.
+func TestProjectCapabilityReviewMapsAdapterInventoryCapacity(t *testing.T) {
+	replacement := filepath.Join(t.TempDir(), "replacement")
+	requireTestNoError(t, os.Mkdir(replacement, 0o700))
+	for index := 0; index <= 5000; index++ {
+		requireTestNoError(t, os.WriteFile(filepath.Join(replacement, fmt.Sprintf("file%04d.go", index)), nil, 0o600))
+	}
+	moduleSum := "h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+	_, err := projectCapabilityReview([]listedPackage{{
+		ImportPath: "example.com/adapter", Name: "adapter", Dir: replacement, GoFiles: []string{"file0000.go"},
+		Module: &listedModule{Path: "example.com/adapter", Version: "v1.2.3", Replace: &listedModule{Dir: replacement}},
+	}, {ImportPath: "example.com/target", Name: "main", Standard: true}}, nil, nil, []AdapterReplacement{{
+		Original: ModuleIdentity{Path: "example.com/adapter", Version: "v1.2.3", Sum: moduleSum}, ReplacementPath: replacement, PreparedPackage: "example.com/adapter",
+	}})
+	var capacity *AdapterCapacityError
+	if !errors.As(err, &capacity) || *capacity != (AdapterCapacityError{Resource: "files", Limit: 5000}) {
+		t.Fatalf("projectCapabilityReview() error = %#v", err)
+	}
+	if !strings.Contains(err.Error(), "inspect adapter replacement source inventory: adapter module exceeds files limit 5000") {
+		t.Fatalf("projectCapabilityReview() error = %v", err)
 	}
 }
 

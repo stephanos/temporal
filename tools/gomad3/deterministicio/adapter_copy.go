@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
-	"go.temporal.io/server/tools/gomad3/target"
+	"go.temporal.io/server/tools/gomad3/internal/sourceinventory"
 )
 
 const (
@@ -142,11 +142,11 @@ func readAdapterFile(path string, maximum int64) (_ []byte, retErr error) {
 }
 
 func digestAdapterSourceInventory(root string) (string, error) {
-	inventory, err := target.DigestAdapterSourceInventory(root)
+	inventory, err := sourceinventory.Digest(root)
 	if err == nil {
 		return inventory, nil
 	}
-	var capacity *target.AdapterCapacityError
+	var capacity *sourceinventory.CapacityError
 	if errors.As(err, &capacity) {
 		return "", &AdapterCapacityError{Resource: capacity.Resource, Limit: capacity.Limit}
 	}
