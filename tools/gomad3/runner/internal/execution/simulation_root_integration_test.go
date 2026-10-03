@@ -34,6 +34,7 @@ func TestRootProcessSimulationUsesRunnerTransport(t *testing.T) {
 		"TestScenarioChoicePlanForcesRankBoundDecisionAndExactlyReplays",
 		"TestScenarioChoicePlanRejectsChangedDecisionBeforeSelection",
 		"TestProcessExplorationConsumesExternalPlanAndPublishesRecord",
+		"TestProcessBackendCarriesForwardClockAcrossActivationAndQuiescence",
 		"TestProcessBackendResetsGlobalsDescriptorsAndGoroutines",
 		"TestProcessAndInProcessBackendsHaveEquivalentDetachedModels",
 		"TestProcessBackendRoutesTCPThroughSharedHostModel",
@@ -43,38 +44,51 @@ func TestRootProcessSimulationUsesRunnerTransport(t *testing.T) {
 		"TestProcessBackendCrashDrainsInflightModelOperationDeterministically",
 		"TestProcessBackendModelDigestsIgnoreCompletionOrder",
 	} {
-		t.Run(testName, func(t *testing.T) {
-			simulation := &SimulationCapability{Role: SimulationRoleCoordinator}
-			var explorationConfig simulationengine.Config
-			var explorationCandidate simulationengine.Candidate
-			if testName == "TestProcessExplorationConsumesExternalPlanAndPublishesRecord" {
-				explorationConfig, explorationCandidate, simulation.ExplorationPlan = rootExplorationPlan(t, 89)
-				simulation.ExplorationRecordLimit = 1 << 20
-				simulation.ExplorationRecordCount = 1
-			}
-			result, runErr := Run(context.Background(), Spec{
-				SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
-				BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-				Command:           target, Args: []string{"-test.run=^" + testName + "$", "-test.v", "-test.timeout=20s"}, Argv0: "gomad3sim.test", Dir: t.TempDir(),
-				Env: []string{"GOMADSEED=89", "TZ=UTC"}, ExecutionTimeout: 30 * time.Second, TerminateGrace: 2 * time.Second, OutputLimit: 1 << 20,
-				World:      WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 89},
-				Simulation: simulation,
-			})
-			if runErr != nil {
-				t.Fatalf("run root simulation target: %v: stdout=%s stderr=%s", runErr, result.Stdout.Bytes, result.Stderr.Bytes)
-			}
-			if result.Termination != TerminationExit || result.ExitCode != 0 || !result.GroupGone || !strings.Contains(string(result.Stdout.Bytes), "--- PASS: "+testName) {
-				t.Fatalf("root simulation termination=%s exit=%d signal=%s watchdog=%t group-gone=%t stdout=%s stderr=%s", result.Termination, result.ExitCode, result.Signal, result.WatchdogTimeout, result.GroupGone, result.Stdout.Bytes, result.Stderr.Bytes)
-			}
-			if testName == "TestProcessExplorationConsumesExternalPlanAndPublishesRecord" && len(result.SimulationRecords) != 1 {
-				t.Fatalf("simulation exploration records = %d, want 1", len(result.SimulationRecords))
-			}
-			if testName == "TestProcessExplorationConsumesExternalPlanAndPublishesRecord" {
-				if _, err := simulationrecord.ResultForRecord(explorationConfig, explorationCandidate, result.SimulationRecords[0], nil); err != nil {
-					t.Fatalf("project simulation exploration record: %v", err)
+		environments := []struct {
+			suffix string
+			value  []string
+		}{{value: []string{"GOMADSEED=89", "TZ=UTC"}}}
+		if testName == "TestProcessBackendCarriesForwardClockAcrossActivationAndQuiescence" || testName == "TestProcessBackendSynchronizesNodeClockWithModelDelay" {
+			environments[0].suffix = "/strict"
+			environments = append(environments, struct {
+				suffix string
+				value  []string
+			}{suffix: "/forward", value: []string{"GOMADSEED=89", "TZ=UTC", record.ClockTickEnvironment + "=" + record.ClockTickForward}})
+		}
+		for _, environment := range environments {
+			t.Run(testName+environment.suffix, func(t *testing.T) {
+				simulation := &SimulationCapability{Role: SimulationRoleCoordinator}
+				var explorationConfig simulationengine.Config
+				var explorationCandidate simulationengine.Candidate
+				if testName == "TestProcessExplorationConsumesExternalPlanAndPublishesRecord" {
+					explorationConfig, explorationCandidate, simulation.ExplorationPlan = rootExplorationPlan(t, 89)
+					simulation.ExplorationRecordLimit = 1 << 20
+					simulation.ExplorationRecordCount = 1
 				}
-			}
-		})
+				result, runErr := Run(context.Background(), Spec{
+					SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
+					BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
+					Command:           target, Args: []string{"-test.run=^" + testName + "$", "-test.v", "-test.timeout=20s"}, Argv0: "gomad3sim.test", Dir: t.TempDir(),
+					Env: environment.value, ExecutionTimeout: 30 * time.Second, TerminateGrace: 2 * time.Second, OutputLimit: 1 << 20,
+					World:      WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 89},
+					Simulation: simulation,
+				})
+				if runErr != nil {
+					t.Fatalf("run root simulation target: %v: stdout=%s stderr=%s", runErr, result.Stdout.Bytes, result.Stderr.Bytes)
+				}
+				if result.Termination != TerminationExit || result.ExitCode != 0 || !result.GroupGone || !strings.Contains(string(result.Stdout.Bytes), "--- PASS: "+testName) {
+					t.Fatalf("root simulation termination=%s exit=%d signal=%s watchdog=%t group-gone=%t stdout=%s stderr=%s", result.Termination, result.ExitCode, result.Signal, result.WatchdogTimeout, result.GroupGone, result.Stdout.Bytes, result.Stderr.Bytes)
+				}
+				if testName == "TestProcessExplorationConsumesExternalPlanAndPublishesRecord" && len(result.SimulationRecords) != 1 {
+					t.Fatalf("simulation exploration records = %d, want 1", len(result.SimulationRecords))
+				}
+				if testName == "TestProcessExplorationConsumesExternalPlanAndPublishesRecord" {
+					if _, err := simulationrecord.ResultForRecord(explorationConfig, explorationCandidate, result.SimulationRecords[0], nil); err != nil {
+						t.Fatalf("project simulation exploration record: %v", err)
+					}
+				}
+			})
+		}
 	}
 }
 

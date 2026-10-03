@@ -75,7 +75,7 @@ func TestServeSimulationTimeExchangesBoundedFrames(t *testing.T) {
 }
 
 func TestSimulationTimeArbiterAdvancesEveryParticipantToEarliestDeadline(t *testing.T) {
-	arbiter := newSimulationTimeArbiter()
+	arbiter := newSimulationTimeArbiter(false)
 	coordinator, err := arbiter.register("coordinator")
 	if err != nil {
 		t.Fatal(err)
@@ -127,8 +127,153 @@ func TestSimulationTimeArbiterAdvancesEveryParticipantToEarliestDeadline(t *test
 	}
 }
 
+func TestSimulationTimeArbiterAcceptsForwardTickEpoch(t *testing.T) {
+	arbiter := newSimulationTimeArbiter(true)
+	participant, err := arbiter.register("coordinator")
+	if err != nil {
+		t.Fatal(err)
+	}
+	arbiter.activate(participant)
+
+	response, err := arbiter.quiesce(context.Background(), participant, simulationTimeRequest{
+		Generation: 1, Current: simulationInitialTime + 100, Deadline: simulationInitialTime + 110,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := simulationTimeResponse{Generation: 1, Kind: simulationTimeAdvance, Time: simulationInitialTime + 110}
+	if response != want {
+		t.Fatalf("response = %#v, want %#v", response, want)
+	}
+}
+
+func TestSimulationTimeArbiterForwardActivationAdoptsCurrent(t *testing.T) {
+	arbiter := newSimulationTimeArbiter(true)
+	participant, err := arbiter.register("node/1")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	current := simulationInitialTime + 100
+	activated, err := arbiter.activateAt(participant, current)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if activated != current {
+		t.Fatalf("activation time = %d, want %d", activated, current)
+	}
+	if !participant.active {
+		t.Fatal("participant was not activated")
+	}
+	if cluster := arbiter.currentTime(); cluster != current {
+		t.Fatalf("cluster time = %d, want %d", cluster, current)
+	}
+}
+
+func TestSimulationTimeArbiterStrictActivationRejectsFutureCurrent(t *testing.T) {
+	arbiter := newSimulationTimeArbiter(false)
+	participant, err := arbiter.register("node/1")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = arbiter.activateAt(participant, simulationInitialTime+100)
+	if err == nil {
+		t.Fatal("strict arbiter accepted a future activation epoch")
+	}
+	if participant.active {
+		t.Fatal("participant activated after the request was rejected")
+	}
+	if current := arbiter.currentTime(); current != simulationInitialTime {
+		t.Fatalf("strict arbiter changed time to %d after rejecting activation", current)
+	}
+}
+
+func TestSimulationTimeArbiterForwardTickEpochIsOrderIndependent(t *testing.T) {
+	for _, reverse := range []bool{false, true} {
+		t.Run(map[bool]string{false: "lower-first", true: "higher-first"}[reverse], func(t *testing.T) {
+			arbiter := newSimulationTimeArbiter(true)
+			lower, err := arbiter.register("node/lower")
+			if err != nil {
+				t.Fatal(err)
+			}
+			higher, err := arbiter.register("node/higher")
+			if err != nil {
+				t.Fatal(err)
+			}
+			arbiter.activate(lower)
+			arbiter.activate(higher)
+
+			type request struct {
+				participant *simulationTimeParticipant
+				current     int64
+				deadline    int64
+			}
+			requests := []request{
+				{participant: lower, current: simulationInitialTime + 11, deadline: simulationInitialTime + 50},
+				{participant: higher, current: simulationInitialTime + 17, deadline: simulationInitialTime + 40},
+			}
+			if reverse {
+				requests[0], requests[1] = requests[1], requests[0]
+			}
+
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			defer cancel()
+			responses := make(chan simulationTimeResponse, 2)
+			errors := make(chan error, 2)
+			quiesce := func(current request) {
+				response, quiesceErr := arbiter.quiesce(ctx, current.participant, simulationTimeRequest{
+					Generation: 1, Current: current.current, Deadline: current.deadline,
+				})
+				responses <- response
+				errors <- quiesceErr
+			}
+			go quiesce(requests[0])
+			waitForSimulationQuiescence(t, arbiter, requests[0].participant)
+			select {
+			case response := <-responses:
+				t.Fatalf("first participant advanced before the other quiesced: %#v", response)
+			default:
+			}
+			go quiesce(requests[1])
+
+			first := <-responses
+			second := <-responses
+			if err := <-errors; err != nil {
+				t.Fatal(err)
+			}
+			if err := <-errors; err != nil {
+				t.Fatal(err)
+			}
+			wantTime := simulationInitialTime + 40
+			if first.Kind != simulationTimeAdvance || second.Kind != simulationTimeAdvance || first.Time != wantTime || second.Time != wantTime {
+				t.Fatalf("responses = %#v, %#v, want advance to %d", first, second, wantTime)
+			}
+		})
+	}
+}
+
+func TestSimulationTimeArbiterRejectsForwardTickEpochPastItsDeadline(t *testing.T) {
+	arbiter := newSimulationTimeArbiter(true)
+	participant, err := arbiter.register("coordinator")
+	if err != nil {
+		t.Fatal(err)
+	}
+	arbiter.activate(participant)
+
+	_, err = arbiter.quiesce(context.Background(), participant, simulationTimeRequest{
+		Generation: 1, Current: simulationInitialTime + 100, Deadline: simulationInitialTime + 99,
+	})
+	if err == nil {
+		t.Fatal("arbiter accepted a forward-tick epoch past its deadline")
+	}
+	if current := arbiter.currentTime(); current != simulationInitialTime {
+		t.Fatalf("arbiter changed time to %d after rejecting the request", current)
+	}
+}
+
 func TestSimulationTimeArbiterCancelsAnEpochWhenExternalWorkArrives(t *testing.T) {
-	arbiter := newSimulationTimeArbiter()
+	arbiter := newSimulationTimeArbiter(false)
 	coordinator, err := arbiter.register("coordinator")
 	if err != nil {
 		t.Fatal(err)
@@ -176,7 +321,7 @@ func TestSimulationTimeArbiterCancelsAnEpochWhenExternalWorkArrives(t *testing.T
 }
 
 func TestSimulationTimeArbiterDoesNotAdvancePastExternalWorkOrInactiveParticipants(t *testing.T) {
-	arbiter := newSimulationTimeArbiter()
+	arbiter := newSimulationTimeArbiter(false)
 	coordinator, err := arbiter.register("coordinator")
 	if err != nil {
 		t.Fatal(err)
@@ -240,7 +385,7 @@ func TestSimulationTimeArbiterDoesNotAdvancePastExternalWorkOrInactiveParticipan
 }
 
 func TestSimulationTimeArbiterExcludesAnExternallyBlockedParticipant(t *testing.T) {
-	arbiter := newSimulationTimeArbiter()
+	arbiter := newSimulationTimeArbiter(false)
 	coordinator, err := arbiter.register("coordinator")
 	if err != nil {
 		t.Fatal(err)
@@ -276,7 +421,7 @@ func TestSimulationTimeArbiterExcludesAnExternallyBlockedParticipant(t *testing.
 }
 
 func TestSimulationTimeArbiterSettlesWhenLastRunnableParticipantBlocksExternally(t *testing.T) {
-	arbiter := newSimulationTimeArbiter()
+	arbiter := newSimulationTimeArbiter(false)
 	coordinator, err := arbiter.register("coordinator")
 	if err != nil {
 		t.Fatal(err)
@@ -313,7 +458,7 @@ func TestSimulationTimeArbiterSettlesWhenLastRunnableParticipantBlocksExternally
 }
 
 func TestSimulationTimeArbiterDoesNotSettleWhileExternalRequestIsHandled(t *testing.T) {
-	arbiter := newSimulationTimeArbiter()
+	arbiter := newSimulationTimeArbiter(false)
 	coordinator, err := arbiter.register("coordinator")
 	if err != nil {
 		t.Fatal(err)
@@ -351,7 +496,7 @@ func TestSimulationTimeArbiterDoesNotSettleWhileExternalRequestIsHandled(t *test
 }
 
 func TestSimulationTimeArbiterAdvancesAfterForwardedRequestIsDelivered(t *testing.T) {
-	arbiter := newSimulationTimeArbiter()
+	arbiter := newSimulationTimeArbiter(false)
 	coordinator, err := arbiter.register("coordinator")
 	if err != nil {
 		t.Fatal(err)
@@ -362,7 +507,7 @@ func TestSimulationTimeArbiterAdvancesAfterForwardedRequestIsDelivered(t *testin
 	}
 	arbiter.activate(coordinator)
 	arbiter.activate(node)
-	if err := arbiter.forwardExternalAfterArrivals(node, 0, coordinator); err != nil {
+	if err := arbiter.forwardExternalAfterArrivals(node, 0, 0, coordinator); err != nil {
 		t.Fatal(err)
 	}
 	arbiter.deliverExternal(coordinator)
@@ -380,7 +525,7 @@ func TestSimulationTimeArbiterAdvancesAfterForwardedRequestIsDelivered(t *testin
 }
 
 func TestSimulationTimeArbiterForwardsExternalRequestAtomically(t *testing.T) {
-	arbiter := newSimulationTimeArbiter()
+	arbiter := newSimulationTimeArbiter(false)
 	coordinator, err := arbiter.register("coordinator")
 	if err != nil {
 		t.Fatal(err)
@@ -402,7 +547,7 @@ func TestSimulationTimeArbiterForwardsExternalRequestAtomically(t *testing.T) {
 		errors <- quiesceErr
 	}()
 	waitForSimulationQuiescence(t, arbiter, coordinator)
-	if err := arbiter.forwardExternalAfterArrivals(node, 0, coordinator); err != nil {
+	if err := arbiter.forwardExternalAfterArrivals(node, 0, 0, coordinator); err != nil {
 		t.Fatal(err)
 	}
 	if current := arbiter.currentTime(); current != simulationInitialTime {
@@ -418,7 +563,7 @@ func TestSimulationTimeArbiterForwardsExternalRequestAtomically(t *testing.T) {
 }
 
 func TestSimulationTimeArbiterTransfersExternalArrivalAtomically(t *testing.T) {
-	arbiter := newSimulationTimeArbiter()
+	arbiter := newSimulationTimeArbiter(false)
 	coordinator, err := arbiter.register("coordinator")
 	if err != nil {
 		t.Fatal(err)
@@ -464,7 +609,7 @@ func TestSimulationTimeArbiterTransfersExternalArrivalAtomically(t *testing.T) {
 }
 
 func TestSimulationTimeArbiterWaitsForDeliveredExternalWorkToBeConsumed(t *testing.T) {
-	arbiter := newSimulationTimeArbiter()
+	arbiter := newSimulationTimeArbiter(false)
 	coordinator, err := arbiter.register("coordinator")
 	if err != nil {
 		t.Fatal(err)
@@ -516,7 +661,7 @@ func TestSimulationTimeArbiterWaitsForDeliveredExternalWorkToBeConsumed(t *testi
 }
 
 func TestSimulationTimeArbiterRejoinsAfterExternalWorkArrives(t *testing.T) {
-	arbiter := newSimulationTimeArbiter()
+	arbiter := newSimulationTimeArbiter(false)
 	participant, err := arbiter.register("coordinator")
 	if err != nil {
 		t.Fatal(err)
@@ -572,7 +717,7 @@ func TestSimulationTimeArbiterRejoinsAfterExternalWorkArrives(t *testing.T) {
 }
 
 func TestSimulationTimeArbiterActivatesRestartAtCurrentTime(t *testing.T) {
-	arbiter := newSimulationTimeArbiter()
+	arbiter := newSimulationTimeArbiter(false)
 	coordinator, err := arbiter.register("coordinator")
 	if err != nil {
 		t.Fatal(err)
@@ -609,5 +754,142 @@ func waitForSimulationQuiescence(t *testing.T, arbiter *simulationTimeArbiter, p
 		default:
 			runtime.Gosched()
 		}
+	}
+}
+
+func TestSimulationTimeArbiterRejectsForwardTickEpochInStrictMode(t *testing.T) {
+	arbiter := newSimulationTimeArbiter(false)
+	participant, err := arbiter.register("coordinator")
+	if err != nil {
+		t.Fatal(err)
+	}
+	arbiter.activate(participant)
+
+	_, err = arbiter.quiesce(context.Background(), participant, simulationTimeRequest{
+		Generation: 1, Current: simulationInitialTime + 100, Deadline: simulationInitialTime + 110,
+	})
+	if err == nil {
+		t.Fatal("strict arbiter accepted a forward-tick epoch")
+	}
+	if current := arbiter.currentTime(); current != simulationInitialTime {
+		t.Fatalf("strict arbiter changed time to %d after rejecting the request", current)
+	}
+}
+
+func TestSimulationTimeArbiterForwardTickEarlyResponsesDoNotRewind(t *testing.T) {
+	for _, test := range []struct {
+		name string
+		set  func(*simulationTimeArbiter, *simulationTimeParticipant)
+		kind simulationTimeResponseKind
+	}{
+		{name: "inactive", set: func(*simulationTimeArbiter, *simulationTimeParticipant) {}, kind: simulationTimeAdvance},
+		{name: "delivered", set: func(arbiter *simulationTimeArbiter, participant *simulationTimeParticipant) {
+			arbiter.activate(participant)
+			arbiter.beginExternal(participant)
+			arbiter.deliverExternal(participant)
+		}, kind: simulationTimeRetry},
+		{name: "external", set: func(arbiter *simulationTimeArbiter, participant *simulationTimeParticipant) {
+			arbiter.activate(participant)
+			arbiter.beginExternal(participant)
+		}, kind: simulationTimeExternal},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			arbiter := newSimulationTimeArbiter(true)
+			participant, err := arbiter.register("node/1")
+			if err != nil {
+				t.Fatal(err)
+			}
+			test.set(arbiter, participant)
+			current := simulationInitialTime + 100
+			response, err := arbiter.quiesce(context.Background(), participant, simulationTimeRequest{
+				Generation: 1, Current: current, Deadline: current + 10,
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if response.Kind != test.kind || response.Time < current {
+				t.Fatalf("response = %#v, want kind %d at or after %d", response, test.kind, current)
+			}
+			if actual := arbiter.currentTime(); actual != current {
+				t.Fatalf("current time = %d, want %d", actual, current)
+			}
+		})
+	}
+}
+
+func TestSimulationTimeArbiterMalformedForwardTickRequestDoesNotAdvance(t *testing.T) {
+	arbiter := newSimulationTimeArbiter(true)
+	participant, err := arbiter.register("node/1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	arbiter.activate(participant)
+
+	_, err = arbiter.quiesce(context.Background(), participant, simulationTimeRequest{
+		Generation: 1, Current: simulationInitialTime + 100, Deadline: simulationInitialTime + 110, Arrivals: 1,
+	})
+	if err == nil {
+		t.Fatal("arbiter accepted a forward-tick request with an unknown arrival")
+	}
+	if current := arbiter.currentTime(); current != simulationInitialTime {
+		t.Fatalf("arbiter changed time to %d after rejecting the request", current)
+	}
+}
+
+func TestSimulationTimeArbiterAdoptsForwardedModelCurrent(t *testing.T) {
+	arbiter := newSimulationTimeArbiter(true)
+	source, err := arbiter.register("node/1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	destination, err := arbiter.register("coordinator")
+	if err != nil {
+		t.Fatal(err)
+	}
+	arbiter.activate(source)
+	arbiter.activate(destination)
+
+	current := simulationInitialTime + 100
+	if err := arbiter.forwardExternalAfterArrivals(source, 0, current, destination); err != nil {
+		t.Fatal(err)
+	}
+	if actual := arbiter.currentTime(); actual != current {
+		t.Fatalf("current time = %d, want %d", actual, current)
+	}
+}
+
+func TestSimulationTimeArbiterRejectsInvalidForwardedModelCurrentWithoutMutation(t *testing.T) {
+	for _, test := range []struct {
+		name     string
+		forward  bool
+		current  int64
+		arrivals uint32
+	}{
+		{name: "strict future", current: simulationInitialTime + 100},
+		{name: "unknown arrival", forward: true, current: simulationInitialTime + 100, arrivals: 1},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			arbiter := newSimulationTimeArbiter(test.forward)
+			source, err := arbiter.register("node/1")
+			if err != nil {
+				t.Fatal(err)
+			}
+			destination, err := arbiter.register("coordinator")
+			if err != nil {
+				t.Fatal(err)
+			}
+			arbiter.activate(source)
+			arbiter.activate(destination)
+
+			if err := arbiter.forwardExternalAfterArrivals(source, test.arrivals, test.current, destination); err == nil {
+				t.Fatal("arbiter accepted an invalid forwarded model current")
+			}
+			if current := arbiter.currentTime(); current != simulationInitialTime {
+				t.Fatalf("arbiter changed time to %d after rejecting the request", current)
+			}
+			if source.external != 0 || source.delivered != 0 || destination.external != 0 || destination.handling != 0 {
+				t.Fatalf("arbiter changed participants after rejecting the request: source=%#v destination=%#v", source, destination)
+			}
+		})
 	}
 }

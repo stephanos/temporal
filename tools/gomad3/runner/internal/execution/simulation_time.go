@@ -130,6 +130,17 @@ func encodeSimulationActivationTime(current int64) []byte {
 	return encoded
 }
 
+func decodeSimulationActivationTime(encoded []byte) (int64, error) {
+	if len(encoded) != 8 {
+		return 0, errors.New("process simulation activation time is invalid")
+	}
+	current := int64(binary.BigEndian.Uint64(encoded))
+	if current < simulationInitialTime {
+		return 0, errors.New("process simulation activation time is invalid")
+	}
+	return current, nil
+}
+
 func serveSimulationTime(ctx context.Context, source io.Reader, destination io.Writer, handler func(context.Context, simulationTimeRequest) (simulationTimeResponse, error)) error {
 	if handler == nil {
 		return errors.New("simulation time handler is unavailable")
@@ -183,11 +194,12 @@ type simulationTimeParticipant struct {
 type simulationTimeArbiter struct {
 	mu           sync.Mutex
 	current      int64
+	forward      bool
 	participants map[string]*simulationTimeParticipant
 }
 
-func newSimulationTimeArbiter() *simulationTimeArbiter {
-	return &simulationTimeArbiter{current: simulationInitialTime, participants: make(map[string]*simulationTimeParticipant)}
+func newSimulationTimeArbiter(forward bool) *simulationTimeArbiter {
+	return &simulationTimeArbiter{current: simulationInitialTime, forward: forward, participants: make(map[string]*simulationTimeParticipant)}
 }
 
 func (arbiter *simulationTimeArbiter) register(name string) (*simulationTimeParticipant, error) {
@@ -213,6 +225,22 @@ func (arbiter *simulationTimeArbiter) activate(participant *simulationTimePartic
 	return arbiter.current
 }
 
+func (arbiter *simulationTimeArbiter) activateAt(participant *simulationTimeParticipant, current int64) (int64, error) {
+	arbiter.mu.Lock()
+	defer arbiter.mu.Unlock()
+	if participant == nil || arbiter.participants[participant.name] != participant {
+		return 0, errors.New("simulation time participant is inactive")
+	}
+	if current < simulationInitialTime || !arbiter.forward && current > arbiter.current {
+		return 0, fmt.Errorf("simulation activation time does not match the current epoch: participant=%q current=%d cluster=%d", participant.name, current, arbiter.current)
+	}
+	if current > arbiter.current {
+		arbiter.current = current
+	}
+	participant.active = true
+	return arbiter.current, nil
+}
+
 func (arbiter *simulationTimeArbiter) quiesce(ctx context.Context, participant *simulationTimeParticipant, request simulationTimeRequest) (simulationTimeResponse, error) {
 	if ctx == nil {
 		return simulationTimeResponse{}, errors.New("simulation time context is nil")
@@ -226,7 +254,7 @@ func (arbiter *simulationTimeArbiter) quiesce(ctx context.Context, participant *
 		arbiter.mu.Unlock()
 		return simulationTimeResponse{}, errors.New("simulation time participant is already quiescent")
 	}
-	if request.Generation != participant.generation+1 || request.Deadline < request.Current || request.Current > arbiter.current {
+	if request.Generation != participant.generation+1 || request.Deadline < request.Current || !arbiter.forward && request.Current > arbiter.current {
 		err := fmt.Errorf("simulation time request does not match the current epoch: participant=%q active=%t generation=%d want=%d current=%d cluster=%d deadline=%d", participant.name, participant.active, request.Generation, participant.generation+1, request.Current, arbiter.current, request.Deadline)
 		arbiter.mu.Unlock()
 		return simulationTimeResponse{}, err
@@ -235,10 +263,13 @@ func (arbiter *simulationTimeArbiter) quiesce(ctx context.Context, participant *
 		arbiter.mu.Unlock()
 		return simulationTimeResponse{}, fmt.Errorf("simulation time request acknowledged unknown external work: participant=%q arrivals=%d external=%d delivered=%d", participant.name, request.Arrivals, participant.external, participant.delivered)
 	}
+	if request.Current > arbiter.current {
+		arbiter.current = request.Current
+	}
 	participant.generation = request.Generation
 	participant.external -= uint64(request.Arrivals)
 	participant.delivered -= uint64(request.Arrivals)
-	if request.Current < arbiter.current {
+	if request.Current < arbiter.current && !arbiter.forward {
 		response := simulationTimeResponse{Generation: request.Generation, Kind: simulationTimeAdvance, Time: arbiter.current}
 		arbiter.mu.Unlock()
 		return response, nil
@@ -349,14 +380,20 @@ func (arbiter *simulationTimeArbiter) beginExternalAfterArrivals(participant *si
 	return nil
 }
 
-func (arbiter *simulationTimeArbiter) forwardExternalAfterArrivals(source *simulationTimeParticipant, arrivals uint32, destination *simulationTimeParticipant) error {
+func (arbiter *simulationTimeArbiter) forwardExternalAfterArrivals(source *simulationTimeParticipant, arrivals uint32, current int64, destination *simulationTimeParticipant) error {
 	arbiter.mu.Lock()
 	defer arbiter.mu.Unlock()
 	if source == nil || destination == nil || source == destination || arbiter.participants[source.name] != source || arbiter.participants[destination.name] != destination {
 		return errors.New("simulation time participant is inactive")
 	}
+	if current != 0 && current < simulationInitialTime || !arbiter.forward && current > arbiter.current {
+		return fmt.Errorf("simulation forwarded time does not match the current epoch: participant=%q current=%d cluster=%d", source.name, current, arbiter.current)
+	}
 	if uint64(arrivals) > source.delivered {
 		return fmt.Errorf("simulation time request acknowledged unknown external work: participant=%q arrivals=%d external=%d delivered=%d", source.name, arrivals, source.external, source.delivered)
+	}
+	if current > arbiter.current {
+		arbiter.current = current
 	}
 	source.external -= uint64(arrivals)
 	source.delivered -= uint64(arrivals)
@@ -476,7 +513,7 @@ func (arbiter *simulationTimeArbiter) settleLocked() {
 		}
 	}
 	if deadline != math.MaxInt64 {
-		arbiter.current = deadline
+		arbiter.current = max(arbiter.current, deadline)
 	}
 	for _, participant := range arbiter.participants {
 		if !participant.active || participant.external != 0 {

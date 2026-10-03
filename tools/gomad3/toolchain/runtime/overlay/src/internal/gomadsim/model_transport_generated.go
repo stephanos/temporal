@@ -90,7 +90,7 @@ func validateModelTransportFrame(frame ModelTransportFrame) error {
 	if frame.Response && frame.Time != 0 && frame.Time < ModelTransportInitialTime {
 		return errors.New("simulation model transport response time is invalid")
 	}
-	if !frame.Response && (frame.Node == "" || frame.Incarnation == 0 || frame.Time != 0 || frame.Error != "") {
+	if !frame.Response && (frame.Node == "" || frame.Incarnation == 0 || frame.Time != 0 && frame.Time < ModelTransportInitialTime || frame.Error != "") {
 		return errors.New("simulation model transport request identity is invalid")
 	}
 	return nil

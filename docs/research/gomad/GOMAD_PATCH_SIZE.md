@@ -38,7 +38,47 @@ The scratch candidate moved three implementations into the existing [runtime ove
 
 Together these extractions save 3,059 bytes and 95 patch lines with three context lines. They put simulation arbitration behind a small interface without copying the entire upstream scheduler into the overlay. The scratch candidate retains the existing stock M/P timer-wake machinery in `proc.go`.
 
-The candidate compiles and links on `darwin/arm64` and cross-compiles and links for `linux/amd64`. For each scheduler prototype, a small timer/goroutine program matched the unchanged toolchain in 20 local comparisons: four repetitions for each of seeds 0, 1, 7, 42 and disabled mode. Those checks do not exercise process simulation, syscall-arrival races, GC-heavy targets, or exact choice replay. They establish feasibility, not full behavioral equivalence.
+### Scheduler extraction implementation
+
+Task fn-110.2 regenerated the three-context-line patch on 2026-10-03 after
+moving the three scheduler implementations into `src/runtime/gomad.go`. The
+checkout already included the fn-114.13 and fn-112.5 runtime changes, so its
+pre-extraction patch was larger than the fn-110.1 baseline. Those changes were
+retained.
+
+| Measurement | fn-110.1 baseline | Task 2 start | Scheduler extraction | Task 2 delta |
+| --- | ---: | ---: | ---: | ---: |
+| Patch bytes | 32,652 | 36,347 | 33,288 | -3,059 |
+| Patch lines | 1,007 | 1,127 | 1,032 | -95 |
+| `src/runtime/proc.go` added / deleted | 205 / 20 | 214 / 26 | 126 / 26 | -88 / 0 |
+| `src/runtime/gomad.go` overlay bytes | not isolated | 62,978 | 65,913 | +2,935 |
+| `src/runtime/gomad.go` overlay lines | not isolated | 1,782 | 1,882 | +100 |
+
+The extraction therefore reproduces the investigation's 3,059-byte and
+95-line saving against the source it actually started from. The intermediate
+patch is 636 bytes larger than the earlier fn-110.1 snapshot because of the
+retained runtime work merged between tasks; the extraction itself did not
+reverse or hide that work. The pre-extraction patch SHA-256 was
+`9b8dda3bec6e059ba2c51a3f076dc94a8899121d19f6e837bca1b53b8c97a807`;
+the regenerated patch SHA-256 is
+`f0b9d836c8930adfa0f75e2bfe64b0528c65cb4cff66acdccbb677b4a234a6ad`.
+
+The governed materialize/regenerate workflow and `make -C tools/gomad3
+generate validate` passed. Separate baseline and extracted source trees both
+compiled with their overlays on the available `linux/arm64` development host,
+and the locked-syscall fixture produced `locked syscall resumed` on both for
+disabled mode and seeds 0, 1, 7, and 42. `runtime.TestSizeof` also passed in
+both local trees. An audit follow-up rebuilt the fixture against both trees and
+passed the named `arrival-before-timer`, `arrival-after-timer-fired`, and
+`arrival-during-quiescence-round-trip` modes. The first mode also verifies that
+its pending timer eventually fires. These are development checks only:
+`linux/arm64` is not a
+qualified Gomad platform. No native `darwin/arm64` or `linux/amd64` fixture,
+replay, runtime, upstream, live-capability, or process-simulation comparison
+ran, so behavioral qualification and both supported-platform acceptance
+remain incomplete.
+
+The earlier investigation candidate compiled and linked on `darwin/arm64` and cross-compiled and linked for `linux/amd64`. For each scheduler prototype, a small timer/goroutine program matched the unchanged toolchain in 20 local comparisons: four repetitions for each of seeds 0, 1, 7, 42 and disabled mode. Those checks do not exercise process simulation, syscall-arrival races, GC-heavy targets, or exact choice replay. They establish feasibility, not full behavioral equivalence and are not task 2 qualification evidence.
 
 Two smaller hook consolidations are also possible. A compiler overlay in package `gc` can call `gomadintercept.Apply` and then `gomadguard.Apply`, leaving one call in `gc/main.go`; the measured source sketch saves 356 bytes and 10 patch lines. A linker setup helper in the existing `ld/gomadcap.go` can set `runtime.gomadExternal` and then emit the capability manifest, leaving one call in `ld/lib.go`; this sketch saves 217 bytes and six patch lines. Neither sketch was built. The external-link marker must be set before the manifest helper's optional `-gomadcap` early return.
 

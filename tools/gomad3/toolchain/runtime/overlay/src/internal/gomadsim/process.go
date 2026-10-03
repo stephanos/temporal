@@ -55,6 +55,9 @@ func runtimeSimulationTimeCurrent() int64
 //go:linkname runtimeSimulationTimeObserve runtime.gomadSimulationTimeObserve
 func runtimeSimulationTimeObserve(int64) bool
 
+//go:linkname runtimeSimulationTimeObserveForward runtime.gomadSimulationTimeObserveForward
+func runtimeSimulationTimeObserveForward(int64) bool
+
 //go:linkname runtimeControlEnvironment runtime.gomadControlEnvironment
 func runtimeControlEnvironment(string) (string, bool)
 
@@ -122,7 +125,7 @@ func ProcessServeModel(handler func(string, uint64, []byte) ([]byte, string)) bo
 				return false
 			}
 			frame, err := DecodeModelTransportFrame(request.payload)
-			if err != nil || frame.Response {
+			if err != nil || frame.Response || !runtimeSimulationTimeObserveForward(frame.Time) {
 				return false
 			}
 			inFlight++

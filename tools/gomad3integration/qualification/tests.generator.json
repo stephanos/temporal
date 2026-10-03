@@ -123,14 +123,7 @@
       "reason": "Its choice tape overflows the 64 MiB bound (choice_trace_overflow, darwin/arm64 2026-09-29); seed repeatability is proven without a retained success replay."
     },
     "TestStandaloneActivityTestSuite": {
-      "clock_tick": "forward",
-      "skip_subtests": {
-        "TestStartDelay/UpdateWhilePaused_AfterWindow_ExtendsDispatch": {
-          "owner": "gomad3",
-          "date": "2026-09-30",
-          "reason": "Under the forward clock tick a deadline propagated over gRPC lands a few microseconds later on the server than on the client, because time.Now runs ahead of the timer clock by the accumulated draws; the 3s long poll then hits the client's context deadline before the server returns its empty response (seed 11; seed 17 passes). The suite runs under forward because that removes eleven timestamp-tie skips."
-        }
-      }
+      "clock_tick": "forward"
     },
     "TestTaskQueueSuite": {
       "clock_tick": "forward"

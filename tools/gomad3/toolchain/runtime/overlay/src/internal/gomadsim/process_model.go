@@ -16,6 +16,14 @@ type processModelResult struct {
 	ok    bool
 }
 
+type processModelPending struct {
+	node        string
+	incarnation uint64
+	current     int64
+	limit       uint64
+	result      chan processModelResult
+}
+
 var processModels = struct {
 	sync.Mutex
 	write       sync.Mutex
@@ -24,7 +32,7 @@ var processModels = struct {
 	next        uint64
 	request     int
 	response    int
-	pending     map[uint64]chan processModelResult
+	pending     map[uint64]processModelPending
 	done        chan struct{}
 }{}
 
@@ -43,7 +51,7 @@ func ProcessModelExchange(node string, incarnation uint64, payload []byte, limit
 		processModels.initialized = true
 		processModels.request = request
 		processModels.response = response
-		processModels.pending = make(map[uint64]chan processModelResult)
+		processModels.pending = make(map[uint64]processModelPending)
 		processModels.done = make(chan struct{})
 		go readProcessModelResponses(response)
 	}
@@ -58,15 +66,16 @@ func ProcessModelExchange(node string, incarnation uint64, payload []byte, limit
 		return nil, "", false
 	}
 	requestID := processModels.next
+	current := runtimeSimulationTimeCurrent()
 	result := make(chan processModelResult, 1)
-	processModels.pending[requestID] = result
+	processModels.pending[requestID] = processModelPending{node: node, incarnation: incarnation, current: current, limit: limit, result: result}
 	requestDescriptor := processModels.request
 	done := processModels.done
 	processModels.Unlock()
 	runtimeSimulationExternalBegin()
 	defer runtimeSimulationExternalEnd()
 
-	request := ModelTransportFrame{Request: requestID, Node: node, Incarnation: incarnation, Arrivals: runtimeSimulationTimeTakeArrivals(), Payload: append([]byte(nil), payload...)}
+	request := ModelTransportFrame{Request: requestID, Node: node, Incarnation: incarnation, Arrivals: runtimeSimulationTimeTakeArrivals(), Time: current, Payload: append([]byte(nil), payload...)}
 	encoded, err := EncodeModelTransportFrame(request)
 	if err != nil {
 		removeProcessModelRequest(requestID)
@@ -108,7 +117,17 @@ func readProcessModelResponses(descriptor int) {
 			return
 		}
 		frame, err := DecodeModelTransportFrame(encoded)
-		if err != nil || !frame.Response || !runtimeSimulationTimeObserve(frame.Time) {
+		if err != nil || !frame.Response {
+			failProcessModels()
+			return
+		}
+		processModels.Lock()
+		pending, ok := processModels.pending[frame.Request]
+		if ok {
+			delete(processModels.pending, frame.Request)
+		}
+		processModels.Unlock()
+		if !ok || frame.Node != "" && frame.Node != pending.node || frame.Incarnation != 0 && frame.Incarnation != pending.incarnation || frame.Time < pending.current || uint64(len(frame.Payload)) > pending.limit || !runtimeSimulationTimeObserve(frame.Time) {
 			failProcessModels()
 			return
 		}
@@ -117,17 +136,7 @@ func readProcessModelResponses(descriptor int) {
 			failProcessModels()
 			return
 		}
-		processModels.Lock()
-		result := processModels.pending[frame.Request]
-		if result != nil {
-			delete(processModels.pending, frame.Request)
-		}
-		processModels.Unlock()
-		if result == nil {
-			failProcessModels()
-			return
-		}
-		result <- processModelResult{frame: frame, ok: true}
+		pending.result <- processModelResult{frame: frame, ok: true}
 	}
 }
 

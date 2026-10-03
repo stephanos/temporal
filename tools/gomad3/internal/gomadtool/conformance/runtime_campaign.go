@@ -317,6 +317,9 @@ func (campaign *runtimeCampaign) execute() error {
 		{name: "clock-deadlock", packageName: "./clock_deadlock"},
 		{name: "clock-io", packageName: "./clock_io"},
 		{name: "clock-tick", packageName: "./clock_tick"},
+		{name: "clock-tick-deadline", packageName: "./clock_tick_deadline"},
+		{name: "clock-tick-due", packageName: "./clock_tick_due"},
+		{name: "locked-syscall", packageName: "./locked_syscall"},
 	} {
 		binary, err := campaign.build(fixture.name, fixture.packageName, fixture.cgo)
 		if err != nil {
@@ -332,6 +335,12 @@ func (campaign *runtimeCampaign) execute() error {
 		binaries[fixture.name] = binary
 	}
 	if err := campaign.requireClockTickBehavior(binaries["clock-tick"]); err != nil {
+		return err
+	}
+	if err := campaign.requireForwardClockDeadline(binaries["clock-tick-deadline"]); err != nil {
+		return err
+	}
+	if err := campaign.requireForwardClockDueTimer(binaries["clock-tick-due"]); err != nil {
 		return err
 	}
 	if err := campaign.requireClockBehavior(binaries); err != nil {

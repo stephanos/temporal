@@ -19,6 +19,27 @@ import (
 )
 
 func (campaign *runtimeCampaign) requireSchedulingBehavior(binaries map[string]string) error {
+	for _, fixture := range []struct {
+		name   string
+		mode   string
+		output string
+	}{
+		{name: "locked-syscall-arrival-before-timer", mode: "arrival-before-timer", output: "locked syscall arrived before timer; timer fired"},
+		{name: "locked-syscall-arrival-after-timer-fired", mode: "arrival-after-timer-fired", output: "timer fired before locked syscall arrived"},
+		{name: "locked-syscall-arrival-during-quiescence-round-trip", mode: "arrival-during-quiescence-round-trip", output: "locked syscall arrived during quiescence; timer fired"},
+	} {
+		result, err := campaign.command(
+			fixture.name, []string{binaries["locked-syscall"], fixture.mode}, campaign.testdata, 10*time.Second,
+			[]string{"GOMADSEED", "GOMAD3_CHILD_SEED", "GOMAD3_IO_PROFILE", "GOMAD3_SIMULATION_TIME_REQUEST_FD", "GOMAD3_SIMULATION_TIME_RESPONSE_FD", "GODEBUG", "GOMAXPROCS", "TZ"},
+			"GODEBUG=asyncpreemptoff=1", "GOMAXPROCS=1", "TZ=UTC",
+		)
+		if err != nil {
+			return err
+		}
+		if err := requireOutput(result, fixture.output, fixture.name); err != nil {
+			return err
+		}
+	}
 	if err := campaign.requireSearchReproduction(binaries); err != nil {
 		return err
 	}

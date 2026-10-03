@@ -137,14 +137,16 @@ overlay-test: toolchain
 # The gomad3_toolchain tests of the root module's tools/gomad3sim need a seeded
 # runtime, so they run through the exec wrapper. The tests that need the
 # Runner's simulation transport skip there; the integration-tagged Runner test
-# is their executor. The node-clock delay test has a recorded watchdog failure
-# and remains a finding; every other subtest runs here.
+# is their executor. The strict node-clock delay test has a recorded watchdog
+# failure and remains a finding; its forward-mode regression runs separately.
 test-simulation: toolchain
 	cd $(CURDIR)/../.. && env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 \
 		$(CURDIR)/.toolchain/bin/go test -exec $(CURDIR)/internal/gomadtool/conformance/scripts/exec.sh \
 		-count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration \
-		-run '^TestRootProcessSimulationUsesRunnerTransport$$/^Test(Scenario|ProcessExploration|ProcessAndInProcess|ProcessBackend(Resets|Routes|Preserves|Crash|Model))' ./runner/internal/execution
+		-run '^TestRootProcessSimulationUsesRunnerTransport$$/^Test(Scenario|ProcessExploration|ProcessAndInProcess|ProcessBackend(Carries|Resets|Routes|Preserves|Crash|Model))' ./runner/internal/execution
+	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration \
+		-run '^TestRootProcessSimulationUsesRunnerTransport$$/^TestProcessBackendSynchronizesNodeClockWithModelDelay$$/^forward$$' ./runner/internal/execution
 
 world-test:
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go test -race -tags test_dep ./world/...

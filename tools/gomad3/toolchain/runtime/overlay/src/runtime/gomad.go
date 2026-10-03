@@ -156,17 +156,13 @@ func gomadInit() {
 	randomizeScheduler = true
 }
 
-// gomadClockForward advances what time.Now reports at every read so that two
+// gomadClockForward advances the virtual clock at every time.Now so that two
 // reads never share an instant, the way a real clock moves between them. The
-// advance accumulates in its own offset rather than in faketime: timers, the
-// scheduler, and the simulation time transport keep the idle-driven clock, and
-// only time.Now runs ahead of it. The draw comes from its own stream derived
-// from the seed, so it neither consumes nor perturbs the scheduling choices,
-// and replay derives the same draws.
+// draw comes from its own stream derived from the seed, so it neither consumes
+// nor perturbs the scheduling choices, and replay derives the same draws.
 var (
-	gomadClockForward    bool
-	gomadClockTickState  uint64
-	gomadClockTickOffset int64
+	gomadClockForward   bool
+	gomadClockTickState uint64
 )
 
 // gomadClockTickMask bounds each forward draw to 1 through 1024 nanoseconds:
@@ -197,14 +193,14 @@ func gomadClockTickDraw() int64 {
 	return int64(1 + value&gomadClockTickMask)
 }
 
-// gomadTimeNow serves time.Now while Gomad is enabled.
+// gomadTimeNow serves time.Now while Gomad is enabled. Advancing faketime here
+// can make a timer due while work is runnable; the scheduler then delivers it at
+// its next timer check, in the same deterministic order as any due timer.
 func gomadTimeNow() (sec int64, nsec int32, mono int64) {
-	now := faketime
 	if gomadClockForward {
-		gomadClockTickOffset += gomadClockTickDraw()
-		now += gomadClockTickOffset
+		faketime += gomadClockTickDraw()
 	}
-	return now / 1e9, int32(now % 1e9), now
+	return faketime / 1e9, int32(faketime % 1e9), faketime
 }
 
 //go:linkname gomadCapabilityGuard
@@ -1345,6 +1341,23 @@ func gomadGreyRuntimeStructures() {
 // window, in the order the syscalls returned. Guarded by sched.lock.
 var gomadArrivals gQueue
 
+func gomadResumeSyscall(gp *g, pp *p) {
+	// The syscall returned to an idle P at a host-timed moment. Resuming
+	// gp here would skip the scheduler, so timers already due would fire
+	// after gp instead of before it as they do when the P was busy; the
+	// goroutine is admitted through findRunnable like any other arrival.
+	lock(&sched.lock)
+	gomadArrivals.pushBack(gp)
+	locked := gp.lockedm != 0
+	unlock(&sched.lock)
+	acquirep(pp)
+	if locked {
+		stoplockedm()
+		execute(gp, false) // Never returns.
+	}
+	schedule() // Never returns.
+}
+
 // gomadAdmit moves the queued goroutines onto pp's local run queue and picks
 // the next one through the recorded run-queue choice, so goroutines that reach
 // the scheduler through the global run queue never run unrecorded ahead of it.
@@ -1453,7 +1466,18 @@ func gomadSimulationTimeObserve(current int64) bool {
 	if !gomadSimulationTimeEnabled {
 		return current == 0
 	}
+	if gomadClockForward && current >= gomadInitialTime && current < faketime {
+		return true
+	}
 	return gomadSimulationTimeAdvance(current)
+}
+
+//go:linkname gomadSimulationTimeObserveForward
+func gomadSimulationTimeObserveForward(current int64) bool {
+	if !gomadClockForward {
+		return true
+	}
+	return gomadSimulationTimeObserve(current)
 }
 
 //go:linkname gomadSimulationExternalBegin
@@ -1490,6 +1514,89 @@ func gomadSimulationTimeTakeArrivals() uint32 {
 	return arrivals
 }
 
+func gomadCheckDeadTime() (bool, bool) {
+	if gomadSimulationTimeEnabled && gomadSimulationExternalRequests.Load() != 0 {
+		return false, true
+	}
+	if gomadSimulationTimeEnabled && gomadSimulationTimeAwaitingExternal.Load() && gomadSimulationTimeArrivals.Load() == 0 {
+		return false, true
+	}
+	when, timer := timeSleepUntil()
+	wakeTimer := false
+	if gomadSimulationTimeEnabled {
+		if gomadSimulationTimeQuiescing {
+			return false, true
+		}
+		gomadSimulationTimeQuiescing = true
+		unlock(&sched.lock)
+		current, kind, ok := gomadSimulationTimeQuiesce(when)
+		lock(&sched.lock)
+		gomadSimulationTimeQuiescing = false
+		if !ok {
+			unlock(&sched.lock)
+			fatal("Gomad simulation time transport failed")
+		}
+		if kind != gomadSimulationTimeResponseAdvance && !gomadArrivals.empty() {
+			// A syscall returned during the round-trip; its goroutine runs
+			// first and the next quiescence asks again.
+			if pp, _ := pidleget(0); pp != nil {
+				startm(pp, false, true)
+			}
+			return false, true
+		}
+		switch kind {
+		case gomadSimulationTimeResponseRetry, gomadSimulationTimeResponseExternal:
+			return false, true
+		case gomadSimulationTimeResponseDeadlock:
+			if gomadSimulationTimeQuiescenceChanged(when, timer) {
+				return false, true
+			}
+			unlock(&sched.lock)
+			fatal("all goroutines are asleep - deadlock!")
+		case gomadSimulationTimeResponseAdvance:
+			faketime = current
+			wakeTimer = timer && when <= current
+		}
+	} else {
+		if gomadEnabled && netpollAnyWaiters() {
+			return false, true
+		}
+		wakeTimer = when < maxWhen || gomadEnabled && timer
+		if wakeTimer {
+			faketime = when
+		}
+	}
+	return wakeTimer, false
+}
+
+func gomadSimulationTimeQuiescenceChanged(deadline int64, timer bool) bool {
+	if gomadSimulationExternalRequests.Load() != 0 || gomadSimulationTimeAwaitingExternal.Load() || gomadSimulationTimeArrivals.Load() != 0 {
+		return true
+	}
+	if mcount()-sched.nmidle-sched.nmidlelocked-sched.nmsys-gomadSimulationTransportSyscalls.Load() != 0 {
+		return true
+	}
+	changed := false
+	forEachG(func(gp *g) {
+		if changed || isSystemGoroutine(gp, false) {
+			return
+		}
+		if gp.gomadSimulationTransport {
+			changed = true
+			return
+		}
+		switch readgstatus(gp) &^ _Gscan {
+		case _Grunnable, _Grunning, _Gsyscall:
+			changed = true
+		}
+	})
+	if changed {
+		return true
+	}
+	currentDeadline, currentTimer := timeSleepUntil()
+	return currentDeadline != deadline || currentTimer != timer
+}
+
 //go:nosplit
 func gomadSimulationTimeQuiesce(deadline int64) (int64, uint8, bool) {
 	if !gomadSimulationTimeEnabled {
@@ -1505,7 +1612,11 @@ func gomadSimulationTimeQuiesce(deadline int64) (int64, uint8, bool) {
 	}
 	gomadSimulationTimePut64(request[8:16], gomadSimulationTimeGeneration)
 	gomadSimulationTimePut64(request[16:24], uint64(faketime))
-	gomadSimulationTimePut64(request[24:32], uint64(deadline))
+	requestDeadline := deadline
+	if gomadClockForward && requestDeadline < faketime {
+		requestDeadline = faketime
+	}
+	gomadSimulationTimePut64(request[24:32], uint64(requestDeadline))
 	arrivalEpoch := gomadSimulationTimeArrivalEpoch.Load()
 	arrivals := gomadSimulationTimeArrivals.Swap(0)
 	gomadSimulationTimePut32(request[32:36], arrivals)

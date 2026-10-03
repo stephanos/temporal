@@ -764,23 +764,20 @@ returns the same instant. `--clock-tick=forward` on `explore` and `qualify`
 (`"clock_tick": "forward"` on a `qualify-set` workload) advances the clock at
 every `time.Now` by 1 to 1024 nanoseconds, drawn from a stream derived from the
 seed and separate from the scheduling choices, so consecutive reads advance
-even while work remains runnable. The advance accumulates in an offset that
-only `time.Now` observes: native timers, sleeps, runtime clock reads, and
-simulation time keep the idle-driven clock. Application calculations that
-derive deadlines or durations from `time.Now` can observe the offset and
-change behavior. For a reading that still carries its monotonic value,
-`time.Since` and `time.Until` read the idle-driven clock, so
-against such a reading `time.Since` reports less than a second `time.Now`
-would, and is negative within one busy stretch, while a deadline computed
-from it expires later than a timer armed for the same duration, by the
-offset accumulated when it was computed. A reading stripped of its monotonic
-value, as by `Round(0)`, serialization, or parsing, is compared against a
-fresh ticked `time.Now` instead. Consecutive readings differ at
-nanosecond resolution only; timestamps truncated to a coarser unit can still
-tie. Repeatability and exact replay remain workload qualification
-claims; the [milestones](../../MILESTONES.md#open-findings) record
-remaining divergence. Runtime-internal clock reads do not tick. The
-policy reaches the target as `GOMAD3_CLOCK_TICK=forward`, which is part of the
+even while work remains runnable. Each draw advances the process virtual clock
+itself, so `time.Now`, monotonic elapsed time, timers, sleeps, context deadlines,
+and simulation time observe one clock. A draw can make a timer due while work
+is runnable; the runtime delivers it at its next timer check without skipping
+runnable work. Process-simulation participants report forward progress when
+they activate, quiesce, and issue host-model requests; the host arbiter adopts
+their maximum reported time before advancing to the earliest timer deadline,
+and the coordinator adopts each request's reported time before applying its
+model operation. Consecutive readings differ at nanosecond resolution only;
+timestamps truncated to a coarser unit can still tie. Repeatability and exact
+replay remain workload qualification claims; the
+[milestones](../../MILESTONES.md#open-findings) record remaining divergence.
+Runtime-internal clock reads do not tick. The policy reaches the target as
+`GOMAD3_CLOCK_TICK=forward`, which is part of the
 recorded environment and therefore of Campaign, Artifact, plan, and evidence
 identity; `strict` is recorded as the entry's absence, so its identities are
 unchanged, and replay, resume, and shards restore the recorded policy. A direct
