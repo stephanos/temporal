@@ -1,0 +1,170 @@
+{
+  "branch_name": "fn-121-shard-generated-cases-per-case-in-ci",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-03T19:59:48.257336Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-121-shard-generated-cases-per-case-in-ci",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-03T20:11:00.772691Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "e6a3c99e91933f4d347e33ad452093d5f39382300845da5a50438ead4e6f4198",
+      "backend": "claude",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-fcb6c09be78b5b5483ed674e6d4576c0",
+            "classification": "introduced",
+            "findingId": "finding-fcb6c09be78b5b5483ed674e6d4576c0",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b9f21075a3e8cf5681562ef6e2f97526",
+            "classification": "introduced",
+            "findingId": "finding-b9f21075a3e8cf5681562ef6e2f97526",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-8a5f925cd91016dea8fb3c6c2aca2a9a",
+            "classification": "introduced",
+            "findingId": "finding-8a5f925cd91016dea8fb3c6c2aca2a9a",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "63462b09d42bc8f058db0fd6be2907be384f5b61",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 5099,
+      "output_sha256": "3b3edc9e086105fb1fa75dc29468e04f696ce92304098f4aedb0dccd24022fab",
+      "reservation_id": "d5a4d4c84b6f48ec9028511d01cf4d7f",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-03T20:07:31.312777Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "1e9b7b57e2b4865ebb590dedb0e111fa4a032abee6306cf4f3d8eb11bbfcd781",
+      "backend": "claude",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-fcb6c09be78b5b5483ed674e6d4576c0",
+            "classification": "introduced",
+            "findingId": "finding-fcb6c09be78b5b5483ed674e6d4576c0",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b9f21075a3e8cf5681562ef6e2f97526",
+            "classification": "introduced",
+            "findingId": "finding-b9f21075a3e8cf5681562ef6e2f97526",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-4cc02dd1a82fecb828a299faeeb901ec",
+            "classification": "introduced",
+            "findingId": "finding-4cc02dd1a82fecb828a299faeeb901ec",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-8a5f925cd91016dea8fb3c6c2aca2a9a",
+            "classification": "introduced",
+            "findingId": "finding-8a5f925cd91016dea8fb3c6c2aca2a9a",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "63462b09d42bc8f058db0fd6be2907be384f5b61",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 2904,
+      "output_sha256": "2238feca40e1d807e0938f5825f4ffd16a303c402d7716b8bbfd5eb246d65074",
+      "reservation_id": "7dfd44196dbe4e4b80fd843e2b2d4103",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-03T20:11:00.704319Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-121-shard-generated-cases-per-case-in-ci.md",
+  "status": "open",
+  "title": "Shard generated Cases per Case in CI",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-03T20:11:00.794446Z"
+}
