@@ -290,3 +290,70 @@ signatures and values. The five closure finding kinds are now defined from
 `target/internal/capabilitypolicy` constants with the same strings. Everything else is private:
 the collection, evaluation and linked-projection functions in `target`, and the new internal
 packages `target/internal/capabilitypolicy` and `internal/sourceinventory`.
+
+## R13 Artifact reference and owned handle (task 12, pre-edit inventory 2026-10-03)
+
+Anchored to `48c95c0c97` (post-fn-108 R6/R7). Today one `artifact.Artifact` value is both
+the published reference and the live handle: it holds an unexported `root *os.Root` and an
+exported, mutable `Manifest` whose slices and pointers alias the handle's state.
+
+| Declaration (package `artifact`) | Change |
+| --- | --- |
+| `type Artifact struct { Path; Manifest; StoredBytes; TargetSharing; root *os.Root }` | Loses `root`. It becomes only a detached reference: exported fields unchanged in name, type, order and JSON shape, so `runner.ReplayResult.Artifact` and `runner.MinimizeResult.Artifact` keep their encoding. |
+| `func OpenArtifact(path string) (Artifact, error)` | Returns `(*Opened, error)`. New `type Opened` (owned handle) keeps path, manifest, stored bytes and the pinned root private. |
+| `func (*Artifact) Close() error` | Moves to `func (*Opened) Close() error` (idempotent, nil-safe). |
+| `func (Artifact) Detached() Artifact` | Replaced by `func (*Opened) Snapshot() Artifact`, which deep-copies the manifest. |
+| none | Added accessors `(*Opened) Path() string`, `Manifest() record.ExecutionRecord` (deep copy), `StoredBytes() uint64`. |
+| `func OpenPayload(Artifact, string, uint64) (*os.File, error)`, `ReadPayload(Artifact, string, uint64) ([]byte, error)`, `CopyPayload(Artifact, string, string, os.FileMode) error` | Become methods of `*Opened` with the same remaining parameters, validation and error texts. |
+| `func TargetSharingOf(Artifact) (TargetSharing, error)` | Becomes `func (*Opened) TargetSharing() (TargetSharing, error)`. |
+
+`PublishArtifact` and `Store.PublishArtifact` keep their signatures and return a detached
+`Artifact` as today. Publication (staging, no-replace rename, manifest last, validated reuse)
+is unchanged.
+
+Consumers and migration (production): `runner/replay_operation.go` (`replayWith`, `preflight`,
+`choiceCapabilityForArtifact`, `simulationCapabilityForArtifact`,
+`verifyReplayCapabilityManifest`, `readWorldPayloads` take `*artifact.Opened`; `Detached()`
+becomes `Snapshot()`), `runner/minimize_operation.go` (session handle, accepted/retained
+reopen, `readRetainedMinimizationPayload`), `runner/inspect.go` (open, `TargetSharing()`,
+`projectChoices`), `runner/resume.go` and `runner/internal/campaign/retained_evidence.go`
+(`StoredBytes()`/`Manifest()` accessors), `runner/internal/corpus/corpus.go` (case
+validation), `qualification/set/execution.go` (`validateArtifactIdentity`,
+`projectArtifactChoice`). `runner/runner.go`, the exploration campaigns,
+`runner/internal/corpus/admission.go` and `corpus.go` `merge`/`discard`/`entryFor` only hold
+published references and need no change. Tests: `artifact/*_test.go` and the runner tests
+that open artifacts (`runner_test.go`, `coverage_replay_test.go`, `minimize_operation_test.go`,
+`retention_characterization_test.go`, `replay_operation_test.go`, `replay_io_integration_test.go`,
+`watchdog_replay_test.go`, `guided_selection_test.go`, `completion_characterization_test.go`,
+`diagnostic_identity_test.go`, `diagnostics_test.go`, `retention_test.go`).
+`cmd/gomad/internal/cli` tests construct detached `artifact.Artifact` literals only and need no
+change. No module outside `tools/gomad3` imports `artifact`.
+
+### Implementation record (task 12)
+
+Implemented as inventoried; no further exported declaration changed.
+
+- `Opened` methods: `Close`, `Path`, `Manifest`, `StoredBytes`, `Snapshot`, `OpenPayload`,
+  `ReadPayload`, `CopyPayload`, `TargetSharing`. Payload methods keep the old bodies, so the
+  check order and error texts are unchanged: `artifact is not open`, `artifact payload %q is
+  not listed`, `... exceeds its bound`, `<name> metadata does not match its manifest`,
+  `... identity mismatch`, `<name> is a symbolic link`, link-count and `os.Root` escape errors.
+  A nil `*Opened` closes as a no-op and every payload method on it fails with `artifact is
+  not open`. A closed non-nil handle keeps the old order: `ReadPayload` checks listing and
+  bound before the open check.
+- Path, Manifest, StoredBytes and Snapshot remain usable after Close; they hold no resource.
+- `Manifest()` and `Snapshot()` copy through the private `cloneManifest`, a reflective deep
+  copy that keeps nil pointers, slices and maps nil and panics on interface, func or chan
+  fields. `TestCloneManifestSharesNoMemory` fills every field of `record.ExecutionRecord` and
+  proves the copy is equal and shares no pointer, slice or map.
+- The store's validated-reuse path returns `existing.Snapshot()` with the store's sharing, in
+  place of the field-by-field copy.
+- Migration notes: `runner.preflight` used a named result for the handle, so on a validation
+  error the deferred close saw the zeroed result and never closed the root. Its handle is now
+  a local, so a rejected artifact is closed and a close error joins the validation error.
+  `minimizationSession.acceptedInput` passed the handle's manifest into publication, which
+  writes through pointer fields; it now passes its own copy (same values, same bytes).
+- Fixed-input publication is byte-identical: a scratch test (not committed) published 12
+  store configurations (failure, reuse, success collisions, execution and record keys, pool
+  shared, pool reuse, reuse without pool) on base `48c95c0c97` and after. Directory
+  names, `manifest.json` SHA-256, record hashes, stored bytes and sharing all matched.

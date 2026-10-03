@@ -86,13 +86,14 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 			retErr = fmt.Errorf("close replay artifact: %w", closeErr)
 		}
 	}()
-	if err := target.VerifyCompatibility(opened.Manifest.Target.Compatibility); err != nil {
+	manifest := opened.Manifest()
+	if err := target.VerifyCompatibility(manifest.Target.Compatibility); err != nil {
 		return ReplayResult{}, &ReplayPreflightError{Err: fmt.Errorf("verify replay compatibility: %w", err)}
 	}
-	if err := deterministicio.Default().VerifyAdapters(replayAdapters(opened.Manifest.Target.Adapters)); err != nil {
+	if err := deterministicio.Default().VerifyAdapters(replayAdapters(manifest.Target.Adapters)); err != nil {
 		return ReplayResult{}, &ReplayPreflightError{Err: fmt.Errorf("verify replay adapters: %w", err)}
 	}
-	result = ReplayResult{Artifact: opened.Detached(), Verified: true, Diagnostic: opened.Manifest.ReplayMode == record.ReplayDiagnostic, ChoiceReplayStatus: ChoiceReplayNone}
+	result = ReplayResult{Artifact: opened.Snapshot(), Verified: true, Diagnostic: manifest.ReplayMode == record.ReplayDiagnostic, ChoiceReplayStatus: ChoiceReplayNone}
 	choiceCapability, choiceUnavailable, err := choiceCapabilityForArtifact(opened)
 	if err != nil {
 		return ReplayResult{}, &ReplayPreflightError{Err: err}
@@ -132,9 +133,8 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 	if err := os.Chmod(workDirectory, 0o700); err != nil {
 		return ReplayResult{}, fmt.Errorf("make replay working directory private: %w", err)
 	}
-	manifest := opened.Manifest
 	targetPath := filepath.Join(workDirectory, "target")
-	if err := artifact.CopyPayload(opened, manifest.Target.File, targetPath, 0o500); err != nil {
+	if err := opened.CopyPayload(manifest.Target.File, targetPath, 0o500); err != nil {
 		return ReplayResult{}, fmt.Errorf("copy verified replay target: %w", err)
 	}
 	if err := validateTargetBuildInfo(targetPath, manifest.Target.BuildInfo); err != nil {
@@ -193,13 +193,13 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 	}
 	readOnlyMountLimits = readonlymount.DefaultLimits()
 	if mounts := manifest.IOProfile.ReadOnlyMounts; mounts != nil {
-		descriptor, readErr := artifact.ReadPayload(opened, mounts.File, uint64(mounts.Bytes))
+		descriptor, readErr := opened.ReadPayload(mounts.File, uint64(mounts.Bytes))
 		if readErr != nil {
 			return ReplayResult{}, fmt.Errorf("read read-only mount descriptor: %w", readErr)
 		}
 		var snapshot readonlymount.Snapshot
 		readOnlyMounts, readOnlyMountLimits, snapshot, readErr = readonlymount.DecodeCapturedInputs(replayCapturedInputs(*mounts), descriptor, func(name string, maximum uint64) ([]byte, error) {
-			return artifact.ReadPayload(opened, name, maximum)
+			return opened.ReadPayload(name, maximum)
 		})
 		if readErr != nil {
 			return ReplayResult{}, fmt.Errorf("decode read-only mount artifact: %w", readErr)
@@ -207,7 +207,7 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 		readOnlyMountSnapshot = &snapshot
 	}
 	if transcript := manifest.IOProfile.Transcript; transcript != nil {
-		expectedIOTranscript, err = artifact.ReadPayload(opened, transcript.File, ioTranscriptLimit)
+		expectedIOTranscript, err = opened.ReadPayload(transcript.File, ioTranscriptLimit)
 		if err != nil {
 			return ReplayResult{}, fmt.Errorf("read expected I/O transcript: %w", err)
 		}
@@ -287,16 +287,16 @@ type simulationArtifactReplay struct {
 	expectedRecord []byte
 }
 
-func simulationCapabilityForArtifact(opened artifact.Artifact) (simulationArtifactReplay, error) {
-	profile := opened.Manifest.SimulationProfile
+func simulationCapabilityForArtifact(opened *artifact.Opened) (simulationArtifactReplay, error) {
+	profile := opened.Manifest().SimulationProfile
 	if profile == nil {
 		return simulationArtifactReplay{}, nil
 	}
-	plan, err := artifact.ReadPayload(opened, profile.Plan.File, uint64(profile.Plan.Bytes))
+	plan, err := opened.ReadPayload(profile.Plan.File, uint64(profile.Plan.Bytes))
 	if err != nil {
 		return simulationArtifactReplay{}, fmt.Errorf("read simulation exploration plan: %w", err)
 	}
-	record, err := artifact.ReadPayload(opened, profile.Record.File, uint64(profile.Record.Bytes))
+	record, err := opened.ReadPayload(profile.Record.File, uint64(profile.Record.Bytes))
 	if err != nil {
 		return simulationArtifactReplay{}, fmt.Errorf("read simulation exploration record: %w", err)
 	}
@@ -358,8 +358,8 @@ func onlyChoiceReplayDivergence(err error) (*execution.ChoiceReplayDivergenceErr
 	return found, visit(err) && found != nil
 }
 
-func choiceCapabilityForArtifact(opened artifact.Artifact) (*execution.ChoiceCapability, bool, error) {
-	manifest := opened.Manifest
+func choiceCapabilityForArtifact(opened *artifact.Opened) (*execution.ChoiceCapability, bool, error) {
+	manifest := opened.Manifest()
 	choices := manifest.ChoiceProfile
 	if choices == nil {
 		return nil, false, nil
@@ -371,7 +371,7 @@ func choiceCapabilityForArtifact(opened artifact.Artifact) (*execution.ChoiceCap
 	if err != nil || choices.Name != choice.Profile || choices.ImplementationSHA256 != record.SHA256FromSum(implementation) {
 		return nil, false, errors.New("artifact choice profile identity does not match this Runner")
 	}
-	payload, err := artifact.ReadPayload(opened, choices.Trace.File, uint64(choices.Trace.Limit))
+	payload, err := opened.ReadPayload(choices.Trace.File, uint64(choices.Trace.Limit))
 	if err != nil {
 		return nil, false, fmt.Errorf("read choice trace: %w", err)
 	}
@@ -424,92 +424,95 @@ func replayBootstrapCommand(config ReplaySpec) []string {
 	return []string{config.SupervisorCommand[0], "__target_bootstrap"}
 }
 
-func preflight(config ReplaySpec) (opened artifact.Artifact, retErr error) {
+// preflight opens and validates a replay artifact. The deferred close sees the
+// opened handle, not the result, so an artifact that fails validation is closed.
+func preflight(config ReplaySpec) (_ *artifact.Opened, retErr error) {
 	if config.ArtifactPath == "" {
-		return artifact.Artifact{}, fmt.Errorf("artifact path is required")
+		return nil, fmt.Errorf("artifact path is required")
 	}
 	opened, err := artifact.OpenArtifact(config.ArtifactPath)
 	if err != nil {
-		return artifact.Artifact{}, err
+		return nil, err
 	}
 	defer func() {
 		if retErr != nil {
 			retErr = errors.Join(retErr, opened.Close())
 		}
 	}()
-	manifest := opened.Manifest
+	manifest := opened.Manifest()
 	profile := deterministicio.Default()
 	if !profile.MatchesRecorded(manifest.IOProfile.Name, string(manifest.IOProfile.ImplementationSHA256), string(manifest.IOProfile.InventorySHA256), manifest.IOProfile.Inventory) {
-		return artifact.Artifact{}, errors.New("artifact I/O profile identity does not match this Runner")
+		return nil, errors.New("artifact I/O profile identity does not match this Runner")
 	}
 	if manifest.ReplayMode != record.ReplayExact && manifest.ReplayMode != record.ReplayDiagnostic {
-		return artifact.Artifact{}, fmt.Errorf("artifact replay mode %q cannot be executed", manifest.ReplayMode)
+		return nil, fmt.Errorf("artifact replay mode %q cannot be executed", manifest.ReplayMode)
 	}
 	if mounts := manifest.IOProfile.ReadOnlyMounts; mounts != nil {
-		descriptor, readErr := artifact.ReadPayload(opened, mounts.File, uint64(mounts.Bytes))
+		descriptor, readErr := opened.ReadPayload(mounts.File, uint64(mounts.Bytes))
 		if readErr != nil {
-			return artifact.Artifact{}, fmt.Errorf("read read-only mount descriptor: %w", readErr)
+			return nil, fmt.Errorf("read read-only mount descriptor: %w", readErr)
 		}
 		if _, _, _, readErr = readonlymount.DecodeCapturedInputs(replayCapturedInputs(*mounts), descriptor, func(name string, maximum uint64) ([]byte, error) {
-			return artifact.ReadPayload(opened, name, maximum)
+			return opened.ReadPayload(name, maximum)
 		}); readErr != nil {
-			return artifact.Artifact{}, fmt.Errorf("validate read-only mount artifact: %w", readErr)
+			return nil, fmt.Errorf("validate read-only mount artifact: %w", readErr)
 		}
 	}
 	if _, _, choiceErr := choiceCapabilityForArtifact(opened); choiceErr != nil {
-		return artifact.Artifact{}, choiceErr
+		return nil, choiceErr
 	}
 	if manifest.Runner.HostOS != runtime.GOOS || manifest.Runner.HostArch != runtime.GOARCH || manifest.Toolchain.TargetGOOS != runtime.GOOS || manifest.Toolchain.TargetGOARCH != runtime.GOARCH {
-		return artifact.Artifact{}, fmt.Errorf("artifact platform does not match host %s/%s", runtime.GOOS, runtime.GOARCH)
+		return nil, fmt.Errorf("artifact platform does not match host %s/%s", runtime.GOOS, runtime.GOARCH)
 	}
 	identity, err := target.ReadToolchainIdentity(config.ToolchainRoot)
 	if err != nil {
-		return artifact.Artifact{}, err
+		return nil, err
 	}
 	if identity.GoVersion != manifest.Toolchain.GoVersion || identity.BuildKey != manifest.Toolchain.BuildKey || identity.TargetGOOS != manifest.Toolchain.TargetGOOS || identity.TargetGOARCH != manifest.Toolchain.TargetGOARCH {
-		return artifact.Artifact{}, fmt.Errorf("artifact toolchain identity does not match the pinned toolchain")
+		return nil, fmt.Errorf("artifact toolchain identity does not match the pinned toolchain")
 	}
 	worldPayloads, err := readWorldPayloads(opened)
 	if err != nil {
-		return artifact.Artifact{}, err
+		return nil, err
 	}
 	initialWorld, _, err := execution.Validate(manifest.World, worldPayloads)
 	if err != nil {
-		return artifact.Artifact{}, fmt.Errorf("validate World record: %w", err)
+		return nil, fmt.Errorf("validate World record: %w", err)
 	}
 	if manifest.World.Initial.Schema == "gomad3.world.snapshot/v1" && uint64(initialWorld.Config.Seed) != uint64(manifest.Seed) {
-		return artifact.Artifact{}, fmt.Errorf("World seed does not match target seed")
+		return nil, fmt.Errorf("World seed does not match target seed")
 	}
-	targetFile, err := artifact.OpenPayload(opened, manifest.Target.File, uint64(manifest.Target.Size))
+	targetFile, err := opened.OpenPayload(manifest.Target.File, uint64(manifest.Target.Size))
 	if err != nil {
-		return artifact.Artifact{}, err
+		return nil, err
 	}
 	if err := verifyReplayCapabilityManifest(opened, targetFile, identity); err != nil {
-		return artifact.Artifact{}, errors.Join(err, targetFile.Close())
+		return nil, errors.Join(err, targetFile.Close())
 	}
 	info, err := buildinfo.Read(targetFile)
 	closeErr := targetFile.Close()
 	if err != nil {
-		return artifact.Artifact{}, errors.Join(fmt.Errorf("read stored target build info: %w", err), closeErr)
+		return nil, errors.Join(fmt.Errorf("read stored target build info: %w", err), closeErr)
 	}
 	if closeErr != nil {
-		return artifact.Artifact{}, fmt.Errorf("close stored target build info: %w", closeErr)
+		return nil, fmt.Errorf("close stored target build info: %w", closeErr)
 	}
 	if err := validateBuildInfo(info, manifest.Target.BuildInfo); err != nil {
-		return artifact.Artifact{}, err
+		return nil, err
 	}
 	if _, err := duration(manifest.Limits.ExecutionTimeoutNanos); err != nil {
-		return artifact.Artifact{}, err
+		return nil, err
 	}
 	if _, err := duration(manifest.Limits.TerminateGraceNanos); err != nil {
-		return artifact.Artifact{}, err
+		return nil, err
 	}
 	return opened, nil
 }
 
-func verifyReplayCapabilityManifest(opened artifact.Artifact, targetFile *os.File, identity target.ToolchainIdentity) error {
-	recorded := opened.Manifest.Target.CapabilityManifest
-	switch opened.Manifest.Target.CapabilityMode {
+func verifyReplayCapabilityManifest(opened *artifact.Opened, targetFile *os.File, identity target.ToolchainIdentity) error {
+	manifest := opened.Manifest()
+	recorded := manifest.Target.CapabilityManifest
+	switch manifest.Target.CapabilityMode {
 	case "closure":
 		if recorded != nil {
 			return errors.New("closure replay target contains a linked capability manifest")
@@ -526,7 +529,7 @@ func verifyReplayCapabilityManifest(opened artifact.Artifact, targetFile *os.Fil
 		if *actual.Record() != *recorded {
 			return errors.New("stored target embedded capability manifest does not match the execution record")
 		}
-		payload, err := artifact.ReadPayload(opened, recorded.File, uint64(recorded.Bytes))
+		payload, err := opened.ReadPayload(recorded.File, uint64(recorded.Bytes))
 		if err != nil {
 			return fmt.Errorf("read stored target capability manifest: %w", err)
 		}
@@ -535,7 +538,7 @@ func verifyReplayCapabilityManifest(opened artifact.Artifact, targetFile *os.Fil
 		}
 		return nil
 	default:
-		return fmt.Errorf("unknown replay target capability mode %q", opened.Manifest.Target.CapabilityMode)
+		return fmt.Errorf("unknown replay target capability mode %q", manifest.Target.CapabilityMode)
 	}
 }
 
@@ -558,16 +561,17 @@ func replayCapturedInputs(manifest record.ReadOnlyMounts) readonlymount.Captured
 	}
 }
 
-func readWorldPayloads(opened artifact.Artifact) (record.WorldPayloads, error) {
-	initial, err := artifact.ReadPayload(opened, opened.Manifest.World.Initial.File, world.MaximumSnapshotJSONBytes)
+func readWorldPayloads(opened *artifact.Opened) (record.WorldPayloads, error) {
+	manifest := opened.Manifest()
+	initial, err := opened.ReadPayload(manifest.World.Initial.File, world.MaximumSnapshotJSONBytes)
 	if err != nil {
 		return record.WorldPayloads{}, err
 	}
-	transitions, err := artifact.ReadPayload(opened, opened.Manifest.World.Transitions.File, uint64(opened.Manifest.Limits.WorldTransitionBytes))
+	transitions, err := opened.ReadPayload(manifest.World.Transitions.File, uint64(manifest.Limits.WorldTransitionBytes))
 	if err != nil {
 		return record.WorldPayloads{}, err
 	}
-	final, err := artifact.ReadPayload(opened, opened.Manifest.World.Final.File, world.MaximumSnapshotJSONBytes)
+	final, err := opened.ReadPayload(manifest.World.Final.File, world.MaximumSnapshotJSONBytes)
 	if err != nil {
 		return record.WorldPayloads{}, err
 	}

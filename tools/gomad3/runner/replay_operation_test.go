@@ -90,11 +90,11 @@ func TestReplayAutomaticallySuppliesExactSimulationExplorationTape(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile := opened.Manifest.SimulationProfile
+	profile := opened.Manifest().SimulationProfile
 	if profile == nil {
 		t.Fatal("replay fixture omitted simulation exploration evidence")
 	}
-	plan, err := artifact.ReadPayload(opened, profile.Plan.File, uint64(profile.Plan.Bytes))
+	plan, err := opened.ReadPayload(profile.Plan.File, uint64(profile.Plan.Bytes))
 	if err != nil {
 		t.Fatal(err)
 	}

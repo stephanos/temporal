@@ -16,58 +16,74 @@ import (
 
 const maximumManifestBytes = 16 << 20
 
-func OpenArtifact(path string) (Artifact, error) {
+// Opened is an artifact whose directory is pinned open for validated payload
+// access. The caller that opened it owns it and must Close it. Its manifest is
+// private: Manifest and Snapshot return copies, so no caller can change what
+// payload access validates against. Path, Manifest, StoredBytes and Snapshot
+// stay available after Close; payload access fails.
+type Opened struct {
+	path        string
+	manifest    record.ExecutionRecord
+	storedBytes uint64
+	root        *os.Root
+}
+
+// OpenArtifact validates the artifact directory at path against its manifest
+// and returns a handle pinned to that directory.
+func OpenArtifact(path string) (*Opened, error) {
 	rootInfo, err := os.Lstat(path)
 	if err != nil {
-		return Artifact{}, fmt.Errorf("open artifact directory: %w", err)
+		return nil, fmt.Errorf("open artifact directory: %w", err)
 	}
 	if !rootInfo.IsDir() || rootInfo.Mode()&os.ModeSymlink != 0 {
-		return Artifact{}, fmt.Errorf("artifact path is not a directory")
+		return nil, fmt.Errorf("artifact path is not a directory")
 	}
 	if rootInfo.Mode().Perm() != 0o700 {
-		return Artifact{}, fmt.Errorf("artifact directory mode is %#o, want 0700", rootInfo.Mode().Perm())
+		return nil, fmt.Errorf("artifact directory mode is %#o, want 0700", rootInfo.Mode().Perm())
 	}
 	root, err := os.OpenRoot(path)
 	if err != nil {
-		return Artifact{}, fmt.Errorf("pin artifact directory: %w", err)
+		return nil, fmt.Errorf("pin artifact directory: %w", err)
 	}
 	pinnedInfo, err := root.Stat(".")
 	if err != nil || !os.SameFile(rootInfo, pinnedInfo) {
-		return Artifact{}, errors.Join(fmt.Errorf("artifact directory changed while opening"), err, root.Close())
+		return nil, errors.Join(fmt.Errorf("artifact directory changed while opening"), err, root.Close())
 	}
 	manifestBytes, err := readValidatedFile(root, "manifest.json", 0o600, maximumManifestBytes)
 	if err != nil {
-		return Artifact{}, errors.Join(fmt.Errorf("read artifact manifest: %w", err), root.Close())
+		return nil, errors.Join(fmt.Errorf("read artifact manifest: %w", err), root.Close())
 	}
 	manifest, err := record.DecodeExecutionRecord(manifestBytes)
 	if err != nil {
-		return Artifact{}, errors.Join(fmt.Errorf("decode artifact manifest: %w", err), root.Close())
+		return nil, errors.Join(fmt.Errorf("decode artifact manifest: %w", err), root.Close())
 	}
 	expected := map[string]record.File{}
 	for _, file := range manifest.Files {
 		if file.Path == "manifest.json" {
-			return Artifact{}, errors.Join(fmt.Errorf("manifest cannot list itself"), root.Close())
+			return nil, errors.Join(fmt.Errorf("manifest cannot list itself"), root.Close())
 		}
 		expected[filepath.FromSlash(file.Path)] = file
 	}
 	seen := map[string]bool{}
 	err = validateDirectory(root, ".", expected, seen, manifest.Target.File)
 	if err != nil {
-		return Artifact{}, errors.Join(err, root.Close())
+		return nil, errors.Join(err, root.Close())
 	}
 	for file := range expected {
 		if !seen[file] {
-			return Artifact{}, errors.Join(fmt.Errorf("artifact is missing listed file %s", filepath.ToSlash(file)), root.Close())
+			return nil, errors.Join(fmt.Errorf("artifact is missing listed file %s", filepath.ToSlash(file)), root.Close())
 		}
 	}
 	storedBytes, err := artifactStoredBytes(manifest, uint64(len(manifestBytes)))
 	if err != nil {
-		return Artifact{}, errors.Join(err, root.Close())
+		return nil, errors.Join(err, root.Close())
 	}
-	return Artifact{Path: path, Manifest: manifest, StoredBytes: storedBytes, root: root}, nil
+	return &Opened{path: path, manifest: manifest, storedBytes: storedBytes, root: root}, nil
 }
 
-func (opened *Artifact) Close() error {
+// Close releases the pinned directory. Closing again, or closing a nil handle,
+// does nothing.
+func (opened *Opened) Close() error {
 	if opened == nil || opened.root == nil {
 		return nil
 	}
@@ -76,12 +92,33 @@ func (opened *Artifact) Close() error {
 	return err
 }
 
-func (opened Artifact) Detached() Artifact {
-	return Artifact{Path: opened.Path, Manifest: opened.Manifest, StoredBytes: opened.StoredBytes, TargetSharing: opened.TargetSharing}
+// Path is the directory the artifact was opened at.
+func (opened *Opened) Path() string {
+	return opened.path
 }
 
-func OpenPayload(opened Artifact, relativePath string, maximum uint64) (*os.File, error) {
-	if opened.root == nil {
+// Manifest returns a copy of the validated manifest that shares no memory with
+// the handle.
+func (opened *Opened) Manifest() record.ExecutionRecord {
+	return cloneManifest(opened.manifest)
+}
+
+// StoredBytes counts the manifest and every listed file (Artifact.StoredBytes).
+func (opened *Opened) StoredBytes() uint64 {
+	return opened.storedBytes
+}
+
+// Snapshot returns a detached reference to the opened artifact. It holds no
+// open resource and its manifest is a copy, so changing it cannot change the
+// handle. Its TargetSharing is empty, as only publication sets it.
+func (opened *Opened) Snapshot() Artifact {
+	return Artifact{Path: opened.path, Manifest: cloneManifest(opened.manifest), StoredBytes: opened.storedBytes}
+}
+
+// OpenPayload opens a listed payload of at most maximum bytes after checking
+// its mode, size and SHA-256 against the manifest.
+func (opened *Opened) OpenPayload(relativePath string, maximum uint64) (*os.File, error) {
+	if opened == nil || opened.root == nil {
 		return nil, fmt.Errorf("artifact is not open")
 	}
 	expected := listedFile(opened, relativePath)
@@ -95,7 +132,7 @@ func OpenPayload(opened Artifact, relativePath string, maximum uint64) (*os.File
 	if expected.Mode == "0700" {
 		mode = 0o700
 	}
-	file, info, err := openValidatedFile(opened.root, relativePath, mode, uint64(expected.Size), relativePath == opened.Manifest.Target.File)
+	file, info, err := openValidatedFile(opened.root, relativePath, mode, uint64(expected.Size), relativePath == opened.manifest.Target.File)
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +225,12 @@ func listedDirectory(directory string, expected map[string]record.File) bool {
 	return false
 }
 
-func ReadPayload(opened Artifact, relativePath string, maximum uint64) ([]byte, error) {
+// ReadPayload reads a listed payload of at most maximum bytes and checks it
+// against the manifest.
+func (opened *Opened) ReadPayload(relativePath string, maximum uint64) ([]byte, error) {
+	if opened == nil {
+		return nil, fmt.Errorf("artifact is not open")
+	}
 	expected := listedFile(opened, relativePath)
 	if expected == nil {
 		return nil, fmt.Errorf("artifact payload %q is not listed", relativePath)
@@ -196,7 +238,7 @@ func ReadPayload(opened Artifact, relativePath string, maximum uint64) ([]byte, 
 	if uint64(expected.Size) > maximum {
 		return nil, fmt.Errorf("artifact payload %q exceeds its bound", relativePath)
 	}
-	file, err := OpenPayload(opened, relativePath, maximum)
+	file, err := opened.OpenPayload(relativePath, maximum)
 	if err != nil {
 		return nil, err
 	}
@@ -211,15 +253,17 @@ func ReadPayload(opened Artifact, relativePath string, maximum uint64) ([]byte, 
 	return data, nil
 }
 
-func CopyPayload(opened Artifact, relativePath, destination string, destinationMode os.FileMode) error {
-	if opened.root == nil {
+// CopyPayload copies a listed payload to a new file at destination and checks
+// the copy against the manifest.
+func (opened *Opened) CopyPayload(relativePath, destination string, destinationMode os.FileMode) error {
+	if opened == nil || opened.root == nil {
 		return fmt.Errorf("artifact is not open")
 	}
 	expected := listedFile(opened, relativePath)
 	if expected == nil {
 		return fmt.Errorf("artifact payload %q is not listed", relativePath)
 	}
-	source, err := OpenPayload(opened, relativePath, uint64(expected.Size))
+	source, err := opened.OpenPayload(relativePath, uint64(expected.Size))
 	if err != nil {
 		return err
 	}
@@ -256,10 +300,13 @@ func CopyPayload(opened Artifact, relativePath, destination string, destinationM
 	return destinationFile.Close()
 }
 
-func listedFile(opened Artifact, relativePath string) *record.File {
-	for index := range opened.Manifest.Files {
-		if opened.Manifest.Files[index].Path == relativePath {
-			return &opened.Manifest.Files[index]
+func listedFile(opened *Opened, relativePath string) *record.File {
+	if opened == nil {
+		return nil
+	}
+	for index := range opened.manifest.Files {
+		if opened.manifest.Files[index].Path == relativePath {
+			return &opened.manifest.Files[index]
 		}
 	}
 	return nil

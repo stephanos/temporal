@@ -350,7 +350,7 @@ func observeRetention(t *testing.T, summary CampaignResult, err error) (retentio
 		if openErr != nil {
 			t.Fatal(openErr)
 		}
-		manifest := opened.Manifest
+		manifest := opened.Manifest()
 		if closeErr := opened.Close(); closeErr != nil {
 			t.Fatal(closeErr)
 		}
@@ -374,13 +374,13 @@ func observeRetention(t *testing.T, summary CampaignResult, err error) (retentio
 			if openErr != nil {
 				t.Fatal(openErr)
 			}
-			if opened.StoredBytes != uint64(*run.SuccessArtifactBytes) || opened.Manifest.ArtifactKind != record.ArtifactSuccess || opened.Manifest.ReplayMode != record.ReplayExact || opened.Manifest.SelectionOrdinal != run.SelectionOrdinal {
-				t.Fatalf("kept success %s = %d bytes, %#v; journaled as %#v", path, opened.StoredBytes, opened.Manifest, *run)
+			if opened.StoredBytes() != uint64(*run.SuccessArtifactBytes) || opened.Manifest().ArtifactKind != record.ArtifactSuccess || opened.Manifest().ReplayMode != record.ReplayExact || opened.Manifest().SelectionOrdinal != run.SelectionOrdinal {
+				t.Fatalf("kept success %s = %d bytes, %#v; journaled as %#v", path, opened.StoredBytes(), opened.Manifest(), *run)
 			}
 			if closeErr := opened.Close(); closeErr != nil {
 				t.Fatal(closeErr)
 			}
-			keptBytes += opened.StoredBytes
+			keptBytes += opened.StoredBytes()
 			kept = append(kept, path)
 			projection.Successes = append(projection.Successes, fixedManifest(path))
 			fixedPath, fixedBytes := fmt.Sprintf("successes/#%d", len(kept)-1), record.Uint64String(0)
@@ -748,7 +748,7 @@ func (replayer *replayRecorder) Replay(_ context.Context, config ReplaySpec) (Re
 		return ReplayResult{}, err
 	}
 	defer opened.Close()
-	replayer.manifest = opened.Manifest
+	replayer.manifest = opened.Manifest()
 	if _, err := os.Stat(filepath.Join(replayer.corpus, "corpus.json")); !os.IsNotExist(err) {
 		replayer.indexed = true
 	}

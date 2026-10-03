@@ -58,15 +58,15 @@ func TestReplayAndMinimizeRejectRetainedCoverageBinary(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	manifest := opened.Manifest
+	manifest := opened.Manifest()
 	manifest.Target.SHA256 = record.HashBytes(contents)
 	manifest.Target.Size = record.Uint64String(len(contents))
 	manifest.Target.BuildInfo = target.ProjectBuildInfo(build)
-	stdout, err := artifact.ReadPayload(opened, manifest.Streams.Stdout.File, uint64(manifest.Streams.Stdout.RetainedBytes))
+	stdout, err := opened.ReadPayload(manifest.Streams.Stdout.File, uint64(manifest.Streams.Stdout.RetainedBytes))
 	if err != nil {
 		t.Fatal(err)
 	}
-	stderr, err := artifact.ReadPayload(opened, manifest.Streams.Stderr.File, uint64(manifest.Streams.Stderr.RetainedBytes))
+	stderr, err := opened.ReadPayload(manifest.Streams.Stderr.File, uint64(manifest.Streams.Stderr.RetainedBytes))
 	if err != nil {
 		t.Fatal(err)
 	}

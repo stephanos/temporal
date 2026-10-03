@@ -25,7 +25,7 @@ func ResolveRetainedEvidence(batchPath, batchID string, run ExecutionRecord) (Re
 	if err != nil {
 		return RetainedEvidence{}, err
 	}
-	retained := RetainedEvidence{Path: path, Manifest: opened.Manifest, StoredBytes: opened.StoredBytes}
+	retained := RetainedEvidence{Path: path, Manifest: opened.Manifest(), StoredBytes: opened.StoredBytes()}
 	if err := opened.Close(); err != nil {
 		return RetainedEvidence{}, fmt.Errorf("close retained artifact: %w", err)
 	}

@@ -245,15 +245,15 @@ func sharesPoolEntry(pool, artifactPath string, manifest record.ExecutionRecord)
 	return err == nil && os.SameFile(entry, target)
 }
 
-// TargetSharingOf reports how an open artifact holds its target on disk:
+// TargetSharing reports how the opened artifact holds its target on disk:
 // TargetShared when the file has other links, as a pool entry and the artifacts
 // linked to it do, and TargetPrivate when the artifact holds the only link. It
 // is empty where the platform does not report link counts.
-func TargetSharingOf(opened Artifact) (TargetSharing, error) {
-	if opened.root == nil {
+func (opened *Opened) TargetSharing() (TargetSharing, error) {
+	if opened == nil || opened.root == nil {
 		return "", errors.New("artifact is not open")
 	}
-	info, err := opened.root.Lstat(filepath.FromSlash(opened.Manifest.Target.File))
+	info, err := opened.root.Lstat(filepath.FromSlash(opened.manifest.Target.File))
 	if err != nil {
 		return "", fmt.Errorf("inspect artifact target: %w", err)
 	}

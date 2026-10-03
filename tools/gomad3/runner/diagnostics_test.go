@@ -132,7 +132,7 @@ func TestDiagnosticArtifactReplaysWithoutCollectingSidecar(t *testing.T) {
 	}
 	defer opened.Close()
 	found := false
-	for _, entry := range opened.Manifest.Environment {
+	for _, entry := range opened.Manifest().Environment {
 		found = found || entry.Name == choice.DiagnosticProfileEnvironment
 	}
 	if !found {

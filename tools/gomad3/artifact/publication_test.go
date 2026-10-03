@@ -40,10 +40,10 @@ func TestPublishArtifactWritesAndValidatesChoiceTrace(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer opened.Close()
-	if opened.Manifest.ChoiceProfile == nil || opened.Manifest.ChoiceProfile.Trace.File != "choices.bin" || opened.Manifest.ChoiceProfile.Trace.TapeSHA256 != tapeSHA256 || opened.Manifest.ChoiceProfile.Trace.Decisions != 1 {
-		t.Fatalf("choice profile = %#v", opened.Manifest.ChoiceProfile)
+	if opened.Manifest().ChoiceProfile == nil || opened.Manifest().ChoiceProfile.Trace.File != "choices.bin" || opened.Manifest().ChoiceProfile.Trace.TapeSHA256 != tapeSHA256 || opened.Manifest().ChoiceProfile.Trace.Decisions != 1 {
+		t.Fatalf("choice profile = %#v", opened.Manifest().ChoiceProfile)
 	}
-	observed, err := ReadPayload(opened, "choices.bin", 1<<20)
+	observed, err := opened.ReadPayload("choices.bin", 1<<20)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,7 +134,7 @@ func TestPublishArtifactWritesSimulationExplorationEvidence(t *testing.T) {
 		"simulation/plan.json":   plan,
 		"simulation/record.json": record,
 	} {
-		got, err := ReadPayload(opened, name, 1<<20)
+		got, err := opened.ReadPayload(name, 1<<20)
 		if err != nil {
 			t.Fatal(err)
 		}

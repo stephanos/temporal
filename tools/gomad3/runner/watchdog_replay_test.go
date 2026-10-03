@@ -146,7 +146,7 @@ func TestWatchdogDiagnosticReplayRejectsUnsupportedChoiceEvidence(t *testing.T) 
 			t.Error(err)
 		}
 	})
-	choices, err := artifact.ReadPayload(opened, opened.Manifest.ChoiceProfile.Trace.File, uint64(opened.Manifest.ChoiceProfile.Trace.Limit))
+	choices, err := opened.ReadPayload(opened.Manifest().ChoiceProfile.Trace.File, uint64(opened.Manifest().ChoiceProfile.Trace.Limit))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -154,7 +154,7 @@ func TestWatchdogDiagnosticReplayRejectsUnsupportedChoiceEvidence(t *testing.T) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	manifest := opened.Manifest
+	manifest := opened.Manifest()
 	manifest.ArtifactKind, manifest.ReplayMode = record.ArtifactWatchdogTimeout, record.ReplayDiagnostic
 	manifest.IOProfile.Transcript = nil
 	deadline := "execution_timeout"

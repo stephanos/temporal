@@ -160,8 +160,8 @@ func TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts(t *testin
 		if err != nil {
 			t.Fatal(err)
 		}
-		manifest := retained.Manifest
-		storedBytes += retained.StoredBytes
+		manifest := retained.Manifest()
+		storedBytes += retained.StoredBytes()
 		if err := retained.Close(); err != nil {
 			t.Fatal(err)
 		}
