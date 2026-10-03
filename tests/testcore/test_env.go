@@ -31,7 +31,6 @@ import (
 	"go.temporal.io/server/common/log/tag"
 	"go.temporal.io/server/common/namespace"
 	persistencetests "go.temporal.io/server/common/persistence/persistence-tests"
-	"go.temporal.io/server/common/rpc/faultinjection"
 	"go.temporal.io/server/common/rpc/grpcfaults"
 	"go.temporal.io/server/common/rpc/httpfaults"
 	"go.temporal.io/server/common/testing/taskpoller"
@@ -39,7 +38,6 @@ import (
 	"go.temporal.io/server/common/testing/testhooks"
 	"go.temporal.io/server/common/testing/testlogger"
 	"go.temporal.io/server/common/testing/testvars"
-	"go.temporal.io/server/temporal"
 )
 
 // shardSalt is used to distribute functional tests across shards.
@@ -62,7 +60,6 @@ type Env interface {
 	GetTestCluster() *TestCluster
 	CloseShard(namespaceID string, workflowID string)
 	OverrideDynamicConfig(setting dynamicconfig.GenericSetting, value any) (cleanup func())
-	// Deprecated: use the suite's Context() method instead.
 	Context() context.Context
 	InjectHook(hook testhooks.Hook) (cleanup func())
 }
@@ -202,7 +199,7 @@ func WithInMemorySQLitePersistence() TestOption {
 func WithArchival() TestOption {
 	return func(o *testOptions) {
 		o.dedicatedCluster = true
-		o.clusterOptions = append(o.clusterOptions, withArchivalConfig())
+		o.clusterOptions = append(o.clusterOptions, WithArchivalEnabled())
 		o.dedicatedReason = "archival enabled"
 	}
 }
@@ -213,12 +210,10 @@ func WithArchival() TestOption {
 func WithCustomArchivers(historyFactory provider.CustomHistoryArchiverFactory, visibilityFactory provider.CustomVisibilityArchiverFactory) TestOption {
 	return func(o *testOptions) {
 		o.dedicatedCluster = true
-		o.clusterOptions = append(o.clusterOptions, func(params *testClusterParams) {
-			params.AdditionalServerOptions = append(params.AdditionalServerOptions,
-				temporal.WithCustomHistoryArchiverFactory(historyFactory),
-				temporal.WithCustomVisibilityArchiverFactory(visibilityFactory),
-			)
-		})
+		o.clusterOptions = append(o.clusterOptions,
+			WithCustomHistoryArchiverFactory(historyFactory),
+			WithCustomVisibilityArchiverFactory(visibilityFactory),
+		)
 		o.dedicatedReason = "custom archivers used"
 	}
 }
@@ -413,11 +408,6 @@ func (e *TestEnv) Namespace() namespace.Name {
 
 func (e *TestEnv) NamespaceID() namespace.ID {
 	return e.nsID
-}
-
-// GetFaultInjector returns the cluster's RPC fault generator.
-func (e *TestEnv) GetFaultInjector() *faultinjection.RPCFaultGenerator {
-	return e.cluster.Host().GetFaultInjector()
 }
 
 // InjectHook sets a test hook inside the cluster.

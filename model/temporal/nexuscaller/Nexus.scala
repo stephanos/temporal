@@ -1,17 +1,10 @@
-/* The Nexus caller's domains and step functions: the part of the Model Stainless proves things
- * about (proofs/temporal/NexusLemmas.scala) and the framework enumerates (temporal/nexuscaller). It is written in
- * the Scala subset Stainless accepts: enums, case classes, Int and Boolean, total matches, and the
- * list and step constructors of umpire.prelude, which each side supplies for itself. Everything a
- * Model declares beyond its step functions lives in temporal/nexuscaller in ordinary Scala.
- *
- *
- *
+/* The Nexus caller's domains and step functions. The product machine says what happens to an
+ * operation; the protocol machine describes how the server gets there.
  */
 package temporal
 package nexuscaller
-package kernel
 
-import umpire.prelude.*
+import umpire.{Finite, Step}
 
 // ### The input domains
 //
@@ -20,23 +13,23 @@ import umpire.prelude.*
 // is the granularity an example is written at and what mirrors a protobuf oneof.
 
 /** Whether the schedule command sets a deadline. */
-enum Timeout:
+enum Timeout derives Finite:
   case unset, expires
 
 /** The handler's reply to the server's start request. */
-enum Reply:
+enum Reply derives Finite:
   case syncSuccess, async, operationFailed, operationCanceled
   case handlerError(retryable: Boolean)
 
 /** How an asynchronous completion settles the operation. */
-enum Resolution:
+enum Resolution derives Finite:
   case succeeded, failed, canceled
 
 /**
  * A step's outcome. The product and protocol machines share the two members, and an outcome reads
  * as the refined machine's outcome of the same name.
  */
-enum Outcome:
+enum Outcome derives Finite:
   case accepted, notFound
 
 // ### The product machine
@@ -44,12 +37,12 @@ enum Outcome:
 // What an operation does, with no account of how. Every Property written against it is carried to
 // the protocol machine by the refinement declared there.
 
-enum ProductPhase:
+enum ProductPhase derives Finite:
   case scheduled, started, succeeded, failed, canceled, timedOut
 
-final case class ProductState(phase: ProductPhase)
+final case class ProductState(phase: ProductPhase) derives Finite
 
-enum ProductFact:
+enum ProductFact derives Finite:
   case nexusOperationScheduled, nexusOperationStarted, nexusOperationCompleted,
     nexusOperationFailed,
     nexusOperationCanceled, nexusOperationTimedOut
@@ -57,15 +50,15 @@ enum ProductFact:
 type ProductStep = Step[ProductState, Outcome, ProductFact]
 
 object Product:
-  def productStep(phase: ProductPhase, recorded: ProductFact): Steps[ProductStep] =
-    one(step(Outcome.accepted, ProductState(phase), facts1(recorded)))
+  def productStep(phase: ProductPhase, recorded: ProductFact): List[ProductStep] =
+    List(Step(Outcome.accepted, ProductState(phase), List(recorded)))
 
   /**
    * The handler's reply to the server's start request. An operation that has not started yet is
    * the only one a reply can move.
    */
-  def handlerReplyStep(s: ProductState, reply: Reply): Steps[ProductStep] =
-    if s.phase != ProductPhase.scheduled then none
+  def handlerReplyStep(s: ProductState, reply: Reply): List[ProductStep] =
+    if s.phase != ProductPhase.scheduled then Nil
     else
       reply match
         case Reply.syncSuccess =>
@@ -78,7 +71,7 @@ object Product:
         // A retryable handler error leaves the operation where it is: the product machine does not
         // know about backing off, which is the whole of what the protocol machine adds.
         case Reply.handlerError(retryable) =>
-          if retryable then none
+          if retryable then Nil
           else productStep(ProductPhase.failed, ProductFact.nexusOperationFailed)
 
   /** The four phases the product machine ends on. */
@@ -90,8 +83,8 @@ object Product:
    * An asynchronous completion. A completion that arrives after the operation is over is not
    * found, and changes nothing.
    */
-  def completeStep(s: ProductState, resolution: Resolution): Steps[ProductStep] =
-    if productTerminal(s) then one(step(Outcome.notFound, s, facts0))
+  def completeStep(s: ProductState, resolution: Resolution): List[ProductStep] =
+    if productTerminal(s) then List(Step(Outcome.notFound, s, Nil))
     else
       resolution match
         case Resolution.succeeded =>
@@ -104,7 +97,7 @@ object Product:
    * A transport fault is an ordinary action of the network. The product machine cannot see one:
    * whether a delivery was retried is the protocol's account of how, not what.
    */
-  def transportFaultStep(@scala.annotation.unused s: ProductState): Steps[ProductStep] = none
+  def transportFaultStep(@scala.annotation.unused s: ProductState): List[ProductStep] = Nil
 
   /**
    * The handler's worker stopping is a fault the Run records and the operation does not feel. The
@@ -112,16 +105,16 @@ object Product:
    * recorded nothing would be indistinguishable from a stutter, and the refinement would read every
    * stutter as this step.
    */
-  def workerStopStep(@scala.annotation.unused s: ProductState): Steps[ProductStep] = none
+  def workerStopStep(@scala.annotation.unused s: ProductState): List[ProductStep] = Nil
 
   /**
    * One of the operation's deadlines firing. Which deadline is the protocol's account of how, so the
    * product machine has one timer, and it fires while the operation runs.
    */
-  def timeoutStep(s: ProductState): Steps[ProductStep] =
+  def timeoutStep(s: ProductState): List[ProductStep] =
     if s.phase == ProductPhase.scheduled || s.phase == ProductPhase.started then
       productStep(ProductPhase.timedOut, ProductFact.nexusOperationTimedOut)
-    else none
+    else Nil
 
 // ### The protocol machine
 //
@@ -136,14 +129,14 @@ object Product:
 // Not here, for reasons recorded rather than silent: the cancel field and its rows (fn-79), and the
 // concurrency-limit rejection, which names no operation and is not modeled until a Query needs it.
 
-enum Phase:
+enum Phase derives Finite:
   case unscheduled, scheduled, backingOff, started, succeeded, failed, canceled, timedOut
 
 /**
  * Which timer fired. The history event records it, so a Contract that did not check it would pass a
  * run that timed out on the wrong deadline.
  */
-enum TimeoutType:
+enum TimeoutType derives Finite:
   case scheduleToClose, scheduleToStart, startToClose
 
 /** The attempt count is `0..attemptBound`. */
@@ -155,7 +148,7 @@ final case class ProtocolState(
     startToClose: Timeout
 )
 
-enum ProtocolFact:
+enum ProtocolFact derives Finite:
   case nexusOperationScheduled, nexusOperationStarted, nexusOperationCompleted,
     nexusOperationFailed,
     nexusOperationCanceled
@@ -169,17 +162,16 @@ type ProtocolStep = Step[ProtocolState, Outcome, ProtocolFact]
 object Protocol:
   /**
    * Bounds the attempt count. Nothing wires the Limits into a machine's state, so the bound is
-   * written here and the saturating successor keeps a retry inside it.
+   * written here; the Go model evaluator checks each require precondition against it.
    */
   val attemptBound: Int = 2
 
   def validAttempts(a: Int): Boolean = 0 <= a && a <= attemptBound
 
   /** A retry past the bound stays at it, rather than wrapping as `Fin` arithmetic would. */
-  def saturatingSucc(a: Int): Int = {
+  def saturatingSucc(a: Int): Int =
     require(validAttempts(a))
     if a < attemptBound then a + 1 else a
-  }.ensuring(validAttempts)
 
   /** The four phases the design ends on. A completion that arrives after one of them is not found. */
   def terminalPhase(p: Phase): Boolean =
@@ -189,8 +181,8 @@ object Protocol:
   def running(p: Phase): Boolean =
     p == Phase.scheduled || p == Phase.backingOff || p == Phase.started
 
-  def moves(s: ProtocolState, phase: Phase, recorded: Facts[ProtocolFact]): Steps[ProtocolStep] =
-    one(step(Outcome.accepted, s.copy(phase = phase), recorded))
+  def moves(s: ProtocolState, phase: Phase, recorded: List[ProtocolFact]): List[ProtocolStep] =
+    List(Step(Outcome.accepted, s.copy(phase = phase), recorded))
 
   /**
    * The caller's schedule command. It names the operation's three deadlines, and every one of them
@@ -202,14 +194,14 @@ object Protocol:
       scheduleToClose: Timeout,
       scheduleToStart: Timeout,
       startToClose: Timeout
-  ): Steps[ProtocolStep] =
-    if s.phase != Phase.unscheduled then none
+  ): List[ProtocolStep] =
+    if s.phase != Phase.unscheduled then Nil
     else
-      one(
-        step(
+      List(
+        Step(
           Outcome.accepted,
           ProtocolState(Phase.scheduled, 0, scheduleToClose, scheduleToStart, startToClose),
-          facts1(ProtocolFact.nexusOperationScheduled)
+          List(ProtocolFact.nexusOperationScheduled)
         )
       )
 
@@ -218,36 +210,36 @@ object Protocol:
    * last arm: a retryable failure backs the operation off and raises its attempt count, and the
    * count is read back through the pendingAttempts observation because no history event records it.
    */
-  def handlerReplyStep(s: ProtocolState, reply: Reply): Steps[ProtocolStep] =
+  def handlerReplyStep(s: ProtocolState, reply: Reply): List[ProtocolStep] =
     require(validAttempts(s.attempts))
-    if s.phase != Phase.scheduled then none
+    if s.phase != Phase.scheduled then Nil
     else
       reply match
         case Reply.syncSuccess =>
-          moves(s, Phase.succeeded, facts1(ProtocolFact.nexusOperationCompleted))
-        case Reply.async => moves(s, Phase.started, facts1(ProtocolFact.nexusOperationStarted))
+          moves(s, Phase.succeeded, List(ProtocolFact.nexusOperationCompleted))
+        case Reply.async => moves(s, Phase.started, List(ProtocolFact.nexusOperationStarted))
         case Reply.operationFailed =>
-          moves(s, Phase.failed, facts1(ProtocolFact.nexusOperationFailed))
+          moves(s, Phase.failed, List(ProtocolFact.nexusOperationFailed))
         case Reply.operationCanceled =>
-          moves(s, Phase.canceled, facts1(ProtocolFact.nexusOperationCanceled))
+          moves(s, Phase.canceled, List(ProtocolFact.nexusOperationCanceled))
         case Reply.handlerError(retryable) =>
-          if !retryable then moves(s, Phase.failed, facts1(ProtocolFact.nexusOperationFailed))
+          if !retryable then moves(s, Phase.failed, List(ProtocolFact.nexusOperationFailed))
           else
             moves(
               s.copy(attempts = saturatingSucc(s.attempts)),
               Phase.backingOff,
-              facts1(ProtocolFact.pendingAttempts)
+              List(ProtocolFact.pendingAttempts)
             )
 
   /** A transport fault is the same failure arriving as a dropped delivery rather than as a reply. */
-  def transportFaultStep(s: ProtocolState): Steps[ProtocolStep] =
+  def transportFaultStep(s: ProtocolState): List[ProtocolStep] =
     require(validAttempts(s.attempts))
-    if s.phase != Phase.scheduled then none
+    if s.phase != Phase.scheduled then Nil
     else
       moves(
         s.copy(attempts = saturatingSucc(s.attempts)),
         Phase.backingOff,
-        facts1(ProtocolFact.pendingAttempts)
+        List(ProtocolFact.pendingAttempts)
       )
 
   /**
@@ -255,70 +247,70 @@ object Protocol:
    * step keeps the state and records nothing. On a path it is confirmed by the evidence of the step
    * after it, and the Case says so in a Known Gap.
    */
-  def workerStopStep(s: ProtocolState): Steps[ProtocolStep] = one(step(Outcome.accepted, s, facts0))
+  def workerStopStep(s: ProtocolState): List[ProtocolStep] = List(Step(Outcome.accepted, s, Nil))
 
   /**
    * An asynchronous completion. Before a start, the server records a Started event first, which is
    * why the evidence is two facts and not one -- and why the product machine, which has no
    * backingOff phase to have skipped, could write the completion alone.
    */
-  def completeStep(s: ProtocolState, resolution: Resolution): Steps[ProtocolStep] =
-    if terminalPhase(s.phase) then one(step(Outcome.notFound, s, facts0))
-    else if s.phase == Phase.unscheduled then none
+  def completeStep(s: ProtocolState, resolution: Resolution): List[ProtocolStep] =
+    if terminalPhase(s.phase) then List(Step(Outcome.notFound, s, Nil))
+    else if s.phase == Phase.unscheduled then Nil
     else
-      val startedFirst: Facts[ProtocolFact] =
-        if s.phase != Phase.started then facts1(ProtocolFact.nexusOperationStarted) else facts0
+      val startedFirst: List[ProtocolFact] =
+        if s.phase != Phase.started then List(ProtocolFact.nexusOperationStarted) else Nil
       resolution match
         case Resolution.succeeded =>
-          moves(s, Phase.succeeded, startedFirst ++ facts1(ProtocolFact.nexusOperationCompleted))
+          moves(s, Phase.succeeded, startedFirst ++ List(ProtocolFact.nexusOperationCompleted))
         case Resolution.failed =>
-          moves(s, Phase.failed, startedFirst ++ facts1(ProtocolFact.nexusOperationFailed))
+          moves(s, Phase.failed, startedFirst ++ List(ProtocolFact.nexusOperationFailed))
         case Resolution.canceled =>
-          moves(s, Phase.canceled, startedFirst ++ facts1(ProtocolFact.nexusOperationCanceled))
+          moves(s, Phase.canceled, startedFirst ++ List(ProtocolFact.nexusOperationCanceled))
 
   /**
    * The backoff timer. It is what makes backingOff a phase the operation leaves rather than a state
    * it is stuck in, and it records nothing: a retry writes no history event.
    */
-  def backoffStep(s: ProtocolState): Steps[ProtocolStep] =
-    if s.phase != Phase.backingOff then none else moves(s, Phase.scheduled, facts0)
+  def backoffStep(s: ProtocolState): List[ProtocolStep] =
+    if s.phase != Phase.backingOff then Nil else moves(s, Phase.scheduled, Nil)
 
   /**
    * The schedule-to-close deadline covers the whole operation, so it fires in every running phase
    * -- and only when the schedule command set it.
    */
-  def scheduleToCloseStep(s: ProtocolState): Steps[ProtocolStep] =
+  def scheduleToCloseStep(s: ProtocolState): List[ProtocolStep] =
     if running(s.phase) && s.scheduleToClose == Timeout.expires then
       moves(
         s,
         Phase.timedOut,
-        facts1(ProtocolFact.nexusOperationTimedOut(TimeoutType.scheduleToClose))
+        List(ProtocolFact.nexusOperationTimedOut(TimeoutType.scheduleToClose))
       )
-    else none
+    else Nil
 
   /**
    * The schedule-to-start deadline covers the wait for the handler to accept, so it stops at the
    * start.
    */
-  def scheduleToStartStep(s: ProtocolState): Steps[ProtocolStep] =
+  def scheduleToStartStep(s: ProtocolState): List[ProtocolStep] =
     if (s.phase == Phase.scheduled || s.phase == Phase.backingOff) && s.scheduleToStart == Timeout.expires
     then
       moves(
         s,
         Phase.timedOut,
-        facts1(ProtocolFact.nexusOperationTimedOut(TimeoutType.scheduleToStart))
+        List(ProtocolFact.nexusOperationTimedOut(TimeoutType.scheduleToStart))
       )
-    else none
+    else Nil
 
   /** The start-to-close deadline covers the handler's own work, so it begins at the start. */
-  def startToCloseStep(s: ProtocolState): Steps[ProtocolStep] =
+  def startToCloseStep(s: ProtocolState): List[ProtocolStep] =
     if s.phase == Phase.started && s.startToClose == Timeout.expires then
       moves(
         s,
         Phase.timedOut,
-        facts1(ProtocolFact.nexusOperationTimedOut(TimeoutType.startToClose))
+        List(ProtocolFact.nexusOperationTimedOut(TimeoutType.startToClose))
       )
-    else none
+    else Nil
 
   /**
    * How a protocol state reads as a product state. A phase of the same name is that phase; backing

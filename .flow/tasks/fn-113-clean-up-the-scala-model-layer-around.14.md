@@ -115,7 +115,20 @@ conductor decides.
   - `rejects.txt` is unchanged.
 - **R8.** `rejects.txt` and `model/lifter/test/` are unmodified. The identity test ("a declaration's
   identity does not move with its line") and every refusal test pass (`lifter-test.log`).
-- **R25.** No library was weighed. The change is about 60 lines over the compiler's reflection API.
+- **R25 (completed after the spec review).** The naming change adds **64 net lines**:
+  Expressions +66/-5 and Context +3 (`.flow/tmp/fn113-14-library-review/naming-numstat.txt`).
+  Weighed Scalameta's tree traversal against the existing compiler-reflection implementation.
+  Scalameta parses source syntax into its own trees; SemanticDB uses separately produced symbols,
+  and its synthetic trees cover only a subset of Scala syntax. Those APIs do not replace the
+  lifter's `quotes.reflect` symbols, inlined bodies, owner chain or symbol-keyed rename map.
+  In this existing pipeline, adding Scalameta removes **0** of the 64 lines and adds at least
+  **2** dependency/import lines: **64 versus at least 66**, before a second-tree conversion.
+  This is an integration lower bound, not a measured replacement prototype. A source-only rewrite
+  would lose the compiled/inlined symbol contract; a second semantic front end is outside R26.
+  Kept the compiler's maintained `TreeAccumulator`/`foldOverTree` and standard collections, with
+  no new dependency. This decision is inferred from the [Scalameta tree guide](https://scalameta.org/docs/trees/guide)
+  and [SemanticDB specification](https://scalameta.org/docs/semanticdb/specification.html), checked
+  against `parameters`, `inScope` and `Context.renamed` in the current lifter.
 
 ### Checks (logs under .flow/tmp/fn113-14/)
 

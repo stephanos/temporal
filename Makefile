@@ -681,7 +681,7 @@ MODEL_LIFTER_SOURCES := $(wildcard $(MODEL_ROOT)/lifter/*.scala) $(MODEL_ROOT)/l
 MODEL_LIFTS := $(MODEL_ROOT)/lifter/testdata/lifts
 MODEL_LIFTS_SCALAFIX = $(MODEL_SCALAFIX) --scalac-option -Werror:false \
 	$(call model_scalafix_files,$(wildcard $(MODEL_LIFTS)/*.scala))
-MODEL_PROTO_JARS := $(MODEL_ROOT)/gen/ir-scalapb.jar
+MODEL_PROTO_JARS := $(MODEL_ROOT)/gen/ir-scalapb.jar $(MODEL_ROOT)/gen/api-scalapb.jar
 MODEL_JAR := $(MODEL_ROOT)/gen/model-scala.jar
 # The gate is one Scala program; its own arguments follow.
 MODEL_GATE = $(MODEL_CLI) run --suppress-outdated-dependency-warning $(MODEL_ROOT)/gate --
@@ -690,12 +690,16 @@ MODEL_GATE_TEST = $(MODEL_CLI) test --suppress-outdated-dependency-warning $(MOD
 
 # make sees only the schema; after the generator's version changes in the gate, the gate's own run
 # repackages the jar.
-$(MODEL_PROTO_JARS): proto/internal/temporal/server/api/umpire/v1/ir.proto
+$(MODEL_ROOT)/gen/ir-scalapb.jar: proto/internal/temporal/server/api/umpire/v1/ir.proto
 	@printf $(COLOR) "Package model IR classes..."
 	@$(MODEL_GATE) --generate-ir
 
+$(MODEL_ROOT)/gen/api-scalapb.jar: $(MODEL_ROOT)/gen/ir-scalapb.jar proto/api.binpb cmd/tools/getproto/main.go cmd/tools/getproto/files.go model/gate/Gate.scala model/gate/project.scala go.mod go.sum mise.toml
+	@printf $(COLOR) "Package model API classes..."
+	@$(MODEL_GATE) --generate-api --if-stale
+
 # The Models' TASTy, packaged as the gate's "package the Models' TASTy" step packages it.
-$(MODEL_JAR): $(MODEL_ROOT)/project.scala $(shell find $(MODEL_ROOT)/umpire $(MODEL_ROOT)/temporal -name '*.scala')
+$(MODEL_JAR): $(MODEL_PROTO_JARS) $(MODEL_ROOT)/project.scala $(shell find $(MODEL_ROOT)/umpire $(MODEL_ROOT)/temporal -name '*.scala')
 	@printf $(COLOR) "Package the Models' TASTy..."
 	@$(MODEL_CLI) --power package --suppress-outdated-dependency-warning --library $(MODEL_SOURCES) -f -o $@
 

@@ -11,10 +11,14 @@ import (
 	"sort"
 	"strings"
 
+	_ "go.temporal.io/api/workflowservice/v1"
+	_ "go.temporal.io/server/api/testpilot/v1"
+	_ "go.temporal.io/server/api/umpire/v1"
 	expmaps "golang.org/x/exp/maps"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
@@ -169,13 +173,117 @@ func checkImports(files map[string]protoreflect.FileDescriptor) {
 	}
 }
 
+func linkedModelDescriptors(input string) ([]byte, []string, error) {
+	data, err := os.ReadFile(input)
+	if err != nil {
+		return nil, nil, fmt.Errorf("%s is missing or unreadable; run make proto/api.binpb: %w", input, err)
+	}
+	var api descriptorpb.FileDescriptorSet
+	if err := proto.Unmarshal(data, &api); err != nil {
+		return nil, nil, fmt.Errorf("%s is invalid; run make proto/api.binpb: %w", input, err)
+	}
+	files := make(map[string]*descriptorpb.FileDescriptorProto)
+	for _, file := range api.File {
+		files[file.GetName()] = file
+	}
+	var add func(protoreflect.FileDescriptor)
+	add = func(file protoreflect.FileDescriptor) {
+		if _, exists := files[file.Path()]; exists {
+			return
+		}
+		files[file.Path()] = protodesc.ToFileDescriptorProto(file)
+		imports := file.Imports()
+		for i := 0; i < imports.Len(); i++ {
+			add(imports.Get(i).FileDescriptor)
+		}
+	}
+	service, err := protoregistry.GlobalFiles.FindFileByPath("temporal/api/workflowservice/v1/service.proto")
+	if err != nil {
+		return nil, nil, fmt.Errorf("workflow service descriptor: %w", err)
+	}
+	add(service)
+	protoregistry.GlobalFiles.RangeFiles(func(file protoreflect.FileDescriptor) bool {
+		if strings.HasPrefix(file.Path(), "temporal/server/api/testpilot/") ||
+			file.Path() == "temporal/server/api/umpire/v1/ir.proto" {
+			add(file)
+		}
+		return true
+	})
+	names := expmaps.Keys(files)
+	sort.Strings(names)
+	set := &descriptorpb.FileDescriptorSet{}
+	generated := make([]string, 0, len(names))
+	for _, name := range names {
+		set.File = append(set.File, files[name])
+		if name != "temporal/server/api/umpire/v1/ir.proto" {
+			generated = append(generated, name)
+		}
+	}
+	if _, err := protodesc.NewFiles(set); err != nil {
+		return nil, nil, fmt.Errorf("linked descriptor closure is incomplete: %w", err)
+	}
+	output, err := (proto.MarshalOptions{Deterministic: true}).Marshal(set)
+	return output, generated, err
+}
+
+func isModelInternalDescriptor(name string) bool {
+	return strings.HasPrefix(name, "temporal/server/api/testpilot/") ||
+		name == "temporal/server/api/umpire/v1/ir.proto"
+}
+
+func checkCurrentInternal(linked []byte, current *descriptorpb.FileDescriptorSet) error {
+	var assembled descriptorpb.FileDescriptorSet
+	if err := proto.Unmarshal(linked, &assembled); err != nil {
+		return err
+	}
+	byName := make(map[string]*descriptorpb.FileDescriptorProto, len(current.File))
+	for _, file := range current.File {
+		byName[file.GetName()] = file
+	}
+	linkedByName := make(map[string]*descriptorpb.FileDescriptorProto)
+	for _, file := range assembled.File {
+		if !isModelInternalDescriptor(file.GetName()) {
+			continue
+		}
+		linkedByName[file.GetName()] = file
+		fresh, ok := byName[file.GetName()]
+		if !ok || !proto.Equal(file, fresh) {
+			return fmt.Errorf("linked descriptor %s differs from its current internal proto; run make protoc", file.GetName())
+		}
+	}
+	for _, file := range current.File {
+		if isModelInternalDescriptor(file.GetName()) && linkedByName[file.GetName()] == nil {
+			return fmt.Errorf("current internal proto %s is absent from linked descriptors; run make protoc", file.GetName())
+		}
+	}
+	return nil
+}
+
 func main() {
 	out := flag.String("out", "", "where to put the serialized FileDescriptorSet")
+	linkedAPI := flag.String("linked-api", "", "include linked service and Testpilot descriptors for the model")
+	currentInternal := flag.String("current-internal", "", "compare linked descriptors with current internal protos")
 	flag.Parse()
 
 	if *out == "" {
 		flag.Usage()
 		os.Exit(1)
+	}
+	if *linkedAPI != "" {
+		data, names, err := linkedModelDescriptors(*linkedAPI)
+		fatalIfErr(err)
+		if *currentInternal != "" {
+			current, err := os.ReadFile(*currentInternal)
+			fatalIfErr(err)
+			var set descriptorpb.FileDescriptorSet
+			fatalIfErr(proto.Unmarshal(current, &set))
+			fatalIfErr(checkCurrentInternal(data, &set))
+		}
+		fatalIfErr(os.WriteFile(*out, data, 0644))
+		for _, name := range names {
+			fmt.Println(name)
+		}
+		return
 	}
 
 	if len(importMap) == 0 {

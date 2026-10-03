@@ -26,10 +26,10 @@ the functional fixtures and the canary.
 | Module and destination | One job | Public interface | Permitted domain dependencies |
 | --- | --- | --- | --- |
 | Umpire IR, `api/umpire/v1`, `proto/internal/temporal/server/api/umpire/v1` | Represent a lifted Model. | Existing protobuf messages under the new package names. | Protobuf support; no Testpilot schema dependency added. |
-| DSL, `model/umpire` | Express finite Models in Scala. | Existing authoring declarations, prelude and realization types. | Scala standard library; no `temporal`, lifter or gate import. |
-| Models, `model/temporal` | Declare Temporal behavior. | Existing machine, claim, Query and realization roots. | DSL and shared feature kit; generated Temporal API data when delivered by its later spec. |
-| Lifter, `model/lifter` | Translate typed trees into Umpire IR. | `Lifter`, `LiftError`, existing CLI root/prefix arguments. | Generated IR, TASTy/Quotes and compiler libraries; Models read as TASTy, never source imports. |
-| Gate, `model/gate` | Verify the authored model pipeline. | One Scala program, `--update`; internal schema-generation mode `--generate-ir [--if-stale]`. | Processes/files, lifter outputs, Go checks; no authoring dependency on the gate. |
+| DSL, `model/umpire` | Declare finite Models in Scala. | Authoring and realization declarations; no native evaluator. | Scala standard library and generic ScalaPB typing/runtime metadata; no Temporal-specific, lifter or gate import. |
+| Models, `model/temporal` | Declare Temporal behavior. | Existing machine, claim, Query and realization roots. | DSL and shared feature kit; generated Temporal API, Testpilot and well-known message classes with their ScalaPB/gRPC compile-time runtime. |
+| Lifter, `model/lifter` | Translate typed trees into Umpire IR. | `Lifter`, `LiftError`, existing CLI root/prefix arguments. | Generated ScalaPB IR and linked API metadata, ScalaPB runtime/ProtoJSON support, TASTy/Quotes and compiler libraries; Models read as TASTy, never source imports. |
+| Gate, `model/gate` | Verify the authored model pipeline. | One Scala program, `--update`; internal schema-generation modes `--generate-ir [--if-stale]` and `--generate-api [--if-stale]`. | Processes/files, stamped ScalaPB generation, lifter outputs, Go checks; no authoring dependency on the gate. |
 | Reader, `tools/umpire/model` | Interpret the meaning of one admitted Model. | `Load`, `Validate`, `Check`, `Build`, `NewInterpreter`, `NewRealizer`, `TypeOf`, `PayloadFields`, `GuardProblem`, `Unknown`; existing value, receipt, scope, table and bound-claim data needed by consumers. | Umpire IR and its private checker; no Testpilot package or schema. |
 | Checker, `tools/umpire/model/internal/checker` | Evaluate finite table claims. | Private to the reader; retained implementation declarations only. | No Testpilot or lower/conformance/export imports. |
 | Lowering, `tools/umpire/lower` | Produce a Case from a Query's witness. | `NewProducer`, `Producer.Lower`, `Identity`, `IdentityFor`, `GenerateCases`, `DecodeManifest`, `SyncCases`; lowering standings, inventories and manifest data. | Reader, Testpilot facade/schema and private producer. |
@@ -79,14 +79,12 @@ private checker constants; do not merge the receipt/outcome types or add a synon
 
 `Row` is public data in the `Table.Rows` signature closure. `NewTable`, `TableSpec`, `KeyProperty`,
 `KeyScenario` and `KeyFind` remain private-checker operations, not public test-construction APIs.
-Since task 7 the typed declaration layer of the checker (machine, step, Property and Scenario
-builders, reflection domains and keys) is test support in `*_support_test.go`; `Set`, `Check` and
-coverage targets are deleted, and the reader no longer aliases typed class data (`ActionDecl`,
-`Party`, `Entity`, `ClassExample`, `TableClass`, `ProgressAnswer`). Recorded exceptions to the
+fn-113 Part C deleted the checker's typed declaration layer (machine, step, Property and Scenario
+builders, reflection domains and keys), its test-support files and the production branches only
+those fixtures reached. The checker reads keys only, and the reader no longer aliases typed class
+data (`ActionDecl`, `Party`, `Entity`, `ClassExample`, `TableClass`, `ProgressAnswer`). Recorded exceptions to the
 outside-caller rule: `export` keeps the surface listed in its row although no package imports it,
-and exported `Table` fields are unaudited (`Table.Stuck` is read by reader tests only). Production
-branches that only typed fixtures reach remain in the checker; fn-113 Part C lists their removal
-beside the native Scala evaluator's.
+and exported `Table` fields are unaudited (`Table.Stuck` is read by reader tests only).
 
 Lowering exposes `Identity` and `IdentityFor` from its private producer so exploration and fixture
 callers have no direct `caseproducer` import. Move producer-specific white-box tests with that
@@ -270,15 +268,19 @@ exceptions, so fixture trees need no ignore exception.
 
 `model/project.scala` is the shared directive file copied from `scala/project.scala`. Compile the
 DSL with exactly that file and `model/umpire`; compile/test/package Models with that file plus
-`model/umpire` and `model/temporal`. Tests stay under their existing `umpire/test` and `temporal/test`
-subtrees. The lifter and gate have independent `project.scala` files. Their generated jars, fixtures
+`model/umpire` and `model/temporal`. Authoring tests live under `temporal/test`; compiler and lifter
+refusal fixtures live under `lifter/testdata`. The lifter and gate have independent `project.scala`
+files. Their generated jars, fixtures
 and stamps live under ignored `model/gen`; the gate names source roots explicitly, so a broad
 recursive Scala compile never merges the authoring, lifter and gate projects. Lint/format commands
-visit these explicit roots. The native Scala evaluator (`Search`, `Table`, etc.) stays in the DSL until fn-113.
+visit these explicit roots. fn-113 removed the native Scala evaluator and transferred its independent
+checks to Go tests over the IR; the audit is `umpire-scala-evaluator-audit.md`. The Nexus domains and
+step functions live in `model/temporal/nexuscaller/Nexus.scala`, with no kernel or prelude package.
 Owner-approved early cleanup in task7, immediately after relocation, removes only the unused
 `Canonical.scala`, `Lower.scala` and `Alterer` plumbing from fn113 Part A / R1 after checking callers;
 this does not retire the evaluator. Task 7 delivered it: the two files, `Alterer` and the helpers left without
-a caller are gone, and `model/umpire` outside tests is 2,415 lines.
+a caller are gone, and `model/umpire` outside tests was 2,415 lines at that point; after fn-113 Part D
+it is 1,191 lines.
 
 Checked IR, generated Cases, specimens, specs, README and SEMANTICS move directly under `model/`.
 Reserve `model/examples` for fn-119 authoring examples and `tools/umpire/explore` for fn-120 explorer
@@ -311,11 +313,11 @@ files only when the gate passes `UMPIRE_LIFTER_UPDATE`.
 
 Since task 14 the lifter's fixtures are plain `.scala` files in `model/lifter/testdata`, which
 `//> using exclude` keeps out of the lifter's build; the tests copy a fixture to scratch before
-building it. Scalafmt checks the fixtures except five `lifts` sources (Admission, Channels,
-CloseReset, Realizations, Rejects): formatting them moves recorded positions, so fn-113 formats them
-once its golden comparison projects positions by file. Scalafix runs on `testdata/lifts` as its own
+building it. Scalafmt checks all fixtures; fn-113 formatted the five formerly excluded `lifts`
+sources after its golden comparison began projecting positions by file. Scalafix runs on `testdata/lifts` as its own
 root with all rules (`-Werror:false`, because the unused parameters it keeps are fixture content);
-the refusal fixtures `unsupported`, `werror` and `crossed` stay outside it. `lint-model` and
+the refusal fixtures `unsupported`, `werror`, `crossed`, `nonfinite`, `samestate` and
+`realizationRefusals` stay outside it. `lint-model` and
 `fix-model` depend on `model/gen/model-scala.jar`, packaged by the gate's command.
 A documented `--skip-go-checks` option may omit only its embedded Go test invocation when combined
 verification runs the complete live Go suite separately with `test_dep`; default invocation still
@@ -402,6 +404,14 @@ blank lines where necessary. New, unexpected source strings fail migration verif
 being accepted by a generic prefix normalizer. The six checked Models and six expected fixture IR
 files form the initial IR inventory; all their Queries and unsupported standings enter task 2's
 baseline. Confinement remains the existing source-position test, not a new runtime loader rule.
+
+fn-113 extends this historical migration contract with the closed projection in
+`tools/umpire/internal/golden/config.json`: positions by file, alpha-normalized parameters, exact
+listed function and type renames, and the Nexus source-path rename. Only a mapped-original type
+catalog with an actual listed type substitution is re-sorted by its resulting names; current type
+order, enum cases and record fields remain strict. Exploration Case IDs may vary because they hash
+the whole candidate IR. Tables, Definition IDs, refinement rows, fingerprints, Query answers,
+Query Case bytes and every other exploration Case byte retain the independent frozen baseline.
 
 Recompute hashes in the manifest's dependency order. Ordinary generated Cases retain the same
 `IdentityFor` inputs and IDs while mapped provenance changes their canonical checksum. Exploration

@@ -114,7 +114,7 @@ func migrationMeaning(t *testing.T, m *umpirespb.Model) migrationSemantics {
 
 func migrationMeaningOf(b *binding) migrationSemantics {
 	m := b.model
-	out := migrationSemantics{Receipts: migrationReceipts(Check(m, DefaultScope).Receipts)}
+	out := migrationSemantics{Receipts: migrationReceipts(checkWithBinding(m, b.scope, m, b.checking()).Receipts)}
 	var subjects []string
 	for _, machine := range m.GetMachines() {
 		subjects = append(subjects, machine.GetName())
@@ -224,6 +224,7 @@ func TestMigrationGoldens(t *testing.T) {
 		models[path] = original
 	}
 	require.NoError(t, cfg.FunctionsRenamed(models))
+	require.NoError(t, cfg.TypesRenamed(models))
 	require.NoError(t, golden.Compare(expected, migrationFiles(t, models)))
 }
 
@@ -404,6 +405,7 @@ func TestMigrationGoldensAdmitOnlyTheProjection(t *testing.T) {
 		cfg.Projection.Functions = append(cfg.Projection.Functions, golden.Substitution{Old: kernel, New: moved})
 	}
 	require.NoError(t, cfg.FunctionsRenamed(map[string]*umpirespb.Model{path: original}))
+	require.NoError(t, cfg.TypesRenamed(map[string]*umpirespb.Model{path: original}))
 	shifted := regexp.MustCompile(`"line":\s*([0-9]+)`)
 	shift := func(s string) string {
 		return shifted.ReplaceAllStringFunc(s, func(at string) string {

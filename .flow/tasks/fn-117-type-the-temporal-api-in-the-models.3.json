@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T08:59:07.700983Z",
+  "depends_on": [
+    "fn-117-type-the-temporal-api-in-the-models.2"
+  ],
+  "id": "fn-117-type-the-temporal-api-in-the-models.3",
+  "priority": null,
+  "spec": "fn-117-type-the-temporal-api-in-the-models",
+  "spec_path": ".flow/tasks/fn-117-type-the-temporal-api-in-the-models.3.md",
+  "status": "todo",
+  "title": "Add typed schema and method declarations with generic metadata lowering",
+  "updated_at": "2026-10-03T09:08:22.982857Z"
+}

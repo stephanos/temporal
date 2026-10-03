@@ -24,6 +24,7 @@ import (
 	"go.temporal.io/server/api/adminservice/v1"
 	persistencespb "go.temporal.io/server/api/persistence/v1"
 	"go.temporal.io/server/common"
+	"go.temporal.io/server/common/archiver/provider"
 	"go.temporal.io/server/common/config"
 	"go.temporal.io/server/common/dynamicconfig"
 	"go.temporal.io/server/common/log"
@@ -46,7 +47,6 @@ import (
 	"go.temporal.io/server/common/testing/testtelemetry"
 	"go.temporal.io/server/common/testing/updateutils"
 	"go.temporal.io/server/service/history/hsm/nexusoperations"
-	"go.temporal.io/server/temporal"
 	"google.golang.org/grpc"
 )
 
@@ -95,6 +95,7 @@ type (
 	testClusterParams struct {
 		DCRedirectionPolicy             config.DCRedirectionPolicy
 		DynamicConfigOverrides          map[dynamicconfig.Key]any
+		ArchivalEnabled                 bool
 		EnableMTLS                      bool
 		EnableWorkerService             bool
 		FaultInjectionConfig            *config.FaultInjection
@@ -102,14 +103,11 @@ type (
 		Logger                          log.Logger
 		SharedCluster                   bool
 		EnableHistoryTaskRecorder       bool
-		EnableReplicationRecorder       bool
-		EnableArchival                  bool
-		SpanExporter                    sdktrace.SpanExporter
-		AdditionalServerOptions         []temporal.ServerOption
 		Persistence                     persistencetests.TestBaseOptions
 		CustomHistoryArchiverFactory    provider.CustomHistoryArchiverFactory
 		CustomVisibilityArchiverFactory provider.CustomVisibilityArchiverFactory
 		AdditionalInterceptors          []grpc.UnaryServerInterceptor
+		SpanExporter                    sdktrace.SpanExporter
 	}
 	TestClusterOption func(params *testClusterParams)
 )
@@ -137,9 +135,9 @@ func WithDynamicConfigOverrides(overrides map[dynamicconfig.Key]any) TestCluster
 	}
 }
 
-func withArchivalConfig() TestClusterOption {
+func WithArchivalEnabled() TestClusterOption {
 	return func(params *testClusterParams) {
-		params.EnableArchival = true
+		params.ArchivalEnabled = true
 	}
 }
 
@@ -178,12 +176,6 @@ func WithClusterLogger(logger log.Logger) TestClusterOption {
 func WithClusterHistoryTaskRecorder() TestClusterOption {
 	return func(params *testClusterParams) {
 		params.EnableHistoryTaskRecorder = true
-	}
-}
-
-func WithReplicationStreamRecorder() TestClusterOption {
-	return func(params *testClusterParams) {
-		params.EnableReplicationRecorder = true
 	}
 }
 
@@ -332,18 +324,16 @@ func (s *FunctionalTestBase) setupCluster(options ...TestClusterOption) {
 
 	s.testClusterConfig = &TestClusterConfig{
 		FaultInjection: params.FaultInjectionConfig,
-		Persistence:    params.Persistence,
 		HistoryConfig: HistoryConfig{
 			NumHistoryShards: cmp.Or(params.NumHistoryShards, 4),
 		},
 		DCRedirectionPolicy:             params.DCRedirectionPolicy,
 		DynamicConfigOverrides:          params.DynamicConfigOverrides,
 		EnableMetricsCapture:            true,
+		EnableArchival:                  params.ArchivalEnabled,
 		EnableMTLS:                      params.EnableMTLS,
 		EnableHistoryTaskRecorder:       params.EnableHistoryTaskRecorder,
-		EnableReplicationRecorder:       params.EnableReplicationRecorder,
-		EnableArchival:                  params.EnableArchival,
-		AdditionalServerOptions:         params.AdditionalServerOptions,
+		Persistence:                     params.Persistence,
 		CustomHistoryArchiverFactory:    params.CustomHistoryArchiverFactory,
 		CustomVisibilityArchiverFactory: params.CustomVisibilityArchiverFactory,
 		AdditionalInterceptors:          additionalInterceptors,
@@ -701,6 +691,11 @@ func (s *FunctionalTestBase) InjectHook(hook testhooks.Hook) (cleanup func()) {
 		s.T().Fatalf("InjectHook: unknown scope %v", hook.Scope())
 	}
 	return s.testCluster.host.injectHook(s.T(), hook, scope)
+}
+
+// Context returns a context with RPC headers for use in this test.
+func (s *FunctionalTestBase) Context() context.Context {
+	return NewContext()
 }
 
 // CloseShard closes the shard that contains the given workflow.

@@ -1,8 +1,8 @@
 # Semantics of the Umpire IR
 
 The IR's meaning is defined here, not by the lifter that writes it or the Go interpreter that reads
-it. `proto/internal/temporal/server/api/umpire/v1/ir.proto` is the schema; `tools/umpire/model` is one evaluator of these
-rules, and its goldens hold what it derives.
+it. `proto/internal/temporal/server/api/umpire/v1/ir.proto` is the schema;
+`tools/umpire/model` is the Go evaluator of these rules, and its goldens hold what it derives.
 
 ## Versions
 

@@ -1,0 +1,48 @@
+---
+satisfies: [R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12]
+---
+# fn-117-type-the-temporal-api-in-the-models.8 Retire free-text proto forms and close with regression checks and documentation
+
+## Description
+Remove the migration bridge, enforce the final author contract and complete the spec's validation and documentation once.
+
+**Size:** M
+**Files:** model/umpire/Action.scala and realize modules; model/lifter/Declarations.scala and Realizations.scala; model/gate/Gate.scala/tests; model README/SEMANTICS and module map; focused fixture tests as needed.
+**Touches:** [model/umpire/Action.scala, model/umpire/realize/**, model/lifter/Declarations.scala, model/lifter/Realizations.scala, model/lifter/test/**, model/lifter/testdata/**, model/gate/**, model/README.md, model/SEMANTICS.md, .plans/UMPIRE_MODULES.md, .flow/tmp/fn117-8/**]
+
+### Approach
+- Remove the old string schema/method/path/enum/Proto/ProtoField/ProtoEntry author routes and corresponding lifter branches once task7 has no author caller; retire its explicitly retained old* Typed.scala parity controls in the same change and preserve equivalent typed-output assertions without legacy constructors. Keep Model-owned IDs and map data keys as values. Do not add another deprecated escape hatch.
+- Add the required focused gate regression check for proto package/message/method/field/enum string literals in Models. Inspect typed source/declaration context or descriptor-backed categories so Definition/role/evidence IDs and user text/data keys are not false positives. Cover each banned category and at least Definition ID, role ID, evidence ID and Payload.metadata encoding data as allowed controls. Include generated strings from helper concatenation insofar as they can reach an author API; retired constructors must not compile.
+- Verify the complete R10 matrix: misspelled field, wrong message/root, wrong literal/symbolic value, unknown enum; nested optional/repeated/oneof paths and typed map constant construction. Keep Go's independent validation/tests unchanged for edited or older IR.
+- Run required closure coverage once, reusing applicable prior passing results under MILESTONES.md: full model gate, lint-model, complete tooling Go tests with -json/-tags test_dep/serial package and subtest settings, whole-tools vet, lint-code-fast, Cases/fixtures/canary. Separate complete Go coverage permits the documented skip-go-checks Scala gate. Record exact command/environment/source hashes/new and reused results, exit and wall time; backend comparison remains owner-deferred. Broaden only for a concrete invalidation.
+- Verify all six IRs and positive fixture data equal the spec baseline except positions, with Case JSON bytes/frozen goldens strict, manifest Position metadata allowing only corresponding source-line updates and no schema/lowering/validation code change. Re-measure Model-edit warm compilation and artifact reuse on the same setup as R1; report before/after warm/cold measurements and removed string counts by category.
+- Update README's authoring examples, build/cache/error guidance and module map once with the actual final syntax and permitted runtime/generated class imports. SEMANTICS explains unchanged path/operand meaning and Go execution; Scala never sends messages. List genuinely unknown dynamic operands with reasons/retained Go checks. Supply MILESTONES facts for the conductor.
+
+### Investigation targets
+**Required:**
+- model/README.md:130-155,274-329 and model/SEMANTICS.md:295-334,384-400
+- .plans/UMPIRE_MODULES.md:29-32,269-275,308-324
+- model/gate/Gate.scala and test/Gate.test.scala
+- model/umpire/Action.scala and realize/Realize.scala
+- model/lifter/Declarations.scala and Realizations.scala
+- tools/umpire/lower/descriptor.go and realization.go
+- Makefile:684-732
+
+### Quick commands
+Full closure model gate coverage, mise exec -- make lint-model, Go tooling tests/vet with -tags test_dep and serial settings, GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=origin/main mise exec -- make lint-code-fast, make umpire-check-cases umpire-check-fixtures canary-check-case, git diff --check. Record which current-source passing evidence is reused.
+
+### Execution constraints
+No commits/staging/push/worktrees. Preserve comments, no broad API drift/CI expansion, Go validation or IR schema change. No fn-112/114 showcase/deduplication or fn-118 behavior metadata. No simultaneous heavy suites/generation; no extra audits or caching framework. Conductor owns spec completion review and close.
+The final compiler-refusal matrix includes both wrong-request poll assignment and wrong-projected-value poll condition controls; ensure string evidence IDs cannot bypass the known typed link.
+## Acceptance
+- [ ] All free-text proto author routes are removed, and the focused Model check rejects proto names while allowing Model IDs and data values; the complete positive/negative typing matrix passes.
+- [ ] Required full coverage, frozen goldens, lint and artifact checks pass with applicable reused evidence identified; no Go validation/schema/meaning change exists.
+- [ ] Final author/build/cache docs, exact removed-string counts, before/after warm/cold times and unknown-operand list are recorded; a Model edit reuses API generation/compilation.
+
+## Done summary
+TBD
+
+## Evidence
+- Commits:
+- Tests:
+- PRs:

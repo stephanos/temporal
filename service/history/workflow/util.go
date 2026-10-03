@@ -165,7 +165,22 @@ func ForceTerminateWorkflow(
 	metricsHandler metrics.Handler,
 	forceTerminationReason metrics.ReasonString,
 ) error {
-	if err := TerminateWorkflow(
+	return ForceTerminateWorkflowWithContext(context.Background(), mutableState, terminateReason, terminateDetails, terminateIdentity, deleteAfterTerminate, links, metricsHandler, forceTerminationReason)
+}
+
+func ForceTerminateWorkflowWithContext(
+	ctx context.Context,
+	mutableState historyi.MutableState,
+	terminateReason string,
+	terminateDetails *commonpb.Payloads,
+	terminateIdentity string,
+	deleteAfterTerminate bool,
+	links []*commonpb.Link,
+	metricsHandler metrics.Handler,
+	forceTerminationReason metrics.ReasonString,
+) error {
+	if err := TerminateWorkflowWithContext(
+		ctx,
 		mutableState,
 		terminateReason,
 		terminateDetails,

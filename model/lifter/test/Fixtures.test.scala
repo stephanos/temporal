@@ -45,7 +45,10 @@ class Fixtures extends munit.FunSuite:
       for from <- stream.asScala do
         Files.writeString(
           to.resolve(from.getFileName.toString),
-          Files.readString(from).replace("../../../gen/model-scala.jar", modelJar.toString)
+          Files
+            .readString(from)
+            .replace("../../../gen/model-scala.jar", modelJar.toString)
+            .replace("../../../gen/api-scalapb.jar", gen.resolve("api-scalapb.jar").toString)
         )
     finally stream.close()
     to
@@ -202,7 +205,202 @@ class Fixtures extends munit.FunSuite:
     assertEquals(refusals("werror"), Seq("Evidence.scala:29:16"))
 
   test("the build refuses crossed types, at their lines"):
-    assertEquals(refusals("crossed"), Seq("Crossed.scala:35:14", "Crossed.scala:45:28"))
+    assertEquals(
+      refusals("crossed").sorted,
+      Seq(
+        "ActionInput.scala:15:28",
+        "Crossed.scala:35:14",
+        "Crossed.scala:45:28",
+        "QueryPair.scala:26:69"
+      )
+    )
+
+  test("the build refuses a non-finite state field, at its line"):
+    assertEquals(refusals("nonfinite"), Seq("NonFinite.scala:5:47"))
+
+  test("typed API declarations and direct constructors refuse mismatched roots"):
+    assertEquals(
+      refusals("typedInvalid").sorted,
+      Seq(
+        "Invalid.scala:107:7",
+        "Invalid.scala:118:7",
+        "Invalid.scala:128:3",
+        "Invalid.scala:132:3",
+        "Invalid.scala:136:68",
+        "Invalid.scala:137:69",
+        "Invalid.scala:140:3",
+        "Invalid.scala:143:49",
+        "Invalid.scala:144:3",
+        "Invalid.scala:146:46",
+        "Invalid.scala:155:3",
+        "Invalid.scala:157:31",
+        "Invalid.scala:160:3",
+        "Invalid.scala:165:49",
+        "Invalid.scala:22:63",
+        "Invalid.scala:29:7",
+        "Invalid.scala:43:9",
+        "Invalid.scala:66:7",
+        "Invalid.scala:81:21",
+        "Invalid.scala:84:3",
+        "Invalid.scala:92:3"
+      ).sorted
+    )
+
+  test("only the unknown projected origin admits a dynamic message root"):
+    assertEquals(refusals("dynamicInvalid"), Seq("Invalid.scala:10:16"))
+
+  test("typed protobuf constants refuse mismatched fields, values and forged carriers"):
+    assertEquals(
+      refusals("typedProtoInvalid").sorted,
+      Seq(
+        "Invalid.scala:11:20",
+        "Invalid.scala:14:55",
+        "Invalid.scala:19:26",
+        "Invalid.scala:25:24",
+        "Invalid.scala:28:36",
+        "Invalid.scala:29:50",
+        "Invalid.scala:30:19",
+        "Invalid.scala:31:75",
+        "Invalid.scala:32:75",
+        "Invalid.scala:36:56",
+        "Invalid.scala:39:45",
+        "Invalid.scala:40:23",
+        "Invalid.scala:41:25"
+      ).sorted
+    )
+
+  test("typed schemas and unary declarations lift like the corresponding string declarations"):
+    val out = lifted("typed")
+    val roots = Seq("typedMachine", "oldMachine", "typedRealization", "oldRealization")
+      .map("fixture.typed.Typed$package$." + _)
+    val result = lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
+    assert(!result.failed, result.diagnostics)
+    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
+    val model = mapper.readTree(Files.readString(out))
+    val actions = model.path("actions")
+    assertEquals(actions.size(), 4)
+    val schemas = actions.elements().asScala.map(a => a.path("schemas")).toList
+    assertEquals(schemas(0), schemas(2))
+    assertEquals(schemas(1), schemas(3))
+    val realizations = model.path("realizations")
+    assertEquals(realizations.size(), 2)
+    def removePositions(node: com.fasterxml.jackson.databind.JsonNode): Unit =
+      node match
+        case obj: com.fasterxml.jackson.databind.node.ObjectNode =>
+          obj.remove("position")
+          obj.fields().asScala.foreach(e => removePositions(e.getValue))
+        case array: com.fasterxml.jackson.databind.node.ArrayNode =>
+          array.elements().asScala.foreach(removePositions)
+        case _ => ()
+    val old = realizations.get(0).deepCopy[com.fasterxml.jackson.databind.node.ObjectNode]()
+    val typed = realizations.get(1).deepCopy[com.fasterxml.jackson.databind.node.ObjectNode]()
+    assertEquals(typed.path("evidence").get(0).path("read").path("path").asText(), "executions[*]")
+    val typedOrigin = typed
+      .path("evidence")
+      .get(3)
+      .path("runEvent")
+      .path("key")
+      .path("path")
+      .path("of")
+      .path("position")
+    val oldOrigin = old
+      .path("evidence")
+      .get(3)
+      .path("runEvent")
+      .path("key")
+      .path("path")
+      .path("of")
+      .path("position")
+    assertEquals(typedOrigin.path("file"), oldOrigin.path("file"))
+    old.remove("id")
+    typed.remove("id")
+    removePositions(old)
+    removePositions(typed)
+    assertEquals(typed, old)
+
+  test("typed Long operands lift like literal numbers, including bound helper values"):
+    val out = lifted("typedLong")
+    val roots = Seq("typedLongRealization", "oldLongRealization")
+      .map("fixture.typed.Typed$package$." + _)
+    val result = lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
+    assert(!result.failed, result.diagnostics)
+    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
+    val realizations = mapper.readTree(Files.readString(out)).path("realizations")
+    assertEquals(realizations.size(), 2)
+    def withoutPositions(node: com.fasterxml.jackson.databind.JsonNode): Unit =
+      node match
+        case obj: com.fasterxml.jackson.databind.node.ObjectNode =>
+          obj.remove("position")
+          obj.fields().asScala.foreach(e => withoutPositions(e.getValue))
+        case array: com.fasterxml.jackson.databind.node.ArrayNode =>
+          array.elements().asScala.foreach(withoutPositions)
+        case _ => ()
+    val typed = realizations.get(0).deepCopy[com.fasterxml.jackson.databind.node.ObjectNode]()
+    val old = realizations.get(1).deepCopy[com.fasterxml.jackson.databind.node.ObjectNode]()
+    typed.remove("id")
+    old.remove("id")
+    withoutPositions(typed)
+    withoutPositions(old)
+    assertEquals(typed, old)
+
+  test("typed repeated reads preserve bare paths"):
+    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
+    val bare = mapper
+      .readTree(ir("realizations"))
+      .path("realizations")
+      .get(1)
+      .path("evidence")
+      .get(0)
+      .path("read")
+      .path("path")
+      .asText()
+    assertEquals(bare, "executions")
+
+  test("the lifter refuses a mapped read ending at a singular message"):
+    val out = lifted("typedMapped")
+    val result = lift(
+      liftsJars,
+      modelClasspath.toString,
+      out.toString,
+      "fixture.typed.Typed$package$.invalidMappedRealization"
+    )
+    assertNotEquals(result.exit, 0)
+    assert(!Files.exists(out), "the lifter wrote an invalid mapped read")
+    assert(
+      refused(result).exists(_.contains("Recorded.read must end at a repeated message field")),
+      result.diagnostics
+    )
+
+  test("a generated enum helper refuses an unknown value before writing IR"):
+    val out = lifted("typedUnknownEnum")
+    val result = lift(
+      liftsJars,
+      modelClasspath.toString,
+      out.toString,
+      "fixture.typed.Typed$package$.unknownEnumRealization"
+    )
+    assertNotEquals(result.exit, 0)
+    assert(!Files.exists(out), "the lifter wrote an unknown generated enum")
+    assert(
+      refused(result).exists(_.contains("expected a generated enum case")),
+      result.diagnostics
+    )
+
+  test("the lifter refuses unrelated machines with one state type, at the Query line"):
+    val jar = packaged("samestate", materialize("samestate"))
+    val lift = this.lift(
+      s"$jar=${stored("samestate")}",
+      modelClasspath.toString,
+      "/dev/null",
+      "fixture.samestate.SameState$package$.wrongPair"
+    )
+    assertNotEquals(lift.exit, 0)
+    assertEquals(
+      refused(lift),
+      Seq(
+        "lift: model/lifter/testdata/samestate/SameState.scala:24: wrongPair pairs property, a Property of first, with scenario, a Scenario of second, and reads it through no refinement"
+      )
+    )
 
   test("the lifter refuses a construct outside the subset, at its line"):
     val jar = packaged("unsupported", materialize("unsupported"))
@@ -218,6 +416,30 @@ class Fixtures extends munit.FunSuite:
     refused(lift) match
       case Seq(refusal) => assert(refusal.startsWith(line), refusal)
       case refusals     => fail(s"one refusal, not $refusals")
+
+  test("the realization emitter refuses unknown constructors and fields at their lines"):
+    val jar = packaged("realizationRefusals", materialize("realizationRefusals"))
+    val cases = Seq(
+      (
+        "unknownConstructor",
+        "lift: model/lifter/testdata/realizationRefusals/Refusals.scala:7: Unknown is no activation of Script in the IR"
+      ),
+      (
+        "unknownField",
+        "lift: model/lifter/testdata/realizationRefusals/Refusals.scala:10: Realization has no invented in the IR"
+      )
+    )
+    for (name, expected) <- cases do
+      val out = lifted(name)
+      val lift = this.lift(
+        s"$jar=${stored("realizationRefusals")}",
+        modelClasspath.toString,
+        out.toString,
+        s"fixture.realizationRefusals.Refusals$$package$$.$name"
+      )
+      assertNotEquals(lift.exit, 0)
+      assertEquals(refused(lift), Seq(expected))
+      assert(!Files.exists(out), s"the lifter wrote the $name realization's IR")
 
   for (name, _) <- fixtures do
     test(s"the $name fixture lifts to its expected IR"):

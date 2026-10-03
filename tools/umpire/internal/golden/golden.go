@@ -52,6 +52,8 @@ type Projection struct {
 	// Functions are the Functions renamed after the goldens were captured, from the frozen name. Each
 	// renames the Function, and every string of the Model equal to its name, exactly.
 	Functions []Substitution `json:"function_name_substitutions"`
+	// Types are exact names of finite declarations moved after the goldens were captured.
+	Types []Substitution `json:"type_name_substitutions"`
 	// CaseIDs are the kinds of lowered Case compared without their ID. An exploration Case's IDs carry
 	// the digest of its whole candidate Model, which the changes above alter; its other bytes do not.
 	CaseIDs []string `json:"projected_case_ids"`
@@ -311,6 +313,29 @@ func (c Config) FunctionsRenamed(originals map[string]*umpirespb.Model) error {
 	return nil
 }
 
+// TypesRenamed checks each listed source against the frozen declarations and rejects ambiguous targets.
+func (c Config) TypesRenamed(originals map[string]*umpirespb.Model) error {
+	declared := map[string]bool{}
+	for _, m := range originals {
+		for _, t := range m.GetTypes() {
+			declared[t.GetName()] = true
+		}
+	}
+	sources := map[string]bool{}
+	targets := map[string]bool{}
+	for _, s := range c.Projection.Types {
+		if !declared[s.Old] {
+			return fmt.Errorf("type-name substitution of %q, which no frozen input declares", s.Old)
+		}
+		if s.Old == s.New || sources[s.Old] || targets[s.New] || declared[s.New] {
+			return fmt.Errorf("type-name substitution of %q is not a rename to one new name", s.Old)
+		}
+		sources[s.Old] = true
+		targets[s.New] = true
+	}
+	return nil
+}
+
 // project gives m as Match compares it. Only the mapped original's Function names are substituted:
 // the current IR already has the new ones.
 func (p Projection) project(m *umpirespb.Model, original bool) (*umpirespb.Model, error) {
@@ -362,6 +387,10 @@ func (p Projection) rename(m *umpirespb.Model) error {
 			renamed[s.Old] = s.New
 		}
 	}
+	renamedType, err := p.addTypeNames(m, renamed)
+	if err != nil {
+		return err
+	}
 	if len(renamed) == 0 {
 		return nil
 	}
@@ -400,7 +429,38 @@ func (p Projection) rename(m *umpirespb.Model) error {
 		}
 		seen[f.GetName()] = true
 	}
+	seen = map[string]bool{}
+	for _, t := range m.GetTypes() {
+		if seen[t.GetName()] {
+			return fmt.Errorf("type-name substitution gives two Types the name %q", t.GetName())
+		}
+		seen[t.GetName()] = true
+	}
+	if renamedType {
+		// Lift sorts declarations by name, so a moved type takes its new place in that order.
+		slices.SortFunc(m.Types, func(a, b *umpirespb.Type) int {
+			return strings.Compare(a.GetName(), b.GetName())
+		})
+	}
 	return nil
+}
+
+func (p Projection) addTypeNames(m *umpirespb.Model, renamed map[string]string) (bool, error) {
+	declared := map[string]bool{}
+	for _, t := range m.GetTypes() {
+		declared[t.GetName()] = true
+	}
+	changed := false
+	for _, s := range p.Types {
+		if s.Old == s.New || renamed[s.Old] != "" || (declared[s.Old] && declared[s.New]) {
+			return false, fmt.Errorf("type-name substitution of %q is not a rename to one new name", s.Old)
+		}
+		if declared[s.Old] {
+			renamed[s.Old] = s.New
+			changed = true
+		}
+	}
+	return changed, nil
 }
 
 // parameters names each parameter by its depth and index, in a scope that extends outer. The names

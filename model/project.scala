@@ -5,4 +5,6 @@
 //> using scala 3.9.0
 //> using jvm 27
 //> using options -Werror -deprecation -feature -unchecked -Wunused:imports
+//> using dep com.thesamet.scalapb::scalapb-runtime-grpc:0.11.20
+//> using jar gen/api-scalapb.jar
 //> using test.dep org.scalameta::munit:1.2.0

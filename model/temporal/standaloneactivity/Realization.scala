@@ -21,6 +21,18 @@ import umpire.realize.{Control as _, *}
 import umpire.realize.Instruction.*
 import umpire.realize.Operand.*
 import umpire.realize.ProtoValue.*
+import io.grpc.MethodDescriptor
+import scalapb.GeneratedMessage
+import io.temporal.api.workflowservice.v1.*
+import io.temporal.api.enums.v1.ActivityExecutionStatus
+import io.temporal.api.activity.v1.ActivityExecutionInfo
+import io.temporal.api.failure.v1.{ApplicationFailureInfo, Failure}
+import temporal.server.api.testpilot.v1.{
+  CorrelatedEvidence,
+  DeliveryAdmissionDecision,
+  InstructionOutcome,
+  InstructionOutcomeStatus
+}
 
 import Timeout.{expires, unset}
 
@@ -31,9 +43,6 @@ object ActivityRealization:
 
   private val workerNamespaceBinding = "temporal.worker.namespace"
   private val taskQueueBinding = "temporal.task-queue.resource"
-
-  private val service = "/temporal.api.workflowservice.v1.WorkflowService/"
-  private val describeMethod = service + "DescribeActivityExecution"
 
   private val correlatedObservation = "correlated-evidence"
 
@@ -57,14 +66,24 @@ object ActivityRealization:
    * because one poll reads one source.
    */
   private def status(records: String) =
-    Evidence(
+    Evidence.read(
       id = evidenceID(records),
       records = records,
       source = sourceID(records),
-      from = Recorded.Single(describeMethod, "info"),
-      operation = "activity_id",
+      from = Recorded.single(
+        WorkflowServiceGrpc.METHOD_DESCRIBE_ACTIVITY_EXECUTION,
+        Field[DescribeActivityExecutionResponse, ActivityExecutionInfo](_.getInfo)
+      ),
+      operation = Field[ActivityExecutionInfo, String](_.activityId),
       commitment = Commitment.reported
     )
+
+  private val statusPaused = status("statusPaused")
+  private val statusCompleted = status("statusCompleted")
+  private val statusFailed = status("statusFailed")
+  private val statusCanceled = status("statusCanceled")
+  private val statusTerminated = status("statusTerminated")
+  private val statusTimedOut = status("statusTimedOut")
 
   private val activityScriptID = "activity"
   private val startActivity = "start-activity"
@@ -72,7 +91,10 @@ object ActivityRealization:
   private val requestCancelActivity = "request-cancel-activity"
 
   private val succeeded =
-    Equal(Path(Projected, "status"), Literal(EnumName("INSTRUCTION_OUTCOME_STATUS_SUCCEEDED")))
+    Condition.equal(
+      Field[InstructionOutcome, InstructionOutcomeStatus](_.status),
+      Operand.enumValue(InstructionOutcomeStatus.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)
+    )
 
   /**
    * What the server answered a call of the controller: the Run's record of the call's completion,
@@ -84,18 +106,17 @@ object ActivityRealization:
       command: String,
       confirms: Vector[Taking] = Vector.empty
   ) =
-    Evidence(
+    Evidence.runEvent(
       id = evidenceID(kind),
       records = records,
       source = recordSource,
-      from = Recorded.RunEvent(
+      from = Recorded.runEvent[InstructionOutcome](
         EventKind.instructionCompleted,
         "controller",
         command,
-        key = Run,
+        key = Operand.runKey(),
         guard = Some(succeeded)
       ),
-      operation = "",
       commitment = Commitment.reported,
       confirms = confirms
     )
@@ -111,29 +132,48 @@ object ActivityRealization:
    * What the worker then offered the server is not read: an offer is not the server's acceptance.
    */
   private def delivered(kind: String, records: String, attempt: Long, confirms: Vector[Taking]) =
-    Evidence(
+    Evidence.runEvent(
       id = evidenceID(kind),
       records = records,
       source = recordSource,
-      from = Recorded.RunEvent(
+      from = Recorded.runEvent[InstructionOutcome](
         EventKind.diagnostic,
         "controller",
         startActivity,
-        key = Run,
+        key = Operand.runKey(),
         guard = Some(
-          All(
-            Present(Path(Projected, "activity_attempt")),
-            Not(Equal(Path(Projected, "activity_attempt.delivery_id"), Literal(Text(""))))
+          Condition.all(
+            Condition.present(
+              Field[InstructionOutcome, Option[temporal.server.api.testpilot.v1.ActivityAttempt]](
+                _.activityAttempt
+              )
+            ),
+            Condition.not(
+              Condition.equal(
+                Field[InstructionOutcome, String](_.getActivityAttempt.deliveryId),
+                Operand.text("")
+              )
+            )
           )
         ),
         attempt = Some(AttemptOf(activityScriptID, attempt))
       ),
-      operation = "",
       commitment = Commitment.reported,
       fields = Vector(
-        EvidenceField("attempt", "activity_attempt.sdk_attempt", role = Some(FieldRole.attempt)),
-        EvidenceField("delivery", "activity_attempt.delivery_id", role = Some(FieldRole.delivery)),
-        EvidenceField("activityRun", "activity_attempt.activity_run_id")
+        EvidenceField.typed(
+          "attempt",
+          Field[InstructionOutcome, Int](_.getActivityAttempt.sdkAttempt),
+          role = Some(FieldRole.attempt)
+        ),
+        EvidenceField.typed(
+          "delivery",
+          Field[InstructionOutcome, String](_.getActivityAttempt.deliveryId),
+          role = Some(FieldRole.delivery)
+        ),
+        EvidenceField.typed(
+          "activityRun",
+          Field[InstructionOutcome, String](_.getActivityAttempt.activityRunId)
+        )
       ),
       confirms = confirms
     )
@@ -143,16 +183,16 @@ object ActivityRealization:
   // evidence of its own that stays true once it is so: the start call's answer; the release's answer;
   // and the second attempt's delivery, which is what shows that the first failed, that the activity
   // was scheduled again and that a worker took it again, and so confirms the three steps at once.
-  private val sources: Vector[Evidence] = Vector(
+  private val sources: Vector[Evidence | EvidenceRef[?, ?] | TypedEvidence[?]] = Vector(
     accepted("statusScheduled", "statusScheduled", startActivity),
     delivered("statusStarted", "statusStarted", attempt = 1, Vector(Taking(attemptStart, 1))),
-    status("statusPaused"),
+    statusPaused,
     accepted("statusCancelRequested", "statusCancelRequested", requestCancelActivity),
-    status("statusCompleted"),
-    status("statusFailed"),
-    status("statusCanceled"),
-    status("statusTerminated"),
-    status("statusTimedOut"),
+    statusCompleted,
+    statusFailed,
+    statusCanceled,
+    statusTerminated,
+    statusTimedOut,
     delivered(
       "attemptCount",
       "attemptCount",
@@ -173,50 +213,91 @@ object ActivityRealization:
   private val activityType = Name("umpire-", fixture = true, suffix = "-activity")
 
   /** The activity a call names: the run's id is the activity's. */
-  private val named = Vector(
-    Assignment("namespace", Environment(workerNamespaceBinding)),
-    Assignment("activity_id", Run)
+  private def named[Req](namespace: Field[Req, String], activityId: Field[Req, String]) =
+    Vector(
+      Assignment.typed(namespace, Operand.environment[String](workerNamespaceBinding)),
+      Assignment.typed(activityId, Operand.run())
+    )
+
+  private val startNamed = named(
+    Field[StartActivityExecutionRequest, String](_.namespace),
+    Field[StartActivityExecutionRequest, String](_.activityId)
+  )
+  private val describeNamed = named(
+    Field[DescribeActivityExecutionRequest, String](_.namespace),
+    Field[DescribeActivityExecutionRequest, String](_.activityId)
   )
 
   /** The durations the deadlines a path sets realize as. */
-  private val deadlineSeconds = Literal(Number(2))
+  private val deadlineSeconds = Operand.number(2L)
 
   /**
    * The server refuses a start that sets neither a start-to-close nor a schedule-to-close deadline,
    * so a class that sets none still carries a start-to-close deadline, one no Case lives to see.
    */
-  private val longSeconds = Literal(Number(300))
+  private val longSeconds = Operand.number(300L)
 
   /** The start request for one class of the start action: the deadlines the class sets. */
-  private def startBinding(step: ClassRef, deadlines: Vector[Assignment]) =
+  private def startBinding(
+      step: ClassRef,
+      deadlines: Vector[TypedAssignment[StartActivityExecutionRequest, ?]]
+  ) =
     Performance(
       step,
       Command(
         startActivity,
-        Rpc(
+        Instruction.rpc(
           workflowServiceRole,
-          service + "StartActivityExecution",
-          named ++ Vector(
-            Assignment("activity_type.name", Literal(Named(activityType))),
-            Assignment("task_queue.name", Environment(taskQueueBinding)),
-            Assignment("request_id", Run)
-          ) ++ deadlines
+          WorkflowServiceGrpc.METHOD_START_ACTIVITY_EXECUTION
+        )(
+          startNamed ++ Vector(
+            Assignment.typed(
+              Field[StartActivityExecutionRequest, String](_.getActivityType.name),
+              Operand.named(activityType)
+            ),
+            Assignment.typed(
+              Field[StartActivityExecutionRequest, String](_.getTaskQueue.name),
+              Operand.environment[String](taskQueueBinding)
+            ),
+            Assignment.typed(
+              Field[StartActivityExecutionRequest, String](_.requestId),
+              Operand.run()
+            )
+          ) ++ deadlines,
+          Vector.empty
         )
       )
     )
 
-  private def controlBinding(step: ClassRef, id: String, method: String) =
-    Performance(step, Command(id, Rpc(workflowServiceRole, service + method, named)))
+  private def controlBinding[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
+      step: ClassRef,
+      id: String,
+      method: MethodDescriptor[Req, Rsp],
+      namespace: Field[Req, String],
+      activityId: Field[Req, String]
+  ) =
+    Performance(
+      step,
+      Command(
+        id,
+        Instruction.rpc(workflowServiceRole, method)(named(namespace, activityId), Vector.empty)
+      )
+    )
 
   /** Polls the activity's description until it reads the status one kind of evidence names. */
-  private def awaitStatus(id: String, records: String, value: String) =
+  private def awaitStatus(
+      id: String,
+      evidence: EvidenceRef[DescribeActivityExecutionRequest, ActivityExecutionInfo],
+      value: ActivityExecutionStatus
+  ) =
     Command(
       id,
-      Poll(
-        evidenceID(records),
-        workflowServiceRole,
-        named,
-        Equal(Path(Projected, "status"), Literal(EnumName("ACTIVITY_EXECUTION_STATUS_" + value))),
+      Instruction.poll(evidence, workflowServiceRole)(
+        describeNamed,
+        Condition.equal(
+          Field[ActivityExecutionInfo, ActivityExecutionStatus](_.status),
+          Operand.enumValue(value)
+        ),
         250
       )
     )
@@ -253,31 +334,67 @@ object ActivityRealization:
         Vector(
           startBinding(
             start(unset, unset, unset),
-            Vector(Assignment("start_to_close_timeout.seconds", longSeconds))
+            Vector(
+              Assignment.typed(
+                Field[StartActivityExecutionRequest, Long](_.getStartToCloseTimeout.seconds),
+                longSeconds
+              )
+            )
           ),
           startBinding(
             start(unset, expires, unset),
             Vector(
-              Assignment("start_to_close_timeout.seconds", longSeconds),
-              Assignment("schedule_to_start_timeout.seconds", deadlineSeconds)
+              Assignment.typed(
+                Field[StartActivityExecutionRequest, Long](_.getStartToCloseTimeout.seconds),
+                longSeconds
+              ),
+              Assignment.typed(
+                Field[StartActivityExecutionRequest, Long](_.getScheduleToStartTimeout.seconds),
+                deadlineSeconds
+              )
             )
           ),
           startBinding(
             start(unset, unset, expires),
-            Vector(Assignment("start_to_close_timeout.seconds", deadlineSeconds))
+            Vector(
+              Assignment.typed(
+                Field[StartActivityExecutionRequest, Long](_.getStartToCloseTimeout.seconds),
+                deadlineSeconds
+              )
+            )
           )
         )
       ),
       Item(performs =
-        Vector(controlBinding(control(Control.pause), "pause-activity", "PauseActivityExecution"))
+        Vector(
+          controlBinding(
+            control(Control.pause),
+            "pause-activity",
+            WorkflowServiceGrpc.METHOD_PAUSE_ACTIVITY_EXECUTION,
+            Field[PauseActivityExecutionRequest, String](_.namespace),
+            Field[PauseActivityExecutionRequest, String](_.activityId)
+          )
+        )
       ),
       Item(
-        command = Some(awaitStatus("await-paused", "statusPaused", "PAUSED")),
+        command = Some(
+          awaitStatus(
+            "await-paused",
+            statusPaused,
+            ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED
+          )
+        ),
         when = Vector(control(Control.pause))
       ),
       Item(performs =
         Vector(
-          controlBinding(control(Control.unpause), unpauseActivity, "UnpauseActivityExecution")
+          controlBinding(
+            control(Control.unpause),
+            unpauseActivity,
+            WorkflowServiceGrpc.METHOD_UNPAUSE_ACTIVITY_EXECUTION,
+            Field[UnpauseActivityExecutionRequest, String](_.namespace),
+            Field[UnpauseActivityExecutionRequest, String](_.activityId)
+          )
         )
       ),
       Item(
@@ -289,7 +406,9 @@ object ActivityRealization:
           controlBinding(
             control(Control.requestCancel),
             requestCancelActivity,
-            "RequestCancelActivityExecution"
+            WorkflowServiceGrpc.METHOD_REQUEST_CANCEL_ACTIVITY_EXECUTION,
+            Field[RequestCancelActivityExecutionRequest, String](_.namespace),
+            Field[RequestCancelActivityExecutionRequest, String](_.activityId)
           )
         )
       ),
@@ -298,28 +417,60 @@ object ActivityRealization:
           controlBinding(
             control(Control.terminate),
             "terminate-activity",
-            "TerminateActivityExecution"
+            WorkflowServiceGrpc.METHOD_TERMINATE_ACTIVITY_EXECUTION,
+            Field[TerminateActivityExecutionRequest, String](_.namespace),
+            Field[TerminateActivityExecutionRequest, String](_.activityId)
           )
         )
       ),
       Item(
-        command = Some(awaitStatus("await-completed", "statusCompleted", "COMPLETED")),
+        command = Some(
+          awaitStatus(
+            "await-completed",
+            statusCompleted,
+            ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_COMPLETED
+          )
+        ),
         when = Vector(attemptResult(AttemptResult.completed))
       ),
       Item(
-        command = Some(awaitStatus("await-failed", "statusFailed", "FAILED")),
+        command = Some(
+          awaitStatus(
+            "await-failed",
+            statusFailed,
+            ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_FAILED
+          )
+        ),
         when = Vector(attemptResult(AttemptResult.failed(false)))
       ),
       Item(
-        command = Some(awaitStatus("await-canceled", "statusCanceled", "CANCELED")),
+        command = Some(
+          awaitStatus(
+            "await-canceled",
+            statusCanceled,
+            ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_CANCELED
+          )
+        ),
         when = Vector(attemptResult(AttemptResult.canceled))
       ),
       Item(
-        command = Some(awaitStatus("await-terminated", "statusTerminated", "TERMINATED")),
+        command = Some(
+          awaitStatus(
+            "await-terminated",
+            statusTerminated,
+            ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_TERMINATED
+          )
+        ),
         when = Vector(control(Control.terminate))
       ),
       Item(
-        command = Some(awaitStatus("await-timed-out", "statusTimedOut", "TIMED_OUT")),
+        command = Some(
+          awaitStatus(
+            "await-timed-out",
+            statusTimedOut,
+            ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_TIMED_OUT
+          )
+        ),
         when = Vector(scheduleToClose, scheduleToStart, startToClose)
       )
     )
@@ -329,16 +480,20 @@ object ActivityRealization:
 
   /** The failure an attempt that fails ends with. */
   private def attemptFailure(nonRetryable: Boolean) =
-    Proto(
-      "temporal.api.failure.v1.Failure",
-      ProtoField("message", Text("attempt failed")),
-      ProtoField(
-        "application_failure_info",
-        Message(
-          Proto(
-            "temporal.api.failure.v1.ApplicationFailureInfo",
-            ProtoField("type", Text("AttemptFailed")),
-            ProtoField("non_retryable", Flag(nonRetryable))
+    Proto[Failure](
+      ProtoField.typed(Field[Failure, String](_.message), ProtoValue.text("attempt failed")),
+      ProtoField.typed(
+        Field[Failure, ApplicationFailureInfo](_.getApplicationFailureInfo),
+        ProtoValue.message(
+          Proto[ApplicationFailureInfo](
+            ProtoField.typed(
+              Field[ApplicationFailureInfo, String](_.`type`),
+              ProtoValue.text("AttemptFailed")
+            ),
+            ProtoField.typed(
+              Field[ApplicationFailureInfo, Boolean](_.nonRetryable),
+              ProtoValue.flag(nonRetryable)
+            )
           )
         )
       )
@@ -405,7 +560,7 @@ object ActivityRealization:
     ),
     scripts = Vector(controller, activityScript),
     observations = Vector(
-      Observed(correlatedObservation, "temporal.server.api.testpilot.v1.CorrelatedEvidence")
+      Observed[CorrelatedEvidence](correlatedObservation)
     ),
     evidence = sources,
     cleanup = "cleanup"
@@ -430,35 +585,44 @@ object ActivityRealization:
    * record names, so a decision of another activity is no evidence of this one; and the delivery is
    * the stamp the message carried, which tells two deliveries apart.
    */
-  private def committed(records: String, decision: String, exhaustive: Boolean = false) =
-    Evidence(
+  private def committed(
+      records: String,
+      decision: DeliveryAdmissionDecision,
+      exhaustive: Boolean = false
+  ) =
+    Evidence.runEvent(
       id = evidenceID(records),
       records = records,
       source = recordSource,
-      from = Recorded.RunEvent(
+      from = Recorded.runEvent[InstructionOutcome](
         EventKind.instructionCompleted,
         "controller",
         releaseCommand,
-        key = Path(Projected, "delivery_admission.activity_id"),
+        key = Operand.path(
+          Operand.Projected.as[InstructionOutcome],
+          Field[InstructionOutcome, String](_.getDeliveryAdmission.activityId)
+        ),
         guard = Some(
-          All(
+          Condition.all(
             succeeded,
-            Equal(
-              Path(Projected, "delivery_admission.decision"),
-              Literal(EnumName("DELIVERY_ADMISSION_DECISION_" + decision))
+            Condition.equal(
+              Field[InstructionOutcome, DeliveryAdmissionDecision](_.getDeliveryAdmission.decision),
+              Operand.enumValue(decision)
             )
           )
         )
       ),
-      operation = "",
       commitment = Commitment.durable,
       fields = Vector(
-        EvidenceField(
+        EvidenceField.typed(
           "delivery",
-          "delivery_admission.delivery_id",
+          Field[InstructionOutcome, String](_.getDeliveryAdmission.deliveryId),
           role = Some(FieldRole.delivery)
         ),
-        EvidenceField("activityRun", "delivery_admission.activity_run_id")
+        EvidenceField.typed(
+          "activityRun",
+          Field[InstructionOutcome, String](_.getDeliveryAdmission.activityRunId)
+        )
       ),
       exhaustive = exhaustive
     )
@@ -469,15 +633,27 @@ object ActivityRealization:
     Some(
       Command(
         startActivity,
-        Rpc(
+        Instruction.rpc(
           workflowServiceRole,
-          service + "StartActivityExecution",
-          named ++ Vector(
-            Assignment("activity_type.name", Literal(Named(activityType))),
-            Assignment("task_queue.name", Environment(taskQueueBinding)),
-            Assignment("request_id", Run),
-            Assignment("start_to_close_timeout.seconds", longSeconds)
-          )
+          WorkflowServiceGrpc.METHOD_START_ACTIVITY_EXECUTION
+        )(
+          startNamed ++ Vector(
+            Assignment.typed(
+              Field[StartActivityExecutionRequest, String](_.getActivityType.name),
+              Operand.named(activityType)
+            ),
+            Assignment.typed(
+              Field[StartActivityExecutionRequest, String](_.getTaskQueue.name),
+              Operand.environment[String](taskQueueBinding)
+            ),
+            Assignment
+              .typed(Field[StartActivityExecutionRequest, String](_.requestId), Operand.run()),
+            Assignment.typed(
+              Field[StartActivityExecutionRequest, Long](_.getStartToCloseTimeout.seconds),
+              longSeconds
+            )
+          ),
+          Vector.empty
         )
       )
     )
@@ -490,10 +666,24 @@ object ActivityRealization:
       heldStart,
       Item(performs = Vector(Performance(dispatch, Command(holdCommand, Hold(holdDispatch))))),
       Item(performs =
-        Vector(controlBinding(control(Control.pause), "pause-activity", "PauseActivityExecution"))
+        Vector(
+          controlBinding(
+            control(Control.pause),
+            "pause-activity",
+            WorkflowServiceGrpc.METHOD_PAUSE_ACTIVITY_EXECUTION,
+            Field[PauseActivityExecutionRequest, String](_.namespace),
+            Field[PauseActivityExecutionRequest, String](_.activityId)
+          )
+        )
       ),
       Item(
-        command = Some(awaitStatus("await-paused", "statusPaused", "PAUSED")),
+        command = Some(
+          awaitStatus(
+            "await-paused",
+            statusPaused,
+            ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED
+          )
+        ),
         when = Vector(control(Control.pause))
       ),
       // The hold lets no dispatch of the activity reach admission before the release, and the release
@@ -543,13 +733,20 @@ object ActivityRealization:
     ),
     scripts = Vector(heldController),
     observations = Vector(
-      Observed(correlatedObservation, "temporal.server.api.testpilot.v1.CorrelatedEvidence")
+      Observed[CorrelatedEvidence](correlatedObservation)
     ),
     evidence = Vector(
       accepted("dispatchSent", "dispatchSent", holdCommand),
-      status("statusPaused"),
-      committed("admissionRejected", "REJECTED"),
-      committed("attemptAdmitted", "ADMITTED", exhaustive = true)
+      statusPaused,
+      committed(
+        "admissionRejected",
+        DeliveryAdmissionDecision.DELIVERY_ADMISSION_DECISION_REJECTED
+      ),
+      committed(
+        "attemptAdmitted",
+        DeliveryAdmissionDecision.DELIVERY_ADMISSION_DECISION_ADMITTED,
+        exhaustive = true
+      )
     ),
     controls = Vector(
       umpire.realize
@@ -604,40 +801,54 @@ object ActivityRealization:
       )
     ),
     observations = Vector(
-      Observed(correlatedObservation, "temporal.server.api.testpilot.v1.CorrelatedEvidence")
+      Observed[CorrelatedEvidence](correlatedObservation)
     ),
     evidence = Vector(
       accepted("dispatchSent", "dispatchSent", holdCommand),
-      Evidence(
+      Evidence.runEvent(
         id = evidenceID("attemptAdmitted"),
         records = "attemptAdmitted",
         source = recordSource,
-        from = Recorded.RunEvent(
+        from = Recorded.runEvent[InstructionOutcome](
           EventKind.instructionCompleted,
           "controller",
           releaseCommand,
-          key = Path(Projected, "delivery_admission.activity_id"),
+          key = Operand.path(
+            Operand.Projected.as[InstructionOutcome],
+            Field[InstructionOutcome, String](_.getDeliveryAdmission.activityId)
+          ),
           guard = Some(
-            All(
+            Condition.all(
               succeeded,
-              Equal(
-                Path(Projected, "delivery_admission.decision"),
-                Literal(EnumName("DELIVERY_ADMISSION_DECISION_ADMITTED"))
+              Condition.equal(
+                Field[InstructionOutcome, DeliveryAdmissionDecision](
+                  _.getDeliveryAdmission.decision
+                ),
+                Operand.enumValue(DeliveryAdmissionDecision.DELIVERY_ADMISSION_DECISION_ADMITTED)
               ),
-              Greater(Path(Projected, "delivery_admission.attempt"), Literal(Number(0)))
+              Condition.greater(
+                Field[InstructionOutcome, Int](_.getDeliveryAdmission.attempt),
+                Operand.integer(0)
+              )
             )
           )
         ),
-        operation = "",
         commitment = Commitment.durable,
         fields = Vector(
-          EvidenceField(
+          EvidenceField.typed(
             "delivery",
-            "delivery_admission.delivery_id",
+            Field[InstructionOutcome, String](_.getDeliveryAdmission.deliveryId),
             role = Some(FieldRole.delivery)
           ),
-          EvidenceField("attempt", "delivery_admission.attempt", role = Some(FieldRole.attempt)),
-          EvidenceField("activityRun", "delivery_admission.activity_run_id")
+          EvidenceField.typed(
+            "attempt",
+            Field[InstructionOutcome, Int](_.getDeliveryAdmission.attempt),
+            role = Some(FieldRole.attempt)
+          ),
+          EvidenceField.typed(
+            "activityRun",
+            Field[InstructionOutcome, String](_.getDeliveryAdmission.activityRunId)
+          )
         )
       )
     ),

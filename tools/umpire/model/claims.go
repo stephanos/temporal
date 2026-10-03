@@ -54,6 +54,17 @@ func bind(m *umpirespb.Model, scope Scope) *binding {
 	return b
 }
 
+func (b *binding) checking() *binding {
+	checked := *b
+	checked.catalogs = map[string]map[string]Value{}
+	checked.subjects = map[string]*subject{}
+	checked.refined = map[string]*refined{}
+	checked.properties = map[claim]*PropertyDecl{}
+	checked.scenarios = map[scheduled]*ScenarioDecl{}
+	checked.realizing = false
+	return &checked
+}
+
 // subject is a machine or a composition as a claim reads it: its table, and the values its keys and
 // results stand for.
 type subject struct {

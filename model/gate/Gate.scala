@@ -1,6 +1,6 @@
-// The model gate. Scala is only the authoring front end: the Models in temporal/ are compiled and
-// tested, the lifter reads their typed trees and emits the IR, and Go interprets the IR and checks
-// every table, identity and fingerprint against its goldens. It stops at the first failure.
+// The model gate. Scala declares and compiles the Models in temporal/; the lifter reads their
+// typed trees and emits ProtoJSON using ScalaPB. Go alone evaluates the IR, reports Model errors at
+// Scala source lines, and checks tables, identities and fingerprints against goldens. It stops on error.
 // The model's own vocabulary is held too, by a Go test outside model/ that every run names.
 //
 //   scala-cli run model/gate                        lift, require every file of model/ir and
@@ -9,6 +9,8 @@
 //   scala-cli run model/gate -- --skip-go-checks    either, without `go vet` and `go test`
 //   scala-cli run model/gate -- --generate-ir       package the IR's classes and stop; with
 //                                                   --if-stale, only when their inputs changed
+//   scala-cli run model/gate -- --generate-api      package linked API classes; --if-stale reuses
+//                                                   a jar whose descriptors and tools are current
 //
 // The lifter's fixtures under lifter/testdata are built and lifted too, by the lifter's own tests:
 // the Models it must lift, compared with the IR in lifter/testdata/lifts/expected, which --update
@@ -16,7 +18,7 @@
 package umpire.gate
 
 import java.io.PrintStream
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files, Path, StandardCopyOption}
 import java.security.MessageDigest
 import scala.concurrent.{blocking, Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -34,6 +36,9 @@ final class Gate(tools: Tools, log: PrintStream):
   private val schemaFile = "proto/internal/temporal/server/api/umpire/v1/ir.proto"
   private val schema = root.resolve(schemaFile)
   private val irJar = gen.resolve("ir-scalapb.jar")
+  private val apiDescriptor = root.resolve("proto/api.binpb")
+  private val apiJar = gen.resolve("api-scalapb.jar")
+  private val apiOptions = "flat_package,scala3_sources,grpc"
   private val scalaPlugin = gen.resolve("protoc-gen-scala")
   // ScalaPB's generator and its runtime are released together; this release is built for Scala 3
   // and its generator runs with the pinned protoc.
@@ -152,6 +157,136 @@ final class Gate(tools: Tools, log: PrintStream):
       Files.writeString(stampFile, stamp + "\n")
       log.println(s"generated $jar")
 
+  /** Packages the linked Temporal API and Testpilot classes for Model authoring and lifting. */
+  def generateApi(ifStale: Boolean): Unit =
+    if !Files.isRegularFile(apiDescriptor) then
+      throw GateError("proto/api.binpb is missing; run make proto/api.binpb")
+    val checked = tools.run("make", Seq("-q", "proto/api.binpb"))
+    if checked.exit == 1 then throw GateError("proto/api.binpb is stale; run make proto/api.binpb")
+    checked.orFail()
+    generateIr(ifStale = true)
+
+    val sources = scratch("api")
+    val internal = sources.resolve("current-internal.binpb")
+    val testpilot = root.resolve("proto/internal/temporal/server/api/testpilot")
+    if !Files.isDirectory(testpilot) then
+      throw GateError("Testpilot proto sources are missing; run make protoc")
+    val stream = Files.walk(testpilot)
+    val internalNames =
+      try
+        stream.iterator.asScala
+          .filter(path => Files.isRegularFile(path) && path.toString.endsWith(".proto"))
+          .map(root.resolve("proto/internal").relativize(_).toString)
+          .toSeq
+          .sorted :+ schemaFile.stripPrefix("proto/internal/")
+      finally stream.close()
+    if internalNames.size < 2 then
+      throw GateError("Testpilot proto sources are missing; run make protoc")
+    tools
+      .run(
+        "protoc",
+        Seq(
+          "--descriptor_set_in=proto/api.binpb",
+          "--proto_path=proto/internal",
+          s"--descriptor_set_out=$internal"
+        ) ++ internalNames
+      )
+      .orFail()
+    if !Files.isRegularFile(internal) then
+      throw GateError("current internal descriptors are missing; run make protoc")
+    val descriptor = sources.resolve("linked.binpb")
+    val linked = tools
+      .run(
+        "go",
+        Seq(
+          "run",
+          "./cmd/tools/getproto",
+          "--linked-api",
+          "proto/api.binpb",
+          "--current-internal",
+          internal.toString,
+          "--out",
+          descriptor.toString
+        )
+      )
+      .orFail()
+    val names = linked.output.linesIterator.filter(_.endsWith(".proto")).toSeq
+    if !Files.isRegularFile(descriptor) ||
+      !names.contains("temporal/api/workflowservice/v1/service.proto") ||
+      !names.exists(_.startsWith("temporal/server/api/testpilot/"))
+    then throw GateError("linked API descriptor is incomplete; run make proto/api.binpb")
+
+    val digest = MessageDigest.getInstance("SHA-256")
+    val inputs = Seq(
+      apiDescriptor,
+      descriptor,
+      root.resolve("cmd/tools/getproto/main.go"),
+      root.resolve("cmd/tools/getproto/files.go"),
+      root.resolve("go.mod"),
+      root.resolve("go.sum"),
+      scalaPlugin,
+      root.resolve("model/gate/Gate.scala"),
+      root.resolve("model/gate/project.scala")
+    )
+    for source <- inputs do
+      val bytes = Files.readAllBytes(source)
+      digest.update(java.nio.ByteBuffer.allocate(8).putLong(bytes.length.toLong).array())
+      digest.update(bytes)
+    val protocVersion = tools.run("protoc", Seq("--version")).orFail().output.trim
+    val cliVersion = tools.run("scala-cli", Seq("version")).orFail().output.trim
+    digest.update(
+      s"scalapb:$scalapb scala:$scala protoc:$protocVersion scala-cli:$cliVersion options:$apiOptions runtime-grpc:$scalapb"
+        .getBytes(java.nio.charset.StandardCharsets.UTF_8)
+    )
+    val stamp = digest.digest().map("%02x".format(_)).mkString +
+      s" options:$apiOptions scalapb:$scalapb scala:$scala"
+    val stampFile = gen.resolve("api.stamp")
+    val current = Seq(apiJar, stampFile).forall(Files.isRegularFile(_)) &&
+      Files.readString(stampFile).trim == stamp
+    if !(ifStale && current) then
+      Files.deleteIfExists(stampFile)
+      val classes = Files.createDirectories(sources.resolve("classes"))
+      tools
+        .run(
+          "protoc",
+          Seq(
+            s"--plugin=protoc-gen-scala=$scalaPlugin",
+            s"--descriptor_set_in=$descriptor",
+            s"--scala_out=$apiOptions:$classes"
+          ) ++ names
+        )
+        .orFail()
+      val packaged = sources.resolve("api-scalapb.jar")
+      tools
+        .scalaCli(
+          Seq(
+            "--power",
+            "package",
+            "--library",
+            classes.toString,
+            "--scala",
+            scala,
+            "--dep",
+            s"com.thesamet.scalapb::scalapb-runtime-grpc:$scalapb",
+            "-f",
+            "-o",
+            packaged.toString
+          )
+        )
+        .orFail()
+      if !Files.isRegularFile(packaged) then
+        throw GateError(
+          "model/gen/api-scalapb.jar is missing: linked API classes were not packaged"
+        )
+      Files.move(
+        packaged,
+        apiJar,
+        StandardCopyOption.ATOMIC_MOVE,
+        StandardCopyOption.REPLACE_EXISTING
+      )
+      Files.writeString(stampFile, stamp + "\n")
+      log.println("generated model/gen/api-scalapb.jar")
+
   /** The whole gate. An update rewrites the checked-in IR and Cases; a check writes neither. */
   def run(update: Boolean, goChecks: Boolean): Unit =
     Seq("scala-cli", "protoc", "go").foreach(tools.find)
@@ -183,6 +318,9 @@ final class Gate(tools: Tools, log: PrintStream):
         throw GateError(
           s"${root.relativize(generated)} is older than the IR schema $schemaFile; run make protoc"
         )
+
+    step("generate the linked API's classes when their inputs changed"):
+      generateApi(ifStale = true)
 
     // The framework must build without the Temporal Models, so nothing in umpire/ reaches into them.
     step("compile the framework alone"):
@@ -256,7 +394,8 @@ final class Gate(tools: Tools, log: PrintStream):
     log.println("== ok")
 
 object Gate:
-  val usage = "usage: gate [--update] [--skip-go-checks] | gate --generate-ir [--if-stale]"
+  val usage =
+    "usage: gate [--update] [--skip-go-checks] | gate --generate-ir|--generate-api [--if-stale]"
 
   private def same(checkedIn: Path, produced: Path) =
     Files.isRegularFile(checkedIn) && Files.mismatch(checkedIn, produced) == -1L
@@ -306,18 +445,22 @@ object Gate:
 
   /** Runs the gate as its command line says and answers its exit status. */
   def main(arguments: Seq[String], tools: => Tools, out: PrintStream, err: PrintStream): Int =
-    val known = Set("--update", "--skip-go-checks", "--generate-ir", "--if-stale")
+    val known = Set("--update", "--skip-go-checks", "--generate-ir", "--generate-api", "--if-stale")
     val flags = arguments.toSet
-    val generate = flags("--generate-ir")
+    val generate = flags("--generate-ir") || flags("--generate-api")
     val valid = flags.subsetOf(known) &&
-      (if generate then !flags("--update") && !flags("--skip-go-checks") else !flags("--if-stale"))
+      (if generate then
+         !flags("--update") && !flags("--skip-go-checks") &&
+         !(flags("--generate-ir") && flags("--generate-api"))
+       else !flags("--if-stale"))
     if !valid then
       err.println(usage)
       2
     else
       try
         val gate = Gate(tools, out)
-        if generate then gate.generateIr(flags("--if-stale"))
+        if flags("--generate-ir") then gate.generateIr(flags("--if-stale"))
+        else if flags("--generate-api") then gate.generateApi(flags("--if-stale"))
         else gate.run(flags("--update"), !flags("--skip-go-checks"))
         0
       catch

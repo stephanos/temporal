@@ -249,6 +249,10 @@ func Check(m *umpirespb.Model, scope Scope) *Report {
 // check is Check with the Model its witnesses are replayed against, which Check gives the Model
 // itself, interpreted afresh.
 func check(m *umpirespb.Model, scope Scope, replay *umpirespb.Model) *Report {
+	return checkWithBinding(m, scope, replay, nil)
+}
+
+func checkWithBinding(m *umpirespb.Model, scope Scope, replay *umpirespb.Model, first *binding) *Report {
 	r := &Report{Scope: scope}
 	if err := Validate(m); err != nil {
 		for _, problem := range problems(err) {
@@ -262,7 +266,10 @@ func check(m *umpirespb.Model, scope Scope, replay *umpirespb.Model) *Report {
 		}
 		return r
 	}
-	c := newChecker(m, scope, replay)
+	if first == nil {
+		first = bind(m, scope)
+	}
+	c := newCheckerWithBinding(first, replay)
 	for _, mm := range m.GetMachines() {
 		if err := c.first.failed[mm.GetName()]; err != nil {
 			key := ClaimKey{Family: mm.GetFamily(), Owner: mm.GetName()}
@@ -319,8 +326,12 @@ type checker struct {
 
 // newChecker interprets an admitted Model for checking.
 func newChecker(m *umpirespb.Model, scope Scope, replay *umpirespb.Model) *checker {
-	c := &checker{scope: scope, replay: replay, first: bind(m, scope), prints: map[*Table]string{}, holes: map[string]string{}}
-	for _, h := range m.GetHoles() {
+	return newCheckerWithBinding(bind(m, scope), replay)
+}
+
+func newCheckerWithBinding(first *binding, replay *umpirespb.Model) *checker {
+	c := &checker{scope: first.scope, replay: replay, first: first, prints: map[*Table]string{}, holes: map[string]string{}}
+	for _, h := range first.model.GetHoles() {
 		c.holes[h.GetId()] = h.GetName()
 	}
 	return c

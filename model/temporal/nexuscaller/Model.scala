@@ -4,34 +4,16 @@
  * No cancellation (fn-79) and no concurrency-limit
  * setup parameter.
  *
- * The domains and step functions are the kernel in temporal/nexuscaller/kernel/Nexus.scala, which Stainless proves
- * things about; this file declares the rest in ordinary Scala: vocabulary, the two machines, what
- * they promise, what the Queries ask.
+ * The domains and step functions are in Nexus.scala; this file declares the vocabulary, the two
+ * machines, what they promise, and what the Queries ask.
  */
 package temporal
 package nexuscaller
 
-import kernel.Protocol.terminalPhase
 import umpire.*
+import io.temporal.api.command.v1.ScheduleNexusOperationCommandAttributes
+import io.temporal.api.nexus.v1.{HandlerError, StartOperationResponse}
 import worker.{Phase as WorkerPhase, State as WorkerState}
-
-export kernel.{
-  Outcome,
-  Phase,
-  Product,
-  ProductFact,
-  ProductPhase,
-  ProductState,
-  ProductStep,
-  Protocol,
-  ProtocolFact,
-  ProtocolState,
-  ProtocolStep,
-  Reply,
-  Resolution,
-  Timeout,
-  TimeoutType
-}
 
 val Family: umpire.Family = umpire.Family("temporal.nexus.caller")
 
@@ -53,21 +35,8 @@ val operation: Entity =
 
 // ### The input domains
 //
-// The kernel declares them in the subset Stainless reads, which has no type classes, so their
-// finite instances are derived here.
-
-given Finite[Timeout] = Finite.derived
-given Finite[Reply] = Finite.derived
-given Finite[Resolution] = Finite.derived
-given Finite[Outcome] = Finite.derived
-given Finite[ProductPhase] = Finite.derived
-given Finite[ProductState] = Finite.derived
-given Finite[ProductFact] = Finite.derived
-given Finite[Phase] = Finite.derived
-given Finite[TimeoutType] = Finite.derived
-given Finite[ProtocolFact] = Finite.derived
 given Finite[ProtocolState] =
-  // The attempt count's bound is the kernel's, and it is the one Int field of the state.
+  // The lifter reads this Int bound; the Go model evaluator uses it to enumerate protocol states.
   given Finite[Int] = Finite.upTo(Protocol.attemptBound)
   Finite.derived
 
@@ -82,12 +51,13 @@ val schedule = action("schedule", caller)
   .input[Timeout]("scheduleToStart")
   .input[Timeout]("startToClose")
   .creates(operation)
-  .schema("temporal.api.command.v1.ScheduleNexusOperationCommandAttributes")
+  .schema[ScheduleNexusOperationCommandAttributes]
 
 val handlerReply = action("handlerReply", handler)
   .on(operation)
   .input[Reply]("reply")
-  .schema("temporal.api.nexus.v1.StartOperationResponse", "temporal.api.nexus.v1.HandlerError")
+  .schema[StartOperationResponse]
+  .schema[HandlerError]
   .example(Reply.handlerError(false), "BadRequest")
   .example(Reply.handlerError(true), "Internal")
 
@@ -157,7 +127,7 @@ val nexusProtocol: Machine[ProtocolState, Outcome, ProtocolFact] =
     forEntity(operation)
     refines(nexusProduct)(Protocol.productOf)
     starts(unscheduled)
-    ends(s => terminalPhase(s.phase))
+    ends(s => Protocol.terminalPhase(s.phase))
     unobservable(backoff)
     evidence {
       case ProtocolFact.nexusOperationScheduled   => "nexusOperationScheduled"
@@ -209,6 +179,6 @@ val nexusCaller: Composition[NexusCallerState] =
   )
     .sync("workerStop", "operation" -> workerStop, "worker" -> worker.workerStop)
     .sync("handlerReply", "operation" -> handlerReply, "worker" -> worker.serve)
-    .ends(s => terminalPhase(s.operation.phase))
+    .ends(s => Protocol.terminalPhase(s.operation.phase))
 
 val pollingWorker: WorkerState = WorkerState(WorkerPhase.polling)

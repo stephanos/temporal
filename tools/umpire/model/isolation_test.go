@@ -35,11 +35,11 @@ var (
 )
 
 // retiredFrontEnd matches a mention of the front end the model was ported from: its name and the
-// suffix of its sources, its build tool, its version manager and its checker, and its module names.
+// suffix of its sources, its build tool, its version manager and its checkers, and its module names.
 // The model is described on its own terms; the archive is where its history lives. The words are
 // spelled here, outside model, so that the check itself is no mention.
 var retiredFrontEnd = regexp.MustCompile(
-	`(?i:\blean(?:4|v2)?\b|\blake(?:file)?\b|\belan\b|leanprover|\bveil\b)|\bUmpire\.[A-Z]|\bTemporal\.(?:Feature|Case)\b`)
+	`(?i:\blean(?:4|v2)?\b|\blake(?:file)?\b|\belan\b|leanprover|\bveil\b|\bstainless\b)|\bUmpire\.[A-Z]|\bTemporal\.(?:Feature|Case)\b`)
 
 // retiredFrontEndMentions returns where the file at path, with this content, mentions the retired
 // front end: "path" for its own name, and "path:line" for each line that does.
@@ -268,6 +268,7 @@ func TestRetiredFrontEndMentionsAreFound(t *testing.T) {
 		"the version manager":   {path, "// installed by elan", []string{path + ":1"}},
 		"the organization":      {path, "// github.com/leanprover/lean4", []string{path + ":1"}},
 		"the checker":           {path, "// Veil visits 171 states", []string{path + ":1"}},
+		"the proof checker":     {path, "// Stainless verifies this", []string{path + ":1"}},
 		"a module":              {path, "// `Umpire.Command.Compose`", []string{path + ":1"}},
 		"a model namespace":     {path, "// below `Temporal.Feature`", []string{path + ":1"}},
 		"every line":            {path, "Lean\nfine\nlake", []string{path + ":1", path + ":3"}},

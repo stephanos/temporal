@@ -9,8 +9,7 @@
  * DescribeActivityExecution, or a result read through PollActivityExecution, so the evidence lines
  * of the machines name observations rather than events.
  *
- * Unlike the Nexus caller, the activity has no Stainless kernel: its domains, states and step
- * functions are declared here in ordinary Scala.
+ * Its domains, states and step functions are declared here.
  * They come in this order: vocabulary, the two machines, what they promise,
  * what the Queries ask.
  */
@@ -19,6 +18,7 @@ package standaloneactivity
 
 import umpire.*
 import worker.State as WorkerState
+import io.temporal.api.workflowservice.v1.*
 
 val Family: umpire.Family = umpire.Family("temporal.activity.standalone")
 
@@ -67,21 +67,19 @@ val start = action("start", caller)
   .input[Timeout]("scheduleToStart")
   .input[Timeout]("startToClose")
   .creates(activity)
-  .schema("temporal.api.workflowservice.v1.StartActivityExecutionRequest")
+  .schema[StartActivityExecutionRequest]
 
 /** The worker's poll receives the task for the current attempt. */
 val attemptStart = action("attemptStart", worker.party)
   .on(activity)
-  .schema("temporal.api.workflowservice.v1.PollActivityTaskQueueResponse")
+  .schema[PollActivityTaskQueueResponse]
 
 val attemptResult = action("attemptResult", worker.party)
   .on(activity)
   .input[AttemptResult]("result")
-  .schema(
-    "temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest",
-    "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest",
-    "temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest"
-  )
+  .schema[RespondActivityTaskCompletedRequest]
+  .schema[RespondActivityTaskFailedRequest]
+  .schema[RespondActivityTaskCanceledRequest]
   .example(AttemptResult.failed(false), "ApplicationFailureNonRetryable")
   .example(AttemptResult.failed(true), "ApplicationFailureRetryable")
 
@@ -92,12 +90,10 @@ val attemptResult = action("attemptResult", worker.party)
 val control = action("control", caller)
   .on(activity)
   .input[Control]("control")
-  .schema(
-    "temporal.api.workflowservice.v1.PauseActivityExecutionRequest",
-    "temporal.api.workflowservice.v1.UnpauseActivityExecutionRequest",
-    "temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest",
-    "temporal.api.workflowservice.v1.TerminateActivityExecutionRequest"
-  )
+  .schema[PauseActivityExecutionRequest]
+  .schema[UnpauseActivityExecutionRequest]
+  .schema[RequestCancelActivityExecutionRequest]
+  .schema[TerminateActivityExecutionRequest]
   .results("Delivery")
 
 /**

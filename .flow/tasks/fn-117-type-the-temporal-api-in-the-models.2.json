@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T08:59:07.700943Z",
+  "depends_on": [
+    "fn-117-type-the-temporal-api-in-the-models.1"
+  ],
+  "id": "fn-117-type-the-temporal-api-in-the-models.2",
+  "priority": null,
+  "spec": "fn-117-type-the-temporal-api-in-the-models",
+  "spec_path": ".flow/tasks/fn-117-type-the-temporal-api-in-the-models.2.md",
+  "status": "todo",
+  "title": "Integrate stamped API generation and the chosen compile classpath",
+  "updated_at": "2026-10-03T09:51:46.572501Z"
+}

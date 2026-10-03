@@ -33,13 +33,35 @@ class GateSuite extends munit.FunSuite:
       FileTime.fromMillis(Files.getLastModifiedTime(schema).toMillis + 1000)
     )
     Files.createDirectories(root.resolve("model/gen"))
+    val apiDescriptor: Path = root.resolve("proto/api.binpb")
+    Files.writeString(apiDescriptor, "api descriptors")
+    Files.writeString(root.resolve("go.mod"), "module example\n")
+    Files.writeString(root.resolve("go.sum"), "")
+    val getproto: Path = root.resolve("cmd/tools/getproto/main.go")
+    Files.createDirectories(getproto.getParent)
+    Files.writeString(getproto, "package main\n")
+    Files.writeString(getproto.getParent.resolve("files.go"), "package main\n")
+    val gateSource: Path = root.resolve("model/gate/Gate.scala")
+    Files.createDirectories(gateSource.getParent)
+    Files.writeString(gateSource, "package umpire.gate\n")
+    Files.writeString(gateSource.getParent.resolve("project.scala"), "//> using scala 3.9.0\n")
+    val testpilot = root.resolve("proto/internal/temporal/server/api/testpilot/v1/case.proto")
+    Files.createDirectories(testpilot.getParent)
+    Files.writeString(testpilot, "syntax = \"proto3\";\n")
     private val record = "echo \"${0##*/} $*\" >> \"$TOOLS_LOG\""
     private val packaging =
       "out=; previous=; for a in \"$@\"; do [ \"$previous\" = -o ] && out=$a; previous=$a; done; [ -n \"$out\" ] && : > \"$out\" && /bin/chmod +x \"$out\""
     private val stubs = Stubs(Files.createDirectory(root.resolve("bin")))
-      .tool("scala-cli", s"$record\n$packaging\n$scalaCli")
-      .tool("protoc", record)
-      .tool("go", s"$record\n$go")
+      .tool("scala-cli", s"$record\n$packaging\n$scalaCli\ntrue")
+      .tool(
+        "protoc",
+        s"$record\ncase \" $$* \" in *\" --descriptor_set_out=\"*) for a in \"$$@\"; do case \"$$a\" in --descriptor_set_out=*) printf current > \"$${a#*=}\";; esac; done;; esac"
+      )
+      .tool("make", record)
+      .tool(
+        "go",
+        s"$record\ncase \" $$* \" in *\" --linked-api \"*) out=; previous=; for a in \"$$@\"; do [ \"$$previous\" = --out ] && out=$$a; previous=$$a; done; printf 'linked' > \"$$out\"; printf 'temporal/api/workflowservice/v1/service.proto\\ntemporal/server/api/testpilot/v1/case.proto\\n'; exit 0;; esac\n$go"
+      )
     val tools: Tools = stubs.tools(root, "TOOLS_LOG" -> log.toString)
     def ran: Seq[String] =
       if Files.exists(log) then Files.readString(log).linesIterator.toSeq else Nil
@@ -47,6 +69,9 @@ class GateSuite extends munit.FunSuite:
     def plugin: Path = root.resolve("model/gen/protoc-gen-scala")
     def stampFile: Path = root.resolve("model/gen/ir.stamp")
     def stamp: String = Files.readString(stampFile)
+    def apiJar: Path = root.resolve("model/gen/api-scalapb.jar")
+    def apiStampFile: Path = root.resolve("model/gen/api.stamp")
+    def apiStamp: String = Files.readString(apiStampFile)
 
   // As `go test -v -run` of the vocabulary check, go prints what the test's run printed.
   private def vocabulary(printed: String, exit: Int = 0) =
@@ -214,6 +239,110 @@ class GateSuite extends munit.FunSuite:
       Answer(1, "", s"gate: the IR schema ${repository.schema} is missing\n")
     )
 
+  test("the API jar is built once for descriptors and tools, and survives a Model edit"):
+    val repository = Repository()
+    val initial = gate(repository.tools, "--generate-api", "--if-stale")
+    assertEquals(initial.status, 0, initial.err)
+    assert(Files.isRegularFile(repository.apiJar))
+    assert(
+      repository.ran.exists(line =>
+        line.contains("--descriptor_set_out=") &&
+          line.contains("temporal/server/api/testpilot/v1/case.proto")
+      )
+    )
+    assert(repository.ran.exists(_.contains("--current-internal")))
+    val stamp = repository.apiStamp
+    val jarModified = Files.getLastModifiedTime(repository.apiJar)
+    val ran = repository.ran.size
+    Files.createDirectories(repository.root.resolve("model/temporal"))
+    Files.writeString(repository.root.resolve("model/temporal/Model.scala"), "object Model\n")
+    val unchanged = gate(repository.tools, "--generate-api", "--if-stale")
+    assertEquals(unchanged.status, 0, unchanged.err)
+    assertEquals(
+      repository.ran.size,
+      ran + 5,
+      "only make, current protos, linked closure and version probes run"
+    )
+    assertEquals(repository.apiStamp, stamp)
+    assertEquals(Files.getLastModifiedTime(repository.apiJar), jarModified)
+
+    Files.writeString(repository.apiDescriptor, "changed descriptors")
+    val changed = gate(repository.tools, "--generate-api", "--if-stale")
+    assertEquals(changed.status, 0, changed.err)
+    assertNotEquals(repository.apiStamp, stamp)
+    assertEquals(repository.ran.count(_.contains("--linked-api")), 3)
+
+    val closureStamp = repository.apiStamp
+    val goStub = repository.root.resolve("bin/go")
+    Files.writeString(
+      goStub,
+      Files.readString(goStub).replace("printf 'linked' >", "printf 'linked2' >")
+    )
+    assertEquals(gate(repository.tools, "--generate-api", "--if-stale").status, 0)
+    assertNotEquals(repository.apiStamp, closureStamp)
+
+    val next = repository.apiStamp
+    Files.writeString(repository.getproto, "package main // changed\n")
+    assertEquals(gate(repository.tools, "--generate-api", "--if-stale").status, 0)
+    assertNotEquals(repository.apiStamp, next)
+
+    val sourceStamp = repository.apiStamp
+    Files.writeString(repository.gateSource, "package umpire.gate // generation changed\n")
+    val builds = repository.ran.count(_.contains("--scala_out=flat_package,scala3_sources,grpc"))
+    assertEquals(gate(repository.tools, "--generate-api", "--if-stale").status, 0)
+    assertNotEquals(repository.apiStamp, sourceStamp)
+    assertEquals(
+      repository.ran.count(_.contains("--scala_out=flat_package,scala3_sources,grpc")),
+      builds + 1
+    )
+    assertEquals(gate(repository.tools, "--generate-api", "--if-stale").status, 0)
+    assertEquals(
+      repository.ran.count(_.contains("--scala_out=flat_package,scala3_sources,grpc")),
+      builds + 1
+    )
+
+    val toolStamp = repository.apiStamp
+    Files.writeString(
+      repository.root.resolve("bin/protoc"),
+      "\ncase \" $* \" in *\" --version \"*) echo libprotoc-30;; esac\n",
+      java.nio.file.StandardOpenOption.APPEND
+    )
+    assertEquals(gate(repository.tools, "--generate-api", "--if-stale").status, 0)
+    assertNotEquals(repository.apiStamp, toolStamp)
+
+    val options = repository.apiStamp.replace("flat_package,scala3_sources,grpc", "flat_package")
+    Files.writeString(repository.apiStampFile, options)
+    assertEquals(gate(repository.tools, "--generate-api", "--if-stale").status, 0)
+    assert(repository.apiStamp.contains("flat_package,scala3_sources,grpc"))
+
+  test("the API generation names missing and stale descriptor remedies"):
+    val missing = Repository()
+    Files.delete(missing.apiDescriptor)
+    val absent = gate(missing.tools, "--generate-api", "--if-stale")
+    assertEquals(absent.status, 1)
+    assert(absent.err.contains("make proto/api.binpb"), absent.err)
+
+    val stale = Repository()
+    Files.writeString(stale.root.resolve("bin/make"), "#!/bin/sh\nexit 1\n")
+    val old = gate(stale.tools, "--generate-api", "--if-stale")
+    assertEquals(old.status, 1)
+    assert(old.err.contains("make proto/api.binpb"), old.err)
+
+  test("failed API packaging cannot leave a current stamp or accept an old jar"):
+    val repository = Repository()
+    val initial = gate(repository.tools, "--generate-api", "--if-stale")
+    assertEquals(initial.status, 0, initial.err)
+    Files.writeString(repository.apiDescriptor, "changed descriptors")
+    Files.writeString(
+      repository.root.resolve("bin/scala-cli"),
+      "\ncase \"$out\" in *api-scalapb.jar) /bin/rm -f \"$out\";; esac\n",
+      java.nio.file.StandardOpenOption.APPEND
+    )
+    val failed = gate(repository.tools, "--generate-api", "--if-stale")
+    assertEquals(failed.status, 1)
+    assert(failed.err.contains("model/gen/api-scalapb.jar"), failed.err)
+    assert(!Files.isRegularFile(repository.apiStampFile))
+
   test("the gate stops before it builds when a tool is missing, and names it"):
     for tool <- Seq("scala-cli", "protoc", "go") do
       val repository = Repository()
@@ -236,7 +365,7 @@ class GateSuite extends munit.FunSuite:
     assert(answer.err.contains("[error] ./model/umpire/Machine.scala:71:3"), answer.err)
     // The framework alone compiled; the test of the Models was the last tool run.
     assertEquals(
-      repository.ran.drop(4),
+      repository.ran.takeRight(2),
       Seq(
         "scala-cli compile model/project.scala model/umpire --suppress-outdated-dependency-warning",
         "scala-cli test model/project.scala model/umpire model/temporal --suppress-outdated-dependency-warning"
@@ -297,7 +426,7 @@ class GateSuite extends munit.FunSuite:
     // An update the environment asks for does not reach a check's test of the lifter.
     assert(repository.ran.contains("lifter update=[]"), repository.ran.mkString("\n"))
     assertEquals(
-      repository.ran.filter(_.startsWith("go ")),
+      repository.ran.filter(line => line.startsWith("go ") && !line.contains("--linked-api")),
       Seq(vocabularyCheck),
       "the gate stopped before the Cases"
     )
@@ -310,7 +439,7 @@ class GateSuite extends munit.FunSuite:
     assertEquals(checkedIn(repository).values.toSet, Set("{\"lifted\": true}\n"))
     assert(repository.ran.contains("lifter update=[1]"), repository.ran.mkString("\n"))
     assertEquals(
-      repository.ran.filter(_.startsWith("go ")),
+      repository.ran.filter(line => line.startsWith("go ") && !line.contains("--linked-api")),
       Seq(
         vocabularyCheck,
         "go run ./tools/umpire/cmd/umpire-gen-cases --update",
@@ -322,7 +451,9 @@ class GateSuite extends munit.FunSuite:
     assertEquals(check.status, 0, check.err)
     // A check that skips the Go checks still holds the vocabulary.
     assertEquals(
-      repository.ran.filter(_.startsWith("go ")).takeRight(2),
+      repository.ran
+        .filter(line => line.startsWith("go ") && !line.contains("--linked-api"))
+        .takeRight(2),
       Seq(vocabularyCheck, "go run ./tools/umpire/cmd/umpire-gen-cases")
     )
 

@@ -26,7 +26,7 @@ const productClaimProbes = `{
       "params": [{"name": "after", "type": {"named": "umpire.Step"}}],
       "body": {"binary": {"op": "OP_EQ",
         "left": {"field": {"base": {"field": {"base": {"var": "after"}, "field": "state"}}, "field": "phase"}},
-        "right": {"literal": {"enum": {"type": "temporal.nexuscaller.kernel.ProductPhase", "case": "timedOut"}}}}}}],
+        "right": {"literal": {"enum": {"type": "temporal.nexuscaller.ProductPhase", "case": "timedOut"}}}}}}],
   "properties": [
     {"machine": "nexusProduct", "name": "timesOut", "holds": "nexusProduct.property.timesOut",
       "whenClass": {"action": "temporal.nexuscaller.Model$package$.timeout"},
@@ -34,12 +34,12 @@ const productClaimProbes = `{
   "scenarios": [
     {"machine": "nexusProtocol", "name": "everywhere", "free": true,
       "position": {"file": "tools/umpire/model/nexus_pins_test.go"},
-      "start": {"construct": {"type": "temporal.nexuscaller.kernel.ProtocolState", "args": [
-        {"literal": {"enum": {"type": "temporal.nexuscaller.kernel.Phase", "case": "unscheduled"}}},
+      "start": {"construct": {"type": "temporal.nexuscaller.ProtocolState", "args": [
+        {"literal": {"enum": {"type": "temporal.nexuscaller.Phase", "case": "unscheduled"}}},
         {"literal": {"int": "0"}},
-        {"literal": {"enum": {"type": "temporal.nexuscaller.kernel.Timeout", "case": "unset"}}},
-        {"literal": {"enum": {"type": "temporal.nexuscaller.kernel.Timeout", "case": "unset"}}},
-        {"literal": {"enum": {"type": "temporal.nexuscaller.kernel.Timeout", "case": "unset"}}}]}}}],
+        {"literal": {"enum": {"type": "temporal.nexuscaller.Timeout", "case": "unset"}}},
+        {"literal": {"enum": {"type": "temporal.nexuscaller.Timeout", "case": "unset"}}},
+        {"literal": {"enum": {"type": "temporal.nexuscaller.Timeout", "case": "unset"}}}]}}}],
   "queries": [
     {"name": "terminalHoldsEverywhere", "form": "FORM_VERIFY", "through": true,
       "position": {"file": "tools/umpire/model/nexus_pins_test.go"},

@@ -1,18 +1,17 @@
 package temporal.nexuscaller
 
 import umpire.*
-import umpire.prelude.*
 import umpire.realize.{Alternative, Conformance, Exploration, RunExpectation, Variation}
 import umpire.realize.Outcome as ExpectedOutcome
 
 object Control:
   val inspect = action("inspect", caller).on(operation)
 
-  def inspectStep(s: ProtocolState): Steps[ProtocolStep] =
-    one(step(Outcome.accepted, s, facts0))
+  def inspectStep(s: ProtocolState): List[ProtocolStep] =
+    List(Step(Outcome.accepted, s, Nil))
 
   // The control deliberately predicts success for a failed callback. The runtime still sends failure.
-  def forgedComplete(s: ProtocolState, resolution: Resolution): Steps[ProtocolStep] =
+  def forgedComplete(s: ProtocolState, resolution: Resolution): List[ProtocolStep] =
     if resolution == Resolution.failed then
       Protocol.completeStep(s, Resolution.succeeded) ++ Protocol.completeStep(s, resolution)
     else Protocol.completeStep(s, resolution)

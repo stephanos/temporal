@@ -1,5 +1,7 @@
 package umpire
 
+import scalapb.{GeneratedMessage, GeneratedMessageCompanion}
+
 /**
  * The root a model's Definition IDs hang off, such as `temporal.nexus.caller`. A Model names it
  * explicitly; it is not derived from the Scala package.
@@ -70,6 +72,9 @@ final class Action[I <: Tuple] private[umpire] (val decl: ActionDecl):
 
   /** The protobuf messages the action carries, by name. */
   def schema(names: String*): Action[I] = Action(decl.copy(schemas = names.toList))
+
+  def schema[M <: GeneratedMessage](using companion: GeneratedMessageCompanion[M]): Action[I] =
+    Action(decl.copy(schemas = decl.schemas :+ companion.scalaDescriptor.fullName))
 
   /** The domain of results the action reports, by name. */
   infix def results(name: String): Action[I] = Action(decl.copy(results = name))

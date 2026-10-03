@@ -36,7 +36,7 @@ func TestAnExampleIsOfAClassOfAOneInputAction(t *testing.T) {
 		}, "gives an example and takes 3 inputs; an example is of one class of a one-input action"},
 		{"an example of another type than the input", func(m *umpirespb.Model) {
 			action(m, "handlerReply").GetExamples()[0].Value = flag
-		}, "gives an example of true, which is no temporal.nexuscaller.kernel.Reply"},
+		}, "gives an example of true, which is no temporal.nexuscaller.Reply"},
 		{"an example of no value", func(m *umpirespb.Model) { action(m, "handlerReply").GetExamples()[0].Value = nil },
 			"gives an example of no value"},
 	} {

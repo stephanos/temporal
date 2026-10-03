@@ -63,10 +63,6 @@ Deferred by the owner: `make umpire-check-backends`, which needs P and .NET inst
 owner: the canary policy's `workflowPath` names the deleted production-canary workflow, so
 production dispatch fails closed.
 
-fn-113 has twelve of its sixteen tasks done: 1 to 8, 10 to 12 and 14. Tasks 9, 13, 15 and 16 remain.
-Task 8 landed without an independent review, which comes first when work resumes. The other later
-specs have no tasks yet. Each starts after the spec it waits for closes; Flow records the dependencies.
-
 The CEL spike (fn-116) is closed. Its [report](.plans/UMPIRE_CEL_SPIKE.md) recommends keeping the
 IR's own expressions: CEL matched the current evaluator on every Model, but adoption grows the IR
 1.8-3.7x, slows table derivation up to about 6x and adds more code than it removes. Adopting CEL
@@ -74,42 +70,29 @@ would be a new spec the owner opens after reading the report.
 
 | Order | Spec | In one line | Waits for |
 | --- | --- | --- | --- |
-| 1 | fn-113 | Shrink the Scala framework to a declaration DSL, port the lifter to ScalaPB | — |
-| 2 | fn-117 | Typed Temporal API in the Models, in place of proto names as strings | fn-113 |
-| 3 | fn-112 | Rewrite the standalone activity Model as the DSL showcase | fn-117 |
-| 4 | fn-114 | Roll the showcase's constructs out to every other Model | fn-112 |
-| after 3 | fn-118 | API behavior hints (eventual consistency, wait bounds) that the generated tests use | fn-112 |
-| after 4 | fn-120 | Named choices, a model linter, an explorer over the IR and ITF trace interchange | fn-114 |
+| 1 | fn-117 | Typed Temporal API in the Models, in place of proto names as strings | — |
+| 2 | fn-112 | Rewrite the standalone activity Model as the DSL showcase | fn-117 |
+| 3 | fn-114 | Roll the showcase's constructs out to every other Model | fn-112 |
+| after 2 | fn-118 | API behavior hints (eventual consistency, wait bounds) that the generated tests use | fn-112 |
+| after 3 | fn-120 | Named choices, a model linter, an explorer over the IR and ITF trace interchange | fn-114 |
 | last | fn-119 | Example: one Go SDK workflow driven end to end from the IRs, with no hand-written Go | fn-118, fn-120 |
-
-### fn-113: Clean up the Scala model layer around the IR
-
-Scala declares, the lifter reads, Go evaluates. Parts A to C are done:
-- The lifter builds and prints the IR through ScalaPB 0.11.20. The gate generates only `model/gen/ir-scalapb.jar`.
-- `model/umpire` keeps only declarations, at 1,206 lines (target 1,300). Go checks every Model from the IR: the native evaluator and its munit tests are gone, after an audit (`.plans/umpire-scala-evaluator-audit.md`) mapped each test to a Go test over the IR.
-- The sets and Coverage are removed, and what they declared is recorded in the task handover.
-- `nexusCaller`, `terminalHolds` and `stoppedWorkerRepliesNothing` are lifted roots of `nexus-caller.json`.
-- The Go checker's typed fixture layer is gone.
-- Compiler-named parameters lift with readable names.
-- The migration goldens compare under a closed projection: positions by file, listed function renames, normalized parameter names, and exploration Case IDs. Tables, IDs, fingerprints, answers and Query Case bytes stay strict.
-
-Remaining:
-- **9.** Fixtures that must not compile, to prove the compile-time guarantees.
-- **13.** Part D: fold the Nexus kernel into ordinary Scala and drop the Stainless residue. `kernel/NexusActions.scala` still names the deleted `NexusKernel.test.scala`.
-- **15.** Documentation.
-- **16.** Close the spec with full validation.
-
-`make lint-code-fast` cannot judge this branch: its base, `main`, is far behind, and it reports about 718 findings in unrelated packages. The tasks lint the Umpire packages with a scoped `make lint-code`. On this 15 GB host, the heavy Go suites need `GOMEMLIMIT=4500MiB -parallel 1` and one package at a time.
 
 ### fn-117: Type the Temporal API in the Models
 
 Models name Temporal API messages, methods, field paths and enum values as string literals today,
 about 100 of them, and the compiler checks none. This spec puts ScalaPB classes for the Temporal API
 on the Models' classpath so that a Model writes `schema[StartActivityExecutionRequest]` and
-`_.taskQueue.name := …`, and a wrong field or type does not compile. The IR keeps names as text, so
-Go is unaffected. Its first task checks that ScalaPB fits Scala 3.9.0 and that compiling the Models
-with a warm cache takes at most twice what it does today; if not, a generated typed catalog gives
-the same author surface.
+selects a field such as `_.getTaskQueue.name`, and a wrong field or type does not compile. The IR
+keeps names as text, so Go is unaffected. The [spike](.plans/UMPIRE_TYPED_API_SPIKE.md) passed
+independent review and selected the complete ScalaPB API: a warm Model edit took 0.77 seconds
+against a 0.87-second baseline, within the two-times limit. Selective generation and the typed
+catalog fallback were not triggered.
+
+The eight-task plan passed independent review. The feasibility spike and stamped build
+integration passed their implementation reviews; complete API classes are available and Model
+edits reuse the generated jar. Typed declarations, field paths, symbolic operands, constant
+messages, the standalone activity and Nexus migrations, and positive authoring fixtures passed
+review. Retirement of the string forms and closing checks remain.
 
 ### fn-112: Make the standalone activity Scala Model a DSL showcase
 

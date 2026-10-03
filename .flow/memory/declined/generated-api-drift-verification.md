@@ -33,3 +33,5 @@ The generator is intentionally generation-only for now. Its focused and golden t
 - 2026-09-07 — Planned typed temporal authoring and scoped monitoring; focused schema, fixture, and generator checks remain in scope, while broad generated Lean API drift verification and new CI coverage remain declined.
 - 2026-09-09 — Planned the Umpire and Testpilot vocabulary unification (fn-82); regeneration of existing fixtures, goldens, and the `Temporal.API` generator filter stay in scope, while broad generated Lean API drift verification and new CI coverage remain declined.
 - 2026-09-09 — Planned authoring a live Case from a Model file (fn-83); one Case registry and regeneration of existing fixtures stay in scope, while broad generated Lean API drift verification and new CI coverage remain declined.
+
+- 2026-10-03 — Planning fn-117 typed Scala Temporal API after fn-113 closes; descriptor-input jar invalidation and focused typing/generation checks are required by the spec, while broad generated API drift verification and new CI coverage remain excluded.

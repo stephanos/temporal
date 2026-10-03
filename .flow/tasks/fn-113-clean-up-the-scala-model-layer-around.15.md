@@ -37,9 +37,26 @@ No staging, commits, worktrees or recursive deletion: move a removed file to `.f
 
 
 ## Done summary
-TBD
+# fn-113.15 handover
 
+The model README, SEMANTICS introduction, lifter header, and gate header now state the current pipeline: Scala declares, the ScalaPB lifter reads, and Go alone evaluates the IR. The README distinguishes compilation and lift refusals from Go-reported semantic Model problems at recorded Scala lines, and keeps its terms, diagram, worked example and gate instructions. Its Query totals were corrected from the checked-in manifest: 264 total, 16 lowered, 150 verify/nothing-to-realize, 95 no-realization, 3 unsupported; the Nexus caller has seven find Queries plus two verify Queries. The public Go `Table` reference in SEMANTICS remains accurate. `model/specimens/README.md` and `model/specimens/` are absent, so no stale-path edit was possible. No generic machinery or library was added or weighed (R25).
+
+Baseline before edits: check-mode model gate exit 0 (`.flow/tmp/fn113-15/baseline-gate.log`); `mise exec -- make lint-model` exit 0 (`baseline-lint.log`). Verification after edits: `CC=/usr/bin/clang GOMEMLIMIT=4500MiB mise exec -- make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks` exit 0 (`verify-gate.log`); `mise exec -- make lint-model` exit 0 (`verify-lint.log`); `git diff --check` exit 0 (`diff-check.log`). The lint command reports successful scalafmt, but both baseline and verification logs contain a Scalafix `NoSuchFieldException: path` despite exit 0; this is an inherited tooling limitation, not evidence that Scalafix rules ran cleanly. The only retired-vocabulary grep hit in these four files is `Table` in SEMANTICS, the real public Go type. The gate's vocabulary step passed.
+
+Before/after SHA-256 maps for the four source files and all IR, Case and expected lift fixtures are `.flow/tmp/fn113-15/before-files.json` and `after-files.json` (34 files). Only the four touched source files changed; all IR, Cases and expected fixtures are byte-identical. The task-focused review snapshot is `.flow/tmp/fn113-15/snapshot.diff` (SHA-256 `8f792fa06401ba56808eedf774c4f747e4874ae5f1f74bec9240591ae4f671f1`). The Scala comment edits preserve the line counts in `Lift.scala` and `Gate.scala`, so they do not shift generated positions. The full Go model/lower/export packages, JSON, commands and walls passed in task 13 (`.flow/tmp/fn113-13/`); these documentation/comment changes do not invalidate those results, so they were reused rather than rerun.
+
+Conductor module-map facts: the DSL row should describe declarations/realizations without the retired evaluator or prelude; the Lifter row should name ScalaPB generated IR and its runtime/ProtoJSON support; the Gate row should name ScalaPB generation. The Scala layout paragraph should say the native Scala evaluator is gone, the Nexus step/domain declarations live in `model/temporal/nexuscaller/Nexus.scala`, and compiler/lifter refusal fixtures remain under `model/lifter/testdata`. The conductor's current `.plans/UMPIRE_MODULES.md` diff includes these updates; it owns that shared file and MILESTONES.md. No further module-map inconsistency was found in the task's required rows.
+
+No staging, commit, push, worktree, flowctl completion, plan-sync, tracker operation or review was performed. The task remains in progress for conductor review.
+
+stage: impl-review - ran (model: gpt-6-sol; receipt: .flow/tmp/fn113-15-review/receipt.json; verdict: SHIP; uncommitted source pinned by snapshot.diff/source-hashes.json)
+
+Conductor lint evidence: task 8's `.flow/tmp/fn113-8-review/lint-probe-forbidden.log` proves DisableSyntax.var enforcement despite the inherited caught path exception. The final task 15 changes affect prose and comment text only; the same tooling/environment evidence remains applicable.
+
+stage: wave-dispatch - ran (model: gpt-6-sol; sequential worker in current checkout)
+stage: plan-sync - skipped(config: planSync.enabled != true)
+Tracker sync: n/a (bridge inactive).
 ## Evidence
 - Commits:
-- Tests:
+- Tests: CC=/usr/bin/clang GOMEMLIMIT=4500MiB mise exec -- make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks (baseline and verification: exit 0), mise exec -- make lint-model (baseline and verification: exit 0; inherited Scalafix exception in logs), git diff --check (exit 0), rg -n 'Table\b|Search|UmpireSet|Coverage|prelude|kernel|protobuf-java|JsonFormat|munit' model/README.md model/SEMANTICS.md model/lifter/Lift.scala model/gate/Gate.scala (one intended Go Table hit), Task13 full Go model/lower/export baseline reused: .flow/tmp/fn113-13/go-*-full-result.json, Independent codex:gpt-6-sol:high review SHIP; current source hashes verified
 - PRs:

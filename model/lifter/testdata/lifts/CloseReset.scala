@@ -6,7 +6,6 @@
 package fixture.specimens.closereset
 
 import temporal.nexuscaller.{caller, complete, handler, operation, workflow, Resolution}
-import temporal.nexuscaller.given
 import umpire.*
 
 val Family: umpire.Family = umpire.Family("temporal.nexus.caller.closereset")

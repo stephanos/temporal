@@ -111,6 +111,10 @@
     {
       "old": "model/lifter/testdata/lifts/Realizations.scala.fixture",
       "new": "model/lifter/testdata/lifts/Realizations.scala"
+    },
+    {
+      "old": "model/temporal/nexuscaller/kernel/Nexus.scala",
+      "new": "model/temporal/nexuscaller/Nexus.scala"
     }
   ],
   "source_label_substitutions": [
@@ -166,7 +170,144 @@
   "projection": {
     "positions_by_file": true,
     "alpha_normalized_parameters": true,
-    "function_name_substitutions": [],
-    "projected_case_ids": ["exploration"]
+    "function_name_substitutions": [
+      {
+        "old": "temporal.nexuscaller.kernel.Product$.completeStep",
+        "new": "temporal.nexuscaller.Product$.completeStep"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Product$.handlerReplyStep",
+        "new": "temporal.nexuscaller.Product$.handlerReplyStep"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Product$.productStep",
+        "new": "temporal.nexuscaller.Product$.productStep"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Product$.productTerminal",
+        "new": "temporal.nexuscaller.Product$.productTerminal"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Product$.timeoutStep",
+        "new": "temporal.nexuscaller.Product$.timeoutStep"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Product$.transportFaultStep",
+        "new": "temporal.nexuscaller.Product$.transportFaultStep"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Product$.workerStopStep",
+        "new": "temporal.nexuscaller.Product$.workerStopStep"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Protocol$.backoffStep",
+        "new": "temporal.nexuscaller.Protocol$.backoffStep"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Protocol$.completeStep",
+        "new": "temporal.nexuscaller.Protocol$.completeStep"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Protocol$.handlerReplyStep",
+        "new": "temporal.nexuscaller.Protocol$.handlerReplyStep"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Protocol$.moves",
+        "new": "temporal.nexuscaller.Protocol$.moves"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Protocol$.productOf",
+        "new": "temporal.nexuscaller.Protocol$.productOf"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Protocol$.running",
+        "new": "temporal.nexuscaller.Protocol$.running"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Protocol$.saturatingSucc",
+        "new": "temporal.nexuscaller.Protocol$.saturatingSucc"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Protocol$.scheduleStep",
+        "new": "temporal.nexuscaller.Protocol$.scheduleStep"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Protocol$.scheduleToCloseStep",
+        "new": "temporal.nexuscaller.Protocol$.scheduleToCloseStep"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Protocol$.scheduleToStartStep",
+        "new": "temporal.nexuscaller.Protocol$.scheduleToStartStep"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Protocol$.startToCloseStep",
+        "new": "temporal.nexuscaller.Protocol$.startToCloseStep"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Protocol$.terminalPhase",
+        "new": "temporal.nexuscaller.Protocol$.terminalPhase"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Protocol$.transportFaultStep",
+        "new": "temporal.nexuscaller.Protocol$.transportFaultStep"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Protocol$.validAttempts",
+        "new": "temporal.nexuscaller.Protocol$.validAttempts"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Protocol$.workerStopStep",
+        "new": "temporal.nexuscaller.Protocol$.workerStopStep"
+      }
+    ],
+    "projected_case_ids": [
+      "exploration"
+    ],
+    "type_name_substitutions": [
+      {
+        "old": "temporal.nexuscaller.kernel.Outcome",
+        "new": "temporal.nexuscaller.Outcome"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Phase",
+        "new": "temporal.nexuscaller.Phase"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.ProductFact",
+        "new": "temporal.nexuscaller.ProductFact"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.ProductPhase",
+        "new": "temporal.nexuscaller.ProductPhase"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.ProductState",
+        "new": "temporal.nexuscaller.ProductState"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.ProtocolFact",
+        "new": "temporal.nexuscaller.ProtocolFact"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.ProtocolState",
+        "new": "temporal.nexuscaller.ProtocolState"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Reply",
+        "new": "temporal.nexuscaller.Reply"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Resolution",
+        "new": "temporal.nexuscaller.Resolution"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.Timeout",
+        "new": "temporal.nexuscaller.Timeout"
+      },
+      {
+        "old": "temporal.nexuscaller.kernel.TimeoutType",
+        "new": "temporal.nexuscaller.TimeoutType"
+      }
+    ]
   }
 }

@@ -112,7 +112,7 @@ R25 weighing:
 
 - The lifter suite includes the refusal and must-not-compile tests (`Evidence.scala.fixture:29:16`, `Crossed.scala.fixture:35:14`/`45:28`, `Unsupported.scala:18`, rejects.txt).
 - In the lint log, scalafix prints `java.lang.NoSuchFieldException: path` traces. They come from scalafix's reflection under JDK 27, appear for every project as they did in task 2, and do not fail the lint. Formatting and scalafix report no finding in lifter code.
-- Not exercised: no fixture triggers the realization emitter's unknown-constructor or unknown-parameter refusal, before or after the port. Well-typed framework code cannot reach it. The diff shows those refusals keep their texts and positions.
+- At the original port, not exercised: no fixture triggers the realization emitter's unknown-constructor or unknown-parameter refusal, before or after the port. Well-typed framework code cannot reach it. The diff shows those refusals keep their texts and positions.
 
 ### Notes for the conductor (shared documents, not edited)
 
@@ -141,7 +141,22 @@ Corrections to this handover:
 Conductor note: the ScalaPB printer writes fields in declaration order rather than field-number order (e.g. `commitment = 8` after the oneof `run_event = 12`), and no longer escapes `'`, `<` and `>`. Every Go reader decodes with protojson and nothing hashes the bytes, so only future diffs of `model/ir` show the new order.
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
+
+### Completion-review R9 follow-up
+
+# fn-113.3 R9 completion fix
+
+Added a realization refusal fixture with two compileable, intentionally mismatched DSL declarations. The descriptor-driven lifter now has executable coverage for an unknown oneof constructor (`Activation.Unknown`, `Refusals.scala:7`) and an unknown parameter (`invented`, constructor at `Refusals.scala:10`); each reports the exact refusal at its source line and writes no IR. Production code, existing fixture sources, and comments were unchanged.
+
+Baseline: green via task 16 handoff (`.flow/tmp/fn113-16/`); its model gate and lint results were exit 0. Current checks: `mise exec -- scala-cli test model/lifter` passed all 17 tests (including the new refusal test), `CC=/usr/bin/clang GOMEMLIMIT=4500MiB mise exec -- make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks` passed without `--update`, and `mise exec -- make lint-model` exited 0. Logs and exit receipts are in `.flow/tmp/fn113-3-completion-fix/`.
+
+The 30 checked-in IR, Case, and expected lifter artifacts remain SHA-256 equal to task 16 (`hashes.json`). `model/umpire` remains 1,191 non-test lines; all Scala tests under `model/` now total 924 lines, up from 900. No Go source changed; task 16's Go suite and lint coverage applies. No files were staged or committed; HEAD remains `2093a63f2da7c6c66f3509414dd78476eb4d5c04`. The task remains `in_progress` for the conductor's host review and `flowctl done`.
+
+stage: impl-review - ran(model: gpt-6-sol high; verdict: SHIP; receipt: .flow/tmp/fn113-3-completion-fix-review/receipt.json; source hashes verified)
+stage: wave-dispatch - ran(model: gpt-6-sol high; sequential worker)
+stage: plan-sync - skipped(policy: planSync.enabled=false)
+stage: tracker-sync - skipped(policy: sync inactive)
 ## Evidence
-- Commits: 4e06600ba9fbd9a5aeac7e1b26960014c35fbb60
-- Tests: GOFLAGS=-p=1 mise exec -- go run .flow/tmp/fn113-3/r7.go -> 12 files, 0 unequal (protojson + proto.Equal, before vs after), mise exec -- scala-cli test model/lifter -> pass (14/14), GOFLAGS=-p=1 mise exec -- go test -count=1 -timeout 30m -tags test_dep -run '^TestMigrationGoldens$' ./tools/umpire/model -> ok, GOFLAGS=-p=1 mise exec -- go test -count=1 -timeout 30m -tags test_dep -run '^TestMigrationGoldens$' ./tools/umpire/lower -> ok, make umpire-check-cases -> pass, make umpire-check-fixtures -> pass, make canary-check-case -> pass, make lint-model -> pass, make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks -> ok (no --update), mise exec -- scala-cli test model/lifter (after review fixes) -> 14/14 pass, make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks (after review fixes) -> == ok, no --update, make lint-model (after review fixes) -> ok, independent review (claude-opus-5-5, fresh context): SHIP; should-fix (refusal order) and nits applied
+- Commits:
+- Tests: baseline: green via handoff (.flow/tmp/fn113-16/check-model-result.json and lint-model-result.json: exit 0), mise exec -- scala-cli test model/lifter (exit 0, 17 passed; .flow/tmp/fn113-3-completion-fix/lifter-test.log), CC=/usr/bin/clang GOMEMLIMIT=4500MiB mise exec -- make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks (exit 0; .flow/tmp/fn113-3-completion-fix/check-model.log), mise exec -- make lint-model (exit 0; .flow/tmp/fn113-3-completion-fix/lint-model.log), 30 model/ir, model/cases, and expected lifter artifacts SHA-256 unchanged from task 16 (.flow/tmp/fn113-3-completion-fix/hashes.json), Go checks and lint reused from task 16; no Go source changed, independent R9 fixture-fix implementation review: SHIP (.flow/tmp/fn113-3-completion-fix-review/receipt.json)
 - PRs:

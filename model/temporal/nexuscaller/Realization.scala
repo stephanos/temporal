@@ -19,6 +19,21 @@ import umpire.realize.*
 import umpire.realize.Instruction.*
 import umpire.realize.Operand.*
 import umpire.realize.ProtoValue.*
+import io.temporal.api.workflowservice.v1.*
+import io.temporal.api.history.v1.*
+import io.temporal.api.workflow.v1.PendingNexusOperationInfo
+import io.temporal.api.common.v1.Payload
+import io.temporal.api.command.v1.{Command as ApiCommand, ScheduleNexusOperationCommandAttributes}
+import io.temporal.api.enums.v1.{
+  CommandType,
+  HistoryEventFilterType,
+  NexusHandlerErrorRetryBehavior
+}
+import io.temporal.api.failure.v1.{ApplicationFailureInfo, Failure as ApiFailure}
+import io.temporal.api.nexus.v1.{Failure as NexusFailure, HandlerError, StartOperationResponse}
+import temporal.server.api.testpilot.v1.CorrelatedEvidence
+import io.grpc.MethodDescriptor
+import scalapb.GeneratedMessage
 
 import Timeout.{expires, unset}
 
@@ -29,13 +44,6 @@ object NexusRealization:
   private val taskQueueRole = "temporal.task-queue"
   private val handlerTaskQueueRole = "temporal.handler-task-queue"
   private val nexusEndpointRole = "temporal.nexus-endpoint"
-
-  private val startWorkflowMethod =
-    "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution"
-  private val getHistoryMethod =
-    "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
-  private val describeMethod =
-    "/temporal.api.workflowservice.v1.WorkflowService/DescribeWorkflowExecution"
 
   private val historyObservation = "history-event"
   private val correlatedObservation = "correlated-evidence"
@@ -70,65 +78,94 @@ object NexusRealization:
    * read once the workflow has closed, when it holds every event the operation will ever have, so the
    * kind is exhaustive and that read closes it.
    */
-  private def historySource(kind: String, attributes: String, id: String) =
-    Evidence(
+  private def historySource[Attributes](
+      kind: String,
+      attributes: Field[HistoryEvent, Option[Attributes]],
+      operationKey: Field[HistoryEvent, Long],
+      id: String
+  ) =
+    Evidence.history(
       id = id,
       records = kind,
       source = historySourceID,
-      from = Recorded.History(attributes),
-      operation = s"attributes<$attributes>.scheduled_event_id",
+      from = Recorded.history(attributes),
+      operation = operationKey,
       commitment = Commitment.reported,
       exhaustive = true
     )
 
-  private val historyEvents = "history.events[*]"
+  private val historyEvents = Field[GetWorkflowExecutionHistoryResponse, Seq[HistoryEvent]](
+    _.getHistory.events.map(event => event)
+  )
 
   /**
    * Every evidence kind the realization admits: the scheduled event read out of history as soon as
    * it exists, the history kinds, and the pending operation's attempt count.
    */
-  private val sources: Vector[Evidence] = Vector(
-    Evidence(
-      id = scheduledEvidence,
-      records = "nexusOperationScheduled",
-      source = scheduledSource,
-      from = Recorded.Read(getHistoryMethod, historyEvents),
-      operation = "event_id",
-      commitment = Commitment.reported
+  private val scheduled = Evidence.read(
+    id = scheduledEvidence,
+    records = "nexusOperationScheduled",
+    source = scheduledSource,
+    from = Recorded.read(WorkflowServiceGrpc.METHOD_GET_WORKFLOW_EXECUTION_HISTORY, historyEvents),
+    operation = Field[HistoryEvent, Long](_.eventId),
+    commitment = Commitment.reported
+  )
+  private val pending = Evidence.read(
+    id = pendingAttemptsEvidence,
+    records = "pendingAttempts",
+    source = describeSourceID,
+    from = Recorded.read(
+      WorkflowServiceGrpc.METHOD_DESCRIBE_WORKFLOW_EXECUTION,
+      Field[DescribeWorkflowExecutionResponse, Seq[PendingNexusOperationInfo]](
+        _.pendingNexusOperations
+      )
     ),
+    operation = Field[PendingNexusOperationInfo, Long](_.scheduledEventId),
+    commitment = Commitment.reported
+  )
+  private val sources = Vector(
+    scheduled,
     historySource(
       "nexusOperationStarted",
-      "nexus_operation_started_event_attributes",
+      Field[HistoryEvent, Option[NexusOperationStartedEventAttributes]](
+        _.attributes.nexusOperationStartedEventAttributes
+      ),
+      Field[HistoryEvent, Long](_.getNexusOperationStartedEventAttributes.scheduledEventId),
       startedEvidence
     ),
     historySource(
       "nexusOperationCompleted",
-      "nexus_operation_completed_event_attributes",
+      Field[HistoryEvent, Option[NexusOperationCompletedEventAttributes]](
+        _.attributes.nexusOperationCompletedEventAttributes
+      ),
+      Field[HistoryEvent, Long](_.getNexusOperationCompletedEventAttributes.scheduledEventId),
       completedEvidence
     ),
     historySource(
       "nexusOperationFailed",
-      "nexus_operation_failed_event_attributes",
+      Field[HistoryEvent, Option[NexusOperationFailedEventAttributes]](
+        _.attributes.nexusOperationFailedEventAttributes
+      ),
+      Field[HistoryEvent, Long](_.getNexusOperationFailedEventAttributes.scheduledEventId),
       failedEvidence
     ),
     historySource(
       "nexusOperationCanceled",
-      "nexus_operation_canceled_event_attributes",
+      Field[HistoryEvent, Option[NexusOperationCanceledEventAttributes]](
+        _.attributes.nexusOperationCanceledEventAttributes
+      ),
+      Field[HistoryEvent, Long](_.getNexusOperationCanceledEventAttributes.scheduledEventId),
       canceledEvidence
     ),
     historySource(
       "nexusOperationTimedOut",
-      "nexus_operation_timed_out_event_attributes",
+      Field[HistoryEvent, Option[NexusOperationTimedOutEventAttributes]](
+        _.attributes.nexusOperationTimedOutEventAttributes
+      ),
+      Field[HistoryEvent, Long](_.getNexusOperationTimedOutEventAttributes.scheduledEventId),
       timedOutEvidence
     ),
-    Evidence(
-      id = pendingAttemptsEvidence,
-      records = "pendingAttempts",
-      source = describeSourceID,
-      from = Recorded.Read(describeMethod, "pending_nexus_operations"),
-      operation = "scheduled_event_id",
-      commitment = Commitment.reported
-    )
+    pending
   )
 
   // ### The scaffolding
@@ -136,30 +173,51 @@ object NexusRealization:
   /** Each Case starts a workflow type of its own, so two Cases on one worker never share one. */
   private val workflowType = Name("umpire-", fixture = true, suffix = "-workflow")
 
-  private def rpc(
+  private def rpc[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
       id: String,
-      method: String,
-      assign: Vector[Assignment],
-      reads: Vector[ResponseRead]
+      method: MethodDescriptor[Req, Rsp],
+      assign: Vector[TypedAssignment[Req, ?]],
+      reads: Vector[TypedResponseRead[Rsp, ?]]
   ) =
-    Command(id, Rpc(workflowServiceRole, method, assign, reads))
+    Command(id, Instruction.rpc(workflowServiceRole, method)(assign, reads))
 
   private val historyAssignments = Vector(
-    Assignment("namespace", Environment(workerNamespaceBinding)),
-    Assignment("execution.workflow_id", Run),
-    Assignment("maximum_page_size", Literal(Number(64))),
-    Assignment("wait_new_event", Literal(Flag(true)))
+    Assignment.typed(
+      Field[GetWorkflowExecutionHistoryRequest, String](_.namespace),
+      Operand.environment[String](workerNamespaceBinding)
+    ),
+    Assignment.typed(
+      Field[GetWorkflowExecutionHistoryRequest, String](_.getExecution.workflowId),
+      Operand.run()
+    ),
+    Assignment.typed(
+      Field[GetWorkflowExecutionHistoryRequest, Int](_.maximumPageSize),
+      Operand.integer(64)
+    ),
+    Assignment.typed(
+      Field[GetWorkflowExecutionHistoryRequest, Boolean](_.waitNewEvent),
+      Operand.flag(true)
+    )
   )
 
   private val startWorkflow = rpc(
     "start-workflow",
-    startWorkflowMethod,
+    WorkflowServiceGrpc.METHOD_START_WORKFLOW_EXECUTION,
     Vector(
-      Assignment("namespace", Environment(workerNamespaceBinding)),
-      Assignment("workflow_id", Run),
-      Assignment("workflow_type.name", Literal(Named(workflowType))),
-      Assignment("task_queue.name", Environment(taskQueueBinding)),
-      Assignment("request_id", Run)
+      Assignment.typed(
+        Field[StartWorkflowExecutionRequest, String](_.namespace),
+        Operand.environment[String](workerNamespaceBinding)
+      ),
+      Assignment.typed(Field[StartWorkflowExecutionRequest, String](_.workflowId), Operand.run()),
+      Assignment.typed(
+        Field[StartWorkflowExecutionRequest, String](_.getWorkflowType.name),
+        Operand.named(workflowType)
+      ),
+      Assignment.typed(
+        Field[StartWorkflowExecutionRequest, String](_.getTaskQueue.name),
+        Operand.environment[String](taskQueueBinding)
+      ),
+      Assignment.typed(Field[StartWorkflowExecutionRequest, String](_.requestId), Operand.run())
     ),
     Vector.empty
   )
@@ -167,10 +225,10 @@ object NexusRealization:
   /** Resolves only once the workflow closes, so a read placed after it observes the whole history. */
   private val awaitClose = rpc(
     "await-close",
-    getHistoryMethod,
-    historyAssignments :+ Assignment(
-      "history_event_filter_type",
-      Literal(EnumName("HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT"))
+    WorkflowServiceGrpc.METHOD_GET_WORKFLOW_EXECUTION_HISTORY,
+    historyAssignments :+ Assignment.typed(
+      Field[GetWorkflowExecutionHistoryRequest, HistoryEventFilterType](_.historyEventFilterType),
+      Operand.enumValue(HistoryEventFilterType.HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT)
     ),
     Vector.empty
   )
@@ -182,13 +240,13 @@ object NexusRealization:
    */
   private val history = Command(
     "history",
-    Rpc(
-      workflowServiceRole,
-      getHistoryMethod,
+    Instruction.rpc(workflowServiceRole, WorkflowServiceGrpc.METHOD_GET_WORKFLOW_EXECUTION_HISTORY)(
       historyAssignments,
       Vector(
-        ResponseRead(
-          historyEvents,
+        ResponseRead.typed(
+          Field[GetWorkflowExecutionHistoryResponse, Seq[HistoryEvent]](
+            _.getHistory.events.map(event => event)
+          ),
           Cardinality.each,
           Vector(Target.Observe(historyObservation), Target.Lift(correlatedObservation))
         )
@@ -204,18 +262,33 @@ object NexusRealization:
   )
 
   private val pollAssignments = Vector(
-    Assignment("namespace", Environment(workerNamespaceBinding)),
-    Assignment("execution.workflow_id", Run)
+    Assignment.typed(
+      Field[GetWorkflowExecutionHistoryRequest, String](_.namespace),
+      Operand.environment[String](workerNamespaceBinding)
+    ),
+    Assignment.typed(
+      Field[GetWorkflowExecutionHistoryRequest, String](_.getExecution.workflowId),
+      Operand.run()
+    )
+  )
+
+  private val describeAssignments = Vector(
+    Assignment.typed(
+      Field[DescribeWorkflowExecutionRequest, String](_.namespace),
+      Operand.environment[String](workerNamespaceBinding)
+    ),
+    Assignment.typed(
+      Field[DescribeWorkflowExecutionRequest, String](_.getExecution.workflowId),
+      Operand.run()
+    )
   )
 
   /** Polls the pending operation until its first attempt has failed. */
   private val pendingAttempts = Command(
     "pending-attempts",
-    Poll(
-      pendingAttemptsEvidence,
-      workflowServiceRole,
-      pollAssignments,
-      Equal(Path(Projected, "attempt"), Literal(Number(1))),
+    Instruction.poll(pending, workflowServiceRole)(
+      describeAssignments,
+      Condition.equal(Field[PendingNexusOperationInfo, Int](_.attempt), Operand.integer(1)),
       250
     )
   )
@@ -223,11 +296,13 @@ object NexusRealization:
   /** Polls the history for the scheduled event, run until the event exists. */
   private val awaitScheduled = Command(
     "await-scheduled",
-    Poll(
-      scheduledEvidence,
-      workflowServiceRole,
+    Instruction.poll(scheduled, workflowServiceRole)(
       pollAssignments,
-      Present(Path(Projected, "attributes<nexus_operation_scheduled_event_attributes>")),
+      Condition.present(
+        Field[HistoryEvent, Option[NexusOperationScheduledEventAttributes]](
+          _.attributes.nexusOperationScheduledEventAttributes
+        )
+      ),
       250
     )
   )
@@ -237,23 +312,32 @@ object NexusRealization:
 
   /** A JSON payload of one string, as the SDK's default data converter encodes it. */
   private def textPayload(value: String) =
-    Proto(
-      "temporal.api.common.v1.Payload",
-      ProtoField("metadata", Mapping(ProtoEntry("encoding", Utf8("json/plain")))),
-      ProtoField("data", Utf8("\"" + value + "\""))
+    Proto[Payload](
+      ProtoField.typed(
+        Field[Payload, Map[String, com.google.protobuf.ByteString]](_.metadata),
+        ProtoValue.mapping(ProtoEntry.typed("encoding", ProtoValue.utf8("json/plain")))
+      ),
+      ProtoField.typed(
+        Field[Payload, com.google.protobuf.ByteString](_.data),
+        ProtoValue.utf8("\"" + value + "\"")
+      )
     )
 
   /** The failure a failed reply or completion carries. */
-  private val handlerFailure = Proto(
-    "temporal.api.failure.v1.Failure",
-    ProtoField("message", Text("operation failed")),
-    ProtoField(
-      "application_failure_info",
-      Message(
-        Proto(
-          "temporal.api.failure.v1.ApplicationFailureInfo",
-          ProtoField("type", Text("OperationFailed")),
-          ProtoField("non_retryable", Flag(true))
+  private val handlerFailure = Proto[ApiFailure](
+    ProtoField.typed(Field[ApiFailure, String](_.message), ProtoValue.text("operation failed")),
+    ProtoField.typed(
+      Field[ApiFailure, ApplicationFailureInfo](_.getApplicationFailureInfo),
+      ProtoValue.message(
+        Proto[ApplicationFailureInfo](
+          ProtoField.typed(
+            Field[ApplicationFailureInfo, String](_.`type`),
+            ProtoValue.text("OperationFailed")
+          ),
+          ProtoField.typed(
+            Field[ApplicationFailureInfo, Boolean](_.nonRetryable),
+            ProtoValue.flag(true)
+          )
         )
       )
     )
@@ -261,7 +345,14 @@ object NexusRealization:
 
   /** The durations the deadlines a path sets realize as; the backoff is the server's own. */
   private val deadline =
-    Message(Proto("google.protobuf.Duration", ProtoField("seconds", Number(2))))
+    ProtoValue.message(
+      Proto[com.google.protobuf.duration.Duration](
+        ProtoField.typed(
+          Field[com.google.protobuf.duration.Duration, Long](_.seconds),
+          ProtoValue.number(2L)
+        )
+      )
+    )
 
   // ### The bindings
   //
@@ -271,30 +362,48 @@ object NexusRealization:
   private val startNexusOperation = "start-nexus-operation"
 
   private val scheduleAttributes = Vector(
-    ProtoField("endpoint", RoleId(nexusEndpointRole)),
-    ProtoField("service", Text(service)),
-    ProtoField("operation", Text(operation)),
-    ProtoField("input", Message(textPayload("request")))
+    ProtoField.typed(
+      Field[ScheduleNexusOperationCommandAttributes, String](_.endpoint),
+      ProtoValue.roleId(nexusEndpointRole)
+    ),
+    ProtoField.typed(
+      Field[ScheduleNexusOperationCommandAttributes, String](_.service),
+      ProtoValue.text(service)
+    ),
+    ProtoField.typed(
+      Field[ScheduleNexusOperationCommandAttributes, String](_.operation),
+      ProtoValue.text(operation)
+    ),
+    ProtoField.typed(
+      Field[ScheduleNexusOperationCommandAttributes, Payload](_.getInput),
+      ProtoValue.message(textPayload("request"))
+    )
   )
 
   /**
    * The schedule command for one class of the schedule action: the deadlines the class sets, at the
    * realization's durations.
    */
-  private def scheduleBinding(step: ClassRef, deadlines: Vector[ProtoField]) =
+  private def scheduleBinding(
+      step: ClassRef,
+      deadlines: Vector[TypedProtoField[ScheduleNexusOperationCommandAttributes, ?]]
+  ) =
     Performance(
       step,
       Command(
         startNexusOperation,
         WorkflowCommand(
-          Proto(
-            "temporal.api.command.v1.Command",
-            ProtoField("command_type", EnumName("COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION")),
-            ProtoField(
-              "schedule_nexus_operation_command_attributes",
-              Message(
-                Proto(
-                  "temporal.api.command.v1.ScheduleNexusOperationCommandAttributes",
+          Proto[ApiCommand](
+            ProtoField.typed(
+              Field[ApiCommand, CommandType](_.commandType),
+              ProtoValue.enumValue(CommandType.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION)
+            ),
+            ProtoField.typed(
+              Field[ApiCommand, ScheduleNexusOperationCommandAttributes](
+                _.getScheduleNexusOperationCommandAttributes
+              ),
+              ProtoValue.message(
+                Proto[ScheduleNexusOperationCommandAttributes](
                   (scheduleAttributes ++ deadlines)*
                 )
               )
@@ -304,26 +413,31 @@ object NexusRealization:
       )
     )
 
-  private def replyBinding(step: ClassRef, id: String, reply: Proto, binds: String) =
+  private def replyBinding(step: ClassRef, id: String, reply: TypedProto[?], binds: String) =
     Performance(step, Command(id, NexusReply(reply, binds), timeoutMs = 5000))
 
-  private def response(variant: ProtoField) =
-    Proto("temporal.api.nexus.v1.StartOperationResponse", variant)
+  private def response(variant: TypedProtoField[StartOperationResponse, ?]) =
+    Proto[StartOperationResponse](variant)
 
-  private def handlerError(errorType: String, behavior: String) =
-    Proto(
-      "temporal.api.nexus.v1.HandlerError",
-      ProtoField("error_type", Text(errorType)),
-      ProtoField(
-        "failure",
-        Message(
-          Proto("temporal.api.nexus.v1.Failure", ProtoField("message", Text("handler error")))
+  private def handlerError(errorType: String, behavior: NexusHandlerErrorRetryBehavior) =
+    Proto[HandlerError](
+      ProtoField.typed(Field[HandlerError, String](_.errorType), ProtoValue.text(errorType)),
+      ProtoField.typed(
+        Field[HandlerError, NexusFailure](_.getFailure),
+        ProtoValue.message(
+          Proto[NexusFailure](
+            ProtoField
+              .typed(Field[NexusFailure, String](_.message), ProtoValue.text("handler error"))
+          )
         )
       ),
-      ProtoField("retry_behavior", EnumName(behavior))
+      ProtoField.typed(
+        Field[HandlerError, NexusHandlerErrorRetryBehavior](_.retryBehavior),
+        ProtoValue.enumValue(behavior)
+      )
     )
 
-  private def completion(step: ClassRef, id: String, result: Proto) =
+  private def completion(step: ClassRef, id: String, result: TypedProto[?]) =
     Performance(step, Command(id, NexusCompletion(completionAuthority, result)))
 
   // ### The plan
@@ -380,11 +494,27 @@ object NexusRealization:
           scheduleBinding(schedule(unset, unset, unset), Vector.empty),
           scheduleBinding(
             schedule(unset, expires, unset),
-            Vector(ProtoField("schedule_to_start_timeout", deadline))
+            Vector(
+              ProtoField.typed(
+                Field[
+                  ScheduleNexusOperationCommandAttributes,
+                  com.google.protobuf.duration.Duration
+                ](_.getScheduleToStartTimeout),
+                deadline
+              )
+            )
           ),
           scheduleBinding(
             schedule(unset, unset, expires),
-            Vector(ProtoField("start_to_close_timeout", deadline))
+            Vector(
+              ProtoField.typed(
+                Field[
+                  ScheduleNexusOperationCommandAttributes,
+                  com.google.protobuf.duration.Duration
+                ](_.getStartToCloseTimeout),
+                deadline
+              )
+            )
           )
         )
       ),
@@ -423,9 +553,9 @@ object NexusRealization:
             handlerReply(Reply.async),
             "respond-async",
             response(
-              ProtoField(
-                "async_success",
-                Message(Proto("temporal.api.nexus.v1.StartOperationResponse.Async"))
+              ProtoField.typed(
+                Field[StartOperationResponse, StartOperationResponse.Async](_.getAsyncSuccess),
+                ProtoValue.message(Proto[StartOperationResponse.Async]())
               )
             ),
             completionAuthority
@@ -434,12 +564,14 @@ object NexusRealization:
             handlerReply(Reply.syncSuccess),
             "respond-sync",
             response(
-              ProtoField(
-                "sync_success",
-                Message(
-                  Proto(
-                    "temporal.api.nexus.v1.StartOperationResponse.Sync",
-                    ProtoField("payload", Message(textPayload("completed")))
+              ProtoField.typed(
+                Field[StartOperationResponse, StartOperationResponse.Sync](_.getSyncSuccess),
+                ProtoValue.message(
+                  Proto[StartOperationResponse.Sync](
+                    ProtoField.typed(
+                      Field[StartOperationResponse.Sync, Payload](_.getPayload),
+                      ProtoValue.message(textPayload("completed"))
+                    )
                   )
                 )
               )
@@ -449,19 +581,30 @@ object NexusRealization:
           replyBinding(
             handlerReply(Reply.operationFailed),
             "respond-failed",
-            response(ProtoField("failure", Message(handlerFailure))),
+            response(
+              ProtoField.typed(
+                Field[StartOperationResponse, ApiFailure](_.getFailure),
+                ProtoValue.message(handlerFailure)
+              )
+            ),
             ""
           ),
           replyBinding(
             handlerReply(Reply.handlerError(true)),
             "respond-error-retryable",
-            handlerError("INTERNAL", "NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_RETRYABLE"),
+            handlerError(
+              "INTERNAL",
+              NexusHandlerErrorRetryBehavior.NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_RETRYABLE
+            ),
             ""
           ),
           replyBinding(
             handlerReply(Reply.handlerError(false)),
             "respond-error",
-            handlerError("BAD_REQUEST", "NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_NON_RETRYABLE"),
+            handlerError(
+              "BAD_REQUEST",
+              NexusHandlerErrorRetryBehavior.NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_NON_RETRYABLE
+            ),
             ""
           )
         )
@@ -475,7 +618,7 @@ object NexusRealization:
    */
   private def realization(
       name: String,
-      machine: Machine[ProtocolState, kernel.Outcome, ProtocolFact],
+      machine: Machine[ProtocolState, temporal.nexuscaller.Outcome, ProtocolFact],
       extra: Vector[Item]
   ): Realization = Realization(
     name = name,
@@ -514,8 +657,8 @@ object NexusRealization:
     scripts = Vector(controller(extra), workflowScript, handlerScript),
     learned = Vector(Learned(completionAuthority, LearnedKind.handle)),
     observations = Vector(
-      Observed(historyObservation, "temporal.api.history.v1.HistoryEvent"),
-      Observed(correlatedObservation, "temporal.server.api.testpilot.v1.CorrelatedEvidence")
+      Observed[HistoryEvent](historyObservation),
+      Observed[CorrelatedEvidence](correlatedObservation)
     ),
     evidence = sources,
     cleanup = "cleanup"
@@ -531,7 +674,12 @@ object NexusRealization:
         Vector(
           Performance(
             temporal.nexuscaller.Control.inspect,
-            rpc("inspect-workflow", describeMethod, pollAssignments, Vector.empty)
+            rpc(
+              "inspect-workflow",
+              WorkflowServiceGrpc.METHOD_DESCRIBE_WORKFLOW_EXECUTION,
+              describeAssignments,
+              Vector.empty
+            )
           )
         )
       )

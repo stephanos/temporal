@@ -26,6 +26,19 @@ import umpire.realize.*
 import umpire.realize.Instruction.*
 import umpire.realize.Operand.*
 import umpire.realize.ProtoValue.*
+import io.temporal.api.workflowservice.v1.*
+import io.temporal.api.history.v1.*
+import io.temporal.api.activity.v1.{ActivityExecutionInfo, ActivityExecutionListInfo}
+import io.temporal.api.common.v1.Payload
+import io.temporal.api.command.v1.{Command as ApiCommand, ScheduleNexusOperationCommandAttributes}
+import io.temporal.api.enums.v1.{ActivityExecutionStatus, CommandType, HistoryEventFilterType}
+import io.temporal.api.failure.v1.{ApplicationFailureInfo, Failure as ApiFailure}
+import io.temporal.api.nexus.v1.StartOperationResponse
+import temporal.server.api.testpilot.v1.{
+  CorrelatedEvidence,
+  InstructionOutcome,
+  InstructionOutcomeStatus
+}
 
 private val workflowService = "temporal.workflow-service"
 private val workerRole = "temporal.worker"
@@ -33,8 +46,6 @@ private val taskQueue = "temporal.task-queue"
 private val namespace = "temporal.worker.namespace"
 private val queueResource = "temporal.task-queue.resource"
 private val endpoint = "temporal.nexus-endpoint"
-
-private val service = "/temporal.api.workflowservice.v1.WorkflowService/"
 
 private val roles = Vector(
   Role(workflowService, RoleKind.endpoint),
@@ -49,35 +60,87 @@ private val workflowType = Name("umpire-", fixture = true, suffix = "-workflow")
 
 /** The workflow a read names: the run's id, and the run id the start call returned. */
 private val startedRun = Vector(
-  Assignment("namespace", Environment(namespace)),
-  Assignment("execution.workflow_id", Run),
-  Assignment("execution.run_id", LearnedValue(run))
+  Assignment.typed(
+    Field[GetWorkflowExecutionHistoryRequest, String](_.namespace),
+    Operand.environment[String](namespace)
+  ),
+  Assignment.typed(
+    Field[GetWorkflowExecutionHistoryRequest, String](_.getExecution.workflowId),
+    Operand.run()
+  ),
+  Assignment.typed(
+    Field[GetWorkflowExecutionHistoryRequest, String](_.getExecution.runId),
+    Operand.learnedValue[String](run)
+  )
+)
+
+private val scheduledEvidence = Evidence.read(
+  id = "fixture.realizations.evidence.scheduled",
+  records = "nexusOperationScheduled",
+  source = "fixture.realizations.source.scheduled",
+  from = Recorded.read(
+    WorkflowServiceGrpc.METHOD_GET_WORKFLOW_EXECUTION_HISTORY,
+    Field[GetWorkflowExecutionHistoryResponse, Seq[HistoryEvent]](
+      _.getHistory.events.map(event => event)
+    )
+  ),
+  operation = Field[HistoryEvent, Long](_.eventId),
+  commitment = Commitment.reported
+)
+
+private val completedEvidence = Evidence.history(
+  id = "fixture.realizations.evidence.completed",
+  records = "nexusOperationCompleted",
+  source = "fixture.realizations.source.history",
+  from = Recorded.history(
+    Field[HistoryEvent, Option[NexusOperationCompletedEventAttributes]](
+      _.attributes.nexusOperationCompletedEventAttributes
+    )
+  ),
+  operation =
+    Field[HistoryEvent, Long](_.getNexusOperationCompletedEventAttributes.scheduledEventId),
+  commitment = Commitment.reported
 )
 
 private val start = Command(
   "start-workflow",
-  Rpc(
-    workflowService,
-    service + "StartWorkflowExecution",
+  Instruction.rpc(workflowService, WorkflowServiceGrpc.METHOD_START_WORKFLOW_EXECUTION)(
     Vector(
-      Assignment("namespace", Environment(namespace)),
-      Assignment("workflow_id", Run),
-      Assignment("workflow_type.name", Literal(Named(workflowType))),
-      Assignment("task_queue.name", Environment(queueResource)),
-      Assignment("request_id", Run)
+      Assignment.typed(
+        Field[StartWorkflowExecutionRequest, String](_.namespace),
+        Operand.environment[String](namespace)
+      ),
+      Assignment.typed(Field[StartWorkflowExecutionRequest, String](_.workflowId), Operand.run()),
+      Assignment.typed(
+        Field[StartWorkflowExecutionRequest, String](_.getWorkflowType.name),
+        Operand.named(workflowType)
+      ),
+      Assignment.typed(
+        Field[StartWorkflowExecutionRequest, String](_.getTaskQueue.name),
+        Operand.environment[String](queueResource)
+      ),
+      Assignment.typed(Field[StartWorkflowExecutionRequest, String](_.requestId), Operand.run())
     ),
-    Vector(ResponseRead("run_id", Cardinality.one, Vector(Target.Bind(run))))
+    Vector(
+      ResponseRead.typed(
+        Field[StartWorkflowExecutionResponse, String](_.runId),
+        Cardinality.one,
+        Vector(Target.Bind(run))
+      )
+    )
   )
 )
 
 /** One branch: polls the started run's history for the scheduled event. */
 private val awaitScheduled = Command(
   "await-scheduled",
-  Poll(
-    "fixture.realizations.evidence.scheduled",
-    workflowService,
+  Instruction.poll(scheduledEvidence, workflowService)(
     startedRun,
-    Present(Path(Projected, "attributes<nexus_operation_scheduled_event_attributes>")),
+    Condition.present(
+      Field[HistoryEvent, Option[NexusOperationScheduledEventAttributes]](
+        _.attributes.nexusOperationScheduledEventAttributes
+      )
+    ),
     250
   ),
   after = Some(After("start-workflow"))
@@ -86,16 +149,18 @@ private val awaitScheduled = Command(
 /** The other branch: waits for the started run to close. Neither branch waits for the other. */
 private val awaitClose = Command(
   "await-close",
-  Rpc(
-    workflowService,
-    service + "GetWorkflowExecutionHistory",
+  Instruction.rpc(workflowService, WorkflowServiceGrpc.METHOD_GET_WORKFLOW_EXECUTION_HISTORY)(
     startedRun ++ Vector(
-      Assignment("wait_new_event", Literal(Flag(true))),
-      Assignment(
-        "history_event_filter_type",
-        Literal(EnumName("HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT"))
+      Assignment.typed(
+        Field[GetWorkflowExecutionHistoryRequest, Boolean](_.waitNewEvent),
+        Operand.flag(true)
+      ),
+      Assignment.typed(
+        Field[GetWorkflowExecutionHistoryRequest, HistoryEventFilterType](_.historyEventFilterType),
+        Operand.enumValue(HistoryEventFilterType.HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT)
       )
-    )
+    ),
+    Vector.empty
   ),
   after = Some(After("start-workflow"))
 )
@@ -103,13 +168,13 @@ private val awaitClose = Command(
 /** Reads the history once both branches are done. */
 private val history = Command(
   "history",
-  Rpc(
-    workflowService,
-    service + "GetWorkflowExecutionHistory",
+  Instruction.rpc(workflowService, WorkflowServiceGrpc.METHOD_GET_WORKFLOW_EXECUTION_HISTORY)(
     startedRun,
     Vector(
-      ResponseRead(
-        "history.events[*]",
+      ResponseRead.typed(
+        Field[GetWorkflowExecutionHistoryResponse, Seq[HistoryEvent]](
+          _.getHistory.events.map(event => event)
+        ),
         Cardinality.each,
         Vector(Target.Observe("history-event"), Target.Lift("correlated-evidence"))
       )
@@ -118,10 +183,15 @@ private val history = Command(
   after = Some(After("await-scheduled", "await-close"))
 )
 
-private val payload = Proto(
-  "temporal.api.common.v1.Payload",
-  ProtoField("metadata", Mapping(ProtoEntry("encoding", Utf8("json/plain")))),
-  ProtoField("data", Utf8("\"done\""))
+private val payload = Proto[Payload](
+  ProtoField.typed(
+    Field[Payload, Map[String, com.google.protobuf.ByteString]](_.metadata),
+    ProtoValue.mapping(ProtoEntry.typed("encoding", ProtoValue.utf8("json/plain")))
+  ),
+  ProtoField.typed(
+    Field[Payload, com.google.protobuf.ByteString](_.data),
+    ProtoValue.utf8("\"done\"")
+  )
 )
 
 val learnedRun: Realization = Realization(
@@ -164,17 +234,29 @@ val learnedRun: Realization = Realization(
               Command(
                 "start-nexus-operation",
                 WorkflowCommand(
-                  Proto(
-                    "temporal.api.command.v1.Command",
-                    ProtoField("command_type", EnumName("COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION")),
-                    ProtoField(
-                      "schedule_nexus_operation_command_attributes",
-                      Message(
-                        Proto(
-                          "temporal.api.command.v1.ScheduleNexusOperationCommandAttributes",
-                          ProtoField("endpoint", RoleId(endpoint)),
-                          ProtoField("service", Text("fixture.service")),
-                          ProtoField("operation", Text("probe"))
+                  Proto[ApiCommand](
+                    ProtoField.typed(
+                      Field[ApiCommand, CommandType](_.commandType),
+                      ProtoValue.enumValue(CommandType.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION)
+                    ),
+                    ProtoField.typed(
+                      Field[ApiCommand, ScheduleNexusOperationCommandAttributes](
+                        _.getScheduleNexusOperationCommandAttributes
+                      ),
+                      ProtoValue.message(
+                        Proto[ScheduleNexusOperationCommandAttributes](
+                          ProtoField.typed(
+                            Field[ScheduleNexusOperationCommandAttributes, String](_.endpoint),
+                            ProtoValue.roleId(endpoint)
+                          ),
+                          ProtoField.typed(
+                            Field[ScheduleNexusOperationCommandAttributes, String](_.service),
+                            ProtoValue.text("fixture.service")
+                          ),
+                          ProtoField.typed(
+                            Field[ScheduleNexusOperationCommandAttributes, String](_.operation),
+                            ProtoValue.text("probe")
+                          )
                         )
                       )
                     )
@@ -209,14 +291,15 @@ val learnedRun: Realization = Realization(
               Command(
                 "respond-sync",
                 NexusReply(
-                  Proto(
-                    "temporal.api.nexus.v1.StartOperationResponse",
-                    ProtoField(
-                      "sync_success",
-                      Message(
-                        Proto(
-                          "temporal.api.nexus.v1.StartOperationResponse.Sync",
-                          ProtoField("payload", Message(payload))
+                  Proto[StartOperationResponse](
+                    ProtoField.typed(
+                      Field[StartOperationResponse, StartOperationResponse.Sync](_.getSyncSuccess),
+                      ProtoValue.message(
+                        Proto[StartOperationResponse.Sync](
+                          ProtoField.typed(
+                            Field[StartOperationResponse.Sync, Payload](_.getPayload),
+                            ProtoValue.message(payload)
+                          )
                         )
                       )
                     )
@@ -231,27 +314,10 @@ val learnedRun: Realization = Realization(
   ),
   learned = Vector(Learned(run, LearnedKind.text)),
   observations = Vector(
-    Observed("history-event", "temporal.api.history.v1.HistoryEvent"),
-    Observed("correlated-evidence", "temporal.server.api.testpilot.v1.CorrelatedEvidence")
+    Observed[HistoryEvent]("history-event"),
+    Observed[CorrelatedEvidence]("correlated-evidence")
   ),
-  evidence = Vector(
-    Evidence(
-      id = "fixture.realizations.evidence.scheduled",
-      records = "nexusOperationScheduled",
-      source = "fixture.realizations.source.scheduled",
-      from = Recorded.Read(service + "GetWorkflowExecutionHistory", "history.events[*]"),
-      operation = "event_id",
-      commitment = Commitment.reported
-    ),
-    Evidence(
-      id = "fixture.realizations.evidence.completed",
-      records = "nexusOperationCompleted",
-      source = "fixture.realizations.source.history",
-      from = Recorded.History("nexus_operation_completed_event_attributes"),
-      operation = "attributes<nexus_operation_completed_event_attributes>.scheduled_event_id",
-      commitment = Commitment.reported
-    )
-  ),
+  evidence = Vector(scheduledEvidence, completedEvidence),
   cleanup = "cleanup"
 )
 
@@ -285,12 +351,15 @@ val pauseRaceQuery: Query =
   query("staleAdmission.pauseRace") find pausedWhileQueued in heldRace limits three
 
 private def raceEvidence(records: String, commitment: Commitment) =
-  Evidence(
+  Evidence.read(
     id = "fixture.realizations.race.evidence." + records,
     records = records,
     source = "fixture.realizations.race.source." + records,
-    from = Recorded.Read(service + "ListActivityExecutions", "executions"),
-    operation = "activity_id",
+    from = Recorded.read(
+      WorkflowServiceGrpc.METHOD_LIST_ACTIVITY_EXECUTIONS,
+      Field[ListActivityExecutionsResponse, Seq[ActivityExecutionListInfo]](_.executions)
+    ),
+    operation = Field[ActivityExecutionListInfo, String](_.activityId),
     commitment = commitment
   )
 
@@ -322,14 +391,24 @@ val pauseRace: Realization = Realization(
           Some(
             Command(
               "start-activity",
-              Rpc(
-                workflowService,
-                service + "StartActivityExecution",
+              Instruction.rpc(workflowService, WorkflowServiceGrpc.METHOD_START_ACTIVITY_EXECUTION)(
                 Vector(
-                  Assignment("namespace", Environment(namespace)),
-                  Assignment("activity_id", Run)
+                  Assignment.typed(
+                    Field[StartActivityExecutionRequest, String](_.namespace),
+                    Operand.environment[String](namespace)
+                  ),
+                  Assignment.typed(
+                    Field[StartActivityExecutionRequest, String](_.activityId),
+                    Operand.run()
+                  )
                 ),
-                Vector(ResponseRead("run_id", Cardinality.one, Vector(Target.Bind(activityRun))))
+                Vector(
+                  ResponseRead.typed(
+                    Field[StartActivityExecutionResponse, String](_.runId),
+                    Cardinality.one,
+                    Vector(Target.Bind(activityRun))
+                  )
+                )
               )
             )
           )
@@ -340,15 +419,24 @@ val pauseRace: Realization = Realization(
               control(ActivityControl.pause),
               Command(
                 "pause-activity",
-                Rpc(
-                  workflowService,
-                  service + "PauseActivityExecution",
-                  Vector(
-                    Assignment("namespace", Environment(namespace)),
-                    Assignment("activity_id", Run),
-                    Assignment("run_id", LearnedValue(activityRun))
+                Instruction
+                  .rpc(workflowService, WorkflowServiceGrpc.METHOD_PAUSE_ACTIVITY_EXECUTION)(
+                    Vector(
+                      Assignment.typed(
+                        Field[PauseActivityExecutionRequest, String](_.namespace),
+                        Operand.environment[String](namespace)
+                      ),
+                      Assignment.typed(
+                        Field[PauseActivityExecutionRequest, String](_.activityId),
+                        Operand.run()
+                      ),
+                      Assignment.typed(
+                        Field[PauseActivityExecutionRequest, String](_.runId),
+                        Operand.learnedValue[String](activityRun)
+                      )
+                    ),
+                    Vector.empty
                   )
-                )
               )
             )
           )
@@ -368,8 +456,7 @@ val pauseRace: Realization = Realization(
     )
   ),
   learned = Vector(Learned(activityRun, LearnedKind.text)),
-  observations =
-    Vector(Observed("correlated-evidence", "temporal.server.api.testpilot.v1.CorrelatedEvidence")),
+  observations = Vector(Observed[CorrelatedEvidence]("correlated-evidence")),
   // Every kind the path records is declared: the statuses a caller can read back, and the dispatch and
   // the admission, which only the server commits. No public read reports a commit. The listing is the
   // nearest read back, which the commit observation the specimen proposes replaces.
@@ -463,13 +550,21 @@ val doorRealization: Realization = Realization(
               push,
               Command(
                 "push-door",
-                Rpc(
+                Instruction.rpc(
                   workflowService,
-                  service + "StartWorkflowExecution",
+                  WorkflowServiceGrpc.METHOD_START_WORKFLOW_EXECUTION
+                )(
                   Vector(
-                    Assignment("namespace", Environment(namespace)),
-                    Assignment("workflow_id", Run)
-                  )
+                    Assignment.typed(
+                      Field[StartWorkflowExecutionRequest, String](_.namespace),
+                      Operand.environment[String](namespace)
+                    ),
+                    Assignment.typed(
+                      Field[StartWorkflowExecutionRequest, String](_.workflowId),
+                      Operand.run()
+                    )
+                  ),
+                  Vector.empty
                 )
               )
             )
@@ -479,36 +574,46 @@ val doorRealization: Realization = Realization(
           Some(
             Command(
               "history",
-              Rpc(
-                workflowService,
-                service + "GetWorkflowExecutionHistory",
-                Vector(
-                  Assignment("namespace", Environment(namespace)),
-                  Assignment("execution.workflow_id", Run)
-                ),
-                Vector(
-                  ResponseRead(
-                    "history.events[*]",
-                    Cardinality.each,
-                    Vector(Target.Lift("correlated-evidence"))
+              Instruction
+                .rpc(workflowService, WorkflowServiceGrpc.METHOD_GET_WORKFLOW_EXECUTION_HISTORY)(
+                  Vector(
+                    Assignment.typed(
+                      Field[GetWorkflowExecutionHistoryRequest, String](_.namespace),
+                      Operand.environment[String](namespace)
+                    ),
+                    Assignment.typed(
+                      Field[GetWorkflowExecutionHistoryRequest, String](_.getExecution.workflowId),
+                      Operand.run()
+                    )
+                  ),
+                  Vector(
+                    ResponseRead.typed(
+                      Field[GetWorkflowExecutionHistoryResponse, Seq[HistoryEvent]](
+                        _.getHistory.events.map(event => event)
+                      ),
+                      Cardinality.each,
+                      Vector(Target.Lift("correlated-evidence"))
+                    )
                   )
                 )
-              )
             )
           )
         )
       )
     )
   ),
-  observations =
-    Vector(Observed("correlated-evidence", "temporal.server.api.testpilot.v1.CorrelatedEvidence")),
+  observations = Vector(Observed[CorrelatedEvidence]("correlated-evidence")),
   evidence = Vector(
-    Evidence(
+    Evidence.history(
       id = "fixture.realizations.door.evidence.opened",
       records = "doorOpened",
       source = "fixture.realizations.door.source.history",
-      from = Recorded.History("workflow_execution_started_event_attributes"),
-      operation = "event_id",
+      from = Recorded.history(
+        Field[HistoryEvent, Option[WorkflowExecutionStartedEventAttributes]](
+          _.attributes.workflowExecutionStartedEventAttributes
+        )
+      ),
+      operation = Field[HistoryEvent, Long](_.eventId),
       commitment = Commitment.reported
     )
   )
@@ -625,22 +730,36 @@ private val errandType = Name("umpire-", fixture = true, suffix = "-errand")
  * other activity.
  */
 private def listed(records: String) =
-  Evidence(
+  Evidence.read(
     id = "fixture.realizations.errand.evidence." + records,
     records = records,
     source = "fixture.realizations.errand.source." + records,
-    from = Recorded.Read(service + "ListActivityExecutions", "executions"),
-    operation = "activity_id",
+    from = Recorded.read(
+      WorkflowServiceGrpc.METHOD_LIST_ACTIVITY_EXECUTIONS,
+      Field[ListActivityExecutionsResponse, Seq[ActivityExecutionListInfo]](_.executions)
+    ),
+    operation = Field[ActivityExecutionListInfo, String](_.activityId),
     commitment = Commitment.reported
   )
 
-private def awaitListed(id: String, records: String, reads: Operand) =
+private val errandListed = listed("errandListed")
+private val errandClosed = listed("errandClosed")
+private val errandWithdrawnEvidence = listed("errandWithdrawn")
+
+private def awaitListed(
+    id: String,
+    evidence: EvidenceRef[ListActivityExecutionsRequest, ActivityExecutionListInfo],
+    reads: Condition[ActivityExecutionListInfo]
+) =
   Command(
     id,
-    Poll(
-      "fixture.realizations.errand.evidence." + records,
-      workflowService,
-      Vector(Assignment("namespace", Environment(namespace))),
+    Instruction.poll(evidence, workflowService)(
+      Vector(
+        Assignment.typed(
+          Field[ListActivityExecutionsRequest, String](_.namespace),
+          Operand.environment[String](namespace)
+        )
+      ),
       reads,
       250
     )
@@ -675,17 +794,37 @@ val errandRealization: Realization = Realization(
               request,
               Command(
                 "start-activity",
-                Rpc(
+                Instruction.rpc(
                   workflowService,
-                  service + "StartActivityExecution",
+                  WorkflowServiceGrpc.METHOD_START_ACTIVITY_EXECUTION
+                )(
                   Vector(
-                    Assignment("namespace", Environment(namespace)),
-                    Assignment("activity_id", Run),
-                    Assignment("activity_type.name", Literal(Named(errandType))),
-                    Assignment("task_queue.name", Environment(queueResource)),
-                    Assignment("request_id", Run),
-                    Assignment("start_to_close_timeout.seconds", Literal(Number(300)))
-                  )
+                    Assignment.typed(
+                      Field[StartActivityExecutionRequest, String](_.namespace),
+                      Operand.environment[String](namespace)
+                    ),
+                    Assignment.typed(
+                      Field[StartActivityExecutionRequest, String](_.activityId),
+                      Operand.run()
+                    ),
+                    Assignment.typed(
+                      Field[StartActivityExecutionRequest, String](_.getActivityType.name),
+                      Operand.named(errandType)
+                    ),
+                    Assignment.typed(
+                      Field[StartActivityExecutionRequest, String](_.getTaskQueue.name),
+                      Operand.environment[String](queueResource)
+                    ),
+                    Assignment.typed(
+                      Field[StartActivityExecutionRequest, String](_.requestId),
+                      Operand.run()
+                    ),
+                    Assignment.typed(
+                      Field[StartActivityExecutionRequest, Long](_.getStartToCloseTimeout.seconds),
+                      Operand.number(300L)
+                    )
+                  ),
+                  Vector.empty
                 )
               )
             )
@@ -696,11 +835,23 @@ val errandRealization: Realization = Realization(
           Some(
             awaitListed(
               "await-listed",
-              "errandListed",
-              All(
-                Present(Path(Projected, "schedule_time")),
-                Greater(Path(Projected, "state_transition_count"), Literal(Number(0))),
-                Not(Equal(Path(Projected, "activity_id"), Literal(Text(""))))
+              errandListed,
+              Condition.all(
+                Condition.present(
+                  Field[ActivityExecutionListInfo, Option[com.google.protobuf.timestamp.Timestamp]](
+                    _.scheduleTime
+                  )
+                ),
+                Condition.greater(
+                  Field[ActivityExecutionListInfo, Long](_.stateTransitionCount),
+                  Operand.number(0L)
+                ),
+                Condition.not(
+                  Condition.equal(
+                    Field[ActivityExecutionListInfo, String](_.activityId),
+                    Operand.text("")
+                  )
+                )
               )
             )
           )
@@ -709,10 +860,10 @@ val errandRealization: Realization = Realization(
           Some(
             awaitListed(
               "await-closed",
-              "errandClosed",
-              Equal(
-                Path(Projected, "status"),
-                Literal(EnumName("ACTIVITY_EXECUTION_STATUS_COMPLETED"))
+              errandClosed,
+              Condition.equal(
+                Field[ActivityExecutionListInfo, ActivityExecutionStatus](_.status),
+                Operand.enumValue(ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_COMPLETED)
               )
             )
           )
@@ -721,10 +872,10 @@ val errandRealization: Realization = Realization(
           command = Some(
             awaitListed(
               "await-withdrawn",
-              "errandWithdrawn",
-              Equal(
-                Path(Projected, "status"),
-                Literal(EnumName("ACTIVITY_EXECUTION_STATUS_CANCELED"))
+              errandWithdrawnEvidence,
+              Condition.equal(
+                Field[ActivityExecutionListInfo, ActivityExecutionStatus](_.status),
+                Operand.enumValue(ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_CANCELED)
               )
             )
           ),
@@ -743,15 +894,17 @@ val errandRealization: Realization = Realization(
               Command(
                 "fail-attempt",
                 AttemptFailure(
-                  Proto(
-                    "temporal.api.failure.v1.Failure",
-                    ProtoField("message", Text("not yet")),
-                    ProtoField(
-                      "application_failure_info",
-                      Message(
-                        Proto(
-                          "temporal.api.failure.v1.ApplicationFailureInfo",
-                          ProtoField("type", Text("NotYet"))
+                  Proto[ApiFailure](
+                    ProtoField
+                      .typed(Field[ApiFailure, String](_.message), ProtoValue.text("not yet")),
+                    ProtoField.typed(
+                      Field[ApiFailure, ApplicationFailureInfo](_.getApplicationFailureInfo),
+                      ProtoValue.message(
+                        Proto[ApplicationFailureInfo](
+                          ProtoField.typed(
+                            Field[ApplicationFailureInfo, String](_.`type`),
+                            ProtoValue.text("NotYet")
+                          )
                         )
                       )
                     )
@@ -769,9 +922,8 @@ val errandRealization: Realization = Realization(
       )
     )
   ),
-  observations =
-    Vector(Observed("correlated-evidence", "temporal.server.api.testpilot.v1.CorrelatedEvidence")),
-  evidence = Vector(listed("errandListed"), listed("errandClosed"), listed("errandWithdrawn")),
+  observations = Vector(Observed[CorrelatedEvidence]("correlated-evidence")),
+  evidence = Vector(errandListed, errandClosed, errandWithdrawnEvidence),
   cleanup = "cleanup"
 )
 
@@ -801,6 +953,36 @@ val tallyOpens: Query =
   )
 
 /** A realization whose evidence keeps fields and is read from one message. */
+private val tallyOpenedEvidence = Evidence.read(
+  id = "fixture.realizations.tally.evidence.opened",
+  records = "doorOpened",
+  source = "fixture.realizations.tally.source.describe",
+  from = Recorded.single(
+    WorkflowServiceGrpc.METHOD_DESCRIBE_ACTIVITY_EXECUTION,
+    Field[DescribeActivityExecutionResponse, ActivityExecutionInfo](_.getInfo)
+  ),
+  operation = Field[ActivityExecutionInfo, String](_.activityId),
+  commitment = Commitment.reported,
+  fields = Vector(
+    EvidenceField.typed(
+      "run",
+      Field[ActivityExecutionInfo, String](_.runId),
+      role = Some(FieldRole.operation)
+    ),
+    EvidenceField.typed(
+      "attempt",
+      Field[ActivityExecutionInfo, Int](_.attempt),
+      role = Some(FieldRole.attempt)
+    ),
+    EvidenceField.typed(
+      "identity",
+      Field[ActivityExecutionInfo, String](_.lastWorkerIdentity),
+      redacted = true
+    )
+  ),
+  exhaustive = true
+)
+
 val tallyRealization: Realization = Realization(
   name = "tallyRealization",
   machine = tallyMachine,
@@ -830,13 +1012,21 @@ val tallyRealization: Realization = Realization(
               push,
               Command(
                 "push-door",
-                Rpc(
+                Instruction.rpc(
                   workflowService,
-                  service + "StartActivityExecution",
+                  WorkflowServiceGrpc.METHOD_START_ACTIVITY_EXECUTION
+                )(
                   Vector(
-                    Assignment("namespace", Environment(namespace)),
-                    Assignment("activity_id", Run)
-                  )
+                    Assignment.typed(
+                      Field[StartActivityExecutionRequest, String](_.namespace),
+                      Operand.environment[String](namespace)
+                    ),
+                    Assignment.typed(
+                      Field[StartActivityExecutionRequest, String](_.activityId),
+                      Operand.run()
+                    )
+                  ),
+                  Vector.empty
                 )
               )
             )
@@ -846,14 +1036,18 @@ val tallyRealization: Realization = Realization(
           Some(
             Command(
               "await-opened",
-              Poll(
-                "fixture.realizations.tally.evidence.opened",
-                workflowService,
+              Instruction.poll(tallyOpenedEvidence, workflowService)(
                 Vector(
-                  Assignment("namespace", Environment(namespace)),
-                  Assignment("activity_id", Run)
+                  Assignment.typed(
+                    Field[DescribeActivityExecutionRequest, String](_.namespace),
+                    Operand.environment[String](namespace)
+                  ),
+                  Assignment.typed(
+                    Field[DescribeActivityExecutionRequest, String](_.activityId),
+                    Operand.run()
+                  )
                 ),
-                Equal(Path(Projected, "attempt"), Literal(Number(1))),
+                Condition.equal(Field[ActivityExecutionInfo, Int](_.attempt), Operand.integer(1)),
                 250
               ),
               closes = Vector("fixture.realizations.tally.evidence.opened")
@@ -863,42 +1057,27 @@ val tallyRealization: Realization = Realization(
       )
     )
   ),
-  observations =
-    Vector(Observed("correlated-evidence", "temporal.server.api.testpilot.v1.CorrelatedEvidence")),
+  observations = Vector(Observed[CorrelatedEvidence]("correlated-evidence")),
   evidence = Vector(
-    Evidence(
-      id = "fixture.realizations.tally.evidence.opened",
-      records = "doorOpened",
-      source = "fixture.realizations.tally.source.describe",
-      from = Recorded.Single(service + "DescribeActivityExecution", "info"),
-      operation = "activity_id",
-      commitment = Commitment.reported,
-      fields = Vector(
-        EvidenceField("run", "run_id", role = Some(FieldRole.operation)),
-        EvidenceField("attempt", "attempt", role = Some(FieldRole.attempt)),
-        EvidenceField("identity", "last_worker_identity", redacted = true)
-      ),
-      exhaustive = true
-    ),
+    tallyOpenedEvidence,
     // The start call's own answer, as the Run records it. A machine's evidence names each fact once,
     // so this second kind confirms a fact the door does not record and is off every path.
-    Evidence(
+    Evidence.runEvent(
       id = "fixture.realizations.tally.evidence.pushed",
       records = "doorPushed",
       source = "fixture.realizations.tally.source.pushed",
-      from = Recorded.RunEvent(
+      from = Recorded.runEvent[InstructionOutcome](
         EventKind.instructionCompleted,
         "controller",
         "push-door",
-        key = Run,
+        key = Operand.runKey(),
         guard = Some(
-          Equal(
-            Path(Projected, "status"),
-            Literal(EnumName("INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"))
+          Condition.equal(
+            Field[InstructionOutcome, InstructionOutcomeStatus](_.status),
+            Operand.enumValue(InstructionOutcomeStatus.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)
           )
         )
       ),
-      operation = "",
       commitment = Commitment.reported
     )
   )

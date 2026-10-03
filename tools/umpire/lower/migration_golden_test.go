@@ -475,6 +475,7 @@ func TestMigrationProjectionKeepsLoweredCases(t *testing.T) {
 		cfg.Projection.Functions = append(cfg.Projection.Functions, golden.Substitution{Old: kernel, New: moved})
 	}
 	require.NoError(t, cfg.FunctionsRenamed(map[string]*umpirespb.Model{path: original}))
+	require.NoError(t, cfg.TypesRenamed(map[string]*umpirespb.Model{path: original}))
 	line := regexp.MustCompile(`"line":\s*([0-9]+)`)
 	encoded, err := protojson.Marshal(inputs[path])
 	require.NoError(t, err)

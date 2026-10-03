@@ -1,13 +1,121 @@
 {
   "branch_name": "fn-117-type-the-temporal-api-in-the-models",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-02T05:38:54.668120Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-113-clean-up-the-scala-model-layer-around"
   ],
   "id": "fn-117-type-the-temporal-api-in-the-models",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-03T09:09:58.056011Z",
+  "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "46d7395470e376bf6b9ee95b32f05e126865dfc6e84434d7fd62568d17852110",
+      "backend": "codex",
+      "base_sha": "2093a63f2da7c6c66f3509414dd78476eb4d5c04",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-83bb7907ed19daed526e660a8d21b293",
+            "classification": "introduced",
+            "findingId": "finding-83bb7907ed19daed526e660a8d21b293",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2093a63f2da7c6c66f3509414dd78476eb4d5c04",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-sol",
+      "outcome": "verdict",
+      "output_bytes": 370594,
+      "output_sha256": "905a6e77854aeafecb9e94e9300693f5d34405360fd2b8cc3d299c727c219b46",
+      "reservation_id": "42256debd35c4fedadf32113e7dbd64e",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-03T09:05:21.593386Z",
+      "tool_calls": 33,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "4872f066819e4ce627d523a4ad83abd1b6adbddd25766659c593c548ff8b1ecd",
+      "backend": "codex",
+      "base_sha": "2093a63f2da7c6c66f3509414dd78476eb4d5c04",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-83bb7907ed19daed526e660a8d21b293",
+            "classification": "introduced",
+            "findingId": "finding-83bb7907ed19daed526e660a8d21b293",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2093a63f2da7c6c66f3509414dd78476eb4d5c04",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-sol",
+      "outcome": "verdict",
+      "output_bytes": 403,
+      "output_sha256": "5b2f84da6ae6978ddc08b66fddc9aa55a30e51c75e5b0c3237b67fb3a86fca28",
+      "reservation_id": "bf08886a2a16457d839b49a84a42bd28",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-03T09:09:58.053517Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-117-type-the-temporal-api-in-the-models.md",
   "status": "open",
   "title": "Type the Temporal API in the Models",
@@ -22,5 +130,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T05:49:42.800555Z"
+  "updated_at": "2026-10-03T14:36:38.299912Z"
 }

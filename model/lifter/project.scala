@@ -4,8 +4,10 @@
 //> using options -deprecation -feature -unchecked -Wunused:imports
 //> using dep org.scala-lang::scala3-tasty-inspector:3.9.0
 //> using dep com.thesamet.scalapb::scalapb-runtime:0.11.20
+//> using dep com.thesamet.scalapb::scalapb-runtime-grpc:0.11.20
 //> using dep com.thesamet.scalapb::scalapb-json4s:0.12.2
 //> using jar ../gen/ir-scalapb.jar
+//> using jar ../gen/api-scalapb.jar
 // The tests build the fixtures under testdata with scala-cli and run the lifter as its own JVM,
 // through the gate's one place for running a tool. scala-cli has no directive that adds a source to
 // the test scope only, so the file is compiled beside the lifter, which does not use it.

@@ -717,7 +717,8 @@ func (handler *WorkflowTaskCompletedHandler) Invoke(
 				return nil, err
 			}
 
-			if err := workflow.ForceTerminateWorkflow(
+			if err := workflow.ForceTerminateWorkflowWithContext(
+				ctx,
 				ms,
 				common.FailureReasonTransactionSizeExceedsLimit,
 				payloads.EncodeString(updateErr.Error()),

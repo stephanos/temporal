@@ -4,8 +4,8 @@ This directory holds a description of how Temporal features are expected to beha
 that tools can use it. You describe a feature once, as a small state machine and the promises it
 makes. From that one description you get:
 
-- **A check of the description itself.** A tool walks every path the state machine allows, within
-  stated limits, and reports any path on which a promise fails.
+- **A check of the description itself.** The Go evaluator walks every path the state machine allows,
+  within stated limits, and reports any path on which a promise fails.
 - **Generated tests.** A path that shows a promise at work becomes a test that runs against a real
   Temporal server. Nobody writes the test by hand.
 - **A judgment of what the server did.** The record of such a test is checked twice: against the
@@ -81,6 +81,9 @@ The remaining terms name what the tools produce:
   `inconclusive`.
 
 ## The layers
+
+Scala declares a Model, the lifter reads its compiled declarations, and Go evaluates the resulting
+IR. The Scala DSL supplies types and step functions for authoring; Go is the single Model evaluator.
 
 ```mermaid
 flowchart TD
@@ -255,12 +258,12 @@ requires exactly that of a live Run and of its replay.
 
 **What is not supported.** These limits are current and recorded, not hidden:
 
-- `syncCompletion` is the only one of the Nexus caller's seven Queries whose Property the
+- `syncCompletion` is the only one of the Nexus caller's seven `find` Queries whose Property the
   assessment settles. The other six Cases run and satisfy their Contracts, but their Property stays
   `inconclusive`, because the Model also allows another execution that explains the same evidence
   and on which the Property fails or is never evaluated. Each Query's `.expect(...)` states the
   reason.
-- Of the 262 Queries in the checked-in IR, 16 lower to a Case. 148 are `verify` Queries, which have
+- Of the 264 Queries in the checked-in IR, 16 lower to a Case. 150 are `verify` Queries, which have
   nothing to run. 95 belong to machines that declare no realization yet. 3 standalone activity
   Queries are `unsupported`: their path needs something a Case cannot do or record in order yet,
   and the manifest names it at its source line.
@@ -318,6 +321,12 @@ the compiler's typed trees (TASTy) and not as a macro, because a macro sees a fu
 inside its own compilation run and only after pattern matching has been compiled away. The cost is
 that a refusal arrives from the lift step, a few seconds after compiling, and not as a compile
 error.
+
+Scala compilation rejects type errors such as binding a step to an action with different inputs.
+The lifter rejects constructs it cannot express in the IR. Go then reports Model problems such as
+a start outside the state domain, a stuck state, a class bound twice or a failed refinement from
+the IR at the Scala source line recorded by the lifter. These semantic errors surface through
+`make umpire-check-model`, rather than a Scala unit test.
 
 A Query that should become a Case needs two more things: a realization on its machine, and
 `.expect(RunExpectation(...))` on the Query, which states the model assessment a Run of it should

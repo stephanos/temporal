@@ -8,7 +8,8 @@
     "fn-113-clean-up-the-scala-model-layer-around.9",
     "fn-113-clean-up-the-scala-model-layer-around.12",
     "fn-113-clean-up-the-scala-model-layer-around.14",
-    "fn-113-clean-up-the-scala-model-layer-around.15"
+    "fn-113-clean-up-the-scala-model-layer-around.15",
+    "fn-113-clean-up-the-scala-model-layer-around.17"
   ],
   "id": "fn-113-clean-up-the-scala-model-layer-around.16",
   "priority": null,
@@ -16,5 +17,5 @@
   "spec_path": ".flow/tasks/fn-113-clean-up-the-scala-model-layer-around.16.md",
   "status": "todo",
   "title": "Close the spec: full validation, line counts and the facts for MILESTONES",
-  "updated_at": "2026-10-02T23:00:22.862508Z"
+  "updated_at": "2026-10-03T08:34:10.948015Z"
 }

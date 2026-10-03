@@ -1,6 +1,21 @@
 {
   "source": "model: temporal.nexuscaller.closepolicy.Claims$package$.ackByOriginalProgress, temporal.nexuscaller.closepolicy.Claims$package$.ackByOriginalQueries, temporal.nexuscaller.closepolicy.Claims$package$.ackByOriginalWithDeadlineProgress, temporal.nexuscaller.closepolicy.Claims$package$.ackByOriginalWithDeadlineQueries, temporal.nexuscaller.closepolicy.Claims$package$.forgetsCancelOnResetQueries, temporal.nexuscaller.closepolicy.Claims$package$.rejectAfterCloseProgress, temporal.nexuscaller.closepolicy.Claims$package$.rejectAfterCloseQueries, temporal.nexuscaller.closepolicy.Claims$package$.rejectAfterCloseWithDeadlineProgress, temporal.nexuscaller.closepolicy.Claims$package$.rejectAfterCloseWithDeadlineQueries, temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteBoundedRetryProgress, temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteBoundedRetryQueries, temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteProgress, temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteQueries, temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteWithDeadlineProgress, temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteWithDeadlineQueries, temporal.nexuscaller.closepolicy.Claims$package$.retainedReachesOwner, temporal.nexuscaller.closepolicy.Claims$package$.retainedReachesOwnerBoundedRetry, temporal.nexuscaller.closepolicy.Claims$package$.retainedWaitsWithoutRecovery, temporal.nexuscaller.closepolicy.Claims$package$.truncatesOnResetQueries",
   "types": [ {
+    "name": "temporal.nexuscaller.Resolution",
+    "position": {
+      "file": "model/temporal/nexuscaller/Nexus.scala",
+      "line": 25
+    },
+    "enum": {
+      "cases": [ {
+        "name": "succeeded"
+      }, {
+        "name": "failed"
+      }, {
+        "name": "canceled"
+      } ]
+    }
+  }, {
     "name": "temporal.nexuscaller.closepolicy.Answer",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
@@ -106,7 +121,7 @@
         "fields": [ {
           "name": "result",
           "type": {
-            "named": "temporal.nexuscaller.kernel.Resolution"
+            "named": "temporal.nexuscaller.Resolution"
           }
         } ]
       }, {
@@ -114,7 +129,7 @@
         "fields": [ {
           "name": "result",
           "type": {
-            "named": "temporal.nexuscaller.kernel.Resolution"
+            "named": "temporal.nexuscaller.Resolution"
           }
         } ]
       } ]
@@ -145,7 +160,7 @@
         "fields": [ {
           "name": "result",
           "type": {
-            "named": "temporal.nexuscaller.kernel.Resolution"
+            "named": "temporal.nexuscaller.Resolution"
           }
         } ]
       }, {
@@ -180,7 +195,7 @@
         "fields": [ {
           "name": "result",
           "type": {
-            "named": "temporal.nexuscaller.kernel.Resolution"
+            "named": "temporal.nexuscaller.Resolution"
           }
         } ]
       } ]
@@ -218,7 +233,7 @@
         "fields": [ {
           "name": "result",
           "type": {
-            "named": "temporal.nexuscaller.kernel.Resolution"
+            "named": "temporal.nexuscaller.Resolution"
           }
         } ]
       }, {
@@ -226,7 +241,7 @@
         "fields": [ {
           "name": "result",
           "type": {
-            "named": "temporal.nexuscaller.kernel.Resolution"
+            "named": "temporal.nexuscaller.Resolution"
           }
         } ]
       }, {
@@ -247,7 +262,7 @@
         "fields": [ {
           "name": "result",
           "type": {
-            "named": "temporal.nexuscaller.kernel.Resolution"
+            "named": "temporal.nexuscaller.Resolution"
           }
         } ]
       }, {
@@ -322,24 +337,9 @@
         "fields": [ {
           "name": "result",
           "type": {
-            "named": "temporal.nexuscaller.kernel.Resolution"
+            "named": "temporal.nexuscaller.Resolution"
           }
         } ]
-      } ]
-    }
-  }, {
-    "name": "temporal.nexuscaller.kernel.Resolution",
-    "position": {
-      "file": "model/temporal/nexuscaller/kernel/Nexus.scala",
-      "line": 32
-    },
-    "enum": {
-      "cases": [ {
-        "name": "succeeded"
-      }, {
-        "name": "failed"
-      }, {
-        "name": "canceled"
       } ]
     }
   } ],
@@ -357,7 +357,7 @@
     }, {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -498,7 +498,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "canceled"
                     }
                   }
@@ -543,7 +543,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "canceled"
                     }
                   }
@@ -602,7 +602,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.nexuscaller.kernel.Resolution",
+                  "type": "temporal.nexuscaller.Resolution",
                   "case": "canceled"
                 }
               }
@@ -858,7 +858,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "succeeded"
                     }
                   }
@@ -1009,7 +1009,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "succeeded"
                     }
                   }
@@ -1142,7 +1142,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "succeeded"
                     }
                   }
@@ -1296,7 +1296,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.nexuscaller.kernel.Resolution",
+                  "type": "temporal.nexuscaller.Resolution",
                   "case": "succeeded"
                 }
               }
@@ -1487,7 +1487,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.nexuscaller.kernel.Resolution",
+                  "type": "temporal.nexuscaller.Resolution",
                   "case": "failed"
                 }
               }
@@ -1549,7 +1549,7 @@
     }, {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -1727,7 +1727,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.nexuscaller.kernel.Resolution",
+                  "type": "temporal.nexuscaller.Resolution",
                   "case": "succeeded"
                 }
               }
@@ -1976,7 +1976,7 @@
     }, {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -2117,7 +2117,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "canceled"
                     }
                   }
@@ -2162,7 +2162,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "canceled"
                     }
                   }
@@ -2221,7 +2221,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.nexuscaller.kernel.Resolution",
+                  "type": "temporal.nexuscaller.Resolution",
                   "case": "canceled"
                 }
               }
@@ -2477,7 +2477,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "succeeded"
                     }
                   }
@@ -2628,7 +2628,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "succeeded"
                     }
                   }
@@ -2761,7 +2761,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "succeeded"
                     }
                   }
@@ -2915,7 +2915,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.nexuscaller.kernel.Resolution",
+                  "type": "temporal.nexuscaller.Resolution",
                   "case": "succeeded"
                 }
               }
@@ -3106,7 +3106,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.nexuscaller.kernel.Resolution",
+                  "type": "temporal.nexuscaller.Resolution",
                   "case": "failed"
                 }
               }
@@ -3168,7 +3168,7 @@
     }, {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -3309,7 +3309,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "canceled"
                     }
                   }
@@ -3354,7 +3354,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "canceled"
                     }
                   }
@@ -3413,7 +3413,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.nexuscaller.kernel.Resolution",
+                  "type": "temporal.nexuscaller.Resolution",
                   "case": "canceled"
                 }
               }
@@ -3669,7 +3669,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "succeeded"
                     }
                   }
@@ -3820,7 +3820,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "succeeded"
                     }
                   }
@@ -3953,7 +3953,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "succeeded"
                     }
                   }
@@ -4107,7 +4107,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.nexuscaller.kernel.Resolution",
+                  "type": "temporal.nexuscaller.Resolution",
                   "case": "succeeded"
                 }
               }
@@ -4298,7 +4298,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.nexuscaller.kernel.Resolution",
+                  "type": "temporal.nexuscaller.Resolution",
                   "case": "failed"
                 }
               }
@@ -4360,7 +4360,7 @@
     }, {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -4538,7 +4538,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.nexuscaller.kernel.Resolution",
+                  "type": "temporal.nexuscaller.Resolution",
                   "case": "succeeded"
                 }
               }
@@ -4787,7 +4787,7 @@
     }, {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -4928,7 +4928,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "canceled"
                     }
                   }
@@ -4973,7 +4973,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "canceled"
                     }
                   }
@@ -5032,7 +5032,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.nexuscaller.kernel.Resolution",
+                  "type": "temporal.nexuscaller.Resolution",
                   "case": "canceled"
                 }
               }
@@ -5288,7 +5288,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "succeeded"
                     }
                   }
@@ -5439,7 +5439,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "succeeded"
                     }
                   }
@@ -5572,7 +5572,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "succeeded"
                     }
                   }
@@ -5726,7 +5726,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.nexuscaller.kernel.Resolution",
+                  "type": "temporal.nexuscaller.Resolution",
                   "case": "succeeded"
                 }
               }
@@ -5917,7 +5917,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.nexuscaller.kernel.Resolution",
+                  "type": "temporal.nexuscaller.Resolution",
                   "case": "failed"
                 }
               }
@@ -5979,7 +5979,7 @@
     }, {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -6107,7 +6107,7 @@
     }, {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -6285,7 +6285,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.nexuscaller.kernel.Resolution",
+                  "type": "temporal.nexuscaller.Resolution",
                   "case": "succeeded"
                 }
               }
@@ -7411,7 +7411,7 @@
     }, {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -8010,7 +8010,7 @@
     }, {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -8957,7 +8957,7 @@
     }, {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -9454,7 +9454,7 @@
     }, {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -9906,7 +9906,7 @@
     }, {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -10671,7 +10671,7 @@
     }, {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -10755,7 +10755,7 @@
                       },
                       "literal": {
                         "enum": {
-                          "type": "temporal.nexuscaller.kernel.Resolution",
+                          "type": "temporal.nexuscaller.Resolution",
                           "case": "canceled"
                         }
                       }
@@ -11072,7 +11072,7 @@
     }, {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -11520,7 +11520,7 @@
     }, {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -12250,7 +12250,7 @@
     }, {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -12576,7 +12576,7 @@
     "params": [ {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -12596,7 +12596,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.nexuscaller.kernel.Resolution",
+                "type": "temporal.nexuscaller.Resolution",
                 "case": "succeeded"
               }
             }
@@ -12617,7 +12617,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.nexuscaller.kernel.Resolution",
+                "type": "temporal.nexuscaller.Resolution",
                 "case": "failed"
               }
             }
@@ -12638,7 +12638,7 @@
           "pattern": {
             "literal": {
               "enum": {
-                "type": "temporal.nexuscaller.kernel.Resolution",
+                "type": "temporal.nexuscaller.Resolution",
                 "case": "canceled"
               }
             }
@@ -12677,7 +12677,7 @@
     }, {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -12770,7 +12770,7 @@
     }, {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -12862,7 +12862,7 @@
     }, {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -13808,7 +13808,7 @@
     }, {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -14030,7 +14030,7 @@
     }, {
       "name": "r",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "body": {
@@ -14171,7 +14171,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "canceled"
                     }
                   }
@@ -14216,7 +14216,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "canceled"
                     }
                   }
@@ -14275,7 +14275,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.nexuscaller.kernel.Resolution",
+                  "type": "temporal.nexuscaller.Resolution",
                   "case": "canceled"
                 }
               }
@@ -14531,7 +14531,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "succeeded"
                     }
                   }
@@ -14682,7 +14682,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "succeeded"
                     }
                   }
@@ -14815,7 +14815,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.nexuscaller.kernel.Resolution",
+                      "type": "temporal.nexuscaller.Resolution",
                       "case": "succeeded"
                     }
                   }
@@ -14969,7 +14969,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.nexuscaller.kernel.Resolution",
+                  "type": "temporal.nexuscaller.Resolution",
                   "case": "succeeded"
                 }
               }
@@ -15160,7 +15160,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.nexuscaller.kernel.Resolution",
+                  "type": "temporal.nexuscaller.Resolution",
                   "case": "failed"
                 }
               }
@@ -15214,13 +15214,13 @@
     "name": "complete",
     "position": {
       "file": "model/temporal/nexuscaller/Model.scala",
-      "line": 99
+      "line": 69
     },
     "party": "handler",
     "inputs": [ {
       "name": "resolution",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "on": "operation",
@@ -15230,7 +15230,7 @@
     "name": "scheduleToClose",
     "position": {
       "file": "model/temporal/nexuscaller/Model.scala",
-      "line": 147
+      "line": 117
     },
     "party": "system",
     "timer": true
@@ -15263,7 +15263,7 @@
     "inputs": [ {
       "name": "result",
       "type": {
-        "named": "temporal.nexuscaller.kernel.Resolution"
+        "named": "temporal.nexuscaller.Resolution"
       }
     } ],
     "on": "operation"
@@ -16940,7 +16940,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -16966,7 +16966,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -16983,7 +16983,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -17000,7 +17000,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -17017,7 +17017,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -17090,7 +17090,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -17107,7 +17107,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -17124,7 +17124,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -17158,7 +17158,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -17206,7 +17206,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -17249,7 +17249,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -17275,7 +17275,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -17292,7 +17292,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -17309,7 +17309,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -17326,7 +17326,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -17399,7 +17399,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -17416,7 +17416,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -17433,7 +17433,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -17467,7 +17467,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -17493,7 +17493,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -17519,7 +17519,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -17536,7 +17536,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -17553,7 +17553,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -17570,7 +17570,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -17643,7 +17643,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -17660,7 +17660,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -17677,7 +17677,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -17711,7 +17711,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -17759,7 +17759,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -17802,7 +17802,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -17828,7 +17828,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -17845,7 +17845,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -17862,7 +17862,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -17879,7 +17879,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -17952,7 +17952,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -17969,7 +17969,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -17986,7 +17986,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -18020,7 +18020,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -18085,7 +18085,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -18128,7 +18128,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -18154,7 +18154,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -18171,7 +18171,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -18188,7 +18188,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -18205,7 +18205,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -18278,7 +18278,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -18295,7 +18295,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -18312,7 +18312,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -18346,7 +18346,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -18440,7 +18440,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -18448,7 +18448,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -18636,7 +18636,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -18738,7 +18738,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -18932,7 +18932,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -18942,7 +18942,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -19044,7 +19044,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -19052,7 +19052,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -19146,7 +19146,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -19154,7 +19154,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -19250,7 +19250,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -19258,7 +19258,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -19352,7 +19352,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -19444,7 +19444,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -19452,7 +19452,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -19460,7 +19460,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -19552,7 +19552,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -19560,7 +19560,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -19652,7 +19652,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -19660,7 +19660,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -19752,7 +19752,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -19760,7 +19760,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -19770,7 +19770,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -19862,7 +19862,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -19872,7 +19872,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -20050,7 +20050,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -20058,7 +20058,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -20156,7 +20156,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -20164,7 +20164,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -20258,7 +20258,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -20268,7 +20268,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -20360,7 +20360,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -20454,7 +20454,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -20464,7 +20464,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -20558,7 +20558,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -20568,7 +20568,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -20660,7 +20660,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -20668,7 +20668,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -20856,7 +20856,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -20958,7 +20958,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -21152,7 +21152,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -21162,7 +21162,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -21264,7 +21264,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -21272,7 +21272,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -21366,7 +21366,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -21374,7 +21374,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -21470,7 +21470,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -21478,7 +21478,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -21572,7 +21572,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -21664,7 +21664,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -21672,7 +21672,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -21680,7 +21680,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -21772,7 +21772,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -21780,7 +21780,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -21872,7 +21872,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -21880,7 +21880,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -21972,7 +21972,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -21980,7 +21980,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -21990,7 +21990,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -22082,7 +22082,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -22092,7 +22092,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -22184,7 +22184,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -22192,7 +22192,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -22380,7 +22380,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -22482,7 +22482,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -22676,7 +22676,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -22686,7 +22686,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -22788,7 +22788,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -22796,7 +22796,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -22890,7 +22890,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -22898,7 +22898,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -22994,7 +22994,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -23002,7 +23002,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -23096,7 +23096,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -23188,7 +23188,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -23196,7 +23196,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -23204,7 +23204,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -23296,7 +23296,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -23304,7 +23304,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -23396,7 +23396,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -23404,7 +23404,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -23496,7 +23496,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -23504,7 +23504,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -23514,7 +23514,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -23606,7 +23606,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -23616,7 +23616,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -23794,7 +23794,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -23802,7 +23802,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -23900,7 +23900,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -23908,7 +23908,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -24002,7 +24002,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -24012,7 +24012,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -24104,7 +24104,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -24198,7 +24198,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -24208,7 +24208,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -24302,7 +24302,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -24312,7 +24312,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -24404,7 +24404,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -24412,7 +24412,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -24600,7 +24600,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -24702,7 +24702,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -24896,7 +24896,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -24906,7 +24906,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -25008,7 +25008,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -25016,7 +25016,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -25110,7 +25110,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -25118,7 +25118,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -25214,7 +25214,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -25222,7 +25222,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -25316,7 +25316,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -25408,7 +25408,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -25416,7 +25416,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -25424,7 +25424,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -25516,7 +25516,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -25524,7 +25524,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -25616,7 +25616,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -25624,7 +25624,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -25716,7 +25716,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -25724,7 +25724,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -25734,7 +25734,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -25826,7 +25826,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -25836,7 +25836,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -26014,7 +26014,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -26022,7 +26022,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -26116,7 +26116,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -26126,7 +26126,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -26304,7 +26304,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -26312,7 +26312,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -26410,7 +26410,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -26418,7 +26418,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -26512,7 +26512,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -26522,7 +26522,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -26614,7 +26614,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -26708,7 +26708,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -26718,7 +26718,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -26812,7 +26812,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -26822,7 +26822,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -26914,7 +26914,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -26922,7 +26922,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -27110,7 +27110,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -27212,7 +27212,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -27406,7 +27406,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -27416,7 +27416,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -27518,7 +27518,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -27526,7 +27526,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "canceled"
         }
       } ]
@@ -27620,7 +27620,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -27628,7 +27628,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -27724,7 +27724,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -27732,7 +27732,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -27826,7 +27826,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -27918,7 +27918,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -27926,7 +27926,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -27934,7 +27934,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -28026,7 +28026,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -28034,7 +28034,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -28126,7 +28126,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -28134,7 +28134,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "succeeded"
         }
       } ]
@@ -28226,7 +28226,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -28234,7 +28234,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -28244,7 +28244,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -28336,7 +28336,7 @@
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]
@@ -28346,7 +28346,7 @@
       "action": "temporal.nexuscaller.Model$package$.complete",
       "inputs": [ {
         "enum": {
-          "type": "temporal.nexuscaller.kernel.Resolution",
+          "type": "temporal.nexuscaller.Resolution",
           "case": "failed"
         }
       } ]

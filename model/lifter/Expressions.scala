@@ -159,8 +159,8 @@ private[lift] trait Expressions:
     )
 
   /**
-   * `{ require(p); body }.ensuring(q)` is `body` under precondition `p`: the contracts are what
-   * Stainless proves, and the interpreter evaluates the body.
+   * `{ require(p); body }.ensuring(q)` is `body` under precondition `p`.
+   * Go evaluates the precondition before the body.
    */
   def stripContracts(t: Term): (Option[Term], Term) = t match
     case Apply(Select(Apply(TypeApply(e, _), List(body)), "ensuring"), _)
@@ -243,15 +243,6 @@ private[lift] trait Expressions:
         )
       expr(t)(E.Match(ir.Match(Some(on), lifted)))
 
-    // The prelude's constructors, which both sides of the kernel supply.
-    case Apply(TypeApply(Ident("step"), _), List(o, s, f))
-        if t.symbol.fullName.startsWith("umpire.prelude") =>
-      step(lift(o), lift(s), lift(f), text("", t), t)
-    case Apply(TypeApply(Ident("one" | "facts1"), _), List(x))
-        if t.symbol.fullName.startsWith("umpire.prelude") =>
-      list(List(lift(x)), t)
-    case TypeApply(Ident("none" | "facts0"), _) if t.symbol.fullName.startsWith("umpire.prelude") =>
-      list(Nil, t)
     case Ident("Nil")                                                        => list(Nil, t)
     case Apply(TypeApply(Select(Ident("List"), "apply"), elem), List(items)) =>
       list(varargs(items).map(i => lift(i, elem.headOption.map(_.tpe))), t)

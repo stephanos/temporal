@@ -43,6 +43,8 @@ private[lift] trait Declarations:
       case Apply(Select(inner, "results"), List(n))    => walk(inner).withResults(constString(n))
       case Apply(Select(inner, "schema"), List(names)) =>
         walk(inner).addAllSchemas(varargs(names).map(constString))
+      case Apply(TypeApply(Select(inner, "schema"), List(tpt)), _) =>
+        walk(inner).addSchemas(messageDescriptor(tpt.tpe, t).fullName)
       case Apply(Apply(TypeApply(Select(inner, "input"), List(tpt)), List(name)), _) =>
         walk(inner).addInputs(ir.Param(constString(name), Some(typeRef(tpt.tpe, t))))
       case Apply(Apply(TypeApply(Ident("example"), _), List(inner)), List(value, example)) =>

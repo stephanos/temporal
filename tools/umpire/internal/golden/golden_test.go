@@ -252,6 +252,83 @@ func TestProjectionIsClosed(t *testing.T) {
 	}
 }
 
+func TestTypeNameProjectionIsClosed(t *testing.T) {
+	original := &umpirespb.Model{
+		Source: "old source",
+		Types: []*umpirespb.Type{
+			{Name: "old.Outcome", Shape: &umpirespb.Type_Enum{Enum: &umpirespb.Enum{Cases: []*umpirespb.Case{{Name: "accepted"}, {Name: "rejected"}}}}},
+			{Name: "old.State", Shape: &umpirespb.Type_Record{Record: &umpirespb.Record{Fields: []*umpirespb.Field{{Name: "phase"}, {Name: "attempts"}}}}},
+		},
+		Machines: []*umpirespb.Machine{{StateType: "old.State", OutcomeType: "old.Outcome"}},
+	}
+	cfg := Config{Labels: []Substitution{{Old: "old source", New: "new source"}}, Projection: Projection{Types: []Substitution{
+		{Old: "old.State", New: "new.State"},
+		{Old: "old.Outcome", New: "new.Outcome"},
+	}}}
+	reference := map[string]*umpirespb.Model{"model": original}
+	require.NoError(t, cfg.TypesRenamed(reference))
+	current := proto.CloneOf(original)
+	current.Source = "new source"
+	current.Types[0].Name = "new.Outcome"
+	current.Types[1].Name = "new.State"
+	current.Machines[0].StateType = "new.State"
+	current.Machines[0].OutcomeType = "new.Outcome"
+	moved, err := cfg.Match(original, current)
+	require.NoError(t, err)
+	require.True(t, moved)
+
+	for name, change := range map[string]func(*umpirespb.Model){
+		"unlisted declaration": func(m *umpirespb.Model) { m.Types[0].Name = "other.State" },
+		"unlisted reference":   func(m *umpirespb.Model) { m.Machines[0].StateType = "other.State" },
+		"declaration order": func(m *umpirespb.Model) {
+			m.Types[0], m.Types[1] = m.Types[1], m.Types[0]
+		},
+		"enum case order": func(m *umpirespb.Model) {
+			cases := m.Types[0].GetEnum().Cases
+			cases[0], cases[1] = cases[1], cases[0]
+		},
+		"record field order": func(m *umpirespb.Model) {
+			fields := m.Types[1].GetRecord().Fields
+			fields[0], fields[1] = fields[1], fields[0]
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			changed := proto.CloneOf(current)
+			change(changed)
+			_, err := cfg.Match(original, changed)
+			require.Error(t, err)
+		})
+	}
+	for name, substitutions := range map[string][]Substitution{
+		"unknown source":   {{Old: "old.Unknown", New: "new.Unknown"}},
+		"duplicate source": {{Old: "old.State", New: "new.State"}, {Old: "old.State", New: "new.Other"}},
+		"duplicate target": {{Old: "old.State", New: "new.State"}, {Old: "old.Outcome", New: "new.State"}},
+		"existing target":  {{Old: "old.State", New: "old.Outcome"}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			cfg.Projection.Types = substitutions
+			require.Error(t, cfg.TypesRenamed(reference))
+		})
+	}
+}
+
+func TestFunctionOnlyProjectionKeepsTypeOrder(t *testing.T) {
+	cfg, original, current := projectedJob(t)
+	cfg.Projection.Types = []Substitution{{Old: "other.State", New: "other.MovedState"}}
+	reference := map[string]*umpirespb.Model{
+		"job":   original,
+		"other": {Types: []*umpirespb.Type{{Name: "other.State"}}},
+	}
+	require.NoError(t, cfg.TypesRenamed(reference))
+	moved, err := cfg.Match(original, current)
+	require.NoError(t, err)
+	require.True(t, moved)
+	changed := proto.CloneOf(current)
+	changed.Types[0], changed.Types[1] = changed.Types[1], changed.Types[0]
+	_, err = cfg.Match(original, changed)
+	require.Error(t, err)
+}
+
 func TestAlphaNormalizationRespectsShadowing(t *testing.T) {
 	variable := func(name string) *umpirespb.Expr { return &umpirespb.Expr{Kind: &umpirespb.Expr_Var{Var: name}} }
 	lambda := func(param string, body *umpirespb.Expr) *umpirespb.Expr {
