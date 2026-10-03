@@ -24,15 +24,19 @@ import (
 // per platform is who reaches the host clock without passing through it. Every
 // reference is pinned here; a new upstream caller fails the toolchain tier on
 // either host.
-var hostClockIdentifier = regexp.MustCompile(`\b(nanotime1|walltime|time_now|vdsoClockgettimeSym|vdsoGettimeofdaySym)\b`)
+var hostClockIdentifier = regexp.MustCompile(`\b(cputicks|libc_gettimeofday|libc_gettimeofday_trampoline|nanotime1|walltime|time_now|vdsoClockgettimeSym|vdsoGettimeofdaySym)\b`)
 
 type clockDisposition string
 
 const (
-	// clockImplementation declares or implements the host clock itself.
+	// clockImplementation declares or implements an inventoried clock entry point.
 	clockImplementation clockDisposition = "implementation"
-	// clockGuarded is reached only after the gomadEnabled check returned.
+	// clockGuarded reaches the host clock only when Gomad's activation guard
+	// allows it; an activated target observes virtual time.
 	clockGuarded clockDisposition = "guarded"
+	// clockInactive is a real reference that the default qualified target
+	// configuration cannot execute.
+	clockInactive clockDisposition = "inactive"
 	// clockHostByDesign is an intentional host read that never feeds target state.
 	clockHostByDesign clockDisposition = "host-by-design"
 	// clockEscape reaches the host clock after activation; its finding names the
@@ -57,26 +61,49 @@ func (r clockReference) key() string {
 
 var reviewedHostClockReferences = []clockReference{
 	{"darwin/arm64", "internal/trace/internal/testgen/trace.go", "walltime", 4, clockUnrelated, ""},
+	{"darwin/arm64", "runtime/badlinkname.go", "cputicks", 1, clockImplementation, ""},
+	{"darwin/arm64", "runtime/chan.go", "cputicks", 6, clockGuarded, ""},
+	{"darwin/arm64", "runtime/debuglog.go", "cputicks", 1, clockInactive, "debuglog_off selects the no-op logger for the qualified target configuration"},
 	{"darwin/arm64", "runtime/gomad.go", "nanotime1", 1, clockHostByDesign, "gomadWallNanotime serves the deterministic I/O packages' wall bounds"},
-	{"darwin/arm64", "runtime/mgc.go", "time_now", 1, clockEscape, "gcMarkTermination stores host wall time in MemStats.LastGC and debug.GCStats"},
+	{"darwin/arm64", "runtime/lock_spinbit.go", "cputicks", 2, clockGuarded, ""},
+	{"darwin/arm64", "runtime/mgc.go", "time_now", 1, clockEscape, "gcMarkTermination stores host wall time in MemStats.LastGC, MemStats.PauseEnd, debug.GCStats.LastGC, and debug.GCStats.PauseEnd"},
+	{"darwin/arm64", "runtime/os_darwin_arm64.go", "cputicks", 1, clockGuarded, ""},
+	{"darwin/arm64", "runtime/runtime.go", "cputicks", 2, clockGuarded, ""},
+	{"darwin/arm64", "runtime/select.go", "cputicks", 1, clockGuarded, ""},
+	{"darwin/arm64", "runtime/sema.go", "cputicks", 5, clockGuarded, ""},
 	{"darwin/arm64", "runtime/sys_darwin.go", "nanotime1", 1, clockImplementation, ""},
 	{"darwin/arm64", "runtime/sys_darwin.go", "walltime", 2, clockImplementation, ""},
-	{"darwin/arm64", "runtime/time.go", "time_now", 2, clockEscape, "time_runtimeNow is guarded; crypto/internal/fips140deps/time.monoTime is not and seeds the FIPS CPU-jitter entropy source, reached only in FIPS mode"},
+	{"darwin/arm64", "runtime/time.go", "time_now", 2, clockHostByDesign, "time_runtimeNow is guarded; monoTime discards time_now's host wall reading and returns its guarded virtual monotonic value"},
 	{"darwin/arm64", "runtime/time_nofake.go", "nanotime1", 1, clockGuarded, ""},
 	{"darwin/arm64", "runtime/timestub.go", "time_now", 2, clockImplementation, ""},
 	{"darwin/arm64", "runtime/timestub.go", "walltime", 1, clockImplementation, ""},
+	{"darwin/arm64", "runtime/tracetime.go", "cputicks", 1, clockInactive, "the branch is compile-time unreachable because osHasLowResClock is false"},
 	{"darwin/arm64", "runtime/tracetime.go", "time_now", 1, clockEscape, "the execution tracer's clock snapshot; tracing is outside the deterministic contract"},
+	{"darwin/arm64", "syscall/zsyscall_darwin_arm64.go", "libc_gettimeofday", 1, clockImplementation, ""},
+	{"darwin/arm64", "syscall/zsyscall_darwin_arm64.go", "libc_gettimeofday_trampoline", 2, clockEscape, "syscall.Gettimeofday returns host wall time; the syscall package is admitted only by an exact compatibility pack"},
+	{"darwin/arm64", "syscall/zsyscall_darwin_arm64.s", "libc_gettimeofday", 1, clockImplementation, ""},
+	{"darwin/arm64", "syscall/zsyscall_darwin_arm64.s", "libc_gettimeofday_trampoline", 1, clockImplementation, ""},
 	{"linux/amd64", "internal/trace/internal/testgen/trace.go", "walltime", 4, clockUnrelated, ""},
+	{"linux/amd64", "runtime/asm_amd64.s", "cputicks", 1, clockImplementation, ""},
 	{"linux/amd64", "runtime/badlinkname_linux.go", "vdsoClockgettimeSym", 1, clockImplementation, ""},
+	{"linux/amd64", "runtime/badlinkname.go", "cputicks", 1, clockImplementation, ""},
+	{"linux/amd64", "runtime/chan.go", "cputicks", 6, clockEscape, "block profiling samples waits with host cycle counts when its rate is nonzero"},
+	{"linux/amd64", "runtime/cputicks.go", "cputicks", 1, clockImplementation, ""},
+	{"linux/amd64", "runtime/debuglog.go", "cputicks", 1, clockInactive, "debuglog_off selects the no-op logger for the qualified target configuration"},
 	{"linux/amd64", "runtime/gomad.go", "nanotime1", 1, clockHostByDesign, "gomadWallNanotime serves the deterministic I/O packages' wall bounds"},
-	{"linux/amd64", "runtime/mgc.go", "time_now", 1, clockEscape, "gcMarkTermination stores host wall time in MemStats.LastGC and debug.GCStats"},
+	{"linux/amd64", "runtime/lock_spinbit.go", "cputicks", 2, clockEscape, "runtime-lock and mutex profiling use host cycle counts to sample or retain contention when their rates are nonzero"},
+	{"linux/amd64", "runtime/mgc.go", "time_now", 1, clockEscape, "gcMarkTermination stores host wall time in MemStats.LastGC, MemStats.PauseEnd, debug.GCStats.LastGC, and debug.GCStats.PauseEnd"},
+	{"linux/amd64", "runtime/runtime.go", "cputicks", 2, clockEscape, "profile export derives its cycles-per-second conversion from host cycle counts; text profiles carry it and sampled protobuf profiles use it"},
+	{"linux/amd64", "runtime/select.go", "cputicks", 1, clockEscape, "block profiling samples waits with host cycle counts when its rate is nonzero"},
+	{"linux/amd64", "runtime/sema.go", "cputicks", 5, clockEscape, "block and mutex profiling sample waits with host cycle counts when their rates are nonzero"},
 	{"linux/amd64", "runtime/stubs3.go", "nanotime1", 2, clockImplementation, ""},
 	{"linux/amd64", "runtime/sys_linux_amd64.s", "nanotime1", 1, clockImplementation, ""},
 	{"linux/amd64", "runtime/sys_linux_amd64.s", "vdsoClockgettimeSym", 1, clockImplementation, ""},
-	{"linux/amd64", "runtime/time.go", "time_now", 2, clockEscape, "time_runtimeNow is guarded; crypto/internal/fips140deps/time.monoTime is not and seeds the FIPS CPU-jitter entropy source, reached only in FIPS mode"},
+	{"linux/amd64", "runtime/time.go", "time_now", 2, clockEscape, "time_runtimeNow is guarded; crypto/internal/fips140deps/time.monoTime is not and seeds the FIPS CPU-jitter entropy source, reached only in FIPS mode without the seeded testing reader"},
 	{"linux/amd64", "runtime/time_linux_amd64.s", "vdsoClockgettimeSym", 2, clockImplementation, ""},
 	{"linux/amd64", "runtime/time_nofake.go", "nanotime1", 1, clockGuarded, ""},
 	{"linux/amd64", "runtime/timeasm.go", "time_now", 2, clockImplementation, ""},
+	{"linux/amd64", "runtime/tracetime.go", "cputicks", 1, clockInactive, "the branch is compile-time unreachable because osHasLowResClock is false"},
 	{"linux/amd64", "runtime/tracetime.go", "time_now", 1, clockEscape, "the execution tracer's clock snapshot; tracing is outside the deterministic contract"},
 	{"linux/amd64", "runtime/vdso_linux_amd64.go", "vdsoClockgettimeSym", 2, clockImplementation, ""},
 	{"linux/amd64", "runtime/vdso_linux_amd64.go", "vdsoGettimeofdaySym", 3, clockImplementation, ""},
@@ -139,6 +166,54 @@ func TestPatchedRuntimeClockEntryPointsCheckActivationFirst(t *testing.T) {
 		if !guard.IsValid() || !host.IsValid() || guard.Offset > host.Offset {
 			t.Fatalf("%s: %s must return on gomadEnabled before calling %s (guard=%v host=%v)", entry.file, entry.function, entry.hostCall, guard, host)
 		}
+	}
+}
+
+func TestHostClockInventoryPinsPlatformSpecificEscapes(t *testing.T) {
+	goRoot := t.TempDir()
+	for relative, contents := range map[string]string{
+		"src/runtime/asm_amd64.s": `// cputicks in a comment is not a reference.
+TEXT runtime·cputicks(SB),NOSPLIT,$0-0
+`,
+		"src/runtime/os_darwin_arm64.go": `package runtime
+
+func cputicks() int64 { return nanotime() }
+`,
+		"src/syscall/zsyscall_darwin_arm64.go": `package syscall
+
+func Gettimeofday() { libc_gettimeofday_trampoline() }
+
+func libc_gettimeofday_trampoline()
+
+//go:cgo_import_dynamic libc_gettimeofday gettimeofday "/usr/lib/libSystem.B.dylib"
+`,
+		"src/syscall/zsyscall_darwin_arm64.s": `TEXT ·libc_gettimeofday_trampoline(SB),NOSPLIT,$0-0
+	JMP libc_gettimeofday(SB)
+`,
+	} {
+		path := filepath.Join(goRoot, filepath.FromSlash(relative))
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte(contents), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	got, err := hostClockReferences(goRoot, gomadversion.SupportedPlatforms[:])
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := map[string]int{
+		"darwin/arm64 runtime/os_darwin_arm64.go cputicks":                           1,
+		"darwin/arm64 syscall/zsyscall_darwin_arm64.go libc_gettimeofday":            1,
+		"darwin/arm64 syscall/zsyscall_darwin_arm64.go libc_gettimeofday_trampoline": 2,
+		"darwin/arm64 syscall/zsyscall_darwin_arm64.s libc_gettimeofday":             1,
+		"darwin/arm64 syscall/zsyscall_darwin_arm64.s libc_gettimeofday_trampoline":  1,
+		"linux/amd64 runtime/asm_amd64.s cputicks":                                   1,
+	}
+	if fmt.Sprint(got) != fmt.Sprint(want) {
+		t.Fatalf("references = %v, want %v", got, want)
 	}
 }
 

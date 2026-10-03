@@ -792,6 +792,47 @@ The standard `go test` harness also observes virtual time. In particular,
 time when it is the next event. A separate wall-time process watchdog is still
 required for CPU loops, unsupported host operations, and toolchain failures.
 
+Some reporting surfaces intentionally remain on host time. A completed
+collection stamps `runtime.MemStats.LastGC`, `runtime.MemStats.PauseEnd`,
+`debug.GCStats.LastGC`, and `debug.GCStats.PauseEnd` with host wall time. Both
+stamps reach text heap profiles and the `expvar` `memstats` value; `LastGC`
+also reaches heap dumps and Prometheus's
+`go_memstats_last_gc_time_seconds` gauge. The proposed overwrite hook would
+edit the already-allowed `runtime/proc.go`, not a prohibited collector file,
+but the patch-policy decision declines it because scheduler-owned code would
+mutate collector-owned state and cross the prohibition in substance while
+leaving the underlying host read. An emitting target can therefore produce
+different evidence while its choice tape still replays exactly. A target that
+branches on a stamp can also change its later behavior and choices.
+
+Three other host-time paths are target-visible under explicit gates. On
+linux/amd64, the FIPS `monoTime` input is host monotonic time when FIPS mode is
+enabled and Gomad's seeded testing reader is absent; it then seeds the DRBG and
+later random reads. Runner-managed deterministic-I/O programs install that
+reader only when they link `crypto/rand`. On darwin/arm64 the monotonic input
+is virtual. When execution tracing is started, its clock snapshot carries host
+wall time on both platforms and host monotonic time on linux/amd64, although
+trace event timestamps remain virtual and the runtime never reads the snapshot
+back; the difference reaches evidence only when the target or harness retains
+the trace. An exact compatibility-pack rule may admit the `syscall` import,
+after which an explicit `syscall.Gettimeofday` call returns host wall time
+through the linux vDSO or Darwin libc trampoline. The pack gate is at the
+import level, not the individual function.
+
+On linux/amd64, `cputicks` reads host cycle counts with `RDTSC` or `RDTSCP`.
+When block or mutex profiling is enabled, those counts steer profiler sampling
+and runtime-lock stack retention. Written text profiles carry the derived
+cycles-per-second value, and protobuf profiles with samples use it to convert
+durations. With both profile rates zero and no profile written, the remaining
+read is unused. On darwin/arm64 `cputicks` uses the virtual monotonic clock.
+The reporting, FIPS, tracer, and `Gettimeofday` paths above do not feed the
+runtime's own scheduling, GC pacing, or allocation decisions. `cputicks` does
+steer the profiling decisions described here and can consume a profiling
+random draw; its downstream effects on linux/amd64 remain an open finding.
+None of these values is covered by the deterministic-time guarantee. If a
+target emits one or lets it steer target behavior, same-seed evidence can
+differ; qualification compares only what reaches its bounded evidence.
+
 For a fixed toolchain, architecture, program, deterministic external inputs,
 and seed, supported runtime-controlled choices repeat across fresh processes.
 Different seeds explore different choices when alternatives exist. Runtime
@@ -1085,16 +1126,18 @@ timeouts, nested synctest, cgo/link rejection, non-progress, bounded output,
 and deadlock; runs focused upstream `runtime`, `time`, and `testing/synctest`
 tests; audits map key families across seeds; and repeats prebuilt map and
 scheduler fixtures under distinct allocation layouts and bounded unrelated CPU
-load. Supported-host CI additionally runs `make -C tools/gomad3 clock-audit`: a privileged,
-positive-controlled DTrace gate that rejects seeded calls to `clock_gettime` or
-`mach_absolute_time` after Gomad activation. On both platforms the toolchain
+load. Supported-host CI additionally runs `make -C tools/gomad3 clock-audit`:
+a privileged, positive-controlled DTrace fixture gate that rejects its seeded
+fixture's calls to `clock_gettime` or `mach_absolute_time` after Gomad
+activation. On both platforms the toolchain
 tier pins every standard-library reference to the host clock (`nanotime1`,
-`walltime`, `time_now`, and the linux vDSO clock symbols) against a reviewed,
-classified inventory and checks that `nanotime` and `time_runtimeNow` return
-on activation before reaching it; linux/amd64 reads the clock through the vDSO,
-which a syscall tracer cannot observe, so this static check is its escape gate.
-The inventory records the known escapes, such as `MemStats.LastGC`, which the
-collector still stamps with host wall time. Set `GOMAD3_STOCK_GO` when the
+`walltime`, `time_now`, `cputicks`, the Darwin libc `gettimeofday` trampoline,
+and the linux vDSO clock symbols) against a reviewed, classified inventory and
+checks that `nanotime` and `time_runtimeNow` return on activation before
+reaching it. linux/amd64 reads the clock through the vDSO, which a syscall
+tracer cannot observe, and reads cycle counts without a syscall, so this static
+check is its escape gate. The inventory records the known escapes described in
+the Contract above. Set `GOMAD3_STOCK_GO` when the
 stock Go executable cannot be resolved
 from the module-selected toolchain in `PATH`; the test never downloads one.
 
