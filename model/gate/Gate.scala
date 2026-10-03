@@ -82,8 +82,10 @@ final class Gate(tools: Tools, log: PrintStream):
     val current = Seq(irJar, stampFile).forall(Files.isRegularFile(_))
       && Files.readString(stampFile).trim == stamp
     if !(ifStale && current) then
-      // Whole seconds, no finer than the file times of the file systems the gate writes to.
-      val started = System.currentTimeMillis() / 1000 * 1000
+      // An output of an earlier run is removed first, so one scala-cli did not write is missing
+      // rather than taken for new. File times cannot tell: a mounted file system may stamp them with
+      // another clock than the gate's.
+      Seq(scalaPlugin, irJar).foreach(Files.deleteIfExists)
       val sources = scratch("schema")
 
       // protoc runs a plugin as an executable, so ScalaPB's generator is packaged as a launcher of
@@ -111,8 +113,6 @@ final class Gate(tools: Tools, log: PrintStream):
       val plugin = root.relativize(scalaPlugin)
       if !Files.isRegularFile(scalaPlugin) || !Files.isExecutable(scalaPlugin) then
         throw GateError(s"the ScalaPB plugin $plugin is missing: scala-cli did not package it")
-      if Files.getLastModifiedTime(scalaPlugin).toMillis < started then
-        throw GateError(s"the ScalaPB plugin $plugin is stale: scala-cli did not package it")
 
       val classes = Files.createDirectories(sources.resolve("ir"))
       // flat_package leaves the file's name out of the package, so the classes sit in the schema's
@@ -149,8 +149,6 @@ final class Gate(tools: Tools, log: PrintStream):
       val jar = root.relativize(irJar)
       if !Files.isRegularFile(irJar) then
         throw GateError(s"$jar is missing: the IR schema $schemaFile was not packaged")
-      if Files.getLastModifiedTime(irJar).toMillis < started then
-        throw GateError(s"$jar is stale: the IR schema $schemaFile was not packaged into it")
       Files.writeString(stampFile, stamp + "\n")
       log.println(s"generated $jar")
 

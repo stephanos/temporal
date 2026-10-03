@@ -155,20 +155,23 @@ class GateSuite extends munit.FunSuite:
     assertEquals(repository.ran.size, 1, "protoc does not run without the plugin")
     assert(!Files.exists(repository.stampFile), "a failed generation leaves no stamp")
 
-    // scala-cli exits 0 and leaves the launcher of an earlier run.
-    val stale = Repository(scalaCli =
-      "case \" $* \" in *\" --main-class \"*) /usr/bin/touch -t 200001010000 \"$out\";; esac"
-    )
+    // A launcher of an earlier run is not taken for one scala-cli packaged now.
+    val earlier = Repository()
+    assertEquals(gate(earlier.tools, "--generate-ir").status, 0)
+    val again =
+      Repository(scalaCli = "case \" $* \" in *\" --main-class \"*) /bin/rm -f \"$out\";; esac")
+    Files.createDirectories(again.plugin.getParent)
+    Files.copy(earlier.plugin, again.plugin)
     assertEquals(
-      gate(stale.tools, "--generate-ir"),
+      gate(again.tools, "--generate-ir"),
       Answer(
         1,
         "",
-        "gate: the ScalaPB plugin model/gen/protoc-gen-scala is stale: " +
+        "gate: the ScalaPB plugin model/gen/protoc-gen-scala is missing: " +
           "scala-cli did not package it\n"
       )
     )
-    assertEquals(stale.ran.size, 1, "protoc does not run with a stale plugin")
+    assertEquals(again.ran.size, 1, "protoc does not run with an earlier run's plugin")
 
   test("a jar scala-cli did not package fails with the jar and the schema named"):
     // scala-cli exits 0 without writing the jar.
@@ -184,19 +187,24 @@ class GateSuite extends munit.FunSuite:
     )
     assert(!Files.exists(missing.stampFile), "a failed generation leaves no stamp")
 
-    // scala-cli exits 0 and leaves the jar of an earlier schema.
-    val stale = Repository(
-      scalaCli = "case \"$out\" in *ir-scalapb.jar) /usr/bin/touch -t 200001010000 \"$out\";; esac"
+    // A jar of an earlier schema is not taken for one scala-cli packaged now.
+    val stale = Repository()
+    assertEquals(gate(stale.tools, "--generate-ir").status, 0)
+    Files.writeString(stale.schema, "syntax = \"proto3\";\nmessage Model {}\n")
+    Files.writeString(
+      stale.root.resolve("bin/scala-cli"),
+      "\ncase \"$out\" in *ir-scalapb.jar) /bin/rm -f \"$out\";; esac\n",
+      java.nio.file.StandardOpenOption.APPEND
     )
     assertEquals(
-      gate(stale.tools, "--generate-ir"),
+      gate(stale.tools, "--generate-ir", "--if-stale"),
       Answer(
         1,
         "",
-        s"gate: model/gen/ir-scalapb.jar is stale: the IR schema $schemaFile was not packaged into it\n"
+        s"gate: model/gen/ir-scalapb.jar is missing: the IR schema $schemaFile was not packaged\n"
       )
     )
-    assert(!Files.exists(stale.stampFile), "a failed generation leaves no stamp")
+    assert(!Files.exists(stale.jar), "the earlier jar is gone, not kept as current")
 
   test("a missing schema fails with its path"):
     val repository = Repository()
