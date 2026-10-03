@@ -177,7 +177,7 @@ show which claims now have evidence from the real SDK.
 
 ### Explore real implementation code under controlled dependencies (#SIMULATION)
 
-A separate experiment runs actual Temporal component code with controlled queue, clock, or storage
+A separate experiment called "Umpire" runs actual Temporal component code with controlled queue, clock, or storage
 dependencies. Its schedules vary independently of model-selected witnesses, and its observations
 are assessed against the same Properties. This supplies evidence beyond a simulated worker or a
 Driver returning expected answers. Begin with one admission or retention boundary; broader simulation
