@@ -99,9 +99,16 @@ func (campaign *runtimeCampaign) finishCase(planned runtimeCase, result hostexec
 	return result, nil
 }
 
+// runtimeExperiment selects the classic collector for every fixture build, as
+// target/internal/build does for prepared targets: the Green Tea collector
+// draws from the seeded stream at host-timed moments, and the seeded runtime
+// refuses a binary built with it.
+const runtimeExperiment = "GOEXPERIMENT=nogreenteagc"
+
 func (campaign *runtimeCampaign) request(command []string, dir string, timeout time.Duration, unset []string, values ...string) hostexec.Request {
+	environment := append(filterEnvironment(os.Environ(), append(slices.Clone(unset), "GOEXPERIMENT")...), runtimeExperiment)
 	return hostexec.Request{
-		Command: command, Dir: dir, Env: append(filterEnvironment(os.Environ(), unset...), values...), Timeout: timeout,
+		Command: command, Dir: dir, Env: append(environment, values...), Timeout: timeout,
 		TerminateGrace: fixtureTerminationGrace, OutputLimit: fixtureOutputLimit,
 	}
 }
