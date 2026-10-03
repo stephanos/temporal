@@ -1315,11 +1315,9 @@ func TestRunChoiceExplorationExpandsCompleteTargetFailures(t *testing.T) {
 	}
 }
 
-// TestRunChoiceExplorationPinnedOutcomeEfficiencyBeatsEqualBudgetSeedSampling
-// pins the two-outcome benchmark. Runtime-owned goroutines are not run-queue
-// alternatives, so the fixture's only branching decision is its select: the
-// explorer reaches both outcomes in the root and one flip and exhausts its
-// frontier, while seed sampling spends its whole budget to see the same two.
+// The fixture's only branching decision is its select, so exploration reaches
+// both outcomes in two executions and exhausts its frontier, while seed
+// sampling spends its whole budget to see the same two.
 func TestRunChoiceExplorationPinnedOutcomeEfficiencyBeatsEqualBudgetSeedSampling(t *testing.T) {
 	toolchainRoot, err := filepath.Abs(filepath.Join("..", ".toolchain"))
 	if err != nil {

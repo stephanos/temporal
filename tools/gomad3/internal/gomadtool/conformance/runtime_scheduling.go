@@ -315,9 +315,14 @@ func (campaign *runtimeCampaign) requireSearchReproduction(binaries map[string]s
 	return os.WriteFile(filepath.Join(campaign.workspace, "search-reproduction.json"), append(data, '\n'), 0o600)
 }
 
-// runqueueUserGoroutines bounds the user goroutines of the runq_user_choice
-// modes that start workers: main and the two workers.
-const runqueueUserGoroutines = 3
+// The user goroutines a runq_user_choice mode can select. In two-users only
+// the two workers are runnable together, because main stays parked in Wait.
+// busy-runtime adds the finalizer goroutine, which is a user goroutine while
+// it runs the workers' finalizers.
+const (
+	runqueueTwoUsersGoroutines    = 2
+	runqueueBusyRuntimeGoroutines = 3
+)
 
 type runqueueUserEvidence struct {
 	// TwoUsers and BusyRuntime list, per seed, the step order or summary the
@@ -377,7 +382,7 @@ func (campaign *runtimeCampaign) requireRunqueueUserChoice(binary string) (runqu
 	}
 	var err error
 	var recorded choiceRun
-	evidence.TwoUsers, evidence.TwoUsersIdentities, recorded, err = campaign.requireUserAlternatives(binary, "two-users", func(output string) error {
+	evidence.TwoUsers, evidence.TwoUsersIdentities, recorded, err = campaign.requireUserAlternatives(binary, "two-users", runqueueTwoUsersGoroutines, func(output string) error {
 		order := strings.TrimPrefix(output, "two-users ")
 		if len(order) != 8 || strings.Count(order, "a") != 4 || strings.Count(order, "b") != 4 {
 			return fmt.Errorf("two-users output = %q", output)
@@ -394,7 +399,7 @@ func (campaign *runtimeCampaign) requireRunqueueUserChoice(binary string) (runqu
 	if len(orders) < 2 {
 		return evidence, errors.New("two-users printed one step order under every seed; the user choice no longer branches")
 	}
-	evidence.BusyRuntime, evidence.BusyRuntimeIdentities, _, err = campaign.requireUserAlternatives(binary, "busy-runtime", func(output string) error {
+	evidence.BusyRuntime, evidence.BusyRuntimeIdentities, _, err = campaign.requireUserAlternatives(binary, "busy-runtime", runqueueBusyRuntimeGoroutines, func(output string) error {
 		if output != "busy-runtime a=32 b=32 a-saw-finalizers=true b-saw-finalizers=true" {
 			return fmt.Errorf("busy-runtime starved a class: output = %q", output)
 		}
@@ -437,12 +442,12 @@ func (campaign *runtimeCampaign) requireRunqueueUserChoice(binary string) (runqu
 // Runnable decision to choose among user goroutines only. The fixture cannot
 // name its goroutines' identities, so they are taken from the decisions
 // themselves: across all seeds the decisions may select at most
-// runqueueUserGoroutines distinct goroutines, and each decision's alternative
+// userGoroutines distinct goroutines, and each decision's alternative
 // set must be a set of those selected goroutines. A runtime-owned alternative
 // would either be selected somewhere, raising the count, or never be selected,
 // leaving a set no combination of selected goroutines reproduces. It returns
 // the first seed's run for a replay check.
-func (campaign *runtimeCampaign) requireUserAlternatives(binary, mode string, check func(string) error) ([]runqueueUserRun, int, choiceRun, error) {
+func (campaign *runtimeCampaign) requireUserAlternatives(binary, mode string, userGoroutines int, check func(string) error) ([]runqueueUserRun, int, choiceRun, error) {
 	var runs []runqueueUserRun
 	var first choiceRun
 	var decisions []choice.Record
@@ -471,8 +476,8 @@ func (campaign *runtimeCampaign) requireUserAlternatives(binary, mode string, ch
 			selected = append(selected, decision.SelectedIdentity)
 		}
 	}
-	if len(selected) > runqueueUserGoroutines {
-		return runs, len(selected), first, fmt.Errorf("%s decisions selected %d distinct goroutines, more than its %d user goroutines", mode, len(selected), runqueueUserGoroutines)
+	if len(selected) > userGoroutines {
+		return runs, len(selected), first, fmt.Errorf("%s decisions selected %d distinct goroutines, more than its %d user goroutines", mode, len(selected), userGoroutines)
 	}
 	for _, decision := range decisions {
 		matched, err := alternativeSetOfSelected(decision, selected)

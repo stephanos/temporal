@@ -1084,19 +1084,11 @@ func gomadChoiceTimerFired(previous gomadChoiceTimerIdentity) {
 var gomadChoiceSchedulerAlternatives [gomadChoiceMaximumAlternatives][32]byte
 var gomadChoiceSchedulerOrdered [gomadChoiceMaximumAlternatives][32]byte
 
-// gomadChoiceRunqIndex picks the local run-queue entry runqget takes next, as
-// an offset from head, for a queue of two or more entries. Runtime-owned
-// goroutines, as isSystemGoroutine classifies them, run first in queue order
-// and are never alternatives: the first one in the queue is taken without a
-// draw or a record. Only a queue of user goroutines draws from the seeded
-// stream, and with a Choice Trace it records one Runnable decision whose
-// alternatives are exactly those goroutines in queue order, so the selected
-// alternative is its own queue offset. The pick depends on the queue contents
-// and the seeded stream only, so traced and untraced runs schedule alike.
-// Classification reads the goroutine's start function and the finalizer and
-// cleanup running state: it neither allocates nor draws. The finalizer and
-// cleanup goroutines count as user goroutines while they run user functions
-// and as runtime-owned while they wait for or fetch work.
+// gomadChoiceRunqIndex returns the queue offset runqget takes next. The
+// alternatives are the user goroutines in queue order, so the selected
+// alternative is that offset. isSystemGoroutine reads only the start function
+// and the finalizer and cleanup state, so classifying neither allocates nor
+// draws.
 func gomadChoiceRunqIndex(pp *p, head, tail uint32) uint32 {
 	count := tail - head
 	for offset := uint32(0); offset < count; offset++ {
