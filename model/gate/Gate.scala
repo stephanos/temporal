@@ -33,11 +33,8 @@ final class Gate(tools: Tools, log: PrintStream):
   private val gen = model.resolve("gen")
   private val schemaFile = "proto/internal/temporal/server/api/umpire/v1/ir.proto"
   private val schema = root.resolve(schemaFile)
-  private val irJar = gen.resolve("ir-proto.jar")
-  private val scalaIrJar = gen.resolve("ir-scalapb.jar")
+  private val irJar = gen.resolve("ir-scalapb.jar")
   private val scalaPlugin = gen.resolve("protoc-gen-scala")
-  // The version of protobuf-java is the one the lifter runs with (lifter/project.scala).
-  private val protobuf = "com.google.protobuf:protobuf-java:4.29.5"
   // ScalaPB's generator and its runtime are released together; this release is built for Scala 3
   // and its generator runs with the pinned protoc.
   private val scalapb = "0.11.20"
@@ -64,13 +61,13 @@ final class Gate(tools: Tools, log: PrintStream):
     Files.createTempDirectory(Files.createDirectories(gen.resolve("history")), s"$name.")
 
   /**
-   * Packages the classes the lifter compiles against, both from the IR schema: the Java classes in
-   * model/gen/ir-proto.jar and the ScalaPB classes in model/gen/ir-scalapb.jar. The IR schema is
-   * proto/internal/temporal/server/api/umpire/v1/ir.proto; its Go code is generated with every other
-   * internal proto by `make protoc` into api/umpire/v1.
+   * Packages the classes the lifter compiles against: model/gen/ir-scalapb.jar, the IR's ScalaPB
+   * classes, compiled against scalapb-runtime. The IR schema is the file
+   * proto/internal/temporal/server/api/umpire/v1/ir.proto; its Go code is generated with every
+   * other internal proto by `make protoc` into api/umpire/v1.
    *
-   * The jars have a stamp beside them, the hash of the schema and the versions of the generators.
-   * With `ifStale`, the jars are packaged only when one of those changed since they were packaged.
+   * The jar has a stamp beside it, the hash of the schema and the versions of the generator and of
+   * Scala. With `ifStale`, the jar is packaged only when one of those changed since it was packaged.
    */
   def generateIr(ifStale: Boolean): Unit =
     if !Files.isRegularFile(schema) then throw GateError(s"the IR schema $schema is missing")
@@ -80,44 +77,14 @@ final class Gate(tools: Tools, log: PrintStream):
         .digest(Files.readAllBytes(schema))
         .map("%02x".format(_))
         .mkString
-    val stamp = s"$hash $protobuf scalapb:$scalapb scala:$scala"
+    val stamp = s"$hash scalapb:$scalapb scala:$scala"
     val stampFile = gen.resolve("ir.stamp")
-    val jars = Seq(irJar, scalaIrJar)
-    val current = (stampFile +: jars).forall(Files.isRegularFile(_))
+    val current = Seq(irJar, stampFile).forall(Files.isRegularFile(_))
       && Files.readString(stampFile).trim == stamp
     if !(ifStale && current) then
       // Whole seconds, no finer than the file times of the file systems the gate writes to.
       val started = System.currentTimeMillis() / 1000 * 1000
       val sources = scratch("schema")
-      def generate(out: String, plugin: Option[Path] = None) =
-        val arguments = plugin.map(p => s"--plugin=protoc-gen-scala=$p").toSeq ++ Seq(
-          "--proto_path=proto/internal",
-          out,
-          schemaFile.stripPrefix("proto/internal/")
-        )
-        tools.run("protoc", arguments).orFail()
-      def packaged(directory: Path, dependency: String, jar: Path) =
-        tools
-          .scalaCli(
-            Seq(
-              "--power",
-              "package",
-              "--library",
-              directory.toString,
-              "--scala",
-              scala,
-              "--dep",
-              dependency,
-              "-f",
-              "-o",
-              jar.toString
-            )
-          )
-          .orFail()
-
-      val java = Files.createDirectories(sources.resolve("java"))
-      generate(s"--java_out=$java")
-      packaged(java, protobuf, irJar)
 
       // protoc runs a plugin as an executable, so ScalaPB's generator is packaged as a launcher of
       // its own; scala-cli fetches it, as it fetches every other dependency of the model. It has no
@@ -146,23 +113,46 @@ final class Gate(tools: Tools, log: PrintStream):
         throw GateError(s"the ScalaPB plugin $plugin is missing: scala-cli did not package it")
       if Files.getLastModifiedTime(scalaPlugin).toMillis < started then
         throw GateError(s"the ScalaPB plugin $plugin is stale: scala-cli did not package it")
-      val scalaSources = Files.createDirectories(sources.resolve("scala"))
-      // flat_package leaves the file's name out of the package, as java_multiple_files does for Java.
-      // The ScalaPB classes therefore take the Java classes' names, so the lifter reads one jar.
-      generate(s"--scala_out=flat_package,scala3_sources:$scalaSources", Some(scalaPlugin))
-      packaged(scalaSources, s"com.thesamet.scalapb::scalapb-runtime:$scalapb", scalaIrJar)
 
-      for jar <- jars do
-        if !Files.isRegularFile(jar) then
-          throw GateError(
-            s"${root.relativize(jar)} is missing: the IR schema $schemaFile was not packaged"
+      val classes = Files.createDirectories(sources.resolve("ir"))
+      // flat_package leaves the file's name out of the package, so the classes sit in the schema's
+      // java_package, io.temporal.server.api.umpire.v1, which the lifter imports.
+      tools
+        .run(
+          "protoc",
+          Seq(
+            s"--plugin=protoc-gen-scala=$scalaPlugin",
+            "--proto_path=proto/internal",
+            s"--scala_out=flat_package,scala3_sources:$classes",
+            schemaFile.stripPrefix("proto/internal/")
           )
-        if Files.getLastModifiedTime(jar).toMillis < started then
-          throw GateError(
-            s"${root.relativize(jar)} is stale: the IR schema $schemaFile was not packaged into it"
+        )
+        .orFail()
+      tools
+        .scalaCli(
+          Seq(
+            "--power",
+            "package",
+            "--library",
+            classes.toString,
+            "--scala",
+            scala,
+            "--dep",
+            s"com.thesamet.scalapb::scalapb-runtime:$scalapb",
+            "-f",
+            "-o",
+            irJar.toString
           )
+        )
+        .orFail()
+
+      val jar = root.relativize(irJar)
+      if !Files.isRegularFile(irJar) then
+        throw GateError(s"$jar is missing: the IR schema $schemaFile was not packaged")
+      if Files.getLastModifiedTime(irJar).toMillis < started then
+        throw GateError(s"$jar is stale: the IR schema $schemaFile was not packaged into it")
       Files.writeString(stampFile, stamp + "\n")
-      jars.foreach(jar => log.println(s"generated ${root.relativize(jar)}"))
+      log.println(s"generated $jar")
 
   /** The whole gate. An update rewrites the checked-in IR and Cases; a check writes neither. */
   def run(update: Boolean, goChecks: Boolean): Unit =

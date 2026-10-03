@@ -115,7 +115,7 @@ Two IRs sit between the layers, and each has one writer side and one reader side
 | Layer | What happens | Module | Command |
 | --- | --- | --- | --- |
 | Authoring | Models are written in Scala with a small DSL (a library of declarations such as `machine`, `property` and `query`) | DSL `model/umpire`, Models `model/temporal` | `make lint-model`, `make fmt-model` |
-| Lifting | The compiled Models are translated to the Umpire IR. A construct outside the supported subset is refused at its source line | `model/lifter`, run by the gate `model/gate` | `make umpire-gen-model` writes `model/ir`; `make umpire-check-model` requires it to be current |
+| Lifting | The compiled Models are translated to the Umpire IR, built as the ScalaPB classes of its schema and written as ProtoJSON. A construct outside the supported subset is refused at its source line | `model/lifter`, run by the gate `model/gate` | `make umpire-gen-model` writes `model/ir`; `make umpire-check-model` requires it to be current |
 | Umpire IR | The checked-in lifted Models | `model/ir`; schema in `api/umpire/v1` | `make protoc` after a schema change |
 | Reading and checking | Go loads and validates the IR, builds each machine's table, and answers every Property, Query and refinement | `tools/umpire/model` | `go test -tags test_dep ./tools/umpire/model/...` |
 | Lowering | A `find` Query's witness becomes a Case through its realization | `tools/umpire/lower` | `make umpire-gen-cases` writes `model/cases`; `make umpire-check-cases` requires it to be current |
@@ -277,7 +277,7 @@ requires exactly that of a live Run and of its replay.
 | `model/lifter` | The lifter. `testdata` holds Models it must lift and Models it must refuse |
 | `model/ir` | The checked-in Umpire IR, one file per lifted Model |
 | `model/cases` | The checked-in Cases and `manifest.json` |
-| `model/gate` | The gate program. `Roots.scala` lists which declarations go into which IR file |
+| `model/gate` | The gate program. It generates the IR's ScalaPB classes from the schema into `model/gen` (`--generate-ir`), and `Roots.scala` lists which declarations go into which IR file |
 | `model/project.scala` | The build settings of the DSL and the Models |
 | [SEMANTICS.md](SEMANTICS.md) | The evaluation rules of the Umpire IR: what every construct means |
 | [specs/KNOWN_BUG.md](specs/KNOWN_BUG.md) | Proposed requirements for acknowledging a known bug; not implemented |

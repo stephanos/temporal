@@ -91,8 +91,8 @@ private[lift] trait Realizations:
             case _ => b
         case _ => b
 
-  // A field kind spelled as the refusal has always spelled it, in protobuf-java's JavaType names.
-  def javaKind(kind: ScalaType): String = kind match
+  // A field kind spelled as the refusal has always spelled it: FLOAT, DOUBLE, BYTE_STRING.
+  def kindName(kind: ScalaType): String = kind match
     case ScalaType.ByteString => "BYTE_STRING"
     case other                => other.toString.toUpperCase
 
@@ -206,7 +206,7 @@ private[lift] trait Realizations:
       case other =>
         fail(
           b.term,
-          s"the IR field ${f.name} of kind ${javaKind(other)} is not written out"
+          s"the IR field ${f.name} of kind ${kindName(other)} is not written out"
         )
 
   /** Sets the field a parameter names. An optional argument that is `None` leaves it unset. */

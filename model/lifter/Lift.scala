@@ -2,7 +2,8 @@
  * and emits the Umpire IR they declare. It lifts what authors wrote, as written: the `machine`
  * blocks, the action chains, and the step functions' bodies, including native `match`, `if`,
  * `copy` and local `val`s. Anything outside the subset stops the lift with the source position of
- * the construct, so a Model that cannot become IR is reported where it was written.
+ * the construct, so a Model that cannot become IR is reported where it was written. The IR is built
+ * as the ScalaPB classes the gate generates from its schema, and written as ProtoJSON.
  *
  * TASTy is read after compilation rather than by a macro during it: a macro sees a function's body
  * only for definitions of its own compilation run, and there only after pattern matching has been
