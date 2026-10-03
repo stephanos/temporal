@@ -363,9 +363,9 @@ class GateSuite extends munit.FunSuite:
     assertEquals(answer.status, 1)
     assert(answer.err.startsWith("gate: scala-cli printed an error and exited 0 in "), answer.err)
     assert(answer.err.contains("[error] ./model/umpire/Machine.scala:71:3"), answer.err)
-    // The framework alone compiled; the test of the Models was the last tool run.
+    // The framework alone compiled; the test of the Models was the last build run.
     assertEquals(
-      repository.ran.takeRight(2),
+      repository.ran.filter(_.startsWith("scala-cli ")).takeRight(2),
       Seq(
         "scala-cli compile model/project.scala model/umpire --suppress-outdated-dependency-warning",
         "scala-cli test model/project.scala model/umpire model/temporal --suppress-outdated-dependency-warning"
@@ -425,10 +425,10 @@ class GateSuite extends munit.FunSuite:
     assertEquals(checkedIn(repository).values.toSet, Set("{}\n"))
     // An update the environment asks for does not reach a check's test of the lifter.
     assert(repository.ran.contains("lifter update=[]"), repository.ran.mkString("\n"))
+    // A check lowers the checked-in IR beside the build, so its Cases were checked too.
     assertEquals(
       repository.ran.filter(line => line.startsWith("go ") && !line.contains("--linked-api")),
-      Seq(vocabularyCheck),
-      "the gate stopped before the Cases"
+      Seq(vocabularyCheck, "go run ./tools/umpire/cmd/umpire-gen-cases")
     )
 
   test(
@@ -520,6 +520,29 @@ class GateSuite extends munit.FunSuite:
     val files = Roots.ir.map(_._1).filter(file => Files.exists(lifted.resolve(file)))
     assertEquals(files.toSet, Roots.ir.map(_._1).toSet -- Set("activity.json", "nexus-close.json"))
     assertEquals(checkedIn(repository).values.toSet, Set("{}\n"))
+
+  test("a check reports Cases that fail with their output, with every other failure"):
+    val cases =
+      s"""case " $$* " in *"/umpire-gen-cases "*) echo "model/cases/a.json is stale"; exit 1;; esac
+         |$passingVocabulary""".stripMargin
+    val current = currentRepository(cases)
+    val answer = gate(current.tools, "--skip-go-checks")
+    assertEquals(answer.status, 1)
+    assert(answer.err.startsWith("gate: go exited 1 in "), answer.err)
+    assert(answer.err.contains("model/cases/a.json is stale"), answer.err)
+    // The lifts beside it ended and were reported before the Cases.
+    assert(
+      answer.out.indexOf("== lift the Nexus caller Model") <
+        answer.out.indexOf("== check every lowered Case"),
+      answer.out
+    )
+    val stale = Repository(scalaCli = lifting, go = cases)
+    val ir = Files.createDirectories(stale.root.resolve("model/ir"))
+    Roots.ir.foreach((file, _) => Files.writeString(ir.resolve(file), "{}\n"))
+    val both = gate(stale.tools, "--skip-go-checks")
+    assertEquals(both.status, 1)
+    assert(both.err.contains("model/ir/activity.json is stale"), both.err)
+    assert(both.err.contains("model/cases/a.json is stale"), both.err)
 
   test("a file the gate cannot read fails with its path, not a stack trace"):
     val repository = Repository(scalaCli = lifting)

@@ -24,6 +24,7 @@ import scala.concurrent.{blocking, Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.jdk.CollectionConverters.*
+import scala.util.Try
 
 /** A check of the gate that failed. */
 final class GateError(message: String) extends Exception(message)
@@ -59,6 +60,39 @@ final class Gate(tools: Tools, log: PrintStream):
     val result = body
     log.println(s"   ${(System.nanoTime() - started) / 1000000000}s")
     result
+
+  /** A step started beside others: its title, its output or failure, and how long it took. */
+  private type Beside = (String, Future[(Try[String], Long)])
+
+  // Its output is kept, so steps that run side by side do not interleave; `report` prints it.
+  private def beside(title: String)(body: => String): Beside =
+    title -> Future(blocking {
+      val started = System.nanoTime()
+      val result = Try(body)
+      (result, System.nanoTime() - started)
+    })
+
+  // Every step is waited for, so none outlives the gate, and is reported in the order given, so the
+  // log reads the same whichever ended first. Every one that failed is reported, after `failed`.
+  private def report(steps: Seq[Beside], failed: Option[Throwable] = None): Unit =
+    val failures = failed.toSeq ++ steps.flatMap: (title, running) =>
+      val (result, took) = Await.result(running, Duration.Inf)
+      log.println(s"== $title")
+      result.foreach(output => if output.nonEmpty then log.println(output.stripLineEnd))
+      log.println(s"   ${took / 1000000000}s")
+      result.failed.toOption
+    failures match
+      case Seq()        => ()
+      case Seq(failure) => throw failure
+      case many         =>
+        throw GateError(
+          many
+            .map {
+              case e: (GateError | ToolError) => e.getMessage
+              case e                          => e.toString
+            }
+            .mkString("\n")
+        )
 
   // Scratch directories are made fresh under the ignored model/gen/history and kept for inspection:
   // nothing is deleted, so another process's build state is never removed.
@@ -312,6 +346,40 @@ final class Gate(tools: Tools, log: PrintStream):
     step("reject free-text protobuf names in Models"):
       ProtoLiterals.check(model.resolve("temporal"), root)
 
+    // A check lowers the checked-in IR, which it never writes, so its Cases are checked beside the
+    // build and the lifts. An update lowers the IR it has just written.
+    val cases =
+      if update then Nil
+      else Seq(beside("check every lowered Case and the Query manifest")(lower(update)))
+    report(cases, Try(build(update)).failed.toOption)
+    if update then step("generate every lowered Case and the Query manifest")(lower(update)): Unit
+
+    // Combined verification may run the complete Go suite separately; the default gate includes it.
+    if goChecks then
+      step("interpret the IR in Go and hold it to its goldens"):
+        tools
+          .run("go", Seq("vet", "-tags", "test_dep", "./tools/umpire/..."), Output.Shown)
+          .orFail()
+        tools
+          .run(
+            "go",
+            Seq("test", "-count=1", "-tags", "test_dep", "./tools/umpire/..."),
+            Output.Shown
+          )
+          .orFail()
+    log.println("== ok")
+
+  // An update's output is shown as it runs; a check's is kept, since it runs beside other steps.
+  private def lower(update: Boolean): String =
+    if update then
+      tools
+        .run("go", Seq("run", "./tools/umpire/cmd/umpire-gen-cases", "--update"), Output.Shown)
+        .orFail()
+      ""
+    else tools.run("go", Seq("run", "./tools/umpire/cmd/umpire-gen-cases")).orFail().output
+
+  /** Generates and compiles what the lifter reads, then builds its fixtures and lifts the Models. */
+  private def build(update: Boolean): Unit =
     step("generate the IR's classes when their inputs changed"):
       generateIr(ifStale = true)
       val generated = root.resolve("api/umpire/v1/ir.pb.go")
@@ -344,15 +412,24 @@ final class Gate(tools: Tools, log: PrintStream):
         tools.scalaCli(Seq("compile", "--print-class-path") ++ models, Output.KeptApart).orFail()
       Files.writeString(modelClasspath, classpath.output)
 
-    step("build and lift the lifter's fixtures: the expected IR, and each refusal at its line"):
+    // Compiled once here, so the steps below that run it side by side only read its classes.
+    step("compile the lifter and its tests"):
+      tools.scalaCli(Seq("compile", "--test", "model/lifter")).orFail()
+
+    // Both read the packaged Models and the lifter, and neither reads what the other writes.
+    val fixtures = beside(
+      "build and lift the lifter's fixtures: the expected IR, and each refusal at its line"
+    ):
       // Set either way, so a check never inherits an update from the environment it is run in.
       tools
         .withEnvironment("UMPIRE_LIFTER_UPDATE" -> (if update then "1" else ""))
         .scalaCli(Seq("test", "model/lifter"))
         .orFail()
-
-    step("lift the Nexus caller Model, the activity Models and the Nexus close designs"):
-      val lifted = scratch("ir")
+      ""
+    val lifted = scratch("ir")
+    val modelLifts = beside(
+      "lift the Nexus caller Model, the activity Models and the Nexus close designs"
+    ):
       // Each lift is its own JVM, so they run side by side.
       val lifts = Roots.ir.map: (file, roots) =>
         // The lifter's own arguments follow `--`: an argument after it is a root, and the lifter
@@ -375,28 +452,10 @@ final class Gate(tools: Tools, log: PrintStream):
           case (file, ran) if ran.failed =>
             s"the roots of model/ir/$file did not lift:\n${ran.diagnostics}"
       if failures.nonEmpty then throw GateError(failures.mkString("\n"))
-      Gate.settle(model.resolve("ir"), lifted, root, update)
-
-    step(if update then "generate every lowered Case and the Query manifest"
-    else "check every lowered Case and the Query manifest"):
-      val arguments =
-        Seq("run", "./tools/umpire/cmd/umpire-gen-cases") ++ Option.when(update)("--update")
-      tools.run("go", arguments, Output.Shown).orFail()
-
-    // Combined verification may run the complete Go suite separately; the default gate includes it.
-    if goChecks then
-      step("interpret the IR in Go and hold it to its goldens"):
-        tools
-          .run("go", Seq("vet", "-tags", "test_dep", "./tools/umpire/..."), Output.Shown)
-          .orFail()
-        tools
-          .run(
-            "go",
-            Seq("test", "-count=1", "-tags", "test_dep", "./tools/umpire/..."),
-            Output.Shown
-          )
-          .orFail()
-    log.println("== ok")
+      ""
+    report(Seq(fixtures, modelLifts))
+    // After both, so an update rewrites model/ir only once the lifter's fixtures passed too.
+    Gate.settle(model.resolve("ir"), lifted, root, update)
 
 object Gate:
   val usage =
