@@ -3,6 +3,7 @@ package model
 import (
 	"cmp"
 	"flag"
+	"fmt"
 	"maps"
 	"path/filepath"
 	"regexp"
@@ -49,6 +50,56 @@ type migrationPropertyRow struct {
 type migrationProperty struct {
 	Owner, Name, ID, Error string
 	Rows                   []migrationPropertyRow
+}
+
+// migrationPropertyMeaning is a Property's answers in the compact form a comparison of two live
+// interpretations reads: the actions of its subject's rows it is about, each once, and the answer for
+// each row result it is about, in table order. A row is named by its index into the subject's table,
+// which the comparison holds on its own, so a changed About set, answer, row order or row count each
+// shows.
+type migrationPropertyMeaning struct {
+	Owner, Name, ID, Error string
+	About                  []string
+	Answers                []migrationPropertyAnswer
+}
+
+type migrationPropertyAnswer struct {
+	Row    int
+	Result int    `json:",omitempty"`
+	Holds  bool   `json:",omitempty"`
+	Error  string `json:",omitempty"`
+}
+
+// rows is the Property's answer for every row result of its table, as the checked-in goldens and the
+// original baseline's digests record it. Table is the one the answers index, nil when they were not
+// read.
+func (p migrationPropertyMeaning) rows(table *Table) migrationProperty {
+	out := migrationProperty{Owner: p.Owner, Name: p.Name, ID: p.ID, Error: p.Error}
+	if table == nil {
+		return out
+	}
+	about := map[string]bool{}
+	for _, action := range p.About {
+		about[action] = true
+	}
+	answers := p.Answers
+	for i, row := range table.Rows {
+		for j := range row.Results {
+			answer := migrationPropertyRow{Row: row.Key, Result: j, About: about[row.Action]}
+			if answer.About {
+				if answers[0].Row != i || answers[0].Result != j {
+					panic(fmt.Sprintf("property %s answers row %d result %d before row %d result %d", p.Name, answers[0].Row, answers[0].Result, i, j))
+				}
+				answer.Holds, answer.Error = answers[0].Holds, answers[0].Error
+				answers = answers[1:]
+			}
+			out.Rows = append(out.Rows, answer)
+		}
+	}
+	if len(answers) > 0 {
+		panic(fmt.Sprintf("property %s answers %d rows its table does not have", p.Name, len(answers)))
+	}
+	return out
 }
 
 type migrationReceipt struct {
@@ -120,8 +171,15 @@ func migrationMeaningOf(b *binding) migrationSemantics {
 }
 
 // migrationMeaningEach reads a Model's meaning one subject and one Property at a time, so a caller can
-// digest a Model whose meaning is too large to hold, and answers its receipts.
+// digest a Model whose meaning is too large to hold, and answers its receipts. Each Property has a row
+// for every row result of its table.
 func migrationMeaningEach(b *binding, subjectOf func(migrationSubject), propertyOf func(migrationProperty)) []migrationReceipt {
+	return migrationMeaningParts(b, subjectOf, func(p migrationPropertyMeaning, table *Table) { propertyOf(p.rows(table)) })
+}
+
+// migrationMeaningParts is migrationMeaningEach with each Property in its compact form, with the table
+// its answers index.
+func migrationMeaningParts(b *binding, subjectOf func(migrationSubject), propertyOf func(migrationPropertyMeaning, *Table)) []migrationReceipt {
 	m := b.model
 	receipts := migrationReceipts(checkWithBinding(m, b.scope, m, b.checking()).Receipts)
 	var subjects []string
@@ -148,7 +206,8 @@ func migrationMeaningEach(b *binding, subjectOf func(migrationSubject), property
 	}
 	for _, p := range m.GetProperties() {
 		subject := b.subject(p.GetMachine())
-		entry := migrationProperty{Owner: p.GetMachine(), Name: p.GetName(), ID: subject.family + ".property." + p.GetName()}
+		entry := migrationPropertyMeaning{Owner: p.GetMachine(), Name: p.GetName(), ID: subject.family + ".property." + p.GetName()}
+		var table *Table
 		if subject.err != nil {
 			entry.Error = migrationError(subject.err)
 		} else {
@@ -156,20 +215,32 @@ func migrationMeaningEach(b *binding, subjectOf func(migrationSubject), property
 			if err != nil {
 				entry.Error = migrationError(err)
 			} else {
+				table = subject.table
 				bound := boundProperty(p, reading)
-				for _, row := range subject.table.Rows {
-					for i, result := range row.Results {
-						answer := migrationPropertyRow{Row: row.Key, Result: i, About: bound.About(row.Action)}
-						if answer.About {
-							answer.Holds, err = bound.Holds(row.Source, result)
-							answer.Error = migrationError(err)
+				// About reads only the action, so each action is asked once.
+				about := map[string]bool{}
+				for i, row := range table.Rows {
+					is, asked := about[row.Action]
+					if !asked {
+						is = bound.About(row.Action)
+						about[row.Action] = is
+						if is {
+							entry.About = append(entry.About, row.Action)
 						}
-						entry.Rows = append(entry.Rows, answer)
+					}
+					if !is {
+						continue
+					}
+					for j, result := range row.Results {
+						answer := migrationPropertyAnswer{Row: i, Result: j}
+						answer.Holds, err = bound.Holds(row.Source, result)
+						answer.Error = migrationError(err)
+						entry.Answers = append(entry.Answers, answer)
 					}
 				}
 			}
 		}
-		propertyOf(entry)
+		propertyOf(entry, table)
 	}
 	return receipts
 }
@@ -277,29 +348,29 @@ func TestMigrationProjectionPreservesSemantics(t *testing.T) {
 			require.NoError(t, protojson.Unmarshal(originals[migrationKey(path)], original))
 			mapped, err := cfg.Migrate(original)
 			require.NoError(t, err)
-			// The original and the mapped Model are each interpreted once, and apart.
-			read, readMapped := migrationBinding(t, original), migrationBinding(t, mapped)
 			migrate := locationMigrator(cfg)
 			// nexus-close's meaning is hundreds of megabytes of JSON, so each side is digested part by
 			// part rather than held.
 			project := locationProjection(cfg)
-			before := meaningDigests(t, read, migrate, project)
-			after := meaningDigests(t, readMapped, func(s string) string { return s })
-			requireSameMeaning(t, before[0], after[0])
-			definitions := migrationDefinitionsOf(t, read)
+			// The original, the mapped and the current Model are each interpreted once, and apart. Each
+			// interpretation is dropped once read: nexus-close's takes most of the memory limit.
+			read := readMigration(t, original, migrate, project)
+			readMapped := readMigration(t, mapped, func(s string) string { return s })
+			requireSameMeaning(t, read.meaning[0], readMapped.meaning[0])
+			definitions := read.definitions
 			for i := range definitions {
 				definitions[i].Error = migrate(definitions[i].Error)
 			}
-			require.Equal(t, definitions, migrationDefinitionsOf(t, readMapped))
-			refined := migrationRefinedPropertiesOf(read)
+			require.Equal(t, definitions, readMapped.definitions)
+			refined := read.refined
 			for i := range refined {
 				refined[i].Error = migrate(refined[i].Error)
 			}
-			require.Equal(t, refined, migrationRefinedPropertiesOf(readMapped))
+			require.Equal(t, refined, readMapped.refined)
 			// The current IR, which Match admits under the projection, reads as the original does. The
 			// projection names a path the same in each spelling, so it applies over the migration.
-			current := migrationBinding(t, models[path])
-			requireSameMeaning(t, before[1], meaningDigests(t, current, project)[0])
+			current := readMigration(t, models[path], project)
+			requireSameMeaning(t, read.meaning[1], current.meaning[0])
 			for i := range definitions {
 				definitions[i].Error = project(definitions[i].Error)
 			}
@@ -311,7 +382,7 @@ func TestMigrationProjectionPreservesSemantics(t *testing.T) {
 				Refined     []migrationRefinedProperty
 			}{definitions, refined})
 			require.NoError(t, err)
-			currentDefinitions, currentRefined := migrationDefinitionsOf(t, current), migrationRefinedPropertiesOf(current)
+			currentDefinitions, currentRefined := current.definitions, current.refined
 			for i := range currentDefinitions {
 				currentDefinitions[i].Error = project(currentDefinitions[i].Error)
 			}
@@ -326,6 +397,22 @@ func TestMigrationProjectionPreservesSemantics(t *testing.T) {
 			require.Equal(t, string(want), string(got))
 		})
 	}
+}
+
+// migrationReading is what the projection test reads of one interpretation: its meaning digested
+// under each location mapping, its definitions and its refined Properties.
+type migrationReading struct {
+	meaning     []*golden.Stream
+	definitions []migrationDefinition
+	refined     []migrationRefinedProperty
+}
+
+// readMigration interprets a Model and reads it in the order the readers always have: its meaning,
+// then its definitions, then its refined Properties. The interpretation is not kept.
+func readMigration(t *testing.T, m *umpirespb.Model, locates ...func(string) string) migrationReading {
+	t.Helper()
+	b := migrationBinding(t, m)
+	return migrationReading{meaningDigests(t, b, locates...), migrationDefinitionsOf(t, b), migrationRefinedPropertiesOf(b)}
 }
 
 // locationProjection maps every source path a located string names, frozen or current, to its
@@ -627,6 +714,13 @@ func migratePropertyLocations(p *migrationProperty, replace func(string) string)
 	}
 }
 
+func migratePropertyMeaningLocations(p *migrationPropertyMeaning, replace func(string) string) {
+	p.Error = replace(p.Error)
+	for j := range p.Answers {
+		p.Answers[j].Error = replace(p.Answers[j].Error)
+	}
+}
+
 func migrateReceiptLocations(rows []migrationReceipt, replace func(string) string) {
 	for i := range rows {
 		r := &rows[i]
@@ -642,6 +736,13 @@ func migrateReceiptLocations(rows []migrationReceipt, replace func(string) strin
 // its located strings mapped by locates[0] through locates[i], in turn.
 func meaningDigests(t *testing.T, b *binding, locates ...func(string) string) []*golden.Stream {
 	t.Helper()
+	return meaningDigestsInspected(t, b, nil, locates...)
+}
+
+// meaningDigestsInspected is meaningDigests that hands each Property, with the table its answers
+// index, to inspect before it is digested, when inspect is not nil.
+func meaningDigestsInspected(t *testing.T, b *binding, inspect func(*migrationPropertyMeaning, *Table), locates ...func(string) string) []*golden.Stream {
+	t.Helper()
 	streams := make([]*golden.Stream, len(locates))
 	for i := range streams {
 		streams[i] = &golden.Stream{Keep: true, Verbatim: true}
@@ -652,12 +753,15 @@ func meaningDigests(t *testing.T, b *binding, locates ...func(string) string) []
 			require.NoError(t, s.Add(name, v))
 		}
 	}
-	receipts := migrationMeaningEach(b,
+	receipts := migrationMeaningParts(b,
 		func(x migrationSubject) {
 			add("subject "+x.Name, &x, func(i int) { migrateSubjectLocations(&x, locates[i]) })
 		},
-		func(x migrationProperty) {
-			add("property "+x.Owner+"."+x.Name, &x, func(i int) { migratePropertyLocations(&x, locates[i]) })
+		func(x migrationPropertyMeaning, table *Table) {
+			if inspect != nil {
+				inspect(&x, table)
+			}
+			add("property "+x.Owner+"."+x.Name, &x, func(i int) { migratePropertyMeaningLocations(&x, locates[i]) })
 		})
 	add("receipts", receipts, func(i int) { migrateReceiptLocations(receipts, locates[i]) })
 	return streams
@@ -674,6 +778,83 @@ func requireSameMeaning(t *testing.T, want, got *golden.Stream) {
 	}
 	require.Len(t, got.Parts, len(want.Parts))
 	require.Fail(t, "the meanings differ in their framing")
+}
+
+// TestMigrationMeaningDetectsCompactMutations changes, one at a time, what the compact Property form
+// leaves to its subject's table and what it records itself: each change fails the comparison of two
+// interpretations, at the part that carries it.
+func TestMigrationMeaningDetectsCompactMutations(t *testing.T) {
+	m, err := Load("../../../model/ir/nexus-caller.json")
+	require.NoError(t, err)
+	unmoved := func(s string) string { return s }
+	// The Property mutated is the first one whose answers cover more than one action, on two rows or more.
+	var property, owner string
+	original := meaningDigestsInspected(t, migrationBinding(t, m), func(x *migrationPropertyMeaning, _ *Table) {
+		if property == "" && len(x.About) > 1 && len(x.Answers) > 1 && x.Answers[0].Row != x.Answers[len(x.Answers)-1].Row {
+			property, owner = x.Name, x.Owner
+		}
+	}, unmoved)[0]
+	require.NotEmpty(t, property)
+	same := meaningDigests(t, migrationBinding(t, m), unmoved)[0]
+	require.Equal(t, original.Digest(), same.Digest(), "the meaning is deterministic")
+	propertyPart, subjectPart := "property "+owner+"."+property, "subject "+owner
+
+	answer := func(change func(*migrationPropertyMeaning, *Table)) func(*migrationPropertyMeaning, *Table) {
+		return func(x *migrationPropertyMeaning, table *Table) {
+			if x.Name == property && x.Owner == owner {
+				change(x, table)
+			}
+		}
+	}
+	rows := func(change func([]Row) []Row) func(*binding) {
+		return func(b *binding) {
+			table := b.subject(owner).table
+			table.Rows = change(slices.Clone(table.Rows))
+		}
+	}
+	for _, mutation := range []struct {
+		name     string
+		table    func(*binding)
+		property func(*migrationPropertyMeaning, *Table)
+		part     string
+	}{
+		{name: "About set", part: propertyPart, property: answer(func(x *migrationPropertyMeaning, _ *Table) {
+			x.About = x.About[1:]
+		})},
+		{name: "About set with its answers", part: propertyPart, property: answer(func(x *migrationPropertyMeaning, table *Table) {
+			// The Property is no longer about its first action: that action's answers go with it.
+			dropped := x.About[0]
+			x.About = x.About[1:]
+			x.Answers = slices.DeleteFunc(x.Answers, func(a migrationPropertyAnswer) bool { return table.Rows[a.Row].Action == dropped })
+		})},
+		{name: "Holds", part: propertyPart, property: answer(func(x *migrationPropertyMeaning, _ *Table) {
+			x.Answers[0].Holds = !x.Answers[0].Holds
+		})},
+		{name: "Error", part: propertyPart, property: answer(func(x *migrationPropertyMeaning, _ *Table) {
+			x.Answers[len(x.Answers)-1].Error += "changed"
+		})},
+		{name: "row order", part: subjectPart, table: rows(func(r []Row) []Row {
+			r[0], r[len(r)-1] = r[len(r)-1], r[0]
+			return r
+		})},
+		{name: "row count", part: subjectPart, table: rows(func(r []Row) []Row { return r[:len(r)-1] })},
+	} {
+		t.Run(mutation.name, func(t *testing.T) {
+			b := migrationBinding(t, m)
+			if mutation.table != nil {
+				mutation.table(b)
+			}
+			changed := meaningDigestsInspected(t, b, mutation.property, unmoved)[0]
+			require.NotEqual(t, original.Digest(), changed.Digest())
+			require.Len(t, changed.Parts, len(original.Parts))
+			first := 0
+			for first < len(original.Parts) && original.Parts[first] == changed.Parts[first] {
+				first++
+			}
+			require.Less(t, first, len(original.Parts))
+			require.Equal(t, mutation.part, original.Parts[first].Name, "the first part that differs")
+		})
+	}
 }
 
 func TestMigrationGoldenReadsPropertiesWithNoQuery(t *testing.T) {
