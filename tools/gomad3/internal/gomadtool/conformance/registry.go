@@ -62,7 +62,8 @@ var schedulingSearchFixtures = []struct{ name, packageName string }{
 // receive empties the channel. The blocking shapes park between their polls
 // and their result, so only the others show the recording adding nothing. The
 // seven shapes with fewer than two ready cases are the ones the explorer lists
-// as no-ops; the list and this table name the same shapes.
+// as no-ops; requireNoOpShapesListed holds the list and this table to the same
+// shapes.
 var selectReadinessShapes = []selectShape{
 	{name: "blocking-zero-ready", outcomes: []string{"blocking-zero-ready first"}, readiness: choice.SelectReadiness{Known: true}, noOp: true},
 	{name: "blocking-one-ready", outcomes: []string{"blocking-one-ready first"}, readiness: choice.SelectReadiness{Known: true, Ready: 1}, completesLocked: true, noOp: true},

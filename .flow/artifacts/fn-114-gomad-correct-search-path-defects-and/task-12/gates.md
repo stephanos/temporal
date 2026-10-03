@@ -51,3 +51,28 @@ combined candidate.
 --working-dir <root> --json go-test ./tests -- -test.run=^TestSignalWorkflowTestSuiteChasm$`:
 exit 0, 1:08 including the target build, one success retained. Counts in
 `../select-reduction/`.
+
+## Review round 1 fixes (same base, toolchain unchanged)
+
+The review (claude-fable-5-1 at high) returned NEEDS_WORK with two findings:
+the new counter stopped at the engine (`runner.ChoiceExplorationSummary`, its
+projection, and the `explore`/`inspect` exploration lines lacked it), and the
+explorer's shape list and the fixture's `noOp` rows were two hand-maintained
+lists. Fixed by carrying `omitted_by_select_readiness` through the projection
+and both lines, moving the list to `choice.NoOpSelectShapes`, and having the
+fixture hold its proven rows and that list to the same set
+(`requireNoOpShapesListed`, red-first in `../select-reduction/red-first.txt`).
+No CLI output test pins those lines; `go test ./cmd/...` passed unchanged.
+
+| command | exit | elapsed |
+| --- | ---: | --- |
+| `go test -tags test_dep -count=1 ./runner/internal/exploration/choice/ ./choice/ .` and `-run ChoiceExploration ./runner/` | 0 | 0:20 |
+| `go test -tags test_dep -count=1 ./cmd/...` | 0 | 0:29 |
+| `TestRuntimeSearchFixtures` (retained again to `../select-reduction/search-reproduction.json`; select-shape rows identical to the first run, timer identities differ with the rebuilt fixture binary) | 0 | 0:19 |
+| `gofmt -l` (no output); `go vet -tags test_dep ./choice/ ./runner/... ./cmd/... ./internal/gomadtool/conformance/` | 0 | |
+| `make -C tools/gomad3 validate` (build key unchanged) | 0 | 0:05 |
+| `GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host` (45 packages ok) | 0 | 2:42 |
+| `make -C tools/gomad3 test-runtime` | 0 | 7:12 |
+
+`test-toolchain` and `overlay-test` were not rerun: no runtime, overlay, or
+generator input changed in this round.

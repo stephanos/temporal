@@ -23,3 +23,9 @@ FAIL	go.temporal.io/server/tools/gomad3/runner	1.030s
 FAIL
 FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	24.331s
 FAIL
+
+## Fixture with nil-channel removed from choice.NoOpSelectShapes (mutation, reverted)
+--- FAIL: TestRuntimeSearchFixtures (3.61s)
+    runtime_test.go:183: the fixture proves select shape {PolledCases:2 Readiness:{Known:true Ready:1 Default:false NilChannel:true TimerChannel:false ClosedChannel:false RepeatedChannel:false}}, which the explorer does not list
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	3.899s

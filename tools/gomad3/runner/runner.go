@@ -230,23 +230,24 @@ type ChoiceTraceSummary struct {
 }
 
 type ChoiceExplorationSummary struct {
-	Parallel                int    `json:"parallel"`
-	MaxExecutions           uint64 `json:"max_executions"`
-	MaxChoiceDepth          uint64 `json:"max_choice_depth"`
-	StartOrdinal            uint64 `json:"start_ordinal,omitempty"`
-	MaxExplorationBytes     uint64 `json:"max_exploration_bytes"`
-	LogicalExecutions       uint64 `json:"logical_executions"`
-	CommittedRounds         uint64 `json:"committed_rounds"`
-	Pending                 uint64 `json:"pending"`
-	PendingBytes            uint64 `json:"pending_bytes"`
-	SeenPrefixes            uint64 `json:"seen_prefixes"`
-	DeduplicatedOutcomes    uint64 `json:"deduplicated_outcomes"`
-	DeepestPrefix           uint64 `json:"deepest_prefix"`
-	OmittedByExecutionBound uint64 `json:"omitted_by_execution_bound"`
-	OmittedByDepth          uint64 `json:"omitted_by_depth"`
-	OmittedByCapacity       uint64 `json:"omitted_by_capacity"`
-	StopReason              string `json:"stop_reason,omitempty"`
-	BoundedComplete         bool   `json:"bounded_complete"`
+	Parallel                 int    `json:"parallel"`
+	MaxExecutions            uint64 `json:"max_executions"`
+	MaxChoiceDepth           uint64 `json:"max_choice_depth"`
+	StartOrdinal             uint64 `json:"start_ordinal,omitempty"`
+	MaxExplorationBytes      uint64 `json:"max_exploration_bytes"`
+	LogicalExecutions        uint64 `json:"logical_executions"`
+	CommittedRounds          uint64 `json:"committed_rounds"`
+	Pending                  uint64 `json:"pending"`
+	PendingBytes             uint64 `json:"pending_bytes"`
+	SeenPrefixes             uint64 `json:"seen_prefixes"`
+	DeduplicatedOutcomes     uint64 `json:"deduplicated_outcomes"`
+	DeepestPrefix            uint64 `json:"deepest_prefix"`
+	OmittedByExecutionBound  uint64 `json:"omitted_by_execution_bound"`
+	OmittedByDepth           uint64 `json:"omitted_by_depth"`
+	OmittedByCapacity        uint64 `json:"omitted_by_capacity"`
+	OmittedBySelectReadiness uint64 `json:"omitted_by_select_readiness"`
+	StopReason               string `json:"stop_reason,omitempty"`
+	BoundedComplete          bool   `json:"bounded_complete"`
 }
 
 type SimulationExplorationSummary struct {
@@ -1811,7 +1812,8 @@ func projectChoiceExplorationSummary(summary choiceengine.Summary) ChoiceExplora
 		CommittedRounds: summary.CommittedRounds, Pending: summary.Pending, PendingBytes: summary.PendingBytes,
 		SeenPrefixes: summary.SeenPrefixes, DeduplicatedOutcomes: summary.DeduplicatedOutcomes, DeepestPrefix: summary.DeepestPrefix,
 		OmittedByExecutionBound: summary.OmittedByExecutionBound, OmittedByDepth: summary.OmittedByDepth,
-		OmittedByCapacity: summary.OmittedByCapacity, StopReason: string(summary.StopReason), BoundedComplete: summary.BoundedComplete,
+		OmittedByCapacity: summary.OmittedByCapacity, OmittedBySelectReadiness: summary.OmittedBySelectReadiness,
+		StopReason: string(summary.StopReason), BoundedComplete: summary.BoundedComplete,
 	}
 }
 

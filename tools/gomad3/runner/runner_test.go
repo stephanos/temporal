@@ -1125,7 +1125,7 @@ func TestRunChoiceExplorationLeavesNoOpSelectPollsUnexpandedAcrossResume(t *test
 	}
 	// The runnable decision has one alternative to expand; the select's does
 	// not, in the root's round or in the resumed one.
-	if resumed.Attempted != 2 || resumed.StopReason != StopExplorationExhausted || resumed.ChoiceExploration == nil || resumed.ChoiceExploration.SeenPrefixes != 2 || resumed.ChoiceExploration.CommittedRounds != 2 {
+	if resumed.Attempted != 2 || resumed.StopReason != StopExplorationExhausted || resumed.ChoiceExploration == nil || resumed.ChoiceExploration.SeenPrefixes != 2 || resumed.ChoiceExploration.CommittedRounds != 2 || resumed.ChoiceExploration.OmittedBySelectReadiness != 2 {
 		t.Fatalf("resumed exploration = %#v", resumed)
 	}
 	batch, err := campaign.OpenCampaign(resumed.CampaignPath)

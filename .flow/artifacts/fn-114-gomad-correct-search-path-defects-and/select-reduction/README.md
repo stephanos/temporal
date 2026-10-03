@@ -29,10 +29,13 @@ No deadlock in any run. The full counts for the seven task 2 shapes
 (196/68/68/68/196/68/68) equal the baseline task 2 retained under
 `runtime-reproduction/final-approved/` on build 6b775117 and task 11's on build
 2008ea81; `timer-channel-due` and `repeated-channel` equal task 11's 200 and 68.
-Every select polls two cases, so the explorer's list carries the seven sound
-shapes keyed on two polled cases; a select that polls more cases, or whose
-readiness carries another flag combination, stays expanded until a fixture
-shape covers it. The timer sections of the fixture are unchanged from task 11.
+Every select polls two cases, so the explorer's list
+(`choice.NoOpSelectShapes`) carries the seven sound shapes keyed on two polled
+cases; a select that polls more cases, or whose readiness carries another flag
+combination, stays expanded until a fixture shape covers it. The fixture holds
+its proven shapes and that list to the same set before exploring, so a shape
+added to either side alone fails it. The timer sections of the fixture are
+unchanged from task 11.
 
 The reduced-versus-full comparison was shown to catch an unsound listing: with
 `blocking-two-ready` marked as a no-op and the reduction widened to fewer than
