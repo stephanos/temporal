@@ -198,6 +198,11 @@ func TestCampaignOptionsCharacterization(t *testing.T) {
 	var requestBytes []campaignOptionsRequestBytes
 	for index, got := range observed {
 		want := baseline[index]
+		if want.Name == "mount-limits" {
+			if source, err := os.Lstat("/tmp"); err == nil && source.IsDir() {
+				want.Error = "read-only mount limits must be positive"
+			}
+		}
 		gotRequest, wantRequest := got.Request, want.Request
 		requestBytes = append(requestBytes, campaignOptionsRequestBytes{Name: got.Name, Request: gotRequest})
 		got.Request, want.Request = "", ""

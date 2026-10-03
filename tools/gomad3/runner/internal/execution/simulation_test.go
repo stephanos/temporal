@@ -189,6 +189,28 @@ func TestSimulationModelTransportCarriesLogicalTime(t *testing.T) {
 	}
 }
 
+func TestSimulationModelTransportCarriesRequestLogicalTime(t *testing.T) {
+	var encoded bytes.Buffer
+	want := simulationFrame{
+		Profile: simulationProtocol, Kind: simulationFrameModel, Request: 7, Node: "node", Incarnation: 1,
+		Arrivals: 2, Time: simulationInitialTime + 11, Payload: []byte("request"),
+	}
+	if err := writeSimulationModelTransportFrame(&encoded, want); err != nil {
+		t.Fatal(err)
+	}
+	got, err := readSimulationModelTransportFrame(&encoded)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("model request = %#v, want %#v", got, want)
+	}
+	want.Time = 1
+	if err := writeSimulationModelTransportFrame(io.Discard, want); err == nil {
+		t.Fatal("model request accepted an invalid logical time")
+	}
+}
+
 func TestSimulationExplorationFramesUseTheirOwnPayloadBounds(t *testing.T) {
 	payload := make([]byte, maximumSimulationBootstrapBytes+1)
 	requireValid := func(kind simulationFrameKind) {

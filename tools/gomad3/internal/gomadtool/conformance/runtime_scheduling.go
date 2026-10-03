@@ -22,6 +22,27 @@ func (campaign *runtimeCampaign) requireSchedulingBehavior(binaries map[string]s
 	if err := campaign.requireRuntimeOwned(binaries["runtime-owned"]); err != nil {
 		return err
 	}
+	for _, fixture := range []struct {
+		name   string
+		mode   string
+		output string
+	}{
+		{name: "locked-syscall-arrival-before-timer", mode: "arrival-before-timer", output: "locked syscall arrived before timer; timer fired"},
+		{name: "locked-syscall-arrival-after-timer-fired", mode: "arrival-after-timer-fired", output: "timer fired before locked syscall arrived"},
+		{name: "locked-syscall-arrival-during-quiescence-round-trip", mode: "arrival-during-quiescence-round-trip", output: "locked syscall arrived during quiescence; timer fired"},
+	} {
+		result, err := campaign.command(
+			fixture.name, []string{binaries["locked-syscall"], fixture.mode}, campaign.testdata, 10*time.Second,
+			[]string{"GOMADSEED", "GOMAD3_CHILD_SEED", "GOMAD3_IO_PROFILE", "GOMAD3_SIMULATION_TIME_REQUEST_FD", "GOMAD3_SIMULATION_TIME_RESPONSE_FD", "GODEBUG", "GOMAXPROCS", "TZ"},
+			"GODEBUG=asyncpreemptoff=1", "GOMAXPROCS=1", "TZ=UTC",
+		)
+		if err != nil {
+			return err
+		}
+		if err := requireOutput(result, fixture.output, fixture.name); err != nil {
+			return err
+		}
+	}
 	if err := campaign.requireSearchReproduction(binaries); err != nil {
 		return err
 	}
@@ -250,6 +271,7 @@ type searchReproduction struct {
 	TimerCreators                []goroutineHandoff      `json:"timer_creators"`
 	TimerResets                  []goroutineHandoff      `json:"timer_resets"`
 	SelectShapes                 []selectShapeEvidence   `json:"select_shapes"`
+	RunqueueUserChoice           runqueueUserEvidence    `json:"runqueue_user_choice"`
 }
 
 func (campaign *runtimeCampaign) requireSearchReproduction(binaries map[string]string) error {
@@ -306,11 +328,224 @@ func (campaign *runtimeCampaign) requireSearchReproduction(binaries map[string]s
 		}
 		evidence.SelectShapes = append(evidence.SelectShapes, result)
 	}
+	evidence.RunqueueUserChoice, err = campaign.requireRunqueueUserChoice(binaries["runq-user-choice"])
+	if err != nil {
+		return err
+	}
 	data, err := json.MarshalIndent(evidence, "", "  ")
 	if err != nil {
 		return err
 	}
 	return os.WriteFile(filepath.Join(campaign.workspace, "search-reproduction.json"), append(data, '\n'), 0o600)
+}
+
+// The user goroutines a runq_user_choice mode can select. In two-users only
+// the two workers are runnable together, because main stays parked in Wait.
+// busy-runtime adds the finalizer goroutine, which is a user goroutine while
+// it runs the workers' finalizers.
+const (
+	runqueueTwoUsersGoroutines    = 2
+	runqueueBusyRuntimeGoroutines = 3
+)
+
+type runqueueUserEvidence struct {
+	// TwoUsers and BusyRuntime list, per seed, the step order or summary the
+	// mode printed and its Runnable decisions; Identities counts the distinct
+	// goroutines those decisions selected across all seeds of the mode.
+	TwoUsers              []runqueueUserRun `json:"two_users"`
+	TwoUsersIdentities    int               `json:"two_users_identities"`
+	BusyRuntime           []runqueueUserRun `json:"busy_runtime"`
+	BusyRuntimeIdentities int               `json:"busy_runtime_identities"`
+	// NoChoice lists the modes with at most one runnable user goroutine; each
+	// recorded no decision and printed the same output under every seed.
+	NoChoice     []runqueueUserRun `json:"no_choice"`
+	ReplaySeed   string            `json:"replay_seed"`
+	ReplayOutput string            `json:"replay_output"`
+}
+
+type runqueueUserRun struct {
+	Mode      string `json:"mode"`
+	Seed      string `json:"seed"`
+	Output    string `json:"output"`
+	Decisions int    `json:"decisions"`
+}
+
+// requireRunqueueUserChoice holds the run-queue choice to its rule: a
+// runtime-owned head runs without a choice, while a user head chooses only
+// among queued user goroutines. The fixture's collector churn puts the sweeper, scavenger, mark
+// workers, and finalizer goroutine in the queue beside the user goroutines.
+// Under the old rule each of these checks fails: main-only recorded 26
+// decisions for seed 11 that all had a runtime-owned alternative, and
+// two-users recorded decisions with four and five alternatives.
+func (campaign *runtimeCampaign) requireRunqueueUserChoice(binary string) (runqueueUserEvidence, error) {
+	var evidence runqueueUserEvidence
+	for _, mode := range []string{"main-only", "one-user"} {
+		var first string
+		for _, seed := range []string{"1", "1", "2", "3", "11", "17"} {
+			run, _, err := campaign.runChoiceSpec(choiceRunSpec{
+				name: fmt.Sprintf("runq-user-%s-seed-%s-%d", mode, seed, len(evidence.NoChoice)), fixture: binary, seed: seed, mode: choice.ModeRecord, args: []string{mode},
+			})
+			if err != nil {
+				return evidence, err
+			}
+			decisions := runnableDecisions(run.trace)
+			evidence.NoChoice = append(evidence.NoChoice, runqueueUserRun{Mode: mode, Seed: seed, Output: run.transcript, Decisions: len(decisions)})
+			if len(decisions) != 0 {
+				return evidence, fmt.Errorf("%s seed %s recorded %d Runnable decisions with at most one runnable user goroutine", mode, seed, len(decisions))
+			}
+			if first == "" {
+				first = run.transcript
+			} else if run.transcript != first {
+				return evidence, campaign.repeatabilityMismatch(mode+" printed a schedule-dependent result without a decision", first, run.transcript)
+			}
+		}
+		if first != mode+" done" {
+			return evidence, fmt.Errorf("%s output = %q", mode, first)
+		}
+	}
+	var err error
+	var recorded choiceRun
+	evidence.TwoUsers, evidence.TwoUsersIdentities, recorded, err = campaign.requireUserAlternatives(binary, "two-users", runqueueTwoUsersGoroutines, func(output string) error {
+		order := strings.TrimPrefix(output, "two-users ")
+		if len(order) != 8 || strings.Count(order, "a") != 4 || strings.Count(order, "b") != 4 {
+			return fmt.Errorf("two-users output = %q", output)
+		}
+		return nil
+	})
+	if err != nil {
+		return evidence, err
+	}
+	orders := map[string]bool{}
+	for _, run := range evidence.TwoUsers {
+		orders[run.Output] = true
+	}
+	if len(orders) < 2 {
+		return evidence, errors.New("two-users printed one step order under every seed; the user choice no longer branches")
+	}
+	evidence.BusyRuntime, evidence.BusyRuntimeIdentities, _, err = campaign.requireUserAlternatives(binary, "busy-runtime", runqueueBusyRuntimeGoroutines, func(output string) error {
+		if output != "busy-runtime a=32 b=32 a-saw-finalizers=true b-saw-finalizers=true" {
+			return fmt.Errorf("busy-runtime starved a class: output = %q", output)
+		}
+		return nil
+	})
+	if err != nil {
+		return evidence, err
+	}
+	// A tape of the user-only decisions forces the recorded order under a
+	// seed that picks differently on its own.
+	identity, err := campaign.choiceIdentity(binary)
+	if err != nil {
+		return evidence, err
+	}
+	plan, err := choice.ProjectReplayPlan(recorded.trace, identity)
+	if err != nil {
+		return evidence, fmt.Errorf("project two-users tape: %w", err)
+	}
+	for _, run := range evidence.TwoUsers[1:] {
+		if run.Output == recorded.transcript {
+			continue
+		}
+		replayed, err := campaign.runChoiceMode("runq-user-two-users-replay-seed-"+run.Seed, binary, run.Seed, &plan, choice.ModeReplay, 0, "two-users")
+		if err != nil {
+			return evidence, err
+		}
+		if replayed.transcript != recorded.transcript {
+			return evidence, campaign.repeatabilityMismatch("two-users tape did not reproduce its order under seed "+run.Seed, recorded.transcript, replayed.transcript)
+		}
+		evidence.ReplaySeed, evidence.ReplayOutput = run.Seed, replayed.transcript
+		break
+	}
+	if evidence.ReplaySeed == "" {
+		return evidence, errors.New("no two-users seed picked differently from the recorded tape")
+	}
+	return evidence, nil
+}
+
+// requireUserAlternatives runs one mode under several seeds and requires every
+// Runnable decision to choose among user goroutines only. The fixture cannot
+// name its goroutines' identities, so they are taken from the decisions
+// themselves: across all seeds the decisions may select at most
+// userGoroutines distinct goroutines, and each decision's alternative
+// set must be a set of those selected goroutines. A runtime-owned alternative
+// would either be selected somewhere, raising the count, or never be selected,
+// leaving a set no combination of selected goroutines reproduces. It returns
+// the first seed's run for a replay check.
+func (campaign *runtimeCampaign) requireUserAlternatives(binary, mode string, userGoroutines int, check func(string) error) ([]runqueueUserRun, int, choiceRun, error) {
+	var runs []runqueueUserRun
+	var first choiceRun
+	var decisions []choice.Record
+	for seed := 1; seed <= 8; seed++ {
+		value := strconv.Itoa(seed)
+		run, err := campaign.runChoiceMode(fmt.Sprintf("runq-user-%s-seed-%s", mode, value), binary, value, nil, choice.ModeRecord, 0, mode)
+		if err != nil {
+			return runs, 0, first, err
+		}
+		if err := check(run.transcript); err != nil {
+			return runs, 0, first, fmt.Errorf("seed %s: %w", value, err)
+		}
+		if seed == 1 {
+			first = run
+		}
+		recorded := runnableDecisions(run.trace)
+		runs = append(runs, runqueueUserRun{Mode: mode, Seed: value, Output: run.transcript, Decisions: len(recorded)})
+		decisions = append(decisions, recorded...)
+	}
+	if len(decisions) == 0 {
+		return runs, 0, first, fmt.Errorf("%s recorded no Runnable decision", mode)
+	}
+	var selected [][sha256.Size]byte
+	for _, decision := range decisions {
+		if !slices.Contains(selected, decision.SelectedIdentity) {
+			selected = append(selected, decision.SelectedIdentity)
+		}
+	}
+	if len(selected) > userGoroutines {
+		return runs, len(selected), first, fmt.Errorf("%s decisions selected %d distinct goroutines, more than its %d user goroutines", mode, len(selected), userGoroutines)
+	}
+	for _, decision := range decisions {
+		matched, err := alternativeSetOfSelected(decision, selected)
+		if err != nil {
+			return runs, len(selected), first, err
+		}
+		if !matched {
+			return runs, len(selected), first, fmt.Errorf("%s decision %d chose among %d goroutines that are not all user goroutines", mode, decision.Ordinal, decision.Alternatives)
+		}
+	}
+	return runs, len(selected), first, nil
+}
+
+func runnableDecisions(trace choice.Trace) []choice.Record {
+	var decisions []choice.Record
+	for _, record := range trace.Records {
+		if record.Kind == choice.KindRunnable && record.Flags&choice.FlagDecision != 0 {
+			decisions = append(decisions, record)
+		}
+	}
+	return decisions
+}
+
+// alternativeSetOfSelected reports whether some subset of selected that holds
+// the decision's selected goroutine has the decision's alternative-set digest.
+func alternativeSetOfSelected(decision choice.Record, selected [][sha256.Size]byte) (bool, error) {
+	for mask := 1; mask < 1<<len(selected); mask++ {
+		var members [][sha256.Size]byte
+		for index, identity := range selected {
+			if mask&(1<<index) != 0 {
+				members = append(members, identity)
+			}
+		}
+		if len(members) != int(decision.Alternatives) || !slices.Contains(members, decision.SelectedIdentity) {
+			continue
+		}
+		digest, err := choice.AlternativeSetDigest(members)
+		if err != nil {
+			return false, err
+		}
+		if digest == decision.AlternativeSetDigest {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func timerCallbackAssociation(seed string, run choiceRun) (timerCallbackEvidence, error) {

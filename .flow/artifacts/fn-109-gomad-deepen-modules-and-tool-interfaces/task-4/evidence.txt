@@ -1,0 +1,87 @@
+fn-109.4 Resolve CLI installation and private child modes through one application construction path -- evidence
+
+Host: linux/arm64 with the local development harness ON (adds linux/arm64 to version.json and the
+boundary manifest, shims syscall.Dup2). Development evidence only; NOT darwin/arm64 or linux/amd64
+evidence. TMPDIR is the sandbox default.
+Base revision: 09c1f3cca (gomad-next-c, after fn-109.3 and its review nits).
+Characterization commit (pre-refactor code, passing): 903220289. Refactor commit: the commit that
+adds this file. characterization_test.go and testdata/characterization/* are byte-identical between
+the two commits; only characterization_support_test.go (the seam adapter) changes.
+
+Design
+- New cmd/gomad/internal/cli/application.go. Run builds one private `application` per invocation
+  (hostApplication: os.Executable, os.Getenv, os.Stdin/os.Stdout, runner.DispatchPrivateMode) and
+  dispatches through app.run. The application alone:
+  - names the private child modes (__coordinator, __supervisor, __target_bootstrap) and dispatches
+    them over the process streams (app.runPrivateMode);
+  - finds the executable (executablePath, absoluteExecutable), resolves the installation from
+    --toolchain-root / GOMAD3_TOOLCHAIN_DIR / adjacent manifest (resolveInstallation) and digests the
+    Runner build (digestRunner);
+  - returns an `installation{toolchainRoot, executable, runnerBuild}` whose supervisorCommand() /
+    coordinatorCommand() are the only place child-mode argv is spelled.
+- Commands that need an installation are application methods (explore, plan, execute-shard,
+  qualify, qualify-set, analyze, resume, replay, minimize, doctor). They feed app.install (or
+  app.executablePath / app.installedToolchain / app.resolveInstallation) into their existing
+  dependency structs. The former `identity func(string) (string, string, string, error)` seam is
+  now `install func(string) (installation, error)`; analyze keeps its `toolchain` seam and
+  qualify-set its `executable` seam. No package-global hook was added (no new `var`).
+- Resolution stays lazy: each command asks for its installation at exactly the point it used to
+  call localIdentity / os.Executable, so input validation still precedes installation errors, plan
+  still resolves the installation before requiring --output, and doctor still names its executable
+  before parsing flags (pinned by TestApplicationResolvesOnlyAfterInputValidation).
+- Explore, plan, replay and execute-shard gained dependency structs in the characterization commit
+  (exploreDependencies, replayDependencies, campaignShardDependencies) so their requests and outputs
+  are observable without a toolchain; behavior unchanged (captures below are identical).
+- Runner build digest: the doctor check's streaming digest (open, regular+executable check, SHA-256)
+  is now the single owner, used by both doctor's Check and install. Previously install read the
+  whole executable with os.ReadFile. The digest bytes are identical ("sha256:%x"). Two failure
+  behaviors change. (1) When the running executable cannot be opened, the text changes from
+  "hash gomad executable: open ..." to "hash gomad executable: open Runner: ...". (2) The
+  regular-executable check is new for install: a running executable that stops being a regular
+  executable file after startup (for example `chmod -x` on the binary while gomad starts) used to
+  be hashed and accepted, and now fails with "hash gomad executable: Runner is not a regular
+  executable: PATH". Both exit 3 with classification runner_failure. Pinned by
+  TestApplicationInstallFailsClosed. (Reworded after the fn-109.4 review: an earlier version of
+  this note called the case unreachable.)
+
+Acceptance
+- One construction path: grep over non-test CLI sources finds os.Executable, os.Stdin/os.Stdout,
+  toolchain.ResolveInstallation, GOMAD3_TOOLCHAIN_DIR, sha256 hashing and the child-mode strings
+  only in application.go. localIdentity and doctor.go's hashExecutable are gone. MET (linux/arm64 dev).
+- Characterization (characterization_test.go + testdata/characterization/help-*.txt goldens from the
+  pre-refactor binary): help/usage for all 15 commands and bare usage; unknown commands and the
+  __coordinator private mode over process stdin; 60+ malformed-input / explicit-zero / irrelevant-flag
+  rejections across explore, plan, qualify, analyze, minimize, replay, execute-shard, resume, doctor,
+  merge, recover, inspect, qualify-set, merge-set, compare-support (each also names an unusable
+  --toolchain-root to pin precedence); flag-value parse errors in JSON; installation errors per
+  command from flag and environment, explicit-over-environment precedence, doctor text/JSON; full
+  explore request defaults and env/build-tag/io-ro-mount/argv-after-`--` wiring (whole-value
+  compare); explore/plan/replay/execute-shard text+JSON output and exit statuses 0/1/2/3; resume,
+  minimize, qualify, analyze installation wiring and failures; stdout/stderr writer failures (pins the
+  existing quirk that `replay --verify-only` ignores its output write error and exits 0). Pass on the
+  pre-refactor commit and unchanged after. MET (linux/arm64 dev).
+- Malformed input and writer failures keep classification/status; no flag default changed: help
+  goldens and the binary capture (task-4/capture.sh, output retained as task-4/cli-capture.txt, 45 invocations incl. -h and --bogus for every
+  command, private mode, installation errors) are identical before and after:
+  `diff capture-before capture-after` -> no differences. The hidden `--__plan` explore flag remains
+  (its removal belongs to fn-109.5). MET (linux/arm64 dev).
+- No mutable package-global hook; existing dependency-struct seams remain the test entry points. MET.
+- go doc -all ./cmd/gomad/internal/cli: identical before/after (exported Run, Check, Config, Report,
+  Adapter, CheckResult unchanged). No public Go interface change.
+
+Gates (linux/arm64, harness ON)
+- go test -tags test_dep ./cmd/gomad/internal/cli: only TestCheckRejectsUnsupportedHostAndUnwritableArtifacts
+  fails (baseline, harness-specific). New tests: TestCharacterize* (12), TestApplication* (4) pass.
+- go test -tags test_dep ./cmd/... ./qualification/... (26 s): fails only the baseline
+  TestCheckRejectsUnsupportedHostAndUnwritableArtifacts and TestPrepareCapabilityReviewSupportsTemporalBackoffWithGRPCAdapter;
+  cmd/gomad e2e (real binary explore/replay/kill-resume) ok.
+- go test -tags test_dep . -run TestPackageArchitecture: ok.
+- make validate: pass (exit 0).
+- GOFLAGS='-tags=test_dep -count=1' make test-host (4m44s): exit 2; failing set is a subset of
+  BASELINE.md (TestRunIOTerminalAfterTermination and TestRunTimesOutAndRemovesTermIgnoringProcessGroup
+  passed this time). No new failure.
+
+Still owed (cannot run here): darwin/arm64 and linux/amd64 runs of
+  env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep ./cmd/... ./qualification/...
+  env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep . -run TestPackageArchitecture
+  make -C tools/gomad3 validate ; GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host

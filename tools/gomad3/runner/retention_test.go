@@ -96,8 +96,6 @@ func TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit(t *testing.T) {
 			t.Fatal(err)
 		}
 		prepared.SHA256, prepared.Size = fmt.Sprintf("sha256:%x", sha256.Sum256(targetBytes)), uint64(len(targetBytes))
-		// Successes of one outcome signature are stored as one artifact, so each
-		// execution prints its own output.
 		config, configDependencies := testConfig(t, preparer, &fakeExecutor{result: func(seed uint64) execution.Result {
 			result := processResult(0, fmt.Sprint(seed), "")
 			result.IOTranscript = completeEmptyTranscript()
@@ -155,6 +153,9 @@ func TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts(t *testin
 	var signature record.SHA256
 	var storedBytes uint64
 	for index, path := range summary.SuccessArtifacts {
+		if opened.Executions[index].SuccessArtifact == nil || filepath.Join(summary.CampaignPath, *opened.Executions[index].SuccessArtifact) != path {
+			t.Fatalf("execution %d references a different success artifact: %#v", index, opened.Executions[index])
+		}
 		retained, err := artifact.OpenArtifact(path)
 		if err != nil {
 			t.Fatal(err)
@@ -164,7 +165,7 @@ func TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts(t *testin
 		if err := retained.Close(); err != nil {
 			t.Fatal(err)
 		}
-		if manifest.Seed != record.Uint64String(index+1) || manifest.Streams.Stdout.FullSHA256 != record.HashBytes([]byte("same output")) {
+		if manifest.Seed != record.Uint64String(index+1) || manifest.Seed != opened.Executions[index].Seed || manifest.Streams.Stdout.FullSHA256 != record.HashBytes([]byte("same output")) {
 			t.Fatalf("retained success %d = %#v", index, manifest)
 		}
 		if index == 0 {

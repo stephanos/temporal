@@ -47,7 +47,7 @@ func openGuidance(ctx context.Context, config campaignRequest, prepared target.P
 	}
 	replayer := config.Replayer
 	if replayer == nil {
-		replayer = artifactReplayer{}
+		replayer = artifactReplayer{dependencies: executionDependencies{executor: config.executor}}
 	}
 	return &guidanceCampaign{
 		corpus: corpus, config: config, prepared: prepared, baseEnv: append([]record.Environment(nil), baseEnvironment...), runID: runID, replayer: replayer,

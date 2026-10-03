@@ -85,3 +85,47 @@ func requireForwardClockTicks(run func(name, seed string, values ...string) ([]i
 	}
 	return nil
 }
+
+func (campaign *runtimeCampaign) requireForwardClockDeadline(binary string) error {
+	for _, seed := range []string{"11", "17"} {
+		result, err := campaign.command(
+			"clock-tick-deadline-seed-"+seed,
+			[]string{binary}, campaign.testdata, 5*time.Second,
+			[]string{"GOMADSEED", "TZ", "GOMAD3_CLOCK_TICK"},
+			"GOMADSEED="+seed, "TZ=UTC", "GOMAD3_CLOCK_TICK=forward",
+		)
+		if err != nil {
+			return err
+		}
+		margin, err := strconv.ParseInt(commandOutput(result), 10, 64)
+		if err != nil {
+			return fmt.Errorf("forward clock deadline seed %s printed an invalid margin: %w", seed, err)
+		}
+		if margin < int64(999*time.Millisecond) || margin > int64(time.Second) {
+			return fmt.Errorf("forward clock deadline seed %s margin = %s, want within 1 ms of 1 s", seed, time.Duration(margin))
+		}
+	}
+	return nil
+}
+
+func (campaign *runtimeCampaign) requireForwardClockDueTimer(binary string) error {
+	for _, seed := range []string{"11", "17"} {
+		result, err := campaign.command(
+			"clock-tick-due-seed-"+seed,
+			[]string{binary}, campaign.testdata, 5*time.Second,
+			[]string{"GOMADSEED", "TZ", "GOMAD3_CLOCK_TICK"},
+			"GOMADSEED="+seed, "TZ=UTC", "GOMAD3_CLOCK_TICK=forward",
+		)
+		if err != nil {
+			return err
+		}
+		advance, err := strconv.ParseInt(commandOutput(result), 10, 64)
+		if err != nil {
+			return fmt.Errorf("forward due timer seed %s printed an invalid advance: %w", seed, err)
+		}
+		if advance != 0 {
+			return fmt.Errorf("forward due timer seed %s advanced %s while delivering an already-due timer, want zero", seed, time.Duration(advance))
+		}
+	}
+	return nil
+}

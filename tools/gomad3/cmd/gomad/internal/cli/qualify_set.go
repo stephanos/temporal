@@ -17,13 +17,9 @@ type qualifySetDependencies struct {
 	run        func(context.Context, qualificationset.Spec) (qualificationset.Report, error)
 }
 
-func runQualifySet(arguments []string, stdout, stderr io.Writer) int {
-	return runQualifySetWithApplication(arguments, stdout, stderr, newApplication())
-}
-
-func runQualifySetWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
+func (app application) runQualifySet(arguments []string, stdout, stderr io.Writer) int {
 	return runQualifySetWith(arguments, stdout, stderr, qualifySetDependencies{
-		executable: app.executable, load: qualificationset.LoadManifest, run: qualificationset.Run,
+		executable: app.executablePath, load: qualificationset.LoadManifest, run: qualificationset.Run,
 	})
 }
 
@@ -85,7 +81,7 @@ func runQualifySetWith(arguments []string, stdout, stderr io.Writer, dependencie
 	}
 	executable, err := dependencies.executable()
 	if err != nil {
-		return writeCommandError(stderr, 3, "resolve gomad executable: %v\n", err)
+		return writeCommandError(stderr, 3, "%v\n", err)
 	}
 	report, runErr := dependencies.run(context.Background(), qualificationset.Spec{
 		ManifestPath: *manifestPath, GomadPath: executable, WorkingDir: *workingDirectory,

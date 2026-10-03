@@ -161,7 +161,12 @@ func runPrivateProcessNode(ctx context.Context, spec Spec) error {
 		runtimeDomainLeave(previous)
 		return finishPrivateProcessModels(runtimeRun, domain, err)
 	}
-	activation, err := exchangeProcessFrame(processFrameActivated, bootstrap.Context.NodeHandle, nil)
+	activationCurrent, err := encodeProcessActivationTime(runtimeProcessTimeCurrent())
+	if err != nil {
+		runtimeDomainLeave(previous)
+		return finishPrivateProcessModels(runtimeRun, domain, err)
+	}
+	activation, err := exchangeProcessFrame(processFrameActivated, bootstrap.Context.NodeHandle, activationCurrent)
 	if err != nil {
 		runtimeDomainLeave(previous)
 		return finishPrivateProcessModels(runtimeRun, domain, err)
@@ -214,6 +219,15 @@ func decodeProcessActivationTime(encoded []byte) (int64, error) {
 		return 0, errors.New("process simulation activation time is invalid")
 	}
 	return current, nil
+}
+
+func encodeProcessActivationTime(current int64) ([]byte, error) {
+	if current < 946684800000000000 {
+		return nil, errors.New("process simulation activation time is invalid")
+	}
+	encoded := make([]byte, 8)
+	binary.BigEndian.PutUint64(encoded, uint64(current))
+	return encoded, nil
 }
 
 func finishPrivateProcessModels(runtimeRun, domain uint64, source error) error {

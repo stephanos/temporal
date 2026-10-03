@@ -41,17 +41,10 @@ type analyzeArguments struct {
 	target         targetInput
 }
 
-func runAnalyze(arguments []string, stdout, stderr io.Writer) int {
-	return runAnalyzeWithApplication(arguments, stdout, stderr, newApplication())
-}
-
-func runAnalyzeWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
+func (app application) runAnalyze(arguments []string, stdout, stderr io.Writer) int {
 	return runAnalyzeWith(arguments, stdout, stderr, analyzeDependencies{
-		toolchain: func(explicit string) (string, error) {
-			root, _, _, err := app.identity(explicit)
-			return root, err
-		},
-		identity: target.ReadToolchainIdentity, workingDirectory: os.Getwd,
+		toolchain: app.installedToolchain,
+		identity:  target.ReadToolchainIdentity, workingDirectory: os.Getwd,
 		inspect: preparation.Inspect, build: capabilityanalysis.Build,
 	})
 }

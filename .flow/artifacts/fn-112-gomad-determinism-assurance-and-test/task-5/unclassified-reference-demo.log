@@ -1,0 +1,13 @@
+# Deliberate unclassified reference (linux/arm64 development harness, build key 275f92ed...)
+# Appended to .toolchain/builds/<key>/src/runtime/gomad.go, then restored:
+#   func gomadUnclassifiedDraw() uint32 { return cheaprand() }
+$ env -u GOMADSEED GOWORK=off .toolchain/bin/go test -tags test_dep -count=1 -run TestPatchedRuntimeSeededDrawReferencesAreReviewed ./toolchain
+--- FAIL: TestPatchedRuntimeSeededDrawReferencesAreReviewed (5.58s)
+    draw_inventory_test.go:156: patched runtime seeded-stream draw inventory drifted; classify each change and update reviewedDrawReferences:
+        unclassified seeded-stream reference: runtime/gomad.go gomadUnclassifiedDraw cheaprand (1)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/toolchain	5.589s
+exit 1
+
+# After restoring the file:
+ok  	go.temporal.io/server/tools/gomad3/toolchain	1.676s

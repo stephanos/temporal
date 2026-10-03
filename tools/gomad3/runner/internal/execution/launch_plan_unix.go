@@ -331,7 +331,7 @@ func installTargetStage(capabilities launchCapabilities) error {
 		if source == 0 {
 			return errors.Join(fmt.Errorf("descriptor resource %q has no bootstrap source", binding.resource), closeDescriptors(installed...))
 		}
-		if err := syscall.Dup2(source, binding.fd); err != nil {
+		if err := dup2(source, binding.fd); err != nil {
 			return errors.Join(fmt.Errorf("install target descriptor %q: %w", binding.resource, err), closeDescriptors(installed...))
 		}
 		installed = append(installed, binding.fd)

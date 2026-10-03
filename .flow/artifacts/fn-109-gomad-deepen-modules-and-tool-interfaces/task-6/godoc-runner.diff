@@ -1,0 +1,20 @@
+255d254
+< 	Executor          Executor
+309d307
+< 	Executor                  Executor
+520,523d517
+< type Executor interface {
+< 	Run(context.Context, execution.Spec) (execution.Result, error)
+< }
+< 
+646d639
+< 	Executor          Executor
+687,690d679
+< type ReplayExecutor interface {
+< 	Run(context.Context, execution.Spec) (execution.Result, error)
+< }
+< 
+719d707
+< 	Executor          ReplayExecutor
+730d717
+< 	Executor           Executor

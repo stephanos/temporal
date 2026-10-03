@@ -214,6 +214,18 @@ func campaignRequestFromSpecWith(spec CampaignSpec, dependencies executionDepend
 }
 
 func campaignRequestFromSpec(spec CampaignSpec) campaignRequest {
+	spec.Environment = append([]string(nil), spec.Environment...)
+	spec.IOROMounts = append([]string(nil), spec.IOROMounts...)
+	spec.RequiredSemanticProbes = append([]string(nil), spec.RequiredSemanticProbes...)
+	spec.SupervisorCommand = append([]string(nil), spec.SupervisorCommand...)
+	spec.CoordinatorCommand = append([]string(nil), spec.CoordinatorCommand...)
+	spec.Target.Args = append([]string(nil), spec.Target.Args...)
+	spec.Target.BuildTags = append([]string(nil), spec.Target.BuildTags...)
+	spec.Target.AdapterReplacements = append([]target.AdapterReplacement(nil), spec.Target.AdapterReplacements...)
+	if spec.GuideRegressionOverride != nil {
+		value := *spec.GuideRegressionOverride
+		spec.GuideRegressionOverride = &value
+	}
 	request := campaignRequest{
 		campaignOptions: campaignOptions{
 			campaignIdentityOptions: campaignIdentityOptions{

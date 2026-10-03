@@ -79,8 +79,10 @@ The descriptor requires `patch_allowlist` and `overlay_allowlist` to equal the c
 
 
 ## Done summary
-TBD
+Blocked:
+Implementation and local structural verification are complete, but the task's required native qualification cannot run in this environment. The host is linux/arm64; Gomad qualifies darwin/arm64 and linux/amd64, and the available Docker builder is also linux/arm64. Emulated or cross-compiled execution is not accepted as native Linux evidence. GitHub Actions cannot be triggered because this checkout has no usable GitHub credentials.
 
+Outstanding gates: native toolchain build on darwin/arm64 and linux/amd64; runtime, upstream, live-capability, and process-simulation tests; the full baseline/candidate fixture comparison and exact replay on qualified hosts.
 ## Evidence
 - Commits:
 - Tests:

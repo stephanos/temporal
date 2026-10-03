@@ -1,0 +1,27 @@
+ok  	go.temporal.io/server/tools/gomad3/runner	281.268s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/campaign	19.498s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/corpus	2.507s
+--- FAIL: TestRunIOTerminalAfterTermination (6.40s)
+--- FAIL: TestModerncLibcUsesDeterministicFilesystem (70.68s)
+--- FAIL: TestProfileSQLiteUsesVirtualTimeAndEntropy (26.62s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	167.337s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration	0.003s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice	0.043s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation	0.072s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord	0.050s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/minimizer	2.186s
+ok  	go.temporal.io/server/tools/gomad3/qualification	0.485s
+--- FAIL: TestPrepareCapabilityReviewSupportsTemporalBackoffWithGRPCAdapter (110.86s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/qualification/analysis	112.551s
+ok  	go.temporal.io/server/tools/gomad3/qualification/comparison	0.006s
+ok  	go.temporal.io/server/tools/gomad3/qualification/set	2.907s
+ok  	go.temporal.io/server/tools/gomad3/qualification/set/manifestgen	7.296s
+ok  	go.temporal.io/server/tools/gomad3/qualification/workload	0.007s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad	85.124s
+--- FAIL: TestCheckRejectsUnsupportedHostAndUnwritableArtifacts (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	2.102s
+FAIL
+exit=1 elapsed=289s

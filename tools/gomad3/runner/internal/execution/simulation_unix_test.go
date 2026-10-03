@@ -2,7 +2,32 @@
 
 package execution
 
-import "testing"
+import (
+	"testing"
+
+	"go.temporal.io/server/tools/gomad3/record"
+)
+
+func TestSimulationCoordinatorLimitsForwardEpochsToForwardClockExecutions(t *testing.T) {
+	for _, test := range []struct {
+		name    string
+		env     []string
+		forward bool
+	}{
+		{name: "strict"},
+		{name: "forward", env: []string{record.ClockTickEnvironment + "=" + record.ClockTickForward}, forward: true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			coordinator, err := newSimulationCoordinator(Spec{Env: test.env})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if coordinator.time.forward != test.forward {
+				t.Fatalf("forward = %t, want %t", coordinator.time.forward, test.forward)
+			}
+		})
+	}
+}
 
 func TestSimulationCoordinatorKeepsCompletedNodeResponseDeliverable(t *testing.T) {
 	coordinator, err := newSimulationCoordinator(Spec{})

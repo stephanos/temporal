@@ -6,7 +6,7 @@ OVERLAY_FILES := $(shell find toolchain/runtime/overlay -type f)
 VERSION_INPUTS := toolchain/version/version.json $(shell find toolchain/version -type f -not -name '*_test.go') cmd/gomadtool/version.go
 BOUNDARY_INPUTS := deterministicio/boundary/manifest.json deterministicio/boundary/compiler-tests.json $(shell find deterministicio/boundary -type f -not -name '*_test.go') $(shell find internal/gomadtool/generation/boundary -name '*.go' -not -name '*_test.go')
 BOUNDARY_OUTPUTS := $(GOMAD3_COMPILER_SPEC) $(GOMAD3_EXPECTED_INTERCEPTS) $(GOMAD3_BOUNDARY_REPORT) deterministicio/boundary_generated.go
-COMPATIBILITY_INPUTS := $(shell find internal/compatibilitypack/requests internal/compatibilitypack/authoring -type f) internal/compatibilitypack/schema.go internal/compatibilitypack/v2_selection.go
+COMPATIBILITY_INPUTS := $(shell find internal/compatibilitypack/requests internal/compatibilitypack/authoring -type f) internal/compatibilitypack/working-directories.json internal/compatibilitypack/schema.go internal/compatibilitypack/v2_selection.go
 COMPILER_TEST_OVERLAY := $(CURDIR)/.toolchain/compiler-test-overlay
 COMPILER_TEST_COMPILE := $(CURDIR)/.toolchain/compiler-test/compile
 GOMAD3_CACHE_MAX_AGE_DAYS ?= 14
@@ -98,15 +98,10 @@ qualification-set-merge: runner
 		$(GOMAD3_QUALIFICATION_SHARD_REPORTS)
 
 # Packs are scoped to one platform, so each host qualifies only the requests
-# that name it.
-GOMAD3_HOST_PLATFORM := $(shell go env GOHOSTOS)/$(shell go env GOHOSTARCH)
-COMPATIBILITY_PACK_TARGETS := $(CURDIR)/internal/compatibilitypack/targets.tsv
-
+# that name it, each in the working directory that
+# internal/compatibilitypack/working-directories.json maps it to.
 compatibility-pack-qualification: toolchain
-	@while read -r platform request working; do \
-		[ "$$platform" = "$(GOMAD3_HOST_PLATFORM)" ] || continue; \
-		env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=internal/compatibilitypack/requests/$$request.json --working-dir=$(CURDIR)/$$working || exit 1; \
-	done < $(COMPATIBILITY_PACK_TARGETS)
+	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --all
 
 core-qualification-set: GOMAD3_QUALIFICATION_MANIFEST := $(CURDIR)/qualification/core.json
 core-qualification-set: GOMAD3_QUALIFICATION_WORKDIR := $(CURDIR)/qualification/corpus
@@ -121,6 +116,8 @@ upgrade-dossier: core-qualification
 		-baseline-ref="$(GOMAD3_BASELINE_REF)" -corpus-report=".toolchain/core-qualification-set.json" $(if $(GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256),-approve-boundary-diff="$(GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256)",)
 
 # Resolve stock Go before the patched test driver prepends its GOROOT/bin to PATH.
+# Several tests run their own test binary as a seeded target, and the seeded
+# runtime refuses the Green Tea collector, so the test binaries use the classic one.
 test-host: toolchain
 	@stock_go="$${GOMAD3_STOCK_GO:-}"; \
 	if test -z "$$stock_go"; then \
@@ -140,14 +137,16 @@ overlay-test: toolchain
 # The gomad3_toolchain tests of the root module's tools/gomad3sim need a seeded
 # runtime, so they run through the exec wrapper. The tests that need the
 # Runner's simulation transport skip there; the integration-tagged Runner test
-# is their executor. The node-clock delay test has a recorded watchdog failure
-# and remains a finding; every other subtest runs here.
+# is their executor. The strict node-clock delay test has a recorded watchdog
+# failure and remains a finding; its forward-mode regression runs separately.
 test-simulation: toolchain
 	cd $(CURDIR)/../.. && env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 \
 		$(CURDIR)/.toolchain/bin/go test -exec $(CURDIR)/internal/gomadtool/conformance/scripts/exec.sh \
 		-count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration \
-		-run '^TestRootProcessSimulationUsesRunnerTransport$$/^Test(Scenario|ProcessExploration|ProcessAndInProcess|ProcessBackend(Resets|Routes|Preserves|Crash|Model))' ./runner/internal/execution
+		-run '^TestRootProcessSimulationUsesRunnerTransport$$/^Test(Scenario|ProcessExploration|ProcessAndInProcess|ProcessBackend(Carries|Resets|Routes|Preserves|Crash|Model))' ./runner/internal/execution
+	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration \
+		-run '^TestRootProcessSimulationUsesRunnerTransport$$/^TestProcessBackendSynchronizesNodeClockWithModelDelay$$/^forward$$' ./runner/internal/execution
 
 world-test:
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go test -race -tags test_dep ./world/...

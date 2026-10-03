@@ -389,6 +389,7 @@ func runToolchainCommand(t *testing.T, directory, command string, arguments ...s
 			process.Env = append(process.Env, entry)
 		}
 	}
+	// A seeded runtime refuses the Green Tea collector, as prepared targets do.
 	process.Env = append(process.Env, "GOWORK=off", "CGO_ENABLED=0", "GOEXPERIMENT=nogreenteagc", "GOCACHE="+buildCache)
 	output, err := process.CombinedOutput()
 	if err != nil {

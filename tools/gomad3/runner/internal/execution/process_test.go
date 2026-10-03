@@ -15,6 +15,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"testing"
 	"time"
@@ -1250,14 +1251,19 @@ func targetHelper() (string, []string) {
 	return os.Getenv("GOMAD3_PROCESS_HELPER"), nil
 }
 
+// runChoiceRunnableTarget gives the helper target Runnable decisions to record: only
+// user goroutines are run-queue alternatives, so two workers take turns
+// yielding while the helper waits for them.
 func runChoiceRunnableTarget() {
-	done := make(chan struct{}, 4)
-	for range 4 {
-		go func() { done <- struct{}{} }()
+	var group sync.WaitGroup
+	for range 2 {
+		group.Go(func() {
+			for range 4 {
+				runtime.Gosched()
+			}
+		})
 	}
-	for range 4 {
-		<-done
-	}
+	group.Wait()
 }
 
 func runChoiceReorderTarget(arguments []string) {

@@ -21,6 +21,40 @@ import (
 
 var processIsolationGlobal uint64
 
+func TestProcessBackendCarriesForwardClockAcrossActivationAndQuiescence(t *testing.T) {
+	if !processBackendAvailable() {
+		t.Skip("Runner simulation transport is unavailable")
+	}
+	bootID := uniqueBootID("cluster-process-forward-clock")
+	require.NoError(t, RegisterBoot(bootID, func(ctx context.Context, _ NodeContext) error {
+		timer := time.NewTimer(time.Nanosecond)
+		defer timer.Stop()
+		for range 32 {
+			time.Now()
+		}
+		select {
+		case <-timer.C:
+			return nil
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}))
+	spec := Spec{
+		Schema: SpecSchema, Backend: BackendProcess, Fidelity: FidelityHardIsolation, Seed: 89, Limits: DefaultLimits(),
+		Nodes: []NodeSpec{{ID: "server", Boot: bootID, Address: "10.0.0.1"}},
+	}
+	result, err := Run(context.Background(), spec, func(ctx context.Context, cluster Cluster) error {
+		node, err := cluster.Start(ctx, "server")
+		if err != nil {
+			return err
+		}
+		_, err = cluster.Wait(ctx, node)
+		return err
+	})
+	require.NoError(t, err)
+	require.Equal(t, OutcomeCompleted, result.Outcome, result.Reason)
+}
+
 func TestProcessBackendResetsGlobalsDescriptorsAndGoroutines(t *testing.T) {
 	if !processBackendAvailable() {
 		t.Skip("Runner simulation transport is unavailable")
@@ -178,6 +212,7 @@ func TestProcessBackendSynchronizesNodeClockWithModelDelay(t *testing.T) {
 	if !processBackendAvailable() {
 		t.Skip("Runner simulation transport is unavailable")
 	}
+	const linkDelay = 7 * time.Millisecond
 	serverBoot := uniqueBootID("cluster-process-delay-server")
 	clientBoot := uniqueBootID("cluster-process-delay-client")
 	require.NoError(t, RegisterBoot(serverBoot, func(_ context.Context, node NodeContext) (resultErr error) {
@@ -215,6 +250,17 @@ func TestProcessBackendSynchronizesNodeClockWithModelDelay(t *testing.T) {
 			return err
 		}
 		defer func() { resultErr = errors.Join(resultErr, connection.Close()) }()
+		clockStart := time.Now()
+		clockLead := time.Duration(0)
+		for attempt := 0; attempt < 1<<20; attempt++ {
+			clockLead = time.Now().Sub(clockStart)
+			if clockLead == 0 || clockLead > linkDelay {
+				break
+			}
+		}
+		if clockLead != 0 && clockLead <= linkDelay {
+			return fmt.Errorf("forward clock lead = %s, want > %s", clockLead, linkDelay)
+		}
 		started := time.Now()
 		if _, err := connection.Write([]byte{'x'}); err != nil {
 			return err
@@ -226,7 +272,7 @@ func TestProcessBackendSynchronizesNodeClockWithModelDelay(t *testing.T) {
 		if response[0] != 'x' {
 			return fmt.Errorf("response = %q", response)
 		}
-		if elapsed := time.Since(started); elapsed < 14*time.Millisecond {
+		if elapsed := time.Since(started); elapsed < 2*linkDelay {
 			return fmt.Errorf("round trip elapsed = %s", elapsed)
 		}
 		return nil
@@ -238,8 +284,8 @@ func TestProcessBackendSynchronizesNodeClockWithModelDelay(t *testing.T) {
 			{ID: "server", Boot: serverBoot, Address: "10.0.0.1"},
 		},
 		Links: []LinkSpec{
-			{From: "client", To: "server", Enabled: true, DelayNanos: uint64(7 * time.Millisecond)},
-			{From: "server", To: "client", Enabled: true, DelayNanos: uint64(7 * time.Millisecond)},
+			{From: "client", To: "server", Enabled: true, DelayNanos: uint64(linkDelay)},
+			{From: "server", To: "client", Enabled: true, DelayNanos: uint64(linkDelay)},
 		},
 	}
 	result, err := Run(context.Background(), spec, func(ctx context.Context, cluster Cluster) error {
@@ -269,7 +315,7 @@ func TestProcessBackendSynchronizesNodeClockWithModelDelay(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, OutcomeCompleted, result.Outcome, result.Reason)
-	require.Contains(t, networkDelays(result.Network.Transitions), uint64(7*time.Millisecond))
+	require.Contains(t, networkDelays(result.Network.Transitions), uint64(linkDelay))
 }
 
 func TestProcessBackendRoutesListenThroughSharedHostModel(t *testing.T) {

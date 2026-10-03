@@ -14,9 +14,14 @@ import (
 // that turn it into its deterministic replacement. Every anchor must occur
 // exactly once, and both the input and the output are bound to exact digests
 // so an upstream edit fails the build instead of shifting the rewrite.
+//
+// When base is set, the anchors edit the module file at base instead, and the
+// result replaces the file at path, which must still match sourceSHA256: the
+// adapter substitutes one platform's implementation for another's.
 type sourceRewrite struct {
 	path                            string
 	sourceSHA256, replacementSHA256 string
+	base, baseSHA256                string
 	rewrites                        []anchorRewrite
 }
 
@@ -27,16 +32,17 @@ type anchorRewrite struct {
 
 // rewrittenModule describes an adapter that copies a pinned module and
 // replaces a fixed set of its files. The first rewrite is the one the build
-// evidence names as the adapter's source.
+// evidence names as the adapter's source. The prepared source set is pinned
+// per qualified platform because each platform compiles its own file set.
 type rewrittenModule struct {
-	module, version, sum       string
-	cacheElements              []string
-	replacementDirectory       string
-	originalInventorySHA256    string
-	replacementInventorySHA256 string
-	preparedPackage            string
-	preparedSourceSetSHA256    string
-	rewrites                   []sourceRewrite
+	module, version, sum          string
+	cacheElements                 []string
+	replacementDirectory          string
+	originalInventorySHA256       string
+	replacementInventorySHA256    string
+	preparedPackage               string
+	preparedSourceSetSHA256ByHost map[string]string
+	rewrites                      []sourceRewrite
 }
 
 func prepareRewrittenModule(moduleCache, root string, identity gomadversion.AdapterIdentity, spec rewrittenModule) (adapterPreparation, error) {
@@ -55,11 +61,7 @@ func prepareRewrittenModule(moduleCache, root string, identity gomadversion.Adap
 	}
 	replacements := make(map[string][]byte, len(spec.rewrites))
 	for _, rewrite := range spec.rewrites {
-		contents, err := readAdapterSource(spec.module, moduleSource, rewrite.path)
-		if err != nil {
-			return adapterPreparation{}, err
-		}
-		replacements[rewrite.path], err = rewriteAdapterSource(spec.module, rewrite, contents)
+		replacements[rewrite.path], err = rewriteModuleSource(spec.module, moduleSource, rewrite)
 		if err != nil {
 			return adapterPreparation{}, err
 		}
@@ -86,9 +88,13 @@ func prepareRewrittenModule(moduleCache, root string, identity gomadversion.Adap
 			ReplacementSHA256:                primary.replacementSHA256,
 			OriginalSourceInventorySHA256:    spec.originalInventorySHA256,
 			ReplacementSourceInventorySHA256: replacementInventory,
-			PreparedSourceSetSHA256:          spec.preparedSourceSetSHA256,
+			PreparedSourceSetSHA256:          hostPin(spec.preparedSourceSetSHA256ByHost),
 		},
 	}, nil
+}
+
+func adapterIdentity(spec rewrittenModule) gomadversion.AdapterIdentity {
+	return gomadversion.AdapterIdentity{Module: spec.module, Version: spec.version, Sum: spec.sum}
 }
 
 func verifyAdapterModuleInventory(module, moduleRoot, want string) error {
@@ -115,11 +121,37 @@ func readAdapterSource(module, moduleRoot, relative string) ([]byte, error) {
 	return contents, nil
 }
 
+// rewriteModuleSource reads the files rewrite names in the module at
+// moduleRoot and returns the pinned replacement for its path.
+func rewriteModuleSource(module, moduleRoot string, rewrite sourceRewrite) ([]byte, error) {
+	contents, err := readAdapterSource(module, moduleRoot, rewrite.path)
+	if err != nil {
+		return nil, err
+	}
+	if rewrite.base == "" {
+		return rewriteAdapterSource(module, rewrite, contents)
+	}
+	if digestBytes(contents) != rewrite.sourceSHA256 {
+		return nil, fmt.Errorf("pinned %s source identity mismatch for %s", module, rewrite.path)
+	}
+	base, err := readAdapterSource(module, moduleRoot, rewrite.base)
+	if err != nil {
+		return nil, err
+	}
+	derived := rewrite
+	derived.path, derived.sourceSHA256 = rewrite.base, rewrite.baseSHA256
+	result, err := rewriteAdapterSource(module, derived, base)
+	if err != nil {
+		return nil, fmt.Errorf("%w (replacing %s)", err, rewrite.path)
+	}
+	return result, nil
+}
+
 func rewriteAdapterSource(module string, rewrite sourceRewrite, contents []byte) ([]byte, error) {
 	if digestBytes(contents) != rewrite.sourceSHA256 {
 		return nil, fmt.Errorf("pinned %s source identity mismatch for %s", module, rewrite.path)
 	}
-	result, err := regenerateSourceRewrite(module, rewrite, contents)
+	result, err := applyAdapterAnchors(module, rewrite.path, rewrite.rewrites, contents)
 	if err != nil {
 		return nil, err
 	}
@@ -129,16 +161,30 @@ func rewriteAdapterSource(module string, rewrite sourceRewrite, contents []byte)
 	return result, nil
 }
 
-func regenerateSourceRewrite(module string, rewrite sourceRewrite, contents []byte) ([]byte, error) {
-	if len(rewrite.rewrites) == 0 {
+// applyAdapterAnchors applies each anchored edit in order. An anchor that does
+// not occur exactly once in the text it edits fails, so a changed upstream
+// file never shifts an edit to another occurrence.
+func applyAdapterAnchors(module, path string, anchors []anchorRewrite, contents []byte) ([]byte, error) {
+	if len(anchors) == 0 {
 		return nil, errors.New("adapter source rewrite has no anchors")
 	}
 	result := append([]byte(nil), contents...)
-	for _, step := range rewrite.rewrites {
-		if bytes.Count(result, step.anchor) != 1 {
-			return nil, fmt.Errorf("pinned %s rewrite anchor mismatch for %s: %q", module, rewrite.path, step.anchor)
+	for _, step := range anchors {
+		if count := bytes.Count(result, step.anchor); count != 1 {
+			return nil, &AnchorMismatchError{Module: module, Path: path, Anchor: string(step.anchor), Count: count}
 		}
 		result = bytes.Replace(result, step.anchor, step.replacement, 1)
 	}
 	return result, nil
+}
+
+// AnchorMismatchError reports an adapter rewrite anchor that does not occur
+// exactly once in the source it edits.
+type AnchorMismatchError struct {
+	Module, Path, Anchor string
+	Count                int
+}
+
+func (err *AnchorMismatchError) Error() string {
+	return fmt.Sprintf("pinned %s rewrite anchor mismatch for %s: %q occurs %d times, want exactly once", err.Module, err.Path, err.Anchor, err.Count)
 }

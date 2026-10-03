@@ -1,0 +1,14 @@
+01-go-get exit=0 elapsed=0.4s
+02-pin-impact exit=1 elapsed=8.2s
+03-adapter-dry-run exit=0 elapsed=2.1s
+04-adapter-stage-only exit=0 elapsed=13.7s
+05-adapter-apply exit=0 elapsed=13.1s
+06-pack-refresh exit=1 elapsed=8.2s
+07-validate exit=0 elapsed=8.9s
+08-grpc-adapter-tests exit=1 elapsed=0.9s
+09-make-gomad3 exit=0 elapsed=65.8s
+08-grpc-adapter-tests exit=0 elapsed=3.6s
+10-pin-impact-after-commit exit=0 elapsed=2.9s
+11-refresh-after-commit-default-head exit=0 elapsed=3.4s
+12-refresh-after-commit-baseline-prebump exit=1 elapsed=3.4s
+13-refresh-with-review-fix (d17d74611 applied, --baseline-ref=pre-bump) exit=1 elapsed=5.3s

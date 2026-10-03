@@ -13,11 +13,16 @@ import (
 	"go.temporal.io/server/tools/gomad3/runner"
 )
 
-func runCampaignShard(arguments []string, stdout, stderr io.Writer) int {
-	return runCampaignShardWithApplication(arguments, stdout, stderr, newApplication())
+type campaignShardDependencies struct {
+	install func(string) (installation, error)
+	run     func(context.Context, runner.CampaignShardSpec) (runner.CampaignResult, error)
 }
 
-func runCampaignShardWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
+func (app application) runCampaignShard(arguments []string, stdout, stderr io.Writer) int {
+	return runCampaignShardWith(arguments, stdout, stderr, campaignShardDependencies{install: app.install, run: runner.RunCampaignShard})
+}
+
+func runCampaignShardWith(arguments []string, stdout, stderr io.Writer, dependencies campaignShardDependencies) int {
 	flags := flag.NewFlagSet("gomad execute-shard", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	shardValue := flags.String("shard", "", "zero-based INDEX/COUNT shard assignment")
@@ -36,15 +41,15 @@ func runCampaignShardWithApplication(arguments []string, stdout, stderr io.Write
 		fmt.Fprintln(stderr, err)
 		return 2
 	}
-	toolchain, executable, runnerBuild, err := app.identity(*toolchainRoot)
+	installed, err := dependencies.install(*toolchainRoot)
 	if err != nil {
 		fmt.Fprintln(stderr, err)
 		return 3
 	}
 	reporter := newExploreReporter(*jsonOutput, stdout, stderr)
-	result, err := runner.RunCampaignShard(context.Background(), runner.CampaignShardSpec{
-		PlanPath: flags.Arg(0), Shard: shard, Artifacts: *artifacts, ToolchainRoot: toolchain, RunnerBuild: runnerBuild,
-		SupervisorCommand: app.commands(executable).supervisor, Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
+	result, err := dependencies.run(context.Background(), runner.CampaignShardSpec{
+		PlanPath: flags.Arg(0), Shard: shard, Artifacts: *artifacts, ToolchainRoot: installed.toolchainRoot, RunnerBuild: installed.runnerBuild,
+		SupervisorCommand: installed.supervisorCommand(), Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
 	})
 	if err != nil {
 		classification := classifyExploreError(err)

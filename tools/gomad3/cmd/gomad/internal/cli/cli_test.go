@@ -16,6 +16,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/preparation"
 	"go.temporal.io/server/tools/gomad3/qualification"
 	capabilityanalysis "go.temporal.io/server/tools/gomad3/qualification/analysis"
 	supportcomparison "go.temporal.io/server/tools/gomad3/qualification/comparison"
@@ -551,6 +552,30 @@ func TestRunAnalyzeSurfacesCleanupFailureAfterSupportedReport(t *testing.T) {
 	}
 }
 
+func TestRunAnalyzeBuildsFromPreparedReview(t *testing.T) {
+	inspectCalls, buildCalls := 0, 0
+	dependencies := analyzeDependencies{
+		toolchain:        func(string) (string, error) { return "/toolchain", nil },
+		identity:         func(string) (target.ToolchainIdentity, error) { return target.ToolchainIdentity{}, nil },
+		workingDirectory: func() (string, error) { return "/workspace", nil },
+		inspect: func(_ context.Context, spec target.Spec) (preparation.Inspection, error) {
+			inspectCalls++
+			return preparation.Inspection{Spec: spec, Review: target.CapabilityReview{Schema: target.CapabilityReviewSchema}}, nil
+		},
+		build: func(input capabilityanalysis.Input) (capabilityanalysis.Report, error) {
+			buildCalls++
+			if input.Review.Schema != target.CapabilityReviewSchema || input.Spec.Source != "./pkg" {
+				t.Fatalf("prepared analysis input = %#v", input)
+			}
+			return capabilityanalysis.Report{Classification: capabilityanalysis.ClassificationSupported}, nil
+		},
+	}
+	var stdout, stderr bytes.Buffer
+	if status := runAnalyzeWith([]string{"go-run", "./pkg"}, &stdout, &stderr, dependencies); status != 0 || inspectCalls != 1 || buildCalls != 1 || stderr.Len() != 0 {
+		t.Fatalf("status=%d inspect=%d build=%d stdout=%q stderr=%q", status, inspectCalls, buildCalls, stdout.String(), stderr.String())
+	}
+}
+
 func TestRunAnalyzeReportsOutputFailuresAsInfrastructure(t *testing.T) {
 	dependencies := analyzeDependencies{
 		toolchain:        func(string) (string, error) { return "/toolchain", nil },
@@ -578,7 +603,7 @@ func (failingWriter) Write([]byte) (int, error) {
 func TestRunDoctorReportsAvailableContractAsJSON(t *testing.T) {
 	executable, artifacts := writeDoctorCommandFixture(t)
 	var stdout, stderr bytes.Buffer
-	status := runDoctor([]string{"--json", "--artifacts", artifacts}, &stdout, &stderr, executable)
+	status := application{executable: func() (string, error) { return executable, nil }, environment: os.Getenv}.runDoctor([]string{"--json", "--artifacts", artifacts}, &stdout, &stderr)
 	if status != 0 || stderr.Len() != 0 {
 		t.Fatalf("status = %d, stdout = %q, stderr = %q", status, stdout.String(), stderr.String())
 	}
@@ -599,7 +624,7 @@ func TestRunDoctorReportsRepairCommandWhenToolchainIsMissing(t *testing.T) {
 		t.Fatal(err)
 	}
 	var stdout, stderr bytes.Buffer
-	status := runDoctor([]string{"--artifacts", filepath.Join(root, "artifacts")}, &stdout, &stderr, executable)
+	status := application{executable: func() (string, error) { return executable, nil }, environment: os.Getenv}.runDoctor([]string{"--artifacts", filepath.Join(root, "artifacts")}, &stdout, &stderr)
 	if status != 1 || stderr.Len() != 0 || !strings.Contains(stdout.String(), "available=false") || !strings.Contains(stdout.String(), "set GOMAD3_TOOLCHAIN_DIR") {
 		t.Fatalf("status = %d, stdout = %q, stderr = %q", status, stdout.String(), stderr.String())
 	}
@@ -958,7 +983,7 @@ func TestExploreReporterReportsSimulationExplorationBoundsAndRemainingWork(t *te
 
 func TestRunExploreReportsFlagErrorsAsJSON(t *testing.T) {
 	var stdout, stderr bytes.Buffer
-	status := runExplore([]string{"--json", "--parallel", "invalid"}, &stdout, &stderr)
+	status := hostApplication().runExplore([]string{"--json", "--parallel", "invalid"}, &stdout, &stderr)
 	if status != 2 || stderr.Len() != 0 {
 		t.Fatalf("status = %d, stdout = %q, stderr = %q", status, stdout.String(), stderr.String())
 	}
@@ -985,9 +1010,9 @@ func TestRunQualifyRepeatsOneSeedAndRetainsJSONReport(t *testing.T) {
 	var retained qualification.QualificationReport
 	var resolvedToolchainRoot string
 	dependencies := qualifyDependencies{
-		identity: func(explicitToolchainRoot string) (string, string, string, error) {
+		install: func(explicitToolchainRoot string) (installation, error) {
 			resolvedToolchainRoot = explicitToolchainRoot
-			return "/toolchain", "/bin/gomad", "sha256:runner", nil
+			return installation{toolchainRoot: "/toolchain", executable: "/bin/gomad", runnerBuild: "sha256:runner"}, nil
 		},
 		workingDirectory: func() (string, error) { return "/workspace", nil },
 		run: func(_ context.Context, config runner.CampaignSpec) (runner.CampaignResult, error) {
@@ -1206,9 +1231,9 @@ func TestRunResumeUsesStoredBatchAndReportsResult(t *testing.T) {
 	var got runner.ResumeSpec
 	var resolvedToolchainRoot string
 	dependencies := resumeDependencies{
-		identity: func(explicitToolchainRoot string) (string, string, string, error) {
+		install: func(explicitToolchainRoot string) (installation, error) {
 			resolvedToolchainRoot = explicitToolchainRoot
-			return "/toolchain", "/bin/gomad", "sha256:runner", nil
+			return installation{toolchainRoot: "/toolchain", executable: "/bin/gomad", runnerBuild: "sha256:runner"}, nil
 		},
 		run: func(_ context.Context, config runner.ResumeSpec) (runner.CampaignResult, error) {
 			got = config
@@ -1229,7 +1254,9 @@ func TestRunResumeUsesStoredBatchAndReportsResult(t *testing.T) {
 
 func TestRunResumeClassifiesInvalidJournalAsInputError(t *testing.T) {
 	dependencies := resumeDependencies{
-		identity: func(string) (string, string, string, error) { return "/toolchain", "/bin/gomad", "sha256:runner", nil },
+		install: func(string) (installation, error) {
+			return installation{toolchainRoot: "/toolchain", executable: "/bin/gomad", runnerBuild: "sha256:runner"}, nil
+		},
 		run: func(context.Context, runner.ResumeSpec) (runner.CampaignResult, error) {
 			return runner.CampaignResult{}, &runner.HostError{Reason: "resume_setup", Err: errors.New("batch plan changed")}
 		},
@@ -1244,7 +1271,9 @@ func TestRunResumeClassifiesInvalidJournalAsInputError(t *testing.T) {
 func qualificationDependencies(t *testing.T) qualifyDependencies {
 	t.Helper()
 	return qualifyDependencies{
-		identity:         func(string) (string, string, string, error) { return "/toolchain", "/bin/gomad", "sha256:runner", nil },
+		install: func(string) (installation, error) {
+			return installation{toolchainRoot: "/toolchain", executable: "/bin/gomad", runnerBuild: "sha256:runner"}, nil
+		},
 		workingDirectory: func() (string, error) { return "/workspace", nil },
 		run: func(context.Context, runner.CampaignSpec) (runner.CampaignResult, error) {
 			t.Fatal("qualification runner is not configured")
@@ -1366,8 +1395,8 @@ func TestReportReplayResultStatesWhetherFailureWasReproduced(t *testing.T) {
 func TestRunMinimizeUsesBoundedArtifactStoreAndCurrentInstallation(t *testing.T) {
 	var observed runner.MinimizeSpec
 	dependencies := minimizeDependencies{
-		identity: func(string) (string, string, string, error) {
-			return "/toolchain", "/bin/gomad", "runner", nil
+		install: func(string) (installation, error) {
+			return installation{toolchainRoot: "/toolchain", executable: "/bin/gomad", runnerBuild: "runner"}, nil
 		},
 		minimize: func(_ context.Context, config runner.MinimizeSpec) (runner.MinimizeResult, error) {
 			observed = config
@@ -1396,8 +1425,8 @@ func TestRunMinimizeResumesOnlyOnRequest(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			var observed runner.MinimizeSpec
 			dependencies := minimizeDependencies{
-				identity: func(string) (string, string, string, error) {
-					return "/toolchain", "/bin/gomad", "runner", nil
+				install: func(string) (installation, error) {
+					return installation{toolchainRoot: "/toolchain", executable: "/bin/gomad", runnerBuild: "runner"}, nil
 				},
 				minimize: func(_ context.Context, config runner.MinimizeSpec) (runner.MinimizeResult, error) {
 					observed = config

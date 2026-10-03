@@ -21,9 +21,6 @@ type Config struct {
 	ArtifactRoot       string
 	HostOS             string
 	HostArch           string
-	runnerDigest       record.SHA256
-	runnerDigestError  error
-	runnerDigestSet    bool
 }
 
 type Report struct {
@@ -87,10 +84,7 @@ func Check(config Config) Report {
 		report.ToolchainBuild = identity.BuildKey
 		report.Checks = append(report.Checks, passedCheck("toolchain", identity.GoVersion+" build="+identity.BuildKey))
 	}
-	runnerDigest, err := config.runnerDigest, config.runnerDigestError
-	if !config.runnerDigestSet {
-		runnerDigest, err = hashExecutable(config.RunnerPath)
-	}
+	runnerDigest, err := digestRunner(config.RunnerPath)
 	if err != nil {
 		report.Checks = append(report.Checks, failedCheck("runner", err.Error()+"; reinstall the Gomad executable at "+config.RunnerPath))
 	} else {

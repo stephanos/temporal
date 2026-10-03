@@ -1,0 +1,74 @@
+# GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host (linux/arm64, harness on, final source)
+# All failures below are listed in the harness BASELINE.md; none is new. TestCLIWatchdogRetainsIncompleteEvidence passed this run.
+ok  	go.temporal.io/server/tools/gomad3	19.860s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad	154.821s
+--- FAIL: TestCheckRejectsUnsupportedHostAndUnwritableArtifacts (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	0.623s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	1.105s
+ok  	go.temporal.io/server/tools/gomad3/runner	470.551s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/campaign	48.627s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/corpus	1.901s
+--- FAIL: TestRunTimesOutAndRemovesTermIgnoringProcessGroup (0.72s)
+--- FAIL: TestRunIOTerminalAfterTermination (8.77s)
+--- FAIL: TestModerncLibcUsesDeterministicFilesystem (75.73s)
+--- FAIL: TestProfileSQLiteUsesVirtualTimeAndEntropy (81.46s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	296.900s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration	0.006s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice	0.124s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation	0.084s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord	0.012s
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/minimizer	1.476s
+ok  	go.temporal.io/server/tools/gomad3/qualification	0.786s
+--- FAIL: TestPrepareCapabilityReviewSupportsTemporalBackoffWithGRPCAdapter (157.57s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/qualification/analysis	158.041s
+ok  	go.temporal.io/server/tools/gomad3/qualification/comparison	0.011s
+ok  	go.temporal.io/server/tools/gomad3/qualification/set	2.721s
+ok  	go.temporal.io/server/tools/gomad3/qualification/set/manifestgen	8.773s
+ok  	go.temporal.io/server/tools/gomad3/qualification/workload	0.055s
+ok  	go.temporal.io/server/tools/gomad3/target	317.676s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/build	0.005s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/capabilityreview	0.016s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/livecap	0.026s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/provenance	0.006s
+ok  	go.temporal.io/server/tools/gomad3/record	0.061s
+ok  	go.temporal.io/server/tools/gomad3/artifact	6.361s
+ok  	go.temporal.io/server/tools/gomad3/choice	0.058s
+ok  	go.temporal.io/server/tools/gomad3/choice/internal/wire	0.020s
+--- FAIL: TestRewrittenModulePreparedPackageSourceSetIdentity (148.85s)
+--- FAIL: TestProfileSelectsSentryAdapter (3.83s)
+--- FAIL: TestCactusStatsDAdapterConsumer (8.13s)
+--- FAIL: TestProfileSelectsDownstreamAdapters (61.72s)
+--- FAIL: TestHashicorpMetricsAdapterConsumer (9.24s)
+--- FAIL: TestProfilePreparesPinnedModerncLibcAdapter (82.78s)
+--- FAIL: TestMemberlistAdapterConsumer (13.57s)
+--- FAIL: TestModerncMemoryPreparedPackageSourceSetIdentity (0.55s)
+--- FAIL: TestDeterministicProfileCompatibilityGolden (0.00s)
+--- FAIL: TestSemanticInstrumentationIdentityBindsProbeNamesAndStableIDs (0.00s)
+--- FAIL: TestSentryAdapterConsumer (21.10s)
+--- FAIL: TestSprigAdapterConsumer (3.00s)
+--- FAIL: TestValidatorAdapterConsumer (4.32s)
+--- FAIL: TestXNetPreparedPackageSourceSetIdentity (9.35s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/deterministicio	485.770s
+ok  	go.temporal.io/server/tools/gomad3/deterministicio/internal/wire	0.005s
+ok  	go.temporal.io/server/tools/gomad3/deterministicio/readonlymount	0.020s
+ok  	go.temporal.io/server/tools/gomad3/world	0.691s
+ok  	go.temporal.io/server/tools/gomad3/world/mailbox	0.055s
+ok  	go.temporal.io/server/tools/gomad3/world/process	0.019s
+ok  	go.temporal.io/server/tools/gomad3/toolchain/version	11.017s
+ok  	go.temporal.io/server/tools/gomad3/upgrade	2.374s
+ok  	go.temporal.io/server/tools/gomad3/upgrade/pinimpact	4.962s
+ok  	go.temporal.io/server/tools/gomad3/internal/canonicaljson	0.056s
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack	6.464s
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring	0.321s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	337.078s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/boundary	107.160s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/protocol	5.090s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/validation	0.056s
+ok  	go.temporal.io/server/tools/gomad3/internal/hostexec	0.675s
+ok  	go.temporal.io/server/tools/gomad3/internal/hostfs	0.012s
+FAIL
+exit=2 elapsed=494s

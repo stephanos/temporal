@@ -12,17 +12,12 @@ import (
 )
 
 type resumeDependencies struct {
-	identity func(string) (string, string, string, error)
-	commands func(string) privateCommands
-	run      func(context.Context, runner.ResumeSpec) (runner.CampaignResult, error)
+	install func(string) (installation, error)
+	run     func(context.Context, runner.ResumeSpec) (runner.CampaignResult, error)
 }
 
-func runResume(arguments []string, stdout, stderr io.Writer) int {
-	return runResumeWithApplication(arguments, stdout, stderr, newApplication())
-}
-
-func runResumeWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
-	return runResumeWith(arguments, stdout, stderr, resumeDependencies{identity: app.identity, commands: app.commands, run: runner.Resume})
+func (app application) runResume(arguments []string, stdout, stderr io.Writer) int {
+	return runResumeWith(arguments, stdout, stderr, resumeDependencies{install: app.install, run: runner.Resume})
 }
 
 func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies resumeDependencies) int {
@@ -51,7 +46,7 @@ func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies re
 		}
 		return 2
 	}
-	toolchain, executable, runnerBuild, err := dependencies.identity(*toolchainRoot)
+	installed, err := dependencies.install(*toolchainRoot)
 	if err != nil {
 		if writeErr := reporter.Error("runner_failure", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
@@ -64,14 +59,9 @@ func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies re
 			regressionOverride = guideRegression
 		}
 	})
-	commandsFor := dependencies.commands
-	if commandsFor == nil {
-		commandsFor = privateCommandsFor
-	}
-	commands := commandsFor(executable)
 	summary, err := dependencies.run(context.Background(), runner.ResumeSpec{
-		CampaignPath: flags.Arg(0), GuideRegression: regressionOverride, RunnerBuild: runnerBuild, ToolchainRoot: toolchain,
-		SupervisorCommand: commands.supervisor, CoordinatorCommand: commands.coordinator,
+		CampaignPath: flags.Arg(0), GuideRegression: regressionOverride, RunnerBuild: installed.runnerBuild, ToolchainRoot: installed.toolchainRoot,
+		SupervisorCommand: installed.supervisorCommand(), CoordinatorCommand: installed.coordinatorCommand(),
 		Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
 	})
 	if err != nil {

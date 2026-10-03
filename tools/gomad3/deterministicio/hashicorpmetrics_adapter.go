@@ -15,10 +15,12 @@ const (
 	hashicorpMetricsSignalReplacementSHA256          = "sha256:8526e7c6ec09e38d694cca294d7cba194a0fe25491aa57804184fa9184a96173"
 )
 
-var hashicorpMetricsPreparedSourceSetSHA256 = hostPin(map[string]string{
+var hashicorpMetricsPreparedSourceSetSHA256ByHost = map[string]string{
 	"darwin/arm64": "sha256:040cd95bb611568b5a7c0110726ca135f16e6a900175cb8f38b49f9248d70217",
 	"linux/amd64":  "sha256:040cd95bb611568b5a7c0110726ca135f16e6a900175cb8f38b49f9248d70217",
-})
+}
+
+var hashicorpMetricsPreparedSourceSetSHA256 = hostPin(hashicorpMetricsPreparedSourceSetSHA256ByHost)
 
 // hashicorpMetricsRewrites refuse signal services without changing their
 // public syscall.Signal signatures, metrics emission, or dump formatting.
@@ -47,15 +49,17 @@ var hashicorpMetricsRewrites = []sourceRewrite{
 	},
 }
 
+var hashicorpMetricsAdapter = rewrittenModule{
+	module: hashicorpMetricsModulePath, version: hashicorpMetricsVersion, sum: hashicorpMetricsSum,
+	cacheElements:                 []string{"github.com", "hashicorp", "go-metrics@" + hashicorpMetricsVersion},
+	replacementDirectory:          "hashicorp-go-metrics",
+	originalInventorySHA256:       hashicorpMetricsOriginalSourceInventorySHA256,
+	replacementInventorySHA256:    hashicorpMetricsReplacementSourceInventorySHA256,
+	preparedPackage:               hashicorpMetricsModulePath,
+	preparedSourceSetSHA256ByHost: hashicorpMetricsPreparedSourceSetSHA256ByHost,
+	rewrites:                      hashicorpMetricsRewrites,
+}
+
 func prepareHashicorpMetrics(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
-	return prepareRewrittenModule(moduleCache, root, identity, rewrittenModule{
-		module: hashicorpMetricsModulePath, version: hashicorpMetricsVersion, sum: hashicorpMetricsSum,
-		cacheElements:              []string{"github.com", "hashicorp", "go-metrics@" + hashicorpMetricsVersion},
-		replacementDirectory:       "hashicorp-go-metrics",
-		originalInventorySHA256:    hashicorpMetricsOriginalSourceInventorySHA256,
-		replacementInventorySHA256: hashicorpMetricsReplacementSourceInventorySHA256,
-		preparedPackage:            hashicorpMetricsModulePath,
-		preparedSourceSetSHA256:    hashicorpMetricsPreparedSourceSetSHA256,
-		rewrites:                   hashicorpMetricsRewrites,
-	})
+	return prepareRewrittenModule(moduleCache, root, identity, hashicorpMetricsAdapter)
 }

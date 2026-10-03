@@ -99,8 +99,14 @@ the milestones; downstream Linux qualification follows [GOMAD_CLOUD.md](GOMAD_CL
 
 ### COMPAT-8: Dependency and Go upgrade impact reports
 
-Extend the upgrade dossier with workload support/behavior differences, changed
-pack/adapter identities, and an addressable qualified rollback bundle. Releases
+[fn-113](../.flow/specs/fn-113-gomad-reduce-version-pin-maintenance.md) delivered
+the dependency side: `gomadtool pin-impact` reports every pin a candidate `go.mod`
+invalidates (unknown, never unaffected), `adapter-regenerate` re-derives adapter
+anchors behind an approval digest, and `compatibility-pack refresh` re-reviews
+invalidated packs up to approval. Both-platform qualification of that work is
+still owed. Remaining: extend the upgrade dossier with workload support/behavior
+differences, changed pack/adapter identities, and an addressable qualified
+rollback bundle, and accept a Go-version candidate as impact input. Releases
 require reviewed boundary differences and qualification; uncertainty and unavailable
 audits remain unqualified.
 

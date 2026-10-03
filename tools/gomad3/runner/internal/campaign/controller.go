@@ -26,7 +26,8 @@ type SeedJob struct {
 type CompletionKind uint8
 
 const (
-	CompletionUnclassified CompletionKind = iota
+	CompletionInvalid CompletionKind = iota
+	CompletionUnclassified
 	CompletionSuccess
 	CompletionCancelled
 	CompletionFailure
@@ -49,6 +50,22 @@ type CampaignStatistics struct {
 	DistinctFailures  uint64
 	StopReason        ControllerStopReason
 }
+
+// CompletedSuccess is an attempt classified as a success.
+func CompletedSuccess() Completion { return Completion{Kind: CompletionSuccess} }
+
+// CompletedCancelled is an attempt cancelled by a stopped campaign.
+func CompletedCancelled() Completion { return Completion{Kind: CompletionCancelled} }
+
+// CompletedFailure is an attempt classified as a failure with its outcome
+// domain and reason. distinctFailures includes this failure.
+func CompletedFailure(domain, reason string, distinctFailures uint64) Completion {
+	return Completion{Kind: CompletionFailure, Domain: domain, Reason: reason, DistinctFailures: distinctFailures}
+}
+
+// CompletedUnclassified is an attempt that ended before classification, such
+// as one whose evidence failed the host. It counts as attempted only.
+func CompletedUnclassified() Completion { return Completion{Kind: CompletionUnclassified} }
 
 type SeedControllerConfig struct {
 	Next          func() (SeedJob, bool)
@@ -114,6 +131,9 @@ func (controller *SeedController) Next() (SeedJob, bool) {
 func (controller *SeedController) Complete(completion Completion) bool {
 	if controller.active == 0 {
 		panic("gomad3: completed an inactive campaign attempt")
+	}
+	if completion.Kind == CompletionInvalid || completion.Kind > CompletionFailure {
+		panic("gomad3: completed a campaign attempt without a classification")
 	}
 	controller.active--
 	controller.statistics.Attempted++

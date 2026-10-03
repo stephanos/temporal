@@ -34,6 +34,11 @@ type StoreKey uint8
 const (
 	StoreKeyFailureSignature StoreKey = iota
 	StoreKeyRecord
+	// StoreKeyExecution keeps one artifact per execution because a retained
+	// success must replay as itself even when another seed completed with the
+	// same outcome signature. The first keeps the signature's directory, so
+	// campaigns without a collision keep their references.
+	StoreKeyExecution
 )
 
 type Payload struct {
@@ -158,10 +163,16 @@ func (store Store) PublishArtifact(publication Publication) (_ Artifact, retErr 
 	}
 	finalPath := filepath.Join(store.Root, identityDirectory(identity, false))
 	key := store.Key
+	executionPath := filepath.Join(store.Root, identityDirectory(executionIdentity(manifest), true))
+	tried := map[string]struct{}{}
 	for {
 		if err := ctx.Err(); err != nil {
 			return Artifact{}, err
 		}
+		if _, repeated := tried[finalPath]; repeated {
+			return Artifact{}, fmt.Errorf("artifact signature collision at %s", finalPath)
+		}
+		tried[finalPath] = struct{}{}
 		if err := renameNoReplace(staging, finalPath); err == nil {
 			break
 		} else if !errors.Is(err, os.ErrExist) {
@@ -174,6 +185,13 @@ func (store Store) PublishArtifact(publication Publication) (_ Artifact, retErr 
 		existingIdentity, identityErr := storeIdentity(key, existing.Manifest)
 		if identityErr != nil {
 			return Artifact{}, errors.Join(identityErr, existing.Close())
+		}
+		if existingIdentity == identity && store.Key == StoreKeyExecution && !sameExecution(existing.Manifest, manifest) {
+			if closeErr := existing.Close(); closeErr != nil {
+				return Artifact{}, fmt.Errorf("close artifact of another execution: %w", closeErr)
+			}
+			finalPath = executionPath
+			continue
 		}
 		if existingIdentity == identity {
 			if key == StoreKeyFailureSignature && manifest.ArtifactKind == record.ArtifactSuccess && existing.Manifest.RecordHash != manifest.RecordHash {
@@ -264,9 +282,23 @@ func artifactStoredBytes(manifest record.ExecutionRecord, manifestBytes uint64) 
 	return total, nil
 }
 
+// sameExecution reports whether two manifests record one execution of one
+// campaign, as a resumed campaign that publishes it again does. Its record
+// hash is not compared: a run again records other remaining time.
+func sameExecution(existing, published record.ExecutionRecord) bool {
+	return existing.CampaignID == published.CampaignID && existing.SelectionOrdinal == published.SelectionOrdinal && existing.Seed == published.Seed
+}
+
+// executionIdentity names the artifact of one execution under
+// StoreKeyExecution when another execution holds its outcome signature's
+// directory.
+func executionIdentity(manifest record.ExecutionRecord) record.SHA256 {
+	return record.DomainHash("gomad3-execution-artifact-v1", fmt.Appendf(nil, "%s\x00%d\x00%d\x00%s", manifest.CampaignID, manifest.SelectionOrdinal, manifest.Seed, manifest.Outcome.FailureSignature))
+}
+
 func storeIdentity(key StoreKey, manifest record.ExecutionRecord) (record.SHA256, error) {
 	switch key {
-	case StoreKeyFailureSignature:
+	case StoreKeyFailureSignature, StoreKeyExecution:
 		return manifest.Outcome.FailureSignature, nil
 	case StoreKeyRecord:
 		return manifest.RecordHash, nil

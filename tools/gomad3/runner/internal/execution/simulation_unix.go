@@ -6,7 +6,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"sync"
+
+	"go.temporal.io/server/tools/gomad3/record"
 )
 
 type simulationNodeProcess struct {
@@ -56,7 +59,7 @@ type simulationCoordinator struct {
 }
 
 func newSimulationCoordinator(request Spec) (*simulationCoordinator, error) {
-	timeArbiter := newSimulationTimeArbiter()
+	timeArbiter := newSimulationTimeArbiter(simulationForwardClock(request.Env))
 	participant, err := timeArbiter.register("coordinator")
 	if err != nil {
 		return nil, err
@@ -74,6 +77,11 @@ func newSimulationCoordinator(request Spec) (*simulationCoordinator, error) {
 		responses: make(map[uint64]simulationResponseBarrier), explorationPlan: explorationPlan,
 		explorationRecordLimit: explorationRecordLimit, explorationRecordCount: explorationRecordCount,
 	}, nil
+}
+
+func simulationForwardClock(environment []string) bool {
+	want := record.ClockTickEnvironment + "=" + record.ClockTickForward
+	return slices.Contains(environment, want)
 }
 
 func (coordinator *simulationCoordinator) handle(ctx context.Context, frame simulationFrame) (simulationFrame, error) {
@@ -326,7 +334,7 @@ func (coordinator *simulationCoordinator) handleNodeFrame(ctx context.Context, n
 	modelRequest := frame.Kind == simulationFrameModel
 	var err error
 	if modelRequest {
-		err = coordinator.time.forwardExternalAfterArrivals(node.time, frame.Arrivals, coordinator.coordinator)
+		err = coordinator.time.forwardExternalAfterArrivals(node.time, frame.Arrivals, frame.Time, coordinator.coordinator)
 	} else {
 		err = coordinator.time.beginExternalAfterArrivals(node.time, frame.Arrivals)
 	}
@@ -342,13 +350,21 @@ func (coordinator *simulationCoordinator) handleNodeFrame(ctx context.Context, n
 			return simulationFrame{}, ctx.Err()
 		}
 	case simulationFrameActivated:
+		reported, err := decodeSimulationActivationTime(frame.Payload)
+		if err != nil {
+			return simulationFrame{}, err
+		}
 		coordinator.mu.Lock()
 		if !node.activationStarted || node.activationAcknowledged {
 			coordinator.mu.Unlock()
 			return simulationFrame{}, errors.New("simulation node activation acknowledgement is invalid")
 		}
+		current, err := coordinator.time.activateAt(node.time, reported)
+		if err != nil {
+			coordinator.mu.Unlock()
+			return simulationFrame{}, err
+		}
 		node.activationAcknowledged = true
-		current := coordinator.time.activate(node.time)
 		close(node.activated)
 		coordinator.mu.Unlock()
 		return simulationFrame{Node: node.node, Incarnation: node.incarnation, Payload: encodeSimulationActivationTime(current)}, nil
@@ -514,7 +530,7 @@ func (coordinator *simulationCoordinator) beginResponseBarrier(request uint64, a
 }
 
 func (coordinator *simulationCoordinator) beginForwardedResponseBarrier(request uint64, arrivals uint32, node *simulationNodeProcess) error {
-	if err := coordinator.time.forwardExternalAfterArrivals(coordinator.coordinator, arrivals, node.time); err != nil {
+	if err := coordinator.time.forwardExternalAfterArrivals(coordinator.coordinator, arrivals, 0, node.time); err != nil {
 		return err
 	}
 	coordinator.mu.Lock()

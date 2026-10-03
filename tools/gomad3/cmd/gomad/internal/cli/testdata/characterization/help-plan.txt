@@ -1,0 +1,95 @@
+status=2
+--- stdout
+--- stderr
+gomad: invalid_input: flag: help requested
+Usage of gomad explore:
+  -artifacts string
+    	artifact root (default ".gomad/artifacts")
+  -build-tag value
+    	validated Go build tag
+  -capability-mode string
+    	closure, linked, or guarded capability assessment (default "closure")
+  -choice-bytes value
+    	runtime choice trace capacity (default 8388608)
+  -choice-start-ordinal uint
+    	first replay-plan decision ordinal choice exploration expands; inspect --choices lists ordinals
+  -choices
+    	record bounded runtime choices
+  -clock-tick string
+    	virtual-clock tick policy: strict or forward (default "strict")
+  -corpus string
+    	guided coverage corpus directory
+  -count uint
+    	explore seeds 0 through N-1
+  -coverage string
+    	none, semantic, choice, or semantic+choice (default "none")
+  -diagnostics
+    	record runtime-state diagnostics; implies --choices
+  -env value
+    	target NAME=VALUE
+  -execution-timeout duration
+    	per-execution host deadline (default 30s)
+  -failure-budget uint
+    	distinct failure signature threshold (default 1)
+  -guide
+    	exclude answered seeds using a bounded coverage corpus
+  -guide-regression
+    	re-run corpus seeds with --guide; fully answered default requests execute zero seeds and exit 0
+  -io-ro-mount value
+    	read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping
+  -io-transcript-bytes value
+    	I/O transcript capacity (64MiB to 1GiB, whole MiB) (default 67108864)
+  -json
+    	emit stable JSON events
+  -keep-successes string
+    	none, novel, or all (default "none")
+  -max-choice-depth uint
+    	maximum forced choice decisions
+  -max-crash-decisions uint
+    	maximum crash-state decision ordinal
+  -max-executions uint
+    	maximum exploration candidates
+  -max-exploration-bytes value
+    	maximum live choice-exploration bytes
+  -max-exploration-result-bytes value
+    	maximum combined result bytes per candidate
+  -max-fault-decisions uint
+    	maximum fault decision ordinal
+  -max-forced-decisions uint
+    	maximum combined forced decisions
+  -max-network-decisions uint
+    	maximum network decision ordinal
+  -max-runtime-decisions uint
+    	maximum runtime decision ordinal
+  -max-scenario-decisions uint
+    	maximum scenario decision ordinal
+  -max-storage-decisions uint
+    	maximum storage decision ordinal
+  -on-failure string
+    	first, budget, or all (default "first")
+  -output string
+    	campaign plan output
+  -output-limit value
+    	retained bytes per output stream (default 8388608)
+  -overall-timeout duration
+    	complete exploration host deadline (default 10m0s)
+  -parallel int
+    	maximum active targets (default {{parallel}})
+  -require-probe value
+    	required semantic probe (requires --coverage=semantic)
+  -seeds string
+    	seed set or inclusive ranges (default "1")
+  -strategy string
+    	seed, choice-exploration, or simulation-exploration (default "seed")
+  -success-bytes value
+    	total retained successful-execution bytes
+  -success-limit uint
+    	maximum retained successful executions
+  -terminate-grace duration
+    	termination grace inside deadlines (default 2s)
+  -toolchain-root string
+    	absolute pinned toolchain root
+  -working-dir string
+    	absolute target module root (default: the current directory)
+  -world-transition-limit value
+    	World transition capacity (default 67108864)

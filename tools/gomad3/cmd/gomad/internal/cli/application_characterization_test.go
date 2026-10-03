@@ -111,7 +111,9 @@ func TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments(t *testing.T) 
 	for _, jsonOutput := range []bool{false, true} {
 		var observed qualificationworkload.Spec
 		dependencies := qualifyDependencies{
-			identity:         func(string) (string, string, string, error) { return "/toolchain", "/bin/gomad", "sha256:runner", nil },
+			install: func(string) (installation, error) {
+				return installation{toolchainRoot: "/toolchain", executable: "/bin/gomad", runnerBuild: "sha256:runner"}, nil
+			},
 			workingDirectory: func() (string, error) { return "/workspace", nil },
 			workload: func(_ context.Context, spec qualificationworkload.Spec) (qualificationworkload.Result, error) {
 				observed = spec

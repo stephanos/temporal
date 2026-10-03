@@ -66,91 +66,104 @@ var deterministicAdapters = mustAdapterRegistry(gomadversion.Adapters[:], []adap
 		inventory: inventoryEntry{
 			Boundary: sprigModulePath, Disposition: "target-adapter", Operations: []string{"host-dns-refusal"},
 		},
-		prepare: prepareSprig,
+		prepare:   prepareSprig,
+		rewritten: &sprigAdapter,
 	},
 	{
 		module: validatorModulePath,
 		inventory: inventoryEntry{
 			Boundary: validatorModulePath, Disposition: "target-adapter", Operations: []string{"address-resolution-refusal"},
 		},
-		prepare: prepareValidator,
+		prepare:   prepareValidator,
+		rewritten: &validatorAdapter,
 	},
 	{
 		module: pebbleModulePath,
 		inventory: inventoryEntry{
 			Boundary: pebbleModulePath, Disposition: "target-adapter", Operations: []string{"os-file-construction-refusal", "hard-link-refusal"},
 		},
-		prepare: preparePebble,
+		prepare:   preparePebble,
+		rewritten: &pebbleAdapter,
 	},
 	{
 		module: cactusStatsDModulePath,
 		inventory: inventoryEntry{
 			Boundary: cactusStatsDModulePath, Disposition: "target-adapter", Operations: []string{"udp-sender-refusal"},
 		},
-		prepare: prepareCactusStatsD,
+		prepare:   prepareCactusStatsD,
+		rewritten: &cactusStatsDAdapter,
 	},
 	{
 		module: memberlistModulePath,
 		inventory: inventoryEntry{
 			Boundary: memberlistModulePath, Disposition: "target-adapter", Operations: []string{"native-udp-transport-refusal"},
 		},
-		prepare: prepareMemberlist,
+		prepare:   prepareMemberlist,
+		rewritten: &memberlistAdapter,
 	},
 	{
 		module: sentryModulePath,
 		inventory: inventoryEntry{
 			Boundary: sentryModulePath, Disposition: "target-adapter", Operations: []string{"optional-git-release-suppression"},
 		},
-		prepare: prepareSentry,
+		prepare:   prepareSentry,
+		rewritten: &sentryAdapter,
 	},
 	{
 		module: hashicorpMetricsModulePath,
 		inventory: inventoryEntry{
 			Boundary: hashicorpMetricsModulePath, Disposition: "target-adapter", Operations: []string{"signal-service-refusal"},
 		},
-		prepare: prepareHashicorpMetrics,
+		prepare:   prepareHashicorpMetrics,
+		rewritten: &hashicorpMetricsAdapter,
 	},
 	{
 		module: xnetModulePath,
 		inventory: inventoryEntry{
 			Boundary: xnetModulePath, Disposition: "target-adapter", Operations: []string{"raw-socket-option-denial"},
 		},
-		prepare: prepareXNet,
+		prepare:   prepareXNet,
+		rewritten: &xnetAdapter,
 	},
 	{
 		module: grpcModulePath,
 		inventory: inventoryEntry{
 			Boundary: grpcModulePath, Disposition: "target-adapter", Operations: []string{"virtual-tcp-keepalive-suppression", "portable-syscall-removal", "host-dns-refusal"},
 		},
-		prepare: prepareGRPC,
+		prepare:   prepareGRPC,
+		rewritten: &grpcAdapter,
 	},
 	{
 		module: fxModulePath,
 		inventory: inventoryEntry{
 			Boundary: fxModulePath, Disposition: "target-adapter", Operations: []string{"signal-relay-suppression"},
 		},
-		prepare: prepareFx,
+		prepare:   prepareFx,
+		rewritten: &fxAdapter,
 	},
 	{
 		module: temporalSDKModulePath,
 		inventory: inventoryEntry{
 			Boundary: temporalSDKModulePath, Disposition: "target-adapter", Operations: []string{"interrupt-channel-suppression"},
 		},
-		prepare: prepareTemporalSDK,
+		prepare:   prepareTemporalSDK,
+		rewritten: &temporalSDKAdapter,
 	},
 	{
 		module: otelSDKModulePath,
 		inventory: inventoryEntry{
 			Boundary: otelSDKModulePath, Disposition: "target-adapter", Operations: []string{"process-owner-placeholder", "uname-placeholder", "host-command-denial"},
 		},
-		prepare: prepareOtelSDK,
+		prepare:   prepareOtelSDK,
+		rewritten: &otelSDKAdapter,
 	},
 	{
 		module: sockaddrModulePath,
 		inventory: inventoryEntry{
 			Boundary: sockaddrModulePath, Disposition: "target-adapter", Operations: []string{"route-command-denial", "interface-discovery-refusal", "literal-address-parsing"},
 		},
-		prepare: prepareSockaddr,
+		prepare:   prepareSockaddr,
+		rewritten: &sockaddrAdapter,
 	},
 	{
 		module: libcModulePath,
@@ -164,7 +177,8 @@ var deterministicAdapters = mustAdapterRegistry(gomadversion.Adapters[:], []adap
 		inventory: inventoryEntry{
 			Boundary: memoryModulePath, Disposition: "target-adapter", Operations: []string{"anonymous-memory"},
 		},
-		prepare: prepareModerncMemory,
+		prepare:   prepareModerncMemory,
+		rewritten: &memoryAdapter,
 	},
 })
 

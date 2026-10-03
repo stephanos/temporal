@@ -61,6 +61,9 @@ type adapterImplementation struct {
 	module    string
 	inventory inventoryEntry
 	prepare   func(string, string, gomadversion.AdapterIdentity) (adapterPreparation, error)
+	// rewritten is the anchored rewrite an adapter prepared by
+	// prepareRewrittenModule declares, which regeneration re-derives.
+	rewritten *rewrittenModule
 }
 
 type adapterDefinition struct {

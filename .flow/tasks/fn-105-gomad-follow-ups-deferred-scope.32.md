@@ -17,8 +17,12 @@ State the host-time escapes in the README contract. Pin the darwin `gettimeofday
 
 
 ## Done summary
-TBD
+Blocked:
+D27 implementation is merged at `bfb2bdb8ef136d3eb38cbd539735661d5d7c9af5`, reachable from the current `gomad` HEAD. The README contract names host-clock reporting escapes and the declined collector-stamp overwrite; the static inventory and fixtures pin Darwin `gettimeofday` and `cputicks`. No prohibited collector or assembly source was changed. Independent correctness review returned SHIP for the implementation, not native qualification.
 
+Fresh development verification: `GOTOOLCHAIN=go1.27.1 GOWORK=off go -C tools/gomad3 test -count=1 -tags test_dep ./toolchain -run TestHostClockInventoryPinsPlatformSpecificEscapes` exits 0. Earlier implementation commands, review, and source evidence remain in `/tmp/flow-next-fn105-32/summary.md` and `/tmp/flow-next-fn105-32/evidence.json`.
+
+R27 remains incomplete: `make -C tools/gomad3 test-toolchain` must pass on native darwin/arm64 and linux/amd64. This host reports Linux aarch64 (linux/arm64), which the qualification contract does not support; the available local Docker builder is also arm64, and there are no usable GitHub Actions credentials. Cross-compiled or emulated checks cannot satisfy native qualification. Resume with a qualified host or CI; do not widen platform policy or mark this task done from synthetic inventory fixtures.
 ## Evidence
 - Commits:
 - Tests:

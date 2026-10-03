@@ -64,3 +64,16 @@ make upgrade-dossier GOMAD3_BASELINE_REF=<previous-commit> GOMAD3_APPROVED_BOUND
 ```
 
 CI uploads the dossier on every run.
+
+## Dependency bumps
+
+A bump of an adapted or compatibility-packed module keeps every pin exact. With the bump applied to the target module and not yet committed, run from the Gomad source module root (add `--module=<dir>` to `pin-impact` for a module other than the repository root module):
+
+```sh
+go run ./cmd/gomadtool pin-impact
+go run ./cmd/gomadtool adapter-regenerate --module=<adapted-module> --version=<new-version>
+go run ./cmd/gomadtool adapter-regenerate --module=<adapted-module> --version=<new-version> --approve-review=<reviewed-digest>
+go run ./cmd/gomadtool compatibility-pack refresh --root=.
+```
+
+`pin-impact` lists the invalidated pins. Regenerate each adapter it names, reviewing the dry run's upstream diff before applying its digest; an anchor that no longer matches exactly once stops the command and needs a person. `compatibility-pack refresh` re-reviews every invalidated request and prints the `compatibility-pack generate --approve-review` command for each; each platform's host approves and qualifies its own requests with `make validate compatibility-pack-qualification`. A pack pinned to the replaced version stays invalidated after the bump is committed; when the bump removes a module, pass the revision before it with `--baseline-ref` so its pins are reported stale. A changed adapter changes the target identity, so rebuild `.bin/gomad` and requalify its workloads.

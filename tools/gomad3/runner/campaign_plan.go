@@ -86,3 +86,23 @@ func campaignPlanRecord(config campaignRequest, journalPlan campaign.ExecutionJo
 	plan.Artifacts = &artifacts
 	return plan, nil
 }
+
+func ParseStrategy(value string) (Strategy, error) {
+	strategy := NormalizeStrategy(Strategy(value))
+	switch strategy {
+	case StrategySeed, StrategyChoiceExploration, StrategySimulationExploration:
+		return strategy, nil
+	default:
+		return "", fmt.Errorf("unknown exploration strategy %q", value)
+	}
+}
+
+func ParseCoverageMode(value string) (CoverageMode, error) {
+	mode := CoverageMode(value)
+	switch mode {
+	case CoverageNone, CoverageSemantic, CoverageChoice, CoverageSemanticChoice:
+		return mode, nil
+	default:
+		return "", fmt.Errorf("unknown coverage mode %q", value)
+	}
+}

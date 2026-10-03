@@ -12,119 +12,162 @@ import (
 	"go.temporal.io/server/tools/gomad3/toolchain"
 )
 
+// The private child modes the gomad executable serves for its own Runner. The
+// Runner starts the supervisor and coordinator through the commands an
+// installation spells, and derives the target bootstrap from the supervisor's
+// executable.
+const (
+	coordinatorMode     = "__coordinator"
+	supervisorMode      = "__supervisor"
+	targetBootstrapMode = "__target_bootstrap"
+)
+
+// toolchainEnvironment names the environment variable that selects the
+// toolchain root when --toolchain-root is absent.
+const toolchainEnvironment = "GOMAD3_TOOLCHAIN_DIR"
+
+// application is the construction one gomad invocation shares. Run builds it
+// once from the host. It alone finds the running executable, resolves the
+// pinned toolchain installation, digests the Runner build and spells the
+// private child-mode commands; commands receive what it resolves and never
+// consult the host for those themselves. A command resolves its installation
+// only after it has validated its own input, so invalid input keeps precedence
+// over an unusable installation.
 type application struct {
-	executablePath       string
-	executableSet        bool
-	resolvedInstallation toolchain.Installation
-	installationRootArg  string
-	installationPath     string
-	installationSet      bool
-	runnerBuild          string
-	runnerBuildSet       bool
-	privateCommands      privateCommands
-	privateCommandsSet   bool
+	executable  func() (string, error)
+	environment func(string) string
+	cache       *installationCache
+	// privateInput and privateOutput carry the coordinator's request and
+	// response protocol; the supervisor and target bootstrap modes ignore
+	// them and read their fixed descriptors. They are the process's standard
+	// streams, not a command's writers.
+	privateInput  io.Reader
+	privateOutput io.Writer
+	dispatch      func(mode string, input io.Reader, output io.Writer) error
 }
 
-type privateCommands struct {
-	supervisor  []string
-	coordinator []string
+// installation is what one operation runs with: the resolved toolchain root,
+// and the executable and Runner build that serve its private child modes.
+type installation struct {
+	toolchainRoot string
+	executable    string
+	runnerBuild   string
 }
 
-func newApplication() *application {
-	return &application{}
+type installationCache struct {
+	explicitRoot string
+	installed    installation
+	set          bool
+	executable   string
+	runnerBuild  string
+	identitySet  bool
 }
 
-func applicationWithExecutable(executable string) *application {
-	return &application{executablePath: executable, executableSet: true}
-}
-
-func (app *application) executable() (string, error) {
-	if app.executableSet {
-		return app.executablePath, nil
+func hostApplication() application {
+	return application{
+		executable: os.Executable, environment: os.Getenv,
+		privateInput: os.Stdin, privateOutput: os.Stdout, dispatch: runner.DispatchPrivateMode,
+		cache: new(installationCache),
 	}
-	executable, err := os.Executable()
+}
+
+func (installation installation) supervisorCommand() []string {
+	return []string{installation.executable, supervisorMode}
+}
+
+func (installation installation) coordinatorCommand() []string {
+	return []string{installation.executable, coordinatorMode}
+}
+
+func isPrivateMode(mode string) bool {
+	return mode == coordinatorMode || mode == targetBootstrapMode || mode == supervisorMode
+}
+
+func (app application) runPrivateMode(mode string, stderr io.Writer) int {
+	if err := app.dispatch(mode, app.privateInput, app.privateOutput); err != nil {
+		fmt.Fprintln(stderr, err)
+		return 3
+	}
+	return 0
+}
+
+// executablePath reports the running gomad executable as the host names it.
+func (app application) executablePath() (string, error) {
+	executable, err := app.executable()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("resolve gomad executable: %w", err)
 	}
-	app.executablePath = executable
-	app.executableSet = true
 	return executable, nil
 }
 
-func (app *application) installation(explicitToolchainRoot string) (toolchain.Installation, string, error) {
-	if app.installationSet && app.installationRootArg == explicitToolchainRoot {
-		return app.resolvedInstallation, app.installationPath, nil
-	}
-	executable, err := app.executable()
+func absoluteExecutable(executable string) (string, error) {
+	absolute, err := filepath.Abs(executable)
 	if err != nil {
-		return toolchain.Installation{}, "", fmt.Errorf("resolve gomad executable: %w", err)
+		return "", fmt.Errorf("resolve gomad executable path: %w", err)
 	}
-	executable, err = filepath.Abs(executable)
-	if err != nil {
-		return toolchain.Installation{}, "", fmt.Errorf("resolve gomad executable path: %w", err)
-	}
-	resolved, err := toolchain.ResolveInstallation(toolchain.InstallationSpec{
-		Executable: executable, ExplicitToolchainRoot: explicitToolchainRoot, EnvironmentToolchainRoot: os.Getenv("GOMAD3_TOOLCHAIN_DIR"),
+	return absolute, nil
+}
+
+// resolveInstallation locates the toolchain installation serving executable:
+// an explicit --toolchain-root first, then the environment, then the
+// installation beside the executable.
+func (app application) resolveInstallation(executable, explicitToolchainRoot string) (toolchain.Installation, error) {
+	return toolchain.ResolveInstallation(toolchain.InstallationSpec{
+		Executable: executable, ExplicitToolchainRoot: explicitToolchainRoot, EnvironmentToolchainRoot: app.environment(toolchainEnvironment),
 	})
-	if err != nil {
-		return toolchain.Installation{}, "", fmt.Errorf("resolve Gomad installation: %w", err)
-	}
-	app.resolvedInstallation = resolved
-	app.installationRootArg = explicitToolchainRoot
-	app.installationPath = executable
-	app.installationSet = true
-	return resolved, executable, nil
 }
 
-func (app *application) identity(explicitToolchainRoot string) (toolchainRoot, executable, runnerBuild string, err error) {
-	resolved, executable, err := app.installation(explicitToolchainRoot)
-	if err != nil {
-		return "", "", "", err
+// install resolves everything an operation needs to start the Runner's child
+// processes from this executable.
+func (app application) install(explicitToolchainRoot string) (installation, error) {
+	if app.cache != nil && app.cache.set && app.cache.explicitRoot == explicitToolchainRoot {
+		return app.cache.installed, nil
 	}
-	if !app.runnerBuildSet {
-		bytes, readErr := os.ReadFile(executable)
-		if readErr != nil {
-			return "", "", "", fmt.Errorf("hash gomad executable: %w", readErr)
+	executable := ""
+	if app.cache != nil && app.cache.identitySet {
+		executable = app.cache.executable
+	} else {
+		var err error
+		executable, err = app.executablePath()
+		if err != nil {
+			return installation{}, err
 		}
-		digest := sha256.Sum256(bytes)
-		app.runnerBuild = fmt.Sprintf("sha256:%x", digest)
-		app.runnerBuildSet = true
+		executable, err = absoluteExecutable(executable)
+		if err != nil {
+			return installation{}, err
+		}
 	}
-	app.commands(executable)
-	return resolved.ToolchainRoot, executable, app.runnerBuild, nil
-}
-
-func (app *application) commands(executable string) privateCommands {
-	if !app.privateCommandsSet {
-		app.privateCommands = privateCommandsFor(executable)
-		app.privateCommandsSet = true
+	resolved, err := app.resolveInstallation(executable, explicitToolchainRoot)
+	if err != nil {
+		return installation{}, fmt.Errorf("resolve Gomad installation: %w", err)
 	}
-	return app.privateCommands
-}
-
-func privateCommandsFor(executable string) privateCommands {
-	return privateCommands{
-		supervisor: []string{executable, "__supervisor"}, coordinator: []string{executable, "__coordinator"},
+	build := ""
+	if app.cache != nil && app.cache.identitySet {
+		build = app.cache.runnerBuild
+	} else {
+		digest, err := digestRunner(executable)
+		if err != nil {
+			return installation{}, fmt.Errorf("hash gomad executable: %w", err)
+		}
+		build = string(digest)
 	}
-}
-
-func (app *application) dispatchPrivateMode(mode string) error {
-	return runner.DispatchPrivateMode(mode, os.Stdin, os.Stdout)
-}
-
-func (app *application) check(config Config) Report {
-	digest, err := hashExecutable(config.RunnerPath)
-	config.runnerDigest = digest
-	config.runnerDigestError = err
-	config.runnerDigestSet = true
-	if err == nil {
-		app.runnerBuild = string(digest)
-		app.runnerBuildSet = true
+	installed := installation{toolchainRoot: resolved.ToolchainRoot, executable: executable, runnerBuild: build}
+	if app.cache != nil {
+		app.cache.explicitRoot, app.cache.installed, app.cache.set = explicitToolchainRoot, installed, true
+		app.cache.executable, app.cache.runnerBuild, app.cache.identitySet = executable, build, true
 	}
-	return Check(config)
+	return installed, nil
 }
 
-func hashExecutable(path string) (digest record.SHA256, retErr error) {
+// installedToolchain resolves only the toolchain root, for operations that
+// start no Runner child process.
+func (app application) installedToolchain(explicitToolchainRoot string) (string, error) {
+	resolved, err := app.install(explicitToolchainRoot)
+	return resolved.toolchainRoot, err
+}
+
+// digestRunner is the Runner build identity of the gomad executable at path.
+func digestRunner(path string) (_ record.SHA256, retErr error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return "", fmt.Errorf("open Runner: %w", err)
@@ -139,7 +182,6 @@ func hashExecutable(path string) (digest record.SHA256, retErr error) {
 		return "", fmt.Errorf("stat Runner: %w", err)
 	}
 	if !info.Mode().IsRegular() || info.Mode()&0o111 == 0 {
-		//nolint:staticcheck // Preserve the doctor report's existing repair message.
 		return "", fmt.Errorf("Runner is not a regular executable: %s", path)
 	}
 	hasher := sha256.New()

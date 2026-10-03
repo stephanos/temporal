@@ -1,0 +1,41 @@
+# source: working tree on 56148912d with the v041 removal, host linux/arm64, go version go1.27.1 linux/arm64
+. golang-x-sys-v047-darwin-arm64
+. modernc-libc-xsys-v047
+. modernc-libc-xsys-v047-isatty-v021
+. modernc-libc-xsys-v047-linux-amd64
+. reflect2-go126
+. temporal-functional-compute-darwin-arm64
+. temporal-functional-compute-linux-amd64
+. temporal-functional-tests-darwin-arm64
+. temporal-functional-tests-linux-amd64
+. temporal-leaf-xsys-darwin-arm64
+. temporal-leaf-xxhash-darwin-arm64
+. (pack rules selected: 48)
+tests/mixedbrain golang-x-sys-v047-darwin-arm64
+tests/mixedbrain (pack rules selected: 2)
+tools/gomad3/deterministicio/testdata/cactusstatsd (pack rules selected: 0)
+tools/gomad3/deterministicio/testdata/hashicorpmetrics (pack rules selected: 0)
+tools/gomad3/deterministicio/testdata/memberlist golang-x-sys-v047-darwin-arm64
+tools/gomad3/deterministicio/testdata/memberlist (pack rules selected: 2)
+tools/gomad3/deterministicio/testdata/pebble golang-x-sys-v047-darwin-arm64
+tools/gomad3/deterministicio/testdata/pebble (pack rules selected: 2)
+tools/gomad3/deterministicio/testdata/sentry (pack rules selected: 0)
+tools/gomad3/deterministicio/testdata/sockaddr (pack rules selected: 0)
+tools/gomad3/deterministicio/testdata/sprig (pack rules selected: 0)
+tools/gomad3/deterministicio/testdata/validator (pack rules selected: 0)
+tools/gomad3 (pack rules selected: 0)
+tools/gomad3/internal/compatibilitypack/testdata/xsys golang-x-sys-v047-darwin-arm64
+tools/gomad3/internal/compatibilitypack/testdata/xsys (pack rules selected: 4)
+tools/gomad3/internal/gomadtool/conformance/testdata (pack rules selected: 0)
+tools/gomad3/internal/gomadtool/conformance/testdata/libc_adapter golang-x-sys-v047-darwin-arm64
+tools/gomad3/internal/gomadtool/conformance/testdata/libc_adapter modernc-libc-xsys-v047
+tools/gomad3/internal/gomadtool/conformance/testdata/libc_adapter modernc-libc-xsys-v047-linux-amd64
+tools/gomad3/internal/gomadtool/conformance/testdata/libc_adapter (pack rules selected: 11)
+tools/gomad3/internal/gomadtool/conformance/testdata/sqlite_adapter golang-x-sys-v047-darwin-arm64
+tools/gomad3/internal/gomadtool/conformance/testdata/sqlite_adapter modernc-libc-xsys-v047
+tools/gomad3/internal/gomadtool/conformance/testdata/sqlite_adapter modernc-libc-xsys-v047-linux-amd64
+tools/gomad3/internal/gomadtool/conformance/testdata/sqlite_adapter (pack rules selected: 13)
+tools/gomad3/qualification/corpus golang-x-sys-v047-darwin-arm64
+tools/gomad3/qualification/corpus modernc-libc-xsys-v047
+tools/gomad3/qualification/corpus modernc-libc-xsys-v047-linux-amd64
+tools/gomad3/qualification/corpus (pack rules selected: 13)

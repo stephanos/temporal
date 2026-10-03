@@ -52,6 +52,7 @@ var schedulingSearchFixtures = []struct{ name, packageName string }{
 	{name: "timer-creator-identity", packageName: "./timer_creator_identity"},
 	{name: "timer-reset-identity", packageName: "./timer_reset_identity"},
 	{name: "select-readiness", packageName: "./select_readiness"},
+	{name: "runq-user-choice", packageName: "./runq_user_choice"},
 }
 
 // selectReadinessShapes are the select shapes of the E3 fixture with the

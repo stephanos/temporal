@@ -381,7 +381,7 @@ func processSimulationExplorationCompletion(
 			manifest.SimulationProfile = &simulationProfile
 			input := executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle)
 			input.Simulation = simulationPayloads
-			published, err := artifact.PublishArtifact(artifact.Store{Root: filepath.Join(staged.Path(), "successes"), Context: ctx, MaximumBytes: retention.maximumBytes, TargetPool: artifact.TargetPool(config.Artifacts)}, input)
+			published, err := artifact.PublishArtifact(artifact.Store{Root: filepath.Join(staged.Path(), "successes"), Context: ctx, MaximumBytes: retention.maximumBytes, Key: artifact.StoreKeyExecution, TargetPool: artifact.TargetPool(config.Artifacts)}, input)
 			if err != nil {
 				return simulationExplorationRoundResult{}, successPublicationFailure(err)
 			}

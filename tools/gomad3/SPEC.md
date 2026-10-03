@@ -221,7 +221,22 @@ Deterministic runtime behavior must activate only through an explicit direct see
 
 For a fixed Target, toolchain, platform, deterministic inputs, and seed, supported runtime-controlled choices must repeat across fresh processes. These choices include supported goroutine scheduling, selection polling, map randomization, and equal-deadline timer ordering. Different seeds must be able to select different alternatives where alternatives exist.
 
-The local run queue uses the queue head's class for each dispatch. A runtime-owned head runs deterministically; a user head chooses only among queued user goroutines. The runtime's dynamic system-goroutine classification treats finalizer and cleanup goroutines executing user callbacks as user goroutines. A user dispatch with two or more user goroutines records one decision; zero or one user goroutine records none. Each dispatch removes the head, moving it to the selected user's former slot when needed. Runtime entries therefore advance to the head, and a yielding runtime entry rejoins behind queued user work, so neither class can starve the other through local queue selection. The rule depends only on queue contents and applies equally with recording disabled, exact replay, and forced prefixes. It excludes the run-next slot, global queue, timer delivery, and collector workers selected outside the local run queue; those paths retain their existing scheduling rules. A CPU loop that never yields remains outside this fairness claim. Tapes from the preceding controller identity must be rejected before execution.
+The local run queue uses the queue head's class for each dispatch while deterministic
+runtime behavior is active with one P. A runtime-owned head runs without a seeded
+draw or choice record; a user head chooses only among queued user goroutines.
+Runtime-owned means `isSystemGoroutine(gp, false)`. The finalizer and cleanup
+goroutines count as users while executing user callbacks and as runtime-owned
+while waiting for work. A user dispatch with two or more user goroutines records
+one Runnable decision whose alternatives are exactly those users; zero or one
+records none. Each dispatch removes the head, moving it to the selected user's
+former slot when needed. Runtime entries therefore advance to the head, and a
+yielding runtime entry rejoins behind queued user work, so neither class can
+starve the other through local queue selection. The rule depends only on queue
+contents and applies with recording disabled, exact replay, and forced prefixes.
+The run-next slot, global queue, timer delivery, and collector workers selected
+outside the local queue retain their existing rules. A CPU loop that never yields
+remains outside this fairness claim. Tapes from the preceding controller identity
+must be rejected before execution.
 
 ### [RUNTIME.TIME] Virtual Time
 
@@ -478,6 +493,10 @@ The release descriptor, runtime changes, source overlay, interaction inventory, 
 Compatibility-pack development must follow discovery, human review, exact approval, generation, validation, and qualification. A pack must bind an exact dependency version, source inventories, platform scope, governance, and any approved deterministic adapter replacement.
 An impact-driven refresh may batch discovery and review for invalidated requests, but only a freshly matching per-request approval may generate a pack. Requests scoped to another platform remain unchanged until that host evaluates them.
 
+### [MAINTENANCE.DEPENDENCY] Dependency Bumps
+
+A dependency bump must keep every adapter and compatibility-pack pin exact. Before the build rejects a bump, the maintainer product must report every pin a candidate `go.mod` invalidates and must report a pin it cannot evaluate as unknown, never as unaffected. Re-deriving an adapter's anchors or a pack's evidence for the new version must stop at a person's review and publish only under the exact approval digest of the reviewed result; an anchor that no longer matches exactly once must fail without writing.
+
 ### [MAINTENANCE.UPGRADE] Upgrade Evidence
 
 A Go or product-boundary upgrade must produce a bounded dossier covering source and boundary differences, runtime changes, overlay collisions, generated evidence, mandatory probes, disabled upstream behavior, conformance, and platform qualification. The dossier must be retained even when a gate fails, and a boundary change must require approval of its exact identity.
@@ -500,7 +519,7 @@ The `gomadtool` command must expose the following maintainer workflows. Each row
 | `[COMMAND.GOMADTOOL.BOUNDARY.GENERATE]` | `boundary-generate` | Discover, qualify, generate, refresh, or verify the reviewed host-capability boundary and its compiler conformance inputs. |
 | `[COMMAND.GOMADTOOL.PROTOCOL.GENERATE]` | `protocol-generate` | Generate or verify both endpoints of each declared cross-process protocol. |
 | `[COMMAND.GOMADTOOL.COMPATIBILITY.PACK]` | `compatibility-pack` | Discover, review, generate from exact approval, check, and qualify version-pinned compatibility packs. |
-| `[COMMAND.GOMADTOOL.COMPATIBILITY.PACK.REFRESH]` | `compatibility-pack refresh` | Discover and review affected mapped requests per platform; retain only fresh approvals and leave final generation to exact per-request approval. |
+| `[COMMAND.GOMADTOOL.COMPATIBILITY.PACK.REFRESH]` | `compatibility-pack refresh` | Discover and review affected mapped requests per platform, including invalidated or unknown pins, up to per-request exact approval; retain only fresh approvals. |
 | `[COMMAND.GOMADTOOL.SCRIPT.VALIDATE]` | `script-validate` | Enforce the approved ownership and policy boundary for repository scripts. |
 | `[COMMAND.GOMADTOOL.CHECKED.RUN]` | `checked-run` | Run a bounded external command, classify timeout and exit status, and retain bounded diagnostic output. |
 | `[COMMAND.GOMADTOOL.TEST]` | `test` | Execute a selected bounded conformance campaign and report the first failing evidence. |

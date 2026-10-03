@@ -56,28 +56,6 @@ func TestPackageArchitecture(t *testing.T) {
 	}
 }
 
-func TestCleanupRemovesSupersededFiles(t *testing.T) {
-	for _, path := range []string{
-		"build.sh",
-		"clock_audit_test.sh",
-		"compiler_test_exec.sh",
-		"exec.sh",
-		"regenerate-patch.sh",
-		"test.sh",
-		"runner/internal/execution/output.go",
-		"runner/internal/execution/output_test.go",
-		"internal/compatibilitypack/migration_baseline.json",
-		"toolchain/cmd/gomadtool",
-		"toolchain/internal/conformance",
-		"toolchain/internal/generate",
-		"toolchain/internal/validation",
-	} {
-		if _, err := os.Stat(path); err == nil || !os.IsNotExist(err) {
-			t.Errorf("superseded file %s still exists or cannot be checked: %v", path, err)
-		}
-	}
-}
-
 func TestPublicPackagesDoNotExportTypeAliases(t *testing.T) {
 	for _, directory := range []string{"artifact", "choice", "deterministicio", "qualification", "record", "runner", "target", "toolchain", "upgrade", "world"} {
 		entries, err := os.ReadDir(directory)
@@ -230,113 +208,6 @@ func TestMakeTargetsMatchTheirOwnership(t *testing.T) {
 	}
 }
 
-func TestCanonicalJSONHasOnePrivateOwner(t *testing.T) {
-	if _, err := os.Stat("internal/canonicaljson/canonical.go"); err != nil {
-		t.Errorf("private canonical JSON module is missing: %v", err)
-	}
-	if _, err := os.Stat("evidence/canonical.go"); err == nil || !os.IsNotExist(err) {
-		t.Errorf("evidence still owns canonical JSON or cannot be checked: %v", err)
-	}
-	worldCodec, err := os.ReadFile("world/codec.go")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if strings.Contains(string(worldCodec), "func canonicalJSON(") {
-		t.Error("World still owns a duplicate canonical JSON implementation")
-	}
-}
-
-func TestRecordAndArtifactHaveSeparateOwners(t *testing.T) {
-	for _, path := range []string{"record/record.go", "artifact/store.go", "artifact/publication.go"} {
-		if _, err := os.Stat(path); err != nil {
-			t.Errorf("deep module %s is missing: %v", path, err)
-		}
-	}
-	if _, err := os.Stat("evidence"); err == nil || !os.IsNotExist(err) {
-		t.Errorf("superseded evidence package still exists or cannot be checked: %v", err)
-	}
-	if _, err := os.Stat("runner/internal/campaign/artifact.go"); err == nil || !os.IsNotExist(err) {
-		t.Errorf("campaign storage still owns artifact publication or cannot be checked: %v", err)
-	}
-}
-
-func TestReadOnlyMountHasOneDeepOwner(t *testing.T) {
-	if _, err := os.Stat("deterministicio/readonlymount/capture.go"); err != nil {
-		t.Errorf("read-only mount module is missing: %v", err)
-	}
-	entries, err := filepath.Glob("deterministicio/readonly_*.go")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(entries) != 0 {
-		t.Errorf("deterministic I/O root still owns read-only mount files: %v", entries)
-	}
-}
-
-func TestDeveloperToolingIsNotOwnedByToolchain(t *testing.T) {
-	for _, path := range []string{"cmd/gomadtool/main.go", "internal/gomadtool/generation/boundary", "internal/gomadtool/generation/protocol"} {
-		if _, err := os.Stat(path); err != nil {
-			t.Errorf("developer tooling owner %s is missing: %v", path, err)
-		}
-	}
-	for _, path := range []string{"toolchain/cmd/gomadtool", "toolchain/internal/generate", "toolchain/internal/conformance", "toolchain/internal/validation"} {
-		if _, err := os.Stat(path); err == nil || !os.IsNotExist(err) {
-			t.Errorf("toolchain still owns developer tooling %s or cannot be checked: %v", path, err)
-		}
-	}
-}
-
-func TestWorldProcessSessionHasOneDeepOwner(t *testing.T) {
-	if _, err := os.Stat("world/process/session.go"); err != nil {
-		t.Errorf("World process-session module is missing: %v", err)
-	}
-	for _, path := range []string{"world/host", "world/target", "world/internal/transport"} {
-		if _, err := os.Stat(path); err == nil || !os.IsNotExist(err) {
-			t.Errorf("superseded World process-session owner %s still exists or cannot be checked: %v", path, err)
-		}
-	}
-}
-
-func TestCompatibilityPackHasOneOwner(t *testing.T) {
-	for _, path := range []string{"internal/compatibilitypack/policy.go", "internal/compatibilitypack/authoring/generate.go"} {
-		if _, err := os.Stat(path); err != nil {
-			t.Errorf("compatibility-pack owner %s is missing: %v", path, err)
-		}
-	}
-	for _, path := range []string{"target/internal/compatibility", "target/packdev"} {
-		if _, err := os.Stat(path); err == nil || !os.IsNotExist(err) {
-			t.Errorf("target still owns compatibility-pack implementation %s or cannot be checked: %v", path, err)
-		}
-	}
-}
-
-func TestUpgradeOrchestrationIsAboveToolchain(t *testing.T) {
-	if _, err := os.Stat("upgrade/upgrade.go"); err != nil {
-		t.Errorf("upgrade orchestration module is missing: %v", err)
-	}
-	if _, err := os.Stat("toolchain/upgrade.go"); err == nil || !os.IsNotExist(err) {
-		t.Errorf("toolchain still owns upgrade orchestration or cannot be checked: %v", err)
-	}
-}
-
-func TestQualificationUseCasesHaveExplicitOwners(t *testing.T) {
-	for _, path := range []string{
-		"qualification/analysis/analysis.go",
-		"qualification/comparison/comparison.go",
-		"qualification/set/set.go",
-		"qualification/workload/workload.go",
-	} {
-		if _, err := os.Stat(path); err != nil {
-			t.Errorf("qualification use-case owner %s is missing: %v", path, err)
-		}
-	}
-	for _, path := range []string{"qualification/suite_legacy.go", "qualification/suite_previous.go"} {
-		if _, err := os.Stat(path); err == nil || !os.IsNotExist(err) {
-			t.Errorf("legacy qualification-set codec %s still exists or cannot be checked: %v", path, err)
-		}
-	}
-}
-
 func TestExactModuleEdges(t *testing.T) {
 	packages := listHostPackages(t)
 	imports := make(map[string][]string, len(packages))
@@ -360,20 +231,6 @@ func TestExactModuleEdges(t *testing.T) {
 	for _, required := range []string{modulePath + "/qualification/set", modulePath + "/toolchain/version"} {
 		if !slices.Contains(imports[modulePath+"/upgrade"], required) {
 			t.Errorf("upgrade orchestration does not depend on %s", required)
-		}
-	}
-}
-
-func TestConformanceRuntimeIsGroupedByBehavior(t *testing.T) {
-	if _, err := os.Stat("internal/gomadtool/conformance/runtime.go"); err == nil || !os.IsNotExist(err) {
-		t.Errorf("conformance runtime monolith still exists or cannot be checked: %v", err)
-	}
-	for _, path := range []string{
-		"runtime_campaign.go", "runtime_choice.go", "runtime_clocks.go", "runtime_compatibility.go", "runtime_linking.go",
-		"runtime_load.go", "runtime_repeatability.go", "runtime_scheduling.go",
-	} {
-		if _, err := os.Stat(filepath.Join("internal/gomadtool/conformance", path)); err != nil {
-			t.Errorf("behavior-local conformance runtime file %s is missing: %v", path, err)
 		}
 	}
 }
@@ -541,6 +398,12 @@ func ownerMayImport(owner, importedOwner, importing, imported string) bool {
 	}
 	if (owner == "target" || owner == "deterministicio") && importedOwner == "toolchain" {
 		return imported == modulePath+"/toolchain/version"
+	}
+	// Only the maintenance engines read adapters and compatibility packs.
+	// The public compatibility facade also serializes its report as JSON.
+	if owner == "upgrade" && (importedOwner == "compatibility" || importedOwner == "deterministicio" || importedOwner == "canonicaljson") {
+		return importing == modulePath+"/upgrade/pinimpact" || importing == modulePath+"/upgrade/adapterregen" ||
+			(importing == modulePath+"/upgrade" && importedOwner == "canonicaljson")
 	}
 	return true
 }

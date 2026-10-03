@@ -21,10 +21,12 @@ const (
 	otelSDKHostIDExecReplacementSHA256      = "sha256:630bd1c268665d1fcdac0fbf61ddbc1932a53389b1c88a3f18bdd5afc62de8fb"
 )
 
-var otelSDKPreparedSourceSetSHA256 = hostPin(map[string]string{
+var otelSDKPreparedSourceSetSHA256ByHost = map[string]string{
 	"darwin/arm64": "sha256:796855abd6e097de9927ea5e57b82d691335b47e2a65dad02987bcf5f8e30afa",
 	"linux/amd64":  "sha256:1ca44b7f7b5e9ace498db65a954cd5612a08617abbc0e48e3fe70112503d4bb2",
-})
+}
+
+var otelSDKPreparedSourceSetSHA256 = hostPin(otelSDKPreparedSourceSetSHA256ByHost)
 
 // otelSDKRewrites keeps the OpenTelemetry resource detectors away from the
 // host: the process owner and uname detectors report "<unknown>" the way the
@@ -99,15 +101,17 @@ var otelSDKRewrites = []sourceRewrite{
 	},
 }
 
+var otelSDKAdapter = rewrittenModule{
+	module: otelSDKModulePath, version: otelSDKVersion, sum: otelSDKSum,
+	cacheElements:                 []string{"go.opentelemetry.io", "otel", "sdk@" + otelSDKVersion},
+	replacementDirectory:          "otel-sdk",
+	originalInventorySHA256:       otelSDKOriginalSourceInventorySHA256,
+	replacementInventorySHA256:    otelSDKReplacementSourceInventorySHA256,
+	preparedPackage:               otelSDKModulePath + "/resource",
+	preparedSourceSetSHA256ByHost: otelSDKPreparedSourceSetSHA256ByHost,
+	rewrites:                      otelSDKRewrites,
+}
+
 func prepareOtelSDK(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
-	return prepareRewrittenModule(moduleCache, root, identity, rewrittenModule{
-		module: otelSDKModulePath, version: otelSDKVersion, sum: otelSDKSum,
-		cacheElements:              []string{"go.opentelemetry.io", "otel", "sdk@" + otelSDKVersion},
-		replacementDirectory:       "otel-sdk",
-		originalInventorySHA256:    otelSDKOriginalSourceInventorySHA256,
-		replacementInventorySHA256: otelSDKReplacementSourceInventorySHA256,
-		preparedPackage:            otelSDKModulePath + "/resource",
-		preparedSourceSetSHA256:    otelSDKPreparedSourceSetSHA256,
-		rewrites:                   otelSDKRewrites,
-	})
+	return prepareRewrittenModule(moduleCache, root, identity, otelSDKAdapter)
 }

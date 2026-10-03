@@ -1,0 +1,84 @@
+gomad3 adapter regeneration: github.com/getsentry/sentry-go v0.46.0 -> v0.49.0
+
+changed upstream source: 1 of 1 rewritten files
+
+--- previous/util.go
++++ candidate/util.go
+@@ -111,45 +111,6 @@
+ 	return &v
+ }
+ 
+-var sensitiveHeaders = map[string]struct{}{
+-	"_csrf":               {},
+-	"_csrf_token":         {},
+-	"_session":            {},
+-	"_xsrf":               {},
+-	"api-key":             {},
+-	"apikey":              {},
+-	"auth":                {},
+-	"authorization":       {},
+-	"cookie":              {},
+-	"credentials":         {},
+-	"csrf":                {},
+-	"csrf-token":          {},
+-	"csrftoken":           {},
+-	"ip-address":          {},
+-	"passwd":              {},
+-	"password":            {},
+-	"private-key":         {},
+-	"privatekey":          {},
+-	"proxy-authorization": {},
+-	"remote-addr":         {},
+-	"secret":              {},
+-	"session":             {},
+-	"sessionid":           {},
+-	"token":               {},
+-	"user-session":        {},
+-	"x-api-key":           {},
+-	"x-csrftoken":         {},
+-	"x-forwarded-for":     {},
+-	"x-real-ip":           {},
+-	"xsrf-token":          {},
+-}
+-
+-// IsSensitiveHeader reports whether a header or metadata key should be treated as sensitive.
+-func IsSensitiveHeader(key string) bool {
+-	_, ok := sensitiveHeaders[strings.ToLower(key)]
+-	return ok
+-}
+-
+ // eventIdentifier returns a human-readable identifier for the event to be used in log messages.
+ // Format: "<description> [<event-id>]".
+ func eventIdentifier(event *Event) string {
+
+proposed anchors:
+  changed version
+          v0.46.0
+       -> v0.49.0
+  changed sum
+          h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0=
+       -> h1:Ehejknu1l023Ub7QoRBVLAI7g3Jnhqku4oWx4B4Sh5s=
+  changed original source inventory
+          sha256:d8028d24e1a6c27fc5619d349fa58685d2855629a76877cb639a23afbbf67cde
+       -> sha256:9f454ee632eac03dff994ed13d0cd73c02324df440f3e33bbfaa8440e7473a12
+  changed replacement source inventory
+          sha256:b60d63bd862365df7195c5dcf6ae7fa70a97916f3538809773fe42241ab61c32
+       -> sha256:1db103ebb9fdbf136444210a9ad0ce990343403fe5aad8e13d076a7fd1e9acd1
+  changed util.go source
+          sha256:5aee08ef9700b0ebf958c586dd5b71a5db51169d6c3d1c17b6e9b6b2a5644b91
+       -> sha256:a22f0ef2b9912c8ab6e5f18504f765b5d306d84019e1acd47f6e133b2ab87d98
+  changed util.go replacement
+          sha256:21639baea4b81631670f430529d9461d91f79475a3f72844568b02f207d6cabe
+       -> sha256:568cd1594e9c010be57b5f06df288aaebb26cd3610dd37577260f8922169b8d6
+  changed github.com/getsentry/sentry-go prepared source set darwin/arm64
+          sha256:fa2f95c22392afb742711ed26ce02fb79d80005c1af486f4ec71e5e4675c45cb
+       -> sha256:56fc15ee6ba7d1bf66b54c4774ab906ca992919906000b7586448a6aadedf4eb
+  changed github.com/getsentry/sentry-go prepared source set linux/amd64
+          sha256:fa2f95c22392afb742711ed26ce02fb79d80005c1af486f4ec71e5e4675c45cb
+       -> sha256:56fc15ee6ba7d1bf66b54c4774ab906ca992919906000b7586448a6aadedf4eb
+
+stale compatibility packs: none
+
+approval: sha256:071bee08c72c2afaa1ccc7a40add57ac2f8b0d8563cf259cf2d31bc1ebf640bf
+review the changed source above, then apply with:
+  gomadtool adapter-regenerate --module=github.com/getsentry/sentry-go --version=v0.49.0 --approve-review=sha256:071bee08c72c2afaa1ccc7a40add57ac2f8b0d8563cf259cf2d31bc1ebf640bf

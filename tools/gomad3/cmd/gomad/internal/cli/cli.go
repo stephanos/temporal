@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -90,46 +91,46 @@ type targetInput struct {
 }
 
 func Run(arguments []string, stdout, stderr io.Writer) int {
+	return hostApplication().run(arguments, stdout, stderr)
+}
+
+func (app application) run(arguments []string, stdout, stderr io.Writer) int {
 	if len(arguments) == 0 {
 		fmt.Fprint(stderr, usage)
 		return 2
 	}
-	app := newApplication()
+	if isPrivateMode(arguments[0]) {
+		return app.runPrivateMode(arguments[0], stderr)
+	}
 	switch arguments[0] {
-	case "__coordinator", "__target_bootstrap", "__supervisor":
-		if err := app.dispatchPrivateMode(arguments[0]); err != nil {
-			fmt.Fprintln(stderr, err)
-			return 3
-		}
-		return 0
 	case "explore":
-		return runExploreWithApplication(arguments[1:], stdout, stderr, app)
+		return app.runExplore(arguments[1:], stdout, stderr)
 	case "plan":
-		return runPlanWithApplication(arguments[1:], stdout, stderr, app)
+		return app.runPlan(arguments[1:], stdout, stderr)
 	case "execute-shard":
-		return runCampaignShardWithApplication(arguments[1:], stdout, stderr, app)
+		return app.runCampaignShard(arguments[1:], stdout, stderr)
 	case "merge":
 		return runMergeCampaigns(arguments[1:], stdout, stderr)
 	case "qualify":
-		return runQualifyWithApplication(arguments[1:], stdout, stderr, app)
+		return app.runQualify(arguments[1:], stdout, stderr)
 	case "qualify-set":
-		return runQualifySetWithApplication(arguments[1:], stdout, stderr, app)
+		return app.runQualifySet(arguments[1:], stdout, stderr)
 	case "merge-set":
 		return runMergeSet(arguments[1:], stdout, stderr)
 	case "compare-support":
 		return runCompareSupport(arguments[1:], stdout, stderr)
 	case "analyze":
-		return runAnalyzeWithApplication(arguments[1:], stdout, stderr, app)
+		return app.runAnalyze(arguments[1:], stdout, stderr)
 	case "resume":
-		return runResumeWithApplication(arguments[1:], stdout, stderr, app)
+		return app.runResume(arguments[1:], stdout, stderr)
 	case "recover":
 		return runRecover(arguments[1:], stdout, stderr)
 	case "replay":
-		return runReplayWithApplication(arguments[1:], stdout, stderr, app)
+		return app.runReplay(arguments[1:], stdout, stderr)
 	case "minimize":
-		return runMinimizeWithApplication(arguments[1:], stdout, stderr, app)
+		return app.runMinimize(arguments[1:], stdout, stderr)
 	case "doctor":
-		return runDoctorWithApplication(arguments[1:], stdout, stderr, app)
+		return app.runDoctor(arguments[1:], stdout, stderr)
 	case "inspect":
 		return runInspect(arguments[1:], stdout, stderr)
 	default:
@@ -351,11 +352,7 @@ func optionalBool(value *bool) string {
 	return strconv.FormatBool(*value)
 }
 
-func runDoctor(arguments []string, stdout, stderr io.Writer, executable string) int {
-	return runDoctorWithApplication(arguments, stdout, stderr, applicationWithExecutable(executable))
-}
-
-func runDoctorWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
+func (app application) runDoctor(arguments []string, stdout, stderr io.Writer) int {
 	flags := flag.NewFlagSet("gomad doctor", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact root to verify")
@@ -368,13 +365,14 @@ func runDoctorWithApplication(arguments []string, stdout, stderr io.Writer, app 
 		fmt.Fprint(stderr, usage)
 		return 2
 	}
-	executable, err := app.executable()
+	executable, err := app.executablePath()
 	if err != nil {
-		return writeCommandError(stderr, 3, "resolve gomad executable: %v\n", err)
+		fmt.Fprintln(stderr, err)
+		return 3
 	}
-	executable, err = filepath.Abs(executable)
+	executable, err = absoluteExecutable(executable)
 	if err != nil {
-		fmt.Fprintf(stderr, "resolve gomad executable path: %v\n", err)
+		fmt.Fprintln(stderr, err)
 		return 3
 	}
 	artifactRoot, err := filepath.Abs(*artifacts)
@@ -382,14 +380,14 @@ func runDoctorWithApplication(arguments []string, stdout, stderr io.Writer, app 
 		fmt.Fprintf(stderr, "resolve artifact directory: %v\n", err)
 		return 2
 	}
-	resolved, _, err := app.installation(*toolchainRoot)
+	resolved, err := app.resolveInstallation(executable, *toolchainRoot)
 	if err != nil {
-		if _, writeErr := fmt.Fprintf(stderr, "%v\n", err); writeErr != nil {
+		if _, writeErr := fmt.Fprintf(stderr, "resolve Gomad installation: %v\n", err); writeErr != nil {
 			return 3
 		}
 		return 2
 	}
-	report := app.check(Config{
+	report := Check(Config{
 		ToolchainRoot: resolved.ToolchainRoot, InstallationSource: resolved.Source, RepairInstruction: resolved.RepairInstruction,
 		RunnerPath: executable, ArtifactRoot: artifactRoot, HostOS: runtime.GOOS, HostArch: runtime.GOARCH,
 	})
@@ -415,85 +413,83 @@ func runDoctorWithApplication(arguments []string, stdout, stderr io.Writer, app 
 	return 0
 }
 
-func runExplore(arguments []string, stdout, stderr io.Writer) int {
-	return runExploreWithApplication(arguments, stdout, stderr, newApplication())
+type exploreDependencies struct {
+	install          func(string) (installation, error)
+	workingDirectory func() (string, error)
+	explore          func(context.Context, runner.CampaignSpec) (runner.CampaignResult, error)
+	plan             func(context.Context, runner.CampaignPlanSpec) (runner.CampaignPlanResult, error)
 }
 
-type parsedCampaignRequest struct {
-	config     runner.CampaignSpec
-	reporter   *exploreReporter
-	jsonOutput bool
-	planOutput string
+func (app application) exploreDependencies() exploreDependencies {
+	return exploreDependencies{install: app.install, workingDirectory: os.Getwd, explore: runner.Explore, plan: runner.CreateCampaignPlan}
 }
 
-func runExploreWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
-	request, status := parseCampaignRequest(arguments, stdout, stderr, app, false)
-	if request == nil {
+func (app application) runExplore(arguments []string, stdout, stderr io.Writer) int {
+	return runExploreWith(arguments, stdout, stderr, app.exploreDependencies())
+}
+
+// runExploreWith parses the shared campaign grammar and explores the campaign.
+func runExploreWith(arguments []string, stdout, stderr io.Writer, dependencies exploreDependencies) int {
+	request, status, ok := parseCampaignRequest(exploreCampaign, arguments, stdout, stderr, dependencies)
+	if !ok {
 		return status
 	}
-	summary, err := runner.Explore(context.Background(), request.config)
+	reporter := request.reporter
+	summary, err := dependencies.explore(context.Background(), request.campaign)
 	if err != nil {
-		return reportExploreFailure(summary, err, request.reporter, stderr)
+		return reportExploreFailure(summary, err, reporter, stderr)
 	}
-	if err := request.reporter.Result(summary); err != nil {
-		if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
-			return 3
-		}
+	if err := reporter.Result(summary); err != nil {
+		fmt.Fprintln(stderr, err)
 		return 3
 	}
 	return exploreSummaryStatus(summary)
 }
 
 func reportExploreFailure(summary runner.CampaignResult, err error, reporter *exploreReporter, stderr io.Writer) int {
-	var diagnosticWriteErr error
 	if summary.ChoiceTrace != nil {
-		_, diagnosticWriteErr = fmt.Fprintf(stderr, "gomad:%s\n", formatChoiceTrace(summary.ChoiceTrace))
+		fmt.Fprintf(stderr, "gomad:%s\n", formatChoiceTrace(summary.ChoiceTrace))
 	}
 	classification := classifyExploreError(err)
 	if writeErr := reporter.Error(classification, err); writeErr != nil {
-		if _, printErr := fmt.Fprintln(stderr, errors.Join(writeErr, diagnosticWriteErr)); printErr != nil {
-			return 3
-		}
+		fmt.Fprintln(stderr, writeErr)
 		return 3
 	}
 	return exploreErrorStatus(classification)
 }
 
-func runPlan(arguments []string, stdout, stderr io.Writer) int {
-	return runPlanWithApplication(arguments, stdout, stderr, newApplication())
+func (app application) runPlan(arguments []string, stdout, stderr io.Writer) int {
+	return runPlanWith(arguments, stdout, stderr, app.exploreDependencies())
 }
 
-func runPlanWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
-	request, status := parseCampaignRequest(arguments, stdout, stderr, app, true)
-	if request == nil {
+// runPlanWith parses the shared campaign grammar and freezes the campaign
+// into a portable plan at --output.
+func runPlanWith(arguments []string, stdout, stderr io.Writer, dependencies exploreDependencies) int {
+	request, status, ok := parseCampaignRequest(planCampaign, arguments, stdout, stderr, dependencies)
+	if !ok {
 		return status
 	}
-	if request.planOutput == "" {
-		if writeErr := request.reporter.Error("invalid_input", errors.New("gomad plan requires --output FILE")); writeErr != nil {
-			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
-				return 3
-			}
+	reporter := request.reporter
+	if request.output == "" {
+		if writeErr := reporter.Error("invalid_input", errors.New("gomad plan requires --output FILE")); writeErr != nil {
+			fmt.Fprintln(stderr, writeErr)
 			return 3
 		}
 		return 2
 	}
-	planned, err := runner.CreateCampaignPlan(context.Background(), runner.CampaignPlanSpec{Campaign: request.config, Output: request.planOutput})
+	planned, err := dependencies.plan(context.Background(), runner.CampaignPlanSpec{Campaign: request.campaign, Output: request.output})
 	if err != nil {
 		classification := classifyExploreError(err)
-		if writeErr := request.reporter.Error(classification, err); writeErr != nil {
-			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
-				return 3
-			}
+		if writeErr := reporter.Error(classification, err); writeErr != nil {
+			fmt.Fprintln(stderr, writeErr)
 			return 3
 		}
 		return exploreErrorStatus(classification)
 	}
-	if request.jsonOutput {
+	if request.json {
 		encoded, err := json.Marshal(planned)
 		if err != nil {
-			if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
-				return 3
-			}
+			fmt.Fprintln(stderr, err)
 			return 3
 		}
 		if _, err := fmt.Fprintf(stdout, "%s\n", encoded); err != nil {
@@ -505,12 +501,32 @@ func runPlanWithApplication(arguments []string, stdout, stderr io.Writer, app *a
 	return 0
 }
 
-//nolint:revive // Keep established flag validation and error precedence intact.
-func parseCampaignRequest(arguments []string, stdout, stderr io.Writer, app *application, plan bool) (*parsedCampaignRequest, int) {
-	failurePolicyDefault := string(runner.PolicyFirst)
-	if plan {
-		failurePolicyDefault = string(runner.PolicyAll)
-	}
+// campaignOperation is the operation a parsed campaign request is for.
+// gomad explore and gomad plan share one grammar; the operation decides only
+// plan's fixed failure policy and whether --output is accepted.
+type campaignOperation int
+
+const (
+	exploreCampaign campaignOperation = iota
+	planCampaign
+)
+
+// campaignRequest is one parsed and validated gomad explore or gomad plan
+// invocation: the campaign to run or freeze, plan's --output, and the
+// reporter that carries the operation's events and errors.
+type campaignRequest struct {
+	campaign runner.CampaignSpec
+	output   string
+	json     bool
+	reporter *exploreReporter
+}
+
+// parseCampaignRequest parses the grammar gomad explore and gomad plan share.
+// It keeps flag-presence validation and reporting; Runner owns the semantic
+// rules the flags map to. It resolves the working directory and the
+// installation only after the flags validate. When ok is false it has
+// already reported the failure and status is the exit status.
+func parseCampaignRequest(operation campaignOperation, arguments []string, stdout, stderr io.Writer, dependencies exploreDependencies) (request campaignRequest, status int, ok bool) {
 	flags := flag.NewFlagSet("gomad explore", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 	strategy := flags.String("strategy", string(runner.StrategySeed), "seed, choice-exploration, or simulation-exploration")
@@ -530,7 +546,7 @@ func parseCampaignRequest(arguments []string, stdout, stderr io.Writer, app *app
 	runTimeout := flags.Duration("execution-timeout", 30*time.Second, "per-execution host deadline")
 	overallTimeout := flags.Duration("overall-timeout", 10*time.Minute, "complete exploration host deadline")
 	terminateGrace := flags.Duration("terminate-grace", 2*time.Second, "termination grace inside deadlines")
-	onFailure := flags.String("on-failure", failurePolicyDefault, "first, budget, or all")
+	onFailure := flags.String("on-failure", string(runner.PolicyFirst), "first, budget, or all")
 	failureBudget := flags.Uint64("failure-budget", 1, "distinct failure signature threshold")
 	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact root")
 	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
@@ -569,33 +585,39 @@ func parseCampaignRequest(arguments []string, stdout, stderr io.Writer, app *app
 	flags.Var(&requiredSemanticProbes, "require-probe", "required semantic probe (requires --coverage=semantic)")
 	workingDir := flags.String("working-dir", "", "absolute target module root (default: the current directory)")
 	clockTick := flags.String("clock-tick", record.ClockTickStrict, "virtual-clock tick policy: strict or forward")
+	if operation == planCampaign {
+		// A portable plan completes all planned work. An explicit
+		// --on-failure still parses over this fixed policy, and the plan
+		// operation rejects any other.
+		_ = flags.Set("on-failure", string(runner.PolicyAll))
+	}
 	if err := flags.Parse(arguments); err != nil {
 		reporter := newExploreReporter(*jsonOutput, stdout, stderr)
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
-			return nil, 3
+			return campaignRequest{}, 3, false
 		}
 		if !*jsonOutput {
 			flags.SetOutput(stderr)
 			flags.Usage()
 		}
-		return nil, 2
+		return campaignRequest{}, 2, false
 	}
 	reporter := newExploreReporter(*jsonOutput, stdout, stderr)
-	if !plan && *planOutput != "" {
+	if operation != planCampaign && *planOutput != "" {
 		if writeErr := reporter.Error("invalid_input", errors.New("--output is only valid with gomad plan")); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
-			return nil, 3
+			return campaignRequest{}, 3, false
 		}
-		return nil, 2
+		return campaignRequest{}, 2, false
 	}
 	resolvedCapabilityMode, err := parseCapabilityMode(*capabilityMode)
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
-			return nil, 3
+			return campaignRequest{}, 3, false
 		}
-		return nil, 2
+		return campaignRequest{}, 2, false
 	}
 	var seedsSet, countSet, coverageSet, choiceLimitSet, maxRunsSet, maxChoiceDepthSet, choiceStartOrdinalSet, maxForcedDecisionsSet, maxExplorationBytesSet, maxExplorationResultBytesSet bool
 	var runtimeLimitSet, scenarioLimitSet, networkLimitSet, storageLimitSet, faultLimitSet, crashLimitSet bool
@@ -651,95 +673,94 @@ func parseCampaignRequest(arguments []string, stdout, stderr io.Writer, app *app
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
-			return nil, 3
+			return campaignRequest{}, 3, false
 		}
-		return nil, 2
+		return campaignRequest{}, 2, false
 	}
 	resolvedSeeds, err := resolveExploreSeeds(*seeds, *count, seedsSet, countSet)
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
-			return nil, 3
+			return campaignRequest{}, 3, false
 		}
-		return nil, 2
+		return campaignRequest{}, 2, false
 	}
 	if *guideRegression && !*guide {
 		if err := reporter.Error("invalid_input", errors.New("--guide-regression requires --guide")); err != nil {
 			fmt.Fprintln(stderr, err)
-			return nil, 3
+			return campaignRequest{}, 3, false
 		}
-		return nil, 2
+		return campaignRequest{}, 2, false
 	}
 	resolvedCoverage, err := resolveExploreGuidance(*guide, *corpus, *coverage, coverageSet)
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
-			return nil, 3
+			return campaignRequest{}, 3, false
 		}
-		return nil, 2
+		return campaignRequest{}, 2, false
 	}
 	coverageMode, err := resolveExploreCoverage(resolvedCoverage, requiredSemanticProbes)
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
-			return nil, 3
+			return campaignRequest{}, 3, false
 		}
-		return nil, 2
+		return campaignRequest{}, 2, false
 	}
 	if *diagnostics && resolvedStrategy != runner.StrategySeed {
 		if err := reporter.Error("invalid_input", errors.New("--diagnostics requires the seed strategy; forced-prefix exploration is unsupported")); err != nil {
-			return nil, 3
+			return campaignRequest{}, 3, false
 		}
-		return nil, 2
+		return campaignRequest{}, 2, false
 	}
 	resolvedChoiceLimit, err := resolveChoiceTrace(resolvedChoices, choiceLimit, choiceLimitSet)
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
-			return nil, 3
+			return campaignRequest{}, 3, false
 		}
-		return nil, 2
+		return campaignRequest{}, 2, false
 	}
-	if runner.ValidateChoiceCoverage(coverageMode, resolvedChoiceLimit) != nil {
+	if (coverageMode == runner.CoverageChoice || coverageMode == runner.CoverageSemanticChoice) && resolvedChoiceLimit == 0 {
 		if writeErr := reporter.Error("invalid_input", fmt.Errorf("--coverage=%s requires --choices", coverageMode)); writeErr != nil {
 			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
-				return nil, 3
+				return campaignRequest{}, 3, false
 			}
-			return nil, 3
+			return campaignRequest{}, 3, false
 		}
-		return nil, 2
+		return campaignRequest{}, 2, false
 	}
 	parsedTarget, err := parseTarget(flags.Args())
 	if err != nil {
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
-			return nil, 3
+			return campaignRequest{}, 3, false
 		}
-		return nil, 2
+		return campaignRequest{}, 2, false
 	}
-	workingDirectory, err := resolveWorkingDirectory(*workingDir, os.Getwd)
+	workingDirectory, err := resolveWorkingDirectory(*workingDir, dependencies.workingDirectory)
 	if err != nil {
 		var invalid invalidWorkingDirectoryError
 		if errors.As(err, &invalid) {
 			if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
 				fmt.Fprintln(stderr, writeErr)
-				return nil, 3
+				return campaignRequest{}, 3, false
 			}
-			return nil, 2
+			return campaignRequest{}, 2, false
 		}
 		if writeErr := reporter.Error("runner_failure", fmt.Errorf("resolve working directory: %w", err)); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
 		}
-		return nil, 3
+		return campaignRequest{}, 3, false
 	}
-	toolchain, executable, runnerBuild, err := app.identity(*toolchainRoot)
+	installed, err := dependencies.install(*toolchainRoot)
 	if err != nil {
 		if writeErr := reporter.Error("runner_failure", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
 		}
-		return nil, 3
+		return campaignRequest{}, 3, false
 	}
-	commands := app.commands(executable)
 	config := runner.CampaignSpec{
 		Strategy: resolvedStrategy, Seeds: resolvedSeeds, Parallel: *parallel, ExecutionTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
 		OnFailure: runner.FailurePolicy(*onFailure), FailureBudget: *failureBudget, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
@@ -749,17 +770,17 @@ func parseCampaignRequest(arguments []string, stdout, stderr io.Writer, app *app
 			Runtime: *maxRuntimeDecisions, Scenario: *maxScenarioDecisions, Network: *maxNetworkDecisions,
 			Storage: *maxStorageDecisions, Fault: *maxFaultDecisions, Crash: *maxCrashDecisions,
 		},
-		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts, SupervisorCommand: commands.supervisor, CoordinatorCommand: commands.coordinator, RunnerBuild: runnerBuild,
+		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts, SupervisorCommand: installed.supervisorCommand(), CoordinatorCommand: installed.coordinatorCommand(), RunnerBuild: installed.runnerBuild,
 		Coverage: coverageMode, RequiredSemanticProbes: requiredSemanticProbes,
 		KeepSuccesses: runner.KeepSuccesses(*keepSuccesses), SuccessArtifactLimit: *successLimit, SuccessBytesLimit: uint64(successBytes),
 		Guide: *guide, GuideRegression: *guideRegression, Corpus: *corpus,
 		Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
 		Target: target.Spec{
 			Kind: parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
-			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: toolchain, CapabilityMode: resolvedCapabilityMode,
+			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: installed.toolchainRoot, CapabilityMode: resolvedCapabilityMode,
 		},
 	}
-	return &parsedCampaignRequest{config: config, reporter: reporter, jsonOutput: *jsonOutput, planOutput: *planOutput}, 0
+	return campaignRequest{campaign: config, output: *planOutput, json: *jsonOutput, reporter: reporter}, 0, true
 }
 
 type exploreStrategyOptions struct {
@@ -788,8 +809,14 @@ type exploreStrategyOptions struct {
 	CrashLimitSet                bool
 }
 
+// resolveExploreStrategy checks the exploration flags given for the strategy
+// Runner reads from --strategy, and reports whether the strategy records
+// choices.
 func resolveExploreStrategy(options exploreStrategyOptions) (runner.Strategy, bool, error) {
-	strategy := runner.NormalizeStrategy(runner.Strategy(options.Value))
+	strategy, err := runner.ParseStrategy(options.Value)
+	if err != nil {
+		return "", false, err
+	}
 	switch strategy {
 	case runner.StrategySeed:
 		if options.hasCombinedBounds() {
@@ -809,13 +836,12 @@ func resolveExploreStrategy(options exploreStrategyOptions) (runner.Strategy, bo
 		if options.CountSet {
 			return "", false, errors.New("--strategy=choice-exploration does not accept --count")
 		}
-		_, err := runner.ParseSingleBaseSeed(options.Seeds)
+		selection, err := runner.ParseSeeds(options.Seeds)
 		if err != nil {
-			var single *runner.NotSingleBaseSeedError
-			if errors.As(err, &single) {
-				return "", false, errors.New("--strategy=choice-exploration requires exactly one base seed")
-			}
 			return "", false, err
+		}
+		if selection.Count() != 1 {
+			return "", false, errors.New("--strategy=choice-exploration requires exactly one base seed")
 		}
 		if options.Guide {
 			return "", false, errors.New("--strategy=choice-exploration does not support --guide")
@@ -834,13 +860,12 @@ func resolveExploreStrategy(options exploreStrategyOptions) (runner.Strategy, bo
 		if options.CountSet {
 			return "", false, errors.New("--strategy=simulation-exploration does not accept --count")
 		}
-		_, err := runner.ParseSingleBaseSeed(options.Seeds)
+		selection, err := runner.ParseSeeds(options.Seeds)
 		if err != nil {
-			var single *runner.NotSingleBaseSeedError
-			if errors.As(err, &single) {
-				return "", false, errors.New("--strategy=simulation-exploration requires exactly one base seed")
-			}
 			return "", false, err
+		}
+		if selection.Count() != 1 {
+			return "", false, errors.New("--strategy=simulation-exploration requires exactly one base seed")
 		}
 		if options.Guide {
 			return "", false, errors.New("--strategy=simulation-exploration does not support --guide")
@@ -873,7 +898,8 @@ func resolveExploreStrategy(options exploreStrategyOptions) (runner.Strategy, bo
 		}
 		return strategy, true, nil
 	default:
-		return "", false, fmt.Errorf("unknown exploration strategy %q", options.Value)
+		// Runner knows a strategy this command has no flags for.
+		return "", false, fmt.Errorf("gomad explore does not support strategy %q", strategy)
 	}
 }
 
@@ -895,7 +921,7 @@ func resolveExploreGuidance(enabled bool, corpus, coverage string, coverageSet b
 		return "", errors.New("--guide requires semantic or choice coverage")
 	}
 	if !coverageSet {
-		return string(runner.NormalizeCoverage("", true)), nil
+		return string(runner.CoverageSemantic), nil
 	}
 	return coverage, nil
 }
@@ -916,17 +942,22 @@ func resolveExploreSeeds(seeds string, count uint64, seedsSet, countSet bool) (s
 	return "0-" + strconv.FormatUint(count-1, 10), nil
 }
 
+// resolveExploreCoverage reads --coverage through Runner and checks the
+// --require-probe flags given for it.
 func resolveExploreCoverage(value string, required []string) (runner.CoverageMode, error) {
-	mode := runner.CoverageMode(value)
-	if mode == "" {
-		return "", fmt.Errorf("unknown coverage mode %q", value)
+	mode, err := runner.ParseCoverageMode(value)
+	if err != nil {
+		return "", err
 	}
-	if err := runner.ValidateCoverage(mode, required); err != nil {
-		var semantic *runner.SemanticCoverageRequiredError
-		if errors.As(err, &semantic) {
+	switch mode {
+	case runner.CoverageNone, runner.CoverageChoice:
+		if len(required) != 0 {
 			return "", fmt.Errorf("--require-probe requires --coverage=semantic")
 		}
-		return "", err
+	case runner.CoverageSemantic, runner.CoverageSemanticChoice:
+		if _, err := deterministicio.MissingRequiredSemanticProbes(deterministicio.SemanticCoverage{}, required); err != nil {
+			return "", err
+		}
 	}
 	return mode, nil
 }
@@ -938,17 +969,22 @@ func resolveChoiceTrace(enabled bool, limit byteSize, limitSet bool) (uint64, er
 		}
 		return 0, nil
 	}
-	if limit == 0 || runner.ValidateChoiceTraceLimit(uint64(limit)) != nil {
+	if limit < runner.MinimumChoiceTraceBytes || limit > runner.MaximumChoiceTraceBytes {
 		return 0, fmt.Errorf("--choice-bytes must be between %d bytes and 64MiB", runner.MinimumChoiceTraceBytes)
 	}
 	return uint64(limit), nil
 }
 
-func runReplay(arguments []string, stdout, stderr io.Writer) int {
-	return runReplayWithApplication(arguments, stdout, stderr, newApplication())
+type replayDependencies struct {
+	install func(string) (installation, error)
+	replay  func(context.Context, runner.ReplaySpec) (runner.ReplayResult, error)
 }
 
-func runReplayWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
+func (app application) runReplay(arguments []string, stdout, stderr io.Writer) int {
+	return runReplayWith(arguments, stdout, stderr, replayDependencies{install: app.install, replay: runner.Replay})
+}
+
+func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies replayDependencies) int {
 	flags := flag.NewFlagSet("gomad replay", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	verifyOnly := flags.Bool("verify-only", false, "validate without executing the target")
@@ -961,13 +997,13 @@ func runReplayWithApplication(arguments []string, stdout, stderr io.Writer, app 
 		fmt.Fprint(stderr, usage)
 		return 2
 	}
-	toolchain, executable, _, err := app.identity(*toolchainRoot)
+	installed, err := dependencies.install(*toolchainRoot)
 	if err != nil {
 		fmt.Fprintln(stderr, err)
 		return 3
 	}
-	result, err := runner.Replay(context.Background(), runner.ReplaySpec{
-		ArtifactPath: flags.Arg(0), VerifyOnly: *verifyOnly, ToolchainRoot: toolchain, ObservedDir: *observedDir, SupervisorCommand: app.commands(executable).supervisor,
+	result, err := dependencies.replay(context.Background(), runner.ReplaySpec{
+		ArtifactPath: flags.Arg(0), VerifyOnly: *verifyOnly, ToolchainRoot: installed.toolchainRoot, ObservedDir: *observedDir, SupervisorCommand: installed.supervisorCommand(),
 	})
 	if err != nil {
 		var preflightError *runner.ReplayPreflightError
@@ -991,17 +1027,12 @@ func runReplayWithApplication(arguments []string, stdout, stderr io.Writer, app 
 }
 
 type minimizeDependencies struct {
-	identity func(string) (string, string, string, error)
-	commands func(string) privateCommands
+	install  func(string) (installation, error)
 	minimize func(context.Context, runner.MinimizeSpec) (runner.MinimizeResult, error)
 }
 
-func runMinimize(arguments []string, stdout, stderr io.Writer) int {
-	return runMinimizeWithApplication(arguments, stdout, stderr, newApplication())
-}
-
-func runMinimizeWithApplication(arguments []string, stdout, stderr io.Writer, app *application) int {
-	return runMinimizeWith(arguments, stdout, stderr, minimizeDependencies{identity: app.identity, commands: app.commands, minimize: runner.Minimize})
+func (app application) runMinimize(arguments []string, stdout, stderr io.Writer) int {
+	return runMinimizeWith(arguments, stdout, stderr, minimizeDependencies{install: app.install, minimize: runner.Minimize})
 }
 
 func runMinimizeWith(arguments []string, stdout, stderr io.Writer, dependencies minimizeDependencies) int {
@@ -1024,18 +1055,14 @@ func runMinimizeWith(arguments []string, stdout, stderr io.Writer, dependencies 
 	if err != nil {
 		return writeCommandError(stderr, 2, "resolve artifact directory: %v\n", err)
 	}
-	resolvedToolchain, executable, _, err := dependencies.identity(*toolchainRoot)
+	installed, err := dependencies.install(*toolchainRoot)
 	if err != nil {
 		return writeCommandError(stderr, 3, "%v\n", err)
 	}
-	commandsFor := dependencies.commands
-	if commandsFor == nil {
-		commandsFor = privateCommandsFor
-	}
 	result, err := dependencies.minimize(context.Background(), runner.MinimizeSpec{
 		ArtifactPath: flags.Arg(0), OutputRoot: filepath.Join(artifactRoot, "minimized"),
-		AttemptBudget: *attemptBudget, MaximumBytes: uint64(maximumBytes), ToolchainRoot: resolvedToolchain,
-		SupervisorCommand: commandsFor(executable).supervisor, Resume: *resume,
+		AttemptBudget: *attemptBudget, MaximumBytes: uint64(maximumBytes), ToolchainRoot: installed.toolchainRoot,
+		SupervisorCommand: installed.supervisorCommand(), Resume: *resume,
 	})
 	if err != nil {
 		var preflight *runner.ReplayPreflightError

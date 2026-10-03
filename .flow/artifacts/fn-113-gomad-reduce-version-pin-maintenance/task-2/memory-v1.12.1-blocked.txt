@@ -1,0 +1,2 @@
+pinned modernc.org/memory rewrite anchor mismatch for mmap_unix.go: "var (\n\tosPageMask = osPageSize - 1\n\tosPageSize = os.Getpagesize()\n)\n" occurs 0 times, want exactly once
+exit status 1

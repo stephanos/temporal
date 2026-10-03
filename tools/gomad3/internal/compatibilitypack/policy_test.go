@@ -150,6 +150,7 @@ func TestVerifyValidatedPackIdentitiesRejectsUnavailableOrModifiedPacks(t *testi
 }
 
 func TestSelectBindsExactPackIdentityAndCapabilities(t *testing.T) {
+	// Other packs also activate on x/sys v0.47.0, so select this one alone.
 	validated := loadGeneratedPackForTest(t, "modernc-libc-xsys-v047")
 	packages := generatedExactPackages(validated.pack)
 	selection, err := SelectPacksForPlatform([]ValidatedPack{validated}, packages, validated.pack.Governance.Platforms[0])

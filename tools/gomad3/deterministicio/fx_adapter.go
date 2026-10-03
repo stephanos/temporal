@@ -18,10 +18,12 @@ const (
 	fxSignalNamesReplacementSHA256     = "sha256:9437126ec05010e763ba427171b9aeb835fc3ad15667865523c23461cd579a45"
 )
 
-var fxPreparedSourceSetSHA256 = hostPin(map[string]string{
+var fxPreparedSourceSetSHA256ByHost = map[string]string{
 	"darwin/arm64": "sha256:d8b6580641c5ead1685c31e2e3c2d10ac899513dee52a808f4762e34d90313c1",
 	"linux/amd64":  "sha256:d8b6580641c5ead1685c31e2e3c2d10ac899513dee52a808f4762e34d90313c1",
-})
+}
+
+var fxPreparedSourceSetSHA256 = hostPin(fxPreparedSourceSetSHA256ByHost)
 
 // fxRewrites detaches the fx shutdowner from the host: the signal relay keeps
 // its channel plumbing but never registers with os/signal, and the shutdown
@@ -59,15 +61,17 @@ var fxRewrites = []sourceRewrite{
 	},
 }
 
+var fxAdapter = rewrittenModule{
+	module: fxModulePath, version: fxVersion, sum: fxSum,
+	cacheElements:                 []string{"go.uber.org", "fx@" + fxVersion},
+	replacementDirectory:          "uber-fx",
+	originalInventorySHA256:       fxOriginalSourceInventorySHA256,
+	replacementInventorySHA256:    fxReplacementSourceInventorySHA256,
+	preparedPackage:               fxModulePath,
+	preparedSourceSetSHA256ByHost: fxPreparedSourceSetSHA256ByHost,
+	rewrites:                      fxRewrites,
+}
+
 func prepareFx(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
-	return prepareRewrittenModule(moduleCache, root, identity, rewrittenModule{
-		module: fxModulePath, version: fxVersion, sum: fxSum,
-		cacheElements:              []string{"go.uber.org", "fx@" + fxVersion},
-		replacementDirectory:       "uber-fx",
-		originalInventorySHA256:    fxOriginalSourceInventorySHA256,
-		replacementInventorySHA256: fxReplacementSourceInventorySHA256,
-		preparedPackage:            fxModulePath,
-		preparedSourceSetSHA256:    fxPreparedSourceSetSHA256,
-		rewrites:                   fxRewrites,
-	})
+	return prepareRewrittenModule(moduleCache, root, identity, fxAdapter)
 }

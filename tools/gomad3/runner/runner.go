@@ -322,10 +322,12 @@ func (processExecutor) Run(ctx context.Context, request execution.Spec) (executi
 	return execution.Run(ctx, request)
 }
 
-type artifactReplayer struct{}
+type artifactReplayer struct {
+	dependencies executionDependencies
+}
 
-func (artifactReplayer) Replay(ctx context.Context, config ReplaySpec) (ReplayResult, error) {
-	return Replay(ctx, config)
+func (replayer artifactReplayer) Replay(ctx context.Context, config ReplaySpec) (ReplayResult, error) {
+	return replayWith(ctx, config, replayer.dependencies)
 }
 
 type runJob struct {
@@ -803,7 +805,7 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 			continue
 		}
 		if overallCtx.Err() != nil {
-			recordCompletion(campaign.Completion{})
+			recordCompletion(campaign.CompletedUnclassified())
 			if hostFailure == nil {
 				hostFailure = &HostError{Reason: contextFailureReason(overallCtx.Err()), Err: overallCtx.Err()}
 			}
@@ -812,7 +814,7 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 			continue
 		}
 		if completion.err != nil {
-			recordCompletion(campaign.Completion{})
+			recordCompletion(campaign.CompletedUnclassified())
 			reason := supervisionFailureReason(completion.err)
 			if completion.result.ChoiceTrace.Profile != "" && completion.result.ChoiceTrace.Trace.Summary.Terminal == choice.TerminalOverflow {
 				summary.ChoiceTrace = choiceTraceSummary(completion.job.seed, completion.result.ChoiceTrace)
@@ -831,7 +833,7 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 			continue
 		}
 		if err := prepared.Verify(); err != nil {
-			recordCompletion(campaign.Completion{})
+			recordCompletion(campaign.CompletedUnclassified())
 			if hostFailure == nil {
 				hostFailure = &HostError{Reason: "prepared_target_integrity", Err: err}
 				controller.Stop()
@@ -843,7 +845,7 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 			summary.ChoiceTrace = choiceTraceSummary(completion.job.seed, completion.result.ChoiceTrace)
 		}
 		if completion.result.Cancelled && controller.Stopped() {
-			recordCompletion(campaign.Completion{Kind: campaign.CompletionCancelled})
+			recordCompletion(campaign.CompletedCancelled())
 			if partialErr := preservePartial(completion.journal); partialErr != nil {
 				hostFailure = errors.Join(hostFailure, &HostError{Reason: "partial_write", Err: partialErr})
 			}
@@ -871,7 +873,7 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 		}
 		worldBundle, err := assessWorld(completion.result, completion.job.seed, config.WorldTransitionLimit)
 		if err != nil {
-			recordCompletion(campaign.Completion{})
+			recordCompletion(campaign.CompletedUnclassified())
 			if publishErr := publishRunnerFailure(completion, "world_record"); publishErr != nil {
 				err = errors.Join(err, publishErr)
 			}
@@ -884,7 +886,7 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 		}
 		assessed, assessErr := assessCompletion(completion.result, worldBundle.Manifest.Terminal, config.Coverage, prepared)
 		if assessErr != nil {
-			recordCompletion(campaign.Completion{})
+			recordCompletion(campaign.CompletedUnclassified())
 			if partialErr := preservePartial(completion.journal); partialErr != nil {
 				assessErr.Err = errors.Join(assessErr.Err, partialErr)
 			}
@@ -899,7 +901,7 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 		if config.Diagnostics && len(completion.result.DiagnosticTrace.Bytes) != 0 {
 			trace, err := retainDiagnosticTrace(journal.Path(), completion.job.ordinal, completion.result.DiagnosticTrace)
 			if err != nil {
-				recordCompletion(campaign.Completion{})
+				recordCompletion(campaign.CompletedUnclassified())
 				hostFailure = &HostError{Reason: "diagnostic_write", Err: err}
 				controller.Stop()
 				activeCancel()
@@ -910,7 +912,7 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 		if config.CollectExecutionEvidence {
 			mountArtifact, evidenceErr := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
 			if evidenceErr != nil {
-				recordCompletion(campaign.Completion{})
+				recordCompletion(campaign.CompletedUnclassified())
 				if hostFailure == nil {
 					hostFailure = &HostError{Reason: "execution_evidence", Err: evidenceErr}
 					controller.Stop()
@@ -923,7 +925,7 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 			summary.ExecutionElapsedNanos = uint64(elapsedNanos(completion.startedAt, completion.finishedAt))
 		}
 		if err := completion.journal.Transition(campaign.ExecutionClassified); err != nil {
-			recordCompletion(campaign.Completion{})
+			recordCompletion(campaign.CompletedUnclassified())
 			if hostFailure == nil {
 				hostFailure = &HostError{Reason: "partial_write", Err: err}
 				controller.Stop()
@@ -932,7 +934,7 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 			continue
 		}
 		if overallErr := overallCtx.Err(); overallErr != nil {
-			recordCompletion(campaign.Completion{})
+			recordCompletion(campaign.CompletedUnclassified())
 			if hostFailure == nil {
 				hostFailure = &HostError{Reason: contextFailureReason(overallErr), Err: overallErr}
 				controller.Stop()
@@ -954,7 +956,7 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 			run.ChoiceFeatures = append([]string(nil), runChoiceFeatures...)
 			retention, retentionErr := decideSuccessRetention(config, assessed, completion.result.IOTranscript.Complete, semanticProbes, choiceFeatures, summary.RetainedSuccesses, summary.RetainedSuccessBytes)
 			if retentionErr != nil {
-				recordCompletion(campaign.Completion{})
+				recordCompletion(campaign.CompletedUnclassified())
 				hostFailure = retentionErr
 				controller.Stop()
 				activeCancel()
@@ -967,7 +969,7 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 					manifest, publishErr = manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest, mountArtifact)
 					if publishErr == nil {
 						var published artifact.Artifact
-						published, publishErr = artifact.PublishArtifact(artifact.Store{Root: journal.SuccessesPath(), Context: overallCtx, MaximumBytes: retention.maximumBytes, TargetPool: artifact.TargetPool(config.Artifacts)}, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
+						published, publishErr = artifact.PublishArtifact(artifact.Store{Root: journal.SuccessesPath(), Context: overallCtx, MaximumBytes: retention.maximumBytes, Key: artifact.StoreKeyExecution, TargetPool: artifact.TargetPool(config.Artifacts)}, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
 						if publishErr == nil {
 							relative, relErr := filepath.Rel(batchPath, published.Path)
 							if relErr != nil {
@@ -982,7 +984,7 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 					}
 				}
 				if publishErr != nil {
-					recordCompletion(campaign.Completion{})
+					recordCompletion(campaign.CompletedUnclassified())
 					hostFailure = successPublicationFailure(publishErr)
 					controller.Stop()
 					activeCancel()
@@ -996,7 +998,7 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 					added, guideErr = guidance.MergeRun(overallCtx, completion, outcome, worldBundle, mountArtifact, runCoverage)
 				}
 				if guideErr != nil {
-					recordCompletion(campaign.Completion{})
+					recordCompletion(campaign.CompletedUnclassified())
 					hostFailure = &HostError{Reason: "guided_corpus", Err: guideErr}
 					controller.Stop()
 					activeCancel()
@@ -1013,11 +1015,11 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 				activeCancel()
 			}
 			if hostFailure == nil {
-				recordCompletion(campaign.Completion{Kind: campaign.CompletionSuccess})
+				recordCompletion(campaign.CompletedSuccess())
 				addStrings(semanticProbes, runCoverage.Probes)
 				addStrings(choiceFeatures, runChoiceFeatures)
 			} else {
-				recordCompletion(campaign.Completion{})
+				recordCompletion(campaign.CompletedUnclassified())
 			}
 			completePartial(completion.journal)
 			continue
@@ -1025,7 +1027,7 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 
 		mountArtifact, manifestErr := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
 		if manifestErr != nil {
-			recordCompletion(campaign.Completion{})
+			recordCompletion(campaign.CompletedUnclassified())
 			if hostFailure == nil {
 				hostFailure = &HostError{Reason: "manifest", Err: manifestErr}
 				controller.Stop()
@@ -1035,7 +1037,7 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 		}
 		manifest, manifestErr := manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest, mountArtifact)
 		if manifestErr != nil {
-			recordCompletion(campaign.Completion{})
+			recordCompletion(campaign.CompletedUnclassified())
 			if hostFailure == nil {
 				hostFailure = &HostError{Reason: "manifest", Err: manifestErr}
 				controller.Stop()
@@ -1045,7 +1047,7 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 		}
 		published, publishErr := publishBoundedFailureArtifact(overallCtx, config, journal.FailuresPath(), manifest.Outcome.FailureSignature, distinct, &failureArtifactBytes, executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle))
 		if publishErr != nil {
-			recordCompletion(campaign.Completion{})
+			recordCompletion(campaign.CompletedUnclassified())
 			if hostFailure == nil {
 				hostFailure = &HostError{Reason: "artifact_publication", Err: publishErr}
 				controller.Stop()
@@ -1054,7 +1056,7 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 			continue
 		}
 		if overallErr := overallCtx.Err(); overallErr != nil {
-			recordCompletion(campaign.Completion{})
+			recordCompletion(campaign.CompletedUnclassified())
 			if hostFailure == nil {
 				hostFailure = &HostError{Reason: contextFailureReason(overallErr), Err: overallErr}
 				controller.Stop()
@@ -1065,7 +1067,7 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 		if guidance != nil {
 			added, guideErr := guidance.MergeRun(overallCtx, completion, outcome, worldBundle, mountArtifact, runCoverage)
 			if guideErr != nil {
-				recordCompletion(campaign.Completion{})
+				recordCompletion(campaign.CompletedUnclassified())
 				hostFailure = &HostError{Reason: "guided_corpus", Err: guideErr}
 				controller.Stop()
 				activeCancel()
@@ -1081,9 +1083,7 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 			distinct[signature] = published.Path
 			summary.Artifacts = append(summary.Artifacts, published.Path)
 		}
-		cancelActive := recordCompletion(campaign.Completion{
-			Kind: campaign.CompletionFailure, Domain: outcome.Domain, Reason: outcome.Reason, DistinctFailures: uint64(len(distinct)),
-		})
+		cancelActive := recordCompletion(campaign.CompletedFailure(outcome.Domain, outcome.Reason, uint64(len(distinct))))
 		artifactRelative, relErr := filepath.Rel(batchPath, published.Path)
 		if relErr != nil {
 			hostFailure = &HostError{Reason: "artifact_path", Err: relErr}

@@ -563,7 +563,10 @@ instead of installing a signal handler; and `go.opentelemetry.io/otel/sdk@v1.44.
 reports `<unknown>` for the process owner and `uname` the way the module already
 does on unsupported platforms, and its BSD host-id command runner refuses
 instead of reaching `os/exec`. Each rewrite is anchored to exact file digests,
-so an upstream edit fails the build instead of shifting the rewrite.
+so an upstream edit fails the build instead of shifting the rewrite;
+`gomadtool adapter-regenerate` re-derives the anchors for a new exact version
+only after a person approves the changed source (see the dependency bump
+procedure below).
 Each target records the exact adapters it selected, and resume and replay fail
 before execution if an identity is unavailable or changed. Entropy is
 independent of `GOMADSEED`; that seed controls scheduling only.
@@ -698,6 +701,48 @@ an administrator can approve and rerun an intentional boundary-change check.
 CI uploads both the dossier and its retained core-corpus evidence
 on every run.
 
+A dependency bump keeps every pin exact. Apply it to the target module
+(`go get MODULE@VERSION`) without committing it, then run from the repository
+root (for a module other than the root module, add `--module=DIR` to
+`pin-impact`):
+
+```sh
+go -C tools/gomad3 run ./cmd/gomadtool pin-impact --root=.
+go -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate \
+  --module=<adapted-module> --version=<new-version>
+go -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate \
+  --module=<adapted-module> --version=<new-version> \
+  --approve-review=<digest the dry run printed>
+go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack refresh --root=.
+go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack generate --root=. \
+  --request=internal/compatibilitypack/requests/<id>.json \
+  --approve-review=<digest refresh printed>
+make gomad3
+make -C tools/gomad3 validate compatibility-pack-qualification
+```
+
+`pin-impact` names every adapter, pack rule, interception fingerprint, and
+host-clock reference the candidate `go.mod` invalidates, with status 1 when
+any is invalidated or unknown. For each named adapter, the
+`adapter-regenerate` dry run prints the changed upstream source and the
+proposed anchors; after review, the apply with the printed digest writes the
+adapter, its tests, `version.json`, and the generated outputs together, and
+lists any other reference to the previous version for a hand edit. A rewrite
+whose source no longer matches its reviewed form stops with status 1 and writes
+nothing; this applies to the syntax-aware `modernc.org/libc` adapter too.
+`compatibility-pack refresh` re-reviews every request the bump invalidates and
+prints one `generate --approve-review` command per request. Each platform's
+host refreshes, approves, and qualifies its own platform's requests, and
+reports the others as not evaluable. `make gomad3` rebuilds `.bin/gomad`,
+because a regenerated adapter changes the target identity, and the adapter's
+workloads are requalified on both platforms. `pin-impact` and `refresh`
+compare the working tree with `HEAD`. A pack pinned to the old version stays
+invalidated once the bump is committed, because the module still requires its
+activation modules at other versions; a module the bump removes is reported
+stale only against a baseline that requires it, so after committing such a
+bump pass the revision before it with `--baseline-ref`. [CLI.md](CLI.md#bump-a-dependency) gives each command's flags and
+exit statuses.
+
 The standard-library boundary is declared in
 `tools/gomad3/deterministicio/boundary/manifest.json`, and the cross-process
 deterministic-I/O layouts are declared in
@@ -742,23 +787,20 @@ returns the same instant. `--clock-tick=forward` on `explore` and `qualify`
 (`"clock_tick": "forward"` on a `qualify-set` workload) advances the clock at
 every `time.Now` by 1 to 1024 nanoseconds, drawn from a stream derived from the
 seed and separate from the scheduling choices, so consecutive reads advance
-even while work remains runnable. The advance accumulates in an offset that
-only `time.Now` observes: native timers, sleeps, runtime clock reads, and
-simulation time keep the idle-driven clock. Application calculations that
-derive deadlines or durations from `time.Now` can observe the offset and
-change behavior. For a reading that still carries its monotonic value,
-`time.Since` and `time.Until` read the idle-driven clock, so
-against such a reading `time.Since` reports less than a second `time.Now`
-would, and is negative within one busy stretch, while a deadline computed
-from it expires later than a timer armed for the same duration, by the
-offset accumulated when it was computed. A reading stripped of its monotonic
-value, as by `Round(0)`, serialization, or parsing, is compared against a
-fresh ticked `time.Now` instead. Consecutive readings differ at
-nanosecond resolution only; timestamps truncated to a coarser unit can still
-tie. Repeatability and exact replay remain workload qualification
-claims; the [milestones](../../MILESTONES.md#open-findings) record
-remaining divergence. Runtime-internal clock reads do not tick. The
-policy reaches the target as `GOMAD3_CLOCK_TICK=forward`, which is part of the
+even while work remains runnable. Each draw advances the process virtual clock
+itself, so `time.Now`, monotonic elapsed time, timers, sleeps, context deadlines,
+and simulation time observe one clock. A draw can make a timer due while work
+is runnable; the runtime delivers it at its next timer check without skipping
+runnable work. Process-simulation participants report forward progress when
+they activate, quiesce, and issue host-model requests; the host arbiter adopts
+their maximum reported time before advancing to the earliest timer deadline,
+and the coordinator adopts each request's reported time before applying its
+model operation. Consecutive readings differ at nanosecond resolution only;
+timestamps truncated to a coarser unit can still tie. Repeatability and exact
+replay remain workload qualification claims; the
+[milestones](../../MILESTONES.md#open-findings) record remaining divergence.
+Runtime-internal clock reads do not tick. The policy reaches the target as
+`GOMAD3_CLOCK_TICK=forward`, which is part of the
 recorded environment and therefore of Campaign, Artifact, plan, and evidence
 identity; `strict` is recorded as the entry's absence, so its identities are
 unchanged, and replay, resume, and shards restore the recorded policy. A direct
@@ -769,6 +811,47 @@ The standard `go test` harness also observes virtual time. In particular,
 `-test.timeout` is a logical-time deadline and may fire immediately in wall
 time when it is the next event. A separate wall-time process watchdog is still
 required for CPU loops, unsupported host operations, and toolchain failures.
+
+Some reporting surfaces intentionally remain on host time. A completed
+collection stamps `runtime.MemStats.LastGC`, `runtime.MemStats.PauseEnd`,
+`debug.GCStats.LastGC`, and `debug.GCStats.PauseEnd` with host wall time. Both
+stamps reach text heap profiles and the `expvar` `memstats` value; `LastGC`
+also reaches heap dumps and Prometheus's
+`go_memstats_last_gc_time_seconds` gauge. The proposed overwrite hook would
+edit the already-allowed `runtime/proc.go`, not a prohibited collector file,
+but the patch-policy decision declines it because scheduler-owned code would
+mutate collector-owned state and cross the prohibition in substance while
+leaving the underlying host read. An emitting target can therefore produce
+different evidence while its choice tape still replays exactly. A target that
+branches on a stamp can also change its later behavior and choices.
+
+Three other host-time paths are target-visible under explicit gates. On
+linux/amd64, the FIPS `monoTime` input is host monotonic time when FIPS mode is
+enabled and Gomad's seeded testing reader is absent; it then seeds the DRBG and
+later random reads. Runner-managed deterministic-I/O programs install that
+reader only when they link `crypto/rand`. On darwin/arm64 the monotonic input
+is virtual. When execution tracing is started, its clock snapshot carries host
+wall time on both platforms and host monotonic time on linux/amd64, although
+trace event timestamps remain virtual and the runtime never reads the snapshot
+back; the difference reaches evidence only when the target or harness retains
+the trace. An exact compatibility-pack rule may admit the `syscall` import,
+after which an explicit `syscall.Gettimeofday` call returns host wall time
+through the linux vDSO or Darwin libc trampoline. The pack gate is at the
+import level, not the individual function.
+
+On linux/amd64, `cputicks` reads host cycle counts with `RDTSC` or `RDTSCP`.
+When block or mutex profiling is enabled, those counts steer profiler sampling
+and runtime-lock stack retention. Written text profiles carry the derived
+cycles-per-second value, and protobuf profiles with samples use it to convert
+durations. With both profile rates zero and no profile written, the remaining
+read is unused. On darwin/arm64 `cputicks` uses the virtual monotonic clock.
+The reporting, FIPS, tracer, and `Gettimeofday` paths above do not feed the
+runtime's own scheduling, GC pacing, or allocation decisions. `cputicks` does
+steer the profiling decisions described here and can consume a profiling
+random draw; its downstream effects on linux/amd64 remain an open finding.
+None of these values is covered by the deterministic-time guarantee. If a
+target emits one or lets it steer target behavior, same-seed evidence can
+differ; qualification compares only what reaches its bounded evidence.
 
 For a fixed toolchain, architecture, program, deterministic external inputs,
 and seed, supported runtime-controlled choices repeat across fresh processes.
@@ -906,8 +989,17 @@ go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack generate \
 make -C tools/gomad3 validate compatibility-pack-qualification
 ```
 
-For a dependency bump, compare the candidate module with a saved baseline
-`go.mod` and adjacent `go.sum` before repairing pins:
+`internal/compatibilitypack/working-directories.json` names the module
+directory each request is discovered and qualified in; every request needs
+exactly one entry in a directory holding a `go.mod`, and `check` rejects a
+request without one and, for this repository's root, a missing table.
+`compatibility-pack-qualification` qualifies every request that names the host
+platform in its mapped directory (`compatibility-pack qualify --all`).
+
+For a dependency bump, compare the candidate with its baseline before
+repairing pins. The checkout workflow above uses the working tree and `HEAD`;
+a saved pair of `go.mod` files with adjacent `go.sum` files can be compared
+explicitly:
 
 ```sh
 go -C tools/gomad3 run ./cmd/gomadtool pin-impact \
@@ -915,42 +1007,63 @@ go -C tools/gomad3 run ./cmd/gomadtool pin-impact \
   --candidate=/absolute/candidate/go.mod --format=json > pin-impact.json
 ```
 
-Status 1 means at least one pin is invalidated or unknown; 2 means invalid
-input, and 3 means the report could not be produced. The report includes
-adapter, pack-rule, interception, and clock-inventory pins. A missing sum or
-source identity remains unknown rather than being treated as unaffected.
+Status 1 means an invalidated or unknown adapter, pack-rule, interception, or
+clock-inventory pin; 2 means invalid input, and 3 means an infrastructure
+failure. A missing sum or source identity remains unknown rather than
+unaffected. For each invalidated adapter, inspect a dry run's source diff and
+anchors, then approve the exact printed digest. `--approve=sha256:<digest>`
+and `--approve-review=<digest>` name that same approval. The command verifies
+rewrite occurrences and publishes the descriptor, anchors, fixtures, and
+generated consumers together only after approval.
 
-For each invalidated adapter, run `adapter-regenerate` once without approval
-to inspect the changed upstream source and proposed anchors, then repeat with
-the exact digest printed by that review:
+After a dependency bump is applied to the checkout, one command repeats
+discover and review for every request the bump invalidates and stops at
+approval:
 
 ```sh
-go -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate \
-  --root=. --module=<exact-module-path> --version=<exact-version>
-go -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate \
-  --root=. --module=<exact-module-path> --version=<exact-version> \
-  --approve=sha256:<reviewed-digest>
 go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack refresh \
-  --root=. --impact-report=/absolute/path/to/pin-impact.json
+  --root="$PWD/tools/gomad3"
 ```
 
-The adapter command verifies exact rewrite occurrences and publishes the
-descriptor, anchors, fixtures, and generated consumers together only after
-approval. Refresh uses `internal/compatibilitypack/targets.tsv` to discover and
-render fresh reviews for affected requests on this host. It preserves an
-approval only when it matches the newly discovered evidence; it leaves requests
-for the other platform unchanged. Inspect each changed report and use the
-existing `compatibility-pack generate --approve-review=<exact-review-sha256>`
-for each approved request. Then run `make -C tools/gomad3 validate
-compatibility-pack-qualification core-qualification-set` and the full `test`
-gate on both supported hosts. A Darwin run does not qualify Linux packs or
-adapters. The generated [upgrade guide](deterministicio/boundary/upgrade-go1.27.1.md)
-covers the Go-release dossier as well as this dependency flow.
+Pass `--baseline-ref=<rev before the bump>` if `HEAD` no longer holds the
+baseline. The saved `pin-impact` JSON can be passed with
+`--impact-report=/absolute/path/to/pin-impact.json` for its scoped module;
+that report cannot reveal changed pins in other mapped directories. Without
+that flag, refresh runs pin impact for each mapped directory, with the working
+tree as candidate and the baseline revision as baseline. It refreshes the
+requests whose pack rules it reports invalidated or unknown, every request
+without an approval, and every host-platform request bound to another
+deterministic I/O profile. Each request is reviewed in its own directory. A
+request is current only when its stored approval equals the review digest of
+the fresh evidence; otherwise refresh writes the fresh evidence with the
+approval cleared, regenerates the reports and packs (which drops the packs
+that are no longer approved), and prints the review digest and the exact
+`generate --approve-review` command. Requests for another platform are reported
+as not evaluable and left for a host of that platform, and a pack whose
+directory no longer requires its modules is reported as unselected. Rerunning
+after approving some requests reports only the rest. Status 0 means nothing is
+left to do, 1 that a request awaits approval, cannot be evaluated here, failed,
+or is unselected, 2 invalid input, and 3 an infrastructure failure. An external
+pack root is refreshed with `--compatibility-root`, as below; refresh judges
+the packs in that root's `packs/` whatever `GOMAD3_COMPATIBILITY_PACKS` names.
+
+A pack variant is removed together with its request, report, and
+working-directory entry, and only with retained evidence that no module,
+corpus, or fixture in the repository selects it.
+
+Inspect each changed report and use `compatibility-pack generate
+--approve-review=<exact-review-sha256>` for each approved request. Then run
+`make -C tools/gomad3 validate compatibility-pack-qualification
+core-qualification-set` and the full `test` gate on both supported hosts.
+A Darwin run does not qualify Linux packs or adapters. The generated
+[upgrade guide](deterministicio/boundary/upgrade-go1.27.1.md) covers the
+Go-release dossier and this dependency flow.
 
 A module outside this repository keeps packs for its own dependencies in its
 own tree, so they never have to be committed here. Every authoring command
 takes `--compatibility-root=/absolute/dir`, which holds that module's
-`requests/`, `reports/`, `packs/`, and `generation.json` in the same layout as
+`requests/`, `reports/`, `packs/`, `generation.json`, and, for `qualify --all`
+and `refresh`, `working-directories.json` in the same layout as
 `internal/compatibilitypack`; requests and review output must stay below it.
 Setting `GOMAD3_COMPATIBILITY_PACKS=/absolute/dir/packs` loads those packs next
 to the embedded ones for every command, including the Runner's supervisor and
@@ -1075,16 +1188,18 @@ timeouts, nested synctest, cgo/link rejection, non-progress, bounded output,
 and deadlock; runs focused upstream `runtime`, `time`, and `testing/synctest`
 tests; audits map key families across seeds; and repeats prebuilt map and
 scheduler fixtures under distinct allocation layouts and bounded unrelated CPU
-load. Supported-host CI additionally runs `make -C tools/gomad3 clock-audit`: a privileged,
-positive-controlled DTrace gate that rejects seeded calls to `clock_gettime` or
-`mach_absolute_time` after Gomad activation. On both platforms the toolchain
+load. Supported-host CI additionally runs `make -C tools/gomad3 clock-audit`:
+a privileged, positive-controlled DTrace fixture gate that rejects its seeded
+fixture's calls to `clock_gettime` or `mach_absolute_time` after Gomad
+activation. On both platforms the toolchain
 tier pins every standard-library reference to the host clock (`nanotime1`,
-`walltime`, `time_now`, and the linux vDSO clock symbols) against a reviewed,
-classified inventory and checks that `nanotime` and `time_runtimeNow` return
-on activation before reaching it; linux/amd64 reads the clock through the vDSO,
-which a syscall tracer cannot observe, so this static check is its escape gate.
-The inventory records the known escapes, such as `MemStats.LastGC`, which the
-collector still stamps with host wall time. Set `GOMAD3_STOCK_GO` when the
+`walltime`, `time_now`, `cputicks`, the Darwin libc `gettimeofday` trampoline,
+and the linux vDSO clock symbols) against a reviewed, classified inventory and
+checks that `nanotime` and `time_runtimeNow` return on activation before
+reaching it. linux/amd64 reads the clock through the vDSO, which a syscall
+tracer cannot observe, and reads cycle counts without a syscall, so this static
+check is its escape gate. The inventory records the known escapes described in
+the Contract above. Set `GOMAD3_STOCK_GO` when the
 stock Go executable cannot be resolved
 from the module-selected toolchain in `PATH`; the test never downloads one.
 

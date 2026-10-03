@@ -127,3 +127,24 @@ func TestExternalPacksFailClosed(t *testing.T) {
 		})
 	}
 }
+
+// TestLoadPackDirectoryReadsOnlyThatDirectory loads an authoring root's packs
+// without the embedded ones or GOMAD3_COMPATIBILITY_PACKS, and an absent
+// directory as none.
+func TestLoadPackDirectoryReadsOnlyThatDirectory(t *testing.T) {
+	directory := t.TempDir()
+	writeExternalPack(t, directory, "downstream-fixture.json", externalPackFixture(t, "downstream-fixture", nil))
+	t.Setenv(ExternalPacksEnvironment, t.TempDir())
+	packs, err := LoadPackDirectory(directory)
+	if err != nil || len(packs) != 1 || packs[0].pack.ID != "downstream-fixture" {
+		t.Fatalf("LoadPackDirectory() = %d packs, %v", len(packs), err)
+	}
+	packs, err = LoadPackDirectory(filepath.Join(directory, "missing"))
+	if err != nil || len(packs) != 0 {
+		t.Fatalf("LoadPackDirectory(missing) = %d packs, %v", len(packs), err)
+	}
+	writeExternalPack(t, directory, "renamed.json", externalPackFixture(t, "downstream-other", nil))
+	if _, err := LoadPackDirectory(directory); err == nil {
+		t.Fatal("LoadPackDirectory() accepted a pack not named by its ID")
+	}
+}

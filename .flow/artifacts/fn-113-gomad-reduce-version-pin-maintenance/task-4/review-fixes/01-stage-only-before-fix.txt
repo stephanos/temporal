@@ -1,0 +1,3 @@
+staged regeneration failed; nothing was published: verify: {go} run ./cmd/gomadtool compatibility-pack check --root={root} exited 1: compatibility-pack working directory of modernc-libc-xsys-v047-isatty-v021 in working-directories.json holds no go.mod
+exit status 1
+exit status 1

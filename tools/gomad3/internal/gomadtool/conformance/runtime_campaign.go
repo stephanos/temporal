@@ -99,16 +99,23 @@ func (campaign *runtimeCampaign) finishCase(planned runtimeCase, result hostexec
 	return result, nil
 }
 
+// runtimeExperiment selects the classic collector for seeded fixture builds,
+// as target/internal/build does for prepared targets.
+const runtimeExperiment = "GOEXPERIMENT=nogreenteagc"
+
 func (campaign *runtimeCampaign) request(command []string, dir string, timeout time.Duration, unset []string, values ...string) hostexec.Request {
-	for _, argument := range command {
-		if len(command) > 0 && command[0] == campaign.config.Go && strings.HasPrefix(argument, "-exec") {
-			unset = append(unset, "GOEXPERIMENT")
-			values = append(values, "GOEXPERIMENT=nogreenteagc")
-			break
+	if len(command) > 0 && command[0] == campaign.config.Go {
+		for _, argument := range command[1:] {
+			if strings.HasPrefix(argument, "-exec") {
+				unset = append(slices.Clone(unset), "GOEXPERIMENT")
+				values = append(values, runtimeExperiment)
+				break
+			}
 		}
 	}
+	environment := filterEnvironment(os.Environ(), unset...)
 	return hostexec.Request{
-		Command: command, Dir: dir, Env: append(filterEnvironment(os.Environ(), unset...), values...), Timeout: timeout,
+		Command: command, Dir: dir, Env: append(environment, values...), Timeout: timeout,
 		TerminateGrace: fixtureTerminationGrace, OutputLimit: fixtureOutputLimit,
 	}
 }
@@ -175,7 +182,7 @@ func (campaign *runtimeCampaign) build(name, packageName string, cgo bool, extra
 	command := []string{campaign.config.Go, "build"}
 	command = append(command, extra...)
 	command = append(command, "-o", output, packageName)
-	values := []string{"GOEXPERIMENT=nogreenteagc"}
+	values := []string{runtimeExperiment}
 	if cgo {
 		values = append(values, "CGO_ENABLED=1")
 	} else if strings.HasPrefix(name, "clock") {
@@ -321,6 +328,9 @@ func (campaign *runtimeCampaign) execute() error {
 		{name: "clock-deadlock", packageName: "./clock_deadlock"},
 		{name: "clock-io", packageName: "./clock_io"},
 		{name: "clock-tick", packageName: "./clock_tick"},
+		{name: "clock-tick-deadline", packageName: "./clock_tick_deadline"},
+		{name: "clock-tick-due", packageName: "./clock_tick_due"},
+		{name: "locked-syscall", packageName: "./locked_syscall"},
 	} {
 		binary, err := campaign.build(fixture.name, fixture.packageName, fixture.cgo)
 		if err != nil {
@@ -336,6 +346,12 @@ func (campaign *runtimeCampaign) execute() error {
 		binaries[fixture.name] = binary
 	}
 	if err := campaign.requireClockTickBehavior(binaries["clock-tick"]); err != nil {
+		return err
+	}
+	if err := campaign.requireForwardClockDeadline(binaries["clock-tick-deadline"]); err != nil {
+		return err
+	}
+	if err := campaign.requireForwardClockDueTimer(binaries["clock-tick-due"]); err != nil {
 		return err
 	}
 	if err := campaign.requireClockBehavior(binaries); err != nil {

@@ -1,195 +1,358 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
-	"reflect"
 	"runtime"
+	"slices"
 	"sort"
 	"strings"
 
+	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring"
 	capabilityanalysis "go.temporal.io/server/tools/gomad3/qualification/analysis"
-	"go.temporal.io/server/tools/gomad3/upgrade"
+	"go.temporal.io/server/tools/gomad3/upgrade/pinimpact"
 )
 
-type packTarget struct {
-	platform string
-	working  string
+const compatibilityPackRefreshUsage = "usage: gomadtool compatibility-pack refresh --root=DIR [--compatibility-root=DIR] [--baseline-ref=REV] [--go=GO] [--impact-report=FILE]"
+
+// compatibilityPackReviewer reviews a request's target in its working
+// directory with the checkout's patched toolchain; tests replace it.
+var compatibilityPackReviewer = func(toolchainRoot string) authoring.Reviewer {
+	return func(ctx context.Context, request authoring.Request, workingDirectory string) (authoring.CapabilityReview, error) {
+		ctx, cancel := context.WithTimeout(ctx, compatibilityPackTimeout)
+		defer cancel()
+		return capabilityanalysis.ReviewCompatibilityTarget(ctx, request.ReviewSpec(workingDirectory, toolchainRoot))
+	}
 }
 
+// runCompatibilityPackRefresh runs discover and review for every request the
+// checked-out bump invalidates, each in its own working directory, and stops
+// at approval. It exits 0 when every selected request is current, 1 when a
+// request awaits approval, cannot be evaluated on this host, failed, or is
+// no longer selected by its module, 2 for invalid input, and 3 for
+// infrastructure failures.
 func runCompatibilityPackRefresh(arguments []string, stdout, stderr io.Writer) int {
 	flags := flag.NewFlagSet("gomadtool compatibility-pack refresh", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	root := flags.String("root", "", "Gomad v3 module root")
-	impactPath := flags.String("impact-report", "", "pin-impact JSON report for the bumped checkout")
-	if err := flags.Parse(arguments); err != nil || flags.NArg() != 0 || *root == "" || *impactPath == "" {
+	compatibilityRootOverride := flags.String("compatibility-root", "", "absolute pack authoring root owned by another module (default: internal/compatibilitypack)")
+	baselineRef := flags.String("baseline-ref", "HEAD", "Git revision holding each working directory's go.mod and go.sum before the bump")
+	impactPath := flags.String("impact-report", "", "existing pin-impact JSON report for the bumped checkout")
+	goCommand := flags.String("go", os.Getenv("GOMAD3_BOOTSTRAP_GO"), "go command that resolves module graphs")
+	if err := flags.Parse(arguments); err != nil || flags.NArg() != 0 || *root == "" || *baselineRef == "" {
+		fmt.Fprintln(stderr, compatibilityPackRefreshUsage)
 		return 2
 	}
 	resolvedRoot, err := filepath.Abs(*root)
 	if err != nil {
-		return refreshInputError(stderr, err)
+		fmt.Fprintln(stderr, err)
+		return 2
 	}
-	compatibilityRoot := filepath.Join(resolvedRoot, "internal", "compatibilitypack")
-	targets, err := readPackTargets(filepath.Join(compatibilityRoot, "targets.tsv"), resolvedRoot)
+	compatibilityRoot, err := compatibilityRootFor(resolvedRoot, *compatibilityRootOverride)
 	if err != nil {
-		return refreshInputError(stderr, err)
+		fmt.Fprintln(stderr, err)
+		return 2
 	}
-	contents, err := readCompatibilityPackFile(*impactPath, 16<<20)
+	directories, err := authoring.LoadWorkingDirectories(compatibilityRoot)
 	if err != nil {
-		return refreshInputError(stderr, err)
+		fmt.Fprintln(stderr, err)
+		return compatibilityPackRefreshStatus(err)
 	}
-	var impact upgrade.PinImpact
-	if err := json.Unmarshal(contents, &impact); err != nil || impact.Schema != "gomad3.pin-impact/v1" {
-		return refreshInputError(stderr, errors.New("invalid pin-impact report"))
+	if *goCommand == "" {
+		*goCommand = "go"
 	}
-	ids, err := invalidatedPackRequests(impact, targets)
+	resolvedGo, err := exec.LookPath(*goCommand)
+	if err == nil {
+		resolvedGo, err = filepath.Abs(resolvedGo)
+	}
 	if err != nil {
-		return refreshInputError(stderr, err)
-	}
-	return refreshCompatibilityPacks(resolvedRoot, compatibilityRoot, runtime.GOOS+"/"+runtime.GOARCH, ids, targets, discoverPackRequest, stdout, stderr)
-}
-
-func refreshInputError(stderr io.Writer, err error) int {
-	if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+		fmt.Fprintf(stderr, "compatibility-pack refresh requires a go command; set GOMAD3_BOOTSTRAP_GO or pass --go: %v\n", err)
 		return 3
 	}
-	return 2
-}
-
-type packDiscover func(authoring.Request, string, string) (authoring.Request, string, error)
-
-func discoverPackRequest(request authoring.Request, working, toolchain string) (authoring.Request, string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), compatibilityPackTimeout)
-	defer cancel()
-	prepared, err := capabilityanalysis.PrepareCapabilityReview(ctx, request.ReviewSpec(working, toolchain))
-	if err != nil {
-		return authoring.Request{}, "", err
+	ctx := context.Background()
+	// Judge the packs of the root being refreshed, not the packs the build
+	// would load, which come from GOMAD3_COMPATIBILITY_PACKS for an external root.
+	packs := func() ([]compatibility.ValidatedPack, error) {
+		return compatibility.LoadPackDirectory(filepath.Join(compatibilityRoot, "packs"))
 	}
-	fresh, digest, err := authoring.Discover(request, prepared.Review)
-	return fresh, digest, errors.Join(err, prepared.Close())
+	impact, err := packPinImpact(ctx, resolvedRoot, resolvedGo, *baselineRef, directories, packs)
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		if pinimpact.IsInputError(err) {
+			return 2
+		}
+		return 3
+	}
+	if *impactPath != "" {
+		saved, readErr := readPackImpactReport(*impactPath, directories)
+		if readErr == nil {
+			impact, readErr = mergeSavedPackImpact(impact, saved, directories)
+		}
+		if readErr != nil {
+			fmt.Fprintln(stderr, readErr)
+			if pinimpact.IsInputError(readErr) {
+				return 2
+			}
+			return 3
+		}
+	}
+	platform := runtime.GOOS + "/" + runtime.GOARCH
+	spec := authoring.RefreshSpec{
+		Root: compatibilityRoot, Platform: platform, Invalidated: impact.invalidated,
+		Review: compatibilityPackReviewer(filepath.Join(resolvedRoot, ".toolchain")),
+	}
+	if name, implementation, ok := capabilityanalysis.HostDeterministicProfile(); ok {
+		spec.Profile = &authoring.ProfileIdentity{Name: name, ImplementationSHA256: implementation}
+	}
+	results, err := authoring.Refresh(ctx, spec)
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return compatibilityPackRefreshStatus(err)
+	}
+	base := ""
+	rootFlag := "--root=" + resolvedRoot
+	if *compatibilityRootOverride == "" {
+		base = "internal/compatibilitypack/"
+	} else {
+		rootFlag += " --compatibility-root=" + compatibilityRoot
+	}
+	status := 0
+	fmt.Fprintf(stdout, "gomad3 compatibility-pack refresh on %s: %d requests selected\n", platform, len(results))
+	for _, result := range results {
+		switch result.Status {
+		case authoring.RefreshCurrent:
+			fmt.Fprintf(stdout, "current %s\n", result.ID)
+			continue
+		case authoring.RefreshAwaitingApproval:
+			fmt.Fprintf(stdout, "awaiting-approval %s %s (%s)\n", result.ID, result.ReviewSHA256, result.Reason)
+			fmt.Fprintf(stdout, "  review %sreports/%s.md, then approve with:\n  gomadtool compatibility-pack generate %s --request=%srequests/%s.json --approve-review=%s\n", base, result.ID, rootFlag, base, result.ID, result.ReviewSHA256)
+		default:
+			fmt.Fprintf(stdout, "%s %s: %s\n", result.Status, result.ID, result.Reason)
+		}
+		status = 1
+	}
+	for _, id := range impact.unselected {
+		if slices.ContainsFunc(results, func(result authoring.RefreshResult) bool { return result.ID == id }) {
+			continue
+		}
+		fmt.Fprintf(stdout, "unselected %s: its working directory no longer requires the pack's modules; remove the pack, request, report, and working-directory entry once nothing selects it\n", id)
+		status = 1
+	}
+	return status
 }
 
-func refreshCompatibilityPacks(root, compatibilityRoot, platform string, ids []string, targets map[string]packTarget, discover packDiscover, stdout, stderr io.Writer) int {
-	failed := false
-	for _, id := range ids {
-		target := targets[id]
-		requestPath := filepath.Join(compatibilityRoot, "requests", id+".json")
-		request, status := readReviewedCompatibilityPackRequest(requestPath, stderr)
-		if status != 0 || request.ID != id || len(request.Platforms) != 1 || request.Platforms[0] != target.platform {
-			if _, err := fmt.Fprintf(stderr, "%s: invalid mapped request\n", id); err != nil {
-				return 1
-			}
-			failed = true
-			continue
-		}
-		if target.platform != platform {
-			if _, err := fmt.Fprintf(stdout, "%s: not evaluable on %s; unchanged\n", id, platform); err != nil {
-				return 1
-			}
-			continue
-		}
-		fresh, digest, err := discover(request, target.working, filepath.Join(root, ".toolchain"))
-		if err != nil {
-			if _, writeErr := fmt.Fprintf(stderr, "%s: %v\n", id, err); writeErr != nil {
-				return 1
-			}
-			failed = true
-			continue
-		}
-		if request.ApprovalSHA256 == digest {
-			continue
-		}
-		_, reviewedDigest, err := authoring.RenderReview(fresh)
-		if err != nil || reviewedDigest != digest {
-			if err == nil {
-				err = errors.New("discovery and review digests differ")
-			}
-			if _, writeErr := fmt.Fprintf(stderr, "%s: fresh review failed: %v\n", id, err); writeErr != nil {
-				return 1
-			}
-			failed = true
-			continue
-		}
-		if !reflect.DeepEqual(request, fresh) {
-			if err := authoring.PublishRequest(requestPath, fresh); err != nil {
-				if _, writeErr := fmt.Fprintf(stderr, "%s: %v\n", id, err); writeErr != nil {
-					return 1
+func compatibilityPackRefreshStatus(err error) int {
+	if authoring.IsInputError(err) {
+		return 2
+	}
+	return 3
+}
+
+type packImpact struct {
+	// invalidated maps each request whose pack the bump invalidates, or
+	// leaves unknown, to the first reason.
+	invalidated map[string]string
+	// unselected requests' packs applied before the bump and their working
+	// directory no longer requires their modules.
+	unselected []string
+	// identities bind a live evaluation to each mapped module. A saved
+	// report may cover one of these modules, never replace the others.
+	identities    map[string]packModuleIdentity
+	savedIdentity packModuleIdentity
+	reportedIDs   map[string]bool
+}
+
+type packModuleIdentity struct {
+	candidateMod, candidateSum, baselineMod, baselineSum string
+	candidateCombined, baselineCombined                  string
+}
+
+func moduleIdentity(candidate, baseline pinimpact.ModuleFiles) packModuleIdentity {
+	digest := func(contents []byte) string { return fmt.Sprintf("sha256:%x", sha256.Sum256(contents)) }
+	combined := func(files pinimpact.ModuleFiles) string {
+		joined := append(append(append([]byte{}, files.GoMod...), 0), files.GoSum...)
+		return digest(joined)
+	}
+	return packModuleIdentity{
+		candidateMod: digest(candidate.GoMod), candidateSum: digest(candidate.GoSum),
+		baselineMod: digest(baseline.GoMod), baselineSum: digest(baseline.GoSum),
+		candidateCombined: combined(candidate), baselineCombined: combined(baseline),
+	}
+}
+
+func mergeSavedPackImpact(live, saved packImpact, directories map[string]string) (packImpact, error) {
+	matched := ""
+	for directory, identity := range live.identities {
+		if (saved.savedIdentity.candidateCombined != "" && saved.savedIdentity.candidateCombined == identity.candidateCombined && saved.savedIdentity.baselineCombined == identity.baselineCombined) ||
+			(saved.savedIdentity.candidateMod != "" && saved.savedIdentity.candidateMod == identity.candidateMod && saved.savedIdentity.candidateSum == identity.candidateSum && saved.savedIdentity.baselineMod == identity.baselineMod && saved.savedIdentity.baselineSum == identity.baselineSum) {
+			matchesPins := true
+			for id := range saved.reportedIDs {
+				if directories[id] != directory {
+					matchesPins = false
+					break
 				}
-				failed = true
+			}
+			if matchesPins {
+				matched = directory
+				break
+			}
+		}
+	}
+	if matched == "" {
+		return packImpact{}, &pinimpact.InputError{Err: errors.New("pin-impact report does not match a mapped module's current candidate and requested baseline, including its pack mappings")}
+	}
+	for id, reason := range saved.invalidated {
+		if live.invalidated[id] == "" {
+			live.invalidated[id] = reason
+		}
+	}
+	return live, nil
+}
+
+// readPackImpactReport accepts either pin-impact report representation. Both
+// identify pack rules by exact request ID, and neither grants an approval.
+func readPackImpactReport(path string, directories map[string]string) (packImpact, error) {
+	contents, err := readCompatibilityPackFile(path, 16<<20)
+	if err != nil {
+		return packImpact{}, &pinimpact.InputError{Err: err}
+	}
+	var report struct {
+		Schema          string                   `json:"schema"`
+		CandidateSHA256 string                   `json:"candidate_sha256"`
+		BaselineSHA256  string                   `json:"baseline_sha256"`
+		Candidate       pinimpact.ModuleEvidence `json:"candidate"`
+		Baseline        pinimpact.ModuleEvidence `json:"baseline"`
+		Pins            []struct {
+			Class      string `json:"class"`
+			Status     string `json:"status"`
+			ID         string `json:"id"`
+			Pack       string `json:"pack"`
+			ImportPath string `json:"import_path"`
+			Reason     string `json:"reason"`
+		} `json:"pins"`
+	}
+	if err := json.Unmarshal(contents, &report); err != nil || report.Schema != pinimpact.Schema {
+		return packImpact{}, &pinimpact.InputError{Err: errors.New("invalid pin-impact report")}
+	}
+	identity := packModuleIdentity{}
+	switch {
+	case report.CandidateSHA256 != "" && report.BaselineSHA256 != "" && report.Candidate.GoModSHA256 == "" && report.Candidate.GoSumSHA256 == "" && report.Baseline.GoModSHA256 == "" && report.Baseline.GoSumSHA256 == "":
+		identity.candidateCombined, identity.baselineCombined = report.CandidateSHA256, report.BaselineSHA256
+	case report.CandidateSHA256 == "" && report.BaselineSHA256 == "" && report.Candidate.GoModSHA256 != "" && report.Candidate.GoSumSHA256 != "" && report.Baseline.GoModSHA256 != "" && report.Baseline.GoSumSHA256 != "":
+		identity.candidateMod, identity.candidateSum = report.Candidate.GoModSHA256, report.Candidate.GoSumSHA256
+		identity.baselineMod, identity.baselineSum = report.Baseline.GoModSHA256, report.Baseline.GoSumSHA256
+	default:
+		return packImpact{}, &pinimpact.InputError{Err: errors.New("pin-impact report lacks a complete candidate and baseline module identity")}
+	}
+	impact := packImpact{invalidated: map[string]string{}, savedIdentity: identity, reportedIDs: map[string]bool{}}
+	stale := map[string]bool{}
+	for _, pin := range report.Pins {
+		if pin.Class != string(pinimpact.ClassPackRule) && pin.Class != "pack_rule" {
+			continue
+		}
+		id := pin.Pack
+		if id == "" {
+			id, _, _ = strings.Cut(pin.ID, ":")
+		}
+		if directories[id] == "" {
+			return packImpact{}, &pinimpact.InputError{Err: fmt.Errorf("pin-impact report names unmapped compatibility pack %q", id)}
+		}
+		impact.reportedIDs[id] = true
+		switch pin.Status {
+		case "invalidated", "unknown":
+			if impact.invalidated[id] == "" {
+				impact.invalidated[id] = fmt.Sprintf("%s %s: %s", pin.Status, pin.ID, pin.Reason)
+			}
+		case "stale":
+			stale[id] = true
+		}
+	}
+	for id := range stale {
+		if impact.invalidated[id] == "" {
+			impact.unselected = append(impact.unselected, id)
+		}
+	}
+	sort.Strings(impact.unselected)
+	return impact, nil
+}
+
+// packPinImpact runs the pin impact report once per working directory, with
+// the working tree as the candidate and baselineRef as the baseline, and keeps
+// the pack-rule pins of the requests mapped to that directory.
+func packPinImpact(ctx context.Context, root, goCommand, baselineRef string, directories map[string]string, packs func() ([]compatibility.ValidatedPack, error)) (packImpact, error) {
+	byDirectory := map[string][]string{}
+	for id, directory := range directories {
+		byDirectory[directory] = append(byDirectory[directory], id)
+	}
+	ordered := make([]string, 0, len(byDirectory))
+	for directory := range byDirectory {
+		ordered = append(ordered, directory)
+	}
+	sort.Strings(ordered)
+	resolver, err := pinimpact.NewGoResolver(goCommand, os.Environ())
+	if err != nil {
+		return packImpact{}, err
+	}
+	impact := packImpact{invalidated: map[string]string{}, identities: map[string]packModuleIdentity{}}
+	stale := map[string]bool{}
+	for _, directory := range ordered {
+		candidate, err := readModuleFiles(directory)
+		if err != nil {
+			return packImpact{}, errors.Join(&pinimpact.InputError{Err: err}, resolver.Close())
+		}
+		baseline, err := gitModuleFiles(ctx, directory, baselineRef)
+		if err != nil {
+			return packImpact{}, errors.Join(&pinimpact.InputError{Err: err}, resolver.Close())
+		}
+		impact.identities[directory] = moduleIdentity(candidate, baseline)
+		report, err := pinimpact.Evaluate(ctx, pinimpact.Spec{Root: root, Baseline: baseline, Candidate: candidate, Resolver: resolver, Packs: packs})
+		if err != nil {
+			return packImpact{}, errors.Join(fmt.Errorf("pin impact of %s: %w", directory, err), resolver.Close())
+		}
+		mapped := byDirectory[directory]
+		for _, pin := range report.Pins {
+			if pin.Class != pinimpact.ClassPackRule {
 				continue
 			}
-		}
-		if _, err := authoring.PublishReview(filepath.Join(compatibilityRoot, "reports", id+".md"), fresh); err != nil {
-			if _, writeErr := fmt.Fprintf(stderr, "%s: %v\n", id, err); writeErr != nil {
-				return 1
+			if pin.Pack == "" {
+				return packImpact{}, errors.Join(fmt.Errorf("pin impact of %s cannot evaluate compatibility packs: %s", directory, pin.Reason), resolver.Close())
 			}
-			failed = true
-			continue
-		}
-		if _, err := fmt.Fprintf(stdout, "%s: review %s\n", id, digest); err != nil {
-			return 1
+			if !slices.Contains(mapped, pin.Pack) {
+				continue
+			}
+			switch pin.Status {
+			case pinimpact.StatusInvalidated, pinimpact.StatusUnknown:
+				if impact.invalidated[pin.Pack] == "" {
+					impact.invalidated[pin.Pack] = fmt.Sprintf("%s %s: %s", pin.Status, pin.ImportPath, pin.Reason)
+				}
+			case pinimpact.StatusStale:
+				stale[pin.Pack] = true
+			}
 		}
 	}
-	if failed {
-		return 1
+	for id := range stale {
+		if _, invalidated := impact.invalidated[id]; !invalidated {
+			impact.unselected = append(impact.unselected, id)
+		}
 	}
-	return 0
+	sort.Strings(impact.unselected)
+	return impact, resolver.Close()
 }
 
-func readPackTargets(path, root string) (map[string]packTarget, error) {
-	contents, err := readCompatibilityPackFile(path, 64<<10)
-	if err != nil {
-		return nil, err
-	}
-	targets := make(map[string]packTarget)
-	scanner := bufio.NewScanner(bytes.NewReader(contents))
-	for scanner.Scan() {
-		fields := strings.Fields(scanner.Text())
-		if len(fields) != 3 || fields[1] == "" || strings.ContainsAny(fields[1], "/\\.") ||
-			fields[0] != "darwin/arm64" && fields[0] != "linux/amd64" ||
-			filepath.IsAbs(fields[2]) {
-			return nil, fmt.Errorf("invalid compatibility-pack target mapping: %q", scanner.Text())
-		}
-		if _, exists := targets[fields[1]]; exists {
-			return nil, fmt.Errorf("duplicate compatibility-pack target mapping: %s", fields[1])
-		}
-		working := filepath.Clean(filepath.Join(root, fields[2]))
-		if _, err := os.Stat(filepath.Join(working, "go.mod")); err != nil {
-			return nil, fmt.Errorf("compatibility-pack target %s has no module: %w", fields[1], err)
-		}
-		targets[fields[1]] = packTarget{platform: fields[0], working: working}
-	}
-	if err := scanner.Err(); err != nil {
-		return nil, err
-	}
-	return targets, nil
-}
-
-func invalidatedPackRequests(impact upgrade.PinImpact, targets map[string]packTarget) ([]string, error) {
-	set := make(map[string]bool)
-	for _, pin := range impact.Pins {
-		if pin.Class != "pack_rule" || pin.Status != "invalidated" && pin.Status != "unknown" {
-			continue
-		}
-		id, _, found := strings.Cut(pin.ID, ":")
-		if !found || targets[id].working == "" {
-			return nil, fmt.Errorf("invalidated compatibility-pack request %q has no target mapping", pin.ID)
-		}
-		set[id] = true
-	}
-	ids := make([]string, 0, len(set))
-	for id := range set {
+func requestIDs(directories map[string]string) []string {
+	ids := make([]string, 0, len(directories))
+	for id := range directories {
 		ids = append(ids, id)
 	}
 	sort.Strings(ids)
-	return ids, nil
+	return ids
 }
