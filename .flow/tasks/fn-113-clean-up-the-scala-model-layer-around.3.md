@@ -47,9 +47,101 @@ No staging, commits, worktrees or recursive deletion: move a removed file to `.f
 
 
 ## Done summary
-TBD
+# fn-113.3 handover: the lifter builds and prints the IR through ScalaPB
 
+Nothing is staged or committed. Changed files: the ten lifter files, `model/lifter/project.scala`, and the twelve JSON files the gate's `--update` rewrote (`model/ir/*.json`, `model/lifter/testdata/lifts/expected/*.json`). `expected/rejects.txt`, `Fixtures.test.scala` and the fixture sources did not change.
+
+### What changed
+
+- `project.scala`: `protobuf-java`, `protobuf-java-util` and `../gen/ir-proto.jar` are gone. It now uses `com.thesamet.scalapb::scalapb-runtime:0.11.20`, `com.thesamet.scalapb::scalapb-json4s:0.12.2` (ScalaPB's printer) and `../gen/ir-scalapb.jar`. protobuf-java still arrives through the runtime, which R6 allows.
+- The ten files build the IR with the generated case classes (`ir.X(a = a)`): oneofs are the generated sealed members, message fields are `Option`, and repeated fields are `Seq`. HEAD had 113 `newBuilder` occurrences (the plan counted 108 chains). There are now 0, and `grep com.google.protobuf model/lifter/*.scala` finds nothing.
+- `Lift.scala`: `Model` is put together in one constructor call with a `sorted` helper. Output goes through `scalapb.json4s.Printer().toJson`, written by Jackson with a 4-line `Pretty` printer that keeps the `"field": value` layout. File naming and the trailing newline are unchanged. Default-value printing stays off.
+- `Realizations.scala`: the emitter is still generic and driven by descriptors over `scalapb.descriptors`. It looks fields up by name, finds a field's containing oneof, looks enum values up by name, and reads the message descriptor of a message field (`ScalaType.Message(d)`) and whether a field is repeated or optional. A small `Message` holder collects `PValue`s per `FieldDescriptor`; setting one oneof member clears the others, as the Java builder did. `emit` turns the result into the generated class with `companion.messageReads.read(PMessage)`. There is no hand-written mapping per message. The refusal texts (`$n is no $p of <msg> in the IR`, `<msg> has no $p in the IR`, `... takes one value`, `... is no <Enum> of the IR`) and the terms they are reported at are unchanged.
+- Comments are kept. The only comment-line changes are two trailing comments whose code was ported, plus one new comment.
+
+### Line counts (R25)
+
+| file | before (HEAD) | after |
+|---|---|---|
+| Claims | 314 | 302 |
+| Compositions | 86 | 71 |
+| Constants | 53 | 53 |
+| Context | 105 | 101 |
+| Declarations | 475 | 423 |
+| Expressions | 450 | 337 |
+| Lift | 131 | 143 |
+| Lifting | 39 | 39 |
+| Realizations | 269 | 276 |
+| Types | 185 | 166 |
+| **ten files** | **2,107** | **1,911** (-196) |
+| project.scala | 16 | 16 |
+| **total** | **2,123** | **1,927** (-196) |
+
+`linecount-before.txt` holds the "before" counts.
+
+R25 weighing:
+- ScalaPB wiring added: 2 dependency lines and 1 jar line, which replace 3 lines. Realizations gains the `Message` holder and `emit` (about 19 lines). Lift gains the printer call, the `Pretty` class and 4 imports (about 12 lines). That is about 31 lines of wiring.
+- Removed: about 227 lines of hand-written builder chains, net -196. That is more than the 100 to 150 the spec expected.
+- JSON libraries: `scalapb-json4s` is ScalaPB's own ProtoJSON printer, and json4s/Jackson come with it. No other JSON library was weighed.
+- The `Pretty` printer (4 lines) only keeps the `": "` layout of the old JsonFormat files so the diffs stay readable. R7 equality does not depend on it.
+
+### R11: oneof matches the compiler now checks
+
+1. `Types.optionType` matches `value.ref` over `ir.TypeRef.Ref`, and names every member (`Named`, `Bool`, `IntRange`, `Int | List | Channel | Empty`). Before the port this was a `getRefCase` match with a `_` fallback. It is the only match over a oneof in the lifter. The other oneof uses build values and do not match on them.
+
+### R7 proof
+
+- Command: `GOFLAGS=-p=1 mise exec -- go run .flow/tmp/fn113-3/r7.go`, run from the repo root.
+- Method: `protojson.Unmarshal` plus `proto.Equal` on `before/` (the HEAD copies, SHA-256 in `before/SHA256SUMS`) against `after/` (output of the ported lifter).
+- Result: `12 files, 0 unequal` (`.flow/tmp/fn113-3/r7.log`; re-run in `r7-rerun.log`).
+- The proof ran before `make umpire-gen-model MODEL_GATE_ARGS=--skip-go-checks` (`gate-update.log`).
+- I also checked that each `before/` file is byte-identical to its HEAD blob, and that each checked-in file now is byte-identical to its `after/` file.
+
+### Checks (logs under .flow/tmp/fn113-3/)
+
+| command | result | log |
+|---|---|---|
+| `mise exec -- scala-cli test model/lifter` | pass, 14/14 | lifter-test.log |
+| `GOFLAGS=-p=1 mise exec -- go test -count=1 -timeout 30m -tags test_dep -run '^TestMigrationGoldens$' ./tools/umpire/model` | ok (50 s) | goldens-model.log |
+| same for `./tools/umpire/lower` | ok (91 s) | goldens-lower.log |
+| `make umpire-check-cases` | exit 0 | umpire-check-cases.log |
+| `make umpire-check-fixtures` | exit 0 | umpire-check-fixtures.log |
+| `make canary-check-case` | exit 0 | canary-check-case.log |
+| `make lint-model` | exit 0 | lint-model.log |
+| `make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks` (no `--update`) | `== ok` | gate-check.log |
+
+- The lifter suite includes the refusal and must-not-compile tests (`Evidence.scala.fixture:29:16`, `Crossed.scala.fixture:35:14`/`45:28`, `Unsupported.scala:18`, rejects.txt).
+- In the lint log, scalafix prints `java.lang.NoSuchFieldException: path` traces. They come from scalafix's reflection under JDK 27, appear for every project as they did in task 2, and do not fail the lint. Formatting and scalafix report no finding in lifter code.
+- Not exercised: no fixture triggers the realization emitter's unknown-constructor or unknown-parameter refusal, before or after the port. Well-typed framework code cannot reach it. The diff shows those refusals keep their texts and positions.
+
+### Notes for the conductor (shared documents, not edited)
+
+- The lifter no longer reads `model/gen/ir-proto.jar`. The gate (`model/gate/Gate.scala`, its test) and the Makefile (`MODEL_PROTO_JARS`, the `ir-proto.jar` rule) still produce it. Whether to drop it belongs to the gate's owner or a later task; it is outside this task's Touches.
+- `MILESTONES.md:90` (Part B, ScalaPB) can record that the lifter is ported: 1,927 lines, down from 2,123.
+- `.plans/UMPIRE_MODULES.md` and the migration manifest: no change needed, as far as I found.
+- `model/lifter/Expressions.scala:102` still has a Stainless reference in the `stripContracts` doc comment. That is Part D / R19 work and was left alone.
+
+### Review (claude-opus-5-5, fresh context)
+
+Verdict SHIP. The conductor applied:
+- `Declarations.scala`: a machine's family is read before its name again, so a refusal of both is reported at the family's line, as before (R8). The previous code read the name first.
+- `Realizations.scala`: the unreachable fallback refusal spells the field kind in protobuf-java's JavaType names (`FLOAT`, `DOUBLE`, `BYTE_STRING`) through `javaKind`, so its text is unchanged (R9).
+- Named arguments where two neighbouring fields are strings: `ir.Construct`, `ir.CasePattern`, `ir.StepBinding`, `ir.Hole`.
+
+After the fixes:
+- `scala-cli test model/lifter`: 14/14 pass (`.flow/tmp/fn113-3/lifter-test-review-fixes.log`).
+- `make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks`: ok without `--update`, so the output is unchanged (`gate-check-review-fixes.log`).
+- `make lint-model`: ok (`lint-model-review-fixes.log`).
+
+Corrections to this handover:
+- The diff adds four comments, not one: `Pretty`'s doc comment in `Lift.scala`, and in `Realizations.scala` the `Message` doc comment, the inline comment on `set` and `emit`'s doc comment.
+- `Pretty` keeps the `"field": value` spacing. It does not keep the old files' text, which this port rewrote in full: arrays, field order and escapes.
+- `Pretty` reaches Jackson and json4s through `scalapb-json4s`, not through dependencies of its own.
+
+Conductor note: the ScalaPB printer writes fields in declaration order rather than field-number order (e.g. `commitment = 8` after the oneof `run_event = 12`), and no longer escapes `'`, `<` and `>`. Every Go reader decodes with protojson and nothing hashes the bytes, so only future diffs of `model/ir` show the new order.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4e06600ba9fbd9a5aeac7e1b26960014c35fbb60
+- Tests: GOFLAGS=-p=1 mise exec -- go run .flow/tmp/fn113-3/r7.go -> 12 files, 0 unequal (protojson + proto.Equal, before vs after), mise exec -- scala-cli test model/lifter -> pass (14/14), GOFLAGS=-p=1 mise exec -- go test -count=1 -timeout 30m -tags test_dep -run '^TestMigrationGoldens$' ./tools/umpire/model -> ok, GOFLAGS=-p=1 mise exec -- go test -count=1 -timeout 30m -tags test_dep -run '^TestMigrationGoldens$' ./tools/umpire/lower -> ok, make umpire-check-cases -> pass, make umpire-check-fixtures -> pass, make canary-check-case -> pass, make lint-model -> pass, make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks -> ok (no --update), mise exec -- scala-cli test model/lifter (after review fixes) -> 14/14 pass, make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks (after review fixes) -> == ok, no --update, make lint-model (after review fixes) -> ok, independent review (claude-opus-5-5, fresh context): SHIP; should-fix (refusal order) and nits applied
 - PRs:
