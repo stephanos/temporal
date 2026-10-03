@@ -1,0 +1,17 @@
+{
+  "base": "c532a6e0611a60a861209e50adfe9583fb027ab0",
+  "effort": "high",
+  "id": "fn-114-gomad-correct-search-path-defects-and.12",
+  "introduced_count": 0,
+  "mode": "claude",
+  "model": "claude-fable-5-1",
+  "pre_existing_count": 0,
+  "review": "Both prior findings are addressed in the current tree.\n\nPrior finding #1: fixed\nPrior finding #2: fixed\n\n**Finding #1 verification.** `runner.ChoiceExplorationSummary` now carries `OmittedBySelectReadiness` with the `omitted_by_select_readiness` JSON tag (`runner.go:248`), and `projectChoiceExplorationSummary` copies it (`runner.go:1815`). The `gomad explore` line appends `exploration-omitted-select-readiness=%d` beside the other three omitted counters (`explore_output.go:154`), and the `gomad inspect` exploration line appends `omitted-select-readiness=%d` (`cli.go:313`). The resume test now asserts the counter on the public result as well as the journal record (`runner_test.go:1128` and `:1135`).\n\n**Finding #2 verification.** The passing-shape list moved to the public `choice` package as `NoOpSelectShapes()` in `tools/gomad3/choice/no_op_select.go`, and the explorer's `select_readiness.go` consumes it rather than holding its own copy. The fixture now calls `requireNoOpShapesListed` before exploring any shape (`runtime_scheduling.go:296`), which checks set equality in both directions plus length between the registry's `noOp` rows and the explorer's list. The `red-first.txt` record shows the mutation removing `nil-channel` from the list fails the fixture with the intended message.\n\n**No new blocking findings.** The ratchet-relevant code paths are unchanged from the prior round apart from the fixes above: `noOpSelectPolls` grouping, the v3 controller identity and its resume rejection, and the counter placement before the depth bound in `expandCandidate` are as previously verified.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n| --- | --- | --- |\n| R8 | met | Reduced versus full agreement per shape in `search-reproduction.json`; explorer skip shown by the engine and runner tests; Signal seed 11 counts before and after in `select-reduction/README.md`; two-ready and unlisted shapes stay expanded and are recorded; the omitted counter is now reported on every public surface. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>",
+  "review_reservation_id": "c134411168ce4e23b45d5dfdf2126d24",
+  "session_id": "b9ae36b5-ec7b-48f8-b47c-54a0ec6a96dd",
+  "spec": "claude:claude-fable-5-1:high",
+  "timestamp": "2026-10-03T00:42:50.526071Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}
