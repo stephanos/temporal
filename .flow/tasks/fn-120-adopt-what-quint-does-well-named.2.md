@@ -3,7 +3,7 @@ satisfies: [R2, R3]
 ---
 # fn-120-adopt-what-quint-does-well-named.2 Finish named-choice rollout and refuse unnamed branches
 
-Touches: [model/temporal/**, model/specimens/**, model/lifter/**, model/umpire/**, model/ir/**]
+Touches: [model/temporal/**, model/lifter/**, model/umpire/**, model/ir/**]
 
 ## Description
 Complete Part A only after fn-114 has migrated all Models and fixtures to the settled syntax. Fn-112 and fn-114 own their conversions; this task audits every remaining consumer and turns on the final refusal. Before work, verify fn-114 is closed. Flowctl permits only same-spec task dependencies, so this is an explicit cross-spec entry gate.

@@ -3,7 +3,7 @@ satisfies: [R1, R3, R4]
 ---
 # fn-120-adopt-what-quint-does-well-named.1 Add named-choice declarations, inert IR names and Quint export
 
-Touches: [model/umpire/**, model/lifter/**, proto/internal/temporal/server/api/umpire/v1/**, api/umpire/v1/**, model/gate/**, tools/umpire/model/**, tools/umpire/export/**, model/ir/**]
+Touches: [model/umpire/**, model/lifter/**, proto/internal/temporal/server/api/umpire/v1/**, api/umpire/v1/**, model/gate/**, tools/umpire/model/**, tools/umpire/export/**, model/ir/**, model/SEMANTICS.md]
 
 ## Description
 Start only after fn-112.11 completes Query.total schema, binding and linked API jar regeneration. Its same-spec prerequisites are fn-112.3, .4 and .5; the conductor checks fn-112.11 completion as the cross-spec entry gate. Finish before fn-112.6 rewrites branches. Settle Part A syntax and semantics against accept/stay and captured val names. The construct labels existing alternatives without adding or reordering results. Keep unnamed multi-result lists readable during migration.
@@ -13,6 +13,7 @@ Start only after fn-112.11 completes Query.total schema, binding and linked API 
 
 ### Approach
 - Use the fn-112.1 original-baseline harness: permit only inert choice names on existing result alternatives; prove exact tables, Definition IDs, fingerprints, Query answers, exploration identities and Case bytes.
+- The four-field step record and `stepList` stay as they are. The name rides on a new field of an existing message, unset in the baseline as fn-112.1's harness requires; `SEMANTICS.md` says where it lives and that evaluation ignores it.
 - Add choice metadata to the descriptor that already contains Query.total, then regenerate both IR bindings and the linked API jar. Extend historical descriptor/wire coverage in tools/umpire/model/schema_test.go for both current fields without replacing captured historical bytes.
 - Specify that named alternatives do not multiply Query.total; test alongside fn-112.11's static formula.
 - Export the same ordered result list to Quint with each alternative's inert name on its record. Keep nondeterministic result-index selection in the checker action, after the pure step function returns; preserve all alternatives, order and agreement rows.

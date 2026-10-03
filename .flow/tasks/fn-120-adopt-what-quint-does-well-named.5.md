@@ -3,7 +3,7 @@ satisfies: [R11, R12, R14]
 ---
 # fn-120-adopt-what-quint-does-well-named.5 Complete ITF interchange and close the Quint-inspired tools
 
-Touches: [tools/umpire/export/**, tools/umpire/explore/**, tools/umpire/lower/**, model/gate/**, model/README.md]
+Touches: [tools/umpire/export/**, tools/umpire/explore/**, tools/umpire/lower/**, tools/umpire/cmd/**, model/gate/**, model/README.md]
 
 ## Description
 Complete Part D and the full spec gate after the choice rollout, lint and explorer are settled. Extend the existing Quint ITF reader with a versioned Umpire witness state variable; standard state-only ITF is not a lossless witness. A trace is eligible for lowering only after the importer validates its entire path against the IR and the selected Query.
@@ -14,6 +14,7 @@ Complete Part D and the full spec gate after the choice rollout, lint and explor
 ### Approach
 - Encode the initial and each step's action/class, outcome, next-state and fact Atoms (IDs and values) in a versioned state-variable extension. Export a result ordinal chosen as the lowest ordered IR result index matching all stored Trace fields at the source/class, including fact order, and label it derived canonical metadata: core `TraceStep` has no historical result index. Import verifies any supplied ordinal against the full row and ITF state projections. Document what plain external ITF omits; refuse ambiguity only when candidates differ in replay-critical Trace data, and canonicalize fully identical candidates to the first ordered result.
 - Round-trip an Umpire `Trace` exactly. A same-source/same-next-state/same-outcome different-facts fixture must refuse a plain trace lacking disambiguating metadata; exact-duplicate results must canonicalize without claiming the original branch. Reject malformed ordinals, altered IDs/facts/fact order and inconsistent state projections at their numbered step.
+- Import that lowers runs under `tools/umpire/cmd/`: `export` may not import `lower` (`tools/umpire/model/ownership_test.go`). `lower` gains an entry beside `Producer.Lower` that lowers a given validated `Trace` for a named Query through the same preflight.
 - For a Quint-produced trace, match its complete validated path to a named Query's machine, Scenario schedule/limits, Property and outcome. Feed that imported witness through the existing realization preflight, gap checks and Case production path; do not lower `Query.Answer()`'s different search witness. A test with two valid witnesses proves the emitted Program and Contract follow the imported one.
 - Run the closing model, Scala lint, Go tooling and fast Go lint gates once.
 
