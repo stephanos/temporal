@@ -164,9 +164,10 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
      same-family `claude` backend, whose receipts say `mode: "claude"`.
      Since 2026-10-02 all tiers are Claude models at the owner's request, so
      reviews are same-family again (`review.backend` is `claude`); the reviewer
-     runs in a fresh context on a stronger model than the implementer. -->
+     runs in a fresh context. Since 2026-10-03 every tier uses Opus, also at
+     the owner's request. -->
 
-reviewer: claude-fable-5-1 at high
+reviewer: claude-opus-5-5 at high
 
 <!-- implementer: <model> at <effort> - work handed to another harness (plan
      here, implement cheaper or faster there). Absent = the session model
@@ -174,10 +175,7 @@ reviewer: claude-fable-5-1 at high
 
 <!-- Pinned rather than left unset: the worker implements in-session on Claude
      Code, and these are Lean proof tasks that degrade badly on a cheaper tier,
-     so the pin holds even if the session model is switched down. Escalate a
-     task to fable (Claude Fable 5.1) only when it is a hard proof or design
-     task, such as an equivalence or agreement theorem; routine tasks stay on
-     opus, which is 2.5x cheaper and much faster. -->
+     so the pin holds even if the session model is switched down. -->
 
 implementer: claude-opus-5-5 at high
 
@@ -194,7 +192,7 @@ fast scout: claude-haiku-4-5-20251001
      later as rework in implementation. Reviews stay on the cross-family
      reviewer above, never on this tier. -->
 
-thinking scout: claude-fable-5-1 at high
+thinking scout: claude-opus-5-5 at high
 
 <!-- Unset is the default and the doctrine: planning, capture, interview,
      requirement analysis, every verdict, and the worker run on the session
