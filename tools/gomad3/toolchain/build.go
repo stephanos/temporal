@@ -13,6 +13,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
+	"go.temporal.io/server/tools/gomad3/toolchain/installation"
 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
 )
 
@@ -121,14 +122,18 @@ func buildWith(ctx context.Context, config BuildSpec, dependency dependencies) (
 	if err != nil {
 		return BuildResult{}, err
 	}
+	layout, err := installation.At(config.ToolchainRoot)
+	if err != nil {
+		return BuildResult{}, err
+	}
 	result := BuildResult{
-		BuildKey: key, BuildDir: filepath.Join(config.ToolchainRoot, "builds", key),
+		BuildKey: key, BuildDir: layout.Build(key).Directory(),
 		HostOS: bootstrap.hostOS, HostArch: bootstrap.hostArch,
 	}
-	if err := os.MkdirAll(filepath.Join(config.ToolchainRoot, "locks"), 0o755); err != nil {
+	if err := os.MkdirAll(layout.Locks(), 0o755); err != nil {
 		return result, buildFailure(key, err)
 	}
-	lock, waited, err := acquireBuildLock(ctx, filepath.Join(config.ToolchainRoot, "locks", key+".lock"))
+	lock, waited, err := acquireBuildLock(ctx, layout.Lock(key))
 	if err != nil {
 		return result, buildFailure(key, err)
 	}
@@ -142,20 +147,20 @@ func buildWith(ctx context.Context, config BuildSpec, dependency dependencies) (
 	if complete, err := buildComplete(ctx, dependency.run, result.BuildDir, descriptor.GoVersion); err != nil {
 		return result, buildFailure(key, err)
 	} else if complete {
-		if err := publishStable(config.ToolchainRoot, key, config); err != nil {
+		if err := publishStable(layout, key, config); err != nil {
 			return result, buildFailure(key, err)
 		}
 		result.Reused = true
 		return result, nil
 	}
 	archivePath, err := dependency.ensureArchive(ctx, SourceSpec{
-		CacheDir: filepath.Join(config.ToolchainRoot, "downloads"), Name: descriptor.Archive.Name,
+		CacheDir: layout.Downloads(), Name: descriptor.Archive.Name,
 		URL: descriptor.Archive.URL, SHA256: descriptor.Archive.SHA256,
 	})
 	if err != nil {
 		return result, buildFailure(key, err)
 	}
-	if err := os.MkdirAll(filepath.Join(config.ToolchainRoot, "builds"), 0o755); err != nil {
+	if err := os.MkdirAll(layout.Builds(), 0o755); err != nil {
 		return result, buildFailure(key, err)
 	}
 	work, err := os.MkdirTemp(config.ToolchainRoot, "build-*")
@@ -220,7 +225,7 @@ func buildWith(ctx context.Context, config BuildSpec, dependency dependencies) (
 	if err := inject(config, "after-build-publish"); err != nil {
 		return result, buildFailure(key, err)
 	}
-	if err := publishStable(config.ToolchainRoot, key, config); err != nil {
+	if err := publishStable(layout, key, config); err != nil {
 		return result, buildFailure(key, err)
 	}
 	return result, nil
@@ -240,7 +245,7 @@ func resolveConfig(config BuildSpec) (BuildSpec, gomadversion.Descriptor, error)
 	}
 	config.Root = root
 	if config.ToolchainRoot == "" {
-		config.ToolchainRoot = filepath.Join(root, ".toolchain")
+		config.ToolchainRoot = filepath.Join(root, installation.CheckoutDirectory)
 	}
 	config.ToolchainRoot, err = filepath.Abs(config.ToolchainRoot)
 	if err != nil || config.ToolchainRoot == string(filepath.Separator) {
@@ -526,8 +531,9 @@ func publishBuild(sourceRoot, buildDir string) error {
 	return syncDirectory(filepath.Dir(buildDir))
 }
 
-func publishStable(toolchainRoot, key string, config BuildSpec) error {
-	binRoot := filepath.Join(toolchainRoot, "bin")
+func publishStable(layout installation.Layout, key string, config BuildSpec) error {
+	toolchainRoot := layout.Root()
+	binRoot := layout.Bin()
 	if info, err := os.Lstat(binRoot); err == nil {
 		if info.Mode()&os.ModeSymlink != 0 || !info.IsDir() {
 			return errors.New("gomad3 stable bin path is not a real directory")
@@ -554,7 +560,7 @@ func publishStable(toolchainRoot, key string, config BuildSpec) error {
 		return err
 	}
 	defer os.Remove(stampTemporary)
-	if err := os.Rename(stampTemporary, filepath.Join(toolchainRoot, "build-key")); err != nil {
+	if err := os.Rename(stampTemporary, layout.BuildKeyFile()); err != nil {
 		return fmt.Errorf("publish gomad3 build key: %w", err)
 	}
 	if err := syncDirectory(toolchainRoot); err != nil {
@@ -563,7 +569,7 @@ func publishStable(toolchainRoot, key string, config BuildSpec) error {
 	if err := inject(config, "after-stamp-publish"); err != nil {
 		return err
 	}
-	if err := os.Rename(launcherTemporary, filepath.Join(binRoot, "go")); err != nil {
+	if err := os.Rename(launcherTemporary, layout.GoCommand()); err != nil {
 		return fmt.Errorf("publish gomad3 launcher: %w", err)
 	}
 	if err := syncDirectory(binRoot); err != nil {

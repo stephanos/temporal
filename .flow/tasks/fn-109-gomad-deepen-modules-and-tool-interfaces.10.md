@@ -53,8 +53,21 @@ make test-builder
 - [ ] The import edge used by `target` and `deterministicio` is explicit in `architecture_test.go` and no broader than needed.
 
 ## Done summary
-TBD
+Blocked:
+Blocked: R15 is implemented and reviewed (SHIP). Only native darwin/arm64 and linux/amd64 gates remain, and they belong to task 21.
 
+Done (commits 5825bff79f and 7bece3e999 on gomad-fn109, base 331b75bb6): the new leaf package `toolchain/installation` provides Layout, Build and Description. A Description is the validated installation and supplies the pinned build key plus the build, target-cache, prepared-target and adapter locations. The builder publishes through it. Target preparation, linked review, module-cache queries and the deterministic I/O adapter cache now read locations from it. Validation and repair-guidance text are unchanged. Locations are byte-identical for an absolute root, and the adapter replacement path is pinned for absolute and relative roots. Tests cover explicit, environment, manifest and executable-relative resolution. The architecture edge allows exactly toolchain/version and toolchain/installation for target and deterministicio.
+
+Local evidence (linux/arm64, developmental only; a local, uncommitted shim added linux/arm64 to supported_platforms so a patched toolchain could build; details in task-10/local-evidence.json):
+- Characterization tests passed before the edit and after it.
+- Quick commands `.toolchain/bin/go test -count=1 -tags test_dep ./toolchain ./target/... ./deterministicio/... ./cmd/gomad/... .`: exit 1 at baseline (245s) and after the change (217s), with the identical set of 15 shim-induced failures.
+- Architecture tests: exit 0. `make validate`: exit 0, both with the shim and on the committed tree without it. go vet and gofmt: clean.
+- runner/qualification: failures match base sources except two process-timing tests, which pass on rerun.
+- `make test-builder`: exit 2, from the two linux/arm64 inventory tests that also fail at baseline.
+- Full `make test-host`: exit 2 (661s, 42 ok, 8 failing packages). The failures are shim platform classes or load-related; isolated reruns pass and the preparation failures reproduce on base.
+- golangci-lint: not run, because the repository binary is a darwin build.
+
+Remaining native gates: darwin/arm64 and linux/amd64 full `make -C tools/gomad3 test-host` plus the task Quick commands and `make test-builder`, and scoped golangci-lint, on qualified hosts (task 21).
 ## Evidence
 - Commits:
 - Tests:

@@ -126,7 +126,7 @@ test-host: toolchain
 	fi; \
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOMAD3_STOCK_GO="$$stock_go" GOEXPERIMENT=nogreenteagc GOWORK=off .toolchain/bin/go test -tags test_dep \
 		. ./cmd/... ./runner/... ./qualification/... ./target/... ./record/... ./artifact/... ./choice/... \
-		./deterministicio/... ./world/... ./toolchain/version ./upgrade/... ./internal/...
+		./deterministicio/... ./world/... ./toolchain/version ./toolchain/installation ./upgrade/... ./internal/...
 
 # internal/gomadsim keeps its tests external because testing reaches the
 # package through os.

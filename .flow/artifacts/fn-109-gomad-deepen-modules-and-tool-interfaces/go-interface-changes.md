@@ -255,3 +255,20 @@ House pattern of `toolchain.Build`/`buildWith`: a private `dependencies` value a
   bootstrap command panics in `replayBootstrapCommand` (index 0 of an empty slice). It was
   reachable before only through the public `ReplaySpec.Executor`. It is now reachable only from
   same-package tests. The characterization pins the supported shape (an explicit bootstrap command).
+
+## R15 installation description (task 10, 2026-10-03)
+
+No exported declaration is removed or changed. `target.Spec.ToolchainRoot`,
+`target.ReadToolchainIdentity`, `target.ReadModuleCache`, `target.DownloadModule` and
+`toolchain.ResolveInstallation`/`Installation` keep their signatures and results.
+
+- Added public package `toolchain/installation`: `Layout` (`At`, unvalidated locations the
+  builder publishes), `Build` (locations inside one build) and `Description` (`Describe`,
+  validated launcher, build key and pinned build). It imports only the standard library.
+- Private/internal only: `target/internal/build.PrepareCache` now takes the cache path
+  supplied by the description instead of `(toolchainRoot, buildKey)`; target's private
+  `readToolchainIdentityWith` became `readPinnedToolchainWith`, returning the identity
+  together with the description; the `preparedTargetCacheRoot` test hook takes the
+  description.
+- Architecture edge: `target` and `deterministicio` may import `toolchain/version` and
+  `toolchain/installation` from the toolchain owner, nothing else (`ownerMayImport`).

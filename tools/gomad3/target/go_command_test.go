@@ -68,11 +68,11 @@ func TestPrepareWithGoCommandAdapterPreservesFreshAndCachedTarget(t *testing.T) 
 }
 
 func TestBuildGoTargetReleasesCacheAfterCommandFailure(t *testing.T) {
-	identity, err := ReadToolchainIdentity(toolchainRoot(t))
+	identity, err := readPinnedToolchainWith(context.Background(), toolchainRoot(t), gocommand.Default())
 	if err != nil {
 		t.Fatal(err)
 	}
-	cache, err := targetbuild.PrepareCache(toolchainRoot(t), identity.BuildKey)
+	cache, err := targetbuild.PrepareCache(identity.installation.PinnedBuild().TargetCache())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -106,18 +106,7 @@ func TestBuildGoTargetReleasesCacheAfterCommandFailure(t *testing.T) {
 
 func TestReadToolchainIdentityRejectsMalformedAndOverflowedEnvironment(t *testing.T) {
 	root := t.TempDir()
-	key := strings.Repeat("0", 64)
-	for _, path := range []string{filepath.Join(root, "bin", "go"), filepath.Join(root, "builds", key, "bin", "go")} {
-		if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
-			t.Fatal(err)
-		}
-		if err := os.WriteFile(path, []byte("#!/bin/sh\n"), 0o700); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if err := os.WriteFile(filepath.Join(root, "build-key"), []byte(key+"\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
+	writeToolchainInstallation(t, root, strings.Repeat("0", 64))
 	for _, test := range []struct {
 		name         string
 		output       hostexec.Output
@@ -130,10 +119,10 @@ func TestReadToolchainIdentityRejectsMalformedAndOverflowedEnvironment(t *testin
 			runner := gocommand.New(func(context.Context, hostexec.Request) (hostexec.Result, error) {
 				return hostexec.Result{Termination: hostexec.TerminationExit, Stdout: test.output}, nil
 			})
-			_, err := readToolchainIdentityWith(context.Background(), root, runner)
+			_, err := readPinnedToolchainWith(context.Background(), root, runner)
 			var overflow *gocommand.OverflowError
 			if err == nil || !strings.Contains(err.Error(), map[bool]string{true: "query pinned Go command", false: "invalid identity"}[test.wantOverflow]) || errors.As(err, &overflow) != test.wantOverflow {
-				t.Fatalf("readToolchainIdentityWith() error = %v", err)
+				t.Fatalf("readPinnedToolchainWith() error = %v", err)
 			}
 		})
 	}

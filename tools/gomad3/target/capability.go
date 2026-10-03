@@ -22,6 +22,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/target/internal/capabilityreview"
 	"go.temporal.io/server/tools/gomad3/target/internal/gocommand"
 	"go.temporal.io/server/tools/gomad3/target/internal/livecap"
+	"go.temporal.io/server/tools/gomad3/toolchain/installation"
 )
 
 const CapabilityClosureSchema = "gomad3.target-capability-closure/v3"
@@ -212,10 +213,11 @@ func ReviewCapabilities(ctx context.Context, spec Spec) (CapabilityReview, error
 	if strings.HasPrefix(spec.Source, "-") || strings.Contains(spec.Source, "...") || strings.IndexFunc(spec.Source, unicode.IsSpace) >= 0 || strings.IndexByte(spec.Source, 0) >= 0 {
 		return CapabilityReview{}, invalidCapabilityReview(fmt.Errorf("go target package argument %q must select exactly one package", spec.Source))
 	}
-	goCommand, err := filepath.Abs(filepath.Join(spec.ToolchainRoot, "bin", "go"))
+	layout, err := installation.At(spec.ToolchainRoot)
 	if err != nil {
 		return CapabilityReview{}, fmt.Errorf("resolve pinned Go command: %w", err)
 	}
+	goCommand := layout.GoCommand()
 	buildContext, err := targetbuild.Resolve(spec.WorkingDir, spec.Source, tags)
 	if err != nil {
 		return CapabilityReview{}, invalidCapabilityReview(err)
@@ -230,7 +232,7 @@ func ReviewCapabilities(ctx context.Context, spec Spec) (CapabilityReview, error
 	if spec.PreparationRoot == "" {
 		return CapabilityReview{}, invalidCapabilityReview(errors.New("linked capability review requires a preparation root"))
 	}
-	identity, err := ReadToolchainIdentity(spec.ToolchainRoot)
+	identity, err := readPinnedToolchainWith(context.Background(), spec.ToolchainRoot, gocommand.Default())
 	if err != nil {
 		return CapabilityReview{}, err
 	}
@@ -1066,7 +1068,11 @@ func validateAdapterReplacementInputs(spec Spec) error {
 	// toolchain's adapter cache, which the deterministic I/O profile owns.
 	roots := []string{spec.PreparationRoot}
 	if spec.ToolchainRoot != "" {
-		roots = append(roots, filepath.Join(spec.ToolchainRoot, "adapters"))
+		layout, err := installation.At(spec.ToolchainRoot)
+		if err != nil {
+			return fmt.Errorf("resolve adapter preparation root: %w", err)
+		}
+		roots = append(roots, layout.Adapters())
 	}
 	resolvedRoots := make([]string, 0, len(roots))
 	for _, candidate := range roots {

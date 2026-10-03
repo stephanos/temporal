@@ -1,0 +1,22 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.10",
+  "base": "331b75bb6",
+  "host": "linux/arm64 (developmental only; not darwin/arm64 or linux/amd64 evidence)",
+  "developmental_shim": "Local-only, never committed: linux/arm64 was added to toolchain/version/version.json supported_platforms, and version/protocol/boundary outputs were regenerated so `make toolchain` could build a developmental patched toolchain on this host. Every result below ran with that shim applied. The shim alone makes 15 baseline Quick tests fail: platform pins, adapter digests, inventories and doctor host checks.",
+  "characterization_before_edit": {
+    "command": "go test -tags test_dep -run 'TestReadToolchainIdentityQueries|TestReadToolchainIdentityFailsClosed|TestPinnedToolchainSupplies' ./target; go test -tags test_dep -run TestAdapterRegistryPublishesReplacementAtStableToolchainLocation ./deterministicio",
+    "result": "pass against the old API (old private names substituted); the prepared-target default root was not reachable under target TestMain and is pinned by toolchain/installation TestLayoutPinsEveryLocation"
+  },
+  "quick_baseline": {"command": ".toolchain/bin/go test -count=1 -tags test_dep ./toolchain ./target/... ./deterministicio/... ./cmd/gomad/... .", "exit": 1, "elapsed_s": 245, "failing_tests": 15},
+  "quick_after": {"command": "same plus ./toolchain/installation", "exit": 1, "elapsed_s": 217, "failing_tests": 15, "same_failure_set_as_baseline": true},
+  "architecture": {"command": ".toolchain/bin/go test -count=1 -tags test_dep . -run 'TestPackageArchitecture|TestExactModuleEdges|TestMakeTargets'", "exit": 0},
+  "runner_qualification_after": {"command": ".toolchain/bin/go test -count=1 -tags test_dep ./runner/... ./qualification/...", "exit": 1, "elapsed_s": 324,
+    "note": "The same failing set reproduced on base sources (task patch reversed) for the failed names, except TestRunTimesOutAndRemovesTermIgnoringProcessGroup and TestRunIOTerminalAfterTermination subtests (process timing). Both pass on rerun with the patch applied."},
+  "test_builder": {"command": "make test-builder", "exit": 2, "failing": ["TestPatchedRuntimeHostClockReferencesAreReviewed", "TestPatchedRuntimeDrawReferencesAreReviewed"], "note": "linux/arm64 has no reviewed inventory; also in baseline"},
+  "validate": {"command": "make validate", "exit": 0, "elapsed_s": 14},
+  "vet_gofmt": {"command": "go vet -tags test_dep ./toolchain ./toolchain/installation ./target/... ./deterministicio/... ./cmd/gomad/... .; gofmt -l", "exit": 0},
+  "lint": {"status": "not run", "reason": "repository golangci-lint binary is a darwin build and does not execute on linux/arm64"},
+  "full_host_gate": {"command": "GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host", "exit": 2, "elapsed_s": 661, "packages_ok": 42, "packages_fail": 8,
+    "note": "Every failure belongs to the shim's platform classes (adapter digest, linkname pins, inventories, doctor host) or is load-related. Isolated reruns with the patch pass for TestBuildGoTargetReleasesCacheAfterCommandFailure (the shared real target-cache lock was contended by parallel packages), TestCompletionFaultsKeepReasonPrecedenceAndEvidence and TestRuntimeOwnedControlProbe. The internal/preparation adapter-digest failures reproduce on base. deterministicio hit the 10m package timeout in TestSockaddrBoundaryConsumer under full parallel load; the package ran in 213s alone."},
+  "native_gates_incomplete": ["darwin/arm64 full make test-host and Quick commands", "linux/amd64 full make test-host and Quick commands", "scoped golangci-lint on a darwin or linux/amd64 host"]
+}

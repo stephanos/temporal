@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/target"
+	"go.temporal.io/server/tools/gomad3/toolchain/installation"
 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
 	"golang.org/x/mod/modfile"
 )
@@ -231,10 +232,11 @@ func (registry adapterRegistry) prepare(spec target.Spec, moduleCache string) (t
 	// identity and replacement inventory.
 	cacheRoot := root
 	if spec.ToolchainRoot != "" {
-		cacheRoot, err = filepath.Abs(filepath.Join(spec.ToolchainRoot, "adapters"))
+		layout, err := installation.At(spec.ToolchainRoot)
 		if err != nil {
 			return target.Spec{}, nil, fmt.Errorf("resolve deterministic I/O adapter cache: %w", err)
 		}
+		cacheRoot = layout.Adapters()
 		if err := os.MkdirAll(cacheRoot, 0o700); err != nil {
 			return target.Spec{}, nil, fmt.Errorf("create deterministic I/O adapter cache: %w", err)
 		}

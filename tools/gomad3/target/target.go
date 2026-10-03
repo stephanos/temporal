@@ -24,6 +24,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/target/internal/gocommand"
 	"go.temporal.io/server/tools/gomad3/target/internal/livecap"
 	targetprovenance "go.temporal.io/server/tools/gomad3/target/internal/provenance"
+	"go.temporal.io/server/tools/gomad3/toolchain/installation"
 )
 
 type Kind string
@@ -223,7 +224,7 @@ func prepareWith(ctx context.Context, spec Spec, runner gocommand.Runner) (prepa
 		return Prepared{}, err
 	}
 	spec.CapabilityMode = mode
-	identity, err := readToolchainIdentityWith(ctx, spec.ToolchainRoot, runner)
+	identity, err := readPinnedToolchainWith(ctx, spec.ToolchainRoot, runner)
 	if err != nil {
 		return Prepared{}, err
 	}
@@ -356,68 +357,54 @@ func ReadCapabilityManifestFile(file *os.File, identity ToolchainIdentity) (*Cap
 }
 
 func ReadToolchainIdentity(root string) (ToolchainIdentity, error) {
-	return readToolchainIdentityWith(context.Background(), root, gocommand.Default())
+	toolchain, err := readPinnedToolchainWith(context.Background(), root, gocommand.Default())
+	return toolchain.ToolchainIdentity, err
 }
 
-func readToolchainIdentityWith(ctx context.Context, root string, runner gocommand.Runner) (ToolchainIdentity, error) {
-	if root == "" {
-		return ToolchainIdentity{}, fmt.Errorf("toolchain root is required")
-	}
-	root, err := filepath.Abs(root)
+// pinnedToolchain is a validated installation together with the identity its
+// pinned Go command reports; preparation reads every installation location
+// from it.
+type pinnedToolchain struct {
+	ToolchainIdentity
+	installation installation.Description
+}
+
+func readPinnedToolchainWith(ctx context.Context, root string, runner gocommand.Runner) (pinnedToolchain, error) {
+	description, err := installation.Describe(root)
 	if err != nil {
-		return ToolchainIdentity{}, fmt.Errorf("resolve toolchain root: %w", err)
-	}
-	goCommand := filepath.Join(root, "bin", "go")
-	info, err := os.Lstat(goCommand)
-	if err != nil {
-		return ToolchainIdentity{}, fmt.Errorf("stat pinned Go command in %s: %w; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation", root, err)
-	}
-	if !info.Mode().IsRegular() || info.Mode()&0o111 == 0 {
-		return ToolchainIdentity{}, fmt.Errorf("pinned Go command is not a regular executable")
-	}
-	buildKeyBytes, err := os.ReadFile(filepath.Join(root, "build-key"))
-	if err != nil {
-		return ToolchainIdentity{}, fmt.Errorf("read toolchain build key in %s: %w; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation", root, err)
-	}
-	buildKey := strings.TrimSuffix(string(buildKeyBytes), "\n")
-	if len(buildKey) != sha256.Size*2 || !isLowerHex(buildKey) || string(buildKeyBytes) != buildKey+"\n" {
-		return ToolchainIdentity{}, fmt.Errorf("toolchain build key is malformed")
-	}
-	builtGo := filepath.Join(root, "builds", buildKey, "bin", "go")
-	if builtInfo, statErr := os.Stat(builtGo); statErr != nil || !builtInfo.Mode().IsRegular() || builtInfo.Mode()&0o111 == 0 {
-		return ToolchainIdentity{}, fmt.Errorf("toolchain build %s is missing or stale in %s; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation", buildKey, root)
+		return pinnedToolchain{}, err
 	}
 	result, err := runner.Structured(ctx, gocommand.Request{
-		Command: []string{goCommand, "env", "GOVERSION", "GOOS", "GOARCH", "CGO_ENABLED"},
-		Dir:     root, Env: targetbuild.Environment(), OutputLimit: maximumGoEnvironmentBytes,
+		Command: []string{description.GoCommand(), "env", "GOVERSION", "GOOS", "GOARCH", "CGO_ENABLED"},
+		Dir:     description.Root(), Env: targetbuild.Environment(), OutputLimit: maximumGoEnvironmentBytes,
 	})
 	if err != nil {
-		return ToolchainIdentity{}, fmt.Errorf("query pinned Go command: %w", err)
+		return pinnedToolchain{}, fmt.Errorf("query pinned Go command: %w", err)
 	}
 	output := result.Stdout
 	fields := strings.Split(strings.TrimSuffix(string(output), "\n"), "\n")
 	if len(fields) != 4 || fields[0] == "" || fields[1] == "" || fields[2] == "" || fields[3] != "0" {
-		return ToolchainIdentity{}, fmt.Errorf("pinned Go command returned invalid identity %q", output)
+		return pinnedToolchain{}, fmt.Errorf("pinned Go command returned invalid identity %q", output)
 	}
 	if fields[1] != runtime.GOOS || fields[2] != runtime.GOARCH {
-		return ToolchainIdentity{}, fmt.Errorf("pinned Go target %s/%s does not match host %s/%s", fields[1], fields[2], runtime.GOOS, runtime.GOARCH)
+		return pinnedToolchain{}, fmt.Errorf("pinned Go target %s/%s does not match host %s/%s", fields[1], fields[2], runtime.GOOS, runtime.GOARCH)
 	}
-	return ToolchainIdentity{
+	return pinnedToolchain{ToolchainIdentity: ToolchainIdentity{
 		GoVersion:    fields[0],
-		BuildKey:     buildKey,
+		BuildKey:     description.BuildKey(),
 		TargetGOOS:   fields[1],
 		TargetGOARCH: fields[2],
-	}, nil
+	}, installation: description}, nil
 }
 
 func ReadModuleCache(ctx context.Context, root string) (string, error) {
-	goCommand, err := filepath.Abs(filepath.Join(root, "bin", "go"))
+	layout, err := installation.At(root)
 	if err != nil {
 		return "", fmt.Errorf("resolve pinned Go command: %w", err)
 	}
 	result, err := gocommand.Default().Structured(ctx, gocommand.Request{
-		Command: []string{goCommand, "env", "GOMODCACHE"},
-		Dir:     filepath.Dir(filepath.Dir(goCommand)), Env: targetbuild.Environment(), OutputLimit: maximumGoEnvironmentBytes,
+		Command: []string{layout.GoCommand(), "env", "GOMODCACHE"},
+		Dir:     layout.Root(), Env: targetbuild.Environment(), OutputLimit: maximumGoEnvironmentBytes,
 	})
 	if err != nil {
 		return "", fmt.Errorf("query pinned module cache: %w", err)
@@ -444,10 +431,11 @@ func ReadModuleCache(ctx context.Context, root string) (string, error) {
 // It runs outside every module, because inside one the go command records
 // the downloaded module's sums in that module's go.sum.
 func DownloadModule(ctx context.Context, root string, module ModuleIdentity) (retErr error) {
-	goCommand, err := filepath.Abs(filepath.Join(root, "bin", "go"))
+	layout, err := installation.At(root)
 	if err != nil {
 		return fmt.Errorf("resolve pinned Go command: %w", err)
 	}
+	goCommand := layout.GoCommand()
 	outside, err := os.MkdirTemp("", "gomad3-module-download-")
 	if err != nil {
 		return fmt.Errorf("create module download directory: %w", err)
@@ -529,7 +517,7 @@ func readProvenance(path string) (Provenance, []byte, error) {
 	}, encoded, nil
 }
 
-func prepareExec(ctx context.Context, spec Spec, identity ToolchainIdentity, targetPath string) (preparation, error) {
+func prepareExec(ctx context.Context, spec Spec, identity pinnedToolchain, targetPath string) (preparation, error) {
 	if spec.Source == "" || spec.Provenance == "" {
 		return preparation{}, errors.New("exec target and provenance are required")
 	}
@@ -543,7 +531,7 @@ func prepareExec(ctx context.Context, spec Spec, identity ToolchainIdentity, tar
 	if provenance.CapabilityMode != spec.CapabilityMode {
 		return preparation{}, errors.New("exec provenance capability mode does not match the requested mode")
 	}
-	if err := validateExecStandardPackages(ctx, filepath.Join(spec.ToolchainRoot, "bin", "go"), provenance.CapabilityClosure); err != nil {
+	if err := validateExecStandardPackages(ctx, identity.installation.GoCommand(), provenance.CapabilityClosure); err != nil {
 		return preparation{}, err
 	}
 	if err := copyRegularFile(spec.Source, targetPath); err != nil {
@@ -668,17 +656,14 @@ func sameStringSet(left, right map[string]struct{}) bool {
 	return true
 }
 
-func prepareGo(ctx context.Context, spec Spec, tags []string, identity ToolchainIdentity, targetPath string, runner gocommand.Runner) (preparation, error) {
+func prepareGo(ctx context.Context, spec Spec, tags []string, identity pinnedToolchain, targetPath string, runner gocommand.Runner) (preparation, error) {
 	if spec.Source == "" || spec.WorkingDir == "" {
 		return preparation{}, errors.New("go target source and working directory are required")
 	}
 	if strings.HasPrefix(spec.Source, "-") || strings.Contains(spec.Source, "...") || strings.IndexFunc(spec.Source, unicode.IsSpace) >= 0 || strings.IndexByte(spec.Source, 0) >= 0 {
 		return preparation{}, fmt.Errorf("go target package argument %q must select exactly one package", spec.Source)
 	}
-	goCommand, err := filepath.Abs(filepath.Join(spec.ToolchainRoot, "bin", "go"))
-	if err != nil {
-		return preparation{}, fmt.Errorf("resolve pinned Go command: %w", err)
-	}
+	goCommand := identity.installation.GoCommand()
 	buildContext, err := targetbuild.Resolve(spec.WorkingDir, spec.Source, tags)
 	if err != nil {
 		return preparation{}, err
@@ -698,7 +683,7 @@ func buildGoTarget(
 	ctx context.Context,
 	spec Spec,
 	tags []string,
-	identity ToolchainIdentity,
+	identity pinnedToolchain,
 	targetPath string,
 	goCommand string,
 	commandDirectory string,
@@ -711,7 +696,7 @@ func buildGoTarget(
 }
 
 func buildGoTargetWith(
-	ctx context.Context, spec Spec, tags []string, identity ToolchainIdentity, targetPath string,
+	ctx context.Context, spec Spec, tags []string, identity pinnedToolchain, targetPath string,
 	goCommand, commandDirectory, packageArgument string, review CapabilityReview,
 	policy unsupportedPolicy, cache *preparedTargetCache, runner gocommand.Runner,
 ) (preparation, error) {
@@ -724,7 +709,7 @@ func buildGoTargetWith(
 			return preparation{}, err
 		}
 		if reused {
-			return finishGoTarget(spec, identity, targetPath, review, policy)
+			return finishGoTarget(spec, identity.ToolchainIdentity, targetPath, review, policy)
 		}
 	}
 	arguments := []string{}
@@ -753,7 +738,7 @@ func buildGoTargetWith(
 		arguments = append(arguments, "-tags", strings.Join(tags, ","))
 	}
 	arguments = append(arguments, packageArgument)
-	buildCache, err := targetbuild.PrepareCache(spec.ToolchainRoot, identity.BuildKey)
+	buildCache, err := targetbuild.PrepareCache(identity.installation.PinnedBuild().TargetCache())
 	if err != nil {
 		return preparation{}, err
 	}
@@ -783,7 +768,7 @@ func buildGoTargetWith(
 	if err := targetbuild.TrimCache(buildCache, targetbuild.MaximumCacheBytes); err != nil {
 		return preparation{}, err
 	}
-	return finishGoTarget(spec, identity, targetPath, review, policy)
+	return finishGoTarget(spec, identity.ToolchainIdentity, targetPath, review, policy)
 }
 
 // finishGoTarget projects the capability evidence of a built or restored go

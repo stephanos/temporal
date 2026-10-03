@@ -166,3 +166,54 @@ func TestPrepareTargetBuildAdaptersRejectsMissingSumBeforeDownloading(t *testing
 		}
 	}
 }
+
+// The go command records a directory replacement's path in the target's
+// module information, so the published location is part of target identity.
+func TestAdapterRegistryPublishesReplacementAtStableToolchainLocation(t *testing.T) {
+	identity := gomadversion.AdapterIdentity{Module: "example.com/adapter", Version: "v1.2.3", Sum: "h1:adapter"}
+	inventory := "sha256:0123456789abcdef" + strings.Repeat("0", 48)
+	registry := adapterRegistry{definitions: []adapterDefinition{{
+		identity: identity,
+		implementation: adapterImplementation{module: identity.Module, prepare: func(_, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
+			replacement := filepath.Join(root, "adapter")
+			if err := os.Mkdir(replacement, 0o700); err != nil {
+				return adapterPreparation{}, err
+			}
+			return adapterPreparation{replacement: replacement, evidence: BuildAdapter{
+				Module: identity.Module, Version: identity.Version, Sum: identity.Sum,
+				ReplacementRoot: replacement, Replacement: filepath.Join(replacement, "adapter.go"), ReplacementSourceInventorySHA256: inventory,
+			}}, nil
+		}},
+	}}}
+	for _, relative := range []bool{false, true} {
+		parent := t.TempDir()
+		toolchainRoot := filepath.Join(parent, "toolchain")
+		specRoot := toolchainRoot
+		if relative {
+			t.Chdir(parent)
+			specRoot = "toolchain"
+		}
+		workingDirectory := t.TempDir()
+		if err := os.WriteFile(filepath.Join(workingDirectory, "go.mod"), []byte("module example.com/target\n\nrequire example.com/adapter v1.2.3\n"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(workingDirectory, "go.sum"), []byte("example.com/adapter v1.2.3 h1:adapter\n"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		_, adapters, err := registry.prepare(target.Spec{WorkingDir: workingDirectory, PreparationRoot: t.TempDir(), ToolchainRoot: specRoot}, t.TempDir())
+		if err != nil {
+			t.Fatal(err)
+		}
+		published := filepath.Join(toolchainRoot, "adapters", "adapter@v1.2.3-0123456789abcdef")
+		if len(adapters) != 1 || adapters[0].ReplacementRoot != published || adapters[0].Replacement != filepath.Join(published, "adapter.go") {
+			t.Fatalf("relative=%t adapters = %#v, want replacement root %s", relative, adapters, published)
+		}
+		contents, err := os.ReadFile(adapters[0].BuildModFile)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !strings.HasSuffix(string(contents), "\nreplace example.com/adapter v1.2.3 => "+published+"\n") {
+			t.Fatalf("relative=%t build modfile = %s", relative, contents)
+		}
+	}
+}
