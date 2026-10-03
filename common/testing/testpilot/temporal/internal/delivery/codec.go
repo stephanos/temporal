@@ -25,6 +25,9 @@ const (
 	workflowRoute routeKind = "workflow"
 	nexusRoute    routeKind = "nexus"
 	activityRoute routeKind = "activity"
+	// scheduledActivityRoute is the route of an activity a workflow scheduled: its workflow
+	// binding and its schedule command name it, since the SDK may name the activity itself.
+	scheduledActivityRoute routeKind = "scheduled_activity"
 )
 
 // WorkflowBinding is the physical Temporal workflow a reservation carrier starts. It is the route
@@ -45,8 +48,9 @@ type ActivityBinding struct {
 	TaskQueue    string `json:"task_queue"`
 }
 
-// A route names exactly one started entity: a workflow or Nexus route its workflow binding, an
-// activity route its activity binding. The other binding is absent from the wire.
+// A route names exactly one started entity: a workflow, Nexus or scheduled-activity route its
+// workflow binding, an activity route its activity binding. The other binding is absent from the
+// wire.
 type route struct {
 	Version             int                           `json:"version"`
 	Kind                routeKind                     `json:"kind"`
@@ -130,7 +134,7 @@ func validRoute(value route) bool {
 	switch value.Kind {
 	case workflowRoute:
 		return validBinding(value.Binding) && value.Activity == ActivityBinding{} && unsourced
-	case nexusRoute:
+	case nexusRoute, scheduledActivityRoute:
 		return validBinding(value.Binding) && value.Activity == ActivityBinding{} && validRouteText(value.WorkflowReservation) && validRouteText(value.WorkflowEntrypoint) && value.WorkflowOrdinal >= 0 && validRouteText(value.WorkflowRunID) && validRouteText(value.SourceInstructionID)
 	case activityRoute:
 		return value.Binding == WorkflowBinding{} && validActivityBinding(value.Activity) && unsourced

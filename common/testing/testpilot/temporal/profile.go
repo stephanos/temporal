@@ -107,8 +107,9 @@ func DefaultCeilings() (*testpilotspb.ProgramLimits, *testpilotspb.ContractLimit
 
 // DeriveProfile returns the minimal authorization the Case implies: the roles it declares, the
 // methods it invokes, a reservation carrier for each StartWorkflowExecution an ordinary controller
-// invokes when the Program has workflow or Nexus-handler entrypoints to reserve and for each
-// StartActivityExecution it invokes when the Program has activity entrypoints to reserve, the
+// invokes when the Program has workflow, Nexus-handler or workflow-scheduled activity entrypoints
+// to reserve and for each StartActivityExecution it invokes when the Program has other activity
+// entrypoints to reserve, the
 // opcodes its instructions require, the environment values its referenced bindings resolve to, and
 // the dynamic configuration the environment runs under. Nothing is widened beyond what the Case
 // references, and anything the Case names that the catalog does not know is an error rather than a
@@ -188,9 +189,11 @@ type programUsage struct {
 	opcodes      map[testpilot.Opcode]bool
 	commandTypes map[enumspb.CommandType]bool
 	// reservable counts the activations a carrier reserves: one of each workflow and Nexus-handler
-	// entrypoint, and one per instruction of each activity entrypoint, whose script declares its
-	// attempts.
-	reservable map[testpilot.EntrypointKind]int64
+	// entrypoint, and one per instruction of each activity entrypoint no workflow schedules, whose
+	// script declares its attempts. scheduledAttempts counts the instructions of the activity
+	// entrypoints a workflow schedules, which the workflow's start carries.
+	reservable        map[testpilot.EntrypointKind]int64
+	scheduledAttempts int64
 	// evidence is the Program's declarations, which give a ReadEvidence poll its method.
 	evidence map[string]*testpilotspb.EvidenceDeclaration
 }
@@ -230,12 +233,18 @@ func deriveUsage(program *testpilotspb.Program, contexts map[string]testpilot.En
 		reservable:   map[testpilot.EntrypointKind]int64{},
 		evidence:     map[string]*testpilotspb.EvidenceDeclaration{},
 	}
+	scheduled := scheduledActivities(program)
 	for _, entrypoint := range program.GetEntrypoints() {
 		switch kind := contexts[entrypoint.GetEntrypointId()]; kind {
 		case testpilot.WorkflowEntrypoint, testpilot.NexusHandlerEntrypoint:
 			usage.reservable[kind]++
 		case testpilot.ActivityEntrypoint:
-			usage.reservable[kind] += int64(len(entrypoint.GetInstructions()))
+			activity := entrypoint.GetActivity()
+			if scheduled[scheduledActivity{activityType: activity.GetActivityType(), queueRole: activity.GetTaskQueueRoleId()}] {
+				usage.scheduledAttempts += int64(len(entrypoint.GetInstructions()))
+			} else {
+				usage.reservable[kind] += int64(len(entrypoint.GetInstructions()))
+			}
 		default:
 		}
 	}
@@ -260,11 +269,41 @@ func deriveUsage(program *testpilotspb.Program, contexts map[string]testpilot.En
 
 // carried names the reservation carriers the Temporal Driver realizes and the entrypoint kinds each
 // delivers: a workflow start carries the reservations of the workflow it starts and of the Nexus
-// handlers that workflow reaches, and an activity start the reservations of the activity it starts,
-// one per attempt.
+// handlers and activities that workflow schedules, and an activity start the reservations of the
+// activity it starts; an activity's are one per attempt.
 var carried = map[string][]testpilot.EntrypointKind{
-	primitive.StartWorkflowPath: {testpilot.WorkflowEntrypoint, testpilot.NexusHandlerEntrypoint},
+	primitive.StartWorkflowPath: {testpilot.WorkflowEntrypoint, testpilot.NexusHandlerEntrypoint, testpilot.ActivityEntrypoint},
 	delivery.StartActivityPath:  {testpilot.ActivityEntrypoint},
+}
+
+// scheduledActivity names an activity a workflow's schedule command reaches: its type on its
+// task-queue role.
+type scheduledActivity struct{ activityType, queueRole string }
+
+// scheduledActivities are the activities the Program's workflows schedule.
+func scheduledActivities(program *testpilotspb.Program) map[scheduledActivity]bool {
+	scheduled := map[scheduledActivity]bool{}
+	for _, entrypoint := range program.GetEntrypoints() {
+		if entrypoint.GetWorkflow() == nil {
+			continue
+		}
+		for _, instruction := range entrypoint.GetInstructions() {
+			if attributes := instruction.GetInstruction().GetWorkflowCommand().GetCommand().GetScheduleActivityTaskCommandAttributes(); attributes != nil {
+				scheduled[scheduledActivity{activityType: attributes.GetActivityType().GetName(), queueRole: attributes.GetTaskQueue().GetName()}] = true
+			}
+		}
+	}
+	return scheduled
+}
+
+// reservableBy is how many activations of the kind a carrier of the method reserves: a workflow
+// start reserves the attempts of the activities its workflow schedules, and an activity start those
+// of the others.
+func (u *programUsage) reservableBy(method string, kind testpilot.EntrypointKind) int64 {
+	if kind == testpilot.ActivityEntrypoint && method == primitive.StartWorkflowPath {
+		return u.scheduledAttempts
+	}
+	return u.reservable[kind]
 }
 
 // add records one instruction. An ordinary controller's StartWorkflowExecution or
@@ -303,7 +342,7 @@ func (u *programUsage) add(instruction *testpilotspb.InstructionNode, controller
 	}
 	shapes := map[testpilot.EntrypointKind]int64{}
 	for _, kind := range carried[key.method] {
-		if count := u.reservable[kind]; count > 0 {
+		if count := u.reservableBy(key.method, kind); count > 0 {
 			shapes[kind] = count
 		}
 	}

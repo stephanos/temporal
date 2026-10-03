@@ -44,6 +44,7 @@ message Instruction {
     ReadEvidence read_evidence = 9;
     ActivityAttemptFailure activity_attempt_failure = 10;
     ActivityAttemptCancellation activity_attempt_cancellation = 11;
+    ActivityAttemptWithholding activity_attempt_withholding = 12;
   }
 }
 
@@ -103,7 +104,8 @@ message AwaitInstruction { InstructionReference instruction = 1; }
 
 // Finish completes with result: the workflow of a workflow entrypoint, or the attempt of an activity
 // entrypoint and with it the activity. The result is a value whatever its type; an attempt fails only
-// through ActivityAttemptFailure and is answered as canceled only through ActivityAttemptCancellation.
+// through ActivityAttemptFailure, is answered as canceled only through ActivityAttemptCancellation
+// and goes unanswered only through ActivityAttemptWithholding.
 message Finish { Expression result = 1; }
 
 // ActivityAttemptFailure fails the attempt of an activity entrypoint with failure, an application
@@ -118,6 +120,13 @@ message ActivityAttemptFailure { temporal.api.failure.v1.Failure failure = 1; }
 // and then offers the canceled answer, which ends the activity once the server accepts it. An
 // attempt whose cancellation the server never requests offers nothing the Program declared.
 message ActivityAttemptCancellation {}
+
+// ActivityAttemptWithholding withholds the answer of the attempt of an activity entrypoint: the
+// worker offers nothing until the attempt's deadline, the start-to-close or schedule-to-close
+// timeout the server applies to it, ends the attempt, so the server times the attempt out. The
+// server retries a timed-out attempt unless the retry policy is exhausted, so it is followed by the
+// entrypoint's next instruction or ends the activity.
+message ActivityAttemptWithholding {}
 
 // InjectFault asks the Driver for one deliberate outage or delivery control. role_id must name a
 // ROLE_KIND_TASK_QUEUE role; that role's resource binding identifies the affected queue.

@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/nexus-rpc/sdk-go/nexus"
+	commonpb "go.temporal.io/api/common/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
@@ -23,6 +24,10 @@ type nexusRouteIndex struct {
 type nexusDispatchKey struct {
 	workflowReservation, sourceInstruction string
 }
+
+// scheduledRouteIndex is the route a scheduled activity's header entry carries, as the Driver
+// indexes the Session that prepared it.
+type scheduledRouteIndex string
 
 type workflowAdmissionKey struct {
 	route  delivery.WorkflowBinding
@@ -87,6 +92,8 @@ func (h *Driver) nexusCandidates(ctx context.Context, header nexus.Header) ([]*S
 	return slices.AppendSeq(make([]*Session, 0, len(candidates)), maps.Keys(candidates)), nil
 }
 
+// activityCandidates are the Sessions an activity task may belong to: those indexed under the
+// standalone activity it names, or under the route its scheduling workflow's command carried.
 func (h *Driver) activityCandidates(ctx context.Context, input delivery.ActivityDelivery) ([]*Session, error) {
 	if h == nil || ctx == nil {
 		return nil, ErrInvalid
@@ -95,6 +102,9 @@ func (h *Driver) activityCandidates(ctx context.Context, input delivery.Activity
 		return nil, err
 	}
 	defer h.mu.Unlock()
+	if input.Scheduled() {
+		return append([]*Session(nil), h.scheduledRoutes[scheduledRouteIndex(input.Header.GetFields()[delivery.ScheduledActivityHeader].GetData())]...), nil
+	}
 	return append([]*Session(nil), h.activityRoutes[input.Binding()]...), nil
 }
 
@@ -165,6 +175,10 @@ func (s *Session) admitWorkflow(input delivery.WorkflowDelivery) (delivery.Activ
 		raw.finish(testpilot.EffectResult{}, err)
 		return delivery.Activation{}, nil, false, err
 	}
+	if err := s.prepareActivityDispatchesLocked(activation); err != nil {
+		raw.finish(testpilot.EffectResult{}, err)
+		return delivery.Activation{}, nil, false, err
+	}
 	admitted := &workflowAdmission{activation: activation, temporalRunID: input.TemporalRunID}
 	s.workflowAdmissions[key] = admitted
 	return activation, admitted, false, nil
@@ -221,6 +235,58 @@ func (s *Session) prepareNexusDispatchesLocked(activation delivery.Activation) e
 		s.nexusDispatch[key] = header
 	}
 	return nil
+}
+
+// prepareActivityDispatchesLocked prepares, for each of the workflow's activity schedule commands
+// that reaches a reserved activity, the header entry its attempts are routed by, and indexes this
+// Session under it. A schedule command that reaches none runs its activity on an ordinary worker.
+func (s *Session) prepareActivityDispatchesLocked(activation delivery.Activation) error {
+	entry := s.definition.entries[activation.Coordinate().EntrypointID]
+	prepared := make(map[nexusDispatchKey]delivery.ActivityDispatch)
+	routeKeys := make(map[scheduledRouteIndex]struct{})
+	for _, instruction := range entry.plan.Instructions() {
+		if scheduleActivity(instruction.Source().GetInstruction()) == nil {
+			continue
+		}
+		sourceID := instruction.Source().GetInstructionId()
+		key := nexusDispatchKey{workflowReservation: activation.Reservation().ID, sourceInstruction: sourceID}
+		if _, exists := s.activityDispatch[key]; exists {
+			continue
+		}
+		dispatch, err := s.ledger.PrepareActivity(context.Background(), activation, sourceID)
+		if errors.Is(err, delivery.ErrRouteCrossed) {
+			continue
+		}
+		if err != nil {
+			return err
+		}
+		_, payload := dispatch.Header()
+		prepared[key] = dispatch
+		routeKeys[scheduledRouteIndex(payload.GetData())] = struct{}{}
+	}
+	if len(prepared) == 0 {
+		return nil
+	}
+	if err := s.host.addScheduledRoutes(context.Background(), s, routeKeys); err != nil {
+		return err
+	}
+	maps.Copy(s.activityDispatch, prepared)
+	return nil
+}
+
+// preparedActivityHeader is the header entry an activity schedule command of the workflow carries,
+// or false when the command reaches no reserved activity.
+func (s *Session) preparedActivityHeader(activation delivery.Activation, sourceID string) (string, *commonpb.Payload, bool) {
+	if s == nil || sourceID == "" || s.mu.LockContext(context.Background(), ErrInvalid) != nil {
+		return "", nil, false
+	}
+	dispatch, exists := s.activityDispatch[nexusDispatchKey{workflowReservation: activation.Reservation().ID, sourceInstruction: sourceID}]
+	s.mu.Unlock()
+	if !exists {
+		return "", nil, false
+	}
+	name, payload := dispatch.Header()
+	return name, payload, true
 }
 
 // preparedNexusHeader is the header a Nexus dispatch of the named start instruction carries: the
@@ -362,7 +428,20 @@ func (s *Session) admitActivity(ctx context.Context, input delivery.ActivityDeli
 	if s.closed || s.failure != nil {
 		return delivery.Activation{}, nil, errors.Join(delivery.ErrRouteStale, s.failure)
 	}
-	activation, err := s.ledger.AdmitActivity(ctx, input)
+	admit := s.ledger.AdmitActivity
+	if input.Scheduled() {
+		// A scheduled route names its activity entrypoint and not the activity, so the task must be
+		// of the activity that entrypoint declares.
+		entrypointID, err := s.ledger.ScheduledEntrypoint(input)
+		if err != nil {
+			return delivery.Activation{}, nil, err
+		}
+		if entry, exists := s.definition.entries[entrypointID]; !exists || entry.activityType != input.ActivityType || entry.queue != input.TaskQueue {
+			return delivery.Activation{}, nil, delivery.ErrBindingMismatch
+		}
+		admit = s.ledger.AdmitScheduledActivity
+	}
+	activation, err := admit(ctx, input)
 	if err != nil {
 		return delivery.Activation{}, nil, err
 	}
@@ -482,6 +561,37 @@ func (h *Driver) addNexusRoutes(ctx context.Context, session *Session, keys map[
 	return nil
 }
 
+func (h *Driver) addScheduledRoutes(ctx context.Context, session *Session, keys map[scheduledRouteIndex]struct{}) error {
+	if err := h.mu.LockContext(ctx, ErrInvalid); err != nil {
+		return err
+	}
+	defer h.mu.Unlock()
+	if h.sessions[session.runID] != session {
+		return ErrClosed
+	}
+	additional := 0
+	for key := range keys {
+		if !slices.Contains(h.scheduledRoutes[key], session) {
+			additional++
+		}
+	}
+	if err := h.ensureRouteCapacityLocked(additional); err != nil {
+		return err
+	}
+	if h.scheduledRoutes == nil {
+		h.scheduledRoutes = make(map[scheduledRouteIndex][]*Session)
+	}
+	for key := range keys {
+		if slices.Contains(h.scheduledRoutes[key], session) {
+			continue
+		}
+		h.scheduledRoutes[key] = append(h.scheduledRoutes[key], session)
+		session.scheduledKeys[key] = struct{}{}
+		h.routeAssociations++
+	}
+	return nil
+}
+
 func (h *Driver) ensureRouteCapacityLocked(additional int) error {
 	for h.routeAssociations > h.options.maximum-additional && len(h.tombstones) > 0 {
 		h.evictOldestTombstoneLocked()
@@ -514,6 +624,13 @@ func (h *Driver) removeRouteIndexesLocked(session *Session) {
 		}
 		h.routeAssociations--
 	}
+	for key := range session.scheduledKeys {
+		h.scheduledRoutes[key] = slices.DeleteFunc(h.scheduledRoutes[key], func(candidate *Session) bool { return candidate == session })
+		if len(h.scheduledRoutes[key]) == 0 {
+			delete(h.scheduledRoutes, key)
+		}
+		h.routeAssociations--
+	}
 	for key := range session.nexusKeys {
 		h.nexusRoutes[key] = slices.DeleteFunc(h.nexusRoutes[key], func(candidate *Session) bool { return candidate == session })
 		if len(h.nexusRoutes[key]) == 0 {
@@ -523,8 +640,20 @@ func (h *Driver) removeRouteIndexesLocked(session *Session) {
 	}
 }
 
+// parentTerminal releases what the closed workflow activation leaves unused, and settles as not
+// needed the declared attempts its activities will never be delivered. Each names the workflow's
+// run, which the attempts of an activity it scheduled belong to.
 func (s *Session) parentTerminal(ctx context.Context, activation delivery.Activation) (int, error) {
 	release, err := s.ledger.ParentTerminal(ctx, activation)
+	for _, identity := range release.NotNeeded() {
+		raw, rawErr := s.rawReservation(identity.ID)
+		if rawErr != nil {
+			continue
+		}
+		raw.finish(testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_CANCELED, ActivityAttempt: &testpilotspb.ActivityAttempt{
+			ActivityRunId: activation.TemporalRunID(), Response: testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED,
+		}}}, nil)
+	}
 	return release.Unused(), err
 }
 

@@ -56,12 +56,16 @@ type Session struct {
 	activityScripts map[activityScriptKey]*activityScript
 	activityWatches map[activityScriptKey]struct{}
 	// watching ends with the Session and bounds what the Session waits on the server for.
-	watching           context.Context
-	stopWatching       context.CancelFunc
-	workflowKeys       map[delivery.WorkflowBinding]struct{}
-	activityKeys       map[delivery.ActivityBinding]struct{}
-	nexusKeys          map[nexusRouteIndex]struct{}
-	nexusDispatch      map[nexusDispatchKey]nexus.Header
+	watching      context.Context
+	stopWatching  context.CancelFunc
+	workflowKeys  map[delivery.WorkflowBinding]struct{}
+	activityKeys  map[delivery.ActivityBinding]struct{}
+	nexusKeys     map[nexusRouteIndex]struct{}
+	nexusDispatch map[nexusDispatchKey]nexus.Header
+	// activityDispatch is the header entry each schedule command of an admitted workflow carries to
+	// the activity it reaches, and scheduledKeys the Driver index entries those entries hold.
+	activityDispatch   map[nexusDispatchKey]delivery.ActivityDispatch
+	scheduledKeys      map[scheduledRouteIndex]struct{}
 	workflowAdmissions map[workflowAdmissionKey]*workflowAdmission
 	nexusAdmissions    map[nexusRouteIndex]nexusAdmission
 	next               atomic.Uint64
@@ -92,6 +96,7 @@ func newSession(host *Driver, runID, sessionID string, definition programDefinit
 		activityAnswers: make(map[string]*activityAnswer), activityScripts: make(map[activityScriptKey]*activityScript),
 		activityWatches: make(map[activityScriptKey]struct{}), watching: watching, stopWatching: stopWatching,
 		workflowKeys: make(map[delivery.WorkflowBinding]struct{}), activityKeys: make(map[delivery.ActivityBinding]struct{}), nexusKeys: make(map[nexusRouteIndex]struct{}), nexusDispatch: make(map[nexusDispatchKey]nexus.Header),
+		activityDispatch: make(map[nexusDispatchKey]delivery.ActivityDispatch), scheduledKeys: make(map[scheduledRouteIndex]struct{}),
 		workflowAdmissions: make(map[workflowAdmissionKey]*workflowAdmission), nexusAdmissions: make(map[nexusRouteIndex]nexusAdmission)}, nil
 }
 

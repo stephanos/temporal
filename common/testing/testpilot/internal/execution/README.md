@@ -191,7 +191,14 @@ naming the field of any other under
 `ActivityAttemptCancellation`, likewise an activity entrypoint's alone and its own Opcode, answers
 an attempt as canceled and carries nothing to bind. Its outcome is the attempt response
 `OFFERED_CANCELED`, a succeeded activation like the other offers, which `reservationOutcomes`
-admits for an activity entrypoint only.
+admits for an activity entrypoint only. `ActivityAttemptWithholding`, the same again, withholds an
+attempt's answer; its outcome is the attempt response `WITHHELD`. A Profile that does not authorize
+an instruction's Opcode rejects it at its node naming the instruction's arm.
+
+An activity a workflow entrypoint's schedule command reaches, by its activity type and task-queue
+role, is reserved only by the carrier that reserves that workflow, which routes the command to the
+activity's first attempt (`appendActivityRoutes`); its later attempts follow by ordinal. A second
+schedule of the same activity entrypoint rejects.
 
 A reservation's outcome is recorded as a diagnostic Run Event under the instruction that carried
 it. One table, `reservationOutcomes` in `scheduler.go`, lists every outcome a reservation may settle
@@ -203,7 +210,7 @@ rejected outcome fails the Run with `activation_failed` and is not recorded.
 | --- | --- | --- | --- |
 | workflow, Nexus handler | succeeded | absent | recorded |
 | workflow, Nexus handler | canceled | absent | recorded, only when the entrypoint performs nothing |
-| activity | succeeded | `OFFERED_COMPLETED`, `OFFERED_FAILED_RETRYABLE` or `OFFERED_FAILED_NON_RETRYABLE` | recorded |
+| activity | succeeded | `OFFERED_COMPLETED`, `OFFERED_FAILED_RETRYABLE`, `OFFERED_FAILED_NON_RETRYABLE`, `OFFERED_CANCELED` or `WITHHELD` | recorded |
 | activity | SDK failure | `REFUSED` | recorded, then the Run is incomplete with `activation_failed` |
 | activity | canceled | `NOT_NEEDED` | recorded |
 

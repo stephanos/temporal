@@ -108,6 +108,11 @@ func init() {
 			// The canceled answer carries nothing to bind.
 			bind: func(*admission, *graph, int, *node) error { return nil },
 		},
+		contract.ActivityAttemptWithholding: {
+			arm: "activity_attempt_withholding", context: contract.ActivityEntrypoint,
+			// A withheld answer carries nothing to bind.
+			bind: func(*admission, *graph, int, *node) error { return nil },
+		},
 	}
 }
 
@@ -163,8 +168,11 @@ func (a *admission) bindInstructions() error {
 func (a *admission) bindInstruction(g *graph, i int, n *node) error {
 	n.opcode = InstructionOpcode(n.source.Instruction)
 	row := opcodes[n.opcode]
-	if n.opcode == 0 || !row.runsIn(g.context) || !a.opcodes[n.opcode] {
+	if n.opcode == 0 || !row.runsIn(g.context) {
 		return ir.Invalid(ir.Unsupported, nodePath(g, n), "unsupported instruction context or Driver capability")
+	}
+	if !a.opcodes[n.opcode] {
+		return ir.Invalid(ir.Unsupported, nodePath(g, n), "instruction "+string(row.arm)+" the Profile does not authorize")
 	}
 	if err := a.bindNodeBounds(g, n); err != nil {
 		return err

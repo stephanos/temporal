@@ -19,7 +19,9 @@ const (
 	reservedWorkflowHeader = "temporal-testpilot-reserved-workflow-v1"
 	reservedNexusHeader    = "temporal-testpilot-reserved-nexus-v1"
 	reservedActivityHeader = "temporal-testpilot-reserved-activity-v1"
-	workflowRouteEncoding  = "binary/temporal-testpilot-reservation-route"
+	// ScheduledActivityHeader routes the attempts of an activity a workflow scheduled.
+	ScheduledActivityHeader = "temporal-testpilot-reserved-scheduled-activity-v1"
+	workflowRouteEncoding   = "binary/temporal-testpilot-reservation-route"
 )
 
 type WorkflowDelivery struct {

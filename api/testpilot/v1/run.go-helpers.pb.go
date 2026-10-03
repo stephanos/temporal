@@ -479,6 +479,7 @@ var (
 		"Refused":                   4,
 		"NotNeeded":                 5,
 		"OfferedCanceled":           6,
+		"Withheld":                  7,
 	}
 )
 

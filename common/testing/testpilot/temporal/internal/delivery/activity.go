@@ -7,6 +7,7 @@ import (
 	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/primitive"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -14,16 +15,26 @@ import (
 // carrier of a standalone activity's reservation.
 const StartActivityPath = "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution"
 
-// ActivityDelivery is one activity task as the worker receives it: the header its start request
-// carried, the physical activity it names, and its three identities. ActivityRunID is the run the
-// server started, the logical operation every attempt belongs to. Attempt is the server's number
-// for this attempt. DeliveryID is a bounded opaque name of this delivery of the attempt.
+// ActivityDelivery is one activity task as the worker receives it: the header its start request or
+// schedule command carried, the physical activity it names, and its identities. ActivityRunID is
+// the run the server started for a standalone activity, the logical operation every attempt
+// belongs to; WorkflowRunID is the run of the workflow that scheduled any other activity. Attempt
+// is the server's number for this attempt. DeliveryID is a bounded opaque name of this delivery of
+// the attempt.
 type ActivityDelivery struct {
 	Header                              *commonpb.Header
 	Namespace, ActivityID, ActivityType string
 	TaskQueue, ActivityRunID            string
+	WorkflowRunID                       string
 	Attempt                             int32
 	DeliveryID                          string
+}
+
+// Scheduled reports whether the delivery is of an activity a workflow scheduled, which carries the
+// scheduled-activity route rather than a start's.
+func (d ActivityDelivery) Scheduled() bool {
+	_, scheduled := d.Header.GetFields()[ScheduledActivityHeader]
+	return scheduled
 }
 
 func (d ActivityDelivery) Binding() ActivityBinding {
@@ -147,23 +158,167 @@ func (l *Ledger) ReleaseActivityAttempts(ctx context.Context, of Activation) ([]
 	if of.ledger != l || of.state == nil || of.state.kind != activityRoute || of.data != of.state.activation {
 		return nil, ErrRouteCrossed
 	}
-	attempts := of.state.bundle.attempts
-	last := 0
+	return releaseUndeliveredAttempts(of.state.bundle.attempts), nil
+}
+
+// releaseUndeliveredAttempts releases the attempts still reserved after the last one delivered,
+// and names them. With none delivered it releases nothing.
+func releaseUndeliveredAttempts(attempts []*routeState) []testpilot.ReservationIdentity {
+	last := -1
 	for index, attempt := range attempts {
 		if attempt.activation.attempt != 0 {
 			last = index
 		}
 	}
 	var released []testpilot.ReservationIdentity
+	if last < 0 {
+		return nil
+	}
 	for _, attempt := range attempts[last+1:] {
 		if attempt.authority == reserved {
 			attempt.authority = canceled
 			released = append(released, attempt.identity)
 		}
 	}
-	return released, nil
+	return released
 }
 
 func (l *Ledger) activityRoute(state *routeState) route {
 	return route{Version: routeVersion, Kind: activityRoute, SessionID: l.config.SessionID, RunID: l.config.RunID, Origin: state.bundle.origin, Reservation: state.identity, Activity: state.bundle.activityBinding}
+}
+
+// ActivityDispatch is the header entry an activity schedule command carries so its attempts reach
+// the reservations its workflow's start reserved.
+type ActivityDispatch struct {
+	payload *commonpb.Payload
+}
+
+// Header is the dispatch's header entry: its name and its payload.
+func (d ActivityDispatch) Header() (string, *commonpb.Payload) {
+	return ScheduledActivityHeader, proto.CloneOf(d.payload)
+}
+
+// PrepareActivity prepares the route of the activity the admitted workflow's schedule command
+// sourceInstructionID reaches. A schedule command that reaches no reserved activity crosses.
+func (l *Ledger) PrepareActivity(ctx context.Context, workflow Activation, sourceInstructionID string) (ActivityDispatch, error) {
+	if err := primitive.ContextError(ctx, ErrInvalid); err != nil {
+		return ActivityDispatch{}, err
+	}
+	if !validRouteText(sourceInstructionID) {
+		return ActivityDispatch{}, ErrInvalid
+	}
+	if err := l.mu.LockContext(ctx, ErrInvalid); err != nil {
+		return ActivityDispatch{}, err
+	}
+	workflowState, err := l.activationLocked(workflow, workflowRoute)
+	if err != nil {
+		l.mu.Unlock()
+		return ActivityDispatch{}, err
+	}
+	if l.stopped || workflowState.authority != admitted || workflowState.bundle.parentReleased {
+		l.diagnoseLocked()
+		l.mu.Unlock()
+		return ActivityDispatch{}, ErrRouteStale
+	}
+	key := sourceKey{workflowEntrypoint: workflowState.identity.EntrypointID, workflowOrdinal: workflowState.identity.Ordinal, sourceInstruction: sourceInstructionID}
+	attempts := workflowState.bundle.scheduled[key]
+	if len(attempts) == 0 {
+		l.mu.Unlock()
+		return ActivityDispatch{}, ErrRouteCrossed
+	}
+	wire := l.scheduledActivityRoute(attempts[0])
+	l.mu.Unlock()
+	encoded, err := (routeCodec{maximumBytes: l.config.Limits.MaxHeaderBytes}).encode(wire)
+	if err != nil {
+		return ActivityDispatch{}, err
+	}
+	return ActivityDispatch{payload: &commonpb.Payload{Metadata: map[string][]byte{"encoding": []byte(workflowRouteEncoding)}, Data: encoded}}, nil
+}
+
+// ScheduledEntrypoint is the activity entrypoint a scheduled activity's route names, read before
+// admission so a task of another activity is refused without consuming a reservation.
+func (l *Ledger) ScheduledEntrypoint(delivery ActivityDelivery) (string, error) {
+	encoded, err := decodeReservedHeader(delivery.Header, ScheduledActivityHeader, l.config.Limits.MaxHeaderBytes)
+	if err != nil {
+		return "", err
+	}
+	wire, err := (routeCodec{maximumBytes: l.config.Limits.MaxHeaderBytes}).decode(encoded, scheduledActivityRoute)
+	if err != nil {
+		return "", err
+	}
+	return wire.Reservation.EntrypointID, nil
+}
+
+// AdmitScheduledActivity admits one delivery of an activity a workflow scheduled, as AdmitActivity
+// does one of a standalone activity: the attempt Temporal numbers N is the Nth reservation of the
+// activity whatever order the attempts arrive in, a delivery of an attempt already admitted is a
+// replay of that admission, and an attempt past the last reservation is undeclared. The attempts
+// belong to the workflow run that scheduled them and share one activity ID, so a delivery naming
+// another of either conflicts. An attempt delivered once its workflow closed is stale.
+func (l *Ledger) AdmitScheduledActivity(ctx context.Context, delivery ActivityDelivery) (Activation, error) {
+	encoded, err := decodeReservedHeader(delivery.Header, ScheduledActivityHeader, l.config.Limits.MaxHeaderBytes)
+	if err != nil {
+		return Activation{}, err
+	}
+	wire, err := (routeCodec{maximumBytes: l.config.Limits.MaxHeaderBytes}).decode(encoded, scheduledActivityRoute)
+	if err != nil {
+		return Activation{}, err
+	}
+	if !validActivityBinding(delivery.Binding()) || !validRouteText(delivery.WorkflowRunID) || delivery.Attempt <= 0 || !validRouteText(delivery.DeliveryID) {
+		return Activation{}, ErrInvalid
+	}
+	if err := l.mu.LockContext(ctx, ErrInvalid); err != nil {
+		return Activation{}, err
+	}
+	if wire.SessionID != l.config.SessionID || wire.RunID != l.config.RunID {
+		l.mu.Unlock()
+		return Activation{}, ErrRouteCrossed
+	}
+	attempts := l.scheduled[wire.Reservation.ID]
+	if len(attempts) == 0 {
+		l.diagnoseLocked()
+		l.mu.Unlock()
+		return Activation{}, ErrRouteStale
+	}
+	if wire != l.scheduledActivityRoute(attempts[0]) {
+		l.mu.Unlock()
+		return Activation{}, ErrRouteCrossed
+	}
+	bundle := attempts[0].bundle
+	if delivery.Namespace != bundle.binding.Namespace {
+		l.mu.Unlock()
+		return Activation{}, ErrBindingMismatch
+	}
+	if delivery.WorkflowRunID != wire.WorkflowRunID {
+		l.mu.Unlock()
+		return Activation{}, ErrRouteConflict
+	}
+	for _, attempt := range attempts {
+		if attempt.activation.attempt != 0 && attempt.activation.activityID != delivery.ActivityID {
+			l.mu.Unlock()
+			return Activation{}, ErrRouteConflict
+		}
+	}
+	if int(delivery.Attempt) > len(attempts) {
+		l.mu.Unlock()
+		return Activation{}, ErrAttemptUndeclared
+	}
+	attempt := attempts[delivery.Attempt-1]
+	if attempt.activation.attempt != 0 {
+		l.mu.Unlock()
+		return Activation{ledger: l, state: attempt, data: attempt.activation, replay: true}, nil
+	}
+	if l.stopped || bundle.parentReleased || attempt.authority != reserved || bundle.workflow.authority != admitted {
+		l.diagnoseLocked()
+		l.mu.Unlock()
+		return Activation{}, ErrRouteStale
+	}
+	return l.consumeLocked(ctx, attempt, activationData{temporalRunID: delivery.WorkflowRunID, attempt: delivery.Attempt, deliveryID: delivery.DeliveryID, activityID: delivery.ActivityID})
+}
+
+// scheduledActivityRoute is the route of the scheduled activity whose first attempt state is: the
+// workflow activation that scheduled it and the schedule command.
+func (l *Ledger) scheduledActivityRoute(state *routeState) route {
+	workflow := state.bundle.workflow
+	return route{Version: routeVersion, Kind: scheduledActivityRoute, SessionID: l.config.SessionID, RunID: l.config.RunID, Origin: state.bundle.origin, Reservation: state.identity, Binding: state.bundle.binding, WorkflowReservation: workflow.identity.ID, WorkflowEntrypoint: state.source.workflowEntrypoint, WorkflowOrdinal: state.source.workflowOrdinal, WorkflowRunID: workflow.activation.temporalRunID, SourceInstructionID: state.source.sourceInstruction}
 }

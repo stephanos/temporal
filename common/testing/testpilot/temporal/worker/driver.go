@@ -23,14 +23,17 @@ import (
 const getHistoryMethod = "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
 
 type Driver struct {
-	options           hostOptions
-	registry          *workerRegistry
-	mu                primitive.Mutex
-	sessions          map[string]*Session
-	tombstones        []*Session
-	workflowRoutes    map[delivery.WorkflowBinding][]*Session
-	activityRoutes    map[delivery.ActivityBinding][]*Session
-	nexusRoutes       map[nexusRouteIndex][]*Session
+	options        hostOptions
+	registry       *workerRegistry
+	mu             primitive.Mutex
+	sessions       map[string]*Session
+	tombstones     []*Session
+	workflowRoutes map[delivery.WorkflowBinding][]*Session
+	activityRoutes map[delivery.ActivityBinding][]*Session
+	nexusRoutes    map[nexusRouteIndex][]*Session
+	// scheduledRoutes index the Sessions whose workflows scheduled an activity, by the route its
+	// schedule command carries.
+	scheduledRoutes   map[scheduledRouteIndex][]*Session
 	routeAssociations int
 	nextSession       atomic.Uint64
 }
@@ -68,12 +71,13 @@ func New(options Options) (*Driver, error) {
 	}
 	maximum, diagnostics := boundedInt(limits.GetMaxActivations()), min(boundedInt(limits.GetMaxRunEvents()), 64)
 	h := &Driver{
-		mu:             primitive.NewMutex(),
-		sessions:       make(map[string]*Session),
-		tombstones:     make([]*Session, 0, diagnostics),
-		workflowRoutes: make(map[delivery.WorkflowBinding][]*Session),
-		activityRoutes: make(map[delivery.ActivityBinding][]*Session),
-		nexusRoutes:    make(map[nexusRouteIndex][]*Session),
+		mu:              primitive.NewMutex(),
+		sessions:        make(map[string]*Session),
+		tombstones:      make([]*Session, 0, diagnostics),
+		workflowRoutes:  make(map[delivery.WorkflowBinding][]*Session),
+		activityRoutes:  make(map[delivery.ActivityBinding][]*Session),
+		nexusRoutes:     make(map[nexusRouteIndex][]*Session),
+		scheduledRoutes: make(map[scheduledRouteIndex][]*Session),
 		options: hostOptions{
 			profile: options.Profile.Snapshot(), workerRoleID: options.WorkerRoleID, client: options.Client,
 			// The SDK sends a heartbeat at most once per throttle interval, by default a share of
@@ -418,11 +422,13 @@ func (h *Driver) validateRPCBindings(instruction testpilot.InstructionPlan, role
 		return ErrInvalid
 	}
 	workerRole := roles[h.options.workerRoleID]
-	// An activity is delivered only through the request that started it, so its reservation rides on
-	// StartActivityExecution alone, and that request carries no other activation.
+	// An activity is delivered only through the request that started it or the workflow that
+	// scheduled it, so its reservation rides on StartActivityExecution or StartWorkflowExecution, and
+	// an activity start carries no other activation.
 	reservations := instruction.Reservations()
 	for _, reservation := range reservations {
-		if (reservation.Kind == testpilot.ActivityEntrypoint) != (invoke.GetMethod() == delivery.StartActivityPath) {
+		activityStart := invoke.GetMethod() == delivery.StartActivityPath
+		if activityStart && reservation.Kind != testpilot.ActivityEntrypoint || reservation.Kind == testpilot.ActivityEntrypoint && !activityStart && invoke.GetMethod() != primitive.StartWorkflowPath {
 			return ErrInvalid
 		}
 	}

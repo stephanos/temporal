@@ -77,7 +77,7 @@ func TestPreparationErrorCase(t *testing.T) {
 		{"unsupported capability bounded path", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {
 			c.Program.Entrypoints[0].EntrypointId = strings.Repeat("e", 256)
 			c.Program.Entrypoints[0].Instructions = []*testpilotspb.InstructionNode{{InstructionId: strings.Repeat("i", 256), Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{}}}}}
-		}, testpilot.PreparationUnsupported, strings.Repeat("e", 256), "unsupported instruction context or Driver capability", ""},
+		}, testpilot.PreparationUnsupported, strings.Repeat("e", 256), "instruction invoke_rpc the Profile does not authorize", ""},
 		{"contract missing rules", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) { c.Contract.Rules = nil }, testpilot.PreparationMalformed, "contract", "Contract identity and rules are required", ""},
 		{"contract ceiling", func(_ *testpilotspb.Case, p *testpilot.ProfileSpec) { p.ContractLimits.MaxRules = 0 }, testpilot.PreparationLimitExceeded, "contract", "limit outside positive Driver ceiling: max_rules", ""},
 		{"correlated binding", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {

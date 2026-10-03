@@ -56,19 +56,35 @@ Nexus operation reads its input as a `RawValue`, since a schedule command carrie
 The workflow implementation receives arbitrary SDK arguments through `converter.EncodedValues`,
 then rejects workflow types outside that allowlist before reservation admission.
 
-An activity entrypoint (`ActivityActivation`) runs as a standalone activity: the one a controller's
-`StartActivityExecution` starts. Its script is the activity's attempts in order, one instruction
-per attempt. A `Finish` completes its attempt with its result, whatever value that is, and the
+An activity entrypoint (`ActivityActivation`) runs as a standalone activity, the one a controller's
+`StartActivityExecution` starts, or as the activity a workflow entrypoint's schedule command
+schedules. Its script is the activity's attempts in order, one instruction per attempt. A `Finish` completes its attempt with its result, whatever value that is, and the
 activity closes when the server accepts that completion. An `ActivityAttemptFailure` fails its attempt with the application failure it
 carries, which the server retries unless the failure says otherwise. An
 `ActivityAttemptCancellation` answers its attempt as canceled, which a worker may do only for a
 cancellation the server asked for: the attempt heartbeats until the server answers a heartbeat with
 the requested cancellation, and then hands the SDK a canceled error. The SDK tells Temporal an
 attempt is canceled only for a delivery the server asked to cancel and reports any other canceled
-error as a failure, so the worker never offers a cancellation the SDK would not send. Preparation reserves one
+error as a failure, so the worker never offers a cancellation the SDK would not send. An
+`ActivityAttemptWithholding` offers nothing: the attempt waits for its context to end, and when its
+deadline, the start-to-close or schedule-to-close timeout the server applies, ends it, the SDK sends
+nothing and the server times the attempt out; any other end of the context is a refusal. Preparation reserves one
 activation per instruction, so every attempt is its own activation under its own reservation, and
 the script's values carry across the attempts as a Nexus handler's do across its deliveries, so a
 later attempt's guard reads what an earlier one admitted.
+
+A workflow-scheduled activity is delivered through its workflow's start. Preparation reserves its
+attempts on the carrier that reserves the workflow and routes the schedule command to the
+activity entrypoint whose type and task-queue role it names. When the workflow is admitted, the
+Session prepares one header entry per such command, `temporal-testpilot-reserved-scheduled-activity-v1`,
+naming the workflow's activation and the command, and the workflow's outbound `ExecuteActivity`
+interceptor writes it into the command's header; a command that reaches no activity entrypoint is
+issued unrouted, for an ordinary worker. The attempts carry the entry, the Driver offers them to the
+Session that prepared it, and they are admitted as a standalone activity's are, except that they
+belong to the workflow run that scheduled them, which their outcomes name as the run, and share
+the activity ID the SDK gave the command. When the workflow closes, the attempts declared after the
+last one delivered are settled as not needed, as a standalone activity's are when the server
+reports it closed.
 
 A queue that names activity types registers one dynamic activity. The inbound activity interceptor
 rejects a type outside the allowlist and admits the task against the reservations its start request
@@ -99,6 +115,7 @@ exactly one of these states, and settles at most once:
 | offered-failed-retryable | its `ActivityAttemptFailure` ran and the worker offered a failure the server may retry | succeeded, `OFFERED_FAILED_RETRYABLE`, run, SDK attempt, delivery |
 | offered-failed-non-retryable | the same, with a failure the server does not retry | succeeded, `OFFERED_FAILED_NON_RETRYABLE`, run, SDK attempt, delivery |
 | offered-canceled | its `ActivityAttemptCancellation` ran: the server answered the attempt's heartbeat with the requested cancellation, and the worker offered the canceled answer | succeeded, `OFFERED_CANCELED`, run, SDK attempt, delivery |
+| withheld | its `ActivityAttemptWithholding` ran and the attempt's deadline ended it unanswered | succeeded, `WITHHELD`, run, SDK attempt, delivery |
 | refused | the worker performed nothing declared and offered its own non-retryable failure | SDK failure `umpire_worker` with the cause, `REFUSED`, run, SDK attempt, delivery; then the Run is incomplete |
 | released-not-needed | the server reported the activity closed before any attempt was delivered for it | canceled, `NOT_NEEDED`, the run only, caused by the last recorded attempt |
 | never-seen | the Run released the reservation while nothing was delivered for it and the server had said nothing | canceled with no attempt fact, which fails the Run unrecorded |
@@ -110,8 +127,9 @@ The allowed transitions, and what brings each about:
 | reserved | admitted | the first delivery of the SDK attempt whose number is the reservation's position, in the activity run the start answered with |
 | admitted | offered-completed, offered-failed-retryable, offered-failed-non-retryable | the attempt's instruction ran, after every earlier attempt of the activity settled |
 | admitted | offered-canceled | the attempt's instruction ran, after every earlier attempt of the activity settled, and the server answered a heartbeat of the attempt with the requested cancellation |
+| admitted | withheld | the attempt's instruction ran, after every earlier attempt of the activity settled, and the attempt's deadline ended its context |
 | admitted | refused | the instruction is disabled, the Run canceled the reservation, the delivery's context ended, a cancellation to answer was never requested before it did, or the SDK or the Driver failed |
-| reserved | released-not-needed | the server answered the worker's long poll for the activity's outcome, and the reservation is after the last attempt admitted |
+| reserved | released-not-needed | the server answered the worker's long poll for the activity's outcome, or the workflow that scheduled the activity closed, and the reservation is after the last attempt admitted |
 | reserved | never-seen | the Run canceled the reservation |
 
 Everything else is refused and changes no state:

@@ -376,17 +376,14 @@ func runtimeTestSessionWithDisposition(t *testing.T, host *Driver, definition pr
 	host.sessions[runID] = session
 	host.mu.Unlock()
 	origin := testpilot.Coordinate{RunID: runID, EntrypointID: "controller", ActivationID: "controller-1", InstructionID: "call", Attempt: 1}
+	plan, exists := prepared.ReservationCarrier("controller", "call")
+	require.True(t, exists)
 	var handles []testpilot.ReservationHandle
-	for _, entrypoint := range []string{"workflow", "handler"} {
-		if _, declared := definition.entries[entrypoint]; !declared {
-			continue
-		}
-		reserved, err := session.Reserve(t.Context(), testpilot.ReservationRequest{Origin: origin, EntrypointID: entrypoint, Count: 1})
+	for _, reservation := range plan.Reservations {
+		reserved, err := session.Reserve(t.Context(), testpilot.ReservationRequest{Origin: origin, EntrypointID: reservation.EntrypointID, Count: reservation.Count})
 		require.NoError(t, err)
 		handles = append(handles, reserved...)
 	}
-	plan, exists := prepared.ReservationCarrier("controller", "call")
-	require.True(t, exists)
 	carrier, err := session.CreateCarrier(t.Context(), origin, plan, binding, handles)
 	require.NoError(t, err)
 	request := &workflowservice.StartWorkflowExecutionRequest{Namespace: binding.Namespace, WorkflowId: binding.WorkflowID, WorkflowType: &commonpb.WorkflowType{Name: binding.WorkflowType}, TaskQueue: &taskqueuepb.TaskQueue{Name: binding.TaskQueue}}

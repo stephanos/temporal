@@ -38,7 +38,8 @@ Reserved `StartWorkflowExecution` calls pass through an SDK worker `Carrier` bef
 Carrier takes the reservation topology preparation compiled as admitted, checks the physical workflow
 binding against the reserved workflow entrypoint and each reservation handle against the topology,
 bounds the bundle by its route limit, injects only the reserved delivery header, checks the final
-request size, and pins the returned Temporal Run ID.
+request size, and pins the returned Temporal Run ID. The workflow's carrier also carries the
+attempts of each activity the workflow's schedule commands reach, which the workflow routes.
 A reserved `StartActivityExecution` call passes through a `Carrier` the same way: it carries the
 activations of the one standalone activity it starts, one per attempt the activity's script
 declares, checks the physical activity binding against the reserved activity entrypoint, and pins

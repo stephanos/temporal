@@ -188,7 +188,7 @@ func TestPrepareAdmitsAnAttemptFailureOnlyAsAnApplicationFailureOfAnActivity(t *
 			mutate: func(_ *testpilotspb.Case, policy *Profile) {
 				policy.Opcodes = policy.Opcodes[:len(policy.Opcodes)-1]
 			},
-			want: unsupported("activity.run-attempt"),
+			want: &ir.Error{Category: ir.Unsupported, Path: "activity.run-attempt", Detail: "instruction activity_attempt_failure the Profile does not authorize"},
 		},
 		"in a workflow": {
 			failure: retryableFailure(),
@@ -309,7 +309,7 @@ func TestPrepareRejectsAnActivityItCannotActivate(t *testing.T) {
 			mutate: func(_ *testpilotspb.Case, policy *Profile) {
 				policy.Opcodes = []contract.Opcode{contract.InvokeRPC}
 			},
-			want: unsupported("run-attempt"),
+			want: &ir.Error{Category: ir.Unsupported, Path: "activity.run-attempt", Detail: "instruction finish the Profile does not authorize"},
 		},
 		"the Profile names no carrier": {
 			mutate: func(_ *testpilotspb.Case, policy *Profile) { policy.Roles[0].ReservationCarriers = nil },

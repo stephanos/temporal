@@ -162,6 +162,11 @@ var errAttemptDisabled = errors.New("the activity attempt's instruction is disab
 // server requested. The attempt performed its instruction, so it is not an activation failure.
 var errDeclaredCancellation = errors.New("the activity attempt answers its requested cancellation")
 
+// errDeclaredWithholding is the end of an attempt whose instruction withholds its answer, once the
+// attempt's deadline ended it. The attempt performed its instruction, so it is not an activation
+// failure.
+var errDeclaredWithholding = errors.New("the activity attempt withheld its answer until its deadline")
+
 // cancellationPoll is how often an attempt that answers a requested cancellation heartbeats to
 // learn whether the server has asked for it.
 const cancellationPoll = 100 * time.Millisecond
@@ -228,9 +233,10 @@ func (s *Session) awaitEarlierAttempts(ctx context.Context, delivered delivery.A
 // the activity's attempts in order and the attempt's reservation is the one of its number, so the
 // attempt performs the instruction at its reservation's ordinal and no other, under the attempt's
 // context, whose cancellation fails the evaluation. A Finish completes the attempt with its result,
-// whatever that value is, an ActivityAttemptFailure fails it with the failure it carries, and an
-// ActivityAttemptCancellation answers it as canceled once the server has asked for that. An
-// attempt whose instruction is disabled has nothing declared for it and is a failed activation.
+// whatever that value is, an ActivityAttemptFailure fails it with the failure it carries, an
+// ActivityAttemptCancellation answers it as canceled once the server has asked for that, and an
+// ActivityAttemptWithholding answers nothing until the attempt's deadline ends it. An attempt
+// whose instruction is disabled has nothing declared for it and is a failed activation.
 func (s *Session) executeActivity(ctx context.Context, delivered delivery.Activation) (*testpilotspb.Value, error) {
 	entry, exists := s.definition.entries[delivered.Coordinate().EntrypointID]
 	if !exists || entry.plan.Kind() != testpilot.ActivityEntrypoint {
@@ -288,6 +294,17 @@ func (s *Session) executeActivity(ctx context.Context, delivered delivery.Activa
 			return nil, err
 		}
 		return nil, errDeclaredCancellation
+	case testpilot.ActivityAttemptWithholding:
+		<-ctx.Done()
+		// Only the attempt's deadline ends it as declared; the Run canceling it ends it unasked.
+		if !errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			return nil, ctx.Err()
+		}
+		// The server may still issue the next attempt, whose guard reads this instruction's outcome.
+		if err := script.state.Admit(context.WithoutCancel(ctx), index, terminalOutcome()); err != nil {
+			return nil, err
+		}
+		return nil, errDeclaredWithholding
 	default:
 		return nil, ErrInvalid
 	}

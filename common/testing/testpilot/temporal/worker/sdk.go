@@ -139,6 +139,26 @@ func (i *workflowOutboundInterceptor) ExecuteNexusOperation(ctx workflow.Context
 	return i.Next.ExecuteNexusOperation(ctx, input)
 }
 
+// ExecuteActivity routes an activity schedule command to the reservations its workflow's start
+// reserved for the activity, by the header entry the Session prepared for the command. A command
+// that reaches no reserved activity is issued as it is, for an ordinary worker to run.
+func (i *workflowOutboundInterceptor) ExecuteActivity(ctx workflow.Context, activityType string, args ...interface{}) workflow.Future {
+	routed, ok := ctx.Value(workflowRouteKey{}).(routedWorkflow)
+	sourceID, sourceOK := ctx.Value(workflowSourceKey{}).(string)
+	if ok && sourceOK {
+		if name, payload, prepared := routed.session.preparedActivityHeader(routed.activation, sourceID); prepared {
+			header := interceptor.WorkflowHeader(ctx)
+			if _, collision := header[name]; header == nil || collision {
+				future, settable := workflow.NewFuture(ctx)
+				settable.SetError(activationError(delivery.ErrReservedHeader))
+				return future
+			}
+			header[name] = payload
+		}
+	}
+	return i.Next.ExecuteActivity(ctx, activityType, args...)
+}
+
 type activityInboundInterceptor struct {
 	interceptor.ActivityInboundInterceptorBase
 	worker *sdkWorkerInterceptor
@@ -149,7 +169,7 @@ func (i *activityInboundInterceptor) ExecuteActivity(ctx context.Context, input 
 	deliveryInput := delivery.ActivityDelivery{
 		Header: &commonpb.Header{Fields: maps.Clone(interceptor.Header(ctx))}, Namespace: info.Namespace,
 		ActivityID: info.ActivityID, ActivityType: info.ActivityType.Name, TaskQueue: info.TaskQueue,
-		ActivityRunID: info.ActivityRunID, Attempt: info.Attempt, DeliveryID: deliveryIdentity(info.TaskToken),
+		ActivityRunID: info.ActivityRunID, WorkflowRunID: info.WorkflowExecution.RunID, Attempt: info.Attempt, DeliveryID: deliveryIdentity(info.TaskToken),
 	}
 	return i.worker.activateActivity(ctx, deliveryInput, func(ctx context.Context) (interface{}, error) {
 		return i.Next.ExecuteActivity(ctx, input)
@@ -221,6 +241,10 @@ func (i *sdkWorkerInterceptor) activateActivity(ctx context.Context, input deliv
 	case errors.Is(answer.err, errDeclaredCancellation):
 		answer.result, answer.err, answer.canceled = nil, temporal.NewCanceledError(), true
 		outcome.ActivityAttempt.Response = testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED
+	case errors.Is(answer.err, errDeclaredWithholding):
+		// The SDK offers nothing for an attempt its deadline ended.
+		answer.result, answer.err = nil, context.DeadlineExceeded
+		outcome.ActivityAttempt.Response = testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_WITHHELD
 	case errors.As(answer.err, &declared):
 		answer.result, answer.err = nil, declared.failure
 		outcome.ActivityAttempt.Response = testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_RETRYABLE
@@ -234,7 +258,10 @@ func (i *sdkWorkerInterceptor) activateActivity(ctx context.Context, input deliv
 		outcome.ActivityAttempt.Response = testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_REFUSED
 	}
 	routed.session.finishActivation(routed.activation, outcome, nil)
-	routed.session.watchActivityClosure(input, routed.activation)
+	// A scheduled activity's later attempts are released when its workflow closes.
+	if !input.Scheduled() {
+		routed.session.watchActivityClosure(input, routed.activation)
+	}
 	return answer.result, answer.err
 }
 

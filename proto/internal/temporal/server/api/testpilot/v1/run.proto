@@ -109,12 +109,14 @@ enum DeliveryAdmissionDecision {
   DELIVERY_ADMISSION_DECISION_REJECTED = 2;
 }
 
-// ActivityAttempt is what a worker reports about one attempt a standalone activity's script declares.
+// ActivityAttempt is what a worker reports about one attempt an activity's script declares, of a
+// standalone activity or of one a workflow scheduled.
 // It records what the worker did, never that the server accepted it: the worker hands its answer to
 // the SDK, which sends it afterwards. The status of the outcome that carries it says whether the
 // activation did what the Program declared.
 message ActivityAttempt {
   // The run of the activity the attempt belongs to, as the server named it when the activity started.
+  // An activity a workflow scheduled has no run of its own; its attempts name the workflow's run.
   string activity_run_id = 1;
   // The attempt number Temporal counts, from 1, of the attempt the worker was delivered. Unset when
   // no attempt was delivered: the Run Event's source then names the reserved position alone, and
@@ -147,6 +149,9 @@ enum ActivityAttemptResponse {
   // The worker offered the canceled answer the attempt's instruction declared, once the server had
   // reported the activity's cancellation requested.
   ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED = 6;
+  // The worker offered nothing, as the attempt's instruction declared, until the attempt's deadline
+  // ended it, so the server timed the attempt out.
+  ACTIVITY_ATTEMPT_RESPONSE_WITHHELD = 7;
 }
 
 // FaultInjected is the recorded fact that a Driver realized one requested outage.

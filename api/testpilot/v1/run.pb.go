@@ -112,6 +112,9 @@ const (
 	// The worker offered the canceled answer the attempt's instruction declared, once the server had
 	// reported the activity's cancellation requested.
 	ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED ActivityAttemptResponse = 6
+	// The worker offered nothing, as the attempt's instruction declared, until the attempt's deadline
+	// ended it, so the server timed the attempt out.
+	ACTIVITY_ATTEMPT_RESPONSE_WITHHELD ActivityAttemptResponse = 7
 )
 
 // Enum value maps for ActivityAttemptResponse.
@@ -124,6 +127,7 @@ var (
 		4: "ACTIVITY_ATTEMPT_RESPONSE_REFUSED",
 		5: "ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED",
 		6: "ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED",
+		7: "ACTIVITY_ATTEMPT_RESPONSE_WITHHELD",
 	}
 	ActivityAttemptResponse_value = map[string]int32{
 		"ACTIVITY_ATTEMPT_RESPONSE_UNSPECIFIED":                  0,
@@ -133,6 +137,7 @@ var (
 		"ACTIVITY_ATTEMPT_RESPONSE_REFUSED":                      4,
 		"ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED":                   5,
 		"ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED":             6,
+		"ACTIVITY_ATTEMPT_RESPONSE_WITHHELD":                     7,
 	}
 )
 
@@ -160,6 +165,8 @@ func (x ActivityAttemptResponse) String() string {
 		return "OfferedCanceled"
 
 		// Deprecated: Use ActivityAttemptResponse.Descriptor instead.
+	case ACTIVITY_ATTEMPT_RESPONSE_WITHHELD:
+		return "Withheld"
 	default:
 		return strconv.Itoa(int(x))
 	}
@@ -1150,13 +1157,15 @@ func (x *DeliveryAdmission) GetAttempt() int32 {
 	return 0
 }
 
-// ActivityAttempt is what a worker reports about one attempt a standalone activity's script declares.
+// ActivityAttempt is what a worker reports about one attempt an activity's script declares, of a
+// standalone activity or of one a workflow scheduled.
 // It records what the worker did, never that the server accepted it: the worker hands its answer to
 // the SDK, which sends it afterwards. The status of the outcome that carries it says whether the
 // activation did what the Program declared.
 type ActivityAttempt struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The run of the activity the attempt belongs to, as the server named it when the activity started.
+	// An activity a workflow scheduled has no run of its own; its attempts name the workflow's run.
 	ActivityRunId string `protobuf:"bytes,1,opt,name=activity_run_id,json=activityRunId,proto3" json:"activity_run_id,omitempty"`
 	// The attempt number Temporal counts, from 1, of the attempt the worker was delivered. Unset when
 	// no attempt was delivered: the Run Event's source then names the reserved position alone, and
@@ -1657,7 +1666,7 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\x19DeliveryAdmissionDecision\x12+\n" +
 	"'DELIVERY_ADMISSION_DECISION_UNSPECIFIED\x10\x00\x12(\n" +
 	"$DELIVERY_ADMISSION_DECISION_ADMITTED\x10\x01\x12(\n" +
-	"$DELIVERY_ADMISSION_DECISION_REJECTED\x10\x02*\xea\x02\n" +
+	"$DELIVERY_ADMISSION_DECISION_REJECTED\x10\x02*\x92\x03\n" +
 	"\x17ActivityAttemptResponse\x12)\n" +
 	"%ACTIVITY_ATTEMPT_RESPONSE_UNSPECIFIED\x10\x00\x12/\n" +
 	"+ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED\x10\x01\x126\n" +
@@ -1665,7 +1674,8 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"6ACTIVITY_ATTEMPT_RESPONSE_OFFERED_FAILED_NON_RETRYABLE\x10\x03\x12%\n" +
 	"!ACTIVITY_ATTEMPT_RESPONSE_REFUSED\x10\x04\x12(\n" +
 	"$ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED\x10\x05\x12.\n" +
-	"*ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED\x10\x06*\x98\x01\n" +
+	"*ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED\x10\x06\x12&\n" +
+	"\"ACTIVITY_ATTEMPT_RESPONSE_WITHHELD\x10\a*\x98\x01\n" +
 	"\x0eRunDisposition\x12\x1f\n" +
 	"\x1bRUN_DISPOSITION_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19RUN_DISPOSITION_COMPLETED\x10\x01\x12&\n" +

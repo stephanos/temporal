@@ -343,3 +343,46 @@ func TestPrepareRejectsAnActivityScriptUnderAProfileWithoutItsCarrier(t *testing
 	require.Equal(t, testpilot.PreparationUnavailable, diagnostic.Category)
 	require.Equal(t, "activity", diagnostic.Path)
 }
+
+// A workflow start carries the attempts of the activity its workflow schedules, routed by the
+// schedule command, and a script that withholds an attempt's answer is authorized that
+// instruction alone; a Profile without it rejects the Case naming it.
+func TestDeriveProfileCarriesAScheduledActivityOnItsWorkflowsStart(t *testing.T) {
+	catalog, err := temporal.NewWorkflowServiceCatalog()
+	require.NoError(t, err)
+	source := activityCase()
+	program := source.Program
+	program.Entrypoints[0].Instructions = program.Entrypoints[0].Instructions[:1]
+	program.Entrypoints[1].Instructions[0].Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_WorkflowCommand{WorkflowCommand: &testpilotspb.WorkflowCommand{Command: &commandpb.Command{
+		CommandType: enumspb.COMMAND_TYPE_SCHEDULE_ACTIVITY_TASK,
+		Attributes: &commandpb.Command_ScheduleActivityTaskCommandAttributes{ScheduleActivityTaskCommandAttributes: &commandpb.ScheduleActivityTaskCommandAttributes{
+			ActivityType: &commonpb.ActivityType{Name: "activity-type"}, TaskQueue: &taskqueuepb.TaskQueue{Name: "queue"}, StartToCloseTimeout: durationpb.New(1000000000),
+		}},
+	}}}}
+	script := program.Entrypoints[3]
+	script.Instructions = append([]*testpilotspb.InstructionNode{{InstructionId: "withhold", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptWithholding{ActivityAttemptWithholding: &testpilotspb.ActivityAttemptWithholding{}}}}}, script.Instructions...)
+	program.Entrypoints = []*testpilotspb.Entrypoint{program.Entrypoints[0], program.Entrypoints[1], script}
+
+	profile, err := temporal.DeriveProfile(source, catalog, temporal.Environment{Identity: "scheduled", Namespace: "namespace", TaskQueue: "task-queue", NexusEndpoint: "endpoint"})
+	require.NoError(t, err)
+	require.Equal(t, testpilot.RolePolicy{ID: "workflow-service", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{startWorkflowExecution},
+		ReservationCarriers: []testpilot.ReservationCarrierPolicy{{Method: startWorkflowExecution, Shapes: []testpilot.ReservationCarrierShape{{Kind: testpilot.WorkflowEntrypoint, MaximumCount: 1}, {Kind: testpilot.ActivityEntrypoint, MaximumCount: 2}}}},
+	}, endpointPolicy(t, profile))
+	require.Contains(t, profile.Opcodes, testpilot.ActivityAttemptWithholding)
+	prepared, err := testpilot.Prepare(source, profile)
+	require.NoError(t, err)
+	plan, carried := facadetest.Capture(t, prepared).ReservationCarrier("controller", "start-workflow")
+	require.True(t, carried)
+	require.Equal(t, testpilot.ReservationCarrierPlan{EndpointRoleID: "workflow-service", Method: startWorkflowExecution,
+		Reservations: []testpilot.ReservationTopology{{EntrypointID: "workflow", Kind: testpilot.WorkflowEntrypoint, Count: 1}, {EntrypointID: "activity", Kind: testpilot.ActivityEntrypoint, Count: 2}},
+		Routes:       []testpilot.ReservationRoute{{WorkflowEntrypointID: "workflow", SourceInstructionID: "command", HandlerEntrypointID: "activity"}},
+	}, plan)
+
+	profile.Opcodes = slices.DeleteFunc(profile.Opcodes, func(opcode testpilot.Opcode) bool { return opcode == testpilot.ActivityAttemptWithholding })
+	_, err = testpilot.Prepare(source, profile)
+	var diagnostic *testpilot.PreparationError
+	require.ErrorAs(t, err, &diagnostic)
+	require.Equal(t, testpilot.PreparationUnsupported, diagnostic.Category)
+	require.Equal(t, "activity.withhold", diagnostic.Path)
+	require.Contains(t, diagnostic.Detail, "activity_attempt_withholding")
+}

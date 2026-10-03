@@ -677,7 +677,8 @@ func TestCreateBundleAdmitsOnlyTheReservationsItsStartActivates(t *testing.T) {
 		})
 	}
 
-	// A workflow start carries workflows and the Nexus handlers they reach, never an activity.
+	// A workflow start carries workflows and the Nexus handlers and activities they reach, and its
+	// activity's attempts are routed by the workflow, never started as a standalone activity.
 	f := newFixture(t, "existing-run", "existing-session")
 	ledger, err := New(Config{RunID: "run", SessionID: "session", Limits: Limits{MaxRoutes: 8, MaxHeaderBytes: 4096, MaxHandles: 8, MaxDiagnostics: 8}})
 	require.NoError(t, err)
@@ -693,5 +694,6 @@ func TestCreateBundleAdmitsOnlyTheReservationsItsStartActivates(t *testing.T) {
 		handles = append(handles, retained)
 	}
 	_, err = ledger.CreateBundle(context.Background(), origin, plan, f.binding, handles)
-	require.ErrorIs(t, err, ErrInvalid)
+	require.NoError(t, err)
+	require.Empty(t, ledger.operations)
 }

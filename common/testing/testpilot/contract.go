@@ -50,6 +50,7 @@ const (
 	ReadEvidence                = contract.ReadEvidence
 	ActivityAttemptFailure      = contract.ActivityAttemptFailure
 	ActivityAttemptCancellation = contract.ActivityAttemptCancellation
+	ActivityAttemptWithholding  = contract.ActivityAttemptWithholding
 	MaxOpcode                   = contract.MaxOpcode
 )
 

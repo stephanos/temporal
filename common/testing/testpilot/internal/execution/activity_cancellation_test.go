@@ -34,7 +34,7 @@ func TestPrepareAdmitsACanceledAnswerOnlyOfAnActivityAttempt(t *testing.T) {
 		},
 		"a Profile without the capability": {
 			mutate: func(_ *testpilotspb.Case, policy *Profile) { policy.Opcodes = policy.Opcodes[:len(policy.Opcodes)-1] },
-			want:   unsupported("activity.run-attempt"),
+			want:   &ir.Error{Category: ir.Unsupported, Path: "activity.run-attempt", Detail: "instruction activity_attempt_cancellation the Profile does not authorize"},
 		},
 		"in a workflow": {
 			mutate: func(source *testpilotspb.Case, policy *Profile) {

@@ -11,12 +11,32 @@ import (
 // instruction invoking a method the Profile names as a carrier on that endpoint reserves one activation
 // of each workflow or Nexus-handler entrypoint whose kind the carrier's shapes admit, and one
 // activation per instruction of each activity entrypoint they admit: an activity is delivered once
-// per attempt, and its script declares its attempts in order. One entrypoint's activation has one
-// carrier, so two instructions that could both carry it reject. An activity is delivered only
-// through the carrier that started it, so an activity entrypoint that carries a script no carrier
-// reserves names a capability the Profile lacks and rejects here, before any target I/O.
+// per attempt, and its script declares its attempts in order. An activity a workflow schedules is
+// delivered through the start of that workflow, so only the carrier that reserves the workflow
+// reserves it. One entrypoint's activation has one carrier, so two instructions that could both
+// carry it reject. An activity is
+// delivered only through the carrier that started it or its workflow, so an activity entrypoint
+// that carries a script no carrier reserves names a capability the Profile lacks and rejects here,
+// before any target I/O.
 func (a *admission) deriveReservations() error {
+	scheduledBy, err := a.scheduledActivities()
+	if err != nil {
+		return err
+	}
 	carriedBy := map[string]*node{}
+	// Workflows are reserved before activities, whose carrier is the one of the workflow scheduling
+	// them.
+	targets := make([]*graph, 0, len(a.prepared.graphs))
+	for _, target := range a.prepared.graphs {
+		if target.context != contract.ActivityEntrypoint {
+			targets = append(targets, target)
+		}
+	}
+	for _, target := range a.prepared.graphs {
+		if target.context == contract.ActivityEntrypoint {
+			targets = append(targets, target)
+		}
+	}
 	for _, controller := range a.prepared.graphs {
 		if controller.cleanup || controller.context != contract.ControllerEntrypoint {
 			continue
@@ -34,8 +54,11 @@ func (a *admission) deriveReservations() error {
 			for _, shape := range carrier.Shapes {
 				admitted[shape.Kind] = true
 			}
-			for _, target := range a.prepared.graphs {
+			for _, target := range targets {
 				if target.cleanup || !admitted[target.context] {
+					continue
+				}
+				if workflow, scheduled := scheduledBy[target.id]; scheduled && carriedBy[workflow] != carrierNode {
 					continue
 				}
 				if err := a.charge(1); err != nil {
@@ -61,6 +84,44 @@ func (a *admission) deriveReservations() error {
 		}
 	}
 	return nil
+}
+
+// activityKey names the activity entrypoint a schedule command reaches: its activity type on its
+// task-queue role.
+type activityKey struct {
+	activityType, queueRole string
+}
+
+// scheduledActivities maps each activity entrypoint a workflow's schedule command reaches to the
+// workflow that schedules it. One activity entrypoint's attempts follow one schedule, so a second
+// schedule of it, from the same workflow or another, rejects.
+func (a *admission) scheduledActivities() (map[string]string, error) {
+	entrypoints := map[activityKey]string{}
+	for _, target := range a.prepared.graphs {
+		if binding := target.activation.GetActivity(); target.context == contract.ActivityEntrypoint && binding != nil {
+			entrypoints[activityKey{activityType: binding.GetActivityType(), queueRole: binding.GetTaskQueueRoleId()}] = target.id
+		}
+	}
+	scheduledBy := map[string]string{}
+	for _, workflow := range a.prepared.graphs {
+		if workflow.context != contract.WorkflowEntrypoint {
+			continue
+		}
+		for _, n := range workflow.nodes {
+			if err := a.charge(1); err != nil {
+				return nil, err
+			}
+			target, reached := entrypoints[scheduledActivityOf(n.source.Instruction)]
+			if !reached {
+				continue
+			}
+			if _, duplicate := scheduledBy[target]; duplicate {
+				return nil, ir.Invalid(ir.Unsupported, nodePath(workflow, n), fmt.Sprintf("activity entrypoint %s is scheduled more than once", target))
+			}
+			scheduledBy[target] = workflow.id
+		}
+	}
+	return scheduledBy, nil
 }
 
 func (a *admission) bindReservationCarriers() error {
@@ -108,12 +169,22 @@ func (a *admission) compileCarrierTopology(controller *graph, node *node) (contr
 	}
 	plan := contract.ReservationCarrierPlan{EndpointRoleID: rpc.EndpointRoleId, Method: rpc.Method, Reservations: reservations}
 	handlerOrdinals := make(map[string]int64, len(handlers))
+	activities := map[activityKey]string{}
+	for _, reservation := range node.reservations {
+		target := a.graphIndex[reservation.EntrypointID]
+		if binding := target.activation.GetActivity(); target.context == contract.ActivityEntrypoint && binding != nil {
+			activities[activityKey{activityType: binding.GetActivityType(), queueRole: binding.GetTaskQueueRoleId()}] = target.id
+		}
+	}
 	for _, reservation := range node.reservations {
 		workflow := a.graphIndex[reservation.EntrypointID]
 		if workflow.context != contract.WorkflowEntrypoint {
 			continue
 		}
 		if err := a.appendWorkflowRoutes(controller, node, workflow, reservation.Count, handlerIndex, handlerOrdinals, &plan); err != nil {
+			return contract.ReservationCarrierPlan{}, err
+		}
+		if err := a.appendActivityRoutes(controller, node, workflow, reservation.Count, activities, &plan); err != nil {
 			return contract.ReservationCarrierPlan{}, err
 		}
 	}
@@ -190,6 +261,28 @@ func (a *admission) appendWorkflowRoutes(controller *graph, node *node, workflow
 			plan.Routes = append(plan.Routes, contract.ReservationRoute{WorkflowEntrypointID: workflow.id, WorkflowOrdinal: workflowOrdinal, SourceInstructionID: source.source.InstructionId, HandlerEntrypointID: handler.graph.id, HandlerOrdinal: handlerOrdinal})
 			ordinals[handler.graph.id] = handlerOrdinal + 1
 		}
+	}
+	return nil
+}
+
+// appendActivityRoutes routes each schedule command of the workflow that reaches a reserved
+// activity entrypoint to that entrypoint's first attempt; its later attempts follow by ordinal.
+// The carrier reserves one activation of the workflow, so the activity's attempts are reserved
+// once.
+func (a *admission) appendActivityRoutes(controller *graph, node *node, workflow *graph, count int64, activities map[activityKey]string, plan *contract.ReservationCarrierPlan) error {
+	for _, index := range workflow.order {
+		source := workflow.nodes[index]
+		target, reserved := activities[scheduledActivityOf(source.source.Instruction)]
+		if !reserved {
+			continue
+		}
+		if count != 1 {
+			return ir.Invalid(ir.Unsupported, nodePath(controller, node), "a scheduled activity's attempts are reserved for one workflow activation")
+		}
+		if err := a.charge(1); err != nil {
+			return err
+		}
+		plan.Routes = append(plan.Routes, contract.ReservationRoute{WorkflowEntrypointID: workflow.id, SourceInstructionID: source.source.InstructionId, HandlerEntrypointID: target})
 	}
 	return nil
 }

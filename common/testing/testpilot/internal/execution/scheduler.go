@@ -175,6 +175,9 @@ var reservationOutcomes = map[reservationOutcome]reservationRule{
 	{kind: contract.ActivityEntrypoint, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, response: testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_CANCELED}: {
 		verdict: reservationRecorded, attempt: deliveredAttempt,
 	},
+	{kind: contract.ActivityEntrypoint, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, response: testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_WITHHELD}: {
+		verdict: reservationRecorded, attempt: deliveredAttempt,
+	},
 	{kind: contract.ActivityEntrypoint, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE, response: testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_REFUSED}: {
 		verdict: reservationRecordedThenFailed, attempt: deliveredAttempt,
 	},

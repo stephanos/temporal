@@ -139,6 +139,9 @@ type ReservationTopology struct {
 	Count        int64
 }
 
+// ReservationRoute routes one schedule command of a reserved workflow activation to the activation
+// it reaches: a Nexus handler's, at its ordinal, or an activity's first attempt, whose later
+// attempts follow by ordinal.
 type ReservationRoute struct {
 	WorkflowEntrypointID string
 	WorkflowOrdinal      int64

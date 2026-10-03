@@ -309,6 +309,16 @@ func startsNexusOperation(instruction *testpilotspb.Instruction) bool {
 	return scheduledCommandType(instruction) == enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION
 }
 
+// scheduledActivityOf is the activity type and task-queue role an instruction's activity schedule
+// names, or the zero key for any other instruction.
+func scheduledActivityOf(instruction *testpilotspb.Instruction) activityKey {
+	if scheduledCommandType(instruction) != enumspb.COMMAND_TYPE_SCHEDULE_ACTIVITY_TASK {
+		return activityKey{}
+	}
+	attributes := instruction.GetWorkflowCommand().GetCommand().GetScheduleActivityTaskCommandAttributes()
+	return activityKey{activityType: attributes.GetActivityType().GetName(), queueRole: attributes.GetTaskQueue().GetName()}
+}
+
 // startsAwaitable reports whether an instruction starts what an AwaitInstruction of the same
 // entrypoint may await: a workflow command scheduling a Nexus operation or an activity.
 func startsAwaitable(instruction *testpilotspb.Instruction) bool {

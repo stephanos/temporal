@@ -34,7 +34,7 @@ func TestPrepareRejectsTheFirstOfTwoDefects(t *testing.T) {
 		{"missing capability before bounds", handleFixture, func(c *testpilotspb.Case, p *Profile) {
 			p.Opcodes = slices.DeleteFunc(p.Opcodes, func(opcode contract.Opcode) bool { return opcode == contract.InvokeRPC })
 			overAttempts(c.Program.Entrypoints[0].Instructions[0])
-		}, ir.Error{Category: ir.Unsupported, Path: "controller.call", Detail: unsupported}},
+		}, ir.Error{Category: ir.Unsupported, Path: "controller.call", Detail: "instruction invoke_rpc the Profile does not authorize"}},
 		{"missing instruction before bounds", handleFixture, func(c *testpilotspb.Case, _ *Profile) {
 			c.Program.Entrypoints[0].Instructions[0].Instruction = &testpilotspb.Instruction{}
 			overAttempts(c.Program.Entrypoints[0].Instructions[0])

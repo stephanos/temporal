@@ -211,7 +211,8 @@ func (a *admission) bindCarrierPolicy(carrier contract.ReservationCarrierPolicy,
 	if method.IsStreamingClient() || method.IsStreamingServer() {
 		return ir.Invalid(ir.Unsupported, "policy.reservation_carriers", "carrier method must be unary")
 	}
-	if len(carrier.Shapes) == 0 || len(carrier.Shapes) > 2 {
+	// A shape names one of the three worker activation kinds, each once.
+	if len(carrier.Shapes) == 0 || len(carrier.Shapes) > 3 {
 		return ir.Invalid(ir.Malformed, "policy.reservation_carriers", "carrier shape is empty or oversized")
 	}
 	seen := map[contract.EntrypointKind]bool{}
