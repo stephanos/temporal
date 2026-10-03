@@ -64,7 +64,7 @@ func TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds(t *testing.T) {
 			config := CampaignSpec{KeepSuccesses: test.policy, SuccessArtifactLimit: 3, SuccessBytesLimit: 100}
 			assessed := completedExecution{coverage: deterministicio.SemanticCoverage{Probes: test.probes}, choiceFeatures: test.choices}
 			seenProbes, seenChoices := map[string]struct{}{"seen": {}, "seen probe": {}}, map[string]struct{}{"seen": {}, "seen choice": {}}
-			decision, hostError := decideSuccessRetention(config, assessed, !test.incomplete, seenProbes, seenChoices, test.retained, test.retainedBytes)
+			decision, hostError := decideSuccessRetention(newCampaignRun(config), assessed, !test.incomplete, seenProbes, seenChoices, test.retained, test.retainedBytes)
 			failure := ""
 			if hostError != nil {
 				failure = hostError.Reason + ": " + hostError.Err.Error()

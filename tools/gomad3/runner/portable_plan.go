@@ -68,12 +68,12 @@ func CreateCampaignPlan(ctx context.Context, spec CampaignPlanSpec) (_ CampaignP
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	config := spec.Campaign
+	config := newCampaignRun(spec.Campaign)
 	selection, environment, err := validateConfig(config)
 	if err != nil {
 		return CampaignPlanResult{}, err
 	}
-	if normalizedStrategy(config.Strategy) != StrategySeed || config.OnFailure != PolicyAll {
+	if config.Strategy != StrategySeed || config.OnFailure != PolicyAll {
 		return CampaignPlanResult{}, errors.New("portable campaign plans require a seed campaign with on-failure=all")
 	}
 	if config.Shard.Count != 0 || config.PlanSHA256 != "" || config.ResumeCampaign != "" {

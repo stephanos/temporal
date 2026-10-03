@@ -6,8 +6,8 @@
     "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
     "error": "",
     "isolated_error": "gomad3 Runner/host failure: coordinator_start: fork/exec /nonexistent/gomad3-characterization-coordinator: no such file or directory",
-    "request_sha256": "sha256:19238d9724c46cfcd558fa18fbbf985b8f57bab942adfc1ff3900e16ab473145",
-    "request": "{\"ResumeCampaign\":\"\",\"PlanSHA256\":\"\",\"Shard\":{\"index\":0,\"count\":0},\"Strategy\":\"\",\"Seeds\":\"7-9\",\"Parallel\":2,\"ExecutionTimeout\":3000000000,\"OverallTimeout\":987654321,\"TerminateGrace\":1000000000,\"OnFailure\":\"all\",\"FailureBudget\":1,\"OutputLimit\":4096,\"WorldTransitionLimit\":8192,\"ChoiceTraceLimit\":0,\"ClockTick\":\"\",\"IOTranscriptLimit\":0,\"MaxExecutions\":0,\"MaxChoiceDepth\":0,\"ChoiceStartOrdinal\":0,\"MaxForcedDecisions\":0,\"MaxExplorationBytes\":0,\"MaxExplorationResultBytes\":0,\"SimulationDimensionLimits\":{\"runtime\":0,\"scenario\":0,\"network\":0,\"storage\":0,\"fault\":0,\"crash\":0},\"Artifacts\":\"/artifacts\",\"Environment\":[\"ZETA=1\",\"ALPHA=2\"],\"IOROMounts\":null,\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0},\"Target\":{\"Kind\":\"go-run\",\"Source\":\"./cmd/target\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":[\"tag\"],\"WorkingDir\":\"/\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"SupervisorCommand\":[\"/bin/gomad\",\"__supervisor\"],\"RunnerBuild\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"Coverage\":\"\",\"RequiredSemanticProbes\":null,\"CollectExecutionEvidence\":false,\"KeepSuccesses\":\"\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0,\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"Corpus\":\"\",\"GuideSnapshotSHA256\":\"\",\"ProgressInterval\":250000000}",
+    "request_sha256": "sha256:69ecbaf646e71746c146e7f3b9a70c4711d99f91ad402c5d9e85d19f80c2864d",
+    "request": "{\"Options\":{\"Target\":{\"ResumeCampaign\":\"\",\"PlanSHA256\":\"\",\"Shard\":{\"index\":0,\"count\":0},\"Target\":{\"Kind\":\"go-run\",\"Source\":\"./cmd/target\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":[\"tag\"],\"WorkingDir\":\"/\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"Environment\":[\"ZETA=1\",\"ALPHA=2\"],\"ClockTick\":\"\",\"IOROMounts\":null,\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0}},\"Search\":{\"Strategy\":\"seed\",\"Seeds\":\"7-9\",\"Parallel\":2,\"OnFailure\":\"all\",\"FailureBudget\":1,\"MaxExecutions\":0,\"MaxChoiceDepth\":0,\"ChoiceStartOrdinal\":0,\"MaxForcedDecisions\":0,\"MaxExplorationBytes\":0,\"MaxExplorationResultBytes\":0,\"SimulationDimensionLimits\":{\"runtime\":0,\"scenario\":0,\"network\":0,\"storage\":0,\"fault\":0,\"crash\":0},\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"Corpus\":\"\",\"GuideSnapshotSHA256\":\"\"},\"Limits\":{\"ExecutionTimeout\":3000000000,\"OverallTimeout\":987654321,\"TerminateGrace\":1000000000,\"OutputLimit\":4096,\"WorldTransitionLimit\":8192,\"IOTranscriptLimit\":0},\"Observation\":{\"ChoiceTraceLimit\":0,\"Coverage\":\"\",\"RequiredSemanticProbes\":null,\"CollectExecutionEvidence\":false,\"ProgressInterval\":250000000},\"Retention\":{\"Artifacts\":\"/artifacts\",\"KeepSuccesses\":\"\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0}},\"SupervisorCommand\":[\"/bin/gomad\",\"__supervisor\"],\"RunnerBuild\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
     "legacy_request_sha256": "sha256:a80e10be866290e5889aa32e237e56009fcc9eeb562f6e446fd2072d588cccf1",
     "legacy_request": "{\"Artifacts\":\"/artifacts\",\"ChoiceStartOrdinal\":0,\"ChoiceTraceLimit\":0,\"ClockTick\":\"\",\"CollectExecutionEvidence\":false,\"Corpus\":\"\",\"Coverage\":\"\",\"Environment\":[\"ZETA=1\",\"ALPHA=2\"],\"ExecutionTimeout\":3000000000,\"FailureBudget\":1,\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"GuideSnapshotSHA256\":\"\",\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0},\"IOROMounts\":null,\"IOTranscriptLimit\":0,\"KeepSuccesses\":\"\",\"MaxChoiceDepth\":0,\"MaxExecutions\":0,\"MaxExplorationBytes\":0,\"MaxExplorationResultBytes\":0,\"MaxForcedDecisions\":0,\"OnFailure\":\"all\",\"OutputLimit\":4096,\"OverallTimeout\":987654321,\"Parallel\":2,\"PlanSHA256\":\"\",\"ProgressInterval\":250000000,\"RequiredSemanticProbes\":null,\"ResumeCampaign\":\"\",\"RunnerBuild\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"Seeds\":\"7-9\",\"Shard\":{\"index\":0,\"count\":0},\"SimulationDimensionLimits\":{\"runtime\":0,\"scenario\":0,\"network\":0,\"storage\":0,\"fault\":0,\"crash\":0},\"Strategy\":\"seed\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0,\"SupervisorCommand\":[\"/bin/gomad\",\"__supervisor\"],\"Target\":{\"Kind\":\"go-run\",\"Source\":\"./cmd/target\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":[\"tag\"],\"WorkingDir\":\"/\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"TerminateGrace\":1000000000,\"WorldTransitionLimit\":8192}",
     "plan_sha256": "sha256:52e7277a075550c9054e3e5ab173e9ab304370d97bbe6427459fe9c4982382e6",
@@ -20,7 +20,7 @@
     "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
     "error": "",
     "isolated_error": "gomad3 Runner/host failure: coordinator_start: fork/exec /nonexistent/gomad3-characterization-coordinator: no such file or directory",
-    "request_sha256": "sha256:f6f89e422de980075324fb3b6778beb7a51b1ff6f6c117917e204b6c0971c4ea",
+    "request_sha256": "sha256:69ecbaf646e71746c146e7f3b9a70c4711d99f91ad402c5d9e85d19f80c2864d",
     "legacy_request_sha256": "sha256:a80e10be866290e5889aa32e237e56009fcc9eeb562f6e446fd2072d588cccf1",
     "plan_sha256": "sha256:52e7277a075550c9054e3e5ab173e9ab304370d97bbe6427459fe9c4982382e6"
   },
@@ -30,7 +30,7 @@
     "selection_count": 3,
     "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
     "error": "",
-    "request_sha256": "sha256:96efd3c80f015a0135dd0e8bb15b393d6837e99edbaed9d03b6909336ff66341",
+    "request_sha256": "sha256:802287fea373762b15d39db87a7a6867b8a924d40a18a4185075ae58447b4c1e",
     "legacy_request_sha256": "sha256:bde90e2421bede41972e66fa97bdaf16a2624e29998f1b69c888d4088c01b3a1",
     "plan_sha256": "sha256:088d2d513d37597dd6e1adaf5849599fc4cc5f670bd0deb67f9568fc5ad3c03d"
   },
@@ -40,7 +40,7 @@
     "selection_count": 3,
     "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
     "error": "",
-    "request_sha256": "sha256:f99bd5908d9754b946c7be8397ada05d60f680397f61badb405d48faeaba97e7",
+    "request_sha256": "sha256:f7b8a3a5e15845f92b2866d3d0ba784ddba76d9a900ca65f7b702145b15d748c",
     "legacy_request_sha256": "sha256:943c8e865a8126b6280501e7ecb67cc51fd1bc7b8ba5852ec8424d20f4270439",
     "plan_sha256": "sha256:af6da68b9c5aa7e0be87219c7e12301dcf60209460c5e1686cb50d488c6d5d88"
   },
@@ -51,7 +51,7 @@
     "environment": "ALPHA=2 GOMAD3_CHOICE_PROFILE=gomad3-choice-trace/v3 GOMAD3_CLOCK_TICK=forward GOMAD3_DIAGNOSTIC_PROFILE=gomad3-diagnostic-trace/v1 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
     "error": "",
     "isolated_error": "gomad3 Runner/host failure: coordinator_start: fork/exec /nonexistent/gomad3-characterization-coordinator: no such file or directory",
-    "request_sha256": "sha256:a7e474d679aebe8cef5684287f595392684ccfc0d8fd0b912108fd4efcfe7833",
+    "request_sha256": "sha256:85741cd1dc92d172d4e49795a9d032c738cf62f6cc30526725c80259a479f8ed",
     "legacy_request_sha256": "sha256:70412c480c2cc3456b461e4c2e84c9a365e1b86d9917b9f0aadc7f38947ca983",
     "plan_sha256": "sha256:dc5306748bbe1a7c27f21ae6ed381ca14adacfed287ad816d9eec965c28e02cc"
   },
@@ -61,7 +61,7 @@
     "selection_count": 3,
     "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
     "error": "",
-    "request_sha256": "sha256:ef2b8d2ddd2e9e5f6f89d526ab12dd29b74c67ff158ed661896548304bf931e1",
+    "request_sha256": "sha256:0d3c1e714c2d0772f2cf83b4a185d3138049ad52612ea0c73bd9aef208f8a28d",
     "legacy_request_sha256": "sha256:987b6e4bda15b73120fb1512a89f19b25affc5d9b8169d24d5228e2ddd0e9291",
     "plan_sha256": "sha256:52e7277a075550c9054e3e5ab173e9ab304370d97bbe6427459fe9c4982382e6"
   },
@@ -71,7 +71,7 @@
     "selection_count": 3,
     "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
     "error": "",
-    "request_sha256": "sha256:f003772c7f24bfdd347c3102476a0da00d7125fbc8473fee1bac6ec9269957b6",
+    "request_sha256": "sha256:56d397c6945ad49600b0da8c36536f9bbbd72bc1d8cbdaafc23bdbbc5fcf3905",
     "legacy_request_sha256": "sha256:ade0f28d0e66b08c3fd5eeb7a0b7b93ebdc63300dc59519ee4e8038fa9bc1289",
     "plan_sha256": "sha256:958daf63ee2e48ef1c18d96f67e27162dd4a4f4d0f9bac493107023dd8149a25"
   },
@@ -81,7 +81,7 @@
     "selection_count": 3,
     "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
     "error": "",
-    "request_sha256": "sha256:822b60e7555cbf405876ae4762339e19f9194c999ef8535ff2b53822d878d24a",
+    "request_sha256": "sha256:938439939e1c03df7869ceccf374db2b79088fb06b448a1f316a1971b6cb81f0",
     "legacy_request_sha256": "sha256:48a6bcffb7e85369031a14a2541ed8f9f1247c46fe774bb994a524a793d72025",
     "plan_sha256": "sha256:958daf63ee2e48ef1c18d96f67e27162dd4a4f4d0f9bac493107023dd8149a25"
   },
@@ -91,7 +91,7 @@
     "selection_count": 3,
     "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
     "error": "",
-    "request_sha256": "sha256:747b1fca2a52b46e9960c9b1ddbf2ba7a1e5d386700af08fdb92df32297fc0b1",
+    "request_sha256": "sha256:8882d3785a8317251b18682472e5b87f679a1d1cf285e73bf2a262b51f872f1b",
     "legacy_request_sha256": "sha256:3d7b7db30514e44fb519fec5eaab64ec9fce6bf2ae0011e15500eeafd77228d0",
     "plan_sha256": "sha256:95503603be6e2acfacc4d994c5ffce3611d4e6b12254f25db2f5bb91ea9d8ea9"
   },
@@ -101,7 +101,7 @@
     "selection_count": 3,
     "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
     "error": "",
-    "request_sha256": "sha256:b2b134826abed43a18cdcd8a1346bd9282dd7965267ab3afcddb5106c52eb6fa",
+    "request_sha256": "sha256:6b26136e93a99842a7233d7097a649c99f704be80c49be97e7f1997e704929b8",
     "legacy_request_sha256": "sha256:988f2e9b369cc3d8690fe85e4afa0753f7e6e2b23869fe84adc7168008e2b654",
     "plan_sha256": "sha256:377588f4d4bfc2200203054ede66d01bbc5dc23202aec1b65739b97117d09424"
   },
@@ -111,7 +111,7 @@
     "selection_count": 1,
     "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
     "error": "",
-    "request_sha256": "sha256:da0444a16cc6788fdd03f8f20111df66ea0059de6995623cc6131d1c5ebd6634",
+    "request_sha256": "sha256:85dc534d184bb172da6c97df84e5035c9495edb5edef8a4f79ab719a00d0b413",
     "legacy_request_sha256": "sha256:e06d343d5cbff1931919ed9983af2a48935544adfabb1617061dfc3248d20ac1",
     "plan_sha256": "sha256:e584c2e35c753d6106cf4638755889654476b89ec66f6a11f8873c443f1478fa"
   },
@@ -122,7 +122,7 @@
     "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
     "error": "",
     "isolated_error": "gomad3 Runner/host failure: coordinator_start: fork/exec /nonexistent/gomad3-characterization-coordinator: no such file or directory",
-    "request_sha256": "sha256:30babef587d71edfd0b0013d77b884ba06262b8ec8d23e60de66c09323431330",
+    "request_sha256": "sha256:a032c6339222fc46466f324e51a002ecf787a7c4354fa080c043232371b50ffa",
     "legacy_request_sha256": "sha256:4bad66e01d0d32d210871e1bfc51960f373d8b1794b198e5bdb046b1cb0119c2",
     "plan_sha256": "sha256:b96574f5bd57e1669ab7e7642fc81d57e05e685f159343e70e820d0ba11585ac"
   },
@@ -133,8 +133,8 @@
     "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
     "error": "",
     "isolated_error": "gomad3 Runner/host failure: coordinator_start: fork/exec /nonexistent/gomad3-characterization-coordinator: no such file or directory",
-    "request_sha256": "sha256:096e8349ced4dc6e535403105892a17ba096ddb7479e3cd5eebcf863ec2b66e1",
-    "request": "{\"ResumeCampaign\":\"\",\"PlanSHA256\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"Shard\":{\"index\":1,\"count\":3},\"Strategy\":\"\",\"Seeds\":\"7-9\",\"Parallel\":2,\"ExecutionTimeout\":3000000000,\"OverallTimeout\":987654321,\"TerminateGrace\":1000000000,\"OnFailure\":\"all\",\"FailureBudget\":1,\"OutputLimit\":4096,\"WorldTransitionLimit\":8192,\"ChoiceTraceLimit\":0,\"ClockTick\":\"\",\"IOTranscriptLimit\":0,\"MaxExecutions\":0,\"MaxChoiceDepth\":0,\"ChoiceStartOrdinal\":0,\"MaxForcedDecisions\":0,\"MaxExplorationBytes\":0,\"MaxExplorationResultBytes\":0,\"SimulationDimensionLimits\":{\"runtime\":0,\"scenario\":0,\"network\":0,\"storage\":0,\"fault\":0,\"crash\":0},\"Artifacts\":\"/artifacts\",\"Environment\":[\"ZETA=1\",\"ALPHA=2\"],\"IOROMounts\":null,\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0},\"Target\":{\"Kind\":\"go-run\",\"Source\":\"./cmd/target\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":[\"tag\"],\"WorkingDir\":\"/\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"SupervisorCommand\":[\"/bin/gomad\",\"__supervisor\"],\"RunnerBuild\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"Coverage\":\"\",\"RequiredSemanticProbes\":null,\"CollectExecutionEvidence\":false,\"KeepSuccesses\":\"\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0,\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"Corpus\":\"\",\"GuideSnapshotSHA256\":\"\",\"ProgressInterval\":250000000}",
+    "request_sha256": "sha256:7a73f4d553f72b3b102aeca39b07d5e55e22c179a6a4aeabf55094d85315b435",
+    "request": "{\"Options\":{\"Target\":{\"ResumeCampaign\":\"\",\"PlanSHA256\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"Shard\":{\"index\":1,\"count\":3},\"Target\":{\"Kind\":\"go-run\",\"Source\":\"./cmd/target\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":[\"tag\"],\"WorkingDir\":\"/\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"Environment\":[\"ZETA=1\",\"ALPHA=2\"],\"ClockTick\":\"\",\"IOROMounts\":null,\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0}},\"Search\":{\"Strategy\":\"seed\",\"Seeds\":\"7-9\",\"Parallel\":2,\"OnFailure\":\"all\",\"FailureBudget\":1,\"MaxExecutions\":0,\"MaxChoiceDepth\":0,\"ChoiceStartOrdinal\":0,\"MaxForcedDecisions\":0,\"MaxExplorationBytes\":0,\"MaxExplorationResultBytes\":0,\"SimulationDimensionLimits\":{\"runtime\":0,\"scenario\":0,\"network\":0,\"storage\":0,\"fault\":0,\"crash\":0},\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"Corpus\":\"\",\"GuideSnapshotSHA256\":\"\"},\"Limits\":{\"ExecutionTimeout\":3000000000,\"OverallTimeout\":987654321,\"TerminateGrace\":1000000000,\"OutputLimit\":4096,\"WorldTransitionLimit\":8192,\"IOTranscriptLimit\":0},\"Observation\":{\"ChoiceTraceLimit\":0,\"Coverage\":\"\",\"RequiredSemanticProbes\":null,\"CollectExecutionEvidence\":false,\"ProgressInterval\":250000000},\"Retention\":{\"Artifacts\":\"/artifacts\",\"KeepSuccesses\":\"\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0}},\"SupervisorCommand\":[\"/bin/gomad\",\"__supervisor\"],\"RunnerBuild\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
     "legacy_request_sha256": "sha256:2ecfc436f4ccf68a9524908c0da92b43201cc8a8ba1aacd787a38dbdceb620b6",
     "legacy_request": "{\"Artifacts\":\"/artifacts\",\"ChoiceStartOrdinal\":0,\"ChoiceTraceLimit\":0,\"ClockTick\":\"\",\"CollectExecutionEvidence\":false,\"Corpus\":\"\",\"Coverage\":\"\",\"Environment\":[\"ZETA=1\",\"ALPHA=2\"],\"ExecutionTimeout\":3000000000,\"FailureBudget\":1,\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"GuideSnapshotSHA256\":\"\",\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0},\"IOROMounts\":null,\"IOTranscriptLimit\":0,\"KeepSuccesses\":\"\",\"MaxChoiceDepth\":0,\"MaxExecutions\":0,\"MaxExplorationBytes\":0,\"MaxExplorationResultBytes\":0,\"MaxForcedDecisions\":0,\"OnFailure\":\"all\",\"OutputLimit\":4096,\"OverallTimeout\":987654321,\"Parallel\":2,\"PlanSHA256\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"ProgressInterval\":250000000,\"RequiredSemanticProbes\":null,\"ResumeCampaign\":\"\",\"RunnerBuild\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"Seeds\":\"7-9\",\"Shard\":{\"index\":1,\"count\":3},\"SimulationDimensionLimits\":{\"runtime\":0,\"scenario\":0,\"network\":0,\"storage\":0,\"fault\":0,\"crash\":0},\"Strategy\":\"seed\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0,\"SupervisorCommand\":[\"/bin/gomad\",\"__supervisor\"],\"Target\":{\"Kind\":\"go-run\",\"Source\":\"./cmd/target\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":[\"tag\"],\"WorkingDir\":\"/\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"TerminateGrace\":1000000000,\"WorldTransitionLimit\":8192}",
     "plan_sha256": "sha256:fe02c23660fad8cf1c263b7e90c28b4c3d2d0e86f044f6262092c0a4806c925a",
@@ -146,7 +146,7 @@
     "selection_count": 3,
     "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
     "error": "",
-    "request_sha256": "sha256:a5e78d08da3b908424efd7ff1cec8c7d2fdfe55c0745a2d78117b3aae418efa0",
+    "request_sha256": "sha256:4a57ca6a54de4f5813c0ff0f0e0774f4aad568af9a76e3d81cbfb3476954f034",
     "legacy_request_sha256": "sha256:48a4bb0b54e86efc35a5838331056ac4c365555266fe5164ec14998b32d75d53",
     "plan_sha256": "sha256:d1e38128c7dd83f5952130152e07ec862dba6e610fa02dc8c19a5b4417e697d8"
   },
@@ -157,8 +157,8 @@
     "environment": "ALPHA=2 GOMAD3_CHOICE_PROFILE=gomad3-choice-trace/v3 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
     "error": "",
     "isolated_error": "gomad3 Runner/host failure: coordinator_start: fork/exec /nonexistent/gomad3-characterization-coordinator: no such file or directory",
-    "request_sha256": "sha256:76126e6529d6cd41a969128860f640479e1b7f9e874a1dc8db5a431ba9f56ee6",
-    "request": "{\"ResumeCampaign\":\"\",\"PlanSHA256\":\"\",\"Shard\":{\"index\":0,\"count\":0},\"Strategy\":\"choice-exploration\",\"Seeds\":\"7\",\"Parallel\":2,\"ExecutionTimeout\":3000000000,\"OverallTimeout\":987654321,\"TerminateGrace\":1000000000,\"OnFailure\":\"all\",\"FailureBudget\":1,\"OutputLimit\":4096,\"WorldTransitionLimit\":8192,\"ChoiceTraceLimit\":160,\"ClockTick\":\"\",\"IOTranscriptLimit\":0,\"MaxExecutions\":8,\"MaxChoiceDepth\":4,\"ChoiceStartOrdinal\":2,\"MaxForcedDecisions\":0,\"MaxExplorationBytes\":1048576,\"MaxExplorationResultBytes\":0,\"SimulationDimensionLimits\":{\"runtime\":0,\"scenario\":0,\"network\":0,\"storage\":0,\"fault\":0,\"crash\":0},\"Artifacts\":\"/artifacts\",\"Environment\":[\"ZETA=1\",\"ALPHA=2\"],\"IOROMounts\":null,\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0},\"Target\":{\"Kind\":\"go-run\",\"Source\":\"./cmd/target\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":[\"tag\"],\"WorkingDir\":\"/\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"SupervisorCommand\":[\"/bin/gomad\",\"__supervisor\"],\"RunnerBuild\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"Coverage\":\"\",\"RequiredSemanticProbes\":null,\"CollectExecutionEvidence\":false,\"KeepSuccesses\":\"\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0,\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"Corpus\":\"\",\"GuideSnapshotSHA256\":\"\",\"ProgressInterval\":250000000}",
+    "request_sha256": "sha256:90e59eaf31a15ae7c42b1a468af3a715f58fcb2172a66ec192cd4d14fdbdbc4a",
+    "request": "{\"Options\":{\"Target\":{\"ResumeCampaign\":\"\",\"PlanSHA256\":\"\",\"Shard\":{\"index\":0,\"count\":0},\"Target\":{\"Kind\":\"go-run\",\"Source\":\"./cmd/target\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":[\"tag\"],\"WorkingDir\":\"/\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"Environment\":[\"ZETA=1\",\"ALPHA=2\"],\"ClockTick\":\"\",\"IOROMounts\":null,\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0}},\"Search\":{\"Strategy\":\"choice-exploration\",\"Seeds\":\"7\",\"Parallel\":2,\"OnFailure\":\"all\",\"FailureBudget\":1,\"MaxExecutions\":8,\"MaxChoiceDepth\":4,\"ChoiceStartOrdinal\":2,\"MaxForcedDecisions\":0,\"MaxExplorationBytes\":1048576,\"MaxExplorationResultBytes\":0,\"SimulationDimensionLimits\":{\"runtime\":0,\"scenario\":0,\"network\":0,\"storage\":0,\"fault\":0,\"crash\":0},\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"Corpus\":\"\",\"GuideSnapshotSHA256\":\"\"},\"Limits\":{\"ExecutionTimeout\":3000000000,\"OverallTimeout\":987654321,\"TerminateGrace\":1000000000,\"OutputLimit\":4096,\"WorldTransitionLimit\":8192,\"IOTranscriptLimit\":0},\"Observation\":{\"ChoiceTraceLimit\":160,\"Coverage\":\"\",\"RequiredSemanticProbes\":null,\"CollectExecutionEvidence\":false,\"ProgressInterval\":250000000},\"Retention\":{\"Artifacts\":\"/artifacts\",\"KeepSuccesses\":\"\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0}},\"SupervisorCommand\":[\"/bin/gomad\",\"__supervisor\"],\"RunnerBuild\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
     "legacy_request_sha256": "sha256:d5b8d2e83338505a208db831ca664a916219eef65437151f4a93372ff96693bd",
     "legacy_request": "{\"Artifacts\":\"/artifacts\",\"ChoiceStartOrdinal\":2,\"ChoiceTraceLimit\":160,\"ClockTick\":\"\",\"CollectExecutionEvidence\":false,\"Corpus\":\"\",\"Coverage\":\"\",\"Environment\":[\"ZETA=1\",\"ALPHA=2\"],\"ExecutionTimeout\":3000000000,\"FailureBudget\":1,\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"GuideSnapshotSHA256\":\"\",\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0},\"IOROMounts\":null,\"IOTranscriptLimit\":0,\"KeepSuccesses\":\"\",\"MaxChoiceDepth\":4,\"MaxExecutions\":8,\"MaxExplorationBytes\":1048576,\"MaxExplorationResultBytes\":0,\"MaxForcedDecisions\":0,\"OnFailure\":\"all\",\"OutputLimit\":4096,\"OverallTimeout\":987654321,\"Parallel\":2,\"PlanSHA256\":\"\",\"ProgressInterval\":250000000,\"RequiredSemanticProbes\":null,\"ResumeCampaign\":\"\",\"RunnerBuild\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"Seeds\":\"7\",\"Shard\":{\"index\":0,\"count\":0},\"SimulationDimensionLimits\":{\"runtime\":0,\"scenario\":0,\"network\":0,\"storage\":0,\"fault\":0,\"crash\":0},\"Strategy\":\"choice-exploration\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0,\"SupervisorCommand\":[\"/bin/gomad\",\"__supervisor\"],\"Target\":{\"Kind\":\"go-run\",\"Source\":\"./cmd/target\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":[\"tag\"],\"WorkingDir\":\"/\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"TerminateGrace\":1000000000,\"WorldTransitionLimit\":8192}",
     "plan_sha256": "sha256:04c4794250ff352bab0850f3bc20bafb0b1c95df3735ed29b4ea469126310cd3",
@@ -171,8 +171,8 @@
     "environment": "ALPHA=2 GOMAD3_CHOICE_PROFILE=gomad3-choice-trace/v3 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
     "error": "",
     "isolated_error": "gomad3 Runner/host failure: coordinator_start: fork/exec /nonexistent/gomad3-characterization-coordinator: no such file or directory",
-    "request_sha256": "sha256:956f245cefe7dd385a526380e3ed999dab91beaf6e1db0ea696cfb22e8e706a1",
-    "request": "{\"ResumeCampaign\":\"\",\"PlanSHA256\":\"\",\"Shard\":{\"index\":0,\"count\":0},\"Strategy\":\"simulation-exploration\",\"Seeds\":\"89\",\"Parallel\":2,\"ExecutionTimeout\":3000000000,\"OverallTimeout\":987654321,\"TerminateGrace\":1000000000,\"OnFailure\":\"budget\",\"FailureBudget\":4,\"OutputLimit\":4096,\"WorldTransitionLimit\":8192,\"ChoiceTraceLimit\":9437184,\"ClockTick\":\"\",\"IOTranscriptLimit\":0,\"MaxExecutions\":16,\"MaxChoiceDepth\":0,\"ChoiceStartOrdinal\":0,\"MaxForcedDecisions\":3,\"MaxExplorationBytes\":2097152,\"MaxExplorationResultBytes\":3145728,\"SimulationDimensionLimits\":{\"runtime\":5,\"scenario\":11,\"network\":13,\"storage\":17,\"fault\":19,\"crash\":23},\"Artifacts\":\"/artifacts\",\"Environment\":[\"ZETA=1\",\"ALPHA=2\"],\"IOROMounts\":null,\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0},\"Target\":{\"Kind\":\"go-run\",\"Source\":\"./cmd/target\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":[\"tag\"],\"WorkingDir\":\"/\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"SupervisorCommand\":[\"/bin/gomad\",\"__supervisor\"],\"RunnerBuild\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"Coverage\":\"\",\"RequiredSemanticProbes\":null,\"CollectExecutionEvidence\":false,\"KeepSuccesses\":\"\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0,\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"Corpus\":\"\",\"GuideSnapshotSHA256\":\"\",\"ProgressInterval\":250000000}",
+    "request_sha256": "sha256:3d02680b70e4a27195c8761e7d82d3508912c2f2ae97470fd7243d76264ea0dc",
+    "request": "{\"Options\":{\"Target\":{\"ResumeCampaign\":\"\",\"PlanSHA256\":\"\",\"Shard\":{\"index\":0,\"count\":0},\"Target\":{\"Kind\":\"go-run\",\"Source\":\"./cmd/target\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":[\"tag\"],\"WorkingDir\":\"/\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"Environment\":[\"ZETA=1\",\"ALPHA=2\"],\"ClockTick\":\"\",\"IOROMounts\":null,\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0}},\"Search\":{\"Strategy\":\"simulation-exploration\",\"Seeds\":\"89\",\"Parallel\":2,\"OnFailure\":\"budget\",\"FailureBudget\":4,\"MaxExecutions\":16,\"MaxChoiceDepth\":0,\"ChoiceStartOrdinal\":0,\"MaxForcedDecisions\":3,\"MaxExplorationBytes\":2097152,\"MaxExplorationResultBytes\":3145728,\"SimulationDimensionLimits\":{\"runtime\":5,\"scenario\":11,\"network\":13,\"storage\":17,\"fault\":19,\"crash\":23},\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"Corpus\":\"\",\"GuideSnapshotSHA256\":\"\"},\"Limits\":{\"ExecutionTimeout\":3000000000,\"OverallTimeout\":987654321,\"TerminateGrace\":1000000000,\"OutputLimit\":4096,\"WorldTransitionLimit\":8192,\"IOTranscriptLimit\":0},\"Observation\":{\"ChoiceTraceLimit\":9437184,\"Coverage\":\"\",\"RequiredSemanticProbes\":null,\"CollectExecutionEvidence\":false,\"ProgressInterval\":250000000},\"Retention\":{\"Artifacts\":\"/artifacts\",\"KeepSuccesses\":\"\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0}},\"SupervisorCommand\":[\"/bin/gomad\",\"__supervisor\"],\"RunnerBuild\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
     "legacy_request_sha256": "sha256:2f7bb51003a33a57fed6820c42ed6b5663c7c805baaf1bd2429e1062b40f8bf9",
     "legacy_request": "{\"Artifacts\":\"/artifacts\",\"ChoiceStartOrdinal\":0,\"ChoiceTraceLimit\":9437184,\"ClockTick\":\"\",\"CollectExecutionEvidence\":false,\"Corpus\":\"\",\"Coverage\":\"\",\"Environment\":[\"ZETA=1\",\"ALPHA=2\"],\"ExecutionTimeout\":3000000000,\"FailureBudget\":4,\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"GuideSnapshotSHA256\":\"\",\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0},\"IOROMounts\":null,\"IOTranscriptLimit\":0,\"KeepSuccesses\":\"\",\"MaxChoiceDepth\":0,\"MaxExecutions\":16,\"MaxExplorationBytes\":2097152,\"MaxExplorationResultBytes\":3145728,\"MaxForcedDecisions\":3,\"OnFailure\":\"budget\",\"OutputLimit\":4096,\"OverallTimeout\":987654321,\"Parallel\":2,\"PlanSHA256\":\"\",\"ProgressInterval\":250000000,\"RequiredSemanticProbes\":null,\"ResumeCampaign\":\"\",\"RunnerBuild\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"Seeds\":\"89\",\"Shard\":{\"index\":0,\"count\":0},\"SimulationDimensionLimits\":{\"runtime\":5,\"scenario\":11,\"network\":13,\"storage\":17,\"fault\":19,\"crash\":23},\"Strategy\":\"simulation-exploration\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0,\"SupervisorCommand\":[\"/bin/gomad\",\"__supervisor\"],\"Target\":{\"Kind\":\"go-run\",\"Source\":\"./cmd/target\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":[\"tag\"],\"WorkingDir\":\"/\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"TerminateGrace\":1000000000,\"WorldTransitionLimit\":8192}",
     "plan_sha256": "sha256:efa8d01e7a3d7d8a0405347a9af8faf5863c2aa55bd69d0f0b3469696ac7c21e",
@@ -184,8 +184,8 @@
     "selection_count": 0,
     "environment": "",
     "error": "",
-    "request_sha256": "sha256:47c23cde64aeaebf4a69ea1d7c9bc47927722679691eac047406920938fc54dd",
-    "request": "{\"ResumeCampaign\":\"/campaigns/v1/resumed\",\"PlanSHA256\":\"\",\"Shard\":{\"index\":0,\"count\":0},\"Strategy\":\"\",\"Seeds\":\"\",\"Parallel\":0,\"ExecutionTimeout\":0,\"OverallTimeout\":987654321,\"TerminateGrace\":0,\"OnFailure\":\"\",\"FailureBudget\":0,\"OutputLimit\":0,\"WorldTransitionLimit\":0,\"ChoiceTraceLimit\":0,\"ClockTick\":\"\",\"IOTranscriptLimit\":0,\"MaxExecutions\":0,\"MaxChoiceDepth\":0,\"ChoiceStartOrdinal\":0,\"MaxForcedDecisions\":0,\"MaxExplorationBytes\":0,\"MaxExplorationResultBytes\":0,\"SimulationDimensionLimits\":{\"runtime\":0,\"scenario\":0,\"network\":0,\"storage\":0,\"fault\":0,\"crash\":0},\"Artifacts\":\"\",\"Environment\":null,\"IOROMounts\":null,\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0},\"Target\":{\"Kind\":\"\",\"Source\":\"\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":null,\"WorkingDir\":\"\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"SupervisorCommand\":[\"/bin/gomad\",\"__supervisor\"],\"RunnerBuild\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"Coverage\":\"\",\"RequiredSemanticProbes\":null,\"CollectExecutionEvidence\":false,\"KeepSuccesses\":\"\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0,\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"Corpus\":\"\",\"GuideSnapshotSHA256\":\"\",\"ProgressInterval\":1000000000}",
+    "request_sha256": "sha256:8ad8a8320c6c36682fe09e35623fe092991be09b2302b432e1c0d54d11c8726b",
+    "request": "{\"Options\":{\"Target\":{\"ResumeCampaign\":\"/campaigns/v1/resumed\",\"PlanSHA256\":\"\",\"Shard\":{\"index\":0,\"count\":0},\"Target\":{\"Kind\":\"\",\"Source\":\"\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":null,\"WorkingDir\":\"\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"Environment\":null,\"ClockTick\":\"\",\"IOROMounts\":null,\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0}},\"Search\":{\"Strategy\":\"seed\",\"Seeds\":\"\",\"Parallel\":0,\"OnFailure\":\"\",\"FailureBudget\":0,\"MaxExecutions\":0,\"MaxChoiceDepth\":0,\"ChoiceStartOrdinal\":0,\"MaxForcedDecisions\":0,\"MaxExplorationBytes\":0,\"MaxExplorationResultBytes\":0,\"SimulationDimensionLimits\":{\"runtime\":0,\"scenario\":0,\"network\":0,\"storage\":0,\"fault\":0,\"crash\":0},\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"Corpus\":\"\",\"GuideSnapshotSHA256\":\"\"},\"Limits\":{\"ExecutionTimeout\":0,\"OverallTimeout\":987654321,\"TerminateGrace\":0,\"OutputLimit\":0,\"WorldTransitionLimit\":0,\"IOTranscriptLimit\":0},\"Observation\":{\"ChoiceTraceLimit\":0,\"Coverage\":\"\",\"RequiredSemanticProbes\":null,\"CollectExecutionEvidence\":false,\"ProgressInterval\":1000000000},\"Retention\":{\"Artifacts\":\"\",\"KeepSuccesses\":\"\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0}},\"SupervisorCommand\":[\"/bin/gomad\",\"__supervisor\"],\"RunnerBuild\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
     "legacy_request_sha256": "sha256:4cc519f6f0bb039811a39c41962c2101f478aaa56e00833caaa5728dd82d4323",
     "legacy_request": "{\"Artifacts\":\"\",\"ChoiceStartOrdinal\":0,\"ChoiceTraceLimit\":0,\"ClockTick\":\"\",\"CollectExecutionEvidence\":false,\"Corpus\":\"\",\"Coverage\":\"\",\"Environment\":null,\"ExecutionTimeout\":0,\"FailureBudget\":0,\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"GuideSnapshotSHA256\":\"\",\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0},\"IOROMounts\":null,\"IOTranscriptLimit\":0,\"KeepSuccesses\":\"\",\"MaxChoiceDepth\":0,\"MaxExecutions\":0,\"MaxExplorationBytes\":0,\"MaxExplorationResultBytes\":0,\"MaxForcedDecisions\":0,\"OnFailure\":\"\",\"OutputLimit\":0,\"OverallTimeout\":987654321,\"Parallel\":0,\"PlanSHA256\":\"\",\"ProgressInterval\":1000000000,\"RequiredSemanticProbes\":null,\"ResumeCampaign\":\"/campaigns/v1/resumed\",\"RunnerBuild\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"Seeds\":\"\",\"Shard\":{\"index\":0,\"count\":0},\"SimulationDimensionLimits\":{\"runtime\":0,\"scenario\":0,\"network\":0,\"storage\":0,\"fault\":0,\"crash\":0},\"Strategy\":\"seed\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0,\"SupervisorCommand\":[\"/bin/gomad\",\"__supervisor\"],\"Target\":{\"Kind\":\"\",\"Source\":\"\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":null,\"WorkingDir\":\"\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"TerminateGrace\":0,\"WorldTransitionLimit\":0}"
   },
@@ -195,7 +195,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "",
-    "request_sha256": "sha256:2c8d1ab0d4e80af052ced6bfad44c47eeef7faa30fdec3d685f670d5e27e0ca3",
+    "request_sha256": "sha256:cc680b5fcea51c25fcb7411320a7ffa17b0f2890e017e654cd8c82e4f8a493c6",
     "legacy_request_sha256": "sha256:8c8a6923703264529bcbae9f48c9e8584dddc1b47e1f3f7fa866c5a4c8ddcb64"
   },
   {
@@ -206,7 +206,7 @@
     "error": "",
     "isolated_error": "inspect campaign lifecycle directory: lstat $WORKDIR/missing/v1/resumed: no such file or directory",
     "local_error": "inspect campaign lifecycle directory: lstat $WORKDIR/missing/v1/resumed: no such file or directory",
-    "request_sha256": "sha256:108af9bd9f6daabaa15072f5d096bb9e49d9c75948c0d48e7eb1a38af768c40a",
+    "request_sha256": "sha256:9089911fc59aca053d9476d82a7df6aceb1c854bfc23d1f6db08e91a6be8b39a",
     "legacy_request_sha256": "sha256:4a58edff14b45bf0554e9539affba742e6fc75e82e59260358a04c3c43da1646"
   },
   {
@@ -216,7 +216,7 @@
     "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
     "error": "",
     "isolated_error": "isolated Runner does not accept injected preparation or execution",
-    "request_sha256": "sha256:19238d9724c46cfcd558fa18fbbf985b8f57bab942adfc1ff3900e16ab473145",
+    "request_sha256": "sha256:69ecbaf646e71746c146e7f3b9a70c4711d99f91ad402c5d9e85d19f80c2864d",
     "legacy_request_sha256": "sha256:a80e10be866290e5889aa32e237e56009fcc9eeb562f6e446fd2072d588cccf1",
     "plan_sha256": "sha256:52e7277a075550c9054e3e5ab173e9ab304370d97bbe6427459fe9c4982382e6"
   },
@@ -227,7 +227,7 @@
     "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
     "error": "",
     "isolated_error": "isolated Runner does not accept injected preparation or execution",
-    "request_sha256": "sha256:19238d9724c46cfcd558fa18fbbf985b8f57bab942adfc1ff3900e16ab473145",
+    "request_sha256": "sha256:69ecbaf646e71746c146e7f3b9a70c4711d99f91ad402c5d9e85d19f80c2864d",
     "legacy_request_sha256": "sha256:a80e10be866290e5889aa32e237e56009fcc9eeb562f6e446fd2072d588cccf1",
     "plan_sha256": "sha256:52e7277a075550c9054e3e5ab173e9ab304370d97bbe6427459fe9c4982382e6"
   },
@@ -238,7 +238,7 @@
     "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
     "error": "",
     "isolated_error": "coordinator command is required",
-    "request_sha256": "sha256:19238d9724c46cfcd558fa18fbbf985b8f57bab942adfc1ff3900e16ab473145",
+    "request_sha256": "sha256:69ecbaf646e71746c146e7f3b9a70c4711d99f91ad402c5d9e85d19f80c2864d",
     "legacy_request_sha256": "sha256:a80e10be866290e5889aa32e237e56009fcc9eeb562f6e446fd2072d588cccf1",
     "plan_sha256": "sha256:52e7277a075550c9054e3e5ab173e9ab304370d97bbe6427459fe9c4982382e6"
   },
@@ -249,7 +249,7 @@
     "environment": "",
     "error": "parallelism must be positive",
     "isolated_error": "parallelism must be positive",
-    "request_sha256": "sha256:a3e698deed0b0ca8dc211e40ca2709f84b3711e579c9bf91f0b452619a4478e6",
+    "request_sha256": "sha256:9179fddfbcb4c886cb25f277ea64ac4a698c49b76b32fa6568526a827b94abb1",
     "legacy_request_sha256": "sha256:8145b13ec0443751a2c187f034bdd0c02555295fb29edc698a7546bebe637d26"
   },
   {
@@ -258,7 +258,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "campaign resume does not accept target preparation",
-    "request_sha256": "sha256:47c23cde64aeaebf4a69ea1d7c9bc47927722679691eac047406920938fc54dd",
+    "request_sha256": "sha256:8ad8a8320c6c36682fe09e35623fe092991be09b2302b432e1c0d54d11c8726b",
     "legacy_request_sha256": "sha256:4cc519f6f0bb039811a39c41962c2101f478aaa56e00833caaa5728dd82d4323"
   },
   {
@@ -267,7 +267,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "Runner build identity is required for campaign resume",
-    "request_sha256": "sha256:037c181b3d72e62076a7e3d055dbf4e8d76ee845a9c8b5c5126aac506ea4d379",
+    "request_sha256": "sha256:3809371a09d426bb3ad745f374842e14e9dc9488ca9afc92087725cfcdec3d73",
     "legacy_request_sha256": "sha256:d471c2c7a660eb3c1bedf19073ab4b00e18f6f2555fc240cec72c583add95104"
   },
   {
@@ -276,7 +276,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "supervisor command is required",
-    "request_sha256": "sha256:453e463d28ab103aa6dc43745836c8b858e0dd651fdfeaa34b38f9f4a3276050",
+    "request_sha256": "sha256:dba01ae71e735a0b6c709b2a9117dd5be5600783193cab52ee0ae15e4da4b504",
     "legacy_request_sha256": "sha256:8572a1075dbf62f84dfba8f3978a416f053c50f93a35300537b349ac1e1b351a"
   },
   {
@@ -285,7 +285,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "",
-    "request_sha256": "sha256:85d542666972aaaa4eef3795a011feb16d2ef8fb76840fa9b9214f09bd2ec4bd",
+    "request_sha256": "sha256:febd54569d8b46c5269fb3cd19b30db16d5649304caa62ed564abb0ccacaca9d",
     "legacy_request_sha256": "sha256:26befe54f6e786fa22745204b394478820f9c60991cd5edefa1cbc83929167ec"
   },
   {
@@ -294,7 +294,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "invalid seed selection term \"x\": non-decimal seed",
-    "request_sha256": "sha256:d44da185bfe9d3d1d6d220357663fe36f9bb14d9604312e68fa32890a6d1926c",
+    "request_sha256": "sha256:7566c024d9bb31bee7b1db59aa570be93e389cc36e26241fe0915b311b62cd41",
     "legacy_request_sha256": "sha256:feebf3b206a3492b5406ec39f261676da23d86ac21f3962dd7b38750d2977d11"
   },
   {
@@ -303,7 +303,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "invalid seed selection: empty input",
-    "request_sha256": "sha256:6a0a2ad179032ac5eb72ad4bf8d7183cce528814b9b0c1983d3276ec5c449ad2",
+    "request_sha256": "sha256:0eb57b3fa718dfa0bad4f81e27136b46d31ef6d8c00e99572a6bba8601eed028",
     "legacy_request_sha256": "sha256:ce83d31b42a717413156b7436d7ca03a5663e9d5255155c13bb016061d0907af"
   },
   {
@@ -312,7 +312,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "campaign shard 3/3 is invalid",
-    "request_sha256": "sha256:b86439f69190602b86b2aa8d3c93f31a76b34d13f693c03ea2e1eb3bc3355b5a",
+    "request_sha256": "sha256:a374de7f622bd6d6e01adfcfef1371c7b47f440a087c72544b9c01829a69e877",
     "legacy_request_sha256": "sha256:59c4e547372c3113eb9ca8d3a447f7c9ddeb307f923812f04f9fde02cd6020a8"
   },
   {
@@ -321,7 +321,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "sharded campaign requires a canonical plan identity",
-    "request_sha256": "sha256:2453670f3e5e63450ceaf8b3b9ac6888ec4d9e91b6c248fccc3dbd946d25c27c",
+    "request_sha256": "sha256:67bd9961cdbd1295507fc59fb0a3256f4cf7e78482848136b29d28e922717c9d",
     "legacy_request_sha256": "sha256:669aebde05a11b0e6cfe440e3a5b7e418131cb60b840e142cddd3962bd0dac92"
   },
   {
@@ -330,7 +330,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "canonical plan identity: invalid SHA-256 \"sha256:short\"",
-    "request_sha256": "sha256:e32fa55556fcc88ce47493167bbb82221afa172721de91257456520349460e7a",
+    "request_sha256": "sha256:8b75d984c2ef4ce26a281207544bda16d3420e674017b113541c6447d7688591",
     "legacy_request_sha256": "sha256:0f90cedc066a82c7bdebc9d1ed014bbccd82f4117db22632b6d650957ee9d41e"
   },
   {
@@ -339,7 +339,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "static sharding requires a seed campaign with frozen guidance",
-    "request_sha256": "sha256:e4a3784a7f03668c939b0ceb9f979b998ce53fd09e0aebac98c78e929600b6cf",
+    "request_sha256": "sha256:f5100194e6faaa907f786d5a41fecce49d1338f5e727615d0f006898f6e9f721",
     "legacy_request_sha256": "sha256:a27b2f7787dd710aecaec1d5146dd9ef0928cca5944edff5e44e903da81653de"
   },
   {
@@ -348,7 +348,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "static sharding requires a seed campaign with frozen guidance",
-    "request_sha256": "sha256:a5e78d08da3b908424efd7ff1cec8c7d2fdfe55c0745a2d78117b3aae418efa0",
+    "request_sha256": "sha256:4a57ca6a54de4f5813c0ff0f0e0774f4aad568af9a76e3d81cbfb3476954f034",
     "legacy_request_sha256": "sha256:48a4bb0b54e86efc35a5838331056ac4c365555266fe5164ec14998b32d75d53"
   },
   {
@@ -357,7 +357,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "sharded campaign requires on-failure=all",
-    "request_sha256": "sha256:205dd2bff5368cde4d3c52de1981b420c1851e81333a3f8f3e01602fba152fa4",
+    "request_sha256": "sha256:dffe868583375b249f0ebff665d78a207d8d4ce062cc2d8ee8bd89255bd52b5e",
     "legacy_request_sha256": "sha256:cfbec0f5107f44a19eef7484265d019d8a497be270fb218590d61c61ed434fc1"
   },
   {
@@ -366,7 +366,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "exploration bounds require the choice-exploration strategy",
-    "request_sha256": "sha256:4ae007ff26840d83a3c975d54fbcf5867f9be52e7a1527cb53d6cbbe105b1b6a",
+    "request_sha256": "sha256:a6ef766ede40ef96a942accdbb8779d672f4ff653585a7fb480716161094f133",
     "legacy_request_sha256": "sha256:cac431353db0f1bbf52ec83045bfa948d17bca1682228028f1311616e1b14d43"
   },
   {
@@ -375,7 +375,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "exploration bounds require the choice-exploration strategy",
-    "request_sha256": "sha256:7fb91f1ffbb97bff6c1e40c9061db742039b0551089b429678c7396265006c1c",
+    "request_sha256": "sha256:32bec18d6050f648925be00de6f88a622f6f6f7b65922f1cda529269bc44ae3e",
     "legacy_request_sha256": "sha256:5e225a5c15bfefd088c030e462e92a4210b1cf1648bba459b22e2571374ec67a"
   },
   {
@@ -384,7 +384,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "exploration bounds require the choice-exploration strategy",
-    "request_sha256": "sha256:567d4ff2658bace6355fcf643ec9dd0e9748f2f18a9a53cdb09e548766fe9029",
+    "request_sha256": "sha256:84ae18253b02de660571626a6a635bf7544cb84deb10dcdff70f1e70a68013af",
     "legacy_request_sha256": "sha256:db11b6510f074a0c199576b58a825e582a5361d7b024116582c8eb28e3874813"
   },
   {
@@ -393,7 +393,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "exploration bounds require the choice-exploration strategy",
-    "request_sha256": "sha256:d5dd61121125c00c8b34d9311188fbb02df35eb67972e8d8f345cfd730f5a22a",
+    "request_sha256": "sha256:9922b212adba088fa8958e024df3eb820544b4cdb1046f9921a984e912a3b8bb",
     "legacy_request_sha256": "sha256:483e2d7fb50c37e09b9f5b5c9e585bc8dd8f2f16c09bb006f40fd6c09d39cafe"
   },
   {
@@ -402,7 +402,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "exploration bounds require the choice-exploration strategy",
-    "request_sha256": "sha256:30ca875ab59a8845aea0470bba5edad0cb878b457c75b5f75113c0ca1cb6c2d9",
+    "request_sha256": "sha256:4dd3528aecd6cdd6faa5c5b430af2899a76454ad88d669086907eb3541cdc5dd",
     "legacy_request_sha256": "sha256:211ded4f6ceed1115ea1f346088694deb887d5b120bf3a35d24c41b7730c28b8"
   },
   {
@@ -411,7 +411,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "exploration bounds require the choice-exploration strategy",
-    "request_sha256": "sha256:dc3afca0669966b9b51fef22695dfe2289a90b26d0f7b3ba45d1902db021160c",
+    "request_sha256": "sha256:4a2581ad0da80df706df0808eb9b501d769a9602f42961111dd14f5f20cd3c30",
     "legacy_request_sha256": "sha256:c416c4a415523a5a4109887c5e22ce39a91c8c66e1b470cb77a09d25dea1c235"
   },
   {
@@ -420,7 +420,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "exploration bounds require the choice-exploration strategy",
-    "request_sha256": "sha256:8c79dc018bd7c633a4a690aa2f1d17ec3c3ffe57f5edda2231b9da73dcf313af",
+    "request_sha256": "sha256:1dd158b213fbd46c30161a1006aa84a6292f88fd1f4f42c5154c4cfc63f694bd",
     "legacy_request_sha256": "sha256:2d4fe8802dc04ac1f66dccb1d1188ea01eb781b7c7d360c2acf9c7beb0e42c19"
   },
   {
@@ -429,7 +429,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "simulation exploration bounds require the simulation-exploration strategy",
-    "request_sha256": "sha256:e8f85c31736f086be5ac2435573dee32398443687cb679ff6f2cd55811fa4f0a",
+    "request_sha256": "sha256:ccad4d83e3352c73e85e3ffd91378da9a1148a51790bb97d73543b596c2e4488",
     "legacy_request_sha256": "sha256:8a664a700433f99ba37c83518e671aa383ef62e2953d651eb739cfa4c8254da9"
   },
   {
@@ -438,7 +438,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "simulation exploration bounds require the simulation-exploration strategy",
-    "request_sha256": "sha256:121c5f5bd3d65e7590a5843bfb240762aa9d49da0abd0e7a2ea5507f21698308",
+    "request_sha256": "sha256:bcce5e5869d72cb958e10000266ff3d9e28d48c887d7de3fa87ae1c21e452c2d",
     "legacy_request_sha256": "sha256:d875ac459cf91939285503cb64592b848ab1acdf8a9f00f5d222c397f829907b"
   },
   {
@@ -447,7 +447,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "simulation exploration bounds require the simulation-exploration strategy",
-    "request_sha256": "sha256:592a8a9829f9c9fea022ebf1a70a7ceeab695f150cb99bafe377c6bc17e93ae9",
+    "request_sha256": "sha256:acbe3fd6607e778df4add745ddfaa57599e3492be9dffbf9809de9e773861a09",
     "legacy_request_sha256": "sha256:44393ad8694fdb39880ad126220b474bb94f7df299452a5294f976987e0f89b9"
   },
   {
@@ -456,7 +456,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "choice-exploration exploration requires exactly one base seed",
-    "request_sha256": "sha256:98af5a21baa76dccc2ccb5f7be1095f51dc8c0a2d225daeb5f9cb7c1a3da18e7",
+    "request_sha256": "sha256:fb0099dbc0f848f1307f2bafde8f5441e74f191b8895531148b8d50fee2d7175",
     "legacy_request_sha256": "sha256:a4bbfa725f7925d3f191e7f2ce261ec9baaf9f25414c4cf85dd0698a3d93801a"
   },
   {
@@ -465,7 +465,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "choice-exploration strategy does not support guided exploration",
-    "request_sha256": "sha256:b703862351cb6a9c1c4eb5f29ebbd6d6f591437a0539ef165386ec78ed45a7d9",
+    "request_sha256": "sha256:7fe34c0b4e7335dec000b37af82fdfee1c353afcde95bf72f4e6a4e5d28b4c06",
     "legacy_request_sha256": "sha256:c4694f5dbae60251df0cef8aeed0a017c2f24394c056bfdc928ea0b381b17e58"
   },
   {
@@ -474,7 +474,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "choice-exploration strategy requires an enabled choice trace",
-    "request_sha256": "sha256:95fee36d4a0214fe808f6db6da614ca454470479c64609bc3b17576771a05352",
+    "request_sha256": "sha256:c6afca34440b730684f7f03485ef75ec2c33f4976a440dfc3aae2614533a911c",
     "legacy_request_sha256": "sha256:ea4e48131b12911ddb8ab32c8dfcf8702e1851ed5833432b6c2d0b7d56142fe6"
   },
   {
@@ -483,7 +483,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "choice-exploration max executions must be positive",
-    "request_sha256": "sha256:9cb7c4f4949f2e979e95f15a235d20973f484762c3f1d69ce0fa14e56fcc9552",
+    "request_sha256": "sha256:7635d90b49de11e653800e9195a1dc8c37ea3c9d42103074be74e488e7f66009",
     "legacy_request_sha256": "sha256:51cfa3be4504eedbe8bf490f2ddd4f4017afda0d051deaa8ec26cf634d87e256"
   },
   {
@@ -492,7 +492,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "choice-exploration choice depth must be positive",
-    "request_sha256": "sha256:aaead1067ea3243d693af8f96b2d967bbe5020e854781a093f02f200b421d5d8",
+    "request_sha256": "sha256:de4b4a9ee2e13ef8ffd514c37fbdf109849af245fff479f5411e5991ee13d02b",
     "legacy_request_sha256": "sha256:6b8f77e678b815ad1b25847f6a8d8b5186de67302aba7e083919eadd7f96ea76"
   },
   {
@@ -501,7 +501,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "choice-exploration exploration bytes must be positive",
-    "request_sha256": "sha256:f08065fa753012a5a8f85cec28f13ae4ae3b2087bb494f13e967169dffc46b2d",
+    "request_sha256": "sha256:900b9af581f32925b591d85ffe83940f8f58e0b54c41fca4cff590b0b203612c",
     "legacy_request_sha256": "sha256:da5c820875c1964db20aee8a92a6953f4e60c1b842250e510039af1b3a0ea1d3"
   },
   {
@@ -510,7 +510,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "simulation-exploration exploration requires exactly one base seed",
-    "request_sha256": "sha256:c74e5b67e3f8f754dd956722474532b8afc8b1057777828f599b801e57d16a6c",
+    "request_sha256": "sha256:5ffa5d57841e2ea237e3a02b00ec61df705b772f10eb1e606a868c31465c694c",
     "legacy_request_sha256": "sha256:c34c4501102a8d4151c83f394b9dc44674ac3b99ff62c083627473925ee357dc"
   },
   {
@@ -519,7 +519,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "simulation-exploration strategy does not support guided exploration",
-    "request_sha256": "sha256:5d48314f3618fde35fb5546e451e838eadd6a1cca0e93b3679ed4d8b44b4461a",
+    "request_sha256": "sha256:a25f011b4a018ed5671bc6f5a797dfbd37e28419c788935c7bad92707e539abc",
     "legacy_request_sha256": "sha256:c17af56a067bd30dcab53e1db63474de567f821c79ddea4d9f32c9577bcdbba9"
   },
   {
@@ -528,7 +528,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "simulation-exploration strategy requires an enabled choice trace",
-    "request_sha256": "sha256:b907e2e5d28aa200ec4a142da38541f94aa6becedb4d4b5100c318dfc84484c7",
+    "request_sha256": "sha256:e4e0555d7adcdc12e8f4cc2b6e8fe4cc4594848d80bb37ed628757565e22f8c7",
     "legacy_request_sha256": "sha256:8c922546dd68c65135c53f563a20f3f1d87a4d1ad1dae31f80566922cc4ea273"
   },
   {
@@ -538,7 +538,7 @@
     "environment": "",
     "error": "simulation-exploration max executions must be positive",
     "isolated_error": "simulation-exploration max executions must be positive",
-    "request_sha256": "sha256:bbafc8c40edb39c5d01d8212a0a529c439a881dbf0c5dc83d01434b6601d2d28",
+    "request_sha256": "sha256:126ab5e2bd60478da280320e64a4c8e42024ec74013970fb5c725883eb20bd6f",
     "legacy_request_sha256": "sha256:d7ef50bc7cb3245b0a226036c99103144ca7e9036fe5309ec5ac6e7e38a1bbbc"
   },
   {
@@ -547,7 +547,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "choice depth requires the choice-exploration strategy",
-    "request_sha256": "sha256:ae7967c32b294e5d02bf13698d6f644f6c9107d60d44b0f0ec3cde43198ed45b",
+    "request_sha256": "sha256:92e214e6f704c6956a7bd67901a2c0bcbb3d2b2a4c418e2fd92e82daf7d1e225",
     "legacy_request_sha256": "sha256:c2e8f3bf8e2bce01ff172b9c803d4ea51c4d14528f5aa959dc9c6c25a3f21278"
   },
   {
@@ -556,7 +556,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "choice start ordinal requires the choice-exploration strategy",
-    "request_sha256": "sha256:8b7dfcff119daaadb00296faadf446ff81bc0c969c2629b8882e5e659de99d54",
+    "request_sha256": "sha256:1914c1f993402d5e1ad55331c26a021b712436a0f15fc87bf36c2ecad9bf7dff",
     "legacy_request_sha256": "sha256:0b8a388776a7e154647230e732d7fb8cf373a40a20fbd61ec143d0e92a840b71"
   },
   {
@@ -566,7 +566,7 @@
     "environment": "",
     "error": "simulation-exploration forced decisions must be positive",
     "isolated_error": "simulation-exploration forced decisions must be positive",
-    "request_sha256": "sha256:70e8621fc0e9c082ac59d32d2863d205b0a7f1f4aa31e557ac30eaf2140d5e26",
+    "request_sha256": "sha256:d937977103e165ac2b28295a8a3081fcd6ee8d7e07858d380b869982bcd5012e",
     "legacy_request_sha256": "sha256:ca7fda76f7c8a0eca5a99495b7db9d28c4da1c62a65c09730156f1fdecfaf62e"
   },
   {
@@ -575,7 +575,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "simulation-exploration exploration bytes must be positive",
-    "request_sha256": "sha256:7230f7589fb29e2d983c23932a3f2aad01ef880a0e4dd69710c7aea83dc2a162",
+    "request_sha256": "sha256:4f2efc8650686187565b00b8a3bb26ef46865126f54593b7c365fad58be76fff",
     "legacy_request_sha256": "sha256:ebc460e46abeaa4c6e1691a642cbe5d6227fc37b991f616af04688c0aaf04ef2"
   },
   {
@@ -585,7 +585,7 @@
     "environment": "",
     "error": "simulation-exploration result bytes must be positive",
     "isolated_error": "simulation-exploration result bytes must be positive",
-    "request_sha256": "sha256:6ddcbeb748c7e843d8d86fa56103bda482c09bee429dfff1ad991fbc07a2b412",
+    "request_sha256": "sha256:a36e2ea73b489faf1ee03a3f149bc9beaf9e1ec783906b1b2ce9de5545ea5646",
     "legacy_request_sha256": "sha256:02bfeb895ad150f136e38d73895fabdba26aca5ff9282101d5754cf9581ad989"
   },
   {
@@ -594,7 +594,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "simulation-exploration runtime dimension bound must be positive",
-    "request_sha256": "sha256:025f0b0a97bcbef0846cc7eb4c42043b07540a8b5edf52b91b26e7c9f1b0c087",
+    "request_sha256": "sha256:8b416059c10242b9672d9fffb7f640f9f4b7c82617ea84f3ba81c1e49e3ca682",
     "legacy_request_sha256": "sha256:71c6c427c8c2c12394f7c5a0ccf7340e25fa47c6cf3f70162219c09c7d4aefbc"
   },
   {
@@ -603,7 +603,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "simulation-exploration scenario dimension bound must be positive",
-    "request_sha256": "sha256:abd0a78547ef1f597122c036f4f98d3c91964768684551cfdebb1072749bd45b",
+    "request_sha256": "sha256:98622e002d84c6f2f5eb2aaeaf5049a95c60d2f07e5bb75f5ca8dbb178064a6c",
     "legacy_request_sha256": "sha256:afd90ece67ed49e8f029af0463dad7dda6735308c280a2e326743ababdfa08c8"
   },
   {
@@ -612,7 +612,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "simulation-exploration network dimension bound must be positive",
-    "request_sha256": "sha256:3255fba9eea8bec11e5fe7f82b4d47233d10fa1b73d4a3dcc6a5eb52588add81",
+    "request_sha256": "sha256:d3c3af4214acd9441c19a82ec061a310a543cef92e60b788a86dbf9499547ded",
     "legacy_request_sha256": "sha256:174b3f494df9b966044a4a152c6e272495da6f4701dc00836397c80bc28e9bb6"
   },
   {
@@ -621,7 +621,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "simulation-exploration storage dimension bound must be positive",
-    "request_sha256": "sha256:43dd0f239823f00bf8fe1f0985600fb6d1fe56818f8727a08c8f5a06ef8cbbc0",
+    "request_sha256": "sha256:3fc3fddf72eb9ef30efaf8119476978408cbed5406fbe7db474765113d3b4771",
     "legacy_request_sha256": "sha256:15a291d0e855ab6b62dd348e95cbd8733a24a1407c67632274221e16d9b25c93"
   },
   {
@@ -630,7 +630,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "simulation-exploration fault dimension bound must be positive",
-    "request_sha256": "sha256:e5f5ee8bf5824017f010e20d72c67057719997c3f0e742eb03980fec68ee84be",
+    "request_sha256": "sha256:3d1d9ce8b281badb281bb0da7d745ccfa62135306600c601c5f8fc30c818283c",
     "legacy_request_sha256": "sha256:47d10d61900952aa38fb6486f2b75e3391e9cf030c5d85e0b1479ffe2ca41d4f"
   },
   {
@@ -640,7 +640,7 @@
     "environment": "",
     "error": "simulation-exploration crash dimension bound must be positive",
     "isolated_error": "simulation-exploration crash dimension bound must be positive",
-    "request_sha256": "sha256:3b92a75a1c0fcd840f2a275bb1fe5dbb6337fc226a52e4856de77fb90484026a",
+    "request_sha256": "sha256:c7c2d93eca0dc5839cb960839c24b0c2c58c88c0d4741cea24083f5062a177fe",
     "legacy_request_sha256": "sha256:68bbfb13ef0bdc946bdf672d560744bdd623e8abe9d496f2f4fe24c3ed93fa43"
   },
   {
@@ -649,7 +649,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "simulation-exploration runtime dimension bound must be positive",
-    "request_sha256": "sha256:bd196385bca295eea0ed67b7fd8bebe934e6ed7182a9a0252ee2244dab718a3c",
+    "request_sha256": "sha256:504f612c7aa31e3df599371545faa96fe3f0b903ec25538f6639efcf0fb6e42e",
     "legacy_request_sha256": "sha256:83dffbcec79aefa2fdb8c76a3e86d15c700fba66ade9655a15ca1f111ba71acc"
   },
   {
@@ -659,7 +659,7 @@
     "environment": "",
     "error": "unknown exploration strategy \"bogus\"",
     "isolated_error": "unknown exploration strategy \"bogus\"",
-    "request_sha256": "sha256:79974f16ccd8d011b39e7e032e69afff85d90ca6e9a3bc56a3a4a8d498ece7b6",
+    "request_sha256": "sha256:0671655b34eeb8209d9b33f445fbc8fe14de898ffed08b4fdf034c079665ca61",
     "legacy_request_sha256": "sha256:7d31dea847d028a5181a78bc5cf4414e4d1a71d69f0001644f40ad314c9e34cc"
   },
   {
@@ -669,7 +669,7 @@
     "environment": "",
     "error": "parallelism must be positive",
     "isolated_error": "parallelism must be positive",
-    "request_sha256": "sha256:a3e698deed0b0ca8dc211e40ca2709f84b3711e579c9bf91f0b452619a4478e6",
+    "request_sha256": "sha256:9179fddfbcb4c886cb25f277ea64ac4a698c49b76b32fa6568526a827b94abb1",
     "legacy_request_sha256": "sha256:8145b13ec0443751a2c187f034bdd0c02555295fb29edc698a7546bebe637d26"
   },
   {
@@ -678,7 +678,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "execution and overall timeouts must be positive",
-    "request_sha256": "sha256:c39fe51cb231c61f2f39cf1043a8603175180ea29a71274e28eb44391854509d",
+    "request_sha256": "sha256:6ff5916abf24dfe6852e92a61adc8ef781b386a70138e5e0ed941413f3f35c6b",
     "legacy_request_sha256": "sha256:151afeff283c856f96b56d6081b4eedb25c45e38ea8bd0d3df7fefc6978bc687"
   },
   {
@@ -687,7 +687,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "execution and overall timeouts must be positive",
-    "request_sha256": "sha256:19238d9724c46cfcd558fa18fbbf985b8f57bab942adfc1ff3900e16ab473145",
+    "request_sha256": "sha256:69ecbaf646e71746c146e7f3b9a70c4711d99f91ad402c5d9e85d19f80c2864d",
     "legacy_request_sha256": "sha256:a80e10be866290e5889aa32e237e56009fcc9eeb562f6e446fd2072d588cccf1"
   },
   {
@@ -696,7 +696,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "termination grace must fit inside all deadlines",
-    "request_sha256": "sha256:1eb6d10f9f26cbcfc9a8685dcff12523b7b666efe54c61810e674f248f9f2405",
+    "request_sha256": "sha256:a903e9c53ab19a4a8c83abeaadd0239abaa0ebe9e3dc2e65b53ad1a6571a0bef",
     "legacy_request_sha256": "sha256:58b532540d161ff6535f524b7a4568ad63e5a0f696e8033dd969f64fe2fedaed"
   },
   {
@@ -705,7 +705,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "termination grace must fit inside all deadlines",
-    "request_sha256": "sha256:d05c0a18b2e2c9d4f62025c0fe1cbb43cac4f712396be88678f0662013082013",
+    "request_sha256": "sha256:212af28d81bdb7bc16beac0ff2f5241726b7c39eba5c54aa62f6d02588110f39",
     "legacy_request_sha256": "sha256:09c90bf42a274da4835fc9e5a12bec9bf96f8be0652e2052e37d34e081c8e1ea"
   },
   {
@@ -714,7 +714,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "output and World transition limits must be positive",
-    "request_sha256": "sha256:7e7c432913cbd89f38aedce1089fd0485645be47a4ff1bd2f73eaab3c51fddb0",
+    "request_sha256": "sha256:67001194efdc6cc53d8d6f5917d700aada2671afaff810f9dabbbe4cbb278b31",
     "legacy_request_sha256": "sha256:d3a5f8273b563c82343f7f9e1e4d2f81f2a2f9299736f05509742c289da502dc"
   },
   {
@@ -723,7 +723,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "output and World transition limits must be positive",
-    "request_sha256": "sha256:ee5bdb3167a3463f74c4c37ce4bbea1b9ca302d6dbcaa9d1152032f5e4754157",
+    "request_sha256": "sha256:a8244c0cd143bba35e557638c5cc1be4fbfb898bc92d0666f27be9f4c8e1695b",
     "legacy_request_sha256": "sha256:0fce77052b6f0e3c61868ca07a9a913342f7e71214af306665162958a403eae1"
   },
   {
@@ -732,7 +732,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "I/O transcript limit 1 must be a whole number of MiB between 67108864 and 1073741824",
-    "request_sha256": "sha256:30002851daf49e7f34ddf88037432e2c4a9c32f9d432602095fd4788c9a6c259",
+    "request_sha256": "sha256:05d63390e5ebdd7ee7754d7f383ebbddf8af1e1d6bf39cc8733032a68e7256ff",
     "legacy_request_sha256": "sha256:53b3224cfeed04c6ba9899756371880860a497c9a45931869165ffd785ea672d"
   },
   {
@@ -741,7 +741,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "diagnostics require choice recording with the seed strategy",
-    "request_sha256": "sha256:a2860d115070bc1e34d87c64d995a4327c4a7456aad876fcbd699b580dd1d679",
+    "request_sha256": "sha256:bbc6e47bec20d55e6972e9040c9788b4f168514ac068992db69d352a161262c8",
     "legacy_request_sha256": "sha256:c3ad64ef249df8f643b63a37551a7aff006b971809e9a1b453986dd2f5a9132d"
   },
   {
@@ -750,7 +750,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "diagnostics require choice recording with the seed strategy",
-    "request_sha256": "sha256:bcedf480dffec7974a834e14ad3906e8c28e56b5e4e36dbb41b98c64ee302f0e",
+    "request_sha256": "sha256:87fc906428069a70aec02f5e62b78efd0f8abfdb0427fade2e1b01cd5768c98d",
     "legacy_request_sha256": "sha256:ae84840eeadce67f3c43fd806f186559ab16d6af9b17e8fec07484d59e32aaf6"
   },
   {
@@ -759,7 +759,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "choice trace capacity must be between 160 bytes and 64 MiB",
-    "request_sha256": "sha256:4d09c3594499009d9210902b7c3b8d73e684f52ae3008315da357ab81b14a29d",
+    "request_sha256": "sha256:7faf570c27ca100c998b9f1f81d06a156f93375d9ee11ea859a49d395b2701a8",
     "legacy_request_sha256": "sha256:b22b5e48baa2d94a892d3575fe0d370a90e754cdaf248aad40571a42a869b03a"
   },
   {
@@ -768,7 +768,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "choice trace capacity must be between 160 bytes and 64 MiB",
-    "request_sha256": "sha256:e4494833432adfb294db43b969a518780afe91a98306f31e54875fc2c0bb3160",
+    "request_sha256": "sha256:3f5fce48b75b657d6bf9b1aeeef320f196e92ab894bea7717ca3dde2cc032f25",
     "legacy_request_sha256": "sha256:d46e8d0875ed9d0efe05581695b053e1ea3e7abc3d4eb23141ee5f1a1b6bf294"
   },
   {
@@ -777,7 +777,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "required semantic probes require semantic coverage",
-    "request_sha256": "sha256:fb8ca8e52caee3b720a4d8790198139cf13d668ee131fec8d7133f228bbc2c17",
+    "request_sha256": "sha256:873027838bba6c98455b3d672479ae2611217243e9f1858b7c9d47b1e7940fde",
     "legacy_request_sha256": "sha256:87b6861b1e1502493b5a215494fcf931ece2e7ff715696d74af62c2e858aa11f"
   },
   {
@@ -786,7 +786,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "unknown required semantic probe \"gomad3.characterization.unknown\"",
-    "request_sha256": "sha256:bdc871f3a453481dae955672e1775f5f7f3e1b4aea2586b6e8ec31545bdce9a2",
+    "request_sha256": "sha256:8df867798614efcd6876e7f1e924189ed26c914559e6f7c0890e9dbdb10a995a",
     "legacy_request_sha256": "sha256:2957d331034ecf1e9630ec79c37d9a84b1690a4878d707d8b782bc4a22c25687"
   },
   {
@@ -795,7 +795,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "required semantic probes require semantic coverage",
-    "request_sha256": "sha256:606731636ca9baf982f935542f48621f8f86b6a81bdf9a5c4899d858a2b45d77",
+    "request_sha256": "sha256:252538f201d8e8f48a5bd139b6c4c0edc7ec228fdab04b3586c2a6f8c527b4c3",
     "legacy_request_sha256": "sha256:1650eb82b974a93139ffacd4342c2cc2dc4df17278c1f01fc687144613376cd0"
   },
   {
@@ -804,7 +804,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "unknown coverage mode \"bogus\"",
-    "request_sha256": "sha256:2b15b65d2da0af7fc218cc7d635267c578aa446224ef9bf43218e1955507dfa4",
+    "request_sha256": "sha256:833a45be5e8c4c6b62142a0eba6e1368e6af8d04071dbb648f8d93082958a865",
     "legacy_request_sha256": "sha256:bd12421f6d7a8323f14c5da7d0acd542de7e7c638a569a9da38fc530064aeec6"
   },
   {
@@ -813,7 +813,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "choice coverage requires an enabled choice trace",
-    "request_sha256": "sha256:68a0b70da551ef8d26b195ca4475fe71da9aab53b9c6d58b1b0333f72aafd6d5",
+    "request_sha256": "sha256:b611a10b255caef358aabde7921e8f4c995ed71969690572feedff60627dac6f",
     "legacy_request_sha256": "sha256:a9934ba219fca1ed133a0d0d736d4af308404bc8d7971784a7310cdc4c85ec58"
   },
   {
@@ -822,7 +822,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "execution evidence requires exactly one seed and semantic coverage",
-    "request_sha256": "sha256:b1e26915faafc638dfb18d76714202480854260ff3b9393b4da3cd93d578b44a",
+    "request_sha256": "sha256:3605809c128603d9cdf55e8be8ba9ecf14d1439ef7863d61d58bf7f3950d0ac9",
     "legacy_request_sha256": "sha256:26fb9381796148493f6f14d75a7d0e63ef9ff4e0d4067a9f154148cd4db8301a"
   },
   {
@@ -831,7 +831,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "execution evidence requires exactly one seed and semantic coverage",
-    "request_sha256": "sha256:20173cf21c905c4f9441e9e44d506d6dd8919cad9f84405d8eec38cb84f6ff3c",
+    "request_sha256": "sha256:0d4a4a54ecf3be2580cf939401afdddeacd53039fb7d36af84d22b765bb1006a",
     "legacy_request_sha256": "sha256:686f32256c511713ed8a3a50d6c50e2b07d0ab2754ddf5049030f53fb16b9b91"
   },
   {
@@ -840,7 +840,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "clock tick policy \"sometimes\" must be strict or forward",
-    "request_sha256": "sha256:59a5b2f0d332cc05a4fe85fd874d458916a78d67c04ddddd970224349eb849fe",
+    "request_sha256": "sha256:8cbb7c4663ba385b16b3dc39475bb8614daa88a57a4b4ff99719e7ff1775fbb9",
     "legacy_request_sha256": "sha256:030accdd748eb200e8b37df1c9bed03f4d1beecd171dbadc652311f1ea00e586"
   },
   {
@@ -849,7 +849,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "disabled success retention does not accept capacity limits",
-    "request_sha256": "sha256:b0b9fff8341318e03e421cb70a0ffa1416f404bf149990cd6fde4af417c1f706",
+    "request_sha256": "sha256:3c1643c0b9b4e09c6be96fc883c6342601d9bb9b3c7c0e05db3d83819845bb33",
     "legacy_request_sha256": "sha256:93e6357a631654e269e4018c2f83593760d062d75c8bd3afebf186af26171a93"
   },
   {
@@ -858,7 +858,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "disabled success retention does not accept capacity limits",
-    "request_sha256": "sha256:1211c162658c1ee8a4b541378704cd080165c3983960b631571bd1484ca0ea21",
+    "request_sha256": "sha256:eef5646b9a3e0f6e8aff4525d3a4a03cb766c8668ca0306d58f73e9571892aa4",
     "legacy_request_sha256": "sha256:eefded49cbdffd25d736cf736cd22ab13ffa223ab394ab3bdd46783dc2ddddaa"
   },
   {
@@ -867,7 +867,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "novel success retention requires coverage and explicit count and byte limits",
-    "request_sha256": "sha256:33218e0a796dd6454e6d36d695ccb3130874525e2a82d8b313210b3118743c3f",
+    "request_sha256": "sha256:0cfbdbd0ad6bb964ea63fa0977bffc8e9f95982c857ca7a27b7e46c7b4c996a9",
     "legacy_request_sha256": "sha256:c1698ad7fe8be0858771b5635ce6359c7997e3fd8d675b446ee8afc8a7d6513e"
   },
   {
@@ -876,7 +876,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "novel success retention requires coverage and explicit count and byte limits",
-    "request_sha256": "sha256:9a6592471134bf56450db8c35c60cdf417c2ffa748cc66f299d8a4133e96b1e2",
+    "request_sha256": "sha256:d3f36e3da0e7ab8b43591935c57fcd00009c0027a0b5c7c8c86fd38f6bb86d56",
     "legacy_request_sha256": "sha256:052331e3761755e9635d83434a4f8384f30c576b6f0361ba70c38043ec729721"
   },
   {
@@ -885,7 +885,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "success retention requires explicit count and byte limits",
-    "request_sha256": "sha256:20df3d7dc10b607489549d006148479f35d9fa7560aaa835c3b191e683a9d959",
+    "request_sha256": "sha256:a3213bc1d2822884169a4207dbf6f228dbaf5fcbf53199c737d607cbccfb502a",
     "legacy_request_sha256": "sha256:a7da7699b612ee931e87df24c355a351027332c817e82f56bfe825aebe781b61"
   },
   {
@@ -894,7 +894,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "unknown successful-execution retention policy \"bogus\"",
-    "request_sha256": "sha256:9a9f65a21cae7e88b7341cadb9ab5837b2b01275566d08e3e9168949616ee5eb",
+    "request_sha256": "sha256:7f5a7de91a825e763877435cbb7d5eb5d02b88081e510870931e46ed2f20f279",
     "legacy_request_sha256": "sha256:c320b4c9e5a25013e511a26c5f10e3117bd8c8684d39d1f80553add8f3ecb54d"
   },
   {
@@ -903,7 +903,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "artifact root and Runner build identity are required",
-    "request_sha256": "sha256:c3fda28710c4b81a88b37f3567ac4da083a8e0acc078cb2fde7009ca0e9fe54c",
+    "request_sha256": "sha256:4a633ef5ca738e812c019e5ac1fc08f599328b0256fb9d7745ce414eebfd5036",
     "legacy_request_sha256": "sha256:b712ba7b24549554c9909ba8b07e6dfd089d76a9c252fdf760493e4e9e807513"
   },
   {
@@ -912,7 +912,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "artifact root and Runner build identity are required",
-    "request_sha256": "sha256:16ddaaad7fb9b270799ad5e690a731af290ff52a89e3492082b490cb45cb0e03",
+    "request_sha256": "sha256:30a94b3867b64824f69674836c3615bb33d75f9f3b036c8270709436ec5ccecc",
     "legacy_request_sha256": "sha256:73ce69c8b31a67295ff71751d25a90322bb2d8ed46673463ba91d212ef514573"
   },
   {
@@ -921,7 +921,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "guided exploration requires a corpus and coverage",
-    "request_sha256": "sha256:79b662b6408f10f29bc018594e40991d07237287477d0e640959d43f4747b2e2",
+    "request_sha256": "sha256:a4a2cd166221fb19d7d6bddf542dfc38e954065bc1f0f5646fcc92800a6ede04",
     "legacy_request_sha256": "sha256:91a8c8d0e14672f969b24685c46b00791797190f0150c25ff23506e1aaecdf17"
   },
   {
@@ -930,7 +930,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "guided exploration requires a corpus and coverage",
-    "request_sha256": "sha256:b23255fff43d58056a480a37f3be93a00fcaad683dcae20c920920770635f0c0",
+    "request_sha256": "sha256:d34f13dcb6f97914bdb3c11fc1da83699f0bb726549055ad88835b9e1115901a",
     "legacy_request_sha256": "sha256:c99df0c9584f29e66d4c4e49b50b7adf6b673976c71f04f700d2400023184e6f"
   },
   {
@@ -939,7 +939,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "a guided corpus requires guided exploration",
-    "request_sha256": "sha256:6d29bacfb59e57a7eb8252f36eef8c2971d3dc442c655d781be86babcb74ac85",
+    "request_sha256": "sha256:f11e1fd49addeceb430c5496aa36f9914aec041770be4831a6707004dad3e97c",
     "legacy_request_sha256": "sha256:42454512eb46d1117dcf99ce23150fc61830116b974bcdf3b31239ad028fe20a"
   },
   {
@@ -948,7 +948,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "a guided corpus requires guided exploration",
-    "request_sha256": "sha256:c554927090dc8d7297ca4241e3e987aeff7d6d6295f71f00f14fb28d99e29e0d",
+    "request_sha256": "sha256:ecdda7f08a41ead6a6686a6f38d9017034956f47e9b1e62a8a818b5aa8591420",
     "legacy_request_sha256": "sha256:55b9fa1d279a5323682c7d53fbfb686c5d8a0dfe52111df79d7f5bfbb4c33750"
   },
   {
@@ -957,7 +957,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "a guided corpus requires guided exploration",
-    "request_sha256": "sha256:6acedf526e52851bbe8ccee20ae859e858e33350d31bb8815afb454f02f15af7",
+    "request_sha256": "sha256:b847b754477b9ff9fe4ce956fb61636763c25ca941b5c94acf32d7c7b7f0ad13",
     "legacy_request_sha256": "sha256:ab7134a9572930ef8d6985749cadfc1b3c6c1abc2eb843c1eb62685ab1f57745"
   },
   {
@@ -966,7 +966,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "failure budget is only configurable in budget mode",
-    "request_sha256": "sha256:82bd84958bfa1dd7715b6008a718e7a875294ab6484f803cc7166b57ff2bcf8b",
+    "request_sha256": "sha256:d01a2ffdbb98403fc32fd1b8a610cb7ba215c8bc83e91ad05a872f80c0b51993",
     "legacy_request_sha256": "sha256:086227b12e4d3bd0b1795bd04f84a80b01632bd53a8e5ba0eb52005bc11b6392"
   },
   {
@@ -975,7 +975,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "failure budget is only configurable in budget mode",
-    "request_sha256": "sha256:af1e0363b560f1a050eec20ff98e47207eb4a3337c36c2a312d6115bc7fde2e0",
+    "request_sha256": "sha256:fdada3ed89ce6385bef0f22e3da22e51044765f3d6152a8545291c486341309b",
     "legacy_request_sha256": "sha256:ba962ae4aa26fc9cf86159b3ad0dffa7dfadd0d62f811a2ad7580a10437a9f92"
   },
   {
@@ -984,7 +984,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "failure budget must be positive",
-    "request_sha256": "sha256:808b8cc910152573f4d5586b56255c1ea912450b655dbc29660c3847ed70c231",
+    "request_sha256": "sha256:f29a395d75b886a0dcd8cc9541e38609a56f6630467a970f5e6c079537f1b560",
     "legacy_request_sha256": "sha256:9cddf62e61fd73e6eb475e0eb80720108726282aa65810b5cbcb07fce134812c"
   },
   {
@@ -993,7 +993,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "unknown failure policy \"bogus\"",
-    "request_sha256": "sha256:72d34b7eaff446dda1e8b65296b154ab769e3b5ac6460a02b5197ded91812469",
+    "request_sha256": "sha256:9a2bf19db612b39ea10ad1263c212ba142d3b1b4809427c5133c060c018e3dba",
     "legacy_request_sha256": "sha256:66ce8af8d460bf9a1148a7829d37677a0e9583c66c18d11da1793f49fcdc0e73"
   },
   {
@@ -1002,7 +1002,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "supervisor command is required",
-    "request_sha256": "sha256:acb9a33db4d0b98a89809d1e7b3f09492fe9165ae9159414f6e75a7a381dfe29",
+    "request_sha256": "sha256:c2152963143583eb858a78316555be7afb91366ab8f42de83c542c00987662a4",
     "legacy_request_sha256": "sha256:1a41e72dfd0d2fd27ecbeb7bc5ce59ff8eca70896e6ea2dcb828300ea1f69d24"
   },
   {
@@ -1011,7 +1011,7 @@
     "selection_count": 3,
     "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
     "error": "",
-    "request_sha256": "sha256:acb9a33db4d0b98a89809d1e7b3f09492fe9165ae9159414f6e75a7a381dfe29",
+    "request_sha256": "sha256:c2152963143583eb858a78316555be7afb91366ab8f42de83c542c00987662a4",
     "legacy_request_sha256": "sha256:1a41e72dfd0d2fd27ecbeb7bc5ce59ff8eca70896e6ea2dcb828300ea1f69d24",
     "plan_sha256": "sha256:52e7277a075550c9054e3e5ab173e9ab304370d97bbe6427459fe9c4982382e6"
   },
@@ -1021,7 +1021,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "read-only mounts require a target working directory",
-    "request_sha256": "sha256:820b72241e4750f913df00013b5a6e7adb6c4b63f8001d3ec0a9ff3de8fa724f",
+    "request_sha256": "sha256:8575087608aa8dc0b1d6522f89a32c70879e1d3a5a8f563837679d2e28f7058d",
     "legacy_request_sha256": "sha256:ee9c1204e6c558255eb7e9fe8abb7bbf95b143dd602676eb08fd21256d3dbfc7"
   },
   {
@@ -1030,7 +1030,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "read-only mount \"usr\" must use HOST_DIRECTORY=TARGET_DIRECTORY",
-    "request_sha256": "sha256:977be49371bfb3d6e357479fa69c6ddec91561e405d6986a5686acf062023381",
+    "request_sha256": "sha256:704c8bdee229ef27b0ec5060a0c674a9a4677380dfba82ac69a1e5a7431ae7c8",
     "legacy_request_sha256": "sha256:f64429b715e288099dfa18fdb20adaf9426656cbcbe5fe6027b2a3644fa9a4e5"
   },
   {
@@ -1039,7 +1039,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "inspect read-only mount source \"gomad3-characterization-missing\": lstat /gomad3-characterization-missing: no such file or directory",
-    "request_sha256": "sha256:964d8da7d58ad179be5ebf863fb80039b825be87085a83eddebf9072634e099a",
+    "request_sha256": "sha256:c1a5812481a00476b8fd6853f2587f8b357b2e0676e7a399606100900fc61b92",
     "legacy_request_sha256": "sha256:b95b180ec7e61cb9e69645a71c1ca268d9d74d296756d1ce8b3a6ae6c2147990"
   },
   {
@@ -1048,7 +1048,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "read-only mount limits must be positive",
-    "request_sha256": "sha256:baf622ae4b84785cc950c301f07a0a221bbb7b4b615cbe8d122242372035efe1",
+    "request_sha256": "sha256:6a3b5f8b4657461ee01b31011bc9744e86b68fd5ec3d069f449b3f2494d802c8",
     "legacy_request_sha256": "sha256:7eb3671847774bde9f37dec97bcebf8e53206347a19a8f83dfa9b88ffd4ae42a"
   },
   {
@@ -1057,7 +1057,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "invalid target environment entry \"NOVALUE\"",
-    "request_sha256": "sha256:47f4d14e332275ae74c9c0acb2a044c8c6cfb7f86ce77c1382f571d5738e9877",
+    "request_sha256": "sha256:f27ec2140be88c92cfe4e9777ce0f096136b1859b4b59f3d249109d8c06ccf96",
     "legacy_request_sha256": "sha256:2e7fd0cc8ba4767ef5880f1248c8e22a3cf0ddd107f1628fa2a38124ec457f92"
   },
   {
@@ -1066,7 +1066,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "target environment name \"GOMAXPROCS\" is reserved",
-    "request_sha256": "sha256:15228cddac9abcdf1163faef26e68b84d2fdef3d3ac67f95f8dad70e6b4afdab",
+    "request_sha256": "sha256:97eb9dd5f9ae945b8ff8136e3416e60d42b6cdb8dff832b53d53341752d918c2",
     "legacy_request_sha256": "sha256:513ea2c307b3084716c0abb2987b08ed41476f5a0566a6bdf689ee43b1caa799"
   },
   {
@@ -1075,7 +1075,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "target environment name \"LD_AUDIT\" is reserved",
-    "request_sha256": "sha256:af8561b50223235e5144a14ccf4bf7c3d56df3add5896ce6ac2b54012534c778",
+    "request_sha256": "sha256:e05f636a2982f0140d92d61ce728670eb4753c591868b79940f1b9199ca9b997",
     "legacy_request_sha256": "sha256:f7ec935905cc1b097e4412ca21ed87880dade7c36e0770bd0a437bb809b1cef9"
   },
   {
@@ -1084,7 +1084,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "duplicate target environment name \"A\"",
-    "request_sha256": "sha256:75f7f66fed1320530f56ea7efa2df0925754e5b84f7cce937cda3571241e998f",
+    "request_sha256": "sha256:31302510ef7ee5ee59b05dc4f48356089e82309e3d4ac7b8049d375d0268c63d",
     "legacy_request_sha256": "sha256:af7e5c197bee9aa038960720052d02966732c7c049ad1eb753a22c7f227e3672"
   },
   {
@@ -1093,7 +1093,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "target environment name \"GOMAD3_CLOCK_TICK\" is reserved",
-    "request_sha256": "sha256:fa847d477cf72667b84aefc3156b0b9961f9e4c352292c7a9bb06ff6eca04a0a",
+    "request_sha256": "sha256:b61ea32aabc509133673fee1069b0ad67c70ef41371d966691e6d1bb3c8c5693",
     "legacy_request_sha256": "sha256:a908bf02cc43c17d10a7cb2984a595aa98a28349371228088a43080932661025"
   },
   {
@@ -1102,7 +1102,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "invalid seed selection term \"x\": non-decimal seed",
-    "request_sha256": "sha256:011afe195ed2976fe58f3923f8f104b2523c4ec887b9965b8ddffb5fd8665d55",
+    "request_sha256": "sha256:cc5818e44b7ea1ec3361b3df501feeba7a424375a6ee65a7f92194ba535af325",
     "legacy_request_sha256": "sha256:46e8ef324ce782a43e21002fe0b49329b4e8c2db279d316065c7620b5e2ff4c8"
   },
   {
@@ -1111,7 +1111,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "sharded campaign requires a canonical plan identity",
-    "request_sha256": "sha256:c2953bde32bc3bca2827e201d67910b72ac60e760f24c7cc495fcd32dce612ee",
+    "request_sha256": "sha256:cb6993f51fd01b90f7c0212df72ee9fbe4a46b089d4d940140ade92cbb63da64",
     "legacy_request_sha256": "sha256:14ba82d4539c09cd763f3fe3a6008a5936fa88c2cebb9e8752acf21b0e2fb18c"
   },
   {
@@ -1120,7 +1120,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "unknown exploration strategy \"bogus\"",
-    "request_sha256": "sha256:a2b35adcaf3998d863a1cb7b9d36166332fba1c403c4ddee1f0a7947fba80c48",
+    "request_sha256": "sha256:e90610c1d3a6c7a90637b135b0687609fe46c6e69dc56f505f625808069a9cd7",
     "legacy_request_sha256": "sha256:61e385ef53aa30f2d710c0b3047c2269ff07530d14c2699541754ef9bd834409"
   },
   {
@@ -1129,7 +1129,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "parallelism must be positive",
-    "request_sha256": "sha256:55e295e6c4ae17795ee6acf6e035c3e8cfb47f633d7f49914d3888bd08f8fe35",
+    "request_sha256": "sha256:41dd16c5f372e52beb53f010841780df5839adc7a27a36bcbea725fa3117445b",
     "legacy_request_sha256": "sha256:a75601fb18c2b2417a1031afb13f96108d4d763e2de67989c6c61e8fa8d9b695"
   },
   {
@@ -1138,7 +1138,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "unknown coverage mode \"bogus\"",
-    "request_sha256": "sha256:4bc1628a587a3b1d47c3df499e2c2239dfa2705dcdf11f10515f067d1e212eeb",
+    "request_sha256": "sha256:4a9767812e490b9a75f1f7213b4faa59cddfb94841e86fac8518ec0100f3ee09",
     "legacy_request_sha256": "sha256:c3af6ad156f40577218225900ae790ee326ca309de5d5462eda7d31b089e3e65"
   },
   {
@@ -1147,7 +1147,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "unknown failure policy \"bogus\"",
-    "request_sha256": "sha256:dc81cc7ecfa826965fa7e8dc5b05d0d014b51cb79c4d66f1670ba5303aa23c2d",
+    "request_sha256": "sha256:b02f293f0f9842ba92fbaeb2ec347f560f122e592713c3bf3003a60496195a5c",
     "legacy_request_sha256": "sha256:70ac543ab1db96c4d142dab64cebaa8cbbca99db5244bea48a8edd8f04a24537"
   },
   {
@@ -1156,7 +1156,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "read-only mount \"usr\" must use HOST_DIRECTORY=TARGET_DIRECTORY",
-    "request_sha256": "sha256:ff23f322d40f9603737c6486283024383e32476db336a7d038cdff0e205fa90f",
+    "request_sha256": "sha256:1454ef9a01b433e941ef085b3c21c55c0cc71d36e1d34acf0dfd109fbc0abc94",
     "legacy_request_sha256": "sha256:54d059f77cd1df8dd9e385df802651326c70c17e37e06647d5393dc68bab44cc"
   },
   {
@@ -1165,7 +1165,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "invalid target environment entry \"NOVALUE\"",
-    "request_sha256": "sha256:9c368c558c6e2548669fbd147faae8339c5623c756b10ee68f53429a2028d177",
+    "request_sha256": "sha256:82d831ebc4684c09f2cc703835f947f39702030e48a7336697b9b12256dba5e5",
     "legacy_request_sha256": "sha256:a6dfa0099f10f430f7f3923e113f2546aa31917c03d7848767857425fdf2f63a"
   },
   {
@@ -1174,7 +1174,7 @@
     "selection_count": 0,
     "environment": "",
     "error": "I/O transcript limit 1 must be a whole number of MiB between 67108864 and 1073741824",
-    "request_sha256": "sha256:fa49b7da7949c7722077a2abb26866bf27c141914f693a5bcfcf1d1f59873de8",
+    "request_sha256": "sha256:22bad1c3009a5d5766593f8392825bc753be0c0f6cbfedbce5d74be204fd806f",
     "legacy_request_sha256": "sha256:436f993fb9af0c3030e7e98ae00860f69ae30f6d0bda3a0078c9530877f163a6"
   }
 ]

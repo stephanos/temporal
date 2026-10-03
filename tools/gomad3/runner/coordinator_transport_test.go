@@ -41,45 +41,90 @@ func TestMain(m *testing.M) {
 // coordinatorLocalOnlyFields are the CampaignSpec fields that deliberately do
 // not cross the coordinator transport, with the reason each stays local.
 var coordinatorLocalOnlyFields = map[string]string{
-	"CoordinatorCommand":   "selects the isolated path in the parent",
-	"Progress":             "replaced in the child by a callback that forwards events to the parent",
-	"Preparer":             "injected preparation is rejected for isolated campaigns",
-	"Executor":             "injected execution is rejected for isolated campaigns",
-	"Replayer":             "injected replay is rejected for isolated campaigns",
+	"CoordinatorCommand": "selects the isolated path in the parent",
+	"Progress":           "replaced in the child by a callback that forwards events to the parent",
+	"Preparer":           "injected preparation is rejected for isolated campaigns",
+	"Executor":           "injected execution is rejected for isolated campaigns",
+	"Replayer":           "injected replay is rejected for isolated campaigns",
+}
+
+// coordinatorWiringFields are the CampaignSpec fields that cross the
+// coordinator transport as process wiring beside the serialized options.
+var coordinatorWiringFields = map[string]string{
+	"SupervisorCommand": "the resolved child command the coordinator starts executions with",
+	"RunnerBuild":       "the Runner identity the coordinator records",
+}
+
+// campaignRunPrivateFields are the campaignRun fields no request supplies,
+// with the reason each stays out of the coordinator transport.
+var campaignRunPrivateFields = map[string]string{
 	"resumePreflight":      "the child opens its own resume preflight",
 	"guidancePlan":         "selected locally after target preparation; resume restores it from the recorded plan",
 	"failureArtifactLimit": "the child derives it from the campaign plan",
 	"failureBytesLimit":    "the child derives it from the campaign plan",
 }
 
+// leafFields returns the fields of a struct type with its embedded groups
+// flattened, by the name each is promoted under.
+func leafFields(structType reflect.Type) map[string]reflect.StructField {
+	fields := make(map[string]reflect.StructField)
+	for _, field := range reflect.VisibleFields(structType) {
+		if !field.Anonymous {
+			fields[field.Name] = field
+		}
+	}
+	return fields
+}
+
 func TestCoordinatorTransportCoversEveryCampaignSpecField(t *testing.T) {
-	specType := reflect.TypeFor[CampaignSpec]()
-	wireType := reflect.TypeFor[coordinatorConfig]()
-	for index := range specType.NumField() {
-		field := specType.Field(index)
-		wireField, transported := wireType.FieldByName(field.Name)
-		if _, local := coordinatorLocalOnlyFields[field.Name]; local {
-			if transported {
-				t.Errorf("CampaignSpec.%s is listed as local-only but is transported", field.Name)
+	specFields := leafFields(reflect.TypeFor[CampaignSpec]())
+	optionFields := leafFields(reflect.TypeFor[campaignOptions]())
+	requestFields := leafFields(reflect.TypeFor[coordinatorRequest]())
+	runFields := leafFields(reflect.TypeFor[campaignRun]())
+	for name, field := range specFields {
+		_, local := coordinatorLocalOnlyFields[name]
+		_, wiring := coordinatorWiringFields[name]
+		optionField, option := optionFields[name]
+		requestField, transportedWiring := requestFields[name]
+		switch {
+		case local:
+			if option || transportedWiring {
+				t.Errorf("CampaignSpec.%s is listed as local-only but is transported", name)
 			}
-			continue
+		case wiring:
+			if option || !transportedWiring || requestField.Type != field.Type {
+				t.Errorf("CampaignSpec.%s is listed as wiring but crosses the transport as option=%t wiring=%t", name, option, transportedWiring)
+			}
+		case !option:
+			t.Errorf("CampaignSpec.%s is neither a serialized option, transported wiring nor listed as local-only", name)
+		case optionField.Type != field.Type:
+			t.Errorf("CampaignSpec.%s has type %s but is serialized as %s", name, field.Type, optionField.Type)
 		}
-		if !transported {
-			t.Errorf("CampaignSpec.%s is neither transported to the coordinator nor listed as local-only", field.Name)
-			continue
-		}
-		if wireField.Type != field.Type {
-			t.Errorf("CampaignSpec.%s has type %s but is transported as %s", field.Name, field.Type, wireField.Type)
-		}
-	}
-	for index := range wireType.NumField() {
-		if _, found := specType.FieldByName(wireType.Field(index).Name); !found {
-			t.Errorf("coordinator transport field %s has no CampaignSpec field", wireType.Field(index).Name)
+		if runField, found := runFields[name]; !found || runField.Type != field.Type {
+			t.Errorf("CampaignSpec.%s does not reach campaignRun with its type", name)
 		}
 	}
-	for name := range coordinatorLocalOnlyFields {
-		if _, found := specType.FieldByName(name); !found {
-			t.Errorf("local-only field %s is not a CampaignSpec field", name)
+	for name := range optionFields {
+		if _, found := specFields[name]; !found {
+			t.Errorf("serialized option %s has no CampaignSpec field", name)
+		}
+	}
+	for name := range requestFields {
+		if _, found := coordinatorWiringFields[name]; !found && name != "Options" {
+			t.Errorf("coordinator request field %s is neither the options nor listed wiring", name)
+		}
+	}
+	for name := range runFields {
+		_, private := campaignRunPrivateFields[name]
+		if _, found := specFields[name]; found == private {
+			t.Errorf("campaignRun.%s must come from CampaignSpec or be listed as private, not both", name)
+		}
+	}
+	for _, names := range []map[string]string{coordinatorLocalOnlyFields, coordinatorWiringFields} {
+		for name := range names {
+			if _, found := specFields[name]; !found {
+				t.Errorf("listed field %s is not a CampaignSpec field", name)
+			}
 		}
 	}
 }
@@ -99,22 +144,37 @@ func TestCoordinatorTransportRoundTripsEveryTransportedField(t *testing.T) {
 		{name: "explicit false regression override", spec: explicitFalse},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			encoded, err := json.Marshal(coordinatorConfigFromCampaignSpec(test.spec, childTimeout))
+			encoded, err := json.Marshal(newCoordinatorRequest(newCampaignRun(test.spec), childTimeout))
 			if err != nil {
 				t.Fatal(err)
 			}
 			decoder := json.NewDecoder(bytes.NewReader(encoded))
 			decoder.DisallowUnknownFields()
-			var wire coordinatorConfig
+			var wire coordinatorRequest
 			if err := decoder.Decode(&wire); err != nil {
 				t.Fatal(err)
 			}
-			got := campaignSpecFromCoordinatorConfig(wire)
-			want := test.spec
+			got := wire.campaignRun()
+			want := newCampaignRun(test.spec)
 			want.OverallTimeout = childTimeout
 			want.CoordinatorCommand, want.Progress, want.Preparer, want.Executor, want.Replayer = nil, nil, nil, nil, nil
 			if !reflect.DeepEqual(got, want) {
-				t.Fatalf("coordinator transport changed %v:\n got %#v\nwant %#v", differingExportedFields(got, want), got, want)
+				t.Fatalf("coordinator transport changed %v:\n got %#v\nwant %#v", differingFields(got, want), got, want)
+			}
+			for name := range leafFields(reflect.TypeFor[CampaignSpec]()) {
+				if _, local := coordinatorLocalOnlyFields[name]; local {
+					continue
+				}
+				specValue := reflect.ValueOf(test.spec).FieldByName(name).Interface()
+				if name == "OverallTimeout" {
+					specValue = childTimeout
+				}
+				if name == "Strategy" && test.spec.Strategy == "" {
+					specValue = StrategySeed
+				}
+				if gotValue := reflect.ValueOf(got).FieldByName(name).Interface(); !reflect.DeepEqual(gotValue, specValue) {
+					t.Errorf("CampaignSpec.%s = %#v reached the coordinator as %#v", name, specValue, gotValue)
+				}
 			}
 		})
 	}
@@ -171,12 +231,14 @@ func fillDistinct(t *testing.T, path string, value reflect.Value, next *uint64) 
 	}
 }
 
-func differingExportedFields(got, want CampaignSpec) []string {
+func differingFields(got, want campaignRun) []string {
 	gotValue, wantValue := reflect.ValueOf(got), reflect.ValueOf(want)
 	var names []string
-	for index := range gotValue.NumField() {
-		field := gotValue.Type().Field(index)
-		if field.IsExported() && !reflect.DeepEqual(gotValue.Field(index).Interface(), wantValue.Field(index).Interface()) {
+	for _, field := range reflect.VisibleFields(gotValue.Type()) {
+		if field.Anonymous || !field.IsExported() {
+			continue
+		}
+		if !reflect.DeepEqual(gotValue.FieldByIndex(field.Index).Interface(), wantValue.FieldByIndex(field.Index).Interface()) {
 			names = append(names, field.Name)
 		}
 	}
@@ -391,7 +453,7 @@ func TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner(t *testing.T)
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			request := coordinatorRequest(t, test.config, test.omit...)
+			request := encodeCoordinatorRequest(t, test.config, test.omit...)
 			stdout, stderr, err := runCoordinatorProcess(t, request)
 			if err != nil {
 				t.Fatalf("coordinator process: %v: %s", err, stderr)
@@ -420,17 +482,21 @@ func TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner(t *testing.T)
 }
 
 func TestCoordinatorRejectsMalformedRequests(t *testing.T) {
-	valid := coordinatorRequest(t, isolatedSimulationCampaign(t))
+	valid := encodeCoordinatorRequest(t, isolatedSimulationCampaign(t))
 	unknownField := append([]byte(`{"Unexpected":1,`), valid[1:]...)
+	unknownOption := bytes.Replace(valid, []byte(`"Search":{`), []byte(`"Search":{"Unexpected":1,`), 1)
 	for _, test := range []struct {
 		name    string
 		request []byte
 		want    string
 	}{
 		{name: "malformed JSON", request: valid[:len(valid)/2], want: "decode coordinator request: unexpected EOF"},
-		{name: "wrong field type", request: []byte(`{"MaxForcedDecisions":"3"}`), want: "decode coordinator request: json: cannot unmarshal string into Go struct field coordinatorConfig.MaxForcedDecisions of type uint64"},
+		{name: "wrong field type", request: []byte(`{"Options":{"Search":{"MaxForcedDecisions":"3"}}}`), want: "decode coordinator request: json: cannot unmarshal string into Go struct field coordinatorRequest.Options.Search.MaxForcedDecisions of type uint64"},
 		{name: "unknown field", request: unknownField, want: `decode coordinator request: json: unknown field "Unexpected"`},
-		{name: "unknown dimension", request: []byte(`{"SimulationDimensionLimits":{"clock":1}}`), want: `decode coordinator request: json: unknown field "clock"`},
+		{name: "unknown option", request: unknownOption, want: `decode coordinator request: json: unknown field "Unexpected"`},
+		{name: "option outside its group", request: []byte(`{"Options":{"MaxForcedDecisions":3}}`), want: `decode coordinator request: json: unknown field "MaxForcedDecisions"`},
+		{name: "flat option", request: []byte(`{"MaxForcedDecisions":3}`), want: `decode coordinator request: json: unknown field "MaxForcedDecisions"`},
+		{name: "unknown dimension", request: []byte(`{"Options":{"Search":{"SimulationDimensionLimits":{"clock":1}}}}`), want: `decode coordinator request: json: unknown field "clock"`},
 		{name: "trailing data", request: append(append([]byte(nil), valid...), []byte(`{}`)...), want: "trailing coordinator request {"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -536,28 +602,47 @@ func sortedEnvironment(environment []record.Environment) []record.Environment {
 	return sorted
 }
 
-// coordinatorRequest encodes the request the parent would send for config,
-// optionally dropping top-level members to model a request that omits them.
-func coordinatorRequest(t *testing.T, config CampaignSpec, omit ...string) []byte {
+// encodeCoordinatorRequest encodes the request the parent would send for
+// config, optionally dropping members to model a request that omits them. A
+// member is named by its option or wiring name and dropped from the group
+// that serializes it.
+func encodeCoordinatorRequest(t *testing.T, config CampaignSpec, omit ...string) []byte {
 	t.Helper()
-	encoded, err := json.Marshal(coordinatorConfigFromCampaignSpec(config, config.OverallTimeout))
+	encoded, err := json.Marshal(newCoordinatorRequest(newCampaignRun(config), config.OverallTimeout))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(omit) == 0 {
 		return encoded
 	}
-	var members map[string]json.RawMessage
-	if err := json.Unmarshal(encoded, &members); err != nil {
+	var request map[string]json.RawMessage
+	if err := json.Unmarshal(encoded, &request); err != nil {
+		t.Fatal(err)
+	}
+	var options map[string]map[string]json.RawMessage
+	if err := json.Unmarshal(request["Options"], &options); err != nil {
 		t.Fatal(err)
 	}
 	for _, name := range omit {
-		if _, found := members[name]; !found {
+		if _, found := request[name]; found && name != "Options" {
+			delete(request, name)
+			continue
+		}
+		omitted := false
+		for _, group := range options {
+			if _, found := group[name]; found {
+				delete(group, name)
+				omitted = true
+			}
+		}
+		if !omitted {
 			t.Fatalf("coordinator request has no member %q", name)
 		}
-		delete(members, name)
 	}
-	encoded, err = json.Marshal(members)
+	if request["Options"], err = json.Marshal(options); err != nil {
+		t.Fatal(err)
+	}
+	encoded, err = json.Marshal(request)
 	if err != nil {
 		t.Fatal(err)
 	}

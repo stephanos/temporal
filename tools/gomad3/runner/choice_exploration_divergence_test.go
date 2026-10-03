@@ -170,7 +170,7 @@ func TestProcessExplorationCompletionKeepsRunnerDomainFallback(t *testing.T) {
 	round, _ := state.NextRound()
 	result := processResult(0, "", "")
 	result.Cancelled = true
-	_, err = processExplorationCompletion(t.Context(), config, prepared, nil, nil, "", "", nil, state, round, 0, runCompletion{job: runJob{seed: 7}, result: result}, &CampaignResult{}, nil, nil, nil)
+	_, err = processExplorationCompletion(t.Context(), newCampaignRun(config), prepared, nil, nil, "", "", nil, state, round, 0, runCompletion{job: runJob{seed: 7}, result: result}, &CampaignResult{}, nil, nil, nil)
 	var host *HostError
 	if !errors.As(err, &host) || host.Reason != "runner_cancelled" {
 		t.Fatalf("runner-domain fallback = %v", err)

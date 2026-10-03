@@ -52,7 +52,7 @@ type minimizationSession struct {
 	opened          artifact.Artifact
 	workDirectory   string
 	prepared        target.Prepared
-	campaign        CampaignSpec
+	campaign        campaignRun
 	baseEnvironment []record.Environment
 	profile         deterministicio.Spec
 	mappings        []readonlymount.Mapping
@@ -399,12 +399,12 @@ func (session *minimizationSession) prepareWorkspace() error {
 		}
 		session.mappings, session.mountLimits, session.mountSnapshot, session.mountArtifact = mappings, limits, &snapshot, &captured
 	}
-	session.campaign = CampaignSpec{
+	session.campaign = newCampaignRun(CampaignSpec{
 		ExecutionTimeout: runTimeout, OverallTimeout: overallTimeout, TerminateGrace: terminateGrace,
 		OutputLimit: uint64(manifest.Limits.OutputBytes), WorldTransitionLimit: uint64(manifest.Limits.WorldTransitionBytes),
 		ChoiceTraceLimit: uint64(manifest.Limits.ChoiceTraceBytes), RunnerBuild: manifest.Runner.RunnerBuild,
 		IOROMountLimits: session.mountLimits, SupervisorCommand: append([]string(nil), session.config.SupervisorCommand...),
-	}
+	})
 	session.executor = session.config.Executor
 	if session.executor == nil {
 		if len(session.config.SupervisorCommand) == 0 {

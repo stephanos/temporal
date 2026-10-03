@@ -23,7 +23,10 @@ import (
 // what campaign validation returns and what the parent sends to the isolated
 // coordinator. It was captured before campaign options gained one owner; the
 // same table must keep producing the same selections, environments, error
-// texts and error precedence.
+// texts, error precedence and campaign plan records. The request bytes were
+// re-pinned once when the options were nested by group; the legacy
+// projection, which flattens the groups again, still equals the bytes pinned
+// before.
 const campaignOptionsCharacterizationPath = "testdata/campaign_options_characterization.json"
 
 // campaignOptionsCharacterizationWrite rewrites the pinned table instead of
@@ -478,8 +481,9 @@ func characterizationMounts(spec CampaignSpec) ([]readonlymount.Mapping, readonl
 }
 
 func characterizeValidation(spec CampaignSpec, frozenGuidance *campaign.GuidancePlan) (SeedSelection, []record.Environment, error) {
-	spec.guidancePlan = frozenGuidance
-	return validateConfig(spec)
+	run := newCampaignRun(spec)
+	run.guidancePlan = frozenGuidance
+	return validateConfig(run)
 }
 
 func characterizePlanRecord(spec CampaignSpec, frozenGuidance *campaign.GuidancePlan, selection SeedSelection, environment []record.Environment) ([]byte, error) {
@@ -491,8 +495,9 @@ func characterizePlanRecord(spec CampaignSpec, frozenGuidance *campaign.Guidance
 	if err != nil {
 		return nil, err
 	}
-	spec.guidancePlan, spec.IOROMountLimits = frozenGuidance, limits
-	plan, err := campaignPlanRecord(spec, journalPlan, "prepared/target", characterizationPrepared(), environment, mounts, selection.Count())
+	run := newCampaignRun(spec)
+	run.guidancePlan, run.IOROMountLimits = frozenGuidance, limits
+	plan, err := campaignPlanRecord(run, journalPlan, "prepared/target", characterizationPrepared(), environment, mounts, selection.Count())
 	if err != nil {
 		return nil, err
 	}
@@ -502,15 +507,29 @@ func characterizePlanRecord(spec CampaignSpec, frozenGuidance *campaign.Guidance
 // characterizeCoordinatorRequest returns the request bytes the isolated
 // parent sends and their projection onto the flat field layout the
 // coordinator request had when this table was pinned, with the request's
-// documented strategy default applied.
+// documented strategy default applied. The request now nests its options by
+// group; flattening the groups must give back every pinned member and value.
 func characterizeCoordinatorRequest(spec CampaignSpec) (request, legacy json.RawMessage, err error) {
-	request, err = json.Marshal(coordinatorConfigFromCampaignSpec(spec, characterizationChildTimeout))
+	request, err = json.Marshal(newCoordinatorRequest(newCampaignRun(spec), characterizationChildTimeout))
 	if err != nil {
 		return nil, nil, err
 	}
 	var members map[string]json.RawMessage
 	if err := json.Unmarshal(request, &members); err != nil {
 		return nil, nil, err
+	}
+	var groups map[string]map[string]json.RawMessage
+	if err := json.Unmarshal(members["Options"], &groups); err != nil {
+		return nil, nil, err
+	}
+	delete(members, "Options")
+	for groupName, group := range groups {
+		for name, value := range group {
+			if _, duplicate := members[name]; duplicate {
+				return nil, nil, fmt.Errorf("option %s.%s duplicates a request member", groupName, name)
+			}
+			members[name] = value
+		}
 	}
 	legacy, err = legacyCoordinatorProjection(members)
 	return request, legacy, err

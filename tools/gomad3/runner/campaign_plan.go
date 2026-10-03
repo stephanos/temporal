@@ -16,7 +16,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
-func campaignPlan(config CampaignSpec, journal *campaign.CampaignJournal, prepared target.Prepared, environment []record.Environment, mounts []readonlymount.Mapping, selectionCount uint64) (campaign.CampaignPlan, error) {
+func campaignPlan(config campaignRun, journal *campaign.CampaignJournal, prepared target.Prepared, environment []record.Environment, mounts []readonlymount.Mapping, selectionCount uint64) (campaign.CampaignPlan, error) {
 	preparedPath, err := filepath.Rel(journal.Path(), prepared.Path)
 	if err != nil {
 		return campaign.CampaignPlan{}, fmt.Errorf("make prepared target path relative: %w", err)
@@ -28,7 +28,7 @@ func campaignPlan(config CampaignSpec, journal *campaign.CampaignJournal, prepar
 	return campaignPlanRecord(config, journal.ExecutionJournalPlan(), preparedPath, prepared, environment, mounts, selectionCount)
 }
 
-func campaignPlanRecord(config CampaignSpec, journalPlan campaign.ExecutionJournalPlan, preparedPath string, prepared target.Prepared, environment []record.Environment, mounts []readonlymount.Mapping, selectionCount uint64) (campaign.CampaignPlan, error) {
+func campaignPlanRecord(config campaignRun, journalPlan campaign.ExecutionJournalPlan, preparedPath string, prepared target.Prepared, environment []record.Environment, mounts []readonlymount.Mapping, selectionCount uint64) (campaign.CampaignPlan, error) {
 	profile := deterministicio.Default()
 	requiredProbes := append([]string(nil), config.RequiredSemanticProbes...)
 	sort.Strings(requiredProbes)
@@ -42,7 +42,7 @@ func campaignPlanRecord(config CampaignSpec, journalPlan campaign.ExecutionJourn
 	}
 	plan := campaign.CampaignPlan{
 		Schema: campaign.CampaignPlanSchema, PlanSHA256: config.PlanSHA256, Shard: shard,
-		Strategy: string(normalizedStrategy(config.Strategy)), Selection: config.Seeds, SelectionCount: record.Uint64String(selectionCount), Parallel: record.Uint64String(config.Parallel),
+		Strategy: string(config.Strategy), Selection: config.Seeds, SelectionCount: record.Uint64String(selectionCount), Parallel: record.Uint64String(config.Parallel),
 		Journal:       &journalPlan,
 		MaxExecutions: record.Uint64String(config.MaxExecutions), MaxChoiceDepth: record.Uint64String(config.MaxChoiceDepth), ChoiceStartOrdinal: record.Uint64String(config.ChoiceStartOrdinal), MaxForcedDecisions: record.Uint64String(config.MaxForcedDecisions),
 		MaxExplorationBytes: record.Uint64String(config.MaxExplorationBytes), MaxExplorationResultBytes: record.Uint64String(config.MaxExplorationResultBytes), SimulationDimensionLimits: simulationengine.DimensionLimits(config.SimulationDimensionLimits),
@@ -58,10 +58,10 @@ func campaignPlanRecord(config CampaignSpec, journalPlan campaign.ExecutionJourn
 		Coverage: string(normalizedCoverage(config.Coverage)), RequiredSemanticProbes: requiredProbes,
 		KeepSuccesses: string(normalizedKeepSuccesses(config.KeepSuccesses)), SuccessArtifactLimit: record.Uint64String(config.SuccessArtifactLimit), SuccessBytesLimit: record.Uint64String(config.SuccessBytesLimit),
 	}
-	if normalizedStrategy(config.Strategy) == StrategyChoiceExploration {
+	if config.Strategy == StrategyChoiceExploration {
 		plan.ChoiceExplorationImplementationSHA256 = choiceengine.ImplementationSHA256()
 	}
-	if normalizedStrategy(config.Strategy) == StrategySimulationExploration {
+	if config.Strategy == StrategySimulationExploration {
 		plan.SimulationExplorationImplementationSHA256 = simulationengine.ImplementationSHA256()
 	}
 	if limit := ioTranscriptLimit(config); limit != deterministicio.DefaultTranscriptBytes {

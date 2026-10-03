@@ -170,7 +170,6 @@ type CampaignSpec struct {
 	Guide                     bool
 	GuideRegression           bool
 	GuideRegressionOverride   *bool
-	guidancePlan              *campaign.GuidancePlan
 	Corpus                    string
 	GuideSnapshotSHA256       record.SHA256
 	Progress                  CampaignEventFunc
@@ -178,9 +177,6 @@ type CampaignSpec struct {
 	Preparer                  Preparer
 	Executor                  Executor
 	Replayer                  ArtifactReplayer
-	resumePreflight           *campaign.ResumePreflight
-	failureArtifactLimit      uint64
-	failureBytesLimit         uint64
 }
 
 type CampaignResult struct {
@@ -370,13 +366,10 @@ type runJournalFactory interface {
 
 var environmentName = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 
-func Explore(ctx context.Context, config CampaignSpec) (CampaignResult, error) {
-	if config.ResumeCampaign != "" {
-		var err error
-		config, err = resumeRequestDefaults(config)
-		if err != nil {
-			return CampaignResult{}, err
-		}
+func Explore(ctx context.Context, spec CampaignSpec) (CampaignResult, error) {
+	config, err := normalizeCampaign(spec)
+	if err != nil {
+		return CampaignResult{}, err
 	}
 	if len(config.CoordinatorCommand) != 0 {
 		if config.Preparer != nil || config.Executor != nil || config.Replayer != nil {
@@ -387,7 +380,7 @@ func Explore(ctx context.Context, config CampaignSpec) (CampaignResult, error) {
 	return runLocal(ctx, config)
 }
 
-func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult, retErr error) {
+func runLocal(ctx context.Context, config campaignRun) (summary CampaignResult, retErr error) {
 	resuming := config.ResumeCampaign != ""
 	selection, baseEnvironment, err := validateConfig(config)
 	var readOnlyMounts []readonlymount.Mapping
@@ -478,7 +471,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 		summary = CampaignResult{CampaignPath: batchPath, SelectionCount: normalizedCampaignShard(config.Shard).SelectionCount(selection.Count())}
 		journal, err = campaign.NewCampaignJournal(overallCtx, campaign.CampaignConfig{
 			Root: config.Artifacts, CampaignID: runID, PlanSHA256: config.PlanSHA256, Shard: campaignStoreShard(config.Shard),
-			Strategy: string(normalizedStrategy(config.Strategy)), Guidance: config.guidancePlan, Selection: config.Seeds, SelectionCount: selection.Count(), MaxExecutions: config.MaxExecutions, Parallel: uint64(config.Parallel),
+			Strategy: string(config.Strategy), Guidance: config.guidancePlan, Selection: config.Seeds, SelectionCount: selection.Count(), MaxExecutions: config.MaxExecutions, Parallel: uint64(config.Parallel),
 		})
 		if err != nil {
 			return summary, &HostError{Reason: "artifact_setup", Err: err}
@@ -625,14 +618,14 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 	if err := reportProgress(ProgressRunning, 0); err != nil {
 		return summary, &HostError{Reason: "progress_output", Err: err}
 	}
-	if normalizedStrategy(config.Strategy) == StrategyChoiceExploration {
+	if config.Strategy == StrategyChoiceExploration {
 		err := runChoiceExplorationLocal(overallCtx, config, selection, baseEnvironment, readOnlyMounts, prepared, selectedProfile, journal, runID, resuming, resumedRuns, &summary, reportProgress)
 		if err == nil {
 			batchComplete = true
 		}
 		return summary, err
 	}
-	if normalizedStrategy(config.Strategy) == StrategySimulationExploration {
+	if config.Strategy == StrategySimulationExploration {
 		err := runSimulationExplorationLocal(overallCtx, config, selection, baseEnvironment, readOnlyMounts, prepared, selectedProfile, journal, runID, resuming, resumedRuns, &summary, reportProgress)
 		if err == nil {
 			batchComplete = true
@@ -1159,7 +1152,7 @@ func runLocal(ctx context.Context, config CampaignSpec) (summary CampaignResult,
 	return summary, nil
 }
 
-func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, error) {
+func validateConfig(config campaignRun) (SeedSelection, []record.Environment, error) {
 	if config.ResumeCampaign != "" {
 		if config.Preparer != nil {
 			return SeedSelection{}, nil, fmt.Errorf("campaign resume does not accept target preparation")
@@ -1180,9 +1173,6 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e
 		return SeedSelection{}, nil, err
 	}
 	strategy := config.Strategy
-	if strategy == "" {
-		strategy = StrategySeed
-	}
 	shard := normalizedCampaignShard(config.Shard)
 	if err := shard.Validate(); err != nil {
 		return SeedSelection{}, nil, err
@@ -1274,7 +1264,7 @@ func validateConfig(config CampaignSpec) (SeedSelection, []record.Environment, e
 	if config.OutputLimit == 0 || config.WorldTransitionLimit == 0 {
 		return SeedSelection{}, nil, errors.New("output and World transition limits must be positive")
 	}
-	if config.Diagnostics && (config.ChoiceTraceLimit == 0 || normalizedStrategy(config.Strategy) != StrategySeed) {
+	if config.Diagnostics && (config.ChoiceTraceLimit == 0 || config.Strategy != StrategySeed) {
 		return SeedSelection{}, nil, errors.New("diagnostics require choice recording with the seed strategy")
 	}
 	if config.ChoiceTraceLimit != 0 && (config.ChoiceTraceLimit < execution.MinimumChoiceTraceBytes || config.ChoiceTraceLimit > execution.MaximumChoiceTraceBytes) {
@@ -1427,7 +1417,7 @@ func parseEnvironment(entries []string) ([]record.Environment, error) {
 	return environment, nil
 }
 
-func runSeed(ctx context.Context, config CampaignSpec, executor Executor, prepared target.Prepared, baseEnvironment []record.Environment, profile deterministicio.Spec, readOnlyMounts []readonlymount.Mapping, journal runJournalFactory, job runJob, readiness *runReadiness, completions chan<- runCompletion) {
+func runSeed(ctx context.Context, config campaignRun, executor Executor, prepared target.Prepared, baseEnvironment []record.Environment, profile deterministicio.Spec, readOnlyMounts []readonlymount.Mapping, journal runJournalFactory, job runJob, readiness *runReadiness, completions chan<- runCompletion) {
 	defer readiness.signal()
 	startedAt := time.Now().UTC()
 	run, err := journal.BeginExecution(job.ordinal, job.seed)
@@ -1546,7 +1536,7 @@ func simulationCapabilityForJob(executor Executor, job runJob) (*execution.Simul
 	}, nil
 }
 
-func choiceCapabilityForJob(config CampaignSpec, prepared target.Prepared, job runJob) (*execution.ChoiceCapability, error) {
+func choiceCapabilityForJob(config campaignRun, prepared target.Prepared, job runJob) (*execution.ChoiceCapability, error) {
 	if config.ChoiceTraceLimit == 0 {
 		return nil, nil
 	}
@@ -1625,7 +1615,7 @@ func environmentStrings(environment []record.Environment) []string {
 	return result
 }
 
-func manifestForRun(config CampaignSpec, prepared target.Prepared, baseEnvironment []record.Environment, completion runCompletion, outcome execution.Classification, runID string, recordedWorld record.World, mountArtifact *readonlymount.CapturedInputs) (record.ExecutionRecord, error) {
+func manifestForRun(config campaignRun, prepared target.Prepared, baseEnvironment []record.Environment, completion runCompletion, outcome execution.Classification, runID string, recordedWorld record.World, mountArtifact *readonlymount.CapturedInputs) (record.ExecutionRecord, error) {
 	profile := deterministicio.Default()
 	recordedProfile := recordedIOProfile(profile)
 	if completion.result.IOTranscript.Complete {
@@ -1855,7 +1845,7 @@ func preservePartial(run *campaign.ExecutionJournal) error {
 
 func publishBoundedFailureArtifact(
 	ctx context.Context,
-	config CampaignSpec,
+	config campaignRun,
 	root string,
 	signature record.SHA256,
 	distinct map[record.SHA256]string,
@@ -1930,7 +1920,7 @@ func newRunID() (string, error) {
 
 // ioTranscriptLimit is the campaign's I/O transcript bound, defaulting to
 // deterministicio.DefaultTranscriptBytes.
-func ioTranscriptLimit(config CampaignSpec) uint64 {
+func ioTranscriptLimit(config campaignRun) uint64 {
 	if config.IOTranscriptLimit == 0 {
 		return deterministicio.DefaultTranscriptBytes
 	}

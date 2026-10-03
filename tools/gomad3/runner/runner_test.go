@@ -460,7 +460,7 @@ func TestValidateConfigRequiresBoundedSingleSeedChoiceExploration(t *testing.T) 
 	valid.MaxExecutions = 8
 	valid.MaxChoiceDepth = 4
 	valid.MaxExplorationBytes = 1 << 20
-	if _, _, err := validateConfig(valid); err != nil {
+	if _, _, err := validateConfig(newCampaignRun(valid)); err != nil {
 		t.Fatal(err)
 	}
 
@@ -483,7 +483,7 @@ func TestValidateConfigRequiresBoundedSingleSeedChoiceExploration(t *testing.T) 
 		t.Run(test.name, func(t *testing.T) {
 			config := valid
 			test.configure(&config)
-			if _, _, err := validateConfig(config); err == nil || !strings.Contains(err.Error(), test.want) {
+			if _, _, err := validateConfig(newCampaignRun(config)); err == nil || !strings.Contains(err.Error(), test.want) {
 				t.Fatalf("validateConfig() error = %v, want %q", err, test.want)
 			}
 		})
@@ -499,7 +499,7 @@ func TestValidateConfigRequiresBoundedSingleSeedSimulationExploration(t *testing
 	valid.MaxExplorationBytes = 1 << 20
 	valid.MaxExplorationResultBytes = 1 << 20
 	valid.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 4, Scenario: 4, Network: 4, Storage: 4, Fault: 4, Crash: 4}
-	if _, _, err := validateConfig(valid); err != nil {
+	if _, _, err := validateConfig(newCampaignRun(valid)); err != nil {
 		t.Fatal(err)
 	}
 
@@ -525,7 +525,7 @@ func TestValidateConfigRequiresBoundedSingleSeedSimulationExploration(t *testing
 		t.Run(test.name, func(t *testing.T) {
 			config := valid
 			test.configure(&config)
-			if _, _, err := validateConfig(config); err == nil || !strings.Contains(err.Error(), test.want) {
+			if _, _, err := validateConfig(newCampaignRun(config)); err == nil || !strings.Contains(err.Error(), test.want) {
 				t.Fatalf("validateConfig() error = %v, want %q", err, test.want)
 			}
 		})
@@ -541,7 +541,7 @@ func TestValidateConfigRejectsExplorationBoundsForSeedStrategy(t *testing.T) {
 	} {
 		config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "7", PolicyAll, 1)
 		configure(&config)
-		if _, _, err := validateConfig(config); err == nil || !strings.Contains(err.Error(), "choice-exploration strategy") {
+		if _, _, err := validateConfig(newCampaignRun(config)); err == nil || !strings.Contains(err.Error(), "choice-exploration strategy") {
 			t.Fatalf("validateConfig() error = %v", err)
 		}
 	}
@@ -653,7 +653,7 @@ func TestRunResolvesRelativeArtifactRootBeforeTargetPreparation(t *testing.T) {
 func TestFailureArtifactCapacityRejectsBeforePublication(t *testing.T) {
 	signature := record.HashBytes([]byte("existing"))
 	distinct := map[record.SHA256]string{signature: "/existing"}
-	config := CampaignSpec{failureArtifactLimit: 1, failureBytesLimit: 10}
+	config := campaignRun{failureArtifactLimit: 1, failureBytesLimit: 10}
 	storedBytes := uint64(5)
 	storeRoot := t.TempDir()
 	_, err := publishBoundedFailureArtifact(
@@ -863,7 +863,7 @@ func TestValidateConfigAcceptsReadOnlyMountsWithoutProfile(t *testing.T) {
 	config.Environment = nil
 	config.IOROMounts = []string{t.TempDir() + "=schema"}
 	config.Target.WorkingDir = t.TempDir()
-	if _, _, err := validateConfig(config); err != nil {
+	if _, _, err := validateConfig(newCampaignRun(config)); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -1750,7 +1750,7 @@ func TestClassifyStableTargetDiagnostics(t *testing.T) {
 func TestManifestForRunBindsIOProfileIdentity(t *testing.T) {
 	preparer := newFakePreparer(t)
 	config := testConfig(t, preparer, &fakeExecutor{}, "1", PolicyFirst, 1)
-	manifest, err := manifestForRun(config, preparer.prepared, nil, runCompletion{
+	manifest, err := manifestForRun(newCampaignRun(config), preparer.prepared, nil, runCompletion{
 		job: runJob{seed: 1}, startedAt: time.Unix(1, 0), finishedAt: time.Unix(2, 0), result: processResult(1, "", ""),
 	}, execution.Classification{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact}, "run", record.World{}, nil)
 	if err != nil {
@@ -1957,11 +1957,11 @@ func TestChoiceTraceCoordinatorHelper(t *testing.T) {
 	if os.Getenv("GOMAD3_RUNNER_COORDINATOR") != "1" {
 		t.Skip("coordinator subprocess only")
 	}
-	var wire coordinatorConfig
+	var wire coordinatorRequest
 	if err := json.NewDecoder(os.Stdin).Decode(&wire); err != nil {
 		t.Fatal(err)
 	}
-	response := coordinatorResponse{CampaignResult: CampaignResult{ChoiceTrace: &ChoiceTraceSummary{Limit: wire.ChoiceTraceLimit}}}
+	response := coordinatorResponse{CampaignResult: CampaignResult{ChoiceTrace: &ChoiceTraceSummary{Limit: wire.Options.ChoiceTraceLimit}}}
 	if err := json.NewEncoder(os.Stdout).Encode(coordinatorMessage{Type: "result", Response: &response}); err != nil {
 		t.Fatal(err)
 	}
