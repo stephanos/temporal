@@ -80,4 +80,6 @@ The B tests are now in `tools/umpire/model` and pass. Every test above may be de
 
 Task 7 deletes the C entries about sets: `NexusCallerPins.test.scala:212`, together with the set parts of `:300` and `StandaloneActivityPins.test.scala:146`. Task 8 deletes the rest with the evaluator. Task 13 deletes `NexusKernel.test.scala`.
 
+Lines in this audit are those of commit 63ab0f12d, where it was written. Task 7 has deleted the sets test and the set parts. In the tree after it, `NexusCallerPins.test.scala:257` ("the composition") is at `:212`, and `:300` (the semantic checks) is at `:255`.
+
 **Open item: the three provisional outcomes.** Task 8 deletes `NexusCallerPins.test.scala:156`, `:257` and `:300` only after `nexusCaller`, `terminalHolds` and `stoppedWorkerRepliesNothing` (with its Property and Scenario) are gate roots of `nexus-caller.json`. At that point `nexus_pins_test.go` reads them from the lifted IR and drops its hand-written `nexusCallerClaims`, keeping only the test-local Queries of `:190` and `:198`. Until then those three tests check a copy that can drift from the Scala declarations. The conductor schedules the lift. It adds receipts to the frozen goldens, which the owner's delegation lets the conductor decide under R13. The inline Queries at `:190` and `:198` are test-local, so they stay plain B.
