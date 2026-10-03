@@ -23,11 +23,27 @@ func Fingerprint(canonical string) string {
 
 // Quote is Lean.Json.compress of a string: JSON escaping without HTML escaping.
 func Quote(s string) string {
+	// Printable ASCII other than a quote or a backslash is written as it is. Canonical forms quote
+	// identifiers, which are nearly all such, and one encoder for each of them was a third of the
+	// time a fingerprint took.
+	if plain(s) {
+		return `"` + s + `"`
+	}
 	var b bytes.Buffer
 	enc := json.NewEncoder(&b)
 	enc.SetEscapeHTML(false)
 	_ = enc.Encode(s)
 	return strings.TrimSuffix(b.String(), "\n")
+}
+
+// plain is whether JSON writes every byte of s as it is.
+func plain(s string) bool {
+	for i := range len(s) {
+		if c := s[i]; c < 0x20 || c > 0x7e || c == '"' || c == '\\' {
+			return false
+		}
+	}
+	return true
 }
 
 func jsonArray(items []string) string { return "[" + strings.Join(items, ",") + "]" }
