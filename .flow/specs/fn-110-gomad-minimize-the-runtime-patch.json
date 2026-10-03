@@ -1,11 +1,65 @@
 {
   "branch_name": "fn-110-gomad-minimize-the-runtime-patch",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-30T19:20:38.559425Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-110-gomad-minimize-the-runtime-patch",
+  "impl_review_rounds": {
+    "fn-110-gomad-minimize-the-runtime-patch.3": 0
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "214a87818b34a241799b69b622bd992b80ceda8dc3c0de0e42041cde755c845b",
+      "backend": "claude",
+      "base_sha": "331b75bb6b6be15c3fe04d179938999ffdb99ccb",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "91ce1111ed6c1803589640863d0defaad1a6aea5",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 3675,
+      "output_sha256": "048701281e4589f3bbe23f7830c2390042bae9478bcbafde5919c89dac241c14",
+      "reservation_id": "ee8749ff834f486c88458b18c4c020c1",
+      "round_consumed": true,
+      "scope": "impl:fn-110-gomad-minimize-the-runtime-patch.3",
+      "superseded_by": null,
+      "task": "fn-110-gomad-minimize-the-runtime-patch.3",
+      "timestamp": "2026-10-03T20:18:07.542660Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-110-gomad-minimize-the-runtime-patch.3": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-110-gomad-minimize-the-runtime-patch.3": 0
+  },
   "spec_path": ".flow/specs/fn-110-gomad-minimize-the-runtime-patch.md",
   "status": "open",
   "title": "Gomad: minimize the runtime patch without losing functionality",
@@ -20,5 +74,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-30T19:20:38.563177Z"
+  "updated_at": "2026-10-03T20:18:07.939199Z"
 }
