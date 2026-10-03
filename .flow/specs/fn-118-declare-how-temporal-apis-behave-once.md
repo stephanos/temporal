@@ -29,30 +29,47 @@ It serves the feature developer, who writes what a run does and no longer how lo
 | Hint | What it says | What the lowering does with it | Status |
 | --- | --- | --- | --- |
 | Visibility of a write to a read | at once, or eventually within a bound | read once, or poll for the condition | adopt: governs reads after writes; together with wait bounds it replaces the three hand-written polls |
-| Wait bounds | how long a condition may take, per kind of wait: per asynchronous cause and per kind of performed command | sets the Case's instruction limits | adopt: replaces the literal 250 and 5,000 |
-| Not-yet errors | which error of a read means the effect is not visible yet | keeps polling instead of failing | adopt if the inventory finds one in use |
+| Wait bounds | how long a condition may take, per kind of asynchronous cause | sets the Case's instruction limits | adopt per cause kind; per kind of performed command not adopted, since the two 5,000 ms limits bound nothing (task .1) |
+| Not-yet errors | which error of a read means the effect is not visible yet | keeps polling instead of failing | not adopted: no Case tolerates an error (task .1) |
 | Repeatable call | the call is idempotent, by which key | retries a transient failure | candidate |
 | Blocking read | the call returns when something happens | waits on it once instead of polling | candidate |
 | Read-only call | the call changes nothing | may be issued again or alongside others | candidate |
 | Cost of a call | the call is expensive | polls it less often | candidate |
 
+**Settled by task .1 (2026-10-03).** The inventory, the write->read pairs, the before-numbers and the exact fields are in `.plans/API_BEHAVIOR_HINTS.md`; task .1 confirmed the early proof point. In short:
+
+- **Visibility is declared method to method.** Every write on an existing path commits its whole effect on the execution in one transaction and every read reads that execution's mutable state, so no pair splits by field. Whether a status reads `PAUSED` depends on the state the path left the activity in (a pause of a started activity is `PAUSE_REQUESTED`, reported `RUNNING`), which the realization controls by stopping the worker, not on visibility. Pause, Unpause, Terminate, Start and an activity worker's answer are visible to DescribeActivityExecution at once; StartWorkflowExecution and a workflow task to GetWorkflowExecutionHistory at once; a Nexus handler's reply to DescribeWorkflowExecution only eventually (matching returns before history records the attempt).
+- **A bound belongs with the hint; a Profile only scales it** by one factor the Run records. Bounds are per cause because the server facts differ per cause; how much slower an environment is applies to all alike.
+- **The Testpilot IR gets a field for the hint's position.** `CaseProvenance.sources` cannot carry it: Testpilot reads none of the provenance while the expiry message is part of the Run, the rows have no key to an instruction, and the Producer writes them at line 1. A wait node lists the hints its bound comes from, each with its id, source line and share of the bound.
+- **Writes and reads are told apart by what exists today.** A read is a `Poll`, or an RPC with a response read whose method the API binds to HTTP `GET`; a write is an RPC bound to `POST` or a performed non-RPC command, identified by its cause kind; Driver controls and awaits are neither, and a `GET` whose response the Case does not read is no read. This uses the API's own `google.api.http` binding instead of the read-only candidate.
+- **Causes.** The adopted cause kinds are an activity worker's answer, a workflow task, a Nexus handler's reply, the server's delivery of a task to a worker, and a server timer. A step no command performs is declared a delivery or a timer per realization; a timer step carries the deadline the realization set, and the timer's bound is the slack after it. A read waits for the step that records the fact its evidence kind confirms, found in path order across scripts; its bound is the sum of the causes since its script last synchronized, plus the visibility bound when the performing write is only eventually visible. A closing read checks no pair.
+- **Not adopted:** not-yet errors (no Case tolerates an error, so no refusal can be tested), a per-command instruction timeout (the two 5,000 ms limits are never read by the Driver), a retry cause, and the remaining candidates. The Driver's own awaits (`AwaitLearned`, `AwaitCommand`, control waits) and `await-close` keep the Profile default and their explicit form under R4's errors clause.
+- **Unexplained, for the owner:** the two 5,000 ms limits; the Nexus schedule-to-close timer that the Driver derives from the Profile's default instruction timeout; `wait_new_event` on the closing history read; and the retry Case's attempt poll, which rests on the retry backoff outlasting its interval and on the default (HSM) attempt counting.
+
 ## API Contracts
 <!-- scope: technical -->
 
-A sketch of the author surface. The task that builds it settles the spelling and records it here.
+The author surface task .1 settled; task .2 builds it and may adjust spelling, recording it here.
 
 ```scala
-// in the shared Temporal kit, once
-WorkflowService.pauseActivityExecution
-  .visibleTo(WorkflowService.describeActivityExecution, atOnce)
-workerAnswer.boundedBy(statusRead) // a read that waits for a worker's answer
+// model/temporal/realize/Behavior.scala, once, each with its server citation
+WorkflowServiceGrpc.METHOD_PAUSE_ACTIVITY_EXECUTION
+  .visibleTo(WorkflowServiceGrpc.METHOD_DESCRIBE_ACTIVITY_EXECUTION, Visible.atOnce)
+CauseKind.handlerReply
+  .visibleTo(WorkflowServiceGrpc.METHOD_DESCRIBE_WORKFLOW_EXECUTION, Visible.eventually(WaitBound(250, 2000)))
+CauseKind.activityAnswer.boundedBy(WaitBound(intervalMs = 250, atMostMs = 2000))
 
-val statusRead = waitBound(interval = 250.millis, atMost = 10.seconds)
+// a realization: the steps no command performs
+ServerStep(attemptStart, CauseKind.delivery)
+ServerStep(scheduleToStart, CauseKind.timer, deadlineMs = ...) // from the kit's deadline value
 
-// in a realization: no interval, no timeout, no explicit poll
-onPath(control(Control.pause))(
-  expectStatus(ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED))
+// a read: no interval, no timeout, no explicit poll
+onPath(control(Control.pause))(awaitStatus(ProtocolFact.statusPaused, ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED))
 ```
+
+**IR.** The Umpire IR's `Realization` gains `ApiBehavior behavior = 15` (repeated `Visibility {id, position, write: method | cause, read, eventually: WaitBound}` and repeated `CauseBound {id, position, kind, bound}`) and `repeated ServerStep server_steps = 16` (`{position, step, kind, deadline_ms}`), with `enum CauseKind {ACTIVITY_ANSWER, WORKFLOW_TASK, HANDLER_REPLY, DELIVERY, TIMER}` and `WaitBound {position, interval_ms, at_most_ms}`. The Testpilot IR's `ReadEvidence` gains `bool once = 6` (read once, interval 0), and `InstructionNode` gains `repeated WaitHint wait_hints = 6` (`{hint_id, SourceLocation source, at_most_milliseconds}`); a node with wait hints writes its own timeout, equal to their sum, and no Profile default applies to it. Default-empty fields leave existing IR and Case bytes unchanged.
+
+**Shared-kit seam for fn-112.9.** A read is written as a typed evidence read and a typed condition (`await(evidence, role)(assign, until)`); no call site writes an interval, a timeout or `Instruction.poll`, and until task .5 the kit passes its one interval value. The script helpers take no timeout. The deadlines realizations set are kit values. Every Temporal realization is built by one kit function, where task .2 attaches `behavior`.
 
 **Reporting.** When a wait runs out, the failure names the condition, the declared bound and the hint it came from, with the hint's Scala position.
 
