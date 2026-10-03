@@ -681,6 +681,8 @@ MODEL_LIFTER_SOURCES := $(wildcard $(MODEL_ROOT)/lifter/*.scala) $(MODEL_ROOT)/l
 MODEL_LIFTS := $(MODEL_ROOT)/lifter/testdata/lifts
 MODEL_LIFTS_SCALAFIX = $(MODEL_SCALAFIX) --scalac-option -Werror:false \
 	$(call model_scalafix_files,$(wildcard $(MODEL_LIFTS)/*.scala))
+# The metrics project compiles gate sources beside its own; lint-model-gate lints those.
+MODEL_METRICS_SOURCES := $(wildcard $(MODEL_ROOT)/metrics/*.scala)
 MODEL_PROTO_JARS := $(MODEL_ROOT)/gen/ir-scalapb.jar $(MODEL_ROOT)/gen/api-scalapb.jar
 MODEL_JAR := $(MODEL_ROOT)/gen/model-scala.jar
 # The gate is one Scala program; its own arguments follow.
@@ -705,17 +707,17 @@ $(MODEL_JAR): $(MODEL_PROTO_JARS) $(MODEL_ROOT)/project.scala $(shell find $(MOD
 
 fmt-model:
 	@printf $(COLOR) "Formatting model files..."
-	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf $(MODEL_SOURCES) $(MODEL_ROOT)/lifter $(MODEL_ROOT)/gate
+	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf $(MODEL_SOURCES) $(MODEL_ROOT)/lifter $(MODEL_ROOT)/gate $(MODEL_ROOT)/metrics
 
-# The four scalafix runs build separate projects, so they run side by side; output-sync prints each
+# The five scalafix runs build separate projects, so they run side by side; output-sync prints each
 # run's output whole, after its title.
-MODEL_LINTS := lint-model-models lint-model-lifter lint-model-lifts lint-model-gate
+MODEL_LINTS := lint-model-models lint-model-lifter lint-model-lifts lint-model-gate lint-model-metrics
 .PHONY: $(MODEL_LINTS)
 
 lint-model: $(MODEL_PROTO_JARS) $(MODEL_JAR)
 	@printf $(COLOR) "Checking model formatting..."
-	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf --check $(MODEL_SOURCES) $(MODEL_ROOT)/lifter $(MODEL_ROOT)/gate
-	@$(MAKE) --no-print-directory -j4 --output-sync=target $(MODEL_LINTS)
+	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf --check $(MODEL_SOURCES) $(MODEL_ROOT)/lifter $(MODEL_ROOT)/gate $(MODEL_ROOT)/metrics
+	@$(MAKE) --no-print-directory -j5 --output-sync=target $(MODEL_LINTS)
 
 lint-model-models:
 	@printf $(COLOR) "Linting model files..."
@@ -733,6 +735,10 @@ lint-model-gate:
 	@printf $(COLOR) "Linting the gate..."
 	@cd $(MODEL_ROOT)/gate && $(MODEL_SCALAFIX) --check .
 
+lint-model-metrics:
+	@printf $(COLOR) "Linting the source metrics..."
+	@cd $(MODEL_ROOT)/metrics && $(MODEL_SCALAFIX) $(call model_scalafix_files,$(MODEL_METRICS_SOURCES)) --check .
+
 # Applies the scalafix rewrites; findings without a rewrite (e.g. DisableSyntax) still fail.
 fix-model: $(MODEL_PROTO_JARS) $(MODEL_JAR)
 	@printf $(COLOR) "Applying model lint fixes..."
@@ -740,6 +746,7 @@ fix-model: $(MODEL_PROTO_JARS) $(MODEL_JAR)
 	@cd $(MODEL_ROOT)/lifter && $(MODEL_SCALAFIX) $(call model_scalafix_files,$(MODEL_LIFTER_SOURCES)) .
 	@cd $(MODEL_LIFTS) && $(MODEL_LIFTS_SCALAFIX) .
 	@cd $(MODEL_ROOT)/gate && $(MODEL_SCALAFIX) .
+	@cd $(MODEL_ROOT)/metrics && $(MODEL_SCALAFIX) $(call model_scalafix_files,$(MODEL_METRICS_SOURCES)) .
 
 # The gate packages the IR classes itself when the schema changed.
 umpire-check-model:
