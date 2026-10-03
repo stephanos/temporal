@@ -1,6 +1,8 @@
 package umpire.lift
 
 import java.nio.file.{Files, Path}
+import java.util.concurrent.Semaphore
+import scala.collection.mutable
 import scala.concurrent.{blocking, Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.*
@@ -34,6 +36,22 @@ class Fixtures extends munit.FunSuite:
     Files.createTempDirectory(Files.createDirectories(gen.resolve("history")), "lifter.")
   private def lifted(name: String) = scratch.resolve(s"$name.json")
 
+  // Every build and lifter JVM holds one of these while it runs, so the tests run side by side
+  // within the memory of the machine. A test awaiting a lift holds none, so none waits on itself.
+  private val slots = Semaphore(6, true)
+  private def bounded[A](work: => A): A =
+    slots.acquire()
+    try work
+    finally slots.release()
+
+  // A test that builds or lifts is started in beforeAll, after the fixtures' lifts, and runs beside
+  // the others; the test awaits it, so its assertions and its failure stay its own.
+  private val started = mutable.ArrayBuffer.empty[() => Unit]
+  private def concurrently(name: String)(body: => Unit)(using munit.Location): Unit =
+    lazy val running = Future(blocking(body))
+    started += (() => running: Unit)
+    test(name)(Await.result(running, munitTimeout))
+
   // A fixture's sources are stored under testdata, which the lifter's project.scala excludes from
   // its build, since some of them must not compile. `materialize` copies them into the scratch
   // directory, with its project's jar path resolved. The lifter maps the copies' positions back to
@@ -58,7 +76,7 @@ class Fixtures extends munit.FunSuite:
 
   /** The lines of the stored files at which the fixture's build fails, as `<file>:<line>:<column>`. */
   private def refusals(fixture: String): Seq[String] =
-    val built = tools.scalaCli(Seq("compile", materialize(fixture).toString))
+    val built = bounded(tools.scalaCli(Seq("compile", materialize(fixture).toString)))
     assert(built.failed, s"model/lifter/testdata/$fixture built")
     val at = """\[error\] \S*/([^/\s:]+\.scala):(\d+):(\d+)""".r
     built.errors.collect { case at(file, line, column) =>
@@ -68,18 +86,22 @@ class Fixtures extends munit.FunSuite:
 
   private def packaged(name: String, sources: Path): Path =
     val jar = scratch.resolve(s"$name.jar")
-    tools
-      .scalaCli(Seq("--power", "package", "--library", sources.toString, "-f", "-o", jar.toString))
-      .orFail()
+    bounded(
+      tools.scalaCli(
+        Seq("--power", "package", "--library", sources.toString, "-f", "-o", jar.toString)
+      )
+    ).orFail()
     jar
 
   // The lifter is run as `lift` runs it, in a JVM of its own, since it ends the JVM on a refusal:
   // this build's classes, and the arguments of its command line.
   private def lift(arguments: String*): Ran =
     val java = Path.of(System.getProperty("java.home"), "bin", "java").toString
-    tools.run(
-      java,
-      Seq("-cp", System.getProperty("java.class.path"), "umpire.lift.lift") ++ arguments
+    bounded(
+      tools.run(
+        java,
+        Seq("-cp", System.getProperty("java.class.path"), "umpire.lift.lift") ++ arguments
+      )
     )
 
   private def refused(ran: Ran): Seq[String] =
@@ -200,11 +222,12 @@ class Fixtures extends munit.FunSuite:
         s"$input is missing: the gate packages the Models before it runs these tests (make umpire-check-model)"
       )
     lifts: Unit
+    started.foreach(_())
 
-  test("the build refuses a warning -Werror makes an error, at its line"):
+  concurrently("the build refuses a warning -Werror makes an error, at its line"):
     assertEquals(refusals("werror"), Seq("Evidence.scala:29:16"))
 
-  test("the build refuses crossed types, at their lines"):
+  concurrently("the build refuses crossed types, at their lines"):
     assertEquals(
       refusals("crossed").sorted,
       Seq(
@@ -215,10 +238,10 @@ class Fixtures extends munit.FunSuite:
       )
     )
 
-  test("the build refuses a non-finite state field, at its line"):
+  concurrently("the build refuses a non-finite state field, at its line"):
     assertEquals(refusals("nonfinite"), Seq("NonFinite.scala:5:47"))
 
-  test("typed API declarations and direct constructors refuse mismatched roots"):
+  concurrently("typed API declarations and direct constructors refuse mismatched roots"):
     assertEquals(
       refusals("typedInvalid").sorted,
       Seq(
@@ -249,17 +272,17 @@ class Fixtures extends munit.FunSuite:
       ).sorted
     )
 
-  test("only the unknown projected origin admits a dynamic message root"):
+  concurrently("only the unknown projected origin admits a dynamic message root"):
     assertEquals(refusals("dynamicInvalid"), Seq("Invalid.scala:10:16"))
 
-  test("retired string proto constructors refuse direct and helper-built names"):
+  concurrently("retired string proto constructors refuse direct and helper-built names"):
     val positions = refusals("retiredInvalid")
     assert(positions.size >= 12, positions.mkString(", "))
     assert(positions.exists(_.startsWith("Invalid.scala:15:")), positions.mkString(", "))
     assert(positions.exists(_.startsWith("Invalid.scala:16:")), positions.mkString(", "))
     assert(positions.exists(_.startsWith("Invalid.scala:29:")), positions.mkString(", "))
 
-  test("typed protobuf constants refuse mismatched fields, values and forged carriers"):
+  concurrently("typed protobuf constants refuse mismatched fields, values and forged carriers"):
     assertEquals(
       refusals("typedProtoInvalid").sorted,
       Seq(
@@ -279,7 +302,7 @@ class Fixtures extends munit.FunSuite:
       ).sorted
     )
 
-  test("typed schemas, methods, paths, enums and constants lift to their protobuf names"):
+  concurrently("typed schemas, methods, paths, enums and constants lift to their protobuf names"):
     val out = lifted("typed")
     val roots = Seq("typedMachine", "typedRealization")
       .map("fixture.typed.Typed$package$." + _)
@@ -352,7 +375,9 @@ class Fixtures extends munit.FunSuite:
       "json/plain"
     )
 
-  test("typed Long operands lift as protobuf integer values, including bound helper values"):
+  concurrently(
+    "typed Long operands lift as protobuf integer values, including bound helper values"
+  ):
     val out = lifted("typedLong")
     val roots = Seq("fixture.typed.Typed$package$.typedLongRealization")
     val result = lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
@@ -385,7 +410,7 @@ class Fixtures extends munit.FunSuite:
       .asText()
     assertEquals(bare, "executions")
 
-  test("the lifter refuses a mapped read ending at a singular message"):
+  concurrently("the lifter refuses a mapped read ending at a singular message"):
     val out = lifted("typedMapped")
     val result = lift(
       liftsJars,
@@ -400,7 +425,7 @@ class Fixtures extends munit.FunSuite:
       result.diagnostics
     )
 
-  test("a generated enum helper refuses an unknown value before writing IR"):
+  concurrently("a generated enum helper refuses an unknown value before writing IR"):
     val out = lifted("typedUnknownEnum")
     val result = lift(
       liftsJars,
@@ -415,7 +440,7 @@ class Fixtures extends munit.FunSuite:
       result.diagnostics
     )
 
-  test("the lifter refuses unrelated machines with one state type, at the Query line"):
+  concurrently("the lifter refuses unrelated machines with one state type, at the Query line"):
     val jar = packaged("samestate", materialize("samestate"))
     val lift = this.lift(
       s"$jar=${stored("samestate")}",
@@ -431,7 +456,7 @@ class Fixtures extends munit.FunSuite:
       )
     )
 
-  test("the lifter refuses a construct outside the subset, at its line"):
+  concurrently("the lifter refuses a construct outside the subset, at its line"):
     val jar = packaged("unsupported", materialize("unsupported"))
     val lift = this.lift(
       s"$jar=${stored("unsupported")}",
@@ -446,7 +471,7 @@ class Fixtures extends munit.FunSuite:
       case Seq(refusal) => assert(refusal.startsWith(line), refusal)
       case refusals     => fail(s"one refusal, not $refusals")
 
-  test("the realization emitter refuses unknown constructors and fields at their lines"):
+  concurrently("the realization emitter refuses unknown constructors and fields at their lines"):
     val jar = packaged("realizationRefusals", materialize("realizationRefusals"))
     val cases = Seq(
       (
@@ -480,7 +505,7 @@ class Fixtures extends munit.FunSuite:
   test("the expected files are the ones the fixtures lift to"):
     assertEquals(leftOver(), Nil)
 
-  test("a declaration's identity does not move with its line"):
+  concurrently("a declaration's identity does not move with its line"):
     val was = ir("declarations")
     val shifted = Files.createDirectories(scratch.resolve("shifted"))
     Files.writeString(
@@ -504,7 +529,7 @@ class Fixtures extends munit.FunSuite:
     assertNotEquals(now, was, "moving the declarations did not move their lines")
     assert(lines(now) == lines(was), "moving the declarations down changed more than their lines")
 
-  test("a jar's prefix may be an argument of its own"):
+  concurrently("a jar's prefix may be an argument of its own"):
     val out = lifted("presence-prefix-argument")
     val lift = this.lift(
       (Seq(liftsJar.toString, modelClasspath.toString, out.toString, stored("lifts"))
@@ -513,7 +538,7 @@ class Fixtures extends munit.FunSuite:
     assert(!lift.failed, lift.diagnostics)
     assertEquals(Files.readString(out), ir("presence"))
 
-  test("a lift without roots, or without its arguments, is refused"):
+  concurrently("a lift without roots, or without its arguments, is refused"):
     val none = lift(s"$modelJar=model/", modelClasspath.toString, lifted("no-roots").toString)
     assertEquals(none.exit, 1)
     assertEquals(refused(none), Seq("lift: no roots: name the declarations to lift"))
