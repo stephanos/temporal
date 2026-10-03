@@ -3,7 +3,7 @@
 The current state of Umpire work: what is being built, what is left, and what is not being done.
 Flow (`.flow/`, `flowctl`) is the record for specs and tasks; this page is the overview across them.
 
-As of 2026-10-02.
+As of 2026-10-03.
 
 ## Keeping this page current
 
@@ -63,10 +63,9 @@ Deferred by the owner: `make umpire-check-backends`, which needs P and .NET inst
 owner: the canary policy's `workflowPath` names the deleted production-canary workflow, so
 production dispatch fails closed.
 
-fn-113 has sixteen tasks planned in three streams that can run side by side (the ScalaPB port, the
-evaluator retirement and the Go checker tests); its first task found that ScalaPB 0.11.20 fits, so
-the ScalaPB port proceeds. No other fn-113 task has started. The other later specs have no tasks
-yet. Each starts after the spec it waits for closes; Flow records the dependencies.
+fn-113 has twelve of its sixteen tasks done: 1 to 8, 10 to 12 and 14. Tasks 9, 13, 15 and 16 remain.
+Task 8 landed without an independent review, which comes first when work resumes. The other later
+specs have no tasks yet. Each starts after the spec it waits for closes; Flow records the dependencies.
 
 The CEL spike (fn-116) is closed. Its [report](.plans/UMPIRE_CEL_SPIKE.md) recommends keeping the
 IR's own expressions: CEL matched the current evaluator on every Model, but adoption grows the IR
@@ -85,19 +84,22 @@ would be a new spec the owner opens after reading the report.
 
 ### fn-113: Clean up the Scala model layer around the IR
 
-Scala declares, the lifter reads, Go evaluates. Part A, the dead code, is done. Three parts remain:
+Scala declares, the lifter reads, Go evaluates. Parts A to C are done:
+- The lifter builds and prints the IR through ScalaPB 0.11.20. The gate generates only `model/gen/ir-scalapb.jar`.
+- `model/umpire` keeps only declarations, at 1,206 lines (target 1,300). Go checks every Model from the IR: the native evaluator and its munit tests are gone, after an audit (`.plans/umpire-scala-evaluator-audit.md`) mapped each test to a Go test over the IR.
+- The sets and Coverage are removed, and what they declared is recorded in the task handover.
+- `nexusCaller`, `terminalHolds` and `stoppedWorkerRepliesNothing` are lifted roots of `nexus-caller.json`.
+- The Go checker's typed fixture layer is gone.
+- Compiler-named parameters lift with readable names.
+- The migration goldens compare under a closed projection: positions by file, listed function renames, normalized parameter names, and exploration Case IDs. Tables, IDs, fingerprints, answers and Query Case bytes stay strict.
 
-- **B. ScalaPB.** Replace the protobuf-java builders in the lifter with ScalaPB case classes. Which
-  ScalaPB release fits Scala 3.9.0 and the pinned protoc is unverified and is the first step.
-- **C. One evaluator.** Retire the native Scala evaluator (tables, search, refinement, composition),
-  after an audit covers each of the 32 munit tests on the IR in Go. `UmpireSet` and `Coverage`,
-  which have no IR form, go with it. The Go checker's typed test-fixture layer and the
-  production branches only it reaches go the same way.
-- **D. Lean and Stainless residue.** Fold the Nexus kernel into ordinary Scala and drop
-  Lean-mirroring code and citations.
+Remaining:
+- **9.** Fixtures that must not compile, to prove the compile-time guarantees.
+- **13.** Part D: fold the Nexus kernel into ordinary Scala and drop the Stainless residue. `kernel/NexusActions.scala` still names the deleted `NexusKernel.test.scala`.
+- **15.** Documentation.
+- **16.** Close the spec with full validation.
 
-It also stops the lifter from writing compiler-synthesized names such as `_$1` into the IR.
-Target: the framework at most 1,300 lines (2,415 today), an estimate from current file sizes.
+`make lint-code-fast` cannot judge this branch: its base, `main`, is far behind, and it reports about 718 findings in unrelated packages. The tasks lint the Umpire packages with a scoped `make lint-code`. On this 15 GB host, the heavy Go suites need `GOMEMLIMIT=4500MiB -parallel 1` and one package at a time.
 
 ### fn-117: Type the Temporal API in the Models
 
