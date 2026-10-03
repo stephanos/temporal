@@ -8,7 +8,7 @@
   ],
   "id": "fn-117-type-the-temporal-api-in-the-models.8",
   "priority": null,
-  "review": "codex:gpt-6-sol:high",
+  "review": "claude:claude-fable-5-1:high",
   "spec": "fn-117-type-the-temporal-api-in-the-models",
   "spec_path": ".flow/tasks/fn-117-type-the-temporal-api-in-the-models.8.md",
   "status": "todo",
