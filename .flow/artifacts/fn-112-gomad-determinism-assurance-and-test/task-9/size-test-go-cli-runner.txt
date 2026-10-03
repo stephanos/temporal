@@ -1,0 +1,14 @@
+# fn-108 size-count.sh (counting rule v2, SHA-256 9d3afaa0...), test-go rows; before = 59ca3d1739 (git archive), after = working tree (task 9 CLI/Runner part)
+before scope                    class                   files  physical      code  codebytes
+before tools/gomad3            test-go                   356     63549     59021    2061751
+before total                   test-go                   383     69244     64394    2227795
+after  tools/gomad3            test-go                   356     63340     58795    2048391
+after  total                   test-go                   383     69035     64168    2214435
+
+# changed test files: path, code before, code after, change, physical before, physical after
+tools/gomad3/cmd/gomad/internal/cli/cli_test.go	1451	1376	-75	1524	1462
+tools/gomad3/runner/campaign_options_legacy_characterization_test.go	445	446	1	516	517
+tools/gomad3/runner/completion_characterization_test.go	422	460	38	453	493
+tools/gomad3/runner/completion_test.go	141	138	-3	145	146
+tools/gomad3/runner/replay_operation_test.go	855	841	-14	895	885
+tools/gomad3/runner/runner_test.go	2760	2587	-173	2953	2774

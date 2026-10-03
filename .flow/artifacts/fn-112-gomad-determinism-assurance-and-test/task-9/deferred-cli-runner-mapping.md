@@ -1,4 +1,33 @@
-# fn-112.9 deferred part: CLI and Runner consolidation map (not applied)
+# fn-112.9 CLI and Runner consolidation map
+
+**Status (2026-10-03).** Applied on `gomad-fn112-9` over `59ca3d1739`, after fn-109 tasks 2 to 12
+merged; `evidence.md` ("CLI and Runner part") records the result and `mapping.tsv` holds every
+removed name. Re-anchored against the merged tree, the map below changed as follows:
+
+- Applied: section 1 as `TestRunQualifySetForwardsFlags`, `TestRunMinimizeForwardsFlags`,
+  `TestRunResumeForwardsCampaignAndClassifiesResult`, `TestRunQualifyForwardsFlagsAndClassifiesOutcome`
+  (forwarding and outcome rows in one table) and `TestRunAnalyzeForwardsTargetAndClassifiesReport`
+  (forwarding, status, cleanup and output rows). They use the merged `fakeInstallation` seam. fn-109's
+  CLI characterization tests (`characterization_test.go`, `plan_characterization_test.go`) are unchanged.
+- Applied: section 2 rows for preparation partials, isolated-runner responses, the canned
+  coordinator helper, cancellation, resume rejections, replay before target start, and the
+  supervision-rejected trace rows. The golden table is now `TestCampaignOptionsLegacyCharacterization`
+  (125 rows before this task, 126 after), not `TestCampaignOptionsCharacterization`. It gains `all retention without bytes`, the
+  one rejection with no golden row.
+- Applied: section 3 as written.
+- Not applied: `TestRunFirstFailureCancelsActiveTargetsWithoutPublishingThem` and
+  `TestRunRejectsPreparedTargetMutationBeforeFailurePublication`. They assert published artifacts
+  and partials through `exploreWith`, and `TestSeedCompletionKeepsCampaignStatistics` only sees
+  controller statistics. `TestRunRejectsReservedDuplicateAndInvalidEnvironment` is unchanged: four of
+  its six subcases (`GOMAD3_CHOICE_*`, `NOT-VALID`, `nul`) have no golden row.
+- Left for later (the D26 lane owns these files now): `runner/internal/execution` simulation tests
+  and `tools/gomad3sim`. In `simulation_time_test.go` the arbiter tests look at behavior. Its
+  strict/forward pairs (for example `...ForwardActivationAdoptsCurrent` /
+  `...StrictActivationRejectsFutureCurrent`) could become one table once D26 lands.
+
+The original prepared map follows unchanged.
+
+## Original map
 
 Prepared on `gomad-next-b` at `a52fb184c` against `gomad-next-c` at `3e649dae3` (merge base
 `7f2bd1ed8`). Nothing in this file is applied. The task's Approach says R10 follows fn-109

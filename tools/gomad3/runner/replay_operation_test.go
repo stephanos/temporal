@@ -163,55 +163,39 @@ func TestReplayPreservesInfrastructureErrorJoinedWithChoiceDivergence(t *testing
 	}
 }
 
-func TestReplayVerifyOnlyDoesNotStartTarget(t *testing.T) {
-	artifactPath, _ := replayArtifact(t)
-	executor := &fakeReplayExecutor{}
-	result, err := replayWith(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, VerifyOnly: true, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
-	}, executionDependencies{executor: executor},
-	)
-	if err != nil {
-		t.Fatal(err)
+// TestReplayDoesNotStartTarget pins the replays that end before the target
+// starts: verification-only replay of an intact artifact succeeds, and replay
+// of an artifact whose compatibility packs, payload or shared target no longer
+// verify fails.
+func TestReplayDoesNotStartTarget(t *testing.T) {
+	type replayCase struct {
+		name string
+		// publish returns the artifact path and the result a started target
+		// would report.
+		publish    func(t *testing.T) (string, execution.Result)
+		verifyOnly bool
+		// wantVerified expects verification to succeed; otherwise replay fails.
+		wantVerified bool
 	}
-	if !result.Verified || result.Match || executor.calls != 0 {
-		t.Fatalf("verify result = %#v, calls = %d", result, executor.calls)
+	cases := []replayCase{
+		{name: "verify only", publish: replayArtifact, verifyOnly: true, wantVerified: true},
+		{name: "unavailable compatibility pack", verifyOnly: true, publish: func(t *testing.T) (string, execution.Result) {
+			return publishReplayArtifactWithCompatibility(t, []record.CompatibilityPack{{
+				ID: "unknown-pack", SHA256: record.HashBytes([]byte("unknown pack")),
+			}})
+		}},
+		{name: "changed payload", publish: func(t *testing.T) (string, execution.Result) {
+			artifactPath, expected := replayArtifact(t)
+			if err := os.Chmod(filepath.Join(artifactPath, "stdout"), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(artifactPath, "stdout"), []byte("changed"), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			return artifactPath, expected
+		}},
 	}
-}
-
-func TestReplayRejectsUnavailableCompatibilityPackBeforeTargetStart(t *testing.T) {
-	artifactPath, _ := publishReplayArtifactWithCompatibility(t, []record.CompatibilityPack{{
-		ID: "unknown-pack", SHA256: record.HashBytes([]byte("unknown pack")),
-	}})
-	executor := &fakeReplayExecutor{}
-	_, err := replayWith(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, VerifyOnly: true, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
-	}, executionDependencies{executor: executor},
-	)
-	if err == nil || executor.calls != 0 {
-		t.Fatalf("replayWith() error = %v, calls = %d", err, executor.calls)
-	}
-}
-
-func TestReplayRejectsChangedPayloadBeforeTargetStart(t *testing.T) {
-	artifactPath, _ := replayArtifact(t)
-	if err := os.Chmod(filepath.Join(artifactPath, "stdout"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(artifactPath, "stdout"), []byte("changed"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	executor := &fakeReplayExecutor{}
-	_, err := replayWith(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
-	}, executionDependencies{executor: executor},
-	)
-	if err == nil || executor.calls != 0 {
-		t.Fatalf("replayWith() error = %v, calls = %d", err, executor.calls)
-	}
-}
-
-func TestReplayRejectsDamagedSharedTargetBeforeTargetStart(t *testing.T) {
-	for _, test := range []struct {
+	for _, damage := range []struct {
 		name   string
 		damage func(t *testing.T, artifactPath, entry string)
 	}{
@@ -243,7 +227,7 @@ func TestReplayRejectsDamagedSharedTargetBeforeTargetStart(t *testing.T) {
 		}},
 	} {
 		for _, verifyOnly := range []bool{false, true} {
-			t.Run(fmt.Sprintf("%s/verify-only=%t", test.name, verifyOnly), func(t *testing.T) {
+			cases = append(cases, replayCase{name: fmt.Sprintf("damaged shared target/%s/verify-only=%t", damage.name, verifyOnly), verifyOnly: verifyOnly, publish: func(t *testing.T) (string, execution.Result) {
 				pool := artifact.TargetPool(t.TempDir())
 				artifactPath, expected := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{TargetPool: pool})
 				entries, err := os.ReadDir(pool)
@@ -254,17 +238,23 @@ func TestReplayRejectsDamagedSharedTargetBeforeTargetStart(t *testing.T) {
 				if distinctFiles(t, []string{entry, filepath.Join(artifactPath, "target")}) != 1 {
 					t.Fatal("published target does not share its pool entry")
 				}
-				test.damage(t, artifactPath, entry)
-				executor := &fakeReplayExecutor{result: expected}
-				_, err = replayWith(context.Background(), ReplaySpec{
-					ArtifactPath: artifactPath, VerifyOnly: verifyOnly, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
-				}, executionDependencies{executor: executor},
-				)
-				if err == nil || executor.calls != 0 {
-					t.Fatalf("replayWith() error = %v, calls = %d", err, executor.calls)
-				}
-			})
+				damage.damage(t, artifactPath, entry)
+				return artifactPath, expected
+			}})
 		}
+	}
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+			artifactPath, expected := test.publish(t)
+			executor := &fakeReplayExecutor{result: expected}
+			result, err := replayWith(context.Background(), ReplaySpec{
+				ArtifactPath: artifactPath, VerifyOnly: test.verifyOnly, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+			}, executionDependencies{executor: executor},
+			)
+			if executor.calls != 0 || (err == nil) != test.wantVerified || test.wantVerified && (!result.Verified || result.Match) {
+				t.Fatalf("replayWith() result = %#v, error = %v, calls = %d", result, err, executor.calls)
+			}
+		})
 	}
 }
 

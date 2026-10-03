@@ -34,8 +34,8 @@ func TestAssessWorldValidatesTheRecordAgainstItsSeed(t *testing.T) {
 	}{
 		{name: "no record", seed: 7, limit: 1 << 20, want: noneWorldBundle()},
 		{name: "valid record", record: recording, seed: 7, limit: 1 << 20, want: composed},
-		{name: "malformed record", record: malformed, seed: 7, limit: 1 << 20, cause: "decode World terminal: invalid character '|' after object key:value pair"},
-		{name: "seed mismatch", record: recording, seed: 8, limit: 1 << 20, cause: "World record seed or schema does not match seed 8"},
+		// TestCompletionFaultsKeepReasonPrecedenceAndEvidence pins the malformed
+		// record and seed mismatch errors through every strategy.
 		{name: "transition limit", record: recording, seed: 7, cause: "World transition limit must be positive"},
 		{name: "malformed record before seed mismatch", record: malformed, seed: 8, limit: 1 << 20, cause: "decode World terminal: invalid character '|' after object key:value pair"},
 	} {
@@ -98,8 +98,9 @@ func TestAssessCompletionProjectsCoverageInOrderAndClassifies(t *testing.T) {
 		terminal record.WorldTerminal
 		mode     CoverageMode
 		want     completedExecution
-		reason   string
-		cause    string
+		// reason is the host failure reason; the error text of each reason is
+		// pinned by TestCompletionFaultsKeepReasonPrecedenceAndEvidence.
+		reason string
 	}{
 		{name: "no coverage ignores malformed evidence", result: malformed, mode: CoverageNone, want: completedExecution{coverage: noCoverage, choiceFeatures: []string{}, outcome: success}},
 		{name: "unset coverage", result: malformed, want: completedExecution{coverage: noCoverage, choiceFeatures: []string{}, outcome: success}},
@@ -109,10 +110,10 @@ func TestAssessCompletionProjectsCoverageInOrderAndClassifies(t *testing.T) {
 			name: "semantic and choice coverage with a World terminal", result: wellFormed, terminal: record.WorldTerminal{Kind: string(world.TerminalDeadlock)}, mode: CoverageSemanticChoice,
 			want: completedExecution{coverage: probeCoverage, choiceFeatures: features, choiceProjection: &projection, outcome: deadlock},
 		},
-		{name: "malformed semantic coverage", result: malformed, mode: CoverageSemantic, reason: "semantic_coverage", cause: "I/O transcript has invalid length 21"},
-		{name: "malformed semantic coverage before malformed choices", result: malformed, mode: CoverageSemanticChoice, reason: "semantic_coverage", cause: "I/O transcript has invalid length 21"},
-		{name: "malformed choices", result: malformedChoices, mode: CoverageSemanticChoice, reason: "choice_coverage", cause: "project choice coverage: malformed choice trace\ninvalid choice terminal values"},
-		{name: "malformed semantic coverage of a watchdog kill", result: func() execution.Result { killed := malformed; killed.WatchdogTimeout = true; return killed }(), mode: CoverageSemanticChoice, reason: "semantic_coverage", cause: "I/O transcript has invalid length 21"},
+		{name: "malformed semantic coverage", result: malformed, mode: CoverageSemantic, reason: "semantic_coverage"},
+		{name: "malformed semantic coverage before malformed choices", result: malformed, mode: CoverageSemanticChoice, reason: "semantic_coverage"},
+		{name: "malformed choices", result: malformedChoices, mode: CoverageSemanticChoice, reason: "choice_coverage"},
+		{name: "malformed semantic coverage of a watchdog kill", result: func() execution.Result { killed := malformed; killed.WatchdogTimeout = true; return killed }(), mode: CoverageSemanticChoice, reason: "semantic_coverage"},
 		{
 			name: "watchdog kill projects no choices", result: watchdog, mode: CoverageSemanticChoice,
 			want: completedExecution{coverage: probeCoverage, choiceFeatures: []string{}, outcome: execution.Classification{
@@ -129,8 +130,8 @@ func TestAssessCompletionProjectsCoverageInOrderAndClassifies(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			assessed, hostError := assessCompletion(test.result, test.terminal, test.mode, prepared)
 			if test.reason != "" {
-				if hostError == nil || hostError.Reason != test.reason || hostError.Err.Error() != test.cause {
-					t.Fatalf("assessCompletion() error = %v, want %s: %s", hostError, test.reason, test.cause)
+				if hostError == nil || hostError.Reason != test.reason || hostError.Err == nil {
+					t.Fatalf("assessCompletion() error = %v, want %s", hostError, test.reason)
 				}
 				return
 			}
