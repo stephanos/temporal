@@ -21,12 +21,12 @@ import (
 )
 
 const (
-	childEnvironment = "GOMAD3_LOCKED_SYSCALL_CHILD"
-
 	modeArrivalBeforeTimer              = "arrival-before-timer"
 	modeArrivalAfterTimerFired          = "arrival-after-timer-fired"
 	modeArrivalDuringQuiescence         = "arrival-during-quiescence-round-trip"
 	directDataDescriptor                = 3
+	directGateDescriptor                = 4
+	directEventDescriptor               = 5
 	timeRequestEnvironment              = "GOMAD3_SIMULATION_TIME_REQUEST_FD"
 	timeResponseEnvironment             = "GOMAD3_SIMULATION_TIME_RESPONSE_FD"
 	timeRequestDescriptor               = 3
@@ -60,10 +60,6 @@ func runtimeExitSyscall()
 func runtimeGomadBlockingRead(descriptor int32, destination unsafe.Pointer, bytes int32) int32
 
 func main() {
-	if os.Getenv(childEnvironment) != "" {
-		child()
-		return
-	}
 	targetProcess := len(os.Args) == 3 && os.Args[1] == "--target"
 	if len(os.Args) != 2 && !targetProcess {
 		fmt.Fprintln(os.Stderr, "usage: locked_syscall <mode>")
@@ -98,6 +94,13 @@ func harness(mode string) error {
 }
 
 func runDirectTarget(mode string) error {
+	if err := runDirectTargetAttempt(mode, true); err != nil {
+		return fmt.Errorf("prebuffered direct-target control: %w", err)
+	}
+	return runDirectTargetAttempt(mode, false)
+}
+
+func runDirectTargetAttempt(mode string, prebuffered bool) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	executable, err := os.Executable()
@@ -108,34 +111,71 @@ func runDirectTarget(mode string) error {
 	if err != nil {
 		return err
 	}
+	gateRead, gateWrite, err := os.Pipe()
+	if err != nil {
+		closeFiles(reader, writer)
+		return err
+	}
+	eventRead, eventWrite, err := os.Pipe()
+	if err != nil {
+		closeFiles(reader, writer, gateRead, gateWrite)
+		return err
+	}
+	defer closeFiles(writer, gateWrite, eventRead)
+	if prebuffered {
+		if err := writeByte(writer, 1); err != nil {
+			return fmt.Errorf("prebuffer direct-target data: %w", err)
+		}
+	}
 	target := exec.CommandContext(ctx, executable, "--target", mode)
 	target.Env = targetEnv(false)
-	target.ExtraFiles = []*os.File{reader}
-	target.Stdout = os.Stdout
-	target.Stderr = os.Stderr
+	target.ExtraFiles = []*os.File{reader, gateRead, eventWrite}
+	var controlOutput bytes.Buffer
+	if prebuffered {
+		target.Stdout = &controlOutput
+		target.Stderr = &controlOutput
+	} else {
+		target.Stdout = os.Stdout
+		target.Stderr = os.Stderr
+	}
 	if err := target.Start(); err != nil {
-		closeFiles(reader, writer)
+		closeFiles(reader, gateRead, eventWrite)
 		return fmt.Errorf("start direct target: %w", err)
 	}
-	externalWriter := exec.CommandContext(ctx, executable, mode)
-	externalWriter.Env = []string{childEnvironment + "=1"}
-	externalWriter.ExtraFiles = []*os.File{writer}
-	externalWriter.Stdout = os.Stdout
-	externalWriter.Stderr = os.Stderr
-	if err := externalWriter.Start(); err != nil {
-		_ = target.Process.Kill()
-		_ = target.Wait()
-		closeFiles(reader, writer)
-		return fmt.Errorf("start external writer: %w", err)
+	closeFiles(reader, gateRead, eventWrite)
+	if err := requireByte(eventRead, 'E', "post-entersyscallblock marker"); err != nil {
+		killAndWait(target)
+		return err
 	}
-	closeFiles(reader, writer)
-	targetErr := target.Wait()
-	writerErr := externalWriter.Wait()
-	if targetErr != nil {
-		return fmt.Errorf("run direct target: %w", targetErr)
+	if prebuffered {
+		_ = gateWrite.Close()
+		waitErr := target.Wait()
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+		if waitErr == nil {
+			return fmt.Errorf("prebuffered direct target unexpectedly succeeded: %s", strings.TrimSpace(controlOutput.String()))
+		}
+		const expected = "release gate closed before released-P witness"
+		if !strings.Contains(controlOutput.String(), expected) {
+			return fmt.Errorf("prebuffered direct target failed without %q: %s", expected, strings.TrimSpace(controlOutput.String()))
+		}
+		return nil
 	}
-	if writerErr != nil {
-		return fmt.Errorf("run external writer: %w", writerErr)
+	if err := writeByte(gateWrite, 1); err != nil {
+		killAndWait(target)
+		return fmt.Errorf("release P witness: %w", err)
+	}
+	if err := requireByte(eventRead, 'P', "released-P witness"); err != nil {
+		killAndWait(target)
+		return err
+	}
+	if err := writeByte(writer, 1); err != nil {
+		killAndWait(target)
+		return fmt.Errorf("release locked syscall: %w", err)
+	}
+	if err := target.Wait(); err != nil {
+		return fmt.Errorf("run direct target: %w", err)
 	}
 	if ctx.Err() != nil {
 		return ctx.Err()
@@ -273,15 +313,30 @@ func target(mode string) (string, error) {
 func arrivalBeforeTimer() (string, error) {
 	timerDone := make(chan struct{})
 	time.AfterFunc(20*time.Millisecond, func() { close(timerDone) })
+	witnessResult := make(chan error, 1)
+	go func() {
+		var gate [1]byte
+		read, err := blockingRead(directGateDescriptor, gate[:])
+		if err == nil && (read != 1 || gate[0] != 1) {
+			err = errors.New("release gate closed before released-P witness")
+		}
+		if err == nil {
+			err = rawWriteByte(directEventDescriptor, 'P')
+		}
+		witnessResult <- err
+	}()
 	runtime.LockOSThread()
 	var buffer [1]byte
-	read, err := blockingRead(directDataDescriptor, buffer[:])
+	read, err := blockingReadAfterSignal(directDataDescriptor, directEventDescriptor, buffer[:])
 	runtime.UnlockOSThread()
 	if err != nil {
 		return "", err
 	}
 	if read != 1 || buffer[0] != 1 {
 		return "", fmt.Errorf("locked read = (%d, %d), want (1, 1)", read, buffer[0])
+	}
+	if err := <-witnessResult; err != nil {
+		return "", err
 	}
 	select {
 	case <-timerDone:
@@ -359,6 +414,22 @@ func blockingRead(descriptor int, buffer []byte) (int, error) {
 	return int(count), nil
 }
 
+func blockingReadAfterSignal(descriptor, eventDescriptor int, buffer []byte) (int, error) {
+	runtimeEnterSyscallBlock()
+	marker := byte('E')
+	_, _, signalErrno := syscall.RawSyscall(syscall.SYS_WRITE, uintptr(eventDescriptor), uintptr(unsafe.Pointer(&marker)), 1)
+	if signalErrno != 0 {
+		runtimeExitSyscall()
+		return 0, signalErrno
+	}
+	count, _, errno := syscall.RawSyscall(syscall.SYS_READ, uintptr(descriptor), uintptr(unsafe.Pointer(&buffer[0])), uintptr(len(buffer)))
+	runtimeExitSyscall()
+	if errno != 0 {
+		return int(count), errno
+	}
+	return int(count), nil
+}
+
 func rawWriteByte(descriptor int, value byte) error {
 	_, _, errno := syscall.RawSyscall(syscall.SYS_WRITE, uintptr(descriptor), uintptr(unsafe.Pointer(&value)), 1)
 	if errno != 0 {
@@ -367,18 +438,8 @@ func rawWriteByte(descriptor int, value byte) error {
 	return nil
 }
 
-func child() {
-	// The locked parent enters its read immediately after starting this child.
-	time.Sleep(250 * time.Millisecond)
-	buffer := []byte{1}
-	if written, err := syscall.Write(3, buffer); err != nil || written != len(buffer) {
-		fmt.Fprintf(os.Stderr, "write = (%d, %v), want (%d, nil)\n", written, err, len(buffer))
-		os.Exit(1)
-	}
-}
-
 func targetEnv(transport bool) []string {
-	environment := filterEnvironment(os.Environ(), "GOMADSEED", "GOMAD3_CHILD_SEED", "GOMAD3_IO_PROFILE", childEnvironment, timeRequestEnvironment, timeResponseEnvironment)
+	environment := filterEnvironment(os.Environ(), "GOMADSEED", "GOMAD3_CHILD_SEED", "GOMAD3_IO_PROFILE", timeRequestEnvironment, timeResponseEnvironment)
 	environment = append(environment, "GOMADSEED=1")
 	if transport {
 		environment = append(environment,
@@ -489,4 +550,9 @@ func closeFiles(files ...*os.File) {
 			_ = file.Close()
 		}
 	}
+}
+
+func killAndWait(command *exec.Cmd) {
+	_ = command.Process.Kill()
+	_ = command.Wait()
 }
