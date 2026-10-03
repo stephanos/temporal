@@ -228,6 +228,9 @@ func listedDirectory(directory string, expected map[string]record.File) bool {
 // ReadPayload reads a listed payload of at most maximum bytes and checks it
 // against the manifest.
 func (opened *Opened) ReadPayload(relativePath string, maximum uint64) ([]byte, error) {
+	if opened == nil {
+		return nil, fmt.Errorf("artifact is not open")
+	}
 	expected := listedFile(opened, relativePath)
 	if expected == nil {
 		return nil, fmt.Errorf("artifact payload %q is not listed", relativePath)

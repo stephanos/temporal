@@ -338,9 +338,9 @@ Implemented as inventoried; no further exported declaration changed.
   check order and error texts are unchanged: `artifact is not open`, `artifact payload %q is
   not listed`, `... exceeds its bound`, `<name> metadata does not match its manifest`,
   `... identity mismatch`, `<name> is a symbolic link`, link-count and `os.Root` escape errors.
-  A nil `*Opened` closes as a no-op; its `OpenPayload`, `CopyPayload` and `TargetSharing` fail
-  with `artifact is not open`, and its `ReadPayload` reports the payload unlisted, as a zero
-  `Artifact` did before.
+  A nil `*Opened` closes as a no-op and every payload method on it fails with `artifact is
+  not open`. A closed non-nil handle keeps the old order: `ReadPayload` checks listing and
+  bound before the open check.
 - Path, Manifest, StoredBytes and Snapshot remain usable after Close; they hold no resource.
 - `Manifest()` and `Snapshot()` copy through the private `cloneManifest`, a reflective deep
   copy that keeps nil pointers, slices and maps nil and panics on interface, func or chan

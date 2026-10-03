@@ -111,9 +111,7 @@ func TestClosedArtifactRejectsPayloadAccess(t *testing.T) {
 		t.Fatalf("second Close() = %v, want nil", err)
 	}
 	for _, handle := range []*Opened{opened, nil} {
-		// A nil handle has no manifest, so ReadPayload reports the payload as
-		// unlisted before it reaches the open check.
-		if _, err := handle.ReadPayload("stdout", 64); err == nil || handle != nil && err.Error() != "artifact is not open" {
+		if _, err := handle.ReadPayload("stdout", 64); err == nil || err.Error() != "artifact is not open" {
 			t.Fatalf("ReadPayload after close = %v", err)
 		}
 		if _, err := handle.OpenPayload("stdout", 64); err == nil || err.Error() != "artifact is not open" {
