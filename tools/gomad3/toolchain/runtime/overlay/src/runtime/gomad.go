@@ -1084,21 +1084,43 @@ func gomadChoiceTimerFired(previous gomadChoiceTimerIdentity) {
 var gomadChoiceSchedulerAlternatives [gomadChoiceMaximumAlternatives][32]byte
 var gomadChoiceSchedulerOrdered [gomadChoiceMaximumAlternatives][32]byte
 
-func gomadChoiceRunqIndex(pp *p, head, tail, seeded uint32) uint32 {
+// gomadChoiceRunqIndex picks the local run-queue entry runqget takes next, as
+// an offset from head, for a queue of two or more entries. Runtime-owned
+// goroutines, as isSystemGoroutine classifies them, run first in queue order
+// and are never alternatives: the first one in the queue is taken without a
+// draw or a record. Only a queue of user goroutines draws from the seeded
+// stream, and with a Choice Trace it records one Runnable decision whose
+// alternatives are exactly those goroutines in queue order, so the selected
+// alternative is its own queue offset. The pick depends on the queue contents
+// and the seeded stream only, so traced and untraced runs schedule alike.
+// Classification reads the goroutine's start function and the finalizer and
+// cleanup running state: it neither allocates nor draws. The finalizer and
+// cleanup goroutines count as user goroutines while they run user functions
+// and as runtime-owned while they wait for or fetch work.
+func gomadChoiceRunqIndex(pp *p, head, tail uint32) uint32 {
+	count := tail - head
+	for offset := uint32(0); offset < count; offset++ {
+		gp := pp.runq[(head+offset)%uint32(len(pp.runq))].ptr()
+		if gp == nil {
+			if gomadChoiceEnabled {
+				gomadChoiceDivergeCurrent(gomadChoiceDivergenceIdentityMissing)
+			}
+			throw("gomad: nil goroutine in the local run queue")
+		}
+		if isSystemGoroutine(gp, false) {
+			return offset
+		}
+	}
+	seeded := gomadChoiceRunqSeeded(count)
 	if !gomadChoiceEnabled {
 		return seeded
 	}
-	count := tail - head
 	alternatives := &gomadChoiceSchedulerAlternatives
 	if count > uint32(len(alternatives)) {
 		gomadChoiceDivergeCurrent(gomadChoiceDivergenceAlternativeCapacity)
 	}
 	for offset := uint32(0); offset < count; offset++ {
-		gp := pp.runq[(head+offset)%uint32(len(pp.runq))].ptr()
-		if gp == nil {
-			gomadChoiceDivergeCurrent(gomadChoiceDivergenceIdentityMissing)
-		}
-		alternatives[offset] = gp.gomadIdentity
+		alternatives[offset] = pp.runq[(head+offset)%uint32(len(pp.runq))].ptr().gomadIdentity
 	}
 	return gomadChoiceDecision(gomadChoiceKindRunnable, gomadChoiceFlagDecision|gomadChoiceFlagSiteMissing, 0, alternatives[:count], &gomadChoiceSchedulerOrdered, seeded, 0)
 }

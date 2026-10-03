@@ -64,9 +64,23 @@ the zero-ready and timer cases only become ready after a one-second virtual
 advance, which cannot happen while the polling goroutine is runnable. Nil
 channels are disabled. Each run records one poll decision, including the six
 shapes with fewer than two initially ready cases. The driver explores every
-recorded decision without reduction, including runtime-owned Runnable choices,
-until the prefix frontier is empty; the 2048-execution and 32-decision bounds
+recorded decision without reduction until the prefix frontier is empty; the 2048-execution and 32-decision bounds
 fail the check if reached instead of standing in for exhaustion.
+
+`runq_user_choice` takes a mode and holds the run-queue rule of
+`[RUNTIME.SCHEDULING]`: runtime-owned goroutines run first and only user
+goroutines are alternatives. Collector churn puts the sweeper, scavenger, mark
+workers, and finalizer goroutine in the local run queue. `main-only` starts no
+goroutine and `one-user` parks main while one worker churns; both must record
+no Runnable decision and print the same line under every seed.
+`two-users` and `busy-runtime` start two workers; across eight seeds their
+decisions may select at most three goroutines (main and the workers), and each
+decision's alternative-set digest must be a set of those selected goroutines,
+so a runtime-owned alternative fails the check whether or not it is selected.
+`two-users` must print at least two step orders, and its seed-1 tape must
+reproduce its order under a seed that picks differently. `busy-runtime` keeps
+the finalizer goroutine and sweeper busy while the workers yield; both workers
+must finish all rounds and each must see finalizers run before it finishes.
 
 `TestRuntimeSearchFixtures` runs these same checks directly when a patched
 toolchain is installed. Setting `GOMAD3_RUNTIME_REPRODUCTION_DIR` to a new

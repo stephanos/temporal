@@ -1315,7 +1315,12 @@ func TestRunChoiceExplorationExpandsCompleteTargetFailures(t *testing.T) {
 	}
 }
 
-func TestRunChoiceExplorationPinnedOutcomeEfficiencyMatchesEqualBudgetSeedSampling(t *testing.T) {
+// TestRunChoiceExplorationPinnedOutcomeEfficiencyBeatsEqualBudgetSeedSampling
+// pins the two-outcome benchmark. Runtime-owned goroutines are not run-queue
+// alternatives, so the fixture's only branching decision is its select: the
+// explorer reaches both outcomes in the root and one flip and exhausts its
+// frontier, while seed sampling spends its whole budget to see the same two.
+func TestRunChoiceExplorationPinnedOutcomeEfficiencyBeatsEqualBudgetSeedSampling(t *testing.T) {
 	toolchainRoot, err := filepath.Abs(filepath.Join("..", ".toolchain"))
 	if err != nil {
 		t.Fatal(err)
@@ -1365,11 +1370,11 @@ func TestRunChoiceExplorationPinnedOutcomeEfficiencyMatchesEqualBudgetSeedSampli
 	if seedSummary.Attempted != 16 || len(seedOutcomes) != 2 {
 		t.Fatalf("equal-budget seed summary = %#v, outcomes = %v", seedSummary, seedOutcomes)
 	}
-	if explorationSummary.Attempted != 16 || len(explorationOutcomes) != 2 || explorationSummary.ChoiceExploration == nil || explorationSummary.ChoiceExploration.DeduplicatedOutcomes != 2 {
+	if explorationSummary.Attempted != 2 || explorationSummary.StopReason != StopExplorationExhausted || len(explorationOutcomes) != 2 || explorationSummary.ChoiceExploration == nil || explorationSummary.ChoiceExploration.DeduplicatedOutcomes != 2 {
 		t.Fatalf("equal-budget exploration summary = %#v, outcomes = %v", explorationSummary, explorationOutcomes)
 	}
-	if uint64(len(explorationOutcomes))*seedSummary.Attempted != uint64(len(seedOutcomes))*explorationSummary.Attempted {
-		t.Fatalf("pinned outcomes per execution differ: seed=%d/%d exploration=%d/%d", len(seedOutcomes), seedSummary.Attempted, len(explorationOutcomes), explorationSummary.Attempted)
+	if uint64(len(explorationOutcomes))*seedSummary.Attempted <= uint64(len(seedOutcomes))*explorationSummary.Attempted {
+		t.Fatalf("pinned outcomes per execution: seed=%d/%d exploration=%d/%d", len(seedOutcomes), seedSummary.Attempted, len(explorationOutcomes), explorationSummary.Attempted)
 	}
 }
 

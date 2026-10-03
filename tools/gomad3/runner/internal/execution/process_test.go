@@ -15,6 +15,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"testing"
 	"time"
@@ -978,8 +979,10 @@ func TestTargetHelper(t *testing.T) {
 		}
 		os.Exit(0)
 	case "choice-trace":
+		runUserChoices()
 		os.Exit(0)
 	case "choice-marker":
+		runUserChoices()
 		fmt.Fprintln(os.Stdout, "post-choice-marker")
 		os.Exit(0)
 	case "choice-reorder":
@@ -1246,6 +1249,21 @@ func targetHelper() (string, []string) {
 		return arguments[0], arguments[1:]
 	}
 	return os.Getenv("GOMAD3_PROCESS_HELPER"), nil
+}
+
+// runUserChoices gives the helper target Runnable decisions to record: only
+// user goroutines are run-queue alternatives, so two workers take turns
+// yielding while the helper waits for them.
+func runUserChoices() {
+	var group sync.WaitGroup
+	for range 2 {
+		group.Go(func() {
+			for range 4 {
+				runtime.Gosched()
+			}
+		})
+	}
+	group.Wait()
 }
 
 func runChoiceReorderTarget(arguments []string) {

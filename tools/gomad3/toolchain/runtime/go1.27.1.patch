@@ -575,7 +575,7 @@ index b8d4d15..c609a62 100644
  			pp.runq[off(i)], pp.runq[off(j)] = pp.runq[off(j)], pp.runq[off(i)]
  		}
  	}
-@@ -7656,6 +7827,20 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
+@@ -7656,6 +7827,19 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
  		return next.ptr(), true
  	}
  
@@ -583,8 +583,7 @@ index b8d4d15..c609a62 100644
 +		h := atomic.LoadAcq(&pp.runqhead)
 +		t := pp.runqtail
 +		if t-h > 1 {
-+			offset := gomadChoiceRunqSeeded(t - h)
-+			offset = gomadChoiceRunqIndex(pp, h, t, offset)
++			offset := gomadChoiceRunqIndex(pp, h, t)
 +			index := (h + offset) % uint32(len(pp.runq))
 +			gp := pp.runq[index].ptr()
 +			pp.runq[index] = pp.runq[h%uint32(len(pp.runq))]
