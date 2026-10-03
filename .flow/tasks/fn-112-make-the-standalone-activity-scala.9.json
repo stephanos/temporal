@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T16:11:09.979027Z",
+  "depends_on": [
+    "fn-112-make-the-standalone-activity-scala.8"
+  ],
+  "id": "fn-112-make-the-standalone-activity-scala.9",
+  "priority": null,
+  "spec": "fn-112-make-the-standalone-activity-scala",
+  "spec_path": ".flow/tasks/fn-112-make-the-standalone-activity-scala.9.md",
+  "status": "todo",
+  "title": "Extract the shared Temporal realization kit and script helpers",
+  "updated_at": "2026-10-03T17:19:07.159755Z"
+}

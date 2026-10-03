@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T16:11:09.973165Z",
+  "depends_on": [
+    "fn-112-make-the-standalone-activity-scala.3",
+    "fn-112-make-the-standalone-activity-scala.5",
+    "fn-112-make-the-standalone-activity-scala.11"
+  ],
+  "id": "fn-112-make-the-standalone-activity-scala.6",
+  "priority": null,
+  "spec": "fn-112-make-the-standalone-activity-scala",
+  "spec_path": ".flow/tasks/fn-112-make-the-standalone-activity-scala.6.md",
+  "status": "todo",
+  "title": "Migrate product, protocol and admission models to the new DSL",
+  "updated_at": "2026-10-03T17:31:25.079134Z"
+}

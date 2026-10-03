@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T16:39:34.013471Z",
+  "depends_on": [
+    "fn-112-make-the-standalone-activity-scala.5"
+  ],
+  "id": "fn-112-make-the-standalone-activity-scala.11",
+  "priority": null,
+  "spec": "fn-112-make-the-standalone-activity-scala",
+  "spec_path": ".flow/tasks/fn-112-make-the-standalone-activity-scala.11.md",
+  "status": "todo",
+  "title": "Require an author-computed static combination total on every Query",
+  "updated_at": "2026-10-03T17:31:25.354913Z"
+}

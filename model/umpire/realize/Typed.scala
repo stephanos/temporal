@@ -93,6 +93,7 @@ object Condition:
   def not[Root](of: Condition[Root]): Condition[Root] =
     new Condition(None, None, Vector(of))
 
+  /** Holds when every operand does, read left to right up to the first that does not. */
   def all[Root](
       first: Condition[Root],
       rest: Condition[Root]*

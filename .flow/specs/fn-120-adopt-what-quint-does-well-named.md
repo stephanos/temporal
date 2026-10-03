@@ -29,13 +29,13 @@ The reader this spec serves is the model author: the person who wants to know wh
 
 Everything here is read from the IR by the Go tooling. Part A adds to the DSL, the lifter and the IR; Parts B, C and D add Go only.
 
-**Part A. Named choices.** Today a step function that can go two ways returns a list of two steps, and nothing says why there are two. A `choose` construct names each alternative. The IR records the name on each result. Each alternative is then something tools can count, export and report.
+**Part A. Named choices.** Today a step function that can go two ways returns a list of two steps, and nothing says why there are two. A `choose` construct names each alternative. The IR records the name on each result. Each alternative is then something tools can count, export and report. Settle its behavior against fn-112's `accept` and `stay` helpers and captured-name rules before either the standalone feature or other Models rewrite branches. The number of named alternatives is not a factor in fn-112's Query.total: alternatives are results of one action class.
 
 **Part B. Model lint.** One Go command reads the IR and reports findings about model quality. Several checks exist already as side effects of other checks (a stuck state, a Property a verify never exercised, a Query with no realization). They become one list of named findings with a location, and the gate fails on a new one.
 
 **Part C. Explorer.** One Go command steps through a machine from the IR: the classes enabled in a state, the results of taking one, and why a class is disabled. "Why" is the list of branch decisions the evaluator took in the step function, each with its Scala position. An interactive loop is a thin shell over the same commands.
 
-**Part D. Trace interchange.** An Umpire witness converts to and from ITF, the trace format Quint, Apalache and TLC tooling share. The export module already reads ITF from Quint. With both directions a trace found by another checker can be lowered through a realization into a Case, and an Umpire witness opens in existing trace viewers.
+**Part D. Trace interchange.** An Umpire witness converts to and from ITF, the trace format Quint, Apalache and TLC tooling share. The export module already reads ITF from Quint. Plain ITF states cannot identify a result when two results have the same next state and outcome but different facts, so lossless Umpire export adds a versioned state variable carrying the witness path. A trace from another checker can be lowered only when import reconstructs and validates one complete path; an ambiguous external trace is refused at its first ambiguous step.
 
 **Part E. Named semantic levels.** `SEMANTICS.md` names the levels an expression can be at (a pure computation, a reading of one state, a step from one state to the next, a reading of a step, a claim over a path) and which declaration takes which. The lifter refuses an expression at the wrong level at its line.
 
@@ -54,6 +54,12 @@ def admitted(s: AdmissionState): Steps = choose(
 
 The alternatives' names are values the author declares once and tools refer to. A step function with one result needs no `choose`.
 
+**Quint result contract.** The pure exported step function still returns an ordered list of every result, including inert choice names on their records. The checker action selects a class and then a result index nondeterministically at its action boundary. A `choose` does not select a branch inside the pure function or discard/reorder alternatives. Table rows and agreement checks compare the same ordered results; names are reportable metadata only.
+
+**ITF witness contract.** The versioned Umpire state-variable extension carries the initial state Atom and each ordered `TraceStep`'s action/class, outcome, next-state and fact Atoms (IDs and values), plus a derived canonical result ordinal. `TraceStep` does not record the historical result index: export chooses the lowest ordered IR result index matching every stored Trace Atom ID/value at that source and class, including action, outcome, next state, facts and fact order. If two results match all stored data, the ordinal is labeled derived canonical metadata, never the originally observed choice. Import verifies any supplied ordinal against the full matching row, and checks the extension's cumulative path against ITF state projections and the IR. Standard external ITF without the extension imports only when its available data determine all replay-critical Trace fields; candidates differing in action, outcome, next state or facts are refused at the numbered step. Candidates identical in all stored Trace fields canonicalize to the first ordered result. Documentation names the extension version, retained fields and standard ITF data that cannot be recovered.
+
+**Imported-trace lowering.** The importer binds the validated witness to a named Query only when its machine, Scenario, limits and Property agree with the complete path and the Query's found/violated outcome. It then passes that exact witness through the existing realization preflight, gap checks, Case production and Contract checks. The path used for Program and Contract construction is the imported one, even if Go search's `Query.Answer()` finds a different path; there is no fallback to that search witness. A mismatch or unplaceable step is a located refusal.
+
 The lint and explorer commands, by example. Final names follow the tooling's conventions.
 
 ```text
@@ -71,30 +77,36 @@ umpire explore model/ir/activity.json activityProtocol
 ## Edge Cases & Constraints
 <!-- scope: technical -->
 
-- **Named choices change no behavior.** Tables, Definition IDs, fingerprints and Query answers are the same before and after. The IR gains a field, which is a schema change, and Case bytes change only if a name is carried into a Case, which this spec does not do.
+- **Named choices change no behavior.** Tables, Definition IDs, fingerprints, Query answers, search identity and Case bytes are the same before and after. The IR gains only inert choice-name metadata for existing alternatives; branch count/order and transition results remain exact. The metadata does not enter a Case or any semantic fingerprint. The IR bindings and linked API jar are regenerated, and historical descriptor/wire coverage proves new current fields without rewriting historical bytes.
 - **Unnamed lists remain legal for one release of the spec.** A step function that returns several results without `choose` still lifts while the Models are converted. At the closing task the lifter refuses it, so that every branching in a Model is intentional and named.
 - **`because` stays.** It is prose for a reader. A choice's name is an identifier for tools.
 - **Lint findings need a way to be accepted.** Some findings are intended: a faulty control design has a violated Property on purpose. An accepted finding is recorded in a checked-in file beside the IR with its reason, and the gate fails on a finding that is neither fixed nor accepted, and on an acceptance that no longer matches anything.
 - **Lint reads the state domain with care.** A machine's state type is a product of fields, and most combinations are unreachable by design. The check reports an enum case or a field value that no reachable state holds, and never a combination.
 - **"Why" must be bounded.** A step function's evaluation trace can be long. The explorer prints the decisions that led to the empty result, and no more.
-- **ITF carries less than an Umpire trace.** It has states and no Definition IDs or outcomes. The conversion states what it drops on export and what it has to recompute on import, and an imported trace is replayed against the machine before it is accepted.
-- **Order.** This spec follows fn-114, so that `choose` is added to a DSL that has settled and is rolled out to all Models once. The example of fn-119 is written after it and uses it.
+- **Standard ITF is not a lossless witness.** Without the versioned extension, external ITF may omit Definition IDs, action classes, outcomes and facts. Import derives only uniquely determined `Trace` values from the IR and refuses a missing or ambiguous replay-critical value at its step; fully identical candidate results canonicalize. The Umpire extension preserves every `Trace` Atom ID/value, while its result ordinal is derived canonical metadata because the core `Trace` records no historical selection. Exact round-trip promises equality of `Trace` data, not the unrecorded branch identity or byte identity of the ITF extension.
+- **Order.** Part A's mechanism starts only after fn-112.11 finishes Query.total schema, binding and linked API jar regeneration; fn-112.11 itself follows fn-112.3, .4 and .5. This serializes the two schema edits and makes fn-120.1's choice compatibility check run against a descriptor that already contains Query.total. Fn-120.1 precedes fn-112.6 and fn-114 branching rewrites. The conductor checks these cross-spec completion gates because flowctl stores task dependencies only within one spec. Conversion to named choices is part of those rewrites. Only after fn-114 has migrated every consumer does Part A refuse unnamed branching. Lint inventories run after fn-114's Scala-owned roots are stable. Lint, explorer and ITF work may overlap fn-118's waiting changes once the schema and reader contracts are settled. Fn-119's example Model waits for this spec's full closure.
+
+| Phase handoff | Completion gate | Next work |
+| --- | --- | --- |
+| Query.total foundation | fn-112.11 done after fn-112.3, .4 and .5 | fn-120.1 may add named-choice schema and final author syntax |
+| Named-choice foundation | fn-120.1 done | fn-112.6 and fn-114 may convert branching declarations |
+| Consumer rollout | fn-114 closed | fn-120.2 may refuse unnamed multi-result branches; lint uses stable roots |
 
 ## Acceptance Criteria
 <!-- scope: both -->
 
 - **R1:** The DSL has a construct that names the alternatives of a nondeterministic step, the lifter lifts it, and the IR records the name on each result. Errors: two alternatives with one name, and a `choose` with one alternative, are refused at their line.
 - **R2:** Every step function in the Models that can return more than one result uses the construct, and at the closing task the lifter refuses an unnamed list of several results at its line. Errors: a branching whose alternatives nobody can name is listed for the owner.
-- **R3:** The baseline goldens (`tools/umpire/model/testdata/migration`, `tools/umpire/lower/testdata/migration`) pass across Part A. Errors: any change to a table, a Definition ID, a fingerprint, a Query answer or a Case stops the task.
-- **R4:** The Quint export writes a named choice as Quint's own nondeterministic choice with the names kept, and the agreement checks still pass. Errors: if Quint cannot express a choice the way the IR states it, the export says which and the finding is recorded.
+- **R3:** The baseline goldens (`tools/umpire/model/testdata/migration`, `tools/umpire/lower/testdata/migration`) pass across Part A. Errors: any change beyond inert names on existing result alternatives, including a branch count/order, table, Definition ID, fingerprint, Query answer, exploration identity or Case, stops the task.
+- **R4:** Quint's pure step function retains every named alternative as an ordered result-list entry with its inert name; the checker action nondeterministically selects an index from that list. Agreement rows, branch count/order and behavior remain exact. Errors: if Quint cannot represent a name without selecting inside the pure function or changing the result list, the export reports the unsupported choice and its location.
 - **R5:** A lint command reads an IR file and reports each finding with a stable kind, the machine, a message and a Scala position. It has at least these kinds: an enum case or field value no reachable state holds; an action class with no enabled row; an outcome or fact no step produces; a named choice no reachable state takes; a Property no Query names; a verify Query whose Property never fired; a fact with no evidence in a realization that covers its machine; an action no realization performs; a find Query with no realization; a refining machine whose refinement is not checked; an observation nothing reads. Errors: a malformed IR file is reported by the reader as today and produces no lint findings.
 - **R6:** Each lint kind has a fixture that triggers it and one that does not. Errors: a kind with no fixture is not shipped.
 - **R7:** The model gate runs lint over every checked-in IR file and fails on a finding that is neither fixed nor recorded as accepted with a reason, and on an acceptance that matches no finding. The done summary lists the findings the first run produced and what was done about each.
 - **R8:** An explorer command lists a machine's start states, the classes enabled in a given state, and the results of taking a class, each with its choice name, outcome, facts and next state. Errors: an unknown machine, state or class is refused with the nearest valid names.
 - **R9:** The explorer answers why a class is disabled in a state with the branch decisions that produced the empty result, each at its Scala position. Errors: a class that is enabled says so; a class disabled because the action is not bound says that.
 - **R10:** The explorer runs as single commands and as an interactive session over the same commands, and both are covered by tests on a fixture Model.
-- **R11:** An Umpire witness exports to ITF and an ITF trace imports to an Umpire trace. A witness exported and imported is equal to the original. An imported trace is replayed against its machine and refused at the first step the machine cannot take. Errors: the documentation lists what ITF does not carry and how import recomputes it.
-- **R12:** One trace produced by Quint from an exported Model is imported and lowered through that Model's realization into a Case that Testpilot's preparation admits. Errors: if no realization can place the trace, the located reason is reported as for any Query.
+- **R11:** An Umpire witness exports to ITF with a versioned witness state-variable extension and imports exactly equal to the original initial and per-step action, outcome, state and fact Atoms, including IDs, values and fact order. Export records the lowest ordered IR result index matching every stored Trace field and labels it derived canonical metadata, not historical branch identity; import verifies a supplied ordinal against the full row and ITF state projections. Plain external ITF differing in any replay-critical Trace field is refused at its numbered ambiguous step; results identical in all stored Trace fields canonicalize to the first. Errors: an extension with absent or malformed ordinal/facts gets a located refusal; a same-source/same-next-state/same-outcome different-facts fixture refuses without metadata, and an exact-duplicate-results fixture canonicalizes. Documentation lists retained fields and lost/recomputed standard ITF data; no unrecorded branch identity or extension-byte equality is promised.
+- **R12:** One trace produced by Quint from an exported Model is imported, matched to a named Query's Scenario, limits, Property and outcome, and lowered through that Model's realization into a Case that Testpilot's preparation admits. The validated imported witness, including every selected step, drives the existing preflight, Program and Contract production even when `Query.Answer()` finds another valid witness. Errors: a mismatch, incomplete or unplaceable trace is refused at its first offending step; no fallback to Go's search witness is allowed. A test imports a valid witness different from Go's selected witness and proves the Case Program and Contract follow the imported steps.
 - **R13:** `SEMANTICS.md` names the semantic levels and which declaration takes which, and states that any temporal operator Umpire adds takes its meaning from TLA. The lifter has a refusal fixture for an expression at the wrong level for each declaration kind. Errors: a level the Scala types already make impossible to violate is listed as such instead of given a fixture.
 - **R14:** The model gate, `make lint-model`, the Go tests of the Umpire tooling and `make lint-code-fast` pass at the closing task. The model's README mentions lint and the explorer where it describes how an author works (no error surface beyond the gates).
 
@@ -121,7 +133,35 @@ umpire explore model/ir/activity.json activityProtocol
 
 **Why accepted findings live in a file.** Putting an acceptance into the Model would need another IR field and would mix quality bookkeeping into the specification. A file beside the IR is reviewable and is checked by the gate both ways.
 
+**Maintainability (plan review):** duplication - task 1 owns the single choice-name-only baseline allowance and harness; task 2 reuses it for retirement without defining a second allowance. Structure - none identified.
+
 ## Parked unknowns
 
 - Whether a choice's name is declared as a value of its own or taken from an enum the machine already has. The first task settles it against what reads best in the admission and queue Models.
 - Whether the explorer is a subcommand of an existing Umpire tool or a command of its own. The module map of fn-115 decides.
+
+## Quick commands
+
+```bash
+make umpire-check-model
+go test -tags test_dep ./tools/umpire/...
+```
+
+## Requirement coverage
+
+| Req | Task(s) |
+| --- | --- |
+| R1 | fn-120.1 |
+| R2 | fn-120.2 |
+| R3 | fn-120.1, fn-120.2 |
+| R4 | fn-120.1 |
+| R5 | fn-120.3 |
+| R6 | fn-120.3 |
+| R7 | fn-120.3 |
+| R8 | fn-120.4 |
+| R9 | fn-120.4 |
+| R10 | fn-120.4 |
+| R11 | fn-120.5 |
+| R12 | fn-120.5 |
+| R13 | fn-120.4 |
+| R14 | fn-120.5 |

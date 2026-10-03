@@ -10,7 +10,7 @@ A feature developer writes and reviews the Temporal Models. A review on 2026-10-
 - `nexusProduct` lists six evidence lines that map each fact to its own name.
 - The gate (`run.sh` on that date, `model/gate` now) lists 35 fully qualified Scala declarations to say what goes into which IR file, and starts one lifter JVM per IR file.
 
-`fn-112-make-the-standalone-activity-scala` introduces the constructs that remove this repetition and applies them to the standalone activity. This spec applies them to every other Model and fixture, removes the old forms from the framework so that one way to write a declaration remains, and moves the IR roots into Scala.
+`fn-112-make-the-standalone-activity-scala` introduces the constructs that remove this repetition and applies them to the standalone activity. The early named-choice mechanism of fn-120 is available before this rollout. This spec applies the settled syntax to every other Model and fixture, removes the old forms from the framework so that one way to write a declaration remains, and moves the IR roots into Scala.
 
 This spec was Part E of `fn-113-clean-up-the-scala-model-layer-around`. It is a spec of its own so that the specs run in a line: fn-115, fn-113, fn-117, fn-112, then this one. fn-115 has by then moved the model and replaced the shell scripts with one gate program, so where this spec says `model/temporal` or `model/umpire` it means the Models and the DSL at the places fn-115 gives them.
 
@@ -34,7 +34,7 @@ The lifter fixtures keep their own lift step, because some of them must fail.
 
 The author surface is fn-112's. This spec adds no construct except the IR-file declaration, whose shape the first task settles and records here. The lifter's `lift: <file>:<line>: <message>` refusal format and the IR schema stay as they are.
 
-**Lifted meaning is frozen.** For every IR file, the Go reader derives the same tables, Definition IDs, refinement rows, fingerprints and Query answers before and after each task, and the lowering produces the same Case bytes. A name taken from a `val` equals the string the declaration wrote before.
+**Lifted meaning is frozen.** For every IR file, the Go reader derives the same tables, Definition IDs, refinement rows, fingerprints and Query answers before and after each task, and the lowering produces the same Case bytes. A name taken from a `val` equals the string the declaration wrote before. Existing branch alternatives use fn-120's settled named-choice syntax during this conversion; only their inert IR choice-name metadata may be added. The exact allowed metadata deltas inherited from fn-112 remain narrow. No new branch, reordered result, or changed Case is authorized.
 
 ## Edge Cases & Constraints
 <!-- scope: technical -->
@@ -45,6 +45,7 @@ The author surface is fn-112's. This spec adds no construct except the IR-file d
 - **Removing an old form.** A string-named form leaves `model/umpire` only when no Model, fixture or test uses it. The lifter's case for it is removed in the same task, and a fixture proves the lifter now refuses it or that it no longer compiles.
 - **Fixtures that must not compile.** The lifter's own tests name a fixture file and a line. They stay, and are the only place outside the Models that names anything inside a Scala source.
 - **Gates.** Each task runs the scoped parts of the model gate, `make lint-model` and the Go tests of the Umpire tooling. The closing task runs all three in full and `make lint-code-fast`.
+- **Order.** The fn-120 choice mechanism lands before model conversion. This spec finishes all consumer migration, including fixtures, before fn-120 refuses unnamed branching. Its Scala-owned root inventory is stable before fn-120 snapshots lint findings. No fn-120 full-spec dependency blocks this rollout.
 
 ## Acceptance Criteria
 <!-- scope: both -->

@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T16:11:09.974516Z",
+  "depends_on": [
+    "fn-112-make-the-standalone-activity-scala.4",
+    "fn-112-make-the-standalone-activity-scala.6"
+  ],
+  "id": "fn-112-make-the-standalone-activity-scala.7",
+  "priority": null,
+  "spec": "fn-112-make-the-standalone-activity-scala",
+  "spec_path": ".flow/tasks/fn-112-make-the-standalone-activity-scala.7.md",
+  "status": "todo",
+  "title": "Migrate queue compositions and shared properties without string keys",
+  "updated_at": "2026-10-03T16:11:09.974516Z"
+}

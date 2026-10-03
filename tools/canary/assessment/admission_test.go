@@ -79,13 +79,20 @@ func TestTheRunOfThePriorPinnedCaseKeepsItsDecision(t *testing.T) {
 
 	then := *canary
 	then.CaseIdentity = fixture.Case
-	subject, err := admit(prior, &then, fixture.Driver, fixture.Run)
+	recorded, err := recordedrun.Encode(fixture.Case, fixture.Driver, fixture.Run)
+	require.NoError(t, err)
+	subject, err := evaluation.Admit(prior, recorded, fixture.Driver.Catalog)
 	require.NoError(t, err)
 	require.Equal(t, fixture.Driver, subject.Driver)
 	require.Equal(t, fixture.Case, subject.CaseIdentity)
 	profile, err := LoadProfile(canary.EvaluationProfile)
 	require.NoError(t, err)
 	require.Equal(t, evaluation.DecisionAccepted, evaluation.Assess(subject, *profile).Outcome)
+
+	_, err = admit(prior, &then, fixture.Driver, fixture.Run)
+	rejection, ok := evaluation.IsRejection(err)
+	require.True(t, ok, "not a rejection: %v", err)
+	require.Equal(t, evaluation.ReasonStale, rejection.Reason)
 
 	for name, caseBytes := range map[string][]byte{"the prior Case": prior, "the pinned Case": nil} {
 		t.Run(name, func(t *testing.T) {

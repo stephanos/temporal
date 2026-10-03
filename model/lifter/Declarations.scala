@@ -35,14 +35,12 @@ private[lift] trait Declarations:
     def named(name: Term): ir.Action =
       ir.Action(id = id, position = Some(pos(chain)), name = constString(name), party = "system")
     def walk(t: Term): ir.Action = t match
-      case Apply(Ident("action"), List(name, party))   => named(name).withParty(constString(party))
-      case Apply(Ident("timer"), List(name))           => named(name).withTimer(true)
-      case Apply(Ident("internal"), List(name))        => named(name).withInternal(true)
-      case Apply(Select(inner, "on"), List(e))         => walk(inner).withOn(constString(e))
-      case Apply(Select(inner, "creates"), List(e))    => walk(inner).withCreates(constString(e))
-      case Apply(Select(inner, "results"), List(n))    => walk(inner).withResults(constString(n))
-      case Apply(Select(inner, "schema"), List(names)) =>
-        walk(inner).addAllSchemas(varargs(names).map(constString))
+      case Apply(Ident("action"), List(name, party)) => named(name).withParty(constString(party))
+      case Apply(Ident("timer"), List(name))         => named(name).withTimer(true)
+      case Apply(Ident("internal"), List(name))      => named(name).withInternal(true)
+      case Apply(Select(inner, "on"), List(e))       => walk(inner).withOn(constString(e))
+      case Apply(Select(inner, "creates"), List(e))  => walk(inner).withCreates(constString(e))
+      case Apply(Select(inner, "results"), List(n))  => walk(inner).withResults(constString(n))
       case Apply(TypeApply(Select(inner, "schema"), List(tpt)), _) =>
         walk(inner).addSchemas(messageDescriptor(tpt.tpe, t).fullName)
       case Apply(Apply(TypeApply(Select(inner, "input"), List(tpt)), List(name)), _) =>

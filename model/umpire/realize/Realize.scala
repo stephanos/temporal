@@ -51,7 +51,7 @@ enum LearnedKind:
 final case class Learned(id: String, kind: LearnedKind)
 
 /** A typed value a run records for its checks: one protobuf message, by its full name. */
-final case class Observed(id: String, message: String)
+final class Observed private[realize] (val id: String, val message: String)
 
 object Observed:
   def apply[Message <: GeneratedMessage](id: String)(using
@@ -60,15 +60,7 @@ object Observed:
 
 /** Where one kind of evidence is recorded. */
 enum Recorded:
-  /** One member of the history event's attributes. */
-  case History(attributes: String)
-
-  /** The elements of the repeated field at `path` in the response of a unary method. */
-  case Read(method: String, path: String)
-
-  /** The one message at `path` in the response of a unary method. */
-  case Single(method: String, path: String)
-
+  /** The elements of the repeated field selected in the response of a unary method. */
   case TypedRead[
       Req <: GeneratedMessage,
       Rsp <: GeneratedMessage,
@@ -77,6 +69,8 @@ enum Recorded:
       method: MethodDescriptor[Req, Rsp],
       path: Field[Rsp, Seq[Projected]]
   ) extends Recorded
+
+  /** The one message selected in the response of a unary method. */
   case TypedSingle[
       Req <: GeneratedMessage,
       Rsp <: GeneratedMessage,
@@ -86,6 +80,7 @@ enum Recorded:
       path: Field[Rsp, Projected]
   ) extends Recorded
 
+  /** One member of the history event's attributes. */
   case TypedHistory[Root <: GeneratedMessage, Value](
       attributes: Field[Root, Value]
   ) extends Recorded
@@ -99,15 +94,6 @@ enum Recorded:
    * names one. A Run records an attempt once it is answered, so the evidence reaches the Run with that
    * answer and not with the carrying command, as the events that record the attempt of that number.
    */
-  case RunEvent(
-      kind: EventKind,
-      script: String,
-      command: String,
-      key: Operand,
-      guard: Option[Operand] = None,
-      attempt: Option[AttemptOf] = None
-  )
-
   case TypedRunEvent[Root <: GeneratedMessage](
       kind: EventKind,
       script: String,
@@ -188,11 +174,11 @@ enum FieldRole:
  * One field evidence carries, read at `path` in the recorded data. A field with a role names an
  * identity a check compares; a redacted field is carried without its value, and so names none.
  */
-final case class EvidenceField(
-    id: String,
-    path: String,
-    role: Option[FieldRole] = None,
-    redacted: Boolean = false
+final class EvidenceField private[realize] (
+    val id: String,
+    val path: String,
+    val role: Option[FieldRole] = None,
+    val redacted: Boolean = false
 )
 
 /** One step of a path: the `occurrence`-th step, counted from one, of a class. */
@@ -211,16 +197,16 @@ final case class Taking(step: ClassRef, occurrence: Long)
  * a kind that names the steps it `confirms` is evidence of those and of no other, all of them by one
  * piece of evidence, and several such kinds may record one fact.
  */
-final case class Evidence(
-    id: String,
-    records: String,
-    source: String,
-    from: Recorded,
-    operation: String,
-    commitment: Commitment,
-    fields: Vector[EvidenceField] = Vector.empty,
-    exhaustive: Boolean = false,
-    confirms: Vector[Taking] = Vector.empty
+final class Evidence private[realize] (
+    val id: String,
+    val records: String,
+    val source: String,
+    val from: Recorded,
+    val operation: String,
+    val commitment: Commitment,
+    val fields: Vector[EvidenceField] = Vector.empty,
+    val exhaustive: Boolean = false,
+    val confirms: Vector[Taking] = Vector.empty
 )
 
 object Evidence:
@@ -237,7 +223,7 @@ object Evidence:
       confirms: Vector[Taking] = Vector.empty
   ): EvidenceRef[Req, Projected] =
     new EvidenceRef(
-      Evidence(
+      new Evidence(
         id,
         records,
         source,
@@ -263,7 +249,7 @@ object Evidence:
       exhaustive: Boolean = false,
       confirms: Vector[Taking] = Vector.empty
   ): TypedEvidence[Root] = new TypedEvidence(
-    Evidence(
+    new Evidence(
       id,
       records,
       source,
@@ -288,7 +274,7 @@ object Evidence:
       exhaustive: Boolean = false,
       confirms: Vector[Taking] = Vector.empty
   ): TypedEvidence[Root] = new TypedEvidence(
-    Evidence(
+    new Evidence(
       id,
       records,
       source,
@@ -410,8 +396,6 @@ enum Target:
   /** Lifts the evidence kinds a history read confirms into an observation. */
   case Lift(observation: String)
 
-final case class Assignment(target: String, value: Operand)
-
 object Assignment:
   def typed[Root, Value](
       target: Field[Root, Value],
@@ -428,12 +412,6 @@ object EvidenceField:
   ): TypedEvidenceField[Root, Value] =
     TypedEvidenceField(id, path, role, redacted)
 
-final case class ResponseRead(
-    path: String,
-    cardinality: Cardinality,
-    targets: Vector[Target]
-)
-
 object ResponseRead:
   def typed[Root, Value](
       path: Field[Root, Value],
@@ -445,13 +423,6 @@ object ResponseRead:
 /** What a command does. */
 enum Instruction:
   /** A unary call on an endpoint role. */
-  case Rpc(
-      role: String,
-      method: String,
-      assign: Vector[Assignment],
-      reads: Vector[ResponseRead] = Vector.empty
-  )
-
   case TypedRpc[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
       role: String,
       method: MethodDescriptor[Req, Rsp],
@@ -460,13 +431,6 @@ enum Instruction:
   ) extends Instruction
 
   /** Polls the read an evidence kind names until an element satisfies `until`. */
-  case Poll(
-      evidence: String,
-      role: String,
-      assign: Vector[Assignment],
-      until: Operand,
-      intervalMs: Long
-  )
   case TypedPoll[Req, Projected](
       evidence: EvidenceRef[Req, Projected],
       role: String,
@@ -483,18 +447,18 @@ enum Instruction:
   case Finish(result: Operand)
 
   /** Fails the attempt of an activity, with a `temporal.api.failure.v1.Failure`. */
-  case AttemptFailure(failure: Proto | TypedProto[?])
+  case AttemptFailure(failure: TypedProto[?])
 
   /** Answers the attempt of an activity as canceled. */
   case AttemptCanceled
   case Fault(role: String, kind: FaultKind)
 
   /** A workflow command, as the message the SDK would emit. */
-  case WorkflowCommand(command: Proto | TypedProto[?])
+  case WorkflowCommand(command: TypedProto[?])
 
   /** A Nexus handler's answer; an asynchronous one binds the handle `binds` names. */
-  case NexusReply(reply: Proto | TypedProto[?], binds: String = "")
-  case NexusCompletion(handle: String, result: Proto | TypedProto[?])
+  case NexusReply(reply: TypedProto[?], binds: String = "")
+  case NexusCompletion(handle: String, result: TypedProto[?])
   case Hold(control: String)
   case Release(control: String)
 
@@ -524,18 +488,6 @@ enum Operand:
 
   /** The value a poll is looking at, or the payload a Run Event's guard and key read. */
   case Projected
-  case Path(of: Operand, path: String)
-  case Present(of: Operand)
-  case Equal(left: Operand, right: Operand)
-
-  /** Holds when every operand does, read left to right up to the first that does not. */
-  case All(operands: Operand*)
-
-  /** Holds when the left integer is greater than the right. */
-  case Greater(left: Operand, right: Operand)
-
-  /** Holds when its operand, a condition, does not. */
-  case Not(of: Operand)
 
 object Operand:
   def run(): TypedOperand[String] = new TypedOperand(Run)
@@ -573,25 +525,19 @@ object Operand:
         case _                 => error("only Operand.Projected has a dynamic message root")
 
 /**
- * A protobuf message written out: its full name and the fields it sets. A field it does not name
- * stays unset.
+ * A protobuf message written out: its generated type and the fields it sets. A field it does not
+ * name stays unset.
  */
-final case class Proto(message: String, fields: ProtoField*)
-
 object Proto:
   def apply[Message <: GeneratedMessage](
       fields: TypedProtoField[Message, ?]*
   ): TypedProto[Message] = new TypedProto(fields.toVector)
-
-final case class ProtoField(name: String, value: ProtoValue)
 
 object ProtoField:
   def typed[Message, Value](
       field: Field[Message, Value],
       value: TypedProtoValue[Value]
   ): TypedProtoField[Message, Value] = new TypedProtoField(field, value)
-
-final case class ProtoEntry(key: String, value: ProtoValue)
 
 object ProtoEntry:
   def typed(key: String, value: TypedProtoValue[ByteString]): TypedProtoEntry =
@@ -601,12 +547,10 @@ enum ProtoValue:
   case Text(text: String)
   case Flag(flag: Boolean)
   case Number(number: Long)
-  case EnumName(name: String)
+  private[realize] case EnumName(name: String)
 
   /** Bytes, as the UTF-8 text they encode. */
   case Utf8(text: String)
-  case Message(proto: Proto)
-  case Mapping(entries: ProtoEntry*)
 
   /** A role, where a field names the role a run resolves. */
   case RoleId(role: String)

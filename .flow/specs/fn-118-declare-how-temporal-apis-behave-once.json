@@ -2,7 +2,7 @@
   "branch_name": "fn-118-declare-how-temporal-apis-behave-once",
   "created_at": "2026-10-02T05:52:04.877949Z",
   "depends_on_epics": [
-    "fn-112-make-the-standalone-activity-scala"
+    "fn-117-type-the-temporal-api-in-the-models"
   ],
   "id": "fn-118-declare-how-temporal-apis-behave-once",
   "next_task": 1,
@@ -22,5 +22,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T05:52:05.346751Z"
+  "updated_at": "2026-10-03T17:22:14.663190Z"
 }

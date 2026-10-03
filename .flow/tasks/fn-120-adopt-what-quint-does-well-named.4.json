@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T17:21:01.602609Z",
+  "depends_on": [
+    "fn-120-adopt-what-quint-does-well-named.1",
+    "fn-120-adopt-what-quint-does-well-named.3"
+  ],
+  "id": "fn-120-adopt-what-quint-does-well-named.4",
+  "priority": null,
+  "spec": "fn-120-adopt-what-quint-does-well-named",
+  "spec_path": ".flow/tasks/fn-120-adopt-what-quint-does-well-named.4.md",
+  "status": "todo",
+  "title": "Add IR explorer and semantic-level refusals",
+  "updated_at": "2026-10-03T17:36:02.190381Z"
+}

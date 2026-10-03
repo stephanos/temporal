@@ -615,7 +615,7 @@ change exported bytes without changing the Model's behavior. Generated symbols a
 belong in decoder metadata; reuse the [canonical identity rules](../tools/umpire/model/internal/checker/canonical.go)
 rather than using a hash of generated TLA+ as a Behavior Fingerprint.
 
-The [Known Bug lifecycle](../model/specs/KNOWN_BUG.md) applies after semantic evaluation.
+The [Known Bug lifecycle](UMPIRE4_VISION.md#known-bugs-knownbugs) applies after semantic evaluation.
 An acknowledged violation must still violate the exported Property and retain its counterexample.
 The reporting layer can classify it as an active-known-bug warning; marking it fixed makes recurrence
 an error. Export must not remove the transition or weaken the Property to make a known bug pass.

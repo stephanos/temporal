@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T16:11:09.976229Z",
+  "depends_on": [
+    "fn-112-make-the-standalone-activity-scala.7",
+    "fn-112-make-the-standalone-activity-scala.12"
+  ],
+  "id": "fn-112-make-the-standalone-activity-scala.8",
+  "priority": null,
+  "spec": "fn-112-make-the-standalone-activity-scala",
+  "spec_path": ".flow/tasks/fn-112-make-the-standalone-activity-scala.8.md",
+  "status": "todo",
+  "title": "Reorganize the standalone activity feature by subject and declaration kind",
+  "updated_at": "2026-10-03T17:11:31.046149Z"
+}

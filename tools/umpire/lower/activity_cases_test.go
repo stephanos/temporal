@@ -96,9 +96,9 @@ var activityLimits = map[string]struct {
 	"startToCloseTimeout": {Unsupported{Construct: "attempt that gives no answer", ID: "activity", Owner: "none: a recorded limit of the prototype"},
 		"activityScript = Script("},
 	"cancel": {Unsupported{Construct: "attempt record that follows later evidence", ID: activityEvidence + "statusStarted",
-		Owner: "none: a recorded limit of the prototype"}, "Evidence("},
+		Owner: "none: a recorded limit of the prototype"}, "Evidence.runEvent("},
 	"cancelRequest": {Unsupported{Construct: "attempt record that follows later evidence", ID: activityEvidence + "statusStarted",
-		Owner: "none: a recorded limit of the prototype"}, "Evidence("},
+		Owner: "none: a recorded limit of the prototype"}, "Evidence.runEvent("},
 }
 
 func activityIdentity(query string) cp.Identity {

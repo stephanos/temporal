@@ -70,9 +70,7 @@ final class Action[I <: Tuple] private[umpire] (val decl: ActionDecl):
   infix def on(e: Entity): Action[I] = Action(decl.copy(on = Some(e)))
   infix def creates(e: Entity): Action[I] = Action(decl.copy(creates = Some(e)))
 
-  /** The protobuf messages the action carries, by name. */
-  def schema(names: String*): Action[I] = Action(decl.copy(schemas = names.toList))
-
+  /** The protobuf messages the action carries, by type. */
   def schema[M <: GeneratedMessage](using companion: GeneratedMessageCompanion[M]): Action[I] =
     Action(decl.copy(schemas = decl.schemas :+ companion.scalaDescriptor.fullName))
 

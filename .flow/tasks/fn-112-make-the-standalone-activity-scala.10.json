@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T16:11:09.979872Z",
+  "depends_on": [
+    "fn-112-make-the-standalone-activity-scala.9"
+  ],
+  "id": "fn-112-make-the-standalone-activity-scala.10",
+  "priority": null,
+  "spec": "fn-112-make-the-standalone-activity-scala",
+  "spec_path": ".flow/tasks/fn-112-make-the-standalone-activity-scala.10.md",
+  "status": "todo",
+  "title": "Close fn112 with refusal coverage, source metrics and full frozen-output gates",
+  "updated_at": "2026-10-03T17:22:57.980309Z"
+}

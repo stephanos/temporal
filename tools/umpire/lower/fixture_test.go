@@ -139,8 +139,8 @@ func TestWhatTestpilotCannotRunIsNamedWithItsOwner(t *testing.T) {
 
 	type gap struct{ construct, id, owner, file, written string }
 	want := []gap{
-		{"durable-commit observation", "fixture.realizations.race.evidence.dispatchEnqueued", ownerNone, realizationsAt, "Evidence("},
-		{"durable-commit observation", "fixture.realizations.race.evidence.attemptAdmitted", ownerNone, realizationsAt, "Evidence("},
+		{"durable-commit observation", "fixture.realizations.race.evidence.dispatchEnqueued", ownerNone, realizationsAt, "Evidence.read("},
+		{"durable-commit observation", "fixture.realizations.race.evidence.attemptAdmitted", ownerNone, realizationsAt, "Evidence.read("},
 		{"hold-delivery control", "hold-dispatch", ownerNone, realizationsAt, "Control(holdDispatch"},
 		{"hold-delivery command", "controller/hold-dispatch-before-start", ownerNone, realizationsAt, "hold-dispatch-before-start"},
 		{"hold-delivery command", "controller/release-dispatch", ownerNone, realizationsAt, "release-dispatch"},

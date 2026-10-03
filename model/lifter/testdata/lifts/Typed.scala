@@ -23,14 +23,6 @@ val two = action("two", Party("caller"))
   .schema[StartActivityExecutionResponse]
   .schema[StartActivityExecutionRequest]
 
-val oldOne = action("one", Party("caller"))
-  .schema("temporal.api.workflowservice.v1.StartActivityExecutionRequest")
-val oldTwo = action("two", Party("caller"))
-  .schema(
-    "temporal.api.workflowservice.v1.StartActivityExecutionResponse",
-    "temporal.api.workflowservice.v1.StartActivityExecutionRequest"
-  )
-
 enum State derives Finite:
   case idle
 
@@ -46,13 +38,6 @@ val typedMachine: Machine[State, Result, Nothing] =
     starts(State.idle)
     ends(_ => true)
     steps(one ~> step, two ~> step)
-  }
-
-val oldMachine: Machine[State, Result, Nothing] =
-  machine[State, Result, Nothing](Family("fixture.typed"), "old") {
-    starts(State.idle)
-    ends(_ => true)
-    steps(oldOne ~> step, oldTwo ~> step)
   }
 
 val call = Instruction.rpc(
@@ -221,107 +206,6 @@ val runEventEvidence = Evidence.runEvent(
 private val correlation =
   Correlation("projection", "run", "operation", "observation", 1, 1, 1, 1, 1, 1)
 private val roles = Vector(Role("endpoint", RoleKind.endpoint))
-private val method = "/temporal.api.workflowservice.v1.WorkflowService/"
-private val oldCall = Instruction.Rpc(
-  "endpoint",
-  method + "StartActivityExecution",
-  Vector(
-    Assignment("namespace", Operand.Run),
-    Assignment("task_queue.name", Operand.Environment("queue"))
-  ),
-  Vector(ResponseRead("run_id", Cardinality.one, Vector(Target.Bind("run"))))
-)
-private val oldEvidence = Evidence(
-  "fixture.typed.evidence.listed",
-  "listed",
-  "fixture.typed.source.listed",
-  Recorded.Read(method + "ListWorkflowExecutions", "executions[*]"),
-  "execution.workflow_id",
-  Commitment.reported
-)
-private val oldSingleEvidence = Evidence(
-  "fixture.typed.evidence.described",
-  "described",
-  "fixture.typed.source.described",
-  Recorded
-    .Single(method + "DescribeWorkflowExecution", "workflow_execution_info"),
-  "execution.workflow_id",
-  Commitment.reported
-)
-private val oldPoll = Instruction.Poll(
-  "fixture.typed.evidence.listed",
-  "endpoint",
-  Vector(Assignment("namespace", Operand.Run)),
-  Operand.Equal(
-    Operand.Path(Operand.Projected, "execution.workflow_id"),
-    Operand.Literal(ProtoValue.Text("workflow"))
-  ),
-  250
-)
-private val oldHistoryCall = Instruction.Rpc(
-  "endpoint",
-  method + "GetWorkflowExecutionHistory",
-  Vector(Assignment("namespace", Operand.Run)),
-  Vector(
-    ResponseRead("history.events[*].event_id", Cardinality.each, Vector.empty)
-  )
-)
-private val oldHistoryEvidence = Evidence(
-  "fixture.typed.evidence.history",
-  "history",
-  "fixture.typed.source.history",
-  Recorded.History("nexus_operation_scheduled_event_attributes"),
-  "event_id",
-  Commitment.reported,
-  fields = Vector(
-    EvidenceField(
-      "scheduled",
-      "attributes<nexus_operation_scheduled_event_attributes>.request_id"
-    )
-  )
-)
-private val oldEventEvidence = Evidence(
-  "fixture.typed.evidence.event",
-  "admitted",
-  "fixture.typed.source.event",
-  Recorded.RunEvent(
-    EventKind.instructionCompleted,
-    "controller",
-    "call",
-    Operand.Path(Operand.Projected, "delivery_admission.activity_id"),
-    guard = Some(
-      Operand.All(
-        Operand.Equal(
-          Operand.Path(Operand.Projected, "delivery_admission.decision"),
-          Operand.Literal(
-            ProtoValue.EnumName("DELIVERY_ADMISSION_DECISION_ADMITTED")
-          )
-        ),
-        Operand.Greater(
-          Operand.Path(Operand.Projected, "delivery_admission.attempt"),
-          Operand.Literal(ProtoValue.Number(0))
-        )
-      )
-    )
-  ),
-  "",
-  Commitment.durable,
-  fields = Vector(EvidenceField("delivery", "delivery_admission.delivery_id"))
-)
-private val oldRunEventEvidence = Evidence(
-  "fixture.typed.evidence.run",
-  "run",
-  "fixture.typed.source.run",
-  Recorded.RunEvent(
-    EventKind.instructionCompleted,
-    "controller",
-    "call",
-    Operand.Run
-  ),
-  "",
-  Commitment.reported
-)
-
 val typedPayload = Proto[io.temporal.api.common.v1.Payload](
   ProtoField.typed(
     Field[io.temporal.api.common.v1.Payload, Map[String, com.google.protobuf.ByteString]](
@@ -333,11 +217,6 @@ val typedPayload = Proto[io.temporal.api.common.v1.Payload](
     Field[io.temporal.api.common.v1.Payload, com.google.protobuf.ByteString](_.data),
     ProtoValue.utf8("\"done\"")
   )
-)
-private val oldPayload = Proto(
-  "temporal.api.common.v1.Payload",
-  ProtoField("metadata", ProtoValue.Mapping(ProtoEntry("encoding", ProtoValue.Utf8("json/plain")))),
-  ProtoField("data", ProtoValue.Utf8("\"done\""))
 )
 private def typedFailure(nonRetryable: Boolean) =
   Proto[io.temporal.api.failure.v1.Failure](
@@ -363,20 +242,6 @@ private def typedFailure(nonRetryable: Boolean) =
       )
     )
   )
-private val oldFailure = Proto(
-  "temporal.api.failure.v1.Failure",
-  ProtoField("message", ProtoValue.Text("failed")),
-  ProtoField(
-    "application_failure_info",
-    ProtoValue.Message(
-      Proto(
-        "temporal.api.failure.v1.ApplicationFailureInfo",
-        ProtoField("type", ProtoValue.Text("Expected")),
-        ProtoField("non_retryable", ProtoValue.Flag(true))
-      )
-    )
-  )
-)
 private def scheduleAttributes(
     fields: Vector[
       TypedProtoField[io.temporal.api.command.v1.ScheduleNexusOperationCommandAttributes, ?]
@@ -427,28 +292,6 @@ private def typedCommand(value: io.temporal.api.enums.v1.CommandType) =
       )
     )
   )
-private val oldCommand = Proto(
-  "temporal.api.command.v1.Command",
-  ProtoField("command_type", ProtoValue.EnumName("COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION")),
-  ProtoField(
-    "schedule_nexus_operation_command_attributes",
-    ProtoValue.Message(
-      Proto(
-        "temporal.api.command.v1.ScheduleNexusOperationCommandAttributes",
-        ProtoField("endpoint", ProtoValue.RoleId("endpoint")),
-        ProtoField(
-          "schedule_to_start_timeout",
-          ProtoValue.Message(
-            Proto(
-              "google.protobuf.Duration",
-              ProtoField("seconds", ProtoValue.Number(2))
-            )
-          )
-        )
-      )
-    )
-  )
-)
 private def typedResponse(
     variant: TypedProtoField[io.temporal.api.nexus.v1.StartOperationResponse, ?]
 ) = Proto[io.temporal.api.nexus.v1.StartOperationResponse](variant)
@@ -459,14 +302,6 @@ private val responseVariant = ProtoField.typed(
   ](_.getAsyncSuccess),
   ProtoValue.message(Proto[io.temporal.api.nexus.v1.StartOperationResponse.Async]())
 )
-private val oldResponse = Proto(
-  "temporal.api.nexus.v1.StartOperationResponse",
-  ProtoField(
-    "async_success",
-    ProtoValue.Message(Proto("temporal.api.nexus.v1.StartOperationResponse.Async"))
-  )
-)
-
 val typedRealization = Realization(
   "same",
   typedMachine,
@@ -516,39 +351,6 @@ val typedRealization = Realization(
     historyEvidence,
     eventEvidence,
     runEventEvidence
-  )
-)
-
-val oldRealization = Realization(
-  "same",
-  typedMachine,
-  "producer",
-  "v1",
-  roles,
-  correlation,
-  Vector(
-    Script(
-      "controller",
-      Activation.Controller,
-      Vector(
-        Item(command = Some(Command("call", oldCall))),
-        Item(command = Some(Command("poll", oldPoll))),
-        Item(command = Some(Command("history", oldHistoryCall))),
-        Item(command = Some(Command("payload", Instruction.NexusReply(oldPayload)))),
-        Item(command = Some(Command("failure", Instruction.AttemptFailure(oldFailure)))),
-        Item(command = Some(Command("command", Instruction.WorkflowCommand(oldCommand)))),
-        Item(command = Some(Command("response", Instruction.NexusReply(oldResponse))))
-      )
-    )
-  ),
-  observations =
-    Vector(Observed("observed", "temporal.server.api.testpilot.v1.CorrelatedEvidence")),
-  evidence = Vector(
-    oldEvidence,
-    oldSingleEvidence,
-    oldHistoryEvidence,
-    oldEventEvidence,
-    oldRunEventEvidence
   )
 )
 
@@ -635,43 +437,6 @@ val typedLongRealization = Realization(
                   )
                 ),
                 Vector.empty
-              )
-            )
-          )
-        )
-      )
-    )
-  )
-)
-val oldLongRealization = Realization(
-  "long",
-  typedMachine,
-  "producer",
-  "v1",
-  roles,
-  correlation,
-  Vector(
-    Script(
-      "controller",
-      Activation.Controller,
-      Vector(
-        Item(command =
-          Some(
-            Command(
-              "long",
-              Instruction.Rpc(
-                "endpoint",
-                method + "StartActivityExecution",
-                Vector(
-                  Assignment(
-                    "start_to_close_timeout.seconds",
-                    Operand.Literal(ProtoValue.Number(300))
-                  ),
-                  Assignment(
-                    "schedule_to_start_timeout.seconds",
-                    Operand.Literal(ProtoValue.Number(2))
-                  )
-                )
               )
             )
           )

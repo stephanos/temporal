@@ -22,10 +22,16 @@ func localStrict(t *testing.T) Profile {
 	return *profile
 }
 
-// admitted admits the control pair after the edits.
+// admitted isolates assessment conditions from the control's authored capability gap. These
+// synthetic pairs are re-encoded after each edit; the pinned live pair remains unchanged.
 func (c control) admitted(t *testing.T, editCase func(*testpilotspb.Case), editRun func(*testpilotspb.Run)) *Subject {
 	t.Helper()
-	caseBytes, recorded := c.pair(t, editCase, editRun)
+	caseBytes, recorded := c.pair(t, func(source *testpilotspb.Case) {
+		source.Provenance.KnownGaps = nil
+		if editCase != nil {
+			editCase(source)
+		}
+	}, editRun)
 	subject, err := Admit(caseBytes, recorded, c.catalog())
 	require.NoError(t, err)
 	return subject
@@ -45,6 +51,16 @@ func reasonNames(decision Decision) []string {
 	return names
 }
 
+func TestAssessRetainsTheRecordedControlsAuthoredGap(t *testing.T) {
+	c := loadControl(t)
+	subject, err := Admit(c.caseBytes, c.recorded, c.catalog())
+	require.NoError(t, err)
+	decision := Assess(subject, localEphemeral(t))
+	require.Equal(t, DecisionRejected, decision.Outcome)
+	require.Equal(t, []string{"verdict-violated", "monitor-stopped", "known-gap-blocking"}, reasonNames(decision))
+	require.Equal(t, []KnownGapRef{{Kind: "capability", Code: "temporal.nexus.control.action.forgedCompletion.inspect.unobserved"}}, decision.KnownGaps)
+}
+
 // Every condition of the local table decides as the plan fixes it, every reason that holds is
 // listed in the table's order, and nothing but a clean satisfied Run is accepted.
 func TestAssessUnderTheLocalProfile(t *testing.T) {
@@ -52,7 +68,7 @@ func TestAssessUnderTheLocalProfile(t *testing.T) {
 	profile := localEphemeral(t)
 	unsupported := func(run *testpilotspb.Run) {
 		satisfy(run)
-		run.Verdict.Rules[1].SupportingEventSequences = nil
+		run.Verdict.Rules[0].SupportingEventSequences = nil
 	}
 	for name, probe := range map[string]struct {
 		editCase func(*testpilotspb.Case)
@@ -83,7 +99,7 @@ func TestAssessUnderTheLocalProfile(t *testing.T) {
 		"an unsupported rule":   {nil, unsupported, DecisionIncomplete, []string{"rule-unsupported"}},
 		"everything at once": {withGap(testpilotspb.KNOWN_GAP_KIND_CAPABILITY), func(run *testpilotspb.Run) {
 			run.Cleanup.Status = testpilotspb.CLEANUP_STATUS_FAILED
-			run.Verdict.Rules[1].SupportingEventSequences = nil
+			run.Verdict.Rules[0].SupportingEventSequences = nil
 		}, DecisionRejected, []string{"verdict-violated", "monitor-stopped", "cleanup-unclosed", "known-gap-blocking", "rule-unsupported"}},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -121,7 +137,7 @@ func TestAssessIsPureAndProfilesAreIndependent(t *testing.T) {
 	c := loadControl(t)
 	subject := c.admitted(t, nil, func(run *testpilotspb.Run) {
 		satisfy(run)
-		run.Verdict.Rules[1].SupportingEventSequences = nil
+		run.Verdict.Rules[0].SupportingEventSequences = nil
 	})
 	before := *subject
 	verdict := proto.CloneOf(subject.Verdict)

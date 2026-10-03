@@ -56,6 +56,13 @@ its result is a model-selected executable candidate. These are deliberate except
 an interface merely because its explanation can contain “and.” Campaign and replay remain separate:
 one coordinates candidate execution, the other owns reproduction and reduction decisions.
 
+The Model author contract now permits generated Temporal API, Testpilot and well-known ScalaPB
+message classes, generated unary gRPC method constants, and the ScalaPB runtime needed to compile
+them in `model/temporal`. The DSL exposes typed schema, selector, operand and constant-message
+constructors; it has no public string form for protobuf messages, methods, paths or enum names.
+The gate checks Model source for remaining proto-name literals. The lifter writes those typed
+selections back into the unchanged text-bearing IR, which Go validates independently at lowering.
+
 The [parity claim inventory](umpire-migration-claims.json) maps retired oracle comparisons to
 frozen evidence and surviving checks, and preserves their original commentary with source attribution.
 
@@ -268,7 +275,7 @@ exceptions, so fixture trees need no ignore exception.
 
 `model/project.scala` is the shared directive file copied from `scala/project.scala`. Compile the
 DSL with exactly that file and `model/umpire`; compile/test/package Models with that file plus
-`model/umpire` and `model/temporal`. Authoring tests live under `temporal/test`; compiler and lifter
+`model/umpire` and `model/temporal`. Authoring tests are co-located with their Models; compiler and lifter
 refusal fixtures live under `lifter/testdata`. The lifter and gate have independent `project.scala`
 files. Their generated jars, fixtures
 and stamps live under ignored `model/gen`; the gate names source roots explicitly, so a broad

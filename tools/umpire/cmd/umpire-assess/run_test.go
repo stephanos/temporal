@@ -48,18 +48,21 @@ func resolvedTemp(t *testing.T) string {
 	return resolved
 }
 
-// subjectFiles writes the control Case and its recorded Run, the Run edited and re-recorded from
-// the Case (optionally edited too), and returns their paths.
+// subjectFiles writes the pinned control pair unchanged when neither edit is supplied. Synthetic
+// subjects omit its authored capability gap so each test isolates the decision it exercises.
 func subjectFiles(t *testing.T, editCase func(*testpilotspb.Case), editRun func(*testpilotspb.Run)) (casePath string, runPath string) {
 	t.Helper()
 	caseBytes, err := os.ReadFile(controlCasePath)
 	require.NoError(t, err)
 	recorded, err := os.ReadFile(controlRunPath)
 	require.NoError(t, err)
-	if editCase != nil {
+	if editCase != nil || editRun != nil {
 		source := new(testpilotspb.Case)
 		require.NoError(t, protojson.Unmarshal(caseBytes, source))
-		editCase(source)
+		source.Provenance.KnownGaps = nil
+		if editCase != nil {
+			editCase(source)
+		}
 		encoded, err := protojson.Marshal(source)
 		require.NoError(t, err)
 		var compact bytes.Buffer
@@ -122,7 +125,7 @@ func TestAssessDecidesAndPublishesOnce(t *testing.T) {
 		reasons  []string
 	}{
 		"accepted": {nil, satisfy, exitAccepted, nil},
-		"rejected": {nil, nil, exitRejected, []string{"verdict-violated", "monitor-stopped"}},
+		"rejected": {nil, nil, exitRejected, []string{"verdict-violated", "monitor-stopped", "known-gap-blocking"}},
 		"incomplete": {func(source *testpilotspb.Case) {
 			source.Provenance.KnownGaps = []*testpilotspb.KnownGap{{Kind: testpilotspb.KNOWN_GAP_KIND_CAPABILITY, Code: "umpire.gap.example"}}
 		}, satisfy, exitIncomplete, []string{"known-gap-blocking"}},
@@ -281,8 +284,11 @@ func TestAssessReportsAConflict(t *testing.T) {
 // supported rules over the event cap's worth of events are more than the cap holds.
 func TestAssessRefusesAnOversizedReceipt(t *testing.T) {
 	casePath, runPath := subjectFiles(t, func(source *testpilotspb.Case) {
-		source.Contract.Correlated.Rules = append(source.Contract.Correlated.Rules, proto.CloneOf(source.Contract.Correlated.Rules[0]))
-		source.Contract.Correlated.Rules[2].RuleId = "extra"
+		for _, name := range []string{"extra-1", "extra-2"} {
+			rule := proto.CloneOf(source.Contract.Correlated.Rules[0])
+			rule.RuleId = name
+			source.Contract.Correlated.Rules = append(source.Contract.Correlated.Rules, rule)
+		}
 	}, func(run *testpilotspb.Run) {
 		satisfy(run)
 		for len(run.Events) < evaluation.MaxRunEvents {
@@ -292,7 +298,9 @@ func TestAssessRefusesAnOversizedReceipt(t *testing.T) {
 		for index := range sequences {
 			sequences[index] = int64(index + 1)
 		}
-		run.Verdict.Rules = append(run.Verdict.Rules, &testpilotspb.RuleVerdict{RuleId: "extra", Status: testpilotspb.RULE_VERDICT_STATUS_SATISFIED})
+		for _, name := range []string{"extra-1", "extra-2"} {
+			run.Verdict.Rules = append(run.Verdict.Rules, &testpilotspb.RuleVerdict{RuleId: name, Status: testpilotspb.RULE_VERDICT_STATUS_SATISFIED})
+		}
 		for _, rule := range run.Verdict.Rules {
 			rule.TerminalStateId = "done"
 			rule.SupportingEventSequences = sequences

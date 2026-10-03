@@ -261,7 +261,7 @@ func TestARedactedFieldIsNamedAsALimit(t *testing.T) {
 	gap := l.Unsupported[0]
 	require.NotEmpty(t, gap.Why)
 	require.Contains(t, gap.Position, realizationsAt)
-	require.Contains(t, lineOf(t, gap.Position), `EvidenceField("identity"`)
+	require.Contains(t, lineOf(t, gap.Position), `EvidenceField.typed(`)
 	gap.Why, gap.Position = "", ""
 	require.Equal(t, Unsupported{Construct: "redacted evidence field", ID: "fixture.realizations.tally.evidence.opened/identity",
 		Owner: "none: a recorded limit of the prototype"}, gap)

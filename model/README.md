@@ -150,6 +150,14 @@ make umpire-gen-model     # the gate with --update: rewrites model/ir and model/
 
 Then read the diff of `model/ir` and `model/cases` like any other code change.
 
+The gate packages the linked Temporal API, Testpilot and well-known ScalaPB classes in
+`model/gen/api-scalapb.jar`. Its descriptor and tool stamp is checked before a build; editing a
+Model reuses that jar. If the gate reports a missing or stale `proto/api.binpb`, run the named
+`make proto/api.binpb` target; if it reports stale generated internal protobuf code, run
+`make protoc`. The gate reports the declaration's source line when a typed selection cannot be
+lifted. The compiler reports misspelled fields, wrong request or response roots and wrong value
+types before lifting.
+
 `make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks` leaves out the `go vet` and `go test`
 step, for when you run the Go tests separately. `go test -tags test_dep ./tools/umpire/...` runs the
 Go side alone from the checked-in IR and needs no JVM.
@@ -283,7 +291,7 @@ requires exactly that of a live Run and of its replay.
 | `model/gate` | The gate program. It generates the IR's ScalaPB classes from the schema into `model/gen` (`--generate-ir`), and `Roots.scala` lists which declarations go into which IR file |
 | `model/project.scala` | The build settings of the DSL and the Models |
 | [SEMANTICS.md](SEMANTICS.md) | The evaluation rules of the Umpire IR: what every construct means |
-| [specs/KNOWN_BUG.md](specs/KNOWN_BUG.md) | Proposed requirements for acknowledging a known bug; not implemented |
+| [Known bugs](../.plans/UMPIRE4_VISION.md#known-bugs-knownbugs) | Vision for acknowledging a known bug; not implemented |
 | `model/gen` | Build output of the gate; ignored by git |
 
 The module map, [.plans/UMPIRE_MODULES.md](../.plans/UMPIRE_MODULES.md), states each module's job,
@@ -333,6 +341,41 @@ A Query that should become a Case needs two more things: a realization on its ma
 get. A missing or malformed expectation fails generation. What a realization may declare, and how
 each declaration lowers, is in [SEMANTICS.md](SEMANTICS.md) under Realizations and Generated Case
 expectations.
+
+### Naming protobuf data in a Model
+
+Actions name message types, and realizations use generated unary method constants and typed field
+selectors. For example:
+
+```scala
+import io.temporal.api.workflowservice.v1.{StartActivityExecutionRequest, WorkflowServiceGrpc}
+import umpire.realize.*
+
+val start = action("start", Party("caller")).schema[StartActivityExecutionRequest]
+val call = Instruction.rpc("endpoint", WorkflowServiceGrpc.METHOD_START_ACTIVITY_EXECUTION)(
+  Vector(
+    Assignment.typed(
+      Field[StartActivityExecutionRequest, String](_.namespace),
+      Operand.run()
+    )
+  ),
+  Vector.empty
+)
+```
+
+`Recorded.read` and `Recorded.single` keep the method's request type and the selected response
+message type in an `Evidence.read` reference. `Instruction.poll` takes that reference, so its
+assignments use the method's request type and its condition selects fields of the projected
+message. `Field[Root, Value]` also names evidence fields, operation keys, response reads and Run
+Event guards. Select an optional nested message with a generated `get...` accessor, each repeated
+element with `.map`, and a oneof arm through its generated selector. A dynamic Run Event payload
+starts from `Operand.Projected.as[InstructionOutcome]` so the selected root is explicit.
+
+Constant messages remain symbolic: `Proto[Payload](ProtoField.typed(...))` names a message and its
+fields by type; `ProtoValue.mapping(ProtoEntry.typed("encoding", ProtoValue.utf8("json/plain")))`
+writes `Payload.metadata` data with its `String` key and `ByteString` value. The generated API and
+ScalaPB runtime are authoring and lifting dependencies only. Scala never builds or sends a Temporal
+request; Go still checks the lifted IR against descriptors and executes the Case.
 
 ## Generated Cases
 

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T16:39:34.344524Z",
+  "depends_on": [
+    "fn-112-make-the-standalone-activity-scala.7"
+  ],
+  "id": "fn-112-make-the-standalone-activity-scala.12",
+  "priority": null,
+  "spec": "fn-112-make-the-standalone-activity-scala",
+  "spec_path": ".flow/tasks/fn-112-make-the-standalone-activity-scala.12.md",
+  "status": "todo",
+  "title": "Extract the reusable Temporal task-queue entity and shared provider claims",
+  "updated_at": "2026-10-03T16:39:34.344524Z"
+}

@@ -487,6 +487,19 @@ class GateSuite extends munit.FunSuite:
     )
     assertEquals(repository.ran.filter(_.startsWith("go ")), Seq(vocabularyCheck))
 
+  test("the gate rejects a proto literal in a Model before generating classes"):
+    val repository = currentRepository(passingVocabulary)
+    val model = repository.root.resolve("model/temporal/Model.scala")
+    Files.createDirectories(model.getParent)
+    Files.writeString(
+      model,
+      "val method = \"/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution\"\n"
+    )
+    val answer = gate(repository.tools, "--skip-go-checks")
+    assertEquals(answer.status, 1)
+    assert(answer.err.contains("model/temporal/Model.scala:1: method is free text"), answer.err)
+    assertEquals(repository.ran, Seq(vocabularyCheck))
+
   test("every lift that fails is reported, after all of them ended, and nothing is rewritten"):
     val repository = staleRepository()
     val failing =

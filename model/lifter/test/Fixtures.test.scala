@@ -242,12 +242,22 @@ class Fixtures extends munit.FunSuite:
         "Invalid.scala:66:7",
         "Invalid.scala:81:21",
         "Invalid.scala:84:3",
-        "Invalid.scala:92:3"
+        "Invalid.scala:89:5",
+        "Invalid.scala:92:3",
+        "Invalid.scala:93:5",
+        "Invalid.scala:97:7"
       ).sorted
     )
 
   test("only the unknown projected origin admits a dynamic message root"):
     assertEquals(refusals("dynamicInvalid"), Seq("Invalid.scala:10:16"))
+
+  test("retired string proto constructors refuse direct and helper-built names"):
+    val positions = refusals("retiredInvalid")
+    assert(positions.size >= 12, positions.mkString(", "))
+    assert(positions.exists(_.startsWith("Invalid.scala:15:")), positions.mkString(", "))
+    assert(positions.exists(_.startsWith("Invalid.scala:16:")), positions.mkString(", "))
+    assert(positions.exists(_.startsWith("Invalid.scala:29:")), positions.mkString(", "))
 
   test("typed protobuf constants refuse mismatched fields, values and forged carriers"):
     assertEquals(
@@ -269,79 +279,98 @@ class Fixtures extends munit.FunSuite:
       ).sorted
     )
 
-  test("typed schemas and unary declarations lift like the corresponding string declarations"):
+  test("typed schemas, methods, paths, enums and constants lift to their protobuf names"):
     val out = lifted("typed")
-    val roots = Seq("typedMachine", "oldMachine", "typedRealization", "oldRealization")
+    val roots = Seq("typedMachine", "typedRealization")
       .map("fixture.typed.Typed$package$." + _)
     val result = lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
     assert(!result.failed, result.diagnostics)
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
     val model = mapper.readTree(Files.readString(out))
     val actions = model.path("actions")
-    assertEquals(actions.size(), 4)
-    val schemas = actions.elements().asScala.map(a => a.path("schemas")).toList
-    assertEquals(schemas(0), schemas(2))
-    assertEquals(schemas(1), schemas(3))
+    assertEquals(actions.size(), 2)
+    assertEquals(
+      actions.get(0).path("schemas").get(0).asText(),
+      "temporal.api.workflowservice.v1.StartActivityExecutionRequest"
+    )
+    assertEquals(
+      actions.get(1).path("schemas").elements().asScala.map(_.asText()).toList,
+      List(
+        "temporal.api.workflowservice.v1.StartActivityExecutionResponse",
+        "temporal.api.workflowservice.v1.StartActivityExecutionRequest"
+      )
+    )
     val realizations = model.path("realizations")
-    assertEquals(realizations.size(), 2)
-    def removePositions(node: com.fasterxml.jackson.databind.JsonNode): Unit =
-      node match
-        case obj: com.fasterxml.jackson.databind.node.ObjectNode =>
-          obj.remove("position")
-          obj.fields().asScala.foreach(e => removePositions(e.getValue))
-        case array: com.fasterxml.jackson.databind.node.ArrayNode =>
-          array.elements().asScala.foreach(removePositions)
-        case _ => ()
-    val old = realizations.get(0).deepCopy[com.fasterxml.jackson.databind.node.ObjectNode]()
-    val typed = realizations.get(1).deepCopy[com.fasterxml.jackson.databind.node.ObjectNode]()
+    assertEquals(realizations.size(), 1)
+    val typed = realizations.get(0)
     assertEquals(typed.path("evidence").get(0).path("read").path("path").asText(), "executions[*]")
-    val typedOrigin = typed
-      .path("evidence")
-      .get(3)
-      .path("runEvent")
-      .path("key")
-      .path("path")
-      .path("of")
-      .path("position")
-    val oldOrigin = old
-      .path("evidence")
-      .get(3)
-      .path("runEvent")
-      .path("key")
-      .path("path")
-      .path("of")
-      .path("position")
-    assertEquals(typedOrigin.path("file"), oldOrigin.path("file"))
-    old.remove("id")
-    typed.remove("id")
-    removePositions(old)
-    removePositions(typed)
-    assertEquals(typed, old)
+    assertEquals(
+      typed.at("/scripts/0/items/0/command/rpc/method").asText(),
+      "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution"
+    )
+    assertEquals(
+      typed.at("/scripts/0/items/0/command/rpc/assign/1/target").asText(),
+      "task_queue.name"
+    )
+    assertEquals(typed.at("/scripts/0/items/0/command/rpc/reads/0/path").asText(), "run_id")
+    assertEquals(
+      typed.at("/scripts/0/items/1/command/poll/evidence").asText(),
+      "fixture.typed.evidence.listed"
+    )
+    assertEquals(
+      typed.at("/scripts/0/items/2/command/rpc/reads/0/path").asText(),
+      "history.events[*].event_id"
+    )
+    assertEquals(
+      typed.at("/evidence/2/history").asText(),
+      "nexus_operation_scheduled_event_attributes"
+    )
+    assertEquals(
+      typed.at("/evidence/3/runEvent/guard/all/operands/0/equal/right/literal/enumName").asText(),
+      "DELIVERY_ADMISSION_DECISION_ADMITTED"
+    )
+    assertEquals(
+      typed.at("/scripts/0/items/3/command/nexusReply/reply/message").asText(),
+      "temporal.api.common.v1.Payload"
+    )
+    assertEquals(
+      typed.at("/scripts/0/items/3/command/nexusReply/reply/fields/0/name").asText(),
+      "metadata"
+    )
+    assertEquals(
+      typed
+        .at("/scripts/0/items/3/command/nexusReply/reply/fields/0/value/mapping/entries/0/key")
+        .asText(),
+      "encoding"
+    )
+    assertEquals(
+      typed
+        .at(
+          "/scripts/0/items/3/command/nexusReply/reply/fields/0/value/mapping/entries/0/value/utf8"
+        )
+        .asText(),
+      "json/plain"
+    )
 
-  test("typed Long operands lift like literal numbers, including bound helper values"):
+  test("typed Long operands lift as protobuf integer values, including bound helper values"):
     val out = lifted("typedLong")
-    val roots = Seq("typedLongRealization", "oldLongRealization")
-      .map("fixture.typed.Typed$package$." + _)
+    val roots = Seq("fixture.typed.Typed$package$.typedLongRealization")
     val result = lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
     assert(!result.failed, result.diagnostics)
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
     val realizations = mapper.readTree(Files.readString(out)).path("realizations")
-    assertEquals(realizations.size(), 2)
-    def withoutPositions(node: com.fasterxml.jackson.databind.JsonNode): Unit =
-      node match
-        case obj: com.fasterxml.jackson.databind.node.ObjectNode =>
-          obj.remove("position")
-          obj.fields().asScala.foreach(e => withoutPositions(e.getValue))
-        case array: com.fasterxml.jackson.databind.node.ArrayNode =>
-          array.elements().asScala.foreach(withoutPositions)
-        case _ => ()
-    val typed = realizations.get(0).deepCopy[com.fasterxml.jackson.databind.node.ObjectNode]()
-    val old = realizations.get(1).deepCopy[com.fasterxml.jackson.databind.node.ObjectNode]()
-    typed.remove("id")
-    old.remove("id")
-    withoutPositions(typed)
-    withoutPositions(old)
-    assertEquals(typed, old)
+    assertEquals(realizations.size(), 1)
+    val rpc = realizations.get(0).at("/scripts/0/items/0/command/rpc")
+    assertEquals(
+      rpc.path("assign").get(0).path("target").asText(),
+      "start_to_close_timeout.seconds"
+    )
+    assertEquals(rpc.at("/assign/0/value/literal/number").asText(), "300")
+    assertEquals(
+      rpc.path("assign").get(1).path("target").asText(),
+      "schedule_to_start_timeout.seconds"
+    )
+    assertEquals(rpc.at("/assign/1/value/literal/number").asText(), "2")
 
   test("typed repeated reads preserve bare paths"):
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()

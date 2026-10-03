@@ -99,7 +99,7 @@ func TestAdmitTheControlRecord(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, caseIdentity, subject.CaseIdentity)
 	require.Equal(t, recordedrun.Digest(c.recorded), subject.RunIdentity)
-	require.Equal(t, "temporal.case.nexusCallerControl.forgedCompletion", subject.CaseID)
+	require.Equal(t, "temporal.case.scala.nexus-control.forgedCompletion", subject.CaseID)
 	require.Equal(t, c.source.GetProgram().GetProgramId(), subject.ProgramID)
 	require.Equal(t, c.source.GetContract().GetContractId(), subject.ContractID)
 	require.Equal(t, c.decoded.Driver, subject.Driver)
@@ -209,12 +209,12 @@ func TestAdmitRejectsEachClass(t *testing.T) {
 		"no Verdict":             {nil, func(run *testpilotspb.Run) { run.Verdict = nil }, ReasonOpen, "no Verdict"},
 		"another Case ID":        {nil, func(run *testpilotspb.Run) { run.CaseId = "temporal.case.other" }, ReasonCrossed, "names Case"},
 		"another Program ID":     {nil, func(run *testpilotspb.Run) { run.ProgramId = "other.program" }, ReasonCrossed, "names Program"},
-		"a rule missing":         {nil, func(run *testpilotspb.Run) { run.Verdict.Rules = run.Verdict.Rules[:1] }, ReasonCrossed, "the Contract's are"},
+		"a rule missing":         {nil, func(run *testpilotspb.Run) { run.Verdict.Rules = run.Verdict.Rules[:len(run.Verdict.Rules)-1] }, ReasonCrossed, "the Contract's are"},
 		"a rule of another Contract": {nil, func(run *testpilotspb.Run) {
 			run.Verdict.Rules = append(run.Verdict.Rules, &testpilotspb.RuleVerdict{RuleId: "elsewhere", Status: testpilotspb.RULE_VERDICT_STATUS_SATISFIED})
 		}, ReasonCrossed, "the Contract's are"},
 		"a rule named twice": {nil, func(run *testpilotspb.Run) {
-			run.Verdict.Rules[1].RuleId = run.Verdict.Rules[0].RuleId
+			run.Verdict.Rules = append(run.Verdict.Rules, proto.CloneOf(run.Verdict.Rules[0]))
 		}, ReasonCrossed, "twice"},
 		"an undeclared disposition":    {nil, func(run *testpilotspb.Run) { run.Disposition = 99 }, ReasonMalformed, "disposition 99"},
 		"an undeclared cleanup status": {nil, func(run *testpilotspb.Run) { run.Cleanup.Status = 99 }, ReasonMalformed, "cleanup status 99"},

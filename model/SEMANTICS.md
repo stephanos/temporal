@@ -399,6 +399,17 @@ error at that event and is never read as a guard that does not hold. A value the
 hold keeps the type its descriptor gives it, so what is wrong with a guard's types is an error on
 every event, and only the absence of a value it compares depends on the event.
 
+Scala authors name protobuf messages by generated types, unary methods by generated method
+constants, and fields and enum values through typed selections. The lifter writes their descriptor
+names into the same IR paths and operands defined above: nested fields use dots, repeated elements
+use `[*]`, and a oneof arm uses `<member>`. A constant message still writes only its declared
+fields; a map key such as `Payload.metadata`'s `encoding` is data, not a field selection. A Run
+Event's payload arrives dynamically, so its author names `InstructionOutcome` as the root of
+its guard and key selections. These types constrain authoring but do not change the IR's meaning.
+Scala does not instantiate or send Temporal messages. Go independently validates descriptors and
+paths when it lowers an IR, including one edited by hand or emitted by an older lifter, and Testpilot
+executes the resulting Case.
+
 What a Run's evidence says of the machine is the same for every reader that assesses a Run against
 it:
 

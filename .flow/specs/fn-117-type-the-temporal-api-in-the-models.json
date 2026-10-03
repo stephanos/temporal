@@ -10,7 +10,9 @@
     "fn-113-clean-up-the-scala-model-layer-around"
   ],
   "id": "fn-117-type-the-temporal-api-in-the-models",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-117-type-the-temporal-api-in-the-models.8": 1
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -105,6 +107,50 @@
       "task": null,
       "timestamp": "2026-10-03T09:09:58.053517Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "2f8fa127e590b08aa26d783fac83f69c404a4693b42b4e252e06031489a521ff",
+      "backend": "codex",
+      "base_sha": "d72de724b80c3ebc35f0b017391f58f046b299c7",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-b065b055f15e0437bb9ddb32f3b35913",
+            "classification": "pre_existing",
+            "findingId": "finding-b065b055f15e0437bb9ddb32f3b35913",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d72de724b80c3ebc35f0b017391f58f046b299c7",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1772,
+      "output_sha256": "254608258b92c462cdf01e986277dbda4e15b425015c4e303c25ae9d3db13e49",
+      "reservation_id": "a41c99a86d794b9b908c6dff099ef203",
+      "round_consumed": true,
+      "scope": "impl:fn-117-type-the-temporal-api-in-the-models.8",
+      "superseded_by": null,
+      "task": "fn-117-type-the-temporal-api-in-the-models.8",
+      "timestamp": "2026-10-03T17:21:40.515399Z",
+      "verdict": "NEEDS_HUMAN"
     }
   ],
   "review_hash_epoch": {
@@ -114,6 +160,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-117-type-the-temporal-api-in-the-models.8": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-117-type-the-temporal-api-in-the-models.md",
@@ -130,5 +177,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-03T14:36:38.299912Z"
+  "updated_at": "2026-10-03T17:21:40.522399Z"
 }

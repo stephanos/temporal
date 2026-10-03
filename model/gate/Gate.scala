@@ -309,6 +309,9 @@ final class Gate(tools: Tools, log: PrintStream):
       if !ran.output.linesIterator.exists(_.startsWith(s"--- PASS: $vocabulary ")) then
         throw GateError(s"the vocabulary check $vocabulary did not run:\n${ran.diagnostics}")
 
+    step("reject free-text protobuf names in Models"):
+      ProtoLiterals.check(model.resolve("temporal"), root)
+
     step("generate the IR's classes when their inputs changed"):
       generateIr(ifStale = true)
       val generated = root.resolve("api/umpire/v1/ir.pb.go")
@@ -357,6 +360,8 @@ final class Gate(tools: Tools, log: PrintStream):
         val arguments = Seq(
           "run",
           "model/lifter",
+          "--main-class",
+          "umpire.lift.lift",
           "--",
           s"$modelJar=model/",
           modelClasspath.toString,

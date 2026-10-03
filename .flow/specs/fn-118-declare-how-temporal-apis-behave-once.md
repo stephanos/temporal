@@ -14,7 +14,7 @@ It serves the feature developer, who writes what a run does and no longer how lo
 ## Architecture & Data Models
 <!-- scope: technical -->
 
-**A hint is a fact about an API, declared once.** It is attached to the typed method or message `fn-117-type-the-temporal-api-in-the-models` provides, and lives in the shared Temporal kit that fn-112 creates. A Model does not repeat it.
+**A hint is a fact about an API, declared once.** It is attached to the typed method or message `fn-117-type-the-temporal-api-in-the-models` provides, and lives in the shared Temporal kit that fn-112 creates. A Model does not repeat it. The inventory first settles the helper interface fn-112 task 9 must leave available; it does not yet change a realization or a Case.
 
 **A relationship is a hint between two APIs.** The most important one is visibility: the effect of a write becomes visible to a read, at once or eventually. "A pause is visible to DescribeActivityExecution eventually" is a relationship between two methods, and it is what tells the lowering that a read after that write has to wait for a condition.
 
@@ -63,7 +63,8 @@ onPath(control(Control.pause))(
 - **Efficiency.** A read after a write that is visible at once is not polled. The done summary states how many polls the existing Cases issue before and after.
 - **Existing Cases keep their meaning.** A Case lowered after this spec asserts the same Contract as before. Its Program may differ where a hand-written wait became a derived one, and each such difference is listed.
 - **Model and reality.** A hint describes how the real system behaves between two calls. It is not part of what a machine says, and it changes no table, Property or Query answer.
-- **Order.** This spec follows fn-117, which makes methods typed values a hint can attach to, and fn-112, which creates the shared kit and the script helpers.
+- **Order.** Inventory and helper-interface settlement follow fn-117 and finish before fn-112 task 9 finalizes the shared-kit interface. Hint schema, lowering and derived waits start only after fn-112 task 10 closes its structural Case freeze. These are entry gates for the tasks when this spec is planned; its spec dependency is fn-117 alone so the inventory can run while fn-112 is open. The inventory decides the exact hint fields before any schema edit; Query.total and choice-name schema changes may already have landed and must remain compatible.
+- **Schema compatibility.** Any adopted hint field regenerates the IR bindings and the linked API jar. Extend the historical descriptor/wire coverage to account for every current field while preserving historical readability; do not update a stored historical descriptor as a substitute for compatibility evidence.
 
 ## Acceptance Criteria
 <!-- scope: both -->

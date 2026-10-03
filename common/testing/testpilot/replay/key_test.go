@@ -19,9 +19,8 @@ import (
 const (
 	controlCasePath = "testdata/nexusCallerControl-forgedCompletion-case.json"
 	controlRunPath  = "testdata/nexusCallerControl-forgedCompletion-run.json"
-	controlProfile  = "nexusCallerControl-forgedCompletion-profile"
-	controlKey      = "temporal.nexus.control.property.forgedSuccess.fact-nexusOperationCompleted@correlated.violated[temporal.nexus.caller.evidence.failed];" +
-		"temporal.nexus.control.property.forgedSuccess.state-succeeded@correlated.violated[temporal.nexus.caller.evidence.failed]"
+	controlProfile  = "nexus-control-forgedCompletion-profile"
+	controlKey      = "temporal.nexus.control.property.forgedSuccess.fact-nexusOperationCompleted@correlated.violated[temporal.nexus.caller.evidence.failed]"
 )
 
 // controlPreparer prepares under the names the live control test binds to, so the recorded
@@ -35,7 +34,7 @@ func controlPreparer(t testing.TB) Preparer {
 }
 
 // The recorded control Run pins the correlated key: it admits under its recorded identity, replays
-// offline to its recorded Verdict, and its key names the control's two violated rules, the
+// offline to its recorded Verdict, and its key names the control's violated rule, the
 // correlated terminal state and the failed event's evidence, all in Definition IDs. When the
 // control's fixture or the runtime changes the record, re-record it through the live test.
 func TestControlRecordPinsTheCorrelatedKey(t *testing.T) {
@@ -49,15 +48,13 @@ func TestControlRecordPinsTheCorrelatedKey(t *testing.T) {
 	require.Equal(t, controlProfile, subject.Driver.Profile)
 	require.Equal(t, testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR, subject.Run.GetDisposition())
 	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, subject.Verdict.GetStatus())
-	require.Len(t, subject.Replay.Violations, 2)
+	require.Len(t, subject.Replay.Violations, 1)
 	require.Equal(t, controlKey, subject.Key.String())
 
-	// The core is the two events the correlated rules read, the scheduled event's lift and the
-	// history read that carries the failed event. Every other instruction event is scaffolding
-	// the core omits: the workflow's start, the wait for the close, and the other events the
-	// same two instructions lifted, named by instruction id.
+	// The core reads the scheduled, started and failed evidence. The inspected prefix and
+	// completion controller are scaffolding, as are the history events outside that core.
 	core := EvidenceCore(subject.Verdict)
-	require.Equal(t, []int64{9, 19}, core)
+	require.Equal(t, []int64{8, 27, 32}, core)
 	outside := map[int64]string{}
 	for _, event := range OutsideCore(subject.Run, core) {
 		require.NotContains(t, core, event.Sequence)
@@ -65,9 +62,14 @@ func TestControlRecordPinsTheCorrelatedKey(t *testing.T) {
 	}
 	require.Equal(t, map[int64]string{
 		3: "start-workflow", 4: "start-workflow",
-		5: "await-scheduled", 8: "await-scheduled",
-		10: "await-close", 11: "await-close",
-		12: "history", 13: "history", 14: "history", 15: "history", 16: "history", 17: "history", 18: "history",
-		20: "history", 21: "history", 22: "history", 23: "history",
+		5: "await-scheduled", 7: "await-scheduled",
+		9: "inspect-workflow", 10: "inspect-workflow",
+		11: "inspect-workflow-2", 12: "inspect-workflow-2",
+		13: "await-completion-authority", 14: "await-completion-authority",
+		15: "fail-nexus-operation", 16: "fail-nexus-operation",
+		17: "await-close", 19: "await-close",
+		20: "history", 21: "history", 22: "history", 23: "history", 24: "history", 25: "history", 26: "history",
+		28: "history", 29: "history", 30: "history", 31: "history",
+		33: "history", 34: "history", 35: "history", 36: "history",
 	}, outside)
 }

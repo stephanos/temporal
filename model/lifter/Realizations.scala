@@ -807,6 +807,8 @@ private[lift] trait Realizations:
             )
           )
         )
+    else if d.name == "Observed" || d.name == "Proto" then
+      fail(b.term, s"expected a typed ${d.name.toLowerCase} declaration")
     else
       val (name, args) = written(b)
       def member(n: String): Option[FieldDescriptor] =

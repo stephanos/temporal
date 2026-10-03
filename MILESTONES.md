@@ -44,68 +44,54 @@ Apply these instructions when implementing the milestones:
 The Scala model (`model/`) is the model. Lean is the past, and nothing has to look like it.
 Scala declares, a lifter reads the declarations into the Umpire IR, and generic Go consumers check
 that IR, lower it to Testpilot Cases, and run those Cases as functional tests and canary checks. The
-Umpire IR and the Testpilot IR are what connect the parts. The Lean toolchain is removed from this
-checkout, and the Lean-only specs are closed as won't-do. See [SCALA.md](.plans/SCALA.md) and
+Umpire IR and the Testpilot IR are what connect the parts. See [SCALA.md](.plans/SCALA.md) and
 [UMPIRE4_SPEC.md](.plans/UMPIRE4_SPEC.md).
 
 The planned work below continues that direction: the Scala layer first, then the Models.
 
 ## Planned
 
-fn-115 is closed, with an independent completion review. `model/` is the Scala model and holds no
-Go or shell script; `tools/umpire/` is its Go tooling; the earlier trees are archived in `model0/`
-and `tools/umpire0/`, outside the build. One Scala gate at `model/gate` builds, lifts and checks the
-model, the IR namespace is `umpire/v1`, the functional fixtures and the canary's pinned Case are
-lowered from the Scala model, and tests enforce the import rules. The 1,411 semantic and artifact
-goldens are the baseline for the specs below. `model/README.md` describes the system for a newcomer.
-
 Deferred by the owner: `make umpire-check-backends`, which needs P and .NET installed. Open for the
 owner: the canary policy's `workflowPath` names the deleted production-canary workflow, so
 production dispatch fails closed.
 
-The CEL spike (fn-116) is closed. Its [report](.plans/UMPIRE_CEL_SPIKE.md) recommends keeping the
-IR's own expressions: CEL matched the current evaluator on every Model, but adoption grows the IR
-1.8-3.7x, slows table derivation up to about 6x and adds more code than it removes. Adopting CEL
-would be a new spec the owner opens after reading the report.
-
 | Order | Spec | In one line | Waits for |
 | --- | --- | --- | --- |
 | 1 | fn-117 | Typed Temporal API in the Models, in place of proto names as strings | — |
-| 2 | fn-112 | Rewrite the standalone activity Model as the DSL showcase | fn-117 |
-| 3 | fn-114 | Roll the showcase's constructs out to every other Model | fn-112 |
-| after 2 | fn-118 | API behavior hints (eventual consistency, wait bounds) that the generated tests use | fn-112 |
-| after 3 | fn-120 | Named choices, a model linter, an explorer over the IR and ITF trace interchange | fn-114 |
+| 2 | fn-112 foundations | Settle declaration, step, composition and author-computed Query-total contracts | fn-117 |
+| 3 | fn-120 choices | Build named choices against the settled step surface, before branching Models are rewritten | fn-112 foundations |
+| 4 | fn-112 showcase | Rewrite the standalone activity Model, extract the shared task queue and build the realization kit | fn-120 choices |
+| 5 | fn-114 | Roll the final showcase constructs, including choices, out to every other Model | fn-112 showcase |
+| alongside 4 | fn-118 interface | Settle hint-aware realization helpers with the shared kit; no waiting-behavior changes yet | fn-117, shared-kit design |
+| after 5 | fn-118 behavior | Derive generated-test waits from API hints, as a separate behavioral change | structural Case-byte freeze verified |
+| after 5 | fn-120 tools | Add model lint, the IR explorer and ITF interchange using settled metadata and Model inventory | final reader contracts and fn-114 roots |
 | last | fn-119 | Example: one Go SDK workflow driven end to end from the IRs, with no hand-written Go | fn-118, fn-120 |
+
+These are execution phases, not new specs. Build choices before the Model conversions so each
+branching step uses its final syntax once. Coordinate settled schema additions and compatibility
+handling; do not guess API-hint fields before their inventory. The structural migrations still freeze
+Case bytes, while fn-118 separately permits specified Program changes and freezes Contracts. After
+shared schema/reader changes settle, hint behavior and Go-only tools can run in parallel; fn-119's
+generic Driver primitives can also start independently before the final example integration.
 
 ### fn-117: Type the Temporal API in the Models
 
-Models name Temporal API messages, methods, field paths and enum values as string literals today,
-about 100 of them, and the compiler checks none. This spec puts ScalaPB classes for the Temporal API
-on the Models' classpath so that a Model writes `schema[StartActivityExecutionRequest]` and
-selects a field such as `_.getTaskQueue.name`, and a wrong field or type does not compile. The IR
-keeps names as text, so Go is unaffected. The [spike](.plans/UMPIRE_TYPED_API_SPIKE.md) passed
-independent review and selected the complete ScalaPB API: a warm Model edit took 0.77 seconds
-against a 0.87-second baseline, within the two-times limit. Selective generation and the typed
-catalog fallback were not triggered.
-
-The eight-task plan passed independent review. The feasibility spike and stamped build
-integration passed their implementation reviews; complete API classes are available and Model
-edits reuse the generated jar. Typed declarations, field paths, symbolic operands, constant
-messages, the standalone activity and Nexus migrations, and positive authoring fixtures passed
-review. Retirement of the string forms and closing checks remain.
+Implementation and regression checks pass; implementation review and spec completion remain.
+The current review wrapper reads committed ranges, but task 8's changes are uncommitted under its
+no-commit constraint. Owner direction on a local checkpoint is required before that review can
+inspect the implementation.
 
 ### fn-112: Make the standalone activity Scala Model a DSL showcase
 
 Rewrites the standalone activity Model to read as the best Scala the DSL allows, without changing
-its behavior: machine derivation (`rebind`, `extend`, `unmonitored`) in place of copied machines,
+its behavior: machine derivation (`rebind`, `extend`, `refining`, `assuming`, `unmonitored`) in place of copied machines,
 compositions keyed by fields in place of strings, names taken from `val`s, and a shared Temporal kit
 for what the activity and Nexus realizations both use. Files are split by kind (`Model.scala`,
-`Properties.scala`, `Queries.scala`) and the 1,108-line `System.scala` by subject into folders. Its
-string literals drop from 514 to a target of at most 60. Each new construct is built once, in the
-lifter, which is why it follows fn-113, and its realization helpers are written against the typed
-Temporal API of fn-117. It no longer carries three rules that fn-113
-reverses: agreement with the native evaluator, the ban on libraries, and the freeze on Lean
-comments.
+`Properties.scala`, `Queries.scala`) and the system contract by subject into folders. The current
+feature has 2,830 lines; the targets are at most 1,600 lines and 60 string literals. Each new
+construct is built once in the lifter, and realization helpers use the typed API of fn-117.
+Two additional tasks require author-computed Query totals for capacity review and extract the
+reusable task-queue entity, providers and shared properties into `temporal/taskqueue/`.
 
 ### fn-114: State every Scala Model declaration once
 
