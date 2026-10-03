@@ -8,6 +8,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
+	"slices"
 	"strings"
 	"time"
 
@@ -19,7 +21,7 @@ const compatibilityPackTimeout = 2 * time.Minute
 
 func runCompatibilityPack(arguments []string, stdout, stderr io.Writer) int {
 	if len(arguments) == 0 {
-		fmt.Fprintln(stderr, "usage: gomadtool compatibility-pack discover|review|generate|check|qualify [flags]")
+		fmt.Fprintln(stderr, "usage: gomadtool compatibility-pack discover|review|generate|check|qualify|refresh [flags]")
 		return 2
 	}
 	switch arguments[0] {
@@ -33,8 +35,10 @@ func runCompatibilityPack(arguments []string, stdout, stderr io.Writer) int {
 		return runCompatibilityPackCheck(arguments[1:], stdout, stderr)
 	case "qualify":
 		return runCompatibilityPackQualify(arguments[1:], stdout, stderr)
+	case "refresh":
+		return runCompatibilityPackRefresh(arguments[1:], stdout, stderr)
 	default:
-		fmt.Fprintln(stderr, "usage: gomadtool compatibility-pack discover|review|generate|check|qualify [flags]")
+		fmt.Fprintln(stderr, "usage: gomadtool compatibility-pack discover|review|generate|check|qualify|refresh [flags]")
 		return 2
 	}
 }
@@ -206,7 +210,17 @@ func runCompatibilityPackQualify(arguments []string, stdout, stderr io.Writer) i
 	compatibilityRootOverride := flags.String("compatibility-root", "", "absolute pack authoring root owned by another module (default: internal/compatibilitypack)")
 	requestPath := flags.String("request", "", "compatibility-pack request path")
 	workingDirectory := flags.String("working-dir", "", "target working directory")
-	if err := flags.Parse(arguments); err != nil || flags.NArg() != 0 || *root == "" || *requestPath == "" || *workingDirectory == "" {
+	all := flags.Bool("all", false, "qualify every request that names the host platform in the working directory its table entry names")
+	if err := flags.Parse(arguments); err != nil || flags.NArg() != 0 || *root == "" {
+		return 2
+	}
+	if *all {
+		if *requestPath != "" || *workingDirectory != "" {
+			return 2
+		}
+		return qualifyAllCompatibilityPacks(*root, *compatibilityRootOverride, stdout, stderr)
+	}
+	if *requestPath == "" || *workingDirectory == "" {
 		return 2
 	}
 	resolvedRoot, compatibilityRoot, resolvedRequest, err := resolveCompatibilityPackPaths(*root, *compatibilityRootOverride, *requestPath)
@@ -214,6 +228,53 @@ func runCompatibilityPackQualify(arguments []string, stdout, stderr io.Writer) i
 		fmt.Fprintln(stderr, "compatibility-pack request must be below internal/compatibilitypack")
 		return 2
 	}
+	return qualifyCompatibilityPackRequest(resolvedRoot, resolvedRequest, *workingDirectory, stdout, stderr)
+}
+
+// qualifyAllCompatibilityPacks qualifies, in table order, every request that
+// names the host platform. Packs are scoped to one platform, so each host
+// qualifies only its own; a host no request names fails.
+func qualifyAllCompatibilityPacks(root, override string, stdout, stderr io.Writer) int {
+	resolvedRoot, err := filepath.Abs(root)
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return 2
+	}
+	compatibilityRoot, err := compatibilityRootFor(resolvedRoot, override)
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return 2
+	}
+	directories, err := authoring.LoadWorkingDirectories(compatibilityRoot)
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return compatibilityPackRefreshStatus(err)
+	}
+	platform := runtime.GOOS + "/" + runtime.GOARCH
+	qualified := 0
+	for _, id := range requestIDs(directories) {
+		path := filepath.Join(compatibilityRoot, "requests", id+".json")
+		request, status := readReviewedCompatibilityPackRequest(path, stderr)
+		if status != 0 {
+			return status
+		}
+		if !slices.Contains(request.Platforms, platform) {
+			continue
+		}
+		if status := qualifyCompatibilityPackRequest(resolvedRoot, path, directories[id], stdout, stderr); status != 0 {
+			return status
+		}
+		qualified++
+	}
+	if qualified == 0 {
+		fmt.Fprintf(stderr, "no compatibility-pack request names %s\n", platform)
+		return 1
+	}
+	fmt.Fprintf(stdout, "qualified %d compatibility-pack requests for %s\n", qualified, platform)
+	return 0
+}
+
+func qualifyCompatibilityPackRequest(resolvedRoot, resolvedRequest, workingDirectory string, stdout, stderr io.Writer) int {
 	request, status := readReviewedCompatibilityPackRequest(resolvedRequest, stderr)
 	if status != 0 {
 		return status
@@ -222,7 +283,7 @@ func runCompatibilityPackQualify(arguments []string, stdout, stderr io.Writer) i
 	defer cancel()
 	prepared, err := capabilityanalysis.PrepareCapabilityReview(
 		ctx,
-		request.ReviewSpec(*workingDirectory, filepath.Join(resolvedRoot, ".toolchain")),
+		request.ReviewSpec(workingDirectory, filepath.Join(resolvedRoot, ".toolchain")),
 	)
 	if err != nil {
 		fmt.Fprintln(stderr, err)

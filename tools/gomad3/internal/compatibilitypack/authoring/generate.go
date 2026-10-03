@@ -87,6 +87,31 @@ func publishGeneration(root string, rendered renderedGeneration) error {
 	if err := hostfs.Replace(filepath.Join(root, "generation.json"), rendered.state, 0o644); err != nil {
 		return fmt.Errorf("write compatibility-pack generation state: %w", err)
 	}
+	return removeUngeneratedOutputs(root, rendered.files)
+}
+
+// removeUngeneratedOutputs removes the packs and reports the generation no
+// longer renders: the pack of a request whose approval was cleared, and the
+// pack and report of a removed request. Requests are inputs and stay.
+func removeUngeneratedOutputs(root string, expected map[string][]byte) error {
+	for _, directory := range []string{"packs", "reports"} {
+		entries, err := os.ReadDir(filepath.Join(root, directory))
+		if errors.Is(err, os.ErrNotExist) {
+			continue
+		}
+		if err != nil {
+			return fmt.Errorf("read generated compatibility-pack directory %s: %w", directory, err)
+		}
+		for _, entry := range entries {
+			relative := directory + "/" + entry.Name()
+			if _, found := expected[relative]; found || !entry.Type().IsRegular() {
+				continue
+			}
+			if err := os.Remove(filepath.Join(root, directory, entry.Name())); err != nil {
+				return fmt.Errorf("remove ungenerated compatibility-pack artifact %s: %w", relative, err)
+			}
+		}
+	}
 	return nil
 }
 
@@ -111,6 +136,12 @@ func Check(root string) error {
 	}
 	if err := rejectExtraGeneratedFiles(root, rendered.files); err != nil {
 		return err
+	}
+	// A root with a working-directory table must map exactly its requests.
+	if _, err := os.Lstat(filepath.Join(root, WorkingDirectoriesFile)); err == nil {
+		if _, err := workingDirectoriesFor(root, requests); err != nil {
+			return err
+		}
 	}
 	return nil
 }

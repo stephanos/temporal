@@ -528,9 +528,20 @@ go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack qualify \
 go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack check --root=.
 ```
 
-Calling `compatibility-pack generate --root=.` without a request or approval regenerates already approved packs; it does not approve a new request.
+Calling `compatibility-pack generate --root=.` without a request or approval regenerates already approved packs, and removes the packs and reports it no longer renders; it does not approve a new request.
 
-For a downstream module, pass `--compatibility-root=/absolute/pack-root` to these authoring commands. That root owns `requests/`, `reports/`, `packs/`, and `generation.json`; requests and review output must remain below it. Load the approved packs for user commands with `GOMAD3_COMPATIBILITY_PACKS=/absolute/pack-root/packs`. External packs undergo the same strict validation as embedded packs, and their exact identities must also be available for replay, resume, and shard execution.
+`internal/compatibilitypack/working-directories.json` maps every request to the module directory, relative to the compatibility directory, that it is discovered and qualified in. `compatibility-pack qualify --root=. --all` qualifies every request naming the host platform in its mapped directory, which is what `make compatibility-pack-qualification` runs.
+
+After a dependency bump is applied to the checkout, refresh every invalidated request up to approval in one command:
+
+```sh
+go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack refresh \
+  --root=. [--baseline-ref=REV] [--go=GO]
+```
+
+Refresh runs the pin impact report once per mapped directory (the working tree is the candidate, `--baseline-ref`, default `HEAD`, the baseline) and selects the requests whose pack rules it reports invalidated or unknown, every request without an approval, and every host-platform request bound to a deterministic I/O profile other than the current one. It discovers each selected request in its own directory into memory and compares: a request whose stored approval equals the review digest of the fresh evidence is current and untouched, so an approval of older evidence never counts. Otherwise the fresh evidence is written with its approval cleared only when it differs from what is stored, the reports and packs are regenerated, and refresh prints the review digest with the `generate --approve-review` command to run after reviewing the report. Approval stays per request; rerunning after approving some requests reports only the others. A request for another platform is reported `not-evaluable` and left untouched, and a pack whose directory no longer requires its modules is reported `unselected`. Status 0 means nothing is left to do, 1 that a request awaits approval, cannot be evaluated here, failed, or is unselected, 2 invalid input such as a request without a working directory, and 3 an infrastructure failure.
+
+For a downstream module, pass `--compatibility-root=/absolute/pack-root` to these authoring commands. That root owns `requests/`, `reports/`, `packs/`, `generation.json`, and, for `qualify --all` and `refresh`, `working-directories.json`; requests and review output must remain below it. Load the approved packs for user commands with `GOMAD3_COMPATIBILITY_PACKS=/absolute/pack-root/packs`. External packs undergo the same strict validation as embedded packs, and their exact identities must also be available for replay, resume, and shard execution.
 
 ### Run bounded conformance commands
 

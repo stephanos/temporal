@@ -6,7 +6,7 @@ OVERLAY_FILES := $(shell find toolchain/runtime/overlay -type f)
 VERSION_INPUTS := toolchain/version/version.json $(shell find toolchain/version -type f -not -name '*_test.go') cmd/gomadtool/version.go
 BOUNDARY_INPUTS := deterministicio/boundary/manifest.json deterministicio/boundary/compiler-tests.json $(shell find deterministicio/boundary -type f -not -name '*_test.go') $(shell find internal/gomadtool/generation/boundary -name '*.go' -not -name '*_test.go')
 BOUNDARY_OUTPUTS := $(GOMAD3_COMPILER_SPEC) $(GOMAD3_EXPECTED_INTERCEPTS) $(GOMAD3_BOUNDARY_REPORT) deterministicio/boundary_generated.go
-COMPATIBILITY_INPUTS := $(shell find internal/compatibilitypack/requests internal/compatibilitypack/authoring -type f) internal/compatibilitypack/schema.go internal/compatibilitypack/v2_selection.go
+COMPATIBILITY_INPUTS := $(shell find internal/compatibilitypack/requests internal/compatibilitypack/authoring -type f) internal/compatibilitypack/working-directories.json internal/compatibilitypack/schema.go internal/compatibilitypack/v2_selection.go
 COMPILER_TEST_OVERLAY := $(CURDIR)/.toolchain/compiler-test-overlay
 COMPILER_TEST_COMPILE := $(CURDIR)/.toolchain/compiler-test/compile
 GOMAD3_CACHE_MAX_AGE_DAYS ?= 14
@@ -98,19 +98,10 @@ qualification-set-merge: runner
 		$(GOMAD3_QUALIFICATION_SHARD_REPORTS)
 
 # Packs are scoped to one platform, so each host qualifies only the requests
-# that name it.
-GOMAD3_HOST_PLATFORM := $(shell go env GOHOSTOS)/$(shell go env GOHOSTARCH)
-ifeq ($(GOMAD3_HOST_PLATFORM),linux/amd64)
-COMPATIBILITY_PACK_QUALIFICATIONS := modernc-libc-xsys-v047-linux-amd64:$(CURDIR)/qualification/corpus temporal-functional-compute-linux-amd64:$(CURDIR)/../.. temporal-functional-tests-linux-amd64:$(CURDIR)/../..
-else
-COMPATIBILITY_PACK_QUALIFICATIONS := reflect2-go126:$(CURDIR)/../.. modernc-libc-xsys-v041:$(CURDIR)/internal/compatibilitypack/testdata/v041 modernc-libc-xsys-v047:$(CURDIR)/qualification/corpus modernc-libc-xsys-v047-isatty-v021:$(CURDIR)/../.. temporal-functional-compute-darwin-arm64:$(CURDIR)/../.. temporal-functional-tests-darwin-arm64:$(CURDIR)/../.. temporal-leaf-xsys-darwin-arm64:$(CURDIR)/../.. temporal-leaf-xxhash-darwin-arm64:$(CURDIR)/../.. golang-x-sys-v047-darwin-arm64:$(CURDIR)/internal/compatibilitypack/testdata/xsys
-endif
-
+# that name it, each in the working directory that
+# internal/compatibilitypack/working-directories.json maps it to.
 compatibility-pack-qualification: toolchain
-	@for entry in $(COMPATIBILITY_PACK_QUALIFICATIONS); do \
-		request=$${entry%%:*}; working=$${entry#*:}; \
-		env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --request=internal/compatibilitypack/requests/$$request.json --working-dir=$$working || exit 1; \
-	done
+	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --all
 
 core-qualification-set: GOMAD3_QUALIFICATION_MANIFEST := $(CURDIR)/qualification/core.json
 core-qualification-set: GOMAD3_QUALIFICATION_WORKDIR := $(CURDIR)/qualification/corpus

@@ -873,10 +873,48 @@ go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack generate \
 make -C tools/gomad3 validate compatibility-pack-qualification
 ```
 
+`internal/compatibilitypack/working-directories.json` names the module
+directory each request is discovered and qualified in; every request needs
+exactly one entry, and `check` rejects a request without one.
+`compatibility-pack-qualification` qualifies every request that names the host
+platform in its mapped directory (`compatibility-pack qualify --all`).
+
+After a dependency bump is applied to the checkout, one command repeats
+discover and review for every request the bump invalidates and stops at
+approval:
+
+```sh
+go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack refresh \
+  --root="$PWD/tools/gomad3" [--baseline-ref=<rev before the bump, default HEAD>]
+```
+
+It runs the pin impact report for each mapped directory, with the working tree
+as the candidate and the baseline revision as the baseline, and refreshes the
+requests whose pack rules it reports invalidated or unknown, every request
+without an approval, and every host-platform request bound to another
+deterministic I/O profile. Each request is reviewed in its own directory. A
+request is current only when its stored approval equals the review digest of
+the fresh evidence; otherwise refresh writes the fresh evidence with the
+approval cleared, regenerates the reports and packs (which drops the packs
+that are no longer approved), and prints the review digest and the exact
+`generate --approve-review` command. Requests for another platform are reported
+as not evaluable and left for a host of that platform, and a pack whose
+directory no longer requires its modules is reported as unselected. Rerunning
+after approving some requests reports only the rest. Status 0 means nothing is
+left to do, 1 that a request awaits approval, cannot be evaluated here, failed,
+or is unselected, 2 invalid input, and 3 an infrastructure failure. An external
+pack root is refreshed with `--compatibility-root` and
+`GOMAD3_COMPATIBILITY_PACKS` set to its `packs/`, as below.
+
+A pack variant is removed together with its request, report, and
+working-directory entry, and only with retained evidence that no module,
+corpus, or fixture in the repository selects it.
+
 A module outside this repository keeps packs for its own dependencies in its
 own tree, so they never have to be committed here. Every authoring command
 takes `--compatibility-root=/absolute/dir`, which holds that module's
-`requests/`, `reports/`, `packs/`, and `generation.json` in the same layout as
+`requests/`, `reports/`, `packs/`, `generation.json`, and, for `qualify --all`
+and `refresh`, `working-directories.json` in the same layout as
 `internal/compatibilitypack`; requests and review output must stay below it.
 Setting `GOMAD3_COMPATIBILITY_PACKS=/absolute/dir/packs` loads those packs next
 to the embedded ones for every command, including the Runner's supervisor and
