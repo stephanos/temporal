@@ -47,8 +47,35 @@ The soak gate (R6) and final documentation (R11). Combined because the docs repo
 - [ ] Milestones, README, SPEC, CLI.md, ARCHITECTURE, TUTORIAL, and `AGENTS.md` describe the delivered gate, localiser flag and differ, inventory, fixtures, closure-mode limit, declared differences, and measured bound; links and command inventories checked
 - [ ] `make -C tools/gomad3 validate` passes
 ## Done summary
-TBD
+Blocked:
+Blocked: the soak gate and contract docs are delivered and reviewed (SHIP, claude-fable-5-1, round 2). Two items remain, and both need native CI: "one completed scheduled or dispatched run per platform is retained with its report", and the native measured bound that run supplies.
 
+Done (commits bae373d14, 204732c33, 8ecc7e584, 4efa98213 on gomad-fn112; base 331b75bb6):
+- `gomadtool soak` (tools/gomad3/qualification/soak) runs `qualify --diagnostics` batches of 32 under 2 busy host threads.
+  - Per-cohort comparison: workload, seed, platform, and execution identity (a new toolchain build key starts a new cohort). The ledger is carried between runs.
+  - Overflow, target, and infrastructure failures are reported apart from divergence and never count as a pass.
+  - A divergence retains both traces, both evidence records, and the differ output.
+  - The bound counts clean-batch repetitions only.
+  - Rounds: always at least 2, at most 16, gated by the measured round cost against a 300m budget.
+  - An A,A then B,B test reports a divergence.
+- tools/gomad3integration/qualification/soak.json: the 4 smoke suites plus the guarded frontend-system-info, seeds 11 and 17, with the sizing reasoning recorded. linux/amd64 is informational under fn-105 D12.
+- Root `make gomad3-soak`. gomad3.yml gains `determinism-soak-darwin` (strict) and `determinism-soak-linux` (informational): schedule/dispatch only, a workload x seed matrix, the ledger restored via `gh run download`, and uploads that use the existing pinned SHAs.
+- Docs updated: README, SPEC (new RUNTIME.CHOICES.DIAGNOSTICS, RUNTIME.STREAMS, RUNTIME.TRUST.EXCLUSIONS, QUALIFICATION.SOAK, and gomadtool DIAGNOSTIC.DIFF/SOAK rows), CLI, ARCHITECTURE, TUTORIAL, AGENTS.md, MILESTONES, and the integration README.
+
+Local evidence (linux/arm64, developmental only):
+- `go test -tags test_dep ./qualification/soak`: 16 pass. Mutation check: removing the cross-batch divergence assignment fails 3 tests.
+- With stock Go 1.27.1, `. ./cmd/gomadtool ./qualification/soak ./qualification/set`: pass, including TestPackageArchitecture and the vocabulary test.
+- `make -C tools/gomad3 validate`: exit 0 (35s). actionlint: clean. go vet and gofmt: clean.
+- fn-111 guide audit: no new errors relative to the pre-edit baseline.
+- The soak was exercised end to end against a stand-in `gomad qualify`, because the patched toolchain refuses linux/arm64:
+  - 2 clean runs, exit 0, ledger accumulating to 24 repetitions per cohort.
+  - 1 injected divergence, exit 1, with traces retained and the differ reporting runtime_cheap_rand_draws.
+  - No Gomad bound was measured.
+- Evidence: .flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-10/handover.md.
+
+Remaining native gates:
+1. Dispatch or schedule gomad3.yml and retain one completed run of the determinism-soak-darwin and determinism-soak-linux jobs, with their reports and ledgers. Quote their per-cohort counts as the first measured bound (diagnostics on), and re-check the round sizing from execution_wall_nanos.
+2. Run `make -C tools/gomad3 test-host` on darwin/arm64 and linux/amd64 covering the new packages.
 ## Evidence
 - Commits:
 - Tests:
