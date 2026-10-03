@@ -167,12 +167,12 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
      runs in a fresh context. Since 2026-10-03 the tiers are Claude models at
      the owner's request: Fable, the most capable, for the low-volume judgment
      tiers (reviewer and thinking scout; `review.backend` is
-     `claude:claude-fable-5-1:high`), so the reviewer differs from the Opus
+     `claude:claude-opus-5-5:high`), so the reviewer differs from the Opus
      implementer; Opus for implementation and scouting. Escalate an ambiguous or
      wide-reaching implementation task to Fable. Name the model explicitly when
      dispatching. -->
 
-reviewer: claude-fable-5-1 at high
+reviewer: claude-opus-5-5 at high
 
 <!-- implementer: <model> at <effort> - work handed to another harness (plan
      here, implement cheaper or faster there). Absent = the session model
@@ -196,7 +196,7 @@ fast scout: claude-opus-5-5 at low
      later as rework in implementation. Reviews stay on the cross-family
      reviewer above, never on this tier. -->
 
-thinking scout: claude-fable-5-1 at high
+thinking scout: claude-opus-5-5 at high
 
 <!-- Unset is the default and the doctrine: planning, capture, interview,
      requirement analysis, every verdict, and the worker run on the session
