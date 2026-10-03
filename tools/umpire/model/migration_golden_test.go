@@ -1,10 +1,13 @@
 package model
 
 import (
+	"cmp"
 	"flag"
 	"maps"
 	"path/filepath"
+	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -13,6 +16,8 @@ import (
 	"go.temporal.io/server/tools/umpire/internal/golden"
 	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 var captureMigrationGoldens = flag.String("capture-goldens", "", "exclusively create a new migration golden capture directory")
@@ -218,6 +223,7 @@ func TestMigrationGoldens(t *testing.T) {
 		// Evaluate the immutable source spelling so located errors remain byte-comparable after a move.
 		models[path] = original
 	}
+	require.NoError(t, cfg.FunctionsRenamed(models))
 	require.NoError(t, golden.Compare(expected, migrationFiles(t, models)))
 }
 
@@ -282,8 +288,190 @@ func TestMigrationProjectionPreservesSemantics(t *testing.T) {
 				refined[i].Error = migrate(refined[i].Error)
 			}
 			require.Equal(t, refined, migrationRefinedPropertiesOf(readMapped))
+			// The current IR, which Match admits under the projection, reads as the original does. The
+			// projection names a path the same in each spelling, so it applies over the migration.
+			project := locationProjection(cfg)
+			frozen := projectedSnapshots(t, before, definitions, refined, project)
+			require.Equal(t, string(frozen), string(projectedMeaning(t, migrationBinding(t, models[path]), project)))
 		})
 	}
+}
+
+// locationProjection maps every source path a located string names, frozen or current, to its
+// current spelling, and drops the line and column after it, as Match compares positions by file.
+func locationProjection(cfg golden.Config) func(string) string {
+	current := map[string]string{}
+	for _, path := range cfg.Paths {
+		current[path.Old], current[path.New] = path.New, path.New
+	}
+	for _, rename := range cfg.Renames {
+		for from, to := range current {
+			if to == rename.Old {
+				current[from] = rename.New
+			}
+		}
+		current[rename.New] = rename.New
+	}
+	files := slices.SortedFunc(maps.Keys(current), func(x, y string) int { return cmp.Or(len(y)-len(x), strings.Compare(x, y)) })
+	for i := range files {
+		files[i] = regexp.QuoteMeta(files[i])
+	}
+	located := regexp.MustCompile(`(` + strings.Join(files, "|") + `)(?::[0-9]+)*`)
+	return func(s string) string {
+		return located.ReplaceAllStringFunc(s, func(at string) string { return current[located.FindStringSubmatch(at)[1]] })
+	}
+}
+
+// projectedMeaning is every reader snapshot of one interpretation, with its located strings projected.
+// It reads the binding's refined Properties, which a binding gives once.
+func projectedMeaning(t *testing.T, b *binding, project func(string) string) []byte {
+	t.Helper()
+	return projectedSnapshots(t, migrationMeaningOf(b), migrationDefinitionsOf(t, b), migrationRefinedPropertiesOf(b), project)
+}
+
+func projectedSnapshots(t *testing.T, semantics migrationSemantics, definitions []migrationDefinition, refined []migrationRefinedProperty, project func(string) string) []byte {
+	t.Helper()
+	migrateSemanticLocations(&semantics, project)
+	for i := range definitions {
+		definitions[i].Error = project(definitions[i].Error)
+	}
+	for i := range refined {
+		refined[i].Error = project(refined[i].Error)
+	}
+	encoded, err := golden.JSON(struct {
+		Semantics   migrationSemantics
+		Definitions []migrationDefinition
+		Refined     []migrationRefinedProperty
+	}{semantics, definitions, refined})
+	require.NoError(t, err)
+	return encoded
+}
+
+// migrationRewrite edits a Model's ProtoJSON text, for changes that touch every reference at once.
+func migrationRewrite(t *testing.T, m *umpirespb.Model, rewrite func(string) string) *umpirespb.Model {
+	t.Helper()
+	encoded, err := protojson.Marshal(m)
+	require.NoError(t, err)
+	out := new(umpirespb.Model)
+	require.NoError(t, protojson.Unmarshal([]byte(rewrite(string(encoded))), out))
+	return out
+}
+
+func firstIf(m protoreflect.Message) *umpirespb.If {
+	var found *umpirespb.If
+	m.Range(func(f protoreflect.FieldDescriptor, v protoreflect.Value) bool {
+		if f.Message() == nil || f.IsMap() {
+			return true
+		}
+		visit := func(child protoreflect.Message) {
+			if found != nil {
+				return
+			}
+			if x, ok := child.Interface().(*umpirespb.If); ok {
+				found = x
+				return
+			}
+			found = firstIf(child)
+		}
+		if f.IsList() {
+			for i := range v.List().Len() {
+				visit(v.List().Get(i).Message())
+			}
+		} else {
+			visit(v.Message())
+		}
+		return found == nil
+	})
+	return found
+}
+
+// TestMigrationGoldensAdmitOnlyTheProjection changes the current Nexus caller IR the way the
+// IR-changing tasks do, and in the ways the projection must not admit.
+func TestMigrationGoldensAdmitOnlyTheProjection(t *testing.T) {
+	const path = "model/scalav2/ir/nexus-caller.json"
+	const kernel = "temporal.nexuscaller.kernel.Protocol$.completeStep"
+	frozen, err := golden.Read(filepath.Join("testdata", "migration", "inputs"))
+	require.NoError(t, err)
+	original := new(umpirespb.Model)
+	require.NoError(t, protojson.Unmarshal(frozen[migrationKey(path)], original))
+	cfg, models := migrationInputs(t)
+	current := models[path]
+	require.NotNil(t, functionNamed(original, kernel))
+	moved := "temporal.nexuscaller.Protocol$.completeStep"
+	if i := slices.IndexFunc(cfg.Projection.Functions, func(s golden.Substitution) bool { return s.Old == kernel }); i >= 0 {
+		moved = cfg.Projection.Functions[i].New
+	} else {
+		cfg.Projection.Functions = append(cfg.Projection.Functions, golden.Substitution{Old: kernel, New: moved})
+	}
+	require.NoError(t, cfg.FunctionsRenamed(map[string]*umpirespb.Model{path: original}))
+	shifted := regexp.MustCompile(`"line":\s*([0-9]+)`)
+	shift := func(s string) string {
+		return shifted.ReplaceAllStringFunc(s, func(at string) string {
+			line, err := strconv.Atoi(shifted.FindStringSubmatch(at)[1])
+			require.NoError(t, err)
+			return `"line":` + strconv.Itoa(line+3)
+		})
+	}
+	rename := func(old, name string) func(string) string {
+		return func(s string) string { return strings.ReplaceAll(s, strconv.Quote(old), strconv.Quote(name)) }
+	}
+	admitted := migrationRewrite(t, current, func(s string) string {
+		return rename("_$1", "placeholder")(rename(kernel, moved)(shift(s)))
+	})
+	encoded, err := golden.Proto(admitted)
+	require.NoError(t, err)
+	require.NotContains(t, string(encoded), "_$1")
+	_, err = cfg.Match(original, admitted)
+	require.NoError(t, err)
+	project := locationProjection(cfg)
+	want := projectedMeaning(t, migrationBinding(t, original), project)
+	require.Equal(t, string(want), string(projectedMeaning(t, migrationBinding(t, admitted), project)),
+		"what the projection admits reads as the frozen original does")
+
+	t.Run("changed table row", func(t *testing.T) {
+		changed := proto.CloneOf(admitted)
+		step := functionNamed(changed, changed.GetMachines()[0].GetSteps()[0].GetFunction())
+		branch := firstIf(step.ProtoReflect())
+		require.NotNil(t, branch)
+		branch.Then, branch.Else = branch.Else, branch.Then
+		_, err := cfg.Match(original, changed)
+		require.Error(t, err)
+		require.NotEqual(t, string(want), string(projectedMeaning(t, migrationBinding(t, changed), project)))
+	})
+	for name, rewrite := range map[string]func(string) string{
+		"unlisted function rename":      rename(moved, moved+"Unlisted"),
+		"listed function rename unmade": rename(moved, kernel),
+		"position in an unlisted file":  rename("model/temporal/nexuscaller/Claims.scala", "model/temporal/nexuscaller/Claim.scala"),
+	} {
+		t.Run(name, func(t *testing.T) {
+			_, err := cfg.Match(original, migrationRewrite(t, admitted, rewrite))
+			require.Error(t, err)
+		})
+	}
+	t.Run("parameters swapped over an unchanged body", func(t *testing.T) {
+		changed := proto.CloneOf(admitted)
+		var swapped *umpirespb.Function
+		for _, f := range changed.GetFunctions() {
+			if len(f.GetParams()) < 2 || swapped != nil {
+				continue
+			}
+			body, err := protojson.Marshal(f.GetBody())
+			require.NoError(t, err)
+			reads := regexp.MustCompile(`"var":\s*"([^"]*)"`).FindAllStringSubmatch(string(body), -1)
+			read := map[string]bool{}
+			for _, r := range reads {
+				read[r[1]] = true
+			}
+			if read[f.GetParams()[0].GetName()] && read[f.GetParams()[1].GetName()] && f.GetParams()[0].GetName() != f.GetParams()[1].GetName() {
+				swapped = f
+			}
+		}
+		require.NotNil(t, swapped)
+		params := swapped.GetParams()
+		params[0].Name, params[1].Name = params[1].GetName(), params[0].GetName()
+		_, err := cfg.Match(original, changed)
+		require.Error(t, err, swapped.GetName())
+	})
 }
 
 type migrationRefinedProperty struct {

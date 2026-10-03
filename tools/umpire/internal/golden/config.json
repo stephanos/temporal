@@ -162,5 +162,11 @@
       "old": "model/scalav2: temporal.standaloneactivity.System$package$.competingTimers, temporal.standaloneactivity.System$package$.currentOverForgetful, temporal.standaloneactivity.System$package$.currentOverLossyMatchingQueries, temporal.standaloneactivity.System$package$.currentOverMatchingQueries, temporal.standaloneactivity.System$package$.currentOverQueueQueries, temporal.standaloneactivity.System$package$.currentOverVolatile, temporal.standaloneactivity.System$package$.currentQueries, temporal.standaloneactivity.System$package$.forgetfulQueueQueries, temporal.standaloneactivity.System$package$.lossyMatchingQueueQueries, temporal.standaloneactivity.System$package$.matchingQueueQueries, temporal.standaloneactivity.System$package$.staleOverMatchingQueries, temporal.standaloneactivity.System$package$.staleOverQueueQueries, temporal.standaloneactivity.System$package$.staleQueries, temporal.standaloneactivity.System$package$.storageLossQuery, temporal.standaloneactivity.System$package$.volatileQueueQueries",
       "new": "model: temporal.standaloneactivity.System$package$.competingTimers, temporal.standaloneactivity.System$package$.currentOverForgetful, temporal.standaloneactivity.System$package$.currentOverLossyMatchingQueries, temporal.standaloneactivity.System$package$.currentOverMatchingQueries, temporal.standaloneactivity.System$package$.currentOverQueueQueries, temporal.standaloneactivity.System$package$.currentOverVolatile, temporal.standaloneactivity.System$package$.currentQueries, temporal.standaloneactivity.System$package$.forgetfulQueueQueries, temporal.standaloneactivity.System$package$.lossyMatchingQueueQueries, temporal.standaloneactivity.System$package$.matchingQueueQueries, temporal.standaloneactivity.System$package$.staleOverMatchingQueries, temporal.standaloneactivity.System$package$.staleOverQueueQueries, temporal.standaloneactivity.System$package$.staleQueries, temporal.standaloneactivity.System$package$.storageLossQuery, temporal.standaloneactivity.System$package$.volatileQueueQueries"
     }
-  ]
+  ],
+  "projection": {
+    "positions_by_file": true,
+    "alpha_normalized_parameters": true,
+    "function_name_substitutions": [],
+    "projected_case_ids": ["exploration"]
+  }
 }

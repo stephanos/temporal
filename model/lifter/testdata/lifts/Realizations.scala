@@ -11,9 +11,16 @@
 // lift them and compare the IR with expected/realizations.json.
 package fixture.realizations
 
-import fixture.specimens.admission.{AdmissionFact, Message as Dispatched, dispatch, scheduledEmpty, staleAdmission, three}
-import temporal.nexuscaller.{Reply, Timeout, handlerReply, nexusProtocol, schedule}
-import temporal.standaloneactivity.{Control as ActivityControl, attemptStart, control}
+import fixture.specimens.admission.{
+  dispatch,
+  scheduledEmpty,
+  staleAdmission,
+  three,
+  AdmissionFact,
+  Message as Dispatched
+}
+import temporal.nexuscaller.{handlerReply, nexusProtocol, schedule, Reply, Timeout}
+import temporal.standaloneactivity.{attemptStart, control, Control as ActivityControl}
 import umpire.*
 import umpire.realize.*
 import umpire.realize.Instruction.*
@@ -179,7 +186,11 @@ val learnedRun: Realization = Realization(
         ),
         Item(command =
           Some(
-            Command("await-nexus-operation", AwaitCommand("start-nexus-operation"), regardless = true)
+            Command(
+              "await-nexus-operation",
+              AwaitCommand("start-nexus-operation"),
+              regardless = true
+            )
           )
         ),
         Item(command =
@@ -248,7 +259,12 @@ val learnedRun: Realization = Realization(
 
 /** The dispatch the race holds, as the channel the specimen proposes for it. */
 val dispatchChannel: Channel[Dispatched] =
-  channel[Dispatched]("dispatchChannel", capacity = 1, order = Order.unordered, loss = Loss.reliable)
+  channel[Dispatched](
+    "dispatchChannel",
+    capacity = 1,
+    order = Order.unordered,
+    loss = Loss.reliable
+  )
 
 private val activityRun = "activity-run"
 private val holdDispatch = "hold-dispatch"
@@ -265,7 +281,8 @@ private val heldRace = staleAdmission
   .starts(scheduledEmpty)
   .actions(dispatch, control(ActivityControl.pause))
 
-val pauseRaceQuery: Query = query("staleAdmission.pauseRace") find pausedWhileQueued in heldRace limits three
+val pauseRaceQuery: Query =
+  query("staleAdmission.pauseRace") find pausedWhileQueued in heldRace limits three
 
 private def raceEvidence(records: String, commitment: Commitment) =
   Evidence(
@@ -341,7 +358,8 @@ val pauseRace: Realization = Realization(
     ),
     Script(
       "activity",
-      Activation.Activity(Name("umpire-", fixture = true, suffix = "-activity"), workerRole, taskQueue),
+      Activation
+        .Activity(Name("umpire-", fixture = true, suffix = "-activity"), workerRole, taskQueue),
       Vector(
         Item(performs =
           Vector(Performance(attemptStart, Command("run-attempt", Finish(Literal(Text("done"))))))
@@ -409,7 +427,12 @@ private val opensBecauseTheLatchGives =
 private val pushed = doorMachine.scenario("pushed").starts(DoorState.closed).actions(push)
 
 val doorOpens: Query =
-  query("door.opens") find opensBecauseTheLatchGives in pushed limits Limits("one", steps = 1, actions = 1, search = 16)
+  query("door.opens") find opensBecauseTheLatchGives in pushed limits Limits(
+    "one",
+    steps = 1,
+    actions = 1,
+    search = 16
+  )
 
 val doorRealization: Realization = Realization(
   name = "doorRealization",
@@ -518,13 +541,15 @@ val deliver = action("deliver", runner) on errand
 val answer = action("answer", runner).on(errand).input[ErrandAnswer]("answer")
 
 def requestStep(s: ErrandState): List[ErrandStep] = s match
-  case ErrandState.idle => List(Step(ErrandOutcome.accepted, ErrandState.queued, List(ErrandFact.errandListed)))
-  case _                => Nil
+  case ErrandState.idle =>
+    List(Step(ErrandOutcome.accepted, ErrandState.queued, List(ErrandFact.errandListed)))
+  case _ => Nil
 
 /** The runner is handed the attempt. Nothing a caller reads says so. */
 def deliverStep(s: ErrandState): List[ErrandStep] = s match
-  case ErrandState.queued | ErrandState.retrying => List(Step(ErrandOutcome.accepted, ErrandState.held))
-  case _                                         => Nil
+  case ErrandState.queued | ErrandState.retrying =>
+    List(Step(ErrandOutcome.accepted, ErrandState.held))
+  case _ => Nil
 
 /**
  * A failed attempt is retried and a caller reads nothing new; a completed one closes the errand, and
@@ -541,8 +566,8 @@ def answerStep(s: ErrandState, a: ErrandAnswer): List[ErrandStep] =
         List(Step(ErrandOutcome.accepted, ErrandState.withdrawn, List(ErrandFact.errandWithdrawn)))
 
 def errandEvidence(f: ErrandFact): String = f match
-  case ErrandFact.errandListed => "errandListed"
-  case ErrandFact.errandClosed => "errandClosed"
+  case ErrandFact.errandListed    => "errandListed"
+  case ErrandFact.errandClosed    => "errandClosed"
   case ErrandFact.errandWithdrawn => "errandWithdrawn"
 
 val errandMachine: Machine[ErrandState, ErrandOutcome, ErrandFact] =
@@ -565,7 +590,12 @@ private val retriedOnce = errandMachine
   .actions(request, deliver, answer(ErrandAnswer.failed), deliver, answer(ErrandAnswer.completed))
 
 val errandRetry: Query =
-  query("errand.retry") find closesOnCompletion in retriedOnce limits Limits("five", steps = 5, actions = 5, search = 4096)
+  query("errand.retry") find closesOnCompletion in retriedOnce limits Limits(
+    "five",
+    steps = 5,
+    actions = 5,
+    search = 4096
+  )
 
 // The one path that takes the worker's canceled answer, which Testpilot has no instruction for: its
 // Query is blocked by that command, and the retry above, whose path does not take it, is not.
@@ -580,7 +610,12 @@ private val canceledOnce = errandMachine
   .actions(request, deliver, answer(ErrandAnswer.canceled))
 
 val errandWithdrawn: Query =
-  query("errand.withdrawn") find withdrawsOnCancel in canceledOnce limits Limits("three", steps = 3, actions = 3, search = 4096)
+  query("errand.withdrawn") find withdrawsOnCancel in canceledOnce limits Limits(
+    "three",
+    steps = 3,
+    actions = 3,
+    search = 4096
+  )
 
 private val errandType = Name("umpire-", fixture = true, suffix = "-errand")
 
@@ -675,7 +710,10 @@ val errandRealization: Realization = Realization(
             awaitListed(
               "await-closed",
               "errandClosed",
-              Equal(Path(Projected, "status"), Literal(EnumName("ACTIVITY_EXECUTION_STATUS_COMPLETED")))
+              Equal(
+                Path(Projected, "status"),
+                Literal(EnumName("ACTIVITY_EXECUTION_STATUS_COMPLETED"))
+              )
             )
           )
         ),
@@ -684,7 +722,10 @@ val errandRealization: Realization = Realization(
             awaitListed(
               "await-withdrawn",
               "errandWithdrawn",
-              Equal(Path(Projected, "status"), Literal(EnumName("ACTIVITY_EXECUTION_STATUS_CANCELED")))
+              Equal(
+                Path(Projected, "status"),
+                Literal(EnumName("ACTIVITY_EXECUTION_STATUS_CANCELED"))
+              )
             )
           ),
           when = Vector(answer(ErrandAnswer.canceled))
@@ -708,14 +749,20 @@ val errandRealization: Realization = Realization(
                     ProtoField(
                       "application_failure_info",
                       Message(
-                        Proto("temporal.api.failure.v1.ApplicationFailureInfo", ProtoField("type", Text("NotYet")))
+                        Proto(
+                          "temporal.api.failure.v1.ApplicationFailureInfo",
+                          ProtoField("type", Text("NotYet"))
+                        )
                       )
                     )
                   )
                 )
               )
             ),
-            Performance(answer(ErrandAnswer.completed), Command("complete-attempt", Finish(Literal(Text("done"))))),
+            Performance(
+              answer(ErrandAnswer.completed),
+              Command("complete-attempt", Finish(Literal(Text("done"))))
+            ),
             Performance(answer(ErrandAnswer.canceled), Command("cancel-attempt", AttemptCanceled))
           )
         )
@@ -746,7 +793,12 @@ private val tallyOpened =
 private val tallied = tallyMachine.scenario("tallied").starts(DoorState.closed).actions(push)
 
 val tallyOpens: Query =
-  query("tally.opens") find tallyOpened in tallied limits Limits("one", steps = 1, actions = 1, search = 16)
+  query("tally.opens") find tallyOpened in tallied limits Limits(
+    "one",
+    steps = 1,
+    actions = 1,
+    search = 16
+  )
 
 /** A realization whose evidence keeps fields and is read from one message. */
 val tallyRealization: Realization = Realization(
@@ -781,7 +833,10 @@ val tallyRealization: Realization = Realization(
                 Rpc(
                   workflowService,
                   service + "StartActivityExecution",
-                  Vector(Assignment("namespace", Environment(namespace)), Assignment("activity_id", Run))
+                  Vector(
+                    Assignment("namespace", Environment(namespace)),
+                    Assignment("activity_id", Run)
+                  )
                 )
               )
             )
@@ -794,7 +849,10 @@ val tallyRealization: Realization = Realization(
               Poll(
                 "fixture.realizations.tally.evidence.opened",
                 workflowService,
-                Vector(Assignment("namespace", Environment(namespace)), Assignment("activity_id", Run)),
+                Vector(
+                  Assignment("namespace", Environment(namespace)),
+                  Assignment("activity_id", Run)
+                ),
                 Equal(Path(Projected, "attempt"), Literal(Number(1))),
                 250
               ),
@@ -833,7 +891,12 @@ val tallyRealization: Realization = Realization(
         "controller",
         "push-door",
         key = Run,
-        guard = Some(Equal(Path(Projected, "status"), Literal(EnumName("INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"))))
+        guard = Some(
+          Equal(
+            Path(Projected, "status"),
+            Literal(EnumName("INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"))
+          )
+        )
       ),
       operation = "",
       commitment = Commitment.reported

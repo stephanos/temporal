@@ -15,7 +15,9 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
@@ -34,13 +36,83 @@ type Config struct {
 	Labels    []Substitution `json:"source_label_substitutions"`
 	// Renames are the source files renamed after the mapped goldens were captured, from the path
 	// Paths maps them to. The mapped goldens keep that path; the current IR has the renamed one.
-	Renames []Substitution `json:"source_path_renames"`
+	Renames    []Substitution `json:"source_path_renames"`
+	Projection Projection     `json:"projection"`
 }
+
+// Projection is what Match ignores when the current IR is compared with the mapped original, beyond
+// Renames: changes of lifted text that no table, Definition ID, refinement row, fingerprint, Query
+// answer or lowered Case byte reads. The goldens themselves are still derived from the frozen inputs.
+type Projection struct {
+	// PositionsByFile compares a position by its file alone.
+	PositionsByFile bool `json:"positions_by_file"`
+	// AlphaParameters compares the parameters of every Function and Lambda by their place, not their
+	// name: each binder, and every variable that refers to it, gets a name made of its depth and index.
+	AlphaParameters bool `json:"alpha_normalized_parameters"`
+	// Functions are the Functions renamed after the goldens were captured, from the frozen name. Each
+	// renames the Function, and every string of the Model equal to its name, exactly.
+	Functions []Substitution `json:"function_name_substitutions"`
+	// CaseIDs are the kinds of lowered Case compared without their ID. An exploration Case's IDs carry
+	// the digest of its whole candidate Model, which the changes above alter; its other bytes do not.
+	CaseIDs []string `json:"projected_case_ids"`
+}
+
+// The kinds of lowered Case: one a Query lowers to, and one an exploration's candidate lowers to.
+const (
+	QueryCase       = "query"
+	ExplorationCase = "exploration"
+)
+
+const projectedCaseID = "projected-case-id"
+
+// explorationID is a candidate digest: a sha256 in hex, so a shorter string cannot widen the projection.
+var explorationID = regexp.MustCompile(`^[0-9a-f]{64}$`)
 
 func Configuration() (Config, error) {
 	var c Config
-	err := json.Unmarshal(configBytes, &c)
-	return c, err
+	decoder := json.NewDecoder(bytes.NewReader(configBytes))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&c); err != nil {
+		return c, err
+	}
+	return c, c.Projection.caseKinds()
+}
+
+func (p Projection) caseKinds() error {
+	for _, kind := range p.CaseIDs {
+		if kind != QueryCase && kind != ExplorationCase {
+			return fmt.Errorf("unknown lowered Case kind %q", kind)
+		}
+	}
+	return nil
+}
+
+// Case gives the bytes of a lowered Case, or of its Program or Contract, as the goldens compare them.
+// For a kind whose ID the projection names, id, the part of the Case's IDs that varies, is replaced
+// by a fixed token wherever it occurs. Every other byte, and every byte of another kind, is kept.
+func (p Projection) Case(kind string, encoded []byte, id string) ([]byte, error) {
+	if err := p.caseKinds(); err != nil {
+		return nil, err
+	}
+	if kind != QueryCase && kind != ExplorationCase {
+		return nil, fmt.Errorf("unknown lowered Case kind %q", kind)
+	}
+	if !slices.Contains(p.CaseIDs, kind) {
+		return encoded, nil
+	}
+	if !explorationID.MatchString(id) || !bytes.Contains(encoded, []byte(id)) {
+		return nil, fmt.Errorf("lowered %s Case does not carry the candidate digest %q", kind, id)
+	}
+	return bytes.ReplaceAll(encoded, []byte(id), []byte(projectedCaseID)), nil
+}
+
+// RenameSources applies Renames to the source paths a lowered Case, Program or Contract of the mapped
+// goldens names: each is a JSON string equal to a renamed path. Nothing else changes.
+func (c Config) RenameSources(encoded []byte) []byte {
+	for _, r := range c.Renames {
+		encoded = bytes.ReplaceAll(encoded, []byte(strconv.Quote(r.Old)), []byte(strconv.Quote(r.New)))
+	}
+	return encoded
 }
 
 func Root() (string, error) {
@@ -159,16 +231,27 @@ func substitute(value string, substitutions []Substitution) (string, error) {
 
 func positions(m protoreflect.Message, visit func(protoreflect.Message) error) error {
 	position := (&umpirespb.Position{}).ProtoReflect().Descriptor().FullName()
+	return messages(m, func(child protoreflect.Message) (bool, error) {
+		if child.Descriptor().FullName() == position {
+			return false, visit(child)
+		}
+		return true, nil
+	})
+}
+
+// messages visits every message under m, in field order, and descends into one when visit says so.
+func messages(m protoreflect.Message, visit func(protoreflect.Message) (bool, error)) error {
 	var result error
 	m.Range(func(f protoreflect.FieldDescriptor, v protoreflect.Value) bool {
 		if f.Message() == nil || f.IsMap() {
 			return true
 		}
 		walk := func(child protoreflect.Message) error {
-			if child.Descriptor().FullName() == position {
-				return visit(child)
+			descend, err := visit(child)
+			if err != nil || !descend {
+				return err
 			}
-			return positions(child, visit)
+			return messages(child, visit)
 		}
 		if f.IsList() {
 			for i := range v.List().Len() {
@@ -195,10 +278,206 @@ func (c Config) Match(original, current *umpirespb.Model) (bool, error) {
 	if mapped, err = c.Rename(mapped); err != nil {
 		return false, err
 	}
-	if !proto.Equal(mapped, current) {
+	if proto.Equal(mapped, current) {
+		return true, nil
+	}
+	if mapped, err = c.Projection.project(mapped, true); err != nil {
+		return false, err
+	}
+	projected, err := c.Projection.project(current, false)
+	if err != nil {
+		return false, err
+	}
+	if !proto.Equal(mapped, projected) {
 		return false, errors.New("IR differs outside the closed source migration")
 	}
 	return true, nil
+}
+
+// FunctionsRenamed checks that every function-name substitution renames a Function of some frozen
+// input, so the list stays closed.
+func (c Config) FunctionsRenamed(originals map[string]*umpirespb.Model) error {
+	declared := map[string]bool{}
+	for _, m := range originals {
+		for _, f := range m.GetFunctions() {
+			declared[f.GetName()] = true
+		}
+	}
+	for _, s := range c.Projection.Functions {
+		if !declared[s.Old] {
+			return fmt.Errorf("function-name substitution of %q, which no frozen input declares", s.Old)
+		}
+	}
+	return nil
+}
+
+// project gives m as Match compares it. Only the mapped original's Function names are substituted:
+// the current IR already has the new ones.
+func (p Projection) project(m *umpirespb.Model, original bool) (*umpirespb.Model, error) {
+	m = proto.CloneOf(m)
+	if original {
+		if err := p.rename(m); err != nil {
+			return nil, err
+		}
+	}
+	if p.PositionsByFile {
+		if err := positions(m.ProtoReflect(), func(at protoreflect.Message) error {
+			at.Clear(at.Descriptor().Fields().ByName("line"))
+			return nil
+		}); err != nil {
+			return nil, err
+		}
+	}
+	if p.AlphaParameters {
+		if err := messages(m.ProtoReflect(), func(child protoreflect.Message) (bool, error) {
+			switch v := child.Interface().(type) {
+			case *umpirespb.Function:
+				scope := parameters(v.GetParams(), nil, 0)
+				alpha(v.GetBody(), scope, 1)
+				alpha(v.GetRequires(), scope, 1)
+				return false, nil
+			case *umpirespb.Expr:
+				alpha(v, nil, 0)
+				return false, nil
+			}
+			return true, nil
+		}); err != nil {
+			return nil, err
+		}
+	}
+	return m, nil
+}
+
+func (p Projection) rename(m *umpirespb.Model) error {
+	declared := map[string]bool{}
+	for _, f := range m.GetFunctions() {
+		declared[f.GetName()] = true
+	}
+	renamed := map[string]string{}
+	for _, s := range p.Functions {
+		if s.Old == s.New || renamed[s.Old] != "" {
+			return fmt.Errorf("function-name substitution of %q is not a rename to one new name", s.Old)
+		}
+		if declared[s.Old] {
+			renamed[s.Old] = s.New
+		}
+	}
+	if len(renamed) == 0 {
+		return nil
+	}
+	// Every string equal to an old name is renamed, not only the fields that reference a Function:
+	// the names are fully qualified, so nothing else spells one, and no reference field is missed.
+	if err := messages(m.ProtoReflect(), func(child protoreflect.Message) (bool, error) {
+		var names []protoreflect.FieldDescriptor
+		child.Range(func(f protoreflect.FieldDescriptor, _ protoreflect.Value) bool {
+			if f.Kind() == protoreflect.StringKind && !f.IsMap() {
+				names = append(names, f)
+			}
+			return true
+		})
+		for _, f := range names {
+			if !f.IsList() {
+				if name, ok := renamed[child.Get(f).String()]; ok {
+					child.Set(f, protoreflect.ValueOfString(name))
+				}
+				continue
+			}
+			list := child.Mutable(f).List()
+			for i := range list.Len() {
+				if name, ok := renamed[list.Get(i).String()]; ok {
+					list.Set(i, protoreflect.ValueOfString(name))
+				}
+			}
+		}
+		return true, nil
+	}); err != nil {
+		return err
+	}
+	seen := map[string]bool{}
+	for _, f := range m.GetFunctions() {
+		if seen[f.GetName()] {
+			return fmt.Errorf("function-name substitution gives two Functions the name %q", f.GetName())
+		}
+		seen[f.GetName()] = true
+	}
+	return nil
+}
+
+// parameters names each parameter by its depth and index, in a scope that extends outer. The names
+// cannot be written in Scala, so none of them collides with a lifted one.
+func parameters(params []*umpirespb.Param, outer map[string]string, depth int) map[string]string {
+	scope := maps.Clone(outer)
+	if scope == nil {
+		scope = map[string]string{}
+	}
+	for i, p := range params {
+		name := fmt.Sprintf("#%d.%d", depth, i)
+		scope[p.GetName()] = name
+		p.Name = name
+	}
+	return scope
+}
+
+// alpha renames the variables of e that refer to a parameter in scope. A `let` or a pattern that
+// binds the same name hides the parameter in what it scopes over.
+func alpha(e *umpirespb.Expr, scope map[string]string, depth int) {
+	if e == nil {
+		return
+	}
+	hide := func(names ...string) map[string]string {
+		inner := maps.Clone(scope)
+		for _, name := range names {
+			delete(inner, name)
+		}
+		return inner
+	}
+	switch k := e.GetKind().(type) {
+	case *umpirespb.Expr_Var:
+		if name, ok := scope[k.Var]; ok {
+			k.Var = name
+		}
+	case *umpirespb.Expr_Lambda:
+		alpha(k.Lambda.GetBody(), parameters(k.Lambda.GetParams(), scope, depth), depth+1)
+	case *umpirespb.Expr_Let:
+		alpha(k.Let.GetValue(), scope, depth)
+		alpha(k.Let.GetBody(), hide(k.Let.GetName()), depth)
+	case *umpirespb.Expr_Match:
+		alpha(k.Match.GetScrutinee(), scope, depth)
+		for _, c := range k.Match.GetCases() {
+			inner := hide(bound(c.GetPattern())...)
+			alpha(c.GetGuard(), inner, depth)
+			alpha(c.GetBody(), inner, depth)
+		}
+	default:
+		// The error is always nil: the visit returns none.
+		_ = messages(e.ProtoReflect(), func(child protoreflect.Message) (bool, error) {
+			if x, ok := child.Interface().(*umpirespb.Expr); ok {
+				alpha(x, scope, depth)
+				return false, nil
+			}
+			return true, nil
+		})
+	}
+}
+
+func bound(p *umpirespb.Pattern) []string {
+	switch k := p.GetKind().(type) {
+	case *umpirespb.Pattern_Bind:
+		return append([]string{k.Bind.GetName()}, bound(k.Bind.GetPattern())...)
+	case *umpirespb.Pattern_Case:
+		var names []string
+		for _, field := range k.Case.GetFields() {
+			names = append(names, bound(field)...)
+		}
+		return names
+	case *umpirespb.Pattern_Alternatives:
+		var names []string
+		for _, alternative := range k.Alternatives.GetPatterns() {
+			names = append(names, bound(alternative)...)
+		}
+		return names
+	}
+	return nil
 }
 
 func JSON(v any) ([]byte, error) {

@@ -82,7 +82,7 @@
     "name": "fixture.channels.Tally",
     "position": {
       "file": "model/lifter/testdata/lifts/Channels.scala",
-      "line": 67
+      "line": 69
     },
     "record": {
       "fields": [ {
@@ -102,7 +102,7 @@
     "name": "fixture.channels.Channels$package$.countStep",
     "position": {
       "file": "model/lifter/testdata/lifts/Channels.scala",
-      "line": 75
+      "line": 77
     },
     "params": [ {
       "name": "t",
@@ -113,13 +113,13 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Channels.scala",
-        "line": 76
+        "line": 78
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/lifter/testdata/lifts/Channels.scala",
-            "line": 76
+            "line": 78
           },
           "inbox": {
             "op": "OP_IS_EMPTY",
@@ -127,13 +127,13 @@
             "contents": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Channels.scala",
-                "line": 76
+                "line": 78
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
-                    "line": 76
+                    "line": 78
                   },
                   "var": "t"
                 },
@@ -145,20 +145,20 @@
         "then": {
           "position": {
             "file": "model/lifter/testdata/lifts/Channels.scala",
-            "line": 76
+            "line": 78
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Channels.scala",
-                "line": 76
+                "line": 78
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
-                    "line": 76
+                    "line": 78
                   },
                   "literal": {
                     "enum": {
@@ -169,13 +169,13 @@
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
-                    "line": 76
+                    "line": 78
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Channels.scala",
-                        "line": 76
+                        "line": 78
                       },
                       "var": "t"
                     },
@@ -184,7 +184,7 @@
                       "value": {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Channels.scala",
-                          "line": 76
+                          "line": 78
                         },
                         "inbox": {
                           "op": "OP_SEND",
@@ -192,13 +192,13 @@
                           "contents": {
                             "position": {
                               "file": "model/lifter/testdata/lifts/Channels.scala",
-                              "line": 76
+                              "line": 78
                             },
                             "field": {
                               "base": {
                                 "position": {
                                   "file": "model/lifter/testdata/lifts/Channels.scala",
-                                  "line": 76
+                                  "line": 78
                                 },
                                 "var": "t"
                               },
@@ -208,7 +208,7 @@
                           "message": {
                             "position": {
                               "file": "model/lifter/testdata/lifts/Channels.scala",
-                              "line": 76
+                              "line": 78
                             },
                             "literal": {
                               "int": "2"
@@ -221,13 +221,13 @@
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
-                    "line": 76
+                    "line": 78
                   },
                   "list": { }
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
-                    "line": 76
+                    "line": 78
                   },
                   "literal": {
                     "text": ""
@@ -240,7 +240,7 @@
         "else": {
           "position": {
             "file": "model/lifter/testdata/lifts/Channels.scala",
-            "line": 76
+            "line": 78
           },
           "list": { }
         }
@@ -250,7 +250,7 @@
     "name": "fixture.channels.Channels$package$.counted",
     "position": {
       "file": "model/lifter/testdata/lifts/Channels.scala",
-      "line": 78
+      "line": 80
     },
     "params": [ {
       "name": "t",
@@ -266,27 +266,27 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Channels.scala",
-        "line": 79
+        "line": 81
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/lifter/testdata/lifts/Channels.scala",
-            "line": 79
+            "line": 81
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Channels.scala",
-                "line": 79
+                "line": 81
               },
               "var": "n"
             },
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Channels.scala",
-                "line": 79
+                "line": 81
               },
               "literal": {
                 "int": "2"
@@ -297,20 +297,20 @@
         "then": {
           "position": {
             "file": "model/lifter/testdata/lifts/Channels.scala",
-            "line": 79
+            "line": 81
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Channels.scala",
-                "line": 79
+                "line": 81
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
-                    "line": 79
+                    "line": 81
                   },
                   "literal": {
                     "enum": {
@@ -321,13 +321,13 @@
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
-                    "line": 79
+                    "line": 81
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Channels.scala",
-                        "line": 79
+                        "line": 81
                       },
                       "var": "t"
                     },
@@ -336,7 +336,7 @@
                       "value": {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Channels.scala",
-                          "line": 79
+                          "line": 81
                         },
                         "literal": {
                           "enum": {
@@ -350,13 +350,13 @@
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
-                    "line": 79
+                    "line": 81
                   },
                   "list": { }
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
-                    "line": 79
+                    "line": 81
                   },
                   "literal": {
                     "text": ""
@@ -369,7 +369,7 @@
         "else": {
           "position": {
             "file": "model/lifter/testdata/lifts/Channels.scala",
-            "line": 79
+            "line": 81
           },
           "list": { }
         }
@@ -970,7 +970,7 @@
     "name": "count",
     "position": {
       "file": "model/lifter/testdata/lifts/Channels.scala",
-      "line": 73
+      "line": 75
     },
     "party": "system",
     "timer": true
@@ -1179,21 +1179,21 @@
     "name": "tallying",
     "position": {
       "file": "model/lifter/testdata/lifts/Channels.scala",
-      "line": 82
+      "line": 84
     },
     "stateType": "fixture.channels.Tally",
     "outcomeType": "fixture.channels.Outcome",
     "starts": [ {
       "position": {
         "file": "model/lifter/testdata/lifts/Channels.scala",
-        "line": 83
+        "line": 85
       },
       "construct": {
         "type": "fixture.channels.Tally",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Channels.scala",
-            "line": 83
+            "line": 85
           },
           "literal": {
             "enum": {
@@ -1204,7 +1204,7 @@
         }, {
           "position": {
             "file": "model/lifter/testdata/lifts/Channels.scala",
-            "line": 83
+            "line": 85
           },
           "literal": {
             "list": { }
@@ -1215,7 +1215,7 @@
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Channels.scala",
-        "line": 84
+        "line": 86
       },
       "lambda": {
         "params": [ {
@@ -1227,7 +1227,7 @@
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Channels.scala",
-            "line": 84
+            "line": 86
           },
           "literal": {
             "bool": true
@@ -1240,14 +1240,14 @@
       "function": "fixture.channels.Channels$package$.countStep",
       "position": {
         "file": "model/lifter/testdata/lifts/Channels.scala",
-        "line": 85
+        "line": 87
       }
     }, {
       "action": "fixture.channels.Channels$package$.tally.deliver",
       "function": "fixture.channels.Channels$package$.counted",
       "position": {
         "file": "model/lifter/testdata/lifts/Channels.scala",
-        "line": 85
+        "line": 87
       }
     } ]
   } ],

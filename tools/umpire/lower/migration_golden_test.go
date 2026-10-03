@@ -8,7 +8,9 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -435,4 +437,189 @@ func clearPositionFields(m protoreflect.Message) {
 		}
 		return true
 	})
+}
+
+// TestMigrationProjectionKeepsLoweredCases checks that the current IR of every Model, which Match
+// admits, lowers to the mapped goldens' Cases: every Query Case byte for byte, every exploration Case
+// except its IDs, which carry the digest of the whole candidate Model. It checks it again for the
+// Nexus caller changed the way the IR-changing tasks change it. A changed step stays outside the
+// projection.
+func TestMigrationProjectionKeepsLoweredCases(t *testing.T) {
+	const path, key = "model/scalav2/ir/nexus-caller.json", "mapped/ir/nexus-caller.json"
+	const kernel = "temporal.nexuscaller.kernel.Protocol$.completeStep"
+	expected, err := golden.Read(filepath.Join("testdata", "migration"))
+	require.NoError(t, err)
+	cfg, inputs := originalArtifactInputs(t)
+	for _, input := range slices.Sorted(maps.Keys(inputs)) {
+		t.Run(strings.TrimPrefix(input, "model/scalav2/"), func(t *testing.T) {
+			ikey := "mapped/" + strings.TrimPrefix(input, "model/scalav2/")
+			actual, ids := lowerMigrationCases(t, ikey, inputs[input])
+			require.NoError(t, compareLoweredCases(cfg, expected, actual, ids, ikey))
+		})
+	}
+
+	original := new(umpirespb.Model)
+	require.NoError(t, protojson.Unmarshal(expected["original/inputs/ir/nexus-caller.json"], original))
+	moved := "temporal.nexuscaller.Protocol$.completeStep"
+	if i := slices.IndexFunc(cfg.Projection.Functions, func(s golden.Substitution) bool { return s.Old == kernel }); i >= 0 {
+		moved = cfg.Projection.Functions[i].New
+	} else {
+		cfg.Projection.Functions = append(cfg.Projection.Functions, golden.Substitution{Old: kernel, New: moved})
+	}
+	require.NoError(t, cfg.FunctionsRenamed(map[string]*umpirespb.Model{path: original}))
+	line := regexp.MustCompile(`"line":\s*([0-9]+)`)
+	encoded, err := protojson.Marshal(inputs[path])
+	require.NoError(t, err)
+	text := line.ReplaceAllStringFunc(string(encoded), func(at string) string {
+		n, err := strconv.Atoi(line.FindStringSubmatch(at)[1])
+		require.NoError(t, err)
+		return `"line":` + strconv.Itoa(n+3)
+	})
+	text = strings.ReplaceAll(strings.ReplaceAll(text, `"_$1"`, `"placeholder"`), strconv.Quote(kernel), strconv.Quote(moved))
+	admitted := new(umpirespb.Model)
+	require.NoError(t, protojson.Unmarshal([]byte(text), admitted))
+	mapped, err := cfg.Match(original, admitted)
+	require.NoError(t, err)
+	require.True(t, mapped, "the projected IR selects the mapped variant")
+	actual, ids := lowerMigrationCases(t, key, admitted)
+	require.Contains(t, ids, key+"/queries/retry")
+	require.Contains(t, ids, key+"/explorations/nexusDeadlines/000")
+	require.NoError(t, compareLoweredCases(cfg, expected, actual, ids, key))
+
+	t.Run("exploration Case with a changed byte", func(t *testing.T) {
+		changed := maps.Clone(actual)
+		name := key + "/explorations/nexusDeadlines/000/case.json"
+		require.Contains(t, string(changed[name]), `"major":1`)
+		changed[name] = []byte(strings.Replace(string(changed[name]), `"major":1`, `"major":2`, 1))
+		require.Error(t, compareLoweredCases(cfg, expected, changed, ids, key))
+	})
+	t.Run("Query Case with a changed ID", func(t *testing.T) {
+		changed, changedIDs := maps.Clone(actual), maps.Clone(ids)
+		name := key + "/queries/retry/case.json"
+		id := "temporal.case.scala.nexus-caller.retry"
+		require.Contains(t, string(changed[name]), id)
+		changed[name] = []byte(strings.ReplaceAll(string(changed[name]), id, id+"Again"))
+		changedIDs[key+"/queries/retry"] = "retryAgain"
+		require.Error(t, compareLoweredCases(cfg, expected, changed, changedIDs, key))
+	})
+	t.Run("changed step", func(t *testing.T) {
+		changed := proto.CloneOf(admitted)
+		for _, f := range changed.GetFunctions() {
+			if f.GetName() == moved {
+				f.Body = &umpirespb.Expr{Position: f.GetBody().GetPosition(), Kind: &umpirespb.Expr_List{List: &umpirespb.ListOf{}}}
+			}
+		}
+		_, err := cfg.Match(original, changed)
+		require.Error(t, err)
+	})
+}
+
+// lowerMigrationCases lowers every Query and every exploration candidate of m as the goldens do, keyed
+// by the directory of its Case under key, with the varying part of the Case's IDs.
+func lowerMigrationCases(t *testing.T, key string, m *umpirespb.Model) (actual map[string][]byte, ids map[string]string) {
+	t.Helper()
+	actual, ids = map[string][]byte{}, map[string]string{}
+	producer, err := lower.NewProducer(m)
+	require.NoError(t, err)
+	set := "scala." + strings.TrimSuffix(filepath.Base(key), ".json")
+	for _, query := range m.GetQueries() {
+		qkey := key + "/queries/" + query.GetName()
+		lowered, err := producer.Lower(query.GetName(), cp.IdentityFor("temporal.case", set, query.GetName()))
+		if err == nil && lowered.Case != nil {
+			putCase(t, actual, qkey, lowered.Case)
+			ids[qkey] = query.GetName()
+		}
+		if query.GetExploration() == nil {
+			continue
+		}
+		plan, err := explore.New(m, query.GetExploration().GetName())
+		require.NoError(t, err)
+		lowerCandidate := func(ckey string, c *explore.Candidate) {
+			if c.Rejection == "" {
+				putCase(t, actual, ckey, c.Case)
+				ids[ckey] = c.Digest
+			}
+		}
+		for i, candidate := range plan.Candidates {
+			ckey := fmt.Sprintf("%s/explorations/%s/%03d", key, plan.Name, i)
+			lowerCandidate(ckey, candidate)
+			for index := range max(0, len(candidate.Actions)-1) {
+				if reduced, err := plan.Reduce(candidate, index); err == nil {
+					lowerCandidate(fmt.Sprintf("%s/reduce-%03d", ckey, index), reduced)
+				}
+			}
+		}
+	}
+	return actual, ids
+}
+
+// compareLoweredCases compares the Case, Program and Contract files of each lowered Case in actual,
+// keyed by its directory in ids with the varying part of its IDs, with the goldens' under the
+// projection and the source path renames, and requires the goldens to hold no other Case under key.
+// A Query Case's identity is compared too, derived again from the golden Case when a rename changed it. An exploration Case's identity must exist on both sides; both of its fields digest
+// the Case's bytes, IDs included, so neither is compared.
+func compareLoweredCases(cfg golden.Config, expected, actual map[string][]byte, ids map[string]string, key string) error {
+	want, got := map[string][]byte{}, map[string][]byte{}
+	for dir, id := range ids {
+		kind, wantID := golden.QueryCase, id
+		files := []string{"case.json", "program.json", "contract.json", "identity.json"}
+		if strings.Contains(dir, "/explorations/") {
+			var candidate struct{ Digest string }
+			if err := json.Unmarshal(expected[dir+"/candidate.json"], &candidate); err != nil {
+				return fmt.Errorf("%s: %w", dir, err)
+			}
+			kind, wantID, files = golden.ExplorationCase, candidate.Digest, files[:3]
+			for _, side := range []map[string][]byte{expected, actual} {
+				if _, ok := side[dir+"/identity.json"]; !ok {
+					return fmt.Errorf("no identity for %s", dir)
+				}
+			}
+		}
+		for _, file := range files {
+			name := dir + "/" + file
+			original, ok := expected[name]
+			if !ok {
+				return fmt.Errorf("no golden %s", name)
+			}
+			var err error
+			if file != "identity.json" {
+				original = cfg.RenameSources(original)
+			} else if renamed := cfg.RenameSources(expected[dir+"/case.json"]); !bytes.Equal(renamed, expected[dir+"/case.json"]) {
+				if original, err = renamedIdentity(renamed); err != nil {
+					return fmt.Errorf("%s: %w", name, err)
+				}
+			}
+			if want[name], err = cfg.Projection.Case(kind, original, wantID); err != nil {
+				return fmt.Errorf("%s: %w", name, err)
+			}
+			if got[name], err = cfg.Projection.Case(kind, actual[name], id); err != nil {
+				return fmt.Errorf("%s: %w", name, err)
+			}
+		}
+	}
+	for name := range expected {
+		if strings.HasSuffix(name, "/case.json") && strings.HasPrefix(name, key+"/") {
+			if _, ok := ids[strings.TrimSuffix(name, "/case.json")]; !ok {
+				return fmt.Errorf("golden %s was not lowered", name)
+			}
+		}
+	}
+	return golden.Compare(want, got)
+}
+
+// renamedIdentity is the identity putCase records for a golden Case whose source paths were renamed.
+func renamedIdentity(encoded []byte) ([]byte, error) {
+	identity, err := recordedrun.CaseIdentity(encoded)
+	if err != nil {
+		return nil, err
+	}
+	c := new(testpilotspb.Case)
+	if err := protojson.Unmarshal(encoded, c); err != nil {
+		return nil, err
+	}
+	fingerprint, err := runtime.CaseFingerprint(c)
+	if err != nil {
+		return nil, err
+	}
+	return golden.JSON(struct{ Canonical, Fingerprint string }{identity, fingerprint})
 }

@@ -62,7 +62,9 @@ val relay: Machine[Relay, Outcome, Nothing] =
 
 /** A channel of bounded integers: the range its declaration names is its catalog of messages. */
 val tally: Channel[Int] =
-  channel[Int]("tally", capacity = 1, order = Order.fifo, loss = Loss.reliable)(using Finite.upTo(2))
+  channel[Int]("tally", capacity = 1, order = Order.fifo, loss = Loss.reliable)(using
+    Finite.upTo(2)
+  )
 
 final case class Tally(heard: Heard, counts: Inbox[Int])
 

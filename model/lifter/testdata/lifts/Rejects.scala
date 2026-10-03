@@ -176,7 +176,9 @@ val unrefinedOutcomes: Machine[Flag, Outcome, Nothing] =
 
 /** Int messages whose catalog is not a range the IR can carry. */
 val counts: Channel[Int] =
-  channel[Int]("counts", capacity = 1, order = Order.fifo, loss = Loss.reliable)(using Finite.of(1, 5))
+  channel[Int]("counts", capacity = 1, order = Order.fifo, loss = Loss.reliable)(using
+    Finite.of(1, 5)
+  )
 
 final case class Counting(inbox: Inbox[Int])
 
@@ -193,7 +195,8 @@ val counting: Machine[Counting, Outcome, Nothing] =
 /** List messages, which have no finite catalog in the IR. */
 val batches: Channel[List[Note]] =
   channel[List[Note]]("batches", capacity = 1, order = Order.fifo, loss = Loss.reliable)(using
-    Finite.of(Nil, List(Note.ping)))
+    Finite.of(Nil, List(Note.ping))
+  )
 
 final case class Batching(inbox: Inbox[List[Note]])
 
