@@ -1,6 +1,7 @@
 package checker_test
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -8,137 +9,81 @@ import (
 )
 
 // A toy door: closed, open or locked, with a knob that turns by one of two hands.
+//
+// Its table is given by its keys, as the model reader gives one: a state is its phase and whether it
+// is oiled, an action class is the action and its hand (the left one, or the right one weakly or
+// strongly), the classes are sorted by key and the rows run states-major. Only a strong right hand
+// turns a closed door open, recording that it opened and that it creaked unless oiled; a push shuts
+// an open door, and a lock locks a closed one.
 
-type doorPhase string
-
-const (
-	closed doorPhase = "closed"
-	open   doorPhase = "open"
-	locked doorPhase = "locked"
-)
-
-func (doorPhase) Values() []doorPhase { return []doorPhase{closed, open, locked} }
-
-type door struct {
-	Phase doorPhase
-	Oiled bool
+// rowOf is the row of a state and an action class, keyed as the table keys it.
+func rowOf(source, action string, results ...umpire.Result) umpire.Row {
+	return umpire.Row{Key: source + "-" + action, Source: source, Action: action, Results: results}
 }
 
-type doorOutcome string
+// resultOf is one result of a row: its outcome, the state it reaches and the facts it records.
+func resultOf(outcome, state string, facts ...string) umpire.Result {
+	return umpire.Result{Outcome: outcome, State: state, Facts: append([]string{}, facts...)}
+}
 
-const ok doorOutcome = "ok"
-
-func (doorOutcome) Values() []doorOutcome { return []doorOutcome{ok} }
-
-type doorFact interface{ isDoorFact() }
-
-type (
-	opened   struct{}
-	creaked  struct{ Loud bool }
-	unlocked struct{}
-)
-
-func (opened) isDoorFact()   {}
-func (creaked) isDoorFact()  {}
-func (unlocked) isDoorFact() {}
-
-var _ = umpire.Sum[doorFact](opened{}, creaked{}, unlocked{})
-
-type hand interface{ isHand() }
-
-type (
-	left  struct{}
-	right struct{ Strong bool }
-)
-
-func (left) isHand()  {}
-func (right) isHand() {}
-
-var _ = umpire.Sum[hand](left{}, right{})
-
-type doorStep = umpire.Step[door, doorOutcome, doorFact]
-
-var (
-	turn = umpire.NewAction1[hand]("turn", "person", "hand")
-	push = umpire.NewAction0("push", "person")
-	lock = umpire.NewAction0("lock", "person")
-)
-
-func turnStep(d door, h hand) []doorStep {
-	if d.Phase != closed {
-		return nil
+// tableFrom builds a table from a spec, each extension changing the spec first.
+func tableFrom(spec umpire.TableSpec, extend ...func(*umpire.TableSpec)) *umpire.Table {
+	for _, e := range extend {
+		e(&spec)
 	}
-	if r, isRight := h.(right); isRight && r.Strong {
-		d.Phase = open
-		return []doorStep{{Outcome: ok, State: d, Facts: []doorFact{opened{}, creaked{Loud: !d.Oiled}}}}
+	return umpire.NewTable(spec)
+}
+
+func doorSpec(name string) umpire.TableSpec {
+	return umpire.TableSpec{Machine: name, Family: "test.door",
+		States:      []string{"closed-false", "closed-true", "open-false", "open-true", "locked-false", "locked-true"},
+		Actions:     []string{"lock", "push", "turn-left", "turn-right-false", "turn-right-true"},
+		Outcomes:    []string{"ok"},
+		Facts:       []string{"opened", "creaked-false", "creaked-true", "unlocked"},
+		Starts:      []string{"closed-false"},
+		Ends:        []string{"locked-false", "locked-true"},
+		StateFields: []string{"phase", "oiled"},
+		Evidence:    [][2]string{{"opened", "opened"}, {"creaked", "creaked"}},
+		Rows: []umpire.Row{
+			rowOf("closed-false", "lock", resultOf("ok", "locked-false")),
+			rowOf("closed-false", "turn-right-true", resultOf("ok", "open-false", "opened", "creaked-true")),
+			rowOf("closed-true", "lock", resultOf("ok", "locked-true")),
+			rowOf("closed-true", "turn-right-true", resultOf("ok", "open-true", "opened", "creaked-false")),
+			rowOf("open-false", "push", resultOf("ok", "closed-false")),
+			rowOf("open-true", "push", resultOf("ok", "closed-true")),
+		}}
+}
+
+// doorTable is the door's table under a name.
+func doorTable(name string, extend ...func(*umpire.TableSpec)) *umpire.Table {
+	return tableFrom(doorSpec(name), extend...)
+}
+
+// walk is the witness a table's rows spell from a start, each row taken by its first result.
+func walk(tb *umpire.Table, start string, rows ...string) *umpire.Trace {
+	w := &umpire.Trace{Initial: tb.StateAtom(start)}
+	for _, key := range rows {
+		for _, r := range tb.Rows {
+			if r.Key != key {
+				continue
+			}
+			res := r.Results[0]
+			facts := []umpire.Atom{}
+			for _, f := range res.Facts {
+				facts = append(facts, tb.FactAtom(f))
+			}
+			w.Steps = append(w.Steps, umpire.TraceStep{Action: tb.ActionAtom(r.Action), Outcome: tb.OutcomeAtom(res.Outcome),
+				State: tb.StateAtom(res.State), Facts: facts})
+		}
 	}
-	return nil
+	return w
 }
 
-func pushStep(d door) []doorStep {
-	if d.Phase != open {
-		return nil
-	}
-	d.Phase = closed
-	return []doorStep{{Outcome: ok, State: d}}
-}
-
-func lockStep(d door) []doorStep {
-	if d.Phase != closed {
-		return nil
-	}
-	d.Phase = locked
-	return []doorStep{{Outcome: ok, State: d}}
-}
-
-func newDoor(name string) *umpire.Machine[door, doorOutcome, doorFact] {
-	return umpire.NewMachine[door, doorOutcome, doorFact]("test.door", name).
-		Starts(door{Phase: closed}).
-		Ends(func(d door) bool { return d.Phase == locked }).
-		Evidence("opened", "opened").Evidence("creaked", "creaked").
-		Step1(turn, turnStep).Step0(push, pushStep).Step0(lock, lockStep)
-}
-
-func tableOf(t *testing.T, m umpire.Model) *umpire.Table {
-	t.Helper()
-	tb, err := m.Table()
-	require.NoError(t, err)
-	return tb
-}
-
-func TestDomainOrderIsDeclarationOrderWithTheLastFieldFastest(t *testing.T) {
-	states, err := umpire.DomainOf[door]()
-	require.NoError(t, err)
-	var keys []string
-	for _, s := range states {
-		keys = append(keys, umpire.KeyOf(s))
-	}
-	require.Equal(t, []string{"closed-false", "closed-true", "open-false", "open-true", "locked-false", "locked-true"}, keys)
-
-	hands, err := umpire.DomainOf[hand]()
-	require.NoError(t, err)
-	var handKeys []string
-	for _, h := range hands {
-		handKeys = append(handKeys, umpire.KeyOf(h))
-	}
-	require.Equal(t, []string{"left", "right-false", "right-true"}, handKeys)
-}
-
-func TestSumOfANonInterfaceIsReportedWhenEnumerated(t *testing.T) {
-	type notAnInterface struct{ X bool }
-	_ = umpire.Sum[notAnInterface]()
-	_, err := umpire.DomainOf[notAnInterface]()
-	require.ErrorContains(t, err, "is not an interface")
-}
-
-func TestUnenumerableTypeIsRejected(t *testing.T) {
-	type bad struct{ N float64 }
-	_, err := umpire.DomainOf[bad]()
-	require.ErrorContains(t, err, "is not finite")
-}
-
+// A table keeps the order its spec gives its catalogs and rows, and computes what it reaches from its
+// starts by sweeping the rows in that order.
 func TestTableOrdersActionsByKeyAndRowsStatesMajor(t *testing.T) {
-	tb := tableOf(t, newDoor("door"))
+	tb := doorTable("door")
+	require.NoError(t, tb.Err())
 	require.Equal(t, []string{"lock", "push", "turn-left", "turn-right-false", "turn-right-true"}, tb.Actions)
 	var rows []string
 	for _, r := range tb.Rows {
@@ -152,89 +97,37 @@ func TestTableOrdersActionsByKeyAndRowsStatesMajor(t *testing.T) {
 	require.Equal(t, "test.door.state.door.closed-false", tb.IDs().States[0])
 }
 
-func TestAStepOutsideTheDomainIsRejected(t *testing.T) {
-	m := umpire.NewMachine[door, doorOutcome, doorFact]("test.door", "broken").
-		Starts(door{Phase: closed}).
-		Step0(push, func(door) []doorStep { return []doorStep{{Outcome: ok, State: door{Phase: "ajar"}}} })
-	_, err := m.Table()
-	require.EqualError(t, err, "broken: row closed-false-push lands in ajar-false, which is outside the state domain")
-}
-
-func TestTwoStepsBindingOneClassAreRejected(t *testing.T) {
-	m := newDoor("twice").Step0(push, pushStep)
-	_, err := m.Table()
-	require.EqualError(t, err, `twice: two steps bind the action class "push"`)
-}
-
-func TestAMachineWithoutAStartIsRejected(t *testing.T) {
-	m := umpire.NewMachine[door, doorOutcome, doorFact]("test.door", "nowhere").Step0(push, pushStep)
-	_, err := m.Table()
-	require.EqualError(t, err, "nowhere: the machine declares no start")
-}
-
-func TestAnExampleOfTheWrongTypeIsRejected(t *testing.T) {
-	bad := umpire.NewAction1[hand]("wave", "person", "hand", umpire.WithExample("left", "Hello"))
-	m := umpire.NewMachine[door, doorOutcome, doorFact]("test.door", "waving").
-		Starts(door{Phase: closed}).Step1(bad, func(door, hand) []doorStep { return nil })
-	_, err := m.Table()
-	require.ErrorContains(t, err, "example left is a string, not a checker_test.hand")
-}
-
 // A two-phase abstraction of the door: shut or open.
 
-type abstractPhase string
-
-const (
-	shut abstractPhase = "shut"
-	ajar abstractPhase = "ajar"
-)
-
-func (abstractPhase) Values() []abstractPhase { return []abstractPhase{shut, ajar} }
-
-type abstractDoor struct{ Phase abstractPhase }
-
-type abstractFact string
-
-const opens abstractFact = "opened"
-
-func (abstractFact) Values() []abstractFact { return []abstractFact{opens} }
-
-type abstractStep = umpire.Step[abstractDoor, doorOutcome, abstractFact]
-
-var swing = umpire.NewAction0("turn", "person")
-
-func abstractMachine(opensFact bool) *umpire.Machine[abstractDoor, doorOutcome, abstractFact] {
-	return umpire.NewMachine[abstractDoor, doorOutcome, abstractFact]("test.door", "abstract").
-		Starts(abstractDoor{shut}).
-		Step0(swing, func(d abstractDoor) []abstractStep {
-			if d.Phase != shut {
-				return nil
-			}
-			var facts []abstractFact
-			if opensFact {
-				facts = []abstractFact{opens}
-			}
-			return []abstractStep{{Outcome: ok, State: abstractDoor{ajar}, Facts: facts}}
-		}).
-		Step0(push, func(d abstractDoor) []abstractStep {
-			if d.Phase != ajar {
-				return nil
-			}
-			return []abstractStep{{Outcome: ok, State: abstractDoor{shut}}}
-		})
-}
-
-func abstractOf(d door) abstractDoor {
-	if d.Phase == open {
-		return abstractDoor{ajar}
+// abstractTable is the abstract door: a turn opens it, recording that it opened when opensFact is
+// set, and a push shuts it.
+func abstractTable(opensFact bool, extend ...func(*umpire.TableSpec)) *umpire.Table {
+	var facts []string
+	if opensFact {
+		facts = []string{"opened"}
 	}
-	return abstractDoor{shut}
+	return tableFrom(umpire.TableSpec{Machine: "abstract", Family: "test.door", States: []string{"shut", "ajar"},
+		Actions: []string{"push", "turn"}, Outcomes: []string{"ok"}, Facts: []string{"opened"}, Starts: []string{"shut"},
+		StateFields: []string{"phase"},
+		Rows: []umpire.Row{
+			rowOf("shut", "turn", resultOf("ok", "ajar", facts...)),
+			rowOf("ajar", "push", resultOf("ok", "shut")),
+		}}, extend...)
 }
+
+// refiningAbstract gives the door the state field that reads it as the abstract door.
+func refiningAbstract(s *umpire.TableSpec) {
+	s.StateFields = append(append([]string{}, s.StateFields...), "abstract")
+	s.RefinedField = "abstract"
+}
+
+// readsAbstract reads the door as the abstract one.
+var readsAbstract = umpire.RefinementSpec{MapState: abstractKeyOf}
 
 func TestRefinementMatchesStepsAndStutters(t *testing.T) {
-	abstract := abstractMachine(true)
-	m := newDoor("concrete").Refines(abstract, abstractOf)
-	ref, err := m.Refinement()
+	m := doorTable("concrete", refiningAbstract)
+	require.NoError(t, m.Err())
+	ref, err := umpire.RefineTables(m, abstractTable(true), readsAbstract)
 	require.NoError(t, err)
 	byKey := map[string]*string{}
 	for _, r := range ref.Rows {
@@ -243,40 +136,52 @@ func TestRefinementMatchesStepsAndStutters(t *testing.T) {
 	require.Equal(t, "turn", *byKey["closed-false-turn-right-true"], "a turn is the abstract turn, by name")
 	require.Equal(t, "push", *byKey["open-false-push"])
 	require.Nil(t, byKey["closed-false-lock"], "locking stays shut: a stutter")
-	require.Contains(t, tableOf(t, m).StateFields, "abstract")
+	require.Contains(t, m.StateFields, "abstract")
+	require.EqualError(t, doorTable("concrete", func(s *umpire.TableSpec) { s.RefinedField = "abstract" }).Err(),
+		"concrete: the refined field abstract is not a state field")
 }
 
 func TestRefinementRejectsARowWithNoProductStep(t *testing.T) {
-	abstract := umpire.NewMachine[abstractDoor, doorOutcome, abstractFact]("test.door", "abstract").
-		Starts(abstractDoor{shut})
-	m := newDoor("concrete").Refines(abstract, abstractOf)
-	_, err := m.Refinement()
+	abstract := abstractTable(true, func(s *umpire.TableSpec) { s.Rows = nil })
+	_, err := umpire.RefineTables(doorTable("concrete"), abstract, readsAbstract)
 	require.ErrorContains(t, err, "the row 'closed-false-turn-right-true' steps from 'closed-false' to 'open-false', "+
 		"which read as 'shut' and 'ajar' in abstract; abstract has no step")
 }
 
+// silentDoor turns open by any hand, and records nothing.
+func silentDoor() *umpire.Table {
+	return tableFrom(umpire.TableSpec{Machine: "silent", Family: "test.door", States: doorSpec("").States,
+		Actions: []string{"turn-left", "turn-right-false", "turn-right-true"}, Outcomes: []string{"ok"},
+		Facts: doorSpec("").Facts, Starts: []string{"closed-false"}, StateFields: []string{"phase", "oiled"},
+		Rows: []umpire.Row{
+			rowOf("closed-false", "turn-left", resultOf("ok", "open-false")),
+			rowOf("closed-false", "turn-right-false", resultOf("ok", "open-false")),
+			rowOf("closed-false", "turn-right-true", resultOf("ok", "open-false")),
+			rowOf("closed-true", "turn-left", resultOf("ok", "open-true")),
+			rowOf("closed-true", "turn-right-false", resultOf("ok", "open-true")),
+			rowOf("closed-true", "turn-right-true", resultOf("ok", "open-true")),
+		}})
+}
+
 func TestRefinementRejectsAProductFactTheRowDoesNotRecord(t *testing.T) {
 	// The abstract turn records opened; a concrete turn that records nothing is not that step.
-	abstract := abstractMachine(true)
-	silent := umpire.NewMachine[door, doorOutcome, doorFact]("test.door", "silent").
-		Starts(door{Phase: closed}).
-		Step1(turn, func(d door, h hand) []doorStep {
-			if d.Phase != closed {
-				return nil
-			}
-			return []doorStep{{Outcome: ok, State: door{Phase: open, Oiled: d.Oiled}}}
-		}).
-		Refines(abstract, abstractOf)
-	_, err := silent.Refinement()
+	_, err := umpire.RefineTables(silentDoor(), abstractTable(true), readsAbstract)
 	require.ErrorContains(t, err, "neither a step of abstract nor a stutter")
 }
 
+// opensFirst starts open and only pushes.
+func opensFirst() *umpire.Table {
+	return tableFrom(umpire.TableSpec{Machine: "opensFirst", Family: "test.door", States: doorSpec("").States,
+		Actions: []string{"push"}, Outcomes: []string{"ok"}, Facts: doorSpec("").Facts, Starts: []string{"open-false"},
+		StateFields: []string{"phase", "oiled"},
+		Rows: []umpire.Row{
+			rowOf("open-false", "push", resultOf("ok", "closed-false")),
+			rowOf("open-true", "push", resultOf("ok", "closed-true")),
+		}})
+}
+
 func TestRefinementRejectsAStartTheProductDoesNotHave(t *testing.T) {
-	abstract := abstractMachine(true)
-	m := umpire.NewMachine[door, doorOutcome, doorFact]("test.door", "opensFirst").
-		Starts(door{Phase: open}).Step0(push, pushStep).
-		Refines(abstract, abstractOf)
-	_, err := m.Refinement()
+	_, err := umpire.RefineTables(opensFirst(), abstractTable(true), readsAbstract)
 	require.EqualError(t, err, "opensFirst refines abstract: opensFirst starts at 'open-false', which reads as "+
 		"'ajar', and abstract does not start there")
 }
@@ -288,12 +193,22 @@ var (
 	tiny = umpire.Limits{Name: "tiny", Steps: 2, Actions: 2, Search: 1}
 )
 
+// opensLoudlyOn is the claim that a strong right turn opens the door.
+func opensLoudlyOn(tb *umpire.Table) *umpire.PropertyDecl {
+	return umpire.KeyProperty(tb, "opensLoudly", on("turn-right-true"), "turn-right-true",
+		func(s umpire.Result) (bool, error) { return phaseOf(s.State) == "open", nil })
+}
+
+// staysShutOn is the claim that no step opens the door.
+func staysShutOn(tb *umpire.Table) *umpire.PropertyDecl {
+	return umpire.KeyTransitionProperty(tb, "staysShut",
+		func(_ string, s umpire.Result) (bool, error) { return phaseOf(s.State) != "open", nil })
+}
+
 func TestFindReturnsTheShortestWitness(t *testing.T) {
-	m := newDoor("door")
-	opensLoudly := m.Property("opensLoudly").When(turn.With(right{Strong: true})).
-		Holds(func(s doorStep) bool { return s.State.Phase == open })
-	path := m.Scenario("turnThenPush").Starts(door{Phase: closed}).Actions(turn.With(right{Strong: true}), push.With())
-	a, err := path.Find("q", opensLoudly, two).Answer()
+	m := doorTable("door")
+	path := umpire.KeyScenario(m, "turnThenPush", "closed-false", "turn-right-true", "push")
+	a, err := umpire.KeyFind("q", opensLoudlyOn(m), path, two).Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.Found, a.Outcome)
 	require.Equal(t, []string{"closed-false-turn-right-true", "open-false-push"}, a.Rows)
@@ -303,108 +218,82 @@ func TestFindReturnsTheShortestWitness(t *testing.T) {
 }
 
 func TestFindReportsNotFoundAndAWrongPathIsRejected(t *testing.T) {
-	m := newDoor("door")
-	never := m.Property("never").When(push.With()).Holds(func(s doorStep) bool { return s.State.Phase == open })
-	path := m.Scenario("turnThenPush").Starts(door{Phase: closed}).Actions(turn.With(right{Strong: true}), push.With())
-	a, err := path.Find("q", never, two).Answer()
+	m := doorTable("door")
+	never := umpire.KeyProperty(m, "never", on("push"), "push",
+		func(s umpire.Result) (bool, error) { return phaseOf(s.State) == "open", nil })
+	path := umpire.KeyScenario(m, "turnThenPush", "closed-false", "turn-right-true", "push")
+	a, err := umpire.KeyFind("q", never, path, two).Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.NotFound, a.Outcome)
 
-	weak := m.Scenario("weakTurn").Starts(door{Phase: closed}).Actions(turn.With(left{}))
-	a, err = weak.Find("q", never, two).Answer()
+	weak := umpire.KeyScenario(m, "weakTurn", "closed-false", "turn-left")
+	a, err = umpire.KeyFind("q", never, weak, two).Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.NotFound, a.Outcome, "a pinned action with no row admits no trace")
 
-	long := m.Scenario("long").Starts(door{Phase: closed}).
-		Actions(turn.With(right{Strong: true}), push.With(), lock.With())
-	_, err = long.Find("q", never, two).Answer()
+	long := umpire.KeyScenario(m, "long", "closed-false", "turn-right-true", "push", "lock")
+	_, err = umpire.KeyFind("q", never, long, two).Answer()
 	require.EqualError(t, err, "query q: long pins 3 actions and the limits two allow 2")
 }
 
 func TestVerifyFindsACounterexampleOrVerifies(t *testing.T) {
-	m := newDoor("door")
-	staysShut := m.Property("staysShut").HoldsAcross(func(before door, after doorStep) bool {
-		return after.State.Phase != open
-	})
-	free := m.Scenario("anything").Starts(door{Phase: closed}).Free()
-	a, err := free.Verify("q", staysShut, two).Answer()
+	m := doorTable("door")
+	free := umpire.KeyFreeScenario(m, "anything", "closed-false")
+	a, err := umpire.KeyVerify("q", staysShutOn(m), free, two).Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.CounterexampleFound, a.Outcome)
 	require.Equal(t, []string{"closed-false-turn-right-true"}, a.Rows)
 
-	lockedIsFinal := m.Property("lockedIsFinal").HoldsAcross(func(before door, after doorStep) bool {
-		return before.Phase != locked || after.State.Phase == locked
+	lockedIsFinal := umpire.KeyTransitionProperty(m, "lockedIsFinal", func(before string, after umpire.Result) (bool, error) {
+		return phaseOf(before) != "locked" || phaseOf(after.State) == "locked", nil
 	})
-	a, err = free.Verify("q", lockedIsFinal, two).Answer()
+	a, err = umpire.KeyVerify("q", lockedIsFinal, free, two).Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.VerifiedWithinLimits, a.Outcome)
 }
 
 func TestSearchStopsAtItsLimit(t *testing.T) {
-	m := newDoor("door")
-	p := m.Property("p").HoldsAcross(func(door, doorStep) bool { return true })
-	a, err := m.Scenario("anything").Starts(door{Phase: closed}).Free().Verify("q", p, tiny).Answer()
+	m := doorTable("door")
+	p := umpire.KeyTransitionProperty(m, "p", always)
+	a, err := umpire.KeyVerify("q", p, umpire.KeyFreeScenario(m, "anything", "closed-false"), tiny).Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.LimitReached, a.Outcome)
 }
 
 func TestAFindCannotRealizeATransitionClaim(t *testing.T) {
-	m := newDoor("door")
-	p := m.Property("p").HoldsAcross(func(door, doorStep) bool { return true })
-	_, err := m.Scenario("s").Starts(door{Phase: closed}).Actions(lock.With()).Find("q", p, two).Answer()
+	m := doorTable("door")
+	p := umpire.KeyTransitionProperty(m, "p", always)
+	_, err := umpire.KeyFind("q", p, umpire.KeyScenario(m, "s", "closed-false", "lock"), two).Answer()
 	require.EqualError(t, err, "query q: find names p, a transition claim; a find realizes a same-step claim")
 }
 
 // A composition of the door with a keyholder who may lose the key.
 
-type keyPhase string
+// keyholderTable is a keyholder under a name: holding the key, it may use it, which keeps it, or lose
+// it.
+func keyholderTable(name string, extend ...func(*umpire.TableSpec)) *umpire.Table {
+	return tableFrom(umpire.TableSpec{Machine: name, Family: "test.door", States: []string{"holding", "lost"},
+		Actions: []string{"loseKey", "useKey"}, Outcomes: []string{"ok"}, Starts: []string{"holding"},
+		StateFields: []string{"phase"},
+		Rows: []umpire.Row{
+			rowOf("holding", "loseKey", resultOf("ok", "lost")),
+			rowOf("holding", "useKey", resultOf("ok", "holding")),
+		}}, extend...)
+}
 
-const (
-	holding keyPhase = "holding"
-	lost    keyPhase = "lost"
-)
+// opaqueKeyTable is the keyholder as an opaque provider: one whose checks rely on its being opaque.
+func opaqueKeyTable(extend ...func(*umpire.TableSpec)) *umpire.Table {
+	return keyholderTable("opaqueKey", append([]func(*umpire.TableSpec){assumes(keyIsOpaque)}, extend...)...)
+}
 
-func (keyPhase) Values() []keyPhase { return []keyPhase{holding, lost} }
-
-type keyState struct{ Phase keyPhase }
-
-type keyFact interface{ isKeyFact() }
-
-var _ = umpire.Sum[keyFact]()
-
-type keyStep = umpire.Step[keyState, doorOutcome, keyFact]
-
-var (
-	useKey  = umpire.NewAction0("useKey", "person")
-	loseKey = umpire.NewAction0("loseKey", "person")
-)
-
-var keyholder = umpire.NewMachine[keyState, doorOutcome, keyFact]("test.door", "keyholder").
-	Starts(keyState{holding}).
-	Step0(useKey, func(k keyState) []keyStep {
-		if k.Phase != holding {
-			return nil
-		}
-		return []keyStep{{Outcome: ok, State: k}}
-	}).
-	Step0(loseKey, func(k keyState) []keyStep {
-		if k.Phase != holding {
-			return nil
-		}
-		return []keyStep{{Outcome: ok, State: keyState{lost}}}
-	})
-
-type house struct {
-	Door door     `umpire:"door"`
-	Key  keyState `umpire:"key"`
+// assumes adds assumptions to a table's spec.
+func assumes(assumptions ...umpire.Assumption) func(*umpire.TableSpec) {
+	return func(s *umpire.TableSpec) { s.Assumptions = append(slices.Clone(s.Assumptions), assumptions...) }
 }
 
 func TestCompositionSynchronizesAndKeysByMember(t *testing.T) {
-	c := umpire.Compose[house]("test.door", "house").
-		Member("door", newDoor("door")).
-		Member("key", keyholder).
-		Sync("lock", "door.lock", "key.useKey")
-	tb := tableOf(t, c)
+	tb, err := umpire.ComposeTables(houseOf(doorTable("door"), umpire.ComposeMember{Table: keyholderTable("keyholder")}))
+	require.NoError(t, err)
 	require.Equal(t, []string{"door_push", "door_turn-left", "door_turn-right-false", "door_turn-right-true",
 		"key_loseKey", "lock"}, tb.Actions)
 	require.Contains(t, tb.States, "closed-false_holding")
@@ -416,8 +305,4 @@ func TestCompositionSynchronizesAndKeysByMember(t *testing.T) {
 	}
 	require.Equal(t, "test.door.target.compose-house", tb.IDs().Target)
 	require.Equal(t, []string{"door_phase", "door_oiled", "key"}, tb.StateFields)
-
-	bad := umpire.Compose[house]("test.door", "bad").Member("door", newDoor("door")).Sync("x", "door", "key.useKey")
-	_, err := bad.Table()
-	require.EqualError(t, err, `compose-bad: sync reference "door" is not <member>.<action>`)
 }

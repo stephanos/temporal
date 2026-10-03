@@ -7,20 +7,24 @@ import (
 	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
 )
 
-func seesOpened(f doorFact) bool { return f == opened{} }
+func seesOpened(f string) bool { return f == "opened" }
 
-// chattyDoor locks with a claim that it opened, a fact the abstract door sees.
-func chattyDoor(name string) *umpire.Machine[door, doorOutcome, doorFact] {
-	return umpire.NewMachine[door, doorOutcome, doorFact]("test.door", name).
-		Starts(door{Phase: closed}).
-		Ends(func(d door) bool { return d.Phase == locked }).
-		Step1(turn, turnStep).Step0(push, pushStep).
-		Step0(lock, func(d door) []doorStep {
-			if d.Phase != closed {
-				return nil
-			}
-			return []doorStep{{Outcome: ok, State: door{Phase: locked, Oiled: d.Oiled}, Facts: []doorFact{opened{}}}}
-		})
+// seesOpenedOfAbstract reads the door as the abstract one, which sees that it opened.
+var seesOpenedOfAbstract = umpire.RefinementSpec{MapState: abstractKeyOf, SeesFact: seesOpened}
+
+// chattyDoorTable locks with a claim that it opened, a fact the abstract door sees.
+func chattyDoorTable(name string, extend ...func(*umpire.TableSpec)) *umpire.Table {
+	return doorTable(name, append([]func(*umpire.TableSpec){func(s *umpire.TableSpec) {
+		s.Evidence = nil
+		s.Rows = []umpire.Row{
+			rowOf("closed-false", "lock", resultOf("ok", "locked-false", "opened")),
+			rowOf("closed-false", "turn-right-true", resultOf("ok", "open-false", "opened", "creaked-true")),
+			rowOf("closed-true", "lock", resultOf("ok", "locked-true", "opened")),
+			rowOf("closed-true", "turn-right-true", resultOf("ok", "open-true", "opened", "creaked-false")),
+			rowOf("open-false", "push", resultOf("ok", "closed-false")),
+			rowOf("open-true", "push", resultOf("ok", "closed-true")),
+		}
+	}}, extend...)...)
 }
 
 func refinementError(t *testing.T, err error) *umpire.RefinementError {
@@ -32,29 +36,29 @@ func refinementError(t *testing.T, err error) *umpire.RefinementError {
 
 // requireReplaysFromAStart checks that a diagnostic's witness is a path of the refining machine from
 // one of its starts.
-func requireReplaysFromAStart(t *testing.T, m umpire.Model, w *umpire.Trace) {
+func requireReplaysFromAStart(t *testing.T, tb *umpire.Table, w *umpire.Trace) {
 	t.Helper()
-	tb := tableOf(t, m)
 	require.NotNil(t, w)
 	require.NoError(t, tb.Replay(w))
 	require.Contains(t, tb.Starts, w.Initial.Value)
 }
 
 func TestAnInvisibleStutterRefinesAndTheLegacyRuleIsUnchanged(t *testing.T) {
-	legacy, err := newDoor("concrete").Refines(abstractMachine(true), abstractOf).Refinement()
+	legacy, err := umpire.RefineTables(doorTable("concrete", refiningAbstract), abstractTable(true), readsAbstract)
 	require.NoError(t, err)
-	visible, err := newDoor("concrete").Refines(abstractMachine(true), abstractOf).
-		Visible(seesOpened).VisibleOutcomes(func(doorOutcome) bool { return false }).CoversStarts().Refinement()
+	visible, err := umpire.RefineTables(doorTable("concrete", refiningAbstract), abstractTable(true),
+		umpire.RefinementSpec{MapState: abstractKeyOf, SeesFact: seesOpened,
+			SeesOutcome: func(string) bool { return false }, CoverStarts: true})
 	require.NoError(t, err)
 	require.Equal(t, legacy.Rows, visible.Rows, "locking records nothing the abstract door sees")
 }
 
 func TestAStutterRecordingAVisibleFactIsRejected(t *testing.T) {
-	_, err := chattyDoor("chatty").Refines(abstractMachine(true), abstractOf).Refinement()
+	_, err := umpire.RefineTables(chattyDoorTable("chatty", refiningAbstract), abstractTable(true), readsAbstract)
 	require.NoError(t, err, "without a projection, a stutter may record any fact")
 
-	m := chattyDoor("chatty").Refines(abstractMachine(true), abstractOf).Visible(seesOpened)
-	_, err = m.Refinement()
+	m := chattyDoorTable("chatty", refiningAbstract)
+	_, err = umpire.RefineTables(m, abstractTable(true), seesOpenedOfAbstract)
 	require.EqualError(t, err, "chatty refines abstract: the row 'closed-false-lock' steps from 'closed-false' to "+
 		"'locked-false', which both read as 'shut' in abstract, and it records opened, which abstract sees; "+
 		"a stutter changes nothing abstract sees, and abstract has no step that records it")
@@ -65,9 +69,9 @@ func TestAStutterRecordingAVisibleFactIsRejected(t *testing.T) {
 }
 
 func TestAStutterWithAVisibleOutcomeIsRejected(t *testing.T) {
-	m := newDoor("concrete").Refines(abstractMachine(true), abstractOf).
-		VisibleOutcomes(func(o doorOutcome) bool { return o == ok })
-	_, err := m.Refinement()
+	m := doorTable("concrete", refiningAbstract)
+	_, err := umpire.RefineTables(m, abstractTable(true),
+		umpire.RefinementSpec{MapState: abstractKeyOf, SeesOutcome: func(o string) bool { return o == "ok" }})
 	re := refinementError(t, err)
 	require.Equal(t, umpire.RefinementVisibleStutter, re.Kind)
 	require.ErrorContains(t, err, "and its outcome ok is one abstract sees")
@@ -76,11 +80,11 @@ func TestAStutterWithAVisibleOutcomeIsRejected(t *testing.T) {
 }
 
 func TestACarrierMustRecordEveryVisibleFact(t *testing.T) {
-	_, err := newDoor("concrete").Refines(abstractMachine(false), abstractOf).Refinement()
+	_, err := umpire.RefineTables(doorTable("concrete", refiningAbstract), abstractTable(false), readsAbstract)
 	require.NoError(t, err, "without a projection, the abstract turn that records nothing carries the concrete one")
 
-	m := newDoor("concrete").Refines(abstractMachine(false), abstractOf).Visible(seesOpened)
-	_, err = m.Refinement()
+	m := doorTable("concrete", refiningAbstract)
+	_, err = umpire.RefineTables(m, abstractTable(false), seesOpenedOfAbstract)
 	require.ErrorContains(t, err, "neither a step of abstract nor a stutter")
 	re := refinementError(t, err)
 	require.Equal(t, umpire.RefinementUnmatched, re.Kind)
@@ -89,37 +93,36 @@ func TestACarrierMustRecordEveryVisibleFact(t *testing.T) {
 }
 
 func TestInitialCorrespondenceCoversEveryProductStart(t *testing.T) {
-	twoStarts := func() *umpire.Machine[abstractDoor, doorOutcome, abstractFact] {
-		return abstractMachine(true).Starts(abstractDoor{shut}, abstractDoor{ajar})
-	}
-	_, err := newDoor("concrete").Refines(twoStarts(), abstractOf).Refinement()
-	require.NoError(t, err, "without CoversStarts, a refinement may start in fewer states than its product")
+	twoStarts := func() *umpire.Table { return abstractTable(true, startsAt("shut", "ajar")) }
+	_, err := umpire.RefineTables(doorTable("concrete", refiningAbstract), twoStarts(), readsAbstract)
+	require.NoError(t, err, "without CoverStarts, a refinement may start in fewer states than its product")
 
 	product := twoStarts()
-	_, err = newDoor("concrete").Refines(product, abstractOf).CoversStarts().Refinement()
+	_, err = umpire.RefineTables(doorTable("concrete", refiningAbstract), product,
+		umpire.RefinementSpec{MapState: abstractKeyOf, CoverStarts: true})
 	require.EqualError(t, err, "concrete refines abstract: abstract starts at 'ajar', which no start of concrete reads as")
 	re := refinementError(t, err)
 	require.Equal(t, umpire.RefinementInitial, re.Kind)
 	require.Nil(t, re.Witness)
-	require.NoError(t, tableOf(t, product).Replay(re.ProductWitness))
+	require.NoError(t, product.Replay(re.ProductWitness))
 	require.Equal(t, "ajar", re.ProductWitness.Initial.Value)
 	require.Empty(t, re.ProductWitness.Steps)
 }
 
 func TestAStartOutsideTheProductStartsHasAReplayableWitness(t *testing.T) {
-	m := umpire.NewMachine[door, doorOutcome, doorFact]("test.door", "opensFirst").
-		Starts(door{Phase: open}).Step0(push, pushStep).
-		Refines(abstractMachine(true), abstractOf)
-	_, err := m.Refinement()
+	m := opensFirst()
+	_, err := umpire.RefineTables(m, abstractTable(true), readsAbstract)
 	re := refinementError(t, err)
 	require.Equal(t, umpire.RefinementInitial, re.Kind)
 	requireReplaysFromAStart(t, m, re.Witness)
 	require.Equal(t, "open-false", re.Witness.Initial.Value)
 }
 
+// A key-level refinement names what the refined table sees beside the map that reads a state as its
+// state: a projection with no map refines nothing.
 func TestAProjectionWithoutARefinementIsRejected(t *testing.T) {
-	_, err := newDoor("alone").Visible(seesOpened).Table()
-	require.EqualError(t, err, "alone: the machine names what a refined machine sees, and refines none")
+	_, err := umpire.RefineTables(doorTable("alone"), abstractTable(true), umpire.RefinementSpec{SeesFact: seesOpened})
+	require.EqualError(t, err, "alone refines abstract: a refinement names how a state reads as a state of abstract")
 }
 
 func TestRefineTablesChecksKeyOnlyTables(t *testing.T) {

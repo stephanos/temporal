@@ -42,6 +42,12 @@ func keyTable(name string, starts []string, edges ...[3]string) *umpire.Table {
 
 func is(key string) func(string) bool { return func(s string) bool { return s == key } }
 
+// doorIs accepts a door's state, or a house's, whose door is in a phase: either key spells the door's
+// phase first.
+func doorIs(phase string) func(string) bool {
+	return func(s string) bool { return phaseOf(s) == phase }
+}
+
 var wide = umpire.Limits{Name: "wide", Steps: 8, Search: 256}
 
 func requireVerdict(t *testing.T, want umpire.Outcome, v umpire.ProgressVerdict) {
@@ -223,10 +229,8 @@ func TestAFairCycleWhoseTourExceedsTheCeilingIsLimitReached(t *testing.T) {
 }
 
 func TestProgressOnATypedMachine(t *testing.T) {
-	m := newDoor("door")
-	tb := tableOf(t, m)
-	shuts := umpire.NewProgress("shuts", func(d door) bool { return d.Phase == open },
-		func(d door) bool { return d.Phase == closed }, 1)
+	tb := doorTable("door")
+	shuts := umpire.KeyProgress("shuts", doorIs("open"), doorIs("closed"), 1)
 	a, err := umpire.CheckProgress(tb, shuts, wide)
 	require.NoError(t, err)
 	requireVerdict(t, umpire.VerifiedWithinLimits, a.Deadlock)
@@ -234,8 +238,7 @@ func TestProgressOnATypedMachine(t *testing.T) {
 	requireVerdict(t, umpire.VerifiedWithinLimits, a.Deadline)
 
 	lockIsFair := umpire.Assumption{Name: "lockIsFair", Fair: []string{"lock"}}
-	locks := umpire.NewProgress("locks", func(d door) bool { return d.Phase == closed },
-		func(d door) bool { return d.Phase == locked }, 1, lockIsFair)
+	locks := umpire.KeyProgress("locks", doorIs("closed"), doorIs("locked"), 1, lockIsFair)
 	a, err = umpire.CheckProgress(tb, locks, wide)
 	require.NoError(t, err)
 	requireVerdict(t, umpire.CounterexampleFound, a.Cycle)
@@ -254,25 +257,16 @@ func TestProgressDeclarationsAreChecked(t *testing.T) {
 	ghost := umpire.Assumption{Name: "ghostIsFair", Fair: []string{"ghost"}}
 	_, err = umpire.CheckProgress(tb, umpire.KeyProgress("haunted", is("waiting"), is("done"), 1, ghost), wide)
 	require.EqualError(t, err, "progress haunted: the assumption ghostIsFair makes ghost fair, which is no action of polls")
-
-	typed := umpire.NewProgress("typed", func(d door) bool { return true }, func(d door) bool { return false }, 1)
-	_, err = umpire.CheckProgress(tb, typed, wide)
-	require.ErrorContains(t, err, "progress typed: the state waiting of polls is not a checker_test.door")
 }
 
 func TestAMachinesAssumptionsJoinEveryProgressCheck(t *testing.T) {
 	pushIsFair := umpire.Assumption{Name: "pushIsFair", Fair: []string{"push"}}
-	m := newDoor("door").Assumes(pushIsFair)
-	tb := tableOf(t, m)
+	tb := doorTable("door", assumes(pushIsFair))
 	require.Equal(t, []umpire.Assumption{pushIsFair}, tb.Assumptions)
-	shuts := umpire.NewProgress("shuts", func(d door) bool { return d.Phase == open },
-		func(d door) bool { return d.Phase == closed }, 1)
+	shuts := umpire.KeyProgress("shuts", doorIs("open"), doorIs("closed"), 1)
 	a, err := umpire.CheckProgress(tb, shuts, wide)
 	require.NoError(t, err)
 	require.Equal(t, []string{"pushIsFair"}, a.Assumptions)
-
-	restricted := m.Restrict("test.door", "pushOnly", push.ActionDecl)
-	require.Equal(t, []umpire.Assumption{pushIsFair}, tableOf(t, restricted).Assumptions)
 }
 
 func TestSameNamedAssumptionsJoinTheirFairness(t *testing.T) {

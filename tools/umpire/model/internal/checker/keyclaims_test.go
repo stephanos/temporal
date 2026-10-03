@@ -10,8 +10,8 @@ import (
 	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
 )
 
-// keyCopy is a typed table as the spec of a table that carries only its keys: no typed state and no
-// typed step.
+// keyCopy is a table as the spec of a table that carries only its keys: no typed state and no typed
+// step.
 func keyCopy(tb *umpire.Table) umpire.TableSpec {
 	spec := umpire.TableSpec{Machine: tb.Machine, Owner: tb.Owner, Family: tb.Family, States: tb.States,
 		Actions: tb.Actions, Outcomes: tb.Outcomes, Facts: tb.Facts, Starts: tb.Starts, Ends: tb.Ends,
@@ -45,145 +45,135 @@ func countOpeningKeys(at umpire.Evaluation) *umpire.Monitor {
 		func(n string) (bool, error) { return n == "2", nil }, at)
 }
 
-type doorMachine = *umpire.Machine[door, doorOutcome, doorFact]
+// answered is what a Query over the door answers, short of the witness, which its rows spell from the
+// door's start. The answers below are the ones the same Queries declared over the door's typed steps
+// gave, which the key-level ones matched before those were retired.
+type answered struct {
+	outcome     umpire.Outcome
+	explored    int
+	expanded    int
+	rows        []string
+	exercised   bool
+	monitor     string
+	monitors    []umpire.MonitorVerdict
+	explanation string
+}
+
+func (a answered) on(tb *umpire.Table) umpire.Answer {
+	want := umpire.Answer{Outcome: a.outcome, Explored: a.explored, Explanation: a.explanation, Rows: a.rows,
+		Exercised: a.exercised, Monitor: a.monitor, Monitors: a.monitors, Expanded: a.expanded}
+	if a.rows != nil {
+		want.Witness = walk(tb, "closed-false", a.rows...)
+	}
+	return want
+}
 
 func TestKeyLevelQueryMatchesTypedQuery(t *testing.T) {
-	strong := turn.With(right{Strong: true})
-	opensLoudly := func(m doorMachine) *umpire.Property[door] {
-		return m.Property("opensLoudly").When(strong).Holds(func(s doorStep) bool { return s.State.Phase == open })
-	}
-	opensLoudlyKeys := func(tb *umpire.Table) *umpire.PropertyDecl {
-		return umpire.KeyProperty(tb, "opensLoudly", func(a string) bool { return a == "turn-right-true" },
-			"turn-right-true", func(s umpire.Result) (bool, error) { return phaseOf(s.State) == "open", nil })
-	}
-	turnThenPush := func(m doorMachine) *umpire.Scenario[door] {
-		return m.Scenario("turnThenPush").Starts(door{Phase: closed}).Actions(strong, push.With())
-	}
+	opensLoudlyKeys := opensLoudlyOn
 	turnThenPushKeys := func(tb *umpire.Table) *umpire.ScenarioDecl {
 		return umpire.KeyScenario(tb, "turnThenPush", "closed-false", "turn-right-true", "push")
-	}
-	free := func(m doorMachine) *umpire.Scenario[door] {
-		return m.Scenario("anything").Starts(door{Phase: closed}).Free()
 	}
 	freeKeys := func(tb *umpire.Table) *umpire.ScenarioDecl {
 		return umpire.KeyFreeScenario(tb, "anything", "closed-false")
 	}
-	staysShut := func(m doorMachine) *umpire.Property[door] {
-		return m.Property("staysShut").HoldsAcross(func(_ door, after doorStep) bool { return after.State.Phase != open })
-	}
-	staysShutKeys := func(tb *umpire.Table) *umpire.PropertyDecl {
-		return umpire.KeyTransitionProperty(tb, "staysShut",
-			func(_ string, s umpire.Result) (bool, error) { return phaseOf(s.State) != "open", nil })
-	}
+	staysShutKeys := staysShutOn
 	anythingKeys := func(tb *umpire.Table, limits umpire.Limits) *umpire.Query {
 		return umpire.KeyVerify("q", umpire.KeyTransitionProperty(tb, "always", always), freeKeys(tb), limits)
 	}
 	afterOpening := func(r umpire.Result) bool { return len(r.Facts) > 0 }
+	opensTwice := []string{"closed-false-turn-right-true", "open-false-push", "closed-false-turn-right-true"}
+	violated := []umpire.MonitorVerdict{{Name: "openedTwice", State: "2", Verdict: umpire.MonitorViolated}}
 
 	for _, c := range []struct {
 		name  string
-		typed func(doorMachine) *umpire.Query
 		keyed func(*umpire.Table) *umpire.Query
-		want  umpire.Outcome
+		want  answered
 	}{
 		{"a pinned find",
-			func(m doorMachine) *umpire.Query { return turnThenPush(m).Find("q", opensLoudly(m), two) },
 			func(tb *umpire.Table) *umpire.Query {
 				return umpire.KeyFind("q", opensLoudlyKeys(tb), turnThenPushKeys(tb), two)
-			}, umpire.Found},
+			},
+			answered{outcome: umpire.Found, explored: 3, expanded: 2, exercised: true,
+				rows: []string{"closed-false-turn-right-true", "open-false-push"}}},
 		{"a free find",
-			func(m doorMachine) *umpire.Query { return free(m).Find("q", opensLoudly(m), two) },
 			func(tb *umpire.Table) *umpire.Query {
 				return umpire.KeyFind("q", opensLoudlyKeys(tb), freeKeys(tb), two)
 			},
-			umpire.Found},
+			answered{outcome: umpire.Found, explored: 3, expanded: 1, exercised: true,
+				rows: []string{"closed-false-turn-right-true"}}},
 		{"a find no trace realizes",
-			func(m doorMachine) *umpire.Query {
-				never := m.Property("never").When(push.With()).Holds(func(s doorStep) bool { return s.State.Phase == open })
-				return turnThenPush(m).Find("q", never, two)
-			},
 			func(tb *umpire.Table) *umpire.Query {
 				never := umpire.KeyProperty(tb, "never", func(a string) bool { return a == "push" }, "push",
 					func(s umpire.Result) (bool, error) { return phaseOf(s.State) == "open", nil })
 				return umpire.KeyFind("q", never, turnThenPushKeys(tb), two)
-			}, umpire.NotFound},
+			},
+			answered{outcome: umpire.NotFound, explored: 3, expanded: 2,
+				explanation: "no trace of turnThenPush within two reaches never"}},
 		{"a pinned same-step verify",
-			func(m doorMachine) *umpire.Query { return turnThenPush(m).Verify("q", opensLoudly(m), two) },
 			func(tb *umpire.Table) *umpire.Query {
 				return umpire.KeyVerify("q", opensLoudlyKeys(tb), turnThenPushKeys(tb), two)
-			}, umpire.VerifiedWithinLimits},
+			},
+			answered{outcome: umpire.VerifiedWithinLimits, explored: 3, expanded: 2, exercised: true}},
 		{"a transition verify that fails",
-			func(m doorMachine) *umpire.Query { return free(m).Verify("q", staysShut(m), two) },
 			func(tb *umpire.Table) *umpire.Query {
 				return umpire.KeyVerify("q", staysShutKeys(tb), freeKeys(tb), two)
 			},
-			umpire.CounterexampleFound},
+			answered{outcome: umpire.CounterexampleFound, explored: 4, expanded: 3, exercised: true,
+				rows: []string{"closed-false-turn-right-true"}, explanation: "staysShut fails at {open, false}"}},
 		{"a transition verify that holds",
-			func(m doorMachine) *umpire.Query {
-				final := m.Property("lockedIsFinal").HoldsAcross(func(before door, after doorStep) bool {
-					return before.Phase != locked || after.State.Phase == locked
-				})
-				return free(m).Verify("q", final, two)
-			},
 			func(tb *umpire.Table) *umpire.Query {
 				final := umpire.KeyTransitionProperty(tb, "lockedIsFinal", func(before string, s umpire.Result) (bool, error) {
 					return phaseOf(before) != "locked" || phaseOf(s.State) == "locked", nil
 				})
 				return umpire.KeyVerify("q", final, freeKeys(tb), two)
-			}, umpire.VerifiedWithinLimits},
-		{"a search past its limit",
-			func(m doorMachine) *umpire.Query {
-				p := m.Property("always").HoldsAcross(func(door, doorStep) bool { return true })
-				return free(m).Verify("q", p, tiny)
 			},
-			func(tb *umpire.Table) *umpire.Query { return anythingKeys(tb, tiny) }, umpire.LimitReached},
+			answered{outcome: umpire.VerifiedWithinLimits, explored: 4, expanded: 3, exercised: true}},
+		{"a search past its limit",
+			func(tb *umpire.Table) *umpire.Query { return anythingKeys(tb, tiny) },
+			answered{outcome: umpire.LimitReached, explored: 1, expanded: 1,
+				explanation: "the limits tiny allow 1 product states"}},
 		{"a verify a monitor fails",
-			func(m doorMachine) *umpire.Query { return anything(m).Watch(countOpenings(umpire.EveryStep())) },
 			func(tb *umpire.Table) *umpire.Query {
 				return anythingKeys(tb, four).Watch(countOpeningKeys(umpire.EveryStep()))
-			}, umpire.CounterexampleFound},
+			},
+			answered{outcome: umpire.CounterexampleFound, explored: 7, expanded: 6, exercised: true, rows: opensTwice,
+				monitor: "openedTwice", monitors: violated,
+				explanation: "the monitor openedTwice is violated at {open, false}"}},
 		{"a verify a monitor read at ends holds on",
-			func(m doorMachine) *umpire.Query { return anything(m).Watch(countOpenings(umpire.AtEnds())) },
 			func(tb *umpire.Table) *umpire.Query {
 				return anythingKeys(tb, four).Watch(countOpeningKeys(umpire.AtEnds()))
-			}, umpire.VerifiedWithinLimits},
+			},
+			answered{outcome: umpire.VerifiedWithinLimits, explored: 7, expanded: 6, exercised: true,
+				monitors: []umpire.MonitorVerdict{{Name: "openedTwice", Verdict: umpire.MonitorHeld}}}},
 		{"a verify a monitor read after some steps fails",
-			func(m doorMachine) *umpire.Query { return anything(m).Watch(countOpenings(umpire.After(afterOpening))) },
 			func(tb *umpire.Table) *umpire.Query {
 				at := umpire.AfterKey(func(r umpire.Result) (bool, error) { return afterOpening(r), nil })
 				return anythingKeys(tb, four).Watch(countOpeningKeys(at))
-			}, umpire.CounterexampleFound},
-		{"a find a violated monitor watches",
-			func(m doorMachine) *umpire.Query {
-				twice := m.Scenario("twice").Starts(door{Phase: closed}).Actions(strong, push.With(), strong)
-				return twice.Find("q", opensLoudly(m), four).Watch(countOpenings(umpire.EveryStep()))
 			},
+			answered{outcome: umpire.CounterexampleFound, explored: 7, expanded: 6, exercised: true, rows: opensTwice,
+				monitor: "openedTwice", monitors: violated,
+				explanation: "the monitor openedTwice is violated at {open, false}"}},
+		{"a find a violated monitor watches",
 			func(tb *umpire.Table) *umpire.Query {
 				twice := umpire.KeyScenario(tb, "twice", "closed-false", "turn-right-true", "push", "turn-right-true")
 				return umpire.KeyFind("q", opensLoudlyKeys(tb), twice, four).Watch(countOpeningKeys(umpire.EveryStep()))
-			}, umpire.Found},
-		{"a monitor failing at the search limit",
-			func(m doorMachine) *umpire.Query {
-				cramped := umpire.Limits{Name: "cramped", Steps: 4, Actions: 4, Search: 6}
-				p := m.Property("always").HoldsAcross(func(door, doorStep) bool { return true })
-				return free(m).Verify("q", p, cramped).Watch(countOpenings(umpire.EveryStep()))
 			},
+			answered{outcome: umpire.Found, explored: 4, expanded: 3, exercised: true, rows: opensTwice, monitors: violated}},
+		{"a monitor failing at the search limit",
 			func(tb *umpire.Table) *umpire.Query {
 				cramped := umpire.Limits{Name: "cramped", Steps: 4, Actions: 4, Search: 6}
 				return anythingKeys(tb, cramped).Watch(countOpeningKeys(umpire.EveryStep()))
-			}, umpire.CounterexampleFound},
+			},
+			answered{outcome: umpire.CounterexampleFound, explored: 6, expanded: 6, exercised: true, rows: opensTwice,
+				monitor: "openedTwice", monitors: violated,
+				explanation: "the monitor openedTwice is violated at {open, false}"}},
 	} {
 		t.Run(c.name, func(t *testing.T) {
-			m := newDoor("door")
-			want, err := c.typed(m).Answer()
-			require.NoError(t, err)
-			require.Equal(t, c.want, want.Outcome)
-
-			tb := umpire.NewTable(keyCopy(tableOf(t, m)))
+			tb := doorTable("door")
 			q := c.keyed(tb)
 			got, err := q.Answer()
 			require.NoError(t, err)
-			require.Equal(t, want, got, "outcome, explored states, rows, witness, exercise and monitor verdicts")
+			require.Equal(t, c.want.on(tb), got, "outcome, explored states, rows, witness, exercise and monitor verdicts")
 			require.False(t, got.Incomplete())
 			if got.Witness != nil {
 				require.NoError(t, q.Replay(got))
@@ -193,8 +183,20 @@ func TestKeyLevelQueryMatchesTypedQuery(t *testing.T) {
 	}
 }
 
+// forkedTable is a machine whose two first steps reach one state by different outcomes.
+func forkedTable() *umpire.Table {
+	return umpire.NewTable(umpire.TableSpec{Machine: "fork", Family: "test.fork", States: []string{"s0", "s1", "s2"},
+		Actions: []string{"go", "left", "right"}, Outcomes: []string{"l", "r", "ok"}, Facts: []string{},
+		Starts: []string{"s0"}, Ends: []string{"s2"},
+		Rows: []umpire.Row{
+			rowOf("s0", "left", resultOf("l", "s1")),
+			rowOf("s0", "right", resultOf("r", "s1")),
+			rowOf("s1", "go", resultOf("ok", "s2")),
+		}})
+}
+
 func TestKeyLevelMonitorsKeepHistoriesApart(t *testing.T) {
-	tb := umpire.NewTable(keyCopy(tableOf(t, forked())))
+	tb := forkedTable()
 	neverEnds := umpire.KeyTransitionProperty(tb, "neverEnds",
 		func(_ string, s umpire.Result) (bool, error) { return s.State != "s2", nil })
 	plain, err := umpire.KeyVerify("plain", neverEnds, umpire.KeyFreeScenario(tb, "plain", "s0"), four).Answer()
@@ -233,51 +235,33 @@ func abstractKeyOf(state string) (string, error) {
 func TestKeyLevelThroughQueryReadsByMapAndName(t *testing.T) {
 	for _, c := range []struct {
 		name  string
-		typed func(*umpire.Machine[abstractDoor, doorOutcome, abstractFact]) *umpire.Property[abstractDoor]
 		keyed func(*umpire.Table) *umpire.PropertyDecl
-		want  umpire.Outcome
+		want  answered
 	}{
 		{"a same-step claim reads the state by its map and the facts by name",
-			func(a *umpire.Machine[abstractDoor, doorOutcome, abstractFact]) *umpire.Property[abstractDoor] {
-				return a.Property("turnOpens").WhenAction("turn").Holds(func(s abstractStep) bool {
-					return s.State.Phase == ajar && s.Outcome == ok && slices.Equal(s.Facts, []abstractFact{opens})
-				})
-			},
 			func(tb *umpire.Table) *umpire.PropertyDecl {
 				return umpire.KeyProperty(tb, "turnOpens", func(a string) bool { return phaseOf(a) == "turn" }, "turn",
 					func(s umpire.Result) (bool, error) {
 						return s.State == "ajar" && s.Outcome == "ok" && slices.Equal(s.Facts, []string{"opened"}), nil
 					})
-			}, umpire.VerifiedWithinLimits},
+			}, answered{outcome: umpire.VerifiedWithinLimits, explored: 5, expanded: 5, exercised: true}},
 		{"a transition claim reads both states by their map",
-			func(a *umpire.Machine[abstractDoor, doorOutcome, abstractFact]) *umpire.Property[abstractDoor] {
-				return a.Property("staysShut").HoldsAcross(func(before abstractDoor, after abstractStep) bool {
-					return before.Phase == shut && after.State.Phase == shut
-				})
-			},
 			func(tb *umpire.Table) *umpire.PropertyDecl {
 				return umpire.KeyTransitionProperty(tb, "staysShut", func(before string, s umpire.Result) (bool, error) {
 					return before == "shut" && s.State == "shut", nil
 				})
-			}, umpire.CounterexampleFound},
+			}, answered{outcome: umpire.CounterexampleFound, explored: 5, expanded: 5, exercised: true,
+				rows: []string{"closed-false-turn-right-true"}, explanation: "staysShut fails at {open, false}"}},
 	} {
 		t.Run(c.name, func(t *testing.T) {
-			abstract := abstractMachine(true)
-			concrete := newDoor("concrete").Refines(abstract, abstractOf)
-			typed := concrete.Scenario("anything").Starts(door{Phase: closed}).Free().
-				VerifyRefined("q", c.typed(abstract), concrete.Via(abstract), four)
-			want, err := typed.Answer()
-			require.NoError(t, err)
-			require.Equal(t, c.want, want.Outcome)
-
-			product := umpire.NewTable(keyCopy(tableOf(t, abstract)))
-			detail := umpire.NewTable(keyCopy(tableOf(t, concrete)))
+			product := abstractTable(true)
+			detail := doorTable("concrete")
 			ref, err := umpire.RefineTables(detail, product, umpire.RefinementSpec{MapState: abstractKeyOf})
 			require.NoError(t, err)
 			q := umpire.KeyVerifyRefined("q", c.keyed(product), umpire.KeyFreeScenario(detail, "anything", "closed-false"), ref, four)
 			got, err := q.Answer()
 			require.NoError(t, err)
-			require.Equal(t, want, got)
+			require.Equal(t, c.want.on(detail), got)
 			if got.Witness != nil {
 				require.NoError(t, q.Replay(got))
 				require.NoError(t, detail.Replay(got.Witness))
@@ -287,25 +271,14 @@ func TestKeyLevelThroughQueryReadsByMapAndName(t *testing.T) {
 }
 
 func TestAThroughQueryReadsKeysThroughAKeyRefinementOnly(t *testing.T) {
-	abstract := abstractMachine(true)
-	concrete := newDoor("concrete").Refines(abstract, abstractOf)
-	product := umpire.NewTable(keyCopy(tableOf(t, abstract)))
-	detail := umpire.NewTable(keyCopy(tableOf(t, concrete)))
+	product := abstractTable(true)
+	detail := doorTable("concrete")
 	ref, err := umpire.RefineTables(detail, product, umpire.RefinementSpec{MapState: abstractKeyOf})
 	require.NoError(t, err)
 	anywhere := umpire.KeyFreeScenario(detail, "anything", "closed-false")
-
-	typedClaim := abstract.Property("typed").HoldsAcross(func(abstractDoor, abstractStep) bool { return true })
-	_, err = umpire.KeyVerifyRefined("q", typedClaim.PropertyDecl, anywhere, ref, four).Answer()
-	require.EqualError(t, err, "query q: typed reads typed states, and the refinement of abstract by concrete reads keys")
-
-	typedRef, err := concrete.Refinement()
-	require.NoError(t, err)
 	keyClaim := umpire.KeyTransitionProperty(product, "keyed", always)
-	_, err = umpire.KeyVerifyRefined("q", keyClaim, anywhere, typedRef, four).Answer()
-	require.EqualError(t, err, "query q: keyed reads keys, and the refinement of abstract by concrete reads typed states")
 
-	other := umpire.NewTable(keyCopy(tableOf(t, abstract)))
+	other := abstractTable(true)
 	elsewhere := umpire.KeyTransitionProperty(other, "elsewhere", always)
 	_, err = umpire.KeyVerifyRefined("q", elsewhere, anywhere, ref, four).Answer()
 	require.EqualError(t, err, "query q: the refinement of abstract by concrete is not the one checked of the table "+

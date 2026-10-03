@@ -7,36 +7,23 @@ import (
 	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
 )
 
-// opening counts the door's openings, up to two.
-type opening int
-
-func (opening) Values() []opening { return []opening{0, 1, 2} }
-
-func countOpenings(at umpire.Evaluation) *umpire.Monitor {
-	return umpire.NewMonitor("openedTwice", opening(0),
-		func(n opening, before door, after doorStep) opening {
-			if before.Phase != open && after.State.Phase == open {
-				return min(n+1, 2)
-			}
-			return n
-		},
-		func(n opening) bool { return n == 2 }, at)
-}
+// countOpenings counts the door's openings, up to two: its states are "0", "1" and "2".
+func countOpenings(at umpire.Evaluation) *umpire.Monitor { return countOpeningKeys(at) }
 
 var four = umpire.Limits{Name: "four", Steps: 4, Actions: 4, Search: 64}
 
-func anything(m *umpire.Machine[door, doorOutcome, doorFact]) *umpire.Query {
-	always := m.Property("always").HoldsAcross(func(door, doorStep) bool { return true })
-	return m.Scenario("anything").Starts(door{Phase: closed}).Free().Verify("q", always, four)
+func anything(m *umpire.Table) *umpire.Query {
+	holds := umpire.KeyTransitionProperty(m, "always", always)
+	return umpire.KeyVerify("q", holds, umpire.KeyFreeScenario(m, "anything", "closed-false"), four)
 }
 
 func TestAMonitorKeepsDistinctHistoriesApart(t *testing.T) {
-	plain, err := anything(newDoor("door")).Answer()
+	plain, err := anything(doorTable("door")).Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.VerifiedWithinLimits, plain.Outcome)
 	require.Equal(t, 4, plain.Explored, "the start, and closed, open and locked after a step, whatever the path")
 
-	q := anything(newDoor("door")).Watch(countOpenings(umpire.EveryStep()))
+	q := anything(doorTable("door")).Watch(countOpenings(umpire.EveryStep()))
 	a, err := q.Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.CounterexampleFound, a.Outcome,
@@ -49,15 +36,14 @@ func TestAMonitorKeepsDistinctHistoriesApart(t *testing.T) {
 }
 
 func TestAMonitorNeverDisablesAStep(t *testing.T) {
-	m := newDoor("door")
-	opensTwice := m.Property("opensTwice").When(turn.With(right{Strong: true})).
-		Holds(func(s doorStep) bool { return s.State.Phase == open })
-	path := m.Scenario("twice").Starts(door{Phase: closed}).
-		Actions(turn.With(right{Strong: true}), push.With(), turn.With(right{Strong: true}))
-	plain, err := path.Find("q", opensTwice, four).Answer()
+	m := doorTable("door")
+	opensTwice := umpire.KeyProperty(m, "opensTwice", on("turn-right-true"), "turn-right-true",
+		func(s umpire.Result) (bool, error) { return phaseOf(s.State) == "open", nil })
+	path := umpire.KeyScenario(m, "twice", "closed-false", "turn-right-true", "push", "turn-right-true")
+	plain, err := umpire.KeyFind("q", opensTwice, path, four).Answer()
 	require.NoError(t, err)
 
-	q := path.Find("q", opensTwice, four).Watch(countOpenings(umpire.EveryStep()))
+	q := umpire.KeyFind("q", opensTwice, path, four).Watch(countOpenings(umpire.EveryStep()))
 	a, err := q.Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.Found, a.Outcome, "the violated monitor takes nothing away from the find")
@@ -69,43 +55,44 @@ func TestAMonitorNeverDisablesAStep(t *testing.T) {
 
 func TestAMonitorIsReadOnlyAtItsEvaluationPoint(t *testing.T) {
 	neverOpened := func(at umpire.Evaluation) *umpire.Monitor {
-		return umpire.NewMonitor("lockedUnopened", opening(0),
-			func(n opening, before door, after doorStep) opening {
-				if after.State.Phase == open {
-					return 1
+		return umpire.KeyMonitor("lockedUnopened", "0",
+			func(n, _ string, after umpire.Result) (string, error) {
+				if phaseOf(after.State) == "open" {
+					return "1", nil
 				}
-				return n
+				return n, nil
 			},
-			func(n opening) bool { return n == 0 }, at)
+			func(n string) (bool, error) { return n == "0", nil }, at)
 	}
 
-	a, err := anything(newDoor("door")).Watch(neverOpened(umpire.EveryStep())).Answer()
+	a, err := anything(doorTable("door")).Watch(neverOpened(umpire.EveryStep())).Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.CounterexampleFound, a.Outcome)
 	require.Equal(t, []string{"closed-false-lock"}, a.Rows)
 
-	a, err = anything(newDoor("door")).Watch(neverOpened(umpire.AtEnds())).Answer()
+	a, err = anything(doorTable("door")).Watch(neverOpened(umpire.AtEnds())).Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.CounterexampleFound, a.Outcome, "locked is an end, where the monitor is read")
 	require.Equal(t, []string{"closed-false-lock"}, a.Rows)
 
-	afterOpening := umpire.After(func(r umpire.Result) bool { return len(r.Facts) > 0 })
-	a, err = anything(newDoor("door")).Watch(neverOpened(afterOpening)).Answer()
+	afterOpening := umpire.AfterKey(func(r umpire.Result) (bool, error) { return len(r.Facts) > 0, nil })
+	a, err = anything(doorTable("door")).Watch(neverOpened(afterOpening)).Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.VerifiedWithinLimits, a.Outcome, "every step recording a fact opens the door")
 	require.Equal(t, []umpire.MonitorVerdict{{Name: "lockedUnopened", Verdict: umpire.MonitorHeld}}, a.Monitors)
 
-	m := newDoor("door")
-	locks := m.Property("locks").When(lock.With()).Holds(func(s doorStep) bool { return s.State.Phase == locked })
-	a, err = m.Scenario("lockAtOnce").Starts(door{Phase: closed}).Actions(lock.With()).
-		Find("q", locks, four).Watch(neverOpened(afterOpening)).Answer()
+	m := doorTable("door")
+	locks := umpire.KeyProperty(m, "locks", on("lock"), "lock",
+		func(s umpire.Result) (bool, error) { return phaseOf(s.State) == "locked", nil })
+	a, err = umpire.KeyFind("q", locks, umpire.KeyScenario(m, "lockAtOnce", "closed-false", "lock"), four).
+		Watch(neverOpened(afterOpening)).Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.Found, a.Outcome)
 	require.Equal(t, []umpire.MonitorVerdict{{Name: "lockedUnopened", State: "0", Verdict: umpire.MonitorUnread}}, a.Monitors)
 }
 
 func TestAReplayRejectsAWitnessTheModelDoesNotTake(t *testing.T) {
-	q := anything(newDoor("door")).Watch(countOpenings(umpire.EveryStep()))
+	q := anything(doorTable("door")).Watch(countOpenings(umpire.EveryStep()))
 	a, err := q.Answer()
 	require.NoError(t, err)
 
@@ -118,9 +105,8 @@ func TestAReplayRejectsAWitnessTheModelDoesNotTake(t *testing.T) {
 	jumped.Witness.Steps[1].State = umpire.Atom{ID: "test.door.state.door.locked-false", Value: "locked-false"}
 	require.ErrorContains(t, q.Replay(jumped), "step 2 takes push from 'open-false' to 'locked-false', which is no result of that row")
 
-	m := newDoor("door")
-	staysShut := m.Property("staysShut").HoldsAcross(func(_ door, after doorStep) bool { return after.State.Phase != open })
-	shut := m.Scenario("anything").Starts(door{Phase: closed}).Free().Verify("shut", staysShut, four)
+	m := doorTable("door")
+	shut := umpire.KeyVerify("shut", staysShutOn(m), umpire.KeyFreeScenario(m, "anything", "closed-false"), four)
 	a, err = shut.Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.CounterexampleFound, a.Outcome)
@@ -130,82 +116,46 @@ func TestAReplayRejectsAWitnessTheModelDoesNotTake(t *testing.T) {
 }
 
 func TestAQueryRejectsTwoMonitorsOfOneName(t *testing.T) {
-	q := anything(newDoor("door")).Watch(countOpenings(umpire.EveryStep()), countOpenings(umpire.AtEnds()))
+	q := anything(doorTable("door")).Watch(countOpenings(umpire.EveryStep()), countOpenings(umpire.AtEnds()))
 	_, err := q.Answer()
 	require.EqualError(t, err, "query q: two monitors are named openedTwice")
 }
 
-func TestAMonitorOfAnInfiniteStateTypeIsRejected(t *testing.T) {
-	endless := umpire.NewMonitor("endless", 0,
-		func(n int, _ door, _ doorStep) int { return n + 1 }, func(int) bool { return false }, umpire.EveryStep())
-	_, err := anything(newDoor("door")).Watch(endless).Answer()
-	require.ErrorContains(t, err, "monitor endless: state type: int is not finite")
+// A key-level Monitor's state is a key, with no type to enumerate: what is checked of its declaration
+// is that it names the functions that move and read that key.
+func TestAMonitorWithoutItsNextFunctionIsRejected(t *testing.T) {
+	endless := umpire.KeyMonitor("endless", "0", nil, func(string) (bool, error) { return false, nil }, umpire.EveryStep())
+	_, err := anything(doorTable("door")).Watch(endless).Answer()
+	require.EqualError(t, err, "query q: monitor endless: a Monitor names its next and violated functions")
 }
 
 func TestAMonitorWithoutANameIsRejected(t *testing.T) {
 	unnamed := countOpenings(umpire.EveryStep())
 	unnamed.Name = ""
-	_, err := anything(newDoor("door")).Watch(unnamed).Answer()
+	_, err := anything(doorTable("door")).Watch(unnamed).Answer()
 	require.EqualError(t, err, "query q: a monitor has no name")
 }
 
-// A machine whose two first steps reach one state by different outcomes.
-
-type fork string
-
-func (fork) Values() []fork { return []fork{"s0", "s1", "s2"} }
-
-type forkOutcome string
-
-func (forkOutcome) Values() []forkOutcome { return []forkOutcome{"l", "r", "ok"} }
-
-type forkStep = umpire.Step[fork, forkOutcome, keyFact]
-
-var (
-	goLeft  = umpire.NewAction0("left", "person")
-	goRight = umpire.NewAction0("right", "person")
-	goOn    = umpire.NewAction0("go", "person")
-)
-
-func forked() *umpire.Machine[fork, forkOutcome, keyFact] {
-	first := func(o forkOutcome) func(fork) []forkStep {
-		return func(s fork) []forkStep {
-			if s != "s0" {
-				return nil
-			}
-			return []forkStep{{Outcome: o, State: "s1"}}
-		}
-	}
-	return umpire.NewMachine[fork, forkOutcome, keyFact]("test.fork", "fork").
-		Starts("s0").
-		Ends(func(s fork) bool { return s == "s2" }).
-		Step0(goLeft, first("l")).Step0(goRight, first("r")).
-		Step0(goOn, func(s fork) []forkStep {
-			if s != "s1" {
-				return nil
-			}
-			return []forkStep{{Outcome: "ok", State: "s2"}}
-		})
-}
+// A machine whose two first steps reach one state by different outcomes: forkedTable of
+// keyclaims_test.go.
 
 // spells is a Monitor whose state is set, from its initial state, by the first step's outcome.
 func spells(name string, byOutcome map[string]string, violated string) *umpire.Monitor {
-	return &umpire.Monitor{Name: name, Initial: "i",
-		Next: func(key string, _ any, step umpire.Result) (string, error) {
+	return umpire.KeyMonitor(name, "i",
+		func(key, _ string, step umpire.Result) (string, error) {
 			if next, ok := byOutcome[step.Outcome]; ok && key == "i" {
 				return next, nil
 			}
 			return key, nil
 		},
-		Violated: func(key string) bool { return key == violated },
-		At:       umpire.After(func(r umpire.Result) bool { return r.State == "s2" }),
-	}
+		func(key string) (bool, error) { return key == violated, nil },
+		umpire.AfterKey(func(r umpire.Result) (bool, error) { return r.State == "s2", nil }))
 }
 
 func TestMonitorStatesThatSpellAlikeStayApart(t *testing.T) {
-	m := forked()
-	always := m.Property("always").HoldsAcross(func(fork, forkStep) bool { return true })
-	q := m.Scenario("anything").Starts("s0").Free().Verify("q", always, four).Watch(
+	m := forkedTable()
+	holds := umpire.KeyTransitionProperty(m, "always", always)
+	q := umpire.KeyVerify("q", holds, umpire.KeyFreeScenario(m, "anything", "s0"), four).Watch(
 		spells("first", map[string]string{"l": "x/false/false\x00y", "r": "x"}, ""),
 		spells("second", map[string]string{"l": "z", "r": "y/false/false\x00z"}, "y/false/false\x00z"))
 	a, err := q.Answer()
@@ -218,9 +168,9 @@ func TestMonitorStatesThatSpellAlikeStayApart(t *testing.T) {
 
 func TestACounterexampleFoundBeforeTheLimitStands(t *testing.T) {
 	cramped := umpire.Limits{Name: "cramped", Steps: 4, Actions: 4, Search: 6}
-	m := newDoor("door")
-	always := m.Property("always").HoldsAcross(func(door, doorStep) bool { return true })
-	q := m.Scenario("anything").Starts(door{Phase: closed}).Free().Verify("q", always, cramped).
+	m := doorTable("door")
+	holds := umpire.KeyTransitionProperty(m, "always", always)
+	q := umpire.KeyVerify("q", holds, umpire.KeyFreeScenario(m, "anything", "closed-false"), cramped).
 		Watch(countOpenings(umpire.EveryStep()))
 	a, err := q.Answer()
 	require.NoError(t, err)
@@ -233,9 +183,9 @@ func TestACounterexampleFoundBeforeTheLimitStands(t *testing.T) {
 
 func TestAViolationOnlyBeyondTheLimitIsLimitReached(t *testing.T) {
 	short := umpire.Limits{Name: "short", Steps: 4, Actions: 4, Search: 5}
-	m := newDoor("door")
-	always := m.Property("always").HoldsAcross(func(door, doorStep) bool { return true })
-	a, err := m.Scenario("anything").Starts(door{Phase: closed}).Free().Verify("q", always, short).
+	m := doorTable("door")
+	holds := umpire.KeyTransitionProperty(m, "always", always)
+	a, err := umpire.KeyVerify("q", holds, umpire.KeyFreeScenario(m, "anything", "closed-false"), short).
 		Watch(countOpenings(umpire.EveryStep())).Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.LimitReached, a.Outcome, "the monitor fails only at the sixth state, past the limit")
@@ -245,40 +195,37 @@ func TestAViolationOnlyBeyondTheLimitIsLimitReached(t *testing.T) {
 }
 
 func TestTheLimitBoundsEveryStateAPropertySearchVisits(t *testing.T) {
-	m := newDoor("door")
-	staysShut := m.Property("staysShut").HoldsAcross(func(_ door, after doorStep) bool { return after.State.Phase != open })
-	free := m.Scenario("anything").Starts(door{Phase: closed}).Free()
+	m := doorTable("door")
+	staysShut := staysShutOn(m)
+	free := umpire.KeyFreeScenario(m, "anything", "closed-false")
 	within := umpire.Limits{Name: "within", Steps: 2, Actions: 2, Search: 3}
-	a, err := free.Verify("q", staysShut, within).Answer()
+	a, err := umpire.KeyVerify("q", staysShut, free, within).Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.CounterexampleFound, a.Outcome, "the door opens at the third state")
 	require.Equal(t, []string{"closed-false-turn-right-true"}, a.Rows)
 
 	beyond := umpire.Limits{Name: "beyond", Steps: 2, Actions: 2, Search: 2}
-	a, err = free.Verify("q", staysShut, beyond).Answer()
+	a, err = umpire.KeyVerify("q", staysShut, free, beyond).Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.LimitReached, a.Outcome)
 	require.Equal(t, beyond.Search, a.Explored)
 
-	opensLoudly := m.Property("opensLoudly").When(turn.With(right{Strong: true})).
-		Holds(func(s doorStep) bool { return s.State.Phase == open })
-	path := m.Scenario("turnThenPush").Starts(door{Phase: closed}).Actions(turn.With(right{Strong: true}), push.With())
-	a, err = path.Find("q", opensLoudly, umpire.Limits{Name: "three", Steps: 2, Actions: 2, Search: 3}).Answer()
+	opensLoudly := opensLoudlyOn(m)
+	path := umpire.KeyScenario(m, "turnThenPush", "closed-false", "turn-right-true", "push")
+	a, err = umpire.KeyFind("q", opensLoudly, path, umpire.Limits{Name: "three", Steps: 2, Actions: 2, Search: 3}).Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.Found, a.Outcome, "the pinned trace completes at the third state")
-	a, err = path.Find("q", opensLoudly, beyond).Answer()
+	a, err = umpire.KeyFind("q", opensLoudly, path, beyond).Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.LimitReached, a.Outcome, "a trace completing past the limit is not searched")
 	require.Equal(t, beyond.Search, a.Explored)
 }
 
 func TestAReplayChecksEveryDefinitionID(t *testing.T) {
-	m := newDoor("door")
-	staysShut := m.Property("staysShut").HoldsAcross(func(_ door, after doorStep) bool { return after.State.Phase != open })
-	q := m.Scenario("anything").Starts(door{Phase: closed}).Free().Verify("shut", staysShut, four)
+	tb := doorTable("door")
+	q := umpire.KeyVerify("shut", staysShutOn(tb), umpire.KeyFreeScenario(tb, "anything", "closed-false"), four)
 	a, err := q.Answer()
 	require.NoError(t, err)
-	tb := tableOf(t, m)
 	require.NoError(t, tb.Replay(a.Witness))
 	require.Len(t, a.Witness.Steps[0].Facts, 2)
 

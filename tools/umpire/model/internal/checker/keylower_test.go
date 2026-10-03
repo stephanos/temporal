@@ -130,7 +130,7 @@ func TestAKeyLevelPropertyIsRefusedAsATypedOneIs(t *testing.T) {
 // A composed table has no reading of one member's field, which a composed claim needs, so a Property
 // of it is refused rather than lowered over whole composed states.
 func TestAPropertyOfAComposedTableIsNotLowered(t *testing.T) {
-	tb, err := umpire.ComposeTables(houseOf(keysOf(t, newDoor("door"), ""), umpire.ComposeMember{Table: keysOf(t, opaqueKey(), "")}))
+	tb, err := umpire.ComposeTables(houseOf(doorTable("door"), umpire.ComposeMember{Table: opaqueKeyTable()}))
 	require.NoError(t, err)
 	_, err = umpire.KeyProperty(tb, "p", nil, "", func(umpire.Result) (bool, error) { return true, nil }).Lower()
 	require.EqualError(t, err, "property p: a claim of a composition is searched and verified, never realized")

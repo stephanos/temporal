@@ -1,23 +1,13 @@
 package checker_test
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
 )
-
-// keysOf is a typed machine's table as a table of keys only. refined names the state field that
-// carries the machine it refines, which a typed table knows of itself.
-func keysOf(t *testing.T, m umpire.Model, refined string) *umpire.Table {
-	t.Helper()
-	spec := keyCopy(tableOf(t, m))
-	spec.RefinedField = refined
-	tb := umpire.NewTable(spec)
-	require.NoError(t, tb.Err())
-	return tb
-}
 
 // composition is what a composed table says, without the typed steps only a typed one carries.
 type composition struct {
@@ -42,6 +32,29 @@ func compositionOf(tb *umpire.Table) composition {
 	return c
 }
 
+// pinned is what the typed composition of the same members said: the typed compositions are retired,
+// and ComposeTables matched each of them whole before they were. The Behavior Fingerprint sorts what
+// it reads, so Order holds the order of the states, actions, row keys and reachable states, which
+// decides a search's order and its explored counts.
+type pinned struct {
+	Fingerprint, Order          string
+	Starts, Ends, StateFields   []string
+	Assumptions                 []umpire.Assumption
+	States, Rows, ReachableSize int
+}
+
+func pinOf(tb *umpire.Table) pinned {
+	c := compositionOf(tb)
+	rows := make([]string, len(c.Rows))
+	for i, r := range c.Rows {
+		rows[i] = r.Key
+	}
+	order := sha256.Sum256(fmt.Appendf(nil, "%q\n%q\n%q\n%q\n", c.States, c.Actions, rows, c.Reachable))
+	return pinned{Fingerprint: c.Fingerprint, Order: fmt.Sprintf("sha256:%x", order), Starts: c.Starts,
+		Ends: c.Ends, StateFields: c.StateFields, Assumptions: c.Assumptions, States: len(c.States),
+		Rows: len(c.Rows), ReachableSize: len(c.Reachable)}
+}
+
 var (
 	roomy    = umpire.ComposeCeiling{States: 1 << 12, Evaluations: 1 << 16, Results: 1 << 16}
 	lockSync = umpire.ComposeSync{Name: "lock", FirstMember: "door", FirstAction: "lock",
@@ -50,7 +63,7 @@ var (
 
 func keyOfWornKey(state string) (string, error) { return phaseOf(state), nil }
 
-// houseOf composes a door and a key as the typed houses of compose_test.go do.
+// houseOf composes a door and a key, as the houses of compose_test.go are composed.
 func houseOf(doorTable *umpire.Table, key umpire.ComposeMember) umpire.ComposeSpec {
 	key.Field = "key"
 	return umpire.ComposeSpec{Family: "test.door", Name: "house", Ceiling: roomy,
@@ -58,124 +71,124 @@ func houseOf(doorTable *umpire.Table, key umpire.ComposeMember) umpire.ComposeSp
 }
 
 // replacing is a detailed key standing in for the opaque one it refines.
-func replacing(t *testing.T, detailed, opaque umpire.Model) umpire.ComposeMember {
-	return umpire.ComposeMember{Table: keysOf(t, detailed, opaque.Name()), Replaces: keysOf(t, opaque, ""),
-		Refinement: umpire.RefinementSpec{MapState: keyOfWornKey}}
+func replacing(detailed, opaque *umpire.Table) umpire.ComposeMember {
+	return umpire.ComposeMember{Table: detailed, Replaces: opaque, Refinement: umpire.RefinementSpec{MapState: keyOfWornKey}}
 }
 
 func TestComposeTablesMatchesTypedComposition(t *testing.T) {
 	fairDoor := umpire.Assumption{Name: "doorIsFair", Fair: []string{"push", "lock"}}
+	plainHouse := pinned{Fingerprint: "sha256:54d1eff41b8b7d65efc9fd6cf04bb29ece24fcd29a5da624cd9d5dea12bbfcee",
+		Order:  "sha256:4fe8dadb0037cfdd85f6cf51991eac2ebb06890d01d2123839d3177b239add72",
+		Starts: []string{"closed-false_holding"}, StateFields: []string{"door_phase", "door_oiled", "key"},
+		States: 6, Rows: 8, ReachableSize: 6}
+	wornHouse := pinned{Fingerprint: "sha256:a78ef2f2aac99cba5bbee591e8785f633e5e29dd4ff9591a8740921a412d9e02",
+		Order:  "sha256:bd63853073becd08ccfec73970922edebff88d2918a58fae9fffb97cc3436198",
+		Starts: []string{"closed-false_holding-false"}, StateFields: []string{"door_phase", "door_oiled", "key_phase", "key_worn"},
+		States: 6, Rows: 8, ReachableSize: 6}
+	with := func(p pinned, change func(*pinned)) pinned {
+		change(&p)
+		return p
+	}
 	for _, c := range []struct {
 		name  string
-		build func(t *testing.T) (umpire.Model, umpire.ComposeSpec)
+		build func() umpire.ComposeSpec
+		want  pinned
 	}{
-		{"a door of two starts", func(t *testing.T) (umpire.Model, umpire.ComposeSpec) {
-			either := newDoor("door").Starts(door{Phase: closed}, door{Phase: closed, Oiled: true})
-			return umpire.Compose[house]("test.door", "house").
-					Member("door", either).Member("key", keyholder).Sync("lock", "door.lock", "key.useKey"),
-				houseOf(keysOf(t, either, ""), umpire.ComposeMember{Table: keysOf(t, keyholder, "")})
-		}},
-		{"no synchronized step", func(t *testing.T) (umpire.Model, umpire.ComposeSpec) {
-			spec := houseOf(keysOf(t, newDoor("door"), ""), umpire.ComposeMember{Table: keysOf(t, keyholder, "")})
+		{"a door of two starts", func() umpire.ComposeSpec {
+			either := doorTable("door", startsAt("closed-false", "closed-true"))
+			return houseOf(either, umpire.ComposeMember{Table: keyholderTable("keyholder")})
+		}, pinned{Fingerprint: "sha256:8cf225282415088a8552902223a13c26bec4145a709112fb51941ea334969d62",
+			Order:  "sha256:17ebc1fbbf9024a5bfa77ffa52aa6033a964d668ef33ea0505bcfe11735430f6",
+			Starts: []string{"closed-false_holding", "closed-true_holding"}, StateFields: plainHouse.StateFields,
+			States: 12, Rows: 16, ReachableSize: 12}},
+		{"no synchronized step", func() umpire.ComposeSpec {
+			spec := houseOf(doorTable("door"), umpire.ComposeMember{Table: keyholderTable("keyholder")})
 			spec.Syncs = nil
-			return umpire.Compose[house]("test.door", "house").Member("door", newDoor("door")).Member("key", keyholder), spec
-		}},
-		{"the states it may end in", func(t *testing.T) (umpire.Model, umpire.ComposeSpec) {
-			spec := houseOf(keysOf(t, newDoor("door"), ""), umpire.ComposeMember{Table: keysOf(t, keyholder, "")})
+			return spec
+		}, pinned{Fingerprint: "sha256:dd8889c307eca424fc05e9c04a050123a9839586a8050c69ae0a9a0c6d3c5ce1",
+			Order:  "sha256:a2e1f770942bee95814d2e8d4b3d3b779a3f0d229470757109309f0077d4647c",
+			Starts: plainHouse.Starts, StateFields: plainHouse.StateFields, States: 6, Rows: 12, ReachableSize: 6}},
+		{"the states it may end in", func() umpire.ComposeSpec {
+			spec := houseOf(doorTable("door"), umpire.ComposeMember{Table: keyholderTable("keyholder")})
 			spec.Ends = func(_ string, parts []string) (bool, error) {
 				return phaseOf(parts[0]) == "locked" && parts[1] == "holding", nil
 			}
-			return umpire.Compose[house]("test.door", "house").
-				Member("door", newDoor("door")).Member("key", keyholder).Sync("lock", "door.lock", "key.useKey").
-				Ends(func(h house) bool { return h.Door.Phase == locked && h.Key.Phase == holding }), spec
-		}},
-		{"an opaque key", func(t *testing.T) (umpire.Model, umpire.ComposeSpec) {
-			oiled, opaque := newDoor("door").Assumes(doorIsOiled), opaqueKey()
-			return umpire.Compose[house]("test.door", "house").
-					Member("door", oiled).Member("key", opaque).Sync("lock", "door.lock", "key.useKey"),
-				houseOf(keysOf(t, oiled, ""), umpire.ComposeMember{Table: keysOf(t, opaque, "")})
-		}},
-		{"a refining key in the opaque one's place", func(t *testing.T) (umpire.Model, umpire.ComposeSpec) {
-			oiled, opaque := newDoor("door").Assumes(doorIsOiled), opaqueKey()
-			detailed := detailedKey("detailedKey", false).Refines(opaque, keyOfWorn)
-			return umpire.Compose[wornHouse]("test.door", "house").
-					Member("door", oiled).Member("key", detailed).Replaces("key", opaque).Sync("lock", "door.lock", "key.useKey"),
-				houseOf(keysOf(t, oiled, ""), replacing(t, detailed, opaque))
-		}},
-		{"a replacing key that states the opaque one's assumption", func(t *testing.T) (umpire.Model, umpire.ComposeSpec) {
-			oiled, opaque := newDoor("door").Assumes(doorIsOiled), opaqueKey()
-			inherits := detailedKey("detailedKey", false).Assumes(keyIsOpaque).Refines(opaque, keyOfWorn)
-			return umpire.Compose[wornHouse]("test.door", "house").
-					Member("door", oiled).Member("key", inherits).Replaces("key", opaque).Sync("lock", "door.lock", "key.useKey"),
-				houseOf(keysOf(t, oiled, ""), replacing(t, inherits, opaque))
-		}},
-		{"a door that states the replaced key's assumption", func(t *testing.T) (umpire.Model, umpire.ComposeSpec) {
-			relies, opaque := newDoor("door").Assumes(doorIsOiled, keyIsOpaque), opaqueKey()
-			inherits := detailedKey("detailedKey", false).Assumes(keyIsOpaque).Refines(opaque, keyOfWorn)
-			return umpire.Compose[wornHouse]("test.door", "house").
-					Member("door", relies).Member("key", inherits).Replaces("key", opaque).Sync("lock", "door.lock", "key.useKey"),
-				houseOf(keysOf(t, relies, ""), replacing(t, inherits, opaque))
-		}},
-		{"a member's fair classes", func(t *testing.T) (umpire.Model, umpire.ComposeSpec) {
-			fair := newDoor("door").Assumes(fairDoor)
-			return umpire.Compose[house]("test.door", "house").
-					Member("door", fair).Member("key", keyholder).Sync("lock", "door.lock", "key.useKey"),
-				houseOf(keysOf(t, fair, ""), umpire.ComposeMember{Table: keysOf(t, keyholder, "")})
-		}},
+			return spec
+		}, with(plainHouse, func(p *pinned) { p.Ends = []string{"locked-false_holding"} })},
+		{"an opaque key", func() umpire.ComposeSpec {
+			return houseOf(doorTable("door", assumes(doorIsOiled)), umpire.ComposeMember{Table: opaqueKeyTable()})
+		}, with(plainHouse, func(p *pinned) { p.Assumptions = []umpire.Assumption{doorIsOiled, keyIsOpaque} })},
+		{"a refining key in the opaque one's place", func() umpire.ComposeSpec {
+			detailed := detailedKeyTable("detailedKey", false, refining("opaqueKey"))
+			return houseOf(doorTable("door", assumes(doorIsOiled)), replacing(detailed, opaqueKeyTable()))
+		}, with(wornHouse, func(p *pinned) { p.Assumptions = []umpire.Assumption{doorIsOiled} })},
+		{"a replacing key that states the opaque one's assumption", func() umpire.ComposeSpec {
+			inherits := detailedKeyTable("detailedKey", false, assumes(keyIsOpaque), refining("opaqueKey"))
+			return houseOf(doorTable("door", assumes(doorIsOiled)), replacing(inherits, opaqueKeyTable()))
+		}, with(wornHouse, func(p *pinned) { p.Assumptions = []umpire.Assumption{doorIsOiled, keyIsOpaque} })},
+		{"a door that states the replaced key's assumption", func() umpire.ComposeSpec {
+			inherits := detailedKeyTable("detailedKey", false, assumes(keyIsOpaque), refining("opaqueKey"))
+			return houseOf(doorTable("door", assumes(doorIsOiled, keyIsOpaque)), replacing(inherits, opaqueKeyTable()))
+		}, with(wornHouse, func(p *pinned) { p.Assumptions = []umpire.Assumption{doorIsOiled, keyIsOpaque} })},
+		{"a member's fair classes", func() umpire.ComposeSpec {
+			return houseOf(doorTable("door", assumes(fairDoor)), umpire.ComposeMember{Table: keyholderTable("keyholder")})
+		}, with(plainHouse, func(p *pinned) {
+			p.Assumptions = []umpire.Assumption{{Name: "doorIsFair", Fair: []string{"door_push", "lock"}}}
+		})},
 	} {
 		t.Run(c.name, func(t *testing.T) {
-			typed, spec := c.build(t)
-			got, err := umpire.ComposeTables(spec)
+			got, err := umpire.ComposeTables(c.build())
 			require.NoError(t, err)
-			require.Equal(t, compositionOf(tableOf(t, typed)), compositionOf(got))
+			require.Equal(t, c.want, pinOf(got))
 			require.Empty(t, got.Unknown)
 		})
 	}
 }
 
 func TestComposeTablesKeepsEveryAssumptionOfAReplacingMember(t *testing.T) {
-	opaque := opaqueKey()
-	inherits := detailedKey("detailedKey", false).Assumes(keyIsOpaque).Refines(opaque, keyOfWorn)
-	tb, err := umpire.ComposeTables(houseOf(keysOf(t, newDoor("door").Assumes(doorIsOiled), ""), replacing(t, inherits, opaque)))
+	inherits := detailedKeyTable("detailedKey", false, assumes(keyIsOpaque), refining("opaqueKey"))
+	tb, err := umpire.ComposeTables(houseOf(doorTable("door", assumes(doorIsOiled)), replacing(inherits, opaqueKeyTable())))
 	require.NoError(t, err)
 	require.Equal(t, []umpire.Assumption{doorIsOiled, keyIsOpaque}, tb.Assumptions,
 		"the replacing member declares it itself, whatever the table it replaces names")
 	require.Equal(t, []string{"door_phase", "door_oiled", "key_phase", "key_worn"}, tb.StateFields,
 		"the field that reads the key as the opaque one is no field of the composition")
 
-	unnamed := replacing(t, inherits, opaque)
-	unnamed.Table = keysOf(t, inherits, "")
-	tb, err = umpire.ComposeTables(houseOf(keysOf(t, newDoor("door"), ""), unnamed))
+	unnamed := replacing(detailedKeyTable("detailedKey", false, assumes(keyIsOpaque), func(s *umpire.TableSpec) {
+		s.StateFields = append(s.StateFields, "opaqueKey")
+	}), opaqueKeyTable())
+	tb, err = umpire.ComposeTables(houseOf(doorTable("door"), unnamed))
 	require.NoError(t, err)
 	require.Contains(t, tb.StateFields, "key_opaqueKey", "a table that does not name its refined field keeps it")
 
-	tb, err = umpire.ComposeTables(houseOf(keysOf(t, newDoor("door").Assumes(doorIsOiled, keyIsOpaque), ""),
-		replacing(t, inherits, opaque)))
+	tb, err = umpire.ComposeTables(houseOf(doorTable("door", assumes(doorIsOiled, keyIsOpaque)),
+		replacing(inherits, opaqueKeyTable())))
 	require.NoError(t, err)
 	require.Equal(t, []umpire.Assumption{doorIsOiled, keyIsOpaque}, tb.Assumptions,
 		"the door relies on the opaque key's assumption on its own")
 }
 
 func TestComposeTablesStartsInEveryMemberStart(t *testing.T) {
-	either := newDoor("door").Starts(door{Phase: closed}, door{Phase: closed, Oiled: true})
-	anyKey := opaqueKey().Starts(keyState{holding}, keyState{lost})
-	tb, err := umpire.ComposeTables(houseOf(keysOf(t, either, ""), umpire.ComposeMember{Table: keysOf(t, anyKey, "")}))
+	either := doorTable("door", startsAt("closed-false", "closed-true"))
+	anyKey := opaqueKeyTable(startsAt("holding", "lost"))
+	tb, err := umpire.ComposeTables(houseOf(either, umpire.ComposeMember{Table: anyKey}))
 	require.NoError(t, err)
 	require.Equal(t, []string{"closed-false_holding", "closed-false_lost", "closed-true_holding", "closed-true_lost"},
 		tb.Starts, "the product of the members' starts, the last member fastest")
-	typed := tableOf(t, umpire.Compose[house]("test.door", "house").
-		Member("door", either).Member("key", anyKey).Sync("lock", "door.lock", "key.useKey"))
-	require.Equal(t, compositionOf(typed), compositionOf(tb))
+	require.Equal(t, pinned{Fingerprint: "sha256:938611d9b591c741e5cf64447c55ff040ce8d0c4873831ed8d522fbb88ce25bf",
+		Order:       "sha256:d98b0a9e423cbf3dee017c8779059b27606e6bc9e53974679e976d1ac238c9ba",
+		Starts:      []string{"closed-false_holding", "closed-false_lost", "closed-true_holding", "closed-true_lost"},
+		StateFields: []string{"door_phase", "door_oiled", "key"},
+		Assumptions: []umpire.Assumption{keyIsOpaque}, States: 12, Rows: 16, ReachableSize: 12}, pinOf(tb))
 	require.Contains(t, tb.Reachable, "open-true_lost", "an oiled door opens from its own start")
 }
 
 func TestComposeTablesReplacementCoversEveryOpaqueStart(t *testing.T) {
-	opaque := opaqueKey().Starts(keyState{holding}, keyState{lost})
-	detailed := detailedKey("detailedKey", false).Refines(opaque, keyOfWorn)
-	member := replacing(t, detailed, opaque)
+	opaque := opaqueKeyTable(startsAt("holding", "lost"))
+	member := replacing(detailedKeyTable("detailedKey", false, refining("opaqueKey")), opaque)
 	_, err := umpire.RefineTables(member.Table, member.Replaces, member.Refinement)
 	require.NoError(t, err, "on its own, the refinement may start in fewer states")
-	tb, err := umpire.ComposeTables(houseOf(keysOf(t, newDoor("door"), ""), member))
+	tb, err := umpire.ComposeTables(houseOf(doorTable("door"), member))
 	require.EqualError(t, err, "detailedKey refines opaqueKey: opaqueKey starts at 'lost', which no start of detailedKey reads as")
 	re := refinementError(t, err)
 	require.Equal(t, umpire.RefinementInitial, re.Kind)
@@ -184,10 +197,8 @@ func TestComposeTablesReplacementCoversEveryOpaqueStart(t *testing.T) {
 }
 
 func TestComposeTablesViolatingProviderFails(t *testing.T) {
-	opaque := opaqueKey()
-	finder := detailedKey("finderKey", true).Refines(opaque, keyOfWorn)
-	member := replacing(t, finder, opaque)
-	_, err := umpire.ComposeTables(houseOf(keysOf(t, newDoor("door"), ""), member))
+	member := replacing(detailedKeyTable("finderKey", true, refining("opaqueKey")), opaqueKeyTable())
+	_, err := umpire.ComposeTables(houseOf(doorTable("door"), member))
 	re := refinementError(t, err)
 	require.Equal(t, umpire.RefinementUnmatched, re.Kind)
 	require.ErrorContains(t, err, "finderKey refines opaqueKey: the row 'lost-false-findKey'")
@@ -197,22 +208,22 @@ func TestComposeTablesViolatingProviderFails(t *testing.T) {
 }
 
 func TestComposeTablesRejectsCollidingKeys(t *testing.T) {
-	heads := umpire.NewMachine[head, doorOutcome, keyFact]("test.join", "heads").Starts("a_b", "a")
-	tails := umpire.NewMachine[tail, doorOutcome, keyFact]("test.join", "tails").Starts("c", "b_c")
+	heads := joinTable("heads", []string{"a", "a_b"}, []string{"a_b", "a"})
+	tails := joinTable("tails", []string{"c", "b_c"}, []string{"c", "b_c"})
 	_, err := umpire.ComposeTables(umpire.ComposeSpec{Family: "test.join", Name: "joint", Ceiling: roomy,
-		Members: []umpire.ComposeMember{{Field: "head", Table: keysOf(t, heads, "")}, {Field: "tail", Table: keysOf(t, tails, "")}}})
+		Members: []umpire.ComposeMember{{Field: "head", Table: heads}, {Field: "tail", Table: tails}}})
 	require.EqualError(t, err, "compose-joint: the member states [a_b c] and [a b_c] are both keyed 'a_b_c', "+
 		"so the composed key does not tell them apart")
 }
 
 func TestComposeTablesDeclarationsAreChecked(t *testing.T) {
-	doorTable, keyTable := keysOf(t, newDoor("door"), ""), keysOf(t, keyholder, "")
-	plain := func() umpire.ComposeSpec { return houseOf(doorTable, umpire.ComposeMember{Table: keyTable}) }
+	doors, keys := doorTable("door"), keyholderTable("keyholder")
+	plain := func() umpire.ComposeSpec { return houseOf(doors, umpire.ComposeMember{Table: keys}) }
 	identity := umpire.RefinementSpec{MapState: func(s string) (string, error) { return s, nil }}
 	ghost := umpire.Assumption{Name: "ghostIsFair", Fair: []string{"ghost"}}
-	malformed := keyCopy(keyTable)
+	malformed := keyCopy(keys)
 	malformed.Unknown = []umpire.UnknownPair{{Row: "nowhere-useKey", Source: "nowhere", Action: "useKey"}}
-	startless := keyCopy(keyTable)
+	startless := keyCopy(keys)
 	startless.Starts = nil
 	for want, change := range map[string]func(*umpire.ComposeSpec){
 		"compose-house: sync fly names door.fly, and door has no action fly": func(s *umpire.ComposeSpec) {
@@ -222,7 +233,7 @@ func TestComposeTablesDeclarationsAreChecked(t *testing.T) {
 			s.Members = s.Members[:1]
 		},
 		"compose-house: the assumption ghostIsFair of door makes ghost fair, which is no action of door": func(s *umpire.ComposeSpec) {
-			s.Members[0].Table = keysOf(t, newDoor("door").Assumes(ghost), "")
+			s.Members[0].Table = doorTable("door", assumes(ghost))
 		},
 		"compose-house: the ceiling allows 0 states, 1 evaluations and 1 results, and a composition is bounded by one above 0 of each": func(s *umpire.ComposeSpec) {
 			s.Ceiling = umpire.ComposeCeiling{Evaluations: 1, Results: 1}
@@ -244,7 +255,7 @@ func TestComposeTablesDeclarationsAreChecked(t *testing.T) {
 			s.Members[1].Refinement = identity
 		},
 		"compose-house: the member key replaces keyholder, and names no map that reads keyholder as it": func(s *umpire.ComposeSpec) {
-			s.Members[1].Replaces = keyTable
+			s.Members[1].Replaces = keys
 		},
 	} {
 		spec := plain()
@@ -371,7 +382,7 @@ func TestComposeTablesPropagatesUnknownPairs(t *testing.T) {
 }
 
 func TestComposeTablesEndsErrorKeepsItsType(t *testing.T) {
-	spec := houseOf(keysOf(t, newDoor("door"), ""), umpire.ComposeMember{Table: keysOf(t, keyholder, "")})
+	spec := houseOf(doorTable("door"), umpire.ComposeMember{Table: keyholderTable("keyholder")})
 	spec.Ends = func(key string, _ []string) (bool, error) { return false, &hole{key} }
 	tb, err := umpire.ComposeTables(spec)
 	require.EqualError(t, err, "compose-house: a hole at closed-false_holding")
@@ -382,7 +393,7 @@ func TestComposeTablesEndsErrorKeepsItsType(t *testing.T) {
 }
 
 func TestAComposedStepNamesItsMemberMoves(t *testing.T) {
-	tb, err := umpire.ComposeTables(houseOf(keysOf(t, newDoor("door"), ""), umpire.ComposeMember{Table: keysOf(t, keyholder, "")}))
+	tb, err := umpire.ComposeTables(houseOf(doorTable("door"), umpire.ComposeMember{Table: keyholderTable("keyholder")}))
 	require.NoError(t, err)
 	parts, ok := tb.Parts("closed-false_holding")
 	require.True(t, ok)
