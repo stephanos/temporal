@@ -85,8 +85,17 @@ func runGit(t *testing.T, directory string, arguments ...string) {
 
 // TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes bumps a module the
 // pack activates on, refreshes through the real pin impact report against the
-// Git baseline, approves the printed digest, and reruns.
+// Git baseline, approves the printed digest, and reruns. Refresh judges the
+// packs of --compatibility-root whatever GOMAD3_COMPATIBILITY_PACKS names.
 func TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes(t *testing.T) {
+	for _, environment := range []string{"unset", "root packs", "elsewhere"} {
+		t.Run(environment, func(t *testing.T) {
+			testRunCompatibilityPackRefresh(t, environment)
+		})
+	}
+}
+
+func testRunCompatibilityPackRefresh(t *testing.T, environment string) {
 	goCommand, err := exec.LookPath("go")
 	if err != nil {
 		t.Skip("go command is unavailable")
@@ -158,7 +167,14 @@ func TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(packRoot, authoring.WorkingDirectoriesFile), []byte(table), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	t.Setenv(compatibility.ExternalPacksEnvironment, filepath.Join(packRoot, "packs"))
+	switch environment {
+	case "unset":
+		t.Setenv(compatibility.ExternalPacksEnvironment, "")
+	case "root packs":
+		t.Setenv(compatibility.ExternalPacksEnvironment, filepath.Join(packRoot, "packs"))
+	default:
+		t.Setenv(compatibility.ExternalPacksEnvironment, t.TempDir())
+	}
 	runGit(t, repository, "init", "-q")
 	runGit(t, repository, "add", ".")
 	runGit(t, repository, "commit", "-q", "-m", "baseline")
@@ -207,5 +223,60 @@ func TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes(t *testing.T) {
 	stderr.Reset()
 	if status := run(refresh, &stdout, &stderr); status != 2 || !strings.Contains(stderr.String(), "refresh-pack") {
 		t.Fatalf("unmapped status = %d: %s", status, stderr.String())
+	}
+}
+
+// TestRunCompatibilityPackCheckRequiresTheRepositoryWorkingDirectoryTable
+// deletes the table of the default root, which validate checks, and expects
+// check to fail; a downstream --compatibility-root may omit it.
+func TestRunCompatibilityPackCheckRequiresTheRepositoryWorkingDirectoryTable(t *testing.T) {
+	root := t.TempDir()
+	packRoot := filepath.Join(root, "internal", "compatibilitypack")
+	moduleDirectory := filepath.Join(root, "target")
+	for _, directory := range []string{packRoot, moduleDirectory} {
+		if err := os.MkdirAll(directory, 0o700); err != nil {
+			t.Fatal(err)
+		}
+	}
+	writeRefreshModule(t, moduleDirectory, "v1.0.0")
+	draft := authoring.Request{
+		Schema: authoring.RequestSchema, ID: "check-pack",
+		Target:     authoring.Target{Kind: target.KindGoTest, Package: ".", TestArguments: []string{}, BuildTags: []string{}, ExpectedModule: "example.test/refreshtarget"},
+		Activation: []authoring.Activation{{Path: refreshDependency}},
+		Packages: []authoring.Package{{
+			ImportPath: refreshDependency + "/runtime",
+			Facts:      []authoring.Fact{{Kind: authoring.FactCapability, Capability: "import:syscall", Directives: []string{}, Disposition: authoring.DispositionAllow}},
+		}},
+		Owner: "runtime-team", ReviewedAt: "2026-10-03T00:00:00Z", Justification: "Check fixture.",
+		Workloads: []string{"check-fixture"}, Platforms: []string{runtime.GOOS + "/" + runtime.GOARCH},
+	}
+	review, err := fakeRefreshReviewer(map[string]string{})(context.Background(), draft, moduleDirectory)
+	if err != nil {
+		t.Fatal(err)
+	}
+	discovered, digest, err := authoring.Discover(draft, review)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := authoring.Generate(packRoot, discovered, digest); err != nil {
+		t.Fatal(err)
+	}
+	check := func(arguments ...string) (int, string) {
+		var stdout, stderr bytes.Buffer
+		status := run(append([]string{"compatibility-pack", "check", "--root=" + root}, arguments...), &stdout, &stderr)
+		return status, stderr.String()
+	}
+	if status, stderr := check(); status != 1 || !strings.Contains(stderr, authoring.WorkingDirectoriesFile) {
+		t.Fatalf("check without the table = %d: %s", status, stderr)
+	}
+	if status, stderr := check("--compatibility-root=" + packRoot); status != 0 {
+		t.Fatalf("check of a downstream root without the table = %d: %s", status, stderr)
+	}
+	table := `{"requests":[{"directory":"../../target","request":"check-pack"}],"schema":"` + authoring.WorkingDirectoriesSchema + `"}` + "\n"
+	if err := os.WriteFile(filepath.Join(packRoot, authoring.WorkingDirectoriesFile), []byte(table), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if status, stderr := check(); status != 0 {
+		t.Fatalf("check with the table = %d: %s", status, stderr)
 	}
 }

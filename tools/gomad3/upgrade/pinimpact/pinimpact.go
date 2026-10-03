@@ -72,6 +72,9 @@ type Spec struct {
 	Baseline  ModuleFiles
 	Candidate ModuleFiles
 	Resolver  Resolver
+	// Packs loads the compatibility packs whose rules are judged. Nil loads
+	// the packs the build selects from (compatibility.LoadPacks).
+	Packs func() ([]compatibility.ValidatedPack, error)
 }
 
 type Report struct {
@@ -154,7 +157,11 @@ func Evaluate(ctx context.Context, spec Spec) (Report, error) {
 	}
 	evaluation := evaluation{baseline: baseline, candidate: candidate, adapters: deterministicio.Default().Adapters()}
 	evaluation.evaluateAdapters()
-	packs, packErr := compatibility.LoadPacks()
+	loadPacks := spec.Packs
+	if loadPacks == nil {
+		loadPacks = compatibility.LoadPacks
+	}
+	packs, packErr := loadPacks()
 	evaluation.evaluatePacks(packs, packErr)
 	toolchainReason := candidate.toolchainReason()
 	evaluation.evaluateInterceptions(spec.Root, toolchainReason)

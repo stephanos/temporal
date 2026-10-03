@@ -875,7 +875,8 @@ make -C tools/gomad3 validate compatibility-pack-qualification
 
 `internal/compatibilitypack/working-directories.json` names the module
 directory each request is discovered and qualified in; every request needs
-exactly one entry, and `check` rejects a request without one.
+exactly one entry in a directory holding a `go.mod`, and `check` rejects a
+request without one and, for this repository's root, a missing table.
 `compatibility-pack-qualification` qualifies every request that names the host
 platform in its mapped directory (`compatibility-pack qualify --all`).
 
@@ -903,8 +904,8 @@ directory no longer requires its modules is reported as unselected. Rerunning
 after approving some requests reports only the rest. Status 0 means nothing is
 left to do, 1 that a request awaits approval, cannot be evaluated here, failed,
 or is unselected, 2 invalid input, and 3 an infrastructure failure. An external
-pack root is refreshed with `--compatibility-root` and
-`GOMAD3_COMPATIBILITY_PACKS` set to its `packs/`, as below.
+pack root is refreshed with `--compatibility-root`, as below; refresh judges
+the packs in that root's `packs/` whatever `GOMAD3_COMPATIBILITY_PACKS` names.
 
 A pack variant is removed together with its request, report, and
 working-directory entry, and only with retained evidence that no module,

@@ -170,6 +170,16 @@ func loadExternalPacks(directory string) ([]ValidatedPack, error) {
 	return result, nil
 }
 
+// LoadPackDirectory returns the packs in directory, such as an authoring
+// root's packs/, under the validation external packs receive. A missing
+// directory holds no packs.
+func LoadPackDirectory(directory string) ([]ValidatedPack, error) {
+	if _, err := os.Stat(directory); errors.Is(err, os.ErrNotExist) {
+		return []ValidatedPack{}, nil
+	}
+	return loadExternalPacks(directory)
+}
+
 func SelectPacks(packs []ValidatedPack, packages []Package) (Selection, error) {
 	return SelectPacksForPlatform(packs, packages, runtime.GOOS+"/"+runtime.GOARCH)
 }

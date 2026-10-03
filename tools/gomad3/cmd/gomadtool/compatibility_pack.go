@@ -199,6 +199,14 @@ func runCompatibilityPackCheck(arguments []string, stdout, stderr io.Writer) int
 		fmt.Fprintln(stderr, err)
 		return 1
 	}
+	// The repository's own packs are refreshed and qualified through the
+	// table, so it must exist; deleting it must not pass validation.
+	if *compatibilityRootOverride == "" {
+		if err := authoring.CheckWorkingDirectories(compatibilityRoot); err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+	}
 	fmt.Fprintln(stdout, "compatibility packs are current")
 	return 0
 }

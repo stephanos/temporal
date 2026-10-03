@@ -7,6 +7,7 @@ import (
 	"go/format"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -139,8 +140,37 @@ func Check(root string) error {
 	}
 	// A root with a working-directory table must map exactly its requests.
 	if _, err := os.Lstat(filepath.Join(root, WorkingDirectoriesFile)); err == nil {
-		if _, err := workingDirectoriesFor(root, requests); err != nil {
-			return err
+		return checkWorkingDirectories(root, requests)
+	}
+	return nil
+}
+
+// CheckWorkingDirectories requires root's working-directory table, which
+// refresh and qualify --all read, to exist and to map exactly root's
+// requests, each to a directory holding a go.mod. Check enforces the table
+// only where it exists, because a downstream root may never refresh.
+func CheckWorkingDirectories(root string) error {
+	requests, err := loadRequests(root, false)
+	if err != nil {
+		return err
+	}
+	return checkWorkingDirectories(root, requests)
+}
+
+func checkWorkingDirectories(root string, requests map[string]Request) error {
+	directories, err := workingDirectoriesFor(root, requests)
+	if err != nil {
+		return err
+	}
+	ids := make([]string, 0, len(directories))
+	for id := range directories {
+		ids = append(ids, id)
+	}
+	slices.Sort(ids)
+	for _, id := range ids {
+		info, err := os.Stat(filepath.Join(directories[id], "go.mod"))
+		if err != nil || !info.Mode().IsRegular() {
+			return &InputError{Err: fmt.Errorf("compatibility-pack working directory of %s in %s holds no go.mod", id, WorkingDirectoriesFile)}
 		}
 	}
 	return nil

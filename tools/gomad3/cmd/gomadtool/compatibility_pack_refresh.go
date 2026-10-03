@@ -13,6 +13,7 @@ import (
 	"slices"
 	"sort"
 
+	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring"
 	capabilityanalysis "go.temporal.io/server/tools/gomad3/qualification/analysis"
 	"go.temporal.io/server/tools/gomad3/upgrade/pinimpact"
@@ -74,7 +75,12 @@ func runCompatibilityPackRefresh(arguments []string, stdout, stderr io.Writer) i
 		return 3
 	}
 	ctx := context.Background()
-	impact, err := packPinImpact(ctx, resolvedRoot, resolvedGo, *baselineRef, directories)
+	// Judge the packs of the root being refreshed, not the packs the build
+	// would load, which come from GOMAD3_COMPATIBILITY_PACKS for an external root.
+	packs := func() ([]compatibility.ValidatedPack, error) {
+		return compatibility.LoadPackDirectory(filepath.Join(compatibilityRoot, "packs"))
+	}
+	impact, err := packPinImpact(ctx, resolvedRoot, resolvedGo, *baselineRef, directories, packs)
 	if err != nil {
 		fmt.Fprintln(stderr, err)
 		if pinimpact.IsInputError(err) {
@@ -146,7 +152,7 @@ type packImpact struct {
 // packPinImpact runs the pin impact report once per working directory, with
 // the working tree as the candidate and baselineRef as the baseline, and keeps
 // the pack-rule pins of the requests mapped to that directory.
-func packPinImpact(ctx context.Context, root, goCommand, baselineRef string, directories map[string]string) (packImpact, error) {
+func packPinImpact(ctx context.Context, root, goCommand, baselineRef string, directories map[string]string, packs func() ([]compatibility.ValidatedPack, error)) (packImpact, error) {
 	byDirectory := map[string][]string{}
 	for id, directory := range directories {
 		byDirectory[directory] = append(byDirectory[directory], id)
@@ -171,7 +177,7 @@ func packPinImpact(ctx context.Context, root, goCommand, baselineRef string, dir
 		if err != nil {
 			return packImpact{}, errors.Join(&pinimpact.InputError{Err: err}, resolver.Close())
 		}
-		report, err := pinimpact.Evaluate(ctx, pinimpact.Spec{Root: root, Baseline: baseline, Candidate: candidate, Resolver: resolver})
+		report, err := pinimpact.Evaluate(ctx, pinimpact.Spec{Root: root, Baseline: baseline, Candidate: candidate, Resolver: resolver, Packs: packs})
 		if err != nil {
 			return packImpact{}, errors.Join(fmt.Errorf("pin impact of %s: %w", directory, err), resolver.Close())
 		}

@@ -406,3 +406,31 @@ func TestRefreshSelectsAHostRequestBoundToAnotherProfile(t *testing.T) {
 		t.Fatalf("results = %+v, %v", results, err)
 	}
 }
+
+// TestCheckWorkingDirectoriesRequiresTheTableAndAModulePerEntry covers the
+// table check validate runs on the repository's own root: a deleted table, or
+// an entry whose directory holds no go.mod, is invalid input. Check alone
+// still accepts a root without a table, as a downstream root may have none.
+func TestCheckWorkingDirectoriesRequiresTheTableAndAModulePerEntry(t *testing.T) {
+	fixture := twoModuleFixture(t)
+	if err := CheckWorkingDirectories(fixture.root); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Remove(filepath.Join(fixture.root, "modules", "b", "go.mod")); err != nil {
+		t.Fatal(err)
+	}
+	for name, check := range map[string]func(string) error{"Check": Check, "CheckWorkingDirectories": CheckWorkingDirectories} {
+		if err := check(fixture.root); !IsInputError(err) || !strings.Contains(err.Error(), "pack-b") {
+			t.Fatalf("%s with a directory without go.mod = %v", name, err)
+		}
+	}
+	if err := os.Remove(filepath.Join(fixture.root, WorkingDirectoriesFile)); err != nil {
+		t.Fatal(err)
+	}
+	if err := CheckWorkingDirectories(fixture.root); !IsInputError(err) {
+		t.Fatalf("CheckWorkingDirectories without the table = %v", err)
+	}
+	if err := Check(fixture.root); err != nil {
+		t.Fatalf("Check without a table = %v", err)
+	}
+}
