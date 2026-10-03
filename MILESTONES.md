@@ -48,26 +48,25 @@ Umpire IR and the Testpilot IR are what connect the parts. The Lean toolchain is
 checkout, and the Lean-only specs are closed as won't-do. See [SCALA.md](.plans/SCALA.md) and
 [UMPIRE4_SPEC.md](.plans/UMPIRE4_SPEC.md).
 
-The planned work below makes the repository match that direction: the layout first, then the Scala
-layer, then the Models.
+The planned work below continues that direction: the Scala layer first, then the Models.
 
 ## Planned
 
-fn-115 has one task remaining. The live model and Go tooling occupy their final directories;
-archives are isolated, dependency checks are enforced, and Make/CI cleanup is complete. Immutable
-semantic goldens remain the baseline. The reader is split into loading and validation files, the
-checker and lowering surfaces are trimmed, and the unused Scala framework code of fn-113 Part A is
-removed. The lifter is ten files by concern around one typed context, and the IR namespace is
-`umpire/v1`. One Scala gate at `model/gate` replaces the model's shell scripts, and the functional
-fixtures and the canary's pinned Case are lowered from the Scala model. The import rules are
-enforced by tests, and build, CI and ignore rules match the layout. Documentation and the complete
-validation, which close the spec, are in progress. Deferred by the owner: `make
-umpire-check-backends`, which needs P and .NET installed. Open for the owner: the canary policy's
-`workflowPath` names the deleted production-canary workflow, so production dispatch fails closed.
+fn-115 is closed, with an independent completion review. `model/` is the Scala model and holds no
+Go or shell script; `tools/umpire/` is its Go tooling; the earlier trees are archived in `model0/`
+and `tools/umpire0/`, outside the build. One Scala gate at `model/gate` builds, lifts and checks the
+model, the IR namespace is `umpire/v1`, the functional fixtures and the canary's pinned Case are
+lowered from the Scala model, and tests enforce the import rules. The 1,411 semantic and artifact
+goldens are the baseline for the specs below. `model/README.md` describes the system for a newcomer.
+
+Deferred by the owner: `make umpire-check-backends`, which needs P and .NET installed. Open for the
+owner: the canary policy's `workflowPath` names the deleted production-canary workflow, so
+production dispatch fails closed.
 
 fn-113 has sixteen tasks planned in three streams that can run side by side (the ScalaPB port, the
-evaluator retirement and the Go checker tests). The other later specs have no tasks yet. Each
-starts after the spec it waits for closes; Flow records the dependencies.
+evaluator retirement and the Go checker tests); its first task found that ScalaPB 0.11.20 fits, so
+the ScalaPB port proceeds. No other fn-113 task has started. The other later specs have no tasks
+yet. Each starts after the spec it waits for closes; Flow records the dependencies.
 
 The CEL spike (fn-116) is closed. Its [report](.plans/UMPIRE_CEL_SPIKE.md) recommends keeping the
 IR's own expressions: CEL matched the current evaluator on every Model, but adoption grows the IR
@@ -76,40 +75,13 @@ would be a new spec the owner opens after reading the report.
 
 | Order | Spec | In one line | Waits for |
 | --- | --- | --- | --- |
-| 1 | fn-115 | Restructure: `model/` is the Scala model, `tools/umpire/` its Go tooling, the rest archived | — |
-| 2 | fn-113 | Shrink the Scala framework to a declaration DSL, port the lifter to ScalaPB | fn-115 |
-| 3 | fn-117 | Typed Temporal API in the Models, in place of proto names as strings | fn-113 |
-| 4 | fn-112 | Rewrite the standalone activity Model as the DSL showcase | fn-117 |
-| 5 | fn-114 | Roll the showcase's constructs out to every other Model | fn-112 |
-| after 4 | fn-118 | API behavior hints (eventual consistency, wait bounds) that the generated tests use | fn-112 |
-| after 5 | fn-120 | Named choices, a model linter, an explorer over the IR and ITF trace interchange | fn-114 |
+| 1 | fn-113 | Shrink the Scala framework to a declaration DSL, port the lifter to ScalaPB | — |
+| 2 | fn-117 | Typed Temporal API in the Models, in place of proto names as strings | fn-113 |
+| 3 | fn-112 | Rewrite the standalone activity Model as the DSL showcase | fn-117 |
+| 4 | fn-114 | Roll the showcase's constructs out to every other Model | fn-112 |
+| after 3 | fn-118 | API behavior hints (eventual consistency, wait bounds) that the generated tests use | fn-112 |
+| after 4 | fn-120 | Named choices, a model linter, an explorer over the IR and ITF trace interchange | fn-114 |
 | last | fn-119 | Example: one Go SDK workflow driven end to end from the IRs, with no hand-written Go | fn-118, fn-120 |
-
-### fn-115: Make the Scala model the model and archive the Lean-era work
-
-Changes the layout to say what is true.
-
-- `model/` holds the Scala model and no Go code.
-- `tools/umpire/` holds the Go code that loads, checks, lowers and exports the IR.
-- Retired model implementations live in `model0/` and old tooling in `tools/umpire0/`. Both are
-  outside the main Go build, and no live code imports them.
-- A module map for the model, the Umpire tooling and Testpilot, in Go and Scala, is recorded and
-  independently reviewed before restructuring, under the owner's delegated decision authority.
-  Import rules are enforced by a test.
-- The parity tests against the hand-written Go models and the Lean dumps become checked-in goldens
-  of what the reader derives. The later specs use those goldens as their baseline.
-- `run.sh`, `gen.sh` and `scala.sh` are replaced by one Scala program, and the lifter's fixture
-  checks become tests of the lifter.
-- The IR's proto package is `umpire`, and `goir` and `scalav2` stop being names.
-- Nothing inside `model/` mentions Lean any more, and the model gate fails on a new mention.
-- `model/README.md` describes the whole system for a reader new to it: the layers, the two IRs,
-  one worked example from a Scala declaration to a Verdict, and a Mermaid diagram.
-
-The [reviewed module map](.plans/UMPIRE_MODULES.md) records live helper ownership, public interfaces
-and the migration sequence. Of the 47 Case fixtures, 25 are lowered from the Scala model (the nine
-former legacy execution fixtures among them, including the canary's pinned Case) and 22 keep their
-bytes as explicit compatibility exceptions. The 1,411 semantic and artifact snapshots are the
-baseline for the remaining restructuring.
 
 ### fn-113: Clean up the Scala model layer around the IR
 

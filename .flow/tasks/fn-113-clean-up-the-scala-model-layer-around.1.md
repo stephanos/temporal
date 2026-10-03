@@ -42,9 +42,12 @@ No staging, commits, worktrees or recursive deletion: move a removed file to `.f
 
 
 ## Done summary
-TBD
+A released ScalaPB combination fits: compiler plugin and runtime `com.thesamet.scalapb` 0.11.20 (Scala 3 build, `flat_package,scala3_sources`), printer `scalapb-json4s` 0.12.2, the pinned protoc 29.5 from `mise.toml`. It generates the IR classes from the unchanged `ir.proto` and compiles warning-free under Scala 3.9.0, scala-cli 1.17.1 and JDK 27 with the lifter's options (659 classes, 3.5 MB jar; 11.9 s warm end to end versus about 3.3 s today). Recommended delivery for task 2: the gate packages a `protoc-gen-scala` launcher with scala-cli and passes it to the pinned protoc; no new tool in `mise.toml`. Part B proceeds.
 
+The printer's output decodes with Go's `protojson.Unmarshal` to `proto.Equal` messages for defaults, int64, enums and oneofs (a oneof member at its default is emitted, as Go and protobuf-java do), and all 12 checked-in IR and expected files round-trip `proto.Equal`; three of them also change field order, which the spec allows. The `scalapb.descriptors` API covers every lookup `Realizations.scala` makes. No tracked file changed.
+
+Independent review (Claude Fable, fresh context) returned SHIP in round 1; its notes for tasks 2 and 3 are in the handover. Handover: .flow/tmp/fn113-1-summary.md; evidence: .flow/tmp/fn113-1-evidence.json; review: .flow/tmp/fn113-1-review/round1-review.md. No agent commits.
 ## Evidence
 - Commits:
-- Tests:
+- Tests: mise exec -- .flow/tmp/fn113-1/e2e-b1.sh  # launcher package + protoc 29.5 --scala_out=flat_package,scala3_sources + scala-cli --power package --library (Scala 3.9.0, JDK 27, lifter options): rc=0, 0 warnings, 659 classes, 3533296 B, 11.9 s, cd .flow/tmp/fn113-1 && mise exec -- scala-cli run --server=false printer-src -- samples.tsv  # scalapb-json4s 0.12.2 samples + 19 scalapb.descriptors checks: all ok, GOMAXPROCS=2 CC=/usr/bin/clang mise exec -- go run .flow/tmp/fn113-1/decode/decode.go .flow/tmp/fn113-1/samples.tsv  # 9/9 protojson.Unmarshal + proto.Equal, cd .flow/tmp/fn113-1 && mise exec -- scala-cli run --server=false roundtrip-src -- roundtrip <model/ir/*.json> <model/lifter/testdata/lifts/expected/*.json>  # parse + print with scalapb-json4s, GOMAXPROCS=2 CC=/usr/bin/clang mise exec -- go run .flow/tmp/fn113-1/compare/compare.go <original roundtrip pairs>  # 12/12 proto.Equal, mise exec -- scala-cli run --server=false --dep com.thesamet.scalapb:scalapbc_2.13:0.11.20 -M scalapb.ScalaPBC -- --protoc=$(mise which protoc) --version  # libprotoc 29.5 (25.8 without --protoc), mechanisms a, b1, b2 (after chmod copy), c: generated sources diff -r identical to gen-flat3 (logs gen-a.log, gen-b.log, gen-b2.log, gen-c.log), Independent review round 1 SHIP (claude-fable-5-1); .flow/tmp/fn113-1-review/round1-review.md
 - PRs:

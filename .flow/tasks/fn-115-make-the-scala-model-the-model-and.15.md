@@ -23,9 +23,12 @@ Drop the `Scala` qualifier from live Go test names, files and helpers. Implement
 
 
 ## Done summary
-TBD
+Dropped the `Scala` qualifier from live Go test names, files and helpers: four test files (`testpilot_generated_test.go`, `testpilot_exploration_test.go`, `testpilot_activity_control_test.go`, `testpilot_activity_canary_test.go`), `tests/testcore/testpilot/model_fixture{,_test}.go`, four tests (e.g. `TestTestpilotGeneratedCases`, `TestModelCasesLowerForExistingConsumers`) and their helpers (`ModelCase`, `LoadModelCase`, `LoadGeneratedCase`, `GeneratedCases`). Names-only; references in `tools/canary/preflight/harness_test.go` and `model/README.md` follow, and the Makefile and CI select by prefix, so they needed no change.
 
+Kept: the two tests where Scala is the subject (`TestValidateReportsEveryProblemAtItsScalaPosition`, `TestALoweredCaseCarriesWhatTheScalaDeclares`), `Scalar*` identifiers, golden path keys, and runtime values the tests send (`Identity: "scala"`, the `scala-` namespaces, and the `scala-discovery` campaign Profile identity), which are test inputs and recorded data, not names.
+
+`make umpire-check-live-tests` passes with the same 81 identities; the canary-harness test passes separately; focused tests, the functional compile and `lint-code-fast` pass. Independent review (Claude Fable, fresh context) returned SHIP in round 1. Handover: .flow/tmp/fn115-15-summary.md; evidence: .flow/tmp/fn115-15-evidence.json; review: .flow/tmp/fn115-15-review/round1-review.md. No agent commits.
 ## Evidence
 - Commits:
-- Tests:
+- Tests: CC=/usr/bin/clang mise exec -- go vet -tags 'test_dep integration canary_harness' ./tests/testcore/testpilot ./tools/canary/preflight, CC=/usr/bin/clang mise exec -- go test -tags "test_dep integration canary_harness" -run '^$' ./tests, CC=/usr/bin/clang mise exec -- go test -count=1 -tags 'test_dep canary_harness' ./tests/testcore/testpilot ./tools/canary/preflight, CC=/usr/bin/clang make umpire-check-live-tests (81 passing identities, before 81), cd tests && go test -count=1 -tags 'test_dep integration canary_harness' -run '^TestTestpilotActivitySharedWithCanary$' . (PASS), GOLANGCI_LINT_FIX=false CC=/usr/bin/clang mise exec -- make lint-code-fast (0 issues), Independent review round 1 SHIP (claude-fable-5-1); .flow/tmp/fn115-15-review/round1-review.md
 - PRs:
