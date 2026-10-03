@@ -161,11 +161,10 @@ type selectShape struct {
 	// must show no allocation and no seeded draw across them.
 	completesLocked bool
 	// noOp marks a shape the explorer lists as a no-op
-	// (runner/internal/exploration/choice/select_readiness.go): exploring the
-	// shape with its select-poll decisions left unexpanded must reach the
-	// outcomes and deadlocks of exploring it in full. A shape with two ready
-	// cases skips nothing, so the two explorations agree without proving
-	// anything.
+	// (choice.NoOpSelectShapes): exploring the shape with its select-poll
+	// decisions left unexpanded must reach the outcomes and deadlocks of
+	// exploring it in full. A shape with two ready cases skips nothing, so the
+	// two explorations agree without proving anything.
 	noOp bool
 }
 
@@ -292,6 +291,9 @@ func (campaign *runtimeCampaign) requireSearchReproduction(binaries map[string]s
 	}
 	evidence.TimerResets, err = campaign.requireTimerResetIdentities(binaries["timer-reset-identity"])
 	if err != nil {
+		return err
+	}
+	if err := requireNoOpShapesListed(); err != nil {
 		return err
 	}
 	for _, shape := range selectReadinessShapes {
@@ -469,6 +471,33 @@ func (campaign *runtimeCampaign) requireTimerResetIdentities(fixture string) ([]
 		return runs, fmt.Errorf("timer reset identities: %w", err)
 	}
 	return runs, nil
+}
+
+// requireNoOpShapesListed requires the shapes this fixture marks as no-ops and
+// the shapes the explorer leaves unexpanded to be the same set, so neither can
+// gain a shape the other does not know. Every fixture select polls two cases.
+func requireNoOpShapesListed() error {
+	proven := []choice.NoOpSelectShape{}
+	for _, shape := range selectReadinessShapes {
+		if shape.noOp {
+			proven = append(proven, choice.NoOpSelectShape{PolledCases: 2, Readiness: shape.readiness})
+		}
+	}
+	listed := choice.NoOpSelectShapes()
+	for _, shape := range listed {
+		if !slices.Contains(proven, shape) {
+			return fmt.Errorf("the explorer lists select shape %+v as a no-op, which no fixture shape proves", shape)
+		}
+	}
+	for _, shape := range proven {
+		if !slices.Contains(listed, shape) {
+			return fmt.Errorf("the fixture proves select shape %+v, which the explorer does not list", shape)
+		}
+	}
+	if len(listed) != len(proven) {
+		return fmt.Errorf("the explorer lists %d no-op select shapes for %d proven", len(listed), len(proven))
+	}
+	return nil
 }
 
 // exploreSelectShape explores a shape to exhaustion twice, in full and with
