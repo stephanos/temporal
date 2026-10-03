@@ -160,35 +160,35 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
      produced. Prefer a different family than the writer: a same-family review
      is not an independent verdict. Advice, not enforcement. -->
 
-<!-- The implementer below is the same Claude model, so the review is
+<!-- The implementer below is the same Codex model, so the review is
      same-model and is separated from the writer by a fresh context only. -->
 
-reviewer: claude-opus-5-5 at high
+reviewer: gpt-6-sol at high
 
 <!-- implementer: <model> at <effort> - work handed to another harness (plan
      here, implement cheaper or faster there). Absent = the session model
      implements. -->
 
-<!-- Pinned rather than left unset: the worker implements in an in-host Claude
-     subagent, and these are patched-runtime and
+<!-- Pinned rather than left unset: the worker implements through the Codex
+     bridge, and these are patched-runtime and
      determinism tasks that degrade badly on a cheaper tier, so the pin holds even
      if the session model is switched down.
      Gnarly determinism-divergence tasks (tracing same-seed divergence to
-     a runtime channel) stay on claude-opus-5-5 at high. -->
+     a runtime channel) stay on gpt-6-sol at high. -->
 
-implementer: claude-opus-5-5 at high
+implementer: gpt-6-sol at high
 
 <!-- fast scout: <model> - mechanical inventory scanning, where
      the cheapest tier is the correct one. -->
 
-fast scout: claude-haiku-4-5-20251001
+fast scout: gpt-6-luna at low
 
 <!-- thinking scout: <model> - analysis that degrades badly on a
      fast tier. -->
 
 <!-- Spec writing, planning, and design decisions. -->
 
-thinking scout: claude-opus-5-5 at high
+thinking scout: gpt-6-sol at high
 
 <!-- Unset is the default and the doctrine: planning, capture, interview,
      requirement analysis, every verdict, and the worker run on the session
