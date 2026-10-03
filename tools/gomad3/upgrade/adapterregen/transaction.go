@@ -48,13 +48,15 @@ var DefaultGenerators = [][]string{
 
 // DefaultVerifiers check the staged set before publication: it builds, the
 // commands build, the adapter tests compile, generated files agree with their inputs, and the
-// staged adapter accepts the candidate module under every pin.
+// staged adapter accepts the candidate module under every pin. The copy omits
+// the repository around the module, so the pack check does not require a
+// go.mod in the working directories the table maps outside it.
 var DefaultVerifiers = [][]string{
 	{"{go}", "build", "./cmd/..."},
 	{"{go}", "vet", "-tags", "test_dep", "./deterministicio/...", "./toolchain/version/..."},
 	{"{go}", "run", "./cmd/gomadtool", "version-generate", "-check"},
 	{"{go}", "run", "./cmd/gomadtool", "boundary-generate", "-check"},
-	{"{go}", "run", "./cmd/gomadtool", "compatibility-pack", "check", "--root={root}"},
+	{"{go}", "run", "./cmd/gomadtool", "compatibility-pack", "check", "--root={root}", "--staged-copy"},
 	{"{go}", "run", "./cmd/gomadtool", "adapter-regenerate", "--verify", "--module={module}", "--module-dir={candidate}", "--go={go}"},
 }
 

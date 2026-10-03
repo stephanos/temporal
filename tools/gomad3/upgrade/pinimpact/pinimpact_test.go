@@ -263,6 +263,30 @@ func TestFixtureBumpMatchesBuildRejections(t *testing.T) {
 	requirePackDecisions(t, pack, bumped, false)
 }
 
+// TestCommittedBumpKeepsTheStrandedPackInvalidated evaluates the bump once it
+// is the baseline too. The pack pinned to the old version is then selected by
+// neither side, but the module still requires its activation module, so the
+// pack is invalidated rather than not selected.
+func TestCommittedBumpKeepsTheStrandedPackInvalidated(t *testing.T) {
+	bumped := replaceRequirement(baselineRequirements(t), compressModule, func(required *requirement) {
+		required.version, required.sum = "v1.18.6", fakeSum("compress v1.18.6")
+	})
+	committed := moduleFiles(t, bumped, "")
+	report := evaluate(t, committed, committed, goModResolver{})
+	requirePins(t, report, map[string]pinimpact.Status{
+		"pack-rule " + compressRule: pinimpact.StatusInvalidated,
+		"pack-rule " + xxhashRule:   pinimpact.StatusInvalidated,
+	})
+	if reason := pinReason(t, report, pinimpact.ClassPackRule, xxhashRule); !strings.Contains(reason, "pack activation "+compressModule) {
+		t.Fatalf("stranded xxhash rule reason = %q, want the pack's activation change", reason)
+	}
+	// Without the activation module the pack is simply not selected.
+	removed := moduleFiles(t, removeRequirement(bumped, compressModule), "")
+	if report := evaluate(t, removed, removed, goModResolver{}); report.Invalidated || len(report.Pins) != 0 {
+		t.Fatalf("report without the activation module = %+v", report.Pins)
+	}
+}
+
 func TestSameVersionWithChangedSum(t *testing.T) {
 	requirements := baselineRequirements(t)
 	changed := replaceRequirement(requirements, sentryModule, func(required *requirement) { required.sum = fakeSum("sentry modified") })

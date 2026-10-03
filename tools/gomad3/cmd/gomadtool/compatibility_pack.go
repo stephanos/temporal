@@ -182,6 +182,7 @@ func runCompatibilityPackCheck(arguments []string, stdout, stderr io.Writer) int
 	flags.SetOutput(stderr)
 	root := flags.String("root", "", "Gomad v3 module root")
 	compatibilityRootOverride := flags.String("compatibility-root", "", "absolute pack authoring root owned by another module (default: internal/compatibilitypack)")
+	stagedCopy := flags.Bool("staged-copy", false, "root is a staged copy of the module without its repository: require the working-directory table but not a go.mod in the directories it maps outside the copy")
 	if err := flags.Parse(arguments); err != nil || flags.NArg() != 0 || *root == "" {
 		return 2
 	}
@@ -195,14 +196,18 @@ func runCompatibilityPackCheck(arguments []string, stdout, stderr io.Writer) int
 		fmt.Fprintln(stderr, err)
 		return 2
 	}
-	if err := authoring.Check(compatibilityRoot); err != nil {
+	check := authoring.Check
+	if *stagedCopy {
+		check = authoring.CheckStagedCopy
+	}
+	if err := check(compatibilityRoot); err != nil {
 		fmt.Fprintln(stderr, err)
 		return 1
 	}
 	// The repository's own packs are refreshed and qualified through the
 	// table, so it must exist; deleting it must not pass validation.
 	if *compatibilityRootOverride == "" {
-		if err := authoring.CheckWorkingDirectories(compatibilityRoot); err != nil {
+		if err := authoring.CheckWorkingDirectories(compatibilityRoot, !*stagedCopy); err != nil {
 			fmt.Fprintln(stderr, err)
 			return 1
 		}

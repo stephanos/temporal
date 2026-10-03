@@ -714,3 +714,43 @@ func TestStagedCommandsKeepTheCallersModuleCache(t *testing.T) {
 		t.Fatalf("download environment = %v", private)
 	}
 }
+
+// TestDefaultPackCheckPassesInAStagedCopyOfTheModule runs the real
+// compatibility-pack check of DefaultVerifiers in a staged copy of this module,
+// as apply and --stage-only do. The copy omits the repository the
+// working-directory table maps into, so the check without --staged-copy
+// rejects it; the default verifier must accept it.
+func TestDefaultPackCheckPassesInAStagedCopyOfTheModule(t *testing.T) {
+	goCommand, err := exec.LookPath("go")
+	if err != nil {
+		t.Skip("go command is unavailable")
+	}
+	if output, err := exec.Command(goCommand, "env", "GOVERSION").Output(); err != nil || strings.TrimSpace(string(output)) != gomadversion.GoVersion {
+		t.Skipf("go command is not the pinned %s: %s", gomadversion.GoVersion, output)
+	}
+	var verifier []string
+	for _, command := range DefaultVerifiers {
+		if slices.Contains(command, "compatibility-pack") {
+			verifier = command
+		}
+	}
+	if !slices.Contains(verifier, "check") || !slices.Contains(verifier, "--staged-copy") {
+		t.Fatalf("default pack verifier = %v", verifier)
+	}
+	source, err := filepath.Abs("../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	stage := filepath.Join(t.TempDir(), "root")
+	if _, err := copyCheckout(source, stage); err != nil {
+		t.Fatal(err)
+	}
+	spec := Spec{Root: source, Module: sentryModule, GoCommand: goCommand, Environment: os.Environ()}
+	if err := runStaged(t.Context(), spec, stage, stage, "", verifier); err != nil {
+		t.Fatalf("default pack verifier in a staged copy: %v", err)
+	}
+	strict := slices.DeleteFunc(slices.Clone(verifier), func(argument string) bool { return argument == "--staged-copy" })
+	if err := runStaged(t.Context(), spec, stage, stage, "", strict); err == nil || !strings.Contains(err.Error(), "holds no go.mod") {
+		t.Fatalf("pack check without --staged-copy in a staged copy = %v, want a working directory without go.mod", err)
+	}
+}

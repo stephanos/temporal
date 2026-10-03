@@ -411,24 +411,35 @@ func TestRefreshSelectsAHostRequestBoundToAnotherProfile(t *testing.T) {
 // table check validate runs on the repository's own root: a deleted table, or
 // an entry whose directory holds no go.mod, is invalid input. Check alone
 // still accepts a root without a table, as a downstream root may have none.
+// A staged copy, which lacks the repository the table maps into, still needs
+// the table but not the go.mod files.
 func TestCheckWorkingDirectoriesRequiresTheTableAndAModulePerEntry(t *testing.T) {
 	fixture := twoModuleFixture(t)
-	if err := CheckWorkingDirectories(fixture.root); err != nil {
+	if err := CheckWorkingDirectories(fixture.root, true); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.Remove(filepath.Join(fixture.root, "modules", "b", "go.mod")); err != nil {
 		t.Fatal(err)
 	}
-	for name, check := range map[string]func(string) error{"Check": Check, "CheckWorkingDirectories": CheckWorkingDirectories} {
+	checkModules := func(root string) error { return CheckWorkingDirectories(root, true) }
+	for name, check := range map[string]func(string) error{"Check": Check, "CheckWorkingDirectories": checkModules} {
 		if err := check(fixture.root); !IsInputError(err) || !strings.Contains(err.Error(), "pack-b") {
 			t.Fatalf("%s with a directory without go.mod = %v", name, err)
 		}
 	}
+	if err := CheckStagedCopy(fixture.root); err != nil {
+		t.Fatalf("CheckStagedCopy with a directory without go.mod = %v", err)
+	}
+	if err := CheckWorkingDirectories(fixture.root, false); err != nil {
+		t.Fatalf("CheckWorkingDirectories of a staged copy = %v", err)
+	}
 	if err := os.Remove(filepath.Join(fixture.root, WorkingDirectoriesFile)); err != nil {
 		t.Fatal(err)
 	}
-	if err := CheckWorkingDirectories(fixture.root); !IsInputError(err) {
-		t.Fatalf("CheckWorkingDirectories without the table = %v", err)
+	for _, requireModules := range []bool{true, false} {
+		if err := CheckWorkingDirectories(fixture.root, requireModules); !IsInputError(err) {
+			t.Fatalf("CheckWorkingDirectories(requireModules=%t) without the table = %v", requireModules, err)
+		}
 	}
 	if err := Check(fixture.root); err != nil {
 		t.Fatalf("Check without a table = %v", err)

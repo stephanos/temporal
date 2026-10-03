@@ -269,6 +269,12 @@ func (evaluation *evaluation) evaluatePacks(packs []compatibility.ValidatedPack,
 			pin.CandidateVersion, pin.CandidateSum = evaluation.candidate.observed(rule.Module.Path)
 			if !baselineSelected || !evaluation.packModule(evaluation.baseline, rule.Module).ok {
 				pin.Status = StatusNotSelected
+				// A pack whose activation modules the candidate still requires,
+				// at other versions, was stranded by a bump; once the bump is
+				// the baseline it is never unaffected, so it stays invalidated.
+				if !baselineSelected && strandedActivation(evaluation.candidate, pack.Activation, candidateActivation) {
+					pin.Status, pin.Reason = StatusInvalidated, "pack activation "+candidateActivation.reason+"; the candidate still requires every activation module"
+				}
 				evaluation.record(pin)
 				continue
 			}
@@ -288,6 +294,20 @@ func (evaluation *evaluation) evaluatePacks(packs []compatibility.ValidatedPack,
 			evaluation.record(pin)
 		}
 	}
+}
+
+// strandedActivation reports a pack the candidate does not select although it
+// requires every one of the pack's activation modules.
+func strandedActivation(target moduleState, activation []compatibility.PackModule, match moduleMatch) bool {
+	if match.ok || match.unknown || len(activation) == 0 {
+		return false
+	}
+	for _, required := range activation {
+		if len(target.required[required.Path]) == 0 {
+			return false
+		}
+	}
+	return true
 }
 
 func (evaluation *evaluation) activates(target moduleState, activation []compatibility.PackModule) moduleMatch {

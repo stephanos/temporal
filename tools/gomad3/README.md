@@ -680,7 +680,8 @@ on every run.
 
 A dependency bump keeps every pin exact. Apply it to the target module
 (`go get MODULE@VERSION`) without committing it, then run from the repository
-root:
+root (for a module other than the root module, add `--module=DIR` to
+`pin-impact`):
 
 ```sh
 go -C tools/gomad3 run ./cmd/gomadtool pin-impact --root=.
@@ -712,10 +713,11 @@ host refreshes, approves, and qualifies its own platform's requests, and
 reports the others as not evaluable. `make gomad3` rebuilds `.bin/gomad`,
 because a regenerated adapter changes the target identity, and the adapter's
 workloads are requalified on both platforms. `pin-impact` and `refresh`
-compare the working tree with `HEAD`; once the bump is committed, pass the
-revision before it with `--baseline-ref`, because a pack pinned
-to the old version is otherwise reported as not selected rather than
-invalidated. [CLI.md](CLI.md#bump-a-dependency) gives each command's flags and
+compare the working tree with `HEAD`. A pack pinned to the old version stays
+invalidated once the bump is committed, because the module still requires its
+activation modules at other versions; a module the bump removes is reported
+stale only against a baseline that requires it, so after committing such a
+bump pass the revision before it with `--baseline-ref`. [CLI.md](CLI.md#bump-a-dependency) gives each command's flags and
 exit statuses.
 
 The standard-library boundary is declared in

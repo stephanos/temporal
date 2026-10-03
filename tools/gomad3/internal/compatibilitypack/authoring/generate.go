@@ -116,7 +116,22 @@ func removeUngeneratedOutputs(root string, expected map[string][]byte) error {
 	return nil
 }
 
+// Check requires root's generated packs to be current and, where root has a
+// working-directory table, the table to map exactly root's requests, each to
+// a directory holding a go.mod.
 func Check(root string) error {
+	return check(root, true)
+}
+
+// CheckStagedCopy is Check for a staged copy of the module made without the
+// repository around it, as adapter regeneration verifies before publishing.
+// The table must still map exactly root's requests, but the directories it
+// names lie outside the copy, so they are not required to hold a go.mod.
+func CheckStagedCopy(root string) error {
+	return check(root, false)
+}
+
+func check(root string, requireModules bool) error {
 	requests, err := loadRequests(root, false)
 	if err != nil {
 		return err
@@ -140,26 +155,27 @@ func Check(root string) error {
 	}
 	// A root with a working-directory table must map exactly its requests.
 	if _, err := os.Lstat(filepath.Join(root, WorkingDirectoriesFile)); err == nil {
-		return checkWorkingDirectories(root, requests)
+		return checkWorkingDirectories(root, requests, requireModules)
 	}
 	return nil
 }
 
 // CheckWorkingDirectories requires root's working-directory table, which
 // refresh and qualify --all read, to exist and to map exactly root's
-// requests, each to a directory holding a go.mod. Check enforces the table
-// only where it exists, because a downstream root may never refresh.
-func CheckWorkingDirectories(root string) error {
+// requests. With requireModules each mapped directory must hold a go.mod.
+// Check enforces the table only where it exists, because a downstream root
+// may never refresh.
+func CheckWorkingDirectories(root string, requireModules bool) error {
 	requests, err := loadRequests(root, false)
 	if err != nil {
 		return err
 	}
-	return checkWorkingDirectories(root, requests)
+	return checkWorkingDirectories(root, requests, requireModules)
 }
 
-func checkWorkingDirectories(root string, requests map[string]Request) error {
+func checkWorkingDirectories(root string, requests map[string]Request, requireModules bool) error {
 	directories, err := workingDirectoriesFor(root, requests)
-	if err != nil {
+	if err != nil || !requireModules {
 		return err
 	}
 	ids := make([]string, 0, len(directories))

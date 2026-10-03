@@ -79,16 +79,22 @@ gates and the person's review time:
 | --- | --- | --- |
 | bump | 1 | 1 |
 | report | none exists | 1 (`pin-impact`) |
-| gRPC adapter | 2 hand edits + `make generate` + about 2 + 2 x 11 = 24 `go test` iterations + 1 on the other platform = 28 | 2 commands + 1 hand edit = 3 |
+| gRPC adapter, this bump (0 of 11 rewritten files changed upstream) | 2 hand edits + `make generate` + about 3 `go test` iterations (original inventory, replacement inventory, prepared source set) + 1 on the other platform = 7 | 2 commands + 1 hand edit = 3 |
+| gRPC adapter, worst case (all 11 rewritten files change upstream) | 2 hand edits + `make generate` + about 2 + 2 x 11 = 24 `go test` iterations + 1 on the other platform = 28, plus anchor repair | 2 commands + 1 hand edit = 3, plus anchor repair |
 | 4 packs | 4 x (discover, review, generate) = 12 | 2 refresh + 4 generate = 6 |
-| **total** | **about 41 (2 hand edits)** | **11 (1 hand edit)** |
+| **total, this bump** | **about 20 (2 hand edits)** | **11 (1 hand edit)** |
+| **total, worst case** | **about 41 (2 hand edits)** | **11 (1 hand edit)** |
+
+The walked bump is the fair comparison: no rewritten gRPC file changed upstream, so the old
+procedure would have stopped at about 3 digest mismatches (task 1's "about 5 to 10 commands"
+per adapter), not 2 x 11. The 41-step figure applies only when every rewritten file changes.
 
 The baseline's "2 hand edits" is a lower bound: the walked apply also rewrote three test files
 that name the version (`adapter_registry_test.go`, `grpc_adapter_test.go`,
 `requirements_test.go`), which the old procedure would edit by hand too, plus the README line.
 Task 1 recorded step counts, not times, so there is no measured baseline time; one gRPC adapter
 test iteration took 3.6 s here, so the 25 baseline iterations alone are about 1.5 minutes of
-test time before any hand editing. The after path's tool time on this host is about 32 s for
+test time before any hand editing in the worst case, and about 4 runs (15 s) for this bump. The after path's tool time on this host is about 32 s for
 steps 2 to 6 (45 s with the optional stage-only run).
 
 Two findings from the walk:
@@ -140,3 +146,44 @@ To finish the measured walk on qualified hosts: apply the same bump uncommitted,
 with the printed `generate` commands, run `make gomad3` and
 `make -C tools/gomad3 validate compatibility-pack-qualification`, and requalify the gRPC
 workloads.
+
+## Review fixes for task 4 (`gomad: bump-procedure review fixes`)
+
+Host: linux/arm64 with the development harness on; outputs in `review-fixes/`. The scratch runs
+used a `git clone --shared` of the worktree with the uncommitted fix and harness applied.
+
+1. **(HIGH) Staged adapter regeneration failed at the pack check.** `d17d74611` made
+   `compatibility-pack check` require a `go.mod` in every mapped working directory; the
+   staged copy holds only `tools/gomad3`, so the seven entries mapped to the repository root
+   resolved to the temp directory and every apply or `--stage-only` failed. Fix:
+   `check --staged-copy` (`authoring.CheckStagedCopy`, `CheckWorkingDirectories(root, false)`)
+   still requires the table to map exactly the requests but skips the `go.mod` check;
+   `DefaultVerifiers` passes it, and `make validate` keeps the strict check.
+   Tests: `TestDefaultPackCheckPassesInAStagedCopyOfTheModule` (new; runs the real default
+   verifier in a `copyCheckout` stage of this module, and asserts the check without
+   `--staged-copy` fails there with "holds no go.mod"),
+   `TestCheckWorkingDirectoriesRequiresTheTableAndAModulePerEntry` (extended). Real run of the
+   walked gRPC v1.84.0 `--stage-only`: exit 1 with the old verifier
+   (`01-stage-only-before-fix.txt`), exit 0 listing the same 7 files with the fix
+   (`02-stage-only-with-fix.txt`, 10 s).
+2. **(MEDIUM) A committed bump reported all clear.** `pin-impact` now reports a pack rule
+   invalidated, not "not selected", when neither side selects the pack but the candidate
+   requires every one of its activation modules at other versions (a stranded pack), whatever
+   the baseline. Refresh inherits it. Test: `TestCommittedBumpKeepsTheStrandedPackInvalidated`
+   (fails without the fix). The unmodified tree still reports 0 invalidated (exit 0). After
+   committing the klauspost v1.18.6 bump in the scratch clone, `pin-impact` exits 1 with the
+   30 rules of the 4 packs invalidated (`03-*`), and `refresh --root=.` selects the same 4
+   requests and exits 1 (`04-*`). A module the bump removes is still reported stale, and its
+   pack `unselected`, only against a baseline that requires it; CLI.md, README, and the
+   generated upgrade guide now say so instead of "pass `--baseline-ref` after committing".
+3. **(MEDIUM) Step count.** The table above now counts the walked bump fairly (about 20
+   before, 0 of 11 rewritten files changed) and keeps about 41 as the worst case;
+   MILESTONES's fn-113 row states both.
+4. **(LOW)** CLI.md "Bump a dependency", the README procedure, and the generated upgrade guide
+   name `pin-impact --module=DIR` for a module other than the repository root module.
+
+Gates after the fixes (linux/arm64, harness on): `go test -tags test_dep -count=1
+./cmd/gomadtool ./upgrade/... ./internal/compatibilitypack/... ./toolchain/version/` pass
+(13 s); `TestPackageArchitecture` pass; `make -C tools/gomad3 validate` exit 0 (5 s);
+`check-docs.py` exit 0 (78 flags, 17 commands, 103 links); `git diff --check` clean.
+The darwin/arm64 and linux/amd64 commands listed under R6 remain owed.
