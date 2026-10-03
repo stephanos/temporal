@@ -707,13 +707,30 @@ fmt-model:
 	@printf $(COLOR) "Formatting model files..."
 	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf $(MODEL_SOURCES) $(MODEL_ROOT)/lifter $(MODEL_ROOT)/gate
 
+# The four scalafix runs build separate projects, so they run side by side; output-sync prints each
+# run's output whole, after its title.
+MODEL_LINTS := lint-model-models lint-model-lifter lint-model-lifts lint-model-gate
+.PHONY: $(MODEL_LINTS)
+
 lint-model: $(MODEL_PROTO_JARS) $(MODEL_JAR)
 	@printf $(COLOR) "Checking model formatting..."
 	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf --check $(MODEL_SOURCES) $(MODEL_ROOT)/lifter $(MODEL_ROOT)/gate
+	@$(MAKE) --no-print-directory -j4 --output-sync=target $(MODEL_LINTS)
+
+lint-model-models:
 	@printf $(COLOR) "Linting model files..."
 	@$(MODEL_SCALAFIX) $(MODEL_SCALAFIX_FILES) --check $(MODEL_SOURCES)
+
+lint-model-lifter:
+	@printf $(COLOR) "Linting the lifter..."
 	@cd $(MODEL_ROOT)/lifter && $(MODEL_SCALAFIX) $(call model_scalafix_files,$(MODEL_LIFTER_SOURCES)) --check .
+
+lint-model-lifts:
+	@printf $(COLOR) "Linting the lifter's lifting fixtures..."
 	@cd $(MODEL_LIFTS) && $(MODEL_LIFTS_SCALAFIX) --check .
+
+lint-model-gate:
+	@printf $(COLOR) "Linting the gate..."
 	@cd $(MODEL_ROOT)/gate && $(MODEL_SCALAFIX) --check .
 
 # Applies the scalafix rewrites; findings without a rewrite (e.g. DisableSyntax) still fail.
