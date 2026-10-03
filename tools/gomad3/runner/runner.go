@@ -1267,8 +1267,10 @@ func validateConfig(config campaignRun) (SeedSelection, []record.Environment, er
 			return SeedSelection{}, nil, err
 		}
 	default:
-		_, err := ParseStrategy(string(strategy))
-		return SeedSelection{}, nil, err
+		if _, err := ParseStrategy(string(strategy)); err != nil {
+			return SeedSelection{}, nil, err
+		}
+		return SeedSelection{}, nil, fmt.Errorf("strategy %q has no validation", strategy)
 	}
 	if config.Parallel <= 0 {
 		return SeedSelection{}, nil, fmt.Errorf("parallelism must be positive")

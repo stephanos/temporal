@@ -80,3 +80,15 @@ Gates (linux/arm64, harness ON)
 Still owed (cannot run here): the same gates on darwin/arm64 and linux/amd64:
   make -C tools/gomad3 validate; GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host;
   go test -count=1 -tags test_dep ./cmd/... ./runner/... ./qualification/... (from tools/gomad3).
+
+Review follow-up (independent review of fn-109.5, low findings)
+- validateConfig's default strategy branch now fails closed: it returns ParseStrategy's error
+  when the name is unknown, and otherwise "strategy %q has no validation", so a strategy that
+  ParseStrategy accepts but validateConfig has no case for can never pass with a zero selection.
+- Stale historical audit row: the fn-111 guide audit at
+  .flow/artifacts/fn-111-gomad-consolidate-vocabulary-and-update/verify-guides.py:542
+  ('plan fixes the failure policy', pattern `"--__plan", "--on-failure=all"`) no longer matches
+  cli.go, because the hidden --__plan route is gone. The CLI.md claim it audits ("fixes the
+  failure policy to complete all planned work") is still true and is now implemented by
+  `flags.Set("on-failure", string(runner.PolicyAll))` in parseCampaignRequest. The historical
+  script is left unedited.
