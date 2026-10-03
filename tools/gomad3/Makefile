@@ -125,13 +125,15 @@ upgrade-dossier: core-qualification
 		-baseline-ref="$(GOMAD3_BASELINE_REF)" -corpus-report=".toolchain/core-qualification-set.json" $(if $(GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256),-approve-boundary-diff="$(GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256)",)
 
 # Resolve stock Go before the patched test driver prepends its GOROOT/bin to PATH.
+# Several tests run their own test binary as a seeded target, and the seeded
+# runtime refuses the Green Tea collector, so the test binaries use the classic one.
 test-host: toolchain
 	@stock_go="$${GOMAD3_STOCK_GO:-}"; \
 	if test -z "$$stock_go"; then \
 		stock_root="$$(env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOENV=off GOFLAGS= GOWORK=off GOTOOLCHAIN=$(GOMAD3_GO_VERSION) go env GOROOT)" || exit 1; \
 		stock_go="$$stock_root/bin/go"; \
 	fi; \
-	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOMAD3_STOCK_GO="$$stock_go" GOWORK=off .toolchain/bin/go test -tags test_dep \
+	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOMAD3_STOCK_GO="$$stock_go" GOEXPERIMENT=nogreenteagc GOWORK=off .toolchain/bin/go test -tags test_dep \
 		. ./cmd/... ./runner/... ./qualification/... ./target/... ./record/... ./artifact/... ./choice/... \
 		./deterministicio/... ./world/... ./toolchain/version ./upgrade/... ./internal/...
 
@@ -147,7 +149,7 @@ overlay-test: toolchain
 # is their executor. The node-clock delay test has a recorded watchdog failure
 # and remains a finding; every other subtest runs here.
 test-simulation: toolchain
-	cd $(CURDIR)/../.. && env -u GOMADSEED CGO_ENABLED=0 GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 \
+	cd $(CURDIR)/../.. && env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 \
 		$(CURDIR)/.toolchain/bin/go test -exec $(CURDIR)/internal/gomadtool/conformance/scripts/exec.sh \
 		-count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration \

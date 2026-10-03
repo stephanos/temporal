@@ -25,6 +25,12 @@ import (
 // reference to a helper that reaches that state, or to the M-local helpers
 // that host-timed sites use instead, is pinned here with its classification; a
 // new upstream or Gomad reference fails the toolchain tier on either host.
+//
+// A reference is classified by the function that contains it, not by that
+// function's callers. A helper reached from both target-ordered and host-timed
+// callers, such as runqputbatch, keeps its target-ordered entry only because
+// its host-timed callers switch the draw to an M-local helper themselves; the
+// entry's reason names that caller-side switch, and this scan cannot see it.
 type drawClass string
 
 const (
@@ -56,6 +62,14 @@ var drawRuntimeHelpers = []string{
 	"gomadChoiceRunnextSeeded", "gomadChoiceRunqSeeded", "gomadChoiceSelectSeeded", "gomadChoiceShuffleSeeded",
 	"gomadClockTickDraw", "gomadHostCheapRand", "gomadHostCheapRandN", "gomadRuntimeCheapRand", "gomadRuntimeRand",
 	"gomadTimerRand", "legacy_fastrand", "legacy_fastrand64", "legacy_fastrandn", "maps_rand", "rand", "rand32", "randn",
+}
+
+// drawSeededStates are the process-wide seeded states. Only their accessors and
+// the functions that seed them may name them, as drawImplementation entries; a
+// direct use elsewhere would draw without the accessor's check.
+var drawSeededStates = []string{
+	"gomadChoiceRunqRandom", "gomadChoiceSchedulerRandom", "gomadChoiceSelectRandom", "gomadClockTickState",
+	"gomadRuntimeCheapRandom", "gomadRuntimeRandom", "gomadTimerRandom",
 }
 
 // drawCompilerHelpers are the runtime helpers the compiler calls by name.
@@ -93,18 +107,34 @@ var reviewedDrawReferences = []drawReference{
 	{"runtime/alg.go", "f32hash", "rand", 1, drawTargetOrdered, "hashes a NaN key the target stores in a map"},
 	{"runtime/alg.go", "f64hash", "rand", 1, drawTargetOrdered, "hashes a NaN key the target stores in a map"},
 	{"runtime/gomad.go", "gomadChoiceRunnextSeeded", "gomadChoiceRandom", 1, drawImplementation, "the runnext demotion draw"},
+	{"runtime/gomad.go", "gomadChoiceRunnextSeeded", "gomadChoiceSchedulerRandom", 1, drawImplementation, "the runnext demotion stream's accessor"},
 	{"runtime/gomad.go", "gomadChoiceRunnextSeeded", "randn", 1, drawInactive, "upstream draw when Gomad is disabled"},
 	{"runtime/gomad.go", "gomadChoiceRunqIndex", "gomadChoiceRunqSeeded", 1, drawTargetOrdered, "the run-queue pick among user goroutines; runtime-owned goroutines take no draw"},
 	{"runtime/gomad.go", "gomadChoiceRunqSeeded", "gomadChoiceRandom", 1, drawImplementation, "the run-queue pick draw"},
+	{"runtime/gomad.go", "gomadChoiceRunqSeeded", "gomadChoiceRunqRandom", 1, drawImplementation, "the run-queue pick stream's accessor"},
 	{"runtime/gomad.go", "gomadChoiceRunqSeeded", "randn", 1, drawInactive, "upstream draw when Gomad is disabled"},
+	{"runtime/gomad.go", "gomadChoiceSeedRandom", "gomadChoiceRunqRandom", 1, drawImplementation, "seeds the stream from GOMADSEED before user code"},
+	{"runtime/gomad.go", "gomadChoiceSeedRandom", "gomadChoiceSchedulerRandom", 1, drawImplementation, "seeds the stream from GOMADSEED before user code"},
+	{"runtime/gomad.go", "gomadChoiceSeedRandom", "gomadChoiceSelectRandom", 1, drawImplementation, "seeds the stream from GOMADSEED before user code"},
+	{"runtime/gomad.go", "gomadChoiceSeedRandom", "gomadRuntimeCheapRandom", 1, drawImplementation, "seeds the stream from GOMADSEED before user code"},
+	{"runtime/gomad.go", "gomadChoiceSeedRandom", "gomadRuntimeRandom", 1, drawImplementation, "seeds the stream from GOMADSEED before user code"},
+	{"runtime/gomad.go", "gomadChoiceSeedRandom", "gomadTimerRandom", 1, drawImplementation, "seeds the stream from GOMADSEED before user code"},
 	{"runtime/gomad.go", "gomadChoiceSelectSeeded", "cheaprandn", 1, drawInactive, "upstream draw when Gomad is disabled"},
+	{"runtime/gomad.go", "gomadChoiceSelectSeeded", "gomadChoiceSelectRandom", 4, drawImplementation, "the select poll-order stream's accessor"},
 	{"runtime/gomad.go", "gomadChoiceShuffleSeeded", "cheaprandn", 1, drawInactive, "upstream draw when Gomad is disabled"},
 	{"runtime/gomad.go", "gomadChoiceShuffleSeeded", "gomadChoiceRandom", 1, drawImplementation, "the run-queue batch shuffle draw"},
+	{"runtime/gomad.go", "gomadChoiceShuffleSeeded", "gomadChoiceSchedulerRandom", 1, drawImplementation, "the batch shuffle stream's accessor"},
+	{"runtime/gomad.go", "gomadChoiceShuffleSeeded", "gomadHostCheapRandN", 1, drawHostTimed, "the shuffle of a netpoll batch injected through gomadInjectHostList, whose contents and moment are host-chosen; the injection is bracketed for the diagnostic check"},
+	{"runtime/gomad.go", "gomadClockTickDraw", "gomadClockTickState", 2, drawImplementation, "the forward clock tick stream's accessor"},
+	{"runtime/gomad.go", "gomadClockTickInit", "gomadClockTickState", 1, drawImplementation, "seeds the stream from GOMADSEED before user code"},
 	{"runtime/gomad.go", "gomadDiagnosticAppend", "gomadRuntimeCheapRand", 1, drawDiagnostic, "GOMAD3_DIAGNOSTIC_PERTURB_DRAW=N takes one extra seeded draw at choice record N"},
 	{"runtime/gomad.go", "gomadHostCheapRand", "gomadRuntimeCheapRand", 1, drawDiagnostic, "GOMAD3_DIAGNOSTIC_PERTURB_DRAW=host-timed:N puts the next host-timed draw on the seeded stream, which the diagnostic check refuses"},
 	{"runtime/gomad.go", "gomadHostCheapRandN", "gomadHostCheapRand", 1, drawImplementation, "bounded form of the M-local draw"},
 	{"runtime/gomad.go", "gomadLockProfileStart", "gomadHostCheapRandN", 1, drawHostTimed, "lock-profile wait sampling where lock2 is about to sleep on a contended runtime lock"},
+	{"runtime/gomad.go", "gomadRuntimeCheapRand", "gomadRuntimeCheapRandom", 3, drawImplementation, "the process-wide cheaprand stream's accessor"},
+	{"runtime/gomad.go", "gomadRuntimeRand", "gomadRuntimeRandom", 2, drawImplementation, "the process-wide rand stream's accessor"},
 	{"runtime/gomad.go", "gomadTimeNow", "gomadClockTickDraw", 1, drawTargetOrdered, "the forward clock tick of a time.Now the target calls"},
+	{"runtime/gomad.go", "gomadTimerRand", "gomadTimerRandom", 2, drawImplementation, "the timer tie-break stream's accessor"},
 	{"runtime/iface.go", "interfaceSwitch", "cheaprand", 2, drawTargetOrdered, "type-switch cache growth on a switch the target executes"},
 	{"runtime/iface.go", "typeAssert", "cheaprand", 2, drawTargetOrdered, "type-assertion cache growth on an assertion the target executes"},
 	{"runtime/lock_spinbit.go", "mutexSampleContention", "cheaprandu64", 1, drawHostTimed, "runtime-lock contention sampling for the mutex profile; m.cheaprand64 is M-local"},
@@ -112,15 +142,15 @@ var reviewedDrawReferences = []drawReference{
 	{"runtime/malloc.go", "fastexprand", "cheaprandn", 1, drawTargetOrdered, "heap-profile sampling of target allocations; Gomad sets MemProfileRate to zero when user code starts"},
 	{"runtime/malloc.go", "mallocinit", "bootstrapRand", 1, drawTargetOrdered, "heap base randomization during runtime initialization, before user code"},
 	{"runtime/mbitmap.go", "doubleCheckHeapType", "cheaprand", 2, drawTargetOrdered, "compiled only under the false doubleCheckHeapSetType debug constant; the allocation reaching it is the target's"},
-	{"runtime/mgcpacer.go", "gcControllerState.enlistWorker", "cheaprandn", 1, drawHostTimedBlocked, "picks a P to preempt for collector work at a moment the collector chooses; mgcpacer.go is a prohibited collector file, so a reroute is referred to the patch-policy owner (fn-112 Open Question 3); unreachable while Gomad pins GOMAXPROCS to one, because enlistWorker returns before the draw"},
+	{"runtime/mgcpacer.go", "gcControllerState.enlistWorker", "cheaprandn", 1, drawHostTimedBlocked, "picks a P to preempt for collector work at a moment the collector chooses; mgcpacer.go is a prohibited collector file, so a reroute is referred to the patch-policy owner (fn-112 Open Question 3); unreachable while GOMAXPROCS stays one (Gomad starts with one, and raising it is unsupported), because enlistWorker returns before the draw"},
 	{"runtime/mprof.go", "blocksampled", "cheaprand64", 1, drawHostTimed, "block-profile sampling of a blocking event's host-measured cycles; m.cheaprand64 is M-local"},
 	{"runtime/mprof.go", "mLockProfile.recordUnlock", "cheaprandu64", 2, drawHostTimed, "chooses which contended runtime-lock stack the mutex profile keeps; m.cheaprand64 is M-local"},
 	{"runtime/mprof.go", "mLockProfile.start", "cheaprandn", 1, drawInactive, "gomadLockProfileStart calls it only when Gomad is disabled"},
 	{"runtime/mprof.go", "mutexevent", "cheaprand64", 1, drawHostTimed, "mutex-profile sampling of a contention event's host-measured cycles; m.cheaprand64 is M-local"},
-	{"runtime/os_linux.go", "setThreadCPUProfiler", "cheaprandn", 1, drawHostTimedBlocked, "spreads per-thread CPU-profile timers when an M first runs after SetCPUProfileRate; os_linux.go is a prohibited platform file, and CPU profiling (SIGPROF) is outside the deterministic contract"},
+	{"runtime/os_linux.go", "setThreadCPUProfiler", "cheaprandn", 1, drawHostTimedBlocked, "spreads per-thread CPU-profile timers when an M first runs after SetCPUProfileRate; os_linux.go is in the prohibited os_ runtime area, and CPU profiling (SIGPROF) is outside the deterministic contract; execute brackets the call, so the diagnostic check stops a run that reaches it"},
 	{"runtime/proc.go", "newproc1", "cheaprand", 1, drawTargetOrdered, "the scheduler-tracking sequence of a goroutine the target or a runtime goroutine creates"},
 	{"runtime/proc.go", "runqput", "gomadChoiceRunnextSeeded", 1, drawTargetOrdered, "the runnext demotion of a goroutine readied on the P"},
-	{"runtime/proc.go", "runqputbatch", "gomadChoiceShuffleSeeded", 1, drawTargetOrdered, "shuffles a batch put on the local run queue; host netpoll batches are outside the contract"},
+	{"runtime/proc.go", "runqputbatch", "gomadChoiceShuffleSeeded", 1, drawTargetOrdered, "shuffles a batch put on the local run queue at a point the target orders; netpoll batches arrive through gomadInjectHostList, which switches gomadChoiceShuffleSeeded to the M-local draw"},
 	{"runtime/proc.go", "runqputslow", "gomadChoiceShuffleSeeded", 1, drawTargetOrdered, "shuffles the half of a full local run queue moved to the global queue"},
 	{"runtime/proc.go", "stealWork", "gomadHostCheapRand", 1, drawHostTimed, "work-steal order in the idle steal pass, whose repetitions follow idle windows the Runner decides; the pass is bracketed for the diagnostic check"},
 	{"runtime/rand.go", "cheaprand", "gomadRuntimeCheapRand", 1, drawImplementation, "serves an M holding the P from the process-wide stream"},
@@ -201,6 +231,7 @@ func TestSeededDrawInventoryRejectsUnclassifiedReference(t *testing.T) {
 	}{
 		{"host-timed on the seeded stream", func(r *drawReference) { r.helper, r.class = "cheaprand", drawHostTimed }, "host-timed reference uses a seeded helper: runtime/gomad_unclassified.go unclassified cheaprand"},
 		{"blocked without a finding", func(r *drawReference) { r.helper, r.class, r.reason = "cheaprand", drawHostTimedBlocked, "" }, "classified seeded-stream reference has no reason: runtime/gomad_unclassified.go unclassified cheaprand"},
+		{"seeded state outside its accessor", func(r *drawReference) { r.helper, r.class = "gomadRuntimeRandom", drawTargetOrdered }, "seeded state is used outside its accessor or seeding function: runtime/gomad_unclassified.go unclassified gomadRuntimeRandom"},
 	} {
 		changed := slices.Clone(reviewed)
 		entry := reviewed[1]
@@ -286,7 +317,7 @@ var drawLinkname = regexp.MustCompile(`(?m)^//go:linkname(?:std)?\s+(\w+)\s+runt
 // directory: the runtime's own, and in another package each local name a
 // linkname directive binds to one of them.
 func drawHelpersByDirectory(sourceRoot string, files map[string][]string) (map[string][]string, error) {
-	helpers := map[string][]string{filepath.Join(sourceRoot, "runtime"): drawRuntimeHelpers}
+	helpers := map[string][]string{filepath.Join(sourceRoot, "runtime"): slices.Concat(drawRuntimeHelpers, drawSeededStates)}
 	for directory, paths := range files {
 		if directory == filepath.Join(sourceRoot, "runtime") {
 			continue
@@ -317,7 +348,7 @@ func drawHelpersByDirectory(sourceRoot string, files map[string][]string) (map[s
 
 // countDrawReferences counts the identifiers naming a helper inside each
 // declaration of the file, ignoring comments, selector fields, struct fields,
-// and the helper's own declared name.
+// and the declared names of the helper and of package variables.
 func countDrawReferences(sourceRoot, path string, helpers []string, counts map[string]int) error {
 	contents, err := os.ReadFile(path)
 	if err != nil {
@@ -362,6 +393,15 @@ func countDrawReferences(sourceRoot, path string, helpers []string, counts map[s
 			case *ast.KeyValueExpr:
 				ast.Inspect(node.Value, func(inner ast.Node) bool { return countDrawIdentifier(inner, relative, function, helpers, counts) })
 				return false
+			case *ast.ValueSpec:
+				// A declared name is not a use; its type and initial values are.
+				if node.Type != nil {
+					ast.Inspect(node.Type, func(inner ast.Node) bool { return countDrawIdentifier(inner, relative, function, helpers, counts) })
+				}
+				for _, value := range node.Values {
+					ast.Inspect(value, func(inner ast.Node) bool { return countDrawIdentifier(inner, relative, function, helpers, counts) })
+				}
+				return false
 			default:
 				return countDrawIdentifier(node, relative, function, helpers, counts)
 			}
@@ -377,24 +417,37 @@ func countDrawIdentifier(node ast.Node, file, function string, helpers []string,
 	return true
 }
 
-// countCompilerDrawCalls counts the runtime rand helpers the compiler's walk
-// phase calls by name, such as the seed of a non-escaping small map.
+// countCompilerDrawCalls counts the runtime rand helpers the compiler calls by
+// name anywhere in cmd/compile, such as the seed of a non-escaping small map
+// in its walk phase. The typecheck builtin table only declares the runtime
+// functions the compiler may call, so it is not a call site.
 func countCompilerDrawCalls(sourceRoot string, counts map[string]int) error {
-	directory := filepath.Join(sourceRoot, "cmd", "compile", "internal", "walk")
-	entries, err := os.ReadDir(directory)
-	if err != nil {
-		if os.IsNotExist(err) {
+	directory := filepath.Join(sourceRoot, "cmd", "compile")
+	if _, err := os.Stat(directory); os.IsNotExist(err) {
+		return nil
+	}
+	builtinTable := filepath.Join(directory, "internal", "typecheck", "builtin.go")
+	return filepath.WalkDir(directory, func(path string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		name := entry.Name()
+		if entry.IsDir() {
+			if name == "testdata" || name == "_builtin" {
+				return filepath.SkipDir
+			}
 			return nil
 		}
-		return err
-	}
-	for _, entry := range entries {
-		name := entry.Name()
-		if !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
-			continue
+		if !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") || path == builtinTable {
+			return nil
 		}
+		relative, err := filepath.Rel(sourceRoot, path)
+		if err != nil {
+			return err
+		}
+		relative = filepath.ToSlash(relative)
 		fileSet := token.NewFileSet()
-		file, err := parser.ParseFile(fileSet, filepath.Join(directory, name), nil, parser.SkipObjectResolution)
+		file, err := parser.ParseFile(fileSet, path, nil, parser.SkipObjectResolution)
 		if err != nil {
 			return err
 		}
@@ -414,13 +467,13 @@ func countCompilerDrawCalls(sourceRoot string, counts map[string]int) error {
 				}
 				helper, err := strconv.Unquote(literal.Value)
 				if err == nil && slices.Contains(drawCompilerHelpers, helper) {
-					counts["cmd/compile/internal/walk/"+name+" "+definition.Name.Name+" "+helper]++
+					counts[relative+" "+definition.Name.Name+" "+helper]++
 				}
 				return true
 			})
 		}
-	}
-	return nil
+		return nil
+	})
 }
 
 // seededDrawProblems compares the scanned references with the reviewed
@@ -439,6 +492,9 @@ func seededDrawProblems(got map[string]int, reviewed []drawReference) []string {
 		}
 		if reference.class == drawHostTimed && !slices.Contains(drawMLocalHelpers, reference.helper) {
 			problems = append(problems, "host-timed reference uses a seeded helper: "+reference.key())
+		}
+		if slices.Contains(drawSeededStates, reference.helper) && reference.class != drawImplementation {
+			problems = append(problems, "seeded state is used outside its accessor or seeding function: "+reference.key())
 		}
 		want[reference.key()] = reference
 	}

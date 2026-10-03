@@ -117,7 +117,7 @@ func TestDiagnosticTrace(t *testing.T) {
 	binary := filepath.Join(directory, "fixture")
 	build := exec.Command(testenv.GoToolPath(t), "build", "-o", binary, source)
 	build.Dir = directory
-	build.Env = append(os.Environ(), "CGO_ENABLED=0", "GOFLAGS=", "GOWORK=off")
+	build.Env = append(os.Environ(), "CGO_ENABLED=0", "GOEXPERIMENT=nogreenteagc", "GOFLAGS=", "GOWORK=off")
 	if output, err := build.CombinedOutput(); err != nil {
 		t.Fatalf("build fixture: %v\n%s", err, output)
 	}

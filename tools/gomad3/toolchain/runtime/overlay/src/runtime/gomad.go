@@ -9,6 +9,7 @@ import (
 
 	"internal/chacha8rand"
 	"internal/goarch"
+	"internal/goexperiment"
 	"internal/runtime/atomic"
 	"internal/runtime/exithook"
 	"math/bits"
@@ -134,6 +135,13 @@ func gomadInit() {
 	}
 	if iscgo || gomadExternal {
 		print("runtime: GOMADSEED does not support cgo or external linking\n")
+		exit(2)
+	}
+	// The Green Tea collector's span stealing draws from cheaprand while the
+	// P is held, at moments the collector's host-timed progress chooses.
+	// Targets build with GOEXPERIMENT=nogreenteagc; refuse any other build.
+	if goexperiment.GreenTeaGC {
+		print("runtime: GOMADSEED requires GOEXPERIMENT=nogreenteagc\n")
 		exit(2)
 	}
 
@@ -666,11 +674,9 @@ func gomadHostCheapRand() uint32 {
 	mp := getg().m
 	if gomadDiagnosticEnabled && gomadDiagnosticHostFault.Load() != 0 {
 		// The host-timed fault stands in for a site left on the seeded
-		// stream, so the check below stops the process.
-		mp.gomadHostTimed++
-		value := gomadRuntimeCheapRand()
-		mp.gomadHostTimed--
-		return value
+		// stream. It does not bracket itself: only a caller's own
+		// gomadHostTimedEnter bracket makes the check stop the process.
+		return gomadRuntimeCheapRand()
 	}
 	mp.cheaprand += 0x53c5ca59
 	hi, lo := bits.Mul32(mp.cheaprand, mp.cheaprand^0x74743c1b)
@@ -699,6 +705,21 @@ func gomadHostTimedExit() {
 	if gomadDiagnosticEnabled {
 		getg().m.gomadHostTimed--
 	}
+}
+
+// gomadInjectHostList stands in for injectglist where the scheduler injects
+// the goroutines a netpoll returned. The poll's result and the moment it is
+// taken are host timing, so the batch's run-queue shuffle draws from the M's
+// own stream, and the injection is bracketed as a host-timed path.
+//
+//go:nowritebarrierrec
+func gomadInjectHostList(list *gList) {
+	mp := getg().m
+	gomadHostTimedEnter()
+	mp.gomadHostBatch++
+	injectglist(list)
+	mp.gomadHostBatch--
+	gomadHostTimedExit()
 }
 
 // gomadSeededDrawCheck runs before every draw from a seeded stream. The draw
@@ -753,6 +774,11 @@ func gomadChoiceRunnextSeeded(n uint32) uint32 {
 func gomadChoiceShuffleSeeded(n uint32) uint32 {
 	if !gomadEnabled {
 		return cheaprandn(n)
+	}
+	if getg().m.gomadHostBatch != 0 {
+		// A netpoll batch: which goroutines it holds, and when the poll
+		// returns them, is host timing.
+		return gomadHostCheapRandN(n)
 	}
 	gomadDiagnosticDraws.scheduler++
 	return gomadChoiceRandom(&gomadChoiceSchedulerRandom, n)

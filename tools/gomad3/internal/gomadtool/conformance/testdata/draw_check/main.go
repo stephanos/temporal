@@ -1,14 +1,17 @@
 // draw_check reaches the runtime's host-timed draw sites after its first
 // choice points: idle windows send the scheduler through its steal pass, and
 // collections and runtime.Callers walk stacks through the pcvalue cache. The
-// host-timed fault of GOMAD3_DIAGNOSTIC_PERTURB_DRAW puts the next such draw
-// on the seeded stream, which the diagnostic check must refuse.
+// host-timed fault of GOMAD3_DIAGNOSTIC_PERTURB_DRAW puts every later such
+// draw on the seeded stream; the diagnostic check must refuse the first one
+// inside a bracketed host-timed path, the steal pass of the idle window before
+// the fixture prints.
 package main
 
 import (
 	"fmt"
 	"runtime"
 	"sync"
+	"time"
 )
 
 //go:noinline
@@ -39,6 +42,9 @@ func main() {
 		})
 	}
 	group.Wait()
+	// Main is the only goroutine left and it sleeps: the idle window takes
+	// the scheduler through its steal pass before virtual time advances.
+	time.Sleep(time.Millisecond)
 	close(results)
 	total := 0
 	for value := range results {

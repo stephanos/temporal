@@ -27,11 +27,12 @@ inventory below. No assertion existed; the diagnostic check below adds one.
 (overlay `gomad.go:1752`) once before the loop, and the loop's `_Gsyscall` case (`preempt.go:168`)
 claims a goroutine in a syscall without waiting. The window the assessment names needs the scanned
 goroutine to *enter* a syscall after the wait returns. Entering a syscall needs the goroutine to run,
-which needs a P; Gomad pins `GOMAXPROCS` to one, and both `suspendG` callers hold that P while they
+which needs a P; Gomad starts with `GOMAXPROCS` one and the window stays closed while it stays one
+(raising it with `runtime.GOMAXPROCS(n)` is unsupported, not prevented), and both `suspendG` callers hold that P while they
 scan (`mgcmark.go:298` from a mark worker in `markroot`, `trace.go:523` from the tracer, which is
 outside the contract) or run with the world stopped. A goroutine leaving a syscall without a P is
 queued as an arrival and becomes `_Grunnable`, which the loop then claims. So, from source reading,
-the window is not reachable under the supported configuration. Not reproduced or measured; no code
+the window is not reachable while `GOMAXPROCS` stays one. Not reproduced or measured; no code
 change here. It stays a D12 candidate owned by fn-105 D12, which needs a native linux/amd64 host.
 
 ## Inventory
@@ -69,9 +70,10 @@ host-timed sites stay on the process-wide stream and are recorded as `host-timed
 
 1. `runtime/mgcpacer.go` `gcControllerState.enlistWorker` (`cheaprandn`, line 736): collector file,
    blocked by the collector patch prohibition; raises **spec Open Question 3** (patch-policy
-   approval). Unreachable while Gomad pins `GOMAXPROCS` to one: `enlistWorker` returns at
-   `gomaxprocs <= 1` before the draw.
-2. `runtime/os_linux.go` `setThreadCPUProfiler` (`cheaprandn`, line 680): prohibited platform file;
+   approval). Unreachable while `GOMAXPROCS` stays one (Gomad starts with one; raising it is
+   unsupported): `enlistWorker` returns at `gomaxprocs <= 1` before the draw.
+2. `runtime/os_linux.go` `setThreadCPUProfiler` (`cheaprandn`, line 680): in the prohibited `os_`
+   runtime area (`toolchain/patch.go`);
    reached only with CPU profiling (SIGPROF), which is outside the deterministic contract (task 6
    exclusion). Linux only. Also referred under Open Question 3.
 
@@ -110,11 +112,13 @@ projection was not run (the in-identity diagnostics-off check is in the draw_che
 ## For task 10 (documentation)
 
 - Inventory: `toolchain/draw_inventory_test.go`, test tier `test-toolchain`.
-- Contract sentence draft: "With a diagnostic trace, a draw from a seeded stream inside a path the
-  draw-site inventory classifies host-timed stops the target with exit status 125 and
-  `runtime: Gomad host-timed path drew from the seeded stream`. Two host-timed draws remain on the
+- Contract sentence draft (narrowed after review): "With a diagnostic trace, a draw from a seeded
+  stream inside a bracketed host-timed path (the idle steal pass, the injection of netpoll results,
+  and the CPU-profiler setup in `execute`) stops the target with exit status 125 and
+  `runtime: Gomad host-timed path drew from the seeded stream`. The other host-timed sites in the
+  inventory are not bracketed; the inventory, not the runtime check, keeps them on M-local streams. Two host-timed draws remain on the
   seeded stream because rerouting them needs a prohibited file: collector worker enlistment (not
-  reached at GOMAXPROCS one) and linux CPU-profile timer setup (CPU profiling is outside the
+  reached while GOMAXPROCS stays one) and linux CPU-profile timer setup (CPU profiling is outside the
   contract)."
 - Reroutes: none.
 
@@ -129,3 +133,23 @@ darwin/arm64 and linux/amd64:
 `GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host` (covers
 `TestDiagnosticDrawCheckStopsHostTimedSeededDraw`). The inventory test needs no per-platform list:
 keys are platform-independent and `os_linux.go` appears only on linux.
+
+## Review follow-up (fn-112.5 review, NEEDS_WORK)
+
+Applied on top of `c2fd6d2f0`; details, commands and results in `review-fixes.md`. This section
+supersedes the statements above where they differ:
+
+- Netpoll batches: the shuffle in `runqputbatch` drew from the seeded scheduler stream when a netpoll
+  result of two or more goroutines was injected while the M held the P. The six netpoll injection
+  sites in `proc.go` now call `gomadInjectHostList` (overlay), which brackets the injection and makes
+  `gomadChoiceShuffleSeeded` take the M-local draw. This is a reroute: a schedule that injected such
+  a batch changes, under a new toolchain identity. Target-originated batches stay seeded.
+- Green Tea: a seeded runtime built with `goexperiment.greenteagc` exits 2 with
+  `runtime: GOMADSEED requires GOEXPERIMENT=nogreenteagc`; the runtime campaign builds every
+  fixture with `GOEXPERIMENT=nogreenteagc`.
+- The host-timed fault no longer brackets itself; only real brackets stop the process.
+  `draw_check` gains an idle window before it prints; with the steal-pass bracket removed the fault
+  no longer stops it (checked with a `-overlay` build).
+- The inventory also counts direct uses of the seeded state variables (allowed only as
+  `implementation` entries in their accessors and seeding functions) and scans all of `cmd/compile`
+  except the typecheck builtin table. It classifies the containing function, not its callers.
