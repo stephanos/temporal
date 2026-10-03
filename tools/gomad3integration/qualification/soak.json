@@ -8,11 +8,11 @@
   ],
   "repeat": 32,
   "minimum_batches": 2,
-  "batches": 16,
-  "qualify_timeout": "120m",
-  "budget": "300m",
+  "batches": 4,
+  "qualify_timeout": "55m",
+  "budget": "120m",
   "load_workers": 2,
-  "sizing": "N is measured, not assumed: each scheduled job runs one workload and seed, always completes the minimum two gomad qualify batches at its 32-repetition bound (64 fresh repetitions, so every run compares two batches of each cohort), and starts each further batch, up to 16 (512 repetitions), only while the previous batch's measured cost plus a fifth still fits the 300-minute soak budget of a 360-minute GitHub-hosted job. The report states the N reached, why it stopped, and each batch's execution_wall_nanos. Known inputs: smoke suite executions take about 2 seconds each on linux/amd64 and at most 7 seconds on darwin/arm64 without load (tools/gomad3integration/README.md), but every repetition also prepares its target, and that cost under two busy host threads has not been measured on either platform; the first retained run per platform supplies it. The host loader is two busy threads, the count the runtime host-load conformance tier uses.",
+  "sizing": "Capped for a fork's shared hosted-runner quota: each scheduled job runs one workload and seed, always completes two gomad qualify batches at its 32-repetition bound (N = 64 fresh repetitions, so every run compares two batches of each cohort), and starts a third and fourth batch (at most N = 128) only while the previous batch's measured cost plus a fifth still fits the 120-minute soak budget; one batch is bounded at 55 minutes so the minimum two fit. With the toolchain build, a job stays inside its 180-minute timeout. A defect that diverges one seed-run in 26, the fn-105 D12 rate, fires at least once in 64 fresh runs with probability 1 - (25/26)^64, about 0.92 per workload and seed, and about 0.99 in 128. The report states the N reached, why it stopped, and each batch's execution_wall_nanos. Known inputs: smoke suite executions take about 2 seconds each on linux/amd64 and at most 7 seconds on darwin/arm64 without load (tools/gomad3integration/README.md), but every repetition also prepares its target, and that cost under two busy host threads has not been measured on either platform; the first retained run per platform supplies it. The host loader is two busy threads, the count the runtime host-load conformance tier uses.",
   "informational_platforms": {
     "linux/amd64": "fn-105 D12 (MILESTONES.md Open findings, linux replay divergence) is open; this platform's soak becomes strict when fn-105 R12 closes it"
   },

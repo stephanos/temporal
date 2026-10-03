@@ -151,10 +151,11 @@ make gomad3-smoke-qualification
 
 `qualification/soak.json` names the four smoke suites and the guarded-mode
 `frontend-system-info` probe, seeds 11 and 17, and the soak's size: each
-workload and seed runs at least two and at most sixteen `gomad qualify
---diagnostics` batches of 32 fresh repetitions under two busy host threads,
-adding a batch only while the previous batch's measured cost fits a 300-minute
-budget. Its `sizing` field records that reasoning. `make gomad3-soak` runs it
+workload and seed runs at least two and at most four `gomad qualify
+--diagnostics` batches of 32 fresh repetitions (N = 64 to 128) under two busy
+host threads, adding a batch only while the previous batch's measured cost fits
+a 120-minute budget, so the scheduled jobs stay within a fork's shared
+hosted-runner quota. Its `sizing` field records that reasoning. `make gomad3-soak` runs it
 through `gomadtool soak` (see `tools/gomad3/CLI.md`); `GOMAD3_SOAK_WORKLOAD`
 and `GOMAD3_SOAK_SEED` select one workload and seed, as each scheduled job
 does. Every clean batch is compared with its cohort's baseline (workload, seed,

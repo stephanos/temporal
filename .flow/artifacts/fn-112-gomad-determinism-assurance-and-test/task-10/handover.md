@@ -12,8 +12,8 @@ Host: linux/arm64 (developmental). None of the results below is darwin/arm64 or 
   ledger carried between runs. Overflow, target failure, and infrastructure failure are reported apart from
   divergence. A divergence retains both traces, both evidence records, and `differ.json`/`differ.txt`.
 - `tools/gomad3integration/qualification/soak.json`: the four smoke suites plus the guarded-mode
-  `frontend-system-info`, seeds 11 and 17, `repeat` 32, minimum 2 and maximum 16 batches, a 120m `qualify_timeout`,
-  a 300m budget, and 2 load workers. Its `sizing` field records how N is chosen and why. linux/amd64 is listed under
+  `frontend-system-info`, seeds 11 and 17, `repeat` 32, minimum 2 and maximum 4 batches (N 64 to 128), a 55m `qualify_timeout`,
+  a 120m budget (180-minute job timeout; capped for the fork's runner quota), and 2 load workers. Its `sizing` field records how N is chosen and why. linux/amd64 is listed under
   `informational_platforms` (fn-105 D12).
 - Root `make gomad3-soak`; `gomad3.yml` jobs `determinism-soak-darwin` (strict) and `determinism-soak-linux`
   (informational). Both are schedule/dispatch only, with a matrix of workload x seed. Each job restores its ledger
@@ -39,6 +39,10 @@ Host: linux/arm64 (developmental). None of the results below is darwin/arm64 or 
 - Review round 1 (NEEDS_WORK) fixes: the bound now counts only clean-batch repetitions (`clean_repetitions`); a
   failed baseline retention is infrastructure and leaves no baseline; `runBatch` is a `soakRun` method; the ledger
   is saved after every batch; soak uploads set `overwrite: true` for re-run attempts.
+- Cost cap (conductor follow-up): at most 4 batches within a 120-minute budget and a 180-minute job timeout.
+  Matrix jobs keep their own toolchain builds: no gomad3 workflow shares a built toolchain today, and sharing one
+  would need a tarred `.toolchain` (symlinks, modes, build-key cache validation at the same absolute path) that has
+  no existing pattern to follow.
 - `go test -count=1 -tags test_dep ./qualification/soak`: 16 tests pass. A mutation check confirmed coverage: with
   the cross-batch divergence assignment removed, `TestCohortBatchSequenceAAThenBBIsADivergence` and two run tests
   fail.

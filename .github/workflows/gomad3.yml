@@ -297,10 +297,13 @@ jobs:
   # cohort. The darwin gate accepts zero divergences, and an overflow, target
   # failure, or infrastructure failure fails it separately. A divergence
   # uploads both diagnostic traces and the differ output.
+  # soak.json caps a job at four batches inside a 120-minute budget, so the
+  # matrix stays within a fork's shared macOS quota. Each job builds its own
+  # toolchain, as every other gomad3 job does.
   determinism-soak-darwin:
     if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
     runs-on: macos-15
-    timeout-minutes: 360
+    timeout-minutes: 180
     permissions:
       contents: read
       actions: read
@@ -378,7 +381,7 @@ jobs:
   determinism-soak-linux:
     if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    timeout-minutes: 180
     permissions:
       contents: read
       actions: read
