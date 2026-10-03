@@ -64,12 +64,12 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 	}
 	for _, test := range []struct {
 		name      string
-		configure func(*testing.T) (context.Context, CampaignSpec)
+		configure func(*testing.T) (context.Context, injectedCampaign)
 		want      seedCompletionObservation
 	}{
 		{
 			name: "successes",
-			configure: func(t *testing.T) (context.Context, CampaignSpec) {
+			configure: func(t *testing.T) (context.Context, injectedCampaign) {
 				return context.Background(), testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1-3", PolicyAll, 2)
 			},
 			want: seedCompletionObservation{
@@ -79,7 +79,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 		},
 		{
 			name: "distinct and duplicate failures",
-			configure: func(t *testing.T) (context.Context, CampaignSpec) {
+			configure: func(t *testing.T) (context.Context, injectedCampaign) {
 				executor := &fakeExecutor{result: func(seed uint64) execution.Result {
 					switch seed {
 					case 1:
@@ -98,7 +98,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 		},
 		{
 			name: "first failure cancels active",
-			configure: func(t *testing.T) (context.Context, CampaignSpec) {
+			configure: func(t *testing.T) (context.Context, injectedCampaign) {
 				return context.Background(), testConfig(t, newFakePreparer(t), newFirstFailureExecutor(3), "1-10", PolicyFirst, 3)
 			},
 			want: seedCompletionObservation{
@@ -108,7 +108,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 		},
 		{
 			name: "failure budget",
-			configure: func(t *testing.T) (context.Context, CampaignSpec) {
+			configure: func(t *testing.T) (context.Context, injectedCampaign) {
 				executor := &fakeExecutor{result: func(seed uint64) execution.Result {
 					if seed == 4 {
 						return processResult(1, "different", "")
@@ -126,7 +126,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 		},
 		{
 			name: "supervision failure",
-			configure: func(t *testing.T) (context.Context, CampaignSpec) {
+			configure: func(t *testing.T) (context.Context, injectedCampaign) {
 				return context.Background(), testConfig(t, newFakePreparer(t), scriptedSeedExecutor{scripts: map[uint64]func(context.Context) (execution.Result, error){1: failSupervision}}, "1", PolicyAll, 1)
 			},
 			want: seedCompletionObservation{
@@ -136,7 +136,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 		},
 		{
 			name: "supervision failure drains a cancelled attempt",
-			configure: func(t *testing.T) (context.Context, CampaignSpec) {
+			configure: func(t *testing.T) (context.Context, injectedCampaign) {
 				executor := scriptedSeedExecutor{scripts: map[uint64]func(context.Context) (execution.Result, error){1: failSupervision, 2: cancelledByCampaign}}
 				return context.Background(), testConfig(t, newFakePreparer(t), executor, "1-2", PolicyAll, 2)
 			},
@@ -147,7 +147,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 		},
 		{
 			name: "supervision failure drains a success",
-			configure: func(t *testing.T) (context.Context, CampaignSpec) {
+			configure: func(t *testing.T) (context.Context, injectedCampaign) {
 				executor := scriptedSeedExecutor{scripts: map[uint64]func(context.Context) (execution.Result, error){1: failSupervision}}
 				return context.Background(), testConfig(t, newFakePreparer(t), executor, "1-2", PolicyAll, 2)
 			},
@@ -158,7 +158,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 		},
 		{
 			name: "supervision failure drains a failure",
-			configure: func(t *testing.T) (context.Context, CampaignSpec) {
+			configure: func(t *testing.T) (context.Context, injectedCampaign) {
 				executor := scriptedSeedExecutor{scripts: map[uint64]func(context.Context) (execution.Result, error){1: failSupervision, 2: func(context.Context) (execution.Result, error) {
 					return processResult(1, "failed", ""), nil
 				}}}
@@ -171,7 +171,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 		},
 		{
 			name: "prepared target integrity",
-			configure: func(t *testing.T) (context.Context, CampaignSpec) {
+			configure: func(t *testing.T) (context.Context, injectedCampaign) {
 				return context.Background(), testConfig(t, newFakePreparer(t), mutatingExecutor{}, "1", PolicyAll, 1)
 			},
 			want: seedCompletionObservation{
@@ -181,10 +181,10 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 		},
 		{
 			name: "campaign cancelled while running",
-			configure: func(t *testing.T) (context.Context, CampaignSpec) {
+			configure: func(t *testing.T) (context.Context, injectedCampaign) {
 				config := testConfig(t, newFakePreparer(t), blockingExecutor{}, "1", PolicyAll, 1)
 				config.TerminateGrace = 10 * time.Millisecond
-				ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.Running == 1 })
+				ctx := cancelOnProgress(t, &config.CampaignSpec, func(progress CampaignEvent) bool { return progress.Running == 1 })
 				return ctx, config
 			},
 			want: seedCompletionObservation{
@@ -195,7 +195,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			ctx, config := test.configure(t)
-			summary, err := Explore(ctx, config)
+			summary, err := exploreWith(ctx, config.CampaignSpec, config.dependencies)
 			observed := observeSeedCompletion(t, summary, err)
 			if !reflect.DeepEqual(observed, test.want) {
 				t.Fatalf("seed completion = %#v, want %#v", observed, test.want)
@@ -238,7 +238,7 @@ func TestSeedCompletionFaultsKeepCampaignStatistics(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			config, _ := completionCampaign(t, StrategySeed, test.coverage, test.fault, test.err)
-			summary, err := Explore(context.Background(), config)
+			summary, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies)
 			if observed := observeSeedCompletion(t, summary, err).Statistics; observed != test.want {
 				t.Fatalf("statistics = %#v, want %#v", observed, test.want)
 			}

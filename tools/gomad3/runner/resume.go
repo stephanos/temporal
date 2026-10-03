@@ -27,18 +27,21 @@ type ResumeSpec struct {
 	CoordinatorCommand []string
 	Progress           CampaignEventFunc
 	ProgressInterval   time.Duration
-	Executor           Executor
 	Replayer           ArtifactReplayer
 	GuideRegression    *bool
 }
 
 func Resume(ctx context.Context, spec ResumeSpec) (CampaignResult, error) {
-	return Explore(ctx, CampaignSpec{
+	return resumeWith(ctx, spec, dependencies{})
+}
+
+func resumeWith(ctx context.Context, spec ResumeSpec, dependency dependencies) (CampaignResult, error) {
+	return exploreWith(ctx, CampaignSpec{
 		ResumeCampaign: spec.CampaignPath, RunnerBuild: spec.RunnerBuild, GuideRegressionOverride: spec.GuideRegression,
 		Target:            target.Spec{ToolchainRoot: spec.ToolchainRoot},
 		SupervisorCommand: append([]string(nil), spec.SupervisorCommand...), CoordinatorCommand: append([]string(nil), spec.CoordinatorCommand...),
-		Progress: spec.Progress, ProgressInterval: spec.ProgressInterval, Executor: spec.Executor, Replayer: spec.Replayer,
-	})
+		Progress: spec.Progress, ProgressInterval: spec.ProgressInterval, Replayer: spec.Replayer,
+	}, dependency)
 }
 
 func resumeRequestDefaults(config campaignRun) (campaignRun, error) {
@@ -92,7 +95,7 @@ func resumeConfiguration(request campaignRun, plan campaign.CampaignPlan) (campa
 	if err := deterministicio.Default().VerifyAdapters(deterministicAdapters(prepared.Adapters)); err != nil {
 		return campaignRun{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("verify recorded adapters: %w", err)
 	}
-	if request.Executor == nil {
+	if request.executor == nil {
 		identity, err := target.ReadToolchainIdentity(request.Target.ToolchainRoot)
 		if err != nil {
 			return campaignRun{}, SeedSelection{}, nil, nil, target.Prepared{}, err
@@ -111,8 +114,9 @@ func resumeConfiguration(request campaignRun, plan campaign.CampaignPlan) (campa
 		Target: target.Spec{ToolchainRoot: request.Target.ToolchainRoot}, SupervisorCommand: append([]string(nil), request.SupervisorCommand...), RunnerBuild: request.RunnerBuild,
 		Coverage: CoverageMode(plan.Coverage), RequiredSemanticProbes: append([]string(nil), plan.RequiredSemanticProbes...),
 		KeepSuccesses: KeepSuccesses(plan.KeepSuccesses), SuccessArtifactLimit: uint64(plan.SuccessArtifactLimit), SuccessBytesLimit: uint64(plan.SuccessBytesLimit),
-		Progress: request.Progress, ProgressInterval: request.ProgressInterval, Executor: request.Executor, Replayer: request.Replayer,
+		Progress: request.Progress, ProgressInterval: request.ProgressInterval, Replayer: request.Replayer,
 	})
+	config.dependencies = request.dependencies
 	if plan.ChoiceProfile != nil {
 		config.ChoiceTraceLimit = uint64(plan.ChoiceProfile.Limit)
 	}

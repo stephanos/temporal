@@ -46,7 +46,7 @@ type completionObservation struct {
 // executor with one fixed fault applied to the captured result.
 type faultExecutor struct {
 	t     *testing.T
-	base  Executor
+	base  targetExecutor
 	fault func(*execution.Result)
 	err   error
 	mu    *sync.Mutex
@@ -68,7 +68,7 @@ func (executor faultExecutor) Run(ctx context.Context, request execution.Spec) (
 	return result, executor.err
 }
 
-func completionCampaign(t *testing.T, strategy Strategy, coverage CoverageMode, fault func(*execution.Result), runErr error) (CampaignSpec, faultExecutor) {
+func completionCampaign(t *testing.T, strategy Strategy, coverage CoverageMode, fault func(*execution.Result), runErr error) (injectedCampaign, faultExecutor) {
 	t.Helper()
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)
@@ -331,7 +331,7 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 					}
 				}
 				config, _ := completionCampaign(t, strategy, test.coverage, test.fault, test.err)
-				summary, err := Explore(context.Background(), config)
+				summary, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies)
 				if observed := observeCompletion(t, summary, err); !reflect.DeepEqual(observed, want) {
 					t.Fatalf("completion = %#v, want %#v", observed, want)
 				}
@@ -346,10 +346,10 @@ func TestExplorationCancellationIsAHostFailure(t *testing.T) {
 	for _, strategy := range completionStrategies[1:] {
 		t.Run(string(strategy), func(t *testing.T) {
 			config, _ := completionCampaign(t, strategy, CoverageNone, nil, nil)
-			config.Executor = blockingExecutor{}
-			ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.Running == 1 })
+			config.executor = blockingExecutor{}
+			ctx := cancelOnProgress(t, &config.CampaignSpec, func(progress CampaignEvent) bool { return progress.Running == 1 })
 			config.TerminateGrace = 10 * time.Millisecond
-			summary, err := Explore(ctx, config)
+			summary, err := exploreWith(ctx, config.CampaignSpec, config.dependencies)
 			observed := observeCompletion(t, summary, err)
 			// The round returns while its candidate is still exiting, so the
 			// candidate's partial state is not settled yet.
@@ -378,7 +378,7 @@ func TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy(t *testing.T)
 			recording := completionWorldRecord(t, 7)
 			config, executor := completionCampaign(t, strategy, CoverageSemanticChoice, func(result *execution.Result) { result.WorldRecord = recording }, nil)
 			config.CollectExecutionEvidence = true
-			summary, err := Explore(context.Background(), config)
+			summary, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies)
 			if err != nil {
 				t.Fatal(err)
 			}

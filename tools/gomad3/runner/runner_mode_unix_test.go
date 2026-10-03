@@ -15,7 +15,7 @@ func TestRunEnforcesBatchModesIndependentOfUmask(t *testing.T) {
 	oldUmask := syscall.Umask(0o777)
 	defer syscall.Umask(oldUmask)
 
-	summary, err := Explore(context.Background(), config)
+	summary, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies)
 	if err != nil {
 		t.Fatal(err)
 	}

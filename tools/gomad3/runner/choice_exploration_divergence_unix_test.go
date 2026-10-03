@@ -38,7 +38,7 @@ func TestChoiceExplorationDivergenceCrashHelper(t *testing.T) {
 		}
 		return nil
 	}
-	if _, err := Explore(t.Context(), config); err != nil {
+	if _, err := exploreWith(t.Context(), config.CampaignSpec, config.dependencies); err != nil {
 		t.Fatal(err)
 	}
 	t.Fatal("crash helper escaped the committed-round barrier")
@@ -119,12 +119,12 @@ func TestRunChoiceExplorationKilledAfterDivergenceResumesSameState(t *testing.T)
 		t.Fatal("killed helper did not exit")
 	}
 	config := divergenceCampaignConfig(t, PolicyAll, 1)
-	base := config.Executor.(*candidateDivergenceExecutor).base
-	resumed, err := Explore(t.Context(), CampaignSpec{ResumeCampaign: path, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: base})
+	base := config.executor.(*candidateDivergenceExecutor).base
+	resumed, err := exploreWith(t.Context(), CampaignSpec{ResumeCampaign: path, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}}, dependencies{executor: base})
 	if err != nil {
 		t.Fatal(err)
 	}
-	uninterrupted, err := Explore(t.Context(), config)
+	uninterrupted, err := exploreWith(t.Context(), config.CampaignSpec, config.dependencies)
 	if err != nil {
 		t.Fatal(err)
 	}

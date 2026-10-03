@@ -64,7 +64,7 @@ func TestGuidedSelectionExcludesAnsweredRequestedSeeds(t *testing.T) {
 			config.Corpus = corpus
 			config.Coverage = CoverageSemantic
 			config.Replayer = &matchingReplayer{}
-			if _, err := Explore(context.Background(), config); err != nil {
+			if _, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies); err != nil {
 				t.Fatal(err)
 			}
 			executor := &fakeExecutor{result: result}
@@ -73,7 +73,7 @@ func TestGuidedSelectionExcludesAnsweredRequestedSeeds(t *testing.T) {
 			config.Corpus = corpus
 			config.Coverage = CoverageSemantic
 			config.Replayer = &matchingReplayer{}
-			summary, err := Explore(context.Background(), config)
+			summary, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -107,14 +107,14 @@ func TestGuidedPlanShardsPreserveSelectionWithoutLiveCorpus(t *testing.T) {
 			config.Coverage = CoverageSemantic
 			config.Corpus = filepath.Join(t.TempDir(), "corpus")
 			config.Replayer = &matchingReplayer{}
-			if _, err := Explore(context.Background(), config); err != nil {
+			if _, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies); err != nil {
 				t.Fatal(err)
 			}
 			config.Preparer = newFakePreparer(t)
 			config.Seeds = "0-3"
 			config.GuideRegression = regression
 			planPath := filepath.Join(t.TempDir(), "plan.json")
-			planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath})
+			planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config.CampaignSpec, Output: planPath})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -136,7 +136,7 @@ func TestGuidedPlanShardsPreserveSelectionWithoutLiveCorpus(t *testing.T) {
 			var seeds []uint64
 			for index := uint64(0); index < 2; index++ {
 				executor := &fakeExecutor{result: result}
-				summary, err := RunCampaignShard(context.Background(), CampaignShardSpec{PlanPath: planPath, Shard: CampaignShard{Index: index, Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: executor})
+				summary, err := runCampaignShardWith(context.Background(), CampaignShardSpec{PlanPath: planPath, Shard: CampaignShard{Index: index, Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}}, dependencies{executor: executor})
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -176,25 +176,25 @@ func TestGuidedResumeRejectsChangedRegressionModeAndCountsNewExecutions(t *testi
 	config.Coverage = CoverageSemantic
 	config.Corpus = filepath.Join(t.TempDir(), "corpus")
 	config.Replayer = &matchingReplayer{}
-	if _, err := Explore(context.Background(), config); err != nil {
+	if _, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies); err != nil {
 		t.Fatal(err)
 	}
 	config.Preparer = newFakePreparer(t)
-	config.Executor = &guidedInterruptExecutor{}
+	config.executor = &guidedInterruptExecutor{}
 	config.Seeds = "0-3"
 	config.GuideRegression = true
-	ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.Succeeded == 1 })
-	partial, err := Explore(ctx, config)
+	ctx := cancelOnProgress(t, &config.CampaignSpec, func(progress CampaignEvent) bool { return progress.Succeeded == 1 })
+	partial, err := exploreWith(ctx, config.CampaignSpec, config.dependencies)
 	if err == nil {
 		t.Fatal("campaign was not interrupted")
 	}
 	changed := false
-	_, err = Resume(context.Background(), ResumeSpec{CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: &fakeExecutor{result: result}, GuideRegression: &changed})
+	_, err = resumeWith(context.Background(), ResumeSpec{CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, GuideRegression: &changed}, dependencies{executor: &fakeExecutor{result: result}})
 	if err == nil || !strings.Contains(err.Error(), "regression mode") {
 		t.Fatalf("changed mode error=%v", err)
 	}
 	executor := &fakeExecutor{result: result}
-	resumed, err := Resume(context.Background(), ResumeSpec{CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: executor, Replayer: &matchingReplayer{}})
+	resumed, err := resumeWith(context.Background(), ResumeSpec{CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Replayer: &matchingReplayer{}}, dependencies{executor: executor})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -217,7 +217,7 @@ func TestGuidedRegressionEarlyFailureCountsOnlyAttemptedNewExecutions(t *testing
 	config.Coverage = CoverageSemantic
 	config.Corpus = filepath.Join(t.TempDir(), "corpus")
 	config.Replayer = &matchingReplayer{}
-	if _, err := Explore(context.Background(), config); err != nil {
+	if _, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies); err != nil {
 		t.Fatal(err)
 	}
 	executor := &fakeExecutor{result: func(seed uint64) execution.Result {
@@ -226,11 +226,11 @@ func TestGuidedRegressionEarlyFailureCountsOnlyAttemptedNewExecutions(t *testing
 		return r
 	}}
 	config.Preparer = newFakePreparer(t)
-	config.Executor = executor
+	config.executor = executor
 	config.Seeds = "10-13"
 	config.OnFailure = PolicyFirst
 	config.GuideRegression = true
-	summary, err := Explore(context.Background(), config)
+	summary, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -273,12 +273,12 @@ func TestFullyAnsweredGuidedPlanExecutesEmptyShardsAndMerges(t *testing.T) {
 	config.Coverage = CoverageSemantic
 	config.Corpus = filepath.Join(t.TempDir(), "corpus")
 	config.Replayer = &matchingReplayer{}
-	if _, err := Explore(context.Background(), config); err != nil {
+	if _, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies); err != nil {
 		t.Fatal(err)
 	}
 	config.Preparer = newFakePreparer(t)
 	path := filepath.Join(t.TempDir(), "plan.json")
-	planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: path})
+	planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config.CampaignSpec, Output: path})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -288,7 +288,7 @@ func TestFullyAnsweredGuidedPlanExecutesEmptyShardsAndMerges(t *testing.T) {
 	var shards []string
 	for index := uint64(0); index < 2; index++ {
 		executor := &fakeExecutor{result: result}
-		summary, err := RunCampaignShard(context.Background(), CampaignShardSpec{PlanPath: path, Shard: CampaignShard{Index: index, Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: executor})
+		summary, err := runCampaignShardWith(context.Background(), CampaignShardSpec{PlanPath: path, Shard: CampaignShard{Index: index, Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}}, dependencies{executor: executor})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -345,7 +345,7 @@ func TestGuidanceRegressionModeChangesPortablePlanIdentity(t *testing.T) {
 	config.Coverage = CoverageSemantic
 	config.Corpus = filepath.Join(t.TempDir(), "corpus")
 	config.Replayer = &matchingReplayer{}
-	if _, err := Explore(context.Background(), config); err != nil {
+	if _, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies); err != nil {
 		t.Fatal(err)
 	}
 	config.Seeds = "100"
@@ -353,7 +353,7 @@ func TestGuidanceRegressionModeChangesPortablePlanIdentity(t *testing.T) {
 	for _, regression := range []bool{false, true} {
 		config.Preparer = newFakePreparer(t)
 		config.GuideRegression = regression
-		planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: filepath.Join(t.TempDir(), "plan.json")})
+		planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config.CampaignSpec, Output: filepath.Join(t.TempDir(), "plan.json")})
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -26,7 +26,7 @@ func TestDiagnosticsOffPreservesExistingCanonicalIdentities(t *testing.T) {
 		}
 		t.Run(name, func(t *testing.T) {
 			preparer := newFakePreparer(t)
-			var executor Executor = &fakeExecutor{result: func(uint64) execution.Result { return processResult(1, "baseline output", "baseline failure") }}
+			var executor targetExecutor = &fakeExecutor{result: func(uint64) execution.Result { return processResult(1, "baseline output", "baseline failure") }}
 			if traced {
 				executor = &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: 1 << 20, exitCode: 1}
 			}
@@ -37,7 +37,7 @@ func TestDiagnosticsOffPreservesExistingCanonicalIdentities(t *testing.T) {
 				config.ChoiceTraceLimit = 1 << 20
 			}
 			planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
-			planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath})
+			planned, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config.CampaignSpec, Output: planPath})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -45,7 +45,7 @@ func TestDiagnosticsOffPreservesExistingCanonicalIdentities(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			summary, err := Explore(context.Background(), config)
+			summary, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -87,7 +87,7 @@ func TestDiagnosticsOffPreservesExistingCanonicalIdentities(t *testing.T) {
 }
 
 type diagnosticBaselineExecutor struct {
-	delegate Executor
+	delegate targetExecutor
 	root     string
 	plan     []byte
 }

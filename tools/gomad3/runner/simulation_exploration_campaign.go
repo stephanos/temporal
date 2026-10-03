@@ -117,7 +117,7 @@ func runSimulationExplorationLocal(
 		semanticProbes = restored.probes
 		choiceFeatures = restored.choiceFeatures
 	}
-	executor := config.Executor
+	executor := config.executor
 	if executor == nil {
 		executor = processExecutor{}
 	}
@@ -227,7 +227,7 @@ func runSimulationExplorationLocal(
 func executeSimulationExplorationRound(
 	ctx context.Context,
 	config campaignRun,
-	executor Executor,
+	executor targetExecutor,
 	prepared target.Prepared,
 	baseEnvironment []record.Environment,
 	profile deterministicio.Spec,

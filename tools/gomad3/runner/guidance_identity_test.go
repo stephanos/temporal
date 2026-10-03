@@ -47,7 +47,7 @@ func TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy(t *testing.T) {
 					if env != "" {
 						config.Environment = []string{env}
 					}
-					_, err := Explore(context.Background(), config)
+					_, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies)
 					return err
 				}
 				if err := run("7", test.firstEnv, test.firstTick); err != nil {

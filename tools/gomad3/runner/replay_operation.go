@@ -25,10 +25,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/world"
 )
 
-type ReplayExecutor interface {
-	Run(context.Context, execution.Spec) (execution.Result, error)
-}
-
 type ReplaySpec struct {
 	ArtifactPath  string
 	VerifyOnly    bool
@@ -38,7 +34,6 @@ type ReplaySpec struct {
 	ObservedDir       string
 	SupervisorCommand []string
 	BootstrapCommand  []string
-	Executor          ReplayExecutor
 }
 
 type ReplayResult struct {
@@ -77,6 +72,10 @@ func (replayProcessExecutor) Run(ctx context.Context, request execution.Spec) (e
 }
 
 func Replay(ctx context.Context, config ReplaySpec) (result ReplayResult, retErr error) {
+	return replayWith(ctx, config, dependencies{})
+}
+
+func replayWith(ctx context.Context, config ReplaySpec, dependency dependencies) (result ReplayResult, retErr error) {
 	opened, err := preflight(config)
 	if err != nil {
 		return ReplayResult{}, &ReplayPreflightError{Err: err}
@@ -113,7 +112,7 @@ func Replay(ctx context.Context, config ReplaySpec) (result ReplayResult, retErr
 	if config.VerifyOnly {
 		return result, nil
 	}
-	executor := config.Executor
+	executor := dependency.executor
 	if executor == nil {
 		if len(config.SupervisorCommand) == 0 {
 			return ReplayResult{}, fmt.Errorf("supervisor command is required")

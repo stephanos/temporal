@@ -38,7 +38,7 @@ const (
 type retentionExecutor struct {
 	t        *testing.T
 	strategy Strategy
-	base     Executor
+	base     targetExecutor
 	// order maps the alternative an exploration candidate forces to its rank;
 	// an alternative it does not hold is its own rank.
 	order map[uint64]uint64
@@ -140,7 +140,7 @@ func (executor *retentionExecutor) Run(ctx context.Context, request execution.Sp
 // retentionCampaign is a three-execution campaign of the strategy. The seed
 // strategy runs all three at once; the exploration strategies run the root and
 // then, with parallel candidates, both remaining alternatives in one round.
-func retentionCampaign(t *testing.T, strategy Strategy, parallel bool, fail bool) (CampaignSpec, *retentionExecutor) {
+func retentionCampaign(t *testing.T, strategy Strategy, parallel bool, fail bool) (injectedCampaign, *retentionExecutor) {
 	t.Helper()
 	config, executor := unorderedRetentionCampaign(t, strategy, parallel, fail)
 	executor.order = explorationRanks(t, strategy)
@@ -164,9 +164,9 @@ func explorationRanks(t *testing.T, strategy Strategy) map[uint64]uint64 {
 	}
 	probes := []string{probeA, probeB, probeC}
 	config, executor := unorderedRetentionCampaign(t, strategy, false, false)
-	keepSuccesses(&config, KeepSuccessesNovel)
+	keepSuccesses(&config.CampaignSpec, KeepSuccessesNovel)
 	executor.shape = rankProbes(t, probes...)
-	summary, err := Explore(context.Background(), config)
+	summary, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -184,7 +184,7 @@ func explorationRanks(t *testing.T, strategy Strategy) map[uint64]uint64 {
 	return order
 }
 
-func unorderedRetentionCampaign(t *testing.T, strategy Strategy, parallel bool, fail bool) (CampaignSpec, *retentionExecutor) {
+func unorderedRetentionCampaign(t *testing.T, strategy Strategy, parallel bool, fail bool) (injectedCampaign, *retentionExecutor) {
 	t.Helper()
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)
@@ -271,9 +271,9 @@ func resumeRetentionCampaign(t *testing.T, interrupted CampaignSpec, campaignPat
 	t.Helper()
 	_, executor := retentionCampaign(t, interrupted.Strategy, interrupted.Parallel != 1, false)
 	executor.shape = shape
-	return Explore(context.Background(), CampaignSpec{
-		ResumeCampaign: campaignPath, RunnerBuild: interrupted.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: executor,
-	})
+	return exploreWith(context.Background(), CampaignSpec{
+		ResumeCampaign: campaignPath, RunnerBuild: interrupted.RunnerBuild, SupervisorCommand: []string{"unused"},
+	}, dependencies{executor: executor})
 }
 
 // retentionObservation is what one campaign leaves observable about retention:
@@ -478,13 +478,13 @@ func TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy(t *testing.T) {
 				var projections [][]byte
 				for _, order := range []map[uint64]uint64{nil, reverseRankOrder(strategy)} {
 					config, executor := retentionCampaign(t, strategy, true, test.fail)
-					keepSuccesses(&config, test.policy)
+					keepSuccesses(&config.CampaignSpec, test.policy)
 					if test.coverage != "" {
 						config.Coverage = test.coverage
 					}
 					executor.shape = rankProbes(t, test.probes[:]...)
 					executor.after = order
-					summary, err := Explore(context.Background(), config)
+					summary, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies)
 					observed, projection := observeRetention(t, summary, err)
 					if !reflect.DeepEqual(observed, want) {
 						t.Fatalf("retention = %#v, want %#v", observed, want)
@@ -510,13 +510,13 @@ func TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy(t *testing.T) {
 		run := func(t *testing.T, parallel bool, configure func(*CampaignSpec)) (CampaignResult, retentionObservation) {
 			t.Helper()
 			config, executor := retentionCampaign(t, strategy, parallel, false)
-			keepSuccesses(&config, KeepSuccessesAll)
-			configure(&config)
+			keepSuccesses(&config.CampaignSpec, KeepSuccessesAll)
+			configure(&config.CampaignSpec)
 			executor.shape = rankProbes(t, probeA, probeA, probeB)
 			if parallel {
 				executor.after = reverseRankOrder(strategy)
 			}
-			summary, err := Explore(context.Background(), config)
+			summary, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies)
 			observed, _ := observeRetention(t, summary, err)
 			return summary, observed
 		}
@@ -554,10 +554,10 @@ func TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy(t *testing.T) {
 			}
 			limit := measured.RetainedSuccessBytes / 3
 			config, executor := retentionCampaign(t, strategy, false, false)
-			keepSuccesses(&config, KeepSuccessesAll)
+			keepSuccesses(&config.CampaignSpec, KeepSuccessesAll)
 			config.SuccessBytesLimit = limit
 			executor.shape = rankProbes(t, probeA, probeA, probeB)
-			summary, err := Explore(context.Background(), config)
+			summary, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies)
 			observed, _ := observeRetention(t, summary, err)
 			var capacity *artifact.CapacityError
 			switch {
@@ -675,7 +675,7 @@ func TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState(t *testing.
 		for _, strategy := range completionStrategies {
 			t.Run(test.name+"/"+string(strategy), func(t *testing.T) {
 				config, executor := retentionCampaign(t, strategy, test.parallel, false)
-				keepSuccesses(&config, test.policy)
+				keepSuccesses(&config.CampaignSpec, test.policy)
 				shape := rankProbes(t, test.probes[:]...)
 				executor.shape = func(rank uint64, result *execution.Result) {
 					shape(rank, result)
@@ -706,7 +706,7 @@ func TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState(t *testing.
 					executor.interrupt, executor.interruptAt = cancel, test.cancelled
 					config.TerminateGrace = 10 * time.Millisecond
 				}
-				partial, err := Explore(ctx, config)
+				partial, err := exploreWith(ctx, config.CampaignSpec, config.dependencies)
 				restore()
 				observed, _ := observeRetention(t, partial, err)
 				if test.blocked < 3 {
@@ -716,7 +716,7 @@ func TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState(t *testing.
 				if want := test.interrupted[strategy]; !reflect.DeepEqual(observed, want) {
 					t.Fatalf("interrupted retention = %#v, want %#v", observed, want)
 				}
-				resumed, err := resumeRetentionCampaign(t, config, partial.CampaignPath, shape)
+				resumed, err := resumeRetentionCampaign(t, config.CampaignSpec, partial.CampaignPath, shape)
 				observed, projection := observeRetention(t, resumed, err)
 				if want := test.resumed[strategy]; !reflect.DeepEqual(observed, want) {
 					t.Fatalf("resumed retention = %#v, want %#v", observed, want)
@@ -792,7 +792,7 @@ func TestGuidedAdmissionReplaysBeforeTheCorpusAdvances(t *testing.T) {
 			config.Guide = true
 			config.Corpus = replayer.corpus
 			config.Replayer = replayer
-			summary, err := Explore(context.Background(), config)
+			summary, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies)
 			observed := admission{Replays: replayer.calls, Added: summary.CorpusAdded, Entries: summary.CorpusEntries}
 			var hostError *HostError
 			if errors.As(err, &hostError) {
@@ -881,8 +881,8 @@ func TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs(t *testing.
 		t.Helper()
 		executor := &pairedExecutor{}
 		config := testConfig(t, newFakePreparer(t), executor, fmt.Sprintf("1-%d", jobs), PolicyAll, 2)
-		configure(&config)
-		summary, err := Explore(context.Background(), config)
+		configure(&config.CampaignSpec)
+		summary, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies)
 		observed := bounded{Attempted: summary.Attempted, Retained: summary.RetainedSuccesses, MaximumActive: executor.maximumActive}
 		var hostError *HostError
 		if errors.As(err, &hostError) {

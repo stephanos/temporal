@@ -104,12 +104,12 @@ type campaignRun struct {
 	RunnerBuild          string
 	Progress             CampaignEventFunc
 	Preparer             Preparer
-	Executor             Executor
 	Replayer             ArtifactReplayer
 	guidancePlan         *campaign.GuidancePlan
 	resumePreflight      *campaign.ResumePreflight
 	failureArtifactLimit uint64
 	failureBytesLimit    uint64
+	dependencies
 }
 
 // newCampaignRun is the one conversion from the public request to the
@@ -118,7 +118,7 @@ type campaignRun struct {
 func newCampaignRun(spec CampaignSpec) campaignRun {
 	run := campaignRun{
 		SupervisorCommand: append([]string(nil), spec.SupervisorCommand...), CoordinatorCommand: append([]string(nil), spec.CoordinatorCommand...), RunnerBuild: spec.RunnerBuild,
-		Progress: spec.Progress, Preparer: spec.Preparer, Executor: spec.Executor, Replayer: spec.Replayer,
+		Progress: spec.Progress, Preparer: spec.Preparer, Replayer: spec.Replayer,
 	}
 	run.campaignTargetIntent = campaignTargetIntent{
 		ResumeCampaign: spec.ResumeCampaign, PlanSHA256: spec.PlanSHA256, Shard: spec.Shard, Target: spec.Target, Environment: append([]string(nil), spec.Environment...),

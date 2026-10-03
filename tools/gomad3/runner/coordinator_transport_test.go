@@ -44,7 +44,6 @@ var coordinatorLocalOnlyFields = map[string]string{
 	"CoordinatorCommand": "selects the isolated path in the parent",
 	"Progress":           "replaced in the child by a callback that forwards events to the parent",
 	"Preparer":           "injected preparation is rejected for isolated campaigns",
-	"Executor":           "injected execution is rejected for isolated campaigns",
 	"Replayer":           "injected replay is rejected for isolated campaigns",
 }
 
@@ -58,6 +57,7 @@ var coordinatorWiringFields = map[string]string{
 // campaignRunPrivateFields are the campaignRun fields no request supplies,
 // with the reason each stays out of the coordinator transport.
 var campaignRunPrivateFields = map[string]string{
+	"executor":             "a private test substitution, which an isolated campaign rejects",
 	"resumePreflight":      "the child opens its own resume preflight",
 	"guidancePlan":         "selected locally after target preparation; resume restores it from the recorded plan",
 	"failureArtifactLimit": "the child derives it from the campaign plan",
@@ -157,7 +157,7 @@ func TestCoordinatorTransportRoundTripsEveryTransportedField(t *testing.T) {
 			got := wire.campaignRun()
 			want := newCampaignRun(test.spec)
 			want.OverallTimeout = childTimeout
-			want.CoordinatorCommand, want.Progress, want.Preparer, want.Executor, want.Replayer = nil, nil, nil, nil, nil
+			want.CoordinatorCommand, want.Progress, want.Preparer, want.Replayer = nil, nil, nil, nil
 			if !reflect.DeepEqual(got, want) {
 				t.Fatalf("coordinator transport changed %v:\n got %#v\nwant %#v", differingFields(got, want), got, want)
 			}

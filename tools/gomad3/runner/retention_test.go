@@ -104,7 +104,7 @@ func TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit(t *testing.T) {
 		config.KeepSuccesses = KeepSuccessesAll
 		config.SuccessArtifactLimit = 2
 		config.SuccessBytesLimit = limit
-		return Explore(context.Background(), config)
+		return exploreWith(context.Background(), config.CampaignSpec, config.dependencies)
 	}
 	measured, err := run(64 << 20)
 	if err != nil || len(measured.SuccessArtifacts) != 2 || measured.SuccessArtifacts[0] == measured.SuccessArtifacts[1] {
@@ -139,7 +139,7 @@ func TestRunKeepsTwoSuccessesOfOneOutcomeSignatureApart(t *testing.T) {
 	config.KeepSuccesses = KeepSuccessesAll
 	config.SuccessArtifactLimit = 2
 	config.SuccessBytesLimit = 64 << 20
-	summary, err := Explore(context.Background(), config)
+	summary, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies)
 	if err != nil || len(summary.SuccessArtifacts) != 2 || summary.SuccessArtifacts[0] == summary.SuccessArtifacts[1] {
 		t.Fatalf("summary = %#v, error = %v, want two success artifacts", summary, err)
 	}

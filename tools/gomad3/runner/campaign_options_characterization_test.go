@@ -45,6 +45,8 @@ const characterizationCoordinator = "/nonexistent/gomad3-characterization-coordi
 type campaignOptionsCase struct {
 	name string
 	spec CampaignSpec
+	// dependencies are the private substitutions the request runs with.
+	dependencies dependencies
 	// frozenGuidance attaches the frozen guidance a resumed or sharded
 	// campaign restores from its recorded plan.
 	frozenGuidance *campaign.GuidancePlan
@@ -129,7 +131,7 @@ func TestCampaignOptionsCharacterization(t *testing.T) {
 func observeCampaignOptions(t *testing.T, test campaignOptionsCase) campaignOptionsObservation {
 	t.Helper()
 	observation := campaignOptionsObservation{Name: test.name}
-	selection, environment, err := characterizeValidation(test.spec, test.frozenGuidance)
+	selection, environment, err := characterizeValidation(test.spec, test.dependencies, test.frozenGuidance)
 	observation.Selection, observation.SelectionCount = selection.String(), selection.Count()
 	entries := make([]string, len(environment))
 	for index, entry := range environment {
@@ -161,11 +163,11 @@ func observeCampaignOptions(t *testing.T, test campaignOptionsCase) campaignOpti
 		if len(test.spec.CoordinatorCommand) != 0 {
 			isolated.CoordinatorCommand = test.spec.CoordinatorCommand
 		}
-		_, err := Explore(context.Background(), isolated)
+		_, err := exploreWith(context.Background(), isolated, test.dependencies)
 		observation.IsolatedError = characterizationError(t, err)
 	}
 	if test.exploreLocal {
-		_, err := Explore(context.Background(), test.spec)
+		_, err := exploreWith(context.Background(), test.spec, test.dependencies)
 		observation.LocalError = characterizationError(t, err)
 	}
 	return observation
@@ -279,7 +281,7 @@ func campaignOptionsCases(t *testing.T) []campaignOptionsCase {
 		{name: "resume missing campaign", spec: with(resumeSpec, func(spec *CampaignSpec) { spec.ResumeCampaign = filepath.Join("missing", "v1", "resumed") }), explore: true, exploreLocal: true},
 
 		// Isolated request checks around campaign validation.
-		{name: "isolated injected executor", spec: with(seed, func(spec *CampaignSpec) { spec.Executor = &fakeExecutor{} }), explore: true},
+		{name: "isolated injected executor", spec: seed(), dependencies: dependencies{executor: &fakeExecutor{}}, explore: true},
 		{name: "isolated injected preparer", spec: with(seed, func(spec *CampaignSpec) { spec.Preparer = targetPreparer{} }), explore: true},
 		{name: "isolated empty coordinator command", spec: with(seed, func(spec *CampaignSpec) { spec.CoordinatorCommand = []string{""} }), explore: true},
 		{name: "isolated empty coordinator command after invalid request", spec: with(seed, func(spec *CampaignSpec) {
@@ -405,7 +407,7 @@ func campaignOptionsCases(t *testing.T) []campaignOptionsCase {
 
 		// Process wiring and target environment rejections.
 		{name: "no supervisor command", spec: with(seed, func(spec *CampaignSpec) { spec.SupervisorCommand = nil })},
-		{name: "injected executor without supervisor command", spec: with(seed, func(spec *CampaignSpec) { spec.SupervisorCommand, spec.Executor = nil, &fakeExecutor{} })},
+		{name: "injected executor without supervisor command", spec: with(seed, func(spec *CampaignSpec) { spec.SupervisorCommand = nil }), dependencies: dependencies{executor: &fakeExecutor{}}},
 		{name: "mounts without working directory", spec: with(seed, func(spec *CampaignSpec) { spec.IOROMounts, spec.Target.WorkingDir = []string{"usr=/mnt/usr"}, "" })},
 		{name: "malformed mount", spec: with(seed, func(spec *CampaignSpec) { spec.IOROMounts = []string{"usr"} })},
 		{name: "missing mount source", spec: with(seed, func(spec *CampaignSpec) { spec.IOROMounts = []string{"gomad3-characterization-missing=/mnt/missing"} })},
@@ -439,8 +441,9 @@ func campaignOptionsCases(t *testing.T) []campaignOptionsCase {
 	return cases
 }
 
-// characterizeValidation and characterizeCoordinatorRequest are the only
-// parts of this test that name the implementation under characterization.
+// characterizeValidation, characterizeCoordinatorRequest and the exploreWith
+// calls, which carry a case's private substitutions, are the only parts of
+// this test that name the implementation under characterization.
 
 // characterizationPrepared is a fixed prepared target, so a campaign plan
 // record depends only on the campaign request it maps.
@@ -480,9 +483,9 @@ func characterizationMounts(spec CampaignSpec) ([]readonlymount.Mapping, readonl
 	return mounts, limits, err
 }
 
-func characterizeValidation(spec CampaignSpec, frozenGuidance *campaign.GuidancePlan) (SeedSelection, []record.Environment, error) {
+func characterizeValidation(spec CampaignSpec, dependency dependencies, frozenGuidance *campaign.GuidancePlan) (SeedSelection, []record.Environment, error) {
 	run := newCampaignRun(spec)
-	run.guidancePlan = frozenGuidance
+	run.dependencies, run.guidancePlan = dependency, frozenGuidance
 	return validateConfig(run)
 }
 

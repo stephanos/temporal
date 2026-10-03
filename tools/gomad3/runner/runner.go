@@ -117,8 +117,20 @@ type Preparer interface {
 	Prepare(context.Context, target.Spec) (target.Prepared, error)
 }
 
-type Executor interface {
+// targetExecutor runs one supervised target execution. Operations run their
+// executions through the supervisor process unless same-package tests
+// substitute one through dependencies.
+type targetExecutor interface {
 	Run(context.Context, execution.Spec) (execution.Result, error)
+}
+
+// dependencies are an operation's private substitutions. The zero value is
+// production: a nil executor runs each execution through the supervisor
+// process, and the checks that only apply to that process (a supervisor
+// command, the pinned toolchain identity, the coordinator simulation role)
+// key on it being nil.
+type dependencies struct {
+	executor targetExecutor
 }
 
 type ArtifactReplayer interface {
@@ -175,7 +187,6 @@ type CampaignSpec struct {
 	Progress                  CampaignEventFunc
 	ProgressInterval          time.Duration
 	Preparer                  Preparer
-	Executor                  Executor
 	Replayer                  ArtifactReplayer
 }
 
@@ -314,10 +325,14 @@ func (processExecutor) Run(ctx context.Context, request execution.Spec) (executi
 	return execution.Run(ctx, request)
 }
 
-type artifactReplayer struct{}
+// artifactReplayer is the default ArtifactReplayer. It replays through its
+// operation's dependencies, so a substituted executor also runs the replays.
+type artifactReplayer struct {
+	dependencies dependencies
+}
 
-func (artifactReplayer) Replay(ctx context.Context, config ReplaySpec) (ReplayResult, error) {
-	return Replay(ctx, config)
+func (replayer artifactReplayer) Replay(ctx context.Context, config ReplaySpec) (ReplayResult, error) {
+	return replayWith(ctx, config, replayer.dependencies)
 }
 
 type runJob struct {
@@ -367,12 +382,17 @@ type runJournalFactory interface {
 var environmentName = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 
 func Explore(ctx context.Context, spec CampaignSpec) (CampaignResult, error) {
+	return exploreWith(ctx, spec, dependencies{})
+}
+
+func exploreWith(ctx context.Context, spec CampaignSpec, dependency dependencies) (CampaignResult, error) {
 	config, err := normalizeCampaign(spec)
 	if err != nil {
 		return CampaignResult{}, err
 	}
+	config.dependencies = dependency
 	if len(config.CoordinatorCommand) != 0 {
-		if config.Preparer != nil || config.Executor != nil || config.Replayer != nil {
+		if config.Preparer != nil || config.executor != nil || config.Replayer != nil {
 			return CampaignResult{}, fmt.Errorf("isolated Runner does not accept injected preparation or execution")
 		}
 		return runIsolated(ctx, config)
@@ -604,7 +624,7 @@ func runLocal(ctx context.Context, config campaignRun) (summary CampaignResult, 
 		summary.CorpusPath = guidance.corpus.Path()
 		summary.CorpusEntries = uint64(len(snapshot.Entries))
 	}
-	executor := config.Executor
+	executor := config.executor
 	if executor == nil {
 		executor = processExecutor{}
 	}
@@ -1177,7 +1197,7 @@ func validateConfig(config campaignRun) (SeedSelection, []record.Environment, er
 		if config.RunnerBuild == "" {
 			return SeedSelection{}, nil, fmt.Errorf("Runner build identity is required for campaign resume")
 		}
-		if config.Executor == nil && len(config.SupervisorCommand) == 0 {
+		if config.executor == nil && len(config.SupervisorCommand) == 0 {
 			return SeedSelection{}, nil, fmt.Errorf("supervisor command is required")
 		}
 		return SeedSelection{}, nil, nil
@@ -1345,7 +1365,7 @@ func validateConfig(config campaignRun) (SeedSelection, []record.Environment, er
 	default:
 		return SeedSelection{}, nil, fmt.Errorf("unknown failure policy %q", config.OnFailure)
 	}
-	if config.Executor == nil && len(config.SupervisorCommand) == 0 {
+	if config.executor == nil && len(config.SupervisorCommand) == 0 {
 		return SeedSelection{}, nil, errors.New("supervisor command is required")
 	}
 	if len(config.IOROMounts) != 0 {
@@ -1432,7 +1452,7 @@ func parseEnvironment(entries []string) ([]record.Environment, error) {
 	return environment, nil
 }
 
-func runSeed(ctx context.Context, config campaignRun, executor Executor, prepared target.Prepared, baseEnvironment []record.Environment, profile deterministicio.Spec, readOnlyMounts []readonlymount.Mapping, journal runJournalFactory, job runJob, readiness *runReadiness, completions chan<- runCompletion) {
+func runSeed(ctx context.Context, config campaignRun, executor targetExecutor, prepared target.Prepared, baseEnvironment []record.Environment, profile deterministicio.Spec, readOnlyMounts []readonlymount.Mapping, journal runJournalFactory, job runJob, readiness *runReadiness, completions chan<- runCompletion) {
 	defer readiness.signal()
 	startedAt := time.Now().UTC()
 	run, err := journal.BeginExecution(job.ordinal, job.seed)
@@ -1532,7 +1552,7 @@ func runSeed(ctx context.Context, config campaignRun, executor Executor, prepare
 	completions <- completion
 }
 
-func simulationCapabilityForJob(executor Executor, job runJob) (*execution.SimulationCapability, error) {
+func simulationCapabilityForJob(executor targetExecutor, job runJob) (*execution.SimulationCapability, error) {
 	if job.simulationPlan == "" {
 		if job.simulationRecordLimit != 0 || job.simulationRecordCount != 0 {
 			return nil, errors.New("simulation exploration record bounds require a plan")

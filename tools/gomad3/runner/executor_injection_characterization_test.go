@@ -41,7 +41,7 @@ func TestInjectionCharacterizationReplayRequiresSupervisorOnlyForTheProcessExecu
 	// bootstrap command: without one, replayBootstrapCommand derives it from
 	// the absent supervisor command and indexes past its end.
 	executor := &fakeReplayExecutor{result: observed}
-	result, err := Replay(context.Background(), ReplaySpec{ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), BootstrapCommand: []string{"bootstrap"}, Executor: executor})
+	result, err := replayWith(context.Background(), ReplaySpec{ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), BootstrapCommand: []string{"bootstrap"}}, dependencies{executor: executor})
 	if err != nil || !result.Match {
 		t.Fatalf("substituted replay without supervisor = %#v, %v", result, err)
 	}
@@ -54,13 +54,13 @@ func TestInjectionCharacterizationReplayRequiresSupervisorOnlyForTheProcessExecu
 
 func TestInjectionCharacterizationMinimizeRequiresSupervisorOnlyForTheProcessExecutor(t *testing.T) {
 	spec := minimizationSpec(t, minimizationParent(t), t.TempDir())
-	spec.SupervisorCommand, spec.Executor = nil, nil
-	if _, err := Minimize(context.Background(), spec); err == nil || err.Error() != "supervisor command is required" {
+	spec.SupervisorCommand, spec.executor = nil, nil
+	if _, err := minimizeWith(context.Background(), spec.MinimizeSpec, spec.dependencies); err == nil || err.Error() != "supervisor command is required" {
 		t.Fatalf("minimize without supervisor or executor error = %v", err)
 	}
 	spec = minimizationSpec(t, minimizationParent(t), t.TempDir())
 	spec.SupervisorCommand = nil
-	result, err := Minimize(context.Background(), spec)
+	result, err := minimizeWith(context.Background(), spec.MinimizeSpec, spec.dependencies)
 	if err != nil || !result.Changed {
 		t.Fatalf("substituted minimize without supervisor = %#v, %v", result, err)
 	}
@@ -87,8 +87,8 @@ func (executor *replayForwardingExecutor) Run(ctx context.Context, request execu
 func TestInjectionCharacterizationMinimizeDefaultReplayerUsesItsExecutor(t *testing.T) {
 	spec := minimizationSpec(t, minimizationParent(t), t.TempDir())
 	executor := &replayForwardingExecutor{}
-	spec.Executor, spec.Replayer = executor, nil
-	_, err := Minimize(context.Background(), spec)
+	spec.executor, spec.Replayer = executor, nil
+	_, err := minimizeWith(context.Background(), spec.MinimizeSpec, spec.dependencies)
 	if !errors.Is(err, errReplayReachedSubstitutedExecutor) || !strings.HasPrefix(err.Error(), "replay minimization candidate: execute replay target: ") {
 		t.Fatalf("minimize default replay error = %v", err)
 	}
@@ -100,7 +100,7 @@ func TestInjectionCharacterizationMinimizeDefaultReplayerUsesItsExecutor(t *test
 func TestInjectionCharacterizationShardChecksToolchainOnlyForTheProcessExecutor(t *testing.T) {
 	config := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
 	planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
-	if _, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath}); err != nil {
+	if _, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config.CampaignSpec, Output: planPath}); err != nil {
 		t.Fatal(err)
 	}
 	missingRoot := filepath.Join(t.TempDir(), "missing-toolchain")
@@ -112,10 +112,10 @@ func TestInjectionCharacterizationShardChecksToolchainOnlyForTheProcessExecutor(
 		t.Fatalf("process shard with a missing toolchain error = %v", err)
 	}
 	executor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(0, "", "") }}
-	result, err := RunCampaignShard(context.Background(), CampaignShardSpec{
+	result, err := runCampaignShardWith(context.Background(), CampaignShardSpec{
 		PlanPath: planPath, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild,
-		ToolchainRoot: missingRoot, Executor: executor,
-	})
+		ToolchainRoot: missingRoot,
+	}, dependencies{executor: executor})
 	if err != nil || result.Succeeded != 1 || len(executor.requests) != 1 {
 		t.Fatalf("substituted shard with a missing toolchain = %#v requests=%d, %v", result, len(executor.requests), err)
 	}
@@ -123,8 +123,8 @@ func TestInjectionCharacterizationShardChecksToolchainOnlyForTheProcessExecutor(
 
 func TestInjectionCharacterizationResumeChecksToolchainAndSupervisorOnlyForTheProcessExecutor(t *testing.T) {
 	config := testConfig(t, newFakePreparer(t), &resumeInterruptExecutor{}, "7-8", PolicyAll, 1)
-	ctx := cancelOnProgress(t, &config, func(event CampaignEvent) bool { return event.Succeeded == 1 })
-	partial, err := Explore(ctx, config)
+	ctx := cancelOnProgress(t, &config.CampaignSpec, func(event CampaignEvent) bool { return event.Succeeded == 1 })
+	partial, err := exploreWith(ctx, config.CampaignSpec, config.dependencies)
 	if err == nil {
 		t.Fatal("Explore() was not interrupted")
 	}
@@ -138,23 +138,23 @@ func TestInjectionCharacterizationResumeChecksToolchainAndSupervisorOnlyForThePr
 		t.Fatalf("process resume with a missing toolchain error = %v", err)
 	}
 	executor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(0, "", "") }}
-	resumed, err := Resume(context.Background(), ResumeSpec{CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, ToolchainRoot: missingRoot, Executor: executor})
+	resumed, err := resumeWith(context.Background(), ResumeSpec{CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, ToolchainRoot: missingRoot}, dependencies{executor: executor})
 	if err != nil || resumed.Attempted != 2 || resumed.Succeeded != 2 || len(executor.requests) != 1 {
 		t.Fatalf("substituted resume with a missing toolchain = %#v requests=%d, %v", resumed, len(executor.requests), err)
 	}
 }
 
 func TestInjectionCharacterizationIsolatedExploreRejectsEverySubstitution(t *testing.T) {
-	for name, configure := range map[string]func(*CampaignSpec){
-		"executor": func(spec *CampaignSpec) { spec.Executor = &fakeExecutor{} },
-		"preparer": func(spec *CampaignSpec) { spec.Preparer = targetPreparer{} },
-		"replayer": func(spec *CampaignSpec) { spec.Replayer = artifactReplayer{} },
+	for name, configure := range map[string]func(*injectedCampaign){
+		"executor": func(config *injectedCampaign) { config.executor = &fakeExecutor{} },
+		"preparer": func(config *injectedCampaign) { config.Preparer = targetPreparer{} },
+		"replayer": func(config *injectedCampaign) { config.Replayer = artifactReplayer{} },
 	} {
 		t.Run(name, func(t *testing.T) {
 			config := testConfig(t, nil, nil, "1", PolicyAll, 1)
 			config.CoordinatorCommand = []string{"unused", "__coordinator"}
 			configure(&config)
-			if _, err := Explore(context.Background(), config); err == nil || err.Error() != "isolated Runner does not accept injected preparation or execution" {
+			if _, err := exploreWith(context.Background(), config.CampaignSpec, config.dependencies); err == nil || err.Error() != "isolated Runner does not accept injected preparation or execution" {
 				t.Fatalf("isolated Explore with an injected %s error = %v", name, err)
 			}
 		})

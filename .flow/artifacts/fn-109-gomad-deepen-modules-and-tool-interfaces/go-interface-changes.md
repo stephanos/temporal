@@ -83,7 +83,12 @@ flag set before parsing instead of being prepended to argv.
 
 ## fn-109.6 private executor dependencies (fulfils fn-105.3 D3)
 
-**Status: inventory written before the edits (source revision 8364bd6a0).**
+**Status: implemented.** The inventory below was committed before any edit (9b5ae6b39, on
+8364bd6a0) and is updated here to match the result. `go doc -all ./runner` before and after differ
+in exactly the seven removed lines/blocks listed below
+(`task-6/godoc-runner.diff`); every other exported declaration, including the `Explore`,
+`Resume`, `RunCampaignShard`, `Replay` and `Minimize` signatures with their result names, is
+unchanged. No other public package changed.
 
 ### Removed exported declarations
 
@@ -164,6 +169,31 @@ House pattern of `toolchain.Build`/`buildWith`: a private `dependencies` value a
 - External callers that set one of the removed fields could not have implemented the interface,
   but could have passed nil explicitly or forwarded a value obtained from the package: they must
   delete the field. This is a source-incompatible change, permitted by the fn-109 spec (R5).
-- A new external-consumer compile fixture outside the Runner subtree constructs `CampaignSpec`,
-  `ResumeSpec`, `CampaignShardSpec`, `ReplaySpec`, `MinimizeSpec`, a custom `Preparer` and an
-  `ArtifactReplayer` and compiles in a separate module.
+- External-consumer compile fixture: `tools/gomad3/testdata/runnerconsumer/consumer.go`, built by
+  `TestRunnerExternalConsumerCompiles` (`tools/gomad3/runner_consumer_test.go`, part of
+  `test-host`) as a separate module (`example.com/runnerconsumer`) that replaces
+  `tools/gomad3` with the working tree. It constructs `CampaignSpec`, `CampaignPlanSpec`,
+  `CampaignShardSpec`, `ResumeSpec`, `ReplaySpec` and `MinimizeSpec`, implements a custom
+  `Preparer` and `ArtifactReplayer`, and calls all six operations. Checked by hand: the same
+  module fails to build with "use of internal package ... runner/internal/execution not allowed"
+  when it implements an executor, and with "unknown field Executor" when it sets the removed field.
+
+### Result notes
+
+- Test migration (package `runner` only): two test-side carriers, `injectedCampaign`
+  (`CampaignSpec` plus `dependencies`, returned by `testConfig` and the campaign helpers built on
+  it) and `injectedMinimization` (`MinimizeSpec` plus `dependencies`, returned by
+  `minimizationSpec`), make every former injection site a compile error until it calls the
+  private entry point (`exploreWith(ctx, config.CampaignSpec, config.dependencies)`,
+  `minimizeWith(...)`). Request literals that set `Executor:` became
+  `opWith(ctx, Spec{...}, dependencies{executor: X})`. Fakes and assertions are unchanged.
+  `injectedCampaign.run()` replaces `newCampaignRun(config)` in tests that call `validateConfig` or
+  `manifestForRun` directly, so they still see the substituted executor.
+- `coordinator_transport_test.go`: `Executor` left `coordinatorLocalOnlyFields` (it is no longer a
+  `CampaignSpec` field) and `executor` joined `campaignRunPrivateFields`.
+  `campaign_options_characterization_test.go` gained a `dependencies` column for its two
+  injected-executor rows; the pinned JSON table is byte-identical.
+- Pre-existing quirk, not changed: a substituted replay with neither a supervisor command nor a
+  bootstrap command panics in `replayBootstrapCommand` (index 0 of an empty slice). It was
+  reachable before only through the public `ReplaySpec.Executor`. It is now reachable only from
+  same-package tests. The characterization pins the supported shape (an explicit bootstrap command).
