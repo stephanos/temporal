@@ -140,7 +140,7 @@ tools/gomad3/.bin/gomad explore \
 
 `--choices` retains a Choice Trace, from which exact runtime Replay derives an identity-bound Decision Tape. Coverage is a separate summary of observed semantic events or runtime choices. Repeat `--require-probe=NAME` with `--coverage=semantic` or `--coverage=semantic+choice` when a known semantic boundary must be observed. Missing a required probe becomes a visible Campaign failure.
 
-`--diagnostics` on `explore` and `plan` records runtime-state diagnostics and implies `--choices`; it accepts only `--strategy=seed` and rejects forced-prefix exploration. Diagnostic traces support locating differences between fresh executions. They do not establish exact replay.
+`--diagnostics` on `explore` and `plan` records runtime-state diagnostics and implies `--choices`; it accepts only `--strategy=seed` and rejects forced-prefix exploration. At every choice point the diagnostic trace records the virtual time, allocation count, GC cycle and phase, run-queue length, and the seeded-stream draw counters, in its own bounded sidecar beside the Campaign, and `gomadtool diagnostic-diff` names the first ordinal and fields where two traces differ. Diagnostic traces support locating differences between fresh executions. They do not establish exact replay, and replay re-executes with diagnostic collection off.
 
 Choice recording defaults to 8 MiB and accepts at most `--choice-bytes=64MiB`; overflow fails visibly. Output retention defaults to 8 MiB per stream, adjustable with `--output-limit`. Deterministic I/O transcript capacity defaults to 64 MiB and accepts `--io-transcript-bytes` from 64 MiB through 1 GiB in whole MiB increments. A larger transcript does not increase choice capacity.
 
@@ -282,7 +282,7 @@ tools/gomad3/.bin/gomad qualify \
 
 Qualification prepares and executes independently for each repetition, compares canonical evidence, and retains its own report. Optional successful replay proves that a passing observation is reproducible, not merely equal by summary.
 
-The default is seed 1 with two repetitions; `--repeat` accepts 2 through 32. Qualification collects semantic coverage, and `--choices` adds choice coverage and runtime replay evidence. `qualify --diagnostics` records runtime-state diagnostics for its fresh repetitions and implies `--choices`. `--replay-successes` requires explicit count and byte bounds per repetition.
+The default is seed 1 with two repetitions; `--repeat` accepts 2 through 32. Qualification collects semantic coverage, and `--choices` adds choice coverage and runtime replay evidence. `qualify --diagnostics` records runtime-state diagnostics for its fresh repetitions and implies `--choices`; a report whose repetitions disagree names the first divergent ordinal and fields in `diagnostic_divergence`, with the compared repetition numbers. `--replay-successes` requires explicit count and byte bounds per repetition.
 
 The two flags are independent and opt-in, and the claim follows the flags. With neither, `qualified` means same-seed repeatability: fresh repetitions produced equal evidence, and nothing was replayed. With `--choices` the compared evidence includes the Choice Trace's tape digest, but a success keeps its Decision Tape only when it is retained. With `--replay-successes` alone each retained success is replayed from its seed and the result reports `choice-replay=none`. With both flags each retained success is replayed from its tape, and the result's `choice-replay=exact` is the verified choice-tape replay claim. A qualification-set workload states the same choice with `choice_bytes`, `replay_successes`, and its success limits, and there success replay requires a Choice Trace; an untraced workload's seeds report `replayed: false` and no `choice_replay_exact`.
 
@@ -600,6 +600,18 @@ go -C tools/gomad3 run ./cmd/gomadtool diagnostic-diff --json EXPECTED_TRACE ACT
 
 Flags precede both trace paths. Status 0 means equal, 1 means different, 2 means invalid arguments or an unreadable, malformed, or incomplete trace, and 3 means output failed. Both traces are fully validated before comparison; differences are diagnostic evidence, not a replay guarantee.
 
+`soak` is the determinism soak behind the scheduled `determinism-soak-*` jobs of `gomad3.yml`. It runs a manifest's workloads in `gomad qualify --diagnostics` batches of fresh same-seed repetitions under busy host threads, and compares every batch's evidence baseline with its cohort's baseline in a ledger that a scheduled run restores from the previous one:
+
+```sh
+make gomad3-soak GOMAD3_SOAK_WORKLOAD=functional-activity GOMAD3_SOAK_SEED=11
+go -C tools/gomad3 run ./cmd/gomadtool soak \
+  --manifest="$PWD/tools/gomad3integration/qualification/soak.json" \
+  --gomad="$PWD/tools/gomad3/.bin/gomad" \
+  --work=/tmp/soak/work --ledger=/tmp/soak/ledger --output=/tmp/soak/output
+```
+
+A cohort is one workload, seed, platform, and execution identity, so a new toolchain build key starts a new cohort. `--workload` and `--seed` take comma-separated subsets of the manifest, `--batches` caps the rounds, `--budget` replaces the manifest budget, `--run-id` names the run in the ledger, and `--keep-batches` keeps each batch's Campaigns. The output directory receives `soak-report.json` (`gomad3.determinism-soak-report/v1`), `soak-summary.md`, each batch's qualification report, and, for every divergence, both diagnostic traces, both evidence records, and the `diagnostic-diff` output. Status 0 means the soak passed, or diverged only on a platform the manifest lists as informational; 1 means a divergence on a strict platform or a target failure; 2 means invalid input or an unreadable manifest or ledger; and 3 means an overflow or infrastructure failure left the soak unable to conclude.
+
 `checked-run` is the small bounded process adapter beneath several scripted checks. It verifies an expected exit status and records stdout, stderr, status, timeout, and truncation separately:
 
 ```sh
@@ -720,6 +732,7 @@ If the reviewed boundary changed intentionally, review its reported digest and r
 | `script-validate` | Enforce the reviewed script ownership and policy boundary. |
 | `checked-run` | Run and record one bounded external command with expected status. |
 | `diagnostic-diff` | Compare complete runtime diagnostic traces and locate the first divergence. |
+| `soak` | Run the scheduled determinism soak and report per-cohort cumulative counts. |
 | `pin-impact` | Report every pin a candidate `go.mod` invalidates before the build rejects it. |
 | `adapter-regenerate` | Re-derive an adapter's anchors for a new module version behind an approval digest. |
 | `test` | Execute a selected conformance campaign. |

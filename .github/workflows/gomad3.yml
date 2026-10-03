@@ -286,3 +286,167 @@ jobs:
             tools/gomad3/.toolchain/temporal-qualification
           if-no-files-found: error
           retention-days: 90
+
+  # The scheduled determinism soak (fn-112 R6, MILESTONES.md Q6). Each job runs
+  # one workload and seed of tools/gomad3integration/qualification/soak.json:
+  # N fresh same-seed repetitions in gomad qualify batches of 32, under two busy
+  # host threads, with choice tracing and diagnostics on. Every batch is
+  # compared with its cohort's baseline (workload, seed, platform, execution
+  # identity), carried between runs in a ledger restored from the latest
+  # retained scheduled or dispatched run; a new toolchain identity starts a new
+  # cohort. The darwin gate accepts zero divergences, and an overflow, target
+  # failure, or infrastructure failure fails it separately. A divergence
+  # uploads both diagnostic traces and the differ output.
+  # soak.json caps a job at four batches inside a 120-minute budget, so the
+  # matrix stays within a fork's shared macOS quota. Each job builds its own
+  # toolchain, as every other gomad3 job does.
+  determinism-soak-darwin:
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    runs-on: macos-15
+    timeout-minutes: 180
+    permissions:
+      contents: read
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        workload: [functional-activity, functional-child-workflow, functional-update, user-timers-workflow, frontend-system-info]
+        seed: [11, 17]
+    env:
+      GOMAD3_SOAK_LEDGER_ARTIFACT: gomad3-soak-ledger-darwin-arm64-${{ matrix.workload }}-${{ matrix.seed }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: tools/gomad3/go.mod
+          check-latest: true
+          cache: true
+
+      - name: Verify qualified host
+        run: test "$(go env GOHOSTOS)/$(go env GOHOSTARCH)" = darwin/arm64
+
+      - name: Restore the soak ledger from the latest retained run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ledger=tools/gomad3/.toolchain/soak/ledger
+          for run in $(gh run list --repo "$GITHUB_REPOSITORY" --workflow gomad3.yml --branch "$GITHUB_REF_NAME" --limit 50 \
+            --json databaseId,event --jq '.[] | select(.event == "schedule" or .event == "workflow_dispatch") | .databaseId'); do
+            test "$run" = "$GITHUB_RUN_ID" && continue
+            rm -rf "$ledger"
+            if gh run download "$run" --repo "$GITHUB_REPOSITORY" --name "$GOMAD3_SOAK_LEDGER_ARTIFACT" --dir "$ledger"; then
+              echo "Restored the soak ledger from run $run"
+              exit 0
+            fi
+          done
+          rm -rf "$ledger"
+          echo "No retained soak ledger; this run starts new cohorts"
+
+      - name: Run the determinism soak
+        run: >-
+          make gomad3-soak GOMAD3_SOAK_WORKLOAD=${{ matrix.workload }} GOMAD3_SOAK_SEED=${{ matrix.seed }}
+          GOMAD3_SOAK_RUN_ID=${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Publish the soak summary
+        if: ${{ always() }}
+        run: |
+          summary=tools/gomad3/.toolchain/soak/output/soak-summary.md
+          if test -f "$summary"; then cat "$summary" >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - name: Upload the soak ledger
+        if: ${{ always() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: ${{ env.GOMAD3_SOAK_LEDGER_ARTIFACT }}
+          path: tools/gomad3/.toolchain/soak/ledger
+          if-no-files-found: ignore
+          retention-days: 90
+          overwrite: true
+
+      - name: Upload the soak report and divergence evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: gomad3-soak-darwin-arm64-${{ matrix.workload }}-${{ matrix.seed }}-${{ github.run_id }}
+          path: tools/gomad3/.toolchain/soak/output
+          if-no-files-found: warn
+          retention-days: 90
+          overwrite: true
+
+  # The linux/amd64 counterpart. soak.json lists linux/amd64 under
+  # informational_platforms while fn-105 D12 is open, so this job's report says
+  # its gate is informational and a divergence does not fail it; overflow,
+  # target, and infrastructure failures still do. fn-105 R12 removes that entry
+  # together with the other D12 allowances.
+  determinism-soak-linux:
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: read
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        workload: [functional-activity, functional-child-workflow, functional-update, user-timers-workflow, frontend-system-info]
+        seed: [11, 17]
+    env:
+      GOMAD3_SOAK_LEDGER_ARTIFACT: gomad3-soak-ledger-linux-amd64-${{ matrix.workload }}-${{ matrix.seed }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: tools/gomad3/go.mod
+          check-latest: false
+          cache: true
+
+      - name: Verify qualified host
+        run: test "$(go env GOHOSTOS)/$(go env GOHOSTARCH)" = linux/amd64
+
+      - name: Restore the soak ledger from the latest retained run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ledger=tools/gomad3/.toolchain/soak/ledger
+          for run in $(gh run list --repo "$GITHUB_REPOSITORY" --workflow gomad3.yml --branch "$GITHUB_REF_NAME" --limit 50 \
+            --json databaseId,event --jq '.[] | select(.event == "schedule" or .event == "workflow_dispatch") | .databaseId'); do
+            test "$run" = "$GITHUB_RUN_ID" && continue
+            rm -rf "$ledger"
+            if gh run download "$run" --repo "$GITHUB_REPOSITORY" --name "$GOMAD3_SOAK_LEDGER_ARTIFACT" --dir "$ledger"; then
+              echo "Restored the soak ledger from run $run"
+              exit 0
+            fi
+          done
+          rm -rf "$ledger"
+          echo "No retained soak ledger; this run starts new cohorts"
+
+      - name: Run the determinism soak (informational while D12 is open)
+        run: >-
+          make gomad3-soak GOMAD3_SOAK_WORKLOAD=${{ matrix.workload }} GOMAD3_SOAK_SEED=${{ matrix.seed }}
+          GOMAD3_SOAK_RUN_ID=${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Publish the soak summary
+        if: ${{ always() }}
+        run: |
+          summary=tools/gomad3/.toolchain/soak/output/soak-summary.md
+          if test -f "$summary"; then cat "$summary" >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - name: Upload the soak ledger
+        if: ${{ always() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: ${{ env.GOMAD3_SOAK_LEDGER_ARTIFACT }}
+          path: tools/gomad3/.toolchain/soak/ledger
+          if-no-files-found: ignore
+          retention-days: 90
+          overwrite: true
+
+      - name: Upload the soak report and divergence evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: gomad3-soak-linux-amd64-${{ matrix.workload }}-${{ matrix.seed }}-${{ github.run_id }}
+          path: tools/gomad3/.toolchain/soak/output
+          if-no-files-found: warn
+          retention-days: 90
+          overwrite: true

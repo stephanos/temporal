@@ -19,7 +19,7 @@ import (
 	toolchainbuild "go.temporal.io/server/tools/gomad3/toolchain"
 )
 
-const usage = "usage: gomadtool adapter-regenerate|boundary-generate|build-key|checked-run|compatibility-pack|diagnostic-diff|patch-materialize|patch-regenerate|patch-validate|pin-impact|protocol-generate|qualification-manifest-generate|script-validate|test|toolchain-build|upgrade-dossier|version-generate [flags]"
+const usage = "usage: gomadtool adapter-regenerate|boundary-generate|build-key|checked-run|compatibility-pack|diagnostic-diff|patch-materialize|patch-regenerate|patch-validate|pin-impact|protocol-generate|qualification-manifest-generate|script-validate|soak|test|toolchain-build|upgrade-dossier|version-generate [flags]"
 
 const canonicalBuildPath = "/usr/bin:/bin:/usr/sbin:/sbin:/usr/xpg4/bin:/opt/freeware/bin:/usr/local/bin:/opt/homebrew/bin:/opt/local/bin"
 
@@ -59,6 +59,8 @@ func run(arguments []string, stdout, stderr io.Writer) int {
 		return runQualificationManifestGenerate(arguments[1:], stderr)
 	case "script-validate":
 		return runScriptValidate(arguments[1:], stdout, stderr)
+	case "soak":
+		return runSoak(arguments[1:], stdout, stderr)
 	case "test":
 		return runTest(arguments[1:], stdout, stderr)
 	case "toolchain-build":

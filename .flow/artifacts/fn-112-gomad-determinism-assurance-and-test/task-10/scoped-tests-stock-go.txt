@@ -1,0 +1,11 @@
+ok  	go.temporal.io/server/tools/gomad3	50.131s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	6.484s
+ok  	go.temporal.io/server/tools/gomad3/qualification	0.556s
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/qualification/analysis	0.069s
+ok  	go.temporal.io/server/tools/gomad3/qualification/comparison	0.044s
+ok  	go.temporal.io/server/tools/gomad3/qualification/set	1.945s
+ok  	go.temporal.io/server/tools/gomad3/qualification/set/manifestgen	7.835s
+ok  	go.temporal.io/server/tools/gomad3/qualification/soak	0.422s
+ok  	go.temporal.io/server/tools/gomad3/qualification/workload	0.053s
+FAIL

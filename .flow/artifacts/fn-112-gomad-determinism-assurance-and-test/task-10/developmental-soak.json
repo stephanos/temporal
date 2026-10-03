@@ -1,0 +1,28 @@
+{
+  "schema": "gomad3.determinism-soak/v1",
+  "name": "developmental-core-soak",
+  "description": "Developmental linux/arm64 exercise of the soak tool against the core concurrency workload's qualify arguments",
+  "seeds": [
+    11,
+    17
+  ],
+  "repeat": 4,
+  "minimum_batches": 2,
+  "batches": 3,
+  "qualify_timeout": "5m",
+  "budget": "20m",
+  "load_workers": 2,
+  "sizing": "developmental: N = 8 per seed (two batches of 4) to exercise batching, cross-batch comparison, ledger accumulation, and retention; not a bound",
+  "informational_platforms": {
+    "linux/amd64": "fn-105 D12"
+  },
+  "selections": [
+    {
+      "manifest": "../../../../../../../../../../../Users/stephan/Workspace/skunkworks/gomad/temporal/.claude/worktrees/gomad-fn112/tools/gomad3/qualification/core.json",
+      "working_dir": "../../../../../../../../../../../Users/stephan/Workspace/skunkworks/gomad/temporal/.claude/worktrees/gomad-fn112/tools/gomad3/qualification/corpus",
+      "suites": [
+        "concurrency-state-invariant"
+      ]
+    }
+  ]
+}

@@ -162,7 +162,7 @@ endef
 print-go-version:
 	@go version
 
-.PHONY: gomad3 gomad3-go gomad3-runner gomad3-run gomad3-test gomad3-integration-test gomad3-qualification gomad3-smoke-qualification gomad3-tests-qualification gomad3-tests-qualification-merge
+.PHONY: gomad3 gomad3-go gomad3-runner gomad3-run gomad3-test gomad3-integration-test gomad3-qualification gomad3-smoke-qualification gomad3-soak gomad3-tests-qualification gomad3-tests-qualification-merge
 
 gomad3: gomad3-runner
 
@@ -205,6 +205,23 @@ gomad3-smoke-qualification: gomad3-runner
 		GOMAD3_QUALIFICATION_WORKDIR="$(ROOT)" \
 		GOMAD3_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomad3/.toolchain/smoke-qualification" \
 		GOMAD3_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad3/.toolchain/smoke-qualification-set.json"
+
+# The scheduled determinism soak: fresh same-seed repetitions of soak.json's
+# selection under host CPU load, with choice tracing and diagnostics on. Each
+# batch is compared with its cohort's baseline in the ledger, which a scheduled
+# run restores from the previous run. GOMAD3_SOAK_WORKLOAD and GOMAD3_SOAK_SEED
+# restrict a run to part of the selection; GOMAD3_SOAK_BATCHES overrides the
+# maximum batches per workload and seed.
+GOMAD3_SOAK_DIR ?= $(ROOT)/tools/gomad3/.toolchain/soak
+gomad3-soak: gomad3-runner
+	@cd tools/gomad3 && env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool soak \
+		--manifest="$(ROOT)/tools/gomad3integration/qualification/soak.json" \
+		--gomad="$(ROOT)/tools/gomad3/.bin/gomad" \
+		--work="$(GOMAD3_SOAK_DIR)/work" --ledger="$(GOMAD3_SOAK_DIR)/ledger" --output="$(GOMAD3_SOAK_DIR)/output" \
+		$(if $(GOMAD3_SOAK_RUN_ID),--run-id="$(GOMAD3_SOAK_RUN_ID)") \
+		$(if $(GOMAD3_SOAK_WORKLOAD),--workload="$(GOMAD3_SOAK_WORKLOAD)") \
+		$(if $(GOMAD3_SOAK_SEED),--seed="$(GOMAD3_SOAK_SEED)") \
+		$(if $(GOMAD3_SOAK_BATCHES),--batches="$(GOMAD3_SOAK_BATCHES)")
 
 # Regenerating first puts every test in ./tests in the set, including one added
 # without regenerating the checked-in manifest; `make -C tools/gomad3 validate`

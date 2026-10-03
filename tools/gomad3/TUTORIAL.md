@@ -624,6 +624,24 @@ These commands are mainly for maintaining Gomad and its supported platform
 bundle, but they explain an important design choice: support is something Gomad
 records as evidence, not something it assumes because a test happened to pass.
 
+Two repetitions catch a defect only if it fires in one of them. When a same-seed
+difference does appear, add `--diagnostics` to `qualify` or `explore`: every
+choice point then also records a small digest of runtime state, and the report's
+`diagnostic_divergence`, or `gomadtool diagnostic-diff` on two retained traces,
+names the first choice point where the runs disagreed and which counters moved:
+
+```sh
+go -C tools/gomad3 run ./cmd/gomadtool diagnostic-diff EXPECTED_TRACE ACTUAL_TRACE
+```
+
+For Gomad's own fault fixture, which injects one host-timed draw, it prints
+`first-divergent-ordinal=5 fields=runtime_cheap_rand_draws`.
+
+For the statistical side, a scheduled soak repeats the functional smoke suites
+and a guarded-mode probe in batches of 32 fresh runs per seed under host CPU
+load, compares every batch with the earlier batches of the same workload, seed,
+platform, and build, and keeps a running count across weekly runs.
+
 ## What determinism means here
 
 Gomad's promise is deliberately local:
@@ -647,7 +665,15 @@ unrecognized host I/O are outside the committed deterministic contract.
 Qualification still has explicit limitations. Allocation-heavy Targets can
 expose unresolved repeatability or replay divergence, and some Temporal suites
 qualify without Choices because their traces exceed the current capacity. Such
-evidence proves repeated observations, not Exact Replay. Read the current
+evidence proves repeated observations, not Exact Replay. Closure capability
+mode reviews dependencies without compiling guards, so code a compatibility pack
+admits runs live. Host netpoll readiness, SIGPROF and CPU profiling, enabled
+block or mutex profiling, and `runtime.NumCPU` are declared outside the contract
+(see the README's Contract). The bound Gomad quotes is the soak's per-platform
+count of fresh repetitions with zero divergences, measured with diagnostics on;
+until the first scheduled run on each platform is retained, none has been
+measured, and linux/amd64 stays informational while its replay divergence is
+open. Read the current
 [delivery milestones](../../MILESTONES.md) and retained qualification
 reports before applying a broader support claim.
 

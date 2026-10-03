@@ -28,7 +28,7 @@ changes, change the spec and summarize the change here.
 | Code-size cleanup | [fn-108](.flow/specs/fn-108-gomad-reduce-code-size-without-removing.md) | Task 8: native linux/amd64 qualification for R9 |
 | Deep modules and tool interfaces | [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) | Tasks 2–6 have merged candidates awaiting acceptance; tasks 7–21 retain installation/capability ownership, resources/protocols, simulation interfaces, architecture, and final qualification |
 | Runtime patch minimization | [fn-110](.flow/specs/fn-110-gomad-minimize-the-runtime-patch.md) | Task 2 is in the combined candidate awaiting native gates; tasks 3–5 retain canonical patch regeneration and both-platform qualification |
-| Determinism assurance and test strategy | [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md) | Tasks 5, 9, and 16 have merged candidates awaiting qualification; task 10 retains the scheduled soak and final contract documentation |
+| Determinism assurance and test strategy | [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md) | Tasks 5, 9, and 16 have merged candidates awaiting qualification; task 10's soak gate and contract documentation are delivered and await one retained scheduled or dispatched soak run per platform |
 | Version-pin maintenance | [fn-113](.flow/specs/fn-113-gomad-reduce-version-pin-maintenance.md) | Tasks 1–4 have merged candidates; final native gates and both-host acceptance remain |
 | Search-path qualification | [fn-114](.flow/specs/fn-114-gomad-correct-search-path-defects-and.md) | Task 13 candidate awaits native qualification; task 14 and R12 retain combined-candidate qualification on native linux/amd64 |
 
@@ -350,13 +350,17 @@ findings from the 2026-10-01 assessment. Flow tasks and their artifacts own comp
 
 **Spec.** [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md) has four open tasks.
 Tasks 5, 9, and 16 are merged but remain open pending qualification; task 9 also
-defers overlapping CLI and Runner work until fn-109 lands. Task 10's soak gate and final contract
-documentation remain unimplemented. Q3 and Q4 remain D12 candidates under fn-105, and Q5 is D26.
+defers overlapping CLI and Runner work until fn-109 lands. Task 10 delivered the soak gate
+(`gomadtool soak`, `make gomad3-soak`, `tools/gomad3integration/qualification/soak.json`, and the
+scheduled `determinism-soak-darwin` and `determinism-soak-linux` jobs of `gomad3.yml`) and the
+contract documentation in `tools/gomad3/README.md`, SPEC, CLI, ARCHITECTURE, and TUTORIAL; it stays
+open until one completed scheduled or dispatched soak run per platform is retained with its report.
+Q3 and Q4 remain D12 candidates under fn-105, and Q5 is D26.
 
 **Current verdict.** Determinism assurance remains incomplete until the stream-isolation,
 retained-success collision, and suite-consolidation candidates pass their native gates; D12 gains
-causal native-linux evidence; and the soak and contract work supplies a measured bound and states
-the remaining exclusions. Existing diagnostic traces can localize a fresh-run
+causal native-linux evidence; and the first retained soak run on each platform supplies the measured
+bound. The contract now states the remaining exclusions and the closure-mode limit. Existing diagnostic traces can localize a fresh-run
 difference, but D12 still needs a native Linux reproducer. Collector and
 real-thread limitations prevent an unconditional guarantee.
 
@@ -368,21 +372,20 @@ real-thread limitations prevent an unconditional guarantee.
 | Q3 | D12 candidate: one-shot syscall wait in `suspendG` | The patch waits for a host syscall to exit once, before the suspend loop. A goroutine that enters a syscall in that window can be scanned mid-syscall, which shifts scan work. Inferred from source, not reproduced | Measure with native diagnostics first; only if a divergence identifies this path, wait inside the loop's `_Gsyscall` case and requalify |
 | Q4 | D12 candidate: linux ASLR and `runtime.NumCPU` | Neither is controlled on linux/amd64. Impact is inferred low because the binary is non-PIE | Rerun the D12 reproducer under `setarch -R` before any code change |
 | Q5 | Forward shared-clock correction remains unqualified | D16: the original offset made derived deadlines fire late and the subtest fail 5 of 24 seeds. Eight generated workloads use `forward` | Verify the integrated D26/fn-110 candidate and qualify it on both native platforms |
-| Q6 | Qualification has too little statistical power | `qualify` repeats twice. Exact replay forces run-queue and select choices, which masks perturbations that would split two fresh runs. A 1-in-26 defect passes most two-repetition checks | A scheduled soak of N fresh repetitions under CPU load with a strict zero-divergence gate |
-| Q7 | Channels without a positive control | Netpoll, SIGPROF, enabled block and mutex profiling on linux, and `NumCPU` remain exclusions | Publish each exclusion in task 10 and add a seeded fixture where the final contract claims deterministic behavior |
-| Q8 | Closure mode compiles no guards | `-gomadguard` is added only in guarded mode; pack admissions of `syscall` are per package, so admitted code runs live | State the limit in the contract, or sample guarded mode in the soak |
+| Q6 | No measured bound yet | The scheduled soak runs 64 to 128 fresh repetitions per workload and seed per run (the measured round cost decides how many fit the 120-minute per-job budget) under two busy host threads, with diagnostics on, and accumulates per-cohort counts across runs. No run is retained: the local linux/arm64 exercise used a stand-in `gomad qualify`, because the patched toolchain does not build there, and measured no Gomad bound | Retain the first scheduled or dispatched run per platform and quote its per-cohort counts; re-check the round sizing from its `execution_wall_nanos` |
+| Q7 | Channels without a positive control | Netpoll readiness, SIGPROF and CPU profiling, enabled block and mutex profiling, and `NumCPU` are declared outside the contract in README and SPEC (`RUNTIME.TRUST.EXCLUSIONS`); timer ties and run-queue shuffles have seeded fixtures | Add a fixture before any exclusion is brought inside the contract |
+| Q8 | Closure mode compiles no guards | `-gomadguard` is added only in guarded mode; pack admissions of `syscall` are per package, so admitted code runs live. README and SPEC (`TARGET.CAPABILITY`) state the limit, and the soak includes the guarded-mode `frontend-system-info` probe | Read soak results for that probe separately from the closure-mode suites |
 
 Q3 and Q4 remain hypotheses only. Current one-P reasoning makes Q3 low-likelihood, and the
 prepared linux binary is expected to be non-PIE; neither should change production code before a
 native diagnostic divergence identifies a causal path. D12 must first compare fresh loaded
 cohorts with existing diagnostics, repeat them under `setarch x86_64 -R`, and record CPU topology
-and cgroup controls. The remaining Q7 exclusions and Q8 closure-mode limit belong in task 10's
-contract documentation.
+and cgroup controls. The informational linux/amd64 soak jobs retain such cohorts and their traces.
 
 ### Remaining test-strategy work
 
 - Qualify task 5's seeded-stream inventory and runtime check on both native platforms.
-- Build task 10's loaded soak gate and publish the final determinism contract and exclusions.
+- Retain one completed scheduled or dispatched soak run per platform with its report (task 10).
 - Qualify task 9's suite consolidation and finish its fn-109-dependent CLI and Runner mapping.
 - Qualify task 16's retained-success collision handling.
 
@@ -435,7 +438,7 @@ decision and has no implementation spec.
 1. Qualify merged fn-112 tasks 5, 9, and 16 on both native platforms.
 2. Use the existing diagnostics and task 5's checks with Q3/Q4 controls to close D12 on native
    linux/amd64; do not make a speculative Q3 or `NumCPU` change before a causal divergence.
-3. Deliver task 10's loaded soak gate and final contract documentation.
+3. Retain the first soak run on each platform, quote its per-cohort bound, and make the linux soak strict when fn-105 R12 closes D12.
 4. Verify the integrated D26/fn-110 candidate and run its native qualification, then decide whether
    any remaining uncalled feature needs a new owner.
 
@@ -454,8 +457,8 @@ decision and has no implementation spec.
   The Linux replay finding needs a reproduced cause; collector-file remedies
   remain outside the permitted patch policy.
 - **Latent divergence passes qualification.** Routine qualification still has only two fresh
-  repetitions, and exact replay forces run-queue and select choices; task 10's loaded soak must
-  supply the missing statistical bound ([Q6](#determinism-gaps)).
+  repetitions, and exact replay forces run-queue and select choices; the scheduled soak supplies
+  the statistical bound once its first runs are retained ([Q6](#determinism-gaps)).
 - **Spin loops** anywhere in the cluster stall virtual time. Pollers with backoff are fine, but a
   single `for {}` with a non-blocking select is fatal under this runtime.
 - **Upstream Go releases** invalidate the patch and the boundary manifest each time; every Go bump
