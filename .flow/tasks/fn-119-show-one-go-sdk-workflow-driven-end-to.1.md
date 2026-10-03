@@ -39,9 +39,25 @@ make lint-code-fast
 - [ ] A Case with a command the Profile does not list is rejected at preparation with the command type named.
 - [ ] Existing Cases unchanged; Testpilot tests and lint-code-fast pass.
 ## Done summary
-TBD
+Schedule an activity from the Driver's workflow, await it and complete the workflow with its result (R2).
 
+What changed
+- `worker.CommandTypes()` now lists COMMAND_TYPE_SCHEDULE_ACTIVITY_TASK beside the Nexus schedule, so `DeriveProfile` authorizes it for a Case that carries it.
+- Preparation (`internal/execution/typed.go`): Driver-reach rows for ScheduleActivityTaskCommandAttributes, ActivityType, TaskQueue, Payloads, RetryPolicy (header, request_eager_execution, use_workflow_build_id, priority, task_queue.kind/normal_name unrealized). `bindWorkflowCommand` dispatches per type; the activity schedule needs a valid activity type and a task-queue role, and its timeouts and retry intervals are checked against the Profile ceiling. A command type the Profile does not admit is rejected naming the type (`command type COMMAND_TYPE_... the Profile does not admit`); a Profile-admitted type no Driver realizes rejects at its attributes field. `bindAwait` accepts a Nexus or activity schedule (`startsAwaitable`); `startsNexusOperation` keeps its carrier-route meaning.
+- Driver: `scheduleActivity` issues `workflow.ExecuteActivity` on the queue the named task-queue role binds (same namespace as the worker), with raw payloads, carried timeouts (schedule-to-close defaulting to the instruction timeout), retry policy and no eager execution; `Await` reads activity and Nexus futures alike; `Finish` completes with the awaited payload.
+- Proto: doc-only update of AwaitInstruction and WorkflowCommand comments; generated comment applied to instruction.pb.go (descriptor unchanged, catalog does not move).
+
+Decisions
+- The task queue is required and names a task-queue role, because the SDK always emits one and the resource must come from a binding, as the Nexus endpoint does.
+- The schedule instruction succeeds once the command is issued (the SDK has no started future for activities); how the activity ended is the Await's outcome.
+- `make protoc` cannot run in this sandbox (checked-in goimports is a macOS binary) and its failed run briefly removed the CHASM gen dirs; they were restored from git immediately. The comment-only pb.go change was produced by diffing plain protoc output of HEAD vs edited proto.
+
+Tests: Testpilot suite (`go test -tags test_dep -p 2 ./common/testing/testpilot/...`) exit 0; lint-code-fast's only findings are in another agent's untracked tools/umpire/internal/golden files. New tests: activity admit/reject matrix, command type named, Profile derivation, SDK test-environment run (retry then success, carried input/queue/timeouts) and non-retryable failure recorded on the Await.
+
+Review: Fable (claude-fable-5-1, high) round 1 SHIP. P3 notes: the workflowSourceKey on the activity context has no reader until task .2 adds the ExecuteActivity outbound interceptor (kept for .2); timeout-copy duplication with scheduleNexus noted, not changed.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 31295b0399
+- Tests: CC=/usr/bin/gcc GOMEMLIMIT=4500MiB mise exec -- go test -count=1 -json -tags test_dep -p 2 ./common/testing/testpilot/... (exit 0), GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=origin/main mise exec -- make lint-code-fast (exit 2; all 4 findings in another agent's untracked tools/umpire/internal/golden files, none in this task's paths)
 - PRs:
