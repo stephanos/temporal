@@ -17,12 +17,13 @@ import (
 // Runner before choice exploration had a start ordinal. The root segment was
 // re-encoded through CommitRound when the choice tape header moved to v3,
 // which changed its trace digest, its identity, and the after-state identity
-// through the children's prefix bytes; the decisions and candidates are as
-// recorded.
+// through the children's prefix bytes, and again when the controller identity
+// moved to v3 for the select-poll reduction, which changed the candidate
+// identities and every state identity; the decisions are as recorded.
 const (
-	retainedInitialStateSHA256      record.SHA256 = "sha256:32e05cff3064bd1c6d2f76b178b48eb596076514ddea276dd1dd31825316845a"
-	retainedAfterRootStateSHA256    record.SHA256 = "sha256:5a9d06998c19a945ad1cf3b1566f66775fa74f9dd67d866c548a1d3ad8259737"
-	retainedChoicePlanCanonicalHash record.SHA256 = "sha256:a59870db6176bca22c6f4c4cfe2d67779e9e25b3a8b2c6bc8958cee8e37a4ea0"
+	retainedInitialStateSHA256      record.SHA256 = "sha256:3c33957816f4bed22cba236db047973f8212092d911dbe879283774be9b84e73"
+	retainedAfterRootStateSHA256    record.SHA256 = "sha256:4e19f91f6cfca23b623329799a008bc9c7eb56bd5030ce10641d473168d77115"
+	retainedChoicePlanCanonicalHash record.SHA256 = "sha256:1c7cfef620e584c75cb5854eae44d79ec50b101717d42df44adc39a96893a76d"
 )
 
 func TestDefaultChoiceStartKeepsRetainedIdentityAndPlanBytes(t *testing.T) {

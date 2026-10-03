@@ -1100,6 +1100,53 @@ func TestRunChoiceExplorationResumeRerunsTheWholeIncompleteRound(t *testing.T) {
 	}
 }
 
+func TestRunChoiceExplorationLeavesNoOpSelectPollsUnexpandedAcrossResume(t *testing.T) {
+	preparer := newFakePreparer(t)
+	limit := choiceTraceLimit(t, 3)
+	baseExecutor := &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, noOpSelect: true}
+	config := testConfig(t, preparer, explorationInterruptExecutor{exploration: baseExecutor}, "7", PolicyAll, 2)
+	config.Strategy = StrategyChoiceExploration
+	config.ChoiceTraceLimit = limit
+	config.MaxExecutions = 8
+	config.MaxChoiceDepth = 4
+	config.MaxExplorationBytes = 1 << 20
+
+	partial, err := Explore(context.Background(), config)
+	var hostErr *HostError
+	if !errors.As(err, &hostErr) || partial.ChoiceExploration == nil || partial.ChoiceExploration.CommittedRounds != 1 {
+		t.Fatalf("partial exploration = %#v, error = %v", partial, err)
+	}
+	resumedExecutor := &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, noOpSelect: true}
+	resumed, err := Explore(context.Background(), CampaignSpec{
+		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Executor: resumedExecutor,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// The runnable decision has one alternative to expand; the select's does
+	// not, in the root's round or in the resumed one.
+	if resumed.Attempted != 2 || resumed.StopReason != StopExplorationExhausted || resumed.ChoiceExploration == nil || resumed.ChoiceExploration.SeenPrefixes != 2 || resumed.ChoiceExploration.CommittedRounds != 2 {
+		t.Fatalf("resumed exploration = %#v", resumed)
+	}
+	batch, err := campaign.OpenCampaign(resumed.CampaignPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(batch.Executions) != 2 || batch.Record.ChoiceExploration == nil || batch.Record.ChoiceExploration.OmittedBySelectReadiness != 2 || batch.Record.ChoiceExploration.OmittedByDepth != 0 {
+		t.Fatalf("resumed exploration record = %#v", batch.Record.ChoiceExploration)
+	}
+	resumedExecutor.mu.Lock()
+	defer resumedExecutor.mu.Unlock()
+	for _, request := range resumedExecutor.requests {
+		if request.Choice == nil || request.Choice.ReplayPlan == nil {
+			continue
+		}
+		if forced := request.Choice.ReplayPlan.Decisions; forced[len(forced)-1].Kind == choice.KindSelectPoll {
+			t.Fatalf("resumed exploration forced the no-op select-poll decision: %#v", forced)
+		}
+	}
+}
+
 func TestRunChoiceExplorationResumesWithItsStartAndReportsItUnreached(t *testing.T) {
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)
@@ -2131,8 +2178,11 @@ type explorationExecutor struct {
 	// alternatives is the width of the one decision every execution records;
 	// zero means two.
 	alternatives uint32
-	mu           sync.Mutex
-	requests     []execution.Spec
+	// noOpSelect adds a two-case select with one ready case after that
+	// decision, whose poll order the explorer must leave unexpanded.
+	noOpSelect bool
+	mu         sync.Mutex
+	requests   []execution.Spec
 }
 
 type simulationExplorationExecutor struct {
@@ -2237,25 +2287,42 @@ func (executor *explorationExecutor) Run(_ context.Context, request execution.Sp
 	executor.mu.Lock()
 	executor.requests = append(executor.requests, request)
 	executor.mu.Unlock()
-	selected := uint32(0)
-	if request.Choice != nil && request.Choice.Mode == choice.ModePrefix {
-		selected = request.Choice.ReplayPlan.Decisions[len(request.Choice.ReplayPlan.Decisions)-1].Selected
-	}
 	result := processResult(executor.exitCode, "", "")
-	choiceRecord := validTestChoiceRecord(executor.t, choice.Record{
-		Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, Alternatives: max(executor.alternatives, 2), Selected: selected,
-	})
-	if request.Choice != nil && request.Choice.Mode == choice.ModePrefix {
-		identities := make([][sha256.Size]byte, choiceRecord.Alternatives)
-		for index := range identities {
-			identities[index] = sha256.Sum256([]byte(fmt.Sprintf("choice/0/alternative/%d", index)))
+	records := []choice.Record{validTestChoiceRecord(executor.t, choice.Record{
+		Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, Alternatives: max(executor.alternatives, 2),
+	})}
+	if executor.noOpSelect {
+		readiness, err := choice.NewReadiness(1, 0)
+		if err != nil {
+			return execution.Result{}, err
 		}
-		slices.SortFunc(identities, func(left, right [sha256.Size]byte) int { return bytes.Compare(left[:], right[:]) })
-		choiceRecord.Selected = selected
-		choiceRecord.SelectedIdentity = identities[selected]
+		records = append(records,
+			validTestChoiceRecord(executor.t, choice.Record{Ordinal: 1, Kind: choice.KindSelectPoll, Flags: choice.FlagDecision, SiteOffset: 0x30, Alternatives: 2, Selected: 1, Data: 1}),
+			choice.Record{Ordinal: 2, Kind: choice.KindSelectResult, Flags: choice.FlagObservation, SiteOffset: 0x30, Alternatives: 2, Data: 2, Readiness: readiness, Origin: 1},
+		)
 	}
-	result.ChoiceTrace = completeChoiceTrace(executor.t, executor.buildKey, executor.limit, []choice.Record{choiceRecord})
+	if request.Choice != nil && request.Choice.Mode == choice.ModePrefix {
+		// The decisions precede the only observation, so a forced decision's
+		// ordinal is its record's.
+		for ordinal, forced := range request.Choice.ReplayPlan.Decisions {
+			records[ordinal] = forceTestChoiceRank(records[ordinal], forced.Selected)
+		}
+	}
+	result.ChoiceTrace = completeChoiceTrace(executor.t, executor.buildKey, executor.limit, records)
 	return result, nil
+}
+
+// forceTestChoiceRank selects the alternative at rank of a decision record
+// built by validTestChoiceRecord, whose alternative set is ordered by identity.
+func forceTestChoiceRank(choiceRecord choice.Record, rank uint32) choice.Record {
+	identities := make([][sha256.Size]byte, choiceRecord.Alternatives)
+	for index := range identities {
+		identities[index] = sha256.Sum256([]byte(fmt.Sprintf("choice/%d/alternative/%d", choiceRecord.Ordinal, index)))
+	}
+	slices.SortFunc(identities, func(left, right [sha256.Size]byte) int { return bytes.Compare(left[:], right[:]) })
+	choiceRecord.Selected = rank
+	choiceRecord.SelectedIdentity = identities[rank]
+	return choiceRecord
 }
 
 func (executor *simulationExplorationExecutor) Run(_ context.Context, request execution.Spec) (execution.Result, error) {

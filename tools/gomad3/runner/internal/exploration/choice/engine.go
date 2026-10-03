@@ -18,7 +18,11 @@ const (
 	stateDomain        = "gomad3-choice-exploration-state/v1"
 	roundSegmentDomain = "gomad3-choice-exploration-round-segment/v2"
 	RoundSegmentSchema = "gomad3.choice-exploration-round/v2"
-	controllerIdentity = "deterministic-rounds/breadth-first-rank-prefix/v2"
+	// controllerIdentity names the expansion rule, so a journal written under
+	// another rule is refused on resume rather than continued under this one.
+	// v3 leaves the select-poll decisions of a no-op shape unexpanded
+	// (select_readiness.go).
+	controllerIdentity = "deterministic-rounds/breadth-first-rank-prefix/v3"
 )
 
 func ImplementationSHA256() record.SHA256 {
@@ -89,7 +93,11 @@ type State struct {
 	OmittedByExecutionBound uint64          `json:"omitted_by_execution_bound"`
 	OmittedByDepth          uint64          `json:"omitted_by_depth"`
 	OmittedByCapacity       uint64          `json:"omitted_by_capacity"`
-	StopReason              StopReason      `json:"stop_reason,omitempty"`
+	// OmittedBySelectReadiness counts the alternatives of no-op select-poll
+	// decisions. Unlike the bounds above it leaves nothing unexplored, so it
+	// does not make a stop reason.
+	OmittedBySelectReadiness uint64     `json:"omitted_by_select_readiness"`
+	StopReason               StopReason `json:"stop_reason,omitempty"`
 }
 
 type Round struct {
@@ -118,23 +126,24 @@ type RoundSegment struct {
 }
 
 type Summary struct {
-	Parallel                int        `json:"parallel"`
-	MaxExecutions           uint64     `json:"max_executions"`
-	MaxChoiceDepth          uint64     `json:"max_choice_depth"`
-	StartOrdinal            uint64     `json:"start_ordinal,omitempty"`
-	MaxExplorationBytes     uint64     `json:"max_exploration_bytes"`
-	LogicalExecutions       uint64     `json:"logical_executions"`
-	CommittedRounds         uint64     `json:"committed_rounds"`
-	Pending                 uint64     `json:"pending"`
-	PendingBytes            uint64     `json:"pending_bytes"`
-	SeenPrefixes            uint64     `json:"seen_prefixes"`
-	DeduplicatedOutcomes    uint64     `json:"deduplicated_outcomes"`
-	DeepestPrefix           uint64     `json:"deepest_prefix"`
-	OmittedByExecutionBound uint64     `json:"omitted_by_execution_bound"`
-	OmittedByDepth          uint64     `json:"omitted_by_depth"`
-	OmittedByCapacity       uint64     `json:"omitted_by_capacity"`
-	StopReason              StopReason `json:"stop_reason,omitempty"`
-	BoundedComplete         bool       `json:"bounded_complete"`
+	Parallel                 int        `json:"parallel"`
+	MaxExecutions            uint64     `json:"max_executions"`
+	MaxChoiceDepth           uint64     `json:"max_choice_depth"`
+	StartOrdinal             uint64     `json:"start_ordinal,omitempty"`
+	MaxExplorationBytes      uint64     `json:"max_exploration_bytes"`
+	LogicalExecutions        uint64     `json:"logical_executions"`
+	CommittedRounds          uint64     `json:"committed_rounds"`
+	Pending                  uint64     `json:"pending"`
+	PendingBytes             uint64     `json:"pending_bytes"`
+	SeenPrefixes             uint64     `json:"seen_prefixes"`
+	DeduplicatedOutcomes     uint64     `json:"deduplicated_outcomes"`
+	DeepestPrefix            uint64     `json:"deepest_prefix"`
+	OmittedByExecutionBound  uint64     `json:"omitted_by_execution_bound"`
+	OmittedByDepth           uint64     `json:"omitted_by_depth"`
+	OmittedByCapacity        uint64     `json:"omitted_by_capacity"`
+	OmittedBySelectReadiness uint64     `json:"omitted_by_select_readiness"`
+	StopReason               StopReason `json:"stop_reason,omitempty"`
+	BoundedComplete          bool       `json:"bounded_complete"`
 }
 
 func New(config Config) (State, error) {
@@ -184,7 +193,7 @@ func (state State) Summary() Summary {
 		LogicalExecutions: state.LogicalExecutions, CommittedRounds: state.CommittedRounds,
 		Pending: uint64(len(state.Queue)), PendingBytes: state.PendingBytes, SeenPrefixes: uint64(len(state.Seen)),
 		DeduplicatedOutcomes: uint64(len(state.Outcomes)), DeepestPrefix: state.DeepestPrefix,
-		OmittedByExecutionBound: state.OmittedByExecutionBound, OmittedByDepth: state.OmittedByDepth, OmittedByCapacity: state.OmittedByCapacity,
+		OmittedByExecutionBound: state.OmittedByExecutionBound, OmittedByDepth: state.OmittedByDepth, OmittedByCapacity: state.OmittedByCapacity, OmittedBySelectReadiness: state.OmittedBySelectReadiness,
 		StopReason: state.StopReason, BoundedComplete: state.StopReason == StopExhausted || state.StopReason == StopDepthComplete,
 	}
 }
@@ -399,11 +408,16 @@ func ValidateCandidateDivergence(candidate Candidate, identity choice.ExecutionI
 }
 
 func expandCandidate(state *State, parent Candidate, trace choice.ReplayPlan, children map[record.SHA256]Candidate) error {
+	noOp := noOpSelectPolls(trace)
 	for ordinal, decision := range trace.Decisions {
 		if uint64(ordinal) < max(parent.ForcedDepth, state.Config.StartOrdinal) {
 			continue
 		}
 		if decision.Alternatives <= 1 {
+			continue
+		}
+		if noOp[ordinal] {
+			state.OmittedBySelectReadiness += uint64(decision.Alternatives - 1)
 			continue
 		}
 		depth := uint64(ordinal) - state.Config.StartOrdinal + 1

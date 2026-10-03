@@ -1,0 +1,25 @@
+# Red first: each new or extended test fails for its intended reason before the change it guards
+
+## Engine tests with the no-op skip disabled (expandCandidate: 'if false && noOp[ordinal]')
+--- FAIL: TestExplorationSkipsNoOpSelectPollDecisions (0.00s)
+    engine_test.go:256: summary = choice.Summary{Parallel:4, MaxExecutions:0x20, MaxChoiceDepth:0x8, StartOrdinal:0x0, MaxExplorationBytes:0x100000, LogicalExecutions:0x1, CommittedRounds:0x1, Pending:0x4, PendingBytes:0x1030, SeenPrefixes:0x5, DeduplicatedOutcomes:0x1, DeepestPrefix:0x3, OmittedByExecutionBound:0x0, OmittedByDepth:0x0, OmittedByCapacity:0x0, OmittedBySelectReadiness:0x0, StopReason:"", BoundedComplete:false}
+--- FAIL: TestExplorationExpandsSelectPollDecisionsOutsideTheNoOpShapes (0.00s)
+        engine_test.go:323: summary = choice.Summary{Parallel:4, MaxExecutions:0x20, MaxChoiceDepth:0x8, StartOrdinal:0x0, MaxExplorationBytes:0x100000, LogicalExecutions:0x1, CommittedRounds:0x1, Pending:0x1, PendingBytes:0x36c, SeenPrefixes:0x2, DeduplicatedOutcomes:0x1, DeepestPrefix:0x1, OmittedByExecutionBound:0x0, OmittedByDepth:0x0, OmittedByCapacity:0x0, OmittedBySelectReadiness:0x0, StopReason:"", BoundedComplete:false}, want 0 pending and 1 omitted
+--- FAIL: TestExplorationRoundSegmentReplaysByteIdentically (0.00s)
+    engine_test.go:363: replayed state = choice.Summary{Parallel:4, MaxExecutions:0x20, MaxChoiceDepth:0x8, StartOrdinal:0x0, MaxExplorationBytes:0x100000, LogicalExecutions:0x1, CommittedRounds:0x1, Pending:0x3, PendingBytes:0xac4, SeenPrefixes:0x4, DeduplicatedOutcomes:0x1, DeepestPrefix:0x2, OmittedByExecutionBound:0x0, OmittedByDepth:0x0, OmittedByCapacity:0x0, OmittedBySelectReadiness:0x0, StopReason:"", BoundedComplete:false}
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice	0.292s
+FAIL
+
+## Runner test with the no-op skip disabled
+--- FAIL: TestRunChoiceExplorationLeavesNoOpSelectPollsUnexpandedAcrossResume (0.70s)
+    runner_test.go:1129: resumed exploration = runner.CampaignResult{CampaignPath:"/var/folders/k8/tl9x33wj7mz_cw1z_420xzs80000gn/T/TestRunChoiceExplorationLeavesNoOpSelectPollsUnexpandedAcrossRes3555629817/002/v1/campaign-20261003T000653.365942000Z-96e7d2e370996337c58c2c84e411a67e", SelectionCount:
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner	1.030s
+
+## Fixture with blocking-two-ready marked noOp and the reduction widened to Ready < 3 (mutation, reverted)
+--- FAIL: TestRuntimeSearchFixtures (24.05s)
+    runtime_test.go:183: select shape blocking-two-ready is listed as a no-op but its reduced exploration reached [blocking-two-ready first], not [blocking-two-ready first blocking-two-ready second]
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	24.331s
+FAIL
