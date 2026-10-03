@@ -681,16 +681,22 @@ MODEL_LIFTER_SOURCES := $(wildcard $(MODEL_ROOT)/lifter/*.scala) $(MODEL_ROOT)/l
 MODEL_LIFTS := $(MODEL_ROOT)/lifter/testdata/lifts
 MODEL_LIFTS_SCALAFIX = $(MODEL_SCALAFIX) --scalac-option -Werror:false \
 	$(call model_scalafix_files,$(wildcard $(MODEL_LIFTS)/*.scala))
-MODEL_PROTO_JARS := $(MODEL_ROOT)/gen/ir-proto.jar
+MODEL_PROTO_JARS := $(MODEL_ROOT)/gen/ir-proto.jar $(MODEL_ROOT)/gen/ir-scalapb.jar
 MODEL_JAR := $(MODEL_ROOT)/gen/model-scala.jar
 # The gate is one Scala program; its own arguments follow.
 MODEL_GATE = $(MODEL_CLI) run --suppress-outdated-dependency-warning $(MODEL_ROOT)/gate --
 # The gate's own tests run it against stand-in tools, so they need no jar and no real tool.
 MODEL_GATE_TEST = $(MODEL_CLI) test --suppress-outdated-dependency-warning $(MODEL_ROOT)/gate
 
-$(MODEL_PROTO_JARS): proto/internal/temporal/server/api/umpire/v1/ir.proto
+# One run of the gate packages both jars, the Java one first. The ScalaPB jar waits for it and is
+# packaged again only when it is missing, so the gate never runs twice for one schema. make sees only
+# the schema; after a generator's version changes in the gate, the gate's own run repackages both.
+$(MODEL_ROOT)/gen/ir-proto.jar: proto/internal/temporal/server/api/umpire/v1/ir.proto
 	@printf $(COLOR) "Package model IR classes..."
 	@$(MODEL_GATE) --generate-ir
+
+$(MODEL_ROOT)/gen/ir-scalapb.jar: $(MODEL_ROOT)/gen/ir-proto.jar
+	@test -f $@ || { printf $(COLOR) "Package model IR classes..."; $(MODEL_GATE) --generate-ir --if-stale; }
 
 # The Models' TASTy, packaged as the gate's "package the Models' TASTy" step packages it.
 $(MODEL_JAR): $(MODEL_ROOT)/project.scala $(shell find $(MODEL_ROOT)/umpire $(MODEL_ROOT)/temporal -name '*.scala')

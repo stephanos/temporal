@@ -16,7 +16,8 @@ class GateSuite extends munit.FunSuite:
 
   /**
    * A repository with an IR schema and its generated Go code, and stand-ins for the tools: each
-   * records its command line in `log`, and scala-cli writes the file it is asked to package.
+   * records its command line in `log`, and scala-cli writes the file it is asked to package, as an
+   * executable, since one of them is protoc's plugin.
    */
   final private class Repository(scalaCli: String = "", go: String = passingVocabulary):
     val root: Path = Files.createTempDirectory("umpire-gate-repository")
@@ -34,7 +35,7 @@ class GateSuite extends munit.FunSuite:
     Files.createDirectories(root.resolve("model/gen"))
     private val record = "echo \"${0##*/} $*\" >> \"$TOOLS_LOG\""
     private val packaging =
-      "out=; previous=; for a in \"$@\"; do [ \"$previous\" = -o ] && out=$a; previous=$a; done; [ -n \"$out\" ] && : > \"$out\""
+      "out=; previous=; for a in \"$@\"; do [ \"$previous\" = -o ] && out=$a; previous=$a; done; [ -n \"$out\" ] && : > \"$out\" && /bin/chmod +x \"$out\""
     private val stubs = Stubs(Files.createDirectory(root.resolve("bin")))
       .tool("scala-cli", s"$record\n$packaging\n$scalaCli")
       .tool("protoc", record)
@@ -43,7 +44,10 @@ class GateSuite extends munit.FunSuite:
     def ran: Seq[String] =
       if Files.exists(log) then Files.readString(log).linesIterator.toSeq else Nil
     def jar: Path = root.resolve("model/gen/ir-proto.jar")
-    def stamp: String = Files.readString(root.resolve("model/gen/ir.stamp"))
+    def scalaJar: Path = root.resolve("model/gen/ir-scalapb.jar")
+    def plugin: Path = root.resolve("model/gen/protoc-gen-scala")
+    def stampFile: Path = root.resolve("model/gen/ir.stamp")
+    def stamp: String = Files.readString(stampFile)
 
   // As `go test -v -run` of the vocabulary check, go prints what the test's run printed.
   private def vocabulary(printed: String, exit: Int = 0) =
@@ -67,41 +71,143 @@ class GateSuite extends munit.FunSuite:
     val repository = Repository()
     assertEquals(gate(repository.tools, "--generate-ir", "--if-stale").status, 0)
     assert(Files.isRegularFile(repository.jar))
-    // The stamp is the SHA-256 of the schema's content.
+    assert(Files.isRegularFile(repository.scalaJar))
+    // The stamp is the SHA-256 of the schema's content and the versions of the generators.
     assertEquals(
       repository.stamp,
-      "26695965cd692d9dce08efe0b2e1f745c3be7c19631b56873c8956b8d486cf17\n"
+      "26695965cd692d9dce08efe0b2e1f745c3be7c19631b56873c8956b8d486cf17" +
+        " com.google.protobuf:protobuf-java:4.29.5 scalapb:0.11.20 scala:3.9.0\n"
     )
     repository.ran match
-      case Seq(protoc, packaged) =>
-        assert(protoc.startsWith("protoc --proto_path=proto/internal --java_out="), protoc)
-        assert(protoc.endsWith(" temporal/server/api/umpire/v1/ir.proto"), protoc)
-        assert(packaged.startsWith("scala-cli --power package --library "), packaged)
-        assert(packaged.contains(s" -f -o ${repository.jar} "), packaged)
-      case ran => fail(s"protoc and scala-cli each run once, not $ran")
+      case Seq(java, javaJar, plugin, scala, scalaJar) =>
+        assert(java.startsWith("protoc --proto_path=proto/internal --java_out="), java)
+        assert(java.endsWith(" temporal/server/api/umpire/v1/ir.proto"), java)
+        assert(javaJar.startsWith("scala-cli --power package --library "), javaJar)
+        assert(javaJar.contains(" --scala 3.9.0 "), javaJar)
+        assert(javaJar.contains(s" -f -o ${repository.jar} "), javaJar)
+        assert(plugin.startsWith("scala-cli --power package "), plugin)
+        assert(
+          plugin.contains(
+            " --scala 3.9.0 --dep com.thesamet.scalapb::compilerplugin:0.11.20" +
+              s" --main-class scalapb.ScalaPbCodeGenerator -f -o ${repository.plugin} "
+          ),
+          plugin
+        )
+        assert(
+          scala.startsWith(
+            s"protoc --plugin=protoc-gen-scala=${repository.plugin} --proto_path=proto/internal" +
+              " --scala_out=flat_package,scala3_sources:"
+          ),
+          scala
+        )
+        assert(scala.endsWith(" temporal/server/api/umpire/v1/ir.proto"), scala)
+        assert(scalaJar.startsWith("scala-cli --power package --library "), scalaJar)
+        assert(scalaJar.contains(" --scala 3.9.0 "), scalaJar)
+        assert(
+          scalaJar.contains(" --dep com.thesamet.scalapb::scalapb-runtime:0.11.20 "),
+          scalaJar
+        )
+        assert(scalaJar.contains(s" -f -o ${repository.scalaJar} "), scalaJar)
+      case ran => fail(s"both jars and the plugin are packaged once, not $ran")
 
     assertEquals(gate(repository.tools, "--generate-ir", "--if-stale"), Answer(0, "", ""))
-    assertEquals(repository.ran.size, 2, "a current jar is not packaged again")
+    assertEquals(repository.ran.size, 5, "current jars are not packaged again")
 
     val before = repository.stamp
     Files.writeString(repository.schema, "syntax = \"proto3\";\nmessage Model {}\n")
     assertEquals(
       gate(repository.tools, "--generate-ir", "--if-stale").out,
-      "generated model/gen/ir-proto.jar\n"
+      "generated model/gen/ir-proto.jar\ngenerated model/gen/ir-scalapb.jar\n"
     )
-    assertEquals(repository.ran.size, 4)
+    assertEquals(repository.ran.size, 10)
     assertNotEquals(repository.stamp, before)
 
     assertEquals(gate(repository.tools, "--generate-ir").status, 0)
     assertEquals(
       repository.ran.size,
-      6,
-      "without --if-stale the jar is packaged whatever its stamp"
+      15,
+      "without --if-stale the jars are packaged whatever their stamp"
     )
 
-    Files.delete(repository.jar)
+    for jar <- Seq(repository.jar, repository.scalaJar) do
+      val ran = repository.ran.size
+      Files.delete(jar)
+      assertEquals(gate(repository.tools, "--generate-ir", "--if-stale").status, 0)
+      assertEquals(repository.ran.size, ran + 5, s"a missing $jar is stale whatever its stamp")
+
+  test("the IR's classes are packaged again when a generator's version changed"):
+    val repository = Repository()
     assertEquals(gate(repository.tools, "--generate-ir", "--if-stale").status, 0)
-    assertEquals(repository.ran.size, 8, "a missing jar is stale whatever its stamp")
+    Files.writeString(
+      repository.stampFile,
+      repository.stamp.replace("scalapb:0.11.20", "scalapb:0.11.19")
+    )
+    assertEquals(gate(repository.tools, "--generate-ir", "--if-stale").status, 0)
+    val again = repository.ran.drop(5)
+    assertEquals(again.size, 5, "a stamp of another generator is stale")
+    for (ran, tool) <- again.zip(
+        Seq("protoc --proto_path", "scala-cli", "scala-cli", "protoc --plugin", "scala-cli")
+      )
+    do assert(ran.startsWith(tool), s"both jars and the plugin are packaged again: $again")
+    assert(repository.stamp.endsWith(" scalapb:0.11.20 scala:3.9.0\n"), repository.stamp)
+
+  test("a plugin scala-cli did not package is named, and nothing is generated with it"):
+    // scala-cli exits 0 and leaves no launcher behind.
+    val repository =
+      Repository(scalaCli = "case \" $* \" in *\" --main-class \"*) /bin/rm -f \"$out\";; esac")
+    assertEquals(
+      gate(repository.tools, "--generate-ir"),
+      Answer(
+        1,
+        "",
+        "gate: the ScalaPB plugin model/gen/protoc-gen-scala is missing: " +
+          "scala-cli did not package it\n"
+      )
+    )
+    assertEquals(repository.ran.size, 3, "protoc does not run without the plugin")
+    assert(!Files.exists(repository.stampFile), "a failed generation leaves no stamp")
+
+    // scala-cli exits 0 and leaves the launcher of an earlier run.
+    val stale = Repository(scalaCli =
+      "case \" $* \" in *\" --main-class \"*) /usr/bin/touch -t 200001010000 \"$out\";; esac"
+    )
+    assertEquals(
+      gate(stale.tools, "--generate-ir"),
+      Answer(
+        1,
+        "",
+        "gate: the ScalaPB plugin model/gen/protoc-gen-scala is stale: " +
+          "scala-cli did not package it\n"
+      )
+    )
+    assertEquals(stale.ran.size, 3, "protoc does not run with a stale plugin")
+
+  test("a jar scala-cli did not package fails with the jar and the schema named"):
+    // scala-cli exits 0 without writing the ScalaPB jar.
+    val missing =
+      Repository(scalaCli = "case \"$out\" in *ir-scalapb.jar) /bin/rm -f \"$out\";; esac")
+    assertEquals(
+      gate(missing.tools, "--generate-ir"),
+      Answer(
+        1,
+        "",
+        s"gate: model/gen/ir-scalapb.jar is missing: the IR schema $schemaFile was not packaged\n"
+      )
+    )
+    assert(!Files.exists(missing.stampFile), "a failed generation leaves no stamp")
+
+    // scala-cli exits 0 and leaves the Java jar of an earlier schema.
+    val stale = Repository(
+      scalaCli = "case \"$out\" in *ir-proto.jar) /usr/bin/touch -t 200001010000 \"$out\";; esac"
+    )
+    assertEquals(
+      gate(stale.tools, "--generate-ir"),
+      Answer(
+        1,
+        "",
+        s"gate: model/gen/ir-proto.jar is stale: the IR schema $schemaFile was not packaged into it\n"
+      )
+    )
 
   test("a missing schema fails with its path"):
     val repository = Repository()
@@ -133,7 +239,7 @@ class GateSuite extends munit.FunSuite:
     assert(answer.err.contains("[error] ./model/umpire/Machine.scala:71:3"), answer.err)
     // The framework alone compiled; the test of the Models was the last tool run.
     assertEquals(
-      repository.ran.drop(3),
+      repository.ran.drop(6),
       Seq(
         "scala-cli compile model/project.scala model/umpire --suppress-outdated-dependency-warning",
         "scala-cli test model/project.scala model/umpire model/temporal --suppress-outdated-dependency-warning"
