@@ -164,25 +164,25 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
      same-family `claude` backend, whose receipts say `mode: "claude"`.
      Since 2026-10-02 all tiers are Claude models at the owner's request, so
      reviews are same-family again (`review.backend` is `claude`); the reviewer
-     runs in a fresh context. Since 2026-10-03 every tier uses Opus, also at
-     the owner's request. -->
+     runs in a fresh context. Since 2026-10-03 every tier uses a Codex (GPT)
+     model at the owner's request. Name the model explicitly when dispatching;
+     use gpt-6-sol for demanding work: ambiguous tasks or a large blast radius. -->
 
-reviewer: claude-opus-5-5 at high
+reviewer: gpt-6-sol at high
 
 <!-- implementer: <model> at <effort> - work handed to another harness (plan
      here, implement cheaper or faster there). Absent = the session model
      implements. -->
 
-<!-- Pinned rather than left unset: the worker implements in-session on Claude
-     Code, and these are Lean proof tasks that degrade badly on a cheaper tier,
-     so the pin holds even if the session model is switched down. -->
+<!-- Pinned rather than left unset, so the pin holds even if the session model is
+     switched down. -->
 
-implementer: claude-opus-5-5 at high
+implementer: gpt-6-luna at high; gpt-6-sol at high for demanding tasks
 
 <!-- fast scout: <model> - mechanical inventory scanning, where
      the cheapest tier is the correct one. -->
 
-fast scout: claude-haiku-4-5-20251001
+fast scout: gpt-6-luna at low
 
 <!-- thinking scout: <model> - analysis that degrades badly on a
      fast tier. -->
@@ -192,7 +192,7 @@ fast scout: claude-haiku-4-5-20251001
      later as rework in implementation. Reviews stay on the cross-family
      reviewer above, never on this tier. -->
 
-thinking scout: claude-opus-5-5 at high
+thinking scout: gpt-6-sol at high
 
 <!-- Unset is the default and the doctrine: planning, capture, interview,
      requirement analysis, every verdict, and the worker run on the session
