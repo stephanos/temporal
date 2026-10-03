@@ -17,6 +17,9 @@ Unexported changes inside `tools/gomad3/runner` (not visible to consumers):
   `coordinatorRequest{Options campaignOptions; SupervisorCommand; RunnerBuild}`, with options nested
   by group (`Target`, `Search`, `Limits`, `Observation`, `Retention`). Parent and coordinator are
   the same executable, so no version skew is possible. The request is not a recorded format.
+  Besides the nesting, one value changes: options are normalized before sending, so an empty
+  `Strategy` now travels as `"seed"`. The coordinator normalizes again, so an omitted strategy
+  still means seed.
 
 ### Deferred regrouping wish (for the executor-injection task, R5)
 
