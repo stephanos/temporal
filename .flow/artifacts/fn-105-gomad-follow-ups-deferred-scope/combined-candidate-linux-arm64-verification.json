@@ -1,0 +1,253 @@
+{
+ "schema": "gomad.verification/v1",
+ "purpose": "MILESTONES 'Immediate delivery order' step 1: verify the combined D26/fn-110 candidate (D26 + fn-110.2 + D27 + fn-114.13 + fn-112.5/16 + fn-113 + fn-109 2-9)",
+ "date": "2026-10-03",
+ "source_commit": "331b75bb6b6be15c3fe04d179938999ffdb99ccb",
+ "branch": "gomad-verify",
+ "platform": "linux/arm64 (developmental only; NOT darwin/arm64 or linux/amd64 evidence)",
+ "native_gates": {
+  "darwin/arm64": "incomplete",
+  "linux/amd64": "incomplete"
+ },
+ "host": "12 cores, 15 GB, shared; load average 25-68 during runs",
+ "go": "go1.27.1 linux/arm64 (golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64 prepended to PATH; mise go shim resolves go1.26.0 under GOTOOLCHAIN=local and fails 'go.mod requires go >= 1.27.1')",
+ "toolchain_build_key": "464561b56f99e7b17b6a5b442f9898c79c4ed16804f6383dcfd86d65ba1147d9",
+ "toolchain_build_key_note": "built with the development shim below; the committed tree refuses linux/arm64 ('gomad3 complete deterministic mode requires host darwin/arm64,linux/amd64', toolchain/build.go:97-99), so it has no linux/arm64 key",
+ "development_shim": {
+  "status": "applied only in the uncommitted working tree for these runs, reverted with 'git checkout -- tools/gomad3' before this commit; never committed",
+  "hand_edits": [
+   "toolchain/version/version.json: supported_platforms += linux/arm64",
+   "deterministicio/boundary/manifest.json: platforms += linux/arm64; os/pipe2_unix.go linux/arm64 entry copied from linux/amd64"
+  ],
+  "regeneration": "make -C tools/gomad3 generate run twice (one pass leaves target/internal/livecap/protocol_generated.go stale: protocol-generate runs before boundary-generate)",
+  "diff_sha256": "983fcc77116dc5a3110b206f004bbbfd3bb28cb3612758478e3aad1faa6f2512",
+  "diff_stat": "9 files changed, 26 insertions(+), 18 deletions(-)",
+  "diff": "diff --git a/tools/gomad3/deterministicio/boundary/go1.27.1.md b/tools/gomad3/deterministicio/boundary/go1.27.1.md\nindex 287d0d91ac..4bd5796288 100644\n--- a/tools/gomad3/deterministicio/boundary/go1.27.1.md\n+++ b/tools/gomad3/deterministicio/boundary/go1.27.1.md\n@@ -1,6 +1,6 @@\n # Gomad deterministic boundary: go1.27.1-v1\n \n-Generated from [`manifest.json`](manifest.json) for Go go1.27.1 on darwin/arm64, linux/amd64. Manifest identity: `sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0`. Do not edit this inventory directly.\n+Generated from [`manifest.json`](manifest.json) for Go go1.27.1 on darwin/arm64, linux/amd64, linux/arm64. Manifest identity: `sha256:d09a0cc747a18368e85862590fad5ce07db7500fec87d82b293816e88e2d253c`. Do not edit this inventory directly.\n \n | Target | Signature | Operation | Probe | Disposition | Hook | Hook policy | Adapters | Conformance | Negative | Escape |\n | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n@@ -40,7 +40,7 @@ Generated from [`manifest.json`](manifest.json) for Go go1.27.1 on darwin/arm64,\n | os.(*File).Stat | func() (FileInfo, error) | filesystem.stat | stdlib.os.file.stat | model | gomadInterceptFileStat |  | internal/gomadfs<br>internal/gomadio/mount | runner/internal/execution.TestProfileFilesystemStaysInMemory |  |  |\n | os.Hostname | func() (name string, err error) | host.hostname | stdlib.os.hostname | model | gomadInterceptHostname |  | overlay/os | runner/internal/execution.TestProfileFilesystemStaysInMemory |  |  |\n | os.NewFile | func(fd uintptr, name string) *File | world.transport-or-deny-raw-descriptor | stdlib.os.newfile | model | gomadInterceptNewFile |  | overlay/os<br>world/process | runner/internal/execution.TestProfileFilesystemStaysInMemory<br>runner/internal/execution.TestRunCapturesWorldRecordFromExecutingChild | internal/gomadtool/conformance/testdata/io_filesystem | internal/gomadtool/conformance/testdata/io_filesystem |\n-| os.Pipe<br>linux/amd64: os/pipe2_unix.go | func() (r *File, w *File, err error) | filesystem.pipe | stdlib.os.pipe | deny | gomadInterceptPipe |  | overlay/os | runner/internal/execution.TestProfileFilesystemStaysInMemory | internal/gomadtool/conformance/testdata/io_filesystem | internal/gomadtool/conformance/testdata/io_filesystem |\n+| os.Pipe<br>linux/amd64: os/pipe2_unix.go<br>linux/arm64: os/pipe2_unix.go | func() (r *File, w *File, err error) | filesystem.pipe | stdlib.os.pipe | deny | gomadInterceptPipe |  | overlay/os | runner/internal/execution.TestProfileFilesystemStaysInMemory | internal/gomadtool/conformance/testdata/io_filesystem | internal/gomadtool/conformance/testdata/io_filesystem |\n | os.(*File).Fd | func() uintptr | filesystem.raw-descriptor | stdlib.os.file.fd | deny | gomadInterceptFileFd |  | overlay/os | runner/internal/execution.TestProfileFilesystemStaysInMemory | internal/gomadtool/conformance/testdata/io_filesystem | internal/gomadtool/conformance/testdata/io_filesystem |\n | os.(*File).SyscallConn | func() (syscall.RawConn, error) | filesystem.raw-connection | stdlib.os.file.syscallconn | deny | gomadInterceptFileSyscallConn |  | overlay/os | runner/internal/execution.TestProfileFilesystemStaysInMemory | internal/gomadtool/conformance/testdata/io_filesystem | internal/gomadtool/conformance/testdata/io_filesystem |\n | os/user.Current | func() (*User, error) | user.current | stdlib.osuser.current | model | gomadInterceptCurrent |  | internal/gomadio | runner/internal/execution.TestProfilePassesHostCapabilitySandbox |  |  |\ndiff --git a/tools/gomad3/deterministicio/boundary/manifest.json b/tools/gomad3/deterministicio/boundary/manifest.json\nindex 4687aa20b2..08484abf51 100644\n--- a/tools/gomad3/deterministicio/boundary/manifest.json\n+++ b/tools/gomad3/deterministicio/boundary/manifest.json\n@@ -4,7 +4,8 @@\n   \"go_version\": \"go1.27.1\",\n   \"platforms\": [\n     \"darwin/arm64\",\n-    \"linux/amd64\"\n+    \"linux/amd64\",\n+    \"linux/arm64\"\n   ],\n   \"hook_policies\": [\n     {\n@@ -938,6 +939,10 @@\n         \"linux/amd64\": {\n           \"source\": \"os/pipe2_unix.go\",\n           \"declaration_sha256\": \"sha256:1197aa5233e66c97086931807857c31b6ca7c590f932204cf822c8df73a0b27d\"\n+        },\n+        \"linux/arm64\": {\n+          \"source\": \"os/pipe2_unix.go\",\n+          \"declaration_sha256\": \"sha256:1197aa5233e66c97086931807857c31b6ca7c590f932204cf822c8df73a0b27d\"\n         }\n       }\n     },\ndiff --git a/tools/gomad3/deterministicio/boundary/upgrade-go1.27.1.md b/tools/gomad3/deterministicio/boundary/upgrade-go1.27.1.md\nindex 96e256a8e6..733df1414a 100644\n--- a/tools/gomad3/deterministicio/boundary/upgrade-go1.27.1.md\n+++ b/tools/gomad3/deterministicio/boundary/upgrade-go1.27.1.md\n@@ -6,7 +6,7 @@ Generated from [`../../toolchain/version/version.json`](../../toolchain/version/\n \n - Go release: `go1.27.1`\n - source archive SHA-256: `4e408abae126d916b6164627193f2c54f0e3ca1312d693b86db45f862ab238b1`\n-- supported platforms: `darwin/arm64`, `linux/amd64`\n+- supported platforms: `darwin/arm64`, `linux/amd64`, `linux/arm64`\n - boundary manifest: `go1.27.1-v1`\n - patch: [`../../toolchain/runtime/go1.27.1.patch`](../../toolchain/runtime/go1.27.1.patch)\n - adapter: `github.com/Masterminds/sprig/v3@v3.3.0` (`h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs=`)\ndiff --git a/tools/gomad3/deterministicio/boundary_generated.go b/tools/gomad3/deterministicio/boundary_generated.go\nindex 0633393e39..6ed97255eb 100644\n--- a/tools/gomad3/deterministicio/boundary_generated.go\n+++ b/tools/gomad3/deterministicio/boundary_generated.go\n@@ -4,11 +4,11 @@ package deterministicio\n \n const (\n \tgeneratedBoundaryManifestVersion = \"go1.27.1-v1\"\n-\tgeneratedBoundaryManifestSHA256  = \"sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0\"\n+\tgeneratedBoundaryManifestSHA256  = \"sha256:d09a0cc747a18368e85862590fad5ce07db7500fec87d82b293816e88e2d253c\"\n \tgeneratedBoundaryGoVersion       = \"go1.27.1\"\n )\n \n-var generatedBoundaryPlatforms = []string{\"darwin/arm64\", \"linux/amd64\"}\n+var generatedBoundaryPlatforms = []string{\"darwin/arm64\", \"linux/amd64\", \"linux/arm64\"}\n \n var generatedBoundaryProbes = []struct {\n \tID   uint64\ndiff --git a/tools/gomad3/target/internal/livecap/protocol_generated.go b/tools/gomad3/target/internal/livecap/protocol_generated.go\nindex d0ad7449bd..3074bd9591 100644\n--- a/tools/gomad3/target/internal/livecap/protocol_generated.go\n+++ b/tools/gomad3/target/internal/livecap/protocol_generated.go\n@@ -31,10 +31,10 @@ const (\n \tMaximumFacts                 = 100000\n \tMaximumStringBytes           = 4096\n \tMaximumOwnerFacts            = 4096\n-\tProducerImplementationSHA256 = \"sha256:c3c8ef6cc27e5ea5a4e3ec80b101cd0b9c1f33e1201c75d2271b4cc2b217ecbe\"\n-\tGuardImplementationSHA256    = \"sha256:c3c8ef6cc27e5ea5a4e3ec80b101cd0b9c1f33e1201c75d2271b4cc2b217ecbe\"\n-\tCapabilityUniverseSHA256     = \"sha256:d919ef8e9695c3dfc0c4f46155c52ed9bfb5715cbefb1e37c586a3d69f8417dd\"\n-\tBoundaryManifestSHA256       = \"sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0\"\n+\tProducerImplementationSHA256 = \"sha256:bc7542c7f8612fc2e6a3d95b79c3124e735dce948f9081acbb7635cefb34eabc\"\n+\tGuardImplementationSHA256    = \"sha256:bc7542c7f8612fc2e6a3d95b79c3124e735dce948f9081acbb7635cefb34eabc\"\n+\tCapabilityUniverseSHA256     = \"sha256:10b8c78965e866b520a297aa73826e4151f6daf731bfb87474c9d06cf267199f\"\n+\tBoundaryManifestSHA256       = \"sha256:d09a0cc747a18368e85862590fad5ce07db7500fec87d82b293816e88e2d253c\"\n )\n \n var HeaderMagic = [16]byte{'G', 'O', 'M', 'A', 'D', 'C', 'A', 'P', 'A', 'B', 'I', 'L', 'I', 'T', 'Y', '\\x00'}\n@@ -43,6 +43,7 @@ var HeaderMagic = [16]byte{'G', 'O', 'M', 'A', 'D', 'C', 'A', 'P', 'A', 'B', 'I'\n var QualifiedPlatforms = []string{\n \t\"darwin/arm64\",\n \t\"linux/amd64\",\n+\t\"linux/arm64\",\n }\n \n func QualifiedPlatform(goos, goarch string) bool {\ndiff --git a/tools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/spec_go127.go b/tools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/spec_go127.go\nindex 9d5e29a725..e36a0c1dcc 100644\n--- a/tools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/spec_go127.go\n+++ b/tools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/spec_go127.go\n@@ -7,7 +7,7 @@\n package gomadintercept\n \n const boundaryManifestVersion = \"go1.27.1-v1\"\n-const boundaryManifestSHA256 = \"sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0\"\n+const boundaryManifestSHA256 = \"sha256:d09a0cc747a18368e85862590fad5ce07db7500fec87d82b293816e88e2d253c\"\n \n var specs = []spec{\n \t{PackagePath: \"os\", Function: \"OpenFile\", Hook: \"gomadInterceptOpenFile\", DeclarationSHA256: \"sha256:d08e5b732697b374f939fb09958c41140fbe086567f00170cd938f53a2758522\", ProbeID: 7387584446895609212},\n@@ -46,7 +46,7 @@ var specs = []spec{\n \t{PackagePath: \"os\", Receiver: &receiverSpec{Name: \"File\", Pointer: true}, Function: \"Stat\", Hook: \"gomadInterceptFileStat\", DeclarationSHA256: \"sha256:caada573fd120b1bc957728ddf30e6d212ded504285bc1f97d710f2c7229e46d\", ProbeID: 6262700350578749255},\n \t{PackagePath: \"os\", Function: \"Hostname\", Hook: \"gomadInterceptHostname\", DeclarationSHA256: \"sha256:47f4da83b24a9d14d6f1bd417947bcea899efac8dbb3fa990d63937417de6a65\", ProbeID: 3154121086094955465},\n \t{PackagePath: \"os\", Function: \"NewFile\", Hook: \"gomadInterceptNewFile\", DeclarationSHA256: \"sha256:65ada9292712ade0ad2bd256287e6d725ca68c05e93f482e083ace1ae472d1ac\", ProbeID: 2875164590099884048},\n-\t{PackagePath: \"os\", Function: \"Pipe\", Hook: \"gomadInterceptPipe\", DeclarationSHA256: \"sha256:2c22692a6186c6298d5110bafe3083bb0312f2894b6d102857a56bf2d954e141\", PlatformDeclarationSHA256: map[string]string{\"linux/amd64\": \"sha256:1197aa5233e66c97086931807857c31b6ca7c590f932204cf822c8df73a0b27d\"}, ProbeID: 6970204907358903689},\n+\t{PackagePath: \"os\", Function: \"Pipe\", Hook: \"gomadInterceptPipe\", DeclarationSHA256: \"sha256:2c22692a6186c6298d5110bafe3083bb0312f2894b6d102857a56bf2d954e141\", PlatformDeclarationSHA256: map[string]string{\"linux/amd64\": \"sha256:1197aa5233e66c97086931807857c31b6ca7c590f932204cf822c8df73a0b27d\", \"linux/arm64\": \"sha256:1197aa5233e66c97086931807857c31b6ca7c590f932204cf822c8df73a0b27d\"}, ProbeID: 6970204907358903689},\n \t{PackagePath: \"os\", Receiver: &receiverSpec{Name: \"File\", Pointer: true}, Function: \"Fd\", Hook: \"gomadInterceptFileFd\", DeclarationSHA256: \"sha256:5b25898f2677f6f1b4f8eb8a47705d03a3d80521ac276c85e3482f046c90541b\", ProbeID: 2745196243836079444},\n \t{PackagePath: \"os\", Receiver: &receiverSpec{Name: \"File\", Pointer: true}, Function: \"SyscallConn\", Hook: \"gomadInterceptFileSyscallConn\", DeclarationSHA256: \"sha256:8067ea105ce53643b11e30a39a0e8c6eedd5278aba0e3bad2cbdd074b1d9ac5b\", ProbeID: 8931524285908319323},\n \t{PackagePath: \"os/user\", Function: \"Current\", Hook: \"gomadInterceptCurrent\", DeclarationSHA256: \"sha256:f3c7e0772bbfb77c1817e56527ea1b230a7a8dd3f748e546cc9c17bcc700cf7e\", ProbeID: 2990000456060841660},\ndiff --git a/tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go b/tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go\nindex 00f965e1af..4d87ff066a 100644\n--- a/tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go\n+++ b/tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go\n@@ -31,10 +31,10 @@ const (\n \tMaximumFacts                 = 100000\n \tMaximumStringBytes           = 4096\n \tMaximumOwnerFacts            = 4096\n-\tProducerImplementationSHA256 = \"sha256:c3c8ef6cc27e5ea5a4e3ec80b101cd0b9c1f33e1201c75d2271b4cc2b217ecbe\"\n-\tGuardImplementationSHA256    = \"sha256:c3c8ef6cc27e5ea5a4e3ec80b101cd0b9c1f33e1201c75d2271b4cc2b217ecbe\"\n-\tCapabilityUniverseSHA256     = \"sha256:d919ef8e9695c3dfc0c4f46155c52ed9bfb5715cbefb1e37c586a3d69f8417dd\"\n-\tBoundaryManifestSHA256       = \"sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0\"\n+\tProducerImplementationSHA256 = \"sha256:bc7542c7f8612fc2e6a3d95b79c3124e735dce948f9081acbb7635cefb34eabc\"\n+\tGuardImplementationSHA256    = \"sha256:bc7542c7f8612fc2e6a3d95b79c3124e735dce948f9081acbb7635cefb34eabc\"\n+\tCapabilityUniverseSHA256     = \"sha256:10b8c78965e866b520a297aa73826e4151f6daf731bfb87474c9d06cf267199f\"\n+\tBoundaryManifestSHA256       = \"sha256:d09a0cc747a18368e85862590fad5ce07db7500fec87d82b293816e88e2d253c\"\n )\n \n var HeaderMagic = [16]byte{'G', 'O', 'M', 'A', 'D', 'C', 'A', 'P', 'A', 'B', 'I', 'L', 'I', 'T', 'Y', '\\x00'}\n@@ -43,6 +43,7 @@ var HeaderMagic = [16]byte{'G', 'O', 'M', 'A', 'D', 'C', 'A', 'P', 'A', 'B', 'I'\n var QualifiedPlatforms = []string{\n \t\"darwin/arm64\",\n \t\"linux/amd64\",\n+\t\"linux/arm64\",\n }\n \n func QualifiedPlatform(goos, goarch string) bool {\ndiff --git a/tools/gomad3/toolchain/version/generated.go b/tools/gomad3/toolchain/version/generated.go\nindex 50a40b6ef8..878255b07b 100644\n--- a/tools/gomad3/toolchain/version/generated.go\n+++ b/tools/gomad3/toolchain/version/generated.go\n@@ -13,6 +13,6 @@ const (\n \tBoundaryManifestVersion = \"go1.27.1-v1\"\n )\n \n-var SupportedPlatforms = [...]string{\"darwin/arm64\", \"linux/amd64\"}\n+var SupportedPlatforms = [...]string{\"darwin/arm64\", \"linux/amd64\", \"linux/arm64\"}\n \n var Adapters = [...]AdapterIdentity{{Module: \"github.com/Masterminds/sprig/v3\", Version: \"v3.3.0\", Sum: \"h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs=\"}, {Module: \"github.com/cactus/go-statsd-client/v5\", Version: \"v5.1.0\", Sum: \"h1:sbbdfIl9PgisjEoXzvXI1lwUKWElngsjJKaZeC021P4=\"}, {Module: \"github.com/cockroachdb/pebble\", Version: \"v0.0.0-20260703021901-41f35d3cb7df\", Sum: \"h1:p7vkumDcPw0de7t8pYA95HPC4cYQZGDG6b57d4Om5cA=\"}, {Module: \"github.com/getsentry/sentry-go\", Version: \"v0.46.0\", Sum: \"h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0=\"}, {Module: \"github.com/go-playground/validator/v10\", Version: \"v10.30.1\", Sum: \"h1:f3zDSN/zOma+w6+1Wswgd9fLkdwy06ntQJp0BBvFG0w=\"}, {Module: \"github.com/hashicorp/go-metrics\", Version: \"v0.5.4\", Sum: \"h1:8mmPiIJkTPPEbAiV97IxdAGNdRdaWwVap1BU6elejKY=\"}, {Module: \"github.com/hashicorp/go-sockaddr\", Version: \"v1.0.7\", Sum: \"h1:G+pTkSO01HpR5qCxg7lxfsFEZaG+C0VssTy/9dbT+Fw=\"}, {Module: \"github.com/hashicorp/memberlist\", Version: \"v0.5.4\", Sum: \"h1:40YY+3qq2tAUhZIMEK8kqusKZBBjdwJ3NUjvYkcxh74=\"}, {Module: \"go.opentelemetry.io/otel/sdk\", Version: \"v1.44.0\", Sum: \"h1:nHYwb9lK+fJPU/dnT6s7W7Z8itMWyqrnVfbheVYrZ58=\"}, {Module: \"go.temporal.io/sdk\", Version: \"v1.48.0\", Sum: \"h1:WDctKDVuh0Z8Nf7euAyqs/EwcPg1JTIIq1Fut8Tq118=\"}, {Module: \"go.uber.org/fx\", Version: \"v1.24.0\", Sum: \"h1:wE8mruvpg2kiiL1Vqd0CC+tr0/24XIB10Iwp2lLWzkg=\"}, {Module: \"golang.org/x/net\", Version: \"v0.58.0\", Sum: \"h1:ynWG7rqYi4ccpTEuPZ2QGWHktVEM9DMCj9yzDE0Q7To=\"}, {Module: \"google.golang.org/grpc\", Version: \"v1.83.2\", Sum: \"h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU=\"}, {Module: \"modernc.org/libc\", Version: \"v1.72.3\", Sum: \"h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=\"}, {Module: \"modernc.org/memory\", Version: \"v1.11.0\", Sum: \"h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=\"}}\ndiff --git a/tools/gomad3/toolchain/version/version.json b/tools/gomad3/toolchain/version/version.json\nindex a656c28282..88ceed2591 100644\n--- a/tools/gomad3/toolchain/version/version.json\n+++ b/tools/gomad3/toolchain/version/version.json\n@@ -8,7 +8,8 @@\n   },\n   \"supported_platforms\": [\n     \"darwin/arm64\",\n-    \"linux/amd64\"\n+    \"linux/amd64\",\n+    \"linux/arm64\"\n   ],\n   \"boundary_manifest_version\": \"go1.27.1-v1\",\n   \"patch\": \"toolchain/runtime/go1.27.1.patch\",\n"
+ },
+ "results": {
+  "validate_committed_tree": {
+   "command": "make -C tools/gomad3 validate",
+   "exit": 0,
+   "elapsed_s": 25,
+   "result": "pass"
+  },
+  "toolchain_committed_tree": {
+   "command": "df -h . && make -C tools/gomad3 toolchain",
+   "exit": 2,
+   "elapsed_s": 9,
+   "result": "refused: host linux/arm64 unsupported (expected)"
+  },
+  "validate_with_shim": {
+   "command": "make -C tools/gomad3 validate",
+   "exit": 0,
+   "elapsed_s": 8,
+   "result": "pass"
+  },
+  "toolchain_with_shim": {
+   "command": "df -h . && make -C tools/gomad3 toolchain",
+   "exit": 0,
+   "elapsed_s": 253,
+   "result": "pass",
+   "build_key": "464561b56f99e7b17b6a5b442f9898c79c4ed16804f6383dcfd86d65ba1147d9"
+  },
+  "test_toolchain": {
+   "command": "timeout 1200 make -C tools/gomad3 test-toolchain",
+   "exit": 2,
+   "elapsed_s": 46,
+   "result": "fail, shim-only",
+   "failures": [
+    "TestPatchedRuntimeHostClockReferencesAreReviewed: no reviewed linux/arm64 host-clock inventory (known shim baseline)",
+    "TestPatchedRuntimeDrawReferencesAreReviewed: unreviewed linux/arm64 runtime/os_linux.go setThreadCPUProfiler gomadHostCheapRandN; the same reference is reviewed for linux/amd64 (draw_inventory_test.go:107), so this comes from the shim adding a platform with no inventory rows"
+   ]
+  },
+  "test_runtime": [
+   {
+    "command": "timeout 3000 make -C tools/gomad3 test-runtime",
+    "exit": 2,
+    "elapsed_s": 817,
+    "result": "fail, transient: fixture timer_ties-seed-0-repeatable-63 'go run' compile of std bytes reported undefined IndexByte; the source file is present"
+   },
+   {
+    "command": "timeout 3000 make -C tools/gomad3 test-runtime",
+    "exit": 0,
+    "elapsed_s": 2112,
+    "result": "pass ('gomad3 runtime tier passed'); covers the D26 clock_tick, clock_tick_deadline (seeds 11/17 margin) and clock_tick_due fixtures"
+   }
+  ],
+  "test_upstream": [
+   {
+    "command": "timeout 3000 make -C tools/gomad3 test-upstream",
+    "exit": 2,
+    "elapsed_s": 707,
+    "result": "fail, load: cmd/compile/internal/ssa TestDebugLines_74576 subcommands hit the package timeout (package ran 180s at load 68)"
+   },
+   {
+    "command": "timeout 3000 make -C tools/gomad3 test-upstream",
+    "exit": 0,
+    "elapsed_s": 249,
+    "result": "pass"
+   }
+  ],
+  "test_live_capability": {
+   "command": "timeout 1800 make -C tools/gomad3 test-live-capability",
+   "exit": 0,
+   "elapsed_s": 19,
+   "result": "pass"
+  },
+  "process_simulation": [
+   {
+    "command": "cd tools/gomad3 && GOWORK=off timeout 1800 .toolchain/bin/go test -tags test_dep,integration -count=1 -run TestRootProcessSimulationUsesRunnerTransport ./runner/internal/execution",
+    "exit": 1,
+    "elapsed_s": 135,
+    "result": "fail: watchdog (30s) in ResetsGlobals, RoutesTCP, SynchronizesNodeClockWithModelDelay/forward, CrashDrains"
+   },
+   {
+    "command": "cd tools/gomad3 && GOWORK=off timeout 1800 .toolchain/bin/go test -tags test_dep,integration -count=1 -v -run TestRootProcessSimulationUsesRunnerTransport ./runner/internal/execution",
+    "exit": 1,
+    "elapsed_s": 128,
+    "result": "fail: watchdog in CarriesForwardClock.../strict, ResetsGlobals, SynchronizesNodeClockWithModelDelay/strict and /forward; 11 other subtests pass"
+   },
+   {
+    "command": "cd tools/gomad3 && env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 1200 .toolchain/bin/go test -count=5 -v -tags test_dep,integration -run '^TestRootProcessSimulationUsesRunnerTransport$/^TestProcessBackendSynchronizesNodeClockWithModelDelay$/^forward$' ./runner/internal/execution",
+    "exit": 1,
+    "elapsed_s": 46,
+    "result": "fail 4/5, pass 1/5",
+    "localisation": "TestRootProcessSimulationUsesRunnerTransport/TestProcessBackendSynchronizesNodeClockWithModelDelay/forward (runner/internal/execution -> tools/gomad3sim cluster_toolchain_test.go:211). After 0.06-0.14s of wall time the inner target panics 'test timed out after 20s'. The testing alarm fires on virtual time while the node goroutine is blocked in gomadsim.processReadFull (ProcessExchange via waitProcessNode) and the coordinator is in gomadInterceptRuntimeProcessNetworkOperation waiting on the 7ms model delay. Likely cause: the forward/quiescence clock jumps past the testing alarm before the model-delay reply arrives (a race between the D26 epoch reconciliation and model transport). One of the five runs hung to the watchdog instead. Not yet shown to be specific to linux/arm64. The strict variant is a known watchdog finding (Makefile comment); other subtests hang intermittently under load."
+   }
+  ],
+  "test_host": {
+   "command": "GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host",
+   "exit": 2,
+   "elapsed_s": 174,
+   "result": "fail: 7 packages, 42 ok",
+   "reproducible_candidate_defects": [
+    {
+     "tests": [
+      "target TestBuiltInSimulationLinknamesPinCurrentFirstPartySources",
+      "target TestClosureReviewSupportsSimulationFixtureAndRefusesHarnessTests",
+      "runner TestIsolatedRunnerCompletesSimulationStrategyWithSuppliedLimits (unsupported target capability: go:linkname in runtime_time_toolchain.go)"
+     ],
+     "cause": "ad90b462e (the D26 integration) added '//go:linkname gomadSimulationTimeCurrent runtime.gomadSimulationTimeCurrent' to tools/gomad3sim/runtime_time_toolchain.go (now sha256:211c01f5...) but did not update the built-in simulation linkname pin at tools/gomad3/target/capability.go:770-772 (still sha256:e6402e8f... with 2 directives). The gomad-d26 branch has the same stale pin. Independent of platform.",
+     "rerun": {
+      "command": "cd tools/gomad3 && env -u GOMADSEED -u GOMAD3_CHILD_SEED GOEXPERIMENT=nogreenteagc GOWORK=off timeout 900 .toolchain/bin/go test -tags test_dep -count=1 -v -run '^(TestBuildGoTargetReleasesCacheAfterCommandFailure|TestBuiltInSimulationLinknamesPinCurrentFirstPartySources|TestClosureReviewSupportsSimulationFixtureAndRefusesHarnessTests)$' ./target",
+      "exit": 1,
+      "elapsed_s": 2
+     }
+    },
+    {
+     "tests": [
+      "runner/internal/execution TestRunSupervisesSimulationNodeProcess",
+      "runner/internal/execution TestRunHardCrashesAndReapsSimulationNodeProcess"
+     ],
+     "cause": "The coordinator helper exits 49, meaning a frame was answered with an error. D26 handleNodeFrame (simulation_unix.go) now requires an 8-byte activation time in the simulationFrameActivated payload (decodeSimulationActivationTime, simulation_time.go:133). The node test helper at process_test.go:1175 still sends Activated with no payload. Independent of platform.",
+     "rerun": {
+      "command": "cd tools/gomad3 && env -u GOMADSEED -u GOMAD3_CHILD_SEED GOEXPERIMENT=nogreenteagc GOWORK=off timeout 900 .toolchain/bin/go test -tags test_dep -count=1 -v -run '^(TestRunSupervisesSimulationNodeProcess|TestRunHardCrashesAndReapsSimulationNodeProcess)$' ./runner/internal/execution && env -u GOMADSEED -u GOMAD3_CHILD_SEED GOEXPERIMENT=nogreenteagc GOWORK=off timeout 900 .toolchain/bin/go test -tags test_dep -count=1 -run '^(TestBuildGoTargetReleasesCacheAfterCommandFailure|TestBuiltInSimulationLinknamesPinCurrentFirstPartySources)$' ./target",
+      "exit": 1,
+      "elapsed_s": 4
+     }
+    }
+   ],
+   "shim_baseline_class": [
+    "adapter replacement digest is invalid (no linux/arm64 adapter digests): TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists, TestPrepareIndependentAdapterTargetsHaveStableIdentityAndCleanWorkspaces, TestPrepareReportsCleanupFailureAndKeepsPrimaryFailure, TestRegenerateAdapterRefusesCustomPreparation, TestProfile*/Moderncs/XNet/RewrittenModule identity tests, TestDeterministicProfileCompatibilityGolden, TestHashicorpMetricsAdapterConsumer, TestSemanticInstrumentationIdentityBindsProbeNamesAndStableIDs, TestPrepareCapabilityReviewSupportsTemporalBackoffWithGRPCAdapter",
+    "TestCheckRejectsUnsupportedHostAndUnwritableArtifacts (doctor unsupported host)"
+   ],
+   "flakes": [
+    "target TestBuildGoTargetReleasesCacheAfterCommandFailure (build cache lock held under load; passed on focused rerun)"
+   ]
+  },
+  "d26_temporal_workloads": {
+   "leaf_seed1_attempt": {
+    "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED timeout 2400 tools/gomad3/.bin/gomad explore --seeds 1 --parallel 1 --clock-tick=forward --build-tag=disable_grpc_modules --build-tag=gomad --build-tag=test_dep --capability-mode=closure --io-ro-mount ./schema=/go.temporal.io/server/schema --keep-successes=all --success-limit=2 --success-bytes=2GiB --output-limit=512MiB --on-failure=all --execution-timeout=20m --overall-timeout=35m --artifacts /home/agent/.cache/codex-build/tmp/claude-1000/-Users-stephan-Workspace-skunkworks/c669a9fa-7378-43c8-9dd5-8cc2c725a509/scratchpad/verify/d26/leaf-seed1 go-test ./tests -- '-test.run=^TestStandaloneActivityTestSuite$/^TestStartDelay$/^UpdateWhilePaused_AfterWindow_ExtendsDispatch$' -test.parallel=8 -test.v",
+    "exit": 3,
+    "elapsed_s": 107,
+    "result": "cannot run: target_preparation 'adapter replacement digest is invalid'"
+   },
+   "why": "Preparing ./tests fails. The deterministic I/O adapter replacement digests are pinned per platform with darwin/arm64 and linux/amd64 entries only (deterministicio/*_adapter.go; check at target/capability.go:1014). Compatibility packs are also selected by GOOS/GOARCH. Neither the subtest sweep on seeds 1-24 nor the forward workloads on seeds 11/17 with traced replay can run on linux/arm64 under the sanctioned shim. Step stopped.",
+   "conformance_fixtures": "passed inside test-runtime-rerun (clock_tick, clock_tick_deadline seeds 11/17, clock_tick_due)"
+  },
+  "fn114_13": [
+   {
+    "command": "cd tools/gomad3 && env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 1200 go test -count=1 -tags test_dep -v -run '^(TestRuntimeOwnedControlProbe|TestRuntimeOwnedRejectsPreviousController)$' ./internal/gomadtool/conformance",
+    "exit": 0,
+    "elapsed_s": 5,
+    "result": "pass"
+   },
+   {
+    "command": "cd tools/gomad3 && env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 1800 go test -count=1 -tags test_dep -v -run TestRuntimeSearchFixtures ./internal/gomadtool/conformance",
+    "exit": 0,
+    "elapsed_s": 10,
+    "result": "pass"
+   },
+   {
+    "command": "cd tools/gomad3 && env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go vet -tags test_dep ./runner ./runner/internal/execution",
+    "exit": 0,
+    "elapsed_s": 1,
+    "result": "pass"
+   }
+  ],
+  "fn112_5": [
+   {
+    "command": "cd tools/gomad3 && env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 900 .toolchain/bin/go test -tags test_dep -count=1 -v -run SeededDraw ./toolchain",
+    "exit": 0,
+    "elapsed_s": 18,
+    "result": "pass (both seeded-draw tests)"
+   },
+   {
+    "command": "cd tools/gomad3 && env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off GOEXPERIMENT=nogreenteagc timeout 1800 go test -tags test_dep -count=10 -run 'TestDiagnosticDrawCheckStopsHostTimedSeededDraw|TestDiagnosticLauncherLocalizesInjectedDraw|TestDiagnosticLauncherRejectsHostTimedSeededDraw' ./runner/internal/execution",
+    "exit": 0,
+    "elapsed_s": 30,
+    "result": "pass, -count=10"
+   },
+   {
+    "command": "cd tools/gomad3 && env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 1800 go test -count=1 -tags test_dep -v -run TestRuntimeCampaignCollectorProfile ./internal/gomadtool/conformance",
+    "exit": 0,
+    "elapsed_s": 2,
+    "result": "pass"
+   }
+  ],
+  "fn112_16": [
+   {
+    "command": "cd tools/gomad3 && env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep -count=1 -v -run TestPublishKeepsEachExecutionOfOneOutcomeSignature ./artifact/",
+    "exit": 0,
+    "elapsed_s": 2,
+    "result": "pass"
+   },
+   {
+    "command": "cd tools/gomad3 && env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off GOEXPERIMENT=nogreenteagc timeout 900 .toolchain/bin/go test -tags test_dep -count=1 -v -run TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts ./runner/",
+    "exit": 0,
+    "elapsed_s": 1,
+    "result": "pass"
+   },
+   {
+    "command": "cd tools/gomad3 && env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off GOEXPERIMENT=nogreenteagc timeout 900 .toolchain/bin/go test -tags test_dep -count=1 -v -run 'TestCLIExploreKeepsSuccessesOfOneOutcomeSignatureApart|TestCLIExploreReplay' ./cmd/gomad/",
+    "exit": 0,
+    "elapsed_s": 6,
+    "result": "pass"
+   },
+   {
+    "command": "cd tools/gomad3 && env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep -count=1 -run TestPackageArchitecture .",
+    "exit": 0,
+    "elapsed_s": 2,
+    "result": "pass"
+   },
+   {
+    "command": "cd tools/gomad3 && env -u GOROOT -u GOMADSEED -u GOFLAGS GOTOOLCHAIN=local GOWORK=off CGO_ENABLED=0 .bin/gomad explore --json --artifacts /home/agent/.cache/codex-build/tmp/claude-1000/-Users-stephan-Workspace-skunkworks/c669a9fa-7378-43c8-9dd5-8cc2c725a509/scratchpad/verify/seedfree/a --seeds 0,1 --parallel 1 --execution-timeout 60s --overall-timeout 5m --keep-successes all --success-limit 3 --success-bytes 256MiB go-run ./cmd/gomad/testdata/seedfree",
+    "exit": 0,
+    "elapsed_s": 2,
+    "result": "pass: retained_successes 2, two distinct success directories"
+   },
+   {
+    "command": "cd tools/gomad3 && env -u GOROOT -u GOMADSEED -u GOFLAGS GOTOOLCHAIN=local GOWORK=off .bin/gomad inspect --json /home/agent/.cache/codex-build/tmp/claude-1000/-Users-stephan-Workspace-skunkworks/c669a9fa-7378-43c8-9dd5-8cc2c725a509/scratchpad/verify/seedfree/a/v1/campaign-*",
+    "exit": 0,
+    "elapsed_s": 0,
+    "result": "pass"
+   }
+  ]
+ },
+ "not_run": [
+  "make -C tools/gomad3 test (full)",
+  "intercept-test, overlay-test, test-simulation, world-test, test-builder, test-harness (not requested)",
+  "D26 Temporal subtest sweep and forward workload qualification (blocked on linux/arm64, see d26_temporal_workloads)",
+  "every native darwin/arm64 and linux/amd64 gate"
+ ]
+}
