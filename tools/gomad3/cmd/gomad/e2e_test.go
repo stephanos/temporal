@@ -153,6 +153,32 @@ func TestCLIExploreReplay(t *testing.T) {
 	inspectCLI(t, path)
 }
 
+// Two seeds of a target whose output does not depend on the seed complete with
+// one outcome signature. Each stays its own exact-replay artifact, and the
+// published campaign inspects with both.
+func TestCLIExploreKeepsSuccessesOfOneOutcomeSignatureApart(t *testing.T) {
+	root := t.TempDir()
+	arguments := exploreArguments(root, "0-1", false)
+	arguments[len(arguments)-1] = "./cmd/gomad/testdata/seedfree"
+	runCLI(t, 0, arguments...)
+	campaign := inspectCLI(t, campaignPath(t, root)).Campaign
+	if campaign == nil || campaign.Succeeded != 2 || campaign.RetainedSuccesses != 2 || len(campaign.SuccessArtifacts) != 2 || campaign.SuccessArtifacts[0].Path == campaign.SuccessArtifacts[1].Path {
+		t.Fatalf("campaign = %#v", campaign)
+	}
+	var signatures [2]record.SHA256
+	for index, retained := range campaign.SuccessArtifacts {
+		observed := inspectCLI(t, retained.Path).Artifact
+		if observed == nil || observed.Seed != uint64(index) || observed.Outcome.Domain != "success" {
+			t.Fatalf("success artifact %d = %#v", index, observed)
+		}
+		signatures[index] = observed.Outcome.FailureSignature
+		runCLI(t, 0, "replay", "--toolchain-root", cliToolchainRoot, retained.Path)
+	}
+	if signatures[0] != signatures[1] {
+		t.Fatalf("outcome signatures = %v, want one shared by both seeds", signatures)
+	}
+}
+
 func TestCLIKillResume(t *testing.T) {
 	root := t.TempDir()
 	runCLI(t, 1, exploreArguments(root, "1-3", true)...)

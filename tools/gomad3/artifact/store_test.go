@@ -106,6 +106,69 @@ func TestPublishCanKeyCorpusCasesByRecordIdentity(t *testing.T) {
 	}
 }
 
+// Two seeds can complete with one outcome signature. Under StoreKeyExecution
+// each keeps its own artifact: the first under the signature's directory, as
+// before, and the next under its execution's identity. Publishing one
+// execution again, as a resumed campaign does, reuses its artifact.
+func TestPublishKeepsEachExecutionOfOneOutcomeSignature(t *testing.T) {
+	root := t.TempDir()
+	store := Store{Root: root, Key: StoreKeyExecution}
+	execution := func(ordinal, seed uint64) Publication {
+		input := seededInput(t, seed)
+		input.Record.ArtifactKind = record.ArtifactSuccess
+		input.Record.Outcome = record.Outcome{Domain: "success", Reason: "exit_zero", Termination: "exit", ExitCode: new(record.Uint64String)}
+		input.Record.SelectionOrdinal = record.Uint64String(ordinal)
+		return input
+	}
+	var published []Artifact
+	for ordinal, seed := range []uint64{7, 8, 9} {
+		artifact, err := store.PublishArtifact(execution(uint64(ordinal), seed))
+		if err != nil {
+			t.Fatal(err)
+		}
+		published = append(published, artifact)
+	}
+	signature := published[0].Manifest.Outcome.FailureSignature
+	if want := filepath.Join(root, identityDirectory(signature, false)); published[0].Path != want {
+		t.Fatalf("first artifact path = %s, want the signature's directory %s", published[0].Path, want)
+	}
+	for index, artifact := range published {
+		if artifact.Manifest.Outcome.FailureSignature != signature {
+			t.Fatalf("artifact %d signature = %s, want %s", index, artifact.Manifest.Outcome.FailureSignature, signature)
+		}
+		opened, err := OpenArtifact(artifact.Path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := opened.Close(); err != nil {
+			t.Fatal(err)
+		}
+		if opened.Manifest.Seed != artifact.Manifest.Seed || opened.Manifest.SelectionOrdinal != record.Uint64String(index) {
+			t.Fatalf("artifact %d at %s records seed %d ordinal %d", index, artifact.Path, opened.Manifest.Seed, opened.Manifest.SelectionOrdinal)
+		}
+		if index == 0 {
+			continue
+		}
+		if want := filepath.Join(root, identityDirectory(executionIdentity(opened.Manifest), true)); artifact.Path != want {
+			t.Fatalf("artifact %d path = %s, want its execution's directory %s", index, artifact.Path, want)
+		}
+	}
+	again := execution(1, 8)
+	again.Record.CreatedAt, again.Record.Host.StartedAt, again.Record.Host.FinishedAt = "2026-08-10T13:00:00Z", "2026-08-10T13:00:00Z", "2026-08-10T13:00:01Z"
+	again.Record.Limits.OverallTimeoutNanos = 3
+	reused, err := store.PublishArtifact(again)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if reused.Path != published[1].Path || reused.Manifest.CreatedAt != published[1].Manifest.CreatedAt {
+		t.Fatalf("published execution again at %s (created %s), want reuse of %s", reused.Path, reused.Manifest.CreatedAt, published[1].Path)
+	}
+	entries, err := os.ReadDir(root)
+	if err != nil || len(entries) != 3 {
+		t.Fatalf("store entries = %v, %v, want three artifacts", entries, err)
+	}
+}
+
 func TestPublishConcurrentlyNeverReplacesACompleteArtifact(t *testing.T) {
 	input := artifactInput(t)
 	store := Store{Root: t.TempDir()}
