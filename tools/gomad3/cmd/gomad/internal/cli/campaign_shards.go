@@ -13,7 +13,16 @@ import (
 	"go.temporal.io/server/tools/gomad3/runner"
 )
 
+type campaignShardDependencies struct {
+	identity func(string) (string, string, string, error)
+	run      func(context.Context, runner.CampaignShardSpec) (runner.CampaignResult, error)
+}
+
 func runCampaignShard(arguments []string, stdout, stderr io.Writer) int {
+	return runCampaignShardWith(arguments, stdout, stderr, campaignShardDependencies{identity: localIdentity, run: runner.RunCampaignShard})
+}
+
+func runCampaignShardWith(arguments []string, stdout, stderr io.Writer, dependencies campaignShardDependencies) int {
 	flags := flag.NewFlagSet("gomad execute-shard", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	shardValue := flags.String("shard", "", "zero-based INDEX/COUNT shard assignment")
@@ -32,13 +41,13 @@ func runCampaignShard(arguments []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, err)
 		return 2
 	}
-	toolchain, executable, runnerBuild, err := localIdentity(*toolchainRoot)
+	toolchain, executable, runnerBuild, err := dependencies.identity(*toolchainRoot)
 	if err != nil {
 		fmt.Fprintln(stderr, err)
 		return 3
 	}
 	reporter := newExploreReporter(*jsonOutput, stdout, stderr)
-	result, err := runner.RunCampaignShard(context.Background(), runner.CampaignShardSpec{
+	result, err := dependencies.run(context.Background(), runner.CampaignShardSpec{
 		PlanPath: flags.Arg(0), Shard: shard, Artifacts: *artifacts, ToolchainRoot: toolchain, RunnerBuild: runnerBuild,
 		SupervisorCommand: []string{executable, "__supervisor"}, Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
 	})

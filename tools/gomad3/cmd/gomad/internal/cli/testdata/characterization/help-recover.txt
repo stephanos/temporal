@@ -1,0 +1,6 @@
+status=2
+--- stdout
+--- stderr
+Usage of gomad recover:
+  -json
+    	emit stable JSON

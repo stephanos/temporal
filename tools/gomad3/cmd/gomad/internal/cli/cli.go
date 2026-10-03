@@ -416,7 +416,20 @@ func runDoctor(arguments []string, stdout, stderr io.Writer, executable string) 
 	return 0
 }
 
+type exploreDependencies struct {
+	identity         func(string) (string, string, string, error)
+	workingDirectory func() (string, error)
+	explore          func(context.Context, runner.CampaignSpec) (runner.CampaignResult, error)
+	plan             func(context.Context, runner.CampaignPlanSpec) (runner.CampaignPlanResult, error)
+}
+
 func runExplore(arguments []string, stdout, stderr io.Writer) int {
+	return runExploreWith(arguments, stdout, stderr, exploreDependencies{
+		identity: localIdentity, workingDirectory: os.Getwd, explore: runner.Explore, plan: runner.CreateCampaignPlan,
+	})
+}
+
+func runExploreWith(arguments []string, stdout, stderr io.Writer, dependencies exploreDependencies) int {
 	flags := flag.NewFlagSet("gomad explore", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 	strategy := flags.String("strategy", string(runner.StrategySeed), "seed, choice-exploration, or simulation-exploration")
@@ -624,7 +637,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		}
 		return 2
 	}
-	workingDirectory, err := resolveWorkingDirectory(*workingDir, os.Getwd)
+	workingDirectory, err := resolveWorkingDirectory(*workingDir, dependencies.workingDirectory)
 	if err != nil {
 		var invalid invalidWorkingDirectoryError
 		if errors.As(err, &invalid) {
@@ -639,7 +652,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		}
 		return 3
 	}
-	toolchain, executable, runnerBuild, err := localIdentity(*toolchainRoot)
+	toolchain, executable, runnerBuild, err := dependencies.identity(*toolchainRoot)
 	if err != nil {
 		if writeErr := reporter.Error("runner_failure", err); writeErr != nil {
 			fmt.Fprintln(stderr, writeErr)
@@ -673,7 +686,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 			}
 			return 2
 		}
-		planned, err := runner.CreateCampaignPlan(context.Background(), runner.CampaignPlanSpec{Campaign: config, Output: *planOutput})
+		planned, err := dependencies.plan(context.Background(), runner.CampaignPlanSpec{Campaign: config, Output: *planOutput})
 		if err != nil {
 			classification := classifyExploreError(err)
 			if writeErr := reporter.Error(classification, err); writeErr != nil {
@@ -696,7 +709,7 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 		}
 		return 0
 	}
-	summary, err := runner.Explore(context.Background(), config)
+	summary, err := dependencies.explore(context.Background(), config)
 	if err != nil {
 		if summary.ChoiceTrace != nil {
 			fmt.Fprintf(stderr, "gomad:%s\n", formatChoiceTrace(summary.ChoiceTrace))
@@ -716,7 +729,13 @@ func runExplore(arguments []string, stdout, stderr io.Writer) int {
 }
 
 func runPlan(arguments []string, stdout, stderr io.Writer) int {
-	return runExplore(append([]string{"--__plan", "--on-failure=all"}, arguments...), stdout, stderr)
+	return runPlanWith(arguments, stdout, stderr, exploreDependencies{
+		identity: localIdentity, workingDirectory: os.Getwd, explore: runner.Explore, plan: runner.CreateCampaignPlan,
+	})
+}
+
+func runPlanWith(arguments []string, stdout, stderr io.Writer, dependencies exploreDependencies) int {
+	return runExploreWith(append([]string{"--__plan", "--on-failure=all"}, arguments...), stdout, stderr, dependencies)
 }
 
 type exploreStrategyOptions struct {
@@ -904,7 +923,16 @@ func resolveChoiceTrace(enabled bool, limit byteSize, limitSet bool) (uint64, er
 	return uint64(limit), nil
 }
 
+type replayDependencies struct {
+	identity func(string) (string, string, string, error)
+	replay   func(context.Context, runner.ReplaySpec) (runner.ReplayResult, error)
+}
+
 func runReplay(arguments []string, stdout, stderr io.Writer) int {
+	return runReplayWith(arguments, stdout, stderr, replayDependencies{identity: localIdentity, replay: runner.Replay})
+}
+
+func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies replayDependencies) int {
 	flags := flag.NewFlagSet("gomad replay", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	verifyOnly := flags.Bool("verify-only", false, "validate without executing the target")
@@ -917,12 +945,12 @@ func runReplay(arguments []string, stdout, stderr io.Writer) int {
 		fmt.Fprint(stderr, usage)
 		return 2
 	}
-	toolchain, executable, _, err := localIdentity(*toolchainRoot)
+	toolchain, executable, _, err := dependencies.identity(*toolchainRoot)
 	if err != nil {
 		fmt.Fprintln(stderr, err)
 		return 3
 	}
-	result, err := runner.Replay(context.Background(), runner.ReplaySpec{
+	result, err := dependencies.replay(context.Background(), runner.ReplaySpec{
 		ArtifactPath: flags.Arg(0), VerifyOnly: *verifyOnly, ToolchainRoot: toolchain, ObservedDir: *observedDir, SupervisorCommand: []string{executable, "__supervisor"},
 	})
 	if err != nil {
