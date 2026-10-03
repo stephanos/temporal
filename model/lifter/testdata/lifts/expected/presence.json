@@ -1,17 +1,17 @@
 {
   "source": "model: fixture.presence.Presence$package$.presence",
-  "types": [{
+  "types": [ {
     "name": "fixture.presence.Outcome",
     "position": {
       "file": "model/lifter/testdata/lifts/Presence.scala",
       "line": 35
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "accepted"
       }, {
         "name": "ignored"
-      }]
+      } ]
     }
   }, {
     "name": "fixture.presence.Report",
@@ -20,11 +20,11 @@
       "line": 12
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "unsent"
       }, {
         "name": "sent",
-        "fields": [{
+        "fields": [ {
           "name": "result",
           "type": {
             "named": "fixture.presence.Result"
@@ -32,11 +32,10 @@
         }, {
           "name": "retried",
           "type": {
-            "bool": {
-            }
+            "bool": { }
           }
-        }]
-      }]
+        } ]
+      } ]
     }
   }, {
     "name": "fixture.presence.Result",
@@ -45,11 +44,11 @@
       "line": 8
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "succeeded"
       }, {
         "name": "failed"
-      }]
+      } ]
     }
   }, {
     "name": "fixture.presence.State",
@@ -58,7 +57,7 @@
       "line": 29
     },
     "record": {
-      "fields": [{
+      "fields": [ {
         "name": "report",
         "type": {
           "named": "fixture.presence.Report"
@@ -82,7 +81,7 @@
             "high": "1"
           }
         }
-      }]
+      } ]
     }
   }, {
     "name": "scala.Option[fixture.presence.Result]",
@@ -91,31 +90,31 @@
       "line": 71
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "None"
       }, {
         "name": "Some",
-        "fields": [{
+        "fields": [ {
           "name": "value",
           "type": {
             "named": "fixture.presence.Result"
           }
-        }]
-      }]
+        } ]
+      } ]
     }
-  }],
-  "functions": [{
+  } ],
+  "functions": [ {
     "name": "fixture.presence.Presence$package$.forgetStep",
     "position": {
       "file": "model/lifter/testdata/lifts/Presence.scala",
       "line": 63
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.presence.State"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Presence.scala",
@@ -138,15 +137,14 @@
             "field": "kept"
           }
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "case": {
               "type": "scala.Option[fixture.presence.Result]",
               "case": "Some",
-              "fields": [{
-                "wildcard": {
-                }
-              }]
+              "fields": [ {
+                "wildcard": { }
+              } ]
             }
           },
           "body": {
@@ -155,14 +153,14 @@
               "line": 64
             },
             "list": {
-              "items": [{
+              "items": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Presence.scala",
                   "line": 64
                 },
                 "construct": {
                   "type": "umpire.Step",
-                  "args": [{
+                  "args": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 64
@@ -186,7 +184,7 @@
                         },
                         "var": "s"
                       },
-                      "updates": [{
+                      "updates": [ {
                         "name": "kept",
                         "value": {
                           "position": {
@@ -200,15 +198,14 @@
                             }
                           }
                         }
-                      }]
+                      } ]
                     }
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 64
                     },
-                    "list": {
-                    }
+                    "list": { }
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Presence.scala",
@@ -217,9 +214,9 @@
                     "literal": {
                       "text": ""
                     }
-                  }]
+                  } ]
                 }
-              }]
+              } ]
             }
           }
         }, {
@@ -237,14 +234,14 @@
               "line": 65
             },
             "list": {
-              "items": [{
+              "items": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Presence.scala",
                   "line": 65
                 },
                 "construct": {
                   "type": "umpire.Step",
-                  "args": [{
+                  "args": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 65
@@ -266,8 +263,7 @@
                       "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 65
                     },
-                    "list": {
-                    }
+                    "list": { }
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Presence.scala",
@@ -276,12 +272,12 @@
                     "literal": {
                       "text": ""
                     }
-                  }]
+                  } ]
                 }
-              }]
+              } ]
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -290,12 +286,12 @@
       "file": "model/lifter/testdata/lifts/Presence.scala",
       "line": 57
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.presence.State"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Presence.scala",
@@ -325,23 +321,21 @@
                 "field": "report"
               }
             },
-            "cases": [{
+            "cases": [ {
               "pattern": {
                 "case": {
                   "type": "fixture.presence.Report",
                   "case": "sent",
-                  "fields": [{
+                  "fields": [ {
                     "bind": {
                       "name": "r",
                       "pattern": {
-                        "wildcard": {
-                        }
+                        "wildcard": { }
                       }
                     }
                   }, {
-                    "wildcard": {
-                    }
-                  }]
+                    "wildcard": { }
+                  } ]
                 }
               },
               "body": {
@@ -352,13 +346,13 @@
                 "construct": {
                   "type": "scala.Option[fixture.presence.Result]",
                   "case": "Some",
-                  "args": [{
+                  "args": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 59
                     },
                     "var": "r"
-                  }]
+                  } ]
                 }
               }
             }, {
@@ -382,7 +376,7 @@
                   }
                 }
               }
-            }]
+            } ]
           }
         },
         "body": {
@@ -465,8 +459,7 @@
                 "file": "model/lifter/testdata/lifts/Presence.scala",
                 "line": 61
               },
-              "list": {
-              }
+              "list": { }
             },
             "else": {
               "position": {
@@ -474,14 +467,14 @@
                 "line": 61
               },
               "list": {
-                "items": [{
+                "items": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Presence.scala",
                     "line": 61
                   },
                   "construct": {
                     "type": "umpire.Step",
-                    "args": [{
+                    "args": [ {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Presence.scala",
                         "line": 61
@@ -505,7 +498,7 @@
                           },
                           "var": "s"
                         },
-                        "updates": [{
+                        "updates": [ {
                           "name": "kept",
                           "value": {
                             "position": {
@@ -514,15 +507,14 @@
                             },
                             "var": "sent"
                           }
-                        }]
+                        } ]
                       }
                     }, {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Presence.scala",
                         "line": 61
                       },
-                      "list": {
-                      }
+                      "list": { }
                     }, {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Presence.scala",
@@ -531,9 +523,9 @@
                       "literal": {
                         "text": ""
                       }
-                    }]
+                    } ]
                   }
-                }]
+                } ]
               }
             }
           }
@@ -546,12 +538,12 @@
       "file": "model/lifter/testdata/lifts/Presence.scala",
       "line": 67
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.presence.State"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Presence.scala",
@@ -598,14 +590,14 @@
             "line": 68
           },
           "list": {
-            "items": [{
+            "items": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Presence.scala",
                 "line": 68
               },
               "construct": {
                 "type": "umpire.Step",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Presence.scala",
                     "line": 68
@@ -629,7 +621,7 @@
                       },
                       "var": "s"
                     },
-                    "updates": [{
+                    "updates": [ {
                       "name": "polls",
                       "value": {
                         "position": {
@@ -640,15 +632,14 @@
                           "int": "1"
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Presence.scala",
                     "line": 68
                   },
-                  "list": {
-                  }
+                  "list": { }
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Presence.scala",
@@ -657,9 +648,9 @@
                   "literal": {
                     "text": ""
                   }
-                }]
+                } ]
               }
-            }]
+            } ]
           }
         },
         "else": {
@@ -667,8 +658,7 @@
             "file": "model/lifter/testdata/lifts/Presence.scala",
             "line": 68
           },
-          "list": {
-          }
+          "list": { }
         }
       }
     }
@@ -678,7 +668,7 @@
       "file": "model/lifter/testdata/lifts/Presence.scala",
       "line": 43
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.presence.State"
@@ -688,7 +678,7 @@
       "type": {
         "named": "fixture.presence.Result"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Presence.scala",
@@ -711,7 +701,7 @@
             "field": "report"
           }
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -726,14 +716,14 @@
               "line": 44
             },
             "list": {
-              "items": [{
+              "items": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Presence.scala",
                   "line": 44
                 },
                 "construct": {
                   "type": "umpire.Step",
-                  "args": [{
+                  "args": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 44
@@ -757,7 +747,7 @@
                         },
                         "var": "s"
                       },
-                      "updates": [{
+                      "updates": [ {
                         "name": "report",
                         "value": {
                           "position": {
@@ -767,7 +757,7 @@
                           "construct": {
                             "type": "fixture.presence.Report",
                             "case": "sent",
-                            "args": [{
+                            "args": [ {
                               "position": {
                                 "file": "model/lifter/testdata/lifts/Presence.scala",
                                 "line": 44
@@ -781,18 +771,17 @@
                               "literal": {
                                 "bool": false
                               }
-                            }]
+                            } ]
                           }
                         }
-                      }]
+                      } ]
                     }
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 44
                     },
-                    "list": {
-                    }
+                    "list": { }
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Presence.scala",
@@ -801,9 +790,9 @@
                     "literal": {
                       "text": ""
                     }
-                  }]
+                  } ]
                 }
-              }]
+              } ]
             }
           }
         }, {
@@ -811,14 +800,13 @@
             "case": {
               "type": "fixture.presence.Report",
               "case": "sent",
-              "fields": [{
-                "wildcard": {
-                }
+              "fields": [ {
+                "wildcard": { }
               }, {
                 "literal": {
                   "bool": true
                 }
-              }]
+              } ]
             }
           },
           "body": {
@@ -826,27 +814,25 @@
               "file": "model/lifter/testdata/lifts/Presence.scala",
               "line": 45
             },
-            "list": {
-            }
+            "list": { }
           }
         }, {
           "pattern": {
             "case": {
               "type": "fixture.presence.Report",
               "case": "sent",
-              "fields": [{
+              "fields": [ {
                 "bind": {
                   "name": "first",
                   "pattern": {
-                    "wildcard": {
-                    }
+                    "wildcard": { }
                   }
                 }
               }, {
                 "literal": {
                   "bool": false
                 }
-              }]
+              } ]
             }
           },
           "body": {
@@ -894,8 +880,7 @@
                   "file": "model/lifter/testdata/lifts/Presence.scala",
                   "line": 47
                 },
-                "list": {
-                }
+                "list": { }
               },
               "else": {
                 "position": {
@@ -903,14 +888,14 @@
                   "line": 49
                 },
                 "list": {
-                  "items": [{
+                  "items": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 50
                     },
                     "construct": {
                       "type": "umpire.Step",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Presence.scala",
                           "line": 50
@@ -934,7 +919,7 @@
                             },
                             "var": "s"
                           },
-                          "updates": [{
+                          "updates": [ {
                             "name": "report",
                             "value": {
                               "position": {
@@ -944,7 +929,7 @@
                               "construct": {
                                 "type": "fixture.presence.Report",
                                 "case": "sent",
-                                "args": [{
+                                "args": [ {
                                   "position": {
                                     "file": "model/lifter/testdata/lifts/Presence.scala",
                                     "line": 50
@@ -958,7 +943,7 @@
                                   "literal": {
                                     "bool": true
                                   }
-                                }]
+                                } ]
                               }
                             }
                           }, {
@@ -970,7 +955,7 @@
                               },
                               "call": {
                                 "function": "fixture.presence.bounded$.Retries$.next",
-                                "args": [{
+                                "args": [ {
                                   "position": {
                                     "file": "model/lifter/testdata/lifts/Presence.scala",
                                     "line": 50
@@ -985,18 +970,17 @@
                                     },
                                     "field": "retries"
                                   }
-                                }]
+                                } ]
                               }
                             }
-                          }]
+                          } ]
                         }
                       }, {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Presence.scala",
                           "line": 50
                         },
-                        "list": {
-                        }
+                        "list": { }
                       }, {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Presence.scala",
@@ -1005,14 +989,14 @@
                         "literal": {
                           "text": ""
                         }
-                      }]
+                      } ]
                     }
-                  }]
+                  } ]
                 }
               }
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -1021,14 +1005,14 @@
       "file": "model/lifter/testdata/lifts/Presence.scala",
       "line": 24
     },
-    "params": [{
+    "params": [ {
       "name": "r",
       "type": {
         "intRange": {
           "high": "2"
         }
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Presence.scala",
@@ -1114,8 +1098,8 @@
         }
       }
     }
-  }],
-  "actions": [{
+  } ],
+  "actions": [ {
     "id": "fixture.presence.Presence$package$.forget",
     "name": "forget",
     "position": {
@@ -1148,14 +1132,14 @@
       "line": 38
     },
     "party": "fixture",
-    "inputs": [{
+    "inputs": [ {
       "name": "result",
       "type": {
         "named": "fixture.presence.Result"
       }
-    }]
-  }],
-  "machines": [{
+    } ]
+  } ],
+  "machines": [ {
     "family": "fixture.presence",
     "name": "presence",
     "position": {
@@ -1164,14 +1148,14 @@
     },
     "stateType": "fixture.presence.State",
     "outcomeType": "fixture.presence.Outcome",
-    "starts": [{
+    "starts": [ {
       "position": {
         "file": "model/lifter/testdata/lifts/Presence.scala",
         "line": 72
       },
       "construct": {
         "type": "fixture.presence.State",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Presence.scala",
             "line": 72
@@ -1209,21 +1193,21 @@
           "literal": {
             "int": "0"
           }
-        }]
+        } ]
       }
-    }],
+    } ],
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Presence.scala",
         "line": 73
       },
       "lambda": {
-        "params": [{
+        "params": [ {
           "name": "s",
           "type": {
             "named": "fixture.presence.State"
           }
-        }],
+        } ],
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Presence.scala",
@@ -1263,7 +1247,7 @@
         }
       }
     },
-    "steps": [{
+    "steps": [ {
       "action": "fixture.presence.Presence$package$.send",
       "function": "fixture.presence.Presence$package$.sendStep",
       "position": {
@@ -1291,6 +1275,6 @@
         "file": "model/lifter/testdata/lifts/Presence.scala",
         "line": 74
       }
-    }]
-  }]
+    } ]
+  } ]
 }

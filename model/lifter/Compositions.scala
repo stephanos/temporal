@@ -1,7 +1,6 @@
 package umpire.lift
 
 import scala.collection.mutable
-import scala.jdk.CollectionConverters.*
 import io.temporal.server.api.umpire.v1 as ir
 
 private[lift] trait Compositions:
@@ -31,56 +30,42 @@ private[lift] trait Compositions:
    * chained onto it.
    */
   def composition(rhs: Term): ir.Composition =
-    val b = ir.Composition.newBuilder().setPosition(pos(rhs))
     val replaced = mutable.ArrayBuffer.empty[(String, String)]
     def move(t: Term): ir.SyncMove =
       val (member, a) = arrow(t)
-      ir.SyncMove
-        .newBuilder()
-        .setMember(constString(member))
-        .setAction(actions(action(a)).getName)
-        .build()
-    def walk(t: Term): Unit = t match
+      ir.SyncMove(constString(member), actions(action(a)).name)
+    def walk(t: Term): ir.Composition = t match
       case Apply(Select(inner, "sync"), List(name, first, second)) =>
-        walk(inner)
-        b.addSyncs(
-          ir.Sync
-            .newBuilder()
-            .setName(constString(name))
-            .setFirst(move(first))
-            .setSecond(move(second))
-        )
-      case Apply(Select(inner, "ends"), List(p))                 => walk(inner); b.setEnds(lift(p))
+        walk(inner).addSyncs(ir.Sync(constString(name), Some(move(first)), Some(move(second))))
+      case Apply(Select(inner, "ends"), List(p))                 => walk(inner).withEnds(lift(p))
       case Apply(Select(inner, "replaces"), List(field, opaque)) =>
-        walk(inner)
-        replaced += constString(field) -> machineOf(resolveSymbol(opaque), opaque).getName
+        val c = walk(inner)
+        replaced += constString(field) -> machineOf(resolveSymbol(opaque), opaque).name
+        c
       case Apply(
             Apply(Apply(TypeApply(Ident("compose"), List(s)), List(family, name)), List(members)),
             _
           ) =>
-        b.setFamily(constString(family))
-          .setName(constString(name))
-          .setStateType(typeRef(s.tpe, t).getNamed)
-        for m <- varargs(members) do
-          val (field, member) = arrow(m)
-          b.addMembers(
-            ir.Member
-              .newBuilder()
-              .setField(constString(field))
-              .setMachine(machineOf(resolveSymbol(member), member).getName)
-          )
+        ir.Composition(
+          position = Some(pos(rhs)),
+          family = constString(family),
+          name = constString(name),
+          stateType = typeRef(s.tpe, t).getNamed,
+          members = varargs(members).map { m =>
+            val (field, member) = arrow(m)
+            ir.Member(constString(field), machineOf(resolveSymbol(member), member).name)
+          }
+        )
       case other => fail(other, s"not a part of a composition declaration: ${other.show}")
-    walk(rhs)
-    val fields = b.getMembersList.asScala.map(_.getField)
-    for
-      s <- b.getSyncsList.asScala; m <- Seq(s.getFirst, s.getSecond)
-      if !fields.contains(m.getMember)
-    do fail(rhs, s"sync ${s.getName} names ${m.getMember}, which is not a member of ${b.getName}")
-    for (field, opaque) <- replaced do
+    val c = walk(rhs)
+    val fields = c.members.map(_.field)
+    for s <- c.syncs; m <- Seq(s.getFirst, s.getSecond) if !fields.contains(m.member) do
+      fail(rhs, s"sync ${s.name} names ${m.member}, which is not a member of ${c.name}")
+    c.withMembers(replaced.foldLeft(c.members) { case (members, (field, opaque)) =>
       val i = fields.indexOf(field)
       if i < 0 then fail(rhs, s"$field replaces $opaque, and no member fills $field")
-      val member = b.getMembers(i).getMachine
-      if !machineNamed(member).exists(_.getRefines.getProduct == opaque) then
+      val member = members(i).machine
+      if !machineNamed(member).exists(_.getRefines.product == opaque) then
         fail(rhs, s"$field replaces $opaque, and its member $member does not refine $opaque")
-      b.setMembers(i, b.getMembers(i).toBuilder.setReplaces(opaque))
-    b.build()
+      members.updated(i, members(i).withReplaces(opaque))
+    })

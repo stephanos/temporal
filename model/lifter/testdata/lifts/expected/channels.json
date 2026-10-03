@@ -1,19 +1,19 @@
 {
   "source": "model: fixture.channels.Channels$package$.relay, fixture.channels.Channels$package$.tallying",
-  "types": [{
+  "types": [ {
     "name": "fixture.channels.Heard",
     "position": {
       "file": "model/lifter/testdata/lifts/Channels.scala",
       "line": 19
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "nothing"
       }, {
         "name": "note"
       }, {
         "name": "signal"
-      }]
+      } ]
     }
   }, {
     "name": "fixture.channels.Note",
@@ -22,11 +22,11 @@
       "line": 8
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "ping"
       }, {
         "name": "pong"
-      }]
+      } ]
     }
   }, {
     "name": "fixture.channels.Outcome",
@@ -35,11 +35,11 @@
       "line": 29
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "accepted"
       }, {
         "name": "dropped"
-      }]
+      } ]
     }
   }, {
     "name": "fixture.channels.Relay",
@@ -48,7 +48,7 @@
       "line": 22
     },
     "record": {
-      "fields": [{
+      "fields": [ {
         "name": "heard",
         "type": {
           "named": "fixture.channels.Heard"
@@ -63,7 +63,7 @@
         "type": {
           "channel": "fixture.channels.Channels$package$.radio"
         }
-      }]
+      } ]
     }
   }, {
     "name": "fixture.channels.Signal",
@@ -72,11 +72,11 @@
       "line": 11
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "up"
       }, {
         "name": "down"
-      }]
+      } ]
     }
   }, {
     "name": "fixture.channels.Tally",
@@ -85,7 +85,7 @@
       "line": 67
     },
     "record": {
-      "fields": [{
+      "fields": [ {
         "name": "heard",
         "type": {
           "named": "fixture.channels.Heard"
@@ -95,21 +95,21 @@
         "type": {
           "channel": "fixture.channels.Channels$package$.tally"
         }
-      }]
+      } ]
     }
-  }],
-  "functions": [{
+  } ],
+  "functions": [ {
     "name": "fixture.channels.Channels$package$.countStep",
     "position": {
       "file": "model/lifter/testdata/lifts/Channels.scala",
       "line": 75
     },
-    "params": [{
+    "params": [ {
       "name": "t",
       "type": {
         "named": "fixture.channels.Tally"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Channels.scala",
@@ -148,14 +148,14 @@
             "line": 76
           },
           "list": {
-            "items": [{
+            "items": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Channels.scala",
                 "line": 76
               },
               "construct": {
                 "type": "umpire.Step",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
                     "line": 76
@@ -179,7 +179,7 @@
                       },
                       "var": "t"
                     },
-                    "updates": [{
+                    "updates": [ {
                       "name": "counts",
                       "value": {
                         "position": {
@@ -216,15 +216,14 @@
                           }
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
                     "line": 76
                   },
-                  "list": {
-                  }
+                  "list": { }
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
@@ -233,9 +232,9 @@
                   "literal": {
                     "text": ""
                   }
-                }]
+                } ]
               }
-            }]
+            } ]
           }
         },
         "else": {
@@ -243,8 +242,7 @@
             "file": "model/lifter/testdata/lifts/Channels.scala",
             "line": 76
           },
-          "list": {
-          }
+          "list": { }
         }
       }
     }
@@ -254,7 +252,7 @@
       "file": "model/lifter/testdata/lifts/Channels.scala",
       "line": 78
     },
-    "params": [{
+    "params": [ {
       "name": "t",
       "type": {
         "named": "fixture.channels.Tally"
@@ -262,10 +260,9 @@
     }, {
       "name": "n",
       "type": {
-        "int": {
-        }
+        "int": { }
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Channels.scala",
@@ -303,14 +300,14 @@
             "line": 79
           },
           "list": {
-            "items": [{
+            "items": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Channels.scala",
                 "line": 79
               },
               "construct": {
                 "type": "umpire.Step",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
                     "line": 79
@@ -334,7 +331,7 @@
                       },
                       "var": "t"
                     },
-                    "updates": [{
+                    "updates": [ {
                       "name": "heard",
                       "value": {
                         "position": {
@@ -348,15 +345,14 @@
                           }
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
                     "line": 79
                   },
-                  "list": {
-                  }
+                  "list": { }
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
@@ -365,9 +361,9 @@
                   "literal": {
                     "text": ""
                   }
-                }]
+                } ]
               }
-            }]
+            } ]
           }
         },
         "else": {
@@ -375,8 +371,7 @@
             "file": "model/lifter/testdata/lifts/Channels.scala",
             "line": 79
           },
-          "list": {
-          }
+          "list": { }
         }
       }
     }
@@ -386,7 +381,7 @@
       "file": "model/lifter/testdata/lifts/Channels.scala",
       "line": 48
     },
-    "params": [{
+    "params": [ {
       "name": "r",
       "type": {
         "named": "fixture.channels.Relay"
@@ -396,21 +391,21 @@
       "type": {
         "named": "fixture.channels.Signal"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Channels.scala",
         "line": 48
       },
       "list": {
-        "items": [{
+        "items": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Channels.scala",
             "line": 48
           },
           "construct": {
             "type": "umpire.Step",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Channels.scala",
                 "line": 48
@@ -432,8 +427,7 @@
                 "file": "model/lifter/testdata/lifts/Channels.scala",
                 "line": 48
               },
-              "list": {
-              }
+              "list": { }
             }, {
               "position": {
                 "file": "model/lifter/testdata/lifts/Channels.scala",
@@ -442,9 +436,9 @@
               "literal": {
                 "text": ""
               }
-            }]
+            } ]
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -453,7 +447,7 @@
       "file": "model/lifter/testdata/lifts/Channels.scala",
       "line": 38
     },
-    "params": [{
+    "params": [ {
       "name": "r",
       "type": {
         "named": "fixture.channels.Relay"
@@ -463,7 +457,7 @@
       "type": {
         "named": "fixture.channels.Signal"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Channels.scala",
@@ -502,14 +496,14 @@
             "line": 39
           },
           "list": {
-            "items": [{
+            "items": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Channels.scala",
                 "line": 39
               },
               "construct": {
                 "type": "umpire.Step",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
                     "line": 39
@@ -533,7 +527,7 @@
                       },
                       "var": "r"
                     },
-                    "updates": [{
+                    "updates": [ {
                       "name": "radio",
                       "value": {
                         "position": {
@@ -568,15 +562,14 @@
                           }
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
                     "line": 39
                   },
-                  "list": {
-                  }
+                  "list": { }
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
@@ -585,9 +578,9 @@
                   "literal": {
                     "text": ""
                   }
-                }]
+                } ]
               }
-            }]
+            } ]
           }
         },
         "else": {
@@ -595,8 +588,7 @@
             "file": "model/lifter/testdata/lifts/Channels.scala",
             "line": 39
           },
-          "list": {
-          }
+          "list": { }
         }
       }
     }
@@ -606,7 +598,7 @@
       "file": "model/lifter/testdata/lifts/Channels.scala",
       "line": 42
     },
-    "params": [{
+    "params": [ {
       "name": "r",
       "type": {
         "named": "fixture.channels.Relay"
@@ -616,7 +608,7 @@
       "type": {
         "named": "fixture.channels.Note"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Channels.scala",
@@ -657,14 +649,14 @@
             "line": 43
           },
           "list": {
-            "items": [{
+            "items": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Channels.scala",
                 "line": 43
               },
               "construct": {
                 "type": "umpire.Step",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
                     "line": 43
@@ -688,7 +680,7 @@
                       },
                       "var": "r"
                     },
-                    "updates": [{
+                    "updates": [ {
                       "name": "heard",
                       "value": {
                         "position": {
@@ -702,15 +694,14 @@
                           }
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
                     "line": 43
                   },
-                  "list": {
-                  }
+                  "list": { }
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
@@ -719,9 +710,9 @@
                   "literal": {
                     "text": ""
                   }
-                }]
+                } ]
               }
-            }]
+            } ]
           }
         },
         "else": {
@@ -729,8 +720,7 @@
             "file": "model/lifter/testdata/lifts/Channels.scala",
             "line": 43
           },
-          "list": {
-          }
+          "list": { }
         }
       }
     }
@@ -740,7 +730,7 @@
       "file": "model/lifter/testdata/lifts/Channels.scala",
       "line": 35
     },
-    "params": [{
+    "params": [ {
       "name": "r",
       "type": {
         "named": "fixture.channels.Relay"
@@ -750,7 +740,7 @@
       "type": {
         "named": "fixture.channels.Note"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Channels.scala",
@@ -788,8 +778,7 @@
             "file": "model/lifter/testdata/lifts/Channels.scala",
             "line": 36
           },
-          "list": {
-          }
+          "list": { }
         },
         "else": {
           "position": {
@@ -797,14 +786,14 @@
             "line": 36
           },
           "list": {
-            "items": [{
+            "items": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Channels.scala",
                 "line": 36
               },
               "construct": {
                 "type": "umpire.Step",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
                     "line": 36
@@ -828,7 +817,7 @@
                       },
                       "var": "r"
                     },
-                    "updates": [{
+                    "updates": [ {
                       "name": "wire",
                       "value": {
                         "position": {
@@ -863,15 +852,14 @@
                           }
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
                     "line": 36
                   },
-                  "list": {
-                  }
+                  "list": { }
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Channels.scala",
@@ -880,9 +868,9 @@
                   "literal": {
                     "text": ""
                   }
-                }]
+                } ]
               }
-            }]
+            } ]
           }
         }
       }
@@ -893,7 +881,7 @@
       "file": "model/lifter/testdata/lifts/Channels.scala",
       "line": 45
     },
-    "params": [{
+    "params": [ {
       "name": "r",
       "type": {
         "named": "fixture.channels.Relay"
@@ -903,21 +891,21 @@
       "type": {
         "named": "fixture.channels.Signal"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Channels.scala",
         "line": 46
       },
       "list": {
-        "items": [{
+        "items": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Channels.scala",
             "line": 46
           },
           "construct": {
             "type": "umpire.Step",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Channels.scala",
                 "line": 46
@@ -941,7 +929,7 @@
                   },
                   "var": "r"
                 },
-                "updates": [{
+                "updates": [ {
                   "name": "heard",
                   "value": {
                     "position": {
@@ -955,15 +943,14 @@
                       }
                     }
                   }
-                }]
+                } ]
               }
             }, {
               "position": {
                 "file": "model/lifter/testdata/lifts/Channels.scala",
                 "line": 46
               },
-              "list": {
-              }
+              "list": { }
             }, {
               "position": {
                 "file": "model/lifter/testdata/lifts/Channels.scala",
@@ -972,13 +959,13 @@
               "literal": {
                 "text": ""
               }
-            }]
+            } ]
           }
-        }]
+        } ]
       }
     }
-  }],
-  "actions": [{
+  } ],
+  "actions": [ {
     "id": "fixture.channels.Channels$package$.count",
     "name": "count",
     "position": {
@@ -995,12 +982,12 @@
       "line": 33
     },
     "party": "fixture",
-    "inputs": [{
+    "inputs": [ {
       "name": "signal",
       "type": {
         "named": "fixture.channels.Signal"
       }
-    }]
+    } ]
   }, {
     "id": "fixture.channels.Channels$package$.radio.deliver",
     "name": "radioDelivery",
@@ -1009,12 +996,12 @@
       "line": 16
     },
     "party": "system",
-    "inputs": [{
+    "inputs": [ {
       "name": "message",
       "type": {
         "named": "fixture.channels.Signal"
       }
-    }],
+    } ],
     "internal": true,
     "delivers": "fixture.channels.Channels$package$.radio"
   }, {
@@ -1025,12 +1012,12 @@
       "line": 16
     },
     "party": "system",
-    "inputs": [{
+    "inputs": [ {
       "name": "message",
       "type": {
         "named": "fixture.channels.Signal"
       }
-    }],
+    } ],
     "internal": true,
     "loses": "fixture.channels.Channels$package$.radio"
   }, {
@@ -1041,12 +1028,12 @@
       "line": 32
     },
     "party": "fixture",
-    "inputs": [{
+    "inputs": [ {
       "name": "note",
       "type": {
         "named": "fixture.channels.Note"
       }
-    }]
+    } ]
   }, {
     "id": "fixture.channels.Channels$package$.tally.deliver",
     "name": "tallyDelivery",
@@ -1055,14 +1042,14 @@
       "line": 64
     },
     "party": "system",
-    "inputs": [{
+    "inputs": [ {
       "name": "message",
       "type": {
         "intRange": {
           "high": "2"
         }
       }
-    }],
+    } ],
     "internal": true,
     "delivers": "fixture.channels.Channels$package$.tally"
   }, {
@@ -1073,16 +1060,16 @@
       "line": 14
     },
     "party": "system",
-    "inputs": [{
+    "inputs": [ {
       "name": "message",
       "type": {
         "named": "fixture.channels.Note"
       }
-    }],
+    } ],
     "internal": true,
     "delivers": "fixture.channels.Channels$package$.wire"
-  }],
-  "machines": [{
+  } ],
+  "machines": [ {
     "family": "fixture.channels",
     "name": "relay",
     "position": {
@@ -1091,14 +1078,14 @@
     },
     "stateType": "fixture.channels.Relay",
     "outcomeType": "fixture.channels.Outcome",
-    "starts": [{
+    "starts": [ {
       "position": {
         "file": "model/lifter/testdata/lifts/Channels.scala",
         "line": 52
       },
       "construct": {
         "type": "fixture.channels.Relay",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Channels.scala",
             "line": 52
@@ -1115,8 +1102,7 @@
             "line": 52
           },
           "literal": {
-            "list": {
-            }
+            "list": { }
           }
         }, {
           "position": {
@@ -1124,24 +1110,23 @@
             "line": 52
           },
           "literal": {
-            "list": {
-            }
+            "list": { }
           }
-        }]
+        } ]
       }
-    }],
+    } ],
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Channels.scala",
         "line": 53
       },
       "lambda": {
-        "params": [{
+        "params": [ {
           "name": "_$1",
           "type": {
             "named": "fixture.channels.Relay"
           }
-        }],
+        } ],
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Channels.scala",
@@ -1153,7 +1138,7 @@
         }
       }
     },
-    "steps": [{
+    "steps": [ {
       "action": "fixture.channels.Channels$package$.talk",
       "function": "fixture.channels.Channels$package$.talkStep",
       "position": {
@@ -1188,7 +1173,7 @@
         "file": "model/lifter/testdata/lifts/Channels.scala",
         "line": 59
       }
-    }]
+    } ]
   }, {
     "family": "fixture.channels",
     "name": "tallying",
@@ -1198,14 +1183,14 @@
     },
     "stateType": "fixture.channels.Tally",
     "outcomeType": "fixture.channels.Outcome",
-    "starts": [{
+    "starts": [ {
       "position": {
         "file": "model/lifter/testdata/lifts/Channels.scala",
         "line": 83
       },
       "construct": {
         "type": "fixture.channels.Tally",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Channels.scala",
             "line": 83
@@ -1222,24 +1207,23 @@
             "line": 83
           },
           "literal": {
-            "list": {
-            }
+            "list": { }
           }
-        }]
+        } ]
       }
-    }],
+    } ],
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Channels.scala",
         "line": 84
       },
       "lambda": {
-        "params": [{
+        "params": [ {
           "name": "_$2",
           "type": {
             "named": "fixture.channels.Tally"
           }
-        }],
+        } ],
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Channels.scala",
@@ -1251,7 +1235,7 @@
         }
       }
     },
-    "steps": [{
+    "steps": [ {
       "action": "fixture.channels.Channels$package$.count",
       "function": "fixture.channels.Channels$package$.countStep",
       "position": {
@@ -1265,9 +1249,9 @@
         "file": "model/lifter/testdata/lifts/Channels.scala",
         "line": 85
       }
-    }]
-  }],
-  "channels": [{
+    } ]
+  } ],
+  "channels": [ {
     "id": "fixture.channels.Channels$package$.radio",
     "name": "radio",
     "position": {
@@ -1307,5 +1291,5 @@
     "capacity": 2,
     "order": "ORDER_FIFO",
     "duplicates": 1
-  }]
+  } ]
 }

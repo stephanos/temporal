@@ -21,7 +21,9 @@ private[lift] trait Types:
     tpe.widen.dealias.typeSymbol.fullName == name
   def messageType(inbox: TypeRepr): String =
     inbox.widen.dealias.typeArgs.head.dealias.typeSymbol.fullName
-  def named(name: String): ir.TypeRef = ir.TypeRef.newBuilder().setNamed(name).build()
+  def named(name: String): ir.TypeRef = ir.TypeRef(ir.TypeRef.Ref.Named(name))
+  def range(low: Long, high: Long): ir.TypeRef =
+    ir.TypeRef(ir.TypeRef.Ref.IntRange(ir.IntRange(low = low, high = high)))
 
   def typeRef(tpe: TypeRepr, at: Tree, owner: String = ""): ir.TypeRef =
     // An opaque type is read before its alias is resolved: its range is its own.
@@ -35,14 +37,12 @@ private[lift] trait Types:
             "`given Finite[...] = Finite.upTo(...)` beside the type"
         )
       )
-      ir.TypeRef.newBuilder().setIntRange(ir.IntRange.newBuilder().setLow(lo).setHigh(hi)).build()
+      range(lo, hi)
     else
       val t = tpe.dealias.widen
       val sym = t.typeSymbol
-      if sym == defn.BooleanClass then
-        ir.TypeRef.newBuilder().setBool(ir.Empty.getDefaultInstance).build()
-      else if sym == defn.IntClass && owner.isEmpty then
-        ir.TypeRef.newBuilder().setInt(ir.Empty.getDefaultInstance).build()
+      if sym == defn.BooleanClass then ir.TypeRef(ir.TypeRef.Ref.Bool(ir.Empty()))
+      else if sym == defn.IntClass && owner.isEmpty then ir.TypeRef(ir.TypeRef.Ref.Int(ir.Empty()))
       else if sym == defn.IntClass then
         val (lo, hi) = intRanges.getOrElse(
           owner,
@@ -52,12 +52,8 @@ private[lift] trait Types:
               "`given Finite[Int] = Finite.upTo(...)` where its Finite is derived"
           )
         )
-        ir.TypeRef
-          .newBuilder()
-          .setIntRange(ir.IntRange.newBuilder().setLow(lo).setHigh(hi))
-          .build()
-      else if isList(sym) then
-        ir.TypeRef.newBuilder().setList(typeRef(t.typeArgs.head, at, owner)).build()
+        range(lo, hi)
+      else if isList(sym) then ir.TypeRef(ir.TypeRef.Ref.List(typeRef(t.typeArgs.head, at, owner)))
       else if sym.fullName == "scala.Option" then named(optionType(t.typeArgs.head, at))
       else if sym.fullName == "umpire.Inbox" then
         if owner.isEmpty then
@@ -70,7 +66,7 @@ private[lift] trait Types:
               "channel: give the state a `given Finite[Inbox[M]] = <channel>.contents` where its Finite is declared"
           )
         )
-        ir.TypeRef.newBuilder().setChannel(channelOf(channel, at)).build()
+        ir.TypeRef(ir.TypeRef.Ref.Channel(channelOf(channel, at)))
       else if sym.fullName == stepType then named(stepType)
       else
         declareType(sym, at)
@@ -78,11 +74,8 @@ private[lift] trait Types:
 
   def declareType(sym: Symbol, at: Tree): Unit =
     if !types.contains(sym.fullName) && sym != defn.NothingClass then
-      types(sym.fullName) = ir.Type.getDefaultInstance // placeholder against recursion
-      val b = ir.Type
-        .newBuilder()
-        .setName(sym.fullName)
-        .setPosition(scala.util.Try(pos(sym.tree)).getOrElse(pos(at)))
+      types(sym.fullName) = ir.Type.defaultInstance // placeholder against recursion
+      val position = Some(scala.util.Try(pos(sym.tree)).getOrElse(pos(at)))
       def field(n: String, ft: TypeRepr): ir.Field =
         // A list has no bound, so no finite type has one as a field.
         if isList(ft.dealias.widen.typeSymbol) then
@@ -91,24 +84,21 @@ private[lift] trait Types:
             s"${sym.fullName}.$n is a list, which has no bound: a state " +
               "holds messages in a channel's Inbox"
           )
-        ir.Field.newBuilder().setName(n).setType(typeRef(ft, at, sym.fullName)).build()
-      if sym.flags.is(Flags.Enum) then
-        val e = ir.Enum.newBuilder()
-        for c <- sym.children do
-          val cb = ir.Case.newBuilder().setName(c.name)
-          if c.isClassDef then for (n, ft) <- fieldTypes(c) do cb.addFields(field(n, ft))
-          e.addCases(cb)
-        b.setEnum(e)
-      else if sym.flags.is(Flags.Case) then
-        val r = ir.Record.newBuilder()
-        for (n, ft) <- fieldTypes(sym) do r.addFields(field(n, ft))
-        b.setRecord(r)
-      else
-        fail(
-          at,
-          s"${sym.fullName} is neither an enum nor a case class, so it has no finite catalog"
-        )
-      types(sym.fullName) = b.build()
+        ir.Field(name = n, `type` = Some(typeRef(ft, at, sym.fullName)))
+      def fields(cls: Symbol): Seq[ir.Field] = fieldTypes(cls).map(field)
+      val shape =
+        if sym.flags.is(Flags.Enum) then
+          val cases = sym.children.map(c =>
+            ir.Case(name = c.name, fields = if c.isClassDef then fields(c) else Nil)
+          )
+          ir.Type.Shape.Enum(ir.Enum(cases))
+        else if sym.flags.is(Flags.Case) then ir.Type.Shape.Record(ir.Record(fields(sym)))
+        else
+          fail(
+            at,
+            s"${sym.fullName} is neither an enum nor a case class, so it has no finite catalog"
+          )
+      types(sym.fullName) = ir.Type(name = sym.fullName, position = position, shape = shape)
 
   /**
    * An optional value's type: an enum of `None` and `Some(value)`, one per type of value, named
@@ -116,11 +106,12 @@ private[lift] trait Types:
    */
   def optionType(arg: TypeRepr, at: Tree): String =
     val value = typeRef(arg, at)
-    val argName = value.getRefCase match
-      case ir.TypeRef.RefCase.NAMED     => value.getNamed
-      case ir.TypeRef.RefCase.BOOL      => "scala.Boolean"
-      case ir.TypeRef.RefCase.INT_RANGE => arg.widen.typeSymbol.fullName
-      case _                            =>
+    val argName = value.ref match
+      case ir.TypeRef.Ref.Named(n)    => n
+      case ir.TypeRef.Ref.Bool(_)     => "scala.Boolean"
+      case ir.TypeRef.Ref.IntRange(_) => arg.widen.typeSymbol.fullName
+      case ir.TypeRef.Ref.Int(_) | ir.TypeRef.Ref.List(_) | ir.TypeRef.Ref.Channel(_) |
+          ir.TypeRef.Ref.Empty =>
         fail(
           at,
           s"an optional ${arg.show} has no finite catalog: give its value an enum, a record, a " +
@@ -128,22 +119,12 @@ private[lift] trait Types:
         )
     val name = s"scala.Option[$argName]"
     if !types.contains(name) then
-      types(name) = ir.Type
-        .newBuilder()
-        .setName(name)
-        .setPosition(pos(at))
-        .setEnum(
-          ir.Enum
-            .newBuilder()
-            .addCases(ir.Case.newBuilder().setName("None"))
-            .addCases(
-              ir.Case
-                .newBuilder()
-                .setName("Some")
-                .addFields(ir.Field.newBuilder().setName("value").setType(value))
-            )
-        )
-        .build()
+      val cases = Seq(
+        ir.Case(name = "None"),
+        ir.Case(name = "Some", fields = Seq(ir.Field(name = "value", `type` = Some(value))))
+      )
+      types(name) =
+        ir.Type(name = name, position = Some(pos(at)), shape = ir.Type.Shape.Enum(ir.Enum(cases)))
     name
 
   /**

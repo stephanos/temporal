@@ -1,19 +1,19 @@
 {
   "source": "model: fixture.specimens.admission.Admission$package$.currentQueries, fixture.specimens.admission.Admission$package$.staleQueries",
-  "types": [{
+  "types": [ {
     "name": "fixture.specimens.admission.Active",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 28
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "none"
       }, {
         "name": "one"
       }, {
         "name": "two"
-      }]
+      } ]
     }
   }, {
     "name": "fixture.specimens.admission.AdmissionFact",
@@ -22,7 +22,7 @@
       "line": 35
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "statusStarted"
       }, {
         "name": "statusPaused"
@@ -34,7 +34,7 @@
         "name": "attemptAdmitted"
       }, {
         "name": "admissionRejected"
-      }]
+      } ]
     }
   }, {
     "name": "fixture.specimens.admission.AdmissionPhase",
@@ -43,7 +43,7 @@
       "line": 18
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "scheduled"
       }, {
         "name": "paused"
@@ -53,7 +53,7 @@
         "name": "started"
       }, {
         "name": "completed"
-      }]
+      } ]
     }
   }, {
     "name": "fixture.specimens.admission.AdmissionState",
@@ -62,7 +62,7 @@
       "line": 31
     },
     "record": {
-      "fields": [{
+      "fields": [ {
         "name": "phase",
         "type": {
           "named": "fixture.specimens.admission.AdmissionPhase"
@@ -77,7 +77,7 @@
         "type": {
           "named": "fixture.specimens.admission.Active"
         }
-      }]
+      } ]
     }
   }, {
     "name": "fixture.specimens.admission.Finality",
@@ -86,13 +86,13 @@
       "line": 132
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "open"
       }, {
         "name": "completed"
       }, {
         "name": "reopened"
-      }]
+      } ]
     }
   }, {
     "name": "fixture.specimens.admission.Message",
@@ -101,13 +101,13 @@
       "line": 23
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "empty"
       }, {
         "name": "queued"
       }, {
         "name": "redelivery"
-      }]
+      } ]
     }
   }, {
     "name": "temporal.standaloneactivity.AttemptResult",
@@ -116,20 +116,19 @@
       "line": 50
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "completed"
       }, {
         "name": "failed",
-        "fields": [{
+        "fields": [ {
           "name": "retryable",
           "type": {
-            "bool": {
-            }
+            "bool": { }
           }
-        }]
+        } ]
       }, {
         "name": "canceled"
-      }]
+      } ]
     }
   }, {
     "name": "temporal.standaloneactivity.Control",
@@ -138,7 +137,7 @@
       "line": 60
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "pause"
       }, {
         "name": "unpause"
@@ -146,7 +145,7 @@
         "name": "requestCancel"
       }, {
         "name": "terminate"
-      }]
+      } ]
     }
   }, {
     "name": "temporal.standaloneactivity.Outcome",
@@ -155,11 +154,11 @@
       "line": 120
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "accepted"
       }, {
         "name": "notFound"
-      }]
+      } ]
     }
   }, {
     "name": "temporal.standaloneactivity.ProductFact",
@@ -168,7 +167,7 @@
       "line": 136
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "statusScheduled"
       }, {
         "name": "statusStarted"
@@ -186,7 +185,7 @@
         "name": "statusTerminated"
       }, {
         "name": "statusTimedOut"
-      }]
+      } ]
     }
   }, {
     "name": "temporal.standaloneactivity.ProductPhase",
@@ -195,7 +194,7 @@
       "line": 129
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "scheduled"
       }, {
         "name": "started"
@@ -213,7 +212,7 @@
         "name": "terminated"
       }, {
         "name": "timedOut"
-      }]
+      } ]
     }
   }, {
     "name": "temporal.standaloneactivity.ProductState",
@@ -222,26 +221,26 @@
       "line": 133
     },
     "record": {
-      "fields": [{
+      "fields": [ {
         "name": "phase",
         "type": {
           "named": "temporal.standaloneactivity.ProductPhase"
         }
-      }]
+      } ]
     }
-  }],
-  "functions": [{
+  } ],
+  "functions": [ {
     "name": "activityProduct.evidence",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
       "line": 221
     },
-    "params": [{
+    "params": [ {
       "name": "x$1",
       "type": {
         "named": "temporal.standaloneactivity.ProductFact"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
@@ -255,7 +254,7 @@
           },
           "var": "x$1"
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -417,7 +416,7 @@
               "text": "statusTimedOut"
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -426,7 +425,7 @@
       "file": "model/temporal/standaloneactivity/Claims.scala",
       "line": 28
     },
-    "params": [{
+    "params": [ {
       "name": "before",
       "type": {
         "named": "temporal.standaloneactivity.ProductState"
@@ -436,7 +435,7 @@
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Claims.scala",
@@ -535,12 +534,12 @@
       "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 155
     },
-    "params": [{
+    "params": [ {
       "name": "f",
       "type": {
         "named": "fixture.specimens.admission.AdmissionFact"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -548,13 +547,13 @@
       },
       "call": {
         "function": "fixture.specimens.admission.Admission$package$.admissionEvidence",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 155
           },
           "var": "f"
-        }]
+        } ]
       }
     }
   }, {
@@ -563,12 +562,12 @@
       "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 117
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.specimens.admission.AdmissionState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -658,12 +657,12 @@
       "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 108
     },
-    "params": [{
+    "params": [ {
       "name": "f",
       "type": {
         "named": "fixture.specimens.admission.AdmissionFact"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -677,7 +676,7 @@
           },
           "var": "f"
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -785,7 +784,7 @@
               "text": "admissionRejected"
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -794,12 +793,12 @@
       "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 84
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.specimens.admission.AdmissionState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -822,7 +821,7 @@
             "field": "message"
           }
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -836,13 +835,12 @@
               "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 85
             },
-            "list": {
-            }
+            "list": { }
           }
         }, {
           "pattern": {
             "alternatives": {
-              "patterns": [{
+              "patterns": [ {
                 "literal": {
                   "enum": {
                     "type": "fixture.specimens.admission.Message",
@@ -856,7 +854,7 @@
                     "case": "redelivery"
                   }
                 }
-              }]
+              } ]
             }
           },
           "body": {
@@ -909,13 +907,13 @@
                 },
                 "call": {
                   "function": "fixture.specimens.admission.Admission$package$.admitted",
-                  "args": [{
+                  "args": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Admission.scala",
                       "line": 87
                     },
                     "var": "s"
-                  }]
+                  } ]
                 }
               },
               "else": {
@@ -924,14 +922,14 @@
                   "line": 88
                 },
                 "list": {
-                  "items": [{
+                  "items": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Admission.scala",
                       "line": 88
                     },
                     "construct": {
                       "type": "umpire.Step",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Admission.scala",
                           "line": 88
@@ -955,7 +953,7 @@
                             },
                             "var": "s"
                           },
-                          "updates": [{
+                          "updates": [ {
                             "name": "message",
                             "value": {
                               "position": {
@@ -969,7 +967,7 @@
                                 }
                               }
                             }
-                          }]
+                          } ]
                         }
                       }, {
                         "position": {
@@ -977,7 +975,7 @@
                           "line": 88
                         },
                         "list": {
-                          "items": [{
+                          "items": [ {
                             "position": {
                               "file": "model/lifter/testdata/lifts/Admission.scala",
                               "line": 88
@@ -988,7 +986,7 @@
                                 "case": "admissionRejected"
                               }
                             }
-                          }]
+                          } ]
                         }
                       }, {
                         "position": {
@@ -998,14 +996,14 @@
                         "literal": {
                           "text": ""
                         }
-                      }]
+                      } ]
                     }
-                  }]
+                  } ]
                 }
               }
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -1014,12 +1012,12 @@
       "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 91
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.specimens.admission.AdmissionState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -1042,7 +1040,7 @@
             "field": "message"
           }
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -1056,13 +1054,12 @@
               "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 92
             },
-            "list": {
-            }
+            "list": { }
           }
         }, {
           "pattern": {
             "alternatives": {
-              "patterns": [{
+              "patterns": [ {
                 "literal": {
                   "enum": {
                     "type": "fixture.specimens.admission.Message",
@@ -1076,7 +1073,7 @@
                     "case": "redelivery"
                   }
                 }
-              }]
+              } ]
             }
           },
           "body": {
@@ -1086,16 +1083,16 @@
             },
             "call": {
               "function": "fixture.specimens.admission.Admission$package$.admitted",
-              "args": [{
+              "args": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 93
                 },
                 "var": "s"
-              }]
+              } ]
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -1104,12 +1101,12 @@
       "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 73
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.specimens.admission.AdmissionState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -1130,7 +1127,7 @@
               },
               "var": "s"
             },
-            "updates": [{
+            "updates": [ {
               "name": "phase",
               "value": {
                 "position": {
@@ -1153,7 +1150,7 @@
                 },
                 "call": {
                   "function": "fixture.specimens.admission.Admission$package$.oneMore",
-                  "args": [{
+                  "args": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Admission.scala",
                       "line": 74
@@ -1168,10 +1165,10 @@
                       },
                       "field": "active"
                     }
-                  }]
+                  } ]
                 }
               }
-            }]
+            } ]
           }
         },
         "body": {
@@ -1223,14 +1220,14 @@
                 "line": 76
               },
               "list": {
-                "items": [{
+                "items": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 76
                   },
                   "construct": {
                     "type": "umpire.Step",
-                    "args": [{
+                    "args": [ {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 76
@@ -1254,7 +1251,7 @@
                           },
                           "var": "next"
                         },
-                        "updates": [{
+                        "updates": [ {
                           "name": "message",
                           "value": {
                             "position": {
@@ -1268,7 +1265,7 @@
                               }
                             }
                           }
-                        }]
+                        } ]
                       }
                     }, {
                       "position": {
@@ -1276,7 +1273,7 @@
                         "line": 76
                       },
                       "list": {
-                        "items": [{
+                        "items": [ {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Admission.scala",
                             "line": 76
@@ -1298,7 +1295,7 @@
                               "case": "attemptAdmitted"
                             }
                           }
-                        }]
+                        } ]
                       }
                     }, {
                       "position": {
@@ -1308,9 +1305,9 @@
                       "literal": {
                         "text": ""
                       }
-                    }]
+                    } ]
                   }
-                }]
+                } ]
               }
             },
             "else": {
@@ -1319,14 +1316,14 @@
                 "line": 77
               },
               "list": {
-                "items": [{
+                "items": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 78
                   },
                   "construct": {
                     "type": "umpire.Step",
-                    "args": [{
+                    "args": [ {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 78
@@ -1350,7 +1347,7 @@
                           },
                           "var": "next"
                         },
-                        "updates": [{
+                        "updates": [ {
                           "name": "message",
                           "value": {
                             "position": {
@@ -1364,7 +1361,7 @@
                               }
                             }
                           }
-                        }]
+                        } ]
                       }
                     }, {
                       "position": {
@@ -1372,7 +1369,7 @@
                         "line": 78
                       },
                       "list": {
-                        "items": [{
+                        "items": [ {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Admission.scala",
                             "line": 78
@@ -1394,7 +1391,7 @@
                               "case": "attemptAdmitted"
                             }
                           }
-                        }]
+                        } ]
                       }
                     }, {
                       "position": {
@@ -1404,7 +1401,7 @@
                       "literal": {
                         "text": ""
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
@@ -1413,7 +1410,7 @@
                   },
                   "construct": {
                     "type": "umpire.Step",
-                    "args": [{
+                    "args": [ {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 79
@@ -1437,7 +1434,7 @@
                           },
                           "var": "next"
                         },
-                        "updates": [{
+                        "updates": [ {
                           "name": "message",
                           "value": {
                             "position": {
@@ -1451,7 +1448,7 @@
                               }
                             }
                           }
-                        }]
+                        } ]
                       }
                     }, {
                       "position": {
@@ -1459,7 +1456,7 @@
                         "line": 79
                       },
                       "list": {
-                        "items": [{
+                        "items": [ {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Admission.scala",
                             "line": 79
@@ -1481,7 +1478,7 @@
                               "case": "attemptAdmitted"
                             }
                           }
-                        }]
+                        } ]
                       }
                     }, {
                       "position": {
@@ -1491,9 +1488,9 @@
                       "literal": {
                         "text": "the channel may deliver the message again"
                       }
-                    }]
+                    } ]
                   }
-                }]
+                } ]
               }
             }
           }
@@ -1506,12 +1503,12 @@
       "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 175
     },
-    "params": [{
+    "params": [ {
       "name": "after",
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -1564,12 +1561,12 @@
       "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 129
     },
-    "params": [{
+    "params": [ {
       "name": "after",
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -1613,12 +1610,12 @@
       "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 129
     },
-    "params": [{
+    "params": [ {
       "name": "_$1",
       "type": {
         "named": "fixture.specimens.admission.Active"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -1653,7 +1650,7 @@
       "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 122
     },
-    "params": [{
+    "params": [ {
       "name": "active",
       "type": {
         "named": "fixture.specimens.admission.Active"
@@ -1668,7 +1665,7 @@
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -1719,13 +1716,13 @@
           },
           "call": {
             "function": "fixture.specimens.admission.Admission$package$.oneMore",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 123
               },
               "var": "active"
-            }]
+            } ]
           }
         },
         "else": {
@@ -1778,13 +1775,13 @@
               },
               "call": {
                 "function": "fixture.specimens.admission.Admission$package$.oneLess",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 124
                   },
                   "var": "active"
-                }]
+                } ]
               }
             },
             "else": {
@@ -1804,12 +1801,12 @@
       "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 48
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.specimens.admission.AdmissionState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -1904,8 +1901,7 @@
             "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 49
           },
-          "list": {
-          }
+          "list": { }
         },
         "else": {
           "position": {
@@ -1913,14 +1909,14 @@
             "line": 50
           },
           "list": {
-            "items": [{
+            "items": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 50
               },
               "construct": {
                 "type": "umpire.Step",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 50
@@ -1944,7 +1940,7 @@
                       },
                       "var": "s"
                     },
-                    "updates": [{
+                    "updates": [ {
                       "name": "message",
                       "value": {
                         "position": {
@@ -1958,7 +1954,7 @@
                           }
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
@@ -1966,7 +1962,7 @@
                     "line": 50
                   },
                   "list": {
-                    "items": [{
+                    "items": [ {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 50
@@ -1977,7 +1973,7 @@
                           "case": "dispatchEnqueued"
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
@@ -1987,9 +1983,9 @@
                   "literal": {
                     "text": ""
                   }
-                }]
+                } ]
               }
-            }]
+            } ]
           }
         }
       }
@@ -2000,7 +1996,7 @@
       "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 135
     },
-    "params": [{
+    "params": [ {
       "name": "f",
       "type": {
         "named": "fixture.specimens.admission.Finality"
@@ -2015,7 +2011,7 @@
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -2029,7 +2025,7 @@
           },
           "var": "f"
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -2052,8 +2048,7 @@
           }
         }, {
           "pattern": {
-            "wildcard": {
-            }
+            "wildcard": { }
           },
           "body": {
             "position": {
@@ -2181,7 +2176,7 @@
               }
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -2190,7 +2185,7 @@
       "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 172
     },
-    "params": [{
+    "params": [ {
       "name": "before",
       "type": {
         "named": "fixture.specimens.admission.AdmissionState"
@@ -2200,7 +2195,7 @@
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -2299,12 +2294,12 @@
       "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 67
     },
-    "params": [{
+    "params": [ {
       "name": "a",
       "type": {
         "named": "fixture.specimens.admission.Active"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -2318,7 +2313,7 @@
           },
           "var": "a"
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -2341,8 +2336,7 @@
           }
         }, {
           "pattern": {
-            "wildcard": {
-            }
+            "wildcard": { }
           },
           "body": {
             "position": {
@@ -2356,7 +2350,7 @@
               }
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -2365,12 +2359,12 @@
       "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 63
     },
-    "params": [{
+    "params": [ {
       "name": "a",
       "type": {
         "named": "fixture.specimens.admission.Active"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -2384,7 +2378,7 @@
           },
           "var": "a"
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -2407,8 +2401,7 @@
           }
         }, {
           "pattern": {
-            "wildcard": {
-            }
+            "wildcard": { }
           },
           "body": {
             "position": {
@@ -2422,7 +2415,7 @@
               }
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -2431,7 +2424,7 @@
       "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 53
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.specimens.admission.AdmissionState"
@@ -2441,7 +2434,7 @@
       "type": {
         "named": "temporal.standaloneactivity.Control"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -2455,7 +2448,7 @@
           },
           "var": "c"
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -2486,7 +2479,7 @@
                   "field": "phase"
                 }
               },
-              "cases": [{
+              "cases": [ {
                 "pattern": {
                   "literal": {
                     "enum": {
@@ -2501,14 +2494,14 @@
                     "line": 57
                   },
                   "list": {
-                    "items": [{
+                    "items": [ {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 57
                       },
                       "construct": {
                         "type": "umpire.Step",
-                        "args": [{
+                        "args": [ {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Admission.scala",
                             "line": 57
@@ -2532,7 +2525,7 @@
                               },
                               "var": "s"
                             },
-                            "updates": [{
+                            "updates": [ {
                               "name": "phase",
                               "value": {
                                 "position": {
@@ -2546,7 +2539,7 @@
                                   }
                                 }
                               }
-                            }]
+                            } ]
                           }
                         }, {
                           "position": {
@@ -2554,7 +2547,7 @@
                             "line": 57
                           },
                           "list": {
-                            "items": [{
+                            "items": [ {
                               "position": {
                                 "file": "model/lifter/testdata/lifts/Admission.scala",
                                 "line": 57
@@ -2565,7 +2558,7 @@
                                   "case": "statusPaused"
                                 }
                               }
-                            }]
+                            } ]
                           }
                         }, {
                           "position": {
@@ -2575,9 +2568,9 @@
                           "literal": {
                             "text": ""
                           }
-                        }]
+                        } ]
                       }
-                    }]
+                    } ]
                   }
                 }
               }, {
@@ -2595,14 +2588,14 @@
                     "line": 59
                   },
                   "list": {
-                    "items": [{
+                    "items": [ {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 59
                       },
                       "construct": {
                         "type": "umpire.Step",
-                        "args": [{
+                        "args": [ {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Admission.scala",
                             "line": 59
@@ -2626,7 +2619,7 @@
                               },
                               "var": "s"
                             },
-                            "updates": [{
+                            "updates": [ {
                               "name": "phase",
                               "value": {
                                 "position": {
@@ -2640,7 +2633,7 @@
                                   }
                                 }
                               }
-                            }]
+                            } ]
                           }
                         }, {
                           "position": {
@@ -2648,7 +2641,7 @@
                             "line": 59
                           },
                           "list": {
-                            "items": [{
+                            "items": [ {
                               "position": {
                                 "file": "model/lifter/testdata/lifts/Admission.scala",
                                 "line": 59
@@ -2659,7 +2652,7 @@
                                   "case": "statusPaused"
                                 }
                               }
-                            }]
+                            } ]
                           }
                         }, {
                           "position": {
@@ -2669,31 +2662,29 @@
                           "literal": {
                             "text": ""
                           }
-                        }]
+                        } ]
                       }
-                    }]
+                    } ]
                   }
                 }
               }, {
                 "pattern": {
-                  "wildcard": {
-                  }
+                  "wildcard": { }
                 },
                 "body": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 60
                   },
-                  "list": {
-                  }
+                  "list": { }
                 }
-              }]
+              } ]
             }
           }
         }, {
           "pattern": {
             "alternatives": {
-              "patterns": [{
+              "patterns": [ {
                 "literal": {
                   "enum": {
                     "type": "temporal.standaloneactivity.Control",
@@ -2714,7 +2705,7 @@
                     "case": "terminate"
                   }
                 }
-              }]
+              } ]
             }
           },
           "body": {
@@ -2722,10 +2713,9 @@
               "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 61
             },
-            "list": {
-            }
+            "list": { }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -2734,12 +2724,12 @@
       "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 102
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.specimens.admission.AdmissionState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -2762,7 +2752,7 @@
             "field": "phase"
           }
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -2778,7 +2768,7 @@
             },
             "construct": {
               "type": "temporal.standaloneactivity.ProductState",
-              "args": [{
+              "args": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 103
@@ -2789,13 +2779,13 @@
                     "case": "scheduled"
                   }
                 }
-              }]
+              } ]
             }
           }
         }, {
           "pattern": {
             "alternatives": {
-              "patterns": [{
+              "patterns": [ {
                 "literal": {
                   "enum": {
                     "type": "fixture.specimens.admission.AdmissionPhase",
@@ -2809,7 +2799,7 @@
                     "case": "pausedWhileHeld"
                   }
                 }
-              }]
+              } ]
             }
           },
           "body": {
@@ -2819,7 +2809,7 @@
             },
             "construct": {
               "type": "temporal.standaloneactivity.ProductState",
-              "args": [{
+              "args": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 104
@@ -2830,7 +2820,7 @@
                     "case": "paused"
                   }
                 }
-              }]
+              } ]
             }
           }
         }, {
@@ -2849,7 +2839,7 @@
             },
             "construct": {
               "type": "temporal.standaloneactivity.ProductState",
-              "args": [{
+              "args": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 105
@@ -2860,7 +2850,7 @@
                     "case": "started"
                   }
                 }
-              }]
+              } ]
             }
           }
         }, {
@@ -2879,7 +2869,7 @@
             },
             "construct": {
               "type": "temporal.standaloneactivity.ProductState",
-              "args": [{
+              "args": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 106
@@ -2890,10 +2880,10 @@
                     "case": "completed"
                   }
                 }
-              }]
+              } ]
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -2902,7 +2892,7 @@
       "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 95
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.specimens.admission.AdmissionState"
@@ -2912,7 +2902,7 @@
       "type": {
         "named": "temporal.standaloneactivity.AttemptResult"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -2926,7 +2916,7 @@
           },
           "var": "r"
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -2983,8 +2973,7 @@
                   "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 97
                 },
-                "list": {
-                }
+                "list": { }
               },
               "else": {
                 "position": {
@@ -2992,14 +2981,14 @@
                   "line": 98
                 },
                 "list": {
-                  "items": [{
+                  "items": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Admission.scala",
                       "line": 98
                     },
                     "construct": {
                       "type": "umpire.Step",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Admission.scala",
                           "line": 98
@@ -3023,7 +3012,7 @@
                             },
                             "var": "s"
                           },
-                          "updates": [{
+                          "updates": [ {
                             "name": "phase",
                             "value": {
                               "position": {
@@ -3046,7 +3035,7 @@
                               },
                               "call": {
                                 "function": "fixture.specimens.admission.Admission$package$.oneLess",
-                                "args": [{
+                                "args": [ {
                                   "position": {
                                     "file": "model/lifter/testdata/lifts/Admission.scala",
                                     "line": 98
@@ -3061,10 +3050,10 @@
                                     },
                                     "field": "active"
                                   }
-                                }]
+                                } ]
                               }
                             }
-                          }]
+                          } ]
                         }
                       }, {
                         "position": {
@@ -3072,7 +3061,7 @@
                           "line": 99
                         },
                         "list": {
-                          "items": [{
+                          "items": [ {
                             "position": {
                               "file": "model/lifter/testdata/lifts/Admission.scala",
                               "line": 99
@@ -3083,7 +3072,7 @@
                                 "case": "statusCompleted"
                               }
                             }
-                          }]
+                          } ]
                         }
                       }, {
                         "position": {
@@ -3093,9 +3082,9 @@
                         "literal": {
                           "text": ""
                         }
-                      }]
+                      } ]
                     }
-                  }]
+                  } ]
                 }
               }
             }
@@ -3103,14 +3092,13 @@
         }, {
           "pattern": {
             "alternatives": {
-              "patterns": [{
+              "patterns": [ {
                 "case": {
                   "type": "temporal.standaloneactivity.AttemptResult",
                   "case": "failed",
-                  "fields": [{
-                    "wildcard": {
-                    }
-                  }]
+                  "fields": [ {
+                    "wildcard": { }
+                  } ]
                 }
               }, {
                 "literal": {
@@ -3119,7 +3107,7 @@
                     "case": "canceled"
                   }
                 }
-              }]
+              } ]
             }
           },
           "body": {
@@ -3127,10 +3115,9 @@
               "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 100
             },
-            "list": {
-            }
+            "list": { }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -3139,12 +3126,12 @@
       "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 144
     },
-    "params": [{
+    "params": [ {
       "name": "_$2",
       "type": {
         "named": "fixture.specimens.admission.Finality"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -3179,7 +3166,7 @@
       "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 177
     },
-    "params": [{
+    "params": [ {
       "name": "before",
       "type": {
         "named": "fixture.specimens.admission.AdmissionState"
@@ -3189,7 +3176,7 @@
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -3288,12 +3275,12 @@
       "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 166
     },
-    "params": [{
+    "params": [ {
       "name": "f",
       "type": {
         "named": "fixture.specimens.admission.AdmissionFact"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -3301,13 +3288,13 @@
       },
       "call": {
         "function": "fixture.specimens.admission.Admission$package$.admissionEvidence",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 166
           },
           "var": "f"
-        }]
+        } ]
       }
     }
   }, {
@@ -3316,7 +3303,7 @@
       "file": "model/temporal/standaloneactivity/Model.scala",
       "line": 167
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "temporal.standaloneactivity.ProductState"
@@ -3326,7 +3313,7 @@
       "type": {
         "named": "temporal.standaloneactivity.AttemptResult"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
@@ -3421,8 +3408,7 @@
             "file": "model/temporal/standaloneactivity/Model.scala",
             "line": 168
           },
-          "list": {
-          }
+          "list": { }
         },
         "else": {
           "position": {
@@ -3437,7 +3423,7 @@
               },
               "var": "result"
             },
-            "cases": [{
+            "cases": [ {
               "pattern": {
                 "literal": {
                   "enum": {
@@ -3453,7 +3439,7 @@
                 },
                 "call": {
                   "function": "temporal.standaloneactivity.Model$package$.productStep",
-                  "args": [{
+                  "args": [ {
                     "position": {
                       "file": "model/temporal/standaloneactivity/Model.scala",
                       "line": 172
@@ -3475,7 +3461,7 @@
                         "case": "statusCompleted"
                       }
                     }
-                  }]
+                  } ]
                 }
               }
             }, {
@@ -3483,15 +3469,14 @@
                 "case": {
                   "type": "temporal.standaloneactivity.AttemptResult",
                   "case": "failed",
-                  "fields": [{
+                  "fields": [ {
                     "bind": {
                       "name": "retryable",
                       "pattern": {
-                        "wildcard": {
-                        }
+                        "wildcard": { }
                       }
                     }
-                  }]
+                  } ]
                 }
               },
               "body": {
@@ -3523,7 +3508,7 @@
                     },
                     "call": {
                       "function": "temporal.standaloneactivity.Model$package$.productStep",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
                           "line": 174
@@ -3545,7 +3530,7 @@
                             "case": "statusFailed"
                           }
                         }
-                      }]
+                      } ]
                     }
                   },
                   "else": {
@@ -3598,7 +3583,7 @@
                         },
                         "call": {
                           "function": "temporal.standaloneactivity.Model$package$.productStep",
-                          "args": [{
+                          "args": [ {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
                               "line": 176
@@ -3620,7 +3605,7 @@
                                 "case": "statusCanceled"
                               }
                             }
-                          }]
+                          } ]
                         }
                       },
                       "else": {
@@ -3630,7 +3615,7 @@
                         },
                         "call": {
                           "function": "temporal.standaloneactivity.Model$package$.productStep",
-                          "args": [{
+                          "args": [ {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
                               "line": 177
@@ -3652,7 +3637,7 @@
                                 "case": "statusScheduled"
                               }
                             }
-                          }]
+                          } ]
                         }
                       }
                     }
@@ -3718,7 +3703,7 @@
                     },
                     "call": {
                       "function": "temporal.standaloneactivity.Model$package$.productStep",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
                           "line": 180
@@ -3740,7 +3725,7 @@
                             "case": "statusCanceled"
                           }
                         }
-                      }]
+                      } ]
                     }
                   },
                   "else": {
@@ -3748,12 +3733,11 @@
                       "file": "model/temporal/standaloneactivity/Model.scala",
                       "line": 181
                     },
-                    "list": {
-                    }
+                    "list": { }
                   }
                 }
               }
-            }]
+            } ]
           }
         }
       }
@@ -3764,12 +3748,12 @@
       "file": "model/temporal/standaloneactivity/Model.scala",
       "line": 156
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "temporal.standaloneactivity.ProductState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
@@ -3818,8 +3802,7 @@
             "file": "model/temporal/standaloneactivity/Model.scala",
             "line": 157
           },
-          "list": {
-          }
+          "list": { }
         },
         "else": {
           "position": {
@@ -3828,7 +3811,7 @@
           },
           "call": {
             "function": "temporal.standaloneactivity.Model$package$.productStep",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
                 "line": 158
@@ -3850,7 +3833,7 @@
                   "case": "statusStarted"
                 }
               }
-            }]
+            } ]
           }
         }
       }
@@ -3861,7 +3844,7 @@
       "file": "model/temporal/standaloneactivity/Model.scala",
       "line": 184
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "temporal.standaloneactivity.ProductState"
@@ -3871,7 +3854,7 @@
       "type": {
         "named": "temporal.standaloneactivity.Control"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
@@ -3885,13 +3868,13 @@
           },
           "call": {
             "function": "temporal.standaloneactivity.Model$package$.productTerminal",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
                 "line": 185
               },
               "var": "s"
-            }]
+            } ]
           }
         },
         "then": {
@@ -3900,14 +3883,14 @@
             "line": 185
           },
           "list": {
-            "items": [{
+            "items": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
                 "line": 185
               },
               "construct": {
                 "type": "umpire.Step",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Model.scala",
                     "line": 185
@@ -3929,8 +3912,7 @@
                     "file": "model/temporal/standaloneactivity/Model.scala",
                     "line": 185
                   },
-                  "list": {
-                  }
+                  "list": { }
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Model.scala",
@@ -3939,9 +3921,9 @@
                   "literal": {
                     "text": ""
                   }
-                }]
+                } ]
               }
-            }]
+            } ]
           }
         },
         "else": {
@@ -3957,7 +3939,7 @@
               },
               "var": "c"
             },
-            "cases": [{
+            "cases": [ {
               "pattern": {
                 "literal": {
                   "enum": {
@@ -4062,7 +4044,7 @@
                     },
                     "call": {
                       "function": "temporal.standaloneactivity.Model$package$.productStep",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
                           "line": 190
@@ -4084,7 +4066,7 @@
                             "case": "statusPaused"
                           }
                         }
-                      }]
+                      } ]
                     }
                   },
                   "else": {
@@ -4092,8 +4074,7 @@
                       "file": "model/temporal/standaloneactivity/Model.scala",
                       "line": 191
                     },
-                    "list": {
-                    }
+                    "list": { }
                   }
                 }
               }
@@ -4156,7 +4137,7 @@
                     },
                     "call": {
                       "function": "temporal.standaloneactivity.Model$package$.productStep",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
                           "line": 194
@@ -4178,7 +4159,7 @@
                             "case": "statusScheduled"
                           }
                         }
-                      }]
+                      } ]
                     }
                   },
                   "else": {
@@ -4186,8 +4167,7 @@
                       "file": "model/temporal/standaloneactivity/Model.scala",
                       "line": 195
                     },
-                    "list": {
-                    }
+                    "list": { }
                   }
                 }
               }
@@ -4388,7 +4368,7 @@
                     },
                     "call": {
                       "function": "temporal.standaloneactivity.Model$package$.productStep",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
                           "line": 199
@@ -4410,7 +4390,7 @@
                             "case": "statusCancelRequested"
                           }
                         }
-                      }]
+                      } ]
                     }
                   },
                   "else": {
@@ -4418,8 +4398,7 @@
                       "file": "model/temporal/standaloneactivity/Model.scala",
                       "line": 200
                     },
-                    "list": {
-                    }
+                    "list": { }
                   }
                 }
               }
@@ -4439,7 +4418,7 @@
                 },
                 "call": {
                   "function": "temporal.standaloneactivity.Model$package$.productStep",
-                  "args": [{
+                  "args": [ {
                     "position": {
                       "file": "model/temporal/standaloneactivity/Model.scala",
                       "line": 201
@@ -4461,10 +4440,10 @@
                         "case": "statusTerminated"
                       }
                     }
-                  }]
+                  } ]
                 }
               }
-            }]
+            } ]
           }
         }
       }
@@ -4475,7 +4454,7 @@
       "file": "model/temporal/standaloneactivity/Model.scala",
       "line": 143
     },
-    "params": [{
+    "params": [ {
       "name": "phase",
       "type": {
         "named": "temporal.standaloneactivity.ProductPhase"
@@ -4485,21 +4464,21 @@
       "type": {
         "named": "temporal.standaloneactivity.ProductFact"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
         "line": 144
       },
       "list": {
-        "items": [{
+        "items": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
             "line": 144
           },
           "construct": {
             "type": "umpire.Step",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
                 "line": 144
@@ -4517,13 +4496,13 @@
               },
               "construct": {
                 "type": "temporal.standaloneactivity.ProductState",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Model.scala",
                     "line": 144
                   },
                   "var": "phase"
-                }]
+                } ]
               }
             }, {
               "position": {
@@ -4531,13 +4510,13 @@
                 "line": 144
               },
               "list": {
-                "items": [{
+                "items": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Model.scala",
                     "line": 144
                   },
                   "var": "recorded"
-                }]
+                } ]
               }
             }, {
               "position": {
@@ -4547,9 +4526,9 @@
               "literal": {
                 "text": ""
               }
-            }]
+            } ]
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -4558,12 +4537,12 @@
       "file": "model/temporal/standaloneactivity/Model.scala",
       "line": 147
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "temporal.standaloneactivity.ProductState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
@@ -4586,10 +4565,10 @@
             "field": "phase"
           }
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "alternatives": {
-              "patterns": [{
+              "patterns": [ {
                 "literal": {
                   "enum": {
                     "type": "temporal.standaloneactivity.ProductPhase",
@@ -4624,7 +4603,7 @@
                     "case": "timedOut"
                   }
                 }
-              }]
+              } ]
             }
           },
           "body": {
@@ -4639,7 +4618,7 @@
         }, {
           "pattern": {
             "alternatives": {
-              "patterns": [{
+              "patterns": [ {
                 "literal": {
                   "enum": {
                     "type": "temporal.standaloneactivity.ProductPhase",
@@ -4667,7 +4646,7 @@
                     "case": "cancelRequested"
                   }
                 }
-              }]
+              } ]
             }
           },
           "body": {
@@ -4679,7 +4658,7 @@
               "bool": false
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -4688,12 +4667,12 @@
       "file": "model/temporal/standaloneactivity/Model.scala",
       "line": 207
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "temporal.standaloneactivity.ProductState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
@@ -4882,7 +4861,7 @@
           },
           "call": {
             "function": "temporal.standaloneactivity.Model$package$.productStep",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
                 "line": 210
@@ -4904,7 +4883,7 @@
                   "case": "statusTimedOut"
                 }
               }
-            }]
+            } ]
           }
         },
         "else": {
@@ -4912,8 +4891,7 @@
             "file": "model/temporal/standaloneactivity/Model.scala",
             "line": 211
           },
-          "list": {
-          }
+          "list": { }
         }
       }
     }
@@ -4923,22 +4901,21 @@
       "file": "model/temporal/standaloneactivity/Model.scala",
       "line": 204
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "temporal.standaloneactivity.ProductState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
         "line": 204
       },
-      "list": {
-      }
+      "list": { }
     }
-  }],
-  "actions": [{
+  } ],
+  "actions": [ {
     "id": "fixture.specimens.admission.Admission$package$.dispatch",
     "name": "dispatch",
     "position": {
@@ -4955,22 +4932,22 @@
       "line": 77
     },
     "party": "worker",
-    "inputs": [{
+    "inputs": [ {
       "name": "result",
       "type": {
         "named": "temporal.standaloneactivity.AttemptResult"
       }
-    }],
+    } ],
     "on": "activity",
-    "schemas": ["temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest", "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest", "temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest"],
-    "examples": [{
+    "schemas": [ "temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest", "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest", "temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest" ],
+    "examples": [ {
       "value": {
         "enum": {
           "type": "temporal.standaloneactivity.AttemptResult",
           "case": "failed",
-          "fields": [{
+          "fields": [ {
             "bool": false
-          }]
+          } ]
         }
       },
       "example": "ApplicationFailureNonRetryable"
@@ -4979,13 +4956,13 @@
         "enum": {
           "type": "temporal.standaloneactivity.AttemptResult",
           "case": "failed",
-          "fields": [{
+          "fields": [ {
             "bool": true
-          }]
+          } ]
         }
       },
       "example": "ApplicationFailureRetryable"
-    }]
+    } ]
   }, {
     "id": "temporal.standaloneactivity.Model$package$.attemptStart",
     "name": "attemptStart",
@@ -4995,7 +4972,7 @@
     },
     "party": "worker",
     "on": "activity",
-    "schemas": ["temporal.api.workflowservice.v1.PollActivityTaskQueueResponse"]
+    "schemas": [ "temporal.api.workflowservice.v1.PollActivityTaskQueueResponse" ]
   }, {
     "id": "temporal.standaloneactivity.Model$package$.control",
     "name": "control",
@@ -5004,14 +4981,14 @@
       "line": 92
     },
     "party": "caller",
-    "inputs": [{
+    "inputs": [ {
       "name": "control",
       "type": {
         "named": "temporal.standaloneactivity.Control"
       }
-    }],
+    } ],
     "on": "activity",
-    "schemas": ["temporal.api.workflowservice.v1.PauseActivityExecutionRequest", "temporal.api.workflowservice.v1.UnpauseActivityExecutionRequest", "temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest", "temporal.api.workflowservice.v1.TerminateActivityExecutionRequest"],
+    "schemas": [ "temporal.api.workflowservice.v1.PauseActivityExecutionRequest", "temporal.api.workflowservice.v1.UnpauseActivityExecutionRequest", "temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest", "temporal.api.workflowservice.v1.TerminateActivityExecutionRequest" ],
     "results": "Delivery"
   }, {
     "id": "temporal.standaloneactivity.Model$package$.timeout",
@@ -5030,8 +5007,8 @@
       "line": 52
     },
     "party": "worker"
-  }],
-  "machines": [{
+  } ],
+  "machines": [ {
     "family": "temporal.activity.standalone",
     "name": "activityProduct",
     "position": {
@@ -5042,14 +5019,14 @@
     "stateType": "temporal.standaloneactivity.ProductState",
     "outcomeType": "temporal.standaloneactivity.Outcome",
     "factType": "temporal.standaloneactivity.ProductFact",
-    "starts": [{
+    "starts": [ {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
         "line": 219
       },
       "construct": {
         "type": "temporal.standaloneactivity.ProductState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
             "line": 219
@@ -5060,21 +5037,21 @@
               "case": "scheduled"
             }
           }
-        }]
+        } ]
       }
-    }],
+    } ],
     "ends": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
         "line": 220
       },
       "lambda": {
-        "params": [{
+        "params": [ {
           "name": "s",
           "type": {
             "named": "temporal.standaloneactivity.ProductState"
           }
-        }],
+        } ],
         "body": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
@@ -5082,18 +5059,18 @@
           },
           "call": {
             "function": "temporal.standaloneactivity.Model$package$.productTerminal",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
                 "line": 220
               },
               "var": "s"
-            }]
+            } ]
           }
         }
       }
     },
-    "steps": [{
+    "steps": [ {
       "action": "temporal.standaloneactivity.Model$package$.attemptStart",
       "function": "temporal.standaloneactivity.Model$package$.attemptStartStep",
       "position": {
@@ -5128,7 +5105,7 @@
         "file": "model/temporal/standaloneactivity/Model.scala",
         "line": 237
       }
-    }],
+    } ],
     "evidence": "activityProduct.evidence"
   }, {
     "family": "temporal.activity.standalone.admission",
@@ -5141,14 +5118,14 @@
     "stateType": "fixture.specimens.admission.AdmissionState",
     "outcomeType": "temporal.standaloneactivity.Outcome",
     "factType": "fixture.specimens.admission.AdmissionFact",
-    "starts": [{
+    "starts": [ {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 44
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
@@ -5181,21 +5158,21 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
-    }],
+    } ],
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 154
       },
       "lambda": {
-        "params": [{
+        "params": [ {
           "name": "s",
           "type": {
             "named": "fixture.specimens.admission.AdmissionState"
           }
-        }],
+        } ],
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -5203,18 +5180,18 @@
           },
           "call": {
             "function": "fixture.specimens.admission.Admission$package$.admissionEnds",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 154
               },
               "var": "s"
-            }]
+            } ]
           }
         }
       }
     },
-    "steps": [{
+    "steps": [ {
       "action": "fixture.specimens.admission.Admission$package$.dispatch",
       "function": "fixture.specimens.admission.Admission$package$.dispatchStep",
       "position": {
@@ -5242,13 +5219,13 @@
         "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 156
       }
-    }],
+    } ],
     "evidence": "currentAdmission.evidence",
     "refines": {
       "product": "activityProduct",
       "map": "fixture.specimens.admission.Admission$package$.productOfAdmission"
     },
-    "monitors": ["fixture.specimens.admission.Admission$package$.atMostOneActiveAttempt", "fixture.specimens.admission.Admission$package$.terminalFinality"]
+    "monitors": [ "fixture.specimens.admission.Admission$package$.atMostOneActiveAttempt", "fixture.specimens.admission.Admission$package$.terminalFinality" ]
   }, {
     "family": "temporal.activity.standalone.admission",
     "name": "staleAdmission",
@@ -5260,14 +5237,14 @@
     "stateType": "fixture.specimens.admission.AdmissionState",
     "outcomeType": "temporal.standaloneactivity.Outcome",
     "factType": "fixture.specimens.admission.AdmissionFact",
-    "starts": [{
+    "starts": [ {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 44
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
@@ -5300,21 +5277,21 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
-    }],
+    } ],
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 165
       },
       "lambda": {
-        "params": [{
+        "params": [ {
           "name": "s",
           "type": {
             "named": "fixture.specimens.admission.AdmissionState"
           }
-        }],
+        } ],
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -5322,18 +5299,18 @@
           },
           "call": {
             "function": "fixture.specimens.admission.Admission$package$.admissionEnds",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 165
               },
               "var": "s"
-            }]
+            } ]
           }
         }
       }
     },
-    "steps": [{
+    "steps": [ {
       "action": "fixture.specimens.admission.Admission$package$.dispatch",
       "function": "fixture.specimens.admission.Admission$package$.dispatchStep",
       "position": {
@@ -5361,15 +5338,15 @@
         "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 167
       }
-    }],
+    } ],
     "evidence": "staleAdmission.evidence",
     "refines": {
       "product": "activityProduct",
       "map": "fixture.specimens.admission.Admission$package$.productOfAdmission"
     },
-    "monitors": ["fixture.specimens.admission.Admission$package$.atMostOneActiveAttempt", "fixture.specimens.admission.Admission$package$.terminalFinality"]
-  }],
-  "monitors": [{
+    "monitors": [ "fixture.specimens.admission.Admission$package$.atMostOneActiveAttempt", "fixture.specimens.admission.Admission$package$.terminalFinality" ]
+  } ],
+  "monitors": [ {
     "id": "fixture.specimens.admission.Admission$package$.atMostOneActiveAttempt",
     "name": "atMostOneActiveAttempt",
     "position": {
@@ -5418,10 +5395,9 @@
     },
     "next": "fixture.specimens.admission.Admission$package$.finality",
     "violated": "fixture.specimens.admission.Admission$package$.terminalFinality.violated",
-    "everyStep": {
-    }
-  }],
-  "properties": [{
+    "everyStep": { }
+  } ],
+  "properties": [ {
     "machine": "activityProduct",
     "name": "pausedIsNotDispatched",
     "position": {
@@ -5482,8 +5458,8 @@
     },
     "holds": "fixture.specimens.admission.Admission$package$.terminalStays",
     "transition": true
-  }],
-  "scenarios": [{
+  } ],
+  "scenarios": [ {
     "machine": "currentAdmission",
     "name": "admittedBeforePause",
     "position": {
@@ -5497,7 +5473,7 @@
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
@@ -5530,22 +5506,22 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
-    "actions": [{
+    "actions": [ {
       "action": "fixture.specimens.admission.Admission$package$.dispatch"
     }, {
       "action": "temporal.standaloneactivity.Model$package$.attemptStart"
     }, {
       "action": "temporal.standaloneactivity.Model$package$.control",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.standaloneactivity.Control",
           "case": "pause"
         }
-      }]
-    }]
+      } ]
+    } ]
   }, {
     "machine": "currentAdmission",
     "name": "any",
@@ -5560,7 +5536,7 @@
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
@@ -5593,7 +5569,7 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
     "free": true
@@ -5611,7 +5587,7 @@
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
@@ -5644,16 +5620,16 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
-    "actions": [{
+    "actions": [ {
       "action": "fixture.specimens.admission.Admission$package$.dispatch"
     }, {
       "action": "temporal.standaloneactivity.Model$package$.attemptStart"
     }, {
       "action": "temporal.standaloneactivity.Model$package$.attemptStart"
-    }]
+    } ]
   }, {
     "machine": "currentAdmission",
     "name": "staleDeliveryAfterPause",
@@ -5668,7 +5644,7 @@
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
@@ -5701,22 +5677,22 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
-    "actions": [{
+    "actions": [ {
       "action": "fixture.specimens.admission.Admission$package$.dispatch"
     }, {
       "action": "temporal.standaloneactivity.Model$package$.control",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.standaloneactivity.Control",
           "case": "pause"
         }
-      }]
+      } ]
     }, {
       "action": "temporal.standaloneactivity.Model$package$.attemptStart"
-    }]
+    } ]
   }, {
     "machine": "staleAdmission",
     "name": "admittedBeforePause",
@@ -5731,7 +5707,7 @@
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
@@ -5764,22 +5740,22 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
-    "actions": [{
+    "actions": [ {
       "action": "fixture.specimens.admission.Admission$package$.dispatch"
     }, {
       "action": "temporal.standaloneactivity.Model$package$.attemptStart"
     }, {
       "action": "temporal.standaloneactivity.Model$package$.control",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.standaloneactivity.Control",
           "case": "pause"
         }
-      }]
-    }]
+      } ]
+    } ]
   }, {
     "machine": "staleAdmission",
     "name": "any",
@@ -5794,7 +5770,7 @@
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
@@ -5827,7 +5803,7 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
     "free": true
@@ -5845,7 +5821,7 @@
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
@@ -5878,16 +5854,16 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
-    "actions": [{
+    "actions": [ {
       "action": "fixture.specimens.admission.Admission$package$.dispatch"
     }, {
       "action": "temporal.standaloneactivity.Model$package$.attemptStart"
     }, {
       "action": "temporal.standaloneactivity.Model$package$.attemptStart"
-    }]
+    } ]
   }, {
     "machine": "staleAdmission",
     "name": "staleDeliveryAfterPause",
@@ -5902,7 +5878,7 @@
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
@@ -5935,24 +5911,24 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
-    "actions": [{
+    "actions": [ {
       "action": "fixture.specimens.admission.Admission$package$.dispatch"
     }, {
       "action": "temporal.standaloneactivity.Model$package$.control",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.standaloneactivity.Control",
           "case": "pause"
         }
-      }]
+      } ]
     }, {
       "action": "temporal.standaloneactivity.Model$package$.attemptStart"
-    }]
-  }],
-  "queries": [{
+    } ]
+  } ],
+  "queries": [ {
     "name": "currentAdmission.admittedBeforePause",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
@@ -6248,5 +6224,5 @@
       "actions": 3,
       "search": 4096
     }
-  }]
+  } ]
 }

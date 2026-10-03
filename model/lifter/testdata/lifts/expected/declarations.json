@@ -1,13 +1,13 @@
 {
   "source": "model: fixture.declarations.Declarations$package$.durableEventually, fixture.declarations.Declarations$package$.queries",
-  "types": [{
+  "types": [ {
     "name": "fixture.declarations.DetailedPair",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 120
     },
     "record": {
-      "fields": [{
+      "fields": [ {
         "name": "front",
         "type": {
           "named": "fixture.declarations.Store"
@@ -17,7 +17,7 @@
         "type": {
           "named": "fixture.declarations.Disk"
         }
-      }]
+      } ]
     }
   }, {
     "name": "fixture.declarations.Disk",
@@ -26,12 +26,12 @@
       "line": 54
     },
     "record": {
-      "fields": [{
+      "fields": [ {
         "name": "stage",
         "type": {
           "named": "fixture.declarations.Stage"
         }
-      }]
+      } ]
     }
   }, {
     "name": "fixture.declarations.Fact",
@@ -40,11 +40,11 @@
       "line": 20
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "stored"
       }, {
         "name": "staged"
-      }]
+      } ]
     }
   }, {
     "name": "fixture.declarations.Kept",
@@ -53,11 +53,11 @@
       "line": 12
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "nothing"
       }, {
         "name": "held"
-      }]
+      } ]
     }
   }, {
     "name": "fixture.declarations.Outcome",
@@ -66,11 +66,11 @@
       "line": 17
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "accepted"
       }, {
         "name": "deferred"
-      }]
+      } ]
     }
   }, {
     "name": "fixture.declarations.Pair",
@@ -79,7 +79,7 @@
       "line": 118
     },
     "record": {
-      "fields": [{
+      "fields": [ {
         "name": "front",
         "type": {
           "named": "fixture.declarations.Store"
@@ -89,7 +89,7 @@
         "type": {
           "named": "fixture.declarations.Store"
         }
-      }]
+      } ]
     }
   }, {
     "name": "fixture.declarations.Seen",
@@ -98,13 +98,13 @@
       "line": 72
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "never"
       }, {
         "name": "once"
       }, {
         "name": "twice"
-      }]
+      } ]
     }
   }, {
     "name": "fixture.declarations.Stage",
@@ -113,13 +113,13 @@
       "line": 51
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "empty"
       }, {
         "name": "staged"
       }, {
         "name": "durable"
-      }]
+      } ]
     }
   }, {
     "name": "fixture.declarations.Store",
@@ -128,26 +128,26 @@
       "line": 15
     },
     "record": {
-      "fields": [{
+      "fields": [ {
         "name": "kept",
         "type": {
           "named": "fixture.declarations.Kept"
         }
-      }]
+      } ]
     }
-  }],
-  "functions": [{
+  } ],
+  "functions": [ {
     "name": "detailedPair.property.frontHeld",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 143
     },
-    "params": [{
+    "params": [ {
       "name": "after",
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -209,12 +209,12 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 106
     },
-    "params": [{
+    "params": [ {
       "name": "f",
       "type": {
         "named": "fixture.declarations.Fact"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -222,13 +222,13 @@
       },
       "call": {
         "function": "fixture.declarations.Declarations$package$.evidenceOf",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
             "line": 106
           },
           "var": "f"
-        }]
+        } ]
       }
     }
   }, {
@@ -237,12 +237,12 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 112
     },
-    "params": [{
+    "params": [ {
       "name": "d",
       "type": {
         "named": "fixture.declarations.Disk"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -286,12 +286,12 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 113
     },
-    "params": [{
+    "params": [ {
       "name": "d",
       "type": {
         "named": "fixture.declarations.Disk"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -335,7 +335,7 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 133
     },
-    "params": [{
+    "params": [ {
       "name": "before",
       "type": {
         "named": "fixture.declarations.Disk"
@@ -345,7 +345,7 @@
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -444,12 +444,12 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 139
     },
-    "params": [{
+    "params": [ {
       "name": "after",
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -493,12 +493,12 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 101
     },
-    "params": [{
+    "params": [ {
       "name": "f",
       "type": {
         "named": "fixture.declarations.Fact"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -533,12 +533,12 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 102
     },
-    "params": [{
+    "params": [ {
       "name": "o",
       "type": {
         "named": "fixture.declarations.Outcome"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -573,7 +573,7 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 75
     },
-    "params": [{
+    "params": [ {
       "name": "seen",
       "type": {
         "named": "fixture.declarations.Seen"
@@ -588,7 +588,7 @@
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -661,7 +661,7 @@
               },
               "var": "seen"
             },
-            "cases": [{
+            "cases": [ {
               "pattern": {
                 "literal": {
                   "enum": {
@@ -685,7 +685,7 @@
             }, {
               "pattern": {
                 "alternatives": {
-                  "patterns": [{
+                  "patterns": [ {
                     "literal": {
                       "enum": {
                         "type": "fixture.declarations.Seen",
@@ -699,7 +699,7 @@
                         "case": "twice"
                       }
                     }
-                  }]
+                  } ]
                 }
               },
               "body": {
@@ -714,7 +714,7 @@
                   }
                 }
               }
-            }]
+            } ]
           }
         }
       }
@@ -725,12 +725,12 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 69
     },
-    "params": [{
+    "params": [ {
       "name": "d",
       "type": {
         "named": "fixture.declarations.Disk"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -786,8 +786,7 @@
             "file": "model/lifter/testdata/lifts/Declarations.scala",
             "line": 70
           },
-          "list": {
-          }
+          "list": { }
         }
       }
     }
@@ -797,11 +796,10 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 88
     },
-    "params": [{
+    "params": [ {
       "name": "_$1",
       "type": {
-        "bool": {
-        }
+        "bool": { }
       }
     }, {
       "name": "_$2",
@@ -813,7 +811,7 @@
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -866,13 +864,12 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 90
     },
-    "params": [{
+    "params": [ {
       "name": "durable",
       "type": {
-        "bool": {
-        }
+        "bool": { }
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -895,12 +892,12 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 31
     },
-    "params": [{
+    "params": [ {
       "name": "f",
       "type": {
         "named": "fixture.declarations.Fact"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -914,7 +911,7 @@
           },
           "var": "f"
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -950,7 +947,7 @@
               "text": "staged"
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -959,12 +956,12 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 64
     },
-    "params": [{
+    "params": [ {
       "name": "d",
       "type": {
         "named": "fixture.declarations.Disk"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -987,7 +984,7 @@
             "field": "stage"
           }
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -1002,14 +999,14 @@
               "line": 65
             },
             "list": {
-              "items": [{
+              "items": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Declarations.scala",
                   "line": 65
                 },
                 "construct": {
                   "type": "umpire.Step",
-                  "args": [{
+                  "args": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Declarations.scala",
                       "line": 65
@@ -1027,7 +1024,7 @@
                     },
                     "construct": {
                       "type": "fixture.declarations.Disk",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Declarations.scala",
                           "line": 65
@@ -1038,7 +1035,7 @@
                             "case": "durable"
                           }
                         }
-                      }]
+                      } ]
                     }
                   }, {
                     "position": {
@@ -1046,7 +1043,7 @@
                       "line": 65
                     },
                     "list": {
-                      "items": [{
+                      "items": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Declarations.scala",
                           "line": 65
@@ -1057,7 +1054,7 @@
                             "case": "staged"
                           }
                         }
-                      }]
+                      } ]
                     }
                   }, {
                     "position": {
@@ -1067,25 +1064,23 @@
                     "literal": {
                       "text": ""
                     }
-                  }]
+                  } ]
                 }
-              }]
+              } ]
             }
           }
         }, {
           "pattern": {
-            "wildcard": {
-            }
+            "wildcard": { }
           },
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Declarations.scala",
               "line": 66
             },
-            "list": {
-            }
+            "list": { }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -1094,12 +1089,12 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 59
     },
-    "params": [{
+    "params": [ {
       "name": "d",
       "type": {
         "named": "fixture.declarations.Disk"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -1122,7 +1117,7 @@
             "field": "stage"
           }
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -1137,14 +1132,14 @@
               "line": 60
             },
             "list": {
-              "items": [{
+              "items": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Declarations.scala",
                   "line": 60
                 },
                 "construct": {
                   "type": "umpire.Step",
-                  "args": [{
+                  "args": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Declarations.scala",
                       "line": 60
@@ -1162,7 +1157,7 @@
                     },
                     "construct": {
                       "type": "fixture.declarations.Disk",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Declarations.scala",
                           "line": 60
@@ -1173,7 +1168,7 @@
                             "case": "staged"
                           }
                         }
-                      }]
+                      } ]
                     }
                   }, {
                     "position": {
@@ -1181,7 +1176,7 @@
                       "line": 60
                     },
                     "list": {
-                      "items": [{
+                      "items": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Declarations.scala",
                           "line": 60
@@ -1192,7 +1187,7 @@
                             "case": "stored"
                           }
                         }
-                      }]
+                      } ]
                     }
                   }, {
                     "position": {
@@ -1202,15 +1197,15 @@
                     "literal": {
                       "text": ""
                     }
-                  }]
+                  } ]
                 }
-              }]
+              } ]
             }
           }
         }, {
           "pattern": {
             "alternatives": {
-              "patterns": [{
+              "patterns": [ {
                 "literal": {
                   "enum": {
                     "type": "fixture.declarations.Stage",
@@ -1224,7 +1219,7 @@
                     "case": "durable"
                   }
                 }
-              }]
+              } ]
             }
           },
           "body": {
@@ -1232,10 +1227,9 @@
               "file": "model/lifter/testdata/lifts/Declarations.scala",
               "line": 61
             },
-            "list": {
-            }
+            "list": { }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -1244,12 +1238,12 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 95
     },
-    "params": [{
+    "params": [ {
       "name": "after",
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -1302,11 +1296,10 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 93
     },
-    "params": [{
+    "params": [ {
       "name": "seen",
       "type": {
-        "bool": {
-        }
+        "bool": { }
       }
     }, {
       "name": "_$3",
@@ -1318,7 +1311,7 @@
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -1378,13 +1371,12 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 95
     },
-    "params": [{
+    "params": [ {
       "name": "seen",
       "type": {
-        "bool": {
-        }
+        "bool": { }
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -1407,12 +1399,12 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 56
     },
-    "params": [{
+    "params": [ {
       "name": "d",
       "type": {
         "named": "fixture.declarations.Disk"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -1463,7 +1455,7 @@
           },
           "construct": {
             "type": "fixture.declarations.Store",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
                 "line": 57
@@ -1474,7 +1466,7 @@
                   "case": "nothing"
                 }
               }
-            }]
+            } ]
           }
         },
         "else": {
@@ -1484,7 +1476,7 @@
           },
           "construct": {
             "type": "fixture.declarations.Store",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
                 "line": 57
@@ -1495,7 +1487,7 @@
                   "case": "held"
                 }
               }
-            }]
+            } ]
           }
         }
       }
@@ -1506,12 +1498,12 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 83
     },
-    "params": [{
+    "params": [ {
       "name": "seen",
       "type": {
         "named": "fixture.declarations.Seen"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -1546,12 +1538,12 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 141
     },
-    "params": [{
+    "params": [ {
       "name": "after",
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -1635,12 +1627,12 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 41
     },
-    "params": [{
+    "params": [ {
       "name": "f",
       "type": {
         "named": "fixture.declarations.Fact"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -1648,13 +1640,13 @@
       },
       "call": {
         "function": "fixture.declarations.Declarations$package$.evidenceOf",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
             "line": 41
           },
           "var": "f"
-        }]
+        } ]
       }
     }
   }, {
@@ -1663,12 +1655,12 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 137
     },
-    "params": [{
+    "params": [ {
       "name": "after",
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -1712,12 +1704,12 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 43
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.declarations.Store"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -1767,14 +1759,14 @@
             "line": 45
           },
           "list": {
-            "items": [{
+            "items": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
                 "line": 45
               },
               "construct": {
                 "type": "umpire.Step",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Declarations.scala",
                     "line": 45
@@ -1792,7 +1784,7 @@
                   },
                   "construct": {
                     "type": "fixture.declarations.Store",
-                    "args": [{
+                    "args": [ {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Declarations.scala",
                         "line": 45
@@ -1803,7 +1795,7 @@
                           "case": "held"
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
@@ -1811,7 +1803,7 @@
                     "line": 45
                   },
                   "list": {
-                    "items": [{
+                    "items": [ {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Declarations.scala",
                         "line": 45
@@ -1822,7 +1814,7 @@
                           "case": "stored"
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
@@ -1832,9 +1824,9 @@
                   "literal": {
                     "text": ""
                   }
-                }]
+                } ]
               }
-            }]
+            } ]
           }
         },
         "else": {
@@ -1842,13 +1834,12 @@
             "file": "model/lifter/testdata/lifts/Declarations.scala",
             "line": 46
           },
-          "list": {
-          }
+          "list": { }
         }
       }
     }
-  }],
-  "actions": [{
+  } ],
+  "actions": [ {
     "id": "fixture.declarations.Declarations$package$.crash",
     "name": "crash",
     "position": {
@@ -1873,8 +1864,8 @@
       "line": 23
     },
     "party": "client"
-  }],
-  "machines": [{
+  } ],
+  "machines": [ {
     "family": "fixture.declarations",
     "name": "disk",
     "position": {
@@ -1884,14 +1875,14 @@
     "stateType": "fixture.declarations.Disk",
     "outcomeType": "fixture.declarations.Outcome",
     "factType": "fixture.declarations.Fact",
-    "starts": [{
+    "starts": [ {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
         "line": 104
       },
       "construct": {
         "type": "fixture.declarations.Disk",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
             "line": 104
@@ -1902,21 +1893,21 @@
               "case": "empty"
             }
           }
-        }]
+        } ]
       }
-    }],
+    } ],
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
         "line": 105
       },
       "lambda": {
-        "params": [{
+        "params": [ {
           "name": "d",
           "type": {
             "named": "fixture.declarations.Disk"
           }
-        }],
+        } ],
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -1956,7 +1947,7 @@
         }
       }
     },
-    "steps": [{
+    "steps": [ {
       "action": "fixture.declarations.Declarations$package$.put",
       "function": "fixture.declarations.Declarations$package$.putStep",
       "position": {
@@ -1977,7 +1968,7 @@
         "file": "model/lifter/testdata/lifts/Declarations.scala",
         "line": 107
       }
-    }],
+    } ],
     "evidence": "disk.evidence",
     "refines": {
       "product": "store",
@@ -1985,7 +1976,7 @@
       "visible": "disk.visible",
       "visibleOutcomes": "disk.visibleOutcomes"
     },
-    "monitors": ["fixture.declarations.Declarations$package$.storedOnce", "fixture.declarations.Declarations$package$.endsDurable", "fixture.declarations.Declarations$package$.stagedBeforeDurable"]
+    "monitors": [ "fixture.declarations.Declarations$package$.storedOnce", "fixture.declarations.Declarations$package$.endsDurable", "fixture.declarations.Declarations$package$.stagedBeforeDurable" ]
   }, {
     "family": "fixture.declarations",
     "name": "store",
@@ -1996,14 +1987,14 @@
     "stateType": "fixture.declarations.Store",
     "outcomeType": "fixture.declarations.Outcome",
     "factType": "fixture.declarations.Fact",
-    "starts": [{
+    "starts": [ {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
         "line": 39
       },
       "construct": {
         "type": "fixture.declarations.Store",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
             "line": 39
@@ -2014,21 +2005,21 @@
               "case": "nothing"
             }
           }
-        }]
+        } ]
       }
-    }],
+    } ],
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
         "line": 40
       },
       "lambda": {
-        "params": [{
+        "params": [ {
           "name": "s",
           "type": {
             "named": "fixture.declarations.Store"
           }
-        }],
+        } ],
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -2068,18 +2059,18 @@
         }
       }
     },
-    "steps": [{
+    "steps": [ {
       "action": "fixture.declarations.Declarations$package$.put",
       "function": "store.put",
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
         "line": 43
       }
-    }],
+    } ],
     "evidence": "store.evidence",
-    "assumes": ["fixture.declarations.Declarations$package$.storeOpaque"]
-  }],
-  "monitors": [{
+    "assumes": [ "fixture.declarations.Declarations$package$.storeOpaque" ]
+  } ],
+  "monitors": [ {
     "id": "fixture.declarations.Declarations$package$.endsDurable",
     "name": "endsDurable",
     "position": {
@@ -2087,8 +2078,7 @@
       "line": 87
     },
     "state": {
-      "bool": {
-      }
+      "bool": { }
     },
     "initial": {
       "position": {
@@ -2101,8 +2091,7 @@
     },
     "next": "fixture.declarations.Declarations$package$.endsDurable.next",
     "violated": "fixture.declarations.Declarations$package$.endsDurable.violated",
-    "atEnds": {
-    }
+    "atEnds": { }
   }, {
     "id": "fixture.declarations.Declarations$package$.stagedBeforeDurable",
     "name": "stagedBeforeDurable",
@@ -2111,8 +2100,7 @@
       "line": 92
     },
     "state": {
-      "bool": {
-      }
+      "bool": { }
     },
     "initial": {
       "position": {
@@ -2150,17 +2138,16 @@
     },
     "next": "fixture.declarations.Declarations$package$.countStored",
     "violated": "fixture.declarations.Declarations$package$.storedOnce.violated",
-    "everyStep": {
-    }
-  }],
-  "assumptions": [{
+    "everyStep": { }
+  } ],
+  "assumptions": [ {
     "id": "fixture.declarations.Declarations$package$.flushRuns",
     "name": "flushEventuallyRuns",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 28
     },
-    "fair": ["fixture.declarations.Declarations$package$.flush"]
+    "fair": [ "fixture.declarations.Declarations$package$.flush" ]
   }, {
     "id": "fixture.declarations.Declarations$package$.storeOpaque",
     "name": "storeOpaque",
@@ -2168,16 +2155,16 @@
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 27
     }
-  }],
-  "holes": [{
+  } ],
+  "holes": [ {
     "id": "fixture.declarations.Declarations$package$.crashUnmodeled",
     "name": "crashUnmodeled",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 29
     }
-  }],
-  "compositions": [{
+  } ],
+  "compositions": [ {
     "family": "fixture.declarations",
     "name": "detailedPair",
     "position": {
@@ -2185,15 +2172,15 @@
       "line": 128
     },
     "stateType": "fixture.declarations.DetailedPair",
-    "members": [{
+    "members": [ {
       "field": "front",
       "machine": "store"
     }, {
       "field": "back",
       "machine": "disk",
       "replaces": "store"
-    }],
-    "syncs": [{
+    } ],
+    "syncs": [ {
       "name": "putBoth",
       "first": {
         "member": "front",
@@ -2203,19 +2190,19 @@
         "member": "back",
         "action": "put"
       }
-    }],
+    } ],
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
         "line": 131
       },
       "lambda": {
-        "params": [{
+        "params": [ {
           "name": "p",
           "type": {
             "named": "fixture.declarations.DetailedPair"
           }
-        }],
+        } ],
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -2272,14 +2259,14 @@
       "line": 123
     },
     "stateType": "fixture.declarations.Pair",
-    "members": [{
+    "members": [ {
       "field": "front",
       "machine": "store"
     }, {
       "field": "back",
       "machine": "store"
-    }],
-    "syncs": [{
+    } ],
+    "syncs": [ {
       "name": "putBoth",
       "first": {
         "member": "front",
@@ -2289,19 +2276,19 @@
         "member": "back",
         "action": "put"
       }
-    }],
+    } ],
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
         "line": 125
       },
       "lambda": {
-        "params": [{
+        "params": [ {
           "name": "p",
           "type": {
             "named": "fixture.declarations.Pair"
           }
-        }],
+        } ],
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -2363,8 +2350,8 @@
         }
       }
     }
-  }],
-  "properties": [{
+  } ],
+  "properties": [ {
     "machine": "detailedPair",
     "name": "frontHeld",
     "position": {
@@ -2409,8 +2396,8 @@
       "action": "fixture.declarations.Declarations$package$.put"
     },
     "holds": "store.property.putStores"
-  }],
-  "scenarios": [{
+  } ],
+  "scenarios": [ {
     "machine": "detailedPair",
     "name": "bothPut",
     "position": {
@@ -2424,14 +2411,14 @@
       },
       "construct": {
         "type": "fixture.declarations.DetailedPair",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
             "line": 154
           },
           "construct": {
             "type": "fixture.declarations.Store",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
                 "line": 154
@@ -2442,7 +2429,7 @@
                   "case": "nothing"
                 }
               }
-            }]
+            } ]
           }
         }, {
           "position": {
@@ -2451,7 +2438,7 @@
           },
           "construct": {
             "type": "fixture.declarations.Disk",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
                 "line": 154
@@ -2462,12 +2449,12 @@
                   "case": "empty"
                 }
               }
-            }]
+            } ]
           }
-        }]
+        } ]
       }
     },
-    "keys": ["putBoth"]
+    "keys": [ "putBoth" ]
   }, {
     "machine": "disk",
     "name": "any",
@@ -2482,7 +2469,7 @@
       },
       "construct": {
         "type": "fixture.declarations.Disk",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
             "line": 147
@@ -2493,7 +2480,7 @@
               "case": "empty"
             }
           }
-        }]
+        } ]
       }
     },
     "free": true
@@ -2511,7 +2498,7 @@
       },
       "construct": {
         "type": "fixture.declarations.Disk",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
             "line": 146
@@ -2522,14 +2509,14 @@
               "case": "empty"
             }
           }
-        }]
+        } ]
       }
     },
-    "actions": [{
+    "actions": [ {
       "action": "fixture.declarations.Declarations$package$.put"
     }, {
       "action": "fixture.declarations.Declarations$package$.flush"
-    }]
+    } ]
   }, {
     "machine": "pair",
     "name": "any",
@@ -2544,14 +2531,14 @@
       },
       "construct": {
         "type": "fixture.declarations.Pair",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
             "line": 150
           },
           "construct": {
             "type": "fixture.declarations.Store",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
                 "line": 150
@@ -2562,7 +2549,7 @@
                   "case": "nothing"
                 }
               }
-            }]
+            } ]
           }
         }, {
           "position": {
@@ -2571,7 +2558,7 @@
           },
           "construct": {
             "type": "fixture.declarations.Store",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
                 "line": 150
@@ -2582,9 +2569,9 @@
                   "case": "nothing"
                 }
               }
-            }]
+            } ]
           }
-        }]
+        } ]
       }
     },
     "free": true
@@ -2602,7 +2589,7 @@
       },
       "construct": {
         "type": "fixture.declarations.Store",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
             "line": 148
@@ -2613,14 +2600,14 @@
               "case": "nothing"
             }
           }
-        }]
+        } ]
       }
     },
-    "actions": [{
+    "actions": [ {
       "action": "fixture.declarations.Declarations$package$.put"
-    }]
-  }],
-  "queries": [{
+    } ]
+  } ],
+  "queries": [ {
     "name": "bothPut",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
@@ -2747,8 +2734,8 @@
       "actions": 2,
       "search": 64
     }
-  }],
-  "progress": [{
+  } ],
+  "progress": [ {
     "machine": "disk",
     "name": "durableEventually",
     "position": {
@@ -2758,6 +2745,6 @@
     "from": "disk.progress.durableEventually.from",
     "to": "disk.progress.durableEventually.to",
     "within": 2,
-    "assumptions": ["fixture.declarations.Declarations$package$.flushRuns"]
-  }]
+    "assumptions": [ "fixture.declarations.Declarations$package$.flushRuns" ]
+  } ]
 }

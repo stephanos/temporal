@@ -1,9 +1,10 @@
 package umpire.lift
 
-import com.google.protobuf.Descriptors.FieldDescriptor
-import com.google.protobuf.Message
-import scala.jdk.CollectionConverters.*
+import scala.collection.mutable
 import io.temporal.server.api.umpire.v1 as ir
+import scalapb.{GeneratedMessage, GeneratedMessageCompanion}
+import scalapb.descriptors.{Descriptor, FieldDescriptor, PValue, ScalaType}
+import scalapb.descriptors.{PBoolean, PEnum, PInt, PLong, PMessage, PRepeated, PString}
 
 private[lift] trait Realizations:
   self: Lifting =>
@@ -14,6 +15,25 @@ private[lift] trait Realizations:
 
   /** A term, and what the helper function parameters and local vals it names are bound to. */
   final class Bound(val term: Term, val env: Map[Symbol, Bound])
+
+  /** An IR message being written: its fields by descriptor, as its companion's reader takes them. */
+  final class Message(val descriptor: Descriptor):
+    private val values = mutable.Map.empty[FieldDescriptor, PValue]
+    // Setting a member of a oneof clears the others.
+    def set(f: FieldDescriptor, v: PValue): Unit =
+      if f.containingOneof.nonEmpty then
+        values.filterInPlace((k, _) => k.containingOneof != f.containingOneof)
+      values(f) = v
+    def add(f: FieldDescriptor, v: PValue): Unit = values(f) = values.get(f) match
+      case Some(PRepeated(items)) => PRepeated(items :+ v)
+      case _                      => PRepeated(Vector(v))
+    def written: PMessage = PMessage(values.toMap)
+
+  /** The IR message of a companion that a declaration writes. */
+  def emit[A <: GeneratedMessage](companion: GeneratedMessageCompanion[A], b: Bound): A =
+    val m = Message(companion.scalaDescriptor)
+    declaration(b, m)
+    companion.messageReads.read(m.written)
 
   /** A value the IR names rather than writes out: a machine, a channel, an action or a class. */
   def namedByIR(tpe: TypeRepr): Boolean =
@@ -71,6 +91,11 @@ private[lift] trait Realizations:
             case _ => b
         case _ => b
 
+  // A field kind spelled as the refusal has always spelled it, in protobuf-java's JavaType names.
+  def javaKind(kind: ScalaType): String = kind match
+    case ScalaType.ByteString => "BYTE_STRING"
+    case other                => other.toString.toUpperCase
+
   def snake(name: String): String =
     name
       .flatMap(c => if c.isUpper then s"_${c.toLower}" else c.toString)
@@ -110,7 +135,7 @@ private[lift] trait Realizations:
     b.term match
       case Literal(StringConstant(s))                 => s
       case r: Ref if isNamed(r.tpe, "umpire.Machine") =>
-        machineOf(resolveSymbol(r), r).getName
+        machineOf(resolveSymbol(r), r).name
       case r: Ref if isNamed(r.tpe, "umpire.Channel") =>
         channelOf(resolveSymbol(r), r)
       case Apply(
@@ -148,122 +173,109 @@ private[lift] trait Realizations:
         fail(other, s"expected a sequence written out, got ${other.show}")
 
   /** One value of a field: a message of the field's type, a class, or a constant. */
-  def valueOf(f: FieldDescriptor, into: Message.Builder, b0: Bound): Object =
+  def valueOf(f: FieldDescriptor, b0: Bound): PValue =
     val b = reduce(b0)
-    f.getJavaType match
-      case FieldDescriptor.JavaType.MESSAGE if f.getMessageType.getName == "ActionClass" =>
-        classOf(b.term)
-      case FieldDescriptor.JavaType.MESSAGE =>
-        val sub = into.newBuilderForField(f)
+    f.scalaType match
+      case ScalaType.Message(d) if d.name == "ActionClass" => classOf(b.term).toPMessage
+      case ScalaType.Message(d)                            =>
+        val sub = Message(d)
         declaration(b, sub)
-        sub.build()
-      case FieldDescriptor.JavaType.STRING  => textOfBound(b)
-      case FieldDescriptor.JavaType.BOOLEAN =>
+        sub.written
+      case ScalaType.String  => PString(textOfBound(b))
+      case ScalaType.Boolean =>
         b.term match
-          case Literal(BooleanConstant(v)) => Boolean.box(v)
+          case Literal(BooleanConstant(v)) => PBoolean(v)
           case other                       =>
             fail(other, s"expected true or false, got ${other.show}")
-      case FieldDescriptor.JavaType.LONG | FieldDescriptor.JavaType.INT =>
+      case ScalaType.Long | ScalaType.Int =>
         val n = b.term match
           case Literal(LongConstant(v)) => v
           case other                    => constInt(other)
-        if f.getJavaType == FieldDescriptor.JavaType.LONG then Long.box(n)
-        else Int.box(n.toInt)
-      case FieldDescriptor.JavaType.ENUM =>
+        if f.scalaType == ScalaType.Long then PLong(n) else PInt(n.toInt)
+      case ScalaType.Enum(e) =>
         b.term match
           case r: Ref if isEnumCase(r.symbol) =>
-            val name =
-              s"${snake(f.getEnumType.getName)}_${snake(r.symbol.name)}".toUpperCase
-            Option(f.getEnumType.findValueByName(name))
-              .getOrElse(
-                fail(
-                  r,
-                  s"${r.symbol.name} is no ${f.getEnumType.getName} of the IR"
-                )
-              )
+            val name = s"${snake(e.name)}_${snake(r.symbol.name)}".toUpperCase
+            PEnum(
+              e.values
+                .find(_.name == name)
+                .getOrElse(fail(r, s"${r.symbol.name} is no ${e.name} of the IR"))
+            )
           case other =>
             fail(other, s"expected an enum case, got ${other.show}")
       case other =>
         fail(
           b.term,
-          s"the IR field ${f.getName} of kind $other is not written out"
+          s"the IR field ${f.name} of kind ${javaKind(other)} is not written out"
         )
 
   /** Sets the field a parameter names. An optional argument that is `None` leaves it unset. */
-  def fieldOf(into: Message.Builder, f: FieldDescriptor, b: Bound): Unit =
-    if f.isRepeated then itemsOf(b).foreach(i => into.addRepeatedField(f, valueOf(f, into, i)))
+  def fieldOf(into: Message, f: FieldDescriptor, b: Bound): Unit =
+    if f.isRepeated then itemsOf(b).foreach(i => into.add(f, valueOf(f, i)))
     else
       reduce(b).term match
         case r: Ref if r.symbol == noneModule                                                 => ()
         case Apply(TypeApply(Select(some, "apply"), _), List(x)) if some.symbol == someModule =>
-          into.setField(f, valueOf(f, into, Bound(x, reduce(b).env)))
-        case _ => into.setField(f, valueOf(f, into, b))
+          into.set(f, valueOf(f, Bound(x, reduce(b).env)))
+        case _ => into.set(f, valueOf(f, b))
 
   /**
    * Emits one declaration into the IR message of its kind. A constructor named after a member of
    * one of the message's oneofs writes that member; any other writes the fields its parameters
    * name, and a parameter named after a oneof takes the member its argument writes.
    */
-  def declaration(b0: Bound, into: Message.Builder): Unit =
+  def declaration(b0: Bound, into: Message): Unit =
     val b = reduce(b0)
-    val d = into.getDescriptorForType
-    Option(d.findFieldByName("position"))
-      .foreach(into.setField(_, pos(b.term)))
+    val d = into.descriptor
+    d.findFieldByName("position").foreach(into.set(_, pos(b.term).toPMessage))
     val (name, args) = written(b)
     def member(n: String): Option[FieldDescriptor] =
-      Option(d.findFieldByName(snake(n))).filter(f => Option(f.getContainingOneof).nonEmpty)
-    def write(f: FieldDescriptor, as: List[(String, Bound)], at: Term): Unit =
-      if f.getJavaType != FieldDescriptor.JavaType.MESSAGE then
+      d.findFieldByName(snake(n)).filter(_.containingOneof.nonEmpty)
+    def write(f: FieldDescriptor, as: List[(String, Bound)], at: Term): Unit = f.scalaType match
+      case ScalaType.Message(md) if md.fields.isEmpty => into.set(f, PMessage(Map.empty))
+      case ScalaType.Message(md)                      =>
+        val sub = Message(md)
         as match
-          case List((_, a)) => into.setField(f, valueOf(f, into, a))
-          case _            => fail(at, s"${f.getName} takes one value")
-      else if f.getMessageType.getFields.isEmpty then
-        into.setField(f, into.newBuilderForField(f).build())
-      else
-        val sub = into.newBuilderForField(f)
-        as match
-          case List((p, a)) if Option(sub.getDescriptorForType.findFieldByName(snake(p))).isEmpty =>
+          case List((p, a)) if md.findFieldByName(snake(p)).isEmpty =>
             declaration(a, sub)
           case _ =>
-            Option(sub.getDescriptorForType.findFieldByName("position"))
-              .foreach(sub.setField(_, pos(at)))
+            md.findFieldByName("position").foreach(sub.set(_, pos(at).toPMessage))
             fields(sub, as, at)
-        into.setField(f, sub.build())
+        into.set(f, sub.written)
+      case _ =>
+        as match
+          case List((_, a)) => into.set(f, valueOf(f, a))
+          case _            => fail(at, s"${f.name} takes one value")
     def fields(
-        m: Message.Builder,
+        m: Message,
         as: List[(String, Bound)],
         at: Term
     ): Unit =
-      val md = m.getDescriptorForType
+      val md = m.descriptor
       for (p, a) <- as do
-        Option(md.findFieldByName(snake(p))) match
+        md.findFieldByName(snake(p)) match
           case Some(f) => fieldOf(m, f, a)
           case None
-              if m.eq(into) && d.getOneofs.asScala.exists(
-                _.getName == snake(p)
+              if m.eq(into) && d.oneofs.exists(
+                _.name == snake(p)
               ) =>
             val chosen = reduce(a)
             val (n, inner) = written(chosen)
             write(
               member(n).getOrElse(
-                fail(chosen.term, s"$n is no $p of ${d.getName} in the IR")
+                fail(chosen.term, s"$n is no $p of ${d.name} in the IR")
               ),
               inner,
               chosen.term
             )
-          case None => fail(at, s"${md.getName} has no $p in the IR")
+          case None => fail(at, s"${md.name} has no $p in the IR")
     member(name) match
       case Some(f) => write(f, args, b.term)
       case None    => fields(into, args, b.term)
 
   def realizationOf(sym: Symbol, at: Tree): ir.Realization =
     realizations.getOrElseUpdate(
-      sym.fullName, {
-        val r = ir.Realization.newBuilder()
-        declaration(
-          Bound(valDef(sym, at, "a realization").rhs.get, Map.empty),
-          r
-        )
-        r.setId(sym.fullName).build()
-      }
+      sym.fullName,
+      emit(ir.Realization, Bound(valDef(sym, at, "a realization").rhs.get, Map.empty))
+        .withId(sym.fullName)
     )

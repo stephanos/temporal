@@ -93,13 +93,9 @@ final private[lift] class Context(using val quotes: Quotes)(
       val p = t.pos
       val path = p.sourceFile.path
       val prefix = sourceRoots.getOrElse(path, "")
-      ir.Position
-        .newBuilder()
-        .setFile(prefix + path)
-        .setLine(p.startLine + 1)
-        .build()
+      ir.Position(file = prefix + path, line = p.startLine + 1)
     }
-    .getOrElse(ir.Position.getDefaultInstance)
+    .getOrElse(ir.Position.defaultInstance)
 
-  def where(t: Tree): String = s"${pos(t).getFile}:${pos(t).getLine}"
+  def where(t: Tree): String = s"${pos(t).file}:${pos(t).line}"
   def fail(t: Tree, message: String): Nothing = throw LiftError(where(t), message)

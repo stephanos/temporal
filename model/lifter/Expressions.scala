@@ -1,7 +1,8 @@
 package umpire.lift
 
-import scala.jdk.CollectionConverters.*
 import io.temporal.server.api.umpire.v1 as ir
+import io.temporal.server.api.umpire.v1.Expr.Kind as E
+import io.temporal.server.api.umpire.v1.Pattern.Kind as P
 
 private[lift] trait Expressions:
   self: Lifting =>
@@ -24,21 +25,18 @@ private[lift] trait Expressions:
     "++" -> ir.Binary.Op.OP_CONCAT
   )
 
-  def lit(v: ir.Value.Builder, at: Tree): ir.Expr =
-    ir.Expr.newBuilder().setPosition(pos(at)).setLiteral(v).build()
-  def expr(at: Tree)(f: ir.Expr.Builder => ir.Expr.Builder): ir.Expr =
-    f(ir.Expr.newBuilder().setPosition(pos(at))).build()
+  def expr(at: Tree)(kind: E): ir.Expr = ir.Expr(position = Some(pos(at)), kind = kind)
+  def lit(v: ir.Value.Kind, at: Tree): ir.Expr = expr(at)(E.Literal(ir.Value(v)))
+  def enumValue(tpe: String, c: String): ir.Value.Kind =
+    ir.Value.Kind.Enum(ir.EnumValue(`type` = tpe, `case` = c))
   def enumLiteral(sym: Symbol, at: Tree): ir.Expr =
     declareType(enumOf(sym), at)
-    lit(
-      ir.Value
-        .newBuilder()
-        .setEnum(ir.EnumValue.newBuilder().setType(enumOf(sym).fullName).setCase(sym.name)),
-      at
-    )
-  def list(items: Seq[ir.Expr], at: Tree): ir.Expr =
-    expr(at)(_.setList(ir.ListOf.newBuilder().addAllItems(items.asJava)))
-  def text(s: String, at: Tree): ir.Expr = lit(ir.Value.newBuilder().setText(s), at)
+    lit(enumValue(enumOf(sym).fullName, sym.name), at)
+  def list(items: Seq[ir.Expr], at: Tree): ir.Expr = expr(at)(E.List(ir.ListOf(items)))
+  def text(s: String, at: Tree): ir.Expr = lit(ir.Value.Kind.Text(s), at)
+  def binary(op: ir.Binary.Op, l: ir.Expr, r: ir.Expr, at: Tree): ir.Expr =
+    expr(at)(E.Binary(ir.Binary(op = op, left = Some(l), right = Some(r))))
+  def param(p: ValDef): ir.Param = ir.Param(name = p.name, `type` = Some(typeRef(p.tpt.tpe, p)))
   def varargs(t: Term): List[Term] = t match
     case Typed(Repeated(items, _), _) => items
     case Repeated(items, _)           => items
@@ -52,18 +50,22 @@ private[lift] trait Expressions:
       at: Tree
   ): ir.Expr =
     expr(at)(
-      _.setConstruct(
-        ir.Construct
-          .newBuilder()
-          .setType(stepType)
-          .addAllArgs(List(outcome, state, facts, because).asJava)
-      )
+      E.Construct(ir.Construct(`type` = stepType, args = Seq(outcome, state, facts, because)))
     )
 
   def inbox(op: ir.Inbox.Op, recv: Term, message: Option[Term], at: Tree): ir.Expr =
-    val b = ir.Inbox.newBuilder().setOp(op).setChannel(inboxChannel(recv)).setContents(lift(recv))
-    message.foreach(m => b.setMessage(lift(m)))
-    expr(at)(_.setInbox(b))
+    val channel = inboxChannel(recv)
+    val contents = lift(recv)
+    expr(at)(
+      E.Inbox(
+        ir.Inbox(
+          op = op,
+          channel = channel,
+          contents = Some(contents),
+          message = message.map(lift(_))
+        )
+      )
+    )
 
   /** The function a reference names, lifting its body on first use. */
   def callee(sym: Symbol, at: Tree): String =
@@ -77,7 +79,7 @@ private[lift] trait Expressions:
       val d = defs.get(sym) match
         case Some(d: DefDef) => d
         case _               => fail(at, s"${sym.fullName} is not a function of the lifted sources")
-      functions(sym.fullName) = ir.Function.getDefaultInstance
+      functions(sym.fullName) = ir.Function.defaultInstance
       lifting += sym.fullName
       functions(sym.fullName) =
         function(sym.fullName, d.termParamss.flatMap(_.params), d.rhs.get, d)
@@ -85,12 +87,15 @@ private[lift] trait Expressions:
     sym.fullName
 
   def function(name: String, params: List[ValDef], body: Term, at: Tree): ir.Function =
-    val b = ir.Function.newBuilder().setName(name).setPosition(pos(at))
-    for p <- params do
-      b.addParams(ir.Param.newBuilder().setName(p.name).setType(typeRef(p.tpt.tpe, p)))
+    val ps = params.map(param)
     val (requires, rest) = stripContracts(body)
-    requires.foreach(r => b.setRequires(lift(r)))
-    b.setBody(lift(rest)).build()
+    ir.Function(
+      name = name,
+      position = Some(pos(at)),
+      params = ps,
+      requires = requires.map(lift(_)),
+      body = Some(lift(rest))
+    )
 
   /**
    * `{ require(p); body }.ensuring(q)` is `body` under precondition `p`: the contracts are what
@@ -139,8 +144,8 @@ private[lift] trait Expressions:
     case Inlined(_, Nil, e)              => lift(e, expected)
     case Block(Nil, e)                   => lift(e, expected)
     case NamedArg(_, e)                  => lift(e, expected)
-    case Literal(BooleanConstant(b))     => lit(ir.Value.newBuilder().setBool(b), t)
-    case Literal(IntConstant(i))         => lit(ir.Value.newBuilder().setInt(i), t)
+    case Literal(BooleanConstant(b))     => lit(ir.Value.Kind.Bool(b), t)
+    case Literal(IntConstant(i))         => lit(ir.Value.Kind.Int(i), t)
     case Literal(StringConstant(s))      => text(s, t)
 
     // `copy` keeps a field its argument is the default getter for, and replaces the others. Named
@@ -159,38 +164,23 @@ private[lift] trait Expressions:
       )
     case While(_, _) => fail(t, "a loop has no IR form: a step function is one pure expression")
     case Block(ValDef(name, _, Some(rhs)) :: rest, e) =>
-      expr(t)(
-        _.setLet(
-          ir.Let
-            .newBuilder()
-            .setName(name)
-            .setValue(lift(rhs))
-            .setBody(lift(Block(rest, e), expected))
-        )
-      )
+      val value = lift(rhs)
+      expr(t)(E.Let(ir.Let(name, Some(value), Some(lift(Block(rest, e), expected)))))
 
     case If(c, a, b) =>
       val branch = expected.orElse(Some(t.tpe))
-      expr(t)(
-        _.setIf(
-          ir.If
-            .newBuilder()
-            .setCondition(lift(c))
-            .setThen(lift(a, branch))
-            .setElse(lift(b, branch))
-        )
-      )
+      expr(t)(E.If(ir.If(Some(lift(c)), Some(lift(a, branch)), Some(lift(b, branch)))))
 
     case Match(scrutinee, cases) =>
-      val m = ir.Match.newBuilder().setScrutinee(lift(scrutinee))
-      for CaseDef(p, guard, body) <- cases do
-        val c = ir.MatchCase
-          .newBuilder()
-          .setPattern(pattern(p, scrutinee.tpe))
-          .setBody(lift(body, expected.orElse(Some(t.tpe))))
-        guard.foreach(g => c.setGuard(lift(g)))
-        m.addCases(c)
-      expr(t)(_.setMatch(m))
+      val on = lift(scrutinee)
+      val lifted =
+        for CaseDef(p, guard, body) <- cases
+        yield ir.MatchCase(
+          pattern = Some(pattern(p, scrutinee.tpe)),
+          body = Some(lift(body, expected.orElse(Some(t.tpe)))),
+          guard = guard.map(lift(_))
+        )
+      expr(t)(E.Match(ir.Match(Some(on), lifted)))
 
     // The prelude's constructors, which both sides of the kernel supply.
     case Apply(TypeApply(Ident("step"), _), List(o, s, f))
@@ -218,30 +208,24 @@ private[lift] trait Expressions:
     // An optional value. `None` takes its type from where it is used.
     case r: Ref if r.symbol == noneModule =>
       val name = optionType(optionArg(expected.getOrElse(r.tpe), t), t)
-      lit(
-        ir.Value.newBuilder().setEnum(ir.EnumValue.newBuilder().setType(name).setCase("None")),
-        t
-      )
+      lit(enumValue(name, "None"), t)
     case Apply(TypeApply(Select(some, "apply"), List(arg)), List(x)) if some.symbol == someModule =>
-      val c = ir.Construct
-        .newBuilder()
-        .setType(optionType(arg.tpe, t))
-        .setCase("Some")
-        .addArgs(lift(x, Some(arg.tpe)))
-      expr(t)(_.setConstruct(c))
+      val tpe = optionType(arg.tpe, t)
+      expr(t)(
+        E.Construct(ir.Construct(`type` = tpe, `case` = "Some", args = Seq(lift(x, Some(arg.tpe)))))
+      )
 
     // `a.min(b)` and `a.max(b)` of integers: the smaller or the larger, as a conditional.
     case Apply(Select(Apply(Ident("intWrapper"), List(a)), op @ ("min" | "max")), List(b)) =>
       val keep = if op == "min" then ir.Binary.Op.OP_LE else ir.Binary.Op.OP_GE
       val (l, r) = (lift(a), lift(b))
-      val c = expr(t)(_.setBinary(ir.Binary.newBuilder().setOp(keep).setLeft(l).setRight(r)))
-      expr(t)(_.setIf(ir.If.newBuilder().setCondition(c).setThen(l).setElse(r)))
+      expr(t)(E.If(ir.If(Some(binary(keep, l, r, t)), Some(l), Some(r))))
     // A varargs parameter read as the list it is.
     case Select(recv, "toList") if isList(recv.tpe.widen.dealias.typeSymbol) => lift(recv)
 
     // What a channel holds: its operations, and a channel holding nothing.
     case Select(channel, "empty") if isNamed(channel.tpe, "umpire.Channel") =>
-      lit(ir.Value.newBuilder().setList(ir.ListValue.getDefaultInstance), t)
+      lit(ir.Value.Kind.List(ir.ListValue()), t)
     case Apply(Select(recv, "send"), List(m)) if isNamed(recv.tpe, "umpire.Inbox") =>
       inbox(ir.Inbox.Op.OP_SEND, recv, Some(m), t)
     case Select(recv, "isEmpty") if isNamed(recv.tpe, "umpire.Inbox") =>
@@ -250,63 +234,34 @@ private[lift] trait Expressions:
       inbox(ir.Inbox.Op.OP_IS_FULL, recv, None, t)
     // A declared hole, where a step reaches it.
     case Select(h, "reached") if isNamed(h.tpe, "umpire.Hole") =>
-      expr(t)(_.setHole(holeOf(resolveSymbol(h), t)))
+      expr(t)(E.Hole(holeOf(resolveSymbol(h), t)))
 
     case Apply(Select(recv, "contains"), List(x)) =>
-      expr(t)(
-        _.setBinary(
-          ir.Binary
-            .newBuilder()
-            .setOp(ir.Binary.Op.OP_CONTAINS)
-            .setLeft(lift(x))
-            .setRight(lift(recv))
-        )
-      )
+      binary(ir.Binary.Op.OP_CONTAINS, lift(x), lift(recv), t)
     case Apply(TypeApply(Select(recv, "contains"), _), List(x)) =>
-      expr(t)(
-        _.setBinary(
-          ir.Binary
-            .newBuilder()
-            .setOp(ir.Binary.Op.OP_CONTAINS)
-            .setLeft(lift(x))
-            .setRight(lift(recv))
-        )
-      )
+      binary(ir.Binary.Op.OP_CONTAINS, lift(x), lift(recv), t)
 
     case Select(recv, "unary_!") =>
-      expr(t)(_.setUnary(ir.Unary.newBuilder().setOp(ir.Unary.Op.OP_NOT).setOperand(lift(recv))))
+      expr(t)(E.Unary(ir.Unary(ir.Unary.Op.OP_NOT, Some(lift(recv)))))
     case Apply(Select(l, op), List(r)) if binaryOps.contains(op) =>
-      expr(t)(
-        _.setBinary(
-          ir.Binary
-            .newBuilder()
-            .setOp(binaryOps(op))
-            .setLeft(lift(l, Some(r.tpe)))
-            .setRight(lift(r, Some(l.tpe)))
-        )
-      )
+      binary(binaryOps(op), lift(l, Some(r.tpe)), lift(r, Some(l.tpe)), t)
     case Apply(TypeApply(Select(l, "++"), _), List(r)) =>
-      expr(t)(
-        _.setBinary(
-          ir.Binary.newBuilder().setOp(ir.Binary.Op.OP_CONCAT).setLeft(lift(l)).setRight(lift(r))
-        )
-      )
+      binary(ir.Binary.Op.OP_CONCAT, lift(l), lift(r), t)
 
     // A record, or an enum case with fields, built from its constructor.
     case Apply(Select(companion, "apply"), args)
         if companion.tpe.typeSymbol.companionClass.flags.is(Flags.Case) =>
       val cls = companion.tpe.typeSymbol.companionClass
       val fields = fieldTypes(cls).map(_._2)
-      val c = ir.Construct
-        .newBuilder()
-        .addAllArgs(args.zipWithIndex.map((a, i) => lift(a, fields.lift(i))).asJava)
-      if cls.flags.is(Flags.Enum) then
-        declareType(enumOf(cls), t)
-        c.setType(enumOf(cls).fullName).setCase(cls.name)
-      else
-        declareType(cls, t)
-        c.setType(cls.fullName)
-      expr(t)(_.setConstruct(c))
+      val lifted = args.zipWithIndex.map((a, i) => lift(a, fields.lift(i)))
+      val c =
+        if cls.flags.is(Flags.Enum) then
+          declareType(enumOf(cls), t)
+          ir.Construct(`type` = enumOf(cls).fullName, `case` = cls.name, args = lifted)
+        else
+          declareType(cls, t)
+          ir.Construct(`type` = cls.fullName, args = lifted)
+      expr(t)(E.Construct(c))
 
     // A call of another function of the lifted sources.
     case Apply(fn, args) if isFunction(fn.symbol) =>
@@ -314,24 +269,17 @@ private[lift] trait Expressions:
       val params = defs(fn.symbol) match
         case d: DefDef => d.termParamss.flatMap(_.params).map(_.tpt.tpe)
         case _         => Nil
-      expr(t)(
-        _.setCall(
-          ir.Call
-            .newBuilder()
-            .setFunction(name)
-            .addAllArgs(args.zipWithIndex.map((a, i) => lift(a, params.lift(i))).asJava)
-        )
-      )
+      expr(t)(E.Call(ir.Call(name, args.zipWithIndex.map((a, i) => lift(a, params.lift(i))))))
 
     case r: Ref if isEnumCase(r.symbol) => enumLiteral(r.symbol, t)
     // A parameter, a local `val` or a pattern-bound name: every name a function's own scope owns.
-    case r: Ref if local(r.symbol) => expr(t)(_.setVar(r.symbol.name))
+    case r: Ref if local(r.symbol) => expr(t)(E.Var(r.symbol.name))
     // A string read off a declared value, such as an observation's name, is a constant.
     case Select(recv, _) if t.tpe.widen <:< defn.StringClass.typeRef && !local(recv.symbol) =>
       text(constString(t), t)
     case Select(recv, field)
         if recv.tpe.widen.dealias.typeSymbol.caseFields.exists(_.name == field) =>
-      expr(t)(_.setField(ir.FieldAccess.newBuilder().setBase(lift(recv)).setField(field)))
+      expr(t)(E.Field(ir.FieldAccess(Some(lift(recv)), field)))
     // A value declared elsewhere: its definition, lifted in place.
     case r: Ref if r.symbol.isValDef && defs.contains(r.symbol) =>
       defs(r.symbol) match
@@ -342,109 +290,50 @@ private[lift] trait Expressions:
           List(DefDef("$anonfun", List(TermParamClause(params)), _, Some(body))),
           _: Closure
         ) =>
-      val l = ir.Lambda.newBuilder().setBody(lift(body))
-      for p <- params do
-        l.addParams(ir.Param.newBuilder().setName(p.name).setType(typeRef(p.tpt.tpe, p)))
-      expr(lambda)(_.setLambda(l))
+      val b = lift(body)
+      expr(lambda)(E.Lambda(ir.Lambda(params.map(param), Some(b))))
 
     case other => fail(other, s"outside the liftable subset: ${other.show}")
 
   def copyOf(base: Term, args: List[Term], at: Tree): ir.Expr =
-    val c = ir.Copy.newBuilder().setBase(lift(base))
+    val b = lift(base)
     val fields = fieldTypes(base.tpe.widen.typeSymbol)
-    for (arg, i) <- args.zipWithIndex do
-      arg match
-        case NamedArg(name, value) =>
-          c.addUpdates(
-            ir.NamedExpr
-              .newBuilder()
-              .setName(name)
-              .setValue(lift(value, fields.find(_._1 == name).map(_._2)))
-          )
-        case Select(_, getter) if getter.startsWith("copy$default$")               => ()
-        case TypeApply(Select(_, getter), _) if getter.startsWith("copy$default$") => ()
-        case value                                                                 =>
-          c.addUpdates(
-            ir.NamedExpr
-              .newBuilder()
-              .setName(fields(i)._1)
-              .setValue(lift(value, Some(fields(i)._2)))
-          )
-    expr(at)(_.setCopy(c))
+    val updates = args.zipWithIndex.flatMap {
+      case (NamedArg(name, value), _) =>
+        Some(ir.NamedExpr(name, Some(lift(value, fields.find(_._1 == name).map(_._2)))))
+      case (Select(_, getter), _) if getter.startsWith("copy$default$")               => None
+      case (TypeApply(Select(_, getter), _), _) if getter.startsWith("copy$default$") => None
+      case (value, i)                                                                 =>
+        Some(ir.NamedExpr(fields(i)._1, Some(lift(value, Some(fields(i)._2)))))
+    }
+    expr(at)(E.Copy(ir.Copy(Some(b), updates)))
 
-  def pattern(p: Tree, scrutinee: TypeRepr): ir.Pattern = p match
-    case Wildcard() => ir.Pattern.newBuilder().setWildcard(ir.Empty.getDefaultInstance).build()
-    case Bind(name, inner) =>
-      ir.Pattern
-        .newBuilder()
-        .setBind(ir.Bind.newBuilder().setName(name).setPattern(pattern(inner, scrutinee)))
-        .build()
-    case Alternatives(ps) =>
-      ir.Pattern
-        .newBuilder()
-        .setAlternatives(
-          ir.Alternatives.newBuilder().addAllPatterns(ps.map(pattern(_, scrutinee)).asJava)
-        )
-        .build()
-    case Literal(BooleanConstant(b)) =>
-      ir.Pattern.newBuilder().setLiteral(ir.Value.newBuilder().setBool(b)).build()
+  def pattern(p: Tree, scrutinee: TypeRepr): ir.Pattern = ir.Pattern(p match
+    case Wildcard()        => P.Wildcard(ir.Empty())
+    case Bind(name, inner) => P.Bind(ir.Bind(name, Some(pattern(inner, scrutinee))))
+    case Alternatives(ps)  => P.Alternatives(ir.Alternatives(ps.map(pattern(_, scrutinee))))
+    case Literal(BooleanConstant(b))      => P.Literal(ir.Value(ir.Value.Kind.Bool(b)))
     case r: Ref if r.symbol == noneModule =>
-      ir.Pattern
-        .newBuilder()
-        .setLiteral(
-          ir.Value
-            .newBuilder()
-            .setEnum(
-              ir.EnumValue
-                .newBuilder()
-                .setType(optionType(optionArg(scrutinee, p), p))
-                .setCase("None")
-            )
-        )
-        .build()
+      P.Literal(ir.Value(enumValue(optionType(optionArg(scrutinee, p), p), "None")))
     case r: Ref if isEnumCase(r.symbol) =>
       declareType(enumOf(r.symbol), p)
-      ir.Pattern
-        .newBuilder()
-        .setLiteral(
-          ir.Value
-            .newBuilder()
-            .setEnum(
-              ir.EnumValue.newBuilder().setType(enumOf(r.symbol).fullName).setCase(r.symbol.name)
-            )
-        )
-        .build()
+      P.Literal(ir.Value(enumValue(enumOf(r.symbol).fullName, r.symbol.name)))
     case Unapply(TypeApply(fun, List(arg)), _, List(inner))
         if fun.symbol.owner.companionClass.fullName == "scala.Some" =>
-      ir.Pattern
-        .newBuilder()
-        .setCase(
-          ir.CasePattern
-            .newBuilder()
-            .setType(optionType(arg.tpe, p))
-            .setCase("Some")
-            .addFields(pattern(inner, arg.tpe))
-        )
-        .build()
+      val tpe = optionType(arg.tpe, p)
+      P.Case(ir.CasePattern(`type` = tpe, `case` = "Some", fields = Seq(pattern(inner, arg.tpe))))
     case Unapply(fun, _, fields) =>
       val cls = fun.symbol.owner.companionClass
       if !cls.flags.is(Flags.Enum) then
         fail(p, s"only enum cases are matched by constructor, not ${cls.fullName}")
       declareType(enumOf(cls), p)
       val types = fieldTypes(cls).map(_._2)
-      ir.Pattern
-        .newBuilder()
-        .setCase(
-          ir.CasePattern
-            .newBuilder()
-            .setType(enumOf(cls).fullName)
-            .setCase(cls.name)
-            .addAllFields(
-              fields.zipWithIndex
-                .map((f, i) => pattern(f, types.lift(i).getOrElse(scrutinee)))
-                .asJava
-            )
+      P.Case(
+        ir.CasePattern(
+          `type` = enumOf(cls).fullName,
+          `case` = cls.name,
+          fields = fields.zipWithIndex.map((f, i) => pattern(f, types.lift(i).getOrElse(scrutinee)))
         )
-        .build()
-    case TypedOrTest(inner, tpt) => pattern(inner, tpt.tpe)
-    case other                   => fail(other, s"outside the liftable patterns: ${other.show}")
+      )
+    case TypedOrTest(inner, tpt) => pattern(inner, tpt.tpe).kind
+    case other                   => fail(other, s"outside the liftable patterns: ${other.show}"))

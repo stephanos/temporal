@@ -1,19 +1,19 @@
 {
   "source": "model: temporal.standaloneactivity.ActivityRealization$.heldDelivery, temporal.standaloneactivity.ActivityRealization$.lostAdmissionResponse, temporal.standaloneactivity.System$package$.heldStaleDelivery, temporal.standaloneactivity.System$package$.lostAdmissionResponseQuery",
-  "types": [{
+  "types": [ {
     "name": "temporal.standaloneactivity.Active",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 36
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "none"
       }, {
         "name": "one"
       }, {
         "name": "two"
-      }]
+      } ]
     }
   }, {
     "name": "temporal.standaloneactivity.AdmissionFact",
@@ -22,7 +22,7 @@
       "line": 53
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "statusStarted"
       }, {
         "name": "statusPaused"
@@ -30,12 +30,12 @@
         "name": "statusCompleted"
       }, {
         "name": "statusTimedOut",
-        "fields": [{
+        "fields": [ {
           "name": "timeoutType",
           "type": {
             "named": "temporal.standaloneactivity.TimeoutType"
           }
-        }]
+        } ]
       }, {
         "name": "dispatchSent"
       }, {
@@ -46,7 +46,7 @@
         "name": "admissionCommitFailed"
       }, {
         "name": "deliveryAnswered"
-      }]
+      } ]
     }
   }, {
     "name": "temporal.standaloneactivity.AdmissionPhase",
@@ -55,7 +55,7 @@
       "line": 29
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "scheduled"
       }, {
         "name": "paused"
@@ -67,7 +67,7 @@
         "name": "completed"
       }, {
         "name": "timedOut"
-      }]
+      } ]
     }
   }, {
     "name": "temporal.standaloneactivity.AdmissionResponseFact",
@@ -76,11 +76,11 @@
       "line": 1130
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "dispatchSent"
       }, {
         "name": "attemptAdmitted"
-      }]
+      } ]
     }
   }, {
     "name": "temporal.standaloneactivity.AdmissionResponseState",
@@ -89,7 +89,7 @@
       "line": 1127
     },
     "record": {
-      "fields": [{
+      "fields": [ {
         "name": "record",
         "type": {
           "named": "temporal.standaloneactivity.AdmissionState"
@@ -97,10 +97,9 @@
       }, {
         "name": "lossAvailable",
         "type": {
-          "bool": {
-          }
+          "bool": { }
         }
-      }]
+      } ]
     }
   }, {
     "name": "temporal.standaloneactivity.AdmissionState",
@@ -109,7 +108,7 @@
       "line": 46
     },
     "record": {
-      "fields": [{
+      "fields": [ {
         "name": "phase",
         "type": {
           "named": "temporal.standaloneactivity.AdmissionPhase"
@@ -124,7 +123,7 @@
         "type": {
           "named": "temporal.standaloneactivity.Answer"
         }
-      }]
+      } ]
     }
   }, {
     "name": "temporal.standaloneactivity.Answer",
@@ -133,11 +132,11 @@
       "line": 43
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "settled"
       }, {
         "name": "owed"
-      }]
+      } ]
     }
   }, {
     "name": "temporal.standaloneactivity.AttemptResult",
@@ -146,20 +145,19 @@
       "line": 50
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "completed"
       }, {
         "name": "failed",
-        "fields": [{
+        "fields": [ {
           "name": "retryable",
           "type": {
-            "bool": {
-            }
+            "bool": { }
           }
-        }]
+        } ]
       }, {
         "name": "canceled"
-      }]
+      } ]
     }
   }, {
     "name": "temporal.standaloneactivity.Control",
@@ -168,7 +166,7 @@
       "line": 60
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "pause"
       }, {
         "name": "unpause"
@@ -176,7 +174,7 @@
         "name": "requestCancel"
       }, {
         "name": "terminate"
-      }]
+      } ]
     }
   }, {
     "name": "temporal.standaloneactivity.Finality",
@@ -185,13 +183,13 @@
       "line": 214
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "open"
       }, {
         "name": "closed"
       }, {
         "name": "reopened"
-      }]
+      } ]
     }
   }, {
     "name": "temporal.standaloneactivity.Outcome",
@@ -200,11 +198,11 @@
       "line": 120
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "accepted"
       }, {
         "name": "notFound"
-      }]
+      } ]
     }
   }, {
     "name": "temporal.standaloneactivity.ProductFact",
@@ -213,7 +211,7 @@
       "line": 136
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "statusScheduled"
       }, {
         "name": "statusStarted"
@@ -231,7 +229,7 @@
         "name": "statusTerminated"
       }, {
         "name": "statusTimedOut"
-      }]
+      } ]
     }
   }, {
     "name": "temporal.standaloneactivity.ProductPhase",
@@ -240,7 +238,7 @@
       "line": 129
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "scheduled"
       }, {
         "name": "started"
@@ -258,7 +256,7 @@
         "name": "terminated"
       }, {
         "name": "timedOut"
-      }]
+      } ]
     }
   }, {
     "name": "temporal.standaloneactivity.ProductState",
@@ -267,12 +265,12 @@
       "line": 133
     },
     "record": {
-      "fields": [{
+      "fields": [ {
         "name": "phase",
         "type": {
           "named": "temporal.standaloneactivity.ProductPhase"
         }
-      }]
+      } ]
     }
   }, {
     "name": "temporal.standaloneactivity.TimeoutType",
@@ -281,27 +279,27 @@
       "line": 254
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "scheduleToClose"
       }, {
         "name": "scheduleToStart"
       }, {
         "name": "startToClose"
-      }]
+      } ]
     }
-  }],
-  "functions": [{
+  } ],
+  "functions": [ {
     "name": "activityProduct.evidence",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
       "line": 221
     },
-    "params": [{
+    "params": [ {
       "name": "x$1",
       "type": {
         "named": "temporal.standaloneactivity.ProductFact"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
@@ -315,7 +313,7 @@
           },
           "var": "x$1"
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -477,7 +475,7 @@
               "text": "statusTimedOut"
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -486,12 +484,12 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 1179
     },
-    "params": [{
+    "params": [ {
       "name": "f",
       "type": {
         "named": "temporal.standaloneactivity.AdmissionResponseFact"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -499,13 +497,13 @@
       },
       "call": {
         "function": "temporal.standaloneactivity.System$package$.responseLossEvidence",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
             "line": 1179
           },
           "var": "f"
-        }]
+        } ]
       }
     }
   }, {
@@ -514,12 +512,12 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 1184
     },
-    "params": [{
+    "params": [ {
       "name": "after",
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -563,12 +561,12 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 1089
     },
-    "params": [{
+    "params": [ {
       "name": "f",
       "type": {
         "named": "temporal.standaloneactivity.AdmissionFact"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -576,13 +574,13 @@
       },
       "call": {
         "function": "temporal.standaloneactivity.System$package$.admissionEvidence",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
             "line": 1089
           },
           "var": "f"
-        }]
+        } ]
       }
     }
   }, {
@@ -591,12 +589,12 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 1100
     },
-    "params": [{
+    "params": [ {
       "name": "after",
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -640,7 +638,7 @@
       "file": "model/temporal/standaloneactivity/Model.scala",
       "line": 167
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "temporal.standaloneactivity.ProductState"
@@ -650,7 +648,7 @@
       "type": {
         "named": "temporal.standaloneactivity.AttemptResult"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
@@ -745,8 +743,7 @@
             "file": "model/temporal/standaloneactivity/Model.scala",
             "line": 168
           },
-          "list": {
-          }
+          "list": { }
         },
         "else": {
           "position": {
@@ -761,7 +758,7 @@
               },
               "var": "result"
             },
-            "cases": [{
+            "cases": [ {
               "pattern": {
                 "literal": {
                   "enum": {
@@ -777,7 +774,7 @@
                 },
                 "call": {
                   "function": "temporal.standaloneactivity.Model$package$.productStep",
-                  "args": [{
+                  "args": [ {
                     "position": {
                       "file": "model/temporal/standaloneactivity/Model.scala",
                       "line": 172
@@ -799,7 +796,7 @@
                         "case": "statusCompleted"
                       }
                     }
-                  }]
+                  } ]
                 }
               }
             }, {
@@ -807,15 +804,14 @@
                 "case": {
                   "type": "temporal.standaloneactivity.AttemptResult",
                   "case": "failed",
-                  "fields": [{
+                  "fields": [ {
                     "bind": {
                       "name": "retryable",
                       "pattern": {
-                        "wildcard": {
-                        }
+                        "wildcard": { }
                       }
                     }
-                  }]
+                  } ]
                 }
               },
               "body": {
@@ -847,7 +843,7 @@
                     },
                     "call": {
                       "function": "temporal.standaloneactivity.Model$package$.productStep",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
                           "line": 174
@@ -869,7 +865,7 @@
                             "case": "statusFailed"
                           }
                         }
-                      }]
+                      } ]
                     }
                   },
                   "else": {
@@ -922,7 +918,7 @@
                         },
                         "call": {
                           "function": "temporal.standaloneactivity.Model$package$.productStep",
-                          "args": [{
+                          "args": [ {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
                               "line": 176
@@ -944,7 +940,7 @@
                                 "case": "statusCanceled"
                               }
                             }
-                          }]
+                          } ]
                         }
                       },
                       "else": {
@@ -954,7 +950,7 @@
                         },
                         "call": {
                           "function": "temporal.standaloneactivity.Model$package$.productStep",
-                          "args": [{
+                          "args": [ {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
                               "line": 177
@@ -976,7 +972,7 @@
                                 "case": "statusScheduled"
                               }
                             }
-                          }]
+                          } ]
                         }
                       }
                     }
@@ -1042,7 +1038,7 @@
                     },
                     "call": {
                       "function": "temporal.standaloneactivity.Model$package$.productStep",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
                           "line": 180
@@ -1064,7 +1060,7 @@
                             "case": "statusCanceled"
                           }
                         }
-                      }]
+                      } ]
                     }
                   },
                   "else": {
@@ -1072,12 +1068,11 @@
                       "file": "model/temporal/standaloneactivity/Model.scala",
                       "line": 181
                     },
-                    "list": {
-                    }
+                    "list": { }
                   }
                 }
               }
-            }]
+            } ]
           }
         }
       }
@@ -1088,12 +1083,12 @@
       "file": "model/temporal/standaloneactivity/Model.scala",
       "line": 156
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "temporal.standaloneactivity.ProductState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
@@ -1142,8 +1137,7 @@
             "file": "model/temporal/standaloneactivity/Model.scala",
             "line": 157
           },
-          "list": {
-          }
+          "list": { }
         },
         "else": {
           "position": {
@@ -1152,7 +1146,7 @@
           },
           "call": {
             "function": "temporal.standaloneactivity.Model$package$.productStep",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
                 "line": 158
@@ -1174,7 +1168,7 @@
                   "case": "statusStarted"
                 }
               }
-            }]
+            } ]
           }
         }
       }
@@ -1185,7 +1179,7 @@
       "file": "model/temporal/standaloneactivity/Model.scala",
       "line": 184
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "temporal.standaloneactivity.ProductState"
@@ -1195,7 +1189,7 @@
       "type": {
         "named": "temporal.standaloneactivity.Control"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
@@ -1209,13 +1203,13 @@
           },
           "call": {
             "function": "temporal.standaloneactivity.Model$package$.productTerminal",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
                 "line": 185
               },
               "var": "s"
-            }]
+            } ]
           }
         },
         "then": {
@@ -1224,14 +1218,14 @@
             "line": 185
           },
           "list": {
-            "items": [{
+            "items": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
                 "line": 185
               },
               "construct": {
                 "type": "umpire.Step",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Model.scala",
                     "line": 185
@@ -1253,8 +1247,7 @@
                     "file": "model/temporal/standaloneactivity/Model.scala",
                     "line": 185
                   },
-                  "list": {
-                  }
+                  "list": { }
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Model.scala",
@@ -1263,9 +1256,9 @@
                   "literal": {
                     "text": ""
                   }
-                }]
+                } ]
               }
-            }]
+            } ]
           }
         },
         "else": {
@@ -1281,7 +1274,7 @@
               },
               "var": "c"
             },
-            "cases": [{
+            "cases": [ {
               "pattern": {
                 "literal": {
                   "enum": {
@@ -1386,7 +1379,7 @@
                     },
                     "call": {
                       "function": "temporal.standaloneactivity.Model$package$.productStep",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
                           "line": 190
@@ -1408,7 +1401,7 @@
                             "case": "statusPaused"
                           }
                         }
-                      }]
+                      } ]
                     }
                   },
                   "else": {
@@ -1416,8 +1409,7 @@
                       "file": "model/temporal/standaloneactivity/Model.scala",
                       "line": 191
                     },
-                    "list": {
-                    }
+                    "list": { }
                   }
                 }
               }
@@ -1480,7 +1472,7 @@
                     },
                     "call": {
                       "function": "temporal.standaloneactivity.Model$package$.productStep",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
                           "line": 194
@@ -1502,7 +1494,7 @@
                             "case": "statusScheduled"
                           }
                         }
-                      }]
+                      } ]
                     }
                   },
                   "else": {
@@ -1510,8 +1502,7 @@
                       "file": "model/temporal/standaloneactivity/Model.scala",
                       "line": 195
                     },
-                    "list": {
-                    }
+                    "list": { }
                   }
                 }
               }
@@ -1712,7 +1703,7 @@
                     },
                     "call": {
                       "function": "temporal.standaloneactivity.Model$package$.productStep",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
                           "line": 199
@@ -1734,7 +1725,7 @@
                             "case": "statusCancelRequested"
                           }
                         }
-                      }]
+                      } ]
                     }
                   },
                   "else": {
@@ -1742,8 +1733,7 @@
                       "file": "model/temporal/standaloneactivity/Model.scala",
                       "line": 200
                     },
-                    "list": {
-                    }
+                    "list": { }
                   }
                 }
               }
@@ -1763,7 +1753,7 @@
                 },
                 "call": {
                   "function": "temporal.standaloneactivity.Model$package$.productStep",
-                  "args": [{
+                  "args": [ {
                     "position": {
                       "file": "model/temporal/standaloneactivity/Model.scala",
                       "line": 201
@@ -1785,10 +1775,10 @@
                         "case": "statusTerminated"
                       }
                     }
-                  }]
+                  } ]
                 }
               }
-            }]
+            } ]
           }
         }
       }
@@ -1799,7 +1789,7 @@
       "file": "model/temporal/standaloneactivity/Model.scala",
       "line": 143
     },
-    "params": [{
+    "params": [ {
       "name": "phase",
       "type": {
         "named": "temporal.standaloneactivity.ProductPhase"
@@ -1809,21 +1799,21 @@
       "type": {
         "named": "temporal.standaloneactivity.ProductFact"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
         "line": 144
       },
       "list": {
-        "items": [{
+        "items": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
             "line": 144
           },
           "construct": {
             "type": "umpire.Step",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
                 "line": 144
@@ -1841,13 +1831,13 @@
               },
               "construct": {
                 "type": "temporal.standaloneactivity.ProductState",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Model.scala",
                     "line": 144
                   },
                   "var": "phase"
-                }]
+                } ]
               }
             }, {
               "position": {
@@ -1855,13 +1845,13 @@
                 "line": 144
               },
               "list": {
-                "items": [{
+                "items": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Model.scala",
                     "line": 144
                   },
                   "var": "recorded"
-                }]
+                } ]
               }
             }, {
               "position": {
@@ -1871,9 +1861,9 @@
               "literal": {
                 "text": ""
               }
-            }]
+            } ]
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -1882,12 +1872,12 @@
       "file": "model/temporal/standaloneactivity/Model.scala",
       "line": 147
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "temporal.standaloneactivity.ProductState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
@@ -1910,10 +1900,10 @@
             "field": "phase"
           }
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "alternatives": {
-              "patterns": [{
+              "patterns": [ {
                 "literal": {
                   "enum": {
                     "type": "temporal.standaloneactivity.ProductPhase",
@@ -1948,7 +1938,7 @@
                     "case": "timedOut"
                   }
                 }
-              }]
+              } ]
             }
           },
           "body": {
@@ -1963,7 +1953,7 @@
         }, {
           "pattern": {
             "alternatives": {
-              "patterns": [{
+              "patterns": [ {
                 "literal": {
                   "enum": {
                     "type": "temporal.standaloneactivity.ProductPhase",
@@ -1991,7 +1981,7 @@
                     "case": "cancelRequested"
                   }
                 }
-              }]
+              } ]
             }
           },
           "body": {
@@ -2003,7 +1993,7 @@
               "bool": false
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -2012,12 +2002,12 @@
       "file": "model/temporal/standaloneactivity/Model.scala",
       "line": 207
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "temporal.standaloneactivity.ProductState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
@@ -2206,7 +2196,7 @@
           },
           "call": {
             "function": "temporal.standaloneactivity.Model$package$.productStep",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
                 "line": 210
@@ -2228,7 +2218,7 @@
                   "case": "statusTimedOut"
                 }
               }
-            }]
+            } ]
           }
         },
         "else": {
@@ -2236,8 +2226,7 @@
             "file": "model/temporal/standaloneactivity/Model.scala",
             "line": 211
           },
-          "list": {
-          }
+          "list": { }
         }
       }
     }
@@ -2247,19 +2236,18 @@
       "file": "model/temporal/standaloneactivity/Model.scala",
       "line": 204
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "temporal.standaloneactivity.ProductState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
         "line": 204
       },
-      "list": {
-      }
+      "list": { }
     }
   }, {
     "name": "temporal.standaloneactivity.System$package$.admissionEnds",
@@ -2267,12 +2255,12 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 195
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "temporal.standaloneactivity.AdmissionState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -2362,12 +2350,12 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 183
     },
-    "params": [{
+    "params": [ {
       "name": "f",
       "type": {
         "named": "temporal.standaloneactivity.AdmissionFact"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -2381,7 +2369,7 @@
           },
           "var": "f"
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -2440,10 +2428,9 @@
             "case": {
               "type": "temporal.standaloneactivity.AdmissionFact",
               "case": "statusTimedOut",
-              "fields": [{
-                "wildcard": {
-                }
-              }]
+              "fields": [ {
+                "wildcard": { }
+              } ]
             }
           },
           "body": {
@@ -2545,7 +2532,7 @@
               "text": "deliveryAnswered"
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -2554,12 +2541,12 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 69
     },
-    "params": [{
+    "params": [ {
       "name": "p",
       "type": {
         "named": "temporal.standaloneactivity.AdmissionPhase"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -2631,12 +2618,12 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 1067
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "temporal.standaloneactivity.AdmissionState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -2686,14 +2673,14 @@
             "line": 1069
           },
           "list": {
-            "items": [{
+            "items": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
                 "line": 1070
               },
               "construct": {
                 "type": "umpire.Step",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
                     "line": 1071
@@ -2717,7 +2704,7 @@
                       },
                       "var": "s"
                     },
-                    "updates": [{
+                    "updates": [ {
                       "name": "phase",
                       "value": {
                         "position": {
@@ -2740,7 +2727,7 @@
                         },
                         "call": {
                           "function": "temporal.standaloneactivity.System$package$.oneMore",
-                          "args": [{
+                          "args": [ {
                             "position": {
                               "file": "model/temporal/standaloneactivity/System.scala",
                               "line": 1072
@@ -2755,7 +2742,7 @@
                               },
                               "field": "active"
                             }
-                          }]
+                          } ]
                         }
                       }
                     }, {
@@ -2772,7 +2759,7 @@
                           }
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
@@ -2780,7 +2767,7 @@
                     "line": 1073
                   },
                   "list": {
-                    "items": [{
+                    "items": [ {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
                         "line": 1073
@@ -2802,7 +2789,7 @@
                           "case": "attemptAdmitted"
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
@@ -2812,9 +2799,9 @@
                   "literal": {
                     "text": ""
                   }
-                }]
+                } ]
               }
-            }]
+            } ]
           }
         },
         "else": {
@@ -2823,14 +2810,14 @@
             "line": 1077
           },
           "list": {
-            "items": [{
+            "items": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
                 "line": 1078
               },
               "construct": {
                 "type": "umpire.Step",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
                     "line": 1078
@@ -2854,7 +2841,7 @@
                       },
                       "var": "s"
                     },
-                    "updates": [{
+                    "updates": [ {
                       "name": "answer",
                       "value": {
                         "position": {
@@ -2868,7 +2855,7 @@
                           }
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
@@ -2876,7 +2863,7 @@
                     "line": 1078
                   },
                   "list": {
-                    "items": [{
+                    "items": [ {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
                         "line": 1078
@@ -2887,7 +2874,7 @@
                           "case": "admissionRejected"
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
@@ -2897,9 +2884,9 @@
                   "literal": {
                     "text": ""
                   }
-                }]
+                } ]
               }
-            }]
+            } ]
           }
         }
       }
@@ -2910,12 +2897,12 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 130
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "temporal.standaloneactivity.AdmissionState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -2964,8 +2951,7 @@
             "file": "model/temporal/standaloneactivity/System.scala",
             "line": 131
           },
-          "list": {
-          }
+          "list": { }
         },
         "else": {
           "position": {
@@ -2973,14 +2959,14 @@
             "line": 133
           },
           "list": {
-            "items": [{
+            "items": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
                 "line": 134
               },
               "construct": {
                 "type": "umpire.Step",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
                     "line": 134
@@ -3004,7 +2990,7 @@
                       },
                       "var": "s"
                     },
-                    "updates": [{
+                    "updates": [ {
                       "name": "answer",
                       "value": {
                         "position": {
@@ -3018,7 +3004,7 @@
                           }
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
@@ -3026,7 +3012,7 @@
                     "line": 134
                   },
                   "list": {
-                    "items": [{
+                    "items": [ {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
                         "line": 134
@@ -3037,7 +3023,7 @@
                           "case": "deliveryAnswered"
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
@@ -3047,9 +3033,9 @@
                   "literal": {
                     "text": ""
                   }
-                }]
+                } ]
               }
-            }]
+            } ]
           }
         }
       }
@@ -3060,12 +3046,12 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 211
     },
-    "params": [{
+    "params": [ {
       "name": "after",
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -3109,7 +3095,7 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 210
     },
-    "params": [{
+    "params": [ {
       "name": "active",
       "type": {
         "named": "temporal.standaloneactivity.Active"
@@ -3124,7 +3110,7 @@
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -3132,7 +3118,7 @@
       },
       "call": {
         "function": "temporal.standaloneactivity.System$package$.countActive",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
             "line": 210
@@ -3144,7 +3130,7 @@
             "line": 210
           },
           "var": "after"
-        }]
+        } ]
       }
     }
   }, {
@@ -3153,12 +3139,12 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 211
     },
-    "params": [{
+    "params": [ {
       "name": "_$2",
       "type": {
         "named": "temporal.standaloneactivity.Active"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -3193,7 +3179,7 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 202
     },
-    "params": [{
+    "params": [ {
       "name": "active",
       "type": {
         "named": "temporal.standaloneactivity.Active"
@@ -3203,7 +3189,7 @@
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -3254,13 +3240,13 @@
           },
           "call": {
             "function": "temporal.standaloneactivity.System$package$.oneMore",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
                 "line": 203
               },
               "var": "active"
-            }]
+            } ]
           }
         },
         "else": {
@@ -3313,13 +3299,13 @@
               },
               "call": {
                 "function": "temporal.standaloneactivity.System$package$.oneLess",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
                     "line": 204
                   },
                   "var": "active"
-                }]
+                } ]
               }
             },
             "else": {
@@ -3405,12 +3391,12 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 73
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "temporal.standaloneactivity.AdmissionState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -3459,8 +3445,7 @@
             "file": "model/temporal/standaloneactivity/System.scala",
             "line": 74
           },
-          "list": {
-          }
+          "list": { }
         },
         "else": {
           "position": {
@@ -3468,14 +3453,14 @@
             "line": 75
           },
           "list": {
-            "items": [{
+            "items": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
                 "line": 75
               },
               "construct": {
                 "type": "umpire.Step",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
                     "line": 75
@@ -3498,7 +3483,7 @@
                     "line": 75
                   },
                   "list": {
-                    "items": [{
+                    "items": [ {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
                         "line": 75
@@ -3509,7 +3494,7 @@
                           "case": "dispatchSent"
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
@@ -3519,9 +3504,9 @@
                   "literal": {
                     "text": ""
                   }
-                }]
+                } ]
               }
-            }]
+            } ]
           }
         }
       }
@@ -3532,7 +3517,7 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 217
     },
-    "params": [{
+    "params": [ {
       "name": "f",
       "type": {
         "named": "temporal.standaloneactivity.Finality"
@@ -3542,7 +3527,7 @@
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -3556,7 +3541,7 @@
           },
           "var": "f"
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -3579,8 +3564,7 @@
           }
         }, {
           "pattern": {
-            "wildcard": {
-            }
+            "wildcard": { }
           },
           "body": {
             "position": {
@@ -3595,7 +3579,7 @@
                 },
                 "call": {
                   "function": "temporal.standaloneactivity.System$package$.admissionOver",
-                  "args": [{
+                  "args": [ {
                     "position": {
                       "file": "model/temporal/standaloneactivity/System.scala",
                       "line": 220
@@ -3619,7 +3603,7 @@
                       },
                       "field": "phase"
                     }
-                  }]
+                  } ]
                 }
               },
               "then": {
@@ -3696,7 +3680,7 @@
               }
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -3705,12 +3689,12 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 1145
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "temporal.standaloneactivity.AdmissionResponseState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -3747,8 +3731,7 @@
             "file": "model/temporal/standaloneactivity/System.scala",
             "line": 1148
           },
-          "list": {
-          }
+          "list": { }
         },
         "else": {
           "position": {
@@ -3756,14 +3739,14 @@
             "line": 1150
           },
           "list": {
-            "items": [{
+            "items": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
                 "line": 1151
               },
               "construct": {
                 "type": "umpire.Step",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
                     "line": 1152
@@ -3781,7 +3764,7 @@
                   },
                   "construct": {
                     "type": "temporal.standaloneactivity.AdmissionResponseState",
-                    "args": [{
+                    "args": [ {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
                         "line": 1154
@@ -3803,7 +3786,7 @@
                             "field": "record"
                           }
                         },
-                        "updates": [{
+                        "updates": [ {
                           "name": "phase",
                           "value": {
                             "position": {
@@ -3826,7 +3809,7 @@
                             },
                             "call": {
                               "function": "temporal.standaloneactivity.System$package$.oneMore",
-                              "args": [{
+                              "args": [ {
                                 "position": {
                                   "file": "model/temporal/standaloneactivity/System.scala",
                                   "line": 1156
@@ -3850,7 +3833,7 @@
                                   },
                                   "field": "active"
                                 }
-                              }]
+                              } ]
                             }
                           }
                         }, {
@@ -3867,7 +3850,7 @@
                               }
                             }
                           }
-                        }]
+                        } ]
                       }
                     }, {
                       "position": {
@@ -3877,7 +3860,7 @@
                       "literal": {
                         "bool": false
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
@@ -3885,7 +3868,7 @@
                     "line": 1161
                   },
                   "list": {
-                    "items": [{
+                    "items": [ {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
                         "line": 1161
@@ -3896,7 +3879,7 @@
                           "case": "attemptAdmitted"
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
@@ -3906,7 +3889,7 @@
                   "literal": {
                     "text": ""
                   }
-                }]
+                } ]
               }
             }, {
               "position": {
@@ -3915,7 +3898,7 @@
               },
               "construct": {
                 "type": "umpire.Step",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
                     "line": 1164
@@ -3939,7 +3922,7 @@
                       },
                       "var": "s"
                     },
-                    "updates": [{
+                    "updates": [ {
                       "name": "lossAvailable",
                       "value": {
                         "position": {
@@ -3950,15 +3933,14 @@
                           "bool": false
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
                     "line": 1166
                   },
-                  "list": {
-                  }
+                  "list": { }
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
@@ -3967,9 +3949,9 @@
                   "literal": {
                     "text": "the durable update failed before its answer was lost"
                   }
-                }]
+                } ]
               }
-            }]
+            } ]
           }
         }
       }
@@ -3980,12 +3962,12 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 93
     },
-    "params": [{
+    "params": [ {
       "name": "a",
       "type": {
         "named": "temporal.standaloneactivity.Active"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -3999,7 +3981,7 @@
           },
           "var": "a"
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -4022,8 +4004,7 @@
           }
         }, {
           "pattern": {
-            "wildcard": {
-            }
+            "wildcard": { }
           },
           "body": {
             "position": {
@@ -4037,7 +4018,7 @@
               }
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -4046,12 +4027,12 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 89
     },
-    "params": [{
+    "params": [ {
       "name": "a",
       "type": {
         "named": "temporal.standaloneactivity.Active"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -4065,7 +4046,7 @@
           },
           "var": "a"
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -4088,8 +4069,7 @@
           }
         }, {
           "pattern": {
-            "wildcard": {
-            }
+            "wildcard": { }
           },
           "body": {
             "position": {
@@ -4103,7 +4083,7 @@
               }
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -4112,7 +4092,7 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 81
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "temporal.standaloneactivity.AdmissionState"
@@ -4122,7 +4102,7 @@
       "type": {
         "named": "temporal.standaloneactivity.Control"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -4136,7 +4116,7 @@
           },
           "var": "c"
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -4167,7 +4147,7 @@
                   "field": "phase"
                 }
               },
-              "cases": [{
+              "cases": [ {
                 "pattern": {
                   "literal": {
                     "enum": {
@@ -4183,7 +4163,7 @@
                   },
                   "call": {
                     "function": "temporal.standaloneactivity.System$package$.pauses",
-                    "args": [{
+                    "args": [ {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
                         "line": 84
@@ -4200,7 +4180,7 @@
                           "case": "paused"
                         }
                       }
-                    }]
+                    } ]
                   }
                 }
               }, {
@@ -4219,7 +4199,7 @@
                   },
                   "call": {
                     "function": "temporal.standaloneactivity.System$package$.pauses",
-                    "args": [{
+                    "args": [ {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
                         "line": 85
@@ -4236,29 +4216,27 @@
                           "case": "pausedWhileHeld"
                         }
                       }
-                    }]
+                    } ]
                   }
                 }
               }, {
                 "pattern": {
-                  "wildcard": {
-                  }
+                  "wildcard": { }
                 },
                 "body": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
                     "line": 86
                   },
-                  "list": {
-                  }
+                  "list": { }
                 }
-              }]
+              } ]
             }
           }
         }, {
           "pattern": {
             "alternatives": {
-              "patterns": [{
+              "patterns": [ {
                 "literal": {
                   "enum": {
                     "type": "temporal.standaloneactivity.Control",
@@ -4279,7 +4257,7 @@
                     "case": "terminate"
                   }
                 }
-              }]
+              } ]
             }
           },
           "body": {
@@ -4287,10 +4265,9 @@
               "file": "model/temporal/standaloneactivity/System.scala",
               "line": 87
             },
-            "list": {
-            }
+            "list": { }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -4299,7 +4276,7 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 77
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "temporal.standaloneactivity.AdmissionState"
@@ -4309,21 +4286,21 @@
       "type": {
         "named": "temporal.standaloneactivity.AdmissionPhase"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
         "line": 78
       },
       "list": {
-        "items": [{
+        "items": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
             "line": 78
           },
           "construct": {
             "type": "umpire.Step",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
                 "line": 78
@@ -4347,7 +4324,7 @@
                   },
                   "var": "s"
                 },
-                "updates": [{
+                "updates": [ {
                   "name": "phase",
                   "value": {
                     "position": {
@@ -4356,7 +4333,7 @@
                     },
                     "var": "phase"
                   }
-                }]
+                } ]
               }
             }, {
               "position": {
@@ -4364,7 +4341,7 @@
                 "line": 78
               },
               "list": {
-                "items": [{
+                "items": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
                     "line": 78
@@ -4375,7 +4352,7 @@
                       "case": "statusPaused"
                     }
                   }
-                }]
+                } ]
               }
             }, {
               "position": {
@@ -4385,9 +4362,9 @@
               "literal": {
                 "text": ""
               }
-            }]
+            } ]
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -4396,12 +4373,12 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 166
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "temporal.standaloneactivity.AdmissionState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -4424,7 +4401,7 @@
             "field": "phase"
           }
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -4440,7 +4417,7 @@
             },
             "construct": {
               "type": "temporal.standaloneactivity.ProductState",
-              "args": [{
+              "args": [ {
                 "position": {
                   "file": "model/temporal/standaloneactivity/System.scala",
                   "line": 167
@@ -4451,13 +4428,13 @@
                     "case": "scheduled"
                   }
                 }
-              }]
+              } ]
             }
           }
         }, {
           "pattern": {
             "alternatives": {
-              "patterns": [{
+              "patterns": [ {
                 "literal": {
                   "enum": {
                     "type": "temporal.standaloneactivity.AdmissionPhase",
@@ -4471,7 +4448,7 @@
                     "case": "pausedWhileHeld"
                   }
                 }
-              }]
+              } ]
             }
           },
           "body": {
@@ -4481,7 +4458,7 @@
             },
             "construct": {
               "type": "temporal.standaloneactivity.ProductState",
-              "args": [{
+              "args": [ {
                 "position": {
                   "file": "model/temporal/standaloneactivity/System.scala",
                   "line": 168
@@ -4492,7 +4469,7 @@
                     "case": "paused"
                   }
                 }
-              }]
+              } ]
             }
           }
         }, {
@@ -4511,7 +4488,7 @@
             },
             "construct": {
               "type": "temporal.standaloneactivity.ProductState",
-              "args": [{
+              "args": [ {
                 "position": {
                   "file": "model/temporal/standaloneactivity/System.scala",
                   "line": 169
@@ -4522,7 +4499,7 @@
                     "case": "started"
                   }
                 }
-              }]
+              } ]
             }
           }
         }, {
@@ -4541,7 +4518,7 @@
             },
             "construct": {
               "type": "temporal.standaloneactivity.ProductState",
-              "args": [{
+              "args": [ {
                 "position": {
                   "file": "model/temporal/standaloneactivity/System.scala",
                   "line": 170
@@ -4552,7 +4529,7 @@
                     "case": "completed"
                   }
                 }
-              }]
+              } ]
             }
           }
         }, {
@@ -4571,7 +4548,7 @@
             },
             "construct": {
               "type": "temporal.standaloneactivity.ProductState",
-              "args": [{
+              "args": [ {
                 "position": {
                   "file": "model/temporal/standaloneactivity/System.scala",
                   "line": 171
@@ -4582,10 +4559,10 @@
                     "case": "timedOut"
                   }
                 }
-              }]
+              } ]
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -4594,12 +4571,12 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 174
     },
-    "params": [{
+    "params": [ {
       "name": "f",
       "type": {
         "named": "temporal.standaloneactivity.AdmissionFact"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -4613,10 +4590,10 @@
           },
           "var": "f"
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "alternatives": {
-              "patterns": [{
+              "patterns": [ {
                 "literal": {
                   "enum": {
                     "type": "temporal.standaloneactivity.AdmissionFact",
@@ -4641,12 +4618,11 @@
                 "case": {
                   "type": "temporal.standaloneactivity.AdmissionFact",
                   "case": "statusTimedOut",
-                  "fields": [{
-                    "wildcard": {
-                    }
-                  }]
+                  "fields": [ {
+                    "wildcard": { }
+                  } ]
                 }
-              }]
+              } ]
             }
           },
           "body": {
@@ -4661,7 +4637,7 @@
         }, {
           "pattern": {
             "alternatives": {
-              "patterns": [{
+              "patterns": [ {
                 "literal": {
                   "enum": {
                     "type": "temporal.standaloneactivity.AdmissionFact",
@@ -4696,7 +4672,7 @@
                     "case": "deliveryAnswered"
                   }
                 }
-              }]
+              } ]
             }
           },
           "body": {
@@ -4708,7 +4684,7 @@
               "bool": false
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -4717,12 +4693,12 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 1139
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "temporal.standaloneactivity.AdmissionResponseState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -4759,8 +4735,7 @@
             "file": "model/temporal/standaloneactivity/System.scala",
             "line": 1142
           },
-          "list": {
-          }
+          "list": { }
         },
         "else": {
           "position": {
@@ -4768,14 +4743,14 @@
             "line": 1143
           },
           "list": {
-            "items": [{
+            "items": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
                 "line": 1143
               },
               "construct": {
                 "type": "umpire.Step",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
                     "line": 1143
@@ -4798,7 +4773,7 @@
                     "line": 1143
                   },
                   "list": {
-                    "items": [{
+                    "items": [ {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
                         "line": 1143
@@ -4809,7 +4784,7 @@
                           "case": "dispatchSent"
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
@@ -4819,9 +4794,9 @@
                   "literal": {
                     "text": ""
                   }
-                }]
+                } ]
               }
-            }]
+            } ]
           }
         }
       }
@@ -4832,12 +4807,12 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 1135
     },
-    "params": [{
+    "params": [ {
       "name": "f",
       "type": {
         "named": "temporal.standaloneactivity.AdmissionResponseFact"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -4851,7 +4826,7 @@
           },
           "var": "f"
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -4887,7 +4862,7 @@
               "text": "attemptAdmitted"
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -4896,7 +4871,7 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 226
     },
-    "params": [{
+    "params": [ {
       "name": "f",
       "type": {
         "named": "temporal.standaloneactivity.Finality"
@@ -4911,7 +4886,7 @@
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -4919,7 +4894,7 @@
       },
       "call": {
         "function": "temporal.standaloneactivity.System$package$.finality",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
             "line": 226
@@ -4931,7 +4906,7 @@
             "line": 226
           },
           "var": "after"
-        }]
+        } ]
       }
     }
   }, {
@@ -4940,12 +4915,12 @@
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 227
     },
-    "params": [{
+    "params": [ {
       "name": "_$4",
       "type": {
         "named": "temporal.standaloneactivity.Finality"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
@@ -4974,8 +4949,8 @@
         }
       }
     }
-  }],
-  "actions": [{
+  } ],
+  "actions": [ {
     "id": "temporal.standaloneactivity.Model$package$.attemptResult",
     "name": "attemptResult",
     "position": {
@@ -4983,22 +4958,22 @@
       "line": 77
     },
     "party": "worker",
-    "inputs": [{
+    "inputs": [ {
       "name": "result",
       "type": {
         "named": "temporal.standaloneactivity.AttemptResult"
       }
-    }],
+    } ],
     "on": "activity",
-    "schemas": ["temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest", "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest", "temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest"],
-    "examples": [{
+    "schemas": [ "temporal.api.workflowservice.v1.RespondActivityTaskCompletedRequest", "temporal.api.workflowservice.v1.RespondActivityTaskFailedRequest", "temporal.api.workflowservice.v1.RespondActivityTaskCanceledRequest" ],
+    "examples": [ {
       "value": {
         "enum": {
           "type": "temporal.standaloneactivity.AttemptResult",
           "case": "failed",
-          "fields": [{
+          "fields": [ {
             "bool": false
-          }]
+          } ]
         }
       },
       "example": "ApplicationFailureNonRetryable"
@@ -5007,13 +4982,13 @@
         "enum": {
           "type": "temporal.standaloneactivity.AttemptResult",
           "case": "failed",
-          "fields": [{
+          "fields": [ {
             "bool": true
-          }]
+          } ]
         }
       },
       "example": "ApplicationFailureRetryable"
-    }]
+    } ]
   }, {
     "id": "temporal.standaloneactivity.Model$package$.attemptStart",
     "name": "attemptStart",
@@ -5023,7 +4998,7 @@
     },
     "party": "worker",
     "on": "activity",
-    "schemas": ["temporal.api.workflowservice.v1.PollActivityTaskQueueResponse"]
+    "schemas": [ "temporal.api.workflowservice.v1.PollActivityTaskQueueResponse" ]
   }, {
     "id": "temporal.standaloneactivity.Model$package$.control",
     "name": "control",
@@ -5032,14 +5007,14 @@
       "line": 92
     },
     "party": "caller",
-    "inputs": [{
+    "inputs": [ {
       "name": "control",
       "type": {
         "named": "temporal.standaloneactivity.Control"
       }
-    }],
+    } ],
     "on": "activity",
-    "schemas": ["temporal.api.workflowservice.v1.PauseActivityExecutionRequest", "temporal.api.workflowservice.v1.UnpauseActivityExecutionRequest", "temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest", "temporal.api.workflowservice.v1.TerminateActivityExecutionRequest"],
+    "schemas": [ "temporal.api.workflowservice.v1.PauseActivityExecutionRequest", "temporal.api.workflowservice.v1.UnpauseActivityExecutionRequest", "temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest", "temporal.api.workflowservice.v1.TerminateActivityExecutionRequest" ],
     "results": "Delivery"
   }, {
     "id": "temporal.standaloneactivity.Model$package$.timeout",
@@ -5084,8 +5059,8 @@
       "line": 52
     },
     "party": "worker"
-  }],
-  "machines": [{
+  } ],
+  "machines": [ {
     "family": "temporal.activity.standalone",
     "name": "activityProduct",
     "position": {
@@ -5096,14 +5071,14 @@
     "stateType": "temporal.standaloneactivity.ProductState",
     "outcomeType": "temporal.standaloneactivity.Outcome",
     "factType": "temporal.standaloneactivity.ProductFact",
-    "starts": [{
+    "starts": [ {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
         "line": 219
       },
       "construct": {
         "type": "temporal.standaloneactivity.ProductState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
             "line": 219
@@ -5114,21 +5089,21 @@
               "case": "scheduled"
             }
           }
-        }]
+        } ]
       }
-    }],
+    } ],
     "ends": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
         "line": 220
       },
       "lambda": {
-        "params": [{
+        "params": [ {
           "name": "s",
           "type": {
             "named": "temporal.standaloneactivity.ProductState"
           }
-        }],
+        } ],
         "body": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
@@ -5136,18 +5111,18 @@
           },
           "call": {
             "function": "temporal.standaloneactivity.Model$package$.productTerminal",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
                 "line": 220
               },
               "var": "s"
-            }]
+            } ]
           }
         }
       }
     },
-    "steps": [{
+    "steps": [ {
       "action": "temporal.standaloneactivity.Model$package$.attemptStart",
       "function": "temporal.standaloneactivity.Model$package$.attemptStartStep",
       "position": {
@@ -5182,7 +5157,7 @@
         "file": "model/temporal/standaloneactivity/Model.scala",
         "line": 237
       }
-    }],
+    } ],
     "evidence": "activityProduct.evidence"
   }, {
     "family": "temporal.activity.standalone.system",
@@ -5195,21 +5170,21 @@
     "stateType": "temporal.standaloneactivity.AdmissionResponseState",
     "outcomeType": "temporal.standaloneactivity.Outcome",
     "factType": "temporal.standaloneactivity.AdmissionResponseFact",
-    "starts": [{
+    "starts": [ {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
         "line": 1133
       },
       "construct": {
         "type": "temporal.standaloneactivity.AdmissionResponseState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
             "line": 67
           },
           "construct": {
             "type": "temporal.standaloneactivity.AdmissionState",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
                 "line": 67
@@ -5242,7 +5217,7 @@
                   "case": "settled"
                 }
               }
-            }]
+            } ]
           }
         }, {
           "position": {
@@ -5252,21 +5227,21 @@
           "literal": {
             "bool": true
           }
-        }]
+        } ]
       }
-    }],
+    } ],
     "ends": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
         "line": 1178
       },
       "lambda": {
-        "params": [{
+        "params": [ {
           "name": "s",
           "type": {
             "named": "temporal.standaloneactivity.AdmissionResponseState"
           }
-        }],
+        } ],
         "body": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
@@ -5294,7 +5269,7 @@
         }
       }
     },
-    "steps": [{
+    "steps": [ {
       "action": "temporal.standaloneactivity.System$package$.dispatch",
       "function": "temporal.standaloneactivity.System$package$.responseLossDispatch",
       "position": {
@@ -5308,7 +5283,7 @@
         "file": "model/temporal/standaloneactivity/System.scala",
         "line": 1180
       }
-    }],
+    } ],
     "evidence": "admissionResponseLoss.evidence"
   }, {
     "family": "temporal.activity.standalone.system",
@@ -5321,14 +5296,14 @@
     "stateType": "temporal.standaloneactivity.AdmissionState",
     "outcomeType": "temporal.standaloneactivity.Outcome",
     "factType": "temporal.standaloneactivity.AdmissionFact",
-    "starts": [{
+    "starts": [ {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
         "line": 67
       },
       "construct": {
         "type": "temporal.standaloneactivity.AdmissionState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
             "line": 67
@@ -5361,21 +5336,21 @@
               "case": "settled"
             }
           }
-        }]
+        } ]
       }
-    }],
+    } ],
     "ends": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
         "line": 1088
       },
       "lambda": {
-        "params": [{
+        "params": [ {
           "name": "s",
           "type": {
             "named": "temporal.standaloneactivity.AdmissionState"
           }
-        }],
+        } ],
         "body": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
@@ -5383,18 +5358,18 @@
           },
           "call": {
             "function": "temporal.standaloneactivity.System$package$.admissionEnds",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
                 "line": 1088
               },
               "var": "s"
-            }]
+            } ]
           }
         }
       }
     },
-    "steps": [{
+    "steps": [ {
       "action": "temporal.standaloneactivity.System$package$.dispatch",
       "function": "temporal.standaloneactivity.System$package$.dispatchStep",
       "position": {
@@ -5422,16 +5397,16 @@
         "file": "model/temporal/standaloneactivity/System.scala",
         "line": 1094
       }
-    }],
+    } ],
     "evidence": "heldAdmission.evidence",
     "refines": {
       "product": "activityProduct",
       "map": "temporal.standaloneactivity.System$package$.productOfAdmission",
       "visible": "temporal.standaloneactivity.System$package$.productSees"
     },
-    "monitors": ["temporal.standaloneactivity.System$package$.atMostOneActiveAttempt", "temporal.standaloneactivity.System$package$.terminalFinality"]
-  }],
-  "monitors": [{
+    "monitors": [ "temporal.standaloneactivity.System$package$.atMostOneActiveAttempt", "temporal.standaloneactivity.System$package$.terminalFinality" ]
+  } ],
+  "monitors": [ {
     "id": "temporal.standaloneactivity.System$package$.atMostOneActiveAttempt",
     "name": "atMostOneActiveAttempt",
     "position": {
@@ -5480,10 +5455,9 @@
     },
     "next": "temporal.standaloneactivity.System$package$.terminalFinality.next",
     "violated": "temporal.standaloneactivity.System$package$.terminalFinality.violated",
-    "everyStep": {
-    }
-  }],
-  "properties": [{
+    "everyStep": { }
+  } ],
+  "properties": [ {
     "machine": "admissionResponseLoss",
     "name": "committedDespiteLostResponse",
     "position": {
@@ -5505,8 +5479,8 @@
       "action": "temporal.standaloneactivity.Model$package$.attemptStart"
     },
     "holds": "heldAdmission.property.staleDeliveryRejected"
-  }],
-  "scenarios": [{
+  } ],
+  "scenarios": [ {
     "machine": "admissionResponseLoss",
     "name": "oneLostResponse",
     "position": {
@@ -5520,14 +5494,14 @@
       },
       "construct": {
         "type": "temporal.standaloneactivity.AdmissionResponseState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
             "line": 67
           },
           "construct": {
             "type": "temporal.standaloneactivity.AdmissionState",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
                 "line": 67
@@ -5560,7 +5534,7 @@
                   "case": "settled"
                 }
               }
-            }]
+            } ]
           }
         }, {
           "position": {
@@ -5570,14 +5544,14 @@
           "literal": {
             "bool": true
           }
-        }]
+        } ]
       }
     },
-    "actions": [{
+    "actions": [ {
       "action": "temporal.standaloneactivity.System$package$.dispatch"
     }, {
       "action": "temporal.standaloneactivity.System$package$.ackLoss"
-    }]
+    } ]
   }, {
     "machine": "heldAdmission",
     "name": "heldStaleDelivery",
@@ -5592,7 +5566,7 @@
       },
       "construct": {
         "type": "temporal.standaloneactivity.AdmissionState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
             "line": 67
@@ -5625,24 +5599,24 @@
               "case": "settled"
             }
           }
-        }]
+        } ]
       }
     },
-    "actions": [{
+    "actions": [ {
       "action": "temporal.standaloneactivity.System$package$.dispatch"
     }, {
       "action": "temporal.standaloneactivity.Model$package$.control",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.standaloneactivity.Control",
           "case": "pause"
         }
-      }]
+      } ]
     }, {
       "action": "temporal.standaloneactivity.Model$package$.attemptStart"
-    }]
-  }],
-  "queries": [{
+    } ]
+  } ],
+  "queries": [ {
     "name": "admissionResponseLoss.committed",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
@@ -5691,17 +5665,17 @@
     "expectedRun": {
       "property": "OUTCOME_SATISFIED",
       "conformance": "CONFORMANCE_CONFORMANT",
-      "monitors": [{
+      "monitors": [ {
         "name": "atMostOneActiveAttempt",
         "outcome": "OUTCOME_INCONCLUSIVE",
-        "reason": "an execution that explains the evidence never reaches the claim\u0027s evaluation point"
+        "reason": "an execution that explains the evidence never reaches the claim's evaluation point"
       }, {
         "name": "terminalFinality",
         "outcome": "OUTCOME_SATISFIED"
-      }]
+      } ]
     }
-  }],
-  "realizations": [{
+  } ],
+  "realizations": [ {
     "id": "temporal.standaloneactivity.ActivityRealization$.heldDelivery",
     "name": "heldDelivery",
     "position": {
@@ -5711,7 +5685,7 @@
     "machine": "heldAdmission",
     "producer": "temporal.activity.standalone.testpilot",
     "producerVersion": "1",
-    "roles": [{
+    "roles": [ {
       "id": "temporal.workflow-service",
       "position": {
         "file": "model/temporal/standaloneactivity/Realization.scala",
@@ -5727,16 +5701,16 @@
       "kind": "KIND_TASK_QUEUE",
       "namespace": "temporal.worker.namespace",
       "resource": "temporal.task-queue.resource"
-    }],
-    "observations": [{
+    } ],
+    "observations": [ {
       "id": "correlated-evidence",
       "position": {
         "file": "model/temporal/standaloneactivity/Realization.scala",
         "line": 546
       },
       "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
-    }],
-    "evidence": [{
+    } ],
+    "evidence": [ {
       "id": "temporal.activity.standalone.evidence.dispatchSent",
       "position": {
         "file": "model/temporal/standaloneactivity/Realization.scala",
@@ -5744,7 +5718,6 @@
       },
       "records": "dispatchSent",
       "source": "temporal.activity.standalone.source.record",
-      "commitment": "COMMITMENT_REPORTED",
       "runEvent": {
         "kind": "KIND_INSTRUCTION_COMPLETED",
         "script": "controller",
@@ -5754,8 +5727,7 @@
             "file": "model/temporal/standaloneactivity/Realization.scala",
             "line": 95
           },
-          "run": {
-          }
+          "run": { }
         },
         "guard": {
           "position": {
@@ -5774,8 +5746,7 @@
                     "file": "model/temporal/standaloneactivity/Realization.scala",
                     "line": 75
                   },
-                  "projected": {
-                  }
+                  "projected": { }
                 },
                 "path": "status"
               }
@@ -5791,7 +5762,8 @@
             }
           }
         }
-      }
+      },
+      "commitment": "COMMITMENT_REPORTED"
     }, {
       "id": "temporal.activity.standalone.evidence.statusPaused",
       "position": {
@@ -5800,12 +5772,12 @@
       },
       "records": "statusPaused",
       "source": "temporal.activity.standalone.source.statusPaused",
-      "operation": "activity_id",
-      "commitment": "COMMITMENT_REPORTED",
       "single": {
         "method": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution",
         "path": "info"
-      }
+      },
+      "operation": "activity_id",
+      "commitment": "COMMITMENT_REPORTED"
     }, {
       "id": "temporal.activity.standalone.evidence.admissionRejected",
       "position": {
@@ -5814,23 +5786,6 @@
       },
       "records": "admissionRejected",
       "source": "temporal.activity.standalone.source.record",
-      "commitment": "COMMITMENT_DURABLE",
-      "fields": [{
-        "id": "delivery",
-        "position": {
-          "file": "model/temporal/standaloneactivity/Realization.scala",
-          "line": 456
-        },
-        "path": "delivery_admission.delivery_id",
-        "role": "ROLE_DELIVERY"
-      }, {
-        "id": "activityRun",
-        "position": {
-          "file": "model/temporal/standaloneactivity/Realization.scala",
-          "line": 461
-        },
-        "path": "delivery_admission.activity_run_id"
-      }],
       "runEvent": {
         "kind": "KIND_INSTRUCTION_COMPLETED",
         "script": "controller",
@@ -5846,8 +5801,7 @@
                 "file": "model/temporal/standaloneactivity/Realization.scala",
                 "line": 442
               },
-              "projected": {
-              }
+              "projected": { }
             },
             "path": "delivery_admission.activity_id"
           }
@@ -5858,7 +5812,7 @@
             "line": 444
           },
           "all": {
-            "operands": [{
+            "operands": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Realization.scala",
                 "line": 75
@@ -5875,8 +5829,7 @@
                         "file": "model/temporal/standaloneactivity/Realization.scala",
                         "line": 75
                       },
-                      "projected": {
-                      }
+                      "projected": { }
                     },
                     "path": "status"
                   }
@@ -5908,8 +5861,7 @@
                         "file": "model/temporal/standaloneactivity/Realization.scala",
                         "line": 447
                       },
-                      "projected": {
-                      }
+                      "projected": { }
                     },
                     "path": "delivery_admission.decision"
                   }
@@ -5924,20 +5876,12 @@
                   }
                 }
               }
-            }]
+            } ]
           }
         }
-      }
-    }, {
-      "id": "temporal.activity.standalone.evidence.attemptAdmitted",
-      "position": {
-        "file": "model/temporal/standaloneactivity/Realization.scala",
-        "line": 434
       },
-      "records": "attemptAdmitted",
-      "source": "temporal.activity.standalone.source.record",
       "commitment": "COMMITMENT_DURABLE",
-      "fields": [{
+      "fields": [ {
         "id": "delivery",
         "position": {
           "file": "model/temporal/standaloneactivity/Realization.scala",
@@ -5952,8 +5896,15 @@
           "line": 461
         },
         "path": "delivery_admission.activity_run_id"
-      }],
-      "exhaustive": true,
+      } ]
+    }, {
+      "id": "temporal.activity.standalone.evidence.attemptAdmitted",
+      "position": {
+        "file": "model/temporal/standaloneactivity/Realization.scala",
+        "line": 434
+      },
+      "records": "attemptAdmitted",
+      "source": "temporal.activity.standalone.source.record",
       "runEvent": {
         "kind": "KIND_INSTRUCTION_COMPLETED",
         "script": "controller",
@@ -5969,8 +5920,7 @@
                 "file": "model/temporal/standaloneactivity/Realization.scala",
                 "line": 442
               },
-              "projected": {
-              }
+              "projected": { }
             },
             "path": "delivery_admission.activity_id"
           }
@@ -5981,7 +5931,7 @@
             "line": 444
           },
           "all": {
-            "operands": [{
+            "operands": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Realization.scala",
                 "line": 75
@@ -5998,8 +5948,7 @@
                         "file": "model/temporal/standaloneactivity/Realization.scala",
                         "line": 75
                       },
-                      "projected": {
-                      }
+                      "projected": { }
                     },
                     "path": "status"
                   }
@@ -6031,8 +5980,7 @@
                         "file": "model/temporal/standaloneactivity/Realization.scala",
                         "line": 447
                       },
-                      "projected": {
-                      }
+                      "projected": { }
                     },
                     "path": "delivery_admission.decision"
                   }
@@ -6047,11 +5995,29 @@
                   }
                 }
               }
-            }]
+            } ]
           }
         }
-      }
-    }],
+      },
+      "commitment": "COMMITMENT_DURABLE",
+      "fields": [ {
+        "id": "delivery",
+        "position": {
+          "file": "model/temporal/standaloneactivity/Realization.scala",
+          "line": 456
+        },
+        "path": "delivery_admission.delivery_id",
+        "role": "ROLE_DELIVERY"
+      }, {
+        "id": "activityRun",
+        "position": {
+          "file": "model/temporal/standaloneactivity/Realization.scala",
+          "line": 461
+        },
+        "path": "delivery_admission.activity_run_id"
+      } ],
+      "exhaustive": true
+    } ],
     "correlation": {
       "position": {
         "file": "model/temporal/standaloneactivity/Realization.scala",
@@ -6068,28 +6034,27 @@
       "work": "1000000000",
       "eventSize": "512"
     },
-    "controls": [{
+    "controls": [ {
       "id": "hold-dispatch",
       "position": {
         "file": "model/temporal/standaloneactivity/Realization.scala",
         "line": 555
       },
-      "role": "temporal.task-queue",
       "holdDispatched": {
         "step": {
           "action": "temporal.standaloneactivity.System$package$.dispatch"
         }
-      }
-    }],
-    "scripts": [{
+      },
+      "role": "temporal.task-queue"
+    } ],
+    "scripts": [ {
       "id": "controller",
       "position": {
         "file": "model/temporal/standaloneactivity/Realization.scala",
         "line": 486
       },
-      "controller": {
-      },
-      "items": [{
+      "controller": { },
+      "items": [ {
         "position": {
           "file": "model/temporal/standaloneactivity/Realization.scala",
           "line": 468
@@ -6103,7 +6068,7 @@
           "rpc": {
             "role": "temporal.workflow-service",
             "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
-            "assign": [{
+            "assign": [ {
               "target": "namespace",
               "value": {
                 "position": {
@@ -6119,8 +6084,7 @@
                   "file": "model/temporal/standaloneactivity/Realization.scala",
                   "line": 178
                 },
-                "run": {
-                }
+                "run": { }
               }
             }, {
               "target": "activity_type.name",
@@ -6153,8 +6117,7 @@
                   "file": "model/temporal/standaloneactivity/Realization.scala",
                   "line": 478
                 },
-                "run": {
-                }
+                "run": { }
               }
             }, {
               "target": "start_to_close_timeout.seconds",
@@ -6167,7 +6130,7 @@
                   "number": "300"
                 }
               }
-            }]
+            } ]
           }
         }
       }, {
@@ -6175,7 +6138,7 @@
           "file": "model/temporal/standaloneactivity/Realization.scala",
           "line": 491
         },
-        "performs": [{
+        "performs": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/Realization.scala",
             "line": 491
@@ -6191,25 +6154,25 @@
             },
             "hold": "hold-dispatch"
           }
-        }]
+        } ]
       }, {
         "position": {
           "file": "model/temporal/standaloneactivity/Realization.scala",
           "line": 492
         },
-        "performs": [{
+        "performs": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/Realization.scala",
             "line": 209
           },
           "step": {
             "action": "temporal.standaloneactivity.Model$package$.control",
-            "inputs": [{
+            "inputs": [ {
               "enum": {
                 "type": "temporal.standaloneactivity.Control",
                 "case": "pause"
               }
-            }]
+            } ]
           },
           "command": {
             "id": "pause-activity",
@@ -6220,7 +6183,7 @@
             "rpc": {
               "role": "temporal.workflow-service",
               "method": "/temporal.api.workflowservice.v1.WorkflowService/PauseActivityExecution",
-              "assign": [{
+              "assign": [ {
                 "target": "namespace",
                 "value": {
                   "position": {
@@ -6236,13 +6199,12 @@
                     "file": "model/temporal/standaloneactivity/Realization.scala",
                     "line": 178
                   },
-                  "run": {
-                  }
+                  "run": { }
                 }
-              }]
+              } ]
             }
           }
-        }]
+        } ]
       }, {
         "position": {
           "file": "model/temporal/standaloneactivity/Realization.scala",
@@ -6257,7 +6219,7 @@
           "poll": {
             "evidence": "temporal.activity.standalone.evidence.statusPaused",
             "role": "temporal.workflow-service",
-            "assign": [{
+            "assign": [ {
               "target": "namespace",
               "value": {
                 "position": {
@@ -6273,10 +6235,9 @@
                   "file": "model/temporal/standaloneactivity/Realization.scala",
                   "line": 178
                 },
-                "run": {
-                }
+                "run": { }
               }
-            }],
+            } ],
             "until": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Realization.scala",
@@ -6294,8 +6255,7 @@
                         "file": "model/temporal/standaloneactivity/Realization.scala",
                         "line": 219
                       },
-                      "projected": {
-                      }
+                      "projected": { }
                     },
                     "path": "status"
                   }
@@ -6314,21 +6274,21 @@
             "intervalMs": "250"
           }
         },
-        "when": [{
+        "when": [ {
           "action": "temporal.standaloneactivity.Model$package$.control",
-          "inputs": [{
+          "inputs": [ {
             "enum": {
               "type": "temporal.standaloneactivity.Control",
               "case": "pause"
             }
-          }]
-        }]
+          } ]
+        } ]
       }, {
         "position": {
           "file": "model/temporal/standaloneactivity/Realization.scala",
           "line": 502
         },
-        "performs": [{
+        "performs": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/Realization.scala",
             "line": 504
@@ -6343,11 +6303,11 @@
               "line": 506
             },
             "release": "hold-dispatch",
-            "closes": ["temporal.activity.standalone.evidence.attemptAdmitted"]
+            "closes": [ "temporal.activity.standalone.evidence.attemptAdmitted" ]
           }
-        }]
-      }]
-    }],
+        } ]
+      } ]
+    } ],
     "cleanup": "cleanup"
   }, {
     "id": "temporal.standaloneactivity.ActivityRealization$.lostAdmissionResponse",
@@ -6359,7 +6319,7 @@
     "machine": "admissionResponseLoss",
     "producer": "temporal.activity.standalone.testpilot",
     "producerVersion": "1",
-    "roles": [{
+    "roles": [ {
       "id": "temporal.workflow-service",
       "position": {
         "file": "model/temporal/standaloneactivity/Realization.scala",
@@ -6375,16 +6335,16 @@
       "kind": "KIND_TASK_QUEUE",
       "namespace": "temporal.worker.namespace",
       "resource": "temporal.task-queue.resource"
-    }],
-    "observations": [{
+    } ],
+    "observations": [ {
       "id": "correlated-evidence",
       "position": {
         "file": "model/temporal/standaloneactivity/Realization.scala",
         "line": 607
       },
       "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
-    }],
-    "evidence": [{
+    } ],
+    "evidence": [ {
       "id": "temporal.activity.standalone.evidence.dispatchSent",
       "position": {
         "file": "model/temporal/standaloneactivity/Realization.scala",
@@ -6392,7 +6352,6 @@
       },
       "records": "dispatchSent",
       "source": "temporal.activity.standalone.source.record",
-      "commitment": "COMMITMENT_REPORTED",
       "runEvent": {
         "kind": "KIND_INSTRUCTION_COMPLETED",
         "script": "controller",
@@ -6402,8 +6361,7 @@
             "file": "model/temporal/standaloneactivity/Realization.scala",
             "line": 95
           },
-          "run": {
-          }
+          "run": { }
         },
         "guard": {
           "position": {
@@ -6422,8 +6380,7 @@
                     "file": "model/temporal/standaloneactivity/Realization.scala",
                     "line": 75
                   },
-                  "projected": {
-                  }
+                  "projected": { }
                 },
                 "path": "status"
               }
@@ -6439,7 +6396,8 @@
             }
           }
         }
-      }
+      },
+      "commitment": "COMMITMENT_REPORTED"
     }, {
       "id": "temporal.activity.standalone.evidence.attemptAdmitted",
       "position": {
@@ -6448,31 +6406,6 @@
       },
       "records": "attemptAdmitted",
       "source": "temporal.activity.standalone.source.record",
-      "commitment": "COMMITMENT_DURABLE",
-      "fields": [{
-        "id": "delivery",
-        "position": {
-          "file": "model/temporal/standaloneactivity/Realization.scala",
-          "line": 634
-        },
-        "path": "delivery_admission.delivery_id",
-        "role": "ROLE_DELIVERY"
-      }, {
-        "id": "attempt",
-        "position": {
-          "file": "model/temporal/standaloneactivity/Realization.scala",
-          "line": 639
-        },
-        "path": "delivery_admission.attempt",
-        "role": "ROLE_ATTEMPT"
-      }, {
-        "id": "activityRun",
-        "position": {
-          "file": "model/temporal/standaloneactivity/Realization.scala",
-          "line": 640
-        },
-        "path": "delivery_admission.activity_run_id"
-      }],
       "runEvent": {
         "kind": "KIND_INSTRUCTION_COMPLETED",
         "script": "controller",
@@ -6488,8 +6421,7 @@
                 "file": "model/temporal/standaloneactivity/Realization.scala",
                 "line": 619
               },
-              "projected": {
-              }
+              "projected": { }
             },
             "path": "delivery_admission.activity_id"
           }
@@ -6500,7 +6432,7 @@
             "line": 621
           },
           "all": {
-            "operands": [{
+            "operands": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Realization.scala",
                 "line": 75
@@ -6517,8 +6449,7 @@
                         "file": "model/temporal/standaloneactivity/Realization.scala",
                         "line": 75
                       },
-                      "projected": {
-                      }
+                      "projected": { }
                     },
                     "path": "status"
                   }
@@ -6550,8 +6481,7 @@
                         "file": "model/temporal/standaloneactivity/Realization.scala",
                         "line": 624
                       },
-                      "projected": {
-                      }
+                      "projected": { }
                     },
                     "path": "delivery_admission.decision"
                   }
@@ -6583,8 +6513,7 @@
                         "file": "model/temporal/standaloneactivity/Realization.scala",
                         "line": 627
                       },
-                      "projected": {
-                      }
+                      "projected": { }
                     },
                     "path": "delivery_admission.attempt"
                   }
@@ -6599,11 +6528,36 @@
                   }
                 }
               }
-            }]
+            } ]
           }
         }
-      }
-    }],
+      },
+      "commitment": "COMMITMENT_DURABLE",
+      "fields": [ {
+        "id": "delivery",
+        "position": {
+          "file": "model/temporal/standaloneactivity/Realization.scala",
+          "line": 634
+        },
+        "path": "delivery_admission.delivery_id",
+        "role": "ROLE_DELIVERY"
+      }, {
+        "id": "attempt",
+        "position": {
+          "file": "model/temporal/standaloneactivity/Realization.scala",
+          "line": 639
+        },
+        "path": "delivery_admission.attempt",
+        "role": "ROLE_ATTEMPT"
+      }, {
+        "id": "activityRun",
+        "position": {
+          "file": "model/temporal/standaloneactivity/Realization.scala",
+          "line": 640
+        },
+        "path": "delivery_admission.activity_run_id"
+      } ]
+    } ],
     "correlation": {
       "position": {
         "file": "model/temporal/standaloneactivity/Realization.scala",
@@ -6620,28 +6574,27 @@
       "work": "1000000000",
       "eventSize": "512"
     },
-    "controls": [{
+    "controls": [ {
       "id": "hold-dispatch",
       "position": {
         "file": "model/temporal/standaloneactivity/Realization.scala",
         "line": 645
       },
-      "role": "temporal.task-queue",
       "holdDispatched": {
         "step": {
           "action": "temporal.standaloneactivity.System$package$.dispatch"
         }
-      }
-    }],
-    "scripts": [{
+      },
+      "role": "temporal.task-queue"
+    } ],
+    "scripts": [ {
       "id": "controller",
       "position": {
         "file": "model/temporal/standaloneactivity/Realization.scala",
         "line": 589
       },
-      "controller": {
-      },
-      "items": [{
+      "controller": { },
+      "items": [ {
         "position": {
           "file": "model/temporal/standaloneactivity/Realization.scala",
           "line": 468
@@ -6655,7 +6608,7 @@
           "rpc": {
             "role": "temporal.workflow-service",
             "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
-            "assign": [{
+            "assign": [ {
               "target": "namespace",
               "value": {
                 "position": {
@@ -6671,8 +6624,7 @@
                   "file": "model/temporal/standaloneactivity/Realization.scala",
                   "line": 178
                 },
-                "run": {
-                }
+                "run": { }
               }
             }, {
               "target": "activity_type.name",
@@ -6705,8 +6657,7 @@
                   "file": "model/temporal/standaloneactivity/Realization.scala",
                   "line": 478
                 },
-                "run": {
-                }
+                "run": { }
               }
             }, {
               "target": "start_to_close_timeout.seconds",
@@ -6719,7 +6670,7 @@
                   "number": "300"
                 }
               }
-            }]
+            } ]
           }
         }
       }, {
@@ -6727,7 +6678,7 @@
           "file": "model/temporal/standaloneactivity/Realization.scala",
           "line": 594
         },
-        "performs": [{
+        "performs": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/Realization.scala",
             "line": 594
@@ -6743,13 +6694,13 @@
             },
             "hold": "hold-dispatch"
           }
-        }]
+        } ]
       }, {
         "position": {
           "file": "model/temporal/standaloneactivity/Realization.scala",
           "line": 595
         },
-        "performs": [{
+        "performs": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/Realization.scala",
             "line": 597
@@ -6768,9 +6719,9 @@
               "kind": "KIND_ADMISSION_RESPONSE_LOSS"
             }
           }
-        }]
-      }]
-    }],
+        } ]
+      } ]
+    } ],
     "cleanup": "cleanup"
-  }]
+  } ]
 }

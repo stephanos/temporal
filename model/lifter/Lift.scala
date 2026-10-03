@@ -17,7 +17,8 @@
 // message of its name and each argument the field of its parameter's name.
 package umpire.lift
 
-import com.google.protobuf.util.JsonFormat
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter
 import java.nio.file.{Files, Path, Paths}
 import java.util.zip.ZipFile
 import scala.collection.mutable
@@ -25,6 +26,8 @@ import scala.jdk.CollectionConverters.*
 import scala.quoted.*
 import scala.tasty.inspector.*
 import io.temporal.server.api.umpire.v1 as ir
+import org.json4s.jackson.JsonMethods
+import scalapb.json4s.Printer
 
 /** A construct the IR cannot express, at the position the author wrote it. */
 final case class LiftError(position: String, message: String)
@@ -55,22 +58,24 @@ class Lifter(roots: Seq[String], prefixes: Map[String, String]) extends Inspecto
           errors += e
           lifting.clear()
 
-    val m = ir.Model.newBuilder().setSource("model: " + roots.toList.sorted.mkString(", "))
-    types.toList.sortBy(_._1).foreach((_, t) => m.addTypes(t))
-    functions.toList.sortBy(_._1).foreach((_, f) => m.addFunctions(f))
-    actions.toList.sortBy(_._1).foreach((_, a) => m.addActions(a))
-    machines.values.toList.sortBy(_.getName).foreach(m.addMachines)
-    channels.toList.sortBy(_._1).foreach((_, c) => m.addChannels(c))
-    monitors.toList.sortBy(_._1).foreach((_, x) => m.addMonitors(x))
-    assumptions.toList.sortBy(_._1).foreach((_, a) => m.addAssumptions(a))
-    holes.toList.sortBy(_._1).foreach((_, h) => m.addHoles(h))
-    compositions.values.toList.sortBy(_.getName).foreach(m.addCompositions)
-    properties.toList.sortBy(_._1).foreach((_, p) => m.addProperties(p))
-    scenarios.toList.sortBy(_._1).foreach((_, s) => m.addScenarios(s))
-    queries.toList.sortBy(_._1).foreach((_, q) => m.addQueries(q))
-    progress.toList.sortBy(_._1).foreach((_, p) => m.addProgress(p))
-    realizations.toList.sortBy(_._1).foreach((_, r) => m.addRealizations(r))
-    models += m.build()
+    def sorted[K: Ordering, V](m: collection.Map[K, V]): Seq[V] = m.toSeq.sortBy(_._1).map(_._2)
+    models += ir.Model(
+      source = "model: " + roots.toList.sorted.mkString(", "),
+      types = sorted(types),
+      functions = sorted(functions),
+      actions = sorted(actions),
+      machines = machines.values.toSeq.sortBy(_.name),
+      channels = sorted(channels),
+      monitors = sorted(monitors),
+      assumptions = sorted(assumptions),
+      holes = sorted(holes),
+      compositions = compositions.values.toSeq.sortBy(_.name),
+      properties = sorted(properties),
+      scenarios = sorted(scenarios),
+      queries = sorted(queries),
+      progress = sorted(progress),
+      realizations = sorted(realizations)
+    )
 
 /**
  * `lift <model.jar> <classpath file> <out.json> <source prefix> <root>...`: lift the machines named
@@ -125,7 +130,14 @@ class Lifter(roots: Seq[String], prefixes: Map[String, String]) extends Inspecto
     if sys.env.contains("LIFT_DEBUG") then lifter.errors.foreach(_.printStackTrace())
     lifter.errors.foreach(e => System.err.println(s"lift: ${e.getMessage}"))
     sys.exit(1)
-  val json = JsonFormat
-    .printer()
-    .print(lifter.models.headOption.getOrElse(sys.error("lift: nothing was lifted")))
+  val json = JsonMethods.mapper
+    .writer(Pretty())
+    .writeValueAsString(
+      Printer().toJson(lifter.models.headOption.getOrElse(sys.error("lift: nothing was lifted")))
+    )
   Files.writeString(Paths.get(out), json + "\n")
+
+/** Jackson's indented layout, with a field's value after `": "` as ProtoJSON is usually written. */
+final private class Pretty extends DefaultPrettyPrinter:
+  override def createInstance(): DefaultPrettyPrinter = Pretty()
+  override def writeObjectFieldValueSeparator(g: JsonGenerator): Unit = g.writeRaw(": ")

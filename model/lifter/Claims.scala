@@ -1,7 +1,6 @@
 package umpire.lift
 
 import scala.collection.mutable
-import scala.jdk.CollectionConverters.*
 import io.temporal.server.api.umpire.v1 as ir
 
 /**
@@ -52,19 +51,14 @@ private[lift] trait Claims:
   def claimOf(d: Decl, at: Tree): ir.ClaimRef = d match
     case Decl.Claim(ref) => ref
     case other           => fail(at, s"expected a Property or a Scenario, got $other")
-  def claim(machine: String, name: String): ir.ClaimRef =
-    ir.ClaimRef.newBuilder().setMachine(machine).setName(name).build()
+  def claim(machine: String, name: String): ir.ClaimRef = ir.ClaimRef(machine, name)
 
   /** One class of an action: the action bare, or applied to one value per input. */
   def classOf(t: Term): ir.ActionClass = t match
     case Typed(e, _)                                                    => classOf(e)
     case Apply(Apply(fn, List(a)), values) if fn.symbol.name == "apply" =>
-      ir.ActionClass
-        .newBuilder()
-        .setAction(action(a))
-        .addAllInputs(values.map(literalValue).asJava)
-        .build()
-    case ref => ir.ActionClass.newBuilder().setAction(action(ref)).build()
+      ir.ActionClass(action(a), values.map(literalValue))
+    case ref => ir.ActionClass(action(ref))
 
   /**
    * Keeps the first declaration under a key and refuses a different second one, which would share
@@ -85,20 +79,16 @@ private[lift] trait Claims:
   def limitsOf(t: Term): ir.Limits = arguments(t) match
     case Apply(Select(companion, "apply"), List(name, steps, actions, search))
         if companion.tpe.typeSymbol.companionClass.fullName == "umpire.Limits" =>
-      val l = ir.Limits
-        .newBuilder()
-        .setName(constString(name))
-        .setSteps(constInt(steps).toInt)
-        .setActions(constInt(actions).toInt)
-        .setSearch(constInt(search).toInt)
-        .build()
+      val l = ir.Limits(
+        constString(name),
+        constInt(steps).toInt,
+        constInt(actions).toInt,
+        constInt(search).toInt
+      )
       for
-        (bound, v) <- Seq(
-          "steps" -> l.getSteps,
-          "actions" -> l.getActions,
-          "search" -> l.getSearch
-        ) if v < 0
-      do fail(t, s"limits ${l.getName} declare $v $bound; a bound is at least 0")
+        (bound, v) <- Seq("steps" -> l.steps, "actions" -> l.actions, "search" -> l.search)
+        if v < 0
+      do fail(t, s"limits ${l.name} declare $v $bound; a bound is at least 0")
       l
     case other =>
       fail(
@@ -117,35 +107,34 @@ private[lift] trait Claims:
   ): Decl =
     through match
       case Some(m) =>
-        if m != s.getMachine then
+        if m != s.machine then
           fail(
             at,
-            s"$name reads its Property through the refinement of $m, and its Scenario runs on ${s.getMachine}"
+            s"$name reads its Property through the refinement of $m, and its Scenario runs on ${s.machine}"
           )
-        val refined = machineNamed(m).map(_.getRefines.getProduct).filter(_.nonEmpty)
-        if !refined.contains(p.getMachine) then
+        val refined = machineNamed(m).map(_.getRefines.product).filter(_.nonEmpty)
+        if !refined.contains(p.machine) then
           fail(
             at,
-            s"$name reads ${p.getName}, a Property of ${p.getMachine}, through the refinement of $m, which " +
+            s"$name reads ${p.name}, a Property of ${p.machine}, through the refinement of $m, which " +
               s"refines ${refined.getOrElse("nothing")}"
           )
       case None =>
-        if p.getMachine != s.getMachine then
+        if p.machine != s.machine then
           fail(
             at,
-            s"$name pairs ${p.getName}, a Property of ${p.getMachine}, with ${s.getName}, a Scenario of " +
-              s"${s.getMachine}, and reads it through no refinement"
+            s"$name pairs ${p.name}, a Property of ${p.machine}, with ${s.name}, a Scenario of " +
+              s"${s.machine}, and reads it through no refinement"
           )
-    val q = ir.Query
-      .newBuilder()
-      .setName(name)
-      .setPosition(pos(at))
-      .setForm(form)
-      .setProperty(p)
-      .setScenario(s)
-      .setThrough(through.nonEmpty)
-      .setLimits(limits)
-      .build()
+    val q = ir.Query(
+      name = name,
+      position = Some(pos(at)),
+      form = form,
+      property = Some(p),
+      scenario = Some(s),
+      through = through.nonEmpty,
+      limits = Some(limits)
+    )
     register(queries, name, q, at, s"Query $name")
     Decl.Declared(name)
 
@@ -190,15 +179,17 @@ private[lift] trait Claims:
     case Apply(Select(b, op @ ("holds" | "holdsAcross")), List(f)) =>
       fold(b, env) match
         case Decl.PropertyOn(m, name, when) =>
-          val p = ir.Property
-            .newBuilder()
-            .setMachine(m)
-            .setName(name)
-            .setPosition(pos(t))
-            .setHolds(stepFunction(f, s"$m.property", name))
-            .setTransition(op == "holdsAcross")
-          when.foreach(_.fold(p.setWhenClass, p.setWhenAction))
-          register(properties, (m, name), p.build(), t, s"Property $name of $m")
+          val p = ir.Property(
+            machine = m,
+            name = name,
+            position = Some(pos(t)),
+            holds = stepFunction(f, s"$m.property", name),
+            transition = op == "holdsAcross",
+            when = when.fold(ir.Property.When.Empty)(
+              _.fold(ir.Property.When.WhenClass(_), ir.Property.When.WhenAction(_))
+            )
+          )
+          register(properties, (m, name), p, t, s"Property $name of $m")
           Decl.Claim(claim(m, name))
         case other => fail(t, s"$op finishes a Property, not $other")
 
@@ -210,10 +201,10 @@ private[lift] trait Claims:
         case other               => fail(t, s"starts begins a Scenario, not $other")
     case Apply(Select(b, op @ ("actions" | "actionKeys")), List(items)) =>
       scenario(fold(b, env), t) { s =>
-        if op == "actions" then varargs(items).foreach(c => s.addActions(classOf(c)))
-        else varargs(items).foreach(k => s.addKeys(constString(k)))
+        if op == "actions" then s.addAllActions(varargs(items).map(classOf))
+        else s.addAllKeys(varargs(items).map(constString))
       }
-    case Select(b, "free") => scenario(fold(b, env), t)(_.setFree(true))
+    case Select(b, "free") => scenario(fold(b, env), t)(_.withFree(true))
 
     case Apply(Ident("query"), List(name)) => Decl.QueryNamed(textOf(fold(name, env), name))
     case Apply(TypeApply(Select(q, form @ ("find" | "verify")), _), List(p)) =>
@@ -230,17 +221,15 @@ private[lift] trait Claims:
     case Apply(Select(q, "explore"), List(space)) =>
       fold(q, env) match
         case Decl.Declared(name) if queries.contains(name) =>
-          val value = ir.Exploration.newBuilder()
-          declaration(Bound(space, Map.empty), value)
-          queries(name) = queries(name).toBuilder.setExploration(value).build()
+          queries(name) =
+            queries(name).withExploration(emit(ir.Exploration, Bound(space, Map.empty)))
           Decl.Declared(name)
         case other => fail(t, s"explore declares a Query's finite variations, not $other")
     case Apply(Select(q, "expect"), List(expected)) =>
       fold(q, env) match
         case Decl.Declared(name) if queries.contains(name) =>
-          val value = ir.RunExpectation.newBuilder()
-          declaration(Bound(expected, Map.empty), value)
-          queries(name) = queries(name).toBuilder.setExpectedRun(value).build()
+          queries(name) =
+            queries(name).withExpectedRun(emit(ir.RunExpectation, Bound(expected, Map.empty)))
           Decl.Declared(name)
         case other => fail(t, s"expect declares a Query's live assessment, not $other")
     case Apply(Select(q, "limits"), List(l)) =>
@@ -267,16 +256,16 @@ private[lift] trait Claims:
       val steps = constInt(within)
       if steps < 1 then
         fail(t, s"progress $n bounds itself within $steps steps; a bound is at least one step")
-      val p = ir.Progress
-        .newBuilder()
-        .setMachine(machine)
-        .setName(n)
-        .setPosition(pos(t))
-        .setFrom(stepFunction(from, s"$machine.progress.$n", "from"))
-        .setTo(stepFunction(to, s"$machine.progress.$n", "to"))
-        .setWithin(steps.toInt)
-        .addAllAssumptions(varargs(under).map(a => assumptionOf(resolveSymbol(a), a)).asJava)
-      register(progress, (machine, n), p.build(), t, s"progress $n of $machine")
+      val p = ir.Progress(
+        machine = machine,
+        name = n,
+        position = Some(pos(t)),
+        from = stepFunction(from, s"$machine.progress.$n", "from"),
+        to = stepFunction(to, s"$machine.progress.$n", "to"),
+        within = steps.toInt,
+        assumptions = varargs(under).map(a => assumptionOf(resolveSymbol(a), a))
+      )
+      register(progress, (machine, n), p, t, s"progress $n of $machine")
       Decl.Declared(n)
 
     // A value declared elsewhere, folded once: a machine or composition by its name, anything else
@@ -286,9 +275,9 @@ private[lift] trait Claims:
       folded.getOrElseUpdate(
         sym,
         valDef(sym, r, "a declaration") match
-          case d if isNamed(d.tpt.tpe, "umpire.Machine") => Decl.Model(machineOf(sym, r).getName)
+          case d if isNamed(d.tpt.tpe, "umpire.Machine")     => Decl.Model(machineOf(sym, r).name)
           case d if isNamed(d.tpt.tpe, "umpire.Composition") =>
-            Decl.Model(compositionOf(sym, r).getName)
+            Decl.Model(compositionOf(sym, r).name)
           case d => fold(d.rhs.get, Map.empty)
       )
     // A helper function of the lifted sources that declares: its body, with its arguments bound.
@@ -300,15 +289,14 @@ private[lift] trait Claims:
         case _ => fail(t, s"${fn.symbol.fullName} is not a function of the lifted sources")
     case other => fail(other, s"not a declaration the IR carries: ${other.show}")
 
-  def scenario(d: Decl, at: Tree)(f: ir.Scenario.Builder => Unit): Decl = d match
+  def scenario(d: Decl, at: Tree)(f: ir.Scenario => ir.Scenario): Decl = d match
     case Decl.ScenarioOn(m, name, start) =>
-      val s = ir.Scenario
-        .newBuilder()
-        .setMachine(m)
-        .setName(name)
-        .setPosition(pos(at))
-        .setStart(start.getOrElse(fail(at, s"Scenario $name of $m names no start")))
-      f(s)
-      register(scenarios, (m, name), s.build(), at, s"Scenario $name of $m")
+      val s = ir.Scenario(
+        machine = m,
+        name = name,
+        position = Some(pos(at)),
+        start = Some(start.getOrElse(fail(at, s"Scenario $name of $m names no start")))
+      )
+      register(scenarios, (m, name), f(s), at, s"Scenario $name of $m")
       Decl.Claim(claim(m, name))
     case other => fail(at, s"expected a Scenario, got $other")

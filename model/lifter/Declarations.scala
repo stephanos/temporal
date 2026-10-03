@@ -1,7 +1,6 @@
 package umpire.lift
 
 import scala.collection.mutable
-import scala.jdk.CollectionConverters.*
 import io.temporal.server.api.umpire.v1 as ir
 
 private[lift] trait Declarations:
@@ -33,56 +32,34 @@ private[lift] trait Declarations:
       sym.fullName
 
   def actionOf(id: String, chain: Term): ir.Action =
-    val b = ir.Action.newBuilder().setId(id).setPosition(pos(chain))
-    def walk(t: Term): Unit = t match
-      case Apply(Ident("action"), List(name, party)) =>
-        b.setName(constString(name)).setParty(constString(party))
-      case Apply(Ident("timer"), List(name)) =>
-        b.setName(constString(name)).setParty("system").setTimer(true)
-      case Apply(Ident("internal"), List(name)) =>
-        b.setName(constString(name)).setParty("system").setInternal(true)
-      case Apply(Select(inner, "on"), List(e))         => walk(inner); b.setOn(constString(e))
-      case Apply(Select(inner, "creates"), List(e))    => walk(inner); b.setCreates(constString(e))
-      case Apply(Select(inner, "results"), List(n))    => walk(inner); b.setResults(constString(n))
+    def named(name: Term): ir.Action =
+      ir.Action(id = id, position = Some(pos(chain)), name = constString(name), party = "system")
+    def walk(t: Term): ir.Action = t match
+      case Apply(Ident("action"), List(name, party))   => named(name).withParty(constString(party))
+      case Apply(Ident("timer"), List(name))           => named(name).withTimer(true)
+      case Apply(Ident("internal"), List(name))        => named(name).withInternal(true)
+      case Apply(Select(inner, "on"), List(e))         => walk(inner).withOn(constString(e))
+      case Apply(Select(inner, "creates"), List(e))    => walk(inner).withCreates(constString(e))
+      case Apply(Select(inner, "results"), List(n))    => walk(inner).withResults(constString(n))
       case Apply(Select(inner, "schema"), List(names)) =>
-        walk(inner); varargs(names).foreach(n => b.addSchemas(constString(n)))
+        walk(inner).addAllSchemas(varargs(names).map(constString))
       case Apply(Apply(TypeApply(Select(inner, "input"), List(tpt)), List(name)), _) =>
-        walk(inner);
-        b.addInputs(ir.Param.newBuilder().setName(constString(name)).setType(typeRef(tpt.tpe, t)))
+        walk(inner).addInputs(ir.Param(constString(name), Some(typeRef(tpt.tpe, t))))
       case Apply(Apply(TypeApply(Ident("example"), _), List(inner)), List(value, example)) =>
-        walk(inner)
-        b.addExamples(
-          ir.Example.newBuilder().setValue(literalValue(value)).setExample(constString(example))
-        )
+        walk(inner).addExamples(ir.Example(Some(literalValue(value)), constString(example)))
       case other => fail(other, s"not a part of an action declaration: ${other.show}")
     walk(chain)
-    b.build()
 
   /** A constant value, for an example: an enum case, with constant fields. */
-  def literalValue(t: Term): ir.Value = resolve(t) match
-    case Literal(BooleanConstant(v))    => ir.Value.newBuilder().setBool(v).build()
-    case Literal(IntConstant(v))        => ir.Value.newBuilder().setInt(v).build()
-    case r: Ref if isEnumCase(r.symbol) =>
-      ir.Value
-        .newBuilder()
-        .setEnum(
-          ir.EnumValue.newBuilder().setType(enumOf(r.symbol).fullName).setCase(r.symbol.name)
-        )
-        .build()
+  def literalValue(t: Term): ir.Value = ir.Value(resolve(t) match
+    case Literal(BooleanConstant(v))    => ir.Value.Kind.Bool(v)
+    case Literal(IntConstant(v))        => ir.Value.Kind.Int(v)
+    case r: Ref if isEnumCase(r.symbol) => enumValue(enumOf(r.symbol).fullName, r.symbol.name)
     case Apply(Select(companion, "apply"), args)
         if companion.tpe.typeSymbol.companionClass.flags.is(Flags.Enum) =>
       val cls = companion.tpe.typeSymbol.companionClass
-      ir.Value
-        .newBuilder()
-        .setEnum(
-          ir.EnumValue
-            .newBuilder()
-            .setType(enumOf(cls).fullName)
-            .setCase(cls.name)
-            .addAllFields(args.map(literalValue).asJava)
-        )
-        .build()
-    case other => fail(other, s"an example is a constant value, not ${other.show}")
+      ir.Value.Kind.Enum(ir.EnumValue(enumOf(cls).fullName, cls.name, args.map(literalValue)))
+    case other => fail(other, s"an example is a constant value, not ${other.show}"))
 
   /** A step binding's function: the one an eta-expanded lambda forwards to, or the lambda itself. */
   def stepFunction(fn: Term, machine: String, actionName: String): String = fn match
@@ -110,16 +87,14 @@ private[lift] trait Declarations:
       case Apply(Apply(Select(source, "restrict"), List(family, newName)), List(keep)) =>
         val src = machineOf(resolveSymbol(source), source)
         val kept = varargs(keep).map(action).toSet
-        ir.Machine
-          .newBuilder(src)
-          .setFamily(constString(family))
-          .setName(constString(newName))
-          .setPosition(pos(rhs))
-          .clearSteps()
-          .addAllSteps(src.getStepsList.asScala.filter(s => kept(s.getAction)).asJava)
-          .clearUnobservable()
-          .clearRefines()
-          .build()
+        src.copy(
+          family = constString(family),
+          name = constString(newName),
+          position = Some(pos(rhs)),
+          steps = src.steps.filter(s => kept(s.action)),
+          unobservable = Nil,
+          refines = None
+        )
       case _ =>
         val (s, o, f, family, mname, body) = rhs match
           case Apply(
@@ -129,33 +104,37 @@ private[lift] trait Declarations:
             (s.tpe, o.tpe, f.tpe, fam, n, ctx)
           case other =>
             fail(other, "a machine is declared by `machine[S, O, F](family, name) { ... }`")
-        val b = ir.Machine
-          .newBuilder()
-          .setFamily(constString(family))
-          .setName(constString(mname))
-          .setPosition(pos(rhs))
-          .setStateType(typeRef(s, rhs).getNamed)
-          .setOutcomeType(typeRef(o, rhs).getNamed)
-        if f.dealias.typeSymbol != defn.NothingClass then b.setFactType(typeRef(f, rhs).getNamed)
+        // The family is read first, so a refusal of both is reported at the family, as it always was.
+        val familyName = constString(family)
+        val name = constString(mname)
+        val declared = ir.Machine(
+          family = familyName,
+          name = name,
+          position = Some(pos(rhs)),
+          stateType = typeRef(s, rhs).getNamed,
+          outcomeType = typeRef(o, rhs).getNamed,
+          factType =
+            if f.dealias.typeSymbol != defn.NothingClass then typeRef(f, rhs).getNamed else ""
+        )
         val stats = body match
           case Block(List(DefDef("$anonfun", _, _, Some(Block(stats, last)))), _: Closure) =>
             stats :+ last
           case other => fail(other, "a machine's body is a block of declarations")
         val visible = mutable.ArrayBuffer.empty[String]
         val visibleOutcomes = mutable.ArrayBuffer.empty[String]
-        for stat <- stats do
+        val b = stats.foldLeft(declared): (b, stat) =>
           val decl = stat match
             case term: Term => call(term)
             case _          => None
           decl match
-            case Some(("forEntity", List(List(e), _)))  => b.setEntity(constString(e))
+            case Some(("forEntity", List(List(e), _)))  => b.withEntity(constString(e))
             case Some(("starts", List(_, List(items)))) =>
-              varargs(items).foreach(i => b.addStarts(lift(i)))
-            case Some(("ends", List(_, List(p))))          => b.setEnds(lift(p))
+              b.addAllStarts(varargs(items).map(lift(_)))
+            case Some(("ends", List(_, List(p))))          => b.withEnds(lift(p))
             case Some(("unobservable", List(List(ts), _))) =>
-              varargs(ts).foreach(a => b.addUnobservable(action(a)))
+              b.addAllUnobservable(varargs(ts).map(action))
             case Some(("evidence", List(_, List(fn)))) =>
-              val evidenceName = s"${b.getName}.evidence"
+              val evidenceName = s"$name.evidence"
               fn match
                 case Block(
                       List(DefDef("$anonfun", List(TermParamClause(params)), _, Some(body))),
@@ -163,106 +142,90 @@ private[lift] trait Declarations:
                     ) =>
                   functions(evidenceName) = function(evidenceName, params, body, fn)
                 case other => fail(other, "evidence is a function of the fact")
-              b.setEvidence(evidenceName)
+              b.withEvidence(evidenceName)
             case Some(("refines", List(_, List(product), List(map)))) =>
-              val productName = machineOf(resolveSymbol(product), product).getName
-              b.setRefines(
-                ir.Refinement
-                  .newBuilder()
-                  .setProduct(productName)
-                  .setMap(stepFunction(map, b.getName, "refines"))
-              )
+              val productName = machineOf(resolveSymbol(product), product).name
+              b.withRefines(ir.Refinement(productName, stepFunction(map, name, "refines")))
             case Some(("visible", List(_, List(fn)))) =>
-              visible += stepFunction(fn, b.getName, "visible")
+              visible += stepFunction(fn, name, "visible")
+              b
             case Some(("visibleOutcomes", List(_, List(fn)))) =>
-              visibleOutcomes += stepFunction(fn, b.getName, "visibleOutcomes")
+              visibleOutcomes += stepFunction(fn, name, "visibleOutcomes")
+              b
             case Some(("monitors", List(_, List(ms)))) =>
-              varargs(ms).foreach(m => b.addMonitors(monitorOf(resolveSymbol(m), m)))
+              b.addAllMonitors(varargs(ms).map(m => monitorOf(resolveSymbol(m), m)))
             case Some(("assumes", List(List(as), _))) =>
-              varargs(as).foreach(a => b.addAssumes(assumptionOf(resolveSymbol(a), a)))
+              b.addAllAssumes(varargs(as).map(a => assumptionOf(resolveSymbol(a), a)))
             case Some(("steps", List(_, List(bindings)))) =>
-              for binding <- varargs(bindings) do
-                binding match
+              b.addAllSteps(varargs(bindings).map { binding =>
+                val (a, fn) = binding match
                   case Apply(TypeApply(Apply(TypeApply(Ident("~>"), _), List(a)), _), List(fn)) =>
-                    val id = action(a)
-                    b.addSteps(
-                      ir.StepBinding
-                        .newBuilder()
-                        .setAction(id)
-                        .setPosition(pos(binding))
-                        .setFunction(stepFunction(fn, b.getName, actions(id).getName))
-                    )
-                  case Apply(TypeApply(Apply(Ident("~>"), List(a)), _), List(fn)) =>
-                    val id = action(a)
-                    b.addSteps(
-                      ir.StepBinding
-                        .newBuilder()
-                        .setAction(id)
-                        .setPosition(pos(binding))
-                        .setFunction(stepFunction(fn, b.getName, actions(id).getName))
-                    )
+                    (a, fn)
+                  case Apply(TypeApply(Apply(Ident("~>"), List(a)), _), List(fn)) => (a, fn)
                   case other => fail(other, s"a step is `action ~> function`, not ${other.show}")
+                val id = action(a)
+                ir.StepBinding(
+                  action = id,
+                  function = stepFunction(fn, name, actions(id).name),
+                  position = Some(pos(binding))
+                )
+              })
             case _ =>
               stat match
-                case Literal(UnitConstant()) => () // the block's trailing unit
+                case Literal(UnitConstant()) => b // the block's trailing unit
                 case _ => fail(stat, s"not a machine declaration: ${stat.show}")
-        for v <- visible do
-          if !b.hasRefines then
-            fail(
-              rhs,
-              s"${b.getName} names the facts a refined machine sees, and declares no refinement"
+        if b.refines.isEmpty && visible.nonEmpty then
+          fail(rhs, s"$name names the facts a refined machine sees, and declares no refinement")
+        if b.refines.isEmpty && visibleOutcomes.nonEmpty then
+          fail(rhs, s"$name names the outcomes a refined machine sees, and declares no refinement")
+        val m = b.copy(refines =
+          b.refines.map(r =>
+            r.copy(
+              visible = visible.lastOption.getOrElse(r.visible),
+              visibleOutcomes = visibleOutcomes.lastOption.getOrElse(r.visibleOutcomes)
             )
-          b.setRefines(b.getRefines.toBuilder.setVisible(v))
-        for v <- visibleOutcomes do
-          if !b.hasRefines then
-            fail(
-              rhs,
-              s"${b.getName} names the outcomes a refined machine sees, and declares no refinement"
-            )
-          b.setRefines(b.getRefines.toBuilder.setVisibleOutcomes(v))
-        checkChannels(b, s.dealias.typeSymbol.fullName, rhs)
-        b.build()
+          )
+        )
+        checkChannels(m, s.dealias.typeSymbol.fullName, rhs)
+        m
 
   /**
    * A machine binds each channel's actions only for a channel its state holds, and says what losing
    * a message of a lossy one does.
    */
-  def checkChannels(b: ir.Machine.Builder, state: String, at: Tree): Unit =
+  def checkChannels(b: ir.Machine, state: String, at: Tree): Unit =
     val fields = types
       .get(state)
       .toList
-      .flatMap(t =>
-        t.getRecord.getFieldsList.asScala ++
-          t.getEnum.getCasesList.asScala.flatMap(_.getFieldsList.asScala)
-      )
-      .filter(_.getType.hasChannel)
-    for (c, fs) <- fields.groupBy(_.getType.getChannel).toList.sortBy(_._1) if fs.size > 1 do
+      .flatMap(t => t.getRecord.fields ++ t.getEnum.cases.flatMap(_.fields))
+      .flatMap(f => f.getType.ref.channel.map(f.name -> _))
+    for (c, fs) <- fields.groupBy(_._2).toList.sortBy(_._1) if fs.size > 1 do
       fail(
         at,
-        s"$state holds channel ${channels(c).getName} in ${fs.map(_.getName).mkString(" and ")}; a state " +
+        s"$state holds channel ${channels(c).name} in ${fs.map(_._1).mkString(" and ")}; a state " +
           "holds a channel in one field"
       )
-    val held = fields.map(_.getType.getChannel).toSet
-    val bound = b.getStepsList.asScala.map(s => actions(s.getAction))
-    for a <- bound; c <- Seq(a.getDelivers, a.getLoses) if c.nonEmpty && !held(c) do
+    val held = fields.map(_._2).toSet
+    val bound = b.steps.map(s => actions(s.action))
+    for a <- bound; c <- Seq(a.delivers, a.loses) if c.nonEmpty && !held(c) do
       fail(
         at,
-        s"${b.getName} binds ${a.getName}, and its state holds no ${channels(c).getName} channel"
+        s"${b.name} binds ${a.name}, and its state holds no ${channels(c).name} channel"
       )
-    for c <- held.toList.sorted if channels(c).getLossy && !bound.exists(_.getLoses == c) do
+    for c <- held.toList.sorted if channels(c).lossy && !bound.exists(_.loses == c) do
       fail(
         at,
-        s"${b.getName} holds the lossy channel ${channels(c).getName} and binds no ${channels(c).getName}Loss " +
+        s"${b.name} holds the lossy channel ${channels(c).name} and binds no ${channels(c).name}Loss " +
           "step: a lossy channel's loss is a step whose meaning the machine says"
       )
-    for c <- held.toList.sorted if !channels(c).getLossy && bound.exists(_.getLoses == c) do
+    for c <- held.toList.sorted if !channels(c).lossy && bound.exists(_.loses == c) do
       fail(
         at,
-        s"${b.getName} binds ${channels(c).getName}Loss, and ${channels(c).getName} is reliable"
+        s"${b.name} binds ${channels(c).name}Loss, and ${channels(c).name} is reliable"
       )
 
   /** A lifted machine, by the name the IR gives it. */
-  def machineNamed(name: String): Option[ir.Machine] = machines.values.find(_.getName == name)
+  def machineNamed(name: String): Option[ir.Machine] = machines.values.find(_.name == name)
 
   def machineOf(sym: Symbol, at: Tree): ir.Machine =
     machines.getOrElseUpdate(
@@ -313,26 +276,23 @@ private[lift] trait Declarations:
             s"channel $n's ${enumName.toLowerCase} is ${other.show}, not a case of $enumName: a channel " +
               s"names its ${enumName.toLowerCase} as ${cases.keys.toList.sorted.map(c => s"$enumName.$c").mkString(" or ")}"
           )
-      channels(sym.fullName) = ir.Channel
-        .newBuilder()
-        .setId(sym.fullName)
-        .setName(n)
-        .setPosition(pos(d))
-        .setMessage(messageRef(message.tpe, finite, d, n))
-        .setCapacity(cap.toInt)
-        .setOrder(
-          policy(
-            order,
-            "Order",
-            Map(
-              "fifo" -> ir.Channel.Order.ORDER_FIFO,
-              "unordered" -> ir.Channel.Order.ORDER_UNORDERED
-            )
+      channels(sym.fullName) = ir.Channel(
+        id = sym.fullName,
+        name = n,
+        position = Some(pos(d)),
+        message = Some(messageRef(message.tpe, finite, d, n)),
+        capacity = cap.toInt,
+        order = policy(
+          order,
+          "Order",
+          Map(
+            "fifo" -> ir.Channel.Order.ORDER_FIFO,
+            "unordered" -> ir.Channel.Order.ORDER_UNORDERED
           )
-        )
-        .setLossy(policy(loss, "Loss", Map("reliable" -> false, "lossy" -> true)))
-        .setDuplicates(dup.toInt)
-        .build()
+        ),
+        lossy = policy(loss, "Loss", Map("reliable" -> false, "lossy" -> true)),
+        duplicates = dup.toInt
+      )
     sym.fullName
 
   /**
@@ -346,10 +306,7 @@ private[lift] trait Declarations:
       resolve(finite) match
         case Apply(upTo @ Select(_, "upTo"), List(bound))
             if upTo.symbol.owner.fullName.startsWith("umpire.Finite") =>
-          ir.TypeRef
-            .newBuilder()
-            .setIntRange(ir.IntRange.newBuilder().setLow(0).setHigh(constInt(bound)))
-            .build()
+          range(0, constInt(bound))
         case other =>
           fail(
             at,
@@ -368,18 +325,18 @@ private[lift] trait Declarations:
   /** A channel's delivery or loss of one message, the action's one input. */
   def channelAction(sym: Symbol, op: String, at: Tree): String =
     val channel = channels(channelOf(sym, at))
-    val id = s"${channel.getId}.$op"
+    val id = s"${channel.id}.$op"
     if !actions.contains(id) then
-      val b = ir.Action
-        .newBuilder()
-        .setId(id)
-        .setPosition(channel.getPosition)
-        .setParty("system")
-        .setInternal(true)
-        .addInputs(ir.Param.newBuilder().setName("message").setType(channel.getMessage))
-      if op == "deliver" then b.setName(s"${channel.getName}Delivery").setDelivers(channel.getId)
-      else b.setName(s"${channel.getName}Loss").setLoses(channel.getId)
-      actions(id) = b.build()
+      val a = ir.Action(
+        id = id,
+        position = Some(channel.getPosition),
+        party = "system",
+        internal = true,
+        inputs = Seq(ir.Param("message", Some(channel.getMessage)))
+      )
+      actions(id) =
+        if op == "deliver" then a.withName(s"${channel.name}Delivery").withDelivers(channel.id)
+        else a.withName(s"${channel.name}Loss").withLoses(channel.id)
     id
 
   /**
@@ -412,11 +369,10 @@ private[lift] trait Declarations:
     if !monitors.contains(sym.fullName) then
       val d = valDef(sym, at, "a monitor")
       val id = sym.fullName
-      val b = ir.Monitor.newBuilder().setId(id).setPosition(pos(d))
-      def walk(t: Term): Unit = t match
-        case Select(inner, "readAtEnds") => walk(inner); b.setAtEnds(ir.Empty.getDefaultInstance)
+      def walk(t: Term): ir.Monitor = t match
+        case Select(inner, "readAtEnds")                => walk(inner).withAtEnds(ir.Empty())
         case Apply(Select(inner, "readAfter"), List(f)) =>
-          walk(inner); b.setAfter(stepFunction(f, id, "after"))
+          walk(inner).withAfter(stepFunction(f, id, "after"))
         case Apply(
               Apply(
                 Apply(
@@ -427,36 +383,39 @@ private[lift] trait Declarations:
               ),
               _
             ) =>
-          b.setName(constString(name))
-            .setState(typeRef(m.tpe, t))
-            .setInitial(lift(initial, Some(m.tpe)))
-            .setNext(stepFunction(next, id, "next"))
-            .setViolated(stepFunction(violated, id, "violated"))
-            .setEveryStep(ir.Empty.getDefaultInstance)
+          ir.Monitor(
+            id = id,
+            position = Some(pos(d)),
+            name = constString(name),
+            state = Some(typeRef(m.tpe, t)),
+            initial = Some(lift(initial, Some(m.tpe))),
+            next = stepFunction(next, id, "next"),
+            violated = stepFunction(violated, id, "violated"),
+            evaluate = ir.Monitor.Evaluate.EveryStep(ir.Empty())
+          )
         case other => fail(other, s"not a part of a monitor declaration: ${other.show}")
-      walk(d.rhs.get)
-      if b.getState.hasList || b.getState.hasInt then
-        fail(d, s"monitor ${b.getName}'s state has no finite catalog")
-      for other <- monitors.values if other.getName == b.getName do
+      val m = walk(d.rhs.get)
+      if m.getState.ref.isList || m.getState.ref.isInt then
+        fail(d, s"monitor ${m.name}'s state has no finite catalog")
+      for other <- monitors.values if other.name == m.name do
         fail(
           d,
-          s"two monitors are named ${b.getName}: ${other.getId} and $id, and would share one Definition ID"
+          s"two monitors are named ${m.name}: ${other.id} and $id, and would share one Definition ID"
         )
-      monitors(id) = b.build()
+      monitors(id) = m
     sym.fullName
 
   /** An assumption, from `assume(name)` and the fairness chained onto it. */
   def assumptionOf(sym: Symbol, at: Tree): String =
     if !assumptions.contains(sym.fullName) then
       val d = valDef(sym, at, "an assumption")
-      val b = ir.Assumption.newBuilder().setId(sym.fullName).setPosition(pos(d))
-      def walk(t: Term): Unit = t match
-        case Apply(Ident("assume"), List(name))     => b.setName(constString(name))
+      def walk(t: Term): ir.Assumption = t match
+        case Apply(Ident("assume"), List(name)) =>
+          ir.Assumption(id = sym.fullName, position = Some(pos(d)), name = constString(name))
         case Apply(Select(inner, "fair"), List(as)) =>
-          walk(inner); varargs(as).foreach(a => b.addFair(action(a)))
+          walk(inner).addAllFair(varargs(as).map(action))
         case other => fail(other, s"not a part of an assumption declaration: ${other.show}")
-      walk(d.rhs.get)
-      assumptions(sym.fullName) = b.build()
+      assumptions(sym.fullName) = walk(d.rhs.get)
     sym.fullName
 
   /** A hole, from `hole(name)`. */
@@ -465,11 +424,7 @@ private[lift] trait Declarations:
       val d = valDef(sym, at, "a hole")
       d.rhs.get match
         case Apply(Ident("hole"), List(name)) =>
-          holes(sym.fullName) = ir.Hole
-            .newBuilder()
-            .setId(sym.fullName)
-            .setName(constString(name))
-            .setPosition(pos(d))
-            .build()
+          holes(sym.fullName) =
+            ir.Hole(id = sym.fullName, name = constString(name), position = Some(pos(d)))
         case other => fail(other, "a hole is declared by `hole(name)`")
     sym.fullName

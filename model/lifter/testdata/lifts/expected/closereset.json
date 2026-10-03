@@ -1,13 +1,13 @@
 {
   "source": "model: fixture.specimens.closereset.CloseReset$package$.ackByOriginalQueries, fixture.specimens.closereset.CloseReset$package$.rejectAfterCloseQueries, fixture.specimens.closereset.CloseReset$package$.retainAndRouteQueries",
-  "types": [{
+  "types": [ {
     "name": "fixture.specimens.closereset.Answer",
     "position": {
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
       "line": 53
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "accepted"
       }, {
         "name": "retained"
@@ -15,7 +15,7 @@
         "name": "rejectedTransient"
       }, {
         "name": "rejectedPermanent"
-      }]
+      } ]
     }
   }, {
     "name": "fixture.specimens.closereset.Caller",
@@ -24,13 +24,13 @@
       "line": 18
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "open"
       }, {
         "name": "closed"
       }, {
         "name": "resetOpen"
-      }]
+      } ]
     }
   }, {
     "name": "fixture.specimens.closereset.CloseResetState",
@@ -39,7 +39,7 @@
       "line": 43
     },
     "record": {
-      "fields": [{
+      "fields": [ {
         "name": "caller",
         "type": {
           "named": "fixture.specimens.closereset.Caller"
@@ -47,8 +47,7 @@
       }, {
         "name": "cancel",
         "type": {
-          "bool": {
-          }
+          "bool": { }
         }
       }, {
         "name": "handler",
@@ -70,7 +69,7 @@
         "type": {
           "named": "fixture.specimens.closereset.Knowledge"
         }
-      }]
+      } ]
     }
   }, {
     "name": "fixture.specimens.closereset.Completion",
@@ -79,17 +78,17 @@
       "line": 28
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "none"
       }, {
         "name": "inFlight",
-        "fields": [{
+        "fields": [ {
           "name": "result",
           "type": {
             "named": "temporal.nexuscaller.kernel.Resolution"
           }
-        }]
-      }]
+        } ]
+      } ]
     }
   }, {
     "name": "fixture.specimens.closereset.Handler",
@@ -98,17 +97,17 @@
       "line": 22
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "running"
       }, {
         "name": "done",
-        "fields": [{
+        "fields": [ {
           "name": "result",
           "type": {
             "named": "temporal.nexuscaller.kernel.Resolution"
           }
-        }]
-      }]
+        } ]
+      } ]
     }
   }, {
     "name": "fixture.specimens.closereset.Knowledge",
@@ -117,25 +116,25 @@
       "line": 38
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "none"
       }, {
         "name": "original",
-        "fields": [{
+        "fields": [ {
           "name": "result",
           "type": {
             "named": "temporal.nexuscaller.kernel.Resolution"
           }
-        }]
+        } ]
       }, {
         "name": "successor",
-        "fields": [{
+        "fields": [ {
           "name": "result",
           "type": {
             "named": "temporal.nexuscaller.kernel.Resolution"
           }
-        }]
-      }]
+        } ]
+      } ]
     }
   }, {
     "name": "fixture.specimens.closereset.Policy",
@@ -144,13 +143,13 @@
       "line": 60
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "rejectAfterClose"
       }, {
         "name": "ackByOriginal"
       }, {
         "name": "retainAndRoute"
-      }]
+      } ]
     }
   }, {
     "name": "fixture.specimens.closereset.Retained",
@@ -159,17 +158,17 @@
       "line": 33
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "none"
       }, {
         "name": "pending",
-        "fields": [{
+        "fields": [ {
           "name": "result",
           "type": {
             "named": "temporal.nexuscaller.kernel.Resolution"
           }
-        }]
-      }]
+        } ]
+      } ]
     }
   }, {
     "name": "temporal.nexuscaller.kernel.Resolution",
@@ -178,22 +177,22 @@
       "line": 32
     },
     "enum": {
-      "cases": [{
+      "cases": [ {
         "name": "succeeded"
       }, {
         "name": "failed"
       }, {
         "name": "canceled"
-      }]
+      } ]
     }
-  }],
-  "functions": [{
+  } ],
+  "functions": [ {
     "name": "ackByOriginal.complete",
     "position": {
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
       "line": 170
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.specimens.closereset.CloseResetState"
@@ -203,7 +202,7 @@
       "type": {
         "named": "temporal.nexuscaller.kernel.Resolution"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -211,7 +210,7 @@
       },
       "call": {
         "function": "fixture.specimens.closereset.CloseReset$package$.deliverStep",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 170
@@ -234,7 +233,7 @@
             "line": 170
           },
           "var": "r"
-        }]
+        } ]
       }
     }
   }, {
@@ -243,7 +242,7 @@
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
       "line": 197
     },
-    "params": [{
+    "params": [ {
       "name": "before",
       "type": {
         "named": "fixture.specimens.closereset.CloseResetState"
@@ -253,7 +252,7 @@
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -276,20 +275,19 @@
             "field": "channel"
           }
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "case": {
               "type": "fixture.specimens.closereset.Completion",
               "case": "inFlight",
-              "fields": [{
+              "fields": [ {
                 "bind": {
                   "name": "r",
                   "pattern": {
-                    "wildcard": {
-                    }
+                    "wildcard": { }
                   }
                 }
-              }]
+              } ]
             }
           },
           "body": {
@@ -451,7 +449,7 @@
                     },
                     "call": {
                       "function": "fixture.specimens.closereset.CloseReset$package$.ownerKnows",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/CloseReset.scala",
                           "line": 200
@@ -472,7 +470,7 @@
                           "line": 200
                         },
                         "var": "r"
-                      }]
+                      } ]
                     }
                   }
                 }
@@ -517,13 +515,13 @@
                     "construct": {
                       "type": "fixture.specimens.closereset.Retained",
                       "case": "pending",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/CloseReset.scala",
                           "line": 200
                         },
                         "var": "r"
-                      }]
+                      } ]
                     }
                   }
                 }
@@ -548,7 +546,7 @@
               "bool": true
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -557,12 +555,12 @@
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
       "line": 80
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.specimens.closereset.CloseResetState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -682,8 +680,7 @@
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 81
           },
-          "list": {
-          }
+          "list": { }
         },
         "else": {
           "position": {
@@ -691,14 +688,14 @@
             "line": 82
           },
           "list": {
-            "items": [{
+            "items": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
                 "line": 82
               },
               "construct": {
                 "type": "umpire.Step",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/CloseReset.scala",
                     "line": 82
@@ -722,7 +719,7 @@
                       },
                       "var": "s"
                     },
-                    "updates": [{
+                    "updates": [ {
                       "name": "cancel",
                       "value": {
                         "position": {
@@ -733,15 +730,14 @@
                           "bool": true
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/CloseReset.scala",
                     "line": 82
                   },
-                  "list": {
-                  }
+                  "list": { }
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -750,9 +746,9 @@
                   "literal": {
                     "text": ""
                   }
-                }]
+                } ]
               }
-            }]
+            } ]
           }
         }
       }
@@ -763,12 +759,12 @@
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
       "line": 77
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.specimens.closereset.CloseResetState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -817,8 +813,7 @@
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 78
           },
-          "list": {
-          }
+          "list": { }
         },
         "else": {
           "position": {
@@ -826,14 +821,14 @@
             "line": 78
           },
           "list": {
-            "items": [{
+            "items": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
                 "line": 78
               },
               "construct": {
                 "type": "umpire.Step",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/CloseReset.scala",
                     "line": 78
@@ -857,7 +852,7 @@
                       },
                       "var": "s"
                     },
-                    "updates": [{
+                    "updates": [ {
                       "name": "caller",
                       "value": {
                         "position": {
@@ -871,15 +866,14 @@
                           }
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/CloseReset.scala",
                     "line": 78
                   },
-                  "list": {
-                  }
+                  "list": { }
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -888,9 +882,9 @@
                   "literal": {
                     "text": ""
                   }
-                }]
+                } ]
               }
-            }]
+            } ]
           }
         }
       }
@@ -901,7 +895,7 @@
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
       "line": 92
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.specimens.closereset.CloseResetState"
@@ -911,21 +905,21 @@
       "type": {
         "named": "fixture.specimens.closereset.Knowledge"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
         "line": 92
       },
       "list": {
-        "items": [{
+        "items": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 93
           },
           "construct": {
             "type": "umpire.Step",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
                 "line": 93
@@ -949,7 +943,7 @@
                   },
                   "var": "s"
                 },
-                "updates": [{
+                "updates": [ {
                   "name": "channel",
                   "value": {
                     "position": {
@@ -972,15 +966,14 @@
                     },
                     "var": "k"
                   }
-                }]
+                } ]
               }
             }, {
               "position": {
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
                 "line": 93
               },
-              "list": {
-              }
+              "list": { }
             }, {
               "position": {
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -989,7 +982,7 @@
               "literal": {
                 "text": ""
               }
-            }]
+            } ]
           }
         }, {
           "position": {
@@ -998,7 +991,7 @@
           },
           "construct": {
             "type": "umpire.Step",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
                 "line": 94
@@ -1020,8 +1013,7 @@
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
                 "line": 94
               },
-              "list": {
-              }
+              "list": { }
             }, {
               "position": {
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -1030,7 +1022,7 @@
               "literal": {
                 "text": ""
               }
-            }]
+            } ]
           }
         }, {
           "position": {
@@ -1039,7 +1031,7 @@
           },
           "construct": {
             "type": "umpire.Step",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
                 "line": 95
@@ -1063,7 +1055,7 @@
                   },
                   "var": "s"
                 },
-                "updates": [{
+                "updates": [ {
                   "name": "known",
                   "value": {
                     "position": {
@@ -1072,15 +1064,14 @@
                     },
                     "var": "k"
                   }
-                }]
+                } ]
               }
             }, {
               "position": {
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
                 "line": 95
               },
-              "list": {
-              }
+              "list": { }
             }, {
               "position": {
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -1089,9 +1080,9 @@
               "literal": {
                 "text": "the acknowledgment is lost"
               }
-            }]
+            } ]
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -1100,7 +1091,7 @@
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
       "line": 104
     },
-    "params": [{
+    "params": [ {
       "name": "p",
       "type": {
         "named": "fixture.specimens.closereset.Policy"
@@ -1115,7 +1106,7 @@
       "type": {
         "named": "temporal.nexuscaller.kernel.Resolution"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -1153,13 +1144,13 @@
               "construct": {
                 "type": "fixture.specimens.closereset.Completion",
                 "case": "inFlight",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/CloseReset.scala",
                     "line": 105
                   },
                   "var": "r"
-                }]
+                } ]
               }
             }
           }
@@ -1169,8 +1160,7 @@
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 105
           },
-          "list": {
-          }
+          "list": { }
         },
         "else": {
           "position": {
@@ -1194,7 +1184,7 @@
                 "field": "caller"
               }
             },
-            "cases": [{
+            "cases": [ {
               "pattern": {
                 "literal": {
                   "enum": {
@@ -1210,7 +1200,7 @@
                 },
                 "call": {
                   "function": "fixture.specimens.closereset.CloseReset$package$.committed",
-                  "args": [{
+                  "args": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/CloseReset.scala",
                       "line": 107
@@ -1224,15 +1214,15 @@
                     "construct": {
                       "type": "fixture.specimens.closereset.Knowledge",
                       "case": "original",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/CloseReset.scala",
                           "line": 107
                         },
                         "var": "r"
-                      }]
+                      } ]
                     }
-                  }]
+                  } ]
                 }
               }
             }, {
@@ -1284,14 +1274,14 @@
                       "line": 110
                     },
                     "list": {
-                      "items": [{
+                      "items": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/CloseReset.scala",
                           "line": 110
                         },
                         "construct": {
                           "type": "umpire.Step",
-                          "args": [{
+                          "args": [ {
                             "position": {
                               "file": "model/lifter/testdata/lifts/CloseReset.scala",
                               "line": 110
@@ -1315,7 +1305,7 @@
                                 },
                                 "var": "s"
                               },
-                              "updates": [{
+                              "updates": [ {
                                 "name": "channel",
                                 "value": {
                                   "position": {
@@ -1329,15 +1319,14 @@
                                     }
                                   }
                                 }
-                              }]
+                              } ]
                             }
                           }, {
                             "position": {
                               "file": "model/lifter/testdata/lifts/CloseReset.scala",
                               "line": 110
                             },
-                            "list": {
-                            }
+                            "list": { }
                           }, {
                             "position": {
                               "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -1346,7 +1335,7 @@
                             "literal": {
                               "text": ""
                             }
-                          }]
+                          } ]
                         }
                       }, {
                         "position": {
@@ -1355,7 +1344,7 @@
                         },
                         "construct": {
                           "type": "umpire.Step",
-                          "args": [{
+                          "args": [ {
                             "position": {
                               "file": "model/lifter/testdata/lifts/CloseReset.scala",
                               "line": 110
@@ -1377,8 +1366,7 @@
                               "file": "model/lifter/testdata/lifts/CloseReset.scala",
                               "line": 110
                             },
-                            "list": {
-                            }
+                            "list": { }
                           }, {
                             "position": {
                               "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -1387,9 +1375,9 @@
                             "literal": {
                               "text": ""
                             }
-                          }]
+                          } ]
                         }
-                      }]
+                      } ]
                     }
                   },
                   "else": {
@@ -1399,7 +1387,7 @@
                     },
                     "call": {
                       "function": "fixture.specimens.closereset.CloseReset$package$.keptAtOperation",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/CloseReset.scala",
                           "line": 111
@@ -1411,7 +1399,7 @@
                           "line": 111
                         },
                         "var": "r"
-                      }]
+                      } ]
                     }
                   }
                 }
@@ -1465,14 +1453,14 @@
                       "line": 114
                     },
                     "list": {
-                      "items": [{
+                      "items": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/CloseReset.scala",
                           "line": 114
                         },
                         "construct": {
                           "type": "umpire.Step",
-                          "args": [{
+                          "args": [ {
                             "position": {
                               "file": "model/lifter/testdata/lifts/CloseReset.scala",
                               "line": 114
@@ -1496,7 +1484,7 @@
                                 },
                                 "var": "s"
                               },
-                              "updates": [{
+                              "updates": [ {
                                 "name": "channel",
                                 "value": {
                                   "position": {
@@ -1510,15 +1498,14 @@
                                     }
                                   }
                                 }
-                              }]
+                              } ]
                             }
                           }, {
                             "position": {
                               "file": "model/lifter/testdata/lifts/CloseReset.scala",
                               "line": 114
                             },
-                            "list": {
-                            }
+                            "list": { }
                           }, {
                             "position": {
                               "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -1527,9 +1514,9 @@
                             "literal": {
                               "text": "the original run acknowledges it"
                             }
-                          }]
+                          } ]
                         }
-                      }]
+                      } ]
                     }
                   },
                   "else": {
@@ -1539,7 +1526,7 @@
                     },
                     "call": {
                       "function": "fixture.specimens.closereset.CloseReset$package$.committed",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/CloseReset.scala",
                           "line": 115
@@ -1553,20 +1540,20 @@
                         "construct": {
                           "type": "fixture.specimens.closereset.Knowledge",
                           "case": "successor",
-                          "args": [{
+                          "args": [ {
                             "position": {
                               "file": "model/lifter/testdata/lifts/CloseReset.scala",
                               "line": 115
                             },
                             "var": "r"
-                          }]
+                          } ]
                         }
-                      }]
+                      } ]
                     }
                   }
                 }
               }
-            }]
+            } ]
           }
         }
       }
@@ -1577,7 +1564,7 @@
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
       "line": 85
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.specimens.closereset.CloseResetState"
@@ -1587,7 +1574,7 @@
       "type": {
         "named": "temporal.nexuscaller.kernel.Resolution"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -1636,8 +1623,7 @@
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 86
           },
-          "list": {
-          }
+          "list": { }
         },
         "else": {
           "position": {
@@ -1712,8 +1698,7 @@
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
                 "line": 87
               },
-              "list": {
-              }
+              "list": { }
             },
             "else": {
               "position": {
@@ -1721,14 +1706,14 @@
                 "line": 88
               },
               "list": {
-                "items": [{
+                "items": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/CloseReset.scala",
                     "line": 88
                   },
                   "construct": {
                     "type": "umpire.Step",
-                    "args": [{
+                    "args": [ {
                       "position": {
                         "file": "model/lifter/testdata/lifts/CloseReset.scala",
                         "line": 88
@@ -1752,7 +1737,7 @@
                           },
                           "var": "s"
                         },
-                        "updates": [{
+                        "updates": [ {
                           "name": "handler",
                           "value": {
                             "position": {
@@ -1762,13 +1747,13 @@
                             "construct": {
                               "type": "fixture.specimens.closereset.Handler",
                               "case": "done",
-                              "args": [{
+                              "args": [ {
                                 "position": {
                                   "file": "model/lifter/testdata/lifts/CloseReset.scala",
                                   "line": 88
                                 },
                                 "var": "r"
-                              }]
+                              } ]
                             }
                           }
                         }, {
@@ -1781,24 +1766,23 @@
                             "construct": {
                               "type": "fixture.specimens.closereset.Completion",
                               "case": "inFlight",
-                              "args": [{
+                              "args": [ {
                                 "position": {
                                   "file": "model/lifter/testdata/lifts/CloseReset.scala",
                                   "line": 88
                                 },
                                 "var": "r"
-                              }]
+                              } ]
                             }
                           }
-                        }]
+                        } ]
                       }
                     }, {
                       "position": {
                         "file": "model/lifter/testdata/lifts/CloseReset.scala",
                         "line": 88
                       },
-                      "list": {
-                      }
+                      "list": { }
                     }, {
                       "position": {
                         "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -1807,9 +1791,9 @@
                       "literal": {
                         "text": ""
                       }
-                    }]
+                    } ]
                   }
-                }]
+                } ]
               }
             }
           }
@@ -1822,7 +1806,7 @@
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
       "line": 98
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.specimens.closereset.CloseResetState"
@@ -1832,21 +1816,21 @@
       "type": {
         "named": "temporal.nexuscaller.kernel.Resolution"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
         "line": 98
       },
       "list": {
-        "items": [{
+        "items": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 99
           },
           "construct": {
             "type": "umpire.Step",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
                 "line": 99
@@ -1870,7 +1854,7 @@
                   },
                   "var": "s"
                 },
-                "updates": [{
+                "updates": [ {
                   "name": "channel",
                   "value": {
                     "position": {
@@ -1894,24 +1878,23 @@
                     "construct": {
                       "type": "fixture.specimens.closereset.Retained",
                       "case": "pending",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/CloseReset.scala",
                           "line": 99
                         },
                         "var": "r"
-                      }]
+                      } ]
                     }
                   }
-                }]
+                } ]
               }
             }, {
               "position": {
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
                 "line": 99
               },
-              "list": {
-              }
+              "list": { }
             }, {
               "position": {
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -1920,7 +1903,7 @@
               "literal": {
                 "text": ""
               }
-            }]
+            } ]
           }
         }, {
           "position": {
@@ -1929,7 +1912,7 @@
           },
           "construct": {
             "type": "umpire.Step",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
                 "line": 100
@@ -1951,8 +1934,7 @@
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
                 "line": 100
               },
-              "list": {
-              }
+              "list": { }
             }, {
               "position": {
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -1961,7 +1943,7 @@
               "literal": {
                 "text": ""
               }
-            }]
+            } ]
           }
         }, {
           "position": {
@@ -1970,7 +1952,7 @@
           },
           "construct": {
             "type": "umpire.Step",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
                 "line": 101
@@ -1994,7 +1976,7 @@
                   },
                   "var": "s"
                 },
-                "updates": [{
+                "updates": [ {
                   "name": "retained",
                   "value": {
                     "position": {
@@ -2004,24 +1986,23 @@
                     "construct": {
                       "type": "fixture.specimens.closereset.Retained",
                       "case": "pending",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/CloseReset.scala",
                           "line": 101
                         },
                         "var": "r"
-                      }]
+                      } ]
                     }
                   }
-                }]
+                } ]
               }
             }, {
               "position": {
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
                 "line": 101
               },
-              "list": {
-              }
+              "list": { }
             }, {
               "position": {
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -2030,9 +2011,9 @@
               "literal": {
                 "text": "the acknowledgment is lost"
               }
-            }]
+            } ]
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -2041,12 +2022,12 @@
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
       "line": 191
     },
-    "params": [{
+    "params": [ {
       "name": "after",
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -2078,7 +2059,7 @@
             "field": "handler"
           }
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -2101,15 +2082,14 @@
             "case": {
               "type": "fixture.specimens.closereset.Handler",
               "case": "done",
-              "fields": [{
+              "fields": [ {
                 "bind": {
                   "name": "r",
                   "pattern": {
-                    "wildcard": {
-                    }
+                    "wildcard": { }
                   }
                 }
-              }]
+              } ]
             }
           },
           "body": {
@@ -2133,7 +2113,7 @@
                     },
                     "call": {
                       "function": "fixture.specimens.closereset.CloseReset$package$.ownerKnows",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/CloseReset.scala",
                           "line": 194
@@ -2154,7 +2134,7 @@
                           "line": 194
                         },
                         "var": "r"
-                      }]
+                      } ]
                     }
                   },
                   "right": {
@@ -2197,13 +2177,13 @@
                         "construct": {
                           "type": "fixture.specimens.closereset.Retained",
                           "case": "pending",
-                          "args": [{
+                          "args": [ {
                             "position": {
                               "file": "model/lifter/testdata/lifts/CloseReset.scala",
                               "line": 194
                             },
                             "var": "r"
-                          }]
+                          } ]
                         }
                       }
                     }
@@ -2250,20 +2230,20 @@
                     "construct": {
                       "type": "fixture.specimens.closereset.Completion",
                       "case": "inFlight",
-                      "args": [{
+                      "args": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/CloseReset.scala",
                           "line": 194
                         },
                         "var": "r"
-                      }]
+                      } ]
                     }
                   }
                 }
               }
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -2272,11 +2252,10 @@
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
       "line": 148
     },
-    "params": [{
+    "params": [ {
       "name": "broken",
       "type": {
-        "bool": {
-        }
+        "bool": { }
       }
     }, {
       "name": "before",
@@ -2288,7 +2267,7 @@
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -2317,7 +2296,7 @@
               },
               "call": {
                 "function": "fixture.specimens.closereset.CloseReset$package$.ackOnlyWhenKept",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/CloseReset.scala",
                     "line": 149
@@ -2329,7 +2308,7 @@
                     "line": 149
                   },
                   "var": "after"
-                }]
+                } ]
               }
             }
           }
@@ -2342,13 +2321,12 @@
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
       "line": 149
     },
-    "params": [{
+    "params": [ {
       "name": "broken",
       "type": {
-        "bool": {
-        }
+        "bool": { }
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -2362,7 +2340,7 @@
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
       "line": 186
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.specimens.closereset.CloseResetState"
@@ -2372,7 +2350,7 @@
       "type": {
         "named": "temporal.nexuscaller.kernel.Resolution"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -2447,13 +2425,13 @@
               "construct": {
                 "type": "fixture.specimens.closereset.Knowledge",
                 "case": "successor",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/CloseReset.scala",
                     "line": 187
                   },
                   "var": "r"
-                }]
+                } ]
               }
             }
           }
@@ -2489,13 +2467,13 @@
               "construct": {
                 "type": "fixture.specimens.closereset.Knowledge",
                 "case": "original",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/CloseReset.scala",
                     "line": 187
                   },
                   "var": "r"
-                }]
+                } ]
               }
             }
           }
@@ -2508,12 +2486,12 @@
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
       "line": 124
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.specimens.closereset.CloseResetState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -2536,20 +2514,19 @@
             "field": "known"
           }
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "case": {
               "type": "fixture.specimens.closereset.Knowledge",
               "case": "original",
-              "fields": [{
+              "fields": [ {
                 "bind": {
                   "name": "r",
                   "pattern": {
-                    "wildcard": {
-                    }
+                    "wildcard": { }
                   }
                 }
-              }]
+              } ]
             }
           },
           "body": {
@@ -2560,19 +2537,18 @@
             "construct": {
               "type": "fixture.specimens.closereset.Knowledge",
               "case": "successor",
-              "args": [{
+              "args": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/CloseReset.scala",
                   "line": 125
                 },
                 "var": "r"
-              }]
+              } ]
             }
           }
         }, {
           "pattern": {
-            "wildcard": {
-            }
+            "wildcard": { }
           },
           "body": {
             "position": {
@@ -2596,20 +2572,19 @@
                   "field": "retained"
                 }
               },
-              "cases": [{
+              "cases": [ {
                 "pattern": {
                   "case": {
                     "type": "fixture.specimens.closereset.Retained",
                     "case": "pending",
-                    "fields": [{
+                    "fields": [ {
                       "bind": {
                         "name": "r",
                         "pattern": {
-                          "wildcard": {
-                          }
+                          "wildcard": { }
                         }
                       }
-                    }]
+                    } ]
                   }
                 },
                 "body": {
@@ -2620,13 +2595,13 @@
                   "construct": {
                     "type": "fixture.specimens.closereset.Knowledge",
                     "case": "successor",
-                    "args": [{
+                    "args": [ {
                       "position": {
                         "file": "model/lifter/testdata/lifts/CloseReset.scala",
                         "line": 128
                       },
                       "var": "r"
-                    }]
+                    } ]
                   }
                 }
               }, {
@@ -2650,10 +2625,10 @@
                     }
                   }
                 }
-              }]
+              } ]
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -2662,12 +2637,12 @@
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
       "line": 120
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.specimens.closereset.CloseResetState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -2716,8 +2691,7 @@
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 121
           },
-          "list": {
-          }
+          "list": { }
         },
         "else": {
           "position": {
@@ -2725,14 +2699,14 @@
             "line": 122
           },
           "list": {
-            "items": [{
+            "items": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
                 "line": 122
               },
               "construct": {
                 "type": "umpire.Step",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/CloseReset.scala",
                     "line": 122
@@ -2756,7 +2730,7 @@
                       },
                       "var": "s"
                     },
-                    "updates": [{
+                    "updates": [ {
                       "name": "caller",
                       "value": {
                         "position": {
@@ -2793,24 +2767,23 @@
                         },
                         "call": {
                           "function": "fixture.specimens.closereset.CloseReset$package$.reapplied",
-                          "args": [{
+                          "args": [ {
                             "position": {
                               "file": "model/lifter/testdata/lifts/CloseReset.scala",
                               "line": 122
                             },
                             "var": "s"
-                          }]
+                          } ]
                         }
                       }
-                    }]
+                    } ]
                   }
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/CloseReset.scala",
                     "line": 122
                   },
-                  "list": {
-                  }
+                  "list": { }
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -2819,9 +2792,9 @@
                   "literal": {
                     "text": ""
                   }
-                }]
+                } ]
               }
-            }]
+            } ]
           }
         }
       }
@@ -2832,11 +2805,10 @@
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
       "line": 142
     },
-    "params": [{
+    "params": [ {
       "name": "lost",
       "type": {
-        "bool": {
-        }
+        "bool": { }
       }
     }, {
       "name": "_$1",
@@ -2848,7 +2820,7 @@
       "type": {
         "named": "umpire.Step"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -2877,13 +2849,13 @@
               },
               "call": {
                 "function": "fixture.specimens.closereset.CloseReset$package$.outcomePreserved",
-                "args": [{
+                "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/CloseReset.scala",
                     "line": 143
                   },
                   "var": "after"
-                }]
+                } ]
               }
             }
           }
@@ -2896,13 +2868,12 @@
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
       "line": 143
     },
-    "params": [{
+    "params": [ {
       "name": "lost",
       "type": {
-        "bool": {
-        }
+        "bool": { }
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -2916,12 +2887,12 @@
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
       "line": 134
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.specimens.closereset.CloseResetState"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -2944,7 +2915,7 @@
             "field": "handler"
           }
         },
-        "cases": [{
+        "cases": [ {
           "pattern": {
             "literal": {
               "enum": {
@@ -2967,15 +2938,14 @@
             "case": {
               "type": "fixture.specimens.closereset.Handler",
               "case": "done",
-              "fields": [{
+              "fields": [ {
                 "bind": {
                   "name": "r",
                   "pattern": {
-                    "wildcard": {
-                    }
+                    "wildcard": { }
                   }
                 }
-              }]
+              } ]
             }
           },
           "body": {
@@ -2992,7 +2962,7 @@
                 },
                 "call": {
                   "function": "fixture.specimens.closereset.CloseReset$package$.ownerKnows",
-                  "args": [{
+                  "args": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/CloseReset.scala",
                       "line": 136
@@ -3004,7 +2974,7 @@
                       "line": 136
                     },
                     "var": "r"
-                  }]
+                  } ]
                 }
               },
               "right": {
@@ -3082,13 +3052,13 @@
                         "construct": {
                           "type": "fixture.specimens.closereset.Retained",
                           "case": "pending",
-                          "args": [{
+                          "args": [ {
                             "position": {
                               "file": "model/lifter/testdata/lifts/CloseReset.scala",
                               "line": 136
                             },
                             "var": "r"
-                          }]
+                          } ]
                         }
                       }
                     }
@@ -3097,7 +3067,7 @@
               }
             }
           }
-        }]
+        } ]
       }
     }
   }, {
@@ -3106,7 +3076,7 @@
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
       "line": 160
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.specimens.closereset.CloseResetState"
@@ -3116,7 +3086,7 @@
       "type": {
         "named": "temporal.nexuscaller.kernel.Resolution"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -3124,7 +3094,7 @@
       },
       "call": {
         "function": "fixture.specimens.closereset.CloseReset$package$.deliverStep",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 160
@@ -3147,7 +3117,7 @@
             "line": 160
           },
           "var": "r"
-        }]
+        } ]
       }
     }
   }, {
@@ -3156,7 +3126,7 @@
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
       "line": 180
     },
-    "params": [{
+    "params": [ {
       "name": "s",
       "type": {
         "named": "fixture.specimens.closereset.CloseResetState"
@@ -3166,7 +3136,7 @@
       "type": {
         "named": "temporal.nexuscaller.kernel.Resolution"
       }
-    }],
+    } ],
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -3174,7 +3144,7 @@
       },
       "call": {
         "function": "fixture.specimens.closereset.CloseReset$package$.deliverStep",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 180
@@ -3197,11 +3167,11 @@
             "line": 180
           },
           "var": "r"
-        }]
+        } ]
       }
     }
-  }],
-  "actions": [{
+  } ],
+  "actions": [ {
     "id": "fixture.specimens.closereset.CloseReset$package$.callerClose",
     "name": "callerClose",
     "position": {
@@ -3218,12 +3188,12 @@
       "line": 71
     },
     "party": "handler",
-    "inputs": [{
+    "inputs": [ {
       "name": "result",
       "type": {
         "named": "temporal.nexuscaller.kernel.Resolution"
       }
-    }],
+    } ],
     "on": "operation"
   }, {
     "id": "fixture.specimens.closereset.CloseReset$package$.requestCancel",
@@ -3251,16 +3221,16 @@
       "line": 99
     },
     "party": "handler",
-    "inputs": [{
+    "inputs": [ {
       "name": "resolution",
       "type": {
         "named": "temporal.nexuscaller.kernel.Resolution"
       }
-    }],
+    } ],
     "on": "operation",
     "results": "Delivery"
-  }],
-  "machines": [{
+  } ],
+  "machines": [ {
     "family": "temporal.nexus.caller.closereset",
     "name": "ackByOriginal",
     "position": {
@@ -3270,14 +3240,14 @@
     "entity": "operation",
     "stateType": "fixture.specimens.closereset.CloseResetState",
     "outcomeType": "fixture.specimens.closereset.Answer",
-    "starts": [{
+    "starts": [ {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
         "line": 73
       },
       "construct": {
         "type": "fixture.specimens.closereset.CloseResetState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 73
@@ -3340,21 +3310,21 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
-    }],
+    } ],
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
         "line": 168
       },
       "lambda": {
-        "params": [{
+        "params": [ {
           "name": "s",
           "type": {
             "named": "fixture.specimens.closereset.CloseResetState"
           }
-        }],
+        } ],
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -3362,18 +3332,18 @@
           },
           "call": {
             "function": "fixture.specimens.closereset.CloseReset$package$.settled",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
                 "line": 168
               },
               "var": "s"
-            }]
+            } ]
           }
         }
       }
     },
-    "steps": [{
+    "steps": [ {
       "action": "fixture.specimens.closereset.CloseReset$package$.callerClose",
       "function": "fixture.specimens.closereset.CloseReset$package$.closeStep",
       "position": {
@@ -3408,8 +3378,8 @@
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
         "line": 170
       }
-    }],
-    "monitors": ["fixture.specimens.closereset.CloseReset$package$.retainedOutcome", "fixture.specimens.closereset.CloseReset$package$.ownerAcknowledgment"]
+    } ],
+    "monitors": [ "fixture.specimens.closereset.CloseReset$package$.retainedOutcome", "fixture.specimens.closereset.CloseReset$package$.ownerAcknowledgment" ]
   }, {
     "family": "temporal.nexus.caller.closereset",
     "name": "rejectAfterClose",
@@ -3420,14 +3390,14 @@
     "entity": "operation",
     "stateType": "fixture.specimens.closereset.CloseResetState",
     "outcomeType": "fixture.specimens.closereset.Answer",
-    "starts": [{
+    "starts": [ {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
         "line": 73
       },
       "construct": {
         "type": "fixture.specimens.closereset.CloseResetState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 73
@@ -3490,21 +3460,21 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
-    }],
+    } ],
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
         "line": 158
       },
       "lambda": {
-        "params": [{
+        "params": [ {
           "name": "s",
           "type": {
             "named": "fixture.specimens.closereset.CloseResetState"
           }
-        }],
+        } ],
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -3512,18 +3482,18 @@
           },
           "call": {
             "function": "fixture.specimens.closereset.CloseReset$package$.settled",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
                 "line": 158
               },
               "var": "s"
-            }]
+            } ]
           }
         }
       }
     },
-    "steps": [{
+    "steps": [ {
       "action": "fixture.specimens.closereset.CloseReset$package$.callerClose",
       "function": "fixture.specimens.closereset.CloseReset$package$.closeStep",
       "position": {
@@ -3558,8 +3528,8 @@
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
         "line": 160
       }
-    }],
-    "monitors": ["fixture.specimens.closereset.CloseReset$package$.retainedOutcome", "fixture.specimens.closereset.CloseReset$package$.ownerAcknowledgment"]
+    } ],
+    "monitors": [ "fixture.specimens.closereset.CloseReset$package$.retainedOutcome", "fixture.specimens.closereset.CloseReset$package$.ownerAcknowledgment" ]
   }, {
     "family": "temporal.nexus.caller.closereset",
     "name": "retainAndRoute",
@@ -3570,14 +3540,14 @@
     "entity": "operation",
     "stateType": "fixture.specimens.closereset.CloseResetState",
     "outcomeType": "fixture.specimens.closereset.Answer",
-    "starts": [{
+    "starts": [ {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
         "line": 73
       },
       "construct": {
         "type": "fixture.specimens.closereset.CloseResetState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 73
@@ -3640,21 +3610,21 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
-    }],
+    } ],
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
         "line": 178
       },
       "lambda": {
-        "params": [{
+        "params": [ {
           "name": "s",
           "type": {
             "named": "fixture.specimens.closereset.CloseResetState"
           }
-        }],
+        } ],
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -3662,18 +3632,18 @@
           },
           "call": {
             "function": "fixture.specimens.closereset.CloseReset$package$.settled",
-            "args": [{
+            "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/CloseReset.scala",
                 "line": 178
               },
               "var": "s"
-            }]
+            } ]
           }
         }
       }
     },
-    "steps": [{
+    "steps": [ {
       "action": "fixture.specimens.closereset.CloseReset$package$.callerClose",
       "function": "fixture.specimens.closereset.CloseReset$package$.closeStep",
       "position": {
@@ -3708,10 +3678,10 @@
         "file": "model/lifter/testdata/lifts/CloseReset.scala",
         "line": 180
       }
-    }],
-    "monitors": ["fixture.specimens.closereset.CloseReset$package$.retainedOutcome", "fixture.specimens.closereset.CloseReset$package$.ownerAcknowledgment"]
-  }],
-  "monitors": [{
+    } ],
+    "monitors": [ "fixture.specimens.closereset.CloseReset$package$.retainedOutcome", "fixture.specimens.closereset.CloseReset$package$.ownerAcknowledgment" ]
+  } ],
+  "monitors": [ {
     "id": "fixture.specimens.closereset.CloseReset$package$.ownerAcknowledgment",
     "name": "ownerAcknowledgment",
     "position": {
@@ -3719,8 +3689,7 @@
       "line": 147
     },
     "state": {
-      "bool": {
-      }
+      "bool": { }
     },
     "initial": {
       "position": {
@@ -3733,8 +3702,7 @@
     },
     "next": "fixture.specimens.closereset.CloseReset$package$.ownerAcknowledgment.next",
     "violated": "fixture.specimens.closereset.CloseReset$package$.ownerAcknowledgment.violated",
-    "everyStep": {
-    }
+    "everyStep": { }
   }, {
     "id": "fixture.specimens.closereset.CloseReset$package$.retainedOutcome",
     "name": "retainedOutcome",
@@ -3743,8 +3711,7 @@
       "line": 141
     },
     "state": {
-      "bool": {
-      }
+      "bool": { }
     },
     "initial": {
       "position": {
@@ -3757,10 +3724,9 @@
     },
     "next": "fixture.specimens.closereset.CloseReset$package$.retainedOutcome.next",
     "violated": "fixture.specimens.closereset.CloseReset$package$.retainedOutcome.violated",
-    "everyStep": {
-    }
-  }],
-  "properties": [{
+    "everyStep": { }
+  } ],
+  "properties": [ {
     "machine": "ackByOriginal",
     "name": "ackOnlyWhenKept",
     "position": {
@@ -3811,8 +3777,8 @@
       "line": 207
     },
     "holds": "fixture.specimens.closereset.CloseReset$package$.outcomePreserved"
-  }],
-  "scenarios": [{
+  } ],
+  "scenarios": [ {
     "machine": "ackByOriginal",
     "name": "ackedThenReset",
     "position": {
@@ -3826,7 +3792,7 @@
       },
       "construct": {
         "type": "fixture.specimens.closereset.CloseResetState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 73
@@ -3889,28 +3855,28 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
-    "actions": [{
+    "actions": [ {
       "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "succeeded"
         }
-      }]
+      } ]
     }, {
       "action": "temporal.nexuscaller.Model$package$.complete",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "succeeded"
         }
-      }]
+      } ]
     }, {
       "action": "fixture.specimens.closereset.CloseReset$package$.reset"
-    }]
+    } ]
   }, {
     "machine": "ackByOriginal",
     "name": "any",
@@ -3925,7 +3891,7 @@
       },
       "construct": {
         "type": "fixture.specimens.closereset.CloseResetState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 73
@@ -3988,7 +3954,7 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
     "free": true
@@ -4006,7 +3972,7 @@
       },
       "construct": {
         "type": "fixture.specimens.closereset.CloseResetState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 73
@@ -4069,30 +4035,30 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
-    "actions": [{
+    "actions": [ {
       "action": "fixture.specimens.closereset.CloseReset$package$.requestCancel"
     }, {
       "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "canceled"
         }
-      }]
+      } ]
     }, {
       "action": "fixture.specimens.closereset.CloseReset$package$.reset"
     }, {
       "action": "temporal.nexuscaller.Model$package$.complete",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "canceled"
         }
-      }]
-    }]
+      } ]
+    } ]
   }, {
     "machine": "ackByOriginal",
     "name": "closedThenFinished",
@@ -4107,7 +4073,7 @@
       },
       "construct": {
         "type": "fixture.specimens.closereset.CloseResetState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 73
@@ -4170,30 +4136,30 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
-    "actions": [{
+    "actions": [ {
       "action": "fixture.specimens.closereset.CloseReset$package$.callerClose"
     }, {
       "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "succeeded"
         }
-      }]
+      } ]
     }, {
       "action": "temporal.nexuscaller.Model$package$.complete",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "succeeded"
         }
-      }]
+      } ]
     }, {
       "action": "fixture.specimens.closereset.CloseReset$package$.reset"
-    }]
+    } ]
   }, {
     "machine": "ackByOriginal",
     "name": "resetThenDelivered",
@@ -4208,7 +4174,7 @@
       },
       "construct": {
         "type": "fixture.specimens.closereset.CloseResetState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 73
@@ -4271,28 +4237,28 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
-    "actions": [{
+    "actions": [ {
       "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "failed"
         }
-      }]
+      } ]
     }, {
       "action": "fixture.specimens.closereset.CloseReset$package$.reset"
     }, {
       "action": "temporal.nexuscaller.Model$package$.complete",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "failed"
         }
-      }]
-    }]
+      } ]
+    } ]
   }, {
     "machine": "rejectAfterClose",
     "name": "ackedThenReset",
@@ -4307,7 +4273,7 @@
       },
       "construct": {
         "type": "fixture.specimens.closereset.CloseResetState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 73
@@ -4370,28 +4336,28 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
-    "actions": [{
+    "actions": [ {
       "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "succeeded"
         }
-      }]
+      } ]
     }, {
       "action": "temporal.nexuscaller.Model$package$.complete",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "succeeded"
         }
-      }]
+      } ]
     }, {
       "action": "fixture.specimens.closereset.CloseReset$package$.reset"
-    }]
+    } ]
   }, {
     "machine": "rejectAfterClose",
     "name": "any",
@@ -4406,7 +4372,7 @@
       },
       "construct": {
         "type": "fixture.specimens.closereset.CloseResetState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 73
@@ -4469,7 +4435,7 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
     "free": true
@@ -4487,7 +4453,7 @@
       },
       "construct": {
         "type": "fixture.specimens.closereset.CloseResetState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 73
@@ -4550,30 +4516,30 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
-    "actions": [{
+    "actions": [ {
       "action": "fixture.specimens.closereset.CloseReset$package$.requestCancel"
     }, {
       "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "canceled"
         }
-      }]
+      } ]
     }, {
       "action": "fixture.specimens.closereset.CloseReset$package$.reset"
     }, {
       "action": "temporal.nexuscaller.Model$package$.complete",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "canceled"
         }
-      }]
-    }]
+      } ]
+    } ]
   }, {
     "machine": "rejectAfterClose",
     "name": "closedThenFinished",
@@ -4588,7 +4554,7 @@
       },
       "construct": {
         "type": "fixture.specimens.closereset.CloseResetState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 73
@@ -4651,30 +4617,30 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
-    "actions": [{
+    "actions": [ {
       "action": "fixture.specimens.closereset.CloseReset$package$.callerClose"
     }, {
       "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "succeeded"
         }
-      }]
+      } ]
     }, {
       "action": "temporal.nexuscaller.Model$package$.complete",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "succeeded"
         }
-      }]
+      } ]
     }, {
       "action": "fixture.specimens.closereset.CloseReset$package$.reset"
-    }]
+    } ]
   }, {
     "machine": "rejectAfterClose",
     "name": "resetThenDelivered",
@@ -4689,7 +4655,7 @@
       },
       "construct": {
         "type": "fixture.specimens.closereset.CloseResetState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 73
@@ -4752,28 +4718,28 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
-    "actions": [{
+    "actions": [ {
       "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "failed"
         }
-      }]
+      } ]
     }, {
       "action": "fixture.specimens.closereset.CloseReset$package$.reset"
     }, {
       "action": "temporal.nexuscaller.Model$package$.complete",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "failed"
         }
-      }]
-    }]
+      } ]
+    } ]
   }, {
     "machine": "retainAndRoute",
     "name": "ackedThenReset",
@@ -4788,7 +4754,7 @@
       },
       "construct": {
         "type": "fixture.specimens.closereset.CloseResetState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 73
@@ -4851,28 +4817,28 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
-    "actions": [{
+    "actions": [ {
       "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "succeeded"
         }
-      }]
+      } ]
     }, {
       "action": "temporal.nexuscaller.Model$package$.complete",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "succeeded"
         }
-      }]
+      } ]
     }, {
       "action": "fixture.specimens.closereset.CloseReset$package$.reset"
-    }]
+    } ]
   }, {
     "machine": "retainAndRoute",
     "name": "any",
@@ -4887,7 +4853,7 @@
       },
       "construct": {
         "type": "fixture.specimens.closereset.CloseResetState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 73
@@ -4950,7 +4916,7 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
     "free": true
@@ -4968,7 +4934,7 @@
       },
       "construct": {
         "type": "fixture.specimens.closereset.CloseResetState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 73
@@ -5031,30 +4997,30 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
-    "actions": [{
+    "actions": [ {
       "action": "fixture.specimens.closereset.CloseReset$package$.requestCancel"
     }, {
       "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "canceled"
         }
-      }]
+      } ]
     }, {
       "action": "fixture.specimens.closereset.CloseReset$package$.reset"
     }, {
       "action": "temporal.nexuscaller.Model$package$.complete",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "canceled"
         }
-      }]
-    }]
+      } ]
+    } ]
   }, {
     "machine": "retainAndRoute",
     "name": "closedThenFinished",
@@ -5069,7 +5035,7 @@
       },
       "construct": {
         "type": "fixture.specimens.closereset.CloseResetState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 73
@@ -5132,30 +5098,30 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
-    "actions": [{
+    "actions": [ {
       "action": "fixture.specimens.closereset.CloseReset$package$.callerClose"
     }, {
       "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "succeeded"
         }
-      }]
+      } ]
     }, {
       "action": "temporal.nexuscaller.Model$package$.complete",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "succeeded"
         }
-      }]
+      } ]
     }, {
       "action": "fixture.specimens.closereset.CloseReset$package$.reset"
-    }]
+    } ]
   }, {
     "machine": "retainAndRoute",
     "name": "resetThenDelivered",
@@ -5170,7 +5136,7 @@
       },
       "construct": {
         "type": "fixture.specimens.closereset.CloseResetState",
-        "args": [{
+        "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/CloseReset.scala",
             "line": 73
@@ -5233,30 +5199,30 @@
               "case": "none"
             }
           }
-        }]
+        } ]
       }
     },
-    "actions": [{
+    "actions": [ {
       "action": "fixture.specimens.closereset.CloseReset$package$.handlerFinish",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "failed"
         }
-      }]
+      } ]
     }, {
       "action": "fixture.specimens.closereset.CloseReset$package$.reset"
     }, {
       "action": "temporal.nexuscaller.Model$package$.complete",
-      "inputs": [{
+      "inputs": [ {
         "enum": {
           "type": "temporal.nexuscaller.kernel.Resolution",
           "case": "failed"
         }
-      }]
-    }]
-  }],
-  "queries": [{
+      } ]
+    } ]
+  } ],
+  "queries": [ {
     "name": "ackByOriginal.ackedThenReset",
     "position": {
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
@@ -5697,5 +5663,5 @@
       "actions": 4,
       "search": 1048576
     }
-  }]
+  } ]
 }
