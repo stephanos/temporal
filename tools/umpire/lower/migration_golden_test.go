@@ -68,16 +68,10 @@ func artifactError(err error) string {
 	return err.Error()
 }
 
-func artifactModel(t *testing.T, files map[string][]byte, key string, m *umpirespb.Model) {
+// artifactModel records what m lowers to through its producer, which has checked m once already:
+// the Query receipts it lowers by also key the assessments.
+func artifactModel(t *testing.T, files map[string][]byte, key string, m *umpirespb.Model, producer *lower.Producer) {
 	t.Helper()
-	producer, err := lower.NewProducer(m)
-	require.NoError(t, err, key)
-	receipts := map[string]umpiremodel.Receipt{}
-	for _, receipt := range umpiremodel.Check(m, umpiremodel.DefaultScope).Receipts {
-		if receipt.Subject == umpiremodel.QuerySubject {
-			receipts[receipt.Key.Name] = receipt
-		}
-	}
 	for _, query := range m.GetQueries() {
 		qkey := key + "/queries/" + query.GetName()
 		identity := cp.IdentityFor("temporal.case", "scala."+strings.TrimSuffix(filepath.Base(key), ".json"), query.GetName())
@@ -93,7 +87,7 @@ func artifactModel(t *testing.T, files map[string][]byte, key string, m *umpires
 			continue
 		}
 		putCase(t, files, qkey, c)
-		factory, err := conformance.Prepare(m, receipts[query.GetName()].Key, c, conformance.Limits{MaxEvents: 2048, MaxProperties: 16, MaxDuration: time.Minute, MaxCandidates: 1 << 16, MaxWork: 1 << 22, MaxReadings: 1 << 22})
+		factory, err := conformance.Prepare(m, producer.QueryKey(query.GetName()), c, conformance.Limits{MaxEvents: 2048, MaxProperties: 16, MaxDuration: time.Minute, MaxCandidates: 1 << 16, MaxWork: 1 << 22, MaxReadings: 1 << 22})
 		if err != nil {
 			putJSON(t, files, qkey+"/assessment-error.json", artifactError(err))
 		} else {
@@ -168,6 +162,13 @@ func captureArtifacts(t *testing.T, cfg golden.Config, models map[string]*umpire
 	t.Helper()
 	files := map[string][]byte{}
 	generatedIR := t.TempDir()
+	// Each IR Model is generated through the Producer its artifacts were lowered by, which binds and
+	// checks it once for both; the Model loaded back from its file must be that one.
+	type lowered struct {
+		model    *umpirespb.Model
+		producer *lower.Producer
+	}
+	producers := map[string]lowered{}
 	for _, path := range slices.Sorted(maps.Keys(models)) {
 		model := models[path]
 		if project {
@@ -178,12 +179,22 @@ func captureArtifacts(t *testing.T, cfg golden.Config, models map[string]*umpire
 		}
 		key := strings.TrimPrefix(path, "model/scalav2/")
 		putProto(t, files, "inputs/"+key, model)
-		artifactModel(t, files, key, model)
+		producer, err := lower.NewProducer(model)
+		require.NoError(t, err, key)
+		artifactModel(t, files, key, model, producer)
 		if strings.HasPrefix(key, "ir/") {
+			require.NotContains(t, producers, filepath.Base(path))
+			producers[filepath.Base(path)] = lowered{model, producer}
 			require.NoError(t, os.WriteFile(filepath.Join(generatedIR, filepath.Base(path)), files["inputs/"+key], 0644))
 		}
 	}
-	generated, err := lower.GenerateCases(generatedIR)
+	generated, err := lower.GenerateCasesWith(generatedIR, func(path string, loaded *umpirespb.Model) (*lower.Producer, error) {
+		p, ok := producers[filepath.Base(path)]
+		if !ok || !proto.Equal(p.model, loaded) {
+			return nil, fmt.Errorf("%s is not a Model whose artifacts were lowered", path)
+		}
+		return p.producer, nil
+	})
 	require.NoError(t, err)
 	for name, encoded := range generated {
 		files["generated/"+name] = encoded

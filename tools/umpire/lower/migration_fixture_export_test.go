@@ -11,6 +11,18 @@ import (
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 )
 
+// QueryKey is the key of the receipt Check gave the Model's Query of this name when the Producer
+// was made.
+func (p *Producer) QueryKey(query string) umpiremodel.ClaimKey {
+	return p.found[query].Key
+}
+
+// GenerateCasesWith is GenerateCases with the Producer of each IR file it loads given by produce, so
+// a test that already made a Model's Producer lowers its generated Cases through that one.
+func GenerateCasesWith(irDirectory string, produce func(path string, m *umpirespb.Model) (*Producer, error)) (map[string][]byte, error) {
+	return generateCases(irDirectory, produce)
+}
+
 func MigrationFixture(m *umpirespb.Model, query string, identity cp.Identity) (*umpiremodel.Query, *cp.Realization, error) {
 	p, err := NewProducer(m)
 	if err != nil {
